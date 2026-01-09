@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0b0d12" />
+    <meta name="description" content="{وَقُلْ رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا}" />
+    <link rel="icon" href="%BASE_URL%logo.svg" />
+    <link rel="apple-touch-icon" href="%BASE_URL%logo.svg" />
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <title>Athar — أثر</title>
+    <style>
+      #error-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: white;
+        color: red;
+        z-index: 9999;
+        padding: 20px;
+        white-space: pre-wrap;
+        display: none;
+        overflow: auto;
+      }
+    </style>
+    <script>
+      window.onerror = function (msg, url, lineNo, columnNo, error) {
+        var overlay = document.getElementById('error-overlay');
+        overlay.style.display = 'block';
+        overlay.innerText += 'Error: ' + msg + '\nURL: ' + url + '\nLine: ' + lineNo + '\n\n';
+        return false;
+      };
+      window.addEventListener('unhandledrejection', function (event) {
+        var overlay = document.getElementById('error-overlay');
+        overlay.style.display = 'block';
+        overlay.innerText += 'Promise Error: ' + event.reason + '\n\n';
+      });
+    </script>
+  </head>
+  <body class="bg-[var(--bg)] text-[var(--fg)]">
+    <div id="error-overlay"></div>
+    <noscript>هذا التطبيق يحتاج JavaScript ليعمل.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

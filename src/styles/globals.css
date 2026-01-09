@@ -1,0 +1,271 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------------------------------------------------------
+   NŪR Design System (CSS Variables)
+   ------------------------------------------------------- */
+
+:root {
+  --bg: #07080b;
+  --fg: #f5f7ff;
+  --muted: rgba(245, 247, 255, 0.72);
+  --muted-2: rgba(245, 247, 255, 0.56);
+
+  --card: rgba(255, 255, 255, 0.06);
+  --card-2: rgba(255, 255, 255, 0.085);
+  --stroke: rgba(255, 255, 255, 0.10);
+
+  --accent: #ffd780;
+  --accent-2: #9ae6ff;
+  --danger: #ff6b6b;
+  --ok: #3ddc97;
+
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+
+.light {
+  --bg: #f7f8ff;
+  --fg: #0f1325;
+  --muted: rgba(15, 19, 37, 0.72);
+  --muted-2: rgba(15, 19, 37, 0.56);
+
+  --card: rgba(15, 19, 37, 0.06);
+  --card-2: rgba(15, 19, 37, 0.09);
+  --stroke: rgba(15, 19, 37, 0.14);
+
+  --shadow: 0 18px 50px rgba(15, 19, 37, 0.12);
+}
+
+.noor {
+  /* “Golden Hour” mode */
+  --bg: #07080b;
+  --fg: #fef8ec;
+  --muted: rgba(254, 248, 236, 0.72);
+  --muted-2: rgba(254, 248, 236, 0.56);
+
+  --card: rgba(255, 215, 128, 0.08);
+  --card-2: rgba(255, 215, 128, 0.11);
+  --stroke: rgba(255, 215, 128, 0.18);
+
+  --accent: #ffd780;
+  --accent-2: #ffb84d;
+}
+
+.midnight {
+  --bg: #0f172a;
+  --fg: #e2e8f0;
+  --muted: rgba(226, 232, 240, 0.72);
+  --muted-2: rgba(226, 232, 240, 0.56);
+  --card: rgba(30, 41, 59, 0.4);
+  --card-2: rgba(30, 41, 59, 0.6);
+  --stroke: rgba(148, 163, 184, 0.1);
+  --accent: #38bdf8;
+  --accent-2: #818cf8;
+}
+
+.forest {
+  --bg: #022c22;
+  --fg: #ecfdf5;
+  --muted: rgba(236, 253, 245, 0.7);
+  --muted-2: rgba(236, 253, 245, 0.5);
+  --card: rgba(6, 78, 59, 0.35); /* Solid deep green tint */
+  --card-2: rgba(6, 78, 59, 0.55);
+  --stroke: rgba(52, 211, 153, 0.15);
+  --accent: #34d399; /* Emerald */
+  --accent-2: #10b981;
+}
+
+.bees {
+  /* Royal Gold Theme */
+  --bg: #1a120b; /* Deep brown/black */
+  --fg: #fffbeb;
+  --muted: rgba(255, 251, 235, 0.75);
+  --muted-2: rgba(255, 251, 235, 0.55);
+  --card: rgba(120, 53, 15, 0.25); /* Warm amber tint */
+  --card-2: rgba(120, 53, 15, 0.4);
+  --stroke: rgba(245, 158, 11, 0.2);
+  --accent: #fbbf24; /* Amber 400 */
+  --accent-2: #d97706;
+}
+
+.roses {
+  /* Elegant Rose Theme */
+  --bg: #280a14; /* Deep Burgundy */
+  --fg: #ffe4e6; /* Rose 100 */
+  --muted: rgba(255, 228, 230, 0.8);
+  --muted-2: rgba(255, 228, 230, 0.6);
+  --card: rgba(159, 18, 57, 0.25); /* Rose 800 tint */
+  --card-2: rgba(159, 18, 57, 0.4);
+  --stroke: rgba(251, 113, 133, 0.25);
+  --accent: #fda4af; /* Rose 300 */
+  --accent-2: #e11d48;
+}
+
+.sapphire {
+  /* Deep ocean blue */
+  --bg: #070a1a;
+  --fg: #eaf2ff;
+  --muted: rgba(234, 242, 255, 0.75);
+  --muted-2: rgba(234, 242, 255, 0.55);
+  --card: rgba(30, 64, 175, 0.22);
+  --card-2: rgba(30, 64, 175, 0.36);
+  --stroke: rgba(147, 197, 253, 0.16);
+  --accent: #60a5fa;
+  --accent-2: #22d3ee;
+}
+
+.violet {
+  /* Calm violet */
+  --bg: #12051f;
+  --fg: #f5edff;
+  --muted: rgba(245, 237, 255, 0.76);
+  --muted-2: rgba(245, 237, 255, 0.56);
+  --card: rgba(109, 40, 217, 0.22);
+  --card-2: rgba(109, 40, 217, 0.36);
+  --stroke: rgba(196, 181, 253, 0.18);
+  --accent: #c4b5fd;
+  --accent-2: #a78bfa;
+}
+
+.sunset {
+  /* Warm sunset */
+  --bg: #160a06;
+  --fg: #fff7ed;
+  --muted: rgba(255, 247, 237, 0.76);
+  --muted-2: rgba(255, 247, 237, 0.56);
+  --card: rgba(234, 88, 12, 0.20);
+  --card-2: rgba(234, 88, 12, 0.34);
+  --stroke: rgba(253, 186, 116, 0.20);
+  --accent: #fb923c;
+  --accent-2: #f472b6;
+}
+
+.mist {
+  /* Minimal silver */
+  --bg: #0b0d12;
+  --fg: #f3f4f6;
+  --muted: rgba(243, 244, 246, 0.72);
+  --muted-2: rgba(243, 244, 246, 0.52);
+  --card: rgba(255, 255, 255, 0.08);
+  --card-2: rgba(255, 255, 255, 0.12);
+  --stroke: rgba(255, 255, 255, 0.14);
+  --accent: #e5e7eb;
+  --accent-2: #94a3b8;
+}
+
+/* Better tap feel on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent overscroll glow on Android */
+html,
+body {
+  overscroll-behavior: none;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Naskh Arabic",
+    "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+}
+
+/* Glass utility */
+@layer components {
+  .glass {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.03)
+    );
+    border: 1px solid var(--stroke);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .glass-strong {
+    background: linear-gradient(180deg, var(--card-2), var(--card));
+    border: 1px solid var(--stroke);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+}
+
+/* Transparent Mode Logic */
+body.transparent-mode {
+  --card: rgba(0, 0, 0, 0.05);
+  --card-2: rgba(0, 0, 0, 0.15);
+  /* Keep bg as is, so the 3D background is visible behind the now-transparent cards */
+}
+body.transparent-mode .glass,
+body.transparent-mode .glass-strong {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.008));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(255,255,255,0.06);
+  box-shadow: none;
+}
+/* For dark/roses/forest themes specifically where text needs contrast */
+html.roses body.transparent-mode .glass-strong,
+html.forest body.transparent-mode .glass-strong,
+html.bees body.transparent-mode .glass-strong,
+html.midnight body.transparent-mode .glass-strong {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+/* Arabic typography improvements */
+.arabic-text {
+  letter-spacing: 0;
+  line-height: 1.9;
+  font-size: 1.08rem;
+  unicode-bidi: plaintext;
+}
+
+/* Selection */
+::selection {
+  background: rgba(255, 215, 128, 0.28);
+}
+
+/* Subtle scrollbars */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Live background helpers */
+@keyframes atharFloatA {
+  0% { transform: translate3d(-6%, -4%, 0) scale(1); }
+  50% { transform: translate3d(6%, 4%, 0) scale(1.06); }
+  100% { transform: translate3d(-6%, -4%, 0) scale(1); }
+}
+@keyframes atharFloatB {
+  0% { transform: translate3d(6%, -2%, 0) scale(1); }
+  50% { transform: translate3d(-6%, 5%, 0) scale(1.08); }
+  100% { transform: translate3d(6%, -2%, 0) scale(1); }
+}
+@keyframes atharFall {
+  0% { transform: translate3d(0, -120px, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.9; }
+  100% { transform: translate3d(0, 120vh, 0) rotate(260deg); opacity: 0; }
+}
+
+.athar-bg-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(48px);
+  opacity: 0.16;
+}
+
+.reduce-motion .athar-bg-blob {
+  animation: none !important;
+}

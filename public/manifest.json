@@ -1,0 +1,16 @@
+{
+  "name": "Athar",
+  "short_name": "Athar",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#052e16",
+  "theme_color": "#052e16",
+  "description": "Athar Adhkar App",
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
