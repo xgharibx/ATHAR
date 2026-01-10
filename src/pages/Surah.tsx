@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowRight, Bookmark, BookmarkCheck, Copy } from "lucide-react";
+import { ArrowRight, Copy } from "lucide-react";
 
 import { useQuranDB } from "@/data/useQuranDB";
 import { Card } from "@/components/ui/Card";
@@ -11,6 +11,12 @@ import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 
 const BASMALAH = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
+
+function toArabicIndic(n: number) {
+  const map = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+  const s = String(Math.max(0, Math.floor(n)));
+  return s.replace(/\d/g, (d) => map[Number(d)] ?? d);
+}
 
 function shouldShowBasmalah(surahId: number) {
   // Common Quran convention: no basmalah header for Al-Fatiha (it is verse 1) and At-Tawbah.
@@ -38,7 +44,7 @@ export function SurahPage() {
   const surahId = Number(params.id);
   const focusAyah = Number(sp.get("a") ?? "0");
 
-  const listRef = React.useRef<HTMLDivElement>(null);
+  const pageRef = React.useRef<HTMLDivElement>(null);
 
   const surah = React.useMemo(() => {
     if (!data || !Number.isFinite(surahId)) return null;
@@ -52,12 +58,46 @@ export function SurahPage() {
   }, [surah, setLastRead]);
 
   React.useEffect(() => {
-    if (!surah || !listRef.current) return;
+    if (!surah || !pageRef.current) return;
     if (!Number.isFinite(focusAyah) || focusAyah <= 0) return;
 
-    const el = listRef.current.querySelector(`[data-ayah='${focusAyah}']`) as HTMLElement | null;
+    const el = pageRef.current.querySelector(`[data-ayah='${focusAyah}']`) as HTMLElement | null;
     if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [surah, focusAyah]);
+
+  const ayahs: string[] = React.useMemo(() => {
+    if (!surah) return [];
+    return surah.ayahs.map((a, idx) => (idx === 0 ? stripBasmalahFromFirstAyahIfPresent(a) : a));
+  }, [surah]);
+
+  const doCopyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("تم النسخ");
+    } catch {
+      toast.error("تعذر النسخ");
+    }
+  };
+
+  const fullSurahText = React.useMemo(() => {
+    const parts: string[] = [];
+    if (!surah) return "";
+    if (shouldShowBasmalah(surah.id)) parts.push(BASMALAH);
+    ayahs.forEach((t, idx) => {
+      const i = idx + 1;
+      parts.push(`${t} (${i})`);
+    });
+    return parts.join("\n");
+  }, [ayahs, surah]);
+
+  const bookmarkedInSurah = React.useMemo(() => {
+    if (!surah) return 0;
+    let c = 0;
+    for (let i = 1; i <= ayahs.length; i++) {
+      if (bookmarks[`${surah.id}:${i}`]) c += 1;
+    }
+    return c;
+  }, [ayahs.length, bookmarks, surah]);
 
   if (isLoading) return <div className="p-6 opacity-80">... تحميل السورة</div>;
   if (error || !data) {
@@ -85,17 +125,6 @@ export function SurahPage() {
     );
   }
 
-  const ayahs: string[] = surah.ayahs.map((a, idx) => (idx === 0 ? stripBasmalahFromFirstAyahIfPresent(a) : a));
-
-  const doCopyAyah = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("تم النسخ");
-    } catch {
-      toast.error("تعذر النسخ");
-    }
-  };
-
   return (
     <div className="space-y-4">
       <Card className="p-5">
@@ -109,68 +138,82 @@ export function SurahPage() {
               <div className="mt-1 text-xs opacity-65">{surah.englishName || ""} • {surah.id}</div>
             </div>
           </div>
-          <Badge className="tabular-nums">{ayahs.length} آية</Badge>
+          <div className="flex items-center gap-2">
+            <Badge className="tabular-nums">{ayahs.length} آية</Badge>
+            <Badge className="tabular-nums">{bookmarkedInSurah} علامة</Badge>
+            <IconButton aria-label="نسخ السورة" onClick={() => doCopyText(fullSurahText)}>
+              <Copy size={16} />
+            </IconButton>
+          </div>
         </div>
 
         {shouldShowBasmalah(surah.id) ? (
-          <div className="mt-4 glass rounded-3xl p-4 border border-white/10">
-            <div className="arabic-text text-center text-base leading-8">{BASMALAH}</div>
+          <div className="mt-4 rounded-3xl p-4 border border-white/10 bg-[var(--ok)]/10">
+            <div className="arabic-text text-center text-base leading-8 text-[var(--ok)]">{BASMALAH}</div>
           </div>
         ) : null}
       </Card>
 
-      <div ref={listRef} className="space-y-3">
-        {ayahs.map((text, idx) => {
-          const ayahIndex = idx + 1;
-          const key = `${surah.id}:${ayahIndex}`;
-          const isBookmarked = !!bookmarks[key];
-
-          return (
-            <Card
-              key={key}
-              className="p-5"
-              data-ayah={ayahIndex}
+      <Card className="p-5">
+        <div
+          ref={pageRef}
+          className="rounded-3xl border border-white/10 overflow-hidden"
+        >
+          <div
+            className="p-5 md:p-7"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 1px)",
+              backgroundSize: "18px 18px",
+              backgroundColor: "rgba(255,255,255,0.04)"
+            }}
+          >
+            <div
+              className="arabic-text text-[17px] md:text-[18px] leading-10 whitespace-pre-wrap"
+              style={{ overflowWrap: "anywhere" }}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Badge className="tabular-nums">{ayahIndex}</Badge>
-                  <div className="text-xs opacity-65">آية</div>
-                </div>
+              {ayahs.map((text, idx) => {
+                const ayahIndex = idx + 1;
+                const k = `${surah.id}:${ayahIndex}`;
+                const isBookmarked = !!bookmarks[k];
 
-                <div className="flex items-center gap-2">
-                  <IconButton
-                    aria-label="نسخ الآية"
-                    onClick={() => doCopyAyah(`${text} ﴿${surah.name}:${ayahIndex}﴾`)}
-                  >
-                    <Copy size={16} />
-                  </IconButton>
+                return (
+                  <span key={k} data-ayah={ayahIndex} className="inline">
+                    <span
+                      className="inline"
+                      onClick={() => setLastRead(surah.id, ayahIndex)}
+                    >
+                      {text}{" "}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toggleBookmark(surah.id, ayahIndex);
+                        setLastRead(surah.id, ayahIndex);
+                      }}
+                      className={
+                        "inline-flex align-middle items-center justify-center mx-1 px-2.5 h-8 rounded-full border text-sm tabular-nums transition " +
+                        (isBookmarked
+                          ? "bg-[var(--accent)] text-black border-white/10"
+                          : "bg-white/6 border-white/12 text-[var(--accent)] hover:bg-white/10")
+                      }
+                      aria-label={`آية ${ayahIndex}`}
+                      title={isBookmarked ? "إزالة علامة" : "إضافة علامة"}
+                    >
+                      ﴿{toArabicIndic(ayahIndex)}﴾
+                    </button>
+                    {" "}
+                  </span>
+                );
+              })}
+            </div>
 
-                  <IconButton
-                    aria-label="إضافة علامة"
-                    onClick={() => {
-                      toggleBookmark(surah.id, ayahIndex);
-                      setLastRead(surah.id, ayahIndex);
-                      toast.success(isBookmarked ? "تمت إزالة العلامة" : "تمت إضافة علامة");
-                    }}
-                  >
-                    {isBookmarked ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
-                  </IconButton>
-                </div>
-              </div>
-
-              <div
-                className="mt-4 arabic-text whitespace-pre-wrap text-base leading-9"
-                style={{ overflowWrap: "anywhere" }}
-                onClick={() => setLastRead(surah.id, ayahIndex)}
-              >
-                {text}
-              </div>
-
-              <div className="mt-3 text-xs opacity-60">اضغط على الآية لتحديث موضع القراءة</div>
-            </Card>
-          );
-        })}
-      </div>
+            <div className="mt-4 text-xs opacity-65">
+              اضغط على الآية لتحديث موضع القراءة، واضغط على رقم الآية لإضافة علامة.
+            </div>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
