@@ -75,6 +75,13 @@ export function HomePage() {
   const dailyWirdStartISO = useNoorStore((s) => s.dailyWirdStartISO);
   const setDailyWirdStartISO = useNoorStore((s) => s.setDailyWirdStartISO);
 
+  const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
+  const khatmaDays = useNoorStore((s) => s.khatmaDays);
+  const khatmaDone = useNoorStore((s) => s.khatmaDone);
+  const setKhatmaPlan = useNoorStore((s) => s.setKhatmaPlan);
+  const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
+  const resetKhatma = useNoorStore((s) => s.resetKhatma);
+
   const sections = data?.db.sections ?? [];
   const flat = data?.flat ?? [];
 
@@ -133,6 +140,51 @@ export function HomePage() {
   }, [dailyWirdStartISO, quran.data, todayKey]);
 
   const isDailyWirdDone = !!dailyWirdDone[todayKey];
+
+  const khatma = React.useMemo(() => {
+    if (!quran.data) return null;
+    if (!khatmaStartISO || !khatmaDays) return null;
+
+    const start = parseISODate(khatmaStartISO);
+    const today = parseISODate(todayKey);
+    if (!start || !today) return null;
+
+    const days = Math.max(1, Math.min(365, Math.floor(khatmaDays)));
+
+    const flat: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
+    for (const s of quran.data) {
+      for (let i = 0; i < s.ayahs.length; i++) {
+        const text = (s.ayahs[i] ?? "").trim();
+        if (!text) continue;
+        flat.push({ surahId: s.id, surahName: s.name, ayahIndex: i + 1, text });
+      }
+    }
+    if (flat.length === 0) return null;
+
+    const chunk = Math.ceil(flat.length / days);
+    const dayIndexRaw = Math.max(0, daysBetween(start, today));
+    const isFinished = dayIndexRaw >= days;
+    const dayIndex = Math.min(dayIndexRaw, days - 1);
+
+    const startAt = dayIndex * chunk;
+    const endAt = Math.min(flat.length, startAt + chunk) - 1;
+
+    const first = flat[startAt];
+    const last = flat[endAt];
+
+    const doneCount = Object.keys(khatmaDone ?? {}).filter((k) => khatmaDone[k]).length;
+    const doneToday = !!khatmaDone?.[todayKey];
+    const percent = days ? Math.round((doneCount / days) * 100) : 0;
+
+    return {
+      days,
+      chunk,
+      dayIndex,
+      isFinished,
+      today: { first, last },
+      meta: { doneCount, doneToday, percent }
+    };
+  }, [khatmaDays, khatmaDone, khatmaStartISO, quran.data, todayKey]);
 
   const copyDailyWird = async () => {
     if (!dailyWird) return;
@@ -502,6 +554,113 @@ export function HomePage() {
                 </div>
               </button>
             ))}
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">خطة الختمة</div>
+            <div className="text-xs opacity-65 mt-1">قسّم القرآن تلقائياً حسب المدة</div>
+          </div>
+
+          {khatmaStartISO && khatmaDays ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                resetKhatma();
+                toast.success("تمت إعادة ضبط الخطة");
+              }}
+              title="إعادة ضبط الخطة"
+            >
+              إعادة ضبط
+            </Button>
+          ) : null}
+        </div>
+
+        {!khatmaStartISO || !khatmaDays ? (
+          <div className="mt-4">
+            <div className="text-sm opacity-80">اختر مدة الختمة:</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[7, 15, 30, 60].map((d) => (
+                <Button
+                  key={d}
+                  variant="secondary"
+                  onClick={() => {
+                    setKhatmaPlan({ startISO: todayKey, days: d });
+                    toast.success("تم بدء الخطة");
+                  }}
+                >
+                  {d} يوم
+                </Button>
+              ))}
+            </div>
+            <div className="mt-3 text-xs opacity-65 leading-6">
+              تُحسب حصة اليوم تلقائيًا من بداية المصحف حتى النهاية.
+            </div>
+          </div>
+        ) : quran.isLoading ? (
+          <div className="mt-4 text-sm opacity-65">... تحميل الخطة</div>
+        ) : quran.error || !khatma ? (
+          <div className="mt-4 text-sm opacity-65 leading-7">تعذر تحميل خطة الختمة.</div>
+        ) : (
+          <div className="mt-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge>
+                {khatma.isFinished ? "تمت الختمة" : `اليوم ${khatma.dayIndex + 1} من ${khatma.days}`}
+              </Badge>
+              <Badge>{`إنجاز: ${khatma.meta.doneCount}/${khatma.days} (${khatma.meta.percent}%)`}</Badge>
+            </div>
+
+            {!khatma.isFinished ? (
+              <div className="mt-3 glass rounded-3xl p-4 border border-white/10">
+                <div className="text-xs opacity-65">حصة اليوم</div>
+                <div className="mt-2 text-sm leading-7">
+                  من <span className="font-semibold">{khatma.today.first.surahName}</span> ﴿{khatma.today.first.ayahIndex}﴾
+                  إلى <span className="font-semibold">{khatma.today.last.surahName}</span> ﴿{khatma.today.last.ayahIndex}﴾
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button
+                    onClick={() =>
+                      navigate(`/quran/${khatma.today.first.surahId}?a=${khatma.today.first.ayahIndex}`)
+                    }
+                  >
+                    ابدأ القراءة
+                  </Button>
+                  <Button
+                    variant={khatma.meta.doneToday ? "primary" : "secondary"}
+                    onClick={() => {
+                      setKhatmaDone(todayKey, !khatma.meta.doneToday);
+                      toast.success(khatma.meta.doneToday ? "تم إلغاء الإتمام" : "تم حفظ الإتمام");
+                    }}
+                  >
+                    <CheckCircle2 size={16} />
+                    {khatma.meta.doneToday ? "منجز اليوم" : "تمت قراءة اليوم"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 glass rounded-3xl p-4 border border-white/10">
+                <div className="text-sm font-semibold">ما شاء الله — تمت الختمة</div>
+                <div className="mt-2 text-xs opacity-65 leading-6">يمكنك بدء خطة جديدة من اليوم.</div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {[7, 15, 30, 60].map((d) => (
+                    <Button
+                      key={d}
+                      variant="secondary"
+                      onClick={() => {
+                        setKhatmaPlan({ startISO: todayKey, days: d });
+                        toast.success("تم بدء خطة جديدة");
+                      }}
+                    >
+                      خطة {d} يوم
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </Card>

@@ -41,6 +41,9 @@ export type ExportBlobV1 = {
   quranNotes?: Record<string, string>;
   dailyWirdDone?: Record<string, boolean>;
   dailyWirdStartISO?: string | null;
+  khatmaStartISO?: string | null;
+  khatmaDays?: number | null;
+  khatmaDone?: Record<string, boolean>;
 };
 
 type NoorState = {
@@ -70,6 +73,14 @@ type NoorState = {
   setDailyWirdDone: (dateISO: string, done: boolean) => void;
   dailyWirdStartISO: string | null;
   setDailyWirdStartISO: (dateISO: string) => void;
+
+  // Khatma plan
+  khatmaStartISO: string | null;
+  khatmaDays: number | null;
+  khatmaDone: Record<string, boolean>; // dateISO -> done
+  setKhatmaPlan: (opts: { startISO: string; days: number }) => void;
+  setKhatmaDone: (dateISO: string, done: boolean) => void;
+  resetKhatma: () => void;
 
   setPrefs: (partial: Partial<Preferences>) => void;
 
@@ -169,6 +180,15 @@ export const useNoorStore = create<NoorState>()(
       dailyWirdStartISO: null,
       setDailyWirdStartISO: (dateISO) => set({ dailyWirdStartISO: dateISO }),
 
+      khatmaStartISO: null,
+      khatmaDays: null,
+      khatmaDone: {},
+      setKhatmaPlan: ({ startISO, days }) =>
+        set({ khatmaStartISO: startISO, khatmaDays: days, khatmaDone: {} }),
+      setKhatmaDone: (dateISO, done) =>
+        set((s) => ({ khatmaDone: { ...s.khatmaDone, [dateISO]: !!done } })),
+      resetKhatma: () => set({ khatmaStartISO: null, khatmaDays: null, khatmaDone: {} }),
+
       setPrefs: (partial) =>
         set((s) => ({
           prefs: {
@@ -244,7 +264,10 @@ export const useNoorStore = create<NoorState>()(
           quranLastRead: s.quranLastRead,
           quranNotes: s.quranNotes,
           dailyWirdDone: s.dailyWirdDone,
-          dailyWirdStartISO: s.dailyWirdStartISO
+          dailyWirdStartISO: s.dailyWirdStartISO,
+          khatmaStartISO: s.khatmaStartISO,
+          khatmaDays: s.khatmaDays,
+          khatmaDone: s.khatmaDone
         };
       },
 
@@ -260,7 +283,10 @@ export const useNoorStore = create<NoorState>()(
           quranLastRead: blob.quranLastRead ?? null,
           quranNotes: blob.quranNotes ?? {},
           dailyWirdDone: blob.dailyWirdDone ?? {},
-          dailyWirdStartISO: blob.dailyWirdStartISO ?? null
+          dailyWirdStartISO: blob.dailyWirdStartISO ?? null,
+          khatmaStartISO: blob.khatmaStartISO ?? null,
+          khatmaDays: blob.khatmaDays ?? null,
+          khatmaDone: blob.khatmaDone ?? {}
         });
       },
 
