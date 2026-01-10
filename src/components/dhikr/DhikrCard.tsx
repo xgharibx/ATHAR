@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
-import { Heart, MoreVertical, RotateCcw, Share2, Copy, CheckCircle2, Minus } from "lucide-react";
+import { Heart, MoreVertical, RotateCcw, Share2, Copy, CheckCircle2, Minus, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import confetti from "canvas-confetti";
@@ -8,6 +8,7 @@ import { toPng } from "html-to-image";
 
 import { cn, clamp } from "@/lib/utils";
 import { formatLeadingIstiadhahBasmalah, normalizeText, stripDiacritics } from "@/lib/arabic";
+import { renderDhikrPosterPng } from "@/lib/sharePoster";
 import { useNoorStore } from "@/store/noorStore";
 import type { DhikrItem } from "@/data/types";
 import { IconButton } from "@/components/ui/IconButton";
@@ -218,28 +219,44 @@ export function DhikrCard(props: {
 
   const doShareImage = async () => {
     try {
-      if (!cardRef.current) return;
-      const png = await toPng(cardRef.current, { pixelRatio: 2 });
-      const blob = await (await fetch(png)).blob();
-      const file = new File([blob], "noor-dhikr.png", { type: "image/png" });
+      const poster = await renderDhikrPosterPng({
+        text: displayText,
+        countLabel: `العدد: ${target}`,
+        footer: "ATHAR • أثر"
+      });
+      const file = new File([poster], "athar-dhikr.png", { type: "image/png" });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "NŪR — Adhkar" });
-      } else {
-        // Fallback: download
+        await navigator.share({ files: [file], title: "ATHAR" });
+        return;
+      }
+
+      // Fallback: download poster
+      const url = URL.createObjectURL(poster);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "athar-dhikr.png";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch {
+      // Fallback (old behavior): screenshot the card
+      try {
+        if (!cardRef.current) throw new Error("no card");
+        const png = await toPng(cardRef.current, { pixelRatio: 2 });
         const a = document.createElement("a");
         a.href = png;
-        a.download = "noor-dhikr.png";
+        a.download = "athar-dhikr.png";
         a.click();
+      } catch {
+        toast.error("تعذر مشاركة الصورة");
       }
-    } catch {
-      toast.error("تعذر مشاركة الصورة");
     }
   };
 
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
   const initialOffset = circumference - (current / target) * circumference;
+  const growth = target ? current / target : 0;
 
   return (
     <motion.div
@@ -256,6 +273,10 @@ export function DhikrCard(props: {
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
+            <IconButton aria-label="نسخ" onClick={doCopy} title="نسخ النص">
+              <Copy size={18} className="opacity-80" />
+            </IconButton>
+
             <IconButton
               aria-label="مفضلة"
               onClick={() => toggleFavorite(sectionId, index)}
@@ -309,12 +330,25 @@ export function DhikrCard(props: {
           </div>
         </div>
 
-        {/* Text */}
-        <div
-          className="mt-4 arabic-text whitespace-pre-wrap"
-          style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
-        >
-          {displayText}
+        {/* Text + Theme bloom */}
+        <div className="mt-4 relative overflow-hidden rounded-3xl border border-white/10 bg-white/3">
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              opacity: 0.12 + growth * 0.28,
+              transform: `scale(${1 + growth * 0.18})`
+            }}
+          >
+            <div className="absolute -inset-10 bg-[radial-gradient(circle_at_20%_20%,var(--accent)_0,transparent_55%),radial-gradient(circle_at_80%_30%,var(--accent-2)_0,transparent_58%),radial-gradient(circle_at_50%_85%,var(--accent)_0,transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,var(--accent-2)_0,transparent_52%)] opacity-80" />
+          </div>
+
+          <div
+            className="relative z-10 p-4 arabic-text whitespace-pre-wrap"
+            style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
+          >
+            {displayText}
+          </div>
         </div>
 
         {/* Counter (under text) */}
@@ -400,11 +434,11 @@ export function DhikrCard(props: {
           </div>
         ) : null}
 
-        {/* Counter Button */}
+        {/* Main tap button */}
         <div className="mt-4 flex items-center justify-between gap-3">
           <button
             className={cn(
-              "flex-1 rounded-2xl px-4 py-3 text-sm font-semibold border transition active:scale-[.99]",
+              "group relative flex-1 rounded-2xl px-4 py-3 text-sm font-semibold border transition active:scale-[.99] overflow-hidden",
               done
                 ? "bg-[rgba(61,220,151,.14)] border-[rgba(61,220,151,.25)] text-[var(--ok)]"
                 : "bg-[rgba(255,215,128,.14)] border-[rgba(255,215,128,.22)] text-[var(--accent)] hover:bg-[rgba(255,215,128,.16)]"
@@ -420,7 +454,16 @@ export function DhikrCard(props: {
             onPointerUp={clearHold}
             onPointerCancel={clearHold}
           >
-            {done ? "اكتملت" : "اضغط — أو اضغط مطوّلًا للتسبيح السريع"}
+            {!done ? (
+              <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="absolute -left-1/2 top-0 h-full w-[200%] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,.10),transparent)] animate-[atharShimmer_1.8s_linear_infinite]" />
+              </span>
+            ) : null}
+
+            <span className="relative z-10 inline-flex items-center justify-center gap-2">
+              {!done ? <Sparkles size={16} className="opacity-90" /> : null}
+              <span>{done ? "اكتملت" : "اضغط — أو اضغط مطوّلًا للتسبيح السريع"}</span>
+            </span>
           </button>
         </div>
       </div>
