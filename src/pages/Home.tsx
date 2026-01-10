@@ -31,22 +31,23 @@ function isoDay(d: Date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-function mulberry32(seed: number) {
-  return function () {
-    let t = (seed += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+function parseISODate(dateISO: string) {
+  const m = (dateISO ?? "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const yyyy = Number(m[1]);
+  const mm = Number(m[2]);
+  const dd = Number(m[3]);
+  if (!yyyy || !mm || !dd) return null;
+  const d = new Date(yyyy, mm - 1, dd);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
 }
 
-function seedFromString(input: string) {
-  let h = 2166136261;
-  for (let i = 0; i < input.length; i++) {
-    h ^= input.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
+function daysBetween(a: Date, b: Date) {
+  const ms = 24 * 60 * 60 * 1000;
+  const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.floor((utcB - utcA) / ms);
 }
 
 function textClassByLength(text: string) {
@@ -71,39 +72,65 @@ export function HomePage() {
 
   const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
   const setDailyWirdDone = useNoorStore((s) => s.setDailyWirdDone);
+  const dailyWirdStartISO = useNoorStore((s) => s.dailyWirdStartISO);
+  const setDailyWirdStartISO = useNoorStore((s) => s.setDailyWirdStartISO);
 
   const sections = data?.db.sections ?? [];
   const flat = data?.flat ?? [];
 
   const todayKey = React.useMemo(() => isoDay(new Date()), []);
-  const rng = React.useMemo(() => mulberry32(seedFromString(todayKey)), [todayKey]);
+
+  React.useEffect(() => {
+    if (!dailyWirdStartISO) {
+      setDailyWirdStartISO(todayKey);
+    }
+  }, [dailyWirdStartISO, setDailyWirdStartISO, todayKey]);
 
   const dailyWird = React.useMemo(() => {
     if (!quran.data) return null;
-    const picked: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
 
-    // Deterministic daily selection: pick a few ayahs across random-ish surahs.
-    const count = 6;
-    const maxTries = 200;
+    const start = dailyWirdStartISO ? parseISODate(dailyWirdStartISO) : null;
+    const today = parseISODate(todayKey);
+    if (!start || !today) return null;
 
-    for (let t = 0; t < maxTries && picked.length < count; t++) {
-      const s = quran.data[Math.floor(rng() * quran.data.length)];
-      if (!s || s.ayahs.length === 0) continue;
-      const ayahIndex = 1 + Math.floor(rng() * s.ayahs.length);
-      const text = (s.ayahs[ayahIndex - 1] ?? "").trim();
-      if (!text) continue;
+    // Sequential wird: fixed chunk size across the entire mushaf.
+    const CHUNK = 15;
+    const dayIndex = Math.max(0, daysBetween(start, today));
 
-      const key = `${s.id}:${ayahIndex}`;
-      if (picked.some((p) => `${p.surahId}:${p.ayahIndex}` === key)) continue;
-      picked.push({ surahId: s.id, surahName: s.name, ayahIndex, text });
+    // Flatten all ayahs into a single mushaf sequence.
+    const flat: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
+    for (const s of quran.data) {
+      for (let i = 0; i < s.ayahs.length; i++) {
+        const text = (s.ayahs[i] ?? "").trim();
+        if (!text) continue;
+        flat.push({ surahId: s.id, surahName: s.name, ayahIndex: i + 1, text });
+      }
+    }
+    if (flat.length === 0) return null;
+
+    const startAt = (dayIndex * CHUNK) % flat.length;
+    const items: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
+    for (let i = 0; i < CHUNK; i++) {
+      const idx = (startAt + i) % flat.length;
+      items.push(flat[idx]);
     }
 
-    if (picked.length === 0) return null;
-    const copyText = picked
+    const copyText = items
       .map((p) => `${p.text}\n— ${p.surahName} (${p.surahId}) • (${p.ayahIndex})`)
       .join("\n\n");
-    return { items: picked, copyText };
-  }, [quran.data, rng]);
+
+    return {
+      items,
+      copyText,
+      meta: {
+        from: startAt + 1,
+        to: startAt + CHUNK > flat.length ? flat.length : startAt + CHUNK,
+        total: flat.length,
+        dayIndex,
+        chunk: CHUNK
+      }
+    };
+  }, [dailyWirdStartISO, quran.data, todayKey]);
 
   const isDailyWirdDone = !!dailyWirdDone[todayKey];
 

@@ -40,6 +40,7 @@ export type ExportBlobV1 = {
   quranLastRead?: { surahId: number; ayahIndex: number } | null;
   quranNotes?: Record<string, string>;
   dailyWirdDone?: Record<string, boolean>;
+  dailyWirdStartISO?: string | null;
 };
 
 type NoorState = {
@@ -67,6 +68,8 @@ type NoorState = {
   // Daily Wird
   dailyWirdDone: Record<string, boolean>; // dateISO -> done
   setDailyWirdDone: (dateISO: string, done: boolean) => void;
+  dailyWirdStartISO: string | null;
+  setDailyWirdStartISO: (dateISO: string) => void;
 
   setPrefs: (partial: Partial<Preferences>) => void;
 
@@ -163,6 +166,9 @@ export const useNoorStore = create<NoorState>()(
       setDailyWirdDone: (dateISO, done) =>
         set((s) => ({ dailyWirdDone: { ...s.dailyWirdDone, [dateISO]: !!done } })),
 
+      dailyWirdStartISO: null,
+      setDailyWirdStartISO: (dateISO) => set({ dailyWirdStartISO: dateISO }),
+
       setPrefs: (partial) =>
         set((s) => ({
           prefs: {
@@ -237,7 +243,8 @@ export const useNoorStore = create<NoorState>()(
           quranBookmarks: s.quranBookmarks,
           quranLastRead: s.quranLastRead,
           quranNotes: s.quranNotes,
-          dailyWirdDone: s.dailyWirdDone
+          dailyWirdDone: s.dailyWirdDone,
+          dailyWirdStartISO: s.dailyWirdStartISO
         };
       },
 
@@ -252,7 +259,8 @@ export const useNoorStore = create<NoorState>()(
           quranBookmarks: blob.quranBookmarks ?? {},
           quranLastRead: blob.quranLastRead ?? null,
           quranNotes: blob.quranNotes ?? {},
-          dailyWirdDone: blob.dailyWirdDone ?? {}
+          dailyWirdDone: blob.dailyWirdDone ?? {},
+          dailyWirdStartISO: blob.dailyWirdStartISO ?? null
         });
       },
 
