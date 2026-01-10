@@ -28,10 +28,23 @@ export type Preferences = {
   transparentMode: boolean;
 };
 
+export type Reminders = {
+  enabled: boolean;
+  morningEnabled: boolean;
+  morningTime: string; // HH:MM
+  eveningEnabled: boolean;
+  eveningTime: string; // HH:MM
+  dailyWirdEnabled: boolean;
+  dailyWirdTime: string; // HH:MM
+  khatmaEnabled: boolean;
+  khatmaTime: string; // HH:MM
+};
+
 export type ExportBlobV1 = {
   version: 1;
   exportedAt: string;
   prefs: Preferences;
+  reminders?: Reminders;
   progress: Record<string, number>;
   favorites: Record<string, boolean>;
   activity: Record<string, number>;
@@ -48,6 +61,7 @@ export type ExportBlobV1 = {
 
 type NoorState = {
   prefs: Preferences;
+  reminders: Reminders;
   progress: Record<string, number>; // key: `${sectionId}:${index}`
   favorites: Record<string, boolean>;
   activity: Record<string, number>; // dateISO -> actions count
@@ -83,6 +97,7 @@ type NoorState = {
   resetKhatma: () => void;
 
   setPrefs: (partial: Partial<Preferences>) => void;
+  setReminders: (partial: Partial<Reminders>) => void;
 
   increment: (opts: { sectionId: string; index: number; target: number }) => number;
   decrement: (opts: { sectionId: string; index: number }) => number;
@@ -117,6 +132,18 @@ const DEFAULT_PREFS: Preferences = {
   transparentMode: true
 };
 
+const DEFAULT_REMINDERS: Reminders = {
+  enabled: false,
+  morningEnabled: true,
+  morningTime: "07:00",
+  eveningEnabled: true,
+  eveningTime: "18:00",
+  dailyWirdEnabled: true,
+  dailyWirdTime: "21:00",
+  khatmaEnabled: false,
+  khatmaTime: "21:15"
+};
+
 function todayISO() {
   const d = new Date();
   const yyyy = d.getFullYear();
@@ -129,6 +156,7 @@ export const useNoorStore = create<NoorState>()(
   persist(
     (set, get) => ({
       prefs: DEFAULT_PREFS,
+      reminders: DEFAULT_REMINDERS,
       progress: {},
       favorites: {},
       activity: {},
@@ -199,6 +227,14 @@ export const useNoorStore = create<NoorState>()(
           }
         })),
 
+      setReminders: (partial) =>
+        set((s) => ({
+          reminders: {
+            ...s.reminders,
+            ...partial
+          }
+        })),
+
       increment: ({ sectionId, index, target }) => {
         const key = `${sectionId}:${index}`;
         const current = get().progress[key] ?? 0;
@@ -256,6 +292,7 @@ export const useNoorStore = create<NoorState>()(
           version: 1,
           exportedAt: new Date().toISOString(),
           prefs: s.prefs,
+          reminders: s.reminders,
           progress: s.progress,
           favorites: s.favorites,
           activity: s.activity,
@@ -275,6 +312,7 @@ export const useNoorStore = create<NoorState>()(
         if (!blob || blob.version !== 1) return;
         set({
           prefs: { ...DEFAULT_PREFS, ...blob.prefs },
+          reminders: { ...DEFAULT_REMINDERS, ...(blob.reminders ?? {}) },
           progress: blob.progress ?? {},
           favorites: blob.favorites ?? {},
           activity: blob.activity ?? {},

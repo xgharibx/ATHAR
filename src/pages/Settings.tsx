@@ -1,14 +1,22 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { Slider } from "@/components/ui/Slider";
+import { Input } from "@/components/ui/Input";
 import { useNoorStore, type NoorTheme, type ExportBlobV1 } from "@/store/noorStore";
 import { downloadJson } from "@/lib/download";
 import { clamp } from "@/lib/utils";
+import {
+  cancelAllReminders,
+  getNotificationPermission,
+  isNativePlatform,
+  requestNotificationPermission,
+  syncReminders
+} from "@/lib/reminders";
 
 function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; onClick: () => void }) {
   return (
@@ -27,8 +35,39 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
 export function SettingsPage() {
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
+  const reminders = useNoorStore((s) => s.reminders);
+  const setReminders = useNoorStore((s) => s.setReminders);
   const exportState = useNoorStore((s) => s.exportState);
   const importState = useNoorStore((s) => s.importState);
+
+  const [isNative, setIsNative] = React.useState(false);
+  const [notifPerm, setNotifPerm] = React.useState<"unknown" | "granted" | "denied" | "prompt">("unknown");
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const native = await isNativePlatform();
+        if (cancelled) return;
+        setIsNative(native);
+        if (!native) return;
+        const p = await getNotificationPermission();
+        if (cancelled) return;
+        setNotifPerm(p);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!isNative) return;
+    if (notifPerm !== "granted") return;
+    void syncReminders(reminders);
+  }, [isNative, notifPerm, reminders]);
 
   const onBackup = () => {
     const blob = exportState();
@@ -181,6 +220,147 @@ export function SettingsPage() {
             desc="اضغط مطوّلًا للتسبيح السريع"
             right={<span className="text-xs opacity-60">✔</span>}
           />
+        </div>
+      </Card>
+
+      <Card className="p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Bell size={18} className="text-[var(--accent)]" />
+            <div>
+              <div className="font-semibold">التذكيرات</div>
+              <div className="text-xs opacity-65 mt-1 leading-6">
+                تذكيرات يومية للأذكار وورد القرآن.
+              </div>
+            </div>
+          </div>
+          <Switch
+            checked={reminders.enabled}
+            onCheckedChange={async (v) => {
+              setReminders({ enabled: v });
+              if (!isNative) return;
+
+              if (!v) {
+                await cancelAllReminders();
+                toast.success("تم إيقاف التذكيرات");
+                return;
+              }
+
+              // Turning on: try to request permission and schedule once.
+              try {
+                const p = await requestNotificationPermission();
+                setNotifPerm(p);
+                if (p !== "granted") {
+                  toast.error("لم يتم السماح بالإشعارات");
+                  return;
+                }
+                await syncReminders({ ...reminders, enabled: true });
+                toast.success("تم تفعيل التذكيرات");
+              } catch {
+                toast.error("تعذر تفعيل التذكيرات");
+              }
+            }}
+          />
+        </div>
+
+        {!isNative ? (
+          <div className="mt-4 text-xs opacity-65 leading-6">
+            ملاحظة: التذكيرات تعمل بشكل أفضل داخل تطبيق Android (Capacitor). على الويب قد لا تعمل التذكيرات بالخلفية.
+          </div>
+        ) : notifPerm !== "granted" ? (
+          <div className="mt-4 text-xs opacity-65 leading-6">
+            حالة الإذن: {notifPerm === "denied" ? "مرفوض" : "غير مفعّل"}. فعّل التذكيرات لطلب الإذن.
+          </div>
+        ) : null}
+
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="glass rounded-3xl p-4 border border-white/10">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">أذكار الصباح</div>
+                <div className="text-xs opacity-65 mt-1">تذكير يومي</div>
+              </div>
+              <Switch
+                checked={reminders.morningEnabled}
+                onCheckedChange={(v) => setReminders({ morningEnabled: v })}
+                disabled={!reminders.enabled}
+              />
+            </div>
+            <div className="mt-3">
+              <Input
+                type="time"
+                value={reminders.morningTime}
+                onChange={(e) => setReminders({ morningTime: e.target.value })}
+                disabled={!reminders.enabled || !reminders.morningEnabled}
+              />
+            </div>
+          </div>
+
+          <div className="glass rounded-3xl p-4 border border-white/10">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">أذكار المساء</div>
+                <div className="text-xs opacity-65 mt-1">تذكير يومي</div>
+              </div>
+              <Switch
+                checked={reminders.eveningEnabled}
+                onCheckedChange={(v) => setReminders({ eveningEnabled: v })}
+                disabled={!reminders.enabled}
+              />
+            </div>
+            <div className="mt-3">
+              <Input
+                type="time"
+                value={reminders.eveningTime}
+                onChange={(e) => setReminders({ eveningTime: e.target.value })}
+                disabled={!reminders.enabled || !reminders.eveningEnabled}
+              />
+            </div>
+          </div>
+
+          <div className="glass rounded-3xl p-4 border border-white/10">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">ورد اليوم (القرآن)</div>
+                <div className="text-xs opacity-65 mt-1">تذكير يومي</div>
+              </div>
+              <Switch
+                checked={reminders.dailyWirdEnabled}
+                onCheckedChange={(v) => setReminders({ dailyWirdEnabled: v })}
+                disabled={!reminders.enabled}
+              />
+            </div>
+            <div className="mt-3">
+              <Input
+                type="time"
+                value={reminders.dailyWirdTime}
+                onChange={(e) => setReminders({ dailyWirdTime: e.target.value })}
+                disabled={!reminders.enabled || !reminders.dailyWirdEnabled}
+              />
+            </div>
+          </div>
+
+          <div className="glass rounded-3xl p-4 border border-white/10">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">خطة الختمة</div>
+                <div className="text-xs opacity-65 mt-1">تذكير يومي</div>
+              </div>
+              <Switch
+                checked={reminders.khatmaEnabled}
+                onCheckedChange={(v) => setReminders({ khatmaEnabled: v })}
+                disabled={!reminders.enabled}
+              />
+            </div>
+            <div className="mt-3">
+              <Input
+                type="time"
+                value={reminders.khatmaTime}
+                onChange={(e) => setReminders({ khatmaTime: e.target.value })}
+                disabled={!reminders.enabled || !reminders.khatmaEnabled}
+              />
+            </div>
+          </div>
         </div>
       </Card>
 
