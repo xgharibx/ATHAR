@@ -38,6 +38,8 @@ export type ExportBlobV1 = {
   quickTasbeeh?: Record<string, number>;
   quranBookmarks?: Record<string, boolean>;
   quranLastRead?: { surahId: number; ayahIndex: number } | null;
+  quranNotes?: Record<string, string>;
+  dailyWirdDone?: Record<string, boolean>;
 };
 
 type NoorState = {
@@ -57,6 +59,14 @@ type NoorState = {
   toggleQuranBookmark: (surahId: number, ayahIndex: number) => void;
   quranLastRead: { surahId: number; ayahIndex: number } | null;
   setQuranLastRead: (surahId: number, ayahIndex: number) => void;
+
+  quranNotes: Record<string, string>; // key: `${surahId}:${ayahIndex}`
+  setQuranNote: (surahId: number, ayahIndex: number, note: string) => void;
+  clearQuranNote: (surahId: number, ayahIndex: number) => void;
+
+  // Daily Wird
+  dailyWirdDone: Record<string, boolean>; // dateISO -> done
+  setDailyWirdDone: (dateISO: string, done: boolean) => void;
 
   setPrefs: (partial: Partial<Preferences>) => void;
 
@@ -134,6 +144,25 @@ export const useNoorStore = create<NoorState>()(
       quranLastRead: null,
       setQuranLastRead: (surahId, ayahIndex) => set({ quranLastRead: { surahId, ayahIndex } }),
 
+      quranNotes: {},
+      setQuranNote: (surahId, ayahIndex, note) => {
+        const key = `${surahId}:${ayahIndex}`;
+        const clean = (note ?? "").trim();
+        set((s) => ({ quranNotes: { ...s.quranNotes, [key]: clean } }));
+      },
+      clearQuranNote: (surahId, ayahIndex) => {
+        const key = `${surahId}:${ayahIndex}`;
+        set((s) => {
+          const next = { ...s.quranNotes };
+          delete next[key];
+          return { quranNotes: next };
+        });
+      },
+
+      dailyWirdDone: {},
+      setDailyWirdDone: (dateISO, done) =>
+        set((s) => ({ dailyWirdDone: { ...s.dailyWirdDone, [dateISO]: !!done } })),
+
       setPrefs: (partial) =>
         set((s) => ({
           prefs: {
@@ -206,7 +235,9 @@ export const useNoorStore = create<NoorState>()(
           activity: s.activity,
           quickTasbeeh: s.quickTasbeeh,
           quranBookmarks: s.quranBookmarks,
-          quranLastRead: s.quranLastRead
+          quranLastRead: s.quranLastRead,
+          quranNotes: s.quranNotes,
+          dailyWirdDone: s.dailyWirdDone
         };
       },
 
@@ -219,7 +250,9 @@ export const useNoorStore = create<NoorState>()(
           activity: blob.activity ?? {},
           quickTasbeeh: blob.quickTasbeeh ?? {},
           quranBookmarks: blob.quranBookmarks ?? {},
-          quranLastRead: blob.quranLastRead ?? null
+          quranLastRead: blob.quranLastRead ?? null,
+          quranNotes: blob.quranNotes ?? {},
+          dailyWirdDone: blob.dailyWirdDone ?? {}
         });
       },
 

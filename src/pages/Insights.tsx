@@ -27,6 +27,10 @@ function computeStreak(activity: Record<string, number>) {
 
 export function InsightsPage() {
   const activity = useNoorStore((s) => s.activity);
+  const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
+  const quranBookmarks = useNoorStore((s) => s.quranBookmarks);
+  const quranNotes = useNoorStore((s) => s.quranNotes);
+  const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
   const streak = React.useMemo(() => computeStreak(activity), [activity]);
 
   const last14 = React.useMemo(() => {
@@ -46,6 +50,22 @@ export function InsightsPage() {
 
   const total = Object.values(activity).reduce((a, b) => a + (b ?? 0), 0);
 
+  const todayKey = React.useMemo(() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }, []);
+
+  const quickTotal = React.useMemo(() => {
+    return Object.values(quickTasbeeh).reduce((acc, v) => acc + (v ?? 0), 0);
+  }, [quickTasbeeh]);
+
+  const bookmarkCount = React.useMemo(() => Object.values(quranBookmarks).filter(Boolean).length, [quranBookmarks]);
+  const notesCount = React.useMemo(() => Object.values(quranNotes).filter((v) => (v ?? "").trim().length > 0).length, [quranNotes]);
+  const isWirdDone = !!dailyWirdDone[todayKey];
+
   return (
     <div className="space-y-4">
       <Card className="p-5">
@@ -56,8 +76,14 @@ export function InsightsPage() {
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
           <MiniStat label="الاستمرارية" value={`${streak} يوم`} icon={<Flame size={18} />} />
-          <MiniStat label="إجمالي العدّ" value={`${total}`} />
-          <MiniStat label="آخر 14 يوم" value=" " />
+          <MiniStat label="إجمالي النشاط" value={`${total}`} />
+          <MiniStat label="التسبيح السريع" value={`${quickTotal}`} />
+        </div>
+
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <MiniStat label="علامات المصحف" value={`${bookmarkCount}`} />
+          <MiniStat label="ملاحظات الآيات" value={`${notesCount}`} />
+          <MiniStat label="ورد اليوم" value={isWirdDone ? "منجز" : "غير منجز"} />
         </div>
 
         <div className="mt-4 grid grid-cols-7 gap-2">

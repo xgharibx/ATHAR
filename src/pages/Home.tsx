@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Lottie from "lottie-react";
-import { Sparkles, Shuffle, RotateCw } from "lucide-react";
+import { Sparkles, Shuffle, RotateCw, Copy, CheckCircle2 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
@@ -14,6 +14,7 @@ import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
+import { useQuranDB } from "@/data/useQuranDB";
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -58,6 +59,7 @@ function textClassByLength(text: string) {
 export function HomePage() {
   const navigate = useNavigate();
   const { data, isLoading, error } = useAdhkarDB();
+  const quran = useQuranDB();
   const activity = useNoorStore((s) => s.activity);
   const progressMap = useNoorStore((s) => s.progress);
   const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
@@ -67,11 +69,53 @@ export function HomePage() {
   const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
   const resetAllQuickTasbeeh = useNoorStore((s) => s.resetAllQuickTasbeeh);
 
+  const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
+  const setDailyWirdDone = useNoorStore((s) => s.setDailyWirdDone);
+
   const sections = data?.db.sections ?? [];
   const flat = data?.flat ?? [];
 
   const todayKey = React.useMemo(() => isoDay(new Date()), []);
   const rng = React.useMemo(() => mulberry32(seedFromString(todayKey)), [todayKey]);
+
+  const dailyWird = React.useMemo(() => {
+    if (!quran.data) return null;
+    const picked: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
+
+    // Deterministic daily selection: pick a few ayahs across random-ish surahs.
+    const count = 6;
+    const maxTries = 200;
+
+    for (let t = 0; t < maxTries && picked.length < count; t++) {
+      const s = quran.data[Math.floor(rng() * quran.data.length)];
+      if (!s || s.ayahs.length === 0) continue;
+      const ayahIndex = 1 + Math.floor(rng() * s.ayahs.length);
+      const text = (s.ayahs[ayahIndex - 1] ?? "").trim();
+      if (!text) continue;
+
+      const key = `${s.id}:${ayahIndex}`;
+      if (picked.some((p) => `${p.surahId}:${p.ayahIndex}` === key)) continue;
+      picked.push({ surahId: s.id, surahName: s.name, ayahIndex, text });
+    }
+
+    if (picked.length === 0) return null;
+    const copyText = picked
+      .map((p) => `${p.text}\n— ${p.surahName} (${p.surahId}) • (${p.ayahIndex})`)
+      .join("\n\n");
+    return { items: picked, copyText };
+  }, [quran.data, rng]);
+
+  const isDailyWirdDone = !!dailyWirdDone[todayKey];
+
+  const copyDailyWird = async () => {
+    if (!dailyWird) return;
+    try {
+      await navigator.clipboard.writeText(dailyWird.copyText);
+      toast.success("تم النسخ");
+    } catch {
+      toast.error("تعذر النسخ");
+    }
+  };
 
   const [analyticsRange, setAnalyticsRange] = React.useState<
     "today" | "week" | "month" | "year" | "total"
@@ -375,6 +419,64 @@ export function HomePage() {
             );
           })}
         </div>
+      </Card>
+
+      <Card className="p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">ورد اليوم</div>
+            <div className="text-xs opacity-65 mt-1">مختارات يومية من القرآن</div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={copyDailyWird}
+              disabled={!dailyWird}
+              title="نسخ ورد اليوم"
+            >
+              <Copy size={16} />
+              نسخ
+            </Button>
+
+            <Button
+              variant={isDailyWirdDone ? "primary" : "secondary"}
+              onClick={() => {
+                setDailyWirdDone(todayKey, !isDailyWirdDone);
+                toast.success(isDailyWirdDone ? "تم إلغاء الإتمام" : "تم حفظ الإتمام");
+              }}
+              title="تحديد كمنجز"
+            >
+              <CheckCircle2 size={16} />
+              {isDailyWirdDone ? "منجز" : "تم"}
+            </Button>
+          </div>
+        </div>
+
+        {quran.isLoading ? (
+          <div className="mt-4 text-sm opacity-65">... تحميل الورد</div>
+        ) : quran.error || !dailyWird ? (
+          <div className="mt-4 text-sm opacity-65 leading-7">
+            تعذر تحميل ورد اليوم.
+          </div>
+        ) : (
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {dailyWird.items.map((p) => (
+              <button
+                key={`${p.surahId}:${p.ayahIndex}`}
+                className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10"
+                onClick={() => navigate(`/quran/${p.surahId}?a=${p.ayahIndex}`)}
+              >
+                <div className="text-xs opacity-65 mb-2">
+                  {p.surahName} • ({p.surahId}) • ﴿{p.ayahIndex}﴾
+                </div>
+                <div className={"arabic-text opacity-90 " + textClassByLength(p.text)}>
+                  {p.text}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </Card>
 
       {/* Bottom: analytics overview */}

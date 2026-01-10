@@ -49,11 +49,17 @@ export function SurahPage() {
   const bookmarks = useNoorStore((s) => s.quranBookmarks);
   const toggleBookmark = useNoorStore((s) => s.toggleQuranBookmark);
   const setLastRead = useNoorStore((s) => s.setQuranLastRead);
+  const notes = useNoorStore((s) => s.quranNotes);
+  const setQuranNote = useNoorStore((s) => s.setQuranNote);
+  const clearQuranNote = useNoorStore((s) => s.clearQuranNote);
 
   const surahId = Number(params.id);
   const focusAyah = Number(sp.get("a") ?? "0");
 
   const pageRef = React.useRef<HTMLDivElement>(null);
+
+  const [selectedAyah, setSelectedAyah] = React.useState<number | null>(null);
+  const [noteDraft, setNoteDraft] = React.useState<string>("");
 
   const surah = React.useMemo(() => {
     if (!data || !Number.isFinite(surahId)) return null;
@@ -102,6 +108,12 @@ export function SurahPage() {
       toast.error("تعذر النسخ");
     }
   };
+
+  React.useEffect(() => {
+    if (!surah || !selectedAyah) return;
+    const key = `${surah.id}:${selectedAyah}`;
+    setNoteDraft(notes[key] ?? "");
+  }, [notes, selectedAyah, surah]);
 
   const fullSurahText = React.useMemo(() => {
     const parts: string[] = [];
@@ -198,7 +210,10 @@ export function SurahPage() {
                   <span key={k} data-ayah={ayahIndex} className="inline">
                     <span
                       className="inline"
-                      onClick={() => setLastRead(surah.id, ayahIndex)}
+                      onClick={() => {
+                        setLastRead(surah.id, ayahIndex);
+                        setSelectedAyah(ayahIndex);
+                      }}
                     >
                       {a.text}{" "}
                     </span>
@@ -207,6 +222,7 @@ export function SurahPage() {
                       onClick={() => {
                         toggleBookmark(surah.id, ayahIndex);
                         setLastRead(surah.id, ayahIndex);
+                        setSelectedAyah(ayahIndex);
                       }}
                       className="ayah-marker"
                       data-bookmarked={isBookmarked ? "true" : "false"}
@@ -224,6 +240,50 @@ export function SurahPage() {
             <div className="mt-4 text-xs opacity-65">
               اضغط على الآية لتحديث موضع القراءة، واضغط على رقم الآية لإضافة علامة.
             </div>
+
+            {selectedAyah ? (
+              <div className="mt-5 glass rounded-3xl p-4 border border-white/10">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold">ملاحظة للآية ﴿{toArabicIndic(selectedAyah)}﴾</div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        if (!surah) return;
+                        const clean = (noteDraft ?? "").trim();
+                        if (clean) {
+                          setQuranNote(surah.id, selectedAyah, clean);
+                          toast.success("تم حفظ الملاحظة");
+                        } else {
+                          clearQuranNote(surah.id, selectedAyah);
+                          toast.success("تم حذف الملاحظة");
+                        }
+                      }}
+                    >
+                      حفظ
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        if (!surah) return;
+                        clearQuranNote(surah.id, selectedAyah);
+                        setNoteDraft("");
+                        toast.success("تم حذف الملاحظة");
+                      }}
+                    >
+                      حذف
+                    </Button>
+                  </div>
+                </div>
+
+                <textarea
+                  value={noteDraft}
+                  onChange={(e) => setNoteDraft(e.target.value)}
+                  placeholder="اكتب ملاحظة قصيرة…"
+                  className="mt-3 w-full min-h-[96px] rounded-3xl bg-white/6 border border-white/10 p-4 text-sm leading-7 outline-none focus:border-white/20"
+                />
+              </div>
+            ) : null}
           </div>
         </div>
       </Card>
