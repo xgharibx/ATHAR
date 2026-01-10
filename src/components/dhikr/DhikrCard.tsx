@@ -311,7 +311,7 @@ export function DhikrCard(props: {
 
         {/* Text */}
         <div
-          className="mt-4 arabic-text"
+          className="mt-4 arabic-text whitespace-pre-wrap"
           style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
         >
           {displayText}

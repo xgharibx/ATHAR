@@ -10,6 +10,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { cn, pct } from "@/lib/utils";
 import { IconButton } from "@/components/ui/IconButton";
 import { CommandPalette } from "@/components/layout/CommandPalette";
+import { LogoMark } from "@/components/brand/LogoMark";
 
 function themeLabel(theme: string) {
   const map: Record<string, string> = {
@@ -85,11 +86,9 @@ function SidebarContent(props: { onNavigate?: () => void }) {
         <div className="glass rounded-3xl p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img
-                src={`${import.meta.env.BASE_URL}logo.svg`}
-                className="w-8 h-8 rounded-lg shadow-lg"
-                alt="ATHAR"
-                onError={(e) => (e.currentTarget.style.display = "none")}
+              <LogoMark
+                className="w-8 h-8 rounded-lg shadow-lg overflow-hidden border border-white/10"
+                title="ATHAR"
               />
               <div className="font-semibold text-lg tracking-wide">ATHAR</div>
             </div>
@@ -150,10 +149,9 @@ export function AppShell() {
               </div>
 
               <NavLink to="/" className="flex items-center gap-2">
-                <img
-                  src={`${import.meta.env.BASE_URL}logo.svg`}
-                  className="w-9 h-9 rounded-2xl bg-white/5 border border-white/10"
-                  alt="ATHAR"
+                <LogoMark
+                  className="w-9 h-9 rounded-2xl border border-white/10 overflow-hidden"
+                  title="ATHAR"
                 />
                 <div className="leading-tight">
                   <div className="font-semibold">ATHAR</div>
