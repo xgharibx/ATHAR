@@ -94,7 +94,7 @@ export function HomePage() {
     if (!start || !today) return null;
 
     // Sequential wird: fixed chunk size across the entire mushaf.
-    const CHUNK = 15;
+    const CHUNK = 7;
     const dayIndex = Math.max(0, daysBetween(start, today));
 
     // Flatten all ayahs into a single mushaf sequence.
