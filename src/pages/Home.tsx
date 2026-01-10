@@ -58,7 +58,6 @@ function textClassByLength(text: string) {
 export function HomePage() {
   const navigate = useNavigate();
   const { data, isLoading, error } = useAdhkarDB();
-  const exportState = useNoorStore((s) => s.exportState);
   const activity = useNoorStore((s) => s.activity);
   const progressMap = useNoorStore((s) => s.progress);
   const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
@@ -252,28 +251,15 @@ export function HomePage() {
 
               <div className="mt-5 flex flex-wrap gap-2">
                 <Button onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
+                <Button variant="secondary" onClick={() => navigate("/quran")}>المصحف</Button>
                 {lastVisitedSection ? (
                   <Button variant="secondary" onClick={() => navigate(`/c/${lastVisitedSection.id}`)}>
                     تابع آخر قسم
                   </Button>
                 ) : null}
-                <Button variant="secondary" onClick={() => navigate("/quran")}>المصحف</Button>
                 <Button variant="secondary" onClick={onRandom}>
                   <Shuffle size={16} />
                   ذكر عشوائي
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    const blob = exportState();
-                    const raw = JSON.stringify(blob, null, 2);
-                    navigator.clipboard
-                      .writeText(raw)
-                      .then(() => toast.success("تم نسخ النسخة الاحتياطية"))
-                      .catch(() => toast.error("تعذر النسخ"));
-                  }}
-                >
-                  نسخ نسخة احتياطية
                 </Button>
               </div>
             </div>
