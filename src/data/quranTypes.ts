@@ -7,7 +7,9 @@ export const QuranSurahSchema = z.object({
   ayahs: z.array(z.string())
 });
 
-export const QuranDBSchema = z.array(QuranSurahSchema);
+export const QuranFileSchema = z.object({
+  surahs: z.array(QuranSurahSchema)
+});
 
 export type QuranSurah = z.infer<typeof QuranSurahSchema>;
-export type QuranDB = z.infer<typeof QuranDBSchema>;
+export type QuranDB = QuranSurah[];

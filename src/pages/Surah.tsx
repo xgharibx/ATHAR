@@ -18,7 +18,7 @@ function shouldShowBasmalah(surahId: number) {
 }
 
 function stripBasmalahFromFirstAyahIfPresent(text: string) {
-  const t = (text ?? "").trim();
+  const t = (text ?? "").replace(/^\uFEFF/, "").trim();
   if (!t) return t;
   if (t.startsWith(BASMALAH)) return t.slice(BASMALAH.length).trim();
   return t;

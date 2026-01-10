@@ -1,4 +1,4 @@
-import { QuranDBSchema, type QuranDB } from "./quranTypes";
+import { QuranFileSchema, type QuranDB } from "./quranTypes";
 
 const REMOTE_QURAN_JSON = "https://xgharibx.github.io/ImamAhmed/data/quran.json";
 
@@ -19,9 +19,9 @@ export async function loadQuranDB(): Promise<QuranDB> {
 
   try {
     const json = await fetchJson(localUrl);
-    return QuranDBSchema.parse(json);
+    return QuranFileSchema.parse(json).surahs;
   } catch {
     const json = await fetchJson(REMOTE_QURAN_JSON);
-    return QuranDBSchema.parse(json);
+    return QuranFileSchema.parse(json).surahs;
   }
 }
