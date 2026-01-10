@@ -35,6 +35,9 @@ export type ExportBlobV1 = {
   progress: Record<string, number>;
   favorites: Record<string, boolean>;
   activity: Record<string, number>;
+  quickTasbeeh?: Record<string, number>;
+  quranBookmarks?: Record<string, boolean>;
+  quranLastRead?: { surahId: number; ayahIndex: number } | null;
 };
 
 type NoorState = {
@@ -42,6 +45,19 @@ type NoorState = {
   progress: Record<string, number>; // key: `${sectionId}:${index}`
   favorites: Record<string, boolean>;
   activity: Record<string, number>; // dateISO -> actions count
+
+  // Home quick tasbeeh
+  quickTasbeeh: Record<string, number>; // key: string -> count
+  incQuickTasbeeh: (key: string, target?: number) => number;
+  resetQuickTasbeeh: (key: string) => void;
+  resetAllQuickTasbeeh: () => void;
+
+  // Quran
+  quranBookmarks: Record<string, boolean>; // key: `${surahId}:${ayahIndex}`
+  toggleQuranBookmark: (surahId: number, ayahIndex: number) => void;
+  quranLastRead: { surahId: number; ayahIndex: number } | null;
+  setQuranLastRead: (surahId: number, ayahIndex: number) => void;
+
   setPrefs: (partial: Partial<Preferences>) => void;
 
   increment: (opts: { sectionId: string; index: number; target: number }) => number;
@@ -92,6 +108,31 @@ export const useNoorStore = create<NoorState>()(
       progress: {},
       favorites: {},
       activity: {},
+
+      quickTasbeeh: {},
+      incQuickTasbeeh: (key, target = 100) => {
+        const current = get().quickTasbeeh[key] ?? 0;
+        if (current >= target) return current;
+        const next = current + 1;
+        set((s) => ({ quickTasbeeh: { ...s.quickTasbeeh, [key]: next } }));
+        get().bumpActivityToday();
+        return next;
+      },
+      resetQuickTasbeeh: (key) =>
+        set((s) => {
+          const next = { ...s.quickTasbeeh };
+          delete next[key];
+          return { quickTasbeeh: next };
+        }),
+      resetAllQuickTasbeeh: () => set({ quickTasbeeh: {} }),
+
+      quranBookmarks: {},
+      toggleQuranBookmark: (surahId, ayahIndex) => {
+        const key = `${surahId}:${ayahIndex}`;
+        set((s) => ({ quranBookmarks: { ...s.quranBookmarks, [key]: !s.quranBookmarks[key] } }));
+      },
+      quranLastRead: null,
+      setQuranLastRead: (surahId, ayahIndex) => set({ quranLastRead: { surahId, ayahIndex } }),
 
       setPrefs: (partial) =>
         set((s) => ({
@@ -162,7 +203,10 @@ export const useNoorStore = create<NoorState>()(
           prefs: s.prefs,
           progress: s.progress,
           favorites: s.favorites,
-          activity: s.activity
+          activity: s.activity,
+          quickTasbeeh: s.quickTasbeeh,
+          quranBookmarks: s.quranBookmarks,
+          quranLastRead: s.quranLastRead
         };
       },
 
@@ -172,7 +216,10 @@ export const useNoorStore = create<NoorState>()(
           prefs: { ...DEFAULT_PREFS, ...blob.prefs },
           progress: blob.progress ?? {},
           favorites: blob.favorites ?? {},
-          activity: blob.activity ?? {}
+          activity: blob.activity ?? {},
+          quickTasbeeh: blob.quickTasbeeh ?? {},
+          quranBookmarks: blob.quranBookmarks ?? {},
+          quranLastRead: blob.quranLastRead ?? null
         });
       },
 

@@ -15,6 +15,14 @@ import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
 
+type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
+const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
+  { key: "subhanallah", label: "سُبْحَانَ الله" },
+  { key: "alhamdulillah", label: "الْحَمْدُ لِلَّه" },
+  { key: "la_ilaha_illallah", label: "لا إِلَهَ إِلَّا الله" },
+  { key: "allahu_akbar", label: "اللهُ أَكْبَر" }
+];
+
 function isoDay(d: Date) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -47,43 +55,6 @@ function textClassByLength(text: string) {
   return "text-base leading-8";
 }
 
-type DailyHadith = { text: string; ref: string; url: string };
-const DAILY_HADITH: DailyHadith[] = [
-  {
-    text: "إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى.",
-    ref: "صحيح البخاري وصحيح مسلم",
-    url: "https://sunnah.com/bukhari:1"
-  },
-  {
-    text: "من كان يؤمن بالله واليوم الآخر فليقل خيرًا أو ليصمت.",
-    ref: "صحيح البخاري وصحيح مسلم",
-    url: "https://sunnah.com/bukhari:6018"
-  },
-  {
-    text: "الدين النصيحة.",
-    ref: "صحيح مسلم",
-    url: "https://sunnah.com/muslim:55"
-  },
-  {
-    text: "أحب الأعمال إلى الله أدومها وإن قل.",
-    ref: "صحيح البخاري وصحيح مسلم",
-    url: "https://sunnah.com/bukhari:6465"
-  },
-  {
-    text: "يسروا ولا تعسروا.",
-    ref: "صحيح البخاري",
-    url: "https://sunnah.com/bukhari:6125"
-  }
-];
-
-type DailyAyah = { text: string; surah?: string; numberInSurah?: number };
-const FALLBACK_AYAT: DailyAyah[] = [
-  { text: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", surah: "الرعد", numberInSurah: 28 },
-  { text: "فَاذْكُرُونِي أَذْكُرْكُمْ", surah: "البقرة", numberInSurah: 152 },
-  { text: "وَقُل رَّبِّ زِدْنِي عِلْمًا", surah: "طه", numberInSurah: 114 },
-  { text: "إِنَّ مَعَ الْعُسْرِ يُسْرًا", surah: "الشرح", numberInSurah: 6 }
-];
-
 export function HomePage() {
   const navigate = useNavigate();
   const { data, isLoading, error } = useAdhkarDB();
@@ -91,6 +62,11 @@ export function HomePage() {
   const activity = useNoorStore((s) => s.activity);
   const progressMap = useNoorStore((s) => s.progress);
   const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
+  const prefs = useNoorStore((s) => s.prefs);
+
+  const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
+  const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
+  const resetAllQuickTasbeeh = useNoorStore((s) => s.resetAllQuickTasbeeh);
 
   const sections = data?.db.sections ?? [];
   const flat = data?.flat ?? [];
@@ -98,88 +74,9 @@ export function HomePage() {
   const todayKey = React.useMemo(() => isoDay(new Date()), []);
   const rng = React.useMemo(() => mulberry32(seedFromString(todayKey)), [todayKey]);
 
-  const [dailyAyah, setDailyAyah] = React.useState<DailyAyah | null>(null);
-  const [dailyHadith, setDailyHadith] = React.useState<DailyHadith | null>(null);
   const [analyticsRange, setAnalyticsRange] = React.useState<
     "today" | "week" | "month" | "year" | "total"
   >("week");
-
-  React.useEffect(() => {
-    const cacheKey = `athar_daily_ayah_${todayKey}`;
-    try {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        setDailyAyah(JSON.parse(cached));
-        return;
-      }
-    } catch {
-      // ignore
-    }
-
-    const fallback = () => {
-      const pick = FALLBACK_AYAT[Math.floor(rng() * FALLBACK_AYAT.length)] ?? FALLBACK_AYAT[0];
-      setDailyAyah(pick);
-    };
-
-    const ayahNumber = 1 + Math.floor(rng() * 6236);
-    fetch(`https://api.alquran.cloud/v1/ayah/${ayahNumber}/quran-uthmani`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((json) => {
-        const d = json?.data;
-        const next: DailyAyah = {
-          text: d?.text,
-          surah: d?.surah?.name,
-          numberInSurah: d?.numberInSurah
-        };
-        if (!next.text) throw new Error("no text");
-        setDailyAyah(next);
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(next));
-        } catch {
-          // ignore
-        }
-      })
-      .catch(fallback);
-  }, [rng, todayKey]);
-
-  React.useEffect(() => {
-    const cacheKey = `athar_daily_hadith_${todayKey}`;
-    try {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        setDailyHadith(JSON.parse(cached));
-        return;
-      }
-    } catch {
-      // ignore
-    }
-
-    const pick = DAILY_HADITH[Math.floor(rng() * DAILY_HADITH.length)] ?? DAILY_HADITH[0];
-    setDailyHadith(pick);
-    try {
-      localStorage.setItem(cacheKey, JSON.stringify(pick));
-    } catch {
-      // ignore
-    }
-  }, [rng, todayKey]);
-
-  const onRefreshHadith = () => {
-    const cacheKey = `athar_daily_hadith_${todayKey}`;
-    const currentIdx = dailyHadith
-      ? DAILY_HADITH.findIndex((h) => h.url === dailyHadith.url)
-      : -1;
-    const nextIdx = DAILY_HADITH.length
-      ? (Math.max(0, currentIdx) + 1) % DAILY_HADITH.length
-      : 0;
-    const pick = DAILY_HADITH[nextIdx] ?? DAILY_HADITH[0];
-    setDailyHadith(pick);
-    try {
-      localStorage.setItem(cacheKey, JSON.stringify(pick));
-    } catch {
-      // ignore
-    }
-    toast.success("تم تحديث الحديث");
-  };
 
   const onRandom = () => {
     if (!data?.flat?.length) return;
@@ -268,34 +165,27 @@ export function HomePage() {
     };
   }, [activity, progressMap, sections, todayKey]);
 
-  const dailyDhikr = React.useMemo(() => {
-    if (!flat.length) return null;
-    return flat[Math.floor(rng() * flat.length)];
-  }, [flat, rng]);
+  const quickTotal = React.useMemo(() => {
+    const target = 100;
+    const done = QUICK_TASBEEH.reduce((acc, it) => acc + Math.min(target, quickTasbeeh[it.key] ?? 0), 0);
+    const total = QUICK_TASBEEH.length * target;
+    const percent = total ? Math.round((done / total) * 100) : 0;
+    return { done, total, percent };
+  }, [quickTasbeeh]);
 
-  const dailyDua = React.useMemo(() => {
-    const candidates = flat.filter((x) => x.text?.includes("اللهم") || x.text?.trim().startsWith("رب"));
-    const arr = candidates.length ? candidates : flat;
-    if (!arr.length) return null;
-    return arr[Math.floor(rng() * arr.length)];
-  }, [flat, rng]);
+  const holdRef = React.useRef<Record<string, number | null>>({});
 
-  const dailyDhikrText = React.useMemo(
-    () => formatLeadingIstiadhahBasmalah(dailyDhikr?.text ?? ""),
-    [dailyDhikr?.text]
-  );
-  const dailyDuaText = React.useMemo(
-    () => formatLeadingIstiadhahBasmalah(dailyDua?.text ?? ""),
-    [dailyDua?.text]
-  );
-  const dailyHadithText = React.useMemo(
-    () => formatLeadingIstiadhahBasmalah(dailyHadith?.text ?? ""),
-    [dailyHadith?.text]
-  );
-  const dailyAyahText = React.useMemo(
-    () => formatLeadingIstiadhahBasmalah(dailyAyah?.text ?? ""),
-    [dailyAyah?.text]
-  );
+  const onQuickDown = (key: QuickTasbeehKey) => {
+    window.clearInterval(holdRef.current[key] ?? undefined);
+    holdRef.current[key] = window.setInterval(() => {
+      incQuickTasbeeh(key, 100);
+      if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(5);
+    }, 120);
+  };
+  const onQuickUp = (key: QuickTasbeehKey) => {
+    window.clearInterval(holdRef.current[key] ?? undefined);
+    holdRef.current[key] = null;
+  };
 
   if (isLoading) {
     return <div className="p-6 opacity-80">... تحميل قاعدة الأذكار</div>;
@@ -367,6 +257,7 @@ export function HomePage() {
                     تابع آخر قسم
                   </Button>
                 ) : null}
+                <Button variant="secondary" onClick={() => navigate("/quran")}>المصحف</Button>
                 <Button variant="secondary" onClick={onRandom}>
                   <Shuffle size={16} />
                   ذكر عشوائي
@@ -415,96 +306,88 @@ export function HomePage() {
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-semibold">مختارات اليوم</div>
-          <Badge>تتغير يوميًا</Badge>
+          <div className="flex items-center gap-2">
+            <Badge>{`${quickTotal.done}/${quickTotal.total}`}</Badge>
+            <IconButton
+              aria-label="تصفير التسابيح"
+              onClick={() => {
+                resetAllQuickTasbeeh();
+                toast.success("تم تصفير التسابيح");
+              }}
+            >
+              <RotateCw size={16} />
+            </IconButton>
+          </div>
         </div>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="glass rounded-3xl p-4 border border-white/10">
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-xs opacity-65">ذكر اليوم</div>
-              <Badge>اليوم</Badge>
-            </div>
-            <div
-                className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyDhikrText)}`}
-              style={{ overflowWrap: "anywhere" }}
-            >
-                {dailyDhikrText}
-            </div>
-            {dailyDhikr ? (
-              <div className="mt-3">
-                <Button variant="secondary" onClick={() => navigate(`/c/${dailyDhikr.sectionId}?focus=${dailyDhikr.index}`)}>
-                  فتح
-                </Button>
-              </div>
-            ) : null}
-          </div>
+        <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
+          <div className="h-full bg-[var(--accent)]/70" style={{ width: `${quickTotal.percent}%` }} />
+        </div>
 
-          <div className="glass rounded-3xl p-4 border border-white/10">
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-xs opacity-65">دعاء اليوم</div>
-              <Badge>اليوم</Badge>
-            </div>
-            <div
-                className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyDuaText)}`}
-              style={{ overflowWrap: "anywhere" }}
-            >
-                {dailyDuaText}
-            </div>
-            {dailyDua ? (
-              <div className="mt-3">
-                <Button variant="secondary" onClick={() => navigate(`/c/${dailyDua.sectionId}?focus=${dailyDua.index}`)}>
-                  فتح
-                </Button>
-              </div>
-            ) : null}
-          </div>
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+          {QUICK_TASBEEH.map((it) => {
+            const target = 100;
+            const v = Math.min(target, quickTasbeeh[it.key] ?? 0);
+            const pct = target ? v / target : 0;
+            const r = 22;
+            const C = 2 * Math.PI * r;
+            const dash = C;
+            const offset = C - pct * C;
+            const done = v >= target;
 
-          <div className="glass rounded-3xl p-4 border border-white/10">
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-xs opacity-65">حديث اليوم</div>
-              <div className="flex items-center gap-2">
-                <Badge>اليوم</Badge>
-                <IconButton aria-label="تحديث الحديث" onClick={onRefreshHadith}>
-                  <RotateCw size={16} />
-                </IconButton>
-              </div>
-            </div>
-            <div
-                className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyHadithText)}`}
-              style={{ overflowWrap: "anywhere" }}
-            >
-                {dailyHadithText}
-            </div>
-            <div className="mt-2 text-xs opacity-60">{dailyHadith?.ref ?? ""}</div>
-            {dailyHadith?.url ? (
-              <a
-                href={dailyHadith.url}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-flex text-xs opacity-70 hover:opacity-95 underline underline-offset-4"
+            return (
+              <button
+                key={it.key}
+                onClick={() => {
+                  incQuickTasbeeh(it.key, 100);
+                  if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(12);
+                }}
+                onPointerDown={() => onQuickDown(it.key)}
+                onPointerUp={() => onQuickUp(it.key)}
+                onPointerCancel={() => onQuickUp(it.key)}
+                onPointerLeave={() => onQuickUp(it.key)}
+                className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10 select-none"
               >
-                المصدر: sunnah.com
-              </a>
-            ) : null}
-          </div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold arabic-text truncate">{it.label}</div>
+                    <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/100</div>
+                  </div>
 
-          <div className="glass rounded-3xl p-4 border border-white/10">
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-xs opacity-65">آية اليوم</div>
-              <Badge>اليوم</Badge>
-            </div>
-            <div
-                className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyAyahText)}`}
-              style={{ overflowWrap: "anywhere" }}
-            >
-                {dailyAyahText}
-            </div>
-            {dailyAyah?.surah ? (
-              <div className="mt-2 text-xs opacity-60">
-                {dailyAyah.surah}
-                {dailyAyah.numberInSurah ? ` • ${dailyAyah.numberInSurah}` : ""}
-              </div>
-            ) : null}
-          </div>
+                  <div className="shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-white/6 border border-white/10 flex items-center justify-center">
+                      <svg width="44" height="44" viewBox="0 0 60 60">
+                        <circle
+                          cx="30"
+                          cy="30"
+                          r={r}
+                          fill="transparent"
+                          stroke="rgba(255,255,255,0.12)"
+                          strokeWidth="6"
+                        />
+                        <circle
+                          cx="30"
+                          cy="30"
+                          r={r}
+                          fill="transparent"
+                          stroke={done ? "var(--ok)" : "var(--accent)"}
+                          strokeWidth="6"
+                          strokeLinecap="round"
+                          strokeDasharray={dash}
+                          strokeDashoffset={offset}
+                          transform="rotate(-90 30 30)"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <div className="text-[11px] opacity-60">اضغط مطوّلًا للتسريع</div>
+                  <Badge>{done ? "تم" : `${100 - v} متبقّي`}</Badge>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </Card>
 

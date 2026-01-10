@@ -121,6 +121,7 @@ export function CommandPalette(props: Props) {
 
               <Command.Group heading="الصفحات" className="px-2">
                 <Item onSelect={() => go("/")}>الرئيسية</Item>
+                <Item onSelect={() => go("/quran")}>المصحف</Item>
                 <Item onSelect={() => go("/favorites")}>المفضلة</Item>
                 <Item onSelect={() => go("/settings")}>الإعدادات</Item>
                 <Item onSelect={() => go("/sources")}>المصادر</Item>

@@ -8,6 +8,7 @@ import { toPng } from "html-to-image";
 
 import { cn, clamp } from "@/lib/utils";
 import { formatLeadingIstiadhahBasmalah, normalizeText, stripDiacritics } from "@/lib/arabic";
+import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { useNoorStore } from "@/store/noorStore";
 import type { DhikrItem } from "@/data/types";
 import { IconButton } from "@/components/ui/IconButton";
@@ -218,22 +219,37 @@ export function DhikrCard(props: {
 
   const doShareImage = async () => {
     try {
-      if (!cardRef.current) return;
-      const png = await toPng(cardRef.current, { pixelRatio: 2 });
-      const blob = await (await fetch(png)).blob();
-      const file = new File([blob], "noor-dhikr.png", { type: "image/png" });
+      const poster = await renderDhikrPosterBlob({
+        text: displayText,
+        subtitle: `العدد: ${target}`,
+        footerAppName: "ATHAR • أثر",
+        footerUrl: "xgharibx.github.io/ATHAR"
+      });
+      const file = new File([poster], "athar-dhikr.png", { type: "image/png" });
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "NŪR — Adhkar" });
-      } else {
-        // Fallback: download
+        await navigator.share({ files: [file], title: "ATHAR" });
+        return;
+      }
+
+      const url = URL.createObjectURL(poster);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "athar-dhikr.png";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch {
+      // Fallback: screenshot the card
+      try {
+        if (!cardRef.current) return;
+        const png = await toPng(cardRef.current, { pixelRatio: 2 });
         const a = document.createElement("a");
         a.href = png;
-        a.download = "noor-dhikr.png";
+        a.download = "athar-dhikr.png";
         a.click();
+      } catch {
+        toast.error("تعذر مشاركة الصورة");
       }
-    } catch {
-      toast.error("تعذر مشاركة الصورة");
     }
   };
 
@@ -256,6 +272,10 @@ export function DhikrCard(props: {
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
+            <IconButton aria-label="نسخ" onClick={doCopy} title="نسخ النص">
+              <Copy size={18} className="opacity-80" />
+            </IconButton>
+
             <IconButton
               aria-label="مفضلة"
               onClick={() => toggleFavorite(sectionId, index)}
@@ -406,8 +426,8 @@ export function DhikrCard(props: {
             className={cn(
               "flex-1 rounded-2xl px-4 py-3 text-sm font-semibold border transition active:scale-[.99]",
               done
-                ? "bg-[rgba(61,220,151,.14)] border-[rgba(61,220,151,.25)] text-[var(--ok)]"
-                : "bg-[rgba(255,215,128,.14)] border-[rgba(255,215,128,.22)] text-[var(--accent)] hover:bg-[rgba(255,215,128,.16)]"
+                ? "bg-[var(--ok)] text-black border-transparent"
+                : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.02]"
             )}
             onClick={() => {
               if (didHold.current) {

@@ -12,6 +12,8 @@ import { SettingsPage } from "@/pages/Settings";
 import { SourcesPage } from "@/pages/Sources";
 import { InsightsPage } from "@/pages/Insights";
 import { NotFoundPage } from "@/pages/NotFound";
+import { QuranPage } from "@/pages/Quran";
+import { SurahPage } from "@/pages/Surah";
 
 export default function App() {
   useApplyTheme();
@@ -23,6 +25,8 @@ export default function App() {
         <Route path="c/:id" element={<CategoryPage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="favorites" element={<FavoritesPage />} />
+        <Route path="quran" element={<QuranPage />} />
+        <Route path="quran/:id" element={<SurahPage />} />
         <Route path="insights" element={<InsightsPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="sources" element={<SourcesPage />} />
