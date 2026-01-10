@@ -9,6 +9,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
+import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 
 const BASMALAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
 
@@ -106,6 +107,39 @@ export function SurahPage() {
       toast.success("تم النسخ");
     } catch {
       toast.error("تعذر النسخ");
+    }
+  };
+
+  const doShareSelectedAyahImage = async () => {
+    try {
+      if (!surah || !selectedAyah) return;
+      const a = displayAyahs.find((x) => x.displayAyah === selectedAyah);
+      if (!a) return;
+
+      const verse = `${a.text} ﴿${toArabicIndic(selectedAyah)}﴾`;
+      const poster = await renderDhikrPosterBlob({
+        text: verse,
+        subtitle: `${surah.name} • ${surah.id}:${selectedAyah}`,
+        footerAppName: "ATHAR • أثر",
+        footerUrl: "xgharibx.github.io/ATHAR"
+      });
+
+      const filename = `athar-quran-${surah.id}-${selectedAyah}.png`;
+      const file = new File([poster], filename, { type: "image/png" });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "ATHAR" });
+        return;
+      }
+
+      const url = URL.createObjectURL(poster);
+      const el = document.createElement("a");
+      el.href = url;
+      el.download = filename;
+      el.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch {
+      toast.error("تعذر مشاركة الصورة");
     }
   };
 
@@ -246,6 +280,9 @@ export function SurahPage() {
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-semibold">ملاحظة للآية ﴿{toArabicIndic(selectedAyah)}﴾</div>
                   <div className="flex items-center gap-2">
+                    <Button variant="secondary" onClick={doShareSelectedAyahImage}>
+                      مشاركة كصورة
+                    </Button>
                     <Button
                       variant="secondary"
                       onClick={() => {
