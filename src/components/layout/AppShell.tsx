@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, Search, Settings2, Sparkles } from "lucide-react";
+import { Menu, Search, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { NoorBackground } from "@/components/background/NoorBackground";
@@ -11,6 +11,14 @@ import { cn, pct } from "@/lib/utils";
 import { IconButton } from "@/components/ui/IconButton";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { LogoMark } from "@/components/brand/LogoMark";
+
+const APP_FOOTER_TEXT = `هذا البرنامج صدقة جارية عني، وعن والديّ وجدتي وإخوتي وأهلي، وعن كل من أحببته في الله وأحبني فيه، وعن من كرهني لسبب أو بدون، وعن من آذاني أو آذيته.
+
+وصدقةٌ عن كل من رأته عيني وإن كنت لا أعرفه، وعن كل عاصٍ لعل الله يهديه، وعن كل صالحٍ حتى يلقى الله، وعن كل ميتٍ نُسي تحت التراب، وعن كل حيٍ نسي أنه سيصير إلى التراب.
+
+وصدقةٌ عن كل من شارك في هذا العمل بأي طريقة، وعن كل من اقتبستُ منه فكرةً أو محتوى، وللمسلمين والمسلمات والمؤمنين والمؤمنات الأحياء منهم والأموات.
+
+وأُشهد الله أني قد عفوت وسامحت عن ما مضى وما هو آت، طمعاً في أن يعفو الله عني.`;
 
 function themeLabel(theme: string) {
   const map: Record<string, string> = {
@@ -206,6 +214,23 @@ export function AppShell() {
             </AnimatePresence>
           </main>
         </div>
+
+        <footer className="mt-6" dir="rtl">
+          <div className="glass rounded-3xl p-5 md:p-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center">
+                <div className="arabic-text text-[15px] md:text-base font-semibold text-[var(--accent)]">
+                  صدقة جارية
+                </div>
+                <div className="mt-3 h-px bg-white/10" />
+              </div>
+
+              <div className="mt-4 arabic-text text-center text-[13px] md:text-sm leading-7 md:leading-8 tracking-tight opacity-85 whitespace-pre-line">
+                {APP_FOOTER_TEXT}
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

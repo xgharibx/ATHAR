@@ -10,7 +10,14 @@ import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 
-const BASMALAH = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ";
+const BASMALAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ";
+
+const BASMALAH_VARIANTS = [
+  BASMALAH,
+  "بِسْمِ ٱللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+  "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+  "بسم الله الرحمن الرحيم"
+];
 
 function toArabicIndic(n: number) {
   const map = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
@@ -19,14 +26,16 @@ function toArabicIndic(n: number) {
 }
 
 function shouldShowBasmalah(surahId: number) {
-  // Common Quran convention: no basmalah header for Al-Fatiha (it is verse 1) and At-Tawbah.
-  return surahId !== 1 && surahId !== 9;
+  // Per UX: show basmalah header once at the top for every surah except At-Tawbah.
+  return surahId !== 9;
 }
 
-function stripBasmalahFromFirstAyahIfPresent(text: string) {
+function stripBasmalahPrefixIfPresent(text: string) {
   const t = (text ?? "").replace(/^\uFEFF/, "").trim();
   if (!t) return t;
-  if (t.startsWith(BASMALAH)) return t.slice(BASMALAH.length).trim();
+  for (const v of BASMALAH_VARIANTS) {
+    if (t.startsWith(v)) return t.slice(v.length).trim();
+  }
   return t;
 }
 
@@ -65,9 +74,24 @@ export function SurahPage() {
     if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [surah, focusAyah]);
 
-  const ayahs: string[] = React.useMemo(() => {
-    if (!surah) return [];
-    return surah.ayahs.map((a, idx) => (idx === 0 ? stripBasmalahFromFirstAyahIfPresent(a) : a));
+  const displayAyahs = React.useMemo(() => {
+    if (!surah) return [] as Array<{ text: string; displayAyah: number; originalAyah: number }>;
+
+    const raw = surah.ayahs.map((a) => (a ?? "").replace(/^\uFEFF/, "").trim());
+
+    // If the first ayah is literally the basmalah (common in Al-Fatiha datasets),
+    // drop it and show the basmalah only in the top header.
+    const firstIsBasmalah = raw.length > 0 && BASMALAH_VARIANTS.some((v) => raw[0] === v);
+    const startIndex = shouldShowBasmalah(surah.id) && firstIsBasmalah ? 1 : 0;
+
+    const out: Array<{ text: string; displayAyah: number; originalAyah: number }> = [];
+    for (let i = startIndex; i < raw.length; i++) {
+      const originalAyah = i + 1;
+      const displayAyah = i - startIndex + 1;
+      const text = i === 0 ? stripBasmalahPrefixIfPresent(raw[i] ?? "") : (raw[i] ?? "");
+      out.push({ text, displayAyah, originalAyah });
+    }
+    return out;
   }, [surah]);
 
   const doCopyText = async (text: string) => {
@@ -83,21 +107,20 @@ export function SurahPage() {
     const parts: string[] = [];
     if (!surah) return "";
     if (shouldShowBasmalah(surah.id)) parts.push(BASMALAH);
-    ayahs.forEach((t, idx) => {
-      const i = idx + 1;
-      parts.push(`${t} (${i})`);
+    displayAyahs.forEach((a) => {
+      parts.push(`${a.text} (${a.displayAyah})`);
     });
     return parts.join("\n");
-  }, [ayahs, surah]);
+  }, [displayAyahs, surah]);
 
   const bookmarkedInSurah = React.useMemo(() => {
     if (!surah) return 0;
     let c = 0;
-    for (let i = 1; i <= ayahs.length; i++) {
+    for (let i = 1; i <= displayAyahs.length; i++) {
       if (bookmarks[`${surah.id}:${i}`]) c += 1;
     }
     return c;
-  }, [ayahs.length, bookmarks, surah]);
+  }, [displayAyahs.length, bookmarks, surah]);
 
   if (isLoading) return <div className="p-6 opacity-80">... تحميل السورة</div>;
   if (error || !data) {
@@ -139,7 +162,7 @@ export function SurahPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className="tabular-nums">{ayahs.length} آية</Badge>
+            <Badge className="tabular-nums">{displayAyahs.length} آية</Badge>
             <Badge className="tabular-nums">{bookmarkedInSurah} علامة</Badge>
             <IconButton aria-label="نسخ السورة" onClick={() => doCopyText(fullSurahText)}>
               <Copy size={16} />
@@ -148,8 +171,8 @@ export function SurahPage() {
         </div>
 
         {shouldShowBasmalah(surah.id) ? (
-          <div className="mt-4 rounded-3xl p-4 border border-white/10 bg-[var(--ok)]/10">
-            <div className="arabic-text text-center text-base leading-8 text-[var(--ok)]">{BASMALAH}</div>
+          <div className="mt-4 quran-basmalah">
+            <div className="arabic-text quran-basmalah-text">{BASMALAH}</div>
           </div>
         ) : null}
       </Card>
@@ -157,23 +180,17 @@ export function SurahPage() {
       <Card className="p-5">
         <div
           ref={pageRef}
-          className="rounded-3xl border border-white/10 overflow-hidden"
+          className="quran-page"
         >
           <div
-            className="p-5 md:p-7"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 1px)",
-              backgroundSize: "18px 18px",
-              backgroundColor: "rgba(255,255,255,0.04)"
-            }}
+            className="quran-page-inner"
           >
             <div
-              className="arabic-text text-[17px] md:text-[18px] leading-10 whitespace-pre-wrap"
+              className="arabic-text quran-text whitespace-pre-wrap"
               style={{ overflowWrap: "anywhere" }}
             >
-              {ayahs.map((text, idx) => {
-                const ayahIndex = idx + 1;
+              {displayAyahs.map((a) => {
+                const ayahIndex = a.displayAyah;
                 const k = `${surah.id}:${ayahIndex}`;
                 const isBookmarked = !!bookmarks[k];
 
@@ -183,7 +200,7 @@ export function SurahPage() {
                       className="inline"
                       onClick={() => setLastRead(surah.id, ayahIndex)}
                     >
-                      {text}{" "}
+                      {a.text}{" "}
                     </span>
                     <button
                       type="button"
@@ -191,12 +208,8 @@ export function SurahPage() {
                         toggleBookmark(surah.id, ayahIndex);
                         setLastRead(surah.id, ayahIndex);
                       }}
-                      className={
-                        "inline-flex align-middle items-center justify-center mx-1 px-2.5 h-8 rounded-full border text-sm tabular-nums transition " +
-                        (isBookmarked
-                          ? "bg-[var(--accent)] text-black border-white/10"
-                          : "bg-white/6 border-white/12 text-[var(--accent)] hover:bg-white/10")
-                      }
+                      className="ayah-marker"
+                      data-bookmarked={isBookmarked ? "true" : "false"}
                       aria-label={`آية ${ayahIndex}`}
                       title={isBookmarked ? "إزالة علامة" : "إضافة علامة"}
                     >

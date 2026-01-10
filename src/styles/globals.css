@@ -224,6 +224,166 @@ html.midnight body.transparent-mode .glass-strong {
   unicode-bidi: plaintext;
 }
 
+/* Quran (mushaf-like) reader styling */
+.quran-basmalah {
+  margin-top: 1rem;
+  border-radius: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--stroke);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.quran-basmalah-text {
+  text-align: center;
+  font-size: 1.18rem;
+  line-height: 2.25rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.quran-page {
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--stroke));
+  overflow: hidden;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.quran-page-inner {
+  padding: 1.25rem;
+  background-image:
+    radial-gradient(
+      circle at 1px 1px,
+      color-mix(in srgb, var(--fg) 10%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 18px 18px;
+  background-color: color-mix(in srgb, var(--fg) 6%, var(--bg));
+}
+
+@media (min-width: 768px) {
+  .quran-page-inner {
+    padding: 1.75rem;
+  }
+}
+
+.quran-text {
+  /* Try to feel closer to a printed mushaf using the existing Arabic fonts */
+  direction: rtl;
+  text-align: justify;
+  text-justify: inter-word;
+  font-family:
+    "KFGQPC Uthmanic Script HAFS",
+    "UthmanicHafs",
+    "Uthmanic Script",
+    "Amiri Quran",
+    "Scheherazade New",
+    "Noto Naskh Arabic",
+    "Noto Sans Arabic",
+    Tahoma,
+    Arial,
+    sans-serif;
+  font-size: 18px;
+  line-height: 2.55;
+  font-weight: 400;
+  font-kerning: normal;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+@media (min-width: 768px) {
+  .quran-text {
+    font-size: 20px;
+  }
+}
+
+.ayah-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin: 0 0.35rem;
+  padding: 0 1.0rem;
+  height: 2.4rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--stroke));
+  color: color-mix(in srgb, var(--accent) 92%, var(--fg));
+  background:
+    radial-gradient(
+      circle at 30% 30%,
+      color-mix(in srgb, var(--accent) 16%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 70% 70%,
+      color-mix(in srgb, var(--accent) 10%, transparent) 0%,
+      transparent 55%
+    ),
+    color-mix(in srgb, var(--fg) 6%, transparent);
+  transition: transform 120ms ease, background-color 120ms ease, color 120ms ease;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+}
+
+.ayah-marker:hover {
+  background:
+    radial-gradient(
+      circle at 30% 30%,
+      color-mix(in srgb, var(--accent) 20%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 70% 70%,
+      color-mix(in srgb, var(--accent) 14%, transparent) 0%,
+      transparent 55%
+    ),
+    color-mix(in srgb, var(--fg) 10%, transparent);
+}
+
+.ayah-marker:active {
+  transform: scale(0.98);
+}
+
+/* Subtle ornament-like double stroke using theme accent */
+.ayah-marker::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 46%, transparent);
+  pointer-events: none;
+}
+
+/* Tiny side ornaments to resemble mushaf rosettes */
+.ayah-marker::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 35%, transparent),
+    transparent
+  );
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.ayah-marker[data-bookmarked="true"] {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: color-mix(in srgb, var(--accent) 75%, var(--stroke));
+}
+
+.ayah-marker[data-bookmarked="true"]::before {
+  border-color: color-mix(in srgb, var(--bg) 25%, transparent);
+}
+
 /* Selection */
 ::selection {
   background: rgba(255, 215, 128, 0.28);
