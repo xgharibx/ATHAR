@@ -87,6 +87,7 @@ const FALLBACK_AYAT: DailyAyah[] = [
 export function HomePage() {
   const navigate = useNavigate();
   const { data, isLoading, error } = useAdhkarDB();
+  const exportState = useNoorStore((s) => s.exportState);
   const activity = useNoorStore((s) => s.activity);
   const progressMap = useNoorStore((s) => s.progress);
   const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
@@ -369,6 +370,19 @@ export function HomePage() {
                 <Button variant="secondary" onClick={onRandom}>
                   <Shuffle size={16} />
                   ذكر عشوائي
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const blob = exportState();
+                    const raw = JSON.stringify(blob, null, 2);
+                    navigator.clipboard
+                      .writeText(raw)
+                      .then(() => toast.success("تم نسخ النسخة الاحتياطية"))
+                      .catch(() => toast.error("تعذر النسخ"));
+                  }}
+                >
+                  نسخ نسخة احتياطية
                 </Button>
               </div>
             </div>

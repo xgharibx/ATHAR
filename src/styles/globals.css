@@ -259,11 +259,6 @@ html.midnight body.transparent-mode .glass-strong {
   100% { transform: translate3d(0, 120vh, 0) rotate(260deg); opacity: 0; }
 }
 
-@keyframes atharShimmer {
-  0% { transform: translateX(-20%); }
-  100% { transform: translateX(20%); }
-}
-
 .athar-bg-blob {
   position: absolute;
   border-radius: 9999px;

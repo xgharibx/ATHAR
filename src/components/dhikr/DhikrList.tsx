@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, ArrowUp, SkipForward } from "lucide-react";
+import { Virtuoso } from "react-virtuoso";
+import { RotateCcw, ArrowDownToLine } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
@@ -19,7 +19,6 @@ export function DhikrList(props: {
 }) {
   const resetSection = useNoorStore((s) => s.resetSection);
   const progressMap = useNoorStore((s) => s.progress);
-  const virtuosoRef = React.useRef<VirtuosoHandle>(null);
 
   const stats = React.useMemo(() => {
     let done = 0;
@@ -51,33 +50,6 @@ export function DhikrList(props: {
     toast.success("تم تصدير القسم كملف");
   };
 
-  const scrollToTop = () => {
-    virtuosoRef.current?.scrollToIndex({ index: 0, align: "start", behavior: "smooth" });
-  };
-
-  const scrollToNextIncomplete = () => {
-    const start = props.focusIndex != null ? Math.max(0, props.focusIndex) : 0;
-    const n = props.items.length;
-    const getProgress = (idx: number) => {
-      const key = `${props.sectionId}:${idx}`;
-      const target = Math.max(1, props.items[idx]?.count ?? 1);
-      const current = progressMap[key] ?? 0;
-      return { current, target };
-    };
-
-    for (let offset = 0; offset < n; offset++) {
-      const idx = (start + offset) % n;
-      const { current, target } = getProgress(idx);
-      if (current < target) {
-        virtuosoRef.current?.scrollToIndex({ index: idx, align: "center", behavior: "smooth" });
-        toast("تم الانتقال إلى الذكر التالي غير المكتمل");
-        return;
-      }
-    }
-
-    toast.success("كل الأذكار مكتملة ✨");
-  };
-
   return (
     <div className="space-y-4">
       <Card className="p-5">
@@ -90,14 +62,6 @@ export function DhikrList(props: {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="ghost" onClick={scrollToTop}>
-              <ArrowUp size={16} />
-              أعلى
-            </Button>
-            <Button variant="ghost" onClick={scrollToNextIncomplete}>
-              <SkipForward size={16} />
-              التالي غير مكتمل
-            </Button>
             <Button
               variant="outline"
               onClick={() => {
@@ -124,7 +88,6 @@ export function DhikrList(props: {
 
       <div className="h-[calc(100vh-240px)] min-h-[440px]">
         <Virtuoso
-          ref={virtuosoRef}
           style={{ height: "100%" }}
           data={props.items}
           itemContent={(index, item) => (
