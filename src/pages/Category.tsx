@@ -15,6 +15,11 @@ export function CategoryPage() {
   const { data, isLoading } = useAdhkarDB();
   const [sp] = useSearchParams();
 
+  React.useEffect(() => {
+    if (!id) return;
+    useNoorStore.getState().setLastVisitedSectionId(id);
+  }, [id]);
+
   const focusIndex = React.useMemo(() => {
     const raw = sp.get("focus");
     if (!raw) return null;
@@ -29,10 +34,8 @@ export function CategoryPage() {
     // "restart the eact section when going to anoter secion"
     // Cleanest way: Clean up on unmount.
     return () => {
-       // We can reset here. But we need to be careful if we navigate to "Settings" then back?
-       // The user request implies a session-based approach.
-       // Let's reset on unmount for now.
-       useNoorStore.getState().resetSection(id!);
+      // Reset on unmount (existing behavior)
+      if (id) useNoorStore.getState().resetSection(id);
     };
   }, [id]);
 

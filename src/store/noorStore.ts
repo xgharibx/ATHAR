@@ -45,6 +45,7 @@ type NoorState = {
   setPrefs: (partial: Partial<Preferences>) => void;
 
   increment: (opts: { sectionId: string; index: number; target: number }) => number;
+  decrement: (opts: { sectionId: string; index: number }) => number;
   resetItem: (sectionId: string, index: number) => void;
   resetSection: (sectionId: string) => void;
 
@@ -58,10 +59,13 @@ type NoorState = {
   // UX-only
   lastCelebrationAt: number;
   setLastCelebrationAt: (ts: number) => void;
+
+  lastVisitedSectionId: string | null;
+  setLastVisitedSectionId: (sectionId: string | null) => void;
 };
 
 const DEFAULT_PREFS: Preferences = {
-  theme: "system",
+  theme: "roses",
   fontScale: 1.05,
   lineHeight: 1.95,
   showBenefits: true,
@@ -110,6 +114,14 @@ export const useNoorStore = create<NoorState>()(
         // Activity tracking (for streaks / insights)
         get().bumpActivityToday();
 
+        return next;
+      },
+
+      decrement: ({ sectionId, index }) => {
+        const key = `${sectionId}:${index}`;
+        const current = get().progress[key] ?? 0;
+        const next = Math.max(0, current - 1);
+        set((s) => ({ progress: { ...s.progress, [key]: next } }));
         return next;
       },
 
@@ -165,7 +177,10 @@ export const useNoorStore = create<NoorState>()(
       },
 
       lastCelebrationAt: 0,
-      setLastCelebrationAt: (ts) => set({ lastCelebrationAt: ts })
+      setLastCelebrationAt: (ts) => set({ lastCelebrationAt: ts }),
+
+      lastVisitedSectionId: null,
+      setLastVisitedSectionId: (sectionId) => set({ lastVisitedSectionId: sectionId })
     }),
     {
       name: "noor_store_v1",

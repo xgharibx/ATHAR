@@ -167,7 +167,7 @@ export function AppShell() {
                 <Search size={18} />
               </IconButton>
 
-              <NavLink to="/settings" className="hidden sm:inline-flex">
+              <NavLink to="/settings" className="inline-flex">
                 <IconButton aria-label="الإعدادات">
                   <Settings2 size={18} />
                 </IconButton>

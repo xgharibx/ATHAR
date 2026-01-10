@@ -1,13 +1,13 @@
 import * as React from "react";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
-import { Heart, MoreVertical, RotateCcw, Share2, Copy, CheckCircle2 } from "lucide-react";
+import { Heart, MoreVertical, RotateCcw, Share2, Copy, CheckCircle2, Minus } from "lucide-react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import confetti from "canvas-confetti";
 import { toPng } from "html-to-image";
 
 import { cn, clamp } from "@/lib/utils";
-import { normalizeText, stripDiacritics } from "@/lib/arabic";
+import { formatLeadingIstiadhahBasmalah, normalizeText, stripDiacritics } from "@/lib/arabic";
 import { useNoorStore } from "@/store/noorStore";
 import type { DhikrItem } from "@/data/types";
 import { IconButton } from "@/components/ui/IconButton";
@@ -62,6 +62,7 @@ export function DhikrCard(props: {
   const prefs = useNoorStore((s) => s.prefs);
   const progress = useNoorStore((s) => s.progress[key] ?? 0);
   const increment = useNoorStore((s) => s.increment);
+  const decrement = useNoorStore((s) => s.decrement);
   const resetItem = useNoorStore((s) => s.resetItem);
   const toggleFavorite = useNoorStore((s) => s.toggleFavorite);
   const fav = useNoorStore((s) => !!s.favorites[key]);
@@ -116,7 +117,8 @@ export function DhikrCard(props: {
 
   const displayText = React.useMemo(() => {
     const t = normalizeText(item.text);
-    return prefs.stripDiacritics ? stripDiacritics(t) : t;
+    const base = prefs.stripDiacritics ? stripDiacritics(t) : t;
+    return formatLeadingIstiadhahBasmalah(base);
   }, [item.text, prefs.stripDiacritics]);
 
   const onCount = (isAuto = false) => {
@@ -254,18 +256,6 @@ export function DhikrCard(props: {
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className={cn("w-10 h-10 rounded-2xl grid place-items-center border", done ? "border-[rgba(61,220,151,.35)] bg-[rgba(61,220,151,.12)]" : "border-white/10 bg-white/6")}>
-              {done ? <CheckCircle2 size={18} className="text-[var(--ok)]" /> : <span className="text-sm font-semibold">{remaining}</span>}
-            </div>
-            <div>
-              <div className="text-xs opacity-60">العدد</div>
-              <div className="text-sm font-medium tabular-nums">
-                {current}/{target}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
             <IconButton
               aria-label="مفضلة"
               onClick={() => toggleFavorite(sectionId, index)}
@@ -327,6 +317,81 @@ export function DhikrCard(props: {
           {displayText}
         </div>
 
+        {/* Counter (under text) */}
+        <div className="mt-4 glass rounded-2xl p-3 border border-white/10">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-12 h-12 relative grid place-items-center shrink-0">
+                <svg width="48" height="48" viewBox="0 0 48 48">
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r={radius}
+                    stroke="rgba(255,255,255,.12)"
+                    strokeWidth="3"
+                    fill="none"
+                  />
+                  <circle
+                    ref={ringRef}
+                    cx="24"
+                    cy="24"
+                    r={radius}
+                    stroke={done ? "rgba(61,220,151,.9)" : "rgba(255,215,128,.92)"}
+                    strokeWidth="3"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={initialOffset}
+                    transform="rotate(-90 24 24)"
+                  />
+                </svg>
+                <div className="absolute inset-0 grid place-items-center">
+                  {done ? (
+                    <CheckCircle2 size={18} className="text-[var(--ok)]" />
+                  ) : (
+                    <span className="text-sm font-semibold tabular-nums">{remaining}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="min-w-0">
+                <div className="text-xs opacity-65">
+                  {done ? "مكتمل" : "المتبقي"}
+                </div>
+                <div className="text-sm font-semibold tabular-nums">
+                  {current}/{target}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <IconButton
+                aria-label="تراجع خطوة"
+                title="تراجع خطوة"
+                onClick={() => decrement({ sectionId, index })}
+                className={cn(current <= 0 && "opacity-40 pointer-events-none")}
+              >
+                <Minus size={18} className="opacity-80" />
+              </IconButton>
+
+              <IconButton
+                aria-label="إعادة العد"
+                onClick={() => resetItem(sectionId, index)}
+                title="إعادة العد"
+              >
+                <RotateCcw size={16} className="opacity-70" />
+              </IconButton>
+            </div>
+          </div>
+
+          <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
+            <div
+              className={cn("h-full transition-[width] duration-300", done ? "bg-[var(--ok)]/70" : "bg-[var(--accent)]/70")}
+              style={{ width: `${Math.round((target ? current / target : 0) * 100)}%` }}
+            />
+          </div>
+        </div>
+
         {/* Benefit */}
         {prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
           <div className="mt-4 rounded-2xl bg-white/6 border border-white/10 p-3 text-sm opacity-85 leading-7">
@@ -336,7 +401,7 @@ export function DhikrCard(props: {
         ) : null}
 
         {/* Counter Button */}
-        <div className="mt-5 flex items-center justify-between gap-3">
+        <div className="mt-4 flex items-center justify-between gap-3">
           <button
             className={cn(
               "flex-1 rounded-2xl px-4 py-3 text-sm font-semibold border transition active:scale-[.99]",
@@ -357,26 +422,6 @@ export function DhikrCard(props: {
           >
             {done ? "اكتملت" : "اضغط — أو اضغط مطوّلًا للتسبيح السريع"}
           </button>
-
-          {/* Progress Ring */}
-          <div className="w-12 h-12 relative grid place-items-center">
-            <svg width="48" height="48" viewBox="0 0 48 48">
-              <circle cx="24" cy="24" r={radius} stroke="rgba(255,255,255,.12)" strokeWidth="3" fill="none" />
-              <circle
-                ref={ringRef}
-                cx="24"
-                cy="24"
-                r={radius}
-                stroke={done ? "rgba(61,220,151,.9)" : "rgba(255,215,128,.92)"}
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={initialOffset}
-                transform="rotate(-90 24 24)"
-              />
-            </svg>
-          </div>
         </div>
       </div>
     </motion.div>

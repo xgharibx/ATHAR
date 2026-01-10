@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
+import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
 
 function isoDay(d: Date) {
   const yyyy = d.getFullYear();
@@ -89,6 +90,7 @@ export function HomePage() {
   const exportState = useNoorStore((s) => s.exportState);
   const activity = useNoorStore((s) => s.activity);
   const progressMap = useNoorStore((s) => s.progress);
+  const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
 
   const sections = data?.db.sections ?? [];
   const flat = data?.flat ?? [];
@@ -196,6 +198,11 @@ export function HomePage() {
       .filter(Boolean) as any[];
   }, [sections]);
 
+  const lastVisitedSection = React.useMemo(() => {
+    if (!lastVisitedSectionId) return null;
+    return sections.find((s) => s.id === lastVisitedSectionId) ?? null;
+  }, [lastVisitedSectionId, sections]);
+
   const analytics = React.useMemo(() => {
     const today = new Date();
     const keys = Object.keys(activity);
@@ -273,6 +280,23 @@ export function HomePage() {
     return arr[Math.floor(rng() * arr.length)];
   }, [flat, rng]);
 
+  const dailyDhikrText = React.useMemo(
+    () => formatLeadingIstiadhahBasmalah(dailyDhikr?.text ?? ""),
+    [dailyDhikr?.text]
+  );
+  const dailyDuaText = React.useMemo(
+    () => formatLeadingIstiadhahBasmalah(dailyDua?.text ?? ""),
+    [dailyDua?.text]
+  );
+  const dailyHadithText = React.useMemo(
+    () => formatLeadingIstiadhahBasmalah(dailyHadith?.text ?? ""),
+    [dailyHadith?.text]
+  );
+  const dailyAyahText = React.useMemo(
+    () => formatLeadingIstiadhahBasmalah(dailyAyah?.text ?? ""),
+    [dailyAyah?.text]
+  );
+
   if (isLoading) {
     return <div className="p-6 opacity-80">... تحميل قاعدة الأذكار</div>;
   }
@@ -338,6 +362,11 @@ export function HomePage() {
 
               <div className="mt-5 flex flex-wrap gap-2">
                 <Button onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
+                {lastVisitedSection ? (
+                  <Button variant="secondary" onClick={() => navigate(`/c/${lastVisitedSection.id}`)}>
+                    تابع آخر قسم
+                  </Button>
+                ) : null}
                 <Button variant="secondary" onClick={onRandom}>
                   <Shuffle size={16} />
                   ذكر عشوائي
@@ -395,10 +424,10 @@ export function HomePage() {
               <Badge>اليوم</Badge>
             </div>
             <div
-              className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyDhikr?.text ?? "")}`}
+                className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyDhikrText)}`}
               style={{ overflowWrap: "anywhere" }}
             >
-              {dailyDhikr?.text ?? ""}
+                {dailyDhikrText}
             </div>
             {dailyDhikr ? (
               <div className="mt-3">
@@ -415,10 +444,10 @@ export function HomePage() {
               <Badge>اليوم</Badge>
             </div>
             <div
-              className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyDua?.text ?? "")}`}
+                className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyDuaText)}`}
               style={{ overflowWrap: "anywhere" }}
             >
-              {dailyDua?.text ?? ""}
+                {dailyDuaText}
             </div>
             {dailyDua ? (
               <div className="mt-3">
@@ -440,10 +469,10 @@ export function HomePage() {
               </div>
             </div>
             <div
-              className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyHadith?.text ?? "")}`}
+                className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyHadithText)}`}
               style={{ overflowWrap: "anywhere" }}
             >
-              {dailyHadith?.text ?? ""}
+                {dailyHadithText}
             </div>
             <div className="mt-2 text-xs opacity-60">{dailyHadith?.ref ?? ""}</div>
             {dailyHadith?.url ? (
@@ -464,10 +493,10 @@ export function HomePage() {
               <Badge>اليوم</Badge>
             </div>
             <div
-              className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyAyah?.text ?? "")}`}
+                className={`mt-3 arabic-text whitespace-pre-wrap ${textClassByLength(dailyAyahText)}`}
               style={{ overflowWrap: "anywhere" }}
             >
-              {dailyAyah?.text ?? ""}
+                {dailyAyahText}
             </div>
             {dailyAyah?.surah ? (
               <div className="mt-2 text-xs opacity-60">
