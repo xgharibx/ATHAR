@@ -83,12 +83,23 @@ function getLeaderboardHeaders(includeContentType: boolean = true): Record<strin
 
 async function submitWithFallback(endpoint: string, item: LeaderboardSubmitPayload) {
   const primaryHeaders = getLeaderboardHeaders(true);
+  const hasApiKey = Boolean(primaryHeaders.apikey);
   try {
-    return await fetch(endpoint, {
+    const first = await fetch(endpoint, {
       method: "POST",
       headers: primaryHeaders,
       body: JSON.stringify(item)
     });
+
+    if ((first.status === 401 || first.status === 403) && hasApiKey) {
+      return await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item)
+      });
+    }
+
+    return first;
   } catch {
     return await fetch(endpoint, {
       method: "POST",
@@ -445,10 +456,19 @@ export async function fetchBoardRows(opts: {
   if (day) url.searchParams.set("day", day);
 
   const headers = getLeaderboardHeaders(false);
-  const res = await fetch(url.toString(), {
+  const hasApiKey = Boolean(headers.apikey);
+
+  let res = await fetch(url.toString(), {
     method: "GET",
     headers
   });
+
+  if ((res.status === 401 || res.status === 403) && hasApiKey) {
+    res = await fetch(url.toString(), {
+      method: "GET"
+    });
+  }
+
   if (!res.ok) throw new Error("fetch leaderboard failed");
 
   const json = (await res.json()) as { rows?: LeaderboardEntry[] };
