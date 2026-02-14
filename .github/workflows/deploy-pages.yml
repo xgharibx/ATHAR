@@ -31,7 +31,12 @@ jobs:
         run: npm ci
 
       - name: Build (GitHub Pages)
-        run: GITHUB_PAGES=true npm run build
+        env:
+          GITHUB_PAGES: "true"
+          VITE_LEADERBOARD_ENDPOINT: ${{ secrets.VITE_LEADERBOARD_ENDPOINT }}
+          VITE_LEADERBOARD_ANON_KEY: ${{ secrets.VITE_LEADERBOARD_ANON_KEY }}
+          VITE_ICON_REV: ${{ vars.VITE_ICON_REV }}
+        run: npm run build
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
