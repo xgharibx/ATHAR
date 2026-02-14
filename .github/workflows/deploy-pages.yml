@@ -36,6 +36,7 @@ jobs:
           VITE_LEADERBOARD_ENDPOINT: ${{ secrets.VITE_LEADERBOARD_ENDPOINT }}
           VITE_LEADERBOARD_ANON_KEY: ${{ secrets.VITE_LEADERBOARD_ANON_KEY }}
           VITE_ICON_REV: ${{ vars.VITE_ICON_REV }}
+          VITE_RUNTIME_VERSION: ${{ github.sha }}
         run: npm run build
 
       - name: Configure Pages

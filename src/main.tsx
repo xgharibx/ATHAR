@@ -8,7 +8,7 @@ import App from "./App";
 import "./styles/globals.css";
 import "./pwa";
 
-const APP_RUNTIME_VERSION = "2026-02-14-r5";
+const APP_RUNTIME_VERSION = (import.meta.env.VITE_RUNTIME_VERSION as string | undefined) ?? "local-dev";
 const APP_RUNTIME_VERSION_KEY = "noor_app_runtime_version";
 
 type ErrorBoundaryState = { hasError: boolean; message: string };
