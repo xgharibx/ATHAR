@@ -47,7 +47,11 @@ export type FlatDhikr = {
 export function coerceCount(raw: unknown): number {
   if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) return raw;
   if (typeof raw === "string") {
-    const n = parseInt(raw, 10);
+    const normalized = raw
+      .trim()
+      .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+      .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)));
+    const n = parseInt(normalized, 10);
     if (Number.isFinite(n) && n > 0) return n;
   }
   return 1;

@@ -21,3 +21,6 @@ Thumbs.db
 
 # TypeScript build info
 *.tsbuildinfo
+
+# perf audit artifacts
+lighthouse-*.json

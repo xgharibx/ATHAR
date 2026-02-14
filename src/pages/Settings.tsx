@@ -172,7 +172,68 @@ export function SettingsPage() {
             </div>
           </div>
 
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-medium">حجم خط القرآن</div>
+              <div className="text-xs opacity-70 tabular-nums">{prefs.quranFontScale.toFixed(2)}</div>
+            </div>
+            <div className="mt-3">
+              <Slider
+                value={[prefs.quranFontScale]}
+                min={0.9}
+                max={1.6}
+                step={0.01}
+                onValueChange={(v) => setPrefs({ quranFontScale: clamp(v[0] ?? 1.1, 0.9, 1.6) })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-medium">تباعد سطور القرآن</div>
+              <div className="text-xs opacity-70 tabular-nums">{prefs.quranLineHeight.toFixed(2)}</div>
+            </div>
+            <div className="mt-3">
+              <Slider
+                value={[prefs.quranLineHeight]}
+                min={1.8}
+                max={3}
+                step={0.01}
+                onValueChange={(v) => setPrefs({ quranLineHeight: clamp(v[0] ?? 2.55, 1.8, 3) })}
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SettingRow
+              title="حجم صفحة المصحف"
+              desc={`عدد الآيات بكل صفحة: ${prefs.quranPageSize}`}
+              right={
+                <div className="flex items-center gap-2">
+                  {[8, 12, 16].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => setPrefs({ quranPageSize: n })}
+                      className={[
+                        "px-3 py-1.5 rounded-xl border text-xs transition",
+                        prefs.quranPageSize === n
+                          ? "bg-[rgba(255,215,128,.16)] border-[rgba(255,215,128,.28)]"
+                          : "bg-white/6 border-white/10 hover:bg-white/10"
+                      ].join(" ")}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              }
+            />
+            <SettingRow
+              title="إخفاء أرقام الآيات"
+              desc="وضع تركيز للقراءة بدون علامات"
+              right={
+                <Switch checked={prefs.quranHideMarkers} onCheckedChange={(v) => setPrefs({ quranHideMarkers: v })} />
+              }
+            />
             <SettingRow
               title="إظهار الفضل / المصدر"
               desc="إظهار صندوق الفضل إن وُجد"
@@ -191,6 +252,22 @@ export function SettingsPage() {
               }
             />
           </div>
+
+          <div className="glass rounded-3xl p-4 border border-white/10">
+            <div className="text-xs opacity-65 mb-2">معاينة مباشرة</div>
+            <div
+              className="arabic-text"
+              style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
+            >
+              سُبْحَانَ اللَّهِ وَبِحَمْدِهِ
+            </div>
+            <div
+              className="arabic-text quran-text mt-3"
+              style={{ fontSize: `${18 * prefs.quranFontScale}px`, lineHeight: prefs.quranLineHeight }}
+            >
+              ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -200,7 +277,7 @@ export function SettingsPage() {
           <div className="font-semibold">تجربة التسبیح</div>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
           <SettingRow
             title="الاهتزاز"
             desc="اهتزاز خفيف عند العدّ"
@@ -214,11 +291,6 @@ export function SettingsPage() {
             right={
               <Switch checked={prefs.enableSounds} onCheckedChange={(v) => setPrefs({ enableSounds: v })} />
             }
-          />
-          <SettingRow
-            title="ملاحظة"
-            desc="اضغط مطوّلًا للتسبيح السريع"
-            right={<span className="text-xs opacity-60">✔</span>}
           />
         </div>
       </Card>

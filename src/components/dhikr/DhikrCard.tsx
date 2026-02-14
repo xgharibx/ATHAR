@@ -10,8 +10,9 @@ import { cn, clamp } from "@/lib/utils";
 import { formatLeadingIstiadhahBasmalah, normalizeText, stripDiacritics } from "@/lib/arabic";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { useNoorStore } from "@/store/noorStore";
-import type { DhikrItem } from "@/data/types";
+import { coerceCount, type DhikrItem } from "@/data/types";
 import { IconButton } from "@/components/ui/IconButton";
+import { isDailySection } from "@/lib/dailySections";
 import toast from "react-hot-toast";
 
 const audioCtxRef = new (class {
@@ -61,7 +62,7 @@ export function DhikrCard(props: {
 
   const key = `${sectionId}:${index}`;
   const prefs = useNoorStore((s) => s.prefs);
-  const progress = useNoorStore((s) => s.progress[key] ?? 0);
+  const progress = useNoorStore((s) => Math.max(0, Number(s.progress[key]) || 0));
   const increment = useNoorStore((s) => s.increment);
   const decrement = useNoorStore((s) => s.decrement);
   const resetItem = useNoorStore((s) => s.resetItem);
@@ -70,10 +71,11 @@ export function DhikrCard(props: {
   const lastCelebrationAt = useNoorStore((s) => s.lastCelebrationAt);
   const setLastCelebrationAt = useNoorStore((s) => s.setLastCelebrationAt);
 
-  const target = Math.max(1, item.count ?? 1);
+  const target = coerceCount(item.count);
   const current = clamp(progress, 0, target);
   const remaining = Math.max(0, target - current);
   const done = current >= target;
+  const isDailyLockedItem = isDailySection(sectionId) && done;
 
   const cardRef = React.useRef<HTMLDivElement>(null);
   const ringRef = React.useRef<SVGCircleElement>(null);
@@ -122,12 +124,12 @@ export function DhikrCard(props: {
     return formatLeadingIstiadhahBasmalah(base);
   }, [item.text, prefs.stripDiacritics]);
 
-  const onCount = (isAuto = false) => {
-    const next = increment({ sectionId, index, target: Number(item.count) });
+  const onCount = () => {
+    const next = increment({ sectionId, index, target });
     
     // Improved Feedbacks
     if (prefs.enableHaptics && navigator.vibrate) {
-      navigator.vibrate(isAuto ? 5 : 12);
+      navigator.vibrate(12);
     }
     
     if (prefs.enableSounds) {
@@ -135,7 +137,7 @@ export function DhikrCard(props: {
     }
 
     // micro ripple
-    if (cardRef.current && !isAuto) {
+    if (cardRef.current) {
       gsap.fromTo(cardRef.current, { scale: 1 }, { scale: 0.995, duration: 0.08, yoyo: true, repeat: 1 });
     }
     
@@ -165,34 +167,10 @@ export function DhikrCard(props: {
     }
 
     // Completion confetti
-    if (next >= Number(item.count)) {
+    if (next >= target) {
       // toast.success("اكتملت ✨");
       // Optional: don't toast for every item, maybe just sound or glow?
     }
-  };
-
-  // Press & hold auto-count
-  const holdRef = React.useRef<number | null>(null);
-  const didHold = React.useRef(false);
-  const holdStart = React.useRef<number>(0);
-
-  const onPointerDown = () => {
-    if (done) return;
-    didHold.current = false;
-    holdStart.current = Date.now();
-
-    window.clearInterval(holdRef.current ?? undefined);
-    holdRef.current = window.setInterval(() => {
-      const elapsed = Date.now() - holdStart.current;
-      if (elapsed < 280) return; // grace period before auto-repeat
-      didHold.current = true;
-      onCount(true);
-    }, 150);
-  };
-
-  const clearHold = () => {
-    window.clearInterval(holdRef.current ?? undefined);
-    holdRef.current = null;
   };
 
   const doCopy = async () => {
@@ -286,8 +264,12 @@ export function DhikrCard(props: {
 
             <IconButton
               aria-label="إعادة العد"
-              onClick={() => resetItem(sectionId, index)}
+              onClick={() => {
+                if (isDailyLockedItem) return;
+                resetItem(sectionId, index, target);
+              }}
               title="إعادة العد"
+              className={cn(isDailyLockedItem && "opacity-40 pointer-events-none")}
             >
               <RotateCcw size={16} className="opacity-70" />
             </IconButton>
@@ -317,7 +299,10 @@ export function DhikrCard(props: {
                   </MenuItem>
                   <Dropdown.Separator className="h-px bg-white/10 my-1" />
                   <MenuItem
-                    onSelect={() => resetItem(sectionId, index)}
+                    onSelect={() => {
+                      if (isDailyLockedItem) return;
+                      resetItem(sectionId, index, target);
+                    }}
                     icon={<RotateCcw size={16} />}
                     danger
                   >
@@ -388,16 +373,23 @@ export function DhikrCard(props: {
               <IconButton
                 aria-label="تراجع خطوة"
                 title="تراجع خطوة"
-                onClick={() => decrement({ sectionId, index })}
-                className={cn(current <= 0 && "opacity-40 pointer-events-none")}
+                onClick={() => {
+                  if (isDailyLockedItem) return;
+                  decrement({ sectionId, index, target });
+                }}
+                className={cn((current <= 0 || isDailyLockedItem) && "opacity-40 pointer-events-none")}
               >
                 <Minus size={18} className="opacity-80" />
               </IconButton>
 
               <IconButton
                 aria-label="إعادة العد"
-                onClick={() => resetItem(sectionId, index)}
+                onClick={() => {
+                  if (isDailyLockedItem) return;
+                  resetItem(sectionId, index, target);
+                }}
                 title="إعادة العد"
+                className={cn(isDailyLockedItem && "opacity-40 pointer-events-none")}
               >
                 <RotateCcw size={16} className="opacity-70" />
               </IconButton>
@@ -430,17 +422,11 @@ export function DhikrCard(props: {
                 : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.02]"
             )}
             onClick={() => {
-              if (didHold.current) {
-                didHold.current = false;
-                return;
-              }
+              if (isDailyLockedItem) return;
               onCount();
             }}
-            onPointerDown={onPointerDown}
-            onPointerUp={clearHold}
-            onPointerCancel={clearHold}
           >
-            {done ? "اكتملت" : "اضغط — أو اضغط مطوّلًا للتسبيح السريع"}
+            {done ? "اكتملت" : "اضغط للعدّ"}
           </button>
         </div>
       </div>

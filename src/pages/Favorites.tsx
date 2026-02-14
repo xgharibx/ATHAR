@@ -32,7 +32,7 @@ export function FavoritesPage() {
           <div className="text-xs opacity-70">{items.length} عنصر</div>
         </div>
         <div className="mt-2 text-xs opacity-65 leading-6">
-          المفضلة محفوظة محليًا على جهازك. يمكنك تصدير النسخة الاحتياطية من صفحة الإعدادات/المصادر.
+          المفضلة محفوظة محليًا على جهازك. يمكنك تصدير النسخة الاحتياطية من صفحة الإعدادات.
         </div>
       </Card>
 

@@ -1,57 +1,26 @@
 import * as React from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Points, PointMaterial } from "@react-three/drei";
-import * as THREE from "three";
 import { useNoorStore } from "@/store/noorStore";
 
-function Starfield(props: { count?: number }) {
-  const ref = React.useRef<THREE.Points>(null!);
-  const count = props.count ?? 1800;
-
-  const positions = React.useMemo(() => {
-    const arr = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      // random points inside a sphere
-      const r = Math.random() * 1.8 + 0.2;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.sin(phi) * Math.sin(theta);
-      const z = r * Math.cos(phi);
-      arr[i * 3 + 0] = x;
-      arr[i * 3 + 1] = y;
-      arr[i * 3 + 2] = z;
-    }
-    return arr;
-  }, [count]);
-
-  useFrame((_, delta) => {
-    if (!ref.current) return;
-    ref.current.rotation.y += delta * 0.03;
-    ref.current.rotation.x += delta * 0.01;
-  });
-
-  return (
-    <group>
-      <Points ref={ref} positions={positions} stride={3}>
-        <PointMaterial
-          transparent
-          color="#ffd780"
-          size={0.006}
-          sizeAttenuation
-          depthWrite={false}
-          opacity={0.85}
-        />
-      </Points>
-    </group>
-  );
-}
+const NoorStarfield = React.lazy(() => import("@/components/background/NoorStarfield"));
 
 export function NoorBackground() {
   const enable3D = useNoorStore((s) => s.prefs.enable3D);
   const reduceMotion = useNoorStore((s) => s.prefs.reduceMotion);
   const theme = useNoorStore((s) => s.prefs.theme);
   const transparent = useNoorStore((s) => s.prefs.transparentMode);
+  const [webglOk, setWebglOk] = React.useState(true);
+
+  React.useEffect(() => {
+    if (reduceMotion || !enable3D) return;
+    try {
+      const canvas = document.createElement("canvas");
+      const gl2 = canvas.getContext("webgl2");
+      const gl1 = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      setWebglOk(!!(gl2 || gl1));
+    } catch {
+      setWebglOk(false);
+    }
+  }, [enable3D, reduceMotion]);
 
   const petals = React.useMemo(() => {
     if (reduceMotion) return [];
@@ -149,15 +118,10 @@ export function NoorBackground() {
       ) : null}
 
       {/* Optional 3D layer */}
-      {enable3D && !reduceMotion ? (
-        <Canvas
-          dpr={[1, 1.5]}
-          camera={{ position: [0, 0, 3], fov: 60 }}
-          style={{ position: "absolute", inset: 0 }}
-        >
-          <ambientLight intensity={0.7} />
-          <Starfield />
-        </Canvas>
+      {enable3D && !reduceMotion && webglOk ? (
+        <React.Suspense fallback={null}>
+          <NoorStarfield />
+        </React.Suspense>
       ) : null}
     </div>
   );

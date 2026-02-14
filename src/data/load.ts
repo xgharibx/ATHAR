@@ -5,7 +5,7 @@ import { mergeWithPacks } from "./packs";
  * Loads `public/data/adhkar.json` (offline friendly via PWA caching).
  */
 export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] }> {
-  const res = await fetch(`${import.meta.env.BASE_URL}data/adhkar.json`, { cache: "no-store" });
+  const res = await fetch(`${import.meta.env.BASE_URL}data/adhkar.json`);
   if (!res.ok) throw new Error("تعذر تحميل قاعدة الأذكار");
   const json = await res.json();
 

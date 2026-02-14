@@ -2,7 +2,18 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Lottie from "lottie-react";
-import { Sparkles, Shuffle, RotateCw, Copy, CheckCircle2 } from "lucide-react";
+import {
+  Sparkles,
+  Shuffle,
+  RotateCw,
+  Copy,
+  CheckCircle2,
+  MoonStar,
+  Trophy,
+  Heart,
+  LineChart,
+  ListChecks
+} from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
@@ -13,8 +24,15 @@ import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
+import { NightlyPlanStrip } from "@/components/layout/NightlyPlanStrip";
 import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
+import { clamp, pct } from "@/lib/utils";
+import { getOrCreateUxVariant, trackUxEvent } from "@/lib/uxMetrics";
 import { useQuranDB } from "@/data/useQuranDB";
+import { coerceCount } from "@/data/types";
+import { useTodayKey } from "@/hooks/useTodayKey";
+import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { DAILY_CHECKLIST_ITEMS, type DailyChecklistItem } from "@/data/dailyGrowth";
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -50,12 +68,51 @@ function daysBetween(a: Date, b: Date) {
   return Math.floor((utcB - utcA) / ms);
 }
 
+function shiftISO(dateISO: string, deltaDays: number) {
+  const d = parseISODate(dateISO);
+  if (!d) return dateISO;
+  d.setDate(d.getDate() + deltaDays);
+  return isoDay(d);
+}
+
 function textClassByLength(text: string) {
   const len = (text ?? "").trim().length;
   if (len > 900) return "text-xs leading-6";
   if (len > 520) return "text-sm leading-7";
   return "text-base leading-8";
 }
+
+function routeForChecklistCategory(category: DailyChecklistItem["category"]) {
+  if (category === "quran") return "/quran";
+  if (category === "dhikr") return "/c/morning";
+  if (category === "salah") return "/ramadan";
+  if (category === "sadaqah") return "/ramadan";
+  return "/insights";
+}
+
+type PrayerContext = {
+  nextPrayer: { label: string; at: Date } | null;
+  nextPrayerMinutes: number | null;
+};
+
+type MissionStep = {
+  item: DailyChecklistItem;
+  title: string;
+  tip: string;
+  route: string;
+  priority: number;
+};
+
+function rescueTipByCategory(category: DailyChecklistItem["category"]) {
+  if (category === "quran") return "اقرأ صفحة واحدة فقط";
+  if (category === "dhikr") return "ابدأ بذكر قصير 30 ثانية";
+  if (category === "salah") return "تحقق من الصلاة القادمة واستعد لها";
+  if (category === "sadaqah") return "نفّذ صدقة بسيطة الآن";
+  if (category === "family") return "رسالة صلة رحم سريعة";
+  return "دعاء صادق لشخص آخر";
+}
+
+const MOBILE_NAV_USAGE_KEY = "noor_home_mobile_nav_usage_v1";
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -83,9 +140,65 @@ export function HomePage() {
   const resetKhatma = useNoorStore((s) => s.resetKhatma);
 
   const sections = data?.db.sections ?? [];
-  const flat = data?.flat ?? [];
 
-  const todayKey = React.useMemo(() => isoDay(new Date()), []);
+  const todayKey = useTodayKey();
+  const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[todayKey] ?? {});
+  const yesterdayKey = React.useMemo(() => shiftISO(todayKey, -1), [todayKey]);
+  const dailyChecklistYesterday = useNoorStore((s) => s.dailyChecklist[yesterdayKey] ?? {});
+  const toggleDailyChecklist = useNoorStore((s) => s.toggleDailyChecklist);
+  const prayerTimes = usePrayerTimes();
+  const [mobileNavUsage, setMobileNavUsage] = React.useState<Record<string, number>>({});
+  const [mobileUxVariant, setMobileUxVariant] = React.useState<"A" | "B">("A");
+
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem(MOBILE_NAV_USAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      if (parsed && typeof parsed === "object") {
+        setMobileNavUsage(parsed as Record<string, number>);
+      }
+    } catch {
+      setMobileNavUsage({});
+    }
+  }, []);
+
+  React.useEffect(() => {
+    setMobileUxVariant(getOrCreateUxVariant());
+  }, []);
+
+  const mobileSmartNavItems = React.useMemo(() => {
+    const base = [
+      { label: "رمضان", route: "/ramadan", icon: MoonStar, rank: 1 },
+      { label: "قضاء", route: "/missed", icon: ListChecks, rank: 2 },
+      { label: "الإحصاءات", route: "/insights", icon: LineChart, rank: 3 },
+      { label: "المفضلة", route: "/favorites", icon: Heart, rank: 4 },
+      { label: "المتصدرون", route: "/leaderboard", icon: Trophy, rank: 5 }
+    ];
+
+    return [...base].sort((a, b) => {
+      const aUsage = mobileNavUsage[a.route] ?? 0;
+      const bUsage = mobileNavUsage[b.route] ?? 0;
+      if (aUsage !== bUsage) return bUsage - aUsage;
+      return a.rank - b.rank;
+    });
+  }, [mobileNavUsage]);
+
+  const onMobileSmartNavClick = React.useCallback(
+    (route: string) => {
+      setMobileNavUsage((prev) => {
+        const next = { ...prev, [route]: (prev[route] ?? 0) + 1 };
+        try {
+          localStorage.setItem(MOBILE_NAV_USAGE_KEY, JSON.stringify(next));
+        } catch {
+          // ignore storage errors
+        }
+        return next;
+      });
+      trackUxEvent(`mobile_nav:${route}`);
+      navigate(route);
+    },
+    [navigate]
+  );
 
   React.useEffect(() => {
     if (!dailyWirdStartISO) {
@@ -95,14 +208,22 @@ export function HomePage() {
 
   const dailyWird = React.useMemo(() => {
     if (!quran.data) return null;
+    if (!dailyWirdStartISO) return null;
 
-    const start = dailyWirdStartISO ? parseISODate(dailyWirdStartISO) : null;
-    const today = parseISODate(todayKey);
-    if (!start || !today) return null;
+    const start = parseISODate(dailyWirdStartISO);
+    if (!start) return null;
 
-    // Sequential wird: fixed chunk size across the entire mushaf.
+    // Sequential wird: move forward only when previous chunk is marked done.
     const CHUNK = 7;
-    const dayIndex = Math.max(0, daysBetween(start, today));
+
+    const startKey = dailyWirdStartISO;
+
+    const completedChunks = Object.entries(dailyWirdDone ?? {}).reduce((acc, [date, done]) => {
+      if (!done) return acc;
+      return date >= startKey ? acc + 1 : acc;
+    }, 0);
+
+    const chunkIndex = Math.max(0, completedChunks);
 
     // Flatten all ayahs into a single mushaf sequence.
     const flat: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
@@ -115,7 +236,7 @@ export function HomePage() {
     }
     if (flat.length === 0) return null;
 
-    const startAt = (dayIndex * CHUNK) % flat.length;
+    const startAt = (chunkIndex * CHUNK) % flat.length;
     const items: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
     for (let i = 0; i < CHUNK; i++) {
       const idx = (startAt + i) % flat.length;
@@ -133,11 +254,11 @@ export function HomePage() {
         from: startAt + 1,
         to: startAt + CHUNK > flat.length ? flat.length : startAt + CHUNK,
         total: flat.length,
-        dayIndex,
+        chunkIndex,
         chunk: CHUNK
       }
     };
-  }, [dailyWirdStartISO, quran.data, todayKey]);
+  }, [dailyWirdDone, dailyWirdStartISO, quran.data]);
 
   const isDailyWirdDone = !!dailyWirdDone[todayKey];
 
@@ -203,19 +324,14 @@ export function HomePage() {
   const onRandom = () => {
     if (!data?.flat?.length) return;
     const r = data.flat[Math.floor(Math.random() * data.flat.length)];
+    trackUxEvent("home_cta:random_dhikr");
     navigate(`/c/${r.sectionId}?focus=${r.index}`);
   };
 
   const onQuick = (id: string) => {
+    trackUxEvent(`home_cta:quick_${id}`);
     navigate(`/c/${id}`);
   };
-
-  const featured = React.useMemo(() => {
-    const featuredIds = ["morning", "evening", "post_prayer", "sleep", "adhan"];
-    return featuredIds
-      .map((id) => sections.find((s) => s.id === id))
-      .filter(Boolean) as any[];
-  }, [sections]);
 
   const lastVisitedSection = React.useMemo(() => {
     if (!lastVisitedSectionId) return null;
@@ -249,9 +365,9 @@ export function HomePage() {
       let secTotal = 0;
 
       s.content.forEach((it, idx) => {
-        const target = Math.max(1, Number(it.count ?? 1));
+        const target = coerceCount(it.count);
         const key = `${s.id}:${idx}`;
-        const current = Math.min(progressMap[key] ?? 0, target);
+        const current = Math.min(Math.max(0, Number(progressMap[key]) || 0), target);
 
         totalCounts += target;
         completedCounts += current;
@@ -291,23 +407,202 @@ export function HomePage() {
     const target = 100;
     const done = QUICK_TASBEEH.reduce((acc, it) => acc + Math.min(target, quickTasbeeh[it.key] ?? 0), 0);
     const total = QUICK_TASBEEH.length * target;
-    const percent = total ? Math.round((done / total) * 100) : 0;
+    const percent = pct(done, total);
     return { done, total, percent };
   }, [quickTasbeeh]);
 
-  const holdRef = React.useRef<Record<string, number | null>>({});
+  const prayerContext = React.useMemo<PrayerContext>(() => {
+    const timings = prayerTimes.data?.data?.timings;
+    if (!timings) return { nextPrayer: null, nextPrayerMinutes: null };
 
-  const onQuickDown = (key: QuickTasbeehKey) => {
-    window.clearInterval(holdRef.current[key] ?? undefined);
-    holdRef.current[key] = window.setInterval(() => {
-      incQuickTasbeeh(key, 100);
-      if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(5);
-    }, 120);
-  };
-  const onQuickUp = (key: QuickTasbeehKey) => {
-    window.clearInterval(holdRef.current[key] ?? undefined);
-    holdRef.current[key] = null;
-  };
+    const now = new Date();
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const prayerList = [
+      { label: "الفجر", value: timings.Fajr },
+      { label: "الظهر", value: timings.Dhuhr },
+      { label: "العصر", value: timings.Asr },
+      { label: "المغرب", value: timings.Maghrib },
+      { label: "العشاء", value: timings.Isha }
+    ]
+      .map((p) => {
+        const clean = String(p.value ?? "").trim().split(" ")[0] ?? "";
+        const [hh, mm] = clean.split(":").map((x) => Number.parseInt(x, 10));
+        if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+        const at = new Date(dayStart);
+        at.setHours(hh, mm, 0, 0);
+        return { label: p.label, at };
+      })
+      .filter((p): p is { label: string; at: Date } => !!p);
+
+    const nextPrayer = prayerList.find((p) => p.at.getTime() > now.getTime()) ?? prayerList[0] ?? null;
+    const nextPrayerMinutes = nextPrayer ? Math.max(0, Math.floor((nextPrayer.at.getTime() - now.getTime()) / 60000)) : null;
+
+    return { nextPrayer, nextPrayerMinutes };
+  }, [prayerTimes.data?.data?.timings]);
+
+  const smartNow = React.useMemo(() => {
+    const hour = new Date().getHours();
+    const periodLabel =
+      hour < 5 ? "قبل الفجر" : hour < 12 ? "الصباح" : hour < 17 ? "بعد الظهر" : hour < 20 ? "المساء" : "الليل";
+
+    const nextChecklist = DAILY_CHECKLIST_ITEMS.find((item) => !dailyChecklistToday[item.id]);
+    let suggestedAction =
+      nextChecklist?.title ??
+      (isDailyWirdDone ? "حافظ على الاستمرارية وراجع نية الغد" : "أنهِ ورد اليوم قبل النوم");
+
+    if (nextChecklist?.id === "fajr_on_time") {
+      suggestedAction = prayerContext.nextPrayer?.label === "الفجر"
+        ? "استعد لصلاة الفجر القادمة"
+        : "ثبّت الصلوات القادمة في وقتها";
+    }
+
+    if (nextChecklist?.id === "five_prayers" && prayerContext.nextPrayer) {
+      suggestedAction = `حافظ على ${prayerContext.nextPrayer.label} في وقتها`;
+    }
+
+    const actionRoute = !isDailyWirdDone
+      ? "/quran"
+      : nextChecklist
+        ? routeForChecklistCategory(nextChecklist.category)
+        : "/insights";
+
+    const actionLabel = !isDailyWirdDone
+      ? "اذهب إلى ورد القرآن"
+      : nextChecklist
+        ? "نفّذ المهمة التالية الآن"
+        : "راجع تقدمك اليوم";
+
+    const missedYesterday = DAILY_CHECKLIST_ITEMS.filter((item) => !dailyChecklistYesterday[item.id]).length;
+    const todayActivity = Number(activity[todayKey] ?? 0);
+    const streakRisk = hour >= 20 && todayActivity === 0;
+
+    return { periodLabel, suggestedAction, missedYesterday, streakRisk, actionRoute, actionLabel };
+  }, [activity, dailyChecklistToday, dailyChecklistYesterday, isDailyWirdDone, prayerContext.nextPrayer, todayKey]);
+
+  const adaptiveMission = React.useMemo(() => {
+    const nextPrayer = prayerContext.nextPrayer;
+    const nextPrayerMinutes = prayerContext.nextPrayerMinutes;
+
+    const debtToday = DAILY_CHECKLIST_ITEMS.filter((item) => !dailyChecklistToday[item.id]);
+    const missedYesterdayItems = DAILY_CHECKLIST_ITEMS.filter((item) => !dailyChecklistYesterday[item.id]);
+
+    const toMissionStep = (item: DailyChecklistItem): MissionStep | null => {
+      const route = routeForChecklistCategory(item.category);
+      const nearPrayerWindow = nextPrayerMinutes != null && nextPrayerMinutes <= 45;
+      const basePriorityMap: Record<DailyChecklistItem["category"], number> = {
+        salah: 1,
+        quran: 2,
+        dhikr: 3,
+        sadaqah: 4,
+        family: 5,
+        akhlaq: 6
+      };
+
+      if (item.id === "fajr_on_time") {
+        if (nextPrayer?.label !== "الفجر") return null;
+        return {
+          item,
+          title: "استعد لصلاة الفجر القادمة",
+          tip: "نوم مبكر + منبه + نية",
+          route,
+          priority: 0
+        };
+      }
+
+      if (item.id === "five_prayers") {
+        if (!nextPrayer) return null;
+        return {
+          item,
+          title: `حافظ على ${nextPrayer.label} في وقتها`,
+          tip: "تهيأ للصلاة قبل الأذان بدقائق",
+          route,
+          priority: nearPrayerWindow ? 0 : 1
+        };
+      }
+
+      let title = item.title;
+      let tip = rescueTipByCategory(item.category);
+      let priority = basePriorityMap[item.category] ?? 10;
+
+      if (nearPrayerWindow && item.category === "quran") {
+        title = "ورد قرآن قصير قبل الصلاة القادمة";
+        tip = "صفحة واحدة بتدبر تكفي";
+        priority = 1;
+      }
+
+      if (smartNow.streakRisk && item.category === "dhikr") {
+        title = "ذكر سريع لإنقاذ السلسلة";
+        tip = "ابدأ بـ 30 ثانية الآن";
+        priority = Math.min(priority, 2);
+      }
+
+      return { item, title, tip, route, priority };
+    };
+
+    const allMissionSteps = debtToday
+      .map(toMissionStep)
+      .filter((step): step is MissionStep => !!step)
+      .sort((a, b) => a.priority - b.priority);
+
+    const recoveryItem = allMissionSteps[0]?.item ?? null;
+    const priorityCategories: DailyChecklistItem["category"][] = ["salah", "quran", "dhikr", "sadaqah", "family", "akhlaq"];
+    const recoveryPlan = [...allMissionSteps]
+      .sort((a, b) => {
+        const catDiff = priorityCategories.indexOf(a.item.category) - priorityCategories.indexOf(b.item.category);
+        if (catDiff !== 0) return catDiff;
+        return a.priority - b.priority;
+      })
+      .slice(0, 3);
+
+    const urgency =
+      smartNow.streakRisk || debtToday.length >= 4
+        ? "high"
+        : debtToday.length >= 2 || (nextPrayerMinutes != null && nextPrayerMinutes <= 30)
+          ? "medium"
+          : "low";
+
+    const urgencyLabel =
+      urgency === "high"
+        ? "أولوية عالية"
+        : urgency === "medium"
+          ? "أولوية متوسطة"
+          : "أولوية هادئة";
+
+    return {
+      debtToday,
+      missedYesterdayItems,
+      recoveryItem,
+      allMissionSteps,
+      recoveryPlan,
+      nextPrayer,
+      nextPrayerMinutes,
+      urgency,
+      urgencyLabel
+    };
+  }, [dailyChecklistToday, dailyChecklistYesterday, prayerContext.nextPrayer, prayerContext.nextPrayerMinutes, smartNow.streakRisk]);
+
+  const recoverOneTask = React.useCallback(() => {
+    const item = adaptiveMission.recoveryItem;
+    if (!item) {
+      toast.success("لا توجد مهام متأخرة الآن");
+      return;
+    }
+    toggleDailyChecklist(todayKey, item.id, true);
+    toast.success(`تم إنجاز: ${item.title}`);
+  }, [adaptiveMission.recoveryItem, todayKey, toggleDailyChecklist]);
+
+  const openRecoveryTask = React.useCallback(
+    (step: MissionStep) => {
+      navigate(step.route);
+    },
+    [navigate]
+  );
+
+  const streakRescuePlan = React.useMemo(() => {
+    if (!smartNow.streakRisk && adaptiveMission.urgency !== "high") return [] as MissionStep[];
+    if (adaptiveMission.recoveryPlan.length > 0) return adaptiveMission.recoveryPlan.slice(0, 3);
+    return adaptiveMission.allMissionSteps.slice(0, 3);
+  }, [adaptiveMission.allMissionSteps, adaptiveMission.recoveryPlan, adaptiveMission.urgency, smartNow.streakRisk]);
 
   if (isLoading) {
     return <div className="p-6 opacity-80">... تحميل قاعدة الأذكار</div>;
@@ -360,7 +655,7 @@ export function HomePage() {
         </div>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
-          <div className="flex items-start justify-between gap-4">
+          <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_.8fr] gap-4 items-start">
             <div>
               <div className="mb-3">
                 <Sparkles size={14} className="text-[var(--accent)]" />
@@ -372,45 +667,190 @@ export function HomePage() {
                 {"{وَقُلْ رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا}"}
               </div>
 
-              <div className="mt-5 flex flex-wrap gap-2">
-                <Button onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
-                <Button variant="secondary" onClick={() => navigate("/quran")}>المصحف</Button>
+              <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap max-w-xl">
+                <Button className="col-span-2 sm:col-span-1 micro-lift" onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
+                <Button className="col-span-1 micro-lift" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran"); }}>المصحف</Button>
                 {lastVisitedSection ? (
-                  <Button variant="secondary" onClick={() => navigate(`/c/${lastVisitedSection.id}`)}>
+                  <Button className="col-span-1 micro-lift" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
                     تابع آخر قسم
                   </Button>
                 ) : null}
-                <Button variant="secondary" onClick={onRandom}>
+                <Button className="col-span-2 sm:col-span-1 micro-lift" variant="secondary" onClick={onRandom}>
                   <Shuffle size={16} />
                   ذكر عشوائي
                 </Button>
+              </div>
+
+              <div className="mt-4 md:hidden glass rounded-3xl p-3 border border-white/10 max-w-xl">
+                <div className="flex items-center justify-between gap-2 mb-2 px-1">
+                  <div className="text-xs opacity-70">تنقل ذكي</div>
+                  <div className="text-[11px] opacity-55">
+                    {mobileUxVariant === "A" ? "الأكثر استخدامًا أولاً" : "مختصر وسريع لك"}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {mobileSmartNavItems.map((item) => (
+                    <button
+                      key={item.route}
+                      onClick={() => onMobileSmartNavClick(item.route)}
+                      className="micro-lift rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs flex items-center justify-between gap-2 hover:bg-white/10 active:bg-white/10 transition"
+                    >
+                      <span>{item.label}</span>
+                      <item.icon size={14} className="opacity-85" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="glass rounded-3xl p-4 border border-white/10">
+              <div className="text-xs opacity-60">لوحة ذكية اليوم</div>
+              <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2">
+                  <div className="text-[11px] opacity-60">نسبة الإتمام</div>
+                  <div className="text-lg font-semibold tabular-nums">{analytics.completionPercent}%</div>
+                </div>
+                <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2">
+                  <div className="text-[11px] opacity-60">نشاط اليوم</div>
+                  <div className="text-lg font-semibold tabular-nums">{analytics.today}</div>
+                </div>
+                <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 col-span-2 md:col-span-1">
+                  <div className="text-[11px] opacity-60">ورد اليوم</div>
+                  <div className="text-lg font-semibold">{isDailyWirdDone ? "منجز" : "بانتظارك"}</div>
+                </div>
+              </div>
+              <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
+                <div className="h-full bg-[var(--accent)]/70" style={{ width: `${clamp(analytics.completionPercent, 0, 100)}%` }} />
               </div>
             </div>
           </div>
         </motion.div>
       </Card>
 
+      <NightlyPlanStrip className="md:hidden" />
+
       <PrayerWidget />
 
-      <h2 className="text-lg font-semibold px-1">الأقسام المميزة</h2>
-
-      {featured.length ? (
-        <Card className="p-5">
-          <div className="text-sm font-semibold mb-3">مختارات سريعة</div>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
-            {featured.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => onQuick(s.id)}
-                className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10"
-              >
-                <div className="text-sm font-semibold">{s.title}</div>
-                <div className="mt-1 text-xs opacity-60">{s.content.length} ذكر</div>
-              </button>
-            ))}
+      <Card className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">الآن ماذا أفعل؟</div>
+            <div className="text-xs opacity-65 mt-1">توجيه ذكي حسب وقت اليوم وتقدمك</div>
           </div>
-        </Card>
-      ) : null}
+          <div className="flex items-center gap-2">
+            <Badge>{smartNow.periodLabel}</Badge>
+            <Badge>{adaptiveMission.urgencyLabel}</Badge>
+          </div>
+        </div>
+        <div className="mt-3 glass rounded-3xl p-4 border border-white/10">
+          <div className="text-sm font-semibold">{smartNow.suggestedAction}</div>
+          <div className="mt-2 text-xs opacity-65">الهدف: خطوة واحدة عالية الأثر الآن بدل تعدد المهام.</div>
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
+              <div className="opacity-60">دين اليوم</div>
+              <div className="font-semibold mt-1">{adaptiveMission.debtToday.length} مهام</div>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
+              <div className="opacity-60">استدراك أمس</div>
+              <div className="font-semibold mt-1">{adaptiveMission.missedYesterdayItems.length} مهام</div>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
+              <div className="opacity-60">الصلاة القادمة</div>
+              <div className="font-semibold mt-1">
+                {adaptiveMission.nextPrayer
+                  ? `${adaptiveMission.nextPrayer.label}${
+                      adaptiveMission.nextPrayerMinutes != null ? ` بعد ${adaptiveMission.nextPrayerMinutes} د` : ""
+                    }`
+                  : "—"}
+              </div>
+            </div>
+          </div>
+          {smartNow.missedYesterday > 0 ? (
+            <div className="mt-2 text-xs opacity-75">
+              لديك {smartNow.missedYesterday} مهمة لم تكتمل أمس — عوّض واحدة الآن لبناء الاستمرارية.
+            </div>
+          ) : null}
+          {smartNow.streakRisk ? (
+            <div className="mt-2 text-xs text-[var(--accent)]">
+              تنبيه: لم تسجل أي نشاط اليوم حتى الآن، نفّذ ذكراً واحداً الآن للحفاظ على السلسلة.
+            </div>
+          ) : null}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button size="sm" variant="secondary" onClick={() => navigate(smartNow.actionRoute)}>
+              {smartNow.actionLabel}
+            </Button>
+            {adaptiveMission.recoveryItem ? (
+              <Button size="sm" onClick={recoverOneTask}>
+                استدرك الآن: {adaptiveMission.recoveryItem.title}
+              </Button>
+            ) : null}
+          </div>
+          {adaptiveMission.recoveryPlan.length > 0 ? (
+            <div className="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+              <div className="text-xs opacity-65 mb-2">خطة تعافٍ سريعة (3 خطوات)</div>
+              <div className="flex flex-wrap gap-2">
+                {adaptiveMission.recoveryPlan.map((step) => (
+                  <Button
+                    key={step.item.id}
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => openRecoveryTask(step)}
+                  >
+                    {step.title}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {streakRescuePlan.length > 0 ? (
+            <div className="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
+              <div className="text-xs opacity-65 mb-2">خطة إنقاذ السلسلة (دقيقتان)</div>
+              <div className="space-y-2">
+                {streakRescuePlan.map((step, idx) => (
+                  <div key={`rescue-${step.item.id}`} className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-2 py-2">
+                    <div className="text-xs">
+                      <span className="opacity-60 ml-1">{idx + 1}.</span>
+                      <span className="font-semibold">{step.title}</span>
+                      <span className="opacity-60 mr-2">{step.tip}</span>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => openRecoveryTask(step)}>
+                      نفّذ
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </Card>
+
+      <Card className="p-5">
+        <div className="text-sm font-semibold">مراكز ذكية جديدة</div>
+        <div className="text-xs opacity-65 mt-1">حوّل التطبيق من قائمة أذكار إلى نظام حياة يومي</div>
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate("/ramadan")}
+            className="glass rounded-3xl p-4 border border-white/10 text-right hover:bg-white/10 transition"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold">مركز قيادة رمضان</div>
+              <MoonStar size={16} className="text-[var(--accent)]" />
+            </div>
+            <div className="mt-2 text-xs opacity-65">قائمة يومية + خطوة إيمانية + تحضير رمضان</div>
+          </button>
+
+          <button
+            onClick={() => navigate("/leaderboard")}
+            className="glass rounded-3xl p-4 border border-white/10 text-right hover:bg-white/10 transition"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold">لوحة المتصدرين</div>
+              <Trophy size={16} className="text-[var(--accent)]" />
+            </div>
+            <div className="mt-2 text-xs opacity-65">ترتيب مجهول + مزامنة سحابية اختيارية</div>
+          </button>
+        </div>
+      </Card>
 
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
@@ -432,7 +872,7 @@ export function HomePage() {
           <div className="h-full bg-[var(--accent)]/70" style={{ width: `${quickTotal.percent}%` }} />
         </div>
 
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           {QUICK_TASBEEH.map((it) => {
             const target = 100;
             const v = Math.min(target, quickTasbeeh[it.key] ?? 0);
@@ -450,15 +890,11 @@ export function HomePage() {
                   incQuickTasbeeh(it.key, 100);
                   if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(12);
                 }}
-                onPointerDown={() => onQuickDown(it.key)}
-                onPointerUp={() => onQuickUp(it.key)}
-                onPointerCancel={() => onQuickUp(it.key)}
-                onPointerLeave={() => onQuickUp(it.key)}
                 className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10 select-none"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold arabic-text truncate">{it.label}</div>
+                    <div className="text-sm font-semibold arabic-text leading-7 break-words whitespace-normal">{it.label}</div>
                     <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/100</div>
                   </div>
 
@@ -491,7 +927,7 @@ export function HomePage() {
                 </div>
 
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="text-[11px] opacity-60">اضغط مطوّلًا للتسريع</div>
+                  <div className="text-[11px] opacity-60">انقر للعدّ</div>
                   <Badge>{done ? "تم" : `${100 - v} متبقّي`}</Badge>
                 </div>
               </button>
@@ -521,10 +957,12 @@ export function HomePage() {
             <Button
               variant={isDailyWirdDone ? "primary" : "secondary"}
               onClick={() => {
-                setDailyWirdDone(todayKey, !isDailyWirdDone);
-                toast.success(isDailyWirdDone ? "تم إلغاء الإتمام" : "تم حفظ الإتمام");
+                if (isDailyWirdDone) return;
+                setDailyWirdDone(todayKey, true);
+                toast.success("تم حفظ الإتمام");
               }}
               title="تحديد كمنجز"
+              disabled={isDailyWirdDone}
             >
               <CheckCircle2 size={16} />
               {isDailyWirdDone ? "منجز" : "تم"}
@@ -737,7 +1175,7 @@ export function HomePage() {
             <div className="text-xs opacity-65 tabular-nums">{analytics.completionPercent}%</div>
           </div>
           <div className="mt-2 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-            <div className="h-full bg-[var(--accent)]/70" style={{ width: `${analytics.completionPercent}%` }} />
+            <div className="h-full bg-[var(--accent)]/70" style={{ width: `${clamp(analytics.completionPercent, 0, 100)}%` }} />
           </div>
         </div>
 
@@ -748,7 +1186,7 @@ export function HomePage() {
               <div key={s.id} className="glass rounded-3xl p-4 border border-white/10">
                 <div className="text-xs opacity-65 truncate">{s.title}</div>
                 <div className="mt-2 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-                  <div className="h-full bg-[var(--accent)]/60" style={{ width: `${s.percent}%` }} />
+                  <div className="h-full bg-[var(--accent)]/60" style={{ width: `${clamp(s.percent, 0, 100)}%` }} />
                 </div>
                 <div className="mt-2 text-xs opacity-65 tabular-nums">{s.percent}%</div>
               </div>

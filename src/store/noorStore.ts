@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { isDailySection } from "@/lib/dailySections";
 
 export type NoorTheme =
   | "system"
@@ -19,6 +20,10 @@ export type Preferences = {
   theme: NoorTheme;
   fontScale: number; // 0.9 - 1.6
   lineHeight: number; // 1.6 - 2.4
+  quranFontScale: number; // 0.9 - 1.6
+  quranLineHeight: number; // 1.8 - 3.0
+  quranPageSize: number; // ayahs per page
+  quranHideMarkers: boolean;
   showBenefits: boolean;
   stripDiacritics: boolean;
   enable3D: boolean;
@@ -57,6 +62,29 @@ export type ExportBlobV1 = {
   khatmaStartISO?: string | null;
   khatmaDays?: number | null;
   khatmaDone?: Record<string, boolean>;
+  lastDailyResetISO?: string | null;
+  dailyChecklist?: Record<string, Record<string, boolean>>;
+  missedRecoveryDone?: Record<string, boolean>;
+  missedTrackingStartISO?: string | null;
+  dailyBetterStepDone?: Record<string, boolean>;
+  ramadanRoutineByDay?: Record<string, {
+    suhoor: boolean;
+    niyyah: boolean;
+    fastCompleted: boolean;
+    iftarDua: boolean;
+    qiyam: boolean;
+    taraweehUnits: number;
+  }>;
+  lastTenNightGoals?: Record<string, Record<string, boolean>>;
+};
+
+export type RamadanRoutine = {
+  suhoor: boolean;
+  niyyah: boolean;
+  fastCompleted: boolean;
+  iftarDua: boolean;
+  qiyam: boolean;
+  taraweehUnits: number;
 };
 
 type NoorState = {
@@ -65,6 +93,7 @@ type NoorState = {
   progress: Record<string, number>; // key: `${sectionId}:${index}`
   favorites: Record<string, boolean>;
   activity: Record<string, number>; // dateISO -> actions count
+  lastDailyResetISO: string | null;
 
   // Home quick tasbeeh
   quickTasbeeh: Record<string, number>; // key: string -> count
@@ -88,6 +117,25 @@ type NoorState = {
   dailyWirdStartISO: string | null;
   setDailyWirdStartISO: (dateISO: string) => void;
 
+  // Daily Muslim checklist and growth step
+  dailyChecklist: Record<string, Record<string, boolean>>; // dateISO -> itemId -> done
+  toggleDailyChecklist: (dateISO: string, itemId: string, done?: boolean) => void;
+  resetDailyChecklist: (dateISO: string) => void;
+  missedRecoveryDone: Record<string, boolean>; // key: `${dateISO}:${itemId}` -> done
+  missedTrackingStartISO: string | null;
+  setMissedRecoveryDone: (key: string, done: boolean) => void;
+  markMissedRecoveryBulk: (keys: string[], done: boolean) => void;
+  clearMissedRecoveryDone: () => void;
+
+  dailyBetterStepDone: Record<string, boolean>; // dateISO -> done
+  setDailyBetterStepDone: (dateISO: string, done: boolean) => void;
+
+  // Ramadan workflow
+  ramadanRoutineByDay: Record<string, RamadanRoutine>;
+  setRamadanRoutine: (dateISO: string, partial: Partial<RamadanRoutine>) => void;
+  lastTenNightGoals: Record<string, Record<string, boolean>>;
+  toggleLastTenNightGoal: (dateISO: string, goalId: string, done?: boolean) => void;
+
   // Khatma plan
   khatmaStartISO: string | null;
   khatmaDays: number | null;
@@ -100,13 +148,14 @@ type NoorState = {
   setReminders: (partial: Partial<Reminders>) => void;
 
   increment: (opts: { sectionId: string; index: number; target: number }) => number;
-  decrement: (opts: { sectionId: string; index: number }) => number;
-  resetItem: (sectionId: string, index: number) => void;
+  decrement: (opts: { sectionId: string; index: number; target?: number }) => number;
+  resetItem: (sectionId: string, index: number, target?: number) => void;
   resetSection: (sectionId: string) => void;
 
   toggleFavorite: (sectionId: string, index: number) => void;
 
   bumpActivityToday: () => void;
+  ensureDailyResets: () => void;
 
   exportState: () => ExportBlobV1;
   importState: (blob: ExportBlobV1) => void;
@@ -123,6 +172,10 @@ const DEFAULT_PREFS: Preferences = {
   theme: "roses",
   fontScale: 1.05,
   lineHeight: 1.95,
+  quranFontScale: 1.1,
+  quranLineHeight: 2.55,
+  quranPageSize: 12,
+  quranHideMarkers: false,
   showBenefits: true,
   stripDiacritics: false,
   enable3D: true,
@@ -152,6 +205,22 @@ function todayISO() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function toSafeInt(value: unknown) {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.floor(n));
+}
+
+function sanitizeNumberMap(input: unknown) {
+  const src = (input ?? {}) as Record<string, unknown>;
+  const out: Record<string, number> = {};
+  for (const key of Object.keys(src)) {
+    const value = toSafeInt(src[key]);
+    if (value > 0) out[key] = value;
+  }
+  return out;
+}
+
 export const useNoorStore = create<NoorState>()(
   persist(
     (set, get) => ({
@@ -160,10 +229,12 @@ export const useNoorStore = create<NoorState>()(
       progress: {},
       favorites: {},
       activity: {},
+      lastDailyResetISO: null,
 
       quickTasbeeh: {},
       incQuickTasbeeh: (key, target = 100) => {
-        const current = get().quickTasbeeh[key] ?? 0;
+        get().ensureDailyResets();
+        const current = toSafeInt(get().quickTasbeeh[key]);
         if (current >= target) return current;
         const next = current + 1;
         set((s) => ({ quickTasbeeh: { ...s.quickTasbeeh, [key]: next } }));
@@ -208,6 +279,69 @@ export const useNoorStore = create<NoorState>()(
       dailyWirdStartISO: null,
       setDailyWirdStartISO: (dateISO) => set({ dailyWirdStartISO: dateISO }),
 
+      dailyChecklist: {},
+      toggleDailyChecklist: (dateISO, itemId, done) =>
+        set((s) => {
+          const day = { ...(s.dailyChecklist[dateISO] ?? {}) };
+          const next = done ?? !day[itemId];
+          day[itemId] = !!next;
+          return { dailyChecklist: { ...s.dailyChecklist, [dateISO]: day } };
+        }),
+      resetDailyChecklist: (dateISO) =>
+        set((s) => {
+          const next = { ...s.dailyChecklist };
+          delete next[dateISO];
+          return { dailyChecklist: next };
+        }),
+      missedRecoveryDone: {},
+      missedTrackingStartISO: todayISO(),
+      setMissedRecoveryDone: (key, done) =>
+        set((s) => ({ missedRecoveryDone: { ...s.missedRecoveryDone, [key]: !!done } })),
+      markMissedRecoveryBulk: (keys, done) =>
+        set((s) => {
+          const next = { ...s.missedRecoveryDone };
+          for (const key of keys) {
+            next[key] = !!done;
+          }
+          return { missedRecoveryDone: next };
+        }),
+      clearMissedRecoveryDone: () => set({ missedRecoveryDone: {} }),
+
+      dailyBetterStepDone: {},
+      setDailyBetterStepDone: (dateISO, done) =>
+        set((s) => ({ dailyBetterStepDone: { ...s.dailyBetterStepDone, [dateISO]: !!done } })),
+
+      ramadanRoutineByDay: {},
+      setRamadanRoutine: (dateISO, partial) =>
+        set((s) => {
+          const current = s.ramadanRoutineByDay[dateISO] ?? {
+            suhoor: false,
+            niyyah: false,
+            fastCompleted: false,
+            iftarDua: false,
+            qiyam: false,
+            taraweehUnits: 0
+          };
+          return {
+            ramadanRoutineByDay: {
+              ...s.ramadanRoutineByDay,
+              [dateISO]: {
+                ...current,
+                ...partial,
+                taraweehUnits: Math.max(0, Math.min(36, Math.floor(Number((partial.taraweehUnits ?? current.taraweehUnits)) || 0)))
+              }
+            }
+          };
+        }),
+      lastTenNightGoals: {},
+      toggleLastTenNightGoal: (dateISO, goalId, done) =>
+        set((s) => {
+          const day = { ...(s.lastTenNightGoals[dateISO] ?? {}) };
+          const next = done ?? !day[goalId];
+          day[goalId] = !!next;
+          return { lastTenNightGoals: { ...s.lastTenNightGoals, [dateISO]: day } };
+        }),
+
       khatmaStartISO: null,
       khatmaDays: null,
       khatmaDone: {},
@@ -236,8 +370,9 @@ export const useNoorStore = create<NoorState>()(
         })),
 
       increment: ({ sectionId, index, target }) => {
+        get().ensureDailyResets();
         const key = `${sectionId}:${index}`;
-        const current = get().progress[key] ?? 0;
+        const current = toSafeInt(get().progress[key]);
         if (current >= target) return current;
         const next = current + 1;
 
@@ -249,16 +384,29 @@ export const useNoorStore = create<NoorState>()(
         return next;
       },
 
-      decrement: ({ sectionId, index }) => {
+      decrement: ({ sectionId, index, target }) => {
+        get().ensureDailyResets();
         const key = `${sectionId}:${index}`;
-        const current = get().progress[key] ?? 0;
+        const current = toSafeInt(get().progress[key]);
+
+        if (isDailySection(sectionId) && target && current >= target) {
+          return current;
+        }
+
         const next = Math.max(0, current - 1);
         set((s) => ({ progress: { ...s.progress, [key]: next } }));
         return next;
       },
 
-      resetItem: (sectionId, index) => {
+      resetItem: (sectionId, index, target) => {
+        get().ensureDailyResets();
         const key = `${sectionId}:${index}`;
+
+        if (isDailySection(sectionId) && target) {
+          const current = toSafeInt(get().progress[key]);
+          if (current >= target) return;
+        }
+
         set((s) => {
           const next = { ...s.progress };
           delete next[key];
@@ -267,6 +415,9 @@ export const useNoorStore = create<NoorState>()(
       },
 
       resetSection: (sectionId) => {
+        get().ensureDailyResets();
+        if (isDailySection(sectionId)) return;
+
         set((s) => {
           const next = { ...s.progress };
           for (const k of Object.keys(next)) {
@@ -284,6 +435,39 @@ export const useNoorStore = create<NoorState>()(
       bumpActivityToday: () => {
         const key = todayISO();
         set((s) => ({ activity: { ...s.activity, [key]: (s.activity[key] ?? 0) + 1 } }));
+      },
+
+      ensureDailyResets: () => {
+        const today = todayISO();
+        const last = get().lastDailyResetISO;
+        const trackingStart = get().missedTrackingStartISO;
+
+        if (!trackingStart) {
+          set({ missedTrackingStartISO: today, missedRecoveryDone: {} });
+        }
+
+        if (!last) {
+          set({ lastDailyResetISO: today });
+          return;
+        }
+
+        if (last === today) return;
+
+        const currentProgress = get().progress;
+        const nextProgress = { ...currentProgress };
+
+        for (const key of Object.keys(nextProgress)) {
+          const sectionId = key.split(":")[0] ?? "";
+          if (isDailySection(sectionId)) {
+            delete nextProgress[key];
+          }
+        }
+
+        set({
+          progress: nextProgress,
+          quickTasbeeh: {},
+          lastDailyResetISO: today
+        });
       },
 
       exportState: () => {
@@ -304,7 +488,14 @@ export const useNoorStore = create<NoorState>()(
           dailyWirdStartISO: s.dailyWirdStartISO,
           khatmaStartISO: s.khatmaStartISO,
           khatmaDays: s.khatmaDays,
-          khatmaDone: s.khatmaDone
+          khatmaDone: s.khatmaDone,
+          lastDailyResetISO: s.lastDailyResetISO,
+          dailyChecklist: s.dailyChecklist,
+          missedRecoveryDone: s.missedRecoveryDone,
+          missedTrackingStartISO: s.missedTrackingStartISO,
+          dailyBetterStepDone: s.dailyBetterStepDone,
+          ramadanRoutineByDay: s.ramadanRoutineByDay,
+          lastTenNightGoals: s.lastTenNightGoals
         };
       },
 
@@ -313,10 +504,10 @@ export const useNoorStore = create<NoorState>()(
         set({
           prefs: { ...DEFAULT_PREFS, ...blob.prefs },
           reminders: { ...DEFAULT_REMINDERS, ...(blob.reminders ?? {}) },
-          progress: blob.progress ?? {},
+          progress: sanitizeNumberMap(blob.progress),
           favorites: blob.favorites ?? {},
           activity: blob.activity ?? {},
-          quickTasbeeh: blob.quickTasbeeh ?? {},
+          quickTasbeeh: sanitizeNumberMap(blob.quickTasbeeh),
           quranBookmarks: blob.quranBookmarks ?? {},
           quranLastRead: blob.quranLastRead ?? null,
           quranNotes: blob.quranNotes ?? {},
@@ -324,7 +515,14 @@ export const useNoorStore = create<NoorState>()(
           dailyWirdStartISO: blob.dailyWirdStartISO ?? null,
           khatmaStartISO: blob.khatmaStartISO ?? null,
           khatmaDays: blob.khatmaDays ?? null,
-          khatmaDone: blob.khatmaDone ?? {}
+          khatmaDone: blob.khatmaDone ?? {},
+          lastDailyResetISO: blob.lastDailyResetISO ?? null,
+          dailyChecklist: blob.dailyChecklist ?? {},
+          missedRecoveryDone: blob.missedRecoveryDone ?? {},
+          missedTrackingStartISO: blob.missedTrackingStartISO ?? todayISO(),
+          dailyBetterStepDone: blob.dailyBetterStepDone ?? {},
+          ramadanRoutineByDay: blob.ramadanRoutineByDay ?? {},
+          lastTenNightGoals: blob.lastTenNightGoals ?? {}
         });
       },
 
@@ -337,7 +535,25 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 1
+      version: 4,
+      migrate: (persisted: unknown) => {
+        const state = (persisted ?? {}) as Partial<NoorState>;
+        const startISO = state.missedTrackingStartISO ?? todayISO();
+        return {
+          ...state,
+          prefs: { ...DEFAULT_PREFS, ...(state.prefs ?? {}) },
+          reminders: { ...DEFAULT_REMINDERS, ...(state.reminders ?? {}) },
+          progress: sanitizeNumberMap(state.progress),
+          quickTasbeeh: sanitizeNumberMap(state.quickTasbeeh),
+          lastDailyResetISO: state.lastDailyResetISO ?? null,
+          dailyChecklist: state.dailyChecklist ?? {},
+          missedRecoveryDone: state.missedRecoveryDone ?? {},
+          missedTrackingStartISO: startISO,
+          dailyBetterStepDone: state.dailyBetterStepDone ?? {},
+          ramadanRoutineByDay: state.ramadanRoutineByDay ?? {},
+          lastTenNightGoals: state.lastTenNightGoals ?? {}
+        } as NoorState;
+      }
     }
   )
 );

@@ -10,6 +10,6 @@ export function clamp(n: number, min: number, max: number) {
 }
 
 export function pct(n: number, d: number) {
-  if (d <= 0) return 0;
-  return Math.round((n / d) * 100);
+  if (!Number.isFinite(n) || !Number.isFinite(d) || d <= 0) return 0;
+  return clamp(Math.round((n / d) * 100), 0, 100);
 }

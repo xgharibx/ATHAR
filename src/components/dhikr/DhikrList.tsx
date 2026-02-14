@@ -6,10 +6,11 @@ import toast from "react-hot-toast";
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import type { DhikrItem } from "@/data/types";
+import { coerceCount, type DhikrItem } from "@/data/types";
 import { useNoorStore } from "@/store/noorStore";
 import { pct } from "@/lib/utils";
 import { downloadJson } from "@/lib/download";
+import { isDailySection } from "@/lib/dailySections";
 
 export function DhikrList(props: {
   sectionId: string;
@@ -19,14 +20,15 @@ export function DhikrList(props: {
 }) {
   const resetSection = useNoorStore((s) => s.resetSection);
   const progressMap = useNoorStore((s) => s.progress);
+  const isDailySectionLocked = isDailySection(props.sectionId);
 
   const stats = React.useMemo(() => {
     let done = 0;
     let total = 0;
     props.items.forEach((it, idx) => {
       const key = `${props.sectionId}:${idx}`;
-      const t = Math.max(1, it.count ?? 1);
-      const c = Math.min(progressMap[key] ?? 0, t);
+      const t = coerceCount(it.count);
+      const c = Math.min(Math.max(0, Number(progressMap[key]) || 0), t);
       total += t;
       done += c;
     });
@@ -67,6 +69,8 @@ export function DhikrList(props: {
               onClick={() => {
                 if (confirm("هل تريد تصفير التقدّم لهذا القسم بالكامل؟")) resetSection(props.sectionId);
               }}
+              disabled={isDailySectionLocked}
+              title={isDailySectionLocked ? "يتجدد هذا القسم تلقائيًا عند منتصف الليل" : "تصفير القسم"}
             >
               <RotateCcw size={16} />
               تصفير القسم

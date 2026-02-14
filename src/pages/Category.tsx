@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
 import { useNoorStore } from "@/store/noorStore";
+import { coerceCount } from "@/data/types";
 
 export function CategoryPage() {
   const navigate = useNavigate();
@@ -26,18 +27,6 @@ export function CategoryPage() {
     const n = parseInt(raw, 10);
     return Number.isFinite(n) ? n : null;
   }, [sp]);
-
-  React.useEffect(() => {
-    // Reset section when navigating to a new section (as requested: "start fresh")
-    // Use setTimeout to allow UI to unmount first if needed, or just run immediately.
-    // However, we want to reset only when *entering*? Or leaving?
-    // "restart the eact section when going to anoter secion"
-    // Cleanest way: Clean up on unmount.
-    return () => {
-      // Reset on unmount (existing behavior)
-      if (id) useNoorStore.getState().resetSection(id);
-    };
-  }, [id]);
 
   if (isLoading) return <div className="p-6 opacity-80">... تحميل</div>;
   if (!data || !id) {
@@ -75,7 +64,7 @@ export function CategoryPage() {
     <DhikrList
       sectionId={section.id}
       title={section.title}
-      items={section.content.map((i) => ({ ...i, count: i.count ?? 1 }))}
+      items={section.content.map((i) => ({ ...i, count: coerceCount(i.count) }))}
       focusIndex={focusIndex}
     />
   );
