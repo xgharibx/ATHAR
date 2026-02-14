@@ -69,9 +69,13 @@ function getLeaderboardHeaders(includeContentType: boolean = true): Record<strin
     ? { "Content-Type": "application/json" }
     : {};
 
+  const isJwtLike = apiKey.split(".").length === 3;
+
   if (apiKey) {
     headers.apikey = apiKey;
-    headers.Authorization = `Bearer ${apiKey}`;
+    if (isJwtLike) {
+      headers.Authorization = `Bearer ${apiKey}`;
+    }
   }
 
   return headers;
