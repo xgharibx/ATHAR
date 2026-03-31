@@ -22,7 +22,7 @@ import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
-import { clamp, pct, cn } from "@/lib/utils";
+import { pct, cn } from "@/lib/utils";
 import { trackUxEvent } from "@/lib/uxMetrics";
 import { useQuranDB } from "@/data/useQuranDB";
 import { coerceCount } from "@/data/types";
@@ -276,71 +276,6 @@ export function HomePage() {
     return sections.find((s) => s.id === lastVisitedSectionId) ?? null;
   }, [lastVisitedSectionId, sections]);
 
-  const analytics = React.useMemo(() => {
-    const today = new Date();
-    const keys = Object.keys(activity);
-
-    const sumLastNDays = (n: number) => {
-      let total = 0;
-      for (let i = 0; i < n; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        total += activity[isoDay(d)] ?? 0;
-      }
-      return total;
-    };
-
-    const totalAll = keys.reduce((acc, k) => acc + (activity[k] ?? 0), 0);
-
-    // Completion snapshot (current device state)
-    let completedItems = 0;
-    let totalItems = 0;
-    let completedCounts = 0;
-    let totalCounts = 0;
-
-    const perSection = sections.map((s) => {
-      let secCompleted = 0;
-      let secTotal = 0;
-
-      s.content.forEach((it, idx) => {
-        const target = coerceCount(it.count);
-        const key = `${s.id}:${idx}`;
-        const current = Math.min(Math.max(0, Number(progressMap[key]) || 0), target);
-
-        totalCounts += target;
-        completedCounts += current;
-
-        secTotal += 1;
-        totalItems += 1;
-        if (current >= target) {
-          secCompleted += 1;
-          completedItems += 1;
-        }
-      });
-
-      const percent = secTotal ? Math.round((secCompleted / secTotal) * 100) : 0;
-      return { id: s.id, title: s.title, secCompleted, secTotal, percent };
-    });
-
-    const topSections = [...perSection].sort((a, b) => b.percent - a.percent).slice(0, 5);
-
-    const completionPercent = totalCounts ? Math.round((completedCounts / totalCounts) * 100) : 0;
-
-    return {
-      today: activity[todayKey] ?? 0,
-      week: sumLastNDays(7),
-      month: sumLastNDays(30),
-      year: sumLastNDays(365),
-      totalAll,
-      completedItems,
-      totalItems,
-      completedCounts,
-      totalCounts,
-      completionPercent,
-      topSections
-    };
-  }, [activity, progressMap, sections, todayKey]);
-
   const quickTotal = React.useMemo(() => {
     const target = 100;
     const done = QUICK_TASBEEH.reduce((acc, it) => acc + Math.min(target, quickTasbeeh[it.key] ?? 0), 0);
@@ -592,18 +527,18 @@ export function HomePage() {
   }
 
   return (
-    <div className="space-y-4 page-enter">
-      <Card className="p-6 overflow-hidden relative">
+    <div className="space-y-3 page-enter">
+      <Card className="p-5 overflow-hidden relative">
         <div className="absolute -top-10 -left-8 opacity-80">
-          <div className="w-40 h-40">
+          <div className="w-32 h-32">
             <Lottie animationData={pulse} loop />
           </div>
         </div>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
-          <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_.8fr] gap-4 items-start">
+          <div>
             <div>
-              <div className="mb-3 flex items-center gap-2 flex-wrap">
+              <div className="mb-2 flex items-center gap-2 flex-wrap">
                 <Sparkles size={14} className="text-[var(--accent)]" />
                 {streak > 0 && (
                   <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full glass border border-white/15 streak-fire ${streak >= 30 ? "text-orange-400" : streak >= 7 ? "text-yellow-400" : "text-[var(--accent)]"}`}>
@@ -611,63 +546,25 @@ export function HomePage() {
                   </span>
                 )}
               </div>
-              <h1 className="text-2xl md:text-3xl font-semibold leading-tight">
+              <h1 className="text-xl md:text-2xl font-semibold leading-tight">
                 أثر — اترك <span className="text-[var(--accent)]">أثراً</span> طيباً
               </h1>
-              <div className="mt-3 text-sm opacity-70 leading-7 max-w-2xl">
+              <div className="mt-2 text-sm opacity-70 leading-6 max-w-2xl">
                 {"{وَقُلْ رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا}"}
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap max-w-xl">
-                <Button className="col-span-2 sm:col-span-1 press-effect" onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
-                <Button className="col-span-1 press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran"); }}>المصحف</Button>
+              <div className="mt-4 flex flex-wrap gap-2 max-w-xl">
+                <Button className="press-effect" onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
+                <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran"); }}>المصحف</Button>
                 {lastVisitedSection ? (
-                  <Button className="col-span-1 press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
+                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
                     تابع آخر قسم
                   </Button>
                 ) : null}
-                <Button className="col-span-2 sm:col-span-1 press-effect" variant="secondary" onClick={onRandom}>
+                <Button className="press-effect" variant="secondary" onClick={onRandom}>
                   <Shuffle size={16} />
                   ذكر عشوائي
                 </Button>
-              </div>
-
-              <div className="mt-4 md:hidden glass rounded-3xl p-3 border border-white/10 max-w-xl">
-                <div className="flex items-center justify-between gap-2 mb-2 px-1">
-                  <div className="text-xs opacity-70">الأقسام السريعة</div>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {sections.slice(0, 6).map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => { trackUxEvent(`home_quick:${s.id}`); navigate(`/c/${s.id}`); }}
-                      className="press-effect rounded-2xl bg-white/5 border border-white/10 px-2.5 py-2 text-[11px] text-center hover:bg-white/10 transition truncate"
-                    >
-                      {s.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="glass rounded-3xl p-4 border border-white/10">
-              <div className="text-xs opacity-60">لوحة ذكية اليوم</div>
-              <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2">
-                <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2">
-                  <div className="text-[11px] opacity-60">نسبة الإتمام</div>
-                  <div className="text-lg font-semibold tabular-nums">{analytics.completionPercent}%</div>
-                </div>
-                <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2">
-                  <div className="text-[11px] opacity-60">نشاط اليوم</div>
-                  <div className="text-lg font-semibold tabular-nums">{analytics.today}</div>
-                </div>
-                <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 col-span-2 md:col-span-1">
-                  <div className="text-[11px] opacity-60">ورد اليوم</div>
-                  <div className="text-lg font-semibold">{isDailyWirdDone ? "منجز" : "بانتظارك"}</div>
-                </div>
-              </div>
-              <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-                <div className="h-full progress-accent" style={{ width: `${clamp(analytics.completionPercent, 0, 100)}%` }} />
               </div>
             </div>
           </div>
