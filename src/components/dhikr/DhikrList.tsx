@@ -11,6 +11,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { pct } from "@/lib/utils";
 import { downloadJson } from "@/lib/download";
 import { isDailySection } from "@/lib/dailySections";
+import { getSectionIdentity } from "@/lib/sectionIdentity";
 
 export function DhikrList(props: {
   sectionId: string;
@@ -21,6 +22,7 @@ export function DhikrList(props: {
   const resetSection = useNoorStore((s) => s.resetSection);
   const progressMap = useNoorStore((s) => s.progress);
   const isDailySectionLocked = isDailySection(props.sectionId);
+  const identity = React.useMemo(() => getSectionIdentity(props.sectionId), [props.sectionId]);
 
   const stats = React.useMemo(() => {
     let done = 0;
@@ -54,39 +56,49 @@ export function DhikrList(props: {
 
   return (
     <div className="space-y-4">
-      <Card className="p-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="text-xs opacity-60">القسم</div>
-            <h1 className="text-xl md:text-2xl font-semibold mt-1">{props.title}</h1>
-            <div className="text-sm opacity-70 mt-2 tabular-nums">
-              التقدّم: {stats.done}/{stats.total} • {stats.percent}%
+      <Card className="p-5 overflow-hidden relative">
+        {/* Color identity gradient overlay */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-bl ${identity.grad} pointer-events-none`}
+          style={{ borderRadius: "inherit" }}
+        />
+        <div className="relative">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">{identity.icon}</span>
+                <div className="text-xs opacity-60">القسم</div>
+              </div>
+              <h1 className="text-xl md:text-2xl font-semibold" style={{ color: identity.accent }}>{props.title}</h1>
+              <div className="text-sm opacity-70 mt-2 tabular-nums">
+                التقدّم: {stats.done}/{stats.total} • {stats.percent}%
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (confirm("هل تريد تصفير التقدّم لهذا القسم بالكامل؟")) resetSection(props.sectionId);
+                }}
+                disabled={isDailySectionLocked}
+                title={isDailySectionLocked ? "يتجدد هذا القسم تلقائيًا عند منتصف الليل" : "تصفير القسم"}
+              >
+                <RotateCcw size={16} />
+                تصفير القسم
+              </Button>
+              <Button variant="secondary" onClick={exportSection}>
+                <ArrowDownToLine size={16} />
+                تصدير
+              </Button>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (confirm("هل تريد تصفير التقدّم لهذا القسم بالكامل؟")) resetSection(props.sectionId);
-              }}
-              disabled={isDailySectionLocked}
-              title={isDailySectionLocked ? "يتجدد هذا القسم تلقائيًا عند منتصف الليل" : "تصفير القسم"}
-            >
-              <RotateCcw size={16} />
-              تصفير القسم
-            </Button>
-            <Button variant="secondary" onClick={exportSection}>
-              <ArrowDownToLine size={16} />
-              تصدير
-            </Button>
-          </div>
-        </div>
 
-        <div className="mt-4 h-2 rounded-full bg-white/8 overflow-hidden border border-white/10">
-          <div
-            className="h-full bg-[var(--accent)]"
-            style={{ width: `${stats.percent}%`, transition: "width .3s ease" }}
-          />
+          <div className="mt-4 h-2.5 rounded-full bg-white/8 overflow-hidden border border-white/10">
+            <div
+              className="h-full rounded-full transition-[width] duration-500"
+              style={{ width: `${stats.percent}%`, background: identity.accent }}
+            />
+          </div>
         </div>
       </Card>
 

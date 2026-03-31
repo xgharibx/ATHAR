@@ -354,6 +354,20 @@ export function HomePage() {
     return { done, total, percent };
   }, [quickTasbeeh]);
 
+  const streak = React.useMemo(() => {
+    const set = new Set(Object.keys(activity).filter((k) => (activity[k] ?? 0) > 0));
+    let s = 0;
+    const today = new Date();
+    for (let i = 0; i < 3650; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      if (set.has(k)) s++;
+      else break;
+    }
+    return s;
+  }, [activity]);
+
   const prayerContext = React.useMemo<PrayerContext>(() => {
     const timings = prayerTimes.data?.data?.timings;
     if (!timings) return { nextPrayer: null, nextPrayerMinutes: null };
@@ -616,8 +630,13 @@ export function HomePage() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
           <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_.8fr] gap-4 items-start">
             <div>
-              <div className="mb-3">
+              <div className="mb-3 flex items-center gap-2 flex-wrap">
                 <Sparkles size={14} className="text-[var(--accent)]" />
+                {streak > 0 && (
+                  <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full glass border border-white/15 streak-fire ${streak >= 30 ? "text-orange-400" : streak >= 7 ? "text-yellow-400" : "text-[var(--accent)]"}`}>
+                    {streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨"} {streak} يوم متواصل
+                  </span>
+                )}
               </div>
               <h1 className="text-2xl md:text-3xl font-semibold leading-tight">
                 أثر — اترك <span className="text-[var(--accent)]">أثراً</span> طيباً

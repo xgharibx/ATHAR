@@ -3,6 +3,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { Card } from "@/components/ui/Card";
 import { Clock, RefreshCcw } from "lucide-react";
 import { IconButton } from "@/components/ui/IconButton";
+import { PrayerCountdown } from "./PrayerCountdown";
 
 export function PrayerWidget() {
   const { data, isLoading, error, refetch, isFetching } = usePrayerTimes();
@@ -130,6 +131,11 @@ export function PrayerWidget() {
       {isCached ? (
         <div className="mb-3 text-[10px] opacity-55">يتم عرض آخر نسخة محفوظة بدون اتصال.</div>
       ) : null}
+
+      {/* Live countdown to next prayer */}
+      <div className="mb-3">
+        <PrayerCountdown timings={timings} />
+      </div>
 
       {prayerTimeline ? (
         <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">

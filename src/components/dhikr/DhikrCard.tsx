@@ -81,6 +81,63 @@ export function DhikrCard(props: {
 
   const cardRef = React.useRef<HTMLDivElement>(null);
   const ringRef = React.useRef<SVGCircleElement>(null);
+  const swipeRef = React.useRef({ x: 0, y: 0, active: false });
+  const [swipeHint, setSwipeHint] = React.useState(false);
+  const milestonesHit = React.useRef<Set<number>>(new Set([
+    ...(current >= target * 0.25 ? [0.25] : []),
+    ...(current >= target * 0.5 ? [0.5] : []),
+    ...(current >= target * 0.75 ? [0.75] : []),
+  ]));
+
+  // Milestone celebrations at 25%, 50%, 75%
+  React.useEffect(() => {
+    if (!target || done) return;
+    const pct = current / target;
+    const milestones: Array<[number, string, string]> = [
+      [0.25, "ربع الطريق 🌟", "⭐"],
+      [0.5,  "نصف الطريق ✨", "✨"],
+      [0.75, "ثلاثة أرباع الطريق 🔥", "🔥"],
+    ];
+    for (const [m, label, icon] of milestones) {
+      if (pct >= m && !milestonesHit.current.has(m)) {
+        milestonesHit.current.add(m);
+        toast(label, { icon, duration: 2000 });
+        if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
+      }
+    }
+  }, [current, target, done, prefs.enableHaptics]);
+
+  // Swipe-to-count gesture handler
+  const onSwipeTouchStart = (e: React.TouchEvent) => {
+    if (done || isDailyLockedItem) return;
+    swipeRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, active: true };
+  };
+  const onSwipeTouchEnd = (e: React.TouchEvent) => {
+    if (!swipeRef.current.active || done || isDailyLockedItem) return;
+    swipeRef.current.active = false;
+    const dx = e.changedTouches[0].clientX - swipeRef.current.x;
+    const dy = e.changedTouches[0].clientY - swipeRef.current.y;
+    if (Math.abs(dx) > 55 && Math.abs(dy) < 45) {
+      onCount();
+      // Flash swipe feedback
+      if (cardRef.current) {
+        const el = cardRef.current;
+        el.style.transition = "transform 0.12s";
+        el.style.transform = dx > 0 ? "translateX(6px)" : "translateX(-6px)";
+        setTimeout(() => { el.style.transform = ""; el.style.transition = ""; }, 160);
+      }
+    }
+  };
+
+  // Show swipe hint once
+  React.useEffect(() => {
+    if (done) return;
+    const key = "noor_swipe_hint_shown";
+    if (!localStorage.getItem(key)) {
+      setTimeout(() => setSwipeHint(true), 1200);
+      setTimeout(() => { setSwipeHint(false); localStorage.setItem(key, "1"); }, 4000);
+    }
+  }, []);
 
   // Animate ring on every count
   React.useEffect(() => {
@@ -320,17 +377,28 @@ export function DhikrCard(props: {
           </div>
         </div>
 
-        {/* Text */}
+        {/* Text + swipe zone */}
         <div
-          className="mt-4 arabic-text whitespace-pre-wrap"
+          className="mt-4 arabic-text whitespace-pre-wrap select-none relative"
           style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
+          onTouchStart={onSwipeTouchStart}
+          onTouchEnd={onSwipeTouchEnd}
         >
           {displayText}
+          {swipeHint && !done && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-black/50 backdrop-blur-sm rounded-2xl px-4 py-2 text-sm text-white/95 flex items-center gap-2 swipe-hint-anim">
+                <span className="text-lg">←</span>
+                <span>اسحب للعدّ</span>
+                <span className="text-lg">→</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Counter (under text) */}
-        <div className="mt-4 glass rounded-2xl p-3 border border-white/10">
-          <div className="flex items-center justify-between gap-3">
+        <div className={cn("mt-4 glass rounded-2xl p-3 border border-white/10 relative overflow-hidden", done && "done-shimmer")}>
+          <div className="flex items-center justify-between gap-3 relative">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-12 h-12 relative grid place-items-center shrink-0">
                 <svg width="48" height="48" viewBox="0 0 48 48">
@@ -422,17 +490,18 @@ export function DhikrCard(props: {
         <div className="mt-4 flex items-center justify-between gap-3">
           <button
             className={cn(
-              "flex-1 rounded-2xl px-4 py-4 text-base font-semibold border transition select-none btn-count press-effect",
+              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border transition select-none btn-count press-effect active:scale-[.96]",
               done
-                ? "bg-[var(--ok)] text-black border-transparent"
-                : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.02]"
+                ? "bg-[var(--ok)] text-black border-transparent shadow-[0_0_18px_rgba(61,220,151,.3)]"
+                : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_rgba(255,215,128,.25)]",
+              isDailyLockedItem && "opacity-60 pointer-events-none"
             )}
             onClick={() => {
               if (isDailyLockedItem) return;
               onCount();
             }}
           >
-            {done ? "اكتملت ✨" : `اضغط للعدّ ${remaining > 0 ? `(${remaining})` : ""}`}
+            {done ? "اكتملت ✨" : `اضغط للعدّ${remaining > 0 ? ` · ${remaining}` : ""}`}
           </button>
         </div>
       </div>
