@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   Trophy,
   Heart,
-  LineChart
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -23,7 +22,7 @@ import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
-import { clamp, pct } from "@/lib/utils";
+import { clamp, pct, cn } from "@/lib/utils";
 import { trackUxEvent } from "@/lib/uxMetrics";
 import { useQuranDB } from "@/data/useQuranDB";
 import { coerceCount } from "@/data/types";
@@ -259,10 +258,6 @@ export function HomePage() {
       toast.error("تعذر النسخ");
     }
   };
-
-  const [analyticsRange, setAnalyticsRange] = React.useState<
-    "today" | "week" | "month" | "year" | "total"
-  >("week");
 
   const onRandom = () => {
     if (!data?.flat?.length) return;
@@ -596,28 +591,6 @@ export function HomePage() {
     );
   }
 
-  const rangeValue =
-    analyticsRange === "today"
-      ? analytics.today
-      : analyticsRange === "week"
-        ? analytics.week
-        : analyticsRange === "month"
-          ? analytics.month
-          : analyticsRange === "year"
-            ? analytics.year
-            : analytics.totalAll;
-
-  const rangeLabel =
-    analyticsRange === "today"
-      ? "اليوم"
-      : analyticsRange === "week"
-        ? "أسبوع"
-        : analyticsRange === "month"
-          ? "شهر"
-          : analyticsRange === "year"
-            ? "سنة"
-            : "الإجمالي";
-
   return (
     <div className="space-y-4 page-enter">
       <Card className="p-6 overflow-hidden relative">
@@ -796,35 +769,41 @@ export function HomePage() {
         </div>
       </Card>
 
+      {/* Bottom: Daily Checklist */}
       <Card className="p-5">
-        <div className="text-sm font-semibold">مراكز ذكية جديدة</div>
-        <div className="text-xs opacity-65 mt-1">حوّل التطبيق من قائمة أذكار إلى نظام حياة يومي</div>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-          <button
-            onClick={() => navigate("/insights")}
-            className="glass rounded-3xl p-4 border border-white/10 text-right transition press-effect glass-hover"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold">مركز الانضباط اليومي</div>
-              <div className="w-9 h-9 rounded-2xl bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] grid place-items-center">
-                <LineChart size={16} className="text-[var(--accent)]" />
-              </div>
-            </div>
-            <div className="mt-2 text-xs opacity-65">متابعة العادات اليومية والإنجاز على مدى طويل</div>
-          </button>
-
-          <button
-            onClick={() => navigate("/leaderboard")}
-            className="glass rounded-3xl p-4 border border-white/10 text-right transition press-effect glass-hover"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold">لوحة المتصدرين</div>
-              <div className="w-9 h-9 rounded-2xl bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] grid place-items-center">
-                <Trophy size={16} className="text-[var(--accent)]" />
-              </div>
-            </div>
-            <div className="mt-2 text-xs opacity-65">ترتيب مجهول + مزامنة سحابية اختيارية</div>
-          </button>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">قائمة المهام اليومية</div>
+            <div className="text-xs opacity-65 mt-1">تتبّع عاداتك اليومية</div>
+          </div>
+          <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
+        </div>
+        <div className="mt-3 space-y-2">
+          {DAILY_CHECKLIST_ITEMS.map((item) => {
+            const isDone = !!dailyChecklistToday[item.id];
+            return (
+              <button
+                key={item.id}
+                onClick={() => toggleDailyChecklist(todayKey, item.id, !isDone)}
+                className={cn(
+                  "w-full flex items-center gap-3 rounded-2xl px-3.5 py-3 border transition-all active:scale-[.97]",
+                  isDone
+                    ? "bg-white/8 border-white/12 opacity-70"
+                    : "bg-white/4 border-white/8 hover:bg-white/6"
+                )}
+              >
+                <div className={cn(
+                  "w-6 h-6 rounded-full border-2 grid place-items-center transition-all shrink-0",
+                  isDone
+                    ? "border-[var(--ok)] bg-[var(--ok)]/20"
+                    : "border-white/20"
+                )}>
+                  {isDone && <CheckCircle2 size={14} className="text-[var(--ok)]" />}
+                </div>
+                <span className={cn("text-sm", isDone && "line-through opacity-60")}>{item.title}</span>
+              </button>
+            );
+          })}
         </div>
       </Card>
 
@@ -1079,97 +1058,6 @@ export function HomePage() {
         )}
       </Card>
 
-      {/* Bottom: analytics overview */}
-      <Card className="p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold">التقدّم والتحليلات</div>
-            <div className="text-xs opacity-65 mt-1">نشاط + إتمام + أفضل الأقسام</div>
-          </div>
-          <Button variant="outline" onClick={() => navigate("/insights")}>
-            عرض التفاصيل
-          </Button>
-        </div>
-
-        <div className="mt-4 glass rounded-3xl p-4 border border-white/10">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-xs opacity-65">نشاط الذكر</div>
-            <Badge>{rangeLabel}</Badge>
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant={analyticsRange === "today" ? "secondary" : "ghost"}
-              onClick={() => setAnalyticsRange("today")}
-            >
-              اليوم
-            </Button>
-            <Button
-              size="sm"
-              variant={analyticsRange === "week" ? "secondary" : "ghost"}
-              onClick={() => setAnalyticsRange("week")}
-            >
-              أسبوع
-            </Button>
-            <Button
-              size="sm"
-              variant={analyticsRange === "month" ? "secondary" : "ghost"}
-              onClick={() => setAnalyticsRange("month")}
-            >
-              شهر
-            </Button>
-            <Button
-              size="sm"
-              variant={analyticsRange === "year" ? "secondary" : "ghost"}
-              onClick={() => setAnalyticsRange("year")}
-            >
-              سنة
-            </Button>
-            <Button
-              size="sm"
-              variant={analyticsRange === "total" ? "secondary" : "ghost"}
-              onClick={() => setAnalyticsRange("total")}
-            >
-              الإجمالي
-            </Button>
-          </div>
-
-          <div className="mt-4 text-4xl font-semibold tabular-nums">{rangeValue}</div>
-          <div className="mt-1 text-xs opacity-60">عدد الضغطات المسجّلة في الفترة</div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <MiniStat label="نسبة الإتمام" value={`${analytics.completionPercent}%`} />
-          <MiniStat label="أذكار مكتملة" value={`${analytics.completedItems}/${analytics.totalItems}`} />
-          <MiniStat label="مجموع العدّ" value={`${analytics.completedCounts}/${analytics.totalCounts}`} />
-        </div>
-
-        <div className="mt-3 glass rounded-3xl p-4 border border-white/10">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-xs opacity-65">الإتمام الإجمالي</div>
-            <div className="text-xs opacity-65 tabular-nums">{analytics.completionPercent}%</div>
-          </div>
-          <div className="mt-2 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-            <div className="h-full progress-accent" style={{ width: `${clamp(analytics.completionPercent, 0, 100)}%` }} />
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <div className="text-xs opacity-65 mb-2">أفضل الأقسام</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            {analytics.topSections.slice(0, 3).map((s) => (
-              <div key={s.id} className="glass rounded-3xl p-4 border border-white/10">
-                <div className="text-xs opacity-65 truncate">{s.title}</div>
-                <div className="mt-2 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-                  <div className="h-full progress-accent-60" style={{ width: `${clamp(s.percent, 0, 100)}%` }} />
-                </div>
-                <div className="mt-2 text-xs opacity-65 tabular-nums">{s.percent}%</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }

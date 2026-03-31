@@ -15,6 +15,7 @@ export function FloatingNav() {
   const [hidden, setHidden] = React.useState(false);
   const lastScrollY = React.useRef(0);
   const ticking = React.useRef(false);
+  const prevPath = React.useRef(location.pathname);
 
   React.useEffect(() => {
     const onScroll = () => {
@@ -23,7 +24,6 @@ export function FloatingNav() {
       requestAnimationFrame(() => {
         const y = window.scrollY;
         const delta = y - lastScrollY.current;
-        // Hide on scroll down > 60px, show on scroll up
         if (delta > 60 && y > 120) {
           setHidden(true);
         } else if (delta < -30 || y < 60) {
@@ -38,13 +38,19 @@ export function FloatingNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Match: exact for "/", startsWith for others
+  // Haptic feedback on tab switch
+  React.useEffect(() => {
+    if (prevPath.current !== location.pathname) {
+      prevPath.current = location.pathname;
+      if (navigator.vibrate) navigator.vibrate(8);
+    }
+  }, [location.pathname]);
+
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
 
-  // Check if on a category page (adhkar section)
   const isAdhkarPage = location.pathname.startsWith("/c/");
 
   return (
@@ -53,21 +59,20 @@ export function FloatingNav() {
       aria-label="التنقل الرئيسي"
     >
       <div className="flex items-center gap-0.5">
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={`floating-nav-item ${
-              isActive(item.path) || (item.path === "/" && isAdhkarPage)
-                ? "active"
-                : ""
-            }`}
-            aria-label={item.label}
-          >
-            <item.icon size={20} strokeWidth={isActive(item.path) ? 2.2 : 1.8} />
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(item.path) || (item.path === "/" && isAdhkarPage);
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={`floating-nav-item ${active ? "active" : ""}`}
+              aria-label={item.label}
+            >
+              <item.icon size={20} strokeWidth={active ? 2.2 : 1.8} />
+              <span>{item.label}</span>
+            </NavLink>
+          );
+        })}
       </div>
     </nav>
   );
