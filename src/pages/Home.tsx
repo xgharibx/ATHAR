@@ -8,11 +8,10 @@ import {
   RotateCw,
   Copy,
   CheckCircle2,
-  MoonStar,
+  BookOpenText,
   Trophy,
   Heart,
-  LineChart,
-  ListChecks
+  LineChart
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -24,7 +23,6 @@ import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
-import { NightlyPlanStrip } from "@/components/layout/NightlyPlanStrip";
 import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
 import { clamp, pct } from "@/lib/utils";
 import { getOrCreateUxVariant, trackUxEvent } from "@/lib/uxMetrics";
@@ -85,8 +83,8 @@ function textClassByLength(text: string) {
 function routeForChecklistCategory(category: DailyChecklistItem["category"]) {
   if (category === "quran") return "/quran";
   if (category === "dhikr") return "/c/morning";
-  if (category === "salah") return "/ramadan";
-  if (category === "sadaqah") return "/ramadan";
+  if (category === "salah") return "/insights";
+  if (category === "sadaqah") return "/insights";
   return "/insights";
 }
 
@@ -168,11 +166,10 @@ export function HomePage() {
 
   const mobileSmartNavItems = React.useMemo(() => {
     const base = [
-      { label: "رمضان", route: "/ramadan", icon: MoonStar, rank: 1 },
-      { label: "قضاء", route: "/missed", icon: ListChecks, rank: 2 },
-      { label: "الإحصاءات", route: "/insights", icon: LineChart, rank: 3 },
-      { label: "المفضلة", route: "/favorites", icon: Heart, rank: 4 },
-      { label: "المتصدرون", route: "/leaderboard", icon: Trophy, rank: 5 }
+      { label: "الإحصاءات", route: "/insights", icon: LineChart, rank: 1 },
+      { label: "المفضلة", route: "/favorites", icon: Heart, rank: 2 },
+      { label: "القرآن", route: "/quran", icon: BookOpenText, rank: 3 },
+      { label: "المتصدرون", route: "/leaderboard", icon: Trophy, rank: 4 }
     ];
 
     return [...base].sort((a, b) => {
@@ -720,14 +717,12 @@ export function HomePage() {
                 </div>
               </div>
               <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-                <div className="h-full bg-[var(--accent)]/70" style={{ width: `${clamp(analytics.completionPercent, 0, 100)}%` }} />
+                <div className="h-full progress-accent" style={{ width: `${clamp(analytics.completionPercent, 0, 100)}%` }} />
               </div>
             </div>
           </div>
         </motion.div>
       </Card>
-
-      <NightlyPlanStrip className="md:hidden" />
 
       <PrayerWidget />
 
@@ -829,14 +824,14 @@ export function HomePage() {
         <div className="text-xs opacity-65 mt-1">حوّل التطبيق من قائمة أذكار إلى نظام حياة يومي</div>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
           <button
-            onClick={() => navigate("/ramadan")}
+            onClick={() => navigate("/insights")}
             className="glass rounded-3xl p-4 border border-white/10 text-right hover:bg-white/10 transition"
           >
             <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold">مركز قيادة رمضان</div>
-              <MoonStar size={16} className="text-[var(--accent)]" />
+              <div className="text-sm font-semibold">مركز الانضباط اليومي</div>
+              <LineChart size={16} className="text-[var(--accent)]" />
             </div>
-            <div className="mt-2 text-xs opacity-65">قائمة يومية + خطوة إيمانية + تحضير رمضان</div>
+            <div className="mt-2 text-xs opacity-65">متابعة العادات اليومية والإنجاز على مدى طويل</div>
           </button>
 
           <button
@@ -869,7 +864,7 @@ export function HomePage() {
           </div>
         </div>
         <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-          <div className="h-full bg-[var(--accent)]/70" style={{ width: `${quickTotal.percent}%` }} />
+          <div className="h-full progress-accent" style={{ width: `${quickTotal.percent}%` }} />
         </div>
 
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -1175,7 +1170,7 @@ export function HomePage() {
             <div className="text-xs opacity-65 tabular-nums">{analytics.completionPercent}%</div>
           </div>
           <div className="mt-2 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-            <div className="h-full bg-[var(--accent)]/70" style={{ width: `${clamp(analytics.completionPercent, 0, 100)}%` }} />
+            <div className="h-full progress-accent" style={{ width: `${clamp(analytics.completionPercent, 0, 100)}%` }} />
           </div>
         </div>
 
@@ -1186,7 +1181,7 @@ export function HomePage() {
               <div key={s.id} className="glass rounded-3xl p-4 border border-white/10">
                 <div className="text-xs opacity-65 truncate">{s.title}</div>
                 <div className="mt-2 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-                  <div className="h-full bg-[var(--accent)]/60" style={{ width: `${clamp(s.percent, 0, 100)}%` }} />
+                  <div className="h-full progress-accent-60" style={{ width: `${clamp(s.percent, 0, 100)}%` }} />
                 </div>
                 <div className="mt-2 text-xs opacity-65 tabular-nums">{s.percent}%</div>
               </div>

@@ -2,9 +2,6 @@ import * as React from "react";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { Heart, MoreVertical, RotateCcw, Share2, Copy, CheckCircle2, Minus } from "lucide-react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import confetti from "canvas-confetti";
-import { toPng } from "html-to-image";
 
 import { cn, clamp } from "@/lib/utils";
 import { formatLeadingIstiadhahBasmalah, normalizeText, stripDiacritics } from "@/lib/arabic";
@@ -13,6 +10,11 @@ import { useNoorStore } from "@/store/noorStore";
 import { coerceCount, type DhikrItem } from "@/data/types";
 import { IconButton } from "@/components/ui/IconButton";
 import { isDailySection } from "@/lib/dailySections";
+
+// Lazy-load heavy libraries — only imported when actually needed
+const getGsap = () => import("gsap").then((m) => m.default ?? m);
+const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
+const getToPng = () => import("html-to-image").then((m) => m.toPng);
 import toast from "react-hot-toast";
 
 const audioCtxRef = new (class {
@@ -88,7 +90,8 @@ export function DhikrCard(props: {
     const pct = target ? current / target : 0;
     const offset = circumference - pct * circumference;
 
-    gsap.to(ringRef.current, { strokeDashoffset: offset, duration: 0.25, ease: "power2.out" });
+    const el = ringRef.current;
+    getGsap().then((g) => g.to(el, { strokeDashoffset: offset, duration: 0.25, ease: "power2.out" }));
   }, [current, target]);
 
   // Celebrate on completion (throttled)
@@ -98,24 +101,25 @@ export function DhikrCard(props: {
     if (now - lastCelebrationAt < 2500) return;
     setLastCelebrationAt(now);
 
-    confetti({
+    getConfetti().then((c) => c({
       particleCount: 70,
       spread: 70,
       startVelocity: 24,
       scalar: 0.9,
       origin: { y: 0.9 }
-    });
+    }));
   }, [done]);
 
   // Auto-scroll / highlight when focused from search
   React.useEffect(() => {
     if (!props.autoFocus || !cardRef.current) return;
     cardRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
-    gsap.fromTo(
-      cardRef.current,
+    const el = cardRef.current;
+    getGsap().then((g) => g.fromTo(
+      el,
       { boxShadow: "0 0 0 0 rgba(255,215,128,0.0)" },
       { boxShadow: "0 0 0 6px rgba(255,215,128,0.18)", duration: 0.6, yoyo: true, repeat: 1 }
-    );
+    ));
   }, [props.autoFocus]);
 
   const displayText = React.useMemo(() => {
@@ -138,12 +142,13 @@ export function DhikrCard(props: {
 
     // micro ripple
     if (cardRef.current) {
-      gsap.fromTo(cardRef.current, { scale: 1 }, { scale: 0.995, duration: 0.08, yoyo: true, repeat: 1 });
+      const el = cardRef.current;
+      getGsap().then((g) => g.fromTo(el, { scale: 1 }, { scale: 0.995, duration: 0.08, yoyo: true, repeat: 1 }));
     }
     
     // Theme-Specific Particles (Roses / Bees)
     if (prefs.theme === "roses") {
-      confetti({
+      getConfetti().then((c) => c({
         particleCount: 8,
         spread: 40,
         startVelocity: 15,
@@ -152,9 +157,9 @@ export function DhikrCard(props: {
         origin: { y: 0.8 },
         ticks: 80,
         gravity: 0.5,
-      });
+      }));
     } else if (prefs.theme === "bees") {
-      confetti({
+      getConfetti().then((c) => c({
         particleCount: 5,
         spread: 60,
         startVelocity: 20,
@@ -163,7 +168,7 @@ export function DhikrCard(props: {
         shapes: ['circle'],
         origin: { y: 0.8 },
         gravity: 0.8
-      });
+      }));
     }
 
     // Completion confetti
@@ -220,6 +225,7 @@ export function DhikrCard(props: {
       // Fallback: screenshot the card
       try {
         if (!cardRef.current) return;
+        const toPng = await getToPng();
         const png = await toPng(cardRef.current, { pixelRatio: 2 });
         const a = document.createElement("a");
         a.href = png;
@@ -286,7 +292,7 @@ export function DhikrCard(props: {
               <Dropdown.Portal>
                 <Dropdown.Content
                   style={{ zIndex: 100000 }}
-                  className="bg-[#1e1e24] shadow-2xl rounded-2xl p-2 min-w-[200px] border border-white/20 animate-in fade-in zoom-in-95 duration-200"
+                  className="glass-strong shadow-2xl rounded-2xl p-2 min-w-[200px] border border-white/20 animate-in fade-in zoom-in-95 duration-200"
                 >
                   <MenuItem onSelect={doCopy} icon={<Copy size={16} />}>
                     نسخ النص
@@ -398,7 +404,7 @@ export function DhikrCard(props: {
 
           <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
             <div
-              className={cn("h-full transition-[width] duration-300", done ? "bg-[var(--ok)]/70" : "bg-[var(--accent)]/70")}
+              className={cn("h-full transition-[width] duration-300", done ? "progress-ok" : "progress-accent")}
               style={{ width: `${Math.round((target ? current / target : 0) * 100)}%` }}
             />
           </div>
@@ -416,7 +422,7 @@ export function DhikrCard(props: {
         <div className="mt-4 flex items-center justify-between gap-3">
           <button
             className={cn(
-              "flex-1 rounded-2xl px-4 py-3 text-sm font-semibold border transition active:scale-[.99]",
+              "flex-1 rounded-2xl px-4 py-4 text-base font-semibold border transition active:scale-[.98] select-none",
               done
                 ? "bg-[var(--ok)] text-black border-transparent"
                 : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.02]"

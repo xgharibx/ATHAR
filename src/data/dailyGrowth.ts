@@ -38,30 +38,3 @@ export const BETTER_MUSLIM_DAILY_STEPS: string[] = [
   "اليوم: اجعل لك صدقة سرّ إلكترونية ولو قليلة.",
   "اليوم: راجع هدفك الإيماني للشهر واكتب خطوة عملية له."
 ];
-
-export const RAMADAN_FEATURE_BLOCKS = [
-  {
-    id: "siyam",
-    title: "الصيام الذكي",
-    points: ["تذكير نية الصيام", "أذكار قبل الإفطار", "تقييم يوم الصوم"]
-  },
-  {
-    id: "qiyam",
-    title: "قيام الليل",
-    points: ["هدف ركعات يومي", "تتبع الاستمرارية", "دعاء ختام اليوم"]
-  },
-  {
-    id: "quran",
-    title: "خطة ختمة رمضان",
-    points: ["تقسيم يومي", "تعويض الفائت", "لوحة إنجاز أسبوعية"]
-  }
-];
-
-export const LAST_TEN_NIGHTS_GOALS: Array<{ id: string; title: string }> = [
-  { id: "qiyam", title: "قيام الليل" },
-  { id: "witr", title: "صلاة الوتر" },
-  { id: "istighfar", title: "استغفار 100+" },
-  { id: "dua", title: "دعاء طويل بخشوع" },
-  { id: "quran", title: "ورد قرآن ليلي" },
-  { id: "sadaqah", title: "صدقة سر" }
-];

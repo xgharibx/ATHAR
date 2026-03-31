@@ -159,16 +159,45 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Prevent double-tap zoom on interactive elements */
+button,
+a,
+[role="button"],
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
 /* Prevent overscroll glow on Android */
 html,
 body {
   overscroll-behavior: none;
 }
 
+/* Safe area insets for notch / Dynamic Island / home indicator */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
 body {
   margin: 0;
   font-family: "Noto Naskh Arabic", "Noto Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+}
+
+/* Use dynamic viewport height for mobile */
+.h-screen-safe {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Glass utility */
@@ -206,6 +235,17 @@ body {
   .micro-lift:active {
     transform: translateY(0);
     filter: brightness(0.99);
+  }
+
+  /* Progress bar fill — works with CSS variables unlike Tailwind /70 modifier */
+  .progress-accent {
+    background-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+  .progress-accent-60 {
+    background-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  .progress-ok {
+    background-color: color-mix(in srgb, var(--ok) 70%, transparent);
   }
 }
 

@@ -12,9 +12,7 @@ const FavoritesPage = React.lazy(() => import("@/pages/Favorites").then((m) => (
 const SettingsPage = React.lazy(() => import("@/pages/Settings").then((m) => ({ default: m.SettingsPage })));
 const SourcesPage = React.lazy(() => import("@/pages/Sources").then((m) => ({ default: m.SourcesPage })));
 const InsightsPage = React.lazy(() => import("@/pages/Insights").then((m) => ({ default: m.InsightsPage })));
-const RamadanPage = React.lazy(() => import("@/pages/Ramadan").then((m) => ({ default: m.RamadanPage })));
 const LeaderboardPage = React.lazy(() => import("@/pages/Leaderboard").then((m) => ({ default: m.LeaderboardPage })));
-const MissedPage = React.lazy(() => import("@/pages/Missed").then((m) => ({ default: m.MissedPage })));
 const NotFoundPage = React.lazy(() => import("@/pages/NotFound").then((m) => ({ default: m.NotFoundPage })));
 const QuranPage = React.lazy(() => import("@/pages/Quran").then((m) => ({ default: m.QuranPage })));
 const SurahPage = React.lazy(() => import("@/pages/Surah").then((m) => ({ default: m.SurahPage })));
@@ -30,9 +28,7 @@ export default function App() {
     };
 
     const runPrefetch = () => {
-      void import("@/pages/Ramadan");
       void import("@/pages/Leaderboard");
-      void import("@/pages/Missed");
       void import("@/pages/Quran");
       void import("@/pages/Insights");
     };
@@ -85,7 +81,14 @@ export default function App() {
   }, [ensureDailyResets]);
 
   return (
-    <React.Suspense fallback={<div className="p-6 opacity-75">... جاري التحميل</div>}>
+    <React.Suspense fallback={
+      <div className="flex items-center justify-center p-8 min-h-[200px]" dir="rtl">
+        <div className="flex flex-col items-center gap-3 opacity-70">
+          <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">جارٍ التحميل…</span>
+        </div>
+      </div>
+    }>
       <Routes>
         <Route element={<AppShell />}>
           <Route index element={<HomePage />} />
@@ -95,9 +98,7 @@ export default function App() {
           <Route path="quran" element={<QuranPage />} />
           <Route path="quran/:id" element={<SurahPage />} />
           <Route path="insights" element={<InsightsPage />} />
-          <Route path="ramadan" element={<RamadanPage />} />
           <Route path="leaderboard" element={<LeaderboardPage />} />
-          <Route path="missed" element={<MissedPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="sources" element={<SourcesPage />} />
           <Route path="*" element={<NotFoundPage />} />

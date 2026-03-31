@@ -90,7 +90,7 @@ export function DhikrList(props: {
         </div>
       </Card>
 
-      <div className="h-[calc(100vh-240px)] min-h-[440px]">
+      <div style={{ height: "calc(100dvh - 240px)", minHeight: "440px" }}>
         <Virtuoso
           style={{ height: "100%" }}
           data={props.items}

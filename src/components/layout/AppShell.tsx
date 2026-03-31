@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, MoonStar, Trophy, ListChecks } from "lucide-react";
+import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, Trophy } from "lucide-react";
 
 import { NoorBackground } from "@/components/background/NoorBackground";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
@@ -114,7 +114,7 @@ function SidebarItem({ s, onNavigate }: { s: any; onNavigate?: () => void }) {
         <div className="text-xs opacity-65 tabular-nums">{percent}%</div>
       </div>
       <div className="mt-2 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-        <div className="h-full bg-[var(--accent)]/60" style={{ width: `${percent}%` }} />
+        <div className="h-full progress-accent-60" style={{ width: `${percent}%` }} />
       </div>
     </NavLink>
   );
@@ -169,7 +169,7 @@ function SidebarContent(props: { onNavigate?: () => void }) {
             <span className="tabular-nums">{activityToday}</span>
           </div>
           <div className="mt-2 h-1.5 rounded-full bg-white/8 overflow-hidden border border-white/10">
-            <div className="h-full bg-[var(--accent)]/70" style={{ width: `${smartSummary.percent}%` }} />
+            <div className="h-full progress-accent" style={{ width: `${smartSummary.percent}%` }} />
           </div>
           <div className="mt-1 text-[11px] opacity-65 tabular-nums">إنجاز عام: {smartSummary.percent}%</div>
         </div>
@@ -191,14 +191,8 @@ function SidebarContent(props: { onNavigate?: () => void }) {
             <NavLink to="/insights" onClick={props.onNavigate} className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs flex items-center gap-2 hover:bg-white/10 transition">
               <LineChart size={14} /> الإحصاءات
             </NavLink>
-            <NavLink to="/ramadan" onClick={props.onNavigate} className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs flex items-center gap-2 hover:bg-white/10 transition">
-              <MoonStar size={14} /> رمضان
-            </NavLink>
             <NavLink to="/leaderboard" onClick={props.onNavigate} className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs flex items-center gap-2 hover:bg-white/10 transition">
               <Trophy size={14} /> المتصدرون
-            </NavLink>
-            <NavLink to="/missed" onClick={props.onNavigate} className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs flex items-center gap-2 hover:bg-white/10 transition">
-              <ListChecks size={14} /> قضاء
             </NavLink>
           </div>
         </div>
@@ -206,7 +200,7 @@ function SidebarContent(props: { onNavigate?: () => void }) {
 
       <div className="px-2">
         <div className="px-3 mb-2 text-sm font-semibold opacity-80">الأقسام</div>
-        <div className="space-y-2 max-h-[calc(100vh-210px)] overflow-auto px-2 pb-4">
+        <div className="space-y-2 overflow-auto overscroll-contain px-2 pb-4" style={{ maxHeight: "calc(100dvh - 210px)" }}>
           {db.sections.map((s) => (
             <SidebarItem key={s.id} s={s} onNavigate={props.onNavigate} />
           ))}
@@ -240,7 +234,7 @@ export function AppShell() {
   if (!isPrimaryShell) return null;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen-safe">
       <NoorBackground />
 
       {paletteOpen ? (
@@ -250,7 +244,7 @@ export function AppShell() {
       ) : null}
 
       {/* Top Bar */}
-      <header className="sticky top-0 z-30">
+      <header className="sticky top-0 z-30" style={{ paddingTop: "var(--sat)" }}>
         <div className="mx-auto max-w-[1400px] px-4 pt-3">
           <div className="glass rounded-3xl px-3 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -264,8 +258,8 @@ export function AppShell() {
                   </Dialog.Trigger>
                   <Dialog.Portal>
                     <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
-                    <Dialog.Content className="fixed z-50 top-3 bottom-3 right-3 w-[86vw] max-w-sm outline-none">
-                      <div className="glass-strong rounded-3xl h-full overflow-hidden">
+                    <Dialog.Content className="fixed z-50 right-3 w-[86vw] max-w-sm outline-none" style={{ top: "calc(12px + var(--sat))", bottom: "calc(12px + var(--sab))" }}>
+                      <div className="glass-strong rounded-3xl h-full overflow-auto overscroll-contain">
                         <SidebarContent onNavigate={() => setDrawerOpen(false)} />
                       </div>
                     </Dialog.Content>
@@ -307,11 +301,11 @@ export function AppShell() {
       </header>
 
       {/* Layout */}
-      <div className="mx-auto max-w-[1400px] px-4 pb-10">
+      <div className="mx-auto max-w-[1400px] px-4 pb-10" style={{ paddingBottom: "calc(2.5rem + var(--sab))" }}>
         <div className="mt-4 grid grid-cols-12 gap-4">
           {/* Desktop Sidebar */}
           <aside className="hidden xl:block col-span-3 2xl:col-span-2">
-            <div className="glass-strong rounded-3xl h-[calc(100vh-120px)] sticky top-[96px] overflow-hidden">
+            <div className="glass-strong rounded-3xl sticky top-[96px] overflow-hidden" style={{ height: "calc(100dvh - 120px)" }}>
               <SidebarContent />
             </div>
           </aside>
