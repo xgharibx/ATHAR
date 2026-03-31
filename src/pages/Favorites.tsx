@@ -22,7 +22,7 @@ export function FavoritesPage() {
   }, [data, favKeys]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -46,7 +46,7 @@ export function FavoritesPage() {
             {items.map((r) => (
               <div
                 key={r.key}
-                className="glass rounded-3xl p-4 border border-white/10 flex items-start justify-between gap-3"
+                className="glass rounded-3xl p-4 border border-white/10 flex items-start justify-between gap-3 press-effect glass-hover"
               >
                 <button className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
                   <div className="flex items-start justify-between gap-3">

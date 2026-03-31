@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { AppShell } from "@/components/layout/AppShell";
 import { useNoorStore } from "@/store/noorStore";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 const HomePage = React.lazy(() => import("@/pages/Home").then((m) => ({ default: m.HomePage })));
 const CategoryPage = React.lazy(() => import("@/pages/Category").then((m) => ({ default: m.CategoryPage })));
@@ -82,11 +83,8 @@ export default function App() {
 
   return (
     <React.Suspense fallback={
-      <div className="flex items-center justify-center p-8 min-h-[200px]" dir="rtl">
-        <div className="flex flex-col items-center gap-3 opacity-70">
-          <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm">جارٍ التحميل…</span>
-        </div>
+      <div className="p-4" dir="rtl">
+        <PageSkeleton />
       </div>
     }>
       <Routes>

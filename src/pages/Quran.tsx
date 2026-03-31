@@ -124,7 +124,7 @@ export function QuranPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 page-enter">
       <Card className="p-5 quran-surface">
         <div className="flex items-start justify-between gap-3">
           <div>

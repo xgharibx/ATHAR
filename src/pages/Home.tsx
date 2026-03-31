@@ -8,7 +8,6 @@ import {
   RotateCw,
   Copy,
   CheckCircle2,
-  BookOpenText,
   Trophy,
   Heart,
   LineChart
@@ -25,7 +24,7 @@ import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
 import { clamp, pct } from "@/lib/utils";
-import { getOrCreateUxVariant, trackUxEvent } from "@/lib/uxMetrics";
+import { trackUxEvent } from "@/lib/uxMetrics";
 import { useQuranDB } from "@/data/useQuranDB";
 import { coerceCount } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
@@ -110,8 +109,6 @@ function rescueTipByCategory(category: DailyChecklistItem["category"]) {
   return "دعاء صادق لشخص آخر";
 }
 
-const MOBILE_NAV_USAGE_KEY = "noor_home_mobile_nav_usage_v1";
-
 export function HomePage() {
   const navigate = useNavigate();
   const { data, isLoading, error } = useAdhkarDB();
@@ -145,57 +142,6 @@ export function HomePage() {
   const dailyChecklistYesterday = useNoorStore((s) => s.dailyChecklist[yesterdayKey] ?? {});
   const toggleDailyChecklist = useNoorStore((s) => s.toggleDailyChecklist);
   const prayerTimes = usePrayerTimes();
-  const [mobileNavUsage, setMobileNavUsage] = React.useState<Record<string, number>>({});
-  const [mobileUxVariant, setMobileUxVariant] = React.useState<"A" | "B">("A");
-
-  React.useEffect(() => {
-    try {
-      const raw = localStorage.getItem(MOBILE_NAV_USAGE_KEY);
-      const parsed = raw ? JSON.parse(raw) : {};
-      if (parsed && typeof parsed === "object") {
-        setMobileNavUsage(parsed as Record<string, number>);
-      }
-    } catch {
-      setMobileNavUsage({});
-    }
-  }, []);
-
-  React.useEffect(() => {
-    setMobileUxVariant(getOrCreateUxVariant());
-  }, []);
-
-  const mobileSmartNavItems = React.useMemo(() => {
-    const base = [
-      { label: "الإحصاءات", route: "/insights", icon: LineChart, rank: 1 },
-      { label: "المفضلة", route: "/favorites", icon: Heart, rank: 2 },
-      { label: "القرآن", route: "/quran", icon: BookOpenText, rank: 3 },
-      { label: "المتصدرون", route: "/leaderboard", icon: Trophy, rank: 4 }
-    ];
-
-    return [...base].sort((a, b) => {
-      const aUsage = mobileNavUsage[a.route] ?? 0;
-      const bUsage = mobileNavUsage[b.route] ?? 0;
-      if (aUsage !== bUsage) return bUsage - aUsage;
-      return a.rank - b.rank;
-    });
-  }, [mobileNavUsage]);
-
-  const onMobileSmartNavClick = React.useCallback(
-    (route: string) => {
-      setMobileNavUsage((prev) => {
-        const next = { ...prev, [route]: (prev[route] ?? 0) + 1 };
-        try {
-          localStorage.setItem(MOBILE_NAV_USAGE_KEY, JSON.stringify(next));
-        } catch {
-          // ignore storage errors
-        }
-        return next;
-      });
-      trackUxEvent(`mobile_nav:${route}`);
-      navigate(route);
-    },
-    [navigate]
-  );
 
   React.useEffect(() => {
     if (!dailyWirdStartISO) {
@@ -602,7 +548,23 @@ export function HomePage() {
   }, [adaptiveMission.allMissionSteps, adaptiveMission.recoveryPlan, adaptiveMission.urgency, smartNow.streakRisk]);
 
   if (isLoading) {
-    return <div className="p-6 opacity-80">... تحميل قاعدة الأذكار</div>;
+    return (
+      <div className="space-y-4 page-enter">
+        <div className="glass-strong rounded-3xl p-5 space-y-4">
+          <div className="skeleton h-8 w-3/4 rounded-xl" />
+          <div className="skeleton h-4 w-1/2 rounded-lg" />
+          <div className="flex gap-2">
+            <div className="skeleton h-10 w-28 rounded-2xl" />
+            <div className="skeleton h-10 w-20 rounded-2xl" />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="glass rounded-3xl p-4 border border-white/10"><div className="skeleton h-3 w-12 rounded-lg" /><div className="skeleton h-6 w-8 rounded-xl mt-2" /></div>
+          <div className="glass rounded-3xl p-4 border border-white/10"><div className="skeleton h-3 w-12 rounded-lg" /><div className="skeleton h-6 w-8 rounded-xl mt-2" /></div>
+          <div className="glass rounded-3xl p-4 border border-white/10"><div className="skeleton h-3 w-12 rounded-lg" /><div className="skeleton h-6 w-8 rounded-xl mt-2" /></div>
+        </div>
+      </div>
+    );
   }
   if (error || !data) {
     return (
@@ -643,7 +605,7 @@ export function HomePage() {
             : "الإجمالي";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 page-enter">
       <Card className="p-6 overflow-hidden relative">
         <div className="absolute -top-10 -left-8 opacity-80">
           <div className="w-40 h-40">
@@ -665,14 +627,14 @@ export function HomePage() {
               </div>
 
               <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap max-w-xl">
-                <Button className="col-span-2 sm:col-span-1 micro-lift" onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
-                <Button className="col-span-1 micro-lift" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran"); }}>المصحف</Button>
+                <Button className="col-span-2 sm:col-span-1 press-effect" onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
+                <Button className="col-span-1 press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran"); }}>المصحف</Button>
                 {lastVisitedSection ? (
-                  <Button className="col-span-1 micro-lift" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
+                  <Button className="col-span-1 press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
                     تابع آخر قسم
                   </Button>
                 ) : null}
-                <Button className="col-span-2 sm:col-span-1 micro-lift" variant="secondary" onClick={onRandom}>
+                <Button className="col-span-2 sm:col-span-1 press-effect" variant="secondary" onClick={onRandom}>
                   <Shuffle size={16} />
                   ذكر عشوائي
                 </Button>
@@ -680,20 +642,16 @@ export function HomePage() {
 
               <div className="mt-4 md:hidden glass rounded-3xl p-3 border border-white/10 max-w-xl">
                 <div className="flex items-center justify-between gap-2 mb-2 px-1">
-                  <div className="text-xs opacity-70">تنقل ذكي</div>
-                  <div className="text-[11px] opacity-55">
-                    {mobileUxVariant === "A" ? "الأكثر استخدامًا أولاً" : "مختصر وسريع لك"}
-                  </div>
+                  <div className="text-xs opacity-70">الأقسام السريعة</div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {mobileSmartNavItems.map((item) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {sections.slice(0, 6).map((s) => (
                     <button
-                      key={item.route}
-                      onClick={() => onMobileSmartNavClick(item.route)}
-                      className="micro-lift rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs flex items-center justify-between gap-2 hover:bg-white/10 active:bg-white/10 transition"
+                      key={s.id}
+                      onClick={() => { trackUxEvent(`home_quick:${s.id}`); navigate(`/c/${s.id}`); }}
+                      className="press-effect rounded-2xl bg-white/5 border border-white/10 px-2.5 py-2 text-[11px] text-center hover:bg-white/10 transition truncate"
                     >
-                      <span>{item.label}</span>
-                      <item.icon size={14} className="opacity-85" />
+                      {s.title}
                     </button>
                   ))}
                 </div>
@@ -825,22 +783,26 @@ export function HomePage() {
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
           <button
             onClick={() => navigate("/insights")}
-            className="glass rounded-3xl p-4 border border-white/10 text-right hover:bg-white/10 transition"
+            className="glass rounded-3xl p-4 border border-white/10 text-right transition press-effect glass-hover"
           >
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-semibold">مركز الانضباط اليومي</div>
-              <LineChart size={16} className="text-[var(--accent)]" />
+              <div className="w-9 h-9 rounded-2xl bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] grid place-items-center">
+                <LineChart size={16} className="text-[var(--accent)]" />
+              </div>
             </div>
             <div className="mt-2 text-xs opacity-65">متابعة العادات اليومية والإنجاز على مدى طويل</div>
           </button>
 
           <button
             onClick={() => navigate("/leaderboard")}
-            className="glass rounded-3xl p-4 border border-white/10 text-right hover:bg-white/10 transition"
+            className="glass rounded-3xl p-4 border border-white/10 text-right transition press-effect glass-hover"
           >
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-semibold">لوحة المتصدرين</div>
-              <Trophy size={16} className="text-[var(--accent)]" />
+              <div className="w-9 h-9 rounded-2xl bg-[color-mix(in_srgb,var(--accent)_14%,transparent)] grid place-items-center">
+                <Trophy size={16} className="text-[var(--accent)]" />
+              </div>
             </div>
             <div className="mt-2 text-xs opacity-65">ترتيب مجهول + مزامنة سحابية اختيارية</div>
           </button>
@@ -867,7 +829,7 @@ export function HomePage() {
           <div className="h-full progress-accent" style={{ width: `${quickTotal.percent}%` }} />
         </div>
 
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
           {QUICK_TASBEEH.map((it) => {
             const target = 100;
             const v = Math.min(target, quickTasbeeh[it.key] ?? 0);
@@ -885,7 +847,7 @@ export function HomePage() {
                   incQuickTasbeeh(it.key, 100);
                   if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(12);
                 }}
-                className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10 select-none"
+                className="glass rounded-3xl p-4 text-right transition border border-white/10 select-none press-effect glass-hover"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -914,7 +876,7 @@ export function HomePage() {
                           strokeLinecap="round"
                           strokeDasharray={dash}
                           strokeDashoffset={offset}
-                          transform="rotate(-90 30 30)"
+                          className="progress-ring-circle"
                         />
                       </svg>
                     </div>
@@ -976,7 +938,7 @@ export function HomePage() {
             {dailyWird.items.map((p) => (
               <button
                 key={`${p.surahId}:${p.ayahIndex}`}
-                className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10"
+                className="glass rounded-3xl p-4 text-right transition border border-white/10 press-effect glass-hover"
                 onClick={() => navigate(`/quran/${p.surahId}?a=${p.ayahIndex}`)}
               >
                 <div className="text-xs opacity-65 mb-2">

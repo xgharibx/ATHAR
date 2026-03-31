@@ -4,6 +4,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, Trophy } from "lucide-react";
 
 import { NoorBackground } from "@/components/background/NoorBackground";
+import { FloatingNav } from "@/components/layout/FloatingNav";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { coerceCount } from "@/data/types";
 import { useNoorStore } from "@/store/noorStore";
@@ -13,6 +14,10 @@ import { LogoMark } from "@/components/brand/LogoMark";
 
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette }))
+);
+
+const QuickTasbeehFab = React.lazy(() =>
+  import("@/components/layout/QuickTasbeehFab").then((m) => ({ default: m.QuickTasbeehFab }))
 );
 
 const APP_FOOTER_TEXT = `هذا البرنامج صدقة جارية عني، وعن والديّ وجدتي وإخوتي وأهلي، وعن كل من أحببته في الله وأحبني فيه، وعن من كرهني لسبب أو بدون، وعن من آذاني أو آذيته.
@@ -243,6 +248,14 @@ export function AppShell() {
         </React.Suspense>
       ) : null}
 
+      {/* Floating bottom navigation for mobile */}
+      <FloatingNav />
+
+      {/* Floating quick tasbeeh FAB */}
+      <React.Suspense fallback={null}>
+        <QuickTasbeehFab />
+      </React.Suspense>
+
       {/* Top Bar */}
       <header className="sticky top-0 z-30" style={{ paddingTop: "var(--sat)" }}>
         <div className="mx-auto max-w-[1400px] px-4 pt-3">
@@ -301,7 +314,7 @@ export function AppShell() {
       </header>
 
       {/* Layout */}
-      <div className="mx-auto max-w-[1400px] px-4 pb-10" style={{ paddingBottom: "calc(2.5rem + var(--sab))" }}>
+      <div className="mx-auto max-w-[1400px] px-4 pb-floating-nav" style={{ paddingBottom: "calc(2.5rem + var(--sab))" }}>
         <div className="mt-4 grid grid-cols-12 gap-4">
           {/* Desktop Sidebar */}
           <aside className="hidden xl:block col-span-3 2xl:col-span-2">

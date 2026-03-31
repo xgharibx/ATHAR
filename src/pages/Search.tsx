@@ -29,7 +29,7 @@ export function SearchPage() {
   }, [fuse, q]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center gap-2">
           <Search size={18} className="opacity-70" />
@@ -56,7 +56,7 @@ export function SearchPage() {
               <button
                 key={r.key}
                 onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}
-                className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10"
+                className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

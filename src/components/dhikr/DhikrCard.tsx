@@ -248,7 +248,7 @@ export function DhikrCard(props: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18 }}
       className={cn(
-        "glass-strong rounded-3xl border border-white/10 overflow-hidden",
+        "glass-strong rounded-3xl border border-white/10 overflow-hidden cv-auto glass-hover",
         done && "border-[rgba(61,220,151,.25)]"
       )}
     >
@@ -353,7 +353,7 @@ export function DhikrCard(props: {
                     strokeLinecap="round"
                     strokeDasharray={circumference}
                     strokeDashoffset={initialOffset}
-                    transform="rotate(-90 24 24)"
+                    className="progress-ring-circle"
                   />
                 </svg>
                 <div className="absolute inset-0 grid place-items-center">
@@ -422,7 +422,7 @@ export function DhikrCard(props: {
         <div className="mt-4 flex items-center justify-between gap-3">
           <button
             className={cn(
-              "flex-1 rounded-2xl px-4 py-4 text-base font-semibold border transition active:scale-[.98] select-none",
+              "flex-1 rounded-2xl px-4 py-4 text-base font-semibold border transition select-none btn-count press-effect",
               done
                 ? "bg-[var(--ok)] text-black border-transparent"
                 : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.02]"
@@ -432,7 +432,7 @@ export function DhikrCard(props: {
               onCount();
             }}
           >
-            {done ? "اكتملت" : "اضغط للعدّ"}
+            {done ? "اكتملت ✨" : `اضغط للعدّ ${remaining > 0 ? `(${remaining})` : ""}`}
           </button>
         </div>
       </div>

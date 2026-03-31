@@ -28,7 +28,22 @@ export function CategoryPage() {
     return Number.isFinite(n) ? n : null;
   }, [sp]);
 
-  if (isLoading) return <div className="p-6 opacity-80">... تحميل</div>;
+  if (isLoading) return (
+    <div className="space-y-4 page-enter">
+      <div className="glass-strong rounded-3xl p-5 space-y-3">
+        <div className="skeleton h-3 w-16 rounded-lg" />
+        <div className="skeleton h-7 w-48 rounded-xl" />
+        <div className="skeleton h-4 w-32 rounded-lg" />
+        <div className="skeleton h-2 w-full rounded-full mt-2" />
+      </div>
+      <div className="glass-strong rounded-3xl p-5 space-y-4">
+        <div className="skeleton h-4 w-full rounded-lg" />
+        <div className="skeleton h-4 w-5/6 rounded-lg" />
+        <div className="skeleton h-4 w-3/4 rounded-lg" />
+        <div className="skeleton h-12 w-full rounded-2xl mt-2" />
+      </div>
+    </div>
+  );
   if (!data || !id) {
     return (
       <div className="p-6">

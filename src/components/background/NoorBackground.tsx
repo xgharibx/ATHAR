@@ -3,12 +3,24 @@ import { useNoorStore } from "@/store/noorStore";
 
 const NoorStarfield = React.lazy(() => import("@/components/background/NoorStarfield"));
 
+function useIsMobile() {
+  const [mobile, setMobile] = React.useState(() => typeof window !== "undefined" && window.innerWidth < 768);
+  React.useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const handler = (e: MediaQueryListEvent) => setMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return mobile;
+}
+
 export function NoorBackground() {
   const enable3D = useNoorStore((s) => s.prefs.enable3D);
   const reduceMotion = useNoorStore((s) => s.prefs.reduceMotion);
   const theme = useNoorStore((s) => s.prefs.theme);
   const transparent = useNoorStore((s) => s.prefs.transparentMode);
   const [webglOk, setWebglOk] = React.useState(true);
+  const isMobile = useIsMobile();
 
   React.useEffect(() => {
     if (reduceMotion || !enable3D) return;
@@ -25,7 +37,7 @@ export function NoorBackground() {
   const petals = React.useMemo(() => {
     if (reduceMotion) return [];
     if (theme !== "roses") return [];
-    const count = 14;
+    const count = isMobile ? 8 : 14;
     return Array.from({ length: count }).map((_, i) => {
       const left = Math.random() * 100;
       const size = 8 + Math.random() * 14;
@@ -33,7 +45,7 @@ export function NoorBackground() {
       const duration = 8 + Math.random() * 6;
       return { i, left, size, delay, duration };
     });
-  }, [reduceMotion, theme]);
+  }, [reduceMotion, theme, isMobile]);
 
   return (
     <div className="fixed inset-0 -z-10 pointer-events-none">
@@ -48,41 +60,46 @@ export function NoorBackground() {
           }}
         />
 
-        {/* Live blobs */}
+        {/* Live blobs — reduced on mobile for performance */}
         <div className="absolute inset-0">
           <div
             className="athar-bg-blob"
             style={{
-              width: 520,
-              height: 520,
+              width: isMobile ? 320 : 520,
+              height: isMobile ? 320 : 520,
               left: "-10%",
               top: "-12%",
               background: "var(--accent)",
-              animation: reduceMotion ? undefined : "atharFloatA 14s ease-in-out infinite"
+              animation: reduceMotion ? undefined : "atharFloatA 14s ease-in-out infinite",
+              contain: "layout style",
             }}
           />
           <div
             className="athar-bg-blob"
             style={{
-              width: 620,
-              height: 620,
+              width: isMobile ? 380 : 620,
+              height: isMobile ? 380 : 620,
               right: "-18%",
               top: "8%",
               background: "var(--accent-2)",
-              animation: reduceMotion ? undefined : "atharFloatB 18s ease-in-out infinite"
+              animation: reduceMotion ? undefined : "atharFloatB 18s ease-in-out infinite",
+              contain: "layout style",
             }}
           />
-          <div
-            className="athar-bg-blob"
-            style={{
-              width: 680,
-              height: 680,
-              left: "15%",
-              bottom: "-28%",
-              background: "var(--accent)",
-              animation: reduceMotion ? undefined : "atharFloatA 22s ease-in-out infinite"
-            }}
-          />
+          {!isMobile && (
+            <div
+              className="athar-bg-blob"
+              style={{
+                width: 680,
+                height: 680,
+                left: "15%",
+                bottom: "-28%",
+                background: "var(--accent)",
+                animation: reduceMotion ? undefined : "atharFloatA 22s ease-in-out infinite",
+                contain: "layout style",
+              }}
+            />
+          )}
         </div>
 
         <div
@@ -117,8 +134,8 @@ export function NoorBackground() {
         </div>
       ) : null}
 
-      {/* Optional 3D layer */}
-      {enable3D && !reduceMotion && webglOk ? (
+      {/* Optional 3D layer — disabled on mobile for performance */}
+      {enable3D && !reduceMotion && !isMobile && webglOk ? (
         <React.Suspense fallback={null}>
           <NoorStarfield />
         </React.Suspense>

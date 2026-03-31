@@ -62,7 +62,7 @@ export function InsightsPage() {
   const isWirdDone = !!dailyWirdDone[todayKey];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center gap-2">
           <TrendingUp size={18} className="text-[var(--accent)]" />
@@ -83,7 +83,7 @@ export function InsightsPage() {
 
         <div className="mt-4 grid grid-cols-7 gap-2">
           {last14.map((d) => (
-            <div key={d.day} className="glass rounded-2xl p-3 border border-white/10 text-center">
+            <div key={d.day} className="glass rounded-2xl p-3 border border-white/10 text-center press-effect">
               <div className="text-[10px] opacity-60">{d.day.slice(5)}</div>
               <div className="text-sm font-semibold tabular-nums mt-1">{d.count}</div>
             </div>
@@ -100,7 +100,7 @@ export function InsightsPage() {
 
 function MiniStat(props: { label: string; value: string; icon?: React.ReactNode }) {
   return (
-    <div className="glass rounded-3xl p-4 border border-white/10">
+    <div className="glass rounded-3xl p-4 border border-white/10 press-effect">
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs opacity-60">{props.label}</div>
         <div className="opacity-70">{props.icon}</div>
