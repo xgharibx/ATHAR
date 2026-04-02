@@ -178,7 +178,7 @@ function SidebarItem({ s, onNavigate }: { s: any; onNavigate?: () => void }) {
       className={cn(
         "group flex items-center gap-3 w-full rounded-2xl px-3.5 py-3 transition-all active:scale-[.97]",
         isActive
-          ? "bg-white/12 border border-white/16"
+          ? "bg-[var(--accent)]/10 border border-[var(--accent)]/25"
           : "hover:bg-white/6 border border-transparent"
       )}
     >
@@ -284,11 +284,11 @@ function SidebarContent(props: { onNavigate?: () => void }) {
         <div className="mt-3 flex items-center gap-2">
           <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
             <div className="text-[11px] opacity-55 uppercase tracking-wider">نشاط اليوم</div>
-            <div className="text-sm font-bold tabular-nums mt-0.5">{activityToday}</div>
+            <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: "var(--accent)" }}>{activityToday}</div>
           </div>
           <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
             <div className="text-[11px] opacity-55 uppercase tracking-wider">الإنجاز</div>
-            <div className="text-sm font-bold tabular-nums mt-0.5">{smartSummary.percent}%</div>
+            <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: smartSummary.percent >= 100 ? "var(--ok)" : "var(--accent)" }}>{smartSummary.percent}%</div>
           </div>
         </div>
         <div className="mt-2 h-1 rounded-full bg-white/8 overflow-hidden">
@@ -306,8 +306,14 @@ function SidebarContent(props: { onNavigate?: () => void }) {
             <NavLink
               key={link.path}
               to={link.path}
+              end={link.path === "/"}
               onClick={props.onNavigate}
-              className="flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 bg-white/4 border border-white/6 transition active:scale-[.94] hover:bg-white/8"
+              className={({ isActive }) => cn(
+                "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 border transition active:scale-[.94]",
+                isActive
+                  ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
+                  : "bg-white/4 border-white/6 hover:bg-white/8"
+              )}
             >
               <div
                 className="w-9 h-9 rounded-xl grid place-items-center"
