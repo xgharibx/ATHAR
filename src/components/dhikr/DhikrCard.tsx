@@ -307,7 +307,7 @@ export function DhikrCard(props: {
       transition={{ duration: 0.18 }}
       className={cn(
         "glass-strong rounded-3xl border border-white/10 overflow-hidden cv-auto glass-hover",
-        done && "border-[rgba(61,220,151,.25)]"
+        done && "border-[color-mix(in_srgb,var(--ok)_25%,transparent)]"
       )}
     >
       <div className="p-4 md:p-5">
@@ -478,7 +478,7 @@ export function DhikrCard(props: {
             className={cn(
               "flex-1 rounded-3xl px-4 py-5 text-base font-bold border transition select-none btn-count press-effect active:scale-[.96]",
               done
-                ? "bg-[var(--ok)] text-black border-transparent shadow-[0_0_18px_rgba(61,220,151,.3)]"
+                ? "bg-[var(--ok)] text-black border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
                 : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_rgba(255,215,128,.25)]",
               isDailyLockedItem && "opacity-60 pointer-events-none"
             )}
