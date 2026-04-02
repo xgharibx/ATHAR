@@ -8,6 +8,7 @@ import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { coerceCount } from "@/data/types";
 import { useNoorStore } from "@/store/noorStore";
 import { useTodayKey } from "@/hooks/useTodayKey";
+import { cn } from "@/lib/utils";
 import {
   type LeaderboardBoard,
   type LeaderboardEntry,
@@ -325,7 +326,10 @@ export function LeaderboardPage() {
         </div>
         <div className="space-y-2">
           {mergedRows.map((r, idx) => (
-            <div key={r.id} className="glass rounded-3xl p-3 border border-white/10 flex items-center justify-between gap-3">
+            <div key={r.id} className={cn(
+              "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
+              r.id === myEntry.id ? "border-[var(--accent)]/35 bg-[var(--accent)]/8" : "border-white/10"
+            )}>
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs tabular-nums">
                   {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
@@ -350,7 +354,7 @@ function Stat(props: { title: string; value: number }) {
   return (
     <div className="glass rounded-2xl p-3 border border-white/10">
       <div className="text-[11px] opacity-60">{props.title}</div>
-      <div className="mt-1 text-lg font-semibold tabular-nums">{props.value}</div>
+      <div className="mt-1 text-lg font-semibold tabular-nums" style={{ color: "var(--accent)" }}>{props.value}</div>
     </div>
   );
 }
