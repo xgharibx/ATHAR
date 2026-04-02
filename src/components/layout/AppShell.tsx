@@ -352,6 +352,18 @@ export function AppShell() {
 
   const prefs = useNoorStore((s) => s.prefs);
 
+  // Global keyboard shortcut: Ctrl+K or Cmd+K opens CommandPalette
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
   React.useEffect(() => {
     appShellMountedCount += 1;
     if (appShellMountedCount > 1) {
@@ -423,7 +435,7 @@ export function AppShell() {
             </div>
 
             <div className="flex items-center gap-2">
-              <IconButton aria-label="بحث" onClick={() => setPaletteOpen(true)}>
+              <IconButton aria-label="بحث (Ctrl+K)" onClick={() => setPaletteOpen(true)}>
                 <Search size={18} />
               </IconButton>
 

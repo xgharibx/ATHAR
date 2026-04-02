@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, ArrowUpRight, Trash2 } from "lucide-react";
+import { Heart, ArrowUpRight, Trash2, Copy, Check } from "lucide-react";
+import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useNoorStore } from "@/store/noorStore";
@@ -15,6 +16,18 @@ export function FavoritesPage() {
   const toggleFavorite = useNoorStore((s) => s.toggleFavorite);
 
   const [confirmDeleteKey, setConfirmDeleteKey] = React.useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = React.useState<string | null>(null);
+
+  const copyItem = React.useCallback(async (key: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      toast.success("تم النسخ");
+      setTimeout(() => setCopiedKey(null), 2000);
+    } catch {
+      toast.error("تعذر النسخ");
+    }
+  }, []);
 
   const favKeys = React.useMemo(() => Object.keys(favorites).filter((k) => favorites[k]), [favorites]);
 
@@ -104,10 +117,18 @@ export function FavoritesPage() {
                             </Button>
                           </div>
                         ) : (
-                          <Button variant="outline" onClick={() => setConfirmDeleteKey(r.key)}>
-                            <Trash2 size={16} />
-                            حذف
-                          </Button>
+                          <div className="flex flex-col gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => copyItem(r.key, r.text)}
+                              aria-label="نسخ الذكر"
+                            >
+                              {copiedKey === r.key ? <Check size={16} /> : <Copy size={16} />}
+                            </Button>
+                            <Button variant="outline" onClick={() => setConfirmDeleteKey(r.key)}>
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
                         )}
                       </div>
                     ))}

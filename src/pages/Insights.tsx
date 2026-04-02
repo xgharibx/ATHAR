@@ -82,10 +82,15 @@ export function InsightsPage() {
 
   const bestDay = React.useMemo(() => {
     let max = 0;
-    for (const v of Object.values(activity)) {
-      if ((v ?? 0) > max) max = v ?? 0;
+    let key = "";
+    for (const [dayKey, value] of Object.entries(activity)) {
+      const count = value ?? 0;
+      if (count > max) {
+        max = count;
+        key = dayKey;
+      }
     }
-    return max;
+    return { count: max, key };
   }, [activity]);
 
   // Build 28-day heatmap aligned to Sunday columns
@@ -213,9 +218,14 @@ export function InsightsPage() {
           <MiniStatSmall label="اليوم" value={`${todayCount}`} accent />
           <MiniStatSmall label="الأسبوع" value={`${weekTotal}`} />
           <MiniStatSmall label="الإجمالي" value={`${total}`} />
-          <MiniStatSmall label="أفضل يوم" value={`${bestDay}`} />
+          <MiniStatSmall label="أفضل يوم" value={bestDay.count > 0 ? `${bestDay.count}` : "—"} />
           <MiniStatSmall label="أفضل سلسلة" value={bestStreak > 0 ? `${bestStreak}` : "—"} />
         </div>
+        {bestDay.key && (
+          <div className="relative mt-3 text-[11px] opacity-55">
+            أعلى نشاط كان في {new Date(bestDay.key + "T00:00:00").toLocaleDateString("ar-SA", { day: "numeric", month: "long" })}
+          </div>
+        )}
       </Card>
 
       {/* 28-Day Heatmap */}
