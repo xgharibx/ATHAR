@@ -187,7 +187,7 @@ function Item(props: { children: React.ReactNode; onSelect: () => void; icon?: R
   return (
     <Command.Item
       onSelect={props.onSelect}
-      className="flex items-start gap-2 rounded-2xl px-3 py-2 text-sm cursor-pointer select-none data-[selected=true]:bg-white/10"
+      className="flex items-start gap-2 rounded-2xl px-3 py-2.5 text-sm cursor-pointer select-none data-[selected=true]:bg-white/10 min-h-[44px]"
     >
       <span className="mt-0.5 opacity-70">{props.icon}</span>
       <div className="min-w-0">{props.children}</div>

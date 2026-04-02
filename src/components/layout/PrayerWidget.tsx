@@ -111,10 +111,10 @@ export function PrayerWidget() {
         <div className="flex items-center gap-2">
           <Clock size={16} className="text-[var(--accent)]" />
           <span className="font-semibold text-sm">مواقيت الصلاة</span>
-          <span className="text-[10px] opacity-60">({sourceLabel})</span>
+          <span className="text-[11px] opacity-60">({sourceLabel})</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] opacity-60 bg-white/5 px-2 py-1 rounded-full">
+          <span className="text-[11px] opacity-60 bg-white/5 px-2 py-1 rounded-full">
             {date.hijri.weekday.ar} • {date.hijri.date}
           </span>
           <IconButton
@@ -129,7 +129,7 @@ export function PrayerWidget() {
       </div>
 
       {isCached ? (
-        <div className="mb-3 text-[10px] opacity-55">يتم عرض آخر نسخة محفوظة بدون اتصال.</div>
+        <div className="mb-3 text-[11px] opacity-55">يتم عرض آخر نسخة محفوظة بدون اتصال.</div>
       ) : null}
 
       {/* Live countdown to next prayer */}
@@ -140,14 +140,14 @@ export function PrayerWidget() {
       {prayerTimeline ? (
         <div className="mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
-            <div className="text-[10px] opacity-55">المتبقي للصلاة القادمة</div>
+            <div className="text-[11px] opacity-55">المتبقي للصلاة القادمة</div>
             <div className="mt-1 flex items-center justify-between gap-2 text-xs">
               <span className="font-semibold">{prayerTimeline.next.label}</span>
               <span className="tabular-nums">{untilNext}</span>
             </div>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
-            <div className="text-[10px] opacity-55">المنقضي منذ آخر صلاة</div>
+            <div className="text-[11px] opacity-55">المنقضي منذ آخر صلاة</div>
             <div className="mt-1 flex items-center justify-between gap-2 text-xs">
               <span className="font-semibold">{prayerTimeline.previous.label}</span>
               <span className="tabular-nums">{sincePrevious}</span>
@@ -159,7 +159,7 @@ export function PrayerWidget() {
       <div className="grid grid-cols-5 gap-2 text-center">
         {prayers.map((p) => (
           <div key={p.name} className="flex flex-col gap-1">
-            <span className="text-[10px] opacity-50">{p.label}</span>
+            <span className="text-[11px] opacity-55">{p.label}</span>
             <span className="text-sm font-medium tabular-nums">{format12h(p.time)}</span>
           </div>
         ))}

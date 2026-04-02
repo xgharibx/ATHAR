@@ -202,7 +202,7 @@ export function InsightsPage() {
 function MiniStatSmall(props: { label: string; value: string }) {
   return (
     <div className="glass rounded-2xl p-2.5 border border-white/10 text-center">
-      <div className="text-[10px] opacity-50 truncate">{props.label}</div>
+      <div className="text-[11px] opacity-55 truncate">{props.label}</div>
       <div className="text-sm font-bold mt-0.5 tabular-nums">{props.value}</div>
     </div>
   );

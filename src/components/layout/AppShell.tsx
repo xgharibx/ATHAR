@@ -74,6 +74,7 @@ function BottomSheetContent({
       className="fixed z-50 inset-x-0 bottom-0 outline-none drawer-content-enter"
       style={{ maxHeight: "92dvh", paddingBottom: "var(--sab)" }}
     >
+      <Dialog.Title className="sr-only">القائمة الرئيسية</Dialog.Title>
       <div
         ref={sheetRef}
         className="glass-strong rounded-t-[28px] h-full overflow-auto overscroll-contain border-t border-white/12 shadow-2xl"
@@ -199,7 +200,7 @@ function SidebarItem({ s, onNavigate }: { s: any; onNavigate?: () => void }) {
               style={{ width: `${percent}%`, background: identity.accent }}
             />
           </div>
-          <span className="text-[10px] opacity-50 tabular-nums shrink-0">{percent}%</span>
+          <span className="text-[11px] opacity-55 tabular-nums shrink-0">{percent}%</span>
         </div>
       </div>
 
@@ -314,7 +315,7 @@ function SidebarContent(props: { onNavigate?: () => void }) {
               >
                 <link.icon size={17} style={{ color: link.color }} />
               </div>
-              <span className="text-[10px] font-medium opacity-70">{link.label}</span>
+              <span className="text-[11px] font-medium opacity-70">{link.label}</span>
             </NavLink>
           ))}
         </div>

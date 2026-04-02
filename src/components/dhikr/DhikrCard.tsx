@@ -510,7 +510,7 @@ function MenuItem(props: {
         props.onSelect();
       }}
       className={cn(
-        "outline-none cursor-pointer select-none rounded-xl px-3 py-2 text-sm flex items-center gap-2",
+        "outline-none cursor-pointer select-none rounded-xl px-3 py-2.5 text-sm flex items-center gap-2 min-h-[44px]",
         "data-[highlighted]:bg-white/10",
         props.danger && "text-[var(--danger)]"
       )}
