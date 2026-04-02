@@ -80,6 +80,23 @@ function textClassByLength(text: string) {
   return "text-base leading-8";
 }
 
+const CHECKLIST_CATEGORY_ICON: Record<DailyChecklistItem["category"], string> = {
+  salah:   "🕌",
+  quran:   "📖",
+  dhikr:   "📿",
+  akhlaq:  "💛",
+  family:  "🤝",
+  sadaqah: "🌸",
+};
+
+function timeGreeting(hour: number): string {
+  if (hour < 5)  return "ليلة طيبة";
+  if (hour < 12) return "صباح الخير";
+  if (hour < 17) return "نهارك طيب";
+  if (hour < 20) return "مساء الخير";
+  return "ليلة سعيدة";
+}
+
 function routeForChecklistCategory(category: DailyChecklistItem["category"]) {
   if (category === "quran") return "/quran";
   if (category === "dhikr") return "/c/morning";
@@ -545,6 +562,7 @@ export function HomePage() {
             <div>
               <div className="mb-2 flex items-center gap-2 flex-wrap">
                 <Sparkles size={14} className="text-[var(--accent)]" />
+                <span className="text-xs font-medium opacity-65">{timeGreeting(new Date().getHours())}</span>
                 {streak > 0 && (
                   <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full glass border border-white/15 streak-fire ${streak >= 30 ? "text-orange-400" : streak >= 7 ? "text-yellow-400" : "text-[var(--accent)]"}`}>
                     {streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨"} {streak} يوم متواصل
@@ -720,14 +738,17 @@ export function HomePage() {
                 )}
               >
                 <div className={cn(
-                  "w-7 h-7 rounded-full border-2 grid place-items-center transition-all shrink-0",
+                  "w-7 h-7 rounded-full border-2 grid place-items-center transition-all shrink-0 text-[13px]",
                   isDone
                     ? "border-[var(--ok)] bg-[var(--ok)]/20"
                     : "border-white/20"
                 )}>
-                  {isDone && <CheckCircle2 size={15} className="text-[var(--ok)]" />}
+                  {isDone ? <CheckCircle2 size={15} className="text-[var(--ok)]" /> : CHECKLIST_CATEGORY_ICON[item.category]}
                 </div>
-                <span className={cn("text-sm", isDone && "line-through opacity-60")}>{item.title}</span>
+                <div className="flex-1 min-w-0">
+                  <div className={cn("text-sm", isDone && "line-through opacity-60")}>{item.title}</div>
+                  {!isDone && <div className="text-[11px] opacity-45 mt-0.5 leading-4">{item.subtitle}</div>}
+                </div>
               </button>
             );
           })}

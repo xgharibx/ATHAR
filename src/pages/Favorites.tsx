@@ -40,8 +40,14 @@ export function FavoritesPage() {
 
       <Card className="p-5">
         {items.length === 0 ? (
-          <div className="opacity-70 text-sm leading-7">
-            لا توجد عناصر في المفضلة. اضغط على ❤️ داخل أي ذكر لإضافته هنا.
+          <div className="flex flex-col items-center text-center py-8 gap-3">
+            <div className="w-16 h-16 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-3xl">
+              🤍
+            </div>
+            <div className="font-semibold opacity-80">لا توجد مفضلة بعد</div>
+            <div className="text-sm opacity-55 leading-6 max-w-[260px]">
+              اضغط على ❤️ داخل أي ذكر لإضافته هنا وتجده بسرعة لاحقًا
+            </div>
           </div>
         ) : (
           <div className="space-y-2">
@@ -57,7 +63,7 @@ export function FavoritesPage() {
                     </div>
                     <ArrowUpRight size={18} className="opacity-60" />
                   </div>
-                  <div className="mt-3 text-sm opacity-80 leading-7">
+                  <div className="mt-3 arabic-text text-sm opacity-80 leading-7">
                     {r.text.slice(0, 200)}
                     {r.text.length > 200 ? "…" : ""}
                   </div>
