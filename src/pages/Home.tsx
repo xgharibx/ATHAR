@@ -137,6 +137,8 @@ export function HomePage() {
 
   const sections = data?.db.sections ?? [];
   const [showSmartNowDetails, setShowSmartNowDetails] = React.useState(false);
+  const [confirmTasbeehReset, setConfirmTasbeehReset] = React.useState(false);
+  const [confirmKhatmaReset, setConfirmKhatmaReset] = React.useState(false);
 
   const todayKey = useTodayKey();
   const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[todayKey] ?? {});
@@ -732,15 +734,19 @@ export function HomePage() {
           <div className="text-sm font-semibold">مختارات اليوم</div>
           <div className="flex items-center gap-2">
             <Badge>{`${quickTotal.done}/${quickTotal.total}`}</Badge>
-            <IconButton
-              aria-label="تصفير التسابيح"
-              onClick={() => {
-                resetAllQuickTasbeeh();
-                toast.success("تم تصفير التسابيح");
-              }}
-            >
-              <RotateCw size={16} />
-            </IconButton>
+            {confirmTasbeehReset ? (
+              <>
+                <Button size="sm" variant="danger" onClick={() => { resetAllQuickTasbeeh(); toast.success("تم تصفير التسابيح"); setConfirmTasbeehReset(false); }}>تأكيد</Button>
+                <Button size="sm" variant="secondary" onClick={() => setConfirmTasbeehReset(false)}>إلغاء</Button>
+              </>
+            ) : (
+              <IconButton
+                aria-label="تصفير التسابيح"
+                onClick={() => setConfirmTasbeehReset(true)}
+              >
+                <RotateCw size={16} />
+              </IconButton>
+            )}
           </div>
         </div>
         <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
@@ -815,7 +821,9 @@ export function HomePage() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold">ورد اليوم</div>
-            <div className="text-xs opacity-65 mt-1">مختارات يومية من القرآن</div>
+            <div className="text-xs opacity-65 mt-1">
+              {dailyWird ? `آيات ${dailyWird.meta.from}–${dailyWird.meta.to} من ${dailyWird.meta.total}` : "مختارات يومية من القرآن"}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -879,18 +887,28 @@ export function HomePage() {
           </div>
 
           {khatmaStartISO && khatmaDays ? (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                resetKhatma();
-                toast.success("تمت إعادة ضبط الخطة");
-              }}
-              title="إعادة ضبط الخطة"
-            >
-              إعادة ضبط
-            </Button>
+            confirmKhatmaReset ? (
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="danger" onClick={() => { resetKhatma(); toast.success("تمت إعادة ضبط الخطة"); setConfirmKhatmaReset(false); }}>تأكيد</Button>
+                <Button size="sm" variant="secondary" onClick={() => setConfirmKhatmaReset(false)}>إلغاء</Button>
+              </div>
+            ) : (
+              <Button
+                variant="secondary"
+                onClick={() => setConfirmKhatmaReset(true)}
+                title="إعادة ضبط الخطة"
+              >
+                إعادة ضبط
+              </Button>
+            )
           ) : null}
         </div>
+
+        {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished && (
+          <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
+            <div className="h-full progress-accent" style={{ width: `${khatma.meta.percent}%` }} />
+          </div>
+        )}
 
         {!khatmaStartISO || !khatmaDays ? (
           <div className="mt-4">
