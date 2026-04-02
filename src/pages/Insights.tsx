@@ -98,7 +98,8 @@ export function InsightsPage() {
     streak >= 30 ? "ماشاء الله! 🔥" :
     streak >= 7  ? "أسبوع متواصل ✨" :
     streak >= 3  ? "ثلاثة أيام 🌟" :
-    streak >= 1  ? `${streak} يوم` : "ابدأ اليوم";
+    streak >= 2  ? "يومان متواصلان ✨" :
+    streak >= 1  ? "انطلاقة جيدة ✨" : "ابدأ اليوم";
 
   return (
     <div className="space-y-4 page-enter">

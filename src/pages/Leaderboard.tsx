@@ -241,7 +241,7 @@ export function LeaderboardPage() {
           <Trophy size={18} className="text-[var(--accent)]" />
         </div>
 
-        <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-2">
+        <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
           <Stat title="النقاط" value={myStats.score} />
           <Stat title="الذكر" value={myStats.dhikr} />
           <Stat title="القرآن" value={myStats.quran} />
@@ -328,7 +328,7 @@ export function LeaderboardPage() {
             <div key={r.id} className="glass rounded-3xl p-3 border border-white/10 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs tabular-nums">
-                  {idx + 1}
+                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{r.name}</div>
@@ -357,7 +357,12 @@ function Stat(props: { title: string; value: number }) {
 
 function BoardTab(props: { label: string; active: boolean; onClick: () => void }) {
   return (
-    <Button size="sm" variant={props.active ? "secondary" : "ghost"} onClick={props.onClick}>
+    <Button
+      size="sm"
+      variant={props.active ? "secondary" : "ghost"}
+      className={props.active ? "bg-[var(--accent)]/15 border border-[var(--accent)]/35" : ""}
+      onClick={props.onClick}
+    >
       {props.label}
     </Button>
   );
