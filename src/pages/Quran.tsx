@@ -24,6 +24,7 @@ export function QuranPage() {
 
   const lastRead = useNoorStore((s) => s.quranLastRead);
   const bookmarks = useNoorStore((s) => s.quranBookmarks);
+  const readingHistory = useNoorStore((s) => s.quranReadingHistory);
 
   const [query, setQuery] = React.useState("");
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
@@ -326,6 +327,22 @@ export function QuranPage() {
                   </div>
                 </div>
                 <div className="mt-2 text-[11px] opacity-60 tabular-nums">{s.ayahs.length} آية</div>
+                {(() => {
+                  const maxAyah = readingHistory[String(s.id)] ?? 0;
+                  if (!maxAyah || !s.ayahs.length) return null;
+                  const pct = Math.min(100, Math.round((maxAyah / s.ayahs.length) * 100));
+                  return (
+                    <div className="mt-2">
+                      <div className="h-1 rounded-full bg-white/8 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-[width] duration-300"
+                          style={{ width: `${pct}%`, background: pct >= 100 ? "var(--ok)" : "var(--accent)" }}
+                        />
+                      </div>
+                      <div className="mt-0.5 text-[10px] opacity-45 tabular-nums text-left">{pct}%</div>
+                    </div>
+                  );
+                })()}
               </button>
             ))}
           </div>

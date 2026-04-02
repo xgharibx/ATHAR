@@ -57,6 +57,7 @@ export type ExportBlobV1 = {
   quranBookmarks?: Record<string, boolean>;
   quranLastRead?: { surahId: number; ayahIndex: number } | null;
   quranNotes?: Record<string, string>;
+  quranReadingHistory?: Record<string, number>;
   dailyWirdDone?: Record<string, boolean>;
   dailyWirdStartISO?: string | null;
   khatmaStartISO?: string | null;
@@ -90,6 +91,9 @@ type NoorState = {
   quranNotes: Record<string, string>; // key: `${surahId}:${ayahIndex}`
   setQuranNote: (surahId: number, ayahIndex: number, note: string) => void;
   clearQuranNote: (surahId: number, ayahIndex: number) => void;
+
+  // Tracks furthest ayah reached per surah (surahId string -> max ayahIndex)
+  quranReadingHistory: Record<string, number>;
 
   // Daily Wird
   dailyWirdDone: Record<string, boolean>; // dateISO -> done
@@ -223,9 +227,18 @@ export const useNoorStore = create<NoorState>()(
         set((s) => ({ quranBookmarks: { ...s.quranBookmarks, [key]: !s.quranBookmarks[key] } }));
       },
       quranLastRead: null,
-      setQuranLastRead: (surahId, ayahIndex) => set({ quranLastRead: { surahId, ayahIndex } }),
+      setQuranLastRead: (surahId, ayahIndex) => set((s) => {
+        const histKey = String(surahId);
+        const prevMax = s.quranReadingHistory[histKey] ?? 0;
+        const newHistory = ayahIndex > prevMax
+          ? { ...s.quranReadingHistory, [histKey]: ayahIndex }
+          : s.quranReadingHistory;
+        return { quranLastRead: { surahId, ayahIndex }, quranReadingHistory: newHistory };
+      }),
 
       quranNotes: {},
+
+      quranReadingHistory: {},
       setQuranNote: (surahId, ayahIndex, note) => {
         const key = `${surahId}:${ayahIndex}`;
         const clean = (note ?? "").trim();
@@ -403,6 +416,7 @@ export const useNoorStore = create<NoorState>()(
           quranBookmarks: s.quranBookmarks,
           quranLastRead: s.quranLastRead,
           quranNotes: s.quranNotes,
+          quranReadingHistory: s.quranReadingHistory,
           dailyWirdDone: s.dailyWirdDone,
           dailyWirdStartISO: s.dailyWirdStartISO,
           khatmaStartISO: s.khatmaStartISO,
@@ -426,6 +440,7 @@ export const useNoorStore = create<NoorState>()(
           quranBookmarks: blob.quranBookmarks ?? {},
           quranLastRead: blob.quranLastRead ?? null,
           quranNotes: blob.quranNotes ?? {},
+          quranReadingHistory: sanitizeNumberMap(blob.quranReadingHistory),
           dailyWirdDone: blob.dailyWirdDone ?? {},
           dailyWirdStartISO: blob.dailyWirdStartISO ?? null,
           khatmaStartISO: blob.khatmaStartISO ?? null,
