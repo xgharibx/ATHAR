@@ -321,7 +321,7 @@ export function DhikrCard(props: {
             <IconButton
               aria-label="مفضلة"
               onClick={() => toggleFavorite(sectionId, index)}
-              className={cn(fav && "bg-[rgba(255,215,128,.14)] border-[rgba(255,215,128,.24)]")}
+              className={cn(fav && "bg-[var(--accent)]/14 border-[var(--accent)]/24")}
             >
               <Heart size={18} className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
             </IconButton>

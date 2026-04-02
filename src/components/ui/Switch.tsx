@@ -7,7 +7,7 @@ export function Switch(props: SwitchPrimitive.SwitchProps) {
     <SwitchPrimitive.Root
       {...props}
       className={cn(
-        "w-11 h-6 rounded-full relative border border-white/14 bg-white/10 data-[state=checked]:bg-[rgba(255,215,128,.18)] transition",
+        "w-11 h-6 rounded-full relative border border-white/14 bg-white/10 data-[state=checked]:bg-[var(--accent)]/18 transition",
         props.className
       )}
     >

@@ -97,9 +97,9 @@ export function PrayerCountdown({ timings }: { timings: Record<string, string> }
       className={[
         "glass rounded-2xl p-3 border transition-all duration-500",
         isImminent
-          ? "border-[var(--accent)] bg-[rgba(255,215,128,.08)] prayer-pulse"
+          ? "border-[var(--accent)] bg-[var(--accent)]/8 prayer-pulse"
           : isUrgent
-          ? "border-[rgba(255,215,128,.3)] bg-[rgba(255,215,128,.04)]"
+          ? "border-[var(--accent)]/30 bg-[var(--accent)]/4"
           : "border-white/10",
       ].join(" ")}
     >
