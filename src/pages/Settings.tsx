@@ -18,15 +18,37 @@ import {
   syncReminders
 } from "@/lib/reminders";
 
+const THEME_ACCENTS: Record<NoorTheme, string> = {
+  system:   "#ffd780",
+  dark:     "#ffd780",
+  light:    "#ffd780",
+  noor:     "#ffd780",
+  midnight: "#38bdf8",
+  forest:   "#34d399",
+  bees:     "#fbbf24",
+  roses:    "#fda4af",
+  sapphire: "#60a5fa",
+  violet:   "#c4b5fd",
+  sunset:   "#fb923c",
+  mist:     "#e5e7eb",
+};
+
 function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; onClick: () => void }) {
+  const dotColor = THEME_ACCENTS[props.value];
   return (
     <button
       onClick={props.onClick}
       className={[
-        "px-4 py-3 rounded-2xl border text-sm transition",
-        props.active ? "bg-[rgba(255,215,128,.16)] border-[rgba(255,215,128,.28)]" : "bg-white/6 border-white/10 hover:bg-white/8"
+        "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px]",
+        props.active
+          ? "bg-[var(--accent)]/15 border-[var(--accent)]/35"
+          : "bg-white/6 border-white/10 hover:bg-white/8"
       ].join(" ")}
     >
+      <span
+        className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-white/20"
+        style={{ backgroundColor: dotColor }}
+      />
       {props.label}
     </button>
   );
@@ -217,7 +239,7 @@ export function SettingsPage() {
                       className={[
                         "px-4 py-3 rounded-xl border text-sm transition min-h-[44px]",
                         prefs.quranPageSize === n
-                          ? "bg-[rgba(255,215,128,.16)] border-[rgba(255,215,128,.28)]"
+                          ? "bg-[var(--accent)]/15 border-[var(--accent)]/35"
                           : "bg-white/6 border-white/10 hover:bg-white/10"
                       ].join(" ")}
                     >

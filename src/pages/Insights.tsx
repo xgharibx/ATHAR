@@ -34,9 +34,6 @@ const DAY_LABELS = ["أحد", "إثن", "ثلث", "أرب", "خمس", "جمع", 
 
 export function InsightsPage() {
   const activity = useNoorStore((s) => s.activity);
-  const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
-  const quranBookmarks = useNoorStore((s) => s.quranBookmarks);
-  const quranNotes = useNoorStore((s) => s.quranNotes);
   const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
   const streak = React.useMemo(() => computeStreak(activity), [activity]);
 
@@ -76,12 +73,20 @@ export function InsightsPage() {
   const total = Object.values(activity).reduce((a, b) => a + (b ?? 0), 0);
   const todayKey = useTodayKey();
 
-  const quickTotal = React.useMemo(() => {
-    return Object.values(quickTasbeeh).reduce((acc, v) => acc + (v ?? 0), 0);
-  }, [quickTasbeeh]);
+  const todayCount = activity[todayKey] ?? 0;
 
-  const bookmarkCount = React.useMemo(() => Object.values(quranBookmarks).filter(Boolean).length, [quranBookmarks]);
-  const notesCount = React.useMemo(() => Object.values(quranNotes).filter((v) => (v ?? "").trim().length > 0).length, [quranNotes]);
+  const weekTotal = React.useMemo(() => {
+    const today = new Date();
+    let sum = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      sum += activity[k] ?? 0;
+    }
+    return sum;
+  }, [activity]);
+
   const isWirdDone = !!dailyWirdDone[todayKey];
 
   const streakFireClass =
@@ -126,9 +131,9 @@ export function InsightsPage() {
 
         {/* Mini stats row */}
         <div className="relative mt-4 grid grid-cols-4 gap-2">
-          <MiniStatSmall label="الكل" value={`${total}`} />
-          <MiniStatSmall label="تسبيح" value={`${quickTotal}`} />
-          <MiniStatSmall label="عناصر القرآن" value={`${bookmarkCount}`} />
+          <MiniStatSmall label="اليوم" value={`${todayCount}`} accent />
+          <MiniStatSmall label="الأسبوع" value={`${weekTotal}`} />
+          <MiniStatSmall label="الإجمالي" value={`${total}`} />
           <MiniStatSmall label="الورد" value={isWirdDone ? "✅" : "○"} />
         </div>
       </Card>
@@ -199,11 +204,11 @@ export function InsightsPage() {
   );
 }
 
-function MiniStatSmall(props: { label: string; value: string }) {
+function MiniStatSmall(props: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="glass rounded-2xl p-2.5 border border-white/10 text-center">
+    <div className={`glass rounded-2xl p-2.5 border text-center ${props.accent ? "border-[var(--accent)]/30 bg-[var(--accent)]/8" : "border-white/10"}`}>
       <div className="text-[11px] opacity-55 truncate">{props.label}</div>
-      <div className="text-sm font-bold mt-0.5 tabular-nums">{props.value}</div>
+      <div className={`text-sm font-bold mt-0.5 tabular-nums ${props.accent ? "text-[var(--accent)]" : ""}`}>{props.value}</div>
     </div>
   );
 }
