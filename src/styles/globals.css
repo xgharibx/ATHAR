@@ -504,6 +504,15 @@ html.midnight body.transparent-mode .glass-strong {
   background: rgba(255, 215, 128, 0.28);
 }
 
+/* Hide scrollbar but keep functionality */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Subtle scrollbars */
 *::-webkit-scrollbar {
   width: 10px;

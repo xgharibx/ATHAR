@@ -25,6 +25,7 @@ import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
 import { pct, cn } from "@/lib/utils";
+import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { trackUxEvent } from "@/lib/uxMetrics";
 import { useQuranDB } from "@/data/useQuranDB";
 import { coerceCount } from "@/data/types";
@@ -607,6 +608,53 @@ export function HomePage() {
           </div>
         </motion.div>
       </Card>
+
+      {/* ── Sections quick-access strip ── */}
+      {sections.length > 0 && (
+        <div className="overflow-x-auto no-scrollbar -mx-0.5 px-0.5">
+          <div className="flex gap-2 pb-0.5" style={{ width: "max-content" }}>
+            {sections.map((section, idx) => {
+              const identity = getSectionIdentity(section.id);
+              let done = 0;
+              const total = section.content.length;
+              section.content.forEach((item, i) => {
+                const need = coerceCount(item.count);
+                const have = Math.min(need, Math.max(0, Number(progressMap[`${section.id}:${i}`]) || 0));
+                if (have >= need) done++;
+              });
+              const isComplete = total > 0 && done === total;
+              const pctDone = total > 0 ? Math.round((done / total) * 100) : 0;
+
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => { trackUxEvent(`home_strip:${section.id}`); navigate(`/c/${section.id}`); }}
+                  className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] select-none active:scale-[.91] transition-all"
+                  style={{
+                    borderColor: isComplete
+                      ? "color-mix(in srgb, var(--ok) 30%, transparent)"
+                      : pctDone > 0
+                        ? `${identity.accent}40`
+                        : "rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <span className="text-[22px] leading-none">{identity.icon}</span>
+                  <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5">{identity.badge}</span>
+                  <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${pctDone}%`,
+                        background: isComplete ? "var(--ok)" : identity.accent,
+                      }}
+                    />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <PrayerWidget />
 

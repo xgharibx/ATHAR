@@ -248,6 +248,7 @@ function SidebarContent(props: { onNavigate?: () => void }) {
   const NAV_LINKS = [
     { path: "/", icon: House, label: "الرئيسية", color: "#ffd780" },
     { path: "/quran", icon: BookOpenText, label: "القرآن الكريم", color: "#9ae6ff" },
+    { path: "/search", icon: Search, label: "البحث", color: "#e879f9" },
     { path: "/favorites", icon: Heart, label: "المفضلة", color: "#fb7185" },
     { path: "/insights", icon: LineChart, label: "الإحصاءات", color: "#3ddc97" },
     { path: "/leaderboard", icon: Trophy, label: "المتصدرون", color: "#f59e0b" },
