@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Virtuoso } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, Lock, Copy } from "lucide-react";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
@@ -60,7 +60,19 @@ export function DhikrList(props: {
     return { done, total, percent: pct(done, total) };
   }, [progressMap, props.items, props.sectionId]);
 
+  // First item that still needs taps
+  const firstIncompleteIdx = React.useMemo(() => {
+    return props.items.findIndex((item, idx) => {
+      const key = `${props.sectionId}:${idx}`;
+      const target = coerceCount(item.count);
+      const current = Math.min(target, Math.max(0, Number(progressMap[key]) || 0));
+      return current < target;
+    });
+  }, [progressMap, props.items, props.sectionId]);
+
   const [copiedAll, setCopiedAll] = React.useState(false);
+  const [compact, setCompact] = React.useState(false);
+  const virtuosoRef = React.useRef<VirtuosoHandle>(null);
 
   // Related sections shown after completion
   const relatedSections = React.useMemo(() => {
@@ -175,6 +187,24 @@ export function DhikrList(props: {
                 <Copy size={16} />
                 {copiedAll ? "تم ✓" : "نسخ الكل"}
               </Button>
+              <Button
+                variant={compact ? "primary" : "secondary"}
+                onClick={() => setCompact((prev) => !prev)}
+                title={compact ? "عرض موسّع" : "عرض مضغوط"}
+                aria-label={compact ? "عرض موسّع" : "عرض مضغوط"}
+              >
+                <List size={16} />
+              </Button>
+              {firstIncompleteIdx > 0 && stats.percent < 100 && (
+                <Button
+                  variant="secondary"
+                  onClick={() => virtuosoRef.current?.scrollToIndex({ index: firstIncompleteIdx, align: "start", behavior: "smooth" })}
+                  title="انتقل إلى أول ذكر غير مكتمل"
+                  aria-label="انتقل إلى أول ذكر غير مكتمل"
+                >
+                  <ChevronsDown size={16} />
+                </Button>
+              )}
             </div>
           </div>
 
@@ -194,7 +224,7 @@ export function DhikrList(props: {
         </div>
       </Card>
 
-      <div style={{ height: "calc(100dvh - 240px)", minHeight: "440px" }}>
+      <div style={{ height: "calc(100dvh - 240px)", minHeight: "440px" }} className={compact ? "dhikr-compact" : ""}>
         {stats.percent >= 100 && (
           <div className="mb-3 space-y-2">
             <div className="rounded-3xl border border-[var(--ok)]/30 bg-[var(--ok)]/10 px-5 py-4 flex items-center gap-3">
@@ -231,6 +261,7 @@ export function DhikrList(props: {
           </div>
         )}
         <Virtuoso
+          ref={virtuosoRef}
           style={{ height: "100%" }}
           data={props.items}
           itemContent={(index, item) => (
