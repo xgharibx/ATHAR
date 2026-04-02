@@ -134,10 +134,10 @@ export function NoorBackground() {
         </div>
       ) : null}
 
-      {/* Optional 3D layer — disabled on mobile for performance */}
-      {enable3D && !reduceMotion && !isMobile && webglOk ? (
+      {/* Optional 3D layer — reduced on mobile instead of fully disabled */}
+      {enable3D && !reduceMotion && webglOk ? (
         <React.Suspense fallback={null}>
-          <NoorStarfield />
+          <NoorStarfield mobile={isMobile} />
         </React.Suspense>
       ) : null}
     </div>

@@ -3,9 +3,11 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
-function Starfield(props: { count?: number }) {
+function Starfield(props: { count?: number; size?: number; opacity?: number }) {
   const ref = React.useRef<THREE.Points>(null!);
   const count = props.count ?? 1800;
+  const size = props.size ?? 0.006;
+  const opacity = props.opacity ?? 0.85;
 
   const positions = React.useMemo(() => {
     const arr = new Float32Array(count * 3);
@@ -35,27 +37,28 @@ function Starfield(props: { count?: number }) {
         <PointMaterial
           transparent
           color="#ffd780"
-          size={0.006}
+          size={size}
           sizeAttenuation
           depthWrite={false}
-          opacity={0.85}
+          opacity={opacity}
         />
       </Points>
     </group>
   );
 }
 
-export default function NoorStarfield() {
+export default function NoorStarfield(props: { mobile?: boolean }) {
   const [enabled, setEnabled] = React.useState(true);
+  const mobile = props.mobile === true;
 
   if (!enabled) return null;
 
   return (
     <Canvas
-      dpr={[1, 1.5]}
+      dpr={mobile ? [0.8, 1.1] : [1, 1.5]}
       camera={{ position: [0, 0, 3], fov: 60 }}
       style={{ position: "absolute", inset: 0 }}
-      gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
+      gl={{ antialias: false, alpha: true, powerPreference: mobile ? "low-power" : "high-performance" }}
       onCreated={({ gl }) => {
         const canvas = gl.domElement;
         const onLost = () => setEnabled(false);
@@ -63,7 +66,7 @@ export default function NoorStarfield() {
       }}
     >
       <ambientLight intensity={0.7} />
-      <Starfield />
+      <Starfield count={mobile ? 900 : 1800} size={mobile ? 0.009 : 0.006} opacity={mobile ? 0.95 : 0.85} />
     </Canvas>
   );
 }
