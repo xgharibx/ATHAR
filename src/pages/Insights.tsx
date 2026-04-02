@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useNoorStore } from "@/store/noorStore";
+import { useAdhkarDB } from "@/data/useAdhkarDB";
+import { coerceCount } from "@/data/types";
+import { pct } from "@/lib/utils";
+import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { useTodayKey } from "@/hooks/useTodayKey";
 
 function computeStreak(activity: Record<string, number>) {
@@ -38,6 +42,8 @@ export function InsightsPage() {
   const navigate = useNavigate();
   const activity = useNoorStore((s) => s.activity);
   const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
+  const progressMap = useNoorStore((s) => s.progress);
+  const { data: adhkarData } = useAdhkarDB();
   const streak = React.useMemo(() => computeStreak(activity), [activity]);
 
   const bestDay = React.useMemo(() => {
@@ -49,7 +55,7 @@ export function InsightsPage() {
   }, [activity]);
 
   // Build 28-day heatmap aligned to Sunday columns
-  const { heatmap, weekLabels } = React.useMemo(() => {
+  const { heatmap, maxCount } = React.useMemo(() => {
     const today = new Date();
     const todayKey = dateKey(today);
     // Find the last Sunday on or before today
@@ -78,7 +84,7 @@ export function InsightsPage() {
       weeks.push(row);
     }
 
-    return { heatmap: weeks, weekLabels: DAY_LABELS, maxCount };
+    return { heatmap: weeks, maxCount };
   }, [activity]);
 
   const total = Object.values(activity).reduce((a, b) => a + (b ?? 0), 0);
@@ -171,8 +177,11 @@ export function InsightsPage() {
               {week.map((cell) => {
                 const isFuture = cell.count < 0;
                 const count = Math.max(0, cell.count);
-                // Heat level 0-4
-                const heat = count === 0 ? 0 : count < 5 ? 1 : count < 15 ? 2 : count < 40 ? 3 : 4;
+                // Dynamic heat thresholds based on personal best
+                const q1 = Math.max(1, Math.ceil(maxCount * 0.25));
+                const q2 = Math.max(2, Math.ceil(maxCount * 0.5));
+                const q3 = Math.max(3, Math.ceil(maxCount * 0.75));
+                const heat = count === 0 ? 0 : count < q1 ? 1 : count < q2 ? 2 : count < q3 ? 3 : 4;
                 const bg =
                   isFuture ? "bg-white/3 opacity-30" :
                   heat === 0 ? "bg-white/5" :
@@ -231,6 +240,44 @@ export function InsightsPage() {
       <div className="text-xs opacity-50 leading-6 px-1">
         ملاحظة: الإحصائيات محلية على جهازك. إذا حذفت بيانات المتصفح/التطبيق سيتم فقدها.
       </div>
+
+      {/* Sections progress overview */}
+      {adhkarData && adhkarData.db.sections.length > 0 && (
+        <Card className="p-5">
+          <div className="text-sm font-semibold mb-3">تقدّم الأقسام</div>
+          <div className="space-y-2">
+            {adhkarData.db.sections.map((s) => {
+              const identity = getSectionIdentity(s.id);
+              let done = 0;
+              let total = 0;
+              s.content.forEach((item, idx) => {
+                const t = coerceCount(item.count);
+                const c = Math.min(Math.max(0, Number(progressMap[`${s.id}:${idx}`]) || 0), t);
+                total += t;
+                done += c;
+              });
+              const percent = pct(done, total);
+              return (
+                <div key={s.id} className="flex items-center gap-3">
+                  <span className="text-base shrink-0">{identity.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-xs truncate opacity-80">{s.title}</span>
+                      <span className="text-[11px] opacity-50 tabular-nums shrink-0">{percent}%</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-[width] duration-300"
+                        style={{ width: `${percent}%`, background: percent >= 100 ? "var(--ok)" : identity.accent }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
