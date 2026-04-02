@@ -1,7 +1,9 @@
 import * as React from "react";
-import { Flame, TrendingUp } from "lucide-react";
+import { Flame, TrendingUp, Trophy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { useNoorStore } from "@/store/noorStore";
 import { useTodayKey } from "@/hooks/useTodayKey";
 
@@ -33,9 +35,18 @@ function dateKey(d: Date) {
 const DAY_LABELS = ["أحد", "إثن", "ثلث", "أرب", "خمس", "جمع", "سبت"];
 
 export function InsightsPage() {
+  const navigate = useNavigate();
   const activity = useNoorStore((s) => s.activity);
   const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
   const streak = React.useMemo(() => computeStreak(activity), [activity]);
+
+  const bestDay = React.useMemo(() => {
+    let max = 0;
+    for (const v of Object.values(activity)) {
+      if ((v ?? 0) > max) max = v ?? 0;
+    }
+    return max;
+  }, [activity]);
 
   // Build 28-day heatmap aligned to Sunday columns
   const { heatmap, weekLabels } = React.useMemo(() => {
@@ -135,7 +146,7 @@ export function InsightsPage() {
           <MiniStatSmall label="اليوم" value={`${todayCount}`} accent />
           <MiniStatSmall label="الأسبوع" value={`${weekTotal}`} />
           <MiniStatSmall label="الإجمالي" value={`${total}`} />
-          <MiniStatSmall label="الورد" value={isWirdDone ? "✅" : "○"} />
+          <MiniStatSmall label="أفضل يوم" value={`${bestDay}`} />
         </div>
       </Card>
 
@@ -194,6 +205,25 @@ export function InsightsPage() {
             }`} />
           ))}
           <span className="text-[11px] opacity-55">أكثر</span>
+        </div>
+      </Card>
+
+      {/* Wird status + leaderboard link */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-lg border ${isWirdDone ? "border-[var(--ok)]/30 bg-[var(--ok)]/10" : "border-white/10 bg-white/5"}`}>
+              {isWirdDone ? "✅" : "📖"}
+            </div>
+            <div>
+              <div className="text-sm font-semibold">ورد اليوم</div>
+              <div className="text-xs opacity-60 mt-0.5">{isWirdDone ? "اكتمل اليوم" : "لم يكتمل بعد"}</div>
+            </div>
+          </div>
+          <Button variant="secondary" onClick={() => navigate("/leaderboard")}>
+            <Trophy size={15} />
+            ترتيبي
+          </Button>
         </div>
       </Card>
 

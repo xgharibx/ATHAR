@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Card } from "@/components/ui/Card";
@@ -490,6 +490,12 @@ export function SettingsPage() {
           </div>
         </div>
       </Card>
+
+      <DangerZone />
+
+      <div className="text-[11px] opacity-40 text-center pb-2 leading-5">
+        ATHAR • أثر · v1.0.0 · بيانات محلية
+      </div>
     </div>
   );
 }
@@ -503,5 +509,54 @@ function SettingRow(props: { title: string; desc: string; right: React.ReactNode
       </div>
       <div>{props.right}</div>
     </div>
+  );
+}
+
+function DangerZone() {
+  const [confirm, setConfirm] = React.useState(false);
+
+  const resetAll = () => {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      toast.success("تم مسح جميع البيانات");
+      setTimeout(() => window.location.reload(), 800);
+    } catch {
+      toast.error("تعذر مسح البيانات");
+    }
+  };
+
+  return (
+    <Card className="p-5 border border-[var(--danger)]/20">
+      <div className="flex items-center gap-2 mb-3">
+        <Trash2 size={16} className="text-[var(--danger)]" />
+        <div className="text-sm font-semibold text-[var(--danger)]">منطقة الخطر</div>
+      </div>
+      <div className="text-xs opacity-65 mb-4 leading-6">
+        سيتم مسح جميع بياناتك المحلية: التقدّم، المفضلة، الإعدادات، وسجل القراءة. لا يمكن التراجع عن هذا.
+      </div>
+      {confirm ? (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10"
+            onClick={resetAll}
+          >
+            <Trash2 size={15} />
+            تأكيد المسح الكامل
+          </Button>
+          <Button variant="secondary" onClick={() => setConfirm(false)}>إلغاء</Button>
+        </div>
+      ) : (
+        <Button
+          variant="outline"
+          className="border-[var(--danger)]/30 text-[var(--danger)]/80 hover:bg-[var(--danger)]/8"
+          onClick={() => setConfirm(true)}
+        >
+          <Trash2 size={15} />
+          مسح جميع البيانات
+        </Button>
+      )}
+    </Card>
   );
 }

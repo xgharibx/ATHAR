@@ -28,6 +28,7 @@ export function QuranPage() {
   const [query, setQuery] = React.useState("");
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
   const [jumpMushafPage, setJumpMushafPage] = React.useState("");
+  const [showBookmarks, setShowBookmarks] = React.useState(false);
 
   const lastReadSurahName = React.useMemo(() => {
     if (!lastRead || !data) return null;
@@ -44,6 +45,20 @@ export function QuranPage() {
     }
     return s;
   }, [bookmarks]);
+
+  const bookmarksList = React.useMemo(() => {
+    if (!data) return [] as Array<{ surahId: number; surahName: string; ayahIndex: number }>;
+    const out: Array<{ surahId: number; surahName: string; ayahIndex: number }> = [];
+    for (const [k, v] of Object.entries(bookmarks)) {
+      if (!v) continue;
+      const [surahIdStr, ayahStr] = k.split(":");
+      const surahId = Number(surahIdStr);
+      const ayahIndex = Number(ayahStr);
+      const surahName = data.find((s) => s.id === surahId)?.name ?? `${surahId}`;
+      out.push({ surahId, surahName, ayahIndex });
+    }
+    return out.sort((a, b) => a.surahId - b.surahId || a.ayahIndex - b.ayahIndex);
+  }, [bookmarks, data]);
 
   const filtered = React.useMemo(() => {
     if (!data) return [];
@@ -153,7 +168,19 @@ export function QuranPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Badge className="tabular-nums">{bookmarkedCount} علامة</Badge>
+            <button
+              onClick={() => setShowBookmarks((v) => !v)}
+              className={[
+                "inline-flex items-center gap-1.5 px-3 py-2 rounded-2xl border text-sm transition min-h-[36px]",
+                showBookmarks
+                  ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
+                  : "bg-white/6 border-white/10 hover:bg-white/8"
+              ].join(" ")}
+              aria-label="علامات القراءة"
+            >
+              <Bookmark size={14} />
+              <span className="tabular-nums">{bookmarkedCount}</span>
+            </button>
             {lastRead ? (
               <Button
                 variant="secondary"
@@ -176,6 +203,32 @@ export function QuranPage() {
             </Button>
           </div>
         </div>
+
+        {/* Bookmarks panel */}
+        {showBookmarks && (
+          <div className="mt-4 rounded-3xl border border-[var(--accent)]/25 bg-[var(--accent)]/6 overflow-hidden">
+            <div className="px-4 py-3 text-sm font-semibold border-b border-[var(--accent)]/15 flex items-center gap-2">
+              <Bookmark size={14} className="text-[var(--accent)]" />
+              علامات القراءة
+            </div>
+            {bookmarksList.length === 0 ? (
+              <div className="px-4 py-4 text-sm opacity-55 text-center">لا توجد علامات بعد</div>
+            ) : (
+              <div className="divide-y divide-white/6">
+                {bookmarksList.map((bm) => (
+                  <button
+                    key={`${bm.surahId}:${bm.ayahIndex}`}
+                    onClick={() => navigate(`/quran/${bm.surahId}?a=${bm.ayahIndex}`)}
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-white/6 transition text-right"
+                  >
+                    <span className="text-sm arabic-text">{bm.surahName}</span>
+                    <span className="text-xs opacity-55 tabular-nums">﴿{bm.ayahIndex}﴾</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
