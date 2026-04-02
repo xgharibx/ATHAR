@@ -368,6 +368,24 @@ export function SurahPage() {
               <div className="text-sm font-semibold arabic-text quran-title">{surah.name}</div>
               <div className="mt-1 text-xs opacity-65">{surah.englishName || ""} • {surah.id}</div>
             </div>
+            <div className="flex items-center gap-0.5 mr-1 border-r border-white/10 pr-2">
+              {surahId > 1 && (
+                <IconButton
+                  aria-label="السورة السابقة"
+                  onClick={() => navigate(`/quran/${surahId - 1}`)}
+                >
+                  <ChevronRight size={15} />
+                </IconButton>
+              )}
+              {surahId < 114 && (
+                <IconButton
+                  aria-label="السورة التالية"
+                  onClick={() => navigate(`/quran/${surahId + 1}`)}
+                >
+                  <ChevronLeft size={15} />
+                </IconButton>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge className="tabular-nums">{displayAyahs.length} آية</Badge>
@@ -440,68 +458,76 @@ export function SurahPage() {
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto_auto] gap-2 items-center">
-          <Button variant="secondary" onClick={() => {
-            const randomAyah = Math.floor(Math.random() * displayAyahs.length) + 1;
-            goToAyah(randomAyah);
-            toast.success(`آية عشوائية: ${toArabicIndic(randomAyah)}`);
-          }}>
-            <Shuffle size={16} /> آية عشوائية
-          </Button>
-          <Input
-            type="number"
-            min={1}
-            max={displayAyahs.length}
-            value={jumpAyah}
-            onChange={(e) => setJumpAyah(e.target.value)}
-            placeholder={`الانتقال إلى آية (1-${displayAyahs.length})`}
-          />
-          <Button
-            variant="secondary"
-            onClick={() => {
-              const num = Number(jumpAyah);
-              if (!Number.isFinite(num) || num <= 0) {
-                toast.error("أدخل رقم آية صحيح");
-                return;
-              }
-              goToAyah(num);
-            }}
-          >
-            انتقال
-          </Button>
-          {isMushafMode ? (
-            <>
-              <Input
-                type="number"
-                min={1}
-                max={totalMushafPages}
-                value={jumpMushafPage}
-                onChange={(e) => setJumpMushafPage(e.target.value)}
-                placeholder={`الانتقال إلى صفحة المصحف (1-${totalMushafPages})`}
-              />
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  const pageNum = Number(jumpMushafPage);
-                  if (!Number.isFinite(pageNum) || pageNum <= 0 || pageNum > totalMushafPages) {
-                    toast.error("أدخل رقم صفحة صحيح");
-                    return;
-                  }
-                  const idx = surahMushafPages.indexOf(pageNum);
-                  if (idx < 0) {
-                    toast.error("هذه الصفحة لا تحتوي على آيات من هذه السورة");
-                    return;
-                  }
-                  setCurrentMushafPage(pageNum);
-                }}
-              >
-                انتقال للصفحة
-              </Button>
-            </>
-          ) : null}
-          <Button variant="secondary" onClick={() => setPrefs({ quranHideMarkers: !prefs.quranHideMarkers })}>
-            {prefs.quranHideMarkers ? "إظهار الأرقام" : "إخفاء الأرقام"}
-          </Button>
+        <div className="mt-3 space-y-2">
+          {/* utility row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="secondary" onClick={() => {
+              const randomAyah = Math.floor(Math.random() * displayAyahs.length) + 1;
+              goToAyah(randomAyah);
+              toast.success(`آية عشوائية: ${toArabicIndic(randomAyah)}`);
+            }}>
+              <Shuffle size={16} /> آية عشوائية
+            </Button>
+            <Button variant="secondary" onClick={() => setPrefs({ quranHideMarkers: !prefs.quranHideMarkers })}>
+              {prefs.quranHideMarkers ? "إظهار الأرقام" : "إخفاء الأرقام"}
+            </Button>
+          </div>
+          {/* jump row */}
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              min={1}
+              max={displayAyahs.length}
+              value={jumpAyah}
+              onChange={(e) => setJumpAyah(e.target.value)}
+              placeholder={`آية (1–${displayAyahs.length})`}
+              className="flex-1"
+            />
+            <Button
+              variant="primary"
+              onClick={() => {
+                const num = Number(jumpAyah);
+                if (!Number.isFinite(num) || num <= 0) {
+                  toast.error("أدخل رقم آية صحيح");
+                  return;
+                }
+                goToAyah(num);
+              }}
+            >
+              انتقال
+            </Button>
+            {isMushafMode ? (
+              <>
+                <Input
+                  type="number"
+                  min={1}
+                  max={totalMushafPages}
+                  value={jumpMushafPage}
+                  onChange={(e) => setJumpMushafPage(e.target.value)}
+                  placeholder={`صفحة (1–${totalMushafPages})`}
+                  className="flex-1"
+                />
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    const pageNum = Number(jumpMushafPage);
+                    if (!Number.isFinite(pageNum) || pageNum <= 0 || pageNum > totalMushafPages) {
+                      toast.error("أدخل رقم صفحة صحيح");
+                      return;
+                    }
+                    const idx = surahMushafPages.indexOf(pageNum);
+                    if (idx < 0) {
+                      toast.error("هذه الصفحة لا تحتوي على آيات من هذه السورة");
+                      return;
+                    }
+                    setCurrentMushafPage(pageNum);
+                  }}
+                >
+                  انتقال للصفحة
+                </Button>
+              </>
+            ) : null}
+          </div>
         </div>
 
         {shouldShowBasmalah(surah.id) ? (
@@ -564,20 +590,39 @@ export function SurahPage() {
               })}
             </div>
 
-            <div className="mt-4 text-xs opacity-65">
+            <div className="mt-4 text-xs opacity-50">
               اضغط على الآية لتحديث موضع القراءة، واضغط على رقم الآية لإضافة علامة.
+            </div>
+
+            {/* Bottom page navigation */}
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <Button
+                variant="secondary"
+                onClick={goPrevPage}
+                disabled={navPage <= 1}
+              >
+                <ChevronRight size={15} /> السابقة
+              </Button>
+              <span className="text-xs opacity-50 tabular-nums">{navPage} / {navTotal}</span>
+              <Button
+                variant={navPage < navTotal ? "primary" : "secondary"}
+                onClick={goNextPage}
+                disabled={navPage >= navTotal}
+              >
+                التالية <ChevronLeft size={15} />
+              </Button>
             </div>
 
             {selectedAyah ? (
               <div className="mt-5 glass rounded-3xl p-4 border border-white/10">
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-semibold">ملاحظة للآية ﴿{toArabicIndic(selectedAyah)}﴾</div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center flex-wrap gap-2">
                     <Button variant="secondary" onClick={() => doCopyText(selectedAyahText)}>
                       نسخ الآية
                     </Button>
                     <Button variant="secondary" onClick={doShareSelectedAyahImage}>
-                      مشاركة كصورة
+                      مشاركة
                     </Button>
                     <Button
                       variant="secondary"
