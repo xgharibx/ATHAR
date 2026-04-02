@@ -9,11 +9,13 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import type { FlatDhikr } from "@/data/types";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
+import { cn } from "@/lib/utils";
 
 export function SearchPage() {
   const { data } = useAdhkarDB();
   const navigate = useNavigate();
   const [q, setQ] = React.useState("");
+  const [sectionFilter, setSectionFilter] = React.useState<string | null>(null);
 
   const fuse = React.useMemo(() => {
     if (!data) return null;
@@ -26,9 +28,26 @@ export function SearchPage() {
 
   const { results, totalHits } = React.useMemo(() => {
     if (!fuse || !q.trim()) return { results: [] as FlatDhikr[], totalHits: 0 };
-    const all = fuse.search(q);
-    return { results: all.slice(0, 50).map((r) => r.item), totalHits: all.length };
-  }, [fuse, q]);
+    const all = fuse.search(q).map((r) => r.item);
+    const filtered = sectionFilter ? all.filter((r) => r.sectionId === sectionFilter) : all;
+    return { results: filtered.slice(0, 50), totalHits: filtered.length };
+  }, [fuse, q, sectionFilter]);
+
+  // Build section chip list from current results (before section filter)
+  const sectionChips = React.useMemo(() => {
+    if (!fuse || !q.trim() || !data) return [] as Array<{ id: string; title: string; count: number }>;
+    const all = fuse.search(q).map((r) => r.item);
+    const map = new Map<string, { id: string; title: string; count: number }>();
+    for (const r of all) {
+      const existing = map.get(r.sectionId);
+      if (existing) { existing.count++; }
+      else { map.set(r.sectionId, { id: r.sectionId, title: r.sectionTitle, count: 1 }); }
+    }
+    return [...map.values()].sort((a, b) => b.count - a.count);
+  }, [fuse, q, data]);
+
+  // Reset section filter when query changes
+  React.useEffect(() => { setSectionFilter(null); }, [q]);
 
   return (
     <div className="space-y-4 page-enter">
@@ -50,6 +69,44 @@ export function SearchPage() {
           <span className="opacity-80">المساء</span> — <span className="opacity-80">الوضوء</span>
         </div>
       </Card>
+
+      {/* Section filter chips */}
+      {sectionChips.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar" style={{ scrollbarWidth: "none" }}>
+          <button
+            onClick={() => setSectionFilter(null)}
+            className={cn(
+              "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
+              sectionFilter === null
+                ? "bg-[var(--accent)] border-transparent text-black"
+                : "bg-white/8 border-white/12 hover:bg-white/12"
+            )}
+          >
+            الكل ({sectionChips.reduce((a, c) => a + c.count, 0)})
+          </button>
+          {sectionChips.map((chip) => {
+            const identity = getSectionIdentity(chip.id);
+            const isActive = sectionFilter === chip.id;
+            return (
+              <button
+                key={chip.id}
+                onClick={() => setSectionFilter(isActive ? null : chip.id)}
+                className={cn(
+                  "shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
+                  isActive
+                    ? "border-transparent text-black"
+                    : "bg-white/8 border-white/12 hover:bg-white/12"
+                )}
+                style={isActive ? { background: identity.accent } : {}}
+              >
+                <span>{identity.icon}</span>
+                <span>{chip.title}</span>
+                <span className="opacity-70">({chip.count})</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <Card className="p-5">
         <div className="flex items-center justify-between gap-2 mb-3">
@@ -93,6 +150,11 @@ export function SearchPage() {
                     {r.text.slice(0, 220)}
                     {r.text.length > 220 ? "…" : ""}
                   </div>
+                  {r.benefit && (
+                    <div className="mt-2 text-[11px] opacity-55 leading-5 border-t border-white/8 pt-2">
+                      الفضل: {r.benefit.slice(0, 120)}{r.benefit.length > 120 ? "…" : ""}
+                    </div>
+                  )}
                 </button>
               );
             })}
