@@ -8,6 +8,7 @@ import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useNoorStore } from "@/store/noorStore";
 import type { NoorTheme } from "@/store/noorStore";
 import type { FlatDhikr } from "@/data/types";
+import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -81,9 +82,11 @@ export function CommandPalette(props: Props) {
     props.setOpen(false);
   };
 
-  const toggleTheme = () => {
-    const next =
-      theme === "dark" ? "light" : theme === "light" ? "noor" : theme === "noor" ? "system" : "dark";
+  const ALL_THEMES: NoorTheme[] = ["roses", "noor", "sapphire", "violet", "sunset", "forest", "midnight", "bees", "mist", "dark", "light", "system"];
+
+  const cycleTheme = () => {
+    const idx = ALL_THEMES.indexOf(theme);
+    const next = ALL_THEMES[(idx + 1) % ALL_THEMES.length] ?? "dark";
     setPrefs({ theme: next });
   };
 
@@ -112,6 +115,7 @@ export function CommandPalette(props: Props) {
                 placeholder="ابحث عن ذكر أو قسم…"
                 className="w-full bg-transparent outline-none text-sm placeholder:text-white/45"
               />
+              <kbd className="text-[11px] opacity-40 pointer-events-none shrink-0 font-mono border border-white/10 rounded-md px-1.5 py-0.5">esc</kbd>
             </div>
 
             <Command.List className="max-h-[60vh] overflow-auto py-2">
@@ -120,12 +124,13 @@ export function CommandPalette(props: Props) {
               </Command.Empty>
 
               <Command.Group heading="الصفحات" className="px-2">
-                <Item onSelect={() => go("/")}>الرئيسية</Item>
-                <Item onSelect={() => go("/quran")}>المصحف</Item>
-                <Item onSelect={() => go("/favorites")}>المفضلة</Item>
-                <Item onSelect={() => go("/insights")}>الإحصاءات</Item>
-                <Item onSelect={() => go("/leaderboard")}>المتصدرون</Item>
-                <Item onSelect={() => go("/settings")}>الإعدادات</Item>
+                <Item onSelect={() => go("/")} icon={<span className="text-base">🏠</span>}>الرئيسية</Item>
+                <Item onSelect={() => go("/quran")} icon={<span className="text-base">📖</span>}>المصحف</Item>
+                <Item onSelect={() => go("/search")} icon={<span className="text-base">🔍</span>}>البحث</Item>
+                <Item onSelect={() => go("/favorites")} icon={<span className="text-base">❤️</span>}>المفضلة</Item>
+                <Item onSelect={() => go("/insights")} icon={<span className="text-base">📊</span>}>الإحصاءات</Item>
+                <Item onSelect={() => go("/leaderboard")} icon={<span className="text-base">🏆</span>}>المتصدرون</Item>
+                <Item onSelect={() => go("/settings")} icon={<span className="text-base">⚙️</span>}>الإعدادات</Item>
               </Command.Group>
 
               <Command.Separator className="h-px bg-white/10 my-2" />
@@ -138,7 +143,7 @@ export function CommandPalette(props: Props) {
               <Command.Group heading="أوامر سريعة" className="px-2">
                 <Item
                   onSelect={() => {
-                    toggleTheme();
+                    cycleTheme();
                     props.setOpen(false);
                   }}
                   icon={
@@ -153,11 +158,14 @@ export function CommandPalette(props: Props) {
                 <>
                   <Command.Separator className="h-px bg-white/10 my-2" />
                   <Command.Group heading="الأقسام" className="px-2">
-                    {data.db.sections.slice(0, 12).map((s) => (
-                      <Item key={s.id} onSelect={() => go(`/c/${s.id}`)}>
-                        {s.title}
-                      </Item>
-                    ))}
+                    {data.db.sections.slice(0, 12).map((s) => {
+                      const identity = getSectionIdentity(s.id);
+                      return (
+                        <Item key={s.id} onSelect={() => go(`/c/${s.id}`)} icon={<span className="text-base">{identity.icon}</span>}>
+                          {s.title}
+                        </Item>
+                      );
+                    })}
                   </Command.Group>
                 </>
               ) : null}
