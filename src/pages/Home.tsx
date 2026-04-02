@@ -153,9 +153,15 @@ export function HomePage() {
   const resetKhatma = useNoorStore((s) => s.resetKhatma);
   const dailyBetterStepDone = useNoorStore((s) => s.dailyBetterStepDone);
   const setDailyBetterStepDone = useNoorStore((s) => s.setDailyBetterStepDone);
+  const quranLastRead = useNoorStore((s) => s.quranLastRead);
 
   const sections = data?.db.sections ?? [];
   const [showSmartNowDetails, setShowSmartNowDetails] = React.useState(false);
+
+  const quranLastReadSurahName = React.useMemo(() => {
+    if (!quranLastRead || !quran.data) return null;
+    return quran.data.find((s) => s.id === quranLastRead.surahId)?.name ?? null;
+  }, [quran.data, quranLastRead]);
   const [confirmTasbeehReset, setConfirmTasbeehReset] = React.useState(false);
   const [confirmKhatmaReset, setConfirmKhatmaReset] = React.useState(false);
 
@@ -580,7 +586,13 @@ export function HomePage() {
 
               <div className="mt-4 flex flex-wrap gap-2 max-w-xl">
                 <Button className="press-effect" onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
-                <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran"); }}>المصحف</Button>
+                {quranLastRead ? (
+                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(`/quran/${quranLastRead.surahId}?a=${quranLastRead.ayahIndex}`); }}>
+                    📖 {quranLastReadSurahName ? `تابع ${quranLastReadSurahName}` : "تابع القرآن"}
+                  </Button>
+                ) : (
+                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran"); }}>المصحف</Button>
+                )}
                 {lastVisitedSection ? (
                   <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
                     تابع آخر قسم
