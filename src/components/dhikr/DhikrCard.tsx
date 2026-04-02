@@ -173,11 +173,8 @@ export function DhikrCard(props: {
     if (!props.autoFocus || !cardRef.current) return;
     cardRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
     const el = cardRef.current;
-    getGsap().then((g) => g.fromTo(
-      el,
-      { boxShadow: "0 0 0 0 rgba(255,215,128,0.0)" },
-      { boxShadow: "0 0 0 6px rgba(255,215,128,0.18)", duration: 0.6, yoyo: true, repeat: 1 }
-    ));
+    el.classList.add("card-search-focus");
+    el.addEventListener("animationend", () => el.classList.remove("card-search-focus"), { once: true });
   }, [props.autoFocus]);
 
   const displayText = React.useMemo(() => {
@@ -479,7 +476,7 @@ export function DhikrCard(props: {
               "flex-1 rounded-3xl px-4 py-5 text-base font-bold border transition select-none btn-count press-effect active:scale-[.96]",
               done
                 ? "bg-[var(--ok)] text-black border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
-                : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_rgba(255,215,128,.25)]",
+                : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",
               isDailyLockedItem && "opacity-60 pointer-events-none"
             )}
             onClick={() => {

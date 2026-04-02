@@ -899,11 +899,11 @@ html.midnight body.transparent-mode .glass-strong {
 .done-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(61, 220, 151, 0.0) 0%,
-    rgba(61, 220, 151, 0.12) 40%,
-    rgba(61, 220, 151, 0.22) 50%,
-    rgba(61, 220, 151, 0.12) 60%,
-    rgba(61, 220, 151, 0.0) 100%
+    color-mix(in srgb, var(--ok)  0%, transparent) 0%,
+    color-mix(in srgb, var(--ok) 12%, transparent) 40%,
+    color-mix(in srgb, var(--ok) 22%, transparent) 50%,
+    color-mix(in srgb, var(--ok) 12%, transparent) 60%,
+    color-mix(in srgb, var(--ok)  0%, transparent) 100%
   );
   background-size: 400% 100%;
   animation: doneShimmer 2.8s ease-in-out infinite;
@@ -984,6 +984,18 @@ html.midnight body.transparent-mode .glass-strong {
 
 .prayer-pulse {
   animation: prayerPulse 1.8s ease-in-out infinite;
+}
+
+/* -------------------------------------------------------
+   Card search-focus ring pulse (triggered via class toggle)
+   ------------------------------------------------------- */
+@keyframes cardSearchFocus {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent); }
+  50%       { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent); }
+}
+
+.card-search-focus {
+  animation: cardSearchFocus 0.65s ease-in-out 2;
 }
 
 /* -------------------------------------------------------
