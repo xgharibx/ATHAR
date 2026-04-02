@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Virtuoso } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine } from "lucide-react";
+import { RotateCcw, ArrowDownToLine, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
@@ -24,6 +24,24 @@ export function DhikrList(props: {
   const [confirmReset, setConfirmReset] = React.useState(false);
   const isDailySectionLocked = isDailySection(props.sectionId);
   const identity = React.useMemo(() => getSectionIdentity(props.sectionId), [props.sectionId]);
+
+  const [midnightLabel, setMidnightLabel] = React.useState<string>("");
+  React.useEffect(() => {
+    if (!isDailySectionLocked) return;
+    function calc() {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const diffMs = midnight.getTime() - now.getTime();
+      const diffMins = Math.ceil(diffMs / 60000);
+      const h = Math.floor(diffMins / 60);
+      const m = diffMins % 60;
+      setMidnightLabel(h > 0 ? `${h}س ${m}د` : `${m} د`);
+    }
+    calc();
+    const id = setInterval(calc, 60000);
+    return () => clearInterval(id);
+  }, [isDailySectionLocked]);
 
   const stats = React.useMemo(() => {
     let done = 0;
@@ -110,6 +128,13 @@ export function DhikrList(props: {
               </Button>
             </div>
           </div>
+
+          {isDailySectionLocked && midnightLabel && (
+            <div className="mt-3 flex items-center gap-1.5 text-[11px] opacity-55">
+              <Lock size={11} />
+              <span>يتجدد عند منتصف الليل · متبقّي {midnightLabel}</span>
+            </div>
+          )}
 
           <div className="mt-4 h-2.5 rounded-full bg-white/8 overflow-hidden border border-white/10">
             <div
