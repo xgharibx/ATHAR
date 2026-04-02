@@ -36,6 +36,22 @@ export function QuranPage() {
     return data.find((s) => s.id === lastRead.surahId)?.name ?? null;
   }, [data, lastRead]);
 
+  const quranStats = React.useMemo(() => {
+    if (!data) return { started: 0, completed: 0, totalAyahs: 0 };
+    let started = 0;
+    let completed = 0;
+    let totalAyahs = 0;
+    for (const surah of data) {
+      const maxRead = readingHistory[String(surah.id)] ?? 0;
+      if (maxRead > 0) {
+        started++;
+        totalAyahs += Math.min(maxRead, surah.ayahs.length);
+        if (maxRead >= surah.ayahs.length) completed++;
+      }
+    }
+    return { started, completed, totalAyahs };
+  }, [data, readingHistory]);
+
   const bookmarkedCount = React.useMemo(() => Object.values(bookmarks).filter(Boolean).length, [bookmarks]);
 
   // Set of surah IDs that have at least one bookmark
@@ -166,6 +182,24 @@ export function QuranPage() {
           <div>
             <div className="text-sm font-semibold quran-title">المصحف</div>
             <div className="mt-1 text-xs opacity-65">قراءة • بحث • علامات</div>
+            {quranStats.started > 0 && (
+              <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/8 border border-white/10 tabular-nums">
+                  📖 {quranStats.started} سورة بدأت
+                </span>
+                {quranStats.completed > 0 && (
+                  <span
+                    className="text-[11px] px-2 py-0.5 rounded-full border tabular-nums"
+                    style={{ background: "color-mix(in srgb, var(--ok) 10%, transparent)", borderColor: "color-mix(in srgb, var(--ok) 25%, transparent)", color: "var(--ok)" }}
+                  >
+                    ✅ {quranStats.completed} مكتملة
+                  </span>
+                )}
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/8 border border-white/10 tabular-nums">
+                  {quranStats.totalAyahs.toLocaleString("ar-SA")} آية
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

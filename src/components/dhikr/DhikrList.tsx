@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Virtuoso } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, Lock } from "lucide-react";
+import { RotateCcw, ArrowDownToLine, Lock, Copy } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
@@ -55,6 +55,27 @@ export function DhikrList(props: {
     });
     return { done, total, percent: pct(done, total) };
   }, [progressMap, props.items, props.sectionId]);
+
+  const [copiedAll, setCopiedAll] = React.useState(false);
+
+  const copyAllText = async () => {
+    const lines: string[] = [`【 ${props.title} 】`, ""];
+    props.items.forEach((item, idx) => {
+      const count = coerceCount(item.count);
+      const repeatLabel = count > 1 ? ` (${count} مرات)` : "";
+      lines.push(`${idx + 1}. ${item.text}${repeatLabel}`);
+      if (item.benefit) lines.push(`   ﴾ ${item.benefit} ﴿`);
+      lines.push("");
+    });
+    try {
+      await navigator.clipboard.writeText(lines.join("\n").trim());
+      setCopiedAll(true);
+      toast.success("تم نسخ جميع الأذكار");
+      setTimeout(() => setCopiedAll(false), 2500);
+    } catch {
+      toast.error("تعذر النسخ");
+    }
+  };
 
   const exportSection = () => {
     const safeTitle = (props.title || "")
@@ -125,6 +146,10 @@ export function DhikrList(props: {
               <Button variant="secondary" onClick={exportSection}>
                 <ArrowDownToLine size={16} />
                 تصدير
+              </Button>
+              <Button variant="secondary" onClick={copyAllText}>
+                <Copy size={16} />
+                {copiedAll ? "تم ✓" : "نسخ الكل"}
               </Button>
             </div>
           </div>
