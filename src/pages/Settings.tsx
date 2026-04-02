@@ -346,6 +346,13 @@ export function SettingsPage() {
               <Switch checked={prefs.enableSounds} onCheckedChange={(v) => setPrefs({ enableSounds: v })} />
             }
           />
+          <SettingRow
+            title="الانتقال التلقائي"
+            desc="ينتقل للذكر التالي عند الاكتمال"
+            right={
+              <Switch checked={prefs.autoAdvanceDhikr ?? true} onCheckedChange={(v) => setPrefs({ autoAdvanceDhikr: v })} />
+            }
+          />
         </div>
       </Card>
 

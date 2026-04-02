@@ -60,6 +60,7 @@ export function DhikrCard(props: {
   item: DhikrItem;
   autoFocus?: boolean;
   totalItems?: number;
+  onComplete?: () => void;
 }) {
   const { sectionId, index, item } = props;
 
@@ -229,8 +230,11 @@ export function DhikrCard(props: {
 
     // Completion confetti
     if (next >= target) {
-      // toast.success("اكتملت ✨");
-      // Optional: don't toast for every item, maybe just sound or glow?
+      // Haptic + auto-advance signal after a short delay
+      if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
+      if (prefs.autoAdvanceDhikr && props.onComplete) {
+        setTimeout(() => props.onComplete?.(), 480);
+      }
     }
   };
 

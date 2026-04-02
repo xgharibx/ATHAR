@@ -32,6 +32,7 @@ export type Preferences = {
   reduceMotion: boolean;
   transparentMode: boolean;
   customAccent?: string; // override --accent, e.g. "#ff5555"
+  autoAdvanceDhikr: boolean; // scroll to next card on item completion
 };
 
 export type Reminders = {
@@ -157,6 +158,7 @@ const DEFAULT_PREFS: Preferences = {
   reduceMotion: false,
   transparentMode: true,
   customAccent: undefined,
+  autoAdvanceDhikr: true,
 };
 
 const DEFAULT_REMINDERS: Reminders = {

@@ -272,6 +272,12 @@ export function DhikrList(props: {
                 item={item}
                 autoFocus={props.focusIndex === index}
                 totalItems={props.items.length}
+                onComplete={() => {
+                  const nextIdx = index + 1;
+                  if (nextIdx < props.items.length) {
+                    virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "start", behavior: "smooth" });
+                  }
+                }}
               />
             </div>
           )}
