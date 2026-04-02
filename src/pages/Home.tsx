@@ -155,6 +155,7 @@ export function HomePage() {
   const dailyBetterStepDone = useNoorStore((s) => s.dailyBetterStepDone);
   const setDailyBetterStepDone = useNoorStore((s) => s.setDailyBetterStepDone);
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
+  const quranReadingHistory = useNoorStore((s) => s.quranReadingHistory);
 
   const sections = data?.db.sections ?? [];
   const [showSmartNowDetails, setShowSmartNowDetails] = React.useState(false);
@@ -163,6 +164,17 @@ export function HomePage() {
     if (!quranLastRead || !quran.data) return null;
     return quran.data.find((s) => s.id === quranLastRead.surahId)?.name ?? null;
   }, [quran.data, quranLastRead]);
+
+  const quranReadingPct = React.useMemo(() => {
+    if (!quran.data) return 0;
+    const totalAyahs = quran.data.reduce((sum, s) => sum + s.ayahs.length, 0);
+    if (!totalAyahs) return 0;
+    const readAyahs = quran.data.reduce((sum, s) => {
+      const reached = Math.min(s.ayahs.length, Math.max(0, Number(quranReadingHistory[String(s.id)] ?? 0)));
+      return sum + reached;
+    }, 0);
+    return Math.round((readAyahs / totalAyahs) * 100);
+  }, [quran.data, quranReadingHistory]);
   const [confirmTasbeehReset, setConfirmTasbeehReset] = React.useState(false);
   const [confirmKhatmaReset, setConfirmKhatmaReset] = React.useState(false);
 
@@ -604,6 +616,26 @@ export function HomePage() {
                   ذكر عشوائي
                 </Button>
               </div>
+
+              {/* Quran reading progress micro-bar */}
+              {quranReadingPct > 0 && (
+                <button
+                  onClick={() => navigate("/quran")}
+                  className="mt-3 flex items-center gap-2.5 group"
+                  aria-label={`القرآن: ${quranReadingPct}% مقروء`}
+                >
+                  <span className="text-xs opacity-60">📖</span>
+                  <div className="w-28 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${quranReadingPct}%`, background: "var(--accent)" }}
+                    />
+                  </div>
+                  <span className="text-xs opacity-55 tabular-nums group-hover:opacity-80 transition-opacity">
+                    {quranReadingPct}%
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </motion.div>

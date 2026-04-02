@@ -583,11 +583,17 @@ export function SurahPage() {
                 const k = `${surah.id}:${ayahIndex}`;
                 const isBookmarked = !!bookmarks[k];
                 const hasNote = !!notes[k];
+                const isSelected = selectedAyah === ayahIndex;
 
                 return (
                   <span key={k} data-ayah={ayahIndex} className="inline">
                     <span
-                      className="inline"
+                      className={[
+                        "inline rounded-sm transition-colors duration-200",
+                        isSelected
+                          ? "bg-[var(--accent)]/15 ring-1 ring-[var(--accent)]/25 px-0.5"
+                          : "",
+                      ].join(" ")}
                       onClick={() => {
                         setLastRead(surah.id, ayahIndex);
                         setSelectedAyah(ayahIndex);

@@ -32,6 +32,39 @@ function computeStreak(activity: Record<string, number>) {
   return streak;
 }
 
+function computeBestStreak(activity: Record<string, number>): number {
+  const active = Object.keys(activity)
+    .filter((d) => (activity[d] ?? 0) > 0)
+    .sort();
+  if (!active.length) return 0;
+  let best = 1;
+  let current = 1;
+  for (let i = 1; i < active.length; i++) {
+    const prev = new Date((active[i - 1] ?? "") + "T00:00:00");
+    const curr = new Date((active[i] ?? "") + "T00:00:00");
+    const diffDays = Math.round((curr.getTime() - prev.getTime()) / 86400000);
+    if (diffDays === 1) {
+      current += 1;
+      if (current > best) best = current;
+    } else {
+      current = 1;
+    }
+  }
+  return best;
+}
+
+type MilestoneType = "total" | "streak";
+const MILESTONES: Array<{ id: string; label: string; emoji: string; req: number; type: MilestoneType }> = [
+  { id: "total_100",   label: "بداية الطريق", emoji: "🌱", req: 100,   type: "total" },
+  { id: "total_500",   label: "مثابر",         emoji: "⭐", req: 500,   type: "total" },
+  { id: "total_1k",    label: "متقن",          emoji: "🌟", req: 1000,  type: "total" },
+  { id: "total_5k",    label: "حافظ",          emoji: "🏆", req: 5000,  type: "total" },
+  { id: "total_10k",   label: "ولي",           emoji: "💫", req: 10000, type: "total" },
+  { id: "streak_7",    label: "أسبوع نور",     emoji: "🔥", req: 7,     type: "streak" },
+  { id: "streak_30",   label: "شهر صبر",       emoji: "⚡", req: 30,    type: "streak" },
+  { id: "streak_100",  label: "مئة يوم",        emoji: "🌙", req: 100,   type: "streak" },
+];
+
 function dateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
@@ -45,6 +78,7 @@ export function InsightsPage() {
   const progressMap = useNoorStore((s) => s.progress);
   const { data: adhkarData } = useAdhkarDB();
   const streak = React.useMemo(() => computeStreak(activity), [activity]);
+  const bestStreak = React.useMemo(() => computeBestStreak(activity), [activity]);
 
   const bestDay = React.useMemo(() => {
     let max = 0;
@@ -91,6 +125,11 @@ export function InsightsPage() {
   const todayKey = useTodayKey();
 
   const todayCount = activity[todayKey] ?? 0;
+
+  const unlockedMilestones = React.useMemo(
+    () => MILESTONES.map((m) => ({ ...m, unlocked: m.type === "total" ? total >= m.req : streak >= m.req })),
+    [total, streak]
+  );
 
   const weekTotal = React.useMemo(() => {
     const today = new Date();
@@ -170,11 +209,12 @@ export function InsightsPage() {
         </div>
 
         {/* Mini stats row */}
-        <div className="relative mt-4 grid grid-cols-4 gap-2">
+        <div className="relative mt-4 grid grid-cols-5 gap-2">
           <MiniStatSmall label="اليوم" value={`${todayCount}`} accent />
           <MiniStatSmall label="الأسبوع" value={`${weekTotal}`} />
           <MiniStatSmall label="الإجمالي" value={`${total}`} />
           <MiniStatSmall label="أفضل يوم" value={`${bestDay}`} />
+          <MiniStatSmall label="أفضل سلسلة" value={bestStreak > 0 ? `${bestStreak}` : "—"} />
         </div>
       </Card>
 
@@ -274,6 +314,36 @@ export function InsightsPage() {
               </div>
             );
           })}
+        </div>
+      </Card>
+
+      {/* Milestone badges */}
+      <Card className="p-5">
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="font-semibold text-sm">شارات الإنجاز</div>
+          <span className="text-[11px] opacity-50">
+            {unlockedMilestones.filter((m) => m.unlocked).length}/{MILESTONES.length}
+          </span>
+        </div>
+        <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-0.5">
+          {unlockedMilestones.map((m) => (
+            <div
+              key={m.id}
+              className={[
+                "flex-none flex flex-col items-center gap-1.5 px-3.5 py-3 rounded-3xl border transition-all",
+                m.unlocked
+                  ? "border-[var(--accent)]/35 bg-[var(--accent)]/10"
+                  : "border-white/8 bg-white/3 opacity-40 grayscale",
+              ].join(" ")}
+              title={m.unlocked ? `مفتوح — ${m.type === "total" ? `${m.req} ذكر` : `${m.req} يوم سلسلة`}` : `يتطلب ${m.type === "total" ? `${m.req} ذكر` : `${m.req} يوم متواصل`}`}
+            >
+              <span className="text-2xl leading-none">{m.emoji}</span>
+              <span className="text-[11px] font-medium whitespace-nowrap">{m.label}</span>
+              <span className="text-[10px] opacity-55 tabular-nums whitespace-nowrap">
+                {m.type === "total" ? `${m.req}` : `${m.req}د`}
+              </span>
+            </div>
+          ))}
         </div>
       </Card>
 
