@@ -104,6 +104,28 @@ export function InsightsPage() {
     return sum;
   }, [activity]);
 
+  const last7Days = React.useMemo(() => {
+    const today = new Date();
+    const days: { key: string; count: number; isToday: boolean; label: string }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const k = dateKey(d);
+      days.push({
+        key: k,
+        count: activity[k] ?? 0,
+        isToday: i === 0,
+        label: DAY_LABELS[d.getDay()] ?? "",
+      });
+    }
+    return days;
+  }, [activity]);
+
+  const maxWeekDay = React.useMemo(
+    () => Math.max(1, ...last7Days.map((d) => d.count)),
+    [last7Days]
+  );
+
   const isWirdDone = !!dailyWirdDone[todayKey];
 
   const streakFireClass =
@@ -214,6 +236,44 @@ export function InsightsPage() {
             }`} />
           ))}
           <span className="text-[11px] opacity-55">أكثر</span>
+        </div>
+      </Card>
+
+      {/* 7-day activity bar chart */}
+      <Card className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp size={16} className="text-[var(--accent)]" />
+          <div className="font-semibold text-sm">نشاط الأسبوع</div>
+          <span className="text-[11px] opacity-50 mr-auto tabular-nums">{weekTotal} إجمالي</span>
+        </div>
+        <div className="flex items-end gap-1.5" style={{ height: "80px" }}>
+          {last7Days.map((day) => {
+            const barH = day.count > 0 ? Math.max(6, Math.round((day.count / maxWeekDay) * 60)) : 3;
+            return (
+              <div key={day.key} className="flex-1 flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
+                {day.count > 0 && (
+                  <span className="text-[9px] opacity-60 tabular-nums leading-none mb-0.5">{day.count}</span>
+                )}
+                <div
+                  className="w-full rounded-t-md transition-all duration-500"
+                  style={{
+                    height: `${barH}px`,
+                    background: day.isToday
+                      ? "var(--accent)"
+                      : day.count > 0
+                        ? "color-mix(in srgb, var(--accent) 55%, transparent)"
+                        : "rgba(255,255,255,0.06)",
+                  }}
+                />
+                <span
+                  className="text-[10px] leading-none mt-1 font-medium"
+                  style={{ opacity: day.isToday ? 0.9 : 0.45, color: day.isToday ? "var(--accent)" : undefined }}
+                >
+                  {day.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </Card>
 

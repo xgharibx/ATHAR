@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { Virtuoso } from "react-virtuoso";
 import { RotateCcw, ArrowDownToLine, Lock, Copy } from "lucide-react";
 import toast from "react-hot-toast";
@@ -12,6 +13,7 @@ import { pct } from "@/lib/utils";
 import { downloadJson } from "@/lib/download";
 import { isDailySection } from "@/lib/dailySections";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
+import { useAdhkarDB } from "@/data/useAdhkarDB";
 
 export function DhikrList(props: {
   sectionId: string;
@@ -21,6 +23,8 @@ export function DhikrList(props: {
 }) {
   const resetSection = useNoorStore((s) => s.resetSection);
   const progressMap = useNoorStore((s) => s.progress);
+  const navigate = useNavigate();
+  const { data: adhkarData } = useAdhkarDB();
   const [confirmReset, setConfirmReset] = React.useState(false);
   const isDailySectionLocked = isDailySection(props.sectionId);
   const identity = React.useMemo(() => getSectionIdentity(props.sectionId), [props.sectionId]);
@@ -57,6 +61,26 @@ export function DhikrList(props: {
   }, [progressMap, props.items, props.sectionId]);
 
   const [copiedAll, setCopiedAll] = React.useState(false);
+
+  // Related sections shown after completion
+  const relatedSections = React.useMemo(() => {
+    if (!adhkarData) return [];
+    return adhkarData.db.sections
+      .filter((s) => s.id !== props.sectionId)
+      .map((s) => {
+        const id = getSectionIdentity(s.id);
+        const total = s.content.length;
+        let done = 0;
+        s.content.forEach((item, i) => {
+          const need = coerceCount(item.count);
+          const have = Math.min(need, Math.max(0, Number(progressMap[`${s.id}:${i}`]) || 0));
+          if (have >= need) done++;
+        });
+        return { s, id, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
+      })
+      .filter((r) => r.pct < 100)
+      .slice(0, 5);
+  }, [adhkarData, progressMap, props.sectionId]);
 
   const copyAllText = async () => {
     const lines: string[] = [`【 ${props.title} 】`, ""];
@@ -172,16 +196,38 @@ export function DhikrList(props: {
 
       <div style={{ height: "calc(100dvh - 240px)", minHeight: "440px" }}>
         {stats.percent >= 100 && (
-          <div className="mb-3 rounded-3xl border border-[var(--ok)]/30 bg-[var(--ok)]/10 px-5 py-4 flex items-center gap-3">
-            <span className="text-2xl">✅</span>
-            <div>
-              <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>اكتمل القسم</div>
-              <div className="text-xs opacity-65 mt-0.5">
-                {isDailySectionLocked
-                  ? "أحسنت — يتجدد تلقائيًا عند منتصف الليل"
-                  : "قرأت جميع الأذكار في هذا القسم"}
+          <div className="mb-3 space-y-2">
+            <div className="rounded-3xl border border-[var(--ok)]/30 bg-[var(--ok)]/10 px-5 py-4 flex items-center gap-3">
+              <span className="text-2xl">✅</span>
+              <div>
+                <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>اكتمل القسم</div>
+                <div className="text-xs opacity-65 mt-0.5">
+                  {isDailySectionLocked
+                    ? "أحسنت — يتجدد تلقائيًا عند منتصف الليل"
+                    : "قرأت جميع الأذكار في هذا القسم"}
+                </div>
               </div>
             </div>
+            {relatedSections.length > 0 && (
+              <div>
+                <div className="text-[11px] opacity-45 font-semibold px-1 mb-1.5">استمر مع قسم آخر</div>
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+                  {relatedSections.map(({ s, id: sid, pct: p }) => (
+                    <button
+                      key={s.id}
+                      onClick={() => navigate(`/c/${s.id}`)}
+                      className="flex-none flex items-center gap-2 px-3 py-2 rounded-2xl glass border border-white/10 text-right press-effect min-h-[44px] min-w-max"
+                    >
+                      <span className="text-lg leading-none">{sid.icon}</span>
+                      <div>
+                        <div className="text-xs font-medium">{s.title}</div>
+                        {p > 0 && <div className="text-[10px] opacity-50 tabular-nums">{p}%</div>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
         <Virtuoso
