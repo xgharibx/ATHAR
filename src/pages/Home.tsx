@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   Trophy,
   Heart,
+  ChevronDown,
+  ChevronLeft,
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -134,6 +136,7 @@ export function HomePage() {
   const resetKhatma = useNoorStore((s) => s.resetKhatma);
 
   const sections = data?.db.sections ?? [];
+  const [showSmartNowDetails, setShowSmartNowDetails] = React.useState(false);
 
   const todayKey = useTodayKey();
   const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[todayKey] ?? {});
@@ -573,97 +576,117 @@ export function HomePage() {
 
       <PrayerWidget />
 
-      <Card className="p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold">الآن ماذا أفعل؟</div>
-            <div className="text-xs opacity-65 mt-1">توجيه ذكي حسب وقت اليوم وتقدمك</div>
+      <Card className="p-4">
+        {/* Compact header row */}
+        <div className="flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold opacity-55">الآن ماذا أفعل؟</span>
+              <Badge>{smartNow.periodLabel}</Badge>
+              {adaptiveMission.urgency === "high" && <Badge>{adaptiveMission.urgencyLabel}</Badge>}
+            </div>
+            <div className="mt-2 text-[15px] font-bold leading-snug">
+              {smartNow.suggestedAction}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge>{smartNow.periodLabel}</Badge>
-            <Badge>{adaptiveMission.urgencyLabel}</Badge>
-          </div>
+          <button
+            onClick={() => setShowSmartNowDetails((v) => !v)}
+            className="shrink-0 w-11 h-11 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90 mt-0.5"
+            aria-label={showSmartNowDetails ? "إخفاء التفاصيل" : "عرض التفاصيل"}
+          >
+            <ChevronDown size={16} className={cn("transition-transform duration-200", showSmartNowDetails && "rotate-180")} />
+          </button>
         </div>
-        <div className="mt-3 glass rounded-3xl p-4 border border-white/10">
-          <div className="text-sm font-semibold">{smartNow.suggestedAction}</div>
-          <div className="mt-2 text-xs opacity-65">الهدف: خطوة واحدة عالية الأثر الآن بدل تعدد المهام.</div>
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
-              <div className="opacity-60">دين اليوم</div>
-              <div className="font-semibold mt-1">{adaptiveMission.debtToday.length} مهام</div>
-            </div>
-            <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
-              <div className="opacity-60">استدراك أمس</div>
-              <div className="font-semibold mt-1">{adaptiveMission.missedYesterdayItems.length} مهام</div>
-            </div>
-            <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
-              <div className="opacity-60">الصلاة القادمة</div>
-              <div className="font-semibold mt-1">
-                {adaptiveMission.nextPrayer
-                  ? `${adaptiveMission.nextPrayer.label}${
-                      adaptiveMission.nextPrayerMinutes != null ? ` بعد ${adaptiveMission.nextPrayerMinutes} د` : ""
-                    }`
-                  : "—"}
+
+        {/* Primary CTA — always visible */}
+        <Button className="mt-3 w-full press-effect" onClick={() => navigate(smartNow.actionRoute)}>
+          {smartNow.actionLabel}
+        </Button>
+
+        {/* Expandable details */}
+        {showSmartNowDetails && (
+          <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
+            {/* Stats strip */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
+                <div className="opacity-60">دين اليوم</div>
+                <div className="font-semibold mt-1">{adaptiveMission.debtToday.length} مهام</div>
+              </div>
+              <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
+                <div className="opacity-60">استدراك أمس</div>
+                <div className="font-semibold mt-1">{adaptiveMission.missedYesterdayItems.length} مهام</div>
+              </div>
+              <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
+                <div className="opacity-60">الصلاة القادمة</div>
+                <div className="font-semibold mt-1">
+                  {adaptiveMission.nextPrayer
+                    ? `${adaptiveMission.nextPrayer.label}${
+                        adaptiveMission.nextPrayerMinutes != null ? ` ${adaptiveMission.nextPrayerMinutes}د` : ""
+                      }`
+                    : "—"}
+                </div>
               </div>
             </div>
-          </div>
-          {smartNow.missedYesterday > 0 ? (
-            <div className="mt-2 text-xs opacity-75">
-              لديك {smartNow.missedYesterday} مهمة لم تكتمل أمس — عوّض واحدة الآن لبناء الاستمرارية.
-            </div>
-          ) : null}
-          {smartNow.streakRisk ? (
-            <div className="mt-2 text-xs text-[var(--accent)]">
-              تنبيه: لم تسجل أي نشاط اليوم حتى الآن، نفّذ ذكراً واحداً الآن للحفاظ على السلسلة.
-            </div>
-          ) : null}
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" variant="secondary" onClick={() => navigate(smartNow.actionRoute)}>
-              {smartNow.actionLabel}
-            </Button>
-            {adaptiveMission.recoveryItem ? (
-              <Button size="sm" onClick={recoverOneTask}>
-                استدرك الآن: {adaptiveMission.recoveryItem.title}
-              </Button>
-            ) : null}
-          </div>
-          {adaptiveMission.recoveryPlan.length > 0 ? (
-            <div className="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
-              <div className="text-xs opacity-65 mb-2">خطة تعافٍ سريعة (3 خطوات)</div>
-              <div className="flex flex-wrap gap-2">
+
+            {/* Warnings */}
+            {smartNow.missedYesterday > 0 && (
+              <div className="text-xs opacity-70 leading-5">
+                لديك {smartNow.missedYesterday} مهمة لم تكتمل أمس.
+              </div>
+            )}
+            {smartNow.streakRisk && (
+              <div className="text-xs text-[var(--accent)] leading-5">
+                ⚡ لم تسجل نشاطاً اليوم — نفّذ ذكراً واحداً الآن للحفاظ على السلسلة.
+              </div>
+            )}
+
+            {/* Quick recovery button */}
+            {adaptiveMission.recoveryItem && (
+              <button
+                onClick={recoverOneTask}
+                className="w-full flex items-center gap-2 rounded-2xl border border-white/10 bg-[var(--accent)]/10 px-4 py-3 text-right transition active:scale-[.97] min-h-[44px]"
+              >
+                <span className="text-xs flex-1">استدرك: {adaptiveMission.recoveryItem.title}</span>
+                <ChevronLeft size={14} className="opacity-50 shrink-0" />
+              </button>
+            )}
+
+            {/* Recovery plan */}
+            {adaptiveMission.recoveryPlan.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="text-[11px] opacity-45 font-semibold">خطة تعافٍ سريعة</div>
                 {adaptiveMission.recoveryPlan.map((step) => (
-                  <Button
+                  <button
                     key={step.item.id}
-                    size="sm"
-                    variant="ghost"
                     onClick={() => openRecoveryTask(step)}
+                    className="w-full flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right transition active:scale-[.97] min-h-[44px]"
                   >
-                    {step.title}
-                  </Button>
+                    <span className="text-xs flex-1">{step.title}</span>
+                    <ChevronLeft size={14} className="opacity-40 shrink-0" />
+                  </button>
                 ))}
               </div>
-            </div>
-          ) : null}
-          {streakRescuePlan.length > 0 ? (
-            <div className="mt-3 rounded-2xl bg-white/5 border border-white/10 p-3">
-              <div className="text-xs opacity-65 mb-2">خطة إنقاذ السلسلة (دقيقتان)</div>
-              <div className="space-y-2">
+            )}
+
+            {/* Streak rescue */}
+            {streakRescuePlan.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="text-[11px] opacity-45 font-semibold text-[var(--accent)]">⚡ خطة إنقاذ السلسلة</div>
                 {streakRescuePlan.map((step, idx) => (
-                  <div key={`rescue-${step.item.id}`} className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/5 px-2 py-2">
-                    <div className="text-xs">
-                      <span className="opacity-60 ml-1">{idx + 1}.</span>
-                      <span className="font-semibold">{step.title}</span>
-                      <span className="opacity-60 mr-2">{step.tip}</span>
-                    </div>
-                    <Button size="sm" variant="ghost" onClick={() => openRecoveryTask(step)}>
-                      نفّذ
-                    </Button>
-                  </div>
+                  <button
+                    key={`rescue-${step.item.id}`}
+                    onClick={() => openRecoveryTask(step)}
+                    className="w-full flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right transition active:scale-[.97] min-h-[44px]"
+                  >
+                    <span className="text-xs opacity-50 shrink-0">{idx + 1}.</span>
+                    <span className="text-xs flex-1">{step.title}</span>
+                    <ChevronLeft size={14} className="opacity-40 shrink-0" />
+                  </button>
                 ))}
               </div>
-            </div>
-          ) : null}
-        </div>
+            )}
+          </div>
+        )}
       </Card>
 
       {/* Bottom: Daily Checklist */}
@@ -683,19 +706,19 @@ export function HomePage() {
                 key={item.id}
                 onClick={() => toggleDailyChecklist(todayKey, item.id, !isDone)}
                 className={cn(
-                  "w-full flex items-center gap-3 rounded-2xl px-3.5 py-3 border transition-all active:scale-[.97]",
+                  "w-full flex items-center gap-3 rounded-2xl px-3.5 py-3.5 min-h-[48px] border transition-all active:scale-[.97]",
                   isDone
                     ? "bg-white/8 border-white/12 opacity-70"
                     : "bg-white/4 border-white/8 hover:bg-white/6"
                 )}
               >
                 <div className={cn(
-                  "w-6 h-6 rounded-full border-2 grid place-items-center transition-all shrink-0",
+                  "w-7 h-7 rounded-full border-2 grid place-items-center transition-all shrink-0",
                   isDone
                     ? "border-[var(--ok)] bg-[var(--ok)]/20"
                     : "border-white/20"
                 )}>
-                  {isDone && <CheckCircle2 size={14} className="text-[var(--ok)]" />}
+                  {isDone && <CheckCircle2 size={15} className="text-[var(--ok)]" />}
                 </div>
                 <span className={cn("text-sm", isDone && "line-through opacity-60")}>{item.title}</span>
               </button>
@@ -779,7 +802,7 @@ export function HomePage() {
                 </div>
 
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="text-[11px] opacity-60">انقر للعدّ</div>
+                  <div className="text-xs opacity-70">انقر للعدّ</div>
                   <Badge>{done ? "تم" : `${100 - v} متبقّي`}</Badge>
                 </div>
               </button>

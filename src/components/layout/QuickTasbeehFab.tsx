@@ -74,7 +74,7 @@ export function QuickTasbeehFab() {
           <div className="text-sm font-semibold">تسبيح سريع</div>
           <button
             onClick={() => setOpen(false)}
-            className="w-8 h-8 rounded-full bg-white/6 border border-white/10 grid place-items-center text-xs"
+            className="w-11 h-11 rounded-full bg-white/6 border border-white/10 grid place-items-center text-xs"
             aria-label="إغلاق"
           >
             ✕
@@ -88,7 +88,7 @@ export function QuickTasbeehFab() {
               key={t.key}
               onClick={() => setSelected(t.key)}
               className={cn(
-                "rounded-2xl px-2.5 py-2 text-xs border transition press-effect",
+                "rounded-2xl px-2.5 py-3 text-sm border transition press-effect min-h-[44px]",
                 selected === t.key
                   ? "bg-[var(--accent)] text-black border-transparent font-semibold"
                   : "bg-white/6 border-white/10 hover:bg-white/10"

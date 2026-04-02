@@ -325,23 +325,11 @@ export function DhikrCard(props: {
               <Heart size={18} className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
             </IconButton>
 
-            <IconButton
-              aria-label="إعادة العد"
-              onClick={() => {
-                if (isDailyLockedItem) return;
-                resetItem(sectionId, index, target);
-              }}
-              title="إعادة العد"
-              className={cn(isDailyLockedItem && "opacity-40 pointer-events-none")}
-            >
-              <RotateCcw size={16} className="opacity-70" />
-            </IconButton>
-
             <Dropdown.Root modal={false}>
               <Dropdown.Trigger asChild>
                 <button
                   aria-label="خيارات"
-                  className="inline-flex items-center justify-center rounded-2xl p-2.5 bg-white/6 hover:bg-white/10 border border-white/10 transition active:scale-[.99]"
+                  className="inline-flex items-center justify-center rounded-2xl p-2.5 bg-white/6 hover:bg-white/10 border border-white/10 transition active:scale-[.99] min-h-[44px] min-w-[44px]"
                 >
                   <MoreVertical size={18} />
                 </button>
@@ -478,15 +466,7 @@ export function DhikrCard(props: {
           </div>
         </div>
 
-        {/* Benefit */}
-        {prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
-          <div className="mt-4 rounded-2xl bg-white/6 border border-white/10 p-3 text-sm opacity-85 leading-7">
-            <div className="text-xs opacity-70 mb-1">الفضل / المصدر</div>
-            <div>{item.benefit}</div>
-          </div>
-        ) : null}
-
-        {/* Counter Button */}
+        {/* Counter Button — placed before benefit so it's visible without scrolling */}
         <div className="mt-4 flex items-center justify-between gap-3">
           <button
             className={cn(
@@ -504,6 +484,14 @@ export function DhikrCard(props: {
             {done ? "اكتملت ✨" : `اضغط للعدّ${remaining > 0 ? ` · ${remaining}` : ""}`}
           </button>
         </div>
+
+        {/* Benefit */}
+        {prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
+          <div className="mt-4 rounded-2xl bg-white/6 border border-white/10 p-3 text-sm opacity-85 leading-7">
+            <div className="text-xs opacity-70 mb-1">الفضل / المصدر</div>
+            <div>{item.benefit}</div>
+          </div>
+        ) : null}
       </div>
     </motion.div>
   );

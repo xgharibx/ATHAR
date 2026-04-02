@@ -272,7 +272,7 @@ function SidebarContent(props: { onNavigate?: () => void }) {
           </div>
           <button
             onClick={props.onNavigate}
-            className="xl:hidden w-8 h-8 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90"
+            className="xl:hidden w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90"
             aria-label="إغلاق"
           >
             <X size={16} className="opacity-60" />
@@ -282,11 +282,11 @@ function SidebarContent(props: { onNavigate?: () => void }) {
         {/* Today's stats strip */}
         <div className="mt-3 flex items-center gap-2">
           <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
-            <div className="text-[9px] opacity-40 uppercase tracking-wider">نشاط اليوم</div>
+            <div className="text-[11px] opacity-55 uppercase tracking-wider">نشاط اليوم</div>
             <div className="text-sm font-bold tabular-nums mt-0.5">{activityToday}</div>
           </div>
           <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
-            <div className="text-[9px] opacity-40 uppercase tracking-wider">الإنجاز</div>
+            <div className="text-[11px] opacity-55 uppercase tracking-wider">الإنجاز</div>
             <div className="text-sm font-bold tabular-nums mt-0.5">{smartSummary.percent}%</div>
           </div>
         </div>

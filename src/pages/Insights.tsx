@@ -143,7 +143,7 @@ export function InsightsPage() {
         {/* Day labels */}
         <div className="grid grid-cols-7 gap-1.5 mb-1.5">
           {DAY_LABELS.map((l) => (
-            <div key={l} className="text-center text-[9px] opacity-40 font-medium">{l}</div>
+            <div key={l} className="text-center text-[11px] opacity-55 font-medium">{l}</div>
           ))}
         </div>
 
@@ -177,7 +177,7 @@ export function InsightsPage() {
 
         {/* Legend */}
         <div className="mt-3 flex items-center gap-1.5 justify-end">
-          <span className="text-[9px] opacity-40">أقل</span>
+          <span className="text-[11px] opacity-55">أقل</span>
           {[0,1,2,3,4].map((h) => (
             <div key={h} className={`w-3 h-3 rounded-sm ${
               h === 0 ? "bg-white/5" :
@@ -187,7 +187,7 @@ export function InsightsPage() {
                          "bg-[var(--accent)]"
             }`} />
           ))}
-          <span className="text-[9px] opacity-40">أكثر</span>
+          <span className="text-[11px] opacity-55">أكثر</span>
         </div>
       </Card>
 

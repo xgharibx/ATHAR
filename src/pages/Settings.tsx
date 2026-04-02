@@ -23,7 +23,7 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
     <button
       onClick={props.onClick}
       className={[
-        "px-4 py-2 rounded-2xl border text-sm transition",
+        "px-4 py-3 rounded-2xl border text-sm transition",
         props.active ? "bg-[rgba(255,215,128,.16)] border-[rgba(255,215,128,.28)]" : "bg-white/6 border-white/10 hover:bg-white/8"
       ].join(" ")}
     >
@@ -215,7 +215,7 @@ export function SettingsPage() {
                       key={n}
                       onClick={() => setPrefs({ quranPageSize: n })}
                       className={[
-                        "px-3 py-1.5 rounded-xl border text-xs transition",
+                        "px-4 py-3 rounded-xl border text-sm transition min-h-[44px]",
                         prefs.quranPageSize === n
                           ? "bg-[rgba(255,215,128,.16)] border-[rgba(255,215,128,.28)]"
                           : "bg-white/6 border-white/10 hover:bg-white/10"
