@@ -6,6 +6,7 @@ import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { getSectionIdentity } from "@/lib/sectionIdentity";
 
 export function FavoritesPage() {
   const { data } = useAdhkarDB();
@@ -58,8 +59,13 @@ export function FavoritesPage() {
               >
                 <button className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold">{r.sectionTitle}</div>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {(() => { const id = getSectionIdentity(r.sectionId); return (
+                        <>
+                          <span className="text-base shrink-0">{id.icon}</span>
+                          <div className="text-sm font-semibold truncate" style={{ color: id.accent }}>{r.sectionTitle}</div>
+                        </>
+                      ); })()}
                     </div>
                     <ArrowUpRight size={18} className="opacity-60" />
                   </div>
