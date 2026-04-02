@@ -126,7 +126,7 @@ export function QuickTasbeehFab() {
               : "bg-[var(--accent)] text-black border-transparent"
           )}
         >
-          {count >= target ? "تم ١٠٠ — سبحان الله" : "اضغط للعدّ"}
+          {count >= target ? `تم ${target} — ${current.short}` : "اضغط للعدّ"}
         </button>
       </div>
     </div>
