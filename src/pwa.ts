@@ -25,6 +25,7 @@ if (isLocalHost && "serviceWorker" in navigator) {
  * In Android WebView (Capacitor) the SW may be less relevant, but it's great for PWA installs.
  */
 let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
+let registeredSW: ServiceWorkerRegistration | null = null;
 const UPDATE_APPLY_GUARD_KEY = "noor_pwa_update_apply_once";
 
 if (!isLocalHost) {
@@ -45,6 +46,12 @@ if (!isLocalHost) {
 
   const checkForUpdate = () => {
     try {
+      void registeredSW?.update();
+    } catch {
+      // ignore transient registration update errors
+    }
+
+    try {
       void updateSW?.(false);
     } catch {
       // ignore transient update check errors
@@ -60,21 +67,25 @@ if (!isLocalHost) {
       toast("يتم تطبيق تحديث جديد تلقائيًا…", { duration: 2500 });
       applyUpdateSafely();
     },
-    onRegisteredSW() {
+    onRegisteredSW(_swUrl, registration) {
+      registeredSW = registration ?? null;
       try {
         sessionStorage.removeItem(UPDATE_APPLY_GUARD_KEY);
       } catch {
         // ignore session storage errors
       }
+
+      window.setTimeout(checkForUpdate, 3000);
     }
   });
 
   if (typeof window !== "undefined") {
-    const periodicUpdateMs = 5 * 60 * 1000;
+    const periodicUpdateMs = 60 * 1000;
     window.setInterval(checkForUpdate, periodicUpdateMs);
 
     window.addEventListener("online", checkForUpdate);
     window.addEventListener("focus", checkForUpdate);
+    window.addEventListener("pageshow", checkForUpdate);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") checkForUpdate();
     });

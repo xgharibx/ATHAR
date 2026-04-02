@@ -13,7 +13,7 @@ export default defineConfig(function (_a) {
     var mode = _a.mode;
     var env = loadEnv(mode, "", "");
     var isGithubPages = env.GITHUB_PAGES === "true";
-    var iconRev = env.VITE_ICON_REV || "2026-02-14-v1";
+    var iconRev = env.VITE_ICON_REV || env.VITE_RUNTIME_VERSION || "2026-04-02-v1";
     return {
         base: isGithubPages ? "/ATHAR/" : "./",
         build: {

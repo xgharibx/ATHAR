@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, "", "");
   const isGithubPages = env.GITHUB_PAGES === "true";
-  const iconRev = env.VITE_ICON_REV || "2026-02-14-v1";
+  const iconRev = env.VITE_ICON_REV || env.VITE_RUNTIME_VERSION || "2026-04-02-v1";
 
   return {
   base: isGithubPages ? "/ATHAR/" : "./",
