@@ -409,7 +409,7 @@ export function DhikrCard(props: {
                     cx="24"
                     cy="24"
                     r={radius}
-                    stroke={done ? "rgba(61,220,151,.9)" : "rgba(255,215,128,.92)"}
+                    style={{ stroke: done ? "var(--ok)" : "var(--accent)" }}
                     strokeWidth="3"
                     fill="none"
                     strokeLinecap="round"

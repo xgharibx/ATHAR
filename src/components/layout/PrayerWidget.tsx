@@ -1,6 +1,7 @@
 import * as React from "react";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { Card } from "@/components/ui/Card";
+import { cn } from "@/lib/utils";
 import { Clock, RefreshCcw } from "lucide-react";
 import { IconButton } from "@/components/ui/IconButton";
 import { PrayerCountdown } from "./PrayerCountdown";
@@ -157,12 +158,21 @@ export function PrayerWidget() {
       ) : null}
       
       <div className="grid grid-cols-5 gap-2 text-center">
-        {prayers.map((p) => (
-          <div key={p.name} className="flex flex-col gap-1">
-            <span className="text-[11px] opacity-55">{p.label}</span>
-            <span className="text-sm font-medium tabular-nums">{format12h(p.time)}</span>
-          </div>
-        ))}
+        {prayers.map((p) => {
+          const isNext = prayerTimeline?.next?.name === p.name;
+          return (
+            <div
+              key={p.name}
+              className={cn(
+                "flex flex-col gap-1 rounded-2xl py-1.5",
+                isNext && "bg-[var(--accent)]/10 border border-[var(--accent)]/20"
+              )}
+            >
+              <span className={cn("text-[11px]", isNext ? "opacity-90 font-semibold" : "opacity-55")}>{p.label}</span>
+              <span className={cn("text-sm font-medium tabular-nums", isNext && "text-[var(--accent)]")}>{format12h(p.time)}</span>
+            </div>
+          );
+        })}
       </div>
     </Card>
   );

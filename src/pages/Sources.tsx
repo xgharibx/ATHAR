@@ -161,7 +161,7 @@ function MiniStat(props: { label: string; value: number }) {
   return (
     <div className="glass rounded-3xl p-4 border border-white/10">
       <div className="text-xs opacity-60">{props.label}</div>
-      <div className="text-2xl font-semibold mt-1 tabular-nums">{props.value}</div>
+      <div className="text-2xl font-semibold mt-1 tabular-nums" style={{ color: "var(--accent)" }}>{props.value}</div>
     </div>
   );
 }
