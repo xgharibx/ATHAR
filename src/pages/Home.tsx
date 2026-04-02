@@ -612,11 +612,11 @@ export function HomePage() {
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
                 <div className="opacity-60">دين اليوم</div>
-                <div className="font-semibold mt-1">{adaptiveMission.debtToday.length} مهام</div>
+                <div className="font-semibold mt-1" style={{ color: adaptiveMission.debtToday.length > 0 ? "var(--accent)" : "var(--ok)" }}>{adaptiveMission.debtToday.length} مهام</div>
               </div>
               <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
                 <div className="opacity-60">استدراك أمس</div>
-                <div className="font-semibold mt-1">{adaptiveMission.missedYesterdayItems.length} مهام</div>
+                <div className="font-semibold mt-1" style={{ color: adaptiveMission.missedYesterdayItems.length > 0 ? "var(--accent)" : "var(--ok)" }}>{adaptiveMission.missedYesterdayItems.length} مهام</div>
               </div>
               <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
                 <div className="opacity-60">الصلاة القادمة</div>
@@ -700,6 +700,11 @@ export function HomePage() {
           </div>
           <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
         </div>
+        {DAILY_CHECKLIST_ITEMS.every((item) => !!dailyChecklistToday[item.id]) && (
+          <div className="mt-3 rounded-2xl bg-[var(--ok)]/10 border border-[var(--ok)]/20 px-4 py-3 text-sm font-semibold text-center" style={{ color: "var(--ok)" }}>
+            أحسنت — اكتملت قائمة اليوم ✅
+          </div>
+        )}
         <div className="mt-3 space-y-2">
           {DAILY_CHECKLIST_ITEMS.map((item) => {
             const isDone = !!dailyChecklistToday[item.id];
