@@ -153,6 +153,38 @@ export function SettingsPage() {
             }
           />
         </div>
+
+        {/* Custom accent color */}
+        <div className="mt-5 pt-4 border-t border-white/8">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div className="text-sm font-medium">لون مخصص</div>
+              <div className="text-xs opacity-60 mt-0.5">تخصيص لون التمييز بشكل حر</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="relative cursor-pointer">
+                <input
+                  type="color"
+                  value={prefs.customAccent ?? "#fda4af"}
+                  onChange={(e) => setPrefs({ customAccent: e.target.value })}
+                  className="sr-only"
+                />
+                <span
+                  className="block w-9 h-9 rounded-2xl border-2 border-white/20 shadow-inner ring-1 ring-black/20 transition hover:scale-105"
+                  style={{ background: prefs.customAccent ?? "var(--accent)" }}
+                />
+              </label>
+              {prefs.customAccent && (
+                <button
+                  onClick={() => setPrefs({ customAccent: undefined })}
+                  className="text-xs px-2.5 py-1.5 rounded-xl bg-white/8 border border-white/10 opacity-70 hover:opacity-100 transition min-h-[36px]"
+                >
+                  إعادة ضبط
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </Card>
 
       <Card className="p-5">

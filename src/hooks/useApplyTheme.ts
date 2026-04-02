@@ -33,6 +33,7 @@ function apply(theme: NoorTheme) {
 export function useApplyTheme() {
   const theme = useNoorStore((s) => s.prefs.theme);
   const reduceMotion = useNoorStore((s) => s.prefs.reduceMotion);
+  const customAccent = useNoorStore((s) => s.prefs.customAccent);
 
   useEffect(() => {
     apply(theme);
@@ -47,6 +48,15 @@ export function useApplyTheme() {
     mq.addEventListener?.("change", onChange);
     return () => mq.removeEventListener?.("change", onChange);
   }, [theme]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (customAccent) {
+      root.style.setProperty("--accent", customAccent);
+    } else {
+      root.style.removeProperty("--accent");
+    }
+  }, [customAccent, theme]);
 
   useEffect(() => {
     const root = document.documentElement;

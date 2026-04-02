@@ -11,10 +11,31 @@ import type { FlatDhikr } from "@/data/types";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { cn } from "@/lib/utils";
 
+// --- Recent searches helpers ---
+const RECENT_KEY = "noor_recent_searches";
+const MAX_RECENT = 6;
+function loadRecent(): string[] {
+  try {
+    const v = localStorage.getItem(RECENT_KEY);
+    return v ? (JSON.parse(v) as unknown[]).filter((s): s is string => typeof s === "string") : [];
+  } catch { return []; }
+}
+function saveRecent(list: string[]) {
+  localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, MAX_RECENT)));
+}
+function pushRecent(term: string, prev: string[]): string[] {
+  const t = term.trim();
+  if (!t || t.length < 2) return prev;
+  const next = [t, ...prev.filter((s) => s !== t)].slice(0, MAX_RECENT);
+  saveRecent(next);
+  return next;
+}
+
 export function SearchPage() {
   const { data } = useAdhkarDB();
   const navigate = useNavigate();
   const [q, setQ] = React.useState("");
+  const [recentSearches, setRecentSearches] = React.useState<string[]>(() => loadRecent());
   const [sectionFilter, setSectionFilter] = React.useState<string | null>(null);
 
   const fuse = React.useMemo(() => {
@@ -49,6 +70,13 @@ export function SearchPage() {
   // Reset section filter when query changes
   React.useEffect(() => { setSectionFilter(null); }, [q]);
 
+  // Save search term after user gets results
+  React.useEffect(() => {
+    if (!q.trim() || q.trim().length < 2 || results.length === 0) return;
+    const timer = setTimeout(() => setRecentSearches((prev) => pushRecent(q, prev)), 800);
+    return () => clearTimeout(timer);
+  }, [q, results.length]);
+
   return (
     <div className="space-y-4 page-enter">
       <Card className="p-5">
@@ -68,6 +96,32 @@ export function SearchPage() {
           نصائح: ابحث بكلمة عربية أو اسم قسم. أمثلة: <span className="opacity-80">الله</span> —{" "}
           <span className="opacity-80">المساء</span> — <span className="opacity-80">الوضوء</span>
         </div>
+
+        {/* Recent searches */}
+        {!q && recentSearches.length > 0 && (
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-semibold opacity-45 tracking-wide">عمليات بحث سابقة</span>
+              <button
+                onClick={() => { setRecentSearches([]); saveRecent([]); }}
+                className="text-[11px] opacity-50 hover:opacity-80 transition px-2 py-1 rounded-lg"
+              >
+                مسح الكل
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {recentSearches.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setQ(s)}
+                  className="px-3 py-1.5 rounded-full glass border border-white/10 text-xs hover:bg-white/10 transition arabic-text min-h-[36px]"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Section filter chips */}

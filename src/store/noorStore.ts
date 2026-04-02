@@ -31,6 +31,7 @@ export type Preferences = {
   enableSounds: boolean;
   reduceMotion: boolean;
   transparentMode: boolean;
+  customAccent?: string; // override --accent, e.g. "#ff5555"
 };
 
 export type Reminders = {
@@ -154,7 +155,8 @@ const DEFAULT_PREFS: Preferences = {
   enableHaptics: true,
   enableSounds: false,
   reduceMotion: false,
-  transparentMode: true
+  transparentMode: true,
+  customAccent: undefined,
 };
 
 const DEFAULT_REMINDERS: Reminders = {
