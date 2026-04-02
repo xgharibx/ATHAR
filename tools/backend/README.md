@@ -6,6 +6,7 @@
 - `leaderboard_supabase_schema.sql`: مخطط قاعدة البيانات الأساسي (events + rollups + indexes + RLS baseline).
 - `leaderboard_supabase_hardening.sql`: ترقيع أمني/منطقي للمشاريع التي نفذت السكيمة قبل إضافة checksum/idempotency.
 - `leaderboard_supabase_moderation.sql`: جداول إدارة الأسماء والحظر والإخفاء وتدقيق قرارات التصفية.
+- `leaderboard_deploy_steps.md`: أوامر PowerShell وخطوات النشر الفعلية للمشروع الحالي.
 - `check-leaderboard-endpoint.mjs`: سكربت فحص endpoint بعد النشر.
 
 ## خطوات سريعة (Supabase)
@@ -22,6 +23,7 @@
 ## إدارة الأسماء والمراجعة
 - العميل يسمح للمستخدم باختيار اسم ظاهر، لكن الخادم هو المرجع النهائي.
 - إذا خالف الاسم قواعد العميل أو وُجد ضمن `leaderboard_name_blocklist` فسيتم استبداله تلقائيًا باسم آمن.
+- إذا كان الاسم مستخدمًا بالفعل من مستخدم آخر فسيتم رفضه وإرجاع اسم آمن بدلًا منه عبر `leaderboard_alias_registry`.
 - إذا أردت تعديل اسم مستخدم بعينه من طرفك استخدم `leaderboard_user_moderation.forced_alias`.
 - إذا أردت إخفاء مستخدم بالكامل من اللوحة استخدم `leaderboard_user_moderation.hidden = true`.
 - كل قرار اسم يُسجَّل في `leaderboard_alias_audit` لتتبع ما دخل من العميل وما الذي عُرض فعليًا.
@@ -31,6 +33,7 @@
 - نشر دالة `supabase/functions/leaderboard` بعد التحديث.
 - حفظ `VITE_LEADERBOARD_ENDPOINT` في بيئة التطبيق.
 - اختياريًا: حفظ `VITE_LEADERBOARD_ANON_KEY` إذا كانت القراءة أو الاستدعاء يحتاجان مفتاحًا عامًا.
+- إنشاء سر خادم فقط باسم `LEADERBOARD_ADMIN_TOKEN` واستخدامه يدويًا داخل لوحة الإدارة في التطبيق.
 - قائمة الكلمات الممنوعة التي تريدها أنت داخل جدول `leaderboard_name_blocklist`.
 - طريقة وصول إداري لك إلى SQL Editor أو لوحة تحكم صغيرة لاحقًا إذا أردت إدارة الأسماء بدون كتابة SQL يدويًا.
 

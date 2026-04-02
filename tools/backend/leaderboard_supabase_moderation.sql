@@ -21,6 +21,13 @@ create table if not exists public.leaderboard_user_moderation (
   reason text null
 );
 
+create table if not exists public.leaderboard_alias_registry (
+  user_id text primary key,
+  updated_at timestamptz not null default now(),
+  alias_normalized text not null unique,
+  alias_display text not null
+);
+
 create table if not exists public.leaderboard_alias_audit (
   id bigserial primary key,
   created_at timestamptz not null default now(),
@@ -36,6 +43,7 @@ create index if not exists idx_lb_alias_audit_user_created
 
 alter table public.leaderboard_name_blocklist enable row level security;
 alter table public.leaderboard_user_moderation enable row level security;
+alter table public.leaderboard_alias_registry enable row level security;
 alter table public.leaderboard_alias_audit enable row level security;
 
 -- No public policies here: service role/admin only.
@@ -64,3 +72,6 @@ alter table public.leaderboard_alias_audit enable row level security;
 -- set hidden = excluded.hidden,
 --     reason = excluded.reason,
 --     updated_at = now();
+
+-- Example 5: release an alias claim manually if needed
+-- delete from public.leaderboard_alias_registry where user_id = 'anon_abc123';

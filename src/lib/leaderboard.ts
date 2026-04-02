@@ -61,6 +61,38 @@ export type FlushQueueResult = {
   hidden?: boolean;
 };
 
+export type LeaderboardAdminBlocklistRow = {
+  id: number;
+  term: string;
+  matchMode: "contains" | "exact";
+  isActive: boolean;
+  note?: string | null;
+  createdAt?: string;
+};
+
+export type LeaderboardAdminUserModeration = {
+  userId: string;
+  hidden: boolean;
+  forcedAlias?: string | null;
+  reason?: string | null;
+  updatedAt?: string;
+};
+
+export type LeaderboardAdminAliasAuditRow = {
+  id: number;
+  userId: string;
+  requestedAlias?: string | null;
+  resolvedAlias: string;
+  status: string;
+  reason?: string | null;
+  createdAt: string;
+};
+
+export type LeaderboardAdminSnapshot = {
+  blocklist: LeaderboardAdminBlocklistRow[];
+  audits: LeaderboardAdminAliasAuditRow[];
+};
+
 import {
   LEADERBOARD_POLICY,
   sanitizeBoardName,
@@ -78,6 +110,7 @@ const USER_INDEX_KEY = "noor_lb_user_index_v2";
 const USER_COUNTER_KEY = "noor_lb_user_counter_v2";
 const QUEUE_KEY = "noor_lb_queue_v2";
 const HISTORY_KEY = "noor_lb_history_v2";
+const ADMIN_TOKEN_KEY = "noor_lb_admin_token_v1";
 
 const INVISIBLE_ALIAS_CHARS_RE = /[\u200B-\u200F\u2060\uFEFF]/g;
 const MULTI_SPACE_RE = /\s+/g;
@@ -119,6 +152,23 @@ function getLeaderboardHeaders(includeContentType: boolean = true): Record<strin
   }
 
   return headers;
+}
+
+function getLeaderboardAdminHeaders(adminToken: string, includeContentType: boolean = true) {
+  const headers = getLeaderboardHeaders(includeContentType);
+  const token = String(adminToken ?? "").trim();
+  if (token) {
+    headers["x-leaderboard-admin-token"] = token;
+  }
+  return headers;
+}
+
+async function parseJsonSafe<T>(res: Response): Promise<T | null> {
+  try {
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
 }
 
 async function submitWithFallback(endpoint: string, item: LeaderboardSubmitPayload) {
@@ -416,6 +466,36 @@ export function resetLeaderboardAlias() {
   return { ...identity, alias };
 }
 
+export function loadLeaderboardAdminToken() {
+  try {
+    return localStorage.getItem(ADMIN_TOKEN_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function saveLeaderboardAdminToken(token: string) {
+  try {
+    const value = String(token ?? "").trim();
+    if (!value) {
+      localStorage.removeItem(ADMIN_TOKEN_KEY);
+      return "";
+    }
+    localStorage.setItem(ADMIN_TOKEN_KEY, value);
+    return value;
+  } catch {
+    return String(token ?? "").trim();
+  }
+}
+
+export function clearLeaderboardAdminToken() {
+  try {
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch {
+    // ignore storage write failures
+  }
+}
+
 export function syncLeaderboardAliasFromServer(alias: string) {
   const identity = getLeaderboardIdentity();
   const nextAlias = normalizeAlias(alias, identity.id);
@@ -621,6 +701,116 @@ export async function fetchBoardRows(opts: {
       score: normalizeScore(row.score)
     }))
     .slice(0, 100);
+}
+
+export async function fetchLeaderboardAdminSnapshot(opts: {
+  endpoint: string;
+  adminToken: string;
+  auditLimit?: number;
+}) {
+  const { endpoint, adminToken, auditLimit = 20 } = opts;
+  if (!endpoint) throw new Error("missing-endpoint");
+  if (!adminToken.trim()) throw new Error("missing-admin-token");
+
+  const url = new URL(endpoint);
+  url.searchParams.set("admin", "1");
+  url.searchParams.set("view", "snapshot");
+  url.searchParams.set("auditLimit", String(auditLimit));
+
+  const res = await fetch(url.toString(), {
+    method: "GET",
+    headers: getLeaderboardAdminHeaders(adminToken, false)
+  });
+
+  const json = await parseJsonSafe<{ blocklist?: Array<Record<string, unknown>>; audits?: Array<Record<string, unknown>>; error?: string }>(res);
+  if (!res.ok) {
+    throw new Error(json?.error || "admin-snapshot-failed");
+  }
+
+  return {
+    blocklist: Array.isArray(json?.blocklist)
+      ? json.blocklist.map((row) => ({
+          id: Number(row.id ?? 0),
+          term: String(row.term ?? ""),
+          matchMode: row.matchMode === "exact" ? "exact" : "contains",
+          isActive: row.isActive !== false,
+          note: typeof row.note === "string" ? row.note : null,
+          createdAt: typeof row.createdAt === "string" ? row.createdAt : undefined
+        }))
+      : [],
+    audits: Array.isArray(json?.audits)
+      ? json.audits.map((row) => ({
+          id: Number(row.id ?? 0),
+          userId: String(row.userId ?? ""),
+          requestedAlias: typeof row.requestedAlias === "string" ? row.requestedAlias : null,
+          resolvedAlias: String(row.resolvedAlias ?? ""),
+          status: String(row.status ?? "unknown"),
+          reason: typeof row.reason === "string" ? row.reason : null,
+          createdAt: String(row.createdAt ?? "")
+        }))
+      : []
+  } satisfies LeaderboardAdminSnapshot;
+}
+
+export async function fetchLeaderboardAdminUserModeration(opts: {
+  endpoint: string;
+  adminToken: string;
+  userId: string;
+}) {
+  const { endpoint, adminToken, userId } = opts;
+  if (!endpoint) throw new Error("missing-endpoint");
+  if (!adminToken.trim()) throw new Error("missing-admin-token");
+  if (!userId.trim()) return null;
+
+  const url = new URL(endpoint);
+  url.searchParams.set("admin", "1");
+  url.searchParams.set("view", "user");
+  url.searchParams.set("userId", userId.trim());
+
+  const res = await fetch(url.toString(), {
+    method: "GET",
+    headers: getLeaderboardAdminHeaders(adminToken, false)
+  });
+
+  const json = await parseJsonSafe<{ userModeration?: Record<string, unknown> | null; error?: string }>(res);
+  if (!res.ok) {
+    throw new Error(json?.error || "admin-user-fetch-failed");
+  }
+
+  const row = json?.userModeration;
+  if (!row) return null;
+
+  return {
+    userId: String(row.userId ?? ""),
+    hidden: row.hidden === true,
+    forcedAlias: typeof row.forcedAlias === "string" ? row.forcedAlias : null,
+    reason: typeof row.reason === "string" ? row.reason : null,
+    updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : undefined
+  } satisfies LeaderboardAdminUserModeration;
+}
+
+export async function submitLeaderboardAdminAction(opts: {
+  endpoint: string;
+  adminToken: string;
+  action: string;
+  payload?: Record<string, unknown>;
+}) {
+  const { endpoint, adminToken, action, payload = {} } = opts;
+  if (!endpoint) throw new Error("missing-endpoint");
+  if (!adminToken.trim()) throw new Error("missing-admin-token");
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: getLeaderboardAdminHeaders(adminToken, true),
+    body: JSON.stringify({ adminAction: action, ...payload })
+  });
+
+  const json = await parseJsonSafe<Record<string, unknown>>(res);
+  if (!res.ok) {
+    throw new Error(typeof json?.error === "string" ? json.error : "admin-action-failed");
+  }
+
+  return json ?? { ok: true };
 }
 
 export function resetLeaderboardData() {

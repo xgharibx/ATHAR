@@ -1,10 +1,11 @@
 import * as React from "react";
-import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock, ShieldCheck, Trash2 } from "lucide-react";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
+import { Switch } from "@/components/ui/Switch";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { coerceCount } from "@/data/types";
 import { useNoorStore } from "@/store/noorStore";
@@ -18,12 +19,21 @@ import {
   enqueuePayload,
   fetchBoardRows,
   flushQueue,
+  loadLeaderboardAdminToken,
+  saveLeaderboardAdminToken,
+  clearLeaderboardAdminToken,
+  fetchLeaderboardAdminSnapshot,
+  fetchLeaderboardAdminUserModeration,
   getLeaderboardIdentity,
   getLocalRowsFromHistory,
   resetLeaderboardAlias,
   setLeaderboardAlias,
+  submitLeaderboardAdminAction,
   syncLeaderboardAliasFromServer,
-  validateLeaderboardAlias
+  validateLeaderboardAlias,
+  type LeaderboardAdminAliasAuditRow,
+  type LeaderboardAdminBlocklistRow,
+  type LeaderboardAdminUserModeration
 } from "@/lib/leaderboard";
 
 const COOLDOWN_MS = 45_000;
@@ -195,6 +205,12 @@ export function LeaderboardPage() {
     if (aliasStatus === "forced") {
       setAliasTone("moderated");
       setAliasHint("تم فرض اسم آمن من جهة الإدارة لهذا الحساب.");
+      return;
+    }
+
+    if (aliasStatus === "duplicate") {
+      setAliasTone("moderated");
+      setAliasHint("الاسم المطلوب مستخدم بالفعل، لذلك أعاد الخادم اسمًا آمنًا بدلًا منه.");
       return;
     }
 
@@ -514,6 +530,8 @@ export function LeaderboardPage() {
           ))}
         </div>
       </Card>
+
+      <LeaderboardAdminCard endpoint={endpoint} rows={mergedRows} onRefreshBoard={pullBoard} />
     </div>
   );
 }
@@ -537,5 +555,438 @@ function BoardTab(props: { label: string; active: boolean; onClick: () => void }
     >
       {props.label}
     </Button>
+  );
+}
+
+function LeaderboardAdminCard(props: {
+  endpoint: string;
+  rows: LeaderboardEntry[];
+  onRefreshBoard: () => void | Promise<void>;
+}) {
+  const [expanded, setExpanded] = React.useState(false);
+  const [tokenDraft, setTokenDraft] = React.useState(() => loadLeaderboardAdminToken());
+  const [adminToken, setAdminToken] = React.useState(() => loadLeaderboardAdminToken());
+  const [snapshot, setSnapshot] = React.useState<{ blocklist: LeaderboardAdminBlocklistRow[]; audits: LeaderboardAdminAliasAuditRow[] }>({
+    blocklist: [],
+    audits: []
+  });
+  const [adminTone, setAdminTone] = React.useState<"idle" | "ok" | "error">("idle");
+  const [adminHint, setAdminHint] = React.useState("أدخل رمز الإدارة المخزن في سر Edge Function لإدارة الأسماء من داخل التطبيق.");
+  const [loadingSnapshot, setLoadingSnapshot] = React.useState(false);
+  const [loadingUser, setLoadingUser] = React.useState(false);
+  const [selectedUserId, setSelectedUserId] = React.useState("");
+  const [selectedUserLabel, setSelectedUserLabel] = React.useState("");
+  const [userModeration, setUserModeration] = React.useState<LeaderboardAdminUserModeration | null>(null);
+  const [hidden, setHidden] = React.useState(false);
+  const [forcedAlias, setForcedAlias] = React.useState("");
+  const [moderationReason, setModerationReason] = React.useState("");
+  const [releaseAliasClaim, setReleaseAliasClaim] = React.useState(true);
+  const [blockTerm, setBlockTerm] = React.useState("");
+  const [blockNote, setBlockNote] = React.useState("");
+  const [blockMatchMode, setBlockMatchMode] = React.useState<"contains" | "exact">("contains");
+
+  const hasEndpoint = !!props.endpoint;
+  const hasAdminToken = adminToken.trim().length > 0;
+  const forcedAliasValidation = React.useMemo(
+    () => (forcedAlias.trim() ? validateLeaderboardAlias(forcedAlias) : null),
+    [forcedAlias]
+  );
+
+  const loadSnapshot = React.useCallback(async () => {
+    if (!props.endpoint || !adminToken.trim()) return;
+    setLoadingSnapshot(true);
+    try {
+      const next = await fetchLeaderboardAdminSnapshot({
+        endpoint: props.endpoint,
+        adminToken,
+        auditLimit: 16
+      });
+      setSnapshot(next);
+      setAdminTone("ok");
+      setAdminHint("تم تحميل بيانات الإدارة.");
+    } catch (error) {
+      setAdminTone("error");
+      setAdminHint(`تعذر تحميل لوحة الإدارة: ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
+    } finally {
+      setLoadingSnapshot(false);
+    }
+  }, [adminToken, props.endpoint]);
+
+  React.useEffect(() => {
+    if (!expanded || !hasEndpoint || !hasAdminToken) return;
+    void loadSnapshot();
+  }, [expanded, hasAdminToken, hasEndpoint, loadSnapshot]);
+
+  const loadModerationForUser = React.useCallback(async (userId: string, fallbackLabel?: string) => {
+    const cleanId = userId.trim();
+    if (!cleanId || !props.endpoint || !adminToken.trim()) return;
+    setLoadingUser(true);
+    try {
+      const row = await fetchLeaderboardAdminUserModeration({
+        endpoint: props.endpoint,
+        adminToken,
+        userId: cleanId
+      });
+      setSelectedUserId(cleanId);
+      setSelectedUserLabel(fallbackLabel ?? cleanId);
+      setUserModeration(row);
+      setHidden(row?.hidden ?? false);
+      setForcedAlias(row?.forcedAlias ?? "");
+      setModerationReason(row?.reason ?? "");
+      setAdminTone("ok");
+      setAdminHint(row ? "تم تحميل حالة المستخدم الحالية." : "لا توجد قواعد إدارة مخزنة لهذا المستخدم بعد.");
+    } catch (error) {
+      setAdminTone("error");
+      setAdminHint(`تعذر تحميل بيانات المستخدم: ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
+    } finally {
+      setLoadingUser(false);
+    }
+  }, [adminToken, props.endpoint]);
+
+  const saveAdminTokenLocally = () => {
+    const saved = saveLeaderboardAdminToken(tokenDraft);
+    setAdminToken(saved);
+    setTokenDraft(saved);
+    setAdminTone(saved ? "ok" : "idle");
+    setAdminHint(saved ? "تم حفظ رمز الإدارة محليًا على هذا الجهاز فقط." : "تم مسح رمز الإدارة المحلي.");
+    if (saved && expanded && hasEndpoint) {
+      void loadSnapshot();
+    }
+  };
+
+  const clearAdminTokenLocally = () => {
+    clearLeaderboardAdminToken();
+    setAdminToken("");
+    setTokenDraft("");
+    setSnapshot({ blocklist: [], audits: [] });
+    setAdminTone("idle");
+    setAdminHint("تم حذف رمز الإدارة من هذا الجهاز.");
+  };
+
+  const submitBlockRule = async () => {
+    if (!props.endpoint || !adminToken.trim()) return;
+    if (!blockTerm.trim()) {
+      setAdminTone("error");
+      setAdminHint("أدخل الكلمة أو الاسم الذي تريد حظره.");
+      return;
+    }
+
+    try {
+      await submitLeaderboardAdminAction({
+        endpoint: props.endpoint,
+        adminToken,
+        action: "upsertBlockTerm",
+        payload: {
+          term: blockTerm,
+          matchMode: blockMatchMode,
+          note: blockNote
+        }
+      });
+      setBlockTerm("");
+      setBlockNote("");
+      setAdminTone("ok");
+      setAdminHint("تم حفظ قاعدة الحظر.");
+      await loadSnapshot();
+    } catch (error) {
+      setAdminTone("error");
+      setAdminHint(`تعذر حفظ قاعدة الحظر: ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
+    }
+  };
+
+  const removeBlockRule = async (id: number) => {
+    if (!props.endpoint || !adminToken.trim()) return;
+    try {
+      await submitLeaderboardAdminAction({
+        endpoint: props.endpoint,
+        adminToken,
+        action: "deleteBlockTerm",
+        payload: { id }
+      });
+      setAdminTone("ok");
+      setAdminHint("تم حذف القاعدة.");
+      await loadSnapshot();
+    } catch (error) {
+      setAdminTone("error");
+      setAdminHint(`تعذر حذف القاعدة: ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
+    }
+  };
+
+  const saveUserModeration = async () => {
+    if (!props.endpoint || !adminToken.trim()) return;
+    if (!selectedUserId.trim()) {
+      setAdminTone("error");
+      setAdminHint("اختر مستخدمًا أو أدخل معرفه أولًا.");
+      return;
+    }
+
+    if (forcedAliasValidation && !forcedAliasValidation.ok) {
+      setAdminTone("error");
+      setAdminHint(`الاسم الإجباري غير صالح: ${forcedAliasValidation.message}`);
+      return;
+    }
+
+    try {
+      const response = await submitLeaderboardAdminAction({
+        endpoint: props.endpoint,
+        adminToken,
+        action: "setUserModeration",
+        payload: {
+          userId: selectedUserId,
+          hidden,
+          forcedAlias,
+          reason: moderationReason
+        }
+      });
+      const row = (response.userModeration as Record<string, unknown> | undefined) ?? null;
+      setUserModeration(
+        row
+          ? {
+              userId: String(row.userId ?? selectedUserId),
+              hidden: row.hidden === true,
+              forcedAlias: typeof row.forcedAlias === "string" ? row.forcedAlias : null,
+              reason: typeof row.reason === "string" ? row.reason : null,
+              updatedAt: typeof row.updatedAt === "string" ? row.updatedAt : undefined
+            }
+          : null
+      );
+      setAdminTone("ok");
+      setAdminHint("تم حفظ إعدادات المستخدم.");
+      await loadSnapshot();
+      await props.onRefreshBoard();
+    } catch (error) {
+      setAdminTone("error");
+      setAdminHint(`تعذر حفظ إدارة المستخدم: ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
+    }
+  };
+
+  const clearUserModerationState = async () => {
+    if (!props.endpoint || !adminToken.trim()) return;
+    if (!selectedUserId.trim()) {
+      setAdminTone("error");
+      setAdminHint("اختر مستخدمًا أو أدخل معرفه أولًا.");
+      return;
+    }
+
+    try {
+      await submitLeaderboardAdminAction({
+        endpoint: props.endpoint,
+        adminToken,
+        action: "clearUserModeration",
+        payload: {
+          userId: selectedUserId,
+          releaseAliasClaim
+        }
+      });
+      setUserModeration(null);
+      setHidden(false);
+      setForcedAlias("");
+      setModerationReason("");
+      setAdminTone("ok");
+      setAdminHint(releaseAliasClaim ? "تمت إزالة الإدارة وتم تحرير الاسم المحجوز." : "تمت إزالة إدارة المستخدم.");
+      await loadSnapshot();
+      await props.onRefreshBoard();
+    } catch (error) {
+      setAdminTone("error");
+      setAdminHint(`تعذر إزالة الإدارة: ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
+    }
+  };
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={16} className="text-[var(--accent)]" />
+            <div className="text-sm font-semibold">إدارة المتصدرين</div>
+          </div>
+          <div className="mt-1 text-[11px] opacity-60">
+            تحكم سريع في حظر الأسماء، الإخفاء، والاسم الإجباري من داخل التطبيق.
+          </div>
+        </div>
+        <Button variant={expanded ? "secondary" : "outline"} onClick={() => setExpanded((v) => !v)}>
+          {expanded ? "إخفاء" : "فتح"}
+        </Button>
+      </div>
+
+      {expanded && (
+        <div className="mt-4 space-y-4">
+          {!hasEndpoint ? (
+            <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-xs text-yellow-200 leading-6">
+              لا يمكن استخدام لوحة الإدارة قبل ضبط VITE_LEADERBOARD_ENDPOINT وربطها بدالة Supabase المنشورة.
+            </div>
+          ) : null}
+
+          <div className="rounded-3xl border border-white/10 bg-white/4 p-4 space-y-3">
+            <div className="text-sm font-semibold">رمز الإدارة</div>
+            <div className="flex flex-col md:flex-row gap-2">
+              <Input
+                type="password"
+                value={tokenDraft}
+                onChange={(e) => setTokenDraft(e.target.value)}
+                placeholder="LEADERBOARD_ADMIN_TOKEN"
+              />
+              <Button onClick={saveAdminTokenLocally} disabled={!hasEndpoint}>
+                حفظ الرمز
+              </Button>
+              <Button variant="outline" onClick={clearAdminTokenLocally}>
+                مسح
+              </Button>
+              <Button variant="secondary" onClick={() => void loadSnapshot()} disabled={!hasAdminToken || !hasEndpoint || loadingSnapshot}>
+                {loadingSnapshot ? <Loader2 size={16} className="animate-spin" /> : <RotateCw size={16} />}
+                تحديث الإدارة
+              </Button>
+            </div>
+            <div
+              className={cn(
+                "text-[11px] leading-5",
+                adminTone === "error" ? "text-[var(--danger)]" : adminTone === "ok" ? "text-[var(--ok)]" : "opacity-60"
+              )}
+            >
+              {adminHint}
+            </div>
+          </div>
+
+          {hasAdminToken && hasEndpoint && (
+            <>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <div className="rounded-3xl border border-white/10 bg-white/4 p-4 space-y-3">
+                  <div className="text-sm font-semibold">حظر أسماء أو كلمات</div>
+                  <div className="flex gap-2 flex-wrap">
+                    <BoardTab label="احتواء" active={blockMatchMode === "contains"} onClick={() => setBlockMatchMode("contains")} />
+                    <BoardTab label="مطابقة تامة" active={blockMatchMode === "exact"} onClick={() => setBlockMatchMode("exact")} />
+                  </div>
+                  <Input value={blockTerm} onChange={(e) => setBlockTerm(e.target.value)} placeholder="الكلمة أو الاسم الممنوع" />
+                  <Input value={blockNote} onChange={(e) => setBlockNote(e.target.value)} placeholder="ملاحظة داخلية اختيارية" />
+                  <Button onClick={() => void submitBlockRule()} disabled={!blockTerm.trim()}>
+                    إضافة قاعدة
+                  </Button>
+
+                  <div className="space-y-2 max-h-64 overflow-auto">
+                    {snapshot.blocklist.length === 0 ? (
+                      <div className="text-xs opacity-50">لا توجد قواعد حظر بعد.</div>
+                    ) : (
+                      snapshot.blocklist.map((rule) => (
+                        <div key={rule.id} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium break-words">{rule.term}</div>
+                            <div className="mt-1 text-[11px] opacity-55">
+                              {rule.matchMode === "exact" ? "مطابقة تامة" : "احتواء"}
+                              {rule.note ? ` • ${rule.note}` : ""}
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" onClick={() => void removeBlockRule(rule.id)}>
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-white/4 p-4 space-y-3">
+                  <div className="text-sm font-semibold">إدارة مستخدم</div>
+                  <Input
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    placeholder="معرّف المستخدم"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => void loadModerationForUser(selectedUserId, selectedUserLabel || selectedUserId)}
+                      disabled={!selectedUserId.trim() || loadingUser}
+                    >
+                      {loadingUser ? <Loader2 size={16} className="animate-spin" /> : <RotateCw size={16} />}
+                      تحميل الحالة
+                    </Button>
+                    {props.rows.slice(0, 6).map((row) => (
+                      <Button
+                        key={`admin-${row.id}`}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => void loadModerationForUser(row.id, row.name)}
+                      >
+                        {row.name}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {selectedUserLabel ? (
+                    <div className="text-[11px] opacity-55">المستخدم المحدد: {selectedUserLabel}</div>
+                  ) : null}
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-medium">إخفاء من اللوحة</div>
+                      <div className="text-[11px] opacity-50">لن يظهر في القراءة العامة حتى تلغي الإخفاء.</div>
+                    </div>
+                    <Switch checked={hidden} onCheckedChange={(v) => setHidden(!!v)} />
+                  </div>
+
+                  <Input
+                    value={forcedAlias}
+                    onChange={(e) => setForcedAlias(e.target.value)}
+                    placeholder="اسم إجباري آمن (اختياري)"
+                  />
+                  {forcedAliasValidation && !forcedAliasValidation.ok ? (
+                    <div className="text-[11px] text-[var(--danger)]">{forcedAliasValidation.message}</div>
+                  ) : null}
+
+                  <textarea
+                    value={moderationReason}
+                    onChange={(e) => setModerationReason(e.target.value)}
+                    placeholder="سبب داخلي للمراجعة"
+                    className="w-full min-h-[90px] rounded-3xl bg-white/6 border border-white/10 p-4 text-sm leading-7 outline-none focus:border-white/20"
+                  />
+
+                  {userModeration?.updatedAt ? (
+                    <div className="text-[11px] opacity-50">آخر تحديث: {new Date(userModeration.updatedAt).toLocaleString("ar-SA")}</div>
+                  ) : null}
+
+                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
+                    <div className="text-[11px] opacity-60">حرر الاسم المحجوز عند إزالة الإدارة</div>
+                    <Switch checked={releaseAliasClaim} onCheckedChange={(v) => setReleaseAliasClaim(!!v)} />
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={() => void saveUserModeration()} disabled={!selectedUserId.trim()}>
+                      حفظ إدارة المستخدم
+                    </Button>
+                    <Button variant="outline" onClick={() => void clearUserModerationState()} disabled={!selectedUserId.trim()}>
+                      إزالة الإدارة
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-white/10 bg-white/4 p-4">
+                <div className="text-sm font-semibold mb-3">آخر مراجعات الأسماء</div>
+                <div className="space-y-2 max-h-72 overflow-auto">
+                  {snapshot.audits.length === 0 ? (
+                    <div className="text-xs opacity-50">لا توجد سجلات مراجعة بعد.</div>
+                  ) : (
+                    snapshot.audits.map((audit) => (
+                      <div key={audit.id} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium break-words">{audit.resolvedAlias}</div>
+                          <div className="mt-1 text-[11px] opacity-55 break-words">
+                            المطلوب: {audit.requestedAlias || "—"} • الحالة: {audit.status}
+                            {audit.reason ? ` • ${audit.reason}` : ""}
+                          </div>
+                          <div className="mt-1 text-[10px] opacity-45 break-all">{audit.userId}</div>
+                        </div>
+                        <Button size="sm" variant="ghost" onClick={() => void loadModerationForUser(audit.userId, audit.resolvedAlias)}>
+                          اختيار
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </Card>
   );
 }

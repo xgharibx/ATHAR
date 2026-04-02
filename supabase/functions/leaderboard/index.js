@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-leaderboard-admin-token",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS"
 };
 
@@ -59,6 +59,14 @@ function normalizeAliasInput(input) {
     .slice(0, MAX_ALIAS_LENGTH);
 }
 
+function normalizeAliasKey(input) {
+  return normalizeAliasInput(input).toLocaleLowerCase();
+}
+
+function cleanPlainText(input, max = 180) {
+  return String(input ?? "").replace(INVISIBLE_ALIAS_CHARS_RE, "").replace(MULTI_SPACE_RE, " ").trim().slice(0, max);
+}
+
 function validateAliasInput(input) {
   const value = normalizeAliasInput(input);
   if (!value) return { ok: false, reason: "empty", value };
@@ -100,7 +108,7 @@ async function readNameBlocklist(db) {
 async function readUserModeration(db, userId) {
   const res = await db
     .from("leaderboard_user_moderation")
-    .select("user_id,hidden,forced_alias,reason")
+    .select("user_id,hidden,forced_alias,reason,updated_at")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -119,7 +127,7 @@ async function readUserModerationMap(db, userIds) {
 
   const res = await db
     .from("leaderboard_user_moderation")
-    .select("user_id,hidden,forced_alias,reason")
+    .select("user_id,hidden,forced_alias,reason,updated_at")
     .in("user_id", userIds);
 
   if (res.error) {
@@ -159,6 +167,60 @@ function publicAliasOrCanonical(userId, alias, moderationRow, blocklistRows) {
   return validation.value;
 }
 
+async function claimAliasForUser(db, userId, alias) {
+  const aliasDisplay = normalizeAliasInput(alias);
+  const aliasNormalized = normalizeAliasKey(aliasDisplay);
+  if (!aliasNormalized) return { ok: false, reason: "empty" };
+
+  const existingRes = await db
+    .from("leaderboard_alias_registry")
+    .select("user_id")
+    .eq("alias_normalized", aliasNormalized)
+    .maybeSingle();
+
+  if (existingRes.error) {
+    if (isMissingRelationError(existingRes.error)) {
+      return { ok: true };
+    }
+    console.error("leaderboard_alias_registry read failed", existingRes.error);
+    return { ok: true };
+  }
+
+  if (existingRes.data?.user_id && existingRes.data.user_id !== userId) {
+    return { ok: false, reason: "duplicate" };
+  }
+
+  const upsertRes = await db
+    .from("leaderboard_alias_registry")
+    .upsert(
+      {
+        user_id: userId,
+        alias_normalized: aliasNormalized,
+        alias_display: aliasDisplay,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: "user_id" }
+    );
+
+  if (upsertRes.error) {
+    if (upsertRes.error.code === "23505") {
+      return { ok: false, reason: "duplicate" };
+    }
+    if (!isMissingRelationError(upsertRes.error)) {
+      console.error("leaderboard_alias_registry upsert failed", upsertRes.error);
+    }
+  }
+
+  return { ok: true };
+}
+
+async function releaseAliasClaimForUser(db, userId) {
+  const res = await db.from("leaderboard_alias_registry").delete().eq("user_id", userId);
+  if (res.error && !isMissingRelationError(res.error)) {
+    console.error("leaderboard_alias_registry delete failed", res.error);
+  }
+}
+
 async function resolveAliasDecision(db, userId, requestedAlias) {
   const canonical = canonicalAliasFromUserId(userId);
   const moderationRow = await readUserModeration(db, userId);
@@ -169,7 +231,12 @@ async function resolveAliasDecision(db, userId, requestedAlias) {
   }
 
   if (moderationRow?.forced_alias) {
-    return { alias: publicAliasOrCanonical(userId, requestedAlias, moderationRow, blocklistRows), hidden: false, status: "forced", reason: moderationRow.reason ?? "forced-alias" };
+    const forcedAlias = publicAliasOrCanonical(userId, requestedAlias, moderationRow, blocklistRows);
+    const forcedClaim = await claimAliasForUser(db, userId, forcedAlias);
+    if (!forcedClaim.ok) {
+      return { alias: canonical, hidden: false, status: "duplicate", reason: forcedClaim.reason };
+    }
+    return { alias: forcedAlias, hidden: false, status: "forced", reason: moderationRow.reason ?? "forced-alias" };
   }
 
   const validation = validateAliasInput(requestedAlias);
@@ -181,6 +248,11 @@ async function resolveAliasDecision(db, userId, requestedAlias) {
     return { alias: canonical, hidden: false, status: "moderated", reason: "blocked-term" };
   }
 
+  const claim = await claimAliasForUser(db, userId, validation.value);
+  if (!claim.ok) {
+    return { alias: canonical, hidden: false, status: "duplicate", reason: claim.reason };
+  }
+
   return { alias: validation.value, hidden: false, status: "accepted", reason: null };
 }
 
@@ -189,6 +261,227 @@ async function auditAliasDecision(db, input) {
   if (res.error && !isMissingRelationError(res.error)) {
     console.error("leaderboard_alias_audit insert failed", res.error);
   }
+}
+
+function readAdminToken(req) {
+  const header = req.headers.get("x-leaderboard-admin-token")?.trim();
+  if (header) return header;
+  const auth = req.headers.get("authorization")?.trim() ?? "";
+  if (/^bearer\s+/i.test(auth)) return auth.replace(/^bearer\s+/i, "").trim();
+  return "";
+}
+
+function requireAdmin(req, denoEnv) {
+  const expected = denoEnv.get("LEADERBOARD_ADMIN_TOKEN") ?? "";
+  if (!expected) return { ok: false, status: 500, error: "admin-secret-missing" };
+  const got = readAdminToken(req);
+  if (!got || got !== expected) return { ok: false, status: 401, error: "forbidden" };
+  return { ok: true };
+}
+
+async function readBlocklistSnapshot(db) {
+  const res = await db
+    .from("leaderboard_name_blocklist")
+    .select("id,term,match_mode,is_active,note,created_at")
+    .order("id", { ascending: false })
+    .limit(100);
+
+  if (res.error) {
+    if (!isMissingRelationError(res.error)) {
+      console.error("leaderboard_name_blocklist snapshot failed", res.error);
+    }
+    return [];
+  }
+
+  return (res.data ?? []).map((row) => ({
+    id: row.id,
+    term: row.term,
+    matchMode: row.match_mode === "exact" ? "exact" : "contains",
+    isActive: row.is_active !== false,
+    note: row.note ?? null,
+    createdAt: row.created_at
+  }));
+}
+
+async function readAliasAuditSnapshot(db, limit = 20) {
+  const safeLimit = Math.max(1, Math.min(100, Number(limit) || 20));
+  const res = await db
+    .from("leaderboard_alias_audit")
+    .select("id,user_id,requested_alias,resolved_alias,status,reason,created_at")
+    .order("created_at", { ascending: false })
+    .limit(safeLimit);
+
+  if (res.error) {
+    if (!isMissingRelationError(res.error)) {
+      console.error("leaderboard_alias_audit snapshot failed", res.error);
+    }
+    return [];
+  }
+
+  return (res.data ?? []).map((row) => ({
+    id: row.id,
+    userId: row.user_id,
+    requestedAlias: row.requested_alias ?? null,
+    resolvedAlias: row.resolved_alias,
+    status: row.status,
+    reason: row.reason ?? null,
+    createdAt: row.created_at
+  }));
+}
+
+async function handleAdminGet(req, db, denoEnv) {
+  const auth = requireAdmin(req, denoEnv);
+  if (!auth.ok) return json({ ok: false, error: auth.error }, auth.status);
+
+  const url = new URL(req.url);
+  const view = url.searchParams.get("view") || "snapshot";
+
+  if (view === "snapshot") {
+    const auditLimit = url.searchParams.get("auditLimit") || "20";
+    return json({
+      ok: true,
+      blocklist: await readBlocklistSnapshot(db),
+      audits: await readAliasAuditSnapshot(db, auditLimit)
+    });
+  }
+
+  if (view === "user") {
+    const userId = cleanPlainText(url.searchParams.get("userId"), 120);
+    if (!userId) return json({ ok: false, error: "missing-userId" }, 400);
+
+    const moderation = await readUserModeration(db, userId);
+    return json({
+      ok: true,
+      userModeration: moderation
+        ? {
+            userId: moderation.user_id,
+            hidden: moderation.hidden === true,
+            forcedAlias: moderation.forced_alias ?? null,
+            reason: moderation.reason ?? null,
+            updatedAt: moderation.updated_at ?? null
+          }
+        : null
+    });
+  }
+
+  return json({ ok: false, error: "unknown-admin-view" }, 400);
+}
+
+async function handleAdminPost(req, db, denoEnv, body) {
+  const auth = requireAdmin(req, denoEnv);
+  if (!auth.ok) return json({ ok: false, error: auth.error }, auth.status);
+
+  const action = String(body?.adminAction ?? "").trim();
+  if (!action) return json({ ok: false, error: "missing-admin-action" }, 400);
+
+  if (action === "upsertBlockTerm") {
+    const term = cleanPlainText(body?.term, 80);
+    const matchMode = body?.matchMode === "exact" ? "exact" : "contains";
+    const note = cleanPlainText(body?.note, 180) || null;
+    if (!term) return json({ ok: false, error: "missing-term" }, 400);
+
+    const existing = await db
+      .from("leaderboard_name_blocklist")
+      .select("id")
+      .eq("match_mode", matchMode)
+      .ilike("term", term)
+      .maybeSingle();
+
+    if (existing.error && !isMissingRelationError(existing.error)) {
+      return json({ ok: false, error: "blocklist-read-failed" }, 500);
+    }
+
+    if (existing.data?.id) {
+      const updateRes = await db
+        .from("leaderboard_name_blocklist")
+        .update({ term, note, is_active: true })
+        .eq("id", existing.data.id);
+      if (updateRes.error) return json({ ok: false, error: "blocklist-update-failed" }, 500);
+    } else {
+      const insertRes = await db
+        .from("leaderboard_name_blocklist")
+        .insert({ term, match_mode: matchMode, note, is_active: true });
+      if (insertRes.error) return json({ ok: false, error: "blocklist-insert-failed" }, 500);
+    }
+
+    blocklistCache.loadedAt = 0;
+    return json({ ok: true });
+  }
+
+  if (action === "deleteBlockTerm") {
+    const id = Number(body?.id ?? 0);
+    if (!Number.isFinite(id) || id <= 0) return json({ ok: false, error: "bad-id" }, 400);
+    const delRes = await db.from("leaderboard_name_blocklist").delete().eq("id", id);
+    if (delRes.error) return json({ ok: false, error: "blocklist-delete-failed" }, 500);
+    blocklistCache.loadedAt = 0;
+    return json({ ok: true });
+  }
+
+  if (action === "setUserModeration") {
+    const userId = cleanPlainText(body?.userId, 120);
+    const hidden = body?.hidden === true;
+    const forcedAlias = cleanPlainText(body?.forcedAlias, MAX_ALIAS_LENGTH) || null;
+    const reason = cleanPlainText(body?.reason, 180) || null;
+    if (!userId) return json({ ok: false, error: "missing-userId" }, 400);
+
+    if (forcedAlias) {
+      const validation = validateAliasInput(forcedAlias);
+      if (!validation.ok) return json({ ok: false, error: `bad-forced-alias:${validation.reason}` }, 400);
+      const blocklistRows = await readNameBlocklist(db);
+      if (aliasBlockedByList(validation.value, blocklistRows)) {
+        return json({ ok: false, error: "forced-alias-blocked" }, 400);
+      }
+      const claim = await claimAliasForUser(db, userId, validation.value);
+      if (!claim.ok) return json({ ok: false, error: "duplicate-alias" }, 409);
+    }
+
+    const shouldDelete = !hidden && !forcedAlias && !reason;
+    if (shouldDelete) {
+      const delRes = await db.from("leaderboard_user_moderation").delete().eq("user_id", userId);
+      if (delRes.error) return json({ ok: false, error: "user-moderation-delete-failed" }, 500);
+      return json({ ok: true, userModeration: null });
+    }
+
+    const upsertRes = await db
+      .from("leaderboard_user_moderation")
+      .upsert(
+        {
+          user_id: userId,
+          hidden,
+          forced_alias: forcedAlias,
+          reason,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: "user_id" }
+      );
+    if (upsertRes.error) return json({ ok: false, error: "user-moderation-upsert-failed" }, 500);
+
+    return json({
+      ok: true,
+      userModeration: {
+        userId,
+        hidden,
+        forcedAlias,
+        reason,
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }
+
+  if (action === "clearUserModeration") {
+    const userId = cleanPlainText(body?.userId, 120);
+    const releaseAliasClaim = body?.releaseAliasClaim === true;
+    if (!userId) return json({ ok: false, error: "missing-userId" }, 400);
+
+    const delRes = await db.from("leaderboard_user_moderation").delete().eq("user_id", userId);
+    if (delRes.error) return json({ ok: false, error: "user-moderation-delete-failed" }, 500);
+    if (releaseAliasClaim) {
+      await releaseAliasClaimForUser(db, userId);
+    }
+    return json({ ok: true, userModeration: null });
+  }
+
+  return json({ ok: false, error: "unknown-admin-action" }, 400);
 }
 
 function json(data, status = 200) {
@@ -384,6 +677,10 @@ denoRuntime.serve(async (req) => {
       return json({ ok: false, error: "invalid-json" }, 400);
     }
 
+    if (body?.adminAction) {
+      return await handleAdminPost(req, db, denoRuntime.env, body);
+    }
+
     const payload = sanitizePayload(body);
     const validation = validatePayload(payload);
     if (!validation.ok) return json({ ok: false, error: validation.reason }, 400);
@@ -458,11 +755,15 @@ denoRuntime.serve(async (req) => {
         .upsert(rollupRows, { onConflict: "day,period,board,section_id,user_id" });
     }
 
-      return json({ ok: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false });
+    return json({ ok: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false });
   }
 
   if (req.method === "GET") {
     const url = new URL(req.url);
+    if (url.searchParams.get("admin") === "1") {
+      return await handleAdminGet(req, db, denoRuntime.env);
+    }
+
     const board = parseBoard(url.searchParams.get("board"));
     const period = parsePeriod(url.searchParams.get("period"));
     const sectionId = url.searchParams.get("sectionId");
