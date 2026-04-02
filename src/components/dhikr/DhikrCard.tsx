@@ -84,6 +84,7 @@ export function DhikrCard(props: {
   const ringRef = React.useRef<SVGCircleElement>(null);
   const swipeRef = React.useRef({ x: 0, y: 0, active: false });
   const [swipeHint, setSwipeHint] = React.useState(false);
+  const [confirmItemReset, setConfirmItemReset] = React.useState(false);
   const milestonesHit = React.useRef<Set<number>>(new Set([
     ...(current >= target * 0.25 ? [0.25] : []),
     ...(current >= target * 0.5 ? [0.5] : []),
@@ -447,17 +448,34 @@ export function DhikrCard(props: {
                 <Minus size={18} className="opacity-80" />
               </IconButton>
 
-              <IconButton
-                aria-label="إعادة العد"
-                onClick={() => {
-                  if (isDailyLockedItem) return;
-                  resetItem(sectionId, index, target);
-                }}
-                title="إعادة العد"
-                className={cn(isDailyLockedItem && "opacity-40 pointer-events-none")}
-              >
-                <RotateCcw size={16} className="opacity-70" />
-              </IconButton>
+              {confirmItemReset ? (
+                <>
+                  <button
+                    className="text-[11px] px-2.5 rounded-xl bg-[var(--danger)]/15 border border-[var(--danger)]/30 text-[var(--danger)] min-h-[44px] transition active:scale-[.97]"
+                    onClick={() => { resetItem(sectionId, index, target); setConfirmItemReset(false); }}
+                  >
+                    تأكيد
+                  </button>
+                  <button
+                    className="text-[11px] px-2.5 rounded-xl bg-white/6 border border-white/10 min-h-[44px] transition active:scale-[.97]"
+                    onClick={() => setConfirmItemReset(false)}
+                  >
+                    إلغاء
+                  </button>
+                </>
+              ) : (
+                <IconButton
+                  aria-label="إعادة العد"
+                  onClick={() => {
+                    if (isDailyLockedItem) return;
+                    setConfirmItemReset(true);
+                  }}
+                  title="إعادة العد"
+                  className={cn(isDailyLockedItem && "opacity-40 pointer-events-none")}
+                >
+                  <RotateCcw size={16} className="opacity-70" />
+                </IconButton>
+              )}
             </div>
           </div>
 

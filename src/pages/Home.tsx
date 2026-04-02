@@ -816,6 +816,16 @@ export function HomePage() {
           <div className="h-full progress-accent" style={{ width: `${quickTotal.percent}%` }} />
         </div>
 
+        {quickTotal.percent >= 100 && (
+          <div className="mt-3 rounded-2xl border border-[var(--ok)]/30 bg-[var(--ok)]/10 px-4 py-3 flex items-center gap-2">
+            <span>✅</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>تمت التسابيح</div>
+              <div className="text-[11px] opacity-60 mt-0.5">400/400 — بارك الله فيك</div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
           {QUICK_TASBEEH.map((it) => {
             const target = 100;

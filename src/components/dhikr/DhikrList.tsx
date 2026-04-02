@@ -121,12 +121,16 @@ export function DhikrList(props: {
       </Card>
 
       <div style={{ height: "calc(100dvh - 240px)", minHeight: "440px" }}>
-        {stats.percent >= 100 && !isDailySectionLocked && (
+        {stats.percent >= 100 && (
           <div className="mb-3 rounded-3xl border border-[var(--ok)]/30 bg-[var(--ok)]/10 px-5 py-4 flex items-center gap-3">
             <span className="text-2xl">✅</span>
             <div>
               <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>اكتمل القسم</div>
-              <div className="text-xs opacity-65 mt-0.5">قرأت جميع الأذكار في هذا القسم</div>
+              <div className="text-xs opacity-65 mt-0.5">
+                {isDailySectionLocked
+                  ? "أحسنت — يتجدد تلقائيًا عند منتصف الليل"
+                  : "قرأت جميع الأذكار في هذا القسم"}
+              </div>
             </div>
           </div>
         )}
