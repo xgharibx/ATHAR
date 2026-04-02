@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Trophy, Send, RotateCw } from "lucide-react";
+import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -63,6 +63,18 @@ export function LeaderboardPage() {
   const [syncState, setSyncState] = React.useState<"idle" | "syncing" | "ok" | "error" | "cooldown">("idle");
   const [syncHint, setSyncHint] = React.useState("");
   const [lastSubmitAt, setLastSubmitAt] = React.useState(0);
+  const [cooldownLeft, setCooldownLeft] = React.useState(0);
+
+  // Tick cooldown counter
+  React.useEffect(() => {
+    if (lastSubmitAt === 0) return;
+    const interval = setInterval(() => {
+      const left = Math.max(0, COOLDOWN_MS - (Date.now() - lastSubmitAt));
+      setCooldownLeft(left);
+      if (left === 0) clearInterval(interval);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [lastSubmitAt]);
 
   const sections = React.useMemo(() => data?.db.sections ?? [], [data?.db.sections]);
 
@@ -237,7 +249,10 @@ export function LeaderboardPage() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold">لوحة المتصدرين</div>
-            <div className="text-xs opacity-65 mt-1">هوية مجهولة + مزامنة اختيارية</div>
+            <div className="text-xs opacity-65 mt-1 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[var(--accent)] inline-block opacity-80" />
+              {identity.alias}
+            </div>
           </div>
           <Trophy size={18} className="text-[var(--accent)]" />
         </div>
@@ -251,6 +266,9 @@ export function LeaderboardPage() {
 
         <div className="mt-3 text-xs opacity-75">
           تحدي تسبيح اليوم: <span className="font-semibold">{myStats.tasbeehDailyLabel}</span> • الهدف {myStats.tasbeehDailyTarget}
+        </div>
+        <div className="mt-1 text-[11px] opacity-45">
+          الصيغة: ذكر + قرآن×3 + صلاة×40 + تسبيح
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
@@ -284,29 +302,55 @@ export function LeaderboardPage() {
           </div>
         ) : null}
 
-        <div className="mt-3 flex items-center gap-2">
-          <Button onClick={() => void submitScore()}>
-            <Send size={16} />
-            مزامنة ترتيبي
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <Button
+            onClick={() => void submitScore()}
+            disabled={syncState === "syncing" || cooldownLeft > 0}
+          >
+            {syncState === "syncing"
+              ? <Loader2 size={16} className="animate-spin" />
+              : <Send size={16} />}
+            {cooldownLeft > 0
+              ? `انتظر ${Math.ceil(cooldownLeft / 1000)}ث`
+              : "مزامنة ترتيبي"}
           </Button>
-          <Button variant="secondary" onClick={() => void pullBoard()}>
-            <RotateCw size={16} />
+          <Button
+            variant="secondary"
+            onClick={() => void pullBoard()}
+            disabled={syncState === "syncing"}
+          >
+            <RotateCw size={16} className={syncState === "syncing" ? "animate-spin" : ""} />
             تحديث
           </Button>
           <Badge>رتبتي: #{myRank}</Badge>
-          <Badge>
+          <span className={cn(
+            "inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border",
+            syncState === "ok"
+              ? "border-[var(--ok)]/30 bg-[var(--ok)]/10 text-[var(--ok)]"
+              : syncState === "error"
+                ? "border-[var(--danger)]/30 bg-[var(--danger)]/10 text-[var(--danger)]"
+                : syncState === "cooldown"
+                  ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-400"
+                  : syncState === "syncing"
+                    ? "border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[var(--accent)]"
+                    : "border-white/15 bg-white/6 opacity-70"
+          )}>
+            {syncState === "syncing" && <Loader2 size={10} className="animate-spin" />}
+            {syncState === "ok" && <CheckCircle2 size={10} />}
+            {syncState === "error" && <AlertCircle size={10} />}
+            {syncState === "cooldown" && <Clock size={10} />}
             {syncState === "syncing"
               ? "جارٍ المزامنة"
               : syncState === "ok"
                 ? "تمت المزامنة"
                 : syncState === "cooldown"
-                  ? "انتظر قليلًا قبل الإرسال"
-                : syncState === "error"
-                  ? endpoint
-                    ? syncHint || "فشل/تقييد مؤقت"
-                    : "محلي فقط"
-                  : "محلي"}
-          </Badge>
+                  ? "انتظر قليلًا"
+                  : syncState === "error"
+                    ? endpoint
+                      ? syncHint || "فشل/تقييد مؤقت"
+                      : "محلي فقط"
+                    : "محلي"}
+          </span>
         </div>
       </Card>
 

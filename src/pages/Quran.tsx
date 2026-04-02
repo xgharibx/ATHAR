@@ -29,6 +29,11 @@ export function QuranPage() {
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
   const [jumpMushafPage, setJumpMushafPage] = React.useState("");
 
+  const lastReadSurahName = React.useMemo(() => {
+    if (!lastRead || !data) return null;
+    return data.find((s) => s.id === lastRead.surahId)?.name ?? null;
+  }, [data, lastRead]);
+
   const bookmarkedCount = React.useMemo(() => Object.values(bookmarks).filter(Boolean).length, [bookmarks]);
 
   // Set of surah IDs that have at least one bookmark
@@ -51,26 +56,32 @@ export function QuranPage() {
     });
   }, [data, query]);
 
-  const ayahResults = React.useMemo(() => {
-    if (!data) return [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }>;
+  const ayahSearch = React.useMemo(() => {
+    if (!data) return { results: [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }>, totalFound: 0 };
     const q = normalize(query);
-    if (!q || q.length < 2) return [];
+    if (!q || q.length < 2) return { results: [], totalFound: 0 };
 
     const out: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
     const limit = 60;
+    let totalFound = 0;
 
     for (const s of data) {
       for (let i = 0; i < s.ayahs.length; i++) {
         const text = s.ayahs[i] ?? "";
         if (normalize(text).includes(q)) {
-          out.push({ surahId: s.id, surahName: s.name, ayahIndex: i + 1, text });
-          if (out.length >= limit) return out;
+          totalFound++;
+          if (out.length < limit) {
+            out.push({ surahId: s.id, surahName: s.name, ayahIndex: i + 1, text });
+          }
         }
       }
     }
 
-    return out;
+    return { results: out, totalFound };
   }, [data, query]);
+
+  const ayahResults = ayahSearch.results;
+  const ayahTotalFound = ayahSearch.totalFound;
 
   const dailyVerse = React.useMemo(() => {
     if (!data || data.length === 0) return null;
@@ -149,7 +160,7 @@ export function QuranPage() {
                 onClick={() => navigate(`/quran/${lastRead.surahId}?a=${lastRead.ayahIndex}`)}
               >
                 <BookOpen size={16} />
-                تابع {lastRead.surahId}:{lastRead.ayahIndex}
+                {lastReadSurahName ? `${lastReadSurahName} ﴿${lastRead.ayahIndex}﴾` : `${lastRead.surahId}:${lastRead.ayahIndex}`}
               </Button>
             ) : null}
             <Button
@@ -270,12 +281,20 @@ export function QuranPage() {
         <Card className="p-5 quran-surface">
           <div className="flex items-center justify-between gap-3">
             <div className="text-sm font-semibold quran-title">نتائج البحث</div>
-            <Badge className="tabular-nums">{ayahResults.length}</Badge>
+            <div className="flex items-center gap-2">
+              {ayahTotalFound > ayahResults.length && (
+                <span className="text-[11px] opacity-55">أول {ayahResults.length} من {ayahTotalFound}</span>
+              )}
+              <Badge className="tabular-nums">{ayahResults.length}</Badge>
+            </div>
           </div>
 
           {ayahResults.length === 0 ? (
-            <div className="mt-4 text-sm opacity-65 leading-7">
-              اكتب جزءًا من الآية لعرض النتائج.
+            <div className="mt-6 flex flex-col items-center gap-2 text-center py-4">
+              <div className="text-2xl opacity-40">🔍</div>
+              <div className="text-sm opacity-55">
+                {query.length < 2 ? "اكتب كلمتين على الأقل" : "لا توجد نتائج للبحث"}
+              </div>
             </div>
           ) : (
             <div className="mt-4 space-y-3">

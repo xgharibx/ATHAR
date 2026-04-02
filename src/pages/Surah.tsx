@@ -80,6 +80,16 @@ export function SurahPage() {
     return data.find((s) => s.id === surahId) ?? null;
   }, [data, surahId]);
 
+  const prevSurahName = React.useMemo(() => {
+    if (!data || surahId <= 1) return null;
+    return data.find((s) => s.id === surahId - 1)?.name ?? null;
+  }, [data, surahId]);
+
+  const nextSurahName = React.useMemo(() => {
+    if (!data || surahId >= 114) return null;
+    return data.find((s) => s.id === surahId + 1)?.name ?? null;
+  }, [data, surahId]);
+
   const displayAyahs = React.useMemo(() => {
     if (!surah) return [] as Array<{ text: string; displayAyah: number; originalAyah: number }>;
 
@@ -370,20 +380,26 @@ export function SurahPage() {
             </div>
             <div className="flex items-center gap-0.5 mr-1 border-r border-white/10 pr-2">
               {surahId > 1 && (
-                <IconButton
-                  aria-label="السورة السابقة"
+                <button
+                  title={prevSurahName ?? undefined}
+                  aria-label={`السورة السابقة${prevSurahName ? `: ${prevSurahName}` : ""}`}
                   onClick={() => navigate(`/quran/${surahId - 1}`)}
+                  className="min-h-[36px] flex items-center gap-1 px-2 rounded-xl hover:bg-white/8 transition text-xs opacity-70 hover:opacity-100"
                 >
                   <ChevronRight size={15} />
-                </IconButton>
+                  {prevSurahName && <span className="arabic-text hidden sm:inline">{prevSurahName}</span>}
+                </button>
               )}
               {surahId < 114 && (
-                <IconButton
-                  aria-label="السورة التالية"
+                <button
+                  title={nextSurahName ?? undefined}
+                  aria-label={`السورة التالية${nextSurahName ? `: ${nextSurahName}` : ""}`}
                   onClick={() => navigate(`/quran/${surahId + 1}`)}
+                  className="min-h-[36px] flex items-center gap-1 px-2 rounded-xl hover:bg-white/8 transition text-xs opacity-70 hover:opacity-100"
                 >
+                  {nextSurahName && <span className="arabic-text hidden sm:inline">{nextSurahName}</span>}
                   <ChevronLeft size={15} />
-                </IconButton>
+                </button>
               )}
             </div>
           </div>
