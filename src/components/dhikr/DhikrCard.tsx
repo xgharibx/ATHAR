@@ -229,7 +229,7 @@ export function DhikrCard(props: {
     }
 
     // Completion confetti
-    if (next >= target) {
+    if (next === target) {
       // Haptic + auto-advance signal after a short delay
       if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
       if (prefs.autoAdvanceDhikr && props.onComplete) {
