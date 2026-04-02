@@ -1,10 +1,11 @@
 import * as React from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
-import { Search, ArrowUpRight } from "lucide-react";
+import { Search, ArrowUpRight, X } from "lucide-react";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { Input } from "@/components/ui/Input";
+import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
 import type { FlatDhikr } from "@/data/types";
 
@@ -35,8 +36,13 @@ export function SearchPage() {
           <Search size={18} className="opacity-70" />
           <div className="font-semibold">بحث</div>
         </div>
-        <div className="mt-4">
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث داخل الأذكار…" />
+        <div className="mt-4 relative flex items-center gap-2">
+          <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث داخل الأذكار…" />
+          {q ? (
+            <IconButton aria-label="مسح" onClick={() => setQ("")}>
+              <X size={16} />
+            </IconButton>
+          ) : null}
         </div>
         <div className="mt-2 text-xs opacity-65 leading-5">
           نصائح: ابحث بكلمة عربية أو اسم قسم. أمثلة: <span className="opacity-80">الله</span> —{" "}
@@ -61,7 +67,6 @@ export function SearchPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-sm font-semibold">{r.sectionTitle}</div>
-                    <div className="mt-1 text-xs opacity-60">{r.sectionId}</div>
                   </div>
                   <ArrowUpRight size={18} className="opacity-60" />
                 </div>
