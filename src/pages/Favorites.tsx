@@ -13,6 +13,8 @@ export function FavoritesPage() {
   const favorites = useNoorStore((s) => s.favorites);
   const toggleFavorite = useNoorStore((s) => s.toggleFavorite);
 
+  const [confirmDeleteKey, setConfirmDeleteKey] = React.useState<string | null>(null);
+
   const favKeys = React.useMemo(() => Object.keys(favorites).filter((k) => favorites[k]), [favorites]);
 
   const items = React.useMemo(() => {
@@ -52,7 +54,6 @@ export function FavoritesPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-sm font-semibold">{r.sectionTitle}</div>
-                      <div className="mt-1 text-xs opacity-60">{r.sectionId}</div>
                     </div>
                     <ArrowUpRight size={18} className="opacity-60" />
                   </div>
@@ -62,10 +63,21 @@ export function FavoritesPage() {
                   </div>
                 </button>
 
-                <Button variant="outline" onClick={() => toggleFavorite(r.sectionId, r.index)}>
-                  <Trash2 size={16} />
-                  حذف
-                </Button>
+                {confirmDeleteKey === r.key ? (
+                  <div className="flex flex-col gap-2">
+                    <Button variant="danger" size="sm" onClick={() => { toggleFavorite(r.sectionId, r.index); setConfirmDeleteKey(null); }}>
+                      تأكيد
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteKey(null)}>
+                      إلغاء
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" onClick={() => setConfirmDeleteKey(r.key)}>
+                    <Trash2 size={16} />
+                    حذف
+                  </Button>
+                )}
               </div>
             ))}
           </div>
