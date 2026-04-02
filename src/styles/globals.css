@@ -404,7 +404,8 @@ html.midnight body.transparent-mode .glass-strong {
   vertical-align: middle;
   margin: 0 0.35rem;
   padding: 0 1.0rem;
-  height: 2.4rem;
+  height: 2.75rem;
+  min-width: 2.75rem;
   border-radius: 9999px;
   border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--stroke));
   color: color-mix(in srgb, var(--accent) 92%, var(--fg));

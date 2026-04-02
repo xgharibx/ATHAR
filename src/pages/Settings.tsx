@@ -460,7 +460,7 @@ export function SettingsPage() {
                   if (file) void onRestore(file);
                 }}
               />
-              <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/12 border border-white/10 cursor-pointer text-sm">
+              <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/12 border border-white/10 cursor-pointer text-sm min-h-[44px]">
                 <Upload size={16} />
                 استيراد
               </span>

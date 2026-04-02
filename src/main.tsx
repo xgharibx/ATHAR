@@ -36,11 +36,11 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
           </div>
           <div className="mt-2 text-xs opacity-60 break-words">{this.state.message}</div>
           <div className="mt-4 flex gap-2">
-            <button className="px-4 py-2 rounded-2xl bg-white/10 border border-white/10" onClick={() => window.location.reload()}>
+            <button className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 min-h-[44px]" onClick={() => window.location.reload()}>
               تحديث الصفحة
             </button>
             <button
-              className="px-4 py-2 rounded-2xl bg-white/10 border border-white/10"
+              className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 min-h-[44px]"
               onClick={() => {
                 localStorage.clear();
                 window.location.reload();
