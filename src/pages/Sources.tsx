@@ -10,6 +10,7 @@ import { addPackFromJson, loadPacks, removePack, savePacks, type NoorPack } from
 export function SourcesPage() {
   const { data } = useAdhkarDB();
   const [packs, setPacks] = React.useState<NoorPack[]>(() => loadPacks());
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
 
   const refresh = () => setPacks(loadPacks());
 
@@ -30,9 +31,9 @@ export function SourcesPage() {
   };
 
   const onRemove = (packId: string) => {
-    if (!confirm("حذف هذه الحزمة؟")) return;
     const next = removePack(packId);
     setPacks(next);
+    setConfirmDeleteId(null);
     toast.success("تم الحذف. أعد تحميل الصفحة.");
     setTimeout(() => window.location.reload(), 400);
   };
@@ -118,10 +119,26 @@ export function SourcesPage() {
                     {p.sections.length} قسم • {new Date(p.importedAt).toLocaleString()}
                   </div>
                 </div>
-                <Button variant="outline" onClick={() => onRemove(p.packId)}>
-                  <Trash2 size={16} />
-                  حذف
-                </Button>
+                {confirmDeleteId === p.packId ? (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10"
+                      onClick={() => onRemove(p.packId)}
+                    >
+                      <Trash2 size={16} />
+                      تأكيد
+                    </Button>
+                    <Button variant="outline" onClick={() => setConfirmDeleteId(null)}>
+                      إلغاء
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" onClick={() => setConfirmDeleteId(p.packId)}>
+                    <Trash2 size={16} />
+                    حذف
+                  </Button>
+                )}
               </div>
             ))}
           </div>

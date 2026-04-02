@@ -59,6 +59,7 @@ export function DhikrCard(props: {
   index: number;
   item: DhikrItem;
   autoFocus?: boolean;
+  totalItems?: number;
 }) {
   const { sectionId, index, item } = props;
 
@@ -363,6 +364,11 @@ export function DhikrCard(props: {
               </Dropdown.Portal>
             </Dropdown.Root>
           </div>
+          {props.totalItems != null && (
+            <div className="text-xs tabular-nums opacity-35 leading-tight text-end self-center shrink-0">
+              {index + 1}/{props.totalItems}
+            </div>
+          )}
         </div>
 
         {/* Text + swipe zone */}
@@ -487,9 +493,12 @@ export function DhikrCard(props: {
 
         {/* Benefit */}
         {prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
-          <div className="mt-4 rounded-2xl bg-white/6 border border-white/10 p-3 text-sm opacity-85 leading-7">
-            <div className="text-xs opacity-70 mb-1">الفضل / المصدر</div>
-            <div>{item.benefit}</div>
+          <div className="mt-4 rounded-2xl bg-[var(--accent)]/8 border border-[var(--accent)]/15 p-3 text-sm leading-7">
+            <div className="text-xs font-semibold opacity-55 mb-1.5 flex items-center gap-1.5">
+              <span className="text-[var(--accent)] opacity-80">✦</span>
+              <span>الفضل / المصدر</span>
+            </div>
+            <div className="opacity-85">{item.benefit}</div>
           </div>
         ) : null}
       </div>

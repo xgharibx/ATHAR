@@ -21,6 +21,7 @@ export function DhikrList(props: {
 }) {
   const resetSection = useNoorStore((s) => s.resetSection);
   const progressMap = useNoorStore((s) => s.progress);
+  const [confirmReset, setConfirmReset] = React.useState(false);
   const isDailySectionLocked = isDailySection(props.sectionId);
   const identity = React.useMemo(() => getSectionIdentity(props.sectionId), [props.sectionId]);
 
@@ -75,17 +76,34 @@ export function DhikrList(props: {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (confirm("هل تريد تصفير التقدّم لهذا القسم بالكامل؟")) resetSection(props.sectionId);
-                }}
-                disabled={isDailySectionLocked}
-                title={isDailySectionLocked ? "يتجدد هذا القسم تلقائيًا عند منتصف الليل" : "تصفير القسم"}
-              >
-                <RotateCcw size={16} />
-                تصفير القسم
-              </Button>
+              {confirmReset ? (
+                <>
+                  <Button
+                    variant="outline"
+                    className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10"
+                    onClick={() => {
+                      resetSection(props.sectionId);
+                      setConfirmReset(false);
+                    }}
+                  >
+                    <RotateCcw size={16} />
+                    تأكيد التصفير
+                  </Button>
+                  <Button variant="outline" onClick={() => setConfirmReset(false)}>
+                    إلغاء
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmReset(true)}
+                  disabled={isDailySectionLocked}
+                  title={isDailySectionLocked ? "يتجدد هذا القسم تلقائيًا عند منتصف الليل" : "تصفير القسم"}
+                >
+                  <RotateCcw size={16} />
+                  تصفير القسم
+                </Button>
+              )}
               <Button variant="secondary" onClick={exportSection}>
                 <ArrowDownToLine size={16} />
                 تصدير
@@ -113,6 +131,7 @@ export function DhikrList(props: {
                 index={index}
                 item={item}
                 autoFocus={props.focusIndex === index}
+                totalItems={props.items.length}
               />
             </div>
           )}
