@@ -19,6 +19,7 @@ import {
   enqueuePayload,
   fetchBoardRows,
   flushQueue,
+  hasLocalLeaderboardAdminToken,
   loadLeaderboardAdminToken,
   saveLeaderboardAdminToken,
   clearLeaderboardAdminToken,
@@ -83,6 +84,7 @@ export function LeaderboardPage() {
   const [aliasHint, setAliasHint] = React.useState("يمكنك اختيار اسم ظاهر وسيُراجع على الخادم عند المزامنة.");
   const [aliasTone, setAliasTone] = React.useState<"idle" | "ok" | "error" | "moderated">("idle");
   const [serverHidden, setServerHidden] = React.useState(false);
+  const [showAdminCard, setShowAdminCard] = React.useState(() => hasLocalLeaderboardAdminToken());
 
   const aliasValidation = React.useMemo(() => validateLeaderboardAlias(aliasDraft), [aliasDraft]);
   const aliasDirty = aliasDraft.trim() !== identity.alias;
@@ -97,6 +99,10 @@ export function LeaderboardPage() {
     }, 500);
     return () => clearInterval(interval);
   }, [lastSubmitAt]);
+
+  React.useEffect(() => {
+    setShowAdminCard(hasLocalLeaderboardAdminToken());
+  }, []);
 
   const sections = React.useMemo(() => data?.db.sections ?? [], [data?.db.sections]);
 
@@ -531,7 +537,14 @@ export function LeaderboardPage() {
         </div>
       </Card>
 
-      <LeaderboardAdminCard endpoint={endpoint} rows={mergedRows} onRefreshBoard={pullBoard} />
+      {showAdminCard ? (
+        <LeaderboardAdminCard
+          endpoint={endpoint}
+          rows={mergedRows}
+          onRefreshBoard={pullBoard}
+          onAdminAccessChange={() => setShowAdminCard(hasLocalLeaderboardAdminToken())}
+        />
+      ) : null}
     </div>
   );
 }
@@ -562,6 +575,7 @@ function LeaderboardAdminCard(props: {
   endpoint: string;
   rows: LeaderboardEntry[];
   onRefreshBoard: () => void | Promise<void>;
+  onAdminAccessChange: () => void;
 }) {
   const [expanded, setExpanded] = React.useState(false);
   const [tokenDraft, setTokenDraft] = React.useState(() => loadLeaderboardAdminToken());
@@ -649,6 +663,7 @@ function LeaderboardAdminCard(props: {
     setTokenDraft(saved);
     setAdminTone(saved ? "ok" : "idle");
     setAdminHint(saved ? "تم حفظ رمز الإدارة محليًا على هذا الجهاز فقط." : "تم مسح رمز الإدارة المحلي.");
+    props.onAdminAccessChange();
     if (saved && expanded && hasEndpoint) {
       void loadSnapshot();
     }
@@ -660,7 +675,8 @@ function LeaderboardAdminCard(props: {
     setTokenDraft("");
     setSnapshot({ blocklist: [], audits: [] });
     setAdminTone("idle");
-    setAdminHint("تم حذف رمز الإدارة من هذا الجهاز.");
+    setAdminHint("تم حذف رمز الإدارة من هذا الجهاز. لن تظهر لوحة الإدارة هنا مرة أخرى حتى يُحفظ الرمز محليًا من جديد.");
+    props.onAdminAccessChange();
   };
 
   const submitBlockRule = async () => {

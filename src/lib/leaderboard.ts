@@ -496,6 +496,10 @@ export function clearLeaderboardAdminToken() {
   }
 }
 
+export function hasLocalLeaderboardAdminToken() {
+  return loadLeaderboardAdminToken().trim().length > 0;
+}
+
 export function syncLeaderboardAliasFromServer(alias: string) {
   const identity = getLeaderboardIdentity();
   const nextAlias = normalizeAlias(alias, identity.id);
