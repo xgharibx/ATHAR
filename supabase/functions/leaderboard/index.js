@@ -13,7 +13,29 @@ const MAX_SECTION_ITEMS = 64;
 const MAX_DAY_SKEW = 3;
 const MAX_GENERATED_AT_SKEW_MS = 36 * 60 * 60 * 1000;
 const MAX_EVENTS_PER_USER_PER_DAY = 2000;
+const MAX_ALIAS_LENGTH = 40;
 const limiter = new Map();
+const blocklistCache = { loadedAt: 0, rows: [] };
+const BLOCKLIST_CACHE_MS = 60_000;
+
+const INVISIBLE_ALIAS_CHARS_RE = /[\u200B-\u200F\u2060\uFEFF]/g;
+const MULTI_SPACE_RE = /\s+/g;
+const ALIAS_ALLOWED_RE = /^[\p{L}\p{N} _.-]+$/u;
+const RESERVED_ALIAS_PATTERNS = [
+  /^admin$/iu,
+  /^administrator$/iu,
+  /^support$/iu,
+  /^moderator$/iu,
+  /^mod$/iu,
+  /^owner$/iu,
+  /^system$/iu,
+  /^athar$/iu,
+  /^أثر$/u,
+  /^الادارة$/u,
+  /^الإدارة$/u,
+  /^مشرف$/u,
+  /^الدعم$/u
+];
 
 function hashString(input) {
   let h = 0;
@@ -27,6 +49,146 @@ function hashString(input) {
 function canonicalAliasFromUserId(userId) {
   const idx = (hashString(userId || "anon") % 9999) + 1;
   return `مستخدم ${idx}`;
+}
+
+function normalizeAliasInput(input) {
+  return String(input ?? "")
+    .replace(INVISIBLE_ALIAS_CHARS_RE, "")
+    .replace(MULTI_SPACE_RE, " ")
+    .trim()
+    .slice(0, MAX_ALIAS_LENGTH);
+}
+
+function validateAliasInput(input) {
+  const value = normalizeAliasInput(input);
+  if (!value) return { ok: false, reason: "empty", value };
+  if (value.length < 3) return { ok: false, reason: "too-short", value };
+  if (/(https?:\/\/|www\.)/iu.test(value)) return { ok: false, reason: "link", value };
+  if (!ALIAS_ALLOWED_RE.test(value)) return { ok: false, reason: "bad-chars", value };
+  if (/(.)\1{5,}/u.test(value)) return { ok: false, reason: "spam", value };
+  if (RESERVED_ALIAS_PATTERNS.some((re) => re.test(value))) return { ok: false, reason: "reserved", value };
+  return { ok: true, value };
+}
+
+function isMissingRelationError(error) {
+  return error?.code === "42P01" || String(error?.message ?? "").includes("does not exist");
+}
+
+async function readNameBlocklist(db) {
+  if (Date.now() - blocklistCache.loadedAt < BLOCKLIST_CACHE_MS) {
+    return blocklistCache.rows;
+  }
+
+  const res = await db
+    .from("leaderboard_name_blocklist")
+    .select("term,match_mode,is_active")
+    .eq("is_active", true)
+    .limit(500);
+
+  if (res.error) {
+    if (!isMissingRelationError(res.error)) {
+      console.error("leaderboard_name_blocklist read failed", res.error);
+    }
+    return [];
+  }
+
+  blocklistCache.rows = Array.isArray(res.data) ? res.data : [];
+  blocklistCache.loadedAt = Date.now();
+  return blocklistCache.rows;
+}
+
+async function readUserModeration(db, userId) {
+  const res = await db
+    .from("leaderboard_user_moderation")
+    .select("user_id,hidden,forced_alias,reason")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (res.error) {
+    if (!isMissingRelationError(res.error)) {
+      console.error("leaderboard_user_moderation read failed", res.error);
+    }
+    return null;
+  }
+
+  return res.data ?? null;
+}
+
+async function readUserModerationMap(db, userIds) {
+  if (!Array.isArray(userIds) || userIds.length === 0) return new Map();
+
+  const res = await db
+    .from("leaderboard_user_moderation")
+    .select("user_id,hidden,forced_alias,reason")
+    .in("user_id", userIds);
+
+  if (res.error) {
+    if (!isMissingRelationError(res.error)) {
+      console.error("leaderboard_user_moderation map read failed", res.error);
+    }
+    return new Map();
+  }
+
+  return new Map((res.data ?? []).map((row) => [row.user_id, row]));
+}
+
+function aliasBlockedByList(alias, rows) {
+  const value = normalizeAliasInput(alias).toLocaleLowerCase();
+  for (const row of rows ?? []) {
+    const term = normalizeAliasInput(row?.term).toLocaleLowerCase();
+    if (!term) continue;
+    const mode = row?.match_mode === "exact" ? "exact" : "contains";
+    if ((mode === "exact" && value === term) || (mode === "contains" && value.includes(term))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function publicAliasOrCanonical(userId, alias, moderationRow, blocklistRows) {
+  const canonical = canonicalAliasFromUserId(userId);
+
+  if (moderationRow?.forced_alias) {
+    const forced = normalizeAliasInput(moderationRow.forced_alias);
+    return forced || canonical;
+  }
+
+  const validation = validateAliasInput(alias);
+  if (!validation.ok) return canonical;
+  if (aliasBlockedByList(validation.value, blocklistRows)) return canonical;
+  return validation.value;
+}
+
+async function resolveAliasDecision(db, userId, requestedAlias) {
+  const canonical = canonicalAliasFromUserId(userId);
+  const moderationRow = await readUserModeration(db, userId);
+  const blocklistRows = await readNameBlocklist(db);
+
+  if (moderationRow?.hidden) {
+    return { alias: publicAliasOrCanonical(userId, requestedAlias, moderationRow, blocklistRows), hidden: true, status: "hidden", reason: moderationRow.reason ?? "hidden" };
+  }
+
+  if (moderationRow?.forced_alias) {
+    return { alias: publicAliasOrCanonical(userId, requestedAlias, moderationRow, blocklistRows), hidden: false, status: "forced", reason: moderationRow.reason ?? "forced-alias" };
+  }
+
+  const validation = validateAliasInput(requestedAlias);
+  if (!validation.ok) {
+    return { alias: canonical, hidden: false, status: "fallback", reason: validation.reason };
+  }
+
+  if (aliasBlockedByList(validation.value, blocklistRows)) {
+    return { alias: canonical, hidden: false, status: "moderated", reason: "blocked-term" };
+  }
+
+  return { alias: validation.value, hidden: false, status: "accepted", reason: null };
+}
+
+async function auditAliasDecision(db, input) {
+  const res = await db.from("leaderboard_alias_audit").insert(input);
+  if (res.error && !isMissingRelationError(res.error)) {
+    console.error("leaderboard_alias_audit insert failed", res.error);
+  }
 }
 
 function json(data, status = 200) {
@@ -61,7 +223,8 @@ function dayDiff(day) {
 
 function sanitizePayload(payload) {
   const userId = String(payload?.identity?.id ?? "");
-  const sectionEntries = Object.entries(payload.scores.sections ?? {})
+  const rawScores = payload?.scores ?? {};
+  const sectionEntries = Object.entries(rawScores.sections ?? {})
     .slice(0, MAX_SECTION_ITEMS)
     .map(([k, v]) => [k, clampInt(v)]);
 
@@ -69,14 +232,14 @@ function sanitizePayload(payload) {
     ...payload,
     identity: {
       ...payload.identity,
-      alias: canonicalAliasFromUserId(userId)
+      alias: normalizeAliasInput(payload?.identity?.alias)
     },
     scores: {
-      global: clampInt(payload.scores.global),
-      dhikr: clampInt(payload.scores.dhikr),
-      quran: clampInt(payload.scores.quran),
-      prayers: clampInt(payload.scores.prayers),
-      tasbeehDaily: clampInt(payload.scores.tasbeehDaily),
+      global: clampInt(rawScores.global),
+      dhikr: clampInt(rawScores.dhikr),
+      quran: clampInt(rawScores.quran),
+      prayers: clampInt(rawScores.prayers),
+      tasbeehDaily: clampInt(rawScores.tasbeehDaily),
       sections: Object.fromEntries(sectionEntries)
     }
   };
@@ -153,12 +316,12 @@ function periodRange(anchorISO, period) {
   return { from: dateOnly(first), to: dateOnly(end) };
 }
 
-function eventRows(payload) {
+function eventRows(payload, resolvedAlias) {
   const base = {
     generated_at: payload.generatedAt,
     day: payload.day,
     user_id: payload.identity.id,
-    alias: payload.identity.alias,
+    alias: resolvedAlias,
     fingerprint: payload.identity.fingerprint,
     checksum: payload.checksum,
     period: "daily",
@@ -190,6 +353,7 @@ function aggregateRows(input) {
       map.set(key, { userId: r.user_id, alias: r.alias, score: clampInt(r.score), sectionId: r.section_id });
       continue;
     }
+    prev.alias = String(r.alias ?? prev.alias ?? "");
     prev.score += clampInt(r.score);
     map.set(key, prev);
   }
@@ -224,6 +388,19 @@ denoRuntime.serve(async (req) => {
     const validation = validatePayload(payload);
     if (!validation.ok) return json({ ok: false, error: validation.reason }, 400);
 
+    const aliasDecision = await resolveAliasDecision(db, payload.identity.id, payload.identity.alias);
+    await auditAliasDecision(db, {
+      user_id: payload.identity.id,
+      requested_alias: normalizeAliasInput(payload.identity.alias),
+      resolved_alias: aliasDecision.alias,
+      status: aliasDecision.status,
+      reason: aliasDecision.reason
+    });
+
+    if (aliasDecision.hidden) {
+      return json({ ok: true, hidden: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status });
+    }
+
     const duplicateRes = await db
       .from("leaderboard_score_events")
       .select("id")
@@ -246,7 +423,7 @@ denoRuntime.serve(async (req) => {
       return json({ ok: false, error: "daily-limit" }, 429);
     }
 
-    const rows = eventRows(payload);
+    const rows = eventRows(payload, aliasDecision.alias);
     const insertEvents = await db.from("leaderboard_score_events").insert(rows);
     if (insertEvents.error) return json({ ok: false, error: "event-insert-failed" }, 500);
 
@@ -270,7 +447,7 @@ denoRuntime.serve(async (req) => {
         board,
         section_id: board === "section" ? g.sectionId : null,
         user_id: g.userId,
-        alias: g.alias,
+        alias: publicAliasOrCanonical(g.userId, g.alias, null, []),
         score: g.score,
         updated_at: new Date().toISOString()
       }));
@@ -281,7 +458,7 @@ denoRuntime.serve(async (req) => {
         .upsert(rollupRows, { onConflict: "day,period,board,section_id,user_id" });
     }
 
-    return json({ ok: true });
+      return json({ ok: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false });
   }
 
   if (req.method === "GET") {
@@ -312,15 +489,22 @@ denoRuntime.serve(async (req) => {
     const rowsRes = await query;
     if (rowsRes.error) return json({ ok: false, error: "read-failed" }, 500);
 
+    const moderationMap = await readUserModerationMap(
+      db,
+      [...new Set((rowsRes.data ?? []).map((row) => row.user_id).filter(Boolean))]
+    );
+    const blocklistRows = await readNameBlocklist(db);
+
     const grouped = aggregateRows(rowsRes.data ?? [])
       .map((r) => ({
         id: r.userId,
-        name: canonicalAliasFromUserId(r.userId),
+        name: publicAliasOrCanonical(r.userId, r.alias, moderationMap.get(r.userId) ?? null, blocklistRows),
         board,
         score: r.score,
         day,
         sectionId: r.sectionId ?? undefined
       }))
+      .filter((row) => !(moderationMap.get(row.id)?.hidden))
       .sort((a, b) => b.score - a.score)
       .slice(0, 30);
 

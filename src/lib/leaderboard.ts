@@ -18,6 +18,18 @@ export type LeaderboardIdentity = {
   secret: string;
 };
 
+export type LeaderboardAliasReason =
+  | "empty"
+  | "too-short"
+  | "bad-chars"
+  | "link"
+  | "spam"
+  | "reserved";
+
+export type LeaderboardAliasValidation =
+  | { ok: true; value: string }
+  | { ok: false; value: string; reason: LeaderboardAliasReason; message: string };
+
 export type LeaderboardScoreBundle = {
   global: number;
   dhikr: number;
@@ -40,6 +52,15 @@ export type LeaderboardSubmitPayload = {
   checksum: string;
 };
 
+export type FlushQueueResult = {
+  ok: boolean;
+  sent: number;
+  reason: "rate_limited" | "auth" | "invalid_payload" | "server" | "network_retry" | null;
+  alias?: string;
+  aliasStatus?: string;
+  hidden?: boolean;
+};
+
 import {
   LEADERBOARD_POLICY,
   sanitizeBoardName,
@@ -57,6 +78,25 @@ const USER_INDEX_KEY = "noor_lb_user_index_v2";
 const USER_COUNTER_KEY = "noor_lb_user_counter_v2";
 const QUEUE_KEY = "noor_lb_queue_v2";
 const HISTORY_KEY = "noor_lb_history_v2";
+
+const INVISIBLE_ALIAS_CHARS_RE = /[\u200B-\u200F\u2060\uFEFF]/g;
+const MULTI_SPACE_RE = /\s+/g;
+const ALIAS_ALLOWED_RE = /^[\p{L}\p{N} _.-]+$/u;
+const RESERVED_ALIAS_PATTERNS = [
+  /^admin$/iu,
+  /^administrator$/iu,
+  /^support$/iu,
+  /^moderator$/iu,
+  /^mod$/iu,
+  /^owner$/iu,
+  /^system$/iu,
+  /^athar$/iu,
+  /^أثر$/u,
+  /^الادارة$/u,
+  /^الإدارة$/u,
+  /^مشرف$/u,
+  /^الدعم$/u
+];
 
 function getLeaderboardHeaders(includeContentType: boolean = true): Record<string, string> {
   const apiKey =
@@ -141,10 +181,49 @@ function canonicalAliasFromId(id: string) {
   return `مستخدم ${idx}`;
 }
 
+function cleanAliasInput(alias: unknown) {
+  return String(alias ?? "")
+    .replace(INVISIBLE_ALIAS_CHARS_RE, "")
+    .replace(MULTI_SPACE_RE, " ")
+    .trim()
+    .slice(0, LEADERBOARD_POLICY.MAX_ALIAS_LENGTH);
+}
+
+export function validateLeaderboardAlias(alias: unknown): LeaderboardAliasValidation {
+  const value = cleanAliasInput(alias);
+
+  if (!value) {
+    return { ok: false, value, reason: "empty", message: "أدخل اسمًا ظاهرًا للمتصدرين" };
+  }
+
+  if (value.length < 3) {
+    return { ok: false, value, reason: "too-short", message: "الاسم يجب أن يكون 3 أحرف على الأقل" };
+  }
+
+  if (/(https?:\/\/|www\.)/iu.test(value)) {
+    return { ok: false, value, reason: "link", message: "لا تسمح الأسماء بروابط أو مواقع" };
+  }
+
+  if (!ALIAS_ALLOWED_RE.test(value)) {
+    return { ok: false, value, reason: "bad-chars", message: "استخدم حروفًا وأرقامًا ومسافات فقط" };
+  }
+
+  if (/(.)\1{5,}/u.test(value)) {
+    return { ok: false, value, reason: "spam", message: "الاسم يبدو مزعجًا أو مكررًا بشكل مبالغ" };
+  }
+
+  if (RESERVED_ALIAS_PATTERNS.some((re) => re.test(value))) {
+    return { ok: false, value, reason: "reserved", message: "هذا الاسم محجوز أو قد يسبب انتحالًا" };
+  }
+
+  return { ok: true, value };
+}
+
 function normalizeAlias(alias: unknown, id: string) {
-  const value = String(alias ?? "").trim();
-  if (/^مستخدم\s+\d+$/i.test(value)) return value;
-  return canonicalAliasFromId(id);
+  const canonical = canonicalAliasFromId(id);
+  if (/^مستخدم\s+\d+$/i.test(String(alias ?? "").trim())) return String(alias ?? "").trim();
+  const validation = validateLeaderboardAlias(alias);
+  return validation.ok ? validation.value : canonical;
 }
 
 function ensureMigration() {
@@ -285,9 +364,7 @@ export function getLeaderboardIdentity(): LeaderboardIdentity {
       localStorage.setItem(USER_INDEX_KEY, String(userIndex));
     }
 
-    const canonicalAlias = canonicalAliasFromId(id);
     alias = normalizeAlias(alias, id);
-    if (alias !== canonicalAlias) alias = canonicalAlias;
     localStorage.setItem(ALIAS_KEY, alias);
 
     let secret = localStorage.getItem(SECRET_KEY);
@@ -306,6 +383,52 @@ export function getLeaderboardIdentity(): LeaderboardIdentity {
   }
 }
 
+export function setLeaderboardAlias(alias: string) {
+  const identity = getLeaderboardIdentity();
+  const validation = validateLeaderboardAlias(alias);
+
+  if (!validation.ok) {
+    return { ok: false as const, identity, reason: validation.reason, message: validation.message };
+  }
+
+  try {
+    localStorage.setItem(ALIAS_KEY, validation.value);
+  } catch {
+    // ignore storage write failures
+  }
+
+  return {
+    ok: true as const,
+    identity: { ...identity, alias: validation.value }
+  };
+}
+
+export function resetLeaderboardAlias() {
+  const identity = getLeaderboardIdentity();
+  const alias = canonicalAliasFromId(identity.id);
+
+  try {
+    localStorage.setItem(ALIAS_KEY, alias);
+  } catch {
+    // ignore storage write failures
+  }
+
+  return { ...identity, alias };
+}
+
+export function syncLeaderboardAliasFromServer(alias: string) {
+  const identity = getLeaderboardIdentity();
+  const nextAlias = normalizeAlias(alias, identity.id);
+
+  try {
+    localStorage.setItem(ALIAS_KEY, nextAlias);
+  } catch {
+    // ignore storage write failures
+  }
+
+  return { ...identity, alias: nextAlias };
+}
+
 async function sha256(input: string) {
   const data = new TextEncoder().encode(input);
   const hash = await crypto.subtle.digest("SHA-256", data);
@@ -314,7 +437,7 @@ async function sha256(input: string) {
 
 export async function buildSubmitPayload(day: string, scores: LeaderboardScoreBundle) {
   const identity = getLeaderboardIdentity();
-  const alias = canonicalAliasFromId(identity.id);
+  const alias = normalizeAlias(identity.alias, identity.id);
   const cleanScores = sanitizeScores({
     global: normalizeScore(scores.global),
     dhikr: normalizeScore(scores.dhikr),
@@ -397,15 +520,16 @@ function shouldRetryStatus(status: number) {
   return [401, 403, 404, 408, 425, 429].includes(status);
 }
 
-export async function flushQueue(endpoint: string) {
-  if (!endpoint) return { ok: false, sent: 0 };
+export async function flushQueue(endpoint: string): Promise<FlushQueueResult> {
+  if (!endpoint) return { ok: false, sent: 0, reason: null };
 
   const queue = readQueue();
-  if (queue.length === 0) return { ok: true, sent: 0 };
+  if (queue.length === 0) return { ok: true, sent: 0, reason: null };
 
   let sent = 0;
   let droppedPermanent = 0;
   let lastError: "rate_limited" | "auth" | "invalid_payload" | "server" | "network_retry" | null = null;
+  let lastAck: { alias?: string; aliasStatus?: string; hidden?: boolean } | null = null;
   const remaining: LeaderboardSubmitPayload[] = [];
 
   for (const item of queue) {
@@ -416,8 +540,23 @@ export async function flushQueue(endpoint: string) {
 
     try {
       const res = await submitWithFallback(endpoint, item);
+      let body: unknown = null;
+      try {
+        body = await res.clone().json();
+      } catch {
+        body = null;
+      }
+
       if (res.ok) {
         sent += 1;
+        if (body && typeof body === "object") {
+          const record = body as Record<string, unknown>;
+          lastAck = {
+            alias: typeof record.alias === "string" ? record.alias : undefined,
+            aliasStatus: typeof record.aliasStatus === "string" ? record.aliasStatus : undefined,
+            hidden: record.hidden === true
+          };
+        }
         continue;
       }
 
@@ -436,7 +575,7 @@ export async function flushQueue(endpoint: string) {
 
   writeQueue(remaining);
   const ok = remaining.length === 0 && (sent > 0 || droppedPermanent === 0);
-  return { ok, sent, reason: ok ? null : lastError };
+  return { ok, sent, reason: ok ? null : lastError, ...(lastAck ?? {}) };
 }
 
 export async function fetchBoardRows(opts: {

@@ -4,6 +4,7 @@ import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock } fro
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { coerceCount } from "@/data/types";
 import { useNoorStore } from "@/store/noorStore";
@@ -18,7 +19,11 @@ import {
   fetchBoardRows,
   flushQueue,
   getLeaderboardIdentity,
-  getLocalRowsFromHistory
+  getLocalRowsFromHistory,
+  resetLeaderboardAlias,
+  setLeaderboardAlias,
+  syncLeaderboardAliasFromServer,
+  validateLeaderboardAlias
 } from "@/lib/leaderboard";
 
 const COOLDOWN_MS = 45_000;
@@ -54,7 +59,7 @@ export function LeaderboardPage() {
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
 
   const endpoint = (import.meta.env.VITE_LEADERBOARD_ENDPOINT as string | undefined) ?? "";
-  const identity = React.useMemo(() => getLeaderboardIdentity(), []);
+  const [identity, setIdentity] = React.useState(() => getLeaderboardIdentity());
 
   const [board, setBoard] = React.useState<LeaderboardBoard>("global");
   const [period, setPeriod] = React.useState<LeaderboardPeriod>("daily");
@@ -64,6 +69,13 @@ export function LeaderboardPage() {
   const [syncHint, setSyncHint] = React.useState("");
   const [lastSubmitAt, setLastSubmitAt] = React.useState(0);
   const [cooldownLeft, setCooldownLeft] = React.useState(0);
+  const [aliasDraft, setAliasDraft] = React.useState(identity.alias);
+  const [aliasHint, setAliasHint] = React.useState("يمكنك اختيار اسم ظاهر وسيُراجع على الخادم عند المزامنة.");
+  const [aliasTone, setAliasTone] = React.useState<"idle" | "ok" | "error" | "moderated">("idle");
+  const [serverHidden, setServerHidden] = React.useState(false);
+
+  const aliasValidation = React.useMemo(() => validateLeaderboardAlias(aliasDraft), [aliasDraft]);
+  const aliasDirty = aliasDraft.trim() !== identity.alias;
 
   // Tick cooldown counter
   React.useEffect(() => {
@@ -147,28 +159,63 @@ export function LeaderboardPage() {
     [board, myBoardScore, myStats.id, myStats.name, selectedSection, todayKey]
   );
 
+  const localRows = React.useMemo(
+    () =>
+      getLocalRowsFromHistory({
+        identity,
+        board,
+        period,
+        todayISO: todayKey,
+        sectionId: board === "section" ? selectedSection : undefined
+      }),
+    [board, identity, period, selectedSection, todayKey]
+  );
+
   const mergedRows = React.useMemo(() => {
-    const source =
-      remoteRows.length > 0
-        ? remoteRows
-        : getLocalRowsFromHistory({
-            identity,
-            board,
-            period,
-            todayISO: todayKey,
-            sectionId: board === "section" ? selectedSection : undefined
-          });
-    const all = [...source.filter((r) => r.id !== myEntry.id), myEntry];
+    const source = remoteRows.length > 0 ? remoteRows : localRows.length > 0 ? localRows : [myEntry];
+    const all = serverHidden && remoteRows.length > 0 ? source.filter((r) => r.id !== myEntry.id) : source;
     return all
       .filter((r) => r.board === board && (board !== "section" || r.sectionId === selectedSection))
       .sort((a, b) => b.score - a.score)
       .slice(0, 30);
-  }, [board, identity, myEntry, period, remoteRows, selectedSection, todayKey]);
+  }, [board, localRows, myEntry, remoteRows, selectedSection, serverHidden]);
 
-  const myRank = React.useMemo(
-    () => Math.max(1, mergedRows.findIndex((r) => r.id === myEntry.id) + 1),
-    [mergedRows, myEntry.id]
-  );
+  const myRank = React.useMemo(() => {
+    const idx = mergedRows.findIndex((r) => r.id === myEntry.id);
+    if (idx >= 0) return idx + 1;
+    return remoteRows.length > 0 ? null : 1;
+  }, [mergedRows, myEntry.id, remoteRows.length]);
+
+  const applyServerAlias = React.useCallback((serverAlias?: string, aliasStatus?: string) => {
+    if (!serverAlias) return;
+    const nextIdentity = syncLeaderboardAliasFromServer(serverAlias);
+    setIdentity(nextIdentity);
+    setAliasDraft(nextIdentity.alias);
+
+    if (aliasStatus === "forced") {
+      setAliasTone("moderated");
+      setAliasHint("تم فرض اسم آمن من جهة الإدارة لهذا الحساب.");
+      return;
+    }
+
+    if (aliasStatus === "moderated" || aliasStatus === "fallback") {
+      setAliasTone("moderated");
+      setAliasHint("الخادم رفض الاسم المقترح واستخدم اسمًا آمنًا بدلًا منه.");
+      return;
+    }
+
+    setAliasTone("ok");
+    setAliasHint("تم اعتماد اسمك في لوحة المتصدرين.");
+  }, []);
+
+  React.useEffect(() => {
+    const mine = remoteRows.find((row) => row.id === identity.id);
+    if (!mine) return;
+    if (mine.name && mine.name !== identity.alias) {
+      applyServerAlias(mine.name, "accepted");
+    }
+    setServerHidden(false);
+  }, [applyServerAlias, identity.alias, identity.id, remoteRows]);
 
   const pullBoard = React.useCallback(async () => {
     if (!endpoint) {
@@ -196,6 +243,28 @@ export function LeaderboardPage() {
   React.useEffect(() => {
     void pullBoard();
   }, [pullBoard]);
+
+  const saveAlias = () => {
+    const result = setLeaderboardAlias(aliasDraft);
+    if (!result.ok) {
+      setAliasTone("error");
+      setAliasHint(result.message);
+      return;
+    }
+
+    setIdentity(result.identity);
+    setAliasDraft(result.identity.alias);
+    setAliasTone("ok");
+    setAliasHint(endpoint ? "تم حفظ الاسم محليًا. سيخضع للتصفية عند أول مزامنة." : "تم حفظ الاسم محليًا.");
+  };
+
+  const restoreDefaultAlias = () => {
+    const nextIdentity = resetLeaderboardAlias();
+    setIdentity(nextIdentity);
+    setAliasDraft(nextIdentity.alias);
+    setAliasTone("ok");
+    setAliasHint("تمت إعادة الاسم الافتراضي الآمن.");
+  };
 
   const submitScore = async () => {
     if (Date.now() - lastSubmitAt < COOLDOWN_MS) {
@@ -240,6 +309,20 @@ export function LeaderboardPage() {
       return;
     }
 
+    if (flush.alias) {
+      applyServerAlias(flush.alias, flush.aliasStatus);
+    }
+
+    if (flush.hidden) {
+      setServerHidden(true);
+      setSyncState("ok");
+      setSyncHint("تمت المزامنة لكن الحساب مخفي حاليًا من اللوحة من جهة الإدارة");
+      await pullBoard();
+      return;
+    }
+
+    setServerHidden(false);
+
     await pullBoard();
   };
 
@@ -262,6 +345,41 @@ export function LeaderboardPage() {
           <Stat title="الذكر" value={myStats.dhikr} />
           <Stat title="القرآن" value={myStats.quran} />
           <Stat title="المهام اليومية" value={myStats.prayers} />
+        </div>
+
+        <div className="mt-4 rounded-3xl border border-white/10 bg-white/4 p-4">
+          <div className="text-sm font-semibold">اسم الظهور</div>
+          <div className="mt-1 text-[11px] opacity-60">
+            الأسماء المخالفة أو المضللة قد تُستبدل تلقائيًا أو تُخفى من جهة الإدارة.
+          </div>
+          <div className="mt-3 flex flex-col md:flex-row gap-2">
+            <Input
+              value={aliasDraft}
+              onChange={(e) => setAliasDraft(e.target.value)}
+              maxLength={40}
+              placeholder="مثال: نور الشام"
+            />
+            <Button onClick={saveAlias} disabled={!aliasDirty || !aliasValidation.ok}>
+              حفظ الاسم
+            </Button>
+            <Button variant="outline" onClick={restoreDefaultAlias}>
+              اسم افتراضي
+            </Button>
+          </div>
+          <div
+            className={cn(
+              "mt-2 text-[11px] leading-5",
+              aliasDirty && !aliasValidation.ok
+                ? "text-[var(--danger)]"
+                : aliasTone === "moderated"
+                  ? "text-yellow-300"
+                  : aliasTone === "ok"
+                    ? "text-[var(--ok)]"
+                    : "opacity-60"
+            )}
+          >
+            {aliasDirty && !aliasValidation.ok ? aliasValidation.message : aliasHint}
+          </div>
         </div>
 
         <div className="mt-3 text-xs opacity-75">
@@ -322,7 +440,7 @@ export function LeaderboardPage() {
             <RotateCw size={16} className={syncState === "syncing" ? "animate-spin" : ""} />
             تحديث
           </Button>
-          <Badge>رتبتي: #{myRank}</Badge>
+          <Badge>{myRank != null ? `رتبتي: #${myRank}` : "رتبتي: خارج أعلى 30"}</Badge>
           <span className={cn(
             "inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border",
             syncState === "ok"
@@ -352,6 +470,12 @@ export function LeaderboardPage() {
                     : "محلي"}
           </span>
         </div>
+
+        {serverHidden && (
+          <div className="mt-3 rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-xs text-yellow-200 leading-6">
+            هذا الحساب مخفي حاليًا من لوحة المتصدرين من جهة الإدارة. يمكنك تعديل الاسم ثم إعادة المزامنة أو التواصل مع المشرف.
+          </div>
+        )}
       </Card>
 
       <Card className="p-5">
