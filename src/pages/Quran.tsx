@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Bookmark, BookOpen, Search, Shuffle, Sparkles } from "lucide-react";
+import { Bookmark, BookOpen, Search, Shuffle, Sparkles, X } from "lucide-react";
 
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -30,6 +30,15 @@ export function QuranPage() {
   const [jumpMushafPage, setJumpMushafPage] = React.useState("");
 
   const bookmarkedCount = React.useMemo(() => Object.values(bookmarks).filter(Boolean).length, [bookmarks]);
+
+  // Set of surah IDs that have at least one bookmark
+  const bookmarkedSurahs = React.useMemo(() => {
+    const s = new Set<number>();
+    for (const k of Object.keys(bookmarks)) {
+      if (bookmarks[k]) s.add(Number(k.split(":")[0]));
+    }
+    return s;
+  }, [bookmarks]);
 
   const filtered = React.useMemo(() => {
     if (!data) return [];
@@ -191,10 +200,9 @@ export function QuranPage() {
             aria-label="مسح البحث"
             onClick={() => {
               setQuery("");
-              toast.success("تم المسح");
             }}
           >
-            <Bookmark size={16} />
+            <X size={16} />
           </IconButton>
         </div>
 
@@ -207,7 +215,7 @@ export function QuranPage() {
             onChange={(e) => setJumpMushafPage(e.target.value)}
             placeholder={`الانتقال لصفحة المصحف (1-${pageMapQuery.data?.totalPages ?? 604})`}
           />
-          <Button variant="secondary" onClick={openMushafPage}>
+          <Button variant={jumpMushafPage ? "primary" : "secondary"} onClick={openMushafPage}>
             فتح صفحة المصحف ٦٠٤
           </Button>
         </div>
@@ -235,14 +243,23 @@ export function QuranPage() {
               <button
                 key={s.id}
                 onClick={() => navigate(`/quran/${s.id}`)}
-                className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10"
+                className={`glass rounded-3xl p-4 text-right hover:bg-white/10 transition border ${
+                  lastRead?.surahId === s.id
+                    ? "border-[var(--accent)]/40 bg-[var(--accent)]/8"
+                    : "border-white/10"
+                }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold arabic-text truncate">{s.name}</div>
+                    <div className="text-sm font-semibold arabic-text line-clamp-2 leading-snug">{s.name}</div>
                     <div className="mt-1 text-xs opacity-60 truncate">{s.englishName || ""}</div>
                   </div>
-                  <div className="text-xs opacity-65 tabular-nums">{s.id}</div>
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="text-xs opacity-65 tabular-nums">{s.id}</div>
+                    {bookmarkedSurahs.has(s.id) ? (
+                      <Bookmark size={10} className="text-[var(--accent)] opacity-80" />
+                    ) : null}
+                  </div>
                 </div>
                 <div className="mt-2 text-[11px] opacity-60 tabular-nums">{s.ayahs.length} آية</div>
               </button>
