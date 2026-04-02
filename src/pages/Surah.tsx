@@ -285,6 +285,15 @@ export function SurahPage() {
     return c;
   }, [displayAyahs.length, bookmarks, surah]);
 
+  const notesInSurah = React.useMemo(() => {
+    if (!surah) return 0;
+    let c = 0;
+    for (let i = 1; i <= displayAyahs.length; i++) {
+      if (notes[`${surah.id}:${i}`]) c += 1;
+    }
+    return c;
+  }, [displayAyahs.length, notes, surah]);
+
   const readingProgress = React.useMemo(() => {
     if (!surah || !displayAyahs.length) return 0;
     const current =
@@ -406,6 +415,7 @@ export function SurahPage() {
           <div className="flex items-center gap-2">
             <Badge className="tabular-nums">{displayAyahs.length} آية</Badge>
             <Badge className="tabular-nums">{bookmarkedInSurah} علامة</Badge>
+            {notesInSurah > 0 && <Badge className="tabular-nums">{notesInSurah} ملاحظة</Badge>}
             <Badge className="tabular-nums">{readingProgress}%</Badge>
             <IconButton aria-label="نسخ السورة" onClick={() => doCopyText(fullSurahText)}>
               <Copy size={16} />
@@ -572,6 +582,7 @@ export function SurahPage() {
                 const ayahIndex = a.displayAyah;
                 const k = `${surah.id}:${ayahIndex}`;
                 const isBookmarked = !!bookmarks[k];
+                const hasNote = !!notes[k];
 
                 return (
                   <span key={k} data-ayah={ayahIndex} className="inline">
@@ -594,6 +605,7 @@ export function SurahPage() {
                         }}
                         className="ayah-marker"
                         data-bookmarked={isBookmarked ? "true" : "false"}
+                        data-has-note={hasNote ? "true" : "false"}
                         aria-label={`آية ${ayahIndex}`}
                         title={isBookmarked ? "إزالة علامة" : "إضافة علامة"}
                       >
@@ -656,6 +668,7 @@ export function SurahPage() {
                     >
                       حفظ
                     </Button>
+                    {!!notes[`${surah.id}:${selectedAyah}`] && (
                     <Button
                       variant="secondary"
                       onClick={() => {
@@ -667,6 +680,7 @@ export function SurahPage() {
                     >
                       حذف
                     </Button>
+                    )}
                   </div>
                 </div>
 

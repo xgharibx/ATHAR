@@ -485,6 +485,20 @@ html.midnight body.transparent-mode .glass-strong {
   border-color: color-mix(in srgb, var(--bg) 25%, transparent);
 }
 
+/* Note indicator: small dot at bottom-center */
+.ayah-marker[data-has-note="true"]::after {
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: 3px;
+  width: 5px;
+  height: 5px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: var(--ok);
+  opacity: 0.9;
+}
+
 /* Selection */
 ::selection {
   background: rgba(255, 215, 128, 0.28);
