@@ -24,6 +24,17 @@ export function FavoritesPage() {
     return favKeys.map((k) => map.get(k)).filter(Boolean) as any[];
   }, [data, favKeys]);
 
+  // Group items by section for organized display
+  const grouped = React.useMemo(() => {
+    const map = new Map<string, { sectionId: string; sectionTitle: string; items: any[] }>();
+    for (const item of items) {
+      const existing = map.get(item.sectionId);
+      if (existing) { existing.items.push(item); }
+      else { map.set(item.sectionId, { sectionId: item.sectionId, sectionTitle: item.sectionTitle, items: [item] }); }
+    }
+    return [...map.values()];
+  }, [items]);
+
   return (
     <div className="space-y-4 page-enter">
       <Card className="p-5">
@@ -51,47 +62,59 @@ export function FavoritesPage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            {items.map((r) => (
-              <div
-                key={r.key}
-                className="glass rounded-3xl p-4 border border-white/10 flex items-start justify-between gap-3 press-effect glass-hover"
-              >
-                <button className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {(() => { const id = getSectionIdentity(r.sectionId); return (
-                        <>
-                          <span className="text-base shrink-0">{id.icon}</span>
-                          <div className="text-sm font-semibold truncate" style={{ color: id.accent }}>{r.sectionTitle}</div>
-                        </>
-                      ); })()}
-                    </div>
-                    <ArrowUpRight size={18} className="opacity-60" />
+          <div className="space-y-5">
+            {grouped.map((group) => {
+              const identity = getSectionIdentity(group.sectionId);
+              return (
+                <div key={group.sectionId}>
+                  {/* Section header */}
+                  <div className="flex items-center gap-2 mb-2 px-1">
+                    <span className="text-base">{identity.icon}</span>
+                    <span className="text-xs font-semibold opacity-65" style={{ color: identity.accent }}>{group.sectionTitle}</span>
+                    <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
                   </div>
-                  <div className="mt-3 arabic-text text-sm opacity-80 leading-7">
-                    {r.text.slice(0, 200)}
-                    {r.text.length > 200 ? "…" : ""}
-                  </div>
-                </button>
+                  <div className="space-y-2">
+                    {group.items.map((r: any) => (
+                      <div
+                        key={r.key}
+                        className="glass rounded-3xl p-4 border border-white/10 flex items-start justify-between gap-3 press-effect glass-hover"
+                      >
+                        <button className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
+                          <div className="flex items-start justify-between gap-3">
+                            <ArrowUpRight size={18} className="opacity-60 shrink-0 mt-0.5" />
+                          </div>
+                          <div className="arabic-text text-sm opacity-80 leading-7">
+                            {r.text.slice(0, 200)}
+                            {r.text.length > 200 ? "…" : ""}
+                          </div>
+                          {r.benefit && (
+                            <div className="mt-2 text-[11px] opacity-50 leading-5 border-t border-white/8 pt-2">
+                              الفضل: {r.benefit.slice(0, 100)}{r.benefit.length > 100 ? "…" : ""}
+                            </div>
+                          )}
+                        </button>
 
-                {confirmDeleteKey === r.key ? (
-                  <div className="flex flex-col gap-2">
-                    <Button variant="danger" size="sm" onClick={() => { toggleFavorite(r.sectionId, r.index); setConfirmDeleteKey(null); }}>
-                      تأكيد
-                    </Button>
-                    <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteKey(null)}>
-                      إلغاء
-                    </Button>
+                        {confirmDeleteKey === r.key ? (
+                          <div className="flex flex-col gap-2">
+                            <Button variant="danger" size="sm" onClick={() => { toggleFavorite(r.sectionId, r.index); setConfirmDeleteKey(null); }}>
+                              تأكيد
+                            </Button>
+                            <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteKey(null)}>
+                              إلغاء
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button variant="outline" onClick={() => setConfirmDeleteKey(r.key)}>
+                            <Trash2 size={16} />
+                            حذف
+                          </Button>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ) : (
-                  <Button variant="outline" onClick={() => setConfirmDeleteKey(r.key)}>
-                    <Trash2 size={16} />
-                    حذف
-                  </Button>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </Card>
