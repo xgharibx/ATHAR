@@ -30,7 +30,7 @@ import { useQuranDB } from "@/data/useQuranDB";
 import { coerceCount } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
-import { DAILY_CHECKLIST_ITEMS, type DailyChecklistItem } from "@/data/dailyGrowth";
+import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -151,6 +151,8 @@ export function HomePage() {
   const setKhatmaPlan = useNoorStore((s) => s.setKhatmaPlan);
   const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
   const resetKhatma = useNoorStore((s) => s.resetKhatma);
+  const dailyBetterStepDone = useNoorStore((s) => s.dailyBetterStepDone);
+  const setDailyBetterStepDone = useNoorStore((s) => s.setDailyBetterStepDone);
 
   const sections = data?.db.sections ?? [];
   const [showSmartNowDetails, setShowSmartNowDetails] = React.useState(false);
@@ -754,6 +756,41 @@ export function HomePage() {
           })}
         </div>
       </Card>
+
+      {/* ── خطوة اليوم ── */}
+      {(() => {
+        const dayIndex = Math.floor(Date.now() / 86400000);
+        const step = BETTER_MUSLIM_DAILY_STEPS[dayIndex % BETTER_MUSLIM_DAILY_STEPS.length] ?? "";
+        const isStepDone = !!dailyBetterStepDone[todayKey];
+        return (
+          <Card className="p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">خطوة اليوم</div>
+                <div className="text-xs opacity-55 mt-1">عادة يومية للنمو الإيماني</div>
+              </div>
+              <Button
+                variant={isStepDone ? "primary" : "secondary"}
+                onClick={() => {
+                  setDailyBetterStepDone(todayKey, !isStepDone);
+                  if (!isStepDone) toast.success("أحسنت — تم تسجيل الخطوة");
+                }}
+              >
+                <CheckCircle2 size={16} />
+                {isStepDone ? "تم" : "أتممتها"}
+              </Button>
+            </div>
+            <div className={cn(
+              "mt-3 rounded-2xl px-4 py-3.5 border text-sm leading-7",
+              isStepDone
+                ? "bg-[var(--ok)]/8 border-[var(--ok)]/20 opacity-70 line-through"
+                : "bg-[var(--accent)]/8 border-[var(--accent)]/20"
+            )}>
+              {step}
+            </div>
+          </Card>
+        );
+      })()}
 
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
