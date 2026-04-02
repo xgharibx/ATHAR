@@ -1,6 +1,25 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { House, BookOpenText, Heart, Settings2, BarChart3 } from "lucide-react";
+import { useNoorStore } from "@/store/noorStore";
+
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function computeStreakLocal(activity: Record<string, number>) {
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    if ((activity[k] ?? 0) > 0) streak++;
+    else break;
+  }
+  return streak;
+}
 
 const NAV_ITEMS = [
   { path: "/", label: "الرئيسية", icon: House },
@@ -16,6 +35,10 @@ export function FloatingNav() {
   const lastScrollY = React.useRef(0);
   const ticking = React.useRef(false);
   const prevPath = React.useRef(location.pathname);
+
+  const activity = useNoorStore((s) => s.activity);
+  const todayCount = activity[todayISO()] ?? 0;
+  const streak = React.useMemo(() => computeStreakLocal(activity), [activity]);
 
   React.useEffect(() => {
     const onScroll = () => {
@@ -68,7 +91,28 @@ export function FloatingNav() {
               className={`floating-nav-item ${active ? "active" : ""}`}
               aria-label={item.label}
             >
-              <item.icon size={20} strokeWidth={active ? 2.2 : 1.8} />
+              <div className="relative">
+                <item.icon size={20} strokeWidth={active ? 2.2 : 1.8} />
+                {item.path === "/" && todayCount > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] rounded-full text-[9px] font-bold flex items-center justify-center px-0.5 leading-none text-black tabular-nums"
+                    style={{ background: "var(--accent)" }}
+                  >
+                    {todayCount > 99 ? "99+" : todayCount}
+                  </span>
+                )}
+                {item.path === "/insights" && streak > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-2 min-w-[14px] h-[14px] rounded-full text-[9px] font-bold flex items-center justify-center px-0.5 leading-none tabular-nums"
+                    style={{
+                      background: streak >= 7 ? "#f59e0b" : streak >= 3 ? "var(--accent)" : "rgba(255,255,255,0.2)",
+                      color: streak >= 3 ? "black" : "white",
+                    }}
+                  >
+                    {streak > 99 ? "99+" : streak}
+                  </span>
+                )}
+              </div>
               <span>{item.label}</span>
             </NavLink>
           );
