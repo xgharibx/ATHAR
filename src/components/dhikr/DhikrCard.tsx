@@ -85,6 +85,7 @@ export function DhikrCard(props: {
   const ringRef = React.useRef<SVGCircleElement>(null);
   const swipeRef = React.useRef({ x: 0, y: 0, active: false });
   const [swipeHint, setSwipeHint] = React.useState(false);
+  const [isLongPressing, setIsLongPressing] = React.useState(false);
   const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [confirmItemReset, setConfirmItemReset] = React.useState(false);
   const milestonesHit = React.useRef<Set<number>>(new Set([
@@ -117,7 +118,9 @@ export function DhikrCard(props: {
     swipeRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, active: true };
     // Start long-press timer for copy
     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    setIsLongPressing(true);
     longPressTimerRef.current = setTimeout(() => {
+      setIsLongPressing(false);
       void doCopy();
       if (navigator.vibrate) navigator.vibrate([20, 10, 20]);
     }, 600);
@@ -127,6 +130,7 @@ export function DhikrCard(props: {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
     }
+    setIsLongPressing(false);
     if (!swipeRef.current.active || done || isDailyLockedItem) return;
     swipeRef.current.active = false;
     const dx = e.changedTouches[0].clientX - swipeRef.current.x;
@@ -386,7 +390,7 @@ export function DhikrCard(props: {
 
         {/* Text + swipe zone */}
         <div
-          className="mt-4 arabic-text whitespace-pre-wrap select-none relative"
+          className={cn("mt-4 arabic-text whitespace-pre-wrap select-none relative", isLongPressing && "long-press-active")}
           style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
           onTouchStart={onSwipeTouchStart}
           onTouchEnd={onSwipeTouchEnd}
@@ -516,8 +520,15 @@ export function DhikrCard(props: {
               if (isDailyLockedItem) return;
               onCount();
             }}
+            aria-label={done ? "اكتمل الذكر" : `اضغط للعدّ — متبقي ${remaining}`}
           >
-            {done ? "اكتملت ✨" : `اضغط للعدّ${remaining > 0 ? ` · ${remaining}` : ""}`}
+            {done
+              ? "اكتملت ✨"
+              : remaining === 1
+                ? "الأخيرة · اضغط"
+                : remaining > 0
+                  ? `اضغط للعدّ · ${remaining}`
+                  : "اضغط للعدّ"}
           </button>
         </div>
 

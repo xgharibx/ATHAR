@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, ArrowUpRight, Trash2, Copy, Check } from "lucide-react";
+import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
@@ -17,6 +17,7 @@ export function FavoritesPage() {
 
   const [confirmDeleteKey, setConfirmDeleteKey] = React.useState<string | null>(null);
   const [copiedKey, setCopiedKey] = React.useState<string | null>(null);
+  const [copiedAll, setCopiedAll] = React.useState(false);
 
   const copyItem = React.useCallback(async (key: string, text: string) => {
     try {
@@ -37,6 +38,39 @@ export function FavoritesPage() {
     return favKeys.map((k) => map.get(k)).filter(Boolean) as any[];
   }, [data, favKeys]);
 
+  const copyAll = React.useCallback(async () => {
+    if (items.length === 0) return;
+    const lines: string[] = [];
+    for (const item of items) {
+      lines.push(item.text);
+      if (item.benefit) lines.push(`  ﴾ ${item.benefit} ﴿`);
+      lines.push("");
+    }
+    try {
+      await navigator.clipboard.writeText(lines.join("\n").trim());
+      setCopiedAll(true);
+      toast.success(`تم نسخ ${items.length} ذكر`);
+      setTimeout(() => setCopiedAll(false), 2500);
+    } catch {
+      toast.error("تعذر النسخ");
+    }
+  }, [items]);
+
+  const shareAll = React.useCallback(async () => {
+    if (items.length === 0) return;
+    const lines: string[] = ["【 أذكاري المفضلة 】", ""];
+    for (const item of items) {
+      lines.push(item.text);
+      if (item.benefit) lines.push(`  ﴾ ${item.benefit} ﴿`);
+      lines.push("");
+    }
+    const text = lines.join("\n").trim() + "\n\n• ATHAR أثر";
+    if (navigator.share) {
+      try { await navigator.share({ text }); return; } catch { /* fall through */ }
+    }
+    await copyAll();
+  }, [items, copyAll]);
+
   // Group items by section for organized display
   const grouped = React.useMemo(() => {
     const map = new Map<string, { sectionId: string; sectionTitle: string; items: any[] }>();
@@ -56,7 +90,21 @@ export function FavoritesPage() {
             <Heart size={18} className="text-[var(--accent)]" />
             <div className="font-semibold">المفضلة</div>
           </div>
-          <div className="text-xs opacity-70">{items.length} عنصر</div>
+          <div className="flex items-center gap-2">
+            {items.length > 0 && (
+              <>
+                <Button variant="secondary" onClick={shareAll} aria-label="مشاركة الكل">
+                  <Share2 size={15} />
+                  مشاركة
+                </Button>
+                <Button variant="secondary" onClick={copyAll} aria-label="نسخ الكل">
+                  {copiedAll ? <CopyCheck size={15} /> : <Copy size={15} />}
+                  {copiedAll ? "تم ✓" : "نسخ الكل"}
+                </Button>
+              </>
+            )}
+            <div className="text-xs opacity-70 pr-1">{items.length} عنصر</div>
+          </div>
         </div>
         <div className="mt-2 text-xs opacity-65 leading-6">
           المفضلة محفوظة محليًا على جهازك. يمكنك تصدير النسخة الاحتياطية من صفحة الإعدادات.

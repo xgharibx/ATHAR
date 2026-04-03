@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus } from "lucide-react";
+import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
@@ -87,6 +87,17 @@ export function DhikrList(props: {
       document.body.classList.remove("focus-mode");
     };
   }, [focusMode]);
+
+  // Prev / next sections for quick navigation
+  const { prevSection, nextSection } = React.useMemo(() => {
+    if (!adhkarData) return { prevSection: null, nextSection: null };
+    const secs = adhkarData.db.sections;
+    const idx = secs.findIndex((s) => s.id === props.sectionId);
+    return {
+      prevSection: idx > 0 ? secs[idx - 1] : null,
+      nextSection: idx !== -1 && idx < secs.length - 1 ? secs[idx + 1] : null,
+    };
+  }, [adhkarData, props.sectionId]);
 
   // Related sections shown after completion
   const relatedSections = React.useMemo(() => {
@@ -336,6 +347,32 @@ export function DhikrList(props: {
           </button>
         )}
       </div>
+
+      {/* Prev / Next Section navigation */}
+      {(prevSection || nextSection) && (
+        <div className="flex items-center justify-between gap-2 mt-2 px-1">
+          {nextSection ? (
+            <button
+              onClick={() => navigate(`/c/${nextSection.id}`)}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-start"
+              title={`التالي: ${nextSection.title}`}
+            >
+              <ChevronRight size={16} className="opacity-60 shrink-0" />
+              <span className="text-xs opacity-65 truncate">{nextSection.title}</span>
+            </button>
+          ) : <div className="flex-1" />}
+          {prevSection ? (
+            <button
+              onClick={() => navigate(`/c/${prevSection.id}`)}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-end"
+              title={`السابق: ${prevSection.title}`}
+            >
+              <span className="text-xs opacity-65 truncate">{prevSection.title}</span>
+              <ChevronLeft size={16} className="opacity-60 shrink-0" />
+            </button>
+          ) : <div className="flex-1" />}
+        </div>
+      )}
     </div>
   );
 }

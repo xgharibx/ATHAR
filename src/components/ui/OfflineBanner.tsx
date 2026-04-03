@@ -34,10 +34,10 @@ export function OfflineBanner() {
       dir="rtl"
       className={[
         "fixed top-0 inset-x-0 z-[200] flex items-center justify-center gap-2 px-4 py-2",
-        "text-xs font-medium transition-all duration-300",
+        "text-xs font-medium banner-enter",
         offline
-          ? "bg-red-900/90 text-red-100 border-b border-red-800/40"
-          : "bg-green-900/90 text-green-100 border-b border-green-800/40",
+          ? "bg-red-900/90 text-red-100 border-b border-red-800/40 backdrop-blur-md"
+          : "bg-green-900/90 text-green-100 border-b border-green-800/40 backdrop-blur-md",
       ].join(" ")}
       style={{ paddingTop: `calc(0.5rem + env(safe-area-inset-top, 0px))` }}
     >
