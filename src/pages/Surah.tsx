@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowRight, Copy, Shuffle, ChevronsRight, ChevronRight, ChevronLeft, ChevronsLeft } from "lucide-react";
+import { ArrowRight, Copy, Shuffle, ChevronsRight, ChevronRight, ChevronLeft, ChevronsLeft, Bookmark, Share2, X as XIcon, Eye, EyeOff } from "lucide-react";
+import { getSurahRevelationLabel, getSurahJuz, SURAH_REVELATION } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -74,6 +75,14 @@ export function SurahPage() {
   const [pageMode, setPageMode] = React.useState<"ayah" | "mushaf">("ayah");
   const [currentMushafPage, setCurrentMushafPage] = React.useState<number | null>(null);
   const [jumpMushafPage, setJumpMushafPage] = React.useState("");
+  const [focusMode, setFocusMode] = React.useState(false);
+
+  // Immersive focus: hide nav / header while reading
+  React.useEffect(() => {
+    if (focusMode) document.body.classList.add("quran-focus-mode");
+    else document.body.classList.remove("quran-focus-mode");
+    return () => document.body.classList.remove("quran-focus-mode");
+  }, [focusMode]);
 
   const surah = React.useMemo(() => {
     if (!data || !Number.isFinite(surahId)) return null;
@@ -349,7 +358,27 @@ export function SurahPage() {
     else setCurrentPage(totalPages);
   };
 
-  if (isLoading) return <div className="p-6 opacity-80">... تحميل السورة</div>;
+  if (isLoading) return (
+    <div className="space-y-4 page-enter" dir="rtl">
+      <div className="glass rounded-3xl p-5 animate-pulse border border-white/8">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-2xl bg-white/8 shrink-0" />
+          <div>
+            <div className="h-4 w-24 bg-white/8 rounded-xl mb-1.5" />
+            <div className="h-3 w-16 bg-white/6 rounded-xl" />
+          </div>
+        </div>
+        <div className="mt-4 h-10 bg-white/6 rounded-3xl" />
+      </div>
+      <div className="glass rounded-3xl p-5 border border-white/6">
+        <div className="space-y-4">
+          {["w-full", "w-4/5", "w-11/12", "w-3/4", "w-full", "w-5/6"].map((w, i) => (
+            <div key={i} className={`${w} h-6 bg-white/6 rounded-xl animate-pulse`} style={{ animationDelay: `${i * 80}ms` }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
   if (error || !data) {
     return (
       <div className="p-6">
@@ -385,7 +414,17 @@ export function SurahPage() {
             </IconButton>
             <div>
               <div className="text-sm font-semibold arabic-text quran-title">{surah.name}</div>
-              <div className="mt-1 text-xs opacity-65">{surah.englishName || ""} • {surah.id}</div>
+              <div className="mt-1 flex items-center gap-1.5 flex-wrap text-xs opacity-65">
+                <span>{surah.englishName || ""}</span>
+                <span className="opacity-40">•</span>
+                <span className="tabular-nums">{surah.id}</span>
+                <span className="opacity-40">•</span>
+                <span className={SURAH_REVELATION[surah.id] === "medinan" ? "text-blue-300/70" : "text-amber-300/70"}>
+                  {getSurahRevelationLabel(surah.id)}
+                </span>
+                <span className="opacity-40">•</span>
+                <span>ج{toArabicIndic(getSurahJuz(surah.id))}</span>
+              </div>
             </div>
             <div className="flex items-center gap-0.5 mr-1 border-r border-white/10 pr-2">
               {surahId > 1 && (
@@ -497,6 +536,37 @@ export function SurahPage() {
             <Button variant="secondary" onClick={() => setPrefs({ quranHideMarkers: !prefs.quranHideMarkers })}>
               {prefs.quranHideMarkers ? "إظهار الأرقام" : "إخفاء الأرقام"}
             </Button>
+
+            {/* Font size quick controls */}
+            <div className="flex items-center gap-0.5 rounded-2xl bg-white/6 border border-white/10 overflow-hidden">
+              <button
+                onClick={() => setPrefs({ quranFontScale: Math.max(0.85, +(prefs.quranFontScale - 0.1).toFixed(2)) })}
+                className="w-9 h-9 flex items-center justify-center hover:bg-white/8 transition text-base leading-none"
+                aria-label="تصغير الخط"
+              >&#x2212;</button>
+              <span className="text-[11px] opacity-50 tabular-nums px-1 min-w-[34px] text-center select-none">
+                {Math.round(prefs.quranFontScale * 100)}%
+              </span>
+              <button
+                onClick={() => setPrefs({ quranFontScale: Math.min(1.8, +(prefs.quranFontScale + 0.1).toFixed(2)) })}
+                className="w-9 h-9 flex items-center justify-center hover:bg-white/8 transition text-base leading-none"
+                aria-label="تكبير الخط"
+              >+</button>
+            </div>
+
+            {/* Focus / immersive reading mode */}
+            <button
+              onClick={() => setFocusMode((v) => !v)}
+              className={`flex items-center gap-1.5 px-3 h-9 rounded-2xl border text-xs transition ${
+                focusMode
+                  ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
+                  : "bg-white/6 border-white/10 opacity-65 hover:opacity-100"
+              }`}
+              aria-label="وضع التركيز"
+            >
+              {focusMode ? <EyeOff size={15} /> : <Eye size={15} />}
+              <span className="hidden sm:inline">{focusMode ? "خروج" : "تركيز"}</span>
+            </button>
           </div>
           {/* jump row */}
           <div className="flex items-center gap-2">
@@ -596,7 +666,7 @@ export function SurahPage() {
                       ].join(" ")}
                       onClick={() => {
                         setLastRead(surah.id, ayahIndex);
-                        setSelectedAyah(ayahIndex);
+                        setSelectedAyah((prev) => prev === ayahIndex ? null : ayahIndex);
                       }}
                     >
                       {a.text}{" "}
@@ -701,6 +771,56 @@ export function SurahPage() {
           </div>
         </div>
       </Card>
+
+      {/* Floating ayah action sheet (mobile only) */}
+      {selectedAyah && (
+        <div
+          className="ayah-action-sheet fixed left-4 right-4 z-50 md:hidden"
+          style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
+        >
+          <div className="glass rounded-3xl px-4 py-3 border border-white/15 backdrop-blur-xl shadow-2xl">
+            <div className="flex items-center gap-2">
+              <span className="text-xs opacity-55 arabic-text flex-1 truncate">
+                {surah?.name} ﴿{toArabicIndic(selectedAyah)}﴾
+              </span>
+              <button
+                onClick={() => doCopyText(selectedAyahText)}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/8 hover:bg-white/12 transition text-xs"
+              >
+                <Copy size={13} /> نسخ
+              </button>
+              <button
+                onClick={() => {
+                  if (!surah) return;
+                  toggleBookmark(surah.id, selectedAyah);
+                  const key = `${surah.id}:${selectedAyah}`;
+                  toast.success(bookmarks[key] ? "أُزيلت العلامة" : "تمت إضافة العلامة");
+                }}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl transition text-xs ${
+                  surah && bookmarks[`${surah.id}:${selectedAyah}`]
+                    ? "bg-[var(--accent)]/20 text-[var(--accent)]"
+                    : "bg-white/8 hover:bg-white/12"
+                }`}
+              >
+                <Bookmark size={13} /> علامة
+              </button>
+              <button
+                onClick={doShareSelectedAyahImage}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/8 hover:bg-white/12 transition text-xs"
+              >
+                <Share2 size={13} /> إرسال
+              </button>
+              <button
+                onClick={() => setSelectedAyah(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/6 hover:bg-white/10 transition opacity-60"
+                aria-label="إغلاق"
+              >
+                <XIcon size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

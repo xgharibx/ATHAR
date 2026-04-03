@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Bookmark, BookOpen, Search, Shuffle, Sparkles, X } from "lucide-react";
+import { Bookmark, BookOpen, Search, Shuffle, Sparkles, X, TrendingUp } from "lucide-react";
+import { getSurahRevelationLabel, getSurahJuz, SURAH_REVELATION, TOTAL_QURAN_AYAHS, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -30,6 +31,7 @@ export function QuranPage() {
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
   const [jumpMushafPage, setJumpMushafPage] = React.useState("");
   const [showBookmarks, setShowBookmarks] = React.useState(false);
+  const [sortMode, setSortMode] = React.useState<"mushaf" | "progress">("mushaf");
 
   const lastReadSurahName = React.useMemo(() => {
     if (!lastRead || !data) return null;
@@ -53,6 +55,11 @@ export function QuranPage() {
   }, [data, readingHistory]);
 
   const bookmarkedCount = React.useMemo(() => Object.values(bookmarks).filter(Boolean).length, [bookmarks]);
+
+  const overallProgress = React.useMemo(
+    () => Math.min(100, Math.round((quranStats.totalAyahs / TOTAL_QURAN_AYAHS) * 100)),
+    [quranStats.totalAyahs]
+  );
 
   // Set of surah IDs that have at least one bookmark
   const bookmarkedSurahs = React.useMemo(() => {
@@ -87,6 +94,15 @@ export function QuranPage() {
       return normalize(hay).includes(q);
     });
   }, [data, query]);
+
+  const sortedFiltered = React.useMemo(() => {
+    if (sortMode === "mushaf") return filtered;
+    return [...filtered].sort((a, b) => {
+      const pA = Math.min(100, Math.round(((readingHistory[String(a.id)] ?? 0) / Math.max(1, a.ayahs.length)) * 100));
+      const pB = Math.min(100, Math.round(((readingHistory[String(b.id)] ?? 0) / Math.max(1, b.ayahs.length)) * 100));
+      return pB - pA;
+    });
+  }, [filtered, sortMode, readingHistory]);
 
   const ayahSearch = React.useMemo(() => {
     if (!data) return { results: [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }>, totalFound: 0 };
@@ -159,7 +175,25 @@ export function QuranPage() {
   };
 
   if (isLoading) {
-    return <div className="p-6 opacity-80">... تحميل المصحف</div>;
+    return (
+      <div className="space-y-4 page-enter">
+        <div className="glass rounded-3xl p-5 animate-pulse border border-white/8">
+          <div className="h-5 w-28 bg-white/8 rounded-xl mb-2" />
+          <div className="h-3 w-20 bg-white/6 rounded-xl" />
+          <div className="mt-4 h-10 bg-white/8 rounded-3xl" />
+        </div>
+        <div className="glass rounded-3xl p-5 border border-white/6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="glass rounded-3xl p-4 animate-pulse border border-white/6" style={{ animationDelay: `${i * 45}ms` }}>
+                <div className="h-3 w-14 bg-white/8 rounded-lg mb-2" />
+                <div className="h-4 w-20 bg-white/6 rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
   if (error || !data) {
     return (
@@ -182,24 +216,41 @@ export function QuranPage() {
           <div>
             <div className="text-sm font-semibold quran-title">المصحف</div>
             <div className="mt-1 text-xs opacity-65">قراءة • بحث • علامات</div>
-            {quranStats.started > 0 && (
-              <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/8 border border-white/10 tabular-nums">
-                  📖 {quranStats.started} سورة بدأت
-                </span>
-                {quranStats.completed > 0 && (
-                  <span
-                    className="text-[11px] px-2 py-0.5 rounded-full border tabular-nums"
-                    style={{ background: "color-mix(in srgb, var(--ok) 10%, transparent)", borderColor: "color-mix(in srgb, var(--ok) 25%, transparent)", color: "var(--ok)" }}
-                  >
-                    ✅ {quranStats.completed} مكتملة
-                  </span>
-                )}
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/8 border border-white/10 tabular-nums">
-                  {quranStats.totalAyahs.toLocaleString("ar-SA")} آية
-                </span>
+            {quranStats.started > 0 ? (
+              <div className="mt-3 flex items-center gap-3">
+                {/* Overall progress ring */}
+                <div className="relative w-14 h-14 shrink-0">
+                  <svg viewBox="0 0 56 56" className="w-14 h-14" style={{ transform: "rotate(-90deg)" }}>
+                    <circle cx="28" cy="28" r="22" fill="none" strokeWidth="4" stroke="rgba(255,255,255,0.08)" />
+                    <circle
+                      cx="28" cy="28" r="22" fill="none" strokeWidth="4"
+                      stroke="var(--accent)"
+                      strokeLinecap="round"
+                      strokeDasharray={`${(overallProgress / 100) * 138.2} 138.2`}
+                      style={{ transition: "stroke-dasharray 0.7s ease" }}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[10px] font-bold tabular-nums" style={{ color: "var(--accent)" }}>{overallProgress}%</span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+                  <div className="flex items-center gap-1.5 opacity-70">
+                    <span>📖</span>
+                    <span className="tabular-nums">{quranStats.started} سورة بدأت</span>
+                  </div>
+                  {quranStats.completed > 0 && (
+                    <div className="flex items-center gap-1.5" style={{ color: "var(--ok)" }}>
+                      <span>✅</span>
+                      <span className="tabular-nums">{quranStats.completed} مكتملة</span>
+                    </div>
+                  )}
+                  <div className="opacity-55 tabular-nums">
+                    {quranStats.totalAyahs.toLocaleString("ar-SA")} / {TOTAL_QURAN_AYAHS.toLocaleString("ar-SA")} آية
+                  </div>
+                </div>
               </div>
-            )}
+            ) : null}
           </div>
 
           <div className="flex items-center gap-2">
@@ -322,63 +373,113 @@ export function QuranPage() {
         {dailyVerse ? (
           <button
             onClick={() => navigate(`/quran/${dailyVerse.surahId}?a=${dailyVerse.ayahIndex}`)}
-            className="mt-4 glass rounded-3xl p-4 border border-white/10 text-right w-full hover:bg-white/10 transition"
+            className="mt-4 relative overflow-hidden rounded-3xl w-full text-right hover:brightness-110 active:scale-[0.99] transition-all"
           >
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-xs opacity-70">آية اليوم</div>
-              <Sparkles size={14} className="opacity-70" />
+            <div
+              className="glass rounded-3xl p-4 border"
+              style={{ borderColor: "color-mix(in srgb, var(--accent) 25%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, transparent)" }}
+            >
+              <div
+                className="absolute inset-0 rounded-3xl pointer-events-none"
+                style={{ background: "radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 65%)" }}
+              />
+              <div className="relative flex items-center justify-between gap-3 mb-2.5">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles size={13} style={{ color: "var(--accent)" }} />
+                  <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>آية اليوم</span>
+                </div>
+                <span className="text-[11px] opacity-45">{dailyVerse.surahName} ﴿{dailyVerse.ayahIndex}﴾</span>
+              </div>
+              <div className="relative text-sm arabic-text leading-9 line-clamp-3 opacity-90">{dailyVerse.text}</div>
             </div>
-            <div className="mt-2 text-sm arabic-text leading-8 line-clamp-2">{dailyVerse.text}</div>
-            <div className="mt-2 text-xs opacity-65">{dailyVerse.surahName} • ﴿{dailyVerse.ayahIndex}﴾</div>
           </button>
         ) : null}
       </Card>
 
       {mode === "surahs" ? (
         <Card className="p-5 quran-surface">
-          <div className="text-sm font-semibold mb-3 quran-title">السور</div>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-            {filtered.map((s) => (
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="text-sm font-semibold quran-title">السور</div>
+            <div className="flex items-center gap-1.5">
               <button
-                key={s.id}
-                onClick={() => navigate(`/quran/${s.id}`)}
-                className={`glass rounded-3xl p-4 text-right hover:bg-white/10 transition border ${
-                  lastRead?.surahId === s.id
-                    ? "border-[var(--accent)]/40 bg-[var(--accent)]/8"
-                    : "border-white/10"
+                onClick={() => setSortMode("mushaf")}
+                className={`text-xs px-3 py-1.5 rounded-xl border transition ${
+                  sortMode === "mushaf"
+                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
+                    : "bg-white/6 border-white/10 opacity-60 hover:opacity-100"
                 }`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold arabic-text line-clamp-2 leading-snug">{s.name}</div>
-                    <div className="mt-1 text-xs opacity-60 truncate">{s.englishName || ""}</div>
+                ترتيب المصحف
+              </button>
+              <button
+                onClick={() => setSortMode("progress")}
+                className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl border transition ${
+                  sortMode === "progress"
+                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
+                    : "bg-white/6 border-white/10 opacity-60 hover:opacity-100"
+                }`}
+              >
+                <TrendingUp size={11} />
+                حسب التقدم
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+            {sortedFiltered.map((s) => {
+              const maxRead = readingHistory[String(s.id)] ?? 0;
+              const pct = s.ayahs.length ? Math.min(100, Math.round((maxRead / s.ayahs.length) * 100)) : 0;
+              const isMedinan = SURAH_REVELATION[s.id] === "medinan";
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => navigate(`/quran/${s.id}`)}
+                  className={`surah-card glass rounded-3xl p-3.5 text-right border ${
+                    lastRead?.surahId === s.id
+                      ? "border-[var(--accent)]/40 bg-[var(--accent)]/8"
+                      : "border-white/10"
+                  }`}
+                >
+                  {/* Number + title + bookmark */}
+                  <div className="flex items-start gap-2">
+                    <div className="surah-number-circle">{toArabicNumeral(s.id)}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold arabic-text leading-snug line-clamp-1">{s.name}</div>
+                      <div className="mt-0.5 text-[10px] opacity-50 truncate">{s.englishName || ""}</div>
+                    </div>
+                    {bookmarkedSurahs.has(s.id) && (
+                      <Bookmark size={10} className="text-[var(--accent)] opacity-80 shrink-0 mt-1" />
+                    )}
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <div className="text-xs opacity-65 tabular-nums">{s.id}</div>
-                    {bookmarkedSurahs.has(s.id) ? (
-                      <Bookmark size={10} className="text-[var(--accent)] opacity-80" />
-                    ) : null}
+
+                  {/* Meta row */}
+                  <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] opacity-50 tabular-nums">{s.ayahs.length} آية</span>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${
+                      isMedinan
+                        ? "border-blue-400/25 text-blue-300/80 bg-blue-400/8"
+                        : "border-amber-400/25 text-amber-300/80 bg-amber-400/8"
+                    }`}>
+                      {isMedinan ? "مدنية" : "مكية"}
+                    </span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-white/10 opacity-45">
+                      ج{toArabicNumeral(getSurahJuz(s.id))}
+                    </span>
                   </div>
-                </div>
-                <div className="mt-2 text-[11px] opacity-60 tabular-nums">{s.ayahs.length} آية</div>
-                {(() => {
-                  const maxAyah = readingHistory[String(s.id)] ?? 0;
-                  if (!maxAyah || !s.ayahs.length) return null;
-                  const pct = Math.min(100, Math.round((maxAyah / s.ayahs.length) * 100));
-                  return (
+
+                  {/* Progress bar */}
+                  {pct > 0 && (
                     <div className="mt-2">
                       <div className="h-1 rounded-full bg-white/8 overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-[width] duration-300"
+                          className="h-full rounded-full transition-[width] duration-500"
                           style={{ width: `${pct}%`, background: pct >= 100 ? "var(--ok)" : "var(--accent)" }}
                         />
                       </div>
-                      <div className="mt-0.5 text-[10px] opacity-45 tabular-nums text-left">{pct}%</div>
                     </div>
-                  );
-                })()}
-              </button>
-            ))}
+                  )}
+                </button>
+              );
+            })}
           </div>
         </Card>
       ) : (
