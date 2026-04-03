@@ -108,11 +108,24 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Toaster
             position="top-center"
             toastOptions={{
+              duration: 3000,
               style: {
-                background: "rgba(10,12,18,.92)",
+                background: "rgba(10,12,18,.94)",
                 color: "white",
-                border: "1px solid rgba(255,255,255,.12)"
-              }
+                border: "1px solid rgba(255,255,255,.12)",
+                borderRadius: "16px",
+                direction: "rtl",
+                fontSize: "0.875rem",
+                padding: "12px 16px",
+                boxShadow: "0 8px 32px rgba(0,0,0,.45)",
+                backdropFilter: "blur(12px)",
+              },
+              success: {
+                iconTheme: { primary: "#3ddc97", secondary: "rgba(10,12,18,.94)" },
+              },
+              error: {
+                iconTheme: { primary: "#ff6b6b", secondary: "rgba(10,12,18,.94)" },
+              },
             }}
           />
         </BrowserRouter>

@@ -85,6 +85,7 @@ export function DhikrCard(props: {
   const ringRef = React.useRef<SVGCircleElement>(null);
   const swipeRef = React.useRef({ x: 0, y: 0, active: false });
   const [swipeHint, setSwipeHint] = React.useState(false);
+  const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [confirmItemReset, setConfirmItemReset] = React.useState(false);
   const milestonesHit = React.useRef<Set<number>>(new Set([
     ...(current >= target * 0.25 ? [0.25] : []),
@@ -114,8 +115,18 @@ export function DhikrCard(props: {
   const onSwipeTouchStart = (e: React.TouchEvent) => {
     if (done || isDailyLockedItem) return;
     swipeRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, active: true };
+    // Start long-press timer for copy
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    longPressTimerRef.current = setTimeout(() => {
+      void doCopy();
+      if (navigator.vibrate) navigator.vibrate([20, 10, 20]);
+    }, 600);
   };
   const onSwipeTouchEnd = (e: React.TouchEvent) => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
     if (!swipeRef.current.active || done || isDailyLockedItem) return;
     swipeRef.current.active = false;
     const dx = e.changedTouches[0].clientX - swipeRef.current.x;
@@ -397,7 +408,7 @@ export function DhikrCard(props: {
           <div className="flex items-center justify-between gap-3 relative">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-12 h-12 relative grid place-items-center shrink-0">
-                <svg width="48" height="48" viewBox="0 0 48 48">
+                <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true">
                   <circle
                     cx="24"
                     cy="24"

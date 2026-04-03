@@ -12,6 +12,7 @@ import { cn, pct } from "@/lib/utils";
 import { IconButton } from "@/components/ui/IconButton";
 import { LogoMark } from "@/components/brand/LogoMark";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
+import { OfflineBanner } from "@/components/ui/OfflineBanner";
 
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette }))
@@ -381,7 +382,17 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen-safe">
+      {/* Skip to main content — keyboard/screen reader a11y */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-xl focus:glass-strong focus:border focus:border-white/20 focus:text-sm focus:font-semibold"
+        tabIndex={0}
+      >
+        انتقل إلى المحتوى الرئيسي
+      </a>
+
       <NoorBackground />
+      <OfflineBanner />
 
       {paletteOpen ? (
         <React.Suspense fallback={null}>
@@ -466,7 +477,7 @@ export function AppShell() {
           </aside>
 
           {/* Main */}
-          <main className="col-span-12 xl:col-span-9 2xl:col-span-10">
+          <main id="main-content" className="col-span-12 xl:col-span-9 2xl:col-span-10">
             <div key={location.pathname}>
               <Outlet />
             </div>

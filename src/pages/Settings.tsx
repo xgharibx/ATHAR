@@ -100,10 +100,23 @@ export function SettingsPage() {
   const onRestore = async (file: File) => {
     try {
       const text = await file.text();
-      const json = JSON.parse(text) as ExportBlobV1;
+      // Security: validate it's a proper object before trusting it
+      const raw: unknown = JSON.parse(text);
+      if (
+        typeof raw !== "object" ||
+        raw === null ||
+        Array.isArray(raw) ||
+        (raw as Record<string, unknown>).version !== 1 ||
+        typeof (raw as Record<string, unknown>).exportedAt !== "string"
+      ) {
+        toast.error("ملف النسخة الاحتياطية غير معروف أو تالف");
+        return;
+      }
+      const json = raw as ExportBlobV1;
       importState(json);
       toast.success("تم الاستيراد بنجاح");
-      window.location.reload();
+      // Soft reload: replace history state then reload to re-init store
+      setTimeout(() => window.location.reload(), 400);
     } catch {
       toast.error("ملف غير صالح");
     }
@@ -197,7 +210,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">حجم الخط</div>
-              <div className="text-xs opacity-70 tabular-nums">{prefs.fontScale.toFixed(2)}</div>
+              <div className="text-xs opacity-70 tabular-nums">{Math.round(prefs.fontScale * 100)}%</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -213,7 +226,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد السطور</div>
-              <div className="text-xs opacity-70 tabular-nums">{prefs.lineHeight.toFixed(2)}</div>
+              <div className="text-xs opacity-70 tabular-nums">{prefs.lineHeight.toFixed(1)}×</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -229,7 +242,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">حجم خط القرآن</div>
-              <div className="text-xs opacity-70 tabular-nums">{prefs.quranFontScale.toFixed(2)}</div>
+              <div className="text-xs opacity-70 tabular-nums">{Math.round(prefs.quranFontScale * 100)}%</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -245,7 +258,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد سطور القرآن</div>
-              <div className="text-xs opacity-70 tabular-nums">{prefs.quranLineHeight.toFixed(2)}</div>
+              <div className="text-xs opacity-70 tabular-nums">{prefs.quranLineHeight.toFixed(1)}×</div>
             </div>
             <div className="mt-3">
               <Slider

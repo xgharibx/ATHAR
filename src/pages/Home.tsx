@@ -32,6 +32,7 @@ import { coerceCount } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
+import { DailyWisdomCard } from "@/components/ui/DailyWisdomCard";
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -689,6 +690,7 @@ export function HomePage() {
       )}
 
       <PrayerWidget />
+      <DailyWisdomCard />
 
       <Card className="p-4">
         {/* Compact header row */}

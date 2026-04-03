@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown } from "lucide-react";
+import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
@@ -72,7 +72,21 @@ export function DhikrList(props: {
 
   const [copiedAll, setCopiedAll] = React.useState(false);
   const [compact, setCompact] = React.useState(false);
+  const [showBackToTop, setShowBackToTop] = React.useState(false);
+  const [focusMode, setFocusMode] = React.useState(false);
   const virtuosoRef = React.useRef<VirtuosoHandle>(null);
+
+  // Apply / remove focus-mode class on body
+  React.useEffect(() => {
+    if (focusMode) {
+      document.body.classList.add("focus-mode");
+    } else {
+      document.body.classList.remove("focus-mode");
+    }
+    return () => {
+      document.body.classList.remove("focus-mode");
+    };
+  }, [focusMode]);
 
   // Related sections shown after completion
   const relatedSections = React.useMemo(() => {
@@ -195,6 +209,14 @@ export function DhikrList(props: {
               >
                 <List size={16} />
               </Button>
+              <Button
+                variant={focusMode ? "primary" : "secondary"}
+                onClick={() => setFocusMode((prev) => !prev)}
+                title={focusMode ? "إنهاء وضع التركيز" : "وضع التركيز — إخفاء شريط التنقل"}
+                aria-label={focusMode ? "إنهاء وضع التركيز" : "وضع التركيز"}
+              >
+                <Focus size={16} />
+              </Button>
               {firstIncompleteIdx > 0 && stats.percent < 100 && (
                 <Button
                   variant="secondary"
@@ -264,6 +286,7 @@ export function DhikrList(props: {
           ref={virtuosoRef}
           style={{ height: "100%" }}
           data={props.items}
+          atTopStateChange={(atTop) => setShowBackToTop(!atTop)}
           itemContent={(index, item) => (
             <div className="pb-4">
               <DhikrCard
@@ -282,6 +305,36 @@ export function DhikrList(props: {
             </div>
           )}
         />
+        {showBackToTop && (
+          <button
+            onClick={() => virtuosoRef.current?.scrollToIndex({ index: 0, behavior: "smooth" })}
+            aria-label="العودة إلى أعلى"
+            title="العودة إلى أعلى"
+            className={[
+              "fixed bottom-[calc(80px+env(safe-area-inset-bottom,0px))] left-4 z-40",
+              "w-11 h-11 rounded-2xl glass-strong border border-white/15 shadow-xl",
+              "flex items-center justify-center transition-all duration-200",
+              "hover:scale-105 active:scale-95",
+            ].join(" ")}
+          >
+            <ArrowUp size={18} aria-hidden="true" />
+          </button>
+        )}
+        {focusMode && (
+          <button
+            onClick={() => setFocusMode(false)}
+            aria-label="إنهاء وضع التركيز"
+            className={[
+              "fixed bottom-[calc(16px+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-50",
+              "px-5 py-2.5 rounded-2xl glass-strong border border-white/20 shadow-2xl",
+              "flex items-center gap-2 text-sm font-medium transition-all duration-200",
+              "hover:scale-105 active:scale-95 focus-mode-exit",
+            ].join(" ")}
+          >
+            <Focus size={15} aria-hidden="true" />
+            إنهاء وضع التركيز
+          </button>
+        )}
       </div>
     </div>
   );

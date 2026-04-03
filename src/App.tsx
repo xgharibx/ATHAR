@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { AppShell } from "@/components/layout/AppShell";
@@ -21,6 +21,12 @@ const SurahPage = React.lazy(() => import("@/pages/Surah").then((m) => ({ defaul
 export default function App() {
   useApplyTheme();
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
+  const location = useLocation();
+
+  // Scroll to top on page navigation (skip for hash-only changes)
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [location.pathname]);
 
   React.useEffect(() => {
     const w = globalThis as typeof globalThis & {

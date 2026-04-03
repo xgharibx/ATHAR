@@ -1,6 +1,8 @@
 import * as React from "react";
-import { Flame, TrendingUp, Trophy } from "lucide-react";
+import { Flame, TrendingUp, Trophy, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { toPng } from "html-to-image";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -172,6 +174,37 @@ export function InsightsPage() {
 
   const isWirdDone = !!dailyWirdDone[todayKey];
 
+  // Share progress card
+  const shareCardRef = React.useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = React.useState(false);
+
+  async function shareProgress() {
+    if (!shareCardRef.current || sharing) return;
+    setSharing(true);
+    try {
+      const dataUrl = await toPng(shareCardRef.current, { pixelRatio: 2, cacheBust: true });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "ATHAR-progress.png", { type: "image/png" });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "تقدمي في ATHAR", text: `سلسلة ${streak} يوم • ${total} ذكر ✨` });
+      } else {
+        // Fallback: download
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = "ATHAR-progress.png";
+        a.click();
+        toast.success("تم تحميل بطاقة التقدم");
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        toast.error("تعذر مشاركة البطاقة");
+      }
+    } finally {
+      setSharing(false);
+    }
+  }
+
   const streakFireClass =
     streak >= 30 ? "text-orange-400" :
     streak >= 7  ? "text-yellow-400" :
@@ -186,6 +219,58 @@ export function InsightsPage() {
 
   return (
     <div className="space-y-4 page-enter">
+      {/* Hidden shareable progress card (off-screen) */}
+      <div
+        ref={shareCardRef}
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          left: "-9999px",
+          top: 0,
+          width: "340px",
+          padding: "28px 24px",
+          background: "var(--bg)",
+          borderRadius: "24px",
+          color: "var(--fg)",
+          fontFamily: "'Noto Sans Arabic', sans-serif",
+          direction: "rtl",
+          border: "2px solid rgba(255,255,255,0.12)",
+        }}
+      >
+        <div style={{ fontSize: "13px", opacity: 0.6, marginBottom: "4px" }}>تقدمي في</div>
+        <div style={{ fontSize: "26px", fontWeight: 800, marginBottom: "16px", color: "var(--accent)" }}>ATHAR</div>
+        <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+          {[
+            { label: "السلسلة", value: `${streak} يوم`, emoji: streak >= 7 ? "🔥" : "✨" },
+            { label: "الإجمالي", value: `${total}`, emoji: "📿" },
+            { label: "اليوم", value: `${todayCount}`, emoji: "🌙" },
+            { label: "أفضل", value: `${bestStreak}د`, emoji: "🏆" },
+          ].map((s) => (
+            <div key={s.label} style={{
+              flex: 1,
+              textAlign: "center",
+              background: "rgba(255,255,255,0.07)",
+              borderRadius: "14px",
+              padding: "10px 4px",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}>
+              <div style={{ fontSize: "18px", marginBottom: "4px" }}>{s.emoji}</div>
+              <div style={{ fontSize: "14px", fontWeight: 700 }}>{s.value}</div>
+              <div style={{ fontSize: "10px", opacity: 0.55, marginTop: "2px" }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{
+          textAlign: "center",
+          fontSize: "11px",
+          opacity: 0.45,
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+          paddingTop: "12px",
+        }}>
+          {new Date().toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" })}
+        </div>
+      </div>
+
       {/* Hero Streak Card */}
       <Card className="p-5 relative overflow-hidden">
         <div className={`absolute inset-0 opacity-10 pointer-events-none ${
@@ -226,6 +311,18 @@ export function InsightsPage() {
             أعلى نشاط كان في {new Date(bestDay.key + "T00:00:00").toLocaleDateString("ar-SA", { day: "numeric", month: "long" })}
           </div>
         )}
+        <div className="relative mt-4">
+          <Button
+            variant="secondary"
+            onClick={shareProgress}
+            disabled={sharing}
+            className="w-full"
+            aria-label="شارك تقدمك"
+          >
+            <Share2 size={15} />
+            {sharing ? "جاري التحضير..." : "شارك تقدمك"}
+          </Button>
+        </div>
       </Card>
 
       {/* 28-Day Heatmap */}
