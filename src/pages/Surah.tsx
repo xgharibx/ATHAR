@@ -43,6 +43,14 @@ function stripBasmalahPrefixIfPresent(text: string) {
   return t;
 }
 
+const HIGHLIGHT_COLORS = {
+  gold:  { swatch: "rgba(251,191,36,0.85)",  bg: "rgba(251,191,36,0.16)",  label: "ذهبي"  },
+  green: { swatch: "rgba(52,211,153,0.85)",  bg: "rgba(52,211,153,0.15)",  label: "أخضر"  },
+  blue:  { swatch: "rgba(96,165,250,0.85)",  bg: "rgba(96,165,250,0.15)",  label: "أزرق"  },
+  red:   { swatch: "rgba(248,113,113,0.85)", bg: "rgba(248,113,113,0.15)", label: "أحمر"  },
+} as const;
+type HighlightColor = keyof typeof HIGHLIGHT_COLORS;
+
 export function SurahPage() {
   const navigate = useNavigate();
   const params = useParams();
@@ -58,6 +66,8 @@ export function SurahPage() {
   const notes = useNoorStore((s) => s.quranNotes);
   const setQuranNote = useNoorStore((s) => s.setQuranNote);
   const clearQuranNote = useNoorStore((s) => s.clearQuranNote);
+  const highlights = useNoorStore((s) => s.quranHighlights);
+  const setQuranHighlight = useNoorStore((s) => s.setQuranHighlight);
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
 
@@ -83,6 +93,17 @@ export function SurahPage() {
     else document.body.classList.remove("quran-focus-mode");
     return () => document.body.classList.remove("quran-focus-mode");
   }, [focusMode]);
+
+  // Esc key: close selected ayah first, then exit focus mode
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (selectedAyah !== null) { setSelectedAyah(null); return; }
+      if (focusMode) setFocusMode(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [focusMode, selectedAyah]);
 
   const surah = React.useMemo(() => {
     if (!data || !Number.isFinite(surahId)) return null;
@@ -303,6 +324,15 @@ export function SurahPage() {
     return c;
   }, [displayAyahs.length, notes, surah]);
 
+  const highlightsInSurah = React.useMemo(() => {
+    if (!surah) return 0;
+    let c = 0;
+    for (let i = 1; i <= displayAyahs.length; i++) {
+      if (highlights[`${surah.id}:${i}`]) c += 1;
+    }
+    return c;
+  }, [displayAyahs.length, highlights, surah]);
+
   const readingProgress = React.useMemo(() => {
     if (!surah || !displayAyahs.length) return 0;
     const current =
@@ -406,6 +436,15 @@ export function SurahPage() {
 
   return (
     <div className="space-y-4 page-enter">
+      {/* Immersive focus mode backdrop — click to exit */}
+      {focusMode && (
+        <div
+          className="quran-focus-overlay"
+          onClick={() => setFocusMode(false)}
+          title="انقر للخروج من وضع التركيز"
+          aria-label="خروج من وضع التركيز"
+        />
+      )}
       <Card className="p-5 quran-surface">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -455,6 +494,7 @@ export function SurahPage() {
             <Badge className="tabular-nums">{displayAyahs.length} آية</Badge>
             <Badge className="tabular-nums">{bookmarkedInSurah} علامة</Badge>
             {notesInSurah > 0 && <Badge className="tabular-nums">{notesInSurah} ملاحظة</Badge>}
+            {highlightsInSurah > 0 && <Badge className="tabular-nums">{highlightsInSurah} تلوين</Badge>}
             <Badge className="tabular-nums">{readingProgress}%</Badge>
             <IconButton aria-label="نسخ السورة" onClick={() => doCopyText(fullSurahText)}>
               <Copy size={16} />
@@ -654,6 +694,7 @@ export function SurahPage() {
                 const isBookmarked = !!bookmarks[k];
                 const hasNote = !!notes[k];
                 const isSelected = selectedAyah === ayahIndex;
+                const highlight = (highlights[k] ?? null) as HighlightColor | null;
 
                 return (
                   <span key={k} data-ayah={ayahIndex} className="inline">
@@ -663,6 +704,7 @@ export function SurahPage() {
                         isSelected
                           ? "bg-[var(--accent)]/15 ring-1 ring-[var(--accent)]/25 px-0.5"
                           : "",
+                        !isSelected && highlight ? `ayah-hl-${highlight}` : "",
                       ].join(" ")}
                       onClick={() => {
                         setLastRead(surah.id, ayahIndex);
@@ -682,6 +724,7 @@ export function SurahPage() {
                         className="ayah-marker"
                         data-bookmarked={isBookmarked ? "true" : "false"}
                         data-has-note={hasNote ? "true" : "false"}
+                        data-highlight={highlight ?? undefined}
                         aria-label={`آية ${ayahIndex}`}
                         title={isBookmarked ? "إزالة علامة" : "إضافة علامة"}
                       >
@@ -719,8 +762,17 @@ export function SurahPage() {
 
             {selectedAyah ? (
               <div className="mt-5 glass rounded-3xl p-4 border border-white/10">
+                {/* Header: ayah label + highlight indicator */}
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm font-semibold">ملاحظة للآية ﴿{toArabicIndic(selectedAyah)}﴾</div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-semibold arabic-text">ملاحظة للآية ﴿{toArabicIndic(selectedAyah)}﴾</div>
+                    {highlights[`${surah.id}:${selectedAyah}`] && (
+                      <span
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ background: HIGHLIGHT_COLORS[highlights[`${surah.id}:${selectedAyah}`] as HighlightColor]?.swatch }}
+                      />
+                    )}
+                  </div>
                   <div className="flex items-center flex-wrap gap-2">
                     <Button variant="secondary" onClick={() => doCopyText(selectedAyahText)}>
                       نسخ الآية
@@ -760,6 +812,38 @@ export function SurahPage() {
                   </div>
                 </div>
 
+                {/* Color highlight picker */}
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-xs opacity-45">تلوين:</span>
+                  <div className="flex items-center gap-2">
+                    {(Object.keys(HIGHLIGHT_COLORS) as HighlightColor[]).map((c) => {
+                      const isActive = surah && highlights[`${surah.id}:${selectedAyah}`] === c;
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => surah && setQuranHighlight(surah.id, selectedAyah, isActive ? null : c)}
+                          className={`w-6 h-6 rounded-full transition-all duration-150 ${
+                            isActive ? "ring-2 ring-offset-1 ring-white/40 scale-110" : "opacity-55 hover:opacity-95 hover:scale-110"
+                          }`}
+                          style={{ background: HIGHLIGHT_COLORS[c].swatch }}
+                          title={HIGHLIGHT_COLORS[c].label}
+                          aria-label={`تلوين ${HIGHLIGHT_COLORS[c].label}`}
+                        />
+                      );
+                    })}
+                    {surah && highlights[`${surah.id}:${selectedAyah}`] && (
+                      <button
+                        type="button"
+                        onClick={() => surah && setQuranHighlight(surah.id, selectedAyah, null)}
+                        className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] hover:bg-white/20 transition opacity-60 hover:opacity-100"
+                        title="إزالة التلوين"
+                        aria-label="إزالة التلوين"
+                      >✕</button>
+                    )}
+                  </div>
+                </div>
+
                 <textarea
                   value={noteDraft}
                   onChange={(e) => setNoteDraft(e.target.value)}
@@ -775,14 +859,72 @@ export function SurahPage() {
       {/* Floating ayah action sheet (mobile only) */}
       {selectedAyah && (
         <div
-          className="ayah-action-sheet fixed left-4 right-4 z-50 md:hidden"
+          className="ayah-action-sheet fixed left-3 right-3 z-50 md:hidden"
           style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
         >
-          <div className="glass rounded-3xl px-4 py-3 border border-white/15 backdrop-blur-xl shadow-2xl">
+          <div className="glass rounded-3xl px-4 py-3 border border-white/15 backdrop-blur-xl shadow-2xl space-y-2.5">
+
+            {/* Row 1: label + note preview + close */}
             <div className="flex items-center gap-2">
-              <span className="text-xs opacity-55 arabic-text flex-1 truncate">
-                {surah?.name} ﴿{toArabicIndic(selectedAyah)}﴾
-              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  {surah && highlights[`${surah.id}:${selectedAyah}`] && (
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ background: HIGHLIGHT_COLORS[highlights[`${surah.id}:${selectedAyah}`] as HighlightColor]?.swatch }}
+                    />
+                  )}
+                  <span className="text-xs opacity-65 arabic-text truncate">
+                    {surah?.name} ﴿{toArabicIndic(selectedAyah)}﴾
+                  </span>
+                </div>
+                {surah && notes[`${surah.id}:${selectedAyah}`] && (
+                  <div className="text-[10px] opacity-40 truncate mt-0.5" dir="rtl">
+                    {notes[`${surah.id}:${selectedAyah}`]!.slice(0, 55)}
+                    {notes[`${surah.id}:${selectedAyah}`]!.length > 55 ? "…" : ""}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedAyah(null)}
+                className="w-7 h-7 shrink-0 flex items-center justify-center rounded-xl bg-white/6 hover:bg-white/12 transition opacity-55 hover:opacity-100"
+                aria-label="إغلاق"
+              >
+                <XIcon size={13} />
+              </button>
+            </div>
+
+            {/* Row 2: color swatches + action buttons */}
+            <div className="flex items-center gap-2">
+              {/* Color swatches */}
+              <div className="flex items-center gap-1.5 pr-2 border-r border-white/10">
+                {(Object.keys(HIGHLIGHT_COLORS) as HighlightColor[]).map((c) => {
+                  const isActive = surah && highlights[`${surah.id}:${selectedAyah}`] === c;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => surah && setQuranHighlight(surah.id, selectedAyah, isActive ? null : c)}
+                      className={`w-5 h-5 rounded-full transition-all duration-150 ${
+                        isActive ? "ring-2 ring-white/50 scale-110" : "opacity-55 hover:opacity-100 hover:scale-110"
+                      }`}
+                      style={{ background: HIGHLIGHT_COLORS[c].swatch }}
+                      aria-label={`تلوين ${HIGHLIGHT_COLORS[c].label}`}
+                      title={HIGHLIGHT_COLORS[c].label}
+                    />
+                  );
+                })}
+                {surah && highlights[`${surah.id}:${selectedAyah}`] && (
+                  <button
+                    type="button"
+                    onClick={() => surah && setQuranHighlight(surah.id, selectedAyah, null)}
+                    className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[9px] hover:bg-white/20 transition opacity-55"
+                    aria-label="إزالة التلوين"
+                  >✕</button>
+                )}
+              </div>
+
+              {/* Action buttons */}
               <button
                 onClick={() => doCopyText(selectedAyahText)}
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/8 hover:bg-white/12 transition text-xs"
@@ -810,14 +952,8 @@ export function SurahPage() {
               >
                 <Share2 size={13} /> إرسال
               </button>
-              <button
-                onClick={() => setSelectedAyah(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/6 hover:bg-white/10 transition opacity-60"
-                aria-label="إغلاق"
-              >
-                <XIcon size={14} />
-              </button>
             </div>
+
           </div>
         </div>
       )}

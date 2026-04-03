@@ -59,6 +59,7 @@ export type ExportBlobV1 = {
   quranBookmarks?: Record<string, boolean>;
   quranLastRead?: { surahId: number; ayahIndex: number } | null;
   quranNotes?: Record<string, string>;
+  quranHighlights?: Record<string, string>; // key: `${surahId}:${ayahIndex}` → "gold"|"green"|"blue"|"red"
   quranReadingHistory?: Record<string, number>;
   dailyWirdDone?: Record<string, boolean>;
   dailyWirdStartISO?: string | null;
@@ -93,6 +94,9 @@ type NoorState = {
   quranNotes: Record<string, string>; // key: `${surahId}:${ayahIndex}`
   setQuranNote: (surahId: number, ayahIndex: number, note: string) => void;
   clearQuranNote: (surahId: number, ayahIndex: number) => void;
+
+  quranHighlights: Record<string, string>; // key: `${surahId}:${ayahIndex}` → "gold"|"green"|"blue"|"red"
+  setQuranHighlight: (surahId: number, ayahIndex: number, color: string | null) => void;
 
   // Tracks furthest ayah reached per surah (surahId string -> max ayahIndex)
   quranReadingHistory: Record<string, number>;
@@ -241,6 +245,7 @@ export const useNoorStore = create<NoorState>()(
       }),
 
       quranNotes: {},
+      quranHighlights: {},
 
       quranReadingHistory: {},
       setQuranNote: (surahId, ayahIndex, note) => {
@@ -254,6 +259,18 @@ export const useNoorStore = create<NoorState>()(
           const next = { ...s.quranNotes };
           delete next[key];
           return { quranNotes: next };
+        });
+      },
+
+      setQuranHighlight: (surahId, ayahIndex, color) => {
+        const key = `${surahId}:${ayahIndex}`;
+        set((s) => {
+          if (!color) {
+            const next = { ...s.quranHighlights };
+            delete next[key];
+            return { quranHighlights: next };
+          }
+          return { quranHighlights: { ...s.quranHighlights, [key]: color } };
         });
       },
 
@@ -420,6 +437,7 @@ export const useNoorStore = create<NoorState>()(
           quranBookmarks: s.quranBookmarks,
           quranLastRead: s.quranLastRead,
           quranNotes: s.quranNotes,
+          quranHighlights: s.quranHighlights,
           quranReadingHistory: s.quranReadingHistory,
           dailyWirdDone: s.dailyWirdDone,
           dailyWirdStartISO: s.dailyWirdStartISO,
@@ -444,6 +462,7 @@ export const useNoorStore = create<NoorState>()(
           quranBookmarks: blob.quranBookmarks ?? {},
           quranLastRead: blob.quranLastRead ?? null,
           quranNotes: blob.quranNotes ?? {},
+          quranHighlights: blob.quranHighlights ?? {},
           quranReadingHistory: sanitizeNumberMap(blob.quranReadingHistory),
           dailyWirdDone: blob.dailyWirdDone ?? {},
           dailyWirdStartISO: blob.dailyWirdStartISO ?? null,

@@ -548,6 +548,10 @@ body.quran-focus-mode [class*="QuickTasbeeh"] {
 }
 body.quran-focus-mode .quran-surface {
   border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  position: relative;
+  z-index: 40;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55), 0 0 60px color-mix(in srgb, var(--accent) 14%, transparent);
+  transition: box-shadow 0.4s ease;
 }
 
 /* -------------------------------------------------------
@@ -559,6 +563,51 @@ body.quran-focus-mode .quran-surface {
 }
 .ayah-action-sheet {
   animation: ayahSheetSlideUp 220ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+/* -------------------------------------------------------
+   Quran: Focus mode overlay
+   ------------------------------------------------------- */
+.quran-focus-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.70);
+  z-index: 30;
+  cursor: pointer;
+  animation: focusOverlayIn 0.38s ease forwards;
+}
+@keyframes focusOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* -------------------------------------------------------
+   Quran: Multi-color ayah highlight system
+   ------------------------------------------------------- */
+.ayah-hl-gold  { background: rgba(251, 191, 36,  0.17); border-radius: 3px; }
+.ayah-hl-green { background: rgba(52,  211, 153, 0.16); border-radius: 3px; }
+.ayah-hl-blue  { background: rgba(96,  165, 250, 0.16); border-radius: 3px; }
+.ayah-hl-red   { background: rgba(248, 113, 113, 0.16); border-radius: 3px; }
+
+.ayah-marker[data-highlight="gold"] {
+  background: rgba(251, 191, 36,  0.22);
+  border-color: rgba(251, 191, 36,  0.55);
+  color: var(--fg);
+}
+.ayah-marker[data-highlight="green"] {
+  background: rgba(52,  211, 153, 0.22);
+  border-color: rgba(52,  211, 153, 0.55);
+  color: var(--fg);
+}
+.ayah-marker[data-highlight="blue"] {
+  background: rgba(96,  165, 250, 0.22);
+  border-color: rgba(96,  165, 250, 0.55);
+  color: var(--fg);
+}
+.ayah-marker[data-highlight="red"] {
+  background: rgba(248, 113, 113, 0.22);
+  border-color: rgba(248, 113, 113, 0.55);
+  color: var(--fg);
 }
 
 /* -------------------------------------------------------
