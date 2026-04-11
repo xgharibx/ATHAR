@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
-import { coerceCount } from "@/data/types";
+import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { useNoorStore } from "@/store/noorStore";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { cn } from "@/lib/utils";
@@ -15,10 +15,7 @@ import {
   type LeaderboardBoard,
   type LeaderboardEntry,
   type LeaderboardPeriod,
-  buildSubmitPayload,
-  enqueuePayload,
   fetchBoardRows,
-  flushQueue,
   hasLocalLeaderboardAdminToken,
   loadLeaderboardAdminToken,
   saveLeaderboardAdminToken,
@@ -31,6 +28,7 @@ import {
   setLeaderboardAlias,
   submitLeaderboardAdminAction,
   syncLeaderboardAliasFromServer,
+  syncLeaderboardSnapshot,
   validateLeaderboardAlias,
   type LeaderboardAdminAliasAuditRow,
   type LeaderboardAdminBlocklistRow,
@@ -39,27 +37,7 @@ import {
 
 const COOLDOWN_MS = 45_000;
 
-const DAILY_TASBEEH_POOL: Array<{ key: string; label: string }> = [
-  { key: "subhanallah", label: "سُبْحَانَ الله" },
-  { key: "alhamdulillah", label: "الْحَمْدُ لِلَّه" },
-  { key: "la_ilaha_illallah", label: "لا إِلَهَ إِلَّا الله" },
-  { key: "allahu_akbar", label: "اللهُ أَكْبَر" }
-];
-
-function hashString(input: string) {
-  let h = 0;
-  for (let i = 0; i < input.length; i++) {
-    h = (h * 31 + input.charCodeAt(i)) >>> 0;
-  }
-  return h;
-}
-
-function getDailyTasbeeh(todayISO: string) {
-  const hash = hashString(todayISO);
-  const item = DAILY_TASBEEH_POOL[hash % DAILY_TASBEEH_POOL.length];
-  const target = 100 + (hash % 5) * 50;
-  return { ...item, target };
-}
+type BoardLoadState = "idle" | "loading" | "ok" | "error";
 
 export function LeaderboardPage() {
   const { data } = useAdhkarDB();
@@ -76,6 +54,7 @@ export function LeaderboardPage() {
   const [period, setPeriod] = React.useState<LeaderboardPeriod>("daily");
   const [selectedSection, setSelectedSection] = React.useState<string>("");
   const [remoteRows, setRemoteRows] = React.useState<LeaderboardEntry[]>([]);
+  const [boardLoadState, setBoardLoadState] = React.useState<BoardLoadState>(endpoint ? "loading" : "idle");
   const [syncState, setSyncState] = React.useState<"idle" | "syncing" | "ok" | "error" | "cooldown">("idle");
   const [syncHint, setSyncHint] = React.useState("");
   const [lastSubmitAt, setLastSubmitAt] = React.useState(0);
@@ -85,6 +64,7 @@ export function LeaderboardPage() {
   const [aliasTone, setAliasTone] = React.useState<"idle" | "ok" | "error" | "moderated">("idle");
   const [serverHidden, setServerHidden] = React.useState(false);
   const [showAdminCard, setShowAdminCard] = React.useState(() => hasLocalLeaderboardAdminToken());
+  const aliasSyncPendingRef = React.useRef(false);
 
   const aliasValidation = React.useMemo(() => validateLeaderboardAlias(aliasDraft), [aliasDraft]);
   const aliasDirty = aliasDraft.trim() !== identity.alias;
@@ -112,43 +92,34 @@ export function LeaderboardPage() {
     }
   }, [sections, selectedSection]);
 
-  const sectionScores = React.useMemo(() => {
-    const out: Record<string, number> = {};
-    for (const section of sections) {
-      let score = 0;
-      section.content.forEach((it, idx) => {
-        const target = coerceCount(it.count);
-        const key = `${section.id}:${idx}`;
-        const current = Math.min(Math.max(0, Number(progress[key]) || 0), target);
-        score += current;
-      });
-      out[section.id] = score;
-    }
-    return out;
-  }, [progress, sections]);
+  const stats = React.useMemo(
+    () =>
+      buildLeaderboardScoreStats({
+        sections,
+        progress,
+        quranAyahIndex: quranLastRead?.ayahIndex ?? 0,
+        prayersDone,
+        quickTasbeeh,
+        todayISO: todayKey
+      }),
+    [prayersDone, progress, quranLastRead?.ayahIndex, quickTasbeeh, sections, todayKey]
+  );
 
   const myStats = React.useMemo(() => {
-    const dailyTasbeeh = getDailyTasbeeh(todayKey);
-    const rawTasbeeh = Number(quickTasbeeh?.[dailyTasbeeh.key] ?? 0) || 0;
-    const tasbeehDailyScore = Math.max(0, Math.min(rawTasbeeh, dailyTasbeeh.target));
-    const dhikr = Object.values(progress).reduce((acc, v) => acc + (Number(v) || 0), 0);
-    const quran = quranLastRead?.ayahIndex ?? 0;
-    const prayers = Object.keys(prayersDone).filter((k) => prayersDone[k]).length;
-    const score = dhikr + quran * 3 + prayers * 40 + tasbeehDailyScore;
-
     return {
       id: identity.id,
       name: identity.alias,
-      score,
-      dhikr,
-      quran,
-      prayers,
-      tasbeehDailyLabel: dailyTasbeeh.label,
-      tasbeehDailyTarget: dailyTasbeeh.target,
-      tasbeehDailyScore,
-      sectionScore: selectedSection ? sectionScores[selectedSection] ?? 0 : 0
+      score: stats.global,
+      dhikr: stats.dhikr,
+      quran: stats.quran,
+      prayers: stats.prayers,
+      tasbeehDailyLabel: stats.tasbeehDailyLabel,
+      tasbeehDailyTarget: stats.tasbeehDailyTarget,
+      tasbeehDailyScore: stats.tasbeehDailyScore,
+      sectionScore: selectedSection ? stats.sectionScores[selectedSection] ?? 0 : 0,
+      scores: stats.scores
     };
-  }, [identity.alias, identity.id, prayersDone, progress, quranLastRead?.ayahIndex, quickTasbeeh, sectionScores, selectedSection, todayKey]);
+  }, [identity.alias, identity.id, selectedSection, stats]);
 
   const myBoardScore =
     board === "global"
@@ -187,20 +158,22 @@ export function LeaderboardPage() {
     [board, identity, period, selectedSection, todayKey]
   );
 
+  const usingRemoteRows = !!endpoint && boardLoadState === "ok";
+
   const mergedRows = React.useMemo(() => {
-    const source = remoteRows.length > 0 ? remoteRows : localRows.length > 0 ? localRows : [myEntry];
-    const all = serverHidden && remoteRows.length > 0 ? source.filter((r) => r.id !== myEntry.id) : source;
+    const source = usingRemoteRows ? remoteRows : localRows.length > 0 ? localRows : [myEntry];
+    const all = serverHidden && usingRemoteRows ? source.filter((r) => r.id !== myEntry.id) : source;
     return all
       .filter((r) => r.board === board && (board !== "section" || r.sectionId === selectedSection))
       .sort((a, b) => b.score - a.score)
       .slice(0, 30);
-  }, [board, localRows, myEntry, remoteRows, selectedSection, serverHidden]);
+  }, [board, localRows, myEntry, remoteRows, selectedSection, serverHidden, usingRemoteRows]);
 
   const myRank = React.useMemo(() => {
     const idx = mergedRows.findIndex((r) => r.id === myEntry.id);
     if (idx >= 0) return idx + 1;
-    return remoteRows.length > 0 ? null : 1;
-  }, [mergedRows, myEntry.id, remoteRows.length]);
+    return usingRemoteRows ? null : 1;
+  }, [mergedRows, myEntry.id, usingRemoteRows]);
 
   const applyServerAlias = React.useCallback((serverAlias?: string, aliasStatus?: string) => {
     if (!serverAlias) return;
@@ -231,6 +204,7 @@ export function LeaderboardPage() {
   }, []);
 
   React.useEffect(() => {
+    if (aliasSyncPendingRef.current) return;
     const mine = remoteRows.find((row) => row.id === identity.id);
     if (!mine) return;
     if (mine.name && mine.name !== identity.alias) {
@@ -242,9 +216,10 @@ export function LeaderboardPage() {
   const pullBoard = React.useCallback(async () => {
     if (!endpoint) {
       setRemoteRows([]);
+      setBoardLoadState("idle");
       return;
     }
-    setSyncState("syncing");
+    setBoardLoadState("loading");
     try {
       const rows = await fetchBoardRows({
         endpoint,
@@ -254,11 +229,9 @@ export function LeaderboardPage() {
         day: todayKey
       });
       setRemoteRows(rows);
-      setSyncState("ok");
-      setSyncHint("تم تحديث الترتيب");
+      setBoardLoadState("ok");
     } catch {
-      setSyncState("error");
-      setSyncHint("تعذر جلب البيانات من الخادم");
+      setBoardLoadState("error");
     }
   }, [board, endpoint, period, selectedSection, todayKey]);
 
@@ -266,55 +239,30 @@ export function LeaderboardPage() {
     void pullBoard();
   }, [pullBoard]);
 
-  const saveAlias = () => {
-    const result = setLeaderboardAlias(aliasDraft);
-    if (!result.ok) {
-      setAliasTone("error");
-      setAliasHint(result.message);
-      return;
-    }
+  const submitScore = React.useCallback(async (options?: { bypassCooldown?: boolean; pullAfter?: boolean }) => {
+    const bypassCooldown = options?.bypassCooldown === true;
+    const pullAfter = options?.pullAfter !== false;
 
-    setIdentity(result.identity);
-    setAliasDraft(result.identity.alias);
-    setAliasTone("ok");
-    setAliasHint(endpoint ? "تم حفظ الاسم محليًا. سيخضع للتصفية عند أول مزامنة." : "تم حفظ الاسم محليًا.");
-  };
-
-  const restoreDefaultAlias = () => {
-    const nextIdentity = resetLeaderboardAlias();
-    setIdentity(nextIdentity);
-    setAliasDraft(nextIdentity.alias);
-    setAliasTone("ok");
-    setAliasHint("تمت إعادة الاسم الافتراضي الآمن.");
-  };
-
-  const submitScore = async () => {
-    if (Date.now() - lastSubmitAt < COOLDOWN_MS) {
+    if (!bypassCooldown && Date.now() - lastSubmitAt < COOLDOWN_MS) {
       setSyncState("cooldown");
       setSyncHint("انتظر قليلًا قبل الإرسال");
       return;
     }
 
-    setLastSubmitAt(Date.now());
-
-    const payload = await buildSubmitPayload(todayKey, {
-      global: myStats.score,
-      dhikr: myStats.dhikr,
-      quran: myStats.quran,
-      prayers: myStats.prayers,
-      tasbeehDaily: myStats.tasbeehDailyScore,
-      sections: sectionScores
-    });
-    enqueuePayload(payload);
+    if (!bypassCooldown) {
+      setLastSubmitAt(Date.now());
+    }
 
     if (!endpoint) {
+      await syncLeaderboardSnapshot("", todayKey, myStats.scores);
       setSyncState("error");
       setSyncHint("المزامنة السحابية غير مفعّلة");
+      aliasSyncPendingRef.current = false;
       return;
     }
 
     setSyncState("syncing");
-    const flush = await flushQueue(endpoint);
+    const flush = await syncLeaderboardSnapshot(endpoint, todayKey, myStats.scores);
     if (!flush.ok) {
       setSyncState("error");
       setSyncHint(
@@ -328,6 +276,7 @@ export function LeaderboardPage() {
                 ? "مشكلة اتصال، أعد المحاولة"
                 : "تعذر إكمال المزامنة"
       );
+      aliasSyncPendingRef.current = false;
       return;
     }
 
@@ -339,13 +288,49 @@ export function LeaderboardPage() {
       setServerHidden(true);
       setSyncState("ok");
       setSyncHint("تمت المزامنة لكن الحساب مخفي حاليًا من اللوحة من جهة الإدارة");
-      await pullBoard();
+      if (pullAfter) await pullBoard();
       return;
     }
 
     setServerHidden(false);
+    setSyncState("ok");
+    setSyncHint(flush.sent > 0 ? "تم تحديث نقاطك على الخادم" : "لا توجد تغييرات معلقة");
+    if (pullAfter) await pullBoard();
+    aliasSyncPendingRef.current = false;
+  }, [applyServerAlias, endpoint, lastSubmitAt, myStats.scores, pullBoard, todayKey]);
 
-    await pullBoard();
+  const saveAlias = async () => {
+    const result = setLeaderboardAlias(aliasDraft);
+    if (!result.ok) {
+      setAliasTone("error");
+      setAliasHint(result.message);
+      return;
+    }
+
+    setIdentity(result.identity);
+    setAliasDraft(result.identity.alias);
+    setAliasTone("idle");
+    setAliasHint(endpoint ? "تم حفظ الاسم محليًا. جارٍ اعتماده على الخادم..." : "تم حفظ الاسم محليًا.");
+    aliasSyncPendingRef.current = true;
+    if (endpoint) {
+      await submitScore({ bypassCooldown: true });
+    } else {
+      aliasSyncPendingRef.current = false;
+    }
+  };
+
+  const restoreDefaultAlias = async () => {
+    const nextIdentity = resetLeaderboardAlias();
+    setIdentity(nextIdentity);
+    setAliasDraft(nextIdentity.alias);
+    setAliasTone("idle");
+    setAliasHint(endpoint ? "تمت إعادة الاسم الافتراضي. جارٍ تحديثه على الخادم..." : "تمت إعادة الاسم الافتراضي الآمن.");
+    aliasSyncPendingRef.current = true;
+    if (endpoint) {
+      await submitScore({ bypassCooldown: true });
+    } else {
+      aliasSyncPendingRef.current = false;
+    }
   };
 
   return (
@@ -381,10 +366,10 @@ export function LeaderboardPage() {
               maxLength={40}
               placeholder="مثال: نور الشام"
             />
-            <Button onClick={saveAlias} disabled={!aliasDirty || !aliasValidation.ok}>
+            <Button onClick={() => void saveAlias()} disabled={!aliasDirty || !aliasValidation.ok}>
               حفظ الاسم
             </Button>
-            <Button variant="outline" onClick={restoreDefaultAlias}>
+            <Button variant="outline" onClick={() => void restoreDefaultAlias()}>
               اسم افتراضي
             </Button>
           </div>
@@ -457,9 +442,9 @@ export function LeaderboardPage() {
           <Button
             variant="secondary"
             onClick={() => void pullBoard()}
-            disabled={syncState === "syncing"}
+            disabled={boardLoadState === "loading"}
           >
-            <RotateCw size={16} className={syncState === "syncing" ? "animate-spin" : ""} />
+            <RotateCw size={16} className={boardLoadState === "loading" ? "animate-spin" : ""} />
             تحديث
           </Button>
           <Badge>{myRank != null ? `رتبتي: #${myRank}` : "رتبتي: خارج أعلى 30"}</Badge>
@@ -489,9 +474,17 @@ export function LeaderboardPage() {
                     ? endpoint
                       ? syncHint || "فشل/تقييد مؤقت"
                       : "محلي فقط"
-                    : "محلي"}
+                    : endpoint
+                      ? "تحديث تلقائي بالخلفية"
+                      : "محلي"}
           </span>
         </div>
+
+        {endpoint && boardLoadState === "error" && (
+          <div className="mt-3 rounded-2xl border border-[var(--danger)]/25 bg-[var(--danger)]/10 px-4 py-3 text-xs leading-6 text-[var(--danger)]">
+            تعذر تحديث ترتيب اللوحة من الخادم حاليًا. ما يظهر الآن هو آخر بيانات محلية متاحة فقط.
+          </div>
+        )}
 
         {serverHidden && (
           <div className="mt-3 rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-xs text-yellow-200 leading-6">
@@ -515,25 +508,31 @@ export function LeaderboardPage() {
                     : "أفضل نتائج القسم"}
         </div>
         <div className="space-y-2">
-          {mergedRows.map((r, idx) => (
-            <div key={r.id} className={cn(
-              "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
-              r.id === myEntry.id ? "border-[var(--accent)]/35 bg-[var(--accent)]/8" : "border-white/10"
-            )}>
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs tabular-nums">
-                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate">{r.name}</div>
-                  <div className="text-[11px] opacity-60">
-                    {r.id === myEntry.id ? "أنت" : "عضو"} • {r.day ?? todayKey}
+          {mergedRows.length === 0 ? (
+            <div className="glass rounded-3xl border border-white/10 px-4 py-5 text-sm opacity-70 leading-7 text-center">
+              لا توجد نتائج منشورة لهذا التصنيف بعد. ابدأ بالمزامنة لرفع أول نتيجة.
+            </div>
+          ) : (
+            mergedRows.map((r, idx) => (
+              <div key={r.id} className={cn(
+                "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
+                r.id === myEntry.id ? "border-[var(--accent)]/35 bg-[var(--accent)]/8" : "border-white/10"
+              )}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs tabular-nums">
+                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{r.name}</div>
+                    <div className="text-[11px] opacity-60">
+                      {r.id === myEntry.id ? "أنت" : "عضو"} • {r.day ?? todayKey}
+                    </div>
                   </div>
                 </div>
+                <div className="text-sm font-semibold tabular-nums">{r.score}</div>
               </div>
-              <div className="text-sm font-semibold tabular-nums">{r.score}</div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </Card>
 
@@ -598,6 +597,8 @@ function LeaderboardAdminCard(props: {
   const [blockTerm, setBlockTerm] = React.useState("");
   const [blockNote, setBlockNote] = React.useState("");
   const [blockMatchMode, setBlockMatchMode] = React.useState<"contains" | "exact">("contains");
+  const [confirmResetScores, setConfirmResetScores] = React.useState(false);
+  const [resettingScores, setResettingScores] = React.useState(false);
 
   const hasEndpoint = !!props.endpoint;
   const hasAdminToken = adminToken.trim().length > 0;
@@ -807,6 +808,27 @@ function LeaderboardAdminCard(props: {
     }
   };
 
+  const resetLeaderboardScores = async () => {
+    if (!props.endpoint || !adminToken.trim()) return;
+    setResettingScores(true);
+    try {
+      await submitLeaderboardAdminAction({
+        endpoint: props.endpoint,
+        adminToken,
+        action: "resetLeaderboardScores"
+      });
+      setConfirmResetScores(false);
+      setAdminTone("ok");
+      setAdminHint("تم تصفير نقاط لوحة المتصدرين مع الإبقاء على قواعد الحظر والمراجعات.");
+      await props.onRefreshBoard();
+    } catch (error) {
+      setAdminTone("error");
+      setAdminHint(`تعذر تصفير المتصدرين: ${error instanceof Error ? error.message : "خطأ غير معروف"}`);
+    } finally {
+      setResettingScores(false);
+    }
+  };
+
   return (
     <Card className="p-5">
       <div className="flex items-center justify-between gap-3">
@@ -864,6 +886,29 @@ function LeaderboardAdminCard(props: {
 
           {hasAdminToken && hasEndpoint && (
             <>
+              <div className="rounded-3xl border border-[var(--danger)]/20 bg-[var(--danger)]/8 p-4 space-y-3">
+                <div className="text-sm font-semibold text-[var(--danger)]">إعادة تشغيل اللوحة</div>
+                <div className="text-[11px] leading-6 opacity-75">
+                  هذا الإجراء يمسح جميع النقاط المنشورة وسجل النتائج من الخادم، لكنه يُبقي قواعد الحظر ومراجعات الأسماء كما هي.
+                </div>
+                {confirmResetScores ? (
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={() => void resetLeaderboardScores()} disabled={resettingScores}>
+                      {resettingScores ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                      تأكيد التصفير الكامل
+                    </Button>
+                    <Button variant="outline" onClick={() => setConfirmResetScores(false)} disabled={resettingScores}>
+                      إلغاء
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="outline" onClick={() => setConfirmResetScores(true)}>
+                    <Trash2 size={16} />
+                    تصفير لوحة المتصدرين
+                  </Button>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <div className="rounded-3xl border border-white/10 bg-white/4 p-4 space-y-3">
                   <div className="text-sm font-semibold">حظر أسماء أو كلمات</div>

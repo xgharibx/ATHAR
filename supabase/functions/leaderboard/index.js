@@ -481,6 +481,16 @@ async function handleAdminPost(req, db, denoEnv, body) {
     return json({ ok: true, userModeration: null });
   }
 
+  if (action === "resetLeaderboardScores") {
+    const deleteEvents = await db.from("leaderboard_score_events").delete();
+    if (deleteEvents.error) return json({ ok: false, error: "score-events-reset-failed" }, 500);
+
+    const deleteRollups = await db.from("leaderboard_rollups").delete();
+    if (deleteRollups.error) return json({ ok: false, error: "rollups-reset-failed" }, 500);
+
+    return json({ ok: true, reset: { scope: "all-scores" } });
+  }
+
   return json({ ok: false, error: "unknown-admin-action" }, 400);
 }
 
@@ -636,7 +646,7 @@ function eventRows(payload, resolvedAlias) {
   return rows;
 }
 
-function aggregateRows(input) {
+function aggregateRows(input, strategy = "sum") {
   const map = new Map();
   for (const r of input) {
     const key = `${r.user_id}::${r.section_id ?? ""}`;
@@ -646,7 +656,11 @@ function aggregateRows(input) {
       continue;
     }
     prev.alias = String(r.alias ?? prev.alias ?? "");
-    prev.score += clampInt(r.score);
+    if (strategy === "max") {
+      prev.score = Math.max(prev.score, clampInt(r.score));
+    } else {
+      prev.score += clampInt(r.score);
+    }
     map.set(key, prev);
   }
   return [...map.values()];
@@ -736,7 +750,7 @@ denoRuntime.serve(async (req) => {
       const eventsRes = await selected;
       if (eventsRes.error) continue;
 
-      const grouped = aggregateRows(eventsRes.data ?? []);
+      const grouped = aggregateRows(eventsRes.data ?? [], "max");
       const rollupRows = grouped.map((g) => ({
         day: payload.day,
         period: "daily",

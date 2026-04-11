@@ -554,6 +554,21 @@ export async function buildSubmitPayload(day: string, scores: LeaderboardScoreBu
   } satisfies LeaderboardSubmitPayload;
 }
 
+export async function syncLeaderboardSnapshot(
+  endpoint: string,
+  day: string,
+  scores: LeaderboardScoreBundle
+) {
+  const payload = await buildSubmitPayload(day, scores);
+  enqueuePayload(payload);
+
+  if (!endpoint) {
+    return { ok: false, sent: 0, reason: null } satisfies FlushQueueResult;
+  }
+
+  return flushQueue(endpoint);
+}
+
 function readQueue() {
   ensureMigration();
   try {

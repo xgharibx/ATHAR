@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { AppShell } from "@/components/layout/AppShell";
+import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncBridge";
 import { useNoorStore } from "@/store/noorStore";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 
@@ -93,6 +94,7 @@ export default function App() {
         <PageSkeleton />
       </div>
     }>
+      <LeaderboardSyncBridge />
       <Routes>
         <Route element={<AppShell />}>
           <Route index element={<HomePage />} />

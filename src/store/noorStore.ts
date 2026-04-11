@@ -166,7 +166,7 @@ type NoorState = {
 };
 
 const DEFAULT_PREFS: Preferences = {
-  theme: "roses",
+  theme: "forest",
   fontScale: 1.05,
   lineHeight: 1.95,
   quranFontScale: 1.1,
@@ -181,7 +181,7 @@ const DEFAULT_PREFS: Preferences = {
   quranReciter: "Alafasy_128kbps",
   showBenefits: true,
   stripDiacritics: false,
-  enable3D: false,
+  enable3D: true,
   enableHaptics: true,
   enableSounds: false,
   reduceMotion: false,
