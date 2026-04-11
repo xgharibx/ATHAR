@@ -482,10 +482,10 @@ async function handleAdminPost(req, db, denoEnv, body) {
   }
 
   if (action === "resetLeaderboardScores") {
-    const deleteEvents = await db.from("leaderboard_score_events").delete();
+    const deleteEvents = await db.from("leaderboard_score_events").delete().not("day", "is", null);
     if (deleteEvents.error) return json({ ok: false, error: "score-events-reset-failed" }, 500);
 
-    const deleteRollups = await db.from("leaderboard_rollups").delete();
+    const deleteRollups = await db.from("leaderboard_rollups").delete().not("day", "is", null);
     if (deleteRollups.error) return json({ ok: false, error: "rollups-reset-failed" }, 500);
 
     return json({ ok: true, reset: { scope: "all-scores" } });
