@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft } from "lucide-react";
+import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
@@ -22,10 +22,12 @@ export function DhikrList(props: {
   focusIndex?: number | null;
 }) {
   const resetSection = useNoorStore((s) => s.resetSection);
+  const increment = useNoorStore((s) => s.increment);
   const progressMap = useNoorStore((s) => s.progress);
   const navigate = useNavigate();
   const { data: adhkarData } = useAdhkarDB();
   const [confirmReset, setConfirmReset] = React.useState(false);
+  const [confirmDone, setConfirmDone] = React.useState(false);
   const isDailySectionLocked = isDailySection(props.sectionId);
   const identity = React.useMemo(() => getSectionIdentity(props.sectionId), [props.sectionId]);
 
@@ -119,6 +121,20 @@ export function DhikrList(props: {
       .slice(0, 5);
   }, [adhkarData, progressMap, props.sectionId]);
 
+  const markAllDone = () => {
+    props.items.forEach((item, idx) => {
+      const target = coerceCount(item.count);
+      const key = `${props.sectionId}:${idx}`;
+      const current = Math.min(target, Math.max(0, Number(progressMap[key]) || 0));
+      const remaining = target - current;
+      for (let i = 0; i < remaining; i++) {
+        increment({ sectionId: props.sectionId, index: idx, target });
+      }
+    });
+    setConfirmDone(false);
+    toast.success("تم إكمال جميع الأذكار ✓");
+  };
+
   const copyAllText = async () => {
     const lines: string[] = [`【 ${props.title} 】`, ""];
     props.items.forEach((item, idx) => {
@@ -172,7 +188,7 @@ export function DhikrList(props: {
               </div>
               <h1 className="text-xl md:text-2xl font-semibold" style={{ color: identity.accent }}>{props.title}</h1>
               <div className="text-sm opacity-70 mt-2 tabular-nums">
-                التقدّم: {stats.done}/{stats.total} • {stats.percent}%
+                التقدّم: {stats.done}/{stats.total} • {stats.percent}% • ~{Math.max(1, Math.round(props.items.length / 2))} دق
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -202,6 +218,31 @@ export function DhikrList(props: {
                 >
                   <RotateCcw size={16} />
                   تصفير القسم
+                </Button>
+              )}
+              {confirmDone ? (
+                <>
+                  <Button
+                    variant="outline"
+                    className="border-[var(--ok)]/40 text-[var(--ok)] hover:bg-[var(--ok)]/10"
+                    onClick={markAllDone}
+                  >
+                    <CheckCheck size={16} />
+                    تأكيد الإكمال
+                  </Button>
+                  <Button variant="outline" onClick={() => setConfirmDone(false)}>
+                    إلغاء
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => setConfirmDone(true)}
+                  disabled={isDailySectionLocked || stats.percent >= 100}
+                  title="تحديد جميع الأذكار كمكتملة"
+                  aria-label="تحديد جميع الأذكار كمكتملة"
+                >
+                  <CheckCheck size={16} />
                 </Button>
               )}
               <Button variant="secondary" onClick={exportSection}>

@@ -1,7 +1,9 @@
 import * as React from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowRight, Copy, Shuffle, ChevronsRight, ChevronRight, ChevronLeft, ChevronsLeft, Bookmark, Share2, X as XIcon, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Copy, Shuffle, ChevronsRight, ChevronRight, ChevronLeft, ChevronsLeft, Bookmark, Share2, X as XIcon, Maximize2, Minimize2, Pencil, Volume2, VolumeX, Eye, EyeOff, Timer, Search, ChevronDown } from "lucide-react";
+import { stripDiacritics } from "@/lib/arabic";
 import { getSurahRevelationLabel, getSurahJuz, SURAH_REVELATION } from "@/lib/quranMeta";
+import type { QuranSurah } from "@/data/quranTypes";
 
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -70,6 +72,7 @@ export function SurahPage() {
   const setQuranHighlight = useNoorStore((s) => s.setQuranHighlight);
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
+  const recordQuranRead = useNoorStore((s) => s.recordQuranRead);
 
   const surahId = Number(params.id);
   const focusAyah = Number(sp.get("a") ?? "0");
@@ -87,6 +90,44 @@ export function SurahPage() {
   const [jumpMushafPage, setJumpMushafPage] = React.useState("");
   const [focusMode, setFocusMode] = React.useState(false);
 
+  // Tooltip & action sheet state
+  const [tooltipPos, setTooltipPos] = React.useState<{ x: number; y: number; below: boolean } | null>(null);
+  const [noteSheetOpen, setNoteSheetOpen] = React.useState(false);
+
+  // Fullscreen chrome auto-hide
+  const [fsChrome, setFsChrome] = React.useState(true);
+  const fsChromeTimer = React.useRef<number | null>(null);
+
+  // Touch swipe ref
+  const touchStartXRef = React.useRef<number | null>(null);
+
+  // Audio playback
+  const [playingAyah, setPlayingAyah] = React.useState<number | null>(null);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  // Memorization mode
+  const [memMode, setMemMode] = React.useState(false);
+  const [revealedAyahs, setRevealedAyahs] = React.useState<Set<number>>(new Set());
+
+  // Session timer
+  const [sessionSeconds, setSessionSeconds] = React.useState(0);
+  const sessionTimerRef = React.useRef<number | null>(null);
+
+  // Completion ref (fire once per surah)
+  const completionFiredRef = React.useRef(false);
+
+  // In-surah text search
+  const [inSurahSearch, setInSurahSearch] = React.useState("");
+  const [showInSurahSearch, setShowInSurahSearch] = React.useState(false);
+
+  // Autoscroll teleprompter (FS mode)
+  const [autoScroll, setAutoScroll] = React.useState(false);
+  const [autoScrollSpeed, setAutoScrollSpeed] = React.useState(2); // 1–5
+  const rafRef = React.useRef<number | null>(null);
+
+  // Surah info panel
+  const [showSurahInfo, setShowSurahInfo] = React.useState(false);
+
   // Immersive focus: hide nav / header while reading
   React.useEffect(() => {
     if (focusMode) document.body.classList.add("quran-focus-mode");
@@ -94,16 +135,29 @@ export function SurahPage() {
     return () => document.body.classList.remove("quran-focus-mode");
   }, [focusMode]);
 
-  // Esc key: close selected ayah first, then exit focus mode
+  // Fullscreen chrome auto-hide
+  const showFsChrome = React.useCallback(() => {
+    setFsChrome(true);
+    if (fsChromeTimer.current) clearTimeout(fsChromeTimer.current);
+    fsChromeTimer.current = window.setTimeout(() => setFsChrome(false), 3500);
+  }, []);
+
   React.useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      if (selectedAyah !== null) { setSelectedAyah(null); return; }
-      if (focusMode) setFocusMode(false);
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [focusMode, selectedAyah]);
+    if (focusMode) { showFsChrome(); }
+    else {
+      setFsChrome(true);
+      if (fsChromeTimer.current) clearTimeout(fsChromeTimer.current);
+    }
+    return () => { if (fsChromeTimer.current) clearTimeout(fsChromeTimer.current); };
+  }, [focusMode, showFsChrome]);
+
+  // Sync tooltip + note sheet when selectedAyah clears
+  React.useEffect(() => {
+    if (selectedAyah === null) {
+      setTooltipPos(null);
+      setNoteSheetOpen(false);
+    }
+  }, [selectedAyah]);
 
   const surah = React.useMemo(() => {
     if (!data || !Number.isFinite(surahId)) return null;
@@ -182,6 +236,13 @@ export function SurahPage() {
     return displayAyahs.slice(start, start + pageSize);
   }, [currentMushafPage, currentPage, displayAyahs, isMushafMode, pageMap, pageSize, surah, surahMushafPages]);
 
+  // Filtered ayahs for in-surah search (normal page mode only)
+  const filteredPageAyahs = React.useMemo(() => {
+    if (!inSurahSearch.trim()) return pageAyahs;
+    const q = stripDiacritics(inSurahSearch.trim());
+    return pageAyahs.filter((a) => stripDiacritics(a.text).includes(q));
+  }, [pageAyahs, inSurahSearch]);
+
   React.useEffect(() => {
     if (!surah) return;
 
@@ -240,6 +301,67 @@ export function SurahPage() {
       setSelectedAyah(null);
     }
   }, [currentPage, isMushafMode, pageAyahs, pageSize, selectedAyah]);
+
+  // Session timer + audio cleanup on unmount
+  React.useEffect(() => {
+    sessionTimerRef.current = window.setInterval(() => setSessionSeconds((s) => s + 1), 1000);
+    return () => {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+      if (sessionTimerRef.current) clearInterval(sessionTimerRef.current);
+    };
+  }, []);
+
+  // Autoscroll teleprompter RAF loop
+  React.useEffect(() => {
+    if (!autoScroll || !focusMode) {
+      if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+      return;
+    }
+    if (!pageRef.current) return;
+    const speed = autoScrollSpeed * 0.35;
+    const tick = () => {
+      if (pageRef.current) pageRef.current.scrollTop += speed;
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    };
+  }, [autoScroll, autoScrollSpeed, focusMode]);
+
+  // Record reads + completion detection
+  React.useEffect(() => {
+    if (!surah || selectedAyah === null) return;
+    recordQuranRead(1);
+    if (
+      !completionFiredRef.current &&
+      selectedAyah >= displayAyahs.length &&
+      displayAyahs.length > 0
+    ) {
+      completionFiredRef.current = true;
+      setTimeout(() => toast.success(`🎉 أكملت قراءة سورة ${surah.name}`), 400);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAyah]);
+
+  const playAyah = React.useCallback((sId: number, aNum: number) => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (playingAyah === aNum) { setPlayingAyah(null); return; }
+    const sStr = String(sId).padStart(3, "0");
+    const aStr = String(aNum).padStart(3, "0");
+    const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
+    const audio = new Audio(`https://everyayah.com/data/${reciter}/${sStr}${aStr}.mp3`);
+    audioRef.current = audio;
+    setPlayingAyah(aNum);
+    audio.play().catch(() => toast.error("تعذر تشغيل التلاوة"));
+    audio.onended = () => setPlayingAyah(null);
+  }, [playingAyah]);
+
+  const formatTimer = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  };
 
   const doCopyText = async (text: string) => {
     try {
@@ -388,6 +510,469 @@ export function SurahPage() {
     else setCurrentPage(totalPages);
   };
 
+  // Keyboard shortcuts: arrows=page nav, Space=play, m=memory, f=focus
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      const isTyping = tag === "INPUT" || tag === "TEXTAREA";
+
+      if (e.key === "Escape") {
+        if (noteSheetOpen) { setNoteSheetOpen(false); return; }
+        if (selectedAyah !== null) { setSelectedAyah(null); return; }
+        if (focusMode) { setFocusMode(false); setAutoScroll(false); }
+        return;
+      }
+      if (isTyping) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); goNextPage(); return; }
+      if (e.key === "ArrowRight") { e.preventDefault(); goPrevPage(); return; }
+      if (e.key === " " && selectedAyah !== null && surah) {
+        e.preventDefault();
+        playAyah(surah.id, selectedAyah);
+        return;
+      }
+      if (e.key === "m") { setMemMode((v) => !v); setRevealedAyahs(new Set()); return; }
+      if (e.key === "f") { setFocusMode((v) => !v); return; }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [focusMode, goNextPage, goPrevPage, noteSheetOpen, playAyah, selectedAyah, surah]);
+
+  // Ayah tap: capture viewport position and open tooltip
+  const handleAyahClick = React.useCallback((e: React.MouseEvent, ayahIdx: number) => {
+    e.stopPropagation();
+    if (!surah) return;
+    setLastRead(surah.id, ayahIdx);
+    if (selectedAyah === ayahIdx) {
+      setSelectedAyah(null);
+      return;
+    }
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const rawX = rect.left + rect.width / 2;
+    const x = Math.min(Math.max(rawX, 180), window.innerWidth - 180);
+    const y = rect.top;
+    setSelectedAyah(ayahIdx);
+    setTooltipPos({ x, y, below: y < 70 });
+    setNoteSheetOpen(false);
+  }, [selectedAyah, surah, setLastRead]);
+
+  // Clicks outside an ayah close the tooltip
+  const handlePageClick = React.useCallback(() => {
+    setSelectedAyah(null);
+  }, []);
+
+  // Swipe left/right to turn pages (Arabic convention: right = prev, left = next)
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0]?.clientX ?? null;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null) return;
+    const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartXRef.current;
+    touchStartXRef.current = null;
+    if (Math.abs(dx) < 60) return;
+    if (dx > 0) goPrevPage();
+    else goNextPage();
+  };
+
+  // ─── Ayah renderer (shared between normal + fullscreen views) ───────────────
+  const renderAyah = (a: { text: string; displayAyah: number; originalAyah: number }, s: QuranSurah) => {
+    const ayahIndex = a.displayAyah;
+    const k = `${s.id}:${ayahIndex}`;
+    const isBookmarked = !!bookmarks[k];
+    const hasNote = !!notes[k];
+    const isSelected = selectedAyah === ayahIndex;
+    const hl = (highlights[k] ?? null) as HighlightColor | null;
+
+    return (
+      <span key={k} data-ayah={ayahIndex} className="inline">
+        <span
+          className={[
+            "inline rounded-sm cursor-pointer",
+            isSelected ? "ayah-selected" : "",
+            !isSelected && hl ? `ayah-hl-${hl}` : "",
+          ].filter(Boolean).join(" ")}
+          style={isSelected && hl ? { background: HIGHLIGHT_COLORS[hl].bg } : undefined}
+          onClick={
+            memMode
+              ? (e) => { e.stopPropagation(); setRevealedAyahs((prev) => { const n = new Set(prev); if (n.has(ayahIndex)) n.delete(ayahIndex); else n.add(ayahIndex); return n; }); }
+              : (e) => handleAyahClick(e, ayahIndex)
+          }
+        >
+          {memMode
+            ? <span className={`quran-mem-span${revealedAyahs.has(ayahIndex) ? " revealed" : ""}`}>{a.text}</span>
+            : a.text}{" "}
+        </span>
+        {!prefs.quranHideMarkers ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleBookmark(s.id, ayahIndex);
+              setLastRead(s.id, ayahIndex);
+              const rect = e.currentTarget.getBoundingClientRect();
+              const rawX = rect.left + rect.width / 2;
+              setSelectedAyah(ayahIndex);
+              setTooltipPos({
+                x: Math.min(Math.max(rawX, 180), window.innerWidth - 180),
+                y: rect.top,
+                below: rect.top < 70,
+              });
+            }}
+            className="ayah-marker"
+            data-bookmarked={isBookmarked ? "true" : "false"}
+            data-has-note={hasNote ? "true" : "false"}
+            data-highlight={hl ?? undefined}
+            aria-label={`آية ${ayahIndex}`}
+            title={isBookmarked ? "إزالة علامة" : "إضافة علامة"}
+          >
+            ﴿{toArabicIndic(ayahIndex)}﴾
+          </button>
+        ) : null}
+        {" "}
+      </span>
+    );
+  };
+
+  // ─── Floating ayah tooltip ────────────────────────────────────────────────
+  const renderTooltip = (s: QuranSurah) => {
+    if (!tooltipPos || !selectedAyah) return null;
+    const key = `${s.id}:${selectedAyah}`;
+    const isBookmarked = !!bookmarks[key];
+    const currentHL = (highlights[key] ?? null) as HighlightColor | null;
+    const hasNote = !!notes[key];
+    const { x, y, below } = tooltipPos;
+    const top = below ? y + 38 : y - 50;
+
+    return (
+      <div
+        className="ayah-tooltip-pill"
+        style={{ left: x, top }}
+        onClick={(e) => e.stopPropagation()}
+        dir="rtl"
+      >
+        {/* Copy */}
+        <button className="ayah-tooltip-btn" onClick={() => doCopyText(selectedAyahText)} title="نسخ الآية">
+          <Copy size={13} /><span className="hidden sm:inline">نسخ</span>
+        </button>
+        <div className="ayah-tooltip-sep" />
+        {/* Audio */}
+        <button
+          className={`ayah-tooltip-btn ${playingAyah === selectedAyah ? "is-active" : ""}`}
+          onClick={() => playAyah(s.id, selectedAyah)}
+          title="استماع"
+        >
+          {playingAyah === selectedAyah ? <VolumeX size={13} /> : <Volume2 size={13} />}
+          <span className="hidden sm:inline">{playingAyah === selectedAyah ? "إيقاف" : "استماع"}</span>
+        </button>
+        <div className="ayah-tooltip-sep" />
+        {/* Bookmark */}
+        <button
+          className={`ayah-tooltip-btn ${isBookmarked ? "is-active" : ""}`}
+          onClick={() => { toggleBookmark(s.id, selectedAyah); toast.success(isBookmarked ? "أُزيلت العلامة" : "تمت الإضافة"); }}
+          title="علامة"
+        >
+          <Bookmark size={13} fill={isBookmarked ? "currentColor" : "none"} />
+          <span className="hidden sm:inline">{isBookmarked ? "✓" : "علامة"}</span>
+        </button>
+        <div className="ayah-tooltip-sep" />
+        {/* 4 color swatches inline */}
+        {(Object.keys(HIGHLIGHT_COLORS) as HighlightColor[]).map((c) => (
+          <button
+            key={c}
+            className="ayah-tooltip-btn"
+            style={{ padding: "5px 4px" }}
+            onClick={() => setQuranHighlight(s.id, selectedAyah, currentHL === c ? null : c)}
+            title={HIGHLIGHT_COLORS[c].label}
+          >
+            <span
+              className="block rounded-full w-[14px] h-[14px] flex-shrink-0 transition-all"
+              style={{
+                background: HIGHLIGHT_COLORS[c].swatch,
+                boxShadow: currentHL === c ? "0 0 0 2px rgba(255,255,255,0.55)" : undefined,
+                transform: currentHL === c ? "scale(1.18)" : undefined,
+              }}
+            />
+          </button>
+        ))}
+        <div className="ayah-tooltip-sep" />
+        {/* Note */}
+        <button
+          className={`ayah-tooltip-btn ${hasNote ? "is-active" : ""}`}
+          onClick={(e) => { e.stopPropagation(); setNoteSheetOpen(true); showFsChrome(); }}
+          title="ملاحظة"
+        >
+          <Pencil size={13} /><span className="hidden sm:inline">{hasNote ? "✓" : "ملاحظة"}</span>
+        </button>
+        <div className="ayah-tooltip-sep" />
+        {/* Share */}
+        <button className="ayah-tooltip-btn" onClick={doShareSelectedAyahImage} title="مشاركة">
+          <Share2 size={13} /><span className="hidden sm:inline">إرسال</span>
+        </button>
+        <div className="ayah-tooltip-sep" />
+        {/* Tafseer external link */}
+        <a
+          className="ayah-tooltip-btn"
+          href={`https://quran.com/ar/${s.id}/${selectedAyah}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="تفسير الآية"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ArrowUpRight size={13} /><span className="hidden sm:inline">تفسير</span>
+        </a>
+        <div className="ayah-tooltip-sep" />
+        {/* Close */}
+        <button
+          className="ayah-tooltip-btn"
+          style={{ padding: "5px 7px", opacity: 0.5 }}
+          onClick={(e) => { e.stopPropagation(); setSelectedAyah(null); }}
+          title="إغلاق"
+        >
+          <XIcon size={12} />
+        </button>
+      </div>
+    );
+  };
+
+  // ─── Note bottom sheet ────────────────────────────────────────────────────
+  const renderNoteSheet = (s: QuranSurah) => {
+    if (!selectedAyah) return null;
+    const key = `${s.id}:${selectedAyah}`;
+    const hl = (highlights[key] ?? null) as HighlightColor | null;
+
+    return (
+      <div className="quran-note-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="quran-note-sheet__handle" />
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            {hl && (
+              <span
+                className="w-3 h-3 rounded-full shrink-0"
+                style={{ background: HIGHLIGHT_COLORS[hl].swatch }}
+              />
+            )}
+            <span className="text-sm font-semibold arabic-text">
+              ملاحظة للآية ﴿{toArabicIndic(selectedAyah)}﴾
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setNoteSheetOpen(false)}
+            className="w-7 h-7 rounded-xl bg-white/8 flex items-center justify-center opacity-55 hover:opacity-100 transition"
+          >
+            <XIcon size={14} />
+          </button>
+        </div>
+        <textarea
+          value={noteDraft}
+          onChange={(e) => setNoteDraft(e.target.value)}
+          placeholder="اكتب ملاحظة…"
+          rows={3}
+          className="w-full rounded-2xl bg-white/6 border border-white/10 p-3 text-sm leading-7 outline-none focus:border-white/22 resize-none"
+          autoFocus
+        />
+        <div className="flex items-center gap-2 mt-3">
+          <Button
+            variant="primary"
+            className="flex-1"
+            onClick={() => {
+              const clean = (noteDraft ?? "").trim();
+              if (clean) { setQuranNote(s.id, selectedAyah, clean); toast.success("تم الحفظ"); }
+              else { clearQuranNote(s.id, selectedAyah); }
+              setNoteSheetOpen(false);
+            }}
+          >
+            حفظ
+          </Button>
+          {!!notes[key] && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                clearQuranNote(s.id, selectedAyah);
+                setNoteDraft("");
+                setNoteSheetOpen(false);
+                toast.success("تم الحذف");
+              }}
+            >
+              حذف
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // ─── Fullscreen immersive reading mode early return ─────────────────────
+  if (focusMode && surah && !isLoading && !error) {
+    const showChrome = fsChrome || selectedAyah !== null;
+    return (
+      <div
+        className="quran-fs-reader"
+        data-quran-theme={prefs.quranTheme}
+        onClick={handlePageClick}
+        onTouchMove={showFsChrome}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        dir="rtl"
+      >
+        {/* Top chrome bar */}
+        <div
+          className={`quran-fs-header${showChrome ? "" : " quran-fs-chrome--hidden"}`}
+          onClick={(e) => { e.stopPropagation(); showFsChrome(); }}
+        >
+          <button
+            type="button"
+            className="w-9 h-9 flex items-center justify-center rounded-2xl hover:bg-white/8 transition shrink-0"
+            onClick={(e) => { e.stopPropagation(); setFocusMode(false); setAutoScroll(false); }}
+            aria-label="خروج من وضع الشاشة الكاملة"
+            title="خروج"
+          >
+            <Minimize2 size={17} />
+          </button>
+          <span className="arabic-text quran-title text-sm font-semibold flex-1 truncate text-right px-2">
+            {surah.name}
+          </span>
+          <span className="text-xs opacity-40 tabular-nums shrink-0">{navPage}/{navTotal}</span>
+          {/* Font size controls */}
+          <div
+            className="flex items-center rounded-xl bg-white/7 overflow-hidden shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="w-8 h-8 flex items-center justify-center hover:bg-white/8 transition text-base leading-none"
+              onClick={() => setPrefs({ quranFontScale: Math.max(0.85, +(prefs.quranFontScale - 0.1).toFixed(2)) })}
+            >−</button>
+            <span className="text-[10px] opacity-45 px-1 select-none tabular-nums min-w-[32px] text-center">
+              {Math.round(prefs.quranFontScale * 100)}%
+            </span>
+            <button
+              type="button"
+              className="w-8 h-8 flex items-center justify-center hover:bg-white/8 transition text-base leading-none"
+              onClick={() => setPrefs({ quranFontScale: Math.min(1.8, +(prefs.quranFontScale + 0.1).toFixed(2)) })}
+            >+</button>
+          </div>
+
+          {/* Autoscroll teleprompter control */}
+          <div
+            className="flex items-center gap-1 rounded-xl bg-white/7 overflow-hidden shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={`px-2.5 h-8 text-[10px] transition ${autoScroll ? "bg-[var(--accent)]/20 text-[var(--accent)]" : "hover:bg-white/8 opacity-55 hover:opacity-100"}`}
+              onClick={() => setAutoScroll((v) => !v)}
+              title="تمرير تلقائي"
+              aria-label="تمرير تلقائي"
+            >
+              {autoScroll ? "■" : "▶"}
+            </button>
+            {autoScroll && (
+              <>
+                <button
+                  type="button"
+                  className="w-7 h-8 flex items-center justify-center hover:bg-white/8 transition text-xs leading-none"
+                  onClick={() => setAutoScrollSpeed((v) => Math.max(1, v - 1))}
+                  aria-label="تبطيء التمرير"
+                >−</button>
+                <span className="text-[9px] opacity-45 tabular-nums w-4 text-center select-none">{autoScrollSpeed}</span>
+                <button
+                  type="button"
+                  className="w-7 h-8 flex items-center justify-center hover:bg-white/8 transition text-xs leading-none"
+                  onClick={() => setAutoScrollSpeed((v) => Math.min(5, v + 1))}
+                  aria-label="تسريع التمرير"
+                >+</button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Scrollable reading area */}
+        <div className="quran-fs-content" ref={pageRef}>
+          {shouldShowBasmalah(surah.id) && (
+            <div className="quran-basmalah mb-4">
+              <div className="arabic-text quran-basmalah-text">{BASMALAH}</div>
+            </div>
+          )}
+          <div className="quran-surah-ornament mb-5" onClick={(e) => e.stopPropagation()}>
+            <span className="arabic-text quran-title text-base font-semibold">{surah.name}</span>
+            <span className="text-xs opacity-45">{surah.id} • {displayAyahs.length} آية</span>
+          </div>
+          <div
+            className="arabic-text quran-text"
+            style={{
+              fontSize: `${18 * prefs.quranFontScale}px`,
+              lineHeight: prefs.quranLineHeight,
+              letterSpacing: `${prefs.quranLetterSpacing ?? 0}em`,
+              wordSpacing: `${prefs.quranWordSpacing ?? 0}em`,
+            }}
+          >
+            {pageAyahs.map((a) => renderAyah(a, surah))}
+          </div>
+          <div className="text-center text-xs opacity-20 mt-8 mb-2 select-none arabic-text">
+            اسحب يميناً للسابقة · اسحب يساراً للتالية
+          </div>
+        </div>
+
+        {/* Bottom chrome bar */}
+        <div
+          className={`quran-fs-footer${showChrome ? "" : " quran-fs-chrome--hidden"}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-white/8 transition text-sm disabled:opacity-25"
+            onClick={goPrevPage}
+            disabled={navPage <= 1}
+            aria-label="الصفحة السابقة"
+          >
+            <ChevronRight size={16} /> السابقة
+          </button>
+          <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-[var(--accent)]"
+              style={{ width: `${(navPage / navTotal) * 100}%`, transition: "width 0.3s ease" }}
+            />
+          </div>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-white/8 transition text-sm disabled:opacity-25"
+            onClick={goNextPage}
+            disabled={navPage >= navTotal}
+            aria-label="الصفحة التالية"
+          >
+            التالية <ChevronLeft size={16} />
+          </button>
+          {/* Surah navigation */}
+          {surahId > 1 && (
+            <button
+              type="button"
+              className="px-2 py-2 rounded-xl hover:bg-white/8 transition opacity-50 hover:opacity-100"
+              onClick={() => { navigate(`/quran/${surahId - 1}`); }}
+              title={prevSurahName ?? "السورة السابقة"}
+              aria-label="السورة السابقة"
+            >
+              <ChevronsRight size={14} />
+            </button>
+          )}
+          {surahId < 114 && (
+            <button
+              type="button"
+              className="px-2 py-2 rounded-xl hover:bg-white/8 transition opacity-50 hover:opacity-100"
+              onClick={() => { navigate(`/quran/${surahId + 1}`); }}
+              title={nextSurahName ?? "السورة التالية"}
+              aria-label="السورة التالية"
+            >
+              <ChevronsLeft size={14} />
+            </button>
+          )}
+        </div>
+
+        {renderTooltip(surah)}
+        {noteSheetOpen && selectedAyah !== null && renderNoteSheet(surah)}
+      </div>
+    );
+  }
+
   if (isLoading) return (
     <div className="space-y-4 page-enter" dir="rtl">
       <div className="glass rounded-3xl p-5 animate-pulse border border-white/8">
@@ -435,16 +1020,7 @@ export function SurahPage() {
   }
 
   return (
-    <div className="space-y-4 page-enter">
-      {/* Immersive focus mode backdrop — click to exit */}
-      {focusMode && (
-        <div
-          className="quran-focus-overlay"
-          onClick={() => setFocusMode(false)}
-          title="انقر للخروج من وضع التركيز"
-          aria-label="خروج من وضع التركيز"
-        />
-      )}
+    <div className="space-y-4 page-enter" onClick={handlePageClick}>
       <Card className="p-5 quran-surface">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -462,7 +1038,14 @@ export function SurahPage() {
                   {getSurahRevelationLabel(surah.id)}
                 </span>
                 <span className="opacity-40">•</span>
-                <span>ج{toArabicIndic(getSurahJuz(surah.id))}</span>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/quran?juz=${getSurahJuz(surah.id)}`)}
+                  className="hover:opacity-100 hover:underline underline-offset-2 transition"
+                  title={`عرض سور الجزء ${getSurahJuz(surah.id)}`}
+                >
+                  ج{toArabicIndic(getSurahJuz(surah.id))}
+                </button>
               </div>
             </div>
             <div className="flex items-center gap-0.5 mr-1 border-r border-white/10 pr-2">
@@ -490,12 +1073,18 @@ export function SurahPage() {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge className="tabular-nums">{displayAyahs.length} آية</Badge>
             <Badge className="tabular-nums">{bookmarkedInSurah} علامة</Badge>
             {notesInSurah > 0 && <Badge className="tabular-nums">{notesInSurah} ملاحظة</Badge>}
             {highlightsInSurah > 0 && <Badge className="tabular-nums">{highlightsInSurah} تلوين</Badge>}
             <Badge className="tabular-nums">{readingProgress}%</Badge>
+            {sessionSeconds >= 30 && (
+              <Badge className="tabular-nums opacity-70">
+                <Timer size={10} className="shrink-0" />
+                {formatTimer(sessionSeconds)}
+              </Badge>
+            )}
             <IconButton aria-label="نسخ السورة" onClick={() => doCopyText(fullSurahText)}>
               <Copy size={16} />
             </IconButton>
@@ -530,36 +1119,60 @@ export function SurahPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap lg:justify-end">
-            <Button
-              variant={pageMode === "ayah" ? "primary" : "secondary"}
-              onClick={() => setPageMode("ayah")}
-            >
-              صفحات ذكية
-            </Button>
-            <Button
-              variant={pageMode === "mushaf" ? "primary" : "secondary"}
-              onClick={() => {
-                if (surahMushafPages.length === 0) {
-                  toast.error("تعذر تحميل صفحات المصحف ٦٠٤ الآن");
-                  return;
-                }
-                setPageMode("mushaf");
-                setCurrentMushafPage((prev) => prev ?? surahMushafPages[0]);
-              }}
-            >
-              صفحات المصحف ٦٠٤
-            </Button>
-            {[8, 12, 16].map((size) => (
-              <Button
-                key={size}
-                variant={pageSize === size ? "primary" : "secondary"}
-                onClick={() => setPrefs({ quranPageSize: size })}
-                disabled={isMushafMode}
+          <div className="flex items-center gap-2.5 flex-wrap lg:justify-end">
+            {/* Page mode: compact segmented toggle */}
+            <div className="flex rounded-2xl bg-white/6 border border-white/10 overflow-hidden shrink-0">
+              <button
+                type="button"
+                onClick={() => setPageMode("ayah")}
+                className={`px-4 h-9 text-xs transition ${
+                  pageMode === "ayah"
+                    ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold"
+                    : "opacity-60 hover:opacity-100"
+                }`}
               >
-                {size} آية
-              </Button>
-            ))}
+                ذكية
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (surahMushafPages.length === 0) {
+                    toast.error("تعذر تحميل صفحات المصحف ٦٠٤ الآن");
+                    return;
+                  }
+                  setPageMode("mushaf");
+                  setCurrentMushafPage((prev) => prev ?? surahMushafPages[0]);
+                }}
+                className={`px-4 h-9 text-xs transition ${
+                  pageMode === "mushaf"
+                    ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold"
+                    : "opacity-60 hover:opacity-100"
+                }`}
+              >
+                ص٦٠٤
+              </button>
+            </div>
+
+            {/* Page size: compact segmented (disabled in mushaf mode) */}
+            <div className={`flex rounded-2xl bg-white/6 border border-white/10 overflow-hidden shrink-0 transition ${
+              isMushafMode ? "opacity-30 pointer-events-none" : ""
+            }`}>
+              {[8, 12, 16].map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => setPrefs({ quranPageSize: size })}
+                  className={`px-3 h-9 text-xs transition ${
+                    pageSize === size
+                      ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold"
+                      : "opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+              <span className="text-[10px] opacity-40 flex items-center pr-2.5 pl-1 select-none">آية</span>
+            </div>
           </div>
         </div>
 
@@ -577,37 +1190,148 @@ export function SurahPage() {
               {prefs.quranHideMarkers ? "إظهار الأرقام" : "إخفاء الأرقام"}
             </Button>
 
-            {/* Font size quick controls */}
-            <div className="flex items-center gap-0.5 rounded-2xl bg-white/6 border border-white/10 overflow-hidden">
-              <button
-                onClick={() => setPrefs({ quranFontScale: Math.max(0.85, +(prefs.quranFontScale - 0.1).toFixed(2)) })}
-                className="w-9 h-9 flex items-center justify-center hover:bg-white/8 transition text-base leading-none"
-                aria-label="تصغير الخط"
-              >&#x2212;</button>
-              <span className="text-[11px] opacity-50 tabular-nums px-1 min-w-[34px] text-center select-none">
-                {Math.round(prefs.quranFontScale * 100)}%
-              </span>
-              <button
-                onClick={() => setPrefs({ quranFontScale: Math.min(1.8, +(prefs.quranFontScale + 0.1).toFixed(2)) })}
-                className="w-9 h-9 flex items-center justify-center hover:bg-white/8 transition text-base leading-none"
-                aria-label="تكبير الخط"
-              >+</button>
+            {/* In-surah search toggle */}
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setShowInSurahSearch((v) => !v); if (showInSurahSearch) setInSurahSearch(""); }}
+              className={`flex items-center gap-1.5 px-3 h-9 rounded-2xl border text-xs transition ${
+                showInSurahSearch
+                  ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
+                  : "bg-white/6 border-white/10 opacity-65 hover:opacity-100"
+              }`}
+              aria-label="بحث داخل السورة"
+              title="بحث آية (ب / \u0641)"
+            >
+              <Search size={15} />
+              <span className="hidden sm:inline">بحث آية</span>
+            </button>
+
+            {/* Font presets */}
+            <div className="flex items-center gap-0 rounded-2xl bg-white/6 border border-white/10 overflow-hidden">
+              {([["ﺗ", 0.85], ["س", 1.0], ["م", 1.15], ["ك", 1.35], ["كب", 1.6]] as [string, number][]).map(([label, scale]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setPrefs({ quranFontScale: scale })}
+                  className={`px-3 h-9 text-xs transition ${
+                    Math.abs(prefs.quranFontScale - scale) < 0.08
+                      ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold"
+                      : "hover:bg-white/8 opacity-55 hover:opacity-100"
+                  }`}
+                  title={`خط ${label}`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
 
-            {/* Focus / immersive reading mode */}
+            {/* Fullscreen immersive reading mode */}
             <button
-              onClick={() => setFocusMode((v) => !v)}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setFocusMode((v) => !v); }}
               className={`flex items-center gap-1.5 px-3 h-9 rounded-2xl border text-xs transition ${
                 focusMode
                   ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
                   : "bg-white/6 border-white/10 opacity-65 hover:opacity-100"
               }`}
-              aria-label="وضع التركيز"
+              aria-label="شاشة كاملة"
             >
-              {focusMode ? <EyeOff size={15} /> : <Eye size={15} />}
-              <span className="hidden sm:inline">{focusMode ? "خروج" : "تركيز"}</span>
+              <Maximize2 size={15} />
+              <span className="hidden sm:inline">شاشة كاملة</span>
             </button>
+
+            {/* Memorization mode */}
+            <button
+              type="button"
+              onClick={() => { setMemMode((v) => !v); setRevealedAyahs(new Set()); }}
+              className={`flex items-center gap-1.5 px-3 h-9 rounded-2xl border text-xs transition ${
+                memMode
+                  ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
+                  : "bg-white/6 border-white/10 opacity-65 hover:opacity-100"
+              }`}
+              aria-label="وضع الحفظ"
+              title="وضع الحفظ: يغطي النص، انقر على الآية للكشف"
+            >
+              {memMode ? <EyeOff size={15} /> : <Eye size={15} />}
+              <span className="hidden sm:inline">{memMode ? "إيقاف الحفظ" : "وضع الحفظ"}</span>
+            </button>
+
+            {/* Session timer */}
+            {sessionSeconds >= 10 && (
+              <div className="quran-timer-badge">
+                <Timer size={10} />
+                <span>{formatTimer(sessionSeconds)}</span>
+              </div>
+            )}
           </div>
+
+          {/* Paper theme selector row */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setPrefs({ quranTheme: t })}
+                className={`text-[10px] px-2.5 py-1 rounded-xl border transition ${
+                  prefs.quranTheme === t
+                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
+                    : "bg-white/6 border-white/10 opacity-60 hover:opacity-100"
+                }`}
+              >
+                {{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق" }[t]}
+              </button>
+            ))}
+            {/* Letter spacing quick controls */}
+            <div className="flex items-center gap-1 rounded-2xl bg-white/6 border border-white/10 overflow-hidden mr-auto">
+              <button
+                type="button"
+                onClick={() => setPrefs({ quranLetterSpacing: Math.max(0, +((prefs.quranLetterSpacing ?? 0) - 0.01).toFixed(3)) })}
+                className="w-7 h-7 flex items-center justify-center hover:bg-white/8 transition text-xs"
+                aria-label="تضييق التشكيل"
+                title="تضييق المسافة"
+              >ض</button>
+              <span className="text-[9px] opacity-40 select-none w-4 text-center">أ</span>
+              <button
+                type="button"
+                onClick={() => setPrefs({ quranLetterSpacing: Math.min(0.12, +((prefs.quranLetterSpacing ?? 0) + 0.01).toFixed(3)) })}
+                className="w-7 h-7 flex items-center justify-center hover:bg-white/8 transition text-xs"
+                aria-label="توسيع التشكيل"
+                title="توسيع المسافة"
+              >و</button>
+            </div>
+          </div>
+
+          {/* In-surah search bar */}
+          {showInSurahSearch && (
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-45 pointer-events-none" />
+                <input
+                  type="text"
+                  value={inSurahSearch}
+                  onChange={(e) => setInSurahSearch(e.target.value)}
+                  placeholder="بحث داخل آيات هذه الصفحة…"
+                  className="w-full rounded-2xl bg-white/6 border border-white/10 pl-3 pr-9 py-2 text-sm outline-none focus:border-white/22 placeholder:opacity-45"
+                  autoFocus
+                  dir="rtl"
+                />
+              </div>
+              {inSurahSearch && (
+                <span className="text-[11px] opacity-55 shrink-0 tabular-nums">
+                  {filteredPageAyahs.length} / {pageAyahs.length}
+                </span>
+              )}
+              <button
+                type="button"
+                className="w-8 h-8 rounded-xl bg-white/8 flex items-center justify-center opacity-55 hover:opacity-100 transition"
+                onClick={() => { setInSurahSearch(""); setShowInSurahSearch(false); }}
+                aria-label="إلغاء البحث"
+              >
+                <XIcon size={13} />
+              </button>
+            </div>
+          )}
+
           {/* jump row */}
           <div className="flex items-center gap-2">
             <Input
@@ -666,6 +1390,40 @@ export function SurahPage() {
           </div>
         </div>
 
+        {/* Surah info expandable panel */}
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setShowSurahInfo((v) => !v); }}
+            className="flex items-center gap-1.5 text-xs opacity-50 hover:opacity-90 transition"
+            aria-expanded={showSurahInfo}
+            aria-label="معلومات السورة"
+          >
+            {showSurahInfo ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+            <span>معلومات السورة</span>
+          </button>
+          {showSurahInfo && (
+            <div className="mt-2 glass rounded-2xl p-4 border border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-sm">
+              <div>
+                <div className="text-[11px] opacity-50 mb-1">النوع</div>
+                <div className="font-semibold">{getSurahRevelationLabel(surah.id)}</div>
+              </div>
+              <div>
+                <div className="text-[11px] opacity-50 mb-1">الجزء</div>
+                <div className="font-semibold arabic-text">{toArabicIndic(getSurahJuz(surah.id))}</div>
+              </div>
+              <div>
+                <div className="text-[11px] opacity-50 mb-1">عدد الآيات</div>
+                <div className="font-semibold arabic-text tabular-nums">{toArabicIndic(displayAyahs.length)}</div>
+              </div>
+              <div>
+                <div className="text-[11px] opacity-50 mb-1">رقم السورة</div>
+                <div className="font-semibold arabic-text tabular-nums">{toArabicIndic(surah.id)}</div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {shouldShowBasmalah(surah.id) ? (
           <div className="mt-4 quran-basmalah">
             <div className="arabic-text quran-basmalah-text">{BASMALAH}</div>
@@ -677,68 +1435,26 @@ export function SurahPage() {
         <div
           ref={pageRef}
           className="quran-page"
+          data-quran-theme={prefs.quranTheme}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div
-            className="quran-page-inner"
-          >
+          <div className="quran-page-inner">
+            <div className="quran-surah-ornament mb-4" onClick={(e) => e.stopPropagation()}>
+              <span className="arabic-text quran-title text-sm font-semibold">{surah.name}</span>
+              <span className="text-xs opacity-40">{surah.id} • {displayAyahs.length} آية</span>
+            </div>
             <div
-              className="arabic-text quran-text whitespace-pre-wrap"
+              className="arabic-text quran-text"
               style={{
                 fontSize: `${18 * prefs.quranFontScale}px`,
-                lineHeight: prefs.quranLineHeight
+                lineHeight: prefs.quranLineHeight,
+                letterSpacing: `${prefs.quranLetterSpacing ?? 0}em`,
+                wordSpacing: `${prefs.quranWordSpacing ?? 0}em`,
               }}
             >
-              {pageAyahs.map((a) => {
-                const ayahIndex = a.displayAyah;
-                const k = `${surah.id}:${ayahIndex}`;
-                const isBookmarked = !!bookmarks[k];
-                const hasNote = !!notes[k];
-                const isSelected = selectedAyah === ayahIndex;
-                const highlight = (highlights[k] ?? null) as HighlightColor | null;
-
-                return (
-                  <span key={k} data-ayah={ayahIndex} className="inline">
-                    <span
-                      className={[
-                        "inline rounded-sm transition-colors duration-200",
-                        isSelected
-                          ? "bg-[var(--accent)]/15 ring-1 ring-[var(--accent)]/25 px-0.5"
-                          : "",
-                        !isSelected && highlight ? `ayah-hl-${highlight}` : "",
-                      ].join(" ")}
-                      onClick={() => {
-                        setLastRead(surah.id, ayahIndex);
-                        setSelectedAyah((prev) => prev === ayahIndex ? null : ayahIndex);
-                      }}
-                    >
-                      {a.text}{" "}
-                    </span>
-                    {!prefs.quranHideMarkers ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          toggleBookmark(surah.id, ayahIndex);
-                          setLastRead(surah.id, ayahIndex);
-                          setSelectedAyah(ayahIndex);
-                        }}
-                        className="ayah-marker"
-                        data-bookmarked={isBookmarked ? "true" : "false"}
-                        data-has-note={hasNote ? "true" : "false"}
-                        data-highlight={highlight ?? undefined}
-                        aria-label={`آية ${ayahIndex}`}
-                        title={isBookmarked ? "إزالة علامة" : "إضافة علامة"}
-                      >
-                        ﴿{toArabicIndic(ayahIndex)}﴾
-                      </button>
-                    ) : null}
-                    {" "}
-                  </span>
-                );
-              })}
-            </div>
-
-            <div className="mt-4 text-xs opacity-50">
-              اضغط على الآية لتحديث موضع القراءة، واضغط على رقم الآية لإضافة علامة.
+              {filteredPageAyahs.map((a) => renderAyah(a, surah))}
             </div>
 
             {/* Bottom page navigation */}
@@ -760,203 +1476,13 @@ export function SurahPage() {
               </Button>
             </div>
 
-            {selectedAyah ? (
-              <div className="mt-5 glass rounded-3xl p-4 border border-white/10">
-                {/* Header: ayah label + highlight indicator */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm font-semibold arabic-text">ملاحظة للآية ﴿{toArabicIndic(selectedAyah)}﴾</div>
-                    {highlights[`${surah.id}:${selectedAyah}`] && (
-                      <span
-                        className="w-3 h-3 rounded-full shrink-0"
-                        style={{ background: HIGHLIGHT_COLORS[highlights[`${surah.id}:${selectedAyah}`] as HighlightColor]?.swatch }}
-                      />
-                    )}
-                  </div>
-                  <div className="flex items-center flex-wrap gap-2">
-                    <Button variant="secondary" onClick={() => doCopyText(selectedAyahText)}>
-                      نسخ الآية
-                    </Button>
-                    <Button variant="secondary" onClick={doShareSelectedAyahImage}>
-                      مشاركة
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        if (!surah) return;
-                        const clean = (noteDraft ?? "").trim();
-                        if (clean) {
-                          setQuranNote(surah.id, selectedAyah, clean);
-                          toast.success("تم حفظ الملاحظة");
-                        } else {
-                          clearQuranNote(surah.id, selectedAyah);
-                          toast.success("تم حذف الملاحظة");
-                        }
-                      }}
-                    >
-                      حفظ
-                    </Button>
-                    {!!notes[`${surah.id}:${selectedAyah}`] && (
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        if (!surah) return;
-                        clearQuranNote(surah.id, selectedAyah);
-                        setNoteDraft("");
-                        toast.success("تم حذف الملاحظة");
-                      }}
-                    >
-                      حذف
-                    </Button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Color highlight picker */}
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="text-xs opacity-45">تلوين:</span>
-                  <div className="flex items-center gap-2">
-                    {(Object.keys(HIGHLIGHT_COLORS) as HighlightColor[]).map((c) => {
-                      const isActive = surah && highlights[`${surah.id}:${selectedAyah}`] === c;
-                      return (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => surah && setQuranHighlight(surah.id, selectedAyah, isActive ? null : c)}
-                          className={`w-6 h-6 rounded-full transition-all duration-150 ${
-                            isActive ? "ring-2 ring-offset-1 ring-white/40 scale-110" : "opacity-55 hover:opacity-95 hover:scale-110"
-                          }`}
-                          style={{ background: HIGHLIGHT_COLORS[c].swatch }}
-                          title={HIGHLIGHT_COLORS[c].label}
-                          aria-label={`تلوين ${HIGHLIGHT_COLORS[c].label}`}
-                        />
-                      );
-                    })}
-                    {surah && highlights[`${surah.id}:${selectedAyah}`] && (
-                      <button
-                        type="button"
-                        onClick={() => surah && setQuranHighlight(surah.id, selectedAyah, null)}
-                        className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] hover:bg-white/20 transition opacity-60 hover:opacity-100"
-                        title="إزالة التلوين"
-                        aria-label="إزالة التلوين"
-                      >✕</button>
-                    )}
-                  </div>
-                </div>
-
-                <textarea
-                  value={noteDraft}
-                  onChange={(e) => setNoteDraft(e.target.value)}
-                  placeholder="اكتب ملاحظة قصيرة…"
-                  className="mt-3 w-full min-h-[96px] rounded-3xl bg-white/6 border border-white/10 p-4 text-sm leading-7 outline-none focus:border-white/20"
-                />
-              </div>
-            ) : null}
           </div>
         </div>
       </Card>
 
-      {/* Floating ayah action sheet (mobile only) */}
-      {selectedAyah && (
-        <div
-          className="ayah-action-sheet fixed left-3 right-3 z-50 md:hidden"
-          style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
-        >
-          <div className="glass rounded-3xl px-4 py-3 border border-white/15 backdrop-blur-xl shadow-2xl space-y-2.5">
-
-            {/* Row 1: label + note preview + close */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  {surah && highlights[`${surah.id}:${selectedAyah}`] && (
-                    <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ background: HIGHLIGHT_COLORS[highlights[`${surah.id}:${selectedAyah}`] as HighlightColor]?.swatch }}
-                    />
-                  )}
-                  <span className="text-xs opacity-65 arabic-text truncate">
-                    {surah?.name} ﴿{toArabicIndic(selectedAyah)}﴾
-                  </span>
-                </div>
-                {surah && notes[`${surah.id}:${selectedAyah}`] && (
-                  <div className="text-[10px] opacity-40 truncate mt-0.5" dir="rtl">
-                    {notes[`${surah.id}:${selectedAyah}`]!.slice(0, 55)}
-                    {notes[`${surah.id}:${selectedAyah}`]!.length > 55 ? "…" : ""}
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => setSelectedAyah(null)}
-                className="w-7 h-7 shrink-0 flex items-center justify-center rounded-xl bg-white/6 hover:bg-white/12 transition opacity-55 hover:opacity-100"
-                aria-label="إغلاق"
-              >
-                <XIcon size={13} />
-              </button>
-            </div>
-
-            {/* Row 2: color swatches + action buttons */}
-            <div className="flex items-center gap-2">
-              {/* Color swatches */}
-              <div className="flex items-center gap-1.5 pr-2 border-r border-white/10">
-                {(Object.keys(HIGHLIGHT_COLORS) as HighlightColor[]).map((c) => {
-                  const isActive = surah && highlights[`${surah.id}:${selectedAyah}`] === c;
-                  return (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => surah && setQuranHighlight(surah.id, selectedAyah, isActive ? null : c)}
-                      className={`w-5 h-5 rounded-full transition-all duration-150 ${
-                        isActive ? "ring-2 ring-white/50 scale-110" : "opacity-55 hover:opacity-100 hover:scale-110"
-                      }`}
-                      style={{ background: HIGHLIGHT_COLORS[c].swatch }}
-                      aria-label={`تلوين ${HIGHLIGHT_COLORS[c].label}`}
-                      title={HIGHLIGHT_COLORS[c].label}
-                    />
-                  );
-                })}
-                {surah && highlights[`${surah.id}:${selectedAyah}`] && (
-                  <button
-                    type="button"
-                    onClick={() => surah && setQuranHighlight(surah.id, selectedAyah, null)}
-                    className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[9px] hover:bg-white/20 transition opacity-55"
-                    aria-label="إزالة التلوين"
-                  >✕</button>
-                )}
-              </div>
-
-              {/* Action buttons */}
-              <button
-                onClick={() => doCopyText(selectedAyahText)}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/8 hover:bg-white/12 transition text-xs"
-              >
-                <Copy size={13} /> نسخ
-              </button>
-              <button
-                onClick={() => {
-                  if (!surah) return;
-                  toggleBookmark(surah.id, selectedAyah);
-                  const key = `${surah.id}:${selectedAyah}`;
-                  toast.success(bookmarks[key] ? "أُزيلت العلامة" : "تمت إضافة العلامة");
-                }}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl transition text-xs ${
-                  surah && bookmarks[`${surah.id}:${selectedAyah}`]
-                    ? "bg-[var(--accent)]/20 text-[var(--accent)]"
-                    : "bg-white/8 hover:bg-white/12"
-                }`}
-              >
-                <Bookmark size={13} /> علامة
-              </button>
-              <button
-                onClick={doShareSelectedAyahImage}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/8 hover:bg-white/12 transition text-xs"
-              >
-                <Share2 size={13} /> إرسال
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
+      {/* Floating tooltip pill + note sheet */}
+      {renderTooltip(surah)}
+      {noteSheetOpen && selectedAyah !== null && renderNoteSheet(surah)}
     </div>
   );
 }

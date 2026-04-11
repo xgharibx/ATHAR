@@ -36,8 +36,8 @@ export function QuickTasbeehFab() {
       <button
         className="fab xl:hidden"
         style={{
-          bottom: `calc(84px + var(--sab))`,
-          right: "16px",
+          bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--sab))",
+          right: "calc(16px + var(--sar))",
         }}
         onClick={() => setOpen(true)}
         aria-label="تسبيح سريع"
@@ -54,8 +54,8 @@ export function QuickTasbeehFab() {
     <div
       className="fixed z-[9990] xl:hidden"
       style={{
-        bottom: `calc(84px + var(--sab))`,
-        right: "16px",
+        bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--sab))",
+        right: "calc(16px + var(--sar))",
       }}
     >
       {/* Backdrop */}

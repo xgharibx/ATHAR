@@ -1,9 +1,10 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2 } from "lucide-react";
+import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2, BookOpen } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
+import { useQuranDB } from "@/data/useQuranDB";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -11,9 +12,16 @@ import { getSectionIdentity } from "@/lib/sectionIdentity";
 
 export function FavoritesPage() {
   const { data } = useAdhkarDB();
+  const { data: quranData } = useQuranDB();
   const navigate = useNavigate();
   const favorites = useNoorStore((s) => s.favorites);
   const toggleFavorite = useNoorStore((s) => s.toggleFavorite);
+  const quranBookmarks = useNoorStore((s) => s.quranBookmarks);
+  const toggleQuranBookmark = useNoorStore((s) => s.toggleQuranBookmark);
+  const quranNotes = useNoorStore((s) => s.quranNotes);
+  const quranHighlights = useNoorStore((s) => s.quranHighlights);
+
+  const [activeTab, setActiveTab] = React.useState<"adhkar" | "quran">("adhkar");
 
   const [confirmDeleteKey, setConfirmDeleteKey] = React.useState<string | null>(null);
   const [copiedKey, setCopiedKey] = React.useState<string | null>(null);
@@ -82,6 +90,38 @@ export function FavoritesPage() {
     return [...map.values()];
   }, [items]);
 
+  // Quran bookmarks list grouped by surah
+  const quranBmList = React.useMemo(() => {
+    if (!quranData) return [] as Array<{ surahId: number; surahName: string; ayahIndex: number; note?: string; highlight?: string }>;
+    const out: Array<{ surahId: number; surahName: string; ayahIndex: number; note?: string; highlight?: string }> = [];
+    for (const [k, v] of Object.entries(quranBookmarks)) {
+      if (!v) continue;
+      const [sid, aidx] = k.split(":");
+      const surahId = Number(sid);
+      const ayahIndex = Number(aidx);
+      const surahName = quranData.find((s) => s.id === surahId)?.name ?? `${surahId}`;
+      out.push({ surahId, surahName, ayahIndex, note: quranNotes[k] || undefined, highlight: quranHighlights[k] || undefined });
+    }
+    return out.sort((a, b) => a.surahId - b.surahId || a.ayahIndex - b.ayahIndex);
+  }, [quranBookmarks, quranData, quranNotes, quranHighlights]);
+
+  const quranBmBySurah = React.useMemo(() => {
+    const map = new Map<number, { surahId: number; surahName: string; items: typeof quranBmList }>();
+    for (const bm of quranBmList) {
+      const g = map.get(bm.surahId);
+      if (g) g.items.push(bm);
+      else map.set(bm.surahId, { surahId: bm.surahId, surahName: bm.surahName, items: [bm] });
+    }
+    return [...map.values()];
+  }, [quranBmList]);
+
+  const HL_SWATCHES: Record<string, string> = {
+    gold:  "rgba(251,191,36,0.85)",
+    green: "rgba(52,211,153,0.85)",
+    blue:  "rgba(96,165,250,0.85)",
+    red:   "rgba(248,113,113,0.85)",
+  };
+
   return (
     <div className="space-y-4 page-enter">
       <Card className="p-5">
@@ -91,7 +131,7 @@ export function FavoritesPage() {
             <div className="font-semibold">المفضلة</div>
           </div>
           <div className="flex items-center gap-2">
-            {items.length > 0 && (
+            {activeTab === "adhkar" && items.length > 0 && (
               <>
                 <Button variant="secondary" onClick={shareAll} aria-label="مشاركة الكل">
                   <Share2 size={15} />
@@ -103,14 +143,46 @@ export function FavoritesPage() {
                 </Button>
               </>
             )}
-            <div className="text-xs opacity-70 pr-1">{items.length} عنصر</div>
+            <div className="text-xs opacity-70 pr-1">
+              {activeTab === "adhkar" ? `${items.length} ذكر` : `${quranBmList.length} علامة`}
+            </div>
           </div>
         </div>
         <div className="mt-2 text-xs opacity-65 leading-6">
           المفضلة محفوظة محليًا على جهازك. يمكنك تصدير النسخة الاحتياطية من صفحة الإعدادات.
         </div>
+
+        {/* Tab switcher */}
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={() => setActiveTab("adhkar")}
+            className={[
+              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
+              activeTab === "adhkar"
+                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+            ].join(" ")}
+          >
+            <Heart size={14} />
+            الأذكار {items.length > 0 && <span className="text-[11px] opacity-60">({items.length})</span>}
+          </button>
+          <button
+            onClick={() => setActiveTab("quran")}
+            className={[
+              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
+              activeTab === "quran"
+                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+            ].join(" ")}
+          >
+            <BookOpen size={14} />
+            القرآن {quranBmList.length > 0 && <span className="text-[11px] opacity-60">({quranBmList.length})</span>}
+          </button>
+        </div>
       </Card>
 
+      {/* ── Adhkar tab ── */}
+      {activeTab === "adhkar" && (
       <Card className="p-5">
         {items.length === 0 ? (
           <div className="flex flex-col items-center text-center py-8 gap-3">
@@ -187,6 +259,70 @@ export function FavoritesPage() {
           </div>
         )}
       </Card>
+      )}
+
+      {/* ── Quran bookmarks tab ── */}
+      {activeTab === "quran" && (
+        <Card className="p-5">
+          {quranBmList.length === 0 ? (
+            <div className="flex flex-col items-center text-center py-8 gap-3">
+              <div className="w-16 h-16 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-3xl">
+                📖
+              </div>
+              <div className="font-semibold opacity-80">لا توجد علامات مرجعية</div>
+              <div className="text-sm opacity-55 leading-6 max-w-[260px]">
+                اضغط على 🔖 داخل أي آية في المصحف لحفظها هنا
+              </div>
+              <button
+                onClick={() => navigate("/quran")}
+                className="mt-1 text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+              >
+                الذهاب للقرآن ◀
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {quranBmBySurah.map((group) => (
+                <div key={group.surahId}>
+                  <div className="flex items-center gap-2 mb-2 px-1">
+                    <BookOpen size={13} className="text-[var(--accent)] shrink-0" />
+                    <span className="text-xs font-semibold opacity-65 arabic-text">{group.surahName}</span>
+                    <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
+                  </div>
+                  <div className="divide-y divide-white/6 rounded-2xl border border-white/10 overflow-hidden">
+                    {group.items.map((bm) => (
+                      <div key={`${bm.surahId}:${bm.ayahIndex}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/6 transition">
+                        {bm.highlight && HL_SWATCHES[bm.highlight] && (
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-white/20" style={{ background: HL_SWATCHES[bm.highlight] }} />
+                        )}
+                        <button
+                          className="flex-1 text-right min-w-0"
+                          onClick={() => navigate(`/quran/${bm.surahId}?a=${bm.ayahIndex}`)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm arabic-text font-medium">{bm.surahName}</span>
+                            <span className="text-xs opacity-55 tabular-nums shrink-0">﴿{bm.ayahIndex}﴾</span>
+                          </div>
+                          {bm.note && (
+                            <div className="text-[11px] opacity-55 mt-0.5 truncate">{bm.note.slice(0, 60)}</div>
+                          )}
+                        </button>
+                        <Button
+                          variant="outline"
+                          onClick={() => toggleQuranBookmark(bm.surahId, bm.ayahIndex)}
+                          aria-label="إزالة العلامة"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
     </div>
   );
 }

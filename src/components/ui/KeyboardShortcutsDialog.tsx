@@ -23,6 +23,16 @@ const SHORTCUTS: Array<{ section: string; items: Shortcut[] }> = [
       { keys: ["Esc"], label: "إغلاق النافذة / إلغاء" },
     ],
   },
+  {
+    section: "صفحة السورة",
+    items: [
+      { keys: ["←", "→"], label: "التنقل بين الصفحات" },
+      { keys: ["M"], label: "تبديل وضع الحفظ" },
+      { keys: ["F"], label: "تبديل وضع التركيز الكامل" },
+      { keys: ["/"], label: "البحث داخل السورة" },
+      { keys: ["Esc"], label: "إغلاق / إلغاء" },
+    ],
+  },
 ];
 
 function KbdKey({ key: k }: { key: string }) {

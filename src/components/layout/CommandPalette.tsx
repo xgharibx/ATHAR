@@ -1,14 +1,17 @@
 import * as React from "react";
 import { Command } from "cmdk";
-import { Search, Moon, Sun, Sparkles } from "lucide-react";
+import { Search, Moon, Sun, Sparkles, Download, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Fuse from "fuse.js";
+import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
+import { useQuranDB } from "@/data/useQuranDB";
 import { useNoorStore } from "@/store/noorStore";
 import type { NoorTheme } from "@/store/noorStore";
 import type { FlatDhikr } from "@/data/types";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
+import { downloadJson } from "@/lib/download";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -19,8 +22,11 @@ type Props = {
 export function CommandPalette(props: Props) {
   const navigate = useNavigate();
   const { data } = useAdhkarDB();
+  const { data: quranData } = useQuranDB();
   const theme = useNoorStore((s) => s.prefs.theme);
   const setPrefs = useNoorStore((s) => s.setPrefs);
+  const exportState = useNoorStore((s) => s.exportState);
+  const quranLastRead = useNoorStore((s) => s.quranLastRead);
 
   const themeLabel = (t: NoorTheme) => {
     const map: Record<NoorTheme, string> = {
@@ -51,6 +57,21 @@ export function CommandPalette(props: Props) {
       keys: ["text", "sectionTitle", "sectionId"]
     });
   }, [data]);
+
+  // Quran surah fuzzy search index
+  const surahFuse = React.useMemo(() => {
+    if (!quranData) return null;
+    return new Fuse(quranData, {
+      includeScore: true,
+      threshold: 0.35,
+      keys: ["name", "englishName", "id"],
+    });
+  }, [quranData]);
+
+  const surahResults = React.useMemo(() => {
+    if (!surahFuse || !query.trim()) return [] as NonNullable<typeof quranData>;
+    return surahFuse.search(query).slice(0, 8).map((r) => r.item);
+  }, [surahFuse, query]);
 
   React.useEffect(() => {
     if (!props.open) setQuery("");
@@ -152,6 +173,25 @@ export function CommandPalette(props: Props) {
                 >
                   تبديل المظهر (الحالي: {themeLabel(theme)})
                 </Item>
+                <Item
+                  onSelect={() => {
+                    const blob = exportState();
+                    downloadJson(`ATHAR-نسخة-احتياطية-${blob.exportedAt.slice(0, 10)}.athar`, blob);
+                    toast.success("تم تنزيل النسخة الاحتياطية");
+                    props.setOpen(false);
+                  }}
+                  icon={<Download size={16} />}
+                >
+                  نسخ احتياطي سريع
+                </Item>
+                {quranLastRead && (
+                  <Item
+                    onSelect={() => go(`/quran/${quranLastRead.surahId}?a=${quranLastRead.ayahIndex}`)}
+                    icon={<BookOpen size={16} />}
+                  >
+                    تابع قراءة القرآن (آية {quranLastRead.ayahIndex} من سورة {quranLastRead.surahId})
+                  </Item>
+                )}
               </Command.Group>
 
               {data?.db?.sections?.length ? (
@@ -166,6 +206,24 @@ export function CommandPalette(props: Props) {
                         </Item>
                       );
                     })}
+                  </Command.Group>
+                </>
+              ) : null}
+
+              {surahResults.length ? (
+                <>
+                  <Command.Separator className="h-px bg-white/10 my-2" />
+                  <Command.Group heading="السور" className="px-2">
+                    {surahResults.map((s) => (
+                      <Item key={s.id} onSelect={() => go(`/quran/${s.id}`)} icon={<span className="text-base">📖</span>}>
+                        <span className="arabic-text">{s.name}</span>
+                        {s.englishName ? (
+                          <span className="text-[11px] opacity-55 block mt-0.5">{s.englishName} • {s.id}</span>
+                        ) : (
+                          <span className="text-[11px] opacity-55 block mt-0.5">{s.id}</span>
+                        )}
+                      </Item>
+                    ))}
                   </Command.Group>
                 </>
               ) : null}

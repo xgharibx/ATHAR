@@ -515,7 +515,6 @@ function dayDiff(day) {
 }
 
 function sanitizePayload(payload) {
-  const userId = String(payload?.identity?.id ?? "");
   const rawScores = payload?.scores ?? {};
   const sectionEntries = Object.entries(rawScores.sections ?? {})
     .slice(0, MAX_SECTION_ITEMS)

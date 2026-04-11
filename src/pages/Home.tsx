@@ -157,9 +157,11 @@ export function HomePage() {
   const setDailyBetterStepDone = useNoorStore((s) => s.setDailyBetterStepDone);
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
   const quranReadingHistory = useNoorStore((s) => s.quranReadingHistory);
+  const quranStreak = useNoorStore((s) => s.quranStreak);
 
   const sections = data?.db.sections ?? [];
   const [showSmartNowDetails, setShowSmartNowDetails] = React.useState(false);
+  const [checklistExpanded, setChecklistExpanded] = React.useState<boolean | null>(null);
 
   const quranLastReadSurahName = React.useMemo(() => {
     if (!quranLastRead || !quran.data) return null;
@@ -247,6 +249,20 @@ export function HomePage() {
   }, [dailyWirdDone, dailyWirdStartISO, quran.data]);
 
   const isDailyWirdDone = !!dailyWirdDone[todayKey];
+
+  const wirdStreak = React.useMemo(() => {
+    let streak = isDailyWirdDone ? 1 : 0;
+    const today = new Date();
+    const startOffset = isDailyWirdDone ? 1 : 0;
+    for (let i = startOffset; i < 365; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      if (dailyWirdDone[k]) streak++;
+      else break;
+    }
+    return streak;
+  }, [dailyWirdDone, isDailyWirdDone, todayKey]);
 
   const khatma = React.useMemo(() => {
     if (!quran.data) return null;
@@ -612,16 +628,21 @@ export function HomePage() {
                     تابع آخر قسم
                   </Button>
                 ) : null}
-                <Button className="press-effect" variant="secondary" onClick={onRandom}>
+                <button
+                  type="button"
+                  onClick={onRandom}
+                  aria-label="ذكر عشوائي"
+                  title="ذكر عشوائي"
+                  className="press-effect inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/12 active:scale-[.97] transition shrink-0"
+                >
                   <Shuffle size={16} />
-                  ذكر عشوائي
-                </Button>
+                </button>
               </div>
 
               {/* Quran reading progress micro-bar */}
               {quranReadingPct > 0 && (
                 <button
-                  onClick={() => navigate("/quran")}
+                  onClick={() => navigate(quranLastRead ? `/quran/${quranLastRead.surahId}?a=${quranLastRead.ayahIndex}` : "/quran")}
                   className="mt-3 flex items-center gap-2.5 group"
                   aria-label={`القرآن: ${quranReadingPct}% مقروء`}
                 >
@@ -635,6 +656,14 @@ export function HomePage() {
                   <span className="text-xs opacity-55 tabular-nums group-hover:opacity-80 transition-opacity">
                     {quranReadingPct}%
                   </span>
+                  {quranStreak > 0 && (
+                    <span className="flex items-center gap-0.5 text-[11px] tabular-nums" style={{ color: "#fb923c" }}>
+                      🔥 {quranStreak}
+                    </span>
+                  )}
+                  {quranLastRead && quranLastReadSurahName && (
+                    <span className="text-[10px] opacity-40 arabic-text truncate max-w-[70px]">{quranLastReadSurahName}</span>
+                  )}
                 </button>
               )}
             </div>
@@ -700,6 +729,9 @@ export function HomePage() {
               <span className="text-xs font-semibold opacity-55">الآن ماذا أفعل؟</span>
               <Badge>{smartNow.periodLabel}</Badge>
               {adaptiveMission.urgency === "high" && <Badge>{adaptiveMission.urgencyLabel}</Badge>}
+              {adaptiveMission.urgency !== "high" && adaptiveMission.debtToday.length > 0 && (
+                <Badge>{adaptiveMission.debtToday.length} متبقية</Badge>
+              )}
             </div>
             <div className="mt-2 text-[15px] font-bold leading-snug">
               {smartNow.suggestedAction}
@@ -725,8 +757,11 @@ export function HomePage() {
             {/* Stats strip */}
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
-                <div className="opacity-60">دين اليوم</div>
-                <div className="font-semibold mt-1" style={{ color: adaptiveMission.debtToday.length > 0 ? "var(--accent)" : "var(--ok)" }}>{adaptiveMission.debtToday.length} مهام</div>
+                <div className="opacity-60">مهام اليوم</div>
+                <div className="font-semibold mt-1 tabular-nums" style={{ color: adaptiveMission.debtToday.length === 0 ? "var(--ok)" : "var(--accent)" }}>
+                  {DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}
+                  <span className="opacity-45 font-normal">/{DAILY_CHECKLIST_ITEMS.length}</span>
+                </div>
               </div>
               <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
                 <div className="opacity-60">استدراك أمس</div>
@@ -807,48 +842,80 @@ export function HomePage() {
 
       {/* Bottom: Daily Checklist */}
       <Card className="p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold">قائمة المهام اليومية</div>
-            <div className="text-xs opacity-65 mt-1">تتبّع عاداتك اليومية</div>
-          </div>
-          <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
-        </div>
-        {DAILY_CHECKLIST_ITEMS.every((item) => !!dailyChecklistToday[item.id]) && (
-          <div className="mt-3 rounded-2xl bg-[var(--ok)]/10 border border-[var(--ok)]/20 px-4 py-3 text-sm font-semibold text-center" style={{ color: "var(--ok)" }}>
-            أحسنت — اكتملت قائمة اليوم ✅
-          </div>
-        )}
-        <div className="mt-3 space-y-2">
-          {DAILY_CHECKLIST_ITEMS.map((item) => {
-            const isDone = !!dailyChecklistToday[item.id];
-            return (
-              <button
-                key={item.id}
-                onClick={() => toggleDailyChecklist(todayKey, item.id, !isDone)}
-                className={cn(
-                  "w-full flex items-center gap-3 rounded-2xl px-3.5 py-3.5 min-h-[48px] border transition-all active:scale-[.97]",
-                  isDone
-                    ? "bg-white/8 border-white/12 opacity-70"
-                    : "bg-white/4 border-white/8 hover:bg-white/6"
-                )}
-              >
-                <div className={cn(
-                  "w-7 h-7 rounded-full border-2 grid place-items-center transition-all shrink-0 text-[13px]",
-                  isDone
-                    ? "border-[var(--ok)] bg-[var(--ok)]/20"
-                    : "border-white/20"
-                )}>
-                  {isDone ? <CheckCircle2 size={15} className="text-[var(--ok)]" /> : CHECKLIST_CATEGORY_ICON[item.category]}
+        {(() => {
+          const allChecklistDone = DAILY_CHECKLIST_ITEMS.every((item) => !!dailyChecklistToday[item.id]);
+          const showItems = checklistExpanded !== null ? checklistExpanded : !allChecklistDone;
+          return (
+            <>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold">قائمة المهام اليومية</div>
+                  <div className="text-xs opacity-65 mt-1">تتبّع عاداتك اليومية</div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className={cn("text-sm", isDone && "line-through opacity-60")}>{item.title}</div>
-                  {!isDone && <div className="text-[11px] opacity-45 mt-0.5 leading-4">{item.subtitle}</div>}
+                <div className="flex items-center gap-2">
+                  <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
+                  <button
+                    type="button"
+                    onClick={() => setChecklistExpanded((v) => (v === null ? (allChecklistDone ? true : false) : !v))}
+                    className="w-8 h-8 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90"
+                    aria-label={showItems ? "طي" : "عرض"}
+                  >
+                    <ChevronDown size={14} className={cn("transition-transform duration-200", showItems && "rotate-180")} />
+                  </button>
                 </div>
-              </button>
-            );
-          })}
-        </div>
+              </div>
+              {/* Progress bar */}
+              {DAILY_CHECKLIST_ITEMS.length > 0 && (
+                <div className="mt-2.5 h-1 rounded-full bg-white/8 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-[width] duration-500"
+                    style={{
+                      width: `${Math.round(((DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length) / DAILY_CHECKLIST_ITEMS.length) * 100)}%`,
+                      background: adaptiveMission.debtToday.length === 0 ? "var(--ok)" : "var(--accent)",
+                    }}
+                  />
+                </div>
+              )}
+              {allChecklistDone && (
+                <div className="mt-3 rounded-2xl bg-[var(--ok)]/10 border border-[var(--ok)]/20 px-4 py-3 text-sm font-semibold text-center" style={{ color: "var(--ok)" }}>
+                  أحسنت — اكتملت قائمة اليوم ✅
+                </div>
+              )}
+              {showItems && (
+                <div className="mt-3 space-y-2">
+                  {DAILY_CHECKLIST_ITEMS.map((item) => {
+                    const isDone = !!dailyChecklistToday[item.id];
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => toggleDailyChecklist(todayKey, item.id, !isDone)}
+                        className={cn(
+                          "w-full flex items-center gap-3 rounded-2xl px-3.5 py-3.5 min-h-[48px] border transition-all active:scale-[.97]",
+                          isDone
+                            ? "bg-white/8 border-white/12 opacity-70"
+                            : "bg-white/4 border-white/8 hover:bg-white/6"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-7 h-7 rounded-full border-2 grid place-items-center transition-all shrink-0 text-[13px]",
+                          isDone
+                            ? "border-[var(--ok)] bg-[var(--ok)]/20"
+                            : "border-white/20"
+                        )}>
+                          {isDone ? <CheckCircle2 size={15} className="text-[var(--ok)]" /> : CHECKLIST_CATEGORY_ICON[item.category]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className={cn("text-sm", isDone && "line-through opacity-60")}>{item.title}</div>
+                          {!isDone && <div className="text-[11px] opacity-45 mt-0.5 leading-4">{item.subtitle}</div>}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </Card>
 
       {/* ── خطوة اليوم ── */}
@@ -984,10 +1051,17 @@ export function HomePage() {
         </div>
       </Card>
 
-      <Card className="p-5">
+      <Card className={`p-5 transition-colors ${isDailyWirdDone ? "border border-[var(--ok)]/25" : ""}`}>
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold">ورد اليوم</div>
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-semibold">ورد اليوم</div>
+              {wirdStreak > 1 && (
+                <span className="text-[10px] tabular-nums font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(251,146,60,0.15)", color: "#fb923c" }}>
+                  🔥 {wirdStreak}
+                </span>
+              )}
+            </div>
             <div className="text-xs opacity-65 mt-1">
               {dailyWird ? `آيات ${dailyWird.meta.from}–${dailyWird.meta.to} من ${dailyWird.meta.total}` : "مختارات يومية من القرآن"}
             </div>
@@ -1112,8 +1186,17 @@ export function HomePage() {
             </div>
 
             {!khatma.isFinished ? (
-              <div className="mt-3 glass rounded-3xl p-4 border border-white/10">
-                <div className="text-xs opacity-65">حصة اليوم</div>
+              <div className={`mt-3 glass rounded-3xl p-4 border transition-colors ${khatma.meta.doneToday ? "border-[var(--ok)]/30" : "border-white/10"}`}>
+                {khatma.meta.doneToday && (
+                  <div className="flex items-center gap-1.5 mb-3 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>
+                    <CheckCircle2 size={12} />
+                    اكتملت حصة اليوم
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <div className="text-xs opacity-65">حصة اليوم</div>
+                  <span className="text-[10px] opacity-40 tabular-nums">{khatma.chunk} آية</span>
+                </div>
                 <div className="mt-2 text-sm leading-7">
                   من <span className="font-semibold">{khatma.today.first.surahName}</span> ﴿{khatma.today.first.ayahIndex}﴾
                   إلى <span className="font-semibold">{khatma.today.last.surahName}</span> ﴿{khatma.today.last.ayahIndex}﴾

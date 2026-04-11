@@ -22,6 +22,15 @@
   --ok: #3ddc97;
 
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --mobile-nav-gap: 12px;
+  --mobile-nav-height: 76px;
+  --mobile-fab-size: 56px;
+  --mobile-fab-gap: 12px;
 }
 
 .light {
@@ -175,18 +184,10 @@ body {
   overscroll-behavior: none;
 }
 
-/* Safe area insets for notch / Dynamic Island / home indicator */
-:root {
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
-  --sal: env(safe-area-inset-left, 0px);
-  --sar: env(safe-area-inset-right, 0px);
-}
-
 body {
   margin: 0;
   font-family: "Noto Naskh Arabic", "Noto Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+    Tahoma, Arial, sans-serif;
 }
 
 /* Use dynamic viewport height for mobile */
@@ -308,31 +309,61 @@ html.midnight body.transparent-mode .glass-strong {
 
 .quran-page {
   border-radius: 1.5rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--stroke));
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--stroke));
   overflow: hidden;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.45),
+    4px 0 16px -6px rgba(0, 0, 0, 0.22),
+    -4px 0 16px -6px rgba(0, 0, 0, 0.22);
   background:
     radial-gradient(circle at 8% 8%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 30%),
     radial-gradient(circle at 92% 92%, color-mix(in srgb, var(--accent-2) 10%, transparent), transparent 28%);
 }
 
+/* ── Paper themes ─────────────────────────────────────────── */
+[data-quran-theme="sepia"] .quran-page-inner,
+.quran-fs-reader[data-quran-theme="sepia"] .quran-fs-content {
+  --qt-bg: #f5ead8;
+  --qt-fg: #3a2a1a;
+  --qt-ink: #2e1f0e;
+  background: var(--qt-bg) !important;
+  box-shadow: inset 0 1px 3px rgba(120,80,20,0.08), inset 10px 0 22px -14px rgba(120,80,20,0.12), inset -10px 0 22px -14px rgba(120,80,20,0.12) !important;
+  color: var(--qt-fg);
+}
+[data-quran-theme="sepia"] .quran-text,
+.quran-fs-reader[data-quran-theme="sepia"] .quran-text { color: var(--qt-ink); }
+[data-quran-theme="sepia"] .ayah-marker { color: color-mix(in srgb, var(--qt-ink) 60%, transparent); background: rgba(120,80,20,0.08); }
+[data-quran-theme="sepia"] .quran-page { border-color: rgba(160,110,50,0.3) !important; }
+
+[data-quran-theme="midnight"] .quran-page-inner,
+.quran-fs-reader[data-quran-theme="midnight"] .quran-fs-content {
+  background: #0d1117 !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3), inset 10px 0 22px -14px rgba(0,0,0,0.25), inset -10px 0 22px -14px rgba(0,0,0,0.25) !important;
+}
+[data-quran-theme="midnight"] .quran-text,
+.quran-fs-reader[data-quran-theme="midnight"] .quran-text { color: rgba(220,220,230,0.88); }
+[data-quran-theme="midnight"] .quran-page { border-color: rgba(60,80,130,0.30) !important; background: none !important; }
+
+[data-quran-theme="parchment"] .quran-page-inner,
+.quran-fs-reader[data-quran-theme="parchment"] .quran-fs-content {
+  background: linear-gradient(160deg, #fffbf0 0%, #f7f0e0 100%) !important;
+  box-shadow: inset 0 1px 3px rgba(180,150,80,0.06) !important;
+  color: #272010;
+}
+[data-quran-theme="parchment"] .quran-text,
+.quran-fs-reader[data-quran-theme="parchment"] .quran-text { color: #1e1508; }
+[data-quran-theme="parchment"] .quran-page { border-color: rgba(200,170,100,0.3) !important; }
+[data-quran-theme="parchment"] .ayah-marker { color: #1e1508; background: rgba(140, 100, 28, 0.30); }
+
 .quran-page-inner {
   padding: 1.25rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.06));
   border-radius: 1.25rem;
-  background-image:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--fg) 9%, var(--bg)) 0%,
-      color-mix(in srgb, var(--fg) 5%, var(--bg)) 100%
-    ),
-    radial-gradient(
-      circle at 1px 1px,
-      color-mix(in srgb, var(--fg) 10%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 18px 18px;
-  background-color: color-mix(in srgb, var(--fg) 6%, var(--bg));
+  background: color-mix(in srgb, var(--fg) 5%, var(--bg));
+  box-shadow:
+    inset 0 2px 10px rgba(0, 0, 0, 0.06),
+    inset 10px 0 18px -12px rgba(0, 0, 0, 0.10),
+    inset -10px 0 18px -12px rgba(0, 0, 0, 0.10);
 }
 
 @media (min-width: 768px) {
@@ -624,6 +655,323 @@ body.quran-focus-mode .quran-surface {
   transform: scale(0.97);
 }
 
+/* -------------------------------------------------------
+   Quran: Selected ayah warm highlight
+   ------------------------------------------------------- */
+.ayah-selected {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: 3px;
+  padding: 0 2px;
+  box-shadow: 0 2px 0 0 color-mix(in srgb, var(--accent) 50%, transparent);
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
+
+/* -------------------------------------------------------
+   Quran: Floating ayah action tooltip
+   ------------------------------------------------------- */
+@keyframes tooltipPop {
+  from { opacity: 0; transform: translateX(-50%) scale(0.88); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+.ayah-tooltip-pill {
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  background: color-mix(in srgb, var(--bg) 88%, var(--fg));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 4px 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.40), 0 2px 8px rgba(0, 0, 0, 0.20);
+  white-space: nowrap;
+  animation: tooltipPop 180ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  pointer-events: all;
+}
+.ayah-tooltip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.80);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 100ms ease, color 100ms ease;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ayah-tooltip-btn:hover { background: rgba(255, 255, 255, 0.34); color: #111827; }
+.ayah-tooltip-btn:active { transform: scale(0.93); }
+.ayah-tooltip-btn.is-active { color: var(--accent); }
+.ayah-tooltip-sep {
+  width: 1px;
+  height: 15px;
+  background: rgba(255, 255, 255, 0.11);
+  flex-shrink: 0;
+  margin: 0 1px;
+}
+
+/* -------------------------------------------------------
+   Quran: Note bottom sheet
+   ------------------------------------------------------- */
+@keyframes noteSheetSlideUp {
+  from { transform: translateY(100%); opacity: 0.8; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.quran-note-sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 210;
+  padding: 0.5rem 1.25rem 1.25rem;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--bg) 94%, var(--fg));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 1.5rem 1.5rem 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.30);
+  animation: noteSheetSlideUp 250ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+.quran-note-sheet__handle {
+  width: 36px; height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.16);
+  margin: 0 auto 0.75rem;
+}
+
+/* -------------------------------------------------------
+   Quran: True fullscreen (immersive) reading mode
+   ------------------------------------------------------- */
+.quran-fs-reader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.quran-fs-header,
+.quran-fs-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 1rem;
+  background: color-mix(in srgb, var(--bg) 92%, var(--fg));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  will-change: opacity, transform;
+}
+.quran-fs-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+}
+.quran-fs-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+.quran-fs-chrome--hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-14px) !important;
+}
+.quran-fs-footer.quran-fs-chrome--hidden {
+  transform: translateY(14px) !important;
+}
+.quran-fs-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.25rem;
+}
+@media (min-width: 640px) {
+  .quran-fs-content {
+    max-width: 740px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 2rem 2.5rem;
+  }
+}
+
+/* -------------------------------------------------------
+   Quran: Surah name ornament inside text flow
+   ------------------------------------------------------- */
+.quran-surah-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+  margin-bottom: 1.25rem;
+  padding: 0.6rem 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--stroke));
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--accent) 13%, transparent) 0%,
+    transparent 70%
+  );
+}
+.quran-surah-ornament::before,
+.quran-surah-ornament::after {
+  content: "\276A";
+  font-size: 0.55rem;
+  opacity: 0.40;
+  color: var(--accent);
+}
+
+/* ── Memorization mode ─────────────────────────────────── */
+.quran-mem-span {
+  filter: blur(7px);
+  user-select: none;
+  transition: filter 0.35s ease;
+  cursor: pointer;
+}
+.quran-mem-span.revealed {
+  filter: blur(0);
+  cursor: default;
+}
+
+/* ── Continuous scroll mode ────────────────────────────── */
+.quran-scroll-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.quran-scroll-ayah {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  scroll-margin-top: 80px;
+}
+.quran-scroll-ayah:last-child { border-bottom: none; }
+.quran-scroll-ayah.is-reading {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  border-radius: 0.75rem;
+  padding-inline: 0.5rem;
+}
+
+/* ── Juz navigation tabs ───────────────────────────────── */
+.quran-juz-strip {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 0.25rem;
+}
+.quran-juz-strip::-webkit-scrollbar { display: none; }
+.quran-juz-btn {
+  flex-shrink: 0;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quran-juz-btn:hover { background: rgba(255,255,255,0.10); }
+.quran-juz-btn.active {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Completion celebration burst ─────────────────────── */
+@keyframes completionPop {
+  0%   { opacity: 0; transform: scale(0.5) translateY(0); }
+  30%  { opacity: 1; transform: scale(1.15) translateY(-12px); }
+  70%  { opacity: 0.9; transform: scale(1) translateY(-28px); }
+  100% { opacity: 0; transform: scale(0.8) translateY(-50px); }
+}
+.completion-particle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  animation: completionPop 1.1s ease forwards;
+}
+.quran-completion-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+  border-radius: 1.5rem;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--ok) 18%, transparent) 0%, transparent 70%);
+  border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
+  text-align: center;
+  animation: tooltipPop 0.4s ease;
+}
+
+/* ── In-surah search highlight ─────────────────────────── */
+.ayah-search-match {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ── Reading streak badge ──────────────────────────────── */
+.quran-streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(124, 45, 18, 0.42);
+  border: 1px solid rgba(251, 146, 60, 0.38);
+  color: #fdba74;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* ── Session timer badge ──────────────────────────────── */
+.quran-timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+/* ── Daily goal progress bar ──────────────────────────── */
+.quran-goal-bar-wrap {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+  margin-top: 0.4rem;
+}
+.quran-goal-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--accent) 80%, var(--ok));
+  transition: width 0.5s ease;
+}
+
 /* Hide scrollbar but keep functionality */
 .no-scrollbar {
   scrollbar-width: none;
@@ -679,7 +1027,7 @@ body.quran-focus-mode .quran-surface {
    ------------------------------------------------------- */
 .floating-nav {
   position: fixed;
-  bottom: calc(12px + var(--sab));
+  bottom: calc(var(--mobile-nav-gap) + var(--sab));
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
@@ -921,7 +1269,7 @@ body.quran-focus-mode .quran-surface {
    ------------------------------------------------------- */
 @media (max-width: 1279px) {
   .pb-floating-nav {
-    padding-bottom: calc(90px + var(--sab));
+    padding-bottom: calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--mobile-fab-size) + var(--mobile-fab-gap) + var(--sab));
   }
 }
 
@@ -1254,10 +1602,6 @@ body.focus-mode .floating-nav {
 /* Smooth re-entry when focus mode exits */
 header {
   transition: opacity 300ms ease;
-}
-
-.floating-nav {
-  transition: opacity 300ms ease, transform 300ms ease;
 }
 
 @keyframes focusModePulse {

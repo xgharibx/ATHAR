@@ -24,6 +24,12 @@ export type Preferences = {
   quranLineHeight: number; // 1.8 - 3.0
   quranPageSize: number; // ayahs per page
   quranHideMarkers: boolean;
+  quranTheme: "default" | "sepia" | "midnight" | "parchment";
+  quranLetterSpacing: number; // em, 0 - 0.12
+  quranWordSpacing: number;   // em, 0 - 0.25
+  quranScrollMode: "page" | "scroll";
+  quranDailyGoal: number; // ayahs per day goal
+  quranReciter: string;   // everyayah.com folder name, e.g. "Alafasy_128kbps"
   showBenefits: boolean;
   stripDiacritics: boolean;
   enable3D: boolean;
@@ -61,6 +67,9 @@ export type ExportBlobV1 = {
   quranNotes?: Record<string, string>;
   quranHighlights?: Record<string, string>; // key: `${surahId}:${ayahIndex}` → "gold"|"green"|"blue"|"red"
   quranReadingHistory?: Record<string, number>;
+  quranStreak?: number;
+  quranLastReadDate?: string | null;
+  quranDailyAyahs?: Record<string, number>;
   dailyWirdDone?: Record<string, boolean>;
   dailyWirdStartISO?: string | null;
   khatmaStartISO?: string | null;
@@ -101,6 +110,12 @@ type NoorState = {
   // Tracks furthest ayah reached per surah (surahId string -> max ayahIndex)
   quranReadingHistory: Record<string, number>;
 
+  // Quran reading streak
+  quranStreak: number;
+  quranLastReadDate: string | null; // ISO date
+  quranDailyAyahs: Record<string, number>; // dateISO -> ayahs read that day
+  recordQuranRead: (count?: number) => void;
+
   // Daily Wird
   dailyWirdDone: Record<string, boolean>; // dateISO -> done
   setDailyWirdDone: (dateISO: string, done: boolean) => void;
@@ -138,6 +153,10 @@ type NoorState = {
   exportState: () => ExportBlobV1;
   importState: (blob: ExportBlobV1) => void;
 
+  // Targeted resets (Phase 37)
+  resetAdhkarProgress: () => void;
+  resetQuranData: () => void;
+
   // UX-only
   lastCelebrationAt: number;
   setLastCelebrationAt: (ts: number) => void;
@@ -154,6 +173,12 @@ const DEFAULT_PREFS: Preferences = {
   quranLineHeight: 2.55,
   quranPageSize: 12,
   quranHideMarkers: false,
+  quranTheme: "default" as const,
+  quranLetterSpacing: 0,
+  quranWordSpacing: 0,
+  quranScrollMode: "page" as const,
+  quranDailyGoal: 10,
+  quranReciter: "Alafasy_128kbps",
   showBenefits: true,
   stripDiacritics: false,
   enable3D: false,
@@ -248,6 +273,35 @@ export const useNoorStore = create<NoorState>()(
       quranHighlights: {},
 
       quranReadingHistory: {},
+
+      quranStreak: 0,
+      quranLastReadDate: null,
+      quranDailyAyahs: {},
+      recordQuranRead: (count = 1) => {
+        const today = todayISO();
+        set((s) => {
+          const prevDate = s.quranLastReadDate;
+          const dayBefore = (() => {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, "0");
+            const dd = String(d.getDate()).padStart(2, "0");
+            return `${yyyy}-${mm}-${dd}`;
+          })();
+          const newStreak =
+            prevDate === today ? s.quranStreak
+            : prevDate === dayBefore ? s.quranStreak + 1
+            : 1;
+          const todayCount = (s.quranDailyAyahs[today] ?? 0) + count;
+          return {
+            quranLastReadDate: today,
+            quranStreak: newStreak,
+            quranDailyAyahs: { ...s.quranDailyAyahs, [today]: todayCount },
+          };
+        });
+      },
+
       setQuranNote: (surahId, ayahIndex, note) => {
         const key = `${surahId}:${ayahIndex}`;
         const clean = (note ?? "").trim();
@@ -439,6 +493,9 @@ export const useNoorStore = create<NoorState>()(
           quranNotes: s.quranNotes,
           quranHighlights: s.quranHighlights,
           quranReadingHistory: s.quranReadingHistory,
+          quranStreak: s.quranStreak,
+          quranLastReadDate: s.quranLastReadDate,
+          quranDailyAyahs: s.quranDailyAyahs,
           dailyWirdDone: s.dailyWirdDone,
           dailyWirdStartISO: s.dailyWirdStartISO,
           khatmaStartISO: s.khatmaStartISO,
@@ -464,6 +521,9 @@ export const useNoorStore = create<NoorState>()(
           quranNotes: blob.quranNotes ?? {},
           quranHighlights: blob.quranHighlights ?? {},
           quranReadingHistory: sanitizeNumberMap(blob.quranReadingHistory),
+          quranStreak: blob.quranStreak ?? 0,
+          quranLastReadDate: blob.quranLastReadDate ?? null,
+          quranDailyAyahs: sanitizeNumberMap(blob.quranDailyAyahs),
           dailyWirdDone: blob.dailyWirdDone ?? {},
           dailyWirdStartISO: blob.dailyWirdStartISO ?? null,
           khatmaStartISO: blob.khatmaStartISO ?? null,
@@ -474,6 +534,32 @@ export const useNoorStore = create<NoorState>()(
           dailyBetterStepDone: blob.dailyBetterStepDone ?? {}
         });
       },
+
+      // Targeted resets (Phase 37)
+      resetAdhkarProgress: () => set({
+        progress: {},
+        favorites: {},
+        activity: {},
+        quickTasbeeh: {},
+        dailyChecklist: {},
+        dailyBetterStepDone: {},
+        lastDailyResetISO: null,
+      }),
+      resetQuranData: () => set({
+        quranBookmarks: {},
+        quranNotes: {},
+        quranHighlights: {},
+        quranReadingHistory: {},
+        quranLastRead: null,
+        quranDailyAyahs: {},
+        quranStreak: 0,
+        quranLastReadDate: null,
+        dailyWirdDone: {},
+        dailyWirdStartISO: null,
+        khatmaStartISO: null,
+        khatmaDays: null,
+        khatmaDone: {},
+      }),
 
       lastCelebrationAt: 0,
       setLastCelebrationAt: (ts) => set({ lastCelebrationAt: ts }),
