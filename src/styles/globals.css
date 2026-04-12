@@ -291,7 +291,7 @@ html.midnight body.transparent-mode .glass-strong {
 }
 
 .dhikr-flow {
-  white-space: normal;
+  white-space: pre-line;
   text-align: justify;
   text-align-last: right;
   word-break: normal;
@@ -309,6 +309,17 @@ html.midnight body.transparent-mode .glass-strong {
     radial-gradient(circle at 22% 86%, rgba(255, 255, 255, 0.66) 0 0.9px, transparent 1.5px);
   background-size: 240px 240px, 320px 320px, 280px 280px, 360px 360px, 300px 300px;
   background-position: 0 0, 24px 42px, 90px 130px, 150px 56px, 32px 180px;
+}
+
+.dhikr-card-stars {
+  opacity: 0.16;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.95) 0 0.9px, transparent 1.5px),
+    radial-gradient(circle at 74% 28%, rgba(255, 255, 255, 0.75) 0 0.85px, transparent 1.4px),
+    radial-gradient(circle at 48% 72%, rgba(255, 255, 255, 0.82) 0 0.8px, transparent 1.35px),
+    radial-gradient(circle at 86% 82%, rgba(255, 255, 255, 0.72) 0 0.9px, transparent 1.5px);
+  background-size: 220px 220px, 280px 280px, 260px 260px, 320px 320px;
+  background-position: 0 0, 30px 44px, 88px 118px, 144px 72px;
 }
 
 /* Quran (mushaf-like) reader styling */

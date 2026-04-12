@@ -32,8 +32,8 @@ const BASMALAH_VARIANTS = [
 ];
 
 /**
- * If the text starts with isti'adhah and/or basmalah, keep them both on a single line,
- * then place the rest on a new line.
+ * If the text starts with isti'adhah and/or basmalah, place each opening phrase on its own line,
+ * then place the remainder on a new line after them.
  */
 export function formatLeadingIstiadhahBasmalah(input: string) {
   const t = normalizeText(input ?? "");
@@ -41,6 +41,7 @@ export function formatLeadingIstiadhahBasmalah(input: string) {
 
   let rest = t;
   const prefix: string[] = [];
+  const flatten = (value: string) => value.replace(/\n+/g, " ").replace(/\s{2,}/g, " ").trim();
 
   const takeLeading = (variants: string[]) => {
     for (const v of variants) {
@@ -56,7 +57,9 @@ export function formatLeadingIstiadhahBasmalah(input: string) {
   const hadIstiadhah = takeLeading(ISTIADHAH_VARIANTS);
   const hadBasmalah = takeLeading(BASMALAH_VARIANTS);
 
-  if (!hadIstiadhah && !hadBasmalah) return t;
-  if (!rest) return prefix.join(" ");
-  return `${prefix.join(" ")}\n${rest}`;
+  if (!hadIstiadhah && !hadBasmalah) return flatten(t);
+
+  const body = flatten(rest);
+  if (!body) return prefix.join("\n");
+  return `${prefix.join("\n")}\n${body}`;
 }

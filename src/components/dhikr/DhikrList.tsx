@@ -177,6 +177,7 @@ export function DhikrList(props: {
 
       <div className="relative z-[1] space-y-4">
       <Card className="p-5 overflow-hidden relative">
+        <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
         {/* Color identity gradient overlay */}
         <div
           className={`absolute inset-0 bg-gradient-to-bl ${identity.grad} pointer-events-none opacity-55`}

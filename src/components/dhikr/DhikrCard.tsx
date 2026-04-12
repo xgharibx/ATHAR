@@ -327,6 +327,7 @@ export function DhikrCard(props: {
         done && "border-[color-mix(in_srgb,var(--ok)_25%,transparent)]"
       )}
     >
+      <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
       <div className="p-4 md:p-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
