@@ -172,11 +172,14 @@ export function DhikrList(props: {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="relative isolate">
+      <div className="dhikr-page-stars absolute inset-0 pointer-events-none" />
+
+      <div className="relative z-[1] space-y-4">
       <Card className="p-5 overflow-hidden relative">
         {/* Color identity gradient overlay */}
         <div
-          className={`absolute inset-0 bg-gradient-to-bl ${identity.grad} pointer-events-none`}
+          className={`absolute inset-0 bg-gradient-to-bl ${identity.grad} pointer-events-none opacity-55`}
           style={{ borderRadius: "inherit" }}
         />
         <div className="relative">
@@ -414,6 +417,7 @@ export function DhikrList(props: {
           ) : <div className="flex-1" />}
         </div>
       )}
+      </div>
     </div>
   );
 }

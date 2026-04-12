@@ -299,6 +299,18 @@ html.midnight body.transparent-mode .glass-strong {
   text-wrap: pretty;
 }
 
+.dhikr-page-stars {
+  opacity: 0.72;
+  background-image:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 72% 22%, rgba(255, 255, 255, 0.78) 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 36% 64%, rgba(255, 255, 255, 0.68) 0 0.9px, transparent 1.4px),
+    radial-gradient(circle at 82% 74%, rgba(255, 255, 255, 0.84) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 22% 86%, rgba(255, 255, 255, 0.66) 0 0.9px, transparent 1.5px);
+  background-size: 240px 240px, 320px 320px, 280px 280px, 360px 360px, 300px 300px;
+  background-position: 0 0, 24px 42px, 90px 130px, 150px 56px, 32px 180px;
+}
+
 /* Quran (mushaf-like) reader styling */
 .quran-basmalah {
   margin-top: 1rem;
