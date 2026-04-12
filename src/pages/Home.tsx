@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Lottie from "lottie-react";
@@ -8,10 +9,8 @@ import {
   RotateCw,
   Copy,
   CheckCircle2,
-  Trophy,
-  Heart,
   ChevronDown,
-  ChevronLeft,
+  MoreVertical,
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -23,7 +22,6 @@ import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
-import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
 import { pct, cn } from "@/lib/utils";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { trackUxEvent } from "@/lib/uxMetrics";
@@ -147,12 +145,6 @@ export function HomePage() {
   const dailyWirdStartISO = useNoorStore((s) => s.dailyWirdStartISO);
   const setDailyWirdStartISO = useNoorStore((s) => s.setDailyWirdStartISO);
 
-  const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
-  const khatmaDays = useNoorStore((s) => s.khatmaDays);
-  const khatmaDone = useNoorStore((s) => s.khatmaDone);
-  const setKhatmaPlan = useNoorStore((s) => s.setKhatmaPlan);
-  const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
-  const resetKhatma = useNoorStore((s) => s.resetKhatma);
   const dailyBetterStepDone = useNoorStore((s) => s.dailyBetterStepDone);
   const setDailyBetterStepDone = useNoorStore((s) => s.setDailyBetterStepDone);
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
@@ -160,7 +152,6 @@ export function HomePage() {
   const quranStreak = useNoorStore((s) => s.quranStreak);
 
   const sections = data?.db.sections ?? [];
-  const [showSmartNowDetails, setShowSmartNowDetails] = React.useState(false);
   const [checklistExpanded, setChecklistExpanded] = React.useState<boolean | null>(null);
 
   const quranLastReadSurahName = React.useMemo(() => {
@@ -179,8 +170,6 @@ export function HomePage() {
     return Math.round((readAyahs / totalAyahs) * 100);
   }, [quran.data, quranReadingHistory]);
   const [confirmTasbeehReset, setConfirmTasbeehReset] = React.useState(false);
-  const [confirmKhatmaReset, setConfirmKhatmaReset] = React.useState(false);
-
   const todayKey = useTodayKey();
   const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[todayKey] ?? {});
   const yesterdayKey = React.useMemo(() => shiftISO(todayKey, -1), [todayKey]);
@@ -263,51 +252,6 @@ export function HomePage() {
     }
     return streak;
   }, [dailyWirdDone, isDailyWirdDone, todayKey]);
-
-  const khatma = React.useMemo(() => {
-    if (!quran.data) return null;
-    if (!khatmaStartISO || !khatmaDays) return null;
-
-    const start = parseISODate(khatmaStartISO);
-    const today = parseISODate(todayKey);
-    if (!start || !today) return null;
-
-    const days = Math.max(1, Math.min(365, Math.floor(khatmaDays)));
-
-    const flat: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
-    for (const s of quran.data) {
-      for (let i = 0; i < s.ayahs.length; i++) {
-        const text = (s.ayahs[i] ?? "").trim();
-        if (!text) continue;
-        flat.push({ surahId: s.id, surahName: s.name, ayahIndex: i + 1, text });
-      }
-    }
-    if (flat.length === 0) return null;
-
-    const chunk = Math.ceil(flat.length / days);
-    const dayIndexRaw = Math.max(0, daysBetween(start, today));
-    const isFinished = dayIndexRaw >= days;
-    const dayIndex = Math.min(dayIndexRaw, days - 1);
-
-    const startAt = dayIndex * chunk;
-    const endAt = Math.min(flat.length, startAt + chunk) - 1;
-
-    const first = flat[startAt];
-    const last = flat[endAt];
-
-    const doneCount = Object.keys(khatmaDone ?? {}).filter((k) => khatmaDone[k]).length;
-    const doneToday = !!khatmaDone?.[todayKey];
-    const percent = days ? Math.round((doneCount / days) * 100) : 0;
-
-    return {
-      days,
-      chunk,
-      dayIndex,
-      isFinished,
-      today: { first, last },
-      meta: { doneCount, doneToday, percent }
-    };
-  }, [khatmaDays, khatmaDone, khatmaStartISO, quran.data, todayKey]);
 
   const copyDailyWird = async () => {
     if (!dailyWird) return;
@@ -538,19 +482,6 @@ export function HomePage() {
     toast.success(`تم إنجاز: ${item.title}`);
   }, [adaptiveMission.recoveryItem, todayKey, toggleDailyChecklist]);
 
-  const openRecoveryTask = React.useCallback(
-    (step: MissionStep) => {
-      navigate(step.route);
-    },
-    [navigate]
-  );
-
-  const streakRescuePlan = React.useMemo(() => {
-    if (!smartNow.streakRisk && adaptiveMission.urgency !== "high") return [] as MissionStep[];
-    if (adaptiveMission.recoveryPlan.length > 0) return adaptiveMission.recoveryPlan.slice(0, 3);
-    return adaptiveMission.allMissionSteps.slice(0, 3);
-  }, [adaptiveMission.allMissionSteps, adaptiveMission.recoveryPlan, adaptiveMission.urgency, smartNow.streakRisk]);
-
   if (isLoading) {
     return (
       <div className="space-y-4 page-enter">
@@ -722,7 +653,6 @@ export function HomePage() {
       <DailyWisdomCard />
 
       <Card className="p-4">
-        {/* Compact header row */}
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -737,107 +667,55 @@ export function HomePage() {
               {smartNow.suggestedAction}
             </div>
           </div>
-          <button
-            onClick={() => setShowSmartNowDetails((v) => !v)}
-            className="shrink-0 w-11 h-11 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90 mt-0.5"
-            aria-label={showSmartNowDetails ? "إخفاء التفاصيل" : "عرض التفاصيل"}
-          >
-            <ChevronDown size={16} className={cn("transition-transform duration-200", showSmartNowDetails && "rotate-180")} />
-          </button>
+          <Dropdown.Root modal={false}>
+            <Dropdown.Trigger asChild>
+              <button
+                type="button"
+                className="shrink-0 w-11 h-11 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90 mt-0.5"
+                aria-label="خيارات إضافية"
+                title="خيارات إضافية"
+              >
+                <MoreVertical size={16} />
+              </button>
+            </Dropdown.Trigger>
+            <Dropdown.Portal>
+              <Dropdown.Content
+                align="start"
+                sideOffset={8}
+                style={{ zIndex: 100000 }}
+                className="glass-strong rounded-3xl min-w-[240px] border border-white/15 p-2 shadow-2xl"
+              >
+                <Dropdown.Label className="px-3 pt-2 text-[11px] font-semibold opacity-45">ملخص سريع</Dropdown.Label>
+                <div className="px-3 pb-2 pt-1 text-[11px] opacity-60 leading-5">
+                  أنجزت {DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length} من {DAILY_CHECKLIST_ITEMS.length} اليوم
+                  {smartNow.missedYesterday > 0 ? ` • فاتك ${smartNow.missedYesterday} أمس` : ""}
+                </div>
+                <Dropdown.Separator className="my-1 h-px bg-white/10" />
+                {adaptiveMission.recoveryItem ? (
+                  <HomeQuickMenuAction
+                    label="استدرك المهمة الأقرب"
+                    hint={adaptiveMission.recoveryItem.title}
+                    onSelect={recoverOneTask}
+                  />
+                ) : null}
+                <HomeQuickMenuAction
+                  label="راجع التقدم اليومي"
+                  hint="الإحصاءات وقائمة اليوم"
+                  onSelect={() => navigate("/insights")}
+                />
+                <HomeQuickMenuAction
+                  label="خطة الختمة"
+                  hint="أصبحت داخل صفحة المصحف"
+                  onSelect={() => navigate("/quran")}
+                />
+              </Dropdown.Content>
+            </Dropdown.Portal>
+          </Dropdown.Root>
         </div>
 
-        {/* Primary CTA — always visible */}
         <Button className="mt-3 w-full press-effect" onClick={() => navigate(smartNow.actionRoute)}>
           {smartNow.actionLabel}
         </Button>
-
-        {/* Expandable details */}
-        {showSmartNowDetails && (
-          <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
-            {/* Stats strip */}
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
-                <div className="opacity-60">مهام اليوم</div>
-                <div className="font-semibold mt-1 tabular-nums" style={{ color: adaptiveMission.debtToday.length === 0 ? "var(--ok)" : "var(--accent)" }}>
-                  {DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}
-                  <span className="opacity-45 font-normal">/{DAILY_CHECKLIST_ITEMS.length}</span>
-                </div>
-              </div>
-              <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
-                <div className="opacity-60">استدراك أمس</div>
-                <div className="font-semibold mt-1" style={{ color: adaptiveMission.missedYesterdayItems.length > 0 ? "var(--accent)" : "var(--ok)" }}>{adaptiveMission.missedYesterdayItems.length} مهام</div>
-              </div>
-              <div className="rounded-2xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
-                <div className="opacity-60">الصلاة القادمة</div>
-                <div className="font-semibold mt-1">
-                  {adaptiveMission.nextPrayer
-                    ? `${adaptiveMission.nextPrayer.label}${
-                        adaptiveMission.nextPrayerMinutes != null ? ` ${adaptiveMission.nextPrayerMinutes}د` : ""
-                      }`
-                    : "—"}
-                </div>
-              </div>
-            </div>
-
-            {/* Warnings */}
-            {smartNow.missedYesterday > 0 && (
-              <div className="text-xs opacity-70 leading-5">
-                لديك {smartNow.missedYesterday} مهمة لم تكتمل أمس.
-              </div>
-            )}
-            {smartNow.streakRisk && (
-              <div className="text-xs text-[var(--accent)] leading-5">
-                ⚡ لم تسجل نشاطاً اليوم — نفّذ ذكراً واحداً الآن للحفاظ على السلسلة.
-              </div>
-            )}
-
-            {/* Quick recovery button */}
-            {adaptiveMission.recoveryItem && (
-              <button
-                onClick={recoverOneTask}
-                className="w-full flex items-center gap-2 rounded-2xl border border-white/10 bg-[var(--accent)]/10 px-4 py-3 text-right transition active:scale-[.97] min-h-[44px]"
-              >
-                <span className="text-xs flex-1">استدرك: {adaptiveMission.recoveryItem.title}</span>
-                <ChevronLeft size={14} className="opacity-50 shrink-0" />
-              </button>
-            )}
-
-            {/* Recovery plan */}
-            {adaptiveMission.recoveryPlan.length > 0 && (
-              <div className="space-y-1.5">
-                <div className="text-[11px] opacity-45 font-semibold">خطة تعافٍ سريعة</div>
-                {adaptiveMission.recoveryPlan.map((step) => (
-                  <button
-                    key={step.item.id}
-                    onClick={() => openRecoveryTask(step)}
-                    className="w-full flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right transition active:scale-[.97] min-h-[44px]"
-                  >
-                    <span className="text-xs flex-1">{step.title}</span>
-                    <ChevronLeft size={14} className="opacity-40 shrink-0" />
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Streak rescue */}
-            {streakRescuePlan.length > 0 && (
-              <div className="space-y-1.5">
-                <div className="text-[11px] opacity-45 font-semibold text-[var(--accent)]">⚡ خطة إنقاذ السلسلة</div>
-                {streakRescuePlan.map((step, idx) => (
-                  <button
-                    key={`rescue-${step.item.id}`}
-                    onClick={() => openRecoveryTask(step)}
-                    className="w-full flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right transition active:scale-[.97] min-h-[44px]"
-                  >
-                    <span className="text-xs opacity-50 shrink-0">{idx + 1}.</span>
-                    <span className="text-xs flex-1">{step.title}</span>
-                    <ChevronLeft size={14} className="opacity-40 shrink-0" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </Card>
 
       {/* Bottom: Daily Checklist */}
@@ -1120,133 +998,19 @@ export function HomePage() {
         )}
       </Card>
 
-      <Card className="p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold">خطة الختمة</div>
-            <div className="text-xs opacity-65 mt-1">قسّم القرآن تلقائياً حسب المدة</div>
-          </div>
-
-          {khatmaStartISO && khatmaDays ? (
-            confirmKhatmaReset ? (
-              <div className="flex items-center gap-2">
-                <Button size="sm" variant="danger" onClick={() => { resetKhatma(); toast.success("تمت إعادة ضبط الخطة"); setConfirmKhatmaReset(false); }}>تأكيد</Button>
-                <Button size="sm" variant="secondary" onClick={() => setConfirmKhatmaReset(false)}>إلغاء</Button>
-              </div>
-            ) : (
-              <Button
-                variant="secondary"
-                onClick={() => setConfirmKhatmaReset(true)}
-                title="إعادة ضبط الخطة"
-              >
-                إعادة ضبط
-              </Button>
-            )
-          ) : null}
-        </div>
-
-        {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished && (
-          <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-            <div className="h-full progress-accent" style={{ width: `${khatma.meta.percent}%` }} />
-          </div>
-        )}
-
-        {!khatmaStartISO || !khatmaDays ? (
-          <div className="mt-4">
-            <div className="text-sm opacity-80">اختر مدة الختمة:</div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {[7, 15, 30, 60].map((d) => (
-                <Button
-                  key={d}
-                  variant="secondary"
-                  onClick={() => {
-                    setKhatmaPlan({ startISO: todayKey, days: d });
-                    toast.success("تم بدء الخطة");
-                  }}
-                >
-                  {d} يوم
-                </Button>
-              ))}
-            </div>
-            <div className="mt-3 text-xs opacity-65 leading-6">
-              تُحسب حصة اليوم تلقائيًا من بداية المصحف حتى النهاية.
-            </div>
-          </div>
-        ) : quran.isLoading ? (
-          <div className="mt-4 text-sm opacity-65">... تحميل الخطة</div>
-        ) : quran.error || !khatma ? (
-          <div className="mt-4 text-sm opacity-65 leading-7">تعذر تحميل خطة الختمة.</div>
-        ) : (
-          <div className="mt-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge>
-                {khatma.isFinished ? "تمت الختمة" : `اليوم ${khatma.dayIndex + 1} من ${khatma.days}`}
-              </Badge>
-              <Badge>{`إنجاز: ${khatma.meta.doneCount}/${khatma.days} (${khatma.meta.percent}%)`}</Badge>
-            </div>
-
-            {!khatma.isFinished ? (
-              <div className={`mt-3 glass rounded-3xl p-4 border transition-colors ${khatma.meta.doneToday ? "border-[var(--ok)]/30" : "border-white/10"}`}>
-                {khatma.meta.doneToday && (
-                  <div className="flex items-center gap-1.5 mb-3 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>
-                    <CheckCircle2 size={12} />
-                    اكتملت حصة اليوم
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <div className="text-xs opacity-65">حصة اليوم</div>
-                  <span className="text-[10px] opacity-40 tabular-nums">{khatma.chunk} آية</span>
-                </div>
-                <div className="mt-2 text-sm leading-7">
-                  من <span className="font-semibold">{khatma.today.first.surahName}</span> ﴿{khatma.today.first.ayahIndex}﴾
-                  إلى <span className="font-semibold">{khatma.today.last.surahName}</span> ﴿{khatma.today.last.ayahIndex}﴾
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button
-                    onClick={() =>
-                      navigate(`/quran/${khatma.today.first.surahId}?a=${khatma.today.first.ayahIndex}`)
-                    }
-                  >
-                    ابدأ القراءة
-                  </Button>
-                  <Button
-                    variant={khatma.meta.doneToday ? "primary" : "secondary"}
-                    onClick={() => {
-                      setKhatmaDone(todayKey, !khatma.meta.doneToday);
-                      toast.success(khatma.meta.doneToday ? "تم إلغاء الإتمام" : "تم حفظ الإتمام");
-                    }}
-                  >
-                    <CheckCircle2 size={16} />
-                    {khatma.meta.doneToday ? "منجز اليوم" : "تمت قراءة اليوم"}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-3 glass rounded-3xl p-4 border border-white/10">
-                <div className="text-sm font-semibold">ما شاء الله — تمت الختمة</div>
-                <div className="mt-2 text-xs opacity-65 leading-6">يمكنك بدء خطة جديدة من اليوم.</div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {[7, 15, 30, 60].map((d) => (
-                    <Button
-                      key={d}
-                      variant="secondary"
-                      onClick={() => {
-                        setKhatmaPlan({ startISO: todayKey, days: d });
-                        toast.success("تم بدء خطة جديدة");
-                      }}
-                    >
-                      خطة {d} يوم
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </Card>
-
     </div>
+  );
+}
+
+function HomeQuickMenuAction(props: { label: string; hint?: string; onSelect: () => void }) {
+  return (
+    <Dropdown.Item
+      onSelect={() => props.onSelect()}
+      className="rounded-2xl px-3 py-2.5 outline-none transition cursor-pointer data-[highlighted]:bg-white/10"
+    >
+      <div className="text-sm font-medium">{props.label}</div>
+      {props.hint ? <div className="mt-0.5 text-[11px] opacity-55 leading-5">{props.hint}</div> : null}
+    </Dropdown.Item>
   );
 }
 

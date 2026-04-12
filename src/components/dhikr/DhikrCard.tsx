@@ -390,7 +390,7 @@ export function DhikrCard(props: {
 
         {/* Text + swipe zone */}
         <div
-          className={cn("mt-4 arabic-text whitespace-pre-wrap select-none relative", isLongPressing && "long-press-active")}
+          className={cn("mt-4 arabic-text dhikr-flow select-none relative", isLongPressing && "long-press-active")}
           style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
           onTouchStart={onSwipeTouchStart}
           onTouchEnd={onSwipeTouchEnd}

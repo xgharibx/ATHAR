@@ -290,6 +290,15 @@ html.midnight body.transparent-mode .glass-strong {
   unicode-bidi: plaintext;
 }
 
+.dhikr-flow {
+  white-space: normal;
+  text-align: justify;
+  text-align-last: right;
+  word-break: normal;
+  overflow-wrap: normal;
+  text-wrap: pretty;
+}
+
 /* Quran (mushaf-like) reader styling */
 .quran-basmalah {
   margin-top: 1rem;

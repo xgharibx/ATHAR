@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Bookmark, BookOpen, Search, Shuffle, Sparkles, X, TrendingUp, Flame, Target } from "lucide-react";
+import { Bookmark, BookOpen, Search, Shuffle, Sparkles, X, TrendingUp, Flame, Target, CheckCircle2 } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, TOTAL_QURAN_AYAHS, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
@@ -20,6 +20,25 @@ function normalize(s: string) {
 function parseJuzParam(raw: string | null) {
   const parsed = raw ? Number(raw) : Number.NaN;
   return !Number.isNaN(parsed) && parsed >= 1 && parsed <= 30 ? parsed : null;
+}
+
+function parseISODate(dateISO: string) {
+  const match = (dateISO ?? "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const yyyy = Number(match[1]);
+  const mm = Number(match[2]);
+  const dd = Number(match[3]);
+  if (!yyyy || !mm || !dd) return null;
+  const date = new Date(yyyy, mm - 1, dd);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
+function daysBetween(a: Date, b: Date) {
+  const ms = 24 * 60 * 60 * 1000;
+  const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+  return Math.floor((utcB - utcA) / ms);
 }
 
 const LOADING_SURAH_KEYS = [
@@ -53,6 +72,12 @@ export function QuranPage() {
   const prefs = useNoorStore((s) => s.prefs);
   const quranDailyGoal = prefs.quranDailyGoal;
   const setPrefs = useNoorStore((s) => s.setPrefs);
+  const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
+  const khatmaDays = useNoorStore((s) => s.khatmaDays);
+  const khatmaDone = useNoorStore((s) => s.khatmaDone);
+  const setKhatmaPlan = useNoorStore((s) => s.setKhatmaPlan);
+  const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
+  const resetKhatma = useNoorStore((s) => s.resetKhatma);
 
   const todayISO = React.useMemo(() => {
     const d = new Date();
@@ -68,6 +93,7 @@ export function QuranPage() {
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress">("mushaf");
   const [showMushafJump, setShowMushafJump] = React.useState(false);
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
+  const [confirmKhatmaReset, setConfirmKhatmaReset] = React.useState(false);
 
   // Sync URL param changes (e.g. back-navigation)
   React.useEffect(() => {
@@ -101,6 +127,52 @@ export function QuranPage() {
     () => Math.min(100, Math.round((quranStats.totalAyahs / TOTAL_QURAN_AYAHS) * 100)),
     [quranStats.totalAyahs]
   );
+
+  const khatma = React.useMemo(() => {
+    if (!data) return null;
+    if (!khatmaStartISO || !khatmaDays) return null;
+
+    const start = parseISODate(khatmaStartISO);
+    const today = parseISODate(todayISO);
+    if (!start || !today) return null;
+
+    const days = Math.max(1, Math.min(365, Math.floor(khatmaDays)));
+    const flat: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
+
+    for (const surah of data) {
+      for (let index = 0; index < surah.ayahs.length; index++) {
+        const text = (surah.ayahs[index] ?? "").trim();
+        if (!text) continue;
+        flat.push({ surahId: surah.id, surahName: surah.name, ayahIndex: index + 1, text });
+      }
+    }
+
+    if (flat.length === 0) return null;
+
+    const chunk = Math.ceil(flat.length / days);
+    const dayIndexRaw = Math.max(0, daysBetween(start, today));
+    const isFinished = dayIndexRaw >= days;
+    const dayIndex = Math.min(dayIndexRaw, days - 1);
+    const startAt = Math.min(flat.length - 1, dayIndex * chunk);
+    const endAt = Math.min(flat.length, startAt + chunk) - 1;
+    const first = flat[startAt];
+    const last = flat[endAt];
+
+    if (!first || !last) return null;
+
+    const doneCount = Object.keys(khatmaDone ?? {}).filter((key) => khatmaDone[key]).length;
+    const doneToday = !!khatmaDone?.[todayISO];
+    const percent = days ? Math.round((doneCount / days) * 100) : 0;
+
+    return {
+      days,
+      chunk,
+      dayIndex,
+      isFinished,
+      today: { first, last },
+      meta: { doneCount, doneToday, percent }
+    };
+  }, [data, khatmaDays, khatmaDone, khatmaStartISO, todayISO]);
 
   // Set of surah IDs that have at least one bookmark
   const bookmarkedSurahs = React.useMemo(() => {
@@ -530,6 +602,139 @@ export function QuranPage() {
             </div>
           </button>
         ) : null}
+      </Card>
+
+      <Card className="p-5 quran-surface">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold quran-title">خطة الختمة</div>
+            <div className="text-xs opacity-65 mt-1">نقلناها هنا داخل صفحة المصحف لتبقى الرئيسية أخف</div>
+          </div>
+
+          {khatmaStartISO && khatmaDays ? (
+            confirmKhatmaReset ? (
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="danger"
+                  onClick={() => {
+                    resetKhatma();
+                    toast.success("تمت إعادة ضبط الخطة");
+                    setConfirmKhatmaReset(false);
+                  }}
+                >
+                  تأكيد
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => setConfirmKhatmaReset(false)}>
+                  إلغاء
+                </Button>
+              </div>
+            ) : (
+              <Button variant="secondary" onClick={() => setConfirmKhatmaReset(true)}>
+                إعادة ضبط
+              </Button>
+            )
+          ) : null}
+        </div>
+
+        {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished ? (
+          <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
+            <div className="h-full progress-accent" style={{ width: `${khatma.meta.percent}%` }} />
+          </div>
+        ) : null}
+
+        {!khatmaStartISO || !khatmaDays ? (
+          <div className="mt-4">
+            <div className="text-sm opacity-80">اختر مدة الختمة:</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[7, 15, 30, 60].map((days) => (
+                <Button
+                  key={days}
+                  variant="secondary"
+                  onClick={() => {
+                    setKhatmaPlan({ startISO: todayISO, days });
+                    setConfirmKhatmaReset(false);
+                    toast.success("تم بدء الخطة");
+                  }}
+                >
+                  {days} يوم
+                </Button>
+              ))}
+            </div>
+            <div className="mt-3 text-xs opacity-65 leading-6">
+              تُحسب حصة اليوم تلقائيًا من بداية المصحف حتى النهاية.
+            </div>
+          </div>
+        ) : isLoading ? (
+          <div className="mt-4 text-sm opacity-65">... تحميل الخطة</div>
+        ) : error || !khatma ? (
+          <div className="mt-4 text-sm opacity-65 leading-7">تعذر تحميل خطة الختمة.</div>
+        ) : (
+          <div className="mt-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge>
+                {khatma.isFinished ? "تمت الختمة" : `اليوم ${khatma.dayIndex + 1} من ${khatma.days}`}
+              </Badge>
+              <Badge>{`إنجاز: ${khatma.meta.doneCount}/${khatma.days} (${khatma.meta.percent}%)`}</Badge>
+            </div>
+
+            {!khatma.isFinished ? (
+              <div className={`mt-3 glass rounded-3xl p-4 border transition-colors ${khatma.meta.doneToday ? "border-[var(--ok)]/30" : "border-white/10"}`}>
+                {khatma.meta.doneToday ? (
+                  <div className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>
+                    <CheckCircle2 size={12} />
+                    اكتملت حصة اليوم
+                  </div>
+                ) : null}
+
+                <div className="flex items-center gap-2">
+                  <div className="text-xs opacity-65">حصة اليوم</div>
+                  <span className="text-[10px] opacity-40 tabular-nums">{khatma.chunk} آية</span>
+                </div>
+                <div className="mt-2 text-sm leading-7">
+                  من <span className="font-semibold">{khatma.today.first.surahName}</span> ﴿{khatma.today.first.ayahIndex}﴾
+                  إلى <span className="font-semibold">{khatma.today.last.surahName}</span> ﴿{khatma.today.last.ayahIndex}﴾
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button onClick={() => navigate(`/quran/${khatma.today.first.surahId}?a=${khatma.today.first.ayahIndex}`)}>
+                    ابدأ القراءة
+                  </Button>
+                  <Button
+                    variant={khatma.meta.doneToday ? "primary" : "secondary"}
+                    onClick={() => {
+                      setKhatmaDone(todayISO, !khatma.meta.doneToday);
+                      toast.success(khatma.meta.doneToday ? "تم إلغاء الإتمام" : "تم حفظ الإتمام");
+                    }}
+                  >
+                    <CheckCircle2 size={16} />
+                    {khatma.meta.doneToday ? "منجز اليوم" : "تمت قراءة اليوم"}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 glass rounded-3xl p-4 border border-white/10">
+                <div className="text-sm font-semibold">ما شاء الله — تمت الختمة</div>
+                <div className="mt-2 text-xs opacity-65 leading-6">يمكنك بدء خطة جديدة من اليوم.</div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {[7, 15, 30, 60].map((days) => (
+                    <Button
+                      key={days}
+                      variant="secondary"
+                      onClick={() => {
+                        setKhatmaPlan({ startISO: todayISO, days });
+                        setConfirmKhatmaReset(false);
+                        toast.success("تم بدء خطة جديدة");
+                      }}
+                    >
+                      خطة {days} يوم
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </Card>
 
       {mode === "surahs" ? (
