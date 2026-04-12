@@ -153,7 +153,7 @@ function aliasBlockedByList(alias, rows) {
   return false;
 }
 
-function publicAliasOrCanonical(userId, alias, moderationRow, blocklistRows) {
+function publicAliasOrCanonical(userId, _alias, moderationRow, _blocklistRows) {
   const canonical = canonicalAliasFromUserId(userId);
 
   if (moderationRow?.forced_alias) {
@@ -161,10 +161,7 @@ function publicAliasOrCanonical(userId, alias, moderationRow, blocklistRows) {
     return forced || canonical;
   }
 
-  const validation = validateAliasInput(alias);
-  if (!validation.ok) return canonical;
-  if (aliasBlockedByList(validation.value, blocklistRows)) return canonical;
-  return validation.value;
+  return canonical;
 }
 
 async function claimAliasForUser(db, userId, alias) {
@@ -221,17 +218,16 @@ async function releaseAliasClaimForUser(db, userId) {
   }
 }
 
-async function resolveAliasDecision(db, userId, requestedAlias) {
+async function resolveAliasDecision(db, userId, _requestedAlias) {
   const canonical = canonicalAliasFromUserId(userId);
   const moderationRow = await readUserModeration(db, userId);
-  const blocklistRows = await readNameBlocklist(db);
 
   if (moderationRow?.hidden) {
-    return { alias: publicAliasOrCanonical(userId, requestedAlias, moderationRow, blocklistRows), hidden: true, status: "hidden", reason: moderationRow.reason ?? "hidden" };
+    return { alias: publicAliasOrCanonical(userId, canonical, moderationRow, []), hidden: true, status: "hidden", reason: moderationRow.reason ?? "hidden" };
   }
 
   if (moderationRow?.forced_alias) {
-    const forcedAlias = publicAliasOrCanonical(userId, requestedAlias, moderationRow, blocklistRows);
+    const forcedAlias = publicAliasOrCanonical(userId, canonical, moderationRow, []);
     const forcedClaim = await claimAliasForUser(db, userId, forcedAlias);
     if (!forcedClaim.ok) {
       return { alias: canonical, hidden: false, status: "duplicate", reason: forcedClaim.reason };
@@ -239,21 +235,8 @@ async function resolveAliasDecision(db, userId, requestedAlias) {
     return { alias: forcedAlias, hidden: false, status: "forced", reason: moderationRow.reason ?? "forced-alias" };
   }
 
-  const validation = validateAliasInput(requestedAlias);
-  if (!validation.ok) {
-    return { alias: canonical, hidden: false, status: "fallback", reason: validation.reason };
-  }
-
-  if (aliasBlockedByList(validation.value, blocklistRows)) {
-    return { alias: canonical, hidden: false, status: "moderated", reason: "blocked-term" };
-  }
-
-  const claim = await claimAliasForUser(db, userId, validation.value);
-  if (!claim.ok) {
-    return { alias: canonical, hidden: false, status: "duplicate", reason: claim.reason };
-  }
-
-  return { alias: validation.value, hidden: false, status: "accepted", reason: null };
+  await releaseAliasClaimForUser(db, userId);
+  return { alias: canonical, hidden: false, status: "canonical", reason: null };
 }
 
 async function auditAliasDecision(db, input) {
@@ -666,6 +649,45 @@ function aggregateRows(input, strategy = "sum") {
   return [...map.values()];
 }
 
+function scoreSignature(scores) {
+  const sections = Object.entries(scores?.sections ?? {})
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([sectionId, score]) => [sectionId, clampInt(score)]);
+
+  return JSON.stringify({
+    global: clampInt(scores?.global),
+    dhikr: clampInt(scores?.dhikr),
+    quran: clampInt(scores?.quran),
+    prayers: clampInt(scores?.prayers),
+    tasbeehDaily: clampInt(scores?.tasbeehDaily),
+    sections
+  });
+}
+
+function aggregateRollupRows(input) {
+  const byDay = new Map();
+
+  for (const row of input) {
+    const dayKey = `${row.day}::${row.user_id}::${row.section_id ?? ""}`;
+    const prev = byDay.get(dayKey);
+    if (!prev) {
+      byDay.set(dayKey, {
+        user_id: row.user_id,
+        alias: row.alias,
+        section_id: row.section_id,
+        score: clampInt(row.score)
+      });
+      continue;
+    }
+
+    prev.alias = String(row.alias ?? prev.alias ?? "");
+    prev.score = Math.max(prev.score, clampInt(row.score));
+    byDay.set(dayKey, prev);
+  }
+
+  return aggregateRows([...byDay.values()], "sum");
+}
+
 const denoRuntime = globalThis.Deno;
 
 if (!denoRuntime?.serve || !denoRuntime?.env?.get) {
@@ -709,6 +731,25 @@ denoRuntime.serve(async (req) => {
 
     if (aliasDecision.hidden) {
       return json({ ok: true, hidden: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status });
+    }
+
+    const incomingScoreSignature = scoreSignature(payload.scores);
+
+    const lastSnapshotRes = await db
+      .from("leaderboard_score_events")
+      .select("payload")
+      .eq("day", payload.day)
+      .eq("user_id", payload.identity.id)
+      .eq("board", "global")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!lastSnapshotRes.error && lastSnapshotRes.data?.payload?.scores) {
+      const previousScoreSignature = scoreSignature(lastSnapshotRes.data.payload.scores);
+      if (previousScoreSignature === incomingScoreSignature) {
+        return json({ ok: true, deduped: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false });
+      }
     }
 
     const duplicateRes = await db
@@ -762,10 +803,27 @@ denoRuntime.serve(async (req) => {
         updated_at: new Date().toISOString()
       }));
 
+      const rollupDelete = board === "section"
+        ? await db
+            .from("leaderboard_rollups")
+            .delete()
+            .eq("day", payload.day)
+            .eq("period", "daily")
+            .eq("board", board)
+            .not("section_id", "is", null)
+        : await db
+            .from("leaderboard_rollups")
+            .delete()
+            .eq("day", payload.day)
+            .eq("period", "daily")
+            .eq("board", board)
+            .is("section_id", null);
+
+      if (rollupDelete.error) return json({ ok: false, error: "rollup-delete-failed" }, 500);
       if (rollupRows.length === 0) continue;
-      await db
-        .from("leaderboard_rollups")
-        .upsert(rollupRows, { onConflict: "day,period,board,section_id,user_id" });
+
+      const rollupInsert = await db.from("leaderboard_rollups").insert(rollupRows);
+      if (rollupInsert.error) return json({ ok: false, error: "rollup-insert-failed" }, 500);
     }
 
     return json({ ok: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false });
@@ -809,7 +867,7 @@ denoRuntime.serve(async (req) => {
     );
     const blocklistRows = await readNameBlocklist(db);
 
-    const grouped = aggregateRows(rowsRes.data ?? [])
+    const grouped = aggregateRollupRows(rowsRes.data ?? [])
       .map((r) => ({
         id: r.userId,
         name: publicAliasOrCanonical(r.userId, r.alias, moderationMap.get(r.userId) ?? null, blocklistRows),

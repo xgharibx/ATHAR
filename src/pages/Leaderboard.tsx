@@ -24,10 +24,7 @@ import {
   fetchLeaderboardAdminUserModeration,
   getLeaderboardIdentity,
   getLocalRowsFromHistory,
-  resetLeaderboardAlias,
-  setLeaderboardAlias,
   submitLeaderboardAdminAction,
-  syncLeaderboardAliasFromServer,
   syncLeaderboardSnapshot,
   validateLeaderboardAlias,
   type LeaderboardAdminAliasAuditRow,
@@ -48,7 +45,7 @@ export function LeaderboardPage() {
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
 
   const endpoint = (import.meta.env.VITE_LEADERBOARD_ENDPOINT as string | undefined) ?? "";
-  const [identity, setIdentity] = React.useState(() => getLeaderboardIdentity());
+  const [identity] = React.useState(() => getLeaderboardIdentity());
 
   const [board, setBoard] = React.useState<LeaderboardBoard>("global");
   const [period, setPeriod] = React.useState<LeaderboardPeriod>("daily");
@@ -59,15 +56,8 @@ export function LeaderboardPage() {
   const [syncHint, setSyncHint] = React.useState("");
   const [lastSubmitAt, setLastSubmitAt] = React.useState(0);
   const [cooldownLeft, setCooldownLeft] = React.useState(0);
-  const [aliasDraft, setAliasDraft] = React.useState(identity.alias);
-  const [aliasHint, setAliasHint] = React.useState("يمكنك اختيار اسم ظاهر وسيُراجع على الخادم عند المزامنة.");
-  const [aliasTone, setAliasTone] = React.useState<"idle" | "ok" | "error" | "moderated">("idle");
   const [serverHidden, setServerHidden] = React.useState(false);
   const [showAdminCard, setShowAdminCard] = React.useState(() => hasLocalLeaderboardAdminToken());
-  const aliasSyncPendingRef = React.useRef(false);
-
-  const aliasValidation = React.useMemo(() => validateLeaderboardAlias(aliasDraft), [aliasDraft]);
-  const aliasDirty = aliasDraft.trim() !== identity.alias;
 
   // Tick cooldown counter
   React.useEffect(() => {
@@ -175,43 +165,10 @@ export function LeaderboardPage() {
     return usingRemoteRows ? null : 1;
   }, [mergedRows, myEntry.id, usingRemoteRows]);
 
-  const applyServerAlias = React.useCallback((serverAlias?: string, aliasStatus?: string) => {
-    if (!serverAlias) return;
-    const nextIdentity = syncLeaderboardAliasFromServer(serverAlias);
-    setIdentity(nextIdentity);
-    setAliasDraft(nextIdentity.alias);
-
-    if (aliasStatus === "forced") {
-      setAliasTone("moderated");
-      setAliasHint("تم فرض اسم آمن من جهة الإدارة لهذا الحساب.");
-      return;
-    }
-
-    if (aliasStatus === "duplicate") {
-      setAliasTone("moderated");
-      setAliasHint("الاسم المطلوب مستخدم بالفعل، لذلك أعاد الخادم اسمًا آمنًا بدلًا منه.");
-      return;
-    }
-
-    if (aliasStatus === "moderated" || aliasStatus === "fallback") {
-      setAliasTone("moderated");
-      setAliasHint("الخادم رفض الاسم المقترح واستخدم اسمًا آمنًا بدلًا منه.");
-      return;
-    }
-
-    setAliasTone("ok");
-    setAliasHint("تم اعتماد اسمك في لوحة المتصدرين.");
-  }, []);
-
   React.useEffect(() => {
-    if (aliasSyncPendingRef.current) return;
     const mine = remoteRows.find((row) => row.id === identity.id);
-    if (!mine) return;
-    if (mine.name && mine.name !== identity.alias) {
-      applyServerAlias(mine.name, "accepted");
-    }
-    setServerHidden(false);
-  }, [applyServerAlias, identity.alias, identity.id, remoteRows]);
+    if (mine) setServerHidden(false);
+  }, [identity.id, remoteRows]);
 
   const pullBoard = React.useCallback(async () => {
     if (!endpoint) {
@@ -257,7 +214,6 @@ export function LeaderboardPage() {
       await syncLeaderboardSnapshot("", todayKey, myStats.scores);
       setSyncState("error");
       setSyncHint("المزامنة السحابية غير مفعّلة");
-      aliasSyncPendingRef.current = false;
       return;
     }
 
@@ -276,12 +232,7 @@ export function LeaderboardPage() {
                 ? "مشكلة اتصال، أعد المحاولة"
                 : "تعذر إكمال المزامنة"
       );
-      aliasSyncPendingRef.current = false;
       return;
-    }
-
-    if (flush.alias) {
-      applyServerAlias(flush.alias, flush.aliasStatus);
     }
 
     if (flush.hidden) {
@@ -296,42 +247,7 @@ export function LeaderboardPage() {
     setSyncState("ok");
     setSyncHint(flush.sent > 0 ? "تم تحديث نقاطك على الخادم" : "لا توجد تغييرات معلقة");
     if (pullAfter) await pullBoard();
-    aliasSyncPendingRef.current = false;
-  }, [applyServerAlias, endpoint, lastSubmitAt, myStats.scores, pullBoard, todayKey]);
-
-  const saveAlias = async () => {
-    const result = setLeaderboardAlias(aliasDraft);
-    if (!result.ok) {
-      setAliasTone("error");
-      setAliasHint(result.message);
-      return;
-    }
-
-    setIdentity(result.identity);
-    setAliasDraft(result.identity.alias);
-    setAliasTone("idle");
-    setAliasHint(endpoint ? "تم حفظ الاسم محليًا. جارٍ اعتماده على الخادم..." : "تم حفظ الاسم محليًا.");
-    aliasSyncPendingRef.current = true;
-    if (endpoint) {
-      await submitScore({ bypassCooldown: true });
-    } else {
-      aliasSyncPendingRef.current = false;
-    }
-  };
-
-  const restoreDefaultAlias = async () => {
-    const nextIdentity = resetLeaderboardAlias();
-    setIdentity(nextIdentity);
-    setAliasDraft(nextIdentity.alias);
-    setAliasTone("idle");
-    setAliasHint(endpoint ? "تمت إعادة الاسم الافتراضي. جارٍ تحديثه على الخادم..." : "تمت إعادة الاسم الافتراضي الآمن.");
-    aliasSyncPendingRef.current = true;
-    if (endpoint) {
-      await submitScore({ bypassCooldown: true });
-    } else {
-      aliasSyncPendingRef.current = false;
-    }
-  };
+  }, [endpoint, lastSubmitAt, myStats.scores, pullBoard, todayKey]);
 
   return (
     <div className="space-y-4">
@@ -357,35 +273,11 @@ export function LeaderboardPage() {
         <div className="mt-4 rounded-3xl border border-white/10 bg-white/4 p-4">
           <div className="text-sm font-semibold">اسم الظهور</div>
           <div className="mt-1 text-[11px] opacity-60">
-            الأسماء المخالفة أو المضللة قد تُستبدل تلقائيًا أو تُخفى من جهة الإدارة.
+            يُنشأ تلقائيًا لكل حساب باسم عشوائي موحّد، ولا يمكن تغييره يدويًا.
           </div>
-          <div className="mt-3 flex flex-col md:flex-row gap-2">
-            <Input
-              value={aliasDraft}
-              onChange={(e) => setAliasDraft(e.target.value)}
-              maxLength={40}
-              placeholder="مثال: نور الشام"
-            />
-            <Button onClick={() => void saveAlias()} disabled={!aliasDirty || !aliasValidation.ok}>
-              حفظ الاسم
-            </Button>
-            <Button variant="outline" onClick={() => void restoreDefaultAlias()}>
-              اسم افتراضي
-            </Button>
-          </div>
-          <div
-            className={cn(
-              "mt-2 text-[11px] leading-5",
-              aliasDirty && !aliasValidation.ok
-                ? "text-[var(--danger)]"
-                : aliasTone === "moderated"
-                  ? "text-yellow-300"
-                  : aliasTone === "ok"
-                    ? "text-[var(--ok)]"
-                    : "opacity-60"
-            )}
-          >
-            {aliasDirty && !aliasValidation.ok ? aliasValidation.message : aliasHint}
+          <div className="mt-3 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/10 px-3 py-2">
+            <ShieldCheck size={14} className="text-[var(--accent)]" />
+            <span className="text-sm font-semibold">{identity.alias}</span>
           </div>
         </div>
 
@@ -488,7 +380,7 @@ export function LeaderboardPage() {
 
         {serverHidden && (
           <div className="mt-3 rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-xs text-yellow-200 leading-6">
-            هذا الحساب مخفي حاليًا من لوحة المتصدرين من جهة الإدارة. يمكنك تعديل الاسم ثم إعادة المزامنة أو التواصل مع المشرف.
+            هذا الحساب مخفي حاليًا من لوحة المتصدرين من جهة الإدارة. يمكنك التواصل مع المشرف إذا احتجت مراجعة الحالة.
           </div>
         )}
       </Card>

@@ -36,11 +36,12 @@ create table if not exists public.leaderboard_rollups (
   section_id text null,
   user_id text not null,
   alias text not null,
-  score integer not null check (score >= 0),
-  unique (day, period, board, section_id, user_id)
+  score integer not null check (score >= 0)
 );
 
 create index if not exists idx_lb_rollup_query on public.leaderboard_rollups (day, period, board, section_id, score desc);
+create unique index if not exists uq_lb_rollups_day_period_board_user
+  on public.leaderboard_rollups (day, period, board, coalesce(section_id, ''), user_id);
 
 -- Optional helper view: top rows for reads
 create or replace view public.leaderboard_top as

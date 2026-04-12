@@ -269,11 +269,8 @@ export function validateLeaderboardAlias(alias: unknown): LeaderboardAliasValida
   return { ok: true, value };
 }
 
-function normalizeAlias(alias: unknown, id: string) {
-  const canonical = canonicalAliasFromId(id);
-  if (/^مستخدم\s+\d+$/i.test(String(alias ?? "").trim())) return String(alias ?? "").trim();
-  const validation = validateLeaderboardAlias(alias);
-  return validation.ok ? validation.value : canonical;
+function normalizeAlias(_alias: unknown, id: string) {
+  return canonicalAliasFromId(id);
 }
 
 function ensureMigration() {
@@ -433,23 +430,21 @@ export function getLeaderboardIdentity(): LeaderboardIdentity {
   }
 }
 
-export function setLeaderboardAlias(alias: string) {
+export function setLeaderboardAlias(_alias: string) {
   const identity = getLeaderboardIdentity();
-  const validation = validateLeaderboardAlias(alias);
-
-  if (!validation.ok) {
-    return { ok: false as const, identity, reason: validation.reason, message: validation.message };
-  }
+  const canonical = canonicalAliasFromId(identity.id);
 
   try {
-    localStorage.setItem(ALIAS_KEY, validation.value);
+    localStorage.setItem(ALIAS_KEY, canonical);
   } catch {
     // ignore storage write failures
   }
 
   return {
-    ok: true as const,
-    identity: { ...identity, alias: validation.value }
+    ok: false as const,
+    identity: { ...identity, alias: canonical },
+    reason: "reserved" as const,
+    message: "اسم الظهور يُنشأ تلقائيًا ولا يمكن تغييره."
   };
 }
 
