@@ -24,9 +24,8 @@ export function SourcesPage() {
       setPacks(next);
       toast.success("تمت إضافة حزمة بيانات جديدة. أعد فتح الصفحة لرؤية الأقسام.");
       setTimeout(() => window.location.reload(), 500);
-    } catch (e: any) {
+    } catch {
       toast.error("تعذر استيراد الملف (صيغة غير مدعومة أو ملف غير صالح)");
-      console.error(e);
     }
   };
 

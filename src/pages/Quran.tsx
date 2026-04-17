@@ -1,10 +1,9 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Bookmark, BookOpen, Search, Shuffle, Sparkles, X, TrendingUp, Flame, Target, CheckCircle2 } from "lucide-react";
-import { getSurahJuz, SURAH_REVELATION, TOTAL_QURAN_AYAHS, toArabicNumeral } from "@/lib/quranMeta";
+import { Bookmark, BookOpen, Search, Shuffle, X, CheckCircle2 } from "lucide-react";
+import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
-import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -60,17 +59,14 @@ export function QuranPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { data, isLoading, error } = useQuranDB();
-  const pageMapQuery = useQuranPageMap();
 
   const lastRead = useNoorStore((s) => s.quranLastRead);
   const bookmarks = useNoorStore((s) => s.quranBookmarks);
   const readingHistory = useNoorStore((s) => s.quranReadingHistory);
   const quranStreak = useNoorStore((s) => s.quranStreak);
-  const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const quranNotes = useNoorStore((s) => s.quranNotes);
   const quranHighlights = useNoorStore((s) => s.quranHighlights);
   const prefs = useNoorStore((s) => s.prefs);
-  const quranDailyGoal = prefs.quranDailyGoal;
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
@@ -83,17 +79,14 @@ export function QuranPage() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }, []);
-  const todayAyahs = quranDailyAyahs[todayISO] ?? 0;
-  const goalPct = Math.min(100, Math.round((todayAyahs / Math.max(1, quranDailyGoal)) * 100));
 
   const [query, setQuery] = React.useState("");
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
-  const [jumpMushafPage, setJumpMushafPage] = React.useState("");
   const [showBookmarks, setShowBookmarks] = React.useState(false);
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress">("mushaf");
-  const [showMushafJump, setShowMushafJump] = React.useState(false);
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
   const [confirmKhatmaReset, setConfirmKhatmaReset] = React.useState(false);
+  const [showKhatmaCard, setShowKhatmaCard] = React.useState(false);
 
   // Sync URL param changes (e.g. back-navigation)
   React.useEffect(() => {
@@ -122,11 +115,6 @@ export function QuranPage() {
   }, [data, readingHistory]);
 
   const bookmarkedCount = React.useMemo(() => Object.values(bookmarks).filter(Boolean).length, [bookmarks]);
-
-  const overallProgress = React.useMemo(
-    () => Math.min(100, Math.round((quranStats.totalAyahs / TOTAL_QURAN_AYAHS) * 100)),
-    [quranStats.totalAyahs]
-  );
 
   const khatma = React.useMemo(() => {
     if (!data) return null;
@@ -264,49 +252,6 @@ export function QuranPage() {
   const ayahResults = ayahSearch.results;
   const ayahTotalFound = ayahSearch.totalFound;
 
-  const dailyVerse = React.useMemo(() => {
-    if (!data || data.length === 0) return null;
-    const d = new Date();
-    const seed = Number(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`);
-    const surahIndex = seed % data.length;
-    const surah = data[surahIndex];
-    const ayahIndex = (seed * 7) % Math.max(1, surah.ayahs.length);
-    return {
-      surahId: surah.id,
-      surahName: surah.name,
-      ayahIndex: ayahIndex + 1,
-      text: surah.ayahs[ayahIndex] ?? ""
-    };
-  }, [data]);
-
-  const openMushafPage = () => {
-    if (!data || !pageMapQuery.data?.map) {
-      toast.error("تعذر تحميل صفحات المصحف");
-      return;
-    }
-
-    const total = pageMapQuery.data.totalPages ?? 604;
-    const pageNumber = Number(jumpMushafPage);
-
-    if (!Number.isFinite(pageNumber) || pageNumber < 1 || pageNumber > total) {
-      toast.error(`أدخل رقم صفحة من 1 إلى ${total}`);
-      return;
-    }
-
-    for (const surah of data) {
-      for (let i = 0; i < surah.ayahs.length; i++) {
-        const originalAyah = i + 1;
-        const mapped = Number(pageMapQuery.data.map[`${surah.id}:${originalAyah}`]);
-        if (mapped === pageNumber) {
-          navigate(`/quran/${surah.id}?oa=${originalAyah}&pm=mushaf`);
-          return;
-        }
-      }
-    }
-
-    toast.error("تعذر العثور على بيانات الصفحة المطلوبة");
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-4 page-enter">
@@ -345,265 +290,112 @@ export function QuranPage() {
 
   return (
     <div className="space-y-4 page-enter">
-      <Card className="p-5 quran-surface">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold quran-title">المصحف</div>
-            <div className="mt-1 text-xs opacity-65">قراءة • بحث • علامات</div>
-            {quranStats.started > 0 ? (
-              <div className="mt-3 flex items-center gap-3">
-                {/* Overall progress ring */}
-                <div className="relative w-14 h-14 shrink-0">
-                  <svg viewBox="0 0 56 56" className="w-14 h-14" style={{ transform: "rotate(-90deg)" }}>
-                    <circle cx="28" cy="28" r="22" fill="none" strokeWidth="4" stroke="rgba(255,255,255,0.08)" />
-                    <circle
-                      cx="28" cy="28" r="22" fill="none" strokeWidth="4"
-                      stroke="var(--accent)"
-                      strokeLinecap="round"
-                      strokeDasharray={`${(overallProgress / 100) * 138.2} 138.2`}
-                      style={{ transition: "stroke-dasharray 0.7s ease" }}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-[10px] font-bold tabular-nums" style={{ color: "var(--accent)" }}>{overallProgress}%</span>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
-                  <div className="flex items-center gap-1.5 opacity-70">
-                    <span>📖</span>
-                    <span className="tabular-nums">{quranStats.started} سورة بدأت</span>
-                  </div>
-                  {quranStats.completed > 0 && (
-                    <div className="flex items-center gap-1.5" style={{ color: "var(--ok)" }}>
-                      <span>✅</span>
-                      <span className="tabular-nums">{quranStats.completed} مكتملة</span>
-                    </div>
-                  )}
-                  <div className="opacity-55 tabular-nums">
-                    {quranStats.totalAyahs.toLocaleString("ar-SA")} / {TOTAL_QURAN_AYAHS.toLocaleString("ar-SA")} آية
-                  </div>
-                </div>
-              </div>
-            ) : null}
 
-            {/* ── Streak + daily goal row ─────────────────────── */}
-            {(quranStreak > 0 || todayAyahs > 0) && (
-              <div className="mt-3 flex items-center gap-2 flex-wrap">
-                {quranStreak > 0 && (
-                  <div className="quran-streak-badge">
-                    <Flame size={11} />
-                    <span>{quranStreak} يوم</span>
-                  </div>
-                )}
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-[11px] opacity-65">
-                    <Target size={10} />
-                    <span className="tabular-nums">{todayAyahs}/{quranDailyGoal} آية اليوم</span>
-                    {goalPct >= 100 && <span style={{ color: "var(--ok)" }}>✓</span>}
-                  </div>
-                  <div className="quran-goal-bar-wrap w-32">
-                    <div className="quran-goal-bar-fill" style={{ width: `${goalPct}%` }} />
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="text-[10px] opacity-40 hover:opacity-75 transition"
-                  onClick={() => {
-                    const n = Number(prompt("الهدف اليومي (عدد الآيات)", String(quranDailyGoal)));
-                    if (n > 0 && n <= 300) setPrefs({ quranDailyGoal: n });
-                  }}
-                  title="تغيير الهدف اليومي"
-                >
-                  تعديل
-                </button>
-              </div>
-            )}
+      {/* ══════════════════════════════════════════════════════
+          HEADER CARD — Title + Search + Continue reading
+          ══════════════════════════════════════════════════════ */}
+      <Card className="p-0 quran-surface overflow-hidden">
+
+        {/* Title + search */}
+        <div className="px-5 pt-5 pb-4">
+          <div className="quran-home-hero-ornament mb-4">
+            <div className="quran-title text-2xl font-bold" style={{ color: "var(--accent)" }}>القرآن الكريم</div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowBookmarks((v) => !v)}
-              className={[
-                "inline-flex items-center gap-1.5 px-3 py-2 rounded-2xl border text-sm transition min-h-[36px]",
-                showBookmarks
-                  ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
-                  : "bg-white/6 border-white/10 hover:bg-white/8"
-              ].join(" ")}
-              aria-label="علامات القراءة"
-            >
-              <Bookmark size={14} />
-              <span className="tabular-nums">{bookmarkedCount}</span>
-            </button>
-            {lastRead ? (
-              <Button
-                variant="secondary"
-                onClick={() => navigate(`/quran/${lastRead.surahId}?a=${lastRead.ayahIndex}`)}
-              >
-                <BookOpen size={16} />
-                {lastReadSurahName ? `${lastReadSurahName} ﴿${lastRead.ayahIndex}﴾` : `${lastRead.surahId}:${lastRead.ayahIndex}`}
-              </Button>
-            ) : null}
-          </div>
-        </div>
-
-        {/* Bookmarks panel */}
-        {showBookmarks && (
-          <div className="mt-4 rounded-3xl border border-[var(--accent)]/25 bg-[var(--accent)]/6 overflow-hidden">
-            <div className="px-4 py-3 text-sm font-semibold border-b border-[var(--accent)]/15 flex items-center gap-2">
-              <Bookmark size={14} className="text-[var(--accent)]" />
-              علامات القراءة
-            </div>
-            {bookmarksList.length === 0 ? (
-              <div className="px-4 py-4 text-sm opacity-55 text-center">لا توجد علامات بعد</div>
-            ) : (
-              <div className="divide-y divide-white/6">
-                {bookmarksList.map((bm) => {
-                  const hlSwatches: Record<string, string> = {
-                    gold:  "rgba(251,191,36,0.85)",
-                    green: "rgba(52,211,153,0.85)",
-                    blue:  "rgba(96,165,250,0.85)",
-                    red:   "rgba(248,113,113,0.85)",
-                  };
-                  return (
-                    <button
-                      key={`${bm.surahId}:${bm.ayahIndex}`}
-                      onClick={() => navigate(`/quran/${bm.surahId}?a=${bm.ayahIndex}`)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/6 transition text-right"
-                    >
-                      {bm.highlight && hlSwatches[bm.highlight] && (
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-white/20"
-                          style={{ background: hlSwatches[bm.highlight] }}
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm arabic-text font-medium">{bm.surahName}</span>
-                          <span className="text-xs opacity-55 tabular-nums shrink-0">﴿{bm.ayahIndex}﴾</span>
-                        </div>
-                        {bm.note && (
-                          <div className="text-[11px] opacity-55 mt-0.5 truncate text-right">{bm.note.slice(0, 60)}</div>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Mode tabs + mushaf jump toggle ─────────────── */}
-        <div className="mt-4 flex items-center gap-2">
-          <div className="flex rounded-2xl bg-white/6 border border-white/10 overflow-hidden shrink-0">
-            <button
-              type="button"
-              onClick={() => setMode("surahs")}
-              className={`px-4 h-9 text-xs transition ${
-                mode === "surahs"
-                  ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold"
-                  : "opacity-60 hover:opacity-100"
-              }`}
-            >
-              السور
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("ayahs")}
-              className={`px-4 h-9 text-xs transition ${
-                mode === "ayahs"
-                  ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold"
-                  : "opacity-60 hover:opacity-100"
-              }`}
-            >
-              بحث بالآيات
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowMushafJump((v) => !v)}
-            className={`mr-auto flex items-center gap-1.5 px-3 h-9 rounded-2xl border text-xs transition ${
-              showMushafJump
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
-                : "bg-white/6 border-white/10 opacity-55 hover:opacity-90"
-            }`}
-            title="الانتقال إلى صفحة مصحف"
-          >
-            <BookOpen size={13} />
-            ص٦٠٤
-          </button>
-        </div>
-
-        {/* ── Mushaf page jump (collapsible) ───────────────── */}
-        {showMushafJump && (
-          <div className="mt-2 flex items-center gap-2">
+          {/* Search — always visible, large */}
+          <div className="relative">
+            <Search size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-35 pointer-events-none" />
             <Input
-              type="number"
-              min={1}
-              max={pageMapQuery.data?.totalPages ?? 604}
-              value={jumpMushafPage}
-              onChange={(e) => setJumpMushafPage(e.target.value)}
-              placeholder={`صفحة المصحف (1–${pageMapQuery.data?.totalPages ?? 604})`}
-              className="flex-1"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={mode === "ayahs" ? "ابحث داخل الآيات…" : "ابحث عن سورة… (مثال: الكهف، ١٨)"}
+              className="pr-10 pl-9 h-11 text-sm"
             />
-            <Button variant={jumpMushafPage ? "primary" : "secondary"} onClick={openMushafPage}>
-              فتح
-            </Button>
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-90 transition"
+                aria-label="مسح البحث"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
-        )}
 
-        {/* ── Integrated search input ───────────────────────── */}
-        <div className="mt-3 relative">
-          <Search size={15} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={
-              mode === "ayahs"
-                ? "ابحث داخل الآيات… (كلمتان فأكثر)"
-                : "ابحث عن سورة… (مثال: الكهف، 18)"
-            }
-            className="pr-9 pl-9"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-90 transition"
-              aria-label="مسح البحث"
-            >
-              <X size={14} />
-            </button>
-          )}
+          {/* Mode toggle — search surahs vs ayahs */}
+          <div className="mt-3 flex rounded-2xl bg-white/6 border border-white/10 overflow-hidden w-fit">
+            <button type="button" onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
+            <button type="button" onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
+          </div>
         </div>
 
-        {dailyVerse ? (
+        {/* ── Continue reading strip ─────────────────────── */}
+        {lastRead ? (
           <button
-            onClick={() => navigate(`/quran/${dailyVerse.surahId}?a=${dailyVerse.ayahIndex}`)}
-            className="mt-4 relative overflow-hidden rounded-3xl w-full text-right hover:brightness-110 active:scale-[0.99] transition-all"
+            onClick={() => navigate(`/quran/${lastRead.surahId}?a=${lastRead.ayahIndex}`)}
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-right transition hover:brightness-110 active:scale-[0.99]"
+            style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 50%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, transparent)" }}
           >
-            <div
-              className="glass rounded-3xl p-4 border"
-              style={{ borderColor: "color-mix(in srgb, var(--accent) 25%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, transparent)" }}
-            >
-              <div
-                className="absolute inset-0 rounded-3xl pointer-events-none"
-                style={{ background: "radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 65%)" }}
-              />
-              <div className="relative flex items-center justify-between gap-3 mb-2.5">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles size={13} style={{ color: "var(--accent)" }} />
-                  <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>آية اليوم</span>
-                </div>
-                <span className="text-[11px] opacity-45">{dailyVerse.surahName} ﴿{dailyVerse.ayahIndex}﴾</span>
-              </div>
-              <div className="relative text-sm arabic-text leading-9 line-clamp-3 opacity-90">{dailyVerse.text}</div>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 18%, transparent)" }}>
+              <BookOpen size={16} style={{ color: "var(--accent)" }} />
             </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold" style={{ color: "var(--accent)" }}>متابعة القراءة</div>
+              <div className="text-sm arabic-text opacity-70 truncate mt-0.5">
+                {lastReadSurahName ?? `سورة ${lastRead.surahId}`}
+                {lastRead.ayahIndex > 0 ? ` · الآية ${toArabicNumeral(lastRead.ayahIndex)}` : ""}
+              </div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-30 shrink-0"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </button>
         ) : null}
+
+        {/* ── Stats row (compact, only when reading started) ── */}
+        {quranStats.started > 0 && (
+          <div
+            className="px-5 py-2.5 flex items-center gap-4 text-xs opacity-50 flex-wrap"
+            style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 35%, transparent)" }}
+          >
+            <span>📖 {quranStats.started} سورة</span>
+            {quranStreak > 0 && <span>🔥 {quranStreak} يوم</span>}
+            {quranStats.completed > 0 && <span style={{ color: "var(--ok)", opacity: 1 }}>✓ {quranStats.completed} مكتملة</span>}
+            {/* Khatma toggle */}
+            <button
+              type="button"
+              onClick={() => setShowKhatmaCard((v) => !v)}
+              className="flex items-center gap-1.5 text-xs opacity-60 hover:opacity-100 transition mr-auto"
+            >
+              <span>📖 خطة الختمة</span>
+              {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished && (
+                <span style={{ color: "var(--accent)", opacity: 1 }}>{khatma.meta.percent}%</span>
+              )}
+              {khatmaStartISO && khatmaDays && khatma?.isFinished && (
+                <span style={{ color: "var(--ok)", opacity: 1 }}>✓</span>
+              )}
+              <span className="opacity-40">{showKhatmaCard ? "▲" : "▼"}</span>
+            </button>
+          </div>
+        )}
+        {/* Khatma plan row when no reading started yet */}
+        {quranStats.started === 0 && (
+          <div
+            className="px-5 py-2 flex items-center"
+            style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 25%, transparent)" }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowKhatmaCard((v) => !v)}
+              className="text-xs opacity-45 hover:opacity-80 transition flex items-center gap-1.5"
+            >
+              <span>📖 خطة الختمة</span>
+              <span className="opacity-50">{showKhatmaCard ? "▲" : "▼"}</span>
+            </button>
+          </div>
+        )}
       </Card>
 
+      {showKhatmaCard && (
       <Card className="p-5 quran-surface">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -736,57 +528,95 @@ export function QuranPage() {
           </div>
         )}
       </Card>
+      )}
 
       {mode === "surahs" ? (
-        <Card className="p-5 quran-surface">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <div className="text-sm font-semibold quran-title">السور</div>
-            <div className="flex items-center gap-1.5">
+        <Card className="p-0 quran-surface overflow-hidden">
+
+          {/* ── Controls bar ─────────────────────────────────── */}
+          <div
+            className="px-4 pt-3 pb-3 flex items-center gap-2 flex-wrap"
+            style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 40%, transparent)" }}
+          >
+            {/* Sort toggle */}
+            <div className="flex rounded-xl bg-white/6 border border-white/10 overflow-hidden text-sm">
               <button
                 onClick={() => setSortMode("mushaf")}
-                className={`text-xs px-3 py-1.5 rounded-xl border transition ${
-                  sortMode === "mushaf"
-                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
-                    : "bg-white/6 border-white/10 opacity-60 hover:opacity-100"
-                }`}
+                className={`px-3.5 h-9 transition ${sortMode === "mushaf" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
-                ترتيب المصحف
+                المصحف
               </button>
               <button
                 onClick={() => setSortMode("progress")}
-                className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl border transition ${
-                  sortMode === "progress"
-                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
-                    : "bg-white/6 border-white/10 opacity-60 hover:opacity-100"
-                }`}
+                className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
-                <TrendingUp size={11} />
-                حسب التقدم
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!data || data.length === 0) return;
-                  const random = data[Math.floor(Math.random() * data.length)];
-                  navigate(`/quran/${random.id}`);
-                }}
-                className="flex items-center justify-center w-8 h-8 rounded-xl border bg-white/6 border-white/10 opacity-60 hover:opacity-100 transition shrink-0"
-                title="سورة عشوائية"
-                aria-label="سورة عشوائية"
-              >
-                <Shuffle size={13} />
+                التقدم
               </button>
             </div>
+
+            {/* Random surah */}
+            <button
+              type="button"
+              onClick={() => { if (!data || data.length === 0) return; navigate(`/quran/${data[Math.floor(Math.random() * data.length)].id}`); }}
+              className="w-9 h-9 rounded-xl border bg-white/6 border-white/10 opacity-55 hover:opacity-100 flex items-center justify-center transition shrink-0"
+              title="سورة عشوائية" aria-label="سورة عشوائية"
+            >
+              <Shuffle size={14} />
+            </button>
+
+            {/* Theme color dots */}
+            <div className="mr-auto flex items-center gap-1.5">
+              {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setPrefs({ quranTheme: t })}
+                  className={`w-5 h-5 rounded-full border-2 transition-all ${prefs.quranTheme === t ? "scale-125 border-[var(--accent)]" : "border-white/20 opacity-50 hover:opacity-80"}`}
+                  style={{ background: { default: "#1e1b2e", sepia: "#c8a97a", midnight: "#0d1b2a", parchment: "#f0e6c8" }[t] }}
+                  title={{ default: "افتراضي", sepia: "سيبيا", midnight: "ليلي", parchment: "رق" }[t]}
+                />
+              ))}
+            </div>
+
+            {/* Bookmarks count pill */}
+            {bookmarkedCount > 0 && (
+              <button
+                onClick={() => setShowBookmarks((v) => !v)}
+                className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-55 hover:opacity-90"}`}
+              >
+                <Bookmark size={13} />
+                <span className="tabular-nums">{bookmarkedCount}</span>
+              </button>
+            )}
           </div>
 
-          {/* ── Juz tab strip ────────────────────────────────── */}
-          <div className="quran-juz-strip mb-3">
-            <button
-              className={`quran-juz-btn ${filterJuz === null ? "active" : ""}`}
-              onClick={() => setFilterJuz(null)}
-            >
-              الكل
-            </button>
+          {/* Bookmarks panel */}
+          {showBookmarks && bookmarksList.length > 0 && (
+            <div style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 40%, transparent)" }}>
+              {bookmarksList.map((bm) => {
+                const hlSwatches: Record<string, string> = { gold: "rgba(251,191,36,0.85)", green: "rgba(52,211,153,0.85)", blue: "rgba(96,165,250,0.85)", red: "rgba(248,113,113,0.85)" };
+                return (
+                  <button
+                    key={`${bm.surahId}:${bm.ayahIndex}`}
+                    onClick={() => navigate(`/quran/${bm.surahId}?a=${bm.ayahIndex}`)}
+                    className="w-full flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition text-right"
+                    style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 20%, transparent)" }}
+                  >
+                    {bm.highlight && hlSwatches[bm.highlight] && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: hlSwatches[bm.highlight] }} />}
+                    <span className="arabic-text text-sm font-medium">{bm.surahName}</span>
+                    <span className="text-xs opacity-45 tabular-nums mr-auto">﴿{bm.ayahIndex}﴾</span>
+                    {bm.note && <span className="text-[11px] opacity-45 truncate max-w-[100px]">{bm.note.slice(0, 40)}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── Juz strip ──────────────────────────────────────── */}
+          <div
+            className="quran-juz-strip px-3 py-2"
+            style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 30%, transparent)" }}
+          >
+            <button className={`quran-juz-btn ${filterJuz === null ? "active" : ""}`} onClick={() => setFilterJuz(null)}>الكل</button>
             {Array.from({ length: 30 }, (_, i) => i + 1).map((j) => {
               const jpct = juzProgress[j] ?? 0;
               const isDone = jpct >= 100;
@@ -798,9 +628,7 @@ export function QuranPage() {
                   onClick={() => setFilterJuz(filterJuz === j ? null : j)}
                   title={jpct > 0 ? `الجزء ${j}: ${jpct}%` : undefined}
                   style={!isActive && jpct > 0 ? {
-                    background: isDone
-                      ? "rgba(52,211,153,0.18)"
-                      : `color-mix(in srgb, var(--accent) ${Math.round(12 + jpct * 0.45)}%, transparent)`,
+                    background: isDone ? "rgba(52,211,153,0.18)" : `color-mix(in srgb, var(--accent) ${Math.round(12 + jpct * 0.45)}%, transparent)`,
                     borderColor: isDone ? "rgba(52,211,153,0.4)" : "var(--accent-subtle, rgba(var(--accent-rgb),0.3))"
                   } : undefined}
                 >
@@ -811,122 +639,70 @@ export function QuranPage() {
             })}
           </div>
 
-          {/* Active juz filter indicator */}
+          {/* Juz filter label */}
           {filterJuz !== null && (
-            <div className="flex items-center gap-2 mb-2 text-xs">
-              <span className="opacity-55">{sortedFiltered.length} سورة في الجزء {filterJuz}</span>
+            <div className="flex items-center gap-2 px-4 py-2 text-xs" style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 25%, transparent)" }}>
+              <span className="opacity-55">{sortedFiltered.length} سورة — الجزء {filterJuz}</span>
               {(juzProgress[filterJuz] ?? 0) > 0 && (
-                <span
-                  className="px-2 py-0.5 rounded-full border tabular-nums font-semibold"
-                  style={
-                    (juzProgress[filterJuz] ?? 0) >= 100
-                      ? { background: "rgba(52,211,153,0.12)", color: "var(--ok)", borderColor: "rgba(52,211,153,0.25)" }
-                      : { background: "rgba(var(--accent-rgb,0,0,0),0.1)", color: "var(--accent)", borderColor: "rgba(var(--accent-rgb,0,0,0),0.25)" }
-                  }
+                <span className="px-2 py-0.5 rounded-full border tabular-nums font-semibold"
+                  style={(juzProgress[filterJuz] ?? 0) >= 100
+                    ? { background: "rgba(52,211,153,0.12)", color: "var(--ok)", borderColor: "rgba(52,211,153,0.25)" }
+                    : { background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)" }}
                 >
                   {juzProgress[filterJuz]}%
                 </span>
               )}
-              <button
-                type="button"
-                onClick={() => setFilterJuz(null)}
-                className="mr-auto text-[10px] opacity-45 hover:opacity-80 transition"
-              >
-                ✕ إلغاء التصفية
-              </button>
+              <button type="button" onClick={() => setFilterJuz(null)} className="mr-auto opacity-45 hover:opacity-80 transition">✕</button>
             </div>
           )}
 
-          {/* ── Paper theme selector ──────────────────────────── */}
-          <div className="flex items-center gap-1.5 mb-4 flex-wrap">
-            {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setPrefs({ quranTheme: t })}
-                className={`text-[10px] px-2.5 py-1 rounded-xl border transition ${
-                  prefs.quranTheme === t
-                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]"
-                    : "bg-white/6 border-white/10 opacity-60 hover:opacity-100"
-                }`}
-              >
-                {{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق" }[t]}
-              </button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-            {sortedFiltered.map((s) => {
+          {/* ── Surah list — clean full-width rows ─────────────── */}
+          <div>
+            {sortedFiltered.map((s, idx) => {
               const maxRead = readingHistory[String(s.id)] ?? 0;
               const pct = s.ayahs.length ? Math.min(100, Math.round((maxRead / s.ayahs.length) * 100)) : 0;
               const isMedinan = SURAH_REVELATION[s.id] === "medinan";
+              const isCurrent = lastRead?.surahId === s.id;
               return (
                 <button
                   key={s.id}
                   onClick={() => navigate(`/quran/${s.id}`)}
-                  title={maxRead > 0 ? `قرأت ${maxRead} من ${s.ayahs.length} آية` : undefined}
-                  className={`surah-card glass rounded-3xl p-3.5 text-right border ${
-                    lastRead?.surahId === s.id
-                      ? "border-[var(--accent)]/40 bg-[var(--accent)]/8"
-                      : "border-white/10"
-                  }`}
+                  className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-white/4 active:bg-white/8"
+                  style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >
-                  {/* Number + title + bookmark */}
-                  <div className="flex items-start gap-2">
-                    <div className="surah-number-circle">{toArabicNumeral(s.id)}</div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold arabic-text leading-snug line-clamp-1">{s.name}</div>
-                      <div className="mt-0.5 text-[10px] opacity-50 truncate">{s.englishName || ""}</div>
-                    </div>
-                    {bookmarkedSurahs.has(s.id) && (
-                      <Bookmark size={10} className="text-[var(--accent)] opacity-80 shrink-0 mt-1" />
-                    )}
-                    {pct >= 100 && (
-                      <span className="text-[9px] font-bold shrink-0 mt-0.5 leading-none" style={{ color: "var(--ok)" }}>✓</span>
-                    )}
+                  {/* Number badge */}
+                  <div className={`surah-num-badge shrink-0 ${isCurrent ? "ring-2 ring-[var(--accent)]/50" : ""}`}>
+                    {toArabicNumeral(s.id)}
                   </div>
 
-                  {/* Continue reading chip */}
-                  {lastRead?.surahId === s.id && (
-                    <div className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold" style={{ color: "var(--accent)" }}>
-                      <span>▶</span>
-                      <span>تابع</span>
-                      {lastRead.ayahIndex > 0 && (
-                        <span className="opacity-60 font-normal">﴿{toArabicNumeral(lastRead.ayahIndex)}﴾</span>
-                      )}
+                  {/* Name + meta */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[17px] arabic-text font-semibold leading-snug">{s.name}</span>
+                      {isCurrent && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>جاري</span>}
+                      {pct >= 100 && <span className="text-[10px] font-bold shrink-0" style={{ color: "var(--ok)" }}>✓</span>}
+                      {bookmarkedSurahs.has(s.id) && <Bookmark size={10} className="shrink-0 opacity-70" style={{ color: "var(--accent)" }} />}
                     </div>
-                  )}
-
-                  {/* Meta row */}
-                  <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] opacity-50 tabular-nums">{s.ayahs.length} آية</span>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${
-                      isMedinan
-                        ? "border-blue-400/25 text-blue-300/80 bg-blue-400/8"
-                        : "border-amber-400/25 text-amber-300/80 bg-amber-400/8"
-                    }`}>
-                      {isMedinan ? "مدنية" : "مكية"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); setFilterJuz(getSurahJuz(s.id)); }}
-                      title={`تصفية بالجزء ${getSurahJuz(s.id)}`}
-                      className="text-[9px] px-1.5 py-0.5 rounded-full border border-white/10 opacity-45 hover:opacity-80 hover:border-white/25 transition cursor-pointer bg-transparent"
-                    >
-                      ج{toArabicNumeral(getSurahJuz(s.id))}
-                    </button>
-                  </div>
-
-                  {/* Progress bar */}
-                  {pct > 0 && (
-                    <div className="mt-2">
-                      <div className="h-1 rounded-full bg-white/8 overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-[width] duration-500"
-                          style={{ width: `${pct}%`, background: pct >= 100 ? "var(--ok)" : "var(--accent)" }}
-                        />
+                    <div className="mt-0.5 flex items-center gap-2 text-[11px] opacity-45">
+                      {s.englishName && <span>{s.englishName}</span>}
+                      {s.englishName && <span>·</span>}
+                      <span className={`surah-type-${isMedinan ? "madani" : "maki"} px-1.5 py-0 rounded-full border text-[9px]`}>
+                        {isMedinan ? "مدنية" : "مكية"}
+                      </span>
+                    </div>
+                    {/* Progress line */}
+                    {pct > 0 && pct < 100 && (
+                      <div className="mt-1.5 h-0.5 rounded-full overflow-hidden w-20" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "var(--accent)" }} />
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
+                  {/* Ayah count */}
+                  <div className="text-sm opacity-40 tabular-nums arabic-text shrink-0 text-left">
+                    {toArabicNumeral(s.ayahs.length)}<br />
+                    <span className="text-[10px]">آية</span>
+                  </div>
                 </button>
               );
             })}

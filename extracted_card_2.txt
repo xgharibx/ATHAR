@@ -1,0 +1,55 @@
+﻿      <Card className="p-5 quran-surface">
+        <div
+          ref={pageRef}
+          className="quran-page"
+          data-quran-theme={prefs.quranTheme}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="quran-page-inner">
+            <div className="quran-surah-ornament mb-4" onClick={(e) => e.stopPropagation()}>
+              <span className="arabic-text quran-title text-sm font-semibold">{surah.name}</span>
+              <span className="text-xs opacity-40">{surah.id} ΓÇó {displayAyahs.length} ╪ó┘è╪⌐</span>
+            </div>
+            <div
+              className="arabic-text quran-text"
+              style={{
+                fontSize: `${18 * prefs.quranFontScale}px`,
+                lineHeight: prefs.quranLineHeight,
+                letterSpacing: `${prefs.quranLetterSpacing ?? 0}em`,
+                wordSpacing: `${prefs.quranWordSpacing ?? 0}em`,
+              }}
+            >
+              {filteredPageAyahs.map((a) => renderAyah(a, surah))}
+            </div>
+
+            {/* Bottom page navigation */}
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <Button
+                variant="secondary"
+                onClick={goPrevPage}
+                disabled={navPage <= 1}
+              >
+                <ChevronRight size={15} /> ╪º┘ä╪│╪º╪¿┘é╪⌐
+              </Button>
+              <span className="text-xs opacity-50 tabular-nums">{navPage} / {navTotal}</span>
+              <Button
+                variant={navPage < navTotal ? "primary" : "secondary"}
+                onClick={goNextPage}
+                disabled={navPage >= navTotal}
+              >
+                ╪º┘ä╪¬╪º┘ä┘è╪⌐ <ChevronLeft size={15} />
+              </Button>
+            </div>
+
+          </div>
+        </div>
+      </Card>
+
+      {/* Floating tooltip pill + note sheet */}
+      {renderTooltip(surah)}
+      {noteSheetOpen && selectedAyah !== null && renderNoteSheet(surah)}
+    </div>
+  );
+}
