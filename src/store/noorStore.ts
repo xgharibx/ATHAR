@@ -30,6 +30,7 @@ export type Preferences = {
   quranScrollMode: "page" | "scroll";
   quranDailyGoal: number; // ayahs per day goal
   quranReciter: string;   // everyayah.com folder name, e.g. "Alafasy_128kbps"
+  quranMushafPage?: number; // last-read mushaf page (1-604)
   showBenefits: boolean;
   stripDiacritics: boolean;
   enable3D: boolean;

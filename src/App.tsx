@@ -18,6 +18,7 @@ const LeaderboardPage = React.lazy(() => import("@/pages/Leaderboard").then((m) 
 const NotFoundPage = React.lazy(() => import("@/pages/NotFound").then((m) => ({ default: m.NotFoundPage })));
 const QuranPage = React.lazy(() => import("@/pages/Quran").then((m) => ({ default: m.QuranPage })));
 const SurahPage = React.lazy(() => import("@/pages/Surah").then((m) => ({ default: m.SurahPage })));
+const MushafPage = React.lazy(() => import("@/pages/Mushaf").then((m) => ({ default: m.MushafPage })));
 
 export default function App() {
   useApplyTheme();
@@ -96,6 +97,7 @@ export default function App() {
     }>
       <LeaderboardSyncBridge />
       <Routes>
+        <Route path="mushaf/:page?" element={<MushafPage />} />
         <Route element={<AppShell />}>
           <Route index element={<HomePage />} />
           <Route path="c/:id" element={<CategoryPage />} />
