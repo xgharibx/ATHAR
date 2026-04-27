@@ -620,7 +620,7 @@ export function SurahPage() {
             aria-label={`آية ${ayahIndex}`}
             title={isBookmarked ? "إزالة علامة" : "إضافة علامة"}
           >
-            ﴾{toArabicIndic(ayahIndex)}﴿
+            ﴿{toArabicIndic(ayahIndex)}﴾
           </button>
         ) : null}
         {" "}

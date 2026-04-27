@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Bookmark, BookOpen, Search, Shuffle, X, CheckCircle2 } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
@@ -755,7 +756,7 @@ export function QuranPage() {
       )}
 
       {/* ── Mode picker sheet ─────────────────────────────── */}
-      {pendingSurah && (
+      {pendingSurah && ReactDOM.createPortal(
         <>
           <div
             className="quran-settings-backdrop"
@@ -802,7 +803,8 @@ export function QuranPage() {
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );

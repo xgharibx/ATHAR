@@ -1340,7 +1340,7 @@ body.quran-focus-mode .quran-surface {
 .quran-settings-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 49;
+  z-index: 9998;
   background: rgba(0, 0, 0, 0.62);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -1357,7 +1357,7 @@ body.quran-focus-mode .quran-surface {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 50;
+  z-index: 9999;
   width: calc(100% - 2.5rem);
   max-width: 400px;
   max-height: 90dvh;
@@ -2100,32 +2100,42 @@ header {
 .mushaf-page-content {
   max-width: 440px;
   margin: 0 auto;
-  padding: 1rem 1.5rem 1.5rem;
+  padding: 0.9rem 2.2rem 1.2rem;
   position: relative;
-  border: 1.5px solid rgba(201, 162, 39, 0.28);
-  border-radius: 6px;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.05), inset 0 0 40px rgba(212,175,55,0.04);
-  background: rgba(255,251,240,0.55);
+  /* Ornamental outer border */
+  border: 2px solid rgba(185, 130, 20, 0.45);
+  border-radius: 4px;
+  background: rgba(255, 251, 240, 0.6);
   backdrop-filter: blur(2px);
+  /* Rich parchment shadow */
+  box-shadow:
+    0 2px 24px rgba(0,0,0,0.07),
+    inset 0 0 60px rgba(212,175,55,0.05);
 }
+/* Ornamental vine borders — left and right sides */
 .mushaf-page-content::before,
 .mushaf-page-content::after {
-  content: "\275D\A❁\A✿\A❃\A✿\A❁\A✿\A❦\A✿\A❁\A✿\A❃\A✿\A❁\A\275E";
-  white-space: pre;
+  content: "";
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1.1rem;
-  font-size: 0.7rem;
-  line-height: 2.1;
-  color: rgba(201, 162, 39, 0.3);
+  top: 0;
+  bottom: 0;
+  width: 22px;
   pointer-events: none;
   user-select: none;
-  text-align: center;
-  font-family: serif;
+  background-repeat: repeat-y;
+  background-size: 22px 44px;
+  opacity: 0.55;
 }
-.mushaf-page-content::before { right: 0.15rem; }
-.mushaf-page-content::after  { left:  0.15rem; }
+.mushaf-page-content::before {
+  right: 0;
+  /* SVG rose vine repeating border — right side */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 44'%3E%3Cg fill='none'%3E%3C!-- stem --%3E%3Cpath d='M11 0 Q8 11 11 22 Q14 33 11 44' stroke='%23558b2f' stroke-width='1.2' fill='none' opacity='.7'/%3E%3C!-- rose at top --%3E%3Cg transform='translate(11,11)'%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.65'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='2.5' fill='%23f39c12' opacity='.9'/%3E%3C/g%3E%3C!-- leaf left at mid --%3E%3Cellipse cx='7' cy='22' rx='4' ry='7' fill='%23558b2f' opacity='.5' transform='rotate(-30 7 22)'/%3E%3C!-- small bud at bottom --%3E%3Cg transform='translate(11,34)'%3E%3Ccircle r='3' fill='%23e91e63' opacity='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.mushaf-page-content::after {
+  left: 0;
+  /* mirrored SVG for left side */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 44'%3E%3Cg fill='none' transform='scale(-1,1) translate(-22,0)'%3E%3Cpath d='M11 0 Q8 11 11 22 Q14 33 11 44' stroke='%23558b2f' stroke-width='1.2' fill='none' opacity='.7'/%3E%3Cg transform='translate(11,11)'%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.65'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='2.5' fill='%23f39c12' opacity='.9'/%3E%3C/g%3E%3Cellipse cx='7' cy='22' rx='4' ry='7' fill='%23558b2f' opacity='.5' transform='rotate(-30 7 22)'/%3E%3Cg transform='translate(11,34)'%3E%3Ccircle r='3' fill='%23e91e63' opacity='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
 
 /* Tiny surah/juz header strip */
 .mushaf-page-info-strip {
@@ -2140,80 +2150,129 @@ header {
   direction: rtl;
 }
 
-/* Surah ornate frame — live colorful floral */
+/* ═══════════════════════════════════════════════════
+   Surah ornate frame — real flowery garden feel
+   ═══════════════════════════════════════════════════ */
 @keyframes surahFrameGlow {
   0%, 100% {
-    border-color: rgba(201,162,39,0.75);
-    box-shadow: 0 0 18px rgba(201,162,39,0.22), inset 0 0 10px rgba(201,162,39,0.07);
-    background: linear-gradient(135deg, rgba(201,162,39,0.07), rgba(47,79,55,0.04));
+    border-color: rgba(185,130,20,0.85);
+    box-shadow:
+      0 0 0 1px rgba(185,130,20,0.22) inset,
+      0 0 22px rgba(185,130,20,0.26),
+      0 2px 12px rgba(140,60,20,0.14);
   }
-  33% {
-    border-color: rgba(47,125,60,0.75);
-    box-shadow: 0 0 18px rgba(47,125,60,0.22), inset 0 0 10px rgba(47,125,60,0.06);
-    background: linear-gradient(135deg, rgba(47,125,60,0.07), rgba(201,162,39,0.04));
+  30% {
+    border-color: rgba(40,120,60,0.75);
+    box-shadow:
+      0 0 0 1px rgba(40,120,60,0.22) inset,
+      0 0 22px rgba(40,120,60,0.22),
+      0 2px 12px rgba(40,120,60,0.12);
   }
-  66% {
-    border-color: rgba(180,55,35,0.55);
-    box-shadow: 0 0 18px rgba(180,55,35,0.16), inset 0 0 10px rgba(180,55,35,0.05);
-    background: linear-gradient(135deg, rgba(180,55,35,0.05), rgba(201,162,39,0.05));
+  65% {
+    border-color: rgba(185,55,70,0.70);
+    box-shadow:
+      0 0 0 1px rgba(185,55,70,0.18) inset,
+      0 0 22px rgba(185,55,70,0.18),
+      0 2px 12px rgba(185,55,70,0.10);
   }
 }
 @keyframes surahNameShimmer {
-  0%, 100% { color: #2e7d32; }
-  40%       { color: #b8860b; }
-  70%       { color: #8b1a00; }
+  0%, 100% { color: #1b5e20; }
+  38%       { color: #7b5500; }
+  68%       { color: #7b1018; }
 }
+
 .mushaf-surah-frame {
-  width: 92%;
-  margin: 1.4rem auto 0.4rem;
-  padding: 0.7rem 2.2rem;
+  width: 94%;
+  margin: 1.2rem auto 0.5rem;
+  padding: 0.85rem 2.8rem;
   text-align: center;
   position: relative;
-  border: 2px solid rgba(201, 162, 39, 0.7);
-  border-radius: 4px;
-  animation: surahFrameGlow 5s ease-in-out infinite;
+  /* Layered borders: outer gold + inner cream + decorative fill */
+  border: 2px solid rgba(185, 130, 20, 0.85);
+  border-radius: 6px;
+  animation: surahFrameGlow 7s ease-in-out infinite;
+  /* Floral rose pattern as subtle bg texture */
+  background-image:
+    /* rose petals radial */
+    radial-gradient(ellipse 36px 20px at 6% 20%, rgba(220,80,80,0.13) 0%, transparent 70%),
+    radial-gradient(ellipse 30px 18px at 6% 38%, rgba(180,60,60,0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 34px 19px at 6% 56%, rgba(220,80,80,0.13) 0%, transparent 70%),
+    radial-gradient(ellipse 30px 18px at 6% 74%, rgba(180,60,60,0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 36px 20px at 94% 20%, rgba(220,80,80,0.13) 0%, transparent 70%),
+    radial-gradient(ellipse 30px 18px at 94% 38%, rgba(180,60,60,0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 34px 19px at 94% 56%, rgba(220,80,80,0.13) 0%, transparent 70%),
+    radial-gradient(ellipse 30px 18px at 94% 74%, rgba(180,60,60,0.10) 0%, transparent 70%),
+    /* leaf accents */
+    radial-gradient(ellipse 20px 28px at 14% 50%, rgba(40,120,40,0.09) 0%, transparent 70%),
+    radial-gradient(ellipse 20px 28px at 86% 50%, rgba(40,120,40,0.09) 0%, transparent 70%),
+    /* warm parchment center */
+    linear-gradient(180deg, rgba(255,248,230,0.92) 0%, rgba(255,244,220,0.88) 100%);
+  /* allow corner flowers to overflow */
+  overflow: visible;
 }
+/* Decorative inner double-line */
 .mushaf-surah-frame::before {
   content: "";
   position: absolute;
   inset: 4px;
-  border: 1px solid rgba(201, 162, 39, 0.3);
-  border-radius: 2px;
+  border: 1px solid rgba(185, 130, 20, 0.35);
+  border-radius: 3px;
   pointer-events: none;
 }
 .mushaf-surah-frame::after {
   content: "";
   position: absolute;
   inset: 7px;
-  border: 0.5px solid rgba(201, 162, 39, 0.15);
+  border: 0.5px solid rgba(185, 130, 20, 0.18);
   border-radius: 1px;
   pointer-events: none;
 }
+
+/* Corner flower ornaments via SVG data URI */
+.mushaf-surah-frame-corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cg transform='translate(14,14)'%3E%3Cellipse rx='5.5' ry='9' fill='%23c0392b' opacity='.62'/%3E%3Cellipse rx='5.5' ry='9' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='5.5' ry='9' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='5.5' ry='9' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='5.5' ry='9' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='4' fill='%23f39c12' opacity='.85'/%3E%3Ccircle r='2' fill='%23f1c40f'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.mushaf-surah-frame-corner.tl { top: -10px; right: -10px; }
+.mushaf-surah-frame-corner.tr { top: -10px; left: -10px; }
+.mushaf-surah-frame-corner.bl { bottom: -10px; right: -10px; }
+.mushaf-surah-frame-corner.br { bottom: -10px; left: -10px; }
+
 .mushaf-surah-frame-name {
   font-family: "Amiri", serif;
-  font-size: 1.4rem;
+  font-size: calc(var(--mushaf-font-scale, 1) * 1.3rem);
   font-weight: 700;
-  letter-spacing: 0.05em;
-  animation: surahNameShimmer 5s ease-in-out infinite;
+  letter-spacing: 0.04em;
+  position: relative;
+  z-index: 1;
+  animation: surahNameShimmer 7s ease-in-out infinite;
 }
 .mushaf-surah-frame-name::before {
-  content: "❁ ";
-  font-size: 1em;
-  opacity: 0.65;
+  content: "\2746 ";
+  font-size: 0.9em;
+  opacity: 0.7;
+  color: #b8860b;
 }
 .mushaf-surah-frame-name::after {
-  content: " ❁";
-  font-size: 1em;
-  opacity: 0.65;
+  content: " \2746";
+  font-size: 0.9em;
+  opacity: 0.7;
+  color: #b8860b;
 }
 
 /* Basmalah */
 .mushaf-basmalah-line {
   text-align: center;
   font-family: "Amiri", serif;
-  font-size: 1.5rem;
+  font-size: calc(var(--mushaf-font-scale, 1) * 1.4rem);
   color: #2e7d32;
-  margin: 0.6rem 0 0.85rem;
+  margin: 0.5rem 0 0.7rem;
   font-weight: 700;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.06);
   letter-spacing: 0.5px;
@@ -2222,16 +2281,18 @@ header {
 /* Main text block — seamless parchment (bg lives on .mushaf-reader) */
 .mushaf-text-block {
   direction: rtl;
-  text-align: justify;
-  text-align-last: center;
+  text-align: right;
   font-family: "Amiri", "Noto Naskh Arabic", serif;
-  font-size: 1.85rem;
-  line-height: 2.6;
+  font-size: calc(var(--mushaf-font-scale, 1) * 1.35rem);
+  line-height: 2.45;
   color: #2c3e50;
-  word-spacing: 0.06em;
+  word-spacing: 0;
+  letter-spacing: 0;
   hyphens: none;
   padding: 0.25rem 0;
   margin-bottom: 0.35rem;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Ayah span */

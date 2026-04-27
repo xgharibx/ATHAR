@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowRight, Bookmark, Globe, MoreVertical, Play, Pause,
   ChevronDown, Copy, Share2, VolumeX, Volume2, X, Pencil,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -75,10 +75,12 @@ function buildPageIndex(
       if (!Number.isFinite(pageNum) || pageNum < 1) continue;
 
       // Only Fatiha's first ayah is a pure basmalah placeholder (gets filtered out)
-      const isBasmalahHeader = firstIsBasmalah && i === 0;
-      // Fatiha: numbering shifts by 1 (basmalah was counted as ayah 1 in raw data)
-      // Other surahs: keep original ayah numbering
-      const displayAyah = firstIsBasmalah ? (isBasmalahHeader ? 0 : originalAyah - 1) : originalAyah;
+      // For Fatiha (id=1): the basmalah IS ayah 1 — show it numbered, don't skip it
+      // For other surahs where first ayah == pure basmalah: skip it (show as header only)
+      const isBasmalahHeader = firstIsBasmalah && i === 0 && surah.id !== 1;
+      // Fatiha: keep original ayah numbering (1=basmalah, 2=الحمد..., 7=وَلَا الضَّالِّينَ)
+      // Other surahs with pure-basmalah first ayah: shift numbering (basmalah=0/filtered, rest -1)
+      const displayAyah = (firstIsBasmalah && surah.id !== 1) ? (isBasmalahHeader ? 0 : originalAyah - 1) : originalAyah;
 
       // Strip basmalah prefix from the first ayah text of non-Fatiha surahs
       let text = raw[i] ?? "";
@@ -259,6 +261,16 @@ export function MushafPage() {
   const [showJump, setShowJump] = React.useState(false);
   const [jumpInput, setJumpInput] = React.useState("");
 
+  // Font scale: 0.7 – 1.6 in 0.1 steps
+  const [fontScale, setFontScale] = React.useState<number>(() => prefs.mushafFontScale ?? 1.0);
+  const bumpFont = React.useCallback((delta: number) => {
+    setFontScale((prev) => {
+      const next = Math.round(Math.max(0.7, Math.min(1.6, prev + delta)) * 10) / 10;
+      setPrefs({ mushafFontScale: next });
+      return next;
+    });
+  }, [setPrefs]);
+
   const doJump = () => {
     const p = Number(jumpInput);
     if (p >= 1 && p <= 604) { goPage(p); setShowJump(false); setJumpInput(""); }
@@ -382,6 +394,22 @@ export function MushafPage() {
         </a>
         <button
           className="mushaf-chrome-icon-btn"
+          title="تصغير الخط"
+          aria-label="تصغير"
+          onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}
+        >
+          <ZoomOut size={16} />
+        </button>
+        <button
+          className="mushaf-chrome-icon-btn"
+          title="تكبير الخط"
+          aria-label="تكبير"
+          onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}
+        >
+          <ZoomIn size={16} />
+        </button>
+        <button
+          className="mushaf-chrome-icon-btn"
           title="انتقال للصفحة"
           aria-label="انتقال"
           onClick={(e) => { e.stopPropagation(); setShowJump(true); }}
@@ -395,7 +423,7 @@ export function MushafPage() {
         className="mushaf-page-area"
         onClick={() => { setSelectedItem(null); flashChrome(); }}
       >
-        <div className="mushaf-page-content" dir="rtl">
+        <div className="mushaf-page-content" dir="rtl" style={{ "--mushaf-font-scale": fontScale } as React.CSSProperties}>
           {/* Always-visible tiny strip */}
           <div className="mushaf-page-info-strip">
             <span>{pageSurahName}</span>
@@ -407,10 +435,14 @@ export function MushafPage() {
             <React.Fragment key={group.surahId}>
               {group.startsHere && (
                 <div className="mushaf-surah-frame">
+                  <div className="mushaf-surah-frame-corner tl" aria-hidden="true" />
+                  <div className="mushaf-surah-frame-corner tr" aria-hidden="true" />
+                  <div className="mushaf-surah-frame-corner bl" aria-hidden="true" />
+                  <div className="mushaf-surah-frame-corner br" aria-hidden="true" />
                   <span className="mushaf-surah-frame-name">{group.surahName}</span>
                 </div>
               )}
-              {group.startsHere && group.surahId !== 9 && (
+              {group.startsHere && group.surahId !== 9 && group.surahId !== 1 && (
                 <div className="mushaf-basmalah-line">{BASMALAH}</div>
               )}
               <div className="mushaf-text-block">
@@ -431,7 +463,7 @@ export function MushafPage() {
                         {item.text}
                         {"\u200F"}
                         <span className={`mushaf-ayah-num${isBookmarked ? " bookmarked" : ""}`}>
-                          ﴾{toArabicNumeral(item.displayAyah)}﴿
+                          ﴿{toArabicNumeral(item.displayAyah)}﴾
                         </span>
                         {" "}
                       </span>
@@ -450,21 +482,21 @@ export function MushafPage() {
           <div className="mushaf-page-nav">
             <button
               className="mushaf-page-nav-btn"
-              onClick={(e) => { e.stopPropagation(); goPage(currentPage - 1); }}
-              disabled={currentPage <= 1}
-              aria-label="الصفحة السابقة"
-            >
-              <ChevronLeft size={15} />
-              <span>السابقة</span>
-            </button>
-            <span className="mushaf-page-nav-num">{currentPage} / {totalPages}</span>
-            <button
-              className="mushaf-page-nav-btn"
               onClick={(e) => { e.stopPropagation(); goPage(currentPage + 1); }}
               disabled={currentPage >= totalPages}
               aria-label="الصفحة التالية"
             >
+              <ChevronLeft size={15} />
               <span>التالية</span>
+            </button>
+            <span className="mushaf-page-nav-num">{currentPage} / {totalPages}</span>
+            <button
+              className="mushaf-page-nav-btn"
+              onClick={(e) => { e.stopPropagation(); goPage(currentPage - 1); }}
+              disabled={currentPage <= 1}
+              aria-label="الصفحة السابقة"
+            >
+              <span>السابقة</span>
               <ChevronRight size={15} />
             </button>
           </div>

@@ -31,6 +31,7 @@ export type Preferences = {
   quranDailyGoal: number; // ayahs per day goal
   quranReciter: string;   // everyayah.com folder name, e.g. "Alafasy_128kbps"
   quranMushafPage?: number; // last-read mushaf page (1-604)
+  mushafFontScale?: number; // mushaf reader font scale 0.7–1.6
   showBenefits: boolean;
   stripDiacritics: boolean;
   enable3D: boolean;
