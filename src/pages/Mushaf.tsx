@@ -410,7 +410,7 @@ export function MushafPage() {
                         {item.text}
                         {"\u200F"}
                         <span className={`mushaf-ayah-num${isBookmarked ? " bookmarked" : ""}`}>
-                          {toArabicNumeral(item.displayAyah)}
+                          ﴿{toArabicNumeral(item.displayAyah)}﴾
                         </span>
                         {" "}
                       </span>
@@ -433,7 +433,7 @@ export function MushafPage() {
               disabled={currentPage <= 1}
               aria-label="الصفحة السابقة"
             >
-              <ChevronRight size={15} />
+              <ChevronLeft size={15} />
               <span>السابقة</span>
             </button>
             <span className="mushaf-page-nav-num">{currentPage} / {totalPages}</span>
@@ -444,7 +444,7 @@ export function MushafPage() {
               aria-label="الصفحة التالية"
             >
               <span>التالية</span>
-              <ChevronLeft size={15} />
+              <ChevronRight size={15} />
             </button>
           </div>
         </div>
@@ -505,7 +505,7 @@ export function MushafPage() {
           </button>
           <a
             className="mushaf-action-btn"
-            href={`https://quran.com/ar/${selectedItem.surahId}/${selectedItem.displayAyah}`}
+            href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${selectedItem.surahId}-aya${selectedItem.displayAyah}.html#katheer`}
             target="_blank"
             rel="noopener noreferrer"
             title="تفسير"

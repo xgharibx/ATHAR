@@ -701,7 +701,7 @@ export function SurahPage() {
         {/* Tafseer external link */}
         <a
           className="ayah-tooltip-btn"
-          href={`https://quran.com/ar/${s.id}/${selectedAyah}`}
+          href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${s.id}-aya${selectedAyah}.html#katheer`}
           target="_blank"
           rel="noopener noreferrer"
           title="تفسير الآية"
@@ -893,6 +893,7 @@ export function SurahPage() {
               <span>ج{toArabicIndic(getSurahJuz(surah.id))}</span>
             </div>
           </div>
+          <div className="quran-parchment-block">
           <div
             className="arabic-text quran-text"
             style={{
@@ -903,6 +904,7 @@ export function SurahPage() {
             }}
           >
             {pageAyahs.map((a) => renderAyah(a, surah))}
+          </div>
           </div>
           <div className="text-center text-xs opacity-20 mt-8 mb-2 select-none arabic-text">
             اسحب يميناً للسابقة · اسحب يساراً للتالية
@@ -921,7 +923,7 @@ export function SurahPage() {
             disabled={navPage <= 1}
             aria-label="الصفحة السابقة"
           >
-            <ChevronRight size={16} /> السابقة
+            <ChevronLeft size={16} /> السابقة
           </button>
           <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
             <div
@@ -936,7 +938,7 @@ export function SurahPage() {
             disabled={navPage >= navTotal}
             aria-label="الصفحة التالية"
           >
-            التالية <ChevronLeft size={16} />
+            التالية <ChevronRight size={16} />
           </button>
           {/* Surah navigation */}
           {surahId > 1 && (
@@ -1438,6 +1440,7 @@ export function SurahPage() {
                 <span>ج{toArabicIndic(getSurahJuz(surah.id))}</span>
               </div>
             </div>
+            <div className="quran-parchment-block">
             <div
               className="arabic-text quran-text"
               style={{
@@ -1448,6 +1451,7 @@ export function SurahPage() {
               }}
             >
               {filteredPageAyahs.map((a) => renderAyah(a, surah))}
+            </div>
             </div>
 
             {/* Mushaf page number */}
