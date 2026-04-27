@@ -38,6 +38,8 @@ const BASMALAH_VARIANTS = [
   "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
   "بسم الله الرحمن الرحيم",
 ];
+// Pre-normalized variants for robust comparison regardless of diacritic combining order
+const BASMALAH_NFC = BASMALAH_VARIANTS.map((v) => v.normalize("NFC"));
 
 const HL_COLORS = {
   gold:  { swatch: "rgba(251,191,36,0.85)",  bg: "rgba(251,191,36,0.22)"  },
@@ -54,18 +56,37 @@ function buildPageIndex(
 ): Map<number, PageItem[]> {
   const result = new Map<number, PageItem[]>();
   for (const surah of quranDB) {
-    const raw = surah.ayahs.map((a) => (a ?? "").replace(/^\uFEFF/, "").trim());
-    const firstIsBasmalah = raw.length > 0 && BASMALAH_VARIANTS.some((v) => raw[0] === v);
-    const hasBasmalahHeader = surah.id !== 9 && firstIsBasmalah;
+    // Normalize to NFC so combining diacritics are in canonical order before any comparison
+    const raw = surah.ayahs.map((a) => (a ?? "").replace(/^\uFEFF/, "").normalize("NFC").trim());
+    const firstText = raw[0] ?? "";
+
+    // Al-Fatiha (id=1): entire first ayah IS just the basmalah — skip as header placeholder
+    const firstIsBasmalah = firstText.length > 0 && (
+      surah.id === 1 || BASMALAH_NFC.some((v) => firstText === v)
+    );
+    // All other surahs (except 9): basmalah is prepended to the first ayah's text
+    const firstHasBasmalahPrefix = !firstIsBasmalah && firstText.length > 0 &&
+      BASMALAH_NFC.some((v) => firstText.startsWith(v));
+    const hasBasmalahHeader = surah.id !== 9 && (firstIsBasmalah || firstHasBasmalahPrefix);
 
     for (let i = 0; i < raw.length; i++) {
       const originalAyah = i + 1;
       const pageNum = Number(pageMap[`${surah.id}:${originalAyah}`]);
       if (!Number.isFinite(pageNum) || pageNum < 1) continue;
 
-      const isBasmalahHeader = hasBasmalahHeader && i === 0;
-      const displayAyah = hasBasmalahHeader ? (isBasmalahHeader ? 0 : originalAyah - 1) : originalAyah;
-      const text = raw[i] ?? "";
+      // Only Fatiha's first ayah is a pure basmalah placeholder (gets filtered out)
+      const isBasmalahHeader = firstIsBasmalah && i === 0;
+      // Fatiha: numbering shifts by 1 (basmalah was counted as ayah 1 in raw data)
+      // Other surahs: keep original ayah numbering
+      const displayAyah = firstIsBasmalah ? (isBasmalahHeader ? 0 : originalAyah - 1) : originalAyah;
+
+      // Strip basmalah prefix from the first ayah text of non-Fatiha surahs
+      let text = raw[i] ?? "";
+      if (i === 0 && firstHasBasmalahPrefix) {
+        for (const v of BASMALAH_NFC) {
+          if (text.startsWith(v)) { text = text.slice(v.length).trim(); break; }
+        }
+      }
 
       if (!result.has(pageNum)) result.set(pageNum, []);
       result.get(pageNum)!.push({
@@ -410,7 +431,7 @@ export function MushafPage() {
                         {item.text}
                         {"\u200F"}
                         <span className={`mushaf-ayah-num${isBookmarked ? " bookmarked" : ""}`}>
-                          ﴿{toArabicNumeral(item.displayAyah)}﴾
+                          ﴾{toArabicNumeral(item.displayAyah)}﴿
                         </span>
                         {" "}
                       </span>

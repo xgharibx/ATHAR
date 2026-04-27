@@ -35,10 +35,13 @@ function shouldShowBasmalah(surahId: number) {
   return surahId !== 9;
 }
 
+// Pre-normalized for robust comparison (Quran data uses non-canonical diacritic ordering)
+const BASMALAH_NFC = BASMALAH_VARIANTS.map((v) => v.normalize("NFC"));
+
 function stripBasmalahPrefixIfPresent(text: string) {
-  const t = (text ?? "").replace(/^\uFEFF/, "").trim();
+  const t = (text ?? "").replace(/^\uFEFF/, "").normalize("NFC").trim();
   if (!t) return t;
-  for (const v of BASMALAH_VARIANTS) {
+  for (const v of BASMALAH_NFC) {
     if (t.startsWith(v)) return t.slice(v.length).trim();
   }
   return t;
@@ -177,11 +180,14 @@ export function SurahPage() {
   const displayAyahs = React.useMemo(() => {
     if (!surah) return [] as Array<{ text: string; displayAyah: number; originalAyah: number }>;
 
-    const raw = surah.ayahs.map((a) => (a ?? "").replace(/^\uFEFF/, "").trim());
+    // Normalize to NFC so combining diacritics are in canonical order before comparison
+    const raw = surah.ayahs.map((a) => (a ?? "").replace(/^\uFEFF/, "").normalize("NFC").trim());
 
-    // If the first ayah is literally the basmalah (common in Al-Fatiha datasets),
-    // drop it and show the basmalah only in the top header.
-    const firstIsBasmalah = raw.length > 0 && BASMALAH_VARIANTS.some((v) => raw[0] === v);
+    // Al-Fatiha (id=1) always has the basmalah as its first ayah regardless of encoding;
+    // all other surahs have it prepended to ayah 1 text (startsWith check)
+    const firstIsBasmalah = raw.length > 0 && (
+      surah.id === 1 || BASMALAH_NFC.some((v) => raw[0] === v)
+    );
     const startIndex = shouldShowBasmalah(surah.id) && firstIsBasmalah ? 1 : 0;
 
     const out: Array<{ text: string; displayAyah: number; originalAyah: number }> = [];
@@ -614,7 +620,7 @@ export function SurahPage() {
             aria-label={`آية ${ayahIndex}`}
             title={isBookmarked ? "إزالة علامة" : "إضافة علامة"}
           >
-            ﴿{toArabicIndic(ayahIndex)}﴾
+            ﴾{toArabicIndic(ayahIndex)}﴿
           </button>
         ) : null}
         {" "}

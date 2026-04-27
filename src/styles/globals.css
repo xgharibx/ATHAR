@@ -2020,7 +2020,8 @@ header {
   z-index: 100;
   display: flex;
   flex-direction: column;
-  background: #fffbf0;
+  background-color: #fffbf0;
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23d4af37' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
   color: #1a1208;
   direction: rtl;
   font-family: "Amiri", "Noto Naskh Arabic", serif;
@@ -2097,11 +2098,34 @@ header {
 }
 
 .mushaf-page-content {
-  max-width: 430px;
+  max-width: 440px;
   margin: 0 auto;
-  padding: 1rem 1.25rem 1.5rem;
+  padding: 1rem 1.5rem 1.5rem;
   position: relative;
+  border: 1.5px solid rgba(201, 162, 39, 0.28);
+  border-radius: 6px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.05), inset 0 0 40px rgba(212,175,55,0.04);
+  background: rgba(255,251,240,0.55);
+  backdrop-filter: blur(2px);
 }
+.mushaf-page-content::before,
+.mushaf-page-content::after {
+  content: "\275D\A❁\A✿\A❃\A✿\A❁\A✿\A❦\A✿\A❁\A✿\A❃\A✿\A❁\A\275E";
+  white-space: pre;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.1rem;
+  font-size: 0.7rem;
+  line-height: 2.1;
+  color: rgba(201, 162, 39, 0.3);
+  pointer-events: none;
+  user-select: none;
+  text-align: center;
+  font-family: serif;
+}
+.mushaf-page-content::before { right: 0.15rem; }
+.mushaf-page-content::after  { left:  0.15rem; }
 
 /* Tiny surah/juz header strip */
 .mushaf-page-info-strip {
@@ -2112,26 +2136,48 @@ header {
   opacity: 0.4;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(47, 79, 55, 0.12);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.2);
   direction: rtl;
 }
 
-/* Surah ornate frame */
+/* Surah ornate frame — live colorful floral */
+@keyframes surahFrameGlow {
+  0%, 100% {
+    border-color: rgba(201,162,39,0.75);
+    box-shadow: 0 0 18px rgba(201,162,39,0.22), inset 0 0 10px rgba(201,162,39,0.07);
+    background: linear-gradient(135deg, rgba(201,162,39,0.07), rgba(47,79,55,0.04));
+  }
+  33% {
+    border-color: rgba(47,125,60,0.75);
+    box-shadow: 0 0 18px rgba(47,125,60,0.22), inset 0 0 10px rgba(47,125,60,0.06);
+    background: linear-gradient(135deg, rgba(47,125,60,0.07), rgba(201,162,39,0.04));
+  }
+  66% {
+    border-color: rgba(180,55,35,0.55);
+    box-shadow: 0 0 18px rgba(180,55,35,0.16), inset 0 0 10px rgba(180,55,35,0.05);
+    background: linear-gradient(135deg, rgba(180,55,35,0.05), rgba(201,162,39,0.05));
+  }
+}
+@keyframes surahNameShimmer {
+  0%, 100% { color: #2e7d32; }
+  40%       { color: #b8860b; }
+  70%       { color: #8b1a00; }
+}
 .mushaf-surah-frame {
   width: 92%;
   margin: 1.4rem auto 0.4rem;
-  padding: 0.65rem 2rem;
+  padding: 0.7rem 2.2rem;
   text-align: center;
   position: relative;
-  border: 2px solid rgba(201, 162, 39, 0.6);
+  border: 2px solid rgba(201, 162, 39, 0.7);
   border-radius: 4px;
-  background: linear-gradient(135deg, rgba(201,162,39,0.04), rgba(47,79,55,0.04));
+  animation: surahFrameGlow 5s ease-in-out infinite;
 }
 .mushaf-surah-frame::before {
   content: "";
   position: absolute;
   inset: 4px;
-  border: 1px solid rgba(201, 162, 39, 0.35);
+  border: 1px solid rgba(201, 162, 39, 0.3);
   border-radius: 2px;
   pointer-events: none;
 }
@@ -2139,7 +2185,7 @@ header {
   content: "";
   position: absolute;
   inset: 7px;
-  border: 0.5px solid rgba(201, 162, 39, 0.18);
+  border: 0.5px solid rgba(201, 162, 39, 0.15);
   border-radius: 1px;
   pointer-events: none;
 }
@@ -2147,8 +2193,18 @@ header {
   font-family: "Amiri", serif;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #2e7d32;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
+  animation: surahNameShimmer 5s ease-in-out infinite;
+}
+.mushaf-surah-frame-name::before {
+  content: "❁ ";
+  font-size: 1em;
+  opacity: 0.65;
+}
+.mushaf-surah-frame-name::after {
+  content: " ❁";
+  font-size: 1em;
+  opacity: 0.65;
 }
 
 /* Basmalah */
@@ -2163,7 +2219,7 @@ header {
   letter-spacing: 0.5px;
 }
 
-/* Main text block — parchment premium */
+/* Main text block — seamless parchment (bg lives on .mushaf-reader) */
 .mushaf-text-block {
   direction: rtl;
   text-align: justify;
@@ -2174,15 +2230,8 @@ header {
   color: #2c3e50;
   word-spacing: 0.06em;
   hyphens: none;
-  background-color: #fffbf0;
-  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23d4af37' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
-  padding: 1.5rem 1.25rem;
-  border-radius: 12px;
-  border: 2px double rgba(212, 175, 55, 0.45);
-  box-shadow:
-    0 6px 24px rgba(0,0,0,0.06),
-    inset 0 0 60px rgba(212, 175, 55, 0.08);
-  margin-bottom: 0.75rem;
+  padding: 0.25rem 0;
+  margin-bottom: 0.35rem;
 }
 
 /* Ayah span */
@@ -2199,19 +2248,17 @@ header {
 .mushaf-ayah-span.hl-blue  { background: rgba(96, 165, 250, 0.18); }
 .mushaf-ayah-span.hl-red   { background: rgba(248, 113, 113, 0.18); }
 
-/* Ayah number — inline gold ﴿١﴾ style */
+/* Ayah number — inline gold ﴾١﴿ style */
 .mushaf-ayah-num {
   display: inline;
   color: #c9a227;
   font-family: "Amiri", serif;
   font-weight: 400;
   font-size: 0.82em;
-  margin: 0 5px;
+  margin: 0 4px;
   user-select: none;
   pointer-events: none;
   white-space: nowrap;
-  direction: ltr;
-  unicode-bidi: embed;
 }
 .mushaf-ayah-num.bookmarked {
   color: #2e7d32;
@@ -2328,9 +2375,9 @@ header {
   align-items: center;
   gap: 0.75rem;
   padding: 0.55rem 1rem calc(env(safe-area-inset-bottom, 0px) + 0.55rem);
-  background: rgba(245, 241, 228, 0.96);
+  background: rgba(255, 251, 240, 0.97);
   backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(47, 79, 55, 0.12);
+  border-top: 1px solid rgba(201, 162, 39, 0.2);
   transition: transform 0.3s ease;
 }
 .mushaf-audio-play-btn {
@@ -2411,7 +2458,7 @@ header {
   bottom: 0;
   inset-inline: 0;
   z-index: 220;
-  background: #f5f1e4;
+  background: #fffbf0;
   color: #1a1208;
   border-radius: 22px 22px 0 0;
   padding: 0.75rem 1.25rem calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
