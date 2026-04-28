@@ -5,4 +5,6 @@
     <color name="colorAccent">#7EC8A4</color>
     <!-- App dark background — prevents white/black flash while WebView loads -->
     <color name="colorBackground">#0a0c12</color>
+    <!-- Splash screen background — matches the real brand logo background -->
+    <color name="colorSplashBg">#2F4F37</color>
 </resources>

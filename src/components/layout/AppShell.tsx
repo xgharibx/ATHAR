@@ -268,10 +268,10 @@ function SidebarContent(props: { onNavigate?: () => void }) {
       <div className="px-5 pt-3 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/15 shadow-lg">
-            <LogoMark className="w-full h-full" title="ATHAR" />
+            <LogoMark className="w-full h-full" title="Athar" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-base">ATHAR</div>
+            <div className="font-bold text-base" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
             <div className="text-[11px] opacity-55 mt-0.5">اترك أثراً طيباً</div>
           </div>
           <button
@@ -466,10 +466,10 @@ export function AppShell() {
               <NavLink to="/" className="flex items-center gap-2">
                 <LogoMark
                   className="w-11 h-11 rounded-2xl border border-white/10 overflow-hidden"
-                  title="ATHAR"
+                  title="Athar"
                 />
                 <div className="leading-tight">
-                  <div className="font-semibold">ATHAR</div>
+                  <div className="font-semibold" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
                   <div className="text-[11px] opacity-65">أذكار • صلاة</div>
                 </div>
               </NavLink>
