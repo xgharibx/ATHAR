@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncBridge";
 import { useNoorStore } from "@/store/noorStore";
 import { PageSkeleton } from "@/components/ui/Skeleton";
+import { SplashIntro, SPLASH_SESSION_KEY } from "@/components/brand/SplashIntro";
 
 const HomePage = React.lazy(() => import("@/pages/Home").then((m) => ({ default: m.HomePage })));
 const CategoryPage = React.lazy(() => import("@/pages/Category").then((m) => ({ default: m.CategoryPage })));
@@ -24,6 +25,17 @@ export default function App() {
   useApplyTheme();
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
   const location = useLocation();
+
+  // Show animated splash once per browser/app session
+  const [showSplash, setShowSplash] = React.useState<boolean>(() => {
+    try {
+      if (sessionStorage.getItem(SPLASH_SESSION_KEY)) return false;
+      sessionStorage.setItem(SPLASH_SESSION_KEY, "1");
+      return true;
+    } catch {
+      return false;
+    }
+  });
 
   // Scroll to top on page navigation (skip for hash-only changes)
   React.useEffect(() => {
@@ -90,6 +102,8 @@ export default function App() {
   }, [ensureDailyResets]);
 
   return (
+    <>
+      {showSplash && <SplashIntro onDone={() => setShowSplash(false)} />}
     <React.Suspense fallback={
       <div className="p-4" dir="rtl">
         <PageSkeleton />
@@ -113,5 +127,6 @@ export default function App() {
         </Route>
       </Routes>
     </React.Suspense>
+    </>
   );
 }
