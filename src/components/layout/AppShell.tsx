@@ -465,7 +465,7 @@ export function AppShell() {
 
               <NavLink to="/" className="flex items-center gap-2">
                 <LogoMark
-                  className="w-9 h-9 rounded-2xl border border-white/10 overflow-hidden"
+                  className="w-11 h-11 rounded-2xl border border-white/10 overflow-hidden"
                   title="ATHAR"
                 />
                 <div className="leading-tight">

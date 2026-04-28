@@ -548,11 +548,11 @@ export function HomePage() {
               <div className="mt-4 flex flex-wrap gap-2 max-w-xl">
                 <Button className="press-effect" onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
                 {quranLastRead ? (
-                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(`/quran/${quranLastRead.surahId}?a=${quranLastRead.ayahIndex}`); }}>
+                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : `/mushaf/1`); }}>
                     📖 {quranLastReadSurahName ? `تابع ${quranLastReadSurahName}` : "تابع القرآن"}
                   </Button>
                 ) : (
-                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/quran"); }}>المصحف</Button>
+                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/mushaf/1"); }}>المصحف</Button>
                 )}
                 {lastVisitedSection ? (
                   <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
@@ -573,7 +573,7 @@ export function HomePage() {
               {/* Quran reading progress micro-bar */}
               {quranReadingPct > 0 && (
                 <button
-                  onClick={() => navigate(quranLastRead ? `/quran/${quranLastRead.surahId}?a=${quranLastRead.ayahIndex}` : "/quran")}
+                  onClick={() => navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : "/mushaf/1")}
                   className="mt-3 flex items-center gap-2.5 group"
                   aria-label={`القرآن: ${quranReadingPct}% مقروء`}
                 >

@@ -58,12 +58,19 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
 // GitHub Pages SPA fallback support:
 // public/404.html redirects to /ATHAR/?p=<encoded_path>
 // This rewrites the URL back to the real route so React Router can render it.
+// NOTE: Skip reload on Capacitor/Android to prevent black screen on first install.
 try {
-  const seenVersion = localStorage.getItem(APP_RUNTIME_VERSION_KEY);
-  if (seenVersion !== APP_RUNTIME_VERSION) {
+  const isCapacitor = !!(window as unknown as Record<string, unknown>).Capacitor;
+  if (!isCapacitor) {
+    const seenVersion = localStorage.getItem(APP_RUNTIME_VERSION_KEY);
+    if (seenVersion !== APP_RUNTIME_VERSION) {
+      localStorage.setItem(APP_RUNTIME_VERSION_KEY, APP_RUNTIME_VERSION);
+      sessionStorage.removeItem("noor_preload_recover_once");
+      window.location.reload();
+    }
+  } else {
+    // On Capacitor, just persist the version without reloading
     localStorage.setItem(APP_RUNTIME_VERSION_KEY, APP_RUNTIME_VERSION);
-    sessionStorage.removeItem("noor_preload_recover_once");
-    window.location.reload();
   }
 
   const url = new URL(window.location.href);
@@ -99,11 +106,18 @@ const queryClient = new QueryClient({
   }
 });
 
+// On Capacitor Android, BASE_URL is "./" which breaks React Router (routes won't match).
+// Use "/" as basename for Capacitor, otherwise use Vite's BASE_URL (handles GitHub Pages /ATHAR/).
+const isCapacitorRuntime = !!(window as unknown as Record<string, unknown>).Capacitor;
+const routerBasename = isCapacitorRuntime
+  ? "/"
+  : (import.meta.env.BASE_URL as string);
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <BrowserRouter basename={routerBasename}>
           <App />
           <Toaster
             position="top-center"

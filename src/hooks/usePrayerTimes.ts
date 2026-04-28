@@ -167,7 +167,10 @@ export function usePrayerTimes() {
       }
     },
     initialData: () => readCached(city, country) ?? undefined,
-    staleTime: 1000 * 60 * 30,
-    retry: 1
+    // Refresh every 6 hours automatically; also re-fetches on window focus
+    staleTime: 1000 * 60 * 60 * 6,
+    refetchOnWindowFocus: true,
+    refetchInterval: 1000 * 60 * 60 * 6,
+    retry: 2,
   });
 }

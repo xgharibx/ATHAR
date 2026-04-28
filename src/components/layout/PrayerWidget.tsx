@@ -2,12 +2,11 @@ import * as React from "react";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
-import { Clock, RefreshCcw } from "lucide-react";
-import { IconButton } from "@/components/ui/IconButton";
+import { Clock } from "lucide-react";
 import { PrayerCountdown } from "./PrayerCountdown";
 
 export function PrayerWidget() {
-  const { data, isLoading, error, refetch, isFetching } = usePrayerTimes();
+  const { data, isLoading, error, isFetching } = usePrayerTimes();
   const [nowTs, setNowTs] = React.useState(() => Date.now());
 
   React.useEffect(() => {
@@ -103,14 +102,9 @@ export function PrayerWidget() {
           <span className="text-[11px] opacity-60 bg-white/5 px-2 py-1 rounded-full">
             {date.hijri.weekday.ar} • {date.hijri.date}
           </span>
-          <IconButton
-            aria-label="تحديث مواقيت الصلاة"
-            title="تحديث"
-            onClick={() => void refetch()}
-            className={isFetching ? "opacity-60 pointer-events-none" : undefined}
-          >
-            <RefreshCcw size={14} className={isFetching ? "animate-spin" : undefined} />
-          </IconButton>
+          {isFetching && (
+            <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" title="يتم التحديث..." />
+          )}
         </div>
       </div>
 

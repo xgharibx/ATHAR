@@ -26,7 +26,46 @@
   </head>
   <body class="bg-[var(--bg)] text-[var(--fg)]">
     <noscript>هذا التطبيق يحتاج JavaScript ليعمل.</noscript>
+    <!-- Loading screen: prevents black/white flash before React mounts (critical for Android WebView) -->
+    <div id="app-loader" style="
+      position:fixed;inset:0;z-index:9999;
+      background:#0a0c12;
+      display:flex;align-items:center;justify-content:center;
+      flex-direction:column;gap:16px;
+      transition:opacity 0.4s ease;
+    ">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="30" stroke="#2F4F37" stroke-width="4"/>
+        <circle cx="32" cy="32" r="30" stroke="#7EC8A4" stroke-width="4"
+          stroke-dasharray="188" stroke-dashoffset="94"
+          style="transform-origin:center;animation:spin 1.2s linear infinite;">
+        </circle>
+      </svg>
+      <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+    </div>
     <div id="root"></div>
+    <script>
+      // Hide loader once React has painted (runs after first React render commit)
+      document.addEventListener('DOMContentLoaded', function() {
+        var observer = new MutationObserver(function() {
+          var root = document.getElementById('root');
+          if (root && root.children.length > 0) {
+            var loader = document.getElementById('app-loader');
+            if (loader) {
+              loader.style.opacity = '0';
+              setTimeout(function(){ loader.style.display='none'; }, 420);
+            }
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.getElementById('root') || document.body, { childList: true, subtree: true });
+        // Fallback: hide loader after 6 seconds regardless
+        setTimeout(function(){
+          var loader = document.getElementById('app-loader');
+          if (loader) { loader.style.opacity='0'; setTimeout(function(){ loader.style.display='none'; }, 420); }
+        }, 6000);
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

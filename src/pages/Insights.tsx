@@ -349,8 +349,9 @@ export function InsightsPage() {
         aria-hidden="true"
         style={{
           position: "fixed",
-          left: "-9999px",
+          left: 0,
           top: 0,
+          transform: "translateX(-120vw)",
           width: "340px",
           padding: "28px 24px",
           background: "var(--bg)",

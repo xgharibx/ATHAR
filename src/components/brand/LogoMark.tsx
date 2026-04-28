@@ -59,6 +59,7 @@ export function LogoMark(props: { className?: string; title?: string }) {
           fontSize="104"
           fontWeight="700"
           fill="var(--fg)"
+          textRendering="optimizeLegibility"
         >
           أثر
         </text>
@@ -74,6 +75,7 @@ export function LogoMark(props: { className?: string; title?: string }) {
         fontWeight="500"
         fill="var(--fg)"
         opacity="0.85"
+        textRendering="optimizeLegibility"
       >
         همسة تطمئن قلبك، وتترك أثرًا.
       </text>

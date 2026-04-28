@@ -182,6 +182,7 @@ textarea {
 html,
 body {
   overscroll-behavior: none;
+  overflow-x: hidden;
 }
 
 body {
@@ -866,13 +867,23 @@ body.quran-focus-mode .quran-surface {
 
 /* â”€â”€ Memorization mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .quran-mem-span {
-  filter: blur(7px);
+  position: relative;
+  display: inline;
+  color: transparent;
+  border-radius: 3px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 30%, rgba(10,12,18,0.7)) 0%, color-mix(in srgb, var(--accent) 20%, rgba(10,12,18,0.8)) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.25);
   user-select: none;
-  transition: filter 0.35s ease;
   cursor: pointer;
+  transition: color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  padding: 0 2px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
 }
 .quran-mem-span.revealed {
-  filter: blur(0);
+  color: inherit;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--accent) 15%, transparent);
   cursor: default;
 }
 

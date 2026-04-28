@@ -1104,6 +1104,29 @@ export function SurahPage() {
         </button>
       </div>
 
+      {/* ── Memorization mode banner ─────────────────────── */}
+      {memMode && (
+        <div
+          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs"
+          style={{
+            background: "color-mix(in srgb, var(--accent) 10%, rgba(10,12,18,0.6))",
+            borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)",
+            color: "var(--accent)",
+          }}
+        >
+          <span className="text-base">🧠</span>
+          <span className="font-semibold">وضع الحفظ</span>
+          <span className="opacity-70 mr-1">— اضغط على الآية لكشفها</span>
+          <button
+            type="button"
+            className="mr-auto text-[10px] opacity-55 hover:opacity-100 underline underline-offset-2 transition"
+            onClick={(e) => { e.stopPropagation(); setRevealedAyahs(new Set()); }}
+          >
+            إخفاء الكل
+          </button>
+        </div>
+      )}
+
       {/* ── Settings sheet (fixed bottom sheet) ─────────── */}
       {showSettings && (
         <>
