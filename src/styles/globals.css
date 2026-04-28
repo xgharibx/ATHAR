@@ -2093,32 +2093,44 @@ header {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  display: flex;
+  align-items: flex-start;
   padding-top: calc(env(safe-area-inset-top, 0px) + 56px);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 56px);
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 .mushaf-page-content {
-  max-width: 440px;
+  width: 100%;
+  max-width: 460px;
   margin: 0 auto;
-  padding: 0.9rem 2.2rem 1.2rem;
+  padding: 1.6rem 2.2rem;
   position: relative;
   /* Ornamental outer border */
   border: 2px solid rgba(185, 130, 20, 0.45);
   border-radius: 4px;
-  background: rgba(255, 251, 240, 0.6);
+  /* Top + bottom horizontal vine borders via background layers */
+  background-color: rgba(255, 251, 240, 0.6);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 22'%3E%3Cg fill='none'%3E%3Cpath d='M0 11 Q11 8 22 11 Q33 14 44 11' stroke='%23558b2f' stroke-width='1.2' fill='none' opacity='.7'/%3E%3Cg transform='translate(22,11)'%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.65'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='2.5' fill='%23f39c12' opacity='.9'/%3E%3C/g%3E%3Cellipse cx='11' cy='8' rx='4' ry='7' fill='%23558b2f' opacity='.5' transform='rotate(-30 11 8)'/%3E%3Cg transform='translate(33,14)'%3E%3Ccircle r='3' fill='%23e91e63' opacity='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 22'%3E%3Cg fill='none'%3E%3Cpath d='M0 11 Q11 8 22 11 Q33 14 44 11' stroke='%23558b2f' stroke-width='1.2' fill='none' opacity='.7'/%3E%3Cg transform='translate(22,11)'%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.65'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='2.5' fill='%23f39c12' opacity='.9'/%3E%3C/g%3E%3Cellipse cx='11' cy='8' rx='4' ry='7' fill='%23558b2f' opacity='.5' transform='rotate(-30 11 8)'/%3E%3Cg transform='translate(33,14)'%3E%3Ccircle r='3' fill='%23e91e63' opacity='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-position: top center, bottom center;
+  background-repeat: repeat-x, repeat-x;
+  background-size: auto 22px, auto 22px;
   backdrop-filter: blur(2px);
   /* Rich parchment shadow */
   box-shadow:
     0 2px 24px rgba(0,0,0,0.07),
     inset 0 0 60px rgba(212,175,55,0.05);
 }
-/* Ornamental vine borders — left and right sides */
+/* Ornamental vine borders — left and right sides (stop 22px from top/bottom to avoid corner overlap) */
 .mushaf-page-content::before,
 .mushaf-page-content::after {
   content: "";
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 22px;
+  bottom: 22px;
   width: 22px;
   pointer-events: none;
   user-select: none;
@@ -2135,6 +2147,11 @@ header {
   left: 0;
   /* mirrored SVG for left side */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 44'%3E%3Cg fill='none' transform='scale(-1,1) translate(-22,0)'%3E%3Cpath d='M11 0 Q8 11 11 22 Q14 33 11 44' stroke='%23558b2f' stroke-width='1.2' fill='none' opacity='.7'/%3E%3Cg transform='translate(11,11)'%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.65'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='2.5' fill='%23f39c12' opacity='.9'/%3E%3C/g%3E%3Cellipse cx='7' cy='22' rx='4' ry='7' fill='%23558b2f' opacity='.5' transform='rotate(-30 7 22)'/%3E%3Cg transform='translate(11,34)'%3E%3Ccircle r='3' fill='%23e91e63' opacity='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Mushaf main text area — natural flow, no overflow constraints */
+.mushaf-page-main {
+  /* plain container, no height constraints */
 }
 
 /* Tiny surah/juz header strip */
@@ -2165,8 +2182,8 @@ header {
     border-color: rgba(40,120,60,0.75);
     box-shadow:
       0 0 0 1px rgba(40,120,60,0.22) inset,
-      0 0 22px rgba(40,120,60,0.22),
-      0 2px 12px rgba(40,120,60,0.12);
+      0 0 28px rgba(40,120,60,0.28),
+      0 2px 16px rgba(40,120,60,0.15);
   }
   65% {
     border-color: rgba(185,55,70,0.70);
@@ -2180,6 +2197,14 @@ header {
   0%, 100% { color: #1b5e20; }
   38%       { color: #7b5500; }
   68%       { color: #7b1018; }
+}
+@keyframes cornerSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes cornerPulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.18); }
 }
 
 .mushaf-surah-frame {
@@ -2238,11 +2263,12 @@ header {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cg transform='translate(14,14)'%3E%3Cellipse rx='5.5' ry='9' fill='%23c0392b' opacity='.62'/%3E%3Cellipse rx='5.5' ry='9' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='5.5' ry='9' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='5.5' ry='9' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='5.5' ry='9' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='4' fill='%23f39c12' opacity='.85'/%3E%3Ccircle r='2' fill='%23f1c40f'/%3E%3C/g%3E%3C/svg%3E");
   background-size: contain;
   background-repeat: no-repeat;
+  animation: cornerPulse 3.5s ease-in-out infinite;
 }
-.mushaf-surah-frame-corner.tl { top: -10px; right: -10px; }
-.mushaf-surah-frame-corner.tr { top: -10px; left: -10px; }
-.mushaf-surah-frame-corner.bl { bottom: -10px; right: -10px; }
-.mushaf-surah-frame-corner.br { bottom: -10px; left: -10px; }
+.mushaf-surah-frame-corner.tl { top: -12px; right: -12px; animation-delay: 0s; }
+.mushaf-surah-frame-corner.tr { top: -12px; left: -12px;  animation-delay: 0.9s; }
+.mushaf-surah-frame-corner.bl { bottom: -12px; right: -12px; animation-delay: 1.75s; }
+.mushaf-surah-frame-corner.br { bottom: -12px; left: -12px;  animation-delay: 2.65s; }
 
 .mushaf-surah-frame-name {
   font-family: "Amiri", serif;
@@ -2281,7 +2307,7 @@ header {
 /* Main text block — seamless parchment (bg lives on .mushaf-reader) */
 .mushaf-text-block {
   direction: rtl;
-  text-align: right;
+  text-align: center;
   font-family: "Amiri", "Noto Naskh Arabic", serif;
   font-size: calc(var(--mushaf-font-scale, 1) * 1.35rem);
   line-height: 2.45;
@@ -2309,7 +2335,7 @@ header {
 .mushaf-ayah-span.hl-blue  { background: rgba(96, 165, 250, 0.18); }
 .mushaf-ayah-span.hl-red   { background: rgba(248, 113, 113, 0.18); }
 
-/* Ayah number — inline gold ﴾١﴿ style */
+/* Ayah number — inline gold ﴿١﴾ bracket style */
 .mushaf-ayah-num {
   display: inline;
   color: #c9a227;
@@ -2329,9 +2355,11 @@ header {
 .mushaf-page-num {
   font-size: 0.7rem;
   opacity: 0.4;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   font-family: sans-serif;
   direction: ltr;
+  text-align: center;
+  flex-shrink: 0;
 }
 .mushaf-page-num.right { text-align: right; }
 .mushaf-page-num.left  { text-align: left; }
@@ -2341,10 +2369,11 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 1.5rem;
-  padding-top: 0.75rem;
+  margin-top: 0.4rem;
+  padding-top: 0.5rem;
   border-top: 1px solid rgba(201, 162, 39, 0.2);
   direction: ltr;
+  flex-shrink: 0;
 }
 .mushaf-page-nav-btn {
   display: flex;

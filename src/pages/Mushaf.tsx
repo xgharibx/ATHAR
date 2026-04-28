@@ -262,7 +262,7 @@ export function MushafPage() {
   const [jumpInput, setJumpInput] = React.useState("");
 
   // Font scale: 0.7 – 1.6 in 0.1 steps
-  const [fontScale, setFontScale] = React.useState<number>(() => prefs.mushafFontScale ?? 1.0);
+  const [fontScale, setFontScale] = React.useState<number>(() => prefs.mushafFontScale ?? 0.78);
   const bumpFont = React.useCallback((delta: number) => {
     setFontScale((prev) => {
       const next = Math.round(Math.max(0.7, Math.min(1.6, prev + delta)) * 10) / 10;
@@ -430,7 +430,8 @@ export function MushafPage() {
             <span>الجزء {toArabicNumeral(pageJuz)}</span>
           </div>
 
-          {/* Surah groups */}
+          {/* Surah groups — fills available space and centers content */}
+          <div className="mushaf-page-main">
           {surahGroups.map((group) => (
             <React.Fragment key={group.surahId}>
               {group.startsHere && (
@@ -472,6 +473,7 @@ export function MushafPage() {
               </div>
             </React.Fragment>
           ))}
+          </div>
 
           {/* Page number */}
           <div className={`mushaf-page-num ${currentPage % 2 === 0 ? "left" : "right"}`}>

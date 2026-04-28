@@ -417,7 +417,7 @@ export function LeaderboardPage() {
                   <div className="min-w-0">
                     <div className="text-sm font-semibold truncate">{r.name}</div>
                     <div className="text-[11px] opacity-60">
-                      {r.id === myEntry.id ? "أنت" : "عضو"} • {r.day ?? todayKey}
+                      {r.id === myEntry.id ? `أنت • انضممت: ${identity.joinedAt}` : (r.day ? `عضو • ${r.day}` : "عضو")}
                     </div>
                   </div>
                 </div>

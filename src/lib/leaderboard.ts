@@ -16,6 +16,7 @@ export type LeaderboardIdentity = {
   id: string;
   alias: string;
   secret: string;
+  joinedAt: string; // ISO date string of first registration
 };
 
 export type LeaderboardAliasReason =
@@ -108,6 +109,7 @@ const ALIAS_KEY = "noor_lb_alias_v2";
 const SECRET_KEY = "noor_lb_secret_v2";
 const USER_INDEX_KEY = "noor_lb_user_index_v2";
 const USER_COUNTER_KEY = "noor_lb_user_counter_v2";
+const JOINED_KEY = "noor_lb_joined_v2";
 const QUEUE_KEY = "noor_lb_queue_v2";
 const HISTORY_KEY = "noor_lb_history_v2";
 const ADMIN_TOKEN_KEY = "noor_lb_admin_token_v1";
@@ -396,9 +398,16 @@ export function getLeaderboardIdentity(): LeaderboardIdentity {
   ensureMigration();
   try {
     let id = localStorage.getItem(ID_KEY);
+    const isNew = !id;
     if (!id) {
       id = randomId("anon");
       localStorage.setItem(ID_KEY, id);
+    }
+
+    let joinedAt = localStorage.getItem(JOINED_KEY);
+    if (!joinedAt || isNew) {
+      joinedAt = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      localStorage.setItem(JOINED_KEY, joinedAt);
     }
 
     let alias = localStorage.getItem(ALIAS_KEY);
@@ -420,12 +429,13 @@ export function getLeaderboardIdentity(): LeaderboardIdentity {
       localStorage.setItem(SECRET_KEY, secret);
     }
 
-    return { id, alias, secret };
+    return { id, alias, secret, joinedAt };
   } catch {
     return {
       id: "anon_fallback",
       alias: "مستخدم 1",
-      secret: "fallback_secret"
+      secret: "fallback_secret",
+      joinedAt: new Date().toISOString().slice(0, 10)
     };
   }
 }
