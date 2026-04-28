@@ -1,16 +1,6 @@
 ﻿import * as React from "react";
 import { cn } from "@/lib/utils";
 
-/**
- * LogoMark — adaptive SVG header icon.
- *
- * Renders the brand fingerprint + "أثر" using CSS custom properties
- * (var(--accent), var(--fg), var(--bg)) so it automatically matches
- * whichever theme the user has selected.
- *
- * The real PNG (public/icons/icon-512.png) is used for Android launcher
- * icons, PWA manifest icons, and the splash screen — NOT here.
- */
 export function LogoMark(props: { className?: string; title?: string }) {
   const title = props.title ?? "Athar";
 
@@ -22,64 +12,67 @@ export function LogoMark(props: { className?: string; title?: string }) {
       className={cn("block", props.className)}
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Background — accent-tinted to match the active theme */}
-      <rect
-        width="512"
-        height="512"
-        fill="color-mix(in srgb, var(--accent) 22%, var(--bg))"
-      />
+      <defs>
+        <radialGradient id="atharGlow" cx="50%" cy="42%" r="60%">
+          <stop offset="0" stopColor="var(--accent)" stopOpacity="0.45" />
+          <stop offset="1" stopColor="var(--accent)" stopOpacity="0" />
+        </radialGradient>
+        <filter id="atharSoft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.2" />
+        </filter>
+        <filter id="atharShadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="#000" floodOpacity="0.35" />
+        </filter>
+      </defs>
 
-      {/* Subtle radial glow behind fingerprint */}
-      <radialGradient id="lmGlow" cx="50%" cy="40%" r="52%">
-        <stop offset="0" stopColor="var(--accent)" stopOpacity="0.22" />
-        <stop offset="1" stopColor="var(--accent)" stopOpacity="0" />
-      </radialGradient>
-      <ellipse cx="256" cy="200" rx="185" ry="200" fill="url(#lmGlow)" />
+      <rect width="512" height="512" fill="var(--bg)" />
+      <rect width="512" height="512" fill="url(#atharGlow)" />
 
-      {/* ── Fingerprint ridges (oval whorl) ───────────────────────────
-          Seven arcs, each slightly wider and taller, forming an
-          egg-shaped fingerprint centered at (256, 195).           */}
-      <g
-        fill="none"
-        stroke="var(--accent)"
-        strokeLinecap="round"
-        strokeOpacity="0.92"
-      >
-        {/* Arc 1 — innermost */}
-        <path d="M 234 212 Q 256 188 278 212" strokeWidth="13" />
-        {/* Arc 2 */}
-        <path d="M 218 232 Q 256 200 294 232" strokeWidth="12" />
-        {/* Arc 3 */}
-        <path d="M 200 255 Q 256 214 312 255" strokeWidth="11.5" />
-        {/* Arc 4 — wide lower */}
-        <path d="M 182 280 Q 256 228 330 280" strokeWidth="11" />
-        {/* Arc 5 — upper mirror */}
-        <path d="M 205 180 Q 256 148 307 180" strokeWidth="10.5" />
-        {/* Arc 6 — upper wide */}
-        <path d="M 186 158 Q 256 116 326 158" strokeWidth="10" />
-        {/* Arc 7 — outermost lower */}
-        <path d="M 164 308 Q 256 242 348 308" strokeWidth="10.5" />
+      <g transform="translate(256 228)" filter="url(#atharShadow)">
+        <circle r="110" fill="var(--accent)" fillOpacity="0.10" />
+        <g
+          fill="none"
+          stroke="var(--accent)"
+          strokeOpacity="0.90"
+          strokeLinecap="round"
+          filter="url(#atharSoft)"
+        >
+          <path d="M -86 -4 C -56 -66, 56 -66, 86 -4" strokeWidth="6" />
+          <path d="M -92 18 C -60 -56, 60 -56, 92 18" strokeWidth="5" />
+          <path d="M -86 42 C -54 -38, 54 -38, 86 42" strokeWidth="4.5" />
+          <path d="M -72 66 C -42 -22, 42 -22, 72 66" strokeWidth="4" />
+          <path d="M -52 86 C -28 -8, 28 -8, 52 86" strokeWidth="3.5" />
+          <path d="M -28 102 C -14 18, 14 18, 28 102" strokeWidth="3" />
+        </g>
       </g>
 
-      {/* Drop shadow filter for the text */}
-      <filter id="lmTxtShadow" x="-15%" y="-15%" width="130%" height="130%">
-        <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#000" floodOpacity="0.45" />
-      </filter>
+      <g filter="url(#atharShadow)">
+        <text
+          x="256"
+          y="280"
+          textAnchor="middle"
+          fontFamily="'Noto Naskh Arabic','Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif"
+          fontSize="104"
+          fontWeight="700"
+          fill="var(--fg)"
+          textRendering="optimizeLegibility"
+        >
+          أثر
+        </text>
+      </g>
 
-      {/* "أثر" — large Arabic text overlapping bottom of fingerprint */}
       <text
         x="256"
-        y="400"
+        y="356"
         textAnchor="middle"
         fontFamily="'Noto Naskh Arabic','Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif"
-        fontSize="152"
-        fontWeight="800"
+        fontSize="22"
+        fontWeight="500"
         fill="var(--fg)"
-        opacity="0.97"
-        filter="url(#lmTxtShadow)"
+        opacity="0.85"
         textRendering="optimizeLegibility"
       >
-        أثر
+        همسة تطمئن قلبك، وتترك أثرًا.
       </text>
     </svg>
   );
