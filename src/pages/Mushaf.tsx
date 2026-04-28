@@ -272,7 +272,7 @@ export function MushafPage() {
   const [jumpInput, setJumpInput] = React.useState("");
 
   // Font scale: 0.7 – 1.6 in 0.1 steps
-  const [fontScale, setFontScale] = React.useState<number>(() => prefs.mushafFontScale ?? 0.78);
+  const [fontScale, setFontScale] = React.useState<number>(() => prefs.mushafFontScale ?? 0.88);
   const bumpFont = React.useCallback((delta: number) => {
     setFontScale((prev) => {
       const next = Math.round(Math.max(0.7, Math.min(1.6, prev + delta)) * 10) / 10;
