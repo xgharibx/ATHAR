@@ -3,8 +3,17 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowRight, Bookmark, Globe, MoreVertical, Play, Pause,
   ChevronDown, Copy, Share2, VolumeX, Volume2, X, Pencil,
-  ChevronLeft, ChevronRight, ZoomIn, ZoomOut,
+  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2,
 } from "lucide-react";
+
+const RECITERS: Array<{ id: string; label: string }> = [
+  { id: "Alafasy_128kbps",              label: "مشاري العفاسي" },
+  { id: "Abdul_Basit_Murattal_192kbps", label: "عبد الباسط المرتل" },
+  { id: "Hudhaify_128kbps",             label: "عبدالرحمن الحذيفي" },
+  { id: "Minshawy_Murattal_128kbps",    label: "محمد المنشاوي" },
+  { id: "Abdullah_Basfar_192kbps",      label: "عبدالله بصفر" },
+  { id: "Husary_128kbps",               label: "محمود الحصري" },
+];
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { useNoorStore } from "@/store/noorStore";
@@ -240,6 +249,7 @@ export function MushafPage() {
   const [playingKey, setPlayingKey] = React.useState<string | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const [audioBarVisible, setAudioBarVisible] = React.useState(true);
+  const [showReciterSheet, setShowReciterSheet] = React.useState(false);
 
   const playAyah = React.useCallback((surahId: number, originalAyah: number, displayAyah: number) => {
     const key = `${surahId}:${displayAyah}`;
@@ -593,19 +603,57 @@ export function MushafPage() {
           >
             {playingKey ? <Pause size={15} /> : <Play size={15} />}
           </button>
-          <div className="mushaf-audio-reciter">
-            {playingKey
-              ? `▶ يُشغَّل · آية ${playingKey.split(":")[1] ?? ""}`
-              : (prefs.quranReciter ?? "Alafasy_128kbps").replace(/_128kbps|_64kbps/g, "").replace(/_/g, " ")}
-          </div>
+          <button
+            className="mushaf-audio-reciter mushaf-audio-reciter-btn"
+            onClick={() => setShowReciterSheet(true)}
+            aria-label="اختيار القارئ"
+          >
+            <Mic2 size={12} style={{ opacity: 0.6, flexShrink: 0 }} />
+            <span>
+              {playingKey
+                ? `▶ يُشغَّل · آية ${playingKey.split(":")[1] ?? ""}`
+                : (RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي")}
+            </span>
+            <ChevronDown size={12} style={{ opacity: 0.5, flexShrink: 0 }} />
+          </button>
           <button
             className="mushaf-audio-toggle"
             onClick={() => setAudioBarVisible(false)}
             aria-label="إخفاء"
           >
-            <ChevronDown size={16} />
+            <X size={14} />
           </button>
         </div>
+      )}
+
+      {/* ── Reciter picker sheet ─────────────────────────── */}
+      {showReciterSheet && (
+        <>
+          <div className="mushaf-overlay" onClick={() => setShowReciterSheet(false)} />
+          <div className="mushaf-jump-sheet" onClick={(e) => e.stopPropagation()} dir="rtl">
+            <div className="mushaf-sheet-handle" />
+            <div className="mushaf-sheet-title">اختر القارئ</div>
+            <div className="mushaf-reciter-grid">
+              {RECITERS.map((r) => (
+                <button
+                  key={r.id}
+                  className={`mushaf-reciter-chip${(prefs.quranReciter ?? "Alafasy_128kbps") === r.id ? " active" : ""}`}
+                  onClick={() => {
+                    setPrefs({ quranReciter: r.id });
+                    if (playingKey && audioRef.current) {
+                      audioRef.current.pause();
+                      setPlayingKey(null);
+                    }
+                    setShowReciterSheet(false);
+                  }}
+                >
+                  <Mic2 size={14} />
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       {/* Audio bar hidden → show button near page nav */}

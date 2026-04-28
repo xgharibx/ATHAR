@@ -2491,10 +2491,53 @@ header {
   font-size: 0.72rem;
   color: #1a1208;
   opacity: 0.6;
-  direction: ltr;
+  direction: rtl;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* Clickable reciter button */
+.mushaf-audio-reciter-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(47, 79, 55, 0.06);
+  border: 1px solid rgba(47, 79, 55, 0.18);
+  border-radius: 20px;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.mushaf-audio-reciter-btn:hover { background: rgba(47, 79, 55, 0.13); }
+/* Reciter picker grid */
+.mushaf-reciter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.mushaf-reciter-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 14px;
+  border: 1px solid rgba(47, 79, 55, 0.2);
+  background: rgba(245, 241, 228, 0.5);
+  color: #1a1208;
+  font-size: 0.78rem;
+  font-family: "Amiri", serif;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-align: right;
+  direction: rtl;
+}
+.mushaf-reciter-chip:hover { background: rgba(47, 79, 55, 0.1); }
+.mushaf-reciter-chip.active {
+  background: rgba(47, 79, 55, 0.15);
+  border-color: rgba(47, 79, 55, 0.5);
+  color: #1b5e20;
+  font-weight: 700;
 }
 .mushaf-audio-toggle {
   width: 28px;
