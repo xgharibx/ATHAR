@@ -30,6 +30,7 @@ export type PrayerSoundProfile =
   | "aladhan_adhan_9";
 export type PrayerAlertPrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
 export type PrayerAlertPreferences = Record<PrayerAlertPrayer, boolean>;
+export type HomeWidgetKey = "prayer" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird";
 
 export type Preferences = {
   theme: NoorTheme;
@@ -56,6 +57,7 @@ export type Preferences = {
   transparentMode: boolean;
   customAccent?: string; // override --accent, e.g. "#ff5555"
   autoAdvanceDhikr: boolean; // scroll to next card on item completion
+  homeWidgets: Record<HomeWidgetKey, boolean>;
 };
 
 export type Reminders = {
@@ -212,7 +214,38 @@ const DEFAULT_PREFS: Preferences = {
   transparentMode: true,
   customAccent: undefined,
   autoAdvanceDhikr: true,
+  homeWidgets: {
+    prayer: true,
+    wisdom: true,
+    smart: true,
+    checklist: true,
+    dailyStep: true,
+    tasbeeh: true,
+    dailyWird: true,
+  },
 };
+
+function normalizeHomeWidgets(value: unknown): Record<HomeWidgetKey, boolean> {
+  const source = value && typeof value === "object" ? value as Partial<Record<HomeWidgetKey, unknown>> : {};
+  return {
+    prayer: typeof source.prayer === "boolean" ? source.prayer : DEFAULT_PREFS.homeWidgets.prayer,
+    wisdom: typeof source.wisdom === "boolean" ? source.wisdom : DEFAULT_PREFS.homeWidgets.wisdom,
+    smart: typeof source.smart === "boolean" ? source.smart : DEFAULT_PREFS.homeWidgets.smart,
+    checklist: typeof source.checklist === "boolean" ? source.checklist : DEFAULT_PREFS.homeWidgets.checklist,
+    dailyStep: typeof source.dailyStep === "boolean" ? source.dailyStep : DEFAULT_PREFS.homeWidgets.dailyStep,
+    tasbeeh: typeof source.tasbeeh === "boolean" ? source.tasbeeh : DEFAULT_PREFS.homeWidgets.tasbeeh,
+    dailyWird: typeof source.dailyWird === "boolean" ? source.dailyWird : DEFAULT_PREFS.homeWidgets.dailyWird,
+  };
+}
+
+function normalizePrefs(value: unknown): Preferences {
+  const source = value && typeof value === "object" ? value as Partial<Preferences> : {};
+  return {
+    ...DEFAULT_PREFS,
+    ...source,
+    homeWidgets: normalizeHomeWidgets(source.homeWidgets),
+  };
+}
 
 const DEFAULT_REMINDERS: Reminders = {
   enabled: false,
@@ -617,7 +650,7 @@ export const useNoorStore = create<NoorState>()(
           ? { ...DEFAULT_REMINDERS, ...blob.reminders }
           : DEFAULT_REMINDERS;
         set({
-          prefs: { ...DEFAULT_PREFS, ...blob.prefs },
+          prefs: normalizePrefs(blob.prefs),
           reminders: {
             ...importedReminders,
             soundProfile: normalizeReminderSoundProfile(importedReminders.soundProfile),
@@ -684,7 +717,7 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 10,
+      version: 11,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -693,7 +726,7 @@ export const useNoorStore = create<NoorState>()(
         const mergedReminders = { ...DEFAULT_REMINDERS, ...persistedReminders };
         return {
           ...state,
-          prefs: { ...DEFAULT_PREFS, ...persistedPrefs },
+          prefs: normalizePrefs(persistedPrefs),
           reminders: {
             ...mergedReminders,
             soundProfile: normalizeReminderSoundProfile(mergedReminders.soundProfile),

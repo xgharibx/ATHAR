@@ -1,6 +1,6 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { House, BookOpenText, Heart, Settings2, BarChart3 } from "lucide-react";
+import { House, BookOpenText, Heart, Trophy, BarChart3 } from "lucide-react";
 import { useNoorStore } from "@/store/noorStore";
 
 function todayISO() {
@@ -26,7 +26,7 @@ const NAV_ITEMS = [
   { path: "/quran", label: "القرآن", icon: BookOpenText },
   { path: "/favorites", label: "المفضلة", icon: Heart },
   { path: "/insights", label: "إحصاءات", icon: BarChart3 },
-  { path: "/settings", label: "الضبط", icon: Settings2 },
+  { path: "/leaderboard", label: "الترتيب", icon: Trophy },
 ] as const;
 
 export function FloatingNav() {

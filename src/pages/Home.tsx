@@ -11,6 +11,9 @@ import {
   CheckCircle2,
   ChevronDown,
   MoreVertical,
+  Eye,
+  EyeOff,
+  LayoutGrid,
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -19,7 +22,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Badge } from "@/components/ui/Badge";
-import { useNoorStore } from "@/store/noorStore";
+import { type HomeWidgetKey, useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { pct, cn } from "@/lib/utils";
@@ -39,6 +42,26 @@ const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
   { key: "alhamdulillah", label: "الْحَمْدُ لِلَّه" },
   { key: "la_ilaha_illallah", label: "لا إِلَهَ إِلَّا الله" },
   { key: "allahu_akbar", label: "اللهُ أَكْبَر" }
+];
+
+const DEFAULT_HOME_WIDGETS = {
+  prayer: true,
+  wisdom: true,
+  smart: true,
+  checklist: true,
+  dailyStep: true,
+  tasbeeh: true,
+  dailyWird: true,
+} satisfies Record<HomeWidgetKey, boolean>;
+
+const HOME_WIDGET_CONTROLS: Array<{ key: HomeWidgetKey; label: string }> = [
+  { key: "prayer", label: "الصلاة" },
+  { key: "wisdom", label: "الحكمة" },
+  { key: "smart", label: "الآن" },
+  { key: "checklist", label: "المهام" },
+  { key: "dailyStep", label: "خطوة" },
+  { key: "tasbeeh", label: "التسبيح" },
+  { key: "dailyWird", label: "الورد" },
 ];
 
 function parseISODate(dateISO: string) {
@@ -114,6 +137,7 @@ export function HomePage() {
   const progressMap = useNoorStore((s) => s.progress);
   const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
   const prefs = useNoorStore((s) => s.prefs);
+  const setPrefs = useNoorStore((s) => s.setPrefs);
 
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
   const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
@@ -134,6 +158,13 @@ export function HomePage() {
   const [checklistExpanded, setChecklistExpanded] = React.useState<boolean | null>(null);
   const [dailyWirdExpanded, setDailyWirdExpanded] = React.useState(false);
   const [tasbeehTarget, setTasbeehTarget] = React.useState<33 | 100>(100);
+  const homeWidgets = React.useMemo(
+    () => ({ ...DEFAULT_HOME_WIDGETS, ...prefs.homeWidgets }),
+    [prefs.homeWidgets]
+  );
+  const toggleHomeWidget = React.useCallback((key: HomeWidgetKey) => {
+    setPrefs({ homeWidgets: { ...homeWidgets, [key]: !homeWidgets[key] } });
+  }, [homeWidgets, setPrefs]);
 
   const quranLastReadSurahName = React.useMemo(() => {
     if (!quranLastRead || !quran.data) return null;
@@ -634,9 +665,41 @@ export function HomePage() {
         </div>
       )}
 
-      <PrayerWidget />
-      <DailyWisdomCard />
+      <Card className="p-4">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <LayoutGrid size={15} className="text-[var(--accent)]" />
+            <div className="text-sm font-semibold">ودجات الصفحة</div>
+          </div>
+          <Badge>{HOME_WIDGET_CONTROLS.filter((widget) => homeWidgets[widget.key]).length}/{HOME_WIDGET_CONTROLS.length}</Badge>
+        </div>
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+          {HOME_WIDGET_CONTROLS.map((widget) => {
+            const active = homeWidgets[widget.key];
+            return (
+              <button
+                key={widget.key}
+                type="button"
+                onClick={() => toggleHomeWidget(widget.key)}
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition active:scale-[.97]",
+                  active
+                    ? "bg-[var(--accent)]/12 border-[var(--accent)]/30 text-[var(--accent)]"
+                    : "bg-white/4 border-white/10 opacity-60"
+                )}
+              >
+                {active ? <Eye size={13} /> : <EyeOff size={13} />}
+                {widget.label}
+              </button>
+            );
+          })}
+        </div>
+      </Card>
 
+      {homeWidgets.prayer && <PrayerWidget />}
+      {homeWidgets.wisdom && <DailyWisdomCard />}
+
+      {homeWidgets.smart && (
       <Card className="p-4">
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
@@ -702,8 +765,10 @@ export function HomePage() {
           {smartNow.actionLabel}
         </Button>
       </Card>
+      )}
 
       {/* Bottom: Daily Checklist */}
+      {homeWidgets.checklist && (
       <Card className="p-5">
         {(() => {
           const allChecklistDone = DAILY_CHECKLIST_ITEMS.every((item) => !!dailyChecklistToday[item.id]);
@@ -780,9 +845,10 @@ export function HomePage() {
           );
         })()}
       </Card>
+      )}
 
       {/* ── خطوة اليوم ── */}
-      {(() => {
+      {homeWidgets.dailyStep && (() => {
         const dayIndex = Math.floor(Date.now() / 86400000);
         const step = BETTER_MUSLIM_DAILY_STEPS[dayIndex % BETTER_MUSLIM_DAILY_STEPS.length] ?? "";
         const isStepDone = !!dailyBetterStepDone[worshipDayKey];
@@ -816,6 +882,7 @@ export function HomePage() {
         );
       })()}
 
+      {homeWidgets.tasbeeh && (
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -933,7 +1000,9 @@ export function HomePage() {
           })}
         </div>
       </Card>
+      )}
 
+      {homeWidgets.dailyWird && (
       <Card className={`p-5 transition-colors ${isDailyWirdDone ? "border border-[var(--ok)]/25" : ""}`}>
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -1022,6 +1091,7 @@ export function HomePage() {
           </div>
         )}
       </Card>
+      )}
 
     </div>
   );

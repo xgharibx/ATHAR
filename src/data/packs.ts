@@ -79,6 +79,10 @@ export function addCustomDhikrItem(item: { text: string; count: number; benefit?
       text,
       count: coerceCount(item.count),
       benefit: item.benefit?.trim() ?? "",
+      source: "",
+      source_label: "",
+      source_url: "",
+      minimal: false,
       count_description: "",
     },
   ];

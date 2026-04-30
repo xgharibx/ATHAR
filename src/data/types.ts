@@ -6,6 +6,10 @@ import { z } from "zod";
 export const DhikrItemSchema = z.object({
   text: z.string(),
   benefit: z.string().optional().default(""),
+  source: z.string().optional().default(""),
+  source_label: z.string().optional().default(""),
+  source_url: z.string().optional().default(""),
+  minimal: z.boolean().optional().default(false),
   count: z.union([z.number(), z.string()]).optional().default(1),
   count_description: z.string().optional().default("")
 });
@@ -41,6 +45,10 @@ export type FlatDhikr = {
   index: number;
   text: string;
   benefit?: string;
+  source?: string;
+  source_label?: string;
+  source_url?: string;
+  minimal?: boolean;
   count: number;
 };
 

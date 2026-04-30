@@ -80,6 +80,10 @@ export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] 
         index: idx,
         text: item.text,
         benefit: item.benefit,
+        source: item.source,
+        source_label: item.source_label,
+        source_url: item.source_url,
+        minimal: item.minimal,
         count: item.count
       });
     });

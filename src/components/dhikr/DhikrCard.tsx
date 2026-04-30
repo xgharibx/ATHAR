@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Heart, RotateCcw, Share2, Copy, CheckCircle2, Minus, ImageDown } from "lucide-react";
+import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { cn, clamp } from "@/lib/utils";
@@ -198,6 +198,8 @@ export function DhikrCard(props: {
     const base = prefs.stripDiacritics ? stripDiacritics(t) : t;
     return formatLeadingIstiadhahBasmalah(base);
   }, [item.text, prefs.stripDiacritics]);
+  const sourceUrl = typeof item.source_url === "string" && item.source_url.trim().length > 0 ? item.source_url.trim() : "";
+  const sourceLabel = (item.source_label || item.source || (sourceUrl ? "فتح المصدر" : "")).trim();
 
   const onCount = () => {
     const next = increment({ sectionId, index, target });
@@ -330,7 +332,7 @@ export function DhikrCard(props: {
       <div className="p-4 md:p-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <IconButton aria-label="نسخ" onClick={doCopy} title="نسخ النص">
               <Copy size={18} className="opacity-80" />
             </IconButton>
@@ -350,13 +352,43 @@ export function DhikrCard(props: {
             >
               <Heart size={18} className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
             </IconButton>
+            {sourceUrl ? (
+              <IconButton aria-label="فتح المصدر" title="فتح المصدر" onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}>
+                <ExternalLink size={18} className="opacity-80" />
+              </IconButton>
+            ) : null}
           </div>
-          {props.totalItems != null && (
-            <div className="text-xs tabular-nums opacity-35 leading-tight text-end self-center shrink-0">
-              {index + 1}/{props.totalItems}
-            </div>
-          )}
+          <div className="flex flex-col items-end gap-1.5 self-center shrink-0">
+            {item.minimal ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ok)]/25 bg-[var(--ok)]/10 px-2 py-1 text-[10px] font-semibold text-[var(--ok)]">
+                <BookOpen size={11} />
+                أقل القليل
+              </span>
+            ) : null}
+            {props.totalItems != null && (
+              <div className="text-xs tabular-nums opacity-35 leading-tight text-end">
+                {index + 1}/{props.totalItems}
+              </div>
+            )}
+          </div>
         </div>
+
+        {sourceLabel && !sourceUrl ? (
+          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] opacity-65">
+            <BookOpen size={12} />
+            <span>{sourceLabel}</span>
+          </div>
+        ) : null}
+        {sourceLabel && sourceUrl ? (
+          <button
+            type="button"
+            onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-1.5 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/14"
+          >
+            <ExternalLink size={12} />
+            <span>{sourceLabel}</span>
+          </button>
+        ) : null}
 
         {/* Text + swipe zone */}
         <div
