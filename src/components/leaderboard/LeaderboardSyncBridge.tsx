@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
+import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { syncLeaderboardAliasFromServer, syncLeaderboardSnapshot } from "@/lib/leaderboard";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
@@ -11,7 +12,11 @@ const AUTO_SYNC_DEBOUNCE_MS = 2500;
 export function LeaderboardSyncBridge() {
   const endpoint = (import.meta.env.VITE_LEADERBOARD_ENDPOINT as string | undefined) ?? "";
   const { data } = useAdhkarDB();
-  const todayKey = useTodayKey();
+  const prayerTimes = usePrayerTimes();
+  const todayKey = useTodayKey({
+    mode: "ibadah",
+    fajrTime: prayerTimes.data?.data?.timings?.Fajr,
+  });
   const progress = useNoorStore((state) => state.progress);
   const quranLastRead = useNoorStore((state) => state.quranLastRead);
   const prayersDone = useNoorStore((state) => state.dailyChecklist[todayKey] ?? {});

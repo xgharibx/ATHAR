@@ -14,13 +14,13 @@ type TasbeehKey = typeof TASBEEHAT[number]["key"];
 export function QuickTasbeehFab() {
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<TasbeehKey>("subhanallah");
+  const [target, setTarget] = React.useState<33 | 100>(100);
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
   const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
   const prefs = useNoorStore((s) => s.prefs);
   const [pulse, setPulse] = React.useState(false);
 
   const count = quickTasbeeh[selected] ?? 0;
-  const target = 100;
   const pct = Math.min(count / target, 1);
   const current = TASBEEHAT.find((t) => t.key === selected)!;
 
@@ -95,6 +95,24 @@ export function QuickTasbeehFab() {
               )}
             >
               {t.short}
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-4 grid grid-cols-2 gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1">
+          {[33, 100].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setTarget(value as 33 | 100)}
+              className={cn(
+                "rounded-xl px-3 py-2 text-xs font-semibold transition",
+                target === value
+                  ? "bg-[var(--accent)] text-black"
+                  : "text-white/65 hover:bg-white/8"
+              )}
+            >
+              {value}
             </button>
           ))}
         </div>

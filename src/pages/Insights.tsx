@@ -13,6 +13,7 @@ import { coerceCount } from "@/data/types";
 import { pct } from "@/lib/utils";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { useTodayKey } from "@/hooks/useTodayKey";
+import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { TOTAL_QURAN_AYAHS, SURAH_JUZ } from "@/lib/quranMeta";
 import { DAILY_CHECKLIST_ITEMS } from "@/data/dailyGrowth";
 
@@ -64,7 +65,7 @@ const MILESTONES: Array<{ id: string; label: string; emoji: string; req: number;
   { id: "total_500",   label: "مثابر",         emoji: "⭐", req: 500,   type: "total" },
   { id: "total_1k",    label: "متقن",          emoji: "🌟", req: 1000,  type: "total" },
   { id: "total_5k",    label: "حافظ",          emoji: "🏆", req: 5000,  type: "total" },
-  { id: "total_10k",   label: "ولي",           emoji: "💫", req: 10000, type: "total" },
+  { id: "total_10k",   label: "رفيق الذكر",     emoji: "💫", req: 10000, type: "total" },
   { id: "streak_7",    label: "أسبوع نور",     emoji: "🔥", req: 7,     type: "streak" },
   { id: "streak_30",   label: "شهر صبر",       emoji: "⚡", req: 30,    type: "streak" },
   { id: "streak_100",  label: "مئة يوم",        emoji: "🌙", req: 100,   type: "streak" },
@@ -89,6 +90,8 @@ export function InsightsPage() {
   const { data: quranData } = useQuranDB();
   const dailyChecklist = useNoorStore((s) => s.dailyChecklist);
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
+  const prayerTimes = usePrayerTimes();
+  const fajrTime = prayerTimes.data?.data?.timings?.Fajr;
   const streak = React.useMemo(() => computeStreak(activity), [activity]);
   const bestStreak = React.useMemo(() => computeBestStreak(activity), [activity]);
 
@@ -139,13 +142,18 @@ export function InsightsPage() {
   }, [activity]);
 
   const total = Object.values(activity).reduce((a, b) => a + (b ?? 0), 0);
-  const todayKey = useTodayKey();
+  const civilTodayKey = useTodayKey();
+  const worshipDayKey = useTodayKey({ mode: "ibadah", fajrTime });
 
-  const todayCount = activity[todayKey] ?? 0;
+  const todayCount = activity[civilTodayKey] ?? 0;
 
   const unlockedMilestones = React.useMemo(
     () => MILESTONES.map((m) => ({ ...m, unlocked: m.type === "total" ? total >= m.req : streak >= m.req })),
     [total, streak]
+  );
+  const nextMilestone = React.useMemo(
+    () => unlockedMilestones.find((m) => !m.unlocked) ?? null,
+    [unlockedMilestones]
   );
 
   const weekTotal = React.useMemo(() => {
@@ -235,7 +243,7 @@ export function InsightsPage() {
       .reduce((s, [, v]) => s + (v ?? 0), 0);
   }, [quranDailyAyahs]);
 
-  const todayQuranAyahs = quranDailyAyahs[todayKey] ?? 0;
+  const todayQuranAyahs = quranDailyAyahs[civilTodayKey] ?? 0;
   const quranGoal = Math.max(1, quranDailyGoal ?? 10);
   const quranGoalPct = Math.min(100, Math.round((todayQuranAyahs / quranGoal) * 100));
 
@@ -292,8 +300,8 @@ export function InsightsPage() {
     }
   }
 
-  const isWirdDone = !!dailyWirdDone[todayKey];
-  const dailyChecklistToday = dailyChecklist[todayKey] ?? {};
+  const isWirdDone = !!dailyWirdDone[worshipDayKey];
+  const dailyChecklistToday = dailyChecklist[worshipDayKey] ?? {};
   const checklistDoneCount = DAILY_CHECKLIST_ITEMS.filter((item) => !!dailyChecklistToday[item.id]).length;
   const checklistTotal = DAILY_CHECKLIST_ITEMS.length;
   const checklistPct = Math.round((checklistDoneCount / checklistTotal) * 100);
@@ -748,6 +756,18 @@ export function InsightsPage() {
             {unlockedMilestones.filter((m) => m.unlocked).length}/{MILESTONES.length}
           </span>
         </div>
+        {nextMilestone ? (
+          <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[11px] opacity-55">الشارة القادمة</div>
+              <div className="mt-1 text-sm font-semibold truncate">{nextMilestone.label}</div>
+            </div>
+            <span className="shrink-0 rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-1.5 text-xs font-semibold tabular-nums text-[var(--accent)]">
+              {Math.max(0, nextMilestone.req - (nextMilestone.type === "total" ? total : streak)).toLocaleString("ar-SA")}
+              {nextMilestone.type === "total" ? " ذكر" : " يوم"}
+            </span>
+          </div>
+        ) : null}
         <div className="grid grid-cols-4 gap-2">
           {unlockedMilestones.map((m) => (
             <div

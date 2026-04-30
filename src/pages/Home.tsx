@@ -132,7 +132,8 @@ export function HomePage() {
 
   const sections = data?.db.sections ?? [];
   const [checklistExpanded, setChecklistExpanded] = React.useState<boolean | null>(null);
-  const [dailyWirdExpanded, setDailyWirdExpanded] = React.useState<boolean | null>(null);
+  const [dailyWirdExpanded, setDailyWirdExpanded] = React.useState(false);
+  const [tasbeehTarget, setTasbeehTarget] = React.useState<33 | 100>(100);
 
   const quranLastReadSurahName = React.useMemo(() => {
     if (!quranLastRead || !quran.data) return null;
@@ -265,12 +266,12 @@ export function HomePage() {
   }, [lastVisitedSectionId, sections]);
 
   const quickTotal = React.useMemo(() => {
-    const target = 100;
+    const target = tasbeehTarget;
     const done = QUICK_TASBEEH.reduce((acc, it) => acc + Math.min(target, quickTasbeeh[it.key] ?? 0), 0);
     const total = QUICK_TASBEEH.length * target;
     const percent = pct(done, total);
     return { done, total, percent };
-  }, [quickTasbeeh]);
+  }, [quickTasbeeh, tasbeehTarget]);
 
   const streak = React.useMemo(() => {
     const set = new Set(Object.keys(activity).filter((k) => (activity[k] ?? 0) > 0));
@@ -817,8 +818,28 @@ export function HomePage() {
 
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
-          <div className="text-sm font-semibold">مختارات اليوم</div>
+          <div>
+            <div className="text-sm font-semibold">مختارات اليوم</div>
+            <div className="mt-1 text-xs opacity-55">هدف التسبيح: {tasbeehTarget}</div>
+          </div>
           <div className="flex items-center gap-2">
+            <div className="flex rounded-2xl border border-white/10 bg-white/5 p-1">
+              {[33, 100].map((target) => (
+                <button
+                  key={target}
+                  type="button"
+                  onClick={() => setTasbeehTarget(target as 33 | 100)}
+                  className={cn(
+                    "min-w-10 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition",
+                    tasbeehTarget === target
+                      ? "bg-[var(--accent)] text-black"
+                      : "text-white/65 hover:bg-white/8"
+                  )}
+                >
+                  {target}
+                </button>
+              ))}
+            </div>
             <Badge>{`${quickTotal.done}/${quickTotal.total}`}</Badge>
             {confirmTasbeehReset ? (
               <>
@@ -844,14 +865,14 @@ export function HomePage() {
             <span>✅</span>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>تمت التسابيح</div>
-              <div className="text-[11px] opacity-60 mt-0.5">400/400 — بارك الله فيك</div>
+              <div className="text-[11px] opacity-60 mt-0.5">{quickTotal.total}/{quickTotal.total} — بارك الله فيك</div>
             </div>
           </div>
         )}
 
         <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
           {QUICK_TASBEEH.map((it) => {
-            const target = 100;
+            const target = tasbeehTarget;
             const v = Math.min(target, quickTasbeeh[it.key] ?? 0);
             const pct = target ? v / target : 0;
             const r = 22;
@@ -864,7 +885,7 @@ export function HomePage() {
               <button
                 key={it.key}
                 onClick={() => {
-                  incQuickTasbeeh(it.key, 100);
+                  incQuickTasbeeh(it.key, tasbeehTarget);
                   if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(12);
                 }}
                 className="glass rounded-3xl p-4 text-right transition border border-white/10 select-none press-effect glass-hover"
@@ -872,7 +893,7 @@ export function HomePage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-sm font-semibold arabic-text leading-7 break-words whitespace-normal">{it.label}</div>
-                    <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/100</div>
+                    <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/{target}</div>
                   </div>
 
                   <div className="shrink-0">
@@ -905,7 +926,7 @@ export function HomePage() {
 
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <div className="text-xs opacity-70">انقر للعدّ</div>
-                  <Badge>{done ? "تم" : `${100 - v} متبقّي`}</Badge>
+                  <Badge>{done ? "تم" : `${target - v} متبقّي`}</Badge>
                 </div>
               </button>
             );
@@ -932,16 +953,16 @@ export function HomePage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setDailyWirdExpanded((v) => (v === null ? isDailyWirdDone : !v))}
+              onClick={() => setDailyWirdExpanded((v) => !v)}
               className="w-8 h-8 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90"
-              aria-label={(dailyWirdExpanded !== null ? dailyWirdExpanded : !isDailyWirdDone) ? "طي" : "عرض"}
-              title={(dailyWirdExpanded !== null ? dailyWirdExpanded : !isDailyWirdDone) ? "طي ورد اليوم" : "عرض ورد اليوم"}
+              aria-label={dailyWirdExpanded ? "طي" : "عرض"}
+              title={dailyWirdExpanded ? "طي ورد اليوم" : "عرض ورد اليوم"}
             >
               <ChevronDown
                 size={14}
                 className={cn(
                   "transition-transform duration-200",
-                  (dailyWirdExpanded !== null ? dailyWirdExpanded : !isDailyWirdDone) && "rotate-180"
+                  dailyWirdExpanded && "rotate-180"
                 )}
               />
             </button>
@@ -978,7 +999,7 @@ export function HomePage() {
           <div className="mt-4 text-sm opacity-65 leading-7">
             تعذر تحميل ورد اليوم.
           </div>
-        ) : (dailyWirdExpanded !== null ? dailyWirdExpanded : !isDailyWirdDone) ? (
+        ) : dailyWirdExpanded ? (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
             {dailyWird.items.map((p) => (
               <button
