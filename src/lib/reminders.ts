@@ -1,5 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import type { PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
+import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 
 const REMINDER_IDS = {
   morning: 9101,
@@ -27,6 +27,14 @@ const PRAYER_LABELS: Record<keyof typeof PRAYER_NOTIFICATION_IDS, string> = {
 type PrayerTimingName = keyof typeof PRAYER_NOTIFICATION_IDS;
 
 type PrayerNotificationTimings = Partial<Record<PrayerTimingName, string>>;
+
+const DEFAULT_PRAYER_ALERTS: PrayerAlertPreferences = {
+  Fajr: true,
+  Dhuhr: true,
+  Asr: true,
+  Maghrib: true,
+  Isha: true,
+};
 
 const REMINDER_NOTIFICATION_ICON = "ic_stat_athar";
 const REMINDER_NOTIFICATION_LARGE_ICON = "logo_notification_large";
@@ -100,6 +108,46 @@ function getPrayerChannelId(soundProfile: PrayerSoundProfile) {
   return `athar-prayer-${soundProfile.replaceAll("_", "-")}`;
 }
 
+let activePreviewAudio: HTMLAudioElement | null = null;
+let activePreviewKey: string | null = null;
+
+export function stopSoundPreview() {
+  const stoppedKey = activePreviewKey;
+  if (activePreviewAudio) {
+    activePreviewAudio.pause();
+    activePreviewAudio.currentTime = 0;
+  }
+  activePreviewAudio = null;
+  activePreviewKey = null;
+  return stoppedKey;
+}
+
+async function playSoundPreview(src: string, key: string, volume: number, onDone?: () => void) {
+  stopSoundPreview();
+
+  const audio = new Audio(src);
+  activePreviewAudio = audio;
+  activePreviewKey = key;
+  audio.volume = volume;
+
+  const clear = () => {
+    if (activePreviewAudio !== audio) return;
+    activePreviewAudio = null;
+    activePreviewKey = null;
+    onDone?.();
+  };
+
+  audio.addEventListener("ended", clear, { once: true });
+  audio.addEventListener("error", clear, { once: true });
+
+  try {
+    await audio.play();
+  } catch (error) {
+    clear();
+    throw error;
+  }
+}
+
 function parseHHMM(value: string): { hour: number; minute: number } | null {
   const clean = String(value ?? "").trim().split(" ")[0] ?? "";
   const m = /^(\d{1,2}):(\d{2})$/.exec(clean);
@@ -127,18 +175,14 @@ function nextAtLocalTime(hhmm: string): Date | null {
   return at;
 }
 
-export async function playReminderSoundPreview(soundProfile: ReminderSoundProfile) {
+export async function playReminderSoundPreview(soundProfile: ReminderSoundProfile, onDone?: () => void) {
   const sound = getReminderSoundOption(soundProfile);
-  const audio = new Audio(`/sounds/reminders/${sound.fileName}`);
-  audio.volume = 0.85;
-  await audio.play();
+  await playSoundPreview(`/sounds/reminders/${sound.fileName}`, `reminder:${soundProfile}`, 0.85, onDone);
 }
 
-export async function playPrayerSoundPreview(soundProfile: PrayerSoundProfile) {
+export async function playPrayerSoundPreview(soundProfile: PrayerSoundProfile, onDone?: () => void) {
   const sound = getPrayerSoundOption(soundProfile);
-  const audio = new Audio(`/sounds/prayer-alerts/${sound.fileName}`);
-  audio.volume = 0.9;
-  await audio.play();
+  await playSoundPreview(`/sounds/prayer-alerts/${sound.fileName}`, `prayer:${soundProfile}`, 0.9, onDone);
 }
 
 export async function isNativePlatform() {
@@ -251,8 +295,11 @@ function buildReminderNotifications(reminders: Reminders, audio: NotificationAud
 function buildPrayerNotifications(
   prayerTimings: PrayerNotificationTimings,
   audio: NotificationAudioConfig,
+  enabledPrayers: PrayerAlertPreferences,
 ) {
   return (Object.keys(PRAYER_NOTIFICATION_IDS) as PrayerTimingName[]).flatMap((prayerName) => {
+    if (!enabledPrayers[prayerName]) return [];
+
     const notification = buildRepeatingNotification({
       id: PRAYER_NOTIFICATION_IDS[prayerName],
       title: "أثر — الأذان",
@@ -332,7 +379,11 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
 
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
-    notifications.push(...buildPrayerNotifications(prayerTimings, prayerNotificationAudio));
+    notifications.push(...buildPrayerNotifications(
+      prayerTimings,
+      prayerNotificationAudio,
+      { ...DEFAULT_PRAYER_ALERTS, ...reminders.prayerAlerts },
+    ));
   }
 
   if (!notifications.length) return;

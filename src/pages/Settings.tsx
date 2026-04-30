@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, Keyboard, BookMarked, BookOpen, Play } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, Keyboard, BookMarked, BookOpen, Play, Square } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Card } from "@/components/ui/Card";
@@ -19,6 +19,7 @@ import {
   PRAYER_SOUND_OPTIONS,
   REMINDER_SOUND_OPTIONS,
   requestNotificationPermission,
+  stopSoundPreview,
   syncReminders
 } from "@/lib/reminders";
 
@@ -45,6 +46,14 @@ const RECITERS: Array<{ id: string; label: string }> = [
   { id: "Abdullah_Basfar_192kbps",      label: "عبدالله بصفر" },
   { id: "Husary_128kbps",               label: "محمود الحصري" },
 ];
+
+const PRAYER_ALERT_OPTIONS = [
+  { id: "Fajr", label: "الفجر" },
+  { id: "Dhuhr", label: "الظهر" },
+  { id: "Asr", label: "العصر" },
+  { id: "Maghrib", label: "المغرب" },
+  { id: "Isha", label: "العشاء" },
+] as const;
 
 function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; onClick: () => void }) {
   const dotColor = THEME_ACCENTS[props.value];
@@ -89,6 +98,7 @@ export function SettingsPage() {
 
   const [isNative, setIsNative] = React.useState(false);
   const [notifPerm, setNotifPerm] = React.useState<"unknown" | "granted" | "denied" | "prompt">("unknown");
+  const [playingPreview, setPlayingPreview] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -109,6 +119,46 @@ export function SettingsPage() {
       cancelled = true;
     };
   }, []);
+
+  React.useEffect(() => {
+    return () => {
+      stopSoundPreview();
+    };
+  }, []);
+
+  const toggleReminderPreview = async (soundProfile: typeof REMINDER_SOUND_OPTIONS[number]["id"]) => {
+    const key = `reminder:${soundProfile}`;
+    if (playingPreview === key) {
+      stopSoundPreview();
+      setPlayingPreview(null);
+      return;
+    }
+
+    setPlayingPreview(key);
+    try {
+      await playReminderSoundPreview(soundProfile, () => setPlayingPreview(null));
+    } catch {
+      setPlayingPreview(null);
+      toast.error("تعذر تشغيل المعاينة");
+    }
+  };
+
+  const togglePrayerPreview = async (soundProfile: typeof PRAYER_SOUND_OPTIONS[number]["id"]) => {
+    const key = `prayer:${soundProfile}`;
+    if (playingPreview === key) {
+      stopSoundPreview();
+      setPlayingPreview(null);
+      return;
+    }
+
+    setPlayingPreview(key);
+    try {
+      await playPrayerSoundPreview(soundProfile, () => setPlayingPreview(null));
+    } catch {
+      setPlayingPreview(null);
+      toast.error("تعذر تشغيل المعاينة");
+    }
+  };
 
   const onBackup = () => {
     const blob = exportState();
@@ -648,17 +698,11 @@ export function SettingsPage() {
                   <div className="mt-3 flex justify-end">
                     <button
                       type="button"
-                      onClick={async () => {
-                        try {
-                          await playReminderSoundPreview(option.id);
-                        } catch {
-                          toast.error("تعذر تشغيل المعاينة");
-                        }
-                      }}
+                      onClick={() => void toggleReminderPreview(option.id)}
                       className="inline-flex items-center gap-1.5 rounded-xl border border-white/12 bg-white/6 px-3 py-2 text-xs transition hover:bg-white/10"
                     >
-                      <Play size={12} />
-                      معاينة
+                      {playingPreview === `reminder:${option.id}` ? <Square size={12} /> : <Play size={12} />}
+                      {playingPreview === `reminder:${option.id}` ? "إيقاف" : "معاينة"}
                     </button>
                   </div>
                 </div>
@@ -681,6 +725,27 @@ export function SettingsPage() {
                 onCheckedChange={(v) => setReminders({ prayerAlertsEnabled: v })}
                 disabled={!reminders.enabled}
               />
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="text-xs font-semibold">اختر الصلوات التي تريد الأذان لها</div>
+              <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2">
+                {PRAYER_ALERT_OPTIONS.map((prayer) => (
+                  <label
+                    key={prayer.id}
+                    className="rounded-2xl border border-white/10 bg-black/10 px-3 py-2.5 flex items-center justify-between gap-2 text-sm"
+                  >
+                    <span>{prayer.label}</span>
+                    <Switch
+                      checked={reminders.prayerAlerts?.[prayer.id] ?? true}
+                      onCheckedChange={(v) => setReminders({
+                        prayerAlerts: { ...reminders.prayerAlerts, [prayer.id]: v },
+                      })}
+                      disabled={!reminders.enabled || !reminders.prayerAlertsEnabled}
+                    />
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/10 p-4">
@@ -719,17 +784,11 @@ export function SettingsPage() {
                       <div className="mt-3 flex justify-end">
                         <button
                           type="button"
-                          onClick={async () => {
-                            try {
-                              await playPrayerSoundPreview(option.id);
-                            } catch {
-                              toast.error("تعذر تشغيل المعاينة");
-                            }
-                          }}
+                          onClick={() => void togglePrayerPreview(option.id)}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-white/12 bg-white/6 px-3 py-2 text-xs transition hover:bg-white/10"
                         >
-                          <Play size={12} />
-                          معاينة
+                          {playingPreview === `prayer:${option.id}` ? <Square size={12} /> : <Play size={12} />}
+                          {playingPreview === `prayer:${option.id}` ? "إيقاف" : "معاينة"}
                         </button>
                       </div>
                     </div>

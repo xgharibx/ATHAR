@@ -66,12 +66,6 @@ export type PrayerScheduleModel = {
 
 const PRIMARY_PRAYER_ORDER: PrimaryPrayerName[] = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
-const TIME_FORMATTER = new Intl.DateTimeFormat("ar-SA-u-nu-latn", {
-  hour: "numeric",
-  minute: "2-digit",
-  hour12: true,
-});
-
 export const PRAYER_LABELS: Record<PrayerTimingName, string> = {
   Fajr: "الفجر",
   Sunrise: "الشروق",
@@ -92,10 +86,9 @@ export function formatMinutes12h(totalMinutes: number) {
   const wrapped = ((Math.round(totalMinutes) % 1440) + 1440) % 1440;
   const hh = Math.floor(wrapped / 60);
   const mm = wrapped % 60;
-  const date = new Date(2000, 0, 1, hh, mm);
-  return TIME_FORMATTER
-    .format(date)
-    .trim();
+  const displayHour = hh % 12 || 12;
+  const period = hh < 12 ? "ص" : "م";
+  return `\u200E${displayHour}:${String(mm).padStart(2, "0")} ${period}\u200E`;
 }
 
 export function format12h(raw: string) {

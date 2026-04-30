@@ -3,6 +3,15 @@ import { Bell, Clock3 } from "lucide-react";
 import type { PrayerTimings } from "@/lib/prayerSchedule";
 import { buildPrayerSchedule, formatCountdown, formatRemainingText } from "@/lib/prayerSchedule";
 
+function resolveRingStroke(phaseType: "prayer" | "moment" | "forbidden" | "wait", isImminent: boolean, isUrgent: boolean) {
+  if (phaseType === "forbidden") return "rgba(255, 177, 177, 0.96)";
+  if (phaseType === "wait") return "rgba(202, 188, 255, 0.94)";
+  if (phaseType === "moment") return "rgba(144, 216, 255, 0.94)";
+  if (isImminent) return "var(--accent)";
+  if (isUrgent) return "rgba(255, 214, 102, 0.92)";
+  return "rgba(190, 235, 255, 0.92)";
+}
+
 export function PrayerCountdown(props: Readonly<{
   timings: PrayerTimings;
   compact?: boolean;
@@ -32,12 +41,20 @@ export function PrayerCountdown(props: Readonly<{
   const progressOffset = circumference * (1 - schedule.progress);
   const isUrgent = schedule.diffSec < 900;
   const isImminent = schedule.diffSec < 180;
-  const ringStroke = isImminent
-    ? "var(--accent)"
-    : isUrgent
-      ? "rgba(255, 214, 102, 0.92)"
-      : "rgba(190, 235, 255, 0.92)";
+  const ringStroke = resolveRingStroke(schedule.currentPhase.type, isImminent, isUrgent);
   const showRangeLabel = compact === false;
+  const showExpandedMeta = compact === false;
+  const expandedMeta = showExpandedMeta ? (
+    <>
+      <div className="mt-3 flex items-center gap-2 text-xs opacity-60">
+        <Clock3 size={12} />
+        <span>التالي {schedule.nextPhase.label}</span>
+      </div>
+      <div className="mt-1 text-sm font-medium leading-6">
+        يبقى {formatRemainingText(schedule.diffSec)}
+      </div>
+    </>
+  ) : null;
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
@@ -45,21 +62,21 @@ export function PrayerCountdown(props: Readonly<{
         <div className="flex items-center gap-2 text-xs opacity-65">
           <div className="countdown-live-dot" aria-hidden="true" />
           <Bell size={14} className={isImminent ? "text-[var(--accent)] animate-bounce" : "opacity-60"} />
-          <span>الآن: {schedule.current.label}</span>
+          <span>الحالة الآن</span>
         </div>
-        <div className={[compact ? "mt-2 text-3xl" : "mt-3 text-4xl", "font-bold tabular-nums leading-none"].join(" ")}>
-          {schedule.current.timeLabel}
+        <div className={[compact ? "mt-2 text-2xl" : "mt-3 text-4xl", "font-bold leading-tight"].join(" ")}>
+          {schedule.currentPhase.label}
         </div>
-        <div className="mt-2 flex items-center gap-2 text-xs opacity-60">
-          <Clock3 size={12} />
-          <span>التالي {schedule.next.label}</span>
+        <div dir="ltr" className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-6"].join(" ")}>
+          {schedule.currentPhase.value}
         </div>
-        <div className="mt-1 text-sm font-medium leading-6">
-          يبقى {formatRemainingText(schedule.diffSec)}
+        <div className="mt-1 text-xs opacity-60 leading-6">
+          {schedule.currentPhase.subtitle}
         </div>
+        {expandedMeta}
         {showRangeLabel ? (
           <div className="mt-2 text-xs opacity-55 leading-6">
-            من {schedule.current.label} إلى {schedule.next.label}
+            من {schedule.currentPhase.label} إلى {schedule.nextPhase.label}
           </div>
         ) : null}
       </div>
@@ -92,7 +109,7 @@ export function PrayerCountdown(props: Readonly<{
             <div className={[compact ? "mt-1 text-sm" : "mt-1 text-base", "font-bold tabular-nums"].join(" ")}>
               {formatCountdown(schedule.diffSec)}
             </div>
-            <div className="mt-1 text-[11px] opacity-55">حتى {schedule.next.label}</div>
+            <div className="mt-1 text-[11px] opacity-55">حتى {schedule.nextPhase.label}</div>
           </div>
         </div>
       </div>

@@ -14,8 +14,8 @@ export function PrayerWidget() {
   const [nowTs, setNowTs] = React.useState(() => Date.now());
 
   React.useEffect(() => {
-    const id = window.setInterval(() => setNowTs(Date.now()), 30_000);
-    return () => window.clearInterval(id);
+    const id = globalThis.setInterval(() => setNowTs(Date.now()), 30_000);
+    return () => globalThis.clearInterval(id);
   }, []);
 
   const timings = data?.data?.timings;
@@ -79,33 +79,12 @@ export function PrayerWidget() {
               <span className={cn("text-[11px]", isCurrent ? "opacity-95 font-semibold" : isNext ? "opacity-85" : "opacity-55")}>
                 {prayer.label}
               </span>
-              <span className={cn("text-sm font-medium tabular-nums", isCurrent && "text-[var(--accent)]")}>
+              <span dir="ltr" className={cn("text-sm font-medium tabular-nums", isCurrent && "text-[var(--accent)]")}>
                 {prayer.timeLabel}
               </span>
             </div>
           );
         })}
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2">
-        {schedule.extraMoments.filter((item) => item.id !== "midnight").map((item) => (
-          <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
-            <div className="text-[11px] opacity-55">{item.label}</div>
-            <div className="mt-1 text-sm font-semibold tabular-nums">{item.value}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-        <div className="text-[11px] opacity-55 mb-2">أوقات النهي عن الصلاة</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          {schedule.forbiddenWindows.map((item) => (
-            <div key={item.id} className="rounded-2xl bg-[#ff9b9b]/10 border border-[#ffb1b1]/15 px-3 py-2">
-              <div className="text-[11px] opacity-55">{item.label}</div>
-              <div className="mt-1 text-sm font-medium tabular-nums">{item.value}</div>
-            </div>
-          ))}
-        </div>
       </div>
 
       <Button variant="secondary" className="mt-4 w-full justify-between" onClick={() => navigate("/prayer-times")}>

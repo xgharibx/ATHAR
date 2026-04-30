@@ -19,6 +19,8 @@ export type NoorTheme =
 
 export type ReminderSoundProfile = "birds_dawn" | "rain_calm" | "night_breeze";
 export type PrayerSoundProfile = "adhan_haram" | "adhan_fajr" | "iqama_soft";
+export type PrayerAlertPrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
+export type PrayerAlertPreferences = Record<PrayerAlertPrayer, boolean>;
 
 export type Preferences = {
   theme: NoorTheme;
@@ -52,6 +54,7 @@ export type Reminders = {
   soundProfile: ReminderSoundProfile;
   prayerSoundProfile: PrayerSoundProfile;
   prayerAlertsEnabled: boolean;
+  prayerAlerts: PrayerAlertPreferences;
   morningEnabled: boolean;
   morningTime: string; // HH:MM
   eveningEnabled: boolean;
@@ -207,6 +210,13 @@ const DEFAULT_REMINDERS: Reminders = {
   soundProfile: "birds_dawn",
   prayerSoundProfile: "adhan_haram",
   prayerAlertsEnabled: true,
+  prayerAlerts: {
+    Fajr: true,
+    Dhuhr: true,
+    Asr: true,
+    Maghrib: true,
+    Isha: true,
+  },
   morningEnabled: true,
   morningTime: "07:00",
   eveningEnabled: true,
@@ -255,6 +265,17 @@ function normalizePrayerSoundProfile(value: unknown): PrayerSoundProfile {
     default:
       return DEFAULT_REMINDERS.prayerSoundProfile;
   }
+}
+
+function normalizePrayerAlerts(value: unknown): PrayerAlertPreferences {
+  const source = value && typeof value === "object" ? value as Partial<Record<PrayerAlertPrayer, unknown>> : {};
+  return {
+    Fajr: typeof source.Fajr === "boolean" ? source.Fajr : DEFAULT_REMINDERS.prayerAlerts.Fajr,
+    Dhuhr: typeof source.Dhuhr === "boolean" ? source.Dhuhr : DEFAULT_REMINDERS.prayerAlerts.Dhuhr,
+    Asr: typeof source.Asr === "boolean" ? source.Asr : DEFAULT_REMINDERS.prayerAlerts.Asr,
+    Maghrib: typeof source.Maghrib === "boolean" ? source.Maghrib : DEFAULT_REMINDERS.prayerAlerts.Maghrib,
+    Isha: typeof source.Isha === "boolean" ? source.Isha : DEFAULT_REMINDERS.prayerAlerts.Isha,
+  };
 }
 
 function todayISO() {
@@ -577,6 +598,7 @@ export const useNoorStore = create<NoorState>()(
             ...importedReminders,
             soundProfile: normalizeReminderSoundProfile(importedReminders.soundProfile),
             prayerSoundProfile: normalizePrayerSoundProfile(importedReminders.prayerSoundProfile),
+            prayerAlerts: normalizePrayerAlerts(importedReminders.prayerAlerts),
           },
           progress: sanitizeNumberMap(blob.progress),
           favorites: blob.favorites ?? {},
@@ -638,7 +660,7 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 9,
+      version: 10,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -652,6 +674,7 @@ export const useNoorStore = create<NoorState>()(
             ...mergedReminders,
             soundProfile: normalizeReminderSoundProfile(mergedReminders.soundProfile),
             prayerSoundProfile: normalizePrayerSoundProfile(mergedReminders.prayerSoundProfile),
+            prayerAlerts: normalizePrayerAlerts(mergedReminders.prayerAlerts),
           },
           progress: sanitizeNumberMap(state.progress),
           quickTasbeeh: sanitizeNumberMap(state.quickTasbeeh),
