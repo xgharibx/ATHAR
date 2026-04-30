@@ -73,22 +73,58 @@ export const PRAYER_SOUND_OPTIONS: Array<{
   fileName: string;
 }> = [
   {
-    id: "adhan_haram",
+    id: "aladhan_adhan_1",
     label: "أذان 1",
     description: "",
-    fileName: "adhan_haram.mp3",
+    fileName: "aladhan_adhan_1.mp3",
   },
   {
-    id: "adhan_fajr",
+    id: "aladhan_adhan_2",
     label: "أذان 2",
     description: "",
-    fileName: "adhan_fajr.mp3",
+    fileName: "aladhan_adhan_2.mp3",
   },
   {
-    id: "iqama_soft",
+    id: "aladhan_adhan_3",
     label: "أذان 3",
     description: "",
-    fileName: "iqama_soft.mp3",
+    fileName: "aladhan_adhan_3.mp3",
+  },
+  {
+    id: "aladhan_adhan_4",
+    label: "أذان 4",
+    description: "",
+    fileName: "aladhan_adhan_4.mp3",
+  },
+  {
+    id: "aladhan_adhan_5",
+    label: "أذان 5",
+    description: "",
+    fileName: "aladhan_adhan_5.mp3",
+  },
+  {
+    id: "aladhan_adhan_6",
+    label: "أذان 6",
+    description: "",
+    fileName: "aladhan_adhan_6.mp3",
+  },
+  {
+    id: "aladhan_adhan_7",
+    label: "أذان 7",
+    description: "",
+    fileName: "aladhan_adhan_7.mp3",
+  },
+  {
+    id: "aladhan_adhan_8",
+    label: "أذان 8",
+    description: "",
+    fileName: "aladhan_adhan_8.mp3",
+  },
+  {
+    id: "aladhan_adhan_9",
+    label: "أذان 9",
+    description: "",
+    fileName: "aladhan_adhan_9.mp3",
   },
 ];
 

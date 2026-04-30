@@ -4,6 +4,42 @@ These files are bundled in ATHAR for in-app preview and notification playback.
 
 Prayer alerts
 
+- `prayer-alerts/aladhan_adhan_1.mp3`
+  Source: https://aladhan.com/play
+  Original file: https://cdn.aladhan.com/audio/adhans/a9.mp3
+
+- `prayer-alerts/aladhan_adhan_2.mp3`
+  Source: https://aladhan.com/play
+  Original file: https://cdn.aladhan.com/audio/adhans/a1.mp3
+
+- `prayer-alerts/aladhan_adhan_3.mp3`
+  Source: https://aladhan.com/play
+  Original file: https://cdn.aladhan.com/audio/adhans/a2.mp3
+
+- `prayer-alerts/aladhan_adhan_4.mp3`
+  Source: https://aladhan.com/play
+  Original file: https://cdn.aladhan.com/audio/adhans/a3.mp3
+
+- `prayer-alerts/aladhan_adhan_5.mp3`
+  Source: https://aladhan.com/play
+  Original file: https://cdn.aladhan.com/audio/adhans/a4.mp3
+
+- `prayer-alerts/aladhan_adhan_6.mp3`
+  Source: https://aladhan.com/play
+  Original file: https://cdn.aladhan.com/audio/adhans/a7.mp3
+
+- `prayer-alerts/aladhan_adhan_7.mp3`
+  Source: https://aladhan.com/play
+  Original file: https://cdn.aladhan.com/audio/adhans/a11-mansour-al-zahrani.mp3
+
+- `prayer-alerts/aladhan_adhan_8.mp3`
+  Source: https://aladhan.com/play
+  Original file: https://cdn.aladhan.com/audio/adhans/fajr/f1.mp3
+
+- `prayer-alerts/aladhan_adhan_9.mp3`
+  Source: https://aladhan.com/play
+  Original file: https://cdn.aladhan.com/audio/adhans/fajr/f2-mansour-al-zahrani.mp3
+
 - `prayer-alerts/adhan_haram.ogg`
   Source: https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg
   Original file: https://upload.wikimedia.org/wikipedia/commons/b/b0/Beautiful_adhan.ogg

@@ -6,13 +6,14 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
-import { addPackFromJson, loadPacks, removePack, savePacks, type NoorPack } from "@/data/packs";
+import { addCustomDhikrItem, addPackFromJson, loadPacks, removePack, savePacks, type NoorPack } from "@/data/packs";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function SourcesPage() {
   const { data } = useAdhkarDB();
+  const queryClient = useQueryClient();
   const [packs, setPacks] = React.useState<NoorPack[]>(() => loadPacks());
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
-  const [customTitle, setCustomTitle] = React.useState("أذكاري الخاصة");
   const [customText, setCustomText] = React.useState("");
   const [customCount, setCustomCount] = React.useState("1");
   const [customBenefit, setCustomBenefit] = React.useState("");
@@ -42,7 +43,6 @@ export function SourcesPage() {
 
   const onAddCustomDhikr = () => {
     const text = customText.trim();
-    const title = customTitle.trim() || "أذكاري الخاصة";
     const count = Math.max(1, Number.parseInt(customCount, 10) || 1);
 
     if (!text) {
@@ -50,29 +50,12 @@ export function SourcesPage() {
       return;
     }
 
-    const pack: NoorPack = {
-      packId: `custom_${Date.now().toString(16)}`,
-      name: title,
-      importedAt: new Date().toISOString(),
-      sections: [{
-        id: `custom_${Date.now().toString(16)}`,
-        title,
-        content: [{
-          text,
-          count,
-          benefit: customBenefit.trim(),
-          count_description: "",
-        }],
-      }],
-    };
-
-    const next = [...packs, pack];
-    savePacks(next);
+    const next = addCustomDhikrItem({ text, count, benefit: customBenefit });
     setPacks(next);
     setCustomText("");
     setCustomBenefit("");
+    void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
     toast.success("تمت إضافة الذكر");
-    globalThis.setTimeout(() => globalThis.location.reload(), 400);
   };
 
   return (
@@ -125,11 +108,9 @@ export function SourcesPage() {
         </div>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_120px] gap-3">
-          <Input
-            value={customTitle}
-            onChange={(event) => setCustomTitle(event.target.value)}
-            placeholder="اسم القسم"
-          />
+          <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-[var(--fg)]">
+            أذكاري
+          </div>
           <Input
             type="number"
             min={1}
@@ -143,7 +124,7 @@ export function SourcesPage() {
           value={customText}
           onChange={(event) => setCustomText(event.target.value)}
           placeholder="اكتب الذكر"
-          className="mt-3 min-h-32 w-full rounded-3xl border border-white/10 bg-white/6 px-4 py-3 text-sm leading-7 outline-none focus:border-[var(--accent)]/40"
+          className="mt-3 min-h-32 w-full rounded-3xl border border-white/10 bg-white/6 px-4 py-3 text-sm leading-7 text-[var(--fg)] outline-none focus:border-[var(--accent)]/40 placeholder:text-[var(--muted-2)]"
         />
 
         <Input

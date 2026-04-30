@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck } from "lucide-react";
+import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
@@ -14,21 +15,30 @@ import { downloadJson } from "@/lib/download";
 import { isDailySection } from "@/lib/dailySections";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
+import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem } from "@/data/packs";
+import { Input } from "@/components/ui/Input";
 
-export function DhikrList(props: {
+export function DhikrList(props: Readonly<{
   sectionId: string;
   title: string;
   items: DhikrItem[];
   focusIndex?: number | null;
-}) {
+}>) {
   const resetSection = useNoorStore((s) => s.resetSection);
   const increment = useNoorStore((s) => s.increment);
   const progressMap = useNoorStore((s) => s.progress);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: adhkarData } = useAdhkarDB();
   const [confirmReset, setConfirmReset] = React.useState(false);
   const [confirmDone, setConfirmDone] = React.useState(false);
+  const [addOpen, setAddOpen] = React.useState(false);
+  const [customText, setCustomText] = React.useState("");
+  const [customCount, setCustomCount] = React.useState("1");
+  const [customBenefit, setCustomBenefit] = React.useState("");
   const isDailySectionLocked = isDailySection(props.sectionId);
+  const isMyAdhkarSection = props.sectionId === MY_ADHKAR_SECTION_ID;
+  const hasItems = props.items.length > 0;
   const identity = React.useMemo(() => getSectionIdentity(props.sectionId), [props.sectionId]);
 
   const [midnightLabel, setMidnightLabel] = React.useState<string>("");
@@ -156,8 +166,8 @@ export function DhikrList(props: {
 
   const exportSection = () => {
     const safeTitle = (props.title || "")
-      .replace(/[\\/:*?"<>|]+/g, " ")
-      .replace(/\s+/g, " ")
+      .replaceAll(/[\\/:*?"<>|]+/g, " ")
+      .replaceAll(/\s+/g, " ")
       .trim();
 
     const blob = {
@@ -169,6 +179,24 @@ export function DhikrList(props: {
     const date = new Date().toISOString().slice(0, 10);
     downloadJson(`ATHAR-${safeTitle || "قسم"}-${date}.athar`, blob);
     toast.success("تم تصدير القسم كملف");
+  };
+
+  const addMyDhikr = () => {
+    const text = customText.trim();
+    const count = Math.max(1, Number.parseInt(customCount, 10) || 1);
+
+    if (!text) {
+      toast.error("اكتب الذكر أولاً");
+      return;
+    }
+
+    addCustomDhikrItem({ text, count, benefit: customBenefit });
+    setCustomText("");
+    setCustomBenefit("");
+    setCustomCount("1");
+    setAddOpen(false);
+    void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
+    toast.success("تمت إضافة الذكر");
   };
 
   return (
@@ -192,10 +220,18 @@ export function DhikrList(props: {
               </div>
               <h1 className="text-xl md:text-2xl font-semibold" style={{ color: identity.accent }}>{props.title}</h1>
               <div className="text-sm opacity-70 mt-2 tabular-nums">
-                التقدّم: {stats.done}/{stats.total} • {stats.percent}% • ~{Math.max(1, Math.round(props.items.length / 2))} دق
+                {hasItems
+                  ? `التقدّم: ${stats.done}/${stats.total} • ${stats.percent}% • ~${Math.max(1, Math.round(props.items.length / 2))} دق`
+                  : "0 ذكر"}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              {isMyAdhkarSection ? (
+                <Button variant="primary" onClick={() => setAddOpen(true)}>
+                  <Plus size={16} />
+                  إضافة
+                </Button>
+              ) : null}
               {confirmReset ? (
                 <>
                   <Button
@@ -217,7 +253,7 @@ export function DhikrList(props: {
                 <Button
                   variant="outline"
                   onClick={() => setConfirmReset(true)}
-                  disabled={isDailySectionLocked}
+                  disabled={isDailySectionLocked || !hasItems}
                   title={isDailySectionLocked ? "يتجدد هذا القسم تلقائيًا عند منتصف الليل" : "تصفير القسم"}
                 >
                   <RotateCcw size={16} />
@@ -242,18 +278,18 @@ export function DhikrList(props: {
                 <Button
                   variant="secondary"
                   onClick={() => setConfirmDone(true)}
-                  disabled={isDailySectionLocked || stats.percent >= 100}
+                  disabled={isDailySectionLocked || !hasItems || stats.percent >= 100}
                   title="تحديد جميع الأذكار كمكتملة"
                   aria-label="تحديد جميع الأذكار كمكتملة"
                 >
                   <CheckCheck size={16} />
                 </Button>
               )}
-              <Button variant="secondary" onClick={exportSection}>
+              <Button variant="secondary" onClick={exportSection} disabled={!hasItems}>
                 <ArrowDownToLine size={16} />
                 تصدير
               </Button>
-              <Button variant="secondary" onClick={copyAllText}>
+              <Button variant="secondary" onClick={copyAllText} disabled={!hasItems}>
                 <Copy size={16} />
                 {copiedAll ? "تم ✓" : "نسخ الكل"}
               </Button>
@@ -338,29 +374,99 @@ export function DhikrList(props: {
             )}
           </div>
         )}
-        <Virtuoso
-          ref={virtuosoRef}
-          style={{ height: "100%" }}
-          data={props.items}
-          atTopStateChange={(atTop) => setShowBackToTop(!atTop)}
-          itemContent={(index, item) => (
-            <div className="pb-4">
-              <DhikrCard
-                sectionId={props.sectionId}
-                index={index}
-                item={item}
-                autoFocus={props.focusIndex === index}
-                totalItems={props.items.length}
-                onComplete={() => {
-                  const nextIdx = index + 1;
-                  if (nextIdx < props.items.length) {
-                    virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "start", behavior: "smooth" });
-                  }
-                }}
-              />
+        {props.items.length === 0 && isMyAdhkarSection ? (
+          <div className="h-full rounded-3xl border border-white/10 bg-white/5 grid place-items-center p-6 text-center">
+            <div>
+              <div className="text-3xl mb-3">✦</div>
+              <div className="font-semibold">أذكاري</div>
+              <Button className="mt-4" onClick={() => setAddOpen(true)}>
+                <Plus size={16} />
+                إضافة ذكر
+              </Button>
             </div>
-          )}
-        />
+          </div>
+        ) : (
+          <Virtuoso
+            ref={virtuosoRef}
+            style={{ height: "100%" }}
+            data={props.items}
+            atTopStateChange={(atTop) => setShowBackToTop(!atTop)}
+            itemContent={(index, item) => (
+              <div className="pb-4">
+                <DhikrCard
+                  sectionId={props.sectionId}
+                  index={index}
+                  item={item}
+                  autoFocus={props.focusIndex === index}
+                  totalItems={props.items.length}
+                  onComplete={() => {
+                    const nextIdx = index + 1;
+                    if (nextIdx < props.items.length) {
+                      virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "start", behavior: "smooth" });
+                    }
+                  }}
+                />
+              </div>
+            )}
+          />
+        )}
+        {isMyAdhkarSection && !addOpen ? (
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            aria-label="إضافة ذكر"
+            className="fixed right-4 z-[9991] h-14 w-14 rounded-2xl bg-[var(--accent)] text-black shadow-2xl grid place-items-center active:scale-95 transition"
+            style={{ bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--mobile-fab-size) + var(--mobile-fab-gap) + var(--sab))" }}
+          >
+            <Plus size={22} />
+          </button>
+        ) : null}
+        {isMyAdhkarSection && addOpen ? (
+          <div className="fixed inset-0 z-[10000] bg-black/55 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
+            <button type="button" className="absolute inset-0" aria-label="إغلاق" onClick={() => setAddOpen(false)} />
+            <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-white/15 p-5 pb-32 md:pb-5 shadow-2xl" dir="rtl">
+              <div className="flex items-center justify-between gap-3">
+                <div className="font-semibold">إضافة ذكر</div>
+                <button
+                  type="button"
+                  onClick={() => setAddOpen(false)}
+                  className="h-10 w-10 rounded-2xl bg-white/8 border border-white/10 grid place-items-center"
+                  aria-label="إغلاق"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px] gap-3">
+                <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-[var(--fg)]">
+                  أذكاري
+                </div>
+                <Input
+                  type="number"
+                  min={1}
+                  value={customCount}
+                  onChange={(event) => setCustomCount(event.target.value)}
+                  placeholder="العدد"
+                />
+              </div>
+              <textarea
+                value={customText}
+                onChange={(event) => setCustomText(event.target.value)}
+                placeholder="اكتب الذكر"
+                className="mt-3 min-h-36 w-full rounded-3xl border border-white/10 bg-white/6 px-4 py-3 text-sm leading-7 text-[var(--fg)] outline-none focus:border-[var(--accent)]/40 placeholder:text-[var(--muted-2)]"
+              />
+              <Input
+                className="mt-3"
+                value={customBenefit}
+                onChange={(event) => setCustomBenefit(event.target.value)}
+                placeholder="المصدر أو الفضل"
+              />
+              <Button className="mt-4 w-full" onClick={addMyDhikr}>
+                <Plus size={16} />
+                حفظ الذكر
+              </Button>
+            </div>
+          </div>
+        ) : null}
         {showBackToTop && (
           <button
             onClick={() => virtuosoRef.current?.scrollToIndex({ index: 0, behavior: "smooth" })}

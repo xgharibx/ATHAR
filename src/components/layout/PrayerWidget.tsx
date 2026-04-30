@@ -21,7 +21,6 @@ export function PrayerWidget() {
   const timings = data?.data?.timings;
   const date = data?.data?.date;
   const isCached = !!data?.__fromCache;
-  const sourceLabel = data?.__sourceLabel ?? "المصدر الافتراضي";
   const schedule = React.useMemo(
     () => (timings ? buildPrayerSchedule(timings, new Date(nowTs)) : null),
     [nowTs, timings]
@@ -42,7 +41,6 @@ export function PrayerWidget() {
         <div className="flex items-center gap-2">
           <Clock size={16} className="text-[var(--accent)]" />
           <span className="font-semibold text-sm">مواقيت الصلاة</span>
-          <span className="text-[11px] opacity-60">{sourceLabel}</span>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <span className="text-[11px] opacity-60 bg-white/5 px-2 py-1 rounded-full border border-white/10">

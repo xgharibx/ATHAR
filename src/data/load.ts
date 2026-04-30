@@ -1,7 +1,8 @@
 import { AdhkarDBSchema, type AdhkarDB, type FlatDhikr, coerceCount, type RawAdhkarDB } from "./types";
-import { mergeWithPacks } from "./packs";
+import { MY_ADHKAR_SECTION_ID, MY_ADHKAR_TITLE, mergeWithPacks } from "./packs";
 
 const SECTION_ORDER = [
+  MY_ADHKAR_SECTION_ID,
   "morning",
   "evening",
   "post_prayer",
@@ -38,6 +39,11 @@ function orderedSections(sections: AdhkarDB["sections"]) {
     .map(({ section }) => section);
 }
 
+function ensureMyAdhkarSection(sections: AdhkarDB["sections"]) {
+  if (sections.some((section) => section.id === MY_ADHKAR_SECTION_ID)) return sections;
+  return [{ id: MY_ADHKAR_SECTION_ID, title: MY_ADHKAR_TITLE, content: [] }, ...sections];
+}
+
 /**
  * Loads `public/data/adhkar.json` (offline friendly via PWA caching).
  */
@@ -61,7 +67,7 @@ export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] 
 
   const mergedDb = mergeWithPacks(db);
   const dbWithPacks: AdhkarDB = {
-    sections: orderedSections(mergedDb.sections),
+    sections: orderedSections(ensureMyAdhkarSection(mergedDb.sections)),
   };
 
   const flat: FlatDhikr[] = [];

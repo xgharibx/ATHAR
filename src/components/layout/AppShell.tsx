@@ -13,7 +13,6 @@ import { IconButton } from "@/components/ui/IconButton";
 import { LogoMark } from "@/components/brand/LogoMark";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
-import { KeyboardShortcutsDialog } from "@/components/ui/KeyboardShortcutsDialog";
 
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette }))
@@ -354,47 +353,6 @@ export function AppShell() {
 
   const prefs = useNoorStore((s) => s.prefs);
 
-  // Global keyboard shortcut: Ctrl+K or Cmd+K opens CommandPalette
-  React.useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        e.preventDefault();
-        setPaletteOpen((prev) => !prev);
-      }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
-
-  // G+key navigation shortcuts (press G then H/Q/F/I/S within 1.5s)
-  React.useEffect(() => {
-    let gPressed = false;
-    let gTimer: ReturnType<typeof setTimeout> | null = null;
-    const handler = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === "g" || e.key === "G") {
-        gPressed = true;
-        if (gTimer) clearTimeout(gTimer);
-        gTimer = setTimeout(() => { gPressed = false; }, 1500);
-        return;
-      }
-      if (!gPressed) return;
-      gPressed = false;
-      if (gTimer) clearTimeout(gTimer);
-      const map: Record<string, string> = { h: "/", q: "/quran", f: "/favorites", i: "/insights", s: "/settings" };
-      const target = map[e.key.toLowerCase()];
-      if (target) {
-        e.preventDefault();
-        window.location.hash = "";
-        // Use pushState to navigate
-        window.history.pushState({}, "", target);
-        window.dispatchEvent(new PopStateEvent("popstate"));
-      }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
-
   React.useEffect(() => {
     appShellMountedCount += 1;
     if (appShellMountedCount > 1) {
@@ -476,11 +434,9 @@ export function AppShell() {
             </div>
 
             <div className="flex items-center gap-2">
-              <IconButton aria-label="بحث (Ctrl+K)" onClick={() => setPaletteOpen(true)}>
+              <IconButton aria-label="بحث" onClick={() => setPaletteOpen(true)}>
                 <Search size={18} />
               </IconButton>
-
-              <KeyboardShortcutsDialog />
 
               <NavLink to="/settings" className="inline-flex">
                 <IconButton aria-label="الإعدادات">

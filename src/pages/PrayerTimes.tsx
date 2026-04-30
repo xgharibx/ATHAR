@@ -81,7 +81,7 @@ export function PrayerTimesPage() {
         <div className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{ background: "radial-gradient(circle at top right, var(--accent), transparent 55%)" }} />
         <div className="relative">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <Badge className="text-[11px]">{data.__sourceLabel ?? "المصدر الافتراضي"}</Badge>
+            <div />
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <Badge className="text-[11px]">{date.readable}</Badge>
               <Badge className="text-[11px]">{date.hijri.date} {date.hijri.month.ar}</Badge>

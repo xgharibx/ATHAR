@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Bell, Clock3 } from "lucide-react";
+import { Bell } from "lucide-react";
 import type { PrayerTimings } from "@/lib/prayerSchedule";
 import { buildPrayerSchedule, formatCountdown, formatRemainingText } from "@/lib/prayerSchedule";
 
@@ -42,18 +42,11 @@ export function PrayerCountdown(props: Readonly<{
   const isUrgent = schedule.diffSec < 900;
   const isImminent = schedule.diffSec < 180;
   const ringStroke = resolveRingStroke(schedule.currentPhase.type, isImminent, isUrgent);
-  const showRangeLabel = compact === false;
   const showExpandedMeta = compact === false;
   const expandedMeta = showExpandedMeta ? (
-    <>
-      <div className="mt-3 flex items-center gap-2 text-xs opacity-60">
-        <Clock3 size={12} />
-        <span>التالي {schedule.nextPhase.label}</span>
-      </div>
-      <div className="mt-1 text-sm font-medium leading-6">
-        يبقى {formatRemainingText(schedule.diffSec)}
-      </div>
-    </>
+    <div className="mt-3 text-sm font-medium leading-6">
+      يبقى {formatRemainingText(schedule.diffSec)}
+    </div>
   ) : null;
 
   return (
@@ -71,11 +64,6 @@ export function PrayerCountdown(props: Readonly<{
           {schedule.currentPhase.value}
         </div>
         {expandedMeta}
-        {showRangeLabel ? (
-          <div className="mt-2 text-xs opacity-55 leading-6">
-            من {schedule.currentPhase.label} إلى {schedule.nextPhase.label}
-          </div>
-        ) : null}
       </div>
 
       <div className="relative shrink-0" style={{ width: ringSize, height: ringSize }}>

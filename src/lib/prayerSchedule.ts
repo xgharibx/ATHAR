@@ -88,7 +88,7 @@ export function formatMinutes12h(totalMinutes: number) {
   const mm = wrapped % 60;
   const displayHour = hh % 12 || 12;
   const period = hh < 12 ? "ص" : "م";
-  return `\u200E${displayHour}:${String(mm).padStart(2, "0")} ${period}\u200E`;
+  return `\u2066${displayHour}:${String(mm).padStart(2, "0")} ${period}\u2069`;
 }
 
 export function format12h(raw: string) {

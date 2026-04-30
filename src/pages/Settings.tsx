@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, Keyboard, BookMarked, BookOpen, Play, Square } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Card } from "@/components/ui/Card";
@@ -897,33 +897,6 @@ export function SettingsPage() {
               </span>
             </label>
           </div>
-        </div>
-      </Card>
-
-      <Card className="p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Keyboard size={16} className="text-[var(--accent)]" />
-          <div className="font-semibold text-sm">اختصارات لوحة المفاتيح</div>
-          <span className="text-[11px] opacity-45 mr-auto">سطح المكتب فقط</span>
-        </div>
-        <div className="space-y-2.5 text-sm">
-          {([
-            { keys: "Ctrl + K", label: "البحث السريع" },
-            { keys: "G ثم H", label: "الرئيسية" },
-            { keys: "G ثم Q", label: "القرآن الكريم" },
-            { keys: "G ثم F", label: "المفضلة" },
-            { keys: "G ثم I", label: "الإحصاءات" },
-            { keys: "G ثم S", label: "الإعدادات" },
-            { keys: "?", label: "عرض الاختصارات" },
-            { keys: "Esc", label: "إغلاق الحوار" },
-          ] as { keys: string; label: string }[]).map((s) => (
-            <div key={s.label} className="flex items-center justify-between gap-3">
-              <span className="opacity-70">{s.label}</span>
-              <kbd className="px-2 py-0.5 rounded-lg bg-white/10 border border-white/15 text-[11px] font-mono tracking-wide text-[var(--accent)] select-none">
-                {s.keys}
-              </kbd>
-            </div>
-          ))}
         </div>
       </Card>
 

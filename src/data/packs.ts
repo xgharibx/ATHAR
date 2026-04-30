@@ -1,6 +1,10 @@
 import { AdhkarDBSchema, SectionSchema, type AdhkarDB, type Section, coerceCount } from "./types";
 
 const KEY = "noor_data_packs_v1";
+const MY_ADHKAR_PACK_ID = "my_adhkar_pack";
+
+export const MY_ADHKAR_SECTION_ID = "my_adhkar";
+export const MY_ADHKAR_TITLE = "أذكاري";
 
 export type NoorPack = {
   packId: string;
@@ -42,6 +46,57 @@ export function loadPacks(): NoorPack[] {
 
 export function savePacks(packs: NoorPack[]) {
   localStorage.setItem(KEY, JSON.stringify(packs));
+}
+
+export function addCustomDhikrItem(item: { text: string; count: number; benefit?: string }) {
+  const text = item.text.trim();
+  if (!text) throw new Error("اكتب الذكر أولاً");
+
+  const packs = loadPacks();
+  const existingIndex = packs.findIndex((pack) =>
+    pack.packId === MY_ADHKAR_PACK_ID || pack.sections.some((section) => section.id === MY_ADHKAR_SECTION_ID)
+  );
+
+  const nextPacks = [...packs];
+  const pack = existingIndex >= 0 ? { ...nextPacks[existingIndex] } : {
+    packId: MY_ADHKAR_PACK_ID,
+    name: MY_ADHKAR_TITLE,
+    importedAt: new Date().toISOString(),
+    sections: [],
+  } satisfies NoorPack;
+
+  const sectionIndex = pack.sections.findIndex((section) => section.id === MY_ADHKAR_SECTION_ID);
+  const section = sectionIndex >= 0 ? { ...pack.sections[sectionIndex] } : {
+    id: MY_ADHKAR_SECTION_ID,
+    title: MY_ADHKAR_TITLE,
+    content: [],
+  } satisfies Section;
+
+  section.title = MY_ADHKAR_TITLE;
+  section.content = [
+    ...section.content,
+    {
+      text,
+      count: coerceCount(item.count),
+      benefit: item.benefit?.trim() ?? "",
+      count_description: "",
+    },
+  ];
+
+  pack.name = MY_ADHKAR_TITLE;
+  pack.importedAt = new Date().toISOString();
+  pack.sections = sectionIndex >= 0
+    ? pack.sections.map((current, index) => index === sectionIndex ? section : current)
+    : [section, ...pack.sections];
+
+  if (existingIndex >= 0) {
+    nextPacks[existingIndex] = pack;
+  } else {
+    nextPacks.push(pack);
+  }
+
+  savePacks(nextPacks);
+  return nextPacks;
 }
 
 export function addPackFromJson(json: any, name?: string): NoorPack {
@@ -95,6 +150,18 @@ export function mergeWithPacks(base: AdhkarDB): AdhkarDB {
     for (const sec of pack.sections) {
       let id = sec.id;
       let title = sec.title;
+
+      if (id === MY_ADHKAR_SECTION_ID) {
+        const existingSection = mergedSections.find((section) => section.id === MY_ADHKAR_SECTION_ID);
+        if (existingSection) {
+          existingSection.title = MY_ADHKAR_TITLE;
+          existingSection.content = [...existingSection.content, ...sec.content];
+        } else {
+          mergedSections.push({ ...sec, id: MY_ADHKAR_SECTION_ID, title: MY_ADHKAR_TITLE });
+          existingIds.add(MY_ADHKAR_SECTION_ID);
+        }
+        continue;
+      }
 
       // Avoid collisions: if exists, namespace by packId
       if (existingIds.has(id)) {
