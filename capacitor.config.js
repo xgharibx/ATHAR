@@ -3,6 +3,12 @@ var config = {
     appName: "Athar",
     webDir: "dist",
     bundledWebRuntime: false,
+    plugins: {
+        LocalNotifications: {
+            smallIcon: "ic_stat_athar",
+            iconColor: "#2F4F37",
+        },
+    },
     android: {
         // Allow the Capacitor server to handle all paths for React Router
         allowMixedContent: true,

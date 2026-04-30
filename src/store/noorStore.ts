@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { isDailySection } from "@/lib/dailySections";
+import { getIbadahDateKey, getLocalDateKey } from "@/lib/dayBoundaries";
 
 export type NoorTheme =
   | "system"
@@ -15,6 +16,8 @@ export type NoorTheme =
   | "violet"
   | "sunset"
   | "mist";
+
+export type ReminderSoundProfile = "birds_dawn" | "rain_calm" | "night_breeze";
 
 export type Preferences = {
   theme: NoorTheme;
@@ -45,6 +48,8 @@ export type Preferences = {
 
 export type Reminders = {
   enabled: boolean;
+  soundProfile: ReminderSoundProfile;
+  prayerAlertsEnabled: boolean;
   morningEnabled: boolean;
   morningTime: string; // HH:MM
   eveningEnabled: boolean;
@@ -78,6 +83,8 @@ export type ExportBlobV1 = {
   khatmaDays?: number | null;
   khatmaDone?: Record<string, boolean>;
   lastDailyResetISO?: string | null;
+  lastCivilResetISO?: string | null;
+  lastIbadahResetISO?: string | null;
   dailyChecklist?: Record<string, Record<string, boolean>>;
   dailyBetterStepDone?: Record<string, boolean>;
 };
@@ -88,7 +95,8 @@ type NoorState = {
   progress: Record<string, number>; // key: `${sectionId}:${index}`
   favorites: Record<string, boolean>;
   activity: Record<string, number>; // dateISO -> actions count
-  lastDailyResetISO: string | null;
+  lastCivilResetISO: string | null;
+  lastIbadahResetISO: string | null;
 
   // Home quick tasbeeh
   quickTasbeeh: Record<string, number>; // key: string -> count
@@ -150,7 +158,7 @@ type NoorState = {
   toggleFavorite: (sectionId: string, index: number) => void;
 
   bumpActivityToday: () => void;
-  ensureDailyResets: () => void;
+  ensureDailyResets: (fajrTime?: string | null) => void;
 
   exportState: () => ExportBlobV1;
   importState: (blob: ExportBlobV1) => void;
@@ -194,6 +202,8 @@ const DEFAULT_PREFS: Preferences = {
 
 const DEFAULT_REMINDERS: Reminders = {
   enabled: false,
+  soundProfile: "birds_dawn",
+  prayerAlertsEnabled: true,
   morningEnabled: true,
   morningTime: "07:00",
   eveningEnabled: true,
@@ -204,12 +214,31 @@ const DEFAULT_REMINDERS: Reminders = {
   khatmaTime: "21:15"
 };
 
+function normalizeReminderSoundProfile(value: unknown): ReminderSoundProfile {
+  if (typeof value !== "string") {
+    return DEFAULT_REMINDERS.soundProfile;
+  }
+
+  switch (value.trim()) {
+    case "birds_dawn":
+      return "birds_dawn";
+    case "rain_calm":
+      return "rain_calm";
+    case "night_breeze":
+      return "night_breeze";
+    case "soft_bell":
+      return "birds_dawn";
+    case "rise_glow":
+      return "rain_calm";
+    case "pulse_light":
+      return "night_breeze";
+    default:
+      return DEFAULT_REMINDERS.soundProfile;
+  }
+}
+
 function todayISO() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+  return getLocalDateKey();
 }
 
 function toSafeInt(value: unknown) {
@@ -236,7 +265,8 @@ export const useNoorStore = create<NoorState>()(
       progress: {},
       favorites: {},
       activity: {},
-      lastDailyResetISO: null,
+      lastCivilResetISO: null,
+      lastIbadahResetISO: null,
 
       quickTasbeeh: {},
       incQuickTasbeeh: (key, target = 100) => {
@@ -451,32 +481,37 @@ export const useNoorStore = create<NoorState>()(
         set((s) => ({ activity: { ...s.activity, [key]: (s.activity[key] ?? 0) + 1 } }));
       },
 
-      ensureDailyResets: () => {
-        const today = todayISO();
-        const last = get().lastDailyResetISO;
+      ensureDailyResets: (fajrTime) => {
+        const civilToday = todayISO();
+        const ibadahToday = fajrTime ? getIbadahDateKey(new Date(), fajrTime) : null;
+        const lastCivilResetISO = get().lastCivilResetISO;
+        const lastIbadahResetISO = get().lastIbadahResetISO;
 
-        if (!last) {
-          set({ lastDailyResetISO: today });
-          return;
+        const nextState: Partial<NoorState> = {};
+
+        if (lastCivilResetISO !== civilToday) {
+          nextState.lastCivilResetISO = civilToday;
         }
 
-        if (last === today) return;
+        if (ibadahToday && lastIbadahResetISO !== ibadahToday) {
+          const currentProgress = get().progress;
+          const nextProgress = { ...currentProgress };
 
-        const currentProgress = get().progress;
-        const nextProgress = { ...currentProgress };
-
-        for (const key of Object.keys(nextProgress)) {
-          const sectionId = key.split(":")[0] ?? "";
-          if (isDailySection(sectionId)) {
-            delete nextProgress[key];
+          for (const key of Object.keys(nextProgress)) {
+            const sectionId = key.split(":")[0] ?? "";
+            if (isDailySection(sectionId)) {
+              delete nextProgress[key];
+            }
           }
+
+          nextState.progress = nextProgress;
+          nextState.quickTasbeeh = {};
+          nextState.lastIbadahResetISO = ibadahToday;
         }
 
-        set({
-          progress: nextProgress,
-          quickTasbeeh: {},
-          lastDailyResetISO: today
-        });
+        if (Object.keys(nextState).length > 0) {
+          set(nextState);
+        }
       },
 
       exportState: () => {
@@ -503,7 +538,9 @@ export const useNoorStore = create<NoorState>()(
           khatmaStartISO: s.khatmaStartISO,
           khatmaDays: s.khatmaDays,
           khatmaDone: s.khatmaDone,
-          lastDailyResetISO: s.lastDailyResetISO,
+          lastDailyResetISO: s.lastCivilResetISO,
+          lastCivilResetISO: s.lastCivilResetISO,
+          lastIbadahResetISO: s.lastIbadahResetISO,
           dailyChecklist: s.dailyChecklist,
           dailyBetterStepDone: s.dailyBetterStepDone
         };
@@ -531,7 +568,8 @@ export const useNoorStore = create<NoorState>()(
           khatmaStartISO: blob.khatmaStartISO ?? null,
           khatmaDays: blob.khatmaDays ?? null,
           khatmaDone: blob.khatmaDone ?? {},
-          lastDailyResetISO: blob.lastDailyResetISO ?? null,
+          lastCivilResetISO: blob.lastCivilResetISO ?? blob.lastDailyResetISO ?? null,
+          lastIbadahResetISO: blob.lastIbadahResetISO ?? blob.lastDailyResetISO ?? null,
           dailyChecklist: blob.dailyChecklist ?? {},
           dailyBetterStepDone: blob.dailyBetterStepDone ?? {}
         });
@@ -545,7 +583,8 @@ export const useNoorStore = create<NoorState>()(
         quickTasbeeh: {},
         dailyChecklist: {},
         dailyBetterStepDone: {},
-        lastDailyResetISO: null,
+        lastCivilResetISO: null,
+        lastIbadahResetISO: null,
       }),
       resetQuranData: () => set({
         quranBookmarks: {},
@@ -572,16 +611,24 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 4,
+      version: 8,
       migrate: (persisted: unknown) => {
-        const state = (persisted ?? {}) as Partial<NoorState>;
+        const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
+        const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
+        const persistedReminders =
+          state.reminders && typeof state.reminders === "object" ? state.reminders : undefined;
+        const mergedReminders = { ...DEFAULT_REMINDERS, ...persistedReminders };
         return {
           ...state,
-          prefs: { ...DEFAULT_PREFS, ...(state.prefs ?? {}) },
-          reminders: { ...DEFAULT_REMINDERS, ...(state.reminders ?? {}) },
+          prefs: { ...DEFAULT_PREFS, ...persistedPrefs },
+          reminders: {
+            ...mergedReminders,
+            soundProfile: normalizeReminderSoundProfile(mergedReminders.soundProfile),
+          },
           progress: sanitizeNumberMap(state.progress),
           quickTasbeeh: sanitizeNumberMap(state.quickTasbeeh),
-          lastDailyResetISO: state.lastDailyResetISO ?? null,
+          lastCivilResetISO: state.lastCivilResetISO ?? state.lastDailyResetISO ?? null,
+          lastIbadahResetISO: state.lastIbadahResetISO ?? state.lastDailyResetISO ?? null,
           dailyChecklist: state.dailyChecklist ?? {},
           dailyBetterStepDone: state.dailyBetterStepDone ?? {}
         } as NoorState;

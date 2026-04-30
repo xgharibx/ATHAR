@@ -31,6 +31,7 @@ import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
 import { DailyWisdomCard } from "@/components/ui/DailyWisdomCard";
+import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -40,23 +41,8 @@ const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
   { key: "allahu_akbar", label: "اللهُ أَكْبَر" }
 ];
 
-function isoDay(d: Date) {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
-
 function parseISODate(dateISO: string) {
-  const m = (dateISO ?? "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return null;
-  const yyyy = Number(m[1]);
-  const mm = Number(m[2]);
-  const dd = Number(m[3]);
-  if (!yyyy || !mm || !dd) return null;
-  const d = new Date(yyyy, mm - 1, dd);
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
+  return parseDateKey(dateISO);
 }
 
 function daysBetween(a: Date, b: Date) {
@@ -64,13 +50,6 @@ function daysBetween(a: Date, b: Date) {
   const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
   const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
   return Math.floor((utcB - utcA) / ms);
-}
-
-function shiftISO(dateISO: string, deltaDays: number) {
-  const d = parseISODate(dateISO);
-  if (!d) return dateISO;
-  d.setDate(d.getDate() + deltaDays);
-  return isoDay(d);
 }
 
 function textClassByLength(text: string) {
@@ -153,6 +132,7 @@ export function HomePage() {
 
   const sections = data?.db.sections ?? [];
   const [checklistExpanded, setChecklistExpanded] = React.useState<boolean | null>(null);
+  const [dailyWirdExpanded, setDailyWirdExpanded] = React.useState<boolean | null>(null);
 
   const quranLastReadSurahName = React.useMemo(() => {
     if (!quranLastRead || !quran.data) return null;
@@ -170,18 +150,22 @@ export function HomePage() {
     return Math.round((readAyahs / totalAyahs) * 100);
   }, [quran.data, quranReadingHistory]);
   const [confirmTasbeehReset, setConfirmTasbeehReset] = React.useState(false);
-  const todayKey = useTodayKey();
-  const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[todayKey] ?? {});
-  const yesterdayKey = React.useMemo(() => shiftISO(todayKey, -1), [todayKey]);
+  const prayerTimes = usePrayerTimes();
+  const civilTodayKey = useTodayKey();
+  const worshipDayKey = useTodayKey({
+    mode: "ibadah",
+    fajrTime: prayerTimes.data?.data?.timings?.Fajr,
+  });
+  const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[worshipDayKey] ?? {});
+  const yesterdayKey = React.useMemo(() => shiftDateKey(worshipDayKey, -1), [worshipDayKey]);
   const dailyChecklistYesterday = useNoorStore((s) => s.dailyChecklist[yesterdayKey] ?? {});
   const toggleDailyChecklist = useNoorStore((s) => s.toggleDailyChecklist);
-  const prayerTimes = usePrayerTimes();
 
   React.useEffect(() => {
     if (!dailyWirdStartISO) {
-      setDailyWirdStartISO(todayKey);
+      setDailyWirdStartISO(worshipDayKey);
     }
-  }, [dailyWirdStartISO, setDailyWirdStartISO, todayKey]);
+  }, [dailyWirdStartISO, setDailyWirdStartISO, worshipDayKey]);
 
   const dailyWird = React.useMemo(() => {
     if (!quran.data) return null;
@@ -237,7 +221,7 @@ export function HomePage() {
     };
   }, [dailyWirdDone, dailyWirdStartISO, quran.data]);
 
-  const isDailyWirdDone = !!dailyWirdDone[todayKey];
+  const isDailyWirdDone = !!dailyWirdDone[worshipDayKey];
 
   const wirdStreak = React.useMemo(() => {
     let streak = isDailyWirdDone ? 1 : 0;
@@ -251,7 +235,7 @@ export function HomePage() {
       else break;
     }
     return streak;
-  }, [dailyWirdDone, isDailyWirdDone, todayKey]);
+  }, [dailyWirdDone, isDailyWirdDone, worshipDayKey]);
 
   const copyDailyWird = async () => {
     if (!dailyWird) return;
@@ -364,11 +348,11 @@ export function HomePage() {
         : "راجع تقدمك اليوم";
 
     const missedYesterday = DAILY_CHECKLIST_ITEMS.filter((item) => !dailyChecklistYesterday[item.id]).length;
-    const todayActivity = Number(activity[todayKey] ?? 0);
+    const todayActivity = Number(activity[civilTodayKey] ?? 0);
     const streakRisk = hour >= 20 && todayActivity === 0;
 
     return { periodLabel, suggestedAction, missedYesterday, streakRisk, actionRoute, actionLabel };
-  }, [activity, dailyChecklistToday, dailyChecklistYesterday, isDailyWirdDone, prayerContext.nextPrayer, todayKey]);
+  }, [activity, civilTodayKey, dailyChecklistToday, dailyChecklistYesterday, isDailyWirdDone, prayerContext.nextPrayer]);
 
   const adaptiveMission = React.useMemo(() => {
     const nextPrayer = prayerContext.nextPrayer;
@@ -478,9 +462,9 @@ export function HomePage() {
       toast.success("لا توجد مهام متأخرة الآن");
       return;
     }
-    toggleDailyChecklist(todayKey, item.id, true);
+    toggleDailyChecklist(worshipDayKey, item.id, true);
     toast.success(`تم إنجاز: ${item.title}`);
-  }, [adaptiveMission.recoveryItem, todayKey, toggleDailyChecklist]);
+  }, [adaptiveMission.recoveryItem, toggleDailyChecklist, worshipDayKey]);
 
   if (isLoading) {
     return (
@@ -766,7 +750,7 @@ export function HomePage() {
                     return (
                       <button
                         key={item.id}
-                        onClick={() => toggleDailyChecklist(todayKey, item.id, !isDone)}
+                        onClick={() => toggleDailyChecklist(worshipDayKey, item.id, !isDone)}
                         className={cn(
                           "w-full flex items-center gap-3 rounded-2xl px-3.5 py-3.5 min-h-[48px] border transition-all active:scale-[.97]",
                           isDone
@@ -800,7 +784,7 @@ export function HomePage() {
       {(() => {
         const dayIndex = Math.floor(Date.now() / 86400000);
         const step = BETTER_MUSLIM_DAILY_STEPS[dayIndex % BETTER_MUSLIM_DAILY_STEPS.length] ?? "";
-        const isStepDone = !!dailyBetterStepDone[todayKey];
+        const isStepDone = !!dailyBetterStepDone[worshipDayKey];
         return (
           <Card className="p-5">
             <div className="flex items-center justify-between gap-3">
@@ -811,7 +795,7 @@ export function HomePage() {
               <Button
                 variant={isStepDone ? "primary" : "secondary"}
                 onClick={() => {
-                  setDailyBetterStepDone(todayKey, !isStepDone);
+                  setDailyBetterStepDone(worshipDayKey, !isStepDone);
                   if (!isStepDone) toast.success("أحسنت — تم تسجيل الخطوة");
                 }}
               >
@@ -946,6 +930,22 @@ export function HomePage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDailyWirdExpanded((v) => (v === null ? isDailyWirdDone : !v))}
+              className="w-8 h-8 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90"
+              aria-label={(dailyWirdExpanded !== null ? dailyWirdExpanded : !isDailyWirdDone) ? "طي" : "عرض"}
+              title={(dailyWirdExpanded !== null ? dailyWirdExpanded : !isDailyWirdDone) ? "طي ورد اليوم" : "عرض ورد اليوم"}
+            >
+              <ChevronDown
+                size={14}
+                className={cn(
+                  "transition-transform duration-200",
+                  (dailyWirdExpanded !== null ? dailyWirdExpanded : !isDailyWirdDone) && "rotate-180"
+                )}
+              />
+            </button>
+
             <Button
               variant="secondary"
               onClick={copyDailyWird}
@@ -960,7 +960,7 @@ export function HomePage() {
               variant={isDailyWirdDone ? "primary" : "secondary"}
               onClick={() => {
                 if (isDailyWirdDone) return;
-                setDailyWirdDone(todayKey, true);
+                setDailyWirdDone(worshipDayKey, true);
                 toast.success("تم حفظ الإتمام");
               }}
               title="تحديد كمنجز"
@@ -978,7 +978,7 @@ export function HomePage() {
           <div className="mt-4 text-sm opacity-65 leading-7">
             تعذر تحميل ورد اليوم.
           </div>
-        ) : (
+        ) : (dailyWirdExpanded !== null ? dailyWirdExpanded : !isDailyWirdDone) ? (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
             {dailyWird.items.map((p) => (
               <button
@@ -994,6 +994,10 @@ export function HomePage() {
                 </div>
               </button>
             ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm opacity-75 leading-7">
+            تم طي ورد اليوم. افتحه وقت القراءة أو المراجعة.
           </div>
         )}
       </Card>

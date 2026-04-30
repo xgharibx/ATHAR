@@ -1,29 +1,48 @@
 import * as React from "react";
+import {
+  type DayKeyMode,
+  getIbadahDateKey,
+  getLocalDateKey,
+  getNextIbadahBoundary,
+  getNextLocalMidnight,
+} from "@/lib/dayBoundaries";
 
-function todayISO() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+type UseTodayKeyOptions = {
+  mode?: DayKeyMode;
+  fajrTime?: string | null;
+};
+
+function resolveDateKey(mode: DayKeyMode, fajrTime?: string | null) {
+  return mode === "ibadah"
+    ? getIbadahDateKey(new Date(), fajrTime)
+    : getLocalDateKey(new Date());
 }
 
-export function useTodayKey() {
-  const [todayKey, setTodayKey] = React.useState(() => todayISO());
+function resolveNextBoundary(mode: DayKeyMode, fajrTime?: string | null) {
+  return mode === "ibadah"
+    ? getNextIbadahBoundary(new Date(), fajrTime) ?? getNextLocalMidnight(new Date())
+    : getNextLocalMidnight(new Date());
+}
+
+export function useTodayKey(options: UseTodayKeyOptions = {}) {
+  const { mode = "civil", fajrTime } = options;
+  const [todayKey, setTodayKey] = React.useState(() => resolveDateKey(mode, fajrTime));
 
   React.useEffect(() => {
-    const refresh = () => setTodayKey(todayISO());
-    let intervalId: number | null = null;
+    const refresh = () => setTodayKey(resolveDateKey(mode, fajrTime));
+    let timeoutId: number | null = null;
 
-    const now = new Date();
-    const nextMidnight = new Date(now);
-    nextMidnight.setHours(24, 0, 0, 0);
-    const msUntilMidnight = Math.max(1000, nextMidnight.getTime() - now.getTime());
+    const schedule = () => {
+      const nextBoundary = resolveNextBoundary(mode, fajrTime);
+      const msUntilBoundary = Math.max(1000, nextBoundary.getTime() - Date.now());
+      timeoutId = window.setTimeout(() => {
+        refresh();
+        schedule();
+      }, msUntilBoundary);
+    };
 
-    const timeoutId = window.setTimeout(() => {
-      refresh();
-      intervalId = window.setInterval(refresh, 24 * 60 * 60 * 1000);
-    }, msUntilMidnight);
+    refresh();
+    schedule();
 
     const onVisible = () => {
       if (document.visibilityState === "visible") refresh();
@@ -34,14 +53,13 @@ export function useTodayKey() {
     window.addEventListener("focus", onFocus);
 
     return () => {
-      window.clearTimeout(timeoutId);
-      if (intervalId !== null) {
-        window.clearInterval(intervalId);
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
       }
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onFocus);
     };
-  }, []);
+  }, [fajrTime, mode]);
 
   return todayKey;
 }

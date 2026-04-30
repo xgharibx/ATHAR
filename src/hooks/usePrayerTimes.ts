@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTodayKey } from "@/hooks/useTodayKey";
 
 type PrayerTimesResponse = {
   data: {
@@ -36,13 +37,13 @@ type PrayerTimesData = PrayerTimesResponse & {
 const PRAYER_CACHE_PREFIX = "noor_prayer_times_v1";
 const PRAYER_COORDS_KEY = "noor_prayer_coords_v1";
 
-function cacheKey(city: string, country: string) {
-  return `${PRAYER_CACHE_PREFIX}:${city}:${country}`;
+function cacheKey(dayKey: string, locationKey: string) {
+  return `${PRAYER_CACHE_PREFIX}:${dayKey}:${locationKey}`;
 }
 
-function readCached(city: string, country: string): PrayerTimesData | null {
+function readCached(dayKey: string, locationKey: string): PrayerTimesData | null {
   try {
-    const raw = localStorage.getItem(cacheKey(city, country));
+    const raw = localStorage.getItem(cacheKey(dayKey, locationKey));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PrayerTimesResponse & { cachedAt?: string };
     if (!parsed?.data?.timings) return null;
@@ -56,10 +57,10 @@ function readCached(city: string, country: string): PrayerTimesData | null {
   }
 }
 
-function writeCached(city: string, country: string, payload: PrayerTimesResponse) {
+function writeCached(dayKey: string, locationKey: string, payload: PrayerTimesResponse) {
   try {
     const out = { ...payload, cachedAt: new Date().toISOString() };
-    localStorage.setItem(cacheKey(city, country), JSON.stringify(out));
+    localStorage.setItem(cacheKey(dayKey, locationKey), JSON.stringify(out));
   } catch {
     // ignore storage failures
   }
@@ -119,19 +120,21 @@ function getCurrentPosition(timeoutMs = 2500): Promise<GeolocationPosition> {
 }
 
 export function usePrayerTimes() {
+  const dayKey = useTodayKey();
   // Fallback defaults
   const city = "Cairo";
   const country = "Egypt";
+  const cityLocationKey = `city:${city}:${country}`;
 
   return useQuery<PrayerTimesData>({
-    queryKey: ["prayer-times", "v2"],
+    queryKey: ["prayer-times", "v3", dayKey],
     queryFn: async () => {
       const cachedCoords = readCachedCoords();
 
-      const trySource = async (label: string, fn: () => Promise<PrayerTimesResponse>) => {
+      const trySource = async (label: string, locationKey: string, fn: () => Promise<PrayerTimesResponse>) => {
         const fresh = await fn();
         const out: PrayerTimesData = { ...fresh, __sourceLabel: label };
-        writeCached(city, country, out);
+        writeCached(dayKey, locationKey, out);
         return out;
       };
 
@@ -141,7 +144,11 @@ export function usePrayerTimes() {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         writeCachedCoords(lat, lng);
-        return await trySource("الموقع الحالي", () => fetchPrayerTimesByCoords(lat, lng));
+        return await trySource(
+          "الموقع الحالي",
+          `coords:${lat.toFixed(3)}:${lng.toFixed(3)}`,
+          () => fetchPrayerTimesByCoords(lat, lng)
+        );
       } catch {
         // continue
       }
@@ -149,7 +156,10 @@ export function usePrayerTimes() {
       // 2) Last known coordinates
       if (cachedCoords) {
         try {
-          return await trySource("آخر موقع محفوظ", () =>
+          return await trySource(
+            "آخر موقع محفوظ",
+            `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}`,
+            () =>
             fetchPrayerTimesByCoords(cachedCoords.lat, cachedCoords.lng)
           );
         } catch {
@@ -159,18 +169,17 @@ export function usePrayerTimes() {
 
       // 3) City fallback
       try {
-        return await trySource("القاهرة", () => fetchPrayerTimes(city, country));
+        return await trySource("القاهرة", cityLocationKey, () => fetchPrayerTimes(city, country));
       } catch {
-        const cached = readCached(city, country);
+        const cached = readCached(dayKey, cityLocationKey);
         if (cached) return cached;
         throw new Error("تعذر جلب مواقيت الصلاة");
       }
     },
-    initialData: () => readCached(city, country) ?? undefined,
-    // Refresh every 6 hours automatically; also re-fetches on window focus
-    staleTime: 1000 * 60 * 60 * 6,
-    refetchOnWindowFocus: true,
-    refetchInterval: 1000 * 60 * 60 * 6,
+    initialData: () => readCached(dayKey, cityLocationKey) ?? undefined,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
     retry: 2,
   });
 }

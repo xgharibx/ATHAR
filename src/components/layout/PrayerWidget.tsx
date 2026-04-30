@@ -1,11 +1,15 @@
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { Clock } from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
+import { buildPrayerSchedule } from "@/lib/prayerSchedule";
 import { PrayerCountdown } from "./PrayerCountdown";
 
 export function PrayerWidget() {
+  const navigate = useNavigate();
   const { data, isLoading, error, isFetching } = usePrayerTimes();
   const [nowTs, setNowTs] = React.useState(() => Date.now());
 
@@ -18,71 +22,13 @@ export function PrayerWidget() {
   const date = data?.data?.date;
   const isCached = !!data?.__fromCache;
   const sourceLabel = data?.__sourceLabel ?? "المصدر الافتراضي";
-
-  // Simple mapping
-  const prayers = React.useMemo(
-    () =>
-      timings
-        ? [
-            { name: "Fajr", time: timings.Fajr, label: "الفجر" },
-            { name: "Dhuhr", time: timings.Dhuhr, label: "الظهر" },
-            { name: "Asr", time: timings.Asr, label: "العصر" },
-            { name: "Maghrib", time: timings.Maghrib, label: "المغرب" },
-            { name: "Isha", time: timings.Isha, label: "العشاء" },
-          ]
-        : [],
-    [timings]
+  const schedule = React.useMemo(
+    () => (timings ? buildPrayerSchedule(timings, new Date(nowTs)) : null),
+    [nowTs, timings]
   );
 
-  const prayerTimeline = React.useMemo(() => {
-    const now = new Date(nowTs);
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    const withDate = prayers
-      .map((p) => {
-        const clean = String(p.time ?? "").trim().split(" ")[0] ?? "";
-        const [hh, mm] = clean.split(":").map((x) => parseInt(x, 10));
-        if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
-        const at = new Date(dayStart);
-        at.setHours(hh, mm, 0, 0);
-        return { ...p, at };
-      })
-      .filter((x): x is { name: string; time: string; label: string; at: Date } => !!x)
-      .sort((a, b) => a.at.getTime() - b.at.getTime());
-
-    if (!withDate.length) return null;
-
-    let next = withDate.find((p) => p.at.getTime() > now.getTime());
-    if (!next) {
-      const firstTomorrow = new Date(withDate[0].at);
-      firstTomorrow.setDate(firstTomorrow.getDate() + 1);
-      next = { ...withDate[0], at: firstTomorrow };
-    }
-
-    let previous = [...withDate].reverse().find((p) => p.at.getTime() <= now.getTime());
-    if (!previous) {
-      const lastYesterday = new Date(withDate[withDate.length - 1].at);
-      lastYesterday.setDate(lastYesterday.getDate() - 1);
-      previous = { ...withDate[withDate.length - 1], at: lastYesterday };
-    }
-
-    return { previous, next };
-  }, [nowTs, prayers]);
-
-  const format12h = (raw: string) => {
-    const clean = String(raw ?? "").trim().split(" ")[0] ?? "";
-    const [hh, mm] = clean.split(":").map((x) => parseInt(x, 10));
-    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return clean;
-    const d = new Date(2000, 0, 1, hh, mm);
-    return new Intl.DateTimeFormat("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true
-    }).format(d);
-  };
-
   if (isLoading) return <div className="text-xs opacity-50">... جارٍ تحميل مواقيت الصلاة</div>;
-  if (error || !data || !date || !timings) {
+  if (error || !data || !date || !timings || !schedule) {
     return (
       <Card className="p-4 mb-6">
         <div className="text-xs opacity-65">تعذر تحميل مواقيت الصلاة حاليًا.</div>
@@ -92,14 +38,14 @@ export function PrayerWidget() {
 
   return (
     <Card className="p-4 mb-6 relative overflow-hidden">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Clock size={16} className="text-[var(--accent)]" />
           <span className="font-semibold text-sm">مواقيت الصلاة</span>
-          <span className="text-[11px] opacity-60">({sourceLabel})</span>
+          <span className="text-[11px] opacity-60">{sourceLabel}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] opacity-60 bg-white/5 px-2 py-1 rounded-full">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <span className="text-[11px] opacity-60 bg-white/5 px-2 py-1 rounded-full border border-white/10">
             {date.hijri.weekday.ar} • {date.hijri.date}
           </span>
           {isFetching && (
@@ -113,26 +59,59 @@ export function PrayerWidget() {
       ) : null}
 
       {/* Live countdown to next prayer */}
-      <div className="mb-3">
-        <PrayerCountdown timings={timings} />
+      <div className="mb-4 rounded-[28px] border border-white/10 bg-gradient-to-br from-white/8 to-white/3 p-4">
+        <PrayerCountdown timings={timings} compact />
       </div>
+
       <div className="grid grid-cols-5 gap-2 text-center">
-        {prayers.map((p) => {
-          const isNext = prayerTimeline?.next?.name === p.name;
+        {schedule.primary.map((prayer) => {
+          const isCurrent = schedule.current.name === prayer.name;
+          const isNext = schedule.next.name === prayer.name;
           return (
             <div
-              key={p.name}
+              key={prayer.name}
               className={cn(
                 "flex flex-col gap-1 rounded-2xl py-1.5",
-                isNext && "bg-[var(--accent)]/10 border border-[var(--accent)]/20"
+                isCurrent && "bg-[var(--accent)]/12 border border-[var(--accent)]/25",
+                !isCurrent && isNext && "bg-white/6 border border-white/12"
               )}
             >
-              <span className={cn("text-[11px]", isNext ? "opacity-90 font-semibold" : "opacity-55")}>{p.label}</span>
-              <span className={cn("text-sm font-medium tabular-nums", isNext && "text-[var(--accent)]")}>{format12h(p.time)}</span>
+              <span className={cn("text-[11px]", isCurrent ? "opacity-95 font-semibold" : isNext ? "opacity-85" : "opacity-55")}>
+                {prayer.label}
+              </span>
+              <span className={cn("text-sm font-medium tabular-nums", isCurrent && "text-[var(--accent)]")}>
+                {prayer.timeLabel}
+              </span>
             </div>
           );
         })}
       </div>
+
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2">
+        {schedule.extraMoments.filter((item) => item.id !== "midnight").map((item) => (
+          <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+            <div className="text-[11px] opacity-55">{item.label}</div>
+            <div className="mt-1 text-sm font-semibold tabular-nums">{item.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className="text-[11px] opacity-55 mb-2">أوقات النهي عن الصلاة</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          {schedule.forbiddenWindows.map((item) => (
+            <div key={item.id} className="rounded-2xl bg-[#ff9b9b]/10 border border-[#ffb1b1]/15 px-3 py-2">
+              <div className="text-[11px] opacity-55">{item.label}</div>
+              <div className="mt-1 text-sm font-medium tabular-nums">{item.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Button variant="secondary" className="mt-4 w-full justify-between" onClick={() => navigate("/prayer-times")}>
+        عرض التفاصيل الكاملة للمواقيت
+        <ArrowLeft size={16} />
+      </Button>
     </Card>
   );
 }

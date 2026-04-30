@@ -7,6 +7,9 @@ import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncB
 import { useNoorStore } from "@/store/noorStore";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { SplashIntro, SPLASH_SESSION_KEY } from "@/components/brand/SplashIntro";
+import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
+import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { syncReminders } from "@/lib/reminders";
 
 const HomePage = React.lazy(() => import("@/pages/Home").then((m) => ({ default: m.HomePage })));
 const CategoryPage = React.lazy(() => import("@/pages/Category").then((m) => ({ default: m.CategoryPage })));
@@ -20,11 +23,33 @@ const NotFoundPage = React.lazy(() => import("@/pages/NotFound").then((m) => ({ 
 const QuranPage = React.lazy(() => import("@/pages/Quran").then((m) => ({ default: m.QuranPage })));
 const SurahPage = React.lazy(() => import("@/pages/Surah").then((m) => ({ default: m.SurahPage })));
 const MushafPage = React.lazy(() => import("@/pages/Mushaf").then((m) => ({ default: m.MushafPage })));
+const PrayerTimesPage = React.lazy(() => import("@/pages/PrayerTimes").then((m) => ({ default: m.PrayerTimesPage })));
 
 export default function App() {
   useApplyTheme();
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
+  const reminders = useNoorStore((s) => s.reminders);
   const location = useLocation();
+  const prayerTimes = usePrayerTimes();
+  const fajrTime = prayerTimes.data?.data?.timings?.Fajr ?? null;
+  const notificationPrayerTimings = React.useMemo(() => {
+    const timings = prayerTimes.data?.data?.timings;
+    if (!timings) return null;
+
+    return {
+      Fajr: timings.Fajr,
+      Dhuhr: timings.Dhuhr,
+      Asr: timings.Asr,
+      Maghrib: timings.Maghrib,
+      Isha: timings.Isha,
+    };
+  }, [
+    prayerTimes.data?.data?.timings?.Asr,
+    prayerTimes.data?.data?.timings?.Dhuhr,
+    prayerTimes.data?.data?.timings?.Fajr,
+    prayerTimes.data?.data?.timings?.Isha,
+    prayerTimes.data?.data?.timings?.Maghrib,
+  ]);
 
   // Show animated splash once per browser/app session
   const [showSplash, setShowSplash] = React.useState<boolean>(() => {
@@ -68,65 +93,86 @@ export default function App() {
   }, []);
 
   React.useEffect(() => {
-    ensureDailyResets();
-    let intervalId: number | null = null;
+    ensureDailyResets(fajrTime);
+    let midnightTimeoutId: number | null = null;
+    let ibadahTimeoutId: number | null = null;
+
+    const scheduleMidnightReset = () => {
+      const nextMidnight = getNextLocalMidnight(new Date());
+      const msUntilMidnight = Math.max(1000, nextMidnight.getTime() - Date.now());
+      midnightTimeoutId = globalThis.setTimeout(() => {
+        ensureDailyResets(fajrTime);
+        scheduleMidnightReset();
+      }, msUntilMidnight);
+    };
+
+    const scheduleIbadahReset = () => {
+      const nextBoundary = getNextIbadahBoundary(new Date(), fajrTime);
+      if (!nextBoundary) return;
+
+      const msUntilBoundary = Math.max(1000, nextBoundary.getTime() - Date.now());
+      ibadahTimeoutId = globalThis.setTimeout(() => {
+        ensureDailyResets(fajrTime);
+        scheduleIbadahReset();
+      }, msUntilBoundary);
+    };
 
     const onVisible = () => {
-      if (document.visibilityState === "visible") ensureDailyResets();
+      if (document.visibilityState === "visible") ensureDailyResets(fajrTime);
     };
-    const onFocus = () => ensureDailyResets();
+    const onFocus = () => ensureDailyResets(fajrTime);
 
     document.addEventListener("visibilitychange", onVisible);
     globalThis.addEventListener("focus", onFocus);
 
-    const now = new Date();
-    const nextMidnight = new Date(now);
-    nextMidnight.setHours(24, 0, 0, 0);
-    const msUntilMidnight = Math.max(1000, nextMidnight.getTime() - now.getTime());
-
-    const timeoutId = globalThis.setTimeout(() => {
-      ensureDailyResets();
-      intervalId = globalThis.setInterval(() => {
-        ensureDailyResets();
-      }, 24 * 60 * 60 * 1000);
-    }, msUntilMidnight);
+    scheduleMidnightReset();
+    scheduleIbadahReset();
 
     return () => {
-      globalThis.clearTimeout(timeoutId);
-      if (intervalId !== null) {
-        globalThis.clearInterval(intervalId);
+      if (midnightTimeoutId !== null) {
+        globalThis.clearTimeout(midnightTimeoutId);
+      }
+      if (ibadahTimeoutId !== null) {
+        globalThis.clearTimeout(ibadahTimeoutId);
       }
       document.removeEventListener("visibilitychange", onVisible);
       globalThis.removeEventListener("focus", onFocus);
     };
-  }, [ensureDailyResets]);
+  }, [ensureDailyResets, fajrTime]);
+
+  React.useEffect(() => {
+    void syncReminders(reminders, notificationPrayerTimings);
+  }, [notificationPrayerTimings, reminders]);
 
   return (
     <>
       {showSplash && <SplashIntro onDone={() => setShowSplash(false)} />}
-    <React.Suspense fallback={
-      <div className="p-4" dir="rtl">
-        <PageSkeleton />
-      </div>
-    }>
-      <LeaderboardSyncBridge />
-      <Routes>
-        <Route path="mushaf/:page?" element={<MushafPage />} />
-        <Route element={<AppShell />}>
-          <Route index element={<HomePage />} />
-          <Route path="c/:id" element={<CategoryPage />} />
-          <Route path="search" element={<SearchPage />} />
-          <Route path="favorites" element={<FavoritesPage />} />
-          <Route path="quran" element={<QuranPage />} />
-          <Route path="quran/:id" element={<SurahPage />} />
-          <Route path="insights" element={<InsightsPage />} />
-          <Route path="leaderboard" element={<LeaderboardPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="sources" element={<SourcesPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
-    </React.Suspense>
+      <React.Suspense
+        fallback={
+          <div className="p-4" dir="rtl">
+            <PageSkeleton />
+          </div>
+        }
+      >
+        <LeaderboardSyncBridge />
+        <Routes>
+          <Route path="mushaf/:page?" element={<MushafPage />} />
+          <Route element={<AppShell />}>
+            <Route index element={<HomePage />} />
+            <Route path="c/:id" element={<CategoryPage />} />
+            <Route path="search" element={<SearchPage />} />
+            <Route path="favorites" element={<FavoritesPage />} />
+            <Route path="quran" element={<QuranPage />} />
+            <Route path="quran/:id" element={<SurahPage />} />
+            <Route path="prayer-times" element={<PrayerTimesPage />} />
+            <Route path="insights" element={<InsightsPage />} />
+            <Route path="leaderboard" element={<LeaderboardPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="sources" element={<SourcesPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </React.Suspense>
     </>
   );
 }

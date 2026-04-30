@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, Keyboard, BookMarked, BookOpen } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, Keyboard, BookMarked, BookOpen, Play } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Card } from "@/components/ui/Card";
@@ -14,6 +14,8 @@ import {
   cancelAllReminders,
   getNotificationPermission,
   isNativePlatform,
+  playReminderSoundPreview,
+  REMINDER_SOUND_OPTIONS,
   requestNotificationPermission,
   syncReminders
 } from "@/lib/reminders";
@@ -105,12 +107,6 @@ export function SettingsPage() {
       cancelled = true;
     };
   }, []);
-
-  React.useEffect(() => {
-    if (!isNative) return;
-    if (notifPerm !== "granted") return;
-    void syncReminders(reminders);
-  }, [isNative, notifPerm, reminders]);
 
   const onBackup = () => {
     const blob = exportState();
@@ -590,12 +586,14 @@ export function SettingsPage() {
                 const p = await requestNotificationPermission();
                 setNotifPerm(p);
                 if (p !== "granted") {
+                  setReminders({ enabled: false });
                   toast.error("لم يتم السماح بالإشعارات");
                   return;
                 }
                 await syncReminders({ ...reminders, enabled: true });
                 toast.success("تم تفعيل التذكيرات");
               } catch {
+                setReminders({ enabled: false });
                 toast.error("تعذر تفعيل التذكيرات");
               }
             }}
@@ -612,7 +610,78 @@ export function SettingsPage() {
           </div>
         ) : null}
 
+        <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div className="text-sm font-semibold">نغمة التذكير</div>
+              <div className="text-xs opacity-65 mt-1 leading-6">
+                اختر صوتًا طبيعيًا هادئًا لتذكيرات الأذكار وورد القرآن على Android.
+              </div>
+            </div>
+            <div className="text-[11px] opacity-50">الشعار سيظهر بدل علامة التعجب</div>
+          </div>
+
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+            {REMINDER_SOUND_OPTIONS.map((option) => {
+              const active = reminders.soundProfile === option.id;
+              return (
+                <div
+                  key={option.id}
+                  className={[
+                    "rounded-2xl border p-3 transition",
+                    active
+                      ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
+                      : "bg-white/4 border-white/10",
+                  ].join(" ")}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setReminders({ soundProfile: option.id })}
+                    className="w-full text-right"
+                    disabled={!reminders.enabled && isNative}
+                  >
+                    <div className="text-sm font-semibold">{option.label}</div>
+                    <div className="text-[11px] opacity-60 mt-1 leading-5">{option.description}</div>
+                  </button>
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await playReminderSoundPreview(option.id);
+                        } catch {
+                          toast.error("تعذر تشغيل المعاينة");
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-white/12 bg-white/6 px-3 py-2 text-xs transition hover:bg-white/10"
+                    >
+                      <Play size={12} />
+                      معاينة
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="glass rounded-3xl p-4 border border-white/10 md:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">تنبيهات الصلوات</div>
+                <div className="text-xs opacity-65 mt-1 leading-6">
+                  الفجر والظهر والعصر والمغرب والعشاء حسب مواقيت اليوم، وتُحدَّث تلقائياً عند تحديث المواقيت.
+                </div>
+              </div>
+              <Switch
+                checked={reminders.prayerAlertsEnabled}
+                onCheckedChange={(v) => setReminders({ prayerAlertsEnabled: v })}
+                disabled={!reminders.enabled}
+              />
+            </div>
+          </div>
+
           <div className="glass rounded-3xl p-4 border border-white/10">
             <div className="flex items-center justify-between gap-3">
               <div>
