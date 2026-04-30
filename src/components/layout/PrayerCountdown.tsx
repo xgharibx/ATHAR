@@ -70,9 +70,6 @@ export function PrayerCountdown(props: Readonly<{
         <div dir="ltr" className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-6"].join(" ")}>
           {schedule.currentPhase.value}
         </div>
-        <div className="mt-1 text-xs opacity-60 leading-6">
-          {schedule.currentPhase.subtitle}
-        </div>
         {expandedMeta}
         {showRangeLabel ? (
           <div className="mt-2 text-xs opacity-55 leading-6">

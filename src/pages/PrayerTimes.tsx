@@ -38,13 +38,6 @@ function rowStyles(row: PrayerDetailRow, active: boolean, next: boolean) {
   }
 }
 
-function rowDescription(row: PrayerDetailRow) {
-  if (row.type === "forbidden") return "فترة نهي عن الصلاة النافلة";
-  if (row.type === "moment") return "نافلة أو وقت إضافي ضمن الجدول";
-  if (row.type === "marker") return "لحظة مفصلية في اليوم";
-  return "نافلة الفريضة ووقتها اليوم";
-}
-
 export function PrayerTimesPage() {
   const navigate = useNavigate();
   const prayerTimes = usePrayerTimes();
@@ -77,7 +70,6 @@ export function PrayerTimesPage() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-xl font-bold">مواقيت الصلاة</div>
-          <div className="mt-1 text-xs opacity-60 leading-6">عرض يومي ذكي يشمل أوقات الصلوات والضحى والتهجد وأوقات النهي.</div>
         </div>
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
           <ArrowRight size={15} />
@@ -112,7 +104,6 @@ export function PrayerTimesPage() {
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="text-sm font-semibold">تفاصيل اليوم</div>
-          <div className="text-[11px] opacity-55">كل الأوقات المهمة في مسار واحد</div>
         </div>
 
         <div className="space-y-2.5">
@@ -139,9 +130,6 @@ export function PrayerTimesPage() {
                       <div className="text-sm font-semibold">{row.label}</div>
                       {isActive ? <Badge className="text-[10px] bg-[var(--accent)]/16 border-[var(--accent)]/20 text-white">الآن</Badge> : null}
                       {!isActive && isNext ? <Badge className="text-[10px]">التالي</Badge> : null}
-                    </div>
-                    <div className="mt-1 text-[11px] opacity-60 leading-5">
-                      {rowDescription(row)}
                     </div>
                   </div>
                 </div>

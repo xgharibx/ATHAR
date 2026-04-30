@@ -22,6 +22,7 @@ import {
   stopSoundPreview,
   syncReminders
 } from "@/lib/reminders";
+import { QURAN_RECITERS } from "@/lib/quranReciters";
 
 const THEME_ACCENTS: Record<NoorTheme, string> = {
   system:   "#ffd780",
@@ -37,15 +38,6 @@ const THEME_ACCENTS: Record<NoorTheme, string> = {
   sunset:   "#fb923c",
   mist:     "#e5e7eb",
 };
-
-const RECITERS: Array<{ id: string; label: string }> = [
-  { id: "Alafasy_128kbps",              label: "مشاري العفاسي" },
-  { id: "Abdul_Basit_Murattal_192kbps", label: "عبد الباسط المرتل" },
-  { id: "Hudhaify_128kbps",             label: "عبدالرحمن الحذيفي" },
-  { id: "Minshawy_Murattal_128kbps",    label: "محمد المنشاوي" },
-  { id: "Abdullah_Basfar_192kbps",      label: "عبدالله بصفر" },
-  { id: "Husary_128kbps",               label: "محمود الحصري" },
-];
 
 const PRAYER_ALERT_OPTIONS = [
   { id: "Fajr", label: "الفجر" },
@@ -539,7 +531,7 @@ export function SettingsPage() {
             right={null}
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {RECITERS.map((r) => (
+            {QURAN_RECITERS.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setPrefs({ quranReciter: r.id })}
@@ -654,7 +646,7 @@ export function SettingsPage() {
 
         {!isNative ? (
           <div className="mt-4 text-xs opacity-65 leading-6">
-            ملاحظة: التذكيرات تعمل بشكل أفضل داخل تطبيق Android (Capacitor). على الويب قد لا تعمل التذكيرات بالخلفية.
+            التذكيرات تعمل داخل تطبيق الهاتف.
           </div>
         ) : notifPerm !== "granted" ? (
           <div className="mt-4 text-xs opacity-65 leading-6">
@@ -665,12 +657,8 @@ export function SettingsPage() {
         <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div className="text-sm font-semibold">نغمة التذكير</div>
-              <div className="text-xs opacity-65 mt-1 leading-6">
-                اختر صوتًا طبيعيًا هادئًا لتذكيرات الأذكار وورد القرآن على Android.
-              </div>
+              <div className="text-sm font-semibold">صوت التذكير</div>
             </div>
-            <div className="text-[11px] opacity-50">الشعار سيظهر بدل علامة التعجب</div>
           </div>
 
           <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -693,7 +681,6 @@ export function SettingsPage() {
                     disabled={!reminders.enabled && isNative}
                   >
                     <div className="text-sm font-semibold">{option.label}</div>
-                    <div className="text-[11px] opacity-60 mt-1 leading-5">{option.description}</div>
                   </button>
                   <div className="mt-3 flex justify-end">
                     <button
@@ -716,9 +703,6 @@ export function SettingsPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">تنبيهات الصلوات</div>
-                <div className="text-xs opacity-65 mt-1 leading-6">
-                  الفجر والظهر والعصر والمغرب والعشاء حسب مواقيت اليوم، وتُحدَّث تلقائياً عند تحديث المواقيت.
-                </div>
               </div>
               <Switch
                 checked={reminders.prayerAlertsEnabled}
@@ -751,12 +735,8 @@ export function SettingsPage() {
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/10 p-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                  <div className="text-sm font-semibold">صوت تنبيهات الصلاة</div>
-                  <div className="text-xs opacity-65 mt-1 leading-6">
-                    اجعل نداء الصلاة مستقلاً عن أصوات تذكيرات الأذكار وورد القرآن.
-                  </div>
+                  <div className="text-sm font-semibold">صوت الأذان</div>
                 </div>
-                <div className="text-[11px] opacity-50">يُستخدم للفجر والظهر والعصر والمغرب والعشاء</div>
               </div>
 
               <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -779,7 +759,6 @@ export function SettingsPage() {
                         disabled={!reminders.enabled && isNative}
                       >
                         <div className="text-sm font-semibold">{option.label}</div>
-                        <div className="text-[11px] opacity-60 mt-1 leading-5">{option.description}</div>
                       </button>
                       <div className="mt-3 flex justify-end">
                         <button

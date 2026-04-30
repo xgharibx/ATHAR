@@ -1,6 +1,5 @@
 import * as React from "react";
-import * as Dropdown from "@radix-ui/react-dropdown-menu";
-import { Heart, MoreVertical, RotateCcw, Share2, Copy, CheckCircle2, Minus } from "lucide-react";
+import { Heart, RotateCcw, Share2, Copy, CheckCircle2, Minus, ImageDown } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { cn, clamp } from "@/lib/utils";
@@ -336,6 +335,14 @@ export function DhikrCard(props: {
               <Copy size={18} className="opacity-80" />
             </IconButton>
 
+            <IconButton aria-label="مشاركة النص" onClick={doShareText} title="مشاركة النص">
+              <Share2 size={18} className="opacity-80" />
+            </IconButton>
+
+            <IconButton aria-label="مشاركة كصورة" onClick={doShareImage} title="مشاركة كصورة">
+              <ImageDown size={18} className="opacity-80" />
+            </IconButton>
+
             <IconButton
               aria-label="مفضلة"
               onClick={() => toggleFavorite(sectionId, index)}
@@ -343,44 +350,6 @@ export function DhikrCard(props: {
             >
               <Heart size={18} className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
             </IconButton>
-
-            <Dropdown.Root modal={false}>
-              <Dropdown.Trigger asChild>
-                <button
-                  aria-label="خيارات"
-                  className="inline-flex items-center justify-center rounded-2xl p-2.5 bg-white/6 hover:bg-white/10 border border-white/10 transition active:scale-[.99] min-h-[44px] min-w-[44px]"
-                >
-                  <MoreVertical size={18} />
-                </button>
-              </Dropdown.Trigger>
-              <Dropdown.Portal>
-                <Dropdown.Content
-                  style={{ zIndex: 100000 }}
-                  className="glass-strong shadow-2xl rounded-2xl p-2 min-w-[200px] border border-white/20 animate-in fade-in zoom-in-95 duration-200"
-                >
-                  <MenuItem onSelect={doCopy} icon={<Copy size={16} />}>
-                    نسخ النص
-                  </MenuItem>
-                  <MenuItem onSelect={doShareText} icon={<Share2 size={16} />}>
-                    مشاركة كنص
-                  </MenuItem>
-                  <MenuItem onSelect={doShareImage} icon={<Share2 size={16} />}>
-                    مشاركة كصورة
-                  </MenuItem>
-                  <Dropdown.Separator className="h-px bg-white/10 my-1" />
-                  <MenuItem
-                    onSelect={() => {
-                      if (isDailyLockedItem) return;
-                      resetItem(sectionId, index, target);
-                    }}
-                    icon={<RotateCcw size={16} />}
-                    danger
-                  >
-                    تصفير العداد
-                  </MenuItem>
-                </Dropdown.Content>
-              </Dropdown.Portal>
-            </Dropdown.Root>
           </div>
           {props.totalItems != null && (
             <div className="text-xs tabular-nums opacity-35 leading-tight text-end self-center shrink-0">
@@ -545,29 +514,5 @@ export function DhikrCard(props: {
         ) : null}
       </div>
     </motion.div>
-  );
-}
-
-function MenuItem(props: {
-  children: React.ReactNode;
-  onSelect: () => void;
-  icon: React.ReactNode;
-  danger?: boolean;
-}) {
-  return (
-    <Dropdown.Item
-      onSelect={(e) => {
-        e.preventDefault();
-        props.onSelect();
-      }}
-      className={cn(
-        "outline-none cursor-pointer select-none rounded-xl px-3 py-2.5 text-sm flex items-center gap-2 min-h-[44px]",
-        "data-[highlighted]:bg-white/10",
-        props.danger && "text-[var(--danger)]"
-      )}
-    >
-      <span className="opacity-80">{props.icon}</span>
-      <span>{props.children}</span>
-    </Dropdown.Item>
   );
 }

@@ -3,21 +3,13 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   ArrowRight, Bookmark, Globe, MoreVertical, Play, Pause,
   ChevronDown, Copy, Share2, VolumeX, Volume2, X, Pencil,
-  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2,
+  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2, Repeat2,
 } from "lucide-react";
-
-const RECITERS: Array<{ id: string; label: string }> = [
-  { id: "Alafasy_128kbps",              label: "مشاري العفاسي" },
-  { id: "Abdul_Basit_Murattal_192kbps", label: "عبد الباسط المرتل" },
-  { id: "Hudhaify_128kbps",             label: "عبدالرحمن الحذيفي" },
-  { id: "Minshawy_Murattal_128kbps",    label: "محمد المنشاوي" },
-  { id: "Abdullah_Basfar_192kbps",      label: "عبدالله بصفر" },
-  { id: "Husary_128kbps",               label: "محمود الحصري" },
-];
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { useNoorStore } from "@/store/noorStore";
 import { getSurahJuz, toArabicNumeral } from "@/lib/quranMeta";
+import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import toast from "react-hot-toast";
 
@@ -179,6 +171,10 @@ export function MushafPage() {
 
   // Page items
   const pageItems = pageIndex.get(currentPage) ?? [];
+  const firstPlayableItem = React.useMemo(
+    () => pageItems.find((item) => !item.isBasmalahHeader && item.displayAyah > 0) ?? null,
+    [pageItems]
+  );
 
   // Group by surah
   const surahGroups = React.useMemo((): SurahGroup[] => {
@@ -250,6 +246,7 @@ export function MushafPage() {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const [audioBarVisible, setAudioBarVisible] = React.useState(true);
   const [showReciterSheet, setShowReciterSheet] = React.useState(false);
+  const [repeatMode, setRepeatMode] = React.useState(false);
 
   const playAyah = React.useCallback((surahId: number, originalAyah: number, displayAyah: number) => {
     const key = `${surahId}:${displayAyah}`;
@@ -259,11 +256,20 @@ export function MushafPage() {
     const a = String(originalAyah).padStart(3, "0");
     const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
     const audio = new Audio(`https://everyayah.com/data/${reciter}/${s}${a}.mp3`);
+    audio.loop = repeatMode;
     audioRef.current = audio;
     setPlayingKey(key);
     audio.play().catch(() => toast.error("تعذر تشغيل التلاوة"));
     audio.onended = () => setPlayingKey(null);
-  }, [playingKey, prefs.quranReciter]);
+  }, [playingKey, prefs.quranReciter, repeatMode]);
+
+  const toggleRepeatMode = React.useCallback(() => {
+    setRepeatMode((prev) => {
+      const next = !prev;
+      if (audioRef.current) audioRef.current.loop = next;
+      return next;
+    });
+  }, []);
 
   React.useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
 
@@ -541,6 +547,14 @@ export function MushafPage() {
             {playingKey === selKey ? <VolumeX size={18} /> : <Volume2 size={18} />}
             <span>تلاوة</span>
           </button>
+          <button
+            className={`mushaf-action-btn${repeatMode ? " active" : ""}`}
+            onClick={toggleRepeatMode}
+            title="تكرار"
+          >
+            <Repeat2 size={18} />
+            <span>تكرار</span>
+          </button>
           {/* Highlight swatches */}
           <div className="mushaf-action-btn" style={{ gap: "0.2rem" }}>
             <div className="flex gap-1">
@@ -598,8 +612,9 @@ export function MushafPage() {
             className="mushaf-audio-play-btn"
             onClick={() => {
               if (playingKey && audioRef.current) { audioRef.current.pause(); setPlayingKey(null); }
+              else if (firstPlayableItem) playAyah(firstPlayableItem.surahId, firstPlayableItem.originalAyah, firstPlayableItem.displayAyah);
             }}
-            aria-label="إيقاف التلاوة"
+            aria-label={playingKey ? "إيقاف التلاوة" : "تشغيل التلاوة"}
           >
             {playingKey ? <Pause size={15} /> : <Play size={15} />}
           </button>
@@ -612,7 +627,7 @@ export function MushafPage() {
             <span>
               {playingKey
                 ? `▶ يُشغَّل · آية ${playingKey.split(":")[1] ?? ""}`
-                : (RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي")}
+                : (QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي")}
             </span>
             <ChevronDown size={12} style={{ opacity: 0.5, flexShrink: 0 }} />
           </button>
@@ -634,7 +649,7 @@ export function MushafPage() {
             <div className="mushaf-sheet-handle" />
             <div className="mushaf-sheet-title">اختر القارئ</div>
             <div className="mushaf-reciter-grid">
-              {RECITERS.map((r) => (
+              {QURAN_RECITERS.map((r) => (
                 <button
                   key={r.id}
                   className={`mushaf-reciter-chip${(prefs.quranReciter ?? "Alafasy_128kbps") === r.id ? " active" : ""}`}

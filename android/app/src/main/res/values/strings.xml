@@ -4,4 +4,8 @@
     <string name="title_activity_main">Athar</string>
     <string name="package_name">com.athar.adhkar</string>
     <string name="custom_url_scheme">com.athar.adhkar</string>
+    <string name="widget_title">أثر</string>
+    <string name="widget_phrase">افتح وردك وابدأ الذكر</string>
+    <string name="widget_action">فتح التطبيق</string>
+    <string name="widget_description">ودجت أثر</string>
 </resources>

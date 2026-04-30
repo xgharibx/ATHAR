@@ -1,9 +1,10 @@
 import * as React from "react";
-import { Database, Trash2, Upload, ExternalLink, Info } from "lucide-react";
+import { Database, Trash2, Upload, ExternalLink, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { addPackFromJson, loadPacks, removePack, savePacks, type NoorPack } from "@/data/packs";
 
@@ -11,8 +12,10 @@ export function SourcesPage() {
   const { data } = useAdhkarDB();
   const [packs, setPacks] = React.useState<NoorPack[]>(() => loadPacks());
   const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
-
-  const refresh = () => setPacks(loadPacks());
+  const [customTitle, setCustomTitle] = React.useState("أذكاري الخاصة");
+  const [customText, setCustomText] = React.useState("");
+  const [customCount, setCustomCount] = React.useState("1");
+  const [customBenefit, setCustomBenefit] = React.useState("");
 
   const onImport = async (file: File) => {
     try {
@@ -23,7 +26,7 @@ export function SourcesPage() {
       savePacks(next);
       setPacks(next);
       toast.success("تمت إضافة حزمة بيانات جديدة. أعد فتح الصفحة لرؤية الأقسام.");
-      setTimeout(() => window.location.reload(), 500);
+      globalThis.setTimeout(() => globalThis.location.reload(), 500);
     } catch {
       toast.error("تعذر استيراد الملف (صيغة غير مدعومة أو ملف غير صالح)");
     }
@@ -34,7 +37,42 @@ export function SourcesPage() {
     setPacks(next);
     setConfirmDeleteId(null);
     toast.success("تم الحذف. أعد تحميل الصفحة.");
-    setTimeout(() => window.location.reload(), 400);
+    globalThis.setTimeout(() => globalThis.location.reload(), 400);
+  };
+
+  const onAddCustomDhikr = () => {
+    const text = customText.trim();
+    const title = customTitle.trim() || "أذكاري الخاصة";
+    const count = Math.max(1, Number.parseInt(customCount, 10) || 1);
+
+    if (!text) {
+      toast.error("اكتب الذكر أولاً");
+      return;
+    }
+
+    const pack: NoorPack = {
+      packId: `custom_${Date.now().toString(16)}`,
+      name: title,
+      importedAt: new Date().toISOString(),
+      sections: [{
+        id: `custom_${Date.now().toString(16)}`,
+        title,
+        content: [{
+          text,
+          count,
+          benefit: customBenefit.trim(),
+          count_description: "",
+        }],
+      }],
+    };
+
+    const next = [...packs, pack];
+    savePacks(next);
+    setPacks(next);
+    setCustomText("");
+    setCustomBenefit("");
+    toast.success("تمت إضافة الذكر");
+    globalThis.setTimeout(() => globalThis.location.reload(), 400);
   };
 
   return (
@@ -46,9 +84,7 @@ export function SourcesPage() {
         </div>
 
         <div className="mt-3 text-sm opacity-70 leading-7">
-          هذا التطبيق يعتمد على ملف محلي:{" "}
-          <code className="px-2 py-1 rounded-lg bg-white/6 border border-white/10">public/data/adhkar</code>
-          . يمكنك إضافة “حزم بيانات” لتوسيع الأقسام — مثل أقسام أذكار جديدة أو ترجمات.
+          أضف أذكارك الخاصة أو استورد حزمة محفوظة.
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -69,16 +105,6 @@ export function SourcesPage() {
             </span>
           </label>
 
-          <Button
-            variant="outline"
-            onClick={() => {
-              toast("تلميح: يمكنك تصدير أي قسم من داخله ثم استيراده هنا كتجربة.");
-            }}
-          >
-            <Info size={16} />
-            تلميحات
-          </Button>
-
           <a
             href="https://www.islambook.com/"
             target="_blank"
@@ -90,9 +116,47 @@ export function SourcesPage() {
           </a>
         </div>
 
-        <div className="mt-4 text-xs opacity-60 leading-6">
-          ملاحظة: تأكد من صحة الأذكار ومصدرها قبل إضافتها. احترام حقوق النشر وشروط المواقع مسؤولية المستخدم.
+      </Card>
+
+      <Card className="p-5">
+        <div className="flex items-center gap-2">
+          <Plus size={18} className="text-[var(--accent)]" />
+          <div className="font-semibold">إضافة ذكر</div>
         </div>
+
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_120px] gap-3">
+          <Input
+            value={customTitle}
+            onChange={(event) => setCustomTitle(event.target.value)}
+            placeholder="اسم القسم"
+          />
+          <Input
+            type="number"
+            min={1}
+            value={customCount}
+            onChange={(event) => setCustomCount(event.target.value)}
+            placeholder="العدد"
+          />
+        </div>
+
+        <textarea
+          value={customText}
+          onChange={(event) => setCustomText(event.target.value)}
+          placeholder="اكتب الذكر"
+          className="mt-3 min-h-32 w-full rounded-3xl border border-white/10 bg-white/6 px-4 py-3 text-sm leading-7 outline-none focus:border-[var(--accent)]/40"
+        />
+
+        <Input
+          className="mt-3"
+          value={customBenefit}
+          onChange={(event) => setCustomBenefit(event.target.value)}
+          placeholder="المصدر أو الفضل"
+        />
+
+        <Button className="mt-4 w-full" onClick={onAddCustomDhikr}>
+          <Plus size={16} />
+          حفظ الذكر
+        </Button>
       </Card>
 
       <Card className="p-5">
@@ -156,7 +220,7 @@ export function SourcesPage() {
   );
 }
 
-function MiniStat(props: { label: string; value: number }) {
+function MiniStat(props: Readonly<{ label: string; value: number }>) {
   return (
     <div className="glass rounded-3xl p-4 border border-white/10">
       <div className="text-xs opacity-60">{props.label}</div>

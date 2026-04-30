@@ -48,20 +48,20 @@ export const REMINDER_SOUND_OPTIONS: Array<{
 }> = [
   {
     id: "birds_dawn",
-    label: "طيور الفجر",
-    description: "تسجيل طبيعي قصير لزقزقة الصباح بدل الأصوات المولدة",
+    label: "طيور",
+    description: "",
     fileName: "birds_dawn.mp3",
   },
   {
     id: "rain_calm",
-    label: "مطر خفيف",
-    description: "تسجيل مطر حقيقي هادئ ومريح لتذكيرات الأذكار",
+    label: "مطر 1",
+    description: "",
     fileName: "rain_calm.ogg",
   },
   {
     id: "night_breeze",
-    label: "مطر الغابة",
-    description: "مطر حقيقي مع أجواء طبيعية خفيفة للتذكيرات المسائية",
+    label: "مطر 2",
+    description: "",
     fileName: "rain_calm.ogg",
   },
 ];
@@ -74,20 +74,20 @@ export const PRAYER_SOUND_OPTIONS: Array<{
 }> = [
   {
     id: "adhan_haram",
-    label: "أذان جميل",
-    description: "أذان حقيقي كامل من مصدر عام ومتاح لإعادة الاستخدام",
+    label: "أذان 1",
+    description: "",
     fileName: "adhan_haram.mp3",
   },
   {
     id: "adhan_fajr",
-    label: "أذان السنة",
-    description: "أذان واضح ومباشر مناسب لتنبيهات الصلاة اليومية",
+    label: "أذان 2",
+    description: "",
     fileName: "adhan_fajr.mp3",
   },
   {
     id: "iqama_soft",
-    label: "أذان مختصر",
-    description: "خيار ثالث بصوت أذان حقيقي لمن يفضّل طبقة مختلفة",
+    label: "أذان 3",
+    description: "",
     fileName: "iqama_soft.mp3",
   },
 ];

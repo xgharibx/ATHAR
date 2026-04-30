@@ -1,0 +1,15 @@
+export const QURAN_RECITERS: Array<{ id: string; label: string }> = [
+  { id: "Alafasy_128kbps", label: "مشاري العفاسي" },
+  { id: "Abdul_Basit_Murattal_192kbps", label: "عبد الباسط المرتل" },
+  { id: "Hudhaify_128kbps", label: "عبدالرحمن الحذيفي" },
+  { id: "Minshawy_Murattal_128kbps", label: "محمد المنشاوي" },
+  { id: "Abdullah_Basfar_192kbps", label: "عبدالله بصفر" },
+  { id: "Husary_128kbps", label: "محمود الحصري" },
+  { id: "Abu_Bakr_Ash-Shaatree_128kbps", label: "أبو بكر الشاطري" },
+  { id: "Nasser_Alqatami_128kbps", label: "ناصر القطامي" },
+  { id: "Yasser_Ad-Dussary_128kbps", label: "ياسر الدوسري" },
+  { id: "Maher_AlMuaiqly_64kbps", label: "ماهر المعيقلي" },
+  { id: "Abdurrahmaan_As-Sudais_64kbps", label: "عبد الرحمن السديس" },
+  { id: "Saood_ash-Shuraym_64kbps", label: "سعود الشريم" },
+  { id: "Muhammad_Ayyoub_128kbps", label: "محمد أيوب" },
+];
