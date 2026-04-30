@@ -14,7 +14,9 @@ import {
   cancelAllReminders,
   getNotificationPermission,
   isNativePlatform,
+  playPrayerSoundPreview,
   playReminderSoundPreview,
+  PRAYER_SOUND_OPTIONS,
   REMINDER_SOUND_OPTIONS,
   requestNotificationPermission,
   syncReminders
@@ -679,6 +681,61 @@ export function SettingsPage() {
                 onCheckedChange={(v) => setReminders({ prayerAlertsEnabled: v })}
                 disabled={!reminders.enabled}
               />
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-black/10 p-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="text-sm font-semibold">صوت تنبيهات الصلاة</div>
+                  <div className="text-xs opacity-65 mt-1 leading-6">
+                    اجعل نداء الصلاة مستقلاً عن أصوات تذكيرات الأذكار وورد القرآن.
+                  </div>
+                </div>
+                <div className="text-[11px] opacity-50">يُستخدم للفجر والظهر والعصر والمغرب والعشاء</div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                {PRAYER_SOUND_OPTIONS.map((option) => {
+                  const active = reminders.prayerSoundProfile === option.id;
+                  return (
+                    <div
+                      key={option.id}
+                      className={[
+                        "rounded-2xl border p-3 transition",
+                        active
+                          ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
+                          : "bg-white/4 border-white/10",
+                      ].join(" ")}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setReminders({ prayerSoundProfile: option.id })}
+                        className="w-full text-right"
+                        disabled={!reminders.enabled && isNative}
+                      >
+                        <div className="text-sm font-semibold">{option.label}</div>
+                        <div className="text-[11px] opacity-60 mt-1 leading-5">{option.description}</div>
+                      </button>
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              await playPrayerSoundPreview(option.id);
+                            } catch {
+                              toast.error("تعذر تشغيل المعاينة");
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-white/12 bg-white/6 px-3 py-2 text-xs transition hover:bg-white/10"
+                        >
+                          <Play size={12} />
+                          معاينة
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

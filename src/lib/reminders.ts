@@ -1,5 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import type { ReminderSoundProfile, Reminders } from "@/store/noorStore";
+import type { PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 
 const REMINDER_IDS = {
   morning: 9101,
@@ -58,12 +58,46 @@ export const REMINDER_SOUND_OPTIONS: Array<{
   },
 ];
 
+export const PRAYER_SOUND_OPTIONS: Array<{
+  id: PrayerSoundProfile;
+  label: string;
+  description: string;
+  fileName: string;
+}> = [
+  {
+    id: "adhan_haram",
+    label: "أذان الحرم",
+    description: "نداء أوضح وأفخم لتنبيهات الصلاة اليومية",
+    fileName: "adhan_haram.wav",
+  },
+  {
+    id: "adhan_fajr",
+    label: "نداء الفجر",
+    description: "لحن تنبيهي هادئ ومستوحى من جو الفجر",
+    fileName: "adhan_fajr.wav",
+  },
+  {
+    id: "iqama_soft",
+    label: "إقامة هادئة",
+    description: "تنبيه أقصر وأخف لمن يفضّل نبرة سريعة للصلاة",
+    fileName: "iqama_soft.wav",
+  },
+];
+
 function getReminderSoundOption(soundProfile: ReminderSoundProfile) {
   return REMINDER_SOUND_OPTIONS.find((option) => option.id === soundProfile) ?? REMINDER_SOUND_OPTIONS[0];
 }
 
+function getPrayerSoundOption(soundProfile: PrayerSoundProfile) {
+  return PRAYER_SOUND_OPTIONS.find((option) => option.id === soundProfile) ?? PRAYER_SOUND_OPTIONS[0];
+}
+
 function getReminderChannelId(soundProfile: ReminderSoundProfile) {
   return `athar-reminders-${soundProfile.replaceAll("_", "-")}`;
+}
+
+function getPrayerChannelId(soundProfile: PrayerSoundProfile) {
+  return `athar-prayer-${soundProfile.replaceAll("_", "-")}`;
 }
 
 function parseHHMM(value: string): { hour: number; minute: number } | null {
@@ -97,6 +131,13 @@ export async function playReminderSoundPreview(soundProfile: ReminderSoundProfil
   const sound = getReminderSoundOption(soundProfile);
   const audio = new Audio(`/sounds/reminders/${sound.fileName}`);
   audio.volume = 0.85;
+  await audio.play();
+}
+
+export async function playPrayerSoundPreview(soundProfile: PrayerSoundProfile) {
+  const sound = getPrayerSoundOption(soundProfile);
+  const audio = new Audio(`/sounds/prayer-alerts/${sound.fileName}`);
+  audio.volume = 0.9;
   await audio.play();
 }
 
@@ -134,6 +175,95 @@ export async function cancelAllReminders() {
   });
 }
 
+type NotificationAudioConfig = {
+  channelId: string;
+  soundFile: string;
+};
+
+function buildRepeatingNotification(options: {
+  id: number;
+  title: string;
+  body: string;
+  hhmm: string;
+  audio: NotificationAudioConfig;
+}) {
+  const at = nextAtLocalTime(options.hhmm);
+  if (!at) return null;
+
+  return {
+    id: options.id,
+    title: options.title,
+    body: options.body,
+    channelId: options.audio.channelId,
+    sound: options.audio.soundFile,
+    smallIcon: REMINDER_NOTIFICATION_ICON,
+    largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+    iconColor: REMINDER_ICON_COLOR,
+    schedule: { at, repeats: true, every: "day" as const },
+  };
+}
+
+function buildReminderNotifications(reminders: Reminders, audio: NotificationAudioConfig) {
+  const plans = [
+    {
+      enabled: reminders.morningEnabled,
+      id: REMINDER_IDS.morning,
+      title: "أثر — تذكير",
+      body: "ابدأ يومك بذكر الله وأذكار الصباح",
+      hhmm: reminders.morningTime,
+    },
+    {
+      enabled: reminders.eveningEnabled,
+      id: REMINDER_IDS.evening,
+      title: "أثر — تذكير",
+      body: "أقبل المساء فحصّن قلبك بأذكار المساء",
+      hhmm: reminders.eveningTime,
+    },
+    {
+      enabled: reminders.dailyWirdEnabled,
+      id: REMINDER_IDS.dailyWird,
+      title: "أثر — تذكير",
+      body: "لا تنس وردك اليومي من القرآن",
+      hhmm: reminders.dailyWirdTime,
+    },
+    {
+      enabled: reminders.khatmaEnabled,
+      id: REMINDER_IDS.khatma,
+      title: "أثر — تذكير",
+      body: "حصة اليوم من خطة الختمة تنتظرك",
+      hhmm: reminders.khatmaTime,
+    },
+  ];
+
+  return plans.flatMap((plan) => {
+    if (!plan.enabled) return [];
+    const notification = buildRepeatingNotification({
+      id: plan.id,
+      title: plan.title,
+      body: plan.body,
+      hhmm: plan.hhmm,
+      audio,
+    });
+    return notification ? [notification] : [];
+  });
+}
+
+function buildPrayerNotifications(
+  prayerTimings: PrayerNotificationTimings,
+  audio: NotificationAudioConfig,
+) {
+  return (Object.keys(PRAYER_NOTIFICATION_IDS) as PrayerTimingName[]).flatMap((prayerName) => {
+    const notification = buildRepeatingNotification({
+      id: PRAYER_NOTIFICATION_IDS[prayerName],
+      title: "أثر — الأذان",
+      body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
+      hhmm: prayerTimings[prayerName] ?? "",
+      audio,
+    });
+    return notification ? [notification] : [];
+  });
+}
+
 async function ensureReminderChannel(soundProfile: ReminderSoundProfile) {
   const { LocalNotifications } = await import("@capacitor/local-notifications");
   const sound = getReminderSoundOption(soundProfile);
@@ -143,6 +273,29 @@ async function ensureReminderChannel(soundProfile: ReminderSoundProfile) {
     id: channelId,
     name: `Athar reminders — ${sound.label}`,
     description: "قناة تذكيرات الأذكار وورد القرآن في تطبيق أثر",
+    sound: sound.fileName,
+    importance: 4,
+    visibility: 1,
+    vibration: true,
+    lights: true,
+    lightColor: REMINDER_ICON_COLOR,
+  });
+
+  return {
+    channelId,
+    soundFile: sound.fileName,
+  };
+}
+
+async function ensurePrayerChannel(soundProfile: PrayerSoundProfile) {
+  const { LocalNotifications } = await import("@capacitor/local-notifications");
+  const sound = getPrayerSoundOption(soundProfile);
+  const channelId = getPrayerChannelId(soundProfile);
+
+  await LocalNotifications.createChannel({
+    id: channelId,
+    name: `Athar prayers — ${sound.label}`,
+    description: "قناة تنبيهات الصلاة في تطبيق أثر",
     sound: sound.fileName,
     importance: 4,
     visibility: 1,
@@ -175,93 +328,11 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
 
   const notificationAudio = await ensureReminderChannel(reminders.soundProfile);
 
-  const notifications: any[] = [];
-
-  if (reminders.morningEnabled) {
-    const at = nextAtLocalTime(reminders.morningTime);
-    if (at) {
-      notifications.push({
-        id: REMINDER_IDS.morning,
-        title: "أثر — تذكير",
-        body: "ابدأ يومك بذكر الله وأذكار الصباح",
-        channelId: notificationAudio.channelId,
-        sound: notificationAudio.soundFile,
-        smallIcon: REMINDER_NOTIFICATION_ICON,
-        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-        iconColor: REMINDER_ICON_COLOR,
-        schedule: { at, repeats: true, every: "day" }
-      });
-    }
-  }
-
-  if (reminders.eveningEnabled) {
-    const at = nextAtLocalTime(reminders.eveningTime);
-    if (at) {
-      notifications.push({
-        id: REMINDER_IDS.evening,
-        title: "أثر — تذكير",
-        body: "أقبل المساء فحصّن قلبك بأذكار المساء",
-        channelId: notificationAudio.channelId,
-        sound: notificationAudio.soundFile,
-        smallIcon: REMINDER_NOTIFICATION_ICON,
-        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-        iconColor: REMINDER_ICON_COLOR,
-        schedule: { at, repeats: true, every: "day" }
-      });
-    }
-  }
-
-  if (reminders.dailyWirdEnabled) {
-    const at = nextAtLocalTime(reminders.dailyWirdTime);
-    if (at) {
-      notifications.push({
-        id: REMINDER_IDS.dailyWird,
-        title: "أثر — تذكير",
-        body: "لا تنس وردك اليومي من القرآن",
-        channelId: notificationAudio.channelId,
-        sound: notificationAudio.soundFile,
-        smallIcon: REMINDER_NOTIFICATION_ICON,
-        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-        iconColor: REMINDER_ICON_COLOR,
-        schedule: { at, repeats: true, every: "day" }
-      });
-    }
-  }
-
-  if (reminders.khatmaEnabled) {
-    const at = nextAtLocalTime(reminders.khatmaTime);
-    if (at) {
-      notifications.push({
-        id: REMINDER_IDS.khatma,
-        title: "أثر — تذكير",
-        body: "حصة اليوم من خطة الختمة تنتظرك",
-        channelId: notificationAudio.channelId,
-        sound: notificationAudio.soundFile,
-        smallIcon: REMINDER_NOTIFICATION_ICON,
-        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-        iconColor: REMINDER_ICON_COLOR,
-        schedule: { at, repeats: true, every: "day" }
-      });
-    }
-  }
+  const notifications: any[] = buildReminderNotifications(reminders, notificationAudio);
 
   if (reminders.prayerAlertsEnabled && prayerTimings) {
-    (Object.keys(PRAYER_NOTIFICATION_IDS) as PrayerTimingName[]).forEach((prayerName) => {
-      const at = nextAtLocalTime(prayerTimings[prayerName] ?? "");
-      if (!at) return;
-
-      notifications.push({
-        id: PRAYER_NOTIFICATION_IDS[prayerName],
-        title: "أثر — الأذان",
-        body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
-        channelId: notificationAudio.channelId,
-        sound: notificationAudio.soundFile,
-        smallIcon: REMINDER_NOTIFICATION_ICON,
-        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-        iconColor: REMINDER_ICON_COLOR,
-        schedule: { at, repeats: true, every: "day" }
-      });
-    });
+    const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
+    notifications.push(...buildPrayerNotifications(prayerTimings, prayerNotificationAudio));
   }
 
   if (!notifications.length) return;
