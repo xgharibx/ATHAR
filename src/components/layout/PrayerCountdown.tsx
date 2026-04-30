@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Bell } from "lucide-react";
 import type { PrayerTimings } from "@/lib/prayerSchedule";
-import { buildPrayerSchedule, formatCountdown, formatRemainingText } from "@/lib/prayerSchedule";
+import { buildPrayerSchedule, formatCountdown } from "@/lib/prayerSchedule";
 
 function resolveRingStroke(phaseType: "prayer" | "moment" | "forbidden" | "wait", isImminent: boolean, isUrgent: boolean) {
   if (phaseType === "forbidden") return "rgba(255, 177, 177, 0.96)";
@@ -42,13 +42,6 @@ export function PrayerCountdown(props: Readonly<{
   const isUrgent = schedule.diffSec < 900;
   const isImminent = schedule.diffSec < 180;
   const ringStroke = resolveRingStroke(schedule.currentPhase.type, isImminent, isUrgent);
-  const showExpandedMeta = compact === false;
-  const expandedMeta = showExpandedMeta ? (
-    <div className="mt-3 text-sm font-medium leading-6">
-      يبقى {formatRemainingText(schedule.diffSec)}
-    </div>
-  ) : null;
-
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
       <div className="min-w-0">
@@ -63,7 +56,6 @@ export function PrayerCountdown(props: Readonly<{
         <div dir="ltr" className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-6"].join(" ")}>
           {schedule.currentPhase.value}
         </div>
-        {expandedMeta}
       </div>
 
       <div className="relative shrink-0" style={{ width: ringSize, height: ringSize }}>

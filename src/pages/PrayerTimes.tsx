@@ -1,14 +1,17 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, ArrowRight, Clock3, CloudSun, MoonStar, Sunrise, Sunset, TimerReset } from "lucide-react";
+import { AlertTriangle, ArrowRight, Clock3, CloudSun, MoonStar, RefreshCw, Sunrise, Sunset, TimerReset } from "lucide-react";
+import toast from "react-hot-toast";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { PrayerCountdown } from "@/components/layout/PrayerCountdown";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { syncReminders } from "@/lib/reminders";
 import { buildPrayerSchedule, type PrayerDetailRow } from "@/lib/prayerSchedule";
 import { cn } from "@/lib/utils";
+import { useNoorStore } from "@/store/noorStore";
 
 function rowIcon(row: PrayerDetailRow) {
   if (row.type === "forbidden") return AlertTriangle;
@@ -41,7 +44,9 @@ function rowStyles(row: PrayerDetailRow, active: boolean, next: boolean) {
 export function PrayerTimesPage() {
   const navigate = useNavigate();
   const prayerTimes = usePrayerTimes();
+  const reminders = useNoorStore((s) => s.reminders);
   const [now, setNow] = React.useState(() => new Date());
+  const [manualRefreshing, setManualRefreshing] = React.useState(false);
 
   React.useEffect(() => {
     const id = globalThis.setInterval(() => setNow(new Date()), 30_000);
@@ -53,6 +58,27 @@ export function PrayerTimesPage() {
   const date = data?.data?.date;
   const schedule = React.useMemo(() => (timings ? buildPrayerSchedule(timings, now) : null), [now, timings]);
 
+  const refreshPrayerTimes = async () => {
+    setManualRefreshing(true);
+    try {
+      const result = await prayerTimes.refetch();
+      if (result.error || !result.data?.data?.timings) throw result.error ?? new Error("refresh failed");
+      const refreshedTimings = result.data.data.timings;
+      await syncReminders(reminders, {
+        Fajr: refreshedTimings.Fajr,
+        Dhuhr: refreshedTimings.Dhuhr,
+        Asr: refreshedTimings.Asr,
+        Maghrib: refreshedTimings.Maghrib,
+        Isha: refreshedTimings.Isha,
+      });
+      toast.success("تم تحديث مواقيت الصلاة");
+    } catch {
+      toast.error("تعذر تحديث المواقيت الآن");
+    } finally {
+      setManualRefreshing(false);
+    }
+  };
+
   if (prayerTimes.isLoading) {
     return <div className="p-4 text-sm opacity-60">... جارٍ تحميل مواقيت الصلاة</div>;
   }
@@ -60,7 +86,13 @@ export function PrayerTimesPage() {
   if (prayerTimes.error || !data || !timings || !date || !schedule) {
     return (
       <div className="p-4">
-        <Card className="p-5 text-sm opacity-70">تعذر تحميل صفحة مواقيت الصلاة حاليًا.</Card>
+        <Card className="p-5 text-sm">
+          <div className="opacity-70">تعذر تحميل صفحة مواقيت الصلاة حاليًا.</div>
+          <Button className="mt-4" variant="secondary" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
+            <RefreshCw size={15} className={manualRefreshing || prayerTimes.isFetching ? "animate-spin" : ""} />
+            تحديث المواقيت
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -71,10 +103,16 @@ export function PrayerTimesPage() {
         <div>
           <div className="text-xl font-bold">مواقيت الصلاة</div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-          <ArrowRight size={15} />
-          رجوع
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
+            <RefreshCw size={15} className={manualRefreshing || prayerTimes.isFetching ? "animate-spin" : ""} />
+            تحديث
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+            <ArrowRight size={15} />
+            رجوع
+          </Button>
+        </div>
       </div>
 
       <Card className="p-5 overflow-hidden relative">

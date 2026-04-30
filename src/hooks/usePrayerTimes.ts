@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTodayKey } from "@/hooks/useTodayKey";
 
@@ -126,7 +127,7 @@ export function usePrayerTimes() {
   const country = "Egypt";
   const cityLocationKey = `city:${city}:${country}`;
 
-  return useQuery<PrayerTimesData>({
+  const query = useQuery<PrayerTimesData>({
     queryKey: ["prayer-times", "v3", dayKey],
     queryFn: async () => {
       const cachedCoords = readCachedCoords();
@@ -143,27 +144,31 @@ export function usePrayerTimes() {
         const pos = await getCurrentPosition();
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+        const locationKey = `coords:${lat.toFixed(3)}:${lng.toFixed(3)}`;
         writeCachedCoords(lat, lng);
-        return await trySource(
-          "الموقع الحالي",
-          `coords:${lat.toFixed(3)}:${lng.toFixed(3)}`,
-          () => fetchPrayerTimesByCoords(lat, lng)
-        );
+        try {
+          return await trySource("الموقع الحالي", locationKey, () => fetchPrayerTimesByCoords(lat, lng));
+        } catch {
+          const cached = readCached(dayKey, locationKey);
+          if (cached) return cached;
+        }
       } catch {
         // continue
       }
 
       // 2) Last known coordinates
       if (cachedCoords) {
+        const locationKey = `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}`;
         try {
           return await trySource(
             "آخر موقع محفوظ",
-            `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}`,
+            locationKey,
             () =>
             fetchPrayerTimesByCoords(cachedCoords.lat, cachedCoords.lng)
           );
         } catch {
-          // continue
+          const cached = readCached(dayKey, locationKey);
+          if (cached) return cached;
         }
       }
 
@@ -179,7 +184,32 @@ export function usePrayerTimes() {
     initialData: () => readCached(dayKey, cityLocationKey) ?? undefined,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
     refetchInterval: false,
     retry: 2,
   });
+
+  React.useEffect(() => {
+    let timeoutId: number | null = null;
+
+    const scheduleMidnightRefresh = () => {
+      const nextMidnight = new Date();
+      nextMidnight.setHours(24, 0, 2, 0);
+      const msUntilRefresh = Math.max(1000, nextMidnight.getTime() - Date.now());
+      timeoutId = globalThis.setTimeout(() => {
+        void query.refetch();
+        scheduleMidnightRefresh();
+      }, msUntilRefresh);
+    };
+
+    scheduleMidnightRefresh();
+
+    return () => {
+      if (timeoutId !== null) {
+        globalThis.clearTimeout(timeoutId);
+      }
+    };
+  }, [dayKey, query.refetch]);
+
+  return query;
 }

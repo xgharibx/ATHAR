@@ -211,6 +211,16 @@ function nextAtLocalTime(hhmm: string): Date | null {
   return at;
 }
 
+function todayAtLocalTime(hhmm: string): Date | null {
+  const hm = parseHHMM(hhmm);
+  if (!hm) return null;
+
+  const at = new Date();
+  at.setHours(hm.hour, hm.minute, 0, 0);
+  if (at.getTime() <= Date.now() + 30_000) return null;
+  return at;
+}
+
 export async function playReminderSoundPreview(soundProfile: ReminderSoundProfile, onDone?: () => void) {
   const sound = getReminderSoundOption(soundProfile);
   await playSoundPreview(`/sounds/reminders/${sound.fileName}`, `reminder:${soundProfile}`, 0.85, onDone);
@@ -336,15 +346,26 @@ function buildPrayerNotifications(
   return (Object.keys(PRAYER_NOTIFICATION_IDS) as PrayerTimingName[]).flatMap((prayerName) => {
     if (!enabledPrayers[prayerName]) return [];
 
-    const notification = buildRepeatingNotification({
+    const at = todayAtLocalTime(prayerTimings[prayerName] ?? "");
+    if (!at) return [];
+
+    const notification = {
       id: PRAYER_NOTIFICATION_IDS[prayerName],
       title: "أثر — الأذان",
       body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
-      hhmm: prayerTimings[prayerName] ?? "",
-      audio,
-    });
-    return notification ? [notification] : [];
+      channelId: audio.channelId,
+      sound: audio.soundFile,
+      smallIcon: REMINDER_NOTIFICATION_ICON,
+      largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+      iconColor: REMINDER_ICON_COLOR,
+      schedule: { at },
+    };
+    return [notification];
   });
+}
+
+function notificationRefs(ids: readonly number[]) {
+  return ids.map((id) => ({ id }));
 }
 
 async function ensureReminderChannel(soundProfile: ReminderSoundProfile) {
@@ -398,10 +419,21 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
 
   const { LocalNotifications } = await import("@capacitor/local-notifications");
 
-  // Always clear existing scheduled reminders to avoid duplicates.
-  await cancelAllReminders();
+  if (!reminders.enabled) {
+    await cancelAllReminders();
+    return;
+  }
 
-  if (!reminders.enabled) return;
+  const reminderIds = Object.values(REMINDER_IDS);
+  const prayerIds = Object.values(PRAYER_NOTIFICATION_IDS);
+  const shouldRefreshPrayerNotifications = !reminders.prayerAlertsEnabled || !!prayerTimings;
+
+  await LocalNotifications.cancel({
+    notifications: notificationRefs([
+      ...reminderIds,
+      ...(shouldRefreshPrayerNotifications ? prayerIds : []),
+    ]),
+  });
 
   const perm = await LocalNotifications.checkPermissions();
   if (perm.display !== "granted") {

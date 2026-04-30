@@ -452,7 +452,7 @@ export function DhikrList(props: Readonly<{
                 value={customText}
                 onChange={(event) => setCustomText(event.target.value)}
                 placeholder="اكتب الذكر"
-                className="mt-3 min-h-36 w-full rounded-3xl border border-white/10 bg-white/6 px-4 py-3 text-sm leading-7 text-[var(--fg)] outline-none focus:border-[var(--accent)]/40 placeholder:text-[var(--muted-2)]"
+                className="form-field-readable mt-3 min-h-36 w-full rounded-3xl border border-white/10 px-4 py-3 text-sm leading-7 outline-none focus:border-[var(--accent)]/40"
               />
               <Input
                 className="mt-3"

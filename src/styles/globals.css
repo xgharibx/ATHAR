@@ -178,6 +178,27 @@ textarea {
   touch-action: manipulation;
 }
 
+.form-field-readable {
+  background: color-mix(in srgb, var(--bg) 84%, var(--fg) 8%) !important;
+  color: var(--fg) !important;
+  -webkit-text-fill-color: var(--fg) !important;
+  caret-color: var(--accent);
+  color-scheme: dark;
+}
+
+.light .form-field-readable {
+  color-scheme: light;
+}
+
+.form-field-readable::placeholder {
+  color: var(--muted-2) !important;
+  -webkit-text-fill-color: var(--muted-2) !important;
+}
+
+.form-field-readable:focus {
+  background: color-mix(in srgb, var(--bg) 80%, var(--accent) 10%) !important;
+}
+
 /* Prevent overscroll glow on Android */
 html,
 body {
