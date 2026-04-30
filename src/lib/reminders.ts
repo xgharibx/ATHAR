@@ -40,21 +40,21 @@ export const REMINDER_SOUND_OPTIONS: Array<{
 }> = [
   {
     id: "birds_dawn",
-    label: "عصافير الفجر",
-    description: "زقزقة خفيفة تمنح تذكير الأذكار شعور الصباح الهادئ",
-    fileName: "birds_dawn.wav",
+    label: "طيور الفجر",
+    description: "تسجيل طبيعي قصير لزقزقة الصباح بدل الأصوات المولدة",
+    fileName: "birds_dawn.mp3",
   },
   {
     id: "rain_calm",
-    label: "مطر هادئ",
-    description: "صوت مطر ناعم ومريح للتذكير بدون حدّة",
-    fileName: "rain_calm.wav",
+    label: "مطر خفيف",
+    description: "تسجيل مطر حقيقي هادئ ومريح لتذكيرات الأذكار",
+    fileName: "rain_calm.ogg",
   },
   {
     id: "night_breeze",
-    label: "نسيم الليل",
-    description: "جو ليلي هادئ بنقرات خفيفة يناسب التذكيرات المسائية",
-    fileName: "night_breeze.wav",
+    label: "مطر الغابة",
+    description: "مطر حقيقي مع أجواء طبيعية خفيفة للتذكيرات المسائية",
+    fileName: "rain_calm.ogg",
   },
 ];
 
@@ -66,21 +66,21 @@ export const PRAYER_SOUND_OPTIONS: Array<{
 }> = [
   {
     id: "adhan_haram",
-    label: "أذان الحرم",
-    description: "نداء أوضح وأفخم لتنبيهات الصلاة اليومية",
-    fileName: "adhan_haram.wav",
+    label: "أذان جميل",
+    description: "أذان حقيقي كامل من مصدر عام ومتاح لإعادة الاستخدام",
+    fileName: "adhan_haram.mp3",
   },
   {
     id: "adhan_fajr",
-    label: "نداء الفجر",
-    description: "لحن تنبيهي هادئ ومستوحى من جو الفجر",
-    fileName: "adhan_fajr.wav",
+    label: "أذان السنة",
+    description: "أذان واضح ومباشر مناسب لتنبيهات الصلاة اليومية",
+    fileName: "adhan_fajr.mp3",
   },
   {
     id: "iqama_soft",
-    label: "إقامة هادئة",
-    description: "تنبيه أقصر وأخف لمن يفضّل نبرة سريعة للصلاة",
-    fileName: "iqama_soft.wav",
+    label: "أذان مختصر",
+    description: "خيار ثالث بصوت أذان حقيقي لمن يفضّل طبقة مختلفة",
+    fileName: "iqama_soft.mp3",
   },
 ];
 
