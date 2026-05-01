@@ -33,6 +33,9 @@ const IDENTITIES: Record<string, SectionIdentity> = {
   prophetic_duas:  { accent: "#0ea5e9", grad: "from-sky-500/15 to-cyan-400/10",        icon: "🤲", badge: "أدعية نبوية",    bg: "rgba(14,165,233,.06)"  },
   jawami_dua:      { accent: "#8b5cf6", grad: "from-violet-500/15 to-purple-400/10",   icon: "🤲", badge: "جوامع الدعاء",   bg: "rgba(139,92,246,.06)"  },
   ruqyah:          { accent: "#16a34a", grad: "from-green-600/15 to-emerald-500/10",   icon: "🛡️", badge: "رقية",            bg: "rgba(22,163,74,.06)"   },
+  essentials:      { accent: "#34d399", grad: "from-emerald-400/15 to-teal-400/10",    icon: "✦", badge: "أقل القليل",      bg: "rgba(52,211,153,.06)"  },
+  salawat:         { accent: "#f59e0b", grad: "from-amber-500/15 to-yellow-400/10",     icon: "ﷺ", badge: "صلوات",           bg: "rgba(245,158,11,.06)"   },
+  forgotten_sunnahs:{ accent: "#38bdf8", grad: "from-sky-400/15 to-cyan-400/10",       icon: "☀️", badge: "سنن",             bg: "rgba(56,189,248,.06)"  },
   my_adhkar:       { accent: "#ec4899", grad: "from-pink-500/15 to-rose-400/10",       icon: "✦", badge: "أذكاري",           bg: "rgba(236,72,153,.06)"  },
   custom:          { accent: "#ec4899", grad: "from-pink-500/15 to-rose-400/10",       icon: "✦", badge: "خاص",              bg: "rgba(236,72,153,.06)"  },
 };

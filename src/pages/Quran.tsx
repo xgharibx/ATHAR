@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Bookmark, BookOpen, Search, Shuffle, X, CheckCircle2 } from "lucide-react";
+import { Bookmark, BookOpen, CheckCircle2, Search, Shuffle, Volume2, X } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { stripDiacritics } from "@/lib/arabic";
+import { QURAN_RECITERS } from "@/lib/quranReciters";
 
 function normalize(s: string) {
   return stripDiacritics((s ?? "").toLowerCase()).replaceAll(/\s+/g, " ").trim();
@@ -565,6 +566,22 @@ export function QuranPage() {
             >
               <Shuffle size={14} />
             </button>
+
+            <label className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/6 px-3 text-xs opacity-75 transition focus-within:opacity-100">
+              <Volume2 size={13} className="text-[var(--accent)]" />
+              <select
+                aria-label="القارئ"
+                value={prefs.quranReciter}
+                onChange={(event) => setPrefs({ quranReciter: event.target.value })}
+                className="bg-transparent text-xs outline-none"
+              >
+                {QURAN_RECITERS.map((reciter) => (
+                  <option key={reciter.id} value={reciter.id} className="bg-[#101814] text-white">
+                    {reciter.label}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             {/* Theme color dots */}
             <div className="mr-auto flex items-center gap-1.5">
