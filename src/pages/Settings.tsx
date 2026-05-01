@@ -1,6 +1,7 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, Type, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2 } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, Type, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft } from "lucide-react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -69,6 +70,7 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
 }
 
 export function SettingsPage() {
+  const navigate = useNavigate();
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const resetPrefs = useNoorStore((s) => s.resetPrefs);
@@ -1104,6 +1106,38 @@ export function SettingsPage() {
               <div className="text-xs opacity-55">متاح في تطبيق iOS / Android فقط</div>
             )}
           </div>
+        </div>
+      </Card>
+
+      {/* محتوى وأدلة */}
+      <Card className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-base">📚</span>
+          <div className="text-sm font-semibold">محتوى وأدلة</div>
+        </div>
+        <div className="space-y-1">
+          {[
+            { icon: "✨", label: "أسماء الله الحسنى", desc: "تصفح الأسماء الـ٩٩ مع المعاني", route: "/asma" },
+            { icon: "🤲", label: "الأدعية", desc: "أدعية قرآنية ونبوية", route: "/duas" },
+            { icon: "📖", label: "مفردات القرآن", desc: "بطاقات تعليمية لمئة كلمة", route: "/quran-vocab" },
+            { icon: "🕌", label: "قصص الأنبياء", desc: "سير مختصرة ودروس مستفادة", route: "/stories" },
+            { icon: "🧎", label: "كيفية الصلاة", desc: "دليل مفصّل خطوة بخطوة", route: "/prayer-guide" },
+            { icon: "💧", label: "كيفية الوضوء", desc: "خطوات الوضوء الصحيح", route: "/wudu" },
+          ].map(({ icon, label, desc, route }) => (
+            <button
+              key={route}
+              onClick={() => navigate(route)}
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl transition text-right"
+              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+            >
+              <span className="text-xl flex-shrink-0">{icon}</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium" style={{ color: "var(--fg)" }}>{label}</div>
+                <div className="text-xs opacity-55 mt-0.5" style={{ color: "var(--fg)" }}>{desc}</div>
+              </div>
+              <ChevronLeft size={14} className="opacity-35 flex-shrink-0" />
+            </button>
+          ))}
         </div>
       </Card>
 

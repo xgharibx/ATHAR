@@ -28,6 +28,14 @@ const PrayerTimesPage = React.lazy(() => import("@/pages/PrayerTimes").then((m) 
 const SebhaPage = React.lazy(() => import("@/pages/Sebha").then((m) => ({ default: m.SebhaPage })));
 const QiblaPage = React.lazy(() => import("@/pages/Qibla").then((m) => ({ default: m.QiblaPage })));
 
+// C1-C7: New content pages
+const AsmaAlHusnaPage = React.lazy(() => import("@/pages/AsmaAlHusna").then((m) => ({ default: m.AsmaAlHusnaPage })));
+const DuasPage = React.lazy(() => import("@/pages/Duas").then((m) => ({ default: m.DuasPage })));
+const QuranVocabPage = React.lazy(() => import("@/pages/QuranVocab").then((m) => ({ default: m.QuranVocabPage })));
+const ProphetStoriesPage = React.lazy(() => import("@/pages/ProphetStories").then((m) => ({ default: m.ProphetStoriesPage })));
+const PrayerGuidePage = React.lazy(() => import("@/pages/PrayerGuide").then((m) => ({ default: m.PrayerGuidePage })));
+const WuduGuidePage = React.lazy(() => import("@/pages/WuduGuide").then((m) => ({ default: m.WuduGuidePage })));
+
 export default function App() {
   useApplyTheme();
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
@@ -176,6 +184,13 @@ export default function App() {
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="sources" element={<SourcesPage />} />
+            {/* C1-C7: New content pages */}
+            <Route path="asma" element={<AsmaAlHusnaPage />} />
+            <Route path="duas" element={<DuasPage />} />
+            <Route path="quran-vocab" element={<QuranVocabPage />} />
+            <Route path="stories" element={<ProphetStoriesPage />} />
+            <Route path="prayer-guide" element={<PrayerGuidePage />} />
+            <Route path="wudu" element={<WuduGuidePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

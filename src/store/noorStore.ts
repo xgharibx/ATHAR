@@ -175,6 +175,10 @@ type NoorState = {
   resetQuickTasbeeh: (key: string) => void;
   resetAllQuickTasbeeh: () => void;
 
+  // C8: Lifetime tasbeeh tracker
+  tasbeehLifetime: Record<string, number>;
+  incTasbeehLifetime: (key: string) => void;
+
   // Sebha sessions history
   sebhaSessions: SebhaSession[];
   addSebhaSession: (s: SebhaSession) => void;
@@ -522,8 +526,14 @@ export const useNoorStore = create<NoorState>()(
         if (current >= target) return current;
         const next = current + 1;
         set((s) => ({ quickTasbeeh: { ...s.quickTasbeeh, [key]: next } }));
+        get().incTasbeehLifetime(key);
         get().bumpActivityToday();
         return next;
+      },
+
+      tasbeehLifetime: {},
+      incTasbeehLifetime: (key) => {
+        set((s) => ({ tasbeehLifetime: { ...s.tasbeehLifetime, [key]: (s.tasbeehLifetime[key] ?? 0) + 1 } }));
       },
       resetQuickTasbeeh: (key) =>
         set((s) => {
@@ -987,7 +997,7 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 16,
+      version: 17,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -1018,6 +1028,7 @@ export const useNoorStore = create<NoorState>()(
           weeklyChallenge: (state as Partial<NoorState>).weeklyChallenge ?? null,
           weeklyReportSentISO: (state as Partial<NoorState>).weeklyReportSentISO ?? null,
           onboardingDone: (state as Partial<NoorState>).onboardingDone ?? false,
+          tasbeehLifetime: sanitizeNumberMap((state as Partial<NoorState>).tasbeehLifetime),
         } as NoorState;
       }
     }

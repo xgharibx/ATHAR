@@ -590,6 +590,7 @@ export function InsightsPage() {
   }, [adhkarData, progressMap]);
 
   const isWirdDone = !!dailyWirdDone[worshipDayKey];
+  const tasbeehLifetime = useNoorStore((s) => s.tasbeehLifetime);
   const dailyChecklistToday = dailyChecklist[worshipDayKey] ?? {};
   const checklistDoneCount = DAILY_CHECKLIST_ITEMS.filter((item) => !!dailyChecklistToday[item.id]).length;
   const checklistTotal = DAILY_CHECKLIST_ITEMS.length;
@@ -1408,6 +1409,42 @@ export function InsightsPage() {
       <div className="text-xs opacity-50 leading-6 px-1">
         ملاحظة: الإحصائيات محلية على جهازك. إذا حذفت بيانات المتصفح/التطبيق سيتم فقدها.
       </div>
+
+      {/* إجمالي التسبيح مدى الحياة */}
+      {Object.keys(tasbeehLifetime).length > 0 && (
+        <Card className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">📿</span>
+            <div className="font-semibold text-sm">إجمالي التسبيح مدى الحياة</div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { key: "subhanallah", label: "سبحان الله", emoji: "✨" },
+              { key: "alhamdulillah", label: "الحمد لله", emoji: "🌿" },
+              { key: "la_ilaha_illallah", label: "لا إله إلا الله", emoji: "🌟" },
+              { key: "allahu_akbar", label: "الله أكبر", emoji: "💫" },
+            ].map(({ key, label, emoji }) => {
+              const count = tasbeehLifetime[key] ?? 0;
+              return (
+                <div
+                  key={key}
+                  className="rounded-2xl p-3 text-center"
+                  style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+                >
+                  <div className="text-xl mb-1">{emoji}</div>
+                  <div
+                    className="text-lg font-bold tabular-nums"
+                    style={{ color: count > 0 ? "var(--accent)" : "var(--fg)", opacity: count > 0 ? 1 : 0.4 }}
+                  >
+                    {count.toLocaleString("ar-SA")}
+                  </div>
+                  <div className="text-xs mt-1 opacity-65" style={{ color: "var(--fg)" }}>{label}</div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
 
 

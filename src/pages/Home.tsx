@@ -36,6 +36,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
 import { DailyWisdomCard } from "@/components/ui/DailyWisdomCard";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
+import { HADITHS } from "@/data/hadiths";
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -803,6 +804,65 @@ export function HomePage() {
           </div>
         </Card>
       )}
+
+      {/* ── حديث اليوم ── */}
+      {(() => {
+        const todayHadith = HADITHS[dateIndex(civilTodayKey, HADITHS.length)];
+        if (!todayHadith) return null;
+        return (
+          <Card key="hadith-of-day" className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-base">📿</span>
+              <div className="text-sm font-semibold">حديث اليوم</div>
+              <Badge>يتجدد يومياً</Badge>
+            </div>
+            <div
+              className="text-base leading-9 text-right mb-2 font-medium"
+              style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}
+            >
+              {todayHadith.arabic}
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              <span className="text-xs opacity-60" style={{ color: "var(--fg)" }}>{todayHadith.narrator}</span>
+              <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
+              <span
+                className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
+              >
+                {todayHadith.source}
+              </span>
+            </div>
+          </Card>
+        );
+      })()}
+
+      {/* ── مكتبة المحتوى ── */}
+      <Card className="p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-base">📚</span>
+          <div className="text-sm font-semibold">مكتبة المحتوى</div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { icon: "✨", label: "أسماء الله", route: "/asma" },
+            { icon: "🤲", label: "الأدعية", route: "/duas" },
+            { icon: "📖", label: "مفردات القرآن", route: "/quran-vocab" },
+            { icon: "🕌", label: "قصص الأنبياء", route: "/stories" },
+            { icon: "🧎", label: "كيفية الصلاة", route: "/prayer-guide" },
+            { icon: "💧", label: "الوضوء", route: "/wudu" },
+          ].map(({ icon, label, route }) => (
+            <button
+              key={route}
+              onClick={() => navigate(route)}
+              className="flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 transition active:scale-95"
+              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
+            >
+              <span className="text-2xl">{icon}</span>
+              <span className="text-[11px] font-medium text-center leading-4 opacity-80">{label}</span>
+            </button>
+          ))}
+        </div>
+      </Card>
 
       {homeWidgetsOrder.map((widgetKey) => {
         if (widgetKey === "prayer") {
