@@ -23,7 +23,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Badge } from "@/components/ui/Badge";
-import { type HomeWidgetKey, useNoorStore } from "@/store/noorStore";
+import { type HomeWidgetKey, DEFAULT_HOME_WIDGETS_ORDER, useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { pct, cn } from "@/lib/utils";
@@ -178,6 +178,7 @@ export function HomePage() {
     () => ({ ...DEFAULT_HOME_WIDGETS, ...prefs.homeWidgets }),
     [prefs.homeWidgets]
   );
+  const homeWidgetsOrder: HomeWidgetKey[] = prefs.homeWidgetsOrder ?? DEFAULT_HOME_WIDGETS_ORDER;
   const toggleHomeWidget = React.useCallback((key: HomeWidgetKey) => {
     setPrefs({ homeWidgets: { ...homeWidgets, [key]: !homeWidgets[key] } });
   }, [homeWidgets, setPrefs]);
@@ -754,9 +755,6 @@ export function HomePage() {
         </div>
       </Card>
 
-      {homeWidgets.prayer && <PrayerWidget />}
-      {homeWidgets.wisdom && <DailyWisdomCard dateKey={worshipDayKey} />}
-
       {dailyCarouselItems.length > 0 && (
         <Card className="p-4 overflow-hidden">
           <div className="flex items-center justify-between gap-3 mb-3">
@@ -806,82 +804,88 @@ export function HomePage() {
         </Card>
       )}
 
-      {homeWidgets.smart && (
-      <Card className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-semibold opacity-55">الآن ماذا أفعل؟</span>
-              <Badge>{smartNow.periodLabel}</Badge>
-              {adaptiveMission.urgency === "high" && <Badge>{adaptiveMission.urgencyLabel}</Badge>}
-              {adaptiveMission.urgency !== "high" && adaptiveMission.debtToday.length > 0 && (
-                <Badge>{adaptiveMission.debtToday.length} متبقية</Badge>
-              )}
-            </div>
-            <div className="mt-2 text-[15px] font-bold leading-snug">
-              {smartNow.suggestedAction}
-            </div>
-          </div>
-          <Dropdown.Root modal={false}>
-            <Dropdown.Trigger asChild>
-              <button
-                type="button"
-                className="shrink-0 w-11 h-11 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90 mt-0.5"
-                aria-label="خيارات إضافية"
-                title="خيارات إضافية"
-              >
-                <MoreVertical size={16} />
-              </button>
-            </Dropdown.Trigger>
-            <Dropdown.Portal>
-              <Dropdown.Content
-                align="start"
-                sideOffset={8}
-                style={{ zIndex: 100000 }}
-                className="glass-strong rounded-3xl min-w-[240px] border border-white/15 p-2 shadow-2xl"
-              >
-                <Dropdown.Label className="px-3 pt-2 text-[11px] font-semibold opacity-45">ملخص سريع</Dropdown.Label>
-                <div className="px-3 pb-2 pt-1 text-[11px] opacity-60 leading-5">
-                  أنجزت {DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length} من {DAILY_CHECKLIST_ITEMS.length} اليوم
-                  {smartNow.missedYesterday > 0 ? ` • فاتك ${smartNow.missedYesterday} أمس` : ""}
+      {homeWidgetsOrder.map((widgetKey) => {
+        if (widgetKey === "prayer") {
+          return homeWidgets.prayer ? <PrayerWidget key="prayer" /> : null;
+        }
+        if (widgetKey === "wisdom") {
+          return homeWidgets.wisdom ? <DailyWisdomCard key="wisdom" dateKey={worshipDayKey} /> : null;
+        }
+        if (widgetKey === "smart") {
+          if (!homeWidgets.smart) return null;
+          return (
+            <Card key="smart" className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold opacity-55">الآن ماذا أفعل؟</span>
+                    <Badge>{smartNow.periodLabel}</Badge>
+                    {adaptiveMission.urgency === "high" && <Badge>{adaptiveMission.urgencyLabel}</Badge>}
+                    {adaptiveMission.urgency !== "high" && adaptiveMission.debtToday.length > 0 && (
+                      <Badge>{adaptiveMission.debtToday.length} متبقية</Badge>
+                    )}
+                  </div>
+                  <div className="mt-2 text-[15px] font-bold leading-snug">
+                    {smartNow.suggestedAction}
+                  </div>
                 </div>
-                <Dropdown.Separator className="my-1 h-px bg-white/10" />
-                {adaptiveMission.recoveryItem ? (
-                  <HomeQuickMenuAction
-                    label="استدرك المهمة الأقرب"
-                    hint={adaptiveMission.recoveryItem.title}
-                    onSelect={recoverOneTask}
-                  />
-                ) : null}
-                <HomeQuickMenuAction
-                  label="راجع التقدم اليومي"
-                  hint="الإحصاءات وقائمة اليوم"
-                  onSelect={() => navigate("/insights")}
-                />
-                <HomeQuickMenuAction
-                  label="خطة الختمة"
-                  hint="أصبحت داخل صفحة المصحف"
-                  onSelect={() => navigate("/quran")}
-                />
-              </Dropdown.Content>
-            </Dropdown.Portal>
-          </Dropdown.Root>
-        </div>
-
-        <Button className="mt-3 w-full press-effect" onClick={() => navigate(smartNow.actionRoute)}>
-          {smartNow.actionLabel}
-        </Button>
-      </Card>
-      )}
-
-      {/* Bottom: Daily Checklist */}
-      {homeWidgets.checklist && (
-      <Card className="p-5">
-        {(() => {
+                <Dropdown.Root modal={false}>
+                  <Dropdown.Trigger asChild>
+                    <button
+                      type="button"
+                      className="shrink-0 w-11 h-11 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90 mt-0.5"
+                      aria-label="خيارات إضافية"
+                      title="خيارات إضافية"
+                    >
+                      <MoreVertical size={16} />
+                    </button>
+                  </Dropdown.Trigger>
+                  <Dropdown.Portal>
+                    <Dropdown.Content
+                      align="start"
+                      sideOffset={8}
+                      style={{ zIndex: 100000 }}
+                      className="glass-strong rounded-3xl min-w-[240px] border border-white/15 p-2 shadow-2xl"
+                    >
+                      <Dropdown.Label className="px-3 pt-2 text-[11px] font-semibold opacity-45">ملخص سريع</Dropdown.Label>
+                      <div className="px-3 pb-2 pt-1 text-[11px] opacity-60 leading-5">
+                        أنجزت {DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length} من {DAILY_CHECKLIST_ITEMS.length} اليوم
+                        {smartNow.missedYesterday > 0 ? ` • فاتك ${smartNow.missedYesterday} أمس` : ""}
+                      </div>
+                      <Dropdown.Separator className="my-1 h-px bg-white/10" />
+                      {adaptiveMission.recoveryItem ? (
+                        <HomeQuickMenuAction
+                          label="استدرك المهمة الأقرب"
+                          hint={adaptiveMission.recoveryItem.title}
+                          onSelect={recoverOneTask}
+                        />
+                      ) : null}
+                      <HomeQuickMenuAction
+                        label="راجع التقدم اليومي"
+                        hint="الإحصاءات وقائمة اليوم"
+                        onSelect={() => navigate("/insights")}
+                      />
+                      <HomeQuickMenuAction
+                        label="خطة الختمة"
+                        hint="أصبحت داخل صفحة المصحف"
+                        onSelect={() => navigate("/quran")}
+                      />
+                    </Dropdown.Content>
+                  </Dropdown.Portal>
+                </Dropdown.Root>
+              </div>
+              <Button className="mt-3 w-full press-effect" onClick={() => navigate(smartNow.actionRoute)}>
+                {smartNow.actionLabel}
+              </Button>
+            </Card>
+          );
+        }
+        if (widgetKey === "checklist") {
+          if (!homeWidgets.checklist) return null;
           const allChecklistDone = DAILY_CHECKLIST_ITEMS.every((item) => !!dailyChecklistToday[item.id]);
           const showItems = checklistExpanded;
           return (
-            <>
+            <Card key="checklist" className="p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-sm font-semibold">قائمة المهام اليومية</div>
@@ -899,7 +903,6 @@ export function HomePage() {
                   </button>
                 </div>
               </div>
-              {/* Progress bar */}
               {DAILY_CHECKLIST_ITEMS.length > 0 && (
                 <div className="mt-2.5 h-1 rounded-full bg-white/8 overflow-hidden">
                   <div
@@ -948,257 +951,229 @@ export function HomePage() {
                   })}
                 </div>
               )}
-            </>
+            </Card>
           );
-        })()}
-      </Card>
-      )}
-
-      {/* ── خطوة اليوم ── */}
-      {homeWidgets.dailyStep && (() => {
-        const dayIndex = Math.floor(Date.now() / 86400000);
-        const step = BETTER_MUSLIM_DAILY_STEPS[dayIndex % BETTER_MUSLIM_DAILY_STEPS.length] ?? "";
-        const isStepDone = !!dailyBetterStepDone[worshipDayKey];
-        return (
-          <Card className="p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold">خطوة اليوم</div>
-                <div className="text-xs opacity-55 mt-1">عادة يومية للنمو الإيماني</div>
-              </div>
-              <Button
-                variant={isStepDone ? "primary" : "secondary"}
-                onClick={() => {
-                  setDailyBetterStepDone(worshipDayKey, !isStepDone);
-                  if (!isStepDone) toast.success("أحسنت — تم تسجيل الخطوة");
-                }}
-              >
-                <CheckCircle2 size={16} />
-                {isStepDone ? "تم" : "أتممتها"}
-              </Button>
-            </div>
-            <div className={cn(
-              "mt-3 rounded-2xl px-4 py-3.5 border text-sm leading-7",
-              isStepDone
-                ? "bg-[var(--ok)]/8 border-[var(--ok)]/20 opacity-70 line-through"
-                : "bg-[var(--accent)]/8 border-[var(--accent)]/20"
-            )}>
-              {step}
-            </div>
-          </Card>
-        );
-      })()}
-
-      {homeWidgets.tasbeeh && (
-      <Card className="p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold">مختارات اليوم</div>
-            <div className="mt-1 text-xs opacity-55">هدف التسبيح: {tasbeehTarget}</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex rounded-2xl border border-white/10 bg-white/5 p-1">
-              {[33, 100].map((target) => (
-                <button
-                  key={target}
-                  type="button"
-                  onClick={() => setTasbeehTarget(target as 33 | 100)}
-                  className={cn(
-                    "min-w-10 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition",
-                    tasbeehTarget === target
-                      ? "bg-[var(--accent)] text-black"
-                      : "text-white/65 hover:bg-white/8"
-                  )}
+        }
+        if (widgetKey === "dailyStep") {
+          if (!homeWidgets.dailyStep) return null;
+          const dayIndex = Math.floor(Date.now() / 86400000);
+          const step = BETTER_MUSLIM_DAILY_STEPS[dayIndex % BETTER_MUSLIM_DAILY_STEPS.length] ?? "";
+          const isStepDone = !!dailyBetterStepDone[worshipDayKey];
+          return (
+            <Card key="dailyStep" className="p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold">خطوة اليوم</div>
+                  <div className="text-xs opacity-55 mt-1">عادة يومية للنمو الإيماني</div>
+                </div>
+                <Button
+                  variant={isStepDone ? "primary" : "secondary"}
+                  onClick={() => {
+                    setDailyBetterStepDone(worshipDayKey, !isStepDone);
+                    if (!isStepDone) toast.success("أحسنت — تم تسجيل الخطوة");
+                  }}
                 >
-                  {target}
-                </button>
-              ))}
-            </div>
-            <Badge>{`${quickTotal.done}/${quickTotal.total}`}</Badge>
-            {confirmTasbeehReset ? (
-              <>
-                <Button size="sm" variant="danger" onClick={() => { resetAllQuickTasbeeh(); toast.success("تم تصفير التسابيح"); setConfirmTasbeehReset(false); }}>تأكيد</Button>
-                <Button size="sm" variant="secondary" onClick={() => setConfirmTasbeehReset(false)}>إلغاء</Button>
-              </>
-            ) : (
-              <IconButton
-                aria-label="تصفير التسابيح"
-                onClick={() => setConfirmTasbeehReset(true)}
-              >
-                <RotateCw size={16} />
-              </IconButton>
-            )}
-          </div>
-        </div>
-        <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
-          <div className="h-full progress-accent" style={{ width: `${quickTotal.percent}%` }} />
-        </div>
-
-        {quickTotal.percent >= 100 && (
-          <div className="mt-3 rounded-2xl border border-[var(--ok)]/30 bg-[var(--ok)]/10 px-4 py-3 flex items-center gap-2">
-            <span>✅</span>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>تمت التسابيح</div>
-              <div className="text-[11px] opacity-60 mt-0.5">{quickTotal.total}/{quickTotal.total} — بارك الله فيك</div>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
-          {QUICK_TASBEEH.map((it) => {
-            const target = tasbeehTarget;
-            const v = Math.min(target, quickTasbeeh[it.key] ?? 0);
-            const pct = target ? v / target : 0;
-            const r = 22;
-            const C = 2 * Math.PI * r;
-            const dash = C;
-            const offset = C - pct * C;
-            const done = v >= target;
-
-            return (
-              <button
-                key={it.key}
-                onClick={() => {
-                  incQuickTasbeeh(it.key, tasbeehTarget);
-                  if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(12);
-                }}
-                className="glass rounded-3xl p-4 text-right transition border border-white/10 select-none press-effect glass-hover"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold arabic-text leading-7 break-words whitespace-normal">{it.label}</div>
-                    <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/{target}</div>
+                  <CheckCircle2 size={16} />
+                  {isStepDone ? "تم" : "أتممتها"}
+                </Button>
+              </div>
+              <div className={cn(
+                "mt-3 rounded-2xl px-4 py-3.5 border text-sm leading-7",
+                isStepDone
+                  ? "bg-[var(--ok)]/8 border-[var(--ok)]/20 opacity-70 line-through"
+                  : "bg-[var(--accent)]/8 border-[var(--accent)]/20"
+              )}>
+                {step}
+              </div>
+            </Card>
+          );
+        }
+        if (widgetKey === "tasbeeh") {
+          if (!homeWidgets.tasbeeh) return null;
+          return (
+            <Card key="tasbeeh" className="p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold">مختارات اليوم</div>
+                  <div className="mt-1 text-xs opacity-55">هدف التسبيح: {tasbeehTarget}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex rounded-2xl border border-white/10 bg-white/5 p-1">
+                    {[33, 100].map((target) => (
+                      <button
+                        key={target}
+                        type="button"
+                        onClick={() => setTasbeehTarget(target as 33 | 100)}
+                        className={cn(
+                          "min-w-10 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition",
+                          tasbeehTarget === target
+                            ? "bg-[var(--accent)] text-black"
+                            : "text-white/65 hover:bg-white/8"
+                        )}
+                      >
+                        {target}
+                      </button>
+                    ))}
                   </div>
-
-                  <div className="shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-white/6 border border-white/10 flex items-center justify-center">
-                      <svg width="44" height="44" viewBox="0 0 60 60">
-                        <circle
-                          cx="30"
-                          cy="30"
-                          r={r}
-                          fill="transparent"
-                          stroke="rgba(255,255,255,0.12)"
-                          strokeWidth="6"
-                        />
-                        <circle
-                          cx="30"
-                          cy="30"
-                          r={r}
-                          fill="transparent"
-                          stroke={done ? "var(--ok)" : "var(--accent)"}
-                          strokeWidth="6"
-                          strokeLinecap="round"
-                          strokeDasharray={dash}
-                          strokeDashoffset={offset}
-                          className="progress-ring-circle"
-                        />
-                      </svg>
-                    </div>
+                  <Badge>{`${quickTotal.done}/${quickTotal.total}`}</Badge>
+                  {confirmTasbeehReset ? (
+                    <>
+                      <Button size="sm" variant="danger" onClick={() => { resetAllQuickTasbeeh(); toast.success("تم تصفير التسابيح"); setConfirmTasbeehReset(false); }}>تأكيد</Button>
+                      <Button size="sm" variant="secondary" onClick={() => setConfirmTasbeehReset(false)}>إلغاء</Button>
+                    </>
+                  ) : (
+                    <IconButton
+                      aria-label="تصفير التسابيح"
+                      onClick={() => setConfirmTasbeehReset(true)}
+                    >
+                      <RotateCw size={16} />
+                    </IconButton>
+                  )}
+                </div>
+              </div>
+              <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
+                <div className="h-full progress-accent" style={{ width: `${quickTotal.percent}%` }} />
+              </div>
+              {quickTotal.percent >= 100 && (
+                <div className="mt-3 rounded-2xl border border-[var(--ok)]/30 bg-[var(--ok)]/10 px-4 py-3 flex items-center gap-2">
+                  <span>✅</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>تمت التسابيح</div>
+                    <div className="text-[11px] opacity-60 mt-0.5">{quickTotal.total}/{quickTotal.total} — بارك الله فيك</div>
                   </div>
                 </div>
-
-                <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="text-xs opacity-70">انقر للعدّ</div>
-                  <Badge>{done ? "تم" : `${target - v} متبقّي`}</Badge>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </Card>
-      )}
-
-      {homeWidgets.dailyWird && (
-      <Card className={`p-5 transition-colors ${isDailyWirdDone ? "border border-[var(--ok)]/25" : ""}`}>
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="text-sm font-semibold">ورد اليوم</div>
-              {wirdStreak > 1 && (
-                <span className="text-[10px] tabular-nums font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(251,146,60,0.15)", color: "#fb923c" }}>
-                  🔥 {wirdStreak}
-                </span>
               )}
-            </div>
-            <div className="text-xs opacity-65 mt-1">
-              {dailyWird ? `آيات ${dailyWird.meta.from}–${dailyWird.meta.to} من ${dailyWird.meta.total}` : "مختارات يومية من القرآن"}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setDailyWirdExpanded((v) => !v)}
-              className="w-8 h-8 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90"
-              aria-label={dailyWirdExpanded ? "طي" : "عرض"}
-              title={dailyWirdExpanded ? "طي ورد اليوم" : "عرض ورد اليوم"}
-            >
-              <ChevronDown
-                size={14}
-                className={cn(
-                  "transition-transform duration-200",
-                  dailyWirdExpanded && "rotate-180"
-                )}
-              />
-            </button>
-
-            <Button
-              variant="secondary"
-              onClick={copyDailyWird}
-              disabled={!dailyWird}
-              title="نسخ ورد اليوم"
-            >
-              <Copy size={16} />
-              نسخ
-            </Button>
-
-            <Button
-              variant={isDailyWirdDone ? "primary" : "secondary"}
-              onClick={() => {
-                if (isDailyWirdDone) return;
-                setDailyWirdDone(worshipDayKey, true);
-                toast.success("تم حفظ الإتمام");
-              }}
-              title="تحديد كمنجز"
-              disabled={isDailyWirdDone}
-            >
-              <CheckCircle2 size={16} />
-              {isDailyWirdDone ? "منجز" : "تم"}
-            </Button>
-          </div>
-        </div>
-
-        {quran.isLoading ? (
-          <div className="mt-4 text-sm opacity-65">... تحميل الورد</div>
-        ) : quran.error || !dailyWird ? (
-          <div className="mt-4 text-sm opacity-65 leading-7">
-            تعذر تحميل ورد اليوم.
-          </div>
-        ) : dailyWirdExpanded ? (
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-            {dailyWird.items.map((p) => (
-              <button
-                key={`${p.surahId}:${p.ayahIndex}`}
-                className="glass rounded-3xl p-4 text-right transition border border-white/10 press-effect glass-hover"
-                onClick={() => navigate(`/quran/${p.surahId}?a=${p.ayahIndex}`)}
-              >
-                <div className="text-xs opacity-65 mb-2">
-                  {p.surahName} • ({p.surahId}) • ﴿{p.ayahIndex}﴾
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {QUICK_TASBEEH.map((it) => {
+                  const target = tasbeehTarget;
+                  const v = Math.min(target, quickTasbeeh[it.key] ?? 0);
+                  const pct = target ? v / target : 0;
+                  const r = 22;
+                  const C = 2 * Math.PI * r;
+                  const dash = C;
+                  const offset = C - pct * C;
+                  const done = v >= target;
+                  return (
+                    <button
+                      key={it.key}
+                      onClick={() => {
+                        incQuickTasbeeh(it.key, tasbeehTarget);
+                        if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(12);
+                      }}
+                      className="glass rounded-3xl p-4 text-right transition border border-white/10 select-none press-effect glass-hover"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-sm font-semibold arabic-text leading-7 break-words whitespace-normal">{it.label}</div>
+                          <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/{target}</div>
+                        </div>
+                        <div className="shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-white/6 border border-white/10 flex items-center justify-center">
+                            <svg width="44" height="44" viewBox="0 0 60 60">
+                              <circle cx="30" cy="30" r={r} fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="6" />
+                              <circle
+                                cx="30" cy="30" r={r}
+                                fill="transparent"
+                                stroke={done ? "var(--ok)" : "var(--accent)"}
+                                strokeWidth="6"
+                                strokeLinecap="round"
+                                strokeDasharray={dash}
+                                strokeDashoffset={offset}
+                                className="progress-ring-circle"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-2">
+                        <div className="text-xs opacity-70">انقر للعدّ</div>
+                        <Badge>{done ? "تم" : `${target - v} متبقّي`}</Badge>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          );
+        }
+        if (widgetKey === "dailyWird") {
+          if (!homeWidgets.dailyWird) return null;
+          return (
+            <Card key="dailyWird" className={`p-5 transition-colors ${isDailyWirdDone ? "border border-[var(--ok)]/25" : ""}`}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-semibold">ورد اليوم</div>
+                    {wirdStreak > 1 && (
+                      <span className="text-[10px] tabular-nums font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(251,146,60,0.15)", color: "#fb923c" }}>
+                        🔥 {wirdStreak}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs opacity-65 mt-1">
+                    {dailyWird ? `آيات ${dailyWird.meta.from}–${dailyWird.meta.to} من ${dailyWird.meta.total}` : "مختارات يومية من القرآن"}
+                  </div>
                 </div>
-                <div className={"arabic-text opacity-90 " + textClassByLength(p.text)}>
-                  {p.text}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDailyWirdExpanded((v) => !v)}
+                    className="w-8 h-8 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90"
+                    aria-label={dailyWirdExpanded ? "طي" : "عرض"}
+                    title={dailyWirdExpanded ? "طي ورد اليوم" : "عرض ورد اليوم"}
+                  >
+                    <ChevronDown size={14} className={cn("transition-transform duration-200", dailyWirdExpanded && "rotate-180")} />
+                  </button>
+                  <Button variant="secondary" onClick={copyDailyWird} disabled={!dailyWird} title="نسخ ورد اليوم">
+                    <Copy size={16} />
+                    نسخ
+                  </Button>
+                  <Button
+                    variant={isDailyWirdDone ? "primary" : "secondary"}
+                    onClick={() => {
+                      if (isDailyWirdDone) return;
+                      setDailyWirdDone(worshipDayKey, true);
+                      toast.success("تم حفظ الإتمام");
+                    }}
+                    title="تحديد كمنجز"
+                    disabled={isDailyWirdDone}
+                  >
+                    <CheckCircle2 size={16} />
+                    {isDailyWirdDone ? "منجز" : "تم"}
+                  </Button>
                 </div>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm opacity-75 leading-7">
-            تم طي ورد اليوم. افتحه وقت القراءة أو المراجعة.
-          </div>
-        )}
-      </Card>
-      )}
+              </div>
+              {quran.isLoading ? (
+                <div className="mt-4 text-sm opacity-65">... تحميل الورد</div>
+              ) : quran.error || !dailyWird ? (
+                <div className="mt-4 text-sm opacity-65 leading-7">تعذر تحميل ورد اليوم.</div>
+              ) : dailyWirdExpanded ? (
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {dailyWird.items.map((p) => (
+                    <button
+                      key={`${p.surahId}:${p.ayahIndex}`}
+                      className="glass rounded-3xl p-4 text-right transition border border-white/10 press-effect glass-hover"
+                      onClick={() => navigate(`/quran/${p.surahId}?a=${p.ayahIndex}`)}
+                    >
+                      <div className="text-xs opacity-65 mb-2">
+                        {p.surahName} • ({p.surahId}) • ﴿{p.ayahIndex}﴾
+                      </div>
+                      <div className={"arabic-text opacity-90 " + textClassByLength(p.text)}>
+                        {p.text}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm opacity-75 leading-7">
+                  تم طي ورد اليوم. افتحه وقت القراءة أو المراجعة.
+                </div>
+              )}
+            </Card>
+          );
+        }
+        return null;
+      })}
 
     </div>
   );

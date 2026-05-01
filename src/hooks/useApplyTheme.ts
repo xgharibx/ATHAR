@@ -62,6 +62,9 @@ export function useApplyTheme() {
   const theme = useNoorStore((s) => s.prefs.theme);
   const reduceMotion = useNoorStore((s) => s.prefs.reduceMotion);
   const customAccent = useNoorStore((s) => s.prefs.customAccent);
+  const arabicFont = useNoorStore((s) => s.prefs.arabicFont);
+  const textDir = useNoorStore((s) => s.prefs.textDir);
+  const uiLanguage = useNoorStore((s) => s.prefs.uiLanguage);
 
   useEffect(() => {
     apply(theme);
@@ -91,4 +94,21 @@ export function useApplyTheme() {
     if (reduceMotion) root.classList.add("reduce-motion");
     else root.classList.remove("reduce-motion");
   }, [reduceMotion]);
+
+  // Se1: Arabic font family
+  useEffect(() => {
+    document.documentElement.dataset.arabicFont = arabicFont ?? "noto_naskh";
+  }, [arabicFont]);
+
+  // Se3 + Se4: UI language and text direction
+  useEffect(() => {
+    const root = document.documentElement;
+    const lang = uiLanguage ?? "ar";
+    root.lang = lang;
+    if ((textDir ?? "auto") === "ltr") {
+      root.dir = "ltr";
+    } else {
+      root.dir = "rtl";
+    }
+  }, [textDir, uiLanguage]);
 }

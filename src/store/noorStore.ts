@@ -53,6 +53,11 @@ export type Preferences = {
   reduceMotion: boolean;
   transparentMode: boolean;
   customAccent?: string; // override --accent, e.g. "#ff5555"
+  arabicFont?: "noto_naskh" | "amiri" | "hafs"; // Se1
+  uiLanguage?: "ar" | "en"; // Se3
+  textDir?: "auto" | "rtl" | "ltr"; // Se4
+  homeWidgetsOrder?: HomeWidgetKey[]; // Se5
+  biometricLock?: boolean; // Se8
   autoAdvanceDhikr: boolean; // scroll to next card on item completion
   homeWidgets: Record<HomeWidgetKey, boolean>;
   prayerCalcMethod: number; // 1-23 AlAdhan method, default 5 (Egyptian)
@@ -257,6 +262,7 @@ type NoorState = {
   // Targeted resets (Phase 37)
   resetAdhkarProgress: () => void;
   resetQuranData: () => void;
+  resetPrefs: () => void; // Se6
 
   // L1: Local friends leaderboard
   localFriends: LocalFriend[];
@@ -285,6 +291,8 @@ type NoorState = {
   setLastVisitedSectionId: (sectionId: string | null) => void;
 };
 
+export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "wisdom", "smart", "checklist", "dailyStep", "tasbeeh", "dailyWird"];
+
 const DEFAULT_PREFS: Preferences = {
   theme: "forest",
   fontScale: 1.05,
@@ -307,6 +315,11 @@ const DEFAULT_PREFS: Preferences = {
   reduceMotion: false,
   transparentMode: true,
   customAccent: undefined,
+  arabicFont: "noto_naskh",
+  uiLanguage: "ar",
+  textDir: "auto",
+  homeWidgetsOrder: [...DEFAULT_HOME_WIDGETS_ORDER],
+  biometricLock: false,
   autoAdvanceDhikr: true,
   prayerCalcMethod: 5,
   asrMadhab: 0,
@@ -320,6 +333,23 @@ const DEFAULT_PREFS: Preferences = {
     dailyWird: true,
   },
 };
+
+function normalizeHomeWidgetsOrder(value: unknown): HomeWidgetKey[] {
+  const VALID_KEYS: HomeWidgetKey[] = [...DEFAULT_HOME_WIDGETS_ORDER];
+  if (!Array.isArray(value)) return [...VALID_KEYS];
+  const seen = new Set<HomeWidgetKey>();
+  const result: HomeWidgetKey[] = [];
+  for (const v of value) {
+    if (VALID_KEYS.includes(v as HomeWidgetKey) && !seen.has(v as HomeWidgetKey)) {
+      seen.add(v as HomeWidgetKey);
+      result.push(v as HomeWidgetKey);
+    }
+  }
+  for (const k of VALID_KEYS) {
+    if (!seen.has(k)) result.push(k);
+  }
+  return result;
+}
 
 function normalizeHomeWidgets(value: unknown): Record<HomeWidgetKey, boolean> {
   const source = value && typeof value === "object" ? value as Partial<Record<HomeWidgetKey, unknown>> : {};
@@ -340,6 +370,7 @@ function normalizePrefs(value: unknown): Preferences {
     ...DEFAULT_PREFS,
     ...source,
     homeWidgets: normalizeHomeWidgets(source.homeWidgets),
+    homeWidgetsOrder: normalizeHomeWidgetsOrder(source.homeWidgetsOrder),
   };
 }
 
@@ -851,6 +882,9 @@ export const useNoorStore = create<NoorState>()(
         });
       },
 
+      // Se6: Restore preference defaults without clearing progress data
+      resetPrefs: () => set({ prefs: { ...DEFAULT_PREFS } }),
+
       // Targeted resets (Phase 37)
       resetAdhkarProgress: () => set({
         progress: {},
@@ -939,7 +973,7 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 14,
+      version: 15,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;

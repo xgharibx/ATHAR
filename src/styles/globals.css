@@ -312,6 +312,18 @@ html.midnight body.transparent-mode .glass-strong {
   unicode-bidi: plaintext;
 }
 
+/* Se1: Arabic font family variants */
+[data-arabic-font="amiri"] .arabic-text,
+[data-arabic-font="amiri"] .quran-text,
+[data-arabic-font="amiri"] .quran-title {
+  font-family: "Amiri", "Amiri Quran", "Noto Naskh Arabic", serif !important;
+}
+[data-arabic-font="hafs"] .arabic-text,
+[data-arabic-font="hafs"] .quran-text,
+[data-arabic-font="hafs"] .quran-title {
+  font-family: "KFGQPC Uthmanic Script HAFS", "Amiri Quran", "Noto Naskh Arabic", serif !important;
+}
+
 .dhikr-flow {
   white-space: pre-line;
   text-align: justify;

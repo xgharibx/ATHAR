@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, Type, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Card } from "@/components/ui/Card";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { Slider } from "@/components/ui/Slider";
 import { Input } from "@/components/ui/Input";
-import { useNoorStore, type NoorTheme, type ExportBlobV1 } from "@/store/noorStore";
+import { useNoorStore, type NoorTheme, type ExportBlobV1, type HomeWidgetKey } from "@/store/noorStore";
 import { downloadJson } from "@/lib/download";
 import { clamp } from "@/lib/utils";
 import {
@@ -71,6 +71,7 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
 export function SettingsPage() {
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
+  const resetPrefs = useNoorStore((s) => s.resetPrefs);
   const reminders = useNoorStore((s) => s.reminders);
   const setReminders = useNoorStore((s) => s.setReminders);
   const exportState = useNoorStore((s) => s.exportState);
@@ -156,6 +157,23 @@ export function SettingsPage() {
     const blob = exportState();
     downloadJson(`ATHAR-نسخة-احتياطية-${blob.exportedAt.slice(0, 10)}.athar`, blob);
     toast.success("تم تنزيل النسخة الاحتياطية");
+  };
+
+  // Se7: Share backup via native share sheet (for cloud save to Google Drive / iCloud)
+  const onShareBackup = async () => {
+    try {
+      const blob = exportState();
+      const json = JSON.stringify(blob, null, 2);
+      const file = new File([json], `ATHAR-${blob.exportedAt.slice(0, 10)}.athar`, { type: "application/json" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "ATHAR نسخة احتياطية" });
+      } else {
+        onBackup();
+      }
+    } catch (e) {
+      if (e instanceof Error && e.name === "AbortError") return;
+      onBackup();
+    }
   };
 
   const onRestore = async (file: File) => {
@@ -297,7 +315,113 @@ export function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {/* Se1: Arabic font family selector */}
+        <div className="mt-5 pt-4 border-t border-white/8">
+          <div className="flex items-center gap-2 mb-3">
+            <Type size={15} className="text-[var(--accent)]" />
+            <div className="text-sm font-medium">خط القراءة</div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { id: "noto_naskh", label: "نوتو نسخ", sample: "بسم الله" },
+              { id: "amiri", label: "أميري", sample: "بسم الله" },
+              { id: "hafs", label: "حفص القرآني", sample: "بسم الله" },
+            ] as const).map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setPrefs({ arabicFont: f.id })}
+                className={[
+                  "px-3 py-2.5 rounded-2xl border text-sm transition flex flex-col items-center gap-1 min-h-[60px] min-w-[90px]",
+                  (prefs.arabicFont ?? "noto_naskh") === f.id
+                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/35"
+                    : "bg-white/6 border-white/10 hover:bg-white/8"
+                ].join(" ")}
+              >
+                <span className="text-xs opacity-70">{f.label}</span>
+                <span className="arabic-text text-base leading-tight">{f.sample}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Se3: Language switcher */}
+        <div className="mt-5 pt-4 border-t border-white/8">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Globe size={15} className="text-[var(--accent)]" />
+              <div>
+                <div className="text-sm font-medium">لغة الواجهة</div>
+                <div className="text-xs opacity-60 mt-0.5">Arabic ↔ English</div>
+              </div>
+            </div>
+            <div className="flex gap-1.5">
+              {(["ar", "en"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setPrefs({ uiLanguage: lang })}
+                  className={[
+                    "px-4 py-2 rounded-xl border text-sm transition min-h-[40px]",
+                    (prefs.uiLanguage ?? "ar") === lang
+                      ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-semibold"
+                      : "bg-white/6 border-white/10 hover:bg-white/10"
+                  ].join(" ")}
+                >
+                  {lang === "ar" ? "عربي" : "English"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Se4: Text direction */}
+        <div className="mt-5 pt-4 border-t border-white/8">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-medium">اتجاه النص</div>
+              <div className="text-xs opacity-60 mt-0.5">RTL / LTR · مفيد لمستخدمي الإنجليزية</div>
+            </div>
+            <div className="flex gap-1.5">
+              {([
+                { id: "auto", label: "تلقائي" },
+                { id: "rtl", label: "RTL ←" },
+                { id: "ltr", label: "→ LTR" },
+              ] as const).map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => setPrefs({ textDir: d.id })}
+                  className={[
+                    "px-3 py-2 rounded-xl border text-xs transition min-h-[40px]",
+                    (prefs.textDir ?? "auto") === d.id
+                      ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-semibold"
+                      : "bg-white/6 border-white/10 hover:bg-white/10"
+                  ].join(" ")}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Se6: Restore defaults */}
+        <div className="mt-5 pt-4 border-t border-white/8 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-medium">إعادة الضبط الافتراضي</div>
+            <div className="text-xs opacity-60 mt-0.5">إعادة إعدادات المظهر والقراءة دون فقدان التقدّم</div>
+          </div>
+          <button
+            onClick={() => { resetPrefs(); toast.success("تم إعادة الضبط الافتراضي"); }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/15 bg-white/6 hover:bg-white/10 transition text-xs min-h-[40px]"
+          >
+            <RotateCcw size={13} />
+            إعادة ضبط
+          </button>
+        </div>
       </Card>
+
+      {/* Se5: Home widgets reorder */}
+      <HomeWidgetsCard prefs={prefs} setPrefs={setPrefs} />
 
       <Card className="p-5">
         <div className="flex items-center gap-2">
@@ -501,12 +625,32 @@ export function SettingsPage() {
             </div>
           </div>
 
-          {/* ── Daily goal stepper ──── */}
-          <SettingRow
-            title="الهدف اليومي"
-            desc="عدد الآيات المستهدف يومياً"
-            right={
-              <div className="flex items-center gap-2">
+          {/* ── Se10: Daily goal stepper + preset buttons ──── */}
+          <div className="glass rounded-3xl p-4 border border-white/10">
+            <div className="text-sm font-semibold mb-1">الهدف اليومي للقرآن</div>
+            <div className="text-xs opacity-65 mb-3">عدد الآيات المستهدف يومياً</div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Presets */}
+              {([
+                { label: "١٠ آيات", value: 10 },
+                { label: "صفحة (١٥)", value: 15 },
+                { label: "٥ صفحات (٧٥)", value: 75 },
+                { label: "جزء (٢٠٨)", value: 208 },
+              ]).map((p) => (
+                <button
+                  key={p.value}
+                  onClick={() => setPrefs({ quranDailyGoal: p.value })}
+                  className={[
+                    "px-3 py-2 rounded-xl border text-xs transition min-h-[36px]",
+                    (prefs.quranDailyGoal ?? 10) === p.value
+                      ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-semibold"
+                      : "bg-white/6 border-white/10 hover:bg-white/10"
+                  ].join(" ")}
+                >
+                  {p.label}
+                </button>
+              ))}
+              <div className="flex items-center gap-2 mr-auto">
                 <button
                   type="button"
                   className="w-8 h-8 rounded-xl bg-white/8 border border-white/12 flex items-center justify-center hover:bg-white/12 transition text-base"
@@ -517,12 +661,12 @@ export function SettingsPage() {
                 <button
                   type="button"
                   className="w-8 h-8 rounded-xl bg-white/8 border border-white/12 flex items-center justify-center hover:bg-white/12 transition text-base"
-                  onClick={() => setPrefs({ quranDailyGoal: Math.min(300, (prefs.quranDailyGoal ?? 10) + 5) })}
+                  onClick={() => setPrefs({ quranDailyGoal: Math.min(604, (prefs.quranDailyGoal ?? 10) + 5) })}
                   aria-label="زيادة الهدف"
                 >+</button>
               </div>
-            }
-          />
+            </div>
+          </div>
 
           {/* ── Reciter selection ──── */}
           <SettingRow
@@ -875,10 +1019,16 @@ export function SettingsPage() {
               تصدير/استيراد التقدّم + المفضلة + إعداداتك.
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <Button variant="secondary" onClick={onBackup}>
               <Download size={16} />
               تصدير
+            </Button>
+
+            {/* Se7: Share to cloud (Google Drive / iCloud via native share sheet) */}
+            <Button variant="secondary" onClick={() => void onShareBackup()}>
+              <Share2 size={16} />
+              مشاركة
             </Button>
 
             <label className="inline-flex">
@@ -898,6 +1048,63 @@ export function SettingsPage() {
             </label>
           </div>
         </div>
+        <div className="mt-3 text-xs opacity-50 leading-5">
+          💡 يمكنك حفظ النسخة الاحتياطية في Google Drive أو iCloud عبر زر المشاركة
+        </div>
+      </Card>
+
+      {/* Se8 + Se9: Security & Advanced */}
+      <Card className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Fingerprint size={18} className="text-[var(--accent)]" />
+          <div className="font-semibold">الأمان والمتقدّم</div>
+        </div>
+        <div className="space-y-3">
+          {/* Se8: Biometric lock */}
+          <SettingRow
+            title="القفل البيومتري"
+            desc={isNative ? "حماية التطبيق ببصمة الإصبع أو التعرف على الوجه" : "متاح في تطبيق الهاتف فقط"}
+            right={
+              <Switch
+                checked={prefs.biometricLock ?? false}
+                onCheckedChange={(v) => {
+                  if (!isNative) { toast("القفل البيومتري متاح في تطبيق الهاتف فقط"); return; }
+                  setPrefs({ biometricLock: v });
+                  toast(v ? "سيُطلب منك بصمة الإصبع عند الفتح" : "تم إيقاف القفل البيومتري");
+                }}
+              />
+            }
+          />
+          {/* Se9: App icon variants */}
+          <div className="glass rounded-3xl p-4 border border-white/10">
+            <div className="flex items-center gap-2 mb-2">
+              <Layers size={14} className="text-[var(--accent)]" />
+              <div className="text-sm font-semibold">أيقونة التطبيق</div>
+            </div>
+            <div className="text-xs opacity-60 mb-3">اختر نمط أيقونة التطبيق على شاشتك الرئيسية</div>
+            {isNative ? (
+              <div className="flex flex-wrap gap-2">
+                {([
+                  { id: "default", label: "🌿 الافتراضي" },
+                  { id: "light", label: "☀️ فاتح" },
+                  { id: "dark", label: "🌑 داكن" },
+                  { id: "ramadan", label: "🌙 رمضان" },
+                  { id: "gold", label: "✨ ذهبي" },
+                ]).map((icon) => (
+                  <button
+                    key={icon.id}
+                    onClick={() => toast("تغيير أيقونة التطبيق قيد التطوير")}
+                    className="px-3 py-2 rounded-xl border border-white/10 bg-white/6 hover:bg-white/10 text-xs transition min-h-[36px]"
+                  >
+                    {icon.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-xs opacity-55">متاح في تطبيق iOS / Android فقط</div>
+            )}
+          </div>
+        </div>
       </Card>
 
       <DangerZone />
@@ -906,6 +1113,82 @@ export function SettingsPage() {
         ATHAR • أثر · v1.0.0 · بيانات محلية
       </div>
     </div>
+  );
+}
+
+const HOME_WIDGET_LABELS: Record<HomeWidgetKey, string> = {
+  prayer: "مواقيت الصلاة",
+  wisdom: "حكمة اليوم",
+  smart: "الذكر الذكي",
+  checklist: "القائمة اليومية",
+  dailyStep: "خطوة النمو",
+  tasbeeh: "التسبيح السريع",
+  dailyWird: "الورد اليومي",
+};
+
+function HomeWidgetsCard(props: {
+  prefs: import("@/store/noorStore").Preferences;
+  setPrefs: (partial: Partial<import("@/store/noorStore").Preferences>) => void;
+}) {
+  const { prefs, setPrefs } = props;
+  const order: HomeWidgetKey[] = prefs.homeWidgetsOrder ?? ["prayer", "wisdom", "smart", "checklist", "dailyStep", "tasbeeh", "dailyWird"];
+
+  const moveUp = (i: number) => {
+    if (i === 0) return;
+    const next = [...order];
+    [next[i - 1], next[i]] = [next[i], next[i - 1]];
+    setPrefs({ ...prefs, homeWidgetsOrder: next });
+  };
+
+  const moveDown = (i: number) => {
+    if (i === order.length - 1) return;
+    const next = [...order];
+    [next[i], next[i + 1]] = [next[i + 1], next[i]];
+    setPrefs({ ...prefs, homeWidgetsOrder: next });
+  };
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <Layers size={18} className="text-[var(--accent)]" />
+        <div>
+          <div className="font-semibold">عناصر الصفحة الرئيسية</div>
+          <div className="text-xs opacity-60 mt-0.5">تفعيل وترتيب البطاقات</div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {order.map((key, i) => (
+          <div
+            key={key}
+            className="flex items-center gap-3 glass rounded-2xl border border-white/10 px-3 py-2.5"
+          >
+            <div className="flex flex-col gap-0.5">
+              <button
+                onClick={() => moveUp(i)}
+                disabled={i === 0}
+                className="p-1 rounded-lg hover:bg-white/10 transition disabled:opacity-25"
+                aria-label="تحريك لأعلى"
+              >
+                <ArrowUp size={12} />
+              </button>
+              <button
+                onClick={() => moveDown(i)}
+                disabled={i === order.length - 1}
+                className="p-1 rounded-lg hover:bg-white/10 transition disabled:opacity-25"
+                aria-label="تحريك لأسفل"
+              >
+                <ArrowDown size={12} />
+              </button>
+            </div>
+            <span className="flex-1 text-sm">{HOME_WIDGET_LABELS[key]}</span>
+            <Switch
+              checked={prefs.homeWidgets[key] ?? true}
+              onCheckedChange={(v) => setPrefs({ ...prefs, homeWidgets: { ...prefs.homeWidgets, [key]: v } })}
+            />
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 
