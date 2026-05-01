@@ -283,6 +283,10 @@ type NoorState = {
   weeklyReportSentISO: string | null;
   setWeeklyReportSentISO: (iso: string) => void;
 
+  // De4: Onboarding
+  onboardingDone: boolean;
+  setOnboardingDone: (done: boolean) => void;
+
   // UX-only
   lastCelebrationAt: number;
   setLastCelebrationAt: (ts: number) => void;
@@ -969,11 +973,14 @@ export const useNoorStore = create<NoorState>()(
 
       weeklyReportSentISO: null,
       setWeeklyReportSentISO: (iso) => set({ weeklyReportSentISO: iso }),
+
+      onboardingDone: false,
+      setOnboardingDone: (done) => set({ onboardingDone: done }),
     }),
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 15,
+      version: 16,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -1003,6 +1010,7 @@ export const useNoorStore = create<NoorState>()(
           groupKhatma: (state as Partial<NoorState>).groupKhatma ?? null,
           weeklyChallenge: (state as Partial<NoorState>).weeklyChallenge ?? null,
           weeklyReportSentISO: (state as Partial<NoorState>).weeklyReportSentISO ?? null,
+          onboardingDone: (state as Partial<NoorState>).onboardingDone ?? false,
         } as NoorState;
       }
     }

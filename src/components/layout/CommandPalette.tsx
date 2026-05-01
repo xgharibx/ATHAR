@@ -68,6 +68,33 @@ export function CommandPalette(props: Props) {
     });
   }, [quranData]);
 
+  // De10: Ayah-level search index
+  const ayahIndex = React.useMemo(() => {
+    if (!quranData) return [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }>;
+    const arr: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
+    for (const surah of quranData) {
+      for (let i = 0; i < surah.ayahs.length; i++) {
+        arr.push({ surahId: surah.id, surahName: surah.name, ayahIndex: i + 1, text: surah.ayahs[i] });
+      }
+    }
+    return arr;
+  }, [quranData]);
+
+  const ayahFuse = React.useMemo(() => {
+    if (!ayahIndex.length) return null;
+    return new Fuse(ayahIndex, {
+      includeScore: true,
+      threshold: 0.25,
+      keys: ["text"],
+      minMatchCharLength: 3,
+    });
+  }, [ayahIndex]);
+
+  const ayahResults = React.useMemo(() => {
+    if (!ayahFuse || query.trim().length < 3) return [] as typeof ayahIndex;
+    return ayahFuse.search(query).slice(0, 6).map((r) => r.item);
+  }, [ayahFuse, query]);
+
   const surahResults = React.useMemo(() => {
     if (!surahFuse || !query.trim()) return [] as NonNullable<typeof quranData>;
     return surahFuse.search(query).slice(0, 8).map((r) => r.item);
@@ -133,7 +160,7 @@ export function CommandPalette(props: Props) {
               <Command.Input
                 value={query}
                 onValueChange={setQuery}
-                placeholder="ابحث عن ذكر أو قسم…"
+                placeholder="ابحث عن ذكر أو سورة أو آية…"
                 className="w-full bg-transparent outline-none text-sm placeholder:text-white/45"
               />
               <kbd className="text-[11px] opacity-40 pointer-events-none shrink-0 font-mono border border-white/10 rounded-md px-1.5 py-0.5">esc</kbd>
@@ -222,6 +249,20 @@ export function CommandPalette(props: Props) {
                         ) : (
                           <span className="text-[11px] opacity-55 block mt-0.5">{s.id}</span>
                         )}
+                      </Item>
+                    ))}
+                  </Command.Group>
+                </>
+              ) : null}
+
+              {ayahResults.length ? (
+                <>
+                  <Command.Separator className="h-px bg-white/10 my-2" />
+                  <Command.Group heading="آيات قرآنية" className="px-2">
+                    {ayahResults.map((a) => (
+                      <Item key={`${a.surahId}:${a.ayahIndex}`} onSelect={() => go(`/quran/${a.surahId}?a=${a.ayahIndex}`)} icon={<span className="text-base">🌙</span>}>
+                        <span className="text-[11px] opacity-55 block">{a.surahName} • آية {a.ayahIndex}</span>
+                        <span className="text-sm arabic-text line-clamp-2">{a.text.slice(0, 120)}</span>
                       </Item>
                     ))}
                   </Command.Group>

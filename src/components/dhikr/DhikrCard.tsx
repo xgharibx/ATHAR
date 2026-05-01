@@ -159,9 +159,36 @@ export function DhikrCard(props: {
     swipeRef.current.active = false;
     const dx = e.changedTouches[0].clientX - swipeRef.current.x;
     const dy = e.changedTouches[0].clientY - swipeRef.current.y;
-    if (Math.abs(dx) > 55 && Math.abs(dy) < 45) {
+    if (Math.abs(dx) > 80 && Math.abs(dy) < 50) {
+      if (dx > 0) {
+        // De7: Right swipe → complete all remaining
+        const toAdd = target - current;
+        if (toAdd > 0) {
+          for (let i = 0; i < toAdd; i++) increment({ sectionId, index, target });
+        }
+        if (navigator.vibrate) navigator.vibrate([15, 10, 15]);
+        toast.success("✓ تم إتمام الذكر", { duration: 1500 });
+        if (cardRef.current) {
+          const el = cardRef.current;
+          el.style.transition = "transform 0.12s";
+          el.style.transform = "translateX(10px)";
+          setTimeout(() => { el.style.transform = ""; el.style.transition = ""; }, 180);
+        }
+      } else {
+        // De7: Left swipe → toggle favorite
+        toggleFavorite(sectionId, index);
+        if (navigator.vibrate) navigator.vibrate(10);
+        toast(fav ? "💔 أُزيل من المفضلة" : "❤️ أُضيف إلى المفضلة", { duration: 1500 });
+        if (cardRef.current) {
+          const el = cardRef.current;
+          el.style.transition = "transform 0.12s";
+          el.style.transform = "translateX(-10px)";
+          setTimeout(() => { el.style.transform = ""; el.style.transition = ""; }, 180);
+        }
+      }
+    } else if (Math.abs(dx) > 55 && Math.abs(dy) < 45) {
+      // Shorter swipe → regular count
       onCount();
-      // Flash swipe feedback
       if (cardRef.current) {
         const el = cardRef.current;
         el.style.transition = "transform 0.12s";
@@ -490,7 +517,7 @@ export function DhikrCard(props: {
                     className="progress-ring-circle"
                   />
                 </svg>
-                <div className="absolute inset-0 grid place-items-center">
+                <div className="absolute inset-0 grid place-items-center" aria-live="polite" aria-atomic="true">
                   {done ? (
                     <CheckCircle2 size={18} className="text-[var(--ok)]" />
                   ) : (

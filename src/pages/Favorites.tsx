@@ -9,6 +9,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export function FavoritesPage() {
   const { data } = useAdhkarDB();
@@ -185,15 +186,11 @@ export function FavoritesPage() {
       {activeTab === "adhkar" && (
       <Card className="p-5">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center text-center py-8 gap-3">
-            <div className="w-16 h-16 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-3xl">
-              🤍
-            </div>
-            <div className="font-semibold opacity-80">لا توجد مفضلة بعد</div>
-            <div className="text-sm opacity-55 leading-6 max-w-[260px]">
-              اضغط على ❤️ داخل أي ذكر لإضافته هنا وتجده بسرعة لاحقًا
-            </div>
-          </div>
+          <EmptyState
+            variant="favorites"
+            title="لا توجد مفضلة بعد"
+            description="اضغط على ♥ داخل أي ذكر لإضافته هنا وتجده بسرعة لاحقًا"
+          />
         ) : (
           <div className="space-y-5">
             {grouped.map((group) => {
@@ -265,21 +262,19 @@ export function FavoritesPage() {
       {activeTab === "quran" && (
         <Card className="p-5">
           {quranBmList.length === 0 ? (
-            <div className="flex flex-col items-center text-center py-8 gap-3">
-              <div className="w-16 h-16 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-3xl">
-                📖
-              </div>
-              <div className="font-semibold opacity-80">لا توجد علامات مرجعية</div>
-              <div className="text-sm opacity-55 leading-6 max-w-[260px]">
-                اضغط على 🔖 داخل أي آية في المصحف لحفظها هنا
-              </div>
-              <button
-                onClick={() => navigate("/quran")}
-                className="mt-1 text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
-              >
-                الذهاب للقرآن ◀
-              </button>
-            </div>
+            <EmptyState
+              variant="quran-favorites"
+              title="لا توجد علامات مرجعية"
+              description="اضغط على 🔖 داخل أي آية في المصحف لحفظها هنا"
+              action={
+                <button
+                  onClick={() => navigate("/quran")}
+                  className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+                >
+                  الذهاب للقرآن ◄
+                </button>
+              }
+            />
           ) : (
             <div className="space-y-5">
               {quranBmBySurah.map((group) => (

@@ -93,6 +93,16 @@ export function SurahPage() {
 
   const [selectedAyah, setSelectedAyah] = React.useState<number | null>(null);
   const [noteDraft, setNoteDraft] = React.useState<string>("");
+
+  // De15: Right-click context menu
+  const [ctxMenu, setCtxMenu] = React.useState<{ x: number; y: number; surahId: number; ayahIndex: number } | null>(null);
+  React.useEffect(() => {
+    if (!ctxMenu) return;
+    const close = () => setCtxMenu(null);
+    window.addEventListener("mousedown", close);
+    window.addEventListener("touchstart", close);
+    return () => { window.removeEventListener("mousedown", close); window.removeEventListener("touchstart", close); };
+  }, [ctxMenu]);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [jumpAyah, setJumpAyah] = React.useState("");
   const [pageMode, setPageMode] = React.useState<"ayah" | "mushaf">("ayah");
@@ -731,6 +741,7 @@ export function SurahPage() {
         data-ayah={ayahIndex}
         className="inline"
         style={isDimmed ? { opacity: 0.28, transition: "opacity 0.2s" } : { transition: "opacity 0.2s" }}
+        onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, surahId: s.id, ayahIndex }); }}
       >
         <span
           className={[
@@ -1113,7 +1124,7 @@ export function SurahPage() {
         </div>
 
         {/* Scrollable reading area */}
-        <div className="quran-fs-content" ref={pageRef}>
+        <div className="quran-fs-content quran-two-col" ref={pageRef}>
           {shouldShowBasmalah(surah.id) && (
             <div className="quran-basmalah-ornate mb-4">
               <div className="quran-basmalah-ornate-text">{BASMALAH}</div>
@@ -1127,6 +1138,8 @@ export function SurahPage() {
               <span>{toArabicIndic(displayAyahs.length)} آية</span>
               <span className="opacity-40">•</span>
               <span>ج{toArabicIndic(getSurahJuz(surah.id))}</span>
+              <span className="opacity-40">•</span>
+              <span>⏱ {toArabicIndic(Math.max(1, Math.round(displayAyahs.length / 13)))} د</span>
             </div>
           </div>
           <div className="quran-parchment-block">
@@ -1861,7 +1874,7 @@ export function SurahPage() {
           onTouchEnd={onTouchEnd}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="quran-page-inner">
+          <div className="quran-page-inner quran-two-col">
             {shouldShowBasmalah(surah.id) ? (
               <div className="mb-4 quran-basmalah-ornate">
                 <div className="quran-basmalah-ornate-text">{BASMALAH}</div>
@@ -1875,6 +1888,8 @@ export function SurahPage() {
                 <span>{toArabicIndic(displayAyahs.length)} آية</span>
                 <span className="opacity-40">•</span>
                 <span>ج{toArabicIndic(getSurahJuz(surah.id))}</span>
+                <span className="opacity-40">•</span>
+                <span>⏱ {toArabicIndic(Math.max(1, Math.round(displayAyahs.length / 13)))} د</span>
               </div>
             </div>
             <div className="quran-parchment-block">
@@ -2015,6 +2030,51 @@ export function SurahPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* De15: Right-click context menu */}
+      {ctxMenu && (
+        <div
+          className="ctx-menu"
+          style={{ position: "fixed", left: ctxMenu.x, top: ctxMenu.y, zIndex: 9999 }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            className="ctx-menu-item"
+            onClick={() => {
+              const k = `${ctxMenu.surahId}:${ctxMenu.ayahIndex}`;
+              const surahData = data?.find((s) => s.id === ctxMenu.surahId);
+              const txt = surahData?.ayahs[ctxMenu.ayahIndex - 1] ?? "";
+              navigator.clipboard.writeText(txt).then(() => toast.success("نُسخت الآية")).catch(() => {});
+              setCtxMenu(null);
+            }}
+          >نسخ الآية</button>
+          <button
+            className="ctx-menu-item"
+            onClick={() => {
+              const k = `${ctxMenu.surahId}:${ctxMenu.ayahIndex}`;
+              const isBookmarked = !!bookmarks[k];
+              toggleBookmark(ctxMenu.surahId, ctxMenu.ayahIndex);
+              toast.success(isBookmarked ? "أُزيلت العلامة" : "تمت الإضافة للعلامات");
+              setCtxMenu(null);
+            }}
+          >{bookmarks[`${ctxMenu.surahId}:${ctxMenu.ayahIndex}`] ? "إزالة العلامة" : "إضافة علامة"}</button>
+          <div className="ctx-menu-separator" />
+          <button
+            className="ctx-menu-item"
+            onClick={() => {
+              const surahData = data?.find((s) => s.id === ctxMenu.surahId);
+              const txt = surahData?.ayahs[ctxMenu.ayahIndex - 1] ?? "";
+              const shareText = `${txt}\n﴿${ctxMenu.ayahIndex}﴾ ${surahData?.name ?? ""}`;
+              if (navigator.share) {
+                navigator.share({ text: shareText }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(shareText).then(() => toast.success("نُسخ للمشاركة")).catch(() => {});
+              }
+              setCtxMenu(null);
+            }}
+          >مشاركة</button>
+        </div>
       )}
     </div>
   );

@@ -1,7 +1,9 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot } from "lucide-react";
+import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { NoorBackground } from "@/components/background/NoorBackground";
 import { FloatingNav } from "@/components/layout/FloatingNav";
@@ -433,6 +435,20 @@ export function AppShell() {
   const [isPrimaryShell, setIsPrimaryShell] = React.useState(true);
 
   const prefs = useNoorStore((s) => s.prefs);
+  const setPrefs = useNoorStore((s) => s.setPrefs);
+
+  // De11: Alt+T keyboard shortcut to toggle dark/light
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 't') {
+        const next = prefs.theme === 'light' ? 'dark' : 'light';
+        setPrefs({ theme: next });
+        toast(next === 'dark' ? '🌙 المظهر الداكن' : '☀️ المظهر الفاتح', { duration: 1500 });
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [prefs.theme, setPrefs]);
 
   React.useEffect(() => {
     appShellMountedCount += 1;
@@ -525,6 +541,17 @@ export function AppShell() {
                 </IconButton>
               </NavLink>
 
+              <IconButton
+                aria-label={prefs.theme === 'light' ? 'تبديل إلى المظهر الداكن' : 'تبديل إلى المظهر الفاتح'}
+                onClick={() => {
+                  const next = prefs.theme === 'light' ? 'dark' : 'light';
+                  setPrefs({ theme: next });
+                  toast(next === 'dark' ? '🌙 المظهر الداكن' : '☀️ المظهر الفاتح', { duration: 1500 });
+                }}
+              >
+                {prefs.theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+              </IconButton>
+
               <div className="hidden md:flex items-center gap-2 text-xs opacity-70">
                 <span className="px-3 py-2 rounded-2xl bg-white/6 border border-white/10">
                   {`المظهر: ${themeLabel(prefs.theme)}`}
@@ -547,9 +574,18 @@ export function AppShell() {
 
           {/* Main */}
           <main id="main-content" className="col-span-12 xl:col-span-9 2xl:col-span-10">
-            <div key={location.pathname}>
-              <Outlet />
-            </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="route-page-wrapper"
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </main>
         </div>
 

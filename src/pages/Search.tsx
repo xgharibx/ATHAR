@@ -8,6 +8,7 @@ import { useQuranDB } from "@/data/useQuranDB";
 import { Input } from "@/components/ui/Input";
 import { IconButton } from "@/components/ui/IconButton";
 import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { FlatDhikr } from "@/data/types";
 import type { QuranSurah } from "@/data/quranTypes";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
@@ -249,10 +250,11 @@ export function SearchPage() {
             <div className="text-sm opacity-55">اكتب للبحث في الأذكار</div>
           </div>
         ) : results.length === 0 ? (
-          <div className="flex flex-col items-center text-center py-6 gap-2">
-            <div className="text-2xl opacity-30">🔍</div>
-            <div className="text-sm opacity-55">لا توجد نتائج لـ «{q}»</div>
-          </div>
+          <EmptyState
+            variant="search"
+            title={`لا توجد نتائج لـ «${q}»`}
+            description="جرّب كلمات مختلفة أو أقصر"
+          />
         ) : (
           <div className="space-y-2">
             {results.map((r) => {
@@ -304,10 +306,11 @@ export function SearchPage() {
             <div className="text-sm opacity-55">ابحث باسم السورة أو بكلمة قرآنية</div>
           </div>
         ) : quranResults.length === 0 ? (
-          <div className="flex flex-col items-center text-center py-6 gap-2">
-            <div className="text-2xl opacity-30">🔍</div>
-            <div className="text-sm opacity-55">لا توجد نتائج لـ «{q}»</div>
-          </div>
+          <EmptyState
+            variant="search"
+            title={`لا توجد نتائج لـ «${q}»`}
+            description="جرّب اسم سورة أو كلمة قرآنية"
+          />
         ) : (
           <div className="space-y-2">
             {quranResults.map((r, idx) =>

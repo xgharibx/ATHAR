@@ -9,6 +9,11 @@ export function stripDiacritics(input: string) {
   return input.replace(ARABIC_DIACRITICS, "");
 }
 
+/** Convert western digits to Arabic-Indic (e.g. 5 → ٥) */
+export function toArabicIndic(n: number | string): string {
+  return String(n).replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)]);
+}
+
 /**
  * Normalize whitespace and newlines for display.
  */

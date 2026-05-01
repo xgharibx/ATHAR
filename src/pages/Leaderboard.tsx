@@ -252,7 +252,7 @@ export function LeaderboardPage() {
   }, [endpoint, lastSubmitAt, myStats.scores, pullBoard, todayKey]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div>

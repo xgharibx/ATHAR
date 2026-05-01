@@ -7,6 +7,7 @@ import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncB
 import { useNoorStore } from "@/store/noorStore";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { SplashIntro, SPLASH_SESSION_KEY } from "@/components/brand/SplashIntro";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders } from "@/lib/reminders";
@@ -31,6 +32,7 @@ export default function App() {
   useApplyTheme();
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
   const reminders = useNoorStore((s) => s.reminders);
+  const onboardingDone = useNoorStore((s) => s.onboardingDone);
   const location = useLocation();
   const prayerTimes = usePrayerTimes();
   const fajrTime = prayerTimes.data?.data?.timings?.Fajr ?? null;
@@ -149,6 +151,7 @@ export default function App() {
   return (
     <>
       {showSplash && <SplashIntro onDone={() => setShowSplash(false)} />}
+      {!showSplash && !onboardingDone && <OnboardingFlow />}
       <React.Suspense
         fallback={
           <div className="p-4" dir="rtl">

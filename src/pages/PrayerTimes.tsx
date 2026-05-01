@@ -13,10 +13,13 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { PrayerCountdown } from "@/components/layout/PrayerCountdown";
+import { PrayerTimesPageSkeleton } from "@/components/ui/Skeleton";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders } from "@/lib/reminders";
 import { buildPrayerSchedule, format12h, type PrayerDetailRow, PRAYER_LABELS, parseClockToMinutes, formatMinutes12h } from "@/lib/prayerSchedule";
 import { cn } from "@/lib/utils";
+import { toArabicIndic } from "@/lib/arabic";
+import { PTRIndicator, usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useNoorStore } from "@/store/noorStore";
 import type { PrayerAlertPrayer } from "@/store/noorStore";
 
@@ -528,7 +531,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
 
       <div>
         <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">
-          آخر 7 أيام · {totalThisWeek} / {7 * 5} صلاة
+          آخر ٧ أيام · {toArabicIndic(totalThisWeek)} / ٣٥ صلاة
         </div>
         <div className="flex items-end gap-1.5">
           {weekDays.map((d) => {
@@ -762,6 +765,24 @@ export function PrayerTimesPage() {
   const [activeTab,    setActiveTab]    = React.useState<TabKey>("today");
   const [showSettings, setShowSettings] = React.useState(false);
 
+  async function refreshPrayerTimes() {
+    setManualRefreshing(true);
+    try {
+      const result = await prayerTimes.refetch();
+      if (result.error || !result.data?.data?.timings) throw result.error ?? new Error("refresh failed");
+      const rt = result.data.data.timings;
+      await syncReminders(reminders, { Fajr: rt.Fajr, Dhuhr: rt.Dhuhr, Asr: rt.Asr, Maghrib: rt.Maghrib, Isha: rt.Isha });
+      toast.success("تم تحديث مواقيت الصلاة");
+    } catch { toast.error("تعذر تحديث المواقيت الآن"); }
+    finally { setManualRefreshing(false); }
+  }
+
+  // De2: Pull-to-refresh
+  const { isPulling, isRefreshing } = usePullToRefresh({
+    onRefresh: refreshPrayerTimes,
+    enabled: true,
+  });
+
   React.useEffect(() => {
     const id = globalThis.setInterval(() => setNow(new Date()), 30_000);
     return () => globalThis.clearInterval(id);
@@ -774,19 +795,11 @@ export function PrayerTimesPage() {
 
   const iqamaOffsets = reminders.iqamaOffsets ?? { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 };
 
-  const refreshPrayerTimes = async () => {
-    setManualRefreshing(true);
-    try {
-      const result = await prayerTimes.refetch();
-      if (result.error || !result.data?.data?.timings) throw result.error ?? new Error("refresh failed");
-      const rt = result.data.data.timings;
-      await syncReminders(reminders, { Fajr: rt.Fajr, Dhuhr: rt.Dhuhr, Asr: rt.Asr, Maghrib: rt.Maghrib, Isha: rt.Isha });
-      toast.success("تم تحديث مواقيت الصلاة");
-    } catch { toast.error("تعذر تحديث المواقيت الآن"); }
-    finally { setManualRefreshing(false); }
-  };
-
-  if (prayerTimes.isLoading) return <div className="p-4 text-sm opacity-60">... جارٍ تحميل مواقيت الصلاة</div>;
+  if (prayerTimes.isLoading) return (
+    <div className="p-4 md:p-5 space-y-4 page-enter">
+      <PrayerTimesPageSkeleton />
+    </div>
+  );
 
   if (prayerTimes.error || !data || !timings || !date || !schedule) {
     return (
@@ -812,7 +825,8 @@ export function PrayerTimesPage() {
   ];
 
   return (
-    <div className="p-4 md:p-5 space-y-4">
+    <div className="p-4 md:p-5 space-y-4 page-enter">
+      <PTRIndicator isPulling={isPulling} isRefreshing={isRefreshing} />
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="text-xl font-bold">مواقيت الصلاة</div>
