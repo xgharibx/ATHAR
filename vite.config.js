@@ -15,7 +15,8 @@ export default defineConfig(function (_a) {
     var isGithubPages = env.GITHUB_PAGES === "true";
     var iconRev = env.VITE_ICON_REV || env.VITE_RUNTIME_VERSION || "2026-04-02-v1";
     return {
-        base: isGithubPages ? "/ATHAR/" : "./",
+        // Custom domain (www.athark.org) serves from root, so use "/" not "/ATHAR/"
+        base: isGithubPages ? "/" : "./",
         build: {
             chunkSizeWarningLimit: 900,
             rollupOptions: {
