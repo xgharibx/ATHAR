@@ -58,30 +58,6 @@ export const REMINDER_SOUND_OPTIONS: Array<{
     description: "",
     fileName: "rain_calm.ogg",
   },
-  {
-    id: "night_breeze",
-    label: "نسيم الليل",
-    description: "",
-    fileName: "night_breeze.wav",
-  },
-  {
-    id: "soft_bell",
-    label: "تنبيه هادئ",
-    description: "",
-    fileName: "soft_bell.wav",
-  },
-  {
-    id: "rise_glow",
-    label: "نغمة صباحية",
-    description: "",
-    fileName: "rise_glow.wav",
-  },
-  {
-    id: "pulse_light",
-    label: "نبضة خفيفة",
-    description: "",
-    fileName: "pulse_light.wav",
-  },
 ];
 
 export const PRAYER_SOUND_OPTIONS: Array<{
@@ -109,18 +85,6 @@ export const PRAYER_SOUND_OPTIONS: Array<{
     fileName: "iqama_soft.mp3",
   },
   {
-    id: "aladhan_adhan_1",
-    label: "مؤذن 1",
-    description: "",
-    fileName: "aladhan_adhan_1.mp3",
-  },
-  {
-    id: "aladhan_adhan_2",
-    label: "مؤذن 2",
-    description: "",
-    fileName: "aladhan_adhan_2.mp3",
-  },
-  {
     id: "aladhan_adhan_3",
     label: "مؤذن 3",
     description: "",
@@ -133,34 +97,10 @@ export const PRAYER_SOUND_OPTIONS: Array<{
     fileName: "aladhan_adhan_4.mp3",
   },
   {
-    id: "aladhan_adhan_5",
-    label: "مؤذن 5",
-    description: "",
-    fileName: "aladhan_adhan_5.mp3",
-  },
-  {
-    id: "aladhan_adhan_6",
-    label: "مؤذن 6",
-    description: "",
-    fileName: "aladhan_adhan_6.mp3",
-  },
-  {
     id: "aladhan_adhan_7",
     label: "مؤذن 7",
     description: "",
     fileName: "aladhan_adhan_7.mp3",
-  },
-  {
-    id: "aladhan_adhan_8",
-    label: "مؤذن 8",
-    description: "",
-    fileName: "aladhan_adhan_8.mp3",
-  },
-  {
-    id: "aladhan_adhan_9",
-    label: "مؤذن 9",
-    description: "",
-    fileName: "aladhan_adhan_9.mp3",
   },
 ];
 

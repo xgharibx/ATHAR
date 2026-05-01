@@ -17,20 +17,14 @@ export type NoorTheme =
   | "sunset"
   | "mist";
 
-export type ReminderSoundProfile = "birds_dawn" | "rain_calm" | "night_breeze" | "soft_bell" | "rise_glow" | "pulse_light";
+export type ReminderSoundProfile = "birds_dawn" | "rain_calm";
 export type PrayerSoundProfile =
   | "adhan_haram"
   | "adhan_fajr"
   | "iqama_soft"
-  | "aladhan_adhan_1"
-  | "aladhan_adhan_2"
   | "aladhan_adhan_3"
   | "aladhan_adhan_4"
-  | "aladhan_adhan_5"
-  | "aladhan_adhan_6"
-  | "aladhan_adhan_7"
-  | "aladhan_adhan_8"
-  | "aladhan_adhan_9";
+  | "aladhan_adhan_7";
 export type PrayerAlertPrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
 export type PrayerAlertPreferences = Record<PrayerAlertPrayer, boolean>;
 export type HomeWidgetKey = "prayer" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird";
@@ -257,7 +251,7 @@ function normalizePrefs(value: unknown): Preferences {
 const DEFAULT_REMINDERS: Reminders = {
   enabled: false,
   soundProfile: "birds_dawn",
-  prayerSoundProfile: "aladhan_adhan_1",
+  prayerSoundProfile: "aladhan_adhan_3",
   prayerAlertsEnabled: true,
   prayerAlerts: {
     Fajr: true,
@@ -286,14 +280,6 @@ function normalizeReminderSoundProfile(value: unknown): ReminderSoundProfile {
       return "birds_dawn";
     case "rain_calm":
       return "rain_calm";
-    case "night_breeze":
-      return "night_breeze";
-    case "soft_bell":
-      return "soft_bell";
-    case "rise_glow":
-      return "rise_glow";
-    case "pulse_light":
-      return "pulse_light";
     default:
       return DEFAULT_REMINDERS.soundProfile;
   }
@@ -344,24 +330,12 @@ function normalizePrayerSoundProfile(value: unknown): PrayerSoundProfile {
       return "adhan_fajr";
     case "iqama_soft":
       return "iqama_soft";
-    case "aladhan_adhan_1":
-      return "aladhan_adhan_1";
-    case "aladhan_adhan_2":
-      return "aladhan_adhan_2";
     case "aladhan_adhan_3":
       return "aladhan_adhan_3";
     case "aladhan_adhan_4":
       return "aladhan_adhan_4";
-    case "aladhan_adhan_5":
-      return "aladhan_adhan_5";
-    case "aladhan_adhan_6":
-      return "aladhan_adhan_6";
     case "aladhan_adhan_7":
       return "aladhan_adhan_7";
-    case "aladhan_adhan_8":
-      return "aladhan_adhan_8";
-    case "aladhan_adhan_9":
-      return "aladhan_adhan_9";
     default:
       return DEFAULT_REMINDERS.prayerSoundProfile;
   }
