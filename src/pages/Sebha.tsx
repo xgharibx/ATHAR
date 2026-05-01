@@ -647,14 +647,16 @@ export function SebhaPage() {
               </div>
               <div className="flex items-center gap-1">
                 <Badge>{Number(quickTasbeeh["custom"] ?? 0)}/{sebhaCustom.target}</Badge>
-                <button
-                  type="button"
+                <span
+                  role="button"
+                  tabIndex={0}
                   onClick={(e) => { e.stopPropagation(); setShowCustomForm(true); }}
-                  className="opacity-40 hover:opacity-80 transition p-1"
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setShowCustomForm(true); } }}
+                  className="opacity-40 hover:opacity-80 transition p-1 cursor-pointer"
                   aria-label="تعديل الذكر المخصص"
                 >
                   <Pencil size={13} />
-                </button>
+                </span>
               </div>
             </div>
             <div className="mt-3 h-1.5 rounded-full bg-white/8 overflow-hidden">
