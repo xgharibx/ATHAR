@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff,
   LayoutGrid,
+  ExternalLink,
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -107,6 +108,15 @@ function routeForChecklistCategory(category: DailyChecklistItem["category"]) {
   return "/insights";
 }
 
+function pickByDate<T>(items: T[], dateKey: string, offset = 0): T | null {
+  if (items.length === 0) return null;
+  let hash = offset;
+  for (let index = 0; index < dateKey.length; index += 1) {
+    hash = (hash * 31 + dateKey.charCodeAt(index)) >>> 0;
+  }
+  return items[hash % items.length] ?? null;
+}
+
 type PrayerContext = {
   nextPrayer: { label: string; at: Date } | null;
   nextPrayerMinutes: number | null;
@@ -155,7 +165,7 @@ export function HomePage() {
   const quranStreak = useNoorStore((s) => s.quranStreak);
 
   const sections = data?.db.sections ?? [];
-  const [checklistExpanded, setChecklistExpanded] = React.useState<boolean | null>(null);
+  const [checklistExpanded, setChecklistExpanded] = React.useState(false);
   const [dailyWirdExpanded, setDailyWirdExpanded] = React.useState(false);
   const [tasbeehTarget, setTasbeehTarget] = React.useState<33 | 100>(100);
   const homeWidgets = React.useMemo(
@@ -192,6 +202,27 @@ export function HomePage() {
   const yesterdayKey = React.useMemo(() => shiftDateKey(worshipDayKey, -1), [worshipDayKey]);
   const dailyChecklistYesterday = useNoorStore((s) => s.dailyChecklist[yesterdayKey] ?? {});
   const toggleDailyChecklist = useNoorStore((s) => s.toggleDailyChecklist);
+
+  const dailySunnah = React.useMemo(() => {
+    const section = sections.find((item) => item.id === "forgotten_sunnahs");
+    if (!section) return null;
+    const item = pickByDate(section.content, worshipDayKey);
+    if (!item) return null;
+    return { section, item };
+  }, [sections, worshipDayKey]);
+
+  const horizontalReminders = React.useMemo(() => {
+    const preferredSectionIds = ["quranic_duas", "prophets_duas", "prophetic_duas", "jawami_dua", "forgotten_sunnahs"];
+    return preferredSectionIds.flatMap((sectionId, sectionOffset) => {
+      const section = sections.find((item) => item.id === sectionId);
+      if (!section) return [];
+      const picked = [0, 1].flatMap((offset) => {
+        const item = pickByDate(section.content, worshipDayKey, sectionOffset * 97 + offset * 17);
+        return item ? [{ section, item }] : [];
+      });
+      return picked;
+    });
+  }, [sections, worshipDayKey]);
 
   React.useEffect(() => {
     if (!dailyWirdStartISO) {
@@ -575,6 +606,7 @@ export function HomePage() {
                     تابع آخر قسم
                   </Button>
                 ) : null}
+                <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:sebha"); navigate("/sebha"); }}>السبحة</Button>
                 <button
                   type="button"
                   onClick={onRandom}
@@ -699,6 +731,95 @@ export function HomePage() {
       {homeWidgets.prayer && <PrayerWidget />}
       {homeWidgets.wisdom && <DailyWisdomCard dateKey={worshipDayKey} />}
 
+      {dailySunnah && (
+        <Card className="p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-semibold opacity-55">سنّة مهجورة اليوم</span>
+                <Badge>تتجدد مع الفجر</Badge>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate(`/c/${dailySunnah.section.id}`)}
+                className="mt-2 text-right arabic-text text-sm md:text-base font-semibold leading-8 hover:text-[var(--accent)] transition"
+              >
+                {dailySunnah.item.text}
+              </button>
+              {dailySunnah.item.benefit ? (
+                <div className="mt-1 text-xs opacity-60 leading-6">{dailySunnah.item.benefit}</div>
+              ) : null}
+            </div>
+            {dailySunnah.item.source_url ? (
+              <a
+                href={dailySunnah.item.source_url || "https://dorar.net/hadith"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/7 px-3 py-2 text-xs font-semibold hover:bg-white/10 transition"
+              >
+                <ExternalLink size={13} />
+                الدرر
+              </a>
+            ) : (
+              <a
+                href="https://dorar.net/hadith"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/7 px-3 py-2 text-xs font-semibold hover:bg-white/10 transition"
+              >
+                <ExternalLink size={13} />
+                الدرر
+              </a>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {horizontalReminders.length > 0 && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <div className="text-sm font-semibold">دعاء وحديث</div>
+              <div className="mt-1 text-xs opacity-55">بطاقات مختصرة تمرر أفقيا</div>
+            </div>
+            <Badge>{horizontalReminders.length}</Badge>
+          </div>
+          <div className="overflow-x-auto no-scrollbar -mx-1 px-1">
+            <div className="flex gap-3 pb-1" style={{ width: "max-content" }}>
+              {horizontalReminders.map(({ section, item }, index) => (
+                <div
+                  key={`${section.id}:${index}:${item.text.slice(0, 18)}`}
+                  className="w-[260px] sm:w-[300px] shrink-0 rounded-3xl border border-white/10 bg-white/5 p-4"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold opacity-55 truncate">{section.title}</span>
+                    {item.source_url ? (
+                      <a
+                        href={item.source_url || "https://dorar.net/hadith"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="فتح المصدر"
+                        className="shrink-0 w-8 h-8 rounded-xl bg-white/7 border border-white/10 grid place-items-center hover:bg-white/10 transition"
+                      >
+                        <ExternalLink size={13} />
+                      </a>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/c/${section.id}`)}
+                    className="mt-2 text-right arabic-text text-sm leading-7 line-clamp-4 hover:text-[var(--accent)] transition"
+                  >
+                    {item.text}
+                  </button>
+                  {item.benefit ? <div className="mt-2 text-[11px] opacity-55 leading-5 line-clamp-2">{item.benefit}</div> : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
+
       {homeWidgets.smart && (
       <Card className="p-4">
         <div className="flex items-start gap-3">
@@ -772,7 +893,7 @@ export function HomePage() {
       <Card className="p-5">
         {(() => {
           const allChecklistDone = DAILY_CHECKLIST_ITEMS.every((item) => !!dailyChecklistToday[item.id]);
-          const showItems = checklistExpanded !== null ? checklistExpanded : !allChecklistDone;
+          const showItems = checklistExpanded;
           return (
             <>
               <div className="flex items-center justify-between gap-3">
@@ -784,7 +905,7 @@ export function HomePage() {
                   <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
                   <button
                     type="button"
-                    onClick={() => setChecklistExpanded((v) => (v === null ? (allChecklistDone ? true : false) : !v))}
+                    onClick={() => setChecklistExpanded((v) => !v)}
                     className="w-8 h-8 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90"
                     aria-label={showItems ? "طي" : "عرض"}
                   >

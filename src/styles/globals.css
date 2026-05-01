@@ -2074,7 +2074,11 @@ header {
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(201, 162, 39, 0.2);
   transition: opacity 0.4s ease, transform 0.4s ease;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+
+.mushaf-chrome-top::-webkit-scrollbar { display: none; }
 
 .mushaf-chrome-top.chrome-hidden {
   opacity: 0;
@@ -2099,10 +2103,15 @@ header {
   flex-shrink: 0;
 }
 .mushaf-chrome-icon-btn:hover { opacity: 1; background: rgba(47, 79, 55, 0.08); }
+.mushaf-chrome-icon-btn.active {
+  opacity: 1;
+  color: #1b5e20;
+  background: rgba(47, 79, 55, 0.14);
+}
 
 .mushaf-chrome-info {
   flex: 1;
-  min-width: 0;
+  min-width: 96px;
   text-align: center;
 }
 .mushaf-chrome-surah-name {
@@ -2116,7 +2125,23 @@ header {
 .mushaf-chrome-meta {
   font-size: 0.65rem;
   opacity: 0.5;
-  direction: ltr;
+  direction: rtl;
+}
+
+@media (max-width: 420px) {
+  .mushaf-chrome-top {
+    gap: 0.1rem;
+    padding-inline: 0.4rem;
+  }
+  .mushaf-chrome-icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .mushaf-chrome-info {
+    min-width: 88px;
+  }
+  .mushaf-chrome-surah-name { font-size: 0.78rem; }
+  .mushaf-chrome-meta { font-size: 0.56rem; }
 }
 
 /* Page scrollable area */
@@ -2366,6 +2391,16 @@ header {
 .mushaf-ayah-span.hl-green { background: rgba(52, 211, 153, 0.18); }
 .mushaf-ayah-span.hl-blue  { background: rgba(96, 165, 250, 0.18); }
 .mushaf-ayah-span.hl-red   { background: rgba(248, 113, 113, 0.18); }
+.mushaf-page-content.memorization-mode .mushaf-ayah-span:not(.selected) {
+  color: transparent;
+  text-shadow: 0 0 9px rgba(44, 62, 80, 0.5);
+  background: rgba(47, 79, 55, 0.055);
+  border-bottom: 1px dashed rgba(47, 79, 55, 0.22);
+}
+.mushaf-page-content.memorization-mode .mushaf-ayah-span:not(.selected) .mushaf-ayah-num {
+  color: #c9a227;
+  text-shadow: none;
+}
 
 /* Ayah number — inline gold ﴿١﴾ bracket style */
 .mushaf-ayah-num {

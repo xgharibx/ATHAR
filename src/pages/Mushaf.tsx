@@ -4,6 +4,7 @@ import {
   ArrowRight, Bookmark, Globe, MoreVertical, Play, Pause,
   ChevronDown, Copy, Share2, VolumeX, Volume2, X, Pencil,
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2, Repeat2,
+  Eye, EyeOff, CheckCircle2,
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -247,6 +248,7 @@ export function MushafPage() {
   const [audioBarVisible, setAudioBarVisible] = React.useState(true);
   const [showReciterSheet, setShowReciterSheet] = React.useState(false);
   const [repeatMode, setRepeatMode] = React.useState(false);
+  const [memorizationMode, setMemorizationMode] = React.useState(false);
 
   const playAyah = React.useCallback((surahId: number, originalAyah: number, displayAyah: number) => {
     const key = `${surahId}:${displayAyah}`;
@@ -358,6 +360,15 @@ export function MushafPage() {
     } catch { toast.error("تعذر النسخ"); }
   };
 
+  const markPageReviewed = React.useCallback(() => {
+    const playableItems = pageItems.filter((item) => !item.isBasmalahHeader && item.displayAyah > 0);
+    const lastPlayable = playableItems[playableItems.length - 1];
+    if (!lastPlayable) return;
+    setLastRead(lastPlayable.surahId, lastPlayable.displayAyah);
+    recordQuranRead(playableItems.length);
+    toast.success("تم حفظ مراجعة الصفحة");
+  }, [pageItems, recordQuranRead, setLastRead]);
+
   // ── Loading ────────────────────────────────────────────────
   if (dbLoading || pmLoading) {
     return (
@@ -395,9 +406,25 @@ export function MushafPage() {
           <ArrowRight size={18} />
         </button>
         <div className="mushaf-chrome-info" onClick={(e) => e.stopPropagation()}>
-          <div className="mushaf-chrome-surah-name">{pageSurahEnglish || pageSurahName}</div>
-          <div className="mushaf-chrome-meta">Page {currentPage}, Juz&apos; {pageJuz}</div>
+          <div className="mushaf-chrome-surah-name">{pageSurahName || pageSurahEnglish}</div>
+          <div className="mushaf-chrome-meta">صفحة {toArabicNumeral(currentPage)} · الجزء {toArabicNumeral(pageJuz)}</div>
         </div>
+        <button
+          className={`mushaf-chrome-icon-btn${memorizationMode ? " active" : ""}`}
+          title={memorizationMode ? "إظهار النص" : "وضع الحفظ"}
+          aria-label={memorizationMode ? "إظهار النص" : "وضع الحفظ"}
+          onClick={(e) => { e.stopPropagation(); setMemorizationMode((value) => !value); flashChrome(); }}
+        >
+          {memorizationMode ? <EyeOff size={17} /> : <Eye size={17} />}
+        </button>
+        <button
+          className="mushaf-chrome-icon-btn"
+          title="حفظ مراجعة الصفحة"
+          aria-label="حفظ مراجعة الصفحة"
+          onClick={(e) => { e.stopPropagation(); markPageReviewed(); }}
+        >
+          <CheckCircle2 size={17} />
+        </button>
         <a
           className="mushaf-chrome-icon-btn"
           href={`https://quran.com/ar/${lastItem?.surahId ?? 1}`}
@@ -439,10 +466,11 @@ export function MushafPage() {
         className="mushaf-page-area"
         onClick={() => { setSelectedItem(null); flashChrome(); }}
       >
-        <div className="mushaf-page-content" dir="rtl" style={{ "--mushaf-font-scale": fontScale } as React.CSSProperties}>
+        <div className={`mushaf-page-content${memorizationMode ? " memorization-mode" : ""}`} dir="rtl" style={{ "--mushaf-font-scale": fontScale } as React.CSSProperties}>
           {/* Always-visible tiny strip */}
           <div className="mushaf-page-info-strip">
             <span>{pageSurahName}</span>
+            {memorizationMode ? <span>وضع الحفظ</span> : null}
             <span>الجزء {toArabicNumeral(pageJuz)}</span>
           </div>
 

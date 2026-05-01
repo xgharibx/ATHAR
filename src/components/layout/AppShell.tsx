@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft } from "lucide-react";
+import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot } from "lucide-react";
 
 import { NoorBackground } from "@/components/background/NoorBackground";
 import { FloatingNav } from "@/components/layout/FloatingNav";
@@ -25,13 +25,10 @@ const QuickTasbeehFab = React.lazy(() =>
 /* -------------------------------------------------- */
 /*  Swipe-to-dismiss bottom sheet wrapper              */
 /* -------------------------------------------------- */
-function BottomSheetContent({
-  children,
-  onClose,
-}: {
+const BottomSheetContent = React.forwardRef<HTMLDivElement, {
   children: React.ReactNode;
   onClose: () => void;
-}) {
+}>(function BottomSheetContent({ children, onClose }, forwardedRef) {
   const sheetRef = React.useRef<HTMLDivElement>(null);
   const dragRef = React.useRef({ startY: 0, currentY: 0, active: false });
 
@@ -72,10 +69,12 @@ function BottomSheetContent({
 
   return (
     <Dialog.Content
+      ref={forwardedRef}
       className="fixed z-50 inset-x-0 bottom-0 outline-none drawer-content-enter"
       style={{ maxHeight: "92dvh", paddingBottom: "var(--sab)" }}
     >
       <Dialog.Title className="sr-only">القائمة الرئيسية</Dialog.Title>
+      <Dialog.Description className="sr-only">روابط سريعة وأقسام الأذكار في تطبيق أثر</Dialog.Description>
       <div
         ref={sheetRef}
         className="glass-strong rounded-t-[28px] h-full overflow-auto overscroll-contain border-t border-white/12 shadow-2xl"
@@ -87,7 +86,7 @@ function BottomSheetContent({
       </div>
     </Dialog.Content>
   );
-}
+});
 
 const APP_FOOTER_TEXT = `هذا البرنامج صدقة جارية عني، وعن والديّ وجدتي وإخوتي وأهلي، وعن كل من أحببته في الله وأحبني فيه، وعن من كرهني لسبب أو بدون، وعن من آذاني أو آذيته.
 
@@ -140,6 +139,16 @@ function themeLabel(theme: string) {
   };
   return map[theme] ?? "تلقائي";
 }
+
+const MAIN_NAV_LINKS = [
+  { path: "/", icon: House, label: "الرئيسية", color: "#ffd780" },
+  { path: "/quran", icon: BookOpenText, label: "القرآن الكريم", color: "#9ae6ff" },
+  { path: "/sebha", icon: CircleDot, label: "السبحة", color: "#facc15" },
+  { path: "/search", icon: Search, label: "البحث", color: "#e879f9" },
+  { path: "/favorites", icon: Heart, label: "المفضلة", color: "#fb7185" },
+  { path: "/insights", icon: LineChart, label: "الإحصاءات", color: "#3ddc97" },
+  { path: "/settings", icon: Settings2, label: "الإعدادات", color: "#a78bfa" },
+] as const;
 
 function todayISO() {
   const d = new Date();
@@ -215,13 +224,6 @@ function SidebarContent(props: { onNavigate?: () => void }) {
   const { data } = useAdhkarDB();
   const progress = useNoorStore((s) => s.progress);
   const activityToday = useNoorStore((s) => s.activity[todayISO()] ?? 0);
-  const navigate = React.useMemo(() => {
-    // We need navigation from this component; wrap onNavigate
-    return (path: string) => {
-      props.onNavigate?.();
-      // Use programmatic nav via the link click instead
-    };
-  }, [props.onNavigate]);
 
   const smartSummary = React.useMemo(() => {
     if (!data) return { percent: 0, done: 0, total: 0 };
@@ -245,15 +247,6 @@ function SidebarContent(props: { onNavigate?: () => void }) {
 
   if (!data) return null;
   const { db } = data;
-
-  const NAV_LINKS = [
-    { path: "/", icon: House, label: "الرئيسية", color: "#ffd780" },
-    { path: "/quran", icon: BookOpenText, label: "القرآن الكريم", color: "#9ae6ff" },
-    { path: "/search", icon: Search, label: "البحث", color: "#e879f9" },
-    { path: "/favorites", icon: Heart, label: "المفضلة", color: "#fb7185" },
-    { path: "/insights", icon: LineChart, label: "الإحصاءات", color: "#3ddc97" },
-    { path: "/settings", icon: Settings2, label: "الإعدادات", color: "#a78bfa" },
-  ];
 
   return (
     <div className="h-full flex flex-col" dir="rtl">
@@ -303,7 +296,7 @@ function SidebarContent(props: { onNavigate?: () => void }) {
       {/* Main navigation links */}
       <div className="px-4 py-3">
         <div className="grid grid-cols-3 gap-2">
-          {NAV_LINKS.map((link) => (
+          {MAIN_NAV_LINKS.map((link) => (
             <NavLink
               key={link.path}
               to={link.path}
@@ -339,6 +332,95 @@ function SidebarContent(props: { onNavigate?: () => void }) {
         {db.sections.map((s) => (
           <SidebarItem key={s.id} s={s} onNavigate={props.onNavigate} />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function MobileSidebarContent(props: { onNavigate?: () => void }) {
+  const { data } = useAdhkarDB();
+  if (!data) return null;
+
+  return (
+    <div className="h-full flex flex-col" dir="rtl">
+      <div className="flex justify-center pt-3 pb-1">
+        <div className="w-10 h-1 rounded-full bg-white/20" />
+      </div>
+
+      <div className="px-5 pt-3 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/15 shadow-lg">
+            <LogoMark className="w-full h-full" title="Athar" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-base" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
+            <div className="text-[11px] opacity-55 mt-0.5">قائمة سريعة وخفيفة</div>
+          </div>
+          <button
+            onClick={props.onNavigate}
+            className="w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90"
+            aria-label="إغلاق"
+          >
+            <X size={16} className="opacity-60" />
+          </button>
+        </div>
+      </div>
+
+      <div className="h-px mx-5 bg-white/8" />
+
+      <div className="px-4 py-3">
+        <div className="grid grid-cols-3 gap-2">
+          {MAIN_NAV_LINKS.map((link) => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              end={link.path === "/"}
+              onClick={props.onNavigate}
+              className={({ isActive }) => cn(
+                "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 border transition active:scale-[.94]",
+                isActive
+                  ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
+                  : "bg-white/4 border-white/6 hover:bg-white/8"
+              )}
+            >
+              <div className="w-9 h-9 rounded-xl grid place-items-center" style={{ background: `${link.color}18` }}>
+                <link.icon size={17} style={{ color: link.color }} />
+              </div>
+              <span className="text-[11px] font-medium opacity-70">{link.label}</span>
+            </NavLink>
+          ))}
+        </div>
+      </div>
+
+      <div className="h-px mx-5 bg-white/8" />
+
+      <div className="px-3 pt-3 pb-2">
+        <div className="px-2 mb-2 text-[11px] font-semibold opacity-45 uppercase tracking-wider">الأقسام</div>
+      </div>
+      <div className="flex-1 overflow-auto overscroll-contain px-3 pb-6 space-y-1">
+        {data.db.sections.map((section) => {
+          const identity = getSectionIdentity(section.id);
+          return (
+            <NavLink
+              key={section.id}
+              to={`/c/${section.id}`}
+              onClick={props.onNavigate}
+              className={({ isActive }) => cn(
+                "flex items-center gap-3 w-full rounded-2xl px-3.5 py-3 transition active:scale-[.97] border",
+                isActive ? "bg-[var(--accent)]/10 border-[var(--accent)]/25" : "border-transparent hover:bg-white/6"
+              )}
+            >
+              <div className="w-10 h-10 rounded-xl grid place-items-center shrink-0 text-lg" style={{ background: `${identity.accent}18` }}>
+                {identity.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-medium truncate">{section.title}</div>
+                <div className="mt-0.5 text-[11px] opacity-45">{section.content.length} ذكر</div>
+              </div>
+              <ChevronLeft size={14} className="opacity-30 shrink-0" />
+            </NavLink>
+          );
+        })}
       </div>
     </div>
   );
@@ -414,7 +496,7 @@ export function AppShell() {
                   <Dialog.Portal>
                     <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40 drawer-overlay-enter" />
                     <BottomSheetContent onClose={() => setDrawerOpen(false)}>
-                      <SidebarContent onNavigate={() => setDrawerOpen(false)} />
+                      <MobileSidebarContent onNavigate={() => setDrawerOpen(false)} />
                     </BottomSheetContent>
                   </Dialog.Portal>
                 </Dialog.Root>
