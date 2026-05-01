@@ -1763,7 +1763,7 @@
           "benefit": "سبب للمحبة ودخول الجنة بإذن الله.",
           "source": "صحيح مسلم",
           "source_label": "أفشوا السلام بينكم",
-          "source_url": "https://dorar.net/hadith/search?q=%D8%A3%D9%81%D8%B4%D9%88%D8%A7%20%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85",
+          "source_url": "https://dorar.net/h/BZcLQSP5",
           "minimal": true,
           "count": 1,
           "count_description": "مرة واحدة"
@@ -1773,7 +1773,7 @@
           "benefit": "مطهرة للفم مرضاة للرب.",
           "source": "صحيح النسائي",
           "source_label": "مطهرة للفم",
-          "source_url": "https://dorar.net/hadith/search?q=%D8%A7%D9%84%D8%B3%D9%88%D8%A7%D9%83%20%D9%85%D8%B7%D9%87%D8%B1%D8%A9%20%D9%84%D9%84%D9%81%D9%85",
+          "source_url": "https://dorar.net/h/eQL72AhK",
           "minimal": false,
           "count": 1,
           "count_description": "مرة واحدة"
@@ -1783,7 +1783,27 @@
           "benefit": "يؤمّن الملك ويقول: ولك بمثل.",
           "source": "صحيح مسلم",
           "source_label": "دعاء بظهر الغيب",
-          "source_url": "https://dorar.net/hadith/search?q=%D8%A8%D8%B8%D9%87%D8%B1%20%D8%A7%D9%84%D8%BA%D9%8A%D8%A8%20%D9%88%D9%84%D9%83%20%D8%A8%D9%85%D8%AB%D9%84",
+          "source_url": "https://dorar.net/h/zP4blicG",
+          "minimal": true,
+          "count": 1,
+          "count_description": "مرة واحدة"
+        },
+        {
+          "text": "التبسم في وجه أخيك صدقة، ولو بكلمة طيبة ووجه طلق.",
+          "benefit": "باب سهل للصدقة وتأليف القلوب.",
+          "source": "صحيح ابن حبان",
+          "source_label": "تبسمك صدقة",
+          "source_url": "https://dorar.net/h/1PHlW8RE",
+          "minimal": true,
+          "count": 1,
+          "count_description": "مرة واحدة"
+        },
+        {
+          "text": "إماطة الأذى عن الطريق: أزل ما يضر الناس ولو كان صغيرا.",
+          "benefit": "كل معروف صدقة، ومنها نفع الناس في طريقهم.",
+          "source": "صحيح الجامع",
+          "source_label": "إماطة الأذى صدقة",
+          "source_url": "https://dorar.net/h/mVuugTKk",
           "minimal": true,
           "count": 1,
           "count_description": "مرة واحدة"

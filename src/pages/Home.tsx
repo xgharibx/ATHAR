@@ -108,13 +108,19 @@ function routeForChecklistCategory(category: DailyChecklistItem["category"]) {
   return "/insights";
 }
 
-function pickByDate<T>(items: T[], dateKey: string, offset = 0): T | null {
-  if (items.length === 0) return null;
+function dateIndex(dateKey: string, length: number, offset = 0): number {
+  if (length === 0) return -1;
   let hash = offset;
   for (let index = 0; index < dateKey.length; index += 1) {
     hash = (hash * 31 + dateKey.charCodeAt(index)) >>> 0;
   }
-  return items[hash % items.length] ?? null;
+  return hash % length;
+}
+
+function pickByDate<T>(items: T[], dateKey: string, offset = 0): T | null {
+  const index = dateIndex(dateKey, items.length, offset);
+  if (index < 0) return null;
+  return items[index] ?? null;
 }
 
 type PrayerContext = {
@@ -203,25 +209,19 @@ export function HomePage() {
   const dailyChecklistYesterday = useNoorStore((s) => s.dailyChecklist[yesterdayKey] ?? {});
   const toggleDailyChecklist = useNoorStore((s) => s.toggleDailyChecklist);
 
-  const dailySunnah = React.useMemo(() => {
-    const section = sections.find((item) => item.id === "forgotten_sunnahs");
-    if (!section) return null;
-    const item = pickByDate(section.content, worshipDayKey);
-    if (!item) return null;
-    return { section, item };
-  }, [sections, worshipDayKey]);
+  const dailyCarouselItems = React.useMemo(() => {
+    const cards: Array<{ section: (typeof sections)[number]; item: (typeof sections)[number]["content"][number]; label: string }> = [];
+    const section = sections.find((candidate) => candidate.id === "forgotten_sunnahs");
+    if (!section || section.content.length === 0) return cards;
 
-  const horizontalReminders = React.useMemo(() => {
-    const preferredSectionIds = ["quranic_duas", "prophets_duas", "prophetic_duas", "jawami_dua", "forgotten_sunnahs"];
-    return preferredSectionIds.flatMap((sectionId, sectionOffset) => {
-      const section = sections.find((item) => item.id === sectionId);
-      if (!section) return [];
-      const picked = [0, 1].flatMap((offset) => {
-        const item = pickByDate(section.content, worshipDayKey, sectionOffset * 97 + offset * 17);
-        return item ? [{ section, item }] : [];
-      });
-      return picked;
-    });
+    const startIndex = dateIndex(worshipDayKey, section.content.length);
+    const cardCount = Math.min(5, section.content.length);
+    for (let offset = 0; offset < cardCount; offset += 1) {
+      const item = section.content[(startIndex + offset) % section.content.length];
+      cards.push({ section, item, label: "سنّة مهجورة" });
+    }
+
+    return cards;
   }, [sections, worshipDayKey]);
 
   React.useEffect(() => {
@@ -731,89 +731,49 @@ export function HomePage() {
       {homeWidgets.prayer && <PrayerWidget />}
       {homeWidgets.wisdom && <DailyWisdomCard dateKey={worshipDayKey} />}
 
-      {dailySunnah && (
-        <Card className="p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-semibold opacity-55">سنّة مهجورة اليوم</span>
-                <Badge>تتجدد مع الفجر</Badge>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate(`/c/${dailySunnah.section.id}`)}
-                className="mt-2 text-right arabic-text text-sm md:text-base font-semibold leading-8 hover:text-[var(--accent)] transition"
-              >
-                {dailySunnah.item.text}
-              </button>
-              {dailySunnah.item.benefit ? (
-                <div className="mt-1 text-xs opacity-60 leading-6">{dailySunnah.item.benefit}</div>
-              ) : null}
-            </div>
-            {dailySunnah.item.source_url ? (
-              <a
-                href={dailySunnah.item.source_url || "https://dorar.net/hadith"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 inline-flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/7 px-3 py-2 text-xs font-semibold hover:bg-white/10 transition"
-              >
-                <ExternalLink size={13} />
-                الدرر
-              </a>
-            ) : (
-              <a
-                href="https://dorar.net/hadith"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 inline-flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/7 px-3 py-2 text-xs font-semibold hover:bg-white/10 transition"
-              >
-                <ExternalLink size={13} />
-                الدرر
-              </a>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {horizontalReminders.length > 0 && (
-        <Card className="p-4">
+      {dailyCarouselItems.length > 0 && (
+        <Card className="p-4 overflow-hidden">
           <div className="flex items-center justify-between gap-3 mb-3">
-            <div>
-              <div className="text-sm font-semibold">دعاء وحديث</div>
-              <div className="mt-1 text-xs opacity-55">بطاقات مختصرة تمرر أفقيا</div>
-            </div>
-            <Badge>{horizontalReminders.length}</Badge>
+            <div className="text-sm font-semibold">سنن مهجورة اليوم</div>
+            <Badge>تتجدد مع الفجر</Badge>
           </div>
-          <div className="overflow-x-auto no-scrollbar -mx-1 px-1">
-            <div className="flex gap-3 pb-1" style={{ width: "max-content" }}>
-              {horizontalReminders.map(({ section, item }, index) => (
-                <div
+          <div className="overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4">
+            <div className="flex gap-3 pb-1">
+              {dailyCarouselItems.map(({ section, item, label }, index) => (
+                <article
                   key={`${section.id}:${index}:${item.text.slice(0, 18)}`}
-                  className="w-[260px] sm:w-[300px] shrink-0 rounded-3xl border border-white/10 bg-white/5 p-4"
+                  className="w-full shrink-0 snap-center rounded-2xl border border-white/10 bg-white/5 p-4 min-h-[150px] flex flex-col justify-between"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-semibold opacity-55 truncate">{section.title}</span>
-                    {item.source_url ? (
-                      <a
-                        href={item.source_url || "https://dorar.net/hadith"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="فتح المصدر"
-                        className="shrink-0 w-8 h-8 rounded-xl bg-white/7 border border-white/10 grid place-items-center hover:bg-white/10 transition"
-                      >
-                        <ExternalLink size={13} />
-                      </a>
-                    ) : null}
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex items-center gap-2">
+                        <span className="text-xs font-semibold opacity-55 truncate">{label}</span>
+                        <span className="h-1 w-1 rounded-full bg-white/30" />
+                        <span className="text-[11px] opacity-45 truncate">{index + 1}/{dailyCarouselItems.length}</span>
+                      </div>
+                      {item.source_url ? (
+                        <a
+                          href={item.source_url || "https://dorar.net/hadith"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="فتح المصدر"
+                          className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/7 px-2.5 py-2 text-[11px] font-semibold hover:bg-white/10 transition"
+                        >
+                          <ExternalLink size={12} />
+                          الدرر
+                        </a>
+                      ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/c/${section.id}`)}
+                      className="mt-3 w-full text-right arabic-text text-sm md:text-base font-semibold leading-8 line-clamp-3 hover:text-[var(--accent)] transition"
+                    >
+                      {item.text}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/c/${section.id}`)}
-                    className="mt-2 text-right arabic-text text-sm leading-7 line-clamp-4 hover:text-[var(--accent)] transition"
-                  >
-                    {item.text}
-                  </button>
-                  {item.benefit ? <div className="mt-2 text-[11px] opacity-55 leading-5 line-clamp-2">{item.benefit}</div> : null}
-                </div>
+                  {item.benefit ? <div className="mt-3 text-xs opacity-60 leading-6 line-clamp-2">{item.benefit}</div> : null}
+                </article>
               ))}
             </div>
           </div>
