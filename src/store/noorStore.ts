@@ -57,6 +57,14 @@ export type Preferences = {
   homeWidgets: Record<HomeWidgetKey, boolean>;
 };
 
+export type SebhaSession = {
+  dhikrKey: string;
+  dhikrLabel: string;
+  count: number;
+  target: number | null; // null = tally mode
+  timestamp: string; // ISO
+};
+
 export type Reminders = {
   enabled: boolean;
   soundProfile: ReminderSoundProfile;
@@ -82,6 +90,8 @@ export type ExportBlobV1 = {
   favorites: Record<string, boolean>;
   activity: Record<string, number>;
   quickTasbeeh?: Record<string, number>;
+  sebhaSessions?: SebhaSession[];
+  sebhaCustom?: { phrase: string; target: number } | null;
   quranBookmarks?: Record<string, boolean>;
   quranLastRead?: { surahId: number; ayahIndex: number } | null;
   quranNotes?: Record<string, string>;
@@ -118,6 +128,15 @@ type NoorState = {
   incQuickTasbeeh: (key: string, target?: number) => number;
   resetQuickTasbeeh: (key: string) => void;
   resetAllQuickTasbeeh: () => void;
+
+  // Sebha sessions history
+  sebhaSessions: SebhaSession[];
+  addSebhaSession: (s: SebhaSession) => void;
+  clearSebhaSessions: () => void;
+
+  // Sebha custom dhikr
+  sebhaCustom: { phrase: string; target: number } | null;
+  setSebhaCustom: (v: { phrase: string; target: number } | null) => void;
 
   // Quran
   quranBookmarks: Record<string, boolean>; // key: `${surahId}:${ayahIndex}`
@@ -402,6 +421,13 @@ export const useNoorStore = create<NoorState>()(
         }),
       resetAllQuickTasbeeh: () => set({ quickTasbeeh: {} }),
 
+      sebhaSessions: [],
+      addSebhaSession: (s) => set((st) => ({ sebhaSessions: [s, ...st.sebhaSessions].slice(0, 100) })),
+      clearSebhaSessions: () => set({ sebhaSessions: [] }),
+
+      sebhaCustom: null,
+      setSebhaCustom: (v) => set({ sebhaCustom: v }),
+
       quranBookmarks: {},
       toggleQuranBookmark: (surahId, ayahIndex) => {
         const key = `${surahId}:${ayahIndex}`;
@@ -679,7 +705,9 @@ export const useNoorStore = create<NoorState>()(
           lastCivilResetISO: s.lastCivilResetISO,
           lastIbadahResetISO: s.lastIbadahResetISO,
           dailyChecklist: s.dailyChecklist,
-          dailyBetterStepDone: s.dailyBetterStepDone
+          dailyBetterStepDone: s.dailyBetterStepDone,
+          sebhaSessions: s.sebhaSessions,
+          sebhaCustom: s.sebhaCustom
         };
       },
 
@@ -717,7 +745,9 @@ export const useNoorStore = create<NoorState>()(
           lastCivilResetISO: blob.lastCivilResetISO ?? blob.lastDailyResetISO ?? null,
           lastIbadahResetISO: blob.lastIbadahResetISO ?? blob.lastDailyResetISO ?? null,
           dailyChecklist: blob.dailyChecklist ?? {},
-          dailyBetterStepDone: blob.dailyBetterStepDone ?? {}
+          dailyBetterStepDone: blob.dailyBetterStepDone ?? {},
+          sebhaSessions: Array.isArray(blob.sebhaSessions) ? blob.sebhaSessions : [],
+          sebhaCustom: blob.sebhaCustom ?? null
         });
       },
 
