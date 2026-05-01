@@ -741,7 +741,7 @@ export function SurahPage() {
         data-ayah={ayahIndex}
         className="inline"
         style={isDimmed ? { opacity: 0.28, transition: "opacity 0.2s" } : { transition: "opacity 0.2s" }}
-        onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, surahId: s.id, ayahIndex }); }}
+        onContextMenu={(e) => { e.preventDefault(); const mx = Math.min(e.clientX, window.innerWidth - 200); const my = Math.min(e.clientY, window.innerHeight - 140); setCtxMenu({ x: mx, y: my, surahId: s.id, ayahIndex }); }}
       >
         <span
           className={[

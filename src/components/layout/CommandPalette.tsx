@@ -68,32 +68,41 @@ export function CommandPalette(props: Props) {
     });
   }, [quranData]);
 
-  // De10: Ayah-level search index
+  // De10: Ayah-level search — normalize Arabic to strip diacritics + alef variants for matching
+  const normalizeArabic = React.useCallback((text: string) =>
+    text
+      .replace(/[\u064B-\u065F\u0610-\u061A\u06D6-\u06EF\u0670]/g, "")
+      .replace(/[أإآٱ]/g, "ا")
+      .replace(/ة/g, "ه")
+      .replace(/ى/g, "ي"),
+  []);
+
   const ayahIndex = React.useMemo(() => {
-    if (!quranData) return [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }>;
-    const arr: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
+    if (!quranData) return [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string; normalized: string }>;
+    const arr: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string; normalized: string }> = [];
     for (const surah of quranData) {
       for (let i = 0; i < surah.ayahs.length; i++) {
-        arr.push({ surahId: surah.id, surahName: surah.name, ayahIndex: i + 1, text: surah.ayahs[i] });
+        const text = surah.ayahs[i] as string;
+        arr.push({ surahId: surah.id, surahName: surah.name, ayahIndex: i + 1, text, normalized: normalizeArabic(text) });
       }
     }
     return arr;
-  }, [quranData]);
+  }, [quranData, normalizeArabic]);
 
   const ayahFuse = React.useMemo(() => {
     if (!ayahIndex.length) return null;
     return new Fuse(ayahIndex, {
       includeScore: true,
-      threshold: 0.25,
-      keys: ["text"],
+      threshold: 0.3,
+      keys: ["normalized"],
       minMatchCharLength: 3,
     });
   }, [ayahIndex]);
 
   const ayahResults = React.useMemo(() => {
     if (!ayahFuse || query.trim().length < 3) return [] as typeof ayahIndex;
-    return ayahFuse.search(query).slice(0, 6).map((r) => r.item);
-  }, [ayahFuse, query]);
+    return ayahFuse.search(normalizeArabic(query)).slice(0, 6).map((r) => r.item);
+  }, [ayahFuse, query, normalizeArabic]);
 
   const surahResults = React.useMemo(() => {
     if (!surahFuse || !query.trim()) return [] as NonNullable<typeof quranData>;
