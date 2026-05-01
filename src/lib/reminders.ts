@@ -16,6 +16,21 @@ const PRAYER_NOTIFICATION_IDS = {
   Isha: 9205,
 } as const;
 
+// N2: Follow-up (gentle) prayer reminders sent 30 min after the main adhan
+const PRAYER_FOLLOWUP_IDS = {
+  Fajr: 9301,
+  Dhuhr: 9302,
+  Asr: 9303,
+  Maghrib: 9304,
+  Isha: 9305,
+} as const;
+
+// N4: Ramadan suhoor / iftar notification IDs
+const RAMADAN_IDS = {
+  suhoor: 9401,
+  iftar: 9402,
+} as const;
+
 const PRAYER_LABELS: Record<keyof typeof PRAYER_NOTIFICATION_IDS, string> = {
   Fajr: "الفجر",
   Dhuhr: "الظهر",
@@ -27,6 +42,95 @@ const PRAYER_LABELS: Record<keyof typeof PRAYER_NOTIFICATION_IDS, string> = {
 type PrayerTimingName = keyof typeof PRAYER_NOTIFICATION_IDS;
 
 type PrayerNotificationTimings = Partial<Record<PrayerTimingName, string>>;
+
+// ── N1: Rotating motivational Arabic phrases ─────────────────────────────────
+
+const MORNING_PHRASES = [
+  "ابدأ يومك بذكر الله وأذكار الصباح",
+  "من أسبح الله في الصباح كان في ذمة الله",
+  "الذاكرون الله كثيرًا… صباح الذكر خير من الدنيا وما فيها",
+  "صباح ذكرٍ وشكرٍ وقرب من الله ♡",
+  "أذكار الصباح درعك لهذا اليوم",
+  "ما من صباح إلا وبابه مفتوح على رزق ورحمة",
+  "ابدأ يومك بـ «بسم الله» وأتمّه بـ «الحمد لله»",
+  "حصّن يومك بالذكر قبل أن يبدأ",
+];
+
+const EVENING_PHRASES = [
+  "أقبل المساء فحصّن قلبك بأذكار المساء",
+  "المساء بوابة الراحة… ابدأها بذكر الله",
+  "ختم المساء بالذكر نور في الظلام",
+  "قبل أن ينام جسدك أيقظ روحك بالذكر",
+  "مَن قرأ أذكار المساء أمسى في جوار الله",
+  "أذكار المساء ختم اليوم بالخير",
+  "وقفة مع الله قبل انتهاء النهار",
+  "لا تنم إلا وقلبك مطمئن بذكر الله",
+];
+
+const DAILY_WIRD_PHRASES = [
+  "لا تنس وردك اليومي من القرآن",
+  "القرآن حياة القلوب… تلُه اليوم",
+  "آية تقرأها خير من دنيا تتركها",
+  "يوم بلا قرآن يوم بلا نور",
+  "ورد اليوم ينتظرك… لا تُخلف الموعد",
+  "اجعل القرآن أنيس يومك",
+  "وردك رفيقك في الدنيا وشفيعك في الآخرة",
+  "كلّ آية تقرأها درجة ترفع",
+];
+
+const KHATMA_PHRASES = [
+  "حصة اليوم من خطة الختمة تنتظرك",
+  "خطوة صغيرة في خطتك تقربك من ختمة القرآن",
+  "تابع رحلتك مع القرآن… ختمة بختمة",
+  "اليوم جزء من طريق الختمة",
+  "لا تنقطع… الختمة أمانة في عنقك",
+  "كل يوم تقرأ فيه يقربك من نور الآخرة",
+  "الختمة رفيقة العمر… واصلها اليوم",
+  "من ختم القرآن كان له دعوة مستجابة",
+];
+
+const PRAYER_FOLLOWUP_PHRASES: Record<PrayerTimingName, string> = {
+  Fajr:   "هل أدّيتَ صلاة الفجر؟ لا تفوّتها فهي من أعظم القربات",
+  Dhuhr:  "تذكير لطيف: لم يُسجَّل أداء صلاة الظهر بعد",
+  Asr:    "أدّيتَ صلاة العصر؟ سجّلها قبل أن ينتهي وقتها",
+  Maghrib: "لم تُسجَّل صلاة المغرب… حافظ على صلاتك في وقتها",
+  Isha:   "تذكير برفق: صلاة العشاء لم تُسجَّل بعد",
+};
+
+// N4: Ramadan messages
+const SUHOOR_PHRASES = [
+  "السحور بركة… قم وتسحّر فإن في السحور بركة",
+  "موعد السحور أقترب — لا تفوّت البركة",
+  "اغتنم وقت السحور بالأكل والدعاء والاستغفار",
+  "نبيّك ﷺ قال: تسحّروا فإن في السحور بركة",
+];
+
+const IFTAR_PHRASES = [
+  "حان وقت الإفطار — اللّهم لك صمتُ وعلى رزقك أفطرتُ",
+  "الفطر رحمة من الله — أفطر على خير",
+  "أذان المغرب دعوة الله لك — بادر بالإفطار",
+  "للصائم فرحتان: فرحة عند الإفطار وفرحة عند لقاء ربه",
+];
+
+/** Pick a daily-rotating phrase from an array (same phrase all day, changes next day). */
+function dailyPhrase(phrases: string[]): string {
+  const dayIndex = Math.floor(Date.now() / 86_400_000);
+  return phrases[dayIndex % phrases.length]!;
+}
+
+// ── N4: Ramadan detection ────────────────────────────────────────────────────
+
+/** Returns true when the current Gregorian date falls in Ramadan (Hijri month 9). */
+export function isRamadan(): boolean {
+  try {
+    const fmt = new Intl.DateTimeFormat("en-u-ca-islamic", { month: "numeric" });
+    const parts = fmt.formatToParts(new Date());
+    const monthPart = parts.find((p) => p.type === "month");
+    return monthPart?.value === "9";
+  } catch {
+    return false;
+  }
+}
 
 const DEFAULT_PRAYER_ALERTS: PrayerAlertPreferences = {
   Fajr: true,
@@ -237,8 +341,30 @@ export async function cancelAllReminders() {
       { id: PRAYER_NOTIFICATION_IDS.Asr },
       { id: PRAYER_NOTIFICATION_IDS.Maghrib },
       { id: PRAYER_NOTIFICATION_IDS.Isha },
+      // N2: follow-ups
+      { id: PRAYER_FOLLOWUP_IDS.Fajr },
+      { id: PRAYER_FOLLOWUP_IDS.Dhuhr },
+      { id: PRAYER_FOLLOWUP_IDS.Asr },
+      { id: PRAYER_FOLLOWUP_IDS.Maghrib },
+      { id: PRAYER_FOLLOWUP_IDS.Isha },
+      // N4: Ramadan
+      { id: RAMADAN_IDS.suhoor },
+      { id: RAMADAN_IDS.iftar },
     ]
   });
+}
+
+/** N2: Cancel the gentle follow-up for a specific prayer (call when user logs the prayer). */
+export async function cancelPrayerFollowUp(prayerName: string) {
+  if (!Capacitor.isNativePlatform()) return;
+  const id = PRAYER_FOLLOWUP_IDS[prayerName as PrayerTimingName];
+  if (!id) return;
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    await LocalNotifications.cancel({ notifications: [{ id }] });
+  } catch {
+    // ignore
+  }
 }
 
 type NotificationAudioConfig = {
@@ -274,29 +400,29 @@ function buildReminderNotifications(reminders: Reminders, audio: NotificationAud
     {
       enabled: reminders.morningEnabled,
       id: REMINDER_IDS.morning,
-      title: "أثر — تذكير",
-      body: "ابدأ يومك بذكر الله وأذكار الصباح",
+      title: "أثر — تذكير الصباح",
+      body: dailyPhrase(MORNING_PHRASES),
       hhmm: reminders.morningTime,
     },
     {
       enabled: reminders.eveningEnabled,
       id: REMINDER_IDS.evening,
-      title: "أثر — تذكير",
-      body: "أقبل المساء فحصّن قلبك بأذكار المساء",
+      title: "أثر — تذكير المساء",
+      body: dailyPhrase(EVENING_PHRASES),
       hhmm: reminders.eveningTime,
     },
     {
       enabled: reminders.dailyWirdEnabled,
       id: REMINDER_IDS.dailyWird,
-      title: "أثر — تذكير",
-      body: "لا تنس وردك اليومي من القرآن",
+      title: "أثر — وردك اليومي",
+      body: dailyPhrase(DAILY_WIRD_PHRASES),
       hhmm: reminders.dailyWirdTime,
     },
     {
       enabled: reminders.khatmaEnabled,
       id: REMINDER_IDS.khatma,
-      title: "أثر — تذكير",
-      body: "حصة اليوم من خطة الختمة تنتظرك",
+      title: "أثر — خطة الختمة",
+      body: dailyPhrase(KHATMA_PHRASES),
       hhmm: reminders.khatmaTime,
     },
   ];
@@ -325,7 +451,8 @@ function buildPrayerNotifications(
     const at = todayAtLocalTime(prayerTimings[prayerName] ?? "");
     if (!at) return [];
 
-    const notification = {
+    // Main adhan notification
+    const main = {
       id: PRAYER_NOTIFICATION_IDS[prayerName],
       title: "أثر — الأذان",
       body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
@@ -336,8 +463,70 @@ function buildPrayerNotifications(
       iconColor: REMINDER_ICON_COLOR,
       schedule: { at },
     };
-    return [notification];
+
+    // N2: Gentle follow-up 30 min later — cancelled by setPrayerLogged when user logs the prayer
+    const followUpAt = new Date(at.getTime() + 30 * 60_000);
+    if (followUpAt.getTime() <= Date.now()) return [main];
+
+    const followUp = {
+      id: PRAYER_FOLLOWUP_IDS[prayerName],
+      title: "أثر — تذكير لطيف",
+      body: PRAYER_FOLLOWUP_PHRASES[prayerName],
+      channelId: audio.channelId,
+      sound: "default",
+      smallIcon: REMINDER_NOTIFICATION_ICON,
+      largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+      iconColor: REMINDER_ICON_COLOR,
+      schedule: { at: followUpAt },
+    };
+
+    return [main, followUp];
   });
+}
+
+// N4: Build Ramadan suhoor & iftar notifications from prayer timings
+function buildRamadanNotifications(
+  prayerTimings: PrayerNotificationTimings,
+  audio: NotificationAudioConfig,
+) {
+  const notifications: any[] = [];
+
+  // Suhoor = Fajr - 30 min
+  const fajrAt = todayAtLocalTime(prayerTimings.Fajr ?? "");
+  if (fajrAt) {
+    const suhoorAt = new Date(fajrAt.getTime() - 30 * 60_000);
+    if (suhoorAt.getTime() > Date.now()) {
+      notifications.push({
+        id: RAMADAN_IDS.suhoor,
+        title: "أثر — السحور",
+        body: dailyPhrase(SUHOOR_PHRASES),
+        channelId: audio.channelId,
+        sound: audio.soundFile,
+        smallIcon: REMINDER_NOTIFICATION_ICON,
+        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+        iconColor: REMINDER_ICON_COLOR,
+        schedule: { at: suhoorAt },
+      });
+    }
+  }
+
+  // Iftar = Maghrib time
+  const iftarAt = todayAtLocalTime(prayerTimings.Maghrib ?? "");
+  if (iftarAt) {
+    notifications.push({
+      id: RAMADAN_IDS.iftar,
+      title: "أثر — الإفطار",
+      body: dailyPhrase(IFTAR_PHRASES),
+      channelId: audio.channelId,
+      sound: audio.soundFile,
+      smallIcon: REMINDER_NOTIFICATION_ICON,
+      largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+      iconColor: REMINDER_ICON_COLOR,
+      schedule: { at: iftarAt },
+    });
+  }
+
+  return notifications;
 }
 
 function notificationRefs(ids: readonly number[]) {
@@ -402,12 +591,14 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
 
   const reminderIds = Object.values(REMINDER_IDS);
   const prayerIds = Object.values(PRAYER_NOTIFICATION_IDS);
+  const followUpIds = Object.values(PRAYER_FOLLOWUP_IDS);
+  const ramadanIds = Object.values(RAMADAN_IDS);
   const shouldRefreshPrayerNotifications = !reminders.prayerAlertsEnabled || !!prayerTimings;
 
   await LocalNotifications.cancel({
     notifications: notificationRefs([
       ...reminderIds,
-      ...(shouldRefreshPrayerNotifications ? prayerIds : []),
+      ...(shouldRefreshPrayerNotifications ? [...prayerIds, ...followUpIds, ...ramadanIds] : []),
     ]),
   });
 
@@ -428,6 +619,11 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
       prayerNotificationAudio,
       { ...DEFAULT_PRAYER_ALERTS, ...reminders.prayerAlerts },
     ));
+
+    // N4: Ramadan suhoor & iftar
+    if (isRamadan()) {
+      notifications.push(...buildRamadanNotifications(prayerTimings, prayerNotificationAudio));
+    }
   }
 
   if (!notifications.length) return;

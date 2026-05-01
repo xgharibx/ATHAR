@@ -2,6 +2,7 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { useNoorStore } from "@/store/noorStore";
+import { syncPrayerWidget } from "@/lib/prayerWidget";
 
 export const PRAYER_COORDS_KEY_EXPORT = "noor_prayer_coords_v1";
 
@@ -193,6 +194,12 @@ export function usePrayerTimes() {
     refetchInterval: false,
     retry: 2,
   });
+
+  React.useEffect(() => {
+    if (query.data?.data?.timings) {
+      syncPrayerWidget(query.data.data.timings).catch(() => {});
+    }
+  }, [query.data]);
 
   React.useEffect(() => {
     let timeoutId: number | null = null;

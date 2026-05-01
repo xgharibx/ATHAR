@@ -541,13 +541,20 @@ export const useNoorStore = create<NoorState>()(
       setSebhaCustom: (v) => set({ sebhaCustom: v }),
 
       prayerLog: {},
-      setPrayerLogged: (dateISO, prayer, done) =>
+      setPrayerLogged: (dateISO, prayer, done) => {
         set((s) => ({
           prayerLog: {
             ...s.prayerLog,
             [dateISO]: { ...(s.prayerLog[dateISO] ?? {}), [prayer]: done },
           },
-        })),
+        }));
+        // N2: Cancel the gentle follow-up when user marks the prayer as done
+        if (done) {
+          import("@/lib/reminders").then(({ cancelPrayerFollowUp }) => {
+            cancelPrayerFollowUp(prayer).catch(() => {});
+          });
+        }
+      },
       clearPrayerLog: () => set({ prayerLog: {} }),
 
       favoriteCities: [],
