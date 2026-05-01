@@ -715,12 +715,7 @@ body.quran-focus-mode .quran-surface {
   border-color: rgba(249, 168, 212, 0.55);
   color: var(--fg);
 }
-/* Q17: search text match highlight */
-.ayah-search-match {
-  background: rgba(250, 204, 21, 0.13);
-  border-radius: 3px;
-  outline: 1px solid rgba(250, 204, 21, 0.25);
-}
+/* Q17: search text match highlight — see .ayah-search-match below (Surah page) */
 /* Q20: last-read marker ring on the ayah-marker button */
 .ayah-marker--last-read {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent);
