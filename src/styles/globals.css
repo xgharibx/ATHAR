@@ -674,6 +674,8 @@ body.quran-focus-mode .quran-surface {
 .ayah-hl-green { background: rgba(52,  211, 153, 0.16); border-radius: 3px; }
 .ayah-hl-blue  { background: rgba(96,  165, 250, 0.16); border-radius: 3px; }
 .ayah-hl-red   { background: rgba(248, 113, 113, 0.16); border-radius: 3px; }
+/* Q13: pink highlight */
+.ayah-hl-pink  { background: rgba(249, 168, 212, 0.17); border-radius: 3px; }
 
 .ayah-marker[data-highlight="gold"] {
   background: rgba(251, 191, 36,  0.22);
@@ -694,6 +696,23 @@ body.quran-focus-mode .quran-surface {
   background: rgba(248, 113, 113, 0.22);
   border-color: rgba(248, 113, 113, 0.55);
   color: var(--fg);
+}
+/* Q13 */
+.ayah-marker[data-highlight="pink"] {
+  background: rgba(249, 168, 212, 0.22);
+  border-color: rgba(249, 168, 212, 0.55);
+  color: var(--fg);
+}
+/* Q17: search text match highlight */
+.ayah-search-match {
+  background: rgba(250, 204, 21, 0.13);
+  border-radius: 3px;
+  outline: 1px solid rgba(250, 204, 21, 0.25);
+}
+/* Q20: last-read marker ring on the ayah-marker button */
+.ayah-marker--last-read {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent) !important;
 }
 
 /* -------------------------------------------------------
