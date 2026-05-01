@@ -17,8 +17,11 @@ export type NoorTheme =
   | "sunset"
   | "mist";
 
-export type ReminderSoundProfile = "birds_dawn" | "rain_calm" | "night_breeze";
+export type ReminderSoundProfile = "birds_dawn" | "rain_calm" | "night_breeze" | "soft_bell" | "rise_glow" | "pulse_light";
 export type PrayerSoundProfile =
+  | "adhan_haram"
+  | "adhan_fajr"
+  | "iqama_soft"
   | "aladhan_adhan_1"
   | "aladhan_adhan_2"
   | "aladhan_adhan_3"
@@ -93,6 +96,7 @@ export type ExportBlobV1 = {
   quranStreak?: number;
   quranLastReadDate?: string | null;
   quranDailyAyahs?: Record<string, number>;
+  sectionItemOrder?: Record<string, number[]>;
   dailyWirdDone?: Record<string, boolean>;
   dailyWirdStartISO?: string | null;
   khatmaStartISO?: string | null;
@@ -111,6 +115,7 @@ type NoorState = {
   progress: Record<string, number>; // key: `${sectionId}:${index}`
   favorites: Record<string, boolean>;
   activity: Record<string, number>; // dateISO -> actions count
+  sectionItemOrder: Record<string, number[]>; // sectionId -> ordered original indexes
   lastCivilResetISO: string | null;
   lastIbadahResetISO: string | null;
 
@@ -172,6 +177,8 @@ type NoorState = {
   resetSection: (sectionId: string) => void;
 
   toggleFavorite: (sectionId: string, index: number) => void;
+  moveSectionItem: (sectionId: string, fromDisplayIndex: number, toDisplayIndex: number, itemCount: number) => void;
+  resetSectionItemOrder: (sectionId: string) => void;
 
   bumpActivityToday: () => void;
   ensureDailyResets: (fajrTime?: string | null) => void;
@@ -282,14 +289,47 @@ function normalizeReminderSoundProfile(value: unknown): ReminderSoundProfile {
     case "night_breeze":
       return "night_breeze";
     case "soft_bell":
-      return "birds_dawn";
+      return "soft_bell";
     case "rise_glow":
-      return "rain_calm";
+      return "rise_glow";
     case "pulse_light":
-      return "night_breeze";
+      return "pulse_light";
     default:
       return DEFAULT_REMINDERS.soundProfile;
   }
+}
+
+function sanitizeOrderMap(input: unknown) {
+  const src = (input ?? {}) as Record<string, unknown>;
+  const out: Record<string, number[]> = {};
+  for (const [sectionId, rawOrder] of Object.entries(src)) {
+    if (!sectionId || !Array.isArray(rawOrder)) continue;
+    const seen = new Set<number>();
+    const order: number[] = [];
+    for (const value of rawOrder) {
+      const index = Number(value);
+      if (!Number.isInteger(index) || index < 0 || seen.has(index)) continue;
+      seen.add(index);
+      order.push(index);
+    }
+    if (order.length > 0) out[sectionId] = order;
+  }
+  return out;
+}
+
+function normalizeSectionOrder(savedOrder: number[] | undefined, itemCount: number) {
+  const seen = new Set<number>();
+  const order: number[] = [];
+  for (const value of savedOrder ?? []) {
+    const index = Number(value);
+    if (!Number.isInteger(index) || index < 0 || index >= itemCount || seen.has(index)) continue;
+    seen.add(index);
+    order.push(index);
+  }
+  for (let index = 0; index < itemCount; index += 1) {
+    if (!seen.has(index)) order.push(index);
+  }
+  return order;
 }
 
 function normalizePrayerSoundProfile(value: unknown): PrayerSoundProfile {
@@ -298,8 +338,13 @@ function normalizePrayerSoundProfile(value: unknown): PrayerSoundProfile {
   }
 
   switch (value.trim()) {
-    case "aladhan_adhan_1":
     case "adhan_haram":
+      return "adhan_haram";
+    case "adhan_fajr":
+      return "adhan_fajr";
+    case "iqama_soft":
+      return "iqama_soft";
+    case "aladhan_adhan_1":
       return "aladhan_adhan_1";
     case "aladhan_adhan_2":
       return "aladhan_adhan_2";
@@ -314,10 +359,8 @@ function normalizePrayerSoundProfile(value: unknown): PrayerSoundProfile {
     case "aladhan_adhan_7":
       return "aladhan_adhan_7";
     case "aladhan_adhan_8":
-    case "adhan_fajr":
       return "aladhan_adhan_8";
     case "aladhan_adhan_9":
-    case "iqama_soft":
       return "aladhan_adhan_9";
     default:
       return DEFAULT_REMINDERS.prayerSoundProfile;
@@ -363,6 +406,7 @@ export const useNoorStore = create<NoorState>()(
       progress: {},
       favorites: {},
       activity: {},
+      sectionItemOrder: {},
       lastCivilResetISO: null,
       lastIbadahResetISO: null,
 
@@ -574,6 +618,26 @@ export const useNoorStore = create<NoorState>()(
         set((s) => ({ favorites: { ...s.favorites, [key]: !s.favorites[key] } }));
       },
 
+      moveSectionItem: (sectionId, fromDisplayIndex, toDisplayIndex, itemCount) => {
+        set((s) => {
+          const order = normalizeSectionOrder(s.sectionItemOrder[sectionId], itemCount);
+          if (fromDisplayIndex < 0 || fromDisplayIndex >= order.length) return {};
+          const targetIndex = Math.max(0, Math.min(order.length - 1, toDisplayIndex));
+          if (targetIndex === fromDisplayIndex) return {};
+          const [moved] = order.splice(fromDisplayIndex, 1);
+          if (moved == null) return {};
+          order.splice(targetIndex, 0, moved);
+          return { sectionItemOrder: { ...s.sectionItemOrder, [sectionId]: order } };
+        });
+      },
+
+      resetSectionItemOrder: (sectionId) =>
+        set((s) => {
+          const next = { ...s.sectionItemOrder };
+          delete next[sectionId];
+          return { sectionItemOrder: next };
+        }),
+
       bumpActivityToday: () => {
         const key = todayISO();
         set((s) => ({ activity: { ...s.activity, [key]: (s.activity[key] ?? 0) + 1 } }));
@@ -622,6 +686,7 @@ export const useNoorStore = create<NoorState>()(
           progress: s.progress,
           favorites: s.favorites,
           activity: s.activity,
+          sectionItemOrder: s.sectionItemOrder,
           quickTasbeeh: s.quickTasbeeh,
           quranBookmarks: s.quranBookmarks,
           quranLastRead: s.quranLastRead,
@@ -660,6 +725,7 @@ export const useNoorStore = create<NoorState>()(
           progress: sanitizeNumberMap(blob.progress),
           favorites: blob.favorites ?? {},
           activity: blob.activity ?? {},
+          sectionItemOrder: sanitizeOrderMap(blob.sectionItemOrder),
           quickTasbeeh: sanitizeNumberMap(blob.quickTasbeeh),
           quranBookmarks: blob.quranBookmarks ?? {},
           quranLastRead: blob.quranLastRead ?? null,
@@ -687,6 +753,7 @@ export const useNoorStore = create<NoorState>()(
         favorites: {},
         activity: {},
         quickTasbeeh: {},
+        sectionItemOrder: {},
         dailyChecklist: {},
         dailyBetterStepDone: {},
         lastCivilResetISO: null,
@@ -717,7 +784,7 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 11,
+      version: 12,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -735,6 +802,7 @@ export const useNoorStore = create<NoorState>()(
           },
           progress: sanitizeNumberMap(state.progress),
           quickTasbeeh: sanitizeNumberMap(state.quickTasbeeh),
+          sectionItemOrder: sanitizeOrderMap(state.sectionItemOrder),
           lastCivilResetISO: state.lastCivilResetISO ?? state.lastDailyResetISO ?? null,
           lastIbadahResetISO: state.lastIbadahResetISO ?? state.lastDailyResetISO ?? null,
           dailyChecklist: state.dailyChecklist ?? {},

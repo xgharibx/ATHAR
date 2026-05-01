@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, Trophy, X, ChevronLeft } from "lucide-react";
+import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft } from "lucide-react";
 
 import { NoorBackground } from "@/components/background/NoorBackground";
 import { FloatingNav } from "@/components/layout/FloatingNav";
@@ -252,7 +252,6 @@ function SidebarContent(props: { onNavigate?: () => void }) {
     { path: "/search", icon: Search, label: "البحث", color: "#e879f9" },
     { path: "/favorites", icon: Heart, label: "المفضلة", color: "#fb7185" },
     { path: "/insights", icon: LineChart, label: "الإحصاءات", color: "#3ddc97" },
-    { path: "/leaderboard", icon: Trophy, label: "المتصدرون", color: "#f59e0b" },
     { path: "/settings", icon: Settings2, label: "الإعدادات", color: "#a78bfa" },
   ];
 
@@ -413,7 +412,7 @@ export function AppShell() {
                     </IconButton>
                   </Dialog.Trigger>
                   <Dialog.Portal>
-                    <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 drawer-overlay-enter" />
+                    <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40 drawer-overlay-enter" />
                     <BottomSheetContent onClose={() => setDrawerOpen(false)}>
                       <SidebarContent onNavigate={() => setDrawerOpen(false)} />
                     </BottomSheetContent>

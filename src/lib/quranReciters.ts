@@ -12,4 +12,11 @@ export const QURAN_RECITERS: Array<{ id: string; label: string }> = [
   { id: "Abdurrahmaan_As-Sudais_64kbps", label: "عبد الرحمن السديس" },
   { id: "Saood_ash-Shuraym_64kbps", label: "سعود الشريم" },
   { id: "Muhammad_Ayyoub_128kbps", label: "محمد أيوب" },
+  { id: "Minshawy_Mujawwad_192kbps", label: "محمد المنشاوي المجود" },
+  { id: "Muhammad_Jibreel_128kbps", label: "محمد جبريل" },
+  { id: "Hani_Rifai_192kbps", label: "هاني الرفاعي" },
+  { id: "Ghamadi_40kbps", label: "سعد الغامدي" },
+  { id: "Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net", label: "أحمد العجمي" },
+  { id: "AbdulSamad_64kbps", label: "عبد الباسط عبد الصمد" },
+  { id: "Ibrahim_Akhdar_32kbps", label: "إبراهيم الأخضر" },
 ];

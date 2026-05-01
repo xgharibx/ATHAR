@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X } from "lucide-react";
+import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
@@ -17,6 +17,8 @@ import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem } from "@/data/packs";
 import { Input } from "@/components/ui/Input";
+import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 
 export function DhikrList(props: Readonly<{
   sectionId: string;
@@ -27,9 +29,14 @@ export function DhikrList(props: Readonly<{
   const resetSection = useNoorStore((s) => s.resetSection);
   const increment = useNoorStore((s) => s.increment);
   const progressMap = useNoorStore((s) => s.progress);
+  const savedItemOrder = useNoorStore((s) => s.sectionItemOrder[props.sectionId]);
+  const moveSectionItem = useNoorStore((s) => s.moveSectionItem);
+  const resetSectionItemOrder = useNoorStore((s) => s.resetSectionItemOrder);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: adhkarData } = useAdhkarDB();
+  const prayerTimes = usePrayerTimes();
+  const fajrTime = prayerTimes.data?.data?.timings?.Fajr ?? null;
   const [confirmReset, setConfirmReset] = React.useState(false);
   const [confirmDone, setConfirmDone] = React.useState(false);
   const [addOpen, setAddOpen] = React.useState(false);
@@ -41,14 +48,32 @@ export function DhikrList(props: Readonly<{
   const hasItems = props.items.length > 0;
   const identity = React.useMemo(() => getSectionIdentity(props.sectionId), [props.sectionId]);
 
+  const orderedEntries = React.useMemo(() => {
+    const seen = new Set<number>();
+    const order: number[] = [];
+
+    for (const value of savedItemOrder ?? []) {
+      if (!Number.isInteger(value) || value < 0 || value >= props.items.length || seen.has(value)) continue;
+      seen.add(value);
+      order.push(value);
+    }
+
+    for (let index = 0; index < props.items.length; index += 1) {
+      if (!seen.has(index)) order.push(index);
+    }
+
+    return order
+      .map((originalIndex) => ({ originalIndex, item: props.items[originalIndex] }))
+      .filter((entry): entry is { originalIndex: number; item: DhikrItem } => !!entry.item);
+  }, [props.items, savedItemOrder]);
+
   const [midnightLabel, setMidnightLabel] = React.useState<string>("");
   React.useEffect(() => {
     if (!isDailySectionLocked) return;
     function calc() {
       const now = new Date();
-      const midnight = new Date(now);
-      midnight.setHours(24, 0, 0, 0);
-      const diffMs = midnight.getTime() - now.getTime();
+      const boundary = getNextIbadahBoundary(now, fajrTime) ?? getNextLocalMidnight(now);
+      const diffMs = boundary.getTime() - now.getTime();
       const diffMins = Math.ceil(diffMs / 60000);
       const h = Math.floor(diffMins / 60);
       const m = diffMins % 60;
@@ -57,33 +82,34 @@ export function DhikrList(props: Readonly<{
     calc();
     const id = setInterval(calc, 60000);
     return () => clearInterval(id);
-  }, [isDailySectionLocked]);
+  }, [fajrTime, isDailySectionLocked]);
 
   const stats = React.useMemo(() => {
     let done = 0;
     let total = 0;
-    props.items.forEach((it, idx) => {
-      const key = `${props.sectionId}:${idx}`;
+    orderedEntries.forEach(({ item: it, originalIndex }) => {
+      const key = `${props.sectionId}:${originalIndex}`;
       const t = coerceCount(it.count);
       const c = Math.min(Math.max(0, Number(progressMap[key]) || 0), t);
       total += t;
       done += c;
     });
     return { done, total, percent: pct(done, total) };
-  }, [progressMap, props.items, props.sectionId]);
+  }, [orderedEntries, progressMap, props.sectionId]);
 
   // First item that still needs taps
   const firstIncompleteIdx = React.useMemo(() => {
-    return props.items.findIndex((item, idx) => {
-      const key = `${props.sectionId}:${idx}`;
+    return orderedEntries.findIndex(({ item, originalIndex }) => {
+      const key = `${props.sectionId}:${originalIndex}`;
       const target = coerceCount(item.count);
       const current = Math.min(target, Math.max(0, Number(progressMap[key]) || 0));
       return current < target;
     });
-  }, [progressMap, props.items, props.sectionId]);
+  }, [orderedEntries, progressMap, props.sectionId]);
 
   const [copiedAll, setCopiedAll] = React.useState(false);
   const [compact, setCompact] = React.useState(false);
+  const [reorderMode, setReorderMode] = React.useState(false);
   const [showBackToTop, setShowBackToTop] = React.useState(false);
   const [focusMode, setFocusMode] = React.useState(false);
   const virtuosoRef = React.useRef<VirtuosoHandle>(null);
@@ -132,13 +158,13 @@ export function DhikrList(props: Readonly<{
   }, [adhkarData, progressMap, props.sectionId]);
 
   const markAllDone = () => {
-    props.items.forEach((item, idx) => {
+    orderedEntries.forEach(({ item, originalIndex }) => {
       const target = coerceCount(item.count);
-      const key = `${props.sectionId}:${idx}`;
+      const key = `${props.sectionId}:${originalIndex}`;
       const current = Math.min(target, Math.max(0, Number(progressMap[key]) || 0));
       const remaining = target - current;
       for (let i = 0; i < remaining; i++) {
-        increment({ sectionId: props.sectionId, index: idx, target });
+        increment({ sectionId: props.sectionId, index: originalIndex, target });
       }
     });
     setConfirmDone(false);
@@ -147,7 +173,7 @@ export function DhikrList(props: Readonly<{
 
   const copyAllText = async () => {
     const lines: string[] = [`【 ${props.title} 】`, ""];
-    props.items.forEach((item, idx) => {
+    orderedEntries.forEach(({ item }, idx) => {
       const count = coerceCount(item.count);
       const repeatLabel = count > 1 ? ` (${count} مرات)` : "";
       lines.push(`${idx + 1}. ${item.text}${repeatLabel}`);
@@ -174,7 +200,7 @@ export function DhikrList(props: Readonly<{
       id: props.sectionId,
       title: props.title,
       exportedAt: new Date().toISOString(),
-      items: props.items
+      items: orderedEntries.map((entry) => entry.item)
     };
     const date = new Date().toISOString().slice(0, 10);
     downloadJson(`ATHAR-${safeTitle || "قسم"}-${date}.athar`, blob);
@@ -190,7 +216,7 @@ export function DhikrList(props: Readonly<{
       return;
     }
 
-    addCustomDhikrItem({ text, count, benefit: customBenefit });
+    addCustomDhikrItem({ text, count, benefit: customBenefit, sectionId: props.sectionId, sectionTitle: props.title });
     setCustomText("");
     setCustomBenefit("");
     setCustomCount("1");
@@ -226,12 +252,10 @@ export function DhikrList(props: Readonly<{
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              {isMyAdhkarSection ? (
-                <Button variant="primary" onClick={() => setAddOpen(true)}>
-                  <Plus size={16} />
-                  إضافة
-                </Button>
-              ) : null}
+              <Button variant="primary" onClick={() => setAddOpen(true)}>
+                <Plus size={16} />
+                إضافة
+              </Button>
               {confirmReset ? (
                 <>
                   <Button
@@ -302,6 +326,21 @@ export function DhikrList(props: Readonly<{
                 <List size={16} />
               </Button>
               <Button
+                variant={reorderMode ? "primary" : "secondary"}
+                onClick={() => setReorderMode((prev) => !prev)}
+                disabled={!hasItems}
+                title="ترتيب الأذكار"
+                aria-label="ترتيب الأذكار"
+              >
+                <ArrowUpDown size={16} />
+                ترتيب
+              </Button>
+              {reorderMode && savedItemOrder?.length ? (
+                <Button variant="ghost" onClick={() => resetSectionItemOrder(props.sectionId)} title="إعادة الترتيب" aria-label="إعادة الترتيب">
+                  <RotateCcw size={16} />
+                </Button>
+              ) : null}
+              <Button
                 variant={focusMode ? "primary" : "secondary"}
                 onClick={() => setFocusMode((prev) => !prev)}
                 title={focusMode ? "إنهاء وضع التركيز" : "وضع التركيز — إخفاء شريط التنقل"}
@@ -325,7 +364,7 @@ export function DhikrList(props: Readonly<{
           {isDailySectionLocked && midnightLabel && (
             <div className="mt-3 flex items-center gap-1.5 text-[11px] opacity-55">
               <Lock size={11} />
-              <span>يتجدد عند منتصف الليل · متبقّي {midnightLabel}</span>
+              <span>يتجدد مع الفجر · متبقّي {midnightLabel}</span>
             </div>
           )}
 
@@ -389,19 +428,46 @@ export function DhikrList(props: Readonly<{
           <Virtuoso
             ref={virtuosoRef}
             style={{ height: "100%" }}
-            data={props.items}
+            data={orderedEntries}
             atTopStateChange={(atTop) => setShowBackToTop(!atTop)}
-            itemContent={(index, item) => (
+            itemContent={(displayIndex, entry) => (
               <div className="pb-4">
+                {reorderMode ? (
+                  <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+                    <div className="text-xs tabular-nums opacity-65">{displayIndex + 1}</div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => moveSectionItem(props.sectionId, displayIndex, displayIndex - 1, props.items.length)}
+                        disabled={displayIndex === 0}
+                        className="h-9 w-9 rounded-xl border border-white/10 bg-white/6 grid place-items-center disabled:opacity-30"
+                        aria-label="رفع الذكر"
+                        title="رفع"
+                      >
+                        <MoveUp size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveSectionItem(props.sectionId, displayIndex, displayIndex + 1, props.items.length)}
+                        disabled={displayIndex >= orderedEntries.length - 1}
+                        className="h-9 w-9 rounded-xl border border-white/10 bg-white/6 grid place-items-center disabled:opacity-30"
+                        aria-label="خفض الذكر"
+                        title="خفض"
+                      >
+                        <MoveDown size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
                 <DhikrCard
                   sectionId={props.sectionId}
-                  index={index}
-                  item={item}
-                  autoFocus={props.focusIndex === index}
+                  index={entry.originalIndex}
+                  item={entry.item}
+                  autoFocus={props.focusIndex === entry.originalIndex}
                   totalItems={props.items.length}
                   onComplete={() => {
-                    const nextIdx = index + 1;
-                    if (nextIdx < props.items.length) {
+                    const nextIdx = displayIndex + 1;
+                    if (nextIdx < orderedEntries.length) {
                       virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "start", behavior: "smooth" });
                     }
                   }}
@@ -410,7 +476,7 @@ export function DhikrList(props: Readonly<{
             )}
           />
         )}
-        {isMyAdhkarSection && !addOpen ? (
+        {!addOpen ? (
           <button
             type="button"
             onClick={() => setAddOpen(true)}
@@ -421,7 +487,7 @@ export function DhikrList(props: Readonly<{
             <Plus size={22} />
           </button>
         ) : null}
-        {isMyAdhkarSection && addOpen ? (
+        {addOpen ? (
           <div className="fixed inset-0 z-[10000] bg-black/55 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
             <button type="button" className="absolute inset-0" aria-label="إغلاق" onClick={() => setAddOpen(false)} />
             <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-white/15 p-5 pb-32 md:pb-5 shadow-2xl" dir="rtl">
@@ -438,7 +504,7 @@ export function DhikrList(props: Readonly<{
               </div>
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px] gap-3">
                 <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-[var(--fg)]">
-                  أذكاري
+                  {props.title}
                 </div>
                 <Input
                   type="number"

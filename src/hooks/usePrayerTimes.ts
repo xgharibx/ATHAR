@@ -184,7 +184,7 @@ export function usePrayerTimes() {
     initialData: () => readCached(dayKey, cityLocationKey) ?? undefined,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
+    refetchOnReconnect: false,
     refetchInterval: false,
     retry: 2,
   });

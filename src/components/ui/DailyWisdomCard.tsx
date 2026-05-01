@@ -5,8 +5,8 @@ import { getTodayWisdom } from "@/data/dailyWisdom";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 
-export function DailyWisdomCard() {
-  const wisdom = React.useMemo(() => getTodayWisdom(), []);
+export function DailyWisdomCard(props: { dateKey?: string }) {
+  const wisdom = React.useMemo(() => getTodayWisdom(props.dateKey), [props.dateKey]);
 
   const copyWisdom = async () => {
     try {

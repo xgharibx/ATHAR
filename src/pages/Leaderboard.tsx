@@ -10,6 +10,7 @@ import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { useNoorStore } from "@/store/noorStore";
 import { useTodayKey } from "@/hooks/useTodayKey";
+import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { cn } from "@/lib/utils";
 import {
   type LeaderboardBoard,
@@ -38,7 +39,8 @@ type BoardLoadState = "idle" | "loading" | "ok" | "error";
 
 export function LeaderboardPage() {
   const { data } = useAdhkarDB();
-  const todayKey = useTodayKey();
+  const prayerTimes = usePrayerTimes();
+  const todayKey = useTodayKey({ mode: "ibadah", fajrTime: prayerTimes.data?.data?.timings?.Fajr });
   const progress = useNoorStore((s) => s.progress);
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
   const prayersDone = useNoorStore((s) => s.dailyChecklist[todayKey] ?? {});

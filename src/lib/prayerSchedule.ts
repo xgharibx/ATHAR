@@ -337,7 +337,7 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
     {
       id: "forbidden-sunrise",
       type: "forbidden",
-      label: "وقت نهي",
+      label: "نهي بعد الشروق",
       timeLabel: formatRange(context.sunriseMinutes, context.sunriseForbiddenEnd),
     },
     {
@@ -349,7 +349,7 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
     {
       id: "forbidden-zenith",
       type: "forbidden",
-      label: "وقت نهي",
+      label: "نهي الاستواء",
       timeLabel: formatRange(context.zenithForbiddenStart, context.dhuhrMinutes),
     },
     {
@@ -369,7 +369,7 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
     {
       id: "forbidden-sunset",
       type: "forbidden",
-      label: "وقت نهي",
+      label: "نهي قبل الغروب",
       timeLabel: formatRange(context.sunsetForbiddenStart, context.maghribMinutes),
     },
     { id: "sunset", type: "marker", label: "الغروب", timeLabel: format12h(timings.Maghrib) },

@@ -128,7 +128,15 @@ export const DAILY_WISDOMS: Wisdom[] = [
   },
 ];
 
-export function getTodayWisdom(): Wisdom {
-  const dayIndex = Math.floor(Date.now() / 86400000);
+function hashDateKey(dateKey: string) {
+  let hash = 0;
+  for (let index = 0; index < dateKey.length; index += 1) {
+    hash = (hash * 31 + dateKey.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
+export function getTodayWisdom(dateKey?: string): Wisdom {
+  const dayIndex = dateKey ? hashDateKey(dateKey) : Math.floor(Date.now() / 86400000);
   return DAILY_WISDOMS[dayIndex % DAILY_WISDOMS.length] as Wisdom;
 }

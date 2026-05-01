@@ -1589,8 +1589,8 @@
           "source_label": "الأحزاب 56",
           "source_url": "",
           "minimal": true,
-          "count": 10,
-          "count_description": "10 مرات"
+          "count": 100,
+          "count_description": "100 مرة"
         },
         {
           "text": "اللهم صل على محمد وعلى آل محمد كما صليت على إبراهيم وعلى آل إبراهيم إنك حميد مجيد، اللهم بارك على محمد وعلى آل محمد كما باركت على إبراهيم وعلى آل إبراهيم إنك حميد مجيد.",
@@ -1599,8 +1599,8 @@
           "source_label": "الصلاة الإبراهيمية",
           "source_url": "",
           "minimal": false,
-          "count": 1,
-          "count_description": "مرة واحدة"
+          "count": 100,
+          "count_description": "100 مرة"
         },
         {
           "text": "صلى الله على نبينا محمد وعلى آله وصحبه وسلم.",
@@ -1609,8 +1609,58 @@
           "source_label": "ورد مختصر",
           "source_url": "",
           "minimal": true,
-          "count": 33,
-          "count_description": "33 مرة"
+          "count": 100,
+          "count_description": "100 مرة"
+        },
+        {
+          "text": "اللهم صل على محمد وأزواجه وذريته كما صليت على آل إبراهيم، وبارك على محمد وأزواجه وذريته كما باركت على آل إبراهيم، إنك حميد مجيد.",
+          "benefit": "صيغة ثابتة في الصحيحين، تجمع الصلاة والبركة على النبي ﷺ وأهل بيته.",
+          "source": "صحيح البخاري وصحيح مسلم",
+          "source_label": "صيغة مأثورة",
+          "source_url": "",
+          "minimal": false,
+          "count": 100,
+          "count_description": "100 مرة"
+        },
+        {
+          "text": "اللهم صل على محمد النبي الأمي وعلى آل محمد كما صليت على آل إبراهيم، وبارك على محمد النبي الأمي وعلى آل محمد كما باركت على آل إبراهيم في العالمين إنك حميد مجيد.",
+          "benefit": "صيغة جامعة للصلاة والبركة على النبي ﷺ.",
+          "source": "كتب السنة",
+          "source_label": "صيغة جامعة",
+          "source_url": "",
+          "minimal": false,
+          "count": 100,
+          "count_description": "100 مرة"
+        },
+        {
+          "text": "اللهم صل وسلم على عبدك ورسولك نبينا محمد.",
+          "benefit": "صيغة قصيرة تصلح للمداومة في الطريق والعمل والانتظار.",
+          "source": "ورد مفتوح",
+          "source_label": "صيغة مختصرة",
+          "source_url": "",
+          "minimal": true,
+          "count": 100,
+          "count_description": "100 مرة"
+        },
+        {
+          "text": "اللهم صل وسلم وبارك على سيدنا محمد، وعلى آله وصحبه أجمعين.",
+          "benefit": "صيغة سهلة للحفظ والمداومة لمن أراد وردًا ثابتًا.",
+          "source": "ورد مفتوح",
+          "source_label": "صيغة سهلة",
+          "source_url": "",
+          "minimal": true,
+          "count": 100,
+          "count_description": "100 مرة"
+        },
+        {
+          "text": "اللهم صل على محمد عدد ما ذكره الذاكرون، وصل على محمد عدد ما غفل عن ذكره الغافلون.",
+          "benefit": "صيغة منتشرة في الأوراد، والمقصود بها كثرة الصلاة والسلام عليه ﷺ.",
+          "source": "ورد مفتوح",
+          "source_label": "كثرة الصلاة عليه",
+          "source_url": "",
+          "minimal": false,
+          "count": 100,
+          "count_description": "100 مرة"
         }
       ]
     },
@@ -1623,7 +1673,7 @@
           "benefit": "سبب للمحبة ودخول الجنة بإذن الله.",
           "source": "صحيح مسلم",
           "source_label": "أفشوا السلام بينكم",
-          "source_url": "",
+          "source_url": "https://dorar.net/hadith/search?q=%D8%A3%D9%81%D8%B4%D9%88%D8%A7%20%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85",
           "minimal": true,
           "count": 1,
           "count_description": "مرة واحدة"
@@ -1633,7 +1683,7 @@
           "benefit": "مطهرة للفم مرضاة للرب.",
           "source": "صحيح النسائي",
           "source_label": "مطهرة للفم",
-          "source_url": "",
+          "source_url": "https://dorar.net/hadith/search?q=%D8%A7%D9%84%D8%B3%D9%88%D8%A7%D9%83%20%D9%85%D8%B7%D9%87%D8%B1%D8%A9%20%D9%84%D9%84%D9%81%D9%85",
           "minimal": false,
           "count": 1,
           "count_description": "مرة واحدة"
@@ -1643,7 +1693,7 @@
           "benefit": "يؤمّن الملك ويقول: ولك بمثل.",
           "source": "صحيح مسلم",
           "source_label": "دعاء بظهر الغيب",
-          "source_url": "",
+          "source_url": "https://dorar.net/hadith/search?q=%D8%A8%D8%B8%D9%87%D8%B1%20%D8%A7%D9%84%D8%BA%D9%8A%D8%A8%20%D9%88%D9%84%D9%83%20%D8%A8%D9%85%D8%AB%D9%84",
           "minimal": true,
           "count": 1,
           "count_description": "مرة واحدة"

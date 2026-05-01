@@ -697,7 +697,7 @@ export function HomePage() {
       </Card>
 
       {homeWidgets.prayer && <PrayerWidget />}
-      {homeWidgets.wisdom && <DailyWisdomCard />}
+      {homeWidgets.wisdom && <DailyWisdomCard dateKey={worshipDayKey} />}
 
       {homeWidgets.smart && (
       <Card className="p-4">

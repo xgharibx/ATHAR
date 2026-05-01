@@ -36,7 +36,7 @@ const DEFAULT_PRAYER_ALERTS: PrayerAlertPreferences = {
   Isha: true,
 };
 
-const REMINDER_NOTIFICATION_ICON = "ic_stat_athar";
+const REMINDER_NOTIFICATION_ICON = "ic_stat_athar_notification";
 const REMINDER_NOTIFICATION_LARGE_ICON = "logo_notification_large";
 const REMINDER_ICON_COLOR = "#2F4F37";
 
@@ -60,9 +60,27 @@ export const REMINDER_SOUND_OPTIONS: Array<{
   },
   {
     id: "night_breeze",
-    label: "مطر 2",
+    label: "نسيم الليل",
     description: "",
-    fileName: "rain_calm.ogg",
+    fileName: "night_breeze.wav",
+  },
+  {
+    id: "soft_bell",
+    label: "تنبيه هادئ",
+    description: "",
+    fileName: "soft_bell.wav",
+  },
+  {
+    id: "rise_glow",
+    label: "نغمة صباحية",
+    description: "",
+    fileName: "rise_glow.wav",
+  },
+  {
+    id: "pulse_light",
+    label: "نبضة خفيفة",
+    description: "",
+    fileName: "pulse_light.wav",
   },
 ];
 
@@ -73,56 +91,74 @@ export const PRAYER_SOUND_OPTIONS: Array<{
   fileName: string;
 }> = [
   {
+    id: "adhan_haram",
+    label: "أذان الحرم",
+    description: "",
+    fileName: "adhan_haram.mp3",
+  },
+  {
+    id: "adhan_fajr",
+    label: "أذان الفجر",
+    description: "",
+    fileName: "adhan_fajr.mp3",
+  },
+  {
+    id: "iqama_soft",
+    label: "إقامة هادئة",
+    description: "",
+    fileName: "iqama_soft.mp3",
+  },
+  {
     id: "aladhan_adhan_1",
-    label: "أذان 1",
+    label: "مؤذن 1",
     description: "",
     fileName: "aladhan_adhan_1.mp3",
   },
   {
     id: "aladhan_adhan_2",
-    label: "أذان 2",
+    label: "مؤذن 2",
     description: "",
     fileName: "aladhan_adhan_2.mp3",
   },
   {
     id: "aladhan_adhan_3",
-    label: "أذان 3",
+    label: "مؤذن 3",
     description: "",
     fileName: "aladhan_adhan_3.mp3",
   },
   {
     id: "aladhan_adhan_4",
-    label: "أذان 4",
+    label: "مؤذن 4",
     description: "",
     fileName: "aladhan_adhan_4.mp3",
   },
   {
     id: "aladhan_adhan_5",
-    label: "أذان 5",
+    label: "مؤذن 5",
     description: "",
     fileName: "aladhan_adhan_5.mp3",
   },
   {
     id: "aladhan_adhan_6",
-    label: "أذان 6",
+    label: "مؤذن 6",
     description: "",
     fileName: "aladhan_adhan_6.mp3",
   },
   {
     id: "aladhan_adhan_7",
-    label: "أذان 7",
+    label: "مؤذن 7",
     description: "",
     fileName: "aladhan_adhan_7.mp3",
   },
   {
     id: "aladhan_adhan_8",
-    label: "أذان 8",
+    label: "مؤذن 8",
     description: "",
     fileName: "aladhan_adhan_8.mp3",
   },
   {
     id: "aladhan_adhan_9",
-    label: "أذان 9",
+    label: "مؤذن 9",
     description: "",
     fileName: "aladhan_adhan_9.mp3",
   },
