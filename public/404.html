@@ -5,16 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ATHAR</title>
     <script>
-      // GitHub Pages SPA redirect
-      // Keeps the path and query by rewriting into the root index.
+      // GitHub Pages SPA redirect — custom domain (www.athark.org) serves from root
       (function () {
         var l = window.location;
-        var repoBase = "/ATHAR";
         var path = l.pathname;
-
-        // If already under repoBase, just bounce to index with the same subpath
-        var subPath = path.indexOf(repoBase + "/") === 0 ? path.slice(repoBase.length) : path;
-        var newUrl = repoBase + "/?p=" + encodeURIComponent(subPath + l.search + l.hash);
+        var newUrl = "/?p=" + encodeURIComponent(path + l.search + l.hash);
         l.replace(l.protocol + "//" + l.host + newUrl);
       })();
     </script>
