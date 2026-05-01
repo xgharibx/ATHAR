@@ -2,8 +2,10 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown } from "lucide-react";
+import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown, Timer, Play, Pause, Square } from "lucide-react";
 import toast from "react-hot-toast";
+
+const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
 import { Button } from "@/components/ui/Button";
@@ -113,6 +115,62 @@ export function DhikrList(props: Readonly<{
   const [showBackToTop, setShowBackToTop] = React.useState(false);
   const [focusMode, setFocusMode] = React.useState(false);
   const virtuosoRef = React.useRef<VirtuosoHandle>(null);
+
+  // D2: category completion confetti
+  const prevPercentRef = React.useRef<number>(stats.percent);
+  React.useEffect(() => {
+    if (stats.percent >= 100 && prevPercentRef.current < 100 && props.items.length > 0) {
+      getConfetti().then((c) => {
+        c({ particleCount: 120, spread: 80, startVelocity: 30, scalar: 1.0, origin: { y: 0.6 } });
+        setTimeout(() => c({ particleCount: 60, spread: 100, startVelocity: 20, scalar: 0.9, origin: { x: 0.2, y: 0.8 } }), 300);
+        setTimeout(() => c({ particleCount: 60, spread: 100, startVelocity: 20, scalar: 0.9, origin: { x: 0.8, y: 0.8 } }), 500);
+      });
+    }
+    prevPercentRef.current = stats.percent;
+  }, [stats.percent, props.items.length]);
+
+  // D12: auto-read mode
+  const [autoReadActive, setAutoReadActive] = React.useState(false);
+  const [autoReadSpeed, setAutoReadSpeed] = React.useState(5); // seconds per card
+  const [autoReadIdx, setAutoReadIdx] = React.useState(0);
+  const [autoReadCountdown, setAutoReadCountdown] = React.useState(0);
+  const autoReadIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const stopAutoRead = React.useCallback(() => {
+    setAutoReadActive(false);
+    if (autoReadIntervalRef.current) { clearInterval(autoReadIntervalRef.current); autoReadIntervalRef.current = null; }
+  }, []);
+  const startAutoRead = React.useCallback(() => {
+    setAutoReadIdx(0);
+    setAutoReadCountdown(autoReadSpeed);
+    setAutoReadActive(true);
+  }, [autoReadSpeed]);
+  React.useEffect(() => {
+    if (!autoReadActive) return;
+    let remaining = autoReadSpeed;
+    let currentIdx = autoReadIdx;
+    setAutoReadCountdown(remaining);
+    virtuosoRef.current?.scrollToIndex({ index: currentIdx, align: "start", behavior: "smooth" });
+    const id = setInterval(() => {
+      remaining -= 1;
+      setAutoReadCountdown(remaining);
+      if (remaining <= 0) {
+        currentIdx += 1;
+        if (currentIdx >= orderedEntries.length) {
+          stopAutoRead();
+          toast.success("تمت القراءة التلقائية ✓");
+          return;
+        }
+        remaining = autoReadSpeed;
+        setAutoReadCountdown(remaining);
+        setAutoReadIdx(currentIdx);
+        virtuosoRef.current?.scrollToIndex({ index: currentIdx, align: "start", behavior: "smooth" });
+      }
+    }, 1000);
+    autoReadIntervalRef.current = id;
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoReadActive, autoReadSpeed, orderedEntries.length]);
+  React.useEffect(() => () => { if (autoReadIntervalRef.current) clearInterval(autoReadIntervalRef.current); }, []);
 
   // Apply / remove focus-mode class on body
   React.useEffect(() => {
@@ -348,6 +406,31 @@ export function DhikrList(props: Readonly<{
               >
                 <Focus size={16} />
               </Button>
+              {/* D12: auto-read mode */}
+              {!autoReadActive ? (
+                <>
+                  <select
+                    value={autoReadSpeed}
+                    onChange={(e) => setAutoReadSpeed(Number(e.target.value))}
+                    className="h-9 rounded-xl border border-white/10 bg-white/6 px-2 text-xs outline-none"
+                    aria-label="سرعة القراءة التلقائية"
+                    title="ثواني لكل بطاقة"
+                  >
+                    <option value={3}>٣ ثانية</option>
+                    <option value={5}>٥ ثواني</option>
+                    <option value={10}>١٠ ثواني</option>
+                  </select>
+                  <Button variant="secondary" onClick={startAutoRead} disabled={!hasItems} title="بدء القراءة التلقائية" aria-label="بدء القراءة التلقائية">
+                    <Timer size={14} />
+                    تلقائي
+                  </Button>
+                </>
+              ) : (
+                <Button variant="primary" onClick={stopAutoRead} title="إيقاف القراءة التلقائية" aria-label="إيقاف">
+                  <Square size={14} />
+                  إيقاف · {autoReadCountdown}ث
+                </Button>
+              )}
               {firstIncompleteIdx > 0 && stats.percent < 100 && (
                 <Button
                   variant="secondary"

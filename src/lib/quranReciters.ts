@@ -19,4 +19,12 @@ export const QURAN_RECITERS: Array<{ id: string; label: string }> = [
   { id: "Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net", label: "أحمد العجمي" },
   { id: "AbdulSamad_64kbps", label: "عبد الباسط عبد الصمد" },
   { id: "Ibrahim_Akhdar_32kbps", label: "إبراهيم الأخضر" },
+  // A1: Additional reciters
+  { id: "Husary_Mujawwad_128kbps", label: "محمود الحصري (مجوّد)" },
+  { id: "Abdul_Basit_Mujawwad_128kbps", label: "عبد الباسط (مجوّد)" },
+  { id: "Maher_AlMuaiqly_128kbps", label: "ماهر المعيقلي (جودة عالية)" },
+  { id: "Mohammad_al_Tablawi_128kbps", label: "محمد الطبلاوي" },
+  { id: "Khalefa_Taniji_48kbps", label: "خليفة الطنيجي" },
+  { id: "Sahl_Yasin_48kbps", label: "سهل ياسين" },
+  { id: "Fares_Abbad_64kbps", label: "فارس عباد" },
 ];

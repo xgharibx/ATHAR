@@ -2081,7 +2081,7 @@ header {
 
 /* Top chrome bar */
 .mushaf-chrome-top {
-  position: absolute;
+  position: relative; /* needed for progress strip */
   top: 0;
   inset-inline: 0;
   z-index: 20;
@@ -2098,6 +2098,23 @@ header {
 }
 
 .mushaf-chrome-top::-webkit-scrollbar { display: none; }
+
+/* Q19: Progress strip inside chrome */
+.mushaf-progress-strip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(201, 162, 39, 0.1);
+  overflow: hidden;
+  z-index: 1;
+}
+.mushaf-progress-fill {
+  height: 100%;
+  background: var(--accent, #c9a227);
+  transition: width 0.4s ease;
+}
 
 .mushaf-chrome-top.chrome-hidden {
   opacity: 0;
@@ -2410,15 +2427,42 @@ header {
 .mushaf-ayah-span.hl-green { background: rgba(52, 211, 153, 0.18); }
 .mushaf-ayah-span.hl-blue  { background: rgba(96, 165, 250, 0.18); }
 .mushaf-ayah-span.hl-red   { background: rgba(248, 113, 113, 0.18); }
-.mushaf-page-content.memorization-mode .mushaf-ayah-span:not(.selected) {
-  color: transparent;
-  text-shadow: 0 0 9px rgba(44, 62, 80, 0.5);
-  background: rgba(47, 79, 55, 0.055);
-  border-bottom: 1px dashed rgba(47, 79, 55, 0.22);
+/* Q13: Pink highlight */
+.mushaf-ayah-span.hl-pink  { background: rgba(249, 168, 212, 0.18); }
+
+/* Q9: Per-ayah memorization hide (replaces container-level class) */
+.mushaf-ayah-span.mem-hidden {
+  filter: blur(7px);
+  user-select: none;
+  cursor: pointer;
+  transition: filter 0.2s;
 }
-.mushaf-page-content.memorization-mode .mushaf-ayah-span:not(.selected) .mushaf-ayah-num {
-  color: #c9a227;
-  text-shadow: none;
+.mushaf-ayah-span.mem-hidden:hover { filter: blur(3px); }
+
+/* Q17: In-page search match */
+.mushaf-ayah-span.search-match {
+  background: rgba(253, 224, 71, 0.28) !important;
+  border-radius: 4px;
+}
+
+/* Q18: Sujood badge */
+.mushaf-sajda-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  border-radius: 9999px;
+  padding: 0 4px;
+  margin-inline-start: 2px;
+  vertical-align: middle;
+  font-family: sans-serif;
+  line-height: 1.6;
+}
+
+/* Remove old container-level memorization-mode class (now using per-ayah) */
+.mushaf-page-content.memorization-mode .mushaf-ayah-span:not(.selected) {
+  /* preserved for any legacy usage, overridden by mem-hidden */
 }
 
 /* Ayah number — inline gold ﴿١﴾ bracket style */
@@ -2435,6 +2479,12 @@ header {
 }
 .mushaf-ayah-num.bookmarked {
   color: #2e7d32;
+}
+/* Q20: Last-read highlight ring */
+.mushaf-ayah-num.last-read {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 9999px;
+  padding: 0 2px;
 }
 
 /* Page number */
@@ -2539,6 +2589,72 @@ header {
 .mushaf-hl-swatch.active {
   transform: scale(1.25);
   border-color: white;
+}
+
+/* Q17: In-page search bar */
+.mushaf-search-bar {
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 251, 240, 0.97);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.18);
+  color: #2F4F37;
+}
+.mushaf-search-bar input {
+  font-family: inherit;
+  color: inherit;
+}
+.mushaf-search-bar input::placeholder { opacity: 0.5; }
+
+/* Q9: Memorization mode banner */
+.mushaf-mem-banner {
+  position: sticky;
+  top: 0;
+  z-index: 17;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 7px 14px;
+  font-size: 12px;
+  background: color-mix(in srgb, var(--accent, #c9a227) 12%, rgba(255, 251, 240, 0.97));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent, #c9a227) 30%, transparent);
+  color: color-mix(in srgb, var(--accent, #c9a227) 60%, #2F4F37);
+}
+.mushaf-mem-counter {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.mushaf-mem-btn {
+  padding: 3px 10px;
+  border-radius: 9999px;
+  border: 1px solid currentColor;
+  opacity: 0.6;
+  font-size: 11px;
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+  transition: opacity 0.15s;
+}
+.mushaf-mem-btn:hover { opacity: 1; }
+
+/* Q3: Inline translation text within ayah span */
+.mushaf-trans-inline {
+  display: block;
+  font-size: 0.72em;
+  opacity: 0.65;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.6;
+  margin-top: 0.15em;
+  direction: ltr;
+  text-align: left;
+  padding: 0 0.25em;
 }
 
 /* Audio bar */
@@ -2780,3 +2896,170 @@ header {
   from { transform: translateY(100%); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   MUSHAF READER — NEW FEATURE CSS (M1–M7, A4–A6)
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── M1: Real-time playing ayah pulse ─────────────────────── */
+.mushaf-ayah-span.playing {
+  background: rgba(47, 79, 55, 0.18) !important;
+  border-radius: 6px;
+  animation: mushaf-playing-pulse 1.5s ease-in-out infinite;
+}
+@keyframes mushaf-playing-pulse {
+  0%,100% { background-color: rgba(47, 79, 55, 0.10); }
+  50%      { background-color: rgba(47, 79, 55, 0.32); }
+}
+
+/* ── M2: Page slide transition ─────────────────────────────── */
+.mushaf-page-content.page-sliding {
+  animation: mushaf-slide-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes mushaf-slide-in {
+  from {
+    transform: translateX(calc(var(--mushaf-slide-dir, -1) * 44px));
+    opacity: 0.5;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ── M3: Night-mode theme overrides on mushaf page ──────────── */
+[data-mushaf-theme="sepia"] .mushaf-page-content {
+  background: linear-gradient(160deg, #c8a97a 0%, #b0864a 100%) !important;
+  color: #3a1e08 !important;
+}
+[data-mushaf-theme="sepia"] .mushaf-page-content::before,
+[data-mushaf-theme="sepia"] .mushaf-page-content::after {
+  border-color: rgba(100, 60, 10, 0.25) !important;
+}
+[data-mushaf-theme="sepia"] .mushaf-surah-frame {
+  border-color: rgba(100, 60, 10, 0.35) !important;
+  background: rgba(180, 130, 80, 0.18) !important;
+}
+[data-mushaf-theme="sepia"] .mushaf-basmalah-line,
+[data-mushaf-theme="sepia"] .mushaf-ayah-num { color: rgba(58, 30, 8, 0.7) !important; }
+
+[data-mushaf-theme="midnight"] .mushaf-page-content {
+  background: linear-gradient(160deg, #0d1b2a 0%, #071220 100%) !important;
+  color: #c8dae8 !important;
+}
+[data-mushaf-theme="midnight"] .mushaf-page-content::before,
+[data-mushaf-theme="midnight"] .mushaf-page-content::after {
+  border-color: rgba(100, 150, 200, 0.15) !important;
+}
+[data-mushaf-theme="midnight"] .mushaf-ayah-num,
+[data-mushaf-theme="midnight"] .mushaf-basmalah-line { color: rgba(160, 200, 235, 0.65) !important; }
+[data-mushaf-theme="midnight"] .mushaf-surah-frame {
+  border-color: rgba(100, 150, 200, 0.25) !important;
+}
+
+[data-mushaf-theme="parchment"] .mushaf-page-content {
+  background: linear-gradient(160deg, #f0e6c8 0%, #e0d0a8 100%) !important;
+  color: #2a1a05 !important;
+}
+[data-mushaf-theme="parchment"] .mushaf-ayah-num,
+[data-mushaf-theme="parchment"] .mushaf-basmalah-line { color: rgba(42, 26, 5, 0.68) !important; }
+[data-mushaf-theme="parchment"] .mushaf-surah-frame {
+  border-color: rgba(100, 70, 20, 0.35) !important;
+  background: rgba(210, 180, 110, 0.18) !important;
+}
+
+/* ── M5: Dial wheel for page jump ───────────────────────────── */
+.mushaf-dial-container {
+  position: relative;
+  height: 176px;
+  overflow: hidden;
+  border-radius: 14px;
+  margin: 8px 0 4px;
+  background: rgba(0, 0, 0, 0.04);
+}
+.mushaf-dial-track {
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mushaf-dial-track::-webkit-scrollbar { display: none; }
+.mushaf-dial-item {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  scroll-snap-align: center;
+  opacity: 0.3;
+  font-variant-numeric: tabular-nums;
+  transition: opacity 0.1s;
+  color: #1a1208;
+}
+.mushaf-dial-indicator {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  right: 10px;
+  height: 44px;
+  transform: translateY(-50%);
+  border-top: 1.5px solid rgba(47, 79, 55, 0.4);
+  border-bottom: 1.5px solid rgba(47, 79, 55, 0.4);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* ── M6: Juz / Hizb overlay chip ────────────────────────────── */
+.mushaf-juz-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 90;
+  background: rgba(10, 14, 20, 0.88);
+  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 40px;
+  padding: 10px 28px;
+  font-size: 1rem;
+  font-family: var(--font-arabic, inherit);
+  pointer-events: none;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  animation: mushaf-juz-appear 0.22s ease both, mushaf-juz-fade 0.4s ease 2.2s forwards;
+  white-space: nowrap;
+}
+@keyframes mushaf-juz-appear {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.82); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes mushaf-juz-fade {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── A5: Sleep timer floating chip ──────────────────────────── */
+.mushaf-sleep-chip {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(10, 14, 20, 0.82);
+  color: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 40px;
+  padding: 5px 14px;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: opacity 0.2s, transform 0.2s;
+  user-select: none;
+}
+.mushaf-sleep-chip:hover { opacity: 0.75; transform: translateX(-50%) scale(0.97); }

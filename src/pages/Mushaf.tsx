@@ -4,12 +4,15 @@ import {
   ArrowRight, Bookmark, Globe, MoreVertical, Play, Pause,
   ChevronDown, Copy, Share2, VolumeX, Volume2, X, Pencil,
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2, Repeat2,
-  Eye, EyeOff, CheckCircle2,
+  Eye, EyeOff, CheckCircle2, Languages, Search, HelpCircle,
+  Repeat, SkipForward, ArrowUpRight, Settings, Info, Shuffle,
+  Radio, Timer, Download, SlidersHorizontal,
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { useNoorStore } from "@/store/noorStore";
-import { getSurahJuz, toArabicNumeral } from "@/lib/quranMeta";
+import { getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
+import { stripDiacritics } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import toast from "react-hot-toast";
@@ -48,8 +51,66 @@ const HL_COLORS = {
   green: { swatch: "rgba(52,211,153,0.85)",  bg: "rgba(52,211,153,0.18)" },
   blue:  { swatch: "rgba(96,165,250,0.85)",  bg: "rgba(96,165,250,0.18)" },
   red:   { swatch: "rgba(248,113,113,0.85)", bg: "rgba(248,113,113,0.18)" },
+  pink:  { swatch: "rgba(249,168,212,0.85)", bg: "rgba(249,168,212,0.18)" },
 } as const;
 type HlColor = keyof typeof HL_COLORS;
+
+// Q18: Sujood positions
+const SAJDA_AYAHS = new Set([
+  "7:206","13:15","16:50","17:109","19:58","22:18","22:77","25:60",
+  "27:26","32:15","38:24","41:38","53:62","84:21","96:19",
+]);
+
+// A4: Quran Radio stations (public mp3quran.net streams)
+const QURAN_RADIO_STATIONS: Array<{ label: string; url: string }> = [
+  { label: "راديو القرآن",         url: "http://stream1.mp3quran.net:8192/" },
+  { label: "مشاري العفاسي",        url: "http://Alafasy.mp3quran.net:9300/" },
+  { label: "سعد الغامدي",          url: "http://Ghamadi.mp3quran.net:9200/" },
+  { label: "ياسر الدوسري",         url: "http://Yasser.mp3quran.net:9100/" },
+  { label: "ماهر المعيقلي",        url: "http://Maher.mp3quran.net:9100/" },
+];
+
+// ── M5: Dial wheel component for page jump ───────────────────
+function DialWheel({ current, total, onConfirm }: {
+  current: number; total: number; onConfirm: (p: number) => void;
+}) {
+  const trackRef = React.useRef<HTMLDivElement>(null);
+  const [dialPage, setDialPage] = React.useState(current);
+  const ITEM_H = 44;
+  React.useLayoutEffect(() => {
+    if (trackRef.current) trackRef.current.scrollTop = (current - 1) * ITEM_H + ITEM_H / 2;
+    setDialPage(current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const handleScroll = () => {
+    if (!trackRef.current) return;
+    const idx = Math.round((trackRef.current.scrollTop - ITEM_H / 2) / ITEM_H);
+    setDialPage(Math.max(1, Math.min(total, idx + 1)));
+  };
+  return (
+    <div>
+      <div className="flex items-baseline justify-center gap-2 my-2">
+        <span className="tabular-nums font-bold" style={{ fontSize: "3rem", color: "var(--accent)", lineHeight: 1 }}>
+          {dialPage}
+        </span>
+        <span className="text-sm opacity-40">/ {total}</span>
+      </div>
+      <div className="mushaf-dial-container">
+        <div className="mushaf-dial-track" ref={trackRef} onScroll={handleScroll}>
+          <div style={{ height: `${ITEM_H * 2}px` }} />
+          {Array.from({ length: total }, (_, i) => i + 1).map((p) => (
+            <div key={p} className="mushaf-dial-item">{p}</div>
+          ))}
+          <div style={{ height: `${ITEM_H * 2}px` }} />
+        </div>
+        <div className="mushaf-dial-indicator" aria-hidden="true" />
+      </div>
+      <button className="mushaf-btn-primary w-full mt-3" onClick={() => onConfirm(dialPage)}>
+        انتقال ←
+      </button>
+    </div>
+  );
+}
 
 // ── Page index builder ────────────────────────────────────────
 function buildPageIndex(
@@ -129,6 +190,7 @@ export function MushafPage() {
   const setQuranNote = useNoorStore((s) => s.setQuranNote);
   const clearQuranNote = useNoorStore((s) => s.clearQuranNote);
   const recordQuranRead = useNoorStore((s) => s.recordQuranRead);
+  const lastRead = useNoorStore((s) => s.quranLastRead);
 
   const totalPages = pmData?.totalPages ?? 604;
   const pageMap = pmData?.map ?? {};
@@ -165,17 +227,24 @@ export function MushafPage() {
 
   const goPage = React.useCallback((p: number) => {
     const clamped = Math.max(1, Math.min(totalPages, p));
+    // M2: Slide animation direction
+    if (clamped !== currentPage) {
+      setPageTransDir(clamped > currentPage ? "left" : "right");
+      if (pageTransTimer.current) clearTimeout(pageTransTimer.current);
+      pageTransTimer.current = window.setTimeout(() => setPageTransDir(null), 380);
+    }
     setCurrentPage(clamped);
     setPrefs({ quranMushafPage: clamped });
     navigate(`/mushaf/${clamped}`, { replace: true });
-  }, [navigate, setPrefs, totalPages]);
+  }, [navigate, setPrefs, totalPages, currentPage]);
 
   // Page items
   const pageItems = pageIndex.get(currentPage) ?? [];
-  const firstPlayableItem = React.useMemo(
-    () => pageItems.find((item) => !item.isBasmalahHeader && item.displayAyah > 0) ?? null,
+  const playableItems = React.useMemo(
+    () => pageItems.filter((item) => !item.isBasmalahHeader && item.displayAyah > 0),
     [pageItems]
   );
+  const firstPlayableItem = playableItems[0] ?? null;
 
   // Group by surah
   const surahGroups = React.useMemo((): SurahGroup[] => {
@@ -222,16 +291,31 @@ export function MushafPage() {
 
   // Selected ayah
   const [selectedItem, setSelectedItem] = React.useState<PageItem | null>(null);
+
+  // Q9: Per-ayah reveal in memorization mode (must be before handleAyahTap)
+  const [memorizationMode, setMemorizationMode] = React.useState(false);
+  const [revealedItems, setRevealedItems] = React.useState<Set<string>>(new Set());
+
   const handleAyahTap = React.useCallback((e: React.MouseEvent, item: PageItem) => {
     e.stopPropagation();
     if (item.isBasmalahHeader || item.displayAyah === 0) return;
+    // Q9: In memorization mode, clicking reveals/hides the ayah instead of selecting it
+    if (memorizationMode) {
+      const k = `${item.surahId}:${item.displayAyah}`;
+      setRevealedItems((prev) => {
+        const n = new Set(prev);
+        if (n.has(k)) n.delete(k); else n.add(k);
+        return n;
+      });
+      return;
+    }
     setSelectedItem((prev) =>
       prev?.surahId === item.surahId && prev?.originalAyah === item.originalAyah ? null : item
     );
     setLastRead(item.surahId, item.displayAyah);
     recordQuranRead(1);
     flashChrome();
-  }, [flashChrome, recordQuranRead, setLastRead]);
+  }, [flashChrome, memorizationMode, recordQuranRead, setLastRead]);
 
   // Note sheet
   const [noteSheetOpen, setNoteSheetOpen] = React.useState(false);
@@ -242,38 +326,214 @@ export function MushafPage() {
     setNoteDraft(notes[key] ?? "");
   }, [notes, selectedItem]);
 
-  // Audio
+  // Audio refs & state
   const [playingKey, setPlayingKey] = React.useState<string | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const [audioBarVisible, setAudioBarVisible] = React.useState(true);
   const [showReciterSheet, setShowReciterSheet] = React.useState(false);
-  const [repeatMode, setRepeatMode] = React.useState(false);
-  const [memorizationMode, setMemorizationMode] = React.useState(false);
+
+  // Q4/Q7/Q8: Enhanced audio controls (replaces simple repeatMode)
+  const [loopEnabled, setLoopEnabled] = React.useState(false);
+  const [loopCount, setLoopCount] = React.useState(3); // -1=∞
+  const [playbackSpeed, setPlaybackSpeed] = React.useState(1);
+  const [autoAdvance, setAutoAdvance] = React.useState(false);
+
+  // Q5: Range audio loop
+  const [loopRange, setLoopRange] = React.useState(false);
+  const [loopRangeStartIdx, setLoopRangeStartIdx] = React.useState(0);
+  const [loopRangeEndIdx, setLoopRangeEndIdx] = React.useState(0);
+
+  // Audio ref state machine (avoids stale closures in onended callbacks)
+  const audioPlayRef = React.useRef<{
+    active: boolean; loop: boolean; loopRemaining: number;
+    advance: boolean; speed: number;
+    items: { surahId: number; originalAyah: number; displayAyah: number }[];
+    currentIdx: number; useRange: boolean; rangeStartIdx: number; rangeEndIdx: number;
+  }>({ active: false, loop: false, loopRemaining: 0, advance: false, speed: 1, items: [], currentIdx: 0, useRange: false, rangeStartIdx: 0, rangeEndIdx: 0 });
+  const playItemCoreRef = React.useRef<((surahId: number, originalAyah: number, displayAyah: number) => void) | null>(null);
+
+  // Q3: Translation
+  const [showTranslation, setShowTranslation] = React.useState(false);
+  const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
+  const [translationLoading, setTranslationLoading] = React.useState(false);
+
+  // Q17: In-page search
+  const [inPageSearch, setInPageSearch] = React.useState("");
+  const [showSearch, setShowSearch] = React.useState(false);
+
+  // Q21: Keyboard shortcuts modal
+  const [showShortcuts, setShowShortcuts] = React.useState(false);
+
+  // Q15: Surah info panel
+  const [showSurahInfo, setShowSurahInfo] = React.useState(false);
+
+  // Settings sheet
+  const [showSettings, setShowSettings] = React.useState(false);
+
+  // Q11: Tafsir sheet
+  const [tafsirItem, setTafsirItem] = React.useState<PageItem | null>(null);
+
+  // M2: Page slide direction
+  const [pageTransDir, setPageTransDir] = React.useState<"left" | "right" | null>(null);
+  const pageTransTimer = React.useRef<number | null>(null);
+
+  // M4: Pinch-to-zoom refs
+  const pinchStartDist = React.useRef<number | null>(null);
+  const pinchStartScale = React.useRef<number>(0.88);
+
+  // M6: Juz overlay
+  const [juzOverlay, setJuzOverlay] = React.useState<string | null>(null);
+  const juzOverlayTimer = React.useRef<number | null>(null);
+  const prevPageRef = React.useRef<number | null>(null);
+
+  // M7: Long-press bookmark
+  const longPressTimer = React.useRef<number | null>(null);
+  const longPressFired = React.useRef(false);
+
+  // A2: Offline audio cache progress
+  const [cacheProgress, setCacheProgress] = React.useState<{ done: number; total: number } | null>(null);
+
+  // A4: Quran Radio
+  const [showRadio, setShowRadio] = React.useState(false);
+  const [radioPlaying, setRadioPlaying] = React.useState(false);
+  const radioAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const [radioStationIdx, setRadioStationIdx] = React.useState(0);
+
+  // A5: Sleep timer
+  const [sleepMinutes, setSleepMinutes] = React.useState(0);
+  const [sleepRemaining, setSleepRemaining] = React.useState(0);
+  const sleepTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // A6: Equalizer (Web Audio API)
+  const [eqEnabled, setEqEnabled] = React.useState(false);
+  const [bassGain, setBassGain] = React.useState(0);
+  const [trebleGain, setTrebleGain] = React.useState(0);
+  const eqEnabledRef = React.useRef(false);
+  const audioCtxRef = React.useRef<AudioContext | null>(null);
+  const bassNodeRef = React.useRef<BiquadFilterNode | null>(null);
+  const trebleNodeRef = React.useRef<BiquadFilterNode | null>(null);
+
+  // M1: Ref for auto-scrolling to playing ayah
+  const playingSpanRef = React.useRef<HTMLElement | null>(null);
+
+  // playItemCoreRef: sets up audio element with onended logic (avoids stale closures)
+  React.useEffect(() => {
+    playItemCoreRef.current = (surahId: number, originalAyah: number, displayAyah: number) => {
+      const key = `${surahId}:${displayAyah}`;
+      const pst = audioPlayRef.current;
+      const s = String(surahId).padStart(3, "0");
+      const a = String(originalAyah).padStart(3, "0");
+      const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+      const audio = new Audio(`https://everyayah.com/data/${reciter}/${s}${a}.mp3`);
+      audio.playbackRate = pst.speed;
+      // A6: Route through Web Audio EQ if enabled
+      if (eqEnabledRef.current && audioCtxRef.current && bassNodeRef.current) {
+        try {
+          const src = audioCtxRef.current.createMediaElementSource(audio);
+          src.connect(bassNodeRef.current);
+          if (audioCtxRef.current.state === "suspended") audioCtxRef.current.resume().catch(() => {});
+        } catch { /* already connected or unsupported */ }
+      }
+      audioRef.current = audio;
+      setPlayingKey(key);
+      audio.play().catch(() => toast.error("تعذر تشغيل التلاوة"));
+      audio.onended = () => {
+        if (!pst.active) { setPlayingKey(null); return; }
+        if (pst.loop) {
+          const rem = pst.loopRemaining;
+          if (rem === -1 || rem > 1) {
+            if (rem > 0) pst.loopRemaining--;
+            playItemCoreRef.current?.(surahId, originalAyah, displayAyah);
+          } else {
+            pst.active = false;
+            setPlayingKey(null);
+          }
+        } else if (pst.advance) {
+          const rangeMax = pst.useRange ? pst.rangeEndIdx : (pst.items.length - 1);
+          const rangeMin = pst.useRange ? pst.rangeStartIdx : 0;
+          const nextIdx = pst.currentIdx + 1;
+          if (nextIdx <= rangeMax && nextIdx < pst.items.length) {
+            pst.currentIdx = nextIdx;
+            const next = pst.items[nextIdx];
+            playItemCoreRef.current?.(next.surahId, next.originalAyah, next.displayAyah);
+          } else if (pst.useRange) {
+            pst.currentIdx = rangeMin;
+            const next = pst.items[rangeMin];
+            playItemCoreRef.current?.(next.surahId, next.originalAyah, next.displayAyah);
+          } else {
+            pst.active = false;
+            setPlayingKey(null);
+            toast.success("✅ انتهت التلاوة");
+          }
+        } else {
+          pst.active = false;
+          setPlayingKey(null);
+        }
+      };
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefs.quranReciter]);
 
   const playAyah = React.useCallback((surahId: number, originalAyah: number, displayAyah: number) => {
     const key = `${surahId}:${displayAyah}`;
+    const pst = audioPlayRef.current;
+    if (pst.active && playingKey === key) {
+      pst.active = false;
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+      setPlayingKey(null);
+      return;
+    }
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    if (playingKey === key) { setPlayingKey(null); return; }
-    const s = String(surahId).padStart(3, "0");
-    const a = String(originalAyah).padStart(3, "0");
-    const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
-    const audio = new Audio(`https://everyayah.com/data/${reciter}/${s}${a}.mp3`);
-    audio.loop = repeatMode;
-    audioRef.current = audio;
-    setPlayingKey(key);
-    audio.play().catch(() => toast.error("تعذر تشغيل التلاوة"));
-    audio.onended = () => setPlayingKey(null);
-  }, [playingKey, prefs.quranReciter, repeatMode]);
-
-  const toggleRepeatMode = React.useCallback(() => {
-    setRepeatMode((prev) => {
-      const next = !prev;
-      if (audioRef.current) audioRef.current.loop = next;
-      return next;
-    });
-  }, []);
+    pst.active = true;
+    pst.speed = playbackSpeed;
+    pst.loop = loopEnabled;
+    pst.loopRemaining = loopEnabled ? loopCount : 0;
+    pst.advance = autoAdvance;
+    const snapshot = playableItems.map((i) => ({ surahId: i.surahId, originalAyah: i.originalAyah, displayAyah: i.displayAyah }));
+    const curIdx = snapshot.findIndex((i) => i.surahId === surahId && i.originalAyah === originalAyah);
+    pst.items = snapshot;
+    pst.currentIdx = curIdx >= 0 ? curIdx : 0;
+    pst.useRange = loopRange;
+    pst.rangeStartIdx = Math.max(0, loopRangeStartIdx);
+    pst.rangeEndIdx = Math.min(snapshot.length - 1, Math.max(loopRangeStartIdx, loopRangeEndIdx));
+    playItemCoreRef.current?.(surahId, originalAyah, displayAyah);
+  }, [playingKey, playbackSpeed, loopEnabled, loopCount, autoAdvance, playableItems, loopRange, loopRangeStartIdx, loopRangeEndIdx]);
 
   React.useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
+
+  // Q3: Fetch translation for all surahs on current page when translation panel is open
+  React.useEffect(() => {
+    if (!showTranslation && tafsirItem === null) return;
+    const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
+    if (tafsirItem) surahIds.push(tafsirItem.surahId);
+    const toFetch = surahIds.filter((sid) => !translationData[sid]);
+    if (toFetch.length === 0) return;
+    setTranslationLoading(true);
+    Promise.all(toFetch.map((sid) =>
+      fetch(`https://api.alquran.cloud/v1/surah/${sid}/en.sahih`)
+        .then((r) => r.json())
+        .then((data) => {
+          const ayahs: string[] = [];
+          for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
+          return { sid, ayahs };
+        })
+    )).then((results) => {
+      setTranslationData((prev) => {
+        const upd = { ...prev };
+        for (const { sid, ayahs } of results) upd[sid] = ayahs;
+        return upd;
+      });
+    }).catch(() => toast.error("تعذر تحميل الترجمة"))
+      .finally(() => setTranslationLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTranslation, tafsirItem, currentPage]);
+
+  // Q17: Normalized search for ayah matching
+  const normalizedSearch = React.useMemo(
+    () => (showSearch && inPageSearch ? stripDiacritics(inPageSearch.trim()) : ""),
+    [showSearch, inPageSearch]
+  );
 
   // Page jump
   const [showJump, setShowJump] = React.useState(false);
@@ -295,14 +555,42 @@ export function MushafPage() {
     else toast.error("رقم صفحة غير صالح (1–604)");
   };
 
-  // Touch swipe (horizontal only)
+  // Touch swipe (horizontal only) + M4 pinch-to-zoom
   const touchStartX = React.useRef<number | null>(null);
   const touchStartY = React.useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0]?.clientX ?? null;
-    touchStartY.current = e.touches[0]?.clientY ?? null;
+    if (e.touches.length >= 2) {
+      // M4: Pinch start
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchStartDist.current = Math.sqrt(dx * dx + dy * dy);
+      pinchStartScale.current = fontScale;
+      touchStartX.current = null; // cancel swipe
+    } else {
+      touchStartX.current = e.touches[0]?.clientX ?? null;
+      touchStartY.current = e.touches[0]?.clientY ?? null;
+      pinchStartDist.current = null;
+    }
   };
+  const onTouchMove = React.useCallback((e: React.TouchEvent) => {
+    if (e.touches.length >= 2 && pinchStartDist.current !== null) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const ratio = dist / pinchStartDist.current;
+      const newScale = Math.round(Math.max(0.7, Math.min(1.6, pinchStartScale.current * ratio)) * 100) / 100;
+      setFontScale(newScale);
+      setPrefs({ mushafFontScale: newScale });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setPrefs]);
   const onTouchEnd = (e: React.TouchEvent) => {
+    if (pinchStartDist.current !== null) {
+      // Save pinch result
+      setPrefs({ mushafFontScale: fontScale });
+      pinchStartDist.current = null;
+      return;
+    }
     if (touchStartX.current === null || touchStartY.current === null) return;
     const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
     const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - touchStartY.current);
@@ -320,7 +608,16 @@ export function MushafPage() {
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if (e.key === "ArrowLeft") { e.preventDefault(); goPage(currentPage + 1); }
       else if (e.key === "ArrowRight") { e.preventDefault(); goPage(currentPage - 1); }
+      else if (e.key === "m") setMemorizationMode((v) => { if (v) setRevealedItems(new Set()); return !v; });
+      else if (e.key === "t") setShowTranslation((v) => !v);
+      else if (e.key === "/") { e.preventDefault(); setShowSearch((v) => !v); }
+      else if (e.key === "?") setShowShortcuts((v) => !v);
+      else if (e.key === "s") setShowSettings((v) => !v);
       else if (e.key === "Escape") {
+        if (showSettings) { setShowSettings(false); return; }
+        if (showShortcuts) { setShowShortcuts(false); return; }
+        if (showSearch) { setShowSearch(false); setInPageSearch(""); return; }
+        if (tafsirItem) { setTafsirItem(null); return; }
         if (showJump) { setShowJump(false); return; }
         if (noteSheetOpen) { setNoteSheetOpen(false); return; }
         if (selectedItem) { setSelectedItem(null); return; }
@@ -329,7 +626,7 @@ export function MushafPage() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [currentPage, goPage, navigate, noteSheetOpen, selectedItem, showJump]);
+  }, [currentPage, goPage, navigate, noteSheetOpen, selectedItem, showJump, showSettings, showShortcuts, showSearch, tafsirItem]);
 
   // Share selected ayah
   const doShare = async () => {
@@ -369,6 +666,179 @@ export function MushafPage() {
     toast.success("تم حفظ مراجعة الصفحة");
   }, [pageItems, recordQuranRead, setLastRead]);
 
+  // M1: Auto-scroll to currently playing ayah
+  React.useEffect(() => {
+    if (playingKey && playingSpanRef.current) {
+      playingSpanRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [playingKey]);
+
+  // M6: Show juz + hizb overlay chip on page change
+  React.useEffect(() => {
+    if (prevPageRef.current === null) { prevPageRef.current = currentPage; return; }
+    if (prevPageRef.current === currentPage) return;
+    prevPageRef.current = currentPage;
+    const juzNum = pageJuz;
+    const hizb = Math.max(1, Math.ceil((currentPage / 604) * 60));
+    setJuzOverlay(`الجزء ${toArabicNumeral(juzNum)} · الحزب ${toArabicNumeral(hizb)}`);
+    if (juzOverlayTimer.current) clearTimeout(juzOverlayTimer.current);
+    juzOverlayTimer.current = window.setTimeout(() => setJuzOverlay(null), 2600);
+  }, [currentPage, pageJuz]);
+  React.useEffect(() => () => {
+    if (juzOverlayTimer.current) clearTimeout(juzOverlayTimer.current);
+    if (pageTransTimer.current) clearTimeout(pageTransTimer.current);
+  }, []);
+
+  // M7: Long-press bookmark handlers
+  const handlePointerDown = React.useCallback((e: React.PointerEvent, item: PageItem) => {
+    if (item.isBasmalahHeader || item.displayAyah === 0) return;
+    longPressFired.current = false;
+    longPressTimer.current = window.setTimeout(() => {
+      longPressFired.current = true;
+      const k = `${item.surahId}:${item.displayAyah}`;
+      const wasBookmarked = !!bookmarks[k];
+      toggleBookmark(item.surahId, item.displayAyah);
+      toast.success(wasBookmarked ? "أُزيلت العلامة 🔖" : "✓ إشارة مرجعية محفوظة");
+    }, 600);
+  }, [bookmarks, toggleBookmark]);
+  const handlePointerUp = React.useCallback(() => {
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+  }, []);
+
+  // A2: Download current page ayah audio for offline use
+  const downloadPageAudio = React.useCallback(async () => {
+    if (!("caches" in window)) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
+    const items = playableItems.slice();
+    if (items.length === 0) return;
+    setCacheProgress({ done: 0, total: items.length });
+    try {
+      const cache = await caches.open("mushaf-audio-v1");
+      let done = 0;
+      for (const item of items) {
+        const s = String(item.surahId).padStart(3, "0");
+        const a = String(item.originalAyah).padStart(3, "0");
+        const url = `https://everyayah.com/data/${prefs.quranReciter ?? "Alafasy_128kbps"}/${s}${a}.mp3`;
+        try { await cache.add(url); } catch { /* network or CORS — skip */ }
+        done++;
+        setCacheProgress({ done, total: items.length });
+      }
+      toast.success(`✓ تم تخزين ${done} ملف صوتي للاستماع دون إنترنت`);
+    } catch { toast.error("تعذر التحميل"); }
+    finally { setCacheProgress(null); }
+  }, [playableItems, prefs.quranReciter]);
+
+  // A3: MediaSession API — lock-screen controls
+  React.useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    if (playingKey) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: `${pageSurahName} · آية ${playingKey.split(":")[1] ?? ""}`,
+        artist: QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "تلاوة",
+        album: "القرآن الكريم · أثر",
+        artwork: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      });
+      navigator.mediaSession.playbackState = "playing";
+    } else {
+      navigator.mediaSession.playbackState = "paused";
+    }
+    navigator.mediaSession.setActionHandler("pause", () => {
+      audioPlayRef.current.active = false;
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+      setPlayingKey(null);
+    });
+    navigator.mediaSession.setActionHandler("play", () => {
+      const fp = playableItems[0];
+      if (fp) {
+        audioPlayRef.current.active = true;
+        audioPlayRef.current.speed = 1;
+        audioPlayRef.current.loop = false;
+        audioPlayRef.current.loopRemaining = 0;
+        audioPlayRef.current.advance = false;
+        audioPlayRef.current.items = playableItems.map((i) => ({ surahId: i.surahId, originalAyah: i.originalAyah, displayAyah: i.displayAyah }));
+        audioPlayRef.current.currentIdx = 0;
+        audioPlayRef.current.useRange = false;
+        playItemCoreRef.current?.(fp.surahId, fp.originalAyah, fp.displayAyah);
+      }
+    });
+    navigator.mediaSession.setActionHandler("nexttrack", () => goPage(currentPage + 1));
+    navigator.mediaSession.setActionHandler("previoustrack", () => goPage(currentPage - 1));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playingKey, pageSurahName, prefs.quranReciter, currentPage, playableItems]);
+
+  // A4: Radio control functions
+  const toggleRadio = React.useCallback(() => {
+    if (radioPlaying) {
+      radioAudioRef.current?.pause();
+      setRadioPlaying(false);
+    } else {
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlayingKey(null); }
+      const station = QURAN_RADIO_STATIONS[radioStationIdx];
+      if (!station) return;
+      if (!radioAudioRef.current || radioAudioRef.current.src !== station.url) {
+        if (radioAudioRef.current) radioAudioRef.current.pause();
+        radioAudioRef.current = new Audio(station.url);
+        radioAudioRef.current.onerror = () => { toast.error("تعذر تشغيل الراديو"); setRadioPlaying(false); };
+      }
+      radioAudioRef.current.play()
+        .then(() => setRadioPlaying(true))
+        .catch(() => { toast.error("تعذر تشغيل الراديو"); setRadioPlaying(false); });
+    }
+  }, [radioPlaying, radioStationIdx]);
+
+  const selectRadioStation = React.useCallback((idx: number) => {
+    setRadioStationIdx(idx);
+    if (radioAudioRef.current) { radioAudioRef.current.pause(); radioAudioRef.current = null; }
+    setRadioPlaying(false);
+  }, []);
+  React.useEffect(() => () => { radioAudioRef.current?.pause(); }, []);
+
+  // A5: Sleep timer
+  const activateSleepTimer = React.useCallback((minutes: number) => {
+    if (sleepTimerRef.current) { clearInterval(sleepTimerRef.current); sleepTimerRef.current = null; }
+    if (minutes === 0) { setSleepMinutes(0); setSleepRemaining(0); return; }
+    setSleepMinutes(minutes);
+    setSleepRemaining(minutes * 60);
+    sleepTimerRef.current = setInterval(() => {
+      setSleepRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(sleepTimerRef.current!);
+          sleepTimerRef.current = null;
+          setSleepMinutes(0);
+          audioPlayRef.current.active = false;
+          if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+          setPlayingKey(null);
+          radioAudioRef.current?.pause();
+          setRadioPlaying(false);
+          toast.success("🌙 انتهى مؤقت النوم — تم إيقاف التلاوة");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+  React.useEffect(() => () => { if (sleepTimerRef.current) clearInterval(sleepTimerRef.current); }, []);
+
+  // A6: Initialize / update AudioContext + EQ filter nodes
+  React.useEffect(() => {
+    eqEnabledRef.current = eqEnabled;
+    if (!eqEnabled) return;
+    if (!audioCtxRef.current) {
+      const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const bass = ctx.createBiquadFilter();
+      bass.type = "lowshelf"; bass.frequency.value = 100; bass.gain.value = bassGain;
+      const treble = ctx.createBiquadFilter();
+      treble.type = "highshelf"; treble.frequency.value = 3000; treble.gain.value = trebleGain;
+      bass.connect(treble); treble.connect(ctx.destination);
+      audioCtxRef.current = ctx; bassNodeRef.current = bass; trebleNodeRef.current = treble;
+    } else {
+      if (bassNodeRef.current) bassNodeRef.current.gain.value = bassGain;
+      if (trebleNodeRef.current) trebleNodeRef.current.gain.value = trebleGain;
+    }
+  }, [eqEnabled, bassGain, trebleGain]);
+  React.useEffect(() => () => { audioCtxRef.current?.close().catch(() => {}); }, []);
+
   // ── Loading ────────────────────────────────────────────────
   if (dbLoading || pmLoading) {
     return (
@@ -390,14 +860,20 @@ export function MushafPage() {
   return (
     <div
       className="mushaf-reader"
+      data-mushaf-theme={prefs.quranTheme}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
+      onTouchMove={onTouchMove}
     >
       {/* ── Top chrome bar ───────────────────────────────── */}
       <div
         className={`mushaf-chrome-top${showChrome || !!selectedItem ? "" : " chrome-hidden"}`}
         onClick={flashChrome}
       >
+        {/* Q19: Reading progress bar */}
+        <div className="mushaf-progress-strip" aria-hidden="true">
+          <div className="mushaf-progress-fill" style={{ width: `${(currentPage / totalPages) * 100}%` }} />
+        </div>
         <button
           className="mushaf-chrome-icon-btn"
           onClick={(e) => { e.stopPropagation(); navigate("/quran"); }}
@@ -409,11 +885,29 @@ export function MushafPage() {
           <div className="mushaf-chrome-surah-name">{pageSurahName || pageSurahEnglish}</div>
           <div className="mushaf-chrome-meta">صفحة {toArabicNumeral(currentPage)} · الجزء {toArabicNumeral(pageJuz)}</div>
         </div>
+        {/* Q17: In-page search */}
+        <button
+          className={`mushaf-chrome-icon-btn${showSearch ? " active" : ""}`}
+          title="بحث في الصفحة"
+          aria-label="بحث"
+          onClick={(e) => { e.stopPropagation(); setShowSearch((v) => !v); if (showSearch) setInPageSearch(""); }}
+        >
+          <Search size={16} />
+        </button>
+        {/* Q3: Translation toggle */}
+        <button
+          className={`mushaf-chrome-icon-btn${showTranslation ? " active" : ""}`}
+          title="الترجمة الإنجليزية"
+          aria-label="ترجمة"
+          onClick={(e) => { e.stopPropagation(); setShowTranslation((v) => !v); }}
+        >
+          <Languages size={16} />
+        </button>
         <button
           className={`mushaf-chrome-icon-btn${memorizationMode ? " active" : ""}`}
-          title={memorizationMode ? "إظهار النص" : "وضع الحفظ"}
+          title={memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ"}
           aria-label={memorizationMode ? "إظهار النص" : "وضع الحفظ"}
-          onClick={(e) => { e.stopPropagation(); setMemorizationMode((value) => !value); flashChrome(); }}
+          onClick={(e) => { e.stopPropagation(); setMemorizationMode((value) => { if (value) setRevealedItems(new Set()); return !value; }); flashChrome(); }}
         >
           {memorizationMode ? <EyeOff size={17} /> : <Eye size={17} />}
         </button>
@@ -425,16 +919,6 @@ export function MushafPage() {
         >
           <CheckCircle2 size={17} />
         </button>
-        <a
-          className="mushaf-chrome-icon-btn"
-          href={`https://quran.com/ar/${lastItem?.surahId ?? 1}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          title="تفسير"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Globe size={17} />
-        </a>
         <button
           className="mushaf-chrome-icon-btn"
           title="تصغير الخط"
@@ -451,6 +935,24 @@ export function MushafPage() {
         >
           <ZoomIn size={16} />
         </button>
+        {/* Settings */}
+        <button
+          className={`mushaf-chrome-icon-btn${showSettings ? " active" : ""}`}
+          title="إعدادات"
+          aria-label="إعدادات"
+          onClick={(e) => { e.stopPropagation(); setShowSettings((v) => !v); }}
+        >
+          <Settings size={16} />
+        </button>
+        {/* Q21: Shortcuts */}
+        <button
+          className="mushaf-chrome-icon-btn"
+          title="اختصارات (?)"
+          aria-label="اختصارات"
+          onClick={(e) => { e.stopPropagation(); setShowShortcuts((v) => !v); }}
+        >
+          <HelpCircle size={16} />
+        </button>
         <button
           className="mushaf-chrome-icon-btn"
           title="انتقال للصفحة"
@@ -461,12 +963,75 @@ export function MushafPage() {
         </button>
       </div>
 
+      {/* ── Q17: In-page search bar ───────────────────────── */}
+      {showSearch && (
+        <div className="mushaf-search-bar" onClick={(e) => e.stopPropagation()}>
+          <Search size={14} className="shrink-0 opacity-50" />
+          <input
+            type="text"
+            value={inPageSearch}
+            onChange={(e) => setInPageSearch(e.target.value)}
+            placeholder="بحث في الصفحة…"
+            className="flex-1 bg-transparent outline-none text-sm"
+            autoFocus
+            dir="rtl"
+          />
+          {inPageSearch && (
+            <span className="text-[11px] opacity-45 shrink-0">
+              {playableItems.filter((i) => stripDiacritics(i.text).includes(normalizedSearch)).length} نتيجة
+            </span>
+          )}
+          <button
+            className="mushaf-chrome-icon-btn"
+            onClick={() => { setInPageSearch(""); setShowSearch(false); }}
+            aria-label="إغلاق البحث"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Q9: Memorization mode banner */}
+      {memorizationMode && (
+        <div className="mushaf-mem-banner" onClick={(e) => e.stopPropagation()}>
+          <span>🧠 وضع الحفظ · اضغط على الآية لكشفها</span>
+          <span className="mushaf-mem-counter">
+            {revealedItems.size}/{playableItems.length}
+          </span>
+          <button
+            className="mushaf-mem-btn"
+            onClick={() => setRevealedItems(new Set(playableItems.map((i) => `${i.surahId}:${i.displayAyah}`)))}
+          >إظهار الكل</button>
+          <button
+            className="mushaf-mem-btn"
+            onClick={() => setRevealedItems(new Set())}
+          >إخفاء الكل</button>
+        </div>
+      )}
+
+      {/* ── M6: Juz / Hizb overlay chip ─────────────────── */}
+      {juzOverlay && (
+        <div className="mushaf-juz-overlay" aria-live="polite">{juzOverlay}</div>
+      )}
+
+      {/* ── A5: Sleep timer countdown chip ───────────────── */}
+      {sleepMinutes > 0 && (
+        <div className="mushaf-sleep-chip" onClick={() => activateSleepTimer(0)} title="انقر للإلغاء">
+          <Timer size={11} />
+          <span>{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
+        </div>
+      )}
+
       {/* ── Scrollable page area ─────────────────────────── */}
       <div
         className="mushaf-page-area"
         onClick={() => { setSelectedItem(null); flashChrome(); }}
       >
-        <div className={`mushaf-page-content${memorizationMode ? " memorization-mode" : ""}`} dir="rtl" style={{ "--mushaf-font-scale": fontScale } as React.CSSProperties}>
+        <div
+          className={`mushaf-page-content${pageTransDir ? " page-sliding" : ""}`}
+          dir="rtl"
+          style={{ "--mushaf-font-scale": fontScale, ...(pageTransDir ? { "--mushaf-slide-dir": pageTransDir === "left" ? "-1" : "1" } : {}) } as React.CSSProperties}
+        >
           {/* Always-visible tiny strip */}
           <div className="mushaf-page-info-strip">
             <span>{pageSurahName}</span>
@@ -498,19 +1063,49 @@ export function MushafPage() {
                     const isSel = selectedItem?.surahId === item.surahId && selectedItem?.originalAyah === item.originalAyah;
                     const hl = (highlights[k] ?? null) as HlColor | null;
                     const isBookmarked = !!bookmarks[k];
+                    // Q20: Last-read ring
+                    const isLastRead = lastRead?.surahId === item.surahId && lastRead?.ayahIndex === item.displayAyah;
+                    // Q18: Sujood badge
+                    const isSajda = SAJDA_AYAHS.has(`${item.surahId}:${item.displayAyah}`);
+                    // Q9: Memorization mode per-ayah reveal
+                    const isRevealed = !memorizationMode || revealedItems.has(k);
+                    // Q17: Search match highlight
+                    const isSearchMatch = normalizedSearch ? stripDiacritics(item.text).includes(normalizedSearch) : false;
+                    // Q3: Translation text
+                    const transText = showTranslation ? (translationData[item.surahId]?.[item.originalAyah] ?? "") : "";
+                    // M1: Real-time playing highlight
+                    const isPlaying = playingKey === k;
                     return (
                       <span
                         key={k}
-                        className={`mushaf-ayah-span${isSel ? " selected" : ""}${hl ? ` hl-${hl}` : ""}`}
-                        style={hl && !isSel ? { background: HL_COLORS[hl].bg } : undefined}
-                        onClick={(e) => handleAyahTap(e, item)}
+                        ref={isPlaying ? (el: HTMLSpanElement | null) => { playingSpanRef.current = el; } : undefined}
+                        className={`mushaf-ayah-span${isSel ? " selected" : ""}${hl ? ` hl-${hl}` : ""}${memorizationMode && !isRevealed ? " mem-hidden" : ""}${isSearchMatch ? " search-match" : ""}${isPlaying ? " playing" : ""}`}
+                        style={{
+                          // Q16: Focus dimming
+                          opacity: selectedItem && !isSel ? 0.3 : 1,
+                          transition: "opacity 0.18s",
+                          ...(hl && !isSel ? { background: HL_COLORS[hl].bg } : {}),
+                        }}
+                        onPointerDown={(e) => handlePointerDown(e, item)}
+                        onPointerUp={handlePointerUp}
+                        onPointerLeave={handlePointerUp}
+                        onPointerCancel={handlePointerUp}
+                        onClick={(e) => {
+                          if (longPressFired.current) { longPressFired.current = false; return; }
+                          handleAyahTap(e, item);
+                        }}
                       >
                         {item.text}
                         {"\u200F"}
-                        <span className={`mushaf-ayah-num${isBookmarked ? " bookmarked" : ""}`}>
+                        <span className={`mushaf-ayah-num${isBookmarked ? " bookmarked" : ""}${isLastRead ? " last-read" : ""}`}>
                           ﴿{toArabicNumeral(item.displayAyah)}﴾
                         </span>
+                        {isSajda && <span className="mushaf-sajda-badge" title="سجدة تلاوة">ۖ</span>}
                         {" "}
+                        {/* Q3: Inline translation */}
+                        {transText ? (
+                          <span className="mushaf-trans-inline" dir="ltr">{transText}</span>
+                        ) : null}
                       </span>
                     );
                   })}
@@ -576,9 +1171,9 @@ export function MushafPage() {
             <span>تلاوة</span>
           </button>
           <button
-            className={`mushaf-action-btn${repeatMode ? " active" : ""}`}
-            onClick={toggleRepeatMode}
-            title="تكرار"
+            className={`mushaf-action-btn${loopEnabled ? " active" : ""}`}
+            onClick={() => setLoopEnabled((v) => !v)}
+            title="تكرار الآية"
           >
             <Repeat2 size={18} />
             <span>تكرار</span>
@@ -610,17 +1205,15 @@ export function MushafPage() {
             <Share2 size={18} />
             <span>إرسال</span>
           </button>
-          <a
+          {/* Q11: Inline tafsir */}
+          <button
             className="mushaf-action-btn"
-            href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${selectedItem.surahId}-aya${selectedItem.displayAyah}.html#katheer`}
-            target="_blank"
-            rel="noopener noreferrer"
             title="تفسير"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); setTafsirItem(selectedItem); setSelectedItem(null); }}
           >
-            <Globe size={18} />
+            <ArrowUpRight size={18} />
             <span>تفسير</span>
-          </a>
+          </button>
           <button
             className="mushaf-action-btn"
             style={{ opacity: 0.55 }}
@@ -710,30 +1303,18 @@ export function MushafPage() {
         </button>
       )}
 
-      {/* ── Page jump sheet ───────────────────────────────── */}
+      {/* ── Page jump sheet (M5: Dial wheel) ────────────── */}
       {showJump && (
         <>
           <div className="mushaf-overlay" onClick={() => setShowJump(false)} />
           <div className="mushaf-jump-sheet" onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="mushaf-sheet-title">الانتقال إلى صفحة</div>
-            <div className="flex gap-2 mt-3">
-              <input
-                type="number"
-                min={1}
-                max={604}
-                value={jumpInput}
-                onChange={(e) => setJumpInput(e.target.value)}
-                placeholder="1 – 604"
-                autoFocus
-                className="mushaf-input flex-1"
-                onKeyDown={(e) => { if (e.key === "Enter") doJump(); }}
-              />
-              <button className="mushaf-btn-primary" onClick={doJump}>انتقال</button>
-            </div>
-            <div className="mushaf-sheet-hint">
-              الصفحة الحالية: {currentPage} · المجموع: {totalPages}
-            </div>
+            <DialWheel
+              current={currentPage}
+              total={totalPages}
+              onConfirm={(p) => { goPage(p); setShowJump(false); }}
+            />
           </div>
         </>
       )}
@@ -760,11 +1341,14 @@ export function MushafPage() {
               value={noteDraft}
               onChange={(e) => setNoteDraft(e.target.value)}
               placeholder="اكتب ملاحظة…"
-              rows={3}
+              rows={5}
               autoFocus
               className="mushaf-textarea"
             />
-            <div className="flex gap-2 mt-3">
+            <div className="flex items-center justify-between mt-1 mb-2 px-1">
+              <span className="text-[10px] opacity-30">{noteDraft.length} حرف</span>
+            </div>
+            <div className="flex gap-2 mt-1">
               <button
                 className="mushaf-btn-primary flex-1"
                 onClick={() => {
@@ -789,6 +1373,329 @@ export function MushafPage() {
                   حذف
                 </button>
               )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Q11: Inline tafsir sheet ────────────────────── */}
+      {tafsirItem && (
+        <>
+          <div className="mushaf-overlay" onClick={() => setTafsirItem(null)} />
+          <div className="mushaf-note-sheet" style={{ zIndex: 101, maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
+            <div className="mushaf-sheet-handle" />
+            <div className="flex items-center justify-between mb-3">
+              <span className="mushaf-sheet-title">
+                تفسير الآية ﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾ · {tafsirItem.surahName}
+              </span>
+              <button className="mushaf-icon-close" onClick={() => setTafsirItem(null)} aria-label="إغلاق">
+                <X size={16} />
+              </button>
+            </div>
+            {/* Arabic ayah text */}
+            <div className="arabic-text text-lg leading-10 mb-3 opacity-90 text-center p-3 rounded-2xl bg-white/4 border border-white/8" dir="rtl">
+              {tafsirItem.text}
+              <span className="ml-2 opacity-50">﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾</span>
+            </div>
+            {/* EN Translation */}
+            <div className="text-sm leading-7 opacity-80 p-3 rounded-2xl bg-white/4 border border-white/8 mb-3" dir="ltr">
+              {translationLoading ? (
+                <span className="opacity-40 italic text-xs">Loading…</span>
+              ) : translationData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
+                translationData[tafsirItem.surahId][tafsirItem.originalAyah]
+              ) : (
+                <span className="opacity-40 italic text-xs">Toggle translation first to load it.</span>
+              )}
+            </div>
+            {/* External tafsir link */}
+            <a
+              href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${tafsirItem.surahId}-aya${tafsirItem.displayAyah}.html#katheer`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs opacity-55 hover:opacity-90 transition"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ArrowUpRight size={13} />
+              <span>تفسير ابن كثير الكامل</span>
+            </a>
+          </div>
+        </>
+      )}
+
+      {/* ── Settings sheet ──────────────────────────────── */}
+      {showSettings && (
+        <>
+          <div className="mushaf-overlay" onClick={() => setShowSettings(false)} />
+          <div className="mushaf-jump-sheet" style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
+            <div className="mushaf-sheet-handle" />
+            <div className="flex items-center justify-between mb-4">
+              <span className="mushaf-sheet-title">إعدادات القراءة</span>
+              <button className="mushaf-icon-close" onClick={() => setShowSettings(false)}><X size={16} /></button>
+            </div>
+            {/* Font scale */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs opacity-55 shrink-0">الخط</span>
+              <button className="mushaf-btn-secondary" onClick={() => bumpFont(-0.1)}><ZoomOut size={14} /></button>
+              <span className="text-xs opacity-60 tabular-nums w-8 text-center">{Math.round(fontScale * 100)}%</span>
+              <button className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} /></button>
+            </div>
+            {/* Q3: Translation */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs opacity-65">الترجمة الإنجليزية</span>
+              <button
+                onClick={() => setShowTranslation((v) => !v)}
+                className={`relative w-10 h-5 rounded-full transition ${showTranslation ? "bg-[var(--accent)]" : "bg-white/20"}`}
+                role="switch" aria-checked={showTranslation}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${showTranslation ? "right-0.5" : "right-5"}`} />
+              </button>
+            </div>
+            {/* Reciter */}
+            <button className="mushaf-btn-secondary w-full mb-3" onClick={() => { setShowSettings(false); setShowReciterSheet(true); }}>
+              <Mic2 size={14} />
+              {QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي"}
+            </button>
+            {/* Q7: Playback speed */}
+            <div className="mb-3">
+              <div className="text-xs opacity-50 mb-1.5">سرعة التلاوة</div>
+              <div className="flex gap-1 flex-wrap">
+                {([0.75, 1, 1.25, 1.5, 2] as number[]).map((sp) => (
+                  <button
+                    key={sp}
+                    onClick={() => setPlaybackSpeed(sp)}
+                    className={`px-2.5 py-1 rounded-xl text-xs border transition ${playbackSpeed === sp ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                  >{sp}×</button>
+                ))}
+              </div>
+            </div>
+            {/* Q4: Loop count */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs opacity-50">تكرار الآية</span>
+                <button
+                  onClick={() => setLoopEnabled((v) => !v)}
+                  className={`relative w-9 h-5 rounded-full transition ${loopEnabled ? "bg-[var(--accent)]" : "bg-white/15"}`}
+                  role="switch" aria-checked={loopEnabled}
+                >
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${loopEnabled ? "right-0.5" : "right-4.5"}`} />
+                </button>
+              </div>
+              {loopEnabled && (
+                <div className="flex gap-1 flex-wrap">
+                  {([2, 3, 5, 7, 10, -1] as number[]).map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => setLoopCount(n)}
+                      className={`px-2.5 py-1 rounded-xl text-xs border transition ${loopCount === n ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                    >{n === -1 ? "∞" : `${n}×`}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Q8: Auto-advance */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs opacity-65">تقدم تلقائي للآية التالية</span>
+              <button
+                onClick={() => setAutoAdvance((v) => !v)}
+                className={`relative w-9 h-5 rounded-full transition ${autoAdvance ? "bg-[var(--accent)]" : "bg-white/15"}`}
+                role="switch" aria-checked={autoAdvance}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${autoAdvance ? "right-0.5" : "right-4.5"}`} />
+              </button>
+            </div>
+            {/* Q5: Range loop */}
+            {autoAdvance && (
+              <div className="mb-3 p-3 rounded-2xl bg-white/4 border border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs opacity-65">تكرار نطاق</span>
+                  <button
+                    onClick={() => {
+                      const on = !loopRange;
+                      setLoopRange(on);
+                      if (on) { setLoopRangeStartIdx(0); setLoopRangeEndIdx(Math.max(0, playableItems.length - 1)); }
+                    }}
+                    className={`relative w-9 h-5 rounded-full transition ${loopRange ? "bg-[var(--accent)]" : "bg-white/15"}`}
+                    role="switch" aria-checked={loopRange}
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${loopRange ? "right-0.5" : "right-4.5"}`} />
+                  </button>
+                </div>
+                {loopRange && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] opacity-45 shrink-0">من</span>
+                    <input type="number" min={0} max={playableItems.length - 1} value={loopRangeStartIdx}
+                      onChange={(e) => setLoopRangeStartIdx(Math.max(0, Math.min(playableItems.length - 1, Number(e.target.value))))}
+                      className="w-12 rounded-xl bg-white/6 border border-white/10 px-1.5 py-1 text-xs text-center" />
+                    <span className="text-[11px] opacity-45 shrink-0">إلى</span>
+                    <input type="number" min={loopRangeStartIdx} max={playableItems.length - 1} value={loopRangeEndIdx}
+                      onChange={(e) => setLoopRangeEndIdx(Math.max(loopRangeStartIdx, Math.min(playableItems.length - 1, Number(e.target.value))))}
+                      className="w-12 rounded-xl bg-white/6 border border-white/10 px-1.5 py-1 text-xs text-center" />
+                    <span className="text-[11px] opacity-35 shrink-0">/ {playableItems.length}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Q15: Surah info */}
+            <div className="mt-1">
+              <button
+                onClick={() => setShowSurahInfo((v) => !v)}
+                className="flex items-center gap-1.5 text-xs opacity-55 hover:opacity-90 transition mb-2"
+              >
+                <Info size={13} />
+                <span>معلومات السورة</span>
+              </button>
+              {showSurahInfo && lastItem && (
+                <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-white/4 border border-white/8 text-center text-sm">
+                  {[
+                    ["السورة", lastItem.surahName],
+                    ["الاسم بالإنجليزية", pageSurahEnglish || ""],
+                    ["النوع", getSurahRevelationLabel(lastItem.surahId)],
+                    ["الجزء", String(getSurahJuz(lastItem.surahId))],
+                    ["رقم السورة", String(lastItem.surahId)],
+                    ["الصفحة", String(currentPage)],
+                    ["من أصل", String(totalPages)],
+                  ].map(([label, val]) => (
+                    <div key={label}>
+                      <div className="text-[11px] opacity-50 mb-1">{label}</div>
+                      <div className="font-semibold text-xs arabic-text">{val}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ── M3: Page theme ─────────────────────────── */}
+            <div className="mt-3 mb-3">
+              <div className="text-xs opacity-50 mb-1.5">لون صفحة المصحف</div>
+              <div className="flex gap-1 flex-wrap">
+                {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setPrefs({ quranTheme: t })}
+                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                  >{{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق" }[t]}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── A2: Download page audio for offline ─────── */}
+            <div className="mb-3">
+              <button
+                className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center"
+                onClick={downloadPageAudio}
+                disabled={!!cacheProgress}
+              >
+                <Download size={14} />
+                {cacheProgress
+                  ? `جاري التحميل… ${cacheProgress.done}/${cacheProgress.total}`
+                  : "تحميل الصفحة للاستماع دون إنترنت"}
+              </button>
+            </div>
+
+            {/* ── A5: Sleep timer ──────────────────────────── */}
+            <div className="mb-3">
+              <div className="text-xs opacity-50 mb-1.5 flex items-center gap-1">
+                <Timer size={12} />
+                مؤقت النوم
+                {sleepMinutes > 0 && (
+                  <span className="text-[10px] text-[var(--accent)] mr-1">{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
+                )}
+              </div>
+              <div className="flex gap-1 flex-wrap">
+                {([0, 15, 30, 45, 60, 90] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => activateSleepTimer(m)}
+                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${sleepMinutes === m ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                  >{m === 0 ? "إيقاف" : `${m} د`}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── A4: Quran Radio ──────────────────────────── */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs opacity-50 flex items-center gap-1"><Radio size={12} />راديو القرآن</span>
+                <button
+                  onClick={toggleRadio}
+                  className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioPlaying ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                >{radioPlaying ? "⏹ إيقاف" : "▶ تشغيل"}</button>
+              </div>
+              <div className="flex gap-1 flex-wrap">
+                {QURAN_RADIO_STATIONS.map((st, i) => (
+                  <button
+                    key={i}
+                    onClick={() => selectRadioStation(i)}
+                    className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioStationIdx === i ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                  >{st.label}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── A6: Equalizer (Web Audio) ─────────────── */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs opacity-50 flex items-center gap-1"><SlidersHorizontal size={12} />المعادل الصوتي</span>
+                <button
+                  onClick={() => setEqEnabled((v) => !v)}
+                  className={`relative w-9 h-5 rounded-full transition ${eqEnabled ? "bg-[var(--accent)]" : "bg-white/15"}`}
+                  role="switch" aria-checked={eqEnabled}
+                >
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${eqEnabled ? "right-0.5" : "right-4.5"}`} />
+                </button>
+              </div>
+              {eqEnabled && (
+                <div className="space-y-2 p-3 rounded-2xl bg-white/4 border border-white/8">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] opacity-50 w-10 shrink-0">باس</span>
+                    <input type="range" min={-12} max={12} step={1} value={bassGain}
+                      onChange={(e) => setBassGain(Number(e.target.value))}
+                      className="flex-1 h-1 accent-[var(--accent)]" />
+                    <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{bassGain > 0 ? "+" : ""}{bassGain}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] opacity-50 w-10 shrink-0">تريبل</span>
+                    <input type="range" min={-12} max={12} step={1} value={trebleGain}
+                      onChange={(e) => setTrebleGain(Number(e.target.value))}
+                      className="flex-1 h-1 accent-[var(--accent)]" />
+                    <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{trebleGain > 0 ? "+" : ""}{trebleGain}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Q21: Keyboard shortcuts modal ──────────────── */}
+      {showShortcuts && (
+        <>
+          <div className="mushaf-overlay" onClick={() => setShowShortcuts(false)} />
+          <div
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-[90vw] max-w-sm"
+            style={{ background: "var(--glass-bg,rgba(18,22,30,0.95))", borderRadius: 24, border: "1px solid rgba(255,255,255,0.1)", padding: 20 }}
+            onClick={(e) => e.stopPropagation()} dir="rtl"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-semibold opacity-80">اختصارات لوحة المفاتيح</span>
+              <button className="mushaf-icon-close" onClick={() => setShowShortcuts(false)}><X size={14} /></button>
+            </div>
+            <div className="space-y-2 text-sm">
+              {([
+                ["←", "الصفحة التالية"],
+                ["→", "الصفحة السابقة"],
+                ["m", "وضع الحفظ"],
+                ["t", "عرض الترجمة"],
+                ["/", "بحث في الصفحة"],
+                ["s", "إعدادات"],
+                ["?", "هذه القائمة"],
+                ["Esc", "إغلاق / رجوع"],
+              ] as [string, string][]).map(([key, desc]) => (
+                <div key={key} className="flex items-center justify-between gap-3 opacity-80">
+                  <kbd className="px-2 py-0.5 rounded-lg bg-white/10 text-xs font-mono shrink-0">{key}</kbd>
+                  <span className="text-xs flex-1 text-right">{desc}</span>
+                </div>
+              ))}
             </div>
           </div>
         </>

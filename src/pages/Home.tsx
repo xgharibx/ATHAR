@@ -383,32 +383,58 @@ export function HomePage() {
     const periodLabel =
       hour < 5 ? "قبل الفجر" : hour < 12 ? "الصباح" : hour < 17 ? "بعد الظهر" : hour < 20 ? "المساء" : "الليل";
 
+    // D10: time-based section suggestion
+    const isMorningWindow = hour >= 4 && hour < 11;
+    const isEveningWindow = hour >= 15 && hour < 21;
+    const isSleepWindow = hour >= 21 || hour < 4;
+
     const nextChecklist = DAILY_CHECKLIST_ITEMS.find((item) => !dailyChecklistToday[item.id]);
     let suggestedAction =
       nextChecklist?.title ??
       (isDailyWirdDone ? "حافظ على الاستمرارية وراجع نية الغد" : "أنهِ ورد اليوم قبل النوم");
 
-    if (nextChecklist?.id === "fajr_on_time") {
+    if (isMorningWindow) {
+      suggestedAction = "ابدأ يومك بأذكار الصباح";
+    } else if (isEveningWindow) {
+      suggestedAction = "لا تنسَ أذكار المساء";
+    } else if (isSleepWindow) {
+      suggestedAction = "اختم يومك بأذكار النوم";
+    } else if (nextChecklist?.id === "fajr_on_time") {
       suggestedAction = prayerContext.nextPrayer?.label === "الفجر"
         ? "استعد لصلاة الفجر القادمة"
         : "ثبّت الصلوات القادمة في وقتها";
-    }
-
-    if (nextChecklist?.id === "five_prayers" && prayerContext.nextPrayer) {
+    } else if (nextChecklist?.id === "five_prayers" && prayerContext.nextPrayer) {
       suggestedAction = `حافظ على ${prayerContext.nextPrayer.label} في وقتها`;
     }
 
+    // D10: smart routing based on time of day
+    const timeRoute = isMorningWindow
+      ? "/c/morning"
+      : isEveningWindow
+        ? "/c/evening"
+        : isSleepWindow
+          ? "/c/sleep"
+          : null;
+
     const actionRoute = !isDailyWirdDone
       ? "/quran"
-      : nextChecklist
-        ? routeForChecklistCategory(nextChecklist.category)
-        : "/insights";
+      : timeRoute
+        ? timeRoute
+        : nextChecklist
+          ? routeForChecklistCategory(nextChecklist.category)
+          : "/insights";
 
     const actionLabel = !isDailyWirdDone
       ? "اذهب إلى ورد القرآن"
-      : nextChecklist
-        ? "نفّذ المهمة التالية الآن"
-        : "راجع تقدمك اليوم";
+      : isMorningWindow
+        ? "📖 أذكار الصباح"
+        : isEveningWindow
+          ? "🌙 أذكار المساء"
+          : isSleepWindow
+            ? "💤 أذكار النوم"
+            : nextChecklist
+              ? "نفّذ المهمة التالية الآن"
+              : "راجع تقدمك اليوم";
 
     const missedYesterday = DAILY_CHECKLIST_ITEMS.filter((item) => !dailyChecklistYesterday[item.id]).length;
     const todayActivity = Number(activity[civilTodayKey] ?? 0);

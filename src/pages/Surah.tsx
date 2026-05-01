@@ -153,11 +153,23 @@ export function SurahPage() {
   const [loopAyah, setLoopAyah] = React.useState(false);
   const [loopCount, setLoopCount] = React.useState(3); // -1 = ∞
 
+  // Q5: Range audio loop
+  const [loopRange, setLoopRange] = React.useState(false);
+  const [loopRangeStart, setLoopRangeStart] = React.useState(1);
+  const [loopRangeEnd, setLoopRangeEnd] = React.useState(1);
+
+  // Q10: Full surah translation view
+  const [translationViewAll, setTranslationViewAll] = React.useState(false);
+
+  // Q11: Inline tafsir sheet
+  const [tafsirSheetAyah, setTafsirSheetAyah] = React.useState<number | null>(null);
+
   // Audio play-state ref (avoids stale closures in onended callbacks)
   const audioPlayRef = React.useRef<{
     active: boolean; loop: boolean; loopRemaining: number;
     advance: boolean; speed: number; totalAyahs: number; pageSize: number;
-  }>({ active: false, loop: false, loopRemaining: 0, advance: false, speed: 1, totalAyahs: 0, pageSize: 12 });
+    useRange: boolean; rangeStart: number; rangeEnd: number;
+  }>({ active: false, loop: false, loopRemaining: 0, advance: false, speed: 1, totalAyahs: 0, pageSize: 12, useRange: false, rangeStart: 1, rangeEnd: 1 });
 
   // Ref to the recursive core audio player (allows onended to call it without stale closure)
   const playAyahCoreRef = React.useRef<((sId: number, aNum: number) => void) | null>(null);
@@ -386,9 +398,9 @@ export function SurahPage() {
     setTranslationData([]);
   }, [surahId]);
 
-  // Q3: Fetch English translation on demand
+  // Q3/Q11: Fetch English translation on demand (for translation panel or tafsir sheet)
   React.useEffect(() => {
-    if (!showTranslation || !surah || translationData.length > 0) return;
+    if ((!showTranslation && tafsirSheetAyah === null) || !surah || translationData.length > 0) return;
     setTranslationLoading(true);
     fetch(`https://api.alquran.cloud/v1/surah/${surah.id}/en.sahih`)
       .then((r) => r.json())
@@ -402,7 +414,7 @@ export function SurahPage() {
       .catch(() => toast.error("تعذر تحميل الترجمة"))
       .finally(() => setTranslationLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTranslation, surah?.id]);
+  }, [showTranslation, tafsirSheetAyah, surah?.id]);
 
   // Q7/Q8/Q4: Keep playAyahCoreRef updated with latest reciter (avoids stale closure in onended)
   React.useEffect(() => {
@@ -433,12 +445,20 @@ export function SurahPage() {
             setPlayingAyah(null);
           }
         } else if (pst.advance) {
+          const rangeMax = pst.useRange ? pst.rangeEnd : pst.totalAyahs;
+          const rangeMin = pst.useRange ? pst.rangeStart : 1;
           const next = aNum + 1;
-          if (next <= pst.totalAyahs) {
+          if (next <= rangeMax) {
             setSelectedAyah(next);
             const nextPage = Math.ceil(next / pst.pageSize);
             setCurrentPage(nextPage);
             playAyahCoreRef.current?.(sId, next);
+          } else if (pst.useRange) {
+            // Loop back to range start
+            setSelectedAyah(rangeMin);
+            const startPage = Math.ceil(rangeMin / pst.pageSize);
+            setCurrentPage(startPage);
+            playAyahCoreRef.current?.(sId, rangeMin);
           } else {
             pst.active = false;
             setPlayingAyah(null);
@@ -472,8 +492,11 @@ export function SurahPage() {
     pst.advance = autoAdvance;
     pst.totalAyahs = displayAyahs.length;
     pst.pageSize = pageSize;
+    pst.useRange = loopRange;
+    pst.rangeStart = Math.max(1, loopRangeStart);
+    pst.rangeEnd = Math.min(displayAyahs.length, Math.max(loopRangeStart, loopRangeEnd));
     playAyahCoreRef.current?.(sId, aNum);
-  }, [playingAyah, playbackSpeed, loopAyah, loopCount, autoAdvance, displayAyahs.length, pageSize]);
+  }, [playingAyah, playbackSpeed, loopAyah, loopCount, autoAdvance, displayAyahs.length, pageSize, loopRange, loopRangeStart, loopRangeEnd]);
 
   const formatTimer = (s: number) => {
     const m = Math.floor(s / 60);
@@ -849,17 +872,14 @@ export function SurahPage() {
           <Share2 size={13} /><span className="hidden sm:inline">إرسال</span>
         </button>
         <div className="ayah-tooltip-sep" />
-        {/* Tafseer external link */}
-        <a
+        {/* Q11: Tafsir - opens inline sheet first, with external link inside */}
+        <button
           className="ayah-tooltip-btn"
-          href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${s.id}-aya${selectedAyah}.html#katheer`}
-          target="_blank"
-          rel="noopener noreferrer"
           title="تفسير الآية"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); setTafsirSheetAyah(selectedAyah); setSelectedAyah(null); }}
         >
           <ArrowUpRight size={13} /><span className="hidden sm:inline">تفسير</span>
-        </a>
+        </button>
         <div className="ayah-tooltip-sep" />
         {/* Close */}
         <button
@@ -907,10 +927,13 @@ export function SurahPage() {
           value={noteDraft}
           onChange={(e) => setNoteDraft(e.target.value)}
           placeholder="اكتب ملاحظة…"
-          rows={3}
+          rows={5}
           className="w-full rounded-2xl bg-white/6 border border-white/10 p-3 text-sm leading-7 outline-none focus:border-white/22 resize-none"
           autoFocus
         />
+        <div className="flex items-center justify-between mt-1 mb-2 px-1">
+          <span className="text-[10px] opacity-30">{noteDraft.length} حرف</span>
+        </div>
         <div className="flex items-center gap-2 mt-3">
           <Button
             variant="primary"
@@ -939,6 +962,68 @@ export function SurahPage() {
           )}
         </div>
       </div>
+    );
+  };
+
+  // Q11: Inline tafsir sheet — shows ayah text + EN translation + external link
+  const renderTafsirSheet = (s: QuranSurah) => {
+    if (tafsirSheetAyah === null) return null;
+    const ayahData = displayAyahs.find((a) => a.displayAyah === tafsirSheetAyah);
+    const enText = translationData[ayahData?.originalAyah ?? tafsirSheetAyah];
+    return (
+      <>
+        <div
+          className="fixed inset-0 z-[90] bg-black/50"
+          onClick={() => setTafsirSheetAyah(null)}
+        />
+        <div
+          className="quran-note-sheet"
+          style={{ zIndex: 91, maxHeight: "70vh", overflowY: "auto" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="quran-note-sheet__handle" />
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <span className="text-sm font-semibold arabic-text">
+              تفسير الآية ﴿{toArabicIndic(tafsirSheetAyah)}﴾ · {s.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => setTafsirSheetAyah(null)}
+              className="w-7 h-7 rounded-xl bg-white/8 flex items-center justify-center opacity-55 hover:opacity-100 transition shrink-0"
+            >
+              <XIcon size={14} />
+            </button>
+          </div>
+          {/* Arabic ayah text */}
+          {ayahData && (
+            <div className="arabic-text text-lg leading-10 mb-3 opacity-90 quran-text text-center p-3 rounded-2xl bg-white/4 border border-white/8" dir="rtl">
+              {ayahData.text}
+              <span className="ml-2 text-[var(--accent)] opacity-60 text-base">﴿{toArabicIndic(tafsirSheetAyah)}﴾</span>
+            </div>
+          )}
+          {/* EN Translation */}
+          <div className="text-sm leading-7 opacity-80 p-3 rounded-2xl bg-white/4 border border-white/8 mb-3" dir="ltr">
+            {translationLoading ? (
+              <span className="opacity-40 italic text-xs">Loading translation…</span>
+            ) : enText ? (
+              enText
+            ) : (
+              <span className="opacity-40 italic text-xs">Translation not available. Toggle translation on first.</span>
+            )}
+          </div>
+          {/* External tafsir link */}
+          <a
+            href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${s.id}-aya${tafsirSheetAyah}.html#katheer`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs opacity-55 hover:opacity-90 transition w-fit"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ArrowUpRight size={13} />
+            <span>تفسير ابن كثير الكامل</span>
+          </a>
+        </div>
+      </>
     );
   };
 
@@ -1118,6 +1203,7 @@ export function SurahPage() {
 
         {renderTooltip(surah)}
         {noteSheetOpen && selectedAyah !== null && renderNoteSheet(surah)}
+        {tafsirSheetAyah !== null && renderTafsirSheet(surah)}
       </div>
     );
   }
@@ -1562,6 +1648,49 @@ export function SurahPage() {
                 </div>
               </div>
             )}
+            {/* Q5: Range loop (only meaningful with auto-advance) */}
+            {autoAdvance && (
+              <div className="mt-2 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] opacity-45">تكرار نطاق الآيات</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const on = !loopRange;
+                      setLoopRange(on);
+                      if (on) {
+                        setLoopRangeStart(filteredPageAyahs[0]?.displayAyah ?? 1);
+                        setLoopRangeEnd(filteredPageAyahs[filteredPageAyahs.length - 1]?.displayAyah ?? displayAyahs.length);
+                      }
+                    }}
+                    className={`relative w-9 h-5 rounded-full transition ${loopRange ? "bg-[var(--accent)]" : "bg-white/15"}`}
+                    aria-checked={loopRange}
+                    role="switch"
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${loopRange ? "right-0.5" : "right-4.5"}`} />
+                  </button>
+                </div>
+                {loopRange && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] opacity-45 shrink-0">من آية</span>
+                    <input
+                      type="number" min={1} max={displayAyahs.length}
+                      value={loopRangeStart}
+                      onChange={(e) => setLoopRangeStart(Math.max(1, Math.min(displayAyahs.length, Number(e.target.value))))}
+                      className="w-14 rounded-xl bg-white/6 border border-white/10 px-2 py-1 text-xs text-center"
+                    />
+                    <span className="text-[11px] opacity-45 shrink-0">إلى آية</span>
+                    <input
+                      type="number" min={loopRangeStart} max={displayAyahs.length}
+                      value={loopRangeEnd}
+                      onChange={(e) => setLoopRangeEnd(Math.max(loopRangeStart, Math.min(displayAyahs.length, Number(e.target.value))))}
+                      className="w-14 rounded-xl bg-white/6 border border-white/10 px-2 py-1 text-xs text-center"
+                    />
+                    <span className="text-[11px] opacity-35 shrink-0">/ {displayAyahs.length}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* In-surah search bar */}
@@ -1683,6 +1812,20 @@ export function SurahPage() {
                   <div className="text-[11px] opacity-50 mb-1">رقم السورة</div>
                   <div className="font-semibold arabic-text tabular-nums">{toArabicIndic(surah.id)}</div>
                 </div>
+                {surah.englishName && (
+                  <div>
+                    <div className="text-[11px] opacity-50 mb-1">الاسم بالإنجليزية</div>
+                    <div className="font-semibold text-xs" dir="ltr">{surah.englishName}</div>
+                  </div>
+                )}
+                {surahMushafPages.length > 0 && (
+                  <div>
+                    <div className="text-[11px] opacity-50 mb-1">صفحات المصحف</div>
+                    <div className="font-semibold arabic-text tabular-nums text-xs">
+                      {toArabicIndic(surahMushafPages[0])}–{toArabicIndic(surahMushafPages[surahMushafPages.length - 1])}
+                    </div>
+                  </div>
+                )}
                 {bookmarkedInSurah > 0 && (
                   <div>
                     <div className="text-[11px] opacity-50 mb-1">علامات</div>
@@ -1776,9 +1919,10 @@ export function SurahPage() {
         </div>
       </Card>
 
-      {/* Floating tooltip pill + note sheet */}
+      {/* Floating tooltip pill + note + tafsir sheets */}
       {renderTooltip(surah)}
       {noteSheetOpen && selectedAyah !== null && renderNoteSheet(surah)}
+      {tafsirSheetAyah !== null && renderTafsirSheet(surah)}
 
       {/* ── Q3: Per-ayah English translation panel ────── */}
       {showTranslation && (
@@ -1788,13 +1932,24 @@ export function SurahPage() {
               <Languages size={13} />
               {translationLoading ? "Loading translation…" : "Sahih International"}
             </span>
-            <button
-              type="button"
-              onClick={() => setShowTranslation(false)}
-              className="w-6 h-6 rounded-lg bg-white/8 flex items-center justify-center opacity-50 hover:opacity-100 transition"
-            >
-              <XIcon size={12} />
-            </button>
+            <div className="flex items-center gap-1">
+              {/* Q10: Toggle full surah vs current page */}
+              <button
+                type="button"
+                onClick={() => setTranslationViewAll((v) => !v)}
+                className={`px-2.5 h-6 rounded-lg text-[10px] border transition ${translationViewAll ? "bg-[var(--accent)]/15 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-55 hover:opacity-100"}`}
+                title={translationViewAll ? "عرض الصفحة فقط" : "عرض السورة كاملة"}
+              >
+                {translationViewAll ? "الصفحة" : "السورة"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowTranslation(false)}
+                className="w-6 h-6 rounded-lg bg-white/8 flex items-center justify-center opacity-50 hover:opacity-100 transition"
+              >
+                <XIcon size={12} />
+              </button>
+            </div>
           </div>
           {translationLoading ? (
             <div className="space-y-2">
@@ -1804,7 +1959,7 @@ export function SurahPage() {
             </div>
           ) : (
             <div className="space-y-4 text-sm leading-7">
-              {filteredPageAyahs.map((a) => (
+              {(translationViewAll ? displayAyahs : filteredPageAyahs).map((a) => (
                 <div key={a.displayAyah} className="flex gap-3">
                   <span className="text-[11px] opacity-35 shrink-0 tabular-nums pt-1 font-mono">
                     ({a.originalAyah})

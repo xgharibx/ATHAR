@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Flame, TrendingUp, Trophy, Share2, BookOpen, Target, Sparkles } from "lucide-react";
+import { Flame, TrendingUp, Trophy, Share2, BookOpen, Target, Sparkles, BarChart2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { toPng } from "html-to-image";
@@ -299,6 +299,26 @@ export function InsightsPage() {
       setQuranSharing(false);
     }
   }
+
+  // D9: per-section dhikr progress
+  const sectionProgress = React.useMemo(() => {
+    if (!adhkarData) return [];
+    return adhkarData.db.sections
+      .map((s) => {
+        let done = 0, total = 0;
+        s.content.forEach((item, i) => {
+          const t = coerceCount(item.count);
+          const c = Math.min(t, Math.max(0, Number(progressMap[`${s.id}:${i}`]) || 0));
+          total += t;
+          done += c;
+        });
+        const pctVal = total > 0 ? Math.round((done / total) * 100) : 0;
+        const identity = getSectionIdentity(s.id);
+        return { id: s.id, title: s.title, done, total, pctVal, icon: identity.icon, accent: identity.accent };
+      })
+      .filter((s) => s.total > 0)
+      .sort((a, b) => b.pctVal - a.pctVal);
+  }, [adhkarData, progressMap]);
 
   const isWirdDone = !!dailyWirdDone[worshipDayKey];
   const dailyChecklistToday = dailyChecklist[worshipDayKey] ?? {};
@@ -814,43 +834,7 @@ export function InsightsPage() {
         ملاحظة: الإحصائيات محلية على جهازك. إذا حذفت بيانات المتصفح/التطبيق سيتم فقدها.
       </div>
 
-      {/* Sections progress overview */}
-      {adhkarData && adhkarData.db.sections.length > 0 && (
-        <Card className="p-5">
-          <div className="text-sm font-semibold mb-3">تقدّم الأقسام</div>
-          <div className="space-y-2">
-            {adhkarData.db.sections.map((s) => {
-              const identity = getSectionIdentity(s.id);
-              let done = 0;
-              let total = 0;
-              s.content.forEach((item, idx) => {
-                const t = coerceCount(item.count);
-                const c = Math.min(Math.max(0, Number(progressMap[`${s.id}:${idx}`]) || 0), t);
-                total += t;
-                done += c;
-              });
-              const percent = pct(done, total);
-              return (
-                <div key={s.id} className="flex items-center gap-3">
-                  <span className="text-base shrink-0">{identity.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-xs truncate opacity-80">{s.title}</span>
-                      <span className="text-[11px] opacity-50 tabular-nums shrink-0">{percent}%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-[width] duration-300"
-                        style={{ width: `${percent}%`, background: percent >= 100 ? "var(--ok)" : identity.accent }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
+
 
       {/* ── Phase 36: 30-Juz Progress Grid ─────────────────── */}
       {quranStats.started > 0 && (
@@ -961,6 +945,35 @@ export function InsightsPage() {
           </div>
         </Card>
         </div>
+      )}
+
+      {/* D9: Per-category dhikr progress */}
+      {sectionProgress.length > 0 && (
+        <Card className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart2 size={14} className="text-[var(--accent)]" />
+            <div className="text-xs font-semibold opacity-65">تقدم الأقسام</div>
+          </div>
+          <div className="space-y-2">
+            {sectionProgress.map((s) => (
+              <div key={s.id} className="flex items-center gap-2">
+                <span className="text-sm w-5 text-center shrink-0">{s.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1 mb-0.5">
+                    <span className="text-[11px] opacity-75 truncate">{s.title}</span>
+                    <span className="text-[10px] tabular-nums opacity-50 shrink-0">{s.pctVal}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-[width] duration-500"
+                      style={{ width: `${s.pctVal}%`, background: s.pctVal >= 100 ? 'var(--ok)' : s.accent ?? 'var(--accent)' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
     </div>
   );

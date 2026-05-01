@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2 } from "lucide-react";
+import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2, Volume2, VolumeX, ZoomIn, ZoomOut } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { cn, clamp } from "@/lib/utils";
@@ -27,27 +27,36 @@ const audioCtxRef = new (class {
   }
 })();
 
+// D8: parse hadith grade from benefit text
+function parseHadithGrade(benefit: string): { grade: string; color: string } | null {
+  if (!benefit) return null;
+  if (benefit.includes('متفق عليه')) return { grade: 'متفق عليه', color: 'var(--ok)' };
+  if (benefit.includes('صحيح')) return { grade: 'صحيح', color: 'var(--ok)' };
+  if (benefit.includes('حسن')) return { grade: 'حسن', color: '#f59e0b' };
+  if (benefit.includes('ضعيف')) return { grade: 'ضعيف', color: '#ef4444' };
+  return null;
+}
+
 function playTick(count: number) {
   try {
     const ctx = audioCtxRef.get();
     if (!ctx) return;
     if (ctx.state === "suspended") ctx.resume();
 
+    // D1: percussive "bead click" — triangle wave with fast freq sweep
+    const now = ctx.currentTime;
     const o = ctx.createOscillator();
     const g = ctx.createGain();
-    
-    o.type = "sine";
-    const baseFreq = [800, 850, 900, 950, 1000]; // Pentatonic-ish steps
-    o.frequency.value = baseFreq[count % 5] || 800;
-
-    g.gain.setValueAtTime(0.06, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-
+    const baseFreqs = [1100, 1200, 1300, 1150, 1250];
+    o.type = "triangle";
+    o.frequency.setValueAtTime(baseFreqs[count % 5] ?? 1200, now);
+    o.frequency.exponentialRampToValueAtTime(300, now + 0.07);
+    g.gain.setValueAtTime(0.09, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
     o.connect(g);
     g.connect(ctx.destination);
-    
-    o.start();
-    o.stop(ctx.currentTime + 0.12);
+    o.start(now);
+    o.stop(now + 0.08);
   } catch {
     // ignore
   }
@@ -87,6 +96,22 @@ export function DhikrCard(props: {
   const [isLongPressing, setIsLongPressing] = React.useState(false);
   const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [confirmItemReset, setConfirmItemReset] = React.useState(false);
+  // D5: per-card local font scale
+  const [localFontScale, setLocalFontScale] = React.useState(1.0);
+  // D7: speech synthesis
+  const [speaking, setSpeaking] = React.useState(false);
+  const doSpeak = React.useCallback(() => {
+    if (!('speechSynthesis' in window)) { toast.error('الاستماع غير مدعوم'); return; }
+    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+    const utt = new SpeechSynthesisUtterance(item.text);
+    utt.lang = 'ar-SA';
+    utt.rate = 0.82;
+    utt.onend = () => setSpeaking(false);
+    utt.onerror = () => setSpeaking(false);
+    setSpeaking(true);
+    window.speechSynthesis.speak(utt);
+  }, [item.text, speaking]);
+  React.useEffect(() => () => { if (speaking) window.speechSynthesis.cancel(); }, [speaking]);
   const milestonesHit = React.useRef<Set<number>>(new Set([
     ...(current >= target * 0.25 ? [0.25] : []),
     ...(current >= target * 0.5 ? [0.5] : []),
@@ -345,6 +370,34 @@ export function DhikrCard(props: {
               <ImageDown size={18} className="opacity-80" />
             </IconButton>
 
+            {/* D7: speech synthesis */}
+            <IconButton
+              aria-label={speaking ? "إيقاف الاستماع" : "استمع للذكر"}
+              title={speaking ? "إيقاف" : "استمع"}
+              onClick={doSpeak}
+              className={cn(speaking && "bg-[var(--accent)]/14 border-[var(--accent)]/24")}
+            >
+              {speaking ? <VolumeX size={18} className="text-[var(--accent)]" /> : <Volume2 size={18} className="opacity-80" />}
+            </IconButton>
+
+            {/* D5: per-card font scale */}
+            <IconButton
+              aria-label="تصغير الخط"
+              title="تصغير الخط"
+              onClick={() => setLocalFontScale((s) => Math.max(0.65, +(s - 0.15).toFixed(2)))}
+              className={cn(localFontScale <= 0.65 && "opacity-30 pointer-events-none")}
+            >
+              <ZoomOut size={16} className="opacity-80" />
+            </IconButton>
+            <IconButton
+              aria-label="تكبير الخط"
+              title="تكبير الخط"
+              onClick={() => setLocalFontScale((s) => Math.min(2.1, +(s + 0.15).toFixed(2)))}
+              className={cn(localFontScale >= 2.1 && "opacity-30 pointer-events-none")}
+            >
+              <ZoomIn size={16} className="opacity-80" />
+            </IconButton>
+
             <IconButton
               aria-label="مفضلة"
               onClick={() => toggleFavorite(sectionId, index)}
@@ -393,7 +446,7 @@ export function DhikrCard(props: {
         {/* Text + swipe zone */}
         <div
           className={cn("mt-4 arabic-text dhikr-flow select-none relative", isLongPressing && "long-press-active")}
-          style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
+          style={{ fontSize: `${prefs.fontScale * localFontScale}rem`, lineHeight: prefs.lineHeight }}
           onTouchStart={onSwipeTouchStart}
           onTouchEnd={onSwipeTouchEnd}
         >
@@ -534,12 +587,15 @@ export function DhikrCard(props: {
           </button>
         </div>
 
-        {/* Benefit */}
+        {/* Benefit — D8: grade badge */}
         {prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
           <div className="mt-4 rounded-2xl bg-[var(--accent)]/8 border border-[var(--accent)]/15 p-3 text-sm leading-7">
-            <div className="text-xs font-semibold opacity-55 mb-1.5 flex items-center gap-1.5">
+            <div className="text-xs font-semibold opacity-55 mb-1.5 flex items-center gap-1.5 flex-wrap">
               <span className="text-[var(--accent)] opacity-80">✦</span>
               <span>الفضل / المصدر</span>
+              {(() => { const g = parseHadithGrade(item.benefit ?? ''); return g ? (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border" style={{ color: g.color, borderColor: `${g.color}44`, background: `${g.color}18` }}>{g.grade}</span>
+              ) : null; })()}
             </div>
             <div className="opacity-85">{item.benefit}</div>
           </div>
