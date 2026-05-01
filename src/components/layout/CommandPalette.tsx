@@ -191,6 +191,16 @@ export function CommandPalette(props: Props) {
               </Command.Group>
 
               <Command.Separator className="h-px bg-white/10 my-2" />
+              <Command.Group heading="محتوى وأدلة" className="px-2">
+                <Item onSelect={() => go("/asma")} icon={<span className="text-base">✨</span>}>أسماء الله الحسنى</Item>
+                <Item onSelect={() => go("/duas")} icon={<span className="text-base">🤲</span>}>الأدعية المأثورة</Item>
+                <Item onSelect={() => go("/quran-vocab")} icon={<span className="text-base">📖</span>}>مفردات القرآن</Item>
+                <Item onSelect={() => go("/stories")} icon={<span className="text-base">🕌</span>}>قصص الأنبياء</Item>
+                <Item onSelect={() => go("/prayer-guide")} icon={<span className="text-base">🧎</span>}>كيفية الصلاة</Item>
+                <Item onSelect={() => go("/wudu")} icon={<span className="text-base">💧</span>}>كيفية الوضوء</Item>
+              </Command.Group>
+
+              <Command.Separator className="h-px bg-white/10 my-2" />
               <Command.Group heading="روابط إضافية" className="px-2">
                 <Item onSelect={() => go("/sources")}>المصادر والبيانات</Item>
               </Command.Group>
