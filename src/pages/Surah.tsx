@@ -1117,9 +1117,28 @@ export function SurahPage() {
           <span className="text-base">🧠</span>
           <span className="font-semibold">وضع الحفظ</span>
           <span className="opacity-70 mr-1">— اضغط على الآية لكشفها</span>
+          <span className="ml-auto mr-1 tabular-nums opacity-80 text-[11px]">
+            {toArabicIndic(Array.from(revealedAyahs).filter((n) => pageAyahs.some((a) => a.displayAyah === n)).length)}
+            <span className="opacity-50">/</span>
+            {toArabicIndic(pageAyahs.length)}
+          </span>
           <button
             type="button"
-            className="mr-auto text-[10px] opacity-55 hover:opacity-100 underline underline-offset-2 transition"
+            className="text-[10px] opacity-55 hover:opacity-100 underline underline-offset-2 transition"
+            onClick={(e) => {
+              e.stopPropagation();
+              setRevealedAyahs((prev) => {
+                const n = new Set(prev);
+                for (const a of pageAyahs) n.add(a.displayAyah);
+                return n;
+              });
+            }}
+          >
+            إظهار الكل
+          </button>
+          <button
+            type="button"
+            className="text-[10px] opacity-55 hover:opacity-100 underline underline-offset-2 transition"
             onClick={(e) => { e.stopPropagation(); setRevealedAyahs(new Set()); }}
           >
             إخفاء الكل

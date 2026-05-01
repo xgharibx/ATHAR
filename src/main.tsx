@@ -117,7 +117,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter basename={routerBasename}>
+        <BrowserRouter
+          basename={routerBasename}
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
           <App />
           <Toaster
             position="top-center"
