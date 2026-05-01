@@ -84,6 +84,42 @@ export type Reminders = {
   iqamaOffsets: Record<PrayerAlertPrayer, number>; // minutes after adhan per prayer
 };
 
+// L1: Friends leaderboard
+export type LocalFriend = {
+  id: string;
+  alias: string;
+  score: number;
+  dhikr: number;
+  quran: number;
+  prayers: number;
+  addedAt: string;
+};
+
+// L2: Group khatma
+export type GroupKhatmaMember = {
+  memberId: string;
+  name: string;
+  assignedJuz: number[];
+  completedJuz: number[];
+};
+
+export type GroupKhatmaState = {
+  groupId: string;
+  groupName: string;
+  members: GroupKhatmaMember[];
+  createdAt: string;
+};
+
+// L3: Weekly challenge
+export type WeeklyChallengeType = "al_kahf" | "morning_adhkar_5days";
+
+export type WeeklyChallengeState = {
+  type: WeeklyChallengeType;
+  weekISO: string; // ISO date of week start (Monday)
+  progress: Record<string, boolean>; // dateISO -> done
+  completed: boolean;
+};
+
 export type ExportBlobV1 = {
   version: 1;
   exportedAt: string;
@@ -221,6 +257,25 @@ type NoorState = {
   // Targeted resets (Phase 37)
   resetAdhkarProgress: () => void;
   resetQuranData: () => void;
+
+  // L1: Local friends leaderboard
+  localFriends: LocalFriend[];
+  addLocalFriend: (f: LocalFriend) => void;
+  removeLocalFriend: (id: string) => void;
+
+  // L2: Group khatma
+  groupKhatma: GroupKhatmaState | null;
+  setGroupKhatma: (g: GroupKhatmaState | null) => void;
+  toggleGroupKhatmaJuz: (memberId: string, juzNum: number) => void;
+
+  // L3: Weekly challenge
+  weeklyChallenge: WeeklyChallengeState | null;
+  setWeeklyChallenge: (c: WeeklyChallengeState | null) => void;
+  toggleWeeklyChallengeDay: (dateISO: string) => void;
+
+  // I7: Weekly report notification
+  weeklyReportSentISO: string | null;
+  setWeeklyReportSentISO: (iso: string) => void;
 
   // UX-only
   lastCelebrationAt: number;
@@ -828,12 +883,63 @@ export const useNoorStore = create<NoorState>()(
       setLastCelebrationAt: (ts) => set({ lastCelebrationAt: ts }),
 
       lastVisitedSectionId: null,
-      setLastVisitedSectionId: (sectionId) => set({ lastVisitedSectionId: sectionId })
+      setLastVisitedSectionId: (sectionId) => set({ lastVisitedSectionId: sectionId }),
+
+      localFriends: [],
+      addLocalFriend: (f) =>
+        set((s) => ({ localFriends: [...s.localFriends.filter((x) => x.id !== f.id), f] })),
+      removeLocalFriend: (id) =>
+        set((s) => ({ localFriends: s.localFriends.filter((x) => x.id !== id) })),
+
+      groupKhatma: null,
+      setGroupKhatma: (g) => set({ groupKhatma: g }),
+      toggleGroupKhatmaJuz: (memberId, juzNum) =>
+        set((s) => {
+          if (!s.groupKhatma) return {};
+          return {
+            groupKhatma: {
+              ...s.groupKhatma,
+              members: s.groupKhatma.members.map((m) => {
+                if (m.memberId !== memberId) return m;
+                const has = m.completedJuz.includes(juzNum);
+                return {
+                  ...m,
+                  completedJuz: has
+                    ? m.completedJuz.filter((j) => j !== juzNum)
+                    : [...m.completedJuz, juzNum],
+                };
+              }),
+            },
+          };
+        }),
+
+      weeklyChallenge: null,
+      setWeeklyChallenge: (c) => set({ weeklyChallenge: c }),
+      toggleWeeklyChallengeDay: (dateISO) =>
+        set((s) => {
+          if (!s.weeklyChallenge) return {};
+          const done = !s.weeklyChallenge.progress[dateISO];
+          const nextProgress = { ...s.weeklyChallenge.progress, [dateISO]: done };
+          const completedCount = Object.values(nextProgress).filter(Boolean).length;
+          return {
+            weeklyChallenge: {
+              ...s.weeklyChallenge,
+              progress: nextProgress,
+              completed:
+                s.weeklyChallenge.type === "morning_adhkar_5days"
+                  ? completedCount >= 5
+                  : completedCount >= 1,
+            },
+          };
+        }),
+
+      weeklyReportSentISO: null,
+      setWeeklyReportSentISO: (iso) => set({ weeklyReportSentISO: iso }),
     }),
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 13,
+      version: 14,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -859,6 +965,10 @@ export const useNoorStore = create<NoorState>()(
           prayerLog: (state as Partial<NoorState>).prayerLog ?? {},
           favoriteCities: Array.isArray((state as Partial<NoorState>).favoriteCities) ? (state as Partial<NoorState>).favoriteCities! : [],
           customAdhanBase64: (state as Partial<NoorState>).customAdhanBase64 ?? null,
+          localFriends: Array.isArray((state as Partial<NoorState>).localFriends) ? (state as Partial<NoorState>).localFriends! : [],
+          groupKhatma: (state as Partial<NoorState>).groupKhatma ?? null,
+          weeklyChallenge: (state as Partial<NoorState>).weeklyChallenge ?? null,
+          weeklyReportSentISO: (state as Partial<NoorState>).weeklyReportSentISO ?? null,
         } as NoorState;
       }
     }

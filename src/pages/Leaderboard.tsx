@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock, ShieldCheck, Trash2 } from "lucide-react";
+import { Trophy, Send, RotateCw, Loader2, CheckCircle2, AlertCircle, Clock, ShieldCheck, Trash2, Users, BookMarked, Calendar, Check, Copy, Plus } from "lucide-react";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
-import { useNoorStore } from "@/store/noorStore";
+import { useNoorStore, type LocalFriend } from "@/store/noorStore";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { cn } from "@/lib/utils";
@@ -438,6 +438,15 @@ export function LeaderboardPage() {
           onAdminAccessChange={() => setShowAdminCard(hasLocalLeaderboardAdminToken())}
         />
       ) : null}
+
+      {/* L1: Local friends board */}
+      <LocalFriendsCard myStats={{ id: myStats.id, alias: myStats.name, score: myStats.score, dhikr: myStats.dhikr, quran: myStats.quran, prayers: myStats.prayers }} />
+
+      {/* L2: Group khatma */}
+      <GroupKhatmaCard />
+
+      {/* L3: Weekly challenge */}
+      <WeeklyChallengeCard />
     </div>
   );
 }
@@ -940,6 +949,503 @@ function LeaderboardAdminCard(props: {
               </div>
             </>
           )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── L1: Local Friends Board ───────────────────────────────────────────────
+
+function LocalFriendsCard(props: {
+  myStats: Pick<LocalFriend, "id" | "alias" | "score" | "dhikr" | "quran" | "prayers">;
+}) {
+  const localFriends = useNoorStore((s) => s.localFriends);
+  const addLocalFriend = useNoorStore((s) => s.addLocalFriend);
+  const removeLocalFriend = useNoorStore((s) => s.removeLocalFriend);
+
+  const [importCode, setImportCode] = React.useState("");
+  const [importError, setImportError] = React.useState("");
+  const [copied, setCopied] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(false);
+
+  const myExportCode = React.useMemo(() => {
+    const payload: LocalFriend = { ...props.myStats, addedAt: new Date().toISOString() };
+    return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  }, [props.myStats]);
+
+  const copyMyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(myExportCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setImportError("تعذر النسخ. انسخ الكود يدويًا.");
+    }
+  };
+
+  const handleImport = () => {
+    setImportError("");
+    try {
+      const json = decodeURIComponent(escape(atob(importCode.trim())));
+      const data = JSON.parse(json) as Partial<LocalFriend>;
+      if (!data.id || !data.alias || typeof data.score !== "number") {
+        setImportError("الكود غير صالح أو غير مكتمل.");
+        return;
+      }
+      if (data.id === props.myStats.id) {
+        setImportError("لا يمكنك إضافة نفسك كصديق.");
+        return;
+      }
+      if (localFriends.some((f) => f.id === data.id)) {
+        setImportError("هذا الصديق مضاف مسبقًا.");
+        return;
+      }
+      addLocalFriend({
+        id: data.id,
+        alias: data.alias,
+        score: data.score,
+        dhikr: data.dhikr ?? 0,
+        quran: data.quran ?? 0,
+        prayers: data.prayers ?? 0,
+        addedAt: new Date().toISOString()
+      });
+      setImportCode("");
+    } catch {
+      setImportError("الكود غير صالح. تحقق من أنك لصقت الكود كاملًا.");
+    }
+  };
+
+  const allRows = React.useMemo(() => {
+    const me: LocalFriend = { ...props.myStats, addedAt: "" };
+    return [...localFriends, me].sort((a, b) => b.score - a.score);
+  }, [localFriends, props.myStats]);
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Users size={16} className="text-[var(--accent)]" />
+          <div className="text-sm font-semibold">لوحة الأصدقاء</div>
+          {localFriends.length > 0 && (
+            <span className="text-[10px] opacity-50 tabular-nums">{localFriends.length} صديق</span>
+          )}
+        </div>
+        <Button variant="secondary" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? "إخفاء" : "إدارة"}
+        </Button>
+      </div>
+
+      {/* Friend list */}
+      <div className="mt-3 space-y-2">
+        {allRows.length === 0 ? (
+          <div className="text-xs opacity-50 text-center py-3">أضف أصدقاء لمقارنة تقدمكم المشترك.</div>
+        ) : (
+          allRows.map((f, idx) => (
+            <div
+              key={f.id}
+              className={cn(
+                "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
+                f.id === props.myStats.id ? "border-[var(--accent)]/35 bg-[var(--accent)]/8" : "border-white/10"
+              )}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs">
+                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold truncate">{f.alias}</div>
+                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {f.dhikr} · قرآن {f.quran} · صلاة {f.prayers}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-semibold tabular-nums">{f.score}</div>
+                {f.id !== props.myStats.id && (
+                  <button
+                    type="button"
+                    onClick={() => removeLocalFriend(f.id)}
+                    className="text-[var(--danger)] opacity-50 hover:opacity-100 transition"
+                    aria-label="حذف الصديق"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Import / export area */}
+      {expanded && (
+        <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
+          <div>
+            <div className="text-xs font-semibold mb-2">كود مشاركتي</div>
+            <div className="flex gap-2">
+              <code className="flex-1 text-[10px] break-all bg-white/5 border border-white/10 rounded-2xl px-3 py-2 leading-5 opacity-70 select-all">
+                {myExportCode}
+              </code>
+              <Button variant="secondary" onClick={() => void copyMyCode()} aria-label="نسخ الكود">
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+              </Button>
+            </div>
+            <div className="mt-1 text-[10px] opacity-40">شارك هذا الكود مع صديق ليضيفك إلى لوحته.</div>
+          </div>
+          <div>
+            <div className="text-xs font-semibold mb-2">إضافة صديق</div>
+            <div className="flex gap-2">
+              <Input
+                value={importCode}
+                onChange={(e) => { setImportCode(e.target.value); setImportError(""); }}
+                placeholder="الصق كود الصديق هنا"
+              />
+              <Button onClick={handleImport} disabled={!importCode.trim()}>
+                <Plus size={14} />
+                إضافة
+              </Button>
+            </div>
+            {importError && <div className="mt-1 text-xs text-[var(--danger)]">{importError}</div>}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── L2: Group Khatma ──────────────────────────────────────────────────────
+
+function GroupKhatmaCard() {
+  const groupKhatma = useNoorStore((s) => s.groupKhatma);
+  const setGroupKhatma = useNoorStore((s) => s.setGroupKhatma);
+  const toggleGroupKhatmaJuz = useNoorStore((s) => s.toggleGroupKhatmaJuz);
+
+  const [groupName, setGroupName] = React.useState("");
+  const [membersRaw, setMembersRaw] = React.useState("");
+  const [importCode, setImportCode] = React.useState("");
+  const [importError, setImportError] = React.useState("");
+  const [copied, setCopied] = React.useState(false);
+  const [mode, setMode] = React.useState<"view" | "create" | "import">("view");
+
+  const MEMBER_COLORS = ["#fbbf24", "#34d399", "#f472b6", "#60a5fa", "#a78bfa", "#fb923c", "#2dd4bf"];
+
+  const createGroup = () => {
+    const names = membersRaw
+      .split(/\n|،|,/)
+      .map((n) => n.trim())
+      .filter(Boolean);
+    if (!groupName.trim() || names.length < 2) return;
+
+    const juzPerMember = Math.floor(30 / names.length);
+    const extra = 30 - juzPerMember * names.length;
+
+    let juzCursor = 1;
+    const members = names.map((name, i) => {
+      const count = juzPerMember + (i < extra ? 1 : 0);
+      const assignedJuz: number[] = [];
+      for (let j = 0; j < count; j++) assignedJuz.push(juzCursor++);
+      return { memberId: `m${i}`, name, assignedJuz, completedJuz: [] as number[] };
+    });
+
+    setGroupKhatma({
+      groupId: Math.random().toString(36).slice(2),
+      groupName: groupName.trim(),
+      members,
+      createdAt: new Date().toISOString()
+    });
+    setMode("view");
+    setGroupName("");
+    setMembersRaw("");
+  };
+
+  const shareCode = React.useMemo(() => {
+    if (!groupKhatma) return "";
+    return btoa(unescape(encodeURIComponent(JSON.stringify(groupKhatma))));
+  }, [groupKhatma]);
+
+  const copyShareCode = async () => {
+    try {
+      await navigator.clipboard.writeText(shareCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* ignore */ }
+  };
+
+  const handleImport = () => {
+    setImportError("");
+    try {
+      const json = decodeURIComponent(escape(atob(importCode.trim())));
+      const data = JSON.parse(json) as { groupId?: string; groupName?: string; members?: unknown[] };
+      if (!data.groupId || !data.groupName || !Array.isArray(data.members)) {
+        setImportError("كود المجموعة غير صالح.");
+        return;
+      }
+      setGroupKhatma(data as Parameters<typeof setGroupKhatma>[0]);
+      setImportCode("");
+      setMode("view");
+    } catch {
+      setImportError("الكود غير صالح.");
+    }
+  };
+
+  const totalJuz = groupKhatma
+    ? groupKhatma.members.reduce((s, m) => s + m.completedJuz.length, 0)
+    : 0;
+  const completionPct = groupKhatma ? Math.round((totalJuz / 30) * 100) : 0;
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <BookMarked size={16} className="text-[var(--accent)]" />
+          <div className="text-sm font-semibold">ختمة جماعية</div>
+          {groupKhatma && (
+            <span className="text-[10px] opacity-50">{groupKhatma.groupName}</span>
+          )}
+        </div>
+        {!groupKhatma ? (
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => setMode(mode === "create" ? "view" : "create")}>إنشاء</Button>
+            <Button variant="outline" onClick={() => setMode(mode === "import" ? "view" : "import")}>استيراد</Button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => void copyShareCode()} aria-label="مشاركة كود الختمة">
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? "تم" : "كود المشاركة"}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setGroupKhatma(null as unknown as Parameters<typeof setGroupKhatma>[0])}
+              className="text-[var(--danger)] opacity-50 hover:opacity-100 transition"
+              aria-label="حذف الختمة"
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Create form */}
+      {mode === "create" && !groupKhatma && (
+        <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
+          <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="اسم الختمة (مثال: ختمة رمضان)" />
+          <textarea
+            value={membersRaw}
+            onChange={(e) => setMembersRaw(e.target.value)}
+            placeholder={"أسماء الأعضاء (سطر لكل اسم)\nمثال:\nعبدالله\nفاطمة\nأحمد"}
+            className="w-full min-h-[90px] rounded-3xl bg-white/6 border border-white/10 p-4 text-sm leading-7 outline-none focus:border-white/20"
+          />
+          <div className="text-[11px] opacity-45">سيتم توزيع الأجزاء الثلاثين تلقائيًا على الأعضاء.</div>
+          <Button onClick={createGroup} disabled={!groupName.trim() || membersRaw.trim().split(/\n|،|,/).filter(Boolean).length < 2}>
+            إنشاء الختمة
+          </Button>
+        </div>
+      )}
+
+      {/* Import form */}
+      {mode === "import" && !groupKhatma && (
+        <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
+          <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" />
+          {importError && <div className="text-xs text-[var(--danger)]">{importError}</div>}
+          <Button onClick={handleImport} disabled={!importCode.trim()}>استيراد الختمة</Button>
+        </div>
+      )}
+
+      {/* Khatma view */}
+      {groupKhatma && (
+        <div className="mt-4">
+          {/* Progress bar */}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${completionPct}%`, background: "var(--ok)" }}
+              />
+            </div>
+            <span className="text-xs font-semibold tabular-nums" style={{ color: completionPct >= 100 ? "var(--ok)" : undefined }}>
+              {totalJuz}/30
+            </span>
+          </div>
+
+          {/* Members legend */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            {groupKhatma.members.map((m, mi) => (
+              <div key={m.memberId} className="flex items-center gap-1.5 text-xs">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: MEMBER_COLORS[mi % MEMBER_COLORS.length] }} />
+                <span className="opacity-75">{m.name}</span>
+                <span className="opacity-45 tabular-nums">({m.completedJuz.length}/{m.assignedJuz.length})</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 30-Juz grid */}
+          <div className="grid grid-cols-6 gap-1.5">
+            {Array.from({ length: 30 }, (_, i) => i + 1).map((juz) => {
+              const owner = groupKhatma.members.find((m) => m.assignedJuz.includes(juz));
+              const ownerIdx = owner ? groupKhatma.members.indexOf(owner) : -1;
+              const done = owner ? owner.completedJuz.includes(juz) : false;
+              const color = owner ? MEMBER_COLORS[ownerIdx % MEMBER_COLORS.length] : "#ffffff22";
+
+              return (
+                <button
+                  key={juz}
+                  type="button"
+                  onClick={() => { if (owner) toggleGroupKhatmaJuz(owner.memberId, juz); }}
+                  className="relative aspect-square rounded-xl border text-xs font-semibold flex items-center justify-center transition-all"
+                  style={{
+                    background: done ? `${color}40` : "rgba(255,255,255,0.04)",
+                    borderColor: done ? color : "rgba(255,255,255,0.1)",
+                    color: done ? color : "rgba(255,255,255,0.5)",
+                  }}
+                  title={owner ? `${owner.name} — جزء ${juz}` : `جزء ${juz}`}
+                >
+                  {done ? <Check size={10} strokeWidth={3} style={{ color }} /> : juz}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── L3: Weekly Challenge ──────────────────────────────────────────────────
+
+function WeeklyChallengeCard() {
+  const weeklyChallenge = useNoorStore((s) => s.weeklyChallenge);
+  const setWeeklyChallenge = useNoorStore((s) => s.setWeeklyChallenge);
+  const toggleWeeklyChallengeDay = useNoorStore((s) => s.toggleWeeklyChallengeDay);
+
+  const today = React.useMemo(() => new Date(), []);
+
+  const getISOWeek = (d: Date): number => {
+    const tmp = new Date(d.getTime());
+    tmp.setHours(0, 0, 0, 0);
+    tmp.setDate(tmp.getDate() + 3 - ((tmp.getDay() + 6) % 7));
+    const week1 = new Date(tmp.getFullYear(), 0, 4);
+    return 1 + Math.round(((tmp.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+  };
+
+  const currentWeekISO = `${today.getFullYear()}-W${String(getISOWeek(today)).padStart(2, "0")}`;
+  const challengeType = getISOWeek(today) % 2 === 0 ? "al_kahf" : "morning_adhkar_5days";
+
+  // Auto-initialize / reset if week changed
+  React.useEffect(() => {
+    if (!weeklyChallenge || weeklyChallenge.weekISO !== currentWeekISO || weeklyChallenge.type !== challengeType) {
+      setWeeklyChallenge({ type: challengeType, weekISO: currentWeekISO, progress: {}, completed: false });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentWeekISO, challengeType]);
+
+  const dateKey = (d: Date) => d.toISOString().slice(0, 10);
+
+  const last7Days = React.useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (6 - i));
+      return { key: dateKey(d), label: d.toLocaleDateString("ar-SA", { weekday: "short" }), isToday: i === 6 };
+    });
+  }, [today]);
+
+  const daysChecked = weeklyChallenge
+    ? last7Days.filter((d) => weeklyChallenge.progress[d.key]).length
+    : 0;
+  const isCompleted = weeklyChallenge?.completed ?? false;
+  const targetDays = challengeType === "morning_adhkar_5days" ? 5 : 1;
+
+  const challengeInfo = {
+    al_kahf: {
+      title: "اقرأ سورة الكهف",
+      desc: "أتمّ قراءة سورة الكهف هذا الأسبوع",
+      emoji: "📖",
+      target: "مرة واحدة هذا الأسبوع"
+    },
+    morning_adhkar_5days: {
+      title: "أذكار الصباح ٥ أيام",
+      desc: "داوم على أذكار الصباح ٥ أيام من هذا الأسبوع",
+      emoji: "🌅",
+      target: "٥ أيام من ٧"
+    }
+  } as const;
+
+  const info = challengeInfo[challengeType];
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Calendar size={15} className="text-[var(--accent)]" />
+        <div className="text-sm font-semibold">تحدي الأسبوع</div>
+        {isCompleted && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--ok)]/15 border border-[var(--ok)]/30 text-[var(--ok)] mr-auto">
+            ✓ مكتمل
+          </span>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border"
+            style={{
+              background: isCompleted ? "rgba(52,211,153,0.15)" : "rgba(255,255,255,0.05)",
+              borderColor: isCompleted ? "rgba(52,211,153,0.3)" : "rgba(255,255,255,0.1)"
+            }}
+          >
+            {info.emoji}
+          </div>
+          <div>
+            <div className="text-sm font-semibold">{info.title}</div>
+            <div className="text-[11px] opacity-55 mt-0.5">{info.desc}</div>
+            <div className="text-[11px] opacity-40 mt-0.5">الهدف: {info.target}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div className="mt-3 flex items-center gap-2">
+        <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${Math.min(100, (daysChecked / targetDays) * 100)}%`,
+              background: isCompleted ? "var(--ok)" : "var(--accent)"
+            }}
+          />
+        </div>
+        <span className="text-[11px] opacity-60 tabular-nums">{daysChecked}/{targetDays}</span>
+      </div>
+
+      {/* Day toggles */}
+      <div className="mt-3 grid grid-cols-7 gap-1.5">
+        {last7Days.map((day) => {
+          const done = weeklyChallenge?.progress[day.key] ?? false;
+          return (
+            <button
+              key={day.key}
+              type="button"
+              onClick={() => toggleWeeklyChallengeDay(day.key)}
+              className="flex flex-col items-center gap-1 py-2 rounded-xl border transition-all"
+              style={{
+                background: done ? "rgba(52,211,153,0.15)" : day.isToday ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
+                borderColor: done ? "rgba(52,211,153,0.4)" : day.isToday ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)"
+              }}
+              aria-label={`${day.label}: ${done ? "مكتمل" : "غير مكتمل"}`}
+            >
+              <span className="text-[8px] opacity-60">{day.label}</span>
+              <span className="text-xs">
+                {done
+                  ? <Check size={12} strokeWidth={3} style={{ color: "var(--ok)" }} />
+                  : <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "8px" }}>·</span>}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {isCompleted && (
+        <div className="mt-3 rounded-2xl border border-[var(--ok)]/25 bg-[var(--ok)]/8 px-4 py-3 text-sm text-center" style={{ color: "var(--ok)" }}>
+          أحسنت! أتممت تحدي هذا الأسبوع 🎉
         </div>
       )}
     </Card>

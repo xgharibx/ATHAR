@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Flame, TrendingUp, Trophy, Share2, BookOpen, Target, Sparkles, BarChart2 } from "lucide-react";
+import { Flame, TrendingUp, Trophy, Share2, BookOpen, Target, Sparkles, BarChart2, Zap, Bell, FileDown, BellOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { toPng } from "html-to-image";
@@ -10,7 +10,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useQuranDB } from "@/data/useQuranDB";
 import { coerceCount } from "@/data/types";
-import { pct } from "@/lib/utils";
+
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
@@ -77,6 +77,113 @@ function dateKey(d: Date) {
 
 const DAY_LABELS = ["أحد", "إثن", "ثلث", "أرب", "خمس", "جمع", "سبت"];
 
+// ── I6: XP / Level system ────────────────────────────────────────
+type XpLevel = { label: string; minXp: number; maxXp: number; emoji: string; color: string };
+const XP_LEVELS: XpLevel[] = [
+  { label: "مبتدئ",  minXp: 0,      maxXp: 999,    emoji: "🌱", color: "#6ee7b7" },
+  { label: "مواظب",  minXp: 1000,   maxXp: 4999,   emoji: "⭐", color: "#fbbf24" },
+  { label: "حافظ",   minXp: 5000,   maxXp: 19999,  emoji: "🏆", color: "#fb923c" },
+  { label: "إمام",   minXp: 20000,  maxXp: Infinity, emoji: "💎", color: "#a78bfa" },
+];
+
+function computeXp(
+  total: number,
+  quranTotalAyahs: number,
+  prayerLogTotal: number,
+  tasbeehTotal: number
+): number {
+  return total + quranTotalAyahs * 3 + prayerLogTotal * 10 + tasbeehTotal;
+}
+
+function getXpLevel(xp: number): XpLevel & { xpInLevel: number; xpForLevel: number; pct: number } {
+  const lvl = [...XP_LEVELS].reverse().find((l) => xp >= l.minXp) ?? (XP_LEVELS[0] as XpLevel);
+  const xpInLevel = xp - lvl.minXp;
+  const xpForLevel = lvl.maxXp === Infinity ? 10000 : lvl.maxXp - lvl.minXp;
+  return { ...lvl, xpInLevel, xpForLevel, pct: Math.min(100, Math.round((xpInLevel / xpForLevel) * 100)) };
+}
+
+// ── Radar chart for I4 ───────────────────────────────────────────
+function RadarChart(props: { values: { label: string; pct: number; color: string }[]; size?: number }) {
+  const { values, size = 160 } = props;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = (size / 2) * 0.72;
+  const n = values.length;
+
+  const angle = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
+  const pt = (i: number, radius: number) => ({
+    x: cx + Math.cos(angle(i)) * radius,
+    y: cy + Math.sin(angle(i)) * radius,
+  });
+
+  // Grid rings
+  const rings = [0.25, 0.5, 0.75, 1].map((fr) =>
+    values.map((_, i) => pt(i, r * fr)).map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(" ") + " Z"
+  );
+
+  // Data polygon
+  const dataPts = values.map((v, i) => pt(i, r * (v.pct / 100)));
+  const dataPath = dataPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(" ") + " Z";
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="مخطط الرادار">
+      {/* Grid */}
+      {rings.map((d, i) => (
+        <path key={i} d={d} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+      ))}
+      {/* Axes */}
+      {values.map((_, i) => {
+        const p = pt(i, r);
+        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />;
+      })}
+      {/* Data */}
+      <path d={dataPath} fill="rgba(var(--accent-raw,99,102,241),0.18)" stroke="var(--accent)" strokeWidth={2} />
+      {values.map((v, i) => {
+        const p = pt(i, r * (v.pct / 100));
+        return <circle key={i} cx={p.x} cy={p.y} r={3.5} fill={v.color} />;
+      })}
+      {/* Labels */}
+      {values.map((v, i) => {
+        const lp = pt(i, r * 1.22);
+        return (
+          <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle"
+            fontSize={10} fill="rgba(255,255,255,0.7)" fontFamily="inherit">
+            {v.label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ── Build heatmap for I1 ─────────────────────────────────────────
+function buildHeatmap(
+  activity: Record<string, number>,
+  days: number // 7, 28, or 90
+): { key: string; count: number; isToday: boolean }[][] {
+  const today = new Date();
+  const todayK = dateKey(today);
+  const lastSunday = new Date(today);
+  lastSunday.setDate(today.getDate() - today.getDay());
+
+  const totalDays = days;
+  const weeks = Math.ceil(totalDays / 7);
+  const result: { key: string; count: number; isToday: boolean }[][] = [];
+
+  for (let week = weeks - 1; week >= 0; week--) {
+    const row: { key: string; count: number; isToday: boolean }[] = [];
+    for (let day = 0; day < 7; day++) {
+      const d = new Date(lastSunday);
+      d.setDate(lastSunday.getDate() - week * 7 + day);
+      const k = dateKey(d);
+      const isFuture = d > today;
+      row.push({ key: k, count: isFuture ? -1 : (activity[k] ?? 0), isToday: k === todayK });
+    }
+    result.push(row);
+  }
+  return result;
+}
+
 export function InsightsPage() {
   const navigate = useNavigate();
   const activity = useNoorStore((s) => s.activity);
@@ -90,8 +197,16 @@ export function InsightsPage() {
   const { data: quranData } = useQuranDB();
   const dailyChecklist = useNoorStore((s) => s.dailyChecklist);
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
+  const prayerLog = useNoorStore((s) => s.prayerLog);
+  const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
   const prayerTimes = usePrayerTimes();
   const fajrTime = prayerTimes.data?.data?.timings?.Fajr;
+  const weeklyReportSentISO = useNoorStore((s) => s.weeklyReportSentISO);
+  const setWeeklyReportSentISO = useNoorStore((s) => s.setWeeklyReportSentISO);
+
+  // I1: Heatmap view toggle
+  const [heatmapView, setHeatmapView] = React.useState<7 | 28 | 90>(28);
+
   const streak = React.useMemo(() => computeStreak(activity), [activity]);
   const bestStreak = React.useMemo(() => computeBestStreak(activity), [activity]);
 
@@ -108,38 +223,12 @@ export function InsightsPage() {
     return { count: max, key };
   }, [activity]);
 
-  // Build 28-day heatmap aligned to Sunday columns
+  // I1: dynamic heatmap based on view
   const { heatmap, maxCount } = React.useMemo(() => {
-    const today = new Date();
-    const todayKey = dateKey(today);
-    // Find the last Sunday on or before today
-    const lastSunday = new Date(today);
-    lastSunday.setDate(today.getDate() - today.getDay());
-
-    // Build 4 weeks (28 days): rows = weeks, cols = day of week
+    const weeks = buildHeatmap(activity, heatmapView);
     const maxCount = Math.max(1, ...Object.values(activity).map(v => v ?? 0));
-    const weeks: { key: string; count: number; isToday: boolean; dayLabel: string }[][] = [];
-
-    for (let week = 3; week >= 0; week--) {
-      const row: { key: string; count: number; isToday: boolean; dayLabel: string }[] = [];
-      for (let day = 0; day < 7; day++) {
-        const d = new Date(lastSunday);
-        d.setDate(lastSunday.getDate() - week * 7 + day);
-        const k = dateKey(d);
-        const count = activity[k] ?? 0;
-        const isFuture = d > today;
-        row.push({
-          key: k,
-          count: isFuture ? -1 : count,
-          isToday: k === todayKey,
-          dayLabel: d.toLocaleDateString("ar-SA", { day: "numeric", month: "numeric" }),
-        });
-      }
-      weeks.push(row);
-    }
-
     return { heatmap: weeks, maxCount };
-  }, [activity]);
+  }, [activity, heatmapView]);
 
   const total = Object.values(activity).reduce((a, b) => a + (b ?? 0), 0);
   const civilTodayKey = useTodayKey();
@@ -273,6 +362,186 @@ export function InsightsPage() {
     [quranStats.totalAyahs]
   );
 
+  // I2: Prayer consistency - last 28 days from prayerLog
+  const prayerConsistency = React.useMemo(() => {
+    const today = new Date();
+    const PRAYERS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+    return Array.from({ length: 28 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (27 - i));
+      const k = dateKey(d);
+      const dayLog = prayerLog[k] ?? {};
+      const done = PRAYERS.filter((p) => !!dayLog[p]).length;
+      return { key: k, done, isToday: i === 27 };
+    });
+  }, [prayerLog]);
+
+  const prayerConsistencyAvg = React.useMemo(() => {
+    const withData = prayerConsistency.filter((d) => d.done > 0);
+    if (!withData.length) return 0;
+    return Math.round(withData.reduce((s, d) => s + d.done, 0) / prayerConsistency.length * 10) / 10;
+  }, [prayerConsistency]);
+
+  // I3: Quran pages per day (estimated from ayahs; 6236 ayahs / 604 pages ≈ 10.32 ayahs/page)
+  const AYAHS_PER_PAGE = 6236 / 604;
+  const quranPageLast7Days = React.useMemo(() => {
+    const today = new Date();
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (6 - i));
+      const k = dateKey(d);
+      const ayahs = quranDailyAyahs[k] ?? 0;
+      const pages = ayahs > 0 ? Math.max(0.5, ayahs / AYAHS_PER_PAGE) : 0;
+      return { key: k, ayahs, pages, isToday: i === 6, label: DAY_LABELS[d.getDay()] ?? "" };
+    });
+  }, [quranDailyAyahs]);
+
+  const quranMaxPageDay = React.useMemo(
+    () => Math.max(1, ...quranPageLast7Days.map((d) => d.pages)),
+    [quranPageLast7Days]
+  );
+
+  // I4: Category radar chart values
+  const radarValues = React.useMemo(() => {
+    if (!adhkarData) return [];
+    const RADAR_IDS = ["morning", "evening", "sleep", "post_prayer", "mosque"];
+    const result: { label: string; pct: number; color: string }[] = [];
+    const LABELS: Record<string, string> = {
+      morning: "صباح", evening: "مساء", sleep: "نوم",
+      post_prayer: "بعد الصلاة", mosque: "مسجد",
+    };
+    const COLORS: Record<string, string> = {
+      morning: "#fbbf24", evening: "#818cf8", sleep: "#34d399",
+      post_prayer: "#f472b6", mosque: "#38bdf8",
+    };
+    for (const sid of RADAR_IDS) {
+      const sec = adhkarData.db.sections.find((s) => s.id === sid);
+      if (!sec) continue;
+      let done = 0, total = 0;
+      sec.content.forEach((item, i) => {
+        const t = coerceCount(item.count);
+        const c = Math.min(t, Math.max(0, Number(progressMap[`${sec.id}:${i}`]) || 0));
+        total += t;
+        done += c;
+      });
+      result.push({
+        label: LABELS[sid] ?? sid,
+        pct: total > 0 ? Math.round((done / total) * 100) : 0,
+        color: COLORS[sid] ?? "var(--accent)",
+      });
+    }
+    return result;
+  }, [adhkarData, progressMap]);
+
+  // I6: XP and level
+  const tasbeehTotal = React.useMemo(
+    () => Object.values(quickTasbeeh).reduce((s, v) => s + (v ?? 0), 0),
+    [quickTasbeeh]
+  );
+  const prayerLogTotal = React.useMemo(
+    () => Object.values(prayerLog).reduce((s, day) => s + Object.values(day).filter(Boolean).length, 0),
+    [prayerLog]
+  );
+  const xp = React.useMemo(
+    () => computeXp(total, quranStats.totalAyahs, prayerLogTotal, tasbeehTotal),
+    [total, quranStats.totalAyahs, prayerLogTotal, tasbeehTotal]
+  );
+  const xpLevel = React.useMemo(() => getXpLevel(xp), [xp]);
+
+  // I7: prayerLog weekly total (must be before the useEffect below)
+  const prayerLogWeekTotal = React.useMemo(() => {
+    const today = new Date();
+    const PRAYERS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+    let count = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const k = dateKey(d);
+      count += PRAYERS.filter((p) => !!prayerLog[k]?.[p]).length;
+    }
+    return count;
+  }, [prayerLog]);
+
+  // I7: Weekly report notification (Sunday auto-trigger)
+  React.useEffect(() => {
+    const today = new Date();
+    if (today.getDay() !== 0) return; // Only on Sunday
+    const thisWeekISO = dateKey(today);
+    if (weeklyReportSentISO === thisWeekISO) return;
+    if (!("Notification" in globalThis)) return;
+
+    const sendReport = () => {
+      const msg = `أحسنت! هذا الأسبوع: ${weekTotal} ذكر، ${quranWeekTotal} آية، ${prayerLogWeekTotal} صلاة ✨`;
+      if (Notification.permission === "granted") {
+        new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
+        setWeeklyReportSentISO(thisWeekISO);
+      } else if (Notification.permission !== "denied") {
+        void Notification.requestPermission().then((perm) => {
+          if (perm === "granted") {
+            new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
+            setWeeklyReportSentISO(thisWeekISO);
+          }
+        });
+      }
+    };
+    sendReport();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weeklyReportSentISO]);
+
+  // I8: Ibadat summary card ref
+  const ibadatCardRef = React.useRef<HTMLDivElement>(null);
+  const [ibadatSharing, setIbadatSharing] = React.useState(false);
+
+  async function shareIbadatCard() {
+    if (!ibadatCardRef.current || ibadatSharing) return;
+    setIbadatSharing(true);
+    try {
+      const dataUrl = await toPng(ibadatCardRef.current, { pixelRatio: 2, cacheBust: true });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "ATHAR-ibadat.png", { type: "image/png" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "بطاقة العبادة", text: "بطاقة العبادة اليوم من تطبيق ATHAR ✨" });
+      } else {
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = "ATHAR-ibadat.png";
+        a.click();
+        toast.success("تم تحميل بطاقة العبادة");
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== "AbortError") toast.error("تعذر مشاركة البطاقة");
+    } finally {
+      setIbadatSharing(false);
+    }
+  }
+
+  // I5: Export insights as printable PDF
+  const insightsExportRef = React.useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = React.useState(false);
+
+  async function exportInsightsPdf() {
+    if (!insightsExportRef.current || exporting) return;
+    setExporting(true);
+    try {
+      const dataUrl = await toPng(insightsExportRef.current, { pixelRatio: 2, cacheBust: true, backgroundColor: "var(--bg)" });
+      const win = window.open("", "_blank");
+      if (win) {
+        win.document.open();
+        win.document.title = "إحصاءات ATHAR";
+        const img = win.document.createElement("img");
+        img.src = dataUrl;
+        img.style.cssText = "max-width:420px;width:100%;border-radius:16px;display:block;margin:20px auto";
+        win.document.body.style.cssText = "margin:0;background:#0f172a;display:flex;justify-content:center";
+        win.document.body.appendChild(img);
+        setTimeout(() => win.print(), 400);
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== "AbortError") toast.error("تعذر تصدير الإحصاءات");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   // Quran progress share card ref
   const quranShareCardRef = React.useRef<HTMLDivElement>(null);
   const [quranSharing, setQuranSharing] = React.useState(false);
@@ -369,9 +638,133 @@ export function InsightsPage() {
     streak >= 2  ? "يومان متواصلان ✨" :
     streak >= 1  ? "انطلاقة جيدة ✨" : "ابدأ اليوم";
 
+  // I7: Notification permission state
+  const [notifPermission, setNotifPermission] = React.useState<NotificationPermission | "unsupported">(
+    "Notification" in globalThis ? Notification.permission : "unsupported"
+  );
+
+  async function requestWeeklyNotif() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "granted") {
+      const today = new Date();
+      const thisWeekISO = dateKey(today);
+      const msg = `أحسنت! هذا الأسبوع: ${weekTotal} ذكر، ${quranWeekTotal} آية، ${prayerLogWeekTotal} صلاة ✨`;
+      new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
+      setWeeklyReportSentISO(thisWeekISO);
+      toast.success("تم إرسال التقرير الأسبوعي");
+    } else {
+      const perm = await Notification.requestPermission();
+      setNotifPermission(perm);
+      if (perm === "granted") toast.success("تم تفعيل إشعار الأحد");
+      else toast.error("لم يتم السماح بالإشعارات");
+    }
+  }
+
   return (
     <div className="space-y-4 page-enter">
-      {/* Hidden shareable progress card (off-screen) */}
+      {/* I6: XP Level badge */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border border-white/10"
+              style={{ background: `${xpLevel.color}22` }}
+            >
+              {xpLevel.emoji}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <Zap size={13} style={{ color: xpLevel.color }} />
+                <span className="text-sm font-bold" style={{ color: xpLevel.color }}>{xpLevel.label}</span>
+                <span className="text-[10px] opacity-40 tabular-nums">{xp.toLocaleString("ar-SA")} نقطة</span>
+              </div>
+              <div className="mt-1.5 flex items-center gap-2">
+                <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${xpLevel.pct}%`, background: xpLevel.color }}
+                  />
+                </div>
+                {xpLevel.maxXp < Infinity && (
+                  <span className="text-[10px] opacity-45 tabular-nums">{xpLevel.xpInLevel}/{xpLevel.xpForLevel}</span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="text-[10px] opacity-40 text-left leading-5">
+            {XP_LEVELS.map((l) => (
+              <div key={l.label} style={{ color: xp >= l.minXp ? l.color : undefined, opacity: xp >= l.minXp ? 1 : 0.3 }}>
+                {l.emoji} {l.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {/* I8: Ibadat summary card */}
+      <div ref={ibadatCardRef}>
+        <Card className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={14} className="text-[var(--accent)]" />
+            <div className="text-xs font-semibold opacity-65">بطاقة العبادة</div>
+            <div className="text-[10px] opacity-35 mr-auto">
+              {new Date().toLocaleDateString("ar-SA", { weekday: "short", day: "numeric", month: "short" })}
+            </div>
+            <button
+              type="button"
+              onClick={shareIbadatCard}
+              disabled={ibadatSharing}
+              className="text-[10px] opacity-60 hover:opacity-100 flex items-center gap-1 transition"
+              aria-label="مشاركة بطاقة العبادة"
+            >
+              <Share2 size={11} />
+              <span>{ibadatSharing ? "..." : "شارك"}</span>
+            </button>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {/* Prayers */}
+            <div className="col-span-4 flex items-center justify-between gap-1 mb-1">
+              <span className="text-[11px] opacity-50">الصلوات:</span>
+              <div className="flex gap-1.5">
+                {["الفجر","الظهر","العصر","المغرب","العشاء"].map((p, i) => {
+                  const keys = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
+                  const done = !!prayerLog[civilTodayKey]?.[keys[i] ?? ""];
+                  return (
+                    <div
+                      key={p}
+                      title={p}
+                      className="w-6 h-6 rounded-full border text-[8px] flex items-center justify-center font-bold transition"
+                      style={{
+                        background: done ? "rgba(52,211,153,0.2)" : "rgba(255,255,255,0.05)",
+                        borderColor: done ? "var(--ok)" : "rgba(255,255,255,0.12)",
+                        color: done ? "var(--ok)" : "rgba(255,255,255,0.3)",
+                      }}
+                    >
+                      {done ? "✓" : "·"}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
+              <div className="text-[10px] opacity-45">ذكر</div>
+              <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayCount > 0 ? "var(--accent)" : undefined }}>{todayCount}</div>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
+              <div className="text-[10px] opacity-45">آية</div>
+              <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayQuranAyahs > 0 ? "var(--accent)" : undefined }}>{todayQuranAyahs}</div>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
+              <div className="text-[10px] opacity-45">هدف</div>
+              <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: quranGoalPct >= 100 ? "var(--ok)" : undefined }}>{quranGoalPct}%</div>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
+              <div className="text-[10px] opacity-45">مستوى</div>
+              <div className="text-sm font-bold mt-0.5" style={{ color: xpLevel.color }}>{xpLevel.emoji}</div>
+            </div>
+          </div>
+        </Card>
+      </div>
       <div
         ref={shareCardRef}
         aria-hidden="true"
@@ -568,19 +961,37 @@ export function InsightsPage() {
         </div>
       </Card>
 
-      {/* 28-Day Heatmap */}
+      {/* 28-Day Heatmap — I1: with view toggle */}
       <Card className="p-5">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-3">
           <Flame size={16} className="text-[var(--accent)]" />
-          <div className="font-semibold text-sm">نشاط 28 يومًا</div>
+          <div className="font-semibold text-sm">نشاط الأذكار</div>
+          <div className="mr-auto flex gap-1">
+            {([7, 28, 90] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setHeatmapView(v)}
+                className={`text-[10px] px-2 py-0.5 rounded-full border transition ${
+                  heatmapView === v
+                    ? "border-[var(--accent)]/40 bg-[var(--accent)]/15 text-[var(--accent)]"
+                    : "border-white/10 opacity-50"
+                }`}
+              >
+                {v === 7 ? "٧ أيام" : v === 28 ? "٢٨ يومًا" : "٩٠ يومًا"}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Day labels */}
-        <div className="grid grid-cols-7 gap-1.5 mb-1.5">
-          {DAY_LABELS.map((l) => (
-            <div key={l} className="text-center text-[11px] opacity-55 font-medium">{l}</div>
-          ))}
-        </div>
+        {/* Day labels — only for 7-day and 28-day */}
+        {heatmapView <= 28 && (
+          <div className="grid grid-cols-7 gap-1.5 mb-1.5">
+            {DAY_LABELS.map((l) => (
+              <div key={l} className="text-center text-[11px] opacity-55 font-medium">{l}</div>
+            ))}
+          </div>
+        )}
 
         {/* Weeks */}
         <div className="space-y-1.5">
@@ -589,7 +1000,6 @@ export function InsightsPage() {
               {week.map((cell) => {
                 const isFuture = cell.count < 0;
                 const count = Math.max(0, cell.count);
-                // Dynamic heat thresholds based on personal best
                 const q1 = Math.max(1, Math.ceil(maxCount * 0.25));
                 const q2 = Math.max(2, Math.ceil(maxCount * 0.5));
                 const q3 = Math.max(3, Math.ceil(maxCount * 0.75));
@@ -767,6 +1177,171 @@ export function InsightsPage() {
           )}
         </Card>
       )}
+
+      {/* I2: Prayer consistency chart (28 days) */}
+      <Card className="p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Target size={14} className="text-[var(--accent)]" />
+          <div className="font-semibold text-sm">ثبات الصلاة</div>
+          <span className="text-[11px] opacity-50 mr-auto tabular-nums">
+            متوسط {prayerConsistencyAvg} / 5
+          </span>
+        </div>
+        {prayerConsistency.every((d) => d.done === 0) ? (
+          <div className="text-xs opacity-50 text-center py-3">
+            لم يتم تسجيل الصلوات بعد. ابدأ بالتتبع من صفحة الصلاة.
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-7 gap-1 mb-1.5">
+              {DAY_LABELS.map((l) => (
+                <div key={l} className="text-center text-[9px] opacity-45">{l}</div>
+              ))}
+            </div>
+            <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
+              {prayerConsistency.map((d) => {
+                const c =
+                  d.done === 0 ? "bg-white/5" :
+                  d.done <= 2 ? "bg-yellow-400/40" :
+                  d.done <= 4 ? "bg-orange-400/60" :
+                                "bg-[var(--ok)]/70";
+                return (
+                  <div
+                    key={d.key}
+                    title={`${d.key}: ${d.done}/5 صلوات`}
+                    className={`aspect-square rounded-sm ${c} ${d.isToday ? "ring-2 ring-[var(--accent)]" : ""}`}
+                  />
+                );
+              })}
+            </div>
+            <div className="mt-2 flex items-center gap-2 justify-end text-[10px] opacity-55 flex-wrap">
+              <div className="w-3 h-3 rounded-sm bg-white/5" /><span>٠</span>
+              <div className="w-3 h-3 rounded-sm bg-yellow-400/40" /><span>١-٢</span>
+              <div className="w-3 h-3 rounded-sm bg-orange-400/60" /><span>٣-٤</span>
+              <div className="w-3 h-3 rounded-sm bg-[var(--ok)]/70" /><span>٥ كاملة</span>
+            </div>
+          </>
+        )}
+      </Card>
+
+      {/* I3: Quran pages per day */}
+      {quranPageLast7Days.some((d) => d.pages > 0) && (
+        <Card className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <BookOpen size={14} className="text-[var(--accent)]" />
+            <div className="font-semibold text-sm">صفحات القرآن (7 أيام)</div>
+            <span className="text-[11px] opacity-50 mr-auto tabular-nums">
+              {quranPageLast7Days.reduce((s, d) => s + d.pages, 0).toFixed(1)} صفحة
+            </span>
+          </div>
+          <div className="flex items-end gap-1.5" style={{ height: "72px" }}>
+            {quranPageLast7Days.map((day) => {
+              const barH = day.pages > 0 ? Math.max(6, Math.round((day.pages / quranMaxPageDay) * 56)) : 3;
+              return (
+                <div key={day.key} className="flex-1 flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
+                  {day.pages > 0 && (
+                    <span className="text-[9px] opacity-60 tabular-nums leading-none mb-0.5">{day.pages.toFixed(1)}</span>
+                  )}
+                  <div
+                    className="w-full rounded-t-md transition-all duration-500"
+                    style={{
+                      height: `${barH}px`,
+                      background: day.isToday ? "var(--accent)"
+                        : day.pages > 0 ? "color-mix(in srgb, var(--accent) 55%, transparent)"
+                        : "rgba(255,255,255,0.06)",
+                    }}
+                  />
+                  <span className="text-[10px] leading-none mt-1" style={{ opacity: day.isToday ? 0.9 : 0.45, color: day.isToday ? "var(--accent)" : undefined }}>
+                    {day.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-2 text-[10px] opacity-40">* تقديري بناءً على الآيات المقروءة (٦٢٣٦ آية / ٦٠٤ صفحة)</div>
+        </Card>
+      )}
+
+      {/* I4: Category radar chart */}
+      {radarValues.length >= 3 && (
+        <Card className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart2 size={14} className="text-[var(--accent)]" />
+            <div className="font-semibold text-sm">مخطط الأقسام</div>
+          </div>
+          <div className="flex items-center justify-center gap-6 flex-wrap">
+            <RadarChart values={radarValues} size={180} />
+            <div className="space-y-1.5">
+              {radarValues.map((v) => (
+                <div key={v.label} className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: v.color }} />
+                  <span className="text-[11px] opacity-75">{v.label}</span>
+                  <span className="text-[11px] tabular-nums font-semibold mr-auto" style={{ color: v.pct >= 80 ? "var(--ok)" : undefined }}>
+                    {v.pct}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* I5: Export insights as PDF */}
+      <div ref={insightsExportRef}>
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center">
+                <FileDown size={16} className="text-[var(--accent)]" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold">تصدير الإحصاءات</div>
+                <div className="text-xs opacity-50 mt-0.5">طباعة أو مشاركة ملخص التقدم</div>
+              </div>
+            </div>
+            <Button variant="secondary" onClick={exportInsightsPdf} disabled={exporting}>
+              <FileDown size={14} />
+              {exporting ? "جاري التحضير..." : "تصدير PDF"}
+            </Button>
+          </div>
+        </Card>
+      </div>
+
+      {/* I7: Weekly report notification */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-2xl border flex items-center justify-center ${
+              notifPermission === "granted" ? "border-[var(--ok)]/30 bg-[var(--ok)]/10" : "border-white/10 bg-white/5"
+            }`}>
+              {notifPermission === "granted" ? <Bell size={15} className="text-[var(--ok)]" /> : <BellOff size={15} className="opacity-50" />}
+            </div>
+            <div>
+              <div className="text-sm font-semibold">التقرير الأسبوعي</div>
+              <div className="text-xs opacity-50 mt-0.5">
+                {notifPermission === "granted"
+                  ? "يوم الأحد: ملخص أذكارك، آياتك وصلواتك"
+                  : notifPermission === "denied"
+                    ? "الإشعارات محظورة في المتصفح"
+                    : notifPermission === "unsupported"
+                      ? "الإشعارات غير مدعومة"
+                      : "اضغط لتفعيل إشعار يوم الأحد"}
+              </div>
+            </div>
+          </div>
+          {notifPermission !== "denied" && notifPermission !== "unsupported" && (
+            <Button variant="secondary" onClick={requestWeeklyNotif} aria-label="تفعيل التقرير الأسبوعي">
+              <Bell size={14} />
+              {notifPermission === "granted" ? "اختبر" : "تفعيل"}
+            </Button>
+          )}
+        </div>
+        {notifPermission === "granted" && (
+          <div className="mt-2 text-[11px] opacity-45 leading-5">
+            آخر تقرير: {weekTotal} ذكر • {quranWeekTotal} آية • {prayerLogWeekTotal} صلاة
+          </div>
+        )}
+      </Card>
 
       {/* Milestone badges */}
       <Card className="p-5">
