@@ -55,6 +55,8 @@ export type Preferences = {
   customAccent?: string; // override --accent, e.g. "#ff5555"
   autoAdvanceDhikr: boolean; // scroll to next card on item completion
   homeWidgets: Record<HomeWidgetKey, boolean>;
+  prayerCalcMethod: number; // 1-23 AlAdhan method, default 5 (Egyptian)
+  asrMadhab: 0 | 1; // 0=Shafi'i, 1=Hanafi
 };
 
 export type SebhaSession = {
@@ -79,6 +81,7 @@ export type Reminders = {
   dailyWirdTime: string; // HH:MM
   khatmaEnabled: boolean;
   khatmaTime: string; // HH:MM
+  iqamaOffsets: Record<PrayerAlertPrayer, number>; // minutes after adhan per prayer
 };
 
 export type ExportBlobV1 = {
@@ -92,6 +95,8 @@ export type ExportBlobV1 = {
   quickTasbeeh?: Record<string, number>;
   sebhaSessions?: SebhaSession[];
   sebhaCustom?: { phrase: string; target: number } | null;
+  prayerLog?: Record<string, Record<string, boolean>>;
+  favoriteCities?: Array<{ id: string; city: string; country: string; label: string }>;
   quranBookmarks?: Record<string, boolean>;
   quranLastRead?: { surahId: number; ayahIndex: number } | null;
   quranNotes?: Record<string, string>;
@@ -137,6 +142,20 @@ type NoorState = {
   // Sebha custom dhikr
   sebhaCustom: { phrase: string; target: number } | null;
   setSebhaCustom: (v: { phrase: string; target: number } | null) => void;
+
+  // Prayer log (P9)
+  prayerLog: Record<string, Record<string, boolean>>; // dateISO -> prayerName -> prayed
+  setPrayerLogged: (dateISO: string, prayer: string, done: boolean) => void;
+  clearPrayerLog: () => void;
+
+  // Favorite cities (P2)
+  favoriteCities: Array<{ id: string; city: string; country: string; label: string }>;
+  addFavoriteCity: (c: { id: string; city: string; country: string; label: string }) => void;
+  removeFavoriteCity: (id: string) => void;
+
+  // Custom adhan ringtone base64 (P4)
+  customAdhanBase64: string | null;
+  setCustomAdhanBase64: (v: string | null) => void;
 
   // Quran
   quranBookmarks: Record<string, boolean>; // key: `${surahId}:${ayahIndex}`
@@ -234,6 +253,8 @@ const DEFAULT_PREFS: Preferences = {
   transparentMode: true,
   customAccent: undefined,
   autoAdvanceDhikr: true,
+  prayerCalcMethod: 5,
+  asrMadhab: 0,
   homeWidgets: {
     prayer: true,
     wisdom: true,
@@ -286,7 +307,8 @@ const DEFAULT_REMINDERS: Reminders = {
   dailyWirdEnabled: true,
   dailyWirdTime: "21:00",
   khatmaEnabled: false,
-  khatmaTime: "21:15"
+  khatmaTime: "21:15",
+  iqamaOffsets: { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 }
 };
 
 function normalizeReminderSoundProfile(value: unknown): ReminderSoundProfile {
@@ -427,6 +449,25 @@ export const useNoorStore = create<NoorState>()(
 
       sebhaCustom: null,
       setSebhaCustom: (v) => set({ sebhaCustom: v }),
+
+      prayerLog: {},
+      setPrayerLogged: (dateISO, prayer, done) =>
+        set((s) => ({
+          prayerLog: {
+            ...s.prayerLog,
+            [dateISO]: { ...(s.prayerLog[dateISO] ?? {}), [prayer]: done },
+          },
+        })),
+      clearPrayerLog: () => set({ prayerLog: {} }),
+
+      favoriteCities: [],
+      addFavoriteCity: (c) =>
+        set((s) => ({ favoriteCities: [...s.favoriteCities.filter((x) => x.id !== c.id), c] })),
+      removeFavoriteCity: (id) =>
+        set((s) => ({ favoriteCities: s.favoriteCities.filter((x) => x.id !== id) })),
+
+      customAdhanBase64: null,
+      setCustomAdhanBase64: (v) => set({ customAdhanBase64: v }),
 
       quranBookmarks: {},
       toggleQuranBookmark: (surahId, ayahIndex) => {
@@ -707,7 +748,9 @@ export const useNoorStore = create<NoorState>()(
           dailyChecklist: s.dailyChecklist,
           dailyBetterStepDone: s.dailyBetterStepDone,
           sebhaSessions: s.sebhaSessions,
-          sebhaCustom: s.sebhaCustom
+          sebhaCustom: s.sebhaCustom,
+          prayerLog: s.prayerLog,
+          favoriteCities: s.favoriteCities,
         };
       },
 
@@ -747,7 +790,9 @@ export const useNoorStore = create<NoorState>()(
           dailyChecklist: blob.dailyChecklist ?? {},
           dailyBetterStepDone: blob.dailyBetterStepDone ?? {},
           sebhaSessions: Array.isArray(blob.sebhaSessions) ? blob.sebhaSessions : [],
-          sebhaCustom: blob.sebhaCustom ?? null
+          sebhaCustom: blob.sebhaCustom ?? null,
+          prayerLog: blob.prayerLog ?? {},
+          favoriteCities: Array.isArray(blob.favoriteCities) ? blob.favoriteCities : [],
         });
       },
 
@@ -788,7 +833,7 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
-      version: 12,
+      version: 13,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -810,7 +855,10 @@ export const useNoorStore = create<NoorState>()(
           lastCivilResetISO: state.lastCivilResetISO ?? state.lastDailyResetISO ?? null,
           lastIbadahResetISO: state.lastIbadahResetISO ?? state.lastDailyResetISO ?? null,
           dailyChecklist: state.dailyChecklist ?? {},
-          dailyBetterStepDone: state.dailyBetterStepDone ?? {}
+          dailyBetterStepDone: state.dailyBetterStepDone ?? {},
+          prayerLog: (state as Partial<NoorState>).prayerLog ?? {},
+          favoriteCities: Array.isArray((state as Partial<NoorState>).favoriteCities) ? (state as Partial<NoorState>).favoriteCities! : [],
+          customAdhanBase64: (state as Partial<NoorState>).customAdhanBase64 ?? null,
         } as NoorState;
       }
     }

@@ -1,6 +1,9 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTodayKey } from "@/hooks/useTodayKey";
+import { useNoorStore } from "@/store/noorStore";
+
+export const PRAYER_COORDS_KEY_EXPORT = "noor_prayer_coords_v1";
 
 type PrayerTimesResponse = {
   data: {
@@ -67,15 +70,15 @@ function writeCached(dayKey: string, locationKey: string, payload: PrayerTimesRe
   }
 }
 
-async function fetchPrayerTimes(city: string, country: string) {
-  const url = `https://api.aladhan.com/v1/timingsByCity?city=${city}&country=${country}&method=5`; // Method 5 = Egyptian General Authority of Survey
+async function fetchPrayerTimes(city: string, country: string, method: number, school: number) {
+  const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error("تعذر جلب مواقيت الصلاة");
   return res.json() as Promise<PrayerTimesResponse>;
 }
 
-async function fetchPrayerTimesByCoords(latitude: number, longitude: number) {
-  const url = `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=5`;
+async function fetchPrayerTimesByCoords(latitude: number, longitude: number, method: number, school: number) {
+  const url = `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}&school=${school}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error("تعذر جلب مواقيت الصلاة بالموقع");
   return res.json() as Promise<PrayerTimesResponse>;
@@ -122,13 +125,15 @@ function getCurrentPosition(timeoutMs = 2500): Promise<GeolocationPosition> {
 
 export function usePrayerTimes() {
   const dayKey = useTodayKey();
+  const method = useNoorStore((s) => s.prefs.prayerCalcMethod ?? 5);
+  const school = useNoorStore((s) => s.prefs.asrMadhab ?? 0);
   // Fallback defaults
   const city = "Cairo";
   const country = "Egypt";
-  const cityLocationKey = `city:${city}:${country}`;
+  const cityLocationKey = `city:${city}:${country}:${method}:${school}`;
 
   const query = useQuery<PrayerTimesData>({
-    queryKey: ["prayer-times", "v3", dayKey],
+    queryKey: ["prayer-times", "v3", dayKey, method, school],
     queryFn: async () => {
       const cachedCoords = readCachedCoords();
 
@@ -144,10 +149,10 @@ export function usePrayerTimes() {
         const pos = await getCurrentPosition();
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        const locationKey = `coords:${lat.toFixed(3)}:${lng.toFixed(3)}`;
+        const locationKey = `coords:${lat.toFixed(3)}:${lng.toFixed(3)}:${method}:${school}`;
         writeCachedCoords(lat, lng);
         try {
-          return await trySource("الموقع الحالي", locationKey, () => fetchPrayerTimesByCoords(lat, lng));
+          return await trySource("الموقع الحالي", locationKey, () => fetchPrayerTimesByCoords(lat, lng, method, school));
         } catch {
           const cached = readCached(dayKey, locationKey);
           if (cached) return cached;
@@ -158,13 +163,13 @@ export function usePrayerTimes() {
 
       // 2) Last known coordinates
       if (cachedCoords) {
-        const locationKey = `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}`;
+        const locationKey = `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}`;
         try {
           return await trySource(
             "آخر موقع محفوظ",
             locationKey,
             () =>
-            fetchPrayerTimesByCoords(cachedCoords.lat, cachedCoords.lng)
+            fetchPrayerTimesByCoords(cachedCoords.lat, cachedCoords.lng, method, school)
           );
         } catch {
           const cached = readCached(dayKey, locationKey);
@@ -174,7 +179,7 @@ export function usePrayerTimes() {
 
       // 3) City fallback
       try {
-        return await trySource("القاهرة", cityLocationKey, () => fetchPrayerTimes(city, country));
+        return await trySource("القاهرة", cityLocationKey, () => fetchPrayerTimes(city, country, method, school));
       } catch {
         const cached = readCached(dayKey, cityLocationKey);
         if (cached) return cached;

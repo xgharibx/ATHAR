@@ -4,7 +4,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, Sunrise, CloudSun } from "lucide-react";
 import { buildPrayerSchedule } from "@/lib/prayerSchedule";
 import { PrayerCountdown } from "./PrayerCountdown";
 
@@ -84,6 +84,32 @@ export function PrayerWidget() {
           );
         })}
       </div>
+
+      {/* P10: Golden hour — Sunrise / Ishraq / Duha */}
+      {(() => {
+        const sunriseMoment = schedule.extraMoments.find((m) => m.id === "sunrise");
+        const duhaMoment    = schedule.extraMoments.find((m) => m.id === "duha");
+        if (!sunriseMoment && !duhaMoment) return null;
+        return (
+          <div className="mt-3 flex items-center gap-2 flex-wrap border-t border-white/8 pt-3 text-[11px] opacity-65">
+            {sunriseMoment && (
+              <div className="flex items-center gap-1.5">
+                <Sunrise size={12} className="text-[#ffd27d]" />
+                <span>{sunriseMoment.label}</span>
+                <span dir="ltr" className="tabular-nums font-medium">{sunriseMoment.value}</span>
+              </div>
+            )}
+            {sunriseMoment && duhaMoment && <span className="opacity-30">·</span>}
+            {duhaMoment && (
+              <div className="flex items-center gap-1.5">
+                <CloudSun size={12} className="text-[#ffd27d]" />
+                <span>{duhaMoment.label}</span>
+                <span dir="ltr" className="tabular-nums font-medium">{duhaMoment.value}</span>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       <Button variant="secondary" className="mt-4 w-full justify-between" onClick={() => navigate("/prayer-times")}>
         عرض التفاصيل الكاملة للمواقيت

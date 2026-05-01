@@ -25,6 +25,7 @@ const SurahPage = React.lazy(() => import("@/pages/Surah").then((m) => ({ defaul
 const MushafPage = React.lazy(() => import("@/pages/Mushaf").then((m) => ({ default: m.MushafPage })));
 const PrayerTimesPage = React.lazy(() => import("@/pages/PrayerTimes").then((m) => ({ default: m.PrayerTimesPage })));
 const SebhaPage = React.lazy(() => import("@/pages/Sebha").then((m) => ({ default: m.SebhaPage })));
+const QiblaPage = React.lazy(() => import("@/pages/Qibla").then((m) => ({ default: m.QiblaPage })));
 
 export default function App() {
   useApplyTheme();
@@ -166,6 +167,7 @@ export default function App() {
             <Route path="quran" element={<QuranPage />} />
             <Route path="quran/:id" element={<SurahPage />} />
             <Route path="sebha" element={<SebhaPage />} />
+            <Route path="qibla" element={<QiblaPage />} />
             <Route path="prayer-times" element={<PrayerTimesPage />} />
             <Route path="insights" element={<InsightsPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
