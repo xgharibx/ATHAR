@@ -6,7 +6,6 @@ import Lottie from "lottie-react";
 import {
   Sparkles,
   Shuffle,
-  LibraryBig,
   RotateCw,
   Copy,
   CheckCircle2,
@@ -28,7 +27,6 @@ import { pct, cn } from "@/lib/utils";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { trackUxEvent } from "@/lib/uxMetrics";
 import { useQuranDB } from "@/data/useQuranDB";
-import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
 import { coerceCount } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
@@ -220,7 +218,6 @@ export function HomePage() {
   const navigate = useNavigate();
   const { data, isLoading, error } = useAdhkarDB();
   const quran = useQuranDB();
-  const library = useIslamicLibraryDB();
   const activity = useNoorStore((s) => s.activity);
   const progressMap = useNoorStore((s) => s.progress);
   const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
@@ -269,11 +266,6 @@ export function HomePage() {
   const [confirmTasbeehReset, setConfirmTasbeehReset] = React.useState(false);
   const prayerTimes = usePrayerTimes();
   const civilTodayKey = useTodayKey();
-  const dailyLibraryEntry = React.useMemo(() => {
-    const items = library.data?.flat ?? [];
-    if (!items.length) return null;
-    return items[dateIndex(civilTodayKey, items.length)] ?? null;
-  }, [civilTodayKey, library.data?.flat]);
   const worshipDayKey = useTodayKey({
     mode: "ibadah",
     fajrTime: prayerTimes.data?.data?.timings?.Fajr,
@@ -835,44 +827,6 @@ export function HomePage() {
 
       {/* ── Islamic season banner ── */}
       <IslamicSeasonBanner />
-
-      {/* ── Ruqyah quick-access card ── */}
-      <button
-        onClick={() => navigate("/ruqyah")}
-        className="w-full text-right press-effect glass-strong rounded-3xl border border-white/10 p-4 flex items-center gap-3 hover:bg-white/8 transition glass-hover"
-      >
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.25)" }}>
-          <span className="text-lg">🛡️</span>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold arabic-text">أذكار الرقية الشرعية</div>
-          <div className="text-xs opacity-55 arabic-text mt-0.5">الفاتحة · آية الكرسي · المعوذات · أدعية نبوية</div>
-        </div>
-        <span className="text-xs opacity-40 shrink-0">←</span>
-      </button>
-
-      {/* ── Islamic Library quick-access card ── */}
-      <button
-        onClick={() => navigate(dailyLibraryEntry ? `/library/${dailyLibraryEntry.collectionId}/${dailyLibraryEntry.id}` : "/library")}
-        className="w-full text-right press-effect glass-strong rounded-3xl border border-white/10 p-4 flex items-start gap-3 hover:bg-white/8 transition glass-hover"
-      >
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.25)" }}>
-          <LibraryBig size={18} className="text-emerald-300" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-sm font-semibold arabic-text">المكتبة الإسلامية</div>
-            <Badge>داخل التطبيق</Badge>
-          </div>
-          <div className="text-xs opacity-55 arabic-text mt-0.5">حديث · صحيح مسلم · آداب · فوائد عملية</div>
-          {dailyLibraryEntry && (
-            <div className="mt-2 arabic-text text-xs leading-6 opacity-70 line-clamp-2">
-              {dailyLibraryEntry.arabic}
-            </div>
-          )}
-        </div>
-        <span className="text-xs opacity-40 shrink-0 mt-1">←</span>
-      </button>
 
       {homeWidgetsOrder.map((widgetKey) => {
         if (widgetKey === "prayer") {

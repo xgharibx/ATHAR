@@ -214,6 +214,29 @@ export function LibraryPage() {
             <div className="text-xs opacity-50 mt-2">{featured.source.title}</div>
           </button>
         )}
+
+        {/* ── Ruqyah featured card ── */}
+        <button
+          type="button"
+          onClick={() => navigate("/ruqyah")}
+          className="w-full text-right press-effect mt-3 rounded-3xl border p-4 flex items-center gap-3 transition"
+          style={{
+            background: "rgba(99,102,241,0.08)",
+            borderColor: "rgba(99,102,241,0.25)",
+          }}
+        >
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-xl"
+            style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}
+          >
+            🛡️
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-bold arabic-text" style={{ color: "rgba(167,139,250,0.95)" }}>أذكار الرقية الشرعية</div>
+            <div className="text-xs opacity-55 arabic-text mt-0.5">الفاتحة · آية الكرسي · المعوذات · أدعية نبوية</div>
+          </div>
+          <ArrowRight size={14} className="opacity-35 shrink-0 rotate-180" />
+        </button>
       </Card>
 
       <Card className="p-4 sticky top-3 z-20 backdrop-blur-xl">

@@ -7,8 +7,6 @@ import {
   Timer,
   History,
   Trash2,
-  Volume2,
-  VolumeX,
   Plus,
   Pencil,
   Flag,
@@ -55,105 +53,6 @@ const TASBEEHAT = [
 type TasbeehKey = typeof TASBEEHAT[number]["key"] | "custom";
 
 const TARGETS = [33, 100, 1000] as const;
-
-// ─── Ambient audio helpers ─────────────────────────────────────────────────
-
-type AmbientType = "off" | "rain" | "mosque" | "zamzam";
-
-function createBrownNoiseBuffer(ctx: AudioContext): AudioBuffer {
-  const bufferSize = ctx.sampleRate * 4;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  let lastOut = 0;
-  for (let i = 0; i < bufferSize; i++) {
-    const white = Math.random() * 2 - 1;
-    data[i] = (lastOut + 0.02 * white) / 1.02;
-    lastOut = data[i];
-    data[i] *= 3.5;
-  }
-  return buffer;
-}
-
-function createPinkNoiseBuffer(ctx: AudioContext): AudioBuffer {
-  const bufferSize = ctx.sampleRate * 4;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-  for (let i = 0; i < bufferSize; i++) {
-    const w = Math.random() * 2 - 1;
-    b0 = 0.99886 * b0 + w * 0.0555179;
-    b1 = 0.99332 * b1 + w * 0.0750759;
-    b2 = 0.96900 * b2 + w * 0.1538520;
-    b3 = 0.86650 * b3 + w * 0.3104856;
-    b4 = 0.55000 * b4 + w * 0.5329522;
-    b5 = -0.7616 * b5 - w * 0.0168980;
-    data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11;
-    b6 = w * 0.115926;
-  }
-  return buffer;
-}
-
-function startAmbient(type: AmbientType): { ctx: AudioContext; stop: () => void } | null {
-  if (type === "off") return null;
-  try {
-    const ctx = new AudioContext();
-    const gainNode = ctx.createGain();
-    gainNode.connect(ctx.destination);
-    let source: AudioBufferSourceNode;
-
-    if (type === "rain") {
-      source = ctx.createBufferSource();
-      source.buffer = createBrownNoiseBuffer(ctx);
-      source.loop = true;
-      const lpf = ctx.createBiquadFilter();
-      lpf.type = "lowpass";
-      lpf.frequency.value = 700;
-      lpf.Q.value = 0.5;
-      source.connect(lpf);
-      lpf.connect(gainNode);
-      gainNode.gain.value = 0.12;
-    } else if (type === "zamzam") {
-      source = ctx.createBufferSource();
-      source.buffer = createBrownNoiseBuffer(ctx);
-      source.loop = true;
-      const bpf = ctx.createBiquadFilter();
-      bpf.type = "bandpass";
-      bpf.frequency.value = 1200;
-      bpf.Q.value = 0.8;
-      const lpf = ctx.createBiquadFilter();
-      lpf.type = "lowpass";
-      lpf.frequency.value = 2000;
-      source.connect(bpf);
-      bpf.connect(lpf);
-      lpf.connect(gainNode);
-      gainNode.gain.value = 0.18;
-    } else {
-      // mosque: pink noise + lowpass (distant hum)
-      source = ctx.createBufferSource();
-      source.buffer = createPinkNoiseBuffer(ctx);
-      source.loop = true;
-      const lpf = ctx.createBiquadFilter();
-      lpf.type = "lowpass";
-      lpf.frequency.value = 400;
-      lpf.Q.value = 1.5;
-      source.connect(lpf);
-      lpf.connect(gainNode);
-      gainNode.gain.value = 0.07;
-    }
-
-    source.start();
-    return {
-      ctx,
-      stop: () => {
-        try { source.stop(); source.disconnect(); } catch { /* ignore */ }
-        try { gainNode.disconnect(); } catch { /* ignore */ }
-        ctx.close();
-      },
-    };
-  } catch {
-    return null;
-  }
-}
 
 // ─── Haptic helper (S1) ─────────────────────────────────────────────────────
 
@@ -261,10 +160,6 @@ export function SebhaPage() {
   const [customPhraseInput, setCustomPhraseInput] = React.useState("");
   const [customTargetInput, setCustomTargetInput] = React.useState("100");
 
-  // S6 - Ambient sound
-  const [ambient, setAmbient] = React.useState<AmbientType>("off");
-  const ambientRef = React.useRef<{ ctx: AudioContext; stop: () => void } | null>(null);
-
   // S3 - Sessions panel toggle
   const [showHistory, setShowHistory] = React.useState(false);
 
@@ -286,26 +181,6 @@ export function SebhaPage() {
       setCustomTargetInput(String(sebhaCustom.target));
     }
   }, [sebhaCustom]);
-
-  // S6 - manage ambient audio lifecycle
-  React.useEffect(() => {
-    if (ambientRef.current) {
-      ambientRef.current.stop();
-      ambientRef.current = null;
-    }
-    if (ambient !== "off") {
-      ambientRef.current = startAmbient(ambient);
-    }
-    return () => {
-      if (ambientRef.current) {
-        ambientRef.current.stop();
-        ambientRef.current = null;
-      }
-    };
-  }, [ambient]);
-
-  // Stop ambient on unmount
-  React.useEffect(() => () => { ambientRef.current?.stop(); }, []);
 
   const current =
     selected === "custom"
@@ -390,13 +265,6 @@ export function SebhaPage() {
     setShowCustomForm(false);
     toast.success("تم حفظ الذكر المخصص");
   }
-
-  const ambientLabels: Record<AmbientType, string> = {
-    off: "بدون صوت",
-    rain: "🌧 مطر",
-    mosque: "🕌 مسجد",
-    zamzam: "💧 زمزم",
-  };
 
   return (
     <div className="space-y-3 page-enter">
@@ -570,29 +438,6 @@ export function SebhaPage() {
             ))}
           </div>
         )}
-
-        {/* S6 - Ambient sound selector */}
-        <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
-          <span className="text-xs opacity-50 flex items-center gap-1">
-            {ambient === "off" ? <VolumeX size={13} /> : <Volume2 size={13} />}
-            صوت محيطي:
-          </span>
-          {(["off", "rain", "mosque", "zamzam"] as AmbientType[]).map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => setAmbient(type)}
-              className={cn(
-                "text-xs rounded-full border px-2.5 py-1 transition",
-                ambient === type
-                  ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
-                  : "border-white/10 bg-white/5 text-white/55 hover:bg-white/10"
-              )}
-            >
-              {ambientLabels[type]}
-            </button>
-          ))}
-        </div>
       </Card>
 
       {/* Tasbeehat grid */}

@@ -314,7 +314,7 @@ type NoorState = {
   setHadithNote: (bookKey: string, n: number, note: string) => void;
 };
 
-export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "hadith", "wisdom", "dailyStep", "checklist", "tasbeeh", "dailyWird", "smart"];
+export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "wisdom", "hadith", "smart", "dailyStep", "checklist", "dailyWird", "tasbeeh"];
 
 const DEFAULT_PREFS: Preferences = {
   theme: "forest",
