@@ -778,12 +778,12 @@ export function MushafPage() {
         if (showJump) { setShowJump(false); return; }
         if (noteSheetOpen) { setNoteSheetOpen(false); return; }
         if (selectedItem) { setSelectedItem(null); return; }
-        navigate("/quran");
+        handleBack();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [currentPage, goPage, navigate, noteSheetOpen, selectedItem, showJump, showSettings, showSearch, tafsirItem]);
+  }, [currentPage, goPage, handleBack, navigate, noteSheetOpen, selectedItem, showJump, showSettings, showSearch, tafsirItem]);
 
   // Share selected ayah
   const doShare = async () => {

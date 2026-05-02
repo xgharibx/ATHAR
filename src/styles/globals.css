@@ -2196,7 +2196,7 @@ header {
   display: flex;
   align-items: flex-start;
   padding-top: calc(env(safe-area-inset-top, 0px) + 56px);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 56px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
   padding-left: 0.5rem;
   padding-right: 0.5rem;
 }
@@ -2715,13 +2715,13 @@ header {
 /* Audio bar */
 .mushaf-audio-bar {
   position: fixed;
-  bottom: 0;
+  bottom: calc(40px + env(safe-area-inset-bottom, 0px));
   inset-inline: 0;
   z-index: 150;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.55rem 1rem calc(env(safe-area-inset-bottom, 0px) + 0.55rem);
+  padding: 0.55rem 1rem 0.55rem;
   background: rgba(255, 251, 240, 0.97);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(201, 162, 39, 0.2);
@@ -2814,7 +2814,7 @@ header {
 /* Show audio bar button */
 .mushaf-audio-show-btn {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+  bottom: calc(40px + env(safe-area-inset-bottom, 0px) + 0.5rem);
   left: 0.75rem;
   z-index: 150;
   width: 32px;
@@ -2953,13 +2953,13 @@ header {
   bottom: 0;
   inset-inline: 0;
   z-index: 145;
-  height: 40px;
+  height: calc(40px + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   overflow-x: auto;
   overflow-y: hidden;
   gap: 3px;
-  padding: 0 8px;
+  padding: 0 8px env(safe-area-inset-bottom, 0px);
   background: rgba(255, 251, 240, 0.97);
   backdrop-filter: blur(8px);
   border-top: 1px solid rgba(201, 162, 39, 0.15);
