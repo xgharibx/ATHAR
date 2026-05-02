@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { isDailySection } from "@/lib/dailySections";
+import type { CustomAdhkarPack } from "@/data/types";
 import { getIbadahDateKey, getLocalDateKey } from "@/lib/dayBoundaries";
 
 export type NoorTheme =
@@ -315,6 +316,16 @@ type NoorState = {
   setHadithProgress: (bookKey: string, n: number) => void;
   hadithNotes: Record<string, string>; // key: `${bookKey}:${n}`
   setHadithNote: (bookKey: string, n: number, note: string) => void;
+
+  // 3D: Custom Adhkar Packs
+  customPacks: CustomAdhkarPack[];
+  addCustomPack: (pack: Omit<CustomAdhkarPack, "id" | "createdAt">) => string;
+  updateCustomPack: (id: string, patch: Partial<Pick<CustomAdhkarPack, "title" | "items">>) => void;
+  deleteCustomPack: (id: string) => void;
+
+  // 3E: Section completion history (for weekly stats)
+  sectionCompletions: Record<string, string[]>; // sectionId → ISO date array
+  recordSectionCompletion: (sectionId: string) => void;
 };
 
 export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "wisdom", "hadith", "smart", "dailyStep", "checklist", "dailyWird", "tasbeeh"];
@@ -1007,6 +1018,30 @@ export const useNoorStore = create<NoorState>()(
         }));
       },
 
+      // 3D: Custom Adhkar Packs
+      customPacks: [],
+      addCustomPack: (pack) => {
+        const id = `custom_${Date.now()}`;
+        const full: CustomAdhkarPack = { ...pack, id, createdAt: new Date().toISOString() };
+        set((s) => ({ customPacks: [...s.customPacks, full] }));
+        return id;
+      },
+      updateCustomPack: (id, patch) =>
+        set((s) => ({ customPacks: s.customPacks.map((p) => p.id === id ? { ...p, ...patch } : p) })),
+      deleteCustomPack: (id) =>
+        set((s) => ({ customPacks: s.customPacks.filter((p) => p.id !== id) })),
+
+      // 3E: Section completion history
+      sectionCompletions: {},
+      recordSectionCompletion: (sectionId) => {
+        const today = todayISO();
+        set((s) => {
+          const prev = s.sectionCompletions[sectionId] ?? [];
+          if (prev[prev.length - 1] === today) return {};
+          return { sectionCompletions: { ...s.sectionCompletions, [sectionId]: [...prev, today].slice(-365) } };
+        });
+      },
+
       localFriends: [],
       addLocalFriend: (f) =>
         set((s) => ({ localFriends: [...s.localFriends.filter((x) => x.id !== f.id), f] })),
@@ -1069,7 +1104,7 @@ export const useNoorStore = create<NoorState>()(
       //  2. Add a fallback default for the new key in the `migrate` function below
       //     e.g., newKey: (state as Partial<NoorState>).newKey ?? defaultValue
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 20,
+      version: 21,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -1106,6 +1141,8 @@ export const useNoorStore = create<NoorState>()(
           hadithBookmarks: (state as Partial<NoorState>).hadithBookmarks ?? {},
           hadithProgress: (state as Partial<NoorState>).hadithProgress ?? {},
           hadithNotes: (state as Partial<NoorState>).hadithNotes ?? {},
+          customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],
+          sectionCompletions: (state as Partial<NoorState>).sectionCompletions ?? {},
         } as NoorState;
       }
     }

@@ -1,5 +1,5 @@
 ﻿import * as React from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { AppShell } from "@/components/layout/AppShell";
@@ -10,7 +10,7 @@ import { SplashIntro, SPLASH_SESSION_KEY } from "@/components/brand/SplashIntro"
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
-import { syncReminders } from "@/lib/reminders";
+import { syncReminders, registerNotificationDeepLinkListener } from "@/lib/reminders";
 
 // T7: Per-route error boundary — prevents a single page crash from killing the whole app
 class RouteErrorBoundary extends React.Component<
@@ -80,9 +80,11 @@ const HadithReaderPage = React.lazy(() => import("@/pages/HadithReader").then((m
 const CompanionsPage = React.lazy(() => import("@/pages/Companions"));
 const SeerahPage = React.lazy(() => import("@/pages/SeerahTimeline"));
 const QuranPlansPage = React.lazy(() => import("@/pages/QuranPlans").then((m) => ({ default: m.QuranPlansPage })));
+const CustomAdhkarPage = React.lazy(() => import("@/pages/CustomAdhkar").then((m) => ({ default: m.CustomAdhkarPage })));
 
 export default function App() {
   useApplyTheme();
+  const navigate = useNavigate();
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
   const reminders = useNoorStore((s) => s.reminders);
   const onboardingDone = useNoorStore((s) => s.onboardingDone);
@@ -201,6 +203,13 @@ export default function App() {
     void syncReminders(reminders, notificationPrayerTimings);
   }, [notificationPrayerTimings, reminders]);
 
+  // 3C: Register notification deep-link listener on native platforms
+  React.useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    registerNotificationDeepLinkListener(navigate).then((fn) => { cleanup = fn; });
+    return () => { cleanup?.(); };
+  }, [navigate]);
+
   return (
     <>
       {showSplash && <SplashIntro onDone={() => setShowSplash(false)} />}
@@ -215,6 +224,7 @@ export default function App() {
           <Route path="favorites" element={<S><FavoritesPage /></S>} />
           <Route path="quran" element={<S><QuranPage /></S>} />
           <Route path="quran/plans" element={<S><QuranPlansPage /></S>} />
+          <Route path="adhkar/custom" element={<S><CustomAdhkarPage /></S>} />
           <Route path="sebha" element={<S><SebhaPage /></S>} />
           <Route path="qibla" element={<S><QiblaPage /></S>} />
           <Route path="prayer-times" element={<S><PrayerTimesPage /></S>} />

@@ -426,6 +426,7 @@ function buildRepeatingNotification(options: {
   body: string;
   hhmm: string;
   audio: NotificationAudioConfig;
+  extra?: Record<string, string>;
 }) {
   const at = nextAtLocalTime(options.hhmm);
   if (!at) return null;
@@ -439,6 +440,7 @@ function buildRepeatingNotification(options: {
     smallIcon: REMINDER_NOTIFICATION_ICON,
     largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
     iconColor: REMINDER_ICON_COLOR,
+    extra: options.extra,
     schedule: { at, repeats: true, every: "day" as const },
   };
 }
@@ -451,6 +453,7 @@ function buildReminderNotifications(reminders: Reminders, audio: NotificationAud
       title: "أثر — تذكير الصباح",
       body: dailyPhrase(MORNING_PHRASES),
       hhmm: reminders.morningTime,
+      extra: { route: "/c/morning" },
     },
     {
       enabled: reminders.eveningEnabled,
@@ -458,6 +461,7 @@ function buildReminderNotifications(reminders: Reminders, audio: NotificationAud
       title: "أثر — تذكير المساء",
       body: dailyPhrase(EVENING_PHRASES),
       hhmm: reminders.eveningTime,
+      extra: { route: "/c/evening" },
     },
     {
       enabled: reminders.dailyWirdEnabled,
@@ -465,6 +469,7 @@ function buildReminderNotifications(reminders: Reminders, audio: NotificationAud
       title: "أثر — وردك اليومي",
       body: dailyPhrase(DAILY_WIRD_PHRASES),
       hhmm: reminders.dailyWirdTime,
+      extra: { route: "/quran" },
     },
     {
       enabled: reminders.khatmaEnabled,
@@ -472,6 +477,7 @@ function buildReminderNotifications(reminders: Reminders, audio: NotificationAud
       title: "أثر — خطة الختمة",
       body: dailyPhrase(KHATMA_PHRASES),
       hhmm: reminders.khatmaTime,
+      extra: { route: "/quran/plans" },
     },
   ];
 
@@ -483,6 +489,7 @@ function buildReminderNotifications(reminders: Reminders, audio: NotificationAud
       body: plan.body,
       hhmm: plan.hhmm,
       audio,
+      extra: (plan as { extra?: Record<string, string> }).extra,
     });
     return notification ? [notification] : [];
   });
@@ -702,4 +709,24 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
   if (!notifications.length) return;
 
   await LocalNotifications.schedule({ notifications });
+}
+
+/** 3C: Register a listener that navigates to the route embedded in a notification's extra.
+ *  Returns a cleanup function (call it in a useEffect return). */
+export async function registerNotificationDeepLinkListener(
+  navigate: (path: string) => void,
+): Promise<() => void> {
+  if (!Capacitor.isNativePlatform()) return () => {};
+  const { LocalNotifications } = await import("@capacitor/local-notifications");
+  const handle = await LocalNotifications.addListener(
+    "localNotificationActionPerformed",
+    (action) => {
+      const extra = action.notification.extra as Record<string, unknown> | undefined;
+      const route = extra?.route;
+      if (typeof route === "string" && route.startsWith("/")) {
+        navigate(route);
+      }
+    },
+  );
+  return () => { handle.remove(); };
 }

@@ -52,6 +52,18 @@ export type FlatDhikr = {
   count: number;
 };
 
+export type CustomAdhkarItem = {
+  text: string;
+  count: number;
+};
+
+export type CustomAdhkarPack = {
+  id: string;          // `custom_${Date.now()}`
+  title: string;
+  items: CustomAdhkarItem[];
+  createdAt: string;   // ISO
+};
+
 export function coerceCount(raw: unknown): number {
   if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) return raw;
   if (typeof raw === "string") {

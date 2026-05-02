@@ -8,12 +8,13 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
 import { useNoorStore } from "@/store/noorStore";
-import { coerceCount } from "@/data/types";
+import { coerceCount, type DhikrItem } from "@/data/types";
 
 export function CategoryPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = useAdhkarDB();
+  const customPacks = useNoorStore((s) => s.customPacks);
   const [sp] = useSearchParams();
 
   React.useEffect(() => {
@@ -56,6 +57,28 @@ export function CategoryPage() {
 
   const section = data.db.sections.find((s) => s.id === id);
   if (!section) {
+    // 3D: fall back to user-created custom pack
+    const customPack = customPacks.find((p) => p.id === id);
+    if (customPack) {
+      const customItems: DhikrItem[] = customPack.items.map((it) => ({
+        text: it.text,
+        count: it.count,
+        benefit: "",
+        source: "",
+        source_label: "",
+        source_url: "",
+        minimal: false,
+        count_description: "",
+      }));
+      return (
+        <DhikrList
+          sectionId={customPack.id}
+          title={customPack.title}
+          items={customItems}
+          focusIndex={focusIndex}
+        />
+      );
+    }
     return (
       <div className="p-6">
         <Card className="p-6">

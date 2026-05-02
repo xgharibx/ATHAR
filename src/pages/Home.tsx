@@ -238,6 +238,7 @@ export function HomePage() {
   const quranStreak = useNoorStore((s) => s.quranStreak);
 
   const sections = data?.db.sections ?? [];
+  const customPacks = useNoorStore((s) => s.customPacks);
   const [checklistExpanded, setChecklistExpanded] = React.useState(false);
   const [dailyWirdExpanded, setDailyWirdExpanded] = React.useState(false);
   const [tasbeehTarget, setTasbeehTarget] = React.useState<33 | 100>(100);
@@ -731,6 +732,47 @@ export function HomePage() {
       {sections.length > 0 && (
         <div className="overflow-x-auto no-scrollbar -mx-0.5 px-0.5">
           <div className="flex gap-2 pb-0.5" style={{ width: "max-content" }}>
+            {/* 3D: Custom packs strip entries */}
+            {customPacks.map((pack) => {
+              let done = 0;
+              const total = pack.items.length;
+              pack.items.forEach((item, i) => {
+                const have = Math.min(item.count, Math.max(0, Number(progressMap[`${pack.id}:${i}`]) || 0));
+                if (have >= item.count) done++;
+              });
+              const isComplete = total > 0 && done === total;
+              const pctDone = total > 0 ? Math.round((done / total) * 100) : 0;
+              return (
+                <button
+                  key={pack.id}
+                  onClick={() => { trackUxEvent(`home_strip:${pack.id}`); navigate(`/c/${pack.id}`); }}
+                  className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] select-none active:scale-[.91] transition-all"
+                  style={{
+                    borderColor: isComplete
+                      ? "color-mix(in srgb, var(--ok) 30%, transparent)"
+                      : pctDone > 0 ? "rgba(201,162,39,0.4)" : "rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <span className="text-[22px] leading-none">📝</span>
+                  <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5 max-w-[60px] truncate">{pack.title}</span>
+                  <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{ width: `${pctDone}%`, background: isComplete ? "var(--ok)" : "var(--accent)" }}
+                    />
+                  </div>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => { trackUxEvent("home_strip:custom_manage"); navigate("/adhkar/custom"); }}
+              className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] select-none active:scale-[.91] transition-all"
+              style={{ borderColor: "rgba(255,255,255,0.08)", opacity: 0.7 }}
+            >
+              <span className="text-[22px] leading-none">＋</span>
+              <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5">أذكاري</span>
+              <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1" />
+            </button>
             {sections.map((section, idx) => {
               const identity = getSectionIdentity(section.id);
               let done = 0;

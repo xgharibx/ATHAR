@@ -31,6 +31,8 @@ export function DhikrList(props: Readonly<{
   const resetSection = useNoorStore((s) => s.resetSection);
   const increment = useNoorStore((s) => s.increment);
   const progressMap = useNoorStore((s) => s.progress);
+  const sectionCompletions = useNoorStore((s) => s.sectionCompletions);
+  const recordSectionCompletion = useNoorStore((s) => s.recordSectionCompletion);
   const savedItemOrder = useNoorStore((s) => s.sectionItemOrder[props.sectionId]);
   const moveSectionItem = useNoorStore((s) => s.moveSectionItem);
   const resetSectionItemOrder = useNoorStore((s) => s.resetSectionItemOrder);
@@ -116,10 +118,11 @@ export function DhikrList(props: Readonly<{
   const [focusMode, setFocusMode] = React.useState(false);
   const virtuosoRef = React.useRef<VirtuosoHandle>(null);
 
-  // D2: category completion confetti
+  // D2: category completion confetti + 3E record completion
   const prevPercentRef = React.useRef<number>(stats.percent);
   React.useEffect(() => {
     if (stats.percent >= 100 && prevPercentRef.current < 100 && props.items.length > 0) {
+      recordSectionCompletion(props.sectionId);
       getConfetti().then((c) => {
         c({ particleCount: 120, spread: 80, startVelocity: 30, scalar: 1.0, origin: { y: 0.6 } });
         setTimeout(() => c({ particleCount: 60, spread: 100, startVelocity: 20, scalar: 0.9, origin: { x: 0.2, y: 0.8 } }), 300);
@@ -127,7 +130,20 @@ export function DhikrList(props: Readonly<{
       });
     }
     prevPercentRef.current = stats.percent;
-  }, [stats.percent, props.items.length]);
+  }, [stats.percent, props.items.length, props.sectionId, recordSectionCompletion]);
+
+  // 3E: Weekly stats (last 7 days)
+  const weeklyStats = React.useMemo(() => {
+    const completions = sectionCompletions[props.sectionId] ?? [];
+    const now = Date.now();
+    const bars = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now - (6 - i) * 86_400_000);
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return completions.includes(iso) ? 1 : 0;
+    });
+    const weeklyCount = bars.filter(Boolean).length;
+    return { weeklyCount, bars };
+  }, [sectionCompletions, props.sectionId]);
 
   // D12: auto-read mode
   const [autoReadActive, setAutoReadActive] = React.useState(false);
@@ -308,6 +324,23 @@ export function DhikrList(props: Readonly<{
                   ? `التقدّم: ${stats.done}/${stats.total} • ${stats.percent}% • ~${Math.max(1, Math.round(props.items.length / 2))} دق`
                   : "0 ذكر"}
               </div>
+              {weeklyStats.weeklyCount > 0 && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[11px] opacity-60">أتممتها {weeklyStats.weeklyCount} مرات هذا الأسبوع</span>
+                  <div className="flex items-end gap-[2px]">
+                    {weeklyStats.bars.map((v, i) => (
+                      <div
+                        key={i}
+                        className="w-[5px] rounded-sm transition-all"
+                        style={{
+                          height: v ? "12px" : "5px",
+                          background: v ? identity.accent : "rgba(255,255,255,0.15)",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="primary" onClick={() => setAddOpen(true)}>
