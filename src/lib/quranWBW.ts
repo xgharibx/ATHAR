@@ -106,38 +106,73 @@ export async function loadWbwSurah(surahId: number): Promise<WbwSurah> {
 
 // ─── Tajweed renderer ────────────────────────────────────────────────────────
 
-/**
- * Parse quran.com tajweed markup (<rule class=X>text</rule>) into React spans.
- * The API sometimes nests <rule> tags — we flatten them first (inner rule wins).
- */
-function flattenRules(text: string): string {
-  // Collapse <rule class=outer><rule class=inner>TEXT</rule></rule> → <rule class=inner>TEXT</rule>
-  const nested = /<rule class=[a-z_-]+>(<rule class=[a-z_-]+>[\s\S]*?<\/rule>)<\/rule>/g;
-  let prev = "";
-  let curr = text;
-  // Iteratively flatten until stable (handles multiple nesting levels)
-  while (curr !== prev) { prev = curr; curr = curr.replace(nested, "$1"); }
-  return curr;
+type TajweedChild = string | TajweedRuleNode;
+
+interface TajweedRuleNode {
+  ruleClass: string;
+  children: TajweedChild[];
+}
+
+const RULE_TOKEN_PATTERN = /<\/rule>|<rule\s+class=(?:"([^"]+)"|'([^']+)'|([a-zA-Z0-9_-]+))>/g;
+const ANY_RULE_TAG_PATTERN = /<\/?rule\b[^>]*>/g;
+
+function stripRuleMarkup(text: string): string {
+  return text.replace(ANY_RULE_TAG_PATTERN, "");
+}
+
+function sanitizeRuleClass(ruleClass: string): string {
+  return ruleClass.trim().replace(/[^a-zA-Z0-9_-]/g, "");
+}
+
+function parseTajweedMarkup(text: string): TajweedChild[] {
+  const root: TajweedRuleNode = { ruleClass: "", children: [] };
+  const stack: TajweedRuleNode[] = [root];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  RULE_TOKEN_PATTERN.lastIndex = 0;
+  while ((match = RULE_TOKEN_PATTERN.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      stack[stack.length - 1].children.push(stripRuleMarkup(text.slice(lastIndex, match.index)));
+    }
+
+    if (match[0] === "</rule>") {
+      if (stack.length > 1) stack.pop();
+    } else {
+      const ruleClass = sanitizeRuleClass(match[1] ?? match[2] ?? match[3] ?? "");
+      if (ruleClass) {
+        const node: TajweedRuleNode = { ruleClass, children: [] };
+        stack[stack.length - 1].children.push(node);
+        stack.push(node);
+      }
+    }
+
+    lastIndex = RULE_TOKEN_PATTERN.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    stack[stack.length - 1].children.push(stripRuleMarkup(text.slice(lastIndex)));
+  }
+
+  return root.children;
+}
+
+function renderTajweedChildren(children: TajweedChild[], keyPrefix: string): React.ReactNode[] {
+  return children.map((child, childIndex) => {
+    if (typeof child === "string") return child;
+
+    const key = `${keyPrefix}-${childIndex}`;
+    return React.createElement(
+      "span",
+      { key, className: `tj tj-${child.ruleClass}` },
+      renderTajweedChildren(child.children, key),
+    );
+  });
 }
 
 export function renderTajweed(tjText: string): React.ReactNode {
-  const text = flattenRules(tjText);
-  const parts: React.ReactNode[] = [];
-  const pattern = /<rule class=([a-z_-]+)>([\s\S]*?)<\/rule>/g;
-  let last = 0;
-  let i = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = pattern.exec(text)) !== null) {
-    if (match.index > last) parts.push(text.slice(last, match.index));
-    parts.push(
-      React.createElement("span", { key: i, className: `tj tj-${match[1]}` }, match[2])
-    );
-    last = match.index + match[0].length;
-    i++;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  if (parts.length === 0) return text;
+  const parts = renderTajweedChildren(parseTajweedMarkup(tjText), "tj");
+  if (parts.length === 0) return stripRuleMarkup(tjText);
   return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : parts;
 }
 
