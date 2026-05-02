@@ -5,7 +5,7 @@ import { useNoorStore } from "@/store/noorStore";
 const STEPS = [
   {
     emoji: "✨",
-    title: "أهلاً بك في نور",
+    title: "أهلاً بك في أثر",
     description: "تطبيقك اليومي للأذكار والقرآن الكريم. ابدأ رحلتك الروحية الآن.",
     action: "التالي",
   },
@@ -32,7 +32,7 @@ const STEPS = [
     description: "هل تريد تذكيراً بالأذكار ومواقيت الصلاة؟ يمكنك تغيير هذا لاحقاً من الإعدادات.",
     action: "ابدأ الآن",
     onAction: async () => {
-      if ("Notification" in window && Notification.permission === "default") {
+      if ("Notification" in globalThis && Notification.permission === "default") {
         await Notification.requestPermission().catch(() => {});
       }
     },
