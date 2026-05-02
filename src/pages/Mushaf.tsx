@@ -203,21 +203,31 @@ export function MushafPage() {
 
   // Current page state
   const surahParam = Number(sp.get("surah"));
+  const ayahParam = Number(sp.get("ayah"));
   const rawPage = Number(pageParam) || 0;
 
   const [currentPage, setCurrentPage] = React.useState<number>(() =>
     rawPage >= 1 ? Math.min(rawPage, 604) : (prefs.quranMushafPage ?? 1)
   );
 
-  // Handle ?surah= param: jump to first page of that surah
+  // Handle ?surah= param: jump to first page of that surah (or specific ayah)
   const didJumpRef = React.useRef(false);
   React.useEffect(() => {
     if (!surahParam || Object.keys(pageMap).length === 0 || didJumpRef.current) return;
     didJumpRef.current = true;
-    const p = Number(pageMap[`${surahParam}:1`]) || Number(pageMap[`${surahParam}:2`]) || 1;
+    let p: number;
+    if (ayahParam > 0) {
+      p = Number(pageMap[`${surahParam}:${ayahParam}`])
+        || Number(pageMap[`${surahParam}:${ayahParam + 1}`])
+        || Number(pageMap[`${surahParam}:1`])
+        || Number(pageMap[`${surahParam}:2`])
+        || 1;
+    } else {
+      p = Number(pageMap[`${surahParam}:1`]) || Number(pageMap[`${surahParam}:2`]) || 1;
+    }
     setCurrentPage(p);
     navigate(`/mushaf/${p}`, { replace: true });
-  }, [surahParam, pageMap, navigate]);
+  }, [surahParam, ayahParam, pageMap, navigate]);
 
   // Sync URL param when navigating via browser back/forward
   React.useEffect(() => {
@@ -292,6 +302,20 @@ export function MushafPage() {
   // Selected ayah
   const [selectedItem, setSelectedItem] = React.useState<PageItem | null>(null);
 
+  // Auto-select ayah when navigating from ?surah=X&ayah=Y deeplinks
+  const didSelectRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!surahParam || !ayahParam || pageIndex.size === 0 || didSelectRef.current) return;
+    const items = pageIndex.get(currentPage) ?? [];
+    const item = items.find(
+      (i) => i.surahId === surahParam && (i.displayAyah === ayahParam || i.originalAyah === ayahParam)
+    );
+    if (item) {
+      didSelectRef.current = true;
+      setSelectedItem(item);
+    }
+  }, [surahParam, ayahParam, currentPage, pageIndex]);
+
   // Q9: Per-ayah reveal in memorization mode (must be before handleAyahTap)
   const [memorizationMode, setMemorizationMode] = React.useState(false);
   const [revealedItems, setRevealedItems] = React.useState<Set<string>>(new Set());
@@ -358,7 +382,14 @@ export function MushafPage() {
   const [translationLoading, setTranslationLoading] = React.useState(false);
 
   // Q11-B: Inline tafseer mode (قراءة mode)
-  const [inlineTafseer, setInlineTafseer] = React.useState(false);
+  const [inlineTafseer, setInlineTafseerState] = React.useState(() => prefs.mushafInlineTafseer ?? false);
+  const setInlineTafseer = React.useCallback((v: boolean | ((prev: boolean) => boolean)) => {
+    setInlineTafseerState((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      setPrefs({ mushafInlineTafseer: next });
+      return next;
+    });
+  }, [setPrefs]);
   const [inlineTafseerSource, setInlineTafseerSource] = React.useState<"muyassar" | "jalalayn">("muyassar");
   const [inlineTafseerData, setInlineTafseerData] = React.useState<Record<number, string[]>>({});
   const [inlineTafseerLoading, setInlineTafseerLoading] = React.useState(false);

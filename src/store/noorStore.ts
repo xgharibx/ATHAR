@@ -45,6 +45,7 @@ export type Preferences = {
   quranReciter: string;   // everyayah.com folder name, e.g. "Alafasy_128kbps"
   quranMushafPage?: number; // last-read mushaf page (1-604)
   mushafFontScale?: number; // mushaf reader font scale 0.7–1.6
+  mushafInlineTafseer?: boolean; // persist inline tafseer toggle
   showBenefits: boolean;
   stripDiacritics: boolean;
   enable3D: boolean;

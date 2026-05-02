@@ -1,5 +1,4 @@
 import * as React from "react";
-import * as ReactDOM from "react-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Bookmark, BookOpen, CheckCircle2, Search, Shuffle, Volume2, X } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
@@ -89,8 +88,6 @@ export function QuranPage() {
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
   const [confirmKhatmaReset, setConfirmKhatmaReset] = React.useState(false);
   const [showKhatmaCard, setShowKhatmaCard] = React.useState(false);
-  const [pendingSurah, setPendingSurah] = React.useState<NonNullable<typeof data>[number] | null>(null);
-
   // Sync URL param changes (e.g. back-navigation)
   React.useEffect(() => {
     setFilterJuz(parseJuzParam(searchParams.get("juz")));
@@ -336,7 +333,7 @@ export function QuranPage() {
         {/* ── Continue reading strip ─────────────────────── */}
         {lastRead ? (
           <button
-            onClick={() => navigate(`/quran/${lastRead.surahId}?a=${lastRead.ayahIndex}`)}
+            onClick={() => navigate(`/mushaf?surah=${lastRead.surahId}&ayah=${lastRead.ayahIndex}`)}
             className="w-full flex items-center gap-3 px-5 py-3.5 text-right transition hover:brightness-110 active:scale-[0.99]"
             style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 50%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, transparent)" }}
           >
@@ -492,7 +489,7 @@ export function QuranPage() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button onClick={() => navigate(`/quran/${khatma.today.first.surahId}?a=${khatma.today.first.ayahIndex}`)}>
+                  <Button onClick={() => navigate(`/mushaf?surah=${khatma.today.first.surahId}&ayah=${khatma.today.first.ayahIndex}`)}>                  
                     ابدأ القراءة
                   </Button>
                   <Button
@@ -560,7 +557,7 @@ export function QuranPage() {
             {/* Random surah */}
             <button
               type="button"
-              onClick={() => { if (!data || data.length === 0) return; setPendingSurah(data[Math.floor(Math.random() * data.length)]!); }}
+              onClick={() => { if (!data || data.length === 0) return; navigate(`/mushaf?surah=${data[Math.floor(Math.random() * data.length)]!.id}`); }}
               className="w-9 h-9 rounded-xl border bg-white/6 border-white/10 opacity-55 hover:opacity-100 flex items-center justify-center transition shrink-0"
               title="سورة عشوائية" aria-label="سورة عشوائية"
             >
@@ -616,7 +613,7 @@ export function QuranPage() {
                 return (
                   <button
                     key={`${bm.surahId}:${bm.ayahIndex}`}
-                    onClick={() => navigate(`/quran/${bm.surahId}?a=${bm.ayahIndex}`)}
+                    onClick={() => navigate(`/mushaf?surah=${bm.surahId}&ayah=${bm.ayahIndex}`)}
                     className="w-full flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition text-right"
                     style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 20%, transparent)" }}
                   >
@@ -685,7 +682,7 @@ export function QuranPage() {
               return (
                 <button
                   key={s.id}
-                  onClick={() => setPendingSurah(s)}
+                  onClick={() => navigate(`/mushaf?surah=${s.id}`)}
                   className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-white/4 active:bg-white/8"
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >
@@ -751,7 +748,7 @@ export function QuranPage() {
               {ayahResults.map((r) => (
                 <button
                   key={`${r.surahId}:${r.ayahIndex}`}
-                  onClick={() => navigate(`/quran/${r.surahId}?a=${r.ayahIndex}`)}
+                  onClick={() => navigate(`/mushaf?surah=${r.surahId}&ayah=${r.ayahIndex}`)}
                   className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10 w-full"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -772,57 +769,7 @@ export function QuranPage() {
         </Card>
       )}
 
-      {/* ── Mode picker sheet ─────────────────────────────── */}
-      {pendingSurah && ReactDOM.createPortal(
-        <>
-          <div
-            className="quran-settings-backdrop"
-            onClick={() => setPendingSurah(null)}
-          />
-          <div className="quran-settings-sheet" dir="rtl" style={{ paddingBottom: "env(safe-area-inset-bottom, 1rem)" }}>
-            <div className="quran-settings-sheet__handle" />
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div className="text-lg arabic-text font-semibold" style={{ color: "var(--fg)" }}>
-                  {pendingSurah.name}
-                </div>
-                <div className="text-xs opacity-50 mt-0.5">{pendingSurah.englishName}</div>
-              </div>
-              <button
-                onClick={() => setPendingSurah(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center opacity-50 hover:opacity-90 transition"
-                style={{ background: "rgba(255,255,255,0.08)" }}
-                aria-label="إغلاق"
-              >
-                <X size={14} />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Reading (Mushaf) mode */}
-              <button
-                className="flex flex-col items-center gap-2.5 p-5 rounded-3xl border transition hover:brightness-110 active:scale-[0.98]"
-                style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)", borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)", color: "var(--fg)" }}
-                onClick={() => { navigate(`/mushaf?surah=${pendingSurah.id}`); setPendingSurah(null); }}
-              >
-                <span className="text-3xl leading-none">📖</span>
-                <span className="text-base arabic-text font-bold" style={{ color: "var(--accent)" }}>قراءة</span>
-                <span className="text-[11px] opacity-50 leading-tight text-center">تلاوة المصحف الكريم</span>
-              </button>
-              {/* Study mode */}
-              <button
-                className="flex flex-col items-center gap-2.5 p-5 rounded-3xl border transition hover:brightness-110 active:scale-[0.98]"
-                style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.12)", color: "var(--fg)" }}
-                onClick={() => { navigate(`/quran/${pendingSurah.id}`); setPendingSurah(null); }}
-              >
-                <span className="text-3xl leading-none">🔍</span>
-                <span className="text-base arabic-text font-bold opacity-85">تدبر وتفسير وحفظ</span>
-                <span className="text-[11px] opacity-50 leading-tight text-center">دراسة الآيات والتفسير</span>
-              </button>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
+
     </div>
   );
 }

@@ -252,7 +252,7 @@ export function CommandPalette(props: Props) {
                 </Item>
                 {quranLastRead && (
                   <Item
-                    onSelect={() => go(`/quran/${quranLastRead.surahId}?a=${quranLastRead.ayahIndex}`)}
+                    onSelect={() => go(`/mushaf?surah=${quranLastRead.surahId}&ayah=${quranLastRead.ayahIndex}`)}
                     icon={<BookOpen size={16} />}
                   >
                     تابع قراءة القرآن (آية {quranLastRead.ayahIndex} من سورة {quranLastRead.surahId})
@@ -281,7 +281,7 @@ export function CommandPalette(props: Props) {
                   <Command.Separator className="h-px bg-white/10 my-2" />
                   <Command.Group heading="السور" className="px-2">
                     {surahResults.map((s) => (
-                      <Item key={s.id} onSelect={() => go(`/quran/${s.id}`)} icon={<span className="text-base">📖</span>}>
+                      <Item key={s.id} onSelect={() => go(`/mushaf?surah=${s.id}`)} icon={<span className="text-base">📖</span>}>
                         <span className="arabic-text">{s.name}</span>
                         {s.englishName ? (
                           <span className="text-[11px] opacity-55 block mt-0.5">{s.englishName} • {s.id}</span>
@@ -299,7 +299,7 @@ export function CommandPalette(props: Props) {
                   <Command.Separator className="h-px bg-white/10 my-2" />
                   <Command.Group heading="آيات قرآنية" className="px-2">
                     {ayahResults.map((a) => (
-                      <Item key={`${a.surahId}:${a.ayahIndex}`} onSelect={() => go(`/quran/${a.surahId}?a=${a.ayahIndex}`)} icon={<span className="text-base">🌙</span>}>
+                      <Item key={`${a.surahId}:${a.ayahIndex}`} onSelect={() => go(`/mushaf?surah=${a.surahId}&ayah=${a.ayahIndex}`)} icon={<span className="text-base">🌙</span>}>
                         <span className="text-[11px] opacity-55 block">{a.surahName} • آية {a.ayahIndex}</span>
                         <span className="text-sm arabic-text line-clamp-2">{a.text.slice(0, 120)}</span>
                       </Item>

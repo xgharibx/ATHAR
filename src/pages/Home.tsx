@@ -1158,7 +1158,7 @@ export function HomePage() {
                     <button
                       key={`${p.surahId}:${p.ayahIndex}`}
                       className="glass rounded-3xl p-4 text-right transition border border-white/10 press-effect glass-hover"
-                      onClick={() => navigate(`/quran/${p.surahId}?a=${p.ayahIndex}`)}
+                      onClick={() => navigate(`/mushaf?surah=${p.surahId}&ayah=${p.ayahIndex}`)}
                     >
                       <div className="text-xs opacity-65 mb-2">
                         {p.surahName} • ({p.surahId}) • ﴿{p.ayahIndex}﴾

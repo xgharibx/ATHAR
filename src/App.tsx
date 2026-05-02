@@ -59,7 +59,6 @@ const InsightsPage = React.lazy(() => import("@/pages/Insights").then((m) => ({ 
 const LeaderboardPage = React.lazy(() => import("@/pages/Leaderboard").then((m) => ({ default: m.LeaderboardPage })));
 const NotFoundPage = React.lazy(() => import("@/pages/NotFound").then((m) => ({ default: m.NotFoundPage })));
 const QuranPage = React.lazy(() => import("@/pages/Quran").then((m) => ({ default: m.QuranPage })));
-const SurahPage = React.lazy(() => import("@/pages/Surah").then((m) => ({ default: m.SurahPage })));
 const MushafPage = React.lazy(() => import("@/pages/Mushaf").then((m) => ({ default: m.MushafPage })));
 const PrayerTimesPage = React.lazy(() => import("@/pages/PrayerTimes").then((m) => ({ default: m.PrayerTimesPage })));
 const SebhaPage = React.lazy(() => import("@/pages/Sebha").then((m) => ({ default: m.SebhaPage })));
@@ -214,7 +213,6 @@ export default function App() {
           <Route path="search" element={<S><SearchPage /></S>} />
           <Route path="favorites" element={<S><FavoritesPage /></S>} />
           <Route path="quran" element={<S><QuranPage /></S>} />
-          <Route path="quran/:id" element={<S><SurahPage /></S>} />
           <Route path="sebha" element={<S><SebhaPage /></S>} />
           <Route path="qibla" element={<S><QiblaPage /></S>} />
           <Route path="prayer-times" element={<S><PrayerTimesPage /></S>} />
