@@ -91,9 +91,10 @@ export default defineConfig(function (_a) {
                     cleanupOutdatedCaches: true,
                     clientsClaim: true,
                     skipWaiting: true,
-                    globPatterns: ["**/*.{js,css,html,ico,png,svg,json,woff2}"],
+                    globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}", "data/*.json"],
+                    globIgnores: ["**/data/hadith/**"],
                     navigateFallback: "index.html",
-                    maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+                    maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
                     runtimeCaching: [
                         {
                             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

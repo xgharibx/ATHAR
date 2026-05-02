@@ -75,6 +75,9 @@ const WuduGuidePage = React.lazy(() => import("@/pages/WuduGuide").then((m) => (
 const RuqyahPage = React.lazy(() => import("@/pages/Ruqyah").then((m) => ({ default: m.RuqyahPage })));
 const LibraryPage = React.lazy(() => import("@/pages/Library").then((m) => ({ default: m.LibraryPage })));
 const LibraryItemPage = React.lazy(() => import("@/pages/LibraryItem").then((m) => ({ default: m.LibraryItemPage })));
+const HadithBooksPage = React.lazy(() => import("@/pages/HadithBooks").then((m) => ({ default: m.HadithBooksPage })));
+const HadithBookViewPage = React.lazy(() => import("@/pages/HadithBookView").then((m) => ({ default: m.HadithBookViewPage })));
+const HadithReaderPage = React.lazy(() => import("@/pages/HadithReader").then((m) => ({ default: m.HadithReaderPage })));
 
 export default function App() {
   useApplyTheme();
@@ -227,6 +230,9 @@ export default function App() {
           <Route path="ruqyah" element={<S><RuqyahPage /></S>} />
           <Route path="library" element={<S><LibraryPage /></S>} />
           <Route path="library/:collectionId/:entryId" element={<S><LibraryItemPage /></S>} />
+          <Route path="hadith" element={<S><HadithBooksPage /></S>} />
+          <Route path="hadith/:bookKey" element={<S><HadithBookViewPage /></S>} />
+          <Route path="hadith/:bookKey/:hadithNumber" element={<S><HadithReaderPage /></S>} />
           <Route path="*" element={<S><NotFoundPage /></S>} />
         </Route>
       </Routes>

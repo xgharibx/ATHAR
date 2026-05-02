@@ -1,0 +1,101 @@
+[
+  {
+    "key": "bukhari",
+    "title": "صحيح البخاري",
+    "titleEn": "Sahih al-Bukhari",
+    "color": "#10b981",
+    "order": 1,
+    "grade": "sahih",
+    "description": "أصح كتاب في السنة النبوية، جمع الإمام محمد بن إسماعيل البخاري",
+    "count": 7589,
+    "sectionCount": 0
+  },
+  {
+    "key": "muslim",
+    "title": "صحيح مسلم",
+    "titleEn": "Sahih Muslim",
+    "color": "#3b82f6",
+    "order": 2,
+    "grade": "sahih",
+    "description": "ثاني أصح كتاب في السنة النبوية، جمع الإمام مسلم بن الحجاج",
+    "count": 7563,
+    "sectionCount": 0
+  },
+  {
+    "key": "abudawud",
+    "title": "سنن أبي داود",
+    "titleEn": "Sunan Abu Dawud",
+    "color": "#8b5cf6",
+    "order": 3,
+    "grade": "mixed",
+    "description": "من أمهات كتب السنة، للإمام أبي داود السجستاني",
+    "count": 5274,
+    "sectionCount": 0
+  },
+  {
+    "key": "tirmidhi",
+    "title": "جامع الترمذي",
+    "titleEn": "Jami at-Tirmidhi",
+    "color": "#f59e0b",
+    "order": 4,
+    "grade": "mixed",
+    "description": "للإمام محمد بن عيسى الترمذي، مع بيان درجة كل حديث",
+    "count": 3998,
+    "sectionCount": 0
+  },
+  {
+    "key": "nasai",
+    "title": "سنن النسائي",
+    "titleEn": "Sunan an-Nasai",
+    "color": "#ef4444",
+    "order": 5,
+    "grade": "mixed",
+    "description": "للإمام أحمد بن شعيب النسائي، من الكتب الستة المعتمدة",
+    "count": 5765,
+    "sectionCount": 0
+  },
+  {
+    "key": "ibnmajah",
+    "title": "سنن ابن ماجه",
+    "titleEn": "Sunan Ibn Majah",
+    "color": "#ec4899",
+    "order": 6,
+    "grade": "mixed",
+    "description": "للإمام محمد بن يزيد القزويني ابن ماجه، تمام الكتب الستة",
+    "count": 4343,
+    "sectionCount": 0
+  },
+  {
+    "key": "malik",
+    "title": "موطأ مالك",
+    "titleEn": "Muwatta Malik",
+    "color": "#06b6d4",
+    "order": 7,
+    "grade": "sahih",
+    "description": "للإمام مالك بن أنس، أقدم كتاب في السنة النبوية الموثّق",
+    "count": 1858,
+    "sectionCount": 0
+  },
+  {
+    "key": "nawawi",
+    "title": "الأربعون النووية",
+    "titleEn": "40 Hadith Nawawi",
+    "color": "#84cc16",
+    "order": 8,
+    "grade": "sahih",
+    "description": "جمع الإمام النووي رحمه الله أجمع أحاديث الإسلام في أربعين حديثاً",
+    "count": 42,
+    "sectionCount": 0
+  },
+  {
+    "key": "qudsi",
+    "title": "الأربعون القدسية",
+    "titleEn": "40 Hadith Qudsi",
+    "color": "#f97316",
+    "order": 9,
+    "grade": "sahih",
+    "description": "أحاديث قدسية مختارة، كلام الله عز وجل يرويه النبي ﷺ بأسلوبه",
+    "count": 40,
+    "sectionCount": 0
+  }
+]

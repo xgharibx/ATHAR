@@ -1,7 +1,7 @@
 import * as React from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, BookOpenText, Check, Copy, ExternalLink, Heart, Search, Share2, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpenText, Check, Copy, ExternalLink, Heart, Library, Search, Share2, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Badge } from "@/components/ui/Badge";
@@ -264,6 +264,29 @@ export function LibraryPage() {
       <div className="space-y-3">
         {entries.map((entry) => <LibraryEntryCard key={entry.key} entry={entry} />)}
       </div>
+
+      {/* Hadith corpus entry card */}
+      <button
+        type="button"
+        dir="rtl"
+        onClick={() => navigate("/hadith")}
+        className="w-full text-right rounded-2xl p-4 flex items-center gap-4 transition active:scale-95"
+        style={{ background: "linear-gradient(135deg, #10b98122, #3b82f622)", border: "1px solid #10b98133" }}
+      >
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: "#10b98122" }}
+        >
+          <Library size={22} style={{ color: "#10b981" }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-sm text-[var(--fg)] font-arabic">الكتب الحديثية</p>
+          <p className="text-xs text-[var(--muted)] mt-0.5 font-arabic">
+            9 كتب • أكثر من 36,000 حديث نبوي شريف
+          </p>
+        </div>
+        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" />
+      </button>
 
       <Card className="p-4">
         <div className="flex items-start gap-2">

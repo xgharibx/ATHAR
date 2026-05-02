@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const LibraryGradeSchema = z.enum(["sahih", "hasan", "agreed", "curated"]);
+export const LibraryGradeSchema = z.enum(["sahih", "hasan", "agreed", "daif", "maudu", "curated"]);
 export type LibraryGrade = z.infer<typeof LibraryGradeSchema>;
 
 export const LibraryKindSchema = z.enum(["hadith", "benefit", "guide"]);

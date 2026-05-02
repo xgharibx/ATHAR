@@ -1,0 +1,248 @@
+/**
+ * HadithBookView — Phase 2
+ * Book detail page: section filter + virtual list of hadiths.
+ * Route: /hadith/:bookKey
+ */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import { ArrowRight, Bookmark, Loader2 } from "lucide-react";
+import { useHadithPack } from "@/data/useHadithBook";
+import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview, type HadithItem } from "@/data/hadithTypes";
+import { useNoorStore } from "@/store/noorStore";
+
+/* ------------------------------------------------------------------ */
+
+function GradeBadge({ grades }: { grades: string[] }) {
+  if (!grades.length) return null;
+  const g = grades[0];
+  const colors: Record<string, string> = {
+    sahih: "#10b981",
+    hasan: "#3b82f6",
+    daif: "#ef4444",
+    maudu: "#6b7280",
+  };
+  const color = colors[g] ?? "#6b7280";
+  return (
+    <span
+      className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
+      style={{ background: color + "22", color }}
+    >
+      {hadithGradeLabel(g)}
+    </span>
+  );
+}
+
+function HadithRow({
+  item,
+  bookKey,
+  accentColor,
+}: {
+  item: HadithItem;
+  bookKey: string;
+  accentColor: string;
+}) {
+  const navigate = useNavigate();
+  const hadithBookmarks = useNoorStore((s) => s.hadithBookmarks);
+  const key = `${bookKey}:${item.n}`;
+  const isBookmarked = !!hadithBookmarks[key];
+
+  return (
+    <button
+      dir="rtl"
+      onClick={() => navigate(`/hadith/${bookKey}/${item.n}`)}
+      className="w-full text-right px-4 py-3 flex items-start gap-3 active:bg-[var(--card-bg)] transition border-b border-[var(--card-border)]"
+    >
+      {/* Number circle */}
+      <div
+        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold"
+        style={{ background: accentColor + "22", color: accentColor }}
+      >
+        {item.a.toLocaleString("ar-EG")}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-arabic text-[var(--fg)] leading-relaxed line-clamp-3 mb-1">
+          {hadithPreview(item.t, 160)}
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <GradeBadge grades={item.g} />
+        </div>
+      </div>
+
+      {isBookmarked && (
+        <Bookmark size={14} className="shrink-0 mt-1 fill-current"
+          style={{ color: accentColor }} />
+      )}
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+export function HadithBookViewPage() {
+  const { bookKey } = useParams<{ bookKey: string }>();
+  const navigate = useNavigate();
+  const { data: pack, isLoading, isError } = useHadithPack(bookKey);
+  const hadithProgress = useNoorStore((s) => s.hadithProgress);
+  const virtuoso = useRef<VirtuosoHandle>(null);
+
+  const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
+
+  const meta =
+    pack ??
+    HADITH_BOOKS_STATIC.find((b) => b.key === bookKey);
+
+  const accentColor = meta?.color ?? "#10b981";
+
+  // Filter visible hadiths
+  const visibleHadiths = useMemo<HadithItem[]>(() => {
+    if (!pack) return [];
+    if (activeSectionId === null) return pack.hadiths;
+    return pack.hadiths.filter((h) => h.s === activeSectionId);
+  }, [pack, activeSectionId]);
+
+  const lastN = hadithProgress[bookKey ?? ""];
+  const lastIndex = useMemo(() => {
+    if (!lastN || !visibleHadiths.length) return null;
+    const idx = visibleHadiths.findIndex((h) => h.n === lastN);
+    return idx >= 0 ? idx : null;
+  }, [lastN, visibleHadiths]);
+
+  const resumeReading = useCallback(() => {
+    if (lastIndex !== null) {
+      virtuoso.current?.scrollToIndex({ index: lastIndex, behavior: "smooth", align: "start" });
+    }
+  }, [lastIndex]);
+
+  // Scroll chips container for sections
+  const sectionsRef = useRef<HTMLDivElement>(null);
+
+  const renderItem = useCallback(
+    (index: number) => {
+      const item = visibleHadiths[index];
+      if (!item) return null;
+      return (
+        <HadithRow key={item.n} item={item} bookKey={bookKey!} accentColor={accentColor} />
+      );
+    },
+    [visibleHadiths, bookKey, accentColor],
+  );
+
+  return (
+    <div className="flex flex-col min-h-screen" style={{ background: "var(--bg)" }}>
+      {/* Header */}
+      <div
+        dir="rtl"
+        className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 backdrop-blur-sm"
+        style={{ background: "var(--bg)cc", borderBottom: "1px solid var(--card-border)" }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
+        >
+          <ArrowRight size={20} className="text-[var(--fg)]" />
+        </button>
+        <div className="flex-1">
+          <p className="font-bold text-base text-[var(--fg)] font-arabic leading-tight" dir="rtl">
+            {meta?.title ?? bookKey}
+          </p>
+          {pack && (
+            <p className="text-xs text-[var(--muted)]">
+              {pack.count.toLocaleString("ar-EG")} حديث
+            </p>
+          )}
+        </div>
+        {isLoading && <Loader2 size={18} className="animate-spin text-[var(--muted)]" />}
+      </div>
+
+      {/* Section filter chips */}
+      {pack && pack.sections.length > 1 && (
+        <div
+          ref={sectionsRef}
+          dir="rtl"
+          className="flex gap-2 px-4 py-2 overflow-x-auto scrollbar-hide"
+          style={{ borderBottom: "1px solid var(--card-border)" }}
+        >
+          <button
+            onClick={() => setActiveSectionId(null)}
+            className="shrink-0 text-xs px-3 py-1 rounded-full transition font-arabic"
+            style={
+              activeSectionId === null
+                ? { background: accentColor, color: "#fff" }
+                : { background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }
+            }
+          >
+            الكل
+          </button>
+          {pack.sections.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setActiveSectionId(s.id)}
+              className="shrink-0 text-xs px-3 py-1 rounded-full transition font-arabic whitespace-nowrap"
+              style={
+                activeSectionId === s.id
+                  ? { background: accentColor, color: "#fff" }
+                  : { background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }
+              }
+            >
+              {s.title}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Resume button */}
+      {lastIndex !== null && activeSectionId === null && (
+        <div dir="rtl" className="px-4 py-2">
+          <button
+            onClick={resumeReading}
+            className="w-full text-xs py-2 rounded-xl font-arabic"
+            style={{ background: accentColor + "22", color: accentColor, border: `1px solid ${accentColor}44` }}
+          >
+            أكمل من حيث توقفت • ح{lastN?.toLocaleString("ar-EG")}
+          </button>
+        </div>
+      )}
+
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flex-1 flex items-center justify-center gap-3 text-[var(--muted)]">
+          <Loader2 className="animate-spin" />
+          <span className="text-sm font-arabic">جاري تحميل الكتاب…</span>
+        </div>
+      )}
+
+      {/* Error state */}
+      {isError && !isLoading && (
+        <div dir="rtl" className="flex-1 flex flex-col items-center justify-center gap-2 px-8 text-center">
+          <p className="text-[var(--muted)] font-arabic">تعذّر تحميل الكتاب</p>
+          <p className="text-xs text-[var(--muted)]">
+            يرجى التحقق من اتصالك بالإنترنت وإعادة المحاولة
+          </p>
+        </div>
+      )}
+
+      {/* Hadith list — virtual scroll */}
+      {pack && visibleHadiths.length > 0 && (
+        <div className="flex-1">
+          <Virtuoso
+            ref={virtuoso}
+            totalCount={visibleHadiths.length}
+            itemContent={renderItem}
+            style={{ flex: 1, height: "calc(100vh - 160px)" }}
+          />
+        </div>
+      )}
+
+      {/* Empty after filter */}
+      {pack && visibleHadiths.length === 0 && !isLoading && (
+        <div dir="rtl" className="flex-1 flex items-center justify-center text-[var(--muted)] font-arabic">
+          لا توجد أحاديث في هذا الباب
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default HadithBookViewPage;
