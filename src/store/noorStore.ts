@@ -132,6 +132,7 @@ export type ExportBlobV1 = {
   reminders?: Reminders;
   progress: Record<string, number>;
   favorites: Record<string, boolean>;
+  libraryFavorites?: Record<string, boolean>;
   activity: Record<string, number>;
   quickTasbeeh?: Record<string, number>;
   sebhaSessions?: SebhaSession[];
@@ -164,6 +165,7 @@ type NoorState = {
   reminders: Reminders;
   progress: Record<string, number>; // key: `${sectionId}:${index}`
   favorites: Record<string, boolean>;
+  libraryFavorites: Record<string, boolean>; // key: `${collectionId}:${entryId}`
   activity: Record<string, number>; // dateISO -> actions count
   sectionItemOrder: Record<string, number[]>; // sectionId -> ordered original indexes
   lastCivilResetISO: string | null;
@@ -254,6 +256,7 @@ type NoorState = {
   resetSection: (sectionId: string) => void;
 
   toggleFavorite: (sectionId: string, index: number) => void;
+  toggleLibraryFavorite: (collectionId: string, entryId: string) => void;
   moveSectionItem: (sectionId: string, fromDisplayIndex: number, toDisplayIndex: number, itemCount: number) => void;
   resetSectionItemOrder: (sectionId: string) => void;
 
@@ -536,6 +539,7 @@ export const useNoorStore = create<NoorState>()(
       reminders: DEFAULT_REMINDERS,
       progress: {},
       favorites: {},
+      libraryFavorites: {},
       activity: {},
       sectionItemOrder: {},
       lastCivilResetISO: null,
@@ -788,6 +792,11 @@ export const useNoorStore = create<NoorState>()(
         set((s) => ({ favorites: { ...s.favorites, [key]: !s.favorites[key] } }));
       },
 
+      toggleLibraryFavorite: (collectionId, entryId) => {
+        const key = `${collectionId}:${entryId}`;
+        set((s) => ({ libraryFavorites: { ...s.libraryFavorites, [key]: !s.libraryFavorites[key] } }));
+      },
+
       moveSectionItem: (sectionId, fromDisplayIndex, toDisplayIndex, itemCount) => {
         set((s) => {
           const order = normalizeSectionOrder(s.sectionItemOrder[sectionId], itemCount);
@@ -855,6 +864,7 @@ export const useNoorStore = create<NoorState>()(
           reminders: s.reminders,
           progress: s.progress,
           favorites: s.favorites,
+          libraryFavorites: s.libraryFavorites,
           activity: s.activity,
           sectionItemOrder: s.sectionItemOrder,
           quickTasbeeh: s.quickTasbeeh,
@@ -898,6 +908,7 @@ export const useNoorStore = create<NoorState>()(
           },
           progress: sanitizeNumberMap(blob.progress),
           favorites: blob.favorites ?? {},
+          libraryFavorites: blob.libraryFavorites ?? {},
           activity: blob.activity ?? {},
           sectionItemOrder: sanitizeOrderMap(blob.sectionItemOrder),
           quickTasbeeh: sanitizeNumberMap(blob.quickTasbeeh),

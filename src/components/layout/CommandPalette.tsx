@@ -1,12 +1,13 @@
 import * as React from "react";
 import { Command } from "cmdk";
-import { Search, Moon, Sun, Sparkles, Download, BookOpen } from "lucide-react";
+import { Search, Moon, Sun, Sparkles, Download, BookOpen, LibraryBig } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Fuse from "fuse.js";
 import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useQuranDB } from "@/data/useQuranDB";
+import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
 import { useNoorStore } from "@/store/noorStore";
 import type { NoorTheme } from "@/store/noorStore";
 import type { FlatDhikr } from "@/data/types";
@@ -23,6 +24,7 @@ export function CommandPalette(props: Props) {
   const navigate = useNavigate();
   const { data } = useAdhkarDB();
   const { data: quranData } = useQuranDB();
+  const { data: libraryData } = useIslamicLibraryDB();
   const theme = useNoorStore((s) => s.prefs.theme);
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const exportState = useNoorStore((s) => s.exportState);
@@ -99,10 +101,25 @@ export function CommandPalette(props: Props) {
     });
   }, [ayahIndex]);
 
+  const libraryFuse = React.useMemo(() => {
+    if (!libraryData) return null;
+    return new Fuse(libraryData.flat, {
+      includeScore: true,
+      threshold: 0.34,
+      keys: ["searchText", "arabic", "title", "narrator", "tags", "collectionTitle"],
+      minMatchCharLength: 2,
+    });
+  }, [libraryData]);
+
   const ayahResults = React.useMemo(() => {
     if (!ayahFuse || query.trim().length < 3) return [] as typeof ayahIndex;
     return ayahFuse.search(normalizeArabic(query)).slice(0, 6).map((r) => r.item);
   }, [ayahFuse, query, normalizeArabic]);
+
+  const libraryResults = React.useMemo(() => {
+    if (!libraryFuse || query.trim().length < 2) return [];
+    return libraryFuse.search(normalizeArabic(query)).slice(0, 8).map((r) => r.item);
+  }, [libraryFuse, normalizeArabic, query]);
 
   const surahResults = React.useMemo(() => {
     if (!surahFuse || !query.trim()) return [] as NonNullable<typeof quranData>;
@@ -184,6 +201,7 @@ export function CommandPalette(props: Props) {
               <Command.Group heading="الصفحات" className="px-2">
                 <Item onSelect={() => go("/")} icon={<span className="text-base">🏠</span>}>الرئيسية</Item>
                 <Item onSelect={() => go("/quran")} icon={<span className="text-base">📖</span>}>المصحف</Item>
+                <Item onSelect={() => go("/library")} icon={<LibraryBig size={16} />}>المكتبة الإسلامية</Item>
                 <Item onSelect={() => go("/search")} icon={<span className="text-base">🔍</span>}>البحث</Item>
                 <Item onSelect={() => go("/favorites")} icon={<span className="text-base">❤️</span>}>المفضلة</Item>
                 <Item onSelect={() => go("/insights")} icon={<span className="text-base">📊</span>}>الإحصاءات</Item>
@@ -195,6 +213,7 @@ export function CommandPalette(props: Props) {
               <Command.Group heading="محتوى وأدلة" className="px-2">
                 <Item onSelect={() => go("/asma")} icon={<span className="text-base">✨</span>}>أسماء الله الحسنى</Item>
                 <Item onSelect={() => go("/duas")} icon={<span className="text-base">🤲</span>}>الأدعية المأثورة</Item>
+                <Item onSelect={() => go("/library")} icon={<span className="text-base">📚</span>}>صحيح مسلم والجوامع</Item>
                 <Item onSelect={() => go("/quran-vocab")} icon={<span className="text-base">📖</span>}>مفردات القرآن</Item>
                 <Item onSelect={() => go("/stories")} icon={<span className="text-base">🕌</span>}>قصص الأنبياء</Item>
                 <Item onSelect={() => go("/prayer-guide")} icon={<span className="text-base">🧎</span>}>كيفية الصلاة</Item>
@@ -283,6 +302,22 @@ export function CommandPalette(props: Props) {
                       <Item key={`${a.surahId}:${a.ayahIndex}`} onSelect={() => go(`/quran/${a.surahId}?a=${a.ayahIndex}`)} icon={<span className="text-base">🌙</span>}>
                         <span className="text-[11px] opacity-55 block">{a.surahName} • آية {a.ayahIndex}</span>
                         <span className="text-sm arabic-text line-clamp-2">{a.text.slice(0, 120)}</span>
+                      </Item>
+                    ))}
+                  </Command.Group>
+                </>
+              ) : null}
+
+              {libraryResults.length ? (
+                <>
+                  <Command.Separator className="h-px bg-white/10 my-2" />
+                  <Command.Group heading="نتائج داخل المكتبة" className="px-2">
+                    {libraryResults.map((entry) => (
+                      <Item key={entry.key} onSelect={() => go(`/library/${entry.collectionId}/${entry.id}`)} icon={<span className="text-base">{entry.collectionIcon}</span>}>
+                        <span className="text-sm">{entry.collectionTitle} • {entry.title}</span>
+                        <span className="text-[11px] opacity-60 block mt-1 line-clamp-2 arabic-text">
+                          {entry.arabic.slice(0, 140)}
+                        </span>
                       </Item>
                     ))}
                   </Command.Group>

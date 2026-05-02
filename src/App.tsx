@@ -73,6 +73,8 @@ const ProphetStoriesPage = React.lazy(() => import("@/pages/ProphetStories").the
 const PrayerGuidePage = React.lazy(() => import("@/pages/PrayerGuide").then((m) => ({ default: m.PrayerGuidePage })));
 const WuduGuidePage = React.lazy(() => import("@/pages/WuduGuide").then((m) => ({ default: m.WuduGuidePage })));
 const RuqyahPage = React.lazy(() => import("@/pages/Ruqyah").then((m) => ({ default: m.RuqyahPage })));
+const LibraryPage = React.lazy(() => import("@/pages/Library").then((m) => ({ default: m.LibraryPage })));
+const LibraryItemPage = React.lazy(() => import("@/pages/LibraryItem").then((m) => ({ default: m.LibraryItemPage })));
 
 export default function App() {
   useApplyTheme();
@@ -223,6 +225,8 @@ export default function App() {
           <Route path="prayer-guide" element={<S><PrayerGuidePage /></S>} />
           <Route path="wudu" element={<S><WuduGuidePage /></S>} />
           <Route path="ruqyah" element={<S><RuqyahPage /></S>} />
+          <Route path="library" element={<S><LibraryPage /></S>} />
+          <Route path="library/:collectionId/:entryId" element={<S><LibraryItemPage /></S>} />
           <Route path="*" element={<S><NotFoundPage /></S>} />
         </Route>
       </Routes>

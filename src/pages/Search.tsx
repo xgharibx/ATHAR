@@ -1,7 +1,7 @@
 import * as React from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
-import { Search, ArrowUpRight, X, BookOpen } from "lucide-react";
+import { Search, ArrowUpRight, X, BookOpen, LibraryBig } from "lucide-react";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useQuranDB } from "@/data/useQuranDB";
@@ -11,6 +11,8 @@ import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { FlatDhikr } from "@/data/types";
 import type { QuranSurah } from "@/data/quranTypes";
+import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
+import type { FlatLibraryEntry } from "@/data/libraryTypes";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { cn } from "@/lib/utils";
 import { stripDiacritics } from "@/lib/arabic";
@@ -38,11 +40,13 @@ function pushRecent(term: string, prev: string[]): string[] {
 export function SearchPage() {
   const { data } = useAdhkarDB();
   const { data: quranData } = useQuranDB();
+  const { data: libraryData } = useIslamicLibraryDB();
   const navigate = useNavigate();
   const [q, setQ] = React.useState("");
-  const [searchTab, setSearchTab] = React.useState<"adhkar" | "quran">("adhkar");
+  const [searchTab, setSearchTab] = React.useState<"adhkar" | "quran" | "library">("adhkar");
   const [recentSearches, setRecentSearches] = React.useState<string[]>(() => loadRecent());
   const [sectionFilter, setSectionFilter] = React.useState<string | null>(null);
+  const [libraryFilter, setLibraryFilter] = React.useState<string | null>(null);
 
   const fuse = React.useMemo(() => {
     if (!data) return null;
@@ -117,12 +121,52 @@ export function SearchPage() {
   }, [q, quranData, quranSurahFuse]);
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ── Library search ───────────────────────────────────────────────────────
+  const libraryFuse = React.useMemo(() => {
+    if (!libraryData) return null;
+    return new Fuse(libraryData.flat, {
+      includeScore: true,
+      threshold: 0.32,
+      keys: [
+        { name: "searchText", weight: 3 },
+        { name: "arabic", weight: 3 },
+        { name: "title", weight: 2 },
+        { name: "narrator", weight: 1.5 },
+        { name: "tags", weight: 1.2 },
+        { name: "collectionTitle", weight: 1 },
+      ],
+    });
+  }, [libraryData]);
+
+  const { libraryResults, libraryTotalHits } = React.useMemo(() => {
+    if (!libraryData) return { libraryResults: [] as FlatLibraryEntry[], libraryTotalHits: 0 };
+    const base = q.trim() && libraryFuse
+      ? libraryFuse.search(stripDiacritics(q.trim())).map((result) => result.item)
+      : [];
+    const filtered = libraryFilter ? base.filter((entry) => entry.collectionId === libraryFilter) : base;
+    return { libraryResults: filtered.slice(0, 50), libraryTotalHits: filtered.length };
+  }, [libraryData, libraryFilter, libraryFuse, q]);
+
+  const libraryChips = React.useMemo(() => {
+    if (!libraryData || !libraryFuse || !q.trim()) return [] as Array<{ id: string; title: string; count: number; icon: string; accent: string }>;
+    const map = new Map<string, { id: string; title: string; count: number; icon: string; accent: string }>();
+    for (const entry of libraryFuse.search(stripDiacritics(q.trim())).map((result) => result.item)) {
+      const existing = map.get(entry.collectionId);
+      if (existing) existing.count++;
+      else map.set(entry.collectionId, { id: entry.collectionId, title: entry.collectionTitle, count: 1, icon: entry.collectionIcon, accent: entry.collectionAccent });
+    }
+    return [...map.values()].sort((a, b) => b.count - a.count);
+  }, [libraryData, libraryFuse, q]);
+  // ─────────────────────────────────────────────────────────────────────────
+
   // Save search term after user gets results
   React.useEffect(() => {
-    if (!q.trim() || q.trim().length < 2 || results.length === 0) return;
+    if (!q.trim() || q.trim().length < 2 || (results.length + quranResults.length + libraryResults.length) === 0) return;
     const timer = setTimeout(() => setRecentSearches((prev) => pushRecent(q, prev)), 800);
     return () => clearTimeout(timer);
-  }, [q, results.length]);
+  }, [libraryResults.length, q, quranResults.length, results.length]);
+
+  React.useEffect(() => { setLibraryFilter(null); }, [q]);
 
   return (
     <div className="space-y-4 page-enter">
@@ -132,7 +176,7 @@ export function SearchPage() {
           <div className="font-semibold">بحث</div>
         </div>
         <div className="mt-4 relative flex items-center gap-2">
-          <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث في الأذكار والقرآن…" />
+          <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث في الأذكار والقرآن والمكتبة…" />
           {q ? (
             <IconButton aria-label="مسح" onClick={() => setQ("")}>
               <X size={16} />
@@ -141,7 +185,7 @@ export function SearchPage() {
         </div>
         <div className="mt-2 text-xs opacity-65 leading-5">
           نصائح: ابحث بكلمة عربية أو اسم قسم. أمثلة: <span className="opacity-80">الله</span> —{" "}
-          <span className="opacity-80">المساء</span> — <span className="opacity-80">الوضوء</span>
+          <span className="opacity-80">المساء</span> — <span className="opacity-80">النية</span>
         </div>
 
         {/* Tab switcher */}
@@ -167,6 +211,17 @@ export function SearchPage() {
             )}
           >
             <BookOpen size={13} /> القرآن
+          </button>
+          <button
+            onClick={() => setSearchTab("library")}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
+              searchTab === "library"
+                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
+                : "bg-white/6 border-white/10 hover:bg-white/10"
+            )}
+          >
+            <LibraryBig size={13} /> المكتبة
           </button>
         </div>
 
@@ -227,6 +282,43 @@ export function SearchPage() {
                 style={isActive ? { background: identity.accent } : {}}
               >
                 <span>{identity.icon}</span>
+                <span>{chip.title}</span>
+                <span className="opacity-70">({chip.count})</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Library collection chips */}
+      {searchTab === "library" && libraryChips.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar" style={{ scrollbarWidth: "none" }}>
+          <button
+            onClick={() => setLibraryFilter(null)}
+            className={cn(
+              "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
+              libraryFilter === null
+                ? "bg-[var(--accent)] border-transparent text-black"
+                : "bg-white/8 border-white/12 hover:bg-white/12"
+            )}
+          >
+            الكل ({libraryChips.reduce((a, c) => a + c.count, 0)})
+          </button>
+          {libraryChips.map((chip) => {
+            const isActive = libraryFilter === chip.id;
+            return (
+              <button
+                key={chip.id}
+                onClick={() => setLibraryFilter(isActive ? null : chip.id)}
+                className={cn(
+                  "shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
+                  isActive
+                    ? "border-transparent text-black"
+                    : "bg-white/8 border-white/12 hover:bg-white/12"
+                )}
+                style={isActive ? { background: chip.accent } : {}}
+              >
+                <span>{chip.icon}</span>
                 <span>{chip.title}</span>
                 <span className="opacity-70">({chip.count})</span>
               </button>
@@ -353,6 +445,72 @@ export function SearchPage() {
                 </button>
               )
             )}
+          </div>
+        )}
+      </Card>
+      )}
+
+      {/* ── Library results ───────────────────────────────────────────────── */}
+      {searchTab === "library" && (
+      <Card className="p-5">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="text-sm font-semibold">نتائج المكتبة</div>
+          {q.trim() && libraryResults.length > 0 && (
+            <div className="text-xs opacity-55 tabular-nums">
+              {libraryTotalHits > 50 ? `${libraryResults.length} من ${libraryTotalHits}` : libraryResults.length}
+            </div>
+          )}
+        </div>
+        {!q.trim() ? (
+          <div className="flex flex-col items-center text-center py-6 gap-2">
+            <LibraryBig size={32} className="opacity-20" />
+            <div className="text-sm opacity-55">ابحث في الحديث، الراوي، المصدر، أو الفوائد</div>
+            <button
+              type="button"
+              onClick={() => navigate("/library")}
+              className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-white/8 border border-white/10 px-4 py-2 text-xs hover:bg-white/12 transition"
+            >
+              فتح المكتبة
+              <ArrowUpRight size={14} />
+            </button>
+          </div>
+        ) : libraryResults.length === 0 ? (
+          <EmptyState
+            variant="search"
+            title={`لا توجد نتائج لـ «${q}»`}
+            description="جرّب كلمة من الحديث أو اسم راوٍ أو موضوعاً مثل النية أو الصبر"
+          />
+        ) : (
+          <div className="space-y-2">
+            {libraryResults.map((entry) => (
+              <button
+                key={entry.key}
+                onClick={() => navigate(`/library/${entry.collectionId}/${entry.id}`)}
+                className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-base shrink-0">{entry.collectionIcon}</span>
+                      <div className="text-sm font-semibold truncate" style={{ color: entry.collectionAccent }}>
+                        {entry.collectionTitle}
+                      </div>
+                      <span className="text-[11px] opacity-45">{entry.chapterTitle}</span>
+                    </div>
+                    <div className="mt-1 text-xs opacity-55">{entry.narrator || entry.source.title}</div>
+                  </div>
+                  <ArrowUpRight size={18} className="opacity-60 shrink-0" />
+                </div>
+                <div className="mt-3 arabic-text text-sm opacity-80 leading-7">
+                  {entry.arabic.slice(0, 220)}{entry.arabic.length > 220 ? "…" : ""}
+                </div>
+                {entry.benefits[0] && (
+                  <div className="mt-2 text-[11px] opacity-55 leading-5 border-t border-white/8 pt-2">
+                    فائدة: {entry.benefits[0].slice(0, 120)}{entry.benefits[0].length > 120 ? "…" : ""}
+                  </div>
+                )}
+              </button>
+            ))}
           </div>
         )}
       </Card>
