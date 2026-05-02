@@ -32,6 +32,53 @@ const RAMADAN_IDS = {
   iftar: 9402,
 } as const;
 
+// N5: Daily hadith at Fajr (Phase 10)
+const DAILY_HADITH_ID = 9501;
+
+// 40 brief excerpts from Nawawi's 40 Hadiths (rotate daily)
+const DAILY_HADITH_FAJR_PHRASES = [
+  "إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى",
+  "الإسلام أن تشهد أن لا إله إلا الله وأن محمداً رسول الله",
+  "بُني الإسلام على خمس: شهادة أن لا إله إلا الله وأن محمداً رسوله",
+  "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
+  "الحلال بيّن والحرام بيّن وبينهما أمور مشتبهات",
+  "من كان يؤمن بالله واليوم الآخر فليقل خيراً أو ليصمت",
+  "الدين النصيحة",
+  "أمرت أن أقاتل الناس حتى يشهدوا أن لا إله إلا الله",
+  "ما نهيتكم عنه فاجتنبوه وما أمرتكم به فأتوا منه ما استطعتم",
+  "إن الله طيب لا يقبل إلا طيباً",
+  "دع ما يريبك إلى ما لا يريبك",
+  "من حسن إسلام المرء تركه ما لا يعنيه",
+  "لا يؤمن أحدكم حتى يكون هواه تبعاً لما جئت به",
+  "لا ضرر ولا ضرار",
+  "من رأى منكم منكراً فليغيّره بيده",
+  "عليك بالصدق فإن الصدق يهدي إلى البر",
+  "اتق الله حيثما كنت وأتبع السيئة الحسنة تمحها",
+  "احفظ الله يحفظك، احفظ الله تجده تجاهك",
+  "إذا قمت إلى الصلاة فأسبغ الوضوء",
+  "كن في الدنيا كأنك غريب أو عابر سبيل",
+  "لا تحقرن من المعروف شيئاً",
+  "لو كان الدنيا تعدل عند الله جناح بعوضة",
+  "الزهد في الدنيا يريح القلب والبدن",
+  "الطهور شطر الإيمان",
+  "رأس الأمر الإسلام وعموده الصلاة",
+  "كل أمر ذي بال لا يبدأ بـ بسم الله فهو أجذم",
+  "جعلت الصلاة قرة عيني",
+  "خلق الله الخلق فكتب رحمتي تغلب غضبي",
+  "لا يدخل الجنة من كان في قلبه مثقال ذرة من كبر",
+  "أكمل المؤمنين إيماناً أحسنهم خلقاً",
+  "البر حسن الخلق، والإثم ما حاك في صدرك",
+  "يا غلام إني أعلمك كلمات: احفظ الله يحفظك",
+  "لو توكلتم على الله حق توكله لرزقكم كما يرزق الطير",
+  "كل بدعة ضلالة وكل ضلالة في النار",
+  "من رأى منكم منكراً فليغيره بيده، فإن لم يستطع فبلسانه",
+  "إن الله كتب الإحسان على كل شيء",
+  "إن من حسن إسلام المرء تركه ما لا يعنيه",
+  "إن قامت الساعة وفي يد أحدكم فسيلة فليزرعها",
+  "بشّر المشّائين في الظُّلَم إلى المساجد بالنور التام يوم القيامة",
+  "كل ابن آدم خطّاء وخير الخطّائين التوابون",
+];
+
 const PRAYER_LABELS: Record<keyof typeof PRAYER_NOTIFICATION_IDS, string> = {
   Fajr: "الفجر",
   Dhuhr: "الظهر",
@@ -532,6 +579,26 @@ function notificationRefs(ids: readonly number[]) {
   return ids.map((id) => ({ id }));
 }
 
+/** Phase 10 — Build a daily hadith notification scheduled at Fajr time */
+function buildDailyHadithNotification(
+  prayerTimings: PrayerNotificationTimings,
+  audio: NotificationAudioConfig,
+): LocalNotification | null {
+  const fajrAt = nextAtLocalTime(prayerTimings.Fajr ?? "");
+  if (!fajrAt) return null;
+  return {
+    id: DAILY_HADITH_ID,
+    title: "أثر — حديث اليوم ﷺ",
+    body: dailyPhrase(DAILY_HADITH_FAJR_PHRASES),
+    channelId: audio.channelId,
+    sound: audio.soundFile,
+    smallIcon: REMINDER_NOTIFICATION_ICON,
+    largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+    iconColor: REMINDER_ICON_COLOR,
+    schedule: { at: fajrAt, repeats: true, every: "day" as const },
+  };
+}
+
 async function ensureReminderChannel(soundProfile: ReminderSoundProfile) {
   const { LocalNotifications } = await import("@capacitor/local-notifications");
   const sound = getReminderSoundOption(soundProfile);
@@ -597,6 +664,7 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
   await LocalNotifications.cancel({
     notifications: notificationRefs([
       ...reminderIds,
+      DAILY_HADITH_ID,
       ...(shouldRefreshPrayerNotifications ? [...prayerIds, ...followUpIds, ...ramadanIds] : []),
     ]),
   });
@@ -622,6 +690,12 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
     // N4: Ramadan suhoor & iftar
     if (isRamadan()) {
       notifications.push(...buildRamadanNotifications(prayerTimings, prayerNotificationAudio));
+    }
+
+    // N5: Daily hadith at Fajr (Phase 10)
+    if (reminders.dailyHadithNotif) {
+      const n = buildDailyHadithNotification(prayerTimings, notificationAudio);
+      if (n) notifications.push(n);
     }
   }
 

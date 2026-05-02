@@ -1003,6 +1003,23 @@ export function SettingsPage() {
               />
             </div>
           </div>
+
+          {/* Phase 10 — Daily hadith at Fajr */}
+          <div className="glass rounded-3xl p-4 border border-white/10">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">حديث الفجر اليومي</div>
+                <div className="text-xs opacity-65 mt-1">
+                  يُرسل حديثًا نبويًا عند أذان الفجر يوميًا
+                </div>
+              </div>
+              <Switch
+                checked={reminders.dailyHadithNotif ?? false}
+                onCheckedChange={(v) => setReminders({ dailyHadithNotif: v })}
+                disabled={!reminders.enabled || !reminders.prayerAlertsEnabled}
+              />
+            </div>
+          </div>
         </div>
       </Card>
 
