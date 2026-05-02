@@ -32,6 +32,7 @@
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
+    "dexie": "^4.4.2",
     "framer-motion": "^11.3.12",
     "fuse.js": "^7.0.0",
     "gsap": "^3.12.5",

@@ -1,4 +1,5 @@
 import { Capacitor } from "@capacitor/core";
+import type { LocalNotification } from "@capacitor/local-notifications";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 
 const REMINDER_IDS = {
@@ -489,9 +490,7 @@ function buildRamadanNotifications(
   prayerTimings: PrayerNotificationTimings,
   audio: NotificationAudioConfig,
 ) {
-  const notifications: any[] = [];
-
-  // Suhoor = Fajr - 30 min
+  const notifications: LocalNotification[] = [];
   const fajrAt = todayAtLocalTime(prayerTimings.Fajr ?? "");
   if (fajrAt) {
     const suhoorAt = new Date(fajrAt.getTime() - 30 * 60_000);
@@ -610,7 +609,7 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
 
   const notificationAudio = await ensureReminderChannel(reminders.soundProfile);
 
-  const notifications: any[] = buildReminderNotifications(reminders, notificationAudio);
+  const notifications: LocalNotification[] = buildReminderNotifications(reminders, notificationAudio);
 
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);

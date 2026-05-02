@@ -36,14 +36,14 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
           </div>
           <div className="mt-2 text-xs opacity-60 break-words">{this.state.message}</div>
           <div className="mt-4 flex gap-2">
-            <button className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 min-h-[44px]" onClick={() => window.location.reload()}>
+            <button className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 min-h-[44px]" onClick={() => globalThis.location.reload()}>
               تحديث الصفحة
             </button>
             <button
               className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 min-h-[44px]"
               onClick={() => {
                 localStorage.clear();
-                window.location.reload();
+                globalThis.location.reload();
               }}
             >
               إعادة تهيئة التطبيق
@@ -60,43 +60,43 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
 // This rewrites the URL back to the real route so React Router can render it.
 // NOTE: Skip reload on Capacitor/Android to prevent black screen on first install.
 try {
-  const isCapacitor = !!(window as unknown as Record<string, unknown>).Capacitor;
+  const isCapacitor = !!(globalThis as unknown as Record<string, unknown>).Capacitor;
   if (!isCapacitor) {
     const seenVersion = localStorage.getItem(APP_RUNTIME_VERSION_KEY);
     if (seenVersion !== APP_RUNTIME_VERSION) {
       localStorage.setItem(APP_RUNTIME_VERSION_KEY, APP_RUNTIME_VERSION);
       sessionStorage.removeItem("noor_preload_recover_once");
-      window.location.reload();
+      globalThis.location.reload();
     }
   } else {
     // On Capacitor, just persist the version without reloading
     localStorage.setItem(APP_RUNTIME_VERSION_KEY, APP_RUNTIME_VERSION);
   }
 
-  const url = new URL(window.location.href);
+  const url = new URL(globalThis.location.href);
   const p = url.searchParams.get("p");
   if (p) {
     const decoded = decodeURIComponent(p);
     const next = `${import.meta.env.BASE_URL.replace(/\/$/, "")}${decoded}`;
-    window.history.replaceState(null, "", next);
+    globalThis.history.replaceState(null, "", next);
   }
 } catch {
   // ignore
 }
 
-window.addEventListener("vite:preloadError", () => {
+globalThis.addEventListener("vite:preloadError", () => {
   try {
     const key = "noor_preload_recover_once";
     if (!sessionStorage.getItem(key)) {
       sessionStorage.setItem(key, "1");
-      window.location.reload();
+      globalThis.location.reload();
     }
   } catch {
-    window.location.reload();
+    globalThis.location.reload();
   }
 });
 
-window.addEventListener("unhandledrejection", (event) => {
+globalThis.addEventListener("unhandledrejection", (event) => {
   console.error("Unhandled promise rejection:", event.reason);
 });
 
@@ -108,7 +108,7 @@ const queryClient = new QueryClient({
 
 // On Capacitor Android, BASE_URL is "./" which breaks React Router (routes won't match).
 // Use "/" as basename for Capacitor, otherwise use Vite's BASE_URL (handles GitHub Pages /ATHAR/).
-const isCapacitorRuntime = !!(window as unknown as Record<string, unknown>).Capacitor;
+const isCapacitorRuntime = !!(globalThis as unknown as Record<string, unknown>).Capacitor;
 const routerBasename = isCapacitorRuntime
   ? "/"
   : (import.meta.env.BASE_URL as string);

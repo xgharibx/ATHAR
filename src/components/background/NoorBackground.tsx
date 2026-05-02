@@ -21,6 +21,8 @@ export function NoorBackground() {
   const transparent = useNoorStore((s) => s.prefs.transparentMode);
   const [webglOk, setWebglOk] = React.useState(true);
   const isMobile = useIsMobile();
+  // T5: Defer 3D starfield until browser is idle to avoid blocking LCP
+  const [starfieldDeferred, setStarfieldDeferred] = React.useState(false);
 
   React.useEffect(() => {
     if (reduceMotion || !enable3D) return;
@@ -32,6 +34,21 @@ export function NoorBackground() {
     } catch {
       setWebglOk(false);
     }
+  }, [enable3D, reduceMotion]);
+
+  // T5: Defer 3D starfield render until browser idle to avoid blocking LCP
+  React.useEffect(() => {
+    if (!enable3D || reduceMotion) return;
+    const w = globalThis as typeof globalThis & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(() => setStarfieldDeferred(true), { timeout: 1500 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const id = setTimeout(() => setStarfieldDeferred(true), 1500);
+    return () => clearTimeout(id);
   }, [enable3D, reduceMotion]);
 
   const petals = React.useMemo(() => {
@@ -134,8 +151,8 @@ export function NoorBackground() {
         </div>
       ) : null}
 
-      {/* Optional 3D layer — reduced on mobile instead of fully disabled */}
-      {enable3D && !reduceMotion && webglOk ? (
+      {/* Optional 3D layer — deferred until browser is idle (T5) */}
+      {enable3D && !reduceMotion && webglOk && starfieldDeferred ? (
         <React.Suspense fallback={null}>
           <NoorStarfield mobile={isMobile} />
         </React.Suspense>

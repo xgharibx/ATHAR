@@ -107,6 +107,26 @@ export default defineConfig(function (_a) {
                                 cacheName: "google-fonts-webfonts",
                                 expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
                             }
+                        },
+                        // T4: Cache Quran audio files from everyayah CDN
+                        {
+                            urlPattern: /^https:\/\/everyayah\.com\/data\/.*/i,
+                            handler: "CacheFirst",
+                            options: {
+                                cacheName: "quran-audio",
+                                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                                cacheableResponse: { statuses: [0, 200] }
+                            }
+                        },
+                        // T4: Cache Quran audio from islamic.network CDN
+                        {
+                            urlPattern: /^https:\/\/cdn\.islamic\.network\/quran\/audio\/.*/i,
+                            handler: "CacheFirst",
+                            options: {
+                                cacheName: "quran-audio",
+                                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                                cacheableResponse: { statuses: [0, 200] }
+                            }
                         }
                     ]
                 }

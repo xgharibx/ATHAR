@@ -12,6 +12,43 @@ import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders } from "@/lib/reminders";
 
+// T7: Per-route error boundary — prevents a single page crash from killing the whole app
+class RouteErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div dir="rtl" className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6 text-center">
+          <div className="text-2xl">⚠️</div>
+          <div className="text-base font-semibold opacity-90">حدث خطأ في هذه الصفحة</div>
+          <button
+            className="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-sm"
+            onClick={() => this.setState({ hasError: false })}
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+/** Wraps a lazy route element with Suspense + per-route RouteErrorBoundary */
+function S({ children }: { children: React.ReactNode }) {
+  return (
+    <RouteErrorBoundary>
+      <React.Suspense fallback={<div className="p-4" dir="rtl"><PageSkeleton /></div>}>
+        {children}
+      </React.Suspense>
+    </RouteErrorBoundary>
+  );
+}
+
 const HomePage = React.lazy(() => import("@/pages/Home").then((m) => ({ default: m.HomePage })));
 const CategoryPage = React.lazy(() => import("@/pages/Category").then((m) => ({ default: m.CategoryPage })));
 const SearchPage = React.lazy(() => import("@/pages/Search").then((m) => ({ default: m.SearchPage })));
@@ -160,41 +197,33 @@ export default function App() {
     <>
       {showSplash && <SplashIntro onDone={() => setShowSplash(false)} />}
       {!showSplash && !onboardingDone && <OnboardingFlow />}
-      <React.Suspense
-        fallback={
-          <div className="p-4" dir="rtl">
-            <PageSkeleton />
-          </div>
-        }
-      >
-        <LeaderboardSyncBridge />
-        <Routes>
-          <Route path="mushaf/:page?" element={<MushafPage />} />
-          <Route element={<AppShell />}>
-            <Route index element={<HomePage />} />
-            <Route path="c/:id" element={<CategoryPage />} />
-            <Route path="search" element={<SearchPage />} />
-            <Route path="favorites" element={<FavoritesPage />} />
-            <Route path="quran" element={<QuranPage />} />
-            <Route path="quran/:id" element={<SurahPage />} />
-            <Route path="sebha" element={<SebhaPage />} />
-            <Route path="qibla" element={<QiblaPage />} />
-            <Route path="prayer-times" element={<PrayerTimesPage />} />
-            <Route path="insights" element={<InsightsPage />} />
-            <Route path="leaderboard" element={<LeaderboardPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="sources" element={<SourcesPage />} />
-            {/* C1-C7: New content pages */}
-            <Route path="asma" element={<AsmaAlHusnaPage />} />
-            <Route path="duas" element={<DuasPage />} />
-            <Route path="quran-vocab" element={<QuranVocabPage />} />
-            <Route path="stories" element={<ProphetStoriesPage />} />
-            <Route path="prayer-guide" element={<PrayerGuidePage />} />
-            <Route path="wudu" element={<WuduGuidePage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
-      </React.Suspense>
+      <LeaderboardSyncBridge />
+      <Routes>
+        <Route path="mushaf/:page?" element={<S><MushafPage /></S>} />
+        <Route element={<AppShell />}>
+          <Route index element={<S><HomePage /></S>} />
+          <Route path="c/:id" element={<S><CategoryPage /></S>} />
+          <Route path="search" element={<S><SearchPage /></S>} />
+          <Route path="favorites" element={<S><FavoritesPage /></S>} />
+          <Route path="quran" element={<S><QuranPage /></S>} />
+          <Route path="quran/:id" element={<S><SurahPage /></S>} />
+          <Route path="sebha" element={<S><SebhaPage /></S>} />
+          <Route path="qibla" element={<S><QiblaPage /></S>} />
+          <Route path="prayer-times" element={<S><PrayerTimesPage /></S>} />
+          <Route path="insights" element={<S><InsightsPage /></S>} />
+          <Route path="leaderboard" element={<S><LeaderboardPage /></S>} />
+          <Route path="settings" element={<S><SettingsPage /></S>} />
+          <Route path="sources" element={<S><SourcesPage /></S>} />
+          {/* C1-C7: New content pages */}
+          <Route path="asma" element={<S><AsmaAlHusnaPage /></S>} />
+          <Route path="duas" element={<S><DuasPage /></S>} />
+          <Route path="quran-vocab" element={<S><QuranVocabPage /></S>} />
+          <Route path="stories" element={<S><ProphetStoriesPage /></S>} />
+          <Route path="prayer-guide" element={<S><PrayerGuidePage /></S>} />
+          <Route path="wudu" element={<S><WuduGuidePage /></S>} />
+          <Route path="*" element={<S><NotFoundPage /></S>} />
+        </Route>
+      </Routes>
     </>
   );
 }

@@ -438,10 +438,21 @@ export function SurahPage() {
       audio.playbackRate = pst.speed;
       audioRef.current = audio;
       setPlayingAyah(aNum);
-      audio.play().catch(() => {
-        toast.error("تعذر تشغيل التلاوة");
+      audio.addEventListener("error", () => {
         pst.active = false;
         setPlayingAyah(null);
+        audioRef.current = null;
+        toast.error(
+          "خطأ في تحميل الصوت — جرّب تغيير القارئ من الإعدادات",
+          { duration: 5000, id: "audio-err" }
+        );
+      }, { once: true });
+      audio.play().catch(() => {
+        if (pst.active) {
+          pst.active = false;
+          setPlayingAyah(null);
+          toast.error("تعذر تشغيل التلاوة");
+        }
       });
       audio.onended = () => {
         if (!pst.active) { setPlayingAyah(null); return; }

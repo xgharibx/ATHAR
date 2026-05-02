@@ -507,6 +507,26 @@ function sanitizeNumberMap(input: unknown) {
   return out;
 }
 
+/**
+ * T9: Normalize Quran bookmark keys to canonical `"surahId:ayahIndex"` form.
+ * Strips leading zeros and ensures both parts are valid positive integers.
+ */
+function normalizeQuranBookmarks(input: unknown): Record<string, boolean> {
+  if (!input || typeof input !== "object") return {};
+  const src = input as Record<string, unknown>;
+  const out: Record<string, boolean> = {};
+  for (const rawKey of Object.keys(src)) {
+    const [rawSurah, rawAyah] = rawKey.split(":");
+    const surahId = parseInt(rawSurah ?? "", 10);
+    const ayahIndex = parseInt(rawAyah ?? "", 10);
+    if (!Number.isFinite(surahId) || !Number.isFinite(ayahIndex)) continue;
+    if (surahId <= 0 || ayahIndex <= 0) continue;
+    const canonicalKey = `${surahId}:${ayahIndex}`;
+    out[canonicalKey] = Boolean(src[rawKey]);
+  }
+  return out;
+}
+
 export const useNoorStore = create<NoorState>()(
   persist(
     (set, get) => ({
@@ -997,6 +1017,11 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
+      // T10: MIGRATION GUARD — whenever new persisted state keys are added:
+      //  1. Bump this version number (currently 17)
+      //  2. Add a fallback default for the new key in the `migrate` function below
+      //     e.g., newKey: (state as Partial<NoorState>).newKey ?? defaultValue
+      //  Failure to do so will silently drop data for users upgrading from older versions.
       version: 17,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
@@ -1029,6 +1054,8 @@ export const useNoorStore = create<NoorState>()(
           weeklyReportSentISO: (state as Partial<NoorState>).weeklyReportSentISO ?? null,
           onboardingDone: (state as Partial<NoorState>).onboardingDone ?? false,
           tasbeehLifetime: sanitizeNumberMap((state as Partial<NoorState>).tasbeehLifetime),
+          // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
+          quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
         } as NoorState;
       }
     }

@@ -99,6 +99,10 @@ const APP_FOOTER_TEXT = `هذا البرنامج صدقة جارية عني، و
 وأُشهد الله أني قد عفوت وسامحت عن ما مضى وما هو آت، طمعاً في أن يعفو الله عني.`;
 
 let appShellMountedCount = 0;
+// Reset counter on HMR hot-reload to prevent false "duplicate" warnings
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => { appShellMountedCount = 0; });
+}
 const DUP_SHELL_LOG_KEY = "noor_diag_dup_shell_events";
 const DUP_SHELL_LAST_KEY = "noor_diag_dup_shell_last";
 
@@ -446,22 +450,25 @@ export function AppShell() {
         toast(next === 'dark' ? '🌙 المظهر الداكن' : '☀️ المظهر الفاتح', { duration: 1500 });
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    globalThis.addEventListener('keydown', handler);
+    return () => globalThis.removeEventListener('keydown', handler);
   }, [prefs.theme, setPrefs]);
 
   React.useEffect(() => {
     appShellMountedCount += 1;
     if (appShellMountedCount > 1) {
-      console.warn("Detected duplicate AppShell mount; hiding extra instance");
-      recordDuplicateShellEvent(location.pathname, appShellMountedCount);
+      if (import.meta.env.PROD) {
+        console.warn("Detected duplicate AppShell mount; hiding extra instance");
+        recordDuplicateShellEvent(location.pathname, appShellMountedCount);
+      }
       setIsPrimaryShell(false);
     }
 
     return () => {
       appShellMountedCount = Math.max(0, appShellMountedCount - 1);
     };
-  }, [location.pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!isPrimaryShell) return null;
 
