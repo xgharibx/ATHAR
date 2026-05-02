@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
@@ -12,7 +12,7 @@ import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders, registerNotificationDeepLinkListener } from "@/lib/reminders";
 
-// T7: Per-route error boundary — prevents a single page crash from killing the whole app
+// T7: Per-route error boundary � prevents a single page crash from killing the whole app
 class RouteErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean }
@@ -23,13 +23,13 @@ class RouteErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div dir="rtl" className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6 text-center">
-          <div className="text-2xl">⚠️</div>
-          <div className="text-base font-semibold opacity-90">حدث خطأ في هذه الصفحة</div>
+          <div className="text-2xl">??</div>
+          <div className="text-base font-semibold opacity-90">??? ??? ?? ??? ??????</div>
           <button
             className="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-sm"
             onClick={() => this.setState({ hasError: false })}
           >
-            إعادة المحاولة
+            ????? ????????
           </button>
         </div>
       );
@@ -81,6 +81,7 @@ const CompanionsPage = React.lazy(() => import("@/pages/Companions"));
 const SeerahPage = React.lazy(() => import("@/pages/SeerahTimeline"));
 const QuranPlansPage = React.lazy(() => import("@/pages/QuranPlans").then((m) => ({ default: m.QuranPlansPage })));
 const CustomAdhkarPage = React.lazy(() => import("@/pages/CustomAdhkar").then((m) => ({ default: m.CustomAdhkarPage })));
+const NearbyMosquesPage = React.lazy(() => import("@/pages/NearbyMosques").then((m) => ({ default: m.NearbyMosquesPage })));
 
 export default function App() {
   useApplyTheme();
@@ -227,6 +228,7 @@ export default function App() {
           <Route path="adhkar/custom" element={<S><CustomAdhkarPage /></S>} />
           <Route path="sebha" element={<S><SebhaPage /></S>} />
           <Route path="qibla" element={<S><QiblaPage /></S>} />
+          <Route path="mosques" element={<S><NearbyMosquesPage /></S>} />
           <Route path="prayer-times" element={<S><PrayerTimesPage /></S>} />
           <Route path="insights" element={<S><InsightsPage /></S>} />
           <Route path="leaderboard" element={<S><LeaderboardPage /></S>} />
