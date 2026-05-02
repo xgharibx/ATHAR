@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2, Volume2, VolumeX, ZoomIn, ZoomOut } from "lucide-react";
+import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2, ZoomIn, ZoomOut } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { cn, clamp } from "@/lib/utils";
@@ -62,20 +62,6 @@ export function DhikrCard(props: {
   const [confirmItemReset, setConfirmItemReset] = React.useState(false);
   // D5: per-card local font scale
   const [localFontScale, setLocalFontScale] = React.useState(1.0);
-  // D7: speech synthesis
-  const [speaking, setSpeaking] = React.useState(false);
-  const doSpeak = React.useCallback(() => {
-    if (!('speechSynthesis' in window)) { toast.error('الاستماع غير مدعوم'); return; }
-    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
-    const utt = new SpeechSynthesisUtterance(item.text);
-    utt.lang = 'ar-SA';
-    utt.rate = 0.82;
-    utt.onend = () => setSpeaking(false);
-    utt.onerror = () => setSpeaking(false);
-    setSpeaking(true);
-    window.speechSynthesis.speak(utt);
-  }, [item.text, speaking]);
-  React.useEffect(() => () => { if (speaking) window.speechSynthesis.cancel(); }, [speaking]);
   const milestonesHit = React.useRef<Set<number>>(new Set([
     ...(current >= target * 0.25 ? [0.25] : []),
     ...(current >= target * 0.5 ? [0.5] : []),
@@ -355,16 +341,6 @@ export function DhikrCard(props: {
 
             <IconButton aria-label="مشاركة كصورة" onClick={doShareImage} title="مشاركة كصورة">
               <ImageDown size={18} className="opacity-80" />
-            </IconButton>
-
-            {/* D7: speech synthesis */}
-            <IconButton
-              aria-label={speaking ? "إيقاف الاستماع" : "استمع للذكر"}
-              title={speaking ? "إيقاف" : "استمع"}
-              onClick={doSpeak}
-              className={cn(speaking && "bg-[var(--accent)]/14 border-[var(--accent)]/24")}
-            >
-              {speaking ? <VolumeX size={18} className="text-[var(--accent)]" /> : <Volume2 size={18} className="opacity-80" />}
             </IconButton>
 
             {/* D5: per-card font scale */}

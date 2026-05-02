@@ -173,6 +173,11 @@ export function SurahPage() {
 
   // Q11: Inline tafsir sheet
   const [tafsirSheetAyah, setTafsirSheetAyah] = React.useState<number | null>(null);
+  // Arabic tafsir data (indexed by original ayah number)
+  const [tafsirArData, setTafsirArData] = React.useState<string[]>([]);
+  const [tafsirArLoading, setTafsirArLoading] = React.useState(false);
+  const [tafsirSource, setTafsirSource] = React.useState<"muyassar" | "jalalayn" | "en">("muyassar");
+  const [tafsirArSurahId, setTafsirArSurahId] = React.useState<number | null>(null);
 
   // Audio play-state ref (avoids stale closures in onended callbacks)
   const audioPlayRef = React.useRef<{
@@ -403,14 +408,16 @@ export function SurahPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAyah]);
 
-  // Q3: Reset translation data when surah changes
+  // Q3: Reset translation + tafsir data when surah changes
   React.useEffect(() => {
     setTranslationData([]);
+    setTafsirArData([]);
+    setTafsirArSurahId(null);
   }, [surahId]);
 
   // Q3/Q11: Fetch English translation on demand (for translation panel or tafsir sheet)
   React.useEffect(() => {
-    if ((!showTranslation && tafsirSheetAyah === null) || !surah || translationData.length > 0) return;
+    if ((!showTranslation && (tafsirSheetAyah === null || tafsirSource !== "en")) || !surah || translationData.length > 0) return;
     setTranslationLoading(true);
     fetch(`https://api.alquran.cloud/v1/surah/${surah.id}/en.sahih`)
       .then((r) => r.json())
@@ -424,7 +431,35 @@ export function SurahPage() {
       .catch(() => toast.error("تعذر تحميل الترجمة"))
       .finally(() => setTranslationLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTranslation, tafsirSheetAyah, surah?.id]);
+  }, [showTranslation, tafsirSheetAyah, tafsirSource, surah?.id]);
+
+  // Q11-AR: Fetch Arabic tafsir on demand when tafsir sheet opens
+  React.useEffect(() => {
+    if (tafsirSheetAyah === null || !surah) return;
+    if (tafsirSource === "en") return; // handled by EN translation effect
+    const edition = tafsirSource === "jalalayn" ? "ar.jalalayn" : "ar.muyassar";
+    if (tafsirArSurahId === surah.id && tafsirArData.length > 0) return; // already loaded
+    setTafsirArLoading(true);
+    fetch(`https://api.alquran.cloud/v1/surah/${surah.id}/${edition}`)
+      .then((r) => r.json())
+      .then((json: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
+        if (json?.data?.ayahs) {
+          const arr: string[] = new Array((json.data.ayahs.at(-1)?.numberInSurah ?? 0) + 1).fill("");
+          for (const a of json.data.ayahs) arr[a.numberInSurah] = a.text;
+          setTafsirArData(arr);
+          setTafsirArSurahId(surah.id);
+        }
+      })
+      .catch(() => toast.error("تعذر تحميل التفسير"))
+      .finally(() => setTafsirArLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tafsirSheetAyah, tafsirSource, surah?.id]);
+
+  // Q11-AR: Reset cached tafsir data when source changes
+  React.useEffect(() => {
+    setTafsirArData([]);
+    setTafsirArSurahId(null);
+  }, [tafsirSource]);
 
   // Q7/Q8/Q4: Keep playAyahCoreRef updated with latest reciter (avoids stale closure in onended)
   React.useEffect(() => {
@@ -987,11 +1022,21 @@ export function SurahPage() {
     );
   };
 
-  // Q11: Inline tafsir sheet — shows ayah text + EN translation + external link
+  // Q11: Inline tafsir sheet — Arabic Tafsir Al-Muyassar / Jalalayn / EN
   const renderTafsirSheet = (s: QuranSurah) => {
     if (tafsirSheetAyah === null) return null;
     const ayahData = displayAyahs.find((a) => a.displayAyah === tafsirSheetAyah);
-    const enText = translationData[ayahData?.originalAyah ?? tafsirSheetAyah];
+    const originalAyah = ayahData?.originalAyah ?? tafsirSheetAyah;
+    const arText = tafsirArData[originalAyah] ?? "";
+    const enText = translationData[originalAyah] ?? "";
+    const isLoading = tafsirSource === "en" ? translationLoading : tafsirArLoading;
+
+    const TAFSIR_SOURCES: Array<{ key: "muyassar" | "jalalayn" | "en"; label: string }> = [
+      { key: "muyassar", label: "الميسر" },
+      { key: "jalalayn", label: "الجلالين" },
+      { key: "en", label: "English" },
+    ];
+
     return (
       <>
         <div
@@ -1000,13 +1045,14 @@ export function SurahPage() {
         />
         <div
           className="quran-note-sheet"
-          style={{ zIndex: 91, maxHeight: "70vh", overflowY: "auto" }}
+          style={{ zIndex: 91, maxHeight: "78vh", overflowY: "auto" }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="quran-note-sheet__handle" />
+          {/* Header */}
           <div className="flex items-center justify-between gap-2 mb-3">
             <span className="text-sm font-semibold arabic-text">
-              تفسير الآية ﴿{toArabicIndic(tafsirSheetAyah)}﴾ · {s.name}
+              تفسير ﴿{toArabicIndic(tafsirSheetAyah)}﴾ · {s.name}
             </span>
             <button
               type="button"
@@ -1016,33 +1062,81 @@ export function SurahPage() {
               <XIcon size={14} />
             </button>
           </div>
+
+          {/* Source selector tabs */}
+          <div className="flex gap-1.5 mb-3 p-1 rounded-2xl bg-white/5 border border-white/10">
+            {TAFSIR_SOURCES.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setTafsirSource(key)}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition ${
+                  tafsirSource === key
+                    ? "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30"
+                    : "opacity-55 hover:opacity-80"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           {/* Arabic ayah text */}
           {ayahData && (
-            <div className="arabic-text text-lg leading-10 mb-3 opacity-90 quran-text text-center p-3 rounded-2xl bg-white/4 border border-white/8" dir="rtl">
+            <div
+              className="arabic-text text-lg leading-10 mb-3 opacity-90 quran-text text-center p-3 rounded-2xl bg-white/4 border border-white/8"
+              dir="rtl"
+            >
               {ayahData.text}
-              <span className="ml-2 text-[var(--accent)] opacity-60 text-base">﴿{toArabicIndic(tafsirSheetAyah)}﴾</span>
+              <span className="ml-2 text-[var(--accent)] opacity-60 text-base">
+                ﴿{toArabicIndic(tafsirSheetAyah)}﴾
+              </span>
             </div>
           )}
-          {/* EN Translation */}
-          <div className="text-sm leading-7 opacity-80 p-3 rounded-2xl bg-white/4 border border-white/8 mb-3" dir="ltr">
-            {translationLoading ? (
-              <span className="opacity-40 italic text-xs">Loading translation…</span>
-            ) : enText ? (
-              enText
+
+          {/* Tafsir content */}
+          <div
+            className="text-sm leading-8 p-4 rounded-2xl bg-white/4 border border-white/8 mb-3"
+            dir={tafsirSource === "en" ? "ltr" : "rtl"}
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2 opacity-45 text-xs justify-center py-4">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-[var(--accent)] rounded-full animate-spin" />
+                <span>جارٍ تحميل التفسير…</span>
+              </div>
+            ) : tafsirSource === "en" ? (
+              enText ? (
+                <span className="opacity-85">{enText}</span>
+              ) : (
+                <span className="opacity-35 italic text-xs">
+                  Enable translation panel first to load English text.
+                </span>
+              )
+            ) : arText ? (
+              <div className="arabic-text opacity-85">{arText}</div>
             ) : (
-              <span className="opacity-40 italic text-xs">Translation not available. Toggle translation on first.</span>
+              <div className="flex flex-col gap-2 items-center py-3 opacity-40 text-xs">
+                <span>لم يُحمَّل التفسير بعد</span>
+              </div>
             )}
           </div>
-          {/* External tafsir link */}
+
+          {/* Source label */}
+          <div className="text-[11px] opacity-40 mb-3 arabic-text">
+            {tafsirSource === "muyassar" && "المصدر: التفسير الميسر — مجمع الملك فهد"}
+            {tafsirSource === "jalalayn" && "المصدر: تفسير الجلالين — السيوطي والمحلي"}
+            {tafsirSource === "en" && "Source: Sahih International Translation"}
+          </div>
+
+          {/* External full tafsir link */}
           <a
             href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${s.id}-aya${tafsirSheetAyah}.html#katheer`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs opacity-55 hover:opacity-90 transition w-fit"
+            className="flex items-center gap-1.5 text-xs opacity-50 hover:opacity-90 transition w-fit"
             onClick={(e) => e.stopPropagation()}
           >
             <ArrowUpRight size={13} />
-            <span>تفسير ابن كثير الكامل</span>
+            <span>تفسير ابن كثير الكامل (خارجي)</span>
           </a>
         </div>
       </>

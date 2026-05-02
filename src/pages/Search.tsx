@@ -13,6 +13,7 @@ import type { FlatDhikr } from "@/data/types";
 import type { QuranSurah } from "@/data/quranTypes";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { cn } from "@/lib/utils";
+import { stripDiacritics } from "@/lib/arabic";
 
 // --- Recent searches helpers ---
 const RECENT_KEY = "noor_recent_searches";
@@ -100,12 +101,13 @@ export function SearchPage() {
       }
     }
 
-    // Ayah text matches (simple includes, limit 20)
+    // Ayah text matches — diacritic-stripped, up to 50 results
+    const normalTerm = stripDiacritics(term);
     let ayahCount = 0;
     for (const surah of quranData) {
-      if (ayahCount >= 20) break;
-      for (let i = 0; i < surah.ayahs.length && ayahCount < 20; i++) {
-        if (surah.ayahs[i].includes(term)) {
+      if (ayahCount >= 50) break;
+      for (let i = 0; i < surah.ayahs.length && ayahCount < 50; i++) {
+        if (stripDiacritics(surah.ayahs[i]).includes(normalTerm)) {
           out.push({ type: "ayah", surah, ayahIndex: i + 1, text: surah.ayahs[i] });
           ayahCount++;
         }
@@ -130,7 +132,7 @@ export function SearchPage() {
           <div className="font-semibold">بحث</div>
         </div>
         <div className="mt-4 relative flex items-center gap-2">
-          <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث داخل الأذكار…" />
+          <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث في الأذكار والقرآن…" />
           {q ? (
             <IconButton aria-label="مسح" onClick={() => setQ("")}>
               <X size={16} />
@@ -297,13 +299,16 @@ export function SearchPage() {
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="text-sm font-semibold">نتائج القرآن</div>
           {q.trim() && quranResults.length > 0 && (
-            <div className="text-xs opacity-55 tabular-nums">{quranResults.length}</div>
+            <div className="text-xs opacity-55 tabular-nums">
+              {quranResults.filter(r => r.type === "ayah").length} آية
+              {quranResults.filter(r => r.type === "surah").length > 0 && ` · ${quranResults.filter(r => r.type === "surah").length} سورة`}
+            </div>
           )}
         </div>
         {!q.trim() ? (
           <div className="flex flex-col items-center text-center py-6 gap-2">
             <BookOpen size={32} className="opacity-20" />
-            <div className="text-sm opacity-55">ابحث باسم السورة أو بكلمة قرآنية</div>
+            <div className="text-sm opacity-55">ابحث باسم السورة أو بكلمة قرآنية (مع أو بدون تشكيل)</div>
           </div>
         ) : quranResults.length === 0 ? (
           <EmptyState

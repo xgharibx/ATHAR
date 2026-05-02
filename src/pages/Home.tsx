@@ -34,6 +34,8 @@ import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistIt
 import { DailyWisdomCard } from "@/components/ui/DailyWisdomCard";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { HADITHS } from "@/data/hadiths";
+import { getTodayIslamicInfo } from "@/lib/hijri";
+import { SEASONAL_ADHKAR } from "@/data/seasonalAdhkar";
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -143,6 +145,73 @@ function rescueTipByCategory(category: DailyChecklistItem["category"]) {
   if (category === "sadaqah") return "نفّذ صدقة بسيطة الآن";
   if (category === "family") return "رسالة صلة رحم سريعة";
   return "دعاء صادق لشخص آخر";
+}
+
+const HIJRI_MONTHS = ["محرم","صفر","ربيع الأول","ربيع الآخر","جمادى الأولى","جمادى الآخرة","رجب","شعبان","رمضان","شوال","ذو القعدة","ذو الحجة"];
+
+function IslamicSeasonBanner() {
+  const { hijri, season } = React.useMemo(() => getTodayIslamicInfo(), []);
+  const seasonalDhikrs = React.useMemo(() => season?.season ? (SEASONAL_ADHKAR[season.season] ?? []) : [], [season]);
+  const [dhikrIdx, setDhikrIdx] = React.useState(0);
+  const dhikr = seasonalDhikrs.length > 0 ? seasonalDhikrs[dhikrIdx % seasonalDhikrs.length] : null;
+
+  // color may be a hex like "#f59e0b" or a CSS var like "var(--accent)"
+  const isHexColor = season?.color?.startsWith("#");
+  const borderColor = isHexColor ? `${season!.color}30` : "rgba(255,255,255,0.18)";
+  const glowBg = isHexColor
+    ? `radial-gradient(circle at 70% 50%, ${season!.color}, transparent 70%)`
+    : undefined;
+
+  return (
+    <>
+      {season ? (
+        <Card className="p-4 overflow-hidden relative" style={{ borderColor }}>
+          {glowBg && (
+            <div
+              className="absolute inset-0 opacity-5 pointer-events-none"
+              style={{ background: glowBg }}
+            />
+          )}
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{season.icon}</span>
+              <div>
+                <div className="text-sm font-bold arabic-text" style={{ color: season.color }}>
+                  {season.label}
+                </div>
+                <div className="text-[11px] opacity-55 leading-5 arabic-text mt-0.5">
+                  {season.description}
+                </div>
+              </div>
+            </div>
+            <div className="text-[10px] opacity-35 tabular-nums arabic-text shrink-0 mt-1">
+              {hijri.day} {HIJRI_MONTHS[(hijri.month - 1) % 12]} {hijri.year}هـ
+            </div>
+          </div>
+          {dhikr && (
+            <button
+              type="button"
+              onClick={() => setDhikrIdx((i) => i + 1)}
+              className="mt-3 w-full text-right rounded-2xl bg-white/5 border border-white/10 p-3 arabic-text text-sm leading-8 hover:bg-white/8 transition"
+              title="اضغط للتالي"
+            >
+              {dhikr.arabic}
+              <div className="text-[10px] opacity-45 mt-1.5 leading-4">{dhikr.source}{dhikr.notes ? ` — ${dhikr.notes}` : ""}</div>
+              {seasonalDhikrs.length > 1 && (
+                <div className="text-[10px] opacity-30 mt-1">({dhikrIdx % seasonalDhikrs.length + 1}/{seasonalDhikrs.length})</div>
+              )}
+            </button>
+          )}
+        </Card>
+      ) : (
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-white/10 text-xs opacity-50 arabic-text">
+            🗓️ {hijri.day} {HIJRI_MONTHS[(hijri.month - 1) % 12]} {hijri.year}هـ
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export function HomePage() {
@@ -755,6 +824,24 @@ export function HomePage() {
           ))}
         </Card>
       )}
+
+      {/* ── Islamic season banner ── */}
+      <IslamicSeasonBanner />
+
+      {/* ── Ruqyah quick-access card ── */}
+      <button
+        onClick={() => navigate("/ruqyah")}
+        className="w-full text-right press-effect glass-strong rounded-3xl border border-white/10 p-4 flex items-center gap-3 hover:bg-white/8 transition glass-hover"
+      >
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.25)" }}>
+          <span className="text-lg">🛡️</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold arabic-text">أذكار الرقية الشرعية</div>
+          <div className="text-xs opacity-55 arabic-text mt-0.5">الفاتحة · آية الكرسي · المعوذات · أدعية نبوية</div>
+        </div>
+        <span className="text-xs opacity-40 shrink-0">←</span>
+      </button>
 
       {homeWidgetsOrder.map((widgetKey) => {
         if (widgetKey === "prayer") {

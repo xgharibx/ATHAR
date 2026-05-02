@@ -72,6 +72,7 @@ const QuranVocabPage = React.lazy(() => import("@/pages/QuranVocab").then((m) =>
 const ProphetStoriesPage = React.lazy(() => import("@/pages/ProphetStories").then((m) => ({ default: m.ProphetStoriesPage })));
 const PrayerGuidePage = React.lazy(() => import("@/pages/PrayerGuide").then((m) => ({ default: m.PrayerGuidePage })));
 const WuduGuidePage = React.lazy(() => import("@/pages/WuduGuide").then((m) => ({ default: m.WuduGuidePage })));
+const RuqyahPage = React.lazy(() => import("@/pages/Ruqyah").then((m) => ({ default: m.RuqyahPage })));
 
 export default function App() {
   useApplyTheme();
@@ -221,6 +222,7 @@ export default function App() {
           <Route path="stories" element={<S><ProphetStoriesPage /></S>} />
           <Route path="prayer-guide" element={<S><PrayerGuidePage /></S>} />
           <Route path="wudu" element={<S><WuduGuidePage /></S>} />
+          <Route path="ruqyah" element={<S><RuqyahPage /></S>} />
           <Route path="*" element={<S><NotFoundPage /></S>} />
         </Route>
       </Routes>
