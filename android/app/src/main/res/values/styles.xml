@@ -22,5 +22,7 @@
         <item name="android:background">@drawable/splash</item>
         <item name="windowSplashScreenBackground">@color/colorSplashBg</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <!-- 11C: Required for Android 12+ — transitions from splash to app theme properly -->
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

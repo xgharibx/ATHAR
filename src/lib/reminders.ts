@@ -652,6 +652,21 @@ async function ensurePrayerChannel(soundProfile: PrayerSoundProfile) {
   };
 }
 
+/**
+ * 11C: Pre-create the default notification channels at app startup so they
+ * appear in Android Settings → Notifications before any reminder is scheduled.
+ * Safe to call multiple times — Capacitor/Android is idempotent for channels.
+ */
+export async function ensureDefaultNotificationChannels(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await Promise.all([
+      ensureReminderChannel("birds_dawn"),
+      ensurePrayerChannel("aladhan_adhan_3"),
+    ]);
+  } catch { /* non-fatal */ }
+}
+
 export async function syncReminders(reminders: Reminders, prayerTimings?: PrayerNotificationTimings | null) {
   if (!Capacitor.isNativePlatform()) return;
 

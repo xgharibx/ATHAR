@@ -128,6 +128,17 @@ export default defineConfig(function (_a) {
                                 expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
                                 cacheableResponse: { statuses: [0, 200] }
                             }
+                        },
+                        // 11B: Hadith pack JSON — downloaded on-demand, cached 90 days.
+                        //      NetworkFirst so updated packs are reflected when online.
+                        {
+                            urlPattern: /\/data\/hadith\/.*\.json$/,
+                            handler: "NetworkFirst",
+                            options: {
+                                cacheName: "athar-hadith-packs",
+                                expiration: { maxEntries: 15, maxAgeSeconds: 60 * 60 * 24 * 90 },
+                                cacheableResponse: { statuses: [0, 200] }
+                            }
                         }
                     ]
                 }

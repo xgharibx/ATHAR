@@ -1,7 +1,16 @@
 /**
- * Hadith Types — Phase 2
+ * Hadith Types — Phase 2 + 11A
  * Data model for the full hadith corpus (Kutub al-Sittah + extras)
  */
+
+/** Phase 11A: SRS memo card state — defined here so hadithIDB.ts can import it
+ *  without creating a circular dependency through noorStore.ts. */
+export type HadithMemoCard = {
+  interval: number;  // days until next review
+  ease: number;      // SM-2 ease factor (default 2.5)
+  due: string;       // ISO date YYYY-MM-DD
+  reviews: number;   // total reviews done
+};
 
 export interface HadithSection {
   id: number;

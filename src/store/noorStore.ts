@@ -3,6 +3,19 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { isDailySection } from "@/lib/dailySections";
 import type { CustomAdhkarPack } from "@/data/types";
 import { getIbadahDateKey, getLocalDateKey } from "@/lib/dayBoundaries";
+import {
+  idbSetHadithBookmark,
+  idbSetHadithProgress,
+  idbSetHadithNote,
+  idbDeleteHadithNote,
+  idbSetHadithMemoCard,
+  idbGetAllHadithBookmarks,
+  idbGetAllHadithProgress,
+  idbGetAllHadithNotes,
+  idbGetAllHadithMemoCards,
+  migrateHadithStateToIDB,
+} from "@/lib/hadithIDB";
+import type { HadithMemoCard } from "@/data/hadithTypes";
 
 export type NoorTheme =
   | "system"
@@ -33,13 +46,7 @@ export type HomeWidgetKey = "prayer" | "hadith" | "wisdom" | "smart" | "checklis
 export type MoodKey = "khashi" | "mutaammil" | "muhtaj" | "mumtan" | "mushtaq";
 export type MoodEntry = { mood: MoodKey; timestamp: string };
 
-// 7D: Hadith memorization SRS card
-export type HadithMemoCard = {
-  interval: number;  // days until next review
-  ease: number;      // SM-2 ease factor (default 2.5)
-  due: string;       // ISO date YYYY-MM-DD
-  reviews: number;   // total reviews done
-};
+export type { HadithMemoCard } from "@/data/hadithTypes";
 
 export type Preferences = {
   theme: NoorTheme;
@@ -1054,19 +1061,25 @@ export const useNoorStore = create<NoorState>()(
       hadithBookmarks: {},
       toggleHadithBookmark: (bookKey, n) => {
         const key = `${bookKey}:${n}`;
-        set((s) => ({ hadithBookmarks: { ...s.hadithBookmarks, [key]: !s.hadithBookmarks[key] } }));
+        const next = !get().hadithBookmarks[key];
+        set((s) => ({ hadithBookmarks: { ...s.hadithBookmarks, [key]: next } }));
+        void idbSetHadithBookmark(key, next);
       },
       hadithProgress: {},
-      setHadithProgress: (bookKey, n) =>
-        set((s) => ({ hadithProgress: { ...s.hadithProgress, [bookKey]: n } })),
+      setHadithProgress: (bookKey, n) => {
+        set((s) => ({ hadithProgress: { ...s.hadithProgress, [bookKey]: n } }));
+        void idbSetHadithProgress(bookKey, n);
+      },
       hadithNotes: {},
       setHadithNote: (bookKey, n, note) => {
         const key = `${bookKey}:${n}`;
+        const clean = note.trim();
         set((s) => ({
-          hadithNotes: note.trim()
-            ? { ...s.hadithNotes, [key]: note.trim() }
+          hadithNotes: clean
+            ? { ...s.hadithNotes, [key]: clean }
             : Object.fromEntries(Object.entries(s.hadithNotes).filter(([k]) => k !== key)),
         }));
+        void (clean ? idbSetHadithNote(key, clean) : idbDeleteHadithNote(key));
       },
 
       // 7D: Hadith memorization SRS
@@ -1075,7 +1088,9 @@ export const useNoorStore = create<NoorState>()(
         set((s) => {
           if (s.hadithMemoCards[cardKey]) return {};
           const today = new Date().toISOString().slice(0, 10);
-          return { hadithMemoCards: { ...s.hadithMemoCards, [cardKey]: { interval: 1, ease: 2.5, due: today, reviews: 0 } } };
+          const card: HadithMemoCard = { interval: 1, ease: 2.5, due: today, reviews: 0 };
+          void idbSetHadithMemoCard(cardKey, card);
+          return { hadithMemoCards: { ...s.hadithMemoCards, [cardKey]: card } };
         });
       },
       reviewHadithMemo: (cardKey, rating) => {
@@ -1088,7 +1103,9 @@ export const useNoorStore = create<NoorState>()(
           else if (rating === 2) { interval = card.reviews === 0 ? 1 : card.reviews === 1 ? 4 : Math.round(interval * ease); }
           else { interval = card.reviews === 0 ? 4 : Math.round(interval * ease * 1.3); ease = Math.min(3.0, ease + 0.15); }
           const due = new Date(); due.setDate(due.getDate() + interval);
-          return { hadithMemoCards: { ...s.hadithMemoCards, [cardKey]: { interval, ease, due: due.toISOString().slice(0, 10), reviews: card.reviews + 1 } } };
+          const updated: HadithMemoCard = { interval, ease, due: due.toISOString().slice(0, 10), reviews: card.reviews + 1 };
+          void idbSetHadithMemoCard(cardKey, updated);
+          return { hadithMemoCards: { ...s.hadithMemoCards, [cardKey]: updated } };
         });
       },
 
@@ -1178,14 +1195,34 @@ export const useNoorStore = create<NoorState>()(
     {
       name: "noor_store_v1",
       storage: createJSONStorage(() => localStorage),
+      // 11A: Exclude hadith user-state fields from localStorage — they live in IDB now.
+      //      This prevents 5 MB quota overflow with 36k hadiths worth of notes/cards.
+      partialize: (state) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { hadithBookmarks, hadithProgress, hadithNotes, hadithMemoCards, ...rest } = state;
+        return rest;
+      },
       // T10: MIGRATION GUARD — whenever new persisted state keys are added:
-      //  1. Bump this version number (currently 17)
+      //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
-      //     e.g., newKey: (state as Partial<NoorState>).newKey ?? defaultValue
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 24,
+      version: 25,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
+        // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
+        //      write it to IDB now so it's preserved. Fire-and-forget (safe to retry on next app start).
+        const oldBM  = (state as Record<string, unknown>).hadithBookmarks;
+        const oldPR  = (state as Record<string, unknown>).hadithProgress;
+        const oldNT  = (state as Record<string, unknown>).hadithNotes;
+        const oldMC  = (state as Record<string, unknown>).hadithMemoCards;
+        if (oldBM || oldPR || oldNT || oldMC) {
+          void migrateHadithStateToIDB({
+            bookmarks:  (oldBM  as Record<string, boolean>)   ?? {},
+            progress:   (oldPR  as Record<string, number>)    ?? {},
+            notes:      (oldNT  as Record<string, string>)    ?? {},
+            memoCards:  (oldMC  as Record<string, HadithMemoCard>) ?? {},
+          });
+        }
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
         const persistedReminders =
           state.reminders && typeof state.reminders === "object" ? state.reminders : undefined;
@@ -1218,15 +1255,32 @@ export const useNoorStore = create<NoorState>()(
           tasbeehDailyLog: ((state as Partial<NoorState>).tasbeehDailyLog && typeof (state as Partial<NoorState>).tasbeehDailyLog === 'object' ? (state as Partial<NoorState>).tasbeehDailyLog : {}) as Record<string, Record<string, number>>,
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
-          hadithBookmarks: (state as Partial<NoorState>).hadithBookmarks ?? {},
-          hadithProgress: (state as Partial<NoorState>).hadithProgress ?? {},
-          hadithNotes: (state as Partial<NoorState>).hadithNotes ?? {},
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],
           sectionCompletions: (state as Partial<NoorState>).sectionCompletions ?? {},
           mood: (state as Partial<NoorState>).mood ?? {},
-          hadithMemoCards: (state as Partial<NoorState>).hadithMemoCards ?? {},
+          // hadith user-state fields are NOT in persist (see partialize above);
+          // they'll be loaded from IDB by hydrateHadithState() in main.tsx
+          hadithBookmarks: {},
+          hadithProgress: {},
+          hadithNotes: {},
+          hadithMemoCards: {},
         } as NoorState;
       }
     }
   )
 );
+
+/**
+ * 11A: Hydrate hadith user-state from IDB into the store.
+ * Call this once at app startup (main.tsx) after React has rendered.
+ * Safe to call multiple times — just overwrites with the same data.
+ */
+export async function hydrateHadithState(): Promise<void> {
+  const [hadithBookmarks, hadithProgress, hadithNotes, hadithMemoCards] = await Promise.all([
+    idbGetAllHadithBookmarks(),
+    idbGetAllHadithProgress(),
+    idbGetAllHadithNotes(),
+    idbGetAllHadithMemoCards(),
+  ]);
+  useNoorStore.setState({ hadithBookmarks, hadithProgress, hadithNotes, hadithMemoCards });
+}

@@ -10,7 +10,8 @@ import { SplashIntro, SPLASH_SESSION_KEY } from "@/components/brand/SplashIntro"
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
-import { syncReminders, registerNotificationDeepLinkListener } from "@/lib/reminders";
+import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels } from "@/lib/reminders";
+import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 
 // T7: Per-route error boundary — prevents a single page crash from killing the whole app
 class RouteErrorBoundary extends React.Component<
@@ -205,6 +206,11 @@ export default function App() {
     void syncReminders(reminders, notificationPrayerTimings);
   }, [notificationPrayerTimings, reminders]);
 
+  // 11C: Pre-create default notification channels on native platforms
+  React.useEffect(() => {
+    void ensureDefaultNotificationChannels();
+  }, []);
+
   // 3C: Register notification deep-link listener on native platforms
   React.useEffect(() => {
     let cleanup: (() => void) | undefined;
@@ -217,6 +223,7 @@ export default function App() {
       {showSplash && <SplashIntro onDone={() => setShowSplash(false)} />}
       {!showSplash && !onboardingDone && <OnboardingFlow />}
       <LeaderboardSyncBridge />
+      <PwaInstallBanner />
       <Routes>
         <Route path="mushaf/:page?" element={<S><MushafPage /></S>} />
         <Route element={<AppShell />}>

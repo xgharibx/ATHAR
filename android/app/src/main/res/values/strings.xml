@@ -1,11 +1,16 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Athar</string>
     <string name="title_activity_main">Athar</string>
     <string name="package_name">com.athar.adhkar</string>
     <string name="custom_url_scheme">com.athar.adhkar</string>
-    <string name="widget_title">أثر</string>
-    <string name="widget_phrase">افتح وردك وابدأ الذكر</string>
-    <string name="widget_action">فتح التطبيق</string>
-    <string name="widget_description">ودجت أثر</string>
+    <string name="widget_title">&#x623;&#x62B;&#x631;</string>
+    <string name="widget_phrase">&#x627;&#x641;&#x62A;&#x62D; &#x648;&#x631;&#x62F;&#x643; &#x648;&#x627;&#x628;&#x62F;&#x623; &#x627;&#x644;&#x630;&#x643;&#x631;</string>
+    <string name="widget_action">&#x641;&#x62A;&#x62D; &#x627;&#x644;&#x62A;&#x637;&#x628;&#x64A;&#x642;</string>
+    <string name="widget_description">&#x648;&#x62F;&#x62C;&#x62A; &#x623;&#x62B;&#x631;</string>
+    <!-- 11C: Notification channel names shown in Android Settings > App Notifications -->
+    <string name="channel_prayer_name">&#x62A;&#x646;&#x628;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
+    <string name="channel_prayer_desc">&#x623;&#x630;&#x627;&#x646; &#x627;&#x644;&#x635;&#x644;&#x648;&#x627;&#x62A; &#x627;&#x644;&#x62E;&#x645;&#x633; &#x648;&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
+    <string name="channel_reminders_name">&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x623;&#x630;&#x643;&#x627;&#x631;</string>
+    <string name="channel_reminders_desc">&#x623;&#x630;&#x643;&#x627;&#x631; &#x627;&#x644;&#x635;&#x628;&#x627;&#x62D; &#x648;&#x627;&#x644;&#x645;&#x633;&#x627;&#x621; &#x648;&#x627;&#x644;&#x648;&#x631;&#x62F; &#x627;&#x644;&#x64A;&#x648;&#x645;&#x64A;</string>
 </resources>
