@@ -1086,8 +1086,11 @@ export function HomePage() {
                       )}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm font-semibold arabic-text leading-6 line-clamp-2">{it.label}</div>
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                          <div
+                            className="text-sm font-semibold arabic-text"
+                            style={{ lineHeight: "1.55", maxHeight: "3.1em", overflow: "hidden", display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 2 } as React.CSSProperties}
+                          >{it.label}</div>
                           <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/{target}</div>
                         </div>
                         <div className="shrink-0">

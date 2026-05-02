@@ -20,9 +20,9 @@ const SLIDE_LABELS = ["آية اليوم", "حديث اليوم", "تدبر ال
 
 export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const navigate = useNavigate();
-  const scrollRef = React.useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = React.useState(0);
   const pauseUntilRef = React.useRef<number>(0);
+  const touchStartX = React.useRef<number>(0);
 
   const verse = React.useMemo(() => {
     if (!DAILY_VERSES.length) return null;
@@ -37,9 +37,6 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const wisdom = React.useMemo(() => getTodayWisdom(dateKey), [dateKey]);
 
   const goTo = React.useCallback((idx: number) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTo({ left: idx * el.clientWidth, behavior: "smooth" });
     setActiveIdx(idx);
   }, []);
 
@@ -47,29 +44,25 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   React.useEffect(() => {
     const timer = setInterval(() => {
       if (Date.now() < pauseUntilRef.current) return;
-      setActiveIdx((prev) => {
-        const next = (prev + 1) % 3;
-        const el = scrollRef.current;
-        if (el) el.scrollTo({ left: next * el.clientWidth, behavior: "smooth" });
-        return next;
-      });
+      setActiveIdx((prev) => (prev + 1) % 3);
     }, 4000);
     return () => clearInterval(timer);
   }, []);
 
-  const handleScroll = React.useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const idx = Math.round(el.scrollLeft / Math.max(el.clientWidth, 1));
-    setActiveIdx(idx);
-  }, []);
-
-  const handleTouchStart = React.useCallback(() => {
+  const handleTouchStart = React.useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
     pauseUntilRef.current = Date.now() + 99999;
   }, []);
 
-  const handleTouchEnd = React.useCallback(() => {
+  const handleTouchEnd = React.useCallback((e: React.TouchEvent) => {
+    const delta = touchStartX.current - e.changedTouches[0].clientX;
     pauseUntilRef.current = Date.now() + 8000;
+    if (Math.abs(delta) > 40) {
+      setActiveIdx((prev) => {
+        if (delta > 0) return Math.min(prev + 1, 2); // swipe left → next
+        return Math.max(prev - 1, 0); // swipe right → prev
+      });
+    }
   }, []);
 
   return (
@@ -80,24 +73,22 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
         <span className="text-xs opacity-40">يتجدد يومياً</span>
       </div>
 
-      {/* Slides — outer wrapper clips overflow so ghost slides are invisible */}
-      <div style={{ overflow: "hidden", width: "100%" }}>
+      {/* Slides — transform-based so each slide is always 100% of the card */}
+      <div
+        style={{ overflow: "hidden", width: "100%" }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
           style={{
             display: "flex",
-            overflowX: "auto",
-            scrollSnapType: "x mandatory",
-            scrollbarWidth: "none",
-            WebkitOverflowScrolling: "touch",
             width: "100%",
-          } as React.CSSProperties}
+            transform: `translateX(${activeIdx * -100}%)`,
+            transition: "transform 0.35s ease",
+          }}
         >
           {/* Slide 1: آية اليوم */}
-          <div style={{ scrollSnapAlign: "start", flex: "0 0 100%", minWidth: 0, padding: "0.75rem 1rem 1rem" }}>
+          <div style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {verse ? (
               <>
                 <div
@@ -132,7 +123,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 2: حديث اليوم */}
-          <div style={{ scrollSnapAlign: "start", flex: "0 0 100%", minWidth: 0, padding: "0.75rem 1rem 1rem" }}>
+          <div style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {hadith ? (
               <>
                 <div
@@ -161,7 +152,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 3: تدبر اليوم */}
-          <div style={{ scrollSnapAlign: "start", flex: "0 0 100%", minWidth: 0, padding: "0.75rem 1rem 1rem" }}>
+          <div style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             <div
               className="text-base leading-9 text-right font-medium arabic-text"
               style={{ color: "var(--fg)" }}
