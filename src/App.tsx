@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
@@ -79,6 +79,7 @@ const HadithBookViewPage = React.lazy(() => import("@/pages/HadithBookView").the
 const HadithReaderPage = React.lazy(() => import("@/pages/HadithReader").then((m) => ({ default: m.HadithReaderPage })));
 const CompanionsPage = React.lazy(() => import("@/pages/Companions"));
 const SeerahPage = React.lazy(() => import("@/pages/SeerahTimeline"));
+const QuranPlansPage = React.lazy(() => import("@/pages/QuranPlans").then((m) => ({ default: m.QuranPlansPage })));
 
 export default function App() {
   useApplyTheme();
@@ -213,6 +214,7 @@ export default function App() {
           <Route path="search" element={<S><SearchPage /></S>} />
           <Route path="favorites" element={<S><FavoritesPage /></S>} />
           <Route path="quran" element={<S><QuranPage /></S>} />
+          <Route path="quran/plans" element={<S><QuranPlansPage /></S>} />
           <Route path="sebha" element={<S><SebhaPage /></S>} />
           <Route path="qibla" element={<S><QiblaPage /></S>} />
           <Route path="prayer-times" element={<S><PrayerTimesPage /></S>} />

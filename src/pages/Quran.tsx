@@ -360,24 +360,24 @@ export function QuranPage() {
             <span>📖 {quranStats.started} سورة</span>
             {quranStreak > 0 && <span>🔥 {quranStreak} يوم</span>}
             {quranStats.completed > 0 && <span style={{ color: "var(--ok)", opacity: 1 }}>✓ {quranStats.completed} مكتملة</span>}
-            {/* Khatma toggle */}
+            {/* Plans page link */}
             <button
               type="button"
-              onClick={() => setShowKhatmaCard((v) => !v)}
+              onClick={() => navigate("/quran/plans")}
               className="flex items-center gap-1.5 text-xs opacity-60 hover:opacity-100 transition mr-auto"
             >
-              <span>📖 خطة الختمة</span>
+              <span>📅 خطط التلاوة</span>
               {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished && (
                 <span style={{ color: "var(--accent)", opacity: 1 }}>{khatma.meta.percent}%</span>
               )}
               {khatmaStartISO && khatmaDays && khatma?.isFinished && (
                 <span style={{ color: "var(--ok)", opacity: 1 }}>✓</span>
               )}
-              <span className="opacity-40">{showKhatmaCard ? "▲" : "▼"}</span>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-40"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
           </div>
         )}
-        {/* Khatma plan row when no reading started yet */}
+        {/* Plan link row when no reading started yet */}
         {quranStats.started === 0 && (
           <div
             className="px-5 py-2 flex items-center"
@@ -385,11 +385,11 @@ export function QuranPage() {
           >
             <button
               type="button"
-              onClick={() => setShowKhatmaCard((v) => !v)}
+              onClick={() => navigate("/quran/plans")}
               className="text-xs opacity-45 hover:opacity-80 transition flex items-center gap-1.5"
             >
-              <span>📖 خطة الختمة</span>
-              <span className="opacity-50">{showKhatmaCard ? "▲" : "▼"}</span>
+              <span>📅 خطط التلاوة</span>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-50"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
           </div>
         )}
