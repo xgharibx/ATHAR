@@ -11,6 +11,9 @@ import {
   CheckCircle2,
   ChevronDown,
   MoreVertical,
+  BookOpen,
+  Zap,
+  Calendar,
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -19,7 +22,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Badge } from "@/components/ui/Badge";
-import { type HomeWidgetKey, DEFAULT_HOME_WIDGETS_ORDER, useNoorStore } from "@/store/noorStore";
+import { type HomeWidgetKey, type MoodKey, DEFAULT_HOME_WIDGETS_ORDER, useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { pct, cn } from "@/lib/utils";
@@ -33,8 +36,11 @@ import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistIt
 import { DailyWisdomCard } from "@/components/ui/DailyWisdomCard";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { HADITHS } from "@/data/hadiths";
-import { getTodayIslamicInfo } from "@/lib/hijri";
+import { getTodayIslamicInfo, gregorianToHijri, HIJRI_MONTH_NAMES } from "@/lib/hijri";
 import { SEASONAL_ADHKAR } from "@/data/seasonalAdhkar";
+import { getNextIslamicEvent } from "@/data/islamicCalendar";
+import { DAILY_VERSES } from "@/data/dailyVerses";
+import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -53,6 +59,10 @@ const DEFAULT_HOME_WIDGETS = {
   dailyStep: true,
   tasbeeh: true,
   dailyWird: true,
+  islamicEvents: true,
+  dailyVerse: true,
+  quests: true,
+  moodTracker: true,
 } satisfies Record<HomeWidgetKey, boolean>;
 
 const HOME_WIDGET_CONTROLS: Array<{ key: HomeWidgetKey; label: string }> = [
@@ -64,6 +74,10 @@ const HOME_WIDGET_CONTROLS: Array<{ key: HomeWidgetKey; label: string }> = [
   { key: "dailyStep", label: "خطوة" },
   { key: "tasbeeh", label: "التسبيح" },
   { key: "dailyWird", label: "الورد" },
+  { key: "islamicEvents", label: "المواسم" },
+  { key: "dailyVerse", label: "آية اليوم" },
+  { key: "quests", label: "المهمات" },
+  { key: "moodTracker", label: "المزاج" },
 ];
 
 function parseISODate(dateISO: string) {
@@ -236,6 +250,9 @@ export function HomePage() {
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
   const quranReadingHistory = useNoorStore((s) => s.quranReadingHistory);
   const quranStreak = useNoorStore((s) => s.quranStreak);
+  const mood = useNoorStore((s) => s.mood);
+  const setMood = useNoorStore((s) => s.setMood);
+  const prayerLog = useNoorStore((s) => s.prayerLog);
 
   const sections = data?.db.sections ?? [];
   const customPacks = useNoorStore((s) => s.customPacks);
@@ -400,6 +417,58 @@ export function HomePage() {
     }
     return s;
   }, [activity]);
+
+  // 5A: Next Islamic event (recomputed once per render, cheap)
+  const nextIslamicEvent = React.useMemo(() => getNextIslamicEvent(), []);
+
+  // 5B: Today's daily verse
+  const todayDailyVerse = React.useMemo(() => {
+    if (!DAILY_VERSES.length) return null;
+    const idx = dateIndex(civilTodayKey, DAILY_VERSES.length, 77);
+    return DAILY_VERSES[idx] ?? null;
+  }, [civilTodayKey]);
+
+  // 5C: Quests + XP
+  const questsData = React.useMemo(() => {
+    const timings = prayerTimes.data?.data?.timings;
+    const prayersDone: Record<string, boolean> = prayerLog[civilTodayKey] ?? {};
+    const quranAyahsToday = quranReadingHistory
+      ? Object.values(quranReadingHistory).reduce((a, v) => a + (Number(v) || 0), 0)
+      : 0;
+    const scores = buildLeaderboardScoreStats({
+      sections: sections,
+      progress: progressMap,
+      quranAyahIndex: quranAyahsToday,
+      prayersDone,
+      quickTasbeeh,
+      todayISO: civilTodayKey,
+    });
+    const totalXp = scores.global;
+
+    // Quest auto-resolution
+    const quranDailyAyahs = useNoorStore.getState().quranDailyAyahs;
+    const ayahsToday = Number(quranDailyAyahs[civilTodayKey] ?? 0);
+    const dhikrToday = Number(activity[civilTodayKey] ?? 0);
+    const tasbeehMax = Math.max(...Object.values(quickTasbeeh).map((v) => Number(v) || 0), 0);
+
+    const quests = [
+      { id: "quran5", label: "اقرأ ٥ آيات", done: ayahsToday >= 5, icon: "📖" },
+      { id: "dhikr3", label: "٣ أذكار أو مهام", done: dhikrToday >= 3, icon: "📿" },
+      { id: "tasbeeh33", label: "سبّح ٣٣ مرة", done: tasbeehMax >= 33, icon: "🌿" },
+    ];
+    const doneCount = quests.filter((q) => q.done).length;
+    const xpLevel =
+      totalXp >= 20000 ? { label: "إمام", emoji: "💎", color: "#a78bfa" } :
+      totalXp >= 5000  ? { label: "حافظ", emoji: "🏆", color: "#fb923c" } :
+      totalXp >= 1000  ? { label: "مواظب", emoji: "⭐", color: "#fbbf24" } :
+                          { label: "مبتدئ", emoji: "🌱", color: "#6ee7b7" };
+    const nextLevelXp = totalXp >= 20000 ? 30000 : totalXp >= 5000 ? 20000 : totalXp >= 1000 ? 5000 : 1000;
+    const prevLevelXp = totalXp >= 20000 ? 20000 : totalXp >= 5000 ? 5000 : totalXp >= 1000 ? 1000 : 0;
+    const xpPct = Math.min(100, Math.round(((totalXp - prevLevelXp) / (nextLevelXp - prevLevelXp)) * 100));
+
+    return { quests, doneCount, totalXp, xpLevel, xpPct };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, prayerTimes.data]);
 
   const prayerContext = React.useMemo<PrayerContext>(() => {
     const timings = prayerTimes.data?.data?.timings;
@@ -1222,6 +1291,206 @@ export function HomePage() {
                 <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm opacity-75 leading-7">
                   تم طي ورد اليوم. افتحه وقت القراءة أو المراجعة.
                 </div>
+              )}
+            </Card>
+          );
+        }
+        // ── 5A: Islamic Events Widget ──────────────────────────────────────────
+        if (widgetKey === "islamicEvents") {
+          if (!homeWidgets.islamicEvents) return null;
+          const todayHijri = gregorianToHijri(new Date());
+          const hijriLabel = `${todayHijri.day} ${HIJRI_MONTH_NAMES[(todayHijri.month - 1) % 12]} ${todayHijri.year}هـ`;
+          return (
+            <Card key="islamicEvents" className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Calendar size={15} className="text-[var(--accent)]" />
+                <div className="text-sm font-semibold">المواسم الإسلامية</div>
+                <Badge>يتجدد يومياً</Badge>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl grid place-items-center text-lg" style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)" }}>
+                    🗓️
+                  </div>
+                  <div>
+                    <div className="text-xs opacity-55">اليوم بالتقويم الهجري</div>
+                    <div className="text-sm font-semibold mt-0.5 arabic-text">{hijriLabel}</div>
+                  </div>
+                </div>
+              </div>
+              {nextIslamicEvent && (
+                <div className="mt-3 rounded-2xl px-4 py-3 border" style={{ background: "color-mix(in srgb, var(--accent) 8%, transparent)", borderColor: "color-mix(in srgb, var(--accent) 25%, transparent)" }}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{nextIslamicEvent.event.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold arabic-text">{nextIslamicEvent.event.label}</div>
+                      <div className="text-xs opacity-60 mt-0.5">
+                        {nextIslamicEvent.daysUntil === 0
+                          ? "اليوم 🎉"
+                          : nextIslamicEvent.daysUntil === 1
+                          ? "غداً"
+                          : `بعد ${nextIslamicEvent.daysUntil} يوم`}
+                      </div>
+                    </div>
+                    {nextIslamicEvent.daysUntil <= 7 && nextIslamicEvent.daysUntil > 0 && (
+                      <span className="text-[11px] font-bold px-2 py-1 rounded-full" style={{ background: "color-mix(in srgb, var(--accent) 20%, transparent)", color: "var(--accent)" }}>
+                        قريباً
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </Card>
+          );
+        }
+        // ── 5B: Daily Verse Card ───────────────────────────────────────────────
+        if (widgetKey === "dailyVerse") {
+          if (!homeWidgets.dailyVerse) return null;
+          if (!todayDailyVerse) return null;
+          return (
+            <Card key="dailyVerse" className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <BookOpen size={15} className="text-[var(--accent)]" />
+                <div className="text-sm font-semibold">آية اليوم</div>
+                <Badge>يتجدد يومياً</Badge>
+              </div>
+              <div
+                className="text-base leading-10 text-right arabic-text font-medium"
+                style={{ color: "var(--fg)" }}
+              >
+                {todayDailyVerse.arabic}
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
+                >
+                  {todayDailyVerse.surahName} ﴿{todayDailyVerse.ayahIndex}﴾
+                </span>
+                <span className="text-xs opacity-55 text-right arabic-text flex-1 truncate">{todayDailyVerse.meaning}</span>
+              </div>
+              <Button
+                className="mt-3 w-full press-effect"
+                variant="secondary"
+                onClick={() => navigate(`/mushaf?surah=${todayDailyVerse.surahId}&ayah=${todayDailyVerse.ayahIndex}`)}
+              >
+                <BookOpen size={14} />
+                اقرأ في سياقها
+              </Button>
+            </Card>
+          );
+        }
+        // ── 5C: Streak & Daily Quests Card ────────────────────────────────────
+        if (widgetKey === "quests") {
+          if (!homeWidgets.quests) return null;
+          const { quests, doneCount, totalXp, xpLevel, xpPct } = questsData;
+          const allDone = doneCount === quests.length;
+          return (
+            <Card key="quests" className="p-5">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Zap size={14} className="text-[var(--accent)]" />
+                    <div className="text-sm font-semibold">المهام اليومية</div>
+                  </div>
+                  <div className="text-xs opacity-55 mt-0.5">
+                    {xpLevel.emoji} {xpLevel.label} — {totalXp.toLocaleString("ar-SA")} نقطة
+                  </div>
+                </div>
+                <Badge>{doneCount}/{quests.length}</Badge>
+              </div>
+              {/* XP progress bar */}
+              <div className="mb-3">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-[10px] opacity-40">تقدم المستوى</span>
+                  <span className="text-[10px] opacity-40 tabular-nums">{xpPct}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-white/8 overflow-hidden border border-white/10">
+                  <div
+                    className="h-full rounded-full transition-[width] duration-700"
+                    style={{ width: `${xpPct}%`, backgroundColor: xpLevel.color }}
+                  />
+                </div>
+              </div>
+              {/* Quest chips */}
+              <div className="flex flex-wrap gap-2">
+                {quests.map((q) => (
+                  <div
+                    key={q.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
+                    style={q.done ? {
+                      background: "color-mix(in srgb, var(--ok) 15%, transparent)",
+                      borderColor: "color-mix(in srgb, var(--ok) 30%, transparent)",
+                      color: "var(--ok)",
+                    } : {
+                      background: "rgba(255,255,255,0.05)",
+                      borderColor: "rgba(255,255,255,0.1)",
+                    }}
+                  >
+                    <span>{q.icon}</span>
+                    {q.done && <CheckCircle2 size={11} />}
+                    {q.label}
+                  </div>
+                ))}
+              </div>
+              {allDone && (
+                <div className="mt-3 rounded-2xl text-center py-2.5 text-sm font-semibold" style={{ background: "color-mix(in srgb, var(--ok) 12%, transparent)", color: "var(--ok)" }}>
+                  ✅ أحسنت — أتممت مهام اليوم
+                </div>
+              )}
+            </Card>
+          );
+        }
+        // ── 5D: Spiritual Mood Tracker ────────────────────────────────────────
+        if (widgetKey === "moodTracker") {
+          if (!homeWidgets.moodTracker) return null;
+          const todayMoodEntry = mood[worshipDayKey];
+          const MOODS: Array<{ key: MoodKey; label: string; emoji: string; color: string }> = [
+            { key: "khashi",    label: "خاشع",   emoji: "🤲", color: "#818cf8" },
+            { key: "mutaammil", label: "متأمل",  emoji: "🌙", color: "#34d399" },
+            { key: "muhtaj",    label: "محتاج",  emoji: "🌧️", color: "#60a5fa" },
+            { key: "mumtan",    label: "ممتنّ",  emoji: "🌟", color: "#fbbf24" },
+            { key: "mushtaq",   label: "مشتاق",  emoji: "💛", color: "#f97316" },
+          ];
+          return (
+            <Card key="moodTracker" className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-base">🌱</span>
+                <div className="text-sm font-semibold">المزاج الروحي</div>
+                {todayMoodEntry && <Badge>سُجِّل اليوم</Badge>}
+              </div>
+              <div className="text-xs opacity-55 mb-3">كيف حالك روحياً اليوم؟</div>
+              <div className="flex gap-2 flex-wrap justify-end">
+                {MOODS.map((m) => {
+                  const active = todayMoodEntry?.mood === m.key;
+                  return (
+                    <button
+                      key={m.key}
+                      type="button"
+                      onClick={() => { setMood(worshipDayKey, m.key); toast.success(`سُجِّل: ${m.label}`); }}
+                      className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-2xl border transition-all active:scale-95 press-effect min-w-[56px]"
+                      style={active ? {
+                        background: `color-mix(in srgb, ${m.color} 18%, transparent)`,
+                        borderColor: `color-mix(in srgb, ${m.color} 45%, transparent)`,
+                      } : {
+                        background: "rgba(255,255,255,0.04)",
+                        borderColor: "rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <span className="text-xl leading-none">{m.emoji}</span>
+                      <span className="text-[11px] font-medium mt-0.5 arabic-text" style={active ? { color: m.color } : { opacity: 0.65 }}>{m.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {todayMoodEntry && (
+                <button
+                  type="button"
+                  className="mt-3 w-full text-center text-xs opacity-50 hover:opacity-75 transition py-1"
+                  onClick={() => navigate("/insights")}
+                >
+                  عرض مخطط المزاج الشهري ←
+                </button>
               )}
             </Card>
           );

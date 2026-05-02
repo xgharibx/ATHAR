@@ -28,7 +28,10 @@ export type PrayerSoundProfile =
   | "aladhan_adhan_7";
 export type PrayerAlertPrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
 export type PrayerAlertPreferences = Record<PrayerAlertPrayer, boolean>;
-export type HomeWidgetKey = "prayer" | "hadith" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird";
+export type HomeWidgetKey = "prayer" | "hadith" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird" | "islamicEvents" | "dailyVerse" | "quests" | "moodTracker";
+
+export type MoodKey = "khashi" | "mutaammil" | "muhtaj" | "mumtan" | "mushtaq";
+export type MoodEntry = { mood: MoodKey; timestamp: string };
 
 export type Preferences = {
   theme: NoorTheme;
@@ -326,9 +329,13 @@ type NoorState = {
   // 3E: Section completion history (for weekly stats)
   sectionCompletions: Record<string, string[]>; // sectionId → ISO date array
   recordSectionCompletion: (sectionId: string) => void;
+
+  // 5D: Spiritual mood tracker
+  mood: Record<string, MoodEntry>; // dateKey → MoodEntry
+  setMood: (dateKey: string, mood: MoodKey) => void;
 };
 
-export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "wisdom", "hadith", "smart", "dailyStep", "checklist", "dailyWird", "tasbeeh"];
+export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "islamicEvents", "dailyVerse", "quests", "wisdom", "hadith", "smart", "dailyStep", "checklist", "dailyWird", "tasbeeh", "moodTracker"];
 
 const DEFAULT_PREFS: Preferences = {
   theme: "forest",
@@ -369,6 +376,10 @@ const DEFAULT_PREFS: Preferences = {
     dailyStep: true,
     tasbeeh: true,
     dailyWird: true,
+    islamicEvents: true,
+    dailyVerse: true,
+    quests: true,
+    moodTracker: true,
   },
 };
 
@@ -400,6 +411,10 @@ function normalizeHomeWidgets(value: unknown): Record<HomeWidgetKey, boolean> {
     dailyStep: typeof source.dailyStep === "boolean" ? source.dailyStep : DEFAULT_PREFS.homeWidgets.dailyStep,
     tasbeeh: typeof source.tasbeeh === "boolean" ? source.tasbeeh : DEFAULT_PREFS.homeWidgets.tasbeeh,
     dailyWird: typeof source.dailyWird === "boolean" ? source.dailyWird : DEFAULT_PREFS.homeWidgets.dailyWird,
+    islamicEvents: typeof source.islamicEvents === "boolean" ? source.islamicEvents : true,
+    dailyVerse: typeof source.dailyVerse === "boolean" ? source.dailyVerse : true,
+    quests: typeof source.quests === "boolean" ? source.quests : true,
+    moodTracker: typeof source.moodTracker === "boolean" ? source.moodTracker : true,
   };
 }
 
@@ -1031,6 +1046,11 @@ export const useNoorStore = create<NoorState>()(
       deleteCustomPack: (id) =>
         set((s) => ({ customPacks: s.customPacks.filter((p) => p.id !== id) })),
 
+      // 5D: Spiritual mood tracker
+      mood: {},
+      setMood: (dateKey, moodKey) =>
+        set((s) => ({ mood: { ...s.mood, [dateKey]: { mood: moodKey, timestamp: new Date().toISOString() } } })),
+
       // 3E: Section completion history
       sectionCompletions: {},
       recordSectionCompletion: (sectionId) => {
@@ -1104,7 +1124,7 @@ export const useNoorStore = create<NoorState>()(
       //  2. Add a fallback default for the new key in the `migrate` function below
       //     e.g., newKey: (state as Partial<NoorState>).newKey ?? defaultValue
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 21,
+      version: 22,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -1143,6 +1163,7 @@ export const useNoorStore = create<NoorState>()(
           hadithNotes: (state as Partial<NoorState>).hadithNotes ?? {},
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],
           sectionCompletions: (state as Partial<NoorState>).sectionCompletions ?? {},
+          mood: (state as Partial<NoorState>).mood ?? {},
         } as NoorState;
       }
     }

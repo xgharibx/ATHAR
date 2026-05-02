@@ -199,6 +199,7 @@ export function InsightsPage() {
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
   const prayerLog = useNoorStore((s) => s.prayerLog);
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
+  const mood = useNoorStore((s) => s.mood);
   const prayerTimes = usePrayerTimes();
   const fajrTime = prayerTimes.data?.data?.timings?.Fajr;
   const weeklyReportSentISO = useNoorStore((s) => s.weeklyReportSentISO);
@@ -1587,6 +1588,9 @@ export function InsightsPage() {
           </div>
         </Card>
       )}
+
+      {/* 5D: Spiritual Mood 30-day chart */}
+      <MoodChart30 mood={mood} />
     </div>
   );
 }
@@ -1597,5 +1601,92 @@ function MiniStatSmall(props: { label: string; value: string; accent?: boolean }
       <div className="text-[11px] opacity-55 truncate">{props.label}</div>
       <div className={`text-sm font-bold mt-0.5 tabular-nums ${props.accent ? "text-[var(--accent)]" : ""}`}>{props.value}</div>
     </div>
+  );
+}
+
+// ── 5D: 30-day Mood Chart ────────────────────────────────────────────────────
+import type { MoodEntry, MoodKey } from "@/store/noorStore";
+
+const MOOD_META: Record<MoodKey, { label: string; emoji: string; color: string }> = {
+  khashi:    { label: "خاشع",   emoji: "🤲", color: "#818cf8" },
+  mutaammil: { label: "متأمل",  emoji: "🌙", color: "#34d399" },
+  muhtaj:    { label: "محتاج",  emoji: "🌧️", color: "#60a5fa" },
+  mumtan:    { label: "ممتنّ",  emoji: "🌟", color: "#fbbf24" },
+  mushtaq:   { label: "مشتاق",  emoji: "💛", color: "#f97316" },
+};
+
+function MoodChart30({ mood }: { mood: Record<string, MoodEntry> }) {
+  const days = React.useMemo(() => {
+    const result: Array<{ key: string; entry: MoodEntry | null; dayNum: number }> = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      result.push({ key, entry: mood[key] ?? null, dayNum: d.getDate() });
+    }
+    return result;
+  }, [mood]);
+
+  const recorded = days.filter((d) => d.entry).length;
+  if (recorded === 0) return null;
+
+  // Count per mood
+  const counts: Partial<Record<MoodKey, number>> = {};
+  for (const d of days) {
+    if (d.entry) counts[d.entry.mood] = (counts[d.entry.mood] ?? 0) + 1;
+  }
+  const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-base">🌱</span>
+        <div className="text-sm font-semibold">المزاج الروحي — ٣٠ يوماً</div>
+        {dominant && (
+          <span className="text-[11px] opacity-60 arabic-text">
+            الغالب: {MOOD_META[dominant[0] as MoodKey]?.emoji} {MOOD_META[dominant[0] as MoodKey]?.label}
+          </span>
+        )}
+      </div>
+      {/* 30-day grid: 5 rows × 6 cols (fills neatly) */}
+      <div className="grid gap-1.5" style={{ gridTemplateColumns: "repeat(10, minmax(0, 1fr))" }}>
+        {days.map((d) => {
+          const meta = d.entry ? MOOD_META[d.entry.mood] : null;
+          return (
+            <div
+              key={d.key}
+              title={meta ? `${d.key}: ${meta.emoji} ${meta.label}` : d.key}
+              className="aspect-square rounded-lg flex items-center justify-center text-sm transition-transform hover:scale-110"
+              style={meta ? {
+                background: `color-mix(in srgb, ${meta.color} 22%, transparent)`,
+                border: `1px solid color-mix(in srgb, ${meta.color} 40%, transparent)`,
+              } : {
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              {meta ? <span className="leading-none">{meta.emoji}</span> : (
+                <span className="text-[9px] opacity-25 tabular-nums">{d.dayNum}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {/* Legend */}
+      <div className="mt-3 flex flex-wrap gap-2 justify-end">
+        {Object.entries(MOOD_META).map(([key, meta]) => {
+          const count = counts[key as MoodKey] ?? 0;
+          if (!count) return null;
+          return (
+            <div key={key} className="flex items-center gap-1 text-[11px]">
+              <span>{meta.emoji}</span>
+              <span className="opacity-65">{meta.label}</span>
+              <span className="tabular-nums opacity-45">×{count}</span>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
   );
 }
