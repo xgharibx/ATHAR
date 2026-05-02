@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { AppShell } from "@/components/layout/AppShell";
@@ -77,6 +77,7 @@ const LibraryItemPage = React.lazy(() => import("@/pages/LibraryItem").then((m) 
 const HadithBooksPage = React.lazy(() => import("@/pages/HadithBooks").then((m) => ({ default: m.HadithBooksPage })));
 const HadithBookViewPage = React.lazy(() => import("@/pages/HadithBookView").then((m) => ({ default: m.HadithBookViewPage })));
 const HadithReaderPage = React.lazy(() => import("@/pages/HadithReader").then((m) => ({ default: m.HadithReaderPage })));
+const HadithMemoPage = React.lazy(() => import("@/pages/HadithMemo").then((m) => ({ default: m.HadithMemoPage })));
 const CompanionsPage = React.lazy(() => import("@/pages/Companions"));
 const SeerahPage = React.lazy(() => import("@/pages/SeerahTimeline"));
 const QuranPlansPage = React.lazy(() => import("@/pages/QuranPlans").then((m) => ({ default: m.QuranPlansPage })));
@@ -244,9 +245,13 @@ export default function App() {
           <Route path="ruqyah" element={<S><RuqyahPage /></S>} />
           <Route path="library" element={<S><LibraryPage /></S>} />
           <Route path="library/:collectionId/:entryId" element={<S><LibraryItemPage /></S>} />
-          <Route path="hadith" element={<S><HadithBooksPage /></S>} />
-          <Route path="hadith/:bookKey" element={<S><HadithBookViewPage /></S>} />
-          <Route path="hadith/:bookKey/:hadithNumber" element={<S><HadithReaderPage /></S>} />
+          {/* Hadith pages */}
+          <Route path="hadith" element={<Outlet />}>
+            <Route index element={<S><HadithBooksPage /></S>} />
+            <Route path="memo" element={<S><HadithMemoPage /></S>} />
+            <Route path=":bookKey" element={<S><HadithBookViewPage /></S>} />
+            <Route path=":bookKey/:hadithNumber" element={<S><HadithReaderPage /></S>} />
+          </Route>
           <Route path="companions" element={<S><CompanionsPage /></S>} />
           <Route path="seerah" element={<S><SeerahPage /></S>} />
           <Route path="*" element={<S><NotFoundPage /></S>} />
