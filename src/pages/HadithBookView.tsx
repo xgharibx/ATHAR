@@ -13,6 +13,22 @@ import { useNoorStore } from "@/store/noorStore";
 
 /* ------------------------------------------------------------------ */
 
+// 7C: Section header row
+function SectionHeader({ title, color }: { title: string; color: string }) {
+  return (
+    <div
+      dir="rtl"
+      className="flex items-center gap-2 px-4 py-2"
+      style={{ background: color + "11", borderBottom: `1px solid ${color}33` }}
+    >
+      <div className="w-1 h-4 rounded-full" style={{ background: color }} />
+      <p className="text-xs font-bold font-arabic" style={{ color }}>
+        {title}
+      </p>
+    </div>
+  );
+}
+
 function GradeBadge({ grades }: { grades: string[] }) {
   if (!grades.length) return null;
   const g = grades[0];
@@ -118,15 +134,40 @@ export function HadithBookViewPage() {
   // Scroll chips container for sections
   const sectionsRef = useRef<HTMLDivElement>(null);
 
+  // 7C: Build flat list mixing section headers + hadiths when showing all
+  type ListRow = { type: "header"; sectionTitle: string } | { type: "hadith"; item: HadithItem };
+  const listRows = useMemo<ListRow[]>(() => {
+    if (!pack || activeSectionId !== null) {
+      return visibleHadiths.map((item) => ({ type: "hadith" as const, item }));
+    }
+    // Show all: inject section header before first hadith of each section
+    const rows: ListRow[] = [];
+    let lastSectionId = -1;
+    for (const item of pack.hadiths) {
+      if (item.s !== lastSectionId) {
+        lastSectionId = item.s;
+        const section = pack.sections.find((s) => s.id === item.s);
+        if (section?.title) {
+          rows.push({ type: "header", sectionTitle: section.title });
+        }
+      }
+      rows.push({ type: "hadith", item });
+    }
+    return rows;
+  }, [pack, activeSectionId, visibleHadiths]);
+
   const renderItem = useCallback(
     (index: number) => {
-      const item = visibleHadiths[index];
-      if (!item) return null;
+      const row = listRows[index];
+      if (!row) return null;
+      if (row.type === "header") {
+        return <SectionHeader title={row.sectionTitle} color={accentColor} />;
+      }
       return (
-        <HadithRow key={item.n} item={item} bookKey={bookKey!} accentColor={accentColor} />
+        <HadithRow key={row.item.n} item={row.item} bookKey={bookKey!} accentColor={accentColor} />
       );
     },
-    [visibleHadiths, bookKey, accentColor],
+    [listRows, bookKey, accentColor],
   );
 
   return (
@@ -271,11 +312,11 @@ export function HadithBookViewPage() {
       )}
 
       {/* Hadith list — virtual scroll */}
-      {pack && visibleHadiths.length > 0 && (
+      {pack && listRows.length > 0 && (
         <div className="flex-1">
           <Virtuoso
             ref={virtuoso}
-            totalCount={visibleHadiths.length}
+            totalCount={listRows.length}
             itemContent={renderItem}
             style={{ flex: 1, height: "calc(100vh - 160px)" }}
           />
@@ -283,7 +324,7 @@ export function HadithBookViewPage() {
       )}
 
       {/* Empty after filter */}
-      {pack && visibleHadiths.length === 0 && !isLoading && (
+      {pack && listRows.length === 0 && !isLoading && (
         <div dir="rtl" className="flex-1 flex items-center justify-center text-[var(--muted)] font-arabic">
           لا توجد أحاديث في هذا الباب
         </div>

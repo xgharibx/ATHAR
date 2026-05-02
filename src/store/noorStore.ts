@@ -33,6 +33,14 @@ export type HomeWidgetKey = "prayer" | "hadith" | "wisdom" | "smart" | "checklis
 export type MoodKey = "khashi" | "mutaammil" | "muhtaj" | "mumtan" | "mushtaq";
 export type MoodEntry = { mood: MoodKey; timestamp: string };
 
+// 7D: Hadith memorization SRS card
+export type HadithMemoCard = {
+  interval: number;  // days until next review
+  ease: number;      // SM-2 ease factor (default 2.5)
+  due: string;       // ISO date YYYY-MM-DD
+  reviews: number;   // total reviews done
+};
+
 export type Preferences = {
   theme: NoorTheme;
   fontScale: number; // 0.9 - 1.6
@@ -169,6 +177,7 @@ export type ExportBlobV1 = {
   hadithBookmarks?: Record<string, boolean>;
   hadithProgress?: Record<string, number>;
   hadithNotes?: Record<string, string>; // key: `${bookKey}:${n}`
+  hadithMemoCards?: Record<string, HadithMemoCard>; // key: `${bookKey}:${n}`
 };
 
 type NoorState = {
@@ -323,6 +332,11 @@ type NoorState = {
   setHadithProgress: (bookKey: string, n: number) => void;
   hadithNotes: Record<string, string>; // key: `${bookKey}:${n}`
   setHadithNote: (bookKey: string, n: number, note: string) => void;
+
+  // 7D: Hadith memorization SRS
+  hadithMemoCards: Record<string, HadithMemoCard>; // key: `${bookKey}:${n}`
+  addHadithMemoCard: (cardKey: string) => void;
+  reviewHadithMemo: (cardKey: string, rating: 0 | 1 | 2 | 3) => void;
 
   // 3D: Custom Adhkar Packs
   customPacks: CustomAdhkarPack[];
@@ -1055,6 +1069,29 @@ export const useNoorStore = create<NoorState>()(
         }));
       },
 
+      // 7D: Hadith memorization SRS
+      hadithMemoCards: {},
+      addHadithMemoCard: (cardKey) => {
+        set((s) => {
+          if (s.hadithMemoCards[cardKey]) return {};
+          const today = new Date().toISOString().slice(0, 10);
+          return { hadithMemoCards: { ...s.hadithMemoCards, [cardKey]: { interval: 1, ease: 2.5, due: today, reviews: 0 } } };
+        });
+      },
+      reviewHadithMemo: (cardKey, rating) => {
+        set((s) => {
+          const card = s.hadithMemoCards[cardKey];
+          if (!card) return {};
+          let { interval, ease } = card;
+          if (rating === 0) { interval = 1; ease = Math.max(1.3, ease - 0.2); }
+          else if (rating === 1) { interval = Math.max(1, Math.round(interval * 1.2)); ease = Math.max(1.3, ease - 0.15); }
+          else if (rating === 2) { interval = card.reviews === 0 ? 1 : card.reviews === 1 ? 4 : Math.round(interval * ease); }
+          else { interval = card.reviews === 0 ? 4 : Math.round(interval * ease * 1.3); ease = Math.min(3.0, ease + 0.15); }
+          const due = new Date(); due.setDate(due.getDate() + interval);
+          return { hadithMemoCards: { ...s.hadithMemoCards, [cardKey]: { interval, ease, due: due.toISOString().slice(0, 10), reviews: card.reviews + 1 } } };
+        });
+      },
+
       // 3D: Custom Adhkar Packs
       customPacks: [],
       addCustomPack: (pack) => {
@@ -1146,7 +1183,7 @@ export const useNoorStore = create<NoorState>()(
       //  2. Add a fallback default for the new key in the `migrate` function below
       //     e.g., newKey: (state as Partial<NoorState>).newKey ?? defaultValue
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 23,
+      version: 24,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -1187,6 +1224,7 @@ export const useNoorStore = create<NoorState>()(
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],
           sectionCompletions: (state as Partial<NoorState>).sectionCompletions ?? {},
           mood: (state as Partial<NoorState>).mood ?? {},
+          hadithMemoCards: (state as Partial<NoorState>).hadithMemoCards ?? {},
         } as NoorState;
       }
     }

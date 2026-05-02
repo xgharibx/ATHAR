@@ -1,13 +1,12 @@
 /**
- * HadithReader — Phase 2
- * Full hadith reader with prev/next, copy, bookmark, share.
+ * HadithReader — Phase 7
+ * Full hadith reader: isnad/matn split (7A), grade chip, memo card button, share-as-poster.
  * Route: /hadith/:bookKey/:hadithNumber
  */
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
-  ArrowLeft,
   Bookmark,
   Copy,
   Share2,
@@ -17,32 +16,156 @@ import {
   StickyNote,
   X,
   Check,
+  BrainCircuit,
 } from "lucide-react";
 import { useHadithPack, getHadithByNumber } from "@/data/useHadithBook";
 import {
   HADITH_BOOKS_STATIC,
-  hadithGradeLabel,
+  HADITH_GRADE_LABELS,
   hadithRef,
   type HadithItem,
 } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 
 /* ------------------------------------------------------------------ */
+/* Helpers                                                               */
+/* ------------------------------------------------------------------ */
+
+// Split full hadith text into isnad (narrator chain) and matn (content)
+function splitHadithText(text: string): { isnad: string; matn: string } {
+  const markers = [
+    " قَالَ:", " قَالَ :", "قال:",
+    "أَنَّ رَسُولَ", "أن رسول الله",
+    "عَنِ النَّبِيِّ", "عَنِ النَّبِيِّ صَلَّى",
+  ];
+  let earliest = -1;
+  for (const m of markers) {
+    const idx = text.indexOf(m);
+    if (idx !== -1 && (earliest === -1 || idx < earliest)) earliest = idx;
+  }
+  if (earliest <= 0) return { isnad: "", matn: text };
+  return { isnad: text.slice(0, earliest).trim(), matn: text.slice(earliest).trim() };
+}
+
+// Share-as-poster: draw a beautiful canvas card and share or download it
+async function shareHadithPoster(opts: {
+  matn: string;
+  bookTitle: string;
+  hadithNum: number;
+  accentColor: string;
+  grade: string;
+}) {
+  const W = 800, H = 560;
+  const canvas = document.createElement("canvas");
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d")!;
+
+  // Background
+  const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || "#07080b";
+  const fg = getComputedStyle(document.documentElement).getPropertyValue("--fg").trim() || "#f5f7ff";
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle radial star dots
+  for (let i = 0; i < 40; i++) {
+    const x = ((i * 97 + 37) % 800);
+    const y = ((i * 53 + 19) % 560);
+    ctx.beginPath();
+    ctx.arc(x, y, 0.8 + (i % 3) * 0.4, 0, Math.PI * 2);
+    ctx.fillStyle = opts.accentColor + "55";
+    ctx.fill();
+  }
+
+  // Card background
+  ctx.fillStyle = opts.accentColor + "11";
+  ctx.roundRect(40, 40, W - 80, H - 80, 24);
+  ctx.fill();
+
+  // Accent border
+  ctx.strokeStyle = opts.accentColor + "44";
+  ctx.lineWidth = 1.5;
+  ctx.roundRect(40, 40, W - 80, H - 80, 24);
+  ctx.stroke();
+
+  // Grade pill
+  const gradeLabel = HADITH_GRADE_LABELS[opts.grade] ?? opts.grade;
+  const gradeColors: Record<string, string> = { sahih: "#10b981", hasan: "#f59e0b", daif: "#ef4444", maudu: "#6b7280" };
+  const gradeColor = gradeColors[opts.grade] ?? opts.accentColor;
+  ctx.fillStyle = gradeColor + "22";
+  ctx.roundRect(64, 64, 80, 26, 13);
+  ctx.fill();
+  ctx.fillStyle = gradeColor;
+  ctx.font = "bold 12px system-ui";
+  ctx.textAlign = "center";
+  ctx.fillText(gradeLabel, 104, 81);
+
+  // Matn text (RTL, multi-line)
+  ctx.fillStyle = fg;
+  ctx.font = "bold 22px 'Noto Naskh Arabic', serif";
+  ctx.textAlign = "right";
+  ctx.direction = "rtl";
+  const maxWidth = W - 130;
+  const words = opts.matn.split(" ");
+  let line = "";
+  let y = 130;
+  const lineH = 38;
+  for (const word of words) {
+    const test = word + " " + line;
+    const m = ctx.measureText(test);
+    if (m.width > maxWidth && line !== "") {
+      ctx.fillText(line, W - 64, y);
+      line = word;
+      y += lineH;
+      if (y > H - 120) { ctx.fillText(line + "…", W - 64, y); line = ""; break; }
+    } else { line = test; }
+  }
+  if (line) ctx.fillText(line, W - 64, y);
+
+  // Footer: book + number
+  ctx.fillStyle = fg + "99";
+  ctx.font = "14px system-ui";
+  ctx.textAlign = "right";
+  ctx.fillText(`${opts.bookTitle} — حديث ${opts.hadithNum}`, W - 64, H - 60);
+
+  // App watermark
+  ctx.fillStyle = opts.accentColor;
+  ctx.font = "bold 13px system-ui";
+  ctx.textAlign = "left";
+  ctx.fillText("✦ أذكار نور", 64, H - 60);
+
+  // Share or download
+  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
+  if (navigator.share && navigator.canShare?.({ files: [new File([blob], "hadith.png", { type: "image/png" })] })) {
+    const file = new File([blob], "hadith.png", { type: "image/png" });
+    await navigator.share({ files: [file] }).catch(() => {});
+  } else {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "hadith.png";
+    a.click();
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+/* ------------------------------------------------------------------ */
 
 function GradeChip({ g }: { g: string }) {
   const colors: Record<string, string> = {
     sahih: "#10b981",
-    hasan: "#3b82f6",
+    hasan: "#f59e0b",
     daif: "#ef4444",
     maudu: "#6b7280",
   };
   const color = colors[g] ?? "#6b7280";
+  const label = HADITH_GRADE_LABELS[g] ?? g;
   return (
     <span
       className="text-xs font-semibold px-3 py-1 rounded-full"
       style={{ background: color + "22", color }}
     >
-      {hadithGradeLabel(g)}
+      {label}
     </span>
   );
 }
@@ -56,7 +179,7 @@ export function HadithReaderPage() {
   const n = parseInt(hadithNumber ?? "1", 10);
   const { data: pack, isLoading } = useHadithPack(bookKey);
 
-  const { prefs, hadithBookmarks, toggleHadithBookmark, setHadithProgress, hadithNotes, setHadithNote } = useNoorStore(
+  const { prefs, hadithBookmarks, toggleHadithBookmark, setHadithProgress, hadithNotes, setHadithNote, addHadithMemoCard, hadithMemoCards } = useNoorStore(
     (s) => ({
       prefs: s.prefs,
       hadithBookmarks: s.hadithBookmarks,
@@ -64,6 +187,8 @@ export function HadithReaderPage() {
       setHadithProgress: s.setHadithProgress,
       hadithNotes: s.hadithNotes,
       setHadithNote: s.setHadithNote,
+      addHadithMemoCard: s.addHadithMemoCard,
+      hadithMemoCards: s.hadithMemoCards,
     }),
   );
 
@@ -85,6 +210,8 @@ export function HadithReaderPage() {
 
   const bookmarkKey = `${bookKey}:${n}`;
   const isBookmarked = !!hadithBookmarks[bookmarkKey];
+  const memoCardKey = `${bookKey}:${n}`;
+  const isMemoCard = !!hadithMemoCards[memoCardKey];
 
   const meta = pack ?? HADITH_BOOKS_STATIC.find((b) => b.key === bookKey);
   const accentColor = meta?.color ?? "#10b981";
@@ -120,13 +247,21 @@ export function HadithReaderPage() {
 
   const shareText = async () => {
     if (!hadith) return;
-    const text = `${hadith.t}\n\n— ${hadithRef(meta?.title ?? "", hadith.a)}`;
-    if (navigator.share) {
-      await navigator.share({ text }).catch(() => {});
-    } else {
-      copyText();
-    }
+    const { matn } = splitHadithText(hadith.t);
+    await shareHadithPoster({
+      matn: matn || hadith.t,
+      bookTitle: meta?.title ?? "",
+      hadithNum: hadith.a,
+      accentColor,
+      grade: hadith.g[0] ?? "",
+    });
   };
+
+  // Split text for display (7A)
+  const hadithSplit = useMemo(() => {
+    if (!hadith) return null;
+    return splitHadithText(hadith.t);
+  }, [hadith]);
 
   const fontSizeClass = useMemo(() => {
     const scale = (prefs as Record<string, unknown>).hadithFontScale;
@@ -165,6 +300,19 @@ export function HadithReaderPage() {
         {/* Action buttons */}
         <div className="flex items-center gap-1">
           <button
+            onClick={() => {
+              if (!isMemoCard) addHadithMemoCard(memoCardKey);
+              navigate("/hadith/memo");
+            }}
+            className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
+            title="بطاقة الحفظ"
+          >
+            <BrainCircuit
+              size={18}
+              style={{ color: isMemoCard ? accentColor : "var(--muted)" }}
+            />
+          </button>
+          <button
             onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}
             className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
             title="حفظ"
@@ -185,7 +333,7 @@ export function HadithReaderPage() {
           <button
             onClick={shareText}
             className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            title="مشاركة"
+            title="مشاركة كصورة"
           >
             <Share2 size={16} className="text-[var(--muted)]" />
           </button>
@@ -235,14 +383,35 @@ export function HadithReaderPage() {
           </p>
         )}
 
-        {/* Full text */}
-        {hadith && (
-          <p
-            dir="rtl"
-            className={`${fontSizeClass} font-arabic text-[var(--fg)] leading-loose`}
-          >
-            {hadith.t}
-          </p>
+        {/* Full text — split into isnad + matn (7A) */}
+        {hadith && hadithSplit && (
+          <div className="space-y-4">
+            {/* Isnad — smaller, muted */}
+            {hadithSplit.isnad && (
+              <div
+                dir="rtl"
+                className="rounded-xl px-4 py-3"
+                style={{ background: accentColor + "0d", borderRight: `3px solid ${accentColor}44` }}
+              >
+                <p className="text-[11px] text-[var(--muted)] font-arabic mb-1">الإسناد</p>
+                <p className="text-sm font-arabic text-[var(--fg)] opacity-60 leading-loose">
+                  {hadithSplit.isnad}
+                </p>
+              </div>
+            )}
+            {/* Matn — prominent */}
+            <div dir="rtl">
+              {hadithSplit.isnad && (
+                <p className="text-[11px] text-[var(--muted)] font-arabic mb-2">المتن</p>
+              )}
+              <p
+                dir="rtl"
+                className={`${fontSizeClass} font-arabic text-[var(--fg)] leading-loose`}
+              >
+                {hadithSplit.matn}
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Note editor */}
