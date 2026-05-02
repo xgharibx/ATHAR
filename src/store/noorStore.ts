@@ -192,6 +192,10 @@ type NoorState = {
   tasbeehLifetime: Record<string, number>;
   incTasbeehLifetime: (key: string) => void;
 
+  // 6C: Daily tasbeeh log for weekly stats
+  tasbeehDailyLog: Record<string, Record<string, number>>; // dateKey → {phraseKey → count}
+  incTasbeehDailyLog: (dateKey: string, key: string) => void;
+
   // Sebha sessions history
   sebhaSessions: SebhaSession[];
   addSebhaSession: (s: SebhaSession) => void;
@@ -595,6 +599,7 @@ export const useNoorStore = create<NoorState>()(
         const next = current + 1;
         set((s) => ({ quickTasbeeh: { ...s.quickTasbeeh, [key]: next } }));
         get().incTasbeehLifetime(key);
+        get().incTasbeehDailyLog(todayISO(), key);
         get().bumpActivityToday();
         return next;
       },
@@ -602,6 +607,23 @@ export const useNoorStore = create<NoorState>()(
       tasbeehLifetime: {},
       incTasbeehLifetime: (key) => {
         set((s) => ({ tasbeehLifetime: { ...s.tasbeehLifetime, [key]: (s.tasbeehLifetime[key] ?? 0) + 1 } }));
+      },
+
+      tasbeehDailyLog: {},
+      incTasbeehDailyLog: (dateKey, key) => {
+        set((s) => {
+          const day = s.tasbeehDailyLog[dateKey] ?? {};
+          // prune to last 21 days to prevent unbounded growth
+          const entries = Object.entries(s.tasbeehDailyLog);
+          const pruned: Record<string, Record<string, number>> = {};
+          const cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - 21);
+          const cutoffKey = todayISO.call(null) /* unused */ || '';
+          void cutoffKey;
+          for (const [dk, val] of entries) { if (dk >= cutoff.toISOString().slice(0, 10)) pruned[dk] = val; }
+          pruned[dateKey] = { ...day, [key]: (day[key] ?? 0) + 1 };
+          return { tasbeehDailyLog: pruned };
+        });
       },
       resetQuickTasbeeh: (key) =>
         set((s) => {
@@ -1124,7 +1146,7 @@ export const useNoorStore = create<NoorState>()(
       //  2. Add a fallback default for the new key in the `migrate` function below
       //     e.g., newKey: (state as Partial<NoorState>).newKey ?? defaultValue
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 22,
+      version: 23,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -1156,6 +1178,7 @@ export const useNoorStore = create<NoorState>()(
           weeklyReportSentISO: (state as Partial<NoorState>).weeklyReportSentISO ?? null,
           onboardingDone: (state as Partial<NoorState>).onboardingDone ?? false,
           tasbeehLifetime: sanitizeNumberMap((state as Partial<NoorState>).tasbeehLifetime),
+          tasbeehDailyLog: ((state as Partial<NoorState>).tasbeehDailyLog && typeof (state as Partial<NoorState>).tasbeehDailyLog === 'object' ? (state as Partial<NoorState>).tasbeehDailyLog : {}) as Record<string, Record<string, number>>,
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           hadithBookmarks: (state as Partial<NoorState>).hadithBookmarks ?? {},

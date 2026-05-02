@@ -10,6 +10,9 @@ import {
   Plus,
   Pencil,
   Flag,
+  Mic,
+  MicOff,
+  BarChart2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -70,7 +73,7 @@ function doHaptic(count: number, target: number | null, enabled: boolean) {
   }
 }
 
-// ─── Circular progress ring (S4) ────────────────────────────────────────────
+// ─── Circular progress ring (S4) — 6A drag-to-count ────────────────────────
 
 const RING_R = 106;
 const RING_C = 2 * Math.PI * RING_R;
@@ -87,12 +90,86 @@ function CircularRing({
   onClick: () => void;
 }) {
   const offset = RING_C * (1 - Math.min(percent, 100) / 100);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const pointerRef = React.useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    lastAngle: number;
+    hasMoved: boolean;
+    isDrag: boolean;
+  } | null>(null);
+  const [handleAngleDeg, setHandleAngleDeg] = React.useState(-90);
+
+  function getAngleAndDist(clientX: number, clientY: number) {
+    const rect = containerRef.current!.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const angle = Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
+    const dist = Math.hypot(clientX - cx, clientY - cy);
+    const radius = rect.width / 2;
+    return { angle, dist, radius };
+  }
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (pointerRef.current) return;
+    const { angle, dist, radius } = getAngleAndDist(e.clientX, e.clientY);
+    const nearRing = dist > radius * 0.52;
+    if (nearRing) {
+      e.preventDefault(); // prevent button click when grabbing ring
+      containerRef.current!.setPointerCapture(e.pointerId);
+    }
+    pointerRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      lastAngle: angle,
+      hasMoved: false,
+      isDrag: nearRing,
+    };
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const ref = pointerRef.current;
+    if (!ref || ref.pointerId !== e.pointerId) return;
+    const dx = e.clientX - ref.startX;
+    const dy = e.clientY - ref.startY;
+    if (Math.hypot(dx, dy) > 6) ref.hasMoved = true;
+    if (!ref.isDrag) return;
+    const { angle } = getAngleAndDist(e.clientX, e.clientY);
+    let delta = angle - ref.lastAngle;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    const NOTCH = 14; // degrees per count
+    if (delta >= NOTCH) {
+      onClick();
+      ref.lastAngle = angle;
+    }
+    setHandleAngleDeg(angle);
+  }
+
+  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    const ref = pointerRef.current;
+    if (!ref || ref.pointerId !== e.pointerId) return;
+    if (!ref.hasMoved && !ref.isDrag) onClick(); // center tap
+    pointerRef.current = null;
+  }
+
+  // Handle bead position on ring
+  const hRad = (handleAngleDeg * Math.PI) / 180;
+  const hx = 112 + RING_R * Math.cos(hRad);
+  const hy = 112 + RING_R * Math.sin(hRad);
+
   return (
     <div
-      className="relative mx-auto mt-6 flex items-center justify-center"
+      ref={containerRef}
+      className="relative mx-auto mt-6 flex items-center justify-center touch-none"
       style={{ width: 224, height: 224, maxWidth: "74vw", maxHeight: "74vw" }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
     >
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 224 224">
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 224 224" style={{ pointerEvents: "none" }}>
         <circle cx="112" cy="112" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
         <circle
           cx="112"
@@ -107,6 +184,10 @@ function CircularRing({
           transform="rotate(-90 112 112)"
           style={{ transition: "stroke-dashoffset 0.3s ease, stroke 0.3s ease" }}
         />
+        {/* 6A: drag handle bead */}
+        <circle cx={hx} cy={hy} r={8} fill={completed ? "var(--ok)" : "var(--accent)"} opacity={0.92}
+          style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.5))" }} />
+        <circle cx={hx} cy={hy} r={3} fill="white" opacity={0.7} />
       </svg>
       <button
         type="button"
@@ -118,9 +199,14 @@ function CircularRing({
             : "bg-[var(--accent)]/12 border-[var(--accent)]/25 hover:bg-[var(--accent)]/16"
         )}
         aria-label="اضغط للعد"
+        style={{ pointerEvents: "auto" }}
       >
         {children}
       </button>
+      {/* 6A: drag hint */}
+      <div className="absolute -bottom-6 left-0 right-0 text-center text-[10px] opacity-30 pointer-events-none">
+        اسحب الحلقة للعدّ
+      </div>
     </div>
   );
 }
@@ -142,6 +228,171 @@ function fmtTime(iso: string) {
 
 // Silence unused import warning — SebhaSession is used via the store
 type _UseSession = SebhaSession;
+
+// ─── 6B: Voice recognition hook ─────────────────────────────────────────────
+
+const VOICE_PHRASE_MAP: Array<{ patterns: string[]; key: string }> = [
+  { patterns: ['سبحان الله', 'سبحانالله'], key: 'subhanallah' },
+  { patterns: ['الحمد لله', 'الحمدلله'], key: 'alhamdulillah' },
+  { patterns: ['لا إله إلا الله', 'لا اله الا الله', 'لاإلهإلاالله'], key: 'la_ilaha_illallah' },
+  { patterns: ['الله أكبر', 'الله اكبر', 'اللهأكبر'], key: 'allahu_akbar' },
+];
+
+function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
+  const [listening, setListening] = React.useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recogRef = React.useRef<any | null>(null);
+  const cbRef = React.useRef(onRecognize);
+  React.useEffect(() => { cbRef.current = onRecognize; });
+
+  const supported = typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
+  const toggle = React.useCallback(() => {
+    if (recogRef.current) {
+      recogRef.current.stop();
+      recogRef.current = null;
+      setListening(false);
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition as (new () => any) | undefined;
+    if (!SR) { toast.error('التعرف على الصوت غير مدعوم في هذا المتصفح'); return; }
+    const recog = new SR();
+    recog.lang = 'ar-SA';
+    recog.continuous = true;
+    recog.interimResults = false;
+    recog.maxAlternatives = 1;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recog.onresult = (e: any) => {
+      const transcript = Array.from(e.results as Iterable<any>)
+        .slice(e.resultIndex)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((r: any) => r[0].transcript as string)
+        .join(' ');
+      let matched: string | null = null;
+      for (const { patterns, key } of VOICE_PHRASE_MAP) {
+        if (patterns.some(p => transcript.includes(p))) { matched = key; break; }
+      }
+      cbRef.current(matched); // null = unrecognized phrase → count current
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recog.onerror = (e: any) => {
+      if (e.error !== 'no-speech') toast.error('خطأ الميكروفون: ' + e.error);
+      recogRef.current = null;
+      setListening(false);
+    };
+    recog.onend = () => {
+      // auto-restart for continuous listening
+      if (recogRef.current) {
+        try { recogRef.current.start(); } catch { /* already started */ }
+      }
+    };
+    recog.start();
+    recogRef.current = recog;
+    setListening(true);
+  }, []);
+
+  React.useEffect(() => () => { recogRef.current?.stop(); recogRef.current = null; }, []);
+
+  return { listening, toggle, supported };
+}
+
+// ─── 6C: Weekly stats bar chart ──────────────────────────────────────────────
+
+function dateKeyOf(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function TasbeehStatsCard({
+  tasbeehDailyLog,
+  tasbeehLifetime,
+}: {
+  tasbeehDailyLog: Record<string, Record<string, number>>;
+  tasbeehLifetime: Record<string, number>;
+}) {
+  const stats = React.useMemo(() => {
+    const today = new Date();
+    const thisWeek: Record<string, number> = {};
+    const lastWeek: Record<string, number> = {};
+    for (const item of TASBEEHAT) { thisWeek[item.key] = 0; lastWeek[item.key] = 0; }
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today); d.setDate(today.getDate() - i);
+      const dk = dateKeyOf(d);
+      const day = tasbeehDailyLog[dk] ?? {};
+      for (const item of TASBEEHAT) { thisWeek[item.key] += day[item.key] ?? 0; }
+    }
+    for (let i = 7; i < 14; i++) {
+      const d = new Date(today); d.setDate(today.getDate() - i);
+      const dk = dateKeyOf(d);
+      const day = tasbeehDailyLog[dk] ?? {};
+      for (const item of TASBEEHAT) { lastWeek[item.key] += day[item.key] ?? 0; }
+    }
+    const maxVal = Math.max(1, ...TASBEEHAT.flatMap(i => [thisWeek[i.key], lastWeek[i.key]]));
+    return { thisWeek, lastWeek, maxVal };
+  }, [tasbeehDailyLog]);
+
+  const totalLifetime = TASBEEHAT.reduce((s, i) => s + (tasbeehLifetime[i.key] ?? 0), 0);
+  if (totalLifetime === 0 && Object.keys(tasbeehDailyLog).length === 0) return null;
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <BarChart2 size={14} className="text-[var(--accent)]" />
+        <span className="text-sm font-semibold">إحصائيات التسبيح</span>
+        <span className="text-[11px] opacity-50 mr-auto">هذا الأسبوع مقابل الماضي</span>
+      </div>
+      <div className="space-y-3">
+        {TASBEEHAT.map((item) => {
+          const tw = stats.thisWeek[item.key] ?? 0;
+          const lw = stats.lastWeek[item.key] ?? 0;
+          const twPct = Math.round((tw / stats.maxVal) * 100);
+          const lwPct = Math.round((lw / stats.maxVal) * 100);
+          const lifetime = tasbeehLifetime[item.key] ?? 0;
+          return (
+            <div key={item.key}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] opacity-70">{item.short}</span>
+                <span className="text-[10px] opacity-40 tabular-nums">مجموع: {lifetime.toLocaleString('ar-SA')}</span>
+              </div>
+              {/* This week bar */}
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[9px] opacity-40 w-10 text-left shrink-0">هذا: {tw}</span>
+                <div className="flex-1 h-2 rounded-full bg-white/8 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-[width] duration-500"
+                    style={{ width: `${twPct}%`, background: 'var(--accent)' }}
+                  />
+                </div>
+              </div>
+              {/* Last week bar */}
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] opacity-40 w-10 text-left shrink-0">سبق: {lw}</span>
+                <div className="flex-1 h-2 rounded-full bg-white/8 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-[width] duration-500"
+                    style={{ width: `${lwPct}%`, background: 'rgba(255,255,255,0.2)' }}
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {/* Legend */}
+      <div className="mt-3 flex items-center gap-4 justify-end">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
+          <span className="text-[10px] opacity-50">هذا الأسبوع</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-1.5 rounded-full bg-white/30" />
+          <span className="text-[10px] opacity-50">الأسبوع الماضي</span>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 // ─── Main component ──────────────────────────────────────────────────────────
 
@@ -173,6 +424,8 @@ export function SebhaPage() {
   const clearSebhaSessions = useNoorStore((s) => s.clearSebhaSessions);
   const sebhaCustom = useNoorStore((s) => s.sebhaCustom);
   const setSebhaCustom = useNoorStore((s) => s.setSebhaCustom);
+  const tasbeehDailyLog = useNoorStore((s) => s.tasbeehDailyLog);
+  const tasbeehLifetime = useNoorStore((s) => s.tasbeehLifetime);
 
   // Sync custom phrase form with stored custom dhikr
   React.useEffect(() => {
@@ -228,6 +481,16 @@ export function SebhaPage() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [increment]);
+
+  // 6B: Voice recognition — when a phrase matches, switch + count; null = count current
+  const { listening, toggle: toggleVoice, supported: voiceSupported } = useSpeechCount(
+    React.useCallback((matchedKey: string | null) => {
+      if (matchedKey && matchedKey !== selected && TASBEEHAT.some(t => t.key === matchedKey)) {
+        setSelected(matchedKey as TasbeehKey);
+      }
+      increment();
+    }, [selected, increment])
+  );
 
   const totalDone = TASBEEHAT.reduce(
     (sum, item) => sum + Math.min(Number(quickTasbeeh[item.key] ?? 0), target),
@@ -400,6 +663,23 @@ export function SebhaPage() {
             <RotateCw size={16} />
             تصفير الحالي
           </Button>
+          {/* 6B: Voice mic button */}
+          {voiceSupported && (
+            <button
+              type="button"
+              onClick={toggleVoice}
+              title={listening ? "إيقاف الاستماع" : "عدّ بالصوت"}
+              className={cn(
+                "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition shrink-0",
+                listening
+                  ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
+                  : "border-white/10 bg-white/5 text-white/65 hover:bg-white/8"
+              )}
+            >
+              {listening ? <MicOff size={13} /> : <Mic size={13} />}
+              {listening ? "جارٍ الاستماع" : "صوت"}
+            </button>
+          )}
         </div>
 
         {/* S4 - Circular ring counter */}
@@ -579,6 +859,9 @@ export function SebhaPage() {
           </div>
         </Card>
       )}
+
+      {/* 6C: Weekly stats */}
+      <TasbeehStatsCard tasbeehDailyLog={tasbeehDailyLog} tasbeehLifetime={tasbeehLifetime} />
     </div>
   );
 }
