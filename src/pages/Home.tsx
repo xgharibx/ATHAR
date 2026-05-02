@@ -263,6 +263,7 @@ export function HomePage() {
     return Math.round((readAyahs / totalAyahs) * 100);
   }, [quran.data, quranReadingHistory]);
   const [confirmTasbeehReset, setConfirmTasbeehReset] = React.useState(false);
+  const [activePhraseKey, setActivePhraseKey] = React.useState<QuickTasbeehKey | null>(null);
   const prayerTimes = usePrayerTimes();
   const civilTodayKey = useTodayKey();
   const worshipDayKey = useTodayKey({
@@ -1063,9 +1064,15 @@ export function HomePage() {
                     <button
                       key={it.key}
                       onClick={() => {
+                        setActivePhraseKey(it.key);
                         incQuickTasbeeh(it.key, tasbeehTarget);
                       }}
-                      className="glass rounded-3xl p-4 text-right transition border border-white/10 select-none press-effect glass-hover"
+                      className={cn(
+                        "glass rounded-3xl p-4 text-right transition border select-none press-effect glass-hover",
+                        activePhraseKey === it.key
+                          ? "border-[var(--accent)]/60 ring-2 ring-[var(--accent)]/30 bg-[var(--accent)]/10"
+                          : "border-white/10"
+                      )}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">

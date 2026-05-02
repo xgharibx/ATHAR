@@ -827,6 +827,12 @@ export function PrayerTimesPage() {
   return (
     <div className="p-4 md:p-5 space-y-4 page-enter">
       <PTRIndicator isPulling={isPulling} isRefreshing={isRefreshing} />
+      {(isRefreshing || manualRefreshing) && (
+        <div className="animate-pulse">
+          <PrayerTimesPageSkeleton />
+        </div>
+      )}
+      {!isRefreshing && !manualRefreshing && <>
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="text-xl font-bold">مواقيت الصلاة</div>
@@ -970,6 +976,7 @@ export function PrayerTimesPage() {
       </Card>
 
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+      </>}
     </div>
   );
 }

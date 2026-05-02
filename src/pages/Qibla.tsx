@@ -82,6 +82,17 @@ export function QiblaPage() {
     requestGeo();
   }, [requestGeo]);
 
+  // On Android / non-iOS, deviceorientation fires without any permission prompt.
+  // Pre-grant permissionGranted so the button never shows and the listener works immediately.
+  React.useEffect(() => {
+    const w = globalThis as typeof globalThis & {
+      DeviceOrientationEvent?: { requestPermission?: () => Promise<string> };
+    };
+    if (typeof w.DeviceOrientationEvent?.requestPermission !== "function") {
+      setOrient((o) => ({ ...o, permissionGranted: true }));
+    }
+  }, []);
+
   // Request device orientation
   const requestOrientation = React.useCallback(async () => {
     const w = globalThis as typeof globalThis & {

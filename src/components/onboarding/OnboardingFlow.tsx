@@ -30,17 +30,25 @@ const STEPS = [
     emoji: "🔔",
     title: "التنبيهات",
     description: "هل تريد تذكيراً بالأذكار ومواقيت الصلاة؟ يمكنك تغيير هذا لاحقاً من الإعدادات.",
-    action: "ابدأ الآن",
+    action: "السماح",
     onAction: async () => {
       if ("Notification" in globalThis && Notification.permission === "default") {
         await Notification.requestPermission().catch(() => {});
       }
     },
   },
+  {
+    emoji: "🌅",
+    title: "تذكير بأوقات الصلاة",
+    description: "تفعيل تنبيهات الأذان لجميع الصلوات الخمس؟ يمكنك ضبط كل صلاة بشكل مستقل لاحقاً.",
+    action: "تفعيل التنبيهات",
+    prayerReminders: true, // handled in component
+  },
 ] as const;
 
 export function OnboardingFlow() {
   const setOnboardingDone = useNoorStore((s) => s.setOnboardingDone);
+  const setReminders = useNoorStore((s) => s.setReminders);
   const [step, setStep] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
   const current = STEPS[step];
@@ -50,6 +58,13 @@ export function OnboardingFlow() {
     try {
       if ("onAction" in current && current.onAction) {
         await current.onAction();
+      }
+      if ("prayerReminders" in current && current.prayerReminders) {
+        setReminders({
+          enabled: true,
+          prayerAlertsEnabled: true,
+          prayerAlerts: { Fajr: true, Dhuhr: true, Asr: true, Maghrib: true, Isha: true },
+        });
       }
     } finally {
       setLoading(false);
@@ -63,6 +78,14 @@ export function OnboardingFlow() {
 
   const handleSkip = () => {
     setOnboardingDone(true);
+  };
+
+  const handleLater = () => {
+    if (step < STEPS.length - 1) {
+      setStep((s) => s + 1);
+    } else {
+      setOnboardingDone(true);
+    }
   };
 
   return (
@@ -95,12 +118,20 @@ export function OnboardingFlow() {
             {loading ? "جارٍ…" : current.action}
           </button>
 
-          {step < STEPS.length - 1 && (
+          {step < STEPS.length - 1 && !("prayerReminders" in current && current.prayerReminders) && (
             <button
               className="w-full mt-2 py-2.5 text-sm opacity-45 hover:opacity-70 transition arabic-text"
               onClick={handleSkip}
             >
               تخطي
+            </button>
+          )}
+          {"prayerReminders" in current && current.prayerReminders && (
+            <button
+              className="w-full mt-2 py-2.5 text-sm opacity-45 hover:opacity-70 transition arabic-text"
+              onClick={handleLater}
+            >
+              لاحقاً
             </button>
           )}
         </motion.div>
