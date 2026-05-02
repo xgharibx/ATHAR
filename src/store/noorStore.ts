@@ -160,6 +160,7 @@ export type ExportBlobV1 = {
   dailyBetterStepDone?: Record<string, boolean>;
   hadithBookmarks?: Record<string, boolean>;
   hadithProgress?: Record<string, number>;
+  hadithNotes?: Record<string, string>; // key: `${bookKey}:${n}`
 };
 
 type NoorState = {
@@ -303,11 +304,13 @@ type NoorState = {
   lastVisitedSectionId: string | null;
   setLastVisitedSectionId: (sectionId: string | null) => void;
 
-  // Hadith bookmarks + reading progress
+  // Hadith bookmarks + reading progress + notes
   hadithBookmarks: Record<string, boolean>; // key: `${bookKey}:${n}`
   toggleHadithBookmark: (bookKey: string, n: number) => void;
   hadithProgress: Record<string, number>; // key: bookKey → last hadith n viewed
   setHadithProgress: (bookKey: string, n: number) => void;
+  hadithNotes: Record<string, string>; // key: `${bookKey}:${n}`
+  setHadithNote: (bookKey: string, n: number, note: string) => void;
 };
 
 export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "hadith", "wisdom", "dailyStep", "checklist", "tasbeeh", "dailyWird", "smart"];
@@ -989,6 +992,15 @@ export const useNoorStore = create<NoorState>()(
       hadithProgress: {},
       setHadithProgress: (bookKey, n) =>
         set((s) => ({ hadithProgress: { ...s.hadithProgress, [bookKey]: n } })),
+      hadithNotes: {},
+      setHadithNote: (bookKey, n, note) => {
+        const key = `${bookKey}:${n}`;
+        set((s) => ({
+          hadithNotes: note.trim()
+            ? { ...s.hadithNotes, [key]: note.trim() }
+            : Object.fromEntries(Object.entries(s.hadithNotes).filter(([k]) => k !== key)),
+        }));
+      },
 
       localFriends: [],
       addLocalFriend: (f) =>
@@ -1052,7 +1064,7 @@ export const useNoorStore = create<NoorState>()(
       //  2. Add a fallback default for the new key in the `migrate` function below
       //     e.g., newKey: (state as Partial<NoorState>).newKey ?? defaultValue
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 19,
+      version: 20,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -1088,6 +1100,7 @@ export const useNoorStore = create<NoorState>()(
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           hadithBookmarks: (state as Partial<NoorState>).hadithBookmarks ?? {},
           hadithProgress: (state as Partial<NoorState>).hadithProgress ?? {},
+          hadithNotes: (state as Partial<NoorState>).hadithNotes ?? {},
         } as NoorState;
       }
     }

@@ -3,7 +3,7 @@
  * Full hadith reader with prev/next, copy, bookmark, share.
  * Route: /hadith/:bookKey/:hadithNumber
  */
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
@@ -14,6 +14,9 @@ import {
   ChevronRight,
   ChevronLeft,
   Loader2,
+  StickyNote,
+  X,
+  Check,
 } from "lucide-react";
 import { useHadithPack, getHadithByNumber } from "@/data/useHadithBook";
 import {
@@ -53,14 +56,27 @@ export function HadithReaderPage() {
   const n = parseInt(hadithNumber ?? "1", 10);
   const { data: pack, isLoading } = useHadithPack(bookKey);
 
-  const { prefs, hadithBookmarks, toggleHadithBookmark, setHadithProgress } = useNoorStore(
+  const { prefs, hadithBookmarks, toggleHadithBookmark, setHadithProgress, hadithNotes, setHadithNote } = useNoorStore(
     (s) => ({
       prefs: s.prefs,
       hadithBookmarks: s.hadithBookmarks,
       toggleHadithBookmark: s.toggleHadithBookmark,
       setHadithProgress: s.setHadithProgress,
+      hadithNotes: s.hadithNotes,
+      setHadithNote: s.setHadithNote,
     }),
   );
+
+  const noteKey = `${bookKey}:${n}`;
+  const existingNote = hadithNotes[noteKey] ?? "";
+  const [showNoteEditor, setShowNoteEditor] = useState(false);
+  const [draftNote, setDraftNote] = useState("");
+
+  // Reset note editor when hadith changes
+  useEffect(() => {
+    setShowNoteEditor(false);
+    setDraftNote("");
+  }, [bookKey, n]);
 
   const hadith = useMemo<HadithItem | undefined>(() => {
     if (!pack) return undefined;
@@ -173,6 +189,17 @@ export function HadithReaderPage() {
           >
             <Share2 size={16} className="text-[var(--muted)]" />
           </button>
+          <button
+            onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}
+            className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
+            title="تدوين ملاحظة"
+          >
+            <StickyNote
+              size={16}
+              className={existingNote ? "fill-current" : ""}
+              style={{ color: existingNote ? accentColor : "var(--muted)" }}
+            />
+          </button>
         </div>
 
         {isLoading && <Loader2 size={16} className="animate-spin text-[var(--muted)]" />}
@@ -216,6 +243,63 @@ export function HadithReaderPage() {
           >
             {hadith.t}
           </p>
+        )}
+
+        {/* Note editor */}
+        {showNoteEditor && (
+          <div
+            dir="rtl"
+            className="mt-5 rounded-2xl border p-4 space-y-3"
+            style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold opacity-55">ملاحظتي</span>
+              <button onClick={() => setShowNoteEditor(false)} className="opacity-50 hover:opacity-80">
+                <X size={14} />
+              </button>
+            </div>
+            <textarea
+              dir="rtl"
+              value={draftNote}
+              onChange={(e) => setDraftNote(e.target.value)}
+              placeholder="أضف ملاحظتك هنا…"
+              rows={4}
+              className="w-full bg-transparent resize-none outline-none font-arabic text-sm leading-7 placeholder:opacity-40"
+              style={{ color: "var(--fg)" }}
+              autoFocus
+            />
+            <div className="flex justify-end gap-2">
+              {existingNote && (
+                <button
+                  onClick={() => { bookKey && setHadithNote(bookKey, n, ""); setShowNoteEditor(false); }}
+                  className="text-xs px-3 py-1.5 rounded-xl opacity-50 hover:opacity-80 transition"
+                  style={{ background: "var(--card-border)" }}
+                >
+                  حذف
+                </button>
+              )}
+              <button
+                onClick={() => { bookKey && setHadithNote(bookKey, n, draftNote); setShowNoteEditor(false); }}
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl font-semibold transition"
+                style={{ background: accentColor, color: "#fff" }}
+              >
+                <Check size={12} /> حفظ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Display saved note (when editor closed) */}
+        {!showNoteEditor && existingNote && (
+          <button
+            dir="rtl"
+            onClick={() => { setDraftNote(existingNote); setShowNoteEditor(true); }}
+            className="mt-4 w-full text-right rounded-2xl border px-4 py-3 text-sm font-arabic leading-7 opacity-70 hover:opacity-100 transition"
+            style={{ borderColor: accentColor + "44", background: accentColor + "11", color: "var(--fg)" }}
+          >
+            <span className="text-[10px] font-semibold opacity-60 block mb-1">ملاحظتي</span>
+            {existingNote}
+          </button>
         )}
       </div>
 
