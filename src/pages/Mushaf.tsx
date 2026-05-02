@@ -1689,7 +1689,7 @@ export function MushafPage() {
               <span className="text-xs opacity-65">الترجمة الإنجليزية</span>
               <button
                 onClick={() => setShowTranslation((v) => !v)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${showTranslation ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${showTranslation ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                 role="switch" aria-checked={showTranslation}
               >
                 <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${showTranslation ? "right-1" : "right-7"}`} />
@@ -1704,7 +1704,7 @@ export function MushafPage() {
               </div>
               <button
                 onClick={() => setTajweedMode((v) => !v)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${tajweedMode ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${tajweedMode ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                 role="switch" aria-checked={tajweedMode}
               >
                 <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${tajweedMode ? "right-1" : "right-7"}`} />
@@ -1728,7 +1728,7 @@ export function MushafPage() {
                 </div>
                 <button
                   onClick={() => setInlineTafseer((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${inlineTafseer ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${inlineTafseer ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={inlineTafseer}
                 >
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${inlineTafseer ? "right-1" : "right-7"}`} />
@@ -1778,7 +1778,7 @@ export function MushafPage() {
                 <span className="text-xs opacity-50">تكرار الآية</span>
                 <button
                   onClick={() => setLoopEnabled((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${loopEnabled ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${loopEnabled ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={loopEnabled}
                 >
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${loopEnabled ? "right-1" : "right-7"}`} />
@@ -1801,7 +1801,7 @@ export function MushafPage() {
               <span className="text-xs opacity-65">تقدم تلقائي للآية التالية</span>
               <button
                 onClick={() => setAutoAdvance((v) => !v)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${autoAdvance ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${autoAdvance ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                 role="switch" aria-checked={autoAdvance}
               >
                 <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${autoAdvance ? "right-1" : "right-7"}`} />
@@ -1818,7 +1818,7 @@ export function MushafPage() {
                       setLoopRange(on);
                       if (on) { setLoopRangeStartIdx(0); setLoopRangeEndIdx(Math.max(0, playableItems.length - 1)); }
                     }}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${loopRange ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${loopRange ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                     role="switch" aria-checked={loopRange}
                   >
                     <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${loopRange ? "right-1" : "right-7"}`} />
@@ -1942,7 +1942,7 @@ export function MushafPage() {
                 <span className="text-xs opacity-50 flex items-center gap-1"><SlidersHorizontal size={12} />المعادل الصوتي</span>
                 <button
                   onClick={() => setEqEnabled((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${eqEnabled ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${eqEnabled ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={eqEnabled}
                 >
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${eqEnabled ? "right-1" : "right-7"}`} />
@@ -2026,7 +2026,7 @@ export function MushafPage() {
                     <div className="text-[10px] opacity-40">{sub}</div>
                   </div>
                 </div>
-                <div className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${active ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}>
+                <div className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${active ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}>
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${active ? "right-1" : "right-7"}`} />
                 </div>
               </button>
