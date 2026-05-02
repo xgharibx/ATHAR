@@ -6,8 +6,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { ArrowRight, Bookmark, Loader2 } from "lucide-react";
-import { useHadithPack } from "@/data/useHadithBook";
+import { ArrowRight, Bookmark, Loader2, WifiOff } from "lucide-react";
+import { useHadithPack, useHadithPackProgress, HADITH_PACK_SIZES_MB } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview, type HadithItem } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 
@@ -83,7 +83,7 @@ function HadithRow({
 export function HadithBookViewPage() {
   const { bookKey } = useParams<{ bookKey: string }>();
   const navigate = useNavigate();
-  const { data: pack, isLoading, isError } = useHadithPack(bookKey);
+  const { data: pack, isLoading, isError, progress, isFromCache } = useHadithPackProgress(bookKey);
   const hadithProgress = useNoorStore((s) => s.hadithProgress);
   const virtuoso = useRef<VirtuosoHandle>(null);
 
@@ -154,6 +154,15 @@ export function HadithBookViewPage() {
           )}
         </div>
         {isLoading && <Loader2 size={18} className="animate-spin text-[var(--muted)]" />}
+        {!isLoading && isFromCache && (
+          <div
+            className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-arabic shrink-0"
+            style={{ background: "#10b98122", color: "#10b981" }}
+          >
+            <WifiOff size={10} />
+            <span>بلا إنترنت</span>
+          </div>
+        )}
       </div>
 
       {/* Section filter chips */}
@@ -207,9 +216,47 @@ export function HadithBookViewPage() {
 
       {/* Loading state */}
       {isLoading && (
-        <div className="flex-1 flex items-center justify-center gap-3 text-[var(--muted)]">
-          <Loader2 className="animate-spin" />
-          <span className="text-sm font-arabic">جاري تحميل الكتاب…</span>
+        <div dir="rtl" className="flex-1 flex items-center justify-center px-6">
+          <div
+            className="w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4"
+            style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: (meta?.color ?? "#10b981") + "22" }}
+              >
+                <Loader2 size={20} className="animate-spin" style={{ color: meta?.color ?? "#10b981" }} />
+              </div>
+              <div>
+                <p className="font-bold text-sm font-arabic" style={{ color: "var(--fg)" }}>
+                  {meta?.title ?? "جاري التحميل"}
+                </p>
+                <p className="text-xs font-arabic" style={{ color: "var(--muted)" }}>
+                  {bookKey && HADITH_PACK_SIZES_MB[bookKey]
+                    ? `حجم الملف ~${HADITH_PACK_SIZES_MB[bookKey]} MB`
+                    : "جاري التحميل…"}
+                </p>
+              </div>
+            </div>
+            {/* Progress bar */}
+            <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--bg)" }}>
+              <div
+                className="h-full rounded-full transition-all duration-300"
+                style={{
+                  width: `${progress}%`,
+                  background: meta?.color ?? "#10b981",
+                }}
+              />
+            </div>
+            <p className="text-center text-xs font-arabic" style={{ color: "var(--muted)" }}>
+              {progress < 5
+                ? "يتم تهيئة التحميل…"
+                : progress >= 100
+                ? "اكتمل التحميل"
+                : `${progress}% — يتم التحميل للاستخدام دون إنترنت`}
+            </p>
+          </div>
         </div>
       )}
 
