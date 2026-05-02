@@ -577,7 +577,6 @@ export function MushafPage() {
   React.useEffect(() => {
     if (!tafsirItem) return;
     const sid = tafsirItem.surahId;
-    if (inlineTafseerData[sid]) return;
     const edition = inlineTafseerSource === "jalalayn" ? "ar.jalalayn" : "ar.muyassar";
     setInlineTafseerLoading(true);
     fetch(`https://api.alquran.cloud/v1/surah/${sid}/${edition}`)
@@ -1481,22 +1480,90 @@ export function MushafPage() {
       {tafsirItem && (
         <>
           <div className="mushaf-overlay" onClick={() => setTafsirItem(null)} />
-          <div className="mushaf-note-sheet" style={{ zIndex: 101, maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
-            <div className="mushaf-sheet-handle" />
-            <div className="flex items-center justify-between mb-3">
-              <span className="mushaf-sheet-title">
-                تفسير الآية ﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾ · {tafsirItem.surahName}
+          {/* zIndex must be > overlay (210) — do NOT set lower */}
+          <div
+            className="mushaf-note-sheet"
+            style={{ maxHeight: "78vh", overflowY: "auto", display: "flex", flexDirection: "column" }}
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+          >
+            {/* Drag-to-dismiss handle */}
+            <div
+              className="mushaf-sheet-handle"
+              style={{ cursor: "grab", touchAction: "none", padding: "8px 0", marginBottom: 0 }}
+              onPointerDown={(e) => {
+                const handle = e.currentTarget as HTMLDivElement;
+                const sheet = handle.parentElement as HTMLDivElement;
+                const startY = e.clientY;
+                let dy = 0;
+                handle.setPointerCapture(e.pointerId);
+                handle.style.cursor = "grabbing";
+                const onMove = (ev: PointerEvent) => {
+                  dy = Math.max(0, ev.clientY - startY);
+                  sheet.style.transform = `translateY(${dy}px)`;
+                  sheet.style.transition = "none";
+                };
+                const onUp = () => {
+                  handle.removeEventListener("pointermove", onMove as EventListener);
+                  handle.removeEventListener("pointerup", onUp);
+                  handle.style.cursor = "grab";
+                  if (dy > 90) {
+                    sheet.style.transition = "transform 0.22s ease-in";
+                    sheet.style.transform = "translateY(110%)";
+                    setTimeout(() => setTafsirItem(null), 210);
+                  } else {
+                    sheet.style.transition = "transform 0.28s cubic-bezier(.34,1.56,.64,1)";
+                    sheet.style.transform = "";
+                    setTimeout(() => { sheet.style.transition = ""; }, 320);
+                  }
+                };
+                handle.addEventListener("pointermove", onMove as EventListener);
+                handle.addEventListener("pointerup", onUp);
+              }}
+            />
+
+            {/* Header row */}
+            <div className="flex items-center justify-between mb-3 mt-1">
+              <span className="mushaf-sheet-title flex items-center gap-1.5">
+                <span style={{ color: "var(--accent)" }}>📖</span>
+                <span>تفسير ﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾</span>
+                <span className="opacity-40 text-xs font-normal">· {tafsirItem.surahName}</span>
               </span>
-              <button className="mushaf-icon-close" onClick={() => setTafsirItem(null)} aria-label="إغلاق">
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-1">
+                {/* Copy button */}
+                <button
+                  className="mushaf-icon-close"
+                  title="نسخ"
+                  aria-label="نسخ"
+                  onClick={() => {
+                    const ayahTxt = `${tafsirItem.text} ﴿${tafsirItem.displayAyah}﴾`;
+                    const tafseerTxt = inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ?? "";
+                    const src = inlineTafseerSource === "muyassar" ? "التفسير الميسر" : "تفسير الجلالين";
+                    navigator.clipboard.writeText(`${ayahTxt}\n\n${src}:\n${tafseerTxt}`).then(() => toast.success("تم النسخ ✓")).catch(() => {});
+                  }}
+                >
+                  <Copy size={15} />
+                </button>
+                <button className="mushaf-icon-close" onClick={() => setTafsirItem(null)} aria-label="إغلاق">
+                  <X size={15} />
+                </button>
+              </div>
             </div>
-            {/* Arabic ayah text */}
-            <div className="arabic-text text-lg leading-10 mb-3 opacity-90 text-center p-3 rounded-2xl bg-white/4 border border-white/8" dir="rtl">
+
+            {/* Ayah text */}
+            <div
+              className="arabic-text text-lg leading-10 mb-3 text-center p-3 rounded-2xl border"
+              dir="rtl"
+              style={{
+                background: "color-mix(in srgb, var(--accent) 6%, transparent)",
+                borderColor: "color-mix(in srgb, var(--accent) 18%, transparent)",
+              }}
+            >
               {tafsirItem.text}
-              <span className="ml-2 opacity-50">﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾</span>
+              <span className="opacity-45 mr-1">﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾</span>
             </div>
-            {/* Tafseer source selector */}
+
+            {/* Source tabs */}
             <div className="flex gap-1.5 p-1 rounded-2xl bg-white/5 border border-white/10 mb-3">
               {(["muyassar", "jalalayn"] as const).map((src) => (
                 <button
@@ -1509,56 +1576,54 @@ export function MushafPage() {
                       : "opacity-55 hover:opacity-80"
                   }`}
                 >
-                  {src === "muyassar" ? "الميسر" : "الجلالين"}
+                  {src === "muyassar" ? "التفسير الميسر" : "تفسير الجلالين"}
                 </button>
               ))}
             </div>
-            {/* Arabic Tafseer text */}
+
+            {/* Tafseer body */}
             <div
-              className="text-sm leading-8 arabic-text opacity-90 p-4 rounded-2xl border mb-3"
+              className="text-sm leading-8 arabic-text p-4 rounded-2xl border mb-4 flex-1"
               dir="rtl"
               style={{
-                background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent) 0%, color-mix(in srgb, var(--accent) 3%, transparent) 100%)",
-                borderColor: "color-mix(in srgb, var(--accent) 20%, transparent)",
+                background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent) 0%, color-mix(in srgb, var(--accent) 2%, transparent) 100%)",
+                borderColor: "color-mix(in srgb, var(--accent) 18%, transparent)",
               }}
             >
               {inlineTafseerLoading && !inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
-                <span className="flex items-center gap-2 justify-center py-2 opacity-40 text-xs">
+                <span className="flex items-center gap-2 justify-center py-3 opacity-40 text-xs">
                   <span className="w-3 h-3 border border-white/30 border-t-[var(--accent)] rounded-full animate-spin inline-block" />
                   جارٍ تحميل التفسير…
                 </span>
               ) : inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
-                inlineTafseerData[tafsirItem.surahId][tafsirItem.originalAyah]
+                <p className="opacity-90 leading-8">{inlineTafseerData[tafsirItem.surahId][tafsirItem.originalAyah]}</p>
               ) : (
-                <span className="opacity-40 text-xs">لا يوجد تفسير لهذه الآية</span>
+                <span className="opacity-35 text-xs">لا يوجد تفسير لهذه الآية</span>
               )}
             </div>
-            {/* External tafsir links */}
-            <div className="flex flex-wrap gap-2">
-              <a
-                href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${tafsirItem.surahId}-aya${tafsirItem.displayAyah}.html#katheer`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs opacity-55 hover:opacity-90 transition px-2.5 py-1 rounded-xl bg-white/5 border border-white/8"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ArrowUpRight size={12} /><span>ابن كثير</span>
-              </a>
-              <a
-                href={`https://tafsir.app/tabari/${tafsirItem.surahId}/${tafsirItem.displayAyah}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs opacity-55 hover:opacity-90 transition px-2.5 py-1 rounded-xl bg-white/5 border border-white/8"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ArrowUpRight size={12} /><span>الطبري</span>
-              </a>
-              <a
-                href={`https://tafsir.app/qurtubi/${tafsirItem.surahId}/${tafsirItem.displayAyah}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs opacity-55 hover:opacity-90 transition px-2.5 py-1 rounded-xl bg-white/5 border border-white/8"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <ArrowUpRight size={12} /><span>القرطبي</span>
-              </a>
+
+            {/* External reference links */}
+            <div className="flex flex-wrap gap-2 pb-1">
+              {[
+                { label: "ابن كثير", href: `https://quran.ksu.edu.sa/tafseer/katheer/sura${tafsirItem.surahId}-aya${tafsirItem.displayAyah}.html#katheer` },
+                { label: "الطبري", href: `https://tafsir.app/tabari/${tafsirItem.surahId}/${tafsirItem.displayAyah}` },
+                { label: "القرطبي", href: `https://tafsir.app/qurtubi/${tafsirItem.surahId}/${tafsirItem.displayAyah}` },
+                { label: "السعدي", href: `https://tafsir.app/saadi/${tafsirItem.surahId}/${tafsirItem.displayAyah}` },
+                { label: "البغوي", href: `https://tafsir.app/baghawi/${tafsirItem.surahId}/${tafsirItem.displayAyah}` },
+              ].map(({ label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs opacity-55 hover:opacity-90 active:opacity-90 transition px-3 py-1.5 rounded-xl border"
+                  style={{ background: "color-mix(in srgb, var(--accent) 8%, transparent)", borderColor: "color-mix(in srgb, var(--accent) 20%, transparent)" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ArrowUpRight size={11} />
+                  <span>{label}</span>
+                </a>
+              ))}
             </div>
           </div>
         </>
