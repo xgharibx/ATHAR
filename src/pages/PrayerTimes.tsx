@@ -18,6 +18,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders } from "@/lib/reminders";
 import { buildPrayerSchedule, format12h, type PrayerDetailRow, PRAYER_LABELS, parseClockToMinutes, formatMinutes12h } from "@/lib/prayerSchedule";
 import { cn } from "@/lib/utils";
+import { HIJRI_MONTH_NAMES } from "@/lib/hijri";
 import { toArabicIndic } from "@/lib/arabic";
 import { PTRIndicator, usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useNoorStore } from "@/store/noorStore";
@@ -574,7 +575,6 @@ function HijriCalendarTab() {
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
 
   const MONTH_NAMES = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
-  const HIJRI_MONTHS = ["محرم","صفر","ربيع الأول","ربيع الآخر","جمادى الأولى","جمادى الآخرة","رجب","شعبان","رمضان","شوال","ذو القعدة","ذو الحجة"];
 
   const prev = () => { if (viewMonth === 1) { setViewMonth(12); setViewYear((y) => y - 1); } else setViewMonth((m) => m - 1); };
   const next = () => { if (viewMonth === 12) { setViewMonth(1);  setViewYear((y) => y + 1); } else setViewMonth((m) => m + 1); };
@@ -592,7 +592,7 @@ function HijriCalendarTab() {
     <div className="space-y-3">
       {hijriHeader && isCurrentMonth && (
         <div className="text-center py-2 rounded-2xl bg-[var(--accent)]/8 border border-[var(--accent)]/15 text-sm">
-          اليوم: {hijriHeader.day} {HIJRI_MONTHS[(hijriHeader.month.number ?? 1) - 1] ?? hijriHeader.month.ar} {hijriHeader.year} هـ
+          اليوم: {hijriHeader.day} {HIJRI_MONTH_NAMES[(hijriHeader.month.number ?? 1) - 1] ?? hijriHeader.month.ar} {hijriHeader.year} هـ
         </div>
       )}
 
@@ -654,7 +654,7 @@ function HijriCalendarTab() {
               if (events.length > 0 && (!isCurrentMonth || dayNum >= todayDay)) {
                 upcoming.push({
                   date: `${day.date.gregorian.day}/${day.date.gregorian.month.number}`,
-                  hijriLabel: `${day.date.hijri.day} ${HIJRI_MONTHS[(day.date.hijri.month.number - 1)] ?? day.date.hijri.month.ar}`,
+                  hijriLabel: `${day.date.hijri.day} ${HIJRI_MONTH_NAMES[(day.date.hijri.month.number - 1)] ?? day.date.hijri.month.ar}`,
                   events,
                 });
               }
@@ -1158,7 +1158,7 @@ export function PrayerTimesPage() {
                   </div>
                   <div className="shrink-0 flex items-center gap-2.5">
                     <div className="text-right">
-                      <div className="text-[10px] opacity-40 mb-0.5">أذان</div>
+                      <div className="text-[10px] opacity-40 mb-0.5">{row.type === "prayer" ? "أذان" : "الوقت"}</div>
                       <div dir="ltr" className="text-sm font-medium tabular-nums">{row.timeLabel}</div>
                     </div>
                     {showIqama && row.prayerName && (

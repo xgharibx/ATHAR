@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, ArrowDownToLine, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown, Timer, Play, Pause, Square } from "lucide-react";
+import { RotateCcw, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown, Timer, Square, MoreHorizontal, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
@@ -13,11 +13,11 @@ import { Card } from "@/components/ui/Card";
 import { coerceCount, type DhikrItem } from "@/data/types";
 import { useNoorStore } from "@/store/noorStore";
 import { pct } from "@/lib/utils";
-import { downloadJson } from "@/lib/download";
+
 import { isDailySection } from "@/lib/dailySections";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
-import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem } from "@/data/packs";
+import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem, removeCustomDhikrItem } from "@/data/packs";
 import { Input } from "@/components/ui/Input";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
@@ -27,6 +27,8 @@ export function DhikrList(props: Readonly<{
   title: string;
   items: DhikrItem[];
   focusIndex?: number | null;
+  isCustomSection?: boolean;
+  onDeleteCategory?: () => void;
 }>) {
   const resetSection = useNoorStore((s) => s.resetSection);
   const increment = useNoorStore((s) => s.increment);
@@ -36,6 +38,7 @@ export function DhikrList(props: Readonly<{
   const savedItemOrder = useNoorStore((s) => s.sectionItemOrder[props.sectionId]);
   const moveSectionItem = useNoorStore((s) => s.moveSectionItem);
   const resetSectionItemOrder = useNoorStore((s) => s.resetSectionItemOrder);
+  const removeCustomPackItem = useNoorStore((s) => s.removeCustomPackItem);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: adhkarData } = useAdhkarDB();
@@ -43,6 +46,8 @@ export function DhikrList(props: Readonly<{
   const fajrTime = prayerTimes.data?.data?.timings?.Fajr ?? null;
   const [confirmReset, setConfirmReset] = React.useState(false);
   const [confirmDone, setConfirmDone] = React.useState(false);
+  const [confirmDeleteCategory, setConfirmDeleteCategory] = React.useState(false);
+  const [deletingItemIdx, setDeletingItemIdx] = React.useState<number | null>(null);
   const [addOpen, setAddOpen] = React.useState(false);
   const [customText, setCustomText] = React.useState("");
   const [customCount, setCustomCount] = React.useState("1");
@@ -116,6 +121,7 @@ export function DhikrList(props: Readonly<{
   const [reorderMode, setReorderMode] = React.useState(false);
   const [showBackToTop, setShowBackToTop] = React.useState(false);
   const [focusMode, setFocusMode] = React.useState(false);
+  const [moreOpen, setMoreOpen] = React.useState(false);
   const virtuosoRef = React.useRef<VirtuosoHandle>(null);
 
   // D2: category completion confetti + 3E record completion
@@ -264,22 +270,7 @@ export function DhikrList(props: Readonly<{
     }
   };
 
-  const exportSection = () => {
-    const safeTitle = (props.title || "")
-      .replaceAll(/[\\/:*?"<>|]+/g, " ")
-      .replaceAll(/\s+/g, " ")
-      .trim();
 
-    const blob = {
-      id: props.sectionId,
-      title: props.title,
-      exportedAt: new Date().toISOString(),
-      items: orderedEntries.map((entry) => entry.item)
-    };
-    const date = new Date().toISOString().slice(0, 10);
-    downloadJson(`ATHAR-${safeTitle || "قسم"}-${date}.athar`, blob);
-    toast.success("تم تصدير القسم كملف");
-  };
 
   const addMyDhikr = () => {
     const text = customText.trim();
@@ -297,6 +288,16 @@ export function DhikrList(props: Readonly<{
     setAddOpen(false);
     void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
     toast.success("تمت إضافة الذكر");
+  };
+
+  const handleDeleteItem = (originalIndex: number) => {
+    if (isMyAdhkarSection) {
+      removeCustomDhikrItem(props.sectionId, originalIndex);
+      void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
+    } else if (props.isCustomSection) {
+      removeCustomPackItem(props.sectionId, originalIndex);
+    }
+    toast.success("تم الحذف");
   };
 
   return (
@@ -342,139 +343,169 @@ export function DhikrList(props: Readonly<{
                 </div>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
               <Button variant="primary" onClick={() => setAddOpen(true)}>
                 <Plus size={16} />
                 إضافة
               </Button>
-              {confirmReset ? (
-                <>
-                  <Button
-                    variant="outline"
-                    className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10"
-                    onClick={() => {
-                      resetSection(props.sectionId);
-                      setConfirmReset(false);
-                    }}
-                  >
-                    <RotateCcw size={16} />
-                    تأكيد التصفير
-                  </Button>
-                  <Button variant="outline" onClick={() => setConfirmReset(false)}>
-                    إلغاء
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => setConfirmReset(true)}
-                  disabled={isDailySectionLocked || !hasItems}
-                  title={isDailySectionLocked ? "يتجدد هذا القسم تلقائيًا عند منتصف الليل" : "تصفير القسم"}
-                >
-                  <RotateCcw size={16} />
-                  تصفير القسم
-                </Button>
-              )}
-              {confirmDone ? (
-                <>
-                  <Button
-                    variant="outline"
-                    className="border-[var(--ok)]/40 text-[var(--ok)] hover:bg-[var(--ok)]/10"
-                    onClick={markAllDone}
-                  >
-                    <CheckCheck size={16} />
-                    تأكيد الإكمال
-                  </Button>
-                  <Button variant="outline" onClick={() => setConfirmDone(false)}>
-                    إلغاء
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="secondary"
-                  onClick={() => setConfirmDone(true)}
-                  disabled={isDailySectionLocked || !hasItems || stats.percent >= 100}
-                  title="تحديد جميع الأذكار كمكتملة"
-                  aria-label="تحديد جميع الأذكار كمكتملة"
-                >
-                  <CheckCheck size={16} />
-                </Button>
-              )}
-              <Button variant="secondary" onClick={exportSection} disabled={!hasItems}>
-                <ArrowDownToLine size={16} />
-                تصدير
-              </Button>
-              <Button variant="secondary" onClick={copyAllText} disabled={!hasItems}>
-                <Copy size={16} />
-                {copiedAll ? "تم ✓" : "نسخ الكل"}
-              </Button>
-              <Button
-                variant={compact ? "primary" : "secondary"}
-                onClick={() => setCompact((prev) => !prev)}
-                title={compact ? "عرض موسّع" : "عرض مضغوط"}
-                aria-label={compact ? "عرض موسّع" : "عرض مضغوط"}
-              >
-                <List size={16} />
-              </Button>
-              <Button
-                variant={reorderMode ? "primary" : "secondary"}
-                onClick={() => setReorderMode((prev) => !prev)}
-                disabled={!hasItems}
-                title="ترتيب الأذكار"
-                aria-label="ترتيب الأذكار"
-              >
-                <ArrowUpDown size={16} />
-                ترتيب
-              </Button>
-              {reorderMode && savedItemOrder?.length ? (
-                <Button variant="ghost" onClick={() => resetSectionItemOrder(props.sectionId)} title="إعادة الترتيب" aria-label="إعادة الترتيب">
-                  <RotateCcw size={16} />
-                </Button>
-              ) : null}
               <Button
                 variant={focusMode ? "primary" : "secondary"}
                 onClick={() => setFocusMode((prev) => !prev)}
-                title={focusMode ? "إنهاء وضع التركيز" : "وضع التركيز — إخفاء شريط التنقل"}
                 aria-label={focusMode ? "إنهاء وضع التركيز" : "وضع التركيز"}
               >
                 <Focus size={16} />
               </Button>
-              {/* D12: auto-read mode */}
-              {!autoReadActive ? (
-                <>
-                  <select
-                    value={autoReadSpeed}
-                    onChange={(e) => setAutoReadSpeed(Number(e.target.value))}
-                    className="h-9 rounded-xl border border-white/10 bg-white/6 px-2 text-xs outline-none"
-                    aria-label="سرعة القراءة التلقائية"
-                    title="ثواني لكل بطاقة"
-                  >
-                    <option value={3}>٣ ثانية</option>
-                    <option value={5}>٥ ثواني</option>
-                    <option value={10}>١٠ ثواني</option>
-                  </select>
-                  <Button variant="secondary" onClick={startAutoRead} disabled={!hasItems} title="بدء القراءة التلقائية" aria-label="بدء القراءة التلقائية">
-                    <Timer size={14} />
-                    تلقائي
-                  </Button>
-                </>
-              ) : (
-                <Button variant="primary" onClick={stopAutoRead} title="إيقاف القراءة التلقائية" aria-label="إيقاف">
+              {autoReadActive && (
+                <Button variant="primary" onClick={stopAutoRead} aria-label="إيقاف">
                   <Square size={14} />
                   إيقاف · {autoReadCountdown}ث
                 </Button>
               )}
-              {firstIncompleteIdx > 0 && stats.percent < 100 && (
-                <Button
-                  variant="secondary"
-                  onClick={() => virtuosoRef.current?.scrollToIndex({ index: firstIncompleteIdx, align: "start", behavior: "smooth" })}
-                  title="انتقل إلى أول ذكر غير مكتمل"
-                  aria-label="انتقل إلى أول ذكر غير مكتمل"
-                >
-                  <ChevronsDown size={16} />
-                </Button>
-              )}
+              <Button
+                variant={(moreOpen || confirmReset || confirmDone || confirmDeleteCategory) ? "primary" : "secondary"}
+                onClick={() => setMoreOpen((prev) => !prev)}
+                aria-label="خيارات إضافية"
+              >
+                <MoreHorizontal size={16} />
+              </Button>
             </div>
+            {(moreOpen || confirmReset || confirmDone || confirmDeleteCategory) && (
+              <div className="mt-2 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                {confirmReset ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10 shrink-0"
+                      onClick={() => { resetSection(props.sectionId); setConfirmReset(false); }}
+                    >
+                      <RotateCcw size={16} />
+                      تأكيد التصفير
+                    </Button>
+                    <Button variant="outline" className="shrink-0" onClick={() => setConfirmReset(false)}>
+                      إلغاء
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={() => setConfirmReset(true)}
+                    disabled={isDailySectionLocked || !hasItems}
+                  >
+                    <RotateCcw size={16} />
+                    تصفير
+                  </Button>
+                )}
+                {confirmDone ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="border-[var(--ok)]/40 text-[var(--ok)] hover:bg-[var(--ok)]/10 shrink-0"
+                      onClick={markAllDone}
+                    >
+                      <CheckCheck size={16} />
+                      تأكيد الإكمال
+                    </Button>
+                    <Button variant="outline" className="shrink-0" onClick={() => setConfirmDone(false)}>
+                      إلغاء
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    className="shrink-0"
+                    onClick={() => setConfirmDone(true)}
+                    disabled={isDailySectionLocked || !hasItems || stats.percent >= 100}
+                    aria-label="تحديد جميع الأذكار كمكتملة"
+                  >
+                    <CheckCheck size={16} />
+                    إكمال
+                  </Button>
+                )}
+                <Button variant="secondary" className="shrink-0" onClick={copyAllText} disabled={!hasItems}>
+                  <Copy size={16} />
+                  {copiedAll ? "تم ✓" : "نسخ الكل"}
+                </Button>
+                <Button
+                  variant={compact ? "primary" : "secondary"}
+                  className="shrink-0"
+                  onClick={() => setCompact((prev) => !prev)}
+                  aria-label={compact ? "عرض موسّع" : "عرض مضغوط"}
+                >
+                  <List size={16} />
+                </Button>
+                <Button
+                  variant={reorderMode ? "primary" : "secondary"}
+                  className="shrink-0"
+                  onClick={() => setReorderMode((prev) => !prev)}
+                  disabled={!hasItems}
+                  aria-label="ترتيب الأذكار"
+                >
+                  <ArrowUpDown size={16} />
+                  ترتيب
+                </Button>
+                {reorderMode && savedItemOrder?.length ? (
+                  <Button variant="ghost" className="shrink-0" onClick={() => resetSectionItemOrder(props.sectionId)} aria-label="إعادة الترتيب">
+                    <RotateCcw size={16} />
+                  </Button>
+                ) : null}
+                {/* D12: auto-read mode */}
+                {!autoReadActive && (
+                  <>
+                    <select
+                      value={autoReadSpeed}
+                      onChange={(e) => setAutoReadSpeed(Number(e.target.value))}
+                      className="shrink-0 h-9 rounded-xl border border-white/10 bg-white/6 px-2 text-xs outline-none"
+                      aria-label="سرعة القراءة التلقائية"
+                    >
+                      <option value={3}>٣ ثانية</option>
+                      <option value={5}>٥ ثواني</option>
+                      <option value={10}>١٠ ثواني</option>
+                    </select>
+                    <Button variant="secondary" className="shrink-0" onClick={startAutoRead} disabled={!hasItems} aria-label="بدء القراءة التلقائية">
+                      <Timer size={14} />
+                      تلقائي
+                    </Button>
+                  </>
+                )}
+                {firstIncompleteIdx > 0 && stats.percent < 100 && (
+                  <Button
+                    variant="secondary"
+                    className="shrink-0"
+                    onClick={() => virtuosoRef.current?.scrollToIndex({ index: firstIncompleteIdx, align: "start", behavior: "smooth" })}
+                    aria-label="انتقل إلى أول ذكر غير مكتمل"
+                  >
+                    <ChevronsDown size={16} />
+                  </Button>
+                )}
+                {props.onDeleteCategory && (
+                  confirmDeleteCategory ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10 shrink-0"
+                        onClick={() => { props.onDeleteCategory!(); }}
+                      >
+                        <Trash2 size={14} />
+                        تأكيد حذف الفئة
+                      </Button>
+                      <Button variant="outline" className="shrink-0" onClick={() => setConfirmDeleteCategory(false)}>
+                        إلغاء
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10 shrink-0"
+                      onClick={() => setConfirmDeleteCategory(true)}
+                    >
+                      <Trash2 size={14} />
+                      حذف الفئة
+                    </Button>
+                  )
+                )}
+              </div>
+            )}
           </div>
 
           {isDailySectionLocked && midnightLabel && (
@@ -558,7 +589,7 @@ export function DhikrList(props: Readonly<{
                         disabled={displayIndex === 0}
                         className="h-9 w-9 rounded-xl border border-white/10 bg-white/6 grid place-items-center disabled:opacity-30"
                         aria-label="رفع الذكر"
-                        title="رفع"
+                
                       >
                         <MoveUp size={15} />
                       </button>
@@ -568,19 +599,51 @@ export function DhikrList(props: Readonly<{
                         disabled={displayIndex >= orderedEntries.length - 1}
                         className="h-9 w-9 rounded-xl border border-white/10 bg-white/6 grid place-items-center disabled:opacity-30"
                         aria-label="خفض الذكر"
-                        title="خفض"
+                
                       >
                         <MoveDown size={15} />
                       </button>
                     </div>
                   </div>
                 ) : null}
+                {(props.isCustomSection || isMyAdhkarSection) && !reorderMode && (
+                  <div className="flex justify-end mb-1 px-1">
+                    {deletingItemIdx === entry.originalIndex ? (
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => { handleDeleteItem(entry.originalIndex); setDeletingItemIdx(null); }}
+                          className="text-[10px] px-2.5 py-1 rounded-xl bg-[var(--danger)]/20 text-[var(--danger)] border border-[var(--danger)]/20"
+                        >
+                          تأكيد الحذف
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeletingItemIdx(null)}
+                          className="text-[10px] px-2.5 py-1 rounded-xl bg-white/8 border border-white/10"
+                        >
+                          إلغاء
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setDeletingItemIdx(entry.originalIndex)}
+                        className="p-1.5 rounded-xl opacity-30 hover:opacity-70 transition text-[var(--danger)]"
+                        aria-label="حذف الذكر"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                )}
                 <DhikrCard
                   sectionId={props.sectionId}
                   index={entry.originalIndex}
                   item={entry.item}
                   autoFocus={props.focusIndex === entry.originalIndex}
                   totalItems={props.items.length}
+                  focusMode={focusMode}
                   onComplete={() => {
                     const nextIdx = displayIndex + 1;
                     if (nextIdx < orderedEntries.length) {
@@ -653,7 +716,6 @@ export function DhikrList(props: Readonly<{
           <button
             onClick={() => virtuosoRef.current?.scrollToIndex({ index: 0, behavior: "smooth" })}
             aria-label="العودة إلى أعلى"
-            title="العودة إلى أعلى"
             className={[
               "fixed bottom-[calc(80px+env(safe-area-inset-bottom,0px))] left-4 z-40",
               "w-11 h-11 rounded-2xl glass-strong border border-white/15 shadow-xl",
@@ -688,7 +750,6 @@ export function DhikrList(props: Readonly<{
             <button
               onClick={() => navigate(`/c/${nextSection.id}`)}
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-start"
-              title={`التالي: ${nextSection.title}`}
             >
               <ChevronRight size={16} className="opacity-60 shrink-0" />
               <span className="text-xs opacity-65 truncate">{nextSection.title}</span>
@@ -698,7 +759,6 @@ export function DhikrList(props: Readonly<{
             <button
               onClick={() => navigate(`/c/${prevSection.id}`)}
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-end"
-              title={`السابق: ${prevSection.title}`}
             >
               <span className="text-xs opacity-65 truncate">{prevSection.title}</span>
               <ChevronLeft size={16} className="opacity-60 shrink-0" />

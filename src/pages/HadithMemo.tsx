@@ -166,7 +166,7 @@ export function HadithMemoPage() {
   }).length;
 
   return (
-    <div dir="rtl" className="min-h-screen pb-24" style={{ background: "var(--bg)" }}>
+    <div dir="rtl" className="min-h-screen-safe pb-24" style={{ background: "var(--bg)" }}>
       {/* Header */}
       <div
         className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 backdrop-blur-sm"

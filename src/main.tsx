@@ -29,7 +29,7 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
     if (!this.state.hasError) return this.props.children;
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-6" dir="rtl">
+      <div className="min-h-screen-safe flex items-center justify-center p-6" dir="rtl">
         <div className="glass rounded-3xl p-6 max-w-md w-full border border-white/10">
           <div className="text-lg font-semibold">تعذر عرض التطبيق</div>
           <div className="mt-2 text-sm opacity-75 leading-7">

@@ -1044,14 +1044,13 @@ export function MushafPage() {
         </div>
         {/* Font scale controls in toolbar */}
         <div className="flex items-center shrink-0" onClick={(e) => e.stopPropagation()}>
-          <button className="mushaf-chrome-icon-btn !p-1" title="تصغير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}><ZoomOut size={13} /></button>
+          <button className="mushaf-chrome-icon-btn !p-1" aria-label="تصغير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}><ZoomOut size={13} /></button>
           <span className="text-[10px] opacity-50 tabular-nums w-7 text-center select-none">{Math.round(fontScale * 100)}%</span>
-          <button className="mushaf-chrome-icon-btn !p-1" title="تكبير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}><ZoomIn size={13} /></button>
+          <button className="mushaf-chrome-icon-btn !p-1" aria-label="تكبير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}><ZoomIn size={13} /></button>
         </div>
         {/* Phase 2B: Tajweed color toggle */}
         <button
           className={`mushaf-chrome-icon-btn${tajweedMode ? " active" : ""}`}
-          title="تلوين التجويد"
           aria-label="تجويد"
           onClick={(e) => { e.stopPropagation(); setTajweedMode((v) => !v); }}
         >
@@ -1060,7 +1059,6 @@ export function MushafPage() {
         {/* Settings */}
         <button
           className={`mushaf-chrome-icon-btn${showSettings ? " active" : ""}`}
-          title="إعدادات"
           aria-label="إعدادات"
           onClick={(e) => { e.stopPropagation(); setShowSettings((v) => !v); }}
         >
@@ -1069,7 +1067,6 @@ export function MushafPage() {
         {/* More actions */}
         <button
           className={`mushaf-chrome-icon-btn${showMoreSheet ? " active" : ""}`}
-          title="المزيد"
           aria-label="المزيد"
           onClick={(e) => { e.stopPropagation(); setShowMoreSheet((v) => !v); }}
         >
@@ -1130,7 +1127,7 @@ export function MushafPage() {
 
       {/* ── A5: Sleep timer countdown chip ───────────────── */}
       {sleepMinutes > 0 && (
-        <div className="mushaf-sleep-chip" onClick={() => activateSleepTimer(0)} title="انقر للإلغاء">
+        <div className="mushaf-sleep-chip" onClick={() => activateSleepTimer(0)} aria-label="إلغاء مؤقت النوم">
           <Timer size={11} />
           <span>{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
         </div>
@@ -1229,7 +1226,7 @@ export function MushafPage() {
                         <span className={`mushaf-ayah-num${isBookmarked ? " bookmarked" : ""}${isLastRead ? " last-read" : ""}`}>
                           ﴿{toArabicNumeral(item.displayAyah)}﴾
                         </span>
-                        {isSajda && <span className="mushaf-sajda-badge" title="سجدة تلاوة">ۖ</span>}
+                        {isSajda && <span className="mushaf-sajda-badge" aria-label="سجدة تلاوة">ۖ</span>}
                         {" "}
                         {/* Q3: Inline translation (only show if wbw mode is off) */}
                         {!wbwVerse && transText ? (
@@ -1315,7 +1312,7 @@ export function MushafPage() {
       {/* ── Bottom action bar (ayah selected) ────────────── */}
       {selectedItem && (
         <div className="mushaf-action-bar" onClick={(e) => e.stopPropagation()}>
-          <button className="mushaf-action-btn" onClick={doCopy} title="نسخ الآية">
+          <button className="mushaf-action-btn" onClick={doCopy} aria-label="نسخ الآية">
             <Copy size={18} />
             <span>نسخ</span>
           </button>
@@ -1325,7 +1322,7 @@ export function MushafPage() {
               toggleBookmark(selectedItem.surahId, selectedItem.displayAyah);
               toast.success(isSelBookmarked ? "أُزيلت العلامة" : "✓ تم الحفظ");
             }}
-            title="علامة"
+            aria-label="علامة"
           >
             <Bookmark size={18} fill={isSelBookmarked ? "currentColor" : "none"} />
             <span>علامة</span>
@@ -1333,7 +1330,7 @@ export function MushafPage() {
           <button
             className={`mushaf-action-btn${playingKey === selKey ? " active" : ""}`}
             onClick={() => playAyah(selectedItem.surahId, selectedItem.originalAyah, selectedItem.displayAyah)}
-            title="استماع"
+            aria-label="تلاوة"
           >
             {playingKey === selKey ? <VolumeX size={18} /> : <Volume2 size={18} />}
             <span>تلاوة</span>
@@ -1341,7 +1338,7 @@ export function MushafPage() {
           <button
             className={`mushaf-action-btn${loopEnabled ? " active" : ""}`}
             onClick={() => setLoopEnabled((v) => !v)}
-            title="تكرار الآية"
+            aria-label="تكرار الآية"
           >
             <Repeat2 size={18} />
             <span>تكرار</span>
@@ -1370,19 +1367,19 @@ export function MushafPage() {
               }
               setNoteSheetOpen(true);
             }}
-            title="تدبّر"
+            aria-label="تدبّر"
           >
             <Pencil size={18} />
             <span>تدبّر</span>
           </button>
-          <button className="mushaf-action-btn" onClick={doShare} title="مشاركة">
+          <button className="mushaf-action-btn" onClick={doShare} aria-label="مشاركة">
             <Share2 size={18} />
             <span>إرسال</span>
           </button>
           {/* Q11: Inline tafsir */}
           <button
             className="mushaf-action-btn"
-            title="تفسير"
+            aria-label="تفسير"
             onClick={(e) => { e.stopPropagation(); setTafsirItem(selectedItem); setSelectedItem(null); }}
           >
             <ArrowUpRight size={18} />
@@ -1392,7 +1389,7 @@ export function MushafPage() {
             className="mushaf-action-btn"
             style={{ opacity: 0.55 }}
             onClick={() => setSelectedItem(null)}
-            title="إغلاق"
+            aria-label="إغلاق"
           >
             <X size={18} />
             <span>إغلاق</span>
@@ -1552,7 +1549,7 @@ export function MushafPage() {
               </button>
               <button
                 className="mushaf-btn-secondary"
-                title="مشاركة التدبّر"
+                aria-label="مشاركة التدبّر"
                 onClick={async () => {
                   const reflection = noteDraft.trim();
                   if (!reflection) { toast.error("اكتب تدبّرك أولاً"); return; }
@@ -1652,7 +1649,6 @@ export function MushafPage() {
                 {/* Copy button */}
                 <button
                   className="mushaf-icon-close"
-                  title="نسخ"
                   aria-label="نسخ"
                   onClick={() => {
                     const ayahTxt = `${tafsirItem.text} ﴿${tafsirItem.displayAyah}﴾`;

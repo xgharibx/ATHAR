@@ -25,7 +25,7 @@ export function gregorianToHijri(date: Date): HijriDate {
     32075;
 
   // Convert JDN to Hijri
-  const l = jd - 1948440 + 10632;
+  const l = jd - 1948442 + 10632;
   const n = Math.floor((l - 1) / 10631);
   const ll = l - 10631 * n + 354;
   const j =

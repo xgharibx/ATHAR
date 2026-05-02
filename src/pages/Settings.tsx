@@ -1169,10 +1169,8 @@ const HOME_WIDGET_LABELS: Record<HomeWidgetKey, string> = {
   dailyStep: "خطوة النمو",
   tasbeeh: "التسبيح السريع",
   dailyWird: "الورد اليومي",
-  islamicEvents: "المواسم الإسلامية",
   dailyVerse: "آية اليوم",
   quests: "المهام اليومية",
-  moodTracker: "المزاج الروحي",
 };
 
 function HomeWidgetsCard(props: {

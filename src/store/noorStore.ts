@@ -41,10 +41,7 @@ export type PrayerSoundProfile =
   | "aladhan_adhan_7";
 export type PrayerAlertPrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
 export type PrayerAlertPreferences = Record<PrayerAlertPrayer, boolean>;
-export type HomeWidgetKey = "prayer" | "hadith" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird" | "islamicEvents" | "dailyVerse" | "quests" | "moodTracker";
-
-export type MoodKey = "khashi" | "mutaammil" | "muhtaj" | "mumtan" | "mushtaq";
-export type MoodEntry = { mood: MoodKey; timestamp: string };
+export type HomeWidgetKey = "prayer" | "hadith" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird" | "dailyVerse" | "quests";
 
 export type { HadithMemoCard } from "@/data/hadithTypes";
 
@@ -350,17 +347,14 @@ type NoorState = {
   addCustomPack: (pack: Omit<CustomAdhkarPack, "id" | "createdAt">) => string;
   updateCustomPack: (id: string, patch: Partial<Pick<CustomAdhkarPack, "title" | "items">>) => void;
   deleteCustomPack: (id: string) => void;
+  removeCustomPackItem: (packId: string, itemIndex: number) => void;
 
   // 3E: Section completion history (for weekly stats)
   sectionCompletions: Record<string, string[]>; // sectionId → ISO date array
   recordSectionCompletion: (sectionId: string) => void;
-
-  // 5D: Spiritual mood tracker
-  mood: Record<string, MoodEntry>; // dateKey → MoodEntry
-  setMood: (dateKey: string, mood: MoodKey) => void;
 };
 
-export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "islamicEvents", "dailyVerse", "quests", "wisdom", "hadith", "smart", "dailyStep", "checklist", "dailyWird", "tasbeeh", "moodTracker"];
+export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "hadith", "wisdom", "smart", "checklist", "dailyVerse", "dailyStep", "tasbeeh", "dailyWird", "quests"];
 
 const DEFAULT_PREFS: Preferences = {
   theme: "forest",
@@ -401,10 +395,8 @@ const DEFAULT_PREFS: Preferences = {
     dailyStep: true,
     tasbeeh: true,
     dailyWird: true,
-    islamicEvents: true,
     dailyVerse: true,
     quests: true,
-    moodTracker: true,
   },
 };
 
@@ -436,10 +428,8 @@ function normalizeHomeWidgets(value: unknown): Record<HomeWidgetKey, boolean> {
     dailyStep: typeof source.dailyStep === "boolean" ? source.dailyStep : DEFAULT_PREFS.homeWidgets.dailyStep,
     tasbeeh: typeof source.tasbeeh === "boolean" ? source.tasbeeh : DEFAULT_PREFS.homeWidgets.tasbeeh,
     dailyWird: typeof source.dailyWird === "boolean" ? source.dailyWird : DEFAULT_PREFS.homeWidgets.dailyWird,
-    islamicEvents: typeof source.islamicEvents === "boolean" ? source.islamicEvents : true,
     dailyVerse: typeof source.dailyVerse === "boolean" ? source.dailyVerse : true,
     quests: typeof source.quests === "boolean" ? source.quests : true,
-    moodTracker: typeof source.moodTracker === "boolean" ? source.moodTracker : true,
   };
 }
 
@@ -639,8 +629,6 @@ export const useNoorStore = create<NoorState>()(
           const pruned: Record<string, Record<string, number>> = {};
           const cutoff = new Date();
           cutoff.setDate(cutoff.getDate() - 21);
-          const cutoffKey = todayISO.call(null) /* unused */ || '';
-          void cutoffKey;
           for (const [dk, val] of entries) { if (dk >= cutoff.toISOString().slice(0, 10)) pruned[dk] = val; }
           pruned[dateKey] = { ...day, [key]: (day[key] ?? 0) + 1 };
           return { tasbeehDailyLog: pruned };
@@ -1121,11 +1109,8 @@ export const useNoorStore = create<NoorState>()(
         set((s) => ({ customPacks: s.customPacks.map((p) => p.id === id ? { ...p, ...patch } : p) })),
       deleteCustomPack: (id) =>
         set((s) => ({ customPacks: s.customPacks.filter((p) => p.id !== id) })),
-
-      // 5D: Spiritual mood tracker
-      mood: {},
-      setMood: (dateKey, moodKey) =>
-        set((s) => ({ mood: { ...s.mood, [dateKey]: { mood: moodKey, timestamp: new Date().toISOString() } } })),
+      removeCustomPackItem: (packId, itemIndex) =>
+        set((s) => ({ customPacks: s.customPacks.map((p) => p.id !== packId ? p : { ...p, items: p.items.filter((_, i) => i !== itemIndex) }) })),
 
       // 3E: Section completion history
       sectionCompletions: {},
@@ -1257,7 +1242,6 @@ export const useNoorStore = create<NoorState>()(
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],
           sectionCompletions: (state as Partial<NoorState>).sectionCompletions ?? {},
-          mood: (state as Partial<NoorState>).mood ?? {},
           // hadith user-state fields are NOT in persist (see partialize above);
           // they'll be loaded from IDB by hydrateHadithState() in main.tsx
           hadithBookmarks: {},

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2, ZoomIn, ZoomOut } from "lucide-react";
+import { BookOpen, CheckCircle2, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2, ZoomIn, ZoomOut } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { cn, clamp } from "@/lib/utils";
@@ -33,8 +33,9 @@ export function DhikrCard(props: {
   autoFocus?: boolean;
   totalItems?: number;
   onComplete?: () => void;
+  focusMode?: boolean;
 }) {
-  const { sectionId, index, item } = props;
+  const { sectionId, index, item, focusMode } = props;
 
   const key = `${sectionId}:${index}`;
   const prefs = useNoorStore((s) => s.prefs);
@@ -330,35 +331,30 @@ export function DhikrCard(props: {
       <div className="p-4 md:p-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
+          {!focusMode && (
           <div className="flex items-center gap-1.5 flex-wrap">
-            <IconButton aria-label="نسخ" onClick={doCopy} title="نسخ النص">
-              <Copy size={18} className="opacity-80" />
+            <IconButton aria-label="مشاركة النص" onClick={doShareText}>
+              <Share2 size={16} className="opacity-80" />
             </IconButton>
 
-            <IconButton aria-label="مشاركة النص" onClick={doShareText} title="مشاركة النص">
-              <Share2 size={18} className="opacity-80" />
-            </IconButton>
-
-            <IconButton aria-label="مشاركة كصورة" onClick={doShareImage} title="مشاركة كصورة">
-              <ImageDown size={18} className="opacity-80" />
+            <IconButton aria-label="مشاركة كصورة" onClick={doShareImage}>
+              <ImageDown size={16} className="opacity-80" />
             </IconButton>
 
             {/* D5: per-card font scale */}
             <IconButton
               aria-label="تصغير الخط"
-              title="تصغير الخط"
               onClick={() => setLocalFontScale((s) => Math.max(0.65, +(s - 0.15).toFixed(2)))}
               className={cn(localFontScale <= 0.65 && "opacity-30 pointer-events-none")}
             >
-              <ZoomOut size={16} className="opacity-80" />
+              <ZoomOut size={14} className="opacity-80" />
             </IconButton>
             <IconButton
               aria-label="تكبير الخط"
-              title="تكبير الخط"
               onClick={() => setLocalFontScale((s) => Math.min(2.1, +(s + 0.15).toFixed(2)))}
               className={cn(localFontScale >= 2.1 && "opacity-30 pointer-events-none")}
             >
-              <ZoomIn size={16} className="opacity-80" />
+              <ZoomIn size={14} className="opacity-80" />
             </IconButton>
 
             <IconButton
@@ -366,14 +362,15 @@ export function DhikrCard(props: {
               onClick={() => toggleFavorite(sectionId, index)}
               className={cn(fav && "bg-[var(--accent)]/14 border-[var(--accent)]/24")}
             >
-              <Heart size={18} className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
+              <Heart size={16} className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
             </IconButton>
             {sourceUrl ? (
-              <IconButton aria-label="فتح المصدر" title="فتح المصدر" onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}>
-                <ExternalLink size={18} className="opacity-80" />
+              <IconButton aria-label="فتح المصدر" onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}>
+                <ExternalLink size={16} className="opacity-80" />
               </IconButton>
             ) : null}
           </div>
+          )}
           <div className="flex flex-col items-end gap-1.5 self-center shrink-0">
             {item.minimal ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ok)]/25 bg-[var(--ok)]/10 px-2 py-1 text-[10px] font-semibold text-[var(--ok)]">
@@ -475,7 +472,6 @@ export function DhikrCard(props: {
             <div className="flex items-center gap-2">
               <IconButton
                 aria-label="تراجع خطوة"
-                title="تراجع خطوة"
                 onClick={() => {
                   if (isDailyLockedItem) return;
                   decrement({ sectionId, index, target });
@@ -507,7 +503,6 @@ export function DhikrCard(props: {
                     if (isDailyLockedItem) return;
                     setConfirmItemReset(true);
                   }}
-                  title="إعادة العد"
                   className={cn(isDailyLockedItem && "opacity-40 pointer-events-none")}
                 >
                   <RotateCcw size={16} className="opacity-70" />
@@ -551,7 +546,7 @@ export function DhikrCard(props: {
         </div>
 
         {/* Benefit — D8: grade badge */}
-        {prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
+        {!focusMode && prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
           <div className="mt-4 rounded-2xl bg-[var(--accent)]/8 border border-[var(--accent)]/15 p-3 text-sm leading-7">
             <div className="text-xs font-semibold opacity-55 mb-1.5 flex items-center gap-1.5 flex-wrap">
               <span className="text-[var(--accent)] opacity-80">✦</span>

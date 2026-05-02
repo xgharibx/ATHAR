@@ -13,7 +13,7 @@ export default function Companions() {
     : COMPANIONS.filter((c) => c.category === activeCategory);
 
   return (
-    <div className="min-h-screen pb-24" style={{ background: "var(--bg)" }} dir="rtl">
+    <div className="min-h-screen-safe pb-24" style={{ background: "var(--bg)" }} dir="rtl">
       {/* Header */}
       <div
         className="sticky top-0 z-20 px-4 pt-4 pb-3"

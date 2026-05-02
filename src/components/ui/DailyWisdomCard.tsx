@@ -51,7 +51,6 @@ export function DailyWisdomCard(props: { dateKey?: string }) {
           <div className="flex items-center gap-1">
             <IconButton
               aria-label="نسخ"
-              title="نسخ النصيحة"
               onClick={copyWisdom}
               className="w-8 h-8 min-w-0"
             >
@@ -59,7 +58,6 @@ export function DailyWisdomCard(props: { dateKey?: string }) {
             </IconButton>
             <IconButton
               aria-label="مشاركة"
-              title="مشاركة النصيحة"
               onClick={shareWisdom}
               className="w-8 h-8 min-w-0"
             >

@@ -11,9 +11,6 @@ import {
   CheckCircle2,
   ChevronDown,
   MoreVertical,
-  BookOpen,
-  Zap,
-  Calendar,
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -22,7 +19,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Badge } from "@/components/ui/Badge";
-import { type HomeWidgetKey, type MoodKey, DEFAULT_HOME_WIDGETS_ORDER, useNoorStore } from "@/store/noorStore";
+import { type HomeWidgetKey, DEFAULT_HOME_WIDGETS_ORDER, useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { pct, cn } from "@/lib/utils";
@@ -33,14 +30,9 @@ import { coerceCount } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
-import { DailyWisdomCard } from "@/components/ui/DailyWisdomCard";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
-import { HADITHS } from "@/data/hadiths";
-import { getTodayIslamicInfo, gregorianToHijri, HIJRI_MONTH_NAMES } from "@/lib/hijri";
-import { SEASONAL_ADHKAR } from "@/data/seasonalAdhkar";
-import { getNextIslamicEvent } from "@/data/islamicCalendar";
-import { DAILY_VERSES } from "@/data/dailyVerses";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
+import { DailyCarousel } from "@/components/ui/DailyCarousel";
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -59,36 +51,22 @@ const DEFAULT_HOME_WIDGETS = {
   dailyStep: true,
   tasbeeh: true,
   dailyWird: true,
-  islamicEvents: true,
   dailyVerse: true,
   quests: true,
-  moodTracker: true,
 } satisfies Record<HomeWidgetKey, boolean>;
 
 const HOME_WIDGET_CONTROLS: Array<{ key: HomeWidgetKey; label: string }> = [
   { key: "prayer", label: "الصلاة" },
-  { key: "hadith", label: "حديث" },
-  { key: "wisdom", label: "الحكمة" },
+  { key: "hadith", label: "اليوم" },
   { key: "smart", label: "الآن" },
   { key: "checklist", label: "المهام" },
   { key: "dailyStep", label: "خطوة" },
   { key: "tasbeeh", label: "التسبيح" },
   { key: "dailyWird", label: "الورد" },
-  { key: "islamicEvents", label: "المواسم" },
-  { key: "dailyVerse", label: "آية اليوم" },
-  { key: "quests", label: "المهمات" },
-  { key: "moodTracker", label: "المزاج" },
 ];
 
 function parseISODate(dateISO: string) {
   return parseDateKey(dateISO);
-}
-
-function daysBetween(a: Date, b: Date) {
-  const ms = 24 * 60 * 60 * 1000;
-  const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-  const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-  return Math.floor((utcB - utcA) / ms);
 }
 
 function textClassByLength(text: string) {
@@ -160,73 +138,6 @@ function rescueTipByCategory(category: DailyChecklistItem["category"]) {
   return "دعاء صادق لشخص آخر";
 }
 
-const HIJRI_MONTHS = ["محرم","صفر","ربيع الأول","ربيع الآخر","جمادى الأولى","جمادى الآخرة","رجب","شعبان","رمضان","شوال","ذو القعدة","ذو الحجة"];
-
-function IslamicSeasonBanner() {
-  const { hijri, season } = React.useMemo(() => getTodayIslamicInfo(), []);
-  const seasonalDhikrs = React.useMemo(() => season?.season ? (SEASONAL_ADHKAR[season.season] ?? []) : [], [season]);
-  const [dhikrIdx, setDhikrIdx] = React.useState(0);
-  const dhikr = seasonalDhikrs.length > 0 ? seasonalDhikrs[dhikrIdx % seasonalDhikrs.length] : null;
-
-  // color may be a hex like "#f59e0b" or a CSS var like "var(--accent)"
-  const isHexColor = season?.color?.startsWith("#");
-  const borderColor = isHexColor ? `${season!.color}30` : "rgba(255,255,255,0.18)";
-  const glowBg = isHexColor
-    ? `radial-gradient(circle at 70% 50%, ${season!.color}, transparent 70%)`
-    : undefined;
-
-  return (
-    <>
-      {season ? (
-        <Card className="p-4 overflow-hidden relative" style={{ borderColor }}>
-          {glowBg && (
-            <div
-              className="absolute inset-0 opacity-5 pointer-events-none"
-              style={{ background: glowBg }}
-            />
-          )}
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">{season.icon}</span>
-              <div>
-                <div className="text-sm font-bold arabic-text" style={{ color: season.color }}>
-                  {season.label}
-                </div>
-                <div className="text-[11px] opacity-55 leading-5 arabic-text mt-0.5">
-                  {season.description}
-                </div>
-              </div>
-            </div>
-            <div className="text-[10px] opacity-35 tabular-nums arabic-text shrink-0 mt-1">
-              {hijri.day} {HIJRI_MONTHS[(hijri.month - 1) % 12]} {hijri.year}هـ
-            </div>
-          </div>
-          {dhikr && (
-            <button
-              type="button"
-              onClick={() => setDhikrIdx((i) => i + 1)}
-              className="mt-3 w-full text-right rounded-2xl bg-white/5 border border-white/10 p-3 arabic-text text-sm leading-8 hover:bg-white/8 transition"
-              title="اضغط للتالي"
-            >
-              {dhikr.arabic}
-              <div className="text-[10px] opacity-45 mt-1.5 leading-4">{dhikr.source}{dhikr.notes ? ` — ${dhikr.notes}` : ""}</div>
-              {seasonalDhikrs.length > 1 && (
-                <div className="text-[10px] opacity-30 mt-1">({dhikrIdx % seasonalDhikrs.length + 1}/{seasonalDhikrs.length})</div>
-              )}
-            </button>
-          )}
-        </Card>
-      ) : (
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-white/10 text-xs opacity-50 arabic-text">
-            🗓️ {hijri.day} {HIJRI_MONTHS[(hijri.month - 1) % 12]} {hijri.year}هـ
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
-
 export function HomePage() {
   const navigate = useNavigate();
   const { data, isLoading, error } = useAdhkarDB();
@@ -250,8 +161,6 @@ export function HomePage() {
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
   const quranReadingHistory = useNoorStore((s) => s.quranReadingHistory);
   const quranStreak = useNoorStore((s) => s.quranStreak);
-  const mood = useNoorStore((s) => s.mood);
-  const setMood = useNoorStore((s) => s.setMood);
   const prayerLog = useNoorStore((s) => s.prayerLog);
 
   const sections = data?.db.sections ?? [];
@@ -417,16 +326,6 @@ export function HomePage() {
     }
     return s;
   }, [activity]);
-
-  // 5A: Next Islamic event (recomputed once per render, cheap)
-  const nextIslamicEvent = React.useMemo(() => getNextIslamicEvent(), []);
-
-  // 5B: Today's daily verse
-  const todayDailyVerse = React.useMemo(() => {
-    if (!DAILY_VERSES.length) return null;
-    const idx = dateIndex(civilTodayKey, DAILY_VERSES.length, 77);
-    return DAILY_VERSES[idx] ?? null;
-  }, [civilTodayKey]);
 
   // 5C: Quests + XP
   const questsData = React.useMemo(() => {
@@ -758,7 +657,6 @@ export function HomePage() {
                   type="button"
                   onClick={onRandom}
                   aria-label="ذكر عشوائي"
-                  title="ذكر عشوائي"
                   className="press-effect inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/12 active:scale-[.97] transition shrink-0"
                 >
                   <Shuffle size={16} />
@@ -868,7 +766,7 @@ export function HomePage() {
                   }}
                 >
                   <span className="text-[22px] leading-none">{identity.icon}</span>
-                  <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5">{identity.badge}</span>
+                  <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5 w-full text-center truncate">{identity.badge}</span>
                   <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1">
                     <div
                       className="h-full rounded-full transition-all duration-300"
@@ -885,49 +783,20 @@ export function HomePage() {
         </div>
       )}
 
-      {(() => {
-        const todayHadith = HADITHS[dateIndex(civilTodayKey, HADITHS.length)];
-        if (!todayHadith) return null;
-        return (
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-base">📿</span>
-              <div className="text-sm font-semibold">حديث اليوم</div>
-              <Badge>يتجدد يومياً</Badge>
-            </div>
-            <div
-              className="text-base leading-9 text-right mb-2 font-medium arabic-text"
-              style={{ color: "var(--fg)" }}
-            >
-              {todayHadith.arabic}
-            </div>
-            <div className="flex items-center gap-2 justify-end">
-              <span className="text-xs opacity-60">{todayHadith.narrator}</span>
-              <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
-              <span
-                className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
-              >
-                {todayHadith.source}
-              </span>
-            </div>
-          </Card>
-        );
-      })()}
-
-      {/* ── Islamic season banner ── */}
-      <IslamicSeasonBanner />
-
       {homeWidgetsOrder.map((widgetKey) => {
         if (widgetKey === "prayer") {
-          return homeWidgets.prayer ? <PrayerWidget key="prayer" /> : null;
+          return (
+            <React.Fragment key="prayer-group">
+              {homeWidgets.prayer && <PrayerWidget />}
+              {homeWidgets.hadith && <DailyCarousel dateKey={civilTodayKey} />}
+            </React.Fragment>
+          );
         }
         if (widgetKey === "hadith") {
-          // حديث اليوم is rendered above in a fixed card — skip in widget loop
           return null;
         }
         if (widgetKey === "wisdom") {
-          return homeWidgets.wisdom ? <DailyWisdomCard key="wisdom" dateKey={worshipDayKey} /> : null;
+          return null;
         }
         if (widgetKey === "smart") {
           if (!homeWidgets.smart) return null;
@@ -953,7 +822,6 @@ export function HomePage() {
                       type="button"
                       className="shrink-0 w-11 h-11 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90 mt-0.5"
                       aria-label="خيارات إضافية"
-                      title="خيارات إضافية"
                     >
                       <MoreVertical size={16} />
                     </button>
@@ -1002,12 +870,15 @@ export function HomePage() {
           if (!homeWidgets.checklist) return null;
           const allChecklistDone = DAILY_CHECKLIST_ITEMS.every((item) => !!dailyChecklistToday[item.id]);
           const showItems = checklistExpanded;
+          const { quests, doneCount: questsDone, totalXp, xpLevel, xpPct } = questsData;
           return (
             <Card key="checklist" className="p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold">قائمة المهام اليومية</div>
-                  <div className="text-xs opacity-65 mt-1">تتبّع عاداتك اليومية</div>
+                  <div className="text-sm font-semibold">المهام والأهداف اليومية</div>
+                  <div className="text-xs opacity-55 mt-0.5">
+                    {xpLevel.emoji} {xpLevel.label} — {totalXp.toLocaleString("ar-SA")} نقطة
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
@@ -1021,6 +892,35 @@ export function HomePage() {
                   </button>
                 </div>
               </div>
+              {/* XP progress bar */}
+              <div className="mt-2.5 h-1 rounded-full bg-white/8 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-[width] duration-700"
+                  style={{ width: `${xpPct}%`, backgroundColor: xpLevel.color }}
+                />
+              </div>
+              {/* Quest chips */}
+              <div className="mt-2.5 flex gap-2 flex-wrap">
+                {quests.map((q) => (
+                  <div
+                    key={q.id}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all"
+                    style={q.done ? {
+                      background: "color-mix(in srgb, var(--ok) 15%, transparent)",
+                      borderColor: "color-mix(in srgb, var(--ok) 30%, transparent)",
+                      color: "var(--ok)",
+                    } : {
+                      background: "rgba(255,255,255,0.05)",
+                      borderColor: "rgba(255,255,255,0.1)",
+                    }}
+                  >
+                    <span>{q.icon}</span>
+                    {q.done && <CheckCircle2 size={10} />}
+                    {q.label}
+                  </div>
+                ))}
+              </div>
+              {/* Checklist items progress bar */}
               {DAILY_CHECKLIST_ITEMS.length > 0 && (
                 <div className="mt-2.5 h-1 rounded-full bg-white/8 overflow-hidden">
                   <div
@@ -1179,20 +1079,20 @@ export function HomePage() {
                         incQuickTasbeeh(it.key, tasbeehTarget);
                       }}
                       className={cn(
-                        "glass rounded-3xl p-4 text-right transition border select-none press-effect glass-hover",
+                        "glass rounded-3xl p-3 text-right transition border select-none press-effect glass-hover min-h-[110px] overflow-hidden",
                         activePhraseKey === it.key
                           ? "border-[var(--accent)]/60 ring-2 ring-[var(--accent)]/30 bg-[var(--accent)]/10"
                           : "border-white/10"
                       )}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold arabic-text leading-7 break-words whitespace-normal">{it.label}</div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-semibold arabic-text leading-6 line-clamp-2">{it.label}</div>
                           <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/{target}</div>
                         </div>
                         <div className="shrink-0">
-                          <div className="w-12 h-12 rounded-full bg-white/6 border border-white/10 flex items-center justify-center">
-                            <svg width="44" height="44" viewBox="0 0 60 60">
+                          <div className="w-11 h-11 rounded-full bg-white/6 border border-white/10 flex items-center justify-center">
+                            <svg width="40" height="40" viewBox="0 0 60 60">
                               <circle cx="30" cy="30" r={r} fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="6" />
                               <circle
                                 cx="30" cy="30" r={r}
@@ -1243,11 +1143,10 @@ export function HomePage() {
                     onClick={() => setDailyWirdExpanded((v) => !v)}
                     className="w-8 h-8 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90"
                     aria-label={dailyWirdExpanded ? "طي" : "عرض"}
-                    title={dailyWirdExpanded ? "طي ورد اليوم" : "عرض ورد اليوم"}
                   >
                     <ChevronDown size={14} className={cn("transition-transform duration-200", dailyWirdExpanded && "rotate-180")} />
                   </button>
-                  <Button variant="secondary" onClick={copyDailyWird} disabled={!dailyWird} title="نسخ ورد اليوم">
+                  <Button variant="secondary" onClick={copyDailyWird} disabled={!dailyWird}>
                     <Copy size={16} />
                     نسخ
                   </Button>
@@ -1258,7 +1157,6 @@ export function HomePage() {
                       setDailyWirdDone(worshipDayKey, true);
                       toast.success("تم حفظ الإتمام");
                     }}
-                    title="تحديد كمنجز"
                     disabled={isDailyWirdDone}
                   >
                     <CheckCircle2 size={16} />
@@ -1295,205 +1193,13 @@ export function HomePage() {
             </Card>
           );
         }
-        // ── 5A: Islamic Events Widget ──────────────────────────────────────────
-        if (widgetKey === "islamicEvents") {
-          if (!homeWidgets.islamicEvents) return null;
-          const todayHijri = gregorianToHijri(new Date());
-          const hijriLabel = `${todayHijri.day} ${HIJRI_MONTH_NAMES[(todayHijri.month - 1) % 12]} ${todayHijri.year}هـ`;
-          return (
-            <Card key="islamicEvents" className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Calendar size={15} className="text-[var(--accent)]" />
-                <div className="text-sm font-semibold">المواسم الإسلامية</div>
-                <Badge>يتجدد يومياً</Badge>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl grid place-items-center text-lg" style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)" }}>
-                    🗓️
-                  </div>
-                  <div>
-                    <div className="text-xs opacity-55">اليوم بالتقويم الهجري</div>
-                    <div className="text-sm font-semibold mt-0.5 arabic-text">{hijriLabel}</div>
-                  </div>
-                </div>
-              </div>
-              {nextIslamicEvent && (
-                <div className="mt-3 rounded-2xl px-4 py-3 border" style={{ background: "color-mix(in srgb, var(--accent) 8%, transparent)", borderColor: "color-mix(in srgb, var(--accent) 25%, transparent)" }}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{nextIslamicEvent.event.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold arabic-text">{nextIslamicEvent.event.label}</div>
-                      <div className="text-xs opacity-60 mt-0.5">
-                        {nextIslamicEvent.daysUntil === 0
-                          ? "اليوم 🎉"
-                          : nextIslamicEvent.daysUntil === 1
-                          ? "غداً"
-                          : `بعد ${nextIslamicEvent.daysUntil} يوم`}
-                      </div>
-                    </div>
-                    {nextIslamicEvent.daysUntil <= 7 && nextIslamicEvent.daysUntil > 0 && (
-                      <span className="text-[11px] font-bold px-2 py-1 rounded-full" style={{ background: "color-mix(in srgb, var(--accent) 20%, transparent)", color: "var(--accent)" }}>
-                        قريباً
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </Card>
-          );
-        }
-        // ── 5B: Daily Verse Card ───────────────────────────────────────────────
-        if (widgetKey === "dailyVerse") {
-          if (!homeWidgets.dailyVerse) return null;
-          if (!todayDailyVerse) return null;
-          return (
-            <Card key="dailyVerse" className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <BookOpen size={15} className="text-[var(--accent)]" />
-                <div className="text-sm font-semibold">آية اليوم</div>
-                <Badge>يتجدد يومياً</Badge>
-              </div>
-              <div
-                className="text-base leading-10 text-right arabic-text font-medium"
-                style={{ color: "var(--fg)" }}
-              >
-                {todayDailyVerse.arabic}
-              </div>
-              <div className="mt-2 flex items-center justify-between gap-2">
-                <span
-                  className="text-xs px-2 py-0.5 rounded-full font-medium"
-                  style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
-                >
-                  {todayDailyVerse.surahName} ﴿{todayDailyVerse.ayahIndex}﴾
-                </span>
-                <span className="text-xs opacity-55 text-right arabic-text flex-1 truncate">{todayDailyVerse.meaning}</span>
-              </div>
-              <Button
-                className="mt-3 w-full press-effect"
-                variant="secondary"
-                onClick={() => navigate(`/mushaf?surah=${todayDailyVerse.surahId}&ayah=${todayDailyVerse.ayahIndex}`)}
-              >
-                <BookOpen size={14} />
-                اقرأ في سياقها
-              </Button>
-            </Card>
-          );
-        }
         // ── 5C: Streak & Daily Quests Card ────────────────────────────────────
         if (widgetKey === "quests") {
-          if (!homeWidgets.quests) return null;
-          const { quests, doneCount, totalXp, xpLevel, xpPct } = questsData;
-          const allDone = doneCount === quests.length;
-          return (
-            <Card key="quests" className="p-5">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Zap size={14} className="text-[var(--accent)]" />
-                    <div className="text-sm font-semibold">المهام اليومية</div>
-                  </div>
-                  <div className="text-xs opacity-55 mt-0.5">
-                    {xpLevel.emoji} {xpLevel.label} — {totalXp.toLocaleString("ar-SA")} نقطة
-                  </div>
-                </div>
-                <Badge>{doneCount}/{quests.length}</Badge>
-              </div>
-              {/* XP progress bar */}
-              <div className="mb-3">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-[10px] opacity-40">تقدم المستوى</span>
-                  <span className="text-[10px] opacity-40 tabular-nums">{xpPct}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-white/8 overflow-hidden border border-white/10">
-                  <div
-                    className="h-full rounded-full transition-[width] duration-700"
-                    style={{ width: `${xpPct}%`, backgroundColor: xpLevel.color }}
-                  />
-                </div>
-              </div>
-              {/* Quest chips */}
-              <div className="flex flex-wrap gap-2">
-                {quests.map((q) => (
-                  <div
-                    key={q.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-                    style={q.done ? {
-                      background: "color-mix(in srgb, var(--ok) 15%, transparent)",
-                      borderColor: "color-mix(in srgb, var(--ok) 30%, transparent)",
-                      color: "var(--ok)",
-                    } : {
-                      background: "rgba(255,255,255,0.05)",
-                      borderColor: "rgba(255,255,255,0.1)",
-                    }}
-                  >
-                    <span>{q.icon}</span>
-                    {q.done && <CheckCircle2 size={11} />}
-                    {q.label}
-                  </div>
-                ))}
-              </div>
-              {allDone && (
-                <div className="mt-3 rounded-2xl text-center py-2.5 text-sm font-semibold" style={{ background: "color-mix(in srgb, var(--ok) 12%, transparent)", color: "var(--ok)" }}>
-                  ✅ أحسنت — أتممت مهام اليوم
-                </div>
-              )}
-            </Card>
-          );
+          // Merged into checklist widget — render nothing here
+          return null;
         }
-        // ── 5D: Spiritual Mood Tracker ────────────────────────────────────────
-        if (widgetKey === "moodTracker") {
-          if (!homeWidgets.moodTracker) return null;
-          const todayMoodEntry = mood[worshipDayKey];
-          const MOODS: Array<{ key: MoodKey; label: string; emoji: string; color: string }> = [
-            { key: "khashi",    label: "خاشع",   emoji: "🤲", color: "#818cf8" },
-            { key: "mutaammil", label: "متأمل",  emoji: "🌙", color: "#34d399" },
-            { key: "muhtaj",    label: "محتاج",  emoji: "🌧️", color: "#60a5fa" },
-            { key: "mumtan",    label: "ممتنّ",  emoji: "🌟", color: "#fbbf24" },
-            { key: "mushtaq",   label: "مشتاق",  emoji: "💛", color: "#f97316" },
-          ];
-          return (
-            <Card key="moodTracker" className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-base">🌱</span>
-                <div className="text-sm font-semibold">المزاج الروحي</div>
-                {todayMoodEntry && <Badge>سُجِّل اليوم</Badge>}
-              </div>
-              <div className="text-xs opacity-55 mb-3">كيف حالك روحياً اليوم؟</div>
-              <div className="flex gap-2 flex-wrap justify-end">
-                {MOODS.map((m) => {
-                  const active = todayMoodEntry?.mood === m.key;
-                  return (
-                    <button
-                      key={m.key}
-                      type="button"
-                      onClick={() => { setMood(worshipDayKey, m.key); toast.success(`سُجِّل: ${m.label}`); }}
-                      className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-2xl border transition-all active:scale-95 press-effect min-w-[56px]"
-                      style={active ? {
-                        background: `color-mix(in srgb, ${m.color} 18%, transparent)`,
-                        borderColor: `color-mix(in srgb, ${m.color} 45%, transparent)`,
-                      } : {
-                        background: "rgba(255,255,255,0.04)",
-                        borderColor: "rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      <span className="text-xl leading-none">{m.emoji}</span>
-                      <span className="text-[11px] font-medium mt-0.5 arabic-text" style={active ? { color: m.color } : { opacity: 0.65 }}>{m.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {todayMoodEntry && (
-                <button
-                  type="button"
-                  className="mt-3 w-full text-center text-xs opacity-50 hover:opacity-75 transition py-1"
-                  onClick={() => navigate("/insights")}
-                >
-                  عرض مخطط المزاج الشهري ←
-                </button>
-              )}
-            </Card>
-          );
+        if (widgetKey === "dailyVerse") {
+          return null;
         }
         return null;
       })}

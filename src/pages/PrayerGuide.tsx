@@ -8,7 +8,7 @@ export function PrayerGuidePage() {
   const [expandedId, setExpandedId] = React.useState<number | null>(1);
 
   return (
-    <div dir="rtl" className="min-h-screen pb-32">
+    <div dir="rtl" className="min-h-screen-safe pb-32">
       {/* Header */}
       <div
         className="sticky top-0 z-20 px-4 pt-4 pb-3"

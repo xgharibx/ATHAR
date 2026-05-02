@@ -24,6 +24,10 @@ const QuickTasbeehFab = React.lazy(() =>
   import("@/components/layout/QuickTasbeehFab").then((m) => ({ default: m.QuickTasbeehFab }))
 );
 
+const QuranRadioFab = React.lazy(() =>
+  import("@/components/layout/QuranRadioFab").then((m) => ({ default: m.QuranRadioFab }))
+);
+
 /* -------------------------------------------------- */
 /*  Swipe-to-dismiss bottom sheet wrapper              */
 /* -------------------------------------------------- */
@@ -501,6 +505,11 @@ export function AppShell() {
         <QuickTasbeehFab />
       </React.Suspense>
 
+      {/* Quran Radio FAB */}
+      <React.Suspense fallback={null}>
+        <QuranRadioFab />
+      </React.Suspense>
+
       {/* Top Bar */}
       <header className="sticky top-0 z-30" style={{ paddingTop: "var(--sat)" }}>
         <div className="mx-auto max-w-[1400px] px-4 pt-3">
@@ -539,7 +548,7 @@ export function AppShell() {
             </div>
 
             <div className="flex items-center gap-2">
-              <IconButton aria-label="بحث (Ctrl+K)" title="بحث (Ctrl+K)" onClick={() => setPaletteOpen(true)}>
+              <IconButton aria-label="بحث (Ctrl+K)" onClick={() => setPaletteOpen(true)}>
                 <Search size={18} />
               </IconButton>
 
@@ -571,7 +580,7 @@ export function AppShell() {
       </header>
 
       {/* Layout */}
-      <div className="mx-auto max-w-[1400px] px-4 pb-floating-nav" style={{ paddingBottom: "calc(2.5rem + var(--sab))" }}>
+      <div className="mx-auto max-w-[1400px] px-4 pb-floating-nav">
         <div className="mt-4 grid grid-cols-12 gap-4">
           {/* Desktop Sidebar */}
           <aside className="hidden xl:block col-span-3 2xl:col-span-2">

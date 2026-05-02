@@ -11,6 +11,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { useIslamicLibraryDB, dorarSearchUrl } from "@/data/useIslamicLibraryDB";
 import type { FlatLibraryEntry, LibraryCollection } from "@/data/libraryTypes";
+import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 import { cn } from "@/lib/utils";
 import { stripDiacritics } from "@/lib/arabic";
@@ -239,6 +240,32 @@ export function LibraryPage() {
         </button>
       </Card>
 
+      {/* Hadith Books Grid — at top for quick access */}
+      <div className="grid grid-cols-2 gap-3">
+        {HADITH_BOOKS_STATIC.map((book) => (
+          <button
+            key={book.key}
+            type="button"
+            dir="rtl"
+            onClick={() => navigate(`/hadith/${book.key}`)}
+            className="press-effect text-right rounded-3xl p-4 glass border border-white/10 transition active:scale-95"
+          >
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
+              style={{ background: `${book.color}22` }}
+            >
+              <Library size={16} style={{ color: book.color }} />
+            </div>
+            <div className="text-sm font-bold arabic-text truncate" style={{ color: book.color }}>
+              {book.title}
+            </div>
+            <div className="text-[11px] opacity-50 mt-0.5 tabular-nums">
+              {book.count.toLocaleString("ar-EG")} حديث
+            </div>
+          </button>
+        ))}
+      </div>
+
       <Card className="p-4 sticky top-3 z-20 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <Search size={17} className="opacity-60" />
@@ -288,28 +315,7 @@ export function LibraryPage() {
         {entries.map((entry) => <LibraryEntryCard key={entry.key} entry={entry} />)}
       </div>
 
-      {/* Hadith corpus entry card */}
-      <button
-        type="button"
-        dir="rtl"
-        onClick={() => navigate("/hadith")}
-        className="w-full text-right rounded-2xl p-4 flex items-center gap-4 transition active:scale-95"
-        style={{ background: "linear-gradient(135deg, #10b98122, #3b82f622)", border: "1px solid #10b98133" }}
-      >
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "#10b98122" }}
-        >
-          <Library size={22} style={{ color: "#10b981" }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-[var(--fg)] font-arabic">الكتب الحديثية</p>
-          <p className="text-xs text-[var(--muted)] mt-0.5 font-arabic">
-            9 كتب • أكثر من 36,000 حديث نبوي شريف
-          </p>
-        </div>
-        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" />
-      </button>
+      {/* Hadith Books Grid placeholder — moved above search */}
 
       {/* Companions entry card */}
       <button

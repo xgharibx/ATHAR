@@ -15,6 +15,7 @@ export function CategoryPage() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = useAdhkarDB();
   const customPacks = useNoorStore((s) => s.customPacks);
+  const deleteCustomPack = useNoorStore((s) => s.deleteCustomPack);
   const [sp] = useSearchParams();
 
   React.useEffect(() => {
@@ -76,6 +77,8 @@ export function CategoryPage() {
           title={customPack.title}
           items={customItems}
           focusIndex={focusIndex}
+          isCustomSection={true}
+          onDeleteCategory={() => { deleteCustomPack(customPack.id); navigate("/"); }}
         />
       );
     }

@@ -275,7 +275,7 @@ export function HadithReaderPage() {
   }, [prefs]);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "var(--bg)" }}>
+    <div className="min-h-screen-safe flex flex-col" style={{ background: "var(--bg)" }}>
       {/* Header */}
       <div
         dir="rtl"
@@ -305,7 +305,7 @@ export function HadithReaderPage() {
               navigate("/hadith/memo");
             }}
             className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            title="بطاقة الحفظ"
+            aria-label="بطاقة الحفظ"
           >
             <BrainCircuit
               size={18}
@@ -315,7 +315,7 @@ export function HadithReaderPage() {
           <button
             onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}
             className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            title="حفظ"
+            aria-label="حفظ"
           >
             <Bookmark
               size={18}
@@ -326,21 +326,21 @@ export function HadithReaderPage() {
           <button
             onClick={copyText}
             className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            title="نسخ"
+            aria-label="نسخ"
           >
             <Copy size={16} className="text-[var(--muted)]" />
           </button>
           <button
             onClick={shareText}
             className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            title="مشاركة كصورة"
+            aria-label="مشاركة"
           >
             <Share2 size={16} className="text-[var(--muted)]" />
           </button>
           <button
             onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}
             className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            title="تدوين ملاحظة"
+            aria-label="تدوين ملاحظة"
           >
             <StickyNote
               size={16}

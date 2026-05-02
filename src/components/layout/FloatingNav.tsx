@@ -1,6 +1,6 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { House, BookOpenText, Heart, Trophy, BarChart3 } from "lucide-react";
+import { House, BookOpenText, Heart, BookMarked, BarChart3, Trophy } from "lucide-react";
 import { useNoorStore } from "@/store/noorStore";
 
 function todayISO() {
@@ -11,7 +11,7 @@ function todayISO() {
 function computeStreakLocal(activity: Record<string, number>) {
   let streak = 0;
   const today = new Date();
-  for (let i = 0; i < 365; i++) {
+  for (let i = 0; i < 3650; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { path: "/quran", label: "القرآن", icon: BookOpenText },
   { path: "/favorites", label: "المفضلة", icon: Heart },
   { path: "/insights", label: "إحصاءات", icon: BarChart3 },
+  { path: "/library", label: "المكتبة", icon: BookMarked },
   { path: "/leaderboard", label: "الترتيب", icon: Trophy },
 ] as const;
 
@@ -92,7 +93,7 @@ export function FloatingNav() {
               aria-label={item.label}
             >
               <div className="relative">
-                <item.icon size={20} strokeWidth={active ? 2.2 : 1.8} />
+                <item.icon size={18} strokeWidth={active ? 2.2 : 1.8} />
                 {item.path === "/" && todayCount > 0 && (
                   <span
                     className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] rounded-full text-[9px] font-bold flex items-center justify-center px-0.5 leading-none text-black tabular-nums"

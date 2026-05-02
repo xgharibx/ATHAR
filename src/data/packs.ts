@@ -108,6 +108,20 @@ export function addCustomDhikrItem(item: { text: string; count: number; benefit?
   return nextPacks;
 }
 
+export function removeCustomDhikrItem(sectionId: string, itemIndex: number): NoorPack[] {
+  const packs = loadPacks();
+  const packIdx = packs.findIndex((p) => p.sections.some((s) => s.id === sectionId));
+  if (packIdx < 0) return packs;
+  const pack = { ...packs[packIdx] };
+  pack.sections = pack.sections.map((s) =>
+    s.id !== sectionId ? s : { ...s, content: s.content.filter((_, i) => i !== itemIndex) }
+  );
+  const nextPacks = [...packs];
+  nextPacks[packIdx] = pack;
+  savePacks(nextPacks);
+  return nextPacks;
+}
+
 export function addPackFromJson(json: any, name?: string): NoorPack {
   // Accept either {sections:[...]} (DB) OR {id,title,items:[...]} (section export)
   let sections: Section[] = [];
