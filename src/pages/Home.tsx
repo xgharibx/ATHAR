@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   ChevronDown,
   MoreVertical,
+  Radio,
+  Loader2,
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -33,6 +35,13 @@ import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistIt
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
+import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
+
+function useRadioState() {
+  const [state, setState] = React.useState(getRadioState);
+  React.useEffect(() => subscribeRadio(() => setState(getRadioState())), []);
+  return state;
+}
 
 type QuickTasbeehKey = "subhanallah" | "alhamdulillah" | "la_ilaha_illallah" | "allahu_akbar";
 const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
@@ -136,6 +145,43 @@ function rescueTipByCategory(category: DailyChecklistItem["category"]) {
   if (category === "sadaqah") return "نفّذ صدقة بسيطة الآن";
   if (category === "family") return "رسالة صلة رحم سريعة";
   return "دعاء صادق لشخص آخر";
+}
+
+function HomeRadioButton() {
+  const radio = useRadioState();
+  return (
+    <button
+      type="button"
+      onClick={() => toggleRadio()}
+      aria-label={radio.playing ? "إيقاف راديو القرآن" : "تشغيل راديو القرآن"}
+      className="press-effect inline-flex items-center gap-1.5 px-3 h-9 rounded-2xl border transition-all shrink-0"
+      style={
+        radio.playing
+          ? {
+              background: "color-mix(in srgb, var(--ok) 18%, transparent)",
+              borderColor: "color-mix(in srgb, var(--ok) 45%, transparent)",
+              color: "var(--ok)",
+            }
+          : {
+              background: "rgba(255,255,255,0.07)",
+              borderColor: "rgba(255,255,255,0.10)",
+              color: "inherit",
+            }
+      }
+    >
+      {radio.loading ? (
+        <Loader2 size={14} className="animate-spin shrink-0" />
+      ) : (
+        <Radio size={14} className="shrink-0" style={radio.playing ? { filter: "drop-shadow(0 0 4px var(--ok))" } : undefined} />
+      )}
+      <span className="text-xs font-medium whitespace-nowrap">
+        {radio.playing ? "القرآن يُبث" : "راديو القرآن"}
+      </span>
+      {radio.playing && (
+        <span className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0" style={{ background: "var(--ok)" }} />
+      )}
+    </button>
+  );
 }
 
 export function HomePage() {
@@ -653,6 +699,7 @@ export function HomePage() {
                   </Button>
                 ) : null}
                 <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:sebha"); navigate("/sebha"); }}>السبحة</Button>
+                <HomeRadioButton />
                 <button
                   type="button"
                   onClick={onRandom}
