@@ -2686,6 +2686,32 @@ header {
   animation: pulse 1.2s ease-in-out infinite;
 }
 
+/* Phase 2B: Tajweed rule colors (quran.com rule class names) */
+.tj { }
+.tj-ham_wasl          { color: #9A9A9A; }   /* Hamza Wasl — gray */
+.tj-laam_shamsiyah    { color: #9A9A9A; }   /* Lam Shamsiyah — gray */
+.tj-madda_necessary   { color: #337EDD; }   /* Madd Lazim — dark blue */
+.tj-madda_obligatory  { color: #337EDD; }   /* Madd Wajib — dark blue */
+.tj-madda_normal      { color: #4DB6E0; }   /* Madd Asli — blue */
+.tj-madda_permissible { color: #4DB6E0; }   /* Madd Ja'iz — light blue */
+.tj-madda_far         { color: #4DB6E0; }   /* Madd Far'i — blue */
+.tj-ikhfa             { color: #C9A84C; }   /* Ikhfa — yellow/gold */
+.tj-ikhfa_shafawi     { color: #C9A84C; }   /* Ikhfa Shafawi — yellow/gold */
+.tj-iqlab             { color: #D64A4A; }   /* Iqlab — red */
+.tj-idgham_ghunnah    { color: #5BAD72; }   /* Idgham with Ghunna — green */
+.tj-idgham_wo_ghunnah { color: #5BAD72; }   /* Idgham w/o Ghunna — green */
+.tj-idgham_mutajanisayn  { color: #5BAD72; }
+.tj-idgham_mutaqaribayn  { color: #5BAD72; }
+.tj-idgham_shafawi    { color: #5BAD72; }   /* Idgham Shafawi — green */
+.tj-ghunnah           { color: #5BAD72; }   /* Ghunna — green */
+.tj-qalaqalah         { color: #CC7722; }   /* Qalqalah — orange/brown */
+.tj-silent            { color: #9A9A9A; opacity: 0.55; } /* Silent letter */
+.tj-custom-alef-maksora { color: #9A9A9A; } /* Custom alef maksora — gray */
+.tj-atq               { color: #9A9A9A; } /* Atq — gray */
+
+/* In WBW mode, inherit tajweed colors through ruby */
+.mushaf-wbw-ruby .tj { }
+
 /* Audio bar */
 .mushaf-audio-bar {
   position: fixed;

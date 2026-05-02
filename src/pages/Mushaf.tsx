@@ -15,7 +15,7 @@ import { getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/qur
 import { stripDiacritics } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
-import { loadWbwSurah, type WbwSurah } from "@/lib/quranWBW";
+import { loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import toast from "react-hot-toast";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -407,6 +407,16 @@ export function MushafPage() {
   const [wbwData, setWbwData] = React.useState<Record<number, WbwSurah>>({});
   const [wbwLoading, setWbwLoading] = React.useState(false);
 
+  // Phase 2B: Tajweed color mode
+  const [tajweedMode, setTajweedModeState] = React.useState(() => prefs.mushafTajweedMode ?? false);
+  const setTajweedMode = React.useCallback((v: boolean | ((prev: boolean) => boolean)) => {
+    setTajweedModeState((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      setPrefs({ mushafTajweedMode: next });
+      return next;
+    });
+  }, [setPrefs]);
+
   // Q17: In-page search
   const [inPageSearch, setInPageSearch] = React.useState("");
   const [showSearch, setShowSearch] = React.useState(false);
@@ -617,9 +627,10 @@ export function MushafPage() {
     setInlineTafseerData({});
   }, [inlineTafseerSource]);
 
-  // Phase 2A: Fetch word-by-word data for all surahs on current page
+  // Phase 2A/2B: Fetch word-by-word data for all surahs on current page
+  // Triggered by either WBW mode or Tajweed mode (both need the same data)
   React.useEffect(() => {
-    if (!wbwMode) return;
+    if (!wbwMode && !tajweedMode) return;
     const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
     const toFetch = surahIds.filter((sid) => !wbwData[sid]);
     if (toFetch.length === 0) return;
@@ -632,10 +643,10 @@ export function MushafPage() {
           return upd;
         });
       })
-      .catch(() => toast.error("تعذر تحميل الترجمة كلمة بكلمة"))
+      .catch(() => toast.error("تعذر تحميل البيانات"))
       .finally(() => setWbwLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wbwMode, currentPage]);
+  }, [wbwMode, tajweedMode, currentPage]);
 
   // Q11-B: Fetch tafseer for popup when tafsirItem opens (works even when inline tafseer is OFF)
   React.useEffect(() => {
@@ -1032,6 +1043,15 @@ export function MushafPage() {
         >
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "-0.5px", fontFamily: "system-ui" }}>W</span>
         </button>
+        {/* Phase 2B: Tajweed color toggle */}
+        <button
+          className={`mushaf-chrome-icon-btn${tajweedMode ? " active" : ""}`}
+          title="تلوين التجويد"
+          aria-label="تجويد"
+          onClick={(e) => { e.stopPropagation(); setTajweedMode((v) => !v); }}
+        >
+          <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "system-ui" }}>ت</span>
+        </button>
         <button
           className={`mushaf-chrome-icon-btn${memorizationMode ? " active" : ""}`}
           title={memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ"}
@@ -1204,8 +1224,8 @@ export function MushafPage() {
                     const transText = showTranslation ? (translationData[item.surahId]?.[item.originalAyah] ?? "") : "";
                     // Q11-B: Inline tafseer text
                     const tafseerText = inlineTafseer ? (inlineTafseerData[item.surahId]?.[item.originalAyah] ?? "") : "";
-                    // Phase 2A: Word-by-word data for this ayah (1-indexed array)
-                    const wbwVerse = wbwMode ? (wbwData[item.surahId]?.[item.originalAyah] ?? null) : null;
+                    // Phase 2A/2B: Word-by-word data (needed for both WBW and Tajweed modes)
+                    const wbwVerse = (wbwMode || tajweedMode) ? (wbwData[item.surahId]?.[item.originalAyah] ?? null) : null;
                     // M1: Real-time playing highlight
                     const isPlaying = playingKey === k;
 
@@ -1229,18 +1249,24 @@ export function MushafPage() {
                           handleAyahTap(e, item);
                         }}
                       >
-                        {/* Phase 2A: Word-by-word ruby tags OR plain text */}
-                        {wbwVerse ? (
+                        {/* Phase 2A/2B: Word-by-word ruby tags (with optional tajweed colors) OR plain/tajweed text */}
+                        {wbwVerse && wbwMode ? (
+                          // WBW + optional Tajweed: ruby annotations
                           wbwVerse.map((word, wi) => (
                             <ruby key={wi} className="mushaf-wbw-ruby">
-                              {word.ar}
+                              {tajweedMode ? renderTajweed(word.tj) : word.ar}
                               <rt className="mushaf-wbw-rt">{word.tr}</rt>
                             </ruby>
+                          ))
+                        ) : wbwVerse && tajweedMode ? (
+                          // Tajweed-only: colored words, no ruby annotations
+                          wbwVerse.map((word, wi) => (
+                            <React.Fragment key={wi}>{renderTajweed(word.tj)}{" "}</React.Fragment>
                           ))
                         ) : (
                           item.text
                         )}
-                        {wbwMode && wbwLoading && !wbwVerse ? (
+                        {(wbwMode || tajweedMode) && wbwLoading && !wbwVerse ? (
                           <span className="mushaf-wbw-loading">⋯</span>
                         ) : null}
                         {"\u200F"}
@@ -1758,6 +1784,21 @@ export function MushafPage() {
                 role="switch" aria-checked={wbwMode}
               >
                 <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${wbwMode ? "right-0.5" : "right-5"}`} />
+              </button>
+            </div>
+
+            {/* Phase 2B: Tajweed color coding */}
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="text-xs opacity-65">تلوين التجويد</div>
+                <div className="text-[10px] opacity-40">تلوين الكلمات بألوان أحكام التجويد</div>
+              </div>
+              <button
+                onClick={() => setTajweedMode((v) => !v)}
+                className={`relative w-10 h-5 rounded-full transition ${tajweedMode ? "bg-[var(--accent)]" : "bg-white/20"}`}
+                role="switch" aria-checked={tajweedMode}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${tajweedMode ? "right-0.5" : "right-5"}`} />
               </button>
             </div>
 

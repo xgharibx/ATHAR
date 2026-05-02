@@ -47,6 +47,7 @@ export type Preferences = {
   mushafFontScale?: number; // mushaf reader font scale 0.7–1.6
   mushafInlineTafseer?: boolean; // persist inline tafseer toggle
   mushafWbwMode?: boolean; // persist word-by-word translation toggle
+  mushafTajweedMode?: boolean; // persist tajweed color coding toggle
   showBenefits: boolean;
   stripDiacritics: boolean;
   enable3D: boolean;
