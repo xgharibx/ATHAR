@@ -53,6 +53,26 @@ export function QiblaPage() {
     permissionGranted: false,
   });
   const compassHeadingRef = React.useRef<number | null>(null);
+  const [declination, setDeclination] = React.useState<number | null>(null);
+
+  // Fetch magnetic declination from NOAA when coordinates are ready
+  const geoOk  = geo.status === "ok";
+  const geoLat = geo.status === "ok" ? (geo as { status: "ok"; lat: number; lng: number }).lat : 0;
+  const geoLng = geo.status === "ok" ? (geo as { status: "ok"; lat: number; lng: number }).lng : 0;
+  React.useEffect(() => {
+    if (!geoOk) return;
+    fetch(
+      `https://www.ngdc.noaa.gov/geomag-web/calculators/calculateDeclination?lat1=${geoLat}&lon1=${geoLng}&key=EAU51&resultFormat=json`,
+    )
+      .then((r) => r.json() as Promise<{ result: Array<{ declination: number }> }>)
+      .then((data) => {
+        const d = data.result?.[0]?.declination;
+        if (typeof d === "number") setDeclination(d);
+      })
+      .catch(() => {
+        /* silent — falls back to uncorrected bearing */
+      });
+  }, [geoOk, geoLat, geoLng]);
 
   // Request geolocation
   const requestGeo = React.useCallback(() => {
@@ -147,14 +167,17 @@ export function QiblaPage() {
     geo.status === "ok" ? calcQiblaBearing(geo.lat, geo.lng) : null;
 
   // Compass needle rotation: needle points to qibla direction
-  // If we have device heading: rotate needle so it points at qibla relative to device
+  // Apply magnetic declination correction when available:
+  //   True heading = Magnetic heading + Declination
+  //   needle = (qiblaBearing_true - trueHeading + 360) % 360
+  //          = (qiblaBearing - compassHeading - declination + 720) % 360
   const needleRotation = React.useMemo(() => {
     if (qiblaBearing == null) return 0;
     const heading = orient.heading;
-    if (heading == null) return qiblaBearing; // Static bearing
-    // The qibla direction relative to current device orientation
-    return (qiblaBearing - heading + 360) % 360;
-  }, [qiblaBearing, orient.heading]);
+    const dec = declination ?? 0;
+    if (heading == null) return qiblaBearing; // Static true bearing
+    return ((qiblaBearing - heading - dec) % 360 + 360) % 360;
+  }, [qiblaBearing, orient.heading, declination]);
 
   const hasOrientation = orient.supported && orient.heading != null;
 
@@ -177,8 +200,14 @@ export function QiblaPage() {
         <div className="relative w-64 h-64">
           {/* Outer ring with cardinal directions */}
           <svg viewBox="0 0 240 240" className="w-full h-full">
+            {/* Animated CSS for spinning outer ring */}
+            <style>{`@keyframes compassRingSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
             {/* Background circle */}
             <circle cx="120" cy="120" r="118" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2" />
+            {/* Slowly spinning outer decorative ring */}
+            <g style={{ transformOrigin: "120px 120px", animation: "compassRingSpin 25s linear infinite" }}>
+              <circle cx="120" cy="120" r="115" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" strokeDasharray="4 8" />
+            </g>
             <circle cx="120" cy="120" r="100" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
             {/* Tick marks */}
             {Array.from({ length: 36 }, (_, i) => {
@@ -248,6 +277,18 @@ export function QiblaPage() {
             <div className="text-sm opacity-60">
               اتجاه القبلة · {formatBearing(qiblaBearing)}
             </div>
+            {geo.status === "ok" && (
+              <div dir="ltr" className="text-[10px] opacity-35 font-mono mt-0.5">
+                {(geo as { status: "ok"; lat: number; lng: number }).lat.toFixed(4)}°N,
+                {" "}{(geo as { status: "ok"; lat: number; lng: number }).lng.toFixed(4)}°E
+                {declination != null && (
+                  <span className="ml-2 opacity-80">D={declination > 0 ? "+" : ""}{declination.toFixed(1)}°</span>
+                )}
+              </div>
+            )}
+            {declination != null && Math.abs(declination) >= 0.3 && (
+              <div className="text-[10px] opacity-50 mt-0.5">انحراف مغناطيسي: {declination > 0 ? "+" : ""}{declination.toFixed(1)}° (مُصحَّح)</div>
+            )}
             {!hasOrientation && (
               <div className="text-xs opacity-40 mt-2">
                 السهم يشير إلى اتجاه القبلة الثابت (لا يوجد بوصلة نشطة)

@@ -3,8 +3,8 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  AlertTriangle, ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight,
-  Clock3, CloudSun, Compass, Globe, MoonStar, Plus, RefreshCw,
+  AlertTriangle, ArrowRight, BarChart2, CalendarDays, Check, ChevronLeft, ChevronRight,
+  Clock3, CloudSun, Compass, Globe, MapPin, MoonStar, Plus, RefreshCw,
   Settings2, Sunrise, Sunset, TimerReset, Trash2, X,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -90,7 +90,7 @@ const ISLAMIC_EVENTS: Record<number, Record<number, string[]>> = {
   },
 };
 
-type TabKey = "today" | "weekly" | "monthly" | "track" | "hijri" | "cities";
+type TabKey = "today" | "weekly" | "monthly" | "track" | "hijri" | "cities" | "stats" | "arc";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -203,6 +203,16 @@ function IqamaTime({ prayerTime, offset }: { prayerTime: string; offset: number 
   return (
     <div dir="ltr" className="text-[10px] opacity-40 tabular-nums text-left">
       إقامة {formatMinutes12h(mins + offset)}
+    </div>
+  );
+}
+
+function IqamaTimeInline({ prayerTime, offset }: { prayerTime: string; offset: number }) {
+  const mins = parseClockToMinutes(cleanTime(prayerTime));
+  if (mins == null) return null;
+  return (
+    <div dir="ltr" className="text-sm font-medium tabular-nums opacity-60">
+      {formatMinutes12h(mins + offset)}
     </div>
   );
 }
@@ -754,6 +764,220 @@ function CitiesTab() {
   );
 }
 
+// ─── StatsTab (4C) ───────────────────────────────────────────────────────────
+
+function StatsTab() {
+  const prayerLog = useNoorStore((s) => s.prayerLog);
+  const today = getLocalDateKey();
+
+  const days30 = React.useMemo(() => Array.from({ length: 30 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (29 - i));
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }), []);
+
+  const days35 = React.useMemo(() => Array.from({ length: 35 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (34 - i));
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return { key, day: d.getDate(), done: PRIMARY_PRAYERS.filter((p) => prayerLog[key]?.[p]).length };
+  }), [prayerLog]);
+
+  const prayerStats = React.useMemo(() => PRIMARY_PRAYERS.map((prayer) => {
+    const done = days30.filter((day) => prayerLog[day]?.[prayer]).length;
+    return { prayer, done, pct: Math.round((done / 30) * 100) };
+  }), [prayerLog, days30]);
+
+  const streaks = React.useMemo(() => PRIMARY_PRAYERS.map((prayer) => {
+    const allDays = Object.keys(prayerLog).sort();
+    let maxStreak = 0, curStreak = 0;
+    for (let i = 0; i < allDays.length; i++) {
+      if (prayerLog[allDays[i]]?.[prayer]) {
+        if (i === 0) { curStreak = 1; }
+        else {
+          const prev = new Date(allDays[i - 1]!).getTime();
+          const curr = new Date(allDays[i]!).getTime();
+          curStreak = Math.round((curr - prev) / 86400000) === 1 ? curStreak + 1 : 1;
+        }
+        maxStreak = Math.max(maxStreak, curStreak);
+      } else { curStreak = 0; }
+    }
+    return { prayer, maxStreak };
+  }), [prayerLog]);
+
+  return (
+    <div className="space-y-5">
+      {/* Calendar heatmap */}
+      <div>
+        <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">آخر ٣٥ يوم</div>
+        <div className="grid grid-cols-7 gap-1">
+          {days35.map((d) => (
+            <div key={d.key} className="aspect-square rounded-lg relative overflow-hidden flex items-center justify-center"
+              style={{ outline: d.key === today ? "2px solid rgba(255,255,255,0.5)" : "none" }}
+              title={`${d.done}/5 صلوات`}>
+              <div className="absolute inset-0" style={{ backgroundColor: "var(--accent)", opacity: d.done === 0 ? 0.06 : 0.12 + d.done * 0.17 }} />
+              <span className="relative z-10 text-[10px] font-medium" style={{ opacity: d.done === 0 ? 0.3 : 0.75 }}>{d.day}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center justify-end gap-2 mt-2 text-[9px] opacity-40">
+          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "var(--accent)", opacity: 0.1 }} /> <span>٠</span>
+          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "var(--accent)", opacity: 0.45 }} /> <span>٢</span>
+          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "var(--accent)", opacity: 0.79 }} /> <span>٤</span>
+          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: "var(--accent)", opacity: 1 }} /> <span>٥</span>
+        </div>
+      </div>
+
+      {/* Per-prayer % */}
+      <div>
+        <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">نسبة الأداء (٣٠ يوم)</div>
+        <div className="space-y-2.5">
+          {prayerStats.map(({ prayer, done, pct }) => (
+            <div key={prayer} className="flex items-center gap-3">
+              <div className="w-14 text-sm shrink-0">{PRAYER_LABELS[prayer]}</div>
+              <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: "var(--accent)" }} />
+              </div>
+              <div className="w-8 text-right text-xs font-semibold tabular-nums" style={{ color: "var(--accent)" }}>{toArabicIndic(pct)}٪</div>
+              <div className="w-9 text-right text-[10px] opacity-40 tabular-nums">{toArabicIndic(done)}/٣٠</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Longest streaks */}
+      <div>
+        <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">أطول سلسلة مواظبة</div>
+        <div className="grid grid-cols-5 gap-2">
+          {streaks.map(({ prayer, maxStreak }) => (
+            <div key={prayer} className="rounded-2xl border border-white/10 bg-white/4 p-3 text-center">
+              <div className="text-[11px] opacity-60 mb-1">{PRAYER_LABELS[prayer]}</div>
+              <div className="text-2xl font-bold" style={{ color: "var(--accent)" }}>{toArabicIndic(maxStreak)}</div>
+              <div className="text-[9px] opacity-40 mt-0.5">يوم</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── DayArcTab (4D) ───────────────────────────────────────────────────────────
+
+function DayArcTab({ timings }: { timings: Record<string, string> }) {
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+
+  const fajrMins    = parseClockToMinutes(cleanTime(timings["Fajr"]    ?? "")) ?? 300;
+  const sunriseMins = parseClockToMinutes(cleanTime(timings["Sunrise"] ?? "")) ?? 360;
+  const dhuhrMins   = parseClockToMinutes(cleanTime(timings["Dhuhr"]   ?? "")) ?? 720;
+  const asrMins     = parseClockToMinutes(cleanTime(timings["Asr"]     ?? "")) ?? 900;
+  const maghribMins = parseClockToMinutes(cleanTime(timings["Maghrib"] ?? "")) ?? 1140;
+  const ishaMins    = parseClockToMinutes(cleanTime(timings["Isha"]    ?? "")) ?? 1200;
+
+  const W = 360, H = 200, arcBase = H - 35, arcPeak = 28, PAD = 20;
+  const rangeStart = Math.max(0, fajrMins - 40);
+  const rangeEnd   = Math.min(1440, ishaMins + 40);
+  const range      = rangeEnd - rangeStart;
+  const toX        = (m: number) => PAD + ((m - rangeStart) / range) * (W - 2 * PAD);
+
+  const P0x = toX(sunriseMins), P1x = toX(dhuhrMins), P2x = toX(maghribMins);
+  const pathD = `M ${P0x} ${arcBase} Q ${P1x} ${arcPeak} ${P2x} ${arcBase}`;
+
+  const getArcY = (x: number): number => {
+    const a = P0x - 2 * P1x + P2x;
+    const b = 2 * P1x - 2 * P0x;
+    const c = P0x - x;
+    if (Math.abs(a) < 0.001) {
+      const t = Math.max(0, Math.min(1, -c / b));
+      return (1 - t) ** 2 * arcBase + 2 * (1 - t) * t * arcPeak + t ** 2 * arcBase;
+    }
+    const disc = b * b - 4 * a * c;
+    if (disc < 0) return arcBase;
+    const t = Math.max(0, Math.min(1, (-b - Math.sqrt(disc)) / (2 * a)));
+    return (1 - t) ** 2 * arcBase + 2 * (1 - t) * t * arcPeak + t ** 2 * arcBase;
+  };
+
+  const prayers = [
+    { id: "Fajr",    mins: fajrMins,    label: PRAYER_LABELS["Fajr"] },
+    { id: "Dhuhr",   mins: dhuhrMins,   label: PRAYER_LABELS["Dhuhr"] },
+    { id: "Asr",     mins: asrMins,     label: PRAYER_LABELS["Asr"] },
+    { id: "Maghrib", mins: maghribMins, label: PRAYER_LABELS["Maghrib"] },
+    { id: "Isha",    mins: ishaMins,    label: PRAYER_LABELS["Isha"] },
+  ] as const;
+
+  const prayerPoints = prayers.map((p) => {
+    const x = Math.max(PAD + 2, Math.min(W - PAD - 2, toX(p.mins)));
+    const onArc = p.mins >= sunriseMins && p.mins <= maghribMins;
+    return { ...p, x, y: onArc ? getArcY(x) : arcBase, onArc, isPast: nowMins > p.mins, time: cleanTime(timings[p.id] ?? "") };
+  });
+
+  const curX   = Math.max(PAD, Math.min(W - PAD, toX(nowMins)));
+  const curOnArc = nowMins >= sunriseMins && nowMins <= maghribMins;
+  const curY   = curOnArc ? getArcY(curX) : arcBase;
+  const showCursor = nowMins >= rangeStart && nowMins <= rangeEnd;
+
+  return (
+    <div className="space-y-4">
+      <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">قوس اليوم الشمسي</div>
+      <div className="rounded-2xl overflow-hidden border border-white/10" style={{ background: "linear-gradient(160deg, #0d1a2e, #1a0a2e)" }}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 180 }}>
+          <defs>
+            <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#ff7b35" stopOpacity="0.8" />
+              <stop offset="50%" stopColor="#ffe040" stopOpacity="1" />
+              <stop offset="100%" stopColor="#ff5e50" stopOpacity="0.8" />
+            </linearGradient>
+          </defs>
+          {/* Night overlays */}
+          <rect x="0" y="0" width={toX(sunriseMins)} height={H} fill="rgba(0,0,60,0.35)" />
+          <rect x={toX(maghribMins)} y="0" width={W - toX(maghribMins)} height={H} fill="rgba(0,0,60,0.35)" />
+          {/* Ground */}
+          <line x1={PAD} y1={arcBase} x2={W - PAD} y2={arcBase} stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
+          {/* Arc glow */}
+          <path d={pathD} fill="none" stroke="rgba(255,200,50,0.2)" strokeWidth="14" />
+          {/* Arc line */}
+          <path d={pathD} fill="none" stroke="url(#arcGrad)" strokeWidth="2.5" />
+          {/* Sunrise / Sunset ticks */}
+          {[{ x: toX(sunriseMins), label: "شروق" }, { x: toX(maghribMins), label: "غروب" }].map((m) => (
+            <g key={m.label}>
+              <line x1={m.x} y1={arcBase - 8} x2={m.x} y2={arcBase + 3} stroke="rgba(255,200,80,0.5)" strokeWidth="1.5" />
+              <text x={m.x} y={arcBase + 14} textAnchor="middle" fill="rgba(255,200,80,0.55)" fontSize="7.5">{m.label}</text>
+            </g>
+          ))}
+          {/* Prayer markers */}
+          {prayerPoints.map((p) => (
+            <g key={p.id}>
+              {!p.onArc && <line x1={p.x} y1={p.y - 2} x2={p.x} y2={arcBase - 1} stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="2,2" />}
+              <circle cx={p.x} cy={p.y} r="5" fill={p.isPast ? "rgba(255,255,255,0.25)" : "var(--accent)"} />
+              <circle cx={p.x} cy={p.y} r="8.5" fill="none" stroke={p.isPast ? "rgba(255,255,255,0.12)" : "var(--accent)"} strokeWidth="1" strokeOpacity="0.5" />
+              <text x={p.x} y={p.y - 13} textAnchor="middle" fill={p.isPast ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.85)"} fontSize="7.5" fontWeight="600">{p.label}</text>
+              <text x={p.x} y={arcBase + (p.onArc ? 0 : 20)} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="6.5" dy={p.onArc ? 20 : 0}>{p.time}</text>
+            </g>
+          ))}
+          {/* Current time cursor */}
+          {showCursor && (
+            <g>
+              <line x1={curX} y1={curY + 8} x2={curX} y2={arcBase} stroke="rgba(255,230,80,0.25)" strokeWidth="1" strokeDasharray="2,3" />
+              <circle cx={curX} cy={curY} r="9" fill="rgba(255,220,50,0.85)" />
+              <circle cx={curX} cy={curY} r="4.5" fill="rgba(255,245,130,1)" />
+            </g>
+          )}
+        </svg>
+      </div>
+      <div className="grid grid-cols-5 gap-1.5">
+        {prayerPoints.map((p) => (
+          <div key={p.id} className="rounded-xl border px-2 py-2 text-center" style={{ backgroundColor: p.isPast ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)", borderColor: p.isPast ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.14)" }}>
+            <div className="font-medium text-[11px]" style={{ opacity: p.isPast ? 0.35 : 1 }}>{p.label}</div>
+            <div dir="ltr" className="text-[10px] tabular-nums mt-0.5" style={{ opacity: 0.45 }}>{p.time}</div>
+            {p.isPast && <div className="text-[9px] mt-0.5 opacity-30">مضى</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── PrayerTimesPage ──────────────────────────────────────────────────────────
 
 export function PrayerTimesPage() {
@@ -816,12 +1040,14 @@ export function PrayerTimesPage() {
   }
 
   const TABS: { key: TabKey; label: string; icon: React.ElementType }[] = [
-    { key: "today",   label: "اليوم",   icon: Clock3 },
-    { key: "weekly",  label: "أسبوعي", icon: CalendarDays },
-    { key: "monthly", label: "شهري",   icon: CalendarDays },
-    { key: "track",   label: "تتبع",   icon: Check },
-    { key: "hijri",   label: "هجري",   icon: MoonStar },
-    { key: "cities",  label: "مدن",    icon: Globe },
+    { key: "today",   label: "اليوم",      icon: Clock3 },
+    { key: "weekly",  label: "أسبوعي",    icon: CalendarDays },
+    { key: "monthly", label: "شهري",      icon: CalendarDays },
+    { key: "track",   label: "تتبع",      icon: Check },
+    { key: "stats",   label: "إحصاء",     icon: BarChart2 },
+    { key: "arc",     label: "قوس اليوم", icon: Sunrise },
+    { key: "hijri",   label: "هجري",      icon: MoonStar },
+    { key: "cities",  label: "مدن",       icon: Globe },
   ];
 
   return (
@@ -839,6 +1065,9 @@ export function PrayerTimesPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="secondary" size="sm" onClick={() => navigate("/qibla")}>
             <Compass size={14} /> القبلة
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => navigate("/mosques")}>
+            <MapPin size={14} /> مساجد
           </Button>
           <Button variant="secondary" size="sm" onClick={() => setShowSettings(true)}>
             <Settings2 size={14} /> إعدادات
@@ -927,10 +1156,19 @@ export function PrayerTimesPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="shrink-0 text-right">
-                    <div dir="ltr" className="text-sm font-medium tabular-nums text-left">{row.timeLabel}</div>
+                  <div className="shrink-0 flex items-center gap-2.5">
+                    <div className="text-right">
+                      <div className="text-[10px] opacity-40 mb-0.5">أذان</div>
+                      <div dir="ltr" className="text-sm font-medium tabular-nums">{row.timeLabel}</div>
+                    </div>
                     {showIqama && row.prayerName && (
-                      <IqamaTime prayerTime={timings[row.prayerName] ?? ""} offset={iqamaOffsets[row.prayerName] ?? 15} />
+                      <>
+                        <div className="w-px h-8 bg-white/15 self-center" />
+                        <div className="text-right">
+                          <div className="text-[10px] opacity-40 mb-0.5">إقامة</div>
+                          <IqamaTimeInline prayerTime={timings[row.prayerName] ?? ""} offset={iqamaOffsets[row.prayerName] ?? 15} />
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -973,6 +1211,12 @@ export function PrayerTimesPage() {
             <CitiesTab />
           </div>
         )}
+
+        {/* STATS */}
+        {activeTab === "stats" && <StatsTab />}
+
+        {/* ARC */}
+        {activeTab === "arc" && <DayArcTab timings={timings} />}
       </Card>
 
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
