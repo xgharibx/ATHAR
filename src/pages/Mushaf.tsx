@@ -573,6 +573,25 @@ export function MushafPage() {
     setInlineTafseerData({});
   }, [inlineTafseerSource]);
 
+  // Q11-B: Fetch tafseer for popup when tafsirItem opens (works even when inline tafseer is OFF)
+  React.useEffect(() => {
+    if (!tafsirItem) return;
+    const sid = tafsirItem.surahId;
+    if (inlineTafseerData[sid]) return;
+    const edition = inlineTafseerSource === "jalalayn" ? "ar.jalalayn" : "ar.muyassar";
+    setInlineTafseerLoading(true);
+    fetch(`https://api.alquran.cloud/v1/surah/${sid}/${edition}`)
+      .then((r) => r.json())
+      .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
+        const ayahs: string[] = [];
+        for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
+        setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
+      })
+      .catch(() => {})
+      .finally(() => setInlineTafseerLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tafsirItem, inlineTafseerSource]);
+
   // Page jump
   const [showJump, setShowJump] = React.useState(false);
   const [jumpInput, setJumpInput] = React.useState("");
@@ -1477,27 +1496,70 @@ export function MushafPage() {
               {tafsirItem.text}
               <span className="ml-2 opacity-50">﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾</span>
             </div>
-            {/* EN Translation */}
-            <div className="text-sm leading-7 opacity-80 p-3 rounded-2xl bg-white/4 border border-white/8 mb-3" dir="ltr">
-              {translationLoading ? (
-                <span className="opacity-40 italic text-xs">Loading…</span>
-              ) : translationData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
-                translationData[tafsirItem.surahId][tafsirItem.originalAyah]
+            {/* Tafseer source selector */}
+            <div className="flex gap-1.5 p-1 rounded-2xl bg-white/5 border border-white/10 mb-3">
+              {(["muyassar", "jalalayn"] as const).map((src) => (
+                <button
+                  key={src}
+                  type="button"
+                  onClick={() => setInlineTafseerSource(src)}
+                  className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    inlineTafseerSource === src
+                      ? "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30"
+                      : "opacity-55 hover:opacity-80"
+                  }`}
+                >
+                  {src === "muyassar" ? "الميسر" : "الجلالين"}
+                </button>
+              ))}
+            </div>
+            {/* Arabic Tafseer text */}
+            <div
+              className="text-sm leading-8 arabic-text opacity-90 p-4 rounded-2xl border mb-3"
+              dir="rtl"
+              style={{
+                background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent) 0%, color-mix(in srgb, var(--accent) 3%, transparent) 100%)",
+                borderColor: "color-mix(in srgb, var(--accent) 20%, transparent)",
+              }}
+            >
+              {inlineTafseerLoading && !inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
+                <span className="flex items-center gap-2 justify-center py-2 opacity-40 text-xs">
+                  <span className="w-3 h-3 border border-white/30 border-t-[var(--accent)] rounded-full animate-spin inline-block" />
+                  جارٍ تحميل التفسير…
+                </span>
+              ) : inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
+                inlineTafseerData[tafsirItem.surahId][tafsirItem.originalAyah]
               ) : (
-                <span className="opacity-40 italic text-xs">Toggle translation first to load it.</span>
+                <span className="opacity-40 text-xs">لا يوجد تفسير لهذه الآية</span>
               )}
             </div>
-            {/* External tafsir link */}
-            <a
-              href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${tafsirItem.surahId}-aya${tafsirItem.displayAyah}.html#katheer`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-xs opacity-55 hover:opacity-90 transition"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ArrowUpRight size={13} />
-              <span>تفسير ابن كثير الكامل</span>
-            </a>
+            {/* External tafsir links */}
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`https://quran.ksu.edu.sa/tafseer/katheer/sura${tafsirItem.surahId}-aya${tafsirItem.displayAyah}.html#katheer`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs opacity-55 hover:opacity-90 transition px-2.5 py-1 rounded-xl bg-white/5 border border-white/8"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ArrowUpRight size={12} /><span>ابن كثير</span>
+              </a>
+              <a
+                href={`https://tafsir.app/tabari/${tafsirItem.surahId}/${tafsirItem.displayAyah}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs opacity-55 hover:opacity-90 transition px-2.5 py-1 rounded-xl bg-white/5 border border-white/8"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ArrowUpRight size={12} /><span>الطبري</span>
+              </a>
+              <a
+                href={`https://tafsir.app/qurtubi/${tafsirItem.surahId}/${tafsirItem.displayAyah}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs opacity-55 hover:opacity-90 transition px-2.5 py-1 rounded-xl bg-white/5 border border-white/8"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ArrowUpRight size={12} /><span>القرطبي</span>
+              </a>
+            </div>
           </div>
         </>
       )}
