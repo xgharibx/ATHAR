@@ -15,6 +15,7 @@ import { getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/qur
 import { stripDiacritics } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
+import { loadWbwSurah, type WbwSurah } from "@/lib/quranWBW";
 import toast from "react-hot-toast";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -394,6 +395,18 @@ export function MushafPage() {
   const [inlineTafseerData, setInlineTafseerData] = React.useState<Record<number, string[]>>({});
   const [inlineTafseerLoading, setInlineTafseerLoading] = React.useState(false);
 
+  // Phase 2A: Word-by-word translation
+  const [wbwMode, setWbwModeState] = React.useState(() => prefs.mushafWbwMode ?? false);
+  const setWbwMode = React.useCallback((v: boolean | ((prev: boolean) => boolean)) => {
+    setWbwModeState((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      setPrefs({ mushafWbwMode: next });
+      return next;
+    });
+  }, [setPrefs]);
+  const [wbwData, setWbwData] = React.useState<Record<number, WbwSurah>>({});
+  const [wbwLoading, setWbwLoading] = React.useState(false);
+
   // Q17: In-page search
   const [inPageSearch, setInPageSearch] = React.useState("");
   const [showSearch, setShowSearch] = React.useState(false);
@@ -603,6 +616,26 @@ export function MushafPage() {
   React.useEffect(() => {
     setInlineTafseerData({});
   }, [inlineTafseerSource]);
+
+  // Phase 2A: Fetch word-by-word data for all surahs on current page
+  React.useEffect(() => {
+    if (!wbwMode) return;
+    const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
+    const toFetch = surahIds.filter((sid) => !wbwData[sid]);
+    if (toFetch.length === 0) return;
+    setWbwLoading(true);
+    Promise.all(toFetch.map((sid) => loadWbwSurah(sid).then((data) => ({ sid, data }))))
+      .then((results) => {
+        setWbwData((prev) => {
+          const upd = { ...prev };
+          for (const { sid, data } of results) upd[sid] = data;
+          return upd;
+        });
+      })
+      .catch(() => toast.error("تعذر تحميل الترجمة كلمة بكلمة"))
+      .finally(() => setWbwLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wbwMode, currentPage]);
 
   // Q11-B: Fetch tafseer for popup when tafsirItem opens (works even when inline tafseer is OFF)
   React.useEffect(() => {
@@ -990,6 +1023,15 @@ export function MushafPage() {
         >
           <Languages size={16} />
         </button>
+        {/* Phase 2A: Word-by-word toggle */}
+        <button
+          className={`mushaf-chrome-icon-btn${wbwMode ? " active" : ""}`}
+          title="ترجمة كلمة بكلمة"
+          aria-label="كلمة بكلمة"
+          onClick={(e) => { e.stopPropagation(); setWbwMode((v) => !v); }}
+        >
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "-0.5px", fontFamily: "system-ui" }}>W</span>
+        </button>
         <button
           className={`mushaf-chrome-icon-btn${memorizationMode ? " active" : ""}`}
           title={memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ"}
@@ -1162,6 +1204,8 @@ export function MushafPage() {
                     const transText = showTranslation ? (translationData[item.surahId]?.[item.originalAyah] ?? "") : "";
                     // Q11-B: Inline tafseer text
                     const tafseerText = inlineTafseer ? (inlineTafseerData[item.surahId]?.[item.originalAyah] ?? "") : "";
+                    // Phase 2A: Word-by-word data for this ayah (1-indexed array)
+                    const wbwVerse = wbwMode ? (wbwData[item.surahId]?.[item.originalAyah] ?? null) : null;
                     // M1: Real-time playing highlight
                     const isPlaying = playingKey === k;
 
@@ -1185,15 +1229,28 @@ export function MushafPage() {
                           handleAyahTap(e, item);
                         }}
                       >
-                        {item.text}
+                        {/* Phase 2A: Word-by-word ruby tags OR plain text */}
+                        {wbwVerse ? (
+                          wbwVerse.map((word, wi) => (
+                            <ruby key={wi} className="mushaf-wbw-ruby">
+                              {word.ar}
+                              <rt className="mushaf-wbw-rt">{word.tr}</rt>
+                            </ruby>
+                          ))
+                        ) : (
+                          item.text
+                        )}
+                        {wbwMode && wbwLoading && !wbwVerse ? (
+                          <span className="mushaf-wbw-loading">⋯</span>
+                        ) : null}
                         {"\u200F"}
                         <span className={`mushaf-ayah-num${isBookmarked ? " bookmarked" : ""}${isLastRead ? " last-read" : ""}`}>
                           ﴿{toArabicNumeral(item.displayAyah)}﴾
                         </span>
                         {isSajda && <span className="mushaf-sajda-badge" title="سجدة تلاوة">ۖ</span>}
                         {" "}
-                        {/* Q3: Inline translation */}
-                        {transText ? (
+                        {/* Q3: Inline translation (only show if wbw mode is off) */}
+                        {!wbwVerse && transText ? (
                           <span className="mushaf-trans-inline" dir="ltr">{transText}</span>
                         ) : null}
                       </span>
@@ -1686,6 +1743,21 @@ export function MushafPage() {
                 role="switch" aria-checked={showTranslation}
               >
                 <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${showTranslation ? "right-0.5" : "right-5"}`} />
+              </button>
+            </div>
+
+            {/* Phase 2A: Word-by-word translation */}
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="text-xs opacity-65">ترجمة كلمة بكلمة</div>
+                <div className="text-[10px] opacity-40">ترجمة فورية لكل كلمة</div>
+              </div>
+              <button
+                onClick={() => setWbwMode((v) => !v)}
+                className={`relative w-10 h-5 rounded-full transition ${wbwMode ? "bg-[var(--accent)]" : "bg-white/20"}`}
+                role="switch" aria-checked={wbwMode}
+              >
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${wbwMode ? "right-0.5" : "right-5"}`} />
               </button>
             </div>
 

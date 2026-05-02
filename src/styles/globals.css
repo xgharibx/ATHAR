@@ -2664,6 +2664,28 @@ header {
   padding: 0 0.25em;
 }
 
+/* Phase 2A: Word-by-word ruby tags */
+.mushaf-wbw-ruby {
+  display: inline-ruby;
+  margin-inline: 0.08em;
+  line-height: 2.6;
+}
+.mushaf-wbw-rt {
+  display: block ruby-text;
+  font-size: 0.42em;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  direction: ltr;
+  color: color-mix(in srgb, var(--text) 55%, transparent);
+  letter-spacing: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.mushaf-wbw-loading {
+  opacity: 0.4;
+  font-size: 0.7em;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
 /* Audio bar */
 .mushaf-audio-bar {
   position: fixed;

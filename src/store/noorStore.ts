@@ -46,6 +46,7 @@ export type Preferences = {
   quranMushafPage?: number; // last-read mushaf page (1-604)
   mushafFontScale?: number; // mushaf reader font scale 0.7–1.6
   mushafInlineTafseer?: boolean; // persist inline tafseer toggle
+  mushafWbwMode?: boolean; // persist word-by-word translation toggle
   showBenefits: boolean;
   stripDiacritics: boolean;
   enable3D: boolean;
