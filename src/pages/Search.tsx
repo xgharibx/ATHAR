@@ -1,7 +1,7 @@
 import * as React from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
-import { Search, ArrowUpRight, X, BookOpen, LibraryBig } from "lucide-react";
+import { Search, ArrowUpRight, X, BookOpen, LibraryBig, ScrollText, Loader2 } from "lucide-react";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useQuranDB } from "@/data/useQuranDB";
@@ -16,6 +16,8 @@ import type { FlatLibraryEntry } from "@/data/libraryTypes";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { cn } from "@/lib/utils";
 import { stripDiacritics } from "@/lib/arabic";
+import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview } from "@/data/hadithTypes";
+import { useHadithPack } from "@/data/useHadithBook";
 
 // --- Recent searches helpers ---
 const RECENT_KEY = "noor_recent_searches";
@@ -43,10 +45,11 @@ export function SearchPage() {
   const { data: libraryData } = useIslamicLibraryDB();
   const navigate = useNavigate();
   const [q, setQ] = React.useState("");
-  const [searchTab, setSearchTab] = React.useState<"adhkar" | "quran" | "library">("adhkar");
+  const [searchTab, setSearchTab] = React.useState<"adhkar" | "quran" | "library" | "hadith">("adhkar");
   const [recentSearches, setRecentSearches] = React.useState<string[]>(() => loadRecent());
   const [sectionFilter, setSectionFilter] = React.useState<string | null>(null);
   const [libraryFilter, setLibraryFilter] = React.useState<string | null>(null);
+  const [hadithBookKey, setHadithBookKey] = React.useState<string>("nawawi");
 
   const fuse = React.useMemo(() => {
     if (!data) return null;
@@ -159,7 +162,24 @@ export function SearchPage() {
   }, [libraryData, libraryFuse, q]);
   // ─────────────────────────────────────────────────────────────────────────
 
-  // Save search term after user gets results
+  // ── Hadith search ─────────────────────────────────────────────────────────
+  const { data: hadithPack, isLoading: hadithLoading } = useHadithPack(
+    searchTab === "hadith" ? hadithBookKey : undefined,
+  );
+
+  const hadithResults = React.useMemo(() => {
+    if (!hadithPack || !q.trim()) return [];
+    const term = stripDiacritics(q.trim());
+    const hits: Array<{ n: number; a: number; t: string; g: string[] }> = [];
+    for (const h of hadithPack.hadiths) {
+      if (stripDiacritics(h.t).includes(term)) {
+        hits.push(h);
+        if (hits.length >= 50) break;
+      }
+    }
+    return hits;
+  }, [hadithPack, q]);
+  // ─────────────────────────────────────────────────────────────────────────
   React.useEffect(() => {
     if (!q.trim() || q.trim().length < 2 || (results.length + quranResults.length + libraryResults.length) === 0) return;
     const timer = setTimeout(() => setRecentSearches((prev) => pushRecent(q, prev)), 800);
@@ -222,6 +242,17 @@ export function SearchPage() {
             )}
           >
             <LibraryBig size={13} /> المكتبة
+          </button>
+          <button
+            onClick={() => setSearchTab("hadith")}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
+              searchTab === "hadith"
+                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
+                : "bg-white/6 border-white/10 hover:bg-white/10"
+            )}
+          >
+            <ScrollText size={13} /> الأحاديث
           </button>
         </div>
 
@@ -511,6 +542,89 @@ export function SearchPage() {
                 )}
               </button>
             ))}
+          </div>
+        )}
+      </Card>
+      )}
+
+      {/* ── Hadith results ────────────────────────────────────────────────── */}
+      {searchTab === "hadith" && (
+      <Card className="p-5">
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="text-sm font-semibold">بحث في الأحاديث</div>
+          {hadithResults.length > 0 && q.trim() && (
+            <div className="text-xs opacity-55 tabular-nums">{hadithResults.length} نتيجة</div>
+          )}
+        </div>
+
+        {/* Book selector chips */}
+        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar mb-3">
+          {HADITH_BOOKS_STATIC.map((book) => (
+            <button
+              key={book.key}
+              onClick={() => setHadithBookKey(book.key)}
+              className={cn(
+                "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
+                hadithBookKey === book.key
+                  ? "text-white border-transparent"
+                  : "bg-white/6 border-white/10 hover:bg-white/10"
+              )}
+              style={hadithBookKey === book.key ? { background: book.color } : {}}
+            >
+              {book.title}
+            </button>
+          ))}
+        </div>
+
+        {!q.trim() ? (
+          <div className="flex flex-col items-center text-center py-6 gap-2">
+            <ScrollText size={32} className="opacity-20" />
+            <div className="text-sm opacity-55 font-arabic">اكتب كلمة للبحث في الكتاب المختار</div>
+          </div>
+        ) : hadithLoading ? (
+          <div className="flex items-center justify-center gap-2 py-8 text-[var(--muted)]">
+            <Loader2 size={18} className="animate-spin" />
+            <span className="text-sm font-arabic">جاري تحميل الكتاب…</span>
+          </div>
+        ) : hadithResults.length === 0 ? (
+          <EmptyState
+            variant="search"
+            title={`لا توجد نتائج لـ «${q}»`}
+            description="جرّب كلمة مختلفة أو اختر كتاباً آخر"
+          />
+        ) : (
+          <div className="space-y-2">
+            {hadithResults.map((h) => {
+              const book = HADITH_BOOKS_STATIC.find((b) => b.key === hadithBookKey);
+              const gradeColor: Record<string, string> = { sahih: "#10b981", hasan: "#3b82f6", daif: "#ef4444", maudu: "#6b7280" };
+              const g = h.g[0] ?? "";
+              const color = gradeColor[g] ?? "#6b7280";
+              return (
+                <button
+                  key={h.n}
+                  dir="rtl"
+                  onClick={() => navigate(`/hadith/${hadithBookKey}/${h.n}`)}
+                  className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                        style={{ background: color + "22", color }}
+                      >
+                        {hadithGradeLabel(g)}
+                      </span>
+                      <span className="text-xs opacity-45 font-arabic shrink-0">{book?.title}</span>
+                      <span className="text-xs opacity-45">ح{h.a}</span>
+                    </div>
+                    <ArrowUpRight size={16} className="opacity-55 shrink-0" />
+                  </div>
+                  <div className="mt-2 arabic-text text-sm leading-7 opacity-80">
+                    {hadithPreview(h.t, 200)}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </Card>

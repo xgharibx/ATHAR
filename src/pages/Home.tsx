@@ -895,15 +895,25 @@ export function HomePage() {
               >
                 {todayHadith.arabic}
               </div>
-              <div className="flex items-center gap-2 justify-end">
-                <span className="text-xs opacity-60" style={{ color: "var(--fg)" }}>{todayHadith.narrator}</span>
-                <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
-                <span
-                  className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                  style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate("/hadith")}
+                  className="text-xs flex items-center gap-1 opacity-60 hover:opacity-90 transition"
+                  style={{ color: "var(--accent)" }}
                 >
-                  {todayHadith.source}
-                </span>
+                  المكتبة الحديثية ←
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs opacity-60" style={{ color: "var(--fg)" }}>{todayHadith.narrator}</span>
+                  <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
+                  <span
+                    className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                    style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
+                  >
+                    {todayHadith.source}
+                  </span>
+                </div>
               </div>
             </Card>
           );
