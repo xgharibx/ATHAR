@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   ChevronDown,
   MoreVertical,
-  ExternalLink,
 } from "lucide-react";
 
 import pulse from "@/assets/noor-pulse.json";
@@ -274,18 +273,6 @@ export function HomePage() {
   const yesterdayKey = React.useMemo(() => shiftDateKey(worshipDayKey, -1), [worshipDayKey]);
   const dailyChecklistYesterday = useNoorStore((s) => s.dailyChecklist[yesterdayKey] ?? {});
   const toggleDailyChecklist = useNoorStore((s) => s.toggleDailyChecklist);
-
-  const dailyCarouselItems = React.useMemo(() => {
-    const cards: Array<{ section: (typeof sections)[number]; item: (typeof sections)[number]["content"][number]; label: string }> = [];
-    const section = sections.find((candidate) => candidate.id === "forgotten_sunnahs");
-    if (!section || section.content.length === 0) return cards;
-
-    const startIndex = dateIndex(worshipDayKey, section.content.length);
-    const item = section.content[startIndex % section.content.length];
-    cards.push({ section, item, label: "سنّة مهجورة" });
-
-    return cards;
-  }, [sections, worshipDayKey]);
 
   React.useEffect(() => {
     if (!dailyWirdStartISO) {
@@ -786,44 +773,35 @@ export function HomePage() {
         </div>
       )}
 
-      {dailyCarouselItems.length > 0 && (
-        <Card className="p-4">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <div className="text-sm font-semibold">سنن مهجورة اليوم</div>
-            <Badge>تتجدد مع الفجر</Badge>
-          </div>
-          {dailyCarouselItems.map(({ section, item, label }) => (
-            <article
-              key={`${section.id}:${item.text.slice(0, 18)}`}
-              className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3"
+      {(() => {
+        const todayHadith = HADITHS[dateIndex(civilTodayKey, HADITHS.length)];
+        if (!todayHadith) return null;
+        return (
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-base">📿</span>
+              <div className="text-sm font-semibold">حديث اليوم</div>
+              <Badge>يتجدد يومياً</Badge>
+            </div>
+            <div
+              className="text-base leading-9 text-right mb-2 font-medium arabic-text"
+              style={{ color: "var(--fg)" }}
             >
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold opacity-55">{label}</span>
-                {item.source_url ? (
-                  <a
-                    href={item.source_url || "https://dorar.net/hadith"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="فتح المصدر"
-                    className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/7 px-2.5 py-2 text-[11px] font-semibold hover:bg-white/10 transition"
-                  >
-                    <ExternalLink size={12} />
-                    الدرر
-                  </a>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate(`/c/${section.id}`)}
-                className="w-full text-right arabic-text text-sm md:text-base font-semibold leading-8 line-clamp-4 hover:text-[var(--accent)] transition"
+              {todayHadith.arabic}
+            </div>
+            <div className="flex items-center gap-2 justify-end">
+              <span className="text-xs opacity-60">{todayHadith.narrator}</span>
+              <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
+              <span
+                className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
               >
-                {item.text}
-              </button>
-              {item.benefit ? <div className="text-xs opacity-60 leading-6 line-clamp-2">{item.benefit}</div> : null}
-            </article>
-          ))}
-        </Card>
-      )}
+                {todayHadith.source}
+              </span>
+            </div>
+          </Card>
+        );
+      })()}
 
       {/* ── Islamic season banner ── */}
       <IslamicSeasonBanner />
@@ -833,6 +811,7 @@ export function HomePage() {
           return homeWidgets.prayer ? <PrayerWidget key="prayer" /> : null;
         }
         if (widgetKey === "hadith") {
+<<<<<<< HEAD
           if (!homeWidgets.hadith) return null;
           const todayHadith = HADITHS[dateIndex(civilTodayKey, HADITHS.length)];
           if (!todayHadith) return null;
@@ -871,6 +850,8 @@ export function HomePage() {
               </div>
             </Card>
           );
+          // حديث اليوم is now rendered above in a fixed position — skip in loop
+          return null;
         }
         if (widgetKey === "wisdom") {
           return homeWidgets.wisdom ? <DailyWisdomCard key="wisdom" dateKey={worshipDayKey} /> : null;
