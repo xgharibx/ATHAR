@@ -13,7 +13,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels } from "@/lib/reminders";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 
-// T7: Per-route error boundary � prevents a single page crash from killing the whole app
+// T7: Per-route error boundary - prevents a single page crash from killing the whole app
 class RouteErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean }
@@ -24,13 +24,13 @@ class RouteErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div dir="rtl" className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6 text-center">
-          <div className="text-2xl">??</div>
-          <div className="text-base font-semibold opacity-90">??? ??? ?? ??? ??????</div>
+          <div className="text-2xl">!</div>
+          <div className="text-base font-semibold opacity-90">حدث خطأ في هذه الصفحة</div>
           <button
             className="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-sm"
             onClick={() => this.setState({ hasError: false })}
           >
-            ????? ????????
+            إعادة المحاولة
           </button>
         </div>
       );

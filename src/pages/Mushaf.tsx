@@ -14,6 +14,15 @@ import { useNoorStore } from "@/store/noorStore";
 import { getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
 import { stripDiacritics } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
+import {
+  getRadioState,
+  playRadio,
+  QURAN_RADIO_STATIONS,
+  selectRadioStation,
+  stopRadio,
+  subscribeRadio,
+  toggleRadio as toggleSharedRadio,
+} from "@/lib/radioPlayer";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import toast from "react-hot-toast";
@@ -62,14 +71,11 @@ const SAJDA_AYAHS = new Set([
   "27:26","32:15","38:24","41:38","53:62","84:21","96:19",
 ]);
 
-// A4: Quran Radio stations (public mp3quran.net streams)
-const QURAN_RADIO_STATIONS: Array<{ label: string; url: string }> = [
-  { label: "راديو القرآن الكريم",  url: "https://stream.radiojar.com/0tpy1h0kxtzuv" },
-  { label: "مشاري العفاسي",        url: "https://backup.qurango.net/radio/mishary_alafasi" },
-  { label: "سعد الغامدي",          url: "https://backup.qurango.net/radio/saad_alghamdi" },
-  { label: "ياسر الدوسري",         url: "https://backup.qurango.net/radio/yasser_aldosari" },
-  { label: "ماهر المعيقلي",        url: "https://backup.qurango.net/radio/maher" },
-];
+function useRadioState() {
+  const [state, setState] = React.useState(getRadioState);
+  React.useEffect(() => subscribeRadio(() => setState(getRadioState())), []);
+  return state;
+}
 
 // ── M5: Dial wheel component for page jump ───────────────────
 function DialWheel({ current, total, onConfirm }: {
@@ -482,10 +488,7 @@ export function MushafPage() {
   const [cacheProgress, setCacheProgress] = React.useState<{ done: number; total: number } | null>(null);
 
   // A4: Quran Radio
-  const [showRadio, setShowRadio] = React.useState(false);
-  const [radioPlaying, setRadioPlaying] = React.useState(false);
-  const radioAudioRef = React.useRef<HTMLAudioElement | null>(null);
-  const [radioStationIdx, setRadioStationIdx] = React.useState(0);
+  const radioState = useRadioState();
 
   // A5: Sleep timer
   const [sleepMinutes, setSleepMinutes] = React.useState(0);
@@ -923,31 +926,18 @@ export function MushafPage() {
   }, [playingKey, pageSurahName, prefs.quranReciter, currentPage, playableItems]);
 
   // A4: Radio control functions
-  const toggleRadio = React.useCallback(() => {
-    if (radioPlaying) {
-      radioAudioRef.current?.pause();
-      setRadioPlaying(false);
-    } else {
+  const handleRadioToggle = React.useCallback(() => {
+    if (!radioState.playing) {
       if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlayingKey(null); }
-      const station = QURAN_RADIO_STATIONS[radioStationIdx];
-      if (!station) return;
-      if (!radioAudioRef.current || radioAudioRef.current.src !== station.url) {
-        if (radioAudioRef.current) radioAudioRef.current.pause();
-        radioAudioRef.current = new Audio(station.url);
-        radioAudioRef.current.onerror = () => { toast.error("تعذر تشغيل الراديو"); setRadioPlaying(false); };
-      }
-      radioAudioRef.current.play()
-        .then(() => setRadioPlaying(true))
-        .catch(() => { toast.error("تعذر تشغيل الراديو"); setRadioPlaying(false); });
+      audioPlayRef.current.active = false;
     }
-  }, [radioPlaying, radioStationIdx]);
+    toggleSharedRadio();
+  }, [radioState.playing]);
 
-  const selectRadioStation = React.useCallback((idx: number) => {
-    setRadioStationIdx(idx);
-    if (radioAudioRef.current) { radioAudioRef.current.pause(); radioAudioRef.current = null; }
-    setRadioPlaying(false);
-  }, []);
-  React.useEffect(() => () => { radioAudioRef.current?.pause(); }, []);
+  const handleRadioStationSelect = React.useCallback((idx: number) => {
+    selectRadioStation(idx);
+    if (radioState.playing) playRadio(idx);
+  }, [radioState.playing]);
 
   // A5: Sleep timer
   const activateSleepTimer = React.useCallback((minutes: number) => {
@@ -964,8 +954,7 @@ export function MushafPage() {
           audioPlayRef.current.active = false;
           if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
           setPlayingKey(null);
-          radioAudioRef.current?.pause();
-          setRadioPlaying(false);
+          stopRadio();
           toast.success("🌙 انتهى مؤقت النوم — تم إيقاف التلاوة");
           return 0;
         }
@@ -1998,16 +1987,16 @@ export function MushafPage() {
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs opacity-50 flex items-center gap-1"><Radio size={12} />راديو القرآن</span>
                 <button
-                  onClick={toggleRadio}
-                  className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioPlaying ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
-                >{radioPlaying ? "⏹ إيقاف" : "▶ تشغيل"}</button>
+                  onClick={handleRadioToggle}
+                  className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioState.playing ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                >{radioState.loading ? "جارٍ التشغيل…" : radioState.playing ? "⏹ إيقاف" : "▶ تشغيل"}</button>
               </div>
               <div className="flex gap-1 flex-wrap">
                 {QURAN_RADIO_STATIONS.map((st, i) => (
                   <button
                     key={i}
-                    onClick={() => selectRadioStation(i)}
-                    className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioStationIdx === i ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                    onClick={() => handleRadioStationSelect(i)}
+                    className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioState.stationIdx === i ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
                   >{st.label}</button>
                 ))}
               </div>
