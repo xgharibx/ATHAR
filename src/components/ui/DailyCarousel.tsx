@@ -83,7 +83,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           style={{
             display: "flex",
             width: "100%",
-            transform: `translateX(${activeIdx * -100}%)`,
+            transform: `translateX(${activeIdx * 100}%)`,
             transition: "transform 0.35s ease",
           }}
         >
