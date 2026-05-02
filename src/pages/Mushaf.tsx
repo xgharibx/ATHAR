@@ -4,7 +4,7 @@ import {
   ArrowRight, Bookmark, Globe, MoreVertical, Play, Pause,
   ChevronDown, Copy, Share2, VolumeX, Volume2, X, Pencil,
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2, Repeat2,
-  Eye, EyeOff, CheckCircle2, Languages, Search, HelpCircle,
+  Eye, EyeOff, CheckCircle2, Languages, Search,
   Repeat, SkipForward, ArrowUpRight, Settings, Info, Shuffle,
   Radio, Timer, Download, SlidersHorizontal,
 } from "lucide-react";
@@ -64,11 +64,11 @@ const SAJDA_AYAHS = new Set([
 
 // A4: Quran Radio stations (public mp3quran.net streams)
 const QURAN_RADIO_STATIONS: Array<{ label: string; url: string }> = [
-  { label: "راديو القرآن",         url: "https://media.mp3quran.net/quran/radio/" },
-  { label: "مشاري العفاسي",        url: "https://media.mp3quran.net/alafasy/radio/" },
-  { label: "سعد الغامدي",          url: "https://media.mp3quran.net/ghamadi/radio/" },
-  { label: "ياسر الدوسري",         url: "https://media.mp3quran.net/yasser/radio/" },
-  { label: "ماهر المعيقلي",        url: "https://media.mp3quran.net/maher/radio/" },
+  { label: "راديو القرآن الكريم",  url: "https://stream.radiojar.com/0tpy1h0kxtzuv" },
+  { label: "مشاري العفاسي",        url: "https://backup.qurango.net/radio/mishary_alafasi" },
+  { label: "سعد الغامدي",          url: "https://backup.qurango.net/radio/saad_alghamdi" },
+  { label: "ياسر الدوسري",         url: "https://backup.qurango.net/radio/yasser_aldosari" },
+  { label: "ماهر المعيقلي",        url: "https://backup.qurango.net/radio/maher" },
 ];
 
 // ── M5: Dial wheel component for page jump ───────────────────
@@ -416,8 +416,7 @@ export function MushafPage() {
   const [inPageSearch, setInPageSearch] = React.useState("");
   const [showSearch, setShowSearch] = React.useState(false);
 
-  // Q21: Keyboard shortcuts modal
-  const [showShortcuts, setShowShortcuts] = React.useState(false);
+
 
   // Q15: Surah info panel
   const [showSurahInfo, setShowSurahInfo] = React.useState(false);
@@ -739,11 +738,9 @@ export function MushafPage() {
       else if (e.key === "m") setMemorizationMode((v) => { if (v) setRevealedItems(new Set()); return !v; });
       else if (e.key === "t") setShowTranslation((v) => !v);
       else if (e.key === "/") { e.preventDefault(); setShowSearch((v) => !v); }
-      else if (e.key === "?") setShowShortcuts((v) => !v);
       else if (e.key === "s") setShowSettings((v) => !v);
       else if (e.key === "Escape") {
         if (showSettings) { setShowSettings(false); return; }
-        if (showShortcuts) { setShowShortcuts(false); return; }
         if (showSearch) { setShowSearch(false); setInPageSearch(""); return; }
         if (tafsirItem) { setTafsirItem(null); return; }
         if (showJump) { setShowJump(false); return; }
@@ -754,7 +751,7 @@ export function MushafPage() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [currentPage, goPage, navigate, noteSheetOpen, selectedItem, showJump, showSettings, showShortcuts, showSearch, tafsirItem]);
+  }, [currentPage, goPage, navigate, noteSheetOpen, selectedItem, showJump, showSettings, showSearch, tafsirItem]);
 
   // Share selected ayah
   const doShare = async () => {
@@ -1012,6 +1009,12 @@ export function MushafPage() {
         <div className="mushaf-chrome-info" onClick={(e) => e.stopPropagation()}>
           <div className="mushaf-chrome-surah-name">{pageSurahName || pageSurahEnglish}</div>
           <div className="mushaf-chrome-meta">صفحة {toArabicNumeral(currentPage)} · الجزء {toArabicNumeral(pageJuz)}</div>
+        </div>
+        {/* Font scale controls in toolbar */}
+        <div className="flex items-center shrink-0" onClick={(e) => e.stopPropagation()}>
+          <button className="mushaf-chrome-icon-btn !p-1" title="تصغير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}><ZoomOut size={13} /></button>
+          <span className="text-[10px] opacity-50 tabular-nums w-7 text-center select-none">{Math.round(fontScale * 100)}%</span>
+          <button className="mushaf-chrome-icon-btn !p-1" title="تكبير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}><ZoomIn size={13} /></button>
         </div>
         {/* Phase 2B: Tajweed color toggle */}
         <button
@@ -1686,7 +1689,7 @@ export function MushafPage() {
               <span className="text-xs opacity-65">الترجمة الإنجليزية</span>
               <button
                 onClick={() => setShowTranslation((v) => !v)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${showTranslation ? "bg-[var(--accent)]" : "bg-white/10 ring-1 ring-white/20"}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${showTranslation ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                 role="switch" aria-checked={showTranslation}
               >
                 <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${showTranslation ? "right-1" : "right-7"}`} />
@@ -1701,7 +1704,7 @@ export function MushafPage() {
               </div>
               <button
                 onClick={() => setTajweedMode((v) => !v)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${tajweedMode ? "bg-[var(--accent)]" : "bg-white/10 ring-1 ring-white/20"}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${tajweedMode ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                 role="switch" aria-checked={tajweedMode}
               >
                 <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${tajweedMode ? "right-1" : "right-7"}`} />
@@ -1725,7 +1728,7 @@ export function MushafPage() {
                 </div>
                 <button
                   onClick={() => setInlineTafseer((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${inlineTafseer ? "bg-[var(--accent)]" : "bg-white/10 ring-1 ring-white/20"}`}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${inlineTafseer ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={inlineTafseer}
                 >
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${inlineTafseer ? "right-1" : "right-7"}`} />
@@ -1775,7 +1778,7 @@ export function MushafPage() {
                 <span className="text-xs opacity-50">تكرار الآية</span>
                 <button
                   onClick={() => setLoopEnabled((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${loopEnabled ? "bg-[var(--accent)]" : "bg-white/10 ring-1 ring-white/20"}`}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${loopEnabled ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={loopEnabled}
                 >
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${loopEnabled ? "right-1" : "right-7"}`} />
@@ -1798,7 +1801,7 @@ export function MushafPage() {
               <span className="text-xs opacity-65">تقدم تلقائي للآية التالية</span>
               <button
                 onClick={() => setAutoAdvance((v) => !v)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${autoAdvance ? "bg-[var(--accent)]" : "bg-white/10 ring-1 ring-white/20"}`}
+                className={`relative w-12 h-6 rounded-full transition-colors ${autoAdvance ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                 role="switch" aria-checked={autoAdvance}
               >
                 <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${autoAdvance ? "right-1" : "right-7"}`} />
@@ -1815,7 +1818,7 @@ export function MushafPage() {
                       setLoopRange(on);
                       if (on) { setLoopRangeStartIdx(0); setLoopRangeEndIdx(Math.max(0, playableItems.length - 1)); }
                     }}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${loopRange ? "bg-[var(--accent)]" : "bg-white/10 ring-1 ring-white/20"}`}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${loopRange ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                     role="switch" aria-checked={loopRange}
                   >
                     <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${loopRange ? "right-1" : "right-7"}`} />
@@ -1939,7 +1942,7 @@ export function MushafPage() {
                 <span className="text-xs opacity-50 flex items-center gap-1"><SlidersHorizontal size={12} />المعادل الصوتي</span>
                 <button
                   onClick={() => setEqEnabled((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${eqEnabled ? "bg-[var(--accent)]" : "bg-white/10 ring-1 ring-white/20"}`}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${eqEnabled ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={eqEnabled}
                 >
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${eqEnabled ? "right-1" : "right-7"}`} />
@@ -2023,26 +2026,11 @@ export function MushafPage() {
                     <div className="text-[10px] opacity-40">{sub}</div>
                   </div>
                 </div>
-                <div className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${active ? "bg-[var(--accent)]" : "bg-white/10 ring-1 ring-white/20"}`}>
+                <div className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${active ? "bg-[var(--accent)]" : "bg-red-500/25 ring-1 ring-red-500/30"}`}>
                   <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${active ? "right-1" : "right-7"}`} />
                 </div>
               </button>
             ))}
-
-            {/* ── Font size ── */}
-            <div className="flex items-center justify-between py-3.5 px-1 border-b" style={{ borderColor: "rgba(255,255,255,0.07)" }}>
-              <div className="flex items-center gap-3">
-                <span className="opacity-55"><ZoomIn size={16} /></span>
-                <div className="text-right">
-                  <div className="text-sm">حجم الخط</div>
-                  <div className="text-[10px] opacity-40">{Math.round(fontScale * 100)}٪</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button className="mushaf-btn-secondary !px-2.5 !py-1.5" onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}><ZoomOut size={14} /></button>
-                <button className="mushaf-btn-secondary !px-2.5 !py-1.5" onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}><ZoomIn size={14} /></button>
-              </div>
-            </div>
 
             {/* ── Mark page reviewed ── */}
             <button
@@ -2070,19 +2058,6 @@ export function MushafPage() {
               </div>
             </button>
 
-            {/* ── Keyboard shortcuts ── */}
-            <button
-              className="w-full flex items-center gap-3 py-3.5 px-1 border-b text-right transition"
-              style={{ borderColor: "rgba(255,255,255,0.07)" }}
-              onClick={() => { setShowShortcuts(true); setShowMoreSheet(false); }}
-            >
-              <span className="opacity-55"><HelpCircle size={16} /></span>
-              <div>
-                <div className="text-sm">اختصارات لوحة المفاتيح</div>
-                <div className="text-[10px] opacity-40">عرض جميع الاختصارات المتاحة</div>
-              </div>
-            </button>
-
             {/* ── Reading plans ── */}
             <button
               className="w-full flex items-center gap-3 py-3.5 px-1 text-right transition"
@@ -2098,39 +2073,7 @@ export function MushafPage() {
         </>
       )}
 
-      {/* ── Q21: Keyboard shortcuts modal ──────────────── */}
-      {showShortcuts && (
-        <>
-          <div className="mushaf-overlay" onClick={() => setShowShortcuts(false)} />
-          <div
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-[90vw] max-w-sm"
-            style={{ background: "var(--glass-bg,rgba(18,22,30,0.95))", borderRadius: 24, border: "1px solid rgba(255,255,255,0.1)", padding: 20 }}
-            onClick={(e) => e.stopPropagation()} dir="rtl"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold opacity-80">اختصارات لوحة المفاتيح</span>
-              <button className="mushaf-icon-close" onClick={() => setShowShortcuts(false)}><X size={14} /></button>
-            </div>
-            <div className="space-y-2 text-sm">
-              {([
-                ["←", "الصفحة التالية"],
-                ["→", "الصفحة السابقة"],
-                ["m", "وضع الحفظ"],
-                ["t", "عرض الترجمة"],
-                ["/", "بحث في الصفحة"],
-                ["s", "إعدادات"],
-                ["?", "هذه القائمة"],
-                ["Esc", "إغلاق / رجوع"],
-              ] as [string, string][]).map(([key, desc]) => (
-                <div key={key} className="flex items-center justify-between gap-3 opacity-80">
-                  <kbd className="px-2 py-0.5 rounded-lg bg-white/10 text-xs font-mono shrink-0">{key}</kbd>
-                  <span className="text-xs flex-1 text-right">{desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+
     </div>
   );
 }
