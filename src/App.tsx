@@ -78,6 +78,8 @@ const LibraryItemPage = React.lazy(() => import("@/pages/LibraryItem").then((m) 
 const HadithBooksPage = React.lazy(() => import("@/pages/HadithBooks").then((m) => ({ default: m.HadithBooksPage })));
 const HadithBookViewPage = React.lazy(() => import("@/pages/HadithBookView").then((m) => ({ default: m.HadithBookViewPage })));
 const HadithReaderPage = React.lazy(() => import("@/pages/HadithReader").then((m) => ({ default: m.HadithReaderPage })));
+const CompanionsPage = React.lazy(() => import("@/pages/Companions"));
+const SeerahPage = React.lazy(() => import("@/pages/SeerahTimeline"));
 
 export default function App() {
   useApplyTheme();
@@ -233,6 +235,8 @@ export default function App() {
           <Route path="hadith" element={<S><HadithBooksPage /></S>} />
           <Route path="hadith/:bookKey" element={<S><HadithBookViewPage /></S>} />
           <Route path="hadith/:bookKey/:hadithNumber" element={<S><HadithReaderPage /></S>} />
+          <Route path="companions" element={<S><CompanionsPage /></S>} />
+          <Route path="seerah" element={<S><SeerahPage /></S>} />
           <Route path="*" element={<S><NotFoundPage /></S>} />
         </Route>
       </Routes>

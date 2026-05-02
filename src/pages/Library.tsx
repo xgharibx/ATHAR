@@ -1,7 +1,7 @@
 import * as React from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, BookOpenText, Check, Copy, ExternalLink, Heart, Library, Search, Share2, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpenText, Check, Clock, Copy, ExternalLink, Heart, Library, Search, Share2, Sparkles, Users } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Badge } from "@/components/ui/Badge";
@@ -283,6 +283,52 @@ export function LibraryPage() {
           <p className="font-bold text-sm text-[var(--fg)] font-arabic">الكتب الحديثية</p>
           <p className="text-xs text-[var(--muted)] mt-0.5 font-arabic">
             9 كتب • أكثر من 36,000 حديث نبوي شريف
+          </p>
+        </div>
+        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" />
+      </button>
+
+      {/* Companions entry card */}
+      <button
+        type="button"
+        dir="rtl"
+        onClick={() => navigate("/companions")}
+        className="w-full text-right rounded-2xl p-4 flex items-center gap-4 transition active:scale-95"
+        style={{ background: "linear-gradient(135deg, #f59e0b22, #ef444422)", border: "1px solid #f59e0b33" }}
+      >
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: "#f59e0b22" }}
+        >
+          <Users size={22} style={{ color: "#f59e0b" }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-sm text-[var(--fg)] font-arabic">الصحابة الكرام</p>
+          <p className="text-xs text-[var(--muted)] mt-0.5 font-arabic">
+            20 صحابيًا • سيَر موجزة لأصحاب النبي ﷺ
+          </p>
+        </div>
+        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" />
+      </button>
+
+      {/* Seerah timeline entry card */}
+      <button
+        type="button"
+        dir="rtl"
+        onClick={() => navigate("/seerah")}
+        className="w-full text-right rounded-2xl p-4 flex items-center gap-4 transition active:scale-95"
+        style={{ background: "linear-gradient(135deg, #8b5cf622, #06b6d422)", border: "1px solid #8b5cf633" }}
+      >
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: "#8b5cf622" }}
+        >
+          <Clock size={22} style={{ color: "#8b5cf6" }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-sm text-[var(--fg)] font-arabic">السيرة النبوية</p>
+          <p className="text-xs text-[var(--muted)] mt-0.5 font-arabic">
+            21 حدثًا • رحلة حياة النبي ﷺ على خط الزمن
           </p>
         </div>
         <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" />
