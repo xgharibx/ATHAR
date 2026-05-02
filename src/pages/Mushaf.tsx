@@ -357,6 +357,12 @@ export function MushafPage() {
   const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
   const [translationLoading, setTranslationLoading] = React.useState(false);
 
+  // Q11-B: Inline tafseer mode (قراءة mode)
+  const [inlineTafseer, setInlineTafseer] = React.useState(false);
+  const [inlineTafseerSource, setInlineTafseerSource] = React.useState<"muyassar" | "jalalayn">("muyassar");
+  const [inlineTafseerData, setInlineTafseerData] = React.useState<Record<number, string[]>>({});
+  const [inlineTafseerLoading, setInlineTafseerLoading] = React.useState(false);
+
   // Q17: In-page search
   const [inPageSearch, setInPageSearch] = React.useState("");
   const [showSearch, setShowSearch] = React.useState(false);
@@ -534,6 +540,38 @@ export function MushafPage() {
     () => (showSearch && inPageSearch ? stripDiacritics(inPageSearch.trim()) : ""),
     [showSearch, inPageSearch]
   );
+
+  // Q11-B: Fetch tafseer for all surahs on current page when inline tafseer is on
+  React.useEffect(() => {
+    if (!inlineTafseer) return;
+    const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
+    const edition = inlineTafseerSource === "jalalayn" ? "ar.jalalayn" : "ar.muyassar";
+    const toFetch = surahIds.filter((sid) => !inlineTafseerData[sid]);
+    if (toFetch.length === 0) return;
+    setInlineTafseerLoading(true);
+    Promise.all(toFetch.map((sid) =>
+      fetch(`https://api.alquran.cloud/v1/surah/${sid}/${edition}`)
+        .then((r) => r.json())
+        .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
+          const ayahs: string[] = [];
+          for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
+          return { sid, ayahs };
+        })
+    )).then((results) => {
+      setInlineTafseerData((prev) => {
+        const upd = { ...prev };
+        for (const { sid, ayahs } of results) upd[sid] = ayahs;
+        return upd;
+      });
+    }).catch(() => toast.error("تعذر تحميل التفسير"))
+      .finally(() => setInlineTafseerLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inlineTafseer, inlineTafseerSource, currentPage]);
+
+  // Q11-B: Clear cached tafseer data when source changes
+  React.useEffect(() => {
+    setInlineTafseerData({});
+  }, [inlineTafseerSource]);
 
   // Page jump
   const [showJump, setShowJump] = React.useState(false);
@@ -1073,9 +1111,12 @@ export function MushafPage() {
                     const isSearchMatch = normalizedSearch ? stripDiacritics(item.text).includes(normalizedSearch) : false;
                     // Q3: Translation text
                     const transText = showTranslation ? (translationData[item.surahId]?.[item.originalAyah] ?? "") : "";
+                    // Q11-B: Inline tafseer text
+                    const tafseerText = inlineTafseer ? (inlineTafseerData[item.surahId]?.[item.originalAyah] ?? "") : "";
                     // M1: Real-time playing highlight
                     const isPlaying = playingKey === k;
-                    return (
+
+                    const ayahSpan = (
                       <span
                         key={k}
                         ref={isPlaying ? (el: HTMLSpanElement | null) => { playingSpanRef.current = el; } : undefined}
@@ -1108,6 +1149,45 @@ export function MushafPage() {
                         ) : null}
                       </span>
                     );
+
+                    // Q11-B: When inline tafseer is on, wrap ayah in block layout with tafseer below
+                    if (inlineTafseer) {
+                      return (
+                        <div key={k} className="w-full mb-3">
+                          {ayahSpan}
+                          <div
+                            className="block w-full mt-1.5 rounded-2xl px-4 py-3 text-sm leading-8 arabic-text text-right"
+                            dir="rtl"
+                            style={{
+                              background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent) 0%, color-mix(in srgb, var(--accent) 3%, transparent) 100%)",
+                              borderRight: "3px solid",
+                              borderColor: "color-mix(in srgb, var(--accent) 40%, transparent)",
+                              borderLeft: "none",
+                              borderTop: "1px solid color-mix(in srgb, var(--accent) 12%, transparent)",
+                              borderBottom: "1px solid color-mix(in srgb, var(--accent) 12%, transparent)",
+                            }}
+                          >
+                            {inlineTafseerLoading && !tafseerText ? (
+                              <span className="flex items-center gap-2 justify-center py-1 opacity-40 text-xs">
+                                <span className="w-3 h-3 border border-white/30 border-t-[var(--accent)] rounded-full animate-spin inline-block" />
+                                جارٍ تحميل التفسير…
+                              </span>
+                            ) : tafseerText ? (
+                              <>
+                                <span className="block text-[10px] font-semibold mb-1 opacity-40" style={{ color: "var(--accent)" }}>
+                                  {inlineTafseerSource === "muyassar" ? "✦ التفسير الميسر" : "✦ تفسير الجلالين"}
+                                </span>
+                                <span className="opacity-85">{tafseerText}</span>
+                              </>
+                            ) : (
+                              <span className="opacity-30 text-xs">لم يُحمَّل التفسير بعد</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return ayahSpan;
                   })}
               </div>
             </React.Fragment>
@@ -1450,6 +1530,50 @@ export function MushafPage() {
                 <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${showTranslation ? "right-0.5" : "right-5"}`} />
               </button>
             </div>
+
+            {/* Q11-B: Inline Tafseer */}
+            <div className="mb-3 p-3 rounded-2xl border"
+              style={{
+                background: inlineTafseer ? "color-mix(in srgb, var(--accent) 8%, transparent)" : "rgba(255,255,255,0.03)",
+                borderColor: inlineTafseer ? "color-mix(in srgb, var(--accent) 30%, transparent)" : "rgba(255,255,255,0.08)",
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📖</span>
+                  <div>
+                    <div className="text-xs font-semibold" style={inlineTafseer ? { color: "var(--accent)" } : {}}>عرض التفسير</div>
+                    <div className="text-[10px] opacity-45">تفسير تحت كل آية</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setInlineTafseer((v) => !v)}
+                  className={`relative w-10 h-5 rounded-full transition ${inlineTafseer ? "bg-[var(--accent)]" : "bg-white/20"}`}
+                  role="switch" aria-checked={inlineTafseer}
+                >
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${inlineTafseer ? "right-0.5" : "right-5"}`} />
+                </button>
+              </div>
+              {inlineTafseer && (
+                <div className="flex gap-1.5 p-1 rounded-xl bg-black/20 border border-white/8">
+                  {(["muyassar", "jalalayn"] as const).map((src) => (
+                    <button
+                      key={src}
+                      type="button"
+                      onClick={() => setInlineTafseerSource(src)}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${
+                        inlineTafseerSource === src
+                          ? "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30"
+                          : "opacity-50 hover:opacity-80"
+                      }`}
+                    >
+                      {src === "muyassar" ? "الميسر" : "الجلالين"}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Reciter */}
             <button className="mushaf-btn-secondary w-full mb-3" onClick={() => { setShowSettings(false); setShowReciterSheet(true); }}>
               <Mic2 size={14} />
