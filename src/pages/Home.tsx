@@ -811,46 +811,7 @@ export function HomePage() {
           return homeWidgets.prayer ? <PrayerWidget key="prayer" /> : null;
         }
         if (widgetKey === "hadith") {
-<<<<<<< HEAD
-          if (!homeWidgets.hadith) return null;
-          const todayHadith = HADITHS[dateIndex(civilTodayKey, HADITHS.length)];
-          if (!todayHadith) return null;
-          return (
-            <Card key="hadith" className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-base">📿</span>
-                <div className="text-sm font-semibold">حديث اليوم</div>
-                <Badge>يتجدد يومياً</Badge>
-              </div>
-              <div
-                className="text-base leading-9 text-right mb-2 font-medium"
-                style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}
-              >
-                {todayHadith.arabic}
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => navigate("/hadith")}
-                  className="text-xs flex items-center gap-1 opacity-60 hover:opacity-90 transition"
-                  style={{ color: "var(--accent)" }}
-                >
-                  المكتبة الحديثية ←
-                </button>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs opacity-60" style={{ color: "var(--fg)" }}>{todayHadith.narrator}</span>
-                  <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
-                  <span
-                    className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                    style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
-                  >
-                    {todayHadith.source}
-                  </span>
-                </div>
-              </div>
-            </Card>
-          );
-          // حديث اليوم is now rendered above in a fixed position — skip in loop
+          // حديث اليوم is rendered above in a fixed card — skip in widget loop
           return null;
         }
         if (widgetKey === "wisdom") {
