@@ -437,6 +437,7 @@ export function AppShell() {
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [isPrimaryShell, setIsPrimaryShell] = React.useState(true);
+  const [footerExpanded, setFooterExpanded] = React.useState(false);
 
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
@@ -538,7 +539,7 @@ export function AppShell() {
             </div>
 
             <div className="flex items-center gap-2">
-              <IconButton aria-label="بحث" onClick={() => setPaletteOpen(true)}>
+              <IconButton aria-label="بحث (Ctrl+K)" title="بحث (Ctrl+K)" onClick={() => setPaletteOpen(true)}>
                 <Search size={18} />
               </IconButton>
 
@@ -597,19 +598,28 @@ export function AppShell() {
         </div>
 
         <footer className="mt-6" dir="rtl">
-          <div className="glass rounded-3xl p-5 md:p-6">
-            <div className="max-w-4xl mx-auto">
-              <div className="text-center">
-                <div className="arabic-text text-[15px] md:text-base font-semibold text-[var(--accent)]">
-                  صدقة جارية
+          <div className="glass rounded-3xl border border-white/10">
+            <button
+              type="button"
+              onClick={() => setFooterExpanded((v) => !v)}
+              className="w-full flex items-center justify-between gap-3 px-5 pt-5 pb-4"
+            >
+              <div className="arabic-text text-[15px] md:text-base font-semibold text-[var(--accent)]">
+                صدقة جارية
+              </div>
+              <ChevronLeft
+                size={16}
+                className={cn("opacity-50 transition-transform duration-200", footerExpanded ? "-rotate-90" : "rotate-90")}
+              />
+            </button>
+            {footerExpanded && (
+              <>
+                <div className="mx-5 h-px bg-white/10" />
+                <div className="px-5 pb-5 pt-3 arabic-text text-center text-[13px] md:text-sm leading-7 md:leading-8 tracking-tight opacity-85 whitespace-pre-line">
+                  {APP_FOOTER_TEXT}
                 </div>
-                <div className="mt-3 h-px bg-white/10" />
-              </div>
-
-              <div className="mt-4 arabic-text text-center text-[13px] md:text-sm leading-7 md:leading-8 tracking-tight opacity-85 whitespace-pre-line">
-                {APP_FOOTER_TEXT}
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </footer>
 

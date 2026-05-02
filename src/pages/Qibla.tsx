@@ -274,7 +274,15 @@ export function QiblaPage() {
           </div>
         ) : geo.status === "error" ? (
           <div className="space-y-3">
-            <div className="text-sm opacity-60">{geo.msg}</div>
+            <div className="text-sm opacity-60">
+              {geo.msg.includes("denied") || geo.msg.includes("User denied")
+                ? "رفضت الإذن بالوصول للموقع. يرجى السماح للتطبيق بتحديد موقعك من الإعدادات."
+                : geo.msg.includes("unavailable")
+                ? "تعذر تحديد موقعك. تأكد من تفعيل خدمة الموقع."
+                : geo.msg.includes("timeout")
+                ? "انتهت مهلة تحديد الموقع. يرجى المحاولة مجدداً."
+                : "تعذر تحديد موقعك الجغرافي."}
+            </div>
             <Button variant="secondary" size="sm" onClick={requestGeo}>
               <RefreshCw size={14} />
               إعادة المحاولة

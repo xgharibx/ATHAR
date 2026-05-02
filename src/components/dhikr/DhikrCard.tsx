@@ -16,17 +16,6 @@ const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
 const getToPng = () => import("html-to-image").then((m) => m.toPng);
 import toast from "react-hot-toast";
 
-const audioCtxRef = new (class {
-  ctx: AudioContext | null = null;
-  get() {
-    if (!this.ctx) {
-      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-      if (Ctx) this.ctx = new Ctx();
-    }
-    return this.ctx;
-  }
-})();
-
 // D8: parse hadith grade from benefit text
 function parseHadithGrade(benefit: string): { grade: string; color: string } | null {
   if (!benefit) return null;
@@ -35,31 +24,6 @@ function parseHadithGrade(benefit: string): { grade: string; color: string } | n
   if (benefit.includes('حسن')) return { grade: 'حسن', color: '#f59e0b' };
   if (benefit.includes('ضعيف')) return { grade: 'ضعيف', color: '#ef4444' };
   return null;
-}
-
-function playTick(count: number) {
-  try {
-    const ctx = audioCtxRef.get();
-    if (!ctx) return;
-    if (ctx.state === "suspended") ctx.resume();
-
-    // D1: percussive "bead click" — triangle wave with fast freq sweep
-    const now = ctx.currentTime;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    const baseFreqs = [1100, 1200, 1300, 1150, 1250];
-    o.type = "triangle";
-    o.frequency.setValueAtTime(baseFreqs[count % 5] ?? 1200, now);
-    o.frequency.exponentialRampToValueAtTime(300, now + 0.07);
-    g.gain.setValueAtTime(0.09, now);
-    g.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.start(now);
-    o.stop(now + 0.08);
-  } catch {
-    // ignore
-  }
 }
 
 export function DhikrCard(props: {
@@ -261,10 +225,6 @@ export function DhikrCard(props: {
       navigator.vibrate(12);
     }
     
-    if (prefs.enableSounds) {
-      playTick(next);
-    }
-
     // micro ripple
     if (cardRef.current) {
       const el = cardRef.current;

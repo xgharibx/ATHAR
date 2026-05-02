@@ -11,9 +11,6 @@ import {
   CheckCircle2,
   ChevronDown,
   MoreVertical,
-  Eye,
-  EyeOff,
-  LayoutGrid,
   ExternalLink,
 } from "lucide-react";
 
@@ -48,6 +45,7 @@ const QUICK_TASBEEH: Array<{ key: QuickTasbeehKey; label: string }> = [
 
 const DEFAULT_HOME_WIDGETS = {
   prayer: true,
+  hadith: true,
   wisdom: true,
   smart: true,
   checklist: true,
@@ -58,6 +56,7 @@ const DEFAULT_HOME_WIDGETS = {
 
 const HOME_WIDGET_CONTROLS: Array<{ key: HomeWidgetKey; label: string }> = [
   { key: "prayer", label: "الصلاة" },
+  { key: "hadith", label: "حديث" },
   { key: "wisdom", label: "الحكمة" },
   { key: "smart", label: "الآن" },
   { key: "checklist", label: "المهام" },
@@ -154,7 +153,6 @@ export function HomePage() {
   const progressMap = useNoorStore((s) => s.progress);
   const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
   const prefs = useNoorStore((s) => s.prefs);
-  const setPrefs = useNoorStore((s) => s.setPrefs);
 
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
   const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
@@ -180,9 +178,6 @@ export function HomePage() {
     [prefs.homeWidgets]
   );
   const homeWidgetsOrder: HomeWidgetKey[] = prefs.homeWidgetsOrder ?? DEFAULT_HOME_WIDGETS_ORDER;
-  const toggleHomeWidget = React.useCallback((key: HomeWidgetKey) => {
-    setPrefs({ homeWidgets: { ...homeWidgets, [key]: !homeWidgets[key] } });
-  }, [homeWidgets, setPrefs]);
 
   const quranLastReadSurahName = React.useMemo(() => {
     if (!quranLastRead || !quran.data) return null;
@@ -217,11 +212,8 @@ export function HomePage() {
     if (!section || section.content.length === 0) return cards;
 
     const startIndex = dateIndex(worshipDayKey, section.content.length);
-    const cardCount = Math.min(5, section.content.length);
-    for (let offset = 0; offset < cardCount; offset += 1) {
-      const item = section.content[(startIndex + offset) % section.content.length];
-      cards.push({ section, item, label: "سنّة مهجورة" });
-    }
+    const item = section.content[startIndex % section.content.length];
+    cards.push({ section, item, label: "سنّة مهجورة" });
 
     return cards;
   }, [sections, worshipDayKey]);
@@ -725,148 +717,78 @@ export function HomePage() {
         </div>
       )}
 
-      <Card className="p-4">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2">
-            <LayoutGrid size={15} className="text-[var(--accent)]" />
-            <div className="text-sm font-semibold">ودجات الصفحة</div>
-          </div>
-          <Badge>{HOME_WIDGET_CONTROLS.filter((widget) => homeWidgets[widget.key]).length}/{HOME_WIDGET_CONTROLS.length}</Badge>
-        </div>
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
-          {HOME_WIDGET_CONTROLS.map((widget) => {
-            const active = homeWidgets[widget.key];
-            return (
-              <button
-                key={widget.key}
-                type="button"
-                onClick={() => toggleHomeWidget(widget.key)}
-                className={cn(
-                  "shrink-0 inline-flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition active:scale-[.97]",
-                  active
-                    ? "bg-[var(--accent)]/12 border-[var(--accent)]/30 text-[var(--accent)]"
-                    : "bg-white/4 border-white/10 opacity-60"
-                )}
-              >
-                {active ? <Eye size={13} /> : <EyeOff size={13} />}
-                {widget.label}
-              </button>
-            );
-          })}
-        </div>
-      </Card>
-
       {dailyCarouselItems.length > 0 && (
-        <Card className="p-4 overflow-hidden">
+        <Card className="p-4">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div className="text-sm font-semibold">سنن مهجورة اليوم</div>
             <Badge>تتجدد مع الفجر</Badge>
           </div>
-          <div className="overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-4 px-4">
-            <div className="flex gap-3 pb-1">
-              {dailyCarouselItems.map(({ section, item, label }, index) => (
-                <article
-                  key={`${section.id}:${index}:${item.text.slice(0, 18)}`}
-                  className="w-full shrink-0 snap-center rounded-2xl border border-white/10 bg-white/5 p-4 min-h-[150px] flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0 flex items-center gap-2">
-                        <span className="text-xs font-semibold opacity-55 truncate">{label}</span>
-                        <span className="h-1 w-1 rounded-full bg-white/30" />
-                        <span className="text-[11px] opacity-45 truncate">{index + 1}/{dailyCarouselItems.length}</span>
-                      </div>
-                      {item.source_url ? (
-                        <a
-                          href={item.source_url || "https://dorar.net/hadith"}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label="فتح المصدر"
-                          className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/7 px-2.5 py-2 text-[11px] font-semibold hover:bg-white/10 transition"
-                        >
-                          <ExternalLink size={12} />
-                          الدرر
-                        </a>
-                      ) : null}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/c/${section.id}`)}
-                      className="mt-3 w-full text-right arabic-text text-sm md:text-base font-semibold leading-8 line-clamp-3 hover:text-[var(--accent)] transition"
-                    >
-                      {item.text}
-                    </button>
-                  </div>
-                  {item.benefit ? <div className="mt-3 text-xs opacity-60 leading-6 line-clamp-2">{item.benefit}</div> : null}
-                </article>
-              ))}
-            </div>
-          </div>
+          {dailyCarouselItems.map(({ section, item, label }) => (
+            <article
+              key={`${section.id}:${item.text.slice(0, 18)}`}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold opacity-55">{label}</span>
+                {item.source_url ? (
+                  <a
+                    href={item.source_url || "https://dorar.net/hadith"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="فتح المصدر"
+                    className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/7 px-2.5 py-2 text-[11px] font-semibold hover:bg-white/10 transition"
+                  >
+                    <ExternalLink size={12} />
+                    الدرر
+                  </a>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate(`/c/${section.id}`)}
+                className="w-full text-right arabic-text text-sm md:text-base font-semibold leading-8 line-clamp-4 hover:text-[var(--accent)] transition"
+              >
+                {item.text}
+              </button>
+              {item.benefit ? <div className="text-xs opacity-60 leading-6 line-clamp-2">{item.benefit}</div> : null}
+            </article>
+          ))}
         </Card>
       )}
-
-      {/* ── حديث اليوم ── */}
-      {(() => {
-        const todayHadith = HADITHS[dateIndex(civilTodayKey, HADITHS.length)];
-        if (!todayHadith) return null;
-        return (
-          <Card key="hadith-of-day" className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-base">📿</span>
-              <div className="text-sm font-semibold">حديث اليوم</div>
-              <Badge>يتجدد يومياً</Badge>
-            </div>
-            <div
-              className="text-base leading-9 text-right mb-2 font-medium"
-              style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}
-            >
-              {todayHadith.arabic}
-            </div>
-            <div className="flex items-center gap-2 justify-end">
-              <span className="text-xs opacity-60" style={{ color: "var(--fg)" }}>{todayHadith.narrator}</span>
-              <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
-              <span
-                className="text-xs px-2 py-0.5 rounded-full font-semibold"
-                style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
-              >
-                {todayHadith.source}
-              </span>
-            </div>
-          </Card>
-        );
-      })()}
-
-      {/* ── مكتبة المحتوى ── */}
-      <Card className="p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-base">📚</span>
-          <div className="text-sm font-semibold">مكتبة المحتوى</div>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { icon: "✨", label: "أسماء الله", route: "/asma" },
-            { icon: "🤲", label: "الأدعية", route: "/duas" },
-            { icon: "📖", label: "مفردات القرآن", route: "/quran-vocab" },
-            { icon: "🕌", label: "قصص الأنبياء", route: "/stories" },
-            { icon: "🧎", label: "كيفية الصلاة", route: "/prayer-guide" },
-            { icon: "💧", label: "الوضوء", route: "/wudu" },
-          ].map(({ icon, label, route }) => (
-            <button
-              key={route}
-              onClick={() => navigate(route)}
-              className="flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 transition active:scale-95"
-              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
-            >
-              <span className="text-2xl">{icon}</span>
-              <span className="text-[11px] font-medium text-center leading-4 opacity-80">{label}</span>
-            </button>
-          ))}
-        </div>
-      </Card>
 
       {homeWidgetsOrder.map((widgetKey) => {
         if (widgetKey === "prayer") {
           return homeWidgets.prayer ? <PrayerWidget key="prayer" /> : null;
+        }
+        if (widgetKey === "hadith") {
+          if (!homeWidgets.hadith) return null;
+          const todayHadith = HADITHS[dateIndex(civilTodayKey, HADITHS.length)];
+          if (!todayHadith) return null;
+          return (
+            <Card key="hadith" className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-base">📿</span>
+                <div className="text-sm font-semibold">حديث اليوم</div>
+                <Badge>يتجدد يومياً</Badge>
+              </div>
+              <div
+                className="text-base leading-9 text-right mb-2 font-medium"
+                style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}
+              >
+                {todayHadith.arabic}
+              </div>
+              <div className="flex items-center gap-2 justify-end">
+                <span className="text-xs opacity-60" style={{ color: "var(--fg)" }}>{todayHadith.narrator}</span>
+                <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                  style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
+                >
+                  {todayHadith.source}
+                </span>
+              </div>
+            </Card>
+          );
         }
         if (widgetKey === "wisdom") {
           return homeWidgets.wisdom ? <DailyWisdomCard key="wisdom" dateKey={worshipDayKey} /> : null;
@@ -1118,7 +1040,6 @@ export function HomePage() {
                       key={it.key}
                       onClick={() => {
                         incQuickTasbeeh(it.key, tasbeehTarget);
-                        if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(12);
                       }}
                       className="glass rounded-3xl p-4 text-right transition border border-white/10 select-none press-effect glass-hover"
                     >
@@ -1234,6 +1155,34 @@ export function HomePage() {
         }
         return null;
       })}
+
+      {/* ── مكتبة المحتوى ── */}
+      <Card className="p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-base">📚</span>
+          <div className="text-sm font-semibold">مكتبة المحتوى</div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { icon: "✨", label: "أسماء الله", route: "/asma" },
+            { icon: "🤲", label: "الأدعية", route: "/duas" },
+            { icon: "📖", label: "مفردات القرآن", route: "/quran-vocab" },
+            { icon: "🕌", label: "قصص الأنبياء", route: "/stories" },
+            { icon: "🧎", label: "كيفية الصلاة", route: "/prayer-guide" },
+            { icon: "💧", label: "الوضوء", route: "/wudu" },
+          ].map(({ icon, label, route }) => (
+            <button
+              key={route}
+              onClick={() => navigate(route)}
+              className="flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 transition active:scale-95"
+              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
+            >
+              <span className="text-2xl">{icon}</span>
+              <span className="text-[11px] font-medium text-center leading-4 opacity-80">{label}</span>
+            </button>
+          ))}
+        </div>
+      </Card>
 
     </div>
   );

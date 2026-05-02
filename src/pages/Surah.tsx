@@ -1288,8 +1288,6 @@ export function SurahPage() {
         <div className="flex-1 min-w-0 px-1">
           <div className="text-sm font-bold arabic-text quran-title leading-tight">{surah.name}</div>
           <div className="mt-0.5 text-[11px] opacity-50 flex items-center gap-1.5 flex-wrap">
-            <span>{surah.englishName}</span>
-            <span className="opacity-40">·</span>
             <span className={SURAH_REVELATION[surah.id] === "medinan" ? "text-blue-300/70" : "text-amber-300/70"}>
               {getSurahRevelationLabel(surah.id)}
             </span>

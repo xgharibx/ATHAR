@@ -172,6 +172,7 @@ export function CommandPalette(props: Props) {
                 placeholder="ابحث عن ذكر أو سورة أو آية…"
                 className="w-full bg-transparent outline-none text-sm placeholder:text-white/45"
               />
+              <kbd className="text-[11px] opacity-40 pointer-events-none shrink-0 font-mono border border-white/10 rounded-md px-1.5 py-0.5">Ctrl+K</kbd>
               <kbd className="text-[11px] opacity-40 pointer-events-none shrink-0 font-mono border border-white/10 rounded-md px-1.5 py-0.5">esc</kbd>
             </div>
 

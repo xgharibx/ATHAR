@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Search, Volume2 } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 
 export function AsmaAlHusnaPage() {
@@ -18,15 +18,6 @@ export function AsmaAlHusnaPage() {
         n.meaning.toLowerCase().includes(q)
     );
   }, [query]);
-
-  function speak(arabic: string) {
-    if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utt = new SpeechSynthesisUtterance(arabic);
-    utt.lang = "ar-SA";
-    utt.rate = 0.85;
-    window.speechSynthesis.speak(utt);
-  }
 
   return (
     <div dir="rtl" className="min-h-screen pb-32">
@@ -102,21 +93,6 @@ export function AsmaAlHusnaPage() {
               {isExpanded && (
                 <div className="mt-3 text-sm opacity-90 leading-relaxed text-right">
                   {name.benefit}
-                </div>
-              )}
-              {isExpanded && (
-                <div className="flex justify-end mt-3">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      speak(name.arabic);
-                    }}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs"
-                    style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}
-                  >
-                    <Volume2 size={13} />
-                    استمع
-                  </button>
                 </div>
               )}
             </button>

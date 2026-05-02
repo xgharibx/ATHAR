@@ -27,7 +27,7 @@ export type PrayerSoundProfile =
   | "aladhan_adhan_7";
 export type PrayerAlertPrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
 export type PrayerAlertPreferences = Record<PrayerAlertPrayer, boolean>;
-export type HomeWidgetKey = "prayer" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird";
+export type HomeWidgetKey = "prayer" | "hadith" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird";
 
 export type Preferences = {
   theme: NoorTheme;
@@ -299,7 +299,7 @@ type NoorState = {
   setLastVisitedSectionId: (sectionId: string | null) => void;
 };
 
-export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "wisdom", "smart", "checklist", "dailyStep", "tasbeeh", "dailyWird"];
+export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "hadith", "wisdom", "dailyStep", "checklist", "tasbeeh", "dailyWird", "smart"];
 
 const DEFAULT_PREFS: Preferences = {
   theme: "forest",
@@ -333,6 +333,7 @@ const DEFAULT_PREFS: Preferences = {
   asrMadhab: 0,
   homeWidgets: {
     prayer: true,
+    hadith: true,
     wisdom: true,
     smart: true,
     checklist: true,
@@ -363,6 +364,7 @@ function normalizeHomeWidgets(value: unknown): Record<HomeWidgetKey, boolean> {
   const source = value && typeof value === "object" ? value as Partial<Record<HomeWidgetKey, unknown>> : {};
   return {
     prayer: typeof source.prayer === "boolean" ? source.prayer : DEFAULT_PREFS.homeWidgets.prayer,
+    hadith: typeof source.hadith === "boolean" ? source.hadith : DEFAULT_PREFS.homeWidgets.hadith,
     wisdom: typeof source.wisdom === "boolean" ? source.wisdom : DEFAULT_PREFS.homeWidgets.wisdom,
     smart: typeof source.smart === "boolean" ? source.smart : DEFAULT_PREFS.homeWidgets.smart,
     checklist: typeof source.checklist === "boolean" ? source.checklist : DEFAULT_PREFS.homeWidgets.checklist,
@@ -1022,7 +1024,7 @@ export const useNoorStore = create<NoorState>()(
       //  2. Add a fallback default for the new key in the `migrate` function below
       //     e.g., newKey: (state as Partial<NoorState>).newKey ?? defaultValue
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 17,
+      version: 18,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;

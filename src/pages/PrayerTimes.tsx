@@ -852,7 +852,13 @@ export function PrayerTimesPage() {
         <div className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{ background: "radial-gradient(circle at top right, var(--accent), transparent 55%)" }} />
         <div className="relative">
           <div className="flex items-center gap-2 flex-wrap mb-4">
-            <Badge className="text-[11px]">{date.readable}</Badge>
+            <Badge className="text-[11px]">
+              {(() => {
+                const ARABIC_MONTHS = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+                const d = new Date();
+                return `${toArabicIndic(d.getDate())} ${ARABIC_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+              })()}
+            </Badge>
             <Badge className="text-[11px]">{date.hijri.date} {date.hijri.month.ar}</Badge>
             {data.__sourceLabel && <Badge className="text-[11px] opacity-60">{data.__sourceLabel}</Badge>}
           </div>

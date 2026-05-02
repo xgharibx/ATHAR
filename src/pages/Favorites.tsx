@@ -190,6 +190,11 @@ export function FavoritesPage() {
             variant="favorites"
             title="لا توجد مفضلة بعد"
             description="اضغط على ♥ داخل أي ذكر لإضافته هنا وتجده بسرعة لاحقًا"
+            action={
+              <Button variant="secondary" size="sm" onClick={() => navigate("/")}>
+                استكشف الأذكار
+              </Button>
+            }
           />
         ) : (
           <div className="space-y-5">

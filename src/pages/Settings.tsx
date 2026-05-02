@@ -732,13 +732,6 @@ export function SettingsPage() {
             }
           />
           <SettingRow
-            title="الصوت"
-            desc="صوت بسيط عند العدّ"
-            right={
-              <Switch checked={prefs.enableSounds} onCheckedChange={(v) => setPrefs({ enableSounds: v })} />
-            }
-          />
-          <SettingRow
             title="الانتقال التلقائي"
             desc="ينتقل للذكر التالي عند الاكتمال"
             right={
@@ -845,7 +838,7 @@ export function SettingsPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="glass rounded-3xl p-4 border border-white/10 md:col-span-2">
+          <div id="prayer-settings" className="glass rounded-3xl p-4 border border-white/10 md:col-span-2">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">تنبيهات الصلوات</div>
@@ -1152,6 +1145,7 @@ export function SettingsPage() {
 
 const HOME_WIDGET_LABELS: Record<HomeWidgetKey, string> = {
   prayer: "مواقيت الصلاة",
+  hadith: "حديث اليوم",
   wisdom: "حكمة اليوم",
   smart: "الذكر الذكي",
   checklist: "القائمة اليومية",
@@ -1165,7 +1159,7 @@ function HomeWidgetsCard(props: {
   setPrefs: (partial: Partial<import("@/store/noorStore").Preferences>) => void;
 }) {
   const { prefs, setPrefs } = props;
-  const order: HomeWidgetKey[] = prefs.homeWidgetsOrder ?? ["prayer", "wisdom", "smart", "checklist", "dailyStep", "tasbeeh", "dailyWird"];
+  const order: HomeWidgetKey[] = prefs.homeWidgetsOrder ?? ["prayer", "hadith", "wisdom", "dailyStep", "checklist", "tasbeeh", "dailyWird", "smart"];
 
   const moveUp = (i: number) => {
     if (i === 0) return;
@@ -1214,7 +1208,10 @@ function HomeWidgetsCard(props: {
                 <ArrowDown size={12} />
               </button>
             </div>
-            <span className="flex-1 text-sm">{HOME_WIDGET_LABELS[key]}</span>
+            <span
+              className={`flex-1 text-sm ${key === "prayer" ? "cursor-pointer hover:text-[var(--accent)] transition-colors" : ""}`}
+              onClick={key === "prayer" ? () => { document.getElementById("prayer-settings")?.scrollIntoView({ behavior: "smooth", block: "center" }); } : undefined}
+            >{HOME_WIDGET_LABELS[key]}</span>
             <Switch
               checked={prefs.homeWidgets[key] ?? true}
               onCheckedChange={(v) => setPrefs({ ...prefs, homeWidgets: { ...prefs.homeWidgets, [key]: v } })}
