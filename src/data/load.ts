@@ -1,5 +1,6 @@
 import { AdhkarDBSchema, type AdhkarDB, type FlatDhikr, coerceCount, type RawAdhkarDB } from "./types";
 import { MY_ADHKAR_SECTION_ID, MY_ADHKAR_TITLE, mergeWithPacks } from "./packs";
+import { publicDataUrl } from "./publicAssetUrl";
 
 const SECTION_ORDER = [
   MY_ADHKAR_SECTION_ID,
@@ -51,7 +52,7 @@ function ensureMyAdhkarSection(sections: AdhkarDB["sections"]) {
  * Loads `public/data/adhkar.json` (offline friendly via PWA caching).
  */
 export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] }> {
-  const res = await fetch(`${import.meta.env.BASE_URL}data/adhkar.json`);
+  const res = await fetch(publicDataUrl("data/adhkar.json"));
   if (!res.ok) throw new Error("تعذر تحميل قاعدة الأذكار");
   const json = await res.json();
 

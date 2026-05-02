@@ -7,8 +7,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { idbGetHadithPack, idbSetHadithPack } from "@/lib/hadithIDB";
 import { HADITH_BOOKS_STATIC, type HadithBookMeta, type HadithItem, type HadithPack } from "@/data/hadithTypes";
-
-const BASE = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+import { publicDataUrl } from "@/data/publicAssetUrl";
 
 /** Approximate uncompressed file size in MB for each book (Phase 9 - progress UI) */
 export const HADITH_PACK_SIZES_MB: Record<string, number> = {
@@ -26,7 +25,7 @@ export const HADITH_PACK_SIZES_MB: Record<string, number> = {
 /** Load the books index.json. Falls back to static metadata if fetch fails. */
 export async function loadHadithIndex(): Promise<HadithBookMeta[]> {
   try {
-    const res = await fetch(`${BASE}/data/hadith/index.json`);
+    const res = await fetch(publicDataUrl("data/hadith/index.json"));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return (await res.json()) as HadithBookMeta[];
   } catch {
@@ -42,7 +41,7 @@ export async function loadHadithPack(bookKey: string): Promise<HadithPack | null
 
   // 2. Fetch from static files
   try {
-    const res = await fetch(`${BASE}/data/hadith/${bookKey}.json`);
+    const res = await fetch(publicDataUrl(`data/hadith/${bookKey}.json`));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const pack = (await res.json()) as HadithPack;
 
@@ -77,7 +76,7 @@ async function loadHadithPackWithProgress(
 
   // 2. Streaming fetch with progress tracking
   try {
-    const res = await fetch(`${BASE}/data/hadith/${bookKey}.json`);
+    const res = await fetch(publicDataUrl(`data/hadith/${bookKey}.json`));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const contentLength = res.headers.get("Content-Length");

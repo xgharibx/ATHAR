@@ -1,5 +1,6 @@
 import { QuranFileSchema, QuranPageMapSchema, type QuranDB, type QuranPageMap } from "./quranTypes";
 import { idbGetQuran, idbSetQuran } from "@/lib/quranIDB";
+import { publicDataUrl } from "./publicAssetUrl";
 
 const REMOTE_QURAN_JSON = "https://xgharibx.github.io/ImamAhmed/data/quran.json";
 const REMOTE_QURAN_PAGE_MAP_JSON = "https://ahmedelfashny.com/data/quran_page_map.json";
@@ -23,7 +24,7 @@ export async function loadQuranDB(): Promise<QuranDB> {
   const cached = await idbGetQuran();
   if (cached) return cached;
 
-  const localUrl = `${import.meta.env.BASE_URL}data/quran.json`;
+  const localUrl = publicDataUrl("data/quran.json");
 
   let result: QuranDB;
   try {
@@ -40,7 +41,7 @@ export async function loadQuranDB(): Promise<QuranDB> {
 }
 
 export async function loadQuranPageMap(): Promise<QuranPageMap> {
-  const localUrl = `${import.meta.env.BASE_URL}data/quran_page_map.json`;
+  const localUrl = publicDataUrl("data/quran_page_map.json");
 
   try {
     const json = await fetchJson(localUrl);
