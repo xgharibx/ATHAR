@@ -6,10 +6,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { ArrowRight, Bookmark, Loader2, WifiOff } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bookmark, BookOpenText, Layers3, Loader2, WifiOff } from "lucide-react";
 import { useHadithPack, useHadithPackProgress, HADITH_PACK_SIZES_MB } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview, type HadithItem } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
 
@@ -18,11 +21,11 @@ function SectionHeader({ title, color }: { title: string; color: string }) {
   return (
     <div
       dir="rtl"
-      className="mx-3 mt-3 mb-1 flex items-center gap-2 px-4 py-2 rounded-2xl"
-      style={{ background: color + "14", border: `1px solid ${color}30` }}
+      className="mx-3 mt-4 mb-2 flex items-center gap-2 rounded-2xl border px-4 py-2 glass"
+      style={{ borderColor: color + "35", background: `linear-gradient(90deg, ${color}18, rgba(255,255,255,0.045))` }}
     >
       <div className="w-1.5 h-4 rounded-full" style={{ background: color }} />
-      <p className="text-xs font-bold font-arabic" style={{ color }}>
+      <p className="text-xs font-bold font-arabic truncate" style={{ color }}>
         {title}
       </p>
     </div>
@@ -53,10 +56,12 @@ function HadithRow({
   item,
   bookKey,
   accentColor,
+  sectionTitle,
 }: {
   item: HadithItem;
   bookKey: string;
   accentColor: string;
+  sectionTitle?: string | null;
 }) {
   const navigate = useNavigate();
   const hadithBookmarks = useNoorStore((s) => s.hadithBookmarks);
@@ -64,33 +69,37 @@ function HadithRow({
   const isBookmarked = !!hadithBookmarks[key];
 
   return (
-    <div className="mx-3 my-1.5">
+    <div className="mx-3 my-2">
       <button
         dir="rtl"
         onClick={() => navigate(`/hadith/${bookKey}/${item.n}`)}
-        className="w-full text-right rounded-2xl glass border border-white/8 px-4 py-3.5 flex items-start gap-3 transition active:scale-[.98]"
+        className="group relative w-full overflow-hidden rounded-3xl border border-white/10 glass-strong glass-hover p-4 text-right transition active:scale-[.985]"
       >
-        {/* Number circle */}
-        <div
-          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold"
-          style={{ background: accentColor + "22", color: accentColor }}
-        >
-          {item.a.toLocaleString("ar-EG")}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-arabic text-[var(--fg)] leading-relaxed line-clamp-3 mb-1">
-            {hadithPreview(item.t, 160)}
-          </p>
-          <div className="flex items-center gap-2 flex-wrap">
-            <GradeBadge grades={item.g} />
+        <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
+        <div className="flex items-start justify-between gap-3 pr-2">
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex items-center gap-2 flex-wrap">
+              <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-bold tabular-nums" style={{ background: accentColor + "22", color: accentColor }}>
+                {item.a.toLocaleString("ar-EG")}
+              </span>
+              {sectionTitle && <Badge className="max-w-[180px] truncate px-2 py-0.5 text-[10px]">{sectionTitle}</Badge>}
+              <GradeBadge grades={item.g} />
+            </div>
+            <p className="arabic-text text-base leading-8 font-semibold text-[var(--fg)] line-clamp-3">
+              {hadithPreview(item.t, 190)}
+            </p>
+            <div className="mt-3 border-t border-white/8 pt-3 flex items-center justify-between gap-3 text-xs opacity-65">
+              <span className="font-arabic">حديث {item.n.toLocaleString("ar-EG")}</span>
+              <span className="font-semibold" style={{ color: accentColor }}>اقرأ النص الكامل</span>
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-2 shrink-0">
+            <ArrowUpRight size={17} className="opacity-45 transition group-hover:opacity-80" />
+            {isBookmarked && (
+              <Bookmark size={15} className="fill-current" style={{ color: accentColor }} />
+            )}
           </div>
         </div>
-
-        {isBookmarked && (
-          <Bookmark size={14} className="shrink-0 mt-1 fill-current"
-            style={{ color: accentColor }} />
-        )}
       </button>
     </div>
   );
@@ -165,47 +174,63 @@ export function HadithBookViewPage() {
       if (row.type === "header") {
         return <SectionHeader title={row.sectionTitle} color={accentColor} />;
       }
+      const sectionTitle = pack?.sections.find((s) => s.id === row.item.s)?.title ?? null;
       return (
-        <HadithRow key={row.item.n} item={row.item} bookKey={bookKey!} accentColor={accentColor} />
+        <HadithRow key={row.item.n} item={row.item} bookKey={bookKey!} accentColor={accentColor} sectionTitle={sectionTitle} />
       );
     },
-    [listRows, bookKey, accentColor],
+    [listRows, bookKey, accentColor, pack?.sections],
   );
 
   return (
-    <div className="flex flex-col min-h-screen-safe" style={{ background: "var(--bg)" }}>
+    <div className="flex flex-col min-h-screen-safe page-enter pb-floating-nav">
       {/* Header */}
       <div
         dir="rtl"
-        className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 backdrop-blur-sm"
-        style={{ background: "var(--bg)cc", borderBottom: "1px solid var(--card-border)" }}
+        className="sticky top-0 z-20 px-3 pt-2 pb-3"
       >
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-        >
-          <ArrowRight size={20} className="text-[var(--fg)]" />
-        </button>
-        <div className="flex-1">
-          <p className="font-bold text-base text-[var(--fg)] font-arabic leading-tight" dir="rtl">
-            {meta?.title ?? bookKey}
-          </p>
-          {pack && (
-            <p className="text-xs text-[var(--muted)]">
-              {pack.count.toLocaleString("ar-EG")} حديث
-            </p>
-          )}
-        </div>
-        {isLoading && <Loader2 size={18} className="animate-spin text-[var(--muted)]" />}
-        {!isLoading && isFromCache && (
-          <div
-            className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-arabic shrink-0"
-            style={{ background: "#10b98122", color: "#10b981" }}
-          >
-            <WifiOff size={10} />
-            <span>بلا إنترنت</span>
+        <Card className="relative overflow-hidden p-4">
+          <div className="absolute inset-y-0 right-0 w-1.5" style={{ background: accentColor }} />
+          <div className="absolute -left-10 -top-12 h-32 w-32 rounded-full opacity-15" style={{ background: accentColor }} />
+          <div className="relative flex items-center gap-3 pr-2">
+            <button
+              onClick={() => navigate(-1)}
+              className="h-11 w-11 rounded-2xl border border-white/10 bg-white/6 grid place-items-center transition hover:bg-white/10 shrink-0"
+              aria-label="رجوع"
+            >
+              <ArrowRight size={19} className="text-[var(--fg)]" />
+            </button>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2 flex-wrap">
+                <BookOpenText size={16} style={{ color: accentColor }} />
+                <span className="text-[11px] font-semibold opacity-55">كتاب حديثي</span>
+                {isFromCache && (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-arabic" style={{ background: "#10b98122", color: "#10b981" }}>
+                    <WifiOff size={10} />
+                    بلا إنترنت
+                  </span>
+                )}
+              </div>
+              <h1 className="font-bold text-lg text-[var(--fg)] font-arabic leading-tight truncate" dir="rtl">
+                {meta?.title ?? bookKey}
+              </h1>
+              <div className="mt-1 flex items-center gap-2 text-xs opacity-60 tabular-nums">
+                <span>{(pack?.count ?? meta?.count ?? 0).toLocaleString("ar-EG")} حديث</span>
+                {pack && pack.sections.length > 0 && <span>• {pack.sections.length.toLocaleString("ar-EG")} باب</span>}
+              </div>
+            </div>
+            {isLoading && <Loader2 size={18} className="animate-spin text-[var(--muted)] shrink-0" />}
           </div>
-        )}
+          {lastIndex !== null && activeSectionId === null && (
+            <button
+              onClick={resumeReading}
+              className="relative mt-3 w-full rounded-2xl border px-4 py-3 text-sm font-semibold font-arabic press-effect"
+              style={{ background: accentColor + "18", color: accentColor, borderColor: accentColor + "45" }}
+            >
+              أكمل من حيث توقفت • ح{lastN?.toLocaleString("ar-EG")}
+            </button>
+          )}
+        </Card>
       </div>
 
       {/* Section filter chips */}
@@ -213,30 +238,21 @@ export function HadithBookViewPage() {
         <div
           ref={sectionsRef}
           dir="rtl"
-          className="flex gap-2 px-4 py-2 overflow-x-auto scrollbar-hide"
-          style={{ borderBottom: "1px solid var(--card-border)" }}
+          className="flex gap-2 px-3 pb-3 overflow-x-auto no-scrollbar"
         >
           <button
             onClick={() => setActiveSectionId(null)}
-            className="shrink-0 text-xs px-3 py-1 rounded-full transition font-arabic"
-            style={
-              activeSectionId === null
-                ? { background: accentColor, color: "#fff" }
-                : { background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }
-            }
+            className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic", activeSectionId === null ? "text-black font-bold" : "glass border-white/10")}
+            style={activeSectionId === null ? { background: accentColor, borderColor: "transparent" } : undefined}
           >
-            الكل
+            الكل · {pack.count.toLocaleString("ar-EG")}
           </button>
           {pack.sections.map((s) => (
             <button
               key={s.id}
               onClick={() => setActiveSectionId(s.id)}
-              className="shrink-0 text-xs px-3 py-1 rounded-full transition font-arabic whitespace-nowrap"
-              style={
-                activeSectionId === s.id
-                  ? { background: accentColor, color: "#fff" }
-                  : { background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }
-              }
+              className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap", activeSectionId === s.id ? "text-black font-bold" : "glass border-white/10")}
+              style={activeSectionId === s.id ? { background: accentColor, borderColor: "transparent" } : undefined}
             >
               {s.title}
             </button>
@@ -244,25 +260,11 @@ export function HadithBookViewPage() {
         </div>
       )}
 
-      {/* Resume button */}
-      {lastIndex !== null && activeSectionId === null && (
-        <div dir="rtl" className="px-4 py-2">
-          <button
-            onClick={resumeReading}
-            className="w-full text-xs py-2 rounded-xl font-arabic"
-            style={{ background: accentColor + "22", color: accentColor, border: `1px solid ${accentColor}44` }}
-          >
-            أكمل من حيث توقفت • ح{lastN?.toLocaleString("ar-EG")}
-          </button>
-        </div>
-      )}
-
       {/* Loading state */}
       {isLoading && (
         <div dir="rtl" className="flex-1 flex items-center justify-center px-6">
           <div
-            className="w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4"
-            style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+            className="w-full max-w-sm rounded-3xl glass-strong border border-white/10 p-6 flex flex-col gap-4"
           >
             <div className="flex items-center gap-3">
               <div
@@ -320,7 +322,7 @@ export function HadithBookViewPage() {
             ref={virtuoso}
             totalCount={listRows.length}
             itemContent={renderItem}
-            style={{ flex: 1, height: "calc(100vh - 160px)" }}
+            style={{ flex: 1, height: "calc(100vh - 235px)" }}
           />
         </div>
       )}

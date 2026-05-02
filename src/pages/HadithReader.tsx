@@ -17,6 +17,8 @@ import {
   X,
   Check,
   BrainCircuit,
+  BookOpenText,
+  Hash,
 } from "lucide-react";
 import { useHadithPack, getHadithByNumber } from "@/data/useHadithBook";
 import {
@@ -26,6 +28,10 @@ import {
   type HadithItem,
 } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
+import { Badge } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { IconButton } from "@/components/ui/IconButton";
+import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                               */
@@ -275,155 +281,139 @@ export function HadithReaderPage() {
   }, [prefs]);
 
   return (
-    <div className="min-h-screen-safe flex flex-col" style={{ background: "var(--bg)" }}>
+    <div dir="rtl" className="min-h-screen-safe page-enter pb-floating-nav">
       {/* Header */}
       <div
-        dir="rtl"
-        className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 backdrop-blur-sm"
-        style={{ background: "var(--bg)cc", borderBottom: "1px solid var(--card-border)" }}
+        className="sticky top-0 z-20 px-3 pt-2 pb-3"
       >
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-        >
-          <ArrowRight size={20} className="text-[var(--fg)]" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-[var(--fg)] font-arabic truncate">
-            {meta?.title ?? bookKey}
-          </p>
-          {sectionTitle && (
-            <p className="text-[11px] text-[var(--muted)] truncate">{sectionTitle}</p>
-          )}
-        </div>
+        <Card className="relative overflow-hidden p-4">
+          <div className="absolute inset-y-0 right-0 w-1.5" style={{ background: accentColor }} />
+          <div className="absolute -left-10 -top-12 h-32 w-32 rounded-full opacity-15" style={{ background: accentColor }} />
+          <div className="relative flex items-start gap-3 pr-2">
+            <button
+              onClick={() => navigate(-1)}
+              className="h-11 w-11 rounded-2xl border border-white/10 bg-white/6 grid place-items-center transition hover:bg-white/10 shrink-0"
+              aria-label="رجوع"
+            >
+              <ArrowRight size={19} className="text-[var(--fg)]" />
+            </button>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex items-center gap-2 flex-wrap">
+                <BookOpenText size={15} style={{ color: accentColor }} />
+                <span className="text-[11px] font-semibold opacity-55">قراءة حديثية</span>
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums" style={{ background: accentColor + "22", color: accentColor }}>
+                  ح {Number.isFinite(n) ? n.toLocaleString("ar-EG") : "—"}
+                </span>
+              </div>
+              <h1 className="font-bold text-base text-[var(--fg)] font-arabic truncate">
+                {meta?.title ?? bookKey}
+              </h1>
+              {sectionTitle && <p className="mt-1 text-[11px] text-[var(--muted)] truncate">{sectionTitle}</p>}
+            </div>
+            {isLoading && <Loader2 size={16} className="animate-spin text-[var(--muted)] shrink-0" />}
+          </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => {
-              if (!isMemoCard) addHadithMemoCard(memoCardKey);
-              navigate("/hadith/memo");
-            }}
-            className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            aria-label="بطاقة الحفظ"
-          >
-            <BrainCircuit
-              size={18}
-              style={{ color: isMemoCard ? accentColor : "var(--muted)" }}
-            />
-          </button>
-          <button
-            onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}
-            className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            aria-label="حفظ"
-          >
-            <Bookmark
-              size={18}
-              className={isBookmarked ? "fill-current" : ""}
-              style={{ color: isBookmarked ? accentColor : "var(--muted)" }}
-            />
-          </button>
-          <button
-            onClick={copyText}
-            className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            aria-label="نسخ"
-          >
-            <Copy size={16} className="text-[var(--muted)]" />
-          </button>
-          <button
-            onClick={shareText}
-            className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            aria-label="مشاركة"
-          >
-            <Share2 size={16} className="text-[var(--muted)]" />
-          </button>
-          <button
-            onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}
-            className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-            aria-label="تدوين ملاحظة"
-          >
-            <StickyNote
-              size={16}
-              className={existingNote ? "fill-current" : ""}
-              style={{ color: existingNote ? accentColor : "var(--muted)" }}
-            />
-          </button>
-        </div>
-
-        {isLoading && <Loader2 size={16} className="animate-spin text-[var(--muted)]" />}
+          {/* Action buttons */}
+          <div className="relative mt-4 flex items-center gap-2 overflow-x-auto no-scrollbar pr-2">
+            <IconButton
+              aria-label="بطاقة الحفظ"
+              title="بطاقة الحفظ"
+              onClick={() => {
+                if (!isMemoCard) addHadithMemoCard(memoCardKey);
+                navigate("/hadith/memo");
+              }}
+              className={cn(isMemoCard && "ring-1 ring-[var(--accent)]/40")}
+            >
+              <BrainCircuit size={18} style={{ color: isMemoCard ? accentColor : "var(--muted)" }} />
+            </IconButton>
+            <IconButton aria-label="حفظ" title="حفظ" onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}>
+              <Bookmark size={18} className={isBookmarked ? "fill-current" : ""} style={{ color: isBookmarked ? accentColor : "var(--muted)" }} />
+            </IconButton>
+            <IconButton aria-label="نسخ" title="نسخ" onClick={copyText}><Copy size={16} className="text-[var(--muted)]" /></IconButton>
+            <IconButton aria-label="مشاركة" title="مشاركة" onClick={shareText}><Share2 size={16} className="text-[var(--muted)]" /></IconButton>
+            <IconButton aria-label="ملاحظة" title="ملاحظة" onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}>
+              <StickyNote size={16} className={existingNote ? "fill-current" : ""} style={{ color: existingNote ? accentColor : "var(--muted)" }} />
+            </IconButton>
+          </div>
+        </Card>
       </div>
 
-      {/* Body */}
-      <div dir="rtl" className="flex-1 px-5 py-6 overflow-y-auto">
-        {/* Reference row */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2 flex-wrap">
-            {hadith?.g.map((g) => <GradeChip key={g} g={g} />)}
-          </div>
-          <span
-            className="text-xs font-semibold px-3 py-1 rounded-full"
-            style={{ background: accentColor + "22", color: accentColor }}
-          >
-            ح {hadith?.a.toLocaleString("ar-EG") ?? "—"}
-          </span>
-        </div>
-
+      <main className="mx-auto w-full max-w-3xl px-3 py-4 space-y-4">
         {/* Loading */}
         {isLoading && (
-          <div className="flex items-center justify-center gap-3 py-20 text-[var(--muted)]">
-            <Loader2 className="animate-spin" />
-            <span className="font-arabic text-sm">جاري التحميل…</span>
-          </div>
+          <Card className="p-6">
+            <div className="flex items-center justify-center gap-3 py-10 text-[var(--muted)]">
+              <Loader2 className="animate-spin" />
+              <span className="font-arabic text-sm">جاري التحميل…</span>
+            </div>
+          </Card>
         )}
 
         {/* Not found */}
         {!isLoading && !hadith && (
-          <p className="text-[var(--muted)] font-arabic text-center py-20">
-            الحديث غير موجود
-          </p>
+          <Card className="p-6 text-center">
+            <p className="text-[var(--muted)] font-arabic py-10">الحديث غير موجود</p>
+          </Card>
         )}
 
-        {/* Full text — split into isnad + matn (7A) */}
         {hadith && hadithSplit && (
-          <div className="space-y-4">
-            {/* Isnad — smaller, muted */}
+          <>
+            {/* Metadata card */}
+            <Card className="relative overflow-hidden p-4">
+              <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
+              <div className="flex items-start justify-between gap-3 pr-2">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: accentColor + "22", color: accentColor }}>
+                      <Hash size={12} />
+                      {hadith.a.toLocaleString("ar-EG")}
+                    </span>
+                    {hadith.g.map((g) => <GradeChip key={g} g={g} />)}
+                    {sectionTitle && <Badge className="max-w-[240px] truncate px-2 py-0.5 text-[10px]">{sectionTitle}</Badge>}
+                  </div>
+                  <div className="text-xs opacity-60 leading-6">
+                    {hadithRef(meta?.title ?? "", hadith.a)}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Isnad */}
             {hadithSplit.isnad && (
-              <div
-                dir="rtl"
-                className="rounded-xl px-4 py-3"
-                style={{ background: accentColor + "0d", borderRight: `3px solid ${accentColor}44` }}
-              >
-                <p className="text-[11px] text-[var(--muted)] font-arabic mb-1">الإسناد</p>
-                <p className="text-sm font-arabic text-[var(--fg)] opacity-60 leading-loose">
-                  {hadithSplit.isnad}
+              <Card className="relative overflow-hidden p-4">
+                <div className="absolute inset-y-0 right-0 w-1 opacity-70" style={{ background: accentColor }} />
+                <div className="pr-2">
+                  <p className="mb-2 text-[11px] font-semibold opacity-55 font-arabic">الإسناد</p>
+                  <p className="text-sm font-arabic text-[var(--fg)] opacity-65 leading-loose">
+                    {hadithSplit.isnad}
+                  </p>
+                </div>
+              </Card>
+            )}
+
+            {/* Matn */}
+            <Card className="relative overflow-hidden p-5 md:p-6">
+              <div className="absolute -left-16 -top-16 h-40 w-40 rounded-full opacity-10" style={{ background: accentColor }} />
+              <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
+              <div className="relative pr-2">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <p className="text-[11px] font-semibold opacity-55 font-arabic">المتن</p>
+                  <span className="h-2 w-16 rounded-full" style={{ background: accentColor }} />
+                </div>
+                <p dir="rtl" className={`${fontSizeClass} arabic-text font-bold text-[var(--fg)] leading-[2.25]`}>
+                  {hadithSplit.matn}
                 </p>
               </div>
-            )}
-            {/* Matn — prominent */}
-            <div dir="rtl">
-              {hadithSplit.isnad && (
-                <p className="text-[11px] text-[var(--muted)] font-arabic mb-2">المتن</p>
-              )}
-              <p
-                dir="rtl"
-                className={`${fontSizeClass} font-arabic text-[var(--fg)] leading-loose`}
-              >
-                {hadithSplit.matn}
-              </p>
-            </div>
-          </div>
+            </Card>
+          </>
         )}
 
         {/* Note editor */}
         {showNoteEditor && (
-          <div
-            dir="rtl"
-            className="mt-5 rounded-2xl border p-4 space-y-3"
-            style={{ borderColor: "var(--card-border)", background: "var(--card-bg)" }}
-          >
+          <Card className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold opacity-55">ملاحظتي</span>
-              <button onClick={() => setShowNoteEditor(false)} className="opacity-50 hover:opacity-80">
+              <button onClick={() => setShowNoteEditor(false)} className="h-9 w-9 rounded-xl bg-white/6 border border-white/10 grid place-items-center opacity-70 hover:opacity-100" aria-label="إغلاق">
                 <X size={14} />
               </button>
             </div>
@@ -433,7 +423,7 @@ export function HadithReaderPage() {
               onChange={(e) => setDraftNote(e.target.value)}
               placeholder="أضف ملاحظتك هنا…"
               rows={4}
-              className="w-full bg-transparent resize-none outline-none font-arabic text-sm leading-7 placeholder:opacity-40"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 resize-none outline-none font-arabic text-sm leading-7 placeholder:opacity-40 focus:border-[var(--accent)]/40"
               style={{ color: "var(--fg)" }}
               autoFocus
             />
@@ -441,70 +431,62 @@ export function HadithReaderPage() {
               {existingNote && (
                 <button
                   onClick={() => { bookKey && setHadithNote(bookKey, n, ""); setShowNoteEditor(false); }}
-                  className="text-xs px-3 py-1.5 rounded-xl opacity-50 hover:opacity-80 transition"
-                  style={{ background: "var(--card-border)" }}
+                  className="text-xs px-3 py-2 rounded-xl bg-white/6 border border-white/10 opacity-70 hover:opacity-100 transition"
                 >
                   حذف
                 </button>
               )}
               <button
                 onClick={() => { bookKey && setHadithNote(bookKey, n, draftNote); setShowNoteEditor(false); }}
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl font-semibold transition"
-                style={{ background: accentColor, color: "#fff" }}
+                className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-xl font-semibold transition press-effect"
+                style={{ background: accentColor, color: "#06110d" }}
               >
                 <Check size={12} /> حفظ
               </button>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Display saved note (when editor closed) */}
         {!showNoteEditor && existingNote && (
           <button
-            dir="rtl"
             onClick={() => { setDraftNote(existingNote); setShowNoteEditor(true); }}
-            className="mt-4 w-full text-right rounded-2xl border px-4 py-3 text-sm font-arabic leading-7 opacity-70 hover:opacity-100 transition"
+            className="w-full text-right rounded-3xl border px-4 py-3 text-sm font-arabic leading-7 transition press-effect glass"
             style={{ borderColor: accentColor + "44", background: accentColor + "11", color: "var(--fg)" }}
           >
             <span className="text-[10px] font-semibold opacity-60 block mb-1">ملاحظتي</span>
             {existingNote}
           </button>
         )}
-      </div>
 
-      {/* Prev / Next bottom bar */}
-      <div
-        dir="rtl"
-        className="sticky bottom-0 flex items-center gap-2 px-4 py-3 backdrop-blur-sm"
-        style={{ background: "var(--bg)ee", borderTop: "1px solid var(--card-border)" }}
-      >
-        {/* Previous (goes up in number — forward in reading RTL) */}
-        <button
-          disabled={!prevN}
-          onClick={() => prevN && navigate(`/hadith/${bookKey}/${prevN}`, { replace: true })}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-arabic text-sm disabled:opacity-30 transition"
-          style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
-        >
-          <ChevronRight size={16} />
-          السابق
-        </button>
-
-        {/* Number indicator */}
-        <div className="text-xs text-[var(--muted)] text-center w-12 shrink-0">
-          {n.toLocaleString("ar-EG")}
-        </div>
-
-        {/* Next */}
-        <button
-          disabled={!nextN}
-          onClick={() => nextN && navigate(`/hadith/${bookKey}/${nextN}`, { replace: true })}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-arabic text-sm disabled:opacity-30 transition"
-          style={{ background: accentColor, color: "#fff" }}
-        >
-          التالي
-          <ChevronLeft size={16} />
-        </button>
-      </div>
+        {/* Prev / Next */}
+        {(prevN || nextN) && (
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <button
+                disabled={!prevN}
+                onClick={() => prevN && navigate(`/hadith/${bookKey}/${prevN}`, { replace: true })}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition border border-white/10 bg-white/6 press-effect"
+              >
+                <ChevronRight size={16} />
+                السابق
+              </button>
+              <div className="min-w-12 text-xs text-[var(--muted)] text-center tabular-nums">
+                {n.toLocaleString("ar-EG")}
+              </div>
+              <button
+                disabled={!nextN}
+                onClick={() => nextN && navigate(`/hadith/${bookKey}/${nextN}`, { replace: true })}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition press-effect"
+                style={{ background: accentColor, color: "#06110d" }}
+              >
+                التالي
+                <ChevronLeft size={16} />
+              </button>
+            </div>
+          </Card>
+        )}
+      </main>
     </div>
   );
 }
