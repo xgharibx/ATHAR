@@ -347,11 +347,32 @@ export function MushafPage() {
   // Note sheet
   const [noteSheetOpen, setNoteSheetOpen] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState("");
+
+  // Phase 2F: Reading timer
+  const sessionStartRef = React.useRef(Date.now());
+  const pagesReadRef = React.useRef(new Set<number>());
+  const [showSessionSummary, setShowSessionSummary] = React.useState(false);
+  const [sessionDurationMin, setSessionDurationMin] = React.useState(0);
+
+  // Phase 2F: Page scrubber strip
+  const pageStripRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (!selectedItem) { setNoteSheetOpen(false); return; }
     const key = `${selectedItem.surahId}:${selectedItem.displayAyah}`;
     setNoteDraft(notes[key] ?? "");
   }, [notes, selectedItem]);
+
+  // Phase 2F: Track pages visited in this session
+  React.useEffect(() => {
+    pagesReadRef.current.add(currentPage);
+  }, [currentPage]);
+
+  // Phase 2F: Auto-scroll page strip to keep current page centred
+  React.useEffect(() => {
+    if (!pageStripRef.current) return;
+    const chip = pageStripRef.current.querySelector<HTMLElement>(`[data-page="${currentPage}"]`);
+    if (chip) chip.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [currentPage]);
 
   // Audio refs & state
   const [playingKey, setPlayingKey] = React.useState<string | null>(null);
@@ -436,6 +457,17 @@ export function MushafPage() {
   // M4: Pinch-to-zoom refs
   const pinchStartDist = React.useRef<number | null>(null);
   const pinchStartScale = React.useRef<number>(0.88);
+
+  // Phase 2F: Back with session summary
+  const handleBack = React.useCallback(() => {
+    const elapsed = Math.round((Date.now() - sessionStartRef.current) / 60000);
+    if (elapsed >= 1) {
+      setSessionDurationMin(elapsed);
+      setShowSessionSummary(true);
+    } else {
+      navigate("/quran");
+    }
+  }, [navigate]);
 
   // M6: Juz overlay
   const [juzOverlay, setJuzOverlay] = React.useState<string | null>(null);
@@ -1001,7 +1033,7 @@ export function MushafPage() {
         </div>
         <button
           className="mushaf-chrome-icon-btn"
-          onClick={(e) => { e.stopPropagation(); navigate("/quran"); }}
+          onClick={(e) => { e.stopPropagation(); handleBack(); }}
           aria-label="رجوع إلى القرآن"
         >
           <ArrowRight size={18} />
@@ -1331,11 +1363,17 @@ export function MushafPage() {
           </div>
           <button
             className={`mushaf-action-btn${notes[selKey] ? " active" : ""}`}
-            onClick={(e) => { e.stopPropagation(); setNoteSheetOpen(true); }}
-            title="ملاحظة"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!notes[selKey]) {
+                setNoteDraft(`${selectedItem.surahName} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾\n\n`);
+              }
+              setNoteSheetOpen(true);
+            }}
+            title="تدبّر"
           >
             <Pencil size={18} />
-            <span>ملاحظة</span>
+            <span>تدبّر</span>
           </button>
           <button className="mushaf-action-btn" onClick={doShare} title="مشاركة">
             <Share2 size={18} />
@@ -1361,6 +1399,20 @@ export function MushafPage() {
           </button>
         </div>
       )}
+
+      {/* ── Page scrubber strip (Phase 2F) ─────────────────── */}
+      <div className="mushaf-page-strip" ref={pageStripRef} onClick={(e) => e.stopPropagation()}>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+          <button
+            key={p}
+            data-page={p}
+            className={`mushaf-page-chip${p === currentPage ? " active" : ""}`}
+            onClick={(e) => { e.stopPropagation(); goPage(p); }}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
 
       {/* ── Audio player bar ──────────────────────────────── */}
       {!selectedItem && audioBarVisible && (
@@ -1455,7 +1507,7 @@ export function MushafPage() {
         </>
       )}
 
-      {/* ── Note sheet ────────────────────────────────────── */}
+      {/* ── تدبّر (Reflection) sheet ──────────────────────── */}
       {noteSheetOpen && selectedItem && (
         <>
           <div className="mushaf-overlay" onClick={() => setNoteSheetOpen(false)} />
@@ -1463,7 +1515,7 @@ export function MushafPage() {
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-3">
               <span className="mushaf-sheet-title">
-                ملاحظة للآية ﴿{toArabicNumeral(selectedItem.displayAyah)}﴾
+                تدبّر · {selectedItem.surahName} ﴿{toArabicNumeral(selectedItem.displayAyah)}﴾
               </span>
               <button
                 className="mushaf-icon-close"
@@ -1473,13 +1525,15 @@ export function MushafPage() {
                 <X size={16} />
               </button>
             </div>
+            {/* Quoted ayah text */}
+            <div className="mushaf-tadabbur-quote" dir="rtl">{selectedItem.text}</div>
             <textarea
               value={noteDraft}
               onChange={(e) => setNoteDraft(e.target.value)}
-              placeholder="اكتب ملاحظة…"
-              rows={5}
+              placeholder="اكتب تدبّرك في هذه الآية…"
+              rows={4}
               autoFocus
-              className="mushaf-textarea"
+              className="mushaf-textarea mt-2"
             />
             <div className="flex items-center justify-between mt-1 mb-2 px-1">
               <span className="text-[10px] opacity-30">{noteDraft.length} حرف</span>
@@ -1489,12 +1543,39 @@ export function MushafPage() {
                 className="mushaf-btn-primary flex-1"
                 onClick={() => {
                   const clean = noteDraft.trim();
-                  if (clean) { setQuranNote(selectedItem.surahId, selectedItem.displayAyah, clean); toast.success("تم الحفظ"); }
+                  if (clean) { setQuranNote(selectedItem.surahId, selectedItem.displayAyah, clean); toast.success("تم الحفظ ✓"); }
                   else clearQuranNote(selectedItem.surahId, selectedItem.displayAyah);
                   setNoteSheetOpen(false);
                 }}
               >
                 حفظ
+              </button>
+              <button
+                className="mushaf-btn-secondary"
+                title="مشاركة التدبّر"
+                onClick={async () => {
+                  const reflection = noteDraft.trim();
+                  if (!reflection) { toast.error("اكتب تدبّرك أولاً"); return; }
+                  try {
+                    const blob = await renderDhikrPosterBlob({
+                      text: reflection,
+                      subtitle: `${selectedItem.surahName} · آية ${toArabicNumeral(selectedItem.displayAyah)}`,
+                      footerAppName: "أثر • ATHAR",
+                      footerUrl: "athar.app",
+                    });
+                    const fname = `tadabbur-${selectedItem.surahId}-${selectedItem.displayAyah}.png`;
+                    const file = new File([blob], fname, { type: "image/png" });
+                    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                      await navigator.share({ files: [file] });
+                    } else {
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a"); a.href = url; a.download = fname; a.click();
+                      setTimeout(() => URL.revokeObjectURL(url), 5000);
+                    }
+                  } catch { toast.error("تعذرت المشاركة"); }
+                }}
+              >
+                <Share2 size={15} />
               </button>
               {notes[selKey] && (
                 <button
@@ -2073,6 +2154,30 @@ export function MushafPage() {
         </>
       )}
 
+      {/* ── Session summary (Phase 2F) ───────────────────── */}
+      {showSessionSummary && (
+        <>
+          <div
+            className="mushaf-overlay"
+            style={{ zIndex: 249 }}
+            onClick={() => { setShowSessionSummary(false); navigate("/quran"); }}
+          />
+          <div className="mushaf-session-card" dir="rtl">
+            <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📖</div>
+            <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.3rem" }}>جلسة قراءة</div>
+            <div style={{ fontSize: "0.85rem", opacity: 0.65, marginBottom: "1.25rem" }}>
+              {toArabicNumeral(sessionDurationMin)} دقيقة · {toArabicNumeral(pagesReadRef.current.size)} صفحة
+            </div>
+            <button
+              className="mushaf-btn-primary"
+              style={{ width: "100%" }}
+              onClick={() => { setShowSessionSummary(false); navigate("/quran"); }}
+            >
+              حسناً
+            </button>
+          </div>
+        </>
+      )}
 
     </div>
   );
