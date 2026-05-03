@@ -240,6 +240,7 @@ const VOICE_PHRASE_MAP: Array<{ patterns: string[]; key: string }> = [
 
 function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
   const [listening, setListening] = React.useState(false);
+  const [starting, setStarting] = React.useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recogRef = React.useRef<any | null>(null);
   const cbRef = React.useRef(onRecognize);
@@ -248,16 +249,33 @@ function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
   const supported = typeof window !== 'undefined' &&
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
-  const toggle = React.useCallback(() => {
+  const requestMicrophoneAccess = React.useCallback(async () => {
+    if (!navigator.mediaDevices?.getUserMedia) return true;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      return true;
+    } catch {
+      toast.error('اسمح بالميكروفون لتفعيل العدّ بالصوت');
+      return false;
+    }
+  }, []);
+
+  const toggle = React.useCallback(async () => {
     if (recogRef.current) {
       recogRef.current.stop();
       recogRef.current = null;
       setListening(false);
       return;
     }
+    if (starting) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition as (new () => any) | undefined;
     if (!SR) { toast.error('التعرف على الصوت غير مدعوم في هذا المتصفح'); return; }
+    setStarting(true);
+    const micAllowed = await requestMicrophoneAccess();
+    if (!micAllowed) { setStarting(false); return; }
+
     const recog = new SR();
     recog.lang = 'ar-SA';
     recog.continuous = true;
@@ -281,6 +299,7 @@ function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
       if (e.error !== 'no-speech') toast.error('خطأ الميكروفون: ' + e.error);
       recogRef.current = null;
       setListening(false);
+      setStarting(false);
     };
     recog.onend = () => {
       // auto-restart for continuous listening
@@ -288,14 +307,22 @@ function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
         try { recogRef.current.start(); } catch { /* already started */ }
       }
     };
-    recog.start();
-    recogRef.current = recog;
-    setListening(true);
-  }, []);
+    try {
+      recog.start();
+      recogRef.current = recog;
+      setListening(true);
+    } catch {
+      recogRef.current = null;
+      setListening(false);
+      toast.error('تعذر تشغيل الميكروفون');
+    } finally {
+      setStarting(false);
+    }
+  }, [requestMicrophoneAccess, starting]);
 
   React.useEffect(() => () => { recogRef.current?.stop(); recogRef.current = null; }, []);
 
-  return { listening, toggle, supported };
+  return { listening, starting, toggle, supported };
 }
 
 // ─── 6C: Weekly stats bar chart ──────────────────────────────────────────────
@@ -483,7 +510,7 @@ export function SebhaPage() {
   }, [increment]);
 
   // 6B: Voice recognition — when a phrase matches, switch + count; null = count current
-  const { listening, toggle: toggleVoice, supported: voiceSupported } = useSpeechCount(
+  const { listening, starting: voiceStarting, toggle: toggleVoice, supported: voiceSupported } = useSpeechCount(
     React.useCallback((matchedKey: string | null) => {
       if (matchedKey && matchedKey !== selected && TASBEEHAT.some(t => t.key === matchedKey)) {
         setSelected(matchedKey as TasbeehKey);
@@ -669,15 +696,17 @@ export function SebhaPage() {
               type="button"
               onClick={toggleVoice}
               title={listening ? "إيقاف الاستماع" : "عدّ بالصوت"}
+              disabled={voiceStarting}
               className={cn(
                 "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition shrink-0",
                 listening
                   ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
-                  : "border-white/10 bg-white/5 text-white/65 hover:bg-white/8"
+                  : "border-white/10 bg-white/5 text-white/65 hover:bg-white/8",
+                voiceStarting && "opacity-60"
               )}
             >
               {listening ? <MicOff size={13} /> : <Mic size={13} />}
-              {listening ? "جارٍ الاستماع" : "صوت"}
+              {voiceStarting ? "طلب الإذن" : listening ? "جارٍ الاستماع" : "صوت"}
             </button>
           )}
         </div>

@@ -1,6 +1,27 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 import { useNoorStore } from "@/store/noorStore";
+import { isNativePlatform, requestNotificationPermission } from "@/lib/reminders";
+
+type ReminderPermission = "granted" | "denied" | "prompt";
+
+async function requestReminderPermission(): Promise<ReminderPermission> {
+  try {
+    if (await isNativePlatform()) {
+      const permission = await requestNotificationPermission();
+      return permission === "granted" ? "granted" : permission === "denied" ? "denied" : "prompt";
+    }
+  } catch {
+    // Fall through to the browser notification API when available.
+  }
+
+  if (!("Notification" in globalThis)) return "prompt";
+  if (Notification.permission === "granted") return "granted";
+  if (Notification.permission === "denied") return "denied";
+  const permission = await Notification.requestPermission().catch(() => "denied" as NotificationPermission);
+  return permission === "granted" ? "granted" : permission === "denied" ? "denied" : "prompt";
+}
 
 const STEPS = [
   {
@@ -32,9 +53,7 @@ const STEPS = [
     description: "هل تريد تذكيراً بالأذكار ومواقيت الصلاة؟ يمكنك تغيير هذا لاحقاً من الإعدادات.",
     action: "السماح",
     onAction: async () => {
-      if ("Notification" in globalThis && Notification.permission === "default") {
-        await Notification.requestPermission().catch(() => {});
-      }
+      await requestReminderPermission();
     },
   },
   {
@@ -55,11 +74,18 @@ export function OnboardingFlow() {
 
   const handleAction = async () => {
     setLoading(true);
+    let remindersAllowed = true;
     try {
       if ("onAction" in current && current.onAction) {
         await current.onAction();
       }
       if ("prayerReminders" in current && current.prayerReminders) {
+        remindersAllowed = (await requestReminderPermission()) === "granted";
+        if (!remindersAllowed) {
+          setReminders({ enabled: false, prayerAlertsEnabled: false });
+          toast.error("لم يتم السماح بالإشعارات");
+          return;
+        }
         setReminders({
           enabled: true,
           prayerAlertsEnabled: true,
