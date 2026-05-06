@@ -49,25 +49,29 @@
     </div>
     <div id="root"></div>
     <script>
-      // Hide loader once React has painted (runs after first React render commit)
       document.addEventListener('DOMContentLoaded', function() {
-        var observer = new MutationObserver(function() {
+        var observer;
+        function hideLoader() {
+          var loader = document.getElementById('app-loader');
+          if (!loader || loader.getAttribute('data-hidden') === 'true') return;
+          loader.setAttribute('data-hidden', 'true');
+          loader.style.pointerEvents = 'none';
+          loader.style.opacity = '0';
+          setTimeout(function(){ loader.style.display='none'; }, 420);
+        }
+        function hideIfReactPainted() {
           var root = document.getElementById('root');
           if (root && root.children.length > 0) {
-            var loader = document.getElementById('app-loader');
-            if (loader) {
-              loader.style.opacity = '0';
-              setTimeout(function(){ loader.style.display='none'; }, 420);
-            }
-            observer.disconnect();
+            hideLoader();
+            if (observer) observer.disconnect();
+            return true;
           }
-        });
+          return false;
+        }
+        if (hideIfReactPainted()) return;
+        observer = new MutationObserver(hideIfReactPainted);
         observer.observe(document.getElementById('root') || document.body, { childList: true, subtree: true });
-        // Fallback: hide loader after 6 seconds regardless
-        setTimeout(function(){
-          var loader = document.getElementById('app-loader');
-          if (loader) { loader.style.opacity='0'; setTimeout(function(){ loader.style.display='none'; }, 420); }
-        }, 6000);
+        setTimeout(function(){ hideLoader(); if (observer) observer.disconnect(); }, 6000);
       });
     </script>
     <script type="module" src="/src/main.tsx"></script>

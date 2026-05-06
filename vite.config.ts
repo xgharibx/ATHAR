@@ -7,18 +7,14 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/**
- * NOTE: `base: "./"` is important if you plan to ship the built `dist/`
- * inside an Android WebView (Capacitor, Cordova, etc).
- */
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, "", "");
-  const isGithubPages = env.GITHUB_PAGES === "true";
   const iconRev = env.VITE_ICON_REV || env.VITE_RUNTIME_VERSION || "2026-04-02-v1";
 
   return {
-  // Custom domain (www.athark.org) serves from root, so use "/" not "/ATHAR/"
-  base: isGithubPages ? "/" : "./",
+  // Custom domain, Vite preview, and Capacitor's local Android server all serve from root.
+  // Absolute asset URLs prevent deep links like /c/morning from looking for /c/assets/*.
+  base: "/",
   build: {
     chunkSizeWarningLimit: 900,
     rollupOptions: {
@@ -47,12 +43,12 @@ export default defineConfig(({ mode }) => {
       manifest: {
         name: "Athar — Adhkar",
         short_name: "Athar",
-        id: "./",
+        id: "/",
         description: "أثر - Adhkar & Prayer Companion",
         lang: "ar",
         dir: "rtl",
-        start_url: "./",
-        scope: "./",
+        start_url: "/",
+        scope: "/",
         display: "standalone",
         orientation: "portrait-primary",
         theme_color: "#2F4F37",
@@ -66,17 +62,17 @@ export default defineConfig(({ mode }) => {
           {
             name: "أذكار الصباح",
             short_name: "الصباح",
-            url: "./c/morning"
+            url: "/c/morning"
           },
           {
             name: "المصحف",
             short_name: "القرآن",
-            url: "./quran"
+            url: "/quran"
           },
           {
             name: "المفضلة",
             short_name: "المفضلة",
-            url: "./favorites"
+            url: "/favorites"
           }
         ]
       },

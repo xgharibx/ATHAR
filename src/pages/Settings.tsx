@@ -753,6 +753,7 @@ export function SettingsPage() {
             </div>
           </div>
           <Switch
+            aria-label="تفعيل التذكيرات"
             checked={reminders.enabled}
             onCheckedChange={async (v) => {
               setReminders({ enabled: v });
@@ -844,6 +845,7 @@ export function SettingsPage() {
                 <div className="text-sm font-semibold">تنبيهات الصلوات</div>
               </div>
               <Switch
+                aria-label="تنبيهات الصلوات"
                 checked={reminders.prayerAlertsEnabled}
                 onCheckedChange={(v) => setReminders({ prayerAlertsEnabled: v })}
                 disabled={!reminders.enabled}
@@ -923,6 +925,7 @@ export function SettingsPage() {
                 <div className="text-xs opacity-65 mt-1">تذكير يومي</div>
               </div>
               <Switch
+                aria-label="تذكير أذكار الصباح"
                 checked={reminders.morningEnabled}
                 onCheckedChange={(v) => setReminders({ morningEnabled: v })}
                 disabled={!reminders.enabled}
@@ -945,6 +948,7 @@ export function SettingsPage() {
                 <div className="text-xs opacity-65 mt-1">تذكير يومي</div>
               </div>
               <Switch
+                aria-label="تذكير أذكار المساء"
                 checked={reminders.eveningEnabled}
                 onCheckedChange={(v) => setReminders({ eveningEnabled: v })}
                 disabled={!reminders.enabled}
@@ -967,6 +971,7 @@ export function SettingsPage() {
                 <div className="text-xs opacity-65 mt-1">تذكير يومي</div>
               </div>
               <Switch
+                aria-label="تذكير ورد اليوم"
                 checked={reminders.dailyWirdEnabled}
                 onCheckedChange={(v) => setReminders({ dailyWirdEnabled: v })}
                 disabled={!reminders.enabled}
@@ -989,6 +994,7 @@ export function SettingsPage() {
                 <div className="text-xs opacity-65 mt-1">تذكير يومي</div>
               </div>
               <Switch
+                aria-label="تذكير خطة الختمة"
                 checked={reminders.khatmaEnabled}
                 onCheckedChange={(v) => setReminders({ khatmaEnabled: v })}
                 disabled={!reminders.enabled}
@@ -1014,6 +1020,7 @@ export function SettingsPage() {
                 </div>
               </div>
               <Switch
+                aria-label="حديث الفجر اليومي"
                 checked={reminders.dailyHadithNotif ?? false}
                 onCheckedChange={(v) => setReminders({ dailyHadithNotif: v })}
                 disabled={!reminders.enabled || !reminders.prayerAlertsEnabled}
@@ -1232,6 +1239,7 @@ function HomeWidgetsCard(props: {
               onClick={key === "prayer" ? () => { document.getElementById("prayer-settings")?.scrollIntoView({ behavior: "smooth", block: "center" }); } : undefined}
             >{HOME_WIDGET_LABELS[key]}</span>
             <Switch
+              aria-label={HOME_WIDGET_LABELS[key]}
               checked={prefs.homeWidgets[key] ?? true}
               onCheckedChange={(v) => setPrefs({ ...prefs, homeWidgets: { ...prefs.homeWidgets, [key]: v } })}
             />
@@ -1243,13 +1251,17 @@ function HomeWidgetsCard(props: {
 }
 
 function SettingRow(props: { title: string; desc: string; right: React.ReactNode }) {
+  // Inject aria-label on the right element so screen readers can name the control
+  const labeledRight = React.isValidElement(props.right)
+    ? React.cloneElement(props.right as React.ReactElement<Record<string, unknown>>, { "aria-label": props.title })
+    : props.right;
   return (
     <div className="glass rounded-3xl p-4 border border-white/10 flex items-center justify-between gap-4">
       <div className="min-w-0">
         <div className="text-sm font-semibold">{props.title}</div>
         <div className="text-xs opacity-65 mt-1 leading-5">{props.desc}</div>
       </div>
-      <div>{props.right}</div>
+      <div>{labeledRight}</div>
     </div>
   );
 }
