@@ -366,13 +366,13 @@ export async function isNativePlatform() {
 export async function getNotificationPermission(): Promise<"granted" | "denied" | "prompt"> {
   const { LocalNotifications } = await import("@capacitor/local-notifications");
   const p = await LocalNotifications.checkPermissions();
-  return p.display as any;
+  return p.display as "granted" | "denied" | "prompt";
 }
 
 export async function requestNotificationPermission(): Promise<"granted" | "denied" | "prompt"> {
   const { LocalNotifications } = await import("@capacitor/local-notifications");
   const p = await LocalNotifications.requestPermissions();
-  return p.display as any;
+  return p.display as "granted" | "denied" | "prompt";
 }
 
 export async function cancelAllReminders() {

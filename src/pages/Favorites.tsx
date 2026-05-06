@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useQuranDB } from "@/data/useQuranDB";
+import type { FlatDhikr } from "@/data/types";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -76,7 +77,7 @@ export function FavoritesPage() {
   const items = React.useMemo(() => {
     if (!data) return [];
     const map = new Map(data.flat.map((f) => [f.key, f]));
-    return favKeys.map((k) => map.get(k)).filter(Boolean) as any[];
+    return favKeys.map((k) => map.get(k)).filter(Boolean) as FlatDhikr[];
   }, [data, favKeys]);
 
   const copyAll = React.useCallback(async () => {
@@ -114,7 +115,7 @@ export function FavoritesPage() {
 
   // Group items by section for organized display
   const grouped = React.useMemo(() => {
-    const map = new Map<string, { sectionId: string; sectionTitle: string; items: any[] }>();
+    const map = new Map<string, { sectionId: string; sectionTitle: string; items: FlatDhikr[] }>();
     for (const item of items) {
       const existing = map.get(item.sectionId);
       if (existing) { existing.items.push(item); }
@@ -253,7 +254,7 @@ export function FavoritesPage() {
                     <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
                   </div>
                   <div className="space-y-2">
-                    {group.items.map((r: any) => (
+                    {group.items.map((r: FlatDhikr) => (
                       <div
                         key={r.key}
                         className="glass rounded-3xl p-4 border border-white/10 flex items-start justify-between gap-3 press-effect glass-hover"

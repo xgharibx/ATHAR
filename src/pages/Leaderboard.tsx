@@ -1147,7 +1147,7 @@ function GroupKhatmaCard() {
     });
 
     setGroupKhatma({
-      groupId: Math.random().toString(36).slice(2),
+      groupId: crypto.randomUUID().replace(/-/g, "").slice(0, 16),
       groupName: groupName.trim(),
       members,
       createdAt: new Date().toISOString()

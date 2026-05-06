@@ -269,8 +269,8 @@ function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
       return;
     }
     if (starting) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition as (new () => any) | undefined;
+    const SR: (new () => SpeechRecognition) | undefined =
+      window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!SR) { toast.error('التعرف على الصوت غير مدعوم في هذا المتصفح'); return; }
     setStarting(true);
     const micAllowed = await requestMicrophoneAccess();
@@ -281,12 +281,10 @@ function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
     recog.continuous = true;
     recog.interimResults = false;
     recog.maxAlternatives = 1;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recog.onresult = (e: any) => {
-      const transcript = Array.from(e.results as Iterable<any>)
+    recog.onresult = (e: SpeechRecognitionEvent) => {
+      const transcript = Array.from(e.results)
         .slice(e.resultIndex)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((r: any) => r[0].transcript as string)
+        .map((r) => r[0].transcript)
         .join(' ');
       let matched: string | null = null;
       for (const { patterns, key } of VOICE_PHRASE_MAP) {
@@ -294,8 +292,7 @@ function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
       }
       cbRef.current(matched); // null = unrecognized phrase → count current
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recog.onerror = (e: any) => {
+    recog.onerror = (e: SpeechRecognitionErrorEvent) => {
       if (e.error !== 'no-speech') toast.error('خطأ الميكروفون: ' + e.error);
       recogRef.current = null;
       setListening(false);

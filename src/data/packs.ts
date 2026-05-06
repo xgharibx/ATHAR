@@ -1,4 +1,5 @@
 import { AdhkarDBSchema, SectionSchema, type AdhkarDB, type Section, coerceCount } from "./types";
+import type { z } from "zod";
 
 const KEY = "noor_data_packs_v1";
 const MY_ADHKAR_PACK_ID = "my_adhkar_pack";
@@ -20,21 +21,22 @@ export function loadPacks(): NoorPack[] {
     const parsed = JSON.parse(raw); // Avoid direct cast until we validate
     if (!Array.isArray(parsed)) return [];
 
-    return parsed
-      .map((p: any) => {
+    return (parsed as unknown[])
+      .map((p) => {
+        const raw = p as Record<string, unknown>;
         // Validate & Validate Schema
         // This might fail if stored data is bad, so we use optional chaining
         // Parse using Zod then normalize
-        const rawSections = (p.sections ?? []).map((s: any) => SectionSchema.parse(s));
-        const normalizedSections: Section[] = rawSections.map((s: any) => ({
+        const rawSections = ((raw.sections ?? []) as unknown[]).map((s) => SectionSchema.parse(s));
+        const normalizedSections: Section[] = rawSections.map((s: z.infer<typeof SectionSchema>) => ({
           ...s,
-          content: s.content.map((i: any) => ({ ...i, count: coerceCount(i.count) }))
+          content: s.content.map((i) => ({ ...i, count: coerceCount(i.count) }))
         }));
 
         return {
-          packId: p.packId,
-          name: p.name,
-          importedAt: p.importedAt,
+          packId: String(raw.packId ?? ""),
+          name: String(raw.name ?? ""),
+          importedAt: String(raw.importedAt ?? ""),
           sections: normalizedSections
         } as NoorPack;
       })
@@ -122,14 +124,14 @@ export function removeCustomDhikrItem(sectionId: string, itemIndex: number): Noo
   return nextPacks;
 }
 
-export function addPackFromJson(json: any, name?: string): NoorPack {
+export function addPackFromJson(json: Record<string, unknown>, name?: string): NoorPack {
   // Accept either {sections:[...]} (DB) OR {id,title,items:[...]} (section export)
   let sections: Section[] = [];
   
   // Helper to normalize
-  const normalizeValues = (rawSecs: any[]) => rawSecs.map((s) => ({
+  const normalizeValues = (rawSecs: z.infer<typeof SectionSchema>[]) => rawSecs.map((s) => ({
     ...s,
-    content: s.content.map((c: any) => ({ ...c, count: coerceCount(c.count) }))
+    content: s.content.map((c) => ({ ...c, count: coerceCount(c.count) }))
   }));
 
   if (json?.sections) {
@@ -147,10 +149,10 @@ export function addPackFromJson(json: any, name?: string): NoorPack {
     throw new Error("صيغة الحزمة غير مدعومة");
   }
 
-  const packId = `pack_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
+  const packId = `pack_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
   return {
     packId,
-    name: name || json?.name || json?.title || "حزمة مستوردة",
+    name: name || String(json.name ?? json.title ?? "حزمة مستوردة"),
     importedAt: new Date().toISOString(),
     sections
   };

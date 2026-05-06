@@ -60,9 +60,9 @@ export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] 
 
   // Normalize counts to numbers
   const db: AdhkarDB = {
-    sections: parsed.sections.map((s: any) => ({
+    sections: parsed.sections.map((s) => ({
       ...s,
-      content: s.content.map((i: any) => ({
+      content: s.content.map((i) => ({
         ...i,
         count: coerceCount(i.count)
       }))

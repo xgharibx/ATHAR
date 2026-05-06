@@ -526,6 +526,7 @@ export function InsightsPage() {
       const dataUrl = await toPng(insightsExportRef.current, { pixelRatio: 2, cacheBust: true, backgroundColor: "var(--bg)" });
       const win = window.open("", "_blank");
       if (win) {
+        win.opener = null; // prevent tabnapping
         win.document.open();
         win.document.title = "إحصاءات ATHAR";
         const img = win.document.createElement("img");

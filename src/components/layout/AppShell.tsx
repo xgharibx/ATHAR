@@ -184,9 +184,9 @@ function useSectionProgress(sectionId: string, targets: number[]) {
   }, [progress, sectionId, targets]);
 }
 
-function SidebarItem({ s, onNavigate }: { s: any; onNavigate?: () => void }) {
+function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onNavigate?: () => void }) {
   const location = useLocation();
-  const targets = React.useMemo(() => s.content.map((i: any) => coerceCount(i.count)), [s.content]);
+  const targets = React.useMemo(() => s.content.map((i) => coerceCount(i.count)), [s.content]);
   const { percent } = useSectionProgress(s.id, targets);
   const isActive = location.pathname === `/c/${s.id}`;
   const identity = React.useMemo(() => getSectionIdentity(s.id), [s.id]);

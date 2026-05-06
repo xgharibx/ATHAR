@@ -211,7 +211,9 @@ type LocalHistoryRow = {
 };
 
 function randomId(prefix: string) {
-  return `${prefix}_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  // Use CSPRNG for unguessable IDs
+  const uid = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+  return `${prefix}_${uid}`;
 }
 
 function normalizeScore(value: unknown) {
