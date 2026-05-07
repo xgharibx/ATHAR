@@ -293,6 +293,24 @@ export const SEERAH_EVENTS: SeerahEvent[] = [
     category: "المدينة",
     icon: "📜",
   },
+  {
+    id: "ali_caliph",
+    year: "35 هـ",
+    yearEn: "656 م",
+    title: "خلافة علي بن أبي طالب",
+    description: "تولّى علي بن أبي طالب رضي الله عنه الخلافة الرابعة. شهدت خلافته فتنة كبيرة بين المسلمين، وكان رضي الله عنه يسعى إلى الجمع والإصلاح. استشهد في الكوفة سنة 40 هجرية.",
+    category: "الفتوحات",
+    icon: "⚔️",
+  },
+  {
+    id: "year_of_jamaa",
+    year: "41 هـ",
+    yearEn: "661 م",
+    title: "عام الجماعة ووحدة الأمة",
+    description: "تنازل الحسن بن علي رضي الله عنه عن الخلافة لمعاوية بن أبي سفيان توقياً للدماء فسُمّي العام عام الجماعة. فاق هذا التنازل توقعات المسلمين وحقق نبوءة النبي صلى الله عليه وسلم.",
+    category: "الفتوحات",
+    icon: "🕊️",
+  },
 ];
 
 export const SEERAH_CATEGORIES: Array<{ key: SeerahEvent["category"]; label: string; color: string }> = [
