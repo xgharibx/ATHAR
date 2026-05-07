@@ -471,7 +471,7 @@ export function InsightsPage() {
     if (!("Notification" in globalThis)) return;
 
     const sendReport = () => {
-      const msg = `أحسنت! هذا الأسبوع: ${weekTotal} ذكر، ${quranWeekTotal} آية، ${prayerLogWeekTotal} صلاة ✨`;
+      const msg = `أحسنت! هذا الأسبوع: ${weekTotal.toLocaleString("ar-EG")} ذكر، ${quranWeekTotal.toLocaleString("ar-EG")} آية، ${prayerLogWeekTotal.toLocaleString("ar-EG")} صلاة ✨`;
       if (Notification.permission === "granted") {
         new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
         setWeeklyReportSentISO(thisWeekISO);
@@ -554,7 +554,7 @@ export function InsightsPage() {
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], "ATHAR-quran-progress.png", { type: "image/png" });
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "تقدمي في القرآن", text: `${quranStats.completed} سورة مكتملة • ${overallQuranProgress}% ✨` });
+        await navigator.share({ files: [file], title: "تقدمي في القرآن", text: `${quranStats.completed.toLocaleString("ar-EG")} سورة مكتملة • ${overallQuranProgress.toLocaleString("ar-EG")}٪ ✨` });
       } else {
         const a = document.createElement("a");
         a.href = dataUrl;
@@ -609,7 +609,7 @@ export function InsightsPage() {
       const file = new File([blob], "ATHAR-progress.png", { type: "image/png" });
 
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "تقدمي في ATHAR", text: `سلسلة ${streak} يوم • ${total} ذكر ✨` });
+        await navigator.share({ files: [file], title: "تقدمي في ATHAR", text: `سلسلة ${streak.toLocaleString("ar-EG")} يوم • ${total.toLocaleString("ar-EG")} ذكر ✨` });
       } else {
         // Fallback: download
         const a = document.createElement("a");
@@ -649,7 +649,7 @@ export function InsightsPage() {
     if (Notification.permission === "granted") {
       const today = new Date();
       const thisWeekISO = dateKey(today);
-      const msg = `أحسنت! هذا الأسبوع: ${weekTotal} ذكر، ${quranWeekTotal} آية، ${prayerLogWeekTotal} صلاة ✨`;
+      const msg = `أحسنت! هذا الأسبوع: ${weekTotal.toLocaleString("ar-EG")} ذكر، ${quranWeekTotal.toLocaleString("ar-EG")} آية، ${prayerLogWeekTotal.toLocaleString("ar-EG")} صلاة ✨`;
       new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
       setWeeklyReportSentISO(thisWeekISO);
       toast.success("تم إرسال التقرير الأسبوعي");
@@ -677,7 +677,7 @@ export function InsightsPage() {
               <div className="flex items-center gap-2">
                 <Zap size={13} style={{ color: xpLevel.color }} />
                 <span className="text-sm font-bold" style={{ color: xpLevel.color }}>{xpLevel.label}</span>
-                <span className="text-[10px] opacity-40 tabular-nums">{xp.toLocaleString("ar-SA")} نقطة</span>
+                <span className="text-[10px] opacity-40 tabular-nums">{xp.toLocaleString("ar-EG")} نقطة</span>
               </div>
               <div className="mt-1.5 flex items-center gap-2">
                 <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
@@ -687,7 +687,7 @@ export function InsightsPage() {
                   />
                 </div>
                 {xpLevel.maxXp < Infinity && (
-                  <span className="text-[10px] opacity-45 tabular-nums">{xpLevel.xpInLevel}/{xpLevel.xpForLevel}</span>
+                  <span className="text-[10px] opacity-45 tabular-nums">{xpLevel.xpInLevel.toLocaleString("ar-EG")}/{xpLevel.xpForLevel.toLocaleString("ar-EG")}</span>
                 )}
               </div>
             </div>
@@ -749,15 +749,15 @@ export function InsightsPage() {
             </div>
             <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">ذكر</div>
-              <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayCount > 0 ? "var(--accent)" : undefined }}>{todayCount}</div>
+              <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayCount > 0 ? "var(--accent)" : undefined }}>{todayCount.toLocaleString("ar-EG")}</div>
             </div>
             <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">آية</div>
-              <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayQuranAyahs > 0 ? "var(--accent)" : undefined }}>{todayQuranAyahs}</div>
+              <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayQuranAyahs > 0 ? "var(--accent)" : undefined }}>{todayQuranAyahs.toLocaleString("ar-EG")}</div>
             </div>
             <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">هدف</div>
-              <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: quranGoalPct >= 100 ? "var(--ok)" : undefined }}>{quranGoalPct}%</div>
+              <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: quranGoalPct >= 100 ? "var(--ok)" : undefined }}>{quranGoalPct.toLocaleString("ar-EG")}٪</div>
             </div>
             <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">مستوى</div>
@@ -788,10 +788,10 @@ export function InsightsPage() {
         <div style={{ fontSize: "26px", fontWeight: 800, marginBottom: "16px", color: "var(--accent)" }}>ATHAR</div>
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
           {[
-            { label: "السلسلة", value: `${streak} يوم`, emoji: streak >= 7 ? "🔥" : "✨" },
-            { label: "الإجمالي", value: `${total}`, emoji: "📿" },
-            { label: "اليوم", value: `${todayCount}`, emoji: "🌙" },
-            { label: "أفضل", value: `${bestStreak}د`, emoji: "🏆" },
+            { label: "السلسلة", value: `${streak.toLocaleString("ar-EG")} يوم`, emoji: streak >= 7 ? "🔥" : "✨" },
+            { label: "الإجمالي", value: total.toLocaleString("ar-EG"), emoji: "📿" },
+            { label: "اليوم", value: todayCount.toLocaleString("ar-EG"), emoji: "🌙" },
+            { label: "أفضل", value: `${bestStreak.toLocaleString("ar-EG")}د`, emoji: "🏆" },
           ].map((s) => (
             <div key={s.label} style={{
               flex: 1,
@@ -838,13 +838,13 @@ export function InsightsPage() {
             <span
               className="text-xl font-bold tabular-nums leading-none mt-0.5"
               style={{ color: todayCount > 0 ? "var(--accent)" : undefined }}
-            >{todayCount}</span>
+            >{todayCount.toLocaleString("ar-EG")}</span>
             <span className="text-[10px] opacity-50 mt-0.5">ذكر اليوم</span>
             {streak > 0 ? (
               <span
                 className="text-[9px] mt-1 font-medium tabular-nums"
                 style={{ color: streak >= 7 ? "#fb923c" : "var(--accent)" }}
-              >🔥 {streak} يوم</span>
+              >🔥 {streak.toLocaleString("ar-EG")} يوم</span>
             ) : (
               <span className="text-[9px] mt-1 opacity-30">—</span>
             )}
@@ -859,8 +859,8 @@ export function InsightsPage() {
             <span
               className="text-xl font-bold tabular-nums leading-none mt-0.5"
               style={{ color: quranGoalPct >= 100 ? "var(--ok)" : todayQuranAyahs > 0 ? "var(--accent)" : undefined }}
-            >{todayQuranAyahs}</span>
-            <span className="text-[10px] opacity-50 mt-0.5">/ {quranGoal} آية</span>
+            >{todayQuranAyahs.toLocaleString("ar-EG")}</span>
+            <span className="text-[10px] opacity-50 mt-0.5">/ {quranGoal.toLocaleString("ar-EG")} آية</span>
             <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden mt-1.5">
               <div
                 className="h-full rounded-full transition-all duration-500"
@@ -878,7 +878,7 @@ export function InsightsPage() {
             <span
               className="text-xl font-bold tabular-nums leading-none mt-0.5"
               style={{ color: checklistPct >= 100 ? "var(--ok)" : checklistDoneCount > 0 ? "var(--accent)" : undefined }}
-            >{checklistDoneCount}<span className="text-sm opacity-40 font-normal">/{checklistTotal}</span></span>
+            >{checklistDoneCount.toLocaleString("ar-EG")}<span className="text-sm opacity-40 font-normal">/{checklistTotal.toLocaleString("ar-EG")}</span></span>
             <span className="text-[10px] opacity-50 mt-0.5">من القائمة</span>
             <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden mt-1.5">
               <div
@@ -915,7 +915,7 @@ export function InsightsPage() {
               <div className="text-xs opacity-60">الإحصائيات</div>
             </div>
             <div className="text-3xl font-bold tabular-nums leading-none">
-              {streak}
+              {streak.toLocaleString("ar-EG")}
               <span className="text-base font-normal opacity-70 mr-1">يوم</span>
             </div>
             <div className={`text-sm mt-1 font-medium ${streakFireClass}`}>{streakLabel}</div>
@@ -929,17 +929,17 @@ export function InsightsPage() {
 
         {/* Mini stats row */}
         <div className="relative mt-4 grid grid-cols-5 gap-2">
-          <MiniStatSmall label="اليوم" value={`${todayCount}`} accent />
-          <MiniStatSmall label="الأسبوع" value={`${weekTotal}`} />
-          <MiniStatSmall label="الإجمالي" value={`${total}`} />
-          <MiniStatSmall label="أفضل يوم" value={bestDay.count > 0 ? `${bestDay.count}` : "—"} />
-          <MiniStatSmall label="أفضل سلسلة" value={bestStreak > 0 ? `${bestStreak}` : "—"} />
+          <MiniStatSmall label="اليوم" value={todayCount.toLocaleString("ar-EG")} accent />
+          <MiniStatSmall label="الأسبوع" value={weekTotal.toLocaleString("ar-EG")} />
+          <MiniStatSmall label="الإجمالي" value={total.toLocaleString("ar-EG")} />
+          <MiniStatSmall label="أفضل يوم" value={bestDay.count > 0 ? bestDay.count.toLocaleString("ar-EG") : "—"} />
+          <MiniStatSmall label="أفضل سلسلة" value={bestStreak > 0 ? bestStreak.toLocaleString("ar-EG") : "—"} />
         </div>
         {/* Monthly total */}
         {monthTotal > 0 && (
           <div className="relative mt-2 flex items-center gap-1.5 text-[11px] opacity-50">
             <span>هذا الشهر:</span>
-            <span className="tabular-nums font-semibold opacity-100" style={{ color: "var(--accent)" }}>{monthTotal.toLocaleString("ar-SA")}</span>
+            <span className="tabular-nums font-semibold opacity-100" style={{ color: "var(--accent)" }}>{monthTotal.toLocaleString("ar-EG")}</span>
             <span>ذكر</span>
           </div>
         )}
@@ -1045,7 +1045,7 @@ export function InsightsPage() {
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={16} className="text-[var(--accent)]" />
           <div className="font-semibold text-sm">نشاط الأسبوع</div>
-          <span className="text-[11px] opacity-50 mr-auto tabular-nums">{weekTotal} إجمالي</span>
+          <span className="text-[11px] opacity-50 mr-auto tabular-nums">{weekTotal.toLocaleString("ar-EG")} إجمالي</span>
           {lastWeekTotal > 0 && (
             <span
               className={`text-[10px] tabular-nums font-semibold px-2 py-0.5 rounded-full border`}
@@ -1054,9 +1054,9 @@ export function InsightsPage() {
                   ? { background: "rgba(52,211,153,0.12)", color: "var(--ok)", borderColor: "rgba(52,211,153,0.25)" }
                   : { background: "rgba(248,113,113,0.10)", color: "rgb(248,113,113)", borderColor: "rgba(248,113,113,0.2)" }
               }
-              title={`الأسبوع الماضي: ${lastWeekTotal}`}
+              title={`الأسبوع الماضي: ${lastWeekTotal.toLocaleString("ar-EG")}`}
             >
-              {weekTotal >= lastWeekTotal ? "▲" : "▼"} {Math.abs(weekTotal - lastWeekTotal)}
+              {weekTotal >= lastWeekTotal ? "▲" : "▼"} {Math.abs(weekTotal - lastWeekTotal).toLocaleString("ar-EG")}
             </span>
           )}
         </div>
@@ -1066,7 +1066,7 @@ export function InsightsPage() {
             return (
               <div key={day.key} className="flex-1 flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
                 {day.count > 0 && (
-                  <span className="text-[9px] opacity-60 tabular-nums leading-none mb-0.5">{day.count}</span>
+                  <span className="text-[9px] opacity-60 tabular-nums leading-none mb-0.5">{day.count.toLocaleString("ar-EG")}</span>
                 )}
                 <div
                   className="w-full rounded-t-md transition-all duration-500"
@@ -1102,21 +1102,21 @@ export function InsightsPage() {
             {quranStreak > 0 && (
               <div className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20">
                 <Flame size={11} className="text-[var(--accent)]" />
-                <span className="tabular-nums">{quranStreak} يوم</span>
+                <span className="tabular-nums">{quranStreak.toLocaleString("ar-EG")} يوم</span>
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-3 gap-2 mb-4">
-            <MiniStatSmall label="اليوم" value={`${todayQuranAyahs}`} accent />
-            <MiniStatSmall label="الأسبوع" value={`${quranWeekTotal}`} />
-            <MiniStatSmall label="الإجمالي" value={`${quranStats.totalAyahs.toLocaleString("ar-SA")}`} />
+            <MiniStatSmall label="اليوم" value={todayQuranAyahs.toLocaleString("ar-EG")} accent />
+            <MiniStatSmall label="الأسبوع" value={quranWeekTotal.toLocaleString("ar-EG")} />
+            <MiniStatSmall label="الإجمالي" value={quranStats.totalAyahs.toLocaleString("ar-EG")} />
           </div>
           {/* Monthly ayahs */}
           {quranMonthTotal > 0 && (
             <div className="mb-4 -mt-2 flex items-center gap-1.5 text-[11px] opacity-50">
               <span>هذا الشهر:</span>
-              <span className="tabular-nums font-semibold opacity-100" style={{ color: "var(--accent)" }}>{quranMonthTotal.toLocaleString("ar-SA")}</span>
+              <span className="tabular-nums font-semibold opacity-100" style={{ color: "var(--accent)" }}>{quranMonthTotal.toLocaleString("ar-EG")}</span>
               <span>آية</span>
             </div>
           )}
@@ -1125,10 +1125,10 @@ export function InsightsPage() {
             <div className="flex items-center justify-between mb-1.5 text-xs opacity-65">
               <div className="flex items-center gap-1.5">
                 <Target size={11} />
-                <span>هدف اليوم: {todayQuranAyahs}/{quranGoal} آية</span>
+                <span>هدف اليوم: {todayQuranAyahs.toLocaleString("ar-EG")}/{quranGoal.toLocaleString("ar-EG")} آية</span>
               </div>
               <span className={`tabular-nums font-medium ${quranGoalPct >= 100 ? "text-[var(--ok)]" : ""}`}>
-                {quranGoalPct}%
+                {quranGoalPct.toLocaleString("ar-EG")}٪
               </span>
             </div>
             <div className="h-2 rounded-full bg-white/8 overflow-hidden">
@@ -1143,7 +1143,7 @@ export function InsightsPage() {
             <>
               <div className="text-xs opacity-50 mb-2 flex items-center justify-between">
                 <span>نشاط القراءة (7 أيام)</span>
-                <span className="tabular-nums">{quranWeekTotal} آية</span>
+                <span className="tabular-nums">{quranWeekTotal.toLocaleString("ar-EG")} آية</span>
               </div>
               <div className="flex items-end gap-1.5" style={{ height: "64px" }}>
                 {quranLast7Days.map((day) => {
@@ -1151,7 +1151,7 @@ export function InsightsPage() {
                   return (
                     <div key={day.key} className="flex-1 flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
                       {day.count > 0 && (
-                        <span className="text-[9px] opacity-60 tabular-nums leading-none mb-0.5">{day.count}</span>
+                        <span className="text-[9px] opacity-60 tabular-nums leading-none mb-0.5">{day.count.toLocaleString("ar-EG")}</span>
                       )}
                       <div
                         className="w-full rounded-t-md transition-all duration-500"
@@ -1185,7 +1185,7 @@ export function InsightsPage() {
           <Target size={14} className="text-[var(--accent)]" />
           <div className="font-semibold text-sm">ثبات الصلاة</div>
           <span className="text-[11px] opacity-50 mr-auto tabular-nums">
-            متوسط {prayerConsistencyAvg} / 5
+            متوسط {parseFloat(prayerConsistencyAvg.toFixed(1)).toLocaleString("ar-EG", { minimumFractionDigits: 1 })} / ٥
           </span>
         </div>
         {prayerConsistency.every((d) => d.done === 0) ? (
@@ -1232,7 +1232,7 @@ export function InsightsPage() {
             <BookOpen size={14} className="text-[var(--accent)]" />
             <div className="font-semibold text-sm">صفحات القرآن (7 أيام)</div>
             <span className="text-[11px] opacity-50 mr-auto tabular-nums">
-              {quranPageLast7Days.reduce((s, d) => s + d.pages, 0).toFixed(1)} صفحة
+              {parseFloat(quranPageLast7Days.reduce((s, d) => s + d.pages, 0).toFixed(1)).toLocaleString("ar-EG", { minimumFractionDigits: 1 })} صفحة
             </span>
           </div>
           <div className="flex items-end gap-1.5" style={{ height: "72px" }}>
@@ -1241,7 +1241,7 @@ export function InsightsPage() {
               return (
                 <div key={day.key} className="flex-1 flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
                   {day.pages > 0 && (
-                    <span className="text-[9px] opacity-60 tabular-nums leading-none mb-0.5">{day.pages.toFixed(1)}</span>
+                    <span className="text-[9px] opacity-60 tabular-nums leading-none mb-0.5">{parseFloat(day.pages.toFixed(1)).toLocaleString("ar-EG", { minimumFractionDigits: 1 })}</span>
                   )}
                   <div
                     className="w-full rounded-t-md transition-all duration-500"
@@ -1278,7 +1278,7 @@ export function InsightsPage() {
                   <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: v.color }} />
                   <span className="text-[11px] opacity-75">{v.label}</span>
                   <span className="text-[11px] tabular-nums font-semibold mr-auto" style={{ color: v.pct >= 80 ? "var(--ok)" : undefined }}>
-                    {v.pct}%
+                    {v.pct.toLocaleString("ar-EG")}٪
                   </span>
                 </div>
               ))}
@@ -1339,7 +1339,7 @@ export function InsightsPage() {
         </div>
         {notifPermission === "granted" && (
           <div className="mt-2 text-[11px] opacity-45 leading-5">
-            آخر تقرير: {weekTotal} ذكر • {quranWeekTotal} آية • {prayerLogWeekTotal} صلاة
+            آخر تقرير: {weekTotal.toLocaleString("ar-EG")} ذكر • {quranWeekTotal.toLocaleString("ar-EG")} آية • {prayerLogWeekTotal.toLocaleString("ar-EG")} صلاة
           </div>
         )}
       </Card>
@@ -1349,7 +1349,7 @@ export function InsightsPage() {
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="font-semibold text-sm">شارات الإنجاز</div>
           <span className="text-[11px] opacity-50">
-            {unlockedMilestones.filter((m) => m.unlocked).length}/{MILESTONES.length}
+            {unlockedMilestones.filter((m) => m.unlocked).length.toLocaleString("ar-EG")}/{MILESTONES.length.toLocaleString("ar-EG")}
           </span>
         </div>
         {nextMilestone ? (
@@ -1359,7 +1359,7 @@ export function InsightsPage() {
               <div className="mt-1 text-sm font-semibold truncate">{nextMilestone.label}</div>
             </div>
             <span className="shrink-0 rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-1.5 text-xs font-semibold tabular-nums text-[var(--accent)]">
-              {Math.max(0, nextMilestone.req - (nextMilestone.type === "total" ? total : streak)).toLocaleString("ar-SA")}
+              {Math.max(0, nextMilestone.req - (nextMilestone.type === "total" ? total : streak)).toLocaleString("ar-EG")}
               {nextMilestone.type === "total" ? " ذكر" : " يوم"}
             </span>
           </div>
@@ -1374,12 +1374,12 @@ export function InsightsPage() {
                   ? "border-[var(--accent)]/35 bg-[var(--accent)]/10"
                   : "border-white/8 bg-white/3 opacity-40 grayscale",
               ].join(" ")}
-              title={m.unlocked ? `مفتوح — ${m.type === "total" ? `${m.req} ذكر` : `${m.req} يوم سلسلة`}` : `يتطلب ${m.type === "total" ? `${m.req} ذكر` : `${m.req} يوم متواصل`}`}
+              title={m.unlocked ? `مفتوح — ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم سلسلة`}` : `يتطلب ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم متواصل`}`}
             >
               <span className="text-2xl leading-none">{m.emoji}</span>
               <span className="text-[11px] font-medium text-center leading-tight">{m.label}</span>
               <span className="text-[10px] opacity-55 tabular-nums">
-                {m.type === "total" ? `${m.req}` : `${m.req}د`}
+                {m.type === "total" ? m.req.toLocaleString("ar-EG") : `${m.req.toLocaleString("ar-EG")}د`}
               </span>
             </div>
           ))}
@@ -1436,7 +1436,7 @@ export function InsightsPage() {
                     className="text-lg font-bold tabular-nums"
                     style={{ color: count > 0 ? "var(--accent)" : "var(--fg)", opacity: count > 0 ? 1 : 0.4 }}
                   >
-                    {count.toLocaleString("ar-SA")}
+                    {count.toLocaleString("ar-EG")}
                   </div>
                   <div className="text-xs mt-1 opacity-65" style={{ color: "var(--fg)" }}>{label}</div>
                 </div>
@@ -1475,8 +1475,8 @@ export function InsightsPage() {
                   key={juzNum}
                   type="button"
                   onClick={() => navigate(`/quran?juz=${juzNum}`)}
-                  aria-label={`الجزء ${juzNum}: ${jpct}%`}
-                  title={`الجزء ${juzNum}: ${jpct}%`}
+                  aria-label={`الجزء ${juzNum.toLocaleString("ar-EG")}: ${jpct.toLocaleString("ar-EG")}٪`}
+                  title={`الجزء ${juzNum.toLocaleString("ar-EG")}: ${jpct.toLocaleString("ar-EG")}٪`}
                   className="aspect-square flex flex-col items-center justify-center rounded-2xl border text-center transition hover:scale-105 active:scale-95"
                   style={{
                     border: isDone ? '1px solid var(--ok)' : jpct > 0 ? '1px solid rgba(var(--accent-raw,0,0,0),0.25)' : '1px solid rgba(255,255,255,0.08)',
@@ -1487,8 +1487,8 @@ export function InsightsPage() {
                         : 'rgba(255,255,255,0.04)',
                   }}
                 >
-                  <span className="text-[10px] font-bold tabular-nums leading-tight" style={{ color: isDone ? 'var(--ok)' : jpct > 0 ? 'var(--accent)' : undefined, opacity: jpct === 0 ? 0.4 : 1 }}>{juzNum}</span>
-                  {jpct > 0 && <span className="text-[8px] opacity-60 tabular-nums leading-none mt-0.5">{jpct}%</span>}
+                  <span className="text-[10px] font-bold tabular-nums leading-tight" style={{ color: isDone ? 'var(--ok)' : jpct > 0 ? 'var(--accent)' : undefined, opacity: jpct === 0 ? 0.4 : 1 }}>{juzNum.toLocaleString("ar-EG")}</span>
+                  {jpct > 0 && <span className="text-[8px] opacity-60 tabular-nums leading-none mt-0.5">{jpct.toLocaleString("ar-EG")}٪</span>}
                 </button>
               );
             })}
@@ -1529,7 +1529,7 @@ export function InsightsPage() {
               return (
                 <div
                   key={sId}
-                  title={`سورة ${sId}: ${cpct}%`}
+                  title={`سورة ${sId.toLocaleString("ar-EG")}: ${cpct.toLocaleString("ar-EG")}٪`}
                   className="aspect-square rounded-sm transition-colors"
                   style={{
                     background:
@@ -1553,9 +1553,9 @@ export function InsightsPage() {
             <span>مكتمل</span>
           </div>
           <div className="mt-2 flex items-center gap-4 text-xs opacity-55 flex-wrap">
-            <span className="tabular-nums">{quranStats.completed} سورة مكتملة</span>
-            <span className="tabular-nums">{quranStats.started} سورة بدأت</span>
-            <span className="tabular-nums">{overallQuranProgress}% من القرآن</span>
+            <span className="tabular-nums">{quranStats.completed.toLocaleString("ar-EG")} سورة مكتملة</span>
+            <span className="tabular-nums">{quranStats.started.toLocaleString("ar-EG")} سورة بدأت</span>
+            <span className="tabular-nums">{overallQuranProgress.toLocaleString("ar-EG")}٪ من القرآن</span>
           </div>
         </Card>
         </div>
@@ -1575,7 +1575,7 @@ export function InsightsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1 mb-0.5">
                     <span className="text-[11px] opacity-75 truncate">{s.title}</span>
-                    <span className="text-[10px] tabular-nums opacity-50 shrink-0">{s.pctVal}%</span>
+                    <span className="text-[10px] tabular-nums opacity-50 shrink-0">{s.pctVal.toLocaleString("ar-EG")}٪</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
                     <div
