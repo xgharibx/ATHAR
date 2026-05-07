@@ -530,6 +530,8 @@ export function MushafPage() {
       setPlayingKey(key);
       audio.play().catch(() => toast.error("تعذر تشغيل التلاوة"));
       audio.onended = () => {
+        // Guard: if component unmounted or a newer audio took over, bail out
+        if (audioRef.current !== audio) return;
         if (!pst.active) { setPlayingKey(null); return; }
         if (pst.loop) {
           const rem = pst.loopRemaining;
@@ -600,6 +602,7 @@ export function MushafPage() {
     if (tafsirItem) surahIds.push(tafsirItem.surahId);
     const toFetch = surahIds.filter((sid) => !translationData[sid]);
     if (toFetch.length === 0) return;
+    let mounted = true;
     setTranslationLoading(true);
     Promise.all(toFetch.map((sid) =>
       fetch(`https://api.alquran.cloud/v1/surah/${sid}/en.sahih`)
@@ -610,13 +613,15 @@ export function MushafPage() {
           return { sid, ayahs };
         })
     )).then((results) => {
+      if (!mounted) return;
       setTranslationData((prev) => {
         const upd = { ...prev };
         for (const { sid, ayahs } of results) upd[sid] = ayahs;
         return upd;
       });
-    }).catch(() => toast.error("تعذر تحميل الترجمة"))
-      .finally(() => setTranslationLoading(false));
+    }).catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); })
+      .finally(() => { if (mounted) setTranslationLoading(false); });
+    return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showTranslation, tafsirItem, currentPage]);
 
@@ -633,6 +638,7 @@ export function MushafPage() {
     const edition = inlineTafseerSource === "jalalayn" ? "ar.jalalayn" : "ar.muyassar";
     const toFetch = surahIds.filter((sid) => !inlineTafseerData[sid]);
     if (toFetch.length === 0) return;
+    let mounted = true;
     setInlineTafseerLoading(true);
     Promise.all(toFetch.map((sid) =>
       fetch(`https://api.alquran.cloud/v1/surah/${sid}/${edition}`)
@@ -643,13 +649,15 @@ export function MushafPage() {
           return { sid, ayahs };
         })
     )).then((results) => {
+      if (!mounted) return;
       setInlineTafseerData((prev) => {
         const upd = { ...prev };
         for (const { sid, ayahs } of results) upd[sid] = ayahs;
         return upd;
       });
-    }).catch(() => toast.error("تعذر تحميل التفسير"))
-      .finally(() => setInlineTafseerLoading(false));
+    }).catch(() => { if (mounted) toast.error("تعذر تحميل التفسير"); })
+      .finally(() => { if (mounted) setInlineTafseerLoading(false); });
+    return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inlineTafseer, inlineTafseerSource, currentPage]);
 
@@ -665,17 +673,20 @@ export function MushafPage() {
     const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
     const toFetch = surahIds.filter((sid) => !wbwData[sid]);
     if (toFetch.length === 0) return;
+    let mounted = true;
     setWbwLoading(true);
     Promise.all(toFetch.map((sid) => loadWbwSurah(sid).then((data) => ({ sid, data }))))
       .then((results) => {
+        if (!mounted) return;
         setWbwData((prev) => {
           const upd = { ...prev };
           for (const { sid, data } of results) upd[sid] = data;
           return upd;
         });
       })
-      .catch(() => toast.error("تعذر تحميل البيانات"))
-      .finally(() => setWbwLoading(false));
+      .catch(() => { if (mounted) toast.error("تعذر تحميل البيانات"); })
+      .finally(() => { if (mounted) setWbwLoading(false); });
+    return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tajweedMode, currentPage]);
 
@@ -684,16 +695,19 @@ export function MushafPage() {
     if (!tafsirItem) return;
     const sid = tafsirItem.surahId;
     const edition = inlineTafseerSource === "jalalayn" ? "ar.jalalayn" : "ar.muyassar";
+    let mounted = true;
     setInlineTafseerLoading(true);
     fetch(`https://api.alquran.cloud/v1/surah/${sid}/${edition}`)
       .then((r) => r.json())
       .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
+        if (!mounted) return;
         const ayahs: string[] = [];
         for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
         setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
       })
       .catch(() => {})
-      .finally(() => setInlineTafseerLoading(false));
+      .finally(() => { if (mounted) setInlineTafseerLoading(false); });
+    return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tafsirItem, inlineTafseerSource]);
 
@@ -853,6 +867,8 @@ export function MushafPage() {
   const handlePointerDown = React.useCallback((e: React.PointerEvent, item: PageItem) => {
     if (item.isBasmalahHeader || item.displayAyah === 0) return;
     longPressFired.current = false;
+    // Clear any existing timer before starting a new one to prevent leaks
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
     longPressTimer.current = window.setTimeout(() => {
       longPressFired.current = true;
       const k = `${item.surahId}:${item.displayAyah}`;
