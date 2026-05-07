@@ -38,7 +38,7 @@ function GradeBadge({ grades }: { grades: string[] }) {
   const g = grades[0];
   const colors: Record<string, string> = {
     sahih: "#10b981",
-    hasan: "#3b82f6",
+    hasan: "#f59e0b",
     daif: "#ef4444",
     maudu: "#6b7280",
   };
@@ -71,10 +71,13 @@ function HadithRow({
 
   return (
     <div className="mx-3 my-2">
-      <button type="button"
+      <div
         dir="rtl"
+        role="button"
+        tabIndex={0}
         onClick={() => navigate(`/hadith/${bookKey}/${item.n}`)}
-        className="group relative w-full overflow-hidden rounded-3xl border border-white/10 glass-strong glass-hover p-4 text-right transition active:scale-[.985]"
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate(`/hadith/${bookKey}/${item.n}`)}
+        className="group relative w-full overflow-hidden rounded-3xl border border-white/10 glass-strong glass-hover p-4 text-right transition cursor-pointer active:scale-[.985]"
       >
         <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
         <div className="flex items-start justify-between gap-3 pr-2">
@@ -107,9 +110,10 @@ function HadithRow({
                   toast.error("تعذر النسخ");
                 }
               }}
-              className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 transition-opacity"
+              className="p-1.5 rounded-lg opacity-40 hover:opacity-80 transition-opacity"
               style={{ background: "var(--card-border)", color: "var(--fg)" }}
               title="نسخ الحديث"
+              aria-label="نسخ الحديث"
             >
               <Copy size={13} />
             </button>
@@ -118,7 +122,7 @@ function HadithRow({
             )}
           </div>
         </div>
-      </button>
+      </div>
     </div>
   );
 }
@@ -133,6 +137,14 @@ export function HadithBookViewPage() {
   const virtuoso = useRef<VirtuosoHandle>(null);
 
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  useEffect(() => {
+    const up = () => setIsOnline(true);
+    const dn = () => setIsOnline(false);
+    window.addEventListener("online", up);
+    window.addEventListener("offline", dn);
+    return () => { window.removeEventListener("online", up); window.removeEventListener("offline", dn); };
+  }, []);
 
   const meta =
     pack ??
@@ -222,7 +234,7 @@ export function HadithBookViewPage() {
               <div className="mb-1 flex items-center gap-2 flex-wrap">
                 <BookOpenText size={16} style={{ color: accentColor }} />
                 <span className="text-[11px] font-semibold opacity-55">كتاب حديثي</span>
-                {isFromCache && (
+                {isFromCache && !isOnline && (
                   <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-arabic" style={{ background: "#10b98122", color: "#10b981" }}>
                     <WifiOff size={10} />
                     بلا إنترنت
@@ -340,7 +352,7 @@ export function HadithBookViewPage() {
             ref={virtuoso}
             totalCount={listRows.length}
             itemContent={renderItem}
-            style={{ flex: 1, height: "calc(100vh - 235px)" }}
+            style={{ flex: 1, height: "calc(100dvh - 200px)" }}
           />
         </div>
       )}

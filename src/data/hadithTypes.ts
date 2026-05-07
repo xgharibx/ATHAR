@@ -90,7 +90,7 @@ export function hadithPreview(text: string, maxLen = 140): string {
 
 /** Hadith reference string for display (e.g., "صحيح البخاري • ح١") */
 export function hadithRef(bookTitle: string, hadithNumber: number): string {
-  return `${bookTitle} • ح${hadithNumber}`;
+  return `${bookTitle} • ح${hadithNumber.toLocaleString("ar-EG")}`;
 }
 
 /** All supported books with static metadata (used before index.json loads) */

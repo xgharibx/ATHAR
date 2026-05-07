@@ -333,7 +333,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                       try { await navigator.clipboard.writeText(r.item.t); toast.success("تم النسخ"); }
                       catch { toast.error("تعذر النسخ"); }
                     }}
-                    className="mr-auto p-1 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
+                    className="mr-auto p-1 rounded-lg opacity-40 hover:opacity-80 transition-opacity"
                     aria-label="نسخ الحديث"
                   >
                     <Copy size={12} />

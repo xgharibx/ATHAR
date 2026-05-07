@@ -137,7 +137,7 @@ async function shareHadithPoster(opts: {
   ctx.fillStyle = opts.accentColor;
   ctx.font = "bold 13px system-ui";
   ctx.textAlign = "left";
-  ctx.fillText("✦ أذكار نور", 64, H - 60);
+  ctx.fillText("✦ أثر", 64, H - 60);
 
   // Share or download
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
