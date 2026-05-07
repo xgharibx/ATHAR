@@ -201,7 +201,7 @@ export const PROPHET_STORIES: ProphetStory[] = [
     ],
   },
   {
-    id: "dawud",
+    id: "dawud_extended",
     name: "Dawud",
     nameAr: "داود عليه السلام",
     period: "حوالي 1000 ق.م",
@@ -213,7 +213,7 @@ export const PROPHET_STORIES: ProphetStory[] = [
     ],
   },
   {
-    id: "sulaiman",
+    id: "sulaiman_extended",
     name: "Sulaiman",
     nameAr: "سليمان عليه السلام",
     period: "حوالي 970 ق.م",
