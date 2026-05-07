@@ -22,6 +22,8 @@ export function LibraryItemPage() {
   const params = useParams<{ collectionId: string; entryId: string }>();
   const { data, isLoading } = useIslamicLibraryDB();
   const [copied, setCopied] = React.useState(false);
+  const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  React.useEffect(() => () => { if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current); }, []);
   const key = `${params.collectionId ?? ""}:${params.entryId ?? ""}`;
   const favorite = useNoorStore((s) => !!s.libraryFavorites[key]);
   const toggleLibraryFavorite = useNoorStore((s) => s.toggleLibraryFavorite);
@@ -53,7 +55,8 @@ export function LibraryItemPage() {
       await navigator.clipboard.writeText(`${entry.arabic}\n\n${entry.source.title}${entry.narrator ? ` — ${entry.narrator}` : ""}`);
       setCopied(true);
       toast.success("تم النسخ");
-      window.setTimeout(() => setCopied(false), 1400);
+      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = window.setTimeout(() => setCopied(false), 1400);
     } catch {
       toast.error("تعذر النسخ");
     }

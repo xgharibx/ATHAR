@@ -36,13 +36,16 @@ function LibraryEntryCard({ entry }: { entry: FlatLibraryEntry }) {
   const favorite = useNoorStore((s) => !!s.libraryFavorites[entry.key]);
   const toggleLibraryFavorite = useNoorStore((s) => s.toggleLibraryFavorite);
   const [copied, setCopied] = React.useState(false);
+  const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  React.useEffect(() => () => { if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current); }, []);
 
   const onCopy = async () => {
     try {
       await copyEntry(entry);
       setCopied(true);
       toast.success("تم النسخ");
-      window.setTimeout(() => setCopied(false), 1400);
+      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = window.setTimeout(() => setCopied(false), 1400);
     } catch {
       toast.error("تعذر النسخ");
     }

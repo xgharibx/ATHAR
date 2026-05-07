@@ -60,13 +60,16 @@ export function FavoritesPage() {
   const [confirmDeleteKey, setConfirmDeleteKey] = React.useState<string | null>(null);
   const [copiedKey, setCopiedKey] = React.useState<string | null>(null);
   const [copiedAll, setCopiedAll] = React.useState(false);
+  const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  React.useEffect(() => () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current); }, []);
 
   const copyItem = React.useCallback(async (key: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedKey(key);
       toast.success("تم النسخ");
-      setTimeout(() => setCopiedKey(null), 2000);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopiedKey(null), 2000);
     } catch {
       toast.error("تعذر النسخ");
     }
@@ -92,7 +95,8 @@ export function FavoritesPage() {
       await navigator.clipboard.writeText(lines.join("\n").trim());
       setCopiedAll(true);
       toast.success(`تم نسخ ${items.length} ذكر`);
-      setTimeout(() => setCopiedAll(false), 2500);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopiedAll(false), 2500);
     } catch {
       toast.error("تعذر النسخ");
     }

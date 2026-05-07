@@ -7,6 +7,8 @@ export function DuasPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState<string>("rabbana");
   const [copied, setCopied] = React.useState<string | null>(null);
+  const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  React.useEffect(() => () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current); }, []);
 
   const category: DuaCategory =
     DUAS_CATEGORIES.find((c) => c.id === activeTab) ?? DUAS_CATEGORIES[0]!;
@@ -14,7 +16,8 @@ export function DuasPage() {
   function copyDua(id: string, text: string) {
     void navigator.clipboard.writeText(text).then(() => {
       setCopied(id);
-      setTimeout(() => setCopied(null), 2000);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(null), 2000);
     });
   }
 
