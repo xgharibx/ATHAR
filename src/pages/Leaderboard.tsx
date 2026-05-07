@@ -765,6 +765,7 @@ function LeaderboardAdminCard(props: {
                 value={tokenDraft}
                 onChange={(e) => setTokenDraft(e.target.value)}
                 placeholder="LEADERBOARD_ADMIN_TOKEN"
+                aria-label="رمز الإدارة"
               />
               <Button onClick={saveAdminTokenLocally} disabled={!hasEndpoint}>
                 حفظ الرمز
@@ -819,8 +820,8 @@ function LeaderboardAdminCard(props: {
                     <BoardTab label="احتواء" active={blockMatchMode === "contains"} onClick={() => setBlockMatchMode("contains")} />
                     <BoardTab label="مطابقة تامة" active={blockMatchMode === "exact"} onClick={() => setBlockMatchMode("exact")} />
                   </div>
-                  <Input value={blockTerm} onChange={(e) => setBlockTerm(e.target.value)} placeholder="الكلمة أو الاسم الممنوع" />
-                  <Input value={blockNote} onChange={(e) => setBlockNote(e.target.value)} placeholder="ملاحظة داخلية اختيارية" />
+                  <Input value={blockTerm} onChange={(e) => setBlockTerm(e.target.value)} placeholder="الكلمة أو الاسم الممنوع" aria-label="الكلمة أو الاسم الممنوع" />
+                  <Input value={blockNote} onChange={(e) => setBlockNote(e.target.value)} placeholder="ملاحظة داخلية اختيارية" aria-label="ملاحظة داخلية" />
                   <Button onClick={() => void submitBlockRule()} disabled={!blockTerm.trim()}>
                     إضافة قاعدة
                   </Button>
@@ -853,6 +854,7 @@ function LeaderboardAdminCard(props: {
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
                     placeholder="معرّف المستخدم"
+                    aria-label="معرّف المستخدم"
                   />
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -891,6 +893,7 @@ function LeaderboardAdminCard(props: {
                     value={forcedAlias}
                     onChange={(e) => setForcedAlias(e.target.value)}
                     placeholder="اسم إجباري آمن (اختياري)"
+                    aria-label="اسم إجباري"
                   />
                   {forcedAliasValidation && !forcedAliasValidation.ok ? (
                     <div className="text-[11px] text-[var(--danger)]">{forcedAliasValidation.message}</div>
@@ -900,6 +903,7 @@ function LeaderboardAdminCard(props: {
                     value={moderationReason}
                     onChange={(e) => setModerationReason(e.target.value)}
                     placeholder="سبب داخلي للمراجعة"
+                    aria-label="سبب المراجعة"
                     className="w-full min-h-[90px] rounded-3xl bg-white/6 border border-white/10 p-4 text-sm leading-7 outline-none focus:border-white/20"
                   />
 
@@ -1226,11 +1230,12 @@ function GroupKhatmaCard() {
       {/* Create form */}
       {mode === "create" && !groupKhatma && (
         <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
-          <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="اسم الختمة (مثال: ختمة رمضان)" />
+          <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="اسم الختمة (مثال: ختمة رمضان)" aria-label="اسم الختمة" />
           <textarea
             value={membersRaw}
             onChange={(e) => setMembersRaw(e.target.value)}
             placeholder={"أسماء الأعضاء (سطر لكل اسم)\nمثال:\nعبدالله\nفاطمة\nأحمد"}
+            aria-label="أسماء أعضاء الختمة"
             className="w-full min-h-[90px] rounded-3xl bg-white/6 border border-white/10 p-4 text-sm leading-7 outline-none focus:border-white/20"
           />
           <div className="text-[11px] opacity-45">سيتم توزيع الأجزاء الثلاثين تلقائيًا على الأعضاء.</div>
@@ -1243,7 +1248,7 @@ function GroupKhatmaCard() {
       {/* Import form */}
       {mode === "import" && !groupKhatma && (
         <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
-          <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" />
+          <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" aria-label="كود الختمة" />
           {importError && <div className="text-xs text-[var(--danger)]">{importError}</div>}
           <Button onClick={handleImport} disabled={!importCode.trim()}>استيراد الختمة</Button>
         </div>

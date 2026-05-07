@@ -264,7 +264,7 @@ export function LibraryPage() {
       <Card className="p-4 sticky top-3 z-20 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <Search size={17} className="opacity-60" />
-          <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder="ابحث في الحديث، الراوي، الفوائد، أو الموضوع…" />
+          <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder="ابحث في الحديث، الراوي، الفوائد، أو الموضوع…" aria-label="بحث في الحديث" />
         </div>
       </Card>
 

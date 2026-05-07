@@ -327,6 +327,7 @@ export function HadithMemoPage() {
               onClick={() => { setCardIndex((i) => Math.max(0, i - 1)); setIsFlipped(false); }}
               disabled={cardIndex === 0}
               className="p-2 rounded-full hover:bg-[var(--card-bg)] transition disabled:opacity-30"
+              aria-label="البطاقة السابقة"
             >
               <ChevronRight size={20} className="text-[var(--muted)]" />
             </button>
@@ -337,6 +338,7 @@ export function HadithMemoPage() {
               onClick={() => { setCardIndex((i) => Math.min(currentCards.length - 1, i + 1)); setIsFlipped(false); }}
               disabled={cardIndex === currentCards.length - 1}
               className="p-2 rounded-full hover:bg-[var(--card-bg)] transition disabled:opacity-30"
+              aria-label="البطاقة التالية"
             >
               <ChevronLeft size={20} className="text-[var(--muted)]" />
             </button>

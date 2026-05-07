@@ -32,6 +32,7 @@ function ItemRow({
         value={text}
         onChange={(e) => onText(e.target.value)}
         dir="rtl"
+        aria-label={`نص الذكر ${index + 1}`}
       />
       <input
         type="number"
@@ -40,6 +41,7 @@ function ItemRow({
         value={count}
         onChange={(e) => onCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
         className="w-16 px-2 py-2 rounded-xl bg-white/5 border border-white/10 text-center text-sm outline-none focus:border-[var(--accent)]"
+        aria-label={`عدد الذكر ${index + 1}`}
       />
       <button type="button"
         onClick={onRemove}
@@ -82,8 +84,9 @@ function PackForm({
     <Card className="p-5 space-y-4" dir="rtl">
       <h2 className="font-semibold text-base">{initial ? "تعديل الحزمة" : "إنشاء حزمة أذكار"}</h2>
       <div>
-        <label className="text-xs opacity-60 block mb-1">اسم الحزمة</label>
+      <label htmlFor="pack-title" className="text-xs opacity-60 block mb-1">اسم الحزمة</label>
         <Input
+          id="pack-title"
           placeholder="مثال: أذكاري الخاصة"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
