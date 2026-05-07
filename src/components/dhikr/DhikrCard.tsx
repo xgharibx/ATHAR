@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BookOpen, CheckCircle2, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2, ZoomIn, ZoomOut } from "lucide-react";
+import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2, ZoomIn, ZoomOut } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { cn, clamp } from "@/lib/utils";
@@ -340,6 +340,10 @@ export function DhikrCard(props: {
         <div className="flex items-start justify-between gap-3">
           {!focusMode && (
           <div className="flex items-center gap-1.5 flex-wrap">
+            <IconButton aria-label="نسخ الذكر" onClick={doCopy}>
+              <Copy size={16} className="opacity-80" />
+            </IconButton>
+
             <IconButton aria-label="مشاركة النص" onClick={doShareText}>
               <Share2 size={16} className="opacity-80" />
             </IconButton>

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2, BookOpen, ScrollText } from "lucide-react";
+import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2, BookOpen, ScrollText, Bookmark } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
@@ -13,6 +13,7 @@ import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useHadithPack } from "@/data/useHadithBook";
+import { DUAS_CATEGORIES } from "@/data/duas";
 
 export function FavoritesPage() {
   const { data } = useAdhkarDB();
@@ -28,7 +29,10 @@ export function FavoritesPage() {
   const hadithBookmarks = useNoorStore((s) => s.hadithBookmarks);
   const toggleHadithBookmark = useNoorStore((s) => s.toggleHadithBookmark);
 
-  const [activeTab, setActiveTab] = React.useState<"adhkar" | "quran" | "hadith">("adhkar");
+  const duaFavorites = useNoorStore((s) => s.duaFavorites ?? []);
+  const toggleDuaFavorite = useNoorStore((s) => s.toggleDuaFavorite);
+
+  const [activeTab, setActiveTab] = React.useState<"adhkar" | "quran" | "hadith" | "duas">("adhkar");
 
   // Group bookmarked hadiths by book
   const hadithBmList = React.useMemo(() => {
@@ -40,6 +44,12 @@ export function FavoritesPage() {
     }
     return out.sort((a, b) => a.bookKey.localeCompare(b.bookKey) || a.n - b.n);
   }, [hadithBookmarks]);
+
+  // Dua favorites flat list
+  const duaFavItems = React.useMemo(() => {
+    const allDuas = DUAS_CATEGORIES.flatMap((c) => c.duas.map((d) => ({ ...d, categoryLabel: c.label, categoryIcon: c.icon })));
+    return allDuas.filter((d) => duaFavorites.includes(d.id));
+  }, [duaFavorites]);
 
   // Get unique bookKeys needed, and load those packs (only when hadith tab active)
   const bookKeysNeeded = React.useMemo(() => {
@@ -227,6 +237,18 @@ export function FavoritesPage() {
           >
             <ScrollText size={14} />
             الأحاديث {hadithBmList.length > 0 && <span className="text-[11px] opacity-60">({hadithBmList.length})</span>}
+          </button>
+          <button type="button"
+            onClick={() => setActiveTab("duas")}
+            className={[
+              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
+              activeTab === "duas"
+                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+            ].join(" ")}
+          >
+            <Bookmark size={14} />
+            الأدعية {duaFavItems.length > 0 && <span className="text-[11px] opacity-60">({duaFavItems.length})</span>}
           </button>
         </div>
       </Card>
@@ -457,6 +479,58 @@ export function FavoritesPage() {
                     );
                   })}
               </div>
+            </div>
+          )}
+        </Card>
+      )}
+      {/* ── Duas favorites tab ── */}
+      {activeTab === "duas" && (
+        <Card className="p-5">
+          {duaFavItems.length === 0 ? (
+            <EmptyState
+              variant="favorites"
+              title="لا توجد أدعية محفوظة"
+              description="اضغط على ❤️ داخل أي دعاء لتجده هنا"
+              action={
+                <button type="button"
+                  onClick={() => navigate("/duas")}
+                  className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+                >
+                  استعرض الأدعية ◄
+                </button>
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {duaFavItems.map((dua) => (
+                <div
+                  key={dua.id}
+                  className="glass rounded-2xl p-4 border border-white/10 flex items-start gap-3"
+                >
+                  <div className="flex-1 min-w-0 text-right" dir="rtl">
+                    <div className="text-[10px] opacity-50 mb-1">{dua.categoryIcon} {dua.categoryLabel}</div>
+                    <p className="arabic-text text-base leading-8 opacity-90">{dua.arabic}</p>
+                    <p className="text-xs opacity-55 mt-1 leading-5">{dua.meaning}</p>
+                    <p className="text-[11px] opacity-40 mt-1">{dua.source}</p>
+                  </div>
+                  <div className="flex flex-col gap-2 shrink-0">
+                    <Button
+                      variant="outline"
+                      onClick={() => { void navigator.clipboard.writeText(dua.arabic).then(() => toast.success("تم النسخ")); }}
+                      aria-label="نسخ الدعاء"
+                    >
+                      <Copy size={14} />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => toggleDuaFavorite(dua.id)}
+                      aria-label="إزالة من المفضلة"
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </Card>

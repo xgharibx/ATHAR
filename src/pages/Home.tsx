@@ -102,6 +102,18 @@ function timeGreeting(hour: number): string {
   return "ليلة سعيدة";
 }
 
+function getHijriDate(): string {
+  try {
+    return new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date());
+  } catch {
+    return "";
+  }
+}
+
 function routeForChecklistCategory(category: DailyChecklistItem["category"]) {
   if (category === "quran") return "/quran";
   if (category === "dhikr") return "/c/morning";
@@ -748,6 +760,7 @@ export function HomePage() {
               <div className="mb-2 flex items-center gap-2 flex-wrap">
                 <Sparkles size={14} className="text-[var(--accent)]" />
                 <span className="text-xs font-medium opacity-65">{timeGreeting(new Date().getHours())}</span>
+                {(() => { const h = getHijriDate(); return h ? <span className="text-xs opacity-50 border border-white/10 rounded-full px-2 py-0.5">{h}</span> : null; })()}
                 {streak > 0 && (
                   <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full glass border border-white/15 streak-fire ${streak >= 30 ? "text-orange-400" : streak >= 7 ? "text-yellow-400" : "text-[var(--accent)]"}`}>
                     {streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨"} {streak} يوم متواصل
