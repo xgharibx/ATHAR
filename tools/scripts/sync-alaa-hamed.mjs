@@ -398,6 +398,7 @@ async function scrapePlaylistsPage(url) {
 
 const KEYWORD_MAP = [
   ["anti-shubuhat",        ["شبهة","شبهات","رد على","ردود","مناظرة","نقد","دحض","إشكال","تفنيد","فرية","افتراء"]],
+  ["anti-innovation",      ["بدعة","البدع","بدع","ابتداع","أهل البدع","الرافضة","الصوفية","القبوري","القبورية","التبرك","الاستغاثة بالأموات"]],
   ["atheism",              ["إلحاد","ملحد","الملاحدة","داروين","تطور","مادية","لا أدرية"]],
   ["comparative-religion", ["نصرانية","مسيحية","كتاب مقدس","إنجيل","يهود","توراة","أديان","مقارنة الأديان"]],
   ["aqeedah",              ["عقيدة","توحيد","إيمان","أسماء الله","صفات الله","القدر","الصفات","أصول","اعتقاد"]],
@@ -431,17 +432,18 @@ function classify(text) {
 // ─── Topic-bucket virtual courses ────────────────────────────────────────────
 
 const TOPIC_COURSES = [
-  { suffix: "topic-aqeedah",   topicId: "aqeedah",    title: "العقيدة — علاء حامد",    order: 1010 },
-  { suffix: "topic-fiqh",      topicId: "fiqh",       title: "الفقه — علاء حامد",      order: 1020 },
-  { suffix: "topic-quran",     topicId: "quran",      title: "القرآن — علاء حامد",      order: 1030 },
-  { suffix: "topic-tafseer",   topicId: "tafseer",    title: "التفسير — علاء حامد",     order: 1040 },
-  { suffix: "topic-hadith",    topicId: "hadith",     title: "الحديث — علاء حامد",      order: 1050 },
-  { suffix: "topic-seerah",    topicId: "seerah",     title: "السيرة — علاء حامد",      order: 1060 },
-  { suffix: "topic-daawah",    topicId: "daawah",     title: "الدعوة — علاء حامد",      order: 1070 },
-  { suffix: "topic-tazkiyah",  topicId: "tazkiyah",   title: "التزكية — علاء حامد",     order: 1080 },
-  { suffix: "topic-youth",     topicId: "youth",      title: "الشباب — علاء حامد",      order: 1090 },
-  { suffix: "topic-family",    topicId: "family",     title: "الأسرة — علاء حامد",      order: 1100 },
-  { suffix: "topic-biography", topicId: "biography",  title: "تراجم — علاء حامد",       order: 1110 },
+  { suffix: "topic-aqeedah",         topicId: "aqeedah",         title: "العقيدة — علاء حامد",        order: 1010 },
+  { suffix: "topic-anti-innovation", topicId: "anti-innovation", title: "الردود والعقيدة — علاء حامد",  order: 1015 },
+  { suffix: "topic-fiqh",            topicId: "fiqh",            title: "الفقه — علاء حامد",          order: 1020 },
+  { suffix: "topic-quran",           topicId: "quran",           title: "القرآن — علاء حامد",         order: 1030 },
+  { suffix: "topic-tafseer",         topicId: "tafseer",         title: "التفسير — علاء حامد",        order: 1040 },
+  { suffix: "topic-hadith",          topicId: "hadith",          title: "الحديث — علاء حامد",         order: 1050 },
+  { suffix: "topic-seerah",          topicId: "seerah",          title: "السيرة — علاء حامد",         order: 1060 },
+  { suffix: "topic-daawah",          topicId: "daawah",          title: "الدعوة — علاء حامد",         order: 1070 },
+  { suffix: "topic-tazkiyah",        topicId: "tazkiyah",        title: "التزكية — علاء حامد",        order: 1080 },
+  { suffix: "topic-youth",           topicId: "youth",           title: "الشباب — علاء حامد",         order: 1090 },
+  { suffix: "topic-family",          topicId: "family",          title: "الأسرة — علاء حامد",         order: 1100 },
+  { suffix: "topic-biography",       topicId: "biography",       title: "تراجم — علاء حامد",          order: 1110 },
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────

@@ -306,6 +306,7 @@ async function scrapePlaylistsPage(url) {
 
 const KEYWORD_MAP = [
   ["anti-shubuhat",        ["شبهة","شبهات","رد على","ردود","مناظرة","نقد","دحض","إشكال","تفنيد"]],
+  ["anti-innovation",      ["بدعة","البدع","بدع","ابتداع","أهل البدع","الرافضة","الصوفية","القبوري","القبورية","التبرك","الاستغاثة بالأموات"]],
   ["atheism",              ["إلحاد","ملحد","الملاحدة","داروين","تطور","مادية"]],
   ["comparative-religion", ["نصرانية","مسيحية","كتاب مقدس","إنجيل","يهود","توراة","أديان","مقارنة الأديان"]],
   ["aqeedah",              ["عقيدة","توحيد","إيمان","أسماء الله","صفات الله","القدر","أصول","اعتقاد"]],
@@ -337,17 +338,18 @@ function classify(text) {
 // ─── Topic-bucket virtual courses ────────────────────────────────────────────
 
 const TOPIC_COURSES = [
-  { suffix: "topic-aqeedah",   topicId: "aqeedah",   title: "العقيدة — أمجد سمير",   order: 1010 },
-  { suffix: "topic-fiqh",      topicId: "fiqh",      title: "الفقه — أمجد سمير",     order: 1020 },
-  { suffix: "topic-quran",     topicId: "quran",      title: "القرآن — أمجد سمير",    order: 1030 },
-  { suffix: "topic-tafseer",   topicId: "tafseer",   title: "التفسير — أمجد سمير",   order: 1040 },
-  { suffix: "topic-hadith",    topicId: "hadith",    title: "الحديث — أمجد سمير",    order: 1050 },
-  { suffix: "topic-seerah",    topicId: "seerah",    title: "السيرة — أمجد سمير",    order: 1060 },
-  { suffix: "topic-daawah",    topicId: "daawah",    title: "الدعوة — أمجد سمير",    order: 1070 },
-  { suffix: "topic-tazkiyah",  topicId: "tazkiyah",  title: "التزكية — أمجد سمير",   order: 1080 },
-  { suffix: "topic-youth",     topicId: "youth",     title: "الشباب — أمجد سمير",    order: 1090 },
-  { suffix: "topic-family",    topicId: "family",    title: "الأسرة — أمجد سمير",    order: 1100 },
-  { suffix: "topic-biography", topicId: "biography", title: "تراجم — أمجد سمير",     order: 1110 },
+  { suffix: "topic-aqeedah",         topicId: "aqeedah",         title: "العقيدة — أمجد سمير",    order: 1010 },
+  { suffix: "topic-anti-innovation", topicId: "anti-innovation", title: "الردود والعقيدة — أمجد سمير",  order: 1015 },
+  { suffix: "topic-fiqh",            topicId: "fiqh",            title: "الفقه — أمجد سمير",      order: 1020 },
+  { suffix: "topic-quran",           topicId: "quran",           title: "القرآن — أمجد سمير",     order: 1030 },
+  { suffix: "topic-tafseer",         topicId: "tafseer",         title: "التفسير — أمجد سمير",    order: 1040 },
+  { suffix: "topic-hadith",          topicId: "hadith",          title: "الحديث — أمجد سمير",     order: 1050 },
+  { suffix: "topic-seerah",          topicId: "seerah",          title: "السيرة — أمجد سمير",     order: 1060 },
+  { suffix: "topic-daawah",          topicId: "daawah",          title: "الدعوة — أمجد سمير",     order: 1070 },
+  { suffix: "topic-tazkiyah",        topicId: "tazkiyah",        title: "التزكية — أمجد سمير",    order: 1080 },
+  { suffix: "topic-youth",           topicId: "youth",           title: "الشباب — أمجد سمير",     order: 1090 },
+  { suffix: "topic-family",          topicId: "family",          title: "الأسرة — أمجد سمير",     order: 1100 },
+  { suffix: "topic-biography",       topicId: "biography",       title: "تراجم — أمجد سمير",      order: 1110 },
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────────────

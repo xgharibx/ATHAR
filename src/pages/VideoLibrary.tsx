@@ -127,6 +127,7 @@ function SheikhBannerCard({
   onClick: () => void;
 }) {
   const stats = aggregateProgress(videos, progress);
+  const [avatarErr, setAvatarErr] = React.useState(false);
 
   return (
     <button
@@ -165,12 +166,13 @@ function SheikhBannerCard({
               boxShadow: `0 0 14px ${channel.accent}55`,
             }}
           >
-            {channel.avatarUrl ? (
+            {channel.avatarUrl && !avatarErr ? (
               <img
                 src={channel.avatarUrl}
                 alt={channel.displayName}
                 className="w-full h-full object-cover"
                 loading="lazy"
+                onError={() => setAvatarErr(true)}
               />
             ) : (
               <div
@@ -631,14 +633,15 @@ function VideoHome({
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [q, setQ] = React.useState("");
   const [searchChannelFilter, setSearchChannelFilter] = React.useState<string | null>(null);
+  const [showAllSearchVideos, setShowAllSearchVideos] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (searchOpen) inputRef.current?.focus();
   }, [searchOpen]);
 
-  // Reset filters when query changes
-  React.useEffect(() => { setSearchChannelFilter(null); }, [q]);
+  // Reset filters + show-all when query changes
+  React.useEffect(() => { setSearchChannelFilter(null); setShowAllSearchVideos(false); }, [q]);
 
   const fuse = React.useMemo(() => {
     const records = [
@@ -658,7 +661,7 @@ function VideoHome({
       ? allMatchVideos.filter((v) => v.channelId === searchChannelFilter)
       : allMatchVideos;
     return {
-      videos: filteredVideos.slice(0, 24),
+      videos: showAllSearchVideos ? filteredVideos : filteredVideos.slice(0, 24),
       allVideoCount: filteredVideos.length,
       courses: data.db.courses.filter((c) => cids.has(c.id)).slice(0, 10),
       channelChips: (() => {
@@ -673,7 +676,7 @@ function VideoHome({
         return [...map.values()].sort((a, b) => b.count - a.count);
       })(),
     };
-  }, [data, fuse, q, searchChannelFilter]);
+  }, [data, fuse, q, searchChannelFilter, showAllSearchVideos]);
 
   const continueVideo = lastVideoId ? data.videoById.get(lastVideoId) : undefined;
   const continueChannel = continueVideo ? data.channelById.get(continueVideo.channelId) : undefined;
@@ -865,6 +868,16 @@ function VideoHome({
                   />
                 ))}
               </div>
+              {!showAllSearchVideos && searchResults.allVideoCount > 24 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllSearchVideos(true)}
+                  className="w-full mt-3 py-2.5 rounded-2xl text-xs font-semibold border press-effect"
+                  style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.05)" }}
+                >
+                  عرض كل النتائج ({searchResults.allVideoCount} فيديو)
+                </button>
+              )}
             </section>
           )}
           {searchResults.videos.length === 0 && searchResults.courses.length === 0 && (
@@ -1147,6 +1160,7 @@ function SheikhScreen({
     .map((w) => w[0])
     .join("")
     .slice(0, 2);
+  const [sheikhAvatarErr, setSheikhAvatarErr] = React.useState(false);
 
   const channelTopicIds = new Set(channelVideos.flatMap((v) => v.topicIds as string[]));
   const channelTopics = data.db.topics.filter((t) => channelTopicIds.has(t.id));
@@ -1194,12 +1208,13 @@ function SheikhScreen({
                 boxShadow: `0 0 28px ${channel.accent}35`,
               }}
             >
-              {channel.avatarUrl ? (
+              {channel.avatarUrl && !sheikhAvatarErr ? (
                 <img
                   src={channel.avatarUrl}
                   alt={channel.displayName}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  onError={() => setSheikhAvatarErr(true)}
                 />
               ) : (
                 <div
