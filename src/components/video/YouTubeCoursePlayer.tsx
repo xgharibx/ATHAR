@@ -1,11 +1,15 @@
 import * as React from "react";
-import { Bookmark, CheckCircle2, ExternalLink, Pause, Play, Share2, X } from "lucide-react";
+import { ArrowRight, Bookmark, BookmarkCheck, CheckCircle2, ExternalLink, Play, Share2, SkipForward } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { IconButton } from "@/components/ui/IconButton";
-import type { VideoLibraryChannel, VideoLibraryCourse, VideoLibraryProgress, VideoLibraryVideo } from "@/data/videoLibraryTypes";
+import type {
+  VideoLibraryChannel,
+  VideoLibraryCourse,
+  VideoLibraryProgress,
+  VideoLibraryVideo,
+} from "@/data/videoLibraryTypes";
+
+// ── YouTube IFrame API ────────────────────────────────────────────────────────
 
 type YTPlayer = {
   getCurrentTime: () => number;
@@ -55,6 +59,8 @@ function loadYouTubeApi(): Promise<YTNamespace> {
   return youtubeApiPromise;
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function formatTime(seconds: number) {
   const safe = Math.max(0, Math.floor(seconds || 0));
   const h = Math.floor(safe / 3600);
@@ -63,6 +69,8 @@ function formatTime(seconds: number) {
   if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   return `${m}:${String(s).padStart(2, "0")}`;
 }
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export function YouTubeCoursePlayer({
   video,
@@ -94,62 +102,105 @@ export function YouTubeCoursePlayer({
   const [current, setCurrent] = React.useState(progress?.seconds ?? 0);
   const [duration, setDuration] = React.useState(progress?.duration || video.durationSeconds || 0);
   const [apiFailed, setApiFailed] = React.useState(false);
+  const [ended, setEnded] = React.useState(false);
+  const [nextCountdown, setNextCountdown] = React.useState<number | null>(null);
+  const countdownRef = React.useRef<number | null>(null);
 
-  const saveNow = React.useCallback((completed = false) => {
-    const player = playerRef.current;
-    const seconds = player?.getCurrentTime?.() ?? current;
-    const len = player?.getDuration?.() || duration || video.durationSeconds || 0;
-    if (len > 0) {
-      setCurrent(seconds);
-      setDuration(len);
-      onProgress(seconds, len, completed || seconds / len >= 0.92);
-    }
-  }, [current, duration, onProgress, video.durationSeconds]);
+  const accent = channel?.accent ?? "var(--accent)";
+
+  const saveNow = React.useCallback(
+    (completed = false) => {
+      const player = playerRef.current;
+      const seconds = player?.getCurrentTime?.() ?? current;
+      const len = player?.getDuration?.() || duration || video.durationSeconds || 0;
+      if (len > 0) {
+        setCurrent(seconds);
+        setDuration(len);
+        onProgress(seconds, len, completed || seconds / len >= 0.92);
+      }
+    },
+    [current, duration, onProgress, video.durationSeconds],
+  );
+
+  // Clear next-countdown on unmount
+  React.useEffect(() => {
+    return () => {
+      if (countdownRef.current) window.clearInterval(countdownRef.current);
+    };
+  }, []);
 
   React.useEffect(() => {
     if (!video.youtubeId || !hostRef.current) return;
     let cancelled = false;
     setApiFailed(false);
+    setEnded(false);
+    setNextCountdown(null);
 
-    loadYouTubeApi().then((YT) => {
-      if (cancelled || !hostRef.current) return;
-      playerRef.current?.destroy();
-      playerRef.current = new YT.Player(hostRef.current, {
-        videoId: video.youtubeId,
-        host: "https://www.youtube-nocookie.com",
-        playerVars: {
-          rel: 0,
-          modestbranding: 1,
-          playsinline: 1,
-          origin: window.location.origin,
-        },
-        events: {
-          onReady: () => {
-            const len = playerRef.current?.getDuration?.() || video.durationSeconds || 0;
-            setDuration(len);
-            if ((progress?.seconds ?? 0) > 5 && len > 0 && (progress?.seconds ?? 0) < len - 8) {
-              playerRef.current?.seekTo(progress!.seconds, true);
-              setCurrent(progress!.seconds);
-            }
+    loadYouTubeApi()
+      .then((YT) => {
+        if (cancelled || !hostRef.current) return;
+        playerRef.current?.destroy();
+        playerRef.current = new YT.Player(hostRef.current, {
+          videoId: video.youtubeId,
+          host: "https://www.youtube-nocookie.com",
+          playerVars: { rel: 0, modestbranding: 1, playsinline: 1, origin: window.location.origin },
+          events: {
+            onReady: () => {
+              const len = playerRef.current?.getDuration?.() || video.durationSeconds || 0;
+              setDuration(len);
+              if ((progress?.seconds ?? 0) > 5 && len > 0 && (progress?.seconds ?? 0) < len - 8) {
+                playerRef.current?.seekTo(progress!.seconds, true);
+                setCurrent(progress!.seconds);
+              }
+            },
+            onStateChange: (event: { data: number }) => {
+              if (event.data === YT.PlayerState.PLAYING) {
+                setPlaying(true);
+                setEnded(false);
+              }
+              if (event.data === YT.PlayerState.PAUSED) {
+                setPlaying(false);
+                saveNow(false);
+              }
+              if (event.data === YT.PlayerState.ENDED) {
+                setPlaying(false);
+                saveNow(true);
+                onComplete();
+                setEnded(true);
+                // Auto-next countdown if there's a next video
+                if (onNext) {
+                  let count = 5;
+                  setNextCountdown(count);
+                  countdownRef.current = window.setInterval(() => {
+                    count -= 1;
+                    if (count <= 0) {
+                      if (countdownRef.current) window.clearInterval(countdownRef.current);
+                      countdownRef.current = null;
+                      setNextCountdown(null);
+                      onNext();
+                    } else {
+                      setNextCountdown(count);
+                    }
+                  }, 1000);
+                }
+              }
+            },
           },
-          onStateChange: (event: { data: number }) => {
-            if (event.data === YT.PlayerState.PLAYING) setPlaying(true);
-            if (event.data === YT.PlayerState.PAUSED) { setPlaying(false); saveNow(false); }
-            if (event.data === YT.PlayerState.ENDED) { setPlaying(false); saveNow(true); onComplete(); }
-          },
-        },
-      });
-    }).catch(() => setApiFailed(true));
+        });
+      })
+      .catch(() => setApiFailed(true));
 
     return () => {
       cancelled = true;
       saveNow(false);
       if (intervalRef.current) window.clearInterval(intervalRef.current);
       intervalRef.current = null;
+      if (countdownRef.current) window.clearInterval(countdownRef.current);
+      countdownRef.current = null;
       playerRef.current?.destroy();
       playerRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [video.youtubeId]);
 
   React.useEffect(() => {
@@ -166,6 +217,7 @@ export function YouTubeCoursePlayer({
   }, [playing, saveNow]);
 
   const percent = duration > 0 ? Math.min(100, Math.round((current / duration) * 100)) : (progress?.percent ?? 0);
+  const isCompleted = progress?.completed || percent >= 92;
 
   const shareVideo = async () => {
     const text = `${video.title}\n${channel?.displayName ?? "مكتبة أثر"}\n${video.youtubeUrl}`;
@@ -179,16 +231,17 @@ export function YouTubeCoursePlayer({
   };
 
   return (
-    <div className="space-y-3" dir="rtl">
-      <div className="glass-strong rounded-3xl overflow-hidden border border-white/10">
-        <div className="flex items-center justify-between gap-2 p-3 border-b border-white/10">
-          <div className="min-w-0">
-            <div className="text-xs opacity-50">{channel?.displayName ?? "مكتبة الفيديو"}</div>
-            <h1 className="text-base font-bold line-clamp-2 arabic-text">{video.title}</h1>
-          </div>
-          <IconButton aria-label="إغلاق" onClick={onClose}><X size={17} /></IconButton>
-        </div>
-
+    <div dir="rtl">
+      {/* ── Player shell ── */}
+      <div
+        className="rounded-3xl overflow-hidden border"
+        style={{
+          borderColor: `${accent}30`,
+          background: "#000",
+          boxShadow: `0 8px 40px ${accent}18`,
+        }}
+      >
+        {/* Video area */}
         {video.youtubeId ? (
           <div className="relative bg-black aspect-video">
             <div ref={hostRef} className="absolute inset-0 w-full h-full" />
@@ -201,41 +254,181 @@ export function YouTubeCoursePlayer({
                 allowFullScreen
               />
             )}
+            {/* Auto-next overlay */}
+            {ended && onNext && nextCountdown !== null && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/75">
+                <div
+                  className="rounded-3xl border p-6 text-center max-w-[260px]"
+                  style={{ background: `${accent}15`, borderColor: `${accent}40` }}
+                >
+                  <SkipForward size={28} className="mx-auto mb-3" style={{ color: accent }} />
+                  <div className="font-bold arabic-text mb-1">الدرس التالي</div>
+                  <div className="text-xs opacity-60 mb-4">ينطلق خلال {nextCountdown} ثوانٍ</div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (countdownRef.current) window.clearInterval(countdownRef.current);
+                        countdownRef.current = null;
+                        setNextCountdown(null);
+                        onNext();
+                      }}
+                      className="flex-1 rounded-2xl py-2 text-sm font-bold press-effect"
+                      style={{ background: accent, color: "#000" }}
+                    >
+                      الآن
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (countdownRef.current) window.clearInterval(countdownRef.current);
+                        countdownRef.current = null;
+                        setNextCountdown(null);
+                      }}
+                      className="flex-1 rounded-2xl py-2 text-sm font-bold bg-white/10 press-effect"
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="aspect-video bg-white/6 flex flex-col items-center justify-center p-6 text-center">
-            <div className="text-3xl mb-2">🎬</div>
-            <div className="font-semibold">هذا الدرس ينتظر مزامنة يوتيوب</div>
-            <div className="text-xs opacity-55 mt-1">شغّل أداة المزامنة لإضافة الفيديوهات الفعلية من القناة.</div>
+          /* No YouTube ID: placeholder */
+          <div
+            className="aspect-video flex flex-col items-center justify-center p-6 text-center relative overflow-hidden"
+            style={{ background: `radial-gradient(ellipse at 30% 30%, ${accent}25 0%, #0a0a14 100%)` }}
+          >
+            <div className="dhikr-card-stars absolute inset-0 pointer-events-none" style={{ opacity: 0.4 }} />
+            <div className="relative">
+              <Play size={40} className="mx-auto mb-3 opacity-30" />
+              <div className="font-bold arabic-text text-base">{video.title}</div>
+              <div className="text-xs opacity-50 mt-2 leading-5">
+                شغّل أداة المزامنة لإضافة الفيديوهات الفعلية من القناة.
+              </div>
+            </div>
           </div>
         )}
 
-        <div className="p-4 space-y-3">
-          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${percent}%` }} />
+        {/* ── Info & Controls ── */}
+        <div
+          className="p-4"
+          style={{ background: `linear-gradient(to bottom, #050508, #080a10)` }}
+        >
+          {/* Channel badge + close */}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2 min-w-0">
+              {channel && (
+                <div
+                  className="h-5 px-2 rounded-lg text-[10px] font-semibold flex items-center shrink-0"
+                  style={{ background: `${accent}22`, color: accent, border: `1px solid ${accent}40` }}
+                >
+                  {channel.displayName}
+                </div>
+              )}
+              {course && (
+                <div className="h-5 px-2 rounded-lg text-[10px] bg-white/8 border border-white/10 flex items-center shrink-0 truncate max-w-[130px]">
+                  {course.title}
+                </div>
+              )}
+              {isCompleted && (
+                <div className="h-5 px-2 rounded-lg text-[10px] flex items-center gap-1 shrink-0"
+                  style={{ background: "#10b98122", color: "#34d399", border: "1px solid #10b98140" }}>
+                  <CheckCircle2 size={10} />
+                  مكتمل
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-7 h-7 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center shrink-0 press-effect hover:bg-white/15 transition-colors"
+            >
+              <ArrowRight size={13} />
+            </button>
           </div>
-          <div className="flex items-center justify-between gap-2 text-xs opacity-60 tabular-nums">
-            <span>{formatTime(current)} / {formatTime(duration)}</span>
-            <span>{percent}%</span>
+
+          {/* Title */}
+          <h2 className="font-bold text-base arabic-text leading-snug line-clamp-2 mb-3">
+            {video.title}
+          </h2>
+
+          {/* Progress timeline */}
+          <div className="mb-3">
+            <div className="relative h-2 rounded-full bg-white/10 overflow-hidden mb-1.5">
+              <div
+                className="h-full rounded-full transition-all duration-1000"
+                style={{ width: `${percent}%`, background: accent }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-[10px] opacity-45 tabular-nums">
+              <span>{formatTime(current)}</span>
+              <span className="font-medium" style={{ color: accent }}>{percent}%</span>
+              <span>{formatTime(duration)}</span>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {course && <Badge>{course.title}</Badge>}
-            {progress?.completed && <Badge className="text-emerald-300 border-emerald-400/25 bg-emerald-400/10"><CheckCircle2 size={13} /> مكتمل</Badge>}
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="secondary" onClick={() => { playing ? playerRef.current?.pauseVideo() : playerRef.current?.playVideo(); }} disabled={!video.youtubeId}>
-              {playing ? <Pause size={15} /> : <Play size={15} />}
-              {playing ? "إيقاف مؤقت" : "تشغيل"}
-            </Button>
-            <Button onClick={onComplete}><CheckCircle2 size={15} /> تعليم كمكتمل</Button>
-            <Button variant="secondary" onClick={onBookmark}><Bookmark size={15} className={bookmarked ? "fill-[var(--accent)] text-[var(--accent)]" : ""} /> حفظ</Button>
-            <Button variant="secondary" onClick={shareVideo}><Share2 size={15} /> مشاركة</Button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {onNext && <Button variant="secondary" onClick={onNext}>الدرس التالي</Button>}
-            <a className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 bg-white/6 hover:bg-white/10 border border-white/10 transition text-sm" href={video.youtubeUrl} target="_blank" rel="noreferrer">
-              <ExternalLink size={15} /> فتح عند الحاجة
-            </a>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onBookmark}
+              className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold press-effect transition-all border"
+              style={
+                bookmarked
+                  ? { background: `${accent}20`, borderColor: `${accent}50`, color: accent }
+                  : { background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }
+              }
+            >
+              {bookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+              <span>{bookmarked ? "محفوظ" : "حفظ"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { onComplete(); }}
+              className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold press-effect transition-all border"
+              style={
+                isCompleted
+                  ? { background: "#10b98120", borderColor: "#10b98140", color: "#34d399" }
+                  : { background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }
+              }
+            >
+              <CheckCircle2 size={14} />
+              <span>{isCompleted ? "مكتمل" : "إكمال"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={shareVideo}
+              className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-white/6 border border-white/10 press-effect hover:bg-white/10 transition-colors"
+            >
+              <Share2 size={14} />
+              <span>مشاركة</span>
+            </button>
+
+            {onNext ? (
+              <button
+                type="button"
+                onClick={onNext}
+                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-bold press-effect transition-all"
+                style={{ background: accent, color: "#000" }}
+              >
+                <SkipForward size={14} />
+                <span>التالي</span>
+              </button>
+            ) : (
+              <a
+                href={video.youtubeUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-white/6 border border-white/10 press-effect hover:bg-white/10 transition-colors"
+              >
+                <ExternalLink size={13} />
+                <span>يوتيوب</span>
+              </a>
+            )}
           </div>
         </div>
       </div>
