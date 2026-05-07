@@ -32,8 +32,15 @@ export function LibraryItemPage() {
   const related = React.useMemo(() => {
     if (!data || !entry) return [];
     const tagSet = new Set(entry.tags);
+    const seen = new Set<string>();
     return data.flat
-      .filter((candidate) => candidate.key !== entry.key && candidate.tags.some((tag) => tagSet.has(tag)))
+      .filter((candidate) => {
+        if (candidate.key === entry.key) return false;
+        if (!candidate.tags.some((tag) => tagSet.has(tag))) return false;
+        if (seen.has(candidate.arabic)) return false;
+        seen.add(candidate.arabic);
+        return true;
+      })
       .slice(0, 4);
   }, [data, entry]);
 
@@ -100,10 +107,10 @@ export function LibraryItemPage() {
         <div className="flex flex-wrap gap-2 mb-4">
           <Badge>{GRADE_LABELS[entry.grade] ?? entry.grade}</Badge>
           {entry.narrator && <Badge>{entry.narrator}</Badge>}
-          <Badge>{entry.source.title}</Badge>
+          {entry.source.title !== (GRADE_LABELS[entry.grade] ?? entry.grade) && <Badge>{entry.source.title}</Badge>}
         </div>
 
-        <h1 className="text-lg md:text-xl font-bold mb-4" style={{ color: entry.collectionAccent }}>{entry.title}</h1>
+        <h1 className="text-lg md:text-xl font-bold mb-4 font-arabic" style={{ color: entry.collectionAccent }}>{entry.title}</h1>
         <div className="arabic-text text-xl md:text-2xl leading-[2.4] font-medium text-right select-text">
           {entry.arabic}
         </div>
@@ -116,7 +123,7 @@ export function LibraryItemPage() {
           <div className="space-y-2">
             {entry.benefits.map((benefit, index) => (
               <div key={benefit} className="flex items-start gap-2 rounded-2xl bg-white/5 border border-white/10 p-3">
-                <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: entry.collectionAccent, color: "black" }}>{index + 1}</span>
+                <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: entry.collectionAccent, color: "black" }}>{(index + 1).toLocaleString("ar-EG")}</span>
                 <div className="text-sm opacity-75 leading-7">{benefit}</div>
               </div>
             ))}

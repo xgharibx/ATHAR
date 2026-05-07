@@ -5,7 +5,6 @@ import { ArrowRight, ArrowUpRight, BookOpenText, Check, Clock, Copy, ExternalLin
 import toast from "react-hot-toast";
 
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
@@ -126,7 +125,7 @@ function CollectionCard({ collection, active, onClick }: { collection: LibraryCo
         </div>
       </div>
       <div className="text-xs opacity-60 leading-5 line-clamp-2">{collection.description}</div>
-      <div className="mt-3 text-[11px] opacity-45 tabular-nums">{collection.entries.length} مادة</div>
+      <div className="mt-3 text-[11px] opacity-45 tabular-nums">{collection.entries.length.toLocaleString("ar-EG")} مادة</div>
     </button>
   );
 }
@@ -142,7 +141,7 @@ export function LibraryPage() {
     if (!data) return null;
     return new Fuse(data.flat, {
       includeScore: true,
-      threshold: 0.32,
+      threshold: 0.25,
       keys: [
         { name: "searchText", weight: 3 },
         { name: "arabic", weight: 3 },
@@ -171,10 +170,11 @@ export function LibraryPage() {
     return base
       .filter((entry) => collectionFilter === "all" || entry.collectionId === collectionFilter)
       .filter((entry) => !tagFilter || entry.tags.includes(tagFilter))
-      .slice(0, q.trim() ? 80 : 60);
+      .slice(0, q.trim() ? 80 : 200);
   }, [collectionFilter, data, fuse, q, tagFilter]);
 
-  const featured = data?.flat[0] ?? null;
+  const featuredIndex = Math.floor(Date.now() / 86400000) % (data?.flat.length ?? 1);
+  const featured = data?.flat[featuredIndex] ?? null;
 
   if (isLoading) {
     return <div className="space-y-3 page-enter"><Card className="p-5"><div className="skeleton h-8 w-44 rounded-xl" /><div className="skeleton h-20 w-full rounded-2xl mt-4" /></Card></div>;
@@ -200,9 +200,9 @@ export function LibraryPage() {
         </div>
 
         <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="rounded-2xl bg-white/6 border border-white/10 p-3"><div className="text-[10px] opacity-50">المجموعات</div><div className="text-xl font-bold tabular-nums">{data.db.collections.length}</div></div>
-          <div className="rounded-2xl bg-white/6 border border-white/10 p-3"><div className="text-[10px] opacity-50">المواد</div><div className="text-xl font-bold tabular-nums">{data.flat.length}</div></div>
-          <div className="rounded-2xl bg-white/6 border border-white/10 p-3"><div className="text-[10px] opacity-50">الأبواب</div><div className="text-xl font-bold tabular-nums">{new Set(data.flat.map((e) => e.chapterId)).size}</div></div>
+          <div className="rounded-2xl bg-white/6 border border-white/10 p-3"><div className="text-[10px] opacity-50">المجموعات</div><div className="text-xl font-bold tabular-nums">{data.db.collections.length.toLocaleString("ar-EG")}</div></div>
+          <div className="rounded-2xl bg-white/6 border border-white/10 p-3"><div className="text-[10px] opacity-50">المواد</div><div className="text-xl font-bold tabular-nums">{data.flat.length.toLocaleString("ar-EG")}</div></div>
+          <div className="rounded-2xl bg-white/6 border border-white/10 p-3"><div className="text-[10px] opacity-50">الأبواب</div><div className="text-xl font-bold tabular-nums">{new Set(data.flat.map((e) => e.chapterId)).size.toLocaleString("ar-EG")}</div></div>
         </div>
 
         {featured && (
@@ -211,6 +211,7 @@ export function LibraryPage() {
             className="w-full text-right rounded-3xl border border-white/10 bg-white/6 p-4 hover:bg-white/9 transition"
           >
             <div className="flex items-center gap-2 mb-2"><Sparkles size={15} className="text-[var(--accent)]" /><span className="text-xs font-semibold opacity-60">بداية مقترحة</span></div>
+            {featured.title && <div className="text-xs font-semibold mb-1 font-arabic" style={{ color: featured.collectionAccent }}>{featured.collectionTitle} · {featured.title}</div>}
             <div className="arabic-text leading-8 text-sm md:text-base line-clamp-3">{featured.arabic}</div>
             <div className="text-xs opacity-50 mt-2">{featured.source.title}</div>
           </button>
@@ -267,7 +268,7 @@ export function LibraryPage() {
       <Card className="p-4 sticky top-3 z-20 backdrop-blur-xl">
         <div className="flex items-center gap-2">
           <Search size={17} className="opacity-60" />
-          <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder="ابحث في الحديث، الراوي، الفوائد، أو الموضوع…" aria-label="بحث في الحديث" />
+          <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder="ابحث في الحديث، الراوي، الفوائد، أو الموضوع…" aria-label="بحث في المكتبة" />
         </div>
       </Card>
 
@@ -297,18 +298,31 @@ export function LibraryPage() {
             onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
             className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-black border-transparent" : "bg-white/8 border-white/10")}
           >
-            {tag} <span className="opacity-60 tabular-nums">{count}</span>
+            {tag} <span className="opacity-60 tabular-nums">{count.toLocaleString("ar-EG")}</span>
           </button>
         ))}
       </div>
 
       <div className="flex items-center justify-between gap-2 px-1">
         <div className="text-sm font-semibold">المواد</div>
-        <div className="text-xs opacity-50 tabular-nums">{entries.length}</div>
+        <div className="text-xs opacity-50 tabular-nums">{entries.length.toLocaleString("ar-EG")}</div>
       </div>
 
       <div className="space-y-3">
         {entries.map((entry) => <LibraryEntryCard key={entry.key} entry={entry} />)}
+        {entries.length === 0 && (
+          <div dir="rtl" className="flex flex-col items-center py-12 gap-4">
+            <Search size={40} className="text-[var(--muted)] opacity-20" />
+            <p className="text-sm text-[var(--muted)] font-arabic text-center">لا توجد نتائج للفلاتر الحالية</p>
+            <button
+              type="button"
+              onClick={() => { setTagFilter(null); setCollectionFilter("all"); setQ(""); }}
+              className="text-xs px-4 py-2 rounded-full border border-white/15 bg-white/6 hover:bg-white/10 transition font-arabic"
+            >
+              إعادة ضبط الفلاتر
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Hadith Books Grid placeholder — moved above search */}
