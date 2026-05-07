@@ -487,6 +487,8 @@ export function MushafPage() {
 
   // A2: Offline audio cache progress
   const [cacheProgress, setCacheProgress] = React.useState<{ done: number; total: number } | null>(null);
+  // Tajweed offline download progress
+  const [tajweedDownloadProgress, setTajweedDownloadProgress] = React.useState<{ done: number; total: number } | null>(null);
   // A2-B: Per-reciter page download progress
   const [reciterDownloadProgress, setReciterDownloadProgress] = React.useState<Record<string, { done: number; total: number } | "done">>({});
 
@@ -729,8 +731,8 @@ export function MushafPage() {
   const [showJump, setShowJump] = React.useState(false);
   const [jumpInput, setJumpInput] = React.useState("");
 
-  // Font scale: 0.7 – 1.6 in 0.1 steps
-  const [fontScale, setFontScale] = React.useState<number>(() => prefs.mushafFontScale ?? 0.88);
+  // Font scale: 0.7 – 1.6 in 0.1 steps — default 1.0 fills mobile viewport naturally
+  const [fontScale, setFontScale] = React.useState<number>(() => prefs.mushafFontScale ?? 1.0);
   const bumpFont = React.useCallback((delta: number) => {
     setFontScale((prev) => {
       const next = Math.round(Math.max(0.7, Math.min(1.6, prev + delta)) * 10) / 10;
@@ -917,6 +919,24 @@ export function MushafPage() {
     } catch { toast.error("تعذر التحميل"); }
     finally { setCacheProgress(null); }
   }, [playableItems, prefs.quranReciter]);
+
+  // Tajweed offline: download WBW/Tajweed data for all 114 surahs into IndexedDB
+  const downloadAllTajweedData = React.useCallback(async () => {
+    setTajweedDownloadProgress({ done: 0, total: 114 });
+    let done = 0;
+    try {
+      for (let sid = 1; sid <= 114; sid++) {
+        await loadWbwSurah(sid);
+        done++;
+        setTajweedDownloadProgress({ done, total: 114 });
+      }
+      toast.success("✓ تم تحميل بيانات التجويد كاملةً للعمل دون إنترنت");
+    } catch {
+      toast.error("تعذر تحميل بيانات التجويد — تحقق من الاتصال");
+    } finally {
+      setTajweedDownloadProgress(null);
+    }
+  }, []);
 
   // A2-B: Download current page audio for a specific reciter (from reciter sheet)
   const downloadReciterPage = React.useCallback(async (reciterId: string) => {
@@ -2041,6 +2061,32 @@ export function MushafPage() {
                   ? `جاري التحميل… ${cacheProgress.done}/${cacheProgress.total}`
                   : "تحميل الصفحة للاستماع دون إنترنت"}
               </button>
+            </div>
+
+            {/* ── Tajweed offline download ──────────────────── */}
+            <div className="mb-3">
+              <div className="text-xs opacity-50 mb-1.5 flex items-center gap-1">
+                <span style={{ fontSize: 12, fontWeight: 700 }}>ت</span>
+                تحميل بيانات التجويد للعمل دون إنترنت
+              </div>
+              <button type="button"
+                className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center"
+                onClick={downloadAllTajweedData}
+                disabled={!!tajweedDownloadProgress}
+              >
+                <Download size={14} />
+                {tajweedDownloadProgress
+                  ? `جارٍ التحميل… ${tajweedDownloadProgress.done}/114 سورة`
+                  : "تحميل ألوان التجويد لجميع السور"}
+              </button>
+              {tajweedDownloadProgress && (
+                <div className="mt-1.5 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{ width: `${(tajweedDownloadProgress.done / 114) * 100}%`, background: "var(--accent)" }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* ── A5: Sleep timer ──────────────────────────── */}

@@ -2236,21 +2236,25 @@ header {
   -webkit-overflow-scrolling: touch;
   display: flex;
   align-items: flex-start;
-  padding-top: calc(env(safe-area-inset-top, 0px) + 56px);
+  /* chrome bar is in-flow above us — no extra offset needed */
+  padding-top: 0;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .mushaf-page-content {
   width: 100%;
-  max-width: 460px;
+  /* Full-width on phones, capped on tablets/desktop for readability */
+  max-width: min(100%, 720px);
   margin: 0 auto;
-  padding: 1.6rem 2.2rem;
+  padding: 1.25rem 1.75rem;
   position: relative;
+  /* Fill viewport height so short surahs (Al-Fatiha, etc.) still look like a full page */
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 108px);
   /* Ornamental outer border */
   border: 2px solid rgba(185, 130, 20, 0.45);
-  border-radius: 4px;
+  border-radius: 2px;
   /* Top + bottom horizontal vine borders via background layers */
   background-color: rgba(255, 251, 240, 0.6);
   background-image:
