@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon } from "lucide-react";
+import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -152,12 +152,13 @@ function themeLabel(theme: string) {
 
 const MAIN_NAV_LINKS = [
   { path: "/", icon: House, label: "الرئيسية", color: "#ffd780" },
-  { path: "/quran", icon: BookOpenText, label: "القرآن الكريم", color: "#9ae6ff" },
+  { path: "/quran", icon: BookOpenText, label: "القرآن", color: "#9ae6ff" },
   { path: "/sebha", icon: CircleDot, label: "السبحة", color: "#facc15" },
+  { path: "/prayer-times", icon: Clock, label: "الصلاة", color: "#60a5fa" },
   { path: "/search", icon: Search, label: "البحث", color: "#e879f9" },
   { path: "/favorites", icon: Heart, label: "المفضلة", color: "#fb7185" },
-  { path: "/insights", icon: LineChart, label: "الإحصاءات", color: "#3ddc97" },
-  { path: "/settings", icon: Settings2, label: "الإعدادات", color: "#a78bfa" },
+  { path: "/insights", icon: LineChart, label: "إحصاء", color: "#3ddc97" },
+  { path: "/settings", icon: Settings2, label: "إعدادات", color: "#a78bfa" },
 ] as const;
 
 function todayISO() {
@@ -305,7 +306,7 @@ function SidebarContent(props: { onNavigate?: () => void }) {
 
       {/* Main navigation links */}
       <div className="px-4 py-3">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {MAIN_NAV_LINKS.map((link) => (
             <NavLink
               key={link.path}
@@ -313,19 +314,19 @@ function SidebarContent(props: { onNavigate?: () => void }) {
               end={link.path === "/"}
               onClick={props.onNavigate}
               className={({ isActive }) => cn(
-                "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 border transition active:scale-[.94]",
+                "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-1 border transition active:scale-[.94]",
                 isActive
                   ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
                   : "bg-white/4 border-white/6 hover:bg-white/8"
               )}
             >
               <div
-                className="w-9 h-9 rounded-xl grid place-items-center"
+                className="w-8 h-8 rounded-xl grid place-items-center"
                 style={{ background: `${link.color}18` }}
               >
-                <link.icon size={17} style={{ color: link.color }} />
+                <link.icon size={15} style={{ color: link.color }} />
               </div>
-              <span className="text-[11px] font-medium opacity-70">{link.label}</span>
+              <span className="text-[10px] font-medium opacity-70 text-center leading-tight">{link.label}</span>
             </NavLink>
           ))}
         </div>
@@ -349,6 +350,25 @@ function SidebarContent(props: { onNavigate?: () => void }) {
 
 function MobileSidebarContent(props: { onNavigate?: () => void }) {
   const { data } = useAdhkarDB();
+  const progress = useNoorStore((s) => s.progress);
+  const activityToday = useNoorStore((s) => s.activity[todayISO()] ?? 0);
+
+  const smartSummary = React.useMemo(() => {
+    if (!data) return { percent: 0 };
+    const { db } = data;
+    let done = 0, total = 0;
+    for (const s of db.sections) {
+      for (let i = 0; i < s.content.length; i++) {
+        const target = coerceCount(s.content[i]?.count);
+        const key = `${s.id}:${i}`;
+        const current = Math.min(Math.max(0, Number(progress[key]) || 0), target);
+        total += target;
+        done += current;
+      }
+    }
+    return { percent: pct(done, total) };
+  }, [data, progress]);
+
   if (!data) return null;
 
   return (
@@ -364,7 +384,7 @@ function MobileSidebarContent(props: { onNavigate?: () => void }) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-base" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
-            <div className="text-[11px] opacity-55 mt-0.5">قائمة سريعة وخفيفة</div>
+            <div className="text-[11px] opacity-55 mt-0.5">اترك أثراً طيباً</div>
           </div>
           <button type="button"
             onClick={props.onNavigate}
@@ -374,12 +394,27 @@ function MobileSidebarContent(props: { onNavigate?: () => void }) {
             <X size={16} className="opacity-60" />
           </button>
         </div>
+
+        {/* Today's stats strip */}
+        <div className="mt-3 flex items-center gap-2">
+          <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
+            <div className="text-[11px] opacity-55 uppercase tracking-wider">نشاط اليوم</div>
+            <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: "var(--accent)" }}>{activityToday}</div>
+          </div>
+          <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
+            <div className="text-[11px] opacity-55 uppercase tracking-wider">الإنجاز</div>
+            <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: smartSummary.percent >= 100 ? "var(--ok)" : "var(--accent)" }}>{smartSummary.percent}%</div>
+          </div>
+        </div>
+        <div className="mt-2 h-1 rounded-full bg-white/8 overflow-hidden">
+          <div className="h-full progress-accent" style={{ width: `${smartSummary.percent}%` }} />
+        </div>
       </div>
 
       <div className="h-px mx-5 bg-white/8" />
 
       <div className="px-4 py-3">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {MAIN_NAV_LINKS.map((link) => (
             <NavLink
               key={link.path}
@@ -387,16 +422,16 @@ function MobileSidebarContent(props: { onNavigate?: () => void }) {
               end={link.path === "/"}
               onClick={props.onNavigate}
               className={({ isActive }) => cn(
-                "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 border transition active:scale-[.94]",
+                "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-1 border transition active:scale-[.94]",
                 isActive
                   ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
                   : "bg-white/4 border-white/6 hover:bg-white/8"
               )}
             >
-              <div className="w-9 h-9 rounded-xl grid place-items-center" style={{ background: `${link.color}18` }}>
-                <link.icon size={17} style={{ color: link.color }} />
+              <div className="w-8 h-8 rounded-xl grid place-items-center" style={{ background: `${link.color}18` }}>
+                <link.icon size={15} style={{ color: link.color }} />
               </div>
-              <span className="text-[11px] font-medium opacity-70">{link.label}</span>
+              <span className="text-[10px] font-medium opacity-70 text-center leading-tight">{link.label}</span>
             </NavLink>
           ))}
         </div>
@@ -408,29 +443,9 @@ function MobileSidebarContent(props: { onNavigate?: () => void }) {
         <div className="px-2 mb-2 text-[11px] font-semibold opacity-45 uppercase tracking-wider">الأقسام</div>
       </div>
       <div className="flex-1 overflow-auto overscroll-contain px-3 pb-6 space-y-1">
-        {data.db.sections.map((section) => {
-          const identity = getSectionIdentity(section.id);
-          return (
-            <NavLink
-              key={section.id}
-              to={`/c/${section.id}`}
-              onClick={props.onNavigate}
-              className={({ isActive }) => cn(
-                "flex items-center gap-3 w-full rounded-2xl px-3.5 py-3 transition active:scale-[.97] border",
-                isActive ? "bg-[var(--accent)]/10 border-[var(--accent)]/25" : "border-transparent hover:bg-white/6"
-              )}
-            >
-              <div className="w-10 h-10 rounded-xl grid place-items-center shrink-0 text-lg" style={{ background: `${identity.accent}18` }}>
-                {identity.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-medium truncate">{section.title}</div>
-                <div className="mt-0.5 text-[11px] opacity-45">{section.content.length} ذكر</div>
-              </div>
-              <ChevronLeft size={14} className="opacity-30 shrink-0" />
-            </NavLink>
-          );
-        })}
+        {data.db.sections.map((s) => (
+          <SidebarItem key={s.id} s={s} onNavigate={props.onNavigate} />
+        ))}
       </div>
     </div>
   );
