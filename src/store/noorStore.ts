@@ -81,6 +81,7 @@ export type Preferences = {
   homeWidgets: Record<HomeWidgetKey, boolean>;
   prayerCalcMethod: number; // 1-23 AlAdhan method, default 5 (Egyptian)
   asrMadhab: 0 | 1; // 0=Shafi'i, 1=Hanafi
+  homeStripOrder?: string[]; // ordered IDs of azkar strip cards
 };
 
 export type SebhaSession = {

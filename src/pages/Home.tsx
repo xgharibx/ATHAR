@@ -191,6 +191,7 @@ export function HomePage() {
   const progressMap = useNoorStore((s) => s.progress);
   const lastVisitedSectionId = useNoorStore((s) => s.lastVisitedSectionId);
   const prefs = useNoorStore((s) => s.prefs);
+  const setPrefs = useNoorStore((s) => s.setPrefs);
 
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
   const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
@@ -211,6 +212,83 @@ export function HomePage() {
 
   const sections = data?.db.sections ?? [];
   const customPacks = useNoorStore((s) => s.customPacks);
+
+  // ── Strip drag-and-drop ────────────────────────────────────
+  const [liveStripIds, setLiveStripIds] = React.useState<string[] | null>(null);
+  const [draggingStripId, setDraggingStripId] = React.useState<string | null>(null);
+  const stripLongPressRef = React.useRef<number | null>(null);
+  const stripDragWasActive = React.useRef(false);
+
+  const defaultStripIds = React.useMemo(() => {
+    const saved: string[] = prefs.homeStripOrder ?? [];
+    const all = [...customPacks.map((p) => p.id), ...sections.map((s) => s.id)];
+    const result = saved.filter((id) => all.includes(id));
+    for (const id of all) if (!result.includes(id)) result.push(id);
+    return result;
+  }, [customPacks, sections, prefs.homeStripOrder]);
+
+  const activeStripIds = liveStripIds ?? defaultStripIds;
+
+  const onStripItemPointerDown = React.useCallback((id: string, e: React.PointerEvent) => {
+    const startX = e.clientX;
+    const startY = e.clientY;
+    if (stripLongPressRef.current) clearTimeout(stripLongPressRef.current);
+
+    const cancel = () => {
+      if (stripLongPressRef.current) { clearTimeout(stripLongPressRef.current); stripLongPressRef.current = null; }
+      window.removeEventListener("pointermove", onEarlyMove);
+      window.removeEventListener("pointerup", onEarlyUp);
+      window.removeEventListener("pointercancel", onEarlyUp);
+    };
+    const onEarlyMove = (me: PointerEvent) => {
+      if (Math.abs(me.clientX - startX) > 8 || Math.abs(me.clientY - startY) > 8) cancel();
+    };
+    const onEarlyUp = () => cancel();
+
+    window.addEventListener("pointermove", onEarlyMove);
+    window.addEventListener("pointerup", onEarlyUp);
+    window.addEventListener("pointercancel", onEarlyUp);
+
+    stripLongPressRef.current = window.setTimeout(() => {
+      window.removeEventListener("pointermove", onEarlyMove);
+      window.removeEventListener("pointerup", onEarlyUp);
+      window.removeEventListener("pointercancel", onEarlyUp);
+      stripLongPressRef.current = null;
+      setDraggingStripId(id);
+      setLiveStripIds([...defaultStripIds]);
+      stripDragWasActive.current = true;
+      if (prefs.enableHaptics && "vibrate" in navigator) navigator.vibrate(35);
+    }, 420);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultStripIds, prefs.enableHaptics]);
+
+  const onStripPointerMove = React.useCallback((e: React.PointerEvent) => {
+    if (!draggingStripId) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const itemEl = el?.closest("[data-strip-id]") as HTMLElement | null;
+    const overId = itemEl?.dataset?.stripId;
+    if (!overId || overId === draggingStripId) return;
+    setLiveStripIds((prev) => {
+      const arr = [...(prev ?? defaultStripIds)];
+      const fromIdx = arr.indexOf(draggingStripId);
+      const toIdx = arr.indexOf(overId);
+      if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return prev;
+      [arr[fromIdx], arr[toIdx]] = [arr[toIdx], arr[fromIdx]];
+      return arr;
+    });
+  }, [draggingStripId, defaultStripIds]);
+
+  const onStripPointerUp = React.useCallback(() => {
+    if (draggingStripId && liveStripIds) {
+      setPrefs({ homeStripOrder: liveStripIds });
+    }
+    setDraggingStripId(null);
+    setLiveStripIds(null);
+    // wasDragging stays true briefly so onClick ignores the tap
+    window.setTimeout(() => { stripDragWasActive.current = false; }, 80);
+  }, [draggingStripId, liveStripIds, setPrefs]);
+  // ── End strip drag ─────────────────────────────────────────
+
   const [checklistExpanded, setChecklistExpanded] = React.useState(false);
   const [dailyWirdExpanded, setDailyWirdExpanded] = React.useState(false);
   const [tasbeehTarget, setTasbeehTarget] = React.useState<33 | 100>(100);
@@ -740,90 +818,119 @@ export function HomePage() {
         </motion.div>
       </Card>
 
-      {/* ── Sections quick-access strip ── */}
-      {sections.length > 0 && (
-        <div className="overflow-x-auto no-scrollbar -mx-0.5 px-0.5">
+      {/* ── Sections quick-access strip (drag-and-drop to reorder) ── */}
+      {(sections.length > 0 || customPacks.length > 0) && (
+        <div
+          className="overflow-x-auto no-scrollbar -mx-0.5 px-0.5"
+          style={{ touchAction: draggingStripId ? "none" : "pan-x" }}
+          onPointerMove={onStripPointerMove}
+          onPointerUp={onStripPointerUp}
+          onPointerCancel={onStripPointerUp}
+        >
+          {draggingStripId && (
+            <div className="text-[10px] opacity-40 text-center mb-1 arabic-text">اسحب لإعادة الترتيب · ارفع إصبعك للحفظ</div>
+          )}
           <div className="flex gap-2 pb-0.5" style={{ width: "max-content" }}>
-            {/* 3D: Custom packs strip entries */}
-            {customPacks.map((pack) => {
-              let done = 0;
-              const total = pack.items.length;
-              pack.items.forEach((item, i) => {
-                const have = Math.min(item.count, Math.max(0, Number(progressMap[`${pack.id}:${i}`]) || 0));
-                if (have >= item.count) done++;
+            {/* ── Draggable items (custom packs + sections) ── */}
+            {(() => {
+              const packMap = new Map(customPacks.map((p) => [p.id, p]));
+              const secMap = new Map(sections.map((s) => [s.id, s]));
+              return activeStripIds.map((id) => {
+                const pack = packMap.get(id);
+                if (pack) {
+                  let done = 0;
+                  const total = pack.items.length;
+                  pack.items.forEach((item, i) => {
+                    const have = Math.min(item.count, Math.max(0, Number(progressMap[`${pack.id}:${i}`]) || 0));
+                    if (have >= item.count) done++;
+                  });
+                  const isComplete = total > 0 && done === total;
+                  const pctDone = total > 0 ? Math.round((done / total) * 100) : 0;
+                  const isDragging = draggingStripId === id;
+                  return (
+                    <button type="button"
+                      key={id}
+                      data-strip-id={id}
+                      onPointerDown={(e) => onStripItemPointerDown(id, e)}
+                      onClick={() => { if (stripDragWasActive.current) return; trackUxEvent(`home_strip:${id}`); navigate(`/c/${id}`); }}
+                      className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] active:scale-[.91] transition-all"
+                      style={{
+                        borderColor: isDragging
+                          ? "rgba(255,215,100,0.6)"
+                          : isComplete
+                            ? "color-mix(in srgb, var(--ok) 30%, transparent)"
+                            : pctDone > 0 ? "rgba(201,162,39,0.4)" : "rgba(255,255,255,0.08)",
+                        transform: isDragging ? "scale(1.07)" : undefined,
+                        boxShadow: isDragging ? "0 8px 28px rgba(0,0,0,0.45)" : undefined,
+                        zIndex: isDragging ? 10 : undefined,
+                        transition: "transform 0.18s, box-shadow 0.18s, border-color 0.18s",
+                        opacity: draggingStripId && !isDragging ? 0.65 : 1,
+                      }}
+                    >
+                      <span className="text-[22px] leading-none">📝</span>
+                      <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 max-w-[60px] line-clamp-2">{pack.title}</span>
+                      <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1">
+                        <div className="h-full rounded-full transition-all duration-300"
+                          style={{ width: `${pctDone}%`, background: isComplete ? "var(--ok)" : "var(--accent)" }} />
+                      </div>
+                    </button>
+                  );
+                }
+                const section = secMap.get(id);
+                if (section) {
+                  const identity = getSectionIdentity(section.id);
+                  let done = 0;
+                  const total = section.content.length;
+                  section.content.forEach((item, i) => {
+                    const need = coerceCount(item.count);
+                    const have = Math.min(need, Math.max(0, Number(progressMap[`${section.id}:${i}`]) || 0));
+                    if (have >= need) done++;
+                  });
+                  const isComplete = total > 0 && done === total;
+                  const pctDone = total > 0 ? Math.round((done / total) * 100) : 0;
+                  const isDragging = draggingStripId === id;
+                  return (
+                    <button type="button"
+                      key={id}
+                      data-strip-id={id}
+                      onPointerDown={(e) => onStripItemPointerDown(id, e)}
+                      onClick={() => { if (stripDragWasActive.current) return; trackUxEvent(`home_strip:${id}`); navigate(`/c/${id}`); }}
+                      className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] active:scale-[.91] transition-all"
+                      style={{
+                        borderColor: isDragging
+                          ? "rgba(255,215,100,0.6)"
+                          : isComplete
+                            ? "color-mix(in srgb, var(--ok) 30%, transparent)"
+                            : pctDone > 0 ? `${identity.accent}40` : "rgba(255,255,255,0.08)",
+                        transform: isDragging ? "scale(1.07)" : undefined,
+                        boxShadow: isDragging ? "0 8px 28px rgba(0,0,0,0.45)" : undefined,
+                        zIndex: isDragging ? 10 : undefined,
+                        transition: "transform 0.18s, box-shadow 0.18s, border-color 0.18s",
+                        opacity: draggingStripId && !isDragging ? 0.65 : 1,
+                      }}
+                    >
+                      <span className="text-[22px] leading-none">{identity.icon}</span>
+                      <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 w-full text-center line-clamp-2">{identity.badge}</span>
+                      <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1">
+                        <div className="h-full rounded-full transition-all duration-300"
+                          style={{ width: `${pctDone}%`, background: isComplete ? "var(--ok)" : identity.accent }} />
+                      </div>
+                    </button>
+                  );
+                }
+                return null;
               });
-              const isComplete = total > 0 && done === total;
-              const pctDone = total > 0 ? Math.round((done / total) * 100) : 0;
-              return (
-                <button type="button"
-                  key={pack.id}
-                  onClick={() => { trackUxEvent(`home_strip:${pack.id}`); navigate(`/c/${pack.id}`); }}
-                  className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] select-none active:scale-[.91] transition-all"
-                  style={{
-                    borderColor: isComplete
-                      ? "color-mix(in srgb, var(--ok) 30%, transparent)"
-                      : pctDone > 0 ? "rgba(201,162,39,0.4)" : "rgba(255,255,255,0.08)",
-                  }}
-                >
-                  <span className="text-[22px] leading-none">📝</span>
-                  <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 max-w-[60px] line-clamp-2">{pack.title}</span>
-                  <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1">
-                    <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{ width: `${pctDone}%`, background: isComplete ? "var(--ok)" : "var(--accent)" }}
-                    />
-                  </div>
-                </button>
-              );
-            })}
+            })()}
+            {/* ── Fixed "+" add custom button (not draggable) ── */}
             <button type="button"
               onClick={() => { trackUxEvent("home_strip:custom_manage"); navigate("/adhkar/custom"); }}
-              className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] select-none active:scale-[.91] transition-all"
-              style={{ borderColor: "rgba(255,255,255,0.08)", opacity: 0.7 }}
+              className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] active:scale-[.91] transition-all"
+              style={{ borderColor: "rgba(255,255,255,0.08)", opacity: draggingStripId ? 0.3 : 0.7 }}
             >
               <span className="text-[22px] leading-none">＋</span>
               <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5">أذكاري</span>
               <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1" />
             </button>
-            {sections.map((section, idx) => {
-              const identity = getSectionIdentity(section.id);
-              let done = 0;
-              const total = section.content.length;
-              section.content.forEach((item, i) => {
-                const need = coerceCount(item.count);
-                const have = Math.min(need, Math.max(0, Number(progressMap[`${section.id}:${i}`]) || 0));
-                if (have >= need) done++;
-              });
-              const isComplete = total > 0 && done === total;
-              const pctDone = total > 0 ? Math.round((done / total) * 100) : 0;
-
-              return (
-                <button type="button"
-                  key={section.id}
-                  onClick={() => { trackUxEvent(`home_strip:${section.id}`); navigate(`/c/${section.id}`); }}
-                  className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] select-none active:scale-[.91] transition-all"
-                  style={{
-                    borderColor: isComplete
-                      ? "color-mix(in srgb, var(--ok) 30%, transparent)"
-                      : pctDone > 0
-                        ? `${identity.accent}40`
-                        : "rgba(255,255,255,0.08)",
-                  }}
-                >
-                  <span className="text-[22px] leading-none">{identity.icon}</span>
-                  <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 w-full text-center line-clamp-2">{identity.badge}</span>
-                  <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1">
-                    <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${pctDone}%`,
-                        background: isComplete ? "var(--ok)" : identity.accent,
-                      }}
-                    />
-                  </div>
-                </button>
-              );
-            })}
           </div>
         </div>
       )}

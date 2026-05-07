@@ -204,6 +204,17 @@ html,
 body {
   overscroll-behavior: none;
   overflow-x: clip;
+  /* Disable text selection globally for a native-app feel */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Restore selection in form controls */
+input, textarea, [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: default;
 }
 
 body {
