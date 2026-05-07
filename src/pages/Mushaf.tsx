@@ -25,6 +25,7 @@ import {
 } from "@/lib/radioPlayer";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
+import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import toast from "react-hot-toast";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -486,6 +487,8 @@ export function MushafPage() {
 
   // A2: Offline audio cache progress
   const [cacheProgress, setCacheProgress] = React.useState<{ done: number; total: number } | null>(null);
+  // A2-B: Per-reciter page download progress
+  const [reciterDownloadProgress, setReciterDownloadProgress] = React.useState<Record<string, { done: number; total: number } | "done">>({});
 
   // A4: Quran Radio
   const radioState = useRadioState();
@@ -635,20 +638,27 @@ export function MushafPage() {
   React.useEffect(() => {
     if (!inlineTafseer) return;
     const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
-    const edition = inlineTafseerSource === "jalalayn" ? "ar.jalalayn" : "ar.muyassar";
     const toFetch = surahIds.filter((sid) => !inlineTafseerData[sid]);
     if (toFetch.length === 0) return;
     let mounted = true;
     setInlineTafseerLoading(true);
-    Promise.all(toFetch.map((sid) =>
-      fetch(`https://api.alquran.cloud/v1/surah/${sid}/${edition}`)
-        .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-        .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
-          const ayahs: string[] = [];
-          for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
-          return { sid, ayahs };
-        })
-    )).then((results) => {
+    // Muyassar: load from bundled local JSON (offline, no network needed after SW precache)
+    // Jalalayn: fetch from alquran.cloud (cached by SW on first fetch)
+    const loadData: Promise<Array<{ sid: number; ayahs: string[] }>> =
+      inlineTafseerSource === "jalalayn"
+        ? Promise.all(toFetch.map((sid) =>
+            fetch(`https://api.alquran.cloud/v1/surah/${sid}/ar.jalalayn`)
+              .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+              .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
+                const ayahs: string[] = [];
+                for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
+                return { sid, ayahs };
+              })
+          ))
+        : loadMuyassarCache().then((cache) =>
+            toFetch.map((sid) => ({ sid, ayahs: (cache[String(sid)] ?? []) as string[] }))
+          );
+    loadData.then((results) => {
       if (!mounted) return;
       setInlineTafseerData((prev) => {
         const upd = { ...prev };
@@ -694,18 +704,22 @@ export function MushafPage() {
   React.useEffect(() => {
     if (!tafsirItem) return;
     const sid = tafsirItem.surahId;
-    const edition = inlineTafseerSource === "jalalayn" ? "ar.jalalayn" : "ar.muyassar";
     let mounted = true;
     setInlineTafseerLoading(true);
-    fetch(`https://api.alquran.cloud/v1/surah/${sid}/${edition}`)
-      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
-        if (!mounted) return;
-        const ayahs: string[] = [];
-        for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
-        setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
-      })
-      .catch(() => {})
+    const loadData: Promise<string[]> =
+      inlineTafseerSource === "jalalayn"
+        ? fetch(`https://api.alquran.cloud/v1/surah/${sid}/ar.jalalayn`)
+            .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+            .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
+              const ayahs: string[] = [];
+              for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
+              return ayahs;
+            })
+        : loadMuyassarCache().then((cache) => (cache[String(sid)] ?? []) as string[]);
+    loadData.then((ayahs) => {
+      if (!mounted) return;
+      setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
+    }).catch(() => {})
       .finally(() => { if (mounted) setInlineTafseerLoading(false); });
     return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -773,8 +787,9 @@ export function MushafPage() {
     touchStartX.current = null;
     touchStartY.current = null;
     if (Math.abs(dx) < 55 || dy > Math.abs(dx) * 0.8) return;
-    if (dx > 0) goPage(currentPage - 1);
-    else goPage(currentPage + 1);
+    // Arabic Mushaf: swipe right (dx > 0) = next page (forward in Arabic reading order)
+    if (dx > 0) goPage(currentPage + 1);
+    else goPage(currentPage - 1);
   };
 
   // Keyboard navigation
@@ -902,6 +917,31 @@ export function MushafPage() {
     } catch { toast.error("تعذر التحميل"); }
     finally { setCacheProgress(null); }
   }, [playableItems, prefs.quranReciter]);
+
+  // A2-B: Download current page audio for a specific reciter (from reciter sheet)
+  const downloadReciterPage = React.useCallback(async (reciterId: string) => {
+    if (!("caches" in window)) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
+    const items = playableItems.slice();
+    if (items.length === 0) return;
+    setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: { done: 0, total: items.length } }));
+    try {
+      const cache = await caches.open("mushaf-audio-v1");
+      let done = 0;
+      for (const item of items) {
+        const s = String(item.surahId).padStart(3, "0");
+        const a = String(item.originalAyah).padStart(3, "0");
+        const url = `https://everyayah.com/data/${reciterId}/${s}${a}.mp3`;
+        try { await cache.add(url); } catch { /* skip */ }
+        done++;
+        setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: { done, total: items.length } }));
+      }
+      setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: "done" }));
+      const name = QURAN_RECITERS.find((r) => r.id === reciterId)?.label ?? reciterId;
+      toast.success(`✓ تم تحميل الصفحة لـ ${name}`);
+    } catch {
+      setReciterDownloadProgress((prev) => { const upd = { ...prev }; delete upd[reciterId]; return upd; });
+    }
+  }, [playableItems]);
 
   // A3: MediaSession API — lock-screen controls
   React.useEffect(() => {
@@ -1460,23 +1500,47 @@ export function MushafPage() {
             <div className="mushaf-sheet-handle" />
             <div className="mushaf-sheet-title">اختر القارئ</div>
             <div className="mushaf-reciter-grid">
-              {QURAN_RECITERS.map((r) => (
-                <button type="button"
-                  key={r.id}
-                  className={`mushaf-reciter-chip${(prefs.quranReciter ?? "Alafasy_128kbps") === r.id ? " active" : ""}`}
-                  onClick={() => {
-                    setPrefs({ quranReciter: r.id });
-                    if (playingKey && audioRef.current) {
-                      audioRef.current.pause();
-                      setPlayingKey(null);
-                    }
-                    setShowReciterSheet(false);
-                  }}
-                >
-                  <Mic2 size={14} />
-                  {r.label}
-                </button>
-              ))}
+              {QURAN_RECITERS.map((r) => {
+                const dlState = reciterDownloadProgress[r.id];
+                const isActive = (prefs.quranReciter ?? "Alafasy_128kbps") === r.id;
+                return (
+                  <div key={r.id} className="flex items-center gap-1">
+                    <button type="button"
+                      className={`mushaf-reciter-chip flex-1${isActive ? " active" : ""}`}
+                      onClick={() => {
+                        setPrefs({ quranReciter: r.id });
+                        if (playingKey && audioRef.current) {
+                          audioRef.current.pause();
+                          setPlayingKey(null);
+                        }
+                        setShowReciterSheet(false);
+                      }}
+                    >
+                      <Mic2 size={14} />
+                      {r.label}
+                    </button>
+                    {/* Per-reciter page download */}
+                    <button type="button"
+                      title="تحميل الصفحة لهذا القارئ"
+                      aria-label={`تحميل الصفحة لـ ${r.label}`}
+                      disabled={typeof dlState === "object"}
+                      onClick={(e) => { e.stopPropagation(); if (dlState !== "done") downloadReciterPage(r.id); }}
+                      className={`shrink-0 flex items-center justify-center w-7 h-7 rounded-xl border transition
+                        ${dlState === "done"
+                          ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
+                          : typeof dlState === "object"
+                            ? "bg-[var(--accent)]/10 border-[var(--accent)]/20 text-[var(--accent)] cursor-wait"
+                            : "bg-white/6 border-white/10 opacity-55 hover:opacity-90"}`}
+                    >
+                      {dlState === "done"
+                        ? <CheckCircle2 size={11} />
+                        : typeof dlState === "object"
+                          ? <span className="text-[8px] tabular-nums leading-none">{dlState.done}</span>
+                          : <Download size={11} />}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </>

@@ -38,7 +38,7 @@ function getDB(): NoorWbwDexie {
   return _db;
 }
 
-const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // 1 year — WBW data rarely changes
 
 async function idbGet(surahId: number): Promise<WbwSurah | null> {
   try {
