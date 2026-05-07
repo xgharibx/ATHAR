@@ -5,10 +5,11 @@
  */
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, BrainCircuit, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, BrainCircuit, CheckCircle, ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { useHadithPack } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
+import toast from "react-hot-toast";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                               */
@@ -331,9 +332,27 @@ export function HadithMemoPage() {
             >
               <ChevronRight size={20} className="text-[var(--muted)]" />
             </button>
-            <span className="text-xs text-[var(--muted)] font-arabic">
-              {currentHadith.a}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-[var(--muted)] font-arabic">
+                {currentHadith.a}
+              </span>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(currentHadith.t);
+                    toast.success("تم النسخ");
+                  } catch {
+                    toast.error("تعذر النسخ");
+                  }
+                }}
+                className="p-1.5 rounded-lg opacity-50 hover:opacity-90 transition"
+                style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
+                title="نسخ الحديث"
+              >
+                <Copy size={14} />
+              </button>
+            </div>
             <button type="button"
               onClick={() => { setCardIndex((i) => Math.min(currentCards.length - 1, i + 1)); setIsFlipped(false); }}
               disabled={cardIndex === currentCards.length - 1}

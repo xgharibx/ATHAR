@@ -6,13 +6,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { ArrowRight, ArrowUpRight, Bookmark, BookOpenText, Layers3, Loader2, WifiOff } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bookmark, BookOpenText, Copy, Layers3, Loader2, WifiOff } from "lucide-react";
 import { useHadithPack, useHadithPackProgress, HADITH_PACK_SIZES_MB } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview, type HadithItem } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 /* ------------------------------------------------------------------ */
 
@@ -95,6 +96,23 @@ function HadithRow({
           </div>
           <div className="flex flex-col items-center gap-2 shrink-0">
             <ArrowUpRight size={17} className="opacity-45 transition group-hover:opacity-80" />
+            <button
+              type="button"
+              onClick={async (e) => {
+                e.stopPropagation();
+                try {
+                  await navigator.clipboard.writeText(item.t);
+                  toast.success("تم النسخ");
+                } catch {
+                  toast.error("تعذر النسخ");
+                }
+              }}
+              className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 transition-opacity"
+              style={{ background: "var(--card-border)", color: "var(--fg)" }}
+              title="نسخ الحديث"
+            >
+              <Copy size={13} />
+            </button>
             {isBookmarked && (
               <Bookmark size={15} className="fill-current" style={{ color: accentColor }} />
             )}
