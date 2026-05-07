@@ -8,6 +8,7 @@ import {
   Shuffle,
   RotateCw,
   Copy,
+  Share2,
   CheckCircle2,
   ChevronDown,
   MoreVertical,
@@ -762,9 +763,19 @@ export function HomePage() {
                 <span className="text-xs font-medium opacity-65">{timeGreeting(new Date().getHours())}</span>
                 {(() => { const h = getHijriDate(); return h ? <span className="text-xs opacity-50 border border-white/10 rounded-full px-2 py-0.5">{h}</span> : null; })()}
                 {streak > 0 && (
-                  <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full glass border border-white/15 streak-fire ${streak >= 30 ? "text-orange-400" : streak >= 7 ? "text-yellow-400" : "text-[var(--accent)]"}`}>
+                  <button
+                    type="button"
+                    title="مشاركة السلسلة"
+                    className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full glass border border-white/15 streak-fire cursor-pointer active:scale-95 transition-transform ${streak >= 30 ? "text-orange-400" : streak >= 7 ? "text-yellow-400" : "text-[var(--accent)]"}`}
+                    onClick={async () => {
+                      const emoji = streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨";
+                      const text = `${emoji} سلسلة ${streak} يوم متواصل في تطبيق أثر!\n\nالاستمرار في الذكر والعبادة — اترك أثراً طيباً.`;
+                      if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+                      else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+                    }}
+                  >
                     {streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨"} {streak} يوم متواصل
-                  </span>
+                  </button>
                 )}
               </div>
               <h1 className="text-xl md:text-2xl font-semibold leading-tight">
@@ -1040,9 +1051,18 @@ export function HomePage() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-sm font-semibold">المهام والأهداف اليومية</div>
-                  <div className="text-xs opacity-55 mt-0.5">
+                  <button
+                    type="button"
+                    className="text-xs opacity-55 mt-0.5 hover:opacity-80 transition-opacity text-right"
+                    title="مشاركة مستواك"
+                    onClick={async () => {
+                      const text = `وصلت لمستوى: ${xpLevel.emoji} ${xpLevel.label} (${totalXp.toLocaleString("ar-SA")} نقطة) في تطبيق أثر!\n\nاترك أثراً طيباً كل يوم.`;
+                      if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+                      else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+                    }}
+                  >
                     {xpLevel.emoji} {xpLevel.label} — {totalXp.toLocaleString("ar-SA")} نقطة
-                  </div>
+                  </button>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
@@ -1313,6 +1333,13 @@ export function HomePage() {
                   <Button variant="secondary" onClick={copyDailyWird} disabled={!dailyWird}>
                     <Copy size={16} />
                     نسخ
+                  </Button>
+                  <Button variant="secondary" disabled={!dailyWird} onClick={async () => {
+                    if (!dailyWird) return;
+                    if (navigator.share) { await navigator.share({ text: dailyWird.copyText }).catch(() => {}); }
+                    else { await navigator.clipboard.writeText(dailyWird.copyText).catch(() => {}); toast.success("تم النسخ"); }
+                  }}>
+                    <Share2 size={16} />
                   </Button>
                   <Button
                     variant={isDailyWirdDone ? "primary" : "secondary"}
