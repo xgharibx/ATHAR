@@ -76,7 +76,7 @@ export function DuasPage() {
               الأدعية المأثورة
             </h1>
             <p className="text-xs opacity-60" style={{ color: "var(--fg)" }}>
-              أدعية قرآنية وسنة نبوية وأدعية الحج
+              أدعية قرآنية وسنة نبوية وأدعية الكرب والحياة اليومية
             </p>
           </div>
         </div>

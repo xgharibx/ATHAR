@@ -18,6 +18,10 @@ export const DAILY_CHECKLIST_ITEMS: DailyChecklistItem[] = [
   { id: "hifz_revision", title: "مراجعة الحفظ", subtitle: "راجع ما حفظته من القرآن", category: "quran" },
   { id: "sunnah_fasting", title: "صيام سنة (اثنين وخميس)", subtitle: "إن كان اليوم مناسبا", category: "salah" },
   { id: "good_deed_hide", title: "عمل صالح سري", subtitle: "لا يعلمه إلا الله", category: "akhlaq" },
+  { id: "read_quran_meaning", title: "تدبّر آية من القرآن", subtitle: "اقرأ المعنى وفكّر فيه", category: "quran" },
+  { id: "dhikr_morning_full", title: "أذكار الصباح كاملة", subtitle: "قبل النهوض من الجلسة", category: "dhikr" },
+  { id: "forgive_someone", title: "العفو عمّن آذاك", subtitle: "واحتسب الأجر عند الله", category: "akhlaq" },
+  { id: "check_neighbor", title: "تفقّد جار أو محتاج", subtitle: "رسالة أو زيارة أو خدمة", category: "family" },
 ];
 
 export const BETTER_MUSLIM_DAILY_STEPS: string[] = [
