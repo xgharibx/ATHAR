@@ -196,7 +196,7 @@ function SheikhBannerCard({
         <div>
           <h3
             className="font-extrabold arabic-text leading-tight mb-0.5"
-            style={{ fontSize: "0.88rem", color: "white", textShadow: "0 1px 16px rgba(0,0,0,0.95)" }}
+            style={{ fontSize: "0.82rem", color: "white", letterSpacing: "0.01em", textShadow: "0 1px 16px rgba(0,0,0,0.95)" }}
           >
             {channel.displayName}
           </h3>
@@ -654,15 +654,15 @@ function VideoHome({
             <div>
               <div className="flex items-center gap-1.5 text-[var(--accent)] mb-1.5">
                 <Star size={13} className="fill-[var(--accent)]" />
-                <span className="text-[11px] font-semibold tracking-wider opacity-80">مكتبة النور</span>
+                <span className="text-[9px] font-bold tracking-widest uppercase opacity-55">مكتبة النور</span>
               </div>
               <h1
-                className="text-[1.6rem] font-extrabold arabic-text leading-tight"
+                className="text-[1.2rem] font-bold arabic-text leading-tight tracking-tight"
                 style={{ textShadow: "0 0 40px var(--accent)" }}
               >
                 الدورات الإسلامية
               </h1>
-              <p className="text-xs opacity-45 mt-1 leading-5">تعلّم بتنظيم · تابع تقدمك · استكشف بلا تشتت</p>
+              <p className="text-[11px] opacity-40 mt-1 leading-5">تعلّم بتنظيم · تابع تقدمك · استكشف بلا تشتت</p>
             </div>
             <button
               type="button"
@@ -707,7 +707,7 @@ function VideoHome({
                   className="flex items-center gap-1.5 rounded-2xl bg-white/8 border border-white/10 px-3 py-1.5"
                 >
                   <span className="text-[10px] opacity-50">{s.label}</span>
-                  <span className="text-sm font-bold">{s.value}</span>
+                  <span className="text-[13px] font-bold">{s.value}</span>
                 </div>
               ))}
               {overallStats.total > 0 && (
@@ -721,7 +721,7 @@ function VideoHome({
                   <span className="text-[10px] opacity-70" style={{ color: "var(--accent)" }}>
                     تقدمك
                   </span>
-                  <span className="text-sm font-bold" style={{ color: "var(--accent)" }}>
+                  <span className="text-[13px] font-bold" style={{ color: "var(--accent)" }}>
                     {overallStats.percent}%
                   </span>
                 </div>
@@ -736,7 +736,7 @@ function VideoHome({
         <div className="space-y-4">
           {searchResults.courses.length > 0 && (
             <section>
-              <h2 className="font-bold text-sm mb-2.5 opacity-70">الدورات</h2>
+              <h2 className="text-[11px] font-semibold mb-2 opacity-60 tracking-wide">الدورات</h2>
               <div className="grid grid-cols-2 gap-2.5">
                 {searchResults.courses.map((c) => (
                   <CourseCard2
@@ -753,7 +753,7 @@ function VideoHome({
           )}
           {searchResults.videos.length > 0 && (
             <section>
-              <h2 className="font-bold text-sm mb-2.5 opacity-70">الفيديوهات</h2>
+              <h2 className="text-[11px] font-semibold mb-2 opacity-60 tracking-wide">الفيديوهات</h2>
               <div className="space-y-2">
                 {searchResults.videos.map((v) => (
                   <VideoListRow
@@ -817,14 +817,14 @@ function VideoHome({
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <div
-                  className="text-xs font-semibold mb-1.5 flex items-center gap-1.5"
+                  className="text-[10px] font-semibold tracking-wide mb-1.5 flex items-center gap-1.5"
                   style={{ color: continueChannel?.accent ?? "var(--accent)" }}
                 >
                   <Sparkles size={12} />
                   <span>أكمل من حيث توقفت</span>
                 </div>
                 <div
-                  className="font-bold text-base arabic-text line-clamp-2 leading-snug"
+                  className="font-semibold text-[14px] arabic-text line-clamp-2 leading-snug"
                   style={{ textShadow: "0 1px 12px rgba(0,0,0,0.9)" }}
                 >
                   {continueVideo.title}
@@ -850,7 +850,7 @@ function VideoHome({
       {!searchResults && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold arabic-text">المشايخ</h2>
+            <h2 className="text-[13px] font-semibold arabic-text">المشايخ</h2>
             <span className="text-xs opacity-40">{data.db.channels.length} قناة</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -872,7 +872,7 @@ function VideoHome({
       {newestVideos.length > 0 && !searchResults && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold arabic-text">أحدث الدروس</h2>
+            <h2 className="text-[13px] font-semibold arabic-text">أحدث الدروس</h2>
             <span className="text-xs opacity-40">{data.db.videos.length}</span>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
@@ -894,7 +894,7 @@ function VideoHome({
       {bookmarkedVideos.length > 0 && !searchResults && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold arabic-text">المحفوظات</h2>
+            <h2 className="text-[13px] font-semibold arabic-text">المحفوظات</h2>
             <Bookmark size={14} className="fill-[var(--accent)] text-[var(--accent)]" />
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
@@ -1010,7 +1010,7 @@ function SheikhScreen({
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-extrabold arabic-text" style={{ textShadow: `0 0 28px ${channel.accent}55` }}>
+              <h1 className="text-[1.05rem] font-bold arabic-text" style={{ textShadow: `0 0 28px ${channel.accent}55` }}>
                 {channel.displayName}
               </h1>
               <p className="text-xs opacity-50 mt-1 line-clamp-2 leading-5">{channel.description}</p>
@@ -1057,7 +1057,7 @@ function SheikhScreen({
       {channelCourses.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold arabic-text">الدورات</h2>
+            <h2 className="text-[13px] font-semibold arabic-text">الدورات</h2>
             <GraduationCap size={16} style={{ color: channel.accent }} />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -1110,7 +1110,7 @@ function SheikhScreen({
       {/* ── Videos ── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold arabic-text">{topicFilter ? "الفيديوهات المصنفة" : "كل الفيديوهات"}</h2>
+          <h2 className="text-[13px] font-semibold arabic-text">{topicFilter ? "الفيديوهات المصنفة" : "كل الفيديوهات"}</h2>
           <span className="text-xs opacity-40">{visibleVideos.length}</span>
         </div>
         {visibleVideos.length === 0 ? (
@@ -1216,11 +1216,11 @@ function CourseScreen({
                 <GraduationCap size={12} />
                 {channel?.displayName ?? "دورة إسلامية"}
               </div>
-              <h1 className="text-xl font-extrabold arabic-text leading-snug">{course.title}</h1>
+              <h1 className="text-[1.05rem] font-bold arabic-text leading-snug">{course.title}</h1>
               {course.description && <p className="text-xs opacity-50 mt-2 leading-5">{course.description}</p>}
             </div>
             <ProgressRing percent={stats.percent} size={60} strokeWidth={5} color={accent}>
-              <div className="text-sm font-extrabold" style={{ color: accent }}>
+              <div className="text-[11px] font-bold" style={{ color: accent }}>
                 {stats.percent}%
               </div>
             </ProgressRing>
@@ -1262,7 +1262,7 @@ function CourseScreen({
       {/* ── Lesson list ── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold arabic-text">قائمة الدروس</h2>
+          <h2 className="text-[13px] font-semibold arabic-text">قائمة الدروس</h2>
           <span className="text-xs opacity-40">{courseVideos.length} درس</span>
         </div>
         {courseVideos.length === 0 ? (
@@ -1419,7 +1419,7 @@ function WatchScreen({
             <div className="flex items-center gap-2.5">
               <GraduationCap size={16} style={{ color: channel?.accent }} />
               <div>
-                <div className="text-sm font-bold arabic-text">{course.title}</div>
+                <div className="text-[12px] font-semibold arabic-text">{course.title}</div>
                 <div className="text-[11px] opacity-45 mt-0.5">
                   {index + 1} من {courseVideos.length} درس
                 </div>
@@ -1466,7 +1466,7 @@ function WatchScreen({
       {related.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold arabic-text text-sm">فيديوهات أخرى</h2>
+            <h2 className="text-[13px] font-semibold arabic-text">فيديوهات أخرى</h2>
             <span className="text-xs" style={{ color: channel?.accent, opacity: 0.7 }}>
               {channel?.displayName}
             </span>
