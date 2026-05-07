@@ -415,6 +415,7 @@ export function HadithReaderPage() {
               value={draftNote}
               onChange={(e) => setDraftNote(e.target.value)}
               placeholder="أضف ملاحظتك هنا…"
+              aria-label="ملاحظة الحديث"
               rows={4}
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 resize-none outline-none font-arabic text-sm leading-7 placeholder:opacity-40 focus:border-[var(--accent)]/40"
               style={{ color: "var(--fg)" }}

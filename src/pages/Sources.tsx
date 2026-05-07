@@ -124,6 +124,7 @@ export function SourcesPage() {
           value={customText}
           onChange={(event) => setCustomText(event.target.value)}
           placeholder="اكتب الذكر"
+          aria-label="نص الذكر"
           className="form-field-readable mt-3 min-h-32 w-full rounded-3xl border border-white/10 px-4 py-3 text-sm leading-7 outline-none focus:border-[var(--accent)]/40"
         />
 

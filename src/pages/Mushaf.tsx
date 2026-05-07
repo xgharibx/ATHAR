@@ -1517,6 +1517,7 @@ export function MushafPage() {
               value={noteDraft}
               onChange={(e) => setNoteDraft(e.target.value)}
               placeholder="اكتب تدبّرك في هذه الآية…"
+              aria-label="تدبّر الآية"
               rows={4}
               autoFocus
               className="mushaf-textarea mt-2"

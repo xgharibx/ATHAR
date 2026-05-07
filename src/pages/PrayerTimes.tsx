@@ -296,6 +296,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
           <select
             value={prefs.prayerCalcMethod ?? 5}
             onChange={(e) => setPrefs({ prayerCalcMethod: Number(e.target.value) })}
+            aria-label="طريقة الحساب"
             className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50"
           >
             {PRAYER_CALC_METHODS.map((m) => (
