@@ -835,8 +835,9 @@ export function SebhaPage() {
           </div>
           <div className="space-y-3">
             <div>
-              <label className="text-xs opacity-60 mb-1 block">نص الذكر</label>
+              <label htmlFor="custom-phrase" className="text-xs opacity-60 mb-1 block">نص الذكر</label>
               <input
+                id="custom-phrase"
                 type="text"
                 dir="rtl"
                 value={customPhraseInput}
@@ -846,8 +847,9 @@ export function SebhaPage() {
               />
             </div>
             <div>
-              <label className="text-xs opacity-60 mb-1 block">الهدف</label>
+              <label htmlFor="custom-target" className="text-xs opacity-60 mb-1 block">الهدف</label>
               <input
+                id="custom-target"
                 type="number"
                 min={1}
                 max={10000}
