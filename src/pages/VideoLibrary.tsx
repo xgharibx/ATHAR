@@ -950,6 +950,11 @@ function SheikhScreen({
 }) {
   const channel = data.channelById.get(channelId);
   const [topicFilter, setTopicFilter] = React.useState<string | null>(null);
+  const [videoPage, setVideoPage] = React.useState(1);
+  const PAGE_SIZE = 40;
+
+  // Reset pagination when filter changes
+  React.useEffect(() => { setVideoPage(1); }, [topicFilter, channelId]);
 
   if (!channel) {
     return (
@@ -1136,7 +1141,7 @@ function SheikhScreen({
           </div>
         ) : (
           <div className="space-y-2">
-            {visibleVideos.map((v) => (
+            {visibleVideos.slice(0, videoPage * PAGE_SIZE).map((v) => (
               <VideoListRow
                 key={v.id}
                 video={v}
@@ -1146,6 +1151,16 @@ function SheikhScreen({
                 onClick={() => navigate(`/video-library/watch/${v.id}`)}
               />
             ))}
+            {videoPage * PAGE_SIZE < visibleVideos.length && (
+              <button
+                type="button"
+                onClick={() => setVideoPage((p) => p + 1)}
+                className="w-full py-3 rounded-2xl bg-white/6 border border-white/10 text-sm font-semibold press-effect"
+                style={{ color: channel.accent }}
+              >
+                تحميل المزيد ({visibleVideos.length - videoPage * PAGE_SIZE} متبقٍ)
+              </button>
+            )}
           </div>
         )}
       </section>
@@ -1154,6 +1169,8 @@ function SheikhScreen({
 }
 
 // ── COURSE SCREEN ─────────────────────────────────────────────────────────────
+
+const COURSE_PAGE_SIZE = 40;
 
 function CourseScreen({
   data,
@@ -1170,6 +1187,7 @@ function CourseScreen({
   navigate: (path: string) => void;
   activeVideoId?: string;
 }) {
+  const [lessonPage, setLessonPage] = React.useState(1);
   const course = data.courseById.get(courseId);
   const channel = course ? data.channelById.get(course.channelId) : undefined;
   const courseVideos = course ? (data.videosByCourse.get(course.id) ?? []) : [];
@@ -1287,18 +1305,30 @@ function CourseScreen({
             <div className="text-xs opacity-50 mt-1">شغّل أداة المزامنة لتحميل دروس هذه الدورة</div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2.5">
-            {courseVideos.map((v, i) => (
-              <LessonRow
-                key={v.id}
-                video={v}
-                index={i}
-                channel={channel}
-                progress={progress[v.id]}
-                isActive={v.id === activeVideoId}
-                onClick={() => navigate(`/video-library/watch/${v.id}`)}
-              />
-            ))}
+          <div className="space-y-2.5">
+            <div className="grid grid-cols-2 gap-2.5">
+              {courseVideos.slice(0, lessonPage * COURSE_PAGE_SIZE).map((v, i) => (
+                <LessonRow
+                  key={v.id}
+                  video={v}
+                  index={i}
+                  channel={channel}
+                  progress={progress[v.id]}
+                  isActive={v.id === activeVideoId}
+                  onClick={() => navigate(`/video-library/watch/${v.id}`)}
+                />
+              ))}
+            </div>
+            {lessonPage * COURSE_PAGE_SIZE < courseVideos.length && (
+              <button
+                type="button"
+                onClick={() => setLessonPage((p) => p + 1)}
+                className="w-full py-3 rounded-2xl bg-white/6 border border-white/10 text-sm font-semibold press-effect"
+                style={{ color: accent }}
+              >
+                تحميل المزيد ({courseVideos.length - lessonPage * COURSE_PAGE_SIZE} درس متبقٍ)
+              </button>
+            )}
           </div>
         )}
       </section>
@@ -1337,6 +1367,8 @@ function WatchScreen({
   const index = courseVideos.findIndex((v) => v.id === videoId);
   const nextVideo = index >= 0 ? courseVideos[index + 1] : undefined;
   const [playlistOpen, setPlaylistOpen] = React.useState(false);
+  const [playlistPage, setPlaylistPage] = React.useState(1);
+  const PLAYLIST_PAGE_SIZE = 40;
   const related = (data.videosByChannel.get(video?.channelId ?? "") ?? [])
     .filter((v) => v.id !== videoId)
     .slice(0, 8);
@@ -1460,18 +1492,30 @@ function WatchScreen({
             </div>
           </button>
           {playlistOpen && (
-            <div className="px-3 pb-3 grid grid-cols-2 gap-2 border-t border-white/8 pt-3">
-              {courseVideos.map((v, i) => (
-                <LessonRow
-                  key={v.id}
-                  video={v}
-                  index={i}
-                  channel={channel}
-                  progress={progress[v.id]}
-                  isActive={v.id === videoId}
-                  onClick={() => navigate(`/video-library/watch/${v.id}`)}
-                />
-              ))}
+            <div className="px-3 pb-3 border-t border-white/8 pt-3 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                {courseVideos.slice(0, playlistPage * PLAYLIST_PAGE_SIZE).map((v, i) => (
+                  <LessonRow
+                    key={v.id}
+                    video={v}
+                    index={i}
+                    channel={channel}
+                    progress={progress[v.id]}
+                    isActive={v.id === videoId}
+                    onClick={() => navigate(`/video-library/watch/${v.id}`)}
+                  />
+                ))}
+              </div>
+              {playlistPage * PLAYLIST_PAGE_SIZE < courseVideos.length && (
+                <button
+                  type="button"
+                  onClick={() => setPlaylistPage((p) => p + 1)}
+                  className="w-full py-2.5 rounded-2xl bg-white/6 border border-white/10 text-xs font-semibold press-effect"
+                  style={{ color: channel?.accent }}
+                >
+                  تحميل المزيد ({courseVideos.length - playlistPage * PLAYLIST_PAGE_SIZE} درس متبقٍ)
+                </button>
+              )}
             </div>
           )}
         </div>

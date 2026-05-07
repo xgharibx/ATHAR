@@ -3,6 +3,7 @@ export type VideoLibrarySource = "seed" | "youtube-api";
 export type VideoLibraryTopicId =
   | "aqeedah"
   | "anti-shubuhat"
+  | "anti-innovation"
   | "fiqh"
   | "quran"
   | "tafseer"
