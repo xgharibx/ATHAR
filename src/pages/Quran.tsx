@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Bookmark, BookOpen, CheckCircle2, Search, Shuffle, Volume2, X } from "lucide-react";
+import { Bookmark, BookOpen, CheckCircle2, Search, Shuffle, Volume2, X, Share2 } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
@@ -433,6 +433,27 @@ export function QuranPage() {
             <div className="h-full progress-accent" style={{ width: `${khatma.meta.percent}%` }} />
           </div>
         ) : null}
+
+        {/* Share khatma progress button */}
+        {khatmaStartISO && khatmaDays && khatma && (
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full opacity-50 hover:opacity-90 transition"
+              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
+              onClick={async () => {
+                const percent = khatma.meta.percent;
+                const text = khatma.isFinished
+                  ? `🎉 أتممت ختمة القرآن الكريم بحمد الله!\n\nخطة ${khatmaDays} يوم — أثر ✨`
+                  : `📖 تقدمي في ختمة القرآن الكريم: ${percent}٪\nاليوم ${khatma.dayIndex + 1} من ${khatma.days}\n\nاترك أثراً طيباً — أثر`;
+                if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+                else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+              }}
+            >
+              <Share2 size={13} /> مشاركة التقدم
+            </button>
+          </div>
+        )}
 
         {!khatmaStartISO || !khatmaDays ? (
           <div className="mt-4">

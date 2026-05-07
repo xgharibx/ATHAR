@@ -2,7 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown, Timer, Square, MoreHorizontal, Trash2 } from "lucide-react";
+import { RotateCcw, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown, Timer, Square, MoreHorizontal, Trash2, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
@@ -428,6 +428,27 @@ export function DhikrList(props: Readonly<{
                 <Button variant="secondary" className="shrink-0" onClick={copyAllText} disabled={!hasItems}>
                   <Copy size={16} />
                   {copiedAll ? "تم ✓" : "نسخ الكل"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="shrink-0"
+                  disabled={!hasItems}
+                  aria-label="مشاركة الأذكار"
+                  onClick={async () => {
+                    const lines: string[] = [`【 ${props.title} 】`, ""];
+                    orderedEntries.forEach(({ item }, idx) => {
+                      const count = coerceCount(item.count);
+                      const repeatLabel = count > 1 ? ` (${count} مرات)` : "";
+                      lines.push(`${idx + 1}. ${item.text}${repeatLabel}`);
+                      if (item.benefit) lines.push(`   ﴾ ${item.benefit} ﴿`);
+                      lines.push("");
+                    });
+                    const text = lines.join("\n").trim() + "\n\n• أثر";
+                    if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+                    else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+                  }}
+                >
+                  <Share2 size={16} />
                 </Button>
                 <Button
                   variant={compact ? "primary" : "secondary"}
