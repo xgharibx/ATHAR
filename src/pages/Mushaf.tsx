@@ -606,7 +606,7 @@ export function MushafPage() {
     setTranslationLoading(true);
     Promise.all(toFetch.map((sid) =>
       fetch(`https://api.alquran.cloud/v1/surah/${sid}/en.sahih`)
-        .then((r) => r.json())
+        .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
         .then((data) => {
           const ayahs: string[] = [];
           for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
@@ -642,7 +642,7 @@ export function MushafPage() {
     setInlineTafseerLoading(true);
     Promise.all(toFetch.map((sid) =>
       fetch(`https://api.alquran.cloud/v1/surah/${sid}/${edition}`)
-        .then((r) => r.json())
+        .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
         .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
           const ayahs: string[] = [];
           for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
@@ -698,7 +698,7 @@ export function MushafPage() {
     let mounted = true;
     setInlineTafseerLoading(true);
     fetch(`https://api.alquran.cloud/v1/surah/${sid}/${edition}`)
-      .then((r) => r.json())
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
         if (!mounted) return;
         const ayahs: string[] = [];
