@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, ChevronRight, Flame, RotateCcw, CheckCircle2, Target, Calendar, TrendingUp } from "lucide-react";
+import { BookOpen, ChevronRight, Flame, RotateCcw, CheckCircle2, Target, Calendar, TrendingUp, Share2 } from "lucide-react";
 import { useNoorStore } from "@/store/noorStore";
 import { useQuranDB } from "@/data/useQuranDB";
 import { toArabicNumeral, TOTAL_QURAN_AYAHS } from "@/lib/quranMeta";
@@ -284,6 +284,19 @@ export function QuranPlansPage() {
               title="اقرأ ورد اليوم"
             >
               <BookOpen className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              className="text-sm px-4"
+              title="مشاركة التقدم"
+              onClick={async () => {
+                const remaining = Math.max(0, activePlan.days - activePlan.elapsed);
+                const text = `📖 خطة ختمة القرآن الكريم\n${activePlan.name}\n\nالتقدم: ${activePlan.pct}٪ (${activePlan.doneCount} يوم مكتمل)\nالمتبقي: ${remaining} يوم\nالورد اليومي: ${activePlan.dailyAyahs} آية\n\nاترك أثراً طيباً 🌟`;
+                if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+                else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+              }}
+            >
+              <Share2 className="w-4 h-4" />
             </Button>
           </div>
 

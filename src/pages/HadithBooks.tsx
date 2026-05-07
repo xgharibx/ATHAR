@@ -5,11 +5,12 @@
  */
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Search, Library, BookOpen, Bookmark, BrainCircuit } from "lucide-react";
+import { ArrowRight, Search, Library, BookOpen, Bookmark, BrainCircuit, Copy } from "lucide-react";
 import Fuse from "fuse.js";
 import { HADITH_BOOKS_STATIC, HADITH_GRADE_LABELS, type HadithBookMeta, type HadithItem } from "@/data/hadithTypes";
 import { useHadithIndex, loadHadithPack } from "@/data/useHadithBook";
 import { useNoorStore } from "@/store/noorStore";
+import toast from "react-hot-toast";
 
 /* ------------------------------------------------------------------ */
 /* Grade chip                                                            */
@@ -314,7 +315,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
               key={`${r.bookKey}:${r.item.n}`}
               dir="rtl"
               onClick={() => navigate(`/hadith/${r.bookKey}/${r.item.n}`)}
-              className="w-full text-right rounded-xl overflow-hidden active:scale-95 transition-transform"
+              className="group w-full text-right rounded-xl overflow-hidden active:scale-95 transition-transform"
               style={{ background: "var(--card-bg)", border: `1px solid ${r.bookColor}33` }}
             >
               <div className="px-4 py-3">
@@ -326,6 +327,17 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                   </span>
                   <span className="text-[10px] text-[var(--muted)]">ح{r.item.n}</span>
                   {r.item.g?.length > 0 && <GradeChip grade={r.item.g[0]!} />}
+                  <button type="button"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try { await navigator.clipboard.writeText(r.item.t); toast.success("تم النسخ"); }
+                      catch { toast.error("تعذر النسخ"); }
+                    }}
+                    className="mr-auto p-1 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
+                    aria-label="نسخ الحديث"
+                  >
+                    <Copy size={12} />
+                  </button>
                 </div>
                 {/* Preview */}
                 <p className="text-[12px] font-arabic text-[var(--fg)] leading-relaxed line-clamp-3">
