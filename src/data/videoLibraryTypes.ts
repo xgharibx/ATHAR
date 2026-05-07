@@ -32,6 +32,7 @@ export type VideoLibraryChannel = {
   youtubeUrl: string;
   description: string;
   avatar?: string;
+  avatarUrl?: string;
   accent: string;
   order: number;
   youtubeChannelId?: string;

@@ -126,11 +126,6 @@ function SheikhBannerCard({
   onClick: () => void;
 }) {
   const stats = aggregateProgress(videos, progress);
-  const initials = channel.displayName
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2);
 
   return (
     <button
@@ -163,15 +158,27 @@ function SheikhBannerCard({
         {/* Top row */}
         <div className="flex items-start justify-between gap-2">
           <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[17px] font-extrabold border-2 shrink-0"
+            className="w-12 h-12 rounded-2xl border-2 shrink-0 overflow-hidden"
             style={{
-              borderColor: `${channel.accent}70`,
-              color: channel.accent,
-              background: `${channel.accent}18`,
-              textShadow: `0 0 16px ${channel.accent}`,
+              borderColor: `${channel.accent}80`,
+              boxShadow: `0 0 14px ${channel.accent}55`,
             }}
           >
-            {initials}
+            {channel.avatarUrl ? (
+              <img
+                src={channel.avatarUrl}
+                alt={channel.displayName}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-[17px] font-extrabold"
+                style={{ background: `${channel.accent}18`, color: channel.accent }}
+              >
+                {channel.displayName.split(" ").map(w => w[0]).join("").slice(0, 2)}
+              </div>
+            )}
           </div>
           <div
             className="rounded-xl px-2 py-0.5 text-[10px] font-semibold border"
