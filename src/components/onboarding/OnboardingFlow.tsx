@@ -71,6 +71,8 @@ export function OnboardingFlow() {
   const [step, setStep] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
   const current = STEPS[step];
+  const mountedRef = React.useRef(true);
+  React.useEffect(() => () => { mountedRef.current = false; }, []);
 
   const handleAction = async () => {
     setLoading(true);
@@ -79,8 +81,10 @@ export function OnboardingFlow() {
       if ("onAction" in current && current.onAction) {
         await current.onAction();
       }
+      if (!mountedRef.current) return;
       if ("prayerReminders" in current && current.prayerReminders) {
         remindersAllowed = (await requestReminderPermission()) === "granted";
+        if (!mountedRef.current) return;
         if (!remindersAllowed) {
           setReminders({ enabled: false, prayerAlertsEnabled: false });
           toast.error("لم يتم السماح بالإشعارات");
@@ -93,8 +97,9 @@ export function OnboardingFlow() {
         });
       }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
+    if (!mountedRef.current) return;
     if (step < STEPS.length - 1) {
       setStep((s) => s + 1);
     } else {
