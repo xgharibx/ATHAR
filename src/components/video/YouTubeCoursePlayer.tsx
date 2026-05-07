@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowRight, Bookmark, BookmarkCheck, CheckCircle2, ExternalLink, Play, Share2, SkipForward } from "lucide-react";
+import { ArrowRight, Bookmark, BookmarkCheck, CheckCircle2, ExternalLink, Play, Share2, SkipBack, SkipForward } from "lucide-react";
 import toast from "react-hot-toast";
 
 import type {
@@ -83,6 +83,7 @@ export function YouTubeCoursePlayer({
   onBookmark,
   onClose,
   onNext,
+  onPrev,
 }: {
   video: VideoLibraryVideo;
   channel?: VideoLibraryChannel;
@@ -94,6 +95,7 @@ export function YouTubeCoursePlayer({
   onBookmark: () => void;
   onClose: () => void;
   onNext?: () => void;
+  onPrev?: () => void;
 }) {
   const hostRef = React.useRef<HTMLDivElement>(null);
   const playerRef = React.useRef<YTPlayer | null>(null);
@@ -408,6 +410,16 @@ export function YouTubeCoursePlayer({
               <span>مشاركة</span>
             </button>
 
+            {onPrev && (
+              <button
+                type="button"
+                onClick={onPrev}
+                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-white/6 border border-white/10 press-effect hover:bg-white/10 transition-colors"
+              >
+                <SkipBack size={14} />
+                <span>السابق</span>
+              </button>
+            )}
             {onNext ? (
               <button
                 type="button"

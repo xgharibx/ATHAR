@@ -255,9 +255,10 @@ export default function App() {
           <Route path="library" element={<S><LibraryPage /></S>} />
           <Route path="library/:collectionId/:entryId" element={<S><LibraryItemPage /></S>} />
           <Route path="video-library" element={<S><VideoLibraryPage /></S>} />
-          <Route path="video-library/:channelId" element={<S><VideoLibraryPage /></S>} />
           <Route path="video-library/course/:courseId" element={<S><VideoLibraryPage /></S>} />
           <Route path="video-library/watch/:videoId" element={<S><VideoLibraryPage /></S>} />
+          <Route path="video-library/topic/:topicId" element={<S><VideoLibraryPage /></S>} />
+          <Route path="video-library/:channelId" element={<S><VideoLibraryPage /></S>} />
           {/* Hadith pages */}
           <Route path="hadith" element={<Outlet />}>
             <Route index element={<S><HadithBooksPage /></S>} />

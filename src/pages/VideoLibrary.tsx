@@ -592,11 +592,15 @@ function VideoHome({
 }) {
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [q, setQ] = React.useState("");
+  const [searchChannelFilter, setSearchChannelFilter] = React.useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (searchOpen) inputRef.current?.focus();
   }, [searchOpen]);
+
+  // Reset filters when query changes
+  React.useEffect(() => { setSearchChannelFilter(null); }, [q]);
 
   const fuse = React.useMemo(() => {
     const records = [
@@ -611,11 +615,27 @@ function VideoHome({
     const hits = fuse.search(stripDiacritics(q.trim()));
     const vids = new Set(hits.filter((h) => h.item.type === "video").map((h) => h.item.id));
     const cids = new Set(hits.filter((h) => h.item.type === "course").map((h) => h.item.id));
+    const allMatchVideos = data.db.videos.filter((v) => vids.has(v.id));
+    const filteredVideos = searchChannelFilter
+      ? allMatchVideos.filter((v) => v.channelId === searchChannelFilter)
+      : allMatchVideos;
     return {
-      videos: data.db.videos.filter((v) => vids.has(v.id)).slice(0, 24),
+      videos: filteredVideos.slice(0, 24),
+      allVideoCount: filteredVideos.length,
       courses: data.db.courses.filter((c) => cids.has(c.id)).slice(0, 10),
+      channelChips: (() => {
+        const map = new Map<string, { id: string; name: string; accent: string; count: number }>();
+        for (const v of allMatchVideos) {
+          const ch = data.channelById.get(v.channelId);
+          if (!ch) continue;
+          const ex = map.get(ch.id);
+          if (ex) ex.count++;
+          else map.set(ch.id, { id: ch.id, name: ch.displayName, accent: ch.accent, count: 1 });
+        }
+        return [...map.values()].sort((a, b) => b.count - a.count);
+      })(),
     };
-  }, [data, fuse, q]);
+  }, [data, fuse, q, searchChannelFilter]);
 
   const continueVideo = lastVideoId ? data.videoById.get(lastVideoId) : undefined;
   const continueChannel = continueVideo ? data.channelById.get(continueVideo.channelId) : undefined;
@@ -633,6 +653,26 @@ function VideoHome({
   const bookmarkedVideos = React.useMemo(
     () => data.db.videos.filter((v) => bookmarks[v.id]).slice(0, 14),
     [data, bookmarks],
+  );
+
+  const inProgressCourses = React.useMemo(() =>
+    data.db.courses.filter((c) => {
+      const vids = data.videosByCourse.get(c.id) ?? [];
+      if (vids.length === 0) return false;
+      const st = aggregateProgress(vids, progress);
+      return st.percent > 0 && st.percent < 100;
+    }).slice(0, 20),
+    [data, progress],
+  );
+
+  const completedCourses = React.useMemo(() =>
+    data.db.courses.filter((c) => {
+      const vids = data.videosByCourse.get(c.id) ?? [];
+      if (vids.length === 0) return false;
+      const st = aggregateProgress(vids, progress);
+      return st.percent >= 100;
+    }),
+    [data, progress],
   );
 
   const overallStats = aggregateProgress(data.db.videos, progress);
@@ -734,6 +774,27 @@ function VideoHome({
       {/* ── Search results ── */}
       {searchResults && q.trim() && (
         <div className="space-y-4">
+          {/* Channel filter chips */}
+          {searchResults.channelChips.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              <button type="button"
+                onClick={() => setSearchChannelFilter(null)}
+                className={cn("shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
+                  searchChannelFilter === null ? "text-black border-transparent bg-[var(--accent)]" : "bg-white/8 border-white/12 hover:bg-white/12")}
+              >
+                الكل ({searchResults.channelChips.reduce((a, c) => a + c.count, 0)})
+              </button>
+              {searchResults.channelChips.map((ch) => (
+                <button type="button" key={ch.id}
+                  onClick={() => setSearchChannelFilter(searchChannelFilter === ch.id ? null : ch.id)}
+                  className={cn("shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
+                    searchChannelFilter === ch.id ? "text-black border-transparent" : "bg-white/8 border-white/12 hover:bg-white/12")}
+                  style={searchChannelFilter === ch.id ? { background: ch.accent } : { borderColor: `${ch.accent}40` }}>
+                  {ch.name} ({ch.count})
+                </button>
+              ))}
+            </div>
+          )}
           {searchResults.courses.length > 0 && (
             <section>
               <h2 className="text-[11px] font-semibold mb-2 opacity-60 tracking-wide">الدورات</h2>
@@ -779,8 +840,7 @@ function VideoHome({
       )}
 
       {/* ── Continue watching ── */}
-      {continueVideo && !searchResults && (
-        <button
+      {continueVideo && !searchResults && (        <button
           type="button"
           onClick={() => navigate(`/video-library/watch/${continueVideo.id}`)}
           className="w-full press-effect text-right"
@@ -868,6 +928,56 @@ function VideoHome({
         </section>
       )}
 
+      {/* ── في تقدم ── */}
+      {inProgressCourses.length > 0 && !searchResults && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[13px] font-semibold arabic-text flex items-center gap-1.5">
+              <Zap size={14} style={{ color: "var(--accent)" }} />
+              في تقدم
+            </h2>
+            <span className="text-xs opacity-40">{inProgressCourses.length} دورة</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
+            {inProgressCourses.map((c) => (
+              <div key={c.id} style={{ width: 150, flexShrink: 0 }}>
+                <CourseCard2
+                  course={c}
+                  channel={data.channelById.get(c.channelId)}
+                  videos={data.videosByCourse.get(c.id) ?? []}
+                  progress={progress}
+                  onClick={() => navigate(`/video-library/course/${c.id}`)}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── الموضوعات ── */}
+      {data.db.topics.length > 0 && !searchResults && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[13px] font-semibold arabic-text">الموضوعات</h2>
+            <span className="text-xs opacity-40">عبر كل المشايخ</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            {data.db.topics.map((topic) => (
+              <button
+                key={topic.id}
+                type="button"
+                onClick={() => navigate(`/video-library/topic/${topic.id}`)}
+                className="shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium border transition press-effect min-h-[36px]"
+                style={{ background: `${topic.accent}15`, borderColor: `${topic.accent}35`, color: topic.accent }}
+              >
+                <span>{topic.icon}</span>
+                <span>{topic.title}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ── Newest videos ── */}
       {newestVideos.length > 0 && !searchResults && (
         <section>
@@ -912,6 +1022,32 @@ function VideoHome({
         </section>
       )}
 
+      {/* ── مكتملة ── */}
+      {completedCourses.length > 0 && !searchResults && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[13px] font-semibold arabic-text flex items-center gap-1.5">
+              <CheckCircle2 size={14} className="text-emerald-400" />
+              مكتملة
+            </h2>
+            <span className="text-xs opacity-40">{completedCourses.length} دورة</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
+            {completedCourses.slice(0, 12).map((c) => (
+              <div key={c.id} style={{ width: 150, flexShrink: 0 }}>
+                <CourseCard2
+                  course={c}
+                  channel={data.channelById.get(c.channelId)}
+                  videos={data.videosByCourse.get(c.id) ?? []}
+                  progress={progress}
+                  onClick={() => navigate(`/video-library/course/${c.id}`)}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ── Sync CTA ── */}
       {data.db.source === "seed" && !searchResults && (
         <div className="rounded-3xl border border-amber-400/20 bg-amber-400/8 p-4">
@@ -951,10 +1087,11 @@ function SheikhScreen({
   const channel = data.channelById.get(channelId);
   const [topicFilter, setTopicFilter] = React.useState<string | null>(null);
   const [videoPage, setVideoPage] = React.useState(1);
+  const [sortKey, setSortKey] = React.useState<"default" | "newest" | "oldest" | "duration-desc" | "duration-asc" | "alpha">("default");
   const PAGE_SIZE = 40;
 
-  // Reset pagination when filter changes
-  React.useEffect(() => { setVideoPage(1); }, [topicFilter, channelId]);
+  // Reset pagination when filter or sort changes
+  React.useEffect(() => { setVideoPage(1); }, [topicFilter, channelId, sortKey]);
 
   if (!channel) {
     return (
@@ -975,9 +1112,19 @@ function SheikhScreen({
 
   const channelTopicIds = new Set(channelVideos.flatMap((v) => v.topicIds as string[]));
   const channelTopics = data.db.topics.filter((t) => channelTopicIds.has(t.id));
-  const visibleVideos = topicFilter
+  const filteredVideos = topicFilter
     ? channelVideos.filter((v) => (v.topicIds as string[]).includes(topicFilter))
     : channelVideos;
+  const visibleVideos = React.useMemo(() => {
+    const arr = filteredVideos.slice();
+    if (sortKey === "newest") arr.sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
+    else if (sortKey === "oldest") arr.sort((a, b) => (a.publishedAt ?? "").localeCompare(b.publishedAt ?? ""));
+    else if (sortKey === "duration-desc") arr.sort((a, b) => b.durationSeconds - a.durationSeconds);
+    else if (sortKey === "duration-asc") arr.sort((a, b) => a.durationSeconds - b.durationSeconds);
+    else if (sortKey === "alpha") arr.sort((a, b) => a.title.localeCompare(b.title, "ar"));
+    return arr;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredVideos, sortKey]);
 
   return (
     <div className="space-y-4 page-enter" dir="rtl">
@@ -1129,9 +1276,23 @@ function SheikhScreen({
 
       {/* ── Videos ── */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <h2 className="text-[13px] font-semibold arabic-text">{topicFilter ? "الفيديوهات المصنفة" : "كل الفيديوهات"}</h2>
           <span className="text-xs opacity-40">{visibleVideos.length}</span>
+        </div>
+        {/* Sort chips */}
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2">
+          {(["default", "newest", "oldest", "duration-desc", "duration-asc", "alpha"] as const).map((sk) => {
+            const labels: Record<typeof sk, string> = { default: "افتراضي", newest: "الأحدث", oldest: "الأقدم", "duration-desc": "الأطول", "duration-asc": "الأقصر", alpha: "أ-ي" };
+            return (
+              <button key={sk} type="button" onClick={() => setSortKey(sk)}
+                className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
+                  sortKey === sk ? "text-black border-transparent" : "bg-white/6 border-white/10")}
+                style={sortKey === sk ? { background: channel.accent } : undefined}>
+                {labels[sk]}
+              </button>
+            );
+          })}
         </div>
         {visibleVideos.length === 0 ? (
           <div className="glass rounded-3xl p-7 text-center">
@@ -1188,6 +1349,7 @@ function CourseScreen({
   activeVideoId?: string;
 }) {
   const [lessonPage, setLessonPage] = React.useState(1);
+  const [sortKey, setSortKey] = React.useState<"default" | "newest" | "oldest" | "duration-desc" | "duration-asc" | "alpha">("default");
   const course = data.courseById.get(courseId);
   const channel = course ? data.channelById.get(course.channelId) : undefined;
   const courseVideos = course ? (data.videosByCourse.get(course.id) ?? []) : [];
@@ -1205,6 +1367,16 @@ function CourseScreen({
   const lastWatched = courseVideos.find((v) => progress[v.id] && !progress[v.id].completed);
   const nextToDo = courseVideos.find((v) => !progress[v.id]?.completed);
   const continueTarget = lastWatched ?? nextToDo;
+
+  const sortedLessons = React.useMemo(() => {
+    const arr = courseVideos.slice();
+    if (sortKey === "newest") arr.sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
+    else if (sortKey === "oldest") arr.sort((a, b) => (a.publishedAt ?? "").localeCompare(b.publishedAt ?? ""));
+    else if (sortKey === "duration-desc") arr.sort((a, b) => b.durationSeconds - a.durationSeconds);
+    else if (sortKey === "duration-asc") arr.sort((a, b) => a.durationSeconds - b.durationSeconds);
+    else if (sortKey === "alpha") arr.sort((a, b) => a.title.localeCompare(b.title, "ar"));
+    return arr;
+  }, [courseVideos, sortKey]);
 
   return (
     <div className="space-y-4 page-enter" dir="rtl">
@@ -1294,9 +1466,23 @@ function CourseScreen({
 
       {/* ── Lesson list ── */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <h2 className="text-[13px] font-semibold arabic-text">قائمة الدروس</h2>
           <span className="text-xs opacity-40">{courseVideos.length} درس</span>
+        </div>
+        {/* Sort chips */}
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2">
+          {(["default", "newest", "oldest", "duration-desc", "duration-asc", "alpha"] as const).map((sk) => {
+            const labels: Record<typeof sk, string> = { default: "افتراضي", newest: "الأحدث", oldest: "الأقدم", "duration-desc": "الأطول", "duration-asc": "الأقصر", alpha: "أ-ي" };
+            return (
+              <button key={sk} type="button" onClick={() => { setSortKey(sk); setLessonPage(1); }}
+                className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
+                  sortKey === sk ? "text-black border-transparent" : "bg-white/6 border-white/10")}
+                style={sortKey === sk ? { background: accent } : undefined}>
+                {labels[sk]}
+              </button>
+            );
+          })}
         </div>
         {courseVideos.length === 0 ? (
           <div className="glass rounded-3xl p-7 text-center">
@@ -1307,7 +1493,7 @@ function CourseScreen({
         ) : (
           <div className="space-y-2.5">
             <div className="grid grid-cols-2 gap-2.5">
-              {courseVideos.slice(0, lessonPage * COURSE_PAGE_SIZE).map((v, i) => (
+              {sortedLessons.slice(0, lessonPage * COURSE_PAGE_SIZE).map((v, i) => (
                 <LessonRow
                   key={v.id}
                   video={v}
@@ -1319,14 +1505,14 @@ function CourseScreen({
                 />
               ))}
             </div>
-            {lessonPage * COURSE_PAGE_SIZE < courseVideos.length && (
+            {lessonPage * COURSE_PAGE_SIZE < sortedLessons.length && (
               <button
                 type="button"
                 onClick={() => setLessonPage((p) => p + 1)}
                 className="w-full py-3 rounded-2xl bg-white/6 border border-white/10 text-sm font-semibold press-effect"
                 style={{ color: accent }}
               >
-                تحميل المزيد ({courseVideos.length - lessonPage * COURSE_PAGE_SIZE} درس متبقٍ)
+                تحميل المزيد ({sortedLessons.length - lessonPage * COURSE_PAGE_SIZE} درس متبقٍ)
               </button>
             )}
           </div>
@@ -1366,6 +1552,7 @@ function WatchScreen({
   const courseVideos = course ? (data.videosByCourse.get(course.id) ?? []) : [];
   const index = courseVideos.findIndex((v) => v.id === videoId);
   const nextVideo = index >= 0 ? courseVideos[index + 1] : undefined;
+  const prevVideo = index > 0 ? courseVideos[index - 1] : undefined;
   const [playlistOpen, setPlaylistOpen] = React.useState(false);
   const [playlistPage, setPlaylistPage] = React.useState(1);
   const PLAYLIST_PAGE_SIZE = 40;
@@ -1449,6 +1636,7 @@ function WatchScreen({
         onBookmark={() => toggleVideoBookmark(video.id)}
         onComplete={() => markVideoComplete(video.id, video.durationSeconds)}
         onNext={nextVideo ? () => navigate(`/video-library/watch/${nextVideo.id}`) : undefined}
+        onPrev={prevVideo ? () => navigate(`/video-library/watch/${prevVideo.id}`) : undefined}
         onProgress={(seconds, duration, completed) => {
           setVideoLastVideo(video.id);
           setVideoProgress(video.id, { seconds, duration, completed });
@@ -1548,11 +1736,202 @@ function WatchScreen({
   );
 }
 
+// ── TOPIC SCREEN (cross-channel browse) ─────────────────────────────────────
+
+function TopicScreen({
+  data,
+  topicId,
+  progress,
+  bookmarks,
+  navigate,
+}: {
+  data: DBPayload;
+  topicId: string;
+  progress: Record<string, VideoLibraryProgress>;
+  bookmarks: Record<string, boolean>;
+  navigate: (path: string) => void;
+}) {
+  const topic = data.topicById.get(topicId);
+  const [channelFilter, setChannelFilter] = React.useState<string | null>(null);
+  const [videoPage, setVideoPage] = React.useState(1);
+  const [sortKey, setSortKey] = React.useState<"default" | "newest" | "oldest" | "duration-desc" | "duration-asc" | "alpha">("default");
+  const PAGE_SIZE = 40;
+
+  React.useEffect(() => { setVideoPage(1); }, [channelFilter, topicId, sortKey]);
+
+  if (!topic) {
+    return (
+      <div className="page-enter p-6 text-center opacity-60" dir="rtl">
+        الموضوع غير موجود
+      </div>
+    );
+  }
+
+  const topicVideos = data.db.videos.filter((v) => (v.topicIds as string[]).includes(topicId));
+  const topicCourses = data.db.courses.filter((c) => (c.topicIds as string[]).includes(topicId) && !c.isGenerated);
+  const channelIds = [...new Set(topicVideos.map((v) => v.channelId))];
+  const channelChips = channelIds
+    .map((id) => ({ id, channel: data.channelById.get(id)!, count: topicVideos.filter((v) => v.channelId === id).length }))
+    .filter((c) => c.channel);
+
+  const filteredVideos = channelFilter
+    ? topicVideos.filter((v) => v.channelId === channelFilter)
+    : topicVideos;
+
+  const visibleVideos = React.useMemo(() => {
+    const arr = filteredVideos.slice();
+    if (sortKey === "newest") arr.sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
+    else if (sortKey === "oldest") arr.sort((a, b) => (a.publishedAt ?? "").localeCompare(b.publishedAt ?? ""));
+    else if (sortKey === "duration-desc") arr.sort((a, b) => b.durationSeconds - a.durationSeconds);
+    else if (sortKey === "duration-asc") arr.sort((a, b) => a.durationSeconds - b.durationSeconds);
+    else if (sortKey === "alpha") arr.sort((a, b) => a.title.localeCompare(b.title, "ar"));
+    return arr;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredVideos, sortKey]);
+
+  return (
+    <div className="space-y-4 page-enter" dir="rtl">
+      {/* ── Hero ── */}
+      <div
+        className="relative rounded-3xl overflow-hidden p-5 border"
+        style={{ borderColor: `${topic.accent}35`, background: `radial-gradient(ellipse at 18% 0%, ${topic.accent}42 0%, transparent 52%), #08090f` }}
+      >
+        <div className="dhikr-page-stars absolute inset-0 pointer-events-none" style={{ opacity: 0.52 }} />
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => navigate("/video-library")}
+            className="flex items-center gap-1.5 text-xs opacity-50 hover:opacity-80 mb-3 transition-opacity press-effect"
+          >
+            <ArrowRight size={14} /><span>المكتبة</span>
+          </button>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-4xl">{topic.icon}</span>
+            <div>
+              <h1 className="text-[1.1rem] font-bold arabic-text">{topic.title}</h1>
+              <p className="text-xs opacity-50 mt-1 leading-5">{topic.description}</p>
+            </div>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <div className="rounded-2xl px-3 py-1.5 text-xs border" style={{ background: `${topic.accent}12`, borderColor: `${topic.accent}30`, color: topic.accent }}>
+              {topicVideos.length} فيديو
+            </div>
+            {topicCourses.length > 0 && (
+              <div className="rounded-2xl bg-white/7 border border-white/10 px-3 py-1.5 text-xs flex items-center gap-1">
+                <GraduationCap size={10} /><span>{topicCourses.length} دورة</span>
+              </div>
+            )}
+            {channelIds.length > 0 && (
+              <div className="rounded-2xl bg-white/7 border border-white/10 px-3 py-1.5 text-xs">
+                {channelIds.length} مشايخ
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Courses for this topic ── */}
+      {topicCourses.length > 0 && (
+        <section>
+          <h2 className="text-[13px] font-semibold arabic-text mb-3">الدورات</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {topicCourses.map((c) => (
+              <CourseCard2
+                key={c.id}
+                course={c}
+                channel={data.channelById.get(c.channelId)}
+                videos={data.videosByCourse.get(c.id) ?? []}
+                progress={progress}
+                onClick={() => navigate(`/video-library/course/${c.id}`)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Channel filter chips ── */}
+      {channelChips.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          <button type="button"
+            onClick={() => setChannelFilter(null)}
+            className={cn("shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
+              channelFilter === null ? "text-black border-transparent" : "bg-white/8 border-white/12 hover:bg-white/12")}
+            style={channelFilter === null ? { background: topic.accent } : {}}
+          >
+            الكل ({topicVideos.length})
+          </button>
+          {channelChips.map(({ id, channel, count }) => (
+            <button type="button" key={id}
+              onClick={() => setChannelFilter(channelFilter === id ? null : id)}
+              className={cn("shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
+                channelFilter === id ? "text-black border-transparent" : "bg-white/8 border-white/12 hover:bg-white/12")}
+              style={channelFilter === id ? { background: channel.accent } : { borderColor: `${channel.accent}40` }}
+            >
+              {channel.displayName} ({count})
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Videos ── */}
+      <section>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-[13px] font-semibold arabic-text">الفيديوهات</h2>
+          <span className="text-xs opacity-40">{visibleVideos.length}</span>
+        </div>
+        {/* Sort chips */}
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2">
+          {(["default", "newest", "oldest", "duration-desc", "duration-asc", "alpha"] as const).map((sk) => {
+            const labels: Record<typeof sk, string> = { default: "افتراضي", newest: "الأحدث", oldest: "الأقدم", "duration-desc": "الأطول", "duration-asc": "الأقصر", alpha: "أ-ي" };
+            return (
+              <button key={sk} type="button" onClick={() => setSortKey(sk)}
+                className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
+                  sortKey === sk ? "text-black border-transparent" : "bg-white/6 border-white/10")}
+                style={sortKey === sk ? { background: topic.accent } : undefined}>
+                {labels[sk]}
+              </button>
+            );
+          })}
+        </div>
+        {topicVideos.length === 0 ? (
+          <div className="glass rounded-3xl p-7 text-center">
+            <div className="text-3xl mb-2">{topic.icon}</div>
+            <div className="font-semibold text-sm">لا توجد فيديوهات بعد لهذا الموضوع</div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {visibleVideos.slice(0, videoPage * PAGE_SIZE).map((v) => (
+              <VideoListRow
+                key={v.id}
+                video={v}
+                channel={data.channelById.get(v.channelId)}
+                progress={progress[v.id]}
+                bookmarked={!!bookmarks[v.id]}
+                onClick={() => navigate(`/video-library/watch/${v.id}`)}
+              />
+            ))}
+            {videoPage * PAGE_SIZE < visibleVideos.length && (
+              <button
+                type="button"
+                onClick={() => setVideoPage((p) => p + 1)}
+                className="w-full py-3 rounded-2xl bg-white/6 border border-white/10 text-sm font-semibold press-effect"
+                style={{ color: topic.accent }}
+              >
+                تحميل المزيد ({visibleVideos.length - videoPage * PAGE_SIZE} متبقٍ)
+              </button>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
 // ── Main page export ──────────────────────────────────────────────────────────
 
 export function VideoLibraryPage() {
   const navigate = useNavigate();
-  const params = useParams<{ channelId?: string; courseId?: string; videoId?: string }>();
+  const params = useParams<{ channelId?: string; courseId?: string; videoId?: string; topicId?: string }>();
   const { data, isLoading, error } = useVideoLibraryDB();
   const progress = useNoorStore((s) => s.videoLibraryProgress);
   const bookmarks = useNoorStore((s) => s.videoLibraryBookmarks);
@@ -1597,8 +1976,7 @@ export function VideoLibraryPage() {
     return (
       <WatchScreen
         data={data}
-        videoId={params.videoId}
-        progress={progress}
+        videoId={params.videoId}        progress={progress}
         bookmarks={bookmarks}
         navigate={navigate}
         setVideoProgress={setVideoProgress}
@@ -1627,6 +2005,18 @@ export function VideoLibraryPage() {
       <SheikhScreen
         data={data}
         channelId={params.channelId}
+        progress={progress}
+        bookmarks={bookmarks}
+        navigate={navigate}
+      />
+    );
+  }
+
+  if (params.topicId) {
+    return (
+      <TopicScreen
+        data={data}
+        topicId={params.topicId}
         progress={progress}
         bookmarks={bookmarks}
         navigate={navigate}
