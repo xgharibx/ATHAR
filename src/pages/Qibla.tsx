@@ -57,8 +57,8 @@ export function QiblaPage() {
 
   // Fetch magnetic declination from NOAA when coordinates are ready
   const geoOk  = geo.status === "ok";
-  const geoLat = geo.status === "ok" ? (geo as { status: "ok"; lat: number; lng: number }).lat : 0;
-  const geoLng = geo.status === "ok" ? (geo as { status: "ok"; lat: number; lng: number }).lng : 0;
+  const geoLat = geo.status === "ok" ? geo.lat : 0;
+  const geoLng = geo.status === "ok" ? geo.lng : 0;
   React.useEffect(() => {
     if (!geoOk) return;
     fetch(

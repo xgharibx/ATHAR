@@ -241,8 +241,7 @@ const VOICE_PHRASE_MAP: Array<{ patterns: string[]; key: string }> = [
 function useSpeechCount(onRecognize: (matchedKey: string | null) => void) {
   const [listening, setListening] = React.useState(false);
   const [starting, setStarting] = React.useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recogRef = React.useRef<any | null>(null);
+  const recogRef = React.useRef<SpeechRecognition | null>(null);
   const cbRef = React.useRef(onRecognize);
   React.useEffect(() => { cbRef.current = onRecognize; });
 

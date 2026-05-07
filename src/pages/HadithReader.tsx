@@ -270,15 +270,8 @@ export function HadithReaderPage() {
   }, [hadith]);
 
   const fontSizeClass = useMemo(() => {
-    const scale = (prefs as Record<string, unknown>).hadithFontScale;
-    if (typeof scale === "number") {
-      if (scale <= 0.85) return "text-base";
-      if (scale <= 1.0) return "text-lg";
-      if (scale <= 1.2) return "text-xl";
-      return "text-2xl";
-    }
     return "text-xl";
-  }, [prefs]);
+  }, []);
 
   return (
     <div dir="rtl" className="min-h-screen-safe page-enter pb-floating-nav">

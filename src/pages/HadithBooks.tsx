@@ -3,7 +3,7 @@
  * Gallery of 9 hadith books with الأربعينيات hero (7E), Fuse.js global search (7B).
  * Route: /hadith
  */
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Search, Library, BookOpen, Bookmark, BrainCircuit } from "lucide-react";
 import Fuse from "fuse.js";
@@ -197,6 +197,12 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const runSearch = useCallback(async (q: string) => {
     if (!q.trim() || q.trim().length < 2) {

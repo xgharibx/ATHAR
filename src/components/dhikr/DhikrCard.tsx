@@ -60,6 +60,7 @@ export function DhikrCard(props: {
   const [swipeHint, setSwipeHint] = React.useState(false);
   const [isLongPressing, setIsLongPressing] = React.useState(false);
   const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  React.useEffect(() => () => { if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current); }, []);
   const [confirmItemReset, setConfirmItemReset] = React.useState(false);
   // D5: per-card local font scale
   const [localFontScale, setLocalFontScale] = React.useState(1.0);
@@ -154,8 +155,9 @@ export function DhikrCard(props: {
     if (done) return;
     const key = "noor_swipe_hint_shown";
     if (!localStorage.getItem(key)) {
-      setTimeout(() => setSwipeHint(true), 1200);
-      setTimeout(() => { setSwipeHint(false); localStorage.setItem(key, "1"); }, 4000);
+      const t1 = setTimeout(() => setSwipeHint(true), 1200);
+      const t2 = setTimeout(() => { setSwipeHint(false); localStorage.setItem(key, "1"); }, 4000);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
     }
   }, []);
 
