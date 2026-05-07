@@ -51,6 +51,7 @@ export function WuduGuidePage() {
           </div>
           <button
             onClick={() => navigate(-1)}
+            aria-label="رجوع"
             className="p-2 rounded-xl"
             style={{ background: "var(--card-bg)", color: "var(--fg)" }}
           >

@@ -105,6 +105,7 @@ export default function App() {
       Maghrib: timings.Maghrib,
       Isha: timings.Isha,
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     prayerTimes.data?.data?.timings?.Asr,
     prayerTimes.data?.data?.timings?.Dhuhr,

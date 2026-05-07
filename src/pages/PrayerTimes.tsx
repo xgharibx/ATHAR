@@ -287,7 +287,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
       <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 space-y-5">
         <div className="flex items-center justify-between">
           <div className="font-semibold">إعدادات مواقيت الصلاة</div>
-          <button type="button" onClick={onClose} className="opacity-50 hover:opacity-80 p-1"><X size={18} /></button>
+          <button type="button" aria-label="إغلاق" onClick={onClose} className="opacity-50 hover:opacity-80 p-1"><X size={18} /></button>
         </div>
 
         {/* P5 */}
@@ -443,9 +443,9 @@ function MonthlyTab() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <button type="button" onClick={prev} className="p-2 rounded-full bg-white/8 hover:bg-white/15"><ChevronRight size={16} /></button>
+        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-white/8 hover:bg-white/15"><ChevronRight size={16} /></button>
         <div className="font-semibold text-sm">{MONTH_NAMES[viewMonth - 1]} {viewYear}</div>
-        <button type="button" onClick={next} className="p-2 rounded-full bg-white/8 hover:bg-white/15"><ChevronLeft size={16} /></button>
+        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-white/8 hover:bg-white/15"><ChevronLeft size={16} /></button>
       </div>
       {isLoading && <div className="text-sm opacity-50">جارٍ التحميل...</div>}
       {(error || (!isLoading && !data)) && <div className="text-sm opacity-50">تعذر تحميل التقويم الشهري</div>}
@@ -597,9 +597,9 @@ function HijriCalendarTab() {
       )}
 
       <div className="flex items-center justify-between gap-2">
-        <button type="button" onClick={prev} className="p-2 rounded-full bg-white/8 hover:bg-white/15"><ChevronRight size={16} /></button>
+        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-white/8 hover:bg-white/15"><ChevronRight size={16} /></button>
         <div className="font-semibold text-sm text-center">{MONTH_NAMES[viewMonth - 1]} {viewYear}</div>
-        <button type="button" onClick={next} className="p-2 rounded-full bg-white/8 hover:bg-white/15"><ChevronLeft size={16} /></button>
+        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-white/8 hover:bg-white/15"><ChevronLeft size={16} /></button>
       </div>
 
       {isLoading && <div className="text-sm opacity-50">جارٍ التحميل...</div>}

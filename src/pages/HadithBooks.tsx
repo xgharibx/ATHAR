@@ -308,9 +308,9 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
           <p className="text-xs text-[var(--muted)] font-arabic">
             {results.length >= 50 ? "أكثر من 50" : results.length} نتيجة
           </p>
-          {results.map((r, i) => (
+          {results.map((r) => (
             <button
-              key={i}
+              key={`${r.bookKey}:${r.item.n}`}
               dir="rtl"
               onClick={() => navigate(`/hadith/${r.bookKey}/${r.item.n}`)}
               className="w-full text-right rounded-xl overflow-hidden active:scale-95 transition-transform"

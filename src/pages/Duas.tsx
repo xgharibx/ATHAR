@@ -28,6 +28,7 @@ export function DuasPage() {
         <div className="flex items-center gap-3 mb-3">
           <button
             onClick={() => navigate(-1)}
+            aria-label="رجوع"
             className="p-2 rounded-xl"
             style={{ background: "var(--card-bg)", color: "var(--fg)" }}
           >

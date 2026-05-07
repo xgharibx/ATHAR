@@ -54,7 +54,7 @@ function ItemRow({
 }
 
 // ─── Create / Edit form ──────────────────────────────────────────────────────
-type FormItem = { text: string; count: number };
+type FormItem = { id: string; text: string; count: number };
 
 function PackForm({
   initial,
@@ -67,10 +67,12 @@ function PackForm({
 }) {
   const [title, setTitle] = React.useState(initial?.title ?? "");
   const [items, setItems] = React.useState<FormItem[]>(
-    initial?.items.length ? initial.items.map((i) => ({ text: i.text, count: i.count })) : [{ text: "", count: 1 }],
+    initial?.items.length
+      ? initial.items.map((i) => ({ id: crypto.randomUUID(), text: i.text, count: i.count }))
+      : [{ id: crypto.randomUUID(), text: "", count: 1 }],
   );
 
-  function addRow() { setItems((prev) => [...prev, { text: "", count: 1 }]); }
+  function addRow() { setItems((prev) => [...prev, { id: crypto.randomUUID(), text: "", count: 1 }]); }
   function removeRow(i: number) { setItems((prev) => prev.filter((_, idx) => idx !== i)); }
   function setItemText(i: number, v: string) { setItems((prev) => prev.map((item, idx) => idx === i ? { ...item, text: v } : item)); }
   function setItemCount(i: number, v: number) { setItems((prev) => prev.map((item, idx) => idx === i ? { ...item, count: v } : item)); }
@@ -93,7 +95,7 @@ function PackForm({
         <div className="text-xs opacity-60 mb-1">الأذكار <span className="opacity-40">(النص • العدد)</span></div>
         {items.map((it, i) => (
           <ItemRow
-            key={i}
+            key={it.id}
             index={i}
             text={it.text}
             count={it.count}
@@ -216,11 +218,12 @@ export function CustomAdhkarPage() {
   const [editingPack, setEditingPack] = React.useState<CustomAdhkarPack | null>(null);
 
   function handleSave(title: string, items: FormItem[]) {
+    const cleanItems = items.map(({ text, count }) => ({ text, count }));
     if (editingPack) {
-      updateCustomPack(editingPack.id, { title, items });
+      updateCustomPack(editingPack.id, { title, items: cleanItems });
       setEditingPack(null);
     } else {
-      addCustomPack({ title, items });
+      addCustomPack({ title, items: cleanItems });
     }
     setShowForm(false);
   }
