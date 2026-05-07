@@ -327,7 +327,7 @@ function CourseCard2({
   );
 }
 
-// ── Lesson Row (numbered, ordered) ───────────────────────────────────────────
+// ── Lesson Row (YouTube-style: wide thumbnail + title below) ─────────────────
 
 function LessonRow({
   video,
@@ -344,7 +344,7 @@ function LessonRow({
   isActive?: boolean;
   onClick: () => void;
 }) {
-  const accent = channel?.accent ?? "var(--accent)";
+  const accent = channel?.accent ?? "#fbbf24";
   const completed = progress?.completed;
   const pct = completed ? 100 : (progress?.percent ?? 0);
 
@@ -353,48 +353,80 @@ function LessonRow({
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full text-right rounded-2xl p-2.5 press-effect flex gap-3 transition-colors border",
-        isActive ? "glass-strong" : "bg-white/4 hover:bg-white/6 border-transparent",
+        "w-full text-right press-effect rounded-2xl overflow-hidden transition-all border",
+        isActive ? "border-current" : "border-transparent",
       )}
-      style={isActive ? { borderColor: `${accent}45` } : undefined}
+      style={isActive ? { borderColor: `${accent}60`, boxShadow: `0 0 18px ${accent}30` } : undefined}
     >
-      {/* Number / checkmark */}
-      <div
-        className="w-7 h-7 rounded-xl shrink-0 flex items-center justify-center border"
-        style={{
-          background: completed ? `${accent}25` : isActive ? `${accent}15` : "rgba(255,255,255,0.05)",
-          borderColor: completed ? `${accent}60` : isActive ? `${accent}40` : "rgba(255,255,255,0.1)",
-        }}
-      >
-        {completed ? (
-          <CheckCircle2 size={13} style={{ color: accent }} />
-        ) : (
-          <span className="text-[11px] font-bold opacity-65">{index + 1}</span>
-        )}
-      </div>
-      {/* Thumbnail */}
-      <div className="w-16 h-10 rounded-xl bg-black/30 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
+      {/* ── Wide 16/9 thumbnail ── */}
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
         {video.thumbnail ? (
-          <img src={video.thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img
+            src={video.thumbnail}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
         ) : (
-          <Play size={12} className="opacity-35" />
+          <div className="w-full h-full flex items-center justify-center" style={{ background: `${accent}18` }}>
+            <Play size={20} className="opacity-30" />
+          </div>
+        )}
+
+        {/* Number badge — bottom-right corner */}
+        <div
+          className="absolute bottom-1.5 right-1.5 min-w-[20px] h-5 rounded-md px-1.5 flex items-center justify-center text-[10px] font-bold"
+          style={{ background: "rgba(0,0,0,0.75)", color: completed ? accent : "white" }}
+        >
+          {completed ? <CheckCircle2 size={11} style={{ color: accent }} /> : index + 1}
+        </div>
+
+        {/* Duration badge — bottom-left */}
+        {video.durationSeconds > 0 && (
+          <div
+            className="absolute bottom-1.5 left-1.5 px-1.5 h-5 rounded-md flex items-center text-[10px] font-semibold"
+            style={{ background: "rgba(0,0,0,0.75)" }}
+          >
+            {formatDuration(video.durationSeconds)}
+          </div>
+        )}
+
+        {/* Playing indicator */}
+        {isActive && (
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ background: `${accent}22` }}
+          >
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{ background: `${accent}dd`, boxShadow: `0 0 20px ${accent}80` }}
+            >
+              <Play size={14} fill="black" color="black" />
+            </div>
+          </div>
+        )}
+
+        {/* Progress bar at bottom of thumbnail */}
+        {pct > 0 && (
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/10">
+            <div className="h-full transition-all" style={{ width: `${pct}%`, background: accent }} />
+          </div>
         )}
       </div>
-      {/* Info */}
-      <div className="min-w-0 flex-1">
-        <div className={cn("text-[13px] font-semibold line-clamp-2 arabic-text leading-4", isActive && "text-white")}>
+
+      {/* ── Title + meta below thumbnail ── */}
+      <div
+        className="p-2.5 pb-2"
+        style={isActive ? { background: `${accent}10` } : { background: "rgba(255,255,255,0.03)" }}
+      >
+        <div
+          className={cn("text-[12px] font-semibold arabic-text leading-[1.4] line-clamp-2", isActive ? "text-white" : "opacity-85")}
+        >
           {video.title}
         </div>
-        <div className="flex items-center gap-2 mt-1">
-          <Clock size={9} className="opacity-35 shrink-0" />
-          <span className="text-[10px] opacity-40">{formatDuration(video.durationSeconds)}</span>
-          {isActive && (
-            <span className="text-[10px] font-semibold" style={{ color: accent }}>
-              ▶ يعرض الآن
-            </span>
-          )}
-        </div>
-        {pct > 0 && <ThinBar percent={pct} accent={accent} />}
+        {isActive && (
+          <div className="text-[10px] font-bold mt-0.5" style={{ color: accent }}>▶ يعرض الآن</div>
+        )}
       </div>
     </button>
   );
@@ -1224,7 +1256,7 @@ function CourseScreen({
             <div className="text-xs opacity-50 mt-1">شغّل أداة المزامنة لتحميل دروس هذه الدورة</div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2.5">
             {courseVideos.map((v, i) => (
               <LessonRow
                 key={v.id}
@@ -1397,7 +1429,7 @@ function WatchScreen({
             </div>
           </button>
           {playlistOpen && (
-            <div className="px-3 pb-3 space-y-1.5 border-t border-white/8 pt-3">
+            <div className="px-3 pb-3 grid grid-cols-2 gap-2 border-t border-white/8 pt-3">
               {courseVideos.map((v, i) => (
                 <LessonRow
                   key={v.id}
