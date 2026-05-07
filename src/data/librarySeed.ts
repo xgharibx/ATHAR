@@ -58,6 +58,16 @@ const HADITH_TAGS: Record<number, string[]> = {
   48: ["الآخرة", "الدنيا", "النية"],
   49: ["محبة الله", "القبول", "الإيمان"],
   50: ["حسن الخلق", "الميزان", "الآخرة"],
+  51: ["العلم", "الجنة", "الطريق"],
+  52: ["الصلاة", "التكفير", "رمضان"],
+  53: ["المساجد", "الأسواق", "البيئة"],
+  54: ["الأذان", "الصف", "الفضل"],
+  55: ["الشباب", "الزواج", "العفاف"],
+  56: ["الرحمة", "الحيوان", "الغفران"],
+  57: ["الظلم", "الشح", "الآخرة"],
+  58: ["العشر", "العمل", "ذو الحجة"],
+  59: ["الإحسان", "الرحمة", "العدل"],
+  60: ["الضرر", "الحقوق", "الفقه"],
 };
 
 const HADITH_CHAPTERS: Record<number, string> = {
@@ -66,6 +76,7 @@ const HADITH_CHAPTERS: Record<number, string> = {
   21: "adab", 22: "salah", 23: "worship", 24: "heart", 25: "adab", 26: "heart", 27: "dua", 28: "knowledge", 29: "salah", 30: "family",
   31: "heart", 32: "heart", 33: "worship", 34: "family", 35: "impact", 36: "adab", 37: "heart", 38: "impact", 39: "adab", 40: "adab",
   41: "heart", 42: "heart", 43: "heart", 44: "intentions", 45: "knowledge", 46: "heart", 47: "adab", 48: "intentions", 49: "heart", 50: "adab",
+  51: "knowledge", 52: "salah", 53: "salah", 54: "salah", 55: "family", 56: "adab", 57: "adab", 58: "worship", 59: "adab", 60: "knowledge",
 };
 
 function gradeFromSource(source: string): LibraryGrade {
@@ -125,6 +136,7 @@ const CHAPTERS = [
 const coreHadithIds = [1, 2, 3, 4, 5, 6, 9, 11, 14, 16, 28, 32, 44, 45, 50];
 const muslimHadithIds = HADITHS.filter((item) => item.source.includes("مسلم")).map((item) => item.id).slice(0, 18);
 const adabHadithIds = [3, 4, 8, 9, 10, 15, 17, 21, 24, 25, 26, 34, 36, 37, 39, 40, 47, 50];
+const worshipHadithIds = [7, 18, 19, 20, 22, 23, 33, 51, 52, 53, 54, 58];
 
 const guideEntries: LibraryEntry[] = [
   {
@@ -266,6 +278,16 @@ export const ISLAMIC_LIBRARY_DB: IslamicLibraryDB = {
       "#a3e635",
       adabHadithIds,
       "adab"
+    ),
+    collection(
+      "worship_pillars",
+      "العبادة والشعائر",
+      "صلاة، صيام، ذكر، ومساجد",
+      "أحاديث في أبواب الصلاة والطهارة والذكر والصيام والحج — ثوابت اليوم المسلم.",
+      "🕋",
+      "#8b5cf6",
+      worshipHadithIds,
+      "worship"
     ),
     {
       id: "reader_guides",
