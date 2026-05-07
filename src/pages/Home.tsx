@@ -205,6 +205,7 @@ export function HomePage() {
   const setDailyBetterStepDone = useNoorStore((s) => s.setDailyBetterStepDone);
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
   const quranReadingHistory = useNoorStore((s) => s.quranReadingHistory);
+  const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const quranStreak = useNoorStore((s) => s.quranStreak);
   const prayerLog = useNoorStore((s) => s.prayerLog);
 
@@ -390,7 +391,6 @@ export function HomePage() {
     const totalXp = scores.global;
 
     // Quest auto-resolution
-    const quranDailyAyahs = useNoorStore.getState().quranDailyAyahs;
     const ayahsToday = Number(quranDailyAyahs[civilTodayKey] ?? 0);
     const dhikrToday = Number(activity[civilTodayKey] ?? 0);
     const tasbeehMax = Math.max(...Object.values(quickTasbeeh).map((v) => Number(v) || 0), 0);
@@ -412,7 +412,7 @@ export function HomePage() {
 
     return { quests, doneCount, totalXp, xpLevel, xpPct };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, prayerTimes.data]);
+  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, prayerTimes.data, quranDailyAyahs]);
 
   const prayerContext = React.useMemo<PrayerContext>(() => {
     const timings = prayerTimes.data?.data?.timings;

@@ -485,8 +485,7 @@ export function InsightsPage() {
       }
     };
     sendReport();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weeklyReportSentISO]);
+  }, [weeklyReportSentISO, weekTotal, quranWeekTotal, prayerLogWeekTotal, setWeeklyReportSentISO]);
 
   // I8: Ibadat summary card ref
   const ibadatCardRef = React.useRef<HTMLDivElement>(null);
