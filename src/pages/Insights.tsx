@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import { Flame, TrendingUp, Trophy, Share2, BookOpen, Target, Sparkles, BarChart2, Zap, Bell, FileDown, BellOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -61,29 +61,29 @@ function computeBestStreak(activity: Record<string, number>): number {
 
 type MilestoneType = "total" | "streak";
 const MILESTONES: Array<{ id: string; label: string; emoji: string; req: number; type: MilestoneType }> = [
-  { id: "total_100",   label: "????? ??????", emoji: "??", req: 100,   type: "total" },
-  { id: "total_500",   label: "?????",         emoji: "?", req: 500,   type: "total" },
-  { id: "total_1k",    label: "????",          emoji: "??", req: 1000,  type: "total" },
-  { id: "total_5k",    label: "????",          emoji: "??", req: 5000,  type: "total" },
-  { id: "total_10k",   label: "???? ?????",     emoji: "??", req: 10000, type: "total" },
-  { id: "streak_7",    label: "????? ???",     emoji: "??", req: 7,     type: "streak" },
-  { id: "streak_30",   label: "??? ???",       emoji: "?", req: 30,    type: "streak" },
-  { id: "streak_100",  label: "??? ???",        emoji: "??", req: 100,   type: "streak" },
+  { id: "total_100",   label: "بداية الطريق", emoji: "🌱", req: 100,   type: "total" },
+  { id: "total_500",   label: "مثابر",         emoji: "⭐", req: 500,   type: "total" },
+  { id: "total_1k",    label: "متقن",          emoji: "🌟", req: 1000,  type: "total" },
+  { id: "total_5k",    label: "حافظ",          emoji: "🏆", req: 5000,  type: "total" },
+  { id: "total_10k",   label: "رفيق الذكر",     emoji: "💫", req: 10000, type: "total" },
+  { id: "streak_7",    label: "أسبوع نور",     emoji: "🔥", req: 7,     type: "streak" },
+  { id: "streak_30",   label: "شهر صبر",       emoji: "⚡", req: 30,    type: "streak" },
+  { id: "streak_100",  label: "مئة يوم",        emoji: "🌙", req: 100,   type: "streak" },
 ];
 
 function dateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-const DAY_LABELS = ["???", "???", "???", "???", "???", "???", "???"];
+const DAY_LABELS = ["أحد", "إثن", "ثلث", "أرب", "خمس", "جمع", "سبت"];
 
-// -- I6: XP / Level system ----------------------------------------
+// ── I6: XP / Level system ────────────────────────────────────────
 type XpLevel = { label: string; minXp: number; maxXp: number; emoji: string; color: string };
 const XP_LEVELS: XpLevel[] = [
-  { label: "?????",  minXp: 0,      maxXp: 999,    emoji: "??", color: "#6ee7b7" },
-  { label: "?????",  minXp: 1000,   maxXp: 4999,   emoji: "?", color: "#fbbf24" },
-  { label: "????",   minXp: 5000,   maxXp: 19999,  emoji: "??", color: "#fb923c" },
-  { label: "????",   minXp: 20000,  maxXp: Infinity, emoji: "??", color: "#a78bfa" },
+  { label: "مبتدئ",  minXp: 0,      maxXp: 999,    emoji: "🌱", color: "#6ee7b7" },
+  { label: "مواظب",  minXp: 1000,   maxXp: 4999,   emoji: "⭐", color: "#fbbf24" },
+  { label: "حافظ",   minXp: 5000,   maxXp: 19999,  emoji: "🏆", color: "#fb923c" },
+  { label: "إمام",   minXp: 20000,  maxXp: Infinity, emoji: "💎", color: "#a78bfa" },
 ];
 
 function computeXp(
@@ -102,7 +102,7 @@ function getXpLevel(xp: number): XpLevel & { xpInLevel: number; xpForLevel: numb
   return { ...lvl, xpInLevel, xpForLevel, pct: Math.min(100, Math.round((xpInLevel / xpForLevel) * 100)) };
 }
 
-// -- Radar chart for I4 -------------------------------------------
+// ── Radar chart for I4 ───────────────────────────────────────────
 function RadarChart(props: { values: { label: string; pct: number; color: string }[]; size?: number }) {
   const { values, size = 160 } = props;
   const cx = size / 2;
@@ -126,7 +126,7 @@ function RadarChart(props: { values: { label: string; pct: number; color: string
   const dataPath = dataPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(" ") + " Z";
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="???? ???????">
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="مخطط الرادار">
       {/* Grid */}
       {rings.map((d, i) => (
         <path key={i} d={d} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
@@ -156,7 +156,7 @@ function RadarChart(props: { values: { label: string; pct: number; color: string
   );
 }
 
-// -- Build heatmap for I1 -----------------------------------------
+// ── Build heatmap for I1 ─────────────────────────────────────────
 function buildHeatmap(
   activity: Record<string, number>,
   days: number // 7, 28, or 90
@@ -301,7 +301,7 @@ export function InsightsPage() {
     [last7Days]
   );
 
-  // -- Quran daily-ayahs computed values (Phases 22 & 30) ----
+  // ── Quran daily-ayahs computed values (Phases 22 & 30) ────
   const quranLast7Days = React.useMemo(() => {
     const today = new Date();
     return Array.from({ length: 7 }, (_, i) => {
@@ -382,7 +382,7 @@ export function InsightsPage() {
     return Math.round(withData.reduce((s, d) => s + d.done, 0) / prayerConsistency.length * 10) / 10;
   }, [prayerConsistency]);
 
-  // I3: Quran pages per day (estimated from ayahs; 6236 ayahs / 604 pages � 10.32 ayahs/page)
+  // I3: Quran pages per day (estimated from ayahs; 6236 ayahs / 604 pages ≈ 10.32 ayahs/page)
   const AYAHS_PER_PAGE = 6236 / 604;
   const quranPageLast7Days = React.useMemo(() => {
     const today = new Date();
@@ -407,8 +407,8 @@ export function InsightsPage() {
     const RADAR_IDS = ["morning", "evening", "sleep", "post_prayer", "mosque"];
     const result: { label: string; pct: number; color: string }[] = [];
     const LABELS: Record<string, string> = {
-      morning: "????", evening: "????", sleep: "???",
-      post_prayer: "??? ??????", mosque: "????",
+      morning: "صباح", evening: "مساء", sleep: "نوم",
+      post_prayer: "بعد الصلاة", mosque: "مسجد",
     };
     const COLORS: Record<string, string> = {
       morning: "#fbbf24", evening: "#818cf8", sleep: "#34d399",
@@ -471,14 +471,14 @@ export function InsightsPage() {
     if (!("Notification" in globalThis)) return;
 
     const sendReport = () => {
-      const msg = `?????! ??? ???????: ${weekTotal} ???? ${quranWeekTotal} ???? ${prayerLogWeekTotal} ???? ?`;
+      const msg = `أحسنت! هذا الأسبوع: ${weekTotal} ذكر، ${quranWeekTotal} آية، ${prayerLogWeekTotal} صلاة ✨`;
       if (Notification.permission === "granted") {
-        new Notification("?????? ???????? � ATHAR", { body: msg, icon: "/icons/icon-192.png" });
+        new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
         setWeeklyReportSentISO(thisWeekISO);
       } else if (Notification.permission !== "denied") {
         void Notification.requestPermission().then((perm) => {
           if (perm === "granted") {
-            new Notification("?????? ???????? � ATHAR", { body: msg, icon: "/icons/icon-192.png" });
+            new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
             setWeeklyReportSentISO(thisWeekISO);
           }
         });
@@ -500,16 +500,16 @@ export function InsightsPage() {
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], "ATHAR-ibadat.png", { type: "image/png" });
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "????? ???????", text: "????? ??????? ????? ?? ????? ATHAR ?" });
+        await navigator.share({ files: [file], title: "بطاقة العبادة", text: "بطاقة العبادة اليوم من تطبيق ATHAR ✨" });
       } else {
         const a = document.createElement("a");
         a.href = dataUrl;
         a.download = "ATHAR-ibadat.png";
         a.click();
-        toast.success("?? ????? ????? ???????");
+        toast.success("تم تحميل بطاقة العبادة");
       }
     } catch (err: unknown) {
-      if (err instanceof Error && err.name !== "AbortError") toast.error("???? ?????? ???????");
+      if (err instanceof Error && err.name !== "AbortError") toast.error("تعذر مشاركة البطاقة");
     } finally {
       setIbadatSharing(false);
     }
@@ -528,7 +528,7 @@ export function InsightsPage() {
       if (win) {
         win.opener = null; // prevent tabnapping
         win.document.open();
-        win.document.title = "??????? ATHAR";
+        win.document.title = "إحصاءات ATHAR";
         const img = win.document.createElement("img");
         img.src = dataUrl;
         img.style.cssText = "max-width:420px;width:100%;border-radius:16px;display:block;margin:20px auto";
@@ -537,7 +537,7 @@ export function InsightsPage() {
         setTimeout(() => win.print(), 400);
       }
     } catch (err: unknown) {
-      if (err instanceof Error && err.name !== "AbortError") toast.error("???? ????? ?????????");
+      if (err instanceof Error && err.name !== "AbortError") toast.error("تعذر تصدير الإحصاءات");
     } finally {
       setExporting(false);
     }
@@ -555,16 +555,16 @@ export function InsightsPage() {
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], "ATHAR-quran-progress.png", { type: "image/png" });
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "????? ?? ??????", text: `${quranStats.completed} ???? ?????? � ${overallQuranProgress}% ?` });
+        await navigator.share({ files: [file], title: "تقدمي في القرآن", text: `${quranStats.completed} سورة مكتملة • ${overallQuranProgress}% ✨` });
       } else {
         const a = document.createElement("a");
         a.href = dataUrl;
         a.download = "ATHAR-quran-progress.png";
         a.click();
-        toast.success("?? ????? ????? ??????");
+        toast.success("تم تحميل بطاقة التقدم");
       }
     } catch (err: unknown) {
-      if (err instanceof Error && err.name !== "AbortError") toast.error("???? ?????? ???????");
+      if (err instanceof Error && err.name !== "AbortError") toast.error("تعذر مشاركة البطاقة");
     } finally {
       setQuranSharing(false);
     }
@@ -610,18 +610,18 @@ export function InsightsPage() {
       const file = new File([blob], "ATHAR-progress.png", { type: "image/png" });
 
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "????? ?? ATHAR", text: `????? ${streak} ??? � ${total} ??? ?` });
+        await navigator.share({ files: [file], title: "تقدمي في ATHAR", text: `سلسلة ${streak} يوم • ${total} ذكر ✨` });
       } else {
         // Fallback: download
         const a = document.createElement("a");
         a.href = dataUrl;
         a.download = "ATHAR-progress.png";
         a.click();
-        toast.success("?? ????? ????? ??????");
+        toast.success("تم تحميل بطاقة التقدم");
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== "AbortError") {
-        toast.error("???? ?????? ???????");
+        toast.error("تعذر مشاركة البطاقة");
       }
     } finally {
       setSharing(false);
@@ -634,11 +634,11 @@ export function InsightsPage() {
     streak >= 1  ? "text-[var(--accent)]" : "opacity-40";
 
   const streakLabel =
-    streak >= 30 ? "????? ????! ??" :
-    streak >= 7  ? "????? ?????? ?" :
-    streak >= 3  ? "????? ???? ??" :
-    streak >= 2  ? "????? ???????? ?" :
-    streak >= 1  ? "??????? ???? ?" : "???? ?????";
+    streak >= 30 ? "ماشاء الله! 🔥" :
+    streak >= 7  ? "أسبوع متواصل ✨" :
+    streak >= 3  ? "ثلاثة أيام 🌟" :
+    streak >= 2  ? "يومان متواصلان ✨" :
+    streak >= 1  ? "انطلاقة جيدة ✨" : "ابدأ اليوم";
 
   // I7: Notification permission state
   const [notifPermission, setNotifPermission] = React.useState<NotificationPermission | "unsupported">(
@@ -650,15 +650,15 @@ export function InsightsPage() {
     if (Notification.permission === "granted") {
       const today = new Date();
       const thisWeekISO = dateKey(today);
-      const msg = `?????! ??? ???????: ${weekTotal} ???? ${quranWeekTotal} ???? ${prayerLogWeekTotal} ???? ?`;
-      new Notification("?????? ???????? � ATHAR", { body: msg, icon: "/icons/icon-192.png" });
+      const msg = `أحسنت! هذا الأسبوع: ${weekTotal} ذكر، ${quranWeekTotal} آية، ${prayerLogWeekTotal} صلاة ✨`;
+      new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
       setWeeklyReportSentISO(thisWeekISO);
-      toast.success("?? ????? ??????? ????????");
+      toast.success("تم إرسال التقرير الأسبوعي");
     } else {
       const perm = await Notification.requestPermission();
       setNotifPermission(perm);
-      if (perm === "granted") toast.success("?? ????? ????? ?????");
-      else toast.error("?? ??? ?????? ??????????");
+      if (perm === "granted") toast.success("تم تفعيل إشعار الأحد");
+      else toast.error("لم يتم السماح بالإشعارات");
     }
   }
 
@@ -678,7 +678,7 @@ export function InsightsPage() {
               <div className="flex items-center gap-2">
                 <Zap size={13} style={{ color: xpLevel.color }} />
                 <span className="text-sm font-bold" style={{ color: xpLevel.color }}>{xpLevel.label}</span>
-                <span className="text-[10px] opacity-40 tabular-nums">{xp.toLocaleString("ar-SA")} ????</span>
+                <span className="text-[10px] opacity-40 tabular-nums">{xp.toLocaleString("ar-SA")} نقطة</span>
               </div>
               <div className="mt-1.5 flex items-center gap-2">
                 <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
@@ -708,26 +708,27 @@ export function InsightsPage() {
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={14} className="text-[var(--accent)]" />
-            <div className="text-xs font-semibold opacity-65">????? ???????</div>
+            <div className="text-xs font-semibold opacity-65">بطاقة العبادة</div>
             <div className="text-[10px] opacity-35 mr-auto">
               {new Date().toLocaleDateString("ar-SA", { weekday: "short", day: "numeric", month: "short" })}
             </div>
-            <button type="button"
+            <button
+              type="button"
               onClick={shareIbadatCard}
               disabled={ibadatSharing}
               className="text-[10px] opacity-60 hover:opacity-100 flex items-center gap-1 transition"
-              aria-label="?????? ????? ???????"
+              aria-label="مشاركة بطاقة العبادة"
             >
               <Share2 size={11} />
-              <span>{ibadatSharing ? "..." : "????"}</span>
+              <span>{ibadatSharing ? "..." : "شارك"}</span>
             </button>
           </div>
           <div className="grid grid-cols-4 gap-2">
             {/* Prayers */}
             <div className="col-span-4 flex items-center justify-between gap-1 mb-1">
-              <span className="text-[11px] opacity-50">???????:</span>
+              <span className="text-[11px] opacity-50">الصلوات:</span>
               <div className="flex gap-1.5">
-                {["?????","?????","?????","??????","??????"].map((p, i) => {
+                {["الفجر","الظهر","العصر","المغرب","العشاء"].map((p, i) => {
                   const keys = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
                   const done = !!prayerLog[civilTodayKey]?.[keys[i] ?? ""];
                   return (
@@ -741,26 +742,26 @@ export function InsightsPage() {
                         color: done ? "var(--ok)" : "rgba(255,255,255,0.3)",
                       }}
                     >
-                      {done ? "?" : "�"}
+                      {done ? "✓" : "·"}
                     </div>
                   );
                 })}
               </div>
             </div>
             <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
-              <div className="text-[10px] opacity-45">???</div>
+              <div className="text-[10px] opacity-45">ذكر</div>
               <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayCount > 0 ? "var(--accent)" : undefined }}>{todayCount}</div>
             </div>
             <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
-              <div className="text-[10px] opacity-45">???</div>
+              <div className="text-[10px] opacity-45">آية</div>
               <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayQuranAyahs > 0 ? "var(--accent)" : undefined }}>{todayQuranAyahs}</div>
             </div>
             <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
-              <div className="text-[10px] opacity-45">???</div>
+              <div className="text-[10px] opacity-45">هدف</div>
               <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: quranGoalPct >= 100 ? "var(--ok)" : undefined }}>{quranGoalPct}%</div>
             </div>
             <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
-              <div className="text-[10px] opacity-45">?????</div>
+              <div className="text-[10px] opacity-45">مستوى</div>
               <div className="text-sm font-bold mt-0.5" style={{ color: xpLevel.color }}>{xpLevel.emoji}</div>
             </div>
           </div>
@@ -784,14 +785,14 @@ export function InsightsPage() {
           border: "2px solid rgba(255,255,255,0.12)",
         }}
       >
-        <div style={{ fontSize: "13px", opacity: 0.6, marginBottom: "4px" }}>????? ??</div>
+        <div style={{ fontSize: "13px", opacity: 0.6, marginBottom: "4px" }}>تقدمي في</div>
         <div style={{ fontSize: "26px", fontWeight: 800, marginBottom: "16px", color: "var(--accent)" }}>ATHAR</div>
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
           {[
-            { label: "???????", value: `${streak} ???`, emoji: streak >= 7 ? "??" : "?" },
-            { label: "????????", value: `${total}`, emoji: "??" },
-            { label: "?????", value: `${todayCount}`, emoji: "??" },
-            { label: "????", value: `${bestStreak}?`, emoji: "??" },
+            { label: "السلسلة", value: `${streak} يوم`, emoji: streak >= 7 ? "🔥" : "✨" },
+            { label: "الإجمالي", value: `${total}`, emoji: "📿" },
+            { label: "اليوم", value: `${todayCount}`, emoji: "🌙" },
+            { label: "أفضل", value: `${bestStreak}د`, emoji: "🏆" },
           ].map((s) => (
             <div key={s.label} style={{
               flex: 1,
@@ -818,47 +819,49 @@ export function InsightsPage() {
         </div>
       </div>
 
-      {/* -- ???? ????? � Daily Snapshot --------------- */}
+      {/* ── يومك اليوم — Daily Snapshot ─────────────── */}
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={14} className="text-[var(--accent)]" />
-          <div className="text-xs font-semibold opacity-65">???? ?????</div>
+          <div className="text-xs font-semibold opacity-65">يومك اليوم</div>
           <div className="text-[10px] opacity-35 mr-auto">
             {new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long" })}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {/* Adhkar */}
-          <button type="button"
+          <button
+            type="button"
             onClick={() => navigate("/")}
             className="flex flex-col items-center rounded-2xl bg-white/5 border border-white/8 px-2 py-3 gap-0.5 transition hover:bg-white/8 active:scale-[.97]"
           >
-            <span className="text-lg leading-none mb-0.5">??</span>
+            <span className="text-lg leading-none mb-0.5">📿</span>
             <span
               className="text-xl font-bold tabular-nums leading-none mt-0.5"
               style={{ color: todayCount > 0 ? "var(--accent)" : undefined }}
             >{todayCount}</span>
-            <span className="text-[10px] opacity-50 mt-0.5">??? ?????</span>
+            <span className="text-[10px] opacity-50 mt-0.5">ذكر اليوم</span>
             {streak > 0 ? (
               <span
                 className="text-[9px] mt-1 font-medium tabular-nums"
                 style={{ color: streak >= 7 ? "#fb923c" : "var(--accent)" }}
-              >?? {streak} ???</span>
+              >🔥 {streak} يوم</span>
             ) : (
-              <span className="text-[9px] mt-1 opacity-30">�</span>
+              <span className="text-[9px] mt-1 opacity-30">—</span>
             )}
           </button>
           {/* Quran */}
-          <button type="button"
+          <button
+            type="button"
             onClick={() => navigate(quranLastRead ? `/mushaf?surah=${quranLastRead.surahId}&ayah=${quranLastRead.ayahIndex}` : "/quran")}
             className="flex flex-col items-center rounded-2xl bg-white/5 border border-white/8 px-2 py-3 gap-0.5 transition hover:bg-white/8 active:scale-[.97]"
           >
-            <span className="text-lg leading-none mb-0.5">??</span>
+            <span className="text-lg leading-none mb-0.5">📖</span>
             <span
               className="text-xl font-bold tabular-nums leading-none mt-0.5"
               style={{ color: quranGoalPct >= 100 ? "var(--ok)" : todayQuranAyahs > 0 ? "var(--accent)" : undefined }}
             >{todayQuranAyahs}</span>
-            <span className="text-[10px] opacity-50 mt-0.5">/ {quranGoal} ???</span>
+            <span className="text-[10px] opacity-50 mt-0.5">/ {quranGoal} آية</span>
             <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden mt-1.5">
               <div
                 className="h-full rounded-full transition-all duration-500"
@@ -867,16 +870,17 @@ export function InsightsPage() {
             </div>
           </button>
           {/* Checklist */}
-          <button type="button"
+          <button
+            type="button"
             onClick={() => navigate("/")}
             className="flex flex-col items-center rounded-2xl bg-white/5 border border-white/8 px-2 py-3 gap-0.5 transition hover:bg-white/8 active:scale-[.97]"
           >
-            <span className="text-lg leading-none mb-0.5">?</span>
+            <span className="text-lg leading-none mb-0.5">✅</span>
             <span
               className="text-xl font-bold tabular-nums leading-none mt-0.5"
               style={{ color: checklistPct >= 100 ? "var(--ok)" : checklistDoneCount > 0 ? "var(--accent)" : undefined }}
             >{checklistDoneCount}<span className="text-sm opacity-40 font-normal">/{checklistTotal}</span></span>
-            <span className="text-[10px] opacity-50 mt-0.5">?? ???????</span>
+            <span className="text-[10px] opacity-50 mt-0.5">من القائمة</span>
             <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden mt-1.5">
               <div
                 className="h-full rounded-full transition-all duration-500"
@@ -891,8 +895,8 @@ export function InsightsPage() {
             className="mt-3 rounded-2xl px-4 py-2.5 flex items-center gap-2 text-xs font-semibold"
             style={{ background: "rgba(52,211,153,0.12)", color: "var(--ok)", border: "1px solid rgba(52,211,153,0.25)" }}
           >
-            <span className="text-base leading-none">?</span>
-            <span>??? ????? � ????? ??????? ?????</span>
+            <span className="text-base leading-none">✨</span>
+            <span>يوم مثالي — أنجزت الثلاثة اليوم</span>
           </div>
         )}
       </Card>
@@ -909,40 +913,40 @@ export function InsightsPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp size={16} className="text-[var(--accent)]" />
-              <div className="text-xs opacity-60">??????????</div>
+              <div className="text-xs opacity-60">الإحصائيات</div>
             </div>
             <div className="text-3xl font-bold tabular-nums leading-none">
               {streak}
-              <span className="text-base font-normal opacity-70 mr-1">???</span>
+              <span className="text-base font-normal opacity-70 mr-1">يوم</span>
             </div>
             <div className={`text-sm mt-1 font-medium ${streakFireClass}`}>{streakLabel}</div>
           </div>
 
           {/* Flame badge */}
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl glass border border-white/10 ${streak >= 1 ? "streak-fire" : "opacity-40"}`}>
-            {streak >= 30 ? "??" : streak >= 7 ? "?" : streak >= 1 ? "?" : "???"}
+            {streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : streak >= 1 ? "✨" : "🕯️"}
           </div>
         </div>
 
         {/* Mini stats row */}
         <div className="relative mt-4 grid grid-cols-5 gap-2">
-          <MiniStatSmall label="?????" value={`${todayCount}`} accent />
-          <MiniStatSmall label="???????" value={`${weekTotal}`} />
-          <MiniStatSmall label="????????" value={`${total}`} />
-          <MiniStatSmall label="???? ???" value={bestDay.count > 0 ? `${bestDay.count}` : "�"} />
-          <MiniStatSmall label="???? ?????" value={bestStreak > 0 ? `${bestStreak}` : "�"} />
+          <MiniStatSmall label="اليوم" value={`${todayCount}`} accent />
+          <MiniStatSmall label="الأسبوع" value={`${weekTotal}`} />
+          <MiniStatSmall label="الإجمالي" value={`${total}`} />
+          <MiniStatSmall label="أفضل يوم" value={bestDay.count > 0 ? `${bestDay.count}` : "—"} />
+          <MiniStatSmall label="أفضل سلسلة" value={bestStreak > 0 ? `${bestStreak}` : "—"} />
         </div>
         {/* Monthly total */}
         {monthTotal > 0 && (
           <div className="relative mt-2 flex items-center gap-1.5 text-[11px] opacity-50">
-            <span>??? ?????:</span>
+            <span>هذا الشهر:</span>
             <span className="tabular-nums font-semibold opacity-100" style={{ color: "var(--accent)" }}>{monthTotal.toLocaleString("ar-SA")}</span>
-            <span>???</span>
+            <span>ذكر</span>
           </div>
         )}
         {bestDay.key && (
           <div className="relative mt-3 text-[11px] opacity-55">
-            ???? ???? ??? ?? {new Date(bestDay.key + "T00:00:00").toLocaleDateString("ar-SA", { day: "numeric", month: "long" })}
+            أعلى نشاط كان في {new Date(bestDay.key + "T00:00:00").toLocaleDateString("ar-SA", { day: "numeric", month: "long" })}
           </div>
         )}
         <div className="relative mt-4">
@@ -951,23 +955,24 @@ export function InsightsPage() {
             onClick={shareProgress}
             disabled={sharing}
             className="w-full"
-            aria-label="???? ?????"
+            aria-label="شارك تقدمك"
           >
             <Share2 size={15} />
-            {sharing ? "???? ???????..." : "???? ?????"}
+            {sharing ? "جاري التحضير..." : "شارك تقدمك"}
           </Button>
         </div>
       </Card>
 
-      {/* 28-Day Heatmap � I1: with view toggle */}
+      {/* 28-Day Heatmap — I1: with view toggle */}
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-3">
           <Flame size={16} className="text-[var(--accent)]" />
-          <div className="font-semibold text-sm">???? ???????</div>
+          <div className="font-semibold text-sm">نشاط الأذكار</div>
           <div className="mr-auto flex gap-1">
             {([7, 28, 90] as const).map((v) => (
-              <button type="button"
+              <button
                 key={v}
+                type="button"
                 onClick={() => setHeatmapView(v)}
                 className={`text-[10px] px-2 py-0.5 rounded-full border transition ${
                   heatmapView === v
@@ -975,13 +980,13 @@ export function InsightsPage() {
                     : "border-white/10 opacity-50"
                 }`}
               >
-                {v === 7 ? "? ????" : v === 28 ? "?? ?????" : "?? ?????"}
+                {v === 7 ? "٧ أيام" : v === 28 ? "٢٨ يومًا" : "٩٠ يومًا"}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Day labels � only for 7-day and 28-day */}
+        {/* Day labels — only for 7-day and 28-day */}
         {heatmapView <= 28 && (
           <div className="grid grid-cols-7 gap-1.5 mb-1.5">
             {DAY_LABELS.map((l) => (
@@ -1022,7 +1027,7 @@ export function InsightsPage() {
 
         {/* Legend */}
         <div className="mt-3 flex items-center gap-1.5 justify-end">
-          <span className="text-[11px] opacity-55">???</span>
+          <span className="text-[11px] opacity-55">أقل</span>
           {[0,1,2,3,4].map((h) => (
             <div key={h} className={`w-3 h-3 rounded-sm ${
               h === 0 ? "bg-white/5" :
@@ -1032,7 +1037,7 @@ export function InsightsPage() {
                          "bg-[var(--accent)]"
             }`} />
           ))}
-          <span className="text-[11px] opacity-55">????</span>
+          <span className="text-[11px] opacity-55">أكثر</span>
         </div>
       </Card>
 
@@ -1040,8 +1045,8 @@ export function InsightsPage() {
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={16} className="text-[var(--accent)]" />
-          <div className="font-semibold text-sm">???? ???????</div>
-          <span className="text-[11px] opacity-50 mr-auto tabular-nums">{weekTotal} ??????</span>
+          <div className="font-semibold text-sm">نشاط الأسبوع</div>
+          <span className="text-[11px] opacity-50 mr-auto tabular-nums">{weekTotal} إجمالي</span>
           {lastWeekTotal > 0 && (
             <span
               className={`text-[10px] tabular-nums font-semibold px-2 py-0.5 rounded-full border`}
@@ -1050,9 +1055,9 @@ export function InsightsPage() {
                   ? { background: "rgba(52,211,153,0.12)", color: "var(--ok)", borderColor: "rgba(52,211,153,0.25)" }
                   : { background: "rgba(248,113,113,0.10)", color: "rgb(248,113,113)", borderColor: "rgba(248,113,113,0.2)" }
               }
-              title={`??????? ??????: ${lastWeekTotal}`}
+              title={`الأسبوع الماضي: ${lastWeekTotal}`}
             >
-              {weekTotal >= lastWeekTotal ? "?" : "?"} {Math.abs(weekTotal - lastWeekTotal)}
+              {weekTotal >= lastWeekTotal ? "▲" : "▼"} {Math.abs(weekTotal - lastWeekTotal)}
             </span>
           )}
         </div>
@@ -1087,33 +1092,33 @@ export function InsightsPage() {
         </div>
       </Card>
 
-      {/* -- Phase 22: Quran Reading Analytics Card --------------- */}
+      {/* ── Phase 22: Quran Reading Analytics Card ─────────────── */}
       {(quranStreak > 0 || quranWeekTotal > 0 || todayQuranAyahs > 0) && (
         <Card className="p-5">
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
               <BookOpen size={16} className="text-[var(--accent)]" />
-              <div className="font-semibold text-sm">??????? ??????</div>
+              <div className="font-semibold text-sm">إحصاءات القرآن</div>
             </div>
             {quranStreak > 0 && (
               <div className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20">
                 <Flame size={11} className="text-[var(--accent)]" />
-                <span className="tabular-nums">{quranStreak} ???</span>
+                <span className="tabular-nums">{quranStreak} يوم</span>
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-3 gap-2 mb-4">
-            <MiniStatSmall label="?????" value={`${todayQuranAyahs}`} accent />
-            <MiniStatSmall label="???????" value={`${quranWeekTotal}`} />
-            <MiniStatSmall label="????????" value={`${quranStats.totalAyahs.toLocaleString("ar-SA")}`} />
+            <MiniStatSmall label="اليوم" value={`${todayQuranAyahs}`} accent />
+            <MiniStatSmall label="الأسبوع" value={`${quranWeekTotal}`} />
+            <MiniStatSmall label="الإجمالي" value={`${quranStats.totalAyahs.toLocaleString("ar-SA")}`} />
           </div>
           {/* Monthly ayahs */}
           {quranMonthTotal > 0 && (
             <div className="mb-4 -mt-2 flex items-center gap-1.5 text-[11px] opacity-50">
-              <span>??? ?????:</span>
+              <span>هذا الشهر:</span>
               <span className="tabular-nums font-semibold opacity-100" style={{ color: "var(--accent)" }}>{quranMonthTotal.toLocaleString("ar-SA")}</span>
-              <span>???</span>
+              <span>آية</span>
             </div>
           )}
 
@@ -1121,7 +1126,7 @@ export function InsightsPage() {
             <div className="flex items-center justify-between mb-1.5 text-xs opacity-65">
               <div className="flex items-center gap-1.5">
                 <Target size={11} />
-                <span>??? ?????: {todayQuranAyahs}/{quranGoal} ???</span>
+                <span>هدف اليوم: {todayQuranAyahs}/{quranGoal} آية</span>
               </div>
               <span className={`tabular-nums font-medium ${quranGoalPct >= 100 ? "text-[var(--ok)]" : ""}`}>
                 {quranGoalPct}%
@@ -1138,8 +1143,8 @@ export function InsightsPage() {
           {quranWeekTotal > 0 && (
             <>
               <div className="text-xs opacity-50 mb-2 flex items-center justify-between">
-                <span>???? ??????? (7 ????)</span>
-                <span className="tabular-nums">{quranWeekTotal} ???</span>
+                <span>نشاط القراءة (7 أيام)</span>
+                <span className="tabular-nums">{quranWeekTotal} آية</span>
               </div>
               <div className="flex items-end gap-1.5" style={{ height: "64px" }}>
                 {quranLast7Days.map((day) => {
@@ -1179,14 +1184,14 @@ export function InsightsPage() {
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-3">
           <Target size={14} className="text-[var(--accent)]" />
-          <div className="font-semibold text-sm">???? ??????</div>
+          <div className="font-semibold text-sm">ثبات الصلاة</div>
           <span className="text-[11px] opacity-50 mr-auto tabular-nums">
-            ????? {prayerConsistencyAvg} / 5
+            متوسط {prayerConsistencyAvg} / 5
           </span>
         </div>
         {prayerConsistency.every((d) => d.done === 0) ? (
           <div className="text-xs opacity-50 text-center py-3">
-            ?? ??? ????? ??????? ???. ???? ??????? ?? ???? ??????.
+            لم يتم تسجيل الصلوات بعد. ابدأ بالتتبع من صفحة الصلاة.
           </div>
         ) : (
           <>
@@ -1205,17 +1210,17 @@ export function InsightsPage() {
                 return (
                   <div
                     key={d.key}
-                    title={`${d.key}: ${d.done}/5 ?????`}
+                    title={`${d.key}: ${d.done}/5 صلوات`}
                     className={`aspect-square rounded-sm ${c} ${d.isToday ? "ring-2 ring-[var(--accent)]" : ""}`}
                   />
                 );
               })}
             </div>
             <div className="mt-2 flex items-center gap-2 justify-end text-[10px] opacity-55 flex-wrap">
-              <div className="w-3 h-3 rounded-sm bg-white/5" /><span>?</span>
-              <div className="w-3 h-3 rounded-sm bg-yellow-400/40" /><span>?-?</span>
-              <div className="w-3 h-3 rounded-sm bg-orange-400/60" /><span>?-?</span>
-              <div className="w-3 h-3 rounded-sm bg-[var(--ok)]/70" /><span>? ?????</span>
+              <div className="w-3 h-3 rounded-sm bg-white/5" /><span>٠</span>
+              <div className="w-3 h-3 rounded-sm bg-yellow-400/40" /><span>١-٢</span>
+              <div className="w-3 h-3 rounded-sm bg-orange-400/60" /><span>٣-٤</span>
+              <div className="w-3 h-3 rounded-sm bg-[var(--ok)]/70" /><span>٥ كاملة</span>
             </div>
           </>
         )}
@@ -1226,9 +1231,9 @@ export function InsightsPage() {
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
             <BookOpen size={14} className="text-[var(--accent)]" />
-            <div className="font-semibold text-sm">????? ?????? (7 ????)</div>
+            <div className="font-semibold text-sm">صفحات القرآن (7 أيام)</div>
             <span className="text-[11px] opacity-50 mr-auto tabular-nums">
-              {quranPageLast7Days.reduce((s, d) => s + d.pages, 0).toFixed(1)} ????
+              {quranPageLast7Days.reduce((s, d) => s + d.pages, 0).toFixed(1)} صفحة
             </span>
           </div>
           <div className="flex items-end gap-1.5" style={{ height: "72px" }}>
@@ -1255,7 +1260,7 @@ export function InsightsPage() {
               );
             })}
           </div>
-          <div className="mt-2 text-[10px] opacity-40">* ?????? ????? ??? ?????? ???????? (???? ??? / ??? ????)</div>
+          <div className="mt-2 text-[10px] opacity-40">* تقديري بناءً على الآيات المقروءة (٦٢٣٦ آية / ٦٠٤ صفحة)</div>
         </Card>
       )}
 
@@ -1264,7 +1269,7 @@ export function InsightsPage() {
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
             <BarChart2 size={14} className="text-[var(--accent)]" />
-            <div className="font-semibold text-sm">???? ???????</div>
+            <div className="font-semibold text-sm">مخطط الأقسام</div>
           </div>
           <div className="flex items-center justify-center gap-6 flex-wrap">
             <RadarChart values={radarValues} size={180} />
@@ -1292,13 +1297,13 @@ export function InsightsPage() {
                 <FileDown size={16} className="text-[var(--accent)]" />
               </div>
               <div>
-                <div className="text-sm font-semibold">????? ?????????</div>
-                <div className="text-xs opacity-50 mt-0.5">????? ?? ?????? ???? ??????</div>
+                <div className="text-sm font-semibold">تصدير الإحصاءات</div>
+                <div className="text-xs opacity-50 mt-0.5">طباعة أو مشاركة ملخص التقدم</div>
               </div>
             </div>
             <Button variant="secondary" onClick={exportInsightsPdf} disabled={exporting}>
               <FileDown size={14} />
-              {exporting ? "???? ???????..." : "????? PDF"}
+              {exporting ? "جاري التحضير..." : "تصدير PDF"}
             </Button>
           </div>
         </Card>
@@ -1314,28 +1319,28 @@ export function InsightsPage() {
               {notifPermission === "granted" ? <Bell size={15} className="text-[var(--ok)]" /> : <BellOff size={15} className="opacity-50" />}
             </div>
             <div>
-              <div className="text-sm font-semibold">??????? ????????</div>
+              <div className="text-sm font-semibold">التقرير الأسبوعي</div>
               <div className="text-xs opacity-50 mt-0.5">
                 {notifPermission === "granted"
-                  ? "??? ?????: ???? ??????? ????? ???????"
+                  ? "يوم الأحد: ملخص أذكارك، آياتك وصلواتك"
                   : notifPermission === "denied"
-                    ? "????????? ?????? ?? ???????"
+                    ? "الإشعارات محظورة في المتصفح"
                     : notifPermission === "unsupported"
-                      ? "????????? ??? ??????"
-                      : "???? ?????? ????? ??? ?????"}
+                      ? "الإشعارات غير مدعومة"
+                      : "اضغط لتفعيل إشعار يوم الأحد"}
               </div>
             </div>
           </div>
           {notifPermission !== "denied" && notifPermission !== "unsupported" && (
-            <Button variant="secondary" onClick={requestWeeklyNotif} aria-label="????? ??????? ????????">
+            <Button variant="secondary" onClick={requestWeeklyNotif} aria-label="تفعيل التقرير الأسبوعي">
               <Bell size={14} />
-              {notifPermission === "granted" ? "?????" : "?????"}
+              {notifPermission === "granted" ? "اختبر" : "تفعيل"}
             </Button>
           )}
         </div>
         {notifPermission === "granted" && (
           <div className="mt-2 text-[11px] opacity-45 leading-5">
-            ??? ?????: {weekTotal} ??? � {quranWeekTotal} ??? � {prayerLogWeekTotal} ????
+            آخر تقرير: {weekTotal} ذكر • {quranWeekTotal} آية • {prayerLogWeekTotal} صلاة
           </div>
         )}
       </Card>
@@ -1343,7 +1348,7 @@ export function InsightsPage() {
       {/* Milestone badges */}
       <Card className="p-5">
         <div className="flex items-center justify-between gap-2 mb-4">
-          <div className="font-semibold text-sm">????? ???????</div>
+          <div className="font-semibold text-sm">شارات الإنجاز</div>
           <span className="text-[11px] opacity-50">
             {unlockedMilestones.filter((m) => m.unlocked).length}/{MILESTONES.length}
           </span>
@@ -1351,12 +1356,12 @@ export function InsightsPage() {
         {nextMilestone ? (
           <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[11px] opacity-55">?????? ???????</div>
+              <div className="text-[11px] opacity-55">الشارة القادمة</div>
               <div className="mt-1 text-sm font-semibold truncate">{nextMilestone.label}</div>
             </div>
             <span className="shrink-0 rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-1.5 text-xs font-semibold tabular-nums text-[var(--accent)]">
               {Math.max(0, nextMilestone.req - (nextMilestone.type === "total" ? total : streak)).toLocaleString("ar-SA")}
-              {nextMilestone.type === "total" ? " ???" : " ???"}
+              {nextMilestone.type === "total" ? " ذكر" : " يوم"}
             </span>
           </div>
         ) : null}
@@ -1370,12 +1375,12 @@ export function InsightsPage() {
                   ? "border-[var(--accent)]/35 bg-[var(--accent)]/10"
                   : "border-white/8 bg-white/3 opacity-40 grayscale",
               ].join(" ")}
-              title={m.unlocked ? `????? � ${m.type === "total" ? `${m.req} ???` : `${m.req} ??? ?????`}` : `????? ${m.type === "total" ? `${m.req} ???` : `${m.req} ??? ??????`}`}
+              title={m.unlocked ? `مفتوح — ${m.type === "total" ? `${m.req} ذكر` : `${m.req} يوم سلسلة`}` : `يتطلب ${m.type === "total" ? `${m.req} ذكر` : `${m.req} يوم متواصل`}`}
             >
               <span className="text-2xl leading-none">{m.emoji}</span>
               <span className="text-[11px] font-medium text-center leading-tight">{m.label}</span>
               <span className="text-[10px] opacity-55 tabular-nums">
-                {m.type === "total" ? `${m.req}` : `${m.req}?`}
+                {m.type === "total" ? `${m.req}` : `${m.req}د`}
               </span>
             </div>
           ))}
@@ -1387,38 +1392,38 @@ export function InsightsPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-lg border ${isWirdDone ? "border-[var(--ok)]/30 bg-[var(--ok)]/10" : "border-white/10 bg-white/5"}`}>
-              {isWirdDone ? "?" : "??"}
+              {isWirdDone ? "✅" : "📖"}
             </div>
             <div>
-              <div className="text-sm font-semibold">??? ?????</div>
-              <div className="text-xs opacity-60 mt-0.5">{isWirdDone ? "????? ?????" : "?? ????? ???"}</div>
+              <div className="text-sm font-semibold">ورد اليوم</div>
+              <div className="text-xs opacity-60 mt-0.5">{isWirdDone ? "اكتمل اليوم" : "لم يكتمل بعد"}</div>
             </div>
           </div>
           <Button variant="secondary" onClick={() => navigate("/leaderboard")}>
             <Trophy size={15} />
-            ??????
+            ترتيبي
           </Button>
         </div>
       </Card>
 
       {/* Note */}
       <div className="text-xs opacity-50 leading-6 px-1">
-        ??????: ?????????? ????? ??? ?????. ??? ???? ?????? ???????/??????? ???? ?????.
+        ملاحظة: الإحصائيات محلية على جهازك. إذا حذفت بيانات المتصفح/التطبيق سيتم فقدها.
       </div>
 
-      {/* ?????? ??????? ??? ?????? */}
+      {/* إجمالي التسبيح مدى الحياة */}
       {Object.keys(tasbeehLifetime).length > 0 && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-base">??</span>
-            <div className="font-semibold text-sm">?????? ??????? ??? ??????</div>
+            <span className="text-base">📿</span>
+            <div className="font-semibold text-sm">إجمالي التسبيح مدى الحياة</div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { key: "subhanallah", label: "????? ????", emoji: "?" },
-              { key: "alhamdulillah", label: "????? ???", emoji: "??" },
-              { key: "la_ilaha_illallah", label: "?? ??? ??? ????", emoji: "??" },
-              { key: "allahu_akbar", label: "???? ????", emoji: "??" },
+              { key: "subhanallah", label: "سبحان الله", emoji: "✨" },
+              { key: "alhamdulillah", label: "الحمد لله", emoji: "🌿" },
+              { key: "la_ilaha_illallah", label: "لا إله إلا الله", emoji: "🌟" },
+              { key: "allahu_akbar", label: "الله أكبر", emoji: "💫" },
             ].map(({ key, label, emoji }) => {
               const count = tasbeehLifetime[key] ?? 0;
               return (
@@ -1444,12 +1449,12 @@ export function InsightsPage() {
 
 
 
-      {/* -- Phase 36: 30-Juz Progress Grid ------------------- */}
+      {/* ── Phase 36: 30-Juz Progress Grid ─────────────────── */}
       {quranStats.started > 0 && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
             <BookOpen size={16} className="text-[var(--accent)]" />
-            <div className="font-semibold text-sm">????? ??????? (30 ?????)</div>
+            <div className="font-semibold text-sm">تقدّم الأجزاء (30 جزءًا)</div>
           </div>
           <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(6, 1fr)" }}>
             {Array.from({ length: 30 }, (_, i) => {
@@ -1467,10 +1472,12 @@ export function InsightsPage() {
               const jpct = juzTotalAyahs > 0 ? Math.min(100, Math.round((juzReadAyahs / juzTotalAyahs) * 100)) : 0;
               const isDone = jpct >= 100;
               return (
-                <button type="button"
+                <button
                   key={juzNum}
+                  type="button"
                   onClick={() => navigate(`/quran?juz=${juzNum}`)}
-                  title={`????? ${juzNum}: ${jpct}%`}
+                  aria-label={`الجزء ${juzNum}: ${jpct}%`}
+                  title={`الجزء ${juzNum}: ${jpct}%`}
                   className="aspect-square flex flex-col items-center justify-center rounded-2xl border text-center transition hover:scale-105 active:scale-95"
                   style={{
                     border: isDone ? '1px solid var(--ok)' : jpct > 0 ? '1px solid rgba(var(--accent-raw,0,0,0),0.25)' : '1px solid rgba(255,255,255,0.08)',
@@ -1488,30 +1495,30 @@ export function InsightsPage() {
             })}
           </div>
           <div className="mt-3 flex items-center gap-2 justify-end text-[11px] opacity-55 flex-wrap">
-            <div className="w-3 h-3 rounded-sm" style={{ background: 'rgba(255,255,255,0.07)' }} /><span>?? ????</span>
-            <div className="w-3 h-3 rounded-sm" style={{ background: 'color-mix(in srgb, var(--accent) 50%, transparent)' }} /><span>????</span>
-            <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--ok)' }} /><span>?????</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: 'rgba(255,255,255,0.07)' }} /><span>لم يبدأ</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: 'color-mix(in srgb, var(--accent) 50%, transparent)' }} /><span>جزئي</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--ok)' }} /><span>مكتمل</span>
           </div>
         </Card>
       )}
 
-      {/* -- Phase 30: Quran Progress Share Card --------------- */}
+      {/* ── Phase 30: Quran Progress Share Card ─────────────── */}
       {quranStats.started > 0 && (
         <div ref={quranShareCardRef}>
         <Card className="p-5">
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
               <BookOpen size={16} className="text-[var(--accent)]" />
-              <div className="font-semibold text-sm">????? ???? ??????</div>
+              <div className="font-semibold text-sm">خريطة ختمة القرآن</div>
             </div>
             <Button variant="secondary" onClick={shareQuranProgress} disabled={quranSharing}>
               <Share2 size={14} />
-              {quranSharing ? "???? ???????..." : "??????"}
+              {quranSharing ? "جاري التحضير..." : "مشاركة"}
             </Button>
           </div>
 
           <div
-            aria-label="????? ???? ?????"
+            aria-label="خريطة تقدم السور"
             className="grid gap-1"
             style={{ gridTemplateColumns: "repeat(19, 1fr)" }}
           >
@@ -1523,7 +1530,7 @@ export function InsightsPage() {
               return (
                 <div
                   key={sId}
-                  title={`???? ${sId}: ${cpct}%`}
+                  title={`سورة ${sId}: ${cpct}%`}
                   className="aspect-square rounded-sm transition-colors"
                   style={{
                     background:
@@ -1540,16 +1547,16 @@ export function InsightsPage() {
 
           <div className="mt-3 flex items-center gap-2 justify-end text-[11px] opacity-60 flex-wrap">
             <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(255,255,255,0.07)" }} />
-            <span>?? ?????</span>
+            <span>لم يُقرأ</span>
             <div className="w-3 h-3 rounded-sm" style={{ background: "color-mix(in srgb, var(--accent) 50%, transparent)" }} />
-            <span>????</span>
+            <span>جزئي</span>
             <div className="w-3 h-3 rounded-sm" style={{ background: "var(--ok)" }} />
-            <span>?????</span>
+            <span>مكتمل</span>
           </div>
           <div className="mt-2 flex items-center gap-4 text-xs opacity-55 flex-wrap">
-            <span className="tabular-nums">{quranStats.completed} ???? ??????</span>
-            <span className="tabular-nums">{quranStats.started} ???? ????</span>
-            <span className="tabular-nums">{overallQuranProgress}% ?? ??????</span>
+            <span className="tabular-nums">{quranStats.completed} سورة مكتملة</span>
+            <span className="tabular-nums">{quranStats.started} سورة بدأت</span>
+            <span className="tabular-nums">{overallQuranProgress}% من القرآن</span>
           </div>
         </Card>
         </div>
@@ -1560,7 +1567,7 @@ export function InsightsPage() {
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <BarChart2 size={14} className="text-[var(--accent)]" />
-            <div className="text-xs font-semibold opacity-65">???? ???????</div>
+            <div className="text-xs font-semibold opacity-65">تقدم الأقسام</div>
           </div>
           <div className="space-y-2">
             {sectionProgress.map((s) => (
@@ -1596,4 +1603,3 @@ function MiniStatSmall(props: { label: string; value: string; accent?: boolean }
     </div>
   );
 }
-
