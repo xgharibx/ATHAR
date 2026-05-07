@@ -1,11 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Copy, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { DAILY_VERSES } from "@/data/dailyVerses";
 import { HADITHS } from "@/data/hadiths";
 import { getTodayWisdom } from "@/data/dailyWisdom";
 import { Button } from "@/components/ui/Button";
+import toast from "react-hot-toast";
 
 function dateIndex(dateKey: string, length: number, offset = 0): number {
   if (length === 0) return -1;
@@ -35,6 +36,19 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   }, [dateKey]);
 
   const wisdom = React.useMemo(() => getTodayWisdom(dateKey), [dateKey]);
+
+  const copyShare = React.useCallback(async (text: string) => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ text: text + "\n\n• ATHAR أثر" });
+      } else {
+        await navigator.clipboard.writeText(text);
+        toast.success("تم النسخ");
+      }
+    } catch {
+      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
+    }
+  }, []);
 
   const goTo = React.useCallback((idx: number) => {
     setActiveIdx(idx);
@@ -106,15 +120,24 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     <BookOpen size={12} />
                     اقرأ في سياقها
                   </Button>
-                  <span
-                    className="text-xs px-2 py-0.5 rounded-full font-medium"
-                    style={{
-                      background: "color-mix(in srgb, var(--accent) 15%, transparent)",
-                      color: "var(--accent)",
-                    }}
-                  >
-                    {verse.surahName} ﴿{verse.ayahIndex}﴾
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button type="button"
+                      onClick={() => copyShare(`${verse.arabic}\n— ${verse.surahName} ﴿${verse.ayahIndex}﴾`)}
+                      className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition"
+                      aria-label="مشاركة الآية"
+                    >
+                      <Share2 size={14} />
+                    </button>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full font-medium"
+                      style={{
+                        background: "color-mix(in srgb, var(--accent) 15%, transparent)",
+                        color: "var(--accent)",
+                      }}
+                    >
+                      {verse.surahName} ﴿{verse.ayahIndex}﴾
+                    </span>
+                  </div>
                 </div>
               </>
             ) : (
@@ -133,6 +156,13 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                   {hadith.arabic}
                 </div>
                 <div className="flex items-center gap-2 justify-end flex-wrap">
+                  <button type="button"
+                    onClick={() => copyShare(`${hadith.arabic}\n— ${hadith.narrator} • ${hadith.source}`)}
+                    className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition"
+                    aria-label="مشاركة الحديث"
+                  >
+                    <Share2 size={14} />
+                  </button>
                   <span className="text-xs opacity-60">{hadith.narrator}</span>
                   <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
                   <span
@@ -159,7 +189,14 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
             >
               {wisdom.text}
             </div>
-            <div className="mt-2 flex justify-end">
+            <div className="mt-2 flex items-center justify-between">
+              <button type="button"
+                onClick={() => copyShare(`${wisdom.text}\n— ${wisdom.source}`)}
+                className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition"
+                aria-label="مشاركة التدبر"
+              >
+                <Share2 size={14} />
+              </button>
               <span className="text-xs opacity-55 arabic-text">{wisdom.source}</span>
             </div>
           </div>

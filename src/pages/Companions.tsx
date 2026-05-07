@@ -1,16 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Users } from "lucide-react";
+import { ChevronRight, Users, Search, X } from "lucide-react";
 import { COMPANIONS, COMPANION_CATEGORIES, type Companion } from "@/data/companions";
 
 export default function Companions() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<Companion["category"] | "all">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
-  const filtered = activeCategory === "all"
-    ? COMPANIONS
-    : COMPANIONS.filter((c) => c.category === activeCategory);
+  const filtered = React.useMemo(() => {
+    let list = activeCategory === "all" ? COMPANIONS : COMPANIONS.filter((c) => c.category === activeCategory);
+    if (query.trim()) {
+      const q = query.trim();
+      list = list.filter((c) =>
+        c.name.includes(q) ||
+        c.brief.includes(q) ||
+        (c.title ?? "").includes(q)
+      );
+    }
+    return list;
+  }, [activeCategory, query]);
 
   return (
     <div className="min-h-screen-safe pb-24" style={{ background: "var(--bg)" }} dir="rtl">
@@ -73,6 +83,25 @@ export default function Companions() {
               </button>
             );
           })}
+        </div>
+
+        {/* Search */}
+        <div className="relative mt-2">
+          <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+          <input
+            type="search"
+            dir="rtl"
+            placeholder="ابحث في الصحابة…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none border"
+            style={{ background: "var(--card-bg)", color: "var(--fg)", borderColor: "var(--card-border)" }}
+          />
+          {query && (
+            <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
+              <X size={13} />
+            </button>
+          )}
         </div>
       </div>
 

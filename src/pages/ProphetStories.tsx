@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import { PROPHET_STORIES, type ProphetStory } from "@/data/prophetStories";
 
 function StoryCard({ story }: { story: ProphetStory }) {
@@ -71,6 +71,17 @@ function StoryCard({ story }: { story: ProphetStory }) {
 
 export function ProphetStoriesPage() {
   const navigate = useNavigate();
+  const [query, setQuery] = React.useState("");
+
+  const filtered = React.useMemo(() => {
+    if (!query.trim()) return PROPHET_STORIES;
+    const q = query.trim();
+    return PROPHET_STORIES.filter((s) =>
+      s.nameAr.includes(q) ||
+      s.summary.includes(q) ||
+      (s.lessons ?? []).some((l) => l.includes(q))
+    );
+  }, [query]);
 
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32">
@@ -79,7 +90,7 @@ export function ProphetStoriesPage() {
         className="sticky top-0 z-20 px-4 pt-4 pb-3"
         style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-2">
           <button type="button"
             onClick={() => navigate(-1)}
             aria-label="رجوع"
@@ -93,15 +104,34 @@ export function ProphetStoriesPage() {
               قصص الأنبياء
             </h1>
             <p className="text-xs opacity-60" style={{ color: "var(--fg)" }}>
-              {PROPHET_STORIES.length} نبيًا من أولي العزم والمرسلين
+              {filtered.length} من {PROPHET_STORIES.length} نبيًا
             </p>
           </div>
+        </div>
+        <div className="relative">
+          <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+          <input
+            type="search"
+            dir="rtl"
+            placeholder="ابحث باسم النبي أو الدرس…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none border"
+            style={{ background: "var(--card-bg)", color: "var(--fg)", borderColor: "var(--card-border)" }}
+          />
+          {query && (
+            <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
+              <X size={13} />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Stories */}
       <div className="px-4 pt-4 space-y-3">
-        {PROPHET_STORIES.map((story) => (
+        {filtered.length === 0 ? (
+          <div className="text-center py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>لا توجد نتائج</div>
+        ) : filtered.map((story) => (
           <StoryCard key={story.id} story={story} />
         ))}
       </div>

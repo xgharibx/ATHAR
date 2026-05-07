@@ -1,15 +1,28 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Clock } from "lucide-react";
+import { ChevronRight, Clock, Search, X } from "lucide-react";
 import { SEERAH_EVENTS, SEERAH_CATEGORIES, type SeerahEvent } from "@/data/seerahTimeline";
 
 export default function SeerahTimeline() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<SeerahEvent["category"] | "all">("all");
+  const [query, setQuery] = useState("");
 
-  const filtered = activeCategory === "all"
-    ? SEERAH_EVENTS
-    : SEERAH_EVENTS.filter((e) => e.category === activeCategory);
+  const filtered = React.useMemo(() => {
+    let events = activeCategory === "all"
+      ? SEERAH_EVENTS
+      : SEERAH_EVENTS.filter((e) => e.category === activeCategory);
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      events = events.filter((e) =>
+        e.title.includes(query.trim()) ||
+        e.description.includes(query.trim()) ||
+        e.title.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q)
+      );
+    }
+    return events;
+  }, [activeCategory, query]);
 
   const getCategoryColor = (cat: SeerahEvent["category"]): string => {
     return SEERAH_CATEGORIES.find((c) => c.key === cat)?.color ?? "#6b7280";
@@ -76,6 +89,25 @@ export default function SeerahTimeline() {
             );
           })}
         </div>
+
+        {/* Search box */}
+        <div className="relative mt-2">
+          <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+          <input
+            type="search"
+            dir="rtl"
+            placeholder="ابحث في أحداث السيرة…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none border"
+            style={{ background: "var(--card-bg)", color: "var(--fg)", borderColor: "var(--card-border)" }}
+          />
+          {query && (
+            <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
+              <X size={13} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Timeline */}
@@ -88,7 +120,11 @@ export default function SeerahTimeline() {
           />
 
           <div className="flex flex-col gap-4">
-            {filtered.map((event, idx) => {
+            {filtered.length === 0 ? (
+              <div className="text-center py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>
+                لا توجد نتائج
+              </div>
+            ) : filtered.map((event, idx) => {
               const color = getCategoryColor(event.category);
               return (
                 <div key={event.id} className="flex items-start gap-4">
