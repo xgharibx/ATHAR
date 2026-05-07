@@ -181,7 +181,7 @@ export function QuranVocabPage() {
               مفردات القرآن
             </h1>
             <p className="text-xs opacity-60" style={{ color: "var(--fg)" }}>
-              {reviewMode ? "مراجعة • " : ""}{cardIndex + 1} / {deck.length} • {learned.size} محفوظة
+              {reviewMode ? "مراجعة • " : ""}{(cardIndex + 1).toLocaleString("ar-EG")} / {deck.length.toLocaleString("ar-EG")} • {learned.size.toLocaleString("ar-EG")} محفوظة
             </p>
           </div>
           <button type="button"

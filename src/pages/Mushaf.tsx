@@ -1346,7 +1346,7 @@ export function MushafPage() {
 
           {/* Page number */}
           <div className={`mushaf-page-num ${currentPage % 2 === 0 ? "left" : "right"}`}>
-            {currentPage}
+            {toArabicNumeral(currentPage)}
           </div>
 
           {/* Bottom page nav */}
@@ -1360,7 +1360,7 @@ export function MushafPage() {
               <ChevronLeft size={15} />
               <span>التالية</span>
             </button>
-            <span className="mushaf-page-nav-num">{currentPage} / {totalPages}</span>
+            <span className="mushaf-page-nav-num">{toArabicNumeral(currentPage)} / {toArabicNumeral(totalPages)}</span>
             <button type="button"
               className="mushaf-page-nav-btn"
               onClick={(e) => { e.stopPropagation(); goPage(currentPage - 1); }}
@@ -1471,7 +1471,7 @@ export function MushafPage() {
             className={`mushaf-page-chip${p === currentPage ? " active" : ""}`}
             onClick={(e) => { e.stopPropagation(); goPage(p); }}
           >
-            {p}
+            {toArabicNumeral(p)}
           </button>
         ))}
       </div>

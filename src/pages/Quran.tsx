@@ -358,9 +358,9 @@ export function QuranPage() {
             className="px-5 py-2.5 flex items-center gap-4 text-xs opacity-50 flex-wrap"
             style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 35%, transparent)" }}
           >
-            <span>📖 {quranStats.started} سورة</span>
-            {quranStreak > 0 && <span>🔥 {quranStreak} يوم</span>}
-            {quranStats.completed > 0 && <span style={{ color: "var(--ok)", opacity: 1 }}>✓ {quranStats.completed} مكتملة</span>}
+            <span>📖 {quranStats.started.toLocaleString("ar-EG")} سورة</span>
+            {quranStreak > 0 && <span>🔥 {quranStreak.toLocaleString("ar-EG")} يوم</span>}
+            {quranStats.completed > 0 && <span style={{ color: "var(--ok)", opacity: 1 }}>✓ {quranStats.completed.toLocaleString("ar-EG")} مكتملة</span>}
             {/* Plans page link */}
             <button type="button"
               onClick={() => navigate("/quran/plans")}
@@ -368,7 +368,7 @@ export function QuranPage() {
             >
               <span>📅 خطط التلاوة</span>
               {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished && (
-                <span style={{ color: "var(--accent)", opacity: 1 }}>{khatma.meta.percent}%</span>
+                <span style={{ color: "var(--accent)", opacity: 1 }}>{khatma.meta.percent.toLocaleString("ar-EG")}٪</span>
               )}
               {khatmaStartISO && khatmaDays && khatma?.isFinished && (
                 <span style={{ color: "var(--ok)", opacity: 1 }}>✓</span>
@@ -444,8 +444,8 @@ export function QuranPage() {
               onClick={async () => {
                 const percent = khatma.meta.percent;
                 const text = khatma.isFinished
-                  ? `🎉 أتممت ختمة القرآن الكريم بحمد الله!\n\nخطة ${khatmaDays} يوم — أثر ✨`
-                  : `📖 تقدمي في ختمة القرآن الكريم: ${percent}٪\nاليوم ${khatma.dayIndex + 1} من ${khatma.days}\n\nاترك أثراً طيباً — أثر`;
+                  ? `🎉 أتممت ختمة القرآن الكريم بحمد الله!\n\nخطة ${(khatmaDays ?? 0).toLocaleString("ar-EG")} يوم — أثر ✨`
+                  : `📖 تقدمي في ختمة القرآن الكريم: ${percent.toLocaleString("ar-EG")}٪\nاليوم ${(khatma.dayIndex + 1).toLocaleString("ar-EG")} من ${khatma.days.toLocaleString("ar-EG")}\n\nاترك أثراً طيباً — أثر`;
                 if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
                 else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
               }}
@@ -469,7 +469,7 @@ export function QuranPage() {
                     toast.success("تم بدء الخطة");
                   }}
                 >
-                  {days} يوم
+                  {days.toLocaleString("ar-EG")} يوم
                 </Button>
               ))}
             </div>
@@ -485,9 +485,9 @@ export function QuranPage() {
           <div className="mt-4">
             <div className="flex flex-wrap items-center gap-2">
               <Badge>
-                {khatma.isFinished ? "تمت الختمة" : `اليوم ${khatma.dayIndex + 1} من ${khatma.days}`}
+                {khatma.isFinished ? "تمت الختمة" : `اليوم ${(khatma.dayIndex + 1).toLocaleString("ar-EG")} من ${khatma.days.toLocaleString("ar-EG")}`}
               </Badge>
-              <Badge>{`إنجاز: ${khatma.meta.doneCount}/${khatma.days} (${khatma.meta.percent}%)`}</Badge>
+              <Badge>{`إنجاز: ${khatma.meta.doneCount.toLocaleString("ar-EG")}/${khatma.days.toLocaleString("ar-EG")} (${khatma.meta.percent.toLocaleString("ar-EG")}٪)`}</Badge>
             </div>
 
             {!khatma.isFinished ? (
@@ -501,11 +501,11 @@ export function QuranPage() {
 
                 <div className="flex items-center gap-2">
                   <div className="text-xs opacity-65">حصة اليوم</div>
-                  <span className="text-[10px] opacity-40 tabular-nums">{khatma.chunk} آية</span>
+                  <span className="text-[10px] opacity-40 tabular-nums">{khatma.chunk.toLocaleString("ar-EG")} آية</span>
                 </div>
                 <div className="mt-2 text-sm leading-7">
-                  من <span className="font-semibold">{khatma.today.first.surahName}</span> ﴿{khatma.today.first.ayahIndex}﴾
-                  إلى <span className="font-semibold">{khatma.today.last.surahName}</span> ﴿{khatma.today.last.ayahIndex}﴾
+                  من <span className="font-semibold">{khatma.today.first.surahName}</span> ﴿{khatma.today.first.ayahIndex.toLocaleString("ar-EG")}﴾
+                  إلى <span className="font-semibold">{khatma.today.last.surahName}</span> ﴿{khatma.today.last.ayahIndex.toLocaleString("ar-EG")}﴾
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -539,7 +539,7 @@ export function QuranPage() {
                         toast.success("تم بدء خطة جديدة");
                       }}
                     >
-                      خطة {days} يوم
+                      خطة {days.toLocaleString("ar-EG")} يوم
                     </Button>
                   ))}
                 </div>
@@ -639,7 +639,7 @@ export function QuranPage() {
                   >
                     {bm.highlight && hlSwatches[bm.highlight] && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: hlSwatches[bm.highlight] }} />}
                     <span className="arabic-text text-sm font-medium">{bm.surahName}</span>
-                    <span className="text-xs opacity-45 tabular-nums mr-auto">﴿{bm.ayahIndex}﴾</span>
+                    <span className="text-xs opacity-45 tabular-nums mr-auto">﴿{bm.ayahIndex.toLocaleString("ar-EG")}﴾</span>
                     {bm.note && <span className="text-[11px] opacity-45 truncate max-w-[100px]">{bm.note.slice(0, 40)}</span>}
                   </button>
                 );
@@ -668,7 +668,7 @@ export function QuranPage() {
                       style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)", color: "var(--accent)" }}
                     >
                       <span className="arabic-text font-semibold">{surah.name}</span>
-                      {pct > 0 && <span className="opacity-60 tabular-nums">{pct}%</span>}
+                      {pct > 0 && <span className="opacity-60 tabular-nums">{pct.toLocaleString("ar-EG")}٪</span>}
                     </button>
                   );
                 })}
@@ -691,13 +691,13 @@ export function QuranPage() {
                   key={j}
                   className={`quran-juz-btn ${isActive ? "active" : ""}`}
                   onClick={() => setFilterJuz(filterJuz === j ? null : j)}
-                  title={jpct > 0 ? `الجزء ${j}: ${jpct}%` : undefined}
+                  title={jpct > 0 ? `الجزء ${j.toLocaleString("ar-EG")}: ${jpct.toLocaleString("ar-EG")}٪` : undefined}
                   style={!isActive && jpct > 0 ? {
                     background: isDone ? "rgba(52,211,153,0.18)" : `color-mix(in srgb, var(--accent) ${Math.round(12 + jpct * 0.45)}%, transparent)`,
                     borderColor: isDone ? "rgba(52,211,153,0.4)" : "var(--accent-subtle, rgba(var(--accent-rgb),0.3))"
                   } : undefined}
                 >
-                  {j}
+                  {j.toLocaleString("ar-EG")}
                   {isDone && <span className="block text-[7px] leading-none" style={{ color: "var(--ok)" }}>✓</span>}
                 </button>
               );
@@ -707,14 +707,14 @@ export function QuranPage() {
           {/* Juz filter label */}
           {filterJuz !== null && (
             <div className="flex items-center gap-2 px-4 py-2 text-xs" style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 25%, transparent)" }}>
-              <span className="opacity-55">{sortedFiltered.length} سورة — الجزء {filterJuz}</span>
+              <span className="opacity-55">{sortedFiltered.length.toLocaleString("ar-EG")} سورة — الجزء {(filterJuz as number).toLocaleString("ar-EG")}</span>
               {(juzProgress[filterJuz] ?? 0) > 0 && (
                 <span className="px-2 py-0.5 rounded-full border tabular-nums font-semibold"
                   style={(juzProgress[filterJuz] ?? 0) >= 100
                     ? { background: "rgba(52,211,153,0.12)", color: "var(--ok)", borderColor: "rgba(52,211,153,0.25)" }
                     : { background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)", borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)" }}
                 >
-                  {juzProgress[filterJuz]}%
+                  {(juzProgress[filterJuz] ?? 0).toLocaleString("ar-EG")}٪
                 </span>
               )}
               <button type="button" onClick={() => setFilterJuz(null)} className="mr-auto opacity-45 hover:opacity-80 transition">✕</button>
@@ -779,9 +779,9 @@ export function QuranPage() {
             <div className="text-sm font-semibold quran-title">نتائج البحث</div>
             <div className="flex items-center gap-2">
               {ayahTotalFound > ayahResults.length && (
-                <span className="text-[11px] opacity-55">أول {ayahResults.length} من {ayahTotalFound}</span>
+                <span className="text-[11px] opacity-55">أول {ayahResults.length.toLocaleString("ar-EG")} من {ayahTotalFound.toLocaleString("ar-EG")}</span>
               )}
-              <Badge className="tabular-nums">{ayahResults.length}</Badge>
+              <Badge className="tabular-nums">{ayahResults.length.toLocaleString("ar-EG")}</Badge>
             </div>
           </div>
 
@@ -803,13 +803,13 @@ export function QuranPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-sm font-semibold arabic-text truncate">
-                        {r.surahName} • ﴿{r.ayahIndex}﴾
+                        {r.surahName} • ﴿{r.ayahIndex.toLocaleString("ar-EG")}﴾
                       </div>
                       <div className="mt-2 text-sm opacity-80 leading-8 arabic-text line-clamp-2">
                         {r.text}
                       </div>
                     </div>
-                    <div className="text-xs opacity-60 tabular-nums">{r.surahId}</div>
+                    <div className="text-xs opacity-60 tabular-nums">{r.surahId.toLocaleString("ar-EG")}</div>
                   </div>
                 </button>
               ))}
