@@ -5,7 +5,7 @@
  */
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, BrainCircuit, CheckCircle, ChevronLeft, ChevronRight, Copy } from "lucide-react";
+import { ArrowRight, BrainCircuit, CheckCircle, ChevronLeft, ChevronRight, Copy, Share2 } from "lucide-react";
 import { useHadithPack } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
@@ -351,6 +351,23 @@ export function HadithMemoPage() {
                 title="نسخ الحديث"
               >
                 <Copy size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const text = `${currentHadith.t}\n\n• ATHAR أثر — الأربعون النووية`;
+                  try {
+                    if (navigator.share) { await navigator.share({ text }); }
+                    else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
+                  } catch {
+                    try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
+                  }
+                }}
+                className="p-1.5 rounded-lg opacity-50 hover:opacity-90 transition"
+                style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
+                title="مشاركة الحديث"
+              >
+                <Share2 size={14} />
               </button>
             </div>
             <button type="button"
