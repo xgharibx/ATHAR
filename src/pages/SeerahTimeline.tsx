@@ -1,12 +1,23 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Clock, Search, X } from "lucide-react";
+import { ChevronRight, Clock, Search, X, Share2 } from "lucide-react";
 import { SEERAH_EVENTS, SEERAH_CATEGORIES, type SeerahEvent } from "@/data/seerahTimeline";
+import toast from "react-hot-toast";
 
 export default function SeerahTimeline() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<SeerahEvent["category"] | "all">("all");
   const [query, setQuery] = useState("");
+
+  const shareEvent = React.useCallback(async (event: SeerahEvent) => {
+    const text = `${event.title} (${event.year})\n\n${event.description}\n\n• ATHAR أثر`;
+    try {
+      if (navigator.share) { await navigator.share({ text }); }
+      else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
+    } catch {
+      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch {}
+    }
+  }, []);
 
   const filtered = React.useMemo(() => {
     let events = activeCategory === "all"
@@ -164,6 +175,18 @@ export default function SeerahTimeline() {
                     <p className="text-xs font-arabic leading-6" style={{ color: "var(--muted)" }}>
                       {event.description}
                     </p>
+                    <div className="flex justify-end mt-2">
+                      <button
+                        type="button"
+                        onClick={() => void shareEvent(event)}
+                        className="flex items-center gap-1 text-[11px] opacity-50 hover:opacity-80 transition px-2 py-1 rounded-lg"
+                        style={{ color: "var(--fg)" }}
+                        aria-label="مشاركة"
+                      >
+                        <Share2 size={12} />
+                        مشاركة
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

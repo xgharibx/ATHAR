@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2, BookOpen, ScrollText, Bookmark } from "lucide-react";
+import { Heart, ArrowUpRight, Trash2, Copy, Check, CopyCheck, Share2, BookOpen, ScrollText, Bookmark, Star, Users } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
@@ -14,6 +14,26 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useHadithPack } from "@/data/useHadithBook";
 import { DUAS_CATEGORIES } from "@/data/duas";
+import { PROPHET_STORIES } from "@/data/prophetStories";
+import { COMPANIONS } from "@/data/companions";
+
+function useLocalBookmarkSet(key: string): [Set<string>, (id: string) => void] {
+  const [ids, setIds] = React.useState<Set<string>>(() => {
+    try {
+      const v = localStorage.getItem(key);
+      return v ? new Set(JSON.parse(v) as string[]) : new Set();
+    } catch { return new Set(); }
+  });
+  const remove = React.useCallback((id: string) => {
+    setIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      localStorage.setItem(key, JSON.stringify([...next]));
+      return next;
+    });
+  }, [key]);
+  return [ids, remove];
+}
 
 export function FavoritesPage() {
   const { data } = useAdhkarDB();
@@ -32,7 +52,20 @@ export function FavoritesPage() {
   const duaFavorites = useNoorStore((s) => s.duaFavorites ?? []);
   const toggleDuaFavorite = useNoorStore((s) => s.toggleDuaFavorite);
 
-  const [activeTab, setActiveTab] = React.useState<"adhkar" | "quran" | "hadith" | "duas">("adhkar");
+  const [activeTab, setActiveTab] = React.useState<"adhkar" | "quran" | "hadith" | "duas" | "stories" | "companions">("adhkar");
+
+  // localStorage bookmarks
+  const [storyBookmarkSet, removeStoryBookmark] = useLocalBookmarkSet("noor_story_bookmarks");
+  const [companionBookmarkSet, removeCompanionBookmark] = useLocalBookmarkSet("noor_companion_bookmarks");
+
+  const storyFavItems = React.useMemo(
+    () => PROPHET_STORIES.filter((s) => storyBookmarkSet.has(s.id)),
+    [storyBookmarkSet]
+  );
+  const companionFavItems = React.useMemo(
+    () => COMPANIONS.filter((c) => companionBookmarkSet.has(c.id)),
+    [companionBookmarkSet]
+  );
 
   // Group bookmarked hadiths by book
   const hadithBmList = React.useMemo(() => {
@@ -192,7 +225,7 @@ export function FavoritesPage() {
               </>
             )}
             <div className="text-xs opacity-70 pr-1">
-              {activeTab === "adhkar" ? `${items.length} ذكر` : activeTab === "quran" ? `${quranBmList.length} علامة` : `${hadithBmList.length} حديث`}
+              {activeTab === "adhkar" ? `${items.length} ذكر` : activeTab === "quran" ? `${quranBmList.length} علامة` : activeTab === "hadith" ? `${hadithBmList.length} حديث` : activeTab === "duas" ? `${duaFavItems.length} دعاء` : activeTab === "stories" ? `${storyFavItems.length} قصة` : `${companionFavItems.length} صحابي`}
             </div>
           </div>
         </div>
@@ -201,11 +234,11 @@ export function FavoritesPage() {
         </div>
 
         {/* Tab switcher */}
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           <button type="button"
             onClick={() => setActiveTab("adhkar")}
             className={[
-              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
+              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "adhkar"
                 ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
@@ -217,7 +250,7 @@ export function FavoritesPage() {
           <button type="button"
             onClick={() => setActiveTab("quran")}
             className={[
-              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
+              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "quran"
                 ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
@@ -229,7 +262,7 @@ export function FavoritesPage() {
           <button type="button"
             onClick={() => setActiveTab("hadith")}
             className={[
-              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
+              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "hadith"
                 ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
@@ -241,7 +274,7 @@ export function FavoritesPage() {
           <button type="button"
             onClick={() => setActiveTab("duas")}
             className={[
-              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
+              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "duas"
                 ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
@@ -249,6 +282,30 @@ export function FavoritesPage() {
           >
             <Bookmark size={14} />
             الأدعية {duaFavItems.length > 0 && <span className="text-[11px] opacity-60">({duaFavItems.length})</span>}
+          </button>
+          <button type="button"
+            onClick={() => setActiveTab("stories")}
+            className={[
+              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
+              activeTab === "stories"
+                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+            ].join(" ")}
+          >
+            <Star size={14} />
+            القصص {storyFavItems.length > 0 && <span className="text-[11px] opacity-60">({storyFavItems.length})</span>}
+          </button>
+          <button type="button"
+            onClick={() => setActiveTab("companions")}
+            className={[
+              "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
+              activeTab === "companions"
+                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+            ].join(" ")}
+          >
+            <Users size={14} />
+            الصحابة {companionFavItems.length > 0 && <span className="text-[11px] opacity-60">({companionFavItems.length})</span>}
           </button>
         </div>
       </Card>
@@ -529,6 +586,107 @@ export function FavoritesPage() {
                       <Trash2 size={14} />
                     </Button>
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+      {/* ── Prophet Stories bookmarks tab ── */}
+      {activeTab === "stories" && (
+        <Card className="p-5">
+          {storyFavItems.length === 0 ? (
+            <EmptyState
+              variant="favorites"
+              title="لا توجد قصص محفوظة"
+              description="اضغط على زر الحفظ داخل أي قصة نبي لتجدها هنا"
+              action={
+                <button type="button"
+                  onClick={() => navigate("/stories")}
+                  className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+                >
+                  استعرض القصص ◄
+                </button>
+              }
+            />
+          ) : (
+            <div className="space-y-3" dir="rtl">
+              {storyFavItems.map((story) => (
+                <div
+                  key={story.id}
+                  className="glass rounded-2xl p-4 border border-white/10"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-base font-bold shrink-0"
+                      style={{ background: "var(--accent)", color: "#fff" }}
+                    >
+                      {story.nameAr.charAt(0)}
+                    </div>
+                    <div className="flex-1 text-right">
+                      <div className="font-bold text-sm arabic-text">{story.nameAr}</div>
+                      {story.period && <div className="text-xs opacity-50">{story.period}</div>}
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => { removeStoryBookmark(story.id); toast.success("تمت الإزالة"); }}
+                      aria-label="إزالة الحفظ"
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+                  <p className="text-xs opacity-60 leading-6 text-right line-clamp-2">{story.summary}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* ── Companions bookmarks tab ── */}
+      {activeTab === "companions" && (
+        <Card className="p-5">
+          {companionFavItems.length === 0 ? (
+            <EmptyState
+              variant="favorites"
+              title="لا توجد صحابة محفوظون"
+              description="اضغط على زر الحفظ داخل أي صحابي لتجده هنا"
+              action={
+                <button type="button"
+                  onClick={() => navigate("/companions")}
+                  className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
+                >
+                  استعرض الصحابة ◄
+                </button>
+              }
+            />
+          ) : (
+            <div className="space-y-3" dir="rtl">
+              {companionFavItems.map((companion) => (
+                <div
+                  key={companion.id}
+                  className="glass rounded-2xl p-4 border border-white/10 flex items-start gap-3"
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                    style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)" }}
+                  >
+                    {companion.icon}
+                  </div>
+                  <div className="flex-1 text-right min-w-0">
+                    <div className="font-bold arabic-text text-sm">{companion.name}</div>
+                    {companion.title && (
+                      <div className="text-xs" style={{ color: "var(--accent)" }}>{companion.title}</div>
+                    )}
+                    <p className="text-xs opacity-55 mt-1 line-clamp-2 leading-5">{companion.brief}</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => { removeCompanionBookmark(companion.id); toast.success("تمت الإزالة"); }}
+                    aria-label="إزالة الحفظ"
+                  >
+                    <Trash2 size={14} />
+                  </Button>
                 </div>
               ))}
             </div>
