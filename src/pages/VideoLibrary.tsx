@@ -509,50 +509,66 @@ function VideoListRow({
   bookmarked: boolean;
   onClick: () => void;
 }) {
-  const accent = channel?.accent ?? "var(--accent)";
+  const accent = channel?.accent ?? "#fbbf24";
   const pct = progress?.completed ? 100 : (progress?.percent ?? 0);
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-right rounded-2xl border border-white/8 bg-white/4 hover:bg-white/6 press-effect p-2.5 flex gap-3 transition-colors"
+      className="w-full text-right press-effect rounded-2xl overflow-hidden border border-transparent hover:border-white/10 transition-all"
     >
-      <div className="w-24 h-[52px] rounded-xl bg-black/30 border border-white/10 overflow-hidden shrink-0 relative flex items-center justify-center">
+      {/* Wide 16/9 thumbnail */}
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
         {video.thumbnail ? (
           <img src={video.thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
         ) : (
-          <div
-            className="absolute inset-0"
-            style={{ background: `radial-gradient(ellipse at center, ${accent}25 0%, transparent 70%)` }}
-          />
-        )}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-7 h-7 rounded-full bg-black/50 border border-white/20 flex items-center justify-center">
-            <Play size={10} className="text-white" style={{ marginLeft: 1 }} />
+          <div className="w-full h-full flex items-center justify-center" style={{ background: `${accent}18` }}>
+            <Play size={20} className="opacity-30" />
           </div>
-        </div>
+        )}
+
+        {/* Duration badge bottom-left */}
+        {video.durationSeconds > 0 && (
+          <div
+            className="absolute bottom-1.5 left-1.5 px-1.5 h-5 rounded-md flex items-center text-[10px] font-semibold"
+            style={{ background: "rgba(0,0,0,0.75)" }}
+          >
+            {formatDuration(video.durationSeconds)}
+          </div>
+        )}
+
+        {/* Completed badge bottom-right */}
+        {progress?.completed && (
+          <div
+            className="absolute bottom-1.5 right-1.5 w-5 h-5 rounded-md flex items-center justify-center"
+            style={{ background: "rgba(0,0,0,0.75)" }}
+          >
+            <CheckCircle2 size={11} style={{ color: accent }} />
+          </div>
+        )}
+
+        {/* Bookmark dot top-right */}
+        {bookmarked && (
+          <div className="absolute top-1.5 right-1.5">
+            <Bookmark size={11} className="fill-[var(--accent)] text-[var(--accent)]" />
+          </div>
+        )}
+
+        {/* Progress bar */}
         {pct > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10">
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/10">
             <div className="h-full" style={{ width: `${pct}%`, background: accent }} />
           </div>
         )}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start gap-1.5">
-          <div className="text-[13px] font-semibold line-clamp-2 arabic-text flex-1 leading-4">{video.title}</div>
-          {bookmarked && <Bookmark size={11} className="fill-[var(--accent)] text-[var(--accent)] shrink-0 mt-0.5" />}
+
+      {/* Title + channel below */}
+      <div className="p-2 pt-1.5" style={{ background: "rgba(255,255,255,0.03)" }}>
+        <div className="text-[12px] font-semibold arabic-text leading-[1.4] line-clamp-2 opacity-90">
+          {video.title}
         </div>
-        <div className="text-[10px] opacity-40 mt-0.5">{channel?.displayName}</div>
-        <div className="flex items-center gap-2 mt-1">
-          <Clock size={9} className="opacity-35 shrink-0" />
-          <span className="text-[10px] opacity-40">{formatDuration(video.durationSeconds)}</span>
-          {progress?.completed && (
-            <span className="text-[10px] flex items-center gap-0.5" style={{ color: accent }}>
-              <CheckCircle2 size={9} /> مكتمل
-            </span>
-          )}
-        </div>
+        <div className="text-[10px] opacity-35 mt-0.5">{channel?.displayName}</div>
       </div>
     </button>
   );
@@ -1455,7 +1471,7 @@ function WatchScreen({
               {channel?.displayName}
             </span>
           </div>
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2.5">
             {related.map((v) => (
               <VideoListRow
                 key={v.id}
