@@ -60,7 +60,11 @@ export function DhikrCard(props: {
   const [swipeHint, setSwipeHint] = React.useState(false);
   const [isLongPressing, setIsLongPressing] = React.useState(false);
   const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  React.useEffect(() => () => { if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current); }, []);
+  const mountedRef = React.useRef(true);
+  React.useEffect(() => () => {
+    mountedRef.current = false;
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+  }, []);
   const [confirmItemReset, setConfirmItemReset] = React.useState(false);
   // D5: per-card local font scale
   const [localFontScale, setLocalFontScale] = React.useState(1.0);
@@ -96,6 +100,7 @@ export function DhikrCard(props: {
     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
     setIsLongPressing(true);
     longPressTimerRef.current = setTimeout(() => {
+      if (!mountedRef.current) return;
       setIsLongPressing(false);
       void doCopy();
       if (navigator.vibrate) navigator.vibrate([20, 10, 20]);
@@ -250,7 +255,7 @@ export function DhikrCard(props: {
       // Haptic + auto-advance signal after a short delay
       if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
       if (prefs.autoAdvanceDhikr && props.onComplete) {
-        setTimeout(() => props.onComplete?.(), 480);
+        setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 480);
       }
     }
   };

@@ -157,18 +157,21 @@ export function DhikrList(props: Readonly<{
   const [autoReadIdx, setAutoReadIdx] = React.useState(0);
   const [autoReadCountdown, setAutoReadCountdown] = React.useState(0);
   const autoReadIntervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  // Keep speed in a ref so the interval can read the latest value without restarting
+  const autoReadSpeedRef = React.useRef(autoReadSpeed);
+  React.useEffect(() => { autoReadSpeedRef.current = autoReadSpeed; }, [autoReadSpeed]);
   const stopAutoRead = React.useCallback(() => {
     setAutoReadActive(false);
     if (autoReadIntervalRef.current) { clearInterval(autoReadIntervalRef.current); autoReadIntervalRef.current = null; }
   }, []);
   const startAutoRead = React.useCallback(() => {
     setAutoReadIdx(0);
-    setAutoReadCountdown(autoReadSpeed);
+    setAutoReadCountdown(autoReadSpeedRef.current);
     setAutoReadActive(true);
-  }, [autoReadSpeed]);
+  }, []);
   React.useEffect(() => {
     if (!autoReadActive) return;
-    let remaining = autoReadSpeed;
+    let remaining = autoReadSpeedRef.current;
     let currentIdx = autoReadIdx;
     setAutoReadCountdown(remaining);
     virtuosoRef.current?.scrollToIndex({ index: currentIdx, align: "start", behavior: "smooth" });
@@ -182,7 +185,8 @@ export function DhikrList(props: Readonly<{
           toast.success("تمت القراءة التلقائية ✓");
           return;
         }
-        remaining = autoReadSpeed;
+        // Re-read speed from ref so live speed changes take effect immediately
+        remaining = autoReadSpeedRef.current;
         setAutoReadCountdown(remaining);
         setAutoReadIdx(currentIdx);
         virtuosoRef.current?.scrollToIndex({ index: currentIdx, align: "start", behavior: "smooth" });
@@ -190,8 +194,7 @@ export function DhikrList(props: Readonly<{
     }, 1000);
     autoReadIntervalRef.current = id;
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoReadActive, autoReadSpeed, orderedEntries.length]);
+  }, [autoReadActive, autoReadIdx, orderedEntries.length, stopAutoRead]);
   React.useEffect(() => () => { if (autoReadIntervalRef.current) clearInterval(autoReadIntervalRef.current); }, []);
 
   // Apply / remove focus-mode class on body

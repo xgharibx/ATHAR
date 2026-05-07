@@ -113,17 +113,20 @@ export function CommandPalette(props: Props) {
 
   const ayahResults = React.useMemo(() => {
     if (!ayahFuse || query.trim().length < 3) return [] as typeof ayahIndex;
-    return ayahFuse.search(normalizeArabic(query)).slice(0, 6).map((r) => r.item);
+    try { return ayahFuse.search(normalizeArabic(query)).slice(0, 6).map((r) => r.item); }
+    catch { return [] as typeof ayahIndex; }
   }, [ayahFuse, query, normalizeArabic]);
 
   const libraryResults = React.useMemo(() => {
     if (!libraryFuse || query.trim().length < 2) return [];
-    return libraryFuse.search(normalizeArabic(query)).slice(0, 8).map((r) => r.item);
+    try { return libraryFuse.search(normalizeArabic(query)).slice(0, 8).map((r) => r.item); }
+    catch { return []; }
   }, [libraryFuse, normalizeArabic, query]);
 
   const surahResults = React.useMemo(() => {
     if (!surahFuse || !query.trim()) return [] as NonNullable<typeof quranData>;
-    return surahFuse.search(query).slice(0, 8).map((r) => r.item);
+    try { return surahFuse.search(query).slice(0, 8).map((r) => r.item); }
+    catch { return [] as NonNullable<typeof quranData>; }
   }, [surahFuse, query]);
 
   React.useEffect(() => {
@@ -135,8 +138,12 @@ export function CommandPalette(props: Props) {
       setResults([]);
       return;
     }
-    const out = fuse.search(query).slice(0, 12).map((r) => r.item);
-    setResults(out);
+    try {
+      const out = fuse.search(query).slice(0, 12).map((r) => r.item);
+      setResults(out);
+    } catch {
+      setResults([]);
+    }
   }, [fuse, query]);
 
   React.useEffect(() => {

@@ -42,10 +42,12 @@ export function FloatingNav() {
   const streak = React.useMemo(() => computeStreakLocal(activity), [activity]);
 
   React.useEffect(() => {
+    let mounted = true;
     const onScroll = () => {
       if (ticking.current) return;
       ticking.current = true;
       requestAnimationFrame(() => {
+        if (!mounted) return;
         const y = window.scrollY;
         const delta = y - lastScrollY.current;
         if (delta > 60 && y > 120) {
@@ -59,7 +61,10 @@ export function FloatingNav() {
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      mounted = false;
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   // Haptic feedback on tab switch

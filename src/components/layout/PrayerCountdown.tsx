@@ -2,6 +2,7 @@ import * as React from "react";
 import { Bell } from "lucide-react";
 import type { PrayerTimings } from "@/lib/prayerSchedule";
 import { buildPrayerSchedule, formatCountdown } from "@/lib/prayerSchedule";
+import { clamp } from "@/lib/utils";
 
 function resolveRingStroke(phaseType: "prayer" | "moment" | "forbidden" | "wait", isImminent: boolean, isUrgent: boolean) {
   if (phaseType === "forbidden") return "rgba(255, 177, 177, 0.96)";
@@ -17,21 +18,34 @@ export function PrayerCountdown(props: Readonly<{
   compact?: boolean;
 }>) {
   const { timings, compact = false } = props;
-  const [now, setNow] = React.useState(() => new Date());
 
+  // Build the full schedule (expensive) every 60 s or when timings/date change.
+  // Using minute-granularity Date so memo only invalidates once per minute.
+  const [minuteTs, setMinuteTs] = React.useState(() => Math.floor(Date.now() / 60_000));
   React.useEffect(() => {
-    const id = globalThis.setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
+    const id = globalThis.setInterval(() => setMinuteTs(Math.floor(Date.now() / 60_000)), 60_000);
+    return () => globalThis.clearInterval(id);
+  }, []);
+
+  const baseSchedule = React.useMemo(() => {
+    return buildPrayerSchedule(timings, new Date(minuteTs * 60_000));
+  }, [timings, minuteTs]);
+
+  // Live countdown ticks every second — just recompute diffSec/progress cheaply.
+  const [nowMs, setNowMs] = React.useState(() => Date.now());
+  React.useEffect(() => {
+    const id = globalThis.setInterval(() => setNowMs(Date.now()), 1000);
+    return () => globalThis.clearInterval(id);
   }, []);
 
   const schedule = React.useMemo(() => {
-    const built = buildPrayerSchedule(timings, now);
-    if (!built) return null;
-    return {
-      ...built,
-      diffSec: Math.max(0, built.diffSec - 1),
-    };
-  }, [now, timings]);
+    if (!baseSchedule) return null;
+    const endMs = baseSchedule.currentPhase.endAt.getTime();
+    const startMs = baseSchedule.currentPhase.startAt.getTime();
+    const diffSec = Math.max(0, Math.round((endMs - nowMs) / 1000));
+    const progress = clamp((nowMs - startMs) / Math.max(1, endMs - startMs), 0, 1);
+    return { ...baseSchedule, diffSec, progress };
+  }, [baseSchedule, nowMs]);
 
   if (!schedule) return null;
 

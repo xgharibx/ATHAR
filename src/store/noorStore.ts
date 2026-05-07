@@ -184,6 +184,8 @@ export type ExportBlobV1 = {
   hadithProgress?: Record<string, number>;
   hadithNotes?: Record<string, string>; // key: `${bookKey}:${n}`
   hadithMemoCards?: Record<string, HadithMemoCard>; // key: `${bookKey}:${n}`
+  sectionCompletions?: Record<string, string[]>;
+  customPacks?: CustomAdhkarPack[];
 };
 
 type NoorState = {
@@ -565,6 +567,8 @@ function sanitizeNumberMap(input: unknown) {
   const src = (input ?? {}) as Record<string, unknown>;
   const out: Record<string, number> = {};
   for (const key of Object.keys(src)) {
+    // Guard against JS coercing object keys like NaN, undefined, null into strings
+    if (key === "NaN" || key === "undefined" || key === "null" || key === "Infinity" || key === "-Infinity") continue;
     const value = toSafeInt(src[key]);
     if (value > 0) out[key] = value;
   }
@@ -990,6 +994,8 @@ export const useNoorStore = create<NoorState>()(
           tasbeehDailyLog: s.tasbeehDailyLog,
           prayerLog: s.prayerLog,
           favoriteCities: s.favoriteCities,
+          sectionCompletions: s.sectionCompletions,
+          customPacks: s.customPacks,
         };
       },
 
@@ -1037,6 +1043,10 @@ export const useNoorStore = create<NoorState>()(
             : {}) as Record<string, Record<string, number>>,
           prayerLog: blob.prayerLog ?? {},
           favoriteCities: Array.isArray(blob.favoriteCities) ? blob.favoriteCities : [],
+          sectionCompletions: (blob.sectionCompletions && typeof blob.sectionCompletions === 'object'
+            ? blob.sectionCompletions
+            : {}) as Record<string, string[]>,
+          customPacks: Array.isArray(blob.customPacks) ? blob.customPacks : [],
         });
       },
 
@@ -1050,6 +1060,7 @@ export const useNoorStore = create<NoorState>()(
         activity: {},
         quickTasbeeh: {},
         sectionItemOrder: {},
+        sectionCompletions: {},
         dailyChecklist: {},
         dailyBetterStepDone: {},
         lastCivilResetISO: null,
