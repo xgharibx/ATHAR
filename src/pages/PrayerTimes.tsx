@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle, ArrowRight, BarChart2, CalendarDays, Check, ChevronLeft, ChevronRight,
   Clock3, CloudSun, Compass, Globe, MapPin, MoonStar, Plus, RefreshCw,
-  Settings2, Sunrise, Sunset, TimerReset, Trash2, X,
+  Settings2, Share2, Sunrise, Sunset, TimerReset, Trash2, X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -1078,6 +1078,15 @@ export function PrayerTimesPage() {
           </Button>
           <Button variant="secondary" size="sm" onClick={() => navigate("/mosques")}>
             <MapPin size={14} /> مساجد
+          </Button>
+          <Button variant="secondary" size="sm" onClick={async () => {
+            if (!timings) return;
+            const lines = PRIMARY_PRAYERS.map((p) => `${PRAYER_LABELS[p]}: ${cleanTime(timings[p] ?? "")}`);
+            const text = `مواقيت الصلاة اليوم:\n${lines.join("\n")}\n\n• أثر`;
+            if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+            else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+          }}>
+            <Share2 size={14} /> مشاركة
           </Button>
           <Button variant="secondary" size="sm" onClick={() => setShowSettings(true)}>
             <Settings2 size={14} /> إعدادات

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Plus, ArrowRight, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { Trash2, Plus, ArrowRight, BookOpen, ChevronDown, ChevronUp, Share2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import { useNoorStore } from "@/store/noorStore";
 import type { CustomAdhkarPack } from "@/data/types";
@@ -155,6 +156,18 @@ function PackCard({
             aria-label="عرض الأذكار"
           >
             {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          </button>
+          <button type="button"
+            onClick={async () => {
+              const lines = pack.items.map((it) => `• ${it.text}${it.count > 1 ? ` (${it.count}×)` : ""}`).join("\n");
+              const text = `${pack.title}\n\n${lines}\n\n• أثر`;
+              if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+              else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+            }}
+            className="p-2 rounded-xl hover:bg-white/5 transition-colors opacity-50 hover:opacity-100"
+            aria-label="مشاركة الحزمة"
+          >
+            <Share2 size={15} />
           </button>
           <button type="button"
             onClick={onEdit}

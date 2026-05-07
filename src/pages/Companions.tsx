@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Users, Search, X, Bookmark, BookmarkCheck } from "lucide-react";
+import { ChevronRight, Users, Search, X, Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { COMPANIONS, COMPANION_CATEGORIES, type Companion } from "@/data/companions";
 import toast from "react-hot-toast";
 
@@ -215,7 +215,25 @@ export default function Companions() {
                   }}
                 >
                   {companion.brief}
-                  <div className="mt-2 flex justify-end">
+                  <div className="mt-2 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const text = `${companion.name}${companion.title ? ` — ${companion.title}` : ""}\n\n${companion.brief}`;
+                        if (navigator.share) {
+                          await navigator.share({ text }).catch(() => {});
+                        } else {
+                          await navigator.clipboard.writeText(text).catch(() => {});
+                          toast.success("تم النسخ");
+                        }
+                      }}
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+                      style={{ background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
+                    >
+                      <Share2 size={13} />
+                      مشاركة
+                    </button>
                     <button
                       type="button"
                       onClick={(e) => toggleBookmark(companion.id, e)}

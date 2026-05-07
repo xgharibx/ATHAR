@@ -253,10 +253,24 @@ export function QuranVocabPage() {
           {learned.has(card.id) ? "محفوظة ✓" : "أضف للمحفوظات"}
         </button>
 
-        {/* Stats */}
-        <p className="text-xs opacity-50" style={{ color: "var(--fg)" }}>
-          شاهدت {seen.size} كلمة من {deck.length}
-        </p>
+        {/* Stats mini-card */}
+        <div
+          className="w-full max-w-sm rounded-2xl p-4 grid grid-cols-3 gap-3 text-center"
+          style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+        >
+          <div>
+            <p className="text-lg font-bold" style={{ color: "var(--accent)" }}>{seen.size}</p>
+            <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>شاهدت</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold" style={{ color: "var(--ok,#10b981)" }}>{learned.size}</p>
+            <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>محفوظة</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold" style={{ color: "var(--fg)" }}>{QURAN_VOCAB.length}</p>
+            <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>الإجمالي</p>
+          </div>
+        </div>
       </div>
     </div>
   );

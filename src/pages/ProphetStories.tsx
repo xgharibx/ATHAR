@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, ChevronUp, Search, X, Bookmark, BookmarkCheck } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Search, X, Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { PROPHET_STORIES, type ProphetStory } from "@/data/prophetStories";
 import toast from "react-hot-toast";
 
@@ -85,17 +85,40 @@ function StoryCard({
               </ul>
             </div>
           )}
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onToggleBookmark(story.id); }}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
-            style={bookmarked
-              ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
-              : { background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
-          >
-            {bookmarked ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
-            {bookmarked ? "محفوظة" : "حفظ"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={async (e) => {
+                e.stopPropagation();
+                const lessons = story.lessons.length > 0
+                  ? "\n\nالدروس المستفادة:\n" + story.lessons.map((l) => `• ${l}`).join("\n")
+                  : "";
+                const text = `${story.nameAr}\n\n${story.summary}${lessons}`;
+                if (navigator.share) {
+                  await navigator.share({ text }).catch(() => {});
+                } else {
+                  await navigator.clipboard.writeText(text).catch(() => {});
+                  toast.success("تم النسخ");
+                }
+              }}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+              style={{ background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
+            >
+              <Share2 size={13} />
+              مشاركة
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onToggleBookmark(story.id); }}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+              style={bookmarked
+                ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
+                : { background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
+            >
+              {bookmarked ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
+              {bookmarked ? "محفوظة" : "حفظ"}
+            </button>
+          </div>
         </div>
       )}
     </div>
