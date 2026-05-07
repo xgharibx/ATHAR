@@ -1,11 +1,17 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Brain, Heart, Search, Share2 } from "lucide-react";
+import { ArrowRight, Brain, Heart, Search, Share2, Star } from "lucide-react";
 import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 
 type FilterTab = "all" | "memorized" | "favorites";
+
+function getDailyAsmaId(): number {
+  const today = new Date();
+  const dayIndex = Math.floor(today.getTime() / 86400000);
+  return (dayIndex % 99) + 1;
+}
 
 export function AsmaAlHusnaPage() {
   const navigate = useNavigate();
@@ -17,6 +23,8 @@ export function AsmaAlHusnaPage() {
   const favorites = useNoorStore((s) => s.asmaHusnaFavorites);
   const toggleMemorized = useNoorStore((s) => s.toggleAsmaMemorized);
   const toggleFavorite = useNoorStore((s) => s.toggleAsmaFavorite);
+
+  const dailyAsmaId = React.useMemo(() => getDailyAsmaId(), []);
 
   const filtered = React.useMemo(() => {
     let list = ASMA_AL_HUSNA;
@@ -145,6 +153,12 @@ export function AsmaAlHusnaPage() {
                     {name.id}
                   </span>
                   <div className="flex-1 text-center">
+                    {name.id === dailyAsmaId && (
+                      <div className="flex items-center justify-center gap-1 mb-1">
+                        <Star size={10} className="fill-current" style={{ color: isExpanded ? "#ffe066" : "var(--accent)" }} />
+                        <span className="text-[10px] font-semibold" style={{ color: isExpanded ? "#ffe066" : "var(--accent)" }}>اسم اليوم</span>
+                      </div>
+                    )}
                     <div className="text-2xl font-bold mb-1" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
                       {name.arabic}
                     </div>
