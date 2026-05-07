@@ -288,10 +288,10 @@ export function LeaderboardPage() {
         </div>
 
         <div className="mt-3 text-xs opacity-75">
-          تحدي تسبيح اليوم: <span className="font-semibold">{myStats.tasbeehDailyLabel}</span> • الهدف {myStats.tasbeehDailyTarget}
+          تحدي تسبيح اليوم: <span className="font-semibold">{myStats.tasbeehDailyLabel}</span> • الهدف {myStats.tasbeehDailyTarget.toLocaleString("ar-EG")}
         </div>
         <div className="mt-1 text-[11px] opacity-45">
-          الصيغة: ذكر + قرآن×3 + صلاة×40 + تسبيح
+          الصيغة: ذكر + قرآن×٣ + صلاة×٤٠ + تسبيح
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
@@ -334,7 +334,7 @@ export function LeaderboardPage() {
               ? <Loader2 size={16} className="animate-spin" />
               : <Send size={16} />}
             {cooldownLeft > 0
-              ? `انتظر ${Math.ceil(cooldownLeft / 1000)}ث`
+              ? `انتظر ${Math.ceil(cooldownLeft / 1000).toLocaleString("ar-EG")}ث`
               : "مزامنة ترتيبي"}
           </Button>
           <Button
@@ -345,7 +345,7 @@ export function LeaderboardPage() {
             <RotateCw size={16} className={boardLoadState === "loading" ? "animate-spin" : ""} />
             تحديث
           </Button>
-          <Badge>{myRank != null ? `رتبتي: #${myRank}` : "رتبتي: خارج أعلى 30"}</Badge>
+          <Badge>{myRank != null ? `رتبتي: #${myRank.toLocaleString("ar-EG")}` : "رتبتي: خارج أعلى ٣٠"}</Badge>
           <span className={cn(
             "inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border",
             syncState === "ok"
@@ -418,16 +418,18 @@ export function LeaderboardPage() {
               )}>
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs tabular-nums">
-                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : idx + 1}
+                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1).toLocaleString("ar-EG")}
                   </div>
                   <div className="min-w-0">
                     <div className="text-sm font-semibold truncate">{r.name}</div>
                     <div className="text-[11px] opacity-60">
-                      {r.id === myEntry.id ? `أنت • انضممت: ${identity.joinedAt}` : (r.day ? `عضو • ${r.day}` : "عضو")}
+                      {r.id === myEntry.id
+                        ? `أنت • انضممت: ${new Date(identity.joinedAt + "T00:00:00").toLocaleDateString("ar-EG", { day: "numeric", month: "short", year: "numeric" })}`
+                        : (r.day ? `عضو • ${new Date(r.day + "T00:00:00").toLocaleDateString("ar-EG", { day: "numeric", month: "short" })}` : "عضو")}
                     </div>
                   </div>
                 </div>
-                <div className="text-sm font-semibold tabular-nums">{r.score}</div>
+                <div className="text-sm font-semibold tabular-nums">{r.score.toLocaleString("ar-EG")}</div>
               </div>
             ))
           )}
@@ -459,7 +461,7 @@ function Stat(props: { title: string; value: number }) {
   return (
     <div className="glass rounded-2xl p-3 border border-white/10">
       <div className="text-[11px] opacity-60">{props.title}</div>
-      <div className="mt-1 text-lg font-semibold tabular-nums" style={{ color: "var(--accent)" }}>{props.value}</div>
+      <div className="mt-1 text-lg font-semibold tabular-nums" style={{ color: "var(--accent)" }}>{props.value.toLocaleString("ar-EG")}</div>
     </div>
   );
 }
@@ -912,7 +914,7 @@ function LeaderboardAdminCard(props: {
                   />
 
                   {userModeration?.updatedAt ? (
-                    <div className="text-[11px] opacity-50">آخر تحديث: {new Date(userModeration.updatedAt).toLocaleString("ar-SA")}</div>
+                    <div className="text-[11px] opacity-50">آخر تحديث: {new Date(userModeration.updatedAt).toLocaleString("ar-EG")}</div>
                   ) : null}
 
                   <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
@@ -1036,7 +1038,7 @@ function LocalFriendsCard(props: {
           <Users size={16} className="text-[var(--accent)]" />
           <div className="text-sm font-semibold">لوحة الأصدقاء</div>
           {localFriends.length > 0 && (
-            <span className="text-[10px] opacity-50 tabular-nums">{localFriends.length} صديق</span>
+            <span className="text-[10px] opacity-50 tabular-nums">{localFriends.length.toLocaleString("ar-EG")} صديق</span>
           )}
         </div>
         <Button variant="secondary" onClick={() => setExpanded((v) => !v)}>
@@ -1059,15 +1061,15 @@ function LocalFriendsCard(props: {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs">
-                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
+                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1).toLocaleString("ar-EG")}
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{f.alias}</div>
-                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {f.dhikr} · قرآن {f.quran} · صلاة {f.prayers}</div>
+                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {f.dhikr.toLocaleString("ar-EG")} · قرآن {f.quran.toLocaleString("ar-EG")} · صلاة {f.prayers.toLocaleString("ar-EG")}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="text-sm font-semibold tabular-nums">{f.score}</div>
+                <div className="text-sm font-semibold tabular-nums">{f.score.toLocaleString("ar-EG")}</div>
                 {f.id !== props.myStats.id && (
                   <button type="button"
                     onClick={() => removeLocalFriend(f.id)}
@@ -1270,7 +1272,7 @@ function GroupKhatmaCard() {
               />
             </div>
             <span className="text-xs font-semibold tabular-nums" style={{ color: completionPct >= 100 ? "var(--ok)" : undefined }}>
-              {totalJuz}/30
+              {totalJuz.toLocaleString("ar-EG")}/٣٠
             </span>
           </div>
 
@@ -1280,7 +1282,7 @@ function GroupKhatmaCard() {
               <div key={m.memberId} className="flex items-center gap-1.5 text-xs">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: MEMBER_COLORS[mi % MEMBER_COLORS.length] }} />
                 <span className="opacity-75">{m.name}</span>
-                <span className="opacity-45 tabular-nums">({m.completedJuz.length}/{m.assignedJuz.length})</span>
+                <span className="opacity-45 tabular-nums">({m.completedJuz.length.toLocaleString("ar-EG")}/{m.assignedJuz.length.toLocaleString("ar-EG")})</span>
               </div>
             ))}
           </div>
@@ -1303,9 +1305,9 @@ function GroupKhatmaCard() {
                     borderColor: done ? color : "rgba(255,255,255,0.1)",
                     color: done ? color : "rgba(255,255,255,0.5)",
                   }}
-                  title={owner ? `${owner.name} — جزء ${juz}` : `جزء ${juz}`}
+                  title={owner ? `${owner.name} — جزء ${juz.toLocaleString("ar-EG")}` : `جزء ${juz.toLocaleString("ar-EG")}`}
                 >
-                  {done ? <Check size={10} strokeWidth={3} style={{ color }} /> : juz}
+                  {done ? <Check size={10} strokeWidth={3} style={{ color }} /> : juz.toLocaleString("ar-EG")}
                 </button>
               );
             })}
@@ -1419,7 +1421,7 @@ function WeeklyChallengeCard() {
             }}
           />
         </div>
-        <span className="text-[11px] opacity-60 tabular-nums">{daysChecked}/{targetDays}</span>
+        <span className="text-[11px] opacity-60 tabular-nums">{daysChecked.toLocaleString("ar-EG")}/{targetDays.toLocaleString("ar-EG")}</span>
       </div>
 
       {/* Day toggles */}
