@@ -157,6 +157,8 @@ export type ExportBlobV1 = {
   quickTasbeeh?: Record<string, number>;
   sebhaSessions?: SebhaSession[];
   sebhaCustom?: { phrase: string; target: number } | null;
+  tasbeehLifetime?: Record<string, number>;
+  tasbeehDailyLog?: Record<string, Record<string, number>>;
   prayerLog?: Record<string, Record<string, boolean>>;
   favoriteCities?: Array<{ id: string; city: string; country: string; label: string }>;
   quranBookmarks?: Record<string, boolean>;
@@ -608,10 +610,31 @@ export const useNoorStore = create<NoorState>()(
         const current = toSafeInt(get().quickTasbeeh[key]);
         if (current >= target) return current;
         const next = current + 1;
-        set((s) => ({ quickTasbeeh: { ...s.quickTasbeeh, [key]: next } }));
-        get().incTasbeehLifetime(key);
-        get().incTasbeehDailyLog(todayISO(), key);
-        get().bumpActivityToday();
+        const dateKey = todayISO();
+        // Single set() call: update quickTasbeeh + lifetime + daily log + activity
+        // all at once to avoid 4 separate re-renders per tap.
+        set((s) => {
+          const quickTasbeeh = { ...s.quickTasbeeh, [key]: next };
+          const tasbeehLifetime = {
+            ...s.tasbeehLifetime,
+            [key]: (s.tasbeehLifetime[key] ?? 0) + 1,
+          };
+          // Prune daily log to last 21 days (local timezone, consistent with todayISO)
+          const cutoffDate = new Date();
+          cutoffDate.setDate(cutoffDate.getDate() - 21);
+          const cutoffStr = getLocalDateKey(cutoffDate);
+          const pruned: Record<string, Record<string, number>> = {};
+          for (const [dk, val] of Object.entries(s.tasbeehDailyLog)) {
+            if (dk >= cutoffStr) pruned[dk] = val;
+          }
+          const day = pruned[dateKey] ?? {};
+          pruned[dateKey] = { ...day, [key]: (day[key] ?? 0) + 1 };
+          const activity = {
+            ...s.activity,
+            [dateKey]: (s.activity[dateKey] ?? 0) + 1,
+          };
+          return { quickTasbeeh, tasbeehLifetime, tasbeehDailyLog: pruned, activity };
+        });
         return next;
       },
 
@@ -624,12 +647,14 @@ export const useNoorStore = create<NoorState>()(
       incTasbeehDailyLog: (dateKey, key) => {
         set((s) => {
           const day = s.tasbeehDailyLog[dateKey] ?? {};
-          // prune to last 21 days to prevent unbounded growth
-          const entries = Object.entries(s.tasbeehDailyLog);
+          // prune to last 21 days (local timezone)
+          const cutoffDate = new Date();
+          cutoffDate.setDate(cutoffDate.getDate() - 21);
+          const cutoffStr = getLocalDateKey(cutoffDate);
           const pruned: Record<string, Record<string, number>> = {};
-          const cutoff = new Date();
-          cutoff.setDate(cutoff.getDate() - 21);
-          for (const [dk, val] of entries) { if (dk >= cutoff.toISOString().slice(0, 10)) pruned[dk] = val; }
+          for (const [dk, val] of Object.entries(s.tasbeehDailyLog)) {
+            if (dk >= cutoffStr) pruned[dk] = val;
+          }
           pruned[dateKey] = { ...day, [key]: (day[key] ?? 0) + 1 };
           return { tasbeehDailyLog: pruned };
         });
@@ -961,6 +986,8 @@ export const useNoorStore = create<NoorState>()(
           dailyBetterStepDone: s.dailyBetterStepDone,
           sebhaSessions: s.sebhaSessions,
           sebhaCustom: s.sebhaCustom,
+          tasbeehLifetime: s.tasbeehLifetime,
+          tasbeehDailyLog: s.tasbeehDailyLog,
           prayerLog: s.prayerLog,
           favoriteCities: s.favoriteCities,
         };
@@ -1004,6 +1031,10 @@ export const useNoorStore = create<NoorState>()(
           dailyBetterStepDone: blob.dailyBetterStepDone ?? {},
           sebhaSessions: Array.isArray(blob.sebhaSessions) ? blob.sebhaSessions : [],
           sebhaCustom: blob.sebhaCustom ?? null,
+          tasbeehLifetime: sanitizeNumberMap(blob.tasbeehLifetime),
+          tasbeehDailyLog: (blob.tasbeehDailyLog && typeof blob.tasbeehDailyLog === 'object'
+            ? blob.tasbeehDailyLog
+            : {}) as Record<string, Record<string, number>>,
           prayerLog: blob.prayerLog ?? {},
           favoriteCities: Array.isArray(blob.favoriteCities) ? blob.favoriteCities : [],
         });

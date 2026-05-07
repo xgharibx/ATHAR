@@ -468,7 +468,10 @@ export function SebhaPage() {
   const remaining = tallyMode ? null : Math.max(0, effectiveTarget - count);
   const completed = !tallyMode && count >= effectiveTarget;
 
-  const increment = React.useCallback(() => {
+  // increment accepts an optional keyOverride so voice recognition can count
+  // a matched phrase's key directly (avoids stale-closure bug when key differs
+  // from the currently selected item).
+  const increment = React.useCallback((keyOverride?: TasbeehKey) => {
     if (tallyMode) {
       setTallyCount((prev) => {
         const next = prev + 1;
@@ -479,20 +482,26 @@ export function SebhaPage() {
         return next;
       });
     } else {
-      const next = incQuickTasbeeh(selected, effectiveTarget);
-      doHaptic(next, effectiveTarget, prefs.enableHaptics);
-      if (next === effectiveTarget) {
+      const activeKey = keyOverride ?? selected;
+      const activeEffTarget =
+        activeKey === "custom" ? (sebhaCustom?.target ?? 100) : target;
+      const activeLabel = keyOverride
+        ? (TASBEEHAT.find((t) => t.key === keyOverride)?.short ?? keyOverride)
+        : current.short;
+      const next = incQuickTasbeeh(activeKey, activeEffTarget);
+      doHaptic(next, activeEffTarget, prefs.enableHaptics);
+      if (next === activeEffTarget) {
         toast.success("اكتمل هدف التسبيح 🎉");
         addSebhaSession({
-          dhikrKey: selected,
-          dhikrLabel: current.short,
+          dhikrKey: activeKey,
+          dhikrLabel: activeLabel,
           count: next,
-          target: effectiveTarget,
+          target: activeEffTarget,
           timestamp: new Date().toISOString(),
         });
       }
     }
-  }, [tallyMode, incQuickTasbeeh, prefs.enableHaptics, selected, effectiveTarget, current.short, addSebhaSession]);
+  }, [tallyMode, incQuickTasbeeh, prefs.enableHaptics, selected, target, sebhaCustom, current.short, addSebhaSession]);
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -504,13 +513,18 @@ export function SebhaPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [increment]);
 
-  // 6B: Voice recognition — when a phrase matches, switch + count; null = count current
+  // 6B: Voice recognition — when a phrase matches, switch + count; null = count current.
+  // Pass the matched key directly to increment() so the correct dhikr is counted
+  // even before React re-renders with the new selected state.
   const { listening, starting: voiceStarting, toggle: toggleVoice, supported: voiceSupported } = useSpeechCount(
     React.useCallback((matchedKey: string | null) => {
-      if (matchedKey && matchedKey !== selected && TASBEEHAT.some(t => t.key === matchedKey)) {
-        setSelected(matchedKey as TasbeehKey);
+      if (matchedKey && TASBEEHAT.some(t => t.key === matchedKey)) {
+        const mk = matchedKey as TasbeehKey;
+        if (mk !== selected) setSelected(mk);
+        increment(mk); // count the matched key explicitly — avoids stale-closure bug
+      } else {
+        increment(); // unrecognized phrase → count current selected
       }
-      increment();
     }, [selected, increment])
   );
 
@@ -626,7 +640,7 @@ export function SebhaPage() {
           ) : (
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {sebhaSessions.map((s, i) => (
-                <div key={i} className="flex items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-xs">
+                <div key={`${s.timestamp}-${s.dhikrKey}-${i}`} className="flex items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
                     {s.target === null
                       ? <Flag size={12} className="text-[var(--accent)] shrink-0" />
