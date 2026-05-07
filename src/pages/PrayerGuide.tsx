@@ -18,6 +18,16 @@ export function PrayerGuidePage() {
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = React.useState<number | null>(1);
 
+  const shareFullGuide = async () => {
+    const lines = PRAYER_STEPS.map((s) => {
+      const parts = [`${s.id}. ${s.title}`, s.arabic, s.description].filter(Boolean);
+      return parts.join("\n");
+    });
+    const text = `دليل الصلاة خطوة بخطوة\n\n${lines.join("\n\n")}\n\n• أثر`;
+    if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+    else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+  };
+
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32">
       {/* Header */}
@@ -34,7 +44,7 @@ export function PrayerGuidePage() {
           >
             <ArrowRight size={18} />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="font-bold text-lg" style={{ color: "var(--fg)" }}>
               كيفية الصلاة
             </h1>
@@ -42,6 +52,14 @@ export function PrayerGuidePage() {
               دليل مُفصَّل خطوة بخطوة
             </p>
           </div>
+          <button type="button"
+            onClick={shareFullGuide}
+            className="p-2 rounded-xl opacity-60 hover:opacity-100 transition"
+            style={{ background: "var(--card-bg)", color: "var(--fg)" }}
+            aria-label="مشاركة الدليل"
+          >
+            <Share2 size={16} />
+          </button>
         </div>
       </div>
 

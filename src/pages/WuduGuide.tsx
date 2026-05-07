@@ -23,6 +23,13 @@ export function WuduGuidePage() {
 
   const allDone = done.size === WUDU_STEPS.length;
 
+  const shareFullGuide = async () => {
+    const lines = WUDU_STEPS.map((s, i) => `${i + 1}. ${s.title}\n${s.description}`);
+    const text = `دليل الوضوء خطوة بخطوة\n\n${lines.join("\n\n")}\n\n• أثر`;
+    if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+    else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+  };
+
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32">
       {/* Header */}
@@ -50,14 +57,24 @@ export function WuduGuidePage() {
               {done.size} / {WUDU_STEPS.length} خطوات
             </p>
           </div>
-          <button type="button"
-            onClick={() => navigate(-1)}
-            aria-label="رجوع"
-            className="p-2 rounded-xl"
-            style={{ background: "var(--card-bg)", color: "var(--fg)" }}
-          >
-            <ArrowRight size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button type="button"
+              onClick={shareFullGuide}
+              className="p-2 rounded-xl opacity-60 hover:opacity-100 transition"
+              style={{ background: "var(--card-bg)", color: "var(--fg)" }}
+              aria-label="مشاركة الدليل"
+            >
+              <Share2 size={16} />
+            </button>
+            <button type="button"
+              onClick={() => navigate(-1)}
+              aria-label="رجوع"
+              className="p-2 rounded-xl"
+              style={{ background: "var(--card-bg)", color: "var(--fg)" }}
+            >
+              <ArrowRight size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Progress bar */}
