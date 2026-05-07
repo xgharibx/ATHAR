@@ -186,6 +186,8 @@ export type ExportBlobV1 = {
   hadithMemoCards?: Record<string, HadithMemoCard>; // key: `${bookKey}:${n}`
   sectionCompletions?: Record<string, string[]>;
   customPacks?: CustomAdhkarPack[];
+  onboardingDone?: boolean;
+  weeklyReportSentISO?: string | null;
 };
 
 type NoorState = {
@@ -998,6 +1000,12 @@ export const useNoorStore = create<NoorState>()(
           favoriteCities: s.favoriteCities,
           sectionCompletions: s.sectionCompletions,
           customPacks: s.customPacks,
+          hadithBookmarks: s.hadithBookmarks,
+          hadithProgress: s.hadithProgress,
+          hadithNotes: s.hadithNotes,
+          hadithMemoCards: s.hadithMemoCards,
+          onboardingDone: s.onboardingDone,
+          weeklyReportSentISO: s.weeklyReportSentISO,
         };
       },
 
@@ -1049,7 +1057,26 @@ export const useNoorStore = create<NoorState>()(
             ? blob.sectionCompletions
             : {}) as Record<string, string[]>,
           customPacks: Array.isArray(blob.customPacks) ? blob.customPacks : [],
+          onboardingDone: blob.onboardingDone ?? false,
+          weeklyReportSentISO: blob.weeklyReportSentISO ?? null,
         });
+        // Restore IDB-backed hadith state (fire-and-forget)
+        if (blob.hadithBookmarks && typeof blob.hadithBookmarks === 'object') {
+          const bm = blob.hadithBookmarks as Record<string, boolean>;
+          void Promise.all(Object.entries(bm).map(([k, v]) => idbSetHadithBookmark(k, !!v)));
+        }
+        if (blob.hadithProgress && typeof blob.hadithProgress === 'object') {
+          const pr = blob.hadithProgress as Record<string, number>;
+          void Promise.all(Object.entries(pr).map(([k, v]) => idbSetHadithProgress(k, Number(v))));
+        }
+        if (blob.hadithNotes && typeof blob.hadithNotes === 'object') {
+          const nt = blob.hadithNotes as Record<string, string>;
+          void Promise.all(Object.entries(nt).map(([k, v]) => idbSetHadithNote(k, String(v))));
+        }
+        if (blob.hadithMemoCards && typeof blob.hadithMemoCards === 'object') {
+          const mc = blob.hadithMemoCards as Record<string, HadithMemoCard>;
+          void Promise.all(Object.entries(mc).map(([k, v]) => idbSetHadithMemoCard(k, v)));
+        }
       },
 
       // Se6: Restore preference defaults without clearing progress data
