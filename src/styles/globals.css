@@ -2231,16 +2231,10 @@ header {
 /* Page scrollable area */
 .mushaf-page-area {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   display: flex;
-  align-items: flex-start;
-  /* chrome bar is in-flow above us — no extra offset needed */
-  padding-top: 0;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
-  padding-left: 0;
-  padding-right: 0;
+  align-items: stretch;
+  padding: 0;
 }
 
 .mushaf-page-content {
@@ -2250,8 +2244,11 @@ header {
   margin: 0 auto;
   padding: 1.25rem 1.75rem;
   position: relative;
-  /* Fill viewport height so short surahs (Al-Fatiha, etc.) still look like a full page */
-  min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 108px);
+  /* Fill the entire page area — true fullscreen single-page layout */
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   /* Ornamental outer border */
   border: 2px solid rgba(185, 130, 20, 0.45);
   border-radius: 2px;
@@ -2294,9 +2291,12 @@ header {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 44'%3E%3Cg fill='none' transform='scale(-1,1) translate(-22,0)'%3E%3Cpath d='M11 0 Q8 11 11 22 Q14 33 11 44' stroke='%23558b2f' stroke-width='1.2' fill='none' opacity='.7'/%3E%3Cg transform='translate(11,11)'%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.65'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='2.5' fill='%23f39c12' opacity='.9'/%3E%3C/g%3E%3Cellipse cx='7' cy='22' rx='4' ry='7' fill='%23558b2f' opacity='.5' transform='rotate(-30 7 22)'/%3E%3Cg transform='translate(11,34)'%3E%3Ccircle r='3' fill='%23e91e63' opacity='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
-/* Mushaf main text area — natural flow, no overflow constraints */
+/* Mushaf main text area — flex column so content is vertically centered on short pages */
 .mushaf-page-main {
-  /* plain container, no height constraints */
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100% - 2rem); /* allow centering on short surahs */
+  justify-content: center;
 }
 
 /* Tiny surah/juz header strip */
@@ -3152,6 +3152,91 @@ header {
   border-color: rgba(100, 70, 20, 0.35) !important;
   background: rgba(210, 180, 110, 0.18) !important;
 }
+
+/* ── M3+: Forest / Rose / Ocean theme overrides ─────────────── */
+[data-mushaf-theme="forest"] .mushaf-reader { background-color: #0a1a0e !important; }
+[data-mushaf-theme="forest"] .mushaf-page-content {
+  background: linear-gradient(160deg, #0f2414 0%, #0a1a0e 100%) !important;
+  color: #c8e6c9 !important;
+}
+[data-mushaf-theme="forest"] .mushaf-page-content::before,
+[data-mushaf-theme="forest"] .mushaf-page-content::after {
+  border-color: rgba(80, 160, 80, 0.15) !important;
+}
+[data-mushaf-theme="forest"] .mushaf-ayah-num,
+[data-mushaf-theme="forest"] .mushaf-basmalah-line { color: rgba(200, 230, 200, 0.65) !important; }
+[data-mushaf-theme="forest"] .mushaf-surah-frame {
+  border-color: rgba(80, 160, 80, 0.35) !important;
+  background: rgba(20, 60, 20, 0.25) !important;
+}
+[data-mushaf-theme="forest"] .mushaf-chrome-top {
+  background: rgba(10, 26, 14, 0.97) !important;
+  border-bottom-color: rgba(80, 160, 80, 0.2) !important;
+}
+[data-mushaf-theme="forest"] .mushaf-chrome-icon-btn,
+[data-mushaf-theme="forest"] .mushaf-chrome-surah-name { color: #c8e6c9 !important; }
+[data-mushaf-theme="forest"] .mushaf-chrome-meta { color: rgba(200, 230, 200, 0.5) !important; }
+[data-mushaf-theme="forest"] .mushaf-text-block { color: #c8e6c9 !important; }
+[data-mushaf-theme="forest"] .mushaf-page-num { color: rgba(200, 230, 200, 0.5) !important; }
+[data-mushaf-theme="forest"] .mushaf-page-nav { border-top-color: rgba(80, 160, 80, 0.2) !important; }
+[data-mushaf-theme="forest"] .mushaf-page-nav-btn { color: #6dd984 !important; border-color: rgba(80, 160, 80, 0.3) !important; background: rgba(30, 90, 40, 0.15) !important; }
+[data-mushaf-theme="forest"] .mushaf-page-nav-num { color: #c8e6c9 !important; }
+
+[data-mushaf-theme="rose"] .mushaf-reader { background-color: #1a0810 !important; }
+[data-mushaf-theme="rose"] .mushaf-page-content {
+  background: linear-gradient(160deg, #2a1020 0%, #1a0810 100%) !important;
+  color: #f3c6d0 !important;
+}
+[data-mushaf-theme="rose"] .mushaf-page-content::before,
+[data-mushaf-theme="rose"] .mushaf-page-content::after {
+  border-color: rgba(180, 80, 110, 0.15) !important;
+}
+[data-mushaf-theme="rose"] .mushaf-ayah-num,
+[data-mushaf-theme="rose"] .mushaf-basmalah-line { color: rgba(243, 198, 208, 0.65) !important; }
+[data-mushaf-theme="rose"] .mushaf-surah-frame {
+  border-color: rgba(180, 80, 110, 0.35) !important;
+  background: rgba(60, 10, 25, 0.25) !important;
+}
+[data-mushaf-theme="rose"] .mushaf-chrome-top {
+  background: rgba(26, 8, 16, 0.97) !important;
+  border-bottom-color: rgba(180, 80, 110, 0.2) !important;
+}
+[data-mushaf-theme="rose"] .mushaf-chrome-icon-btn,
+[data-mushaf-theme="rose"] .mushaf-chrome-surah-name { color: #f3c6d0 !important; }
+[data-mushaf-theme="rose"] .mushaf-chrome-meta { color: rgba(243, 198, 208, 0.5) !important; }
+[data-mushaf-theme="rose"] .mushaf-text-block { color: #f3c6d0 !important; }
+[data-mushaf-theme="rose"] .mushaf-page-num { color: rgba(243, 198, 208, 0.5) !important; }
+[data-mushaf-theme="rose"] .mushaf-page-nav { border-top-color: rgba(180, 80, 110, 0.2) !important; }
+[data-mushaf-theme="rose"] .mushaf-page-nav-btn { color: #f9a8c0 !important; border-color: rgba(180, 80, 110, 0.3) !important; background: rgba(80, 15, 35, 0.15) !important; }
+[data-mushaf-theme="rose"] .mushaf-page-nav-num { color: #f3c6d0 !important; }
+
+[data-mushaf-theme="ocean"] .mushaf-reader { background-color: #051820 !important; }
+[data-mushaf-theme="ocean"] .mushaf-page-content {
+  background: linear-gradient(160deg, #0a2030 0%, #051820 100%) !important;
+  color: #b2dfdb !important;
+}
+[data-mushaf-theme="ocean"] .mushaf-page-content::before,
+[data-mushaf-theme="ocean"] .mushaf-page-content::after {
+  border-color: rgba(50, 150, 160, 0.15) !important;
+}
+[data-mushaf-theme="ocean"] .mushaf-ayah-num,
+[data-mushaf-theme="ocean"] .mushaf-basmalah-line { color: rgba(178, 223, 219, 0.65) !important; }
+[data-mushaf-theme="ocean"] .mushaf-surah-frame {
+  border-color: rgba(50, 150, 160, 0.35) !important;
+  background: rgba(5, 40, 55, 0.25) !important;
+}
+[data-mushaf-theme="ocean"] .mushaf-chrome-top {
+  background: rgba(5, 24, 32, 0.97) !important;
+  border-bottom-color: rgba(50, 150, 160, 0.2) !important;
+}
+[data-mushaf-theme="ocean"] .mushaf-chrome-icon-btn,
+[data-mushaf-theme="ocean"] .mushaf-chrome-surah-name { color: #b2dfdb !important; }
+[data-mushaf-theme="ocean"] .mushaf-chrome-meta { color: rgba(178, 223, 219, 0.5) !important; }
+[data-mushaf-theme="ocean"] .mushaf-text-block { color: #b2dfdb !important; }
+[data-mushaf-theme="ocean"] .mushaf-page-num { color: rgba(178, 223, 219, 0.5) !important; }
+[data-mushaf-theme="ocean"] .mushaf-page-nav { border-top-color: rgba(50, 150, 160, 0.2) !important; }
+[data-mushaf-theme="ocean"] .mushaf-page-nav-btn { color: #4dd0e1 !important; border-color: rgba(50, 150, 160, 0.3) !important; background: rgba(5, 50, 65, 0.15) !important; }
+[data-mushaf-theme="ocean"] .mushaf-page-nav-num { color: #b2dfdb !important; }
 
 /* ── M5: Dial wheel for page jump ───────────────────────────── */
 .mushaf-dial-container {
