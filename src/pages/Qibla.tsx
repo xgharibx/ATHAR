@@ -1,9 +1,10 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Compass, MapPin, RefreshCw } from "lucide-react";
+import { ArrowRight, Compass, MapPin, RefreshCw, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 // Mecca coordinates
 const MECCA_LAT = 21.4225;
@@ -300,6 +301,20 @@ export function QiblaPage() {
                 بوصلة نشطة
               </div>
             )}
+            <button
+              type="button"
+              onClick={async () => {
+                const dir = formatBearing(qiblaBearing);
+                const text = `اتجاه القبلة من موقعي: ${Math.round(qiblaBearing)}° (${dir})`;
+                if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+                else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+              }}
+              className="mt-2 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full opacity-60 hover:opacity-90 transition"
+              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
+            >
+              <Share2 size={13} />
+              مشاركة الاتجاه
+            </button>
           </div>
         ) : null}
 

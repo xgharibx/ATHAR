@@ -1,7 +1,8 @@
 import * as React from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
-import { Search, ArrowUpRight, X, BookOpen, LibraryBig, ScrollText, Loader2 } from "lucide-react";
+import { Search, ArrowUpRight, X, BookOpen, LibraryBig, ScrollText, Loader2, Copy } from "lucide-react";
+import toast from "react-hot-toast";
 
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { useQuranDB } from "@/data/useQuranDB";
@@ -388,7 +389,7 @@ export function SearchPage() {
                 <button type="button"
                   key={r.key}
                   onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}
-                  className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
+                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-1.5 min-w-0">
@@ -397,7 +398,22 @@ export function SearchPage() {
                         {r.sectionTitle}
                       </div>
                     </div>
-                    <ArrowUpRight size={18} className="opacity-60 shrink-0" />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try { await navigator.clipboard.writeText(r.text); toast.success("تم النسخ"); }
+                          catch { toast.error("تعذر النسخ"); }
+                        }}
+                        className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
+                        style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                        aria-label="نسخ"
+                      >
+                        <Copy size={13} />
+                      </button>
+                      <ArrowUpRight size={18} className="opacity-60" />
+                    </div>
                   </div>
                   <div className="mt-3 arabic-text text-sm opacity-80 leading-7">
                     {r.text.slice(0, 220)}
@@ -461,14 +477,29 @@ export function SearchPage() {
                 <button type="button"
                   key={`a-${r.surah.id}-${r.ayahIndex}-${idx}`}
                   onClick={() => navigate(`/quran/${r.surah.id}?a=${r.ayahIndex}`)}
-                  className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
+                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-xs opacity-55 shrink-0 tabular-nums">﴿{r.ayahIndex}﴾</span>
                       <span className="text-xs opacity-55 arabic-text shrink-0">{r.surah.name}</span>
                     </div>
-                    <ArrowUpRight size={16} className="opacity-55 shrink-0" />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try { await navigator.clipboard.writeText(r.text); toast.success("تم النسخ"); }
+                          catch { toast.error("تعذر النسخ"); }
+                        }}
+                        className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
+                        style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                        aria-label="نسخ الآية"
+                      >
+                        <Copy size={13} />
+                      </button>
+                      <ArrowUpRight size={16} className="opacity-55" />
+                    </div>
                   </div>
                   <div className="mt-2 arabic-text text-sm leading-7 opacity-80">
                     {r.text.slice(0, 200)}{r.text.length > 200 ? "…" : ""}
