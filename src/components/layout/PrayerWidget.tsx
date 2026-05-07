@@ -21,6 +21,13 @@ export function PrayerWidget() {
   const timings = data?.data?.timings;
   const date = data?.data?.date;
   const isCached = !!data?.__fromCache;
+  const [isOnline, setIsOnline] = React.useState(() => navigator.onLine);
+  React.useEffect(() => {
+    const update = () => setIsOnline(navigator.onLine);
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => { window.removeEventListener("online", update); window.removeEventListener("offline", update); };
+  }, []);
   const schedule = React.useMemo(
     () => (timings ? buildPrayerSchedule(timings, new Date(nowTs)) : null),
     [nowTs, timings]
@@ -52,8 +59,8 @@ export function PrayerWidget() {
         </div>
       </div>
 
-      {isCached ? (
-        <div className="mb-3 text-[11px] opacity-55">يتم عرض آخر نسخة محفوظة بدون اتصال.</div>
+      {isCached && !isOnline ? (
+        <div className="mb-3 text-[11px] opacity-55">يتم عرض آخر نسخة محفوظة — تحقق من الاتصال.</div>
       ) : null}
 
       {/* Live countdown to next prayer */}

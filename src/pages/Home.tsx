@@ -537,7 +537,7 @@ export function HomePage() {
   const smartNow = React.useMemo(() => {
     const hour = new Date().getHours();
     const periodLabel =
-      hour < 5 ? "قبل الفجر" : hour < 12 ? "الصباح" : hour < 17 ? "بعد الظهر" : hour < 20 ? "المساء" : "الليل";
+      hour < 5 ? "قبل الفجر" : hour < 12 ? "الصباح" : hour < 17 ? "بعد الظهر" : hour < 21 ? "المساء" : "الليل";
 
     // D10: time-based section suggestion
     const isMorningWindow = hour >= 4 && hour < 11;
@@ -711,6 +711,14 @@ export function HomePage() {
     toast.success(`تم إنجاز: ${item.title}`);
   }, [adaptiveMission.recoveryItem, toggleDailyChecklist, worshipDayKey]);
 
+  // Time-aware hero adhkar CTA — re-evaluated each render (PrayerWidget ticks every 30s)
+  const heroAdhkar = (() => {
+    const hour = new Date().getHours();
+    if (hour >= 21 || hour < 4) return { id: "sleep",   label: "ابدأ بأذكار النوم" };
+    if (hour >= 15)              return { id: "evening", label: "ابدأ بأذكار المساء" };
+    return                              { id: "morning", label: "ابدأ بأذكار الصباح" };
+  })();
+
   if (isLoading) {
     return (
       <div className="space-y-4 page-enter">
@@ -786,7 +794,7 @@ export function HomePage() {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2 max-w-xl">
-                <Button className="press-effect" onClick={() => onQuick("morning")}>ابدأ بأذكار الصباح</Button>
+                <Button className="press-effect" onClick={() => onQuick(heroAdhkar.id)}>{heroAdhkar.label}</Button>
                 {quranLastRead ? (
                   <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : `/mushaf/1`); }}>
                     📖 {quranLastReadSurahName ? `تابع ${quranLastReadSurahName}` : "تابع القرآن"}
@@ -1412,6 +1420,9 @@ export function HomePage() {
             { icon: "🌟", label: "الصحابة", route: "/companions" },
             { icon: "📜", label: "الرقية الشرعية", route: "/ruqyah" },
             { icon: "🗓", label: "السيرة النبوية", route: "/seerah" },
+            { icon: "📚", label: "الأحاديث", route: "/hadith" },
+            { icon: "🏅", label: "حفظ الحديث", route: "/hadith/memo" },
+            { icon: "📊", label: "الإحصاءات", route: "/insights" },
           ].map(({ icon, label, route }) => (
             <button type="button"
               key={route}
