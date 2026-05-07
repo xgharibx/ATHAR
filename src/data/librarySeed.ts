@@ -88,6 +88,16 @@ const HADITH_TAGS: Record<number, string[]> = {
   78: ["الصلاة على النبي", "الأجر", "العشرة"],
   79: ["الدين", "الذنوب", "الأمانة"],
   80: ["الصبر", "المصيبة", "التكفير"],
+  81: ["الإحسان", "العمل", "الكمال"],
+  82: ["القوة", "الإيمان", "الخيرية"],
+  83: ["العزيمة", "التوكل", "النفع"],
+  84: ["رمضان", "الصيام", "المغفرة"],
+  85: ["الطهور", "الدعاء", "الميزان"],
+  86: ["الأخوة", "الاحترام", "التحذير"],
+  87: ["الصبر", "العطاء", "التصبر"],
+  88: ["القرآن", "آية الكرسي", "الجنة"],
+  89: ["العشر الأوائل", "العمل الصالح", "التفضيل"],
+  90: ["عيادة المريض", "الجنة", "الأخوة"],
 };
 
 const HADITH_CHAPTERS: Record<number, string> = {
@@ -99,6 +109,7 @@ const HADITH_CHAPTERS: Record<number, string> = {
   51: "knowledge", 52: "salah", 53: "salah", 54: "salah", 55: "family", 56: "adab", 57: "adab", 58: "worship", 59: "adab", 60: "knowledge",
   61: "adab", 62: "heart", 63: "dhikr", 64: "impact", 65: "heart", 66: "adab", 67: "adab", 68: "adab", 69: "adab", 70: "adab",
   71: "adab", 72: "adab", 73: "quran", 74: "adab", 75: "knowledge", 76: "worship", 77: "family", 78: "salah", 79: "heart", 80: "heart",
+  81: "adab", 82: "heart", 83: "heart", 84: "worship", 85: "salah", 86: "adab", 87: "heart", 88: "quran", 89: "worship", 90: "adab",
 };
 
 function gradeFromSource(source: string): LibraryGrade {
