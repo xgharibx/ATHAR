@@ -225,19 +225,19 @@ export function SettingsPage() {
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-center">
             <div className="text-[11px] opacity-55">المفضلة</div>
-            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.favoriteCount}</div>
+            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.favoriteCount.toLocaleString("ar-EG")}</div>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-center">
             <div className="text-[11px] opacity-55">علامات القرآن</div>
-            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.bookmarkCount}</div>
+            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.bookmarkCount.toLocaleString("ar-EG")}</div>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-center">
             <div className="text-[11px] opacity-55">أيام النشاط</div>
-            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.activeDays}</div>
+            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.activeDays.toLocaleString("ar-EG")}</div>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-center">
             <div className="text-[11px] opacity-55">عناصر متقدمة</div>
-            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.touchedItems}</div>
+            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.touchedItems.toLocaleString("ar-EG")}</div>
           </div>
         </div>
       </Card>
@@ -296,9 +296,10 @@ export function SettingsPage() {
               <label className="relative cursor-pointer">
                 <input
                   type="color"
-                  value={prefs.customAccent ?? "#fda4af"}
+                  value={prefs.customAccent ?? "#10b981"}
                   onChange={(e) => setPrefs({ customAccent: e.target.value })}
                   className="sr-only"
+                  aria-label="اختيار لون مخصص"
                 />
                 <span
                   className="block w-9 h-9 rounded-2xl border-2 border-white/20 shadow-inner ring-1 ring-black/20 transition hover:scale-105"
@@ -434,7 +435,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">حجم الخط</div>
-              <div className="text-xs opacity-70 tabular-nums">{Math.round(prefs.fontScale * 100)}%</div>
+              <div className="text-xs opacity-70 tabular-nums">{Math.round(prefs.fontScale * 100).toLocaleString("ar-EG")}٪</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -450,7 +451,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد السطور</div>
-              <div className="text-xs opacity-70 tabular-nums">{prefs.lineHeight.toFixed(1)}×</div>
+              <div className="text-xs opacity-70 tabular-nums">{parseFloat(prefs.lineHeight.toFixed(1)).toLocaleString("ar-EG", { minimumFractionDigits: 1 })}×</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -466,7 +467,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">حجم خط القرآن</div>
-              <div className="text-xs opacity-70 tabular-nums">{Math.round(prefs.quranFontScale * 100)}%</div>
+              <div className="text-xs opacity-70 tabular-nums">{Math.round(prefs.quranFontScale * 100).toLocaleString("ar-EG")}٪</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -482,7 +483,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد سطور القرآن</div>
-              <div className="text-xs opacity-70 tabular-nums">{prefs.quranLineHeight.toFixed(1)}×</div>
+              <div className="text-xs opacity-70 tabular-nums">{parseFloat(prefs.quranLineHeight.toFixed(1)).toLocaleString("ar-EG", { minimumFractionDigits: 1 })}×</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -498,7 +499,7 @@ export function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SettingRow
               title="حجم صفحة المصحف"
-              desc={`عدد الآيات بكل صفحة: ${prefs.quranPageSize}`}
+              desc={`عدد الآيات بكل صفحة: ${prefs.quranPageSize.toLocaleString("ar-EG")}`}
               right={
                 <div className="flex items-center gap-2">
                   {[8, 12, 16].map((n) => (
@@ -512,7 +513,7 @@ export function SettingsPage() {
                           : "bg-white/6 border-white/10 hover:bg-white/10"
                       ].join(" ")}
                     >
-                      {n}
+                      {n.toLocaleString("ar-EG")}
                     </button>
                   ))}
                 </div>
@@ -596,7 +597,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد الحروف</div>
-              <div className="text-xs opacity-70 tabular-nums">{((prefs.quranLetterSpacing ?? 0) * 100).toFixed(0)}%</div>
+              <div className="text-xs opacity-70 tabular-nums">{parseInt(((prefs.quranLetterSpacing ?? 0) * 100).toFixed(0)).toLocaleString("ar-EG")}٪</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -613,7 +614,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد الكلمات</div>
-              <div className="text-xs opacity-70 tabular-nums">{((prefs.quranWordSpacing ?? 0) * 100).toFixed(0)}%</div>
+              <div className="text-xs opacity-70 tabular-nums">{parseInt(((prefs.quranWordSpacing ?? 0) * 100).toFixed(0)).toLocaleString("ar-EG")}٪</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -657,7 +658,7 @@ export function SettingsPage() {
                   onClick={() => setPrefs({ quranDailyGoal: Math.max(1, (prefs.quranDailyGoal ?? 10) - 5) })}
                   aria-label="تقليل الهدف"
                 >−</button>
-                <span className="w-12 text-center text-sm tabular-nums font-semibold">{prefs.quranDailyGoal ?? 10}</span>
+                <span className="w-12 text-center text-sm tabular-nums font-semibold">{(prefs.quranDailyGoal ?? 10).toLocaleString("ar-EG")}</span>
                 <button type="button"
                   className="w-8 h-8 rounded-xl bg-white/8 border border-white/12 flex items-center justify-center hover:bg-white/12 transition text-base"
                   onClick={() => setPrefs({ quranDailyGoal: Math.min(604, (prefs.quranDailyGoal ?? 10) + 5) })}
@@ -927,6 +928,7 @@ export function SettingsPage() {
             <div className="mt-3">
               <Input
                 type="time"
+                dir="ltr"
                 value={reminders.morningTime}
                 onChange={(e) => setReminders({ morningTime: e.target.value })}
                 disabled={!reminders.enabled || !reminders.morningEnabled}
@@ -950,6 +952,7 @@ export function SettingsPage() {
             <div className="mt-3">
               <Input
                 type="time"
+                dir="ltr"
                 value={reminders.eveningTime}
                 onChange={(e) => setReminders({ eveningTime: e.target.value })}
                 disabled={!reminders.enabled || !reminders.eveningEnabled}
@@ -973,6 +976,7 @@ export function SettingsPage() {
             <div className="mt-3">
               <Input
                 type="time"
+                dir="ltr"
                 value={reminders.dailyWirdTime}
                 onChange={(e) => setReminders({ dailyWirdTime: e.target.value })}
                 disabled={!reminders.enabled || !reminders.dailyWirdEnabled}
@@ -996,6 +1000,7 @@ export function SettingsPage() {
             <div className="mt-3">
               <Input
                 type="time"
+                dir="ltr"
                 value={reminders.khatmaTime}
                 onChange={(e) => setReminders({ khatmaTime: e.target.value })}
                 disabled={!reminders.enabled || !reminders.khatmaEnabled}
@@ -1105,8 +1110,9 @@ export function SettingsPage() {
                 ]).map((icon) => (
                   <button type="button"
                     key={icon.id}
-                    onClick={() => toast("تغيير أيقونة التطبيق قيد التطوير")}
-                    className="px-3 py-2 rounded-xl border border-white/10 bg-white/6 hover:bg-white/10 text-xs transition min-h-[36px]"
+                    onClick={() => toast("قريبًا — تغيير أيقونة التطبيق قيد التطوير")}
+                    className="px-3 py-2 rounded-xl border border-white/10 bg-white/6 text-xs transition min-h-[36px] opacity-60 cursor-not-allowed"
+                    title="قريبًا"
                   >
                     {icon.label}
                   </button>
@@ -1184,14 +1190,14 @@ function HomeWidgetsCard(props: {
     if (i === 0) return;
     const next = [...order];
     [next[i - 1], next[i]] = [next[i], next[i - 1]];
-    setPrefs({ ...prefs, homeWidgetsOrder: next });
+    setPrefs({ homeWidgetsOrder: next });
   };
 
   const moveDown = (i: number) => {
     if (i === order.length - 1) return;
     const next = [...order];
     [next[i], next[i + 1]] = [next[i + 1], next[i]];
-    setPrefs({ ...prefs, homeWidgetsOrder: next });
+    setPrefs({ homeWidgetsOrder: next });
   };
 
   return (
@@ -1237,7 +1243,7 @@ function HomeWidgetsCard(props: {
             <Switch
               aria-label={HOME_WIDGET_LABELS[key]}
               checked={prefs.homeWidgets[key] ?? true}
-              onCheckedChange={(v) => setPrefs({ ...prefs, homeWidgets: { ...prefs.homeWidgets, [key]: v } })}
+              onCheckedChange={(v) => setPrefs({ homeWidgets: { ...prefs.homeWidgets, [key]: v } })}
             />
           </div>
         ))}
