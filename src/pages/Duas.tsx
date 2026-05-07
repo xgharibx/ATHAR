@@ -113,7 +113,7 @@ export function DuasPage() {
                 border: "1px solid var(--card-border)",
               }}
             >
-              {cat.icon} {cat.label}
+              {cat.icon} {cat.label} <span className="opacity-60 text-xs">({cat.duas.length})</span>
             </button>
           ))}
           <button type="button"
@@ -133,6 +133,17 @@ export function DuasPage() {
 
       {/* Duas list */}
       <div className="px-4 pt-4 space-y-4">
+        {/* Category stats row */}
+        {!showFavorites && !query && (
+          <div className="flex items-center justify-between pb-1">
+            <span className="text-xs opacity-50" style={{ color: "var(--fg)" }}>
+              {displayedDuas.length} دعاء
+            </span>
+            <span className="text-xs opacity-40 font-arabic" style={{ color: "var(--fg)" }}>
+              {category.icon} {category.label}
+            </span>
+          </div>
+        )}
         {displayedDuas.length === 0 && (
           <div className="text-center py-16 opacity-50" style={{ color: "var(--fg)" }}>
             {showFavorites ? "لا توجد أدعية مفضلة بعد" : "لا توجد نتائج"}
