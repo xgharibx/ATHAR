@@ -1150,7 +1150,7 @@ export const useNoorStore = create<NoorState>()(
       addHadithMemoCard: (cardKey) => {
         set((s) => {
           if (s.hadithMemoCards[cardKey]) return {};
-          const today = new Date().toISOString().slice(0, 10);
+          const today = getLocalDateKey();
           const card: HadithMemoCard = { interval: 1, ease: 2.5, due: today, reviews: 0 };
           void idbSetHadithMemoCard(cardKey, card);
           return { hadithMemoCards: { ...s.hadithMemoCards, [cardKey]: card } };
@@ -1166,7 +1166,8 @@ export const useNoorStore = create<NoorState>()(
           else if (rating === 2) { interval = card.reviews === 0 ? 1 : card.reviews === 1 ? 4 : Math.round(interval * ease); }
           else { interval = card.reviews === 0 ? 4 : Math.round(interval * ease * 1.3); ease = Math.min(3.0, ease + 0.15); }
           const due = new Date(); due.setDate(due.getDate() + interval);
-          const updated: HadithMemoCard = { interval, ease, due: due.toISOString().slice(0, 10), reviews: card.reviews + 1 };
+          const yyyy = due.getFullYear(), mm = String(due.getMonth() + 1).padStart(2, "0"), dd = String(due.getDate()).padStart(2, "0");
+          const updated: HadithMemoCard = { interval, ease, due: `${yyyy}-${mm}-${dd}`, reviews: card.reviews + 1 };
           void idbSetHadithMemoCard(cardKey, updated);
           return { hadithMemoCards: { ...s.hadithMemoCards, [cardKey]: updated } };
         });
