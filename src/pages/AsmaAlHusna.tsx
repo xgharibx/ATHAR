@@ -54,6 +54,7 @@ export function AsmaAlHusnaPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="ابحث بالاسم أو المعنى..."
+            aria-label="بحث في أسماء الله الحسنى"
             className="flex-1 bg-transparent text-sm outline-none"
             style={{ color: "var(--fg)" }}
           />

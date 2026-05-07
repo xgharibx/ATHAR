@@ -68,7 +68,7 @@ export function QuranVocabPage() {
               onClick={handleShuffle}
               className="p-2 rounded-xl"
               style={{ background: "var(--card-bg)", color: "var(--accent)" }}
-              title="خلط البطاقات"
+              aria-label="خلط البطاقات"
             >
               <Shuffle size={16} />
             </button>
@@ -76,7 +76,7 @@ export function QuranVocabPage() {
               onClick={handleReset}
               className="p-2 rounded-xl"
               style={{ background: "var(--card-bg)", color: "var(--fg)" }}
-              title="إعادة تعيين"
+              aria-label="إعادة تعيين"
             >
               <RotateCcw size={16} />
             </button>

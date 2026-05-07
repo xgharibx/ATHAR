@@ -1892,10 +1892,12 @@ export function MushafPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[11px] opacity-45 shrink-0">من</span>
                     <input type="number" min={0} max={playableItems.length - 1} value={loopRangeStartIdx}
+                      aria-label="بداية التكرار"
                       onChange={(e) => setLoopRangeStartIdx(Math.max(0, Math.min(playableItems.length - 1, Number(e.target.value))))}
                       className="w-12 rounded-xl bg-white/6 border border-white/10 px-1.5 py-1 text-xs text-center" />
                     <span className="text-[11px] opacity-45 shrink-0">إلى</span>
                     <input type="number" min={loopRangeStartIdx} max={playableItems.length - 1} value={loopRangeEndIdx}
+                      aria-label="نهاية التكرار"
                       onChange={(e) => setLoopRangeEndIdx(Math.max(loopRangeStartIdx, Math.min(playableItems.length - 1, Number(e.target.value))))}
                       className="w-12 rounded-xl bg-white/6 border border-white/10 px-1.5 py-1 text-xs text-center" />
                     <span className="text-[11px] opacity-35 shrink-0">/ {playableItems.length}</span>
@@ -2017,6 +2019,7 @@ export function MushafPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-[11px] opacity-50 w-10 shrink-0">باس</span>
                     <input type="range" min={-12} max={12} step={1} value={bassGain}
+                      aria-label="درجة الباس"
                       onChange={(e) => setBassGain(Number(e.target.value))}
                       className="flex-1 h-1 accent-[var(--accent)]" />
                     <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{bassGain > 0 ? "+" : ""}{bassGain}</span>
@@ -2024,6 +2027,7 @@ export function MushafPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-[11px] opacity-50 w-10 shrink-0">تريبل</span>
                     <input type="range" min={-12} max={12} step={1} value={trebleGain}
+                      aria-label="درجة التريبل"
                       onChange={(e) => setTrebleGain(Number(e.target.value))}
                       className="flex-1 h-1 accent-[var(--accent)]" />
                     <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{trebleGain > 0 ? "+" : ""}{trebleGain}</span>

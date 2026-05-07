@@ -1,5 +1,5 @@
 /**
- * HadithBooks � Phase 7
+ * HadithBooks � Phase 7
  * Gallery of 9 hadith books with ??????????? hero (7E), Fuse.js global search (7B).
  * Route: /hadith
  */
@@ -180,7 +180,7 @@ function BookCard({ book }: { book: HadithBookMeta }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Search tab (7B) � Fuse.js across loaded packs                        */
+/* Search tab (7B) � Fuse.js across loaded packs                        */
 /* ------------------------------------------------------------------ */
 
 type SearchResult = {
@@ -261,7 +261,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
       if (idx !== -1 && (matnStart === -1 || idx < matnStart)) matnStart = idx;
     }
     const text = matnStart > 0 ? t.slice(matnStart + 1) : t;
-    return text.slice(0, 120) + (text.length > 120 ? "�" : "");
+    return text.slice(0, 120) + (text.length > 120 ? "�" : "");
   };
 
   return (
@@ -273,8 +273,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
           type="search"
           value={query}
           onChange={handleChange}
-          placeholder="???? ?? ????????�"
-          dir="rtl"
+          placeholder="???? ?? ????????�"          aria-label="البحث في كتب الحديث"          dir="rtl"
           className="w-full pr-9 pl-4 py-3 rounded-2xl text-sm font-arabic text-[var(--fg)] outline-none"
           style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
         />
@@ -284,7 +283,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
       {loading && (
         <div className="flex flex-col items-center py-12 gap-3 text-[var(--muted)]">
           <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-arabic">???? ?????�</p>
+          <p className="text-sm font-arabic">???? ?????�</p>
         </div>
       )}
 
@@ -457,7 +456,7 @@ export function HadithBooksPage() {
 
           {/* Attribution */}
           <p className="text-center text-[10px] text-[var(--muted)] mt-2 px-4 pb-4 leading-relaxed font-arabic">
-            ??????: ????? hadith-api (Unlicense) � fawazahmed0/hadith-api
+            ??????: ????? hadith-api (Unlicense) � fawazahmed0/hadith-api
           </p>
         </div>
       )}

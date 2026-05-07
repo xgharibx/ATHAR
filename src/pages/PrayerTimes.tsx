@@ -718,17 +718,20 @@ function CitiesTab() {
             <div>
               <div className="text-xs opacity-50 mb-1">اسم المدينة</div>
               <input value={cityInput} onChange={(e) => setCityInput(e.target.value)} placeholder="Cairo"
+                aria-label="اسم المدينة"
                 className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50" />
             </div>
             <div>
               <div className="text-xs opacity-50 mb-1">الدولة</div>
               <input value={countryInput} onChange={(e) => setCountryInput(e.target.value)} placeholder="Egypt"
+                aria-label="الدولة"
                 className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50" />
             </div>
           </div>
           <div>
             <div className="text-xs opacity-50 mb-1">الاسم المعروض (اختياري)</div>
             <input value={labelInput} onChange={(e) => setLabelInput(e.target.value)} placeholder="القاهرة"
+              aria-label="الاسم المعروض"
               className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50" />
           </div>
           <div className="flex gap-2">

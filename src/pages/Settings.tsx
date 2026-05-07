@@ -1229,7 +1229,10 @@ function HomeWidgetsCard(props: {
             </div>
             <span
               className={`flex-1 text-sm ${key === "prayer" ? "cursor-pointer hover:text-[var(--accent)] transition-colors" : ""}`}
+              role={key === "prayer" ? "button" : undefined}
+              tabIndex={key === "prayer" ? 0 : undefined}
               onClick={key === "prayer" ? () => { document.getElementById("prayer-settings")?.scrollIntoView({ behavior: "smooth", block: "center" }); } : undefined}
+              onKeyDown={key === "prayer" ? (e) => { if (e.key === "Enter" || e.key === " ") document.getElementById("prayer-settings")?.scrollIntoView({ behavior: "smooth", block: "center" }); } : undefined}
             >{HOME_WIDGET_LABELS[key]}</span>
             <Switch
               aria-label={HOME_WIDGET_LABELS[key]}
