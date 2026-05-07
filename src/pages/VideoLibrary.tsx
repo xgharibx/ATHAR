@@ -998,16 +998,31 @@ function SheikhScreen({
           </button>
           <div className="flex items-center gap-4">
             <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-extrabold border-2 shrink-0"
+              className="w-16 h-16 rounded-2xl overflow-hidden border-2 shrink-0"
               style={{
                 borderColor: `${channel.accent}70`,
-                color: channel.accent,
-                background: `${channel.accent}18`,
-                textShadow: `0 0 20px ${channel.accent}`,
-                boxShadow: `0 0 28px ${channel.accent}25`,
+                boxShadow: `0 0 28px ${channel.accent}35`,
               }}
             >
-              {initials}
+              {channel.avatarUrl ? (
+                <img
+                  src={channel.avatarUrl}
+                  alt={channel.displayName}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center text-2xl font-extrabold"
+                  style={{
+                    color: channel.accent,
+                    background: `${channel.accent}18`,
+                    textShadow: `0 0 20px ${channel.accent}`,
+                  }}
+                >
+                  {initials}
+                </div>
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="text-[1.05rem] font-bold arabic-text" style={{ textShadow: `0 0 28px ${channel.accent}55` }}>
