@@ -1484,6 +1484,8 @@ body.quran-focus-mode .quran-surface {
   z-index: 9999;
   padding: 6px;
   border-radius: 28px;
+  /* Clamp to viewport so it never causes horizontal overflow */
+  max-width: calc(100vw - 16px);
   background: rgba(10, 12, 18, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.10);
   backdrop-filter: blur(24px) saturate(1.6);
@@ -1494,6 +1496,17 @@ body.quran-focus-mode .quran-surface {
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition: transform 320ms cubic-bezier(.4,0,.2,1), opacity 320ms cubic-bezier(.4,0,.2,1);
   will-change: transform, opacity;
+}
+
+/* Allow the inner flex row to scroll when items don't fit */
+.floating-nav > div {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.floating-nav > div::-webkit-scrollbar {
+  display: none;
 }
 
 .floating-nav.nav-hidden {
@@ -1508,7 +1521,7 @@ body.quran-focus-mode .quran-surface {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 8px 14px;
+  padding: 6px 10px;
   border-radius: 22px;
   font-size: 11px;
   font-weight: 500;
@@ -1517,7 +1530,24 @@ body.quran-focus-mode .quran-surface {
   position: relative;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  min-width: 56px;
+  min-width: 48px;
+  flex-shrink: 0;
+}
+
+/* At narrow viewport (high zoom / large OS font): show icons only */
+@media (max-width: 340px) {
+  .floating-nav-item span {
+    display: none;
+  }
+  .floating-nav-item {
+    padding: 10px 8px;
+    min-width: 40px;
+  }
+  /* Move dot indicator closer to bottom since no label */
+  .floating-nav-item.active::after,
+  .floating-nav-item:not(.active)::after {
+    bottom: 4px;
+  }
 }
 
 .floating-nav-item:active {

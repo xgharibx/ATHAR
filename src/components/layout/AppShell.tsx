@@ -513,10 +513,11 @@ export function AppShell() {
       {/* Top Bar */}
       <header className="sticky top-0 z-30" style={{ paddingTop: "var(--sat)" }}>
         <div className="mx-auto max-w-[1400px] px-4 pt-3">
-          <div className="glass rounded-3xl px-3 py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+          <div className="glass rounded-3xl px-3 py-3 flex items-center justify-between gap-2 overflow-hidden">
+            {/* Logo + mobile menu — allowed to shrink at high zoom */}
+            <div className="flex items-center gap-2 min-w-0 shrink">
               {/* Mobile menu */}
-              <div className="xl:hidden">
+              <div className="xl:hidden shrink-0">
                 <Dialog.Root open={drawerOpen} onOpenChange={(open) => {
                   setDrawerOpen(open);
                   if (open && navigator.vibrate) navigator.vibrate(10);
@@ -535,31 +536,36 @@ export function AppShell() {
                 </Dialog.Root>
               </div>
 
-              <NavLink to="/" className="flex items-center gap-2">
+              <NavLink to="/" className="flex items-center gap-2 min-w-0">
                 <LogoMark
-                  className="w-11 h-11 rounded-2xl border border-white/10 overflow-hidden"
+                  className="w-11 h-11 rounded-2xl border border-white/10 overflow-hidden shrink-0"
                   title="Athar"
                 />
-                <div className="leading-tight">
+                {/* Hide text at narrow viewport (high zoom / large OS font) */}
+                <div className="leading-tight max-[340px]:hidden">
                   <div className="font-semibold" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
                   <div className="text-[11px] opacity-65">أذكار • صلاة</div>
                 </div>
               </NavLink>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Action buttons — shrink-0 so they stay visible, hide non-essential ones at high zoom */}
+            <div className="flex items-center gap-2 shrink-0">
               <IconButton aria-label="بحث (Ctrl+K)" onClick={() => setPaletteOpen(true)}>
                 <Search size={18} />
               </IconButton>
 
-              <NavLink to="/settings" className="inline-flex">
+              {/* Settings: hide at very narrow viewport (accessible via hamburger menu) */}
+              <NavLink to="/settings" className="inline-flex max-[340px]:hidden">
                 <IconButton aria-label="الإعدادات">
                   <Settings2 size={18} />
                 </IconButton>
               </NavLink>
 
+              {/* Theme toggle: hide at very narrow viewport */}
               <IconButton
                 aria-label={prefs.theme === 'light' ? 'تبديل إلى المظهر الداكن' : 'تبديل إلى المظهر الفاتح'}
+                className="max-[340px]:hidden"
                 onClick={() => {
                   const next = prefs.theme === 'light' ? 'dark' : 'light';
                   setPrefs({ theme: next });

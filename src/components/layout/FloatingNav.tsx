@@ -68,6 +68,11 @@ export function FloatingNav() {
       prevPath.current = location.pathname;
       if (navigator.vibrate) navigator.vibrate(8);
     }
+    // Scroll the active tab into view when nav is in compact/scrollable mode
+    const activeEl = document.querySelector('.floating-nav-item.active') as HTMLElement | null;
+    if (activeEl) {
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
   }, [location.pathname]);
 
   const isActive = (path: string) => {

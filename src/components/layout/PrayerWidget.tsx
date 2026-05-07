@@ -61,7 +61,9 @@ export function PrayerWidget() {
         <PrayerCountdown timings={timings} compact />
       </div>
 
-      <div className="grid grid-cols-5 gap-2 text-center">
+      {/* Prayer times grid — scrollable at high zoom so times are never clipped */}
+      <div className="overflow-x-auto -mx-1 px-1">
+        <div className="grid grid-cols-5 gap-1 text-center" style={{ minWidth: "260px" }}>
         {schedule.primary.map((prayer) => {
           const isCurrent = schedule.current.name === prayer.name;
           const isNext = schedule.next.name === prayer.name;
@@ -83,6 +85,7 @@ export function PrayerWidget() {
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* P10: Golden hour — Sunrise / Ishraq / Duha */}
