@@ -1318,6 +1318,8 @@ export const useNoorStore = create<NoorState>()(
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],
           sectionCompletions: (state as Partial<NoorState>).sectionCompletions ?? {},
+          sebhaSessions: Array.isArray((state as Partial<NoorState>).sebhaSessions) ? (state as Partial<NoorState>).sebhaSessions! : [],
+          sebhaCustom: (state as Partial<NoorState>).sebhaCustom ?? null,
           // hadith user-state fields are NOT in persist (see partialize above);
           // they'll be loaded from IDB by hydrateHadithState() in main.tsx
           hadithBookmarks: {},
