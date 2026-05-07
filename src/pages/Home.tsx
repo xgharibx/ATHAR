@@ -731,7 +731,7 @@ export function HomePage() {
                     </span>
                   )}
                   {quranLastRead && quranLastReadSurahName && (
-                    <span className="text-[10px] opacity-40 arabic-text truncate max-w-[70px]">{quranLastReadSurahName}</span>
+                    <span className="text-[10px] opacity-40 arabic-text line-clamp-2 leading-tight max-w-[70px]">{quranLastReadSurahName}</span>
                   )}
                 </button>
               )}
@@ -766,7 +766,7 @@ export function HomePage() {
                   }}
                 >
                   <span className="text-[22px] leading-none">📝</span>
-                  <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5 max-w-[60px] truncate">{pack.title}</span>
+                  <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 max-w-[60px] line-clamp-2">{pack.title}</span>
                   <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1">
                     <div
                       className="h-full rounded-full transition-all duration-300"
@@ -811,7 +811,7 @@ export function HomePage() {
                   }}
                 >
                   <span className="text-[22px] leading-none">{identity.icon}</span>
-                  <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5 w-full text-center truncate">{identity.badge}</span>
+                  <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 w-full text-center line-clamp-2">{identity.badge}</span>
                   <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1">
                     <div
                       className="h-full rounded-full transition-all duration-300"

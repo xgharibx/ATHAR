@@ -49,6 +49,7 @@ export function PrayerCountdown(props: Readonly<{
 
   if (!schedule) return null;
 
+  // SVG coordinate system stays fixed; container scales responsively with viewport
   const ringSize = compact ? 124 : 152;
   const radius = compact ? 47 : 58;
   const circumference = 2 * Math.PI * radius;
@@ -56,24 +57,29 @@ export function PrayerCountdown(props: Readonly<{
   const isUrgent = schedule.diffSec < 900;
   const isImminent = schedule.diffSec < 180;
   const ringStroke = resolveRingStroke(schedule.currentPhase.type, isImminent, isUrgent);
+  // Responsive container: shrinks on narrow screens / large OS font but never below 88px
+  const containerSize = compact
+    ? "clamp(88px, 22vw, 124px)"
+    : "clamp(108px, 26vw, 152px)";
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 items-center">
-      <div className="min-w-0">
+      <div className="min-w-0 overflow-hidden">
         <div className="flex items-center gap-2 text-xs opacity-65">
           <div className="countdown-live-dot" aria-hidden="true" />
           <Bell size={14} className={isImminent ? "text-[var(--accent)] animate-bounce" : "opacity-60"} />
           <span>الحالة الآن</span>
         </div>
-        <div className={[compact ? "mt-2 text-2xl" : "mt-3 text-4xl", "font-bold leading-tight"].join(" ")}>
+        <div className={[compact ? "mt-2 text-2xl" : "mt-3 text-4xl", "font-bold leading-tight break-words"].join(" ")}>
           {schedule.currentPhase.label}
         </div>
-        <div dir="ltr" className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-6"].join(" ")}>
+        <div dir="ltr" className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-6 whitespace-nowrap overflow-hidden text-ellipsis"].join(" ")}>
           {schedule.currentPhase.value}
         </div>
       </div>
 
-      <div className="relative shrink-0" style={{ width: ringSize, height: ringSize }}>
-        <svg width={ringSize} height={ringSize} viewBox={`0 0 ${ringSize} ${ringSize}`} className="-rotate-90">
+      <div className="relative shrink-0" style={{ width: containerSize, height: containerSize }}>
+        {/* SVG uses viewBox for coordinate system; fills container 100% so it scales */}
+        <svg width="100%" height="100%" viewBox={`0 0 ${ringSize} ${ringSize}`} className="-rotate-90">
           <circle
             cx={ringSize / 2}
             cy={ringSize / 2}
@@ -94,13 +100,13 @@ export function PrayerCountdown(props: Readonly<{
             strokeDashoffset={progressOffset}
           />
         </svg>
-        <div className="absolute inset-0 grid place-items-center text-center px-3">
-          <div>
-            <div className="text-[11px] opacity-55">الوقت المتبقي</div>
-            <div className={[compact ? "mt-1 text-sm" : "mt-1 text-base", "font-bold tabular-nums"].join(" ")}>
+        <div className="absolute inset-0 grid place-items-center text-center px-2 overflow-hidden">
+          <div className="w-full">
+            <div className="text-[10px] opacity-55 leading-tight">الوقت المتبقي</div>
+            <div className={[compact ? "mt-0.5 text-xs" : "mt-1 text-sm", "font-bold tabular-nums whitespace-nowrap overflow-hidden text-ellipsis"].join(" ")}>
               {formatCountdown(schedule.diffSec)}
             </div>
-            <div className="mt-1 text-[11px] opacity-55">حتى {schedule.nextPhase.label}</div>
+            <div className="mt-0.5 text-[10px] opacity-55 leading-tight overflow-hidden text-ellipsis whitespace-nowrap">حتى {schedule.nextPhase.label}</div>
           </div>
         </div>
       </div>

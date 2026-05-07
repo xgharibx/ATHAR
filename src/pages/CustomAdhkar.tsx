@@ -144,7 +144,7 @@ function PackCard({
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-2xl">📝</span>
           <div className="min-w-0">
-            <div className="font-semibold text-sm leading-tight truncate">{pack.title}</div>
+            <div className="font-semibold text-sm leading-tight line-clamp-2">{pack.title}</div>
             <div className="text-xs opacity-50">{pack.items.length} ذكر</div>
           </div>
         </div>
@@ -197,7 +197,7 @@ function PackCard({
         <div className="space-y-1 border-t border-white/5 pt-3">
           {pack.items.map((it, i) => (
             <div key={i} className="flex items-center justify-between gap-2 text-xs opacity-70">
-              <span className="truncate">{it.text}</span>
+              <span className="line-clamp-2 leading-snug">{it.text}</span>
               <span className="shrink-0 opacity-50">× {it.count}</span>
             </div>
           ))}

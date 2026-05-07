@@ -237,13 +237,15 @@ function CityRow({ city, country, label, onRemove }: {
       ) : (error || !data) ? (
         <div className="text-xs opacity-40">تعذر التحميل</div>
       ) : (
-        <div className="grid grid-cols-5 gap-1 text-center text-xs">
+        <div className="overflow-x-auto -mx-1 px-1">
+          <div className="grid grid-cols-5 gap-1 text-center text-xs" style={{ minWidth: "220px" }}>
           {PRIMARY_PRAYERS.map((p) => (
             <div key={p}>
               <div className="opacity-50 mb-0.5">{PRAYER_LABELS[p]}</div>
               <div dir="ltr" className="font-medium tabular-nums">{format12h(cleanTime(data[p] ?? ""))}</div>
             </div>
           ))}
+          </div>
         </div>
       )}
     </div>
@@ -852,14 +854,16 @@ function StatsTab() {
       {/* Longest streaks */}
       <div>
         <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">أطول سلسلة مواظبة</div>
-        <div className="grid grid-cols-5 gap-2">
-          {streaks.map(({ prayer, maxStreak }) => (
-            <div key={prayer} className="rounded-2xl border border-white/10 bg-white/4 p-3 text-center">
-              <div className="text-[11px] opacity-60 mb-1">{PRAYER_LABELS[prayer]}</div>
-              <div className="text-2xl font-bold" style={{ color: "var(--accent)" }}>{toArabicIndic(maxStreak)}</div>
-              <div className="text-[9px] opacity-40 mt-0.5">يوم</div>
-            </div>
-          ))}
+        <div className="overflow-x-auto -mx-1 px-1">
+          <div className="grid grid-cols-5 gap-2" style={{ minWidth: "220px" }}>
+            {streaks.map(({ prayer, maxStreak }) => (
+              <div key={prayer} className="rounded-2xl border border-white/10 bg-white/4 p-3 text-center">
+                <div className="text-[11px] opacity-60 mb-1">{PRAYER_LABELS[prayer]}</div>
+                <div className="text-2xl font-bold" style={{ color: "var(--accent)" }}>{toArabicIndic(maxStreak)}</div>
+                <div className="text-[9px] opacity-40 mt-0.5">يوم</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -969,14 +973,16 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
           )}
         </svg>
       </div>
-      <div className="grid grid-cols-5 gap-1.5">
-        {prayerPoints.map((p) => (
-          <div key={p.id} className="rounded-xl border px-2 py-2 text-center" style={{ backgroundColor: p.isPast ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)", borderColor: p.isPast ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.14)" }}>
-            <div className="font-medium text-[11px]" style={{ opacity: p.isPast ? 0.35 : 1 }}>{p.label}</div>
-            <div dir="ltr" className="text-[10px] tabular-nums mt-0.5" style={{ opacity: 0.45 }}>{p.time}</div>
-            {p.isPast && <div className="text-[9px] mt-0.5 opacity-30">مضى</div>}
-          </div>
-        ))}
+      <div className="overflow-x-auto -mx-1 px-1">
+        <div className="grid grid-cols-5 gap-1.5" style={{ minWidth: "240px" }}>
+          {prayerPoints.map((p) => (
+            <div key={p.id} className="rounded-xl border px-2 py-2 text-center" style={{ backgroundColor: p.isPast ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)", borderColor: p.isPast ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.14)" }}>
+              <div className="font-medium text-[11px]" style={{ opacity: p.isPast ? 0.35 : 1 }}>{p.label}</div>
+              <div dir="ltr" className="text-[10px] tabular-nums mt-0.5" style={{ opacity: 0.45 }}>{p.time}</div>
+              {p.isPast && <div className="text-[9px] mt-0.5 opacity-30">مضى</div>}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

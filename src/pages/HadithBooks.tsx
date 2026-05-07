@@ -141,13 +141,13 @@ function BookCard({ book }: { book: HadithBookMeta }) {
           {/* Text block */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <p className="text-sm font-bold font-arabic text-[var(--fg)] leading-tight truncate">
+              <p className="text-sm font-bold font-arabic text-[var(--fg)] leading-tight line-clamp-2">
                 {book.title}
               </p>
               <GradeChip grade={book.grade === "mixed" ? "hasan" : book.grade} />
             </div>
             <p className="text-[10px] text-[var(--muted)] mb-2">{book.titleEn}</p>
-            <p className="text-[11px] text-[var(--fg)] opacity-70 leading-snug line-clamp-1 font-arabic">
+            <p className="text-[11px] text-[var(--fg)] opacity-70 leading-snug line-clamp-2 font-arabic">
               {book.description}
             </p>
           </div>

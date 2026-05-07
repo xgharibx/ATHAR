@@ -353,7 +353,7 @@ export function FavoritesPage() {
                             <span className="text-xs opacity-55 tabular-nums shrink-0">﴿{bm.ayahIndex}﴾</span>
                           </div>
                           {bm.note && (
-                            <div className="text-[11px] opacity-55 mt-0.5 truncate">{bm.note.slice(0, 60)}</div>
+                            <div className="text-[11px] opacity-55 mt-0.5 line-clamp-2 leading-tight">{bm.note.slice(0, 80)}</div>
                           )}
                         </button>
                         <Button

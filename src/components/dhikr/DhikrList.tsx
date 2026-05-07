@@ -749,7 +749,7 @@ export function DhikrList(props: Readonly<{
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-start"
             >
               <ChevronRight size={16} className="opacity-60 shrink-0" />
-              <span className="text-xs opacity-65 truncate">{nextSection.title}</span>
+              <span className="text-xs opacity-65 line-clamp-2 leading-tight">{nextSection.title}</span>
             </button>
           ) : <div className="flex-1" />}
           {prevSection ? (
@@ -757,7 +757,7 @@ export function DhikrList(props: Readonly<{
               onClick={() => navigate(`/c/${prevSection.id}`)}
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-end"
             >
-              <span className="text-xs opacity-65 truncate">{prevSection.title}</span>
+              <span className="text-xs opacity-65 line-clamp-2 leading-tight">{prevSection.title}</span>
               <ChevronLeft size={16} className="opacity-60 shrink-0" />
             </button>
           ) : <div className="flex-1" />}

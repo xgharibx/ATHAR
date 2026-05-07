@@ -433,7 +433,7 @@ export function DhikrCard(props: {
           <div className="flex items-center justify-between gap-3 relative">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-12 h-12 relative grid place-items-center shrink-0">
-                <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true">
+                <svg width="100%" height="100%" viewBox="0 0 48 48" aria-hidden="true">
                   <circle
                     cx="24"
                     cy="24"
