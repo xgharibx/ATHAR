@@ -608,7 +608,7 @@ function VideoListRow({
         <div className="text-[12px] font-semibold arabic-text leading-[1.4] line-clamp-2 opacity-90">
           {video.title}
         </div>
-        <div className="text-[10px] opacity-35 mt-0.5">{channel?.displayName}</div>
+        <div className="text-[10px] mt-0.5" style={{ color: channel ? `${channel.accent}aa` : "rgba(255,255,255,0.35)" }}>{channel?.displayName}</div>
       </div>
     </button>
   );
@@ -1046,7 +1046,7 @@ function VideoHome({
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">أحدث الدروس</h2>
-            <span className="text-xs opacity-40">{data.db.videos.length}</span>
+            <span className="text-xs opacity-40">{newestVideos.length} درس</span>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
             {newestVideos.map((v) => (
@@ -1278,6 +1278,12 @@ function SheikhScreen({
                 <div className="rounded-2xl bg-white/7 border border-white/10 px-3 py-1.5 text-xs flex items-center gap-1">
                   <CheckCircle2 size={11} className="opacity-60" />
                   <span>{stats.done} مكتمل</span>
+                </div>
+              )}
+              {channelVideos.length > 0 && Math.floor(channelVideos.reduce((s, v) => s + (v.durationSeconds ?? 0), 0) / 3600) > 0 && (
+                <div className="rounded-2xl bg-white/7 border border-white/10 px-3 py-1.5 text-xs flex items-center gap-1">
+                  <Clock size={11} className="opacity-60" />
+                  <span>{Math.floor(channelVideos.reduce((s, v) => s + (v.durationSeconds ?? 0), 0) / 3600)}+ ساعة</span>
                 </div>
               )}
             </div>
@@ -2017,6 +2023,27 @@ function TopicScreen({
           </div>
         )}
       </section>
+
+      {/* ── Other topics ── */}
+      {data.db.topics.filter((t) => t.id !== topicId).length > 0 && (
+        <section>
+          <h2 className="text-[11px] font-semibold opacity-50 mb-2 tracking-wide">موضوعات أخرى</h2>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            {data.db.topics.filter((t) => t.id !== topicId).map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => navigate(`/video-library/topic/${t.id}`)}
+                className="shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition press-effect"
+                style={{ background: `${t.accent}12`, borderColor: `${t.accent}30`, color: t.accent }}
+              >
+                <span>{t.icon}</span>
+                <span>{t.title}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
