@@ -1,6 +1,6 @@
-/**
- * HadithBooks � Phase 7
- * Gallery of 9 hadith books with ??????????? hero (7E), Fuse.js global search (7B).
+﻿/**
+ * HadithBooks — Phase 7
+ * Gallery of 9 hadith books with الأربعينيات hero (7E), Fuse.js global search (7B).
  * Route: /hadith
  */
 import React, { useState, useRef, useCallback, useEffect } from "react";
@@ -56,7 +56,7 @@ function StarField({ count = 24, color }: { count?: number; color: string }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* ??????????? hero card (7E)                                           */
+/* الأربعينيات hero card (7E)                                           */
 /* ------------------------------------------------------------------ */
 
 function ArbainiCard({ book }: { book: HadithBookMeta }) {
@@ -78,11 +78,11 @@ function ArbainiCard({ book }: { book: HadithBookMeta }) {
         <div className="flex items-center justify-between mb-2">
           {isNawawi ? (
             <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: book.color + "44", color: book.color }}>
-              ???????? ???????
+              الأربعون النووية
             </span>
           ) : (
             <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: book.color + "44", color: book.color }}>
-              ???????? ???????
+              الأحاديث القدسية
             </span>
           )}
           <GradeChip grade="sahih" />
@@ -95,12 +95,12 @@ function ArbainiCard({ book }: { book: HadithBookMeta }) {
         {/* Count + progress */}
         <div className="flex items-center justify-between">
           <span className="text-xs font-arabic" style={{ color: book.color }}>
-            {book.count} ????
+            {book.count} حديث
           </span>
           {lastN ? (
-            <span className="text-[9px] text-[var(--muted)]">?{lastN}</span>
+            <span className="text-[9px] text-[var(--muted)]">ح{lastN}</span>
           ) : (
-            <span className="text-[9px] text-[var(--muted)] opacity-60">?? ?????</span>
+            <span className="text-[9px] text-[var(--muted)] opacity-60">لم يُقرأ</span>
           )}
         </div>
       </div>
@@ -169,7 +169,7 @@ function BookCard({ book }: { book: HadithBookMeta }) {
           </div>
           <div className="flex items-center gap-2">
             {lastN ? (
-              <span className="text-[9px] text-[var(--muted)]">???: ?{lastN}</span>
+              <span className="text-[9px] text-[var(--muted)]">آخر: ح{lastN}</span>
             ) : null}
             <ArrowRight size={12} className="text-[var(--muted)] rotate-180" />
           </div>
@@ -180,7 +180,7 @@ function BookCard({ book }: { book: HadithBookMeta }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Search tab (7B) � Fuse.js across loaded packs                        */
+/* Search tab (7B) — Fuse.js across loaded packs                        */
 /* ------------------------------------------------------------------ */
 
 type SearchResult = {
@@ -254,14 +254,14 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
   };
 
   const previewText = (t: string) => {
-    const markers = [" ?????:", " ????? :", "???:", "????? ???????", "?? ???? ????", "???? ??????????"];
+    const markers = [" قَالَ:", " قَالَ :", "قال:", "أَنَّ رَسُولَ", "أن رسول الله", "عَنِ النَّبِيِّ"];
     let matnStart = -1;
     for (const m of markers) {
       const idx = t.indexOf(m);
       if (idx !== -1 && (matnStart === -1 || idx < matnStart)) matnStart = idx;
     }
     const text = matnStart > 0 ? t.slice(matnStart + 1) : t;
-    return text.slice(0, 120) + (text.length > 120 ? "�" : "");
+    return text.slice(0, 120) + (text.length > 120 ? "…" : "");
   };
 
   return (
@@ -273,7 +273,9 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
           type="search"
           value={query}
           onChange={handleChange}
-          placeholder="???? ?? ????????�"          aria-label="البحث في كتب الحديث"          dir="rtl"
+          placeholder="ابحث في الأحاديث…"
+          dir="rtl"
+          aria-label="البحث في كتب الحديث"
           className="w-full pr-9 pl-4 py-3 rounded-2xl text-sm font-arabic text-[var(--fg)] outline-none"
           style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
         />
@@ -283,21 +285,21 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
       {loading && (
         <div className="flex flex-col items-center py-12 gap-3 text-[var(--muted)]">
           <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-arabic">???? ?????�</p>
+          <p className="text-sm font-arabic">جارٍ البحث…</p>
         </div>
       )}
 
       {!loading && searched && results.length === 0 && (
         <div className="flex flex-col items-center py-12 gap-3">
           <Search size={36} className="text-[var(--muted)] opacity-30" />
-          <p className="text-sm text-[var(--muted)] font-arabic">?? ???? ?????</p>
+          <p className="text-sm text-[var(--muted)] font-arabic">لا توجد نتائج</p>
         </div>
       )}
 
       {!loading && !searched && (
         <div className="flex flex-col items-center py-12 gap-3">
           <Search size={36} className="text-[var(--muted)] opacity-20" />
-          <p className="text-sm text-[var(--muted)] font-arabic">???? ?? ???? ????? ??????</p>
+          <p className="text-sm text-[var(--muted)] font-arabic">ابحث في جميع الكتب التسعة</p>
         </div>
       )}
 
@@ -305,7 +307,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
       {!loading && results.length > 0 && (
         <div className="space-y-3 pb-6">
           <p className="text-xs text-[var(--muted)] font-arabic">
-            {results.length >= 50 ? "???? ?? 50" : results.length} ?????
+            {results.length >= 50 ? "أكثر من 50" : results.length} نتيجة
           </p>
           {results.map((r) => (
             <button type="button"
@@ -322,7 +324,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                     style={{ background: r.bookColor + "22", color: r.bookColor }}>
                     {r.bookTitle}
                   </span>
-                  <span className="text-[10px] text-[var(--muted)]">?{r.item.n}</span>
+                  <span className="text-[10px] text-[var(--muted)]">ح{r.item.n}</span>
                   {r.item.g?.length > 0 && <GradeChip grade={r.item.g[0]!} />}
                 </div>
                 {/* Preview */}
@@ -365,18 +367,19 @@ export function HadithBooksPage() {
         <button type="button"
           onClick={() => navigate(-1)}
           className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-          aria-label="????"
+          aria-label="رجوع"
         >
           <ArrowRight size={20} className="text-[var(--fg)]" />
         </button>
         <div className="flex-1">
-          <p className="font-bold text-base text-[var(--fg)] font-arabic leading-tight">????? ????????</p>
-          <p className="text-xs text-[var(--muted)]">????? ????? ??? ???? ???</p>
+          <p className="font-bold text-base text-[var(--fg)] font-arabic leading-tight">الكتب الحديثية</p>
+          <p className="text-xs text-[var(--muted)]">الكتب الستة وما يلحق بها</p>
         </div>
         <button type="button"
           onClick={() => navigate("/hadith/memo")}
           className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-          title="?????? ?????"
+          title="بطاقات الحفظ"
+          aria-label="بطاقات الحفظ"
         >
           <BrainCircuit size={20} className="text-[var(--accent)]" />
         </button>
@@ -388,13 +391,13 @@ export function HadithBooksPage() {
         style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div className="flex-1 text-center border-l border-[var(--card-border)]">
           <p className="text-xl font-bold text-[var(--fg)] font-arabic">{sorted.length}</p>
-          <p className="text-[10px] text-[var(--muted)]">????</p>
+          <p className="text-[10px] text-[var(--muted)]">كتاب</p>
         </div>
         <div className="flex-1 text-center">
           <p className="text-xl font-bold text-[var(--fg)] font-arabic">
             {totalHadiths >= 1000 ? `${Math.round(totalHadiths / 1000)}k` : totalHadiths.toLocaleString("ar-EG")}
           </p>
-          <p className="text-[10px] text-[var(--muted)]">???? ????</p>
+          <p className="text-[10px] text-[var(--muted)]">حديث نبوي</p>
         </div>
       </div>
 
@@ -412,7 +415,7 @@ export function HadithBooksPage() {
             }
           >
             {t === "library" ? <BookOpen size={14} /> : <Search size={14} />}
-            {t === "library" ? "???????" : "?????"}
+            {t === "library" ? "المكتبة" : "البحث"}
           </button>
         ))}
       </div>
@@ -420,7 +423,7 @@ export function HadithBooksPage() {
       {/* Library tab */}
       {tab === "library" && (
         <div>
-          {/* 7E: ??????????? hero */}
+          {/* 7E: الأربعينيات hero */}
           {arbaini.length > 0 && (
             <div className="px-4 mb-6">
               {/* Section heading */}
@@ -429,11 +432,11 @@ export function HadithBooksPage() {
                 <StarField count={30} color="#84cc16" />
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">?</span>
-                    <p className="text-base font-bold font-arabic text-[var(--fg)]">??????????? ????????</p>
+                    <span className="text-lg">✨</span>
+                    <p className="text-base font-bold font-arabic text-[var(--fg)]">الأربعينيات المباركة</p>
                   </div>
                   <p className="text-xs text-[var(--muted)] font-arabic leading-relaxed">
-                    ???????? ???????? ???? ?????? ?? ????
+                    الأحاديث المختارة التي يحفظها كل مسلم
                   </p>
                 </div>
               </div>
@@ -448,7 +451,7 @@ export function HadithBooksPage() {
 
           {/* Main books */}
           <div className="px-4 space-y-3 mb-4">
-            <p className="text-xs text-[var(--muted)] font-arabic px-1">????? ??????</p>
+            <p className="text-xs text-[var(--muted)] font-arabic px-1">الكتب الكبرى</p>
             {mainBooks.map((book) => (
               <BookCard key={book.key} book={book} />
             ))}
@@ -456,7 +459,7 @@ export function HadithBooksPage() {
 
           {/* Attribution */}
           <p className="text-center text-[10px] text-[var(--muted)] mt-2 px-4 pb-4 leading-relaxed font-arabic">
-            ??????: ????? hadith-api (Unlicense) � fawazahmed0/hadith-api
+            المصدر: مشروع hadith-api (Unlicense) • fawazahmed0/hadith-api
           </p>
         </div>
       )}
