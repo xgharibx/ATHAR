@@ -96,11 +96,13 @@ function CircularRing({
   completed,
   children,
   onClick,
+  showHint = true,
 }: {
   percent: number;
   completed: boolean;
   children: React.ReactNode;
   onClick: () => void;
+  showHint?: boolean;
 }) {
   const offset = RING_C * (1 - Math.min(percent, 100) / 100);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -215,10 +217,12 @@ function CircularRing({
       >
         {children}
       </button>
-      {/* 6A: drag hint */}
-      <div className="absolute -bottom-6 left-0 right-0 text-center text-[10px] opacity-30 pointer-events-none">
-        اسحب الحلقة للعدّ
-      </div>
+      {/* 6A: drag hint — only shown before first count */}
+      {showHint && (
+        <div className="absolute -bottom-6 left-0 right-0 text-center text-[10px] opacity-30 pointer-events-none">
+          اسحب الحلقة للعدّ
+        </div>
+      )}
     </div>
   );
 }
@@ -722,35 +726,38 @@ export function SebhaPage() {
               )}
             >
               <Timer size={13} />
-              {tallyMode ? "وضع حر ✓" : "وضع حر"}
+              <span>وضع حر</span>
+              {tallyMode && <CheckCircle2 size={11} />}
             </button>
           </div>
-          <Button variant="secondary" onClick={handleReset}>
-            <RotateCw size={16} />
-            تصفير الحالي
-          </Button>
-          {/* 6B: Voice mic button */}
-          {voiceSupported && (
-            <button type="button"
-              onClick={toggleVoice}
-              title={listening ? "إيقاف الاستماع" : "عدّ بالصوت"}
-              disabled={voiceStarting}
-              className={cn(
-                "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition shrink-0",
-                listening
-                  ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
-                  : "border-white/10 bg-white/5 text-white/65 hover:bg-white/8",
-                voiceStarting && "opacity-60"
-              )}
-            >
-              {listening ? <MicOff size={13} /> : <Mic size={13} />}
-              {voiceStarting ? "طلب الإذن" : listening ? "جارٍ الاستماع" : "صوت"}
-            </button>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="secondary" onClick={handleReset}>
+              <RotateCw size={16} />
+              تصفير الحالي
+            </Button>
+            {/* 6B: Voice mic button */}
+            {voiceSupported && (
+              <button type="button"
+                onClick={toggleVoice}
+                title={listening ? "إيقاف الاستماع" : "عدّ بالصوت"}
+                disabled={voiceStarting}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition shrink-0",
+                  listening
+                    ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
+                    : "border-white/10 bg-white/5 text-white/65 hover:bg-white/8",
+                  voiceStarting && "opacity-60"
+                )}
+              >
+                {listening ? <MicOff size={13} /> : <Mic size={13} />}
+                {voiceStarting ? "طلب الإذن" : listening ? "جارٍ الاستماع" : "صوت"}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* S4 - Circular ring counter */}
-        <CircularRing percent={percent} completed={completed} onClick={increment}>
+        <CircularRing percent={percent} completed={completed} onClick={increment} showHint={count === 0}>
           <div className="text-center">
             <div className="text-xs opacity-55 mb-2">{current.short}</div>
             <div className="text-6xl font-black tabular-nums leading-none">{count}</div>
@@ -791,25 +798,28 @@ export function SebhaPage() {
       <div>
         <div className="text-[10px] font-semibold opacity-40 mb-2 uppercase tracking-wider px-1">أذكار سريعة</div>
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {QUICK_PHRASES.map((qp) => (
-            <button
-              key={qp.phrase}
-              type="button"
-              onClick={() => {
-                setSebhaCustom({ phrase: qp.phrase, target: qp.target });
-                setSelected("custom");
-                toast.success("تم اختيار الذكر");
-              }}
-              className="flex-shrink-0 px-3 py-2 rounded-2xl text-xs font-medium transition-all active:scale-95 arabic-text whitespace-nowrap"
-              style={{
-                background: "var(--card-bg, rgba(255,255,255,0.06))",
-                border: "1px solid var(--card-border, rgba(255,255,255,0.1))",
-                color: "var(--fg)",
-              }}
-            >
-              {qp.phrase}
-            </button>
-          ))}
+          {QUICK_PHRASES.map((qp) => {
+            const isActiveQP = selected === "custom" && sebhaCustom?.phrase === qp.phrase;
+            return (
+              <button
+                key={qp.phrase}
+                type="button"
+                onClick={() => {
+                  setSebhaCustom({ phrase: qp.phrase, target: qp.target });
+                  setSelected("custom");
+                  toast.success("تم اختيار الذكر");
+                }}
+                className={cn(
+                  "flex-shrink-0 px-3 py-2 rounded-2xl text-xs font-medium transition-all active:scale-95 arabic-text whitespace-nowrap border",
+                  isActiveQP
+                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/40 text-[var(--accent)]"
+                    : "border-white/10 bg-white/5 hover:bg-white/8"
+                )}
+              >
+                {qp.phrase}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -819,13 +829,16 @@ export function SebhaPage() {
           const itemCount = Number(quickTasbeeh[item.key] ?? 0);
           const itemPercent = pct(Math.min(itemCount, target), target);
           const active = item.key === selected;
+          const itemDone = itemCount >= target;
           return (
             <button type="button"
               key={item.key}
               onClick={() => setSelected(item.key)}
               className={cn(
                 "glass rounded-3xl p-4 text-right border transition active:scale-[.98]",
-                active ? "border-[var(--accent)]/35 bg-[var(--accent)]/8" : "border-white/10 hover:bg-white/6"
+                active ? "border-[var(--accent)]/35 bg-[var(--accent)]/8"
+                : itemDone ? "border-[var(--ok)]/35 bg-[var(--ok)]/6 hover:bg-[var(--ok)]/8"
+                : "border-white/10 hover:bg-white/6"
               )}
             >
               <div className="flex items-start justify-between gap-3">
@@ -833,7 +846,7 @@ export function SebhaPage() {
                   <div className="arabic-text text-base font-bold leading-7">{item.label}</div>
                   <div className="mt-1 text-xs opacity-55 leading-5">{item.hint}</div>
                 </div>
-                <Badge>{itemCount}/{target}</Badge>
+                <Badge>{Math.min(itemCount, target)}/{target}</Badge>
               </div>
               <div className="mt-3 h-1.5 rounded-full bg-white/8 overflow-hidden">
                 <div
@@ -862,7 +875,7 @@ export function SebhaPage() {
                 <div className="mt-1 text-xs opacity-55">ذكر مخصص · هدف {sebhaCustom.target}</div>
               </div>
               <div className="flex items-center gap-1">
-                <Badge>{Number(quickTasbeeh["custom"] ?? 0)}/{sebhaCustom.target}</Badge>
+                <Badge>{Math.min(Number(quickTasbeeh["custom"] ?? 0), sebhaCustom.target)}/{sebhaCustom.target}</Badge>
                 <span
                   role="button"
                   tabIndex={0}
