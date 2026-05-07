@@ -511,6 +511,15 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
     <div className="space-y-4">
       <div>
         <div className="text-xs font-semibold opacity-60 mb-3 uppercase tracking-wide">صلوات اليوم</div>
+        {!PRIMARY_PRAYERS.every((p) => !!todayLog[p]) && (
+          <button
+            type="button"
+            onClick={() => { PRIMARY_PRAYERS.forEach((p) => setPrayerLogged(today, p, true)); }}
+            className="w-full mb-3 py-2 px-4 rounded-2xl bg-[var(--accent)]/10 border border-[var(--accent)]/25 text-sm text-white/70 hover:bg-[var(--accent)]/18 transition"
+          >
+            صلّيت جميع الصلوات اليوم ✓
+          </button>
+        )}
         <div className="space-y-2">
           {PRIMARY_PRAYERS.map((p) => {
             const prayed  = !!todayLog[p];
@@ -960,7 +969,7 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
               <circle cx={p.x} cy={p.y} r="5" fill={p.isPast ? "rgba(255,255,255,0.25)" : "var(--accent)"} />
               <circle cx={p.x} cy={p.y} r="8.5" fill="none" stroke={p.isPast ? "rgba(255,255,255,0.12)" : "var(--accent)"} strokeWidth="1" strokeOpacity="0.5" />
               <text x={p.x} y={p.y - 13} textAnchor="middle" fill={p.isPast ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.85)"} fontSize="7.5" fontWeight="600">{p.label}</text>
-              <text x={p.x} y={arcBase + (p.onArc ? 0 : 20)} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="6.5" dy={p.onArc ? 20 : 0}>{p.time}</text>
+              <text x={p.x} y={arcBase + (p.onArc ? 0 : 20)} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="6.5" dy={p.onArc ? 20 : 0}>{format12h(p.time)}</text>
             </g>
           ))}
           {/* Current time cursor */}
@@ -978,7 +987,7 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
           {prayerPoints.map((p) => (
             <div key={p.id} className="rounded-xl border px-2 py-2 text-center" style={{ backgroundColor: p.isPast ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)", borderColor: p.isPast ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.14)" }}>
               <div className="font-medium text-[11px]" style={{ opacity: p.isPast ? 0.35 : 1 }}>{p.label}</div>
-              <div dir="ltr" className="text-[10px] tabular-nums mt-0.5" style={{ opacity: 0.45 }}>{p.time}</div>
+              <div dir="ltr" className="text-[10px] tabular-nums mt-0.5" style={{ opacity: 0.45 }}>{format12h(p.time)}</div>
               {p.isPast && <div className="text-[9px] mt-0.5 opacity-30">مضى</div>}
             </div>
           ))}
@@ -998,6 +1007,13 @@ export function PrayerTimesPage() {
   const [manualRefreshing, setManualRefreshing] = React.useState(false);
   const [activeTab,    setActiveTab]    = React.useState<TabKey>("today");
   const [showSettings, setShowSettings] = React.useState(false);
+  const [isOnline, setIsOnline] = React.useState(() => navigator.onLine);
+  React.useEffect(() => {
+    const update = () => setIsOnline(navigator.onLine);
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => { window.removeEventListener("online", update); window.removeEventListener("offline", update); };
+  }, []);
 
   async function refreshPrayerTimes() {
     setManualRefreshing(true);
@@ -1055,7 +1071,7 @@ export function PrayerTimesPage() {
     { key: "monthly", label: "شهري",      icon: CalendarDays },
     { key: "track",   label: "تتبع",      icon: Check },
     { key: "stats",   label: "إحصاء",     icon: BarChart2 },
-    { key: "arc",     label: "قوس اليوم", icon: Sunrise },
+    { key: "arc",     label: "القوس",      icon: Sunrise },
     { key: "hijri",   label: "هجري",      icon: MoonStar },
     { key: "cities",  label: "مدن",       icon: Globe },
   ];
@@ -1072,31 +1088,30 @@ export function PrayerTimesPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="text-xl font-bold">مواقيت الصلاة</div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="secondary" size="sm" onClick={() => navigate("/qibla")}>
-            <Compass size={14} /> القبلة
+        <div className="flex items-center gap-1.5">
+          <Button variant="secondary" size="sm" title="القبلة" aria-label="القبلة" onClick={() => navigate("/qibla")}>
+            <Compass size={15} />
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => navigate("/mosques")}>
-            <MapPin size={14} /> مساجد
+          <Button variant="secondary" size="sm" title="مساجد" aria-label="مساجد" onClick={() => navigate("/mosques")}>
+            <MapPin size={15} />
           </Button>
-          <Button variant="secondary" size="sm" onClick={async () => {
+          <Button variant="secondary" size="sm" title="مشاركة" aria-label="مشاركة" onClick={async () => {
             if (!timings) return;
             const lines = PRIMARY_PRAYERS.map((p) => `${PRAYER_LABELS[p]}: ${cleanTime(timings[p] ?? "")}`);
             const text = `مواقيت الصلاة اليوم:\n${lines.join("\n")}\n\n• أثر`;
             if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
             else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
           }}>
-            <Share2 size={14} /> مشاركة
+            <Share2 size={15} />
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => setShowSettings(true)}>
-            <Settings2 size={14} /> إعدادات
+          <Button variant="secondary" size="sm" title="إعدادات" aria-label="إعدادات" onClick={() => setShowSettings(true)}>
+            <Settings2 size={15} />
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
+          <Button variant="secondary" size="sm" title="تحديث" aria-label="تحديث" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
             <RefreshCw size={15} className={manualRefreshing || prayerTimes.isFetching ? "animate-spin" : ""} />
-            تحديث
           </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-            <ArrowRight size={15} /> رجوع
+          <Button variant="outline" size="sm" title="رجوع" aria-label="رجوع" onClick={() => navigate(-1)}>
+            <ArrowRight size={15} />
           </Button>
         </div>
       </div>
@@ -1119,7 +1134,7 @@ export function PrayerTimesPage() {
           <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-white/8 to-white/3 p-4 md:p-5">
             <PrayerCountdown timings={timings} />
           </div>
-          {data.__fromCache && (
+          {data.__fromCache && !isOnline && (
             <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] opacity-60">
               <TimerReset size={12} /> يتم عرض آخر نسخة محفوظة بدون اتصال.
             </div>
@@ -1199,7 +1214,7 @@ export function PrayerTimesPage() {
         {/* WEEKLY */}
         {activeTab === "weekly" && (
           <div>
-            <div className="text-sm font-semibold mb-4">جدول الأسبوع القادم</div>
+            <div className="text-sm font-semibold mb-4">صلوات الأسبوع الحالي</div>
             <WeeklyTab />
           </div>
         )}
