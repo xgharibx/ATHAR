@@ -239,37 +239,88 @@ function CourseCard2({
   onClick: () => void;
 }) {
   const stats = aggregateProgress(videos, progress);
-  const accent = channel?.accent ?? "var(--accent)";
+  const accent = channel?.accent ?? "#fbbf24";
+
+  // Best thumbnail: course thumbnail → first video thumbnail → null
+  const firstVideoThumb = videos[0]?.thumbnail ?? null;
+  const thumb = course.thumbnail || firstVideoThumb;
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className="text-right press-effect rounded-3xl overflow-hidden glass border relative"
-      style={{ borderColor: `${accent}30` }}
+      className="text-right press-effect rounded-3xl overflow-hidden relative group"
+      style={{
+        aspectRatio: "4/3",
+        border: `1.5px solid ${accent}35`,
+        boxShadow: stats.percent > 0 ? `0 0 16px ${accent}30` : undefined,
+      }}
     >
-      <div className="h-1 w-full" style={{ background: accent }} />
-      <div className="p-3.5">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="min-w-0 flex-1">
-            <div className="text-[10px] font-medium mb-1" style={{ color: accent }}>
-              {channel?.displayName ?? "دورة"}
-            </div>
-            <h3 className="text-[13px] font-bold line-clamp-2 arabic-text leading-5">{course.title}</h3>
-          </div>
-          <GraduationCap size={16} className="shrink-0 mt-1" style={{ color: accent }} />
+      {/* Thumbnail fill */}
+      {thumb ? (
+        <img
+          src={thumb}
+          alt={course.title}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          loading="lazy"
+        />
+      ) : (
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(ellipse at 60% 30%, ${accent}40 0%, #0d0d1a 70%)`,
+          }}
+        />
+      )}
+
+      {/* Dark gradient overlay — stronger at bottom for text legibility */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(
+            to bottom,
+            rgba(0,0,0,0.10) 0%,
+            rgba(0,0,0,0.15) 40%,
+            rgba(0,0,0,0.72) 70%,
+            rgba(0,0,0,0.90) 100%
+          )`,
+        }}
+      />
+
+      {/* Lesson count badge — top right */}
+      <div className="absolute top-2 left-2">
+        <div
+          className="flex items-center gap-1 px-2 py-0.5 rounded-xl text-[10px] font-bold"
+          style={{ background: `${accent}cc`, color: "#000" }}
+        >
+          <GraduationCap size={9} />
+          <span>{videos.length} درس</span>
         </div>
-        {stats.total > 0 ? (
-          <>
+      </div>
+
+      {/* Progress ring — top left if started */}
+      {stats.percent > 0 && (
+        <div className="absolute top-2 right-2">
+          <ProgressRing percent={stats.percent} color={accent} size={28} strokeWidth={2.5} />
+        </div>
+      )}
+
+      {/* Content — pinned to bottom */}
+      <div className="absolute bottom-0 left-0 right-0 p-2.5">
+        <h3
+          className="text-[12px] font-bold arabic-text leading-[1.35] line-clamp-2 text-white mb-1.5"
+          style={{ textShadow: "0 1px 8px rgba(0,0,0,0.9)" }}
+        >
+          {course.title}
+        </h3>
+        {stats.total > 0 && (
+          <div className="space-y-1">
             <ThinBar percent={stats.percent} accent={accent} />
-            <div className="flex items-center justify-between text-[10px] opacity-50 mt-1.5">
-              <span>
-                {stats.done}/{stats.total} درس
-              </span>
+            <div className="flex items-center justify-between text-[9px] opacity-55">
+              <span>{stats.done}/{stats.total}</span>
               <span>{formatDuration(stats.totalSeconds)}</span>
             </div>
-          </>
-        ) : (
-          <div className="text-[10px] opacity-35 mt-1">بانتظار المزامنة</div>
+          </div>
         )}
       </div>
     </button>
