@@ -51,6 +51,7 @@ export type VideoLibraryCourse = {
   thumbnail?: string;
   order: number;
   isGenerated?: boolean;
+  isUploads?: boolean;
 };
 
 export type VideoLibraryVideo = {

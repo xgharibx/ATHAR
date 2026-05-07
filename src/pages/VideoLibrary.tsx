@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
   Bookmark,
+  BookOpen,
   CheckCircle2,
   ChevronLeft,
   Clock,
@@ -252,7 +253,9 @@ function CourseCard2({
       className="text-right press-effect rounded-3xl overflow-hidden relative group"
       style={{
         aspectRatio: "4/3",
-        border: `1.5px solid ${accent}35`,
+        border: course.isGenerated
+          ? `1.5px dashed ${accent}40`
+          : `1.5px solid ${accent}35`,
         boxShadow: stats.percent > 0 ? `0 0 16px ${accent}30` : undefined,
       }}
     >
@@ -268,7 +271,9 @@ function CourseCard2({
         <div
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(ellipse at 60% 30%, ${accent}40 0%, #0d0d1a 70%)`,
+            background: course.isGenerated
+              ? `radial-gradient(ellipse at 60% 30%, ${accent}28 0%, #0d0d1a 70%)`
+              : `radial-gradient(ellipse at 60% 30%, ${accent}40 0%, #0d0d1a 70%)`,
           }}
         />
       )}
@@ -287,15 +292,30 @@ function CourseCard2({
         }}
       />
 
-      {/* Lesson count badge — top right */}
-      <div className="absolute top-2 left-2">
+      {/* Type badge — top left: موضوع for generated, دورة for real playlists */}
+      <div className="absolute top-2 left-2 flex items-center gap-1">
         <div
           className="flex items-center gap-1 px-2 py-0.5 rounded-xl text-[10px] font-bold"
-          style={{ background: `${accent}cc`, color: "#000" }}
+          style={{
+            background: course.isGenerated ? `rgba(255,255,255,0.18)` : `${accent}cc`,
+            color: course.isGenerated ? "rgba(255,255,255,0.85)" : "#000",
+            border: course.isGenerated ? `1px solid rgba(255,255,255,0.2)` : "none",
+          }}
         >
-          <GraduationCap size={9} />
-          <span>{videos.length} درس</span>
+          {course.isGenerated ? (
+            <><BookOpen size={9} /><span>موضوع</span></>
+          ) : (
+            <><GraduationCap size={9} /><span>{videos.length} درس</span></>
+          )}
         </div>
+        {course.isGenerated && (
+          <div
+            className="px-1.5 py-0.5 rounded-xl text-[9px] font-semibold"
+            style={{ background: "rgba(0,0,0,0.55)", color: "rgba(255,255,255,0.55)" }}
+          >
+            {videos.length} فيديو
+          </div>
+        )}
       </div>
 
       {/* Progress ring — top left if started */}
@@ -482,6 +502,15 @@ function VideoThumbCard({
             <div className="h-full transition-all" style={{ width: `${pct}%`, background: accent }} />
           </div>
         )}
+        {/* Resume badge */}
+        {pct > 0 && !progress?.completed && progress?.seconds != null && progress.seconds > 30 && (
+          <div
+            className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-lg text-[9px] font-bold"
+            style={{ background: `${accent}dd`, color: "#000" }}
+          >
+            من الدقيقة {Math.floor(progress.seconds / 60)}
+          </div>
+        )}
       </div>
       <div className="p-2 bg-white/3">
         <div className="text-xs font-semibold line-clamp-2 arabic-text leading-4 mb-1">{video.title}</div>
@@ -559,6 +588,15 @@ function VideoListRow({
         {pct > 0 && (
           <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/10">
             <div className="h-full" style={{ width: `${pct}%`, background: accent }} />
+          </div>
+        )}
+        {/* Resume badge */}
+        {pct > 0 && !progress?.completed && progress?.seconds != null && progress.seconds > 30 && (
+          <div
+            className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-lg text-[9px] font-bold"
+            style={{ background: `${accent}dd`, color: "#000" }}
+          >
+            من الدقيقة {Math.floor(progress.seconds / 60)}
           </div>
         )}
       </div>
@@ -1221,14 +1259,14 @@ function SheikhScreen({
       </div>
 
       {/* ── Courses ── */}
-      {channelCourses.length > 0 && (
+      {channelCourses.length > 0 && (!topicFilter || channelCourses.some(c => (c.topicIds as string[]).includes(topicFilter))) && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[13px] font-semibold arabic-text">الدورات</h2>
+            <h2 className="text-[13px] font-semibold arabic-text">{topicFilter ? "الدورات المصنفة" : "الدورات"}</h2>
             <GraduationCap size={16} style={{ color: channel.accent }} />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {channelCourses.map((c) => (
+            {(topicFilter ? channelCourses.filter(c => (c.topicIds as string[]).includes(topicFilter)) : channelCourses).map((c) => (
               <CourseCard2
                 key={c.id}
                 course={c}
@@ -1491,20 +1529,18 @@ function CourseScreen({
             <div className="text-xs opacity-50 mt-1">شغّل أداة المزامنة لتحميل دروس هذه الدورة</div>
           </div>
         ) : (
-          <div className="space-y-2.5">
-            <div className="grid grid-cols-2 gap-2.5">
-              {sortedLessons.slice(0, lessonPage * COURSE_PAGE_SIZE).map((v, i) => (
-                <LessonRow
-                  key={v.id}
-                  video={v}
-                  index={i}
-                  channel={channel}
-                  progress={progress[v.id]}
-                  isActive={v.id === activeVideoId}
-                  onClick={() => navigate(`/video-library/watch/${v.id}`)}
-                />
-              ))}
-            </div>
+          <div className="space-y-2">
+            {sortedLessons.slice(0, lessonPage * COURSE_PAGE_SIZE).map((v, i) => (
+              <LessonRow
+                key={v.id}
+                video={v}
+                index={i}
+                channel={channel}
+                progress={progress[v.id]}
+                isActive={v.id === activeVideoId}
+                onClick={() => navigate(`/video-library/watch/${v.id}`)}
+              />
+            ))}
             {lessonPage * COURSE_PAGE_SIZE < sortedLessons.length && (
               <button
                 type="button"
@@ -1547,7 +1583,14 @@ function WatchScreen({
 }) {
   const video = data.videoById.get(videoId);
   const channel = video ? data.channelById.get(video.channelId) : undefined;
-  const courseId = video?.courseIds[0];
+  // Prefer a real (non-uploads, non-generated) course over uploads/generated buckets
+  const courseId = video ? (() => {
+    const preferred = video.courseIds.find(id => {
+      const c = data.courseById.get(id);
+      return c && !c.isUploads && !c.isGenerated;
+    });
+    return preferred ?? video.courseIds[0];
+  })() : undefined;
   const course = courseId ? data.courseById.get(courseId) : undefined;
   const courseVideos = course ? (data.videosByCourse.get(course.id) ?? []) : [];
   const index = courseVideos.findIndex((v) => v.id === videoId);
@@ -1556,6 +1599,13 @@ function WatchScreen({
   const [playlistOpen, setPlaylistOpen] = React.useState(false);
   const [playlistPage, setPlaylistPage] = React.useState(1);
   const PLAYLIST_PAGE_SIZE = 40;
+  const activeItemRef = React.useRef<HTMLDivElement | null>(null);
+  // Scroll to active video when playlist opens
+  React.useEffect(() => {
+    if (playlistOpen && activeItemRef.current) {
+      setTimeout(() => activeItemRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 50);
+    }
+  }, [playlistOpen]);
   const related = (data.videosByChannel.get(video?.channelId ?? "") ?? [])
     .filter((v) => v.id !== videoId)
     .slice(0, 8);
@@ -1680,11 +1730,10 @@ function WatchScreen({
             </div>
           </button>
           {playlistOpen && (
-            <div className="px-3 pb-3 border-t border-white/8 pt-3 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                {courseVideos.slice(0, playlistPage * PLAYLIST_PAGE_SIZE).map((v, i) => (
+            <div className="px-3 pb-3 border-t border-white/8 pt-3 space-y-2 max-h-[60vh] overflow-y-auto">
+              {courseVideos.slice(0, playlistPage * PLAYLIST_PAGE_SIZE).map((v, i) => (
+                <div key={v.id} ref={v.id === videoId ? activeItemRef : undefined}>
                   <LessonRow
-                    key={v.id}
                     video={v}
                     index={i}
                     channel={channel}
@@ -1692,8 +1741,8 @@ function WatchScreen({
                     isActive={v.id === videoId}
                     onClick={() => navigate(`/video-library/watch/${v.id}`)}
                   />
-                ))}
-              </div>
+                </div>
+              ))}
               {playlistPage * PLAYLIST_PAGE_SIZE < courseVideos.length && (
                 <button
                   type="button"
