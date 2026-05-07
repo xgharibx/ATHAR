@@ -1324,6 +1324,9 @@ export const useNoorStore = create<NoorState>()(
           hadithProgress: {},
           hadithNotes: {},
           hadithMemoCards: {},
+          // UX fields — default if not present in older persisted versions
+          lastCelebrationAt: (state as Partial<NoorState>).lastCelebrationAt ?? 0,
+          lastVisitedSectionId: (state as Partial<NoorState>).lastVisitedSectionId ?? null,
         } as NoorState;
       }
     }
