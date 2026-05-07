@@ -905,10 +905,12 @@ export const useNoorStore = create<NoorState>()(
           if (fromDisplayIndex < 0 || fromDisplayIndex >= order.length) return {};
           const targetIndex = Math.max(0, Math.min(order.length - 1, toDisplayIndex));
           if (targetIndex === fromDisplayIndex) return {};
-          const [moved] = order.splice(fromDisplayIndex, 1);
+          // Build a new array to avoid mutating the original
+          const newOrder = [...order];
+          const [moved] = newOrder.splice(fromDisplayIndex, 1);
           if (moved == null) return {};
-          order.splice(targetIndex, 0, moved);
-          return { sectionItemOrder: { ...s.sectionItemOrder, [sectionId]: order } };
+          newOrder.splice(targetIndex, 0, moved);
+          return { sectionItemOrder: { ...s.sectionItemOrder, [sectionId]: newOrder } };
         });
       },
 
@@ -1063,6 +1065,10 @@ export const useNoorStore = create<NoorState>()(
         sectionCompletions: {},
         dailyChecklist: {},
         dailyBetterStepDone: {},
+        tasbeehLifetime: {},
+        tasbeehDailyLog: {},
+        sebhaSessions: [],
+        sebhaCustom: null,
         lastCivilResetISO: null,
         lastIbadahResetISO: null,
       }),
