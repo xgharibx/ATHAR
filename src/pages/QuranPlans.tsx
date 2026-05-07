@@ -117,6 +117,23 @@ export function QuranPlansPage() {
   const navigate = useNavigate();
   const { data: quranData } = useQuranDB();
 
+  // Convert global ayah number (1-6236) to {surahId, ayahIndex}
+  const globalAyahToRef = React.useCallback(
+    (globalN: number): { surahId: number; ayahIndex: number } | null => {
+      if (!quranData) return null;
+      let cumulative = 0;
+      for (const surah of quranData) {
+        const count = surah.ayahs?.length ?? 0;
+        if (globalN <= cumulative + count) {
+          return { surahId: surah.id, ayahIndex: globalN - cumulative };
+        }
+        cumulative += count;
+      }
+      return null;
+    },
+    [quranData]
+  );
+
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
   const khatmaDone = useNoorStore((s) => s.khatmaDone);
@@ -259,7 +276,12 @@ export function QuranPlansPage() {
             <Button
               variant="ghost"
               className="text-sm px-4"
-              onClick={() => navigate("/mushaf")}
+              onClick={() => {
+                const ref = globalAyahToRef(Math.max(1, activePlan.targetTotal - activePlan.dailyAyahs + 1));
+                if (ref) navigate(`/mushaf?surah=${ref.surahId}&ayah=${ref.ayahIndex}`);
+                else navigate("/mushaf");
+              }}
+              title="اقرأ ورد اليوم"
             >
               <BookOpen className="w-4 h-4" />
             </Button>
