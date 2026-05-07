@@ -1,16 +1,44 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Users, Search, X } from "lucide-react";
+import { ChevronRight, Users, Search, X, Bookmark, BookmarkCheck } from "lucide-react";
 import { COMPANIONS, COMPANION_CATEGORIES, type Companion } from "@/data/companions";
+import toast from "react-hot-toast";
+
+const COMPANION_BOOKMARKS_KEY = "noor_companion_bookmarks";
+
+function loadCompanionBookmarks(): Set<string> {
+  try {
+    const v = localStorage.getItem(COMPANION_BOOKMARKS_KEY);
+    return v ? new Set(JSON.parse(v) as string[]) : new Set();
+  } catch { return new Set(); }
+}
+
+function saveCompanionBookmarks(s: Set<string>) {
+  localStorage.setItem(COMPANION_BOOKMARKS_KEY, JSON.stringify([...s]));
+}
 
 export default function Companions() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<Companion["category"] | "all">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
+  const [bookmarks, setBookmarks] = useState<Set<string>>(() => loadCompanionBookmarks());
+
+  const toggleBookmark = React.useCallback((id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBookmarks((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); toast.success("تمت إزالة الحفظ"); }
+      else { next.add(id); toast.success("تم الحفظ ✓"); }
+      saveCompanionBookmarks(next);
+      return next;
+    });
+  }, []);
 
   const filtered = React.useMemo(() => {
     let list = activeCategory === "all" ? COMPANIONS : COMPANIONS.filter((c) => c.category === activeCategory);
+    if (showBookmarksOnly) list = list.filter((c) => bookmarks.has(c.id));
     if (query.trim()) {
       const q = query.trim();
       list = list.filter((c) =>
@@ -20,7 +48,7 @@ export default function Companions() {
       );
     }
     return list;
-  }, [activeCategory, query]);
+  }, [activeCategory, query, showBookmarksOnly, bookmarks]);
 
   return (
     <div className="min-h-screen-safe pb-24" style={{ background: "var(--bg)" }} dir="rtl">
@@ -50,6 +78,17 @@ export default function Companions() {
           >
             {filtered.length}
           </span>
+          <button
+            type="button"
+            onClick={() => setShowBookmarksOnly((v) => !v)}
+            className="p-1.5 rounded-xl transition-all"
+            style={showBookmarksOnly
+              ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)" }
+              : { background: "var(--card-bg)", color: "var(--fg)" }}
+            aria-label="المحفوظة"
+          >
+            <Bookmark size={16} />
+          </button>
         </div>
 
         {/* Category filter chips */}
@@ -107,6 +146,11 @@ export default function Companions() {
 
       {/* Cards grid */}
       <div className="p-4 grid grid-cols-1 gap-3">
+        {filtered.length === 0 && (
+          <div className="text-center py-10 opacity-50 text-sm font-arabic" style={{ color: "var(--fg)" }}>
+            {showBookmarksOnly ? "لا توجد صحابة محفوظون" : "لا توجد نتائج"}
+          </div>
+        )}
         {filtered.map((companion) => {
           const isOpen = expanded === companion.id;
           return (
@@ -171,6 +215,19 @@ export default function Companions() {
                   }}
                 >
                   {companion.brief}
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={(e) => toggleBookmark(companion.id, e)}
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+                      style={bookmarks.has(companion.id)
+                        ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
+                        : { background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
+                    >
+                      {bookmarks.has(companion.id) ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
+                      {bookmarks.has(companion.id) ? "محفوظ" : "حفظ"}
+                    </button>
+                  </div>
                 </div>
               )}
             </button>

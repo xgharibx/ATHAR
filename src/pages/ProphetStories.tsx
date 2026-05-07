@@ -1,9 +1,31 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, ChevronUp, Search, X } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Search, X, Bookmark, BookmarkCheck } from "lucide-react";
 import { PROPHET_STORIES, type ProphetStory } from "@/data/prophetStories";
+import toast from "react-hot-toast";
 
-function StoryCard({ story }: { story: ProphetStory }) {
+const STORY_BOOKMARKS_KEY = "noor_story_bookmarks";
+
+function loadStoryBookmarks(): Set<string> {
+  try {
+    const v = localStorage.getItem(STORY_BOOKMARKS_KEY);
+    return v ? new Set(JSON.parse(v) as string[]) : new Set();
+  } catch { return new Set(); }
+}
+
+function saveStoryBookmarks(s: Set<string>) {
+  localStorage.setItem(STORY_BOOKMARKS_KEY, JSON.stringify([...s]));
+}
+
+function StoryCard({
+  story,
+  bookmarked,
+  onToggleBookmark,
+}: {
+  story: ProphetStory;
+  bookmarked: boolean;
+  onToggleBookmark: (id: string) => void;
+}) {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -63,6 +85,17 @@ function StoryCard({ story }: { story: ProphetStory }) {
               </ul>
             </div>
           )}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onToggleBookmark(story.id); }}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+            style={bookmarked
+              ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
+              : { background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
+          >
+            {bookmarked ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
+            {bookmarked ? "محفوظة" : "حفظ"}
+          </button>
         </div>
       )}
     </div>
@@ -72,16 +105,30 @@ function StoryCard({ story }: { story: ProphetStory }) {
 export function ProphetStoriesPage() {
   const navigate = useNavigate();
   const [query, setQuery] = React.useState("");
+  const [showBookmarksOnly, setShowBookmarksOnly] = React.useState(false);
+  const [bookmarks, setBookmarks] = React.useState<Set<string>>(() => loadStoryBookmarks());
+
+  const toggleBookmark = React.useCallback((id: string) => {
+    setBookmarks((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); toast.success("تمت إزالة الحفظ"); }
+      else { next.add(id); toast.success("تم الحفظ ✓"); }
+      saveStoryBookmarks(next);
+      return next;
+    });
+  }, []);
 
   const filtered = React.useMemo(() => {
-    if (!query.trim()) return PROPHET_STORIES;
+    let list = PROPHET_STORIES;
+    if (showBookmarksOnly) list = list.filter((s) => bookmarks.has(s.id));
+    if (!query.trim()) return list;
     const q = query.trim();
-    return PROPHET_STORIES.filter((s) =>
+    return list.filter((s) =>
       s.nameAr.includes(q) ||
       s.summary.includes(q) ||
       (s.lessons ?? []).some((l) => l.includes(q))
     );
-  }, [query]);
+  }, [query, showBookmarksOnly, bookmarks]);
 
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32">
@@ -99,7 +146,7 @@ export function ProphetStoriesPage() {
           >
             <ArrowRight size={18} />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="font-bold text-lg" style={{ color: "var(--fg)" }}>
               قصص الأنبياء
             </h1>
@@ -107,6 +154,17 @@ export function ProphetStoriesPage() {
               {filtered.length} من {PROPHET_STORIES.length} نبيًا
             </p>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowBookmarksOnly((v) => !v)}
+            className="p-2 rounded-xl transition-all"
+            style={showBookmarksOnly
+              ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)" }
+              : { background: "var(--card-bg)", color: "var(--fg)" }}
+            aria-label="المحفوظة"
+          >
+            <Bookmark size={17} />
+          </button>
         </div>
         <div className="relative">
           <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
@@ -130,9 +188,16 @@ export function ProphetStoriesPage() {
       {/* Stories */}
       <div className="px-4 pt-4 space-y-3">
         {filtered.length === 0 ? (
-          <div className="text-center py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>لا توجد نتائج</div>
+          <div className="text-center py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>
+            {showBookmarksOnly ? "لا توجد قصص محفوظة" : "لا توجد نتائج"}
+          </div>
         ) : filtered.map((story) => (
-          <StoryCard key={story.id} story={story} />
+          <StoryCard
+            key={story.id}
+            story={story}
+            bookmarked={bookmarks.has(story.id)}
+            onToggleBookmark={toggleBookmark}
+          />
         ))}
       </div>
     </div>

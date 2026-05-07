@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Copy, ChevronDown, ChevronUp, Shield } from "lucide-react";
+import { ArrowRight, Copy, ChevronDown, ChevronUp, Shield, Share2 } from "lucide-react";
 import { RUQYAH_SECTIONS, type RuqyahSection, type RuqyahItem } from "@/data/ruqyah";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
@@ -10,6 +10,16 @@ import { cn } from "@/lib/utils";
 function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
   const [count, setCount] = React.useState(0);
   const done = count >= item.count;
+
+  const doShare = React.useCallback(async () => {
+    const text = item.arabic + "\n\n• ATHAR أثر";
+    try {
+      if (navigator.share) { await navigator.share({ text }); }
+      else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
+    } catch {
+      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch {}
+    }
+  }, [item.arabic]);
 
   const doCopy = async () => {
     try {
@@ -42,9 +52,14 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
             </span>
           )}
         </div>
-        <IconButton aria-label="نسخ" onClick={doCopy} title="نسخ">
-          <Copy size={15} className="opacity-70" />
-        </IconButton>
+        <div className="flex items-center gap-1">
+          <IconButton aria-label="مشاركة" onClick={doShare} title="مشاركة">
+            <Share2 size={14} className="opacity-70" />
+          </IconButton>
+          <IconButton aria-label="نسخ" onClick={doCopy} title="نسخ">
+            <Copy size={15} className="opacity-70" />
+          </IconButton>
+        </div>
       </div>
 
       <div

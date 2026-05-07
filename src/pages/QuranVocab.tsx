@@ -1,7 +1,21 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Shuffle, RotateCcw } from "lucide-react";
+import { ArrowRight, Shuffle, RotateCcw, CheckCircle2 } from "lucide-react";
 import { QURAN_VOCAB, type VocabWord } from "@/data/quranVocab";
+import toast from "react-hot-toast";
+
+const LEARNED_KEY = "noor_vocab_learned";
+
+function loadLearned(): Set<number> {
+  try {
+    const v = localStorage.getItem(LEARNED_KEY);
+    return v ? new Set(JSON.parse(v) as number[]) : new Set();
+  } catch { return new Set(); }
+}
+
+function saveLearned(s: Set<number>) {
+  localStorage.setItem(LEARNED_KEY, JSON.stringify([...s]));
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -18,6 +32,7 @@ export function QuranVocabPage() {
   const [cardIndex, setCardIndex] = React.useState(0);
   const [flipped, setFlipped] = React.useState(false);
   const [seen, setSeen] = React.useState<Set<number>>(new Set());
+  const [learned, setLearned] = React.useState<Set<number>>(() => loadLearned());
 
   const card = deck[cardIndex];
 
@@ -49,6 +64,13 @@ export function QuranVocabPage() {
     setCardIndex(0);
     setFlipped(false);
     setSeen(new Set());
+  }
+
+  function handleLearn(id: number) {
+    const next = new Set(learned);
+    if (next.has(id)) { next.delete(id); } else { next.add(id); toast.success("تمت الإضافة إلى المحفوظات"); }
+    setLearned(next);
+    saveLearned(next);
   }
 
   if (!card) return null;
@@ -86,7 +108,7 @@ export function QuranVocabPage() {
               مفردات القرآن
             </h1>
             <p className="text-xs opacity-60" style={{ color: "var(--fg)" }}>
-              {cardIndex + 1} / {deck.length}
+              {cardIndex + 1} / {deck.length} • {learned.size} محفوظة
             </p>
           </div>
           <button type="button"
@@ -167,6 +189,19 @@ export function QuranVocabPage() {
             → السابق
           </button>
         </div>
+
+        {/* Mark learned */}
+        <button
+          type="button"
+          onClick={() => handleLearn(card.id)}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all"
+          style={learned.has(card.id)
+            ? { background: "color-mix(in srgb, var(--ok,#10b981) 18%, transparent)", color: "var(--ok,#10b981)", border: "1px solid color-mix(in srgb, var(--ok,#10b981) 35%, transparent)" }
+            : { background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+        >
+          <CheckCircle2 size={15} />
+          {learned.has(card.id) ? "محفوظة ✓" : "أضف للمحفوظات"}
+        </button>
 
         {/* Stats */}
         <p className="text-xs opacity-50" style={{ color: "var(--fg)" }}>
