@@ -16,6 +16,7 @@ import {
   migrateHadithStateToIDB,
 } from "@/lib/hadithIDB";
 import type { HadithMemoCard } from "@/data/hadithTypes";
+import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
 
 export type NoorTheme =
   | "system"
@@ -185,6 +186,9 @@ export type ExportBlobV1 = {
   hadithProgress?: Record<string, number>;
   hadithNotes?: Record<string, string>; // key: `${bookKey}:${n}`
   hadithMemoCards?: Record<string, HadithMemoCard>; // key: `${bookKey}:${n}`
+  videoLibraryProgress?: Record<string, VideoLibraryProgress>;
+  videoLibraryBookmarks?: Record<string, boolean>;
+  videoLibraryLastVideoId?: string | null;
   sectionCompletions?: Record<string, string[]>;
   customPacks?: CustomAdhkarPack[];
   onboardingDone?: boolean;
@@ -197,6 +201,9 @@ type NoorState = {
   progress: Record<string, number>; // key: `${sectionId}:${index}`
   favorites: Record<string, boolean>;
   libraryFavorites: Record<string, boolean>; // key: `${collectionId}:${entryId}`
+  videoLibraryProgress: Record<string, VideoLibraryProgress>; // key: videoId
+  videoLibraryBookmarks: Record<string, boolean>; // key: videoId
+  videoLibraryLastVideoId: string | null;
   activity: Record<string, number>; // dateISO -> actions count
   sectionItemOrder: Record<string, number[]>; // sectionId -> ordered original indexes
   lastCivilResetISO: string | null;
@@ -292,6 +299,11 @@ type NoorState = {
 
   toggleFavorite: (sectionId: string, index: number) => void;
   toggleLibraryFavorite: (collectionId: string, entryId: string) => void;
+  setVideoProgress: (videoId: string, opts: { seconds: number; duration: number; completed?: boolean }) => void;
+  markVideoComplete: (videoId: string, duration?: number) => void;
+  toggleVideoBookmark: (videoId: string) => void;
+  resetVideoProgress: (videoId?: string) => void;
+  setVideoLastVideo: (videoId: string | null) => void;
   moveSectionItem: (sectionId: string, fromDisplayIndex: number, toDisplayIndex: number, itemCount: number) => void;
   resetSectionItemOrder: (sectionId: string) => void;
 
@@ -620,6 +632,9 @@ export const useNoorStore = create<NoorState>()(
       progress: {},
       favorites: {},
       libraryFavorites: {},
+      videoLibraryProgress: {},
+      videoLibraryBookmarks: {},
+      videoLibraryLastVideoId: null,
       activity: {},
       sectionItemOrder: {},
       lastCivilResetISO: null,
@@ -916,6 +931,47 @@ export const useNoorStore = create<NoorState>()(
         set((s) => ({ libraryFavorites: { ...s.libraryFavorites, [key]: !s.libraryFavorites[key] } }));
       },
 
+      setVideoProgress: (videoId, opts) => {
+        const duration = Math.max(0, Math.floor(Number(opts.duration) || 0));
+        const seconds = Math.max(0, Math.floor(Number(opts.seconds) || 0));
+        const percent = duration > 0 ? Math.min(100, Math.round((seconds / duration) * 100)) : 0;
+        const completed = !!opts.completed || percent >= 92;
+        set((s) => ({
+          videoLibraryLastVideoId: videoId,
+          videoLibraryProgress: {
+            ...s.videoLibraryProgress,
+            [videoId]: { seconds, duration, percent: completed ? 100 : percent, completed, updatedAt: new Date().toISOString() },
+          },
+        }));
+      },
+
+      markVideoComplete: (videoId, duration = 0) => {
+        const safeDuration = Math.max(0, Math.floor(Number(duration) || 0));
+        set((s) => ({
+          videoLibraryLastVideoId: videoId,
+          videoLibraryProgress: {
+            ...s.videoLibraryProgress,
+            [videoId]: { seconds: safeDuration, duration: safeDuration, percent: 100, completed: true, updatedAt: new Date().toISOString() },
+          },
+        }));
+        get().bumpActivityToday();
+      },
+
+      toggleVideoBookmark: (videoId) => {
+        set((s) => ({ videoLibraryBookmarks: { ...s.videoLibraryBookmarks, [videoId]: !s.videoLibraryBookmarks[videoId] } }));
+      },
+
+      resetVideoProgress: (videoId) => {
+        if (!videoId) { set({ videoLibraryProgress: {}, videoLibraryLastVideoId: null }); return; }
+        set((s) => {
+          const next = { ...s.videoLibraryProgress };
+          delete next[videoId];
+          return { videoLibraryProgress: next, videoLibraryLastVideoId: s.videoLibraryLastVideoId === videoId ? null : s.videoLibraryLastVideoId };
+        });
+      },
+
+      setVideoLastVideo: (videoId) => set({ videoLibraryLastVideoId: videoId }),
+
       moveSectionItem: (sectionId, fromDisplayIndex, toDisplayIndex, itemCount) => {
         set((s) => {
           const order = normalizeSectionOrder(s.sectionItemOrder[sectionId], itemCount);
@@ -986,6 +1042,9 @@ export const useNoorStore = create<NoorState>()(
           progress: s.progress,
           favorites: s.favorites,
           libraryFavorites: s.libraryFavorites,
+          videoLibraryProgress: s.videoLibraryProgress,
+          videoLibraryBookmarks: s.videoLibraryBookmarks,
+          videoLibraryLastVideoId: s.videoLibraryLastVideoId,
           activity: s.activity,
           sectionItemOrder: s.sectionItemOrder,
           quickTasbeeh: s.quickTasbeeh,
@@ -1040,6 +1099,9 @@ export const useNoorStore = create<NoorState>()(
           progress: sanitizeNumberMap(blob.progress),
           favorites: blob.favorites ?? {},
           libraryFavorites: blob.libraryFavorites ?? {},
+          videoLibraryProgress: blob.videoLibraryProgress ?? {},
+          videoLibraryBookmarks: blob.videoLibraryBookmarks ?? {},
+          videoLibraryLastVideoId: blob.videoLibraryLastVideoId ?? null,
           activity: blob.activity ?? {},
           sectionItemOrder: sanitizeOrderMap(blob.sectionItemOrder),
           quickTasbeeh: sanitizeNumberMap(blob.quickTasbeeh),
@@ -1314,7 +1376,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 25,
+      version: 26,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -1345,6 +1407,9 @@ export const useNoorStore = create<NoorState>()(
             prayerAlerts: normalizePrayerAlerts(mergedReminders.prayerAlerts),
           },
           progress: sanitizeNumberMap(state.progress),
+          videoLibraryProgress: ((state as Partial<NoorState>).videoLibraryProgress && typeof (state as Partial<NoorState>).videoLibraryProgress === "object" ? (state as Partial<NoorState>).videoLibraryProgress : {}) as Record<string, VideoLibraryProgress>,
+          videoLibraryBookmarks: ((state as Partial<NoorState>).videoLibraryBookmarks && typeof (state as Partial<NoorState>).videoLibraryBookmarks === "object" ? (state as Partial<NoorState>).videoLibraryBookmarks : {}) as Record<string, boolean>,
+          videoLibraryLastVideoId: (state as Partial<NoorState>).videoLibraryLastVideoId ?? null,
           quickTasbeeh: sanitizeNumberMap(state.quickTasbeeh),
           sectionItemOrder: sanitizeOrderMap(state.sectionItemOrder),
           lastCivilResetISO: state.lastCivilResetISO ?? state.lastDailyResetISO ?? null,

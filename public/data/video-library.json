@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "generatedAt": "2026-05-07T00:00:00.000Z",
+  "source": "seed",
+  "channels": [
+    { "id": "alaa-hamed", "handle": "@3laaHamed", "title": "Alaa Hamed", "displayName": "علاء حامد", "youtubeUrl": "https://www.youtube.com/@3laaHamed", "description": "دروس ودورات شرعية وتربوية منظمة للمشاهدة داخل التطبيق.", "accent": "#fbbf24", "order": 1 },
+    { "id": "amgad-samir", "handle": "@amgad_samir", "title": "Amgad Samir", "displayName": "أمجد سمير", "youtubeUrl": "https://www.youtube.com/@amgad_samir", "description": "مواد دعوية وتعليمية سيتم سحبها وتصنيفها عبر أداة المزامنة.", "accent": "#38bdf8", "order": 2 },
+    { "id": "haitham-talaat", "handle": "@Dr.Haitham_Talaat", "title": "Dr. Haitham Talaat", "displayName": "د. هيثم طلعت", "youtubeUrl": "https://www.youtube.com/@Dr.Haitham_Talaat", "description": "ردود على الشبهات ومواد عقدية وفكرية منظمة حسب الموضوع.", "accent": "#a78bfa", "order": 3 },
+    { "id": "anti-shubohat", "handle": "@AntiShubohat", "title": "AntiShubohat", "displayName": "مقاومة الشبهات", "youtubeUrl": "https://www.youtube.com/@AntiShubohat", "description": "محتوى متخصص في معالجة الشبهات والفكر والإلحاد.", "accent": "#fb7185", "order": 4 },
+    { "id": "anti-shubohat-2", "handle": "@AntiShubohat.2", "title": "AntiShubohat 2", "displayName": "مقاومة الشبهات ٢", "youtubeUrl": "https://www.youtube.com/@AntiShubohat.2", "description": "القناة الثانية لمواد الشبهات والردود والمقاطع المختارة.", "accent": "#f97316", "order": 5 },
+    { "id": "othman-alkamees", "handle": "@othmanalkamees", "title": "Othman Alkamees", "displayName": "عثمان الخميس", "youtubeUrl": "https://www.youtube.com/@othmanalkamees", "description": "دروس فقهية وعقدية ومحاضرات علمية منظمة في مكتبة الدورات.", "accent": "#34d399", "order": 6 }
+  ],
+  "topics": [
+    { "id": "aqeedah", "title": "العقيدة", "icon": "◇", "accent": "#a78bfa", "description": "الإيمان، التوحيد، وأصول الاعتقاد." },
+    { "id": "anti-shubuhat", "title": "الشبهات", "icon": "⚑", "accent": "#fb7185", "description": "الردود الفكرية والمنهجية على الشبهات." },
+    { "id": "fiqh", "title": "الفقه", "icon": "§", "accent": "#34d399", "description": "أحكام العبادات والمعاملات." },
+    { "id": "quran", "title": "القرآن", "icon": "▣", "accent": "#fbbf24", "description": "علوم القرآن والتلاوة والتدبر." },
+    { "id": "tafseer", "title": "التفسير", "icon": "☼", "accent": "#f59e0b", "description": "شرح الآيات والسور." },
+    { "id": "hadith", "title": "الحديث", "icon": "◈", "accent": "#38bdf8", "description": "شرح الأحاديث والسنن." },
+    { "id": "seerah", "title": "السيرة", "icon": "✦", "accent": "#c084fc", "description": "السيرة النبوية والتاريخ الإسلامي." },
+    { "id": "daawah", "title": "الدعوة", "icon": "↗", "accent": "#60a5fa", "description": "مهارات الدعوة والتربية." },
+    { "id": "youth", "title": "الشباب", "icon": "✧", "accent": "#2dd4bf", "description": "موضوعات الشباب والبناء النفسي." },
+    { "id": "family", "title": "الأسرة", "icon": "♡", "accent": "#f472b6", "description": "البيت والتربية والعلاقات." },
+    { "id": "comparative-religion", "title": "مقارنة أديان", "icon": "⌁", "accent": "#818cf8", "description": "حوارات وردود ومقارنات منهجية." },
+    { "id": "atheism", "title": "الإلحاد", "icon": "?", "accent": "#f87171", "description": "نقد الإلحاد والمادية والشبهات المعاصرة." },
+    { "id": "biography", "title": "تراجم", "icon": "※", "accent": "#eab308", "description": "سير العلماء والدعاة والشخصيات." },
+    { "id": "general", "title": "عام", "icon": "•", "accent": "#94a3b8", "description": "مواد متنوعة تنتظر التصنيف الدقيق." }
+  ],
+  "courses": [
+    { "id": "alaa-hamed-sync", "channelId": "alaa-hamed", "title": "مزامنة دورات علاء حامد", "description": "سيتم استبدال هذا المسار بالدورات الفعلية بعد تشغيل أداة المزامنة.", "topicIds": ["fiqh", "daawah"], "videoIds": [], "order": 1, "isGenerated": true },
+    { "id": "amgad-samir-sync", "channelId": "amgad-samir", "title": "مزامنة دورات أمجد سمير", "description": "مسار تجهيز أولي حتى يتم سحب القوائم والفيديوهات من يوتيوب.", "topicIds": ["daawah", "youth"], "videoIds": [], "order": 2, "isGenerated": true },
+    { "id": "haitham-talaat-sync", "channelId": "haitham-talaat", "title": "مزامنة مواد د. هيثم طلعت", "description": "سيتم تصنيف الفيديوهات تلقائياً إلى شبهات، إلحاد، عقيدة، ومقارنة أديان.", "topicIds": ["anti-shubuhat", "atheism", "aqeedah"], "videoIds": [], "order": 3, "isGenerated": true },
+    { "id": "anti-shubohat-sync", "channelId": "anti-shubohat", "title": "مزامنة مقاومة الشبهات", "description": "تجهيز أولي لقوائم الردود والموضوعات الفكرية.", "topicIds": ["anti-shubuhat", "comparative-religion"], "videoIds": [], "order": 4, "isGenerated": true },
+    { "id": "anti-shubohat-2-sync", "channelId": "anti-shubohat-2", "title": "مزامنة مقاومة الشبهات ٢", "description": "تجهيز أولي للقناة الثانية.", "topicIds": ["anti-shubuhat"], "videoIds": [], "order": 5, "isGenerated": true },
+    { "id": "othman-alkamees-sync", "channelId": "othman-alkamees", "title": "مزامنة دورات عثمان الخميس", "description": "سيتم استخراج الدروس والقوائم وتصنيفها إلى فقه وعقيدة وحديث.", "topicIds": ["fiqh", "aqeedah", "hadith"], "videoIds": [], "order": 6, "isGenerated": true }
+  ],
+  "videos": []
+}

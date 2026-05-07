@@ -1,6 +1,6 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { House, BookOpenText, Heart, BookMarked, BarChart3, Trophy } from "lucide-react";
+import { House, BookOpenText, Heart, BookMarked, Clapperboard, Trophy } from "lucide-react";
 import { useNoorStore } from "@/store/noorStore";
 
 function todayISO() {
@@ -8,24 +8,11 @@ function todayISO() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function computeStreakLocal(activity: Record<string, number>) {
-  let streak = 0;
-  const today = new Date();
-  for (let i = 0; i < 3650; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    if ((activity[k] ?? 0) > 0) streak++;
-    else break;
-  }
-  return streak;
-}
-
 const NAV_ITEMS = [
   { path: "/", label: "الرئيسية", icon: House },
   { path: "/quran", label: "القرآن", icon: BookOpenText },
   { path: "/favorites", label: "المفضلة", icon: Heart },
-  { path: "/insights", label: "إحصاءات", icon: BarChart3 },
+  { path: "/video-library", label: "الدورات", icon: Clapperboard },
   { path: "/library", label: "المكتبة", icon: BookMarked },
   { path: "/leaderboard", label: "الترتيب", icon: Trophy },
 ] as const;
@@ -42,7 +29,6 @@ export function FloatingNav() {
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
   const todayCount = activity[todayISO()] ?? 0;
-  const streak = React.useMemo(() => computeStreakLocal(activity), [activity]);
 
   const khatmaDueToday = React.useMemo(() => {
     if (!khatmaStartISO || !khatmaDays) return false;
@@ -126,17 +112,6 @@ export function FloatingNav() {
                     style={{ background: "var(--accent)" }}
                   >
                     {todayCount > 99 ? "99+" : todayCount}
-                  </span>
-                )}
-                {item.path === "/insights" && streak > 0 && (
-                  <span
-                    className="absolute -top-1.5 -right-2 min-w-[14px] h-[14px] rounded-full text-[9px] font-bold flex items-center justify-center px-0.5 leading-none tabular-nums"
-                    style={{
-                      background: streak >= 7 ? "#f59e0b" : streak >= 3 ? "var(--accent)" : "rgba(255,255,255,0.2)",
-                      color: streak >= 3 ? "black" : "white",
-                    }}
-                  >
-                    {streak > 99 ? "99+" : streak}
                   </span>
                 )}
               </div>

@@ -75,6 +75,7 @@ const WuduGuidePage = React.lazy(() => import("@/pages/WuduGuide").then((m) => (
 const RuqyahPage = React.lazy(() => import("@/pages/Ruqyah").then((m) => ({ default: m.RuqyahPage })));
 const LibraryPage = React.lazy(() => import("@/pages/Library").then((m) => ({ default: m.LibraryPage })));
 const LibraryItemPage = React.lazy(() => import("@/pages/LibraryItem").then((m) => ({ default: m.LibraryItemPage })));
+const VideoLibraryPage = React.lazy(() => import("@/pages/VideoLibrary").then((m) => ({ default: m.VideoLibraryPage })));
 const HadithBooksPage = React.lazy(() => import("@/pages/HadithBooks").then((m) => ({ default: m.HadithBooksPage })));
 const HadithBookViewPage = React.lazy(() => import("@/pages/HadithBookView").then((m) => ({ default: m.HadithBookViewPage })));
 const HadithReaderPage = React.lazy(() => import("@/pages/HadithReader").then((m) => ({ default: m.HadithReaderPage })));
@@ -139,7 +140,7 @@ export default function App() {
     const runPrefetch = () => {
       void import("@/pages/Leaderboard");
       void import("@/pages/Quran");
-      void import("@/pages/Insights");
+      void import("@/pages/VideoLibrary");
     };
 
     if (typeof w.requestIdleCallback === "function") {
@@ -253,6 +254,10 @@ export default function App() {
           <Route path="ruqyah" element={<S><RuqyahPage /></S>} />
           <Route path="library" element={<S><LibraryPage /></S>} />
           <Route path="library/:collectionId/:entryId" element={<S><LibraryItemPage /></S>} />
+          <Route path="video-library" element={<S><VideoLibraryPage /></S>} />
+          <Route path="video-library/:channelId" element={<S><VideoLibraryPage /></S>} />
+          <Route path="video-library/course/:courseId" element={<S><VideoLibraryPage /></S>} />
+          <Route path="video-library/watch/:videoId" element={<S><VideoLibraryPage /></S>} />
           {/* Hadith pages */}
           <Route path="hadith" element={<Outlet />}>
             <Route index element={<S><HadithBooksPage /></S>} />
