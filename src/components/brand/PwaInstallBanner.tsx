@@ -77,7 +77,7 @@ export function PwaInstallBanner() {
       </div>
 
       {/* Install button */}
-      <button
+      <button type="button"
         onClick={handleInstall}
         className="shrink-0 rounded-xl bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white active:scale-95 transition-transform"
       >
@@ -85,7 +85,7 @@ export function PwaInstallBanner() {
       </button>
 
       {/* Dismiss */}
-      <button
+      <button type="button"
         onClick={handleDismiss}
         aria-label="إغلاق"
         className="shrink-0 rounded-xl p-1.5 text-white/40 hover:text-white/70 active:scale-95 transition-transform"

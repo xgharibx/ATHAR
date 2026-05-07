@@ -7,7 +7,7 @@ export const IconButton = React.forwardRef<
 >(function IconButton(props, ref) {
   const { className, "aria-label": ariaLabel, ...rest } = props;
   return (
-    <button
+    <button type="button"
       ref={ref}
       aria-label={ariaLabel}
       data-noor-tip={ariaLabel}

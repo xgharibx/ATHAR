@@ -20,8 +20,7 @@ export default function Companions() {
         style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
       >
         <div className="flex items-center gap-3 mb-3">
-          <button
-            type="button"
+          <button type="button"
             onClick={() => navigate(-1)}
             className="w-8 h-8 rounded-full flex items-center justify-center transition active:scale-90"
             style={{ background: "var(--card-bg)" }}
@@ -45,8 +44,7 @@ export default function Companions() {
 
         {/* Category filter chips */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-          <button
-            type="button"
+          <button type="button"
             onClick={() => setActiveCategory("all")}
             className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition"
             style={{
@@ -61,9 +59,8 @@ export default function Companions() {
             const count = COMPANIONS.filter((c) => c.category === cat.key).length;
             const isActive = activeCategory === cat.key;
             return (
-              <button
+              <button type="button"
                 key={cat.key}
-                type="button"
                 onClick={() => setActiveCategory(cat.key)}
                 className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition whitespace-nowrap"
                 style={{
@@ -84,9 +81,8 @@ export default function Companions() {
         {filtered.map((companion) => {
           const isOpen = expanded === companion.id;
           return (
-            <button
+            <button type="button"
               key={companion.id}
-              type="button"
               onClick={() => setExpanded(isOpen ? null : companion.id)}
               className="w-full text-right rounded-2xl p-4 transition active:scale-[0.98]"
               style={{

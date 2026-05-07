@@ -136,7 +136,7 @@ export function OnboardingFlow() {
             ))}
           </div>
 
-          <button
+          <button type="button"
             className="w-full mt-5 py-3.5 rounded-2xl bg-[var(--accent)] text-white font-semibold text-sm arabic-text disabled:opacity-60 transition"
             onClick={handleAction}
             disabled={loading}
@@ -145,7 +145,7 @@ export function OnboardingFlow() {
           </button>
 
           {step < STEPS.length - 1 && !("prayerReminders" in current && current.prayerReminders) && (
-            <button
+            <button type="button"
               className="w-full mt-2 py-2.5 text-sm opacity-45 hover:opacity-70 transition arabic-text"
               onClick={handleSkip}
             >
@@ -153,7 +153,7 @@ export function OnboardingFlow() {
             </button>
           )}
           {"prayerReminders" in current && current.prayerReminders && (
-            <button
+            <button type="button"
               className="w-full mt-2 py-2.5 text-sm opacity-45 hover:opacity-70 transition arabic-text"
               onClick={handleLater}
             >

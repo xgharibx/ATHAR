@@ -188,7 +188,7 @@ export function FavoritesPage() {
 
         {/* Tab switcher */}
         <div className="mt-4 flex gap-2">
-          <button
+          <button type="button"
             onClick={() => setActiveTab("adhkar")}
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
@@ -200,7 +200,7 @@ export function FavoritesPage() {
             <Heart size={14} />
             الأذكار {items.length > 0 && <span className="text-[11px] opacity-60">({items.length})</span>}
           </button>
-          <button
+          <button type="button"
             onClick={() => setActiveTab("quran")}
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
@@ -212,7 +212,7 @@ export function FavoritesPage() {
             <BookOpen size={14} />
             القرآن {quranBmList.length > 0 && <span className="text-[11px] opacity-60">({quranBmList.length})</span>}
           </button>
-          <button
+          <button type="button"
             onClick={() => setActiveTab("hadith")}
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px]",
@@ -259,7 +259,7 @@ export function FavoritesPage() {
                         key={r.key}
                         className="glass rounded-3xl p-4 border border-white/10 flex items-start justify-between gap-3 press-effect glass-hover"
                       >
-                        <button className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
+                        <button type="button" className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
                           <div className="flex items-start justify-between gap-3">
                             <ArrowUpRight size={18} className="opacity-60 shrink-0 mt-0.5" />
                           </div>
@@ -317,7 +317,7 @@ export function FavoritesPage() {
               title="لا توجد علامات مرجعية"
               description="اضغط على 🔖 داخل أي آية في المصحف لحفظها هنا"
               action={
-                <button
+                <button type="button"
                   onClick={() => navigate("/quran")}
                   className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
                 >
@@ -340,7 +340,7 @@ export function FavoritesPage() {
                         {bm.highlight && HL_SWATCHES[bm.highlight] && (
                           <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-white/20" style={{ background: HL_SWATCHES[bm.highlight] }} />
                         )}
-                        <button
+                        <button type="button"
                           className="flex-1 text-right min-w-0"
                           onClick={() => navigate(`/mushaf?surah=${bm.surahId}&ayah=${bm.ayahIndex}`)}
                         >
@@ -378,7 +378,7 @@ export function FavoritesPage() {
               title="لا توجد أحاديث محفوظة"
               description="اضغط على زر الحفظ داخل أي حديث لتجده هنا"
               action={
-                <button
+                <button type="button"
                   onClick={() => navigate("/hadith")}
                   className="text-sm text-[var(--accent)] opacity-80 hover:opacity-100 transition underline underline-offset-2"
                 >
@@ -395,7 +395,7 @@ export function FavoritesPage() {
                     const book = HADITH_BOOKS_STATIC.find((b) => b.key === bk);
                     const count = hadithBmList.filter((h) => h.bookKey === bk).length;
                     return (
-                      <button
+                      <button type="button"
                         key={bk}
                         onClick={() => setSelectedBmBookKey(bk)}
                         className={[
@@ -423,7 +423,7 @@ export function FavoritesPage() {
                         key={`${h.bookKey}:${h.n}`}
                         className="glass rounded-3xl p-4 border border-white/10 flex items-start gap-3"
                       >
-                        <button
+                        <button type="button"
                           className="flex-1 text-right min-w-0"
                           onClick={() => navigate(`/hadith/${h.bookKey}/${h.n}`)}
                           dir="rtl"

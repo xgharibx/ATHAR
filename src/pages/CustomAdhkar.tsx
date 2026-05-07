@@ -41,8 +41,7 @@ function ItemRow({
         onChange={(e) => onCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
         className="w-16 px-2 py-2 rounded-xl bg-white/5 border border-white/10 text-center text-sm outline-none focus:border-[var(--accent)]"
       />
-      <button
-        type="button"
+      <button type="button"
         onClick={onRemove}
         className="p-2 rounded-xl hover:bg-[var(--danger)]/10 text-[var(--danger)]/60 hover:text-[var(--danger)] transition-colors"
         aria-label="حذف السطر"
@@ -104,8 +103,7 @@ function PackForm({
             onRemove={() => removeRow(i)}
           />
         ))}
-        <button
-          type="button"
+        <button type="button"
           onClick={addRow}
           className="mt-3 flex items-center gap-1 text-xs opacity-60 hover:opacity-100 transition-opacity"
         >
@@ -148,14 +146,14 @@ function PackCard({
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <button
+          <button type="button"
             onClick={() => setExpanded((e) => !e)}
             className="p-2 rounded-xl hover:bg-white/5 transition-colors opacity-50 hover:opacity-100"
             aria-label="عرض الأذكار"
           >
             {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>
-          <button
+          <button type="button"
             onClick={onEdit}
             className="p-2 rounded-xl hover:bg-white/5 transition-colors opacity-50 hover:opacity-100 text-xs"
             aria-label="تعديل"
@@ -164,13 +162,13 @@ function PackCard({
           </button>
           {confirmDelete ? (
             <>
-              <button
+              <button type="button"
                 onClick={onDelete}
                 className="px-2 py-1 text-xs rounded-xl bg-[var(--danger)]/20 text-[var(--danger)] hover:bg-[var(--danger)]/30 transition-colors"
               >
                 تأكيد الحذف
               </button>
-              <button
+              <button type="button"
                 onClick={() => setConfirmDelete(false)}
                 className="px-2 py-1 text-xs rounded-xl hover:bg-white/5 transition-colors opacity-60"
               >
@@ -178,7 +176,7 @@ function PackCard({
               </button>
             </>
           ) : (
-            <button
+            <button type="button"
               onClick={() => setConfirmDelete(true)}
               className="p-2 rounded-xl hover:bg-[var(--danger)]/10 text-[var(--danger)]/50 hover:text-[var(--danger)] transition-colors"
               aria-label="حذف"
@@ -242,7 +240,7 @@ export function CustomAdhkarPage() {
     <div className="space-y-4 page-enter" dir="rtl">
       {/* Header */}
       <div className="flex items-center gap-3 px-1">
-        <button
+        <button type="button"
           onClick={() => navigate(-1)}
           className="p-2 rounded-xl hover:bg-white/5 transition-colors opacity-60 hover:opacity-100"
           aria-label="رجوع"
@@ -263,7 +261,7 @@ export function CustomAdhkarPage() {
           onCancel={handleCancel}
         />
       ) : (
-        <button
+        <button type="button"
           onClick={() => { setEditingPack(null); setShowForm(true); }}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl glass border border-dashed border-white/20 hover:border-[var(--accent)]/50 hover:bg-white/5 transition-all text-sm opacity-70 hover:opacity-100"
         >

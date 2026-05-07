@@ -210,7 +210,7 @@ export function SearchPage() {
 
         {/* Tab switcher */}
         <div className="mt-4 flex gap-2">
-          <button
+          <button type="button"
             onClick={() => setSearchTab("adhkar")}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
@@ -221,7 +221,7 @@ export function SearchPage() {
           >
             🤲 الأذكار
           </button>
-          <button
+          <button type="button"
             onClick={() => setSearchTab("quran")}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
@@ -232,7 +232,7 @@ export function SearchPage() {
           >
             <BookOpen size={13} /> القرآن
           </button>
-          <button
+          <button type="button"
             onClick={() => setSearchTab("library")}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
@@ -243,7 +243,7 @@ export function SearchPage() {
           >
             <LibraryBig size={13} /> المكتبة
           </button>
-          <button
+          <button type="button"
             onClick={() => setSearchTab("hadith")}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
@@ -261,7 +261,7 @@ export function SearchPage() {
           <div className="mt-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-semibold opacity-45 tracking-wide">عمليات بحث سابقة</span>
-              <button
+              <button type="button"
                 onClick={() => { setRecentSearches([]); saveRecent([]); }}
                 className="text-[11px] opacity-50 hover:opacity-80 transition px-2 py-1 rounded-lg"
               >
@@ -270,7 +270,7 @@ export function SearchPage() {
             </div>
             <div className="flex flex-wrap gap-1.5">
               {recentSearches.map((s) => (
-                <button
+                <button type="button"
                   key={s}
                   onClick={() => setQ(s)}
                   className="px-3 py-1.5 rounded-full glass border border-white/10 text-xs hover:bg-white/10 transition arabic-text min-h-[36px]"
@@ -286,7 +286,7 @@ export function SearchPage() {
       {/* Section filter chips (adhkar only) */}
       {searchTab === "adhkar" && sectionChips.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar" style={{ scrollbarWidth: "none" }}>
-          <button
+          <button type="button"
             onClick={() => setSectionFilter(null)}
             className={cn(
               "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
@@ -301,7 +301,7 @@ export function SearchPage() {
             const identity = getSectionIdentity(chip.id);
             const isActive = sectionFilter === chip.id;
             return (
-              <button
+              <button type="button"
                 key={chip.id}
                 onClick={() => setSectionFilter(isActive ? null : chip.id)}
                 className={cn(
@@ -324,7 +324,7 @@ export function SearchPage() {
       {/* Library collection chips */}
       {searchTab === "library" && libraryChips.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar" style={{ scrollbarWidth: "none" }}>
-          <button
+          <button type="button"
             onClick={() => setLibraryFilter(null)}
             className={cn(
               "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
@@ -338,7 +338,7 @@ export function SearchPage() {
           {libraryChips.map((chip) => {
             const isActive = libraryFilter === chip.id;
             return (
-              <button
+              <button type="button"
                 key={chip.id}
                 onClick={() => setLibraryFilter(isActive ? null : chip.id)}
                 className={cn(
@@ -385,7 +385,7 @@ export function SearchPage() {
             {results.map((r) => {
               const identity = getSectionIdentity(r.sectionId);
               return (
-                <button
+                <button type="button"
                   key={r.key}
                   onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}
                   className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
@@ -443,7 +443,7 @@ export function SearchPage() {
           <div className="space-y-2">
             {quranResults.map((r, idx) =>
               r.type === "surah" ? (
-                <button
+                <button type="button"
                   key={`s-${r.surah.id}`}
                   onClick={() => navigate(`/quran/${r.surah.id}`)}
                   className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
@@ -458,7 +458,7 @@ export function SearchPage() {
                   </div>
                 </button>
               ) : (
-                <button
+                <button type="button"
                   key={`a-${r.surah.id}-${r.ayahIndex}-${idx}`}
                   onClick={() => navigate(`/quran/${r.surah.id}?a=${r.ayahIndex}`)}
                   className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
@@ -496,8 +496,7 @@ export function SearchPage() {
           <div className="flex flex-col items-center text-center py-6 gap-2">
             <LibraryBig size={32} className="opacity-20" />
             <div className="text-sm opacity-55">ابحث في الحديث، الراوي، المصدر، أو الفوائد</div>
-            <button
-              type="button"
+            <button type="button"
               onClick={() => navigate("/library")}
               className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-white/8 border border-white/10 px-4 py-2 text-xs hover:bg-white/12 transition"
             >
@@ -514,7 +513,7 @@ export function SearchPage() {
         ) : (
           <div className="space-y-2">
             {libraryResults.map((entry) => (
-              <button
+              <button type="button"
                 key={entry.key}
                 onClick={() => navigate(`/library/${entry.collectionId}/${entry.id}`)}
                 className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
@@ -560,7 +559,7 @@ export function SearchPage() {
         {/* Book selector chips */}
         <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar mb-3">
           {HADITH_BOOKS_STATIC.map((book) => (
-            <button
+            <button type="button"
               key={book.key}
               onClick={() => setHadithBookKey(book.key)}
               className={cn(
@@ -600,7 +599,7 @@ export function SearchPage() {
               const g = h.g[0] ?? "";
               const color = gradeColor[g] ?? "#6b7280";
               return (
-                <button
+                <button type="button"
                   key={h.n}
                   dir="rtl"
                   onClick={() => navigate(`/hadith/${hadithBookKey}/${h.n}`)}

@@ -275,7 +275,7 @@ function SidebarContent(props: { onNavigate?: () => void }) {
             <div className="font-bold text-base" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
             <div className="text-[11px] opacity-55 mt-0.5">اترك أثراً طيباً</div>
           </div>
-          <button
+          <button type="button"
             onClick={props.onNavigate}
             className="xl:hidden w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90"
             aria-label="إغلاق"
@@ -366,7 +366,7 @@ function MobileSidebarContent(props: { onNavigate?: () => void }) {
             <div className="font-bold text-base" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
             <div className="text-[11px] opacity-55 mt-0.5">قائمة سريعة وخفيفة</div>
           </div>
-          <button
+          <button type="button"
             onClick={props.onNavigate}
             className="w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90"
             aria-label="إغلاق"
@@ -608,8 +608,7 @@ export function AppShell() {
 
         <footer className="mt-6" dir="rtl">
           <div className="glass rounded-3xl border border-white/10">
-            <button
-              type="button"
+            <button type="button"
               onClick={() => setFooterExpanded((v) => !v)}
               className="w-full flex items-center justify-between gap-3 px-5 pt-5 pb-4"
             >

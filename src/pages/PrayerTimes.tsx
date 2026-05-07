@@ -309,7 +309,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
           <div className="text-xs font-semibold opacity-60 mb-2 uppercase tracking-wide">حساب وقت العصر</div>
           <div className="flex gap-2">
             {([0, 1] as const).map((v) => (
-              <button key={v} type="button"
+              <button type="button" key={v}
                 onClick={() => setPrefs({ asrMadhab: v })}
                 className={cn(
                   "flex-1 rounded-xl border px-3 py-2 text-sm transition",
@@ -397,10 +397,10 @@ function WeeklyTab() {
           </tr>
         </thead>
         <tbody>
-          {week.map((day, i) => {
+          {week.map((day) => {
             const isToday = Number(day.date.gregorian.day) === todayDay;
             return (
-              <tr key={i} className={cn("border-t border-white/8", isToday && "bg-[var(--accent)]/8 rounded-xl")}>
+              <tr key={day.date.gregorian.date} className={cn("border-t border-white/8", isToday && "bg-[var(--accent)]/8 rounded-xl")}>
                 <td className="py-2 pr-1">
                   <div className="flex flex-col">
                     <span className={cn("font-medium", isToday && "text-[var(--accent)]")}>
@@ -459,11 +459,11 @@ function MonthlyTab() {
               </tr>
             </thead>
             <tbody>
-              {data.map((day, i) => {
+              {data.map((day) => {
                 const dayNum  = Number(day.date.gregorian.day);
                 const isToday = isCurrentMonth && dayNum === todayDay;
                 return (
-                  <tr key={i} className={cn("border-t border-white/6", isToday && "bg-[var(--accent)]/8")}>
+                  <tr key={day.date.gregorian.date} className={cn("border-t border-white/6", isToday && "bg-[var(--accent)]/8")}>
                     <td className="py-1.5 pr-1">
                       <div className={cn("font-medium", isToday && "text-[var(--accent)]")}>{day.date.gregorian.day}</div>
                       <div className="opacity-40 text-[9px]">{day.date.hijri.day} {day.date.hijri.month.ar}</div>
@@ -615,7 +615,7 @@ function HijriCalendarTab() {
 
           <div className="grid grid-cols-7 gap-0.5">
             {Array.from({ length: calendarGrid.blanks }, (_, i) => <div key={`blank-${i}`} />)}
-            {calendarGrid.days.map((day, i) => {
+            {calendarGrid.days.map((day) => {
               const dayNum     = Number(day.date.gregorian.day);
               const isToday    = isCurrentMonth && dayNum === todayDay;
               const hijriDay   = Number(day.date.hijri.day);
@@ -625,7 +625,7 @@ function HijriCalendarTab() {
               const isFriday   = day.date.gregorian.weekday.en === "Friday";
 
               return (
-                <div key={i} title={hasEvent ? events.join("، ") : undefined}
+                <div key={day.date.gregorian.date} title={hasEvent ? events.join("، ") : undefined}
                   className={cn(
                     "rounded-xl p-1 min-h-[52px] flex flex-col items-center gap-0.5 text-center relative",
                     isToday    && "bg-[var(--accent)]/20 ring-1 ring-[var(--accent)]/40",
@@ -663,8 +663,8 @@ function HijriCalendarTab() {
             return (
               <div className="mt-3 space-y-2">
                 <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">المناسبات القادمة</div>
-                {upcoming.map((ev, i) => (
-                  <div key={i} className="rounded-xl bg-[#ffd27d]/8 border border-[#ffd27d]/20 px-3 py-2">
+                {upcoming.map((ev) => (
+                  <div key={ev.date} className="rounded-xl bg-[#ffd27d]/8 border border-[#ffd27d]/20 px-3 py-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge className="text-[10px] bg-[#ffd27d]/15 border-[#ffd27d]/25 text-[#ffd27d]">{ev.hijriLabel}</Badge>
                       <span className="text-[10px] opacity-50">{ev.date}</span>
@@ -739,7 +739,7 @@ function CitiesTab() {
             <div className="text-xs opacity-40 mb-2">اختيار سريع</div>
             <div className="flex flex-wrap gap-1.5">
               {POPULAR_CITIES.map((c) => (
-                <button key={c.city} type="button"
+                <button type="button" key={c.city}
                   onClick={() => { addFavoriteCity({ id: `${c.city}:${c.country}`, city: c.city, country: c.country, label: c.label }); toast.success(`تمت إضافة ${c.label}`); }}
                   disabled={favoriteCities.some((f) => f.city === c.city && f.country === c.country)}
                   className="text-xs rounded-full border border-white/15 bg-white/5 px-2.5 py-1 hover:bg-white/12 disabled:opacity-30 disabled:cursor-not-allowed">
@@ -1111,7 +1111,7 @@ export function PrayerTimesPage() {
       {/* Tab bar */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
         {TABS.map((tab) => (
-          <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)}
+          <button type="button" key={tab.key} onClick={() => setActiveTab(tab.key)}
             className={cn(
               "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition",
               activeTab === tab.key

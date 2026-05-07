@@ -1061,8 +1061,7 @@ function LocalFriendsCard(props: {
               <div className="flex items-center gap-2">
                 <div className="text-sm font-semibold tabular-nums">{f.score}</div>
                 {f.id !== props.myStats.id && (
-                  <button
-                    type="button"
+                  <button type="button"
                     onClick={() => removeLocalFriend(f.id)}
                     className="text-[var(--danger)] opacity-50 hover:opacity-100 transition"
                     aria-label="حذف الصديق"
@@ -1213,8 +1212,7 @@ function GroupKhatmaCard() {
               {copied ? <Check size={14} /> : <Copy size={14} />}
               {copied ? "تم" : "كود المشاركة"}
             </Button>
-            <button
-              type="button"
+            <button type="button"
               onClick={() => setGroupKhatma(null as unknown as Parameters<typeof setGroupKhatma>[0])}
               className="text-[var(--danger)] opacity-50 hover:opacity-100 transition"
               aria-label="حذف الختمة"
@@ -1287,9 +1285,8 @@ function GroupKhatmaCard() {
               const color = owner ? MEMBER_COLORS[ownerIdx % MEMBER_COLORS.length] : "#ffffff22";
 
               return (
-                <button
+                <button type="button"
                   key={juz}
-                  type="button"
                   onClick={() => { if (owner) toggleGroupKhatmaJuz(owner.memberId, juz); }}
                   className="relative aspect-square rounded-xl border text-xs font-semibold flex items-center justify-center transition-all"
                   style={{
@@ -1421,9 +1418,8 @@ function WeeklyChallengeCard() {
         {last7Days.map((day) => {
           const done = weeklyChallenge?.progress[day.key] ?? false;
           return (
-            <button
+            <button type="button"
               key={day.key}
-              type="button"
               onClick={() => toggleWeeklyChallengeDay(day.key)}
               className="flex flex-col items-center gap-1 py-2 rounded-xl border transition-all"
               style={{

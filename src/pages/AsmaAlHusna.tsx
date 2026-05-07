@@ -27,7 +27,7 @@ export function AsmaAlHusnaPage() {
         style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
       >
         <div className="flex items-center gap-3 mb-3">
-          <button
+          <button type="button"
             onClick={() => navigate(-1)}
             aria-label="رجوع"
             className="p-2 rounded-xl"
@@ -65,7 +65,7 @@ export function AsmaAlHusnaPage() {
         {filtered.map((name) => {
           const isExpanded = expandedId === name.id;
           return (
-            <button
+            <button type="button"
               key={name.id}
               onClick={() => setExpandedId(isExpanded ? null : name.id)}
               className="text-right rounded-2xl p-4 transition-all duration-200"

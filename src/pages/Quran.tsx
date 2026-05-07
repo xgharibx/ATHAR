@@ -312,8 +312,7 @@ export function QuranPage() {
               className="pr-10 pl-9 h-11 text-sm"
             />
             {query && (
-              <button
-                type="button"
+              <button type="button"
                 onClick={() => setQuery("")}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-90 transition"
                 aria-label="مسح البحث"
@@ -332,7 +331,7 @@ export function QuranPage() {
 
         {/* ── Continue reading strip ─────────────────────── */}
         {lastRead ? (
-          <button
+          <button type="button"
             onClick={() => navigate(`/mushaf?surah=${lastRead.surahId}&ayah=${lastRead.ayahIndex}`)}
             className="w-full flex items-center gap-3 px-5 py-3.5 text-right transition hover:brightness-110 active:scale-[0.99]"
             style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 50%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, transparent)" }}
@@ -361,8 +360,7 @@ export function QuranPage() {
             {quranStreak > 0 && <span>🔥 {quranStreak} يوم</span>}
             {quranStats.completed > 0 && <span style={{ color: "var(--ok)", opacity: 1 }}>✓ {quranStats.completed} مكتملة</span>}
             {/* Plans page link */}
-            <button
-              type="button"
+            <button type="button"
               onClick={() => navigate("/quran/plans")}
               className="flex items-center gap-1.5 text-xs opacity-60 hover:opacity-100 transition mr-auto"
             >
@@ -383,8 +381,7 @@ export function QuranPage() {
             className="px-5 py-2 flex items-center"
             style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 25%, transparent)" }}
           >
-            <button
-              type="button"
+            <button type="button"
               onClick={() => navigate("/quran/plans")}
               className="text-xs opacity-45 hover:opacity-80 transition flex items-center gap-1.5"
             >
@@ -540,13 +537,13 @@ export function QuranPage() {
           >
             {/* Sort toggle */}
             <div className="flex rounded-xl bg-white/6 border border-white/10 overflow-hidden text-sm">
-              <button
+              <button type="button"
                 onClick={() => setSortMode("mushaf")}
                 className={`px-3.5 h-9 transition ${sortMode === "mushaf" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 المصحف
               </button>
-              <button
+              <button type="button"
                 onClick={() => setSortMode("progress")}
                 className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
@@ -555,8 +552,7 @@ export function QuranPage() {
             </div>
 
             {/* Random surah */}
-            <button
-              type="button"
+            <button type="button"
               onClick={() => { if (!data || data.length === 0) return; navigate(`/mushaf?surah=${data[Math.floor(Math.random() * data.length)]!.id}`); }}
               className="w-9 h-9 rounded-xl border bg-white/6 border-white/10 opacity-55 hover:opacity-100 flex items-center justify-center transition shrink-0"
               title="سورة عشوائية" aria-label="سورة عشوائية"
@@ -583,7 +579,7 @@ export function QuranPage() {
             {/* Theme color dots */}
             <div className="mr-auto flex items-center gap-1.5">
               {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
-                <button
+                <button type="button"
                   key={t}
                   onClick={() => setPrefs({ quranTheme: t })}
                   className={`w-5 h-5 rounded-full border-2 transition-all ${prefs.quranTheme === t ? "scale-125 border-[var(--accent)]" : "border-white/20 opacity-50 hover:opacity-80"}`}
@@ -596,7 +592,7 @@ export function QuranPage() {
 
             {/* Bookmarks count pill */}
             {bookmarkedCount > 0 && (
-              <button
+              <button type="button"
                 onClick={() => setShowBookmarks((v) => !v)}
                 className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-55 hover:opacity-90"}`}
               >
@@ -612,7 +608,7 @@ export function QuranPage() {
               {bookmarksList.map((bm) => {
                 const hlSwatches: Record<string, string> = { gold: "rgba(251,191,36,0.85)", green: "rgba(52,211,153,0.85)", blue: "rgba(96,165,250,0.85)", red: "rgba(248,113,113,0.85)" };
                 return (
-                  <button
+                  <button type="button"
                     key={`${bm.surahId}:${bm.ayahIndex}`}
                     onClick={() => navigate(`/mushaf?surah=${bm.surahId}&ayah=${bm.ayahIndex}`)}
                     className="w-full flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition text-right"
@@ -633,13 +629,13 @@ export function QuranPage() {
             className="quran-juz-strip px-3 py-2"
             style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 30%, transparent)" }}
           >
-            <button className={`quran-juz-btn ${filterJuz === null ? "active" : ""}`} onClick={() => setFilterJuz(null)}>الكل</button>
+            <button type="button" className={`quran-juz-btn ${filterJuz === null ? "active" : ""}`} onClick={() => setFilterJuz(null)}>الكل</button>
             {Array.from({ length: 30 }, (_, i) => i + 1).map((j) => {
               const jpct = juzProgress[j] ?? 0;
               const isDone = jpct >= 100;
               const isActive = filterJuz === j;
               return (
-                <button
+                <button type="button"
                   key={j}
                   className={`quran-juz-btn ${isActive ? "active" : ""}`}
                   onClick={() => setFilterJuz(filterJuz === j ? null : j)}
@@ -681,7 +677,7 @@ export function QuranPage() {
               const isMedinan = SURAH_REVELATION[s.id] === "medinan";
               const isCurrent = lastRead?.surahId === s.id;
               return (
-                <button
+                <button type="button"
                   key={s.id}
                   onClick={() => navigate(`/mushaf?surah=${s.id}`)}
                   className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-white/4 active:bg-white/8"
@@ -747,7 +743,7 @@ export function QuranPage() {
           ) : (
             <div className="mt-4 space-y-3">
               {ayahResults.map((r) => (
-                <button
+                <button type="button"
                   key={`${r.surahId}:${r.ayahIndex}`}
                   onClick={() => navigate(`/mushaf?surah=${r.surahId}&ayah=${r.ayahIndex}`)}
                   className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10 w-full"

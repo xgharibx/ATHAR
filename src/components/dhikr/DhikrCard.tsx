@@ -395,8 +395,7 @@ export function DhikrCard(props: {
           </div>
         ) : null}
         {sourceLabel && sourceUrl ? (
-          <button
-            type="button"
+          <button type="button"
             onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}
             className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-1.5 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/14"
           >
@@ -485,13 +484,13 @@ export function DhikrCard(props: {
 
               {confirmItemReset ? (
                 <>
-                  <button
+                  <button type="button"
                     className="text-[11px] px-2.5 rounded-xl bg-[var(--danger)]/15 border border-[var(--danger)]/30 text-[var(--danger)] min-h-[44px] transition active:scale-[.97]"
                     onClick={() => { resetItem(sectionId, index, target); setConfirmItemReset(false); }}
                   >
                     تأكيد
                   </button>
-                  <button
+                  <button type="button"
                     className="text-[11px] px-2.5 rounded-xl bg-white/6 border border-white/10 min-h-[44px] transition active:scale-[.97]"
                     onClick={() => setConfirmItemReset(false)}
                   >
@@ -523,7 +522,7 @@ export function DhikrCard(props: {
 
         {/* Counter Button — placed before benefit so it's visible without scrolling */}
         <div className="mt-4 flex items-center justify-between gap-3">
-          <button
+          <button type="button"
             className={cn(
               "flex-1 rounded-3xl px-4 py-5 text-base font-bold border transition select-none btn-count press-effect active:scale-[.96]",
               done

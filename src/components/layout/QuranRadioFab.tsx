@@ -29,7 +29,7 @@ export function QuranRadioFab() {
 
   if (!open) {
     return (
-      <button
+      <button type="button"
         className={cn(
           "fab xl:hidden",
           radio.playing && "ring-2 ring-[var(--ok)]/60",
@@ -81,7 +81,7 @@ export function QuranRadioFab() {
               </span>
             )}
           </div>
-          <button
+          <button type="button"
             onClick={() => setOpen(false)}
             className="w-9 h-9 rounded-full bg-white/6 border border-white/10 grid place-items-center text-xs"
             aria-label="إغلاق"
@@ -93,9 +93,8 @@ export function QuranRadioFab() {
         {/* Stations */}
         <div className="space-y-1.5 mb-3">
           {QURAN_RADIO_STATIONS.map((station, i) => (
-            <button
+            <button type="button"
               key={i}
-              type="button"
               onClick={() => playRadio(i)}
               className={cn(
                 "w-full text-right rounded-2xl px-3 py-2.5 text-sm border transition press-effect",
@@ -132,8 +131,7 @@ export function QuranRadioFab() {
         </div>
 
         {/* Play / Stop */}
-        <button
-          type="button"
+        <button type="button"
           onClick={() => { toggleRadio(); if (radio.playing) setOpen(false); }}
           className={cn(
             "w-full rounded-2xl py-3 text-sm font-semibold transition press-effect",

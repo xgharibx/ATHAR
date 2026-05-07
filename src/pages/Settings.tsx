@@ -51,7 +51,7 @@ const PRAYER_ALERT_OPTIONS = [
 function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; onClick: () => void }) {
   const dotColor = THEME_ACCENTS[props.value];
   return (
-    <button
+    <button type="button"
       onClick={props.onClick}
       className={[
         "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px]",
@@ -208,8 +208,7 @@ export function SettingsPage() {
       {/* Quick backup strip */}
       <div className="flex items-center justify-between gap-3 px-1">
         <span className="text-xs opacity-55">احتفظ ببياناتك بأمان</span>
-        <button
-          type="button"
+        <button type="button"
           onClick={onBackup}
           className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-2xl border border-white/15 bg-white/6 hover:bg-white/10 transition"
         >
@@ -307,7 +306,7 @@ export function SettingsPage() {
                 />
               </label>
               {prefs.customAccent && (
-                <button
+                <button type="button"
                   onClick={() => setPrefs({ customAccent: undefined })}
                   className="text-xs px-2.5 py-1.5 rounded-xl bg-white/8 border border-white/10 opacity-70 hover:opacity-100 transition min-h-[36px]"
                 >
@@ -330,7 +329,7 @@ export function SettingsPage() {
               { id: "amiri", label: "أميري", sample: "بسم الله" },
               { id: "hafs", label: "حفص القرآني", sample: "بسم الله" },
             ] as const).map((f) => (
-              <button
+              <button type="button"
                 key={f.id}
                 onClick={() => setPrefs({ arabicFont: f.id })}
                 className={[
@@ -359,7 +358,7 @@ export function SettingsPage() {
             </div>
             <div className="flex gap-1.5">
               {(["ar", "en"] as const).map((lang) => (
-                <button
+                <button type="button"
                   key={lang}
                   onClick={() => setPrefs({ uiLanguage: lang })}
                   className={[
@@ -389,7 +388,7 @@ export function SettingsPage() {
                 { id: "rtl", label: "RTL ←" },
                 { id: "ltr", label: "→ LTR" },
               ] as const).map((d) => (
-                <button
+                <button type="button"
                   key={d.id}
                   onClick={() => setPrefs({ textDir: d.id })}
                   className={[
@@ -412,7 +411,7 @@ export function SettingsPage() {
             <div className="text-sm font-medium">إعادة الضبط الافتراضي</div>
             <div className="text-xs opacity-60 mt-0.5">إعادة إعدادات المظهر والقراءة دون فقدان التقدّم</div>
           </div>
-          <button
+          <button type="button"
             onClick={() => { resetPrefs(); toast.success("تم إعادة الضبط الافتراضي"); }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/15 bg-white/6 hover:bg-white/10 transition text-xs min-h-[40px]"
           >
@@ -503,7 +502,7 @@ export function SettingsPage() {
               right={
                 <div className="flex items-center gap-2">
                   {[8, 12, 16].map((n) => (
-                    <button
+                    <button type="button"
                       key={n}
                       onClick={() => setPrefs({ quranPageSize: n })}
                       className={[
@@ -552,7 +551,7 @@ export function SettingsPage() {
             right={
               <div className="flex items-center gap-1.5 flex-wrap">
                 {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
-                  <button
+                  <button type="button"
                     key={t}
                     onClick={() => setPrefs({ quranTheme: t })}
                     className={[
@@ -576,7 +575,7 @@ export function SettingsPage() {
             right={
               <div className="flex gap-2">
                 {(["page", "scroll"] as const).map((m) => (
-                  <button
+                  <button type="button"
                     key={m}
                     onClick={() => setPrefs({ quranScrollMode: m })}
                     className={[
@@ -639,7 +638,7 @@ export function SettingsPage() {
                 { label: "٥ صفحات (٧٥)", value: 75 },
                 { label: "جزء (٢٠٨)", value: 208 },
               ]).map((p) => (
-                <button
+                <button type="button"
                   key={p.value}
                   onClick={() => setPrefs({ quranDailyGoal: p.value })}
                   className={[
@@ -653,15 +652,13 @@ export function SettingsPage() {
                 </button>
               ))}
               <div className="flex items-center gap-2 mr-auto">
-                <button
-                  type="button"
+                <button type="button"
                   className="w-8 h-8 rounded-xl bg-white/8 border border-white/12 flex items-center justify-center hover:bg-white/12 transition text-base"
                   onClick={() => setPrefs({ quranDailyGoal: Math.max(1, (prefs.quranDailyGoal ?? 10) - 5) })}
                   aria-label="تقليل الهدف"
                 >−</button>
                 <span className="w-12 text-center text-sm tabular-nums font-semibold">{prefs.quranDailyGoal ?? 10}</span>
-                <button
-                  type="button"
+                <button type="button"
                   className="w-8 h-8 rounded-xl bg-white/8 border border-white/12 flex items-center justify-center hover:bg-white/12 transition text-base"
                   onClick={() => setPrefs({ quranDailyGoal: Math.min(604, (prefs.quranDailyGoal ?? 10) + 5) })}
                   aria-label="زيادة الهدف"
@@ -678,7 +675,7 @@ export function SettingsPage() {
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {QURAN_RECITERS.map((r) => (
-              <button
+              <button type="button"
                 key={r.id}
                 onClick={() => setPrefs({ quranReciter: r.id })}
                 className={[
@@ -814,8 +811,7 @@ export function SettingsPage() {
                       : "bg-white/4 border-white/10",
                   ].join(" ")}
                 >
-                  <button
-                    type="button"
+                  <button type="button"
                     onClick={() => setReminders({ soundProfile: option.id })}
                     className="w-full text-right"
                     disabled={!reminders.enabled && isNative}
@@ -823,8 +819,7 @@ export function SettingsPage() {
                     <div className="text-sm font-semibold">{option.label}</div>
                   </button>
                   <div className="mt-3 flex justify-end">
-                    <button
-                      type="button"
+                    <button type="button"
                       onClick={() => void toggleReminderPreview(option.id)}
                       className="inline-flex items-center gap-1.5 rounded-xl border border-white/12 bg-white/6 px-3 py-2 text-xs transition hover:bg-white/10"
                     >
@@ -893,8 +888,7 @@ export function SettingsPage() {
                           : "bg-white/4 border-white/10",
                       ].join(" ")}
                     >
-                      <button
-                        type="button"
+                      <button type="button"
                         onClick={() => setReminders({ prayerSoundProfile: option.id })}
                         className="w-full text-right"
                         disabled={!reminders.enabled && isNative}
@@ -902,8 +896,7 @@ export function SettingsPage() {
                         <div className="text-sm font-semibold">{option.label}</div>
                       </button>
                       <div className="mt-3 flex justify-end">
-                        <button
-                          type="button"
+                        <button type="button"
                           onClick={() => void togglePrayerPreview(option.id)}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-white/12 bg-white/6 px-3 py-2 text-xs transition hover:bg-white/10"
                         >
@@ -1110,7 +1103,7 @@ export function SettingsPage() {
                   { id: "ramadan", label: "🌙 رمضان" },
                   { id: "gold", label: "✨ ذهبي" },
                 ]).map((icon) => (
-                  <button
+                  <button type="button"
                     key={icon.id}
                     onClick={() => toast("تغيير أيقونة التطبيق قيد التطوير")}
                     className="px-3 py-2 rounded-xl border border-white/10 bg-white/6 hover:bg-white/10 text-xs transition min-h-[36px]"
@@ -1141,7 +1134,7 @@ export function SettingsPage() {
             { icon: "🧎", label: "كيفية الصلاة", desc: "دليل مفصّل خطوة بخطوة", route: "/prayer-guide" },
             { icon: "💧", label: "كيفية الوضوء", desc: "خطوات الوضوء الصحيح", route: "/wudu" },
           ].map(({ icon, label, desc, route }) => (
-            <button
+            <button type="button"
               key={route}
               onClick={() => navigate(route)}
               className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl transition text-right"
@@ -1217,7 +1210,7 @@ function HomeWidgetsCard(props: {
             className="flex items-center gap-3 glass rounded-2xl border border-white/10 px-3 py-2.5"
           >
             <div className="flex flex-col gap-0.5">
-              <button
+              <button type="button"
                 onClick={() => moveUp(i)}
                 disabled={i === 0}
                 className="p-1 rounded-lg hover:bg-white/10 transition disabled:opacity-25"
@@ -1225,7 +1218,7 @@ function HomeWidgetsCard(props: {
               >
                 <ArrowUp size={12} />
               </button>
-              <button
+              <button type="button"
                 onClick={() => moveDown(i)}
                 disabled={i === order.length - 1}
                 className="p-1 rounded-lg hover:bg-white/10 transition disabled:opacity-25"

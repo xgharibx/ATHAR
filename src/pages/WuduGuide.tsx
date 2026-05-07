@@ -30,7 +30,7 @@ export function WuduGuidePage() {
         style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
       >
         <div className="flex items-center justify-between">
-          <button
+          <button type="button"
             onClick={reset}
             className="text-xs px-3 py-1.5 rounded-full"
             style={{
@@ -49,7 +49,7 @@ export function WuduGuidePage() {
               {done.size} / {WUDU_STEPS.length} خطوات
             </p>
           </div>
-          <button
+          <button type="button"
             onClick={() => navigate(-1)}
             aria-label="رجوع"
             className="p-2 rounded-xl"
@@ -92,7 +92,7 @@ export function WuduGuidePage() {
         {WUDU_STEPS.map((step) => {
           const isDone = done.has(step.id);
           return (
-            <button
+            <button type="button"
               key={step.id}
               onClick={() => toggle(step.id)}
               className="w-full text-right rounded-2xl p-4 transition-all duration-200 flex items-start gap-3"

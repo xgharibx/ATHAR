@@ -283,7 +283,7 @@ export function HadithReaderPage() {
           <div className="absolute inset-y-0 right-0 w-1.5" style={{ background: accentColor }} />
           <div className="absolute -left-10 -top-12 h-32 w-32 rounded-full opacity-15" style={{ background: accentColor }} />
           <div className="relative flex items-start gap-3 pr-2">
-            <button
+            <button type="button"
               onClick={() => navigate(-1)}
               className="h-11 w-11 rounded-2xl border border-white/10 bg-white/6 grid place-items-center transition hover:bg-white/10 shrink-0"
               aria-label="رجوع"
@@ -406,7 +406,7 @@ export function HadithReaderPage() {
           <Card className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold opacity-55">ملاحظتي</span>
-              <button onClick={() => setShowNoteEditor(false)} className="h-9 w-9 rounded-xl bg-white/6 border border-white/10 grid place-items-center opacity-70 hover:opacity-100" aria-label="إغلاق">
+              <button type="button" onClick={() => setShowNoteEditor(false)} className="h-9 w-9 rounded-xl bg-white/6 border border-white/10 grid place-items-center opacity-70 hover:opacity-100" aria-label="إغلاق">
                 <X size={14} />
               </button>
             </div>
@@ -422,14 +422,14 @@ export function HadithReaderPage() {
             />
             <div className="flex justify-end gap-2">
               {existingNote && (
-                <button
+                <button type="button"
                   onClick={() => { bookKey && setHadithNote(bookKey, n, ""); setShowNoteEditor(false); }}
                   className="text-xs px-3 py-2 rounded-xl bg-white/6 border border-white/10 opacity-70 hover:opacity-100 transition"
                 >
                   حذف
                 </button>
               )}
-              <button
+              <button type="button"
                 onClick={() => { bookKey && setHadithNote(bookKey, n, draftNote); setShowNoteEditor(false); }}
                 className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-xl font-semibold transition press-effect"
                 style={{ background: accentColor, color: "#06110d" }}
@@ -442,7 +442,7 @@ export function HadithReaderPage() {
 
         {/* Display saved note (when editor closed) */}
         {!showNoteEditor && existingNote && (
-          <button
+          <button type="button"
             onClick={() => { setDraftNote(existingNote); setShowNoteEditor(true); }}
             className="w-full text-right rounded-3xl border px-4 py-3 text-sm font-arabic leading-7 transition press-effect glass"
             style={{ borderColor: accentColor + "44", background: accentColor + "11", color: "var(--fg)" }}
@@ -456,7 +456,7 @@ export function HadithReaderPage() {
         {(prevN || nextN) && (
           <Card className="p-3">
             <div className="flex items-center gap-2">
-              <button
+              <button type="button"
                 disabled={!prevN}
                 onClick={() => prevN && navigate(`/hadith/${bookKey}/${prevN}`, { replace: true })}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition border border-white/10 bg-white/6 press-effect"
@@ -467,7 +467,7 @@ export function HadithReaderPage() {
               <div className="min-w-12 text-xs text-[var(--muted)] text-center tabular-nums">
                 {n.toLocaleString("ar-EG")}
               </div>
-              <button
+              <button type="button"
                 disabled={!nextN}
                 onClick={() => nextN && navigate(`/hadith/${bookKey}/${nextN}`, { replace: true })}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition press-effect"

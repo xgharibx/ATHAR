@@ -66,8 +66,7 @@ function LibraryEntryCard({ entry }: { entry: FlatLibraryEntry }) {
         style={{ background: entry.collectionAccent }}
       />
       <div className="flex items-start justify-between gap-3">
-        <button
-          type="button"
+        <button type="button"
           onClick={() => navigate(`/library/${entry.collectionId}/${entry.id}`)}
           className="min-w-0 flex-1 text-right"
         >
@@ -108,8 +107,7 @@ function LibraryEntryCard({ entry }: { entry: FlatLibraryEntry }) {
 
 function CollectionCard({ collection, active, onClick }: { collection: LibraryCollection; active: boolean; onClick: () => void }) {
   return (
-    <button
-      type="button"
+    <button type="button"
       onClick={onClick}
       className={cn(
         "min-w-[220px] text-right rounded-3xl border p-4 transition press-effect",
@@ -205,8 +203,7 @@ export function LibraryPage() {
         </div>
 
         {featured && (
-          <button
-            type="button"
+          <button type="button"
             onClick={() => navigate(`/library/${featured.collectionId}/${featured.id}`)}
             className="w-full text-right rounded-3xl border border-white/10 bg-white/6 p-4 hover:bg-white/9 transition"
           >
@@ -217,8 +214,7 @@ export function LibraryPage() {
         )}
 
         {/* ── Ruqyah featured card ── */}
-        <button
-          type="button"
+        <button type="button"
           onClick={() => navigate("/ruqyah")}
           className="w-full text-right press-effect mt-3 rounded-3xl border p-4 flex items-center gap-3 transition"
           style={{
@@ -243,9 +239,8 @@ export function LibraryPage() {
       {/* Hadith Books Grid — at top for quick access */}
       <div className="grid grid-cols-2 gap-3">
         {HADITH_BOOKS_STATIC.map((book) => (
-          <button
+          <button type="button"
             key={book.key}
-            type="button"
             dir="rtl"
             onClick={() => navigate(`/hadith/${book.key}`)}
             className="press-effect text-right rounded-3xl p-4 glass border border-white/10 transition active:scale-95"
@@ -287,17 +282,15 @@ export function LibraryPage() {
       </div>
 
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-        <button
-          type="button"
+        <button type="button"
           onClick={() => setTagFilter(null)}
           className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", !tagFilter ? "bg-[var(--accent)] text-black border-transparent" : "bg-white/8 border-white/10")}
         >
           كل الموضوعات
         </button>
         {tags.map(([tag, count]) => (
-          <button
+          <button type="button"
             key={tag}
-            type="button"
             onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
             className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-black border-transparent" : "bg-white/8 border-white/10")}
           >
@@ -318,8 +311,7 @@ export function LibraryPage() {
       {/* Hadith Books Grid placeholder — moved above search */}
 
       {/* Companions entry card */}
-      <button
-        type="button"
+      <button type="button"
         dir="rtl"
         onClick={() => navigate("/companions")}
         className="w-full text-right rounded-2xl p-4 flex items-center gap-4 transition active:scale-95"
@@ -341,8 +333,7 @@ export function LibraryPage() {
       </button>
 
       {/* Seerah timeline entry card */}
-      <button
-        type="button"
+      <button type="button"
         dir="rtl"
         onClick={() => navigate("/seerah")}
         className="w-full text-right rounded-2xl p-4 flex items-center gap-4 transition active:scale-95"

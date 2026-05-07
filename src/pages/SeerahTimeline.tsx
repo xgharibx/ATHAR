@@ -23,8 +23,7 @@ export default function SeerahTimeline() {
         style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
       >
         <div className="flex items-center gap-3 mb-3">
-          <button
-            type="button"
+          <button type="button"
             onClick={() => navigate(-1)}
             className="w-8 h-8 rounded-full flex items-center justify-center transition active:scale-90"
             style={{ background: "var(--card-bg)" }}
@@ -48,8 +47,7 @@ export default function SeerahTimeline() {
 
         {/* Category filter */}
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-          <button
-            type="button"
+          <button type="button"
             onClick={() => setActiveCategory("all")}
             className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition"
             style={{
@@ -63,9 +61,8 @@ export default function SeerahTimeline() {
           {SEERAH_CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.key;
             return (
-              <button
+              <button type="button"
                 key={cat.key}
-                type="button"
                 onClick={() => setActiveCategory(cat.key)}
                 className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition whitespace-nowrap"
                 style={{

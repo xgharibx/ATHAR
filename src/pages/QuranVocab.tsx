@@ -64,7 +64,7 @@ export function QuranVocabPage() {
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <button
+            <button type="button"
               onClick={handleShuffle}
               className="p-2 rounded-xl"
               style={{ background: "var(--card-bg)", color: "var(--accent)" }}
@@ -72,7 +72,7 @@ export function QuranVocabPage() {
             >
               <Shuffle size={16} />
             </button>
-            <button
+            <button type="button"
               onClick={handleReset}
               className="p-2 rounded-xl"
               style={{ background: "var(--card-bg)", color: "var(--fg)" }}
@@ -89,7 +89,7 @@ export function QuranVocabPage() {
               {cardIndex + 1} / {deck.length}
             </p>
           </div>
-          <button
+          <button type="button"
             onClick={() => navigate(-1)}
             aria-label="رجوع"
             className="p-2 rounded-xl"
@@ -109,7 +109,7 @@ export function QuranVocabPage() {
 
       {/* Flashcard */}
       <div className="px-4 pt-8 flex flex-col items-center gap-6">
-        <button
+        <button type="button"
           onClick={() => setFlipped((f) => !f)}
           className="w-full max-w-sm rounded-3xl min-h-56 flex flex-col items-center justify-center p-8 transition-all duration-300 active:scale-95 cursor-pointer"
           style={{
@@ -150,7 +150,7 @@ export function QuranVocabPage() {
 
         {/* Navigation */}
         <div className="flex items-center gap-4">
-          <button
+          <button type="button"
             onClick={handleNext}
             disabled={cardIndex >= deck.length - 1}
             className="px-6 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-30"
@@ -158,7 +158,7 @@ export function QuranVocabPage() {
           >
             التالي ←
           </button>
-          <button
+          <button type="button"
             onClick={handlePrev}
             disabled={cardIndex === 0}
             className="px-6 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-30"

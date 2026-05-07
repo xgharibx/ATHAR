@@ -26,7 +26,7 @@ export function DuasPage() {
         style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
       >
         <div className="flex items-center gap-3 mb-3">
-          <button
+          <button type="button"
             onClick={() => navigate(-1)}
             aria-label="رجوع"
             className="p-2 rounded-xl"
@@ -47,7 +47,7 @@ export function DuasPage() {
         {/* Tabs */}
         <div className="flex gap-1 overflow-x-auto pb-3 scrollbar-none">
           {DUAS_CATEGORIES.map((cat) => (
-            <button
+            <button type="button"
               key={cat.id}
               onClick={() => setActiveTab(cat.id)}
               className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
@@ -73,7 +73,8 @@ export function DuasPage() {
           >
             {/* Number */}
             <div className="flex items-start justify-between mb-3">
-              <button
+              <button type="button"
+                aria-label={copied === dua.id ? "تم النسخ" : "نسخ الدعاء"}
                 onClick={() => copyDua(dua.id, dua.arabic)}
                 className="p-1.5 rounded-lg transition-colors"
                 style={{ color: "var(--accent)" }}

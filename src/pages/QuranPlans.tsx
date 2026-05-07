@@ -187,7 +187,7 @@ export function QuranPlansPage() {
     <div dir="rtl" className="space-y-4 pb-24 page-enter px-1">
       {/* Header */}
       <div className="flex items-center gap-3 pt-1">
-        <button onClick={() => navigate(-1)}
+        <button type="button" onClick={() => navigate(-1)}
           aria-label="رجوع"
           className="w-9 h-9 rounded-full bg-white/8 hover:bg-white/12 flex items-center justify-center transition-colors">
           <ChevronRight className="w-5 h-5" />
@@ -313,7 +313,7 @@ export function QuranPlansPage() {
               اختر خطة
             </div>
             {activePlan && (
-              <button onClick={() => setShowPresets(false)}
+              <button type="button" onClick={() => setShowPresets(false)}
                 className="text-xs opacity-50 hover:opacity-80 transition-opacity">
                 إلغاء
               </button>
@@ -325,7 +325,7 @@ export function QuranPlansPage() {
               const daily = Math.ceil(TOTAL_QURAN_AYAHS / preset.days);
               const isActive = activePlan && khatmaDays === preset.days;
               return (
-                <button
+                <button type="button"
                   key={preset.id}
                   onClick={() => startPlan(preset.days)}
                   className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all text-right
@@ -380,13 +380,13 @@ export function QuranPlansPage() {
       {/* Change / Reset plan (only if active and not showing presets) */}
       {activePlan && !showPresets && (
         <div className="flex gap-2">
-          <button
+          <button type="button"
             onClick={() => setShowPresets(true)}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-white/6 hover:bg-white/10 text-sm transition-colors border border-white/8">
             <Target className="w-4 h-4 opacity-60" />
             تغيير الخطة
           </button>
-          <button
+          <button type="button"
             onClick={() => setConfirmReset(true)}
             className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm transition-colors border border-red-500/20">
             <RotateCcw className="w-4 h-4" />

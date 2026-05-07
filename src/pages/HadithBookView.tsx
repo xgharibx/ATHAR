@@ -70,7 +70,7 @@ function HadithRow({
 
   return (
     <div className="mx-3 my-2">
-      <button
+      <button type="button"
         dir="rtl"
         onClick={() => navigate(`/hadith/${bookKey}/${item.n}`)}
         className="group relative w-full overflow-hidden rounded-3xl border border-white/10 glass-strong glass-hover p-4 text-right transition active:scale-[.985]"
@@ -193,7 +193,7 @@ export function HadithBookViewPage() {
           <div className="absolute inset-y-0 right-0 w-1.5" style={{ background: accentColor }} />
           <div className="absolute -left-10 -top-12 h-32 w-32 rounded-full opacity-15" style={{ background: accentColor }} />
           <div className="relative flex items-center gap-3 pr-2">
-            <button
+            <button type="button"
               onClick={() => navigate(-1)}
               className="h-11 w-11 rounded-2xl border border-white/10 bg-white/6 grid place-items-center transition hover:bg-white/10 shrink-0"
               aria-label="رجوع"
@@ -222,7 +222,7 @@ export function HadithBookViewPage() {
             {isLoading && <Loader2 size={18} className="animate-spin text-[var(--muted)] shrink-0" />}
           </div>
           {lastIndex !== null && activeSectionId === null && (
-            <button
+            <button type="button"
               onClick={resumeReading}
               className="relative mt-3 w-full rounded-2xl border px-4 py-3 text-sm font-semibold font-arabic press-effect"
               style={{ background: accentColor + "18", color: accentColor, borderColor: accentColor + "45" }}
@@ -240,7 +240,7 @@ export function HadithBookViewPage() {
           dir="rtl"
           className="flex gap-2 px-3 pb-3 overflow-x-auto no-scrollbar"
         >
-          <button
+          <button type="button"
             onClick={() => setActiveSectionId(null)}
             className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic", activeSectionId === null ? "text-black font-bold" : "glass border-white/10")}
             style={activeSectionId === null ? { background: accentColor, borderColor: "transparent" } : undefined}
@@ -248,7 +248,7 @@ export function HadithBookViewPage() {
             الكل · {pack.count.toLocaleString("ar-EG")}
           </button>
           {pack.sections.map((s) => (
-            <button
+            <button type="button"
               key={s.id}
               onClick={() => setActiveSectionId(s.id)}
               className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap", activeSectionId === s.id ? "text-black font-bold" : "glass border-white/10")}

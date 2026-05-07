@@ -15,7 +15,7 @@ export function PrayerGuidePage() {
         style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
       >
         <div className="flex items-center gap-3">
-          <button
+          <button type="button"
             onClick={() => navigate(-1)}
             aria-label="رجوع"
             className="p-2 rounded-xl"
@@ -59,7 +59,7 @@ export function PrayerGuidePage() {
                 color: isOpen ? "#fff" : "var(--fg)",
               }}
             >
-              <button
+              <button type="button"
                 onClick={() => setExpandedId(isOpen ? null : step.id)}
                 className="w-full flex items-center gap-3 p-4 text-right"
               >

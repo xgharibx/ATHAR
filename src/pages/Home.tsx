@@ -150,8 +150,7 @@ function rescueTipByCategory(category: DailyChecklistItem["category"]) {
 function HomeRadioButton() {
   const radio = useRadioState();
   return (
-    <button
-      type="button"
+    <button type="button"
       onClick={() => toggleRadio()}
       aria-label={radio.playing ? "إيقاف راديو القرآن" : "تشغيل راديو القرآن"}
       className="press-effect inline-flex items-center gap-1.5 px-3 h-9 rounded-2xl border transition-all shrink-0"
@@ -700,8 +699,7 @@ export function HomePage() {
                 ) : null}
                 <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:sebha"); navigate("/sebha"); }}>السبحة</Button>
                 <HomeRadioButton />
-                <button
-                  type="button"
+                <button type="button"
                   onClick={onRandom}
                   aria-label="ذكر عشوائي"
                   className="press-effect inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-white/10 border border-white/10 hover:bg-white/12 active:scale-[.97] transition shrink-0"
@@ -712,7 +710,7 @@ export function HomePage() {
 
               {/* Quran reading progress micro-bar */}
               {quranReadingPct > 0 && (
-                <button
+                <button type="button"
                   onClick={() => navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : "/mushaf/1")}
                   className="mt-3 flex items-center gap-2.5 group"
                   aria-label={`القرآن: ${quranReadingPct}% مقروء`}
@@ -757,7 +755,7 @@ export function HomePage() {
               const isComplete = total > 0 && done === total;
               const pctDone = total > 0 ? Math.round((done / total) * 100) : 0;
               return (
-                <button
+                <button type="button"
                   key={pack.id}
                   onClick={() => { trackUxEvent(`home_strip:${pack.id}`); navigate(`/c/${pack.id}`); }}
                   className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] select-none active:scale-[.91] transition-all"
@@ -778,7 +776,7 @@ export function HomePage() {
                 </button>
               );
             })}
-            <button
+            <button type="button"
               onClick={() => { trackUxEvent("home_strip:custom_manage"); navigate("/adhkar/custom"); }}
               className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] select-none active:scale-[.91] transition-all"
               style={{ borderColor: "rgba(255,255,255,0.08)", opacity: 0.7 }}
@@ -800,7 +798,7 @@ export function HomePage() {
               const pctDone = total > 0 ? Math.round((done / total) * 100) : 0;
 
               return (
-                <button
+                <button type="button"
                   key={section.id}
                   onClick={() => { trackUxEvent(`home_strip:${section.id}`); navigate(`/c/${section.id}`); }}
                   className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] select-none active:scale-[.91] transition-all"
@@ -865,8 +863,7 @@ export function HomePage() {
                 </div>
                 <Dropdown.Root modal={false}>
                   <Dropdown.Trigger asChild>
-                    <button
-                      type="button"
+                    <button type="button"
                       className="shrink-0 w-11 h-11 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90 mt-0.5"
                       aria-label="خيارات إضافية"
                     >
@@ -929,8 +926,7 @@ export function HomePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
-                  <button
-                    type="button"
+                  <button type="button"
                     onClick={() => setChecklistExpanded((v) => !v)}
                     className="w-8 h-8 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90"
                     aria-label={showItems ? "طي" : "عرض"}
@@ -989,7 +985,7 @@ export function HomePage() {
                   {DAILY_CHECKLIST_ITEMS.map((item) => {
                     const isDone = !!dailyChecklistToday[item.id];
                     return (
-                      <button
+                      <button type="button"
                         key={item.id}
                         onClick={() => toggleDailyChecklist(worshipDayKey, item.id, !isDone)}
                         className={cn(
@@ -1065,9 +1061,8 @@ export function HomePage() {
                 <div className="flex items-center gap-2">
                   <div className="flex rounded-2xl border border-white/10 bg-white/5 p-1">
                     {[33, 100].map((target) => (
-                      <button
+                      <button type="button"
                         key={target}
-                        type="button"
                         onClick={() => setTasbeehTarget(target as 33 | 100)}
                         className={cn(
                           "min-w-10 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition",
@@ -1119,7 +1114,7 @@ export function HomePage() {
                   const offset = C - pct * C;
                   const done = v >= target;
                   return (
-                    <button
+                    <button type="button"
                       key={it.key}
                       onClick={() => {
                         setActivePhraseKey(it.key);
@@ -1188,8 +1183,7 @@ export function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
+                  <button type="button"
                     onClick={() => setDailyWirdExpanded((v) => !v)}
                     className="w-8 h-8 rounded-xl bg-white/6 border border-white/10 grid place-items-center transition active:scale-90"
                     aria-label={dailyWirdExpanded ? "طي" : "عرض"}
@@ -1221,7 +1215,7 @@ export function HomePage() {
               ) : dailyWirdExpanded ? (
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                   {dailyWird.items.map((p) => (
-                    <button
+                    <button type="button"
                       key={`${p.surahId}:${p.ayahIndex}`}
                       className="glass rounded-3xl p-4 text-right transition border border-white/10 press-effect glass-hover"
                       onClick={() => navigate(`/mushaf?surah=${p.surahId}&ayah=${p.ayahIndex}`)}
@@ -1269,7 +1263,7 @@ export function HomePage() {
             { icon: "🧎", label: "كيفية الصلاة", route: "/prayer-guide" },
             { icon: "💧", label: "الوضوء", route: "/wudu" },
           ].map(({ icon, label, route }) => (
-            <button
+            <button type="button"
               key={route}
               onClick={() => navigate(route)}
               className="flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 transition active:scale-95"

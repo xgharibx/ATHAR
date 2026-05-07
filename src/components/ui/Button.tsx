@@ -25,7 +25,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       lg: "px-5 py-3 text-base min-h-[44px]"
     };
     return (
-      <button
+      <button type="button"
         ref={ref}
         className={cn(base, variants[variant], sizes[size], className)}
         {...props}

@@ -33,7 +33,7 @@ export function QuickTasbeehFab() {
 
   if (!open) {
     return (
-      <button
+      <button type="button"
         className="fab xl:hidden"
         style={{
           bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--sab))",
@@ -72,7 +72,7 @@ export function QuickTasbeehFab() {
         {/* Close */}
         <div className="flex items-center justify-between mb-3">
           <div className="text-sm font-semibold">تسبيح سريع</div>
-          <button
+          <button type="button"
             onClick={() => setOpen(false)}
             className="w-11 h-11 rounded-full bg-white/6 border border-white/10 grid place-items-center text-xs"
             aria-label="إغلاق"
@@ -84,7 +84,7 @@ export function QuickTasbeehFab() {
         {/* Selector */}
         <div className="grid grid-cols-2 gap-1.5 mb-4">
           {TASBEEHAT.map((t) => (
-            <button
+            <button type="button"
               key={t.key}
               onClick={() => setSelected(t.key)}
               className={cn(
@@ -101,9 +101,8 @@ export function QuickTasbeehFab() {
 
         <div className="mb-4 grid grid-cols-2 gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1">
           {[33, 100].map((value) => (
-            <button
+            <button type="button"
               key={value}
-              type="button"
               onClick={() => setTarget(value as 33 | 100)}
               className={cn(
                 "rounded-xl px-3 py-2 text-xs font-semibold transition",
@@ -135,7 +134,7 @@ export function QuickTasbeehFab() {
         </div>
 
         {/* Count button */}
-        <button
+        <button type="button"
           onClick={onCount}
           className={cn(
             "w-full rounded-2xl py-4 text-base font-semibold border transition btn-count press-effect",

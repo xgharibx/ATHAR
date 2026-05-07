@@ -172,7 +172,7 @@ export function HadithMemoPage() {
         className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 backdrop-blur-sm"
         style={{ background: "var(--bg)cc", borderBottom: "1px solid var(--card-border)" }}
       >
-        <button
+        <button type="button"
           onClick={() => navigate(-1)}
           className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
           aria-label="رجوع"
@@ -210,7 +210,7 @@ export function HadithMemoPage() {
         style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
       >
         {(["due", "add"] as const).map((t) => (
-          <button
+          <button type="button"
             key={t}
             onClick={() => { setViewMode(t); setCardIndex(0); setIsFlipped(false); }}
             className="flex-1 py-2.5 text-sm font-arabic transition-colors"
@@ -230,7 +230,7 @@ export function HadithMemoPage() {
           <CheckCircle size={48} style={{ color: accentColor }} />
           <p className="text-base font-bold font-arabic text-[var(--fg)]">أحسنت! أنهيت مراجعة اليوم</p>
           <p className="text-sm text-[var(--muted)] font-arabic">ارجع غداً لمراجعة جديدة</p>
-          <button
+          <button type="button"
             onClick={() => { setViewMode("add"); setCardIndex(0); setIsFlipped(false); }}
             className="mt-2 px-6 py-2.5 rounded-2xl text-sm font-arabic font-bold"
             style={{ background: accentColor, color: "#fff" }}
@@ -293,7 +293,7 @@ export function HadithMemoPage() {
 
           {/* Add/Remove from deck (when in add mode) */}
           {viewMode === "add" && (
-            <button
+            <button type="button"
               onClick={() => cardKey && addHadithMemoCard(cardKey)}
               className="w-full py-2.5 rounded-xl text-sm font-arabic transition"
               style={isAdded
@@ -309,7 +309,7 @@ export function HadithMemoPage() {
           {isFlipped && (
             <div className="grid grid-cols-4 gap-2">
               {RATING_LABELS.map(({ rating, label, color, bg }) => (
-                <button
+                <button type="button"
                   key={rating}
                   onClick={() => handleRate(rating)}
                   className="py-2.5 rounded-xl text-sm font-bold font-arabic transition active:scale-95"
@@ -323,7 +323,7 @@ export function HadithMemoPage() {
 
           {/* Nav buttons */}
           <div className="flex items-center justify-between pt-1">
-            <button
+            <button type="button"
               onClick={() => { setCardIndex((i) => Math.max(0, i - 1)); setIsFlipped(false); }}
               disabled={cardIndex === 0}
               className="p-2 rounded-full hover:bg-[var(--card-bg)] transition disabled:opacity-30"
@@ -333,7 +333,7 @@ export function HadithMemoPage() {
             <span className="text-xs text-[var(--muted)] font-arabic">
               {currentHadith.a}
             </span>
-            <button
+            <button type="button"
               onClick={() => { setCardIndex((i) => Math.min(currentCards.length - 1, i + 1)); setIsFlipped(false); }}
               disabled={cardIndex === currentCards.length - 1}
               className="p-2 rounded-full hover:bg-[var(--card-bg)] transition disabled:opacity-30"

@@ -169,9 +169,8 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
       {/* Dot indicators */}
       <div className="flex items-center justify-center gap-2 pb-3">
         {[0, 1, 2].map((i) => (
-          <button
+          <button type="button"
             key={i}
-            type="button"
             aria-label={SLIDE_LABELS[i]}
             onClick={() => goTo(i)}
             className="rounded-full transition-all"

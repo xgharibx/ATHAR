@@ -189,8 +189,7 @@ function CircularRing({
           style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.5))" }} />
         <circle cx={hx} cy={hy} r={3} fill="white" opacity={0.7} />
       </svg>
-      <button
-        type="button"
+      <button type="button"
         onClick={onClick}
         className={cn(
           "absolute inset-0 rounded-full border transition active:scale-[.98] select-none flex items-center justify-center",
@@ -613,8 +612,7 @@ export function SebhaPage() {
               {sebhaSessions.length > 0 && <Badge>{sebhaSessions.length}</Badge>}
             </div>
             {sebhaSessions.length > 0 && (
-              <button
-                type="button"
+              <button type="button"
                 onClick={() => { clearSebhaSessions(); toast.success("تم مسح السجل"); }}
                 className="flex items-center gap-1 text-xs opacity-50 hover:opacity-80 hover:text-red-400 transition"
               >
@@ -653,9 +651,8 @@ export function SebhaPage() {
             {!tallyMode && selected !== "custom" && (
               <div className="flex rounded-2xl border border-white/10 bg-white/5 p-1">
                 {TARGETS.map((value) => (
-                  <button
+                  <button type="button"
                     key={value}
-                    type="button"
                     onClick={() => setTarget(value)}
                     className={cn(
                       "min-w-10 rounded-xl px-3 py-2 text-xs font-semibold transition",
@@ -668,8 +665,7 @@ export function SebhaPage() {
               </div>
             )}
             {/* S5 - Tally mode toggle */}
-            <button
-              type="button"
+            <button type="button"
               onClick={() => { setTallyMode((v) => !v); setTallyCount(0); setTallyLaps([]); }}
               className={cn(
                 "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition",
@@ -688,8 +684,7 @@ export function SebhaPage() {
           </Button>
           {/* 6B: Voice mic button */}
           {voiceSupported && (
-            <button
-              type="button"
+            <button type="button"
               onClick={toggleVoice}
               title={listening ? "إيقاف الاستماع" : "عدّ بالصوت"}
               disabled={voiceStarting}
@@ -752,9 +747,8 @@ export function SebhaPage() {
           const itemPercent = pct(Math.min(itemCount, target), target);
           const active = item.key === selected;
           return (
-            <button
+            <button type="button"
               key={item.key}
-              type="button"
               onClick={() => setSelected(item.key)}
               className={cn(
                 "glass rounded-3xl p-4 text-right border transition active:scale-[.98]",
@@ -780,8 +774,7 @@ export function SebhaPage() {
 
         {/* S2 - Custom dhikr card */}
         {sebhaCustom ? (
-          <button
-            type="button"
+          <button type="button"
             onClick={() => setSelected("custom")}
             className={cn(
               "glass rounded-3xl p-4 text-right border transition active:scale-[.98]",
@@ -823,8 +816,7 @@ export function SebhaPage() {
             </div>
           </button>
         ) : (
-          <button
-            type="button"
+          <button type="button"
             onClick={() => setShowCustomForm(true)}
             className="glass rounded-3xl p-4 text-center border border-dashed border-white/15 hover:bg-white/6 transition active:scale-[.98] flex flex-col items-center justify-center gap-2 min-h-[100px]"
           >

@@ -112,7 +112,7 @@ function DialWheel({ current, total, onConfirm }: {
         </div>
         <div className="mushaf-dial-indicator" aria-hidden="true" />
       </div>
-      <button className="mushaf-btn-primary w-full mt-3" onClick={() => onConfirm(dialPage)}>
+      <button type="button" className="mushaf-btn-primary w-full mt-3" onClick={() => onConfirm(dialPage)}>
         انتقال ←
       </button>
     </div>
@@ -1020,7 +1020,7 @@ export function MushafPage() {
         <div className="mushaf-progress-strip" aria-hidden="true">
           <div className="mushaf-progress-fill" style={{ width: `${(currentPage / totalPages) * 100}%` }} />
         </div>
-        <button
+        <button type="button"
           className="mushaf-chrome-icon-btn"
           onClick={(e) => { e.stopPropagation(); handleBack(); }}
           aria-label="رجوع إلى القرآن"
@@ -1033,12 +1033,12 @@ export function MushafPage() {
         </div>
         {/* Font scale controls in toolbar */}
         <div className="flex items-center shrink-0" onClick={(e) => e.stopPropagation()}>
-          <button className="mushaf-chrome-icon-btn !p-1" aria-label="تصغير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}><ZoomOut size={13} /></button>
+          <button type="button" className="mushaf-chrome-icon-btn !p-1" aria-label="تصغير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}><ZoomOut size={13} /></button>
           <span className="text-[10px] opacity-50 tabular-nums w-7 text-center select-none">{Math.round(fontScale * 100)}%</span>
-          <button className="mushaf-chrome-icon-btn !p-1" aria-label="تكبير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}><ZoomIn size={13} /></button>
+          <button type="button" className="mushaf-chrome-icon-btn !p-1" aria-label="تكبير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}><ZoomIn size={13} /></button>
         </div>
         {/* Phase 2B: Tajweed color toggle */}
-        <button
+        <button type="button"
           className={`mushaf-chrome-icon-btn${tajweedMode ? " active" : ""}`}
           aria-label="تجويد"
           onClick={(e) => { e.stopPropagation(); setTajweedMode((v) => !v); }}
@@ -1046,7 +1046,7 @@ export function MushafPage() {
           <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "system-ui" }}>ت</span>
         </button>
         {/* Settings */}
-        <button
+        <button type="button"
           className={`mushaf-chrome-icon-btn${showSettings ? " active" : ""}`}
           aria-label="إعدادات"
           onClick={(e) => { e.stopPropagation(); setShowSettings((v) => !v); }}
@@ -1054,7 +1054,7 @@ export function MushafPage() {
           <Settings size={16} />
         </button>
         {/* More actions */}
-        <button
+        <button type="button"
           className={`mushaf-chrome-icon-btn${showMoreSheet ? " active" : ""}`}
           aria-label="المزيد"
           onClick={(e) => { e.stopPropagation(); setShowMoreSheet((v) => !v); }}
@@ -1081,7 +1081,7 @@ export function MushafPage() {
               {playableItems.filter((i) => stripDiacritics(i.text).includes(normalizedSearch)).length} نتيجة
             </span>
           )}
-          <button
+          <button type="button"
             className="mushaf-chrome-icon-btn"
             onClick={() => { setInPageSearch(""); setShowSearch(false); }}
             aria-label="إغلاق البحث"
@@ -1098,11 +1098,11 @@ export function MushafPage() {
           <span className="mushaf-mem-counter">
             {revealedItems.size}/{playableItems.length}
           </span>
-          <button
+          <button type="button"
             className="mushaf-mem-btn"
             onClick={() => setRevealedItems(new Set(playableItems.map((i) => `${i.surahId}:${i.displayAyah}`)))}
           >إظهار الكل</button>
-          <button
+          <button type="button"
             className="mushaf-mem-btn"
             onClick={() => setRevealedItems(new Set())}
           >إخفاء الكل</button>
@@ -1275,7 +1275,7 @@ export function MushafPage() {
 
           {/* Bottom page nav */}
           <div className="mushaf-page-nav">
-            <button
+            <button type="button"
               className="mushaf-page-nav-btn"
               onClick={(e) => { e.stopPropagation(); goPage(currentPage + 1); }}
               disabled={currentPage >= totalPages}
@@ -1285,7 +1285,7 @@ export function MushafPage() {
               <span>التالية</span>
             </button>
             <span className="mushaf-page-nav-num">{currentPage} / {totalPages}</span>
-            <button
+            <button type="button"
               className="mushaf-page-nav-btn"
               onClick={(e) => { e.stopPropagation(); goPage(currentPage - 1); }}
               disabled={currentPage <= 1}
@@ -1301,11 +1301,11 @@ export function MushafPage() {
       {/* ── Bottom action bar (ayah selected) ────────────── */}
       {selectedItem && (
         <div className="mushaf-action-bar" onClick={(e) => e.stopPropagation()}>
-          <button className="mushaf-action-btn" onClick={doCopy} aria-label="نسخ الآية">
+          <button type="button" className="mushaf-action-btn" onClick={doCopy} aria-label="نسخ الآية">
             <Copy size={18} />
             <span>نسخ</span>
           </button>
-          <button
+          <button type="button"
             className={`mushaf-action-btn${isSelBookmarked ? " active" : ""}`}
             onClick={() => {
               toggleBookmark(selectedItem.surahId, selectedItem.displayAyah);
@@ -1316,7 +1316,7 @@ export function MushafPage() {
             <Bookmark size={18} fill={isSelBookmarked ? "currentColor" : "none"} />
             <span>علامة</span>
           </button>
-          <button
+          <button type="button"
             className={`mushaf-action-btn${playingKey === selKey ? " active" : ""}`}
             onClick={() => playAyah(selectedItem.surahId, selectedItem.originalAyah, selectedItem.displayAyah)}
             aria-label="تلاوة"
@@ -1324,7 +1324,7 @@ export function MushafPage() {
             {playingKey === selKey ? <VolumeX size={18} /> : <Volume2 size={18} />}
             <span>تلاوة</span>
           </button>
-          <button
+          <button type="button"
             className={`mushaf-action-btn${loopEnabled ? " active" : ""}`}
             onClick={() => setLoopEnabled((v) => !v)}
             aria-label="تكرار الآية"
@@ -1336,7 +1336,7 @@ export function MushafPage() {
           <div className="mushaf-action-btn" style={{ gap: "0.2rem" }}>
             <div className="flex gap-1">
               {(Object.keys(HL_COLORS) as HlColor[]).map((c) => (
-                <button
+                <button type="button"
                   key={c}
                   className={`mushaf-hl-swatch${selHL === c ? " active" : ""}`}
                   style={{ background: HL_COLORS[c].swatch }}
@@ -1347,7 +1347,7 @@ export function MushafPage() {
             </div>
             <span>تظليل</span>
           </div>
-          <button
+          <button type="button"
             className={`mushaf-action-btn${notes[selKey] ? " active" : ""}`}
             onClick={(e) => {
               e.stopPropagation();
@@ -1361,12 +1361,12 @@ export function MushafPage() {
             <Pencil size={18} />
             <span>تدبّر</span>
           </button>
-          <button className="mushaf-action-btn" onClick={doShare} aria-label="مشاركة">
+          <button type="button" className="mushaf-action-btn" onClick={doShare} aria-label="مشاركة">
             <Share2 size={18} />
             <span>إرسال</span>
           </button>
           {/* Q11: Inline tafsir */}
-          <button
+          <button type="button"
             className="mushaf-action-btn"
             aria-label="تفسير"
             onClick={(e) => { e.stopPropagation(); setTafsirItem(selectedItem); setSelectedItem(null); }}
@@ -1374,7 +1374,7 @@ export function MushafPage() {
             <ArrowUpRight size={18} />
             <span>تفسير</span>
           </button>
-          <button
+          <button type="button"
             className="mushaf-action-btn"
             style={{ opacity: 0.55 }}
             onClick={() => setSelectedItem(null)}
@@ -1389,7 +1389,7 @@ export function MushafPage() {
       {/* ── Page scrubber strip (Phase 2F) ─────────────────── */}
       <div className="mushaf-page-strip" ref={pageStripRef} onClick={(e) => e.stopPropagation()}>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-          <button
+          <button type="button"
             key={p}
             data-page={p}
             className={`mushaf-page-chip${p === currentPage ? " active" : ""}`}
@@ -1403,7 +1403,7 @@ export function MushafPage() {
       {/* ── Audio player bar ──────────────────────────────── */}
       {!selectedItem && audioBarVisible && (
         <div className="mushaf-audio-bar" onClick={(e) => e.stopPropagation()}>
-          <button
+          <button type="button"
             className="mushaf-audio-play-btn"
             onClick={() => {
               if (playingKey && audioRef.current) { audioRef.current.pause(); setPlayingKey(null); }
@@ -1413,7 +1413,7 @@ export function MushafPage() {
           >
             {playingKey ? <Pause size={15} /> : <Play size={15} />}
           </button>
-          <button
+          <button type="button"
             className="mushaf-audio-reciter mushaf-audio-reciter-btn"
             onClick={() => setShowReciterSheet(true)}
             aria-label="اختيار القارئ"
@@ -1426,7 +1426,7 @@ export function MushafPage() {
             </span>
             <ChevronDown size={12} style={{ opacity: 0.5, flexShrink: 0 }} />
           </button>
-          <button
+          <button type="button"
             className="mushaf-audio-toggle"
             onClick={() => setAudioBarVisible(false)}
             aria-label="إخفاء"
@@ -1445,7 +1445,7 @@ export function MushafPage() {
             <div className="mushaf-sheet-title">اختر القارئ</div>
             <div className="mushaf-reciter-grid">
               {QURAN_RECITERS.map((r) => (
-                <button
+                <button type="button"
                   key={r.id}
                   className={`mushaf-reciter-chip${(prefs.quranReciter ?? "Alafasy_128kbps") === r.id ? " active" : ""}`}
                   onClick={() => {
@@ -1468,7 +1468,7 @@ export function MushafPage() {
 
       {/* Audio bar hidden → show button near page nav */}
       {!selectedItem && !audioBarVisible && (
-        <button
+        <button type="button"
           className="mushaf-audio-show-btn"
           onClick={(e) => { e.stopPropagation(); setAudioBarVisible(true); }}
           aria-label="إظهار المشغل"
@@ -1503,7 +1503,7 @@ export function MushafPage() {
               <span className="mushaf-sheet-title">
                 تدبّر · {selectedItem.surahName} ﴿{toArabicNumeral(selectedItem.displayAyah)}﴾
               </span>
-              <button
+              <button type="button"
                 className="mushaf-icon-close"
                 onClick={() => setNoteSheetOpen(false)}
                 aria-label="إغلاق"
@@ -1525,7 +1525,7 @@ export function MushafPage() {
               <span className="text-[10px] opacity-30">{noteDraft.length} حرف</span>
             </div>
             <div className="flex gap-2 mt-1">
-              <button
+              <button type="button"
                 className="mushaf-btn-primary flex-1"
                 onClick={() => {
                   const clean = noteDraft.trim();
@@ -1536,7 +1536,7 @@ export function MushafPage() {
               >
                 حفظ
               </button>
-              <button
+              <button type="button"
                 className="mushaf-btn-secondary"
                 aria-label="مشاركة التدبّر"
                 onClick={async () => {
@@ -1564,7 +1564,7 @@ export function MushafPage() {
                 <Share2 size={15} />
               </button>
               {notes[selKey] && (
-                <button
+                <button type="button"
                   className="mushaf-btn-secondary"
                   onClick={() => {
                     clearQuranNote(selectedItem.surahId, selectedItem.displayAyah);
@@ -1636,7 +1636,7 @@ export function MushafPage() {
               </span>
               <div className="flex items-center gap-1">
                 {/* Copy button */}
-                <button
+                <button type="button"
                   className="mushaf-icon-close"
                   aria-label="نسخ"
                   onClick={() => {
@@ -1648,7 +1648,7 @@ export function MushafPage() {
                 >
                   <Copy size={15} />
                 </button>
-                <button className="mushaf-icon-close" onClick={() => setTafsirItem(null)} aria-label="إغلاق">
+                <button type="button" className="mushaf-icon-close" onClick={() => setTafsirItem(null)} aria-label="إغلاق">
                   <X size={15} />
                 </button>
               </div>
@@ -1670,9 +1670,8 @@ export function MushafPage() {
             {/* Source tabs */}
             <div className="flex gap-1.5 p-1 rounded-2xl bg-white/5 border border-white/10 mb-3">
               {(["muyassar", "jalalayn"] as const).map((src) => (
-                <button
+                <button type="button"
                   key={src}
-                  type="button"
                   onClick={() => setInlineTafseerSource(src)}
                   className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition ${
                     inlineTafseerSource === src
@@ -1741,19 +1740,19 @@ export function MushafPage() {
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">
               <span className="mushaf-sheet-title">إعدادات القراءة</span>
-              <button className="mushaf-icon-close" onClick={() => setShowSettings(false)}><X size={16} /></button>
+              <button type="button" aria-label="إغلاق" className="mushaf-icon-close" onClick={() => setShowSettings(false)}><X size={16} /></button>
             </div>
             {/* Font scale */}
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs opacity-55 shrink-0">الخط</span>
-              <button className="mushaf-btn-secondary" onClick={() => bumpFont(-0.1)}><ZoomOut size={14} /></button>
+              <button type="button" aria-label="تصغير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(-0.1)}><ZoomOut size={14} /></button>
               <span className="text-xs opacity-60 tabular-nums w-8 text-center">{Math.round(fontScale * 100)}%</span>
-              <button className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} /></button>
+              <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} /></button>
             </div>
             {/* Q3: Translation */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs opacity-65">الترجمة الإنجليزية</span>
-              <button
+              <button type="button"
                 onClick={() => setShowTranslation((v) => !v)}
                 className={`relative w-12 h-6 rounded-full transition-colors ${showTranslation ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                 role="switch" aria-checked={showTranslation}
@@ -1768,7 +1767,7 @@ export function MushafPage() {
                 <div className="text-xs opacity-65">تلوين التجويد</div>
                 <div className="text-[10px] opacity-40">تلوين الكلمات بألوان أحكام التجويد</div>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setTajweedMode((v) => !v)}
                 className={`relative w-12 h-6 rounded-full transition-colors ${tajweedMode ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                 role="switch" aria-checked={tajweedMode}
@@ -1792,7 +1791,7 @@ export function MushafPage() {
                     <div className="text-[10px] opacity-45">تفسير تحت كل آية</div>
                   </div>
                 </div>
-                <button
+                <button type="button"
                   onClick={() => setInlineTafseer((v) => !v)}
                   className={`relative w-12 h-6 rounded-full transition-colors ${inlineTafseer ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={inlineTafseer}
@@ -1803,9 +1802,8 @@ export function MushafPage() {
               {inlineTafseer && (
                 <div className="flex gap-1.5 p-1 rounded-xl bg-black/20 border border-white/8">
                   {(["muyassar", "jalalayn"] as const).map((src) => (
-                    <button
+                    <button type="button"
                       key={src}
-                      type="button"
                       onClick={() => setInlineTafseerSource(src)}
                       className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${
                         inlineTafseerSource === src
@@ -1821,7 +1819,7 @@ export function MushafPage() {
             </div>
 
             {/* Reciter */}
-            <button className="mushaf-btn-secondary w-full mb-3" onClick={() => { setShowSettings(false); setShowReciterSheet(true); }}>
+            <button type="button" className="mushaf-btn-secondary w-full mb-3" onClick={() => { setShowSettings(false); setShowReciterSheet(true); }}>
               <Mic2 size={14} />
               {QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي"}
             </button>
@@ -1830,7 +1828,7 @@ export function MushafPage() {
               <div className="text-xs opacity-50 mb-1.5">سرعة التلاوة</div>
               <div className="flex gap-1 flex-wrap">
                 {([0.75, 1, 1.25, 1.5, 2] as number[]).map((sp) => (
-                  <button
+                  <button type="button"
                     key={sp}
                     onClick={() => setPlaybackSpeed(sp)}
                     className={`px-2.5 py-1 rounded-xl text-xs border transition ${playbackSpeed === sp ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
@@ -1842,7 +1840,7 @@ export function MushafPage() {
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs opacity-50">تكرار الآية</span>
-                <button
+                <button type="button"
                   onClick={() => setLoopEnabled((v) => !v)}
                   className={`relative w-12 h-6 rounded-full transition-colors ${loopEnabled ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={loopEnabled}
@@ -1853,7 +1851,7 @@ export function MushafPage() {
               {loopEnabled && (
                 <div className="flex gap-1 flex-wrap">
                   {([2, 3, 5, 7, 10, -1] as number[]).map((n) => (
-                    <button
+                    <button type="button"
                       key={n}
                       onClick={() => setLoopCount(n)}
                       className={`px-2.5 py-1 rounded-xl text-xs border transition ${loopCount === n ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
@@ -1865,7 +1863,7 @@ export function MushafPage() {
             {/* Q8: Auto-advance */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs opacity-65">تقدم تلقائي للآية التالية</span>
-              <button
+              <button type="button"
                 onClick={() => setAutoAdvance((v) => !v)}
                 className={`relative w-12 h-6 rounded-full transition-colors ${autoAdvance ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                 role="switch" aria-checked={autoAdvance}
@@ -1878,7 +1876,7 @@ export function MushafPage() {
               <div className="mb-3 p-3 rounded-2xl bg-white/4 border border-white/10">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs opacity-65">تكرار نطاق</span>
-                  <button
+                  <button type="button"
                     onClick={() => {
                       const on = !loopRange;
                       setLoopRange(on);
@@ -1907,7 +1905,7 @@ export function MushafPage() {
             )}
             {/* Q15: Surah info */}
             <div className="mt-1">
-              <button
+              <button type="button"
                 onClick={() => setShowSurahInfo((v) => !v)}
                 className="flex items-center gap-1.5 text-xs opacity-55 hover:opacity-90 transition mb-2"
               >
@@ -1939,7 +1937,7 @@ export function MushafPage() {
               <div className="text-xs opacity-50 mb-1.5">لون صفحة المصحف</div>
               <div className="flex gap-1 flex-wrap">
                 {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
-                  <button
+                  <button type="button"
                     key={t}
                     onClick={() => setPrefs({ quranTheme: t })}
                     className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
@@ -1950,7 +1948,7 @@ export function MushafPage() {
 
             {/* ── A2: Download page audio for offline ─────── */}
             <div className="mb-3">
-              <button
+              <button type="button"
                 className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center"
                 onClick={downloadPageAudio}
                 disabled={!!cacheProgress}
@@ -1973,7 +1971,7 @@ export function MushafPage() {
               </div>
               <div className="flex gap-1 flex-wrap">
                 {([0, 15, 30, 45, 60, 90] as const).map((m) => (
-                  <button
+                  <button type="button"
                     key={m}
                     onClick={() => activateSleepTimer(m)}
                     className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${sleepMinutes === m ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
@@ -1986,15 +1984,15 @@ export function MushafPage() {
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs opacity-50 flex items-center gap-1"><Radio size={12} />راديو القرآن</span>
-                <button
+                <button type="button"
                   onClick={handleRadioToggle}
                   className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioState.playing ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
                 >{radioState.loading ? "جارٍ التشغيل…" : radioState.playing ? "⏹ إيقاف" : "▶ تشغيل"}</button>
               </div>
               <div className="flex gap-1 flex-wrap">
                 {QURAN_RADIO_STATIONS.map((st, i) => (
-                  <button
-                    key={i}
+                  <button type="button"
+                    key={st.label}
                     onClick={() => handleRadioStationSelect(i)}
                     className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioState.stationIdx === i ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
                   >{st.label}</button>
@@ -2006,7 +2004,7 @@ export function MushafPage() {
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs opacity-50 flex items-center gap-1"><SlidersHorizontal size={12} />المعادل الصوتي</span>
-                <button
+                <button type="button"
                   onClick={() => setEqEnabled((v) => !v)}
                   className={`relative w-12 h-6 rounded-full transition-colors ${eqEnabled ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={eqEnabled}
@@ -2045,12 +2043,12 @@ export function MushafPage() {
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">
               <span className="mushaf-sheet-title">الإجراءات السريعة</span>
-              <button className="mushaf-icon-close" onClick={() => setShowMoreSheet(false)}><X size={16} /></button>
+              <button type="button" aria-label="إغلاق" className="mushaf-icon-close" onClick={() => setShowMoreSheet(false)}><X size={16} /></button>
             </div>
 
             {/* ── سجّل ورد اليوم — only when khatma plan active ── */}
             {khatmaStartISO && (
-              <button
+              <button type="button"
                 className="w-full flex items-center gap-3 rounded-2xl p-3.5 mb-4 text-right transition active:scale-[0.98]"
                 style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }}
                 onClick={() => {
@@ -2079,7 +2077,7 @@ export function MushafPage() {
               { label: memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ", sub: "اختبر حفظك آية بآية", icon: memorizationMode ? <EyeOff size={16} /> : <Eye size={16} />, active: memorizationMode,
                 onPress: () => { setMemorizationMode((v) => { if (v) setRevealedItems(new Set()); return !v; }); flashChrome(); setShowMoreSheet(false); } },
             ] as Array<{ label: string; sub: string; icon: React.ReactNode; active: boolean; onPress: () => void }>).map(({ label, sub, icon, active, onPress }) => (
-              <button
+              <button type="button"
                 key={label}
                 className="w-full flex items-center justify-between gap-3 py-3.5 px-1 border-b transition"
                 style={{ borderColor: "rgba(255,255,255,0.07)" }}
@@ -2099,7 +2097,7 @@ export function MushafPage() {
             ))}
 
             {/* ── Mark page reviewed ── */}
-            <button
+            <button type="button"
               className="w-full flex items-center gap-3 py-3.5 px-1 border-b text-right transition"
               style={{ borderColor: "rgba(255,255,255,0.07)" }}
               onClick={() => { markPageReviewed(); setShowMoreSheet(false); }}
@@ -2112,7 +2110,7 @@ export function MushafPage() {
             </button>
 
             {/* ── Jump to page ── */}
-            <button
+            <button type="button"
               className="w-full flex items-center gap-3 py-3.5 px-1 border-b text-right transition"
               style={{ borderColor: "rgba(255,255,255,0.07)" }}
               onClick={() => { setShowJump(true); setShowMoreSheet(false); }}
@@ -2125,7 +2123,7 @@ export function MushafPage() {
             </button>
 
             {/* ── Reading plans ── */}
-            <button
+            <button type="button"
               className="w-full flex items-center gap-3 py-3.5 px-1 text-right transition"
               onClick={() => { setShowMoreSheet(false); navigate("/quran/plans"); }}
             >
@@ -2153,7 +2151,7 @@ export function MushafPage() {
             <div style={{ fontSize: "0.85rem", opacity: 0.65, marginBottom: "1.25rem" }}>
               {toArabicNumeral(sessionDurationMin)} دقيقة · {toArabicNumeral(pagesReadRef.current.size)} صفحة
             </div>
-            <button
+            <button type="button"
               className="mushaf-btn-primary"
               style={{ width: "100%" }}
               onClick={() => { setShowSessionSummary(false); navigate("/quran"); }}

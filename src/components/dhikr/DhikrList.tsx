@@ -543,7 +543,7 @@ export function DhikrList(props: Readonly<{
                 <div className="text-[11px] opacity-45 font-semibold px-1 mb-1.5">استمر مع قسم آخر</div>
                 <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
                   {relatedSections.map(({ s, id: sid, pct: p }) => (
-                    <button
+                    <button type="button"
                       key={s.id}
                       onClick={() => navigate(`/c/${s.id}`)}
                       className="flex-none flex items-center gap-2 px-3 py-2 rounded-2xl glass border border-white/10 text-right press-effect min-h-[44px] min-w-max"
@@ -583,8 +583,7 @@ export function DhikrList(props: Readonly<{
                   <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
                     <div className="text-xs tabular-nums opacity-65">{displayIndex + 1}</div>
                     <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
+                      <button type="button"
                         onClick={() => moveSectionItem(props.sectionId, displayIndex, displayIndex - 1, props.items.length)}
                         disabled={displayIndex === 0}
                         className="h-9 w-9 rounded-xl border border-white/10 bg-white/6 grid place-items-center disabled:opacity-30"
@@ -593,8 +592,7 @@ export function DhikrList(props: Readonly<{
                       >
                         <MoveUp size={15} />
                       </button>
-                      <button
-                        type="button"
+                      <button type="button"
                         onClick={() => moveSectionItem(props.sectionId, displayIndex, displayIndex + 1, props.items.length)}
                         disabled={displayIndex >= orderedEntries.length - 1}
                         className="h-9 w-9 rounded-xl border border-white/10 bg-white/6 grid place-items-center disabled:opacity-30"
@@ -610,15 +608,13 @@ export function DhikrList(props: Readonly<{
                   <div className="flex justify-end mb-1 px-1">
                     {deletingItemIdx === entry.originalIndex ? (
                       <div className="flex gap-1">
-                        <button
-                          type="button"
+                        <button type="button"
                           onClick={() => { handleDeleteItem(entry.originalIndex); setDeletingItemIdx(null); }}
                           className="text-[10px] px-2.5 py-1 rounded-xl bg-[var(--danger)]/20 text-[var(--danger)] border border-[var(--danger)]/20"
                         >
                           تأكيد الحذف
                         </button>
-                        <button
-                          type="button"
+                        <button type="button"
                           onClick={() => setDeletingItemIdx(null)}
                           className="text-[10px] px-2.5 py-1 rounded-xl bg-white/8 border border-white/10"
                         >
@@ -626,8 +622,7 @@ export function DhikrList(props: Readonly<{
                         </button>
                       </div>
                     ) : (
-                      <button
-                        type="button"
+                      <button type="button"
                         onClick={() => setDeletingItemIdx(entry.originalIndex)}
                         className="p-1.5 rounded-xl opacity-30 hover:opacity-70 transition text-[var(--danger)]"
                         aria-label="حذف الذكر"
@@ -656,8 +651,7 @@ export function DhikrList(props: Readonly<{
           />
         )}
         {!addOpen ? (
-          <button
-            type="button"
+          <button type="button"
             onClick={() => setAddOpen(true)}
             aria-label="إضافة ذكر"
             className="fixed right-4 z-[9991] h-14 w-14 rounded-2xl bg-[var(--accent)] text-black shadow-2xl grid place-items-center active:scale-95 transition"
@@ -672,8 +666,7 @@ export function DhikrList(props: Readonly<{
             <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-white/15 p-5 pb-32 md:pb-5 shadow-2xl" dir="rtl">
               <div className="flex items-center justify-between gap-3">
                 <div className="font-semibold">إضافة ذكر</div>
-                <button
-                  type="button"
+                <button type="button"
                   onClick={() => setAddOpen(false)}
                   className="h-10 w-10 rounded-2xl bg-white/8 border border-white/10 grid place-items-center"
                   aria-label="إغلاق"
@@ -713,7 +706,7 @@ export function DhikrList(props: Readonly<{
           </div>
         ) : null}
         {showBackToTop && (
-          <button
+          <button type="button"
             onClick={() => virtuosoRef.current?.scrollToIndex({ index: 0, behavior: "smooth" })}
             aria-label="العودة إلى أعلى"
             className={[
@@ -727,7 +720,7 @@ export function DhikrList(props: Readonly<{
           </button>
         )}
         {focusMode && (
-          <button
+          <button type="button"
             onClick={() => setFocusMode(false)}
             aria-label="إنهاء وضع التركيز"
             className={[
@@ -747,7 +740,7 @@ export function DhikrList(props: Readonly<{
       {(prevSection || nextSection) && (
         <div className="flex items-center justify-between gap-2 mt-2 px-1">
           {nextSection ? (
-            <button
+            <button type="button"
               onClick={() => navigate(`/c/${nextSection.id}`)}
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-start"
             >
@@ -756,7 +749,7 @@ export function DhikrList(props: Readonly<{
             </button>
           ) : <div className="flex-1" />}
           {prevSection ? (
-            <button
+            <button type="button"
               onClick={() => navigate(`/c/${prevSection.id}`)}
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-end"
             >

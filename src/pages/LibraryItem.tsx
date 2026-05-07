@@ -144,9 +144,8 @@ export function LibraryItemPage() {
           <div className="text-sm font-semibold mb-3">مواد قريبة</div>
           <div className="space-y-2">
             {related.map((item) => (
-              <button
+              <button type="button"
                 key={item.key}
-                type="button"
                 onClick={() => navigate(`/library/${item.collectionId}/${item.id}`)}
                 className="w-full text-right rounded-2xl bg-white/5 border border-white/10 p-3 hover:bg-white/9 transition"
               >

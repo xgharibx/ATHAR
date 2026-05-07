@@ -11,7 +11,7 @@ function StoryCard({ story }: { story: ProphetStory }) {
       className="rounded-2xl overflow-hidden transition-all duration-200"
       style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
     >
-      <button
+      <button type="button"
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between p-4 text-right"
         style={{ color: "var(--fg)" }}
@@ -80,7 +80,7 @@ export function ProphetStoriesPage() {
         style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
       >
         <div className="flex items-center gap-3">
-          <button
+          <button type="button"
             onClick={() => navigate(-1)}
             aria-label="رجوع"
             className="p-2 rounded-xl"

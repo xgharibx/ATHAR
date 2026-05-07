@@ -67,7 +67,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {Array.from({ length: item.count }).map((_, i) => (
-            <button
+            <button type="button"
               key={i}
               onClick={() => setCount(i < count ? i : i + 1)}
               className={cn(
@@ -85,7 +85,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
           <span className="text-xs font-semibold text-[var(--ok)]">✓ مكتمل</span>
         )}
         {!done && count > 0 && (
-          <button
+          <button type="button"
             onClick={() => setCount(0)}
             className="text-[11px] opacity-40 hover:opacity-70 transition px-2 py-1 rounded-lg"
           >
@@ -102,7 +102,8 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
 
   return (
     <Card className="p-0 overflow-hidden">
-      <button
+      <button type="button"
+        aria-expanded={expanded}
         className="w-full flex items-center justify-between gap-3 p-4 text-right"
         onClick={() => setExpanded((v) => !v)}
       >
