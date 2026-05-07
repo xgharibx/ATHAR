@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, CheckCircle2, Circle } from "lucide-react";
+import { ArrowRight, CheckCircle2, Circle, Share2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { WUDU_STEPS } from "@/data/wuduGuide";
 
 export function WuduGuidePage() {
@@ -134,6 +135,26 @@ export function WuduGuidePage() {
                     يُكرَّر {step.times} مرات
                   </p>
                 )}
+                <div className="flex justify-end mt-2">
+                  <button
+                    type="button"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const text = `${step.title}\n${step.description}${step.times > 1 ? `\n(يُكرَّر ${step.times} مرات)` : ""}`;
+                      if (navigator.share) {
+                        await navigator.share({ text }).catch(() => {});
+                      } else {
+                        await navigator.clipboard.writeText(text).catch(() => {});
+                        toast.success("تم النسخ");
+                      }
+                    }}
+                    className="p-1.5 rounded-lg opacity-50 hover:opacity-100 transition-opacity"
+                    style={{ background: "var(--card-border)", color: "var(--fg)" }}
+                    title="مشاركة هذه الخطوة"
+                  >
+                    <Share2 size={13} />
+                  </button>
+                </div>
               </div>
             </button>
           );

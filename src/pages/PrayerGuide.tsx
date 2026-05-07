@@ -1,7 +1,18 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Copy, Share2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { PRAYER_STEPS } from "@/data/prayerGuide";
+
+async function sharePrayerStep(step: { title: string; arabic?: string; description: string }) {
+  const text = [step.title, step.arabic, step.description].filter(Boolean).join("\n\n");
+  if (navigator.share) {
+    await navigator.share({ text }).catch(() => {});
+  } else {
+    await navigator.clipboard.writeText(text).catch(() => {});
+    toast.success("تم النسخ");
+  }
+}
 
 export function PrayerGuidePage() {
   const navigate = useNavigate();
@@ -110,6 +121,29 @@ export function PrayerGuidePage() {
                   <p className="text-sm leading-relaxed text-right" style={{ color: "rgba(255,255,255,0.88)" }}>
                     {step.description}
                   </p>
+                  <div className="flex items-center gap-2 justify-end mt-3">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText([step.title, step.arabic, step.description].filter(Boolean).join("\n\n")).catch(() => {});
+                        toast.success("تم النسخ");
+                      }}
+                      className="p-2 rounded-xl transition-opacity hover:opacity-75"
+                      style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}
+                      title="نسخ"
+                    >
+                      <Copy size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => sharePrayerStep(step)}
+                      className="p-2 rounded-xl transition-opacity hover:opacity-75"
+                      style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}
+                      title="مشاركة"
+                    >
+                      <Share2 size={14} />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Shuffle, RotateCcw, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Shuffle, RotateCcw, CheckCircle2, BookOpen } from "lucide-react";
 import { QURAN_VOCAB, type VocabWord } from "@/data/quranVocab";
 import toast from "react-hot-toast";
 
@@ -28,11 +28,24 @@ function shuffle<T>(arr: T[]): T[] {
 
 export function QuranVocabPage() {
   const navigate = useNavigate();
+  const [reviewMode, setReviewMode] = React.useState(false);
   const [deck, setDeck] = React.useState<VocabWord[]>(() => [...QURAN_VOCAB]);
   const [cardIndex, setCardIndex] = React.useState(0);
   const [flipped, setFlipped] = React.useState(false);
   const [seen, setSeen] = React.useState<Set<number>>(new Set());
   const [learned, setLearned] = React.useState<Set<number>>(() => loadLearned());
+
+  // Rebuild deck when review mode changes
+  React.useEffect(() => {
+    const base = reviewMode
+      ? QURAN_VOCAB.filter((w) => learned.has(w.id))
+      : [...QURAN_VOCAB];
+    setDeck(base);
+    setCardIndex(0);
+    setFlipped(false);
+    setSeen(new Set());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviewMode]);
 
   const card = deck[cardIndex];
 
@@ -73,7 +86,29 @@ export function QuranVocabPage() {
     saveLearned(next);
   }
 
-  if (!card) return null;
+  if (!card) {
+    if (reviewMode) {
+      return (
+        <div dir="rtl" className="min-h-screen-safe flex flex-col items-center justify-center gap-4 px-8 text-center">
+          <BookOpen size={48} style={{ color: "var(--accent)", opacity: 0.5 }} />
+          <p className="text-base font-semibold" style={{ color: "var(--fg)" }}>
+            لا توجد مفردات محفوظة بعد
+          </p>
+          <p className="text-sm opacity-60" style={{ color: "var(--fg)" }}>
+            اضغط على ✓ في وضع الاستعراض العادي لإضافة الكلمات
+          </p>
+          <button type="button"
+            onClick={() => setReviewMode(false)}
+            className="px-5 py-2.5 rounded-2xl text-sm font-medium"
+            style={{ background: "var(--accent)", color: "#fff" }}
+          >
+            العودة للاستعراض
+          </button>
+        </div>
+      );
+    }
+    return null;
+  }
 
   const progress = ((cardIndex + 1) / deck.length) * 100;
 
@@ -102,13 +137,28 @@ export function QuranVocabPage() {
             >
               <RotateCcw size={16} />
             </button>
+            <button type="button"
+              onClick={() => setReviewMode((v) => !v)}
+              className="p-2 rounded-xl transition-colors"
+              style={{
+                background: reviewMode
+                  ? "color-mix(in srgb, var(--ok,#10b981) 18%, transparent)"
+                  : "var(--card-bg)",
+                color: reviewMode ? "var(--ok,#10b981)" : "var(--fg)",
+                border: reviewMode ? "1px solid color-mix(in srgb, var(--ok,#10b981) 35%, transparent)" : "none",
+              }}
+              aria-label="مراجعة المحفوظات"
+              title="مراجعة المحفوظات فقط"
+            >
+              <BookOpen size={16} />
+            </button>
           </div>
           <div className="text-center flex-1">
             <h1 className="font-bold text-base" style={{ color: "var(--fg)" }}>
               مفردات القرآن
             </h1>
             <p className="text-xs opacity-60" style={{ color: "var(--fg)" }}>
-              {cardIndex + 1} / {deck.length} • {learned.size} محفوظة
+              {reviewMode ? "مراجعة • " : ""}{cardIndex + 1} / {deck.length} • {learned.size} محفوظة
             </p>
           </div>
           <button type="button"
