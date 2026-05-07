@@ -1,8 +1,9 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Copy, Check, Heart, Search } from "lucide-react";
+import { ArrowRight, Copy, Check, Heart, Search, Share2 } from "lucide-react";
 import { DUAS_CATEGORIES, type DuaCategory } from "@/data/duas";
 import { useNoorStore } from "@/store/noorStore";
+import toast from "react-hot-toast";
 
 export function DuasPage() {
   const navigate = useNavigate();
@@ -42,6 +43,16 @@ export function DuasPage() {
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
       copyTimerRef.current = setTimeout(() => setCopied(null), 2000);
     });
+  }
+
+  async function shareDua(text: string, source?: string) {
+    const full = `${text}${source ? `\n\n${source}` : ""}\n\n• ATHAR أثر`;
+    try {
+      if (navigator.share) { await navigator.share({ text: full }); }
+      else { await navigator.clipboard.writeText(full); toast.success("تم النسخ"); }
+    } catch {
+      try { await navigator.clipboard.writeText(full); toast.success("تم النسخ"); } catch {}
+    }
   }
 
   return (
@@ -138,6 +149,14 @@ export function DuasPage() {
               {/* Number */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-1">
+                  <button type="button"
+                    aria-label="مشاركة الدعاء"
+                    onClick={() => void shareDua(dua.arabic, dua.source)}
+                    className="p-1.5 rounded-lg transition-colors"
+                    style={{ color: "var(--fg)", opacity: 0.45 }}
+                  >
+                    <Share2 size={14} />
+                  </button>
                   <button type="button"
                     aria-label={copied === dua.id ? "تم النسخ" : "نسخ الدعاء"}
                     onClick={() => copyDua(dua.id, dua.arabic)}

@@ -1,8 +1,9 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Brain, Heart, Search } from "lucide-react";
+import { ArrowRight, Brain, Heart, Search, Share2 } from "lucide-react";
 import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 import { useNoorStore } from "@/store/noorStore";
+import toast from "react-hot-toast";
 
 type FilterTab = "all" | "memorized" | "favorites";
 
@@ -33,6 +34,16 @@ export function AsmaAlHusnaPage() {
 
   const memorizedCount = memorized.length;
   const pct = Math.round((memorizedCount / 99) * 100);
+
+  const shareAsma = React.useCallback(async (name: (typeof ASMA_AL_HUSNA)[number]) => {
+    const text = `${name.arabic} — ${name.meaning}\n\n${name.benefit}\n\n• ATHAR أثر`;
+    try {
+      if (navigator.share) { await navigator.share({ text }); }
+      else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
+    } catch {
+      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch {}
+    }
+  }, []);
 
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32">
@@ -152,6 +163,15 @@ export function AsmaAlHusnaPage() {
               </button>
               {/* Action row */}
               <div className="flex items-center justify-end gap-1 px-3 pb-2 pt-0">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); void shareAsma(name); }}
+                  aria-label="مشاركة"
+                  className="p-1.5 rounded-lg transition-colors"
+                  style={{ color: isExpanded ? "rgba(255,255,255,0.6)" : "var(--fg)", opacity: 0.5 }}
+                >
+                  <Share2 size={13} />
+                </button>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); toggleMemorized(name.id); }}
