@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Shuffle, RotateCcw, CheckCircle2, BookOpen } from "lucide-react";
+import { ArrowRight, Shuffle, RotateCcw, CheckCircle2, BookOpen, Share2, Copy, Star } from "lucide-react";
 import { QURAN_VOCAB, type VocabWord } from "@/data/quranVocab";
 import toast from "react-hot-toast";
 
@@ -26,6 +26,12 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function getDailyWordId(): number {
+  const now = new Date();
+  const dayNum = Math.floor(now.getTime() / 86400000);
+  return (dayNum % QURAN_VOCAB.length) + 1;
+}
+
 export function QuranVocabPage() {
   const navigate = useNavigate();
   const [reviewMode, setReviewMode] = React.useState(false);
@@ -34,6 +40,8 @@ export function QuranVocabPage() {
   const [flipped, setFlipped] = React.useState(false);
   const [seen, setSeen] = React.useState<Set<number>>(new Set());
   const [learned, setLearned] = React.useState<Set<number>>(() => loadLearned());
+
+  const dailyWordId = React.useMemo(() => getDailyWordId(), []);
 
   // Rebuild deck when review mode changes
   React.useEffect(() => {
@@ -84,6 +92,21 @@ export function QuranVocabPage() {
     if (next.has(id)) { next.delete(id); } else { next.add(id); toast.success("تمت الإضافة إلى المحفوظات"); }
     setLearned(next);
     saveLearned(next);
+  }
+
+  async function shareWord(word: VocabWord) {
+    const text = `${word.arabic}\n${word.meaning}${word.frequency ? `\n(تكرّر في القرآن ~${word.frequency} مرة)` : ""}\n\n• ATHAR أثر — مفردات القرآن`;
+    try {
+      if (navigator.share) { await navigator.share({ text }); }
+      else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
+    } catch {
+      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
+    }
+  }
+
+  async function copyWord(word: VocabWord) {
+    const text = `${word.arabic} — ${word.meaning}`;
+    try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
   }
 
   if (!card) {
@@ -181,6 +204,14 @@ export function QuranVocabPage() {
 
       {/* Flashcard */}
       <div className="px-4 pt-8 flex flex-col items-center gap-6">
+        {/* Word of the day badge */}
+        {card.id === dailyWordId && (
+          <div className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
+            style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" }}>
+            <Star size={11} />
+            كلمة اليوم
+          </div>
+        )}
         <button type="button"
           onClick={() => setFlipped((f) => !f)}
           className="w-full max-w-sm rounded-3xl min-h-56 flex flex-col items-center justify-center p-8 transition-all duration-300 active:scale-95 cursor-pointer"
@@ -240,18 +271,38 @@ export function QuranVocabPage() {
           </button>
         </div>
 
-        {/* Mark learned */}
-        <button
-          type="button"
-          onClick={() => handleLearn(card.id)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all"
-          style={learned.has(card.id)
-            ? { background: "color-mix(in srgb, var(--ok,#10b981) 18%, transparent)", color: "var(--ok,#10b981)", border: "1px solid color-mix(in srgb, var(--ok,#10b981) 35%, transparent)" }
-            : { background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
-        >
-          <CheckCircle2 size={15} />
-          {learned.has(card.id) ? "محفوظة ✓" : "أضف للمحفوظات"}
-        </button>
+        {/* Action row: Mark learned + Share + Copy */}
+        <div className="flex items-center gap-2 flex-wrap justify-center">
+          <button
+            type="button"
+            onClick={() => handleLearn(card.id)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all"
+            style={learned.has(card.id)
+              ? { background: "color-mix(in srgb, var(--ok,#10b981) 18%, transparent)", color: "var(--ok,#10b981)", border: "1px solid color-mix(in srgb, var(--ok,#10b981) 35%, transparent)" }
+              : { background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+          >
+            <CheckCircle2 size={15} />
+            {learned.has(card.id) ? "محفوظة ✓" : "أضف للمحفوظات"}
+          </button>
+          <button
+            type="button"
+            onClick={() => shareWord(card)}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all active:scale-95"
+            style={{ background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+            aria-label="مشاركة الكلمة"
+          >
+            <Share2 size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={() => copyWord(card)}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all active:scale-95"
+            style={{ background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+            aria-label="نسخ الكلمة"
+          >
+            <Copy size={14} />
+          </button>
+        </div>
 
         {/* Stats mini-card */}
         <div
