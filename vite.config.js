@@ -105,13 +105,13 @@ export default defineConfig(function (_a) {
                                 expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
                             }
                         },
-                        // T4: Cache Quran audio files from everyayah CDN
+                        // T4: Cache Quran audio files from everyayah CDN (1 year, large quota for per-reciter downloads)
                         {
                             urlPattern: /^https:\/\/everyayah\.com\/data\/.*/i,
                             handler: "CacheFirst",
                             options: {
                                 cacheName: "quran-audio",
-                                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                                expiration: { maxEntries: 3000, maxAgeSeconds: 60 * 60 * 24 * 365 },
                                 cacheableResponse: { statuses: [0, 200] }
                             }
                         },
@@ -121,7 +121,27 @@ export default defineConfig(function (_a) {
                             handler: "CacheFirst",
                             options: {
                                 cacheName: "quran-audio",
-                                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                                expiration: { maxEntries: 3000, maxAgeSeconds: 60 * 60 * 24 * 365 },
+                                cacheableResponse: { statuses: [0, 200] }
+                            }
+                        },
+                        // Tafseer + Translation API — CacheFirst so tafseer is available offline after first visit
+                        {
+                            urlPattern: /^https:\/\/api\.alquran\.cloud\/.*/i,
+                            handler: "CacheFirst",
+                            options: {
+                                cacheName: "tafseer-api-v1",
+                                expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 365 },
+                                cacheableResponse: { statuses: [0, 200] }
+                            }
+                        },
+                        // WBW/Tajweed API — CacheFirst (data doesn't change)
+                        {
+                            urlPattern: /^https:\/\/api\.quran\.com\/.*/i,
+                            handler: "CacheFirst",
+                            options: {
+                                cacheName: "wbw-api-v1",
+                                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 365 },
                                 cacheableResponse: { statuses: [0, 200] }
                             }
                         },

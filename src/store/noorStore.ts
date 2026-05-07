@@ -359,6 +359,20 @@ type NoorState = {
   // 3E: Section completion history (for weekly stats)
   sectionCompletions: Record<string, string[]>; // sectionId → ISO date array
   recordSectionCompletion: (sectionId: string) => void;
+
+  // Asma Al-Husna personal tracking
+  asmaHusnaMemorized: number[]; // IDs of memorized names
+  toggleAsmaMemorized: (id: number) => void;
+  asmaHusnaFavorites: number[]; // IDs of favorited names
+  toggleAsmaFavorite: (id: number) => void;
+
+  // Duas favorites
+  duaFavorites: string[]; // IDs of favorited duas
+  toggleDuaFavorite: (id: string) => void;
+
+  // Recently visited surahs (most recent first, max 10)
+  recentSurahs: number[];
+  recordRecentSurah: (surahId: number) => void;
 };
 
 export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "hadith", "wisdom", "smart", "checklist", "dailyVerse", "dailyStep", "tasbeeh", "dailyWird", "quests"];
@@ -1199,6 +1213,38 @@ export const useNoorStore = create<NoorState>()(
           return { sectionCompletions: { ...s.sectionCompletions, [sectionId]: [...prev, today].slice(-365) } };
         });
       },
+
+      // Asma Al-Husna personal tracking
+      asmaHusnaMemorized: [],
+      toggleAsmaMemorized: (id) =>
+        set((s) => ({
+          asmaHusnaMemorized: s.asmaHusnaMemorized.includes(id)
+            ? s.asmaHusnaMemorized.filter((x) => x !== id)
+            : [...s.asmaHusnaMemorized, id],
+        })),
+      asmaHusnaFavorites: [],
+      toggleAsmaFavorite: (id) =>
+        set((s) => ({
+          asmaHusnaFavorites: s.asmaHusnaFavorites.includes(id)
+            ? s.asmaHusnaFavorites.filter((x) => x !== id)
+            : [...s.asmaHusnaFavorites, id],
+        })),
+
+      // Duas favorites
+      duaFavorites: [],
+      toggleDuaFavorite: (id) =>
+        set((s) => ({
+          duaFavorites: s.duaFavorites.includes(id)
+            ? s.duaFavorites.filter((x) => x !== id)
+            : [...s.duaFavorites, id],
+        })),
+
+      // Recently visited surahs
+      recentSurahs: [],
+      recordRecentSurah: (surahId) =>
+        set((s) => ({
+          recentSurahs: [surahId, ...s.recentSurahs.filter((x) => x !== surahId)].slice(0, 10),
+        })),
 
       localFriends: [],
       addLocalFriend: (f) =>

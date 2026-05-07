@@ -57,6 +57,18 @@ type TasbeehKey = typeof TASBEEHAT[number]["key"] | "custom";
 
 const TARGETS = [33, 100, 1000] as const;
 
+// ─── Quick-select extended phrases ─────────────────────────────────────────
+const QUICK_PHRASES: Array<{ phrase: string; target: number }> = [
+  { phrase: "سبحان الله وبحمده", target: 100 },
+  { phrase: "سبحان الله العظيم", target: 100 },
+  { phrase: "لا حول ولا قوة إلا بالله", target: 33 },
+  { phrase: "أستغفر الله", target: 100 },
+  { phrase: "اللهم صل على محمد", target: 100 },
+  { phrase: "سبحان الله وبحمده سبحان الله العظيم", target: 33 },
+  { phrase: "حسبنا الله ونعم الوكيل", target: 33 },
+  { phrase: "لا إله إلا الله وحده لا شريك له", target: 33 },
+];
+
 // ─── Haptic helper (S1) ─────────────────────────────────────────────────────
 
 function doHaptic(count: number, target: number | null, enabled: boolean) {
@@ -753,6 +765,32 @@ export function SebhaPage() {
           </div>
         )}
       </Card>
+
+      {/* Quick-select phrase shortcuts */}
+      <div>
+        <div className="text-[10px] font-semibold opacity-40 mb-2 uppercase tracking-wider px-1">أذكار سريعة</div>
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {QUICK_PHRASES.map((qp) => (
+            <button
+              key={qp.phrase}
+              type="button"
+              onClick={() => {
+                setSebhaCustom({ phrase: qp.phrase, target: qp.target });
+                setSelected("custom");
+                toast.success("تم اختيار الذكر");
+              }}
+              className="flex-shrink-0 px-3 py-2 rounded-2xl text-xs font-medium transition-all active:scale-95 arabic-text whitespace-nowrap"
+              style={{
+                background: "var(--card-bg, rgba(255,255,255,0.06))",
+                border: "1px solid var(--card-border, rgba(255,255,255,0.1))",
+                color: "var(--fg)",
+              }}
+            >
+              {qp.phrase}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Tasbeehat grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">

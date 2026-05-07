@@ -75,6 +75,8 @@ export function QuranPage() {
   const setKhatmaPlan = useNoorStore((s) => s.setKhatmaPlan);
   const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
   const resetKhatma = useNoorStore((s) => s.resetKhatma);
+  const recentSurahs = useNoorStore((s) => s.recentSurahs);
+  const recordRecentSurah = useNoorStore((s) => s.recordRecentSurah);
 
   const todayISO = React.useMemo(() => {
     const d = new Date();
@@ -624,6 +626,35 @@ export function QuranPage() {
             </div>
           )}
 
+          {/* ── Recently visited surahs ─────────────────────── */}
+          {recentSurahs.length > 0 && !query && !showBookmarks && (
+            <div
+              className="px-4 py-3"
+              style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 30%, transparent)" }}
+            >
+              <div className="text-[10px] font-semibold opacity-40 mb-2 uppercase tracking-wider">تصفحت مؤخرًا</div>
+              <div className="flex gap-2 flex-wrap">
+                {recentSurahs.slice(0, 6).map((sid) => {
+                  const surah = data?.find((s) => s.id === sid);
+                  if (!surah) return null;
+                  const pct = surah.ayahs.length ? Math.min(100, Math.round(((readingHistory[String(sid)] ?? 0) / surah.ayahs.length) * 100)) : 0;
+                  return (
+                    <button
+                      key={sid}
+                      type="button"
+                      onClick={() => { recordRecentSurah(sid); navigate(`/mushaf?surah=${sid}`); }}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs transition active:scale-95"
+                      style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)", color: "var(--accent)" }}
+                    >
+                      <span className="arabic-text font-semibold">{surah.name}</span>
+                      {pct > 0 && <span className="opacity-60 tabular-nums">{pct}%</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* ── Juz strip ──────────────────────────────────────── */}
           <div
             className="quran-juz-strip px-3 py-2"
@@ -679,7 +710,7 @@ export function QuranPage() {
               return (
                 <button type="button"
                   key={s.id}
-                  onClick={() => navigate(`/mushaf?surah=${s.id}`)}
+                  onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
                   className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-white/4 active:bg-white/8"
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >

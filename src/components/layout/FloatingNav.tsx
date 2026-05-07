@@ -38,8 +38,17 @@ export function FloatingNav() {
   const prevPath = React.useRef(location.pathname);
 
   const activity = useNoorStore((s) => s.activity);
+  const khatmaDone = useNoorStore((s) => s.khatmaDone);
+  const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
+  const khatmaDays = useNoorStore((s) => s.khatmaDays);
   const todayCount = activity[todayISO()] ?? 0;
   const streak = React.useMemo(() => computeStreakLocal(activity), [activity]);
+
+  const khatmaDueToday = React.useMemo(() => {
+    if (!khatmaStartISO || !khatmaDays) return false;
+    const today = todayISO();
+    return !(khatmaDone?.[today] ?? false);
+  }, [khatmaStartISO, khatmaDays, khatmaDone]);
 
   React.useEffect(() => {
     let mounted = true;
@@ -104,6 +113,13 @@ export function FloatingNav() {
             >
               <div className="relative">
                 <item.icon size={18} strokeWidth={active ? 2.2 : 1.8} />
+                {item.path === "/quran" && khatmaDueToday && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 w-[8px] h-[8px] rounded-full"
+                    style={{ background: "var(--accent)" }}
+                    title="قراءة الختمة اليومية لم تكتمل"
+                  />
+                )}
                 {item.path === "/" && todayCount > 0 && (
                   <span
                     className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] rounded-full text-[9px] font-bold flex items-center justify-center px-0.5 leading-none text-black tabular-nums"
