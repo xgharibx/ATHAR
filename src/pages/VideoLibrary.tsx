@@ -634,6 +634,7 @@ function VideoHome({
   const [q, setQ] = React.useState("");
   const [searchChannelFilter, setSearchChannelFilter] = React.useState<string | null>(null);
   const [showAllSearchVideos, setShowAllSearchVideos] = React.useState(false);
+  const [showAllSearchCourses, setShowAllSearchCourses] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -641,7 +642,7 @@ function VideoHome({
   }, [searchOpen]);
 
   // Reset filters + show-all when query changes
-  React.useEffect(() => { setSearchChannelFilter(null); setShowAllSearchVideos(false); }, [q]);
+  React.useEffect(() => { setSearchChannelFilter(null); setShowAllSearchVideos(false); setShowAllSearchCourses(false); }, [q]);
 
   const fuse = React.useMemo(() => {
     const records = [
@@ -663,7 +664,8 @@ function VideoHome({
     return {
       videos: showAllSearchVideos ? filteredVideos : filteredVideos.slice(0, 24),
       allVideoCount: filteredVideos.length,
-      courses: data.db.courses.filter((c) => cids.has(c.id)).slice(0, 10),
+      courses: data.db.courses.filter((c) => cids.has(c.id)).slice(0, showAllSearchCourses ? undefined : 10),
+      allCourseCount: data.db.courses.filter((c) => cids.has(c.id)).length,
       channelChips: (() => {
         const map = new Map<string, { id: string; name: string; accent: string; count: number }>();
         for (const v of allMatchVideos) {
@@ -676,7 +678,7 @@ function VideoHome({
         return [...map.values()].sort((a, b) => b.count - a.count);
       })(),
     };
-  }, [data, fuse, q, searchChannelFilter, showAllSearchVideos]);
+  }, [data, fuse, q, searchChannelFilter, showAllSearchVideos, showAllSearchCourses]);
 
   const continueVideo = lastVideoId ? data.videoById.get(lastVideoId) : undefined;
   const continueChannel = continueVideo ? data.channelById.get(continueVideo.channelId) : undefined;
@@ -851,6 +853,16 @@ function VideoHome({
                   />
                 ))}
               </div>
+              {!showAllSearchCourses && searchResults.allCourseCount > 10 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllSearchCourses(true)}
+                  className="w-full mt-3 py-2.5 rounded-2xl text-xs font-semibold border press-effect"
+                  style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.05)" }}
+                >
+                  عرض كل الدورات ({searchResults.allCourseCount} دورة)
+                </button>
+              )}
             </section>
           )}
           {searchResults.videos.length > 0 && (
@@ -1417,7 +1429,7 @@ function CourseScreen({
     );
   }
 
-  const lastWatched = courseVideos.find((v) => progress[v.id] && !progress[v.id].completed);
+  const lastWatched = courseVideos.find((v) => { const p = progress[v.id]; return p && !p.completed && (p.seconds ?? 0) > 30; });
   const nextToDo = courseVideos.find((v) => !progress[v.id]?.completed);
   const continueTarget = lastWatched ?? nextToDo;
 
@@ -1512,6 +1524,17 @@ function CourseScreen({
             >
               <Play size={15} />
               <span>{lastWatched ? "أكمل الدرس" : "ابدأ الدورة"}</span>
+            </button>
+          )}
+          {!continueTarget && courseVideos.length > 0 && (
+            <button
+              type="button"
+              onClick={() => navigate(`/video-library/watch/${courseVideos[0].id}`)}
+              className="mt-4 w-full rounded-2xl py-3 text-sm font-bold flex items-center justify-center gap-2 press-effect border"
+              style={{ borderColor: `${accent}40`, color: accent, background: `${accent}12` }}
+            >
+              <CheckCircle2 size={15} />
+              <span>شاهد مجدداً</span>
             </button>
           )}
         </div>
@@ -1621,9 +1644,21 @@ function WatchScreen({
       setTimeout(() => activeItemRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 50);
     }
   }, [playlistOpen]);
-  const related = (data.videosByChannel.get(video?.channelId ?? "") ?? [])
-    .filter((v) => v.id !== videoId)
-    .slice(0, 8);
+  const related = React.useMemo(() => {
+    const videoTopics = video ? ((video.topicIds as string[]) ?? []) : [];
+    const courseVideoIds = new Set(courseVideos.map((v) => v.id));
+    const topicRelated = videoTopics.length > 0
+      ? data.db.videos.filter((v) =>
+          v.id !== videoId &&
+          !courseVideoIds.has(v.id) &&
+          (v.topicIds as string[]).some((tid) => videoTopics.includes(tid))
+        )
+      : [];
+    const topicRelatedIds = new Set(topicRelated.map((v) => v.id));
+    const channelFill = (data.videosByChannel.get(video?.channelId ?? "") ?? [])
+      .filter((v) => v.id !== videoId && !courseVideoIds.has(v.id) && !topicRelatedIds.has(v.id));
+    return [...topicRelated, ...channelFill].slice(0, 12);
+  }, [data, video, videoId, courseVideos]);
 
   if (!video) {
     return (
@@ -1776,18 +1811,13 @@ function WatchScreen({
       {/* ── Related videos ── */}
       {related.length > 0 && (
         <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[13px] font-semibold arabic-text">فيديوهات أخرى</h2>
-            <span className="text-xs" style={{ color: channel?.accent, opacity: 0.7 }}>
-              {channel?.displayName}
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-2.5">
+          <h2 className="text-[13px] font-semibold arabic-text mb-3">فيديوهات ذات صلة</h2>
+          <div className="space-y-2">
             {related.map((v) => (
               <VideoListRow
                 key={v.id}
                 video={v}
-                channel={channel}
+                channel={data.channelById.get(v.channelId)}
                 progress={progress[v.id]}
                 bookmarked={!!bookmarks[v.id]}
                 onClick={() => navigate(`/video-library/watch/${v.id}`)}
