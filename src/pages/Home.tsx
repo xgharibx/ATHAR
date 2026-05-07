@@ -1409,6 +1409,9 @@ export function HomePage() {
             { icon: "🕌", label: "قصص الأنبياء", route: "/stories" },
             { icon: "🧎", label: "كيفية الصلاة", route: "/prayer-guide" },
             { icon: "💧", label: "الوضوء", route: "/wudu" },
+            { icon: "🌟", label: "الصحابة", route: "/companions" },
+            { icon: "📜", label: "الرقية الشرعية", route: "/ruqyah" },
+            { icon: "🗓", label: "السيرة النبوية", route: "/seerah" },
           ].map(({ icon, label, route }) => (
             <button type="button"
               key={route}
