@@ -1,8 +1,9 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, MapPin, RefreshCw } from "lucide-react";
+import { ArrowRight, MapPin, RefreshCw, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import toast from "react-hot-toast";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -198,15 +199,34 @@ export function NearbyMosquesPage() {
                       </div>
                     </div>
                   </div>
-                  <a
-                    href={mapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-white/20 hover:bg-white/10 transition whitespace-nowrap"
-                    style={{ color: "var(--accent)" }}
-                  >
-                    خرائط ↗
-                  </a>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const text = `${mosque.name}\n${mapsUrl}`;
+                        if (navigator.share) {
+                          await navigator.share({ title: mosque.name, text, url: mapsUrl }).catch(() => {});
+                        } else {
+                          await navigator.clipboard.writeText(text).catch(() => {});
+                          toast.success("تم النسخ");
+                        }
+                      }}
+                      className="p-1.5 rounded-lg opacity-50 hover:opacity-100 transition"
+                      style={{ background: "rgba(255,255,255,0.07)", color: "var(--fg)" }}
+                      title="مشاركة الموقع"
+                    >
+                      <Share2 size={14} />
+                    </button>
+                    <a
+                      href={mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-white/20 hover:bg-white/10 transition whitespace-nowrap"
+                      style={{ color: "var(--accent)" }}
+                    >
+                      خرائط ↗
+                    </a>
+                  </div>
                 </div>
               </Card>
             );

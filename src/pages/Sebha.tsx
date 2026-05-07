@@ -13,6 +13,7 @@ import {
   Mic,
   MicOff,
   BarChart2,
+  Share2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -638,13 +639,33 @@ export function SebhaPage() {
               {sebhaSessions.length > 0 && <Badge>{sebhaSessions.length}</Badge>}
             </div>
             {sebhaSessions.length > 0 && (
-              <button type="button"
-                onClick={() => { clearSebhaSessions(); toast.success("تم مسح السجل"); }}
-                className="flex items-center gap-1 text-xs opacity-50 hover:opacity-80 hover:text-red-400 transition"
-              >
-                <Trash2 size={13} />
-                مسح
-              </button>
+              <div className="flex items-center gap-2">
+                <button type="button"
+                  onClick={async () => {
+                    const lines = sebhaSessions.slice(0, 10).map(
+                      (s) => `• ${s.dhikrLabel}: ${s.count}${s.target ? `/${s.target}` : ""}`
+                    );
+                    const text = `جلسات التسبيح اليوم:\n${lines.join("\n")}\n\n• ATHAR أثر`;
+                    if (navigator.share) {
+                      await navigator.share({ text }).catch(() => {});
+                    } else {
+                      await navigator.clipboard.writeText(text).catch(() => {});
+                      toast.success("تم النسخ");
+                    }
+                  }}
+                  className="flex items-center gap-1 text-xs opacity-50 hover:opacity-80 transition"
+                >
+                  <Share2 size={13} />
+                  مشاركة
+                </button>
+                <button type="button"
+                  onClick={() => { clearSebhaSessions(); toast.success("تم مسح السجل"); }}
+                  className="flex items-center gap-1 text-xs opacity-50 hover:opacity-80 hover:text-red-400 transition"
+                >
+                  <Trash2 size={13} />
+                  مسح
+                </button>
+              </div>
             )}
           </div>
           {sebhaSessions.length === 0 ? (
