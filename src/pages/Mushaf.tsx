@@ -1463,7 +1463,7 @@ export function MushafPage() {
       )}
 
       {/* ── Page scrubber strip (Phase 2F) ─────────────────── */}
-      <div className={`mushaf-page-strip${showChrome || !!selectedItem ? "" : " chrome-hidden"}`} ref={pageStripRef} onClick={(e) => e.stopPropagation()}>
+      <div className="mushaf-page-strip" ref={pageStripRef} onClick={(e) => e.stopPropagation()}>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
           <button type="button"
             key={p}
