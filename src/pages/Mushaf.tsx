@@ -186,6 +186,11 @@ export function MushafPage() {
 
   const { data: quranDB, isLoading: dbLoading } = useQuranDB();
   const { data: pmData, isLoading: pmLoading } = useQuranPageMap();
+  // Keep a ref so audio callbacks can access latest DB without closure stale-ness
+  const quranDBRef = React.useRef(quranDB);
+  React.useEffect(() => { quranDBRef.current = quranDB; }, [quranDB]);
+  // Track which surahs we've already toasted a completion for this session
+  const sessionSurahCompletedRef = React.useRef(new Set<number>());
 
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
@@ -538,6 +543,12 @@ export function MushafPage() {
         // Guard: if component unmounted or a newer audio took over, bail out
         if (audioRef.current !== audio) return;
         if (!pst.active) { setPlayingKey(null); return; }
+        // Surah completion celebration (once per surah per session)
+        const surahInfo = quranDBRef.current?.find((s) => s.id === surahId);
+        if (surahInfo && originalAyah === surahInfo.ayahs.length && !sessionSurahCompletedRef.current.has(surahId)) {
+          sessionSurahCompletedRef.current.add(surahId);
+          toast.success(`أتممت سورة ${surahInfo.name} 🌟`, { duration: 3500 });
+        }
         if (pst.loop) {
           const rem = pst.loopRemaining;
           if (rem === -1 || rem > 1) {
