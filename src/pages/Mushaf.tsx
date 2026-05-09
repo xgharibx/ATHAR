@@ -2046,6 +2046,7 @@ export function MushafPage() {
                     ["الاسم بالإنجليزية", pageSurahEnglish || ""],
                     ["النوع", getSurahRevelationLabel(lastItem.surahId)],
                     ["الجزء", String(getSurahJuz(lastItem.surahId))],
+                    ["وقت القراءة", `~${Math.ceil((quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0) / 8)} دقيقة`],
                     ["رقم السورة", String(lastItem.surahId)],
                     ["الصفحة", String(currentPage)],
                     ["من أصل", String(totalPages)],
