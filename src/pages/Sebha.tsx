@@ -684,7 +684,14 @@ export function SebhaPage() {
           </div>
         </div>
         {!tallyMode && (
-          <div className="mt-4 h-2 rounded-full bg-[var(--card)] border border-[var(--stroke)] overflow-hidden">
+          <div
+            className="mt-4 h-2 rounded-full bg-[var(--card)] border border-[var(--stroke)] overflow-hidden"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(allPercent)}
+            aria-label={`تقدم الجلسة: ${Math.round(allPercent)}%`}
+          >
             <div className="h-full progress-accent transition-[width] duration-300" style={{ width: `${allPercent}%` }} />
           </div>
         )}
@@ -922,7 +929,14 @@ export function SebhaPage() {
                 </div>
                 <Badge>{Math.min(itemCount, target)}/{target}</Badge>
               </div>
-              <div className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+              <div
+                className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.min(Math.round(itemPercent), 100)}
+                aria-label={`${item.label}: ${Math.min(itemCount, target)} من ${target}`}
+              >
                 <div
                   className="h-full rounded-full"
                   style={{ width: `${itemPercent}%`, background: itemPercent >= 100 ? "var(--ok)" : "var(--accent)" }}
@@ -962,7 +976,14 @@ export function SebhaPage() {
                 </span>
               </div>
             </div>
-            <div className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+            <div
+              className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.min(Math.round(pct(Math.min(Number(quickTasbeeh["custom"] ?? 0), sebhaCustom.target), sebhaCustom.target)), 100)}
+              aria-label={`${sebhaCustom.phrase}: ${Math.min(Number(quickTasbeeh["custom"] ?? 0), sebhaCustom.target)} من ${sebhaCustom.target}`}
+            >
               <div
                 className="h-full rounded-full"
                 style={{

@@ -257,7 +257,14 @@ export function QuranPlansPage() {
                 {toArabicNumeral(activePlan.todayAyahs)} / {toArabicNumeral(activePlan.dailyAyahs)} آية
               </span>
             </div>
-            <div className="h-2 rounded-full bg-[var(--card)] overflow-hidden">
+            <div
+              className="h-2 rounded-full bg-[var(--card)] overflow-hidden"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={todayReadPct}
+              aria-label={`ورد اليوم: ${toArabicNumeral(activePlan.todayAyahs)} من ${toArabicNumeral(activePlan.dailyAyahs)} آية`}
+            >
               <div className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
                 style={{ width: `${todayReadPct}%` }} />
             </div>
@@ -267,6 +274,7 @@ export function QuranPlansPage() {
           <div className="flex gap-2">
             <Button
               className={`flex-1 text-sm ${activePlan.doneToday ? "opacity-50" : ""}`}
+              aria-pressed={activePlan.doneToday}
               onClick={() => {
                 setKhatmaDone(today, !activePlan.doneToday);
                 if (!activePlan.doneToday) toast.success("أحسنت! سجلنا يومك ✓");

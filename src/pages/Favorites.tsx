@@ -237,8 +237,10 @@ export function FavoritesPage() {
         </div>
 
         {/* Tab switcher */}
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar" role="tablist" aria-label="تبويبات المفضلة">
           <button type="button"
+            role="tab"
+            aria-selected={activeTab === "adhkar"}
             onClick={() => setActiveTab("adhkar")}
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
@@ -251,6 +253,8 @@ export function FavoritesPage() {
             الأذكار {items.length > 0 && <span className="text-[11px] opacity-60">({items.length})</span>}
           </button>
           <button type="button"
+            role="tab"
+            aria-selected={activeTab === "quran"}
             onClick={() => setActiveTab("quran")}
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
@@ -263,6 +267,8 @@ export function FavoritesPage() {
             القرآن {quranBmList.length > 0 && <span className="text-[11px] opacity-60">({quranBmList.length})</span>}
           </button>
           <button type="button"
+            role="tab"
+            aria-selected={activeTab === "hadith"}
             onClick={() => setActiveTab("hadith")}
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
@@ -275,6 +281,8 @@ export function FavoritesPage() {
             الأحاديث {hadithBmList.length > 0 && <span className="text-[11px] opacity-60">({hadithBmList.length})</span>}
           </button>
           <button type="button"
+            role="tab"
+            aria-selected={activeTab === "duas"}
             onClick={() => setActiveTab("duas")}
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
@@ -287,6 +295,8 @@ export function FavoritesPage() {
             الأدعية {duaFavItems.length > 0 && <span className="text-[11px] opacity-60">({duaFavItems.length})</span>}
           </button>
           <button type="button"
+            role="tab"
+            aria-selected={activeTab === "stories"}
             onClick={() => setActiveTab("stories")}
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
@@ -299,6 +309,8 @@ export function FavoritesPage() {
             القصص {storyFavItems.length > 0 && <span className="text-[11px] opacity-60">({storyFavItems.length})</span>}
           </button>
           <button type="button"
+            role="tab"
+            aria-selected={activeTab === "companions"}
             onClick={() => setActiveTab("companions")}
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",

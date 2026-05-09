@@ -837,7 +837,7 @@ export function HomePage() {
                   aria-label={`القرآن: ${quranReadingPct}% مقروء`}
                 >
                   <span className="text-xs opacity-60">📖</span>
-                  <div className="w-28 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+                  <div className="w-28 h-1.5 rounded-full bg-[var(--card)] overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={quranReadingPct} aria-label={`${quranReadingPct}% مقروء`}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{ width: `${quranReadingPct}%`, background: "var(--accent)" }}
