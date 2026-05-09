@@ -1551,6 +1551,9 @@ export function HomePage() {
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>
                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: met ? "var(--ok)" : "var(--accent)" }} />
               </div>
+              {todayAyahs >= 4 && (
+                <p className="text-[10px] mt-1 opacity-40 tabular-nums">≈{Math.max(1, Math.round(todayAyahs / 8)).toLocaleString("ar-EG")} دقيقة قراءة اليوم</p>
+              )}
             </div>
             <span className="text-[10px] opacity-30 shrink-0">❮</span>
           </button>
