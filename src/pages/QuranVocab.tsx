@@ -45,6 +45,7 @@ export function QuranVocabPage() {
   const [learned, setLearned] = React.useState<Set<number>>(() => loadLearned());
 
   const dailyWordId = React.useMemo(() => getDailyWordId(), []);
+  const dailyWordIdx = React.useMemo(() => deck.findIndex((w) => w.id === dailyWordId), [deck, dailyWordId]);
 
   // Rebuild deck when review mode changes
   React.useEffect(() => {
@@ -244,6 +245,17 @@ export function QuranVocabPage() {
               >
                 <BookOpen size={16} aria-hidden="true" />
               </button>
+              {dailyWordIdx >= 0 && cardIndex !== dailyWordIdx && (
+                <button type="button"
+                  onClick={() => { setCardIndex(dailyWordIdx); setFlipped(false); }}
+                  className="p-2 rounded-xl transition-colors ml-auto"
+                  style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" }}
+                  aria-label="الانتقال لكلمة اليوم"
+                  title="كلمة اليوم"
+                >
+                  <Star size={15} aria-hidden="true" />
+                </button>
+              )}
             </div>
           </div>
         </Card>
