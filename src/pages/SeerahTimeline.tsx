@@ -66,7 +66,7 @@ export default function SeerahTimeline() {
               onClick={() => setActiveCategory("all")}
               className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition glass-hover press-effect"
               style={{
-                background: activeCategory === "all" ? "var(--accent)" : "rgba(255,255,255,0.045)",
+                background: activeCategory === "all" ? "var(--accent)" : "var(--card)",
                 color: activeCategory === "all" ? "#06110d" : "var(--muted)",
                 border: activeCategory === "all" ? "1px solid transparent" : "1px solid var(--stroke)",
               }}
@@ -81,7 +81,7 @@ export default function SeerahTimeline() {
                   onClick={() => setActiveCategory(cat.key)}
                   className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition whitespace-nowrap glass-hover press-effect"
                   style={{
-                    background: isActive ? "var(--accent)" : "rgba(255,255,255,0.045)",
+                    background: isActive ? "var(--accent)" : "var(--card)",
                     color: isActive ? "#06110d" : "var(--muted)",
                     border: isActive ? "1px solid transparent" : "1px solid var(--stroke)",
                   }}

@@ -412,7 +412,7 @@ export function SearchPage() {
                           catch { toast.error("تعذر النسخ"); }
                         }}
                         className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
-                        style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                        style={{ background: "var(--card)", color: "var(--fg)" }}
                         aria-label="نسخ"
                       >
                         <Copy size={13} />
@@ -498,7 +498,7 @@ export function SearchPage() {
                           catch { toast.error("تعذر النسخ"); }
                         }}
                         className="p-1.5 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity"
-                        style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                        style={{ background: "var(--card)", color: "var(--fg)" }}
                         aria-label="نسخ الآية"
                       >
                         <Copy size={13} />

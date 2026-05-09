@@ -1879,8 +1879,8 @@ export function MushafPage() {
             {/* Q11-B: Inline Tafseer */}
             <div className="mb-3 p-3 rounded-2xl border"
               style={{
-                background: inlineTafseer ? "color-mix(in srgb, var(--accent) 8%, transparent)" : "rgba(255,255,255,0.03)",
-                borderColor: inlineTafseer ? "color-mix(in srgb, var(--accent) 30%, transparent)" : "rgba(255,255,255,0.08)",
+                background: inlineTafseer ? "color-mix(in srgb, var(--accent) 8%, transparent)" : "var(--card)",
+                borderColor: inlineTafseer ? "color-mix(in srgb, var(--accent) 30%, transparent)" : "var(--stroke)",
               }}
             >
               <div className="flex items-center justify-between mb-2">

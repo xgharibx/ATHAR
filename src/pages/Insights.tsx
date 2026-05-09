@@ -1079,7 +1079,7 @@ export function InsightsPage() {
                       ? "var(--accent)"
                       : day.count > 0
                         ? "color-mix(in srgb, var(--accent) 55%, transparent)"
-                        : "rgba(255,255,255,0.06)",
+                        : "var(--card)",
                   }}
                 />
                 <span
@@ -1164,7 +1164,7 @@ export function InsightsPage() {
                             ? "var(--accent)"
                             : day.count > 0
                               ? "color-mix(in srgb, var(--accent) 55%, transparent)"
-                              : "rgba(255,255,255,0.06)",
+                              : "var(--card)",
                         }}
                       />
                       <span
@@ -1252,7 +1252,7 @@ export function InsightsPage() {
                       height: `${barH}px`,
                       background: day.isToday ? "var(--accent)"
                         : day.pages > 0 ? "color-mix(in srgb, var(--accent) 55%, transparent)"
-                        : "rgba(255,255,255,0.06)",
+                        : "var(--card)",
                     }}
                   />
                   <span className="text-[10px] leading-none mt-1" style={{ opacity: day.isToday ? 0.9 : 0.45, color: day.isToday ? "var(--accent)" : undefined }}>
@@ -1540,7 +1540,7 @@ export function InsightsPage() {
                   style={{
                     background:
                       cpct === 0
-                        ? "rgba(255,255,255,0.07)"
+                        ? "var(--card)"
                         : cpct >= 100
                           ? "var(--ok)"
                           : `color-mix(in srgb, var(--accent) ${Math.round(20 + cpct * 0.65)}%, transparent)`,

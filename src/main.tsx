@@ -130,7 +130,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               style: {
                 background: "rgba(10,12,18,.94)",
                 color: "white",
-                border: "1px solid rgba(255,255,255,.12)",
+                border: "1px solid var(--stroke)",
                 borderRadius: "16px",
                 direction: "rtl",
                 fontSize: "0.875rem",

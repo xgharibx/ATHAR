@@ -114,7 +114,7 @@ export function DuasPage() {
                   onClick={() => setActiveTab(cat.id)}
                   className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
                   style={{
-                    background: activeTab === cat.id ? "#059669" : "rgba(255,255,255,0.08)",
+                    background: activeTab === cat.id ? "#059669" : "var(--card)",
                     color: activeTab === cat.id ? "#fff" : "var(--fg)",
                     border: "1px solid var(--stroke)",
                   }}
@@ -127,7 +127,7 @@ export function DuasPage() {
                 onClick={() => setActiveTab("__favorites__")}
                 className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
                 style={{
-                  background: activeTab === "__favorites__" ? "#ef4444" : "rgba(255,255,255,0.08)",
+                  background: activeTab === "__favorites__" ? "#ef4444" : "var(--card)",
                   color: activeTab === "__favorites__" ? "#fff" : "var(--fg)",
                   border: "1px solid var(--stroke)",
                 }}

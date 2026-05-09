@@ -45,7 +45,7 @@ const DEFAULT_IDENTITY: SectionIdentity = {
   grad: "from-white/5 to-transparent",
   icon: "📖",
   badge: "أذكار",
-  bg: "rgba(255,255,255,.03)",
+  bg: "var(--card)",
 };
 
 export function getSectionIdentity(sectionId: string): SectionIdentity {

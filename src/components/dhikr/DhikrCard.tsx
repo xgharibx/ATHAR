@@ -442,7 +442,7 @@ export function DhikrCard(props: {
                     cx="24"
                     cy="24"
                     r={radius}
-                    stroke="rgba(255,255,255,.12)"
+                    stroke="var(--stroke)"
                     strokeWidth="3"
                     fill="none"
                   />

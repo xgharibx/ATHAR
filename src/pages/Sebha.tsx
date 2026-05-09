@@ -197,7 +197,7 @@ function CircularRing({
       onPointerUp={onPointerUp}
     >
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 224 224" style={{ pointerEvents: "none" }}>
-        <circle cx="112" cy="112" r={RING_R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
+        <circle cx="112" cy="112" r={RING_R} fill="none" stroke="var(--stroke)" strokeWidth="6" />
         <circle
           cx="112"
           cy="112"
@@ -431,7 +431,7 @@ function TasbeehStatsCard({
                 <div className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
-                    style={{ width: `${lwPct}%`, background: 'rgba(255,255,255,0.2)' }}
+                    style={{ width: `${lwPct}%`, background: 'var(--card-2)' }}
                   />
                 </div>
               </div>

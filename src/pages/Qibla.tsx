@@ -204,12 +204,12 @@ export function QiblaPage() {
             {/* Animated CSS for spinning outer ring */}
             <style>{`@keyframes compassRingSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
             {/* Background circle */}
-            <circle cx="120" cy="120" r="118" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2" />
+            <circle cx="120" cy="120" r="118" fill="none" stroke="var(--stroke)" strokeWidth="2" />
             {/* Slowly spinning outer decorative ring */}
             <g style={{ transformOrigin: "120px 120px", animation: "compassRingSpin 25s linear infinite" }}>
-              <circle cx="120" cy="120" r="115" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" strokeDasharray="4 8" />
+              <circle cx="120" cy="120" r="115" fill="none" stroke="var(--stroke)" strokeWidth="1.5" strokeDasharray="4 8" />
             </g>
-            <circle cx="120" cy="120" r="100" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
+            <circle cx="120" cy="120" r="100" fill="var(--card)" stroke="var(--stroke)" strokeWidth="1.5" />
             {/* Tick marks */}
             {Array.from({ length: 36 }, (_, i) => {
               const angle = i * 10;
@@ -225,7 +225,7 @@ export function QiblaPage() {
                   y1={120 + r1 * Math.sin(rad)}
                   x2={120 + r2 * Math.cos(rad)}
                   y2={120 + r2 * Math.sin(rad)}
-                  stroke={major ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.12)"}
+                  stroke={major ? "var(--muted)" : "var(--stroke)"}
                   strokeWidth={major ? 2 : 1}
                 />
               );
@@ -238,10 +238,10 @@ export function QiblaPage() {
               const y = 120 + r * Math.sin(angle) + 4;
               return null; // Skip overlapping labels
             })}
-            <text x="120" y="38" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="13" fontWeight="bold">ش</text>
-            <text x="202" y="124" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="11">ش</text>
-            <text x="120" y="210" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="11">ج</text>
-            <text x="38" y="124" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="11">غ</text>
+            <text x="120" y="38" textAnchor="middle" fill="var(--muted)" fontSize="13" fontWeight="bold">ش</text>
+            <text x="202" y="124" textAnchor="middle" fill="var(--muted-2)" fontSize="11">ش</text>
+            <text x="120" y="210" textAnchor="middle" fill="var(--muted-2)" fontSize="11">ج</text>
+            <text x="38" y="124" textAnchor="middle" fill="var(--muted-2)" fontSize="11">غ</text>
 
             {/* Qibla needle — animated */}
             <g
@@ -256,7 +256,7 @@ export function QiblaPage() {
               />
               <polygon
                 points="120,212 113,160 127,160"
-                fill="rgba(255,255,255,0.2)"
+                fill="var(--card-2)"
               />
               {/* Center dot */}
               <circle cx="120" cy="120" r="6" fill="var(--accent)" />

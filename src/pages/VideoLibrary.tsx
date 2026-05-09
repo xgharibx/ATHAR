@@ -84,7 +84,7 @@ function ProgressRing({
         style={{ transform: "rotate(-90deg)" }}
         aria-hidden
       >
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={strokeWidth} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--card)" strokeWidth={strokeWidth} />
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -440,7 +440,7 @@ function LessonRow({
       {/* ── Title + meta below thumbnail ── */}
       <div
         className="p-2.5 pb-2"
-        style={isActive ? { background: `${accent}10` } : { background: "rgba(255,255,255,0.03)" }}
+        style={isActive ? { background: `${accent}10` } : { background: "var(--card)" }}
       >
         <div
           className={cn("text-[12px] font-semibold arabic-text leading-[1.4] line-clamp-2", isActive ? "text-white" : "opacity-85")}
@@ -605,11 +605,11 @@ function VideoListRow({
       </div>
 
       {/* Title + channel below */}
-      <div className="p-2 pt-1.5" style={{ background: "rgba(255,255,255,0.03)" }}>
+      <div className="p-2 pt-1.5" style={{ background: "var(--card)" }}>
         <div className="text-[12px] font-semibold arabic-text leading-[1.4] line-clamp-2 opacity-90">
           {video.title}
         </div>
-        <div className="text-[10px] mt-0.5" style={{ color: channel ? `${channel.accent}aa` : "rgba(255,255,255,0.35)" }}>{channel?.displayName}</div>
+        <div className="text-[10px] mt-0.5" style={{ color: channel ? `${channel.accent}aa` : "var(--muted-2)" }}>{channel?.displayName}</div>
       </div>
     </button>
   );
@@ -859,7 +859,7 @@ function VideoHome({
                   type="button"
                   onClick={() => setShowAllSearchCourses(true)}
                   className="w-full mt-3 py-2.5 rounded-2xl text-xs font-semibold border press-effect"
-                  style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.05)" }}
+                  style={{ borderColor: "var(--stroke)", color: "var(--fg)", background: "var(--card)" }}
                 >
                   عرض كل الدورات ({searchResults.allCourseCount} دورة)
                 </button>
@@ -886,7 +886,7 @@ function VideoHome({
                   type="button"
                   onClick={() => setShowAllSearchVideos(true)}
                   className="w-full mt-3 py-2.5 rounded-2xl text-xs font-semibold border press-effect"
-                  style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.05)" }}
+                  style={{ borderColor: "var(--stroke)", color: "var(--fg)", background: "var(--card)" }}
                 >
                   عرض كل النتائج ({searchResults.allVideoCount} فيديو)
                 </button>

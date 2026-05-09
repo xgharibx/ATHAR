@@ -986,7 +986,7 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
       <div className="overflow-x-auto -mx-1 px-1">
         <div className="grid grid-cols-5 gap-1.5" style={{ minWidth: "240px" }}>
           {prayerPoints.map((p) => (
-            <div key={p.id} className="rounded-xl border px-2 py-2 text-center" style={{ backgroundColor: p.isPast ? "var(--card)" : "rgba(255,255,255,0.07)", borderColor: p.isPast ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.14)" }}>
+            <div key={p.id} className="rounded-xl border px-2 py-2 text-center" style={{ backgroundColor: p.isPast ? "var(--card)" : "var(--card)", borderColor: p.isPast ? "var(--stroke)" : "var(--stroke)" }}>
               <div className="font-medium text-[11px]" style={{ opacity: p.isPast ? 0.35 : 1 }}>{p.label}</div>
               <div dir="ltr" className="text-[10px] tabular-nums mt-0.5" style={{ opacity: 0.45 }}>{format12h(p.time)}</div>
               {p.isPast && <div className="text-[9px] mt-0.5 opacity-30">مضى</div>}

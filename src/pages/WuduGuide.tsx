@@ -50,7 +50,7 @@ export function WuduGuidePage() {
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} />
               </button>
@@ -67,7 +67,7 @@ export function WuduGuidePage() {
                   type="button"
                   onClick={shareFullGuide}
                   className="p-2 rounded-xl opacity-60 hover:opacity-100 transition"
-                  style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                  style={{ background: "var(--card)", color: "var(--fg)" }}
                   aria-label="مشاركة الدليل"
                 >
                   <Share2 size={16} />
@@ -76,14 +76,14 @@ export function WuduGuidePage() {
                   type="button"
                   onClick={reset}
                   className="text-xs px-3 py-1.5 rounded-full"
-                  style={{ background: "rgba(255,255,255,0.08)", color: "#06b6d4", border: "1px solid rgba(6,182,212,0.3)" }}
+                  style={{ background: "var(--card)", color: "#06b6d4", border: "1px solid rgba(6,182,212,0.3)" }}
                 >
                   إعادة
                 </button>
               </div>
             </div>
             {/* Progress bar */}
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--card-2)" }}>
               <div
                 className="h-full rounded-full transition-all duration-400"
                 style={{
