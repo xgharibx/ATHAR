@@ -313,6 +313,10 @@ export function QuranPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={mode === "ayahs" ? "ابحث داخل الآيات…" : "ابحث عن سورة… (مثال: الكهف، ١٨)"}
+              aria-label={mode === "ayahs" ? "بحث داخل الآيات" : "بحث عن سورة"}
+              spellCheck={false}
+              autoComplete="off"
+              autoCapitalize="none"
               className="pr-10 pl-9 h-11 text-sm"
             />
             {query && (

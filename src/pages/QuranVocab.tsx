@@ -171,7 +171,15 @@ export function QuranVocabPage() {
               </div>
             </div>
             {/* Progress bar */}
-            <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ background: "var(--card-2)" }}>
+            <div
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={deck.length}
+              aria-valuenow={cardIndex + 1}
+              aria-label="تقدم استعراض المفردات"
+              className="h-1.5 rounded-full overflow-hidden mb-3"
+              style={{ background: "var(--card-2)" }}
+            >
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{ width: `${progress}%`, background: "#0ea5e9" }}
@@ -204,6 +212,7 @@ export function QuranVocabPage() {
                   border: reviewMode ? "1px solid rgba(16,185,129,0.35)" : "1px solid transparent",
                 }}
                 aria-label="مراجعة المحفوظات"
+                aria-pressed={reviewMode}
                 title="مراجعة المحفوظات فقط"
               >
                 <BookOpen size={16} />
@@ -225,6 +234,7 @@ export function QuranVocabPage() {
         )}
         <button type="button"
           onClick={() => setFlipped((f) => !f)}
+          aria-label={flipped ? `إخفاء معنى كلمة ${card.arabic}` : `كشف معنى كلمة ${card.arabic}`}
           className="w-full max-w-sm rounded-3xl min-h-56 flex flex-col items-center justify-center p-8 transition-all duration-300 active:scale-95 cursor-pointer"
           style={{
             background: flipped ? "var(--accent)" : "var(--card)",

@@ -213,12 +213,16 @@ export function HadithMemoPage() {
 
       {/* Tab bar */}
       <div
+        role="tablist"
+        aria-label="وضع البطاقات"
         className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass"
       >
         {(["due", "add"] as const).map((t) => (
           <button type="button"
+            role="tab"
             key={t}
             onClick={() => { setViewMode(t); setCardIndex(0); setIsFlipped(false); }}
+            aria-selected={viewMode === t}
             className="flex-1 py-2.5 text-sm font-arabic transition-colors"
             style={viewMode === t
               ? { background: accentColor, color: "var(--on-accent)", fontWeight: 700 }
@@ -260,7 +264,14 @@ export function HadithMemoPage() {
               </span>
             )}
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--card)]">
+          <div
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={currentCards.length}
+            aria-valuenow={cardIndex}
+            aria-label="تقدم مراجعة البطاقات"
+            className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--card)]"
+          >
             <div
               className="h-full rounded-full transition-all"
               style={{ width: `${((cardIndex) / Math.max(currentCards.length, 1)) * 100}%`, background: accentColor }}

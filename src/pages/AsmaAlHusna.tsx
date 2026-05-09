@@ -108,6 +108,9 @@ export function AsmaAlHusnaPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="ابحث بالاسم أو المعنى..."
                 aria-label="بحث في أسماء الله الحسنى"
+                spellCheck={false}
+                autoComplete="off"
+                autoCapitalize="none"
                 className="flex-1 bg-transparent text-sm outline-none"
                 style={{ color: "var(--fg)" }}
               />

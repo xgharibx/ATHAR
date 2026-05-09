@@ -70,16 +70,19 @@ export default defineConfig(function (_a) {
                         {
                             name: "أذكار الصباح",
                             short_name: "الصباح",
+                            description: "ابدأ يومك بأذكار الصباح النبوية",
                             url: "/c/morning"
                         },
                         {
                             name: "المصحف",
                             short_name: "القرآن",
+                            description: "اقرأ القرآن الكريم مع التفسير والترجمة",
                             url: "/quran"
                         },
                         {
                             name: "المفضلة",
                             short_name: "المفضلة",
+                            description: "الأذكار والآيات المحفوظة لديك",
                             url: "/favorites"
                         }
                     ]
