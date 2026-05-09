@@ -763,7 +763,7 @@ export function SebhaPage() {
                     onClick={() => setTarget(value)}
                     className={cn(
                       "min-w-10 rounded-xl px-3 py-2 text-xs font-semibold transition",
-                      target === value ? "bg-[var(--accent)] text-black" : "text-[var(--muted)] hover:bg-[var(--card-2)]"
+                      target === value ? "bg-[var(--accent)] text-[var(--on-accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"
                     )}
                   >
                     {value}

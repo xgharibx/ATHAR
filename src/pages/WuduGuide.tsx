@@ -88,7 +88,7 @@ export function WuduGuidePage() {
                 className="h-full rounded-full transition-all duration-400"
                 style={{
                   width: `${(done.size / WUDU_STEPS.length) * 100}%`,
-                  background: allDone ? "#22c55e" : "#06b6d4",
+                  background: allDone ? "var(--ok)" : "#06b6d4",
                 }}
               />
             </div>

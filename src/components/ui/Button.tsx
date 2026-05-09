@@ -13,11 +13,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const base =
       "inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition will-change-transform active:scale-[.99] disabled:opacity-50 disabled:cursor-not-allowed";
     const variants: Record<Variant, string> = {
-      primary: "bg-[var(--accent)] text-black hover:brightness-[1.02]",
+      primary: "bg-[var(--accent)] text-[var(--on-accent)] hover:brightness-[1.02]",
       secondary: "bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)]",
       ghost: "bg-transparent hover:bg-[var(--card)]",
       outline: "bg-transparent border border-[var(--stroke)] hover:bg-[var(--card)]",
-      danger: "bg-[var(--danger)] text-black hover:brightness-[1.02]"
+      danger: "bg-[var(--danger)] text-white hover:brightness-[1.02]"
     };
     const sizes = {
       sm: "px-3 py-2 text-sm",

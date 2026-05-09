@@ -678,7 +678,7 @@ export function DhikrList(props: Readonly<{
           <button type="button"
             onClick={() => setAddOpen(true)}
             aria-label="إضافة ذكر"
-            className="fixed right-4 z-[9991] h-14 w-14 rounded-2xl bg-[var(--accent)] text-black shadow-2xl grid place-items-center active:scale-95 transition"
+            className="fixed right-4 z-[9991] h-14 w-14 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] shadow-2xl grid place-items-center active:scale-95 transition"
             style={{ bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--mobile-fab-size) + var(--mobile-fab-gap) + var(--sab))" }}
           >
             <Plus size={22} />

@@ -105,7 +105,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
               className={cn(
                 "rounded-2xl px-2.5 py-3 text-sm border transition press-effect min-h-[44px]",
                 selected === t.key
-                  ? "bg-[var(--accent)] text-black border-transparent font-semibold"
+                  ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent font-semibold"
                   : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
               )}
             >
@@ -122,7 +122,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
               className={cn(
                 "rounded-xl px-3 py-2 text-xs font-semibold transition",
                 target === value
-                  ? "bg-[var(--accent)] text-black"
+                  ? "bg-[var(--accent)] text-[var(--on-accent)]"
                   : "text-[var(--muted)] hover:bg-[var(--card-2)]"
               )}
             >
@@ -154,8 +154,8 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
           className={cn(
             "w-full rounded-2xl py-4 text-base font-semibold border transition btn-count press-effect",
             count >= target
-              ? "bg-[var(--ok)] text-black border-transparent"
-              : "bg-[var(--accent)] text-black border-transparent"
+              ? "bg-[var(--ok)] text-[var(--on-accent)] border-transparent"
+              : "bg-[var(--accent)] text-[var(--on-accent)] border-transparent"
           )}
         >
           {count >= target ? `تم ${target} — ${current.short}` : "اضغط للعدّ"}

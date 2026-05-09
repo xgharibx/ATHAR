@@ -109,7 +109,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
                 )}
                 {item.path === "/" && todayCount > 0 && (
                   <span
-                    className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] rounded-full text-[9px] font-bold flex items-center justify-center px-0.5 leading-none text-black tabular-nums"
+                    className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] rounded-full text-[9px] font-bold flex items-center justify-center px-0.5 leading-none text-[var(--on-accent)] tabular-nums"
                     style={{ background: "var(--accent)" }}
                   >
                     {todayCount > 99 ? "99+" : todayCount}

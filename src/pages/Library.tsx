@@ -290,7 +290,7 @@ export function LibraryPage() {
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         <button type="button"
           onClick={() => setTagFilter(null)}
-          className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", !tagFilter ? "bg-[var(--accent)] text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+          className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", !tagFilter ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
         >
           كل الموضوعات
         </button>
@@ -298,7 +298,7 @@ export function LibraryPage() {
           <button type="button"
             key={tag}
             onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
-            className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+            className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
           >
             {tag} <span className="opacity-60 tabular-nums">{count.toLocaleString("ar-EG")}</span>
           </button>

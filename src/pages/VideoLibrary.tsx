@@ -26,7 +26,7 @@ import type {
   VideoLibraryVideo,
 } from "@/data/videoLibraryTypes";
 import { stripDiacritics } from "@/lib/arabic";
-import { cn } from "@/lib/utils";
+import { cn, contrastText } from "@/lib/utils";
 import { useNoorStore } from "@/store/noorStore";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
@@ -824,7 +824,7 @@ function VideoHome({
               <button type="button"
                 onClick={() => setSearchChannelFilter(null)}
                 className={cn("shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
-                  searchChannelFilter === null ? "text-black border-transparent bg-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
+                  searchChannelFilter === null ? "text-[var(--on-accent)] border-transparent bg-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
               >
                 الكل ({searchResults.channelChips.reduce((a, c) => a + c.count, 0)})
               </button>
@@ -832,8 +832,8 @@ function VideoHome({
                 <button type="button" key={ch.id}
                   onClick={() => setSearchChannelFilter(searchChannelFilter === ch.id ? null : ch.id)}
                   className={cn("shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
-                    searchChannelFilter === ch.id ? "text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
-                  style={searchChannelFilter === ch.id ? { background: ch.accent } : { borderColor: `${ch.accent}40` }}>
+                    searchChannelFilter === ch.id ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
+                  style={searchChannelFilter === ch.id ? { background: ch.accent, color: contrastText(ch.accent) } : { borderColor: `${ch.accent}40` }}>
                   {ch.name} ({ch.count})
                 </button>
               ))}
@@ -1325,9 +1325,9 @@ function SheikhScreen({
             onClick={() => setTopicFilter(null)}
             className={cn(
               "flex-shrink-0 px-3 py-1.5 rounded-2xl border text-xs transition-colors",
-              !topicFilter ? "text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)]",
+              !topicFilter ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]",
             )}
-            style={!topicFilter ? { background: channel.accent } : undefined}
+            style={!topicFilter ? { background: channel.accent, color: contrastText(channel.accent) } : undefined}
           >
             الكل
           </button>
@@ -1338,9 +1338,9 @@ function SheikhScreen({
               onClick={() => setTopicFilter(topicFilter === t.id ? null : t.id)}
               className={cn(
                 "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs transition-colors",
-                topicFilter === t.id ? "text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)]",
+                topicFilter === t.id ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]",
               )}
-              style={topicFilter === t.id ? { background: t.accent } : undefined}
+              style={topicFilter === t.id ? { background: t.accent, color: contrastText(t.accent) } : undefined}
             >
               <span>{t.icon}</span>
               <span>{t.title}</span>
@@ -1362,8 +1362,8 @@ function SheikhScreen({
             return (
               <button key={sk} type="button" onClick={() => setSortKey(sk)}
                 className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
-                  sortKey === sk ? "text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
-                style={sortKey === sk ? { background: channel.accent } : undefined}>
+                  sortKey === sk ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+                style={sortKey === sk ? { background: channel.accent, color: contrastText(channel.accent) } : undefined}>
                 {labels[sk]}
               </button>
             );
@@ -1564,8 +1564,8 @@ function CourseScreen({
             return (
               <button key={sk} type="button" onClick={() => { setSortKey(sk); setLessonPage(1); }}
                 className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
-                  sortKey === sk ? "text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
-                style={sortKey === sk ? { background: accent } : undefined}>
+                  sortKey === sk ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+                style={sortKey === sk ? { background: accent, color: contrastText(accent) } : undefined}>
                 {labels[sk]}
               </button>
             );
@@ -1968,8 +1968,8 @@ function TopicScreen({
           <button type="button"
             onClick={() => setChannelFilter(null)}
             className={cn("shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
-              channelFilter === null ? "text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
-            style={channelFilter === null ? { background: topic.accent } : {}}
+              channelFilter === null ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
+            style={channelFilter === null ? { background: topic.accent, color: contrastText(topic.accent) } : {}}
           >
             الكل ({topicVideos.length})
           </button>
@@ -1977,8 +1977,8 @@ function TopicScreen({
             <button type="button" key={id}
               onClick={() => setChannelFilter(channelFilter === id ? null : id)}
               className={cn("shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
-                channelFilter === id ? "text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
-              style={channelFilter === id ? { background: channel.accent } : { borderColor: `${channel.accent}40` }}
+                channelFilter === id ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
+              style={channelFilter === id ? { background: channel.accent, color: contrastText(channel.accent) } : { borderColor: `${channel.accent}40` }}
             >
               {channel.displayName} ({count})
             </button>
@@ -1999,8 +1999,8 @@ function TopicScreen({
             return (
               <button key={sk} type="button" onClick={() => setSortKey(sk)}
                 className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
-                  sortKey === sk ? "text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
-                style={sortKey === sk ? { background: topic.accent } : undefined}>
+                  sortKey === sk ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+                style={sortKey === sk ? { background: topic.accent, color: contrastText(topic.accent) } : undefined}>
                 {labels[sk]}
               </button>
             );

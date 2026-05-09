@@ -145,7 +145,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
             "w-full rounded-2xl py-3 text-sm font-semibold transition press-effect",
             radio.playing
               ? "bg-danger-20 text-[var(--danger)] border border-danger-30 hover:bg-danger-30"
-              : "bg-[var(--accent)] text-black hover:opacity-90"
+              : "bg-[var(--accent)] text-[var(--on-accent)] hover:opacity-90"
           )}
         >
           {radio.playing ? "إيقاف البث" : "تشغيل"}

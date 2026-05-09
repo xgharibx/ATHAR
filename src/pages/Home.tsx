@@ -1240,7 +1240,7 @@ export function HomePage() {
                         className={cn(
                           "min-w-10 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition",
                           tasbeehTarget === target
-                            ? "bg-[var(--accent)] text-black"
+                            ? "bg-[var(--accent)] text-[var(--on-accent)]"
                             : "text-[var(--muted)] hover:bg-[var(--card-2)]"
                         )}
                       >

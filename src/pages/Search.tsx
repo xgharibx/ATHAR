@@ -15,7 +15,7 @@ import type { QuranSurah } from "@/data/quranTypes";
 import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
 import type { FlatLibraryEntry } from "@/data/libraryTypes";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
-import { cn } from "@/lib/utils";
+import { cn, contrastText } from "@/lib/utils";
 import { stripDiacritics } from "@/lib/arabic";
 import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview } from "@/data/hadithTypes";
 import { useHadithPack } from "@/data/useHadithBook";
@@ -297,7 +297,7 @@ export function SearchPage() {
             className={cn(
               "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
               sectionFilter === null
-                ? "bg-[var(--accent)] border-transparent text-black"
+                ? "bg-[var(--accent)] border-transparent text-[var(--on-accent)]"
                 : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
@@ -313,10 +313,10 @@ export function SearchPage() {
                 className={cn(
                   "shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                   isActive
-                    ? "border-transparent text-black"
+                    ? "border-transparent"
                     : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                 )}
-                style={isActive ? { background: identity.accent } : {}}
+                style={isActive ? { background: identity.accent, color: contrastText(identity.accent) } : {}}
               >
                 <span>{identity.icon}</span>
                 <span>{chip.title}</span>
@@ -335,7 +335,7 @@ export function SearchPage() {
             className={cn(
               "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
               libraryFilter === null
-                ? "bg-[var(--accent)] border-transparent text-black"
+                ? "bg-[var(--accent)] border-transparent text-[var(--on-accent)]"
                 : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
@@ -350,10 +350,10 @@ export function SearchPage() {
                 className={cn(
                   "shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                   isActive
-                    ? "border-transparent text-black"
+                    ? "border-transparent"
                     : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                 )}
-                style={isActive ? { background: chip.accent } : {}}
+                style={isActive ? { background: chip.accent, color: contrastText(chip.accent) } : {}}
               >
                 <span>{chip.icon}</span>
                 <span>{chip.title}</span>

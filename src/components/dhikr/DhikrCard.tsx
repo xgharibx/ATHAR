@@ -535,8 +535,8 @@ export function DhikrCard(props: {
             className={cn(
               "flex-1 rounded-3xl px-4 py-5 text-base font-bold border transition select-none btn-count press-effect active:scale-[.96]",
               done
-                ? "bg-[var(--ok)] text-black border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
-                : "bg-[var(--accent)] text-black border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",
+                ? "bg-[var(--ok)] text-[var(--on-accent)] border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
+                : "bg-[var(--accent)] text-[var(--on-accent)] border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",
               isDailyLockedItem && "opacity-60 pointer-events-none"
             )}
             onClick={() => {
