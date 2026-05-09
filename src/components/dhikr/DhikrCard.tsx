@@ -521,7 +521,14 @@ export function DhikrCard(props: {
             </div>
           </div>
 
-          <div className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]">
+          <div
+            className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]"
+            role="progressbar"
+            aria-valuenow={current}
+            aria-valuemin={0}
+            aria-valuemax={target || 1}
+            aria-label={`التقدم: ${current} من ${target}`}
+          >
             <div
               className={cn("h-full transition-[width] duration-300", done ? "progress-ok" : "progress-accent")}
               style={{ width: `${Math.round((target ? current / target : 0) * 100)}%` }}

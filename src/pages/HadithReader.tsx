@@ -460,27 +460,29 @@ export function HadithReaderPage() {
 
         {/* Prev / Next */}
         {(prevN || nextN) && (
-          <Card className="p-3">
+          <Card className="p-3" aria-label="التنقل بين الأحاديث" role="navigation">
             <div className="flex items-center gap-2">
               <button type="button"
                 disabled={!prevN}
+                aria-label="الحديث السابق"
                 onClick={() => prevN && navigate(`/hadith/${bookKey}/${prevN}`, { replace: true })}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition border border-[var(--stroke)] bg-[var(--card)] press-effect"
               >
-                <ChevronRight size={16} />
+                <ChevronRight size={16} aria-hidden="true" />
                 السابق
               </button>
-              <div className="min-w-12 text-xs text-[var(--muted)] text-center tabular-nums">
+              <div className="min-w-12 text-xs text-[var(--muted)] text-center tabular-nums" aria-live="polite" aria-atomic="true">
                 {n.toLocaleString("ar-EG")}
               </div>
               <button type="button"
                 disabled={!nextN}
+                aria-label="الحديث التالي"
                 onClick={() => nextN && navigate(`/hadith/${bookKey}/${nextN}`, { replace: true })}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition press-effect"
                 style={{ background: accentColor, color: "var(--on-accent)" }}
               >
                 التالي
-                <ChevronLeft size={16} />
+                <ChevronLeft size={16} aria-hidden="true" />
               </button>
             </div>
           </Card>

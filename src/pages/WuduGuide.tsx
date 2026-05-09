@@ -83,7 +83,15 @@ export function WuduGuidePage() {
               </div>
             </div>
             {/* Progress bar */}
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--card-2)" }}>
+            <div
+              className="h-1.5 rounded-full overflow-hidden"
+              style={{ background: "var(--card-2)" }}
+              role="progressbar"
+              aria-valuenow={done.size}
+              aria-valuemin={0}
+              aria-valuemax={WUDU_STEPS.length}
+              aria-label={`التقدم: ${done.size} من ${WUDU_STEPS.length} خطوات`}
+            >
               <div
                 className="h-full rounded-full transition-all duration-400"
                 style={{

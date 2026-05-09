@@ -394,10 +394,12 @@ export function HadithBooksPage() {
       </div>
 
       {/* Tab bar */}
-      <div className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass">
+      <div className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass" role="tablist" aria-label="أقسام الحديث">
         {(["library", "search"] as const).map((t) => (
           <button type="button"
             key={t}
+            role="tab"
+            aria-selected={tab === t}
             onClick={() => setTab(t)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-arabic transition-colors"
             style={tab === t
@@ -405,7 +407,7 @@ export function HadithBooksPage() {
               : { color: "var(--muted)" }
             }
           >
-            {t === "library" ? <BookOpen size={14} /> : <Search size={14} />}
+            {t === "library" ? <BookOpen size={14} aria-hidden="true" /> : <Search size={14} aria-hidden="true" />}
             {t === "library" ? "المكتبة" : "البحث"}
           </button>
         ))}

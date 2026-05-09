@@ -684,7 +684,14 @@ export function InsightsPage() {
                 <span className="text-[10px] opacity-40 tabular-nums">{xp.toLocaleString("ar-EG")} نقطة</span>
               </div>
               <div className="mt-1.5 flex items-center gap-2">
-                <div className="w-32 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+                <div
+                  className="w-32 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={xpLevel.xpInLevel}
+                  aria-valuemin={0}
+                  aria-valuemax={xpLevel.xpForLevel}
+                  aria-label={`تقدم المستوى: ${xpLevel.xpInLevel} من ${xpLevel.xpForLevel}`}
+                >
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{ width: `${xpLevel.pct}%`, background: xpLevel.color }}
@@ -865,7 +872,14 @@ export function InsightsPage() {
               style={{ color: quranGoalPct >= 100 ? "var(--ok)" : todayQuranAyahs > 0 ? "var(--accent)" : undefined }}
             >{todayQuranAyahs.toLocaleString("ar-EG")}</span>
             <span className="text-[10px] opacity-50 mt-0.5">/ {quranGoal.toLocaleString("ar-EG")} آية</span>
-            <div className="w-full h-1 rounded-full bg-[var(--card)] overflow-hidden mt-1.5">
+            <div
+              className="w-full h-1 rounded-full bg-[var(--card)] overflow-hidden mt-1.5"
+              role="progressbar"
+              aria-valuenow={Math.min(quranGoalPct, 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`تقدم هدف القرآن: ${todayQuranAyahs} من ${quranGoal} آية`}
+            >
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${quranGoalPct}%`, background: quranGoalPct >= 100 ? "var(--ok)" : "var(--accent)" }}
@@ -884,7 +898,14 @@ export function InsightsPage() {
               style={{ color: checklistPct >= 100 ? "var(--ok)" : checklistDoneCount > 0 ? "var(--accent)" : undefined }}
             >{checklistDoneCount.toLocaleString("ar-EG")}<span className="text-sm opacity-40 font-normal">/{checklistTotal.toLocaleString("ar-EG")}</span></span>
             <span className="text-[10px] opacity-50 mt-0.5">من القائمة</span>
-            <div className="w-full h-1 rounded-full bg-[var(--card)] overflow-hidden mt-1.5">
+            <div
+              className="w-full h-1 rounded-full bg-[var(--card)] overflow-hidden mt-1.5"
+              role="progressbar"
+              aria-valuenow={checklistDoneCount}
+              aria-valuemin={0}
+              aria-valuemax={checklistTotal}
+              aria-label={`تقدم قائمة اليوم: ${checklistDoneCount} من ${checklistTotal}`}
+            >
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${checklistPct}%`, background: checklistPct >= 100 ? "var(--ok)" : "var(--accent)" }}
@@ -1137,7 +1158,14 @@ export function InsightsPage() {
                 {quranGoalPct.toLocaleString("ar-EG")}٪
               </span>
             </div>
-            <div className="h-2 rounded-full bg-[var(--card)] overflow-hidden">
+            <div
+              className="h-2 rounded-full bg-[var(--card)] overflow-hidden"
+              role="progressbar"
+              aria-valuenow={Math.min(quranGoalPct, 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`تقدم هدف القرآن: ${quranGoalPct}٪`}
+            >
               <div
                 className="h-full rounded-full transition-[width] duration-500"
                 style={{ width: `${quranGoalPct}%`, background: quranGoalPct >= 100 ? "var(--ok)" : "var(--accent)" }}
@@ -1586,7 +1614,14 @@ export function InsightsPage() {
                     <span className="text-[11px] opacity-75 truncate">{s.title}</span>
                     <span className="text-[10px] tabular-nums opacity-50 shrink-0">{s.pctVal.toLocaleString("ar-EG")}٪</span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+                  <div
+                    className="h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                    role="progressbar"
+                    aria-valuenow={s.pctVal}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`تقدم ${s.title}: ${s.pctVal}٪`}
+                  >
                     <div
                       className="h-full rounded-full transition-[width] duration-500"
                       style={{ width: `${s.pctVal}%`, background: s.pctVal >= 100 ? 'var(--ok)' : s.accent ?? 'var(--accent)' }}

@@ -659,10 +659,11 @@ export function SebhaPage() {
             {/* S3 - Sessions history toggle */}
             <IconButton
               aria-label="سجل الجلسات"
+              aria-pressed={showHistory}
               onClick={() => setShowHistory((v) => !v)}
               className={cn(showHistory && "text-[var(--accent)]")}
             >
-              <History size={17} />
+              <History size={17} aria-hidden="true" />
             </IconButton>
             {confirmReset ? (
               <>
@@ -773,6 +774,8 @@ export function SebhaPage() {
             )}
             {/* S5 - Tally mode toggle */}
             <button type="button"
+              aria-label="وضع العدّ الحر"
+              aria-pressed={tallyMode}
               onClick={() => {
               // Auto-save tally session before switching mode
               if (tallyMode && tallyCount > 0) {
@@ -794,9 +797,9 @@ export function SebhaPage() {
                   : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-2)]"
               )}
             >
-              <Timer size={13} />
+              <Timer size={13} aria-hidden="true" />
               <span>وضع حر</span>
-              {tallyMode && <CheckCircle2 size={11} />}
+              {tallyMode && <CheckCircle2 size={11} aria-hidden="true" />}
             </button>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -809,6 +812,8 @@ export function SebhaPage() {
               <button type="button"
                 onClick={toggleVoice}
                 title={listening ? "إيقاف الاستماع" : "عدّ بالصوت"}
+                aria-label={listening ? "إيقاف الاستماع بالصوت" : "تفعيل العدّ بالصوت"}
+                aria-pressed={listening}
                 disabled={voiceStarting}
                 className={cn(
                   "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition shrink-0",
@@ -818,7 +823,7 @@ export function SebhaPage() {
                   voiceStarting && "opacity-60"
                 )}
               >
-                {listening ? <MicOff size={13} /> : <Mic size={13} />}
+                {listening ? <MicOff size={13} aria-hidden="true" /> : <Mic size={13} aria-hidden="true" />}
                 {voiceStarting ? "طلب الإذن" : listening ? "جارٍ الاستماع" : "صوت"}
               </button>
             )}

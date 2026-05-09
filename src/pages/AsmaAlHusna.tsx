@@ -180,7 +180,7 @@ export function AsmaAlHusnaPage() {
                     <div className="text-2xl font-bold mb-1" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
                       {name.arabic}
                     </div>
-                    <div className="text-xs opacity-75">{name.transliteration}</div>
+                    <div className="text-xs opacity-75" lang="en">{name.transliteration}</div>
                     <div className="text-sm font-semibold mt-1">{name.meaning}</div>
                   </div>
                   {isMem && (

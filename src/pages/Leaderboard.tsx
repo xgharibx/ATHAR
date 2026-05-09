@@ -1267,7 +1267,14 @@ function GroupKhatmaCard() {
         <div className="mt-4">
           {/* Progress bar */}
           <div className="flex items-center gap-2 mb-3">
-            <div className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden">
+            <div
+              className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden"
+              role="progressbar"
+              aria-valuenow={totalJuz}
+              aria-valuemin={0}
+              aria-valuemax={30}
+              aria-label={`تقدم الختمة الجماعية: ${totalJuz} من ٣٠ جزءًا`}
+            >
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${completionPct}%`, background: "var(--ok)" }}
@@ -1414,7 +1421,14 @@ function WeeklyChallengeCard() {
 
       {/* Progress bar */}
       <div className="mt-3 flex items-center gap-2">
-        <div className="flex-1 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+        <div
+          className="flex-1 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+          role="progressbar"
+          aria-valuenow={daysChecked}
+          aria-valuemin={0}
+          aria-valuemax={targetDays}
+          aria-label={`تقدم التحدي: ${daysChecked} من ${targetDays} أيام`}
+        >
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{

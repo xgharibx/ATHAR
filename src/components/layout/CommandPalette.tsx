@@ -295,7 +295,7 @@ export function CommandPalette(props: Props) {
                       <Item key={s.id} onSelect={() => go(`/mushaf?surah=${s.id}`)} icon={<span className="text-base">📖</span>}>
                         <span className="arabic-text">{s.name}</span>
                         {s.englishName ? (
-                          <span className="text-[11px] opacity-55 block mt-0.5">{s.englishName} • {s.id}</span>
+                          <span className="text-[11px] opacity-55 block mt-0.5" lang="en">{s.englishName} • {s.id}</span>
                         ) : (
                           <span className="text-[11px] opacity-55 block mt-0.5">{s.id}</span>
                         )}

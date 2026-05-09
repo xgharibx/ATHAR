@@ -820,9 +820,10 @@ function VideoHome({
         <div className="space-y-4">
           {/* Channel filter chips */}
           {searchResults.channelChips.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" role="group" aria-label="تصفية بالقناة">
               <button type="button"
                 onClick={() => setSearchChannelFilter(null)}
+                aria-pressed={searchChannelFilter === null}
                 className={cn("shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                   searchChannelFilter === null ? "text-[var(--on-accent)] border-transparent bg-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
               >
@@ -831,6 +832,7 @@ function VideoHome({
               {searchResults.channelChips.map((ch) => (
                 <button type="button" key={ch.id}
                   onClick={() => setSearchChannelFilter(searchChannelFilter === ch.id ? null : ch.id)}
+                  aria-pressed={searchChannelFilter === ch.id}
                   className={cn("shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                     searchChannelFilter === ch.id ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
                   style={searchChannelFilter === ch.id ? { background: ch.accent, color: contrastText(ch.accent) } : { borderColor: `${ch.accent}40` }}>

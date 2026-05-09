@@ -431,7 +431,14 @@ export function QuranPage() {
         </div>
 
         {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished ? (
-          <div className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]">
+          <div
+            className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]"
+            role="progressbar"
+            aria-valuenow={Math.round(khatma.meta.percent)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`تقدم الختمة: ${Math.round(khatma.meta.percent)}٪`}
+          >
             <div className="h-full progress-accent" style={{ width: `${khatma.meta.percent}%` }} />
           </div>
         ) : null}
@@ -755,7 +762,7 @@ export function QuranPage() {
                       {bookmarkedSurahs.has(s.id) && <Bookmark size={10} className="shrink-0 opacity-70" style={{ color: "var(--accent)" }} />}
                     </div>
                     <div className="mt-0.5 flex items-center gap-2 text-[11px] opacity-45">
-                      {s.englishName && <span>{s.englishName}</span>}
+                      {s.englishName && <span lang="en">{s.englishName}</span>}
                       {s.englishName && <span>·</span>}
                       <span className={`surah-type-${isMedinan ? "madani" : "maki"} px-1.5 py-0 rounded-full border text-[9px]`}>
                         {isMedinan ? "مدنية" : "مكية"}
@@ -763,7 +770,15 @@ export function QuranPage() {
                     </div>
                     {/* Progress line */}
                     {pct > 0 && pct < 100 && (
-                      <div className="mt-1.5 h-0.5 rounded-full overflow-hidden w-20" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>
+                      <div
+                        className="mt-1.5 h-0.5 rounded-full overflow-hidden w-20"
+                        style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}
+                        role="progressbar"
+                        aria-valuenow={Math.round(pct)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`قرأت ${Math.round(pct)}٪ من السورة`}
+                      >
                         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "var(--accent)" }} />
                       </div>
                     )}

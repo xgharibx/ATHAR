@@ -61,9 +61,10 @@ export default function SeerahTimeline() {
             </div>
           </div>
           {/* Category filter */}
-          <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+          <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }} role="group" aria-label="تصفية بالفئة">
             <button type="button"
               onClick={() => setActiveCategory("all")}
+              aria-pressed={activeCategory === "all"}
               className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition glass-hover press-effect"
               style={{
                 background: activeCategory === "all" ? "var(--accent)" : "var(--card)",
@@ -79,6 +80,7 @@ export default function SeerahTimeline() {
                 <button type="button"
                   key={cat.key}
                   onClick={() => setActiveCategory(cat.key)}
+                  aria-pressed={isActive}
                   className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition whitespace-nowrap glass-hover press-effect"
                   style={{
                     background: isActive ? "var(--accent)" : "var(--card)",

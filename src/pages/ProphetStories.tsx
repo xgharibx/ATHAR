@@ -188,13 +188,14 @@ export function ProphetStoriesPage() {
               <button
                 type="button"
                 onClick={() => setShowBookmarksOnly((v) => !v)}
+                aria-pressed={showBookmarksOnly}
                 className="mt-1 p-2 rounded-xl transition-all"
                 style={showBookmarksOnly
                   ? { background: "rgba(245,158,11,0.2)", color: "#f59e0b" }
                   : { background: "var(--card)", color: "var(--fg)" }}
                 aria-label="المحفوظة"
               >
-                <Bookmark size={17} />
+                <Bookmark size={17} aria-hidden="true" />
               </button>
             </div>
             {/* Search */}
