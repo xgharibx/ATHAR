@@ -33,6 +33,7 @@ import { coerceCount } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
+import { QURAN_VOCAB } from "@/data/quranVocab";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
@@ -323,6 +324,11 @@ export function HomePage() {
   const [activePhraseKey, setActivePhraseKey] = React.useState<QuickTasbeehKey | null>(null);
   const prayerTimes = usePrayerTimes();
   const civilTodayKey = useTodayKey();
+  const dailyVocabWord = React.useMemo(() => {
+    const dayNum = Math.floor(Date.now() / 86400000);
+    const id = (dayNum % QURAN_VOCAB.length) + 1;
+    return QURAN_VOCAB.find((w) => w.id === id) ?? QURAN_VOCAB[0];
+  }, []);
   const worshipDayKey = useTodayKey({
     mode: "ibadah",
     fajrTime: prayerTimes.data?.data?.timings?.Fajr,
@@ -1445,6 +1451,35 @@ export function HomePage() {
         }
         return null;
       })}
+
+      {/* ── كلمة اليوم — vocab ── */}
+      {dailyVocabWord && (
+        <button
+          type="button"
+          onClick={() => navigate("/quran-vocab")}
+          className="w-full text-right rounded-3xl border transition-all active:scale-[0.99] p-4"
+          style={{
+            background: "color-mix(in srgb, var(--accent) 6%, var(--card))",
+            borderColor: "color-mix(in srgb, var(--accent) 20%, transparent)",
+          }}
+          aria-label="كلمة اليوم — انتقل إلى مفردات القرآن"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-semibold opacity-45 mb-1.5 tracking-wide uppercase">★ كلمة اليوم</div>
+              <div
+                className="text-2xl font-bold mb-1 leading-tight"
+                style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--accent)" }}
+                lang="ar"
+              >
+                {dailyVocabWord.arabic}
+              </div>
+              <div className="text-sm font-medium opacity-75">{dailyVocabWord.meaning}</div>
+            </div>
+            <div className="text-[10px] opacity-30 self-center">❮</div>
+          </div>
+        </button>
+      )}
 
       {/* ── مكتبة المحتوى ── */}
       <Card className="p-4">
