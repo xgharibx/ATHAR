@@ -642,7 +642,7 @@ export function SearchPage() {
             <div className="text-sm opacity-55 font-arabic">اكتب كلمة للبحث في الكتاب المختار</div>
           </div>
         ) : hadithLoading ? (
-          <div role="status" aria-live="polite" className="flex items-center justify-center gap-2 py-8 text-[var(--muted)]">
+          <div role="status" aria-live="polite" aria-atomic="true" className="flex items-center justify-center gap-2 py-8 text-[var(--muted)]">
             <Loader2 size={18} aria-hidden="true" className="animate-spin" />
             <span className="text-sm font-arabic">جاري تحميل الكتاب…</span>
           </div>

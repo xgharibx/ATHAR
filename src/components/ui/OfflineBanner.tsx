@@ -30,7 +30,7 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      aria-live="polite"
+      aria-live="polite" aria-atomic="true"
       dir="rtl"
       className={[
         "fixed top-0 inset-x-0 z-[200] flex items-center justify-center gap-2 px-4 py-2",

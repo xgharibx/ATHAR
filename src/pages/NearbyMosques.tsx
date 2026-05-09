@@ -120,7 +120,7 @@ export function NearbyMosquesPage() {
 
       {/* Geo loading */}
       {(geo.status === "idle" || geo.status === "loading") && (
-        <Card className="p-4 flex items-center gap-3 text-sm opacity-60" role="status" aria-live="polite">
+        <Card className="p-4 flex items-center gap-3 text-sm opacity-60" role="status" aria-live="polite" aria-atomic="true">
           <RefreshCw size={16} className="animate-spin shrink-0" aria-hidden="true" />
           <span>جارٍ تحديد موقعك...</span>
         </Card>
@@ -138,7 +138,7 @@ export function NearbyMosquesPage() {
 
       {/* Mosques loading */}
       {loading && geo.status === "ok" && (
-        <Card className="p-4 flex items-center gap-3 text-sm opacity-60" role="status" aria-live="polite">
+        <Card className="p-4 flex items-center gap-3 text-sm opacity-60" role="status" aria-live="polite" aria-atomic="true">
           <RefreshCw size={16} className="animate-spin shrink-0" aria-hidden="true" />
           <span>جارٍ البحث عن المساجد القريبة في نطاق 5 كم...</span>
         </Card>

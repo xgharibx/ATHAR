@@ -33,7 +33,7 @@ export function PrayerWidget() {
     [nowTs, timings]
   );
 
-  if (isLoading) return <div className="text-xs opacity-50" role="status" aria-live="polite">... جارٍ تحميل مواقيت الصلاة</div>;
+  if (isLoading) return <div className="text-xs opacity-50" role="status" aria-live="polite" aria-atomic="true">... جارٍ تحميل مواقيت الصلاة</div>;
   if (error || !data || !date || !timings || !schedule) {
     return (
       <Card className="p-4 mb-6">

@@ -112,7 +112,7 @@ export function PTRIndicator({
     <div
       className={`ptr-indicator ${isPulling ? "ptr-pulling" : ""} ${isRefreshing ? "ptr-refreshing" : ""}`}
       role="status"
-      aria-live="polite"
+      aria-live="polite" aria-atomic="true"
       aria-label={isRefreshing ? "جارٍ التحديث" : "اسحب للتحديث"}
     >
       {isRefreshing ? (

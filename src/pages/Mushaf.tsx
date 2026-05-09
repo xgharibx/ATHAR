@@ -1188,7 +1188,7 @@ export function MushafPage() {
 
       {/* ── M6: Juz / Hizb overlay chip ─────────────────── */}
       {juzOverlay && (
-        <div className="mushaf-juz-overlay" aria-live="polite">{juzOverlay}</div>
+        <div className="mushaf-juz-overlay" aria-live="polite" aria-atomic="true">{juzOverlay}</div>
       )}
 
       {/* ── A5: Sleep timer countdown chip ───────────────── */}

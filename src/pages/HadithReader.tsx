@@ -337,7 +337,7 @@ export function HadithReaderPage() {
       <main className="mx-auto w-full max-w-3xl px-3 py-4 space-y-4">
         {/* Loading */}
         {isLoading && (
-          <Card className="p-6" role="status" aria-live="polite">
+          <Card className="p-6" role="status" aria-live="polite" aria-atomic="true">
             <div className="flex items-center justify-center gap-3 py-10 text-[var(--muted)]">
               <Loader2 aria-hidden="true" className="animate-spin" />
               <span className="font-arabic text-sm">جاري التحميل…</span>

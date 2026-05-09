@@ -311,7 +311,7 @@ export function HadithBookViewPage() {
 
       {/* Loading state */}
       {isLoading && (
-        <div dir="rtl" role="status" aria-live="polite" aria-label="جاري تحميل الكتاب" className="flex-1 flex items-center justify-center px-6">
+        <div dir="rtl" role="status" aria-live="polite" aria-atomic="true" aria-label="جاري تحميل الكتاب" className="flex-1 flex items-center justify-center px-6">
           <div
             className="w-full max-w-sm rounded-3xl glass-strong border border-[var(--stroke)] p-6 flex flex-col gap-4"
           >

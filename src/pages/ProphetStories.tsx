@@ -79,7 +79,7 @@ function StoryCard({
               <p className="text-xs font-bold mb-2" style={{ color: "var(--accent)" }}>
                 الدروس المستفادة:
               </p>
-              <ul className="space-y-1.5">
+              <ul role="list" className="space-y-1.5">
                 {story.lessons.map((lesson, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-right" style={{ color: "var(--fg)" }}>
                     <span style={{ color: "var(--accent)" }} className="mt-0.5 flex-shrink-0">•</span>
