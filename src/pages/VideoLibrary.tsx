@@ -915,7 +915,7 @@ function VideoHome({
           >
             <div className="relative" style={{ aspectRatio: "16/7" }}>
               {continueVideo.thumbnail ? (
-                <img src={continueVideo.thumbnail} alt="" className="w-full h-full object-cover" />
+                <img src={continueVideo.thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <div
                   className="w-full h-full"

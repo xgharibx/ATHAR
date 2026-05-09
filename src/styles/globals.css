@@ -248,6 +248,15 @@ body {
     -webkit-backdrop-filter: blur(14px);
   }
 
+  /* Light theme: invert glass tint to dark-on-light */
+  .light .glass {
+    background: linear-gradient(
+      180deg,
+      rgba(15, 19, 37, 0.05),
+      rgba(15, 19, 37, 0.02)
+    );
+  }
+
   .glass-strong {
     background: linear-gradient(180deg, var(--card-2), var(--card));
     border: 1px solid var(--stroke);
@@ -1620,6 +1629,17 @@ body.quran-focus-mode .quran-surface {
   background-size: 200% 100%;
   animation: skeletonShimmer 1.8s ease-in-out infinite;
   border-radius: 12px;
+}
+
+/* Light theme: skeleton needs dark-on-light shimmer */
+.light .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 19, 37, 0.06) 0%,
+    rgba(15, 19, 37, 0.12) 40%,
+    rgba(15, 19, 37, 0.06) 80%
+  );
+  background-size: 200% 100%;
 }
 
 /* -------------------------------------------------------
