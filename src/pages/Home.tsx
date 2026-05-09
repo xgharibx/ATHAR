@@ -65,15 +65,7 @@ const DEFAULT_HOME_WIDGETS = {
   quests: true,
 } satisfies Record<HomeWidgetKey, boolean>;
 
-const HOME_WIDGET_CONTROLS: Array<{ key: HomeWidgetKey; label: string }> = [
-  { key: "prayer", label: "الصلاة" },
-  { key: "hadith", label: "اليوم" },
-  { key: "smart", label: "الآن" },
-  { key: "checklist", label: "المهام" },
-  { key: "dailyStep", label: "خطوة" },
-  { key: "tasbeeh", label: "التسبيح" },
-  { key: "dailyWird", label: "الورد" },
-];
+
 
 function parseISODate(dateISO: string) {
   return parseDateKey(dateISO);
@@ -118,24 +110,10 @@ function getHijriDate(): string {
 function routeForChecklistCategory(category: DailyChecklistItem["category"]) {
   if (category === "quran") return "/quran";
   if (category === "dhikr") return "/c/morning";
-  if (category === "salah") return "/insights";
-  if (category === "sadaqah") return "/insights";
+  if (category === "salah") return "/c/morning"; // dhikr before prayer is the best action
+  if (category === "sadaqah") return "/duas";
+  if (category === "family") return "/duas";
   return "/insights";
-}
-
-function dateIndex(dateKey: string, length: number, offset = 0): number {
-  if (length === 0) return -1;
-  let hash = offset;
-  for (let index = 0; index < dateKey.length; index += 1) {
-    hash = (hash * 31 + dateKey.charCodeAt(index)) >>> 0;
-  }
-  return hash % length;
-}
-
-function pickByDate<T>(items: T[], dateKey: string, offset = 0): T | null {
-  const index = dateIndex(dateKey, items.length, offset);
-  if (index < 0) return null;
-  return items[index] ?? null;
 }
 
 type PrayerContext = {
@@ -223,7 +201,8 @@ export function HomePage() {
   const quranStreak = useNoorStore((s) => s.quranStreak);
   const prayerLog = useNoorStore((s) => s.prayerLog);
 
-  const sections = data?.db.sections ?? [];
+  const sectionsRaw = data?.db.sections;
+  const sections = React.useMemo(() => sectionsRaw ?? [], [sectionsRaw]);
   const customPacks = useNoorStore((s) => s.customPacks);
 
   // ── Strip drag-and-drop ────────────────────────────────────
@@ -303,6 +282,7 @@ export function HomePage() {
   // ── End strip drag ─────────────────────────────────────────
 
   const [checklistExpanded, setChecklistExpanded] = React.useState(false);
+  const [checklistShowAll, setChecklistShowAll] = React.useState(false);
   const [dailyWirdExpanded, setDailyWirdExpanded] = React.useState(false);
   const [tasbeehTarget, setTasbeehTarget] = React.useState<33 | 100>(100);
   const homeWidgets = React.useMemo(
@@ -354,7 +334,6 @@ export function HomePage() {
 
     // Sequential wird: move forward only when previous chunk is marked done.
     const CHUNK = 7;
-
     const startKey = dailyWirdStartISO;
 
     const completedChunks = Object.entries(dailyWirdDone ?? {}).reduce((acc, [date, done]) => {
@@ -364,23 +343,42 @@ export function HomePage() {
 
     const chunkIndex = Math.max(0, completedChunks);
 
-    // Flatten all ayahs into a single mushaf sequence.
-    const flat: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
+    // Build a compact index of [surahId, surahName, ayahIndex, globalOffset] without storing text.
+    // Then collect CHUNK items starting at startAt, wrapping if needed.
+    // Two-pass: pass 1 counts total & collects from startAt onward; pass 2 wraps from beginning.
+    type WirdItem = { surahId: number; surahName: string; ayahIndex: number; text: string };
+    let totalAyahCount = 0;
+    const itemsPass1: WirdItem[] = [];
+    const itemsPass2: WirdItem[] = [];
+
+    // Count total first
+    for (const s of quran.data) {
+      for (let i = 0; i < s.ayahs.length; i++) {
+        if ((s.ayahs[i] ?? "").trim()) totalAyahCount++;
+      }
+    }
+    if (totalAyahCount === 0) return null;
+
+    const startAt = (chunkIndex * CHUNK) % totalAyahCount;
+
+    // Single walk: collect CHUNK items starting from startAt, then wrap-around items from 0
+    let globalPos = 0;
     for (const s of quran.data) {
       for (let i = 0; i < s.ayahs.length; i++) {
         const text = (s.ayahs[i] ?? "").trim();
         if (!text) continue;
-        flat.push({ surahId: s.id, surahName: s.name, ayahIndex: i + 1, text });
+        if (globalPos >= startAt && itemsPass1.length < CHUNK) {
+          itemsPass1.push({ surahId: s.id, surahName: s.name, ayahIndex: i + 1, text });
+        } else if (globalPos < startAt && itemsPass2.length < CHUNK - itemsPass1.length) {
+          itemsPass2.push({ surahId: s.id, surahName: s.name, ayahIndex: i + 1, text });
+        }
+        globalPos++;
+        if (itemsPass1.length >= CHUNK) break;
       }
+      if (itemsPass1.length >= CHUNK) break;
     }
-    if (flat.length === 0) return null;
 
-    const startAt = (chunkIndex * CHUNK) % flat.length;
-    const items: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
-    for (let i = 0; i < CHUNK; i++) {
-      const idx = (startAt + i) % flat.length;
-      items.push(flat[idx]);
-    }
+    const items = [...itemsPass1, ...itemsPass2].slice(0, CHUNK);
 
     const copyText = items
       .map((p) => `${p.text}\n— ${p.surahName} (${p.surahId}) • (${p.ayahIndex})`)
@@ -391,8 +389,8 @@ export function HomePage() {
       copyText,
       meta: {
         from: startAt + 1,
-        to: startAt + CHUNK > flat.length ? flat.length : startAt + CHUNK,
-        total: flat.length,
+        to: startAt + CHUNK > totalAyahCount ? totalAyahCount : startAt + CHUNK,
+        total: totalAyahCount,
         chunkIndex,
         chunk: CHUNK
       }
@@ -413,7 +411,7 @@ export function HomePage() {
       else break;
     }
     return streak;
-  }, [dailyWirdDone, isDailyWirdDone, worshipDayKey]);
+  }, [dailyWirdDone, isDailyWirdDone]);
 
   const copyDailyWird = async () => {
     if (!dailyWird) return;
@@ -466,7 +464,6 @@ export function HomePage() {
 
   // 5C: Quests + XP
   const questsData = React.useMemo(() => {
-    const timings = prayerTimes.data?.data?.timings;
     const prayersDone: Record<string, boolean> = prayerLog[civilTodayKey] ?? {};
     const quranAyahsToday = quranReadingHistory
       ? Object.values(quranReadingHistory).reduce((a, v) => a + (Number(v) || 0), 0)
@@ -503,7 +500,7 @@ export function HomePage() {
 
     return { quests, doneCount, totalXp, xpLevel, xpPct };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, prayerTimes.data, quranDailyAyahs]);
+  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs]);
 
   const prayerContext = React.useMemo<PrayerContext>(() => {
     const timings = prayerTimes.data?.data?.timings;
@@ -573,7 +570,7 @@ export function HomePage() {
           : null;
 
     const actionRoute = !isDailyWirdDone
-      ? "/quran"
+      ? (prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : "/mushaf/1")
       : timeRoute
         ? timeRoute
         : nextChecklist
@@ -597,7 +594,7 @@ export function HomePage() {
     const streakRisk = hour >= 20 && todayActivity === 0;
 
     return { periodLabel, suggestedAction, missedYesterday, streakRisk, actionRoute, actionLabel };
-  }, [activity, civilTodayKey, dailyChecklistToday, dailyChecklistYesterday, isDailyWirdDone, prayerContext.nextPrayer]);
+  }, [activity, civilTodayKey, dailyChecklistToday, dailyChecklistYesterday, isDailyWirdDone, prayerContext.nextPrayer, prefs.quranMushafPage]);
 
   const adaptiveMission = React.useMemo(() => {
     const nextPrayer = prayerContext.nextPrayer;
@@ -711,13 +708,14 @@ export function HomePage() {
     toast.success(`تم إنجاز: ${item.title}`);
   }, [adaptiveMission.recoveryItem, toggleDailyChecklist, worshipDayKey]);
 
-  // Time-aware hero adhkar CTA — re-evaluated each render (PrayerWidget ticks every 30s)
-  const heroAdhkar = (() => {
+  // Time-aware hero adhkar CTA — memoized; hour is stable for minutes at a time
+  const heroAdhkar = React.useMemo(() => {
     const hour = new Date().getHours();
     if (hour >= 21 || hour < 4) return { id: "sleep",   label: "ابدأ بأذكار النوم" };
     if (hour >= 15)              return { id: "evening", label: "ابدأ بأذكار المساء" };
     return                              { id: "morning", label: "ابدأ بأذكار الصباح" };
-  })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [civilTodayKey]);
 
   if (isLoading) {
     return (
@@ -790,7 +788,7 @@ export function HomePage() {
                 أثر — اترك <span className="text-[var(--accent)]">أثراً</span> طيباً
               </h1>
               <div className="mt-2 text-sm opacity-70 leading-6 max-w-2xl">
-                {"{وَقُلْ رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا}"}
+                {"﴿وَقُلْ رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا﴾"}
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2 max-w-xl">
@@ -861,6 +859,9 @@ export function HomePage() {
         >
           {draggingStripId && (
             <div className="text-[10px] opacity-40 text-center mb-1 arabic-text">اسحب لإعادة الترتيب · ارفع إصبعك للحفظ</div>
+          )}
+          {!draggingStripId && !prefs.homeStripOrder && (
+            <div className="text-[10px] opacity-30 text-center mb-1 arabic-text select-none">اضغط مطولاً على أي قسم لإعادة ترتيبه</div>
           )}
           <div className="flex gap-2 pb-0.5" style={{ width: "max-content" }}>
             {/* ── Draggable items (custom packs + sections) ── */}
@@ -969,18 +970,13 @@ export function HomePage() {
 
       {homeWidgetsOrder.map((widgetKey) => {
         if (widgetKey === "prayer") {
-          return (
-            <React.Fragment key="prayer-group">
-              {homeWidgets.prayer && <PrayerWidget />}
-              {homeWidgets.hadith && <DailyCarousel dateKey={civilTodayKey} />}
-            </React.Fragment>
-          );
+          return homeWidgets.prayer ? <PrayerWidget key="prayer" /> : null;
         }
         if (widgetKey === "hadith") {
-          return null;
+          return homeWidgets.hadith ? <DailyCarousel key="hadith" dateKey={civilTodayKey} /> : null;
         }
         if (widgetKey === "wisdom") {
-          return null;
+          return null; // wisdom content is inside DailyCarousel (slide 3)
         }
         if (widgetKey === "smart") {
           if (!homeWidgets.smart) return null;
@@ -1053,7 +1049,8 @@ export function HomePage() {
           if (!homeWidgets.checklist) return null;
           const allChecklistDone = DAILY_CHECKLIST_ITEMS.every((item) => !!dailyChecklistToday[item.id]);
           const showItems = checklistExpanded;
-          const { quests, doneCount: questsDone, totalXp, xpLevel, xpPct } = questsData;
+          const CHECKLIST_INITIAL_LIMIT = 5;
+          const { quests, totalXp, xpLevel, xpPct } = questsData;
           return (
             <Card key="checklist" className="p-5">
               <div className="flex items-center justify-between gap-3">
@@ -1130,7 +1127,7 @@ export function HomePage() {
               )}
               {showItems && (
                 <div className="mt-3 space-y-2">
-                  {DAILY_CHECKLIST_ITEMS.map((item) => {
+                  {DAILY_CHECKLIST_ITEMS.slice(0, checklistShowAll ? DAILY_CHECKLIST_ITEMS.length : CHECKLIST_INITIAL_LIMIT).map((item) => {
                     const isDone = !!dailyChecklistToday[item.id];
                     return (
                       <button type="button"
@@ -1158,6 +1155,15 @@ export function HomePage() {
                       </button>
                     );
                   })}
+                  {DAILY_CHECKLIST_ITEMS.length > CHECKLIST_INITIAL_LIMIT && !checklistShowAll && (
+                    <button
+                      type="button"
+                      onClick={() => setChecklistShowAll(true)}
+                      className="w-full text-center text-xs opacity-55 hover:opacity-80 transition-opacity py-2"
+                    >
+                      عرض جميع المهام ({DAILY_CHECKLIST_ITEMS.length - CHECKLIST_INITIAL_LIMIT} إضافية) ▼
+                    </button>
+                  )}
                 </div>
               )}
             </Card>
@@ -1352,14 +1358,17 @@ export function HomePage() {
                   <Button
                     variant={isDailyWirdDone ? "primary" : "secondary"}
                     onClick={() => {
-                      if (isDailyWirdDone) return;
-                      setDailyWirdDone(worshipDayKey, true);
-                      toast.success("تم حفظ الإتمام");
+                      if (isDailyWirdDone) {
+                        setDailyWirdDone(worshipDayKey, false);
+                        toast("تم التراجع عن الإتمام", { icon: "↩️" });
+                      } else {
+                        setDailyWirdDone(worshipDayKey, true);
+                        toast.success("تم حفظ الإتمام");
+                      }
                     }}
-                    disabled={isDailyWirdDone}
                   >
                     <CheckCircle2 size={16} />
-                    {isDailyWirdDone ? "منجز" : "تم"}
+                    {isDailyWirdDone ? "منجز ↩" : "تم"}
                   </Button>
                 </div>
               </div>
