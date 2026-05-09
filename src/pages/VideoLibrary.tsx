@@ -1157,29 +1157,19 @@ function SheikhScreen({
   // Reset pagination when filter or sort changes
   React.useEffect(() => { setVideoPage(1); }, [topicFilter, channelId, sortKey]);
 
-  if (!channel) {
-    return (
-      <div className="page-enter p-6 text-center opacity-60" dir="rtl">
-        الشيخ غير موجود
-      </div>
-    );
-  }
-
-  const channelVideos = data.videosByChannel.get(channelId) ?? [];
-  const channelCourses = data.coursesByChannel.get(channelId) ?? [];
-  const stats = aggregateProgress(channelVideos, progress);
-  const initials = channel.displayName
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2);
+  // Hooks must be called unconditionally — before any early return
   const [sheikhAvatarErr, setSheikhAvatarErr] = React.useState(false);
-
-  const channelTopicIds = new Set(channelVideos.flatMap((v) => v.topicIds as string[]));
-  const channelTopics = data.db.topics.filter((t) => channelTopicIds.has(t.id));
-  const filteredVideos = topicFilter
-    ? channelVideos.filter((v) => (v.topicIds as string[]).includes(topicFilter))
-    : channelVideos;
+  const channelVideos = React.useMemo(() => data.videosByChannel.get(channelId) ?? [], [data.videosByChannel, channelId]);
+  const channelCourses = React.useMemo(() => data.coursesByChannel.get(channelId) ?? [], [data.coursesByChannel, channelId]);
+  const stats = React.useMemo(() => aggregateProgress(channelVideos, progress), [channelVideos, progress]);
+  const channelTopics = React.useMemo(() => {
+    const ids = new Set(channelVideos.flatMap((v) => v.topicIds as string[]));
+    return data.db.topics.filter((t) => ids.has(t.id));
+  }, [channelVideos, data.db.topics]);
+  const filteredVideos = React.useMemo(
+    () => topicFilter ? channelVideos.filter((v) => (v.topicIds as string[]).includes(topicFilter)) : channelVideos,
+    [channelVideos, topicFilter]
+  );
   const visibleVideos = React.useMemo(() => {
     const arr = filteredVideos.slice();
     if (sortKey === "newest") arr.sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
@@ -1188,8 +1178,21 @@ function SheikhScreen({
     else if (sortKey === "duration-asc") arr.sort((a, b) => a.durationSeconds - b.durationSeconds);
     else if (sortKey === "alpha") arr.sort((a, b) => a.title.localeCompare(b.title, "ar"));
     return arr;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredVideos, sortKey]);
+
+  if (!channel) {
+    return (
+      <div className="page-enter p-6 text-center opacity-60" dir="rtl">
+        الشيخ غير موجود
+      </div>
+    );
+  }
+
+  const initials = channel.displayName
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2);
 
   return (
     <div className="space-y-4 page-enter" dir="rtl">
@@ -1428,6 +1431,17 @@ function CourseScreen({
   const stats = aggregateProgress(courseVideos, progress);
   const accent = channel?.accent ?? "var(--accent)";
 
+  // Hook must be before early return (Rules of Hooks)
+  const sortedLessons = React.useMemo(() => {
+    const arr = courseVideos.slice();
+    if (sortKey === "newest") arr.sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
+    else if (sortKey === "oldest") arr.sort((a, b) => (a.publishedAt ?? "").localeCompare(b.publishedAt ?? ""));
+    else if (sortKey === "duration-desc") arr.sort((a, b) => b.durationSeconds - a.durationSeconds);
+    else if (sortKey === "duration-asc") arr.sort((a, b) => a.durationSeconds - b.durationSeconds);
+    else if (sortKey === "alpha") arr.sort((a, b) => a.title.localeCompare(b.title, "ar"));
+    return arr;
+  }, [courseVideos, sortKey]);
+
   if (!course) {
     return (
       <div className="page-enter p-6 text-center opacity-60" dir="rtl">
@@ -1439,16 +1453,6 @@ function CourseScreen({
   const lastWatched = courseVideos.find((v) => { const p = progress[v.id]; return p && !p.completed && (p.seconds ?? 0) > 30; });
   const nextToDo = courseVideos.find((v) => !progress[v.id]?.completed);
   const continueTarget = lastWatched ?? nextToDo;
-
-  const sortedLessons = React.useMemo(() => {
-    const arr = courseVideos.slice();
-    if (sortKey === "newest") arr.sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
-    else if (sortKey === "oldest") arr.sort((a, b) => (a.publishedAt ?? "").localeCompare(b.publishedAt ?? ""));
-    else if (sortKey === "duration-desc") arr.sort((a, b) => b.durationSeconds - a.durationSeconds);
-    else if (sortKey === "duration-asc") arr.sort((a, b) => a.durationSeconds - b.durationSeconds);
-    else if (sortKey === "alpha") arr.sort((a, b) => a.title.localeCompare(b.title, "ar"));
-    return arr;
-  }, [courseVideos, sortKey]);
 
   return (
     <div className="space-y-4 page-enter" dir="rtl">
@@ -1860,25 +1864,26 @@ function TopicScreen({
 
   React.useEffect(() => { setVideoPage(1); }, [channelFilter, topicId, sortKey]);
 
-  if (!topic) {
-    return (
-      <div className="page-enter p-6 text-center opacity-60" dir="rtl">
-        الموضوع غير موجود
-      </div>
-    );
-  }
-
-  const topicVideos = data.db.videos.filter((v) => (v.topicIds as string[]).includes(topicId));
-  const topicCourses = data.db.courses.filter((c) => (c.topicIds as string[]).includes(topicId) && !c.isGenerated);
-  const channelIds = [...new Set(topicVideos.map((v) => v.channelId))];
-  const channelChips = channelIds
-    .map((id) => ({ id, channel: data.channelById.get(id)!, count: topicVideos.filter((v) => v.channelId === id).length }))
-    .filter((c) => c.channel);
-
-  const filteredVideos = channelFilter
-    ? topicVideos.filter((v) => v.channelId === channelFilter)
-    : topicVideos;
-
+  // Hooks must be before early return (Rules of Hooks)
+  const topicVideos = React.useMemo(
+    () => data.db.videos.filter((v) => (v.topicIds as string[]).includes(topicId)),
+    [data.db.videos, topicId]
+  );
+  const topicCourses = React.useMemo(
+    () => data.db.courses.filter((c) => (c.topicIds as string[]).includes(topicId) && !c.isGenerated),
+    [data.db.courses, topicId]
+  );
+  const { channelIds, channelChips } = React.useMemo(() => {
+    const channelIds = [...new Set(topicVideos.map((v) => v.channelId))];
+    const channelChips = channelIds
+      .map((id) => ({ id, channel: data.channelById.get(id)!, count: topicVideos.filter((v) => v.channelId === id).length }))
+      .filter((c) => c.channel);
+    return { channelIds, channelChips };
+  }, [topicVideos, data.channelById]);
+  const filteredVideos = React.useMemo(
+    () => channelFilter ? topicVideos.filter((v) => v.channelId === channelFilter) : topicVideos,
+    [topicVideos, channelFilter]
+  );
   const visibleVideos = React.useMemo(() => {
     const arr = filteredVideos.slice();
     if (sortKey === "newest") arr.sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
@@ -1887,8 +1892,15 @@ function TopicScreen({
     else if (sortKey === "duration-asc") arr.sort((a, b) => a.durationSeconds - b.durationSeconds);
     else if (sortKey === "alpha") arr.sort((a, b) => a.title.localeCompare(b.title, "ar"));
     return arr;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredVideos, sortKey]);
+
+  if (!topic) {
+    return (
+      <div className="page-enter p-6 text-center opacity-60" dir="rtl">
+        الموضوع غير موجود
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 page-enter" dir="rtl">
