@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { useIslamicLibraryDB, dorarSearchUrl } from "@/data/useIslamicLibraryDB";
 import { useNoorStore } from "@/store/noorStore";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const GRADE_LABELS: Record<string, string> = {
   agreed: "متفق عليه",
@@ -19,6 +20,7 @@ const GRADE_LABELS: Record<string, string> = {
 
 export function LibraryItemPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const params = useParams<{ collectionId: string; entryId: string }>();
   const { data, isLoading } = useIslamicLibraryDB();
   const [copied, setCopied] = React.useState(false);

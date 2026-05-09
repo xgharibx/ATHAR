@@ -23,6 +23,7 @@ import { toArabicIndic } from "@/lib/arabic";
 import { PTRIndicator, usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useNoorStore } from "@/store/noorStore";
 import type { PrayerAlertPrayer } from "@/store/noorStore";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1001,6 +1002,7 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
 
 export function PrayerTimesPage() {
   const navigate       = useNavigate();
+  useScrollRestoration();
   const prayerTimes    = usePrayerTimes();
   const reminders      = useNoorStore((s) => s.reminders);
   const [now, setNow]  = React.useState(() => new Date());

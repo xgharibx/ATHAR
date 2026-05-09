@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { cn } from "@/lib/utils";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                               */
@@ -181,6 +182,7 @@ function GradeChip({ g }: { g: string }) {
 export function HadithReaderPage() {
   const { bookKey, hadithNumber } = useParams<{ bookKey: string; hadithNumber: string }>();
   const navigate = useNavigate();
+  useScrollRestoration();
 
   const n = parseInt(hadithNumber ?? "1", 10);
   const { data: pack, isLoading } = useHadithPack(bookKey);

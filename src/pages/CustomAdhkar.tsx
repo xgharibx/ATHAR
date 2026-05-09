@@ -8,6 +8,7 @@ import type { CustomAdhkarPack } from "@/data/types";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // ─── Small item row in the create/edit form ──────────────────────────────────
 function ItemRow({
@@ -223,6 +224,7 @@ function PackCard({
 // ─── Main page ───────────────────────────────────────────────────────────────
 export function CustomAdhkarPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const customPacks = useNoorStore((s) => s.customPacks);
   const addCustomPack = useNoorStore((s) => s.addCustomPack);
   const updateCustomPack = useNoorStore((s) => s.updateCustomPack);

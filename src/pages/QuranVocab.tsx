@@ -289,7 +289,7 @@ export function QuranVocabPage() {
             onClick={() => handleLearn(card.id)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all"
             style={learned.has(card.id)
-              ? { background: "color-mix(in srgb, var(--ok,#10b981) 18%, transparent)", color: "var(--ok,#10b981)", border: "1px solid color-mix(in srgb, var(--ok,#10b981) 35%, transparent)" }
+              ? { background: "color-mix(in srgb, var(--ok, #3ddc97) 18%, transparent)", color: "var(--ok, #3ddc97)", border: "1px solid color-mix(in srgb, var(--ok, #3ddc97) 35%, transparent)" }
               : { background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
           >
             <CheckCircle2 size={15} />
@@ -325,7 +325,7 @@ export function QuranVocabPage() {
             <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>شاهدت</p>
           </div>
           <div>
-            <p className="text-lg font-bold" style={{ color: "var(--ok,#10b981)" }}>{learned.size}</p>
+            <p className="text-lg font-bold" style={{ color: "var(--ok, #3ddc97)" }}>{learned.size}</p>
             <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>محفوظة</p>
           </div>
           <div>

@@ -101,12 +101,12 @@ export function WuduGuidePage() {
         <div
           className="mx-4 mt-4 rounded-2xl p-4 text-center"
           style={{
-            background: "color-mix(in srgb, var(--ok, #22c55e) 12%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--ok, #22c55e) 25%, transparent)",
+            background: "color-mix(in srgb, var(--ok, #3ddc97) 12%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--ok, #3ddc97) 25%, transparent)",
           }}
         >
           <p className="text-lg">💧</p>
-          <p className="font-bold text-sm" style={{ color: "var(--ok, #22c55e)" }}>
+          <p className="font-bold text-sm" style={{ color: "var(--ok, #3ddc97)" }}>
             أتممت الوضوء — طهارة كاملة بإذن الله!
           </p>
         </div>
@@ -123,15 +123,15 @@ export function WuduGuidePage() {
               className="w-full text-right rounded-2xl p-4 transition-all duration-200 flex items-start gap-3"
               style={{
                 background: isDone
-                  ? "color-mix(in srgb, var(--ok, #22c55e) 12%, var(--card))"
+                  ? "color-mix(in srgb, var(--ok, #3ddc97) 12%, var(--card))"
                   : "var(--card)",
-                border: `1px solid ${isDone ? "color-mix(in srgb, var(--ok, #22c55e) 35%, transparent)" : "var(--stroke)"}`,
+                border: `1px solid ${isDone ? "color-mix(in srgb, var(--ok, #3ddc97) 35%, transparent)" : "var(--stroke)"}`,
               }}
             >
               {/* Check icon */}
               <div className="mt-0.5 flex-shrink-0">
                 {isDone ? (
-                  <CheckCircle2 size={22} style={{ color: "var(--ok, #22c55e)" }} />
+                  <CheckCircle2 size={22} style={{ color: "var(--ok, #3ddc97)" }} />
                 ) : (
                   <Circle size={22} style={{ color: "var(--accent)", opacity: 0.5 }} />
                 )}
