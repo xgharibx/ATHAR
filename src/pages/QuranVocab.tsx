@@ -19,6 +19,39 @@ function saveLearned(s: Set<number>) {
   localStorage.setItem(LEARNED_KEY, JSON.stringify([...s]));
 }
 
+const STREAK_KEY = "noor_vocab_review_dates";
+
+function getTodayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function loadReviewDates(): Set<string> {
+  try {
+    const v = localStorage.getItem(STREAK_KEY);
+    return v ? new Set(JSON.parse(v) as string[]) : new Set();
+  } catch { return new Set(); }
+}
+
+function recordTodayReview() {
+  const dates = loadReviewDates();
+  dates.add(getTodayKey());
+  localStorage.setItem(STREAK_KEY, JSON.stringify([...dates]));
+}
+
+function computeVocabStreak(): number {
+  const dates = loadReviewDates();
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 366; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    if (dates.has(key)) { streak++; } else { break; }
+  }
+  return streak;
+}
+
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -63,6 +96,7 @@ export function QuranVocabPage() {
   const [flipped, setFlipped] = React.useState(false);
   const [seen, setSeen] = React.useState<Set<number>>(new Set());
   const [learned, setLearned] = React.useState<Set<number>>(() => loadLearned());
+  const [vocabStreak, setVocabStreak] = React.useState<number>(() => computeVocabStreak());
 
   const dailyWordId = React.useMemo(() => getDailyWordId(), []);
 
@@ -170,7 +204,7 @@ export function QuranVocabPage() {
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
-        setFlipped((f) => !f);
+        setFlipped((f) => { if (!f) { recordTodayReview(); setVocabStreak(computeVocabStreak()); } return !f; });
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         setCardIndex((prev) => {
@@ -275,7 +309,14 @@ export function QuranVocabPage() {
                   <span className="text-lg" aria-hidden="true">📖</span>
                   <div className="text-xs opacity-60">مفردات</div>
                 </div>
-                <h1 className="text-xl font-semibold" style={{ color: "#0ea5e9" }}>مفردات القرآن</h1>
+                <h1 className="text-xl font-semibold flex items-center gap-2" style={{ color: "#0ea5e9" }}>
+                  مفردات القرآن
+                  {vocabStreak > 0 && (
+                    <span className="text-base font-bold tabular-nums" style={{ color: "var(--accent)" }} title="سلسلة المراجعة اليومية">
+                      ������{vocabStreak.toLocaleString("ar-EG")}
+                    </span>
+                  )}
+                </h1>
                 <div className="text-sm opacity-70 mt-1 tabular-nums" aria-live="polite" aria-atomic="true">
                   {reviewMode ? "مراجعة • " : ""}{(cardIndex + 1).toLocaleString("ar-EG")} / {deck.length.toLocaleString("ar-EG")} • {learned.size.toLocaleString("ar-EG")}/{QURAN_VOCAB.length} محفوظة ({Math.round((learned.size / QURAN_VOCAB.length) * 100)}٪)
                 </div>
@@ -415,7 +456,7 @@ export function QuranVocabPage() {
           {/* Quiz done screen */}
           {quizDone && (
             <div className="flex flex-col items-center gap-4 py-10 text-center">
-              <div className="text-5xl">{quizCorrect / quizTotal >= 0.8 ? "������" : quizCorrect / quizTotal >= 0.5 ? "������" : "������"}</div>
+              <div className="text-5xl">{quizCorrect / quizTotal >= 0.8 ? "������" : quizCorrect / quizTotal >= 0.5 ? "������" : "������"}</div>
               <div className="text-lg font-bold">أتممت الاختبار</div>
               <div className="text-2xl font-bold tabular-nums" style={{ color: "#a78bfa" }}>
                 {quizCorrect.toLocaleString("ar-EG")} / {quizTotal.toLocaleString("ar-EG")}
@@ -560,7 +601,7 @@ export function QuranVocabPage() {
         <div className="w-full max-w-sm" style={{ perspective: "900px" }}>
           <button
             type="button"
-            onClick={() => setFlipped((f) => !f)}
+            onClick={() => setFlipped((f) => { if (!f) { recordTodayReview(); setVocabStreak(computeVocabStreak()); } return !f; })}
             aria-label={flipped ? `إخفاء معنى كلمة ${card.arabic}` : `كشف معنى كلمة ${card.arabic}`}
             className={`vocab-flip-card w-full${flipped ? " is-flipped" : ""}`}
             style={{ minHeight: "14rem" }}
