@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Shuffle, RotateCcw, CheckCircle2, BookOpen, Share2, Copy, Star, List, CreditCard } from "lucide-react";
+import { ArrowRight, Shuffle, RotateCcw, CheckCircle2, BookOpen, Share2, Copy, Star, List, CreditCard, Search, X as XIcon } from "lucide-react";
 import { QURAN_VOCAB, type VocabWord } from "@/data/quranVocab";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
@@ -39,6 +39,7 @@ export function QuranVocabPage() {
   useScrollRestoration();
   const [reviewMode, setReviewMode] = React.useState(false);
   const [browseMode, setBrowseMode] = React.useState(false);
+  const [browseQuery, setBrowseQuery] = React.useState("");
   const [deck, setDeck] = React.useState<VocabWord[]>(() => [...QURAN_VOCAB]);
   const [cardIndex, setCardIndex] = React.useState(0);
   const [flipped, setFlipped] = React.useState(false);
@@ -46,6 +47,15 @@ export function QuranVocabPage() {
   const [learned, setLearned] = React.useState<Set<number>>(() => loadLearned());
 
   const dailyWordId = React.useMemo(() => getDailyWordId(), []);
+
+  const browseList = React.useMemo(() => {
+    if (!browseQuery.trim()) return QURAN_VOCAB;
+    const q = browseQuery.trim().toLowerCase();
+    return QURAN_VOCAB.filter(
+      (w) => w.arabic.includes(browseQuery.trim()) || w.meaning.toLowerCase().includes(q)
+    );
+  }, [browseQuery]);
+
   const dailyWordIdx = React.useMemo(() => deck.findIndex((w) => w.id === dailyWordId), [deck, dailyWordId]);
 
   // Rebuild deck when review mode changes
@@ -278,8 +288,31 @@ export function QuranVocabPage() {
 
       {/* Browse list mode */}
       {browseMode && (
-        <div className="px-4 pt-4 pb-32 space-y-2">
-          {QURAN_VOCAB.map((word) => (
+        <div className="px-4 pt-4 pb-32">
+          {/* Search input */}
+          <div className="relative mb-3">
+            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+            <input
+              type="search"
+              value={browseQuery}
+              onChange={(e) => setBrowseQuery(e.target.value)}
+              placeholder="ابحث عن كلمة…"
+              dir="rtl"
+              className="w-full rounded-2xl px-4 py-2.5 pr-9 text-sm"
+              style={{ background: "var(--card)", border: "1px solid var(--stroke)", color: "var(--fg)", outline: "none" }}
+              aria-label="ابحث في المفردات"
+            />
+            {browseQuery && (
+              <button type="button" onClick={() => setBrowseQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80" aria-label="مسح البحث">
+                <XIcon size={12} />
+              </button>
+            )}
+          </div>
+          {browseList.length === 0 && (
+            <div className="text-center py-8 text-sm opacity-50">لا توجد نتائج</div>
+          )}
+          <div className="space-y-2">
+          {browseList.map((word) => (
             <button
               key={word.id}
               type="button"
@@ -307,6 +340,7 @@ export function QuranVocabPage() {
               <span className="text-[10px] opacity-35 tabular-nums shrink-0">{word.frequency.toLocaleString("ar-EG")}×</span>
             </button>
           ))}
+          </div>
         </div>
       )}
       {/* Flashcard */}
