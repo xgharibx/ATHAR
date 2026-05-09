@@ -134,7 +134,7 @@ function SheikhBannerCard({
     <button
       type="button"
       onClick={onClick}
-      className="relative text-right press-effect rounded-3xl overflow-hidden group"
+      className="relative text-right press-effect rounded-3xl overflow-hidden group cv-auto"
       style={{ aspectRatio: "5/4" }}
     >
       {/* Gradient bg */}
@@ -253,7 +253,7 @@ function CourseCard2({
     <button
       type="button"
       onClick={onClick}
-      className="text-right press-effect rounded-3xl overflow-hidden relative group"
+      className="text-right press-effect rounded-3xl overflow-hidden relative group cv-auto"
       style={{
         aspectRatio: "4/3",
         border: course.isGenerated
@@ -376,7 +376,7 @@ function LessonRow({
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full text-right press-effect rounded-2xl overflow-hidden transition-all border",
+        "w-full text-right press-effect rounded-2xl overflow-hidden transition-all border cv-auto",
         isActive ? "border-current" : "border-transparent",
       )}
       style={isActive ? { borderColor: `${accent}60`, boxShadow: `0 0 18px ${accent}30` } : undefined}

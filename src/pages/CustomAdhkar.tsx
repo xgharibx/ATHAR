@@ -156,6 +156,7 @@ function PackCard({
             onClick={() => setExpanded((e) => !e)}
             className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-50 hover:opacity-100"
             aria-label="عرض الأذكار"
+            aria-expanded={expanded}
           >
             {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
           </button>

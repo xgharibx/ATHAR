@@ -355,7 +355,7 @@ export function FavoritesPage() {
                     {group.items.map((r: FlatDhikr) => (
                       <div
                         key={r.key}
-                        className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-start justify-between gap-3 press-effect glass-hover"
+                        className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-start justify-between gap-3 press-effect glass-hover cv-auto"
                       >
                         <button type="button" className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
                           <div className="flex items-start justify-between gap-3">
@@ -577,7 +577,7 @@ export function FavoritesPage() {
               {duaFavItems.map((dua) => (
                 <div
                   key={dua.id}
-                  className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3"
+                  className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3 cv-auto"
                 >
                   <div className="flex-1 min-w-0 text-right" dir="rtl">
                     <div className="text-[10px] opacity-50 mb-1">{dua.categoryIcon} {dua.categoryLabel}</div>
@@ -629,7 +629,7 @@ export function FavoritesPage() {
               {storyFavItems.map((story) => (
                 <div
                   key={story.id}
-                  className="glass rounded-2xl p-4 border border-[var(--stroke)]"
+                  className="glass rounded-2xl p-4 border border-[var(--stroke)] cv-auto"
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div
@@ -680,7 +680,7 @@ export function FavoritesPage() {
               {companionFavItems.map((companion) => (
                 <div
                   key={companion.id}
-                  className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3"
+                  className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3 cv-auto"
                 >
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"

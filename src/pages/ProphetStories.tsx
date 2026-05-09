@@ -65,8 +65,7 @@ function StoryCard({
         </div>
       </button>
 
-      {open && (
-        <div id={`story-panel-${story.id}`} className="px-4 pb-4 space-y-4">
+      <div id={`story-panel-${story.id}`} hidden={!open} className="px-4 pb-4 space-y-4">
           <div className="h-px" style={{ background: "var(--stroke)" }} />
           <p
             className="text-sm leading-loose text-right"
@@ -124,7 +123,6 @@ function StoryCard({
             </button>
           </div>
         </div>
-      )}
     </div>
   );
 }

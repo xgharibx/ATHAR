@@ -128,6 +128,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
     <Card className="p-0 overflow-hidden">
       <button type="button"
         aria-expanded={expanded}
+        aria-controls={`ruqyah-panel-${section.id}`}
         className="w-full flex items-center justify-between gap-3 p-4 text-right"
         onClick={() => setExpanded((v) => !v)}
       >
@@ -149,7 +150,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-[var(--stroke)] pt-3">
+        <div id={`ruqyah-panel-${section.id}`} className="px-4 pb-4 space-y-3 border-t border-[var(--stroke)] pt-3">
           {section.items.map((item, idx) => (
             <RuqyahItemCard key={item.id} item={item} idx={idx} />
           ))}
