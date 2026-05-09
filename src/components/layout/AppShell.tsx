@@ -344,6 +344,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
                     <link.icon size={15} style={{ color: link.color }} aria-hidden="true" />
                   </div>
                   <span className="text-[10px] font-medium opacity-70 text-center leading-tight" aria-hidden="true">{link.label}</span>
+                  {isActive && <span className="sr-only">(الصفحة الحالية)</span>}
                 </>
               )}
             </NavLink>

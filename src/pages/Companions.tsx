@@ -78,6 +78,7 @@ export default function Companions() {
                 ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)" }
                 : { background: "var(--card)", color: "var(--fg)" }}
               aria-label="المحفوظة"
+              aria-pressed={showBookmarksOnly}
             >
               <Bookmark size={16} />
             </button>
