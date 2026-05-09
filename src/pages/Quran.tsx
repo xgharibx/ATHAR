@@ -148,7 +148,7 @@ export function QuranPage() {
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
   const [showBookmarks, setShowBookmarks] = React.useState(false);
   const [showProgressGrid, setShowProgressGrid] = React.useState(false);
-  const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent">("mushaf");
+  const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent" | "unread">("mushaf");
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
   const [filterRevelation, setFilterRevelation] = React.useState<"meccan" | "medinan" | null>(null);
 
@@ -298,6 +298,10 @@ export function QuranPage() {
         if (ra !== rb) return ra - rb;
         return a.id - b.id;
       });
+    } else if (sortMode === "unread") {
+      base = [...filtered]
+        .filter((s) => (readingHistory[String(s.id)] ?? 0) === 0)
+        .sort((a, b) => a.ayahs.length - b.ayahs.length);
     } else {
       base = [...filtered].sort((a, b) => {
         const pA = Math.min(100, Math.round(((readingHistory[String(a.id)] ?? 0) / Math.max(1, a.ayahs.length)) * 100));
@@ -731,6 +735,15 @@ export function QuranPage() {
                 الأخيرة
               </button>
               )}
+              <button type="button"
+                role="tab"
+                aria-controls="quran-surah-list"
+                aria-selected={sortMode === "unread"}
+                onClick={() => setSortMode("unread")}
+                className={`px-3.5 h-9 transition ${sortMode === "unread" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+              >
+                غير مقروء
+              </button>
             </div>
 
             {/* Revelation filter */}
