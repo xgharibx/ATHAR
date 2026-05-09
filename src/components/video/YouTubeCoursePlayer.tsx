@@ -345,6 +345,7 @@ export function YouTubeCoursePlayer({
             <button
               type="button"
               onClick={onClose}
+              aria-label="إغلاق مشغل الفيديو"
               className="w-7 h-7 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center shrink-0 press-effect hover:bg-[var(--card-2)] transition-colors"
             >
               <ArrowRight size={13} />
@@ -383,6 +384,8 @@ export function YouTubeCoursePlayer({
             <button
               type="button"
               onClick={onBookmark}
+              aria-label={bookmarked ? "إلغاء حفظ الفيديو" : "حفظ الفيديو"}
+              aria-pressed={bookmarked}
               className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold press-effect transition-all border"
               style={
                 bookmarked
@@ -397,6 +400,8 @@ export function YouTubeCoursePlayer({
             <button
               type="button"
               onClick={() => { onComplete(); }}
+              aria-pressed={isCompleted}
+              aria-label={isCompleted ? "إلغاء إكمال الفيديو" : "تمييز الفيديو كمكتمل"}
               className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold press-effect transition-all border"
               style={
                 isCompleted

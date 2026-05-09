@@ -77,6 +77,8 @@ export function PrayerWidget() {
           return (
             <div
               key={prayer.name}
+              aria-current={isCurrent ? "true" : undefined}
+              aria-label={`${prayer.label} ${prayer.timeLabel}${isCurrent ? " — الصلاة الحالية" : isNext ? " — الصلاة القادمة" : ""}`}
               className={cn(
                 "flex flex-col gap-1 rounded-2xl py-1.5",
                 isCurrent && "bg-accent-12 border border-accent-25",

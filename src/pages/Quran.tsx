@@ -332,8 +332,8 @@ export function QuranPage() {
 
           {/* Mode toggle — search surahs vs ayahs */}
           <div className="mt-3 flex rounded-2xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden w-fit" role="tablist" aria-label="وضع البحث">
-            <button type="button" role="tab" aria-selected={mode === "surahs"} onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
-            <button type="button" role="tab" aria-selected={mode === "ayahs"} onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
+            <button type="button" id="quran-tab-surahs" role="tab" aria-selected={mode === "surahs"} onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
+            <button type="button" id="quran-tab-ayahs" role="tab" aria-selected={mode === "ayahs"} onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
           </div>
         </div>
 
@@ -564,7 +564,7 @@ export function QuranPage() {
       )}
 
       {mode === "surahs" ? (
-        <Card className="p-0 quran-surface overflow-hidden">
+        <Card className="p-0 quran-surface overflow-hidden" role="tabpanel" id="quran-panel-surahs" aria-labelledby="quran-tab-surahs" tabIndex={0}>
 
           {/* ── Controls bar ─────────────────────────────────── */}
           <div
@@ -801,7 +801,7 @@ export function QuranPage() {
           </div>
         </Card>
       ) : (
-        <Card className="p-5 quran-surface">
+        <Card className="p-5 quran-surface" role="tabpanel" id="quran-panel-ayahs" aria-labelledby="quran-tab-ayahs" tabIndex={0}>
           <div className="flex items-center justify-between gap-3">
             <div className="text-sm font-semibold quran-title">نتائج البحث</div>
             <div className="flex items-center gap-2">

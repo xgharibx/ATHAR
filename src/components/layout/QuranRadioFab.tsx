@@ -107,6 +107,8 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
             <button type="button"
               key={i}
               onClick={() => playRadio(i)}
+              aria-pressed={radio.playing && radio.stationIdx === i}
+              aria-label={`تشغيل محطة ${station.label}`}
               className={cn(
                 "w-full text-right rounded-2xl px-3 py-2.5 text-sm border transition press-effect",
                 radio.playing && radio.stationIdx === i
@@ -144,6 +146,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
         {/* Play / Stop */}
         <button type="button"
           onClick={() => { toggleRadio(); if (radio.playing) setOpen(false); }}
+          aria-label={radio.playing ? "إيقاف بث راديو القرآن" : "تشغيل راديو القرآن"}
           className={cn(
             "w-full rounded-2xl py-3 text-sm font-semibold transition press-effect",
             radio.playing

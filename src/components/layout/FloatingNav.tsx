@@ -97,7 +97,13 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
               key={item.path}
               to={item.path}
               className={`floating-nav-item ${active ? "active" : ""}`}
-              aria-label={item.label}
+              aria-label={
+                item.path === "/quran" && khatmaDueToday
+                  ? `${item.label} — ورد القرآن مطلوب`
+                  : item.path === "/" && todayCount > 0
+                  ? `${item.label} — ${todayCount} تسبيح`
+                  : item.label
+              }
               aria-current={active ? "page" : undefined}
             >
               <div className="relative">

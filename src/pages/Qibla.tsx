@@ -271,7 +271,7 @@ export function QiblaPage() {
 
         {/* Bearing info */}
         {qiblaBearing != null ? (
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-1" aria-live="polite" aria-atomic="true">
             <div className="text-3xl font-bold" style={{ color: "var(--accent)" }}>
               {Math.round(qiblaBearing)}°
             </div>
@@ -309,6 +309,7 @@ export function QiblaPage() {
                 if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
                 else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
               }}
+              aria-label="مشاركة اتجاه القبلة"
               className="mt-2 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full opacity-60 hover:opacity-90 transition"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)", color: "var(--fg)" }}
             >
@@ -335,7 +336,7 @@ export function QiblaPage() {
         </div>
 
         {geo.status === "idle" || geo.status === "loading" ? (
-          <div className="flex items-center gap-2 text-sm opacity-60">
+          <div className="flex items-center gap-2 text-sm opacity-60" role="status" aria-label="جارس تحديد موقعك">
             <RefreshCw size={14} className="animate-spin" />
             جارٍ تحديد موقعك...
           </div>
