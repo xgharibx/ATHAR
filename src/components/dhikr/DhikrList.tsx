@@ -375,7 +375,7 @@ export function DhikrList(props: Readonly<{
               </Button>
             </div>
             {(moreOpen || confirmReset || confirmDone || confirmDeleteCategory) && (
-              <div id="dhikr-more-panel" className="mt-2 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+              <div id="dhikr-more-panel" role="toolbar" aria-label="خيارات إضافية" className="mt-2 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                 {confirmReset ? (
                   <>
                     <Button

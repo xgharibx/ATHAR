@@ -1519,7 +1519,7 @@ export function MushafPage() {
       {showReciterSheet && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowReciterSheet(false)} />
-          <div className="mushaf-jump-sheet" onClick={(e) => e.stopPropagation()} dir="rtl">
+          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="اختر القارئ" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShowReciterSheet(false); } }} onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="mushaf-sheet-title">اختر القارئ</div>
             <div className="mushaf-reciter-grid">
@@ -1583,7 +1583,7 @@ export function MushafPage() {
       {showJump && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowJump(false)} />
-          <div className="mushaf-jump-sheet" onClick={(e) => e.stopPropagation()} dir="rtl">
+          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="الانتقال إلى صفحة" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShowJump(false); } }} onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="mushaf-sheet-title">الانتقال إلى صفحة</div>
             <DialWheel
@@ -1599,7 +1599,7 @@ export function MushafPage() {
       {noteSheetOpen && selectedItem && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setNoteSheetOpen(false)} />
-          <div className="mushaf-note-sheet" onClick={(e) => e.stopPropagation()} dir="rtl">
+          <div className="mushaf-note-sheet" role="dialog" aria-modal="true" aria-label="تدبّر" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setNoteSheetOpen(false); } }} onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-3">
               <span className="mushaf-sheet-title">
@@ -1691,7 +1691,9 @@ export function MushafPage() {
           {/* zIndex must be > overlay (210) — do NOT set lower */}
           <div
             className="mushaf-note-sheet"
+            role="dialog" aria-modal="true" aria-label="تفسير"
             style={{ maxHeight: "78vh", overflowY: "auto", display: "flex", flexDirection: "column" }}
+            onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setTafsirItem(null); } }}
             onClick={(e) => e.stopPropagation()}
             dir="rtl"
           >
@@ -1839,7 +1841,7 @@ export function MushafPage() {
       {showSettings && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowSettings(false)} />
-          <div className="mushaf-jump-sheet" style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
+          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="إعدادات القراءة" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShowSettings(false); } }} style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">
               <span className="mushaf-sheet-title">إعدادات القراءة</span>
@@ -2176,7 +2178,7 @@ export function MushafPage() {
       {showMoreSheet && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowMoreSheet(false)} />
-          <div className="mushaf-jump-sheet" style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
+          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="الإجراءات السريعة" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShowMoreSheet(false); } }} style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">
               <span className="mushaf-sheet-title">الإجراءات السريعة</span>
