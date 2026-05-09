@@ -2,6 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronDown, ChevronUp, Copy, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { Card } from "@/components/ui/Card";
 import { PRAYER_STEPS } from "@/data/prayerGuide";
 
 async function sharePrayerStep(step: { title: string; arabic?: string; description: string }) {
@@ -30,37 +31,45 @@ export function PrayerGuidePage() {
 
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32">
-      {/* Header */}
-      <div
-        className="sticky top-0 z-20 px-4 pt-4 pb-3"
-        style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
-      >
-        <div className="flex items-center gap-3">
-          <button type="button"
-            onClick={() => navigate(-1)}
-            aria-label="رجوع"
-            className="p-2 rounded-xl"
-            style={{ background: "var(--card-bg)", color: "var(--fg)" }}
-          >
-            <ArrowRight size={18} />
-          </button>
-          <div className="flex-1">
-            <h1 className="font-bold text-lg" style={{ color: "var(--fg)" }}>
-              كيفية الصلاة
-            </h1>
-            <p className="text-xs opacity-60" style={{ color: "var(--fg)" }}>
-              دليل مُفصَّل خطوة بخطوة
-            </p>
+      {/* Header Card */}
+      <div className="px-4 pt-4">
+        <Card className="p-5 overflow-hidden relative">
+          <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
+          <div
+            className="absolute inset-0 bg-gradient-to-bl from-emerald-500/15 to-teal-500/10 pointer-events-none opacity-55"
+            style={{ borderRadius: "inherit" }}
+          />
+          <div className="relative">
+            <div className="flex items-start gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                aria-label="رجوع"
+                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+              >
+                <ArrowRight size={18} />
+              </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">🕌</span>
+                  <div className="text-xs opacity-60">دليل الصلاة</div>
+                </div>
+                <h1 className="text-xl font-semibold" style={{ color: "#10b981" }}>كيفية الصلاة</h1>
+                <div className="text-sm opacity-70 mt-1">دليل مُفصَّل خطوة بخطوة</div>
+              </div>
+              <button
+                type="button"
+                onClick={shareFullGuide}
+                className="mt-1 p-2 rounded-xl opacity-60 hover:opacity-100 transition"
+                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                aria-label="مشاركة الدليل"
+              >
+                <Share2 size={16} />
+              </button>
+            </div>
           </div>
-          <button type="button"
-            onClick={shareFullGuide}
-            className="p-2 rounded-xl opacity-60 hover:opacity-100 transition"
-            style={{ background: "var(--card-bg)", color: "var(--fg)" }}
-            aria-label="مشاركة الدليل"
-          >
-            <Share2 size={16} />
-          </button>
-        </div>
+        </Card>
       </div>
 
       {/* Intro banner */}

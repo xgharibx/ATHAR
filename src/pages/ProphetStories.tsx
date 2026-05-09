@@ -2,6 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronDown, ChevronUp, Search, X, Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { PROPHET_STORIES, type ProphetStory } from "@/data/prophetStories";
+import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 
 const STORY_BOOKMARKS_KEY = "noor_story_bookmarks";
@@ -155,57 +156,65 @@ export function ProphetStoriesPage() {
 
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32">
-      {/* Header */}
-      <div
-        className="sticky top-0 z-20 px-4 pt-4 pb-3"
-        style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
-      >
-        <div className="flex items-center gap-3 mb-2">
-          <button type="button"
-            onClick={() => navigate(-1)}
-            aria-label="رجوع"
-            className="p-2 rounded-xl"
-            style={{ background: "var(--card-bg)", color: "var(--fg)" }}
-          >
-            <ArrowRight size={18} />
-          </button>
-          <div className="flex-1">
-            <h1 className="font-bold text-lg" style={{ color: "var(--fg)" }}>
-              قصص الأنبياء
-            </h1>
-            <p className="text-xs opacity-60" style={{ color: "var(--fg)" }}>
-              {filtered.length} من {PROPHET_STORIES.length} نبيًا
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowBookmarksOnly((v) => !v)}
-            className="p-2 rounded-xl transition-all"
-            style={showBookmarksOnly
-              ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)" }
-              : { background: "var(--card-bg)", color: "var(--fg)" }}
-            aria-label="المحفوظة"
-          >
-            <Bookmark size={17} />
-          </button>
-        </div>
-        <div className="relative">
-          <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
-          <input
-            type="search"
-            dir="rtl"
-            placeholder="ابحث باسم النبي أو الدرس…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none border"
-            style={{ background: "var(--card-bg)", color: "var(--fg)", borderColor: "var(--card-border)" }}
+      {/* Header Card */}
+      <div className="px-4 pt-4">
+        <Card className="p-5 overflow-hidden relative">
+          <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
+          <div
+            className="absolute inset-0 bg-gradient-to-bl from-amber-500/15 to-orange-400/10 pointer-events-none opacity-55"
+            style={{ borderRadius: "inherit" }}
           />
-          {query && (
-            <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
-              <X size={13} />
-            </button>
-          )}
-        </div>
+          <div className="relative">
+            <div className="flex items-start gap-3 mb-3">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                aria-label="رجوع"
+                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+              >
+                <ArrowRight size={18} />
+              </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">📜</span>
+                  <div className="text-xs opacity-60">قصص الأنبياء</div>
+                </div>
+                <h1 className="text-xl font-semibold" style={{ color: "#f59e0b" }}>قصص الأنبياء</h1>
+                <div className="text-sm opacity-70 mt-1">{filtered.length} من {PROPHET_STORIES.length} نبيًا</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBookmarksOnly((v) => !v)}
+                className="mt-1 p-2 rounded-xl transition-all"
+                style={showBookmarksOnly
+                  ? { background: "rgba(245,158,11,0.2)", color: "#f59e0b" }
+                  : { background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                aria-label="المحفوظة"
+              >
+                <Bookmark size={17} />
+              </button>
+            </div>
+            {/* Search */}
+            <div className="relative">
+              <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+              <input
+                type="search"
+                dir="rtl"
+                placeholder="ابحث باسم النبي أو الدرس…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
+                style={{ background: "rgba(255,255,255,0.06)", color: "var(--fg)", border: "1px solid rgba(255,255,255,0.1)" }}
+              />
+              {query && (
+                <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Stories */}

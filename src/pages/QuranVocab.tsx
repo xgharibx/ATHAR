@@ -2,6 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Shuffle, RotateCcw, CheckCircle2, BookOpen, Share2, Copy, Star } from "lucide-react";
 import { QURAN_VOCAB, type VocabWord } from "@/data/quranVocab";
+import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 
 const LEARNED_KEY = "noor_vocab_learned";
@@ -137,69 +138,77 @@ export function QuranVocabPage() {
 
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32">
-      {/* Header */}
-      <div
-        className="sticky top-0 z-20 px-4 pt-4 pb-3"
-        style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <button type="button"
-              onClick={handleShuffle}
-              className="p-2 rounded-xl"
-              style={{ background: "var(--card-bg)", color: "var(--accent)" }}
-              aria-label="خلط البطاقات"
-            >
-              <Shuffle size={16} />
-            </button>
-            <button type="button"
-              onClick={handleReset}
-              className="p-2 rounded-xl"
-              style={{ background: "var(--card-bg)", color: "var(--fg)" }}
-              aria-label="إعادة تعيين"
-            >
-              <RotateCcw size={16} />
-            </button>
-            <button type="button"
-              onClick={() => setReviewMode((v) => !v)}
-              className="p-2 rounded-xl transition-colors"
-              style={{
-                background: reviewMode
-                  ? "color-mix(in srgb, var(--ok,#10b981) 18%, transparent)"
-                  : "var(--card-bg)",
-                color: reviewMode ? "var(--ok,#10b981)" : "var(--fg)",
-                border: reviewMode ? "1px solid color-mix(in srgb, var(--ok,#10b981) 35%, transparent)" : "none",
-              }}
-              aria-label="مراجعة المحفوظات"
-              title="مراجعة المحفوظات فقط"
-            >
-              <BookOpen size={16} />
-            </button>
-          </div>
-          <div className="text-center flex-1">
-            <h1 className="font-bold text-base" style={{ color: "var(--fg)" }}>
-              مفردات القرآن
-            </h1>
-            <p className="text-xs opacity-60" style={{ color: "var(--fg)" }}>
-              {reviewMode ? "مراجعة • " : ""}{(cardIndex + 1).toLocaleString("ar-EG")} / {deck.length.toLocaleString("ar-EG")} • {learned.size.toLocaleString("ar-EG")} محفوظة
-            </p>
-          </div>
-          <button type="button"
-            onClick={() => navigate(-1)}
-            aria-label="رجوع"
-            className="p-2 rounded-xl"
-            style={{ background: "var(--card-bg)", color: "var(--fg)" }}
-          >
-            <ArrowRight size={18} />
-          </button>
-        </div>
-        {/* Progress bar */}
-        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--card-border)" }}>
+      {/* Header Card */}
+      <div className="px-4 pt-4">
+        <Card className="p-5 overflow-hidden relative">
+          <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
           <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${progress}%`, background: "var(--accent)" }}
+            className="absolute inset-0 bg-gradient-to-bl from-sky-500/15 to-cyan-400/10 pointer-events-none opacity-55"
+            style={{ borderRadius: "inherit" }}
           />
-        </div>
+          <div className="relative">
+            <div className="flex items-start gap-3 mb-3">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                aria-label="رجوع"
+                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+              >
+                <ArrowRight size={18} />
+              </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">📖</span>
+                  <div className="text-xs opacity-60">مفردات</div>
+                </div>
+                <h1 className="text-xl font-semibold" style={{ color: "#0ea5e9" }}>مفردات القرآن</h1>
+                <div className="text-sm opacity-70 mt-1 tabular-nums">
+                  {reviewMode ? "مراجعة • " : ""}{(cardIndex + 1).toLocaleString("ar-EG")} / {deck.length.toLocaleString("ar-EG")} • {learned.size.toLocaleString("ar-EG")} محفوظة
+                </div>
+              </div>
+            </div>
+            {/* Progress bar */}
+            <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ background: "rgba(255,255,255,0.1)" }}>
+              <div
+                className="h-full rounded-full transition-all duration-300"
+                style={{ width: `${progress}%`, background: "#0ea5e9" }}
+              />
+            </div>
+            {/* Action buttons */}
+            <div className="flex items-center gap-2">
+              <button type="button"
+                onClick={handleShuffle}
+                className="p-2 rounded-xl"
+                style={{ background: "rgba(255,255,255,0.08)", color: "#0ea5e9" }}
+                aria-label="خلط البطاقات"
+              >
+                <Shuffle size={16} />
+              </button>
+              <button type="button"
+                onClick={handleReset}
+                className="p-2 rounded-xl"
+                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                aria-label="إعادة تعيين"
+              >
+                <RotateCcw size={16} />
+              </button>
+              <button type="button"
+                onClick={() => setReviewMode((v) => !v)}
+                className="p-2 rounded-xl transition-colors"
+                style={{
+                  background: reviewMode ? "rgba(16,185,129,0.18)" : "rgba(255,255,255,0.08)",
+                  color: reviewMode ? "#10b981" : "var(--fg)",
+                  border: reviewMode ? "1px solid rgba(16,185,129,0.35)" : "1px solid transparent",
+                }}
+                aria-label="مراجعة المحفوظات"
+                title="مراجعة المحفوظات فقط"
+              >
+                <BookOpen size={16} />
+              </button>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Flashcard */}
