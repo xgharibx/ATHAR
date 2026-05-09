@@ -150,6 +150,7 @@ export function QuranPage() {
   const [showProgressGrid, setShowProgressGrid] = React.useState(false);
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress">("mushaf");
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
+  const [filterRevelation, setFilterRevelation] = React.useState<"meccan" | "medinan" | null>(null);
 
   // Sync URL param changes (e.g. back-navigation)
   React.useEffect(() => {
@@ -292,8 +293,10 @@ export function QuranPage() {
       return pB - pA;
     });
     if (filterJuz !== null) base = base.filter((s) => getSurahJuz(s.id) === filterJuz);
+    if (filterRevelation === "meccan") base = base.filter((s) => SURAH_REVELATION[s.id] !== "medinan");
+    if (filterRevelation === "medinan") base = base.filter((s) => SURAH_REVELATION[s.id] === "medinan");
     return base;
-  }, [filtered, sortMode, readingHistory, filterJuz]);
+  }, [filtered, sortMode, readingHistory, filterJuz, filterRevelation]);
 
   // Per-juz reading progress: juzNum → pct (0-100)
   const juzProgress = React.useMemo(() => {
@@ -703,6 +706,27 @@ export function QuranPage() {
                 className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 التقدم
+              </button>
+            </div>
+
+            {/* Revelation filter */}
+            <div className="flex rounded-xl overflow-hidden border border-[var(--stroke)] text-[10px] shrink-0">
+              <button type="button"
+                onClick={() => setFilterRevelation(filterRevelation === "meccan" ? null : "meccan")}
+                aria-pressed={filterRevelation === "meccan"}
+                className="px-2.5 py-1.5 transition"
+                style={{ background: filterRevelation === "meccan" ? "color-mix(in srgb, var(--accent) 15%, transparent)" : "var(--card)", color: filterRevelation === "meccan" ? "var(--accent)" : undefined, fontWeight: filterRevelation === "meccan" ? 600 : undefined }}
+              >
+                مكية
+              </button>
+              <div className="w-px bg-[var(--stroke)]" />
+              <button type="button"
+                onClick={() => setFilterRevelation(filterRevelation === "medinan" ? null : "medinan")}
+                aria-pressed={filterRevelation === "medinan"}
+                className="px-2.5 py-1.5 transition"
+                style={{ background: filterRevelation === "medinan" ? "color-mix(in srgb, var(--accent) 15%, transparent)" : "var(--card)", color: filterRevelation === "medinan" ? "var(--accent)" : undefined, fontWeight: filterRevelation === "medinan" ? 600 : undefined }}
+              >
+                مدنية
               </button>
             </div>
 
