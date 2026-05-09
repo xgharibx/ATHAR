@@ -120,7 +120,7 @@ export function OnboardingFlow() {
   };
 
   return (
-    <div className="onboarding-overlay" onClick={(e) => e.stopPropagation()} dir="rtl">
+    <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" onClick={(e) => e.stopPropagation()} dir="rtl">
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
@@ -131,13 +131,13 @@ export function OnboardingFlow() {
           transition={{ duration: 0.22, ease: "easeOut" }}
         >
           <div className="text-5xl mb-5 text-center">{current.emoji}</div>
-          <h2 className="text-xl font-bold text-center mb-3 arabic-text">{current.title}</h2>
+          <h2 className="text-xl font-bold text-center mb-3 arabic-text" id="onboarding-title">{current.title}</h2>
           <p className="text-sm opacity-70 text-center leading-relaxed mb-8 arabic-text">{current.description}</p>
 
           {/* Step dots */}
-          <div className="onboarding-step-dots">
+          <div className="onboarding-step-dots" role="tablist" aria-label="خطوات التهيئة">
             {STEPS.map((_, i) => (
-              <span key={i} className={`onboarding-dot${i === step ? " active" : ""}`} />
+              <span key={i} className={`onboarding-dot${i === step ? " active" : ""}`} role="tab" aria-selected={i === step} aria-label={`خطوة ${i + 1} من ${STEPS.length}`} />
             ))}
           </div>
 
