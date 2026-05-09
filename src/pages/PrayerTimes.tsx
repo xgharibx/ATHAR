@@ -132,7 +132,7 @@ function rowStyles(row: PrayerDetailRow, active: boolean, next: boolean) {
   if (next && row.type === "prayer") return "bg-[var(--card)] border-[var(--stroke)]";
   switch (row.type) {
     case "forbidden": return "bg-[#ff9b9b]/12 border-[#ffb1b1]/25";
-    case "marker":    return "bg-[#ffd27d]/12 border-[#ffd27d]/25";
+    case "marker":    return "bg-accent-12 border-accent-25";
     case "moment":    return "bg-[#90d8ff]/10 border-[#90d8ff]/22";
     default:          return "bg-[var(--card)] border-[var(--stroke)]";
   }
@@ -642,15 +642,15 @@ function HijriCalendarTab() {
                   className={cn(
                     "rounded-xl p-1 min-h-[52px] flex flex-col items-center gap-0.5 text-center relative",
                     isToday    && "bg-accent-20 ring-1 ring-accent-40",
-                    hasEvent   && !isToday && "bg-[#ffd27d]/8 ring-1 ring-[#ffd27d]/25",
+                    hasEvent   && !isToday && "bg-accent-8 ring-1 ring-accent-25",
                     isFriday   && !isToday && !hasEvent && "bg-[var(--card)]"
                   )}>
                   <div className={cn("text-sm font-bold leading-tight",
-                    isToday && "text-[var(--accent)]", isFriday && !isToday && "text-[#90d8ff]")}>
+                    isToday && "text-[var(--accent)]", isFriday && !isToday && "text-[var(--accent-2)]")}>
                     {day.date.gregorian.day}
                   </div>
                   <div className="text-[9px] opacity-40 leading-tight">{day.date.hijri.day}</div>
-                  {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-[#ffd27d] mt-0.5" />}
+                  {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mt-0.5" />}
                 </div>
               );
             })}
@@ -677,9 +677,9 @@ function HijriCalendarTab() {
               <div className="mt-3 space-y-2">
                 <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">المناسبات القادمة</div>
                 {upcoming.map((ev) => (
-                  <div key={ev.date} className="rounded-xl bg-[#ffd27d]/8 border border-[#ffd27d]/20 px-3 py-2">
+                  <div key={ev.date} className="rounded-xl bg-accent-8 border border-accent-20 px-3 py-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className="text-[10px] bg-[#ffd27d]/15 border-[#ffd27d]/25 text-[#ffd27d]">{ev.hijriLabel}</Badge>
+                      <Badge className="text-[10px] bg-accent-15 border-accent-25 text-[var(--accent)]">{ev.hijriLabel}</Badge>
                       <span className="text-[10px] opacity-50">{ev.date}</span>
                     </div>
                     {ev.events.map((e, j) => <div key={j} className="text-sm mt-1">{e}</div>)}

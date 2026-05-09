@@ -7,7 +7,7 @@ export function Switch(props: Readonly<SwitchPrimitive.SwitchProps>) {
     <SwitchPrimitive.Root
       {...props}
       className={cn(
-        "w-11 h-6 rounded-full relative border bg-[#ff6b6b]/20 border-[#ff6b6b]/45 data-[state=checked]:bg-[#3ddc97]/35 data-[state=checked]:border-[#3ddc97]/70 transition disabled:opacity-45",
+        "w-11 h-6 rounded-full relative border bg-danger-20 border-danger-45 data-[state=checked]:bg-ok-35 data-[state=checked]:border-ok-70 transition disabled:opacity-45",
         props.className
       )}
     >

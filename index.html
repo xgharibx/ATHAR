@@ -47,6 +47,24 @@
       </svg>
       <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
     </div>
+    <!-- Theme-aware loader: read persisted theme from localStorage before first paint -->
+    <script>
+    (function(){
+      try {
+        var s = localStorage.getItem("noor_store_v1");
+        if (s) {
+          var d = JSON.parse(s);
+          var t = d && d.state && d.state.theme;
+          if (t === "light") {
+            var el = document.getElementById("app-loader");
+            if (el) el.style.background = "#f7f8ff";
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute("content", "#f7f8ff");
+          }
+        }
+      } catch(e) {}
+    })();
+    </script>
     <div id="root"></div>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
