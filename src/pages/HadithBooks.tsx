@@ -3,7 +3,7 @@
  * Gallery of 9 hadith books with الأربعينيات hero (7E), Fuse.js global search (7B).
  * Route: /hadith
  */
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Search, Library, BookOpen, Bookmark, BrainCircuit, Copy } from "lucide-react";
 import Fuse from "fuse.js";
@@ -347,13 +347,13 @@ export function HadithBooksPage() {
   const [tab, setTab] = useState<"library" | "search">("library");
 
   // Sort by order
-  const sorted = [...books].sort((a, b) => a.order - b.order);
+  const sorted = useMemo(() => [...books].sort((a, b) => a.order - b.order), [books]);
 
   // Separate arba'iniyat from rest
-  const arbaini = sorted.filter((b) => b.key === "nawawi" || b.key === "qudsi");
-  const mainBooks = sorted.filter((b) => b.key !== "nawawi" && b.key !== "qudsi");
+  const arbaini = useMemo(() => sorted.filter((b) => b.key === "nawawi" || b.key === "qudsi"), [sorted]);
+  const mainBooks = useMemo(() => sorted.filter((b) => b.key !== "nawawi" && b.key !== "qudsi"), [sorted]);
 
-  const totalHadiths = sorted.reduce((s, b) => s + b.count, 0);
+  const totalHadiths = useMemo(() => sorted.reduce((s, b) => s + b.count, 0), [sorted]);
 
   return (
     <div dir="rtl" className="relative min-h-screen-safe overflow-hidden pb-24 page-enter">
