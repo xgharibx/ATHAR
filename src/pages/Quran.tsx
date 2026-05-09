@@ -482,8 +482,49 @@ export function QuranPage() {
         )}
       </Card>
 
-      {/* ── Verse of the Day ──────────────────────────────── */}
-      {mode === "surahs" && !query && dailyVerse && (
+      {/* ── Today's khatma reading target ─────────────────── */}
+      {mode === "surahs" && !query && khatma && !khatma.isFinished && (
+        <button
+          type="button"
+          onClick={() => navigate(`/mushaf?surah=${khatma.today.first.surahId}&ayah=${khatma.today.first.ayahIndex}`)}
+          className="w-full text-right rounded-3xl border transition-all active:scale-[0.99] quran-surface overflow-hidden"
+          style={{
+            background: khatma.meta.doneToday
+              ? "color-mix(in srgb, var(--ok, #3ddc97) 8%, var(--card))"
+              : "color-mix(in srgb, var(--accent) 7%, var(--card))",
+            borderColor: khatma.meta.doneToday
+              ? "color-mix(in srgb, var(--ok, #3ddc97) 22%, transparent)"
+              : "color-mix(in srgb, var(--accent) 22%, transparent)",
+          }}
+          aria-label={`ورد اليوم — من ${khatma.today.first.surahName} إلى ${khatma.today.last.surahName}`}
+        >
+          <div className="px-5 py-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span aria-hidden="true" className="text-base">{khatma.meta.doneToday ? "✅" : "📅"}</span>
+              <span
+                className="text-xs font-semibold"
+                style={{ color: khatma.meta.doneToday ? "var(--ok, #3ddc97)" : "var(--accent)" }}
+              >
+                {khatma.meta.doneToday ? "أتممت ورد اليوم" : "ورد اليوم"}
+              </span>
+              <span className="text-[10px] opacity-50 mr-auto">
+                {khatma.meta.percent.toLocaleString("ar-EG")}٪ مكتمل
+              </span>
+            </div>
+            <div className="text-sm arabic-text opacity-80" dir="rtl">
+              {khatma.today.first.surahName}
+              {khatma.today.first.surahId !== khatma.today.last.surahId && (
+                <span className="opacity-70"> ← {khatma.today.last.surahName}</span>
+              )}
+              <span className="text-[11px] opacity-55 mr-2">
+                آية {toArabicNumeral(khatma.today.first.ayahIndex)} ← {toArabicNumeral(khatma.today.last.ayahIndex)}
+              </span>
+            </div>
+          </div>
+        </button>
+      )}
+
+      {/* ── Verse of the Day ──────────────────────────────── */}      {mode === "surahs" && !query && dailyVerse && (
         <button
           type="button"
           onClick={() => navigate(`/mushaf?surah=${dailyVerse.surahId}&ayah=${dailyVerse.ayahIndex}`)}
