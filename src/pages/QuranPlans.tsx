@@ -186,6 +186,15 @@ export function QuranPlansPage() {
     return Math.min(100, Math.round((activePlan.todayAyahs / activePlan.dailyAyahs) * 100));
   }, [activePlan]);
 
+  const todayStartRef = React.useMemo(() => {
+    if (!activePlan) return null;
+    const startGlobal = Math.max(1, activePlan.targetTotal - activePlan.dailyAyahs + 1);
+    const ref = globalAyahToRef(startGlobal);
+    if (!ref || !quranData) return null;
+    const surahName = quranData.find((s) => s.id === ref.surahId)?.name ?? null;
+    return { ...ref, surahName };
+  }, [activePlan, globalAyahToRef, quranData]);
+
   // ── Milestone celebration (25 / 50 / 75 / 100 %) ─────────────────────────
   React.useEffect(() => {
     if (!activePlan || !khatmaStartISO) return;
@@ -312,6 +321,12 @@ export function QuranPlansPage() {
                 style={{ width: `${todayReadPct}%` }} />
             </div>
           </div>
+          {/* Today start position */}
+          {todayStartRef && !activePlan.doneToday && (
+            <div className="text-[11px] opacity-55 text-center -mt-1">
+              ابدأ من: <span className="font-semibold arabic-text">{todayStartRef.surahName}</span> آية {todayStartRef.ayahIndex.toLocaleString("ar-EG")}
+            </div>
+          )}
 
           {/* Mark today done / CTA */}
           {activePlan.isFinished ? (
