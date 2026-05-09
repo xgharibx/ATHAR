@@ -50,7 +50,7 @@ export function PrayerWidget() {
           <span className="font-semibold text-sm">مواقيت الصلاة</span>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          <span className="text-[11px] opacity-60 bg-white/5 px-2 py-1 rounded-full border border-white/10">
+          <span className="text-[11px] opacity-60 bg-[var(--card)] px-2 py-1 rounded-full border border-[var(--stroke)]">
             {date.hijri.weekday.ar} • {date.hijri.date}
           </span>
           {isFetching && (
@@ -64,7 +64,7 @@ export function PrayerWidget() {
       ) : null}
 
       {/* Live countdown to next prayer */}
-      <div className="mb-4 rounded-[28px] border border-white/10 bg-gradient-to-br from-white/8 to-white/3 p-4">
+      <div className="mb-4 rounded-[28px] border border-[var(--stroke)] bg-[var(--card)] p-4">
         <PrayerCountdown timings={timings} compact />
       </div>
 
@@ -80,7 +80,7 @@ export function PrayerWidget() {
               className={cn(
                 "flex flex-col gap-1 rounded-2xl py-1.5",
                 isCurrent && "bg-accent-12 border border-accent-25",
-                !isCurrent && isNext && "bg-white/6 border border-white/12"
+                !isCurrent && isNext && "bg-[var(--card-2)] border border-[var(--stroke)]"
               )}
             >
               <span className={cn("text-[11px]", isCurrent ? "opacity-95 font-semibold" : isNext ? "opacity-85" : "opacity-55")}>
@@ -101,7 +101,7 @@ export function PrayerWidget() {
         const duhaMoment    = schedule.extraMoments.find((m) => m.id === "duha");
         if (!sunriseMoment && !duhaMoment) return null;
         return (
-          <div className="mt-3 flex items-center gap-2 flex-wrap border-t border-white/8 pt-3 text-[11px] opacity-65">
+          <div className="mt-3 flex items-center gap-2 flex-wrap border-t border-[var(--stroke)] pt-3 text-[11px] opacity-65">
             {sunriseMoment && (
               <div className="flex items-center gap-1.5">
                 <Sunrise size={12} className="text-[#ffd27d]" />

@@ -30,18 +30,18 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
 
     return (
       <div className="min-h-screen-safe flex items-center justify-center p-6" dir="rtl">
-        <div className="glass rounded-3xl p-6 max-w-md w-full border border-white/10">
+        <div className="glass rounded-3xl p-6 max-w-md w-full border border-[var(--stroke)]">
           <div className="text-lg font-semibold">تعذر عرض التطبيق</div>
           <div className="mt-2 text-sm opacity-75 leading-7">
             تم اكتشاف خطأ أثناء تحميل الواجهة. يمكنك تحديث الصفحة أو إعادة تعيين التخزين المحلي.
           </div>
           <div className="mt-2 text-xs opacity-60 break-words">{this.state.message}</div>
           <div className="mt-4 flex gap-2">
-            <button type="button" className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 min-h-[44px]" onClick={() => globalThis.location.reload()}>
+            <button type="button" className="px-4 py-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] min-h-[44px]" onClick={() => globalThis.location.reload()}>
               تحديث الصفحة
             </button>
             <button type="button"
-              className="px-4 py-3 rounded-2xl bg-white/10 border border-white/10 min-h-[44px]"
+              className="px-4 py-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] min-h-[44px]"
               onClick={() => {
                 localStorage.clear();
                 globalThis.location.reload();
