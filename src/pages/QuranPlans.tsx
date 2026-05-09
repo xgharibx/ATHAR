@@ -294,6 +294,19 @@ export function QuranPlansPage() {
           </div>
 
           {/* Mark today done / CTA */}
+          {activePlan.isFinished ? (
+            <div
+              className="rounded-2xl p-4 text-center space-y-2"
+              style={{ background: "color-mix(in srgb, var(--ok) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--ok) 30%, transparent)" }}
+            >
+              <div className="text-2xl" aria-hidden="true">🏆</div>
+              <div className="text-sm font-bold" style={{ color: "var(--ok)" }}>مبارك! أتممت الختمة</div>
+              <div className="text-xs opacity-60">جعلها الله في ميزان حسناتك</div>
+              <Button className="w-full mt-2 text-sm" onClick={() => { resetKhatma(); setShowPresets(true); }}>
+                ابدأ ختمة جديدة
+              </Button>
+            </div>
+          ) : (
           <div className="flex gap-2">
             <Button
               className={`flex-1 text-sm ${activePlan.doneToday ? "opacity-50" : ""}`}
@@ -330,6 +343,7 @@ export function QuranPlansPage() {
               <Share2 className="w-4 h-4" />
             </Button>
           </div>
+          )}
 
           {/* 7-day strip */}
           <WeekStrip doneMap={khatmaDone ?? {}} />

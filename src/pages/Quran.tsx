@@ -459,6 +459,16 @@ export function QuranPage() {
           >
             <span>📖 {quranStats.started.toLocaleString("ar-EG")} سورة</span>
             {(quranDailyAyahs[todayISO] ?? 0) > 0 && <span style={{ color: "var(--accent)", opacity: 1 }}>اليوم: {(quranDailyAyahs[todayISO] ?? 0).toLocaleString("ar-EG")} آية</span>}
+            {prefs.quranDailyGoal > 0 && (() => {
+              const todayAyahs = quranDailyAyahs[todayISO] ?? 0;
+              const goal = prefs.quranDailyGoal;
+              const met = todayAyahs >= goal;
+              return (
+                <span style={{ color: met ? "var(--ok)" : undefined, opacity: met ? 1 : 0.7 }}>
+                  {met ? "هدف ✓" : `هدف: ${todayAyahs.toLocaleString("ar-EG")}/${goal.toLocaleString("ar-EG")}`}
+                </span>
+              );
+            })()}
             {quranStreak > 0 && <span>🔥 {quranStreak.toLocaleString("ar-EG")} يوم</span>}
             {quranStats.completed > 0 && <span style={{ color: "var(--ok)", opacity: 1 }}>✓ {quranStats.completed.toLocaleString("ar-EG")} مكتملة</span>}
             {/* Plans page link */}
@@ -534,6 +544,27 @@ export function QuranPage() {
             </div>
           </div>
         </button>
+      )}
+
+      {/* ── Khatma finished celebration ───────────────── */}
+      {mode === "surahs" && !query && khatma?.isFinished && (
+        <div
+          className="w-full text-center rounded-3xl border p-5 space-y-2"
+          style={{
+            background: "color-mix(in srgb, var(--ok, #3ddc97) 8%, var(--card))",
+            borderColor: "color-mix(in srgb, var(--ok, #3ddc97) 25%, transparent)",
+          }}
+        >
+          <div className="text-2xl" aria-hidden="true">🏆</div>
+          <div className="text-sm font-bold" style={{ color: "var(--ok, #3ddc97)" }}>مبارك! أتممت الختمة</div>
+          <div className="text-xs opacity-55">جعلها الله في ميزان حسناتك</div>
+          <button type="button"
+            onClick={() => navigate("/quran/plans")}
+            className="mt-1 text-xs opacity-60 hover:opacity-100 transition underline underline-offset-2"
+          >
+            ابدأ ختمة جديدة
+          </button>
+        </div>
       )}
 
       {/* ── Verse of the Day ──────────────────────────────── */}      {mode === "surahs" && !query && dailyVerse && (
