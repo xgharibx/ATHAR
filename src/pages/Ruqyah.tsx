@@ -149,13 +149,11 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
         </div>
       </button>
 
-      {expanded && (
-        <div id={`ruqyah-panel-${section.id}`} className="px-4 pb-4 space-y-3 border-t border-[var(--stroke)] pt-3">
-          {section.items.map((item, idx) => (
-            <RuqyahItemCard key={item.id} item={item} idx={idx} />
-          ))}
-        </div>
-      )}
+      <div id={`ruqyah-panel-${section.id}`} hidden={!expanded} className="px-4 pb-4 space-y-3 border-t border-[var(--stroke)] pt-3">
+        {section.items.map((item, idx) => (
+          <RuqyahItemCard key={item.id} item={item} idx={idx} />
+        ))}
+      </div>
     </Card>
   );
 }
