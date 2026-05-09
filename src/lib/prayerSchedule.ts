@@ -133,7 +133,9 @@ function formatRange(startMinutes: number | null, endMinutes: number | null) {
     return formatMinutes12h(endMinutes);
   }
   if (endMinutes == null || startMinutes === endMinutes) return formatMinutes12h(startMinutes);
-  return `${formatMinutes12h(startMinutes)} - ${formatMinutes12h(endMinutes)}`;
+  // In RTL layout with dir="ltr" containers: end is on the left, start is on the right —
+  // so Arabic readers read right-to-left: start first, then end. That is the natural order.
+  return `${formatMinutes12h(endMinutes)} - ${formatMinutes12h(startMinutes)}`;
 }
 
 function buildPrimaryPrayer(name: PrimaryPrayerName, time: string, dayStart: Date): ComputedPrayer | null {

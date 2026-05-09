@@ -78,6 +78,9 @@ function textClassByLength(text: string) {
   return "text-base leading-8";
 }
 
+// Preferred section strip order (first visible sections in the quick-access bar)
+const PREFERRED_STRIP_ORDER = ["morning", "evening", "waking", "essentials", "salawat", "tasabeeh", "post_prayer", "quranic_duas", "prophets_duas", "prophetic_duas", "jawami_dua", "ruqyah"];
+
 const CHECKLIST_CATEGORY_ICON: Record<DailyChecklistItem["category"], string> = {
   salah:   "🕌",
   quran:   "📖",
@@ -213,7 +216,13 @@ export function HomePage() {
 
   const defaultStripIds = React.useMemo(() => {
     const saved: string[] = prefs.homeStripOrder ?? [];
-    const all = [...customPacks.map((p) => p.id), ...sections.map((s) => s.id)];
+    const sectionIds = sections.map((s) => s.id);
+    // Sort sections: preferred order first, then the rest in original order
+    const orderedSections = [
+      ...PREFERRED_STRIP_ORDER.filter((id) => sectionIds.includes(id)),
+      ...sectionIds.filter((id) => !PREFERRED_STRIP_ORDER.includes(id)),
+    ];
+    const all = [...customPacks.map((p) => p.id), ...orderedSections];
     const result = saved.filter((id) => all.includes(id));
     for (const id of all) if (!result.includes(id)) result.push(id);
     return result;
@@ -864,6 +873,16 @@ export function HomePage() {
             <div className="text-[10px] opacity-30 text-center mb-1 arabic-text select-none">اضغط مطولاً على أي قسم لإعادة ترتيبه</div>
           )}
           <div className="flex gap-2 pb-0.5" style={{ width: "max-content" }}>
+            {/* ── Fixed "+" add custom button (not draggable) — always first ── */}
+            <button type="button"
+              onClick={() => { trackUxEvent("home_strip:custom_manage"); navigate("/adhkar/custom"); }}
+              className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] active:scale-[.91] transition-all"
+              style={{ borderColor: "rgba(255,255,255,0.08)", opacity: draggingStripId ? 0.3 : 0.7 }}
+            >
+              <span className="text-[22px] leading-none">＋</span>
+              <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5">أذكاري</span>
+              <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1" />
+            </button>
             {/* ── Draggable items (custom packs + sections) ── */}
             {(() => {
               const packMap = new Map(customPacks.map((p) => [p.id, p]));
@@ -954,16 +973,6 @@ export function HomePage() {
                 return null;
               });
             })()}
-            {/* ── Fixed "+" add custom button (not draggable) ── */}
-            <button type="button"
-              onClick={() => { trackUxEvent("home_strip:custom_manage"); navigate("/adhkar/custom"); }}
-              className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] active:scale-[.91] transition-all"
-              style={{ borderColor: "rgba(255,255,255,0.08)", opacity: draggingStripId ? 0.3 : 0.7 }}
-            >
-              <span className="text-[22px] leading-none">＋</span>
-              <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5">أذكاري</span>
-              <div className="w-full h-[3px] rounded-full bg-white/10 overflow-hidden mt-1" />
-            </button>
           </div>
         </div>
       )}
