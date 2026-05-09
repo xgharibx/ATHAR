@@ -139,7 +139,7 @@ function BookCard({ book }: { book: HadithBookMeta }) {
         </div>
 
         {/* Footer */}
-        <div className="mt-2.5 flex items-center justify-between border-t border-white/8 pt-2.5">
+        <div className="mt-2.5 flex items-center justify-between border-t border-[var(--stroke)] pt-2.5">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
               <BookOpen size={10} />
@@ -261,7 +261,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
           placeholder="ابحث في الأحاديث…"
           dir="rtl"
           aria-label="البحث في كتب الحديث"
-          className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pr-9 pl-4 text-sm font-arabic text-[var(--fg)] outline-none focus:border-accent-45"
+          className="w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] py-3 pr-9 pl-4 text-sm font-arabic text-[var(--fg)] outline-none focus:border-accent-45"
         />
       </div>
 
@@ -381,7 +381,7 @@ export function HadithBooksPage() {
       {/* Stats banner */}
       <div className="relative z-10 mx-4 mt-4 mb-4 flex items-center gap-4 overflow-hidden rounded-3xl px-5 py-3.5 glass-strong">
         <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-        <div className="relative flex-1 border-l border-white/8 text-center">
+        <div className="relative flex-1 border-l border-[var(--stroke)] text-center">
           <p className="text-xl font-bold text-[var(--fg)] font-arabic">{sorted.length}</p>
           <p className="text-[10px] text-[var(--muted)]">كتاب</p>
         </div>

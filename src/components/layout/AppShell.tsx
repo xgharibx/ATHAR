@@ -79,7 +79,7 @@ const BottomSheetContent = React.forwardRef<HTMLDivElement, {
       <Dialog.Description className="sr-only">روابط سريعة وأقسام الأذكار في تطبيق أثر</Dialog.Description>
       <div
         ref={sheetRef}
-        className="glass-strong rounded-t-[28px] h-full overflow-auto overscroll-contain border-t border-white/12 shadow-2xl"
+        className="glass-strong rounded-t-[28px] h-full overflow-auto overscroll-contain border-t border-[var(--stroke)] shadow-2xl"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -423,7 +423,7 @@ export function AppShell() {
       {/* Skip to main content — keyboard/screen reader a11y */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-xl focus:glass-strong focus:border focus:border-white/20 focus:text-sm focus:font-semibold"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:right-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-xl focus:glass-strong focus:border focus:border-[var(--stroke)] focus:text-sm focus:font-semibold"
         tabIndex={0}
       >
         انتقل إلى المحتوى الرئيسي
@@ -469,7 +469,7 @@ export function AppShell() {
                     </IconButton>
                   </Dialog.Trigger>
                   <Dialog.Portal>
-                    <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40 drawer-overlay-enter" />
+                    <Dialog.Overlay className="fixed inset-0 bg-[var(--card)]0 z-40 drawer-overlay-enter" />
                     <BottomSheetContent onClose={() => setDrawerOpen(false)}>
                       <MobileSidebarContent onNavigate={() => setDrawerOpen(false)} />
                     </BottomSheetContent>
@@ -479,7 +479,7 @@ export function AppShell() {
 
               <NavLink to="/" className="flex items-center gap-2 min-w-0">
                 <LogoMark
-                  className="w-11 h-11 rounded-2xl border border-white/10 overflow-hidden shrink-0"
+                  className="w-11 h-11 rounded-2xl border border-[var(--stroke)] overflow-hidden shrink-0"
                   title="Athar"
                 />
                 {/* Hide text at narrow viewport (high zoom / large OS font) */}
@@ -522,7 +522,7 @@ export function AppShell() {
               </IconButton>
 
               <div className="hidden md:flex items-center gap-2 text-xs opacity-70">
-                <span className="px-3 py-2 rounded-2xl bg-white/6 border border-white/10">
+                <span className="px-3 py-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
                   {`المظهر: ${themeLabel(prefs.theme)}`}
                 </span>
               </div>
@@ -559,7 +559,7 @@ export function AppShell() {
         </div>
 
         <footer className="mt-6" dir="rtl">
-          <div className="glass rounded-3xl border border-white/10">
+          <div className="glass rounded-3xl border border-[var(--stroke)]">
             <button type="button"
               onClick={() => setFooterExpanded((v) => !v)}
               className="w-full flex items-center justify-between gap-3 px-5 pt-5 pb-4"
@@ -574,7 +574,7 @@ export function AppShell() {
             </button>
             {footerExpanded && (
               <>
-                <div className="mx-5 h-px bg-white/10" />
+                <div className="mx-5 h-px bg-[var(--card)]" />
                 <div className="px-5 pb-5 pt-3 arabic-text text-center text-[13px] md:text-sm leading-7 md:leading-8 tracking-tight opacity-85 whitespace-pre-line">
                   {APP_FOOTER_TEXT}
                 </div>

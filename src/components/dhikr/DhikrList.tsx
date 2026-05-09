@@ -479,7 +479,7 @@ export function DhikrList(props: Readonly<{
                     <select
                       value={autoReadSpeed}
                       onChange={(e) => setAutoReadSpeed(Number(e.target.value))}
-                      className="shrink-0 h-9 rounded-xl border border-white/10 bg-white/6 px-2 text-xs outline-none"
+                      className="shrink-0 h-9 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-2 text-xs outline-none"
                       aria-label="سرعة القراءة التلقائية"
                     >
                       <option value={3}>٣ ثانية</option>
@@ -539,7 +539,7 @@ export function DhikrList(props: Readonly<{
             </div>
           )}
 
-          <div className="mt-4 h-2.5 rounded-full bg-white/8 overflow-hidden border border-white/10">
+          <div className="mt-4 h-2.5 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]">
             <div
               className="h-full rounded-full transition-[width] duration-500"
               style={{ width: `${stats.percent}%`, background: identity.accent }}
@@ -570,7 +570,7 @@ export function DhikrList(props: Readonly<{
                     <button type="button"
                       key={s.id}
                       onClick={() => navigate(`/c/${s.id}`)}
-                      className="flex-none flex items-center gap-2 px-3 py-2 rounded-2xl glass border border-white/10 text-right press-effect min-h-[44px] min-w-max"
+                      className="flex-none flex items-center gap-2 px-3 py-2 rounded-2xl glass border border-[var(--stroke)] text-right press-effect min-h-[44px] min-w-max"
                     >
                       <span className="text-lg leading-none">{sid.icon}</span>
                       <div>
@@ -585,7 +585,7 @@ export function DhikrList(props: Readonly<{
           </div>
         )}
         {props.items.length === 0 && isMyAdhkarSection ? (
-          <div className="h-full rounded-3xl border border-white/10 bg-white/5 grid place-items-center p-6 text-center">
+          <div className="h-full rounded-3xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center p-6 text-center">
             <div>
               <div className="text-3xl mb-3">✦</div>
               <div className="font-semibold">أذكاري</div>
@@ -604,13 +604,13 @@ export function DhikrList(props: Readonly<{
             itemContent={(displayIndex, entry) => (
               <div className="pb-4">
                 {reorderMode ? (
-                  <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+                  <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2">
                     <div className="text-xs tabular-nums opacity-65">{displayIndex + 1}</div>
                     <div className="flex items-center gap-1.5">
                       <button type="button"
                         onClick={() => moveSectionItem(props.sectionId, displayIndex, displayIndex - 1, props.items.length)}
                         disabled={displayIndex === 0}
-                        className="h-9 w-9 rounded-xl border border-white/10 bg-white/6 grid place-items-center disabled:opacity-30"
+                        className="h-9 w-9 rounded-xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center disabled:opacity-30"
                         aria-label="رفع الذكر"
                 
                       >
@@ -619,7 +619,7 @@ export function DhikrList(props: Readonly<{
                       <button type="button"
                         onClick={() => moveSectionItem(props.sectionId, displayIndex, displayIndex + 1, props.items.length)}
                         disabled={displayIndex >= orderedEntries.length - 1}
-                        className="h-9 w-9 rounded-xl border border-white/10 bg-white/6 grid place-items-center disabled:opacity-30"
+                        className="h-9 w-9 rounded-xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center disabled:opacity-30"
                         aria-label="خفض الذكر"
                 
                       >
@@ -640,7 +640,7 @@ export function DhikrList(props: Readonly<{
                         </button>
                         <button type="button"
                           onClick={() => setDeletingItemIdx(null)}
-                          className="text-[10px] px-2.5 py-1 rounded-xl bg-white/8 border border-white/10"
+                          className="text-[10px] px-2.5 py-1 rounded-xl bg-[var(--card)] border border-[var(--stroke)]"
                         >
                           إلغاء
                         </button>
@@ -685,21 +685,21 @@ export function DhikrList(props: Readonly<{
           </button>
         ) : null}
         {addOpen ? (
-          <div className="fixed inset-0 z-[10000] bg-black/55 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
+          <div className="fixed inset-0 z-[10000] bg-[var(--card)]5 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
             <button type="button" className="absolute inset-0" aria-label="إغلاق" onClick={() => setAddOpen(false)} />
-            <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-white/15 p-5 pb-32 md:pb-5 shadow-2xl" dir="rtl">
+            <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-[var(--stroke)] p-5 pb-32 md:pb-5 shadow-2xl" dir="rtl">
               <div className="flex items-center justify-between gap-3">
                 <div className="font-semibold">إضافة ذكر</div>
                 <button type="button"
                   onClick={() => setAddOpen(false)}
-                  className="h-10 w-10 rounded-2xl bg-white/8 border border-white/10 grid place-items-center"
+                  className="h-10 w-10 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center"
                   aria-label="إغلاق"
                 >
                   <X size={16} />
                 </button>
               </div>
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px] gap-3">
-                <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-[var(--fg)]">
+                <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--fg)]">
                   {props.title}
                 </div>
                 <Input
@@ -715,7 +715,7 @@ export function DhikrList(props: Readonly<{
                 onChange={(event) => setCustomText(event.target.value)}
                 placeholder="اكتب الذكر"
                 aria-label="نص الذكر الجديد"
-                className="form-field-readable mt-3 min-h-36 w-full rounded-3xl border border-white/10 px-4 py-3 text-sm leading-7 outline-none focus:border-accent-40"
+                className="form-field-readable mt-3 min-h-36 w-full rounded-3xl border border-[var(--stroke)] px-4 py-3 text-sm leading-7 outline-none focus:border-accent-40"
               />
               <Input
                 className="mt-3"
@@ -736,7 +736,7 @@ export function DhikrList(props: Readonly<{
             aria-label="العودة إلى أعلى"
             className={[
               "fixed bottom-[calc(80px+env(safe-area-inset-bottom,0px))] left-4 z-40",
-              "w-11 h-11 rounded-2xl glass-strong border border-white/15 shadow-xl",
+              "w-11 h-11 rounded-2xl glass-strong border border-[var(--stroke)] shadow-xl",
               "flex items-center justify-center transition-all duration-200",
               "hover:scale-105 active:scale-95",
             ].join(" ")}
@@ -750,7 +750,7 @@ export function DhikrList(props: Readonly<{
             aria-label="إنهاء وضع التركيز"
             className={[
               "fixed bottom-[calc(16px+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-50",
-              "px-5 py-2.5 rounded-2xl glass-strong border border-white/20 shadow-2xl",
+              "px-5 py-2.5 rounded-2xl glass-strong border border-[var(--stroke)] shadow-2xl",
               "flex items-center gap-2 text-sm font-medium transition-all duration-200",
               "hover:scale-105 active:scale-95 focus-mode-exit",
             ].join(" ")}
@@ -767,7 +767,7 @@ export function DhikrList(props: Readonly<{
           {nextSection ? (
             <button type="button"
               onClick={() => navigate(`/c/${nextSection.id}`)}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-start"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-start"
             >
               <ChevronRight size={16} className="opacity-60 shrink-0" />
               <span className="text-xs opacity-65 line-clamp-2 leading-tight">{nextSection.title}</span>
@@ -776,7 +776,7 @@ export function DhikrList(props: Readonly<{
           {prevSection ? (
             <button type="button"
               onClick={() => navigate(`/c/${prevSection.id}`)}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-white/10 press-effect text-sm min-h-[44px] flex-1 justify-end"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-end"
             >
               <span className="text-xs opacity-65 line-clamp-2 leading-tight">{prevSection.title}</span>
               <ChevronLeft size={16} className="opacity-60 shrink-0" />

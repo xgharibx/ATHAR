@@ -73,7 +73,7 @@ export default function Companions() {
             <button
               type="button"
               onClick={() => setShowBookmarksOnly((v) => !v)}
-              className="rounded-2xl border border-white/10 p-2 transition glass-hover press-effect"
+              className="rounded-2xl border border-[var(--stroke)] p-2 transition glass-hover press-effect"
               style={showBookmarksOnly
                 ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)" }
                 : { background: "rgba(255,255,255,0.06)", color: "var(--fg)" }}
@@ -123,7 +123,7 @@ export default function Companions() {
               placeholder="ابحث في الصحابة…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="h-9 w-full rounded-2xl border border-white/10 bg-white/5 pr-8 pl-8 text-sm outline-none focus:border-accent-45"
+              className="h-9 w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] pr-8 pl-8 text-sm outline-none focus:border-accent-45"
               style={{ color: "var(--fg)" }}
             />
             {query && (
@@ -216,7 +216,7 @@ export default function Companions() {
                           toast.success("تم النسخ");
                         }
                       }}
-                      className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs transition-all glass-hover press-effect"
+                      className="flex items-center gap-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-3 py-1.5 text-xs transition-all glass-hover press-effect"
                       style={{ color: "var(--fg)" }}
                     >
                       <Share2 size={13} />

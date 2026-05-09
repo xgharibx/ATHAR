@@ -85,7 +85,7 @@ function LibraryEntryCard({ entry }: { entry: FlatLibraryEntry }) {
         <ArrowUpRight size={17} className="opacity-45 shrink-0 mt-1" />
       </div>
 
-      <div className="mt-3 border-t border-white/8 pt-3 space-y-2">
+      <div className="mt-3 border-t border-[var(--stroke)] pt-3 space-y-2">
         <div className="flex items-center justify-between gap-3 text-xs opacity-65">
           <span>{entry.narrator || "فائدة محررة"}</span>
           <span className="font-semibold">{entry.source.title}</span>
@@ -114,7 +114,7 @@ function CollectionCard({ collection, active, onClick }: { collection: LibraryCo
       onClick={onClick}
       className={cn(
         "min-w-[220px] text-right rounded-3xl border p-4 transition press-effect",
-        active ? "bg-white/10 border-white/20" : "glass border-white/10 hover:bg-white/8"
+        active ? "bg-[var(--card)] border-[var(--stroke)]" : "glass border-[var(--stroke)] hover:bg-[var(--card-2)]"
       )}
       style={active ? { borderColor: collection.accent } : undefined}
     >
@@ -202,15 +202,15 @@ export function LibraryPage() {
         </div>
 
         <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="rounded-2xl bg-white/6 border border-white/10 p-3"><div className="text-[10px] opacity-50">المجموعات</div><div className="text-xl font-bold tabular-nums">{data.db.collections.length.toLocaleString("ar-EG")}</div></div>
-          <div className="rounded-2xl bg-white/6 border border-white/10 p-3"><div className="text-[10px] opacity-50">المواد</div><div className="text-xl font-bold tabular-nums">{data.flat.length.toLocaleString("ar-EG")}</div></div>
-          <div className="rounded-2xl bg-white/6 border border-white/10 p-3"><div className="text-[10px] opacity-50">الأبواب</div><div className="text-xl font-bold tabular-nums">{new Set(data.flat.map((e) => e.chapterId)).size.toLocaleString("ar-EG")}</div></div>
+          <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] p-3"><div className="text-[10px] opacity-50">المجموعات</div><div className="text-xl font-bold tabular-nums">{data.db.collections.length.toLocaleString("ar-EG")}</div></div>
+          <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] p-3"><div className="text-[10px] opacity-50">المواد</div><div className="text-xl font-bold tabular-nums">{data.flat.length.toLocaleString("ar-EG")}</div></div>
+          <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] p-3"><div className="text-[10px] opacity-50">الأبواب</div><div className="text-xl font-bold tabular-nums">{new Set(data.flat.map((e) => e.chapterId)).size.toLocaleString("ar-EG")}</div></div>
         </div>
 
         {featured && (
           <button type="button"
             onClick={() => navigate(`/library/${featured.collectionId}/${featured.id}`)}
-            className="w-full text-right rounded-3xl border border-white/10 bg-white/6 p-4 hover:bg-white/9 transition"
+            className="w-full text-right rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 hover:bg-[var(--card-2)] transition"
           >
             <div className="flex items-center gap-2 mb-2"><Sparkles size={15} className="text-[var(--accent)]" /><span className="text-xs font-semibold opacity-60">بداية مقترحة</span></div>
             {featured.title && <div className="text-xs font-semibold mb-1 font-arabic" style={{ color: featured.collectionAccent }}>{featured.collectionTitle} · {featured.title}</div>}
@@ -249,7 +249,7 @@ export function LibraryPage() {
             key={book.key}
             dir="rtl"
             onClick={() => navigate(`/hadith/${book.key}`)}
-            className="press-effect text-right rounded-3xl p-4 glass border border-white/10 transition active:scale-95"
+            className="press-effect text-right rounded-3xl p-4 glass border border-[var(--stroke)] transition active:scale-95"
           >
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
@@ -290,7 +290,7 @@ export function LibraryPage() {
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         <button type="button"
           onClick={() => setTagFilter(null)}
-          className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", !tagFilter ? "bg-[var(--accent)] text-black border-transparent" : "bg-white/8 border-white/10")}
+          className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", !tagFilter ? "bg-[var(--accent)] text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
         >
           كل الموضوعات
         </button>
@@ -298,7 +298,7 @@ export function LibraryPage() {
           <button type="button"
             key={tag}
             onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
-            className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-black border-transparent" : "bg-white/8 border-white/10")}
+            className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-black border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
           >
             {tag} <span className="opacity-60 tabular-nums">{count.toLocaleString("ar-EG")}</span>
           </button>
@@ -319,7 +319,7 @@ export function LibraryPage() {
             <button
               type="button"
               onClick={() => { setTagFilter(null); setCollectionFilter("all"); setQ(""); }}
-              className="text-xs px-4 py-2 rounded-full border border-white/15 bg-white/6 hover:bg-white/10 transition font-arabic"
+              className="text-xs px-4 py-2 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition font-arabic"
             >
               إعادة ضبط الفلاتر
             </button>

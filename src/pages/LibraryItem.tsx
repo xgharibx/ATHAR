@@ -124,7 +124,7 @@ export function LibraryItemPage() {
           {entry.explanation && <div className="text-sm opacity-70 leading-7 mb-4">{entry.explanation}</div>}
           <div className="space-y-2">
             {entry.benefits.map((benefit, index) => (
-              <div key={benefit} className="flex items-start gap-2 rounded-2xl bg-white/5 border border-white/10 p-3">
+              <div key={benefit} className="flex items-start gap-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] p-3">
                 <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: entry.collectionAccent, color: "black" }}>{(index + 1).toLocaleString("ar-EG")}</span>
                 <div className="text-sm opacity-75 leading-7">{benefit}</div>
               </div>
@@ -143,7 +143,7 @@ export function LibraryItemPage() {
             href={verificationUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/8 px-4 py-2.5 text-sm hover:bg-white/12 transition"
+            className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-2.5 text-sm hover:bg-[var(--card-2)] transition"
           >
             <ExternalLink size={15} />
             تحقق في الدرر
@@ -159,7 +159,7 @@ export function LibraryItemPage() {
               <button type="button"
                 key={item.key}
                 onClick={() => navigate(`/library/${item.collectionId}/${item.id}`)}
-                className="w-full text-right rounded-2xl bg-white/5 border border-white/10 p-3 hover:bg-white/9 transition"
+                className="w-full text-right rounded-2xl bg-[var(--card)] border border-[var(--stroke)] p-3 hover:bg-[var(--card-2)] transition"
               >
                 <div className="text-xs font-semibold mb-1" style={{ color: item.collectionAccent }}>{item.collectionTitle}</div>
                 <div className="arabic-text text-sm leading-7 line-clamp-2">{item.arabic}</div>

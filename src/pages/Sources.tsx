@@ -82,7 +82,7 @@ export function SourcesPage() {
                 e.currentTarget.value = "";
               }}
             />
-            <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/12 border border-white/10 cursor-pointer text-sm min-h-[44px]">
+            <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] cursor-pointer text-sm min-h-[44px]">
               <Upload size={16} />
               استيراد حزمة
             </span>
@@ -92,7 +92,7 @@ export function SourcesPage() {
             href="https://www.islambook.com/"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/6 hover:bg-white/8 border border-white/10 text-sm min-h-[44px]"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] text-sm min-h-[44px]"
           >
             <ExternalLink size={16} />
             islambook.com
@@ -108,7 +108,7 @@ export function SourcesPage() {
         </div>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_120px] gap-3">
-          <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-sm text-[var(--fg)]">
+          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--fg)]">
             أذكاري
           </div>
           <Input
@@ -125,7 +125,7 @@ export function SourcesPage() {
           onChange={(event) => setCustomText(event.target.value)}
           placeholder="اكتب الذكر"
           aria-label="نص الذكر"
-          className="form-field-readable mt-3 min-h-32 w-full rounded-3xl border border-white/10 px-4 py-3 text-sm leading-7 outline-none focus:border-accent-40"
+          className="form-field-readable mt-3 min-h-32 w-full rounded-3xl border border-[var(--stroke)] px-4 py-3 text-sm leading-7 outline-none focus:border-accent-40"
         />
 
         <Input
@@ -156,7 +156,7 @@ export function SourcesPage() {
             {packs.map((p) => (
               <div
                 key={p.packId}
-                className="glass rounded-3xl p-4 border border-white/10 flex items-center justify-between gap-3"
+                className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{p.name}</div>
@@ -204,7 +204,7 @@ export function SourcesPage() {
 
 function MiniStat(props: Readonly<{ label: string; value: number }>) {
   return (
-    <div className="glass rounded-3xl p-4 border border-white/10">
+    <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
       <div className="text-xs opacity-60">{props.label}</div>
       <div className="text-2xl font-semibold mt-1 tabular-nums" style={{ color: "var(--accent)" }}>{props.value}</div>
     </div>

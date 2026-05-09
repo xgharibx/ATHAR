@@ -59,11 +59,11 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
         "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px]",
         props.active
           ? "bg-accent-15 border-accent-35"
-          : "bg-white/6 border-white/10 hover:bg-white/8"
+          : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
       ].join(" ")}
     >
       <span
-        className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-white/20"
+        className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-[var(--stroke)]"
         style={{ backgroundColor: dotColor }}
       />
       {props.label}
@@ -213,7 +213,7 @@ export function SettingsPage() {
         <span className="text-xs opacity-55">احتفظ ببياناتك بأمان</span>
         <button type="button"
           onClick={onBackup}
-          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-2xl border border-white/15 bg-white/6 hover:bg-white/10 transition"
+          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition"
         >
           <Download size={12} />
           نسخ احتياطي
@@ -226,19 +226,19 @@ export function SettingsPage() {
           <div className="text-sm font-semibold">ملخص بياناتك</div>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-center">
+          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-center">
             <div className="text-[11px] opacity-55">المفضلة</div>
             <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.favoriteCount.toLocaleString("ar-EG")}</div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-center">
+          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-center">
             <div className="text-[11px] opacity-55">علامات القرآن</div>
             <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.bookmarkCount.toLocaleString("ar-EG")}</div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-center">
+          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-center">
             <div className="text-[11px] opacity-55">أيام النشاط</div>
             <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.activeDays.toLocaleString("ar-EG")}</div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-center">
+          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-center">
             <div className="text-[11px] opacity-55">عناصر متقدمة</div>
             <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.touchedItems.toLocaleString("ar-EG")}</div>
           </div>
@@ -296,7 +296,7 @@ export function SettingsPage() {
         </div>
 
         {/* Custom accent color */}
-        <div className="mt-5 pt-4 border-t border-white/8">
+        <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <div className="text-sm font-medium">لون مخصص</div>
@@ -312,14 +312,14 @@ export function SettingsPage() {
                   aria-label="اختيار لون مخصص"
                 />
                 <span
-                  className="block w-9 h-9 rounded-2xl border-2 border-white/20 shadow-inner ring-1 ring-black/20 transition hover:scale-105"
+                  className="block w-9 h-9 rounded-2xl border-2 border-[var(--stroke)] shadow-inner ring-1 ring-black/20 transition hover:scale-105"
                   style={{ background: prefs.customAccent ?? "var(--accent)" }}
                 />
               </label>
               {prefs.customAccent && (
                 <button type="button"
                   onClick={() => { setPrefs({ customAccent: undefined }); toast("تم مسح اللون المخصص"); }}
-                  className="text-xs px-2.5 py-1.5 rounded-xl bg-white/8 border border-white/10 opacity-70 hover:opacity-100 transition min-h-[36px]"
+                  className="text-xs px-2.5 py-1.5 rounded-xl bg-[var(--card)] border border-[var(--stroke)] opacity-70 hover:opacity-100 transition min-h-[36px]"
                 >
                   إعادة ضبط
                 </button>
@@ -329,7 +329,7 @@ export function SettingsPage() {
         </div>
 
         {/* Se1: Arabic font family selector */}
-        <div className="mt-5 pt-4 border-t border-white/8">
+        <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
           <div className="flex items-center gap-2 mb-3">
             <Type size={15} className="text-[var(--accent)]" />
             <div className="text-sm font-medium">خط القراءة</div>
@@ -347,7 +347,7 @@ export function SettingsPage() {
                   "px-3 py-2.5 rounded-2xl border text-sm transition flex flex-col items-center gap-1 min-h-[60px] min-w-[90px]",
                   (prefs.arabicFont ?? "noto_naskh") === f.id
                     ? "bg-accent-15 border-accent-35"
-                    : "bg-white/6 border-white/10 hover:bg-white/8"
+                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                 ].join(" ")}
               >
                 <span className="text-xs opacity-70">{f.label}</span>
@@ -358,7 +358,7 @@ export function SettingsPage() {
         </div>
 
         {/* Se3: Language switcher */}
-        <div className="mt-5 pt-4 border-t border-white/8">
+        <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Globe size={15} className="text-[var(--accent)]" />
@@ -376,10 +376,10 @@ export function SettingsPage() {
                     "px-4 py-2 rounded-xl border text-sm transition min-h-[40px] relative",
                     (prefs.uiLanguage ?? "ar") === lang
                       ? "bg-accent-15 border-accent-35 font-semibold"
-                      : "bg-white/6 border-white/10 hover:bg-white/10 opacity-60"
+                      : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)] opacity-60"
                   ].join(" ")}
                 >
-                  {lang === "ar" ? "عربي" : <span className="flex items-center gap-1">English <span className="text-[9px] bg-white/15 rounded px-1 py-0.5 leading-none">قريبًا</span></span>}
+                  {lang === "ar" ? "عربي" : <span className="flex items-center gap-1">English <span className="text-[9px] bg-[var(--card-2)] rounded px-1 py-0.5 leading-none">قريبًا</span></span>}
                 </button>
               ))}
             </div>
@@ -387,7 +387,7 @@ export function SettingsPage() {
         </div>
 
         {/* Se4: Text direction */}
-        <div className="mt-5 pt-4 border-t border-white/8">
+        <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-sm font-medium">اتجاه النص</div>
@@ -406,7 +406,7 @@ export function SettingsPage() {
                     "px-3 py-2 rounded-xl border text-xs transition min-h-[40px]",
                     (prefs.textDir ?? "auto") === d.id
                       ? "bg-accent-15 border-accent-35 font-semibold"
-                      : "bg-white/6 border-white/10 hover:bg-white/10"
+                      : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                   ].join(" ")}
                 >
                   {d.label}
@@ -417,14 +417,14 @@ export function SettingsPage() {
         </div>
 
         {/* Se6: Restore defaults */}
-        <div className="mt-5 pt-4 border-t border-white/8 flex items-center justify-between gap-3">
+        <div className="mt-5 pt-4 border-t border-[var(--stroke)] flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-medium">إعادة الضبط الافتراضي</div>
             <div className="text-xs opacity-60 mt-0.5">إعادة إعدادات المظهر والقراءة دون فقدان التقدّم</div>
           </div>
           <button type="button"
             onClick={() => { resetPrefs(); toast.success("تم إعادة الضبط الافتراضي"); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/15 bg-white/6 hover:bg-white/10 transition text-xs min-h-[40px]"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition text-xs min-h-[40px]"
           >
             <RotateCcw size={13} />
             إعادة ضبط
@@ -520,7 +520,7 @@ export function SettingsPage() {
                         "px-4 py-3 rounded-xl border text-sm transition min-h-[44px]",
                         prefs.quranPageSize === n
                           ? "bg-accent-15 border-accent-35"
-                          : "bg-white/6 border-white/10 hover:bg-white/10"
+                          : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                       ].join(" ")}
                     >
                       {n.toLocaleString("ar-EG")}
@@ -569,7 +569,7 @@ export function SettingsPage() {
                       "text-[10px] px-2.5 py-1.5 rounded-xl border transition min-h-[36px]",
                       prefs.quranTheme === t
                         ? "bg-accent-15 border-accent-35"
-                        : "bg-white/6 border-white/10 hover:bg-white/10"
+                        : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                     ].join(" ")}
                   >
                     {{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق" }[t]}
@@ -593,7 +593,7 @@ export function SettingsPage() {
                       "text-xs px-3 py-2 rounded-xl border transition min-h-[36px]",
                       prefs.quranScrollMode === m
                         ? "bg-accent-15 border-accent-35"
-                        : "bg-white/6 border-white/10 hover:bg-white/10"
+                        : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                     ].join(" ")}
                   >
                     {m === "page" ? "📄 صفحات" : "📜 تمرير"}
@@ -638,7 +638,7 @@ export function SettingsPage() {
           </div>
 
           {/* ── Se10: Daily goal stepper + preset buttons ──── */}
-          <div className="glass rounded-3xl p-4 border border-white/10">
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="text-sm font-semibold mb-1">الهدف اليومي للقرآن</div>
             <div className="text-xs opacity-65 mb-3">عدد الآيات المستهدف يومياً</div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -656,7 +656,7 @@ export function SettingsPage() {
                     "px-3 py-2 rounded-xl border text-xs transition min-h-[36px]",
                     (prefs.quranDailyGoal ?? 10) === p.value
                       ? "bg-accent-15 border-accent-35 font-semibold"
-                      : "bg-white/6 border-white/10 hover:bg-white/10"
+                      : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                   ].join(" ")}
                 >
                   {p.label}
@@ -664,13 +664,13 @@ export function SettingsPage() {
               ))}
               <div className="flex items-center gap-2 mr-auto">
                 <button type="button"
-                  className="w-8 h-8 rounded-xl bg-white/8 border border-white/12 flex items-center justify-center hover:bg-white/12 transition text-base"
+                  className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
                   onClick={() => setPrefs({ quranDailyGoal: Math.max(1, (prefs.quranDailyGoal ?? 10) - 5) })}
                   aria-label="تقليل الهدف"
                 >−</button>
                 <span className="w-12 text-center text-sm tabular-nums font-semibold">{(prefs.quranDailyGoal ?? 10).toLocaleString("ar-EG")}</span>
                 <button type="button"
-                  className="w-8 h-8 rounded-xl bg-white/8 border border-white/12 flex items-center justify-center hover:bg-white/12 transition text-base"
+                  className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
                   onClick={() => setPrefs({ quranDailyGoal: Math.min(604, (prefs.quranDailyGoal ?? 10) + 5) })}
                   aria-label="زيادة الهدف"
                 >+</button>
@@ -693,7 +693,7 @@ export function SettingsPage() {
                   "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px] text-right",
                   (prefs.quranReciter ?? "Alafasy_128kbps") === r.id
                     ? "bg-accent-15 border-accent-35"
-                    : "bg-white/6 border-white/10 hover:bg-white/8"
+                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                 ].join(" ")}
               >
                 <span className="text-base shrink-0">🎙</span>
@@ -702,7 +702,7 @@ export function SettingsPage() {
             ))}
           </div>
 
-          <div className="glass rounded-3xl p-4 border border-white/10">
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="text-xs opacity-65 mb-2">معاينة مباشرة</div>
             <div
               className="arabic-text"
@@ -810,7 +810,7 @@ export function SettingsPage() {
                   toast.error("تعذرت المزامنة");
                 }
               }}
-              className="text-xs px-3 py-1.5 rounded-xl border border-white/12 bg-white/6 hover:bg-white/10 transition flex items-center gap-1.5 min-h-[36px]"
+              className="text-xs px-3 py-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition flex items-center gap-1.5 min-h-[36px]"
             >
               <RotateCw size={12} />
               مزامنة الآن
@@ -828,7 +828,7 @@ export function SettingsPage() {
           </div>
         ) : null}
 
-        <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+        <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
               <div className="text-sm font-semibold">صوت التذكير</div>
@@ -845,7 +845,7 @@ export function SettingsPage() {
                     "rounded-2xl border p-3 transition",
                     active
                       ? "bg-accent-12 border-accent-30"
-                      : "bg-white/4 border-white/10",
+                      : "bg-[var(--card)] border-[var(--stroke)]",
                   ].join(" ")}
                 >
                   <button type="button"
@@ -858,7 +858,7 @@ export function SettingsPage() {
                   <div className="mt-3 flex justify-end">
                     <button type="button"
                       onClick={() => void toggleReminderPreview(option.id)}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-white/12 bg-white/6 px-3 py-2 text-xs transition hover:bg-white/10"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-xs transition hover:bg-[var(--card-2)]"
                     >
                       {playingPreview === `reminder:${option.id}` ? <Square size={12} /> : <Play size={12} />}
                       {playingPreview === `reminder:${option.id}` ? "إيقاف" : "معاينة"}
@@ -871,7 +871,7 @@ export function SettingsPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div id="prayer-settings" className="glass rounded-3xl p-4 border border-white/10 md:col-span-2">
+          <div id="prayer-settings" className="glass rounded-3xl p-4 border border-[var(--stroke)] md:col-span-2">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">تنبيهات الصلوات</div>
@@ -884,13 +884,13 @@ export function SettingsPage() {
               />
             </div>
 
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
+            <div className="mt-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3">
               <div className="text-xs font-semibold">اختر الصلوات التي تريد الأذان لها</div>
               <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2">
                 {PRAYER_ALERT_OPTIONS.map((prayer) => (
                   <label
                     key={prayer.id}
-                    className="rounded-2xl border border-white/10 bg-black/10 px-3 py-2.5 flex items-center justify-between gap-2 text-sm"
+                    className="rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2.5 flex items-center justify-between gap-2 text-sm"
                   >
                     <span>{prayer.label}</span>
                     <Switch
@@ -905,7 +905,7 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/10 p-4">
+            <div className="mt-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
                   <div className="text-sm font-semibold">صوت الأذان</div>
@@ -922,7 +922,7 @@ export function SettingsPage() {
                         "rounded-2xl border p-3 transition",
                         active
                           ? "bg-accent-12 border-accent-30"
-                          : "bg-white/4 border-white/10",
+                          : "bg-[var(--card)] border-[var(--stroke)]",
                       ].join(" ")}
                     >
                       <button type="button"
@@ -935,7 +935,7 @@ export function SettingsPage() {
                       <div className="mt-3 flex justify-end">
                         <button type="button"
                           onClick={() => void togglePrayerPreview(option.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-white/12 bg-white/6 px-3 py-2 text-xs transition hover:bg-white/10"
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-xs transition hover:bg-[var(--card-2)]"
                         >
                           {playingPreview === `prayer:${option.id}` ? <Square size={12} /> : <Play size={12} />}
                           {playingPreview === `prayer:${option.id}` ? "إيقاف" : "معاينة"}
@@ -949,9 +949,9 @@ export function SettingsPage() {
           </div>
 
           <div className="md:col-span-2 pt-3 pb-1">
-            <div className="text-xs font-semibold opacity-55 border-b border-white/8 pb-2">تذكيرات الأذكار اليومية</div>
+            <div className="text-xs font-semibold opacity-55 border-b border-[var(--stroke)] pb-2">تذكيرات الأذكار اليومية</div>
           </div>
-          <div className="glass rounded-3xl p-4 border border-white/10">
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">أذكار الصباح</div>
@@ -975,7 +975,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="glass rounded-3xl p-4 border border-white/10">
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">أذكار المساء</div>
@@ -999,7 +999,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="glass rounded-3xl p-4 border border-white/10">
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">ورد اليوم (القرآن)</div>
@@ -1023,7 +1023,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="glass rounded-3xl p-4 border border-white/10">
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">خطة الختمة</div>
@@ -1048,7 +1048,7 @@ export function SettingsPage() {
           </div>
 
           {/* Phase 10 — Daily hadith at Fajr */}
-          <div className="glass rounded-3xl p-4 border border-white/10">
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold">حديث الفجر اليومي</div>
@@ -1097,7 +1097,7 @@ export function SettingsPage() {
                   if (file) void onRestore(file);
                 }}
               />
-              <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/12 border border-white/10 cursor-pointer text-sm min-h-[44px]">
+              <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] cursor-pointer text-sm min-h-[44px]">
                 <Upload size={16} />
                 استيراد
               </span>
@@ -1133,7 +1133,7 @@ export function SettingsPage() {
             />
           )}
           {/* Se9: App icon variants */}
-          <div className="glass rounded-3xl p-4 border border-white/10">
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="flex items-center gap-2 mb-2">
               <Layers size={14} className="text-[var(--accent)]" />
               <div className="text-sm font-semibold">أيقونة التطبيق</div>
@@ -1151,7 +1151,7 @@ export function SettingsPage() {
                   <button type="button"
                     key={icon.id}
                     onClick={() => toast("قريبًا — تغيير أيقونة التطبيق قيد التطوير")}
-                    className="px-3 py-2 rounded-xl border border-white/10 bg-white/6 text-xs transition min-h-[36px] opacity-60 cursor-not-allowed"
+                    className="px-3 py-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] text-xs transition min-h-[36px] opacity-60 cursor-not-allowed"
                   >
                     {icon.label}
                   </button>
@@ -1252,13 +1252,13 @@ function HomeWidgetsCard(props: {
         {order.map((key, i) => (
           <div
             key={key}
-            className="flex items-center gap-3 glass rounded-2xl border border-white/10 px-3 py-2.5"
+            className="flex items-center gap-3 glass rounded-2xl border border-[var(--stroke)] px-3 py-2.5"
           >
             <div className="flex flex-col gap-0.5">
               <button type="button"
                 onClick={() => moveUp(i)}
                 disabled={i === 0}
-                className="p-1 rounded-lg hover:bg-white/10 transition disabled:opacity-25"
+                className="p-1 rounded-lg hover:bg-[var(--card-2)] transition disabled:opacity-25"
                 aria-label="تحريك لأعلى"
               >
                 <ArrowUp size={12} />
@@ -1266,7 +1266,7 @@ function HomeWidgetsCard(props: {
               <button type="button"
                 onClick={() => moveDown(i)}
                 disabled={i === order.length - 1}
-                className="p-1 rounded-lg hover:bg-white/10 transition disabled:opacity-25"
+                className="p-1 rounded-lg hover:bg-[var(--card-2)] transition disabled:opacity-25"
                 aria-label="تحريك لأسفل"
               >
                 <ArrowDown size={12} />
@@ -1281,10 +1281,10 @@ function HomeWidgetsCard(props: {
             >
               {HOME_WIDGET_LABELS[key]}
               {(key === "wisdom" || key === "dailyVerse") && (
-                <span className="text-[10px] opacity-35 bg-white/6 rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن شريط اليومي</span>
+                <span className="text-[10px] opacity-35 bg-[var(--card)] rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن شريط اليومي</span>
               )}
               {key === "quests" && (
-                <span className="text-[10px] opacity-35 bg-white/6 rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن القائمة</span>
+                <span className="text-[10px] opacity-35 bg-[var(--card)] rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن القائمة</span>
               )}
             </span>
             <Switch
@@ -1305,7 +1305,7 @@ function SettingRow(props: { title: string; desc: string; right: React.ReactNode
     ? React.cloneElement(props.right as React.ReactElement<Record<string, unknown>>, { "aria-label": props.title })
     : props.right;
   return (
-    <div className="glass rounded-3xl p-4 border border-white/10 flex items-center justify-between gap-4">
+    <div className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-center justify-between gap-4">
       <div className="min-w-0">
         <div className="text-sm font-semibold">{props.title}</div>
         <div className="text-xs opacity-65 mt-1 leading-5">{props.desc}</div>

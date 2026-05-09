@@ -289,7 +289,7 @@ export function HadithReaderPage() {
           <div className="relative flex items-start gap-3 pr-2">
             <button type="button"
               onClick={() => navigate(-1)}
-              className="h-11 w-11 rounded-2xl border border-white/10 bg-white/6 grid place-items-center transition hover:bg-white/10 shrink-0"
+              className="h-11 w-11 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] shrink-0"
               aria-label="رجوع"
             >
               <ArrowRight size={19} className="text-[var(--fg)]" />
@@ -411,7 +411,7 @@ export function HadithReaderPage() {
           <Card className="p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold opacity-55">ملاحظتي</span>
-              <button type="button" onClick={() => setShowNoteEditor(false)} className="h-9 w-9 rounded-xl bg-white/6 border border-white/10 grid place-items-center opacity-70 hover:opacity-100" aria-label="إغلاق">
+              <button type="button" onClick={() => setShowNoteEditor(false)} className="h-9 w-9 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center opacity-70 hover:opacity-100" aria-label="إغلاق">
                 <X size={14} />
               </button>
             </div>
@@ -422,7 +422,7 @@ export function HadithReaderPage() {
               placeholder="أضف ملاحظتك هنا…"
               aria-label="ملاحظة الحديث"
               rows={4}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 resize-none outline-none font-arabic text-sm leading-7 placeholder:opacity-40 focus:border-accent-40"
+              className="w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 resize-none outline-none font-arabic text-sm leading-7 placeholder:opacity-40 focus:border-accent-40"
               style={{ color: "var(--fg)" }}
               autoFocus
             />
@@ -430,7 +430,7 @@ export function HadithReaderPage() {
               {existingNote && (
                 <button type="button"
                   onClick={() => { bookKey && setHadithNote(bookKey, n, ""); setShowNoteEditor(false); }}
-                  className="text-xs px-3 py-2 rounded-xl bg-white/6 border border-white/10 opacity-70 hover:opacity-100 transition"
+                  className="text-xs px-3 py-2 rounded-xl bg-[var(--card)] border border-[var(--stroke)] opacity-70 hover:opacity-100 transition"
                 >
                   حذف
                 </button>
@@ -465,7 +465,7 @@ export function HadithReaderPage() {
               <button type="button"
                 disabled={!prevN}
                 onClick={() => prevN && navigate(`/hadith/${bookKey}/${prevN}`, { replace: true })}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition border border-white/10 bg-white/6 press-effect"
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition border border-[var(--stroke)] bg-[var(--card)] press-effect"
               >
                 <ChevronRight size={16} />
                 السابق

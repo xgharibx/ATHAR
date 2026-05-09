@@ -82,7 +82,7 @@ function WeekStrip({ doneMap }: { doneMap: Record<string, boolean> }) {
           <div key={iso} className="flex flex-col items-center gap-1 flex-1">
             <div className={`text-[9px] opacity-50 ${isToday ? "opacity-90 font-bold" : ""}`}>{label}</div>
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all
-              ${done ? "bg-[var(--accent)] text-[var(--bg)]" : isToday ? "border-2 border-[var(--accent)] text-[var(--accent)]" : "bg-white/8 opacity-40"}`}>
+              ${done ? "bg-[var(--accent)] text-[var(--bg)]" : isToday ? "border-2 border-[var(--accent)] text-[var(--accent)]" : "bg-[var(--card)] opacity-40"}`}>
               {done ? "✓" : toArabicNumeral(new Date(iso + "T00:00:00").getDate())}
             </div>
           </div>
@@ -208,7 +208,7 @@ export function QuranPlansPage() {
       <div className="flex items-center gap-3 pt-1">
         <button type="button" onClick={() => navigate(-1)}
           aria-label="رجوع"
-          className="w-9 h-9 rounded-full bg-white/8 hover:bg-white/12 flex items-center justify-center transition-colors">
+          className="w-9 h-9 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] flex items-center justify-center transition-colors">
           <ChevronRight className="w-5 h-5" />
         </button>
         <div>
@@ -235,15 +235,15 @@ export function QuranPlansPage() {
 
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-2xl bg-white/5 p-2">
+            <div className="rounded-2xl bg-[var(--card)] p-2">
               <div className="text-base font-bold text-[var(--accent)]">{toArabicNumeral(activePlan.doneCount)}</div>
               <div className="text-[10px] opacity-50">يوم مكتمل</div>
             </div>
-            <div className="rounded-2xl bg-white/5 p-2">
+            <div className="rounded-2xl bg-[var(--card)] p-2">
               <div className="text-base font-bold">{toArabicNumeral(Math.max(0, activePlan.days - activePlan.elapsed))}</div>
               <div className="text-[10px] opacity-50">يوم متبقٍ</div>
             </div>
-            <div className="rounded-2xl bg-white/5 p-2">
+            <div className="rounded-2xl bg-[var(--card)] p-2">
               <div className="text-base font-bold">{toArabicNumeral(activePlan.dailyAyahs)}</div>
               <div className="text-[10px] opacity-50">آية يومياً</div>
             </div>
@@ -257,7 +257,7 @@ export function QuranPlansPage() {
                 {toArabicNumeral(activePlan.todayAyahs)} / {toArabicNumeral(activePlan.dailyAyahs)} آية
               </span>
             </div>
-            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className="h-2 rounded-full bg-[var(--card)] overflow-hidden">
               <div className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
                 style={{ width: `${todayReadPct}%` }} />
             </div>
@@ -366,7 +366,7 @@ export function QuranPlansPage() {
                   className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all text-right
                     ${isActive
                       ? "bg-accent-15 border border-accent-40"
-                      : "bg-white/5 hover:bg-white/10 border border-transparent"}`}
+                      : "bg-[var(--card)] hover:bg-[var(--card-2)] border border-transparent"}`}
                 >
                   <span className="text-xl w-8 text-center">{preset.emoji}</span>
                   <div className="flex-1">
@@ -384,7 +384,7 @@ export function QuranPlansPage() {
           </div>
 
           {/* Custom */}
-          <div className="border-t border-white/8 pt-3">
+          <div className="border-t border-[var(--stroke)] pt-3">
             <div className="text-xs opacity-50 mb-2 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               خطة مخصصة
@@ -396,7 +396,7 @@ export function QuranPlansPage() {
                 min={7}
                 max={730}
                 onChange={(e) => setCustomDays(e.target.value)}
-                className="flex-1 bg-white/8 border border-white/10 rounded-2xl px-3 py-2 text-sm text-right focus:outline-none focus:border-accent-60"
+                className="flex-1 bg-[var(--card)] border border-[var(--stroke)] rounded-2xl px-3 py-2 text-sm text-right focus:outline-none focus:border-accent-60"
                 placeholder="عدد الأيام"
               />
               <Button onClick={handleCustomStart} className="shrink-0 text-sm px-4">
@@ -417,7 +417,7 @@ export function QuranPlansPage() {
         <div className="flex gap-2">
           <button type="button"
             onClick={() => setShowPresets(true)}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-white/6 hover:bg-white/10 text-sm transition-colors border border-white/8">
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] text-sm transition-colors border border-[var(--stroke)]">
             <Target className="w-4 h-4 opacity-60" />
             تغيير الخطة
           </button>

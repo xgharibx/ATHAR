@@ -243,7 +243,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "adhkar"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <Heart size={14} />
@@ -255,7 +255,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "quran"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <BookOpen size={14} />
@@ -267,7 +267,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "hadith"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <ScrollText size={14} />
@@ -279,7 +279,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "duas"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <Bookmark size={14} />
@@ -291,7 +291,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "stories"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <Star size={14} />
@@ -303,7 +303,7 @@ export function FavoritesPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "companions"
                 ? "bg-accent-15 border-accent-35 font-medium"
-                : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
+                : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
             <Users size={14} />
@@ -342,7 +342,7 @@ export function FavoritesPage() {
                     {group.items.map((r: FlatDhikr) => (
                       <div
                         key={r.key}
-                        className="glass rounded-3xl p-4 border border-white/10 flex items-start justify-between gap-3 press-effect glass-hover"
+                        className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-start justify-between gap-3 press-effect glass-hover"
                       >
                         <button type="button" className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
                           <div className="flex items-start justify-between gap-3">
@@ -353,7 +353,7 @@ export function FavoritesPage() {
                             {r.text.length > 200 ? "…" : ""}
                           </div>
                           {r.benefit && (
-                            <div className="mt-2 text-[11px] opacity-50 leading-5 border-t border-white/8 pt-2">
+                            <div className="mt-2 text-[11px] opacity-50 leading-5 border-t border-[var(--stroke)] pt-2">
                               الفضل: {r.benefit.slice(0, 100)}{r.benefit.length > 100 ? "…" : ""}
                             </div>
                           )}
@@ -419,11 +419,11 @@ export function FavoritesPage() {
                     <span className="text-xs font-semibold opacity-65 arabic-text">{group.surahName}</span>
                     <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
                   </div>
-                  <div className="divide-y divide-white/6 rounded-2xl border border-white/10 overflow-hidden">
+                  <div className="divide-y divide-white/6 rounded-2xl border border-[var(--stroke)] overflow-hidden">
                     {group.items.map((bm) => (
-                      <div key={`${bm.surahId}:${bm.ayahIndex}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/6 transition">
+                      <div key={`${bm.surahId}:${bm.ayahIndex}`} className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--card)] transition">
                         {bm.highlight && HL_SWATCHES[bm.highlight] && (
-                          <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-white/20" style={{ background: HL_SWATCHES[bm.highlight] }} />
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-[var(--stroke)]" style={{ background: HL_SWATCHES[bm.highlight] }} />
                         )}
                         <button type="button"
                           className="flex-1 text-right min-w-0"
@@ -487,7 +487,7 @@ export function FavoritesPage() {
                           "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
                           selectedBmBookKey === bk
                             ? "text-white border-transparent"
-                            : "bg-white/6 border-white/10 hover:bg-white/10"
+                            : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                         ].join(" ")}
                         style={selectedBmBookKey === bk ? { background: book?.color ?? "var(--accent)" } : {}}
                       >
@@ -506,7 +506,7 @@ export function FavoritesPage() {
                     return (
                       <div
                         key={`${h.bookKey}:${h.n}`}
-                        className="glass rounded-3xl p-4 border border-white/10 flex items-start gap-3"
+                        className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-start gap-3"
                       >
                         <button type="button"
                           className="flex-1 text-right min-w-0"
@@ -564,7 +564,7 @@ export function FavoritesPage() {
               {duaFavItems.map((dua) => (
                 <div
                   key={dua.id}
-                  className="glass rounded-2xl p-4 border border-white/10 flex items-start gap-3"
+                  className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3"
                 >
                   <div className="flex-1 min-w-0 text-right" dir="rtl">
                     <div className="text-[10px] opacity-50 mb-1">{dua.categoryIcon} {dua.categoryLabel}</div>
@@ -616,7 +616,7 @@ export function FavoritesPage() {
               {storyFavItems.map((story) => (
                 <div
                   key={story.id}
-                  className="glass rounded-2xl p-4 border border-white/10"
+                  className="glass rounded-2xl p-4 border border-[var(--stroke)]"
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <div
@@ -667,7 +667,7 @@ export function FavoritesPage() {
               {companionFavItems.map((companion) => (
                 <div
                   key={companion.id}
-                  className="glass rounded-2xl p-4 border border-white/10 flex items-start gap-3"
+                  className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3"
                 >
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"

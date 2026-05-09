@@ -222,7 +222,7 @@ export function SearchPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "adhkar"
                 ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                : "bg-white/6 border-white/10 hover:bg-white/10"
+                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
             🤲 الأذكار
@@ -233,7 +233,7 @@ export function SearchPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "quran"
                 ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                : "bg-white/6 border-white/10 hover:bg-white/10"
+                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
             <BookOpen size={13} /> القرآن
@@ -244,7 +244,7 @@ export function SearchPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "library"
                 ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                : "bg-white/6 border-white/10 hover:bg-white/10"
+                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
             <LibraryBig size={13} /> المكتبة
@@ -255,7 +255,7 @@ export function SearchPage() {
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "hadith"
                 ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                : "bg-white/6 border-white/10 hover:bg-white/10"
+                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
             <ScrollText size={13} /> الأحاديث
@@ -279,7 +279,7 @@ export function SearchPage() {
                 <button type="button"
                   key={s}
                   onClick={() => setQ(s)}
-                  className="px-3 py-1.5 rounded-full glass border border-white/10 text-xs hover:bg-white/10 transition arabic-text min-h-[36px]"
+                  className="px-3 py-1.5 rounded-full glass border border-[var(--stroke)] text-xs hover:bg-[var(--card-2)] transition arabic-text min-h-[36px]"
                 >
                   {s}
                 </button>
@@ -298,7 +298,7 @@ export function SearchPage() {
               "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
               sectionFilter === null
                 ? "bg-[var(--accent)] border-transparent text-black"
-                : "bg-white/8 border-white/12 hover:bg-white/12"
+                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
             الكل ({sectionChips.reduce((a, c) => a + c.count, 0)})
@@ -314,7 +314,7 @@ export function SearchPage() {
                   "shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                   isActive
                     ? "border-transparent text-black"
-                    : "bg-white/8 border-white/12 hover:bg-white/12"
+                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                 )}
                 style={isActive ? { background: identity.accent } : {}}
               >
@@ -336,7 +336,7 @@ export function SearchPage() {
               "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
               libraryFilter === null
                 ? "bg-[var(--accent)] border-transparent text-black"
-                : "bg-white/8 border-white/12 hover:bg-white/12"
+                : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
             الكل ({libraryChips.reduce((a, c) => a + c.count, 0)})
@@ -351,7 +351,7 @@ export function SearchPage() {
                   "shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                   isActive
                     ? "border-transparent text-black"
-                    : "bg-white/8 border-white/12 hover:bg-white/12"
+                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                 )}
                 style={isActive ? { background: chip.accent } : {}}
               >
@@ -394,7 +394,7 @@ export function SearchPage() {
                 <button type="button"
                   key={r.key}
                   onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}
-                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
+                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-1.5 min-w-0">
@@ -425,7 +425,7 @@ export function SearchPage() {
                     {r.text.length > 220 ? "…" : ""}
                   </div>
                   {r.benefit && (
-                    <div className="mt-2 text-[11px] opacity-55 leading-5 border-t border-white/8 pt-2">
+                    <div className="mt-2 text-[11px] opacity-55 leading-5 border-t border-[var(--stroke)] pt-2">
                       الفضل: {r.benefit.slice(0, 120)}{r.benefit.length > 120 ? "…" : ""}
                     </div>
                   )}
@@ -467,7 +467,7 @@ export function SearchPage() {
                 <button type="button"
                   key={`s-${r.surah.id}`}
                   onClick={() => navigate(`/quran/${r.surah.id}`)}
-                  className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
+                  className="w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
@@ -482,7 +482,7 @@ export function SearchPage() {
                 <button type="button"
                   key={`a-${r.surah.id}-${r.ayahIndex}-${idx}`}
                   onClick={() => navigate(`/quran/${r.surah.id}?a=${r.ayahIndex}`)}
-                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
+                  className="group w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 min-w-0">
@@ -534,7 +534,7 @@ export function SearchPage() {
             <div className="text-sm opacity-55">ابحث في الحديث، الراوي، المصدر، أو الفوائد</div>
             <button type="button"
               onClick={() => navigate("/library")}
-              className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-white/8 border border-white/10 px-4 py-2 text-xs hover:bg-white/12 transition"
+              className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-4 py-2 text-xs hover:bg-[var(--card-2)] transition"
             >
               فتح المكتبة
               <ArrowUpRight size={14} />
@@ -552,7 +552,7 @@ export function SearchPage() {
               <button type="button"
                 key={entry.key}
                 onClick={() => navigate(`/library/${entry.collectionId}/${entry.id}`)}
-                className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
+                className="w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -571,7 +571,7 @@ export function SearchPage() {
                   {entry.arabic.slice(0, 220)}{entry.arabic.length > 220 ? "…" : ""}
                 </div>
                 {entry.benefits[0] && (
-                  <div className="mt-2 text-[11px] opacity-55 leading-5 border-t border-white/8 pt-2">
+                  <div className="mt-2 text-[11px] opacity-55 leading-5 border-t border-[var(--stroke)] pt-2">
                     فائدة: {entry.benefits[0].slice(0, 120)}{entry.benefits[0].length > 120 ? "…" : ""}
                   </div>
                 )}
@@ -602,7 +602,7 @@ export function SearchPage() {
                 "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
                 hadithBookKey === book.key
                   ? "text-white border-transparent"
-                  : "bg-white/6 border-white/10 hover:bg-white/10"
+                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
               )}
               style={hadithBookKey === book.key ? { background: book.color } : {}}
             >
@@ -639,7 +639,7 @@ export function SearchPage() {
                   key={h.n}
                   dir="rtl"
                   onClick={() => navigate(`/hadith/${hadithBookKey}/${h.n}`)}
-                  className="w-full text-right glass rounded-3xl p-4 hover:bg-white/10 transition border border-white/10 press-effect glass-hover"
+                  className="w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">

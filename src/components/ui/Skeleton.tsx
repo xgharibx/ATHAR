@@ -63,7 +63,7 @@ export function DhikrCardSkeleton() {
 /** Quick stat skeleton */
 export function StatSkeleton() {
   return (
-    <div className="glass rounded-3xl p-4 border border-white/10">
+    <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
       <Skeleton className="h-3 w-16 rounded-lg" />
       <Skeleton className="h-7 w-12 rounded-xl mt-2" />
     </div>

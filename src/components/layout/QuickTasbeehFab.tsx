@@ -81,7 +81,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
 
       {/* Panel */}
       <div
-        className="w-[280px] glass-strong rounded-3xl p-4 border border-white/10 page-enter"
+        className="w-[280px] glass-strong rounded-3xl p-4 border border-[var(--stroke)] page-enter"
         style={{ boxShadow: "0 12px 48px rgba(0,0,0,0.5)" }}
       >
         {/* Close */}
@@ -89,7 +89,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
           <div className="text-sm font-semibold">تسبيح سريع</div>
           <button type="button"
             onClick={() => setOpen(false)}
-            className="w-11 h-11 rounded-full bg-white/6 border border-white/10 grid place-items-center text-xs"
+            className="w-11 h-11 rounded-full bg-[var(--card)] border border-[var(--stroke)] grid place-items-center text-xs"
             aria-label="إغلاق"
           >
             ✕
@@ -106,7 +106,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
                 "rounded-2xl px-2.5 py-3 text-sm border transition press-effect min-h-[44px]",
                 selected === t.key
                   ? "bg-[var(--accent)] text-black border-transparent font-semibold"
-                  : "bg-white/6 border-white/10 hover:bg-white/10"
+                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
               )}
             >
               {t.short}
@@ -114,7 +114,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
           ))}
         </div>
 
-        <div className="mb-4 grid grid-cols-3 gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1">
+        <div className="mb-4 grid grid-cols-3 gap-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1">
           {[33, 100, 1000].map((value) => (
             <button type="button"
               key={value}
@@ -123,7 +123,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
                 "rounded-xl px-3 py-2 text-xs font-semibold transition",
                 target === value
                   ? "bg-[var(--accent)] text-black"
-                  : "text-white/65 hover:bg-white/8"
+                  : "text-white/65 hover:bg-[var(--card-2)]"
               )}
             >
               {value}
@@ -141,7 +141,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
         </div>
 
         {/* Progress bar */}
-        <div className="h-2 rounded-full bg-white/8 overflow-hidden border border-white/10 mb-4">
+        <div className="h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)] mb-4">
           <div
             className={cn("h-full transition-[width] duration-200", count >= target ? "progress-ok" : "progress-accent")}
             style={{ width: `${pct * 100}%` }}

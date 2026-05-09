@@ -278,12 +278,12 @@ export function LeaderboardPage() {
           <Stat title="المهام اليومية" value={myStats.prayers} />
         </div>
 
-        <div className="mt-4 rounded-3xl border border-white/10 bg-white/4 p-4">
+        <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
           <div className="text-sm font-semibold">اسم الظهور</div>
           <div className="mt-1 text-[11px] opacity-60">
             يُنشأ تلقائيًا لكل حساب باسم عشوائي موحّد، ولا يمكن تغييره يدويًا.
           </div>
-          <div className="mt-3 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/10 px-3 py-2">
+          <div className="mt-3 inline-flex items-center gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2">
             <ShieldCheck size={14} className="text-[var(--accent)]" />
             <span className="text-sm font-semibold">{identity.alias}</span>
           </div>
@@ -358,7 +358,7 @@ export function LeaderboardPage() {
                   ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-400"
                   : syncState === "syncing"
                     ? "border-accent-30 bg-accent-10 text-[var(--accent)]"
-                    : "border-white/15 bg-white/6 opacity-70"
+                    : "border-[var(--stroke)] bg-[var(--card)] opacity-70"
           )}>
             {syncState === "syncing" && <Loader2 size={10} className="animate-spin" />}
             {syncState === "ok" && <CheckCircle2 size={10} />}
@@ -409,17 +409,17 @@ export function LeaderboardPage() {
         </div>
         <div className="space-y-2">
           {mergedRows.length === 0 ? (
-            <div className="glass rounded-3xl border border-white/10 px-4 py-5 text-sm opacity-70 leading-7 text-center">
+            <div className="glass rounded-3xl border border-[var(--stroke)] px-4 py-5 text-sm opacity-70 leading-7 text-center">
               لا توجد نتائج منشورة لهذا التصنيف بعد. ابدأ بالمزامنة لرفع أول نتيجة.
             </div>
           ) : (
             mergedRows.map((r, idx) => (
               <div key={r.id} className={cn(
                 "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
-                r.id === myEntry.id ? "border-accent-35 bg-accent-8" : "border-white/10"
+                r.id === myEntry.id ? "border-accent-35 bg-accent-8" : "border-[var(--stroke)]"
               )}>
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs tabular-nums">
+                  <div className="w-8 h-8 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center text-xs tabular-nums">
                     {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1).toLocaleString("ar-EG")}
                   </div>
                   <div className="min-w-0">
@@ -461,7 +461,7 @@ export function LeaderboardPage() {
 
 function Stat(props: { title: string; value: number }) {
   return (
-    <div className="glass rounded-2xl p-3 border border-white/10">
+    <div className="glass rounded-2xl p-3 border border-[var(--stroke)]">
       <div className="text-[11px] opacity-60">{props.title}</div>
       <div className="mt-1 text-lg font-semibold tabular-nums" style={{ color: "var(--accent)" }}>{props.value.toLocaleString("ar-EG")}</div>
     </div>
@@ -765,7 +765,7 @@ function LeaderboardAdminCard(props: {
             </div>
           ) : null}
 
-          <div className="rounded-3xl border border-white/10 bg-white/4 p-4 space-y-3">
+          <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
             <div className="text-sm font-semibold">رمز الإدارة</div>
             <div className="flex flex-col md:flex-row gap-2">
               <Input
@@ -822,7 +822,7 @@ function LeaderboardAdminCard(props: {
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <div className="rounded-3xl border border-white/10 bg-white/4 p-4 space-y-3">
+                <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
                   <div className="text-sm font-semibold">حظر أسماء أو كلمات</div>
                   <div className="flex gap-2 flex-wrap">
                     <BoardTab label="احتواء" active={blockMatchMode === "contains"} onClick={() => setBlockMatchMode("contains")} />
@@ -839,7 +839,7 @@ function LeaderboardAdminCard(props: {
                       <div className="text-xs opacity-50">لا توجد قواعد حظر بعد.</div>
                     ) : (
                       snapshot.blocklist.map((rule) => (
-                        <div key={rule.id} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 flex items-start justify-between gap-3">
+                        <div key={rule.id} className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3 flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="text-sm font-medium break-words">{rule.term}</div>
                             <div className="mt-1 text-[11px] opacity-55">
@@ -856,7 +856,7 @@ function LeaderboardAdminCard(props: {
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-white/4 p-4 space-y-3">
+                <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
                   <div className="text-sm font-semibold">إدارة مستخدم</div>
                   <Input
                     value={selectedUserId}
@@ -889,7 +889,7 @@ function LeaderboardAdminCard(props: {
                     <div className="text-[11px] opacity-55">المستخدم المحدد: {selectedUserLabel}</div>
                   ) : null}
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 flex items-center justify-between gap-3">
+                  <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3 flex items-center justify-between gap-3">
                     <div>
                       <div className="text-sm font-medium">إخفاء من اللوحة</div>
                       <div className="text-[11px] opacity-50">لن يظهر في القراءة العامة حتى تلغي الإخفاء.</div>
@@ -912,14 +912,14 @@ function LeaderboardAdminCard(props: {
                     onChange={(e) => setModerationReason(e.target.value)}
                     placeholder="سبب داخلي للمراجعة"
                     aria-label="سبب المراجعة"
-                    className="w-full min-h-[90px] rounded-3xl bg-white/6 border border-white/10 p-4 text-sm leading-7 outline-none focus:border-white/20"
+                    className="w-full min-h-[90px] rounded-3xl bg-[var(--card)] border border-[var(--stroke)] p-4 text-sm leading-7 outline-none focus:border-[var(--stroke)]"
                   />
 
                   {userModeration?.updatedAt ? (
                     <div className="text-[11px] opacity-50">آخر تحديث: {new Date(userModeration.updatedAt).toLocaleString("ar-EG")}</div>
                   ) : null}
 
-                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
+                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3">
                     <div className="text-[11px] opacity-60">حرر الاسم المحجوز عند إزالة الإدارة</div>
                     <Switch checked={releaseAliasClaim} onCheckedChange={(v) => setReleaseAliasClaim(!!v)} />
                   </div>
@@ -935,14 +935,14 @@ function LeaderboardAdminCard(props: {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-white/4 p-4">
+              <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
                 <div className="text-sm font-semibold mb-3">آخر مراجعات الأسماء</div>
                 <div className="space-y-2 max-h-72 overflow-auto">
                   {snapshot.audits.length === 0 ? (
                     <div className="text-xs opacity-50">لا توجد سجلات مراجعة بعد.</div>
                   ) : (
                     snapshot.audits.map((audit) => (
-                      <div key={audit.id} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 flex items-start justify-between gap-3">
+                      <div key={audit.id} className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3 flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="text-sm font-medium break-words">{audit.resolvedAlias}</div>
                           <div className="mt-1 text-[11px] opacity-55 break-words">
@@ -1058,11 +1058,11 @@ function LocalFriendsCard(props: {
               key={f.id}
               className={cn(
                 "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
-                f.id === props.myStats.id ? "border-accent-35 bg-accent-8" : "border-white/10"
+                f.id === props.myStats.id ? "border-accent-35 bg-accent-8" : "border-[var(--stroke)]"
               )}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs">
+                <div className="w-7 h-7 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center text-xs">
                   {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1).toLocaleString("ar-EG")}
                 </div>
                 <div className="min-w-0">
@@ -1089,11 +1089,11 @@ function LocalFriendsCard(props: {
 
       {/* Import / export area */}
       {expanded && (
-        <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
+        <div className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
           <div>
             <div className="text-xs font-semibold mb-2">كود مشاركتي</div>
             <div className="flex gap-2">
-              <code className="flex-1 text-[10px] break-all bg-white/5 border border-white/10 rounded-2xl px-3 py-2 leading-5 opacity-70 select-all">
+              <code className="flex-1 text-[10px] break-all bg-[var(--card)] border border-[var(--stroke)] rounded-2xl px-3 py-2 leading-5 opacity-70 select-all">
                 {myExportCode}
               </code>
               <Button variant="secondary" onClick={() => void copyMyCode()} aria-label="نسخ الكود">
@@ -1237,14 +1237,14 @@ function GroupKhatmaCard() {
 
       {/* Create form */}
       {mode === "create" && !groupKhatma && (
-        <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
+        <div className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
           <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="اسم الختمة (مثال: ختمة رمضان)" aria-label="اسم الختمة" />
           <textarea
             value={membersRaw}
             onChange={(e) => setMembersRaw(e.target.value)}
             placeholder={"أسماء الأعضاء (سطر لكل اسم)\nمثال:\nعبدالله\nفاطمة\nأحمد"}
             aria-label="أسماء أعضاء الختمة"
-            className="w-full min-h-[90px] rounded-3xl bg-white/6 border border-white/10 p-4 text-sm leading-7 outline-none focus:border-white/20"
+            className="w-full min-h-[90px] rounded-3xl bg-[var(--card)] border border-[var(--stroke)] p-4 text-sm leading-7 outline-none focus:border-[var(--stroke)]"
           />
           <div className="text-[11px] opacity-45">سيتم توزيع الأجزاء الثلاثين تلقائيًا على الأعضاء.</div>
           <Button onClick={createGroup} disabled={!groupName.trim() || membersRaw.trim().split(/\n|،|,/).filter(Boolean).length < 2}>
@@ -1255,7 +1255,7 @@ function GroupKhatmaCard() {
 
       {/* Import form */}
       {mode === "import" && !groupKhatma && (
-        <div className="mt-4 space-y-3 border-t border-white/8 pt-4">
+        <div className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
           <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" aria-label="كود الختمة" />
           {importError && <div className="text-xs text-[var(--danger)]">{importError}</div>}
           <Button onClick={handleImport} disabled={!importCode.trim()}>استيراد الختمة</Button>
@@ -1267,7 +1267,7 @@ function GroupKhatmaCard() {
         <div className="mt-4">
           {/* Progress bar */}
           <div className="flex items-center gap-2 mb-3">
-            <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${completionPct}%`, background: "var(--ok)" }}
@@ -1393,7 +1393,7 @@ function WeeklyChallengeCard() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4">
         <div className="flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border"
@@ -1414,7 +1414,7 @@ function WeeklyChallengeCard() {
 
       {/* Progress bar */}
       <div className="mt-3 flex items-center gap-2">
-        <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+        <div className="flex-1 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{

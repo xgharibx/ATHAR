@@ -100,7 +100,7 @@ export default function SeerahTimeline() {
               placeholder="ابحث في أحداث السيرة…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="h-9 w-full rounded-2xl border border-white/10 bg-white/5 pr-8 pl-8 text-sm outline-none focus:border-accent-45"
+              className="h-9 w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] pr-8 pl-8 text-sm outline-none focus:border-accent-45"
               style={{ color: "var(--fg)" }}
             />
             {query && (
@@ -169,7 +169,7 @@ export default function SeerahTimeline() {
                       <button
                         type="button"
                         onClick={() => void shareEvent(event)}
-                        className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/6 px-2 py-1 text-[11px] opacity-70 transition hover:opacity-100 press-effect"
+                        className="flex items-center gap-1 rounded-lg border border-[var(--stroke)] bg-[var(--card)] px-2 py-1 text-[11px] opacity-70 transition hover:opacity-100 press-effect"
                         style={{ color: "var(--fg)" }}
                         aria-label="مشاركة"
                       >

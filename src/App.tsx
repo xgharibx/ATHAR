@@ -27,7 +27,7 @@ class RouteErrorBoundary extends React.Component<
           <div className="text-2xl">!</div>
           <div className="text-base font-semibold opacity-90">حدث خطأ في هذه الصفحة</div>
           <button type="button"
-            className="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-sm"
+            className="px-4 py-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-sm"
             onClick={() => this.setState({ hasError: false })}
           >
             إعادة المحاولة

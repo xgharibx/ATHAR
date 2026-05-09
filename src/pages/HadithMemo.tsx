@@ -260,7 +260,7 @@ export function HadithMemoPage() {
               </span>
             )}
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--card)]">
             <div
               className="h-full rounded-full transition-all"
               style={{ width: `${((cardIndex) / Math.max(currentCards.length, 1)) * 100}%`, background: accentColor }}
@@ -332,7 +332,7 @@ export function HadithMemoPage() {
             <button type="button"
               onClick={() => { setCardIndex((i) => Math.max(0, i - 1)); setIsFlipped(false); }}
               disabled={cardIndex === 0}
-              className="rounded-full border border-white/10 bg-white/6 p-2 transition hover:bg-white/10 disabled:opacity-30 press-effect"
+              className="rounded-full border border-[var(--stroke)] bg-[var(--card)] p-2 transition hover:bg-[var(--card-2)] disabled:opacity-30 press-effect"
               aria-label="البطاقة السابقة"
             >
               <ChevronRight size={20} className="text-[var(--muted)]" />
@@ -351,7 +351,7 @@ export function HadithMemoPage() {
                     toast.error("تعذر النسخ");
                   }
                 }}
-                className="rounded-lg border border-white/10 bg-white/6 p-1.5 opacity-60 transition hover:opacity-100 press-effect"
+                className="rounded-lg border border-[var(--stroke)] bg-[var(--card)] p-1.5 opacity-60 transition hover:opacity-100 press-effect"
                 style={{ color: "var(--fg)" }}
                 aria-label="نسخ الحديث"
               >
@@ -368,7 +368,7 @@ export function HadithMemoPage() {
                     try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
                   }
                 }}
-                className="rounded-lg border border-white/10 bg-white/6 p-1.5 opacity-60 transition hover:opacity-100 press-effect"
+                className="rounded-lg border border-[var(--stroke)] bg-[var(--card)] p-1.5 opacity-60 transition hover:opacity-100 press-effect"
                 style={{ color: "var(--fg)" }}
                 aria-label="مشاركة الحديث"
               >
@@ -378,7 +378,7 @@ export function HadithMemoPage() {
             <button type="button"
               onClick={() => { setCardIndex((i) => Math.min(currentCards.length - 1, i + 1)); setIsFlipped(false); }}
               disabled={cardIndex === currentCards.length - 1}
-              className="rounded-full border border-white/10 bg-white/6 p-2 transition hover:bg-white/10 disabled:opacity-30 press-effect"
+              className="rounded-full border border-[var(--stroke)] bg-[var(--card)] p-2 transition hover:bg-[var(--card-2)] disabled:opacity-30 press-effect"
               aria-label="البطاقة التالية"
             >
               <ChevronLeft size={20} className="text-[var(--muted)]" />

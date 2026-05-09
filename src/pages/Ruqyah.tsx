@@ -37,7 +37,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
         "rounded-3xl border p-4 transition-all",
         done
           ? "border-[color-mix(in_srgb,var(--ok)_30%,transparent)] bg-ok-5"
-          : "border-white/10 glass"
+          : "border-[var(--stroke)] glass"
       )}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -47,7 +47,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
           </span>
           <span className="text-xs opacity-55">{item.source}</span>
           {item.count > 1 && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-white/6 border border-white/10 opacity-70">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--card)] border border-[var(--stroke)] opacity-70">
               × {item.count}
               {item.countNote ? ` — ${item.countNote}` : ""}
             </span>
@@ -74,7 +74,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
       </div>
 
       {item.notes && (
-        <div className="text-xs opacity-55 leading-5 border-t border-white/8 pt-2 mb-3">
+        <div className="text-xs opacity-55 leading-5 border-t border-[var(--stroke)] pt-2 mb-3">
           {item.notes}
         </div>
       )}
@@ -90,7 +90,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
                 "w-7 h-7 rounded-full border transition-all text-xs font-bold",
                 i < count
                   ? "bg-ok-20 border-ok-40 text-[var(--ok)]"
-                  : "bg-white/5 border-white/15 opacity-50"
+                  : "bg-[var(--card)] border-[var(--stroke)] opacity-50"
               )}
             >
               {i < count ? "✓" : i + 1}
@@ -141,7 +141,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-white/8 pt-3">
+        <div className="px-4 pb-4 space-y-3 border-t border-[var(--stroke)] pt-3">
           {section.items.map((item, idx) => (
             <RuqyahItemCard key={item.id} item={item} idx={idx} />
           ))}
@@ -168,7 +168,7 @@ export function RuqyahPage() {
             <h1 className="font-bold text-lg arabic-text">أذكار الرقية الشرعية</h1>
           </div>
         </div>
-        <div className="text-sm opacity-70 leading-7 arabic-text p-3 rounded-2xl bg-white/4 border border-white/8">
+        <div className="text-sm opacity-70 leading-7 arabic-text p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
           الرقية الشرعية هي القراءة من القرآن الكريم والأدعية النبوية الثابتة للاستشفاء والحماية بإذن الله.
           اقرأ كل ذكر بتركيز وحضور قلب، ويُستحب النفث على موضع الألم.
         </div>

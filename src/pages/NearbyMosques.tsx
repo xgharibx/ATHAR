@@ -221,7 +221,7 @@ export function NearbyMosquesPage() {
                       href={mapsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-white/20 hover:bg-white/10 transition whitespace-nowrap"
+                      className="shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-[var(--stroke)] hover:bg-[var(--card-2)] transition whitespace-nowrap"
                       style={{ color: "var(--accent)" }}
                     >
                       خرائط ↗

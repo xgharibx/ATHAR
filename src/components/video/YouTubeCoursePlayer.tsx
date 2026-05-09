@@ -287,7 +287,7 @@ export function YouTubeCoursePlayer({
                         countdownRef.current = null;
                         setNextCountdown(null);
                       }}
-                      className="flex-1 rounded-2xl py-2 text-sm font-bold bg-white/10 press-effect"
+                      className="flex-1 rounded-2xl py-2 text-sm font-bold bg-[var(--card)] press-effect"
                     >
                       إلغاء
                     </button>
@@ -330,7 +330,7 @@ export function YouTubeCoursePlayer({
                 </div>
               )}
               {course && (
-                <div className="h-5 px-2 rounded-lg text-[10px] bg-white/8 border border-white/10 flex items-center shrink-0 truncate max-w-[130px]">
+                <div className="h-5 px-2 rounded-lg text-[10px] bg-[var(--card)] border border-[var(--stroke)] flex items-center shrink-0 truncate max-w-[130px]">
                   {course.title}
                 </div>
               )}
@@ -345,7 +345,7 @@ export function YouTubeCoursePlayer({
             <button
               type="button"
               onClick={onClose}
-              className="w-7 h-7 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center shrink-0 press-effect hover:bg-white/15 transition-colors"
+              className="w-7 h-7 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center shrink-0 press-effect hover:bg-[var(--card-2)] transition-colors"
             >
               <ArrowRight size={13} />
             </button>
@@ -358,7 +358,7 @@ export function YouTubeCoursePlayer({
 
           {/* Progress timeline */}
           <div className="mb-3" dir="ltr">
-            <div className="relative h-2 rounded-full bg-white/10 overflow-hidden mb-1.5">
+            <div className="relative h-2 rounded-full bg-[var(--card)] overflow-hidden mb-1.5">
               <div
                 className="h-full rounded-full transition-all duration-1000"
                 style={{ width: `${percent}%`, background: accent }}
@@ -404,7 +404,7 @@ export function YouTubeCoursePlayer({
             <button
               type="button"
               onClick={shareVideo}
-              className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-white/6 border border-white/10 press-effect hover:bg-white/10 transition-colors"
+              className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[var(--card)] border border-[var(--stroke)] press-effect hover:bg-[var(--card-2)] transition-colors"
             >
               <Share2 size={14} />
               <span>مشاركة</span>
@@ -414,7 +414,7 @@ export function YouTubeCoursePlayer({
               <button
                 type="button"
                 onClick={onPrev}
-                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-white/6 border border-white/10 press-effect hover:bg-white/10 transition-colors"
+                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[var(--card)] border border-[var(--stroke)] press-effect hover:bg-[var(--card-2)] transition-colors"
               >
                 <SkipBack size={14} />
                 <span>السابق</span>
@@ -435,7 +435,7 @@ export function YouTubeCoursePlayer({
                 href={video.youtubeUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-white/6 border border-white/10 press-effect hover:bg-white/10 transition-colors"
+                className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[var(--card)] border border-[var(--stroke)] press-effect hover:bg-[var(--card-2)] transition-colors"
               >
                 <ExternalLink size={13} />
                 <span>يوتيوب</span>

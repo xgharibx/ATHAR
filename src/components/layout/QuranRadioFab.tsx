@@ -74,7 +74,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
 
       {/* Panel */}
       <div
-        className="w-[280px] glass-strong rounded-3xl p-4 border border-white/10 page-enter"
+        className="w-[280px] glass-strong rounded-3xl p-4 border border-[var(--stroke)] page-enter"
         style={{ boxShadow: "0 12px 48px rgba(0,0,0,0.5)" }}
       >
         {/* Header */}
@@ -91,7 +91,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
           </div>
           <button type="button"
             onClick={() => setOpen(false)}
-            className="w-9 h-9 rounded-full bg-white/6 border border-white/10 grid place-items-center text-xs"
+            className="w-9 h-9 rounded-full bg-[var(--card)] border border-[var(--stroke)] grid place-items-center text-xs"
             aria-label="إغلاق"
           >
             <X size={14} />
@@ -108,7 +108,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
                 "w-full text-right rounded-2xl px-3 py-2.5 text-sm border transition press-effect",
                 radio.playing && radio.stationIdx === i
                   ? "bg-accent-15 border-accent-50 text-[var(--fg)] font-semibold"
-                  : "bg-white/5 border-white/8 hover:bg-white/10"
+                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
               )}
             >
               <div className="flex items-center justify-between gap-2">

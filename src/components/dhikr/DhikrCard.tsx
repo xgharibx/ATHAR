@@ -330,7 +330,7 @@ export function DhikrCard(props: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18 }}
       className={cn(
-        "glass-strong rounded-3xl border border-white/10 overflow-hidden cv-auto glass-hover",
+        "glass-strong rounded-3xl border border-[var(--stroke)] overflow-hidden cv-auto glass-hover",
         done && "border-[color-mix(in_srgb,var(--ok)_25%,transparent)]"
       )}
     >
@@ -398,7 +398,7 @@ export function DhikrCard(props: {
         </div>
 
         {sourceLabel && !sourceUrl ? (
-          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] opacity-65">
+          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-3 py-1.5 text-[11px] opacity-65">
             <BookOpen size={12} />
             <span>{sourceLabel}</span>
           </div>
@@ -423,7 +423,7 @@ export function DhikrCard(props: {
           {displayText}
           {swipeHint && !done && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-black/50 backdrop-blur-sm rounded-2xl px-4 py-2 text-sm text-white/95 flex items-center gap-2 swipe-hint-anim">
+              <div className="bg-[var(--card)]0 backdrop-blur-sm rounded-2xl px-4 py-2 text-sm text-white/95 flex items-center gap-2 swipe-hint-anim">
                 <span className="text-lg">←</span>
                 <span>اسحب للعدّ</span>
                 <span className="text-lg">→</span>
@@ -433,7 +433,7 @@ export function DhikrCard(props: {
         </div>
 
         {/* Counter (under text) */}
-        <div className={cn("mt-4 glass rounded-2xl p-3 border border-white/10 relative overflow-hidden", done && "done-shimmer")}>
+        <div className={cn("mt-4 glass rounded-2xl p-3 border border-[var(--stroke)] relative overflow-hidden", done && "done-shimmer")}>
           <div className="flex items-center justify-between gap-3 relative">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-12 h-12 relative grid place-items-center shrink-0">
@@ -500,7 +500,7 @@ export function DhikrCard(props: {
                     تأكيد
                   </button>
                   <button type="button"
-                    className="text-[11px] px-2.5 rounded-xl bg-white/6 border border-white/10 min-h-[44px] transition active:scale-[.97]"
+                    className="text-[11px] px-2.5 rounded-xl bg-[var(--card)] border border-[var(--stroke)] min-h-[44px] transition active:scale-[.97]"
                     onClick={() => setConfirmItemReset(false)}
                   >
                     إلغاء
@@ -521,7 +521,7 @@ export function DhikrCard(props: {
             </div>
           </div>
 
-          <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
+          <div className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]">
             <div
               className={cn("h-full transition-[width] duration-300", done ? "progress-ok" : "progress-accent")}
               style={{ width: `${Math.round((target ? current / target : 0) * 100)}%` }}

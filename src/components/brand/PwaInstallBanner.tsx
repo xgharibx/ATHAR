@@ -54,7 +54,7 @@ export function PwaInstallBanner() {
   return (
     <div
       dir="rtl"
-      className="fixed bottom-20 inset-x-3 z-50 flex items-center gap-3 rounded-2xl border border-white/10 bg-[rgba(10,12,20,.96)] px-4 py-3 shadow-2xl backdrop-blur-xl"
+      className="fixed bottom-20 inset-x-3 z-50 flex items-center gap-3 rounded-2xl border border-[var(--stroke)] bg-[rgba(10,12,20,.96)] px-4 py-3 shadow-2xl backdrop-blur-xl"
       role="banner"
       aria-label="دعوة لتثبيت التطبيق"
     >

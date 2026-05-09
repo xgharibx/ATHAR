@@ -259,17 +259,17 @@ export function QuranPage() {
   if (isLoading) {
     return (
       <div className="space-y-4 page-enter">
-        <div className="glass rounded-3xl p-5 animate-pulse border border-white/8">
-          <div className="h-5 w-28 bg-white/8 rounded-xl mb-2" />
-          <div className="h-3 w-20 bg-white/6 rounded-xl" />
-          <div className="mt-4 h-10 bg-white/8 rounded-3xl" />
+        <div className="glass rounded-3xl p-5 animate-pulse border border-[var(--stroke)]">
+          <div className="h-5 w-28 bg-[var(--card)] rounded-xl mb-2" />
+          <div className="h-3 w-20 bg-[var(--card)] rounded-xl" />
+          <div className="mt-4 h-10 bg-[var(--card)] rounded-3xl" />
         </div>
-        <div className="glass rounded-3xl p-5 border border-white/6">
+        <div className="glass rounded-3xl p-5 border border-[var(--stroke)]">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {LOADING_SURAH_KEYS.map((key, index) => (
-              <div key={key} className="glass rounded-3xl p-4 animate-pulse border border-white/6" style={{ animationDelay: `${index * 45}ms` }}>
-                <div className="h-3 w-14 bg-white/8 rounded-lg mb-2" />
-                <div className="h-4 w-20 bg-white/6 rounded-lg" />
+              <div key={key} className="glass rounded-3xl p-4 animate-pulse border border-[var(--stroke)]" style={{ animationDelay: `${index * 45}ms` }}>
+                <div className="h-3 w-14 bg-[var(--card)] rounded-lg mb-2" />
+                <div className="h-4 w-20 bg-[var(--card)] rounded-lg" />
               </div>
             ))}
           </div>
@@ -284,7 +284,7 @@ export function QuranPage() {
           <div className="text-lg font-semibold">حدث خطأ</div>
           <div className="opacity-70 mt-2 text-sm leading-6">
             تعذر تحميل بيانات القرآن. يمكنك إضافة الملف {" "}
-            <code className="px-2 py-1 rounded-lg bg-white/6 border border-white/10">public/data/quran.json</code>
+            <code className="px-2 py-1 rounded-lg bg-[var(--card)] border border-[var(--stroke)]">public/data/quran.json</code>
             {" "}أو التأكد من الاتصال بالإنترنت.
           </div>
         </Card>
@@ -327,7 +327,7 @@ export function QuranPage() {
           </div>
 
           {/* Mode toggle — search surahs vs ayahs */}
-          <div className="mt-3 flex rounded-2xl bg-white/6 border border-white/10 overflow-hidden w-fit">
+          <div className="mt-3 flex rounded-2xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden w-fit">
             <button type="button" onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
             <button type="button" onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
           </div>
@@ -431,7 +431,7 @@ export function QuranPage() {
         </div>
 
         {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished ? (
-          <div className="mt-3 h-2 rounded-full bg-white/6 overflow-hidden border border-white/10">
+          <div className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]">
             <div className="h-full progress-accent" style={{ width: `${khatma.meta.percent}%` }} />
           </div>
         ) : null}
@@ -493,7 +493,7 @@ export function QuranPage() {
             </div>
 
             {!khatma.isFinished ? (
-              <div className={`mt-3 glass rounded-3xl p-4 border transition-colors ${khatma.meta.doneToday ? "border-ok-30" : "border-white/10"}`}>
+              <div className={`mt-3 glass rounded-3xl p-4 border transition-colors ${khatma.meta.doneToday ? "border-ok-30" : "border-[var(--stroke)]"}`}>
                 {khatma.meta.doneToday ? (
                   <div className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>
                     <CheckCircle2 size={12} />
@@ -527,7 +527,7 @@ export function QuranPage() {
                 </div>
               </div>
             ) : (
-              <div className="mt-3 glass rounded-3xl p-4 border border-white/10">
+              <div className="mt-3 glass rounded-3xl p-4 border border-[var(--stroke)]">
                 <div className="text-sm font-semibold">ما شاء الله — تمت الختمة</div>
                 <div className="mt-2 text-xs opacity-65 leading-6">يمكنك بدء خطة جديدة من اليوم.</div>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -561,7 +561,7 @@ export function QuranPage() {
             style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 40%, transparent)" }}
           >
             {/* Sort toggle */}
-            <div className="flex rounded-xl bg-white/6 border border-white/10 overflow-hidden text-sm">
+            <div className="flex rounded-xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden text-sm">
               <button type="button"
                 onClick={() => setSortMode("mushaf")}
                 className={`px-3.5 h-9 transition ${sortMode === "mushaf" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
@@ -579,13 +579,13 @@ export function QuranPage() {
             {/* Random surah */}
             <button type="button"
               onClick={() => { if (!data || data.length === 0) return; navigate(`/mushaf?surah=${data[Math.floor(Math.random() * data.length)]!.id}`); }}
-              className="w-9 h-9 rounded-xl border bg-white/6 border-white/10 opacity-55 hover:opacity-100 flex items-center justify-center transition shrink-0"
+              className="w-9 h-9 rounded-xl border bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-100 flex items-center justify-center transition shrink-0"
               title="سورة عشوائية" aria-label="سورة عشوائية"
             >
               <Shuffle size={14} />
             </button>
 
-            <label className="inline-flex h-9 items-center gap-2 rounded-xl border border-white/10 bg-white/6 px-3 text-xs opacity-75 transition focus-within:opacity-100">
+            <label className="inline-flex h-9 items-center gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 text-xs opacity-75 transition focus-within:opacity-100">
               <Volume2 size={13} className="text-[var(--accent)]" />
               <select
                 aria-label="القارئ"
@@ -607,7 +607,7 @@ export function QuranPage() {
                 <button type="button"
                   key={t}
                   onClick={() => setPrefs({ quranTheme: t })}
-                  className={`w-5 h-5 rounded-full border-2 transition-all ${prefs.quranTheme === t ? "scale-125 border-[var(--accent)]" : "border-white/20 opacity-50 hover:opacity-80"}`}
+                  className={`w-5 h-5 rounded-full border-2 transition-all ${prefs.quranTheme === t ? "scale-125 border-[var(--accent)]" : "border-[var(--stroke)] opacity-50 hover:opacity-80"}`}
                   style={{ background: { default: "#1e1b2e", sepia: "#c8a97a", midnight: "#0d1b2a", parchment: "#f0e6c8" }[t] }}
                   title={{ default: "افتراضي", sepia: "سيبيا", midnight: "ليلي", parchment: "رق" }[t]}
                   aria-label={{ default: "افتراضي", sepia: "سيبيا", midnight: "ليلي", parchment: "رق" }[t]}
@@ -619,7 +619,7 @@ export function QuranPage() {
             {bookmarkedCount > 0 && (
               <button type="button"
                 onClick={() => setShowBookmarks((v) => !v)}
-                className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-55 hover:opacity-90"}`}
+                className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-90"}`}
               >
                 <Bookmark size={13} />
                 <span className="tabular-nums">{bookmarkedCount}</span>
@@ -636,7 +636,7 @@ export function QuranPage() {
                   <button type="button"
                     key={`${bm.surahId}:${bm.ayahIndex}`}
                     onClick={() => navigate(`/mushaf?surah=${bm.surahId}&ayah=${bm.ayahIndex}`)}
-                    className="w-full flex items-center gap-3 px-5 py-3 hover:bg-white/5 transition text-right"
+                    className="w-full flex items-center gap-3 px-5 py-3 hover:bg-[var(--card)] transition text-right"
                     style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 20%, transparent)" }}
                   >
                     {bm.highlight && hlSwatches[bm.highlight] && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: hlSwatches[bm.highlight] }} />}
@@ -734,7 +734,7 @@ export function QuranPage() {
                 <button type="button"
                   key={s.id}
                   onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
-                  className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-white/4 active:bg-white/8"
+                  className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)]"
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >
                   {/* Number badge */}
@@ -800,7 +800,7 @@ export function QuranPage() {
                 <button type="button"
                   key={`${r.surahId}:${r.ayahIndex}`}
                   onClick={() => navigate(`/mushaf?surah=${r.surahId}&ayah=${r.ayahIndex}`)}
-                  className="glass rounded-3xl p-4 text-right hover:bg-white/10 transition border border-white/10 w-full"
+                  className="glass rounded-3xl p-4 text-right hover:bg-[var(--card-2)] transition border border-[var(--stroke)] w-full"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">

@@ -418,7 +418,7 @@ function TasbeehStatsCard({
               {/* This week bar */}
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="text-[9px] opacity-40 w-14 shrink-0">هذا: {tw.toLocaleString()}</span>
-                <div className="flex-1 h-2 rounded-full bg-white/8 overflow-hidden">
+                <div className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
                     style={{ width: `${twPct}%`, background: 'var(--accent)' }}
@@ -428,7 +428,7 @@ function TasbeehStatsCard({
               {/* Last week bar */}
               <div className="flex items-center gap-2">
                 <span className="text-[9px] opacity-40 w-14 shrink-0">سبق: {lw.toLocaleString()}</span>
-                <div className="flex-1 h-2 rounded-full bg-white/8 overflow-hidden">
+                <div className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
                     style={{ width: `${lwPct}%`, background: 'rgba(255,255,255,0.2)' }}
@@ -446,7 +446,7 @@ function TasbeehStatsCard({
           <span className="text-[10px] opacity-50">هذا الأسبوع</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-1.5 rounded-full bg-white/30" />
+          <div className="w-3 h-1.5 rounded-full bg-[var(--card)]0" />
           <span className="text-[10px] opacity-50">الأسبوع الماضي</span>
         </div>
       </div>
@@ -683,7 +683,7 @@ export function SebhaPage() {
           </div>
         </div>
         {!tallyMode && (
-          <div className="mt-4 h-2 rounded-full bg-white/8 border border-white/10 overflow-hidden">
+          <div className="mt-4 h-2 rounded-full bg-[var(--card)] border border-[var(--stroke)] overflow-hidden">
             <div className="h-full progress-accent transition-[width] duration-300" style={{ width: `${allPercent}%` }} />
           </div>
         )}
@@ -733,7 +733,7 @@ export function SebhaPage() {
           ) : (
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {sebhaSessions.map((s, i) => (
-                <div key={`${s.timestamp}-${s.dhikrKey}-${i}`} className="flex items-center justify-between gap-3 rounded-xl bg-white/5 px-3 py-2 text-xs">
+                <div key={`${s.timestamp}-${s.dhikrKey}-${i}`} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--card)] px-3 py-2 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
                     {s.target === null
                       ? <Flag size={12} className="text-[var(--accent)] shrink-0" />
@@ -756,14 +756,14 @@ export function SebhaPage() {
           <div className="flex items-center gap-2 flex-wrap">
             {/* Target selector (hidden in tally / custom mode) */}
             {!tallyMode && selected !== "custom" && (
-              <div className="flex rounded-2xl border border-white/10 bg-white/5 p-1">
+              <div className="flex rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1">
                 {TARGETS.map((value) => (
                   <button type="button"
                     key={value}
                     onClick={() => setTarget(value)}
                     className={cn(
                       "min-w-10 rounded-xl px-3 py-2 text-xs font-semibold transition",
-                      target === value ? "bg-[var(--accent)] text-black" : "text-white/65 hover:bg-white/8"
+                      target === value ? "bg-[var(--accent)] text-black" : "text-white/65 hover:bg-[var(--card-2)]"
                     )}
                   >
                     {value}
@@ -791,7 +791,7 @@ export function SebhaPage() {
                 "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition",
                 tallyMode
                   ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                  : "border-white/10 bg-white/5 text-white/65 hover:bg-white/8"
+                  : "border-[var(--stroke)] bg-[var(--card)] text-white/65 hover:bg-[var(--card-2)]"
               )}
             >
               <Timer size={13} />
@@ -814,7 +814,7 @@ export function SebhaPage() {
                   "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition shrink-0",
                   listening
                     ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
-                    : "border-white/10 bg-white/5 text-white/65 hover:bg-white/8",
+                    : "border-[var(--stroke)] bg-[var(--card)] text-white/65 hover:bg-[var(--card-2)]",
                   voiceStarting && "opacity-60"
                 )}
               >
@@ -882,7 +882,7 @@ export function SebhaPage() {
                   "flex-shrink-0 px-3 py-2 rounded-2xl text-xs font-medium transition-all active:scale-95 arabic-text whitespace-nowrap border",
                   isActiveQP
                     ? "bg-accent-15 border-accent-40 text-[var(--accent)]"
-                    : "border-white/10 bg-white/5 hover:bg-white/8"
+                    : "border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)]"
                 )}
               >
                 {qp.phrase}
@@ -907,7 +907,7 @@ export function SebhaPage() {
                 "glass rounded-3xl p-4 text-right border transition active:scale-[.98]",
                 active ? "border-accent-35 bg-accent-8"
                 : itemDone ? "border-ok-35 bg-ok-6 hover:bg-ok-8"
-                : "border-white/10 hover:bg-white/6"
+                : "border-[var(--stroke)] hover:bg-[var(--card)]"
               )}
             >
               <div className="flex items-start justify-between gap-3">
@@ -917,7 +917,7 @@ export function SebhaPage() {
                 </div>
                 <Badge>{Math.min(itemCount, target)}/{target}</Badge>
               </div>
-              <div className="mt-3 h-1.5 rounded-full bg-white/8 overflow-hidden">
+              <div className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
                 <div
                   className="h-full rounded-full"
                   style={{ width: `${itemPercent}%`, background: itemPercent >= 100 ? "var(--ok)" : "var(--accent)" }}
@@ -935,7 +935,7 @@ export function SebhaPage() {
               "glass rounded-3xl p-4 text-right border transition active:scale-[.98]",
               selected === "custom"
                 ? "border-accent-35 bg-accent-8"
-                : "border-white/10 hover:bg-white/6"
+                : "border-[var(--stroke)] hover:bg-[var(--card)]"
             )}
           >
             <div className="flex items-start justify-between gap-3">
@@ -957,7 +957,7 @@ export function SebhaPage() {
                 </span>
               </div>
             </div>
-            <div className="mt-3 h-1.5 rounded-full bg-white/8 overflow-hidden">
+            <div className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
               <div
                 className="h-full rounded-full"
                 style={{
@@ -973,7 +973,7 @@ export function SebhaPage() {
         ) : (
           <button type="button"
             onClick={() => setShowCustomForm(true)}
-            className="glass rounded-3xl p-4 text-center border border-dashed border-white/15 hover:bg-white/6 transition active:scale-[.98] flex flex-col items-center justify-center gap-2 min-h-[100px]"
+            className="glass rounded-3xl p-4 text-center border border-dashed border-[var(--stroke)] hover:bg-[var(--card)] transition active:scale-[.98] flex flex-col items-center justify-center gap-2 min-h-[100px]"
           >
             <Plus size={20} className="opacity-40" />
             <span className="text-xs opacity-50">إضافة ذكر مخصص</span>
@@ -998,7 +998,7 @@ export function SebhaPage() {
                 value={customPhraseInput}
                 onChange={(e) => setCustomPhraseInput(e.target.value)}
                 placeholder="مثال: صلِّ على النبي"
-                className="w-full rounded-xl bg-white/8 border border-white/10 px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
+                className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
               />
             </div>
             <div>
@@ -1010,7 +1010,7 @@ export function SebhaPage() {
                 max={10000}
                 value={customTargetInput}
                 onChange={(e) => setCustomTargetInput(e.target.value)}
-                className="w-full rounded-xl bg-white/8 border border-white/10 px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
+                className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
               />
             </div>
             <div className="flex gap-2">

@@ -671,7 +671,7 @@ export function InsightsPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div
-              className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border border-white/10"
+              className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border border-[var(--stroke)]"
               style={{ background: `${xpLevel.color}22` }}
             >
               {xpLevel.emoji}
@@ -683,7 +683,7 @@ export function InsightsPage() {
                 <span className="text-[10px] opacity-40 tabular-nums">{xp.toLocaleString("ar-EG")} نقطة</span>
               </div>
               <div className="mt-1.5 flex items-center gap-2">
-                <div className="w-32 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div className="w-32 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{ width: `${xpLevel.pct}%`, background: xpLevel.color }}
@@ -750,19 +750,19 @@ export function InsightsPage() {
                 })}
               </div>
             </div>
-            <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
+            <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">ذكر</div>
               <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayCount > 0 ? "var(--accent)" : undefined }}>{todayCount.toLocaleString("ar-EG")}</div>
             </div>
-            <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
+            <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">آية</div>
               <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: todayQuranAyahs > 0 ? "var(--accent)" : undefined }}>{todayQuranAyahs.toLocaleString("ar-EG")}</div>
             </div>
-            <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
+            <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">هدف</div>
               <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: quranGoalPct >= 100 ? "var(--ok)" : undefined }}>{quranGoalPct.toLocaleString("ar-EG")}٪</div>
             </div>
-            <div className="rounded-2xl bg-white/5 border border-white/8 px-2 py-2.5 text-center">
+            <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-2.5 text-center">
               <div className="text-[10px] opacity-45">مستوى</div>
               <div className="text-sm font-bold mt-0.5" style={{ color: xpLevel.color }}>{xpLevel.emoji}</div>
             </div>
@@ -835,7 +835,7 @@ export function InsightsPage() {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="flex flex-col items-center rounded-2xl bg-white/5 border border-white/8 px-2 py-3 gap-0.5 transition hover:bg-white/8 active:scale-[.97]"
+            className="flex flex-col items-center rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-3 gap-0.5 transition hover:bg-[var(--card-2)] active:scale-[.97]"
           >
             <span className="text-lg leading-none mb-0.5">📿</span>
             <span
@@ -856,7 +856,7 @@ export function InsightsPage() {
           <button
             type="button"
             onClick={() => navigate(quranLastRead ? `/mushaf?surah=${quranLastRead.surahId}&ayah=${quranLastRead.ayahIndex}` : "/quran")}
-            className="flex flex-col items-center rounded-2xl bg-white/5 border border-white/8 px-2 py-3 gap-0.5 transition hover:bg-white/8 active:scale-[.97]"
+            className="flex flex-col items-center rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-3 gap-0.5 transition hover:bg-[var(--card-2)] active:scale-[.97]"
           >
             <span className="text-lg leading-none mb-0.5">📖</span>
             <span
@@ -864,7 +864,7 @@ export function InsightsPage() {
               style={{ color: quranGoalPct >= 100 ? "var(--ok)" : todayQuranAyahs > 0 ? "var(--accent)" : undefined }}
             >{todayQuranAyahs.toLocaleString("ar-EG")}</span>
             <span className="text-[10px] opacity-50 mt-0.5">/ {quranGoal.toLocaleString("ar-EG")} آية</span>
-            <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden mt-1.5">
+            <div className="w-full h-1 rounded-full bg-[var(--card)] overflow-hidden mt-1.5">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${quranGoalPct}%`, background: quranGoalPct >= 100 ? "var(--ok)" : "var(--accent)" }}
@@ -875,7 +875,7 @@ export function InsightsPage() {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="flex flex-col items-center rounded-2xl bg-white/5 border border-white/8 px-2 py-3 gap-0.5 transition hover:bg-white/8 active:scale-[.97]"
+            className="flex flex-col items-center rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-3 gap-0.5 transition hover:bg-[var(--card-2)] active:scale-[.97]"
           >
             <span className="text-lg leading-none mb-0.5">✅</span>
             <span
@@ -883,7 +883,7 @@ export function InsightsPage() {
               style={{ color: checklistPct >= 100 ? "var(--ok)" : checklistDoneCount > 0 ? "var(--accent)" : undefined }}
             >{checklistDoneCount.toLocaleString("ar-EG")}<span className="text-sm opacity-40 font-normal">/{checklistTotal.toLocaleString("ar-EG")}</span></span>
             <span className="text-[10px] opacity-50 mt-0.5">من القائمة</span>
-            <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden mt-1.5">
+            <div className="w-full h-1 rounded-full bg-[var(--card)] overflow-hidden mt-1.5">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${checklistPct}%`, background: checklistPct >= 100 ? "var(--ok)" : "var(--accent)" }}
@@ -925,7 +925,7 @@ export function InsightsPage() {
           </div>
 
           {/* Flame badge */}
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl glass border border-white/10 ${streak >= 1 ? "streak-fire" : "opacity-40"}`}>
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl glass border border-[var(--stroke)] ${streak >= 1 ? "streak-fire" : "opacity-40"}`}>
             {streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : streak >= 1 ? "✨" : "🕯️"}
           </div>
         </div>
@@ -979,7 +979,7 @@ export function InsightsPage() {
                 className={`text-[10px] px-2 py-0.5 rounded-full border transition ${
                   heatmapView === v
                     ? "border-accent-40 bg-accent-15 text-[var(--accent)]"
-                    : "border-white/10 opacity-50"
+                    : "border-[var(--stroke)] opacity-50"
                 }`}
               >
                 {v === 7 ? "٧ أيام" : v === 28 ? "٢٨ يومًا" : "٩٠ يومًا"}
@@ -1009,8 +1009,8 @@ export function InsightsPage() {
                 const q3 = Math.max(3, Math.ceil(maxCount * 0.75));
                 const heat = count === 0 ? 0 : count < q1 ? 1 : count < q2 ? 2 : count < q3 ? 3 : 4;
                 const bg =
-                  isFuture ? "bg-white/3 opacity-30" :
-                  heat === 0 ? "bg-white/5" :
+                  isFuture ? "bg-[var(--card)] opacity-30" :
+                  heat === 0 ? "bg-[var(--card)]" :
                   heat === 1 ? "bg-accent-25" :
                   heat === 2 ? "bg-accent-50" :
                   heat === 3 ? "bg-accent-75" :
@@ -1032,7 +1032,7 @@ export function InsightsPage() {
           <span className="text-[11px] opacity-55">أقل</span>
           {[0,1,2,3,4].map((h) => (
             <div key={h} className={`w-3 h-3 rounded-sm ${
-              h === 0 ? "bg-white/5" :
+              h === 0 ? "bg-[var(--card)]" :
               h === 1 ? "bg-accent-25" :
               h === 2 ? "bg-accent-50" :
               h === 3 ? "bg-accent-75" :
@@ -1134,7 +1134,7 @@ export function InsightsPage() {
                 {quranGoalPct.toLocaleString("ar-EG")}٪
               </span>
             </div>
-            <div className="h-2 rounded-full bg-white/8 overflow-hidden">
+            <div className="h-2 rounded-full bg-[var(--card)] overflow-hidden">
               <div
                 className="h-full rounded-full transition-[width] duration-500"
                 style={{ width: `${quranGoalPct}%`, background: quranGoalPct >= 100 ? "var(--ok)" : "var(--accent)" }}
@@ -1205,7 +1205,7 @@ export function InsightsPage() {
             <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
               {prayerConsistency.map((d) => {
                 const c =
-                  d.done === 0 ? "bg-white/5" :
+                  d.done === 0 ? "bg-[var(--card)]" :
                   d.done <= 2 ? "bg-yellow-400/40" :
                   d.done <= 4 ? "bg-orange-400/60" :
                                 "bg-ok-70";
@@ -1219,7 +1219,7 @@ export function InsightsPage() {
               })}
             </div>
             <div className="mt-2 flex items-center gap-2 justify-end text-[10px] opacity-55 flex-wrap">
-              <div className="w-3 h-3 rounded-sm bg-white/5" /><span>٠</span>
+              <div className="w-3 h-3 rounded-sm bg-[var(--card)]" /><span>٠</span>
               <div className="w-3 h-3 rounded-sm bg-yellow-400/40" /><span>١-٢</span>
               <div className="w-3 h-3 rounded-sm bg-orange-400/60" /><span>٣-٤</span>
               <div className="w-3 h-3 rounded-sm bg-ok-70" /><span>٥ كاملة</span>
@@ -1295,7 +1295,7 @@ export function InsightsPage() {
         <Card className="p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] flex items-center justify-center">
                 <FileDown size={16} className="text-[var(--accent)]" />
               </div>
               <div>
@@ -1316,7 +1316,7 @@ export function InsightsPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className={`w-9 h-9 rounded-2xl border flex items-center justify-center ${
-              notifPermission === "granted" ? "border-ok-30 bg-ok-10" : "border-white/10 bg-white/5"
+              notifPermission === "granted" ? "border-ok-30 bg-ok-10" : "border-[var(--stroke)] bg-[var(--card)]"
             }`}>
               {notifPermission === "granted" ? <Bell size={15} className="text-[var(--ok)]" /> : <BellOff size={15} className="opacity-50" />}
             </div>
@@ -1356,7 +1356,7 @@ export function InsightsPage() {
           </span>
         </div>
         {nextMilestone ? (
-          <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 flex items-center justify-between gap-3">
+          <div className="mb-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-[11px] opacity-55">الشارة القادمة</div>
               <div className="mt-1 text-sm font-semibold truncate">{nextMilestone.label}</div>
@@ -1375,7 +1375,7 @@ export function InsightsPage() {
                 "flex flex-col items-center gap-1 py-3 rounded-2xl border transition-all",
                 m.unlocked
                   ? "border-accent-35 bg-accent-10"
-                  : "border-white/8 bg-white/3 opacity-40 grayscale",
+                  : "border-[var(--stroke)] bg-[var(--card)] opacity-40 grayscale",
               ].join(" ")}
               title={m.unlocked ? `مفتوح — ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم سلسلة`}` : `يتطلب ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم متواصل`}`}
             >
@@ -1393,7 +1393,7 @@ export function InsightsPage() {
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-lg border ${isWirdDone ? "border-ok-30 bg-ok-10" : "border-white/10 bg-white/5"}`}>
+            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-lg border ${isWirdDone ? "border-ok-30 bg-ok-10" : "border-[var(--stroke)] bg-[var(--card)]"}`}>
               {isWirdDone ? "✅" : "📖"}
             </div>
             <div>
@@ -1583,7 +1583,7 @@ export function InsightsPage() {
                     <span className="text-[11px] opacity-75 truncate">{s.title}</span>
                     <span className="text-[10px] tabular-nums opacity-50 shrink-0">{s.pctVal.toLocaleString("ar-EG")}٪</span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
                     <div
                       className="h-full rounded-full transition-[width] duration-500"
                       style={{ width: `${s.pctVal}%`, background: s.pctVal >= 100 ? 'var(--ok)' : s.accent ?? 'var(--accent)' }}
@@ -1602,7 +1602,7 @@ export function InsightsPage() {
 
 function MiniStatSmall(props: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`glass rounded-2xl p-2.5 border text-center ${props.accent ? "border-accent-30 bg-accent-8" : "border-white/10"}`}>
+    <div className={`glass rounded-2xl p-2.5 border text-center ${props.accent ? "border-accent-30 bg-accent-8" : "border-[var(--stroke)]"}`}>
       <div className="text-[11px] opacity-55 truncate">{props.label}</div>
       <div className={`text-sm font-bold mt-0.5 tabular-nums ${props.accent ? "text-[var(--accent)]" : ""}`}>{props.value}</div>
     </div>

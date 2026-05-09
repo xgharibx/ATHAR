@@ -42,7 +42,7 @@ function ItemRow({
         max={9999}
         value={count}
         onChange={(e) => onCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
-        className="w-16 px-2 py-2 rounded-xl bg-white/5 border border-white/10 text-center text-sm outline-none focus:border-[var(--accent)]"
+        className="w-16 px-2 py-2 rounded-xl bg-[var(--card)] border border-[var(--stroke)] text-center text-sm outline-none focus:border-[var(--accent)]"
         aria-label={`عدد الذكر ${index + 1}`}
       />
       <button type="button"
@@ -153,7 +153,7 @@ function PackCard({
         <div className="flex items-center gap-1 shrink-0">
           <button type="button"
             onClick={() => setExpanded((e) => !e)}
-            className="p-2 rounded-xl hover:bg-white/5 transition-colors opacity-50 hover:opacity-100"
+            className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-50 hover:opacity-100"
             aria-label="عرض الأذكار"
           >
             {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
@@ -165,14 +165,14 @@ function PackCard({
               if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
               else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
             }}
-            className="p-2 rounded-xl hover:bg-white/5 transition-colors opacity-50 hover:opacity-100"
+            className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-50 hover:opacity-100"
             aria-label="مشاركة الحزمة"
           >
             <Share2 size={15} />
           </button>
           <button type="button"
             onClick={onEdit}
-            className="p-2 rounded-xl hover:bg-white/5 transition-colors opacity-50 hover:opacity-100 text-xs"
+            className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-50 hover:opacity-100 text-xs"
             aria-label="تعديل"
           >
             ✏️
@@ -187,7 +187,7 @@ function PackCard({
               </button>
               <button type="button"
                 onClick={() => setConfirmDelete(false)}
-                className="px-2 py-1 text-xs rounded-xl hover:bg-white/5 transition-colors opacity-60"
+                className="px-2 py-1 text-xs rounded-xl hover:bg-[var(--card)] transition-colors opacity-60"
               >
                 إلغاء
               </button>
@@ -208,7 +208,7 @@ function PackCard({
         </div>
       </div>
       {expanded && pack.items.length > 0 && (
-        <div className="space-y-1 border-t border-white/5 pt-3">
+        <div className="space-y-1 border-t border-[var(--stroke)] pt-3">
           {pack.items.map((it, i) => (
             <div key={i} className="flex items-center justify-between gap-2 text-xs opacity-70">
               <span className="line-clamp-2 leading-snug">{it.text}</span>
@@ -260,7 +260,7 @@ export function CustomAdhkarPage() {
       <div className="flex items-center gap-3 px-1">
         <button type="button"
           onClick={() => navigate(-1)}
-          className="p-2 rounded-xl hover:bg-white/5 transition-colors opacity-60 hover:opacity-100"
+          className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-60 hover:opacity-100"
           aria-label="رجوع"
         >
           <ArrowRight size={18} />
@@ -281,7 +281,7 @@ export function CustomAdhkarPage() {
       ) : (
         <button type="button"
           onClick={() => { setEditingPack(null); setShowForm(true); }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl glass border border-dashed border-white/20 hover:border-accent-50 hover:bg-white/5 transition-all text-sm opacity-70 hover:opacity-100"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl glass border border-dashed border-[var(--stroke)] hover:border-accent-50 hover:bg-[var(--card)] transition-all text-sm opacity-70 hover:opacity-100"
         >
           <Plus size={16} />
           إنشاء حزمة جديدة

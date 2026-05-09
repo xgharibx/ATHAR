@@ -77,7 +77,7 @@ function HadithRow({
         tabIndex={0}
         onClick={() => navigate(`/hadith/${bookKey}/${item.n}`)}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate(`/hadith/${bookKey}/${item.n}`)}
-        className="group relative w-full overflow-hidden rounded-3xl border border-white/10 p-4 text-right transition cursor-pointer glass-strong glass-hover press-effect"
+        className="group relative w-full overflow-hidden rounded-3xl border border-[var(--stroke)] p-4 text-right transition cursor-pointer glass-strong glass-hover press-effect"
       >
         <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
         <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
@@ -93,7 +93,7 @@ function HadithRow({
             <p className="arabic-text text-base leading-8 font-semibold text-[var(--fg)] line-clamp-3">
               {hadithPreview(item.t, 190)}
             </p>
-            <div className="mt-3 border-t border-white/8 pt-3 flex items-center justify-between gap-3 text-xs opacity-65">
+            <div className="mt-3 border-t border-[var(--stroke)] pt-3 flex items-center justify-between gap-3 text-xs opacity-65">
               <span className="font-arabic">حديث {item.n.toLocaleString("ar-EG")}</span>
               <span className="font-semibold" style={{ color: accentColor }}>اقرأ النص الكامل</span>
             </div>
@@ -111,7 +111,7 @@ function HadithRow({
                   toast.error("تعذر النسخ");
                 }
               }}
-              className="rounded-lg border border-white/10 bg-white/6 p-1.5 opacity-50 transition-opacity hover:opacity-90 press-effect"
+              className="rounded-lg border border-[var(--stroke)] bg-[var(--card)] p-1.5 opacity-50 transition-opacity hover:opacity-90 press-effect"
               style={{ color: "var(--fg)" }}
               aria-label="نسخ الحديث"
             >
@@ -226,7 +226,7 @@ export function HadithBookViewPage() {
           <div className="relative flex items-center gap-3 pr-2">
             <button type="button"
               onClick={() => navigate(-1)}
-              className="h-11 w-11 rounded-2xl border border-white/10 bg-white/6 grid place-items-center transition hover:bg-white/10 shrink-0"
+              className="h-11 w-11 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] shrink-0"
               aria-label="رجوع"
             >
               <ArrowRight size={19} className="text-[var(--fg)]" />
@@ -273,7 +273,7 @@ export function HadithBookViewPage() {
         >
           <button type="button"
             onClick={() => setActiveSectionId(null)}
-            className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic press-effect", activeSectionId === null ? "font-bold" : "glass border-white/10")}
+            className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic press-effect", activeSectionId === null ? "font-bold" : "glass border-[var(--stroke)]")}
             style={activeSectionId === null ? { background: accentColor, borderColor: "transparent" } : undefined}
           >
             الكل · {pack.count.toLocaleString("ar-EG")}
@@ -282,7 +282,7 @@ export function HadithBookViewPage() {
             <button type="button"
               key={s.id}
               onClick={() => setActiveSectionId(s.id)}
-              className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap press-effect", activeSectionId === s.id ? "font-bold" : "glass border-white/10")}
+              className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap press-effect", activeSectionId === s.id ? "font-bold" : "glass border-[var(--stroke)]")}
               style={activeSectionId === s.id ? { background: accentColor, borderColor: "transparent" } : undefined}
             >
               {s.title}
@@ -295,7 +295,7 @@ export function HadithBookViewPage() {
       {isLoading && (
         <div dir="rtl" className="flex-1 flex items-center justify-center px-6">
           <div
-            className="w-full max-w-sm rounded-3xl glass-strong border border-white/10 p-6 flex flex-col gap-4"
+            className="w-full max-w-sm rounded-3xl glass-strong border border-[var(--stroke)] p-6 flex flex-col gap-4"
           >
             <div className="flex items-center gap-3">
               <div
