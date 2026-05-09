@@ -341,15 +341,15 @@ export function DhikrCard(props: {
           {!focusMode && (
           <div className="flex items-center gap-1.5 flex-wrap">
             <IconButton aria-label="نسخ الذكر" onClick={doCopy}>
-              <Copy size={16} className="opacity-80" />
+              <Copy size={16} aria-hidden="true" className="opacity-80" />
             </IconButton>
 
             <IconButton aria-label="مشاركة النص" onClick={doShareText}>
-              <Share2 size={16} className="opacity-80" />
+              <Share2 size={16} aria-hidden="true" className="opacity-80" />
             </IconButton>
 
             <IconButton aria-label="مشاركة كصورة" onClick={doShareImage}>
-              <ImageDown size={16} className="opacity-80" />
+              <ImageDown size={16} aria-hidden="true" className="opacity-80" />
             </IconButton>
 
             {/* D5: per-card font scale */}
@@ -358,14 +358,14 @@ export function DhikrCard(props: {
               onClick={() => setLocalFontScale((s) => Math.max(0.65, +(s - 0.15).toFixed(2)))}
               className={cn(localFontScale <= 0.65 && "opacity-30 pointer-events-none")}
             >
-              <ZoomOut size={14} className="opacity-80" />
+              <ZoomOut size={14} aria-hidden="true" className="opacity-80" />
             </IconButton>
             <IconButton
               aria-label="تكبير الخط"
               onClick={() => setLocalFontScale((s) => Math.min(2.1, +(s + 0.15).toFixed(2)))}
               className={cn(localFontScale >= 2.1 && "opacity-30 pointer-events-none")}
             >
-              <ZoomIn size={14} className="opacity-80" />
+              <ZoomIn size={14} aria-hidden="true" className="opacity-80" />
             </IconButton>
 
             <IconButton
@@ -373,11 +373,11 @@ export function DhikrCard(props: {
               onClick={() => toggleFavorite(sectionId, index)}
               className={cn(fav && "bg-accent-14 border-accent-24")}
             >
-              <Heart size={16} className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
+              <Heart size={16} aria-hidden="true" className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
             </IconButton>
             {sourceUrl ? (
               <IconButton aria-label="فتح المصدر" onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}>
-                <ExternalLink size={16} className="opacity-80" />
+                <ExternalLink size={16} aria-hidden="true" className="opacity-80" />
               </IconButton>
             ) : null}
           </div>
@@ -385,7 +385,7 @@ export function DhikrCard(props: {
           <div className="flex flex-col items-end gap-1.5 self-center shrink-0">
             {item.minimal ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-ok-25 bg-ok-10 px-2 py-1 text-[10px] font-semibold text-[var(--ok)]">
-                <BookOpen size={11} />
+                <BookOpen size={11} aria-hidden="true" />
                 أقل القليل
               </span>
             ) : null}
@@ -399,7 +399,7 @@ export function DhikrCard(props: {
 
         {sourceLabel && !sourceUrl ? (
           <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-3 py-1.5 text-[11px] opacity-65">
-            <BookOpen size={12} />
+            <BookOpen size={12} aria-hidden="true" />
             <span>{sourceLabel}</span>
           </div>
         ) : null}
@@ -408,7 +408,7 @@ export function DhikrCard(props: {
             onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}
             className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent-20 bg-accent-10 px-3 py-1.5 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-accent-14"
           >
-            <ExternalLink size={12} />
+            <ExternalLink size={12} aria-hidden="true" />
             <span>{sourceLabel}</span>
           </button>
         ) : null}
@@ -488,7 +488,7 @@ export function DhikrCard(props: {
                 }}
                 className={cn((current <= 0 || isDailyLockedItem) && "opacity-40 pointer-events-none")}
               >
-                <Minus size={18} className="opacity-80" />
+                <Minus size={18} aria-hidden="true" className="opacity-80" />
               </IconButton>
 
               {confirmItemReset ? (
@@ -515,7 +515,7 @@ export function DhikrCard(props: {
                   }}
                   className={cn(isDailyLockedItem && "opacity-40 pointer-events-none")}
                 >
-                  <RotateCcw size={16} className="opacity-70" />
+                  <RotateCcw size={16} aria-hidden="true" className="opacity-70" />
                 </IconButton>
               )}
             </div>

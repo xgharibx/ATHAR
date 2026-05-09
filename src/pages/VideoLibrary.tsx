@@ -217,7 +217,7 @@ function SheikhBannerCard({
             </>
           ) : (
             <div className="text-[10px] opacity-40 flex items-center gap-1" style={{ color: channel.accent }}>
-              <Zap size={9} />
+              <Zap size={9} aria-hidden="true" />
               <span>جاهز للمزامنة</span>
             </div>
           )}
@@ -306,9 +306,9 @@ function CourseCard2({
           }}
         >
           {course.isGenerated ? (
-            <><BookOpen size={9} /><span>موضوع</span></>
+            <><BookOpen size={9} aria-hidden="true" /><span>موضوع</span></>
           ) : (
-            <><GraduationCap size={9} /><span>{videos.length} درس</span></>
+            <><GraduationCap size={9} aria-hidden="true" /><span>{videos.length} درس</span></>
           )}
         </div>
         {course.isGenerated && (
@@ -392,7 +392,7 @@ function LessonRow({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: `${accent}18` }}>
-            <Play size={20} className="opacity-30" />
+            <Play size={20} aria-hidden="true" className="opacity-30" />
           </div>
         )}
 
@@ -424,7 +424,7 @@ function LessonRow({
               className="w-9 h-9 rounded-full flex items-center justify-center"
               style={{ background: `${accent}dd`, boxShadow: `0 0 20px ${accent}80` }}
             >
-              <Play size={14} fill="black" color="black" />
+              <Play size={14} aria-hidden="true" fill="black" color="black" />
             </div>
           </div>
         )}
@@ -492,12 +492,12 @@ function VideoThumbCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-9 h-9 rounded-full glass border border-[var(--stroke)] flex items-center justify-center">
-            <Play size={13} className="text-white" style={{ marginLeft: 2 }} />
+            <Play size={13} aria-hidden="true" className="text-white" style={{ marginLeft: 2 }} />
           </div>
         </div>
         {bookmarked && (
           <div className="absolute top-1.5 left-1.5">
-            <Bookmark size={11} className="fill-[var(--accent)] text-[var(--accent)]" />
+            <Bookmark size={11} aria-hidden="true" className="fill-[var(--accent)] text-[var(--accent)]" />
           </div>
         )}
         {pct > 0 && (
@@ -556,7 +556,7 @@ function VideoListRow({
           <img src={video.thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full flex items-center justify-center" style={{ background: `${accent}18` }}>
-            <Play size={20} className="opacity-30" />
+            <Play size={20} aria-hidden="true" className="opacity-30" />
           </div>
         )}
 
@@ -583,7 +583,7 @@ function VideoListRow({
         {/* Bookmark dot top-right */}
         {bookmarked && (
           <div className="absolute top-1.5 right-1.5">
-            <Bookmark size={11} className="fill-[var(--accent)] text-[var(--accent)]" />
+            <Bookmark size={11} aria-hidden="true" className="fill-[var(--accent)] text-[var(--accent)]" />
           </div>
         )}
 
@@ -737,7 +737,7 @@ function VideoHome({
           <div className="flex items-start justify-between gap-3 mb-4">
             <div>
               <div className="flex items-center gap-1.5 text-[var(--accent)] mb-1.5">
-                <Star size={13} className="fill-[var(--accent)]" />
+                <Star size={13} aria-hidden="true" className="fill-[var(--accent)]" />
                 <span className="text-[9px] font-bold tracking-widest uppercase opacity-55">مكتبة النور</span>
               </div>
               <h1
@@ -768,7 +768,7 @@ function VideoHome({
           {/* Search bar */}
           {searchOpen && (
             <div className="relative mb-4">
-              <Search size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+              <Search size={14} aria-hidden="true" className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
               <input
                 ref={inputRef}
                 value={q}
@@ -941,7 +941,7 @@ function VideoHome({
                     boxShadow: `0 0 32px ${continueChannel?.accent ?? "var(--accent)"}35`,
                   }}
                 >
-                  <Play size={22} className="text-white" style={{ marginLeft: 3 }} />
+                  <Play size={22} aria-hidden="true" className="text-white" style={{ marginLeft: 3 }} />
                 </div>
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -949,7 +949,7 @@ function VideoHome({
                   className="text-[10px] font-semibold tracking-wide mb-1.5 flex items-center gap-1.5"
                   style={{ color: continueChannel?.accent ?? "var(--accent)" }}
                 >
-                  <Sparkles size={12} />
+                  <Sparkles size={12} aria-hidden="true" />
                   <span>أكمل من حيث توقفت</span>
                 </div>
                 <div
@@ -1002,7 +1002,7 @@ function VideoHome({
         <section aria-label="في تقدم">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text flex items-center gap-1.5">
-              <Zap size={14} style={{ color: "var(--accent)" }} />
+              <Zap size={14} aria-hidden="true" style={{ color: "var(--accent)" }} />
               في تقدم
             </h2>
             <span className="text-xs opacity-40">{inProgressCourses.length} دورة</span>
@@ -1074,7 +1074,7 @@ function VideoHome({
         <section aria-label="المحفوظات">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">المحفوظات</h2>
-            <Bookmark size={14} className="fill-[var(--accent)] text-[var(--accent)]" />
+            <Bookmark size={14} aria-hidden="true" className="fill-[var(--accent)] text-[var(--accent)]" />
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-0.5 px-0.5">
             {bookmarkedVideos.map((v) => (
@@ -1218,7 +1218,7 @@ function SheikhScreen({
             onClick={() => navigate("/video-library")}
             className="flex items-center gap-1.5 text-xs opacity-50 hover:opacity-80 mb-3.5 transition-opacity press-effect"
           >
-            <ArrowRight size={14} />
+            <ArrowRight size={14} aria-hidden="true" />
             <span>المكتبة</span>
           </button>
           <div className="flex items-center gap-4">
@@ -1291,7 +1291,7 @@ function SheikhScreen({
               )}
               {channelVideos.length > 0 && Math.floor(channelVideos.reduce((s, v) => s + (v.durationSeconds ?? 0), 0) / 3600) > 0 && (
                 <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5 text-xs flex items-center gap-1">
-                  <Clock size={11} className="opacity-60" />
+                  <Clock size={11} aria-hidden="true" className="opacity-60" />
                   <span>{Math.floor(channelVideos.reduce((s, v) => s + (v.durationSeconds ?? 0), 0) / 3600)}+ ساعة</span>
                 </div>
               )}
@@ -1305,7 +1305,7 @@ function SheikhScreen({
         <section aria-label={topicFilter ? "الدورات المصنفة" : "الدورات"}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">{topicFilter ? "الدورات المصنفة" : "الدورات"}</h2>
-            <GraduationCap size={16} style={{ color: channel.accent }} />
+            <GraduationCap size={16} aria-hidden="true" style={{ color: channel.accent }} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             {(topicFilter ? channelCourses.filter(c => (c.topicIds as string[]).includes(topicFilter)) : channelCourses).map((c) => (
@@ -1482,7 +1482,7 @@ function CourseScreen({
             </button>
             {channel && (
               <>
-                <ChevronLeft size={11} />
+                <ChevronLeft size={11} aria-hidden="true" />
                 <button
                   type="button"
                   onClick={() => navigate(`/video-library/${channel.id}`)}
@@ -1490,7 +1490,7 @@ function CourseScreen({
                 >
                   {channel.displayName}
                 </button>
-                <ChevronLeft size={11} />
+                <ChevronLeft size={11} aria-hidden="true" />
               </>
             )}
             <span className="line-clamp-1 opacity-75">{course.title}</span>
@@ -1499,7 +1499,7 @@ function CourseScreen({
           <div className="flex items-start gap-4">
             <div className="min-w-0 flex-1">
               <div className="text-xs font-medium mb-1.5 flex items-center gap-1" style={{ color: accent }}>
-                <GraduationCap size={12} />
+                <GraduationCap size={12} aria-hidden="true" />
                 {channel?.displayName ?? "دورة إسلامية"}
               </div>
               <h1 className="text-[1.05rem] font-bold arabic-text leading-snug">{course.title}</h1>
@@ -1521,7 +1521,7 @@ function CourseScreen({
             </div>
             {stats.totalSeconds > 0 && (
               <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5 text-xs flex items-center gap-1">
-                <Clock size={10} />
+                <Clock size={10} aria-hidden="true" />
                 <span>{formatDuration(stats.totalSeconds)}</span>
               </div>
             )}
@@ -1538,7 +1538,7 @@ function CourseScreen({
                 color: "var(--on-accent)",
               }}
             >
-              <Play size={15} />
+              <Play size={15} aria-hidden="true" />
               <span>{lastWatched ? "أكمل الدرس" : "ابدأ الدورة"}</span>
             </button>
           )}
@@ -1684,7 +1684,7 @@ function WatchScreen({
           onClick={() => navigate("/video-library")}
           className="flex items-center gap-2 text-sm opacity-55 hover:opacity-80 transition-opacity press-effect"
         >
-          <ArrowRight size={16} />
+          <ArrowRight size={16} aria-hidden="true" />
           <span>المكتبة</span>
         </button>
         <div className="glass rounded-3xl p-7 text-center">
@@ -1709,7 +1709,7 @@ function WatchScreen({
         </button>
         {channel && (
           <>
-            <ChevronLeft size={10} />
+            <ChevronLeft size={10} aria-hidden="true" />
             <button
               type="button"
               onClick={() => navigate(`/video-library/${channel.id}`)}
@@ -1721,7 +1721,7 @@ function WatchScreen({
         )}
         {course && (
           <>
-            <ChevronLeft size={10} />
+            <ChevronLeft size={10} aria-hidden="true" />
             <button
               type="button"
               onClick={() => navigate(`/video-library/course/${course.id}`)}
@@ -1768,7 +1768,7 @@ function WatchScreen({
             className="w-full p-4 flex items-center justify-between gap-3 text-right press-effect"
           >
             <div className="flex items-center gap-2.5">
-              <GraduationCap size={16} style={{ color: channel?.accent }} />
+              <GraduationCap size={16} aria-hidden="true" style={{ color: channel?.accent }} />
               <div>
                 <div className="text-[12px] font-semibold arabic-text">{course.title}</div>
                 <div className="text-[11px] opacity-45 mt-0.5">
@@ -1928,7 +1928,7 @@ function TopicScreen({
             onClick={() => navigate("/video-library")}
             className="flex items-center gap-1.5 text-xs opacity-50 hover:opacity-80 mb-3 transition-opacity press-effect"
           >
-            <ArrowRight size={14} /><span>المكتبة</span>
+            <ArrowRight size={14} aria-hidden="true" /><span>المكتبة</span>
           </button>
           <div className="flex items-center gap-3 mb-3">
             <span className="text-4xl" aria-hidden="true">{topic.icon}</span>
@@ -1943,7 +1943,7 @@ function TopicScreen({
             </div>
             {topicCourses.length > 0 && (
               <div className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-1.5 text-xs flex items-center gap-1">
-                <GraduationCap size={10} /><span>{topicCourses.length} دورة</span>
+                <GraduationCap size={10} aria-hidden="true" /><span>{topicCourses.length} دورة</span>
               </div>
             )}
             {channelIds.length > 0 && (

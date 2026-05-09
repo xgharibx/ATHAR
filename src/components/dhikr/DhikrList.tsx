@@ -348,7 +348,7 @@ export function DhikrList(props: Readonly<{
             </div>
             <div className="flex items-center gap-2">
               <Button variant="primary" onClick={() => setAddOpen(true)}>
-                <Plus size={16} />
+                <Plus size={16} aria-hidden="true" />
                 إضافة
               </Button>
               <Button
@@ -356,11 +356,11 @@ export function DhikrList(props: Readonly<{
                 onClick={() => setFocusMode((prev) => !prev)}
                 aria-label={focusMode ? "إنهاء وضع التركيز" : "وضع التركيز"}
               >
-                <Focus size={16} />
+                <Focus size={16} aria-hidden="true" />
               </Button>
               {autoReadActive && (
                 <Button variant="primary" onClick={stopAutoRead} aria-label="إيقاف">
-                  <Square size={14} />
+                  <Square size={14} aria-hidden="true" />
                   إيقاف · {autoReadCountdown}ث
                 </Button>
               )}
@@ -369,7 +369,7 @@ export function DhikrList(props: Readonly<{
                 onClick={() => setMoreOpen((prev) => !prev)}
                 aria-label="خيارات إضافية"
               >
-                <MoreHorizontal size={16} />
+                <MoreHorizontal size={16} aria-hidden="true" />
               </Button>
             </div>
             {(moreOpen || confirmReset || confirmDone || confirmDeleteCategory) && (
@@ -381,7 +381,7 @@ export function DhikrList(props: Readonly<{
                       className="border-danger-40 text-[var(--danger)] hover:bg-danger-10 shrink-0"
                       onClick={() => { resetSection(props.sectionId); setConfirmReset(false); }}
                     >
-                      <RotateCcw size={16} />
+                      <RotateCcw size={16} aria-hidden="true" />
                       تأكيد التصفير
                     </Button>
                     <Button variant="outline" className="shrink-0" onClick={() => setConfirmReset(false)}>
@@ -395,7 +395,7 @@ export function DhikrList(props: Readonly<{
                     onClick={() => setConfirmReset(true)}
                     disabled={isDailySectionLocked || !hasItems}
                   >
-                    <RotateCcw size={16} />
+                    <RotateCcw size={16} aria-hidden="true" />
                     تصفير
                   </Button>
                 )}
@@ -406,7 +406,7 @@ export function DhikrList(props: Readonly<{
                       className="border-ok-40 text-[var(--ok)] hover:bg-ok-10 shrink-0"
                       onClick={markAllDone}
                     >
-                      <CheckCheck size={16} />
+                      <CheckCheck size={16} aria-hidden="true" />
                       تأكيد الإكمال
                     </Button>
                     <Button variant="outline" className="shrink-0" onClick={() => setConfirmDone(false)}>
@@ -421,12 +421,12 @@ export function DhikrList(props: Readonly<{
                     disabled={isDailySectionLocked || !hasItems || stats.percent >= 100}
                     aria-label="تحديد جميع الأذكار كمكتملة"
                   >
-                    <CheckCheck size={16} />
+                    <CheckCheck size={16} aria-hidden="true" />
                     إكمال
                   </Button>
                 )}
                 <Button variant="secondary" className="shrink-0" onClick={copyAllText} disabled={!hasItems}>
-                  <Copy size={16} />
+                  <Copy size={16} aria-hidden="true" />
                   {copiedAll ? "تم ✓" : "نسخ الكل"}
                 </Button>
                 <Button
@@ -456,7 +456,7 @@ export function DhikrList(props: Readonly<{
                   onClick={() => setCompact((prev) => !prev)}
                   aria-label={compact ? "عرض موسّع" : "عرض مضغوط"}
                 >
-                  <List size={16} />
+                  <List size={16} aria-hidden="true" />
                 </Button>
                 <Button
                   variant={reorderMode ? "primary" : "secondary"}
@@ -465,12 +465,12 @@ export function DhikrList(props: Readonly<{
                   disabled={!hasItems}
                   aria-label="ترتيب الأذكار"
                 >
-                  <ArrowUpDown size={16} />
+                  <ArrowUpDown size={16} aria-hidden="true" />
                   ترتيب
                 </Button>
                 {reorderMode && savedItemOrder?.length ? (
                   <Button variant="ghost" className="shrink-0" onClick={() => resetSectionItemOrder(props.sectionId)} aria-label="إعادة الترتيب">
-                    <RotateCcw size={16} />
+                    <RotateCcw size={16} aria-hidden="true" />
                   </Button>
                 ) : null}
                 {/* D12: auto-read mode */}
@@ -487,7 +487,7 @@ export function DhikrList(props: Readonly<{
                       <option value={10}>١٠ ثواني</option>
                     </select>
                     <Button variant="secondary" className="shrink-0" onClick={startAutoRead} disabled={!hasItems} aria-label="بدء القراءة التلقائية">
-                      <Timer size={14} />
+                      <Timer size={14} aria-hidden="true" />
                       تلقائي
                     </Button>
                   </>
@@ -499,7 +499,7 @@ export function DhikrList(props: Readonly<{
                     onClick={() => virtuosoRef.current?.scrollToIndex({ index: firstIncompleteIdx, align: "start", behavior: "smooth" })}
                     aria-label="انتقل إلى أول ذكر غير مكتمل"
                   >
-                    <ChevronsDown size={16} />
+                    <ChevronsDown size={16} aria-hidden="true" />
                   </Button>
                 )}
                 {props.onDeleteCategory && (
@@ -534,7 +534,7 @@ export function DhikrList(props: Readonly<{
 
           {isDailySectionLocked && midnightLabel && (
             <div className="mt-3 flex items-center gap-1.5 text-[11px] opacity-55">
-              <Lock size={11} />
+              <Lock size={11} aria-hidden="true" />
               <span>يتجدد مع الفجر · متبقّي {midnightLabel}</span>
             </div>
           )}
@@ -590,7 +590,7 @@ export function DhikrList(props: Readonly<{
               <div className="text-3xl mb-3">✦</div>
               <div className="font-semibold">أذكاري</div>
               <Button className="mt-4" onClick={() => setAddOpen(true)}>
-                <Plus size={16} />
+                <Plus size={16} aria-hidden="true" />
                 إضافة ذكر
               </Button>
             </div>
@@ -614,7 +614,7 @@ export function DhikrList(props: Readonly<{
                         aria-label="رفع الذكر"
                 
                       >
-                        <MoveUp size={15} />
+                        <MoveUp size={15} aria-hidden="true" />
                       </button>
                       <button type="button"
                         onClick={() => moveSectionItem(props.sectionId, displayIndex, displayIndex + 1, props.items.length)}
@@ -623,7 +623,7 @@ export function DhikrList(props: Readonly<{
                         aria-label="خفض الذكر"
                 
                       >
-                        <MoveDown size={15} />
+                        <MoveDown size={15} aria-hidden="true" />
                       </button>
                     </div>
                   </div>
@@ -681,7 +681,7 @@ export function DhikrList(props: Readonly<{
             className="fixed right-4 z-[9991] h-14 w-14 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] shadow-2xl grid place-items-center active:scale-95 transition"
             style={{ bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--mobile-fab-size) + var(--mobile-fab-gap) + var(--sab))" }}
           >
-            <Plus size={22} />
+            <Plus size={22} aria-hidden="true" />
           </button>
         ) : null}
         {addOpen ? (
@@ -727,7 +727,7 @@ export function DhikrList(props: Readonly<{
                 placeholder="المصدر أو الفضل"
               />
               <Button className="mt-4 w-full" onClick={addMyDhikr}>
-                <Plus size={16} />
+                <Plus size={16} aria-hidden="true" />
                 حفظ الذكر
               </Button>
             </div>
@@ -772,7 +772,7 @@ export function DhikrList(props: Readonly<{
               onClick={() => navigate(`/c/${nextSection.id}`)}
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-start"
             >
-              <ChevronRight size={16} className="opacity-60 shrink-0" />
+              <ChevronRight size={16} aria-hidden="true" className="opacity-60 shrink-0" />
               <span className="text-xs opacity-65 line-clamp-2 leading-tight">{nextSection.title}</span>
             </button>
           ) : <div className="flex-1" />}
@@ -782,7 +782,7 @@ export function DhikrList(props: Readonly<{
               className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-end"
             >
               <span className="text-xs opacity-65 line-clamp-2 leading-tight">{prevSection.title}</span>
-              <ChevronLeft size={16} className="opacity-60 shrink-0" />
+              <ChevronLeft size={16} aria-hidden="true" className="opacity-60 shrink-0" />
             </button>
           ) : <div className="flex-1" />}
         </div>

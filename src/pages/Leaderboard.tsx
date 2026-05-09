@@ -268,7 +268,7 @@ export function LeaderboardPage() {
               {identity.alias}
             </div>
           </div>
-          <Trophy size={18} className="text-[var(--accent)]" />
+          <Trophy size={18} aria-hidden="true" className="text-[var(--accent)]" />
         </div>
 
         <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -284,7 +284,7 @@ export function LeaderboardPage() {
             يُنشأ تلقائيًا لكل حساب باسم عشوائي موحّد، ولا يمكن تغييره يدويًا.
           </div>
           <div className="mt-3 inline-flex items-center gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2">
-            <ShieldCheck size={14} className="text-[var(--accent)]" />
+            <ShieldCheck size={14} aria-hidden="true" className="text-[var(--accent)]" />
             <span className="text-sm font-semibold">{identity.alias}</span>
           </div>
         </div>
@@ -350,7 +350,7 @@ export function LeaderboardPage() {
           >
             {syncState === "syncing"
               ? <Loader2 size={16} className="animate-spin" />
-              : <Send size={16} />}
+              : <Send size={16} aria-hidden="true" />}
             {cooldownLeft > 0
               ? `انتظر ${Math.ceil(cooldownLeft / 1000).toLocaleString("ar-EG")}ث`
               : "مزامنة ترتيبي"}
@@ -360,7 +360,7 @@ export function LeaderboardPage() {
             onClick={() => void pullBoard()}
             disabled={boardLoadState === "loading"}
           >
-            <RotateCw size={16} className={boardLoadState === "loading" ? "animate-spin" : ""} />
+            <RotateCw size={16} aria-hidden="true" className={boardLoadState === "loading" ? "animate-spin" : ""} />
             تحديث
           </Button>
           <Badge>{myRank != null ? `رتبتي: #${myRank.toLocaleString("ar-EG")}` : "رتبتي: خارج أعلى ٣٠"}</Badge>
@@ -376,10 +376,10 @@ export function LeaderboardPage() {
                     ? "border-accent-30 bg-accent-10 text-[var(--accent)]"
                     : "border-[var(--stroke)] bg-[var(--card)] opacity-70"
           )}>
-            {syncState === "syncing" && <Loader2 size={10} className="animate-spin" />}
-            {syncState === "ok" && <CheckCircle2 size={10} />}
-            {syncState === "error" && <AlertCircle size={10} />}
-            {syncState === "cooldown" && <Clock size={10} />}
+            {syncState === "syncing" && <Loader2 size={10} aria-hidden="true" className="animate-spin" />}
+            {syncState === "ok" && <CheckCircle2 size={10} aria-hidden="true" />}
+            {syncState === "error" && <AlertCircle size={10} aria-hidden="true" />}
+            {syncState === "cooldown" && <Clock size={10} aria-hidden="true" />}
             {syncState === "syncing"
               ? "جارٍ المزامنة"
               : syncState === "ok"
@@ -763,7 +763,7 @@ function LeaderboardAdminCard(props: {
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <ShieldCheck size={16} className="text-[var(--accent)]" />
+            <ShieldCheck size={16} aria-hidden="true" className="text-[var(--accent)]" />
             <div className="text-sm font-semibold">إدارة المتصدرين</div>
           </div>
           <div className="mt-1 text-[11px] opacity-60">
@@ -800,7 +800,7 @@ function LeaderboardAdminCard(props: {
                 مسح
               </Button>
               <Button variant="secondary" onClick={() => void loadSnapshot()} disabled={!hasAdminToken || !hasEndpoint || loadingSnapshot}>
-                {loadingSnapshot ? <Loader2 size={16} className="animate-spin" /> : <RotateCw size={16} />}
+                {loadingSnapshot ? <Loader2 size={16} aria-hidden="true" className="animate-spin" /> : <RotateCw size={16} aria-hidden="true" />}
                 تحديث الإدارة
               </Button>
             </div>
@@ -897,7 +897,7 @@ function LeaderboardAdminCard(props: {
                       onClick={() => void loadModerationForUser(selectedUserId, selectedUserLabel || selectedUserId)}
                       disabled={!selectedUserId.trim() || loadingUser}
                     >
-                      {loadingUser ? <Loader2 size={16} className="animate-spin" /> : <RotateCw size={16} />}
+                      {loadingUser ? <Loader2 size={16} aria-hidden="true" className="animate-spin" /> : <RotateCw size={16} aria-hidden="true" />}
                       تحميل الحالة
                     </Button>
                     {props.rows.slice(0, 6).map((row) => (
@@ -1064,7 +1064,7 @@ function LocalFriendsCard(props: {
     <Card className="p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Users size={16} className="text-[var(--accent)]" />
+          <Users size={16} aria-hidden="true" className="text-[var(--accent)]" />
           <div className="text-sm font-semibold">لوحة الأصدقاء</div>
           {localFriends.length > 0 && (
             <span className="text-[10px] opacity-50 tabular-nums">{localFriends.length.toLocaleString("ar-EG")} صديق</span>
@@ -1124,7 +1124,7 @@ function LocalFriendsCard(props: {
                 {myExportCode}
               </code>
               <Button variant="secondary" onClick={() => void copyMyCode()} aria-label="نسخ الكود">
-                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
               </Button>
             </div>
             <div className="mt-1 text-[10px] opacity-40">شارك هذا الكود مع صديق ليضيفك إلى لوحته.</div>
@@ -1139,7 +1139,7 @@ function LocalFriendsCard(props: {
                 aria-label="رمز الصديق للإضافة"
               />
               <Button onClick={handleImport} disabled={!importCode.trim()}>
-                <Plus size={14} />
+                <Plus size={14} aria-hidden="true" />
                 إضافة
               </Button>
             </div>
@@ -1235,7 +1235,7 @@ function GroupKhatmaCard() {
     <Card className="p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <BookMarked size={16} className="text-[var(--accent)]" />
+          <BookMarked size={16} aria-hidden="true" className="text-[var(--accent)]" />
           <div className="text-sm font-semibold">ختمة جماعية</div>
           {groupKhatma && (
             <span className="text-[10px] opacity-50">{groupKhatma.groupName}</span>
@@ -1249,7 +1249,7 @@ function GroupKhatmaCard() {
         ) : (
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => void copyShareCode()} aria-label="مشاركة كود الختمة">
-              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
               {copied ? "تم" : "كود المشاركة"}
             </Button>
             <button type="button"
@@ -1346,7 +1346,7 @@ function GroupKhatmaCard() {
                   }}
                   title={owner ? `${owner.name} — جزء ${juz.toLocaleString("ar-EG")}` : `جزء ${juz.toLocaleString("ar-EG")}`}
                 >
-                  {done ? <Check size={10} strokeWidth={3} style={{ color }} /> : juz.toLocaleString("ar-EG")}
+                  {done ? <Check size={10} aria-hidden="true" strokeWidth={3} style={{ color }} /> : juz.toLocaleString("ar-EG")}
                 </button>
               );
             })}
@@ -1421,7 +1421,7 @@ function WeeklyChallengeCard() {
   return (
     <Card className="p-5">
       <div className="flex items-center gap-2 mb-3">
-        <Calendar size={15} className="text-[var(--accent)]" />
+        <Calendar size={15} aria-hidden="true" className="text-[var(--accent)]" />
         <div className="text-sm font-semibold">تحدي الأسبوع</div>
         {isCompleted && (
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-ok-15 border border-ok-30 text-[var(--ok)] mr-auto">
@@ -1488,7 +1488,7 @@ function WeeklyChallengeCard() {
               <span className="text-[8px] opacity-60">{day.label}</span>
               <span className="text-xs">
                 {done
-                  ? <Check size={12} strokeWidth={3} style={{ color: "var(--ok)" }} />
+                  ? <Check size={12} aria-hidden="true" strokeWidth={3} style={{ color: "var(--ok)" }} />
                   : <span style={{ color: "var(--muted-2)", fontSize: "8px" }}>·</span>}
               </span>
             </button>

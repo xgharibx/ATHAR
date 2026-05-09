@@ -636,11 +636,11 @@ export function SebhaPage() {
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}>
-              <ArrowRight size={18} />
+              <ArrowRight size={18} aria-hidden="true" />
             </IconButton>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <Sparkles size={15} className="text-[var(--accent)]" />
+                <Sparkles size={15} aria-hidden="true" className="text-[var(--accent)]" />
                 <span className="text-xs font-semibold opacity-60">سبحة ذكية</span>
                 {tallyMode ? <Badge>وضع حر</Badge> : <Badge>{totalDone}/{totalTarget}</Badge>}
               </div>
@@ -650,7 +650,7 @@ export function SebhaPage() {
               </div>
               {/* Leaderboard daily challenge */}
               <div className="mt-2 flex items-center gap-1.5 text-[11px] opacity-60">
-                <Target size={11} className="text-[var(--accent)] shrink-0" />
+                <Target size={11} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
                 <span>تحدي اليوم في الترتيب:</span>
                 <span className="font-semibold text-[var(--accent)]">{dailyChallenge.label} × {dailyChallenge.target}</span>
               </div>
@@ -679,7 +679,7 @@ export function SebhaPage() {
               </>
             ) : (
               <IconButton aria-label="تصفير كل التسابيح" onClick={() => setConfirmReset(true)} title="تصفير كل التسابيح">
-                <RotateCw size={17} />
+                <RotateCw size={17} aria-hidden="true" />
               </IconButton>
             )}
           </div>
@@ -703,7 +703,7 @@ export function SebhaPage() {
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <History size={15} className="text-[var(--accent)]" />
+              <History size={15} aria-hidden="true" className="text-[var(--accent)]" />
               <span className="text-sm font-semibold">سجل الجلسات</span>
               {sebhaSessions.length > 0 && <Badge>{sebhaSessions.length}</Badge>}
             </div>
@@ -745,7 +745,7 @@ export function SebhaPage() {
                 <div key={`${s.timestamp}-${s.dhikrKey}-${i}`} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--card)] px-3 py-2 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
                     {s.target === null
-                      ? <Flag size={12} className="text-[var(--accent)] shrink-0" />
+                      ? <Flag size={12} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
                       : <CheckCircle2 size={12} className="text-[var(--ok)] shrink-0" />}
                     <span className="truncate opacity-85">{s.dhikrLabel}</span>
                     <Badge>{s.count}{s.target ? `/${s.target}` : ""}</Badge>
@@ -812,7 +812,7 @@ export function SebhaPage() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Button variant="secondary" onClick={handleReset}>
-              <RotateCw size={16} />
+              <RotateCw size={16} aria-hidden="true" />
               تصفير الحالي
             </Button>
             {/* 6B: Voice mic button */}
@@ -853,11 +853,11 @@ export function SebhaPage() {
         {/* Status line */}
         <div className="mt-4 flex items-center justify-center gap-2 text-sm opacity-75">
           {tallyMode ? (
-            <><Timer size={17} className="text-[var(--accent)]" /><span>عد حر — بدون هدف</span></>
+            <><Timer size={17} aria-hidden="true" className="text-[var(--accent)]" /><span>عد حر — بدون هدف</span></>
           ) : completed ? (
-            <><CheckCircle2 size={17} className="text-[var(--ok)]" />تم الهدف</>
+            <><CheckCircle2 size={17} aria-hidden="true" className="text-[var(--ok)]" />تم الهدف</>
           ) : (
-            <><Target size={17} className="text-[var(--accent)]" />{remaining} متبقي</>
+            <><Target size={17} aria-hidden="true" className="text-[var(--accent)]" />{remaining} متبقي</>
           )}
         </div>
 
@@ -973,7 +973,7 @@ export function SebhaPage() {
                   className="opacity-40 hover:opacity-80 transition p-1 cursor-pointer"
                   aria-label="تعديل الذكر المخصص"
                 >
-                  <Pencil size={13} />
+                  <Pencil size={13} aria-hidden="true" />
                 </span>
               </div>
             </div>
@@ -1002,7 +1002,7 @@ export function SebhaPage() {
             onClick={() => setShowCustomForm(true)}
             className="glass rounded-3xl p-4 text-center border border-dashed border-[var(--stroke)] hover:bg-[var(--card)] transition active:scale-[.98] flex flex-col items-center justify-center gap-2 min-h-[100px]"
           >
-            <Plus size={20} className="opacity-40" />
+            <Plus size={20} aria-hidden="true" className="opacity-40" />
             <span className="text-xs opacity-50">إضافة ذكر مخصص</span>
           </button>
         )}
@@ -1012,7 +1012,7 @@ export function SebhaPage() {
       {showCustomForm && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Pencil size={15} className="text-[var(--accent)]" />
+            <Pencil size={15} aria-hidden="true" className="text-[var(--accent)]" />
             <span className="text-sm font-semibold">ذكر مخصص</span>
           </div>
           <div className="space-y-3">
