@@ -272,6 +272,26 @@ export function QuranPlansPage() {
             </div>
           </div>
 
+          {/* On-track indicator */}
+          {!activePlan.isFinished && activePlan.elapsed > 0 && (() => {
+            const ahead = activePlan.doneCount - activePlan.elapsed;
+            if (ahead > 0) return (
+              <div className="text-[11px] font-medium text-center py-1.5 px-3 rounded-2xl" style={{ background: "color-mix(in srgb, var(--ok) 12%, transparent)", color: "var(--ok)" }}>
+                تقدمت بَ{toArabicNumeral(ahead)} يوم — أحسنت غاية لأمر الله ♥
+              </div>
+            );
+            if (ahead < -1) return (
+              <div className="text-[11px] font-medium text-center py-1.5 px-3 rounded-2xl" style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", color: "var(--accent)" }}>
+                تأخرت {toArabicNumeral(Math.abs(ahead))} يوم — لا تزال بالإمكان التعويض؛ ابدأ الآن
+              </div>
+            );
+            return (
+              <div className="text-[11px] font-medium text-center py-1.5 px-3 rounded-2xl opacity-50" style={{ background: "var(--card)" }}>
+                على الخطة تماماً — استمر هكذا
+              </div>
+            );
+          })()}
+
           {/* Today's reading */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
