@@ -1248,7 +1248,7 @@ function HomeWidgetsCard(props: {
           <div className="text-xs opacity-60 mt-0.5">تفعيل وترتيب البطاقات</div>
         </div>
       </div>
-      <div className="space-y-2">
+      <div role="list" aria-label="ترتيب عناصر الصفحة الرئيسية" className="space-y-2">
         {order.map((key, i) => (
           <div
             key={key}
@@ -1259,7 +1259,7 @@ function HomeWidgetsCard(props: {
                 onClick={() => moveUp(i)}
                 disabled={i === 0}
                 className="p-1 rounded-lg hover:bg-[var(--card-2)] transition disabled:opacity-25"
-                aria-label="تحريك لأعلى"
+                aria-label={`تحريك ${HOME_WIDGET_LABELS[key]} لأعلى`}
               >
                 <ArrowUp size={12} />
               </button>
@@ -1267,7 +1267,7 @@ function HomeWidgetsCard(props: {
                 onClick={() => moveDown(i)}
                 disabled={i === order.length - 1}
                 className="p-1 rounded-lg hover:bg-[var(--card-2)] transition disabled:opacity-25"
-                aria-label="تحريك لأسفل"
+                aria-label={`تحريك ${HOME_WIDGET_LABELS[key]} لأسفل`}
               >
                 <ArrowDown size={12} />
               </button>
