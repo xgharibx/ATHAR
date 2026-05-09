@@ -296,15 +296,13 @@ export function LeaderboardPage() {
           الصيغة: ذكر + قرآن×٣ + صلاة×٤٠ + تسبيح
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          <BoardTab label="يومي" active={period === "daily"} onClick={() => setPeriod("daily")} />
+        <div role="tablist" aria-label="الفترة الزمنية" className="mt-3 flex flex-wrap gap-2">
           <BoardTab label="أسبوعي" active={period === "weekly"} onClick={() => setPeriod("weekly")} />
           <BoardTab label="شهري" active={period === "monthly"} onClick={() => setPeriod("monthly")} />
           <BoardTab label="سنوي" active={period === "yearly"} onClick={() => setPeriod("yearly")} />
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          <BoardTab label="عام" active={board === "global"} onClick={() => setBoard("global")} />
+        <div role="tablist" aria-label="نوع اللوحة" className="mt-3 flex flex-wrap gap-2">
           <BoardTab label="الذكر" active={board === "dhikr"} onClick={() => setBoard("dhikr")} />
           <BoardTab label="القرآن" active={board === "quran"} onClick={() => setBoard("quran")} />
           <BoardTab label="الصلوات" active={board === "prayers"} onClick={() => setBoard("prayers")} />
@@ -471,6 +469,8 @@ function Stat(props: { title: string; value: number }) {
 function BoardTab(props: { label: string; active: boolean; onClick: () => void }) {
   return (
     <Button
+      role="tab"
+      aria-selected={props.active}
       size="sm"
       variant={props.active ? "secondary" : "ghost"}
       className={props.active ? "bg-accent-15 border border-accent-35" : ""}
@@ -824,7 +824,7 @@ function LeaderboardAdminCard(props: {
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
                   <div className="text-sm font-semibold">حظر أسماء أو كلمات</div>
-                  <div className="flex gap-2 flex-wrap">
+                  <div role="tablist" aria-label="نمط التطابق" className="flex gap-2 flex-wrap">
                     <BoardTab label="احتواء" active={blockMatchMode === "contains"} onClick={() => setBlockMatchMode("contains")} />
                     <BoardTab label="مطابقة تامة" active={blockMatchMode === "exact"} onClick={() => setBlockMatchMode("exact")} />
                   </div>

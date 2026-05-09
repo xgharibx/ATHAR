@@ -103,6 +103,7 @@ export function PrayerGuidePage() {
                 onClick={() => setExpandedId(isOpen ? null : step.id)}
                 className="w-full flex items-center gap-3 p-4 text-right"
                 aria-expanded={isOpen}
+                aria-controls={`prayer-step-panel-${step.id}`}
               >
                 <div className="flex items-center gap-2">
                   {isOpen ? (
@@ -136,8 +137,7 @@ export function PrayerGuidePage() {
                 </div>
               </button>
 
-              {isOpen && (
-                <div className="px-4 pb-4">
+              <div id={`prayer-step-panel-${step.id}`} hidden={!isOpen} className="px-4 pb-4">
                   <div className="h-px mb-3" style={{ background: "color-mix(in srgb, var(--on-accent) 18%, transparent)" }} />
                   {step.arabic && (
                     <p
@@ -172,7 +172,6 @@ export function PrayerGuidePage() {
                     </button>
                   </div>
                 </div>
-              )}
             </div>
           );
         })}

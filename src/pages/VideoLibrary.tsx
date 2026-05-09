@@ -842,7 +842,7 @@ function VideoHome({
             </div>
           )}
           {searchResults.courses.length > 0 && (
-            <section>
+            <section aria-label="الدورات">
               <h2 className="text-[11px] font-semibold mb-2 opacity-60 tracking-wide">الدورات</h2>
               <div className="grid grid-cols-2 gap-2.5">
                 {searchResults.courses.map((c) => (
@@ -869,7 +869,7 @@ function VideoHome({
             </section>
           )}
           {searchResults.videos.length > 0 && (
-            <section>
+            <section aria-label="الفيديوهات">
               <h2 className="text-[11px] font-semibold mb-2 opacity-60 tracking-wide">الفيديوهات</h2>
               <div className="space-y-2">
                 {searchResults.videos.map((v) => (
@@ -974,7 +974,7 @@ function VideoHome({
 
       {/* ── Sheikh grid ── */}
       {!searchResults && (
-        <section>
+        <section aria-label="المشايخ">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">المشايخ</h2>
             <span className="text-xs opacity-40">{data.db.channels.length} قناة</span>
@@ -996,7 +996,7 @@ function VideoHome({
 
       {/* ── في تقدم ── */}
       {inProgressCourses.length > 0 && !searchResults && (
-        <section>
+        <section aria-label="في تقدم">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text flex items-center gap-1.5">
               <Zap size={14} style={{ color: "var(--accent)" }} />
@@ -1022,7 +1022,7 @@ function VideoHome({
 
       {/* ── الموضوعات ── */}
       {data.db.topics.length > 0 && !searchResults && (
-        <section>
+        <section aria-label="الموضوعات">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">الموضوعات</h2>
             <span className="text-xs opacity-40">عبر كل المشايخ</span>
@@ -1046,7 +1046,7 @@ function VideoHome({
 
       {/* ── Newest videos ── */}
       {newestVideos.length > 0 && !searchResults && (
-        <section>
+        <section aria-label="أحدث الدروس">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">أحدث الدروس</h2>
             <span className="text-xs opacity-40">{newestVideos.length} درس</span>
@@ -1068,7 +1068,7 @@ function VideoHome({
 
       {/* ── Bookmarked ── */}
       {bookmarkedVideos.length > 0 && !searchResults && (
-        <section>
+        <section aria-label="المحفوظات">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">المحفوظات</h2>
             <Bookmark size={14} className="fill-[var(--accent)] text-[var(--accent)]" />
@@ -1090,7 +1090,7 @@ function VideoHome({
 
       {/* ── مكتملة ── */}
       {completedCourses.length > 0 && !searchResults && (
-        <section>
+        <section aria-label="مكتملة">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text flex items-center gap-1.5">
               <CheckCircle2 size={14} className="text-emerald-400" />
@@ -1299,7 +1299,7 @@ function SheikhScreen({
 
       {/* ── Courses ── */}
       {channelCourses.length > 0 && (!topicFilter || channelCourses.some(c => (c.topicIds as string[]).includes(topicFilter))) && (
-        <section>
+        <section aria-label={topicFilter ? "الدورات المصنفة" : "الدورات"}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[13px] font-semibold arabic-text">{topicFilter ? "الدورات المصنفة" : "الدورات"}</h2>
             <GraduationCap size={16} style={{ color: channel.accent }} />
@@ -1352,7 +1352,7 @@ function SheikhScreen({
       )}
 
       {/* ── Videos ── */}
-      <section>
+      <section aria-label={topicFilter ? "الفيديوهات المصنفة" : "كل الفيديوهات"}>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[13px] font-semibold arabic-text">{topicFilter ? "الفيديوهات المصنفة" : "كل الفيديوهات"}</h2>
           <span className="text-xs opacity-40">{visibleVideos.length}</span>
@@ -1554,7 +1554,7 @@ function CourseScreen({
       </div>
 
       {/* ── Lesson list ── */}
-      <section>
+      <section aria-label="قائمة الدروس">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[13px] font-semibold arabic-text">قائمة الدروس</h2>
           <span className="text-xs opacity-40">{courseVideos.length} درس</span>
@@ -1830,7 +1830,7 @@ function WatchScreen({
 
       {/* ── Related videos ── */}
       {related.length > 0 && (
-        <section>
+        <section aria-label="فيديوهات ذات صلة">
           <h2 className="text-[13px] font-semibold arabic-text mb-3">فيديوهات ذات صلة</h2>
           <div className="space-y-2">
             {related.map((v) => (
@@ -1954,7 +1954,7 @@ function TopicScreen({
 
       {/* ── Courses for this topic ── */}
       {topicCourses.length > 0 && (
-        <section>
+        <section aria-label="الدورات">
           <h2 className="text-[13px] font-semibold arabic-text mb-3">الدورات</h2>
           <div className="grid grid-cols-2 gap-3">
             {topicCourses.map((c) => (
@@ -1996,7 +1996,7 @@ function TopicScreen({
       )}
 
       {/* ── Videos ── */}
-      <section>
+      <section aria-label="الفيديوهات">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[13px] font-semibold arabic-text">الفيديوهات</h2>
           <span className="text-xs opacity-40">{visibleVideos.length}</span>
@@ -2048,7 +2048,7 @@ function TopicScreen({
 
       {/* ── Other topics ── */}
       {data.db.topics.filter((t) => t.id !== topicId).length > 0 && (
-        <section>
+        <section aria-label="موضوعات أخرى">
           <h2 className="text-[11px] font-semibold opacity-50 mb-2 tracking-wide">موضوعات أخرى</h2>
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
             {data.db.topics.filter((t) => t.id !== topicId).map((t) => (

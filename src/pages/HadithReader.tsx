@@ -327,7 +327,7 @@ export function HadithReaderPage() {
             </IconButton>
             <IconButton aria-label="نسخ" onClick={copyText}><Copy size={16} className="text-[var(--muted)]" /></IconButton>
             <IconButton aria-label="مشاركة" onClick={shareText}><Share2 size={16} className="text-[var(--muted)]" /></IconButton>
-            <IconButton aria-label="ملاحظة" onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}>
+            <IconButton aria-label="ملاحظة" aria-pressed={showNoteEditor} onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}>
               <StickyNote size={16} className={existingNote ? "fill-current" : ""} style={{ color: existingNote ? accentColor : "var(--muted)" }} />
             </IconButton>
           </div>

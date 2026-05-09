@@ -634,6 +634,8 @@ export function QuranPage() {
             {bookmarkedCount > 0 && (
               <button type="button"
                 onClick={() => setShowBookmarks((v) => !v)}
+                aria-pressed={showBookmarks}
+                aria-label={showBookmarks ? "إخفاء المحفوظات" : "عرض المحفوظات"}
                 className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-90"}`}
               >
                 <Bookmark size={13} />
