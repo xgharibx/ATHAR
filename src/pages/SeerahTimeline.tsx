@@ -100,6 +100,7 @@ export default function SeerahTimeline() {
               type="search"
               dir="rtl"
               placeholder="ابحث في أحداث السيرة…"
+              aria-label="بحث في أحداث السيرة النبوية"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               spellCheck={false}
@@ -117,6 +118,10 @@ export default function SeerahTimeline() {
         </Card>
       </div>
 
+      {/* Visually hidden live region for filtered count */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {query || activeCategory !== "all" ? `نتائج: ${filtered.length} حدث من أحداث السيرة` : null}
+      </div>
       {/* Timeline */}
       <div className="relative z-10 px-4 pt-4">
         <div className="relative">

@@ -1148,6 +1148,7 @@ export function MushafPage() {
             value={inPageSearch}
             onChange={(e) => setInPageSearch(e.target.value)}
             placeholder="بحث في الصفحة…"
+            aria-label="البحث في الصفحة الحالية"
             className="flex-1 bg-transparent outline-none text-sm"
             autoFocus
             dir="rtl"

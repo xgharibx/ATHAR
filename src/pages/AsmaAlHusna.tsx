@@ -151,6 +151,10 @@ export function AsmaAlHusnaPage() {
         </Card>
       </div>
 
+      {/* Visually hidden live region for search result count */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {query ? `نتائج البحث: ${filtered.length} من أسماء الله الحسنى` : null}
+      </div>
       {/* Grid */}
       <div className="px-4 pt-4 grid grid-cols-2 gap-3">
         {filtered.map((name) => {

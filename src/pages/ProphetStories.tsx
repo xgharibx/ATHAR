@@ -205,6 +205,7 @@ export function ProphetStoriesPage() {
                 type="search"
                 dir="rtl"
                 placeholder="ابحث باسم النبي أو الدرس…"
+                aria-label="بحث في قصص الأنبياء"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 spellCheck={false}
@@ -223,6 +224,10 @@ export function ProphetStoriesPage() {
         </Card>
       </div>
 
+      {/* Visually hidden live region for search count */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {query ? `نتائج البحث: ${filtered.length} قصة` : null}
+      </div>
       {/* Stories */}
       <div className="px-4 pt-4 space-y-3">
         {filtered.length === 0 ? (

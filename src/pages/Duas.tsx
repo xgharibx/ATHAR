@@ -155,6 +155,10 @@ export function DuasPage() {
         </Card>
       </div>
 
+      {/* Visually hidden live region for result count */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {query ? `نتائج البحث: ${displayedDuas.length} دعاء` : null}
+      </div>
       {/* Duas list */}
       <div className="px-4 pt-4 space-y-4">
         {/* Category stats row */}

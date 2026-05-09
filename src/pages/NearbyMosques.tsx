@@ -214,6 +214,7 @@ export function NearbyMosquesPage() {
                       className="p-1.5 rounded-lg opacity-50 hover:opacity-100 transition"
                       style={{ background: "var(--card)", color: "var(--fg)" }}
                       title="مشاركة الموقع"
+                      aria-label={`مشاركة موقع ${mosque.name}`}
                     >
                       <Share2 size={14} />
                     </button>
@@ -221,6 +222,7 @@ export function NearbyMosquesPage() {
                       href={mapsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`فتح ${mosque.name} في خرائط جوجل (تبويب جديد)`}
                       className="shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-[var(--stroke)] hover:bg-[var(--card-2)] transition whitespace-nowrap"
                       style={{ color: "var(--accent)" }}
                     >

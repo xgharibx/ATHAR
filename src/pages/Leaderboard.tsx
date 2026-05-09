@@ -397,7 +397,7 @@ export function LeaderboardPage() {
         </div>
 
         {endpoint && boardLoadState === "error" && (
-          <div className="mt-3 rounded-2xl border border-danger-25 bg-danger-10 px-4 py-3 text-xs leading-6 text-[var(--danger)]">
+          <div role="alert" className="mt-3 rounded-2xl border border-danger-25 bg-danger-10 px-4 py-3 text-xs leading-6 text-[var(--danger)]">
             تعذر تحديث ترتيب اللوحة من الخادم حاليًا. ما يظهر الآن هو آخر بيانات محلية متاحة فقط.
           </div>
         )}
@@ -1142,7 +1142,7 @@ function LocalFriendsCard(props: {
                 إضافة
               </Button>
             </div>
-            {importError && <div className="mt-1 text-xs text-[var(--danger)]">{importError}</div>}
+            {importError && <div role="alert" className="mt-1 text-xs text-[var(--danger)]">{importError}</div>}
           </div>
         </div>
       )}

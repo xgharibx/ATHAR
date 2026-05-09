@@ -772,6 +772,7 @@ function VideoHome({
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="ابحث عن شيخ، دورة، أو درس..."
+                aria-label="بحث في مكتبة الدروس"
                 className="w-full rounded-2xl bg-[var(--card)] border border-[var(--stroke)] pr-9 pl-4 py-3 text-sm outline-none focus:border-accent-60 transition-colors"
                 dir="rtl"
               />
