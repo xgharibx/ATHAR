@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Users, Search, X, Bookmark, BookmarkCheck, Share2 } from "lucide-react";
+import { ArrowRight, ChevronRight, Users, Search, X, Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { COMPANIONS, COMPANION_CATEGORIES, type Companion } from "@/data/companions";
 import { Card } from "@/components/ui/Card";
+import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
 
 const COMPANION_BOOKMARKS_KEY = "noor_companion_bookmarks";
@@ -56,92 +57,77 @@ export default function Companions() {
       {/* Header Card */}
       <div className="px-4 pt-4">
         <Card className="p-5 overflow-hidden relative">
-          <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
-          <div
-            className="absolute inset-0 bg-gradient-to-bl from-violet-500/15 to-purple-400/10 pointer-events-none opacity-55"
-            style={{ borderRadius: "inherit" }}
-          />
-          <div className="relative">
-            <div className="flex items-start gap-3 mb-3">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="mt-1 w-8 h-8 rounded-full flex items-center justify-center transition active:scale-90 flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.08)" }}
-                aria-label="رجوع"
-              >
-                <ChevronRight size={18} style={{ color: "var(--fg)" }} />
-              </button>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">👥</span>
-                  <div className="text-xs opacity-60">الصحابة</div>
-                </div>
-                <h1 className="text-xl font-semibold font-arabic" style={{ color: "#8b5cf6" }}>الصحابة الكرام</h1>
-                <div className="text-sm opacity-70 mt-1">{filtered.length} من {COMPANIONS.length} صحابي</div>
+          <div className="absolute -left-8 -top-10 w-32 h-32 rounded-full opacity-10" style={{ background: "#8b5cf6" }} />
+          <div className="flex items-center gap-3 mb-4">
+            <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <Users size={19} style={{ color: "#8b5cf6" }} />
+                <h1 className="text-lg font-bold">الصحابة الكرام</h1>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowBookmarksOnly((v) => !v)}
-                className="mt-1 p-1.5 rounded-xl transition-all"
-                style={showBookmarksOnly
-                  ? { background: "rgba(139,92,246,0.2)", color: "#8b5cf6" }
-                  : { background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
-                aria-label="المحفوظة"
-              >
-                <Bookmark size={16} />
-              </button>
+              <div className="text-xs opacity-55 mt-1">{filtered.length} من {COMPANIONS.length} صحابي</div>
             </div>
-            {/* Category filter chips */}
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-              <button type="button"
-                onClick={() => setActiveCategory("all")}
-                className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition"
-                style={{
-                  background: activeCategory === "all" ? "#8b5cf6" : "rgba(255,255,255,0.08)",
-                  color: activeCategory === "all" ? "#fff" : "var(--muted)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                }}
-              >
-                الجميع ({COMPANIONS.length})
-              </button>
-              {COMPANION_CATEGORIES.map((cat) => {
-                const count = COMPANIONS.filter((c) => c.category === cat.key).length;
-                const isActive = activeCategory === cat.key;
-                return (
-                  <button type="button"
-                    key={cat.key}
-                    onClick={() => setActiveCategory(cat.key)}
-                    className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition whitespace-nowrap"
-                    style={{
-                      background: isActive ? "#8b5cf6" : "rgba(255,255,255,0.08)",
-                      color: isActive ? "#fff" : "var(--muted)",
-                      border: "1px solid rgba(255,255,255,0.12)",
-                    }}
-                  >
-                    {cat.label} ({count})
-                  </button>
-                );
-              })}
-            </div>
-            {/* Search */}
-            <div className="relative">
-              <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
-              <input
-                type="search"
-                dir="rtl"
-                placeholder="ابحث في الصحابة…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
-                style={{ background: "rgba(255,255,255,0.06)", color: "var(--fg)", border: "1px solid rgba(255,255,255,0.1)" }}
-              />
-              {query && (
-                <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
-                  <X size={13} />
+            <button
+              type="button"
+              onClick={() => setShowBookmarksOnly((v) => !v)}
+              className="p-2 rounded-2xl border border-white/10 transition"
+              style={showBookmarksOnly
+                ? { background: "rgba(139,92,246,0.2)", color: "#8b5cf6" }
+                : { background: "rgba(255,255,255,0.06)", color: "var(--fg)" }}
+              aria-label="المحفوظة"
+            >
+              <Bookmark size={16} />
+            </button>
+          </div>
+          {/* Category filter chips */}
+          <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+            <button type="button"
+              onClick={() => setActiveCategory("all")}
+              className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition"
+              style={{
+                background: activeCategory === "all" ? "#8b5cf6" : "var(--card-bg)",
+                color: activeCategory === "all" ? "#fff" : "var(--muted)",
+                border: activeCategory === "all" ? "none" : "1px solid var(--card-border)",
+              }}
+            >
+              الجميع ({COMPANIONS.length})
+            </button>
+            {COMPANION_CATEGORIES.map((cat) => {
+              const count = COMPANIONS.filter((c) => c.category === cat.key).length;
+              const isActive = activeCategory === cat.key;
+              return (
+                <button type="button"
+                  key={cat.key}
+                  onClick={() => setActiveCategory(cat.key)}
+                  className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition whitespace-nowrap"
+                  style={{
+                    background: isActive ? "#8b5cf6" : "var(--card-bg)",
+                    color: isActive ? "#fff" : "var(--muted)",
+                    border: isActive ? "none" : "1px solid var(--card-border)",
+                  }}
+                >
+                  {cat.label} ({count})
                 </button>
-              )}
-            </div>
+              );
+            })}
+          </div>
+          {/* Search */}
+          <div className="relative mt-2">
+            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+            <input
+              type="search"
+              dir="rtl"
+              placeholder="ابحث في الصحابة…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
+              style={{ background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+            />
+            {query && (
+              <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
+                <X size={13} />
+              </button>
+            )}
           </div>
         </Card>
       </div>

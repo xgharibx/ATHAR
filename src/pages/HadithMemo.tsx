@@ -10,6 +10,7 @@ import { useHadithPack } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
+import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
 
 /* ------------------------------------------------------------------ */
@@ -172,31 +173,15 @@ export function HadithMemoPage() {
       {/* Header Card */}
       <div className="px-4 pt-4">
         <Card className="p-5 overflow-hidden relative">
-          <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
-          <div
-            className="absolute inset-0 bg-gradient-to-bl from-lime-500/15 to-green-400/10 pointer-events-none opacity-55"
-            style={{ borderRadius: "inherit" }}
-          />
-          <div className="relative">
-            <div className="flex items-start gap-3">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="mt-1 p-2 rounded-full flex-shrink-0 transition"
-                style={{ background: "rgba(255,255,255,0.08)" }}
-                aria-label="رجوع"
-              >
-                <ArrowRight size={20} className="text-[var(--fg)]" />
-              </button>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🧠</span>
-                  <div className="text-xs opacity-60">حفظ الحديث</div>
-                </div>
-                <p className="text-xl font-semibold font-arabic" style={{ color: accentColor }}>بطاقات الحفظ</p>
-                <p className="text-sm opacity-70 mt-1">الأربعون النووية</p>
+          <div className="absolute -left-8 -top-10 w-32 h-32 rounded-full opacity-10" style={{ background: accentColor }} />
+          <div className="flex items-center gap-3">
+            <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <BrainCircuit size={19} style={{ color: accentColor }} />
+                <h1 className="text-lg font-bold">بطاقات الحفظ</h1>
               </div>
-              <BrainCircuit size={20} className="mt-1" style={{ color: accentColor }} />
+              <div className="text-xs opacity-55 mt-1">الأربعون النووية</div>
             </div>
           </div>
         </Card>
