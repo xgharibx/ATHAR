@@ -203,6 +203,7 @@ export function MushafPage() {
   const setQuranNote = useNoorStore((s) => s.setQuranNote);
   const clearQuranNote = useNoorStore((s) => s.clearQuranNote);
   const recordQuranRead = useNoorStore((s) => s.recordQuranRead);
+  const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
   const lastRead = useNoorStore((s) => s.quranLastRead);
@@ -2296,18 +2297,36 @@ export function MushafPage() {
             style={{ zIndex: 249 }}
             onClick={() => { setShowSessionSummary(false); navigate("/quran"); }}
           />
-          <div className="mushaf-session-card" dir="rtl">
+          <div className="mushaf-session-card" role="dialog" aria-modal="true" aria-label="ملخص جلسة القراءة" dir="rtl">
             <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }} aria-hidden="true">📖</div>
             <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.3rem" }}>جلسة قراءة</div>
-            <div style={{ fontSize: "0.85rem", opacity: 0.65, marginBottom: "1.25rem" }}>
+            <div style={{ fontSize: "0.85rem", opacity: 0.65, marginBottom: sessionSurahCompletedRef.current.size > 0 ? "0.75rem" : "1.25rem" }}>
               {toArabicNumeral(sessionDurationMin)} دقيقة · {toArabicNumeral(pagesReadRef.current.size)} صفحة
+              {(() => {
+                const todayKey = new Date().toISOString().slice(0, 10);
+                const todayAyahs = quranDailyAyahs?.[todayKey] ?? 0;
+                return todayAyahs > 0 ? <span> · {toArabicNumeral(todayAyahs)} آية اليوم</span> : null;
+              })()}
             </div>
+            {sessionSurahCompletedRef.current.size > 0 && (
+              <div style={{ marginBottom: "1rem", display: "flex", flexWrap: "wrap", gap: "0.4rem", justifyContent: "center" }}>
+                {[...sessionSurahCompletedRef.current].map((sid) => {
+                  const name = quranDB?.find((s) => s.id === sid)?.name;
+                  if (!name) return null;
+                  return (
+                    <span key={sid} style={{ fontSize: "0.78rem", padding: "0.2rem 0.65rem", borderRadius: "999px", background: "rgba(61,220,151,0.15)", color: "#3ddc97", border: "1px solid rgba(61,220,151,0.3)" }}>
+                      {name} ✓
+                    </span>
+                  );
+                })}
+              </div>
+            )}
             <button type="button"
               className="mushaf-btn-primary"
               style={{ width: "100%" }}
               onClick={() => { setShowSessionSummary(false); navigate("/quran"); }}
             >
-              حسناً
+              حسنًا
             </button>
           </div>
         </>

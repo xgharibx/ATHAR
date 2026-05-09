@@ -787,10 +787,16 @@ export const useNoorStore = create<NoorState>()(
             : prevDate === dayBefore ? s.quranStreak + 1
             : 1;
           const todayCount = (s.quranDailyAyahs[today] ?? 0) + count;
+          // Prune entries older than 90 days to keep localStorage tidy
+          const cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - 90);
+          const cutoffISO = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, "0")}-${String(cutoff.getDate()).padStart(2, "0")}`;
+          const updated = { ...s.quranDailyAyahs, [today]: todayCount };
+          for (const k of Object.keys(updated)) { if (k < cutoffISO) delete updated[k]; }
           return {
             quranLastReadDate: today,
             quranStreak: newStreak,
-            quranDailyAyahs: { ...s.quranDailyAyahs, [today]: todayCount },
+            quranDailyAyahs: updated,
           };
         });
       },
