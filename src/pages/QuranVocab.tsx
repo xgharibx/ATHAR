@@ -28,6 +28,17 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// Words sorted by frequency descending for rank computation
+const SORTED_IDS_BY_FREQ = [...QURAN_VOCAB]
+  .sort((a, b) => b.frequency - a.frequency)
+  .map((w) => w.id);
+
+function getFreqRankPct(id: number): number {
+  const rank = SORTED_IDS_BY_FREQ.indexOf(id);
+  if (rank < 0) return 0;
+  return Math.round(((rank + 1) / QURAN_VOCAB.length) * 100);
+}
+
 function getDailyWordId(): number {
   const now = new Date();
   const dayNum = Math.floor(now.getTime() / 86400000);
@@ -562,9 +573,17 @@ export function QuranVocabPage() {
                 </div>
                 <div className="h-px opacity-30" style={{ background: "color-mix(in srgb, var(--on-accent) 25%, transparent)" }} />
                 <p className="text-lg leading-relaxed font-medium">{card.meaning}</p>
-                {card.frequency > 0 && (
-                  <p className="text-xs opacity-70">تكرّر في القرآن ~{card.frequency} مرة</p>
-                )}
+                {card.frequency > 0 && (() => {
+                  const rankPct = getFreqRankPct(card.id);
+                  const label = rankPct <= 10 ? "الأكثر تكراراً" : rankPct <= 30 ? "شائع جداً" : rankPct <= 60 ? "شائع" : "أقل شيوعاً";
+                  const color = rankPct <= 10 ? "#22c55e" : rankPct <= 30 ? "#ffd780" : undefined;
+                  return (
+                    <div className="flex items-center justify-center gap-1.5 text-xs">
+                      <span className="opacity-50">تكرّر: {card.frequency.toLocaleString("ar-EG")} مرة</span>
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: color ? `color-mix(in srgb, ${color} 18%, transparent)` : "rgba(255,255,255,0.08)", color: color ?? "rgba(255,255,255,0.55)" }}>{label}</span>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </button>
