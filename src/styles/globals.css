@@ -4025,3 +4025,19 @@ a:focus-visible,
 .light .ctx-menu-separator {
   background: var(--stroke);
 }
+
+/* ── Onboarding card (sheet) ── */
+.light .onboarding-card {
+  background: color-mix(in srgb, var(--bg) 98%, var(--fg));
+  border: 1px solid var(--stroke);
+}
+
+/* ── Onboarding step dots ── */
+.light .onboarding-dot {
+  background: var(--card-2);
+}
+
+/* ── Quran memorization span ── */
+.light .quran-mem-span {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 1px 3px rgba(0,0,0,0.10);
+}

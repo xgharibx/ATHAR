@@ -318,7 +318,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
                 className={cn(
                   "flex-1 rounded-xl border px-3 py-2 text-sm transition",
                   (prefs.asrMadhab ?? 0) === v
-                    ? "bg-accent-15 border-accent-40 text-white"
+                    ? "bg-accent-15 border-accent-40 text-[var(--fg)]"
                     : "border-[var(--stroke)] bg-[var(--card)] opacity-60 hover:opacity-80"
                 )}>
                 {v === 0 ? "شافعي / مالكي / حنبلي" : "حنفي"}
@@ -1151,7 +1151,7 @@ export function PrayerTimesPage() {
             className={cn(
               "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition",
               activeTab === tab.key
-                ? "bg-accent-15 border border-accent-35 text-white font-medium"
+                ? "bg-accent-15 border border-accent-35 text-[var(--fg)] font-medium"
                 : "bg-[var(--card)] border border-[var(--stroke)] opacity-60 hover:opacity-80"
             )}>
             <tab.icon size={13} />
