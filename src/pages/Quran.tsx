@@ -900,8 +900,22 @@ export function QuranPage() {
               const pct = s.ayahs.length ? Math.min(100, Math.round((maxRead / s.ayahs.length) * 100)) : 0;
               const isMedinan = SURAH_REVELATION[s.id] === "medinan";
               const isCurrent = lastRead?.surahId === s.id;
+              const currJuz = getSurahJuz(s.id);
+              const prevJuz = idx > 0 ? getSurahJuz(sortedFiltered[idx - 1]!.id) : null;
+              const showJuzHeader = sortMode === "mushaf" && !filterJuz && !query && (idx === 0 || currJuz !== prevJuz);
               return (
-                <div key={s.id} role="listitem" ref={isCurrent ? currentSurahRef : undefined}>
+                <React.Fragment key={s.id}>
+                  {showJuzHeader && (
+                    <div
+                      className="px-5 py-1.5 text-[10px] font-semibold opacity-35 tracking-wider"
+                      style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 40%, transparent)", marginTop: "4px" } : undefined}
+                      role="separator"
+                      aria-label={`الجزء ${currJuz}`}
+                    >
+                      جزء {toArabicNumeral(currJuz)}
+                    </div>
+                  )}
+                <div role="listitem" ref={isCurrent ? currentSurahRef : undefined}>
                 <button type="button"
                   onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
                   className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)]"
@@ -952,6 +966,7 @@ export function QuranPage() {
                   </div>
                 </button>
                 </div>
+                </React.Fragment>
               );
             })}
           </div>
