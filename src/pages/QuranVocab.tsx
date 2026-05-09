@@ -779,6 +779,29 @@ export function QuranVocabPage() {
               </p>
             </div>
           )}
+          {learned.size > 0 && (
+            <button
+              type="button"
+              className="mt-3 w-full flex items-center justify-center gap-1.5 text-[11px] py-2 rounded-xl transition opacity-60 hover:opacity-90 active:scale-95"
+              style={{ background: "var(--card-2, rgba(255,255,255,0.06))", border: "1px solid var(--stroke)" }}
+              onClick={async () => {
+                const sorted = QURAN_VOCAB.filter((w) => learned.has(w.id))
+                  .sort((a, b) => a.id - b.id);
+                const lines = sorted.map((w, i) => `${(i + 1).toLocaleString("ar-EG")}. ${w.arabic} — ${w.meaning}`);
+                const text = `مفرداتي المحفوظة من القرآن الكريم (${learned.size.toLocaleString("ar-EG")}/${QURAN_VOCAB.length}):\n${lines.join("\n")}`;
+                if (navigator.share) {
+                  await navigator.share({ text }).catch(() => {});
+                } else {
+                  await navigator.clipboard.writeText(text).catch(() => {});
+                  toast.success("تم نسخ قائمة المحفوظات");
+                }
+              }}
+              aria-label="نسخ قائمة المحفوظات"
+            >
+              <Copy size={11} aria-hidden="true" />
+              نسخ قائمة المحفوظات ({learned.size.toLocaleString("ar-EG")} كلمة)
+            </button>
+          )}
         </div>
       </div>
     )}
