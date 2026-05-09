@@ -809,6 +809,32 @@ export function QuranVocabPage() {
               </div>
             </div>
           )}
+          {/* Phase 57: Tier breakdown */}
+          {learned.size > 0 && (() => {
+            const TOP_TOTAL = QURAN_VOCAB.filter((w) => w.id <= 50).length;
+            const MID_TOTAL = QURAN_VOCAB.filter((w) => w.id >= 51 && w.id <= 150).length;
+            const RARE_TOTAL = QURAN_VOCAB.filter((w) => w.id >= 151).length;
+            const topLearned = QURAN_VOCAB.filter((w) => w.id <= 50 && learned.has(w.id)).length;
+            const midLearned = QURAN_VOCAB.filter((w) => w.id >= 51 && w.id <= 150 && learned.has(w.id)).length;
+            const rareLearned = QURAN_VOCAB.filter((w) => w.id >= 151 && learned.has(w.id)).length;
+            return (
+              <div className="mt-2 space-y-1.5 mb-1">
+                {([
+                  { label: "شائع", total: TOP_TOTAL, done: topLearned, color: "#ffd780" },
+                  { label: "متوسط", total: MID_TOTAL, done: midLearned, color: "#a78bfa" },
+                  { label: "نادر", total: RARE_TOTAL, done: rareLearned, color: "#60a5fa" },
+                ] as const).map(({ label, total, done, color }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <span className="text-[9px] w-8 shrink-0 opacity-55 text-right">{label}</span>
+                    <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${total > 0 ? Math.round((done / total) * 100) : 0}%`, background: color }} />
+                    </div>
+                    <span className="text-[9px] tabular-nums opacity-45 w-8 text-left shrink-0">{done}/{total}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
           {learned.size > 0 && (
             <button
               type="button"
