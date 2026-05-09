@@ -4200,3 +4200,45 @@ a:focus-visible,
     break-after: avoid;
   }
 }
+
+
+/* ── Vocab flashcard 3D flip ─────────────────────────────── */
+.vocab-flip-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border-radius: 1.5rem;
+  border: 1px solid var(--stroke);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  background: transparent;
+}
+.vocab-flip-card.is-flipped {
+  transform: rotateY(180deg);
+}
+.vocab-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.vocab-card-front {
+  background: var(--card);
+  color: var(--fg);
+}
+.vocab-card-back {
+  background: var(--accent);
+  color: var(--on-accent);
+  transform: rotateY(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .vocab-flip-card {
+    transition: none;
+  }
+}

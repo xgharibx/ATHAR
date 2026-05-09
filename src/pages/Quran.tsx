@@ -1,11 +1,11 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Bookmark, BookOpen, CheckCircle2, Search, Shuffle, Volume2, X, Share2 } from "lucide-react";
+import { Bookmark, BookOpen, Search, Shuffle, Volume2, X } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
 import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
@@ -74,9 +74,7 @@ export function QuranPage() {
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
   const khatmaDone = useNoorStore((s) => s.khatmaDone);
-  const setKhatmaPlan = useNoorStore((s) => s.setKhatmaPlan);
-  const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
-  const resetKhatma = useNoorStore((s) => s.resetKhatma);
+
   const recentSurahs = useNoorStore((s) => s.recentSurahs);
   const recordRecentSurah = useNoorStore((s) => s.recordRecentSurah);
 
@@ -90,8 +88,7 @@ export function QuranPage() {
   const [showBookmarks, setShowBookmarks] = React.useState(false);
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress">("mushaf");
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
-  const [confirmKhatmaReset, setConfirmKhatmaReset] = React.useState(false);
-  const [showKhatmaCard, setShowKhatmaCard] = React.useState(false);
+
   // Sync URL param changes (e.g. back-navigation)
   React.useEffect(() => {
     setFilterJuz(parseJuzParam(searchParams.get("juz")));
@@ -313,6 +310,7 @@ export function QuranPage() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              type="search"
               placeholder={mode === "ayahs" ? "ابحث داخل الآيات…" : "ابحث عن سورة… (مثال: الكهف، ١٨)"}
               aria-label={mode === "ayahs" ? "بحث داخل الآيات" : "بحث عن سورة"}
               spellCheck={false}
@@ -409,169 +407,6 @@ export function QuranPage() {
           </div>
         )}
       </Card>
-
-      {showKhatmaCard && (
-      <Card className="p-5 quran-surface">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold quran-title">خطة الختمة</div>
-            <div className="text-xs opacity-65 mt-1">نقلناها هنا داخل صفحة المصحف لتبقى الرئيسية أخف</div>
-          </div>
-
-          {khatmaStartISO && khatmaDays ? (
-            confirmKhatmaReset ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => {
-                    resetKhatma();
-                    toast.success("تمت إعادة ضبط الخطة");
-                    setConfirmKhatmaReset(false);
-                  }}
-                >
-                  تأكيد
-                </Button>
-                <Button size="sm" variant="secondary" onClick={() => setConfirmKhatmaReset(false)}>
-                  إلغاء
-                </Button>
-              </div>
-            ) : (
-              <Button variant="secondary" onClick={() => setConfirmKhatmaReset(true)}>
-                إعادة ضبط
-              </Button>
-            )
-          ) : null}
-        </div>
-
-        {khatmaStartISO && khatmaDays && khatma && !khatma.isFinished ? (
-          <div
-            className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]"
-            role="progressbar"
-            aria-valuenow={Math.round(khatma.meta.percent)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`تقدم الختمة: ${Math.round(khatma.meta.percent)}٪`}
-          >
-            <div className="h-full progress-accent" style={{ width: `${khatma.meta.percent}%` }} />
-          </div>
-        ) : null}
-
-        {/* Share khatma progress button */}
-        {khatmaStartISO && khatmaDays && khatma && (
-          <div className="mt-3 flex justify-end">
-            <button
-              type="button"
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full opacity-50 hover:opacity-90 transition"
-              style={{ background: "var(--card)", border: "1px solid var(--stroke)", color: "var(--fg)" }}
-              onClick={async () => {
-                const percent = khatma.meta.percent;
-                const text = khatma.isFinished
-                  ? `🎉 أتممت ختمة القرآن الكريم بحمد الله!\n\nخطة ${(khatmaDays ?? 0).toLocaleString("ar-EG")} يوم — أثر ✨`
-                  : `📖 تقدمي في ختمة القرآن الكريم: ${percent.toLocaleString("ar-EG")}٪\nاليوم ${(khatma.dayIndex + 1).toLocaleString("ar-EG")} من ${khatma.days.toLocaleString("ar-EG")}\n\nاترك أثراً طيباً — أثر`;
-                if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
-              }}
-            >
-              <Share2 size={13} /> مشاركة التقدم
-            </button>
-          </div>
-        )}
-
-        {!khatmaStartISO || !khatmaDays ? (
-          <div className="mt-4">
-            <div className="text-sm opacity-80">اختر مدة الختمة:</div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {[7, 15, 30, 60].map((days) => (
-                <Button
-                  key={days}
-                  variant="secondary"
-                  onClick={() => {
-                    setKhatmaPlan({ startISO: todayISO, days });
-                    setConfirmKhatmaReset(false);
-                    toast.success("تم بدء الخطة");
-                  }}
-                >
-                  {days.toLocaleString("ar-EG")} يوم
-                </Button>
-              ))}
-            </div>
-            <div className="mt-3 text-xs opacity-65 leading-6">
-              تُحسب حصة اليوم تلقائيًا من بداية المصحف حتى النهاية.
-            </div>
-          </div>
-        ) : isLoading ? (
-          <div className="mt-4 text-sm opacity-65">... تحميل الخطة</div>
-        ) : error || !khatma ? (
-          <div className="mt-4 text-sm opacity-65 leading-7">تعذر تحميل خطة الختمة.</div>
-        ) : (
-          <div className="mt-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge>
-                {khatma.isFinished ? "تمت الختمة" : `اليوم ${(khatma.dayIndex + 1).toLocaleString("ar-EG")} من ${khatma.days.toLocaleString("ar-EG")}`}
-              </Badge>
-              <Badge>{`إنجاز: ${khatma.meta.doneCount.toLocaleString("ar-EG")}/${khatma.days.toLocaleString("ar-EG")} (${khatma.meta.percent.toLocaleString("ar-EG")}٪)`}</Badge>
-            </div>
-
-            {!khatma.isFinished ? (
-              <div className={`mt-3 glass rounded-3xl p-4 border transition-colors ${khatma.meta.doneToday ? "border-ok-30" : "border-[var(--stroke)]"}`}>
-                {khatma.meta.doneToday ? (
-                  <div className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>
-                    <CheckCircle2 size={12} />
-                    اكتملت حصة اليوم
-                  </div>
-                ) : null}
-
-                <div className="flex items-center gap-2">
-                  <div className="text-xs opacity-65">حصة اليوم</div>
-                  <span className="text-[10px] opacity-40 tabular-nums">{khatma.chunk.toLocaleString("ar-EG")} آية</span>
-                </div>
-                <div className="mt-2 text-sm leading-7">
-                  من <span className="font-semibold">{khatma.today.first.surahName}</span> ﴿{khatma.today.first.ayahIndex.toLocaleString("ar-EG")}﴾
-                  إلى <span className="font-semibold">{khatma.today.last.surahName}</span> ﴿{khatma.today.last.ayahIndex.toLocaleString("ar-EG")}﴾
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button onClick={() => navigate(`/mushaf?surah=${khatma.today.first.surahId}&ayah=${khatma.today.first.ayahIndex}`)}>                  
-                    ابدأ القراءة
-                  </Button>
-                  <Button
-                    variant={khatma.meta.doneToday ? "primary" : "secondary"}
-                    onClick={() => {
-                      setKhatmaDone(todayISO, !khatma.meta.doneToday);
-                      toast.success(khatma.meta.doneToday ? "تم إلغاء الإتمام" : "تم حفظ الإتمام");
-                    }}
-                  >
-                    <CheckCircle2 size={16} />
-                    {khatma.meta.doneToday ? "منجز اليوم" : "تمت قراءة اليوم"}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-3 glass rounded-3xl p-4 border border-[var(--stroke)]">
-                <div className="text-sm font-semibold">ما شاء الله — تمت الختمة</div>
-                <div className="mt-2 text-xs opacity-65 leading-6">يمكنك بدء خطة جديدة من اليوم.</div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {[7, 15, 30, 60].map((days) => (
-                    <Button
-                      key={days}
-                      variant="secondary"
-                      onClick={() => {
-                        setKhatmaPlan({ startISO: todayISO, days });
-                        setConfirmKhatmaReset(false);
-                        toast.success("تم بدء خطة جديدة");
-                      }}
-                    >
-                      خطة {days.toLocaleString("ar-EG")} يوم
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </Card>
-      )}
 
       {mode === "surahs" ? (
         <Card className="p-0 quran-surface overflow-hidden" role="tabpanel" id="quran-panel-surahs" aria-labelledby="quran-tab-surahs" tabIndex={0}>
@@ -731,7 +566,8 @@ export function QuranPage() {
                   key={j}
                   className={`quran-juz-btn ${isActive ? "active" : ""}`}
                   onClick={() => setFilterJuz(filterJuz === j ? null : j)}
-                  title={jpct > 0 ? `الجزء ${j.toLocaleString("ar-EG")}: ${jpct.toLocaleString("ar-EG")}٪` : undefined}
+                  aria-label={`الجزء ${j.toLocaleString("ar-EG")}${jpct > 0 ? ` — ${jpct.toLocaleString("ar-EG")}٪` : ""}`}
+                  aria-pressed={filterJuz === j}
                   style={!isActive && jpct > 0 ? {
                     background: isDone ? "rgba(52,211,153,0.18)" : `color-mix(in srgb, var(--accent) ${Math.round(12 + jpct * 0.45)}%, transparent)`,
                     borderColor: isDone ? "rgba(52,211,153,0.4)" : "var(--accent-subtle, rgba(var(--accent-rgb),0.3))"

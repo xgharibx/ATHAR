@@ -90,6 +90,33 @@ export function QuranVocabPage() {
     setSeen(new Set());
   }
 
+  // Keyboard navigation: Space/Enter = flip, ArrowLeft = next, ArrowRight = prev
+  React.useEffect(() => {
+    const deckLen = deck.length;
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        setFlipped((f) => !f);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setCardIndex((prev) => {
+          if (prev + 1 < deckLen) { setFlipped(false); return prev + 1; }
+          return prev;
+        });
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setCardIndex((prev) => {
+          if (prev > 0) { setFlipped(false); return prev - 1; }
+          return prev;
+        });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [deck.length]);
+
   function handleLearn(id: number) {
     const next = new Set(learned);
     if (next.has(id)) { next.delete(id); } else { next.add(id); toast.success("تمت الإضافة إلى المحفوظات"); }
@@ -232,45 +259,38 @@ export function QuranVocabPage() {
             كلمة اليوم
           </div>
         )}
-        <button type="button"
-          onClick={() => setFlipped((f) => !f)}
-          aria-label={flipped ? `إخفاء معنى كلمة ${card.arabic}` : `كشف معنى كلمة ${card.arabic}`}
-          className="w-full max-w-sm rounded-3xl min-h-56 flex flex-col items-center justify-center p-8 transition-all duration-300 active:scale-95 cursor-pointer"
-          style={{
-            background: flipped ? "var(--accent)" : "var(--card)",
-            border: "1px solid var(--stroke)",
-            color: flipped ? "var(--on-accent)" : "var(--fg)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-          }}
-        >
-          {!flipped ? (
-            <div className="text-center">
-              <div
-                className="text-5xl font-bold mb-4"
-                style={{ fontFamily: "var(--font-arabic, inherit)" }}
-              >
-                {card.arabic}
+        <div className="w-full max-w-sm" style={{ perspective: "900px" }}>
+          <button
+            type="button"
+            onClick={() => setFlipped((f) => !f)}
+            aria-label={flipped ? `إخفاء معنى كلمة ${card.arabic}` : `كشف معنى كلمة ${card.arabic}`}
+            className={`vocab-flip-card w-full${flipped ? " is-flipped" : ""}`}
+            style={{ minHeight: "14rem" }}
+          >
+            {/* Front face — Arabic word */}
+            <div className="vocab-card-face vocab-card-front" aria-hidden={flipped ? true : undefined}>
+              <div className="text-center">
+                <div className="text-5xl font-bold mb-4" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
+                  {card.arabic}
+                </div>
+                <p className="text-xs opacity-50">اضغط للكشف عن المعنى</p>
               </div>
-              <p className="text-xs opacity-50">اضغط للكشف عن المعنى</p>
             </div>
-          ) : (
-            <div className="text-center space-y-3">
-              <div
-                className="text-3xl font-bold"
-                style={{ fontFamily: "var(--font-arabic, inherit)" }}
-              >
-                {card.arabic}
+            {/* Back face — meaning */}
+            <div className="vocab-card-face vocab-card-back" aria-hidden={!flipped ? true : undefined}>
+              <div className="text-center space-y-3">
+                <div className="text-3xl font-bold" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
+                  {card.arabic}
+                </div>
+                <div className="h-px opacity-30" style={{ background: "color-mix(in srgb, var(--on-accent) 25%, transparent)" }} />
+                <p className="text-lg leading-relaxed font-medium">{card.meaning}</p>
+                {card.frequency > 0 && (
+                  <p className="text-xs opacity-70">تكرّر في القرآن ~{card.frequency} مرة</p>
+                )}
               </div>
-              <div className="h-px opacity-30" style={{ background: "color-mix(in srgb, var(--on-accent) 25%, transparent)" }} />
-              <p className="text-lg leading-relaxed font-medium">{card.meaning}</p>
-              {card.frequency > 0 && (
-                <p className="text-xs opacity-70">
-                  تكرّر في القرآن ~{card.frequency} مرة
-                </p>
-              )}
             </div>
-          )}
-        </button>
+          </button>
+        </div>
 
         {/* Navigation */}
         <div className="flex items-center gap-4">
