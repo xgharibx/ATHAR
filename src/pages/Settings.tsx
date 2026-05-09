@@ -1196,7 +1196,7 @@ export function SettingsPage() {
           {[
             { icon: "✨", label: "أسماء الله الحسنى", desc: "تصفح الأسماء الـ٩٩ مع المعاني", route: "/asma" },
             { icon: "🤲", label: "الأدعية", desc: "أدعية قرآنية ونبوية", route: "/duas" },
-            { icon: "📖", label: "مفردات القرآن", desc: "بطاقات تعليمية لمئة كلمة", route: "/quran-vocab" },
+            { icon: "📖", label: "مفردات القرآن", desc: "بطاقات تعليمية لمئتي كلمة", route: "/quran-vocab" },
             { icon: "🕌", label: "قصص الأنبياء", desc: "سير مختصرة ودروس مستفادة", route: "/stories" },
             { icon: "🧎", label: "كيفية الصلاة", desc: "دليل مفصّل خطوة بخطوة", route: "/prayer-guide" },
             { icon: "💧", label: "كيفية الوضوء", desc: "خطوات الوضوء الصحيح", route: "/wudu" },

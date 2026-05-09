@@ -345,6 +345,22 @@ export function QuranVocabPage() {
                 >
                   <HelpCircle size={16} aria-hidden="true" />
                 </button>
+                {learned.size < QURAN_VOCAB.length && (
+                  <button
+                    type="button"
+                    onClick={() => startQuiz(QURAN_VOCAB.filter((w) => !learned.has(w.id)).map((w) => w.id))}
+                    className="w-8 h-8 flex items-center justify-center rounded-xl transition-all active:scale-95 text-[10px] font-bold"
+                    style={{
+                      background: "var(--card)",
+                      color: "#a78bfa",
+                      border: "1px solid rgba(167,139,250,0.35)",
+                    }}
+                    aria-label="اختبار غير المحفوظ"
+                    title="اختبار الكلمات غير المحفوظة فقط"
+                  >
+                    ★
+                  </button>
+                )}
             </div>
           </div>
         </Card>
@@ -388,10 +404,15 @@ export function QuranVocabPage() {
                   ? "جيد! استمرّ في التعلم"
                   : "استمرّ في التدريب ستتحسّن"}
               </div>
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-2 flex-wrap justify-center">
                 <button type="button" onClick={() => startQuiz(QURAN_VOCAB.map((w) => w.id))} className="px-4 py-2 rounded-2xl text-sm font-semibold transition-all active:scale-95" style={{ background: "#a78bfa", color: "#fff" }}>
                   إعادة الاختبار
                 </button>
+                {learned.size < QURAN_VOCAB.length && (
+                  <button type="button" onClick={() => startQuiz(QURAN_VOCAB.filter((w) => !learned.has(w.id)).map((w) => w.id))} className="px-4 py-2 rounded-2xl text-sm font-semibold transition-all active:scale-95" style={{ background: "color-mix(in srgb, #a78bfa 20%, var(--card))", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.35)" }}>
+                    غير المحفوظة ({(QURAN_VOCAB.length - learned.size).toLocaleString("ar-EG")})
+                  </button>
+                )}
                 <button type="button" onClick={() => setQuizMode(false)} className="px-4 py-2 rounded-2xl text-sm transition-all active:scale-95" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}>
                   إغلاق
                 </button>
