@@ -237,7 +237,20 @@ export function FavoritesPage() {
         </div>
 
         {/* Tab switcher */}
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar" role="tablist" aria-label="تبويبات المفضلة">
+        <div
+          className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar"
+          role="tablist"
+          aria-label="تبويبات المفضلة"
+          onKeyDown={(e) => {
+            const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
+            const idx = tabs.findIndex(t => t === document.activeElement);
+            if (idx === -1) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); const n=(idx-1+tabs.length)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); const n=(idx+1)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
+            else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
+          }}
+        >
           <button type="button"
             id="fav-tab-adhkar"
             role="tab"

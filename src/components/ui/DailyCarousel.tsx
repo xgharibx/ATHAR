@@ -80,7 +80,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   }, []);
 
   return (
-    <Card className="p-0 overflow-hidden">
+    <Card className="p-0 overflow-hidden" role="region" aria-label="محتوى يومي" aria-roledescription="عرض دوار">
       {/* Header label */}
       <div className="flex items-center justify-between px-4 pt-3 pb-0">
         <span className="text-sm font-semibold">{SLIDE_LABELS[activeIdx]}</span>
@@ -90,6 +90,8 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
       {/* Slides — transform-based so each slide is always 100% of the card */}
       <div
         style={{ overflow: "hidden", width: "100%" }}
+        aria-live="polite"
+        aria-atomic="true"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -102,7 +104,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           }}
         >
           {/* Slide 1: آية اليوم */}
-          <div style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div role="group" aria-roledescription="شريحة" aria-label="آية اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {verse ? (
               <>
                 <div
@@ -146,7 +148,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 2: حديث اليوم */}
-          <div style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div role="group" aria-roledescription="شريحة" aria-label="حديث اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {hadith ? (
               <>
                 <div
@@ -182,7 +184,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 3: تدبر اليوم */}
-          <div style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div role="group" aria-roledescription="شريحة" aria-label="تدبر اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             <div
               className="text-base leading-9 text-right font-medium arabic-text"
               style={{ color: "var(--fg)" }}
@@ -204,10 +206,12 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
       </div>
 
       {/* Dot indicators */}
-      <div className="flex items-center justify-center gap-2 pb-3">
+      <div className="flex items-center justify-center gap-2 pb-3" role="tablist" aria-label="تنقل بين الشرائح">
         {[0, 1, 2].map((i) => (
           <button type="button"
             key={i}
+            role="tab"
+            aria-selected={activeIdx === i}
             aria-label={SLIDE_LABELS[i]}
             onClick={() => goTo(i)}
             className="rounded-full transition-all"
