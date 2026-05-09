@@ -1481,6 +1481,38 @@ export function HomePage() {
         </button>
       )}
 
+      {/* هدف آيات اليوم */}
+      {(prefs.quranDailyGoal ?? 10) > 0 && (() => {
+        const todayAyahs = quranDailyAyahs[civilTodayKey] ?? 0;
+        const goal = Math.max(1, prefs.quranDailyGoal ?? 10);
+        const pct = Math.min(100, Math.round((todayAyahs / goal) * 100));
+        const met = todayAyahs >= goal;
+        return (
+          <button
+            type="button"
+            onClick={() => navigate("/quran")}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all active:scale-[0.99]"
+            style={{
+              background: met ? "color-mix(in srgb, var(--ok) 8%, var(--card))" : "color-mix(in srgb, var(--accent) 5%, var(--card))",
+              borderColor: met ? "color-mix(in srgb, var(--ok) 25%, transparent)" : "color-mix(in srgb, var(--accent) 18%, transparent)",
+            }}
+            aria-label="هدف القرآن اليومي"
+          >
+            <span className="text-base shrink-0" aria-hidden="true">{met ? "✅" : "������"}</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold" style={{ color: met ? "var(--ok)" : "var(--accent)" }}>آيات اليوم</span>
+                <span className="text-xs tabular-nums opacity-70">{todayAyahs.toLocaleString("ar-EG")} / {goal.toLocaleString("ar-EG")}</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>
+                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: met ? "var(--ok)" : "var(--accent)" }} />
+              </div>
+            </div>
+            <span className="text-[10px] opacity-30 shrink-0">❮</span>
+          </button>
+        );
+      })()}
+
       {/* ── مكتبة المحتوى ── */}
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-3">
