@@ -5,7 +5,7 @@
  * large JSON network fetch + parse step entirely.
  */
 import Dexie, { type Table } from "dexie";
-import type { QuranDB } from "@/data/quranTypes";
+import type { QuranDB, QuranPageMap } from "@/data/quranTypes";
 
 interface QuranCache {
   key: string;  // primary key — always "quran"
@@ -13,13 +13,24 @@ interface QuranCache {
   cachedAt: number; // unix ms
 }
 
+interface PageMapCache {
+  key: string; // primary key — always "page_map"
+  data: QuranPageMap;
+  cachedAt: number;
+}
+
 class NoorQuranDexie extends Dexie {
   quranCache!: Table<QuranCache, string>;
+  pageMapCache!: Table<PageMapCache, string>;
 
   constructor() {
     super("noor-quran-cache-v1");
     this.version(1).stores({
       quranCache: "key",
+    });
+    this.version(2).stores({
+      quranCache: "key",
+      pageMapCache: "key",
     });
   }
 }
@@ -51,5 +62,26 @@ export async function idbSetQuran(data: QuranDB): Promise<void> {
     await getDB().quranCache.put({ key: CACHE_KEY, data, cachedAt: Date.now() });
   } catch {
     // IDB write failure is non-fatal — app still works from memory
+  }
+}
+
+const PAGE_MAP_KEY = "page_map";
+
+export async function idbGetPageMap(): Promise<QuranPageMap | null> {
+  try {
+    const row = await getDB().pageMapCache.get(PAGE_MAP_KEY);
+    if (!row) return null;
+    if (Date.now() - row.cachedAt > MAX_AGE_MS) return null;
+    return row.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function idbSetPageMap(data: QuranPageMap): Promise<void> {
+  try {
+    await getDB().pageMapCache.put({ key: PAGE_MAP_KEY, data, cachedAt: Date.now() });
+  } catch {
+    // IDB write failure is non-fatal
   }
 }
