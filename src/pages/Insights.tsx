@@ -1203,6 +1203,33 @@ export function InsightsPage() {
               </div>
             );
           })()}
+          {/* Reading pace projection */}
+          {quranStats.totalAyahs > 0 && (() => {
+            const activeDays = Object.values(quranDailyAyahs).filter((v) => (v ?? 0) > 0).length;
+            if (activeDays < 3) return null; // Need enough data
+            const avgPerDay = Math.round(quranStats.totalAyahs / activeDays);
+            if (avgPerDay < 1) return null;
+            const remaining = Math.max(0, TOTAL_QURAN_AYAHS - quranStats.totalAyahs);
+            const daysLeft = Math.ceil(remaining / avgPerDay);
+            const months = Math.floor(daysLeft / 30);
+            const weeksLeft = Math.ceil((daysLeft % 30) / 7);
+            const timeLabel = months >= 12
+              ? `${Math.round(months / 12).toLocaleString("ar-EG")} سنة`
+              : months >= 2
+              ? `${months.toLocaleString("ar-EG")} شهر`
+              : weeksLeft > 0
+              ? `${weeksLeft.toLocaleString("ar-EG")} أسبوع`
+              : `${daysLeft.toLocaleString("ar-EG")} يوم`;
+            return (
+              <div className="mb-3 -mt-2 flex items-center gap-1.5 text-[11px] opacity-50">
+                <span>������</span>
+                <span>بمعدلك الحالي ({avgPerDay.toLocaleString("ar-EG")} آية/يوم):</span>
+                <span className="font-semibold opacity-100" style={{ color: daysLeft < 365 ? "var(--ok)" : undefined }}>
+                  {remaining === 0 ? "ختمت القرآن ������" : `ختمة خلال ~${timeLabel}`}
+                </span>
+              </div>
+            );
+          })()}
 
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1.5 text-xs opacity-65">
