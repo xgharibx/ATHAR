@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Clock, Search, X, Share2 } from "lucide-react";
 import { SEERAH_EVENTS, SEERAH_CATEGORIES, type SeerahEvent } from "@/data/seerahTimeline";
+import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 
 export default function SeerahTimeline() {

@@ -373,29 +373,46 @@ export function HadithBooksPage() {
 
   return (
     <div dir="rtl" className="min-h-screen-safe pb-24" style={{ background: "var(--bg)" }}>
-      {/* Header */}
-      <div className="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 backdrop-blur-sm"
-        style={{ background: "var(--bg)cc", borderBottom: "1px solid var(--card-border)" }}>
-        <button type="button"
-          onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-          aria-label="رجوع"
-        >
-          <ArrowRight size={20} className="text-[var(--fg)]" />
-        </button>
-        <div className="flex-1">
-          <p className="font-bold text-base text-[var(--fg)] font-arabic leading-tight">الكتب الحديثية</p>
-          <p className="text-xs text-[var(--muted)]">الكتب الستة وما يلحق بها</p>
-        </div>
-        <button type="button"
-          onClick={() => navigate("/hadith/memo")}
-          className="p-2 rounded-full hover:bg-[var(--card-bg)] transition"
-          title="بطاقات الحفظ"
-          aria-label="بطاقات الحفظ"
-        >
-          <BrainCircuit size={20} className="text-[var(--accent)]" />
-        </button>
-        <Library size={20} className="text-[var(--muted)]" />
+      {/* Header Card */}
+      <div className="px-4 pt-4">
+        <Card className="p-5 overflow-hidden relative">
+          <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
+          <div
+            className="absolute inset-0 bg-gradient-to-bl from-lime-500/15 to-green-400/10 pointer-events-none opacity-55"
+            style={{ borderRadius: "inherit" }}
+          />
+          <div className="relative">
+            <div className="flex items-start gap-3">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="mt-1 p-2 rounded-full flex-shrink-0 transition"
+                style={{ background: "rgba(255,255,255,0.08)" }}
+                aria-label="رجوع"
+              >
+                <ArrowRight size={20} className="text-[var(--fg)]" />
+              </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">📚</span>
+                  <div className="text-xs opacity-60">كتب الحديث</div>
+                </div>
+                <p className="text-xl font-semibold font-arabic" style={{ color: "#84cc16" }}>الكتب الحديثية</p>
+                <p className="text-sm opacity-70 mt-1">الكتب الستة وما يلحق بها</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/hadith/memo")}
+                className="mt-1 p-2 rounded-full transition"
+                style={{ background: "rgba(255,255,255,0.08)" }}
+                title="بطاقات الحفظ"
+                aria-label="بطاقات الحفظ"
+              >
+                <BrainCircuit size={20} className="text-[var(--accent)]" />
+              </button>
+            </div>
+          </div>
+        </Card>
       </div>
 
       {/* Stats banner */}
