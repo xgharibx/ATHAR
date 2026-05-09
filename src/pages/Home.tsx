@@ -205,6 +205,9 @@ export function HomePage() {
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const quranStreak = useNoorStore((s) => s.quranStreak);
   const prayerLog = useNoorStore((s) => s.prayerLog);
+  const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
+  const khatmaDays = useNoorStore((s) => s.khatmaDays);
+  const khatmaDone = useNoorStore((s) => s.khatmaDone);
 
   const sectionsRaw = data?.db.sections;
   const sections = React.useMemo(() => sectionsRaw ?? [], [sectionsRaw]);
@@ -1506,6 +1509,40 @@ export function HomePage() {
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>
                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: met ? "var(--ok)" : "var(--accent)" }} />
+              </div>
+            </div>
+            <span className="text-[10px] opacity-30 shrink-0">❮</span>
+          </button>
+        );
+      })()}
+
+      {/* ختمة القرآن */}
+      {khatmaStartISO && khatmaDays && (() => {
+        const start = new Date(khatmaStartISO);
+        const end = new Date(start.getTime() + khatmaDays * 86400000);
+        const now = Date.now();
+        if (now >= end.getTime()) return null; // finished
+        const totalMs = end.getTime() - start.getTime();
+        const elapsedMs = now - start.getTime();
+        const pct = Math.min(100, Math.round((elapsedMs / totalMs) * 100));
+        const daysLeft = Math.ceil((end.getTime() - now) / 86400000);
+        const doneCount = Object.values(khatmaDone ?? {}).filter(Boolean).length;
+        return (
+          <button
+            type="button"
+            onClick={() => navigate("/quran-plans")}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all active:scale-[0.99]"
+            style={{ background: "color-mix(in srgb, var(--accent) 5%, var(--card))", borderColor: "color-mix(in srgb, var(--accent) 18%, transparent)" }}
+            aria-label="ختمة القرآن"
+          >
+            <span className="text-base shrink-0" aria-hidden="true">������</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>ختمة القرآن</span>
+                <span className="text-xs tabular-nums opacity-70">تبقى {daysLeft.toLocaleString("ar-EG")} يوم · {doneCount.toLocaleString("ar-EG")}س/{khatmaDays.toLocaleString("ar-EG")}</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>
+                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: "var(--accent)" }} />
               </div>
             </div>
             <span className="text-[10px] opacity-30 shrink-0">❮</span>
