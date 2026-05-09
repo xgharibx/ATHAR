@@ -1870,6 +1870,21 @@ export function MushafPage() {
               <span className="text-xs opacity-60 tabular-nums w-8 text-center">{Math.round(fontScale * 100)}%</span>
               <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} aria-hidden="true" /></button>
             </div>
+            {/* Phase 56: Random Ayah jump */}
+            <button
+              type="button"
+              className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center mb-3"
+              onClick={() => {
+                if (!quranDB || quranDB.length === 0) return;
+                const randomSurah = quranDB[Math.floor(Math.random() * quranDB.length)]!;
+                const randomAyah = Math.floor(Math.random() * randomSurah.ayahs.length) + 1;
+                setShowSettings(false);
+                navigate(`/mushaf?surah=${randomSurah.id}&ayah=${randomAyah}`);
+              }}
+            >
+              <Shuffle size={14} />
+              آية عشوائية
+            </button>
             {/* Q3: Translation */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs opacity-65">الترجمة الإنجليزية</span>
