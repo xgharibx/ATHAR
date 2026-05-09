@@ -79,7 +79,7 @@ function textClassByLength(text: string) {
 }
 
 // Preferred section strip order (first visible sections in the quick-access bar)
-const PREFERRED_STRIP_ORDER = ["morning", "evening", "waking", "sleep", "essentials", "salawat", "tasabeeh", "post_prayer", "quranic_duas", "prophets_duas", "prophetic_duas", "jawami_dua", "ruqyah"];
+const PREFERRED_STRIP_ORDER = ["my_adhkar", "morning", "evening", "waking", "sleep", "essentials", "salawat", "tasabeeh", "post_prayer", "quranic_duas", "prophets_duas", "prophetic_duas", "jawami_dua", "ruqyah"];
 
 const CHECKLIST_CATEGORY_ICON: Record<DailyChecklistItem["category"], string> = {
   salah:   "🕌",
