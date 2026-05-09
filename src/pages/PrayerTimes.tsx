@@ -851,7 +851,14 @@ function StatsTab() {
           {prayerStats.map(({ prayer, done, pct }) => (
             <div key={prayer} className="flex items-center gap-3">
               <div className="w-14 text-sm shrink-0">{PRAYER_LABELS[prayer]}</div>
-              <div className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden">
+              <div
+                className="flex-1 h-2 rounded-full bg-[var(--card)] overflow-hidden"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(pct)}
+                aria-label={`${PRAYER_LABELS[prayer]}: ${done} من ٣٠ يوم (${Math.round(pct)}%)`}
+              >
                 <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: "var(--accent)" }} />
               </div>
               <div className="w-8 text-right text-xs font-semibold tabular-nums" style={{ color: "var(--accent)" }}>{toArabicIndic(pct)}٪</div>

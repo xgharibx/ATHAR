@@ -1265,7 +1265,14 @@ export function HomePage() {
                   )}
                 </div>
               </div>
-              <div className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]">
+              <div
+                className="mt-3 h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(quickTotal.percent)}
+                aria-label={`إجمالي التسابيح: ${quickTotal.total} (${Math.round(quickTotal.percent)}%)`}
+              >
                 <div className="h-full progress-accent" style={{ width: `${quickTotal.percent}%` }} />
               </div>
               {quickTotal.percent >= 100 && (

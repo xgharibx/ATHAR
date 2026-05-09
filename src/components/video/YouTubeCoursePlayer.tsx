@@ -358,7 +358,14 @@ export function YouTubeCoursePlayer({
 
           {/* Progress timeline */}
           <div className="mb-3" dir="ltr">
-            <div className="relative h-2 rounded-full bg-[var(--card)] overflow-hidden mb-1.5">
+            <div
+              className="relative h-2 rounded-full bg-[var(--card)] overflow-hidden mb-1.5"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={percent}
+              aria-label={`تقدم الفيديو: ${percent}% (${formatTime(current)} من ${formatTime(duration)})`}
+            >
               <div
                 className="h-full rounded-full transition-all duration-1000"
                 style={{ width: `${percent}%`, background: accent }}

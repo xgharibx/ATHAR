@@ -1774,7 +1774,14 @@ function WatchScreen({
               </div>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="w-16 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+              <div
+                className="w-16 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={courseVideos.length}
+                aria-valuenow={courseVideos.filter((v) => progress[v.id]?.completed).length}
+                aria-label={`تقدم الدورة: ${courseVideos.filter((v) => progress[v.id]?.completed).length} من ${courseVideos.length} درس`}
+              >
                 <div
                   className="h-full rounded-full"
                   style={{

@@ -144,7 +144,14 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
         </div>
 
         {/* Progress bar */}
-        <div className="h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)] mb-4">
+        <div
+          className="h-2 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)] mb-4"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={target}
+          aria-valuenow={count}
+          aria-label={`التقدم: ${count} من ${target}`}
+        >
           <div
             className={cn("h-full transition-[width] duration-200", count >= target ? "progress-ok" : "progress-accent")}
             style={{ width: `${pct * 100}%` }}
