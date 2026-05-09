@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Brain, Heart, Search, Share2, Star } from "lucide-react";
 import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 import { useNoorStore } from "@/store/noorStore";
+import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 
 type FilterTab = "all" | "memorized" | "favorites";
@@ -55,72 +56,83 @@ export function AsmaAlHusnaPage() {
 
   return (
     <div dir="rtl" className="min-h-screen-safe pb-32">
-      {/* Header */}
-      <div
-        className="sticky top-0 z-20 px-4 pt-4 pb-3"
-        style={{ background: "var(--bg)", borderBottom: "1px solid var(--card-border)" }}
-      >
-        <div className="flex items-center gap-3 mb-3">
-          <button type="button"
-            onClick={() => navigate(-1)}
-            aria-label="رجوع"
-            className="p-2 rounded-xl"
-            style={{ background: "var(--card-bg)", color: "var(--fg)" }}
-          >
-            <ArrowRight size={18} />
-          </button>
-          <div className="flex-1 min-w-0">
-            <h1 className="font-bold text-lg" style={{ color: "var(--fg)" }}>
-              أسماء الله الحسنى
-            </h1>
-            <div className="flex items-center gap-2">
-              <p className="text-xs opacity-60" style={{ color: "var(--fg)" }}>
-                ٩٩ اسمًا من أسماء الله تعالى
-              </p>
-              {memorizedCount > 0 && (
-                <span className="text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>
-                  حفظ {memorizedCount}/99 ({pct}%)
-                </span>
+      {/* Header Card — matches DhikrList style */}
+      <div className="px-4 pt-4 space-y-4">
+        <Card className="p-5 overflow-hidden relative">
+          <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
+          <div
+            className="absolute inset-0 bg-gradient-to-bl from-amber-400/15 to-yellow-300/10 pointer-events-none opacity-55"
+            style={{ borderRadius: "inherit" }}
+          />
+          <div className="relative">
+            <div className="flex items-start gap-3 mb-3">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                aria-label="رجوع"
+                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+              >
+                <ArrowRight size={18} />
+              </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">✨</span>
+                  <div className="text-xs opacity-60">أسماء الله</div>
+                </div>
+                <h1 className="text-xl font-semibold" style={{ color: "#f59e0b" }}>أسماء الله الحسنى</h1>
+                <div className="text-sm opacity-70 mt-1 tabular-nums">
+                  ٩٩ اسمًا من أسماء الله تعالى
+                  {memorizedCount > 0 && ` • حفظ ${memorizedCount}/99 (${pct}%)`}
+                </div>
+              </div>
+            </div>
+            {memorizedCount > 0 && (
+              <div className="h-1.5 rounded-full mb-3 overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${pct}%`, background: "#f59e0b" }}
+                />
+              </div>
+            )}
+            {/* Search */}
+            <div
+              className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+            >
+              <Search size={15} style={{ color: "#f59e0b" }} />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="ابحث بالاسم أو المعنى..."
+                aria-label="بحث في أسماء الله الحسنى"
+                className="flex-1 bg-transparent text-sm outline-none"
+                style={{ color: "var(--fg)" }}
+              />
+              {query && (
+                <button type="button" onClick={() => setQuery("")} className="opacity-50 text-xs">✕</button>
               )}
             </div>
+            {/* Filter tabs */}
+            <div className="flex gap-2">
+              {(["all", "memorized", "favorites"] as FilterTab[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTab(t)}
+                  className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
+                  style={{
+                    background: tab === t ? "#f59e0b" : "rgba(255,255,255,0.08)",
+                    color: tab === t ? "#fff" : "var(--fg)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                  }}
+                >
+                  {t === "all" ? `الكل (${ASMA_AL_HUSNA.length})` : t === "memorized" ? `🧠 محفوظة (${memorized.length})` : `❤️ مفضلة (${favorites.length})`}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        {/* Search */}
-        <div
-          className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3"
-          style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
-        >
-          <Search size={15} style={{ color: "var(--accent)" }} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="ابحث بالاسم أو المعنى..."
-            aria-label="بحث في أسماء الله الحسنى"
-            className="flex-1 bg-transparent text-sm outline-none"
-            style={{ color: "var(--fg)" }}
-          />
-          {query && (
-            <button type="button" onClick={() => setQuery("")} className="opacity-50 text-xs">✕</button>
-          )}
-        </div>
-        {/* Filter tabs */}
-        <div className="flex gap-2">
-          {(["all", "memorized", "favorites"] as FilterTab[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
-              style={{
-                background: tab === t ? "var(--accent)" : "var(--card-bg)",
-                color: tab === t ? "#fff" : "var(--fg)",
-                border: "1px solid var(--card-border)",
-              }}
-            >
-              {t === "all" ? `الكل (${ASMA_AL_HUSNA.length})` : t === "memorized" ? `🧠 محفوظة (${memorized.length})` : `❤️ مفضلة (${favorites.length})`}
-            </button>
-          ))}
-        </div>
+        </Card>
       </div>
 
       {/* Grid */}
