@@ -183,6 +183,18 @@ export function QuranVocabPage() {
           if (prev > 0) { setFlipped(false); return prev - 1; }
           return prev;
         });
+      } else if (e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        setCardIndex((prev) => {
+          const w = deck[prev];
+          if (w) {
+            const next = new Set(learned);
+            if (next.has(w.id)) next.delete(w.id); else { next.add(w.id); }
+            setLearned(next);
+            saveLearned(next);
+          }
+          return prev;
+        });
       }
     };
     window.addEventListener("keydown", handler);
@@ -609,6 +621,16 @@ export function QuranVocabPage() {
           >
             → السابق
           </button>
+        </div>
+
+        {/* Keyboard hints — desktop only */}
+        <div className="hidden md:flex items-center gap-3 text-[10px] opacity-30 mt-1" aria-hidden="true">
+          {[["Space", "قلب"], ["←→", "تنقل"], ["M", "حفظ"]].map(([key, label]) => (
+            <span key={key} className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 rounded border border-current font-mono text-[9px]">{key}</kbd>
+              <span>{label}</span>
+            </span>
+          ))}
         </div>
 
         {/* Deck completion banner */}
