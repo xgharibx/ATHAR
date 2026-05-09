@@ -108,7 +108,7 @@ function StoryCard({
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
               style={{ background: "var(--stroke)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.7 }}
             >
-              <Share2 size={13} />
+              <Share2 size={13} aria-hidden="true" />
               مشاركة
             </button>
             <button
@@ -119,7 +119,7 @@ function StoryCard({
                 ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
                 : { background: "var(--stroke)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.7 }}
             >
-              {bookmarked ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
+              {bookmarked ? <BookmarkCheck size={13} aria-hidden="true" /> : <Bookmark size={13} aria-hidden="true" />}
               {bookmarked ? "محفوظة" : "حفظ"}
             </button>
           </div>
@@ -176,7 +176,7 @@ export function ProphetStoriesPage() {
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
-                <ArrowRight size={18} />
+                <ArrowRight size={18} aria-hidden="true" />
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">

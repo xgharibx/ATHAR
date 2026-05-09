@@ -1122,7 +1122,7 @@ export function HomePage() {
                     }}
                   >
                     <span>{q.icon}</span>
-                    {q.done && <CheckCircle2 size={10} />}
+                    {q.done && <CheckCircle2 size={10} aria-hidden="true" />}
                     {q.label}
                   </div>
                 ))}
@@ -1169,7 +1169,7 @@ export function HomePage() {
                             ? "border-[var(--ok)] bg-ok-20"
                             : "border-[var(--stroke)]"
                         )}>
-                          {isDone ? <CheckCircle2 size={15} className="text-[var(--ok)]" /> : CHECKLIST_CATEGORY_ICON[item.category]}
+                          {isDone ? <CheckCircle2 size={15} className="text-[var(--ok)]" aria-hidden="true" /> : CHECKLIST_CATEGORY_ICON[item.category]}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className={cn("text-sm", isDone && "line-through opacity-60")}>{item.title}</div>

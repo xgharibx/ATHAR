@@ -77,7 +77,7 @@ export function DuasPage() {
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
-                <ArrowRight size={18} />
+                <ArrowRight size={18} aria-hidden="true" />
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -93,7 +93,7 @@ export function DuasPage() {
               className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
-              <Search size={15} style={{ color: "#059669" }} />
+              <Search size={15} style={{ color: "#059669" }} aria-hidden="true" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -195,7 +195,7 @@ export function DuasPage() {
                     className="p-1.5 rounded-lg transition-colors"
                     style={{ color: "var(--fg)", opacity: 0.45 }}
                   >
-                    <Share2 size={14} />
+                    <Share2 size={14} aria-hidden="true" />
                   </button>
                   <button type="button"
                     aria-label={copied === dua.id ? "تم النسخ" : "نسخ الدعاء"}

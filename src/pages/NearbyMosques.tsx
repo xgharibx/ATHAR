@@ -113,7 +113,7 @@ export function NearbyMosquesPage() {
           <h1 className="text-xl font-bold">المساجد القريبة</h1>
         </div>
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-          <ArrowRight size={15} />
+          <ArrowRight size={15} aria-hidden="true" />
           رجوع
         </Button>
       </div>
@@ -193,7 +193,7 @@ export function NearbyMosquesPage() {
                     <div className="min-w-0">
                       <div className="font-semibold text-sm truncate">{mosque.name}</div>
                       <div className="text-xs opacity-50 mt-0.5 flex items-center gap-1">
-                        <MapPin size={10} />
+                        <MapPin size={10} aria-hidden="true" />
                         <span>{distLabel}</span>
                         <span>·</span>
                         <span>#{i + 1}</span>
@@ -217,7 +217,7 @@ export function NearbyMosquesPage() {
                       title="مشاركة الموقع"
                       aria-label={`مشاركة موقع ${mosque.name}`}
                     >
-                      <Share2 size={14} />
+                      <Share2 size={14} aria-hidden="true" />
                     </button>
                     <a
                       href={mapsUrl}

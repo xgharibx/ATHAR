@@ -95,7 +95,7 @@ export function CategoryPage() {
           <div className="mt-2 text-sm opacity-70">قد يكون المعرّف خاطئًا: {id}</div>
           <div className="mt-4">
             <Button variant="secondary" onClick={() => navigate("/")}>
-              <Home size={16} />
+              <Home size={16} aria-hidden="true" />
               العودة
             </Button>
           </div>

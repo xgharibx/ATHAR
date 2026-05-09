@@ -371,6 +371,7 @@ export function QuranPlansPage() {
                 <button type="button"
                   key={preset.id}
                   onClick={() => startPlan(preset.days)}
+                  aria-pressed={!!isActive}
                   className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all text-right
                     ${isActive
                       ? "bg-accent-15 border border-accent-40"
@@ -429,13 +430,13 @@ export function QuranPlansPage() {
           <button type="button"
             onClick={() => setShowPresets(true)}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] text-sm transition-colors border border-[var(--stroke)]">
-            <Target className="w-4 h-4 opacity-60" />
+            <Target className="w-4 h-4 opacity-60" aria-hidden="true" />
             تغيير الخطة
           </button>
           <button type="button"
             onClick={() => setConfirmReset(true)}
             className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm transition-colors border border-red-500/20">
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4" aria-hidden="true" />
             إعادة
           </button>
         </div>

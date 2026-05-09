@@ -80,7 +80,7 @@ export default function Companions() {
               aria-label="المحفوظة"
               aria-pressed={showBookmarksOnly}
             >
-              <Bookmark size={16} />
+              <Bookmark size={16} aria-hidden="true" />
             </button>
           </div>
           {/* Category filter chips */}
@@ -130,7 +130,7 @@ export default function Companions() {
           </div>
           {/* Search */}
           <div className="relative mt-2">
-            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" aria-hidden="true" />
             <input
               type="search"
               dir="rtl"
@@ -247,7 +247,7 @@ export default function Companions() {
                       className="flex items-center gap-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-3 py-1.5 text-xs transition-all glass-hover press-effect"
                       style={{ color: "var(--fg)" }}
                     >
-                      <Share2 size={13} />
+                      <Share2 size={13} aria-hidden="true" />
                       مشاركة
                     </button>
                     <button
@@ -258,7 +258,7 @@ export default function Companions() {
                         ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
                         : { background: "var(--card)", color: "var(--fg)", borderColor: "var(--stroke)", opacity: 0.8 }}
                     >
-                      {bookmarks.has(companion.id) ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
+                      {bookmarks.has(companion.id) ? <BookmarkCheck size={13} aria-hidden="true" /> : <Bookmark size={13} aria-hidden="true" />}
                       {bookmarks.has(companion.id) ? "محفوظ" : "حفظ"}
                     </button>
                   </div>

@@ -112,6 +112,7 @@ function CollectionCard({ collection, active, onClick }: { collection: LibraryCo
   return (
     <button type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
         "min-w-[220px] text-right rounded-3xl border p-4 transition press-effect",
         active ? "bg-[var(--card)] border-[var(--stroke)]" : "glass border-[var(--stroke)] hover:bg-[var(--card-2)]"
@@ -212,7 +213,7 @@ export function LibraryPage() {
             onClick={() => navigate(`/library/${featured.collectionId}/${featured.id}`)}
             className="w-full text-right rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 hover:bg-[var(--card-2)] transition"
           >
-            <div className="flex items-center gap-2 mb-2"><Sparkles size={15} className="text-[var(--accent)]" /><span className="text-xs font-semibold opacity-60">بداية مقترحة</span></div>
+            <div className="flex items-center gap-2 mb-2"><Sparkles size={15} className="text-[var(--accent)]" aria-hidden="true" /><span className="text-xs font-semibold opacity-60">بداية مقترحة</span></div>
             {featured.title && <div className="text-xs font-semibold mb-1 font-arabic" style={{ color: featured.collectionAccent }}>{featured.collectionTitle} · {featured.title}</div>}
             <div className="arabic-text leading-8 text-sm md:text-base line-clamp-3">{featured.arabic}</div>
             <div className="text-xs opacity-50 mt-2">{featured.source.title}</div>
@@ -238,7 +239,7 @@ export function LibraryPage() {
             <div className="text-sm font-bold arabic-text" style={{ color: "rgba(167,139,250,0.95)" }}>أذكار الرقية الشرعية</div>
             <div className="text-xs opacity-55 arabic-text mt-0.5">الفاتحة · آية الكرسي · المعوذات · أدعية نبوية</div>
           </div>
-          <ArrowRight size={14} className="opacity-35 shrink-0 rotate-180" />
+          <ArrowRight size={14} className="opacity-35 shrink-0 rotate-180" aria-hidden="true" />
         </button>
       </Card>
 
@@ -255,7 +256,7 @@ export function LibraryPage() {
               className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
               style={{ background: `${book.color}22` }}
             >
-              <Library size={16} style={{ color: book.color }} />
+              <Library size={16} style={{ color: book.color }} aria-hidden="true" />
             </div>
             <div className="text-sm font-bold arabic-text truncate" style={{ color: book.color }}>
               {book.title}
@@ -269,7 +270,7 @@ export function LibraryPage() {
 
       <Card className="p-4 sticky top-3 z-20 backdrop-blur-xl">
         <div className="flex items-center gap-2">
-          <Search size={17} className="opacity-60" />
+          <Search size={17} className="opacity-60" aria-hidden="true" />
           <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder="ابحث في الحديث، الراوي، الفوائد، أو الموضوع…" aria-label="بحث في المكتبة" spellCheck={false} autoComplete="off" autoCapitalize="none" />
         </div>
       </Card>
@@ -342,7 +343,7 @@ export function LibraryPage() {
           className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: "#f59e0b22" }}
         >
-          <Users size={22} style={{ color: "#f59e0b" }} />
+          <Users size={22} style={{ color: "#f59e0b" }} aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm text-[var(--fg)] font-arabic">الصحابة الكرام</p>
@@ -350,7 +351,7 @@ export function LibraryPage() {
             20 صحابيًا • سيَر موجزة لأصحاب النبي ﷺ
           </p>
         </div>
-        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" />
+        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" aria-hidden="true" />
       </button>
 
       {/* Seerah timeline entry card */}
@@ -372,7 +373,7 @@ export function LibraryPage() {
             21 حدثًا • رحلة حياة النبي ﷺ على خط الزمن
           </p>
         </div>
-        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" />
+        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" aria-hidden="true" />
       </button>
 
       <Card className="p-4">
