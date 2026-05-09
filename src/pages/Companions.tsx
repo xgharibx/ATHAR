@@ -153,13 +153,19 @@ export default function Companions() {
         {filtered.map((companion) => {
           const isOpen = expanded === companion.id;
           return (
-            <button type="button"
+            <div
               key={companion.id}
-              onClick={() => setExpanded(isOpen ? null : companion.id)}
-              aria-expanded={isOpen}
-              className="relative w-full overflow-hidden rounded-3xl p-4 text-right transition glass glass-hover press-effect cv-auto"
+              className="relative overflow-hidden rounded-3xl glass cv-auto"
+              style={{ border: "1px solid var(--stroke)" }}
             >
               <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
+              {/* Toggle button — top row only */}
+              <button type="button"
+                onClick={() => setExpanded(isOpen ? null : companion.id)}
+                aria-expanded={isOpen}
+                aria-controls={`companion-panel-${companion.id}`}
+                className="relative w-full p-4 text-right transition glass-hover press-effect"
+              >
               {/* Top row */}
               <div className="relative flex items-start gap-3">
                 {/* Icon avatar */}
@@ -201,16 +207,18 @@ export default function Companions() {
                   }}
                 />
               </div>
+              </button>
 
               {/* Expandable bio */}
-              {isOpen && (
-                <div
-                  className="mt-3 pt-3 text-right font-arabic text-sm leading-7"
-                  style={{
-                    color: "var(--fg)",
-                    borderTop: "1px solid var(--stroke)",
-                  }}
-                >
+              <div
+                id={`companion-panel-${companion.id}`}
+                hidden={!isOpen}
+                className="relative px-4 pb-4 text-right font-arabic text-sm leading-7"
+                style={{
+                  color: "var(--fg)",
+                  borderTop: "1px solid var(--stroke)",
+                }}
+              >
                   {companion.brief}
                   <div className="mt-2 flex justify-end gap-2">
                     <button
@@ -243,9 +251,8 @@ export default function Companions() {
                       {bookmarks.has(companion.id) ? "محفوظ" : "حفظ"}
                     </button>
                   </div>
-                </div>
-              )}
-            </button>
+              </div>
+            </div>
           );
         })}
       </div>

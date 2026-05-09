@@ -169,7 +169,7 @@ export function DuasPage() {
           return (
             <div
               key={dua.id}
-              className="rounded-2xl p-4"
+              className="rounded-2xl p-4 cv-auto"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
               {/* Number */}

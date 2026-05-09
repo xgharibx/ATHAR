@@ -38,6 +38,8 @@ function StoryCard({
       <button type="button"
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center justify-between p-4 text-right"
+        aria-expanded={open}
+        aria-controls={`story-panel-${story.id}`}
         style={{ color: "var(--fg)" }}
       >
         <div className="flex items-center gap-2">
@@ -64,7 +66,7 @@ function StoryCard({
       </button>
 
       {open && (
-        <div className="px-4 pb-4 space-y-4">
+        <div id={`story-panel-${story.id}`} className="px-4 pb-4 space-y-4">
           <div className="h-px" style={{ background: "var(--stroke)" }} />
           <p
             className="text-sm leading-loose text-right"

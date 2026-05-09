@@ -151,7 +151,7 @@ export function AsmaAlHusnaPage() {
           return (
             <div
               key={name.id}
-              className="rounded-2xl transition-all duration-200"
+              className="rounded-2xl transition-all duration-200 cv-auto"
               style={{
                 background: isExpanded ? "var(--accent)" : "var(--card)",
                 border: `1px solid ${isExpanded ? "transparent" : "var(--stroke)"}`,
@@ -163,6 +163,7 @@ export function AsmaAlHusnaPage() {
                 type="button"
                 className="w-full text-right p-4"
                 aria-expanded={isExpanded}
+                aria-controls={`asma-panel-${name.id}`}
                 aria-label={`${name.arabic} — ${name.meaning}`}
                 onClick={() => setExpandedId(isExpanded ? null : name.id)}
               >
@@ -190,12 +191,16 @@ export function AsmaAlHusnaPage() {
                     <span className="text-xs mt-1" title="محفوظة">🧠</span>
                   )}
                 </div>
-                {isExpanded && (
-                  <div className="mt-3 text-sm opacity-90 leading-relaxed text-right">
-                    {name.benefit}
-                  </div>
-                )}
               </button>
+              {/* Benefit panel */}
+              <div
+                id={`asma-panel-${name.id}`}
+                hidden={!isExpanded}
+                className="px-4 pb-3 text-sm opacity-90 leading-relaxed text-right"
+                style={{ color: "color-mix(in srgb, var(--on-accent) 88%, transparent)" }}
+              >
+                {name.benefit}
+              </div>
               {/* Action row */}
               <div className="flex items-center justify-end gap-1 px-3 pb-2 pt-0">
                 <button

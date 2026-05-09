@@ -1089,7 +1089,8 @@ export function HomePage() {
                   <button type="button"
                     onClick={() => setChecklistExpanded((v) => !v)}
                     className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center transition active:scale-90"
-                    aria-label={showItems ? "طي" : "عرض"}
+                    aria-label="توسيع القائمة اليومية"
+                    aria-expanded={showItems}
                   >
                     <ChevronDown size={14} className={cn("transition-transform duration-200", showItems && "rotate-180")} />
                   </button>
@@ -1367,7 +1368,8 @@ export function HomePage() {
                   <button type="button"
                     onClick={() => setDailyWirdExpanded((v) => !v)}
                     className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center transition active:scale-90"
-                    aria-label={dailyWirdExpanded ? "طي" : "عرض"}
+                    aria-label="توسيع ورد اليوم"
+                    aria-expanded={dailyWirdExpanded}
                   >
                     <ChevronDown size={14} className={cn("transition-transform duration-200", dailyWirdExpanded && "rotate-180")} />
                   </button>

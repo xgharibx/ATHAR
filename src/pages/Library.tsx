@@ -249,7 +249,7 @@ export function LibraryPage() {
             key={book.key}
             dir="rtl"
             onClick={() => navigate(`/hadith/${book.key}`)}
-            className="press-effect text-right rounded-3xl p-4 glass border border-[var(--stroke)] transition active:scale-95"
+            className="press-effect text-right rounded-3xl p-4 glass border border-[var(--stroke)] transition active:scale-95 cv-auto"
           >
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
