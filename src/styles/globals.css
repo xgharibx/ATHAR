@@ -190,6 +190,14 @@ textarea {
   color-scheme: light;
 }
 
+/* Light theme: native select elements need dark-on-light styling */
+.light select {
+  background-color: var(--card);
+  border-color: var(--stroke);
+  color: var(--fg);
+  color-scheme: light;
+}
+
 .form-field-readable::placeholder {
   color: var(--muted-2) !important;
   -webkit-text-fill-color: var(--muted-2) !important;

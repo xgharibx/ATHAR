@@ -59,6 +59,7 @@ export function SearchPage() {
     return new Fuse(data.flat, {
       includeScore: true,
       threshold: 0.35,
+      ignoreDiacritics: true,
       keys: ["text", "sectionTitle", "sectionId"]
     });
   }, [data]);
@@ -92,6 +93,7 @@ export function SearchPage() {
     return new Fuse(quranData, {
       includeScore: true,
       threshold: 0.4,
+      ignoreDiacritics: true,
       keys: ["name", "englishName"],
     });
   }, [quranData]);
@@ -133,6 +135,7 @@ export function SearchPage() {
     return new Fuse(libraryData.flat, {
       includeScore: true,
       threshold: 0.32,
+      ignoreDiacritics: true,
       keys: [
         { name: "searchText", weight: 3 },
         { name: "arabic", weight: 3 },
