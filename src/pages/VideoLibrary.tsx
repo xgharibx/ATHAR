@@ -1929,7 +1929,7 @@ function TopicScreen({
             <ArrowRight size={14} /><span>المكتبة</span>
           </button>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-4xl">{topic.icon}</span>
+            <span className="text-4xl" aria-hidden="true">{topic.icon}</span>
             <div>
               <h1 className="text-[1.1rem] font-bold arabic-text">{topic.title}</h1>
               <p className="text-xs opacity-50 mt-1 leading-5">{topic.description}</p>
@@ -2018,7 +2018,7 @@ function TopicScreen({
         </div>
         {topicVideos.length === 0 ? (
           <div className="glass rounded-3xl p-7 text-center">
-            <div className="text-3xl mb-2">{topic.icon}</div>
+            <div className="text-3xl mb-2" aria-hidden="true">{topic.icon}</div>
             <div className="font-semibold text-sm">لا توجد فيديوهات بعد لهذا الموضوع</div>
           </div>
         ) : (

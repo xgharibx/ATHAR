@@ -322,6 +322,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
       <div className="h-px mx-5 bg-[var(--stroke)]" />
 
       {/* Main navigation links */}
+      <nav aria-label="القائمة الرئيسية">
       <div className="px-4 py-3">
         <div className="grid grid-cols-4 gap-2">
           {MAIN_NAV_LINKS.map((link) => (
@@ -351,10 +352,12 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
           ))}
         </div>
       </div>
+      </nav>
 
       <div className="h-px mx-5 bg-[var(--stroke)]" />
 
       {/* Sections list */}
+      <nav aria-label="أقسام الأذكار">
       <div className="px-3 pt-3 pb-2">
         <div className="px-2 mb-2 text-[11px] font-semibold opacity-45 uppercase tracking-wider">الأقسام</div>
       </div>
@@ -366,6 +369,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
           <SidebarItem key={s.id} s={s} onNavigate={props.onNavigate} />
         ))}
       </div>
+      </nav>
     </div>
   );
 }

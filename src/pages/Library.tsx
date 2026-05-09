@@ -82,7 +82,7 @@ function LibraryEntryCard({ entry }: { entry: FlatLibraryEntry }) {
           <div className="text-sm font-semibold opacity-75 mb-2 arabic-text">{entry.title}</div>
           <div className="arabic-text text-base md:text-lg leading-9 font-medium text-right">{entryPreview(entry)}</div>
         </button>
-        <ArrowUpRight size={17} className="opacity-45 shrink-0 mt-1" />
+        <ArrowUpRight size={17} className="opacity-45 shrink-0 mt-1" aria-hidden="true" />
       </div>
 
       <div className="mt-3 border-t border-[var(--stroke)] pt-3 space-y-2">
@@ -243,7 +243,7 @@ export function LibraryPage() {
       </Card>
 
       {/* Hadith Books Grid — at top for quick access */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3" role="list" aria-label="كتب الحديث">
         {HADITH_BOOKS_STATIC.map((book) => (
           <button type="button"
             key={book.key}
@@ -312,7 +312,7 @@ export function LibraryPage() {
         <div className="text-xs opacity-50 tabular-nums">{entries.length.toLocaleString("ar-EG")}</div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3" role="list" aria-label="مواد المكتبة">
         {entries.map((entry) => <LibraryEntryCard key={entry.key} entry={entry} />)}
         {entries.length === 0 && (
           <div dir="rtl" className="flex flex-col items-center py-12 gap-4">

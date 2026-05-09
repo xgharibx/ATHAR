@@ -158,10 +158,11 @@ export function SourcesPage() {
             لا توجد حزم إضافية. استورد ملفًا لإضافة أقسام جديدة.
           </div>
         ) : (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-2" role="list" aria-label="الحزم المستوردة">
             {packs.map((p) => (
               <div
                 key={p.packId}
+                role="listitem"
                 className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">

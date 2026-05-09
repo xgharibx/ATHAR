@@ -17,11 +17,11 @@ export function NotFoundPage() {
 
         <div className="relative">
           {/* Arabic "404" */}
-          <div className="text-8xl font-black opacity-10 leading-none select-none tabular-nums">
+          <div className="text-8xl font-black opacity-10 leading-none select-none tabular-nums" aria-hidden="true">
             ٤٠٤
           </div>
 
-          <div className="mt-4 text-4xl">🔍</div>
+          <div className="mt-4 text-4xl" aria-hidden="true">🔍</div>
 
           <div className="mt-4 text-xl font-bold"><h1 className="inline text-xl font-bold">الصفحة غير موجودة</h1></div>
           <div className="mt-2 text-sm opacity-65 leading-7">

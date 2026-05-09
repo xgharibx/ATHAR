@@ -130,7 +130,7 @@ export function OnboardingFlow() {
           exit={{ opacity: 0, y: -16, scale: 0.97 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
         >
-          <div className="text-5xl mb-5 text-center">{current.emoji}</div>
+          <div className="text-5xl mb-5 text-center" aria-hidden="true">{current.emoji}</div>
           <h2 className="text-xl font-bold text-center mb-3 arabic-text" id="onboarding-title">{current.title}</h2>
           <p className="text-sm opacity-70 text-center leading-relaxed mb-8 arabic-text">{current.description}</p>
 

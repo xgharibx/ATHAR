@@ -76,7 +76,7 @@ function ArbainiCard({ book }: { book: HadithBookMeta }) {
         <p className="text-sm font-bold font-arabic text-[var(--fg)] leading-tight mb-1">
           {book.title}
         </p>
-        <p className="text-[10px] text-[var(--muted)] mb-3">{book.titleEn}</p>
+        <p className="text-[10px] text-[var(--muted)] mb-3" lang="en">{book.titleEn}</p>
         {/* Count + progress */}
         <div className="flex items-center justify-between">
           <span className="text-xs font-arabic" style={{ color: book.color }}>
@@ -131,7 +131,7 @@ function BookCard({ book }: { book: HadithBookMeta }) {
               </p>
               <GradeChip grade={book.grade === "mixed" ? "hasan" : book.grade} />
             </div>
-            <p className="text-[10px] text-[var(--muted)] mb-2">{book.titleEn}</p>
+            <p className="text-[10px] text-[var(--muted)] mb-2" lang="en">{book.titleEn}</p>
             <p className="text-[11px] text-[var(--fg)] opacity-70 leading-snug line-clamp-2 font-arabic">
               {book.description}
             </p>
@@ -457,9 +457,13 @@ export function HadithBooksPage() {
           {/* Main books */}
           <div className="px-4 space-y-3 mb-4">
             <p className="text-xs text-[var(--muted)] font-arabic px-1">الكتب الكبرى</p>
-            {mainBooks.map((book) => (
-              <BookCard key={book.key} book={book} />
-            ))}
+            <div role="list" aria-label="الكتب الكبرى">
+              {mainBooks.map((book) => (
+                <div key={book.key} role="listitem">
+                  <BookCard book={book} />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Attribution */}
