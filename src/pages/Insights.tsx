@@ -127,7 +127,7 @@ function RadarChart(props: { values: { label: string; pct: number; color: string
   const dataPath = dataPts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(" ") + " Z";
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="مخطط الرادار">
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="مخطط الرادار">
       {/* Grid */}
       {rings.map((d, i) => (
         <path key={i} d={d} fill="none" stroke="var(--stroke)" strokeWidth={1} />

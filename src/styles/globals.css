@@ -2167,6 +2167,33 @@ html {
 }
 
 
+/* ═══════════════════════════════════════════════════════════════
+   Forced-colors (Windows High Contrast Mode) support
+   ═══════════════════════════════════════════════════════════════ */
+@media (forced-colors: active) {
+  /* Restore borders that rely on color-mix/opacity — they become invisible in HCM */
+  .glass,
+  .glass-strong,
+  .glass-card {
+    border: 1px solid ButtonText;
+  }
+  /* Ensure progress rings have visible strokes */
+  .progress-ring-circle {
+    forced-color-adjust: none;
+  }
+  /* Keep accent-colored text readable */
+  .text-\[var\(--accent\)\],
+  .floating-nav-item.active span {
+    forced-color-adjust: none;
+  }
+  /* Skeleton shimmer is meaningless in HCM — show as plain block */
+  .skeleton {
+    background: ButtonFace;
+    animation: none;
+  }
+}
+
+
 
 
 
