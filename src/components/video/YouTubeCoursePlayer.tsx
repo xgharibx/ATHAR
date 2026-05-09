@@ -276,7 +276,7 @@ export function YouTubeCoursePlayer({
                         onNext();
                       }}
                       className="flex-1 rounded-2xl py-2 text-sm font-bold press-effect"
-                      style={{ background: accent, color: "#000" }}
+                      style={{ background: accent, color: "var(--on-accent)" }}
                     >
                       الآن
                     </button>
@@ -425,7 +425,7 @@ export function YouTubeCoursePlayer({
                 type="button"
                 onClick={onNext}
                 className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-bold press-effect transition-all"
-                style={{ background: accent, color: "#000" }}
+                style={{ background: accent, color: "var(--on-accent)" }}
               >
                 <SkipForward size={14} />
                 <span>التالي</span>

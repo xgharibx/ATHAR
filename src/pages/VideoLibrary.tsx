@@ -301,7 +301,7 @@ function CourseCard2({
           className="flex items-center gap-1 px-2 py-0.5 rounded-xl text-[10px] font-bold"
           style={{
             background: course.isGenerated ? `rgba(255,255,255,0.18)` : `${accent}cc`,
-            color: course.isGenerated ? "rgba(255,255,255,0.85)" : "#000",
+            color: course.isGenerated ? "rgba(255,255,255,0.85)" : "var(--on-accent)",
             border: course.isGenerated ? `1px solid rgba(255,255,255,0.2)` : "none",
           }}
         >
@@ -509,7 +509,7 @@ function VideoThumbCard({
         {pct > 0 && !progress?.completed && progress?.seconds != null && progress.seconds > 30 && (
           <div
             className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-lg text-[9px] font-bold"
-            style={{ background: `${accent}dd`, color: "#000" }}
+            style={{ background: `${accent}dd`, color: "var(--on-accent)" }}
           >
             من الدقيقة {Math.floor(progress.seconds / 60)}
           </div>
@@ -597,7 +597,7 @@ function VideoListRow({
         {pct > 0 && !progress?.completed && progress?.seconds != null && progress.seconds > 30 && (
           <div
             className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-lg text-[9px] font-bold"
-            style={{ background: `${accent}dd`, color: "#000" }}
+            style={{ background: `${accent}dd`, color: "var(--on-accent)" }}
           >
             من الدقيقة {Math.floor(progress.seconds / 60)}
           </div>
@@ -1526,7 +1526,7 @@ function CourseScreen({
               style={{
                 background: `linear-gradient(135deg, ${accent} 0%, color-mix(in srgb, ${accent} 75%, #000) 100%)`,
                 boxShadow: `0 4px 24px ${accent}35`,
-                color: "#000",
+                color: "var(--on-accent)",
               }}
             >
               <Play size={15} />
