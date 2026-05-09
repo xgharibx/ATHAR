@@ -1188,6 +1188,21 @@ export function InsightsPage() {
               <span>آية</span>
             </div>
           )}
+          {/* Estimated total reading time */}
+          {quranStats.totalAyahs >= 8 && (() => {
+            const totalMins = Math.round(quranStats.totalAyahs / 8);
+            const hrs = Math.floor(totalMins / 60);
+            const mins = totalMins % 60;
+            return (
+              <div className="mb-3 -mt-2 flex items-center gap-1.5 text-[11px] opacity-50">
+                <span>⏱</span>
+                <span>وقت القراءة التقديري:</span>
+                <span className="tabular-nums font-semibold opacity-100">
+                  {hrs > 0 ? `${hrs.toLocaleString("ar-EG")} ساعة${mins > 0 ? ` ${mins.toLocaleString("ar-EG")} دق` : ""}` : `${mins.toLocaleString("ar-EG")} دقيقة`}
+                </span>
+              </div>
+            );
+          })()}
 
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1.5 text-xs opacity-65">
