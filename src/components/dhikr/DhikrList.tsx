@@ -707,6 +707,7 @@ export function DhikrList(props: Readonly<{
                   min={1}
                   value={customCount}
                   onChange={(event) => setCustomCount(event.target.value)}
+                  inputMode="numeric"
                   placeholder="العدد"
                 />
               </div>
@@ -715,6 +716,8 @@ export function DhikrList(props: Readonly<{
                 onChange={(event) => setCustomText(event.target.value)}
                 placeholder="اكتب الذكر"
                 aria-label="نص الذكر الجديد"
+                dir="rtl"
+                spellCheck={false}
                 className="form-field-readable mt-3 min-h-36 w-full rounded-3xl border border-[var(--stroke)] px-4 py-3 text-sm leading-7 outline-none focus:border-accent-40"
               />
               <Input

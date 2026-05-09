@@ -102,6 +102,9 @@ export default function SeerahTimeline() {
               placeholder="ابحث في أحداث السيرة…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              spellCheck={false}
+              autoComplete="off"
+              autoCapitalize="none"
               className="h-9 w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] pr-8 pl-8 text-sm outline-none focus:border-accent-45"
               style={{ color: "var(--fg)" }}
             />

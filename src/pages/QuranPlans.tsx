@@ -396,6 +396,7 @@ export function QuranPlansPage() {
                 min={7}
                 max={730}
                 onChange={(e) => setCustomDays(e.target.value)}
+                inputMode="numeric"
                 className="flex-1 bg-[var(--card)] border border-[var(--stroke)] rounded-2xl px-3 py-2 text-sm text-right focus:outline-none focus:border-accent-60"
                 placeholder="عدد الأيام"
               />

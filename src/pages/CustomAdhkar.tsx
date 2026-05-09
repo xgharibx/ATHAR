@@ -42,6 +42,7 @@ function ItemRow({
         max={9999}
         value={count}
         onChange={(e) => onCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+        inputMode="numeric"
         className="w-16 px-2 py-2 rounded-xl bg-[var(--card)] border border-[var(--stroke)] text-center text-sm outline-none focus:border-[var(--accent)]"
         aria-label={`عدد الذكر ${index + 1}`}
       />

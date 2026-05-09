@@ -1244,6 +1244,8 @@ function GroupKhatmaCard() {
             onChange={(e) => setMembersRaw(e.target.value)}
             placeholder={"أسماء الأعضاء (سطر لكل اسم)\nمثال:\nعبدالله\nفاطمة\nأحمد"}
             aria-label="أسماء أعضاء الختمة"
+            dir="rtl"
+            spellCheck={false}
             className="w-full min-h-[90px] rounded-3xl bg-[var(--card)] border border-[var(--stroke)] p-4 text-sm leading-7 outline-none focus:border-[var(--stroke)]"
           />
           <div className="text-[11px] opacity-45">سيتم توزيع الأجزاء الثلاثين تلقائيًا على الأعضاء.</div>

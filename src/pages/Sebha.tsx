@@ -1003,6 +1003,8 @@ export function SebhaPage() {
                 value={customPhraseInput}
                 onChange={(e) => setCustomPhraseInput(e.target.value)}
                 placeholder="مثال: صلِّ على النبي"
+                spellCheck={false}
+                autoComplete="off"
                 className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
               />
             </div>
@@ -1015,6 +1017,7 @@ export function SebhaPage() {
                 max={10000}
                 value={customTargetInput}
                 onChange={(e) => setCustomTargetInput(e.target.value)}
+                inputMode="numeric"
                 className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
               />
             </div>

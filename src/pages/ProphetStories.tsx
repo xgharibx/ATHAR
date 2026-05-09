@@ -207,6 +207,9 @@ export function ProphetStoriesPage() {
                 placeholder="ابحث باسم النبي أو الدرس…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                spellCheck={false}
+                autoComplete="off"
+                autoCapitalize="none"
                 className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
                 style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
               />
