@@ -71,6 +71,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
         bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--sab))",
         right: "calc(16px + var(--sar))",
       }}
+      onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setOpen(false); } }}
     >
       {/* Backdrop */}
       <div
@@ -91,6 +92,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
         <div className="flex items-center justify-between mb-3">
           <div className="text-sm font-semibold">تسبيح سريع</div>
           <button type="button"
+            autoFocus
             onClick={() => setOpen(false)}
             className="w-11 h-11 rounded-full bg-[var(--card)] border border-[var(--stroke)] grid place-items-center text-xs"
             aria-label="إغلاق"

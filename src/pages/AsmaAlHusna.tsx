@@ -109,6 +109,7 @@ export function AsmaAlHusnaPage() {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                aria-label="بحث في أسماء الله الحسنى"
                 placeholder="ابحث بالاسم أو المعنى..."
                 spellCheck={false}
                 autoComplete="off"

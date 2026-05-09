@@ -100,6 +100,7 @@ export function DuasPage() {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                aria-label="بحث في الأدعية"
                 placeholder="ابحث في الأدعية..."
                 autoComplete="off"
                 autoCapitalize="none"
