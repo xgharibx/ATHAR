@@ -254,6 +254,7 @@ export function FavoritesPage() {
           <button type="button"
             id="fav-tab-adhkar"
             role="tab"
+            aria-controls="fav-panel-adhkar"
             aria-selected={activeTab === "adhkar"}
             onClick={() => setActiveTab("adhkar")}
             className={[
@@ -269,6 +270,7 @@ export function FavoritesPage() {
           <button type="button"
             id="fav-tab-quran"
             role="tab"
+            aria-controls="fav-panel-quran"
             aria-selected={activeTab === "quran"}
             onClick={() => setActiveTab("quran")}
             className={[
@@ -284,6 +286,7 @@ export function FavoritesPage() {
           <button type="button"
             id="fav-tab-hadith"
             role="tab"
+            aria-controls="fav-panel-hadith"
             aria-selected={activeTab === "hadith"}
             onClick={() => setActiveTab("hadith")}
             className={[
@@ -299,6 +302,7 @@ export function FavoritesPage() {
           <button type="button"
             id="fav-tab-duas"
             role="tab"
+            aria-controls="fav-panel-duas"
             aria-selected={activeTab === "duas"}
             onClick={() => setActiveTab("duas")}
             className={[
@@ -314,6 +318,7 @@ export function FavoritesPage() {
           <button type="button"
             id="fav-tab-stories"
             role="tab"
+            aria-controls="fav-panel-stories"
             aria-selected={activeTab === "stories"}
             onClick={() => setActiveTab("stories")}
             className={[
@@ -329,6 +334,7 @@ export function FavoritesPage() {
           <button type="button"
             id="fav-tab-companions"
             role="tab"
+            aria-controls="fav-panel-companions"
             aria-selected={activeTab === "companions"}
             onClick={() => setActiveTab("companions")}
             className={[

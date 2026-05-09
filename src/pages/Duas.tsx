@@ -126,6 +126,7 @@ export function DuasPage() {
                 <button type="button"
                   key={cat.id}
                   role="tab"
+                  aria-controls="duas-list-panel"
                   aria-selected={activeTab === cat.id}
                   onClick={() => setActiveTab(cat.id)}
                   className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
@@ -141,6 +142,7 @@ export function DuasPage() {
               <button type="button"
                 key="__favorites__"
                 role="tab"
+                aria-controls="duas-list-panel"
                 aria-selected={activeTab === "__favorites__"}
                 onClick={() => setActiveTab("__favorites__")}
                 className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
@@ -162,7 +164,7 @@ export function DuasPage() {
         {query ? `نتائج البحث: ${displayedDuas.length} دعاء` : null}
       </div>
       {/* Duas list */}
-      <div className="px-4 pt-4 space-y-4" role="list" aria-label="قائمة الأدعية">
+      <div id="duas-list-panel" className="px-4 pt-4 space-y-4" role="list" aria-label="قائمة الأدعية">
         {/* Category stats row */}
         {!showFavorites && !query && (
           <div className="flex items-center justify-between pb-1">

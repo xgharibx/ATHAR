@@ -228,6 +228,7 @@ export function SearchPage() {
           <button type="button"
             id="search-tab-adhkar"
             role="tab"
+            aria-controls="search-panel-adhkar"
             aria-selected={searchTab === "adhkar"}
             onClick={() => setSearchTab("adhkar")}
             className={cn(
@@ -242,6 +243,7 @@ export function SearchPage() {
           <button type="button"
             id="search-tab-quran"
             role="tab"
+            aria-controls="search-panel-quran"
             aria-selected={searchTab === "quran"}
             onClick={() => setSearchTab("quran")}
             className={cn(
@@ -256,6 +258,7 @@ export function SearchPage() {
           <button type="button"
             id="search-tab-library"
             role="tab"
+            aria-controls="search-panel-library"
             aria-selected={searchTab === "library"}
             onClick={() => setSearchTab("library")}
             className={cn(
@@ -270,6 +273,7 @@ export function SearchPage() {
           <button type="button"
             id="search-tab-hadith"
             role="tab"
+            aria-controls="search-panel-hadith"
             aria-selected={searchTab === "hadith"}
             onClick={() => setSearchTab("hadith")}
             className={cn(

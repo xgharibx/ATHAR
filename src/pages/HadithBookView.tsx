@@ -75,6 +75,7 @@ function HadithRow({
         dir="rtl"
         role="button"
         tabIndex={0}
+        aria-label={`الحديث رقم ${item.n.toLocaleString("ar-EG")} — اضغط للقراءة`}
         onClick={() => navigate(`/hadith/${bookKey}/${item.n}`)}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate(`/hadith/${bookKey}/${item.n}`)}
         className="group relative w-full overflow-hidden rounded-3xl border border-[var(--stroke)] p-4 text-right transition cursor-pointer glass-strong glass-hover press-effect"
@@ -284,6 +285,7 @@ export function HadithBookViewPage() {
         >
           <button type="button"
             role="tab"
+            aria-controls="hbv-list-panel"
             aria-selected={activeSectionId === null}
             onClick={() => setActiveSectionId(null)}
             className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic press-effect", activeSectionId === null ? "font-bold" : "glass border-[var(--stroke)]")}
@@ -295,6 +297,7 @@ export function HadithBookViewPage() {
             <button type="button"
               key={s.id}
               role="tab"
+              aria-controls="hbv-list-panel"
               aria-selected={activeSectionId === s.id}
               onClick={() => setActiveSectionId(s.id)}
               className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap press-effect", activeSectionId === s.id ? "font-bold" : "glass border-[var(--stroke)]")}
@@ -363,7 +366,7 @@ export function HadithBookViewPage() {
 
       {/* Hadith list — virtual scroll */}
       {pack && listRows.length > 0 && (
-        <div className="flex-1">
+        <div id="hbv-list-panel" className="flex-1">
           <Virtuoso
             ref={virtuoso}
             totalCount={listRows.length}
@@ -375,7 +378,7 @@ export function HadithBookViewPage() {
 
       {/* Empty after filter */}
       {pack && listRows.length === 0 && !isLoading && (
-        <div dir="rtl" className="flex-1 flex items-center justify-center text-[var(--muted)] font-arabic">
+        <div dir="rtl" role="status" className="flex-1 flex items-center justify-center text-[var(--muted)] font-arabic">
           لا توجد أحاديث في هذا الباب
         </div>
       )}

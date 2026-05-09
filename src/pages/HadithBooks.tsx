@@ -412,6 +412,7 @@ export function HadithBooksPage() {
             key={t}
             id={`hadith-books-tab-${t}`}
             role="tab"
+            aria-controls={`hadith-books-panel-${t}`}
             aria-selected={tab === t}
             onClick={() => setTab(t)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-arabic transition-colors"

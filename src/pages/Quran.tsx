@@ -341,8 +341,8 @@ export function QuranPage() {
             else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
             else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
           }}>
-            <button type="button" id="quran-tab-surahs" role="tab" aria-selected={mode === "surahs"} onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
-            <button type="button" id="quran-tab-ayahs" role="tab" aria-selected={mode === "ayahs"} onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
+            <button type="button" id="quran-tab-surahs" role="tab" aria-controls="quran-panel-surahs" aria-selected={mode === "surahs"} onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
+            <button type="button" id="quran-tab-ayahs" role="tab" aria-controls="quran-panel-ayahs" aria-selected={mode === "ayahs"} onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
           </div>
         </div>
 
