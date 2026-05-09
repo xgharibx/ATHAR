@@ -277,7 +277,7 @@ export function QuranVocabPage() {
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#0ea5e9" }}>مفردات القرآن</h1>
                 <div className="text-sm opacity-70 mt-1 tabular-nums" aria-live="polite" aria-atomic="true">
-                  {reviewMode ? "مراجعة • " : ""}{(cardIndex + 1).toLocaleString("ar-EG")} / {deck.length.toLocaleString("ar-EG")} • {learned.size.toLocaleString("ar-EG")} محفوظة
+                  {reviewMode ? "مراجعة • " : ""}{(cardIndex + 1).toLocaleString("ar-EG")} / {deck.length.toLocaleString("ar-EG")} • {learned.size.toLocaleString("ar-EG")}/{QURAN_VOCAB.length} محفوظة ({Math.round((learned.size / QURAN_VOCAB.length) * 100)}٪)
                 </div>
               </div>
             </div>
