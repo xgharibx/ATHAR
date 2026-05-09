@@ -194,6 +194,13 @@ export function InsightsPage() {
   const { data: adhkarData } = useAdhkarDB();
   const quranStreak = useNoorStore((s) => s.quranStreak);
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
+  const learnedVocabCount = React.useMemo(() => {
+    try {
+      const v = localStorage.getItem("noor_vocab_learned");
+      if (!v) return 0;
+      return (JSON.parse(v) as number[]).length;
+    } catch { return 0; }
+  }, []);
   const quranReadingHistory = useNoorStore((s) => s.quranReadingHistory);
   const quranDailyGoal = useNoorStore((s) => s.prefs.quranDailyGoal);
   const { data: quranData } = useQuranDB();
@@ -1594,6 +1601,9 @@ export function InsightsPage() {
             <span className="tabular-nums">{quranStats.completed.toLocaleString("ar-EG")} سورة مكتملة</span>
             <span className="tabular-nums">{quranStats.started.toLocaleString("ar-EG")} سورة بدأت</span>
             <span className="tabular-nums">{overallQuranProgress.toLocaleString("ar-EG")}٪ من القرآن</span>
+            {learnedVocabCount > 0 && (
+              <span className="tabular-nums" style={{ color: "var(--accent)" }}>★ {learnedVocabCount.toLocaleString("ar-EG")}/200 مفردة محفوظة</span>
+            )}
           </div>
         </Card>
         </div>
