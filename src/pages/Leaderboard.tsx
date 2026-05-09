@@ -921,7 +921,7 @@ function LeaderboardAdminCard(props: {
                       <div className="text-sm font-medium">إخفاء من اللوحة</div>
                       <div className="text-[11px] opacity-50">لن يظهر في القراءة العامة حتى تلغي الإخفاء.</div>
                     </div>
-                    <Switch checked={hidden} onCheckedChange={(v) => setHidden(!!v)} />
+                    <Switch aria-label="إخفاء من اللوحة" checked={hidden} onCheckedChange={(v) => setHidden(!!v)} />
                   </div>
 
                   <Input
@@ -948,7 +948,7 @@ function LeaderboardAdminCard(props: {
 
                   <div className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3">
                     <div className="text-[11px] opacity-60">حرر الاسم المحجوز عند إزالة الإدارة</div>
-                    <Switch checked={releaseAliasClaim} onCheckedChange={(v) => setReleaseAliasClaim(!!v)} />
+                    <Switch aria-label="حرر الاسم المحجوز عند إزالة الإدارة" checked={releaseAliasClaim} onCheckedChange={(v) => setReleaseAliasClaim(!!v)} />
                   </div>
 
                   <div className="flex flex-wrap gap-2">
