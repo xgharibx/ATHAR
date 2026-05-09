@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Shuffle, RotateCcw, CheckCircle2, BookOpen, Share2, Copy, Star } from "lucide-react";
+import { ArrowRight, Shuffle, RotateCcw, CheckCircle2, BookOpen, Share2, Copy, Star, List, CreditCard } from "lucide-react";
 import { QURAN_VOCAB, type VocabWord } from "@/data/quranVocab";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
@@ -38,6 +38,7 @@ export function QuranVocabPage() {
   const navigate = useNavigate();
   useScrollRestoration();
   const [reviewMode, setReviewMode] = React.useState(false);
+  const [browseMode, setBrowseMode] = React.useState(false);
   const [deck, setDeck] = React.useState<VocabWord[]>(() => [...QURAN_VOCAB]);
   const [cardIndex, setCardIndex] = React.useState(0);
   const [flipped, setFlipped] = React.useState(false);
@@ -256,12 +257,60 @@ export function QuranVocabPage() {
                   <Star size={15} aria-hidden="true" />
                 </button>
               )}
+              <button type="button"
+                onClick={() => setBrowseMode((v) => !v)}
+                className="p-2 rounded-xl transition-colors mr-auto"
+                style={{
+                  background: browseMode ? "color-mix(in srgb, #0ea5e9 15%, transparent)" : "var(--card)",
+                  color: browseMode ? "#0ea5e9" : "var(--fg)",
+                  border: browseMode ? "1px solid rgba(14,165,233,0.35)" : "1px solid transparent",
+                }}
+                aria-label="تصفح القائمة"
+                aria-pressed={browseMode}
+                title="عرض جميع الكلمات"
+              >
+                {browseMode ? <CreditCard size={16} aria-hidden="true" /> : <List size={16} aria-hidden="true" />}
+              </button>
             </div>
           </div>
         </Card>
       </div>
 
+      {/* Browse list mode */}
+      {browseMode && (
+        <div className="px-4 pt-4 pb-32 space-y-2">
+          {QURAN_VOCAB.map((word) => (
+            <button
+              key={word.id}
+              type="button"
+              onClick={() => {
+                const idx = deck.findIndex((w) => w.id === word.id);
+                if (idx >= 0) {
+                  setCardIndex(idx);
+                  setFlipped(false);
+                  setReviewMode(false);
+                }
+                setBrowseMode(false);
+              }}
+              className="w-full flex items-center gap-3 rounded-2xl p-3.5 text-right transition-all active:scale-[0.99]"
+              style={{ background: "var(--card)", border: `1px solid ${learned.has(word.id) ? "color-mix(in srgb, var(--ok) 30%, transparent)" : "var(--stroke)"}` }}
+              aria-label={`الانتقال إلى كلمة ${word.arabic}`}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-base font-bold" style={{ fontFamily: "var(--font-arabic, inherit)", color: word.id === dailyWordId ? "var(--accent)" : "var(--fg)" }}>{word.arabic}</span>
+                  {word.id === dailyWordId && <Star size={10} style={{ color: "var(--accent)", flexShrink: 0 }} />}
+                  {learned.has(word.id) && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: "color-mix(in srgb, var(--ok) 18%, transparent)", color: "var(--ok)" }}>✓</span>}
+                </div>
+                <p className="text-xs opacity-60 line-clamp-1 text-right">{word.meaning.split('—').slice(-1)[0]?.trim() ?? word.meaning}</p>
+              </div>
+              <span className="text-[10px] opacity-35 tabular-nums shrink-0">{word.frequency.toLocaleString("ar-EG")}×</span>
+            </button>
+          ))}
+        </div>
+      )}
       {/* Flashcard */}
+      {!browseMode && (
       <div className="px-4 pt-8 flex flex-col items-center gap-6">
         {/* Word of the day badge */}
         {card.id === dailyWordId && (
@@ -436,6 +485,7 @@ export function QuranVocabPage() {
           )}
         </div>
       </div>
+    )}
     </div>
   );
 }
