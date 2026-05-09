@@ -926,6 +926,8 @@ export function QuranPage() {
                       <span className={`surah-type-${isMedinan ? "madani" : "maki"} px-1.5 py-0 rounded-full border text-[9px]`}>
                         {isMedinan ? "مدنية" : "مكية"}
                       </span>
+                      <span>·</span>
+                      <span className="tabular-nums" aria-label={`عدد آيات السورة: ${s.ayahs.length}`}>{s.ayahs.length.toLocaleString("ar-EG")} آية</span>
                     </div>
                     {/* Progress line */}
                     {pct > 0 && pct < 100 && (
