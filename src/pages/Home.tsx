@@ -1091,6 +1091,7 @@ export function HomePage() {
                     className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center transition active:scale-90"
                     aria-label="توسيع القائمة اليومية"
                     aria-expanded={showItems}
+                    aria-controls="home-checklist-items"
                   >
                     <ChevronDown size={14} className={cn("transition-transform duration-200", showItems && "rotate-180")} />
                   </button>
@@ -1145,13 +1146,15 @@ export function HomePage() {
                 </div>
               )}
               {showItems && (
-                <div className="mt-3 space-y-2">
+                <div id="home-checklist-items" className="mt-3 space-y-2">
                   {DAILY_CHECKLIST_ITEMS.slice(0, checklistShowAll ? DAILY_CHECKLIST_ITEMS.length : CHECKLIST_INITIAL_LIMIT).map((item) => {
                     const isDone = !!dailyChecklistToday[item.id];
                     return (
                       <button type="button"
                         key={item.id}
                         onClick={() => toggleDailyChecklist(worshipDayKey, item.id, !isDone)}
+                        aria-pressed={isDone}
+                        aria-label={`${item.title}${isDone ? " — تم" : ""}`}
                         className={cn(
                           "w-full flex items-center gap-3 rounded-2xl px-3.5 py-3.5 min-h-[48px] border transition-all active:scale-[.97]",
                           isDone
@@ -1370,6 +1373,7 @@ export function HomePage() {
                     className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center transition active:scale-90"
                     aria-label="توسيع ورد اليوم"
                     aria-expanded={dailyWirdExpanded}
+                    aria-controls="home-daily-wird-content"
                   >
                     <ChevronDown size={14} className={cn("transition-transform duration-200", dailyWirdExpanded && "rotate-180")} />
                   </button>
@@ -1406,7 +1410,7 @@ export function HomePage() {
               ) : quran.error || !dailyWird ? (
                 <div className="mt-4 text-sm opacity-65 leading-7">تعذر تحميل ورد اليوم.</div>
               ) : dailyWirdExpanded ? (
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div id="home-daily-wird-content" className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                   {dailyWird.items.map((p) => (
                     <button type="button"
                       key={`${p.surahId}:${p.ayahIndex}`}

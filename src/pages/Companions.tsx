@@ -68,7 +68,7 @@ export default function Companions() {
                 <Users size={19} className="text-[var(--accent)]" />
                 <h1 className="text-lg font-bold">الصحابة الكرام</h1>
               </div>
-              <div className="text-xs opacity-55 mt-1">{filtered.length} من {COMPANIONS.length} صحابي</div>
+              <div className="text-xs opacity-55 mt-1" aria-live="polite" aria-atomic="true">{filtered.length} من {COMPANIONS.length} صحابي</div>
             </div>
             <button
               type="button"

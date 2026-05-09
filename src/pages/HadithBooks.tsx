@@ -293,7 +293,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
       {/* Results */}
       {!loading && results.length > 0 && (
         <div className="space-y-3 pb-6">
-          <p className="text-xs text-[var(--muted)] font-arabic">
+          <p className="text-xs text-[var(--muted)] font-arabic" aria-live="polite" aria-atomic="true">
             {results.length >= 50 ? "أكثر من 50" : results.length} نتيجة
           </p>
           {results.map((r) => (
