@@ -148,7 +148,7 @@ export function QuranPage() {
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
   const [showBookmarks, setShowBookmarks] = React.useState(false);
   const [showProgressGrid, setShowProgressGrid] = React.useState(false);
-  const [sortMode, setSortMode] = React.useState<"mushaf" | "progress">("mushaf");
+  const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent">("mushaf");
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
   const [filterRevelation, setFilterRevelation] = React.useState<"meccan" | "medinan" | null>(null);
 
@@ -287,16 +287,29 @@ export function QuranPage() {
   }, [data, query]);
 
   const sortedFiltered = React.useMemo(() => {
-    let base = sortMode === "mushaf" ? filtered : [...filtered].sort((a, b) => {
-      const pA = Math.min(100, Math.round(((readingHistory[String(a.id)] ?? 0) / Math.max(1, a.ayahs.length)) * 100));
-      const pB = Math.min(100, Math.round(((readingHistory[String(b.id)] ?? 0) / Math.max(1, b.ayahs.length)) * 100));
-      return pB - pA;
-    });
+    let base: typeof filtered;
+    if (sortMode === "mushaf") {
+      base = filtered;
+    } else if (sortMode === "recent") {
+      const order = new Map<number, number>(recentSurahs.map((id, i) => [id, i]));
+      base = [...filtered].sort((a, b) => {
+        const ra = order.has(a.id) ? order.get(a.id)! : 9999;
+        const rb = order.has(b.id) ? order.get(b.id)! : 9999;
+        if (ra !== rb) return ra - rb;
+        return a.id - b.id;
+      });
+    } else {
+      base = [...filtered].sort((a, b) => {
+        const pA = Math.min(100, Math.round(((readingHistory[String(a.id)] ?? 0) / Math.max(1, a.ayahs.length)) * 100));
+        const pB = Math.min(100, Math.round(((readingHistory[String(b.id)] ?? 0) / Math.max(1, b.ayahs.length)) * 100));
+        return pB - pA;
+      });
+    }
     if (filterJuz !== null) base = base.filter((s) => getSurahJuz(s.id) === filterJuz);
     if (filterRevelation === "meccan") base = base.filter((s) => SURAH_REVELATION[s.id] !== "medinan");
     if (filterRevelation === "medinan") base = base.filter((s) => SURAH_REVELATION[s.id] === "medinan");
     return base;
-  }, [filtered, sortMode, readingHistory, filterJuz, filterRevelation]);
+  }, [filtered, sortMode, readingHistory, recentSurahs, filterJuz, filterRevelation]);
 
   // Per-juz reading progress: juzNum → pct (0-100)
   const juzProgress = React.useMemo(() => {
@@ -707,6 +720,17 @@ export function QuranPage() {
               >
                 التقدم
               </button>
+              {recentSurahs.length > 0 && (
+              <button type="button"
+                role="tab"
+                aria-controls="quran-surah-list"
+                aria-selected={sortMode === "recent"}
+                onClick={() => setSortMode("recent")}
+                className={`px-3.5 h-9 transition ${sortMode === "recent" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+              >
+                الأخيرة
+              </button>
+              )}
             </div>
 
             {/* Revelation filter */}
