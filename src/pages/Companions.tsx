@@ -253,6 +253,8 @@ export default function Companions() {
                     <button
                       type="button"
                       onClick={(e) => toggleBookmark(companion.id, e)}
+                      aria-pressed={bookmarks.has(companion.id)}
+                      aria-label={bookmarks.has(companion.id) ? "إلغاء حفظ الصحابي" : "حفظ الصحابي"}
                       className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-all glass-hover press-effect"
                       style={bookmarks.has(companion.id)
                         ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }

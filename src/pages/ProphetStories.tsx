@@ -114,6 +114,8 @@ function StoryCard({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onToggleBookmark(story.id); }}
+              aria-pressed={bookmarked}
+              aria-label={bookmarked ? "إلغاء حفظ القصة" : "حفظ القصة"}
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
               style={bookmarked
                 ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }

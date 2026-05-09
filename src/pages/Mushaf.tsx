@@ -1390,7 +1390,8 @@ export function MushafPage() {
               toggleBookmark(selectedItem.surahId, selectedItem.displayAyah);
               toast.success(isSelBookmarked ? "أُزيلت العلامة" : "✓ تم الحفظ");
             }}
-            aria-label="علامة"
+            aria-label={isSelBookmarked ? "إزالة العلامة" : "إضافة علامة"}
+            aria-pressed={isSelBookmarked}
           >
             <Bookmark size={18} aria-hidden="true" fill={isSelBookmarked ? "currentColor" : "none"} />
             <span>علامة</span>
