@@ -225,7 +225,7 @@ function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onN
       </div>
 
       {/* Chevron */}
-      <ChevronLeft size={14} className="opacity-30 shrink-0" />
+      <ChevronLeft size={14} aria-hidden="true" className="opacity-30 shrink-0" />
     </NavLink>
   );
 }
@@ -287,7 +287,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
             className="w-11 h-11 rounded-xl bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] active:scale-90"
             aria-label={`تبديل المظهر (الحالي: ${themeLabel(prefs.theme)})`}
           >
-            {prefs.theme === 'light' ? <Moon size={16} className="opacity-60" /> : <Sun size={16} className="opacity-60" />}
+            {prefs.theme === 'light' ? <Moon size={16} aria-hidden="true" className="opacity-60" /> : <Sun size={16} aria-hidden="true" className="opacity-60" />}
           </button>
           {props.onNavigate && (
             <button type="button"
@@ -475,7 +475,7 @@ export function AppShell() {
                 }}>
                   <Dialog.Trigger asChild>
                     <IconButton aria-label="القائمة">
-                      <Menu size={18} />
+                      <Menu size={18} aria-hidden="true" />
                     </IconButton>
                   </Dialog.Trigger>
                   <Dialog.Portal>
@@ -503,7 +503,7 @@ export function AppShell() {
             {/* Action buttons — shrink-0 so they stay visible, hide non-essential ones at high zoom */}
             <div className="flex items-center gap-2 shrink-0">
               <IconButton aria-label="بحث (Ctrl+K)" onClick={() => setPaletteOpen(true)}>
-                <Search size={18} />
+                <Search size={18} aria-hidden="true" />
               </IconButton>
 
               {/* Settings: hide at very narrow viewport (accessible via hamburger menu) */}
@@ -528,7 +528,7 @@ export function AppShell() {
                   toast(`🎨 ${themeLabel(next)}`, { duration: 1500 });
                 }}
               >
-                {prefs.theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+                {prefs.theme === 'light' ? <Moon size={16} aria-hidden="true" /> : <Sun size={16} aria-hidden="true" />}
               </IconButton>
 
               <div className="hidden md:flex items-center gap-2 text-xs opacity-70">

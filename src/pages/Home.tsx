@@ -166,7 +166,7 @@ function HomeRadioButton() {
       {radio.loading ? (
         <Loader2 size={14} className="animate-spin shrink-0" />
       ) : (
-        <Radio size={14} className="shrink-0" style={radio.playing ? { filter: "drop-shadow(0 0 4px var(--ok))" } : undefined} />
+        <Radio size={14} aria-hidden="true" className="shrink-0" style={radio.playing ? { filter: "drop-shadow(0 0 4px var(--ok))" } : undefined} />
       )}
       <span className="text-xs font-medium whitespace-nowrap">
         {radio.playing ? "القرآن يُبث" : "راديو القرآن"}
@@ -825,7 +825,7 @@ export function HomePage() {
                   aria-label="ذكر عشوائي"
                   className="press-effect inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] hover:bg-[var(--card-2)] active:scale-[.97] transition shrink-0"
                 >
-                  <Shuffle size={16} />
+                  <Shuffle size={16} aria-hidden="true" />
                 </button>
               </div>
 
@@ -1016,7 +1016,7 @@ export function HomePage() {
                       className="shrink-0 w-11 h-11 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center transition active:scale-90 mt-0.5"
                       aria-label="خيارات إضافية"
                     >
-                      <MoreVertical size={16} />
+                      <MoreVertical size={16} aria-hidden="true" />
                     </button>
                   </Dropdown.Trigger>
                   <Dropdown.Portal>
@@ -1093,7 +1093,7 @@ export function HomePage() {
                     aria-expanded={showItems}
                     aria-controls="home-checklist-items"
                   >
-                    <ChevronDown size={14} className={cn("transition-transform duration-200", showItems && "rotate-180")} />
+                    <ChevronDown size={14} aria-hidden="true" className={cn("transition-transform duration-200", showItems && "rotate-180")} />
                   </button>
                 </div>
               </div>
@@ -1265,7 +1265,7 @@ export function HomePage() {
                       aria-label="تصفير التسابيح"
                       onClick={() => setConfirmTasbeehReset(true)}
                     >
-                      <RotateCw size={16} />
+                      <RotateCw size={16} aria-hidden="true" />
                     </IconButton>
                   )}
                 </div>
@@ -1376,10 +1376,10 @@ export function HomePage() {
                     aria-expanded={dailyWirdExpanded}
                     aria-controls="home-daily-wird-content"
                   >
-                    <ChevronDown size={14} className={cn("transition-transform duration-200", dailyWirdExpanded && "rotate-180")} />
+                    <ChevronDown size={14} aria-hidden="true" className={cn("transition-transform duration-200", dailyWirdExpanded && "rotate-180")} />
                   </button>
                   <Button variant="secondary" onClick={copyDailyWird} disabled={!dailyWird}>
-                    <Copy size={16} />
+                    <Copy size={16} aria-hidden="true" />
                     نسخ
                   </Button>
                   <Button variant="secondary" disabled={!dailyWird} onClick={async () => {

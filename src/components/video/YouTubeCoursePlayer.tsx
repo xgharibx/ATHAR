@@ -263,7 +263,7 @@ export function YouTubeCoursePlayer({
                   className="rounded-3xl border p-6 text-center max-w-[260px]"
                   style={{ background: `${accent}15`, borderColor: `${accent}40` }}
                 >
-                  <SkipForward size={28} className="mx-auto mb-3" style={{ color: accent }} />
+                  <SkipForward size={28} aria-hidden="true" className="mx-auto mb-3" style={{ color: accent }} />
                   <div className="font-bold arabic-text mb-1">الدرس التالي</div>
                   <div className="text-xs opacity-60 mb-4">ينطلق خلال {nextCountdown} ثوانٍ</div>
                   <div className="flex gap-2">
@@ -304,7 +304,7 @@ export function YouTubeCoursePlayer({
           >
             <div className="dhikr-card-stars absolute inset-0 pointer-events-none" style={{ opacity: 0.4 }} />
             <div className="relative">
-              <Play size={40} className="mx-auto mb-3 opacity-30" />
+              <Play size={40} aria-hidden="true" className="mx-auto mb-3 opacity-30" />
               <div className="font-bold arabic-text text-base">{video.title}</div>
               <div className="text-xs opacity-50 mt-2 leading-5">
                 شغّل أداة المزامنة لإضافة الفيديوهات الفعلية من القناة.
@@ -348,7 +348,7 @@ export function YouTubeCoursePlayer({
               aria-label="إغلاق مشغل الفيديو"
               className="w-7 h-7 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center shrink-0 press-effect hover:bg-[var(--card-2)] transition-colors"
             >
-              <ArrowRight size={13} />
+              <ArrowRight size={13} aria-hidden="true" />
             </button>
           </div>
 
@@ -393,7 +393,7 @@ export function YouTubeCoursePlayer({
                   : { background: "var(--card)", borderColor: "var(--stroke)" }
               }
             >
-              {bookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
+              {bookmarked ? <BookmarkCheck size={14} aria-hidden="true" /> : <Bookmark size={14} aria-hidden="true" />}
               <span>{bookmarked ? "محفوظ" : "حفظ"}</span>
             </button>
 
@@ -428,7 +428,7 @@ export function YouTubeCoursePlayer({
                 onClick={onPrev}
                 className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[var(--card)] border border-[var(--stroke)] press-effect hover:bg-[var(--card-2)] transition-colors"
               >
-                <SkipBack size={14} />
+                <SkipBack size={14} aria-hidden="true" />
                 <span>السابق</span>
               </button>
             )}
@@ -439,7 +439,7 @@ export function YouTubeCoursePlayer({
                 className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-bold press-effect transition-all"
                 style={{ background: accent, color: "var(--on-accent)" }}
               >
-                <SkipForward size={14} />
+                <SkipForward size={14} aria-hidden="true" />
                 <span>التالي</span>
               </button>
             ) : (
@@ -449,7 +449,7 @@ export function YouTubeCoursePlayer({
                 rel="noreferrer"
                 className="flex-1 rounded-2xl py-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold bg-[var(--card)] border border-[var(--stroke)] press-effect hover:bg-[var(--card-2)] transition-colors"
               >
-                <ExternalLink size={13} />
+                <ExternalLink size={13} aria-hidden="true" />
                 <span>يوتيوب</span>
               </a>
             )}

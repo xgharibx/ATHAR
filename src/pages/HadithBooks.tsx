@@ -142,12 +142,12 @@ function BookCard({ book }: { book: HadithBookMeta }) {
         <div className="mt-2.5 flex items-center justify-between border-t border-[var(--stroke)] pt-2.5">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
-              <BookOpen size={10} />
+              <BookOpen size={10} aria-hidden="true" />
               {book.count.toLocaleString("ar-EG")}
             </span>
             {bookmarkCount > 0 && (
               <span className="flex items-center gap-1 text-[10px]" style={{ color: book.color }}>
-                <Bookmark size={10} />
+                <Bookmark size={10} aria-hidden="true" />
                 {bookmarkCount}
               </span>
             )}
@@ -156,7 +156,7 @@ function BookCard({ book }: { book: HadithBookMeta }) {
             {lastN ? (
               <span className="text-[9px] text-[var(--muted)]">آخر: ح{lastN}</span>
             ) : null}
-            <ArrowRight size={12} className="text-[var(--muted)] rotate-180" />
+            <ArrowRight size={12} aria-hidden="true" className="text-[var(--muted)] rotate-180" />
           </div>
         </div>
       </div>
@@ -253,7 +253,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
     <div dir="rtl" className="px-4 pt-4">
       {/* Search input */}
       <div className="relative mb-5">
-        <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] pointer-events-none" />
+        <Search size={16} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] pointer-events-none" />
         <input
           type="search"
           value={query}
@@ -278,14 +278,14 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
 
       {!loading && searched && results.length === 0 && (
         <div className="flex flex-col items-center py-12 gap-3">
-          <Search size={36} className="text-[var(--muted)] opacity-30" />
+          <Search size={36} aria-hidden="true" className="text-[var(--muted)] opacity-30" />
           <p className="text-sm text-[var(--muted)] font-arabic">لا توجد نتائج</p>
         </div>
       )}
 
       {!loading && !searched && (
         <div className="flex flex-col items-center py-12 gap-3">
-          <Search size={36} className="text-[var(--muted)] opacity-20" />
+          <Search size={36} aria-hidden="true" className="text-[var(--muted)] opacity-20" />
           <p className="text-sm text-[var(--muted)] font-arabic">ابحث في جميع الكتب التسعة</p>
         </div>
       )}
@@ -322,7 +322,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                     className="mr-auto p-1 rounded-lg opacity-40 hover:opacity-80 transition-opacity"
                     aria-label="نسخ الحديث"
                   >
-                    <Copy size={12} />
+                    <Copy size={12} aria-hidden="true" />
                   </button>
                 </div>
                 {/* Preview */}
@@ -369,13 +369,13 @@ export function HadithBooksPage() {
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <Library size={19} className="text-[var(--accent)]" />
+                <Library size={19} aria-hidden="true" className="text-[var(--accent)]" />
                 <h1 className="text-lg font-bold">الكتب الحديثية</h1>
               </div>
               <div className="text-xs opacity-55 mt-1">الكتب الستة وما يلحق بها</div>
             </div>
             <IconButton aria-label="بطاقات الحفظ" onClick={() => navigate("/hadith/memo")}>
-              <BrainCircuit size={18} style={{ color: "var(--accent)" }} />
+              <BrainCircuit size={18} aria-hidden="true" style={{ color: "var(--accent)" }} />
             </IconButton>
           </div>
         </Card>

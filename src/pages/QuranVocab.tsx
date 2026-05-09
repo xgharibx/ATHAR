@@ -116,7 +116,7 @@ export function QuranVocabPage() {
     if (reviewMode) {
       return (
         <div dir="rtl" className="min-h-screen-safe flex flex-col items-center justify-center gap-4 px-8 text-center">
-          <BookOpen size={48} style={{ color: "var(--accent)", opacity: 0.5 }} />
+          <BookOpen size={48} aria-hidden="true" style={{ color: "var(--accent)", opacity: 0.5 }} />
           <p className="text-base font-semibold" style={{ color: "var(--fg)" }}>
             لا توجد مفردات محفوظة بعد
           </p>
@@ -157,7 +157,7 @@ export function QuranVocabPage() {
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
-                <ArrowRight size={18} />
+                <ArrowRight size={18} aria-hidden="true" />
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -193,7 +193,7 @@ export function QuranVocabPage() {
                 style={{ background: "var(--card)", color: "#0ea5e9" }}
                 aria-label="خلط البطاقات"
               >
-                <Shuffle size={16} />
+                <Shuffle size={16} aria-hidden="true" />
               </button>
               <button type="button"
                 onClick={handleReset}
@@ -201,7 +201,7 @@ export function QuranVocabPage() {
                 style={{ background: "var(--card)", color: "var(--fg)" }}
                 aria-label="إعادة تعيين"
               >
-                <RotateCcw size={16} />
+                <RotateCcw size={16} aria-hidden="true" />
               </button>
               <button type="button"
                 onClick={() => setReviewMode((v) => !v)}
@@ -215,7 +215,7 @@ export function QuranVocabPage() {
                 aria-pressed={reviewMode}
                 title="مراجعة المحفوظات فقط"
               >
-                <BookOpen size={16} />
+                <BookOpen size={16} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -228,7 +228,7 @@ export function QuranVocabPage() {
         {card.id === dailyWordId && (
           <div className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
             style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" }}>
-            <Star size={11} />
+            <Star size={11} aria-hidden="true" />
             كلمة اليوم
           </div>
         )}
@@ -321,7 +321,7 @@ export function QuranVocabPage() {
             style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
             aria-label="نسخ الكلمة"
           >
-            <Copy size={14} />
+            <Copy size={14} aria-hidden="true" />
           </button>
         </div>
 

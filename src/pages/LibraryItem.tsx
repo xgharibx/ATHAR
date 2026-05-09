@@ -91,7 +91,7 @@ export function LibraryItemPage() {
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <BookOpenText size={18} style={{ color: entry.collectionAccent }} />
+                <BookOpenText size={18} aria-hidden="true" style={{ color: entry.collectionAccent }} />
                 <div className="text-sm font-semibold truncate">{entry.collectionTitle}</div>
               </div>
               <div className="text-xs opacity-50 mt-0.5">{entry.chapterTitle}</div>
@@ -100,7 +100,7 @@ export function LibraryItemPage() {
           <div className="flex items-center gap-1 shrink-0">
             <IconButton aria-label="نسخ" onClick={onCopy}>{copied ? <Check size={15} /> : <Copy size={15} />}</IconButton>
             <IconButton aria-label="مفضلة" onClick={() => toggleLibraryFavorite(entry.collectionId, entry.id)}>
-              <Heart size={15} className={favorite ? "fill-red-400 text-red-400" : "opacity-70"} />
+              <Heart size={15} aria-hidden="true" className={favorite ? "fill-red-400 text-red-400" : "opacity-70"} />
             </IconButton>
             <IconButton aria-label="مشاركة" onClick={onShare}><Share2 size={15} /></IconButton>
           </div>
@@ -145,7 +145,7 @@ export function LibraryItemPage() {
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-2.5 text-sm hover:bg-[var(--card-2)] transition"
           >
-            <ExternalLink size={15} />
+            <ExternalLink size={15} aria-hidden="true" />
             تحقق في الدرر
           </a>
         )}

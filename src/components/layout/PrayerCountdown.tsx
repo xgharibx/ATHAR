@@ -66,7 +66,7 @@ export function PrayerCountdown(props: Readonly<{
       <div className="min-w-0 overflow-hidden">
         <div className="flex items-center gap-2 text-xs opacity-65">
           <div className="countdown-live-dot" aria-hidden="true" />
-          <Bell size={14} className={isImminent ? "text-[var(--accent)] animate-bounce" : "opacity-60"} />
+          <Bell size={14} aria-hidden="true" className={isImminent ? "text-[var(--accent)] animate-bounce" : "opacity-60"} />
           <span>الحالة الآن</span>
         </div>
         <div className={[compact ? "mt-2 text-2xl" : "mt-3 text-4xl", "font-bold leading-tight break-words"].join(" ")} aria-live="polite" aria-atomic="true">

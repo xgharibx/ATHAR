@@ -45,9 +45,9 @@ function StoryCard({
       >
         <div className="flex items-center gap-2">
           {open ? (
-            <ChevronUp size={18} style={{ color: "var(--accent)" }} />
+            <ChevronUp size={18} aria-hidden="true" style={{ color: "var(--accent)" }} />
           ) : (
-            <ChevronDown size={18} style={{ color: "var(--accent)" }} />
+            <ChevronDown size={18} aria-hidden="true" style={{ color: "var(--accent)" }} />
           )}
         </div>
         <div className="flex-1 text-right mr-2">
@@ -201,7 +201,7 @@ export function ProphetStoriesPage() {
             </div>
             {/* Search */}
             <div className="relative">
-              <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+              <Search size={14} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
               <input
                 type="search"
                 dir="rtl"

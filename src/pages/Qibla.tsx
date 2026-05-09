@@ -186,11 +186,11 @@ export function QiblaPage() {
     <div className="p-4 md:p-5 space-y-4 max-w-lg mx-auto" dir="rtl">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Compass size={20} className="text-[var(--accent)]" />
+          <Compass size={20} aria-hidden="true" className="text-[var(--accent)]" />
           <h1 className="text-xl font-bold">القبلة</h1>
         </div>
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-          <ArrowRight size={15} />
+          <ArrowRight size={15} aria-hidden="true" />
           رجوع
         </Button>
       </div>
@@ -322,7 +322,7 @@ export function QiblaPage() {
         {/* Orientation permission */}
         {!orient.permissionGranted && !orient.supported && (
           <Button variant="secondary" size="sm" onClick={() => void requestOrientation()}>
-            <Compass size={15} />
+            <Compass size={15} aria-hidden="true" />
             تفعيل البوصلة
           </Button>
         )}
@@ -331,13 +331,13 @@ export function QiblaPage() {
       {/* Location status card */}
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <MapPin size={16} className="text-[var(--accent)]" />
+          <MapPin size={16} aria-hidden="true" className="text-[var(--accent)]" />
           <span className="text-sm font-semibold">الموقع الجغرافي</span>
         </div>
 
         {geo.status === "idle" || geo.status === "loading" ? (
           <div className="flex items-center gap-2 text-sm opacity-60" role="status" aria-label="جارس تحديد موقعك">
-            <RefreshCw size={14} className="animate-spin" />
+            <RefreshCw size={14} aria-hidden="true" className="animate-spin" />
             جارٍ تحديد موقعك...
           </div>
         ) : geo.status === "error" ? (
@@ -352,7 +352,7 @@ export function QiblaPage() {
                 : "تعذر تحديد موقعك الجغرافي."}
             </div>
             <Button variant="secondary" size="sm" onClick={requestGeo}>
-              <RefreshCw size={14} />
+              <RefreshCw size={14} aria-hidden="true" />
               إعادة المحاولة
             </Button>
           </div>
@@ -373,7 +373,7 @@ export function QiblaPage() {
               <div dir="ltr" className="font-mono font-medium">±{Math.round(geo.accuracy)}م</div>
             </div>
             <Button variant="secondary" size="sm" className="mt-2" onClick={requestGeo}>
-              <RefreshCw size={13} />
+              <RefreshCw size={13} aria-hidden="true" />
               تحديث الموقع
             </Button>
           </div>

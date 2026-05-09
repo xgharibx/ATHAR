@@ -51,7 +51,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
         {radio.loading ? (
           <Loader2 size={22} className="animate-spin" />
         ) : (
-          <Radio size={22} style={radio.playing ? { color: "var(--ok)" } : undefined} />
+          <Radio size={22} aria-hidden="true" style={radio.playing ? { color: "var(--ok)" } : undefined} />
         )}
       </button>
     );
@@ -83,7 +83,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Radio size={16} style={{ color: "var(--accent)" }} />
+            <Radio size={16} aria-hidden="true" style={{ color: "var(--accent)" }} />
             <div className="text-sm font-semibold">راديو القرآن</div>
             {radio.playing && (
               <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: "var(--ok)20", color: "var(--ok)" }}>

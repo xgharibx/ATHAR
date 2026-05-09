@@ -115,10 +115,10 @@ function HadithRow({
               style={{ color: "var(--fg)" }}
               aria-label="نسخ الحديث"
             >
-              <Copy size={13} />
+              <Copy size={13} aria-hidden="true" />
             </button>
             {isBookmarked && (
-              <Bookmark size={15} className="fill-current" style={{ color: accentColor }} />
+              <Bookmark size={15} aria-hidden="true" className="fill-current" style={{ color: accentColor }} />
             )}
           </div>
         </div>
@@ -229,15 +229,15 @@ export function HadithBookViewPage() {
               className="h-11 w-11 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] shrink-0"
               aria-label="رجوع"
             >
-              <ArrowRight size={19} className="text-[var(--fg)]" />
+              <ArrowRight size={19} aria-hidden="true" className="text-[var(--fg)]" />
             </button>
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2 flex-wrap">
-                <BookOpenText size={16} style={{ color: accentColor }} />
+                <BookOpenText size={16} aria-hidden="true" style={{ color: accentColor }} />
                 <span className="text-[11px] font-semibold opacity-55">كتاب حديثي</span>
                 {isFromCache && !isOnline && (
                   <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-arabic" style={{ background: "#10b98122", color: "#10b981" }}>
-                    <WifiOff size={10} />
+                    <WifiOff size={10} aria-hidden="true" />
                     بلا إنترنت
                   </span>
                 )}

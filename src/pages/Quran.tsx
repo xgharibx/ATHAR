@@ -308,7 +308,7 @@ export function QuranPage() {
 
           {/* Search — always visible, large */}
           <div className="relative">
-            <Search size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-35 pointer-events-none" />
+            <Search size={16} aria-hidden="true" className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-35 pointer-events-none" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -354,7 +354,7 @@ export function QuranPage() {
             style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 50%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, transparent)" }}
           >
             <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 18%, transparent)" }}>
-              <BookOpen size={16} style={{ color: "var(--accent)" }} />
+              <BookOpen size={16} aria-hidden="true" style={{ color: "var(--accent)" }} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-xs font-semibold" style={{ color: "var(--accent)" }}>متابعة القراءة</div>
@@ -615,7 +615,7 @@ export function QuranPage() {
               className="w-9 h-9 rounded-xl border bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-100 flex items-center justify-center transition shrink-0"
               title="سورة عشوائية" aria-label="سورة عشوائية"
             >
-              <Shuffle size={14} />
+              <Shuffle size={14} aria-hidden="true" />
             </button>
 
             <label className="inline-flex h-9 items-center gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 text-xs opacity-75 transition focus-within:opacity-100">
@@ -656,7 +656,7 @@ export function QuranPage() {
                 aria-label={showBookmarks ? "إخفاء المحفوظات" : "عرض المحفوظات"}
                 className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-90"}`}
               >
-                <Bookmark size={13} />
+                <Bookmark size={13} aria-hidden="true" />
                 <span className="tabular-nums">{bookmarkedCount}</span>
               </button>
             )}
@@ -783,7 +783,7 @@ export function QuranPage() {
                       <span className="text-[17px] arabic-text font-semibold leading-snug">{s.name}</span>
                       {isCurrent && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>جاري</span>}
                       {pct >= 100 && <span className="text-[10px] font-bold shrink-0" style={{ color: "var(--ok)" }}>✓</span>}
-                      {bookmarkedSurahs.has(s.id) && <Bookmark size={10} className="shrink-0 opacity-70" style={{ color: "var(--accent)" }} />}
+                      {bookmarkedSurahs.has(s.id) && <Bookmark size={10} aria-hidden="true" className="shrink-0 opacity-70" style={{ color: "var(--accent)" }} />}
                     </div>
                     <div className="mt-0.5 flex items-center gap-2 text-[11px] opacity-45">
                       {s.englishName && <span lang="en">{s.englishName}</span>}

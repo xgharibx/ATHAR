@@ -98,7 +98,7 @@ function LibraryEntryCard({ entry }: { entry: FlatLibraryEntry }) {
           <div className="flex items-center gap-1 shrink-0">
             <IconButton aria-label="نسخ" onClick={onCopy}>{copied ? <Check size={15} /> : <Copy size={15} />}</IconButton>
             <IconButton aria-label="مفضلة" onClick={() => toggleLibraryFavorite(entry.collectionId, entry.id)}>
-              <Heart size={15} className={favorite ? "fill-red-400 text-red-400" : "opacity-70"} />
+              <Heart size={15} aria-hidden="true" className={favorite ? "fill-red-400 text-red-400" : "opacity-70"} />
             </IconButton>
             <IconButton aria-label="مشاركة" onClick={onShare}><Share2 size={15} /></IconButton>
           </div>
@@ -195,7 +195,7 @@ export function LibraryPage() {
           <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <BookOpenText size={19} className="text-[var(--accent)]" />
+              <BookOpenText size={19} aria-hidden="true" className="text-[var(--accent)]" />
               <h1 className="text-lg font-bold">المكتبة الإسلامية</h1>
             </div>
             <div className="text-xs opacity-55 mt-1">قراءة داخل التطبيق، بحث سريع، وروابط تحقق اختيارية.</div>
@@ -317,7 +317,7 @@ export function LibraryPage() {
         {entries.map((entry) => <LibraryEntryCard key={entry.key} entry={entry} />)}
         {entries.length === 0 && (
           <div dir="rtl" className="flex flex-col items-center py-12 gap-4">
-            <Search size={40} className="text-[var(--muted)] opacity-20" />
+            <Search size={40} aria-hidden="true" className="text-[var(--muted)] opacity-20" />
             <p className="text-sm text-[var(--muted)] font-arabic text-center">لا توجد نتائج للفلاتر الحالية</p>
             <button
               type="button"
@@ -365,7 +365,7 @@ export function LibraryPage() {
           className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: "#8b5cf622" }}
         >
-          <Clock size={22} style={{ color: "#8b5cf6" }} />
+          <Clock size={22} aria-hidden="true" style={{ color: "#8b5cf6" }} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm text-[var(--fg)] font-arabic">السيرة النبوية</p>
@@ -378,7 +378,7 @@ export function LibraryPage() {
 
       <Card className="p-4">
         <div className="flex items-start gap-2">
-          <ExternalLink size={16} className="text-[var(--accent)] shrink-0 mt-1" />
+          <ExternalLink size={16} aria-hidden="true" className="text-[var(--accent)] shrink-0 mt-1" />
           <div className="text-xs opacity-60 leading-6">
             محتوى المكتبة يقرأ داخل التطبيق. عند الحاجة يمكنك فتح رابط تحقق خارجي لكل حديث، مثل الدرر، دون أن تكون المكتبة معتمدة على قراءة خارجية.
           </div>

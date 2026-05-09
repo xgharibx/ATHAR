@@ -123,7 +123,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     variant="secondary"
                     onClick={() => navigate(`/mushaf?surah=${verse.surahId}&ayah=${verse.ayahIndex}`)}
                   >
-                    <BookOpen size={12} />
+                    <BookOpen size={12} aria-hidden="true" />
                     اقرأ في سياقها
                   </Button>
                   <div className="flex items-center gap-1.5 flex-wrap">

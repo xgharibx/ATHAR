@@ -198,7 +198,7 @@ export function SearchPage() {
     <div className="space-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center gap-2">
-          <Search size={18} className="opacity-70" />
+          <Search size={18} aria-hidden="true" className="opacity-70" />
           <h1 className="font-semibold text-base leading-none">بحث</h1>
         </div>
         <div className="mt-4 relative flex items-center gap-2" role="search" aria-label="بحث في التطبيق">
@@ -251,7 +251,7 @@ export function SearchPage() {
                 : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
-            <BookOpen size={13} /> القرآن
+            <BookOpen size={13} aria-hidden="true" /> القرآن
           </button>
           <button type="button"
             id="search-tab-library"
@@ -265,7 +265,7 @@ export function SearchPage() {
                 : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
-            <LibraryBig size={13} /> المكتبة
+            <LibraryBig size={13} aria-hidden="true" /> المكتبة
           </button>
           <button type="button"
             id="search-tab-hadith"
@@ -279,7 +279,7 @@ export function SearchPage() {
                 : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
             )}
           >
-            <ScrollText size={13} /> الأحاديث
+            <ScrollText size={13} aria-hidden="true" /> الأحاديث
           </button>
         </div>
 
@@ -398,7 +398,7 @@ export function SearchPage() {
         </div>
         {!q.trim() ? (
           <div className="flex flex-col items-center text-center py-6 gap-2">
-            <Search size={32} className="opacity-20" />
+            <Search size={32} aria-hidden="true" className="opacity-20" />
             <div className="text-sm opacity-55">اكتب للبحث في الأذكار</div>
           </div>
         ) : results.length === 0 ? (
@@ -436,7 +436,7 @@ export function SearchPage() {
                         style={{ background: "var(--card)", color: "var(--fg)" }}
                         aria-label="نسخ"
                       >
-                        <Copy size={13} />
+                        <Copy size={13} aria-hidden="true" />
                       </button>
                       <ArrowUpRight size={18} className="opacity-60" aria-hidden="true" />
                     </div>
@@ -472,7 +472,7 @@ export function SearchPage() {
         </div>
         {!q.trim() ? (
           <div className="flex flex-col items-center text-center py-6 gap-2">
-            <BookOpen size={32} className="opacity-20" />
+            <BookOpen size={32} aria-hidden="true" className="opacity-20" />
             <div className="text-sm opacity-55">ابحث باسم السورة أو بكلمة قرآنية (مع أو بدون تشكيل)</div>
           </div>
         ) : quranResults.length === 0 ? (
@@ -492,7 +492,7 @@ export function SearchPage() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <BookOpen size={16} className="text-[var(--accent)] shrink-0 opacity-70" />
+                      <BookOpen size={16} aria-hidden="true" className="text-[var(--accent)] shrink-0 opacity-70" />
                       <span className="text-sm font-semibold arabic-text">{r.surah.name}</span>
                       <span className="text-xs opacity-45 tabular-nums">{r.surah.ayahs.length} آية</span>
                     </div>
@@ -522,7 +522,7 @@ export function SearchPage() {
                         style={{ background: "var(--card)", color: "var(--fg)" }}
                         aria-label="نسخ الآية"
                       >
-                        <Copy size={13} />
+                        <Copy size={13} aria-hidden="true" />
                       </button>
                       <ArrowUpRight size={16} className="opacity-55" aria-hidden="true" />
                     </div>
@@ -551,7 +551,7 @@ export function SearchPage() {
         </div>
         {!q.trim() ? (
           <div className="flex flex-col items-center text-center py-6 gap-2">
-            <LibraryBig size={32} className="opacity-20" />
+            <LibraryBig size={32} aria-hidden="true" className="opacity-20" />
             <div className="text-sm opacity-55">ابحث في الحديث، الراوي، المصدر، أو الفوائد</div>
             <button type="button"
               onClick={() => navigate("/library")}
@@ -634,7 +634,7 @@ export function SearchPage() {
 
         {!q.trim() ? (
           <div className="flex flex-col items-center text-center py-6 gap-2">
-            <ScrollText size={32} className="opacity-20" />
+            <ScrollText size={32} aria-hidden="true" className="opacity-20" />
             <div className="text-sm opacity-55 font-arabic">اكتب كلمة للبحث في الكتاب المختار</div>
           </div>
         ) : hadithLoading ? (

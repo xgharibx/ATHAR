@@ -65,7 +65,7 @@ export default function Companions() {
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <Users size={19} className="text-[var(--accent)]" />
+                <Users size={19} aria-hidden="true" className="text-[var(--accent)]" />
                 <h1 className="text-lg font-bold">الصحابة الكرام</h1>
               </div>
               <div className="text-xs opacity-55 mt-1" aria-live="polite" aria-atomic="true">{filtered.length} من {COMPANIONS.length} صحابي</div>

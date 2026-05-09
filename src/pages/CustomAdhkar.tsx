@@ -113,7 +113,7 @@ function PackForm({
           onClick={addRow}
           className="mt-3 flex items-center gap-1 text-xs opacity-60 hover:opacity-100 transition-opacity"
         >
-          <Plus size={14} /> إضافة ذكر
+          <Plus size={14} aria-hidden="true" /> إضافة ذكر
         </button>
       </div>
       <div className="flex gap-2 justify-end">
@@ -158,7 +158,7 @@ function PackCard({
             aria-label="عرض الأذكار"
             aria-expanded={expanded}
           >
-            {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+            {expanded ? <ChevronUp size={15} aria-hidden="true" /> : <ChevronDown size={15} aria-hidden="true" />}
           </button>
           <button type="button"
             onClick={async () => {
@@ -204,7 +204,7 @@ function PackCard({
             </button>
           )}
           <Button variant="primary" onClick={onNavigate} className="py-1 px-3 text-xs">
-            <BookOpen size={13} />
+            <BookOpen size={13} aria-hidden="true" />
             فتح
           </Button>
         </div>
@@ -265,7 +265,7 @@ export function CustomAdhkarPage() {
           className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-60 hover:opacity-100"
           aria-label="رجوع"
         >
-          <ArrowRight size={18} />
+          <ArrowRight size={18} aria-hidden="true" />
         </button>
         <div>
           <h1 className="text-lg font-semibold">أذكاري المخصصة</h1>
@@ -285,7 +285,7 @@ export function CustomAdhkarPage() {
           onClick={() => { setEditingPack(null); setShowForm(true); }}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl glass border border-dashed border-[var(--stroke)] hover:border-accent-50 hover:bg-[var(--card)] transition-all text-sm opacity-70 hover:opacity-100"
         >
-          <Plus size={16} />
+          <Plus size={16} aria-hidden="true" />
           إنشاء حزمة جديدة
         </button>
       )}

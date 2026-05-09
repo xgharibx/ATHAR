@@ -191,7 +191,7 @@ export function AsmaAlHusnaPage() {
                   <div className="flex-1 text-center">
                     {name.id === dailyAsmaId && (
                       <div className="flex items-center justify-center gap-1 mb-1">
-                        <Star size={10} className="fill-current" style={{ color: isExpanded ? "var(--on-accent)" : "var(--accent)" }} />
+                        <Star size={10} aria-hidden="true" className="fill-current" style={{ color: isExpanded ? "var(--on-accent)" : "var(--accent)" }} />
                         <span className="text-[10px] font-semibold" style={{ color: isExpanded ? "var(--on-accent)" : "var(--accent)" }}>اسم اليوم</span>
                       </div>
                     )}
@@ -233,7 +233,7 @@ export function AsmaAlHusnaPage() {
                   className="p-1.5 rounded-lg transition-colors"
                   style={{ color: isMem ? (isExpanded ? "var(--on-accent)" : "var(--accent)") : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isMem ? 1 : 0.4 }}
                 >
-                  <Brain size={14} />
+                  <Brain size={14} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
@@ -242,7 +242,7 @@ export function AsmaAlHusnaPage() {
                   className="p-1.5 rounded-lg transition-colors"
                   style={{ color: isFav ? "#ef4444" : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isFav ? 1 : 0.4 }}
                 >
-                  <Heart size={14} fill={isFav ? "#ef4444" : "none"} />
+                  <Heart size={14} aria-hidden="true" fill={isFav ? "#ef4444" : "none"} />
                 </button>
               </div>
             </div>

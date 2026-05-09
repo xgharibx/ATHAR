@@ -131,7 +131,7 @@ export function NearbyMosquesPage() {
         <Card className="p-4 space-y-3">
           <div className="text-sm opacity-70">{geo.msg}</div>
           <Button variant="secondary" size="sm" onClick={requestGeo}>
-            <RefreshCw size={14} /> إعادة المحاولة
+            <RefreshCw size={14} aria-hidden="true" /> إعادة المحاولة
           </Button>
         </Card>
       )}
@@ -150,7 +150,7 @@ export function NearbyMosquesPage() {
           <div className="text-sm opacity-70">{fetchError}</div>
           {geo.status === "ok" && (
             <Button variant="secondary" size="sm" onClick={() => void fetchMosques(geo.lat, geo.lng)}>
-              <RefreshCw size={14} /> إعادة المحاولة
+              <RefreshCw size={14} aria-hidden="true" /> إعادة المحاولة
             </Button>
           )}
         </Card>
@@ -162,7 +162,7 @@ export function NearbyMosquesPage() {
           <div className="text-4xl mb-2">🕌</div>
           <div className="opacity-60">لم يُعثر على مساجد مسجّلة في نطاق 5 كم من موقعك</div>
           <Button variant="secondary" size="sm" className="mt-2" onClick={() => void fetchMosques((geo as {status:"ok";lat:number;lng:number}).lat, (geo as {status:"ok";lat:number;lng:number}).lng)}>
-            <RefreshCw size={14} /> بحث مجدداً
+            <RefreshCw size={14} aria-hidden="true" /> بحث مجدداً
           </Button>
         </Card>
       )}

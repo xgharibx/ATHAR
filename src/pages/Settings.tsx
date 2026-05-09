@@ -248,7 +248,7 @@ export function SettingsPage() {
 
       <Card id="settings-appearance" className="p-5">
         <div className="flex items-center gap-2">
-          <Palette size={18} className="text-[var(--accent)]" />
+          <Palette size={18} aria-hidden="true" className="text-[var(--accent)]" />
           <div className="font-semibold">المظهر</div>
         </div>
 
@@ -333,7 +333,7 @@ export function SettingsPage() {
         {/* Se1: Arabic font family selector */}
         <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
           <div className="flex items-center gap-2 mb-3">
-            <Type size={15} className="text-[var(--accent)]" />
+            <Type size={15} aria-hidden="true" className="text-[var(--accent)]" />
             <div className="text-sm font-medium">خط القراءة</div>
           </div>
           <div className="flex flex-wrap gap-2" role="group" aria-label="اختيار خط القراءة">
@@ -431,7 +431,7 @@ export function SettingsPage() {
             onClick={() => { resetPrefs(); toast.success("تم إعادة الضبط الافتراضي"); }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition text-xs min-h-[40px]"
           >
-            <RotateCcw size={13} />
+            <RotateCcw size={13} aria-hidden="true" />
             إعادة ضبط
           </button>
         </div>
@@ -442,7 +442,7 @@ export function SettingsPage() {
 
       <Card id="settings-reading" className="p-5">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal size={18} className="text-[var(--accent)]" />
+          <SlidersHorizontal size={18} aria-hidden="true" className="text-[var(--accent)]" />
           <div className="font-semibold">القراءة</div>
         </div>
 
@@ -828,7 +828,7 @@ export function SettingsPage() {
               }}
               className="text-xs px-3 py-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition flex items-center gap-1.5 min-h-[36px]"
             >
-              <RotateCw size={12} />
+              <RotateCw size={12} aria-hidden="true" />
               مزامنة الآن
             </button>
           </div>
@@ -879,7 +879,7 @@ export function SettingsPage() {
                       aria-label={playingPreview === `reminder:${option.id}` ? `إيقاف معاينة صوت ${option.label}` : `معاينة صوت ${option.label}`}
                       className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-xs transition hover:bg-[var(--card-2)]"
                     >
-                      {playingPreview === `reminder:${option.id}` ? <Square size={12} /> : <Play size={12} />}
+                      {playingPreview === `reminder:${option.id}` ? <Square size={12} aria-hidden="true" /> : <Play size={12} aria-hidden="true" />}
                       {playingPreview === `reminder:${option.id}` ? "إيقاف" : "معاينة"}
                     </button>
                   </div>
@@ -959,7 +959,7 @@ export function SettingsPage() {
                           aria-label={playingPreview === `prayer:${option.id}` ? `إيقاف معاينة صوت ${option.label}` : `معاينة صوت ${option.label}`}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-xs transition hover:bg-[var(--card-2)]"
                         >
-                          {playingPreview === `prayer:${option.id}` ? <Square size={12} /> : <Play size={12} />}
+                          {playingPreview === `prayer:${option.id}` ? <Square size={12} aria-hidden="true" /> : <Play size={12} aria-hidden="true" />}
                           {playingPreview === `prayer:${option.id}` ? "إيقاف" : "معاينة"}
                         </button>
                       </div>
@@ -1134,7 +1134,7 @@ export function SettingsPage() {
       {/* Se8 + Se9: Security & Advanced */}
       <Card id="settings-security" className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Fingerprint size={18} className="text-[var(--accent)]" />
+          <Fingerprint size={18} aria-hidden="true" className="text-[var(--accent)]" />
           <div className="font-semibold">الأمان والمتقدّم</div>
         </div>
         <div className="space-y-3">
@@ -1157,7 +1157,7 @@ export function SettingsPage() {
           {/* Se9: App icon variants */}
           <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="flex items-center gap-2 mb-2">
-              <Layers size={14} className="text-[var(--accent)]" />
+              <Layers size={14} aria-hidden="true" className="text-[var(--accent)]" />
               <div className="text-sm font-semibold">أيقونة التطبيق</div>
             </div>
             <div className="text-xs opacity-60 mb-3">اختر نمط أيقونة التطبيق على شاشتك الرئيسية</div>
@@ -1212,7 +1212,7 @@ export function SettingsPage() {
                 <div className="text-sm font-medium" style={{ color: "var(--fg)" }}>{label}</div>
                 <div className="text-xs opacity-55 mt-0.5" style={{ color: "var(--fg)" }}>{desc}</div>
               </div>
-              <ChevronLeft size={14} className="opacity-35 flex-shrink-0" />
+              <ChevronLeft size={14} aria-hidden="true" className="opacity-35 flex-shrink-0" />
             </button>
           ))}
         </div>
@@ -1264,7 +1264,7 @@ function HomeWidgetsCard(props: {
   return (
     <Card className="p-5">
       <div className="flex items-center gap-2 mb-4">
-        <Layers size={18} className="text-[var(--accent)]" />
+        <Layers size={18} aria-hidden="true" className="text-[var(--accent)]" />
         <div>
           <div className="font-semibold">عناصر الصفحة الرئيسية</div>
           <div className="text-xs opacity-60 mt-0.5">تفعيل وترتيب البطاقات</div>
@@ -1283,7 +1283,7 @@ function HomeWidgetsCard(props: {
                 className="p-1 rounded-lg hover:bg-[var(--card-2)] transition disabled:opacity-25"
                 aria-label={`تحريك ${HOME_WIDGET_LABELS[key]} لأعلى`}
               >
-                <ArrowUp size={12} />
+                <ArrowUp size={12} aria-hidden="true" />
               </button>
               <button type="button"
                 onClick={() => moveDown(i)}
@@ -1291,7 +1291,7 @@ function HomeWidgetsCard(props: {
                 className="p-1 rounded-lg hover:bg-[var(--card-2)] transition disabled:opacity-25"
                 aria-label={`تحريك ${HOME_WIDGET_LABELS[key]} لأسفل`}
               >
-                <ArrowDown size={12} />
+                <ArrowDown size={12} aria-hidden="true" />
               </button>
             </div>
             <span

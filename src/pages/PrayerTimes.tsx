@@ -1199,7 +1199,7 @@ export function PrayerTimesPage() {
                   className={cn("rounded-2xl border px-4 py-3 flex items-center justify-between gap-3 transition", rowStyles(row, isActive, isNext))}>
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-2xl bg-[var(--card-2)] grid place-items-center shrink-0">
-                      <Icon size={18} className="opacity-80" />
+                      <Icon size={18} aria-hidden="true" className="opacity-80" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">

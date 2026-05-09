@@ -2203,11 +2203,11 @@ export function MushafPage() {
 
             {/* ── Toggle rows ── */}
             {([
-              { label: "بحث في الصفحة", sub: "ابحث داخل آيات الصفحة الحالية", icon: <Search size={16} />, active: showSearch,
+              { label: "بحث في الصفحة", sub: "ابحث داخل آيات الصفحة الحالية", icon: <Search size={16} aria-hidden="true" />, active: showSearch,
                 onPress: () => { setShowSearch((v) => !v); if (showSearch) setInPageSearch(""); setShowMoreSheet(false); } },
-              { label: "الترجمة الإنجليزية", sub: "ترجمة Sahih International", icon: <Languages size={16} />, active: showTranslation,
+              { label: "الترجمة الإنجليزية", sub: "ترجمة Sahih International", icon: <Languages size={16} aria-hidden="true" />, active: showTranslation,
                 onPress: () => { setShowTranslation((v) => !v); setShowMoreSheet(false); } },
-              { label: memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ", sub: "اختبر حفظك آية بآية", icon: memorizationMode ? <EyeOff size={16} /> : <Eye size={16} />, active: memorizationMode,
+              { label: memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ", sub: "اختبر حفظك آية بآية", icon: memorizationMode ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />, active: memorizationMode,
                 onPress: () => { setMemorizationMode((v) => { if (v) setRevealedItems(new Set()); return !v; }); flashChrome(); setShowMoreSheet(false); } },
             ] as Array<{ label: string; sub: string; icon: React.ReactNode; active: boolean; onPress: () => void }>).map(({ label, sub, icon, active, onPress }) => (
               <button type="button"

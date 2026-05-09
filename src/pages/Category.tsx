@@ -89,7 +89,7 @@ export function CategoryPage() {
       <div className="p-6">
         <Card className="p-6">
           <div className="flex items-center gap-2 font-semibold">
-            <AlertTriangle size={18} />
+            <AlertTriangle size={18} aria-hidden="true" />
             القسم غير موجود
           </div>
           <div className="mt-2 text-sm opacity-70">قد يكون المعرّف خاطئًا: {id}</div>

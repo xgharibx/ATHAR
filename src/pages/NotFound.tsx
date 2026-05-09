@@ -31,16 +31,16 @@ export function NotFoundPage() {
           <div className="mt-6 flex flex-col gap-2.5">
             <Link to="/">
               <Button className="w-full justify-center">
-                <House size={16} />
+                <House size={16} aria-hidden="true" />
                 العودة للرئيسية
               </Button>
             </Link>
             <Button variant="secondary" className="w-full justify-center" onClick={() => navigate("/search")}>
-              <Search size={16} />
+              <Search size={16} aria-hidden="true" />
               البحث في الأذكار
             </Button>
             <Button variant="outline" className="w-full justify-center" onClick={() => navigate(-1)}>
-              <ArrowRight size={16} />
+              <ArrowRight size={16} aria-hidden="true" />
               الصفحة السابقة
             </Button>
           </div>

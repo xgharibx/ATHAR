@@ -54,7 +54,7 @@ export default function SeerahTimeline() {
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <Clock size={19} className="text-[var(--accent)]" />
+                <Clock size={19} aria-hidden="true" className="text-[var(--accent)]" />
                 <h1 className="text-lg font-bold">السيرة النبوية</h1>
               </div>
               <div className="text-xs opacity-55 mt-1">{filtered.length} حدث</div>
@@ -95,7 +95,7 @@ export default function SeerahTimeline() {
           </div>
           {/* Search box */}
           <div className="relative mt-2">
-            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+            <Search size={14} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
             <input
               type="search"
               dir="rtl"

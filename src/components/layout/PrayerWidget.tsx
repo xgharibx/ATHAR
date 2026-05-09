@@ -46,7 +46,7 @@ export function PrayerWidget() {
     <Card className="p-4 mb-6 relative overflow-hidden">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <Clock size={16} className="text-[var(--accent)]" />
+          <Clock size={16} aria-hidden="true" className="text-[var(--accent)]" />
           <span className="font-semibold text-sm">مواقيت الصلاة</span>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -106,7 +106,7 @@ export function PrayerWidget() {
           <div className="mt-3 flex items-center gap-2 flex-wrap border-t border-[var(--stroke)] pt-3 text-[11px] opacity-65">
             {sunriseMoment && (
               <div className="flex items-center gap-1.5">
-                <Sunrise size={12} className="text-[#ffd27d]" />
+                <Sunrise size={12} aria-hidden="true" className="text-[#ffd27d]" />
                 <span>{sunriseMoment.label}</span>
                 <span dir="ltr" className="tabular-nums font-medium">{sunriseMoment.value}</span>
               </div>
@@ -114,7 +114,7 @@ export function PrayerWidget() {
             {sunriseMoment && duhaMoment && <span className="opacity-30">·</span>}
             {duhaMoment && (
               <div className="flex items-center gap-1.5">
-                <CloudSun size={12} className="text-[#ffd27d]" />
+                <CloudSun size={12} aria-hidden="true" className="text-[#ffd27d]" />
                 <span>{duhaMoment.label}</span>
                 <span dir="ltr" className="tabular-nums font-medium">{duhaMoment.value}</span>
               </div>
@@ -125,7 +125,7 @@ export function PrayerWidget() {
 
       <Button variant="secondary" className="mt-4 w-full justify-between" onClick={() => navigate("/prayer-times")}>
         عرض التفاصيل الكاملة للمواقيت
-        <ArrowLeft size={16} />
+        <ArrowLeft size={16} aria-hidden="true" />
       </Button>
     </Card>
   );

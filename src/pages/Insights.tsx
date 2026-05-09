@@ -717,7 +717,7 @@ export function InsightsPage() {
       <div ref={ibadatCardRef}>
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={14} className="text-[var(--accent)]" />
+            <Sparkles size={14} aria-hidden="true" className="text-[var(--accent)]" />
             <div className="text-xs font-semibold opacity-65">بطاقة العبادة</div>
             <div className="text-[10px] opacity-35 mr-auto">
               {new Date().toLocaleDateString("ar-SA", { weekday: "short", day: "numeric", month: "short" })}
@@ -832,7 +832,7 @@ export function InsightsPage() {
       {/* ── يومك اليوم — Daily Snapshot ─────────────── */}
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={14} className="text-[var(--accent)]" />
+          <Sparkles size={14} aria-hidden="true" className="text-[var(--accent)]" />
           <div className="text-xs font-semibold opacity-65">يومك اليوم</div>
           <div className="text-[10px] opacity-35 mr-auto">
             {new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long" })}
@@ -1327,7 +1327,7 @@ export function InsightsPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] flex items-center justify-center">
-                <FileDown size={16} className="text-[var(--accent)]" />
+                <FileDown size={16} aria-hidden="true" className="text-[var(--accent)]" />
               </div>
               <div>
                 <div className="text-sm font-semibold">تصدير الإحصاءات</div>
@@ -1335,7 +1335,7 @@ export function InsightsPage() {
               </div>
             </div>
             <Button variant="secondary" onClick={exportInsightsPdf} disabled={exporting}>
-              <FileDown size={14} />
+              <FileDown size={14} aria-hidden="true" />
               {exporting ? "جاري التحضير..." : "تصدير PDF"}
             </Button>
           </div>
@@ -1349,7 +1349,7 @@ export function InsightsPage() {
             <div className={`w-9 h-9 rounded-2xl border flex items-center justify-center ${
               notifPermission === "granted" ? "border-ok-30 bg-ok-10" : "border-[var(--stroke)] bg-[var(--card)]"
             }`}>
-              {notifPermission === "granted" ? <Bell size={15} className="text-[var(--ok)]" /> : <BellOff size={15} className="opacity-50" />}
+              {notifPermission === "granted" ? <Bell size={15} aria-hidden="true" className="text-[var(--ok)]" /> : <BellOff size={15} aria-hidden="true" className="opacity-50" />}
             </div>
             <div>
               <div className="text-sm font-semibold">التقرير الأسبوعي</div>
@@ -1366,7 +1366,7 @@ export function InsightsPage() {
           </div>
           {notifPermission !== "denied" && notifPermission !== "unsupported" && (
             <Button variant="secondary" onClick={requestWeeklyNotif} aria-label="تفعيل التقرير الأسبوعي">
-              <Bell size={14} />
+              <Bell size={14} aria-hidden="true" />
               {notifPermission === "granted" ? "اختبر" : "تفعيل"}
             </Button>
           )}

@@ -211,7 +211,7 @@ export function FavoritesPage() {
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Heart size={18} className="text-[var(--accent)]" />
+            <Heart size={18} aria-hidden="true" className="text-[var(--accent)]" />
             <div className="font-semibold"><h1 className="inline text-base leading-none">المفضلة</h1></div>
           </div>
           <div className="flex items-center gap-2">
@@ -222,7 +222,7 @@ export function FavoritesPage() {
                   مشاركة
                 </Button>
                 <Button variant="secondary" onClick={copyAll} aria-label="نسخ الكل">
-                  {copiedAll ? <CopyCheck size={15} /> : <Copy size={15} />}
+                  {copiedAll ? <CopyCheck size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
                   {copiedAll ? "تم ✓" : "نسخ الكل"}
                 </Button>
               </>
@@ -263,7 +263,7 @@ export function FavoritesPage() {
                 : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
-            <Heart size={14} />
+            <Heart size={14} aria-hidden="true" />
             الأذكار {items.length > 0 && <span className="text-[11px] opacity-60">({items.length})</span>}
           </button>
           <button type="button"
@@ -278,7 +278,7 @@ export function FavoritesPage() {
                 : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
-            <BookOpen size={14} />
+            <BookOpen size={14} aria-hidden="true" />
             القرآن {quranBmList.length > 0 && <span className="text-[11px] opacity-60">({quranBmList.length})</span>}
           </button>
           <button type="button"
@@ -293,7 +293,7 @@ export function FavoritesPage() {
                 : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
-            <ScrollText size={14} />
+            <ScrollText size={14} aria-hidden="true" />
             الأحاديث {hadithBmList.length > 0 && <span className="text-[11px] opacity-60">({hadithBmList.length})</span>}
           </button>
           <button type="button"
@@ -308,7 +308,7 @@ export function FavoritesPage() {
                 : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
-            <Bookmark size={14} />
+            <Bookmark size={14} aria-hidden="true" />
             الأدعية {duaFavItems.length > 0 && <span className="text-[11px] opacity-60">({duaFavItems.length})</span>}
           </button>
           <button type="button"
@@ -323,7 +323,7 @@ export function FavoritesPage() {
                 : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
-            <Star size={14} />
+            <Star size={14} aria-hidden="true" />
             القصص {storyFavItems.length > 0 && <span className="text-[11px] opacity-60">({storyFavItems.length})</span>}
           </button>
           <button type="button"
@@ -338,7 +338,7 @@ export function FavoritesPage() {
                 : "bg-[var(--card)] border-[var(--stroke)] opacity-70 hover:opacity-100"
             ].join(" ")}
           >
-            <Users size={14} />
+            <Users size={14} aria-hidden="true" />
             الصحابة {companionFavItems.length > 0 && <span className="text-[11px] opacity-60">({companionFavItems.length})</span>}
           </button>
         </div>
@@ -408,7 +408,7 @@ export function FavoritesPage() {
                               onClick={() => copyItem(r.key, r.text)}
                               aria-label="نسخ الذكر"
                             >
-                              {copiedKey === r.key ? <Check size={16} /> : <Copy size={16} />}
+                              {copiedKey === r.key ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
                             </Button>
                             <Button variant="outline" onClick={() => setConfirmDeleteKey(r.key)}>
                               <Trash2 size={16} />
@@ -448,7 +448,7 @@ export function FavoritesPage() {
               {quranBmBySurah.map((group) => (
                 <div key={group.surahId}>
                   <div className="flex items-center gap-2 mb-2 px-1">
-                    <BookOpen size={13} className="text-[var(--accent)] shrink-0" />
+                    <BookOpen size={13} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
                     <span className="text-xs font-semibold opacity-65 arabic-text">{group.surahName}</span>
                     <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
                   </div>
@@ -614,7 +614,7 @@ export function FavoritesPage() {
                       onClick={() => { void navigator.clipboard.writeText(dua.arabic).then(() => toast.success("تم النسخ")); }}
                       aria-label="نسخ الدعاء"
                     >
-                      <Copy size={14} />
+                      <Copy size={14} aria-hidden="true" />
                     </Button>
                     <Button
                       variant="outline"

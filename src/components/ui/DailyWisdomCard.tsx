@@ -54,7 +54,7 @@ export function DailyWisdomCard(props: { dateKey?: string }) {
               onClick={copyWisdom}
               className="w-8 h-8 min-w-0"
             >
-              <Copy size={14} />
+              <Copy size={14} aria-hidden="true" />
             </IconButton>
             <IconButton
               aria-label="مشاركة"

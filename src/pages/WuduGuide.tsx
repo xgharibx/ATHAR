@@ -52,7 +52,7 @@ export function WuduGuidePage() {
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
-                <ArrowRight size={18} />
+                <ArrowRight size={18} aria-hidden="true" />
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -143,7 +143,7 @@ export function WuduGuidePage() {
                 {isDone ? (
                   <CheckCircle2 size={22} style={{ color: "var(--ok, #3ddc97)" }} />
                 ) : (
-                  <Circle size={22} style={{ color: "var(--accent)", opacity: 0.5 }} />
+                  <Circle size={22} aria-hidden="true" style={{ color: "var(--accent)", opacity: 0.5 }} />
                 )}
               </div>
 

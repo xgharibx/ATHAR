@@ -50,7 +50,7 @@ export function PrayerGuidePage() {
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
-                <ArrowRight size={18} />
+                <ArrowRight size={18} aria-hidden="true" />
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -108,9 +108,9 @@ export function PrayerGuidePage() {
               >
                 <div className="flex items-center gap-2">
                   {isOpen ? (
-                    <ChevronUp size={16} style={{ color: isOpen ? "color-mix(in srgb, var(--on-accent) 55%, transparent)" : "var(--accent)" }} />
+                    <ChevronUp size={16} aria-hidden="true" style={{ color: isOpen ? "color-mix(in srgb, var(--on-accent) 55%, transparent)" : "var(--accent)" }} />
                   ) : (
-                    <ChevronDown size={16} style={{ color: "var(--accent)" }} />
+                    <ChevronDown size={16} aria-hidden="true" style={{ color: "var(--accent)" }} />
                   )}
                 </div>
                 <span className="text-xl">{step.position}</span>
@@ -162,7 +162,7 @@ export function PrayerGuidePage() {
                       className="p-2 rounded-xl transition-opacity hover:opacity-75"
                       style={{ background: "color-mix(in srgb, var(--on-accent) 10%, transparent)", color: "var(--on-accent)" }}
                     >
-                      <Copy size={14} />
+                      <Copy size={14} aria-hidden="true" />
                     </button>
                     <button
                       type="button"

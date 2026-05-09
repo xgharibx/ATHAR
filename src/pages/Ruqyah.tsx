@@ -59,7 +59,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
             <Share2 size={14} className="opacity-70" />
           </IconButton>
           <IconButton aria-label="نسخ" onClick={doCopy}>
-            <Copy size={15} className="opacity-70" />
+            <Copy size={15} aria-hidden="true" className="opacity-70" />
           </IconButton>
         </div>
       </div>
@@ -134,7 +134,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
         onClick={() => setExpanded((v) => !v)}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <Shield size={16} className="text-[var(--accent)] shrink-0 opacity-70" />
+          <Shield size={16} aria-hidden="true" className="text-[var(--accent)] shrink-0 opacity-70" />
           <div className="min-w-0">
             <div className="font-semibold text-sm arabic-text">{section.title}</div>
             {section.description && (
@@ -146,7 +146,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-[11px] opacity-40 tabular-nums">{section.items.length}</span>
-          {expanded ? <ChevronUp size={15} className="opacity-50" /> : <ChevronDown size={15} className="opacity-50" />}
+          {expanded ? <ChevronUp size={15} aria-hidden="true" className="opacity-50" /> : <ChevronDown size={15} aria-hidden="true" className="opacity-50" />}
         </div>
       </button>
 
@@ -169,10 +169,10 @@ export function RuqyahPage() {
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-3">
           <IconButton aria-label="رجوع" onClick={() => navigate(-1)}>
-            <ArrowRight size={18} />
+            <ArrowRight size={18} aria-hidden="true" />
           </IconButton>
           <div className="flex items-center gap-2">
-            <Shield size={20} className="text-[var(--accent)]" />
+            <Shield size={20} aria-hidden="true" className="text-[var(--accent)]" />
             <h1 className="font-bold text-lg arabic-text">أذكار الرقية الشرعية</h1>
           </div>
         </div>

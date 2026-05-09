@@ -203,7 +203,7 @@ export function DuasPage() {
                     className="p-1.5 rounded-lg transition-colors"
                     style={{ color: "var(--accent)" }}
                   >
-                    {copied === dua.id ? <Check size={15} /> : <Copy size={15} />}
+                    {copied === dua.id ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
                   </button>
                   <button type="button"
                     aria-label={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
@@ -211,7 +211,7 @@ export function DuasPage() {
                     className="p-1.5 rounded-lg transition-colors"
                     style={{ color: isFav ? "#ef4444" : "var(--fg)", opacity: isFav ? 1 : 0.4 }}
                   >
-                    <Heart size={14} fill={isFav ? "#ef4444" : "none"} />
+                    <Heart size={14} aria-hidden="true" fill={isFav ? "#ef4444" : "none"} />
                   </button>
                 </div>
                 <span

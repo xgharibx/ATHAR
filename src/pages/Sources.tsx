@@ -62,7 +62,7 @@ export function SourcesPage() {
     <div className="space-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center gap-2">
-          <Database size={18} className="text-[var(--accent)]" />
+          <Database size={18} aria-hidden="true" className="text-[var(--accent)]" />
           <h1 className="font-semibold text-base leading-none">المصادر والبيانات</h1>
         </div>
 
@@ -83,7 +83,7 @@ export function SourcesPage() {
               }}
             />
             <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] cursor-pointer text-sm min-h-[44px]">
-              <Upload size={16} />
+              <Upload size={16} aria-hidden="true" />
               استيراد حزمة
             </span>
           </label>
@@ -95,7 +95,7 @@ export function SourcesPage() {
             aria-label="فتح موقع islambook.com في تبويب جديد"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] text-sm min-h-[44px]"
           >
-            <ExternalLink size={16} />
+            <ExternalLink size={16} aria-hidden="true" />
             islambook.com
           </a>
         </div>
@@ -104,7 +104,7 @@ export function SourcesPage() {
 
       <Card className="p-5">
         <div className="flex items-center gap-2">
-          <Plus size={18} className="text-[var(--accent)]" />
+          <Plus size={18} aria-hidden="true" className="text-[var(--accent)]" />
           <div className="font-semibold">إضافة ذكر</div>
         </div>
 
@@ -142,7 +142,7 @@ export function SourcesPage() {
         />
 
         <Button className="mt-4 w-full" onClick={onAddCustomDhikr}>
-          <Plus size={16} />
+          <Plus size={16} aria-hidden="true" />
           حفظ الذكر
         </Button>
       </Card>

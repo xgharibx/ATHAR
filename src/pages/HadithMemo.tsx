@@ -184,7 +184,7 @@ export function HadithMemoPage() {
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <BrainCircuit size={19} style={{ color: accentColor }} />
+                <BrainCircuit size={19} aria-hidden="true" style={{ color: accentColor }} />
                 <h1 className="text-lg font-bold">بطاقات الحفظ</h1>
               </div>
               <div className="text-xs opacity-55 mt-1">الأربعون النووية</div>
@@ -246,7 +246,7 @@ export function HadithMemoPage() {
       {/* All reviewed today */}
       {viewMode === "due" && dueCards.length === 0 && (
         <div className="relative z-10 flex flex-col items-center gap-4 py-16">
-          <CheckCircle size={48} style={{ color: accentColor }} />
+          <CheckCircle size={48} aria-hidden="true" style={{ color: accentColor }} />
           <p className="text-base font-bold font-arabic text-[var(--fg)]">أحسنت! أنهيت مراجعة اليوم</p>
           <p className="text-sm text-[var(--muted)] font-arabic">ارجع غداً لمراجعة جديدة</p>
           <button type="button"
@@ -355,7 +355,7 @@ export function HadithMemoPage() {
               className="rounded-full border border-[var(--stroke)] bg-[var(--card)] p-2 transition hover:bg-[var(--card-2)] disabled:opacity-30 press-effect"
               aria-label="البطاقة السابقة"
             >
-              <ChevronRight size={20} className="text-[var(--muted)]" />
+              <ChevronRight size={20} aria-hidden="true" className="text-[var(--muted)]" />
             </button>
             <div className="flex items-center gap-3">
               <span className="text-xs text-[var(--muted)] font-arabic">
@@ -375,7 +375,7 @@ export function HadithMemoPage() {
                 style={{ color: "var(--fg)" }}
                 aria-label="نسخ الحديث"
               >
-                <Copy size={14} />
+                <Copy size={14} aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -401,7 +401,7 @@ export function HadithMemoPage() {
               className="rounded-full border border-[var(--stroke)] bg-[var(--card)] p-2 transition hover:bg-[var(--card-2)] disabled:opacity-30 press-effect"
               aria-label="البطاقة التالية"
             >
-              <ChevronLeft size={20} className="text-[var(--muted)]" />
+              <ChevronLeft size={20} aria-hidden="true" className="text-[var(--muted)]" />
             </button>
           </div>
         </div>

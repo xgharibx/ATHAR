@@ -191,7 +191,7 @@ export function CommandPalette(props: Props) {
         <div className="glass-strong rounded-3xl overflow-hidden border border-[var(--stroke)]">
           <Command className="w-full">
             <div className="flex items-center gap-3 px-4 py-4 border-b border-[var(--stroke)]">
-              <Search size={18} className="opacity-70" />
+              <Search size={18} aria-hidden="true" className="opacity-70" />
               <Command.Input
                 value={query}
                 onValueChange={setQuery}
@@ -215,7 +215,7 @@ export function CommandPalette(props: Props) {
                 <Item onSelect={() => go("/quran")} icon={<span className="text-base">📖</span>}>المصحف</Item>
                 <Item onSelect={() => go("/sebha")} icon={<span className="text-base">📿</span>}>السبحة</Item>
                 <Item onSelect={() => go("/prayer-times")} icon={<span className="text-base">🕌</span>}>مواقيت الصلاة</Item>
-                <Item onSelect={() => go("/library")} icon={<LibraryBig size={16} />}>المكتبة الإسلامية</Item>
+                <Item onSelect={() => go("/library")} icon={<LibraryBig size={16} aria-hidden="true" />}>المكتبة الإسلامية</Item>
                 <Item onSelect={() => go("/search")} icon={<span className="text-base">🔍</span>}>البحث</Item>
                 <Item onSelect={() => go("/favorites")} icon={<span className="text-base">❤️</span>}>المفضلة</Item>
                 <Item onSelect={() => go("/insights")} icon={<span className="text-base">📊</span>}>الإحصاءات</Item>
@@ -248,7 +248,7 @@ export function CommandPalette(props: Props) {
                     props.setOpen(false);
                   }}
                   icon={
-                    theme === "dark" ? <Moon size={16} /> : theme === "light" ? <Sun size={16} /> : <Sparkles size={16} />
+                    theme === "dark" ? <Moon size={16} aria-hidden="true" /> : theme === "light" ? <Sun size={16} aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />
                   }
                 >
                   تبديل المظهر (الحالي: {themeLabel(theme)})
@@ -260,14 +260,14 @@ export function CommandPalette(props: Props) {
                     toast.success("تم تنزيل النسخة الاحتياطية");
                     props.setOpen(false);
                   }}
-                  icon={<Download size={16} />}
+                  icon={<Download size={16} aria-hidden="true" />}
                 >
                   نسخ احتياطي سريع
                 </Item>
                 {quranLastRead && (
                   <Item
                     onSelect={() => go(`/mushaf?surah=${quranLastRead.surahId}&ayah=${quranLastRead.ayahIndex}`)}
-                    icon={<BookOpen size={16} />}
+                    icon={<BookOpen size={16} aria-hidden="true" />}
                   >
                     تابع قراءة القرآن (آية {quranLastRead.ayahIndex} من سورة {quranLastRead.surahId})
                   </Item>
