@@ -1450,7 +1450,48 @@ export function HomePage() {
           return null;
         }
         if (widgetKey === "dailyVerse") {
-          return null;
+          if (!quran.data) return null;
+          const dayNum = Math.floor(Date.now() / 86400000);
+          // Cycle through a curated list of meaningful ayahs by day
+          const VERSE_REFS: Array<{ s: number; a: number }> = [
+            { s: 2, a: 152 }, { s: 2, a: 186 }, { s: 2, a: 255 }, { s: 2, a: 286 },
+            { s: 3, a: 139 }, { s: 3, a: 160 }, { s: 6, a: 54 }, { s: 7, a: 56 },
+            { s: 13, a: 28 }, { s: 14, a: 7 }, { s: 16, a: 97 }, { s: 17, a: 9 },
+            { s: 18, a: 10 }, { s: 20, a: 132 }, { s: 23, a: 1 }, { s: 29, a: 45 },
+            { s: 33, a: 41 }, { s: 39, a: 53 }, { s: 40, a: 60 }, { s: 49, a: 13 },
+            { s: 55, a: 13 }, { s: 65, a: 3 }, { s: 94, a: 5 }, { s: 112, a: 1 },
+          ];
+          const ref = VERSE_REFS[dayNum % VERSE_REFS.length]!;
+          const surah = quran.data.find((s) => s.id === ref.s);
+          const ayah = surah?.ayahs[ref.a - 1];
+          if (!surah || !ayah) return null;
+          return (
+            <button
+              type="button"
+              key={widgetKey}
+              onClick={() => navigate(`/mushaf?surah=${ref.s}&ayah=${ref.a}`)}
+              className="w-full text-right rounded-3xl border transition-all active:scale-[0.99] p-4"
+              style={{
+                background: "color-mix(in srgb, var(--accent) 5%, var(--card))",
+                borderColor: "color-mix(in srgb, var(--accent) 15%, transparent)",
+              }}
+              aria-label="آية اليوم — انتقل للمصحف"
+            >
+              <div className="text-[10px] font-semibold opacity-40 mb-2 tracking-wide">������ آية اليوم</div>
+              <div
+                className="text-base leading-8 mb-2 text-right"
+                style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}
+                lang="ar"
+                dir="rtl"
+              >
+                {ayah}
+              </div>
+              <div className="text-[10px] opacity-45 flex items-center justify-between">
+                <span>{surah.name} — آية {ref.a.toLocaleString("ar-EG")}</span>
+                <span className="opacity-50">❮</span>
+              </div>
+            </button>
+          );
         }
         return null;
       })}
