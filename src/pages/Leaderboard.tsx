@@ -364,7 +364,7 @@ export function LeaderboardPage() {
             تحديث
           </Button>
           <Badge>{myRank != null ? `رتبتي: #${myRank.toLocaleString("ar-EG")}` : "رتبتي: خارج أعلى ٣٠"}</Badge>
-          <span className={cn(
+          <span aria-live="polite" aria-atomic="true" className={cn(
             "inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border",
             syncState === "ok"
               ? "border-ok-30 bg-ok-10 text-[var(--ok)]"

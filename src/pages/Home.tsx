@@ -1407,7 +1407,7 @@ export function HomePage() {
                 </div>
               </div>
               {quran.isLoading ? (
-                <div className="mt-4 text-sm opacity-65">... تحميل الورد</div>
+                <div className="mt-4 text-sm opacity-65" role="status" aria-live="polite">جارٍ تحميل ورد اليوم…</div>
               ) : quran.error || !dailyWird ? (
                 <div className="mt-4 text-sm opacity-65 leading-7">تعذر تحميل ورد اليوم.</div>
               ) : dailyWirdExpanded ? (

@@ -266,7 +266,7 @@ export function HadithMemoPage() {
         <div className="relative z-10 space-y-4 px-4">
           {/* Progress bar */}
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-[var(--muted)] font-arabic">
+            <span className="text-xs text-[var(--muted)] font-arabic" aria-live="polite" aria-atomic="true">
               {cardIndex + 1} / {currentCards.length}
             </span>
             {cardState && (
@@ -323,6 +323,8 @@ export function HadithMemoPage() {
           {viewMode === "add" && (
             <button type="button"
               onClick={() => cardKey && addHadithMemoCard(cardKey)}
+              aria-pressed={isAdded}
+              aria-label={isAdded ? "إلغاء إضافة الحديث للحفظ" : "إضافة الحديث للحفظ"}
               className="w-full rounded-2xl py-2.5 text-sm font-arabic transition glass-hover press-effect"
               style={isAdded
                 ? { background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor, border: "1px solid color-mix(in srgb, var(--accent) 36%, transparent)" }
