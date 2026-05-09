@@ -123,7 +123,7 @@ export default function SeerahTimeline() {
               <div className="text-center py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>
                 لا توجد نتائج
               </div>
-            ) : filtered.map((event, idx) => {
+            ) : filtered.map((event) => {
               const color = getCategoryColor(event.category);
               return (
                 <div key={event.id} className="flex items-start gap-4">
