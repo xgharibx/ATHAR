@@ -9,6 +9,9 @@ import toast from "react-hot-toast";
 // Mecca coordinates
 const MECCA_LAT = 21.4225;
 const MECCA_LNG = 39.8262;
+const DECLINATION_CACHE_TTL = 24 * 60 * 60 * 1000;
+const COMPASS_ACCURACY_WARN_AT = 15;
+const HEADING_SMOOTHING = 0.28;
 
 function toRad(deg: number) {
   return (deg * Math.PI) / 180;
@@ -26,6 +29,41 @@ function calcQiblaBearing(userLat: number, userLng: number): number {
   return ((bearing % 360) + 360) % 360;
 }
 
+function normalizeDegrees(deg: number): number {
+  return ((deg % 360) + 360) % 360;
+}
+
+function smoothHeading(prev: number | null, next: number): number {
+  if (prev == null) return normalizeDegrees(next);
+  const delta = ((next - prev + 540) % 360) - 180;
+  return normalizeDegrees(prev + delta * HEADING_SMOOTHING);
+}
+
+function declinationCacheKey(lat: number, lng: number) {
+  return `athar:qibla:declination:${lat.toFixed(2)}:${lng.toFixed(2)}`;
+}
+
+function readCachedDeclination(lat: number, lng: number): number | null {
+  try {
+    const raw = localStorage.getItem(declinationCacheKey(lat, lng));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { value?: unknown; savedAt?: unknown };
+    if (typeof parsed.value !== "number" || typeof parsed.savedAt !== "number") return null;
+    if (Date.now() - parsed.savedAt > DECLINATION_CACHE_TTL) return null;
+    return parsed.value;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedDeclination(lat: number, lng: number, value: number) {
+  try {
+    localStorage.setItem(declinationCacheKey(lat, lng), JSON.stringify({ value, savedAt: Date.now() }));
+  } catch {
+    // Storage can be unavailable; the live value is still usable for this session.
+  }
+}
+
 function formatBearing(deg: number) {
   const dirs = ["شمال", "شمال شرق", "شرق", "جنوب شرق", "جنوب", "جنوب غرب", "غرب", "شمال غرب"];
   const idx = Math.round(deg / 45) % 8;
@@ -41,6 +79,7 @@ type GeoState =
 
 type OrientationState = {
   heading: number | null; // degrees true north
+  accuracy: number | null;
   supported: boolean;
   permissionGranted: boolean;
 };
@@ -50,6 +89,7 @@ export function QiblaPage() {
   const [geo, setGeo] = React.useState<GeoState>({ status: "idle" });
   const [orient, setOrient] = React.useState<OrientationState>({
     heading: null,
+    accuracy: null,
     supported: false,
     permissionGranted: false,
   });
@@ -62,17 +102,26 @@ export function QiblaPage() {
   const geoLng = geo.status === "ok" ? geo.lng : 0;
   React.useEffect(() => {
     if (!geoOk) return;
+    const cachedDeclination = readCachedDeclination(geoLat, geoLng);
+    if (cachedDeclination != null) setDeclination(cachedDeclination);
+    let active = true;
     fetch(
       `https://www.ngdc.noaa.gov/geomag-web/calculators/calculateDeclination?lat1=${geoLat}&lon1=${geoLng}&key=EAU51&resultFormat=json`,
     )
       .then((r) => r.json() as Promise<{ result: Array<{ declination: number }> }>)
       .then((data) => {
         const d = data.result?.[0]?.declination;
-        if (typeof d === "number") setDeclination(d);
+        if (typeof d === "number" && active) {
+          setDeclination(d);
+          writeCachedDeclination(geoLat, geoLng, d);
+        }
       })
       .catch(() => {
         /* silent — falls back to uncorrected bearing */
       });
+    return () => {
+      active = false;
+    };
   }, [geoOk, geoLat, geoLng]);
 
   // Request geolocation
@@ -143,18 +192,21 @@ export function QiblaPage() {
   React.useEffect(() => {
     const handleOrientation = (e: DeviceOrientationEvent) => {
       // webkitCompassHeading is iOS-specific (degrees from true north, 0 = north, clockwise)
-      const w = e as DeviceOrientationEvent & { webkitCompassHeading?: number };
+      const w = e as DeviceOrientationEvent & { webkitCompassHeading?: number; webkitCompassAccuracy?: number };
       let heading: number | null = null;
+      let accuracy: number | null = null;
       if (w.webkitCompassHeading != null) {
         heading = w.webkitCompassHeading;
+        accuracy = typeof w.webkitCompassAccuracy === "number" ? Math.abs(w.webkitCompassAccuracy) : null;
       } else if (e.alpha != null) {
         // Android: alpha is rotation around z-axis, 0 = screen faces north
         // Convert: heading = 360 - alpha (approximately)
         heading = (360 - e.alpha + 360) % 360;
       }
       if (heading != null) {
-        compassHeadingRef.current = heading;
-        setOrient((o) => ({ ...o, heading, supported: true }));
+        const smoothedHeading = smoothHeading(compassHeadingRef.current, heading);
+        compassHeadingRef.current = smoothedHeading;
+        setOrient((o) => ({ ...o, heading: smoothedHeading, accuracy, supported: true }));
       }
     };
 
@@ -181,6 +233,8 @@ export function QiblaPage() {
   }, [qiblaBearing, orient.heading, declination]);
 
   const hasOrientation = orient.supported && orient.heading != null;
+  const compassAccuracy = orient.accuracy;
+  const hasPoorCompassAccuracy = compassAccuracy != null && compassAccuracy > COMPASS_ACCURACY_WARN_AT;
 
   return (
     <div className="p-4 md:p-5 space-y-4 max-w-lg mx-auto" dir="rtl">
@@ -296,9 +350,17 @@ export function QiblaPage() {
               </div>
             )}
             {hasOrientation && (
-              <div className="flex items-center justify-center gap-1.5 text-xs text-[var(--accent)] opacity-80 mt-1">
-                <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
-                بوصلة نشطة
+              <div className="flex flex-col items-center gap-1 text-xs text-[var(--accent)] opacity-80 mt-1">
+                <div className="flex items-center justify-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" aria-hidden="true" />
+                  بوصلة نشطة
+                </div>
+                {compassAccuracy != null && (
+                  <div className={cn("text-[11px]", hasPoorCompassAccuracy ? "text-[var(--danger)] opacity-90" : "opacity-65")}>
+                    دقة البوصلة ±{Math.round(compassAccuracy)}°
+                    {hasPoorCompassAccuracy ? " · حرّك الجهاز بعيداً عن المعادن" : ""}
+                  </div>
+                )}
               </div>
             )}
             <button
@@ -313,7 +375,7 @@ export function QiblaPage() {
               className="mt-2 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full opacity-60 hover:opacity-90 transition"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)", color: "var(--fg)" }}
             >
-              <Share2 size={13} />
+              <Share2 size={13} aria-hidden="true" />
               مشاركة الاتجاه
             </button>
           </div>
@@ -336,7 +398,7 @@ export function QiblaPage() {
         </div>
 
         {geo.status === "idle" || geo.status === "loading" ? (
-          <div className="flex items-center gap-2 text-sm opacity-60" role="status" aria-label="جارس تحديد موقعك">
+          <div className="flex items-center gap-2 text-sm opacity-60" role="status" aria-label="جارٍ تحديد موقعك">
             <RefreshCw size={14} aria-hidden="true" className="animate-spin" />
             جارٍ تحديد موقعك...
           </div>

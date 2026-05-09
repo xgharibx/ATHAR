@@ -221,8 +221,8 @@ function CircularRing({
         className={cn(
           "absolute inset-0 rounded-full border transition active:scale-[.98] select-none flex items-center justify-center",
           completed
-            ? "bg-ok-12 border-ok-30"
-            : "bg-accent-12 border-accent-25 hover:bg-accent-16"
+            ? "bg-transparent border-ok-30"
+            : "bg-transparent border-accent-25 hover:bg-accent-8"
         )}
         aria-label="اضغط للعد"
         aria-keyshortcuts="Space"

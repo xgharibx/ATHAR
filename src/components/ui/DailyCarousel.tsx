@@ -21,7 +21,7 @@ const SLIDE_LABELS = ["آية اليوم", "حديث اليوم", "تدبر ال
 
 export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const navigate = useNavigate();
-  const [activeIdx, setActiveIdx] = React.useState(0);
+  const [activeIdx, setActiveIdx] = React.useState(1);
   const pauseUntilRef = React.useRef<number>(0);
   const touchStartX = React.useRef<number>(0);
 
