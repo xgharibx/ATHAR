@@ -398,6 +398,20 @@ export function InsightsPage() {
     return days;
   }, [quranDailyAyahs]);
 
+  // Top surahs by reading completion
+  const topReadSurahs = React.useMemo(() => {
+    if (!quranData) return [];
+    return quranData
+      .map((s) => {
+        const maxRead = quranReadingHistory[String(s.id)] ?? 0;
+        const pct = Math.min(100, Math.round((maxRead / Math.max(1, s.ayahs.length)) * 100));
+        return { id: s.id, name: s.name, pct, maxRead, total: s.ayahs.length };
+      })
+      .filter((s) => s.maxRead > 0)
+      .sort((a, b) => b.pct - a.pct || b.maxRead - a.maxRead)
+      .slice(0, 5);
+  }, [quranData, quranReadingHistory]);
+
   const quranJuzCompletion = React.useMemo(() => {
     if (!quranData) return [] as { juz: number; pct: number; complete: boolean }[];
     const totals: Record<number, number> = {};
@@ -1396,6 +1410,38 @@ export function InsightsPage() {
               </div>
             );
           })()}
+        </Card>
+      )}
+
+      {/* Top surahs */}
+      {topReadSurahs.length > 0 && (
+        <Card className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy size={14} className="text-[var(--accent)]" aria-hidden="true" />
+            <div className="font-semibold text-sm">أكثر سور قراءة</div>
+          </div>
+          <div className="space-y-2">
+            {topReadSurahs.map((s, i) => (
+              <div key={s.id} className="flex items-center gap-2">
+                <span className="text-[11px] font-bold opacity-40 w-4 text-center tabular-nums">{(i + 1).toLocaleString("ar-EG")}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-xs font-medium truncate">{s.name}</span>
+                    <span className="text-[10px] opacity-55 tabular-nums shrink-0 mr-1">{s.pct.toLocaleString("ar-EG")}٪</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--card)" }}>
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${s.pct}%`,
+                        background: s.pct >= 100 ? "var(--ok)" : "color-mix(in srgb, var(--accent) 65%, transparent)",
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
       )}
 
