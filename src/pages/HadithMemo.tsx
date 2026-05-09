@@ -410,7 +410,7 @@ export function HadithMemoPage() {
       {/* No pack loaded yet */}
       {!nawawi && viewMode === "add" && (
         <div className="relative z-10 flex flex-col items-center gap-3 py-16 text-[var(--muted)]">
-          <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" aria-hidden="true" />
           <p className="text-sm font-arabic">جارٍ التحميل…</p>
         </div>
       )}

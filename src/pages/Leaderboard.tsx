@@ -929,9 +929,10 @@ function LeaderboardAdminCard(props: {
                     onChange={(e) => setForcedAlias(e.target.value)}
                     placeholder="اسم إجباري آمن (اختياري)"
                     aria-label="اسم إجباري"
+                    aria-describedby="forced-alias-error"
                   />
                   {forcedAliasValidation && !forcedAliasValidation.ok ? (
-                    <div className="text-[11px] text-[var(--danger)]">{forcedAliasValidation.message}</div>
+                    <div id="forced-alias-error" role="alert" className="text-[11px] text-[var(--danger)]">{forcedAliasValidation.message}</div>
                   ) : null}
 
                   <textarea

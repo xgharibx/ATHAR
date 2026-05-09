@@ -1066,8 +1066,8 @@ export function MushafPage() {
     return (
       <div className="mushaf-reader" dir="rtl">
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-10 h-10 border-2 border-[#2F4F37] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="text-center" role="status">
+            <div className="w-10 h-10 border-2 border-[#2F4F37] border-t-transparent rounded-full animate-spin mx-auto mb-4" aria-hidden="true" />
             <div className="text-sm opacity-60">تحميل المصحف…</div>
           </div>
         </div>
@@ -1320,7 +1320,7 @@ export function MushafPage() {
                           >
                             {inlineTafseerLoading && !tafseerText ? (
                               <span className="flex items-center gap-2 justify-center py-1 opacity-40 text-xs">
-                                <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" />
+                                <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" aria-hidden="true" />
                                 جارٍ تحميل التفسير…
                               </span>
                             ) : tafseerText ? (
@@ -1798,7 +1798,7 @@ export function MushafPage() {
             >
               {inlineTafseerLoading && !inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
                 <span className="flex items-center gap-2 justify-center py-3 opacity-40 text-xs">
-                  <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" />
+                  <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" aria-hidden="true" />
                   جارٍ تحميل التفسير…
                 </span>
               ) : inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (

@@ -744,7 +744,7 @@ export function QuranPage() {
           {/* Juz filter label */}
           {filterJuz !== null && (
             <div className="flex items-center gap-2 px-4 py-2 text-xs" style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 25%, transparent)" }}>
-              <span className="opacity-55">{sortedFiltered.length.toLocaleString("ar-EG")} سورة — الجزء {(filterJuz as number).toLocaleString("ar-EG")}</span>
+              <span className="opacity-55" aria-live="polite" aria-atomic="true">{sortedFiltered.length.toLocaleString("ar-EG")} سورة — الجزء {(filterJuz as number).toLocaleString("ar-EG")}</span>
               {(juzProgress[filterJuz] ?? 0) > 0 && (
                 <span className="px-2 py-0.5 rounded-full border tabular-nums font-semibold"
                   style={(juzProgress[filterJuz] ?? 0) >= 100
@@ -822,7 +822,7 @@ export function QuranPage() {
         <Card className="p-5 quran-surface" role="tabpanel" id="quran-panel-ayahs" aria-labelledby="quran-tab-ayahs" tabIndex={0}>
           <div className="flex items-center justify-between gap-3">
             <div className="text-sm font-semibold quran-title">نتائج البحث</div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" aria-live="polite" aria-atomic="true">
               {ayahTotalFound > ayahResults.length && (
                 <span className="text-[11px] opacity-55">أول {ayahResults.length.toLocaleString("ar-EG")} من {ayahTotalFound.toLocaleString("ar-EG")}</span>
               )}

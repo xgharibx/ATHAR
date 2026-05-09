@@ -115,7 +115,7 @@ export function PTRIndicator({
       aria-label={isRefreshing ? "جارٍ التحديث" : "اسحب للتحديث"}
     >
       {isRefreshing ? (
-        <span className="ptr-spinner" />
+        <span className="ptr-spinner" aria-hidden="true" />
       ) : (
         <span style={{ fontSize: "0.8rem" }}>↓</span>
       )}

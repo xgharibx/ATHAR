@@ -164,7 +164,7 @@ function HomeRadioButton() {
       }
     >
       {radio.loading ? (
-        <Loader2 size={14} className="animate-spin shrink-0" />
+        <Loader2 size={14} className="animate-spin shrink-0" aria-hidden="true" />
       ) : (
         <Radio size={14} aria-hidden="true" className="shrink-0" style={radio.playing ? { filter: "drop-shadow(0 0 4px var(--ok))" } : undefined} />
       )}
