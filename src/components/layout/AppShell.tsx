@@ -427,6 +427,12 @@ export function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // A11y: move focus to main content on route change (SPA navigation)
+  React.useEffect(() => {
+    const main = document.getElementById('main-content');
+    if (main) main.focus({ preventScroll: false });
+  }, [location.pathname]);
+
   if (!isPrimaryShell) return null;
 
   return (

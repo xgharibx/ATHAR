@@ -396,8 +396,8 @@ function WeeklyTab() {
       <table className="w-full text-xs">
         <thead>
           <tr className="opacity-50">
-            <th className="text-right pb-2 pr-1">اليوم</th>
-            {PRIMARY_PRAYERS.map((p) => <th key={p} className="pb-2 px-1 text-center">{PRAYER_LABELS[p]}</th>)}
+            <th scope="col" className="text-right pb-2 pr-1">اليوم</th>
+            {PRIMARY_PRAYERS.map((p) => <th key={p} scope="col" className="pb-2 px-1 text-center">{PRAYER_LABELS[p]}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -458,8 +458,8 @@ function MonthlyTab() {
           <table className="w-full text-[11px]">
             <thead>
               <tr className="opacity-50">
-                <th className="text-right pb-1.5 pr-1">اليوم</th>
-                {PRIMARY_PRAYERS.map((p) => <th key={p} className="pb-1.5 px-0.5 text-center">{PRAYER_LABELS[p]}</th>)}
+                <th scope="col" className="text-right pb-1.5 pr-1">اليوم</th>
+                {PRIMARY_PRAYERS.map((p) => <th key={p} scope="col" className="pb-1.5 px-0.5 text-center">{PRAYER_LABELS[p]}</th>)}
               </tr>
             </thead>
             <tbody>

@@ -709,6 +709,7 @@ export function DhikrList(props: Readonly<{
                   onChange={(event) => setCustomCount(event.target.value)}
                   inputMode="numeric"
                   placeholder="العدد"
+                  aria-label="عدد التكرار"
                 />
               </div>
               <textarea
@@ -725,6 +726,7 @@ export function DhikrList(props: Readonly<{
                 value={customBenefit}
                 onChange={(event) => setCustomBenefit(event.target.value)}
                 placeholder="المصدر أو الفضل"
+                aria-label="المصدر أو الفضل"
               />
               <Button className="mt-4 w-full" onClick={addMyDhikr}>
                 <Plus size={16} aria-hidden="true" />
