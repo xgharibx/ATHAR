@@ -23,6 +23,12 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
   const radio = useRadioState();
   const location = useLocation();
 
+  // Ref for the FAB trigger button (for focus return on dialog close)
+  const fabRef = React.useRef<HTMLButtonElement>(null);
+  // Return focus to FAB trigger when dialog closes
+  React.useEffect(() => {
+    if (!open && !drawerOpen) { fabRef.current?.focus(); }
+  }, [open, drawerOpen]);
   // Close expansion when the hamburger drawer opens
   React.useEffect(() => { if (drawerOpen) setOpen(false); }, [drawerOpen]);
 
@@ -37,6 +43,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
   if (!open) {
     return (
       <button type="button"
+        ref={fabRef}
         className={cn(
           "fab xl:hidden",
           radio.playing && "ring-2 ring-ok-60",

@@ -22,6 +22,12 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
   const prefs = useNoorStore((s) => s.prefs);
   const [pulse, setPulse] = React.useState(false);
 
+  // Ref for the FAB trigger button (for focus return on dialog close)
+  const fabRef = React.useRef<HTMLButtonElement>(null);
+  // Return focus to FAB trigger when dialog closes
+  React.useEffect(() => {
+    if (!open && !drawerOpen) { fabRef.current?.focus(); }
+  }, [open, drawerOpen]);
   // Close expansion when the hamburger drawer opens
   React.useEffect(() => { if (drawerOpen) setOpen(false); }, [drawerOpen]);
   // Sync FAB target with Sebha stored target on open to prevent lock
@@ -48,6 +54,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
   if (!open) {
     return (
       <button type="button"
+        ref={fabRef}
         className="fab xl:hidden"
         style={{
           bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--sab))",
