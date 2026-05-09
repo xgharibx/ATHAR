@@ -371,7 +371,7 @@ export function DhikrCard(props: {
             <IconButton
               aria-label="مفضلة"
               onClick={() => toggleFavorite(sectionId, index)}
-              className={cn(fav && "bg-[var(--accent)]/14 border-[var(--accent)]/24")}
+              className={cn(fav && "bg-accent-14 border-accent-24")}
             >
               <Heart size={16} className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
             </IconButton>
@@ -384,7 +384,7 @@ export function DhikrCard(props: {
           )}
           <div className="flex flex-col items-end gap-1.5 self-center shrink-0">
             {item.minimal ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-[var(--ok)]/25 bg-[var(--ok)]/10 px-2 py-1 text-[10px] font-semibold text-[var(--ok)]">
+              <span className="inline-flex items-center gap-1 rounded-full border border-ok-25 bg-ok-10 px-2 py-1 text-[10px] font-semibold text-[var(--ok)]">
                 <BookOpen size={11} />
                 أقل القليل
               </span>
@@ -406,7 +406,7 @@ export function DhikrCard(props: {
         {sourceLabel && sourceUrl ? (
           <button type="button"
             onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-1.5 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-[var(--accent)]/14"
+            className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-accent-20 bg-accent-10 px-3 py-1.5 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-accent-14"
           >
             <ExternalLink size={12} />
             <span>{sourceLabel}</span>
@@ -494,7 +494,7 @@ export function DhikrCard(props: {
               {confirmItemReset ? (
                 <>
                   <button type="button"
-                    className="text-[11px] px-2.5 rounded-xl bg-[var(--danger)]/15 border border-[var(--danger)]/30 text-[var(--danger)] min-h-[44px] transition active:scale-[.97]"
+                    className="text-[11px] px-2.5 rounded-xl bg-danger-15 border border-danger-30 text-[var(--danger)] min-h-[44px] transition active:scale-[.97]"
                     onClick={() => { resetItem(sectionId, index, target); setConfirmItemReset(false); }}
                   >
                     تأكيد
@@ -557,7 +557,7 @@ export function DhikrCard(props: {
 
         {/* Benefit — D8: grade badge */}
         {!focusMode && prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
-          <div className="mt-4 rounded-2xl bg-[var(--accent)]/8 border border-[var(--accent)]/15 p-3 text-sm leading-7">
+          <div className="mt-4 rounded-2xl bg-accent-8 border border-accent-15 p-3 text-sm leading-7">
             <div className="text-xs font-semibold opacity-55 mb-1.5 flex items-center gap-1.5 flex-wrap">
               <span className="text-[var(--accent)] opacity-80">✦</span>
               <span>الفضل / المصدر</span>

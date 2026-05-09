@@ -39,7 +39,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
       <button type="button"
         className={cn(
           "fab xl:hidden",
-          radio.playing && "ring-2 ring-[var(--ok)]/60",
+          radio.playing && "ring-2 ring-ok-60",
         )}
         style={{
           bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--sab))",
@@ -106,7 +106,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
               className={cn(
                 "w-full text-right rounded-2xl px-3 py-2.5 text-sm border transition press-effect",
                 radio.playing && radio.stationIdx === i
-                  ? "bg-[var(--accent)]/15 border-[var(--accent)]/50 text-[var(--fg)] font-semibold"
+                  ? "bg-accent-15 border-accent-50 text-[var(--fg)] font-semibold"
                   : "bg-white/5 border-white/8 hover:bg-white/10"
               )}
             >
@@ -143,7 +143,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
           className={cn(
             "w-full rounded-2xl py-3 text-sm font-semibold transition press-effect",
             radio.playing
-              ? "bg-[var(--danger)]/20 text-[var(--danger)] border border-[var(--danger)]/30 hover:bg-[var(--danger)]/30"
+              ? "bg-danger-20 text-[var(--danger)] border border-danger-30 hover:bg-danger-30"
               : "bg-[var(--accent)] text-black hover:opacity-90"
           )}
         >

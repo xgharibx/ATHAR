@@ -351,13 +351,13 @@ export function LeaderboardPage() {
           <span className={cn(
             "inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border",
             syncState === "ok"
-              ? "border-[var(--ok)]/30 bg-[var(--ok)]/10 text-[var(--ok)]"
+              ? "border-ok-30 bg-ok-10 text-[var(--ok)]"
               : syncState === "error"
-                ? "border-[var(--danger)]/30 bg-[var(--danger)]/10 text-[var(--danger)]"
+                ? "border-danger-30 bg-danger-10 text-[var(--danger)]"
                 : syncState === "cooldown"
                   ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-400"
                   : syncState === "syncing"
-                    ? "border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[var(--accent)]"
+                    ? "border-accent-30 bg-accent-10 text-[var(--accent)]"
                     : "border-white/15 bg-white/6 opacity-70"
           )}>
             {syncState === "syncing" && <Loader2 size={10} className="animate-spin" />}
@@ -381,7 +381,7 @@ export function LeaderboardPage() {
         </div>
 
         {endpoint && boardLoadState === "error" && (
-          <div className="mt-3 rounded-2xl border border-[var(--danger)]/25 bg-[var(--danger)]/10 px-4 py-3 text-xs leading-6 text-[var(--danger)]">
+          <div className="mt-3 rounded-2xl border border-danger-25 bg-danger-10 px-4 py-3 text-xs leading-6 text-[var(--danger)]">
             تعذر تحديث ترتيب اللوحة من الخادم حاليًا. ما يظهر الآن هو آخر بيانات محلية متاحة فقط.
           </div>
         )}
@@ -416,7 +416,7 @@ export function LeaderboardPage() {
             mergedRows.map((r, idx) => (
               <div key={r.id} className={cn(
                 "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
-                r.id === myEntry.id ? "border-[var(--accent)]/35 bg-[var(--accent)]/8" : "border-white/10"
+                r.id === myEntry.id ? "border-accent-35 bg-accent-8" : "border-white/10"
               )}>
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs tabular-nums">
@@ -473,7 +473,7 @@ function BoardTab(props: { label: string; active: boolean; onClick: () => void }
     <Button
       size="sm"
       variant={props.active ? "secondary" : "ghost"}
-      className={props.active ? "bg-[var(--accent)]/15 border border-[var(--accent)]/35" : ""}
+      className={props.active ? "bg-accent-15 border border-accent-35" : ""}
       onClick={props.onClick}
     >
       {props.label}
@@ -798,7 +798,7 @@ function LeaderboardAdminCard(props: {
 
           {hasAdminToken && hasEndpoint && (
             <>
-              <div className="rounded-3xl border border-[var(--danger)]/20 bg-[var(--danger)]/8 p-4 space-y-3">
+              <div className="rounded-3xl border border-danger-20 bg-danger-8 p-4 space-y-3">
                 <div className="text-sm font-semibold text-[var(--danger)]">إعادة تشغيل اللوحة</div>
                 <div className="text-[11px] leading-6 opacity-75">
                   هذا الإجراء يمسح جميع النقاط المنشورة وسجل النتائج من الخادم، لكنه يُبقي قواعد الحظر ومراجعات الأسماء كما هي.
@@ -1058,7 +1058,7 @@ function LocalFriendsCard(props: {
               key={f.id}
               className={cn(
                 "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
-                f.id === props.myStats.id ? "border-[var(--accent)]/35 bg-[var(--accent)]/8" : "border-white/10"
+                f.id === props.myStats.id ? "border-accent-35 bg-accent-8" : "border-white/10"
               )}
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -1387,7 +1387,7 @@ function WeeklyChallengeCard() {
         <Calendar size={15} className="text-[var(--accent)]" />
         <div className="text-sm font-semibold">تحدي الأسبوع</div>
         {isCompleted && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--ok)]/15 border border-[var(--ok)]/30 text-[var(--ok)] mr-auto">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-ok-15 border border-ok-30 text-[var(--ok)] mr-auto">
             ✓ مكتمل
           </span>
         )}
@@ -1453,7 +1453,7 @@ function WeeklyChallengeCard() {
       </div>
 
       {isCompleted && (
-        <div className="mt-3 rounded-2xl border border-[var(--ok)]/25 bg-[var(--ok)]/8 px-4 py-3 text-sm text-center" style={{ color: "var(--ok)" }}>
+        <div className="mt-3 rounded-2xl border border-ok-25 bg-ok-8 px-4 py-3 text-sm text-center" style={{ color: "var(--ok)" }}>
           أحسنت! أتممت تحدي هذا الأسبوع 🎉
         </div>
       )}

@@ -198,7 +198,7 @@ function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onN
       className={cn(
         "group flex items-center gap-3 w-full rounded-2xl px-3.5 py-3 transition-all active:scale-[.97]",
         isActive
-          ? "bg-[var(--accent)]/10 border border-[var(--accent)]/25"
+          ? "bg-accent-10 border border-accent-25"
           : "hover:bg-white/6 border border-transparent"
       )}
     >
@@ -333,7 +333,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
               className={({ isActive }) => cn(
                 "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-1 border transition active:scale-[.94]",
                 isActive
-                  ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
+                  ? "bg-accent-12 border-accent-30"
                   : "bg-white/4 border-white/6 hover:bg-white/8"
               )}
             >

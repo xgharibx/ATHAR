@@ -1138,7 +1138,7 @@ export function HomePage() {
                 </div>
               )}
               {allChecklistDone && (
-                <div className="mt-3 rounded-2xl bg-[var(--ok)]/10 border border-[var(--ok)]/20 px-4 py-3 text-sm font-semibold text-center" style={{ color: "var(--ok)" }}>
+                <div className="mt-3 rounded-2xl bg-ok-10 border border-ok-20 px-4 py-3 text-sm font-semibold text-center" style={{ color: "var(--ok)" }}>
                   أحسنت — اكتملت قائمة اليوم ✅
                 </div>
               )}
@@ -1160,7 +1160,7 @@ export function HomePage() {
                         <div className={cn(
                           "w-7 h-7 rounded-full border-2 grid place-items-center transition-all shrink-0 text-[13px]",
                           isDone
-                            ? "border-[var(--ok)] bg-[var(--ok)]/20"
+                            ? "border-[var(--ok)] bg-ok-20"
                             : "border-white/20"
                         )}>
                           {isDone ? <CheckCircle2 size={15} className="text-[var(--ok)]" /> : CHECKLIST_CATEGORY_ICON[item.category]}
@@ -1212,8 +1212,8 @@ export function HomePage() {
               <div className={cn(
                 "mt-3 rounded-2xl px-4 py-3.5 border text-sm leading-7",
                 isStepDone
-                  ? "bg-[var(--ok)]/8 border-[var(--ok)]/20 opacity-70 line-through"
-                  : "bg-[var(--accent)]/8 border-[var(--accent)]/20"
+                  ? "bg-ok-8 border-ok-20 opacity-70 line-through"
+                  : "bg-accent-8 border-accent-20"
               )}>
                 {step}
               </div>
@@ -1268,7 +1268,7 @@ export function HomePage() {
                 <div className="h-full progress-accent" style={{ width: `${quickTotal.percent}%` }} />
               </div>
               {quickTotal.percent >= 100 && (
-                <div className="mt-3 rounded-2xl border border-[var(--ok)]/30 bg-[var(--ok)]/10 px-4 py-3 flex items-center gap-2">
+                <div className="mt-3 rounded-2xl border border-ok-30 bg-ok-10 px-4 py-3 flex items-center gap-2">
                   <span>✅</span>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>تمت التسابيح</div>
@@ -1296,7 +1296,7 @@ export function HomePage() {
                       className={cn(
                         "glass rounded-3xl p-3 text-right transition border select-none press-effect glass-hover min-h-[110px] overflow-hidden",
                         activePhraseKey === it.key
-                          ? "border-[var(--accent)]/60 ring-2 ring-[var(--accent)]/30 bg-[var(--accent)]/10"
+                          ? "border-accent-60 ring-2 ring-accent-30 bg-accent-10"
                           : "border-white/10"
                       )}
                     >
@@ -1340,7 +1340,7 @@ export function HomePage() {
         if (widgetKey === "dailyWird") {
           if (!homeWidgets.dailyWird) return null;
           return (
-            <Card key="dailyWird" className={`p-5 transition-colors ${isDailyWirdDone ? "border border-[var(--ok)]/25" : ""}`}>
+            <Card key="dailyWird" className={`p-5 transition-colors ${isDailyWirdDone ? "border border-ok-25" : ""}`}>
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">

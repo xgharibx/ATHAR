@@ -47,7 +47,7 @@ function ItemRow({
       />
       <button type="button"
         onClick={onRemove}
-        className="p-2 rounded-xl hover:bg-[var(--danger)]/10 text-[var(--danger)]/60 hover:text-[var(--danger)] transition-colors"
+        className="p-2 rounded-xl hover:bg-danger-10 text-danger-60 hover:text-[var(--danger)] transition-colors"
         aria-label="حذف السطر"
       >
         <Trash2 size={15} />
@@ -181,7 +181,7 @@ function PackCard({
             <>
               <button type="button"
                 onClick={onDelete}
-                className="px-2 py-1 text-xs rounded-xl bg-[var(--danger)]/20 text-[var(--danger)] hover:bg-[var(--danger)]/30 transition-colors"
+                className="px-2 py-1 text-xs rounded-xl bg-danger-20 text-[var(--danger)] hover:bg-danger-30 transition-colors"
               >
                 تأكيد الحذف
               </button>
@@ -195,7 +195,7 @@ function PackCard({
           ) : (
             <button type="button"
               onClick={() => setConfirmDelete(true)}
-              className="p-2 rounded-xl hover:bg-[var(--danger)]/10 text-[var(--danger)]/50 hover:text-[var(--danger)] transition-colors"
+              className="p-2 rounded-xl hover:bg-danger-10 text-danger-50 hover:text-[var(--danger)] transition-colors"
               aria-label="حذف"
             >
               <Trash2 size={15} />
@@ -281,7 +281,7 @@ export function CustomAdhkarPage() {
       ) : (
         <button type="button"
           onClick={() => { setEditingPack(null); setShowForm(true); }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl glass border border-dashed border-white/20 hover:border-[var(--accent)]/50 hover:bg-white/5 transition-all text-sm opacity-70 hover:opacity-100"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl glass border border-dashed border-white/20 hover:border-accent-50 hover:bg-white/5 transition-all text-sm opacity-70 hover:opacity-100"
         >
           <Plus size={16} />
           إنشاء حزمة جديدة

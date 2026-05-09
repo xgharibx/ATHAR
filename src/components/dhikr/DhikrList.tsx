@@ -378,7 +378,7 @@ export function DhikrList(props: Readonly<{
                   <>
                     <Button
                       variant="outline"
-                      className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10 shrink-0"
+                      className="border-danger-40 text-[var(--danger)] hover:bg-danger-10 shrink-0"
                       onClick={() => { resetSection(props.sectionId); setConfirmReset(false); }}
                     >
                       <RotateCcw size={16} />
@@ -403,7 +403,7 @@ export function DhikrList(props: Readonly<{
                   <>
                     <Button
                       variant="outline"
-                      className="border-[var(--ok)]/40 text-[var(--ok)] hover:bg-[var(--ok)]/10 shrink-0"
+                      className="border-ok-40 text-[var(--ok)] hover:bg-ok-10 shrink-0"
                       onClick={markAllDone}
                     >
                       <CheckCheck size={16} />
@@ -507,7 +507,7 @@ export function DhikrList(props: Readonly<{
                     <>
                       <Button
                         variant="outline"
-                        className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10 shrink-0"
+                        className="border-danger-40 text-[var(--danger)] hover:bg-danger-10 shrink-0"
                         onClick={() => { props.onDeleteCategory!(); }}
                       >
                         <Trash2 size={14} />
@@ -520,7 +520,7 @@ export function DhikrList(props: Readonly<{
                   ) : (
                     <Button
                       variant="outline"
-                      className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10 shrink-0"
+                      className="border-danger-40 text-[var(--danger)] hover:bg-danger-10 shrink-0"
                       onClick={() => setConfirmDeleteCategory(true)}
                     >
                       <Trash2 size={14} />
@@ -551,7 +551,7 @@ export function DhikrList(props: Readonly<{
       <div style={{ height: "calc(100dvh - 240px)", minHeight: "440px" }} className={compact ? "dhikr-compact" : ""}>
         {stats.percent >= 100 && (
           <div className="mb-3 space-y-2">
-            <div className="rounded-3xl border border-[var(--ok)]/30 bg-[var(--ok)]/10 px-5 py-4 flex items-center gap-3">
+            <div className="rounded-3xl border border-ok-30 bg-ok-10 px-5 py-4 flex items-center gap-3">
               <span className="text-2xl">✅</span>
               <div>
                 <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>اكتمل القسم</div>
@@ -634,7 +634,7 @@ export function DhikrList(props: Readonly<{
                       <div className="flex gap-1">
                         <button type="button"
                           onClick={() => { handleDeleteItem(entry.originalIndex); setDeletingItemIdx(null); }}
-                          className="text-[10px] px-2.5 py-1 rounded-xl bg-[var(--danger)]/20 text-[var(--danger)] border border-[var(--danger)]/20"
+                          className="text-[10px] px-2.5 py-1 rounded-xl bg-danger-20 text-[var(--danger)] border border-danger-20"
                         >
                           تأكيد الحذف
                         </button>
@@ -715,7 +715,7 @@ export function DhikrList(props: Readonly<{
                 onChange={(event) => setCustomText(event.target.value)}
                 placeholder="اكتب الذكر"
                 aria-label="نص الذكر الجديد"
-                className="form-field-readable mt-3 min-h-36 w-full rounded-3xl border border-white/10 px-4 py-3 text-sm leading-7 outline-none focus:border-[var(--accent)]/40"
+                className="form-field-readable mt-3 min-h-36 w-full rounded-3xl border border-white/10 px-4 py-3 text-sm leading-7 outline-none focus:border-accent-40"
               />
               <Input
                 className="mt-3"

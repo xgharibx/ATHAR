@@ -242,7 +242,7 @@ export function FavoritesPage() {
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "adhkar"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                ? "bg-accent-15 border-accent-35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
             ].join(" ")}
           >
@@ -254,7 +254,7 @@ export function FavoritesPage() {
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "quran"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                ? "bg-accent-15 border-accent-35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
             ].join(" ")}
           >
@@ -266,7 +266,7 @@ export function FavoritesPage() {
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "hadith"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                ? "bg-accent-15 border-accent-35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
             ].join(" ")}
           >
@@ -278,7 +278,7 @@ export function FavoritesPage() {
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "duas"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                ? "bg-accent-15 border-accent-35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
             ].join(" ")}
           >
@@ -290,7 +290,7 @@ export function FavoritesPage() {
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "stories"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                ? "bg-accent-15 border-accent-35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
             ].join(" ")}
           >
@@ -302,7 +302,7 @@ export function FavoritesPage() {
             className={[
               "flex items-center gap-1.5 px-4 py-2 rounded-2xl border text-sm transition min-h-[40px] shrink-0",
               activeTab === "companions"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-medium"
+                ? "bg-accent-15 border-accent-35 font-medium"
                 : "bg-white/6 border-white/10 opacity-70 hover:opacity-100"
             ].join(" ")}
           >

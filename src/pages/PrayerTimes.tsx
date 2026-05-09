@@ -128,7 +128,7 @@ function rowIcon(row: PrayerDetailRow) {
 }
 
 function rowStyles(row: PrayerDetailRow, active: boolean, next: boolean) {
-  if (active)                   return "bg-[var(--accent)]/12 border-[var(--accent)]/30";
+  if (active)                   return "bg-accent-12 border-accent-30";
   if (next && row.type === "prayer") return "bg-white/7 border-white/15";
   switch (row.type) {
     case "forbidden": return "bg-[#ff9b9b]/12 border-[#ffb1b1]/25";
@@ -300,7 +300,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
             value={prefs.prayerCalcMethod ?? 5}
             onChange={(e) => setPrefs({ prayerCalcMethod: Number(e.target.value) })}
             aria-label="طريقة الحساب"
-            className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50"
+            className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-accent-50"
           >
             {PRAYER_CALC_METHODS.map((m) => (
               <option key={m.value} value={m.value} className="bg-gray-900 text-white">{m.label}</option>
@@ -318,7 +318,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
                 className={cn(
                   "flex-1 rounded-xl border px-3 py-2 text-sm transition",
                   (prefs.asrMadhab ?? 0) === v
-                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/40 text-white"
+                    ? "bg-accent-15 border-accent-40 text-white"
                     : "border-white/10 bg-white/5 opacity-60 hover:opacity-80"
                 )}>
                 {v === 0 ? "شافعي / مالكي / حنبلي" : "حنفي"}
@@ -404,7 +404,7 @@ function WeeklyTab() {
           {week.map((day) => {
             const isToday = Number(day.date.gregorian.day) === todayDay;
             return (
-              <tr key={day.date.gregorian.date} className={cn("border-t border-white/8", isToday && "bg-[var(--accent)]/8 rounded-xl")}>
+              <tr key={day.date.gregorian.date} className={cn("border-t border-white/8", isToday && "bg-accent-8 rounded-xl")}>
                 <td className="py-2 pr-1">
                   <div className="flex flex-col">
                     <span className={cn("font-medium", isToday && "text-[var(--accent)]")}>
@@ -467,7 +467,7 @@ function MonthlyTab() {
                 const dayNum  = Number(day.date.gregorian.day);
                 const isToday = isCurrentMonth && dayNum === todayDay;
                 return (
-                  <tr key={day.date.gregorian.date} className={cn("border-t border-white/6", isToday && "bg-[var(--accent)]/8")}>
+                  <tr key={day.date.gregorian.date} className={cn("border-t border-white/6", isToday && "bg-accent-8")}>
                     <td className="py-1.5 pr-1">
                       <div className={cn("font-medium", isToday && "text-[var(--accent)]")}>{day.date.gregorian.day}</div>
                       <div className="opacity-40 text-[9px]">{day.date.hijri.day} {day.date.hijri.month.ar}</div>
@@ -516,7 +516,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
           <button
             type="button"
             onClick={() => { PRIMARY_PRAYERS.forEach((p) => setPrayerLogged(today, p, true)); }}
-            className="w-full mb-3 py-2 px-4 rounded-2xl bg-[var(--accent)]/10 border border-[var(--accent)]/25 text-sm text-white/70 hover:bg-[var(--accent)]/18 transition"
+            className="w-full mb-3 py-2 px-4 rounded-2xl bg-accent-10 border border-accent-25 text-sm text-white/70 hover:bg-accent-18 transition"
           >
             صلّيت جميع الصلوات اليوم ✓
           </button>
@@ -529,7 +529,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
               <div key={p}
                 className={cn(
                   "flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition cursor-pointer select-none",
-                  prayed ? "bg-[var(--accent)]/12 border-[var(--accent)]/30" : "bg-white/4 border-white/10 hover:bg-white/8"
+                  prayed ? "bg-accent-12 border-accent-30" : "bg-white/4 border-white/10 hover:bg-white/8"
                 )}
                 onClick={() => setPrayerLogged(today, p, !prayed)}
                 role="button" tabIndex={0}
@@ -546,7 +546,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
                     {timeRaw && <div dir="ltr" className="text-xs opacity-50 text-left">{format12h(cleanTime(timeRaw))}</div>}
                   </div>
                 </div>
-                {prayed && <Badge className="text-[10px] bg-[var(--accent)]/16 border-[var(--accent)]/20">صلّيتُ ✓</Badge>}
+                {prayed && <Badge className="text-[10px] bg-accent-16 border-accent-20">صلّيتُ ✓</Badge>}
               </div>
             );
           })}
@@ -604,7 +604,7 @@ function HijriCalendarTab() {
   return (
     <div className="space-y-3">
       {hijriHeader && isCurrentMonth && (
-        <div className="text-center py-2 rounded-2xl bg-[var(--accent)]/8 border border-[var(--accent)]/15 text-sm">
+        <div className="text-center py-2 rounded-2xl bg-accent-8 border border-accent-15 text-sm">
           اليوم: {hijriHeader.day} {HIJRI_MONTH_NAMES[(hijriHeader.month.number ?? 1) - 1] ?? hijriHeader.month.ar} {hijriHeader.year} هـ
         </div>
       )}
@@ -641,7 +641,7 @@ function HijriCalendarTab() {
                 <div key={day.date.gregorian.date} title={hasEvent ? events.join("، ") : undefined}
                   className={cn(
                     "rounded-xl p-1 min-h-[52px] flex flex-col items-center gap-0.5 text-center relative",
-                    isToday    && "bg-[var(--accent)]/20 ring-1 ring-[var(--accent)]/40",
+                    isToday    && "bg-accent-20 ring-1 ring-accent-40",
                     hasEvent   && !isToday && "bg-[#ffd27d]/8 ring-1 ring-[#ffd27d]/25",
                     isFriday   && !isToday && !hasEvent && "bg-white/4"
                   )}>
@@ -732,20 +732,20 @@ function CitiesTab() {
               <div className="text-xs opacity-50 mb-1">اسم المدينة</div>
               <input value={cityInput} onChange={(e) => setCityInput(e.target.value)} placeholder="Cairo"
                 aria-label="اسم المدينة"
-                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50" />
+                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-accent-50" />
             </div>
             <div>
               <div className="text-xs opacity-50 mb-1">الدولة</div>
               <input value={countryInput} onChange={(e) => setCountryInput(e.target.value)} placeholder="Egypt"
                 aria-label="الدولة"
-                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50" />
+                className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-accent-50" />
             </div>
           </div>
           <div>
             <div className="text-xs opacity-50 mb-1">الاسم المعروض (اختياري)</div>
             <input value={labelInput} onChange={(e) => setLabelInput(e.target.value)} placeholder="القاهرة"
               aria-label="الاسم المعروض"
-              className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50" />
+              className="w-full rounded-xl border border-white/15 bg-white/8 px-3 py-2 text-sm outline-none focus:border-accent-50" />
           </div>
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={handleAdd}>حفظ</Button>
@@ -1151,7 +1151,7 @@ export function PrayerTimesPage() {
             className={cn(
               "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition",
               activeTab === tab.key
-                ? "bg-[var(--accent)]/15 border border-[var(--accent)]/35 text-white font-medium"
+                ? "bg-accent-15 border border-accent-35 text-white font-medium"
                 : "bg-white/6 border border-white/10 opacity-60 hover:opacity-80"
             )}>
             <tab.icon size={13} />
@@ -1187,7 +1187,7 @@ export function PrayerTimesPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <div className="text-sm font-semibold">{row.label}</div>
-                        {isActive && <Badge className="text-[10px] bg-[var(--accent)]/16 border-[var(--accent)]/20 text-white">الآن</Badge>}
+                        {isActive && <Badge className="text-[10px] bg-accent-16 border-accent-20 text-white">الآن</Badge>}
                         {!isActive && isNext && <Badge className="text-[10px]">التالي</Badge>}
                       </div>
                     </div>

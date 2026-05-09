@@ -318,7 +318,7 @@ export function HadithReaderPage() {
                 if (!isMemoCard) addHadithMemoCard(memoCardKey);
                 navigate("/hadith/memo");
               }}
-              className={cn(isMemoCard && "ring-1 ring-[var(--accent)]/40")}
+              className={cn(isMemoCard && "ring-1 ring-accent-40")}
             >
               <BrainCircuit size={18} style={{ color: isMemoCard ? accentColor : "var(--muted)" }} />
             </IconButton>
@@ -422,7 +422,7 @@ export function HadithReaderPage() {
               placeholder="أضف ملاحظتك هنا…"
               aria-label="ملاحظة الحديث"
               rows={4}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 resize-none outline-none font-arabic text-sm leading-7 placeholder:opacity-40 focus:border-[var(--accent)]/40"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 resize-none outline-none font-arabic text-sm leading-7 placeholder:opacity-40 focus:border-accent-40"
               style={{ color: "var(--fg)" }}
               autoFocus
             />

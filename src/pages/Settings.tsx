@@ -58,7 +58,7 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
       className={[
         "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px]",
         props.active
-          ? "bg-[var(--accent)]/15 border-[var(--accent)]/35"
+          ? "bg-accent-15 border-accent-35"
           : "bg-white/6 border-white/10 hover:bg-white/8"
       ].join(" ")}
     >
@@ -346,7 +346,7 @@ export function SettingsPage() {
                 className={[
                   "px-3 py-2.5 rounded-2xl border text-sm transition flex flex-col items-center gap-1 min-h-[60px] min-w-[90px]",
                   (prefs.arabicFont ?? "noto_naskh") === f.id
-                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/35"
+                    ? "bg-accent-15 border-accent-35"
                     : "bg-white/6 border-white/10 hover:bg-white/8"
                 ].join(" ")}
               >
@@ -375,7 +375,7 @@ export function SettingsPage() {
                   className={[
                     "px-4 py-2 rounded-xl border text-sm transition min-h-[40px] relative",
                     (prefs.uiLanguage ?? "ar") === lang
-                      ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-semibold"
+                      ? "bg-accent-15 border-accent-35 font-semibold"
                       : "bg-white/6 border-white/10 hover:bg-white/10 opacity-60"
                   ].join(" ")}
                 >
@@ -405,7 +405,7 @@ export function SettingsPage() {
                   className={[
                     "px-3 py-2 rounded-xl border text-xs transition min-h-[40px]",
                     (prefs.textDir ?? "auto") === d.id
-                      ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-semibold"
+                      ? "bg-accent-15 border-accent-35 font-semibold"
                       : "bg-white/6 border-white/10 hover:bg-white/10"
                   ].join(" ")}
                 >
@@ -519,7 +519,7 @@ export function SettingsPage() {
                       className={[
                         "px-4 py-3 rounded-xl border text-sm transition min-h-[44px]",
                         prefs.quranPageSize === n
-                          ? "bg-[var(--accent)]/15 border-[var(--accent)]/35"
+                          ? "bg-accent-15 border-accent-35"
                           : "bg-white/6 border-white/10 hover:bg-white/10"
                       ].join(" ")}
                     >
@@ -568,7 +568,7 @@ export function SettingsPage() {
                     className={[
                       "text-[10px] px-2.5 py-1.5 rounded-xl border transition min-h-[36px]",
                       prefs.quranTheme === t
-                        ? "bg-[var(--accent)]/15 border-[var(--accent)]/35"
+                        ? "bg-accent-15 border-accent-35"
                         : "bg-white/6 border-white/10 hover:bg-white/10"
                     ].join(" ")}
                   >
@@ -592,7 +592,7 @@ export function SettingsPage() {
                     className={[
                       "text-xs px-3 py-2 rounded-xl border transition min-h-[36px]",
                       prefs.quranScrollMode === m
-                        ? "bg-[var(--accent)]/15 border-[var(--accent)]/35"
+                        ? "bg-accent-15 border-accent-35"
                         : "bg-white/6 border-white/10 hover:bg-white/10"
                     ].join(" ")}
                   >
@@ -655,7 +655,7 @@ export function SettingsPage() {
                   className={[
                     "px-3 py-2 rounded-xl border text-xs transition min-h-[36px]",
                     (prefs.quranDailyGoal ?? 10) === p.value
-                      ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-semibold"
+                      ? "bg-accent-15 border-accent-35 font-semibold"
                       : "bg-white/6 border-white/10 hover:bg-white/10"
                   ].join(" ")}
                 >
@@ -692,7 +692,7 @@ export function SettingsPage() {
                 className={[
                   "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px] text-right",
                   (prefs.quranReciter ?? "Alafasy_128kbps") === r.id
-                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/35"
+                    ? "bg-accent-15 border-accent-35"
                     : "bg-white/6 border-white/10 hover:bg-white/8"
                 ].join(" ")}
               >
@@ -844,7 +844,7 @@ export function SettingsPage() {
                   className={[
                     "rounded-2xl border p-3 transition",
                     active
-                      ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
+                      ? "bg-accent-12 border-accent-30"
                       : "bg-white/4 border-white/10",
                   ].join(" ")}
                 >
@@ -921,7 +921,7 @@ export function SettingsPage() {
                       className={[
                         "rounded-2xl border p-3 transition",
                         active
-                          ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
+                          ? "bg-accent-12 border-accent-30"
                           : "bg-white/4 border-white/10",
                       ].join(" ")}
                     >
@@ -1357,7 +1357,7 @@ function DangerZone() {
   };
 
   return (
-    <Card className="p-5 border border-[var(--danger)]/20">
+    <Card className="p-5 border border-danger-20">
       <div className="flex items-center gap-2 mb-3">
         <Trash2 size={16} className="text-[var(--danger)]" />
         <div className="text-sm font-semibold text-[var(--danger)]">منطقة الخطر</div>
@@ -1370,7 +1370,7 @@ function DangerZone() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10"
+            className="border-danger-40 text-[var(--danger)] hover:bg-danger-10"
             onClick={handleReset}
           >
             <Trash2 size={15} />
@@ -1400,7 +1400,7 @@ function DangerZone() {
           </Button>
           <Button
             variant="outline"
-            className="justify-start border-[var(--danger)]/30 text-[var(--danger)]/80 hover:bg-[var(--danger)]/8"
+            className="justify-start border-danger-30 text-danger-80 hover:bg-danger-8"
             onClick={() => setConfirm("all")}
           >
             <Trash2 size={15} />

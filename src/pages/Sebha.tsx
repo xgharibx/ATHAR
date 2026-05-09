@@ -221,8 +221,8 @@ function CircularRing({
         className={cn(
           "absolute inset-0 rounded-full border transition active:scale-[.98] select-none flex items-center justify-center",
           completed
-            ? "bg-[var(--ok)]/12 border-[var(--ok)]/30"
-            : "bg-[var(--accent)]/12 border-[var(--accent)]/25 hover:bg-[var(--accent)]/16"
+            ? "bg-ok-12 border-ok-30"
+            : "bg-accent-12 border-accent-25 hover:bg-accent-16"
         )}
         aria-label="اضغط للعد"
         style={{ pointerEvents: "auto" }}
@@ -790,7 +790,7 @@ export function SebhaPage() {
               className={cn(
                 "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition",
                 tallyMode
-                  ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
+                  ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
                   : "border-white/10 bg-white/5 text-white/65 hover:bg-white/8"
               )}
             >
@@ -854,7 +854,7 @@ export function SebhaPage() {
             {tallyLaps.map((lap, i) => (
               <span
                 key={i}
-                className="text-xs rounded-full bg-[var(--accent)]/15 border border-[var(--accent)]/25 px-2 py-0.5 text-[var(--accent)]"
+                className="text-xs rounded-full bg-accent-15 border border-accent-25 px-2 py-0.5 text-[var(--accent)]"
               >
                 {lap % 100 === 0 ? "💯" : "🔖"} {lap}
               </span>
@@ -881,7 +881,7 @@ export function SebhaPage() {
                 className={cn(
                   "flex-shrink-0 px-3 py-2 rounded-2xl text-xs font-medium transition-all active:scale-95 arabic-text whitespace-nowrap border",
                   isActiveQP
-                    ? "bg-[var(--accent)]/15 border-[var(--accent)]/40 text-[var(--accent)]"
+                    ? "bg-accent-15 border-accent-40 text-[var(--accent)]"
                     : "border-white/10 bg-white/5 hover:bg-white/8"
                 )}
               >
@@ -905,8 +905,8 @@ export function SebhaPage() {
               onClick={() => setSelected(item.key)}
               className={cn(
                 "glass rounded-3xl p-4 text-right border transition active:scale-[.98]",
-                active ? "border-[var(--accent)]/35 bg-[var(--accent)]/8"
-                : itemDone ? "border-[var(--ok)]/35 bg-[var(--ok)]/6 hover:bg-[var(--ok)]/8"
+                active ? "border-accent-35 bg-accent-8"
+                : itemDone ? "border-ok-35 bg-ok-6 hover:bg-ok-8"
                 : "border-white/10 hover:bg-white/6"
               )}
             >
@@ -934,7 +934,7 @@ export function SebhaPage() {
             className={cn(
               "glass rounded-3xl p-4 text-right border transition active:scale-[.98]",
               selected === "custom"
-                ? "border-[var(--accent)]/35 bg-[var(--accent)]/8"
+                ? "border-accent-35 bg-accent-8"
                 : "border-white/10 hover:bg-white/6"
             )}
           >
@@ -998,7 +998,7 @@ export function SebhaPage() {
                 value={customPhraseInput}
                 onChange={(e) => setCustomPhraseInput(e.target.value)}
                 placeholder="مثال: صلِّ على النبي"
-                className="w-full rounded-xl bg-white/8 border border-white/10 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50 transition"
+                className="w-full rounded-xl bg-white/8 border border-white/10 px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
               />
             </div>
             <div>
@@ -1010,7 +1010,7 @@ export function SebhaPage() {
                 max={10000}
                 value={customTargetInput}
                 onChange={(e) => setCustomTargetInput(e.target.value)}
-                className="w-full rounded-xl bg-white/8 border border-white/10 px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/50 transition"
+                className="w-full rounded-xl bg-white/8 border border-white/10 px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
               />
             </div>
             <div className="flex gap-2">

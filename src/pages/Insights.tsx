@@ -978,7 +978,7 @@ export function InsightsPage() {
                 onClick={() => setHeatmapView(v)}
                 className={`text-[10px] px-2 py-0.5 rounded-full border transition ${
                   heatmapView === v
-                    ? "border-[var(--accent)]/40 bg-[var(--accent)]/15 text-[var(--accent)]"
+                    ? "border-accent-40 bg-accent-15 text-[var(--accent)]"
                     : "border-white/10 opacity-50"
                 }`}
               >
@@ -1011,9 +1011,9 @@ export function InsightsPage() {
                 const bg =
                   isFuture ? "bg-white/3 opacity-30" :
                   heat === 0 ? "bg-white/5" :
-                  heat === 1 ? "bg-[var(--accent)]/25" :
-                  heat === 2 ? "bg-[var(--accent)]/50" :
-                  heat === 3 ? "bg-[var(--accent)]/75" :
+                  heat === 1 ? "bg-accent-25" :
+                  heat === 2 ? "bg-accent-50" :
+                  heat === 3 ? "bg-accent-75" :
                                "bg-[var(--accent)]";
                 return (
                   <div
@@ -1033,9 +1033,9 @@ export function InsightsPage() {
           {[0,1,2,3,4].map((h) => (
             <div key={h} className={`w-3 h-3 rounded-sm ${
               h === 0 ? "bg-white/5" :
-              h === 1 ? "bg-[var(--accent)]/25" :
-              h === 2 ? "bg-[var(--accent)]/50" :
-              h === 3 ? "bg-[var(--accent)]/75" :
+              h === 1 ? "bg-accent-25" :
+              h === 2 ? "bg-accent-50" :
+              h === 3 ? "bg-accent-75" :
                          "bg-[var(--accent)]"
             }`} />
           ))}
@@ -1103,7 +1103,7 @@ export function InsightsPage() {
               <div className="font-semibold text-sm">إحصاءات القرآن</div>
             </div>
             {quranStreak > 0 && (
-              <div className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20">
+              <div className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-xl bg-accent-10 border border-accent-20">
                 <Flame size={11} className="text-[var(--accent)]" />
                 <span className="tabular-nums">{quranStreak.toLocaleString("ar-EG")} يوم</span>
               </div>
@@ -1208,7 +1208,7 @@ export function InsightsPage() {
                   d.done === 0 ? "bg-white/5" :
                   d.done <= 2 ? "bg-yellow-400/40" :
                   d.done <= 4 ? "bg-orange-400/60" :
-                                "bg-[var(--ok)]/70";
+                                "bg-ok-70";
                 return (
                   <div
                     key={d.key}
@@ -1222,7 +1222,7 @@ export function InsightsPage() {
               <div className="w-3 h-3 rounded-sm bg-white/5" /><span>٠</span>
               <div className="w-3 h-3 rounded-sm bg-yellow-400/40" /><span>١-٢</span>
               <div className="w-3 h-3 rounded-sm bg-orange-400/60" /><span>٣-٤</span>
-              <div className="w-3 h-3 rounded-sm bg-[var(--ok)]/70" /><span>٥ كاملة</span>
+              <div className="w-3 h-3 rounded-sm bg-ok-70" /><span>٥ كاملة</span>
             </div>
           </>
         )}
@@ -1316,7 +1316,7 @@ export function InsightsPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className={`w-9 h-9 rounded-2xl border flex items-center justify-center ${
-              notifPermission === "granted" ? "border-[var(--ok)]/30 bg-[var(--ok)]/10" : "border-white/10 bg-white/5"
+              notifPermission === "granted" ? "border-ok-30 bg-ok-10" : "border-white/10 bg-white/5"
             }`}>
               {notifPermission === "granted" ? <Bell size={15} className="text-[var(--ok)]" /> : <BellOff size={15} className="opacity-50" />}
             </div>
@@ -1361,7 +1361,7 @@ export function InsightsPage() {
               <div className="text-[11px] opacity-55">الشارة القادمة</div>
               <div className="mt-1 text-sm font-semibold truncate">{nextMilestone.label}</div>
             </div>
-            <span className="shrink-0 rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-3 py-1.5 text-xs font-semibold tabular-nums text-[var(--accent)]">
+            <span className="shrink-0 rounded-2xl border border-accent-20 bg-accent-10 px-3 py-1.5 text-xs font-semibold tabular-nums text-[var(--accent)]">
               {Math.max(0, nextMilestone.req - (nextMilestone.type === "total" ? total : streak)).toLocaleString("ar-EG")}
               {nextMilestone.type === "total" ? " ذكر" : " يوم"}
             </span>
@@ -1374,7 +1374,7 @@ export function InsightsPage() {
               className={[
                 "flex flex-col items-center gap-1 py-3 rounded-2xl border transition-all",
                 m.unlocked
-                  ? "border-[var(--accent)]/35 bg-[var(--accent)]/10"
+                  ? "border-accent-35 bg-accent-10"
                   : "border-white/8 bg-white/3 opacity-40 grayscale",
               ].join(" ")}
               title={m.unlocked ? `مفتوح — ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم سلسلة`}` : `يتطلب ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم متواصل`}`}
@@ -1393,7 +1393,7 @@ export function InsightsPage() {
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-lg border ${isWirdDone ? "border-[var(--ok)]/30 bg-[var(--ok)]/10" : "border-white/10 bg-white/5"}`}>
+            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-lg border ${isWirdDone ? "border-ok-30 bg-ok-10" : "border-white/10 bg-white/5"}`}>
               {isWirdDone ? "✅" : "📖"}
             </div>
             <div>
@@ -1602,7 +1602,7 @@ export function InsightsPage() {
 
 function MiniStatSmall(props: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`glass rounded-2xl p-2.5 border text-center ${props.accent ? "border-[var(--accent)]/30 bg-[var(--accent)]/8" : "border-white/10"}`}>
+    <div className={`glass rounded-2xl p-2.5 border text-center ${props.accent ? "border-accent-30 bg-accent-8" : "border-white/10"}`}>
       <div className="text-[11px] opacity-55 truncate">{props.label}</div>
       <div className={`text-sm font-bold mt-0.5 tabular-nums ${props.accent ? "text-[var(--accent)]" : ""}`}>{props.value}</div>
     </div>

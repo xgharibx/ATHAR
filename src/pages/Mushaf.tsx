@@ -1548,7 +1548,7 @@ export function MushafPage() {
                         ${dlState === "done"
                           ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
                           : typeof dlState === "object"
-                            ? "bg-[var(--accent)]/10 border-[var(--accent)]/20 text-[var(--accent)] cursor-wait"
+                            ? "bg-accent-10 border-accent-20 text-[var(--accent)] cursor-wait"
                             : "bg-white/6 border-white/10 opacity-55 hover:opacity-90"}`}
                     >
                       {dlState === "done"
@@ -1775,7 +1775,7 @@ export function MushafPage() {
                   onClick={() => setInlineTafseerSource(src)}
                   className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition ${
                     inlineTafseerSource === src
-                      ? "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30"
+                      ? "bg-accent-20 text-[var(--accent)] border border-accent-30"
                       : "opacity-55 hover:opacity-80"
                   }`}
                 >
@@ -1907,7 +1907,7 @@ export function MushafPage() {
                       onClick={() => setInlineTafseerSource(src)}
                       className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${
                         inlineTafseerSource === src
-                          ? "bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30"
+                          ? "bg-accent-20 text-[var(--accent)] border border-accent-30"
                           : "opacity-50 hover:opacity-80"
                       }`}
                     >
@@ -1931,7 +1931,7 @@ export function MushafPage() {
                   <button type="button"
                     key={sp}
                     onClick={() => setPlaybackSpeed(sp)}
-                    className={`px-2.5 py-1 rounded-xl text-xs border transition ${playbackSpeed === sp ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                    className={`px-2.5 py-1 rounded-xl text-xs border transition ${playbackSpeed === sp ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
                   >{sp}×</button>
                 ))}
               </div>
@@ -1954,7 +1954,7 @@ export function MushafPage() {
                     <button type="button"
                       key={n}
                       onClick={() => setLoopCount(n)}
-                      className={`px-2.5 py-1 rounded-xl text-xs border transition ${loopCount === n ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                      className={`px-2.5 py-1 rounded-xl text-xs border transition ${loopCount === n ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
                     >{n === -1 ? "∞" : `${n}×`}</button>
                   ))}
                 </div>
@@ -2042,7 +2042,7 @@ export function MushafPage() {
                   <button type="button"
                     key={t}
                     onClick={() => setPrefs({ quranTheme: t })}
-                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
                   >{{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق" }[t]}</button>
                 ))}
               </div>
@@ -2102,7 +2102,7 @@ export function MushafPage() {
                   <button type="button"
                     key={m}
                     onClick={() => activateSleepTimer(m)}
-                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${sleepMinutes === m ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${sleepMinutes === m ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
                   >{m === 0 ? "إيقاف" : `${m} د`}</button>
                 ))}
               </div>
@@ -2114,7 +2114,7 @@ export function MushafPage() {
                 <span className="text-xs opacity-50 flex items-center gap-1"><Radio size={12} />راديو القرآن</span>
                 <button type="button"
                   onClick={handleRadioToggle}
-                  className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioState.playing ? "bg-[var(--accent)]/20 border-[var(--accent)]/30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                  className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioState.playing ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
                 >{radioState.loading ? "جارٍ التشغيل…" : radioState.playing ? "⏹ إيقاف" : "▶ تشغيل"}</button>
               </div>
               <div className="flex gap-1 flex-wrap">
@@ -2122,7 +2122,7 @@ export function MushafPage() {
                   <button type="button"
                     key={st.label}
                     onClick={() => handleRadioStationSelect(i)}
-                    className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioState.stationIdx === i ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
+                    className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioState.stationIdx === i ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
                   >{st.label}</button>
                 ))}
               </div>

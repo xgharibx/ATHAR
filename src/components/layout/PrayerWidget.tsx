@@ -79,7 +79,7 @@ export function PrayerWidget() {
               key={prayer.name}
               className={cn(
                 "flex flex-col gap-1 rounded-2xl py-1.5",
-                isCurrent && "bg-[var(--accent)]/12 border border-[var(--accent)]/25",
+                isCurrent && "bg-accent-12 border border-accent-25",
                 !isCurrent && isNext && "bg-white/6 border border-white/12"
               )}
             >

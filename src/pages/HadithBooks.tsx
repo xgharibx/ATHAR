@@ -261,7 +261,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
           placeholder="ابحث في الأحاديث…"
           dir="rtl"
           aria-label="البحث في كتب الحديث"
-          className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pr-9 pl-4 text-sm font-arabic text-[var(--fg)] outline-none focus:border-[var(--accent)]/45"
+          className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pr-9 pl-4 text-sm font-arabic text-[var(--fg)] outline-none focus:border-accent-45"
         />
       </div>
 

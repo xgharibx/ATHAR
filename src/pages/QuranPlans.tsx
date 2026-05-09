@@ -327,7 +327,7 @@ export function QuranPlansPage() {
           </div>
         </Card>
         <Card className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[var(--accent)]/15 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-accent-15 flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-[var(--accent)]" />
           </div>
           <div>
@@ -365,7 +365,7 @@ export function QuranPlansPage() {
                   onClick={() => startPlan(preset.days)}
                   className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all text-right
                     ${isActive
-                      ? "bg-[var(--accent)]/15 border border-[var(--accent)]/40"
+                      ? "bg-accent-15 border border-accent-40"
                       : "bg-white/5 hover:bg-white/10 border border-transparent"}`}
                 >
                   <span className="text-xl w-8 text-center">{preset.emoji}</span>
@@ -396,7 +396,7 @@ export function QuranPlansPage() {
                 min={7}
                 max={730}
                 onChange={(e) => setCustomDays(e.target.value)}
-                className="flex-1 bg-white/8 border border-white/10 rounded-2xl px-3 py-2 text-sm text-right focus:outline-none focus:border-[var(--accent)]/60"
+                className="flex-1 bg-white/8 border border-white/10 rounded-2xl px-3 py-2 text-sm text-right focus:outline-none focus:border-accent-60"
                 placeholder="عدد الأيام"
               />
               <Button onClick={handleCustomStart} className="shrink-0 text-sm px-4">

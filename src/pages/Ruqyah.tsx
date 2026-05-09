@@ -36,13 +36,13 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
       className={cn(
         "rounded-3xl border p-4 transition-all",
         done
-          ? "border-[color-mix(in_srgb,var(--ok)_30%,transparent)] bg-[var(--ok)]/5"
+          ? "border-[color-mix(in_srgb,var(--ok)_30%,transparent)] bg-ok-5"
           : "border-white/10 glass"
       )}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs px-2.5 py-1 rounded-full bg-[var(--accent)]/12 border border-[var(--accent)]/20 font-semibold text-[var(--accent)]">
+          <span className="text-xs px-2.5 py-1 rounded-full bg-accent-12 border border-accent-20 font-semibold text-[var(--accent)]">
             {idx + 1}
           </span>
           <span className="text-xs opacity-55">{item.source}</span>
@@ -89,7 +89,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
               className={cn(
                 "w-7 h-7 rounded-full border transition-all text-xs font-bold",
                 i < count
-                  ? "bg-[var(--ok)]/20 border-[var(--ok)]/40 text-[var(--ok)]"
+                  ? "bg-ok-20 border-ok-40 text-[var(--ok)]"
                   : "bg-white/5 border-white/15 opacity-50"
               )}
             >

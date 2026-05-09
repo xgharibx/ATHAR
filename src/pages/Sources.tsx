@@ -125,7 +125,7 @@ export function SourcesPage() {
           onChange={(event) => setCustomText(event.target.value)}
           placeholder="اكتب الذكر"
           aria-label="نص الذكر"
-          className="form-field-readable mt-3 min-h-32 w-full rounded-3xl border border-white/10 px-4 py-3 text-sm leading-7 outline-none focus:border-[var(--accent)]/40"
+          className="form-field-readable mt-3 min-h-32 w-full rounded-3xl border border-white/10 px-4 py-3 text-sm leading-7 outline-none focus:border-accent-40"
         />
 
         <Input
@@ -168,7 +168,7 @@ export function SourcesPage() {
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
-                      className="border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10"
+                      className="border-danger-40 text-[var(--danger)] hover:bg-danger-10"
                       onClick={() => onRemove(p.packId)}
                     >
                       <Trash2 size={16} />

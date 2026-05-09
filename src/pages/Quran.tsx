@@ -328,8 +328,8 @@ export function QuranPage() {
 
           {/* Mode toggle — search surahs vs ayahs */}
           <div className="mt-3 flex rounded-2xl bg-white/6 border border-white/10 overflow-hidden w-fit">
-            <button type="button" onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
-            <button type="button" onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
+            <button type="button" onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
+            <button type="button" onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
           </div>
         </div>
 
@@ -493,7 +493,7 @@ export function QuranPage() {
             </div>
 
             {!khatma.isFinished ? (
-              <div className={`mt-3 glass rounded-3xl p-4 border transition-colors ${khatma.meta.doneToday ? "border-[var(--ok)]/30" : "border-white/10"}`}>
+              <div className={`mt-3 glass rounded-3xl p-4 border transition-colors ${khatma.meta.doneToday ? "border-ok-30" : "border-white/10"}`}>
                 {khatma.meta.doneToday ? (
                   <div className="mb-3 flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>
                     <CheckCircle2 size={12} />
@@ -564,13 +564,13 @@ export function QuranPage() {
             <div className="flex rounded-xl bg-white/6 border border-white/10 overflow-hidden text-sm">
               <button type="button"
                 onClick={() => setSortMode("mushaf")}
-                className={`px-3.5 h-9 transition ${sortMode === "mushaf" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+                className={`px-3.5 h-9 transition ${sortMode === "mushaf" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 المصحف
               </button>
               <button type="button"
                 onClick={() => setSortMode("progress")}
-                className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-[var(--accent)]/20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+                className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 التقدم
               </button>
@@ -619,7 +619,7 @@ export function QuranPage() {
             {bookmarkedCount > 0 && (
               <button type="button"
                 onClick={() => setShowBookmarks((v) => !v)}
-                className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-55 hover:opacity-90"}`}
+                className={`flex items-center gap-1.5 px-3 h-9 rounded-xl border text-sm transition ${showBookmarks ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-55 hover:opacity-90"}`}
               >
                 <Bookmark size={13} />
                 <span className="tabular-nums">{bookmarkedCount}</span>
@@ -738,7 +738,7 @@ export function QuranPage() {
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >
                   {/* Number badge */}
-                  <div className={`surah-num-badge shrink-0 ${isCurrent ? "ring-2 ring-[var(--accent)]/50" : ""}`}>
+                  <div className={`surah-num-badge shrink-0 ${isCurrent ? "ring-2 ring-accent-50" : ""}`}>
                     {toArabicNumeral(s.id)}
                   </div>
 

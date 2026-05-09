@@ -756,7 +756,7 @@ function VideoHome({
               }}
               className={cn(
                 "w-11 h-11 rounded-2xl glass border border-white/15 flex items-center justify-center shrink-0 press-effect transition-all",
-                searchOpen && "bg-[var(--accent)]/20 border-[var(--accent)]/50",
+                searchOpen && "bg-accent-20 border-accent-50",
               )}
             >
               {searchOpen ? <X size={17} /> : <Search size={17} />}
@@ -772,7 +772,7 @@ function VideoHome({
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="ابحث عن شيخ، دورة، أو درس..."
-                className="w-full rounded-2xl bg-white/8 border border-white/15 pr-9 pl-4 py-3 text-sm outline-none focus:border-[var(--accent)]/60 transition-colors"
+                className="w-full rounded-2xl bg-white/8 border border-white/15 pr-9 pl-4 py-3 text-sm outline-none focus:border-accent-60 transition-colors"
                 dir="rtl"
               />
             </div>

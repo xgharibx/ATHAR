@@ -3610,3 +3610,286 @@ a:focus-visible,
   transition: opacity 0.15s;
   border-radius: 1.5rem;
 }
+/* ═══════════════════════════════════════════════════════════════
+   Phase 5 — color-mix() opacity utilities for design system colors
+   Replaces broken Tailwind opacity modifiers on CSS custom props.
+   Usage: bg-accent-15, border-ok-30, text-danger-60, ring-accent-40
+   ═══════════════════════════════════════════════════════════════ */
+@layer utilities {
+  /* accent backgrounds */
+  .bg-accent-5 { background-color: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .bg-accent-6 { background-color: color-mix(in srgb, var(--accent) 6%, transparent); }
+  .bg-accent-8 { background-color: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .bg-accent-10 { background-color: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .bg-accent-12 { background-color: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .bg-accent-14 { background-color: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .bg-accent-15 { background-color: color-mix(in srgb, var(--accent) 15%, transparent); }
+  .bg-accent-16 { background-color: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .bg-accent-18 { background-color: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .bg-accent-20 { background-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+  .bg-accent-24 { background-color: color-mix(in srgb, var(--accent) 24%, transparent); }
+  .bg-accent-25 { background-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+  .bg-accent-30 { background-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .bg-accent-35 { background-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .bg-accent-40 { background-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+  .bg-accent-45 { background-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .bg-accent-50 { background-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+  .bg-accent-60 { background-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+  .bg-accent-70 { background-color: color-mix(in srgb, var(--accent) 70%, transparent); }
+  .bg-accent-75 { background-color: color-mix(in srgb, var(--accent) 75%, transparent); }
+  .bg-accent-80 { background-color: color-mix(in srgb, var(--accent) 80%, transparent); }
+
+  /* ok backgrounds */
+  .bg-ok-5 { background-color: color-mix(in srgb, var(--ok) 5%, transparent); }
+  .bg-ok-6 { background-color: color-mix(in srgb, var(--ok) 6%, transparent); }
+  .bg-ok-8 { background-color: color-mix(in srgb, var(--ok) 8%, transparent); }
+  .bg-ok-10 { background-color: color-mix(in srgb, var(--ok) 10%, transparent); }
+  .bg-ok-12 { background-color: color-mix(in srgb, var(--ok) 12%, transparent); }
+  .bg-ok-14 { background-color: color-mix(in srgb, var(--ok) 14%, transparent); }
+  .bg-ok-15 { background-color: color-mix(in srgb, var(--ok) 15%, transparent); }
+  .bg-ok-16 { background-color: color-mix(in srgb, var(--ok) 16%, transparent); }
+  .bg-ok-18 { background-color: color-mix(in srgb, var(--ok) 18%, transparent); }
+  .bg-ok-20 { background-color: color-mix(in srgb, var(--ok) 20%, transparent); }
+  .bg-ok-24 { background-color: color-mix(in srgb, var(--ok) 24%, transparent); }
+  .bg-ok-25 { background-color: color-mix(in srgb, var(--ok) 25%, transparent); }
+  .bg-ok-30 { background-color: color-mix(in srgb, var(--ok) 30%, transparent); }
+  .bg-ok-35 { background-color: color-mix(in srgb, var(--ok) 35%, transparent); }
+  .bg-ok-40 { background-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .bg-ok-45 { background-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+  .bg-ok-50 { background-color: color-mix(in srgb, var(--ok) 50%, transparent); }
+  .bg-ok-60 { background-color: color-mix(in srgb, var(--ok) 60%, transparent); }
+  .bg-ok-70 { background-color: color-mix(in srgb, var(--ok) 70%, transparent); }
+  .bg-ok-75 { background-color: color-mix(in srgb, var(--ok) 75%, transparent); }
+  .bg-ok-80 { background-color: color-mix(in srgb, var(--ok) 80%, transparent); }
+
+  /* danger backgrounds */
+  .bg-danger-5 { background-color: color-mix(in srgb, var(--danger) 5%, transparent); }
+  .bg-danger-6 { background-color: color-mix(in srgb, var(--danger) 6%, transparent); }
+  .bg-danger-8 { background-color: color-mix(in srgb, var(--danger) 8%, transparent); }
+  .bg-danger-10 { background-color: color-mix(in srgb, var(--danger) 10%, transparent); }
+  .bg-danger-12 { background-color: color-mix(in srgb, var(--danger) 12%, transparent); }
+  .bg-danger-14 { background-color: color-mix(in srgb, var(--danger) 14%, transparent); }
+  .bg-danger-15 { background-color: color-mix(in srgb, var(--danger) 15%, transparent); }
+  .bg-danger-16 { background-color: color-mix(in srgb, var(--danger) 16%, transparent); }
+  .bg-danger-18 { background-color: color-mix(in srgb, var(--danger) 18%, transparent); }
+  .bg-danger-20 { background-color: color-mix(in srgb, var(--danger) 20%, transparent); }
+  .bg-danger-24 { background-color: color-mix(in srgb, var(--danger) 24%, transparent); }
+  .bg-danger-25 { background-color: color-mix(in srgb, var(--danger) 25%, transparent); }
+  .bg-danger-30 { background-color: color-mix(in srgb, var(--danger) 30%, transparent); }
+  .bg-danger-35 { background-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+  .bg-danger-40 { background-color: color-mix(in srgb, var(--danger) 40%, transparent); }
+  .bg-danger-45 { background-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+  .bg-danger-50 { background-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+  .bg-danger-60 { background-color: color-mix(in srgb, var(--danger) 60%, transparent); }
+  .bg-danger-70 { background-color: color-mix(in srgb, var(--danger) 70%, transparent); }
+  .bg-danger-75 { background-color: color-mix(in srgb, var(--danger) 75%, transparent); }
+  .bg-danger-80 { background-color: color-mix(in srgb, var(--danger) 80%, transparent); }
+
+  /* accent borders */
+  .border-accent-5 { border-color: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .border-accent-6 { border-color: color-mix(in srgb, var(--accent) 6%, transparent); }
+  .border-accent-8 { border-color: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .border-accent-10 { border-color: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .border-accent-12 { border-color: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .border-accent-14 { border-color: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .border-accent-15 { border-color: color-mix(in srgb, var(--accent) 15%, transparent); }
+  .border-accent-16 { border-color: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .border-accent-18 { border-color: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .border-accent-20 { border-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+  .border-accent-24 { border-color: color-mix(in srgb, var(--accent) 24%, transparent); }
+  .border-accent-25 { border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+  .border-accent-30 { border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .border-accent-35 { border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .border-accent-40 { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+  .border-accent-45 { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .border-accent-50 { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+  .border-accent-60 { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+  .border-accent-70 { border-color: color-mix(in srgb, var(--accent) 70%, transparent); }
+  .border-accent-75 { border-color: color-mix(in srgb, var(--accent) 75%, transparent); }
+  .border-accent-80 { border-color: color-mix(in srgb, var(--accent) 80%, transparent); }
+
+  /* ok borders */
+  .border-ok-5 { border-color: color-mix(in srgb, var(--ok) 5%, transparent); }
+  .border-ok-6 { border-color: color-mix(in srgb, var(--ok) 6%, transparent); }
+  .border-ok-8 { border-color: color-mix(in srgb, var(--ok) 8%, transparent); }
+  .border-ok-10 { border-color: color-mix(in srgb, var(--ok) 10%, transparent); }
+  .border-ok-12 { border-color: color-mix(in srgb, var(--ok) 12%, transparent); }
+  .border-ok-14 { border-color: color-mix(in srgb, var(--ok) 14%, transparent); }
+  .border-ok-15 { border-color: color-mix(in srgb, var(--ok) 15%, transparent); }
+  .border-ok-16 { border-color: color-mix(in srgb, var(--ok) 16%, transparent); }
+  .border-ok-18 { border-color: color-mix(in srgb, var(--ok) 18%, transparent); }
+  .border-ok-20 { border-color: color-mix(in srgb, var(--ok) 20%, transparent); }
+  .border-ok-24 { border-color: color-mix(in srgb, var(--ok) 24%, transparent); }
+  .border-ok-25 { border-color: color-mix(in srgb, var(--ok) 25%, transparent); }
+  .border-ok-30 { border-color: color-mix(in srgb, var(--ok) 30%, transparent); }
+  .border-ok-35 { border-color: color-mix(in srgb, var(--ok) 35%, transparent); }
+  .border-ok-40 { border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .border-ok-45 { border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+  .border-ok-50 { border-color: color-mix(in srgb, var(--ok) 50%, transparent); }
+  .border-ok-60 { border-color: color-mix(in srgb, var(--ok) 60%, transparent); }
+  .border-ok-70 { border-color: color-mix(in srgb, var(--ok) 70%, transparent); }
+  .border-ok-75 { border-color: color-mix(in srgb, var(--ok) 75%, transparent); }
+  .border-ok-80 { border-color: color-mix(in srgb, var(--ok) 80%, transparent); }
+
+  /* danger borders */
+  .border-danger-5 { border-color: color-mix(in srgb, var(--danger) 5%, transparent); }
+  .border-danger-6 { border-color: color-mix(in srgb, var(--danger) 6%, transparent); }
+  .border-danger-8 { border-color: color-mix(in srgb, var(--danger) 8%, transparent); }
+  .border-danger-10 { border-color: color-mix(in srgb, var(--danger) 10%, transparent); }
+  .border-danger-12 { border-color: color-mix(in srgb, var(--danger) 12%, transparent); }
+  .border-danger-14 { border-color: color-mix(in srgb, var(--danger) 14%, transparent); }
+  .border-danger-15 { border-color: color-mix(in srgb, var(--danger) 15%, transparent); }
+  .border-danger-16 { border-color: color-mix(in srgb, var(--danger) 16%, transparent); }
+  .border-danger-18 { border-color: color-mix(in srgb, var(--danger) 18%, transparent); }
+  .border-danger-20 { border-color: color-mix(in srgb, var(--danger) 20%, transparent); }
+  .border-danger-24 { border-color: color-mix(in srgb, var(--danger) 24%, transparent); }
+  .border-danger-25 { border-color: color-mix(in srgb, var(--danger) 25%, transparent); }
+  .border-danger-30 { border-color: color-mix(in srgb, var(--danger) 30%, transparent); }
+  .border-danger-35 { border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+  .border-danger-40 { border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
+  .border-danger-45 { border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+  .border-danger-50 { border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+  .border-danger-60 { border-color: color-mix(in srgb, var(--danger) 60%, transparent); }
+  .border-danger-70 { border-color: color-mix(in srgb, var(--danger) 70%, transparent); }
+  .border-danger-75 { border-color: color-mix(in srgb, var(--danger) 75%, transparent); }
+  .border-danger-80 { border-color: color-mix(in srgb, var(--danger) 80%, transparent); }
+
+  /* accent text */
+  .text-accent-5 { color: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .text-accent-6 { color: color-mix(in srgb, var(--accent) 6%, transparent); }
+  .text-accent-8 { color: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .text-accent-10 { color: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .text-accent-12 { color: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .text-accent-14 { color: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .text-accent-15 { color: color-mix(in srgb, var(--accent) 15%, transparent); }
+  .text-accent-16 { color: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .text-accent-18 { color: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .text-accent-20 { color: color-mix(in srgb, var(--accent) 20%, transparent); }
+  .text-accent-24 { color: color-mix(in srgb, var(--accent) 24%, transparent); }
+  .text-accent-25 { color: color-mix(in srgb, var(--accent) 25%, transparent); }
+  .text-accent-30 { color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .text-accent-35 { color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .text-accent-40 { color: color-mix(in srgb, var(--accent) 40%, transparent); }
+  .text-accent-45 { color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .text-accent-50 { color: color-mix(in srgb, var(--accent) 50%, transparent); }
+  .text-accent-60 { color: color-mix(in srgb, var(--accent) 60%, transparent); }
+  .text-accent-70 { color: color-mix(in srgb, var(--accent) 70%, transparent); }
+  .text-accent-75 { color: color-mix(in srgb, var(--accent) 75%, transparent); }
+  .text-accent-80 { color: color-mix(in srgb, var(--accent) 80%, transparent); }
+
+  /* ok text */
+  .text-ok-5 { color: color-mix(in srgb, var(--ok) 5%, transparent); }
+  .text-ok-6 { color: color-mix(in srgb, var(--ok) 6%, transparent); }
+  .text-ok-8 { color: color-mix(in srgb, var(--ok) 8%, transparent); }
+  .text-ok-10 { color: color-mix(in srgb, var(--ok) 10%, transparent); }
+  .text-ok-12 { color: color-mix(in srgb, var(--ok) 12%, transparent); }
+  .text-ok-14 { color: color-mix(in srgb, var(--ok) 14%, transparent); }
+  .text-ok-15 { color: color-mix(in srgb, var(--ok) 15%, transparent); }
+  .text-ok-16 { color: color-mix(in srgb, var(--ok) 16%, transparent); }
+  .text-ok-18 { color: color-mix(in srgb, var(--ok) 18%, transparent); }
+  .text-ok-20 { color: color-mix(in srgb, var(--ok) 20%, transparent); }
+  .text-ok-24 { color: color-mix(in srgb, var(--ok) 24%, transparent); }
+  .text-ok-25 { color: color-mix(in srgb, var(--ok) 25%, transparent); }
+  .text-ok-30 { color: color-mix(in srgb, var(--ok) 30%, transparent); }
+  .text-ok-35 { color: color-mix(in srgb, var(--ok) 35%, transparent); }
+  .text-ok-40 { color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .text-ok-45 { color: color-mix(in srgb, var(--ok) 45%, transparent); }
+  .text-ok-50 { color: color-mix(in srgb, var(--ok) 50%, transparent); }
+  .text-ok-60 { color: color-mix(in srgb, var(--ok) 60%, transparent); }
+  .text-ok-70 { color: color-mix(in srgb, var(--ok) 70%, transparent); }
+  .text-ok-75 { color: color-mix(in srgb, var(--ok) 75%, transparent); }
+  .text-ok-80 { color: color-mix(in srgb, var(--ok) 80%, transparent); }
+
+  /* danger text */
+  .text-danger-5 { color: color-mix(in srgb, var(--danger) 5%, transparent); }
+  .text-danger-6 { color: color-mix(in srgb, var(--danger) 6%, transparent); }
+  .text-danger-8 { color: color-mix(in srgb, var(--danger) 8%, transparent); }
+  .text-danger-10 { color: color-mix(in srgb, var(--danger) 10%, transparent); }
+  .text-danger-12 { color: color-mix(in srgb, var(--danger) 12%, transparent); }
+  .text-danger-14 { color: color-mix(in srgb, var(--danger) 14%, transparent); }
+  .text-danger-15 { color: color-mix(in srgb, var(--danger) 15%, transparent); }
+  .text-danger-16 { color: color-mix(in srgb, var(--danger) 16%, transparent); }
+  .text-danger-18 { color: color-mix(in srgb, var(--danger) 18%, transparent); }
+  .text-danger-20 { color: color-mix(in srgb, var(--danger) 20%, transparent); }
+  .text-danger-24 { color: color-mix(in srgb, var(--danger) 24%, transparent); }
+  .text-danger-25 { color: color-mix(in srgb, var(--danger) 25%, transparent); }
+  .text-danger-30 { color: color-mix(in srgb, var(--danger) 30%, transparent); }
+  .text-danger-35 { color: color-mix(in srgb, var(--danger) 35%, transparent); }
+  .text-danger-40 { color: color-mix(in srgb, var(--danger) 40%, transparent); }
+  .text-danger-45 { color: color-mix(in srgb, var(--danger) 45%, transparent); }
+  .text-danger-50 { color: color-mix(in srgb, var(--danger) 50%, transparent); }
+  .text-danger-60 { color: color-mix(in srgb, var(--danger) 60%, transparent); }
+  .text-danger-70 { color: color-mix(in srgb, var(--danger) 70%, transparent); }
+  .text-danger-75 { color: color-mix(in srgb, var(--danger) 75%, transparent); }
+  .text-danger-80 { color: color-mix(in srgb, var(--danger) 80%, transparent); }
+
+  /* accent rings */
+  .ring-accent-5 { --tw-ring-color: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .ring-accent-6 { --tw-ring-color: color-mix(in srgb, var(--accent) 6%, transparent); }
+  .ring-accent-8 { --tw-ring-color: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .ring-accent-10 { --tw-ring-color: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .ring-accent-12 { --tw-ring-color: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .ring-accent-14 { --tw-ring-color: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .ring-accent-15 { --tw-ring-color: color-mix(in srgb, var(--accent) 15%, transparent); }
+  .ring-accent-16 { --tw-ring-color: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .ring-accent-18 { --tw-ring-color: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .ring-accent-20 { --tw-ring-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+  .ring-accent-24 { --tw-ring-color: color-mix(in srgb, var(--accent) 24%, transparent); }
+  .ring-accent-25 { --tw-ring-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+  .ring-accent-30 { --tw-ring-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .ring-accent-35 { --tw-ring-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+  .ring-accent-40 { --tw-ring-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+  .ring-accent-45 { --tw-ring-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .ring-accent-50 { --tw-ring-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+  .ring-accent-60 { --tw-ring-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+  .ring-accent-70 { --tw-ring-color: color-mix(in srgb, var(--accent) 70%, transparent); }
+  .ring-accent-75 { --tw-ring-color: color-mix(in srgb, var(--accent) 75%, transparent); }
+  .ring-accent-80 { --tw-ring-color: color-mix(in srgb, var(--accent) 80%, transparent); }
+
+  /* ok rings */
+  .ring-ok-5 { --tw-ring-color: color-mix(in srgb, var(--ok) 5%, transparent); }
+  .ring-ok-6 { --tw-ring-color: color-mix(in srgb, var(--ok) 6%, transparent); }
+  .ring-ok-8 { --tw-ring-color: color-mix(in srgb, var(--ok) 8%, transparent); }
+  .ring-ok-10 { --tw-ring-color: color-mix(in srgb, var(--ok) 10%, transparent); }
+  .ring-ok-12 { --tw-ring-color: color-mix(in srgb, var(--ok) 12%, transparent); }
+  .ring-ok-14 { --tw-ring-color: color-mix(in srgb, var(--ok) 14%, transparent); }
+  .ring-ok-15 { --tw-ring-color: color-mix(in srgb, var(--ok) 15%, transparent); }
+  .ring-ok-16 { --tw-ring-color: color-mix(in srgb, var(--ok) 16%, transparent); }
+  .ring-ok-18 { --tw-ring-color: color-mix(in srgb, var(--ok) 18%, transparent); }
+  .ring-ok-20 { --tw-ring-color: color-mix(in srgb, var(--ok) 20%, transparent); }
+  .ring-ok-24 { --tw-ring-color: color-mix(in srgb, var(--ok) 24%, transparent); }
+  .ring-ok-25 { --tw-ring-color: color-mix(in srgb, var(--ok) 25%, transparent); }
+  .ring-ok-30 { --tw-ring-color: color-mix(in srgb, var(--ok) 30%, transparent); }
+  .ring-ok-35 { --tw-ring-color: color-mix(in srgb, var(--ok) 35%, transparent); }
+  .ring-ok-40 { --tw-ring-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .ring-ok-45 { --tw-ring-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+  .ring-ok-50 { --tw-ring-color: color-mix(in srgb, var(--ok) 50%, transparent); }
+  .ring-ok-60 { --tw-ring-color: color-mix(in srgb, var(--ok) 60%, transparent); }
+  .ring-ok-70 { --tw-ring-color: color-mix(in srgb, var(--ok) 70%, transparent); }
+  .ring-ok-75 { --tw-ring-color: color-mix(in srgb, var(--ok) 75%, transparent); }
+  .ring-ok-80 { --tw-ring-color: color-mix(in srgb, var(--ok) 80%, transparent); }
+
+  /* danger rings */
+  .ring-danger-5 { --tw-ring-color: color-mix(in srgb, var(--danger) 5%, transparent); }
+  .ring-danger-6 { --tw-ring-color: color-mix(in srgb, var(--danger) 6%, transparent); }
+  .ring-danger-8 { --tw-ring-color: color-mix(in srgb, var(--danger) 8%, transparent); }
+  .ring-danger-10 { --tw-ring-color: color-mix(in srgb, var(--danger) 10%, transparent); }
+  .ring-danger-12 { --tw-ring-color: color-mix(in srgb, var(--danger) 12%, transparent); }
+  .ring-danger-14 { --tw-ring-color: color-mix(in srgb, var(--danger) 14%, transparent); }
+  .ring-danger-15 { --tw-ring-color: color-mix(in srgb, var(--danger) 15%, transparent); }
+  .ring-danger-16 { --tw-ring-color: color-mix(in srgb, var(--danger) 16%, transparent); }
+  .ring-danger-18 { --tw-ring-color: color-mix(in srgb, var(--danger) 18%, transparent); }
+  .ring-danger-20 { --tw-ring-color: color-mix(in srgb, var(--danger) 20%, transparent); }
+  .ring-danger-24 { --tw-ring-color: color-mix(in srgb, var(--danger) 24%, transparent); }
+  .ring-danger-25 { --tw-ring-color: color-mix(in srgb, var(--danger) 25%, transparent); }
+  .ring-danger-30 { --tw-ring-color: color-mix(in srgb, var(--danger) 30%, transparent); }
+  .ring-danger-35 { --tw-ring-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+  .ring-danger-40 { --tw-ring-color: color-mix(in srgb, var(--danger) 40%, transparent); }
+  .ring-danger-45 { --tw-ring-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+  .ring-danger-50 { --tw-ring-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+  .ring-danger-60 { --tw-ring-color: color-mix(in srgb, var(--danger) 60%, transparent); }
+  .ring-danger-70 { --tw-ring-color: color-mix(in srgb, var(--danger) 70%, transparent); }
+  .ring-danger-75 { --tw-ring-color: color-mix(in srgb, var(--danger) 75%, transparent); }
+  .ring-danger-80 { --tw-ring-color: color-mix(in srgb, var(--danger) 80%, transparent); }
+
+}

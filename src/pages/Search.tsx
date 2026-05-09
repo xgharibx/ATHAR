@@ -218,7 +218,7 @@ export function SearchPage() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "adhkar"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
+                ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
                 : "bg-white/6 border-white/10 hover:bg-white/10"
             )}
           >
@@ -229,7 +229,7 @@ export function SearchPage() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "quran"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
+                ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
                 : "bg-white/6 border-white/10 hover:bg-white/10"
             )}
           >
@@ -240,7 +240,7 @@ export function SearchPage() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "library"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
+                ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
                 : "bg-white/6 border-white/10 hover:bg-white/10"
             )}
           >
@@ -251,7 +251,7 @@ export function SearchPage() {
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
               searchTab === "hadith"
-                ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]"
+                ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
                 : "bg-white/6 border-white/10 hover:bg-white/10"
             )}
           >
