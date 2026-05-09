@@ -185,7 +185,7 @@ export function NearbyMosquesPage() {
                   <div className="flex items-center gap-3 min-w-0">
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xl"
-                      style={{ backgroundColor: "rgba(255,255,255,0.07)" }}
+                      style={{ backgroundColor: "var(--card)" }}
                     >
                       🕌
                     </div>
@@ -212,7 +212,7 @@ export function NearbyMosquesPage() {
                         }
                       }}
                       className="p-1.5 rounded-lg opacity-50 hover:opacity-100 transition"
-                      style={{ background: "rgba(255,255,255,0.07)", color: "var(--fg)" }}
+                      style={{ background: "var(--card)", color: "var(--fg)" }}
                       title="مشاركة الموقع"
                     >
                       <Share2 size={14} />

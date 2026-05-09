@@ -73,7 +73,7 @@ export function AsmaAlHusnaPage() {
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} />
               </button>
@@ -90,7 +90,7 @@ export function AsmaAlHusnaPage() {
               </div>
             </div>
             {memorizedCount > 0 && (
-              <div className="h-1.5 rounded-full mb-3 overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
+              <div className="h-1.5 rounded-full mb-3 overflow-hidden" style={{ background: "var(--card-2)" }}>
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{ width: `${pct}%`, background: "#f59e0b" }}
@@ -100,7 +100,7 @@ export function AsmaAlHusnaPage() {
             {/* Search */}
             <div
               className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+              style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
               <Search size={15} style={{ color: "#f59e0b" }} />
               <input
@@ -124,9 +124,9 @@ export function AsmaAlHusnaPage() {
                   onClick={() => setTab(t)}
                   className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
                   style={{
-                    background: tab === t ? "#f59e0b" : "rgba(255,255,255,0.08)",
+                    background: tab === t ? "#f59e0b" : "var(--card)",
                     color: tab === t ? "#fff" : "var(--fg)",
-                    border: "1px solid rgba(255,255,255,0.12)",
+                    border: "1px solid var(--stroke)",
                   }}
                 >
                   {t === "all" ? `الكل (${ASMA_AL_HUSNA.length})` : t === "memorized" ? `🧠 محفوظة (${memorized.length})` : `❤️ مفضلة (${favorites.length})`}

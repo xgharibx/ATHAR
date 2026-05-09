@@ -48,7 +48,7 @@ export function PrayerGuidePage() {
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} />
               </button>
@@ -64,7 +64,7 @@ export function PrayerGuidePage() {
                 type="button"
                 onClick={shareFullGuide}
                 className="mt-1 p-2 rounded-xl opacity-60 hover:opacity-100 transition"
-                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                style={{ background: "var(--card)", color: "var(--fg)" }}
                 aria-label="مشاركة الدليل"
               >
                 <Share2 size={16} />

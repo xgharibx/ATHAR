@@ -1303,9 +1303,9 @@ function GroupKhatmaCard() {
                   onClick={() => { if (owner) toggleGroupKhatmaJuz(owner.memberId, juz); }}
                   className="relative aspect-square rounded-xl border text-xs font-semibold flex items-center justify-center transition-all"
                   style={{
-                    background: done ? `${color}40` : "rgba(255,255,255,0.04)",
-                    borderColor: done ? color : "rgba(255,255,255,0.1)",
-                    color: done ? color : "rgba(255,255,255,0.5)",
+                    background: done ? `${color}40` : "var(--card)",
+                    borderColor: done ? color : "var(--stroke)",
+                    color: done ? color : "var(--muted-2)",
                   }}
                   title={owner ? `${owner.name} — جزء ${juz.toLocaleString("ar-EG")}` : `جزء ${juz.toLocaleString("ar-EG")}`}
                 >
@@ -1398,8 +1398,8 @@ function WeeklyChallengeCard() {
           <div
             className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl border"
             style={{
-              background: isCompleted ? "rgba(52,211,153,0.15)" : "rgba(255,255,255,0.05)",
-              borderColor: isCompleted ? "rgba(52,211,153,0.3)" : "rgba(255,255,255,0.1)"
+              background: isCompleted ? "rgba(52,211,153,0.15)" : "var(--card)",
+              borderColor: isCompleted ? "rgba(52,211,153,0.3)" : "var(--stroke)"
             }}
           >
             {info.emoji}
@@ -1436,8 +1436,8 @@ function WeeklyChallengeCard() {
               onClick={() => toggleWeeklyChallengeDay(day.key)}
               className="flex flex-col items-center gap-1 py-2 rounded-xl border transition-all"
               style={{
-                background: done ? "rgba(52,211,153,0.15)" : day.isToday ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
-                borderColor: done ? "rgba(52,211,153,0.4)" : day.isToday ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)"
+                background: done ? "rgba(52,211,153,0.15)" : day.isToday ? "var(--card-2)" : "var(--card)",
+                borderColor: done ? "rgba(52,211,153,0.4)" : day.isToday ? "var(--stroke)" : "var(--stroke)"
               }}
               aria-label={`${day.label}: ${done ? "مكتمل" : "غير مكتمل"}`}
             >
@@ -1445,7 +1445,7 @@ function WeeklyChallengeCard() {
               <span className="text-xs">
                 {done
                   ? <Check size={12} strokeWidth={3} style={{ color: "var(--ok)" }} />
-                  : <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "8px" }}>·</span>}
+                  : <span style={{ color: "var(--muted-2)", fontSize: "8px" }}>·</span>}
               </span>
             </button>
           );

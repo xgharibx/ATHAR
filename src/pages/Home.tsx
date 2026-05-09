@@ -157,8 +157,8 @@ function HomeRadioButton() {
               color: "var(--ok)",
             }
           : {
-              background: "rgba(255,255,255,0.07)",
-              borderColor: "rgba(255,255,255,0.10)",
+              background: "var(--card)",
+              borderColor: "var(--stroke)",
               color: "inherit",
             }
       }
@@ -881,7 +881,7 @@ export function HomePage() {
             <button type="button"
               onClick={() => { trackUxEvent("home_strip:custom_manage"); navigate("/adhkar/custom"); }}
               className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] active:scale-[.91] transition-all"
-              style={{ borderColor: "rgba(255,255,255,0.08)", opacity: draggingStripId ? 0.3 : 0.7 }}
+              style={{ borderColor: "var(--stroke)", opacity: draggingStripId ? 0.3 : 0.7 }}
             >
               <span className="text-[22px] leading-none">＋</span>
               <span className="text-[10px] font-medium opacity-60 leading-none mt-0.5">أذكاري</span>
@@ -915,7 +915,7 @@ export function HomePage() {
                           ? "rgba(255,215,100,0.6)"
                           : isComplete
                             ? "color-mix(in srgb, var(--ok) 30%, transparent)"
-                            : pctDone > 0 ? "rgba(201,162,39,0.4)" : "rgba(255,255,255,0.08)",
+                            : pctDone > 0 ? "rgba(201,162,39,0.4)" : "var(--card)",
                         transform: isDragging ? "scale(1.07)" : undefined,
                         boxShadow: isDragging ? "0 8px 28px rgba(0,0,0,0.45)" : undefined,
                         zIndex: isDragging ? 10 : undefined,
@@ -957,7 +957,7 @@ export function HomePage() {
                           ? "rgba(255,215,100,0.6)"
                           : isComplete
                             ? "color-mix(in srgb, var(--ok) 30%, transparent)"
-                            : pctDone > 0 ? `${identity.accent}40` : "rgba(255,255,255,0.08)",
+                            : pctDone > 0 ? `${identity.accent}40` : "var(--card)",
                         transform: isDragging ? "scale(1.07)" : undefined,
                         boxShadow: isDragging ? "0 8px 28px rgba(0,0,0,0.45)" : undefined,
                         zIndex: isDragging ? 10 : undefined,
@@ -1113,8 +1113,8 @@ export function HomePage() {
                       borderColor: "color-mix(in srgb, var(--ok) 30%, transparent)",
                       color: "var(--ok)",
                     } : {
-                      background: "rgba(255,255,255,0.05)",
-                      borderColor: "rgba(255,255,255,0.1)",
+                      background: "var(--card)",
+                      borderColor: "var(--stroke)",
                     }}
                   >
                     <span>{q.icon}</span>
@@ -1241,7 +1241,7 @@ export function HomePage() {
                           "min-w-10 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition",
                           tasbeehTarget === target
                             ? "bg-[var(--accent)] text-black"
-                            : "text-white/65 hover:bg-[var(--card-2)]"
+                            : "text-[var(--muted)] hover:bg-[var(--card-2)]"
                         )}
                       >
                         {target}
@@ -1311,7 +1311,7 @@ export function HomePage() {
                         <div className="shrink-0">
                           <div className="w-11 h-11 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center">
                             <svg width="40" height="40" viewBox="0 0 60 60">
-                              <circle cx="30" cy="30" r={r} fill="transparent" stroke="rgba(255,255,255,0.12)" strokeWidth="6" />
+                              <circle cx="30" cy="30" r={r} fill="transparent" stroke="var(--stroke)" strokeWidth="6" />
                               <circle
                                 cx="30" cy="30" r={r}
                                 fill="transparent"

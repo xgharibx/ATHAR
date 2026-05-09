@@ -763,7 +763,7 @@ export function SebhaPage() {
                     onClick={() => setTarget(value)}
                     className={cn(
                       "min-w-10 rounded-xl px-3 py-2 text-xs font-semibold transition",
-                      target === value ? "bg-[var(--accent)] text-black" : "text-white/65 hover:bg-[var(--card-2)]"
+                      target === value ? "bg-[var(--accent)] text-black" : "text-[var(--muted)] hover:bg-[var(--card-2)]"
                     )}
                   >
                     {value}
@@ -791,7 +791,7 @@ export function SebhaPage() {
                 "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition",
                 tallyMode
                   ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                  : "border-[var(--stroke)] bg-[var(--card)] text-white/65 hover:bg-[var(--card-2)]"
+                  : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-2)]"
               )}
             >
               <Timer size={13} />
@@ -814,7 +814,7 @@ export function SebhaPage() {
                   "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition shrink-0",
                   listening
                     ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
-                    : "border-[var(--stroke)] bg-[var(--card)] text-white/65 hover:bg-[var(--card-2)]",
+                    : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-2)]",
                   voiceStarting && "opacity-60"
                 )}
               >

@@ -423,7 +423,7 @@ export function DhikrCard(props: {
           {displayText}
           {swipeHint && !done && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-[var(--card)]0 backdrop-blur-sm rounded-2xl px-4 py-2 text-sm text-white/95 flex items-center gap-2 swipe-hint-anim">
+              <div className="bg-[var(--card-2)] backdrop-blur-sm rounded-2xl px-4 py-2 text-sm text-[var(--fg)] flex items-center gap-2 swipe-hint-anim">
                 <span className="text-lg">←</span>
                 <span>اسحب للعدّ</span>
                 <span className="text-lg">→</span>

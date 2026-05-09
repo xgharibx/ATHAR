@@ -100,7 +100,7 @@ function ProgressRing({ pct, size = 72 }: { pct: number; size?: number }) {
   const dash = circ * Math.max(0, Math.min(1, pct / 100));
   return (
     <svg width={size} height={size} className="shrink-0 -rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={5} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--stroke)" strokeWidth={5} />
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--accent)" strokeWidth={5}
         strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
         style={{ transition: "stroke-dasharray 0.6s cubic-bezier(0.4,0,0.2,1)" }} />

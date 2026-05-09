@@ -76,7 +76,7 @@ export default function Companions() {
               className="rounded-2xl border border-[var(--stroke)] p-2 transition glass-hover press-effect"
               style={showBookmarksOnly
                 ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)" }
-                : { background: "rgba(255,255,255,0.06)", color: "var(--fg)" }}
+                : { background: "var(--card)", color: "var(--fg)" }}
               aria-label="المحفوظة"
             >
               <Bookmark size={16} />
@@ -228,7 +228,7 @@ export default function Companions() {
                       className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-all glass-hover press-effect"
                       style={bookmarks.has(companion.id)
                         ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
-                        : { background: "rgba(255,255,255,0.06)", color: "var(--fg)", borderColor: "var(--stroke)", opacity: 0.8 }}
+                        : { background: "var(--card)", color: "var(--fg)", borderColor: "var(--stroke)", opacity: 0.8 }}
                     >
                       {bookmarks.has(companion.id) ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
                       {bookmarks.has(companion.id) ? "محفوظ" : "حفظ"}

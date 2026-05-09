@@ -516,7 +516,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
           <button
             type="button"
             onClick={() => { PRIMARY_PRAYERS.forEach((p) => setPrayerLogged(today, p, true)); }}
-            className="w-full mb-3 py-2 px-4 rounded-2xl bg-accent-10 border border-accent-25 text-sm text-white/70 hover:bg-accent-18 transition"
+            className="w-full mb-3 py-2 px-4 rounded-2xl bg-accent-10 border border-accent-25 text-sm text-[var(--fg)] hover:bg-accent-18 transition"
           >
             صلّيت جميع الصلوات اليوم ✓
           </button>
@@ -829,7 +829,7 @@ function StatsTab() {
         <div className="grid grid-cols-7 gap-1">
           {days35.map((d) => (
             <div key={d.key} className="aspect-square rounded-lg relative overflow-hidden flex items-center justify-center"
-              style={{ outline: d.key === today ? "2px solid rgba(255,255,255,0.5)" : "none" }}
+              style={{ outline: d.key === today ? "2px solid var(--stroke)" : "none" }}
               title={`${d.done}/5 صلوات`}>
               <div className="absolute inset-0" style={{ backgroundColor: "var(--accent)", opacity: d.done === 0 ? 0.06 : 0.12 + d.done * 0.17 }} />
               <span className="relative z-10 text-[10px] font-medium" style={{ opacity: d.done === 0 ? 0.3 : 0.75 }}>{d.day}</span>
@@ -951,7 +951,7 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
           <rect x="0" y="0" width={toX(sunriseMins)} height={H} fill="rgba(0,0,60,0.35)" />
           <rect x={toX(maghribMins)} y="0" width={W - toX(maghribMins)} height={H} fill="rgba(0,0,60,0.35)" />
           {/* Ground */}
-          <line x1={PAD} y1={arcBase} x2={W - PAD} y2={arcBase} stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
+          <line x1={PAD} y1={arcBase} x2={W - PAD} y2={arcBase} stroke="var(--stroke)" strokeWidth="1.5" />
           {/* Arc glow */}
           <path d={pathD} fill="none" stroke="rgba(255,200,50,0.2)" strokeWidth="14" />
           {/* Arc line */}
@@ -966,11 +966,11 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
           {/* Prayer markers */}
           {prayerPoints.map((p) => (
             <g key={p.id}>
-              {!p.onArc && <line x1={p.x} y1={p.y - 2} x2={p.x} y2={arcBase - 1} stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="2,2" />}
-              <circle cx={p.x} cy={p.y} r="5" fill={p.isPast ? "rgba(255,255,255,0.25)" : "var(--accent)"} />
-              <circle cx={p.x} cy={p.y} r="8.5" fill="none" stroke={p.isPast ? "rgba(255,255,255,0.12)" : "var(--accent)"} strokeWidth="1" strokeOpacity="0.5" />
-              <text x={p.x} y={p.y - 13} textAnchor="middle" fill={p.isPast ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.85)"} fontSize="7.5" fontWeight="600">{p.label}</text>
-              <text x={p.x} y={arcBase + (p.onArc ? 0 : 20)} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="6.5" dy={p.onArc ? 20 : 0}>{format12h(p.time)}</text>
+              {!p.onArc && <line x1={p.x} y1={p.y - 2} x2={p.x} y2={arcBase - 1} stroke="var(--stroke)" strokeWidth="1" strokeDasharray="2,2" />}
+              <circle cx={p.x} cy={p.y} r="5" fill={p.isPast ? "var(--card-2)" : "var(--accent)"} />
+              <circle cx={p.x} cy={p.y} r="8.5" fill="none" stroke={p.isPast ? "var(--stroke)" : "var(--accent)"} strokeWidth="1" strokeOpacity="0.5" />
+              <text x={p.x} y={p.y - 13} textAnchor="middle" fill={p.isPast ? "var(--muted-2)" : "var(--muted)"} fontSize="7.5" fontWeight="600">{p.label}</text>
+              <text x={p.x} y={arcBase + (p.onArc ? 0 : 20)} textAnchor="middle" fill="var(--muted-2)" fontSize="6.5" dy={p.onArc ? 20 : 0}>{format12h(p.time)}</text>
             </g>
           ))}
           {/* Current time cursor */}
@@ -986,7 +986,7 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
       <div className="overflow-x-auto -mx-1 px-1">
         <div className="grid grid-cols-5 gap-1.5" style={{ minWidth: "240px" }}>
           {prayerPoints.map((p) => (
-            <div key={p.id} className="rounded-xl border px-2 py-2 text-center" style={{ backgroundColor: p.isPast ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.07)", borderColor: p.isPast ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.14)" }}>
+            <div key={p.id} className="rounded-xl border px-2 py-2 text-center" style={{ backgroundColor: p.isPast ? "var(--card)" : "rgba(255,255,255,0.07)", borderColor: p.isPast ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.14)" }}>
               <div className="font-medium text-[11px]" style={{ opacity: p.isPast ? 0.35 : 1 }}>{p.label}</div>
               <div dir="ltr" className="text-[10px] tabular-nums mt-0.5" style={{ opacity: 0.45 }}>{format12h(p.time)}</div>
               {p.isPast && <div className="text-[9px] mt-0.5 opacity-30">مضى</div>}
@@ -1133,7 +1133,7 @@ export function PrayerTimesPage() {
             <Badge className="text-[11px]">{date.hijri.date} {date.hijri.month.ar}</Badge>
             {data.__sourceLabel && <Badge className="text-[11px] opacity-60">{data.__sourceLabel}</Badge>}
           </div>
-          <div className="rounded-[28px] border border-[var(--stroke)] bg-gradient-to-br from-white/8 to-white/3 p-4 md:p-5">
+          <div className="rounded-[28px] border border-[var(--stroke)] bg-[var(--card)] p-4 md:p-5">
             <PrayerCountdown timings={timings} />
           </div>
           {data.__fromCache && !isOnline && (

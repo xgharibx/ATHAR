@@ -380,7 +380,7 @@ export function YouTubeCoursePlayer({
               style={
                 bookmarked
                   ? { background: `${accent}20`, borderColor: `${accent}50`, color: accent }
-                  : { background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }
+                  : { background: "var(--card)", borderColor: "var(--stroke)" }
               }
             >
               {bookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
@@ -394,7 +394,7 @@ export function YouTubeCoursePlayer({
               style={
                 isCompleted
                   ? { background: "#10b98120", borderColor: "#10b98140", color: "#34d399" }
-                  : { background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }
+                  : { background: "var(--card)", borderColor: "var(--stroke)" }
               }
             >
               <CheckCircle2 size={14} />

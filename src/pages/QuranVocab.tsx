@@ -155,7 +155,7 @@ export function QuranVocabPage() {
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} />
               </button>
@@ -171,7 +171,7 @@ export function QuranVocabPage() {
               </div>
             </div>
             {/* Progress bar */}
-            <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ background: "rgba(255,255,255,0.1)" }}>
+            <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ background: "var(--card-2)" }}>
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{ width: `${progress}%`, background: "#0ea5e9" }}
@@ -182,7 +182,7 @@ export function QuranVocabPage() {
               <button type="button"
                 onClick={handleShuffle}
                 className="p-2 rounded-xl"
-                style={{ background: "rgba(255,255,255,0.08)", color: "#0ea5e9" }}
+                style={{ background: "var(--card)", color: "#0ea5e9" }}
                 aria-label="خلط البطاقات"
               >
                 <Shuffle size={16} />
@@ -190,7 +190,7 @@ export function QuranVocabPage() {
               <button type="button"
                 onClick={handleReset}
                 className="p-2 rounded-xl"
-                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                style={{ background: "var(--card)", color: "var(--fg)" }}
                 aria-label="إعادة تعيين"
               >
                 <RotateCcw size={16} />
@@ -199,7 +199,7 @@ export function QuranVocabPage() {
                 onClick={() => setReviewMode((v) => !v)}
                 className="p-2 rounded-xl transition-colors"
                 style={{
-                  background: reviewMode ? "rgba(16,185,129,0.18)" : "rgba(255,255,255,0.08)",
+                  background: reviewMode ? "rgba(16,185,129,0.18)" : "var(--card)",
                   color: reviewMode ? "#10b981" : "var(--fg)",
                   border: reviewMode ? "1px solid rgba(16,185,129,0.35)" : "1px solid transparent",
                 }}

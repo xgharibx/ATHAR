@@ -304,7 +304,7 @@ export function HadithMemoPage() {
               className="w-full rounded-2xl py-2.5 text-sm font-arabic transition glass-hover press-effect"
               style={isAdded
                 ? { background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor, border: "1px solid color-mix(in srgb, var(--accent) 36%, transparent)" }
-                : { background: "rgba(255,255,255,0.055)", border: "1px solid var(--stroke)", color: "var(--fg)" }
+                : { background: "var(--card)", border: "1px solid var(--stroke)", color: "var(--fg)" }
               }
             >
               {isAdded ? "✓ مضافة للبطاقات" : "+ إضافة للحفظ"}

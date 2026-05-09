@@ -85,7 +85,7 @@ export function PrayerCountdown(props: Readonly<{
             cy={ringSize / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.12)"
+            stroke="var(--stroke)"
             strokeWidth={compact ? 6 : 7}
           />
           <circle

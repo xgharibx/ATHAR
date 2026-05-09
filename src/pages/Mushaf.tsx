@@ -2210,7 +2210,7 @@ export function MushafPage() {
               <button type="button"
                 key={label}
                 className="w-full flex items-center justify-between gap-3 py-3.5 px-1 border-b transition"
-                style={{ borderColor: "rgba(255,255,255,0.07)" }}
+                style={{ borderColor: "var(--stroke)" }}
                 onClick={onPress}
               >
                 <div className="flex items-center gap-3">
@@ -2229,7 +2229,7 @@ export function MushafPage() {
             {/* ── Mark page reviewed ── */}
             <button type="button"
               className="w-full flex items-center gap-3 py-3.5 px-1 border-b text-right transition"
-              style={{ borderColor: "rgba(255,255,255,0.07)" }}
+              style={{ borderColor: "var(--stroke)" }}
               onClick={() => { markPageReviewed(); setShowMoreSheet(false); }}
             >
               <span className="opacity-55"><CheckCircle2 size={16} /></span>
@@ -2242,7 +2242,7 @@ export function MushafPage() {
             {/* ── Jump to page ── */}
             <button type="button"
               className="w-full flex items-center gap-3 py-3.5 px-1 border-b text-right transition"
-              style={{ borderColor: "rgba(255,255,255,0.07)" }}
+              style={{ borderColor: "var(--stroke)" }}
               onClick={() => { setShowJump(true); setShowMoreSheet(false); }}
             >
               <span className="opacity-55"><MoreVertical size={16} /></span>

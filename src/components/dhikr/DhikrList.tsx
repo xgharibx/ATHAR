@@ -338,7 +338,7 @@ export function DhikrList(props: Readonly<{
                         className="w-[5px] rounded-sm transition-all"
                         style={{
                           height: v ? "12px" : "5px",
-                          background: v ? identity.accent : "rgba(255,255,255,0.15)",
+                          background: v ? identity.accent : "var(--card-2)",
                         }}
                       />
                     ))}

@@ -130,12 +130,12 @@ function RadarChart(props: { values: { label: string; pct: number; color: string
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="مخطط الرادار">
       {/* Grid */}
       {rings.map((d, i) => (
-        <path key={i} d={d} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
+        <path key={i} d={d} fill="none" stroke="var(--stroke)" strokeWidth={1} />
       ))}
       {/* Axes */}
       {values.map((_, i) => {
         const p = pt(i, r);
-        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />;
+        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="var(--stroke)" strokeWidth={1} />;
       })}
       {/* Data */}
       <path d={dataPath} fill="rgba(var(--accent-raw,99,102,241),0.18)" stroke="var(--accent)" strokeWidth={2} />
@@ -148,7 +148,7 @@ function RadarChart(props: { values: { label: string; pct: number; color: string
         const lp = pt(i, r * 1.22);
         return (
           <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle"
-            fontSize={10} fill="rgba(255,255,255,0.7)" fontFamily="inherit">
+            fontSize={10} fill="var(--muted)" fontFamily="inherit">
             {v.label}
           </text>
         );
@@ -739,9 +739,9 @@ export function InsightsPage() {
                       title={p}
                       className="w-6 h-6 rounded-full border text-[8px] flex items-center justify-center font-bold transition"
                       style={{
-                        background: done ? "rgba(52,211,153,0.2)" : "rgba(255,255,255,0.05)",
-                        borderColor: done ? "var(--ok)" : "rgba(255,255,255,0.12)",
-                        color: done ? "var(--ok)" : "rgba(255,255,255,0.3)",
+                        background: done ? "rgba(52,211,153,0.2)" : "var(--card)",
+                        borderColor: done ? "var(--ok)" : "var(--stroke)",
+                        color: done ? "var(--ok)" : "var(--muted-2)",
                       }}
                     >
                       {done ? "✓" : "·"}
@@ -784,7 +784,7 @@ export function InsightsPage() {
           color: "var(--fg)",
           fontFamily: "'Noto Sans Arabic', sans-serif",
           direction: "rtl",
-          border: "2px solid rgba(255,255,255,0.12)",
+          border: "2px solid var(--stroke)",
         }}
       >
         <div style={{ fontSize: "13px", opacity: 0.6, marginBottom: "4px" }}>تقدمي في</div>
@@ -799,10 +799,10 @@ export function InsightsPage() {
             <div key={s.label} style={{
               flex: 1,
               textAlign: "center",
-              background: "rgba(255,255,255,0.07)",
+              background: "var(--card)",
               borderRadius: "14px",
               padding: "10px 4px",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid var(--stroke)",
             }}>
               <div style={{ fontSize: "18px", marginBottom: "4px" }}>{s.emoji}</div>
               <div style={{ fontSize: "14px", fontWeight: 700 }}>{s.value}</div>
@@ -814,7 +814,7 @@ export function InsightsPage() {
           textAlign: "center",
           fontSize: "11px",
           opacity: 0.45,
-          borderTop: "1px solid rgba(255,255,255,0.08)",
+          borderTop: "1px solid var(--stroke)",
           paddingTop: "12px",
         }}>
           {new Date().toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" })}
@@ -1485,12 +1485,12 @@ export function InsightsPage() {
                   title={`الجزء ${juzNum.toLocaleString("ar-EG")}: ${jpct.toLocaleString("ar-EG")}٪`}
                   className="aspect-square flex flex-col items-center justify-center rounded-2xl border text-center transition hover:scale-105 active:scale-95"
                   style={{
-                    border: isDone ? '1px solid var(--ok)' : jpct > 0 ? '1px solid rgba(var(--accent-raw,0,0,0),0.25)' : '1px solid rgba(255,255,255,0.08)',
+                    border: isDone ? '1px solid var(--ok)' : jpct > 0 ? '1px solid rgba(var(--accent-raw,0,0,0),0.25)' : "1px solid var(--stroke)",
                     background: isDone
                       ? 'rgba(var(--ok-rgb, 52,211,153), 0.15)'
                       : jpct > 0
                         ? `color-mix(in srgb, var(--accent) ${Math.round(10 + jpct * 0.55)}%, transparent)`
-                        : 'rgba(255,255,255,0.04)',
+                        : "var(--card)",
                   }}
                 >
                   <span className="text-[10px] font-bold tabular-nums leading-tight" style={{ color: isDone ? 'var(--ok)' : jpct > 0 ? 'var(--accent)' : undefined, opacity: jpct === 0 ? 0.4 : 1 }}>{juzNum.toLocaleString("ar-EG")}</span>
@@ -1500,7 +1500,7 @@ export function InsightsPage() {
             })}
           </div>
           <div className="mt-3 flex items-center gap-2 justify-end text-[11px] opacity-55 flex-wrap">
-            <div className="w-3 h-3 rounded-sm" style={{ background: 'rgba(255,255,255,0.07)' }} /><span>لم يبدأ</span>
+            <div className="w-3 h-3 rounded-sm" style={{ background: "var(--card)" }} /><span>لم يبدأ</span>
             <div className="w-3 h-3 rounded-sm" style={{ background: 'color-mix(in srgb, var(--accent) 50%, transparent)' }} /><span>جزئي</span>
             <div className="w-3 h-3 rounded-sm" style={{ background: 'var(--ok)' }} /><span>مكتمل</span>
           </div>
@@ -1551,7 +1551,7 @@ export function InsightsPage() {
           </div>
 
           <div className="mt-3 flex items-center gap-2 justify-end text-[11px] opacity-60 flex-wrap">
-            <div className="w-3 h-3 rounded-sm" style={{ background: "rgba(255,255,255,0.07)" }} />
+            <div className="w-3 h-3 rounded-sm" style={{ background: "var(--card)" }} />
             <span>لم يُقرأ</span>
             <div className="w-3 h-3 rounded-sm" style={{ background: "color-mix(in srgb, var(--accent) 50%, transparent)" }} />
             <span>جزئي</span>

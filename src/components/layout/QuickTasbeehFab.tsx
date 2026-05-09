@@ -123,7 +123,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
                 "rounded-xl px-3 py-2 text-xs font-semibold transition",
                 target === value
                   ? "bg-[var(--accent)] text-black"
-                  : "text-white/65 hover:bg-[var(--card-2)]"
+                  : "text-[var(--muted)] hover:bg-[var(--card-2)]"
               )}
             >
               {value}

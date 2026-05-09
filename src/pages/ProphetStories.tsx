@@ -173,7 +173,7 @@ export function ProphetStoriesPage() {
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
                 className="mt-1 p-2 rounded-xl flex-shrink-0"
-                style={{ background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} />
               </button>
@@ -191,7 +191,7 @@ export function ProphetStoriesPage() {
                 className="mt-1 p-2 rounded-xl transition-all"
                 style={showBookmarksOnly
                   ? { background: "rgba(245,158,11,0.2)", color: "#f59e0b" }
-                  : { background: "rgba(255,255,255,0.08)", color: "var(--fg)" }}
+                  : { background: "var(--card)", color: "var(--fg)" }}
                 aria-label="المحفوظة"
               >
                 <Bookmark size={17} />
@@ -207,7 +207,7 @@ export function ProphetStoriesPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
-                style={{ background: "rgba(255,255,255,0.06)", color: "var(--fg)", border: "1px solid rgba(255,255,255,0.1)" }}
+                style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
               />
               {query && (
                 <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
