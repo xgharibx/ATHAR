@@ -5,9 +5,11 @@ import { SEERAH_EVENTS, SEERAH_CATEGORIES, type SeerahEvent } from "@/data/seera
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 export default function SeerahTimeline() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const [activeCategory, setActiveCategory] = useState<SeerahEvent["category"] | "all">("all");
   const [query, setQuery] = useState("");
 

@@ -5,6 +5,7 @@ import { COMPANIONS, COMPANION_CATEGORIES, type Companion } from "@/data/compani
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const COMPANION_BOOKMARKS_KEY = "noor_companion_bookmarks";
 
@@ -21,6 +22,7 @@ function saveCompanionBookmarks(s: Set<string>) {
 
 export default function Companions() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const [activeCategory, setActiveCategory] = useState<Companion["category"] | "all">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [query, setQuery] = useState("");

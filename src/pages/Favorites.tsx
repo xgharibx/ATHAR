@@ -13,6 +13,7 @@ import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useHadithPack } from "@/data/useHadithBook";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { DUAS_CATEGORIES } from "@/data/duas";
 import { PROPHET_STORIES } from "@/data/prophetStories";
 import { COMPANIONS } from "@/data/companions";
@@ -39,6 +40,7 @@ export function FavoritesPage() {
   const { data } = useAdhkarDB();
   const { data: quranData } = useQuranDB();
   const navigate = useNavigate();
+  useScrollRestoration();
   const favorites = useNoorStore((s) => s.favorites);
   const toggleFavorite = useNoorStore((s) => s.toggleFavorite);
   const quranBookmarks = useNoorStore((s) => s.quranBookmarks);

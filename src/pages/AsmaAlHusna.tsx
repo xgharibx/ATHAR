@@ -5,6 +5,7 @@ import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 type FilterTab = "all" | "memorized" | "favorites";
 
@@ -16,6 +17,7 @@ function getDailyAsmaId(): number {
 
 export function AsmaAlHusnaPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const [query, setQuery] = React.useState("");
   const [expandedId, setExpandedId] = React.useState<number | null>(null);
   const [tab, setTab] = React.useState<FilterTab>("all");

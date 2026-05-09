@@ -37,6 +37,7 @@ import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
 import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
+import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
 
 function useRadioState() {
   const [state, setState] = React.useState(getRadioState);
@@ -208,6 +209,9 @@ export function HomePage() {
   const sections = React.useMemo(() => sectionsRaw ?? [], [sectionsRaw]);
   const customPacks = useNoorStore((s) => s.customPacks);
 
+  // ── Scroll restoration ──────────────────────────────────────
+  useScrollRestoration();
+  const stripScrollRef = useElementScrollRestoration<HTMLDivElement>("home-strip");
   // ── Strip drag-and-drop ────────────────────────────────────
   const [liveStripIds, setLiveStripIds] = React.useState<string[] | null>(null);
   const [draggingStripId, setDraggingStripId] = React.useState<string | null>(null);
@@ -860,6 +864,7 @@ export function HomePage() {
       {/* ── Sections quick-access strip (drag-and-drop to reorder) ── */}
       {(sections.length > 0 || customPacks.length > 0) && (
         <div
+          ref={stripScrollRef}
           className="overflow-x-auto no-scrollbar -mx-0.5 px-0.5"
           style={{ touchAction: draggingStripId ? "none" : "pan-x" }}
           onPointerMove={onStripPointerMove}

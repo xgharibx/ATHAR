@@ -13,6 +13,7 @@ import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 /* ------------------------------------------------------------------ */
 /* Grade chip                                                            */
@@ -360,6 +361,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
 
 export function HadithBooksPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const { data: indexBooks } = useHadithIndex();
   const books = indexBooks ?? HADITH_BOOKS_STATIC;
   const [tab, setTab] = useState<"library" | "search">("library");

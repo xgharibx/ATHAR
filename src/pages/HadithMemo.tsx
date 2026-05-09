@@ -12,6 +12,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                               */
@@ -111,6 +112,7 @@ function FlipCard({
 
 export function HadithMemoPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const { data: nawawi } = useHadithPack("nawawi");
   const meta = nawawi ?? HADITH_BOOKS_STATIC.find((b) => b.key === "nawawi");
   const accentColor = meta?.color ?? "#84cc16";

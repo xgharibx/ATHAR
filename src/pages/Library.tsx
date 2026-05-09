@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useIslamicLibraryDB, dorarSearchUrl } from "@/data/useIslamicLibraryDB";
 import type { FlatLibraryEntry, LibraryCollection } from "@/data/libraryTypes";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
@@ -132,6 +133,7 @@ function CollectionCard({ collection, active, onClick }: { collection: LibraryCo
 
 export function LibraryPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const { data, isLoading, error } = useIslamicLibraryDB();
   const [q, setQ] = React.useState("");
   const [collectionFilter, setCollectionFilter] = React.useState<string>("all");

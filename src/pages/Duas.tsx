@@ -5,9 +5,11 @@ import { DUAS_CATEGORIES, type DuaCategory } from "@/data/duas";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 export function DuasPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const [activeTab, setActiveTab] = React.useState<string>("rabbana");
   const [copied, setCopied] = React.useState<string | null>(null);
   const [query, setQuery] = React.useState("");
