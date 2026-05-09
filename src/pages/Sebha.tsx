@@ -1,5 +1,6 @@
 import * as React from "react";
 import {
+  ArrowRight,
   CheckCircle2,
   RotateCw,
   Sparkles,
@@ -15,6 +16,7 @@ import {
   BarChart2,
   Share2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 import { Badge } from "@/components/ui/Badge";
@@ -24,6 +26,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useNoorStore } from "@/store/noorStore";
 import type { SebhaSession } from "@/store/noorStore";
 import { cn, pct } from "@/lib/utils";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -114,7 +117,11 @@ function CircularRing({
     hasMoved: boolean;
     isDrag: boolean;
   } | null>(null);
-  const [handleAngleDeg, setHandleAngleDeg] = React.useState(-90);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragAngleDeg, setDragAngleDeg] = React.useState(-90);
+  // Bead follows fill progress when idle; follows finger during drag.
+  const fillAngleDeg = -90 + (Math.min(percent, 100) / 100) * 360;
+  const handleAngleDeg = isDragging ? dragAngleDeg : fillAngleDeg;
 
   function getAngleAndDist(clientX: number, clientY: number) {
     const rect = containerRef.current!.getBoundingClientRect();
@@ -133,6 +140,8 @@ function CircularRing({
     if (nearRing) {
       e.preventDefault(); // prevent button click when grabbing ring
       containerRef.current!.setPointerCapture(e.pointerId);
+      setIsDragging(true);
+      setDragAngleDeg(angle);
     }
     pointerRef.current = {
       pointerId: e.pointerId,
@@ -160,13 +169,14 @@ function CircularRing({
       onClick();
       ref.lastAngle = angle;
     }
-    setHandleAngleDeg(angle);
+    setDragAngleDeg(angle);
   }
 
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
     const ref = pointerRef.current;
     if (!ref || ref.pointerId !== e.pointerId) return;
     if (!ref.hasMoved && !ref.isDrag) onClick(); // center tap
+    setIsDragging(false);
     pointerRef.current = null;
   }
 
@@ -392,11 +402,11 @@ function TasbeehStatsCard({
             <div key={item.key}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[11px] opacity-70">{item.short}</span>
-                <span className="text-[10px] opacity-40 tabular-nums">مجموع: {lifetime.toLocaleString('ar-SA')}</span>
+                <span className="text-[10px] opacity-40 tabular-nums">مجموع: {lifetime.toLocaleString()}</span>
               </div>
               {/* This week bar */}
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[9px] opacity-40 w-10 text-left shrink-0">هذا: {tw}</span>
+                <span className="text-[9px] opacity-40 w-14 shrink-0">هذا: {tw.toLocaleString()}</span>
                 <div className="flex-1 h-2 rounded-full bg-white/8 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
@@ -406,7 +416,7 @@ function TasbeehStatsCard({
               </div>
               {/* Last week bar */}
               <div className="flex items-center gap-2">
-                <span className="text-[9px] opacity-40 w-10 text-left shrink-0">سبق: {lw}</span>
+                <span className="text-[9px] opacity-40 w-14 shrink-0">سبق: {lw.toLocaleString()}</span>
                 <div className="flex-1 h-2 rounded-full bg-white/8 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-[width] duration-500"
@@ -436,6 +446,8 @@ function TasbeehStatsCard({
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export function SebhaPage() {
+  const navigate = useNavigate();
+  useScrollRestoration();
   const [selected, setSelected] = React.useState<TasbeehKey>("subhanallah");
   const [target, setTarget] = React.useState<(typeof TARGETS)[number]>(100);
   const [confirmReset, setConfirmReset] = React.useState(false);
@@ -587,15 +599,20 @@ export function SebhaPage() {
       {/* Header card */}
       <Card className="p-5 overflow-hidden relative">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Sparkles size={15} className="text-[var(--accent)]" />
-              <span className="text-xs font-semibold opacity-60">سبحة ذكية</span>
-              {tallyMode ? <Badge>وضع حر</Badge> : <Badge>{totalDone}/{totalTarget}</Badge>}
-            </div>
-            <h1 className="mt-2 text-xl md:text-2xl font-bold leading-tight">السبحة اليومية</h1>
-            <div className="mt-1 text-sm opacity-65 leading-6">
-              عداد هادئ للتسبيح والصلاة على النبي، محفوظ ضمن يومك الإيماني.
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <IconButton aria-label="رجوع" onClick={() => navigate(-1)}>
+              <ArrowRight size={18} />
+            </IconButton>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Sparkles size={15} className="text-[var(--accent)]" />
+                <span className="text-xs font-semibold opacity-60">سبحة ذكية</span>
+                {tallyMode ? <Badge>وضع حر</Badge> : <Badge>{totalDone}/{totalTarget}</Badge>}
+              </div>
+              <h1 className="mt-2 text-xl md:text-2xl font-bold leading-tight">السبحة اليومية</h1>
+              <div className="mt-1 text-sm opacity-65 leading-6">
+                عداد هادئ للتسبيح والصلاة على النبي، محفوظ ضمن يومك الإيماني.
+              </div>
             </div>
           </div>
           <div className="shrink-0 flex items-center gap-2">
@@ -717,7 +734,20 @@ export function SebhaPage() {
             )}
             {/* S5 - Tally mode toggle */}
             <button type="button"
-              onClick={() => { setTallyMode((v) => !v); setTallyCount(0); setTallyLaps([]); }}
+              onClick={() => {
+              // Auto-save tally session before switching mode
+              if (tallyMode && tallyCount > 0) {
+                addSebhaSession({
+                  dhikrKey: "tally",
+                  dhikrLabel: current.short,
+                  count: tallyCount,
+                  target: null,
+                  timestamp: new Date().toISOString(),
+                });
+                toast("تم حفظ جلسة التسبيح الحر", { icon: "💾" });
+              }
+              setTallyMode((v) => !v); setTallyCount(0); setTallyLaps([]);
+            }}
               className={cn(
                 "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition",
                 tallyMode

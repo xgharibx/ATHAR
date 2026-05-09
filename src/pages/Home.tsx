@@ -1223,7 +1223,9 @@ export function HomePage() {
             <Card key="tasbeeh" className="p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold">مختارات اليوم</div>
+                  <button type="button" onClick={() => navigate("/sebha")} className="text-sm font-semibold hover:opacity-75 transition-opacity text-right">
+                    مختارات اليوم ↗
+                  </button>
                   <div className="mt-1 text-xs opacity-55">هدف التسبيح: {tasbeehTarget}</div>
                 </div>
                 <div className="flex items-center gap-2">
