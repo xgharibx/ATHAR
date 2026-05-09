@@ -2051,6 +2051,12 @@ body.quran-focus-mode .quran-surface {
   .swipe-hint-anim {
     animation: none !important;
   }
+  /* Suppress all transitions for users who prefer reduced motion */
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
 .reduce-motion .page-enter,
