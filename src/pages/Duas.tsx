@@ -110,7 +110,16 @@ export function DuasPage() {
               )}
             </div>
             {/* Tabs */}
-            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-label="تصفية الأدعية">
+            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-label="تصفية الأدعية"
+          onKeyDown={(e) => {
+            const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
+            const idx = tabs.findIndex(t => t === document.activeElement);
+            if (idx === -1) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); const n=(idx-1+tabs.length)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); const n=(idx+1)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
+            else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
+          }}>
               {DUAS_CATEGORIES.map((cat) => (
                 <button type="button"
                   key={cat.id}

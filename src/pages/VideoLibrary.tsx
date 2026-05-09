@@ -1362,7 +1362,7 @@ function SheikhScreen({
           {(["default", "newest", "oldest", "duration-desc", "duration-asc", "alpha"] as const).map((sk) => {
             const labels: Record<typeof sk, string> = { default: "افتراضي", newest: "الأحدث", oldest: "الأقدم", "duration-desc": "الأطول", "duration-asc": "الأقصر", alpha: "أ-ي" };
             return (
-              <button key={sk} type="button" onClick={() => setSortKey(sk)}
+              <button key={sk} type="button" onClick={() => setSortKey(sk)} aria-pressed={sortKey === sk}
                 className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
                   sortKey === sk ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
                 style={sortKey === sk ? { background: channel.accent, color: contrastText(channel.accent) } : undefined}>
@@ -1564,7 +1564,7 @@ function CourseScreen({
           {(["default", "newest", "oldest", "duration-desc", "duration-asc", "alpha"] as const).map((sk) => {
             const labels: Record<typeof sk, string> = { default: "افتراضي", newest: "الأحدث", oldest: "الأقدم", "duration-desc": "الأطول", "duration-asc": "الأقصر", alpha: "أ-ي" };
             return (
-              <button key={sk} type="button" onClick={() => { setSortKey(sk); setLessonPage(1); }}
+              <button key={sk} type="button" onClick={() => { setSortKey(sk); setLessonPage(1); }} aria-pressed={sortKey === sk}
                 className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
                   sortKey === sk ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
                 style={sortKey === sk ? { background: accent, color: contrastText(accent) } : undefined}>
@@ -2006,7 +2006,7 @@ function TopicScreen({
           {(["default", "newest", "oldest", "duration-desc", "duration-asc", "alpha"] as const).map((sk) => {
             const labels: Record<typeof sk, string> = { default: "افتراضي", newest: "الأحدث", oldest: "الأقدم", "duration-desc": "الأطول", "duration-asc": "الأقصر", alpha: "أ-ي" };
             return (
-              <button key={sk} type="button" onClick={() => setSortKey(sk)}
+              <button key={sk} type="button" onClick={() => setSortKey(sk)} aria-pressed={sortKey === sk}
                 className={cn("shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-medium border transition min-h-[30px]",
                   sortKey === sk ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
                 style={sortKey === sk ? { background: topic.accent, color: contrastText(topic.accent) } : undefined}>

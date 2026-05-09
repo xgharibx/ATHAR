@@ -769,7 +769,7 @@ export function HomePage() {
   return (
     <div className="space-y-3 page-enter">
       <Card className="p-5 overflow-hidden relative">
-        <div className="absolute -top-10 -left-8 opacity-80">
+        <div className="absolute -top-10 -left-8 opacity-80" aria-hidden="true">
           <div className="w-32 h-32">
             <Lottie animationData={pulse} loop />
           </div>

@@ -548,7 +548,7 @@ export function AppShell() {
           </aside>
 
           {/* Main */}
-          <main id="main-content" className="col-span-12 xl:col-span-9 2xl:col-span-10">
+          <main id="main-content" aria-label="المحتوى الرئيسي" className="col-span-12 xl:col-span-9 2xl:col-span-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}

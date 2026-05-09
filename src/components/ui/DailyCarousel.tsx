@@ -80,7 +80,11 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   }, []);
 
   return (
-    <Card className="p-0 overflow-hidden" role="region" aria-label="محتوى يومي" aria-roledescription="عرض دوار">
+    <Card className="p-0 overflow-hidden" role="region" aria-label="محتوى يومي" aria-roledescription="عرض دوار" tabIndex={0}
+      onKeyDown={(e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; setActiveIdx((p) => (p + 1) % 3); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; setActiveIdx((p) => (p - 1 + 3) % 3); }
+      }}>
       {/* Header label */}
       <div className="flex items-center justify-between px-4 pt-3 pb-0">
         <span className="text-sm font-semibold">{SLIDE_LABELS[activeIdx]}</span>

@@ -296,13 +296,31 @@ export function LeaderboardPage() {
           الصيغة: ذكر + قرآن×٣ + صلاة×٤٠ + تسبيح
         </div>
 
-        <div role="tablist" aria-label="الفترة الزمنية" className="mt-3 flex flex-wrap gap-2">
+        <div role="tablist" aria-label="الفترة الزمنية" className="mt-3 flex flex-wrap gap-2"
+          onKeyDown={(e) => {
+            const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
+            const idx = tabs.findIndex(t => t === document.activeElement);
+            if (idx === -1) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); const n=(idx-1+tabs.length)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); const n=(idx+1)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
+            else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
+          }}>
           <BoardTab label="أسبوعي" active={period === "weekly"} onClick={() => setPeriod("weekly")} />
           <BoardTab label="شهري" active={period === "monthly"} onClick={() => setPeriod("monthly")} />
           <BoardTab label="سنوي" active={period === "yearly"} onClick={() => setPeriod("yearly")} />
         </div>
 
-        <div role="tablist" aria-label="نوع اللوحة" className="mt-3 flex flex-wrap gap-2">
+        <div role="tablist" aria-label="نوع اللوحة" className="mt-3 flex flex-wrap gap-2"
+          onKeyDown={(e) => {
+            const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
+            const idx = tabs.findIndex(t => t === document.activeElement);
+            if (idx === -1) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); const n=(idx-1+tabs.length)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); const n=(idx+1)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
+            else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
+          }}>
           <BoardTab label="الذكر" active={board === "dhikr"} onClick={() => setBoard("dhikr")} />
           <BoardTab label="القرآن" active={board === "quran"} onClick={() => setBoard("quran")} />
           <BoardTab label="الصلوات" active={board === "prayers"} onClick={() => setBoard("prayers")} />
@@ -752,7 +770,7 @@ function LeaderboardAdminCard(props: {
             تحكم سريع في حظر الأسماء، الإخفاء، والاسم الإجباري من داخل التطبيق.
           </div>
         </div>
-        <Button variant={expanded ? "secondary" : "outline"} onClick={() => setExpanded((v) => !v)}>
+        <Button variant={expanded ? "secondary" : "outline"} aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
           {expanded ? "إخفاء" : "فتح"}
         </Button>
       </div>
@@ -824,7 +842,16 @@ function LeaderboardAdminCard(props: {
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
                   <div className="text-sm font-semibold">حظر أسماء أو كلمات</div>
-                  <div role="tablist" aria-label="نمط التطابق" className="flex gap-2 flex-wrap">
+                  <div role="tablist" aria-label="نمط التطابق" className="flex gap-2 flex-wrap"
+          onKeyDown={(e) => {
+            const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
+            const idx = tabs.findIndex(t => t === document.activeElement);
+            if (idx === -1) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); const n=(idx-1+tabs.length)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); const n=(idx+1)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
+            else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
+          }}>
                     <BoardTab label="احتواء" active={blockMatchMode === "contains"} onClick={() => setBlockMatchMode("contains")} />
                     <BoardTab label="مطابقة تامة" active={blockMatchMode === "exact"} onClick={() => setBlockMatchMode("exact")} />
                   </div>
@@ -1043,7 +1070,7 @@ function LocalFriendsCard(props: {
             <span className="text-[10px] opacity-50 tabular-nums">{localFriends.length.toLocaleString("ar-EG")} صديق</span>
           )}
         </div>
-        <Button variant="secondary" onClick={() => setExpanded((v) => !v)}>
+        <Button variant="secondary" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
           {expanded ? "إخفاء" : "إدارة"}
         </Button>
       </div>

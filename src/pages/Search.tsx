@@ -201,8 +201,8 @@ export function SearchPage() {
           <Search size={18} className="opacity-70" />
           <h1 className="font-semibold text-base leading-none">بحث</h1>
         </div>
-        <div className="mt-4 relative flex items-center gap-2">
-          <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث في الأذكار والقرآن والمكتبة…" spellCheck={false} autoComplete="off" autoCapitalize="none" dir="rtl" />
+        <div className="mt-4 relative flex items-center gap-2" role="search" aria-label="بحث في التطبيق">
+          <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} aria-label="حقل البحث" placeholder="ابحث في الأذكار والقرآن والمكتبة…" spellCheck={false} autoComplete="off" autoCapitalize="none" dir="rtl" />
           {q ? (
             <IconButton aria-label="مسح" onClick={() => setQ("")}>
               <X size={16} />

@@ -272,6 +272,15 @@ export function HadithBookViewPage() {
           role="tablist"
           aria-label="تصفية الأبواب"
           className="flex gap-2 px-3 pb-3 overflow-x-auto no-scrollbar"
+          onKeyDown={(e) => {
+            const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
+            const idx = tabs.findIndex(t => t === document.activeElement);
+            if (idx === -1) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); const n=(idx-1+tabs.length)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); const n=(idx+1)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
+            else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
+          }}
         >
           <button type="button"
             role="tab"

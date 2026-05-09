@@ -581,7 +581,16 @@ export function QuranPage() {
             style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 40%, transparent)" }}
           >
             {/* Sort toggle */}
-            <div className="flex rounded-xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden text-sm" role="tablist" aria-label="ترتيب السور">
+            <div className="flex rounded-xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden text-sm" role="tablist" aria-label="ترتيب السور"
+          onKeyDown={(e) => {
+            const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
+            const idx = tabs.findIndex(t => t === document.activeElement);
+            if (idx === -1) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); const n=(idx-1+tabs.length)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); const n=(idx+1)%tabs.length; tabs[n].focus(); tabs[n].click(); }
+            else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
+            else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
+          }}>
               <button type="button"
                 role="tab"
                 aria-selected={sortMode === "mushaf"}
