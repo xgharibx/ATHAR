@@ -1090,7 +1090,8 @@ export function PrayerTimesPage() {
     <div className="p-4 md:p-5 space-y-4 page-enter">
       <PTRIndicator isPulling={isPulling} isRefreshing={isRefreshing} />
       {(isRefreshing || manualRefreshing) && (
-        <div className="animate-pulse">
+        <div className="animate-pulse" role="status" aria-label="جارٍ التحميل…" aria-busy="true">
+          <span className="sr-only">جارٍ التحميل…</span>
           <PrayerTimesPageSkeleton />
         </div>
       )}

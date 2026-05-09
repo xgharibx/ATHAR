@@ -258,7 +258,8 @@ export function QuranPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 page-enter">
+      <div className="space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+        <span className="sr-only">جارٍ التحميل…</span>
         <div className="glass rounded-3xl p-5 animate-pulse border border-[var(--stroke)]">
           <div className="h-5 w-28 bg-[var(--card)] rounded-xl mb-2" />
           <div className="h-3 w-20 bg-[var(--card)] rounded-xl" />
