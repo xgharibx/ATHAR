@@ -307,7 +307,7 @@ export function HadithReaderPage() {
               </h1>
               {sectionTitle && <p className="mt-1 text-[11px] text-[var(--muted)] truncate">{sectionTitle}</p>}
             </div>
-            {isLoading && <Loader2 size={16} className="animate-spin text-[var(--muted)] shrink-0" />}
+            {isLoading && <Loader2 size={16} aria-hidden="true" className="animate-spin text-[var(--muted)] shrink-0" />}
           </div>
 
           {/* Action buttons */}
@@ -337,9 +337,9 @@ export function HadithReaderPage() {
       <main className="mx-auto w-full max-w-3xl px-3 py-4 space-y-4">
         {/* Loading */}
         {isLoading && (
-          <Card className="p-6">
+          <Card className="p-6" role="status" aria-live="polite">
             <div className="flex items-center justify-center gap-3 py-10 text-[var(--muted)]">
-              <Loader2 className="animate-spin" />
+              <Loader2 aria-hidden="true" className="animate-spin" />
               <span className="font-arabic text-sm">جاري التحميل…</span>
             </div>
           </Card>

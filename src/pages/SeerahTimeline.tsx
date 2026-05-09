@@ -94,7 +94,7 @@ export default function SeerahTimeline() {
             })}
           </div>
           {/* Search box */}
-          <div className="relative mt-2">
+          <div className="relative mt-2" role="search" aria-label="بحث في السيرة النبوية">
             <Search size={14} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
             <input
               type="search"

@@ -250,7 +250,7 @@ export function HadithBookViewPage() {
                 {pack && pack.sections.length > 0 && <span>• {pack.sections.length.toLocaleString("ar-EG")} باب</span>}
               </div>
             </div>
-            {isLoading && <Loader2 size={18} className="animate-spin text-[var(--muted)] shrink-0" />}
+            {isLoading && <Loader2 size={18} aria-hidden="true" className="animate-spin text-[var(--muted)] shrink-0" />}
           </div>
           {lastIndex !== null && activeSectionId === null && (
             <button type="button"
@@ -308,7 +308,7 @@ export function HadithBookViewPage() {
 
       {/* Loading state */}
       {isLoading && (
-        <div dir="rtl" className="flex-1 flex items-center justify-center px-6">
+        <div dir="rtl" role="status" aria-live="polite" aria-label="جاري تحميل الكتاب" className="flex-1 flex items-center justify-center px-6">
           <div
             className="w-full max-w-sm rounded-3xl glass-strong border border-[var(--stroke)] p-6 flex flex-col gap-4"
           >
@@ -317,7 +317,7 @@ export function HadithBookViewPage() {
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)" }}
               >
-                <Loader2 size={20} className="animate-spin text-[var(--accent)]" />
+                <Loader2 size={20} aria-hidden="true" className="animate-spin text-[var(--accent)]" />
               </div>
               <div>
                 <p className="font-bold text-sm font-arabic" style={{ color: "var(--fg)" }}>

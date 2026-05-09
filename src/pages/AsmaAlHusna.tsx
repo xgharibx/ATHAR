@@ -99,15 +99,17 @@ export function AsmaAlHusnaPage() {
             )}
             {/* Search */}
             <div
+              role="search"
+              aria-label="بحث في أسماء الله الحسنى"
               className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
               <Search size={15} style={{ color: "#f59e0b" }} aria-hidden="true" />
               <input
+                type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="ابحث بالاسم أو المعنى..."
-                aria-label="بحث في أسماء الله الحسنى"
                 spellCheck={false}
                 autoComplete="off"
                 autoCapitalize="none"

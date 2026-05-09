@@ -54,7 +54,7 @@ export function PrayerWidget() {
             {date.hijri.weekday.ar} • {date.hijri.date}
           </span>
           {isFetching && (
-            <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" title="يتم التحديث..." />
+            <span aria-hidden="true" className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" title="يتم التحديث..." />
           )}
         </div>
       </div>

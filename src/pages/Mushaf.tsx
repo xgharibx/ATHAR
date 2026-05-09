@@ -1141,10 +1141,10 @@ export function MushafPage() {
 
       {/* ── Q17: In-page search bar ───────────────────────── */}
       {showSearch && (
-        <div className="mushaf-search-bar" onClick={(e) => e.stopPropagation()}>
+        <div className="mushaf-search-bar" role="search" aria-label="بحث في الصفحة" onClick={(e) => e.stopPropagation()}>
           <Search size={14} aria-hidden="true" className="shrink-0 opacity-50" />
           <input
-            type="text"
+            type="search"
             value={inPageSearch}
             onChange={(e) => setInPageSearch(e.target.value)}
             placeholder="بحث في الصفحة…"

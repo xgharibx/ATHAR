@@ -90,15 +90,17 @@ export function DuasPage() {
             </div>
             {/* Search */}
             <div
+              role="search"
+              aria-label="بحث في الأدعية"
               className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
               <Search size={15} style={{ color: "#059669" }} aria-hidden="true" />
               <input
+                type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="ابحث في الأدعية..."
-                aria-label="بحث في الأدعية"
                 autoComplete="off"
                 autoCapitalize="none"
                 spellCheck={false}

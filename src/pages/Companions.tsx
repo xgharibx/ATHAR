@@ -129,7 +129,7 @@ export default function Companions() {
             })}
           </div>
           {/* Search */}
-          <div className="relative mt-2">
+          <div className="relative mt-2" role="search" aria-label="بحث في الصحابة">
             <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" aria-hidden="true" />
             <input
               type="search"

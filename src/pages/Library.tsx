@@ -194,7 +194,7 @@ export function LibraryPage() {
         <div className="flex items-center gap-3 mb-4">
           <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" role="search" aria-label="بحث في المكتبة">
               <BookOpenText size={19} aria-hidden="true" className="text-[var(--accent)]" />
               <h1 className="text-lg font-bold">المكتبة الإسلامية</h1>
             </div>
@@ -269,9 +269,9 @@ export function LibraryPage() {
       </div>
 
       <Card className="p-4 sticky top-3 z-20 backdrop-blur-xl">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" role="search" aria-label="بحث في المكتبة">
           <Search size={17} className="opacity-60" aria-hidden="true" />
-          <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder="ابحث في الحديث، الراوي، الفوائد، أو الموضوع…" aria-label="بحث في المكتبة" spellCheck={false} autoComplete="off" autoCapitalize="none" />
+          <Input value={q} onChange={(event) => setQ(event.target.value)} type="search" placeholder="ابحث في الحديث، الراوي، الفوائد، أو الموضوع…" aria-label="بحث في المكتبة" spellCheck={false} autoComplete="off" autoCapitalize="none" />
         </div>
       </Card>
 

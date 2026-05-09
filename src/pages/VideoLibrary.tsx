@@ -767,10 +767,11 @@ function VideoHome({
 
           {/* Search bar */}
           {searchOpen && (
-            <div className="relative mb-4">
+            <div className="relative mb-4" role="search" aria-label="بحث في مكتبة الدروس">
               <Search size={14} aria-hidden="true" className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
               <input
                 ref={inputRef}
+                type="search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="ابحث عن شيخ، دورة، أو درس..."

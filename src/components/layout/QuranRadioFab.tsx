@@ -49,7 +49,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
         aria-label="راديو القرآن"
       >
         {radio.loading ? (
-          <Loader2 size={22} className="animate-spin" />
+          <Loader2 size={22} aria-hidden="true" className="animate-spin" />
         ) : (
           <Radio size={22} aria-hidden="true" style={radio.playing ? { color: "var(--ok)" } : undefined} />
         )}
@@ -87,7 +87,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
             <div className="text-sm font-semibold">راديو القرآن</div>
             {radio.playing && (
               <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: "var(--ok)20", color: "var(--ok)" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--ok)] animate-pulse inline-block" />
+                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-[var(--ok)] animate-pulse inline-block" />
                 بث مباشر
               </span>
             )}
@@ -120,7 +120,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
                 <span className="arabic-text">{station.label}</span>
                 {radio.playing && radio.stationIdx === i && (
                   radio.loading ? (
-                    <Loader2 size={12} className="animate-spin shrink-0 opacity-70" />
+                    <Loader2 size={12} aria-hidden="true" className="animate-spin shrink-0 opacity-70" />
                   ) : (
                     <span className="flex gap-[2px] items-end shrink-0">
                       {[4, 7, 5, 9, 6].map((h, idx) => (

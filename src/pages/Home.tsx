@@ -172,7 +172,7 @@ function HomeRadioButton() {
         {radio.playing ? "القرآن يُبث" : "راديو القرآن"}
       </span>
       {radio.playing && (
-        <span className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0" style={{ background: "var(--ok)" }} />
+        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0" style={{ background: "var(--ok)" }} />
       )}
     </button>
   );

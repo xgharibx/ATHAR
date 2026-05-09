@@ -252,7 +252,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
   return (
     <div dir="rtl" className="px-4 pt-4">
       {/* Search input */}
-      <div className="relative mb-5">
+      <div className="relative mb-5" role="search" aria-label="بحث في الأحاديث">
         <Search size={16} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] pointer-events-none" />
         <input
           type="search"

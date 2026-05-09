@@ -200,7 +200,7 @@ export function ProphetStoriesPage() {
               </button>
             </div>
             {/* Search */}
-            <div className="relative">
+            <div className="relative" role="search" aria-label="بحث في قصص الأنبياء">
               <Search size={14} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
               <input
                 type="search"

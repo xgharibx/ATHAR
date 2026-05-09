@@ -349,7 +349,7 @@ export function LeaderboardPage() {
             disabled={syncState === "syncing" || cooldownLeft > 0}
           >
             {syncState === "syncing"
-              ? <Loader2 size={16} className="animate-spin" />
+              ? <Loader2 size={16} aria-hidden="true" className="animate-spin" />
               : <Send size={16} aria-hidden="true" />}
             {cooldownLeft > 0
               ? `انتظر ${Math.ceil(cooldownLeft / 1000).toLocaleString("ar-EG")}ث`
@@ -824,7 +824,7 @@ function LeaderboardAdminCard(props: {
                 {confirmResetScores ? (
                   <div className="flex flex-wrap gap-2">
                     <Button onClick={() => void resetLeaderboardScores()} disabled={resettingScores}>
-                      {resettingScores ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                      {resettingScores ? <Loader2 size={16} aria-hidden="true" className="animate-spin" /> : <Trash2 size={16} aria-hidden="true" />}
                       تأكيد التصفير الكامل
                     </Button>
                     <Button variant="outline" onClick={() => setConfirmResetScores(false)} disabled={resettingScores}>
