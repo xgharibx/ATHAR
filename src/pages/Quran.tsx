@@ -155,6 +155,18 @@ export function QuranPage() {
     setFilterJuz(parseJuzParam(searchParams.get("juz")));
   }, [searchParams]);
 
+  // Auto-scroll to currently reading surah on first load (only when not filtered/queried)
+  const currentSurahRef = React.useRef<HTMLDivElement | null>(null);
+  React.useEffect(() => {
+    if (!lastRead || filterJuz || query) return;
+    const timer = setTimeout(() => {
+      currentSurahRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 350);
+    return () => clearTimeout(timer);
+  // Only run on initial mount or when the reading position changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastRead?.surahId]);
+
   const lastReadSurahName = React.useMemo(() => {
     if (!lastRead || !data) return null;
     return data.find((s) => s.id === lastRead.surahId)?.name ?? null;
@@ -765,7 +777,7 @@ export function QuranPage() {
               const isMedinan = SURAH_REVELATION[s.id] === "medinan";
               const isCurrent = lastRead?.surahId === s.id;
               return (
-                <div key={s.id} role="listitem">
+                <div key={s.id} role="listitem" ref={isCurrent ? currentSurahRef : undefined}>
                 <button type="button"
                   onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
                   className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)]"

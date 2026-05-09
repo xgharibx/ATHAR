@@ -273,7 +273,10 @@ export function QuranVocabPage() {
                 <div className="text-5xl font-bold mb-4" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
                   {card.arabic}
                 </div>
-                <p className="text-xs opacity-50">اضغط للكشف عن المعنى</p>
+                <p className="text-xs opacity-50 flex items-center justify-center gap-1">
+                  <RotateCcw size={12} aria-hidden="true" />
+                  اضغط للكشف عن المعنى
+                </p>
               </div>
             </div>
             {/* Back face — meaning */}
