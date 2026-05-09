@@ -416,7 +416,7 @@ export function FavoritesPage() {
                             >
                               {copiedKey === r.key ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
                             </Button>
-                            <Button variant="outline" onClick={() => setConfirmDeleteKey(r.key)}>
+                            <Button variant="outline" onClick={() => setConfirmDeleteKey(r.key)} aria-label="إزالة من المفضلة">
                               <Trash2 size={16} />
                             </Button>
                           </div>

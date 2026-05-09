@@ -337,10 +337,12 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
                 <div className="flex items-center gap-2">
                   <button type="button"
                     onClick={() => setReminders({ iqamaOffsets: { ...iqamaOffsets, [p]: Math.max(0, (iqamaOffsets[p] ?? 15) - 5) } })}
+                    aria-label={`تقليل وقت إقامة ${PRAYER_LABELS[p]}`}
                     className="w-8 h-8 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] transition-colors grid place-items-center text-sm">−</button>
                   <span className="w-12 text-center text-sm font-medium tabular-nums">{iqamaOffsets[p] ?? 15} د</span>
                   <button type="button"
                     onClick={() => setReminders({ iqamaOffsets: { ...iqamaOffsets, [p]: Math.min(60, (iqamaOffsets[p] ?? 15) + 5) } })}
+                    aria-label={`زيادة وقت إقامة ${PRAYER_LABELS[p]}`}
                     className="w-8 h-8 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] transition-colors grid place-items-center text-sm">+</button>
                 </div>
               </div>

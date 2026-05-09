@@ -1985,6 +1985,7 @@ function TopicScreen({
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           <button type="button"
             onClick={() => setChannelFilter(null)}
+            aria-pressed={channelFilter === null}
             className={cn("shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
               channelFilter === null ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
             style={channelFilter === null ? { background: topic.accent, color: contrastText(topic.accent) } : {}}
@@ -1994,6 +1995,7 @@ function TopicScreen({
           {channelChips.map(({ id, channel, count }) => (
             <button type="button" key={id}
               onClick={() => setChannelFilter(channelFilter === id ? null : id)}
+              aria-pressed={channelFilter === id}
               className={cn("shrink-0 flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium border transition min-h-[36px]",
                 channelFilter === id ? "border-transparent" : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]")}
               style={channelFilter === id ? { background: channel.accent, color: contrastText(channel.accent) } : { borderColor: `${channel.accent}40` }}
