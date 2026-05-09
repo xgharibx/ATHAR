@@ -429,6 +429,27 @@ export function InsightsPage() {
       .slice(0, 5);
   }, [quranData, quranReadingHistory]);
 
+  // Quran milestone achievements
+  const quranMilestones = React.useMemo(() => {
+    const pct = overallQuranProgress;
+    const completed = quranStats.completed;
+    const totalRead = quranStats.totalAyahs;
+    return [
+      { id: 'start',  icon: '🌱', label: '\u0628\u062F\u0623\u062A \u0627\u0644\u0631\u062D\u0644\u0629',     unlocked: totalRead >= 1 },
+      { id: 'q10',    icon: '\u2B50',    label: '\u0642\u0631\u0623\u062A 10\u066A',         unlocked: pct >= 10 },
+      { id: 'q25',    icon: '🌙', label: '\u0631\u0628\u0639 \u0627\u0644\u0642\u0631\u0622\u0646',        unlocked: pct >= 25 },
+      { id: 'q50',    icon: '🌟', label: '\u0646\u0635\u0641 \u0627\u0644\u0642\u0631\u0622\u0646',        unlocked: pct >= 50 },
+      { id: 'q75',    icon: '\u2728',    label: '\u062B\u0644\u0627\u062B\u0629 \u0623\u0631\u0628\u0627\u0639',       unlocked: pct >= 75 },
+      { id: 'q100',   icon: '🏆', label: '\u062E\u062A\u0645\u062A \u0627\u0644\u0642\u0631\u0622\u0646',       unlocked: pct >= 100 },
+      { id: 's1',     icon: '📖', label: '\u0623\u0648\u0644 \u0633\u0648\u0631\u0629 \u0645\u0643\u062A\u0645\u0644\u0629',   unlocked: completed >= 1 },
+      { id: 's10',    icon: '📚', label: '10 \u0633\u0648\u0631 \u0645\u0643\u062A\u0645\u0644\u0629',     unlocked: completed >= 10 },
+      { id: 's30',    icon: '🎓', label: '30 \u0633\u0648\u0631\u0629 \u0645\u0643\u062A\u0645\u0644\u0629',    unlocked: completed >= 30 },
+      { id: 's114',   icon: '👑', label: '\u0643\u0644 \u0633\u0648\u0631 \u0627\u0644\u0642\u0631\u0622\u0646',          unlocked: completed >= 114 },
+      { id: 'str7',   icon: '🔥', label: '7 \u0623\u064A\u0627\u0645 \u0645\u062A\u0648\u0627\u0635\u0644\u0629',    unlocked: quranStreak >= 7 },
+      { id: 'str30',  icon: '💎', label: '30 \u064A\u0648\u0645\u0627\u064B \u0645\u062A\u0648\u0627\u0635\u0644\u0627\u064B',  unlocked: quranStreak >= 30 },
+    ];
+  }, [overallQuranProgress, quranStats, quranStreak]);
+
   const quranJuzCompletion = React.useMemo(() => {
     if (!quranData) return [] as { juz: number; pct: number; complete: boolean }[];
     const totals: Record<number, number> = {};
@@ -1482,6 +1503,45 @@ export function InsightsPage() {
                     />
                   </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* I5: Quran milestone achievements */}
+      {quranStats.totalAyahs > 0 && (
+        <Card className="p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span aria-hidden="true" className="text-base leading-none">🏅</span>
+            <div className="font-semibold text-sm">\u0625\u0646\u062C\u0627\u0632\u0627\u062A\u0643 \u0641\u064A \u0627\u0644\u0642\u0631\u0622\u0646</div>
+            <span className="text-[11px] opacity-50 mr-auto tabular-nums">
+              {quranMilestones.filter((m) => m.unlocked).length} / {quranMilestones.length}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {quranMilestones.map((m) => (
+              <div
+                key={m.id}
+                className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-all"
+                style={
+                  m.unlocked
+                    ? {
+                        background: "color-mix(in srgb, var(--ok) 15%, var(--card))",
+                        color: "var(--ok)",
+                        border: "1px solid color-mix(in srgb, var(--ok) 30%, transparent)",
+                      }
+                    : {
+                        background: "color-mix(in srgb, var(--fg) 5%, var(--card))",
+                        color: "var(--fg)",
+                        opacity: 0.35,
+                        border: "1px solid color-mix(in srgb, var(--fg) 10%, transparent)",
+                      }
+                }
+                aria-label={m.unlocked ? `\u0645\u0641\u062A\u0648\u062D: ${m.label}` : `\u0645\u063A\u0644\u0642: ${m.label}`}
+              >
+                <span aria-hidden="true">{m.icon}</span>
+                <span>{m.label}</span>
               </div>
             ))}
           </div>
