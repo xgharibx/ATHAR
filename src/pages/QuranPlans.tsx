@@ -352,7 +352,7 @@ export function QuranPlansPage() {
         <Card className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="text-sm font-bold flex items-center gap-2">
-              <Target className="w-4 h-4 opacity-60" />
+              <Target className="w-4 h-4 opacity-60" aria-hidden="true" />
               اختر خطة
             </div>
             {activePlan && (

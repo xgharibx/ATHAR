@@ -679,7 +679,7 @@ export function InsightsPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <Zap size={13} style={{ color: xpLevel.color }} />
+                <Zap size={13} style={{ color: xpLevel.color }} aria-hidden="true" />
                 <span className="text-sm font-bold" style={{ color: xpLevel.color }}>{xpLevel.label}</span>
                 <span className="text-[10px] opacity-40 tabular-nums">{xp.toLocaleString("ar-EG")} نقطة</span>
               </div>
@@ -936,7 +936,7 @@ export function InsightsPage() {
         <div className="relative flex items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp size={16} className="text-[var(--accent)]" />
+              <TrendingUp size={16} className="text-[var(--accent)]" aria-hidden="true" />
               <div className="text-xs opacity-60">الإحصائيات</div>
             </div>
             <div className="text-3xl font-bold tabular-nums leading-none">
@@ -990,7 +990,7 @@ export function InsightsPage() {
       {/* 28-Day Heatmap — I1: with view toggle */}
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Flame size={16} className="text-[var(--accent)]" />
+          <Flame size={16} className="text-[var(--accent)]" aria-hidden="true" />
           <div className="font-semibold text-sm">نشاط الأذكار</div>
           <div className="mr-auto flex gap-1" role="group" aria-label="عرض بيانات النشاط">
             {([7, 28, 90] as const).map((v) => (
@@ -1070,7 +1070,7 @@ export function InsightsPage() {
       {/* 7-day activity bar chart */}
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp size={16} className="text-[var(--accent)]" />
+          <TrendingUp size={16} className="text-[var(--accent)]" aria-hidden="true" />
           <div className="font-semibold text-sm">نشاط الأسبوع</div>
           <span className="text-[11px] opacity-50 mr-auto tabular-nums">{weekTotal.toLocaleString("ar-EG")} إجمالي</span>
           {lastWeekTotal > 0 && (
@@ -1123,12 +1123,12 @@ export function InsightsPage() {
         <Card className="p-5">
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
-              <BookOpen size={16} className="text-[var(--accent)]" />
+              <BookOpen size={16} className="text-[var(--accent)]" aria-hidden="true" />
               <div className="font-semibold text-sm">إحصاءات القرآن</div>
             </div>
             {quranStreak > 0 && (
               <div className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-xl bg-accent-10 border border-accent-20">
-                <Flame size={11} className="text-[var(--accent)]" />
+                <Flame size={11} className="text-[var(--accent)]" aria-hidden="true" />
                 <span className="tabular-nums">{quranStreak.toLocaleString("ar-EG")} يوم</span>
               </div>
             )}
@@ -1151,7 +1151,7 @@ export function InsightsPage() {
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1.5 text-xs opacity-65">
               <div className="flex items-center gap-1.5">
-                <Target size={11} />
+                <Target size={11} aria-hidden="true" />
                 <span>هدف اليوم: {todayQuranAyahs.toLocaleString("ar-EG")}/{quranGoal.toLocaleString("ar-EG")} آية</span>
               </div>
               <span className={`tabular-nums font-medium ${quranGoalPct >= 100 ? "text-[var(--ok)]" : ""}`}>
@@ -1216,7 +1216,7 @@ export function InsightsPage() {
       {/* I2: Prayer consistency chart (28 days) */}
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Target size={14} className="text-[var(--accent)]" />
+          <Target size={14} className="text-[var(--accent)]" aria-hidden="true" />
           <div className="font-semibold text-sm">ثبات الصلاة</div>
           <span className="text-[11px] opacity-50 mr-auto tabular-nums">
             متوسط {parseFloat(prayerConsistencyAvg.toFixed(1)).toLocaleString("ar-EG", { minimumFractionDigits: 1 })} / ٥
@@ -1263,7 +1263,7 @@ export function InsightsPage() {
       {quranPageLast7Days.some((d) => d.pages > 0) && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <BookOpen size={14} className="text-[var(--accent)]" />
+            <BookOpen size={14} className="text-[var(--accent)]" aria-hidden="true" />
             <div className="font-semibold text-sm">صفحات القرآن (7 أيام)</div>
             <span className="text-[11px] opacity-50 mr-auto tabular-nums">
               {parseFloat(quranPageLast7Days.reduce((s, d) => s + d.pages, 0).toFixed(1)).toLocaleString("ar-EG", { minimumFractionDigits: 1 })} صفحة
@@ -1301,7 +1301,7 @@ export function InsightsPage() {
       {radarValues.length >= 3 && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <BarChart2 size={14} className="text-[var(--accent)]" />
+            <BarChart2 size={14} className="text-[var(--accent)]" aria-hidden="true" />
             <div className="font-semibold text-sm">مخطط الأقسام</div>
           </div>
           <div className="flex items-center justify-center gap-6 flex-wrap">
@@ -1434,7 +1434,7 @@ export function InsightsPage() {
             </div>
           </div>
           <Button variant="secondary" onClick={() => navigate("/leaderboard")}>
-            <Trophy size={15} />
+            <Trophy size={15} aria-hidden="true" />
             ترتيبي
           </Button>
         </div>
@@ -1490,7 +1490,7 @@ export function InsightsPage() {
       {quranStats.started > 0 && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
-            <BookOpen size={16} className="text-[var(--accent)]" />
+            <BookOpen size={16} className="text-[var(--accent)]" aria-hidden="true" />
             <div className="font-semibold text-sm">تقدّم الأجزاء (30 جزءًا)</div>
           </div>
           <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(6, 1fr)" }}>
@@ -1545,11 +1545,11 @@ export function InsightsPage() {
         <Card className="p-5">
           <div className="flex items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
-              <BookOpen size={16} className="text-[var(--accent)]" />
+              <BookOpen size={16} className="text-[var(--accent)]" aria-hidden="true" />
               <div className="font-semibold text-sm">خريطة ختمة القرآن</div>
             </div>
             <Button variant="secondary" onClick={shareQuranProgress} disabled={quranSharing}>
-              <Share2 size={14} />
+              <Share2 size={14} aria-hidden="true" />
               {quranSharing ? "جاري التحضير..." : "مشاركة"}
             </Button>
           </div>
@@ -1603,7 +1603,7 @@ export function InsightsPage() {
       {sectionProgress.length > 0 && (
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-3">
-            <BarChart2 size={14} className="text-[var(--accent)]" />
+            <BarChart2 size={14} className="text-[var(--accent)]" aria-hidden="true" />
             <div className="text-xs font-semibold opacity-65">تقدم الأقسام</div>
           </div>
           <div className="space-y-2">

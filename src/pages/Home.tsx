@@ -779,7 +779,7 @@ export function HomePage() {
           <div>
             <div>
               <div className="mb-2 flex items-center gap-2 flex-wrap">
-                <Sparkles size={14} className="text-[var(--accent)]" />
+                <Sparkles size={14} className="text-[var(--accent)]" aria-hidden="true" />
                 <span className="text-xs font-medium opacity-65">{timeGreeting(new Date().getHours())}</span>
                 {(() => { const h = getHijriDate(); return h ? <span className="text-xs opacity-50 border border-[var(--stroke)] rounded-full px-2 py-0.5">{h}</span> : null; })()}
                 {streak > 0 && (
@@ -1211,7 +1211,7 @@ export function HomePage() {
                     if (!isStepDone) toast.success("أحسنت — تم تسجيل الخطوة");
                   }}
                 >
-                  <CheckCircle2 size={16} />
+                  <CheckCircle2 size={16} aria-hidden="true" />
                   {isStepDone ? "تم" : "أتممتها"}
                 </Button>
               </div>
@@ -1401,7 +1401,7 @@ export function HomePage() {
                       }
                     }}
                   >
-                    <CheckCircle2 size={16} />
+                    <CheckCircle2 size={16} aria-hidden="true" />
                     {isDailyWirdDone ? "منجز ↩" : "تم"}
                   </Button>
                 </div>

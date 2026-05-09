@@ -216,14 +216,14 @@ export function SettingsPage() {
           onClick={onBackup}
           className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition"
         >
-          <Download size={12} />
+          <Download size={12} aria-hidden="true" />
           نسخ احتياطي
         </button>
       </div>
 
       <Card id="settings-summary" className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={16} className="text-[var(--accent)]" />
+          <Sparkles size={16} className="text-[var(--accent)]" aria-hidden="true" />
           <div className="text-sm font-semibold">ملخص بياناتك</div>
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -364,7 +364,7 @@ export function SettingsPage() {
         <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Globe size={15} className="text-[var(--accent)]" />
+              <Globe size={15} className="text-[var(--accent)]" aria-hidden="true" />
               <div>
                 <div className="text-sm font-medium">لغة الواجهة</div>
                 <div className="text-xs opacity-60 mt-0.5">Arabic ↔ English</div>
@@ -743,7 +743,7 @@ export function SettingsPage() {
 
       <Card id="settings-tasbeeh" className="p-5">
         <div className="flex items-center gap-2">
-          <Sparkles size={18} className="text-[var(--accent)]" />
+          <Sparkles size={18} className="text-[var(--accent)]" aria-hidden="true" />
           <div className="font-semibold">تجربة التسبیح</div>
         </div>
 
@@ -775,7 +775,7 @@ export function SettingsPage() {
       <Card id="settings-reminders" className="p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Bell size={18} className="text-[var(--accent)]" />
+            <Bell size={18} className="text-[var(--accent)]" aria-hidden="true" />
             <div>
               <div className="font-semibold">التذكيرات</div>
               <div className="text-xs opacity-65 mt-1 leading-6">
@@ -1099,13 +1099,13 @@ export function SettingsPage() {
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <Button variant="secondary" onClick={onBackup}>
-              <Download size={16} />
+              <Download size={16} aria-hidden="true" />
               تصدير
             </Button>
 
             {/* Se7: Share to cloud (Google Drive / iCloud via native share sheet) */}
             <Button variant="secondary" onClick={() => void onShareBackup()}>
-              <Share2 size={16} />
+              <Share2 size={16} aria-hidden="true" />
               مشاركة
             </Button>
 
@@ -1120,7 +1120,7 @@ export function SettingsPage() {
                 }}
               />
               <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] cursor-pointer text-sm min-h-[44px]">
-                <Upload size={16} />
+                <Upload size={16} aria-hidden="true" />
                 استيراد
               </span>
             </label>
@@ -1381,7 +1381,7 @@ function DangerZone() {
   return (
     <Card className="p-5 border border-danger-20">
       <div className="flex items-center gap-2 mb-3">
-        <Trash2 size={16} className="text-[var(--danger)]" />
+        <Trash2 size={16} className="text-[var(--danger)]" aria-hidden="true" />
         <div className="text-sm font-semibold text-[var(--danger)]">منطقة الخطر</div>
       </div>
       <div className="text-xs opacity-65 mb-4 leading-6">
@@ -1395,7 +1395,7 @@ function DangerZone() {
             className="border-danger-40 text-[var(--danger)] hover:bg-danger-10"
             onClick={handleReset}
           >
-            <Trash2 size={15} />
+            <Trash2 size={15} aria-hidden="true" />
             {confirm === "adhkar" && "تأكيد مسح الأذكار"}
             {confirm === "quran" && "تأكيد مسح القرآن"}
             {confirm === "all" && "تأكيد المسح الكامل"}
@@ -1409,7 +1409,7 @@ function DangerZone() {
             className="justify-start border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/8"
             onClick={() => setConfirm("adhkar")}
           >
-            <BookMarked size={15} />
+            <BookMarked size={15} aria-hidden="true" />
             مسح تقدّم الأذكار والمفضلة
           </Button>
           <Button
@@ -1417,7 +1417,7 @@ function DangerZone() {
             className="justify-start border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-500/8"
             onClick={() => setConfirm("quran")}
           >
-            <BookOpen size={15} />
+            <BookOpen size={15} aria-hidden="true" />
             مسح بيانات القرآن والإشارات
           </Button>
           <Button
@@ -1425,7 +1425,7 @@ function DangerZone() {
             className="justify-start border-danger-30 text-danger-80 hover:bg-danger-8"
             onClick={() => setConfirm("all")}
           >
-            <Trash2 size={15} />
+            <Trash2 size={15} aria-hidden="true" />
             مسح جميع البيانات
           </Button>
         </div>
