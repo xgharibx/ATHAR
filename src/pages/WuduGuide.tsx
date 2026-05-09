@@ -121,7 +121,7 @@ export function WuduGuidePage() {
       )}
 
       {/* Steps */}
-      <div className="px-4 mt-4 space-y-3">
+      <div className="px-4 mt-4 space-y-3" role="list" aria-label="خطوات الوضوء">
         {WUDU_STEPS.map((step) => {
           const isDone = done.has(step.id);
           return (

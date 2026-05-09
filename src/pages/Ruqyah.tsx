@@ -33,6 +33,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
 
   return (
     <div
+      role="listitem"
       className={cn(
         "rounded-3xl border p-4 transition-all",
         done
@@ -149,7 +150,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
         </div>
       </button>
 
-      <div id={`ruqyah-panel-${section.id}`} hidden={!expanded} className="px-4 pb-4 space-y-3 border-t border-[var(--stroke)] pt-3">
+      <div id={`ruqyah-panel-${section.id}`} hidden={!expanded} className="px-4 pb-4 space-y-3 border-t border-[var(--stroke)] pt-3" role="list">
         {section.items.map((item, idx) => (
           <RuqyahItemCard key={item.id} item={item} idx={idx} />
         ))}

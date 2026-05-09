@@ -86,12 +86,13 @@ export function PrayerGuidePage() {
       </div>
 
       {/* Steps */}
-      <div className="px-4 mt-4 space-y-2">
+      <div className="px-4 mt-4 space-y-2" role="list" aria-label="خطوات الصلاة">
         {PRAYER_STEPS.map((step) => {
           const isOpen = expandedId === step.id;
           return (
             <div
               key={step.id}
+              role="listitem"
               className="rounded-2xl overflow-hidden transition-all duration-200"
               style={{
                 background: isOpen ? "var(--accent)" : "var(--card)",
