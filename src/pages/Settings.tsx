@@ -459,6 +459,7 @@ export function SettingsPage() {
                 max={1.6}
                 step={0.01}
                 onValueChange={(v) => setPrefs({ fontScale: clamp(v[0] ?? 1.05, 0.9, 1.6) })}
+                aria-label="حجم الخط"
               />
             </div>
           </div>
@@ -475,6 +476,7 @@ export function SettingsPage() {
                 max={2.4}
                 step={0.01}
                 onValueChange={(v) => setPrefs({ lineHeight: clamp(v[0] ?? 1.95, 1.6, 2.4) })}
+                aria-label="تباعد السطور"
               />
             </div>
           </div>
@@ -491,6 +493,7 @@ export function SettingsPage() {
                 max={1.6}
                 step={0.01}
                 onValueChange={(v) => setPrefs({ quranFontScale: clamp(v[0] ?? 1.1, 0.9, 1.6) })}
+                aria-label="حجم خط القرآن"
               />
             </div>
           </div>
@@ -507,6 +510,7 @@ export function SettingsPage() {
                 max={3}
                 step={0.01}
                 onValueChange={(v) => setPrefs({ quranLineHeight: clamp(v[0] ?? 2.55, 1.8, 3) })}
+                aria-label="تباعد سطور القرآن"
               />
             </div>
           </div>
@@ -521,6 +525,7 @@ export function SettingsPage() {
                     <button type="button"
                       key={n}
                       onClick={() => setPrefs({ quranPageSize: n })}
+                      aria-pressed={prefs.quranPageSize === n}
                       className={[
                         "px-4 py-3 rounded-xl border text-sm transition min-h-[44px]",
                         prefs.quranPageSize === n
@@ -570,6 +575,7 @@ export function SettingsPage() {
                   <button type="button"
                     key={t}
                     onClick={() => setPrefs({ quranTheme: t })}
+                    aria-pressed={prefs.quranTheme === t}
                     className={[
                       "text-[10px] px-2.5 py-1.5 rounded-xl border transition min-h-[36px]",
                       prefs.quranTheme === t
@@ -594,6 +600,7 @@ export function SettingsPage() {
                   <button type="button"
                     key={m}
                     onClick={() => setPrefs({ quranScrollMode: m })}
+                    aria-pressed={prefs.quranScrollMode === m}
                     className={[
                       "text-xs px-3 py-2 rounded-xl border transition min-h-[36px]",
                       prefs.quranScrollMode === m
@@ -621,6 +628,7 @@ export function SettingsPage() {
                 max={0.12}
                 step={0.005}
                 onValueChange={(v) => setPrefs({ quranLetterSpacing: clamp(v[0] ?? 0, 0, 0.12) })}
+                aria-label="تباعد الحروف"
               />
             </div>
           </div>
@@ -638,6 +646,7 @@ export function SettingsPage() {
                 max={0.25}
                 step={0.01}
                 onValueChange={(v) => setPrefs({ quranWordSpacing: clamp(v[0] ?? 0, 0, 0.25) })}
+                aria-label="تباعد الكلمات"
               />
             </div>
           </div>

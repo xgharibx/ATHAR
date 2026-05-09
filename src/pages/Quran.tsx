@@ -759,7 +759,7 @@ export function QuranPage() {
           )}
 
           {/* ── Surah list — clean full-width rows ─────────────── */}
-          <div>
+          <div role="list" aria-label="قائمة السور">
             {sortedFiltered.map((s, idx) => {
               const maxRead = readingHistory[String(s.id)] ?? 0;
               const pct = s.ayahs.length ? Math.min(100, Math.round((maxRead / s.ayahs.length) * 100)) : 0;

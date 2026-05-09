@@ -298,17 +298,20 @@ export function CustomAdhkarPage() {
         </Card>
       )}
 
-      {customPacks.map((pack) =>
-        editingPack?.id === pack.id && showForm ? null : (
-          <PackCard
-            key={pack.id}
-            pack={pack}
-            onNavigate={() => navigate(`/c/${pack.id}`)}
-            onDelete={() => deleteCustomPack(pack.id)}
-            onEdit={() => handleEdit(pack)}
-          />
-        ),
-      )}
+      <div role="list" aria-label="الحزمات المخصصة" className="space-y-3">
+        {customPacks.map((pack) =>
+          editingPack?.id === pack.id && showForm ? null : (
+            <div key={pack.id} role="listitem">
+              <PackCard
+                pack={pack}
+                onNavigate={() => navigate(`/c/${pack.id}`)}
+                onDelete={() => deleteCustomPack(pack.id)}
+                onEdit={() => handleEdit(pack)}
+              />
+            </div>
+          ),
+        )}
+      </div>
     </div>
   );
 }

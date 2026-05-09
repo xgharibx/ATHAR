@@ -99,7 +99,7 @@ function HadithRow({
             </div>
           </div>
           <div className="flex flex-col items-center gap-2 shrink-0">
-            <ArrowUpRight size={17} className="opacity-45 transition group-hover:opacity-80" />
+            <ArrowUpRight size={17} className="opacity-45 transition group-hover:opacity-80" aria-hidden="true" />
             <button
               type="button"
               onClick={async (e) => {

@@ -1450,7 +1450,7 @@ export function MushafPage() {
             aria-label="تفسير"
             onClick={(e) => { e.stopPropagation(); setTafsirItem(selectedItem); setSelectedItem(null); }}
           >
-            <ArrowUpRight size={18} />
+            <ArrowUpRight size={18} aria-hidden="true" />
             <span>تفسير</span>
           </button>
           <button type="button"
@@ -1826,7 +1826,7 @@ export function MushafPage() {
                   style={{ background: "color-mix(in srgb, var(--accent) 8%, transparent)", borderColor: "color-mix(in srgb, var(--accent) 20%, transparent)" }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <ArrowUpRight size={11} />
+                  <ArrowUpRight size={11} aria-hidden="true" />
                   <span>{label}</span>
                 </a>
               ))}

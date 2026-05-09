@@ -359,7 +359,7 @@ export function FavoritesPage() {
             }
           />
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-5" role="list" aria-label="الأذكار المفضلة">
             {grouped.map((group) => {
               const identity = getSectionIdentity(group.sectionId);
               return (
@@ -370,15 +370,16 @@ export function FavoritesPage() {
                     <span className="text-xs font-semibold opacity-65" style={{ color: identity.accent }}>{group.sectionTitle}</span>
                     <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2" role="list">
                     {group.items.map((r: FlatDhikr) => (
                       <div
                         key={r.key}
+                        role="listitem"
                         className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-start justify-between gap-3 press-effect glass-hover cv-auto"
                       >
                         <button type="button" className="text-right flex-1" onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}>
                           <div className="flex items-start justify-between gap-3">
-                            <ArrowUpRight size={18} className="opacity-60 shrink-0 mt-0.5" />
+                            <ArrowUpRight size={18} className="opacity-60 shrink-0 mt-0.5" aria-hidden="true" />
                           </div>
                           <div className="arabic-text text-sm opacity-80 leading-7">
                             {r.text.slice(0, 200)}
@@ -443,7 +444,7 @@ export function FavoritesPage() {
               }
             />
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-5" role="list" aria-label="آيات القرآن المحفوظة">
               {quranBmBySurah.map((group) => (
                 <div key={group.surahId}>
                   <div className="flex items-center gap-2 mb-2 px-1">
@@ -451,9 +452,9 @@ export function FavoritesPage() {
                     <span className="text-xs font-semibold opacity-65 arabic-text">{group.surahName}</span>
                     <span className="text-[11px] opacity-40 mr-auto">{group.items.length}</span>
                   </div>
-                  <div className="divide-y divide-white/6 rounded-2xl border border-[var(--stroke)] overflow-hidden">
+                  <div className="divide-y divide-white/6 rounded-2xl border border-[var(--stroke)] overflow-hidden" role="list">
                     {group.items.map((bm) => (
-                      <div key={`${bm.surahId}:${bm.ayahIndex}`} className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--card)] transition">
+                      <div key={`${bm.surahId}:${bm.ayahIndex}`} role="listitem" className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--card)] transition">
                         {bm.highlight && HL_SWATCHES[bm.highlight] && (
                           <span className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-[var(--stroke)]" style={{ background: HL_SWATCHES[bm.highlight] }} />
                         )}
@@ -515,6 +516,7 @@ export function FavoritesPage() {
                       <button type="button"
                         key={bk}
                         onClick={() => setSelectedBmBookKey(bk)}
+                        aria-pressed={selectedBmBookKey === bk}
                         className={[
                           "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
                           selectedBmBookKey === bk
@@ -529,7 +531,7 @@ export function FavoritesPage() {
                   })}
                 </div>
               )}
-              <div className="space-y-2">
+              <div className="space-y-2" role="list" aria-label="الأحاديث المحفوظة">
                 {hadithBmList
                   .filter((h) => h.bookKey === selectedBmBookKey)
                   .map((h) => {
@@ -538,6 +540,7 @@ export function FavoritesPage() {
                     return (
                       <div
                         key={`${h.bookKey}:${h.n}`}
+                        role="listitem"
                         className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-start gap-3"
                       >
                         <button type="button"
@@ -553,7 +556,7 @@ export function FavoritesPage() {
                               {book?.title}
                             </span>
                             <span className="text-xs opacity-45">ح{h.n}</span>
-                            <ArrowUpRight size={14} className="opacity-55 shrink-0 mr-auto" />
+                            <ArrowUpRight size={14} className="opacity-55 shrink-0 mr-auto" aria-hidden="true" />
                           </div>
                           <div className="arabic-text text-sm opacity-80 leading-7">
                             {hadith ? hadith.t.slice(0, 200) + (hadith.t.length > 200 ? "…" : "") : "جاري التحميل…"}
@@ -592,10 +595,11 @@ export function FavoritesPage() {
               }
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3" role="list" aria-label="الأدعية المفضلة">
               {duaFavItems.map((dua) => (
                 <div
                   key={dua.id}
+                  role="listitem"
                   className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3 cv-auto"
                 >
                   <div className="flex-1 min-w-0 text-right" dir="rtl">
@@ -644,10 +648,11 @@ export function FavoritesPage() {
               }
             />
           ) : (
-            <div className="space-y-3" dir="rtl">
+            <div className="space-y-3" dir="rtl" role="list" aria-label="القصص المحفوظة">
               {storyFavItems.map((story) => (
                 <div
                   key={story.id}
+                  role="listitem"
                   className="glass rounded-2xl p-4 border border-[var(--stroke)] cv-auto"
                 >
                   <div className="flex items-center gap-3 mb-2">
@@ -695,10 +700,11 @@ export function FavoritesPage() {
               }
             />
           ) : (
-            <div className="space-y-3" dir="rtl">
+            <div className="space-y-3" dir="rtl" role="list" aria-label="الصحابة المحفوظون">
               {companionFavItems.map((companion) => (
                 <div
                   key={companion.id}
+                  role="listitem"
                   className="glass rounded-2xl p-4 border border-[var(--stroke)] flex items-start gap-3 cv-auto"
                 >
                   <div

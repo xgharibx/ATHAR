@@ -438,7 +438,7 @@ export function SearchPage() {
                       >
                         <Copy size={13} />
                       </button>
-                      <ArrowUpRight size={18} className="opacity-60" />
+                      <ArrowUpRight size={18} className="opacity-60" aria-hidden="true" />
                     </div>
                   </div>
                   <div className="mt-3 arabic-text text-sm opacity-80 leading-7">
@@ -496,7 +496,7 @@ export function SearchPage() {
                       <span className="text-sm font-semibold arabic-text">{r.surah.name}</span>
                       <span className="text-xs opacity-45 tabular-nums">{r.surah.ayahs.length} آية</span>
                     </div>
-                    <ArrowUpRight size={16} className="opacity-55 shrink-0" />
+                    <ArrowUpRight size={16} className="opacity-55 shrink-0" aria-hidden="true" />
                   </div>
                 </button>
               ) : (
@@ -524,7 +524,7 @@ export function SearchPage() {
                       >
                         <Copy size={13} />
                       </button>
-                      <ArrowUpRight size={16} className="opacity-55" />
+                      <ArrowUpRight size={16} className="opacity-55" aria-hidden="true" />
                     </div>
                   </div>
                   <div className="mt-2 arabic-text text-sm leading-7 opacity-80">
@@ -558,7 +558,7 @@ export function SearchPage() {
               className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-4 py-2 text-xs hover:bg-[var(--card-2)] transition"
             >
               فتح المكتبة
-              <ArrowUpRight size={14} />
+              <ArrowUpRight size={14} aria-hidden="true" />
             </button>
           </div>
         ) : libraryResults.length === 0 ? (
@@ -586,7 +586,7 @@ export function SearchPage() {
                     </div>
                     <div className="mt-1 text-xs opacity-55">{entry.narrator || entry.source.title}</div>
                   </div>
-                  <ArrowUpRight size={18} className="opacity-60 shrink-0" />
+                  <ArrowUpRight size={18} className="opacity-60 shrink-0" aria-hidden="true" />
                 </div>
                 <div className="mt-3 arabic-text text-sm opacity-80 leading-7">
                   {entry.arabic.slice(0, 220)}{entry.arabic.length > 220 ? "…" : ""}
@@ -673,7 +673,7 @@ export function SearchPage() {
                       <span className="text-xs opacity-45 font-arabic shrink-0">{book?.title}</span>
                       <span className="text-xs opacity-45">ح{h.a}</span>
                     </div>
-                    <ArrowUpRight size={16} className="opacity-55 shrink-0" />
+                    <ArrowUpRight size={16} className="opacity-55 shrink-0" aria-hidden="true" />
                   </div>
                   <div className="mt-2 arabic-text text-sm leading-7 opacity-80">
                     {hadithPreview(h.t, 200)}
