@@ -14,7 +14,7 @@ import { coerceCount } from "@/data/types";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
-import { TOTAL_QURAN_AYAHS, SURAH_JUZ } from "@/lib/quranMeta";
+import { TOTAL_QURAN_AYAHS, SURAH_JUZ, SURAH_REVELATION } from "@/lib/quranMeta";
 import { DAILY_CHECKLIST_ITEMS } from "@/data/dailyGrowth";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
@@ -401,6 +401,25 @@ export function InsightsPage() {
     () => Math.min(100, Math.round((quranStats.totalAyahs / TOTAL_QURAN_AYAHS) * 100)),
     [quranStats.totalAyahs]
   );
+
+  // Meccan vs Medinan reading breakdown
+  const quranRevelationStats = React.useMemo(() => {
+    if (!quranData) return { meccanRead: 0, meccanTotal: 0, medinanRead: 0, medinanTotal: 0 };
+    let meccanRead = 0, meccanTotal = 0, medinanRead = 0, medinanTotal = 0;
+    for (const s of quranData) {
+      const isMedinan = SURAH_REVELATION[s.id] === "medinan";
+      const maxRead = quranReadingHistory[String(s.id)] ?? 0;
+      const hasStarted = maxRead > 0;
+      if (isMedinan) {
+        medinanTotal++;
+        if (hasStarted) medinanRead++;
+      } else {
+        meccanTotal++;
+        if (hasStarted) meccanRead++;
+      }
+    }
+    return { meccanRead, meccanTotal, medinanRead, medinanTotal };
+  }, [quranData, quranReadingHistory]);
 
   // Per-juz reading completion (juz 1-30)
   // 7-week Quran reading heatmap data
@@ -1244,6 +1263,28 @@ export function InsightsPage() {
             <MiniStatSmall label="الإجمالي" value={quranStats.totalAyahs.toLocaleString("ar-EG")} />
             {quranStreak > 0 && <MiniStatSmall label="سلسلة أيام" value={quranStreak.toLocaleString("ar-EG")} />}
           </div>
+          {/* Meccan vs Medinan breakdown */}
+          {quranStats.started > 0 && (
+            <div className="mb-4 mt-1 grid grid-cols-2 gap-2" aria-label="مكية ومدنية">
+              {([
+                { label: "مكية", read: quranRevelationStats.meccanRead, total: quranRevelationStats.meccanTotal, color: "var(--accent)" },
+                { label: "مدنية", read: quranRevelationStats.medinanRead, total: quranRevelationStats.medinanTotal, color: "var(--ok)" },
+              ] as const).map(({ label, read, total, color }) => {
+                const pct = total > 0 ? Math.round((read / total) * 100) : 0;
+                return (
+                  <div key={label} className="rounded-xl p-2.5 border" style={{ background: "color-mix(in srgb, var(--card) 80%, var(--bg))", borderColor: "color-mix(in srgb, var(--stroke) 40%, transparent)" }}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[11px] font-semibold" style={{ color }}>{label}</span>
+                      <span className="text-[10px] opacity-55 tabular-nums">{read.toLocaleString("ar-EG")} / {total.toLocaleString("ar-EG")}</span>
+                    </div>
+                    <div className="h-1 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 50%, transparent)" }}>
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {/* Monthly ayahs */}
           {quranMonthTotal > 0 && (
             <div className="mb-4 -mt-2 flex items-center gap-1.5 text-[11px] opacity-50">
