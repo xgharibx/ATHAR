@@ -230,6 +230,7 @@ export function HadithMemoPage() {
           <button type="button"
             role="tab"
             key={t}
+            aria-controls="hadith-memo-content"
             onClick={() => { setViewMode(t); setCardIndex(0); setIsFlipped(false); }}
             aria-selected={viewMode === t}
             className="flex-1 py-2.5 text-sm font-arabic transition-colors"
@@ -243,6 +244,7 @@ export function HadithMemoPage() {
         ))}
       </div>
 
+      <div id="hadith-memo-content">
       {/* All reviewed today */}
       {viewMode === "due" && dueCards.length === 0 && (
         <div className="relative z-10 flex flex-col items-center gap-4 py-16">
@@ -414,6 +416,7 @@ export function HadithMemoPage() {
           <p className="text-sm font-arabic">جارٍ التحميل…</p>
         </div>
       )}
+      </div>
     </div>
   );
 }

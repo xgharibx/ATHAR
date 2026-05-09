@@ -593,6 +593,7 @@ export function QuranPage() {
           }}>
               <button type="button"
                 role="tab"
+                aria-controls="quran-surah-list"
                 aria-selected={sortMode === "mushaf"}
                 onClick={() => setSortMode("mushaf")}
                 className={`px-3.5 h-9 transition ${sortMode === "mushaf" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
@@ -601,6 +602,7 @@ export function QuranPage() {
               </button>
               <button type="button"
                 role="tab"
+                aria-controls="quran-surah-list"
                 aria-selected={sortMode === "progress"}
                 onClick={() => setSortMode("progress")}
                 className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
@@ -759,7 +761,7 @@ export function QuranPage() {
           )}
 
           {/* ── Surah list — clean full-width rows ─────────────── */}
-          <div role="list" aria-label="قائمة السور">
+          <div id="quran-surah-list" role="list" aria-label="قائمة السور">
             {sortedFiltered.map((s, idx) => {
               const maxRead = readingHistory[String(s.id)] ?? 0;
               const pct = s.ayahs.length ? Math.min(100, Math.round((maxRead / s.ayahs.length) * 100)) : 0;

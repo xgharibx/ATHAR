@@ -1164,7 +1164,7 @@ export function PrayerTimesPage() {
             else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
           }}>
         {TABS.map((tab) => (
-          <button type="button" key={tab.key} id={`pt-tab-${tab.key}`} role="tab" aria-selected={activeTab === tab.key} onClick={() => setActiveTab(tab.key)}
+          <button type="button" key={tab.key} id={`pt-tab-${tab.key}`} role="tab" aria-controls={`pt-panel-${tab.key}`} aria-selected={activeTab === tab.key} onClick={() => setActiveTab(tab.key)}
             className={cn(
               "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition",
               activeTab === tab.key

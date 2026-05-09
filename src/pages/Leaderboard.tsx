@@ -306,9 +306,9 @@ export function LeaderboardPage() {
             else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
             else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
           }}>
-          <BoardTab label="أسبوعي" active={period === "weekly"} onClick={() => setPeriod("weekly")} />
-          <BoardTab label="شهري" active={period === "monthly"} onClick={() => setPeriod("monthly")} />
-          <BoardTab label="سنوي" active={period === "yearly"} onClick={() => setPeriod("yearly")} />
+          <BoardTab label="أسبوعي" active={period === "weekly"} onClick={() => setPeriod("weekly")} controls="lb-board-panel" />
+          <BoardTab label="شهري" active={period === "monthly"} onClick={() => setPeriod("monthly")} controls="lb-board-panel" />
+          <BoardTab label="سنوي" active={period === "yearly"} onClick={() => setPeriod("yearly")} controls="lb-board-panel" />
         </div>
 
         <div role="tablist" aria-label="نوع اللوحة" className="mt-3 flex flex-wrap gap-2"
@@ -321,11 +321,11 @@ export function LeaderboardPage() {
             else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
             else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
           }}>
-          <BoardTab label="الذكر" active={board === "dhikr"} onClick={() => setBoard("dhikr")} />
-          <BoardTab label="القرآن" active={board === "quran"} onClick={() => setBoard("quran")} />
-          <BoardTab label="الصلوات" active={board === "prayers"} onClick={() => setBoard("prayers")} />
-          <BoardTab label="تسبيح اليوم" active={board === "tasbeeh_daily"} onClick={() => setBoard("tasbeeh_daily")} />
-          <BoardTab label="قسم" active={board === "section"} onClick={() => setBoard("section")} />
+          <BoardTab label="الذكر" active={board === "dhikr"} onClick={() => setBoard("dhikr")} controls="lb-board-panel" />
+          <BoardTab label="القرآن" active={board === "quran"} onClick={() => setBoard("quran")} controls="lb-board-panel" />
+          <BoardTab label="الصلوات" active={board === "prayers"} onClick={() => setBoard("prayers")} controls="lb-board-panel" />
+          <BoardTab label="تسبيح اليوم" active={board === "tasbeeh_daily"} onClick={() => setBoard("tasbeeh_daily")} controls="lb-board-panel" />
+          <BoardTab label="قسم" active={board === "section"} onClick={() => setBoard("section")} controls="lb-board-panel" />
         </div>
 
         {board === "section" ? (
@@ -409,7 +409,7 @@ export function LeaderboardPage() {
         )}
       </Card>
 
-      <Card className="p-5">
+      <Card id="lb-board-panel" className="p-5">
         <div className="text-sm font-semibold mb-3">
           {board === "global"
             ? "أفضل النتائج العامة"
@@ -484,10 +484,11 @@ function Stat(props: { title: string; value: number }) {
   );
 }
 
-function BoardTab(props: { label: string; active: boolean; onClick: () => void }) {
+function BoardTab(props: { label: string; active: boolean; onClick: () => void; controls?: string }) {
   return (
     <Button
       role="tab"
+      aria-controls={props.controls}
       aria-selected={props.active}
       size="sm"
       variant={props.active ? "secondary" : "ghost"}

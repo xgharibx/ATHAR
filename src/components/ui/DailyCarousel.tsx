@@ -108,7 +108,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           }}
         >
           {/* Slide 1: آية اليوم */}
-          <div role="group" aria-roledescription="شريحة" aria-label="آية اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-0" role="group" aria-roledescription="شريحة" aria-label="آية اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {verse ? (
               <>
                 <div
@@ -152,7 +152,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 2: حديث اليوم */}
-          <div role="group" aria-roledescription="شريحة" aria-label="حديث اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-1" role="group" aria-roledescription="شريحة" aria-label="حديث اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {hadith ? (
               <>
                 <div
@@ -188,7 +188,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 3: تدبر اليوم */}
-          <div role="group" aria-roledescription="شريحة" aria-label="تدبر اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-2" role="group" aria-roledescription="شريحة" aria-label="تدبر اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             <div
               className="text-base leading-9 text-right font-medium arabic-text"
               style={{ color: "var(--fg)" }}
@@ -215,6 +215,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           <button type="button"
             key={i}
             role="tab"
+            aria-controls={`carousel-slide-${i}`}
             aria-selected={activeIdx === i}
             aria-label={SLIDE_LABELS[i]}
             onClick={() => goTo(i)}
