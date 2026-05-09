@@ -165,7 +165,7 @@ export function QuranVocabPage() {
                   <div className="text-xs opacity-60">مفردات</div>
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#0ea5e9" }}>مفردات القرآن</h1>
-                <div className="text-sm opacity-70 mt-1 tabular-nums">
+                <div className="text-sm opacity-70 mt-1 tabular-nums" aria-live="polite" aria-atomic="true">
                   {reviewMode ? "مراجعة • " : ""}{(cardIndex + 1).toLocaleString("ar-EG")} / {deck.length.toLocaleString("ar-EG")} • {learned.size.toLocaleString("ar-EG")} محفوظة
                 </div>
               </div>
@@ -277,6 +277,7 @@ export function QuranVocabPage() {
           <button type="button"
             onClick={handleNext}
             disabled={cardIndex >= deck.length - 1}
+            aria-label="الكلمة التالية"
             className="px-6 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-30"
             style={{ background: "var(--accent)", color: "var(--on-accent)" }}
           >
@@ -285,6 +286,7 @@ export function QuranVocabPage() {
           <button type="button"
             onClick={handlePrev}
             disabled={cardIndex === 0}
+            aria-label="الكلمة السابقة"
             className="px-6 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-30"
             style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
           >
@@ -297,6 +299,8 @@ export function QuranVocabPage() {
           <button
             type="button"
             onClick={() => handleLearn(card.id)}
+            aria-label={learned.has(card.id) ? "إلغاء حفظ الكلمة" : "حفظ الكلمة"}
+            aria-pressed={learned.has(card.id)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all"
             style={learned.has(card.id)
               ? { background: "color-mix(in srgb, var(--ok, #3ddc97) 18%, transparent)", color: "var(--ok, #3ddc97)", border: "1px solid color-mix(in srgb, var(--ok, #3ddc97) 35%, transparent)" }
