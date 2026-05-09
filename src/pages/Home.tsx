@@ -912,10 +912,10 @@ export function HomePage() {
                       className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] active:scale-[.91] transition-all"
                       style={{
                         borderColor: isDragging
-                          ? "rgba(255,215,100,0.6)"
+                          ? "color-mix(in srgb, var(--accent) 60%, transparent)"
                           : isComplete
                             ? "color-mix(in srgb, var(--ok) 30%, transparent)"
-                            : pctDone > 0 ? "rgba(201,162,39,0.4)" : "var(--card)",
+                            : pctDone > 0 ? "color-mix(in srgb, var(--accent) 40%, transparent)" : "var(--card)",
                         transform: isDragging ? "scale(1.07)" : undefined,
                         boxShadow: isDragging ? "0 8px 28px rgba(0,0,0,0.45)" : undefined,
                         zIndex: isDragging ? 10 : undefined,
@@ -954,7 +954,7 @@ export function HomePage() {
                       className="press-effect flex-none flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-2xl glass border min-w-[60px] active:scale-[.91] transition-all"
                       style={{
                         borderColor: isDragging
-                          ? "rgba(255,215,100,0.6)"
+                          ? "color-mix(in srgb, var(--accent) 60%, transparent)"
                           : isComplete
                             ? "color-mix(in srgb, var(--ok) 30%, transparent)"
                             : pctDone > 0 ? `${identity.accent}40` : "var(--card)",

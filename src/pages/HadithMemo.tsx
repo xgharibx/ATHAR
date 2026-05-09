@@ -221,7 +221,7 @@ export function HadithMemoPage() {
             onClick={() => { setViewMode(t); setCardIndex(0); setIsFlipped(false); }}
             className="flex-1 py-2.5 text-sm font-arabic transition-colors"
             style={viewMode === t
-              ? { background: accentColor, color: "#06110d", fontWeight: 700 }
+              ? { background: accentColor, color: "var(--on-accent)", fontWeight: 700 }
               : { color: "var(--muted)" }
             }
           >
@@ -239,7 +239,7 @@ export function HadithMemoPage() {
           <button type="button"
             onClick={() => { setViewMode("add"); setCardIndex(0); setIsFlipped(false); }}
             className="mt-2 rounded-2xl px-6 py-2.5 text-sm font-arabic font-bold press-effect"
-            style={{ background: accentColor, color: "#06110d" }}
+            style={{ background: accentColor, color: "var(--on-accent)" }}
           >
             إضافة المزيد
           </button>

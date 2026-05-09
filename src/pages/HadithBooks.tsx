@@ -401,7 +401,7 @@ export function HadithBooksPage() {
             onClick={() => setTab(t)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-arabic transition-colors"
             style={tab === t
-              ? { background: "var(--accent)", color: "#06110d", fontWeight: 700 }
+              ? { background: "var(--accent)", color: "var(--on-accent)", fontWeight: 700 }
               : { color: "var(--muted)" }
             }
           >

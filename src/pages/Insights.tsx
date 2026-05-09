@@ -1055,7 +1055,7 @@ export function InsightsPage() {
               style={
                 weekTotal >= lastWeekTotal
                   ? { background: "rgba(52,211,153,0.12)", color: "var(--ok)", borderColor: "rgba(52,211,153,0.25)" }
-                  : { background: "rgba(248,113,113,0.10)", color: "rgb(248,113,113)", borderColor: "rgba(248,113,113,0.2)" }
+                  : { background: "rgba(248,113,113,0.10)", color: "var(--danger)", borderColor: "rgba(248,113,113,0.2)" }
               }
               title={`الأسبوع الماضي: ${lastWeekTotal.toLocaleString("ar-EG")}`}
             >

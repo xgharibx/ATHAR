@@ -128,21 +128,27 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             toastOptions={{
               duration: 3000,
               style: {
-                background: "rgba(10,12,18,.94)",
-                color: "white",
+                background: "color-mix(in srgb, var(--bg) 88%, var(--fg))",
+                color: "var(--fg)",
                 border: "1px solid var(--stroke)",
                 borderRadius: "16px",
                 direction: "rtl",
                 fontSize: "0.875rem",
                 padding: "12px 16px",
-                boxShadow: "0 8px 32px rgba(0,0,0,.45)",
+                boxShadow: "0 8px 32px rgba(0,0,0,.3)",
                 backdropFilter: "blur(12px)",
               },
               success: {
-                iconTheme: { primary: "#3ddc97", secondary: "rgba(10,12,18,.94)" },
+                iconTheme: {
+                  primary: "var(--ok)",
+                  secondary: "color-mix(in srgb, var(--bg) 88%, var(--fg))",
+                },
               },
               error: {
-                iconTheme: { primary: "#ff6b6b", secondary: "rgba(10,12,18,.94)" },
+                iconTheme: {
+                  primary: "var(--danger)",
+                  secondary: "color-mix(in srgb, var(--bg) 88%, var(--fg))",
+                },
               },
             }}
           />

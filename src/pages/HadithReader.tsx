@@ -438,7 +438,7 @@ export function HadithReaderPage() {
               <button type="button"
                 onClick={() => { bookKey && setHadithNote(bookKey, n, draftNote); setShowNoteEditor(false); }}
                 className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-xl font-semibold transition press-effect"
-                style={{ background: accentColor, color: "#06110d" }}
+                style={{ background: accentColor, color: "var(--on-accent)" }}
               >
                 <Check size={12} /> حفظ
               </button>
@@ -477,7 +477,7 @@ export function HadithReaderPage() {
                 disabled={!nextN}
                 onClick={() => nextN && navigate(`/hadith/${bookKey}/${nextN}`, { replace: true })}
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-arabic text-sm disabled:opacity-30 transition press-effect"
-                style={{ background: accentColor, color: "#06110d" }}
+                style={{ background: accentColor, color: "var(--on-accent)" }}
               >
                 التالي
                 <ChevronLeft size={16} />
