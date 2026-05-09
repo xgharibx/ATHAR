@@ -106,7 +106,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
               }
               aria-current={active ? "page" : undefined}
             >
-              <div className="relative">
+              <div className="relative" aria-hidden="true">
                 <item.icon size={18} strokeWidth={active ? 2.2 : 1.8} />
                 {item.path === "/quran" && khatmaDueToday && (
                   <span
@@ -123,7 +123,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
                   </span>
                 )}
               </div>
-              <span>{item.label}</span>
+              <span aria-hidden="true">{item.label}</span>
             </NavLink>
           );
         })}

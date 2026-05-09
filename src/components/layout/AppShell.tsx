@@ -204,6 +204,7 @@ function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onN
     >
       {/* Icon badge */}
       <div
+        aria-hidden="true"
         className="w-10 h-10 rounded-xl grid place-items-center shrink-0 text-lg"
         style={{ background: `${identity.accent}18` }}
       >
@@ -214,7 +215,7 @@ function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onN
       <div className="flex-1 min-w-0">
         <div className="text-[13px] font-medium truncate">{s.title}</div>
         <div className="mt-1 flex items-center gap-2">
-          <div className="flex-1 h-1 rounded-full bg-[var(--card-2)] overflow-hidden">
+          <div aria-hidden="true" className="flex-1 h-1 rounded-full bg-[var(--card-2)] overflow-hidden">
             <div
               className="h-full rounded-full transition-[width] duration-300"
               style={{ width: `${percent}%`, background: identity.accent }}
@@ -552,7 +553,7 @@ export function AppShell() {
           </aside>
 
           {/* Main */}
-          <main id="main-content" aria-label="المحتوى الرئيسي" className="col-span-12 xl:col-span-9 2xl:col-span-10">
+          <main id="main-content" tabIndex={-1} aria-label="المحتوى الرئيسي" className="col-span-12 xl:col-span-9 2xl:col-span-10 focus:outline-none">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
