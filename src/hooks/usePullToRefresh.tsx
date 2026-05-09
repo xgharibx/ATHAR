@@ -111,13 +111,14 @@ export function PTRIndicator({
   return (
     <div
       className={`ptr-indicator ${isPulling ? "ptr-pulling" : ""} ${isRefreshing ? "ptr-refreshing" : ""}`}
+      role="status"
       aria-live="polite"
       aria-label={isRefreshing ? "جارٍ التحديث" : "اسحب للتحديث"}
     >
       {isRefreshing ? (
         <span className="ptr-spinner" aria-hidden="true" />
       ) : (
-        <span style={{ fontSize: "0.8rem" }}>↓</span>
+        <span style={{ fontSize: "0.8rem" }} aria-hidden="true">↓</span>
       )}
       <span>{isRefreshing ? "جارٍ التحديث…" : "اسحب للتحديث"}</span>
     </div>

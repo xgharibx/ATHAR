@@ -310,7 +310,7 @@ export function LibraryPage() {
 
       <div className="flex items-center justify-between gap-2 px-1">
         <div className="text-sm font-semibold">المواد</div>
-        <div className="text-xs opacity-50 tabular-nums">{entries.length.toLocaleString("ar-EG")}</div>
+        <div className="text-xs opacity-50 tabular-nums" aria-live="polite" aria-atomic="true">{entries.length.toLocaleString("ar-EG")}</div>
       </div>
 
       <div className="space-y-3" role="list" aria-label="مواد المكتبة">

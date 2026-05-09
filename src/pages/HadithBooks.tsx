@@ -270,7 +270,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
 
       {/* States */}
       {loading && (
-        <div className="flex flex-col items-center py-12 gap-3 text-[var(--muted)]">
+        <div className="flex flex-col items-center py-12 gap-3 text-[var(--muted)]" role="status">
           <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" aria-hidden="true" />
           <p className="text-sm font-arabic">جارٍ البحث…</p>
         </div>
