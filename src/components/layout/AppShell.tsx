@@ -618,6 +618,8 @@ export function AppShell() {
           <div className="glass rounded-3xl border border-[var(--stroke)]">
             <button type="button"
               onClick={() => setFooterExpanded((v) => !v)}
+              aria-expanded={footerExpanded}
+              aria-controls="footer-content"
               className="w-full flex items-center justify-between gap-3 px-5 pt-5 pb-4"
             >
               <div className="arabic-text text-[15px] md:text-base font-semibold text-[var(--accent)]">
@@ -625,16 +627,17 @@ export function AppShell() {
               </div>
               <ChevronLeft
                 size={16}
+                aria-hidden="true"
                 className={cn("opacity-50 transition-transform duration-200", footerExpanded ? "-rotate-90" : "rotate-90")}
               />
             </button>
             {footerExpanded && (
-              <>
+              <div id="footer-content">
                 <div className="mx-5 h-px bg-[var(--card)]" />
                 <div className="px-5 pb-5 pt-3 arabic-text text-center text-[13px] md:text-sm leading-7 md:leading-8 tracking-tight opacity-85 whitespace-pre-line">
                   {APP_FOOTER_TEXT}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </footer>
