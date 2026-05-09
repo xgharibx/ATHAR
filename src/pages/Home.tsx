@@ -836,7 +836,7 @@ export function HomePage() {
                   className="mt-3 flex items-center gap-2.5 group"
                   aria-label={`القرآن: ${quranReadingPct}% مقروء`}
                 >
-                  <span className="text-xs opacity-60">📖</span>
+                  <span className="text-xs opacity-60" aria-hidden="true">📖</span>
                   <div className="w-28 h-1.5 rounded-full bg-[var(--card)] overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={quranReadingPct} aria-label={`${quranReadingPct}% مقروء`}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
@@ -924,7 +924,7 @@ export function HomePage() {
                         opacity: draggingStripId && !isDragging ? 0.65 : 1,
                       }}
                     >
-                      <span className="text-[22px] leading-none">📝</span>
+                      <span className="text-[22px] leading-none" aria-hidden="true">📝</span>
                       <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 max-w-[60px] line-clamp-2">{pack.title}</span>
                       <div className="w-full h-[3px] rounded-full bg-[var(--card)] overflow-hidden mt-1">
                         <div className="h-full rounded-full transition-all duration-300"
@@ -1449,7 +1449,7 @@ export function HomePage() {
       {/* ── مكتبة المحتوى ── */}
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-base">📚</span>
+          <span className="text-base" aria-hidden="true">📚</span>
           <div className="text-sm font-semibold">مكتبة المحتوى</div>
         </div>
         <div className="grid grid-cols-3 gap-2">

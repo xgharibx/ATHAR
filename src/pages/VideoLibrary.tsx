@@ -901,7 +901,7 @@ function VideoHome({
           )}
           {searchResults.videos.length === 0 && searchResults.courses.length === 0 && (
             <div className="glass rounded-3xl p-7 text-center">
-              <div className="text-3xl mb-2">🔍</div>
+              <div className="text-3xl mb-2" aria-hidden="true">🔍</div>
               <div className="font-semibold">لا نتائج لـ "{q}"</div>
               <div className="text-xs opacity-50 mt-1">جرّب كلمة مختلفة أو تفقد الإملاء</div>
             </div>
@@ -1122,7 +1122,7 @@ function VideoHome({
       {data.db.source === "seed" && !searchResults && (
         <div className="rounded-3xl border border-amber-400/20 bg-amber-400/8 p-4">
           <div className="flex items-start gap-3">
-            <div className="text-2xl mt-0.5">🔄</div>
+            <div className="text-2xl mt-0.5" aria-hidden="true">🔄</div>
             <div>
               <div className="font-bold text-sm text-amber-300">اربط القنوات بمحتوى حقيقي</div>
               <div className="text-xs opacity-60 mt-1 leading-5">
@@ -1377,7 +1377,7 @@ function SheikhScreen({
         </div>
         {visibleVideos.length === 0 ? (
           <div className="glass rounded-3xl p-7 text-center">
-            <div className="text-3xl mb-2">📚</div>
+            <div className="text-3xl mb-2" aria-hidden="true">📚</div>
             <div className="font-semibold text-sm">لا توجد فيديوهات بعد</div>
             <div className="text-xs opacity-50 mt-1 leading-5">شغّل أداة المزامنة لتحميل محتوى هذه القناة</div>
           </div>
@@ -1579,7 +1579,7 @@ function CourseScreen({
         </div>
         {courseVideos.length === 0 ? (
           <div className="glass rounded-3xl p-7 text-center">
-            <div className="text-3xl mb-2">🎓</div>
+            <div className="text-3xl mb-2" aria-hidden="true">🎓</div>
             <div className="font-semibold text-sm">لا توجد دروس بعد</div>
             <div className="text-xs opacity-50 mt-1">شغّل أداة المزامنة لتحميل دروس هذه الدورة</div>
           </div>
@@ -1689,7 +1689,7 @@ function WatchScreen({
           <span>المكتبة</span>
         </button>
         <div className="glass rounded-3xl p-7 text-center">
-          <div className="text-3xl mb-2">🎥</div>
+          <div className="text-3xl mb-2" aria-hidden="true">🎥</div>
           <div className="font-semibold">الفيديو غير موجود</div>
           <div className="text-xs opacity-50 mt-1">ربما تم حذفه من قاعدة البيانات</div>
         </div>

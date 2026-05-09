@@ -81,7 +81,7 @@ export function DuasPage() {
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🤲</span>
+                  <span className="text-lg" aria-hidden="true">🤲</span>
                   <div className="text-xs opacity-60">أدعية مأثورة</div>
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#059669" }}>الأدعية المأثورة</h1>

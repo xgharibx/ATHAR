@@ -145,7 +145,7 @@ function PackCard({
     <Card className="p-4 space-y-3" dir="rtl">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-2xl">📝</span>
+          <span className="text-2xl" aria-hidden="true">📝</span>
           <div className="min-w-0">
             <div className="font-semibold text-sm leading-tight line-clamp-2">{pack.title}</div>
             <div className="text-xs opacity-50">{pack.items.length} ذكر</div>
@@ -293,7 +293,7 @@ export function CustomAdhkarPage() {
       {/* Existing packs */}
       {customPacks.length === 0 && !showForm && (
         <Card className="p-6 text-center">
-          <div className="text-3xl mb-2">📝</div>
+          <div className="text-3xl mb-2" aria-hidden="true">📝</div>
           <div className="text-sm opacity-60">لا توجد حزمات بعد.<br />أنشئ أول حزمة أذكار خاصة بك!</div>
         </Card>
       )}

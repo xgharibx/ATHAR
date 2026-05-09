@@ -109,7 +109,7 @@ export function NearbyMosquesPage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🕌</span>
+          <span className="text-2xl" aria-hidden="true">🕌</span>
           <h1 className="text-xl font-bold">المساجد القريبة</h1>
         </div>
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
@@ -159,7 +159,7 @@ export function NearbyMosquesPage() {
       {/* Empty state */}
       {!loading && !fetchError && geo.status === "ok" && mosques.length === 0 && (
         <Card className="p-6 text-sm text-center space-y-2">
-          <div className="text-4xl mb-2">🕌</div>
+          <div className="text-4xl mb-2" aria-hidden="true">🕌</div>
           <div className="opacity-60">لم يُعثر على مساجد مسجّلة في نطاق 5 كم من موقعك</div>
           <Button variant="secondary" size="sm" className="mt-2" onClick={() => void fetchMosques((geo as {status:"ok";lat:number;lng:number}).lat, (geo as {status:"ok";lat:number;lng:number}).lng)}>
             <RefreshCw size={14} aria-hidden="true" /> بحث مجدداً

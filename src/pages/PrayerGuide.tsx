@@ -54,7 +54,7 @@ export function PrayerGuidePage() {
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">🕌</span>
+                  <span className="text-lg" aria-hidden="true">🕌</span>
                   <div className="text-xs opacity-60">دليل الصلاة</div>
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#10b981" }}>كيفية الصلاة</h1>

@@ -79,7 +79,7 @@ export function AsmaAlHusnaPage() {
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">✨</span>
+                  <span className="text-lg" aria-hidden="true">✨</span>
                   <div className="text-xs opacity-60">أسماء الله</div>
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#f59e0b" }}>أسماء الله الحسنى</h1>
@@ -204,7 +204,7 @@ export function AsmaAlHusnaPage() {
                     <div className="text-sm font-semibold mt-1">{name.meaning}</div>
                   </div>
                   {isMem && (
-                    <span className="text-xs mt-1" title="محفوظة">🧠</span>
+                    <span className="text-xs mt-1" role="img" aria-label="محفوظة">🧠</span>
                   )}
                 </div>
               </button>

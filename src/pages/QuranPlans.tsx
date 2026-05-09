@@ -314,7 +314,7 @@ export function QuranPlansPage() {
       ) : (
         /* ── No active plan ── */
         <Card className="p-6 text-center space-y-3">
-          <div className="text-3xl">📖</div>
+          <div className="text-3xl" aria-hidden="true">📖</div>
           <div className="font-semibold">لا توجد خطة نشطة</div>
           <div className="text-xs opacity-50">ابدأ خطة تلاوة وتابع وردك اليومي</div>
           <Button onClick={() => setShowPresets(true)} className="w-full mt-2">

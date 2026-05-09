@@ -56,7 +56,7 @@ export function WuduGuidePage() {
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">💧</span>
+                  <span className="text-lg" aria-hidden="true">💧</span>
                   <div className="text-xs opacity-60">دليل الوضوء</div>
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#06b6d4" }}>كيفية الوضوء</h1>
@@ -113,7 +113,7 @@ export function WuduGuidePage() {
             border: "1px solid color-mix(in srgb, var(--ok, #3ddc97) 25%, transparent)",
           }}
         >
-          <p className="text-lg">💧</p>
+          <p className="text-lg" aria-hidden="true">💧</p>
           <p className="font-bold text-sm" style={{ color: "var(--ok, #3ddc97)" }}>
             أتممت الوضوء — طهارة كاملة بإذن الله!
           </p>

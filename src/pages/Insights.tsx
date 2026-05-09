@@ -845,7 +845,7 @@ export function InsightsPage() {
             onClick={() => navigate("/")}
             className="flex flex-col items-center rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-3 gap-0.5 transition hover:bg-[var(--card-2)] active:scale-[.97]"
           >
-            <span className="text-lg leading-none mb-0.5">📿</span>
+            <span className="text-lg leading-none mb-0.5" aria-hidden="true">📿</span>
             <span
               className="text-xl font-bold tabular-nums leading-none mt-0.5"
               style={{ color: todayCount > 0 ? "var(--accent)" : undefined }}
@@ -866,7 +866,7 @@ export function InsightsPage() {
             onClick={() => navigate(quranLastRead ? `/mushaf?surah=${quranLastRead.surahId}&ayah=${quranLastRead.ayahIndex}` : "/quran")}
             className="flex flex-col items-center rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-3 gap-0.5 transition hover:bg-[var(--card-2)] active:scale-[.97]"
           >
-            <span className="text-lg leading-none mb-0.5">📖</span>
+            <span className="text-lg leading-none mb-0.5" aria-hidden="true">📖</span>
             <span
               className="text-xl font-bold tabular-nums leading-none mt-0.5"
               style={{ color: quranGoalPct >= 100 ? "var(--ok)" : todayQuranAyahs > 0 ? "var(--accent)" : undefined }}
@@ -919,7 +919,7 @@ export function InsightsPage() {
             className="mt-3 rounded-2xl px-4 py-2.5 flex items-center gap-2 text-xs font-semibold"
             style={{ background: "rgba(52,211,153,0.12)", color: "var(--ok)", border: "1px solid rgba(52,211,153,0.25)" }}
           >
-            <span className="text-base leading-none">✨</span>
+            <span className="text-base leading-none" aria-hidden="true">✨</span>
             <span>يوم مثالي — أنجزت الثلاثة اليوم</span>
           </div>
         )}
@@ -1449,7 +1449,7 @@ export function InsightsPage() {
       {Object.keys(tasbeehLifetime).length > 0 && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-base">📿</span>
+            <span className="text-base" aria-hidden="true">📿</span>
             <div className="font-semibold text-sm">إجمالي التسبيح مدى الحياة</div>
           </div>
           <div className="grid grid-cols-2 gap-2">

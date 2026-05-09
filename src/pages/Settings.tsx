@@ -1189,7 +1189,7 @@ export function SettingsPage() {
       {/* محتوى وأدلة */}
       <Card id="settings-content" className="p-5">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-base">📚</span>
+          <span className="text-base" aria-hidden="true">📚</span>
           <div className="text-sm font-semibold">محتوى وأدلة</div>
         </div>
         <div className="space-y-1">

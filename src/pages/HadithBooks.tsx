@@ -437,7 +437,7 @@ export function HadithBooksPage() {
                 <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">✨</span>
+                    <span className="text-lg" aria-hidden="true">✨</span>
                     <p className="text-base font-bold font-arabic text-[var(--fg)]">الأربعينيات المباركة</p>
                   </div>
                   <p className="text-xs text-[var(--muted)] font-arabic leading-relaxed">

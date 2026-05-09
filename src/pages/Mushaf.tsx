@@ -1733,7 +1733,7 @@ export function MushafPage() {
             {/* Header row */}
             <div className="flex items-center justify-between mb-3 mt-1">
               <span className="mushaf-sheet-title flex items-center gap-1.5">
-                <span style={{ color: "var(--accent)" }}>📖</span>
+                <span style={{ color: "var(--accent)" }} aria-hidden="true">📖</span>
                 <span>تفسير ﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾</span>
                 <span className="opacity-40 text-xs font-normal">· {tafsirItem.surahName}</span>
               </span>
@@ -1888,7 +1888,7 @@ export function MushafPage() {
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">📖</span>
+                  <span className="text-base" aria-hidden="true">📖</span>
                   <div>
                     <div className="text-xs font-semibold" style={inlineTafseer ? { color: "var(--accent)" } : {}}>عرض التفسير</div>
                     <div className="text-[10px] opacity-45">تفسير تحت كل آية</div>
@@ -2193,7 +2193,7 @@ export function MushafPage() {
                   toast.success("✓ سُجِّل ورد اليوم 🌟");
                 }}
               >
-                <span className="text-2xl">📅</span>
+                <span className="text-2xl" aria-hidden="true">📅</span>
                 <div className="flex-1">
                   <div className="text-sm font-semibold" style={{ color: "var(--accent)" }}>سجّل ورد اليوم</div>
                   <div className="text-[11px] opacity-55">تحديد اليوم كمكتمل في خطة الختمة</div>
@@ -2260,7 +2260,7 @@ export function MushafPage() {
               className="w-full flex items-center gap-3 py-3.5 px-1 text-right transition"
               onClick={() => { setShowMoreSheet(false); navigate("/quran/plans"); }}
             >
-              <span className="opacity-55 text-lg">📅</span>
+              <span className="opacity-55 text-lg" aria-hidden="true">📅</span>
               <div>
                 <div className="text-sm">خطط التلاوة</div>
                 <div className="text-[10px] opacity-40">إدارة ورد الختمة والمراجعة اليومية</div>
@@ -2279,7 +2279,7 @@ export function MushafPage() {
             onClick={() => { setShowSessionSummary(false); navigate("/quran"); }}
           />
           <div className="mushaf-session-card" dir="rtl">
-            <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📖</div>
+            <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }} aria-hidden="true">📖</div>
             <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.3rem" }}>جلسة قراءة</div>
             <div style={{ fontSize: "0.85rem", opacity: 0.65, marginBottom: "1.25rem" }}>
               {toArabicNumeral(sessionDurationMin)} دقيقة · {toArabicNumeral(pagesReadRef.current.size)} صفحة

@@ -211,27 +211,27 @@ export function CommandPalette(props: Props) {
               </Command.Empty>
 
               <Command.Group heading="الصفحات" className="px-2">
-                <Item onSelect={() => go("/")} icon={<span className="text-base">🏠</span>}>الرئيسية</Item>
-                <Item onSelect={() => go("/quran")} icon={<span className="text-base">📖</span>}>المصحف</Item>
-                <Item onSelect={() => go("/sebha")} icon={<span className="text-base">📿</span>}>السبحة</Item>
-                <Item onSelect={() => go("/prayer-times")} icon={<span className="text-base">🕌</span>}>مواقيت الصلاة</Item>
+                <Item onSelect={() => go("/")} icon={<span className="text-base" aria-hidden="true">🏠</span>}>الرئيسية</Item>
+                <Item onSelect={() => go("/quran")} icon={<span className="text-base" aria-hidden="true">📖</span>}>المصحف</Item>
+                <Item onSelect={() => go("/sebha")} icon={<span className="text-base" aria-hidden="true">📿</span>}>السبحة</Item>
+                <Item onSelect={() => go("/prayer-times")} icon={<span className="text-base" aria-hidden="true">🕌</span>}>مواقيت الصلاة</Item>
                 <Item onSelect={() => go("/library")} icon={<LibraryBig size={16} aria-hidden="true" />}>المكتبة الإسلامية</Item>
-                <Item onSelect={() => go("/search")} icon={<span className="text-base">🔍</span>}>البحث</Item>
-                <Item onSelect={() => go("/favorites")} icon={<span className="text-base">❤️</span>}>المفضلة</Item>
-                <Item onSelect={() => go("/insights")} icon={<span className="text-base">📊</span>}>الإحصاءات</Item>
-                <Item onSelect={() => go("/leaderboard")} icon={<span className="text-base">🏆</span>}>المتصدرون</Item>
-                <Item onSelect={() => go("/settings")} icon={<span className="text-base">⚙️</span>}>الإعدادات</Item>
+                <Item onSelect={() => go("/search")} icon={<span className="text-base" aria-hidden="true">🔍</span>}>البحث</Item>
+                <Item onSelect={() => go("/favorites")} icon={<span className="text-base" aria-hidden="true">❤️</span>}>المفضلة</Item>
+                <Item onSelect={() => go("/insights")} icon={<span className="text-base" aria-hidden="true">📊</span>}>الإحصاءات</Item>
+                <Item onSelect={() => go("/leaderboard")} icon={<span className="text-base" aria-hidden="true">🏆</span>}>المتصدرون</Item>
+                <Item onSelect={() => go("/settings")} icon={<span className="text-base" aria-hidden="true">⚙️</span>}>الإعدادات</Item>
               </Command.Group>
 
               <Command.Separator className="h-px bg-[var(--card)] my-2" />
               <Command.Group heading="محتوى وأدلة" className="px-2">
-                <Item onSelect={() => go("/asma")} icon={<span className="text-base">✨</span>}>أسماء الله الحسنى</Item>
-                <Item onSelect={() => go("/duas")} icon={<span className="text-base">🤲</span>}>الأدعية المأثورة</Item>
-                <Item onSelect={() => go("/library")} icon={<span className="text-base">📚</span>}>صحيح مسلم والجوامع</Item>
-                <Item onSelect={() => go("/quran-vocab")} icon={<span className="text-base">📖</span>}>مفردات القرآن</Item>
-                <Item onSelect={() => go("/stories")} icon={<span className="text-base">🕌</span>}>قصص الأنبياء</Item>
-                <Item onSelect={() => go("/prayer-guide")} icon={<span className="text-base">🧎</span>}>كيفية الصلاة</Item>
-                <Item onSelect={() => go("/wudu")} icon={<span className="text-base">💧</span>}>كيفية الوضوء</Item>
+                <Item onSelect={() => go("/asma")} icon={<span className="text-base" aria-hidden="true">✨</span>}>أسماء الله الحسنى</Item>
+                <Item onSelect={() => go("/duas")} icon={<span className="text-base" aria-hidden="true">🤲</span>}>الأدعية المأثورة</Item>
+                <Item onSelect={() => go("/library")} icon={<span className="text-base" aria-hidden="true">📚</span>}>صحيح مسلم والجوامع</Item>
+                <Item onSelect={() => go("/quran-vocab")} icon={<span className="text-base" aria-hidden="true">📖</span>}>مفردات القرآن</Item>
+                <Item onSelect={() => go("/stories")} icon={<span className="text-base" aria-hidden="true">🕌</span>}>قصص الأنبياء</Item>
+                <Item onSelect={() => go("/prayer-guide")} icon={<span className="text-base" aria-hidden="true">🧎</span>}>كيفية الصلاة</Item>
+                <Item onSelect={() => go("/wudu")} icon={<span className="text-base" aria-hidden="true">💧</span>}>كيفية الوضوء</Item>
               </Command.Group>
 
               <Command.Separator className="h-px bg-[var(--card)] my-2" />
@@ -295,7 +295,7 @@ export function CommandPalette(props: Props) {
                   <Command.Separator className="h-px bg-[var(--card)] my-2" />
                   <Command.Group heading="السور" className="px-2">
                     {surahResults.map((s) => (
-                      <Item key={s.id} onSelect={() => go(`/mushaf?surah=${s.id}`)} icon={<span className="text-base">📖</span>}>
+                      <Item key={s.id} onSelect={() => go(`/mushaf?surah=${s.id}`)} icon={<span className="text-base" aria-hidden="true">📖</span>}>
                         <span className="arabic-text">{s.name}</span>
                         {s.englishName ? (
                           <span className="text-[11px] opacity-55 block mt-0.5" lang="en">{s.englishName} • {s.id}</span>
