@@ -353,6 +353,7 @@ export function MushafPage() {
       prev?.surahId === item.surahId && prev?.originalAyah === item.originalAyah ? null : item
     );
     setLastRead(item.surahId, item.displayAyah);
+    sessionAyahCountRef.current += 1;
     recordQuranRead(1);
     flashChrome();
   }, [flashChrome, memorizationMode, recordQuranRead, setLastRead]);
@@ -364,6 +365,7 @@ export function MushafPage() {
   // Phase 2F: Reading timer
   const sessionStartRef = React.useRef(Date.now());
   const pagesReadRef = React.useRef(new Set<number>());
+  const sessionAyahCountRef = React.useRef(0);
   const [showSessionSummary, setShowSessionSummary] = React.useState(false);
   const [sessionDurationMin, setSessionDurationMin] = React.useState(0);
 
@@ -865,6 +867,7 @@ export function MushafPage() {
     const lastPlayable = playableItems[playableItems.length - 1];
     if (!lastPlayable) return;
     setLastRead(lastPlayable.surahId, lastPlayable.displayAyah);
+    sessionAyahCountRef.current += playableItems.length;
     recordQuranRead(playableItems.length);
     toast.success("تم حفظ مراجعة الصفحة");
   }, [pageItems, recordQuranRead, setLastRead]);
@@ -2302,6 +2305,7 @@ export function MushafPage() {
             <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.3rem" }}>جلسة قراءة</div>
             <div style={{ fontSize: "0.85rem", opacity: 0.65, marginBottom: sessionSurahCompletedRef.current.size > 0 ? "0.75rem" : "1.25rem" }}>
               {toArabicNumeral(sessionDurationMin)} دقيقة · {toArabicNumeral(pagesReadRef.current.size)} صفحة
+              {sessionAyahCountRef.current > 0 && <span> · {toArabicNumeral(sessionAyahCountRef.current)} آية</span>}
               {(() => {
                 const todayKey = new Date().toISOString().slice(0, 10);
                 const todayAyahs = quranDailyAyahs?.[todayKey] ?? 0;
