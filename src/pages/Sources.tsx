@@ -92,6 +92,7 @@ export function SourcesPage() {
             href="https://www.islambook.com/"
             target="_blank"
             rel="noreferrer"
+            aria-label="فتح موقع islambook.com في تبويب جديد"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] text-sm min-h-[44px]"
           >
             <ExternalLink size={16} />
@@ -118,6 +119,7 @@ export function SourcesPage() {
             onChange={(event) => setCustomCount(event.target.value)}
             inputMode="numeric"
             placeholder="العدد"
+            aria-label="عدد التكرار"
           />
         </div>
 
@@ -136,6 +138,7 @@ export function SourcesPage() {
           value={customBenefit}
           onChange={(event) => setCustomBenefit(event.target.value)}
           placeholder="المصدر أو الفضل"
+          aria-label="المصدر أو فضل الذكر"
         />
 
         <Button className="mt-4 w-full" onClick={onAddCustomDhikr}>

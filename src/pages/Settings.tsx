@@ -55,6 +55,7 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
   return (
     <button type="button"
       onClick={props.onClick}
+      aria-pressed={props.active}
       className={[
         "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px]",
         props.active
@@ -251,7 +252,7 @@ export function SettingsPage() {
           <div className="font-semibold">المظهر</div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="اختيار المظهر">
           <ThemeChip
             value="system"
             label="تلقائي"
@@ -319,6 +320,7 @@ export function SettingsPage() {
               {prefs.customAccent && (
                 <button type="button"
                   onClick={() => { setPrefs({ customAccent: undefined }); toast("تم مسح اللون المخصص"); }}
+                  aria-label="إعادة ضبط اللون المخصص"
                   className="text-xs px-2.5 py-1.5 rounded-xl bg-[var(--card)] border border-[var(--stroke)] opacity-70 hover:opacity-100 transition min-h-[36px]"
                 >
                   إعادة ضبط
@@ -334,7 +336,7 @@ export function SettingsPage() {
             <Type size={15} className="text-[var(--accent)]" />
             <div className="text-sm font-medium">خط القراءة</div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="اختيار خط القراءة">
             {([
               { id: "noto_naskh", label: "نوتو نسخ", sample: "بسم الله" },
               { id: "amiri", label: "أميري", sample: "بسم الله" },
@@ -343,6 +345,7 @@ export function SettingsPage() {
               <button type="button"
                 key={f.id}
                 onClick={() => setPrefs({ arabicFont: f.id })}
+                aria-pressed={(prefs.arabicFont ?? "noto_naskh") === f.id}
                 className={[
                   "px-3 py-2.5 rounded-2xl border text-sm transition flex flex-col items-center gap-1 min-h-[60px] min-w-[90px]",
                   (prefs.arabicFont ?? "noto_naskh") === f.id
@@ -371,6 +374,7 @@ export function SettingsPage() {
               {(["ar", "en"] as const).map((lang) => (
                 <button type="button"
                   key={lang}
+                  aria-pressed={(prefs.uiLanguage ?? "ar") === lang}
                   onClick={() => lang === "ar" ? setPrefs({ uiLanguage: lang }) : toast("الترجمة الإنجليزية قريبًا")}
                   className={[
                     "px-4 py-2 rounded-xl border text-sm transition min-h-[40px] relative",
@@ -402,6 +406,7 @@ export function SettingsPage() {
                 <button type="button"
                   key={d.id}
                   onClick={() => setPrefs({ textDir: d.id })}
+                  aria-pressed={(prefs.textDir ?? "auto") === d.id}
                   className={[
                     "px-3 py-2 rounded-xl border text-xs transition min-h-[40px]",
                     (prefs.textDir ?? "auto") === d.id

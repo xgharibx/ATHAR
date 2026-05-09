@@ -157,6 +157,7 @@ export function PrayerGuidePage() {
                         await navigator.clipboard.writeText([step.title, step.arabic, step.description].filter(Boolean).join("\n\n")).catch(() => {});
                         toast.success("تم النسخ");
                       }}
+                      aria-label="نسخ الخطوة"
                       className="p-2 rounded-xl transition-opacity hover:opacity-75"
                       style={{ background: "color-mix(in srgb, var(--on-accent) 10%, transparent)", color: "var(--on-accent)" }}
                     >
@@ -165,6 +166,7 @@ export function PrayerGuidePage() {
                     <button
                       type="button"
                       onClick={() => sharePrayerStep(step)}
+                      aria-label="مشاركة الخطوة"
                       className="p-2 rounded-xl transition-opacity hover:opacity-75"
                       style={{ background: "color-mix(in srgb, var(--on-accent) 10%, transparent)", color: "var(--on-accent)" }}
                     >
