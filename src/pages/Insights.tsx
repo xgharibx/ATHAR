@@ -1141,10 +1141,11 @@ export function InsightsPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-4 gap-2 mb-4">
             <MiniStatSmall label="اليوم" value={todayQuranAyahs.toLocaleString("ar-EG")} accent />
             <MiniStatSmall label="الأسبوع" value={quranWeekTotal.toLocaleString("ar-EG")} />
             <MiniStatSmall label="الإجمالي" value={quranStats.totalAyahs.toLocaleString("ar-EG")} />
+            {quranStreak > 0 && <MiniStatSmall label="سلسلة أيام" value={quranStreak.toLocaleString("ar-EG")} />}
           </div>
           {/* Monthly ayahs */}
           {quranMonthTotal > 0 && (
