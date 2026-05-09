@@ -829,7 +829,7 @@ export function SebhaPage() {
         <CircularRing percent={percent} completed={completed} onClick={increment} showHint={count === 0}>
           <div className="text-center">
             <div className="text-xs opacity-55 mb-2">{current.short}</div>
-            <div className="text-6xl font-black tabular-nums leading-none">{count}</div>
+            <div className="text-6xl font-black tabular-nums leading-none" aria-live="polite" aria-atomic="true">{count}</div>
             {!tallyMode && <div className="mt-2 text-xs opacity-60">من {effectiveTarget}</div>}
             {tallyMode && tallyLaps.length > 0 && (
               <div className="mt-2 text-xs opacity-60">دورة {tallyLaps.length}</div>

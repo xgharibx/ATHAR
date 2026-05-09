@@ -63,6 +63,7 @@ export function PwaInstallBanner() {
         src="/icons/icon-72x72.png"
         alt="أثر"
         className="h-10 w-10 shrink-0 rounded-xl"
+        loading="lazy"
         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
       />
 

@@ -66,8 +66,14 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
       <div
         className="arabic-text text-lg leading-10 mb-3 select-text cursor-pointer"
         dir="rtl"
+        role="button"
+        tabIndex={done ? -1 : 0}
+        aria-label="اضغط لزيادة العداد"
         onClick={() => {
           if (!done) setCount((c) => Math.min(c + 1, item.count));
+        }}
+        onKeyDown={(e) => {
+          if (!done && (e.key === "Enter" || e.key === " ")) setCount((c) => Math.min(c + 1, item.count));
         }}
       >
         {item.arabic}
@@ -85,6 +91,8 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
           {Array.from({ length: item.count }).map((_, i) => (
             <button type="button"
               key={i}
+              aria-label={i < count ? `تم — خطوة ${i + 1}` : `خطوة ${i + 1}`}
+              aria-pressed={i < count}
               onClick={() => setCount(i < count ? i : i + 1)}
               className={cn(
                 "w-7 h-7 rounded-full border transition-all text-xs font-bold",

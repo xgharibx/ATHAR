@@ -134,7 +134,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
         {/* Counter display */}
         <div className="text-center mb-3">
           <div className="text-sm opacity-70 mb-1">{current.label}</div>
-          <div className={cn("text-4xl font-bold tabular-nums", pulse && "count-pulse")}>
+          <div className={cn("text-4xl font-bold tabular-nums", pulse && "count-pulse")} aria-live="polite" aria-atomic="true">
             {count}
           </div>
           <div className="text-xs opacity-50 mt-1">من {target}</div>

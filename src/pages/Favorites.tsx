@@ -10,6 +10,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
+import { contrastText } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useHadithPack } from "@/data/useHadithBook";
@@ -486,10 +487,10 @@ export function FavoritesPage() {
                         className={[
                           "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
                           selectedBmBookKey === bk
-                            ? "text-white border-transparent"
+                            ? "border-transparent"
                             : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                         ].join(" ")}
-                        style={selectedBmBookKey === bk ? { background: book?.color ?? "var(--accent)" } : {}}
+                        style={selectedBmBookKey === bk ? { background: book?.color ?? "var(--accent)", color: contrastText(book?.color ?? "#ffd780") } : {}}
                       >
                         {book?.title ?? bk} ({count})
                       </button>

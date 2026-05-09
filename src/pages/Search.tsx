@@ -601,10 +601,10 @@ export function SearchPage() {
               className={cn(
                 "shrink-0 text-xs px-3 py-1.5 rounded-full border transition font-arabic whitespace-nowrap min-h-[32px]",
                 hadithBookKey === book.key
-                  ? "text-white border-transparent"
+                  ? "border-transparent"
                   : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
               )}
-              style={hadithBookKey === book.key ? { background: book.color } : {}}
+              style={hadithBookKey === book.key ? { background: book.color, color: contrastText(book.color) } : {}}
             >
               {book.title}
             </button>
