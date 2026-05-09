@@ -32,7 +32,7 @@ export function PrayerGuidePage() {
   };
 
   return (
-    <div dir="rtl" className="min-h-screen-safe pb-32">
+    <div dir="rtl" className="min-h-screen-safe pb-32 page-enter">
       {/* Header Card */}
       <div className="px-4 pt-4">
         <Card className="p-5 overflow-hidden relative">

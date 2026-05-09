@@ -55,7 +55,7 @@ export default function Companions() {
   }, [activeCategory, query, showBookmarksOnly, bookmarks]);
 
   return (
-    <div className="relative min-h-screen-safe overflow-hidden pb-24" dir="rtl">
+    <div className="relative min-h-screen-safe overflow-hidden pb-24 page-enter" dir="rtl">
       <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
       {/* Header Card */}
       <div className="relative z-10 px-4 pt-4">
@@ -127,7 +127,7 @@ export default function Companions() {
               style={{ color: "var(--fg)" }}
             />
             {query && (
-              <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
+              <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80" aria-label="مسح البحث">
                 <X size={13} />
               </button>
             )}

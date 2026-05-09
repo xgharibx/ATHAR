@@ -356,7 +356,7 @@ export function HadithBooksPage() {
   const totalHadiths = sorted.reduce((s, b) => s + b.count, 0);
 
   return (
-    <div dir="rtl" className="relative min-h-screen-safe overflow-hidden pb-24">
+    <div dir="rtl" className="relative min-h-screen-safe overflow-hidden pb-24 page-enter">
       <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
       {/* Header Card */}
       <div className="relative z-10 px-4 pt-4">

@@ -719,7 +719,7 @@ export function QuranPage() {
                   {(juzProgress[filterJuz] ?? 0).toLocaleString("ar-EG")}٪
                 </span>
               )}
-              <button type="button" onClick={() => setFilterJuz(null)} className="mr-auto opacity-45 hover:opacity-80 transition">✕</button>
+              <button type="button" onClick={() => setFilterJuz(null)} className="mr-auto opacity-45 hover:opacity-80 transition" aria-label="إزالة فلتر الجزء">✕</button>
             </div>
           )}
 

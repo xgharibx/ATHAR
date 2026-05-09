@@ -44,7 +44,7 @@ export default function SeerahTimeline() {
   };
 
   return (
-    <div className="relative min-h-screen-safe overflow-hidden pb-24" dir="rtl">
+    <div className="relative min-h-screen-safe overflow-hidden pb-24 page-enter" dir="rtl">
       <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
       {/* Header Card */}
       <div className="relative z-10 px-4 pt-4">
