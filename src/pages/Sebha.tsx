@@ -27,6 +27,8 @@ import { useNoorStore } from "@/store/noorStore";
 import type { SebhaSession } from "@/store/noorStore";
 import { cn, pct } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { getDailyTasbeeh } from "@/lib/leaderboardScores";
+import { getLocalDateKey } from "@/lib/dayBoundaries";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -356,32 +358,41 @@ function dateKeyOf(d: Date) {
 function TasbeehStatsCard({
   tasbeehDailyLog,
   tasbeehLifetime,
+  sebhaCustom,
 }: {
   tasbeehDailyLog: Record<string, Record<string, number>>;
   tasbeehLifetime: Record<string, number>;
+  sebhaCustom: { phrase: string; target: number } | null;
 }) {
   const stats = React.useMemo(() => {
     const today = new Date();
+    const customKey = "custom";
+    const allItems: Array<{ key: string; short: string }> = [
+      ...TASBEEHAT,
+      ...(sebhaCustom && (tasbeehLifetime[customKey] ?? 0) > 0
+        ? [{ key: customKey, short: sebhaCustom.phrase }]
+        : []),
+    ];
     const thisWeek: Record<string, number> = {};
     const lastWeek: Record<string, number> = {};
-    for (const item of TASBEEHAT) { thisWeek[item.key] = 0; lastWeek[item.key] = 0; }
+    for (const item of allItems) { thisWeek[item.key] = 0; lastWeek[item.key] = 0; }
     for (let i = 0; i < 7; i++) {
       const d = new Date(today); d.setDate(today.getDate() - i);
       const dk = dateKeyOf(d);
       const day = tasbeehDailyLog[dk] ?? {};
-      for (const item of TASBEEHAT) { thisWeek[item.key] += day[item.key] ?? 0; }
+      for (const item of allItems) { thisWeek[item.key] += day[item.key] ?? 0; }
     }
     for (let i = 7; i < 14; i++) {
       const d = new Date(today); d.setDate(today.getDate() - i);
       const dk = dateKeyOf(d);
       const day = tasbeehDailyLog[dk] ?? {};
-      for (const item of TASBEEHAT) { lastWeek[item.key] += day[item.key] ?? 0; }
+      for (const item of allItems) { lastWeek[item.key] += day[item.key] ?? 0; }
     }
-    const maxVal = Math.max(1, ...TASBEEHAT.flatMap(i => [thisWeek[i.key], lastWeek[i.key]]));
-    return { thisWeek, lastWeek, maxVal };
-  }, [tasbeehDailyLog]);
+    const maxVal = Math.max(1, ...allItems.flatMap(i => [thisWeek[i.key], lastWeek[i.key]]));
+    return { thisWeek, lastWeek, maxVal, allItems };
+  }, [tasbeehDailyLog, tasbeehLifetime, sebhaCustom]);
 
-  const totalLifetime = TASBEEHAT.reduce((s, i) => s + (tasbeehLifetime[i.key] ?? 0), 0);
+  const totalLifetime = Object.values(tasbeehLifetime).reduce((s, v) => s + (v ?? 0), 0);
   if (totalLifetime === 0 && Object.keys(tasbeehDailyLog).length === 0) return null;
 
   return (
@@ -392,7 +403,7 @@ function TasbeehStatsCard({
         <span className="text-[11px] opacity-50 mr-auto">هذا الأسبوع مقابل الماضي</span>
       </div>
       <div className="space-y-3">
-        {TASBEEHAT.map((item) => {
+        {stats.allItems.map((item) => {
           const tw = stats.thisWeek[item.key] ?? 0;
           const lw = stats.lastWeek[item.key] ?? 0;
           const twPct = Math.round((tw / stats.maxVal) * 100);
@@ -401,7 +412,7 @@ function TasbeehStatsCard({
           return (
             <div key={item.key}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] opacity-70">{item.short}</span>
+                <span className="text-[11px] opacity-70 truncate max-w-[60%]">{item.short}</span>
                 <span className="text-[10px] opacity-40 tabular-nums">مجموع: {lifetime.toLocaleString()}</span>
               </div>
               {/* This week bar */}
@@ -448,8 +459,18 @@ function TasbeehStatsCard({
 export function SebhaPage() {
   const navigate = useNavigate();
   useScrollRestoration();
-  const [selected, setSelected] = React.useState<TasbeehKey>("subhanallah");
-  const [target, setTarget] = React.useState<(typeof TARGETS)[number]>(100);
+
+  // Persisted selections (survive page reload)
+  const sebhaSelected = useNoorStore((s) => s.sebhaSelected) as TasbeehKey;
+  const setSebhaSelected = useNoorStore((s) => s.setSebhaSelected);
+  const sebhaTarget = useNoorStore((s) => s.sebhaTarget);
+  const setSebhaTarget = useNoorStore((s) => s.setSebhaTarget);
+  // Keep local aliases for brevity
+  const selected: TasbeehKey = TASBEEHAT.some(t => t.key === sebhaSelected) || sebhaSelected === "custom" ? sebhaSelected : "subhanallah";
+  const setSelected = setSebhaSelected;
+  const target = (TARGETS as readonly number[]).includes(sebhaTarget) ? sebhaTarget as typeof TARGETS[number] : 100;
+  const setTarget = (v: typeof TARGETS[number]) => setSebhaTarget(v);
+
   const [confirmReset, setConfirmReset] = React.useState(false);
 
   // S5 - Tally mode
@@ -477,6 +498,9 @@ export function SebhaPage() {
   const setSebhaCustom = useNoorStore((s) => s.setSebhaCustom);
   const tasbeehDailyLog = useNoorStore((s) => s.tasbeehDailyLog);
   const tasbeehLifetime = useNoorStore((s) => s.tasbeehLifetime);
+
+  // Today's leaderboard tasbeeh challenge
+  const dailyChallenge = React.useMemo(() => getDailyTasbeeh(getLocalDateKey()), []);
 
   // Sync custom phrase form with stored custom dhikr
   React.useEffect(() => {
@@ -518,6 +542,12 @@ export function SebhaPage() {
         ? (TASBEEHAT.find((t) => t.key === keyOverride)?.short ?? keyOverride)
         : current.short;
       const next = incQuickTasbeeh(activeKey, activeEffTarget);
+      // Detect silent block (count already at target)
+      const currentCount = Number(quickTasbeeh[activeKey] ?? 0);
+      if (next === currentCount && currentCount >= activeEffTarget) {
+        toast("اكتملت التسبيحة ✓ اضغط \"تصفير الحالي\" للبدء من جديد", { id: "tasbeeh-blocked" });
+        return;
+      }
       doHaptic(next, activeEffTarget, prefs.enableHaptics);
       if (next === activeEffTarget) {
         toast.success("اكتمل هدف التسبيح 🎉");
@@ -588,6 +618,10 @@ export function SebhaPage() {
     const phrase = customPhraseInput.trim();
     const t = Math.max(1, Math.min(10000, Number(customTargetInput) || 100));
     if (!phrase) { toast.error("أدخل نص الذكر"); return; }
+    // Reset custom count when phrase changes to avoid key collision
+    if (sebhaCustom && sebhaCustom.phrase !== phrase) {
+      resetQuickTasbeeh("custom");
+    }
     setSebhaCustom({ phrase, target: t });
     setSelected("custom");
     setShowCustomForm(false);
@@ -612,6 +646,12 @@ export function SebhaPage() {
               <h1 className="mt-2 text-xl md:text-2xl font-bold leading-tight">السبحة اليومية</h1>
               <div className="mt-1 text-sm opacity-65 leading-6">
                 عداد هادئ للتسبيح والصلاة على النبي، محفوظ ضمن يومك الإيماني.
+              </div>
+              {/* Leaderboard daily challenge */}
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] opacity-60">
+                <Target size={11} className="text-[var(--accent)] shrink-0" />
+                <span>تحدي اليوم في الترتيب:</span>
+                <span className="font-semibold text-[var(--accent)]">{dailyChallenge.label} × {dailyChallenge.target}</span>
               </div>
             </div>
           </div>
@@ -996,7 +1036,7 @@ export function SebhaPage() {
       )}
 
       {/* 6C: Weekly stats */}
-      <TasbeehStatsCard tasbeehDailyLog={tasbeehDailyLog} tasbeehLifetime={tasbeehLifetime} />
+      <TasbeehStatsCard tasbeehDailyLog={tasbeehDailyLog} tasbeehLifetime={tasbeehLifetime} sebhaCustom={sebhaCustom} />
     </div>
   );
 }

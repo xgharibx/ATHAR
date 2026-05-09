@@ -1,4 +1,4 @@
-import { create } from "zustand";
+﻿import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { isDailySection } from "@/lib/dailySections";
 import type { CustomAdhkarPack } from "@/data/types";
@@ -231,6 +231,12 @@ type NoorState = {
   // Sebha custom dhikr
   sebhaCustom: { phrase: string; target: number } | null;
   setSebhaCustom: (v: { phrase: string; target: number } | null) => void;
+
+  // Sebha persisted preferences
+  sebhaTarget: number;
+  setSebhaTarget: (t: number) => void;
+  sebhaSelected: string;
+  setSebhaSelected: (k: string) => void;
 
   // Prayer log (P9)
   prayerLog: Record<string, Record<string, boolean>>; // dateISO -> prayerName -> prayed
@@ -709,6 +715,11 @@ export const useNoorStore = create<NoorState>()(
 
       sebhaCustom: null,
       setSebhaCustom: (v) => set({ sebhaCustom: v }),
+
+      sebhaTarget: 100,
+      setSebhaTarget: (t) => set({ sebhaTarget: t }),
+      sebhaSelected: "subhanallah",
+      setSebhaSelected: (k) => set({ sebhaSelected: k }),
 
       prayerLog: {},
       setPrayerLogged: (dateISO, prayer, done) => {
@@ -1376,7 +1387,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 26,
+      version: 27,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -1432,6 +1443,8 @@ export const useNoorStore = create<NoorState>()(
           sectionCompletions: (state as Partial<NoorState>).sectionCompletions ?? {},
           sebhaSessions: Array.isArray((state as Partial<NoorState>).sebhaSessions) ? (state as Partial<NoorState>).sebhaSessions! : [],
           sebhaCustom: (state as Partial<NoorState>).sebhaCustom ?? null,
+          sebhaTarget: (state as Partial<NoorState>).sebhaTarget ?? 100,
+          sebhaSelected: (state as Partial<NoorState>).sebhaSelected ?? "subhanallah",
           // hadith user-state fields are NOT in persist (see partialize above);
           // they'll be loaded from IDB by hydrateHadithState() in main.tsx
           hadithBookmarks: {},

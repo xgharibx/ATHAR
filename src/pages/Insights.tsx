@@ -591,6 +591,7 @@ export function InsightsPage() {
 
   const isWirdDone = !!dailyWirdDone[worshipDayKey];
   const tasbeehLifetime = useNoorStore((s) => s.tasbeehLifetime);
+  const sebhaCustom = useNoorStore((s) => s.sebhaCustom);
   const dailyChecklistToday = dailyChecklist[worshipDayKey] ?? {};
   const checklistDoneCount = DAILY_CHECKLIST_ITEMS.filter((item) => !!dailyChecklistToday[item.id]).length;
   const checklistTotal = DAILY_CHECKLIST_ITEMS.length;
@@ -1423,6 +1424,9 @@ export function InsightsPage() {
               { key: "alhamdulillah", label: "الحمد لله", emoji: "🌿" },
               { key: "la_ilaha_illallah", label: "لا إله إلا الله", emoji: "🌟" },
               { key: "allahu_akbar", label: "الله أكبر", emoji: "💫" },
+              ...(sebhaCustom && (tasbeehLifetime["custom"] ?? 0) > 0
+                ? [{ key: "custom", label: sebhaCustom.phrase, emoji: "📝" }]
+                : []),
             ].map(({ key, label, emoji }) => {
               const count = tasbeehLifetime[key] ?? 0;
               return (
