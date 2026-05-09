@@ -385,6 +385,25 @@ export function InsightsPage() {
     [quranStats.totalAyahs]
   );
 
+  // Per-juz reading completion (juz 1-30)
+  const quranJuzCompletion = React.useMemo(() => {
+    if (!quranData) return [] as { juz: number; pct: number; complete: boolean }[];
+    const totals: Record<number, number> = {};
+    const reads: Record<number, number> = {};
+    for (const s of quranData) {
+      const juz = SURAH_JUZ[s.id] ?? 1;
+      totals[juz] = (totals[juz] ?? 0) + s.ayahs.length;
+      reads[juz] = (reads[juz] ?? 0) + Math.min(quranReadingHistory[String(s.id)] ?? 0, s.ayahs.length);
+    }
+    return Array.from({ length: 30 }, (_, i) => {
+      const juz = i + 1;
+      const total = totals[juz] ?? 0;
+      const read = reads[juz] ?? 0;
+      const pct = total > 0 ? Math.round((read / total) * 100) : 0;
+      return { juz, pct, complete: total > 0 && read >= total };
+    });
+  }, [quranData, quranReadingHistory]);
+
   // I2: Prayer consistency - last 28 days from prayerLog
   const prayerConsistency = React.useMemo(() => {
     const today = new Date();
@@ -1260,6 +1279,33 @@ export function InsightsPage() {
               </div>
             );
           })()}
+          {/* Per-juz reading completion */}
+          {quranJuzCompletion.some((j) => j.pct > 0) && (
+            <div className="mt-4">
+              <div className="text-xs opacity-50 mb-2 flex items-center justify-between">
+                <span>إتمام الأجزاء (1-30)</span>
+                <span className="text-[10px]" style={{ color: "var(--ok)" }}>
+                  {quranJuzCompletion.filter((j) => j.complete).length} / 30 مكتمل
+                </span>
+              </div>
+              <div className="flex items-end gap-0.5" style={{ height: "44px" }} role="img" aria-label="إتمام الأجزاء">
+                {quranJuzCompletion.map(({ juz, pct, complete }) => (
+                  <div key={juz} className="flex-1 flex flex-col items-center gap-0.5" style={{ height: "100%", justifyContent: "flex-end" }} title={`جزء ${juz}: ${pct}٪`}>
+                    <div
+                      className="w-full rounded-t-sm"
+                      style={{
+                        height: pct > 0 ? `${Math.max(3, Math.round((pct / 100) * 36))}px` : "2px",
+                        background: complete ? "var(--ok)" : pct > 0 ? "color-mix(in srgb, var(--accent) 55%, transparent)" : "var(--card)",
+                      }}
+                    />
+                    {(juz % 5 === 1 || juz === 30) && (
+                      <span className="text-[8px] leading-none opacity-35">{juz}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
       )}
 
