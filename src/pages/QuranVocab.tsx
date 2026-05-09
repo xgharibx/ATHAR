@@ -380,21 +380,45 @@ export function QuranVocabPage() {
 
         {/* Stats mini-card */}
         <div
-          className="w-full max-w-sm rounded-2xl p-4 grid grid-cols-3 gap-3 text-center"
+          className="w-full max-w-sm rounded-2xl p-4 text-center"
           style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
         >
-          <div>
-            <p className="text-lg font-bold" style={{ color: "var(--accent)" }}>{seen.size}</p>
-            <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>شاهدت</p>
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div>
+              <p className="text-lg font-bold" style={{ color: "var(--accent)" }}>{seen.size.toLocaleString("ar-EG")}</p>
+              <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>شاهدت</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold" style={{ color: "var(--ok, #3ddc97)" }}>{learned.size.toLocaleString("ar-EG")}</p>
+              <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>محفوظة</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold" style={{ color: "var(--fg)" }}>{QURAN_VOCAB.length.toLocaleString("ar-EG")}</p>
+              <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>الإجمالي</p>
+            </div>
           </div>
-          <div>
-            <p className="text-lg font-bold" style={{ color: "var(--ok, #3ddc97)" }}>{learned.size}</p>
-            <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>محفوظة</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold" style={{ color: "var(--fg)" }}>{QURAN_VOCAB.length}</p>
-            <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>الإجمالي</p>
-          </div>
+          {learned.size > 0 && (
+            <div>
+              <div className="h-1.5 rounded-full overflow-hidden mb-1" style={{ background: "var(--card-2, rgba(255,255,255,0.06))" }}
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={QURAN_VOCAB.length}
+                aria-valuenow={learned.size}
+                aria-label={`حفظت ${learned.size} من ${QURAN_VOCAB.length} كلمة`}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.min(100, Math.round((learned.size / QURAN_VOCAB.length) * 100))}%`,
+                    background: "var(--ok, #3ddc97)",
+                  }}
+                />
+              </div>
+              <p className="text-[10px] opacity-50">
+                {Math.round((learned.size / QURAN_VOCAB.length) * 100)}٪ محفوظ
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -186,6 +186,29 @@ export function QuranPlansPage() {
     return Math.min(100, Math.round((activePlan.todayAyahs / activePlan.dailyAyahs) * 100));
   }, [activePlan]);
 
+  // ── Milestone celebration (25 / 50 / 75 / 100 %) ─────────────────────────
+  React.useEffect(() => {
+    if (!activePlan || !khatmaStartISO) return;
+    const storageKey = `khatma_milestones_${khatmaStartISO}`;
+    const shown: number[] = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
+    const milestones = [25, 50, 75, 100];
+    let changed = false;
+    for (const m of milestones) {
+      if (activePlan.pct >= m && !shown.includes(m)) {
+        shown.push(m);
+        changed = true;
+        const labels: Record<number, string> = {
+          25: "ربع الختمة 🌱",
+          50: "نصف الختمة 🌟",
+          75: "ثلاثة أرباع الختمة 🔥",
+          100: "أتممت الختمة! 🎉",
+        };
+        toast.success(labels[m] ?? `${m}٪`, { duration: 4000, icon: m === 100 ? "🎉" : "✨" });
+      }
+    }
+    if (changed) localStorage.setItem(storageKey, JSON.stringify(shown));
+  }, [activePlan?.pct, khatmaStartISO]);
+
   // ── Start a plan ─────────────────────────────────────────────────────────────
   function startPlan(days: number) {
     setKhatmaPlan({ startISO: today, days });
