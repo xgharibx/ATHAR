@@ -979,6 +979,10 @@ export function QuranPage() {
                       </span>
                       <span>·</span>
                       <span className="tabular-nums" aria-label={`عدد آيات السورة: ${s.ayahs.length}`}>{s.ayahs.length.toLocaleString("ar-EG")} آية</span>
+                      {sortMode === "unread" && (() => {
+                        const mins = Math.max(1, Math.round(s.ayahs.length / 8));
+                        return <span>· ~{mins.toLocaleString("ar-EG")} دق</span>;
+                      })()}
                     </div>
                     {/* Progress line */}
                     {pct > 0 && pct < 100 && (

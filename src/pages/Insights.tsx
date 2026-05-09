@@ -1257,12 +1257,18 @@ export function InsightsPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-4 gap-2 mb-4">
-            <MiniStatSmall label="اليوم" value={todayQuranAyahs.toLocaleString("ar-EG")} accent />
-            <MiniStatSmall label="الأسبوع" value={quranWeekTotal.toLocaleString("ar-EG")} />
-            <MiniStatSmall label="الإجمالي" value={quranStats.totalAyahs.toLocaleString("ar-EG")} />
-            {quranStreak > 0 && <MiniStatSmall label="سلسلة أيام" value={quranStreak.toLocaleString("ar-EG")} />}
-          </div>
+          {(() => {
+            const bestDay = Object.values(quranDailyAyahs).reduce((mx, v) => Math.max(mx, v ?? 0), 0);
+            const activeDaysCount = Object.values(quranDailyAyahs).filter((v) => (v ?? 0) > 0).length;
+            return (
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                <MiniStatSmall label="اليوم" value={todayQuranAyahs.toLocaleString("ar-EG")} accent />
+                <MiniStatSmall label="الأسبوع" value={quranWeekTotal.toLocaleString("ar-EG")} />
+                <MiniStatSmall label="أفضل يوم" value={bestDay > 0 ? bestDay.toLocaleString("ar-EG") : "—"} />
+                <MiniStatSmall label="أيام نشطة" value={activeDaysCount.toLocaleString("ar-EG")} />
+              </div>
+            );
+          })()}
           {/* Meccan vs Medinan breakdown */}
           {quranStats.started > 0 && (
             <div className="mb-4 mt-1 grid grid-cols-2 gap-2" aria-label="مكية ومدنية">
