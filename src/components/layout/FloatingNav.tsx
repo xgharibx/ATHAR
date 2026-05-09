@@ -105,7 +105,6 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
                   <span
                     className="absolute -top-1.5 -right-1.5 w-[8px] h-[8px] rounded-full"
                     style={{ background: "var(--accent)" }}
-                    title="قراءة الختمة اليومية لم تكتمل"
                   />
                 )}
                 {item.path === "/" && todayCount > 0 && (

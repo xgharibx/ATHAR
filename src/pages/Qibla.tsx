@@ -310,7 +310,7 @@ export function QiblaPage() {
                 else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
               }}
               className="mt-2 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full opacity-60 hover:opacity-90 transition"
-              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
+              style={{ background: "var(--card)", border: "1px solid var(--stroke)", color: "var(--fg)" }}
             >
               <Share2 size={13} />
               مشاركة الاتجاه

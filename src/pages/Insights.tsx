@@ -16,6 +16,7 @@ import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { TOTAL_QURAN_AYAHS, SURAH_JUZ } from "@/lib/quranMeta";
 import { DAILY_CHECKLIST_ITEMS } from "@/data/dailyGrowth";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 function computeStreak(activity: Record<string, number>) {
   const days = Object.keys(activity).sort(); // ISO yyyy-mm-dd sorts naturally
@@ -186,6 +187,7 @@ function buildHeatmap(
 
 export function InsightsPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const activity = useNoorStore((s) => s.activity);
   const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
   const progressMap = useNoorStore((s) => s.progress);
@@ -1433,7 +1435,7 @@ export function InsightsPage() {
                 <div
                   key={key}
                   className="rounded-2xl p-3 text-center"
-                  style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+                  style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
                 >
                   <div className="text-xl mb-1">{emoji}</div>
                   <div

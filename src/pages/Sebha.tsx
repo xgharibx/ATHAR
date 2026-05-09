@@ -659,7 +659,6 @@ export function SebhaPage() {
             {/* S3 - Sessions history toggle */}
             <IconButton
               aria-label="سجل الجلسات"
-              title="سجل الجلسات"
               onClick={() => setShowHistory((v) => !v)}
               className={cn(showHistory && "text-[var(--accent)]")}
             >

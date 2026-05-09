@@ -784,7 +784,6 @@ export function HomePage() {
                 {streak > 0 && (
                   <button
                     type="button"
-                    title="مشاركة السلسلة"
                     className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full glass border border-white/15 streak-fire cursor-pointer active:scale-95 transition-transform ${streak >= 30 ? "text-orange-400" : streak >= 7 ? "text-yellow-400" : "text-[var(--accent)]"}`}
                     onClick={async () => {
                       const emoji = streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨";
@@ -1074,7 +1073,6 @@ export function HomePage() {
                   <button
                     type="button"
                     className="text-xs opacity-55 mt-0.5 hover:opacity-80 transition-opacity text-right"
-                    title="مشاركة مستواك"
                     onClick={async () => {
                       const text = `وصلت لمستوى: ${xpLevel.emoji} ${xpLevel.label} (${totalXp.toLocaleString("ar-SA")} نقطة) في تطبيق أثر!\n\nاترك أثراً طيباً كل يوم.`;
                       if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
@@ -1458,7 +1456,7 @@ export function HomePage() {
               key={route}
               onClick={() => navigate(route)}
               className="flex flex-col items-center gap-1.5 rounded-2xl py-3 px-2 transition active:scale-95"
-              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
+              style={{ background: "var(--card)", border: "1px solid var(--stroke)", color: "var(--fg)" }}
             >
               <span className="text-2xl">{icon}</span>
               <span className="text-[11px] font-medium text-center leading-4 opacity-80">{label}</span>

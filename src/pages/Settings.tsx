@@ -25,6 +25,7 @@ import {
   syncReminders
 } from "@/lib/reminders";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const THEME_ACCENTS: Record<NoorTheme, string> = {
   system:   "#ffd780",
@@ -73,6 +74,7 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
 export function SettingsPage() {
   const navigate = useNavigate();
   const prefs = useNoorStore((s) => s.prefs);
+  useScrollRestoration();
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const resetPrefs = useNoorStore((s) => s.resetPrefs);
   const reminders = useNoorStore((s) => s.reminders);
@@ -1150,7 +1152,6 @@ export function SettingsPage() {
                     key={icon.id}
                     onClick={() => toast("قريبًا — تغيير أيقونة التطبيق قيد التطوير")}
                     className="px-3 py-2 rounded-xl border border-white/10 bg-white/6 text-xs transition min-h-[36px] opacity-60 cursor-not-allowed"
-                    title="قريبًا"
                   >
                     {icon.label}
                   </button>
@@ -1182,7 +1183,7 @@ export function SettingsPage() {
               key={route}
               onClick={() => navigate(route)}
               className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl transition text-right"
-              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+              style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
               <span className="text-xl flex-shrink-0">{icon}</span>
               <div className="flex-1 min-w-0">

@@ -18,15 +18,15 @@ import toast from "react-hot-toast";
 /* ------------------------------------------------------------------ */
 
 // 7C: Section header row
-function SectionHeader({ title, color }: { title: string; color: string }) {
+function SectionHeader({ title }: { title: string }) {
   return (
     <div
       dir="rtl"
       className="mx-3 mt-4 mb-2 flex items-center gap-2 rounded-2xl border px-4 py-2 glass"
-      style={{ borderColor: color + "35", background: `linear-gradient(90deg, ${color}18, rgba(255,255,255,0.045))` }}
+      style={{ borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)", background: "color-mix(in srgb, var(--accent) 10%, transparent)" }}
     >
-      <div className="w-1.5 h-4 rounded-full" style={{ background: color }} />
-      <p className="text-xs font-bold font-arabic truncate" style={{ color }}>
+      <div className="w-1.5 h-4 rounded-full bg-[var(--accent)]" />
+      <p className="text-xs font-bold font-arabic truncate text-[var(--accent)]">
         {title}
       </p>
     </div>
@@ -77,13 +77,14 @@ function HadithRow({
         tabIndex={0}
         onClick={() => navigate(`/hadith/${bookKey}/${item.n}`)}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate(`/hadith/${bookKey}/${item.n}`)}
-        className="group relative w-full overflow-hidden rounded-3xl border border-white/10 glass-strong glass-hover p-4 text-right transition cursor-pointer active:scale-[.985]"
+        className="group relative w-full overflow-hidden rounded-3xl border border-white/10 p-4 text-right transition cursor-pointer glass-strong glass-hover press-effect"
       >
+        <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
         <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
-        <div className="flex items-start justify-between gap-3 pr-2">
+        <div className="relative flex items-start justify-between gap-3 pr-2">
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex items-center gap-2 flex-wrap">
-              <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-bold tabular-nums" style={{ background: accentColor + "22", color: accentColor }}>
+              <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-bold tabular-nums" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor }}>
                 {item.a.toLocaleString("ar-EG")}
               </span>
               {sectionTitle && <Badge className="max-w-[180px] truncate px-2 py-0.5 text-[10px]">{sectionTitle}</Badge>}
@@ -110,9 +111,8 @@ function HadithRow({
                   toast.error("تعذر النسخ");
                 }
               }}
-              className="p-1.5 rounded-lg opacity-40 hover:opacity-80 transition-opacity"
-              style={{ background: "var(--card-border)", color: "var(--fg)" }}
-              title="نسخ الحديث"
+              className="rounded-lg border border-white/10 bg-white/6 p-1.5 opacity-50 transition-opacity hover:opacity-90 press-effect"
+              style={{ color: "var(--fg)" }}
               aria-label="نسخ الحديث"
             >
               <Copy size={13} />
@@ -150,7 +150,7 @@ export function HadithBookViewPage() {
     pack ??
     HADITH_BOOKS_STATIC.find((b) => b.key === bookKey);
 
-  const accentColor = meta?.color ?? "#10b981";
+  const accentColor = "var(--accent)";
 
   // Filter visible hadiths
   const visibleHadiths = useMemo<HadithItem[]>(() => {
@@ -202,7 +202,7 @@ export function HadithBookViewPage() {
       const row = listRows[index];
       if (!row) return null;
       if (row.type === "header") {
-        return <SectionHeader title={row.sectionTitle} color={accentColor} />;
+        return <SectionHeader title={row.sectionTitle} />;
       }
       const sectionTitle = pack?.sections.find((s) => s.id === row.item.s)?.title ?? null;
       return (
@@ -213,15 +213,16 @@ export function HadithBookViewPage() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen-safe page-enter pb-floating-nav">
+    <div className="relative flex min-h-screen-safe flex-col overflow-hidden page-enter pb-floating-nav">
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
       {/* Header */}
       <div
         dir="rtl"
         className="sticky top-0 z-20 px-3 pt-2 pb-3"
       >
         <Card className="relative overflow-hidden p-4">
+          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="absolute inset-y-0 right-0 w-1.5" style={{ background: accentColor }} />
-          <div className="absolute -left-10 -top-12 h-32 w-32 rounded-full opacity-15" style={{ background: accentColor }} />
           <div className="relative flex items-center gap-3 pr-2">
             <button type="button"
               onClick={() => navigate(-1)}
@@ -255,7 +256,7 @@ export function HadithBookViewPage() {
             <button type="button"
               onClick={resumeReading}
               className="relative mt-3 w-full rounded-2xl border px-4 py-3 text-sm font-semibold font-arabic press-effect"
-              style={{ background: accentColor + "18", color: accentColor, borderColor: accentColor + "45" }}
+              style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)", color: accentColor, borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)" }}
             >
               أكمل من حيث توقفت • ح{lastN?.toLocaleString("ar-EG")}
             </button>
@@ -272,7 +273,7 @@ export function HadithBookViewPage() {
         >
           <button type="button"
             onClick={() => setActiveSectionId(null)}
-            className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic", activeSectionId === null ? "text-black font-bold" : "glass border-white/10")}
+            className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic press-effect", activeSectionId === null ? "font-bold" : "glass border-white/10")}
             style={activeSectionId === null ? { background: accentColor, borderColor: "transparent" } : undefined}
           >
             الكل · {pack.count.toLocaleString("ar-EG")}
@@ -281,7 +282,7 @@ export function HadithBookViewPage() {
             <button type="button"
               key={s.id}
               onClick={() => setActiveSectionId(s.id)}
-              className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap", activeSectionId === s.id ? "text-black font-bold" : "glass border-white/10")}
+              className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap press-effect", activeSectionId === s.id ? "font-bold" : "glass border-white/10")}
               style={activeSectionId === s.id ? { background: accentColor, borderColor: "transparent" } : undefined}
             >
               {s.title}
@@ -299,9 +300,9 @@ export function HadithBookViewPage() {
             <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: (meta?.color ?? "#10b981") + "22" }}
+                style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)" }}
               >
-                <Loader2 size={20} className="animate-spin" style={{ color: meta?.color ?? "#10b981" }} />
+                <Loader2 size={20} className="animate-spin text-[var(--accent)]" />
               </div>
               <div>
                 <p className="font-bold text-sm font-arabic" style={{ color: "var(--fg)" }}>
@@ -320,7 +321,7 @@ export function HadithBookViewPage() {
                 className="h-full rounded-full transition-all duration-300"
                 style={{
                   width: `${progress}%`,
-                  background: meta?.color ?? "#10b981",
+                  background: "var(--accent)",
                 }}
               />
             </div>

@@ -148,8 +148,8 @@ export function AsmaAlHusnaPage() {
               key={name.id}
               className="rounded-2xl transition-all duration-200"
               style={{
-                background: isExpanded ? "var(--accent)" : "var(--card-bg)",
-                border: `1px solid ${isExpanded ? "transparent" : "var(--card-border)"}`,
+                background: isExpanded ? "var(--accent)" : "var(--card)",
+                border: `1px solid ${isExpanded ? "transparent" : "var(--stroke)"}`,
                 color: isExpanded ? "#fff" : "var(--fg)",
                 gridColumn: isExpanded ? "span 2" : undefined,
               }}
@@ -205,7 +205,6 @@ export function AsmaAlHusnaPage() {
                   onClick={(e) => { e.stopPropagation(); toggleMemorized(name.id); }}
                   aria-label={isMem ? "إلغاء الحفظ" : "تمييز كمحفوظ"}
                   className="p-1.5 rounded-lg transition-colors"
-                  title={isMem ? "إلغاء الحفظ" : "تمييز كمحفوظ"}
                   style={{ color: isMem ? (isExpanded ? "#fff" : "var(--accent)") : (isExpanded ? "rgba(255,255,255,0.5)" : "var(--fg)"), opacity: isMem ? 1 : 0.4 }}
                 >
                   <Brain size={14} />
@@ -215,7 +214,6 @@ export function AsmaAlHusnaPage() {
                   onClick={(e) => { e.stopPropagation(); toggleFavorite(name.id); }}
                   aria-label={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
                   className="p-1.5 rounded-lg transition-colors"
-                  title={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
                   style={{ color: isFav ? "#ef4444" : (isExpanded ? "rgba(255,255,255,0.5)" : "var(--fg)"), opacity: isFav ? 1 : 0.4 }}
                 >
                   <Heart size={14} fill={isFav ? "#ef4444" : "none"} />

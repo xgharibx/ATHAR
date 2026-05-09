@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
   const [count, setCount] = React.useState(0);
@@ -53,10 +54,10 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
           )}
         </div>
         <div className="flex items-center gap-1">
-          <IconButton aria-label="مشاركة" onClick={doShare} title="مشاركة">
+          <IconButton aria-label="مشاركة" onClick={doShare}>
             <Share2 size={14} className="opacity-70" />
           </IconButton>
-          <IconButton aria-label="نسخ" onClick={doCopy} title="نسخ">
+          <IconButton aria-label="نسخ" onClick={doCopy}>
             <Copy size={15} className="opacity-70" />
           </IconButton>
         </div>
@@ -152,6 +153,7 @@ function RuqyahSectionCard({ section }: { section: RuqyahSection }) {
 
 export function RuqyahPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
 
   return (
     <div className="space-y-4 page-enter" dir="rtl">

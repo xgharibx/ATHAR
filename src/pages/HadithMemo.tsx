@@ -7,7 +7,6 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, BrainCircuit, CheckCircle, ChevronLeft, ChevronRight, Copy, Share2 } from "lucide-react";
 import { useHadithPack } from "@/data/useHadithBook";
-import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
@@ -78,27 +77,28 @@ function FlipCard({
       >
         {/* Front */}
         <div
-          className="absolute inset-0 rounded-2xl p-5 flex flex-col justify-center"
+          className="absolute inset-0 flex flex-col justify-center overflow-hidden rounded-3xl p-5 glass-strong"
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
-            background: "var(--card-bg)",
-            border: `1px solid ${accentColor}44`,
+            borderColor: "color-mix(in srgb, var(--accent) 32%, transparent)",
           }}
         >
+          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           {front}
         </div>
         {/* Back */}
         <div
-          className="absolute inset-0 rounded-2xl p-5 flex flex-col justify-center"
+          className="absolute inset-0 flex flex-col justify-center overflow-hidden rounded-3xl p-5 glass-strong"
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
-            background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}44)`,
-            border: `1px solid ${accentColor}55`,
+            background: "color-mix(in srgb, var(--accent) 14%, transparent)",
+            borderColor: "color-mix(in srgb, var(--accent) 36%, transparent)",
           }}
         >
+          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           {back}
         </div>
       </div>
@@ -114,8 +114,7 @@ export function HadithMemoPage() {
   const navigate = useNavigate();
   useScrollRestoration();
   const { data: nawawi } = useHadithPack("nawawi");
-  const meta = nawawi ?? HADITH_BOOKS_STATIC.find((b) => b.key === "nawawi");
-  const accentColor = meta?.color ?? "#84cc16";
+  const accentColor = "var(--accent)";
 
   const { hadithMemoCards, addHadithMemoCard, reviewHadithMemo } = useNoorStore((s) => ({
     hadithMemoCards: s.hadithMemoCards,
@@ -171,11 +170,12 @@ export function HadithMemoPage() {
   }).length;
 
   return (
-    <div dir="rtl" className="min-h-screen-safe pb-24" style={{ background: "var(--bg)" }}>
+    <div dir="rtl" className="relative min-h-screen-safe overflow-hidden pb-24">
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
       {/* Header Card */}
-      <div className="px-4 pt-4">
-        <Card className="p-5 overflow-hidden relative">
-          <div className="absolute -left-8 -top-10 w-32 h-32 rounded-full opacity-10" style={{ background: accentColor }} />
+      <div className="relative z-10 px-4 pt-4">
+        <Card className="relative overflow-hidden p-5">
+          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="flex items-center gap-3">
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
@@ -190,7 +190,7 @@ export function HadithMemoPage() {
       </div>
 
       {/* Stats row */}
-      <div className="mx-4 mt-4 mb-4 grid grid-cols-3 gap-3">
+      <div className="relative z-10 mx-4 mt-4 mb-4 grid grid-cols-3 gap-3">
         {[
           { val: allCards.length, label: "مضافة" },
           { val: dueCards.length, label: "للمراجعة" },
@@ -198,9 +198,9 @@ export function HadithMemoPage() {
         ].map(({ val, label }) => (
           <div
             key={label}
-            className="rounded-2xl py-3 text-center"
-            style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+            className="relative overflow-hidden rounded-3xl py-3 text-center glass"
           >
+            <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
             <p className="text-xl font-bold font-arabic" style={{ color: accentColor }}>{val}</p>
             <p className="text-[10px] text-[var(--muted)]">{label}</p>
           </div>
@@ -209,8 +209,7 @@ export function HadithMemoPage() {
 
       {/* Tab bar */}
       <div
-        className="mx-4 mb-5 flex rounded-2xl overflow-hidden"
-        style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+        className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass"
       >
         {(["due", "add"] as const).map((t) => (
           <button type="button"
@@ -218,7 +217,7 @@ export function HadithMemoPage() {
             onClick={() => { setViewMode(t); setCardIndex(0); setIsFlipped(false); }}
             className="flex-1 py-2.5 text-sm font-arabic transition-colors"
             style={viewMode === t
-              ? { background: accentColor, color: "#fff", fontWeight: 700 }
+              ? { background: accentColor, color: "#06110d", fontWeight: 700 }
               : { color: "var(--muted)" }
             }
           >
@@ -229,14 +228,14 @@ export function HadithMemoPage() {
 
       {/* All reviewed today */}
       {viewMode === "due" && dueCards.length === 0 && (
-        <div className="flex flex-col items-center py-16 gap-4">
+        <div className="relative z-10 flex flex-col items-center gap-4 py-16">
           <CheckCircle size={48} style={{ color: accentColor }} />
           <p className="text-base font-bold font-arabic text-[var(--fg)]">أحسنت! أنهيت مراجعة اليوم</p>
           <p className="text-sm text-[var(--muted)] font-arabic">ارجع غداً لمراجعة جديدة</p>
           <button type="button"
             onClick={() => { setViewMode("add"); setCardIndex(0); setIsFlipped(false); }}
-            className="mt-2 px-6 py-2.5 rounded-2xl text-sm font-arabic font-bold"
-            style={{ background: accentColor, color: "#fff" }}
+            className="mt-2 rounded-2xl px-6 py-2.5 text-sm font-arabic font-bold press-effect"
+            style={{ background: accentColor, color: "#06110d" }}
           >
             إضافة المزيد
           </button>
@@ -245,7 +244,7 @@ export function HadithMemoPage() {
 
       {/* Flip card area */}
       {currentHadith && (
-        <div className="px-4 space-y-4">
+        <div className="relative z-10 space-y-4 px-4">
           {/* Progress bar */}
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-[var(--muted)] font-arabic">
@@ -257,7 +256,7 @@ export function HadithMemoPage() {
               </span>
             )}
           </div>
-          <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--card-border)" }}>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
               className="h-full rounded-full transition-all"
               style={{ width: `${((cardIndex) / Math.max(currentCards.length, 1)) * 100}%`, background: accentColor }}
@@ -298,10 +297,10 @@ export function HadithMemoPage() {
           {viewMode === "add" && (
             <button type="button"
               onClick={() => cardKey && addHadithMemoCard(cardKey)}
-              className="w-full py-2.5 rounded-xl text-sm font-arabic transition"
+              className="w-full rounded-2xl py-2.5 text-sm font-arabic transition glass-hover press-effect"
               style={isAdded
-                ? { background: accentColor + "22", color: accentColor, border: `1px solid ${accentColor}44` }
-                : { background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }
+                ? { background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor, border: "1px solid color-mix(in srgb, var(--accent) 36%, transparent)" }
+                : { background: "rgba(255,255,255,0.055)", border: "1px solid var(--stroke)", color: "var(--fg)" }
               }
             >
               {isAdded ? "✓ مضافة للبطاقات" : "+ إضافة للحفظ"}
@@ -315,8 +314,8 @@ export function HadithMemoPage() {
                 <button type="button"
                   key={rating}
                   onClick={() => handleRate(rating)}
-                  className="py-2.5 rounded-xl text-sm font-bold font-arabic transition active:scale-95"
-                  style={{ background: bg, color }}
+                  className="rounded-2xl border py-2.5 text-sm font-bold font-arabic transition press-effect"
+                  style={{ background: bg, color, borderColor: color + "44" }}
                 >
                   {label}
                 </button>
@@ -329,7 +328,7 @@ export function HadithMemoPage() {
             <button type="button"
               onClick={() => { setCardIndex((i) => Math.max(0, i - 1)); setIsFlipped(false); }}
               disabled={cardIndex === 0}
-              className="p-2 rounded-full hover:bg-[var(--card-bg)] transition disabled:opacity-30"
+              className="rounded-full border border-white/10 bg-white/6 p-2 transition hover:bg-white/10 disabled:opacity-30 press-effect"
               aria-label="البطاقة السابقة"
             >
               <ChevronRight size={20} className="text-[var(--muted)]" />
@@ -348,9 +347,9 @@ export function HadithMemoPage() {
                     toast.error("تعذر النسخ");
                   }
                 }}
-                className="p-1.5 rounded-lg opacity-50 hover:opacity-90 transition"
-                style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
-                title="نسخ الحديث"
+                className="rounded-lg border border-white/10 bg-white/6 p-1.5 opacity-60 transition hover:opacity-100 press-effect"
+                style={{ color: "var(--fg)" }}
+                aria-label="نسخ الحديث"
               >
                 <Copy size={14} />
               </button>
@@ -365,9 +364,9 @@ export function HadithMemoPage() {
                     try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
                   }
                 }}
-                className="p-1.5 rounded-lg opacity-50 hover:opacity-90 transition"
-                style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--fg)" }}
-                title="مشاركة الحديث"
+                className="rounded-lg border border-white/10 bg-white/6 p-1.5 opacity-60 transition hover:opacity-100 press-effect"
+                style={{ color: "var(--fg)" }}
+                aria-label="مشاركة الحديث"
               >
                 <Share2 size={14} />
               </button>
@@ -375,7 +374,7 @@ export function HadithMemoPage() {
             <button type="button"
               onClick={() => { setCardIndex((i) => Math.min(currentCards.length - 1, i + 1)); setIsFlipped(false); }}
               disabled={cardIndex === currentCards.length - 1}
-              className="p-2 rounded-full hover:bg-[var(--card-bg)] transition disabled:opacity-30"
+              className="rounded-full border border-white/10 bg-white/6 p-2 transition hover:bg-white/10 disabled:opacity-30 press-effect"
               aria-label="البطاقة التالية"
             >
               <ChevronLeft size={20} className="text-[var(--muted)]" />
@@ -386,7 +385,7 @@ export function HadithMemoPage() {
 
       {/* No pack loaded yet */}
       {!nawawi && viewMode === "add" && (
-        <div className="flex flex-col items-center py-16 gap-3 text-[var(--muted)]">
+        <div className="relative z-10 flex flex-col items-center gap-3 py-16 text-[var(--muted)]">
           <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm font-arabic">جارٍ التحميل…</p>
         </div>

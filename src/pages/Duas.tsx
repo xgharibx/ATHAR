@@ -163,7 +163,7 @@ export function DuasPage() {
             <div
               key={dua.id}
               className="rounded-2xl p-4"
-              style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+              style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >
               {/* Number */}
               <div className="flex items-start justify-between mb-3">
@@ -210,7 +210,7 @@ export function DuasPage() {
               </p>
 
               {/* Divider */}
-              <div className="h-px mb-3" style={{ background: "var(--card-border)" }} />
+              <div className="h-px mb-3" style={{ background: "var(--stroke)" }} />
 
               {/* Meaning */}
               <p className="text-sm leading-relaxed opacity-80 text-right mb-2" style={{ color: "var(--fg)" }}>

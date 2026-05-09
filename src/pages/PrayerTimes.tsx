@@ -1089,13 +1089,13 @@ export function PrayerTimesPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="text-xl font-bold">مواقيت الصلاة</div>
         <div className="flex items-center gap-1.5">
-          <Button variant="secondary" size="sm" title="القبلة" aria-label="القبلة" onClick={() => navigate("/qibla")}>
+          <Button variant="secondary" size="sm" aria-label="القبلة" onClick={() => navigate("/qibla")}>
             <Compass size={15} />
           </Button>
-          <Button variant="secondary" size="sm" title="مساجد" aria-label="مساجد" onClick={() => navigate("/mosques")}>
+          <Button variant="secondary" size="sm" aria-label="مساجد" onClick={() => navigate("/mosques")}>
             <MapPin size={15} />
           </Button>
-          <Button variant="secondary" size="sm" title="مشاركة" aria-label="مشاركة" onClick={async () => {
+          <Button variant="secondary" size="sm" aria-label="مشاركة" onClick={async () => {
             if (!timings) return;
             const lines = PRIMARY_PRAYERS.map((p) => `${PRAYER_LABELS[p]}: ${cleanTime(timings[p] ?? "")}`);
             const text = `مواقيت الصلاة اليوم:\n${lines.join("\n")}\n\n• أثر`;
@@ -1104,13 +1104,13 @@ export function PrayerTimesPage() {
           }}>
             <Share2 size={15} />
           </Button>
-          <Button variant="secondary" size="sm" title="إعدادات" aria-label="إعدادات" onClick={() => setShowSettings(true)}>
+          <Button variant="secondary" size="sm" aria-label="إعدادات" onClick={() => setShowSettings(true)}>
             <Settings2 size={15} />
           </Button>
-          <Button variant="secondary" size="sm" title="تحديث" aria-label="تحديث" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
+          <Button variant="secondary" size="sm" aria-label="تحديث" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
             <RefreshCw size={15} className={manualRefreshing || prayerTimes.isFetching ? "animate-spin" : ""} />
           </Button>
-          <Button variant="outline" size="sm" title="رجوع" aria-label="رجوع" onClick={() => navigate(-1)}>
+          <Button variant="outline" size="sm" aria-label="رجوع" onClick={() => navigate(-1)}>
             <ArrowRight size={15} />
           </Button>
         </div>

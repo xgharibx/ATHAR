@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, ChevronUp, Copy, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { PRAYER_STEPS } from "@/data/prayerGuide";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 async function sharePrayerStep(step: { title: string; arabic?: string; description: string }) {
   const text = [step.title, step.arabic, step.description].filter(Boolean).join("\n\n");
@@ -18,6 +19,7 @@ async function sharePrayerStep(step: { title: string; arabic?: string; descripti
 export function PrayerGuidePage() {
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = React.useState<number | null>(1);
+  useScrollRestoration();
 
   const shareFullGuide = async () => {
     const lines = PRAYER_STEPS.map((s) => {
@@ -92,8 +94,8 @@ export function PrayerGuidePage() {
               key={step.id}
               className="rounded-2xl overflow-hidden transition-all duration-200"
               style={{
-                background: isOpen ? "var(--accent)" : "var(--card-bg)",
-                border: "1px solid var(--card-border)",
+                background: isOpen ? "var(--accent)" : "var(--card)",
+                border: "1px solid var(--stroke)",
                 color: isOpen ? "#fff" : "var(--fg)",
               }}
             >
@@ -157,7 +159,6 @@ export function PrayerGuidePage() {
                       }}
                       className="p-2 rounded-xl transition-opacity hover:opacity-75"
                       style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}
-                      title="نسخ"
                     >
                       <Copy size={14} />
                     </button>
@@ -166,7 +167,6 @@ export function PrayerGuidePage() {
                       onClick={() => sharePrayerStep(step)}
                       className="p-2 rounded-xl transition-opacity hover:opacity-75"
                       style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}
-                      title="مشاركة"
                     >
                       <Share2 size={14} />
                     </button>

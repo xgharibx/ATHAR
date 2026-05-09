@@ -220,7 +220,8 @@ export function HadithReaderPage() {
   const isMemoCard = !!hadithMemoCards[memoCardKey];
 
   const meta = pack ?? HADITH_BOOKS_STATIC.find((b) => b.key === bookKey);
-  const accentColor = meta?.color ?? "#10b981";
+  const posterAccentColor = meta?.color ?? "#10b981";
+  const accentColor = "var(--accent)";
 
   // Find prev / next hadith numbers
   const { prevN, nextN } = useMemo(() => {
@@ -258,7 +259,7 @@ export function HadithReaderPage() {
       matn: matn || hadith.t,
       bookTitle: meta?.title ?? "",
       hadithNum: hadith.a,
-      accentColor,
+      accentColor: posterAccentColor,
       grade: hadith.g[0] ?? "",
     });
   };
@@ -274,14 +275,15 @@ export function HadithReaderPage() {
   }, []);
 
   return (
-    <div dir="rtl" className="min-h-screen-safe page-enter pb-floating-nav">
+    <div dir="rtl" className="relative min-h-screen-safe overflow-hidden page-enter pb-floating-nav">
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
       {/* Header */}
       <div
         className="sticky top-0 z-20 px-3 pt-2 pb-3"
       >
         <Card className="relative overflow-hidden p-4">
+          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="absolute inset-y-0 right-0 w-1.5" style={{ background: accentColor }} />
-          <div className="absolute -left-10 -top-12 h-32 w-32 rounded-full opacity-15" style={{ background: accentColor }} />
           <div className="relative flex items-start gap-3 pr-2">
             <button type="button"
               onClick={() => navigate(-1)}
@@ -294,7 +296,7 @@ export function HadithReaderPage() {
               <div className="mb-1 flex items-center gap-2 flex-wrap">
                 <BookOpenText size={15} style={{ color: accentColor }} />
                 <span className="text-[11px] font-semibold opacity-55">قراءة حديثية</span>
-                <span className="rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums" style={{ background: accentColor + "22", color: accentColor }}>
+                <span className="rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor }}>
                   ح {Number.isFinite(n) ? n.toLocaleString("ar-EG") : "—"}
                 </span>
               </div>
@@ -310,7 +312,6 @@ export function HadithReaderPage() {
           <div className="relative mt-4 flex items-center gap-2 overflow-x-auto no-scrollbar pr-2">
             <IconButton
               aria-label="بطاقة الحفظ"
-              title="بطاقة الحفظ"
               onClick={() => {
                 if (!isMemoCard) addHadithMemoCard(memoCardKey);
                 navigate("/hadith/memo");
@@ -319,12 +320,12 @@ export function HadithReaderPage() {
             >
               <BrainCircuit size={18} style={{ color: isMemoCard ? accentColor : "var(--muted)" }} />
             </IconButton>
-            <IconButton aria-label="حفظ" title="حفظ" onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}>
+            <IconButton aria-label="حفظ" onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}>
               <Bookmark size={18} className={isBookmarked ? "fill-current" : ""} style={{ color: isBookmarked ? accentColor : "var(--muted)" }} />
             </IconButton>
-            <IconButton aria-label="نسخ" title="نسخ" onClick={copyText}><Copy size={16} className="text-[var(--muted)]" /></IconButton>
-            <IconButton aria-label="مشاركة" title="مشاركة" onClick={shareText}><Share2 size={16} className="text-[var(--muted)]" /></IconButton>
-            <IconButton aria-label="ملاحظة" title="ملاحظة" onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}>
+            <IconButton aria-label="نسخ" onClick={copyText}><Copy size={16} className="text-[var(--muted)]" /></IconButton>
+            <IconButton aria-label="مشاركة" onClick={shareText}><Share2 size={16} className="text-[var(--muted)]" /></IconButton>
+            <IconButton aria-label="ملاحظة" onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}>
               <StickyNote size={16} className={existingNote ? "fill-current" : ""} style={{ color: existingNote ? accentColor : "var(--muted)" }} />
             </IconButton>
           </div>
@@ -353,11 +354,12 @@ export function HadithReaderPage() {
           <>
             {/* Metadata card */}
             <Card className="relative overflow-hidden p-4">
+              <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
               <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
-              <div className="flex items-start justify-between gap-3 pr-2">
+              <div className="relative flex items-start justify-between gap-3 pr-2">
                 <div className="min-w-0 flex-1">
                   <div className="mb-2 flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: accentColor + "22", color: accentColor }}>
+                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor }}>
                       <Hash size={12} />
                       {hadith.a.toLocaleString("ar-EG")}
                     </span>
@@ -374,8 +376,9 @@ export function HadithReaderPage() {
             {/* Isnad */}
             {hadithSplit.isnad && (
               <Card className="relative overflow-hidden p-4">
+                <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
                 <div className="absolute inset-y-0 right-0 w-1 opacity-70" style={{ background: accentColor }} />
-                <div className="pr-2">
+                <div className="relative pr-2">
                   <p className="mb-2 text-[11px] font-semibold opacity-55 font-arabic">الإسناد</p>
                   <p className="text-sm font-arabic text-[var(--fg)] opacity-65 leading-loose">
                     {hadithSplit.isnad}
@@ -386,7 +389,7 @@ export function HadithReaderPage() {
 
             {/* Matn */}
             <Card className="relative overflow-hidden p-5 md:p-6">
-              <div className="absolute -left-16 -top-16 h-40 w-40 rounded-full opacity-10" style={{ background: accentColor }} />
+              <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
               <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
               <div className="relative pr-2">
                 <div className="mb-4 flex items-center justify-between gap-3">
@@ -446,7 +449,7 @@ export function HadithReaderPage() {
           <button type="button"
             onClick={() => { setDraftNote(existingNote); setShowNoteEditor(true); }}
             className="w-full text-right rounded-3xl border px-4 py-3 text-sm font-arabic leading-7 transition press-effect glass"
-            style={{ borderColor: accentColor + "44", background: accentColor + "11", color: "var(--fg)" }}
+            style={{ borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)", background: "color-mix(in srgb, var(--accent) 8%, transparent)", color: "var(--fg)" }}
           >
             <span className="text-[10px] font-semibold opacity-60 block mb-1">ملاحظتي</span>
             {existingNote}

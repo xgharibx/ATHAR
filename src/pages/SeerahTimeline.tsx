@@ -44,16 +44,17 @@ export default function SeerahTimeline() {
   };
 
   return (
-    <div className="min-h-screen-safe pb-24" style={{ background: "var(--bg)" }} dir="rtl">
+    <div className="relative min-h-screen-safe overflow-hidden pb-24" dir="rtl">
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
       {/* Header Card */}
-      <div className="px-4 pt-4">
-        <Card className="p-5 overflow-hidden relative">
-          <div className="absolute -left-8 -top-10 w-32 h-32 rounded-full opacity-10" style={{ background: "#f59e0b" }} />
+      <div className="relative z-10 px-4 pt-4">
+        <Card className="relative overflow-hidden p-5">
+          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="flex items-center gap-3 mb-4">
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <Clock size={19} style={{ color: "#f59e0b" }} />
+                <Clock size={19} className="text-[var(--accent)]" />
                 <h1 className="text-lg font-bold">السيرة النبوية</h1>
               </div>
               <div className="text-xs opacity-55 mt-1">{filtered.length} حدث</div>
@@ -63,11 +64,11 @@ export default function SeerahTimeline() {
           <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
             <button type="button"
               onClick={() => setActiveCategory("all")}
-              className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition"
+              className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition glass-hover press-effect"
               style={{
-                background: activeCategory === "all" ? "#f59e0b" : "var(--card-bg)",
-                color: activeCategory === "all" ? "#fff" : "var(--muted)",
-                border: activeCategory === "all" ? "none" : "1px solid var(--card-border)",
+                background: activeCategory === "all" ? "var(--accent)" : "rgba(255,255,255,0.045)",
+                color: activeCategory === "all" ? "#06110d" : "var(--muted)",
+                border: activeCategory === "all" ? "1px solid transparent" : "1px solid var(--stroke)",
               }}
             >
               الكل
@@ -78,11 +79,11 @@ export default function SeerahTimeline() {
                 <button type="button"
                   key={cat.key}
                   onClick={() => setActiveCategory(cat.key)}
-                  className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition whitespace-nowrap"
+                  className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition whitespace-nowrap glass-hover press-effect"
                   style={{
-                    background: isActive ? cat.color : "var(--card-bg)",
-                    color: isActive ? "#fff" : "var(--muted)",
-                    border: isActive ? "none" : "1px solid var(--card-border)",
+                    background: isActive ? "var(--accent)" : "rgba(255,255,255,0.045)",
+                    color: isActive ? "#06110d" : "var(--muted)",
+                    border: isActive ? "1px solid transparent" : "1px solid var(--stroke)",
                   }}
                 >
                   {cat.label}
@@ -99,8 +100,8 @@ export default function SeerahTimeline() {
               placeholder="ابحث في أحداث السيرة…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
-              style={{ background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+              className="h-9 w-full rounded-2xl border border-white/10 bg-white/5 pr-8 pl-8 text-sm outline-none focus:border-[var(--accent)]/45"
+              style={{ color: "var(--fg)" }}
             />
             {query && (
               <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
@@ -112,12 +113,12 @@ export default function SeerahTimeline() {
       </div>
 
       {/* Timeline */}
-      <div className="px-4 pt-4">
+      <div className="relative z-10 px-4 pt-4">
         <div className="relative">
           {/* Vertical line */}
           <div
             className="absolute top-0 bottom-0 right-5 w-0.5"
-            style={{ background: "var(--card-border)" }}
+            style={{ background: "var(--stroke)" }}
           />
 
           <div className="flex flex-col gap-4">
@@ -140,10 +141,9 @@ export default function SeerahTimeline() {
                   </div>
 
                   {/* Event card */}
-                  <div
-                    className="flex-1 min-w-0 rounded-2xl p-4 mb-1"
-                    style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
-                  >
+                  <div className="relative mb-1 min-w-0 flex-1 overflow-hidden rounded-3xl p-4 glass glass-hover">
+                    <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
+                    <div className="relative">
                     {/* Year badge + category */}
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <span
@@ -169,13 +169,14 @@ export default function SeerahTimeline() {
                       <button
                         type="button"
                         onClick={() => void shareEvent(event)}
-                        className="flex items-center gap-1 text-[11px] opacity-50 hover:opacity-80 transition px-2 py-1 rounded-lg"
+                        className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/6 px-2 py-1 text-[11px] opacity-70 transition hover:opacity-100 press-effect"
                         style={{ color: "var(--fg)" }}
                         aria-label="مشاركة"
                       >
                         <Share2 size={12} />
                         مشاركة
                       </button>
+                    </div>
                     </div>
                   </div>
                 </div>

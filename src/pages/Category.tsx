@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/Button";
 
 import { useNoorStore } from "@/store/noorStore";
 import { coerceCount, type DhikrItem } from "@/data/types";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 export function CategoryPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = useAdhkarDB();
   const customPacks = useNoorStore((s) => s.customPacks);

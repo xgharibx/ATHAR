@@ -7,6 +7,7 @@ import { toArabicNumeral, TOTAL_QURAN_AYAHS } from "@/lib/quranMeta";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import toast from "react-hot-toast";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -115,6 +116,7 @@ function ProgressRing({ pct, size = 72 }: { pct: number; size?: number }) {
 
 export function QuranPlansPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const { data: quranData } = useQuranDB();
 
   // Convert global ayah number (1-6236) to {surahId, ayahIndex}
@@ -281,14 +283,12 @@ export function QuranPlansPage() {
                 if (ref) navigate(`/mushaf?surah=${ref.surahId}&ayah=${ref.ayahIndex}`);
                 else navigate("/mushaf");
               }}
-              title="اقرأ ورد اليوم"
             >
               <BookOpen className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
               className="text-sm px-4"
-              title="مشاركة التقدم"
               onClick={async () => {
                 const remaining = Math.max(0, activePlan.days - activePlan.elapsed);
                 const text = `📖 خطة ختمة القرآن الكريم\n${activePlan.name}\n\nالتقدم: ${activePlan.pct.toLocaleString("ar-EG")}٪ (${activePlan.doneCount.toLocaleString("ar-EG")} يوم مكتمل)\nالمتبقي: ${remaining.toLocaleString("ar-EG")} يوم\nالورد اليومي: ${activePlan.dailyAyahs.toLocaleString("ar-EG")} آية\n\nاترك أثراً طيباً 🌟`;

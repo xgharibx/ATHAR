@@ -4,6 +4,7 @@ import { ArrowRight, Shuffle, RotateCcw, CheckCircle2, BookOpen, Share2, Copy, S
 import { QURAN_VOCAB, type VocabWord } from "@/data/quranVocab";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const LEARNED_KEY = "noor_vocab_learned";
 
@@ -35,6 +36,7 @@ function getDailyWordId(): number {
 
 export function QuranVocabPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const [reviewMode, setReviewMode] = React.useState(false);
   const [deck, setDeck] = React.useState<VocabWord[]>(() => [...QURAN_VOCAB]);
   const [cardIndex, setCardIndex] = React.useState(0);
@@ -225,8 +227,8 @@ export function QuranVocabPage() {
           onClick={() => setFlipped((f) => !f)}
           className="w-full max-w-sm rounded-3xl min-h-56 flex flex-col items-center justify-center p-8 transition-all duration-300 active:scale-95 cursor-pointer"
           style={{
-            background: flipped ? "var(--accent)" : "var(--card-bg)",
-            border: "1px solid var(--card-border)",
+            background: flipped ? "var(--accent)" : "var(--card)",
+            border: "1px solid var(--stroke)",
             color: flipped ? "#fff" : "var(--fg)",
             boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
           }}
@@ -274,7 +276,7 @@ export function QuranVocabPage() {
             onClick={handlePrev}
             disabled={cardIndex === 0}
             className="px-6 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-30"
-            style={{ background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+            style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
           >
             → السابق
           </button>
@@ -288,7 +290,7 @@ export function QuranVocabPage() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all"
             style={learned.has(card.id)
               ? { background: "color-mix(in srgb, var(--ok,#10b981) 18%, transparent)", color: "var(--ok,#10b981)", border: "1px solid color-mix(in srgb, var(--ok,#10b981) 35%, transparent)" }
-              : { background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+              : { background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
           >
             <CheckCircle2 size={15} />
             {learned.has(card.id) ? "محفوظة ✓" : "أضف للمحفوظات"}
@@ -297,7 +299,7 @@ export function QuranVocabPage() {
             type="button"
             onClick={() => shareWord(card)}
             className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all active:scale-95"
-            style={{ background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+            style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
             aria-label="مشاركة الكلمة"
           >
             <Share2 size={14} />
@@ -306,7 +308,7 @@ export function QuranVocabPage() {
             type="button"
             onClick={() => copyWord(card)}
             className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all active:scale-95"
-            style={{ background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+            style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
             aria-label="نسخ الكلمة"
           >
             <Copy size={14} />
@@ -316,7 +318,7 @@ export function QuranVocabPage() {
         {/* Stats mini-card */}
         <div
           className="w-full max-w-sm rounded-2xl p-4 grid grid-cols-3 gap-3 text-center"
-          style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+          style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
         >
           <div>
             <p className="text-lg font-bold" style={{ color: "var(--accent)" }}>{seen.size}</p>

@@ -55,16 +55,17 @@ export default function Companions() {
   }, [activeCategory, query, showBookmarksOnly, bookmarks]);
 
   return (
-    <div className="min-h-screen-safe pb-24" style={{ background: "var(--bg)" }} dir="rtl">
+    <div className="relative min-h-screen-safe overflow-hidden pb-24" dir="rtl">
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
       {/* Header Card */}
-      <div className="px-4 pt-4">
-        <Card className="p-5 overflow-hidden relative">
-          <div className="absolute -left-8 -top-10 w-32 h-32 rounded-full opacity-10" style={{ background: "#8b5cf6" }} />
+      <div className="relative z-10 px-4 pt-4">
+        <Card className="relative overflow-hidden p-5">
+          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="flex items-center gap-3 mb-4">
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <Users size={19} style={{ color: "#8b5cf6" }} />
+                <Users size={19} className="text-[var(--accent)]" />
                 <h1 className="text-lg font-bold">الصحابة الكرام</h1>
               </div>
               <div className="text-xs opacity-55 mt-1">{filtered.length} من {COMPANIONS.length} صحابي</div>
@@ -72,9 +73,9 @@ export default function Companions() {
             <button
               type="button"
               onClick={() => setShowBookmarksOnly((v) => !v)}
-              className="p-2 rounded-2xl border border-white/10 transition"
+              className="rounded-2xl border border-white/10 p-2 transition glass-hover press-effect"
               style={showBookmarksOnly
-                ? { background: "rgba(139,92,246,0.2)", color: "#8b5cf6" }
+                ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)" }
                 : { background: "rgba(255,255,255,0.06)", color: "var(--fg)" }}
               aria-label="المحفوظة"
             >
@@ -85,11 +86,11 @@ export default function Companions() {
           <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
             <button type="button"
               onClick={() => setActiveCategory("all")}
-              className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition"
+              className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition glass-hover press-effect"
               style={{
-                background: activeCategory === "all" ? "#8b5cf6" : "var(--card-bg)",
-                color: activeCategory === "all" ? "#fff" : "var(--muted)",
-                border: activeCategory === "all" ? "none" : "1px solid var(--card-border)",
+                background: activeCategory === "all" ? "var(--accent)" : "rgba(255,255,255,0.045)",
+                color: activeCategory === "all" ? "#06110d" : "var(--muted)",
+                border: activeCategory === "all" ? "1px solid transparent" : "1px solid var(--stroke)",
               }}
             >
               الجميع ({COMPANIONS.length})
@@ -101,11 +102,11 @@ export default function Companions() {
                 <button type="button"
                   key={cat.key}
                   onClick={() => setActiveCategory(cat.key)}
-                  className="shrink-0 px-3 py-1 rounded-full text-xs font-arabic transition whitespace-nowrap"
+                  className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition whitespace-nowrap glass-hover press-effect"
                   style={{
-                    background: isActive ? "#8b5cf6" : "var(--card-bg)",
-                    color: isActive ? "#fff" : "var(--muted)",
-                    border: isActive ? "none" : "1px solid var(--card-border)",
+                    background: isActive ? "var(--accent)" : "rgba(255,255,255,0.045)",
+                    color: isActive ? "#06110d" : "var(--muted)",
+                    border: isActive ? "1px solid transparent" : "1px solid var(--stroke)",
                   }}
                 >
                   {cat.label} ({count})
@@ -122,8 +123,8 @@ export default function Companions() {
               placeholder="ابحث في الصحابة…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full h-9 pr-8 pl-8 rounded-2xl text-sm outline-none"
-              style={{ background: "var(--card-bg)", color: "var(--fg)", border: "1px solid var(--card-border)" }}
+              className="h-9 w-full rounded-2xl border border-white/10 bg-white/5 pr-8 pl-8 text-sm outline-none focus:border-[var(--accent)]/45"
+              style={{ color: "var(--fg)" }}
             />
             {query && (
               <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
@@ -135,7 +136,7 @@ export default function Companions() {
       </div>
 
       {/* Cards grid */}
-      <div className="p-4 grid grid-cols-1 gap-3">
+      <div className="relative z-10 grid grid-cols-1 gap-3 p-4">
         {filtered.length === 0 && (
           <div className="text-center py-10 opacity-50 text-sm font-arabic" style={{ color: "var(--fg)" }}>
             {showBookmarksOnly ? "لا توجد صحابة محفوظون" : "لا توجد نتائج"}
@@ -147,14 +148,11 @@ export default function Companions() {
             <button type="button"
               key={companion.id}
               onClick={() => setExpanded(isOpen ? null : companion.id)}
-              className="w-full text-right rounded-2xl p-4 transition active:scale-[0.98]"
-              style={{
-                background: "var(--card-bg)",
-                border: "1px solid var(--card-border)",
-              }}
+              className="relative w-full overflow-hidden rounded-3xl p-4 text-right transition glass glass-hover press-effect"
             >
+              <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
               {/* Top row */}
-              <div className="flex items-start gap-3">
+              <div className="relative flex items-start gap-3">
                 {/* Icon avatar */}
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
@@ -201,7 +199,7 @@ export default function Companions() {
                   className="mt-3 pt-3 text-right font-arabic text-sm leading-7"
                   style={{
                     color: "var(--fg)",
-                    borderTop: "1px solid var(--card-border)",
+                    borderTop: "1px solid var(--stroke)",
                   }}
                 >
                   {companion.brief}
@@ -218,8 +216,8 @@ export default function Companions() {
                           toast.success("تم النسخ");
                         }
                       }}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
-                      style={{ background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
+                      className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs transition-all glass-hover press-effect"
+                      style={{ color: "var(--fg)" }}
                     >
                       <Share2 size={13} />
                       مشاركة
@@ -227,10 +225,10 @@ export default function Companions() {
                     <button
                       type="button"
                       onClick={(e) => toggleBookmark(companion.id, e)}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+                      className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-all glass-hover press-effect"
                       style={bookmarks.has(companion.id)
                         ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
-                        : { background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
+                        : { background: "rgba(255,255,255,0.06)", color: "var(--fg)", borderColor: "var(--stroke)", opacity: 0.8 }}
                     >
                       {bookmarks.has(companion.id) ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
                       {bookmarks.has(companion.id) ? "محفوظ" : "حفظ"}

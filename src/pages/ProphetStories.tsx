@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, ChevronUp, Search, X, Bookmark, BookmarkCheck,
 import { PROPHET_STORIES, type ProphetStory } from "@/data/prophetStories";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const STORY_BOOKMARKS_KEY = "noor_story_bookmarks";
 
@@ -32,7 +33,7 @@ function StoryCard({
   return (
     <div
       className="rounded-2xl overflow-hidden transition-all duration-200"
-      style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+      style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
     >
       <button type="button"
         onClick={() => setOpen((o) => !o)}
@@ -64,7 +65,7 @@ function StoryCard({
 
       {open && (
         <div className="px-4 pb-4 space-y-4">
-          <div className="h-px" style={{ background: "var(--card-border)" }} />
+          <div className="h-px" style={{ background: "var(--stroke)" }} />
           <p
             className="text-sm leading-loose text-right"
             style={{ color: "var(--fg)", opacity: 0.85 }}
@@ -103,7 +104,7 @@ function StoryCard({
                 }
               }}
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
-              style={{ background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
+              style={{ background: "var(--stroke)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.7 }}
             >
               <Share2 size={13} />
               مشاركة
@@ -114,7 +115,7 @@ function StoryCard({
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
               style={bookmarked
                 ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
-                : { background: "var(--card-border)", color: "var(--fg)", border: "1px solid var(--card-border)", opacity: 0.7 }}
+                : { background: "var(--stroke)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.7 }}
             >
               {bookmarked ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
               {bookmarked ? "محفوظة" : "حفظ"}
@@ -128,6 +129,7 @@ function StoryCard({
 
 export function ProphetStoriesPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const [query, setQuery] = React.useState("");
   const [showBookmarksOnly, setShowBookmarksOnly] = React.useState(false);
   const [bookmarks, setBookmarks] = React.useState<Set<string>>(() => loadStoryBookmarks());

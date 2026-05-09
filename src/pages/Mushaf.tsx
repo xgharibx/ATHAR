@@ -1541,7 +1541,6 @@ export function MushafPage() {
                     </button>
                     {/* Per-reciter page download */}
                     <button type="button"
-                      title="تحميل الصفحة لهذا القارئ"
                       aria-label={`تحميل الصفحة لـ ${r.label}`}
                       disabled={typeof dlState === "object"}
                       onClick={(e) => { e.stopPropagation(); if (dlState !== "done") downloadReciterPage(r.id); }}
@@ -2039,12 +2038,12 @@ export function MushafPage() {
             <div className="mt-3 mb-3">
               <div className="text-xs opacity-50 mb-1.5">لون صفحة المصحف</div>
               <div className="flex gap-1 flex-wrap">
-                {(["default", "sepia", "midnight", "parchment", "forest", "rose", "ocean"] as const).map((t) => (
+                {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
                   <button type="button"
                     key={t}
                     onClick={() => setPrefs({ quranTheme: t })}
                     className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 text-[var(--accent)]" : "bg-white/6 border-white/10 opacity-65"}`}
-                  >{{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق", forest: "🌿 غابة", rose: "🌹 ورد", ocean: "🌊 محيط" }[t]}</button>
+                  >{{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق" }[t]}</button>
                 ))}
               </div>
             </div>

@@ -4,10 +4,12 @@ import { ArrowRight, CheckCircle2, Circle, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { WUDU_STEPS } from "@/data/wuduGuide";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 export function WuduGuidePage() {
   const navigate = useNavigate();
   const [done, setDone] = React.useState<Set<number>>(new Set());
+  useScrollRestoration();
 
   function toggle(id: number) {
     setDone((prev) => {
@@ -121,9 +123,9 @@ export function WuduGuidePage() {
               className="w-full text-right rounded-2xl p-4 transition-all duration-200 flex items-start gap-3"
               style={{
                 background: isDone
-                  ? "color-mix(in srgb, var(--ok, #22c55e) 12%, var(--card-bg))"
-                  : "var(--card-bg)",
-                border: `1px solid ${isDone ? "color-mix(in srgb, var(--ok, #22c55e) 35%, transparent)" : "var(--card-border)"}`,
+                  ? "color-mix(in srgb, var(--ok, #22c55e) 12%, var(--card))"
+                  : "var(--card)",
+                border: `1px solid ${isDone ? "color-mix(in srgb, var(--ok, #22c55e) 35%, transparent)" : "var(--stroke)"}`,
               }}
             >
               {/* Check icon */}
@@ -171,7 +173,7 @@ export function WuduGuidePage() {
                       }
                     }}
                     className="p-1.5 rounded-lg opacity-50 hover:opacity-100 transition-opacity"
-                    style={{ background: "var(--card-border)", color: "var(--fg)" }}
+                    style={{ background: "var(--stroke)", color: "var(--fg)" }}
                     title="مشاركة هذه الخطوة"
                   >
                     <Share2 size={13} />

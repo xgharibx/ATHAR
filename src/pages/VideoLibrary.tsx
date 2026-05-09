@@ -28,6 +28,7 @@ import type {
 import { stripDiacritics } from "@/lib/arabic";
 import { cn } from "@/lib/utils";
 import { useNoorStore } from "@/store/noorStore";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -2052,6 +2053,7 @@ function TopicScreen({
 
 export function VideoLibraryPage() {
   const navigate = useNavigate();
+  useScrollRestoration();
   const params = useParams<{ channelId?: string; courseId?: string; videoId?: string; topicId?: string }>();
   const { data, isLoading, error } = useVideoLibraryDB();
   const progress = useNoorStore((s) => s.videoLibraryProgress);

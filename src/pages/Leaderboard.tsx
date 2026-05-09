@@ -32,6 +32,7 @@ import {
   type LeaderboardAdminBlocklistRow,
   type LeaderboardAdminUserModeration
 } from "@/lib/leaderboard";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const COOLDOWN_MS = 45_000;
 
@@ -39,6 +40,7 @@ type BoardLoadState = "idle" | "loading" | "ok" | "error";
 
 export function LeaderboardPage() {
   const { data } = useAdhkarDB();
+  useScrollRestoration();
   const prayerTimes = usePrayerTimes();
   const todayKey = useTodayKey({ mode: "ibadah", fajrTime: prayerTimes.data?.data?.timings?.Fajr });
   const progress = useNoorStore((s) => s.progress);

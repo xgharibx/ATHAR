@@ -40,26 +40,6 @@ function GradeChip({ grade }: { grade: string }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Stars background                                                      */
-/* ------------------------------------------------------------------ */
-
-function StarField({ count = 24, color }: { count?: number; color: string }) {
-  const stars = Array.from({ length: count }, (_, i) => ({
-    x: ((i * 37 + 11) % 97),
-    y: ((i * 53 + 7) % 89),
-    r: 0.5 + (i % 3) * 0.5,
-    o: 0.2 + (i % 4) * 0.15,
-  }));
-  return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
-      {stars.map((s, i) => (
-        <circle key={i} cx={`${s.x}%`} cy={`${s.y}%`} r={s.r} fill={color} opacity={s.o} />
-      ))}
-    </svg>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /* الأربعينيات hero card (7E)                                           */
 /* ------------------------------------------------------------------ */
 
@@ -73,10 +53,11 @@ function ArbainiCard({ book }: { book: HadithBookMeta }) {
     <button type="button"
       dir="rtl"
       onClick={() => navigate(`/hadith/${book.key}`)}
-      className="relative flex-1 min-w-[140px] text-right rounded-2xl overflow-hidden active:scale-95 transition-transform shadow-lg"
-      style={{ background: `linear-gradient(140deg, ${book.color}33, ${book.color}66)`, border: `1px solid ${book.color}55` }}
+      className="relative flex-1 min-w-[140px] overflow-hidden rounded-3xl text-right glass-strong glass-hover press-effect"
+      style={{ borderColor: "color-mix(in srgb, var(--accent) 28%, transparent)" }}
     >
-      <StarField count={18} color={book.color} />
+      <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
+      <div className="absolute inset-y-0 right-0 w-1 opacity-80" style={{ background: "var(--accent)" }} />
       <div className="relative p-4">
         {/* Badge row */}
         <div className="flex items-center justify-between mb-2">
@@ -127,13 +108,13 @@ function BookCard({ book }: { book: HadithBookMeta }) {
     <button type="button"
       dir="rtl"
       onClick={() => navigate(`/hadith/${book.key}`)}
-      className="relative w-full text-right rounded-2xl overflow-hidden active:scale-95 transition-transform"
-      style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+      className="relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect"
     >
+      <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
       {/* Left accent bar */}
-      <div className="absolute top-0 right-0 w-1 h-full" style={{ background: book.color }} />
+      <div className="absolute top-0 right-0 h-full w-1 opacity-75" style={{ background: book.color }} />
 
-      <div className="px-4 py-3.5 pr-5">
+      <div className="relative px-4 py-3.5 pr-5">
         <div className="flex items-start gap-3">
           {/* Color dot */}
           <div className="mt-1 w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
@@ -158,7 +139,7 @@ function BookCard({ book }: { book: HadithBookMeta }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-[var(--card-border)]">
+        <div className="mt-2.5 flex items-center justify-between border-t border-white/8 pt-2.5">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
               <BookOpen size={10} />
@@ -280,8 +261,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
           placeholder="ابحث في الأحاديث…"
           dir="rtl"
           aria-label="البحث في كتب الحديث"
-          className="w-full pr-9 pl-4 py-3 rounded-2xl text-sm font-arabic text-[var(--fg)] outline-none"
-          style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}
+          className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pr-9 pl-4 text-sm font-arabic text-[var(--fg)] outline-none focus:border-[var(--accent)]/45"
         />
       </div>
 
@@ -318,10 +298,10 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
               key={`${r.bookKey}:${r.item.n}`}
               dir="rtl"
               onClick={() => navigate(`/hadith/${r.bookKey}/${r.item.n}`)}
-              className="group w-full text-right rounded-xl overflow-hidden active:scale-95 transition-transform"
-              style={{ background: "var(--card-bg)", border: `1px solid ${r.bookColor}33` }}
+              className="group relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect"
             >
-              <div className="px-4 py-3">
+              <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
+              <div className="relative px-4 py-3">
                 {/* Book tag */}
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
@@ -376,16 +356,17 @@ export function HadithBooksPage() {
   const totalHadiths = sorted.reduce((s, b) => s + b.count, 0);
 
   return (
-    <div dir="rtl" className="min-h-screen-safe pb-24" style={{ background: "var(--bg)" }}>
+    <div dir="rtl" className="relative min-h-screen-safe overflow-hidden pb-24">
+      <div className="pointer-events-none absolute inset-0 dhikr-page-stars opacity-25" aria-hidden />
       {/* Header Card */}
-      <div className="px-4 pt-4">
-        <Card className="p-5 overflow-hidden relative">
-          <div className="absolute -left-8 -top-10 w-32 h-32 rounded-full opacity-10" style={{ background: "#84cc16" }} />
+      <div className="relative z-10 px-4 pt-4">
+        <Card className="relative overflow-hidden p-5">
+          <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
           <div className="flex items-center gap-3">
             <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <Library size={19} style={{ color: "#84cc16" }} />
+                <Library size={19} className="text-[var(--accent)]" />
                 <h1 className="text-lg font-bold">الكتب الحديثية</h1>
               </div>
               <div className="text-xs opacity-55 mt-1">الكتب الستة وما يلحق بها</div>
@@ -398,13 +379,13 @@ export function HadithBooksPage() {
       </div>
 
       {/* Stats banner */}
-      <div className="mx-4 mt-4 mb-4 rounded-2xl px-5 py-3.5 flex items-center gap-4"
-        style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-        <div className="flex-1 text-center border-l border-[var(--card-border)]">
+      <div className="relative z-10 mx-4 mt-4 mb-4 flex items-center gap-4 overflow-hidden rounded-3xl px-5 py-3.5 glass-strong">
+        <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
+        <div className="relative flex-1 border-l border-white/8 text-center">
           <p className="text-xl font-bold text-[var(--fg)] font-arabic">{sorted.length}</p>
           <p className="text-[10px] text-[var(--muted)]">كتاب</p>
         </div>
-        <div className="flex-1 text-center">
+        <div className="relative flex-1 text-center">
           <p className="text-xl font-bold text-[var(--fg)] font-arabic">
             {totalHadiths >= 1000 ? `${Math.round(totalHadiths / 1000)}k` : totalHadiths.toLocaleString("ar-EG")}
           </p>
@@ -413,15 +394,14 @@ export function HadithBooksPage() {
       </div>
 
       {/* Tab bar */}
-      <div className="mx-4 mb-5 flex rounded-2xl overflow-hidden"
-        style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+      <div className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass">
         {(["library", "search"] as const).map((t) => (
           <button type="button"
             key={t}
             onClick={() => setTab(t)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-arabic transition-colors"
             style={tab === t
-              ? { background: "var(--accent)", color: "#fff", fontWeight: 700 }
+              ? { background: "var(--accent)", color: "#06110d", fontWeight: 700 }
               : { color: "var(--muted)" }
             }
           >
@@ -433,14 +413,13 @@ export function HadithBooksPage() {
 
       {/* Library tab */}
       {tab === "library" && (
-        <div>
+        <div className="relative z-10">
           {/* 7E: الأربعينيات hero */}
           {arbaini.length > 0 && (
             <div className="px-4 mb-6">
               {/* Section heading */}
-              <div className="relative mb-3 overflow-hidden rounded-2xl p-4"
-                style={{ background: "linear-gradient(135deg, #84cc1622, #22c55e33)", border: "1px solid #84cc1644" }}>
-                <StarField count={30} color="#84cc16" />
+              <div className="relative mb-3 overflow-hidden rounded-3xl p-4 glass-strong">
+                <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-lg">✨</span>

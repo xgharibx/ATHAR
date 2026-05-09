@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { stripDiacritics } from "@/lib/arabic";
 import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview } from "@/data/hadithTypes";
 import { useHadithPack } from "@/data/useHadithBook";
+import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // --- Recent searches helpers ---
 const RECENT_KEY = "noor_recent_searches";
@@ -46,6 +47,7 @@ export function SearchPage() {
   const { data: libraryData } = useIslamicLibraryDB();
   const navigate = useNavigate();
   const [q, setQ] = React.useState("");
+  useScrollRestoration();
   const [searchTab, setSearchTab] = React.useState<"adhkar" | "quran" | "library" | "hadith">("adhkar");
   const [recentSearches, setRecentSearches] = React.useState<string[]>(() => loadRecent());
   const [sectionFilter, setSectionFilter] = React.useState<string | null>(null);

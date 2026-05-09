@@ -96,11 +96,11 @@ function LibraryEntryCard({ entry }: { entry: FlatLibraryEntry }) {
             {entry.tags.slice(0, 3).map((tag) => <Badge key={tag} className="px-2 py-0.5 text-[10px]">{tag}</Badge>)}
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <IconButton aria-label="نسخ" title="نسخ" onClick={onCopy}>{copied ? <Check size={15} /> : <Copy size={15} />}</IconButton>
-            <IconButton aria-label="مفضلة" title="مفضلة" onClick={() => toggleLibraryFavorite(entry.collectionId, entry.id)}>
+            <IconButton aria-label="نسخ" onClick={onCopy}>{copied ? <Check size={15} /> : <Copy size={15} />}</IconButton>
+            <IconButton aria-label="مفضلة" onClick={() => toggleLibraryFavorite(entry.collectionId, entry.id)}>
               <Heart size={15} className={favorite ? "fill-red-400 text-red-400" : "opacity-70"} />
             </IconButton>
-            <IconButton aria-label="مشاركة" title="مشاركة" onClick={onShare}><Share2 size={15} /></IconButton>
+            <IconButton aria-label="مشاركة" onClick={onShare}><Share2 size={15} /></IconButton>
           </div>
         </div>
       </div>
