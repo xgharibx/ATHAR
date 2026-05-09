@@ -82,6 +82,7 @@ export function QuranVocabPage() {
   const navigate = useNavigate();
   useScrollRestoration();
   const [reviewMode, setReviewMode] = React.useState(false);
+  const [tierFilter, setTierFilter] = React.useState<"all" | "top" | "mid" | "rare">("all");
   const [browseMode, setBrowseMode] = React.useState(false);
   const [browseQuery, setBrowseQuery] = React.useState("");
   const [quizMode, setQuizMode] = React.useState(false);
@@ -152,17 +153,20 @@ export function QuranVocabPage() {
 
   const dailyWordIdx = React.useMemo(() => deck.findIndex((w) => w.id === dailyWordId), [deck, dailyWordId]);
 
-  // Rebuild deck when review mode changes
+  // Rebuild deck when review mode or tier filter changes
   React.useEffect(() => {
-    const base = reviewMode
+    let base = reviewMode
       ? QURAN_VOCAB.filter((w) => learned.has(w.id))
       : [...QURAN_VOCAB];
-    setDeck(base);
+    if (tierFilter === "top") base = base.filter((w) => w.id <= 50);
+    else if (tierFilter === "mid") base = base.filter((w) => w.id >= 51 && w.id <= 150);
+    else if (tierFilter === "rare") base = base.filter((w) => w.id >= 151);
+    setDeck(base.length > 0 ? base : [...QURAN_VOCAB]);
     setCardIndex(0);
     setFlipped(false);
     setSeen(new Set());
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reviewMode]);
+  }, [reviewMode, tierFilter]);
 
   const card = deck[cardIndex];
 
@@ -425,6 +429,26 @@ export function QuranVocabPage() {
                     ★
                   </button>
                 )}
+            </div>
+            {/* Frequency tier filter */}
+            <div className="flex gap-1.5 mt-2 flex-wrap" role="group" aria-label="فلتر التكرار">
+              {([
+                { key: "all", label: "الكل" },
+                { key: "top", label: "⭐ عليا (50)" },
+                { key: "mid", label: "⚪ وسطى (100)" },
+                { key: "rare", label: "⚫ نادرة (50)" },
+              ] as const).map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTierFilter(key)}
+                  aria-pressed={tierFilter === key}
+                  className="text-[10px] px-2.5 py-1 rounded-full transition-all"
+                  style={tierFilter === key
+                    ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)", fontWeight: 600 }
+                    : { background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.65 }}
+                >{label}</button>
+              ))}
             </div>
           </div>
         </Card>
