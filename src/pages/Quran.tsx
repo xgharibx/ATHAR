@@ -148,7 +148,7 @@ export function QuranPage() {
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
   const [showBookmarks, setShowBookmarks] = React.useState(false);
   const [showProgressGrid, setShowProgressGrid] = React.useState(false);
-  const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent" | "unread">("mushaf");
+  const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent" | "unread" | "nearly">("mushaf");
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
   const [filterRevelation, setFilterRevelation] = React.useState<"meccan" | "medinan" | null>(null);
 
@@ -302,6 +302,18 @@ export function QuranPage() {
       base = [...filtered]
         .filter((s) => (readingHistory[String(s.id)] ?? 0) === 0)
         .sort((a, b) => a.ayahs.length - b.ayahs.length);
+    } else if (sortMode === "nearly") {
+      // Surahs that are started but not completed (1% - 99%), sorted by highest % first
+      base = [...filtered]
+        .filter((s) => {
+          const maxRead = readingHistory[String(s.id)] ?? 0;
+          return maxRead > 0 && maxRead < s.ayahs.length;
+        })
+        .sort((a, b) => {
+          const pA = (readingHistory[String(a.id)] ?? 0) / Math.max(1, a.ayahs.length);
+          const pB = (readingHistory[String(b.id)] ?? 0) / Math.max(1, b.ayahs.length);
+          return pB - pA;
+        });
     } else {
       base = [...filtered].sort((a, b) => {
         const pA = Math.min(100, Math.round(((readingHistory[String(a.id)] ?? 0) / Math.max(1, a.ayahs.length)) * 100));
@@ -744,6 +756,17 @@ export function QuranPage() {
               >
                 غير مقروء
               </button>
+              {sortedFiltered.length > 0 || sortMode === "nearly" ? (
+              <button type="button"
+                role="tab"
+                aria-controls="quran-surah-list"
+                aria-selected={sortMode === "nearly"}
+                onClick={() => setSortMode("nearly")}
+                className={`px-3.5 h-9 transition ${sortMode === "nearly" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
+              >
+                تقريباً
+              </button>
+              ) : null}
             </div>
 
             {/* Revelation filter */}
