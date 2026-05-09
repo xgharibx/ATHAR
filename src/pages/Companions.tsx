@@ -127,7 +127,7 @@ export default function Companions() {
               style={{ color: "var(--fg)" }}
             />
             {query && (
-              <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80" aria-label="مسح البحث">
+              <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80 transition-opacity" aria-label="مسح البحث">
                 <X size={13} />
               </button>
             )}

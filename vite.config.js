@@ -58,6 +58,7 @@ export default defineConfig(function (_a) {
                     scope: "/",
                     display: "standalone",
                     orientation: "portrait-primary",
+                    categories: ["lifestyle", "education", "utilities"],
                     theme_color: "#2F4F37",
                     background_color: "#2F4F37",
                     icons: [

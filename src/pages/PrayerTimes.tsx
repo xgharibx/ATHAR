@@ -229,7 +229,7 @@ function CityRow({ city, country, label, onRemove }: {
     <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3">
       <div className="flex items-center justify-between mb-2">
         <div className="font-semibold text-sm">{label}</div>
-        <button type="button" onClick={onRemove} className="opacity-40 hover:opacity-70 p-1" aria-label="حذف المدينة">
+        <button type="button" onClick={onRemove} className="opacity-40 hover:opacity-70 transition-opacity p-1" aria-label="حذف المدينة">
           <X size={13} />
         </button>
       </div>
@@ -290,7 +290,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
       <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 space-y-5">
         <div className="flex items-center justify-between">
           <div className="font-semibold">إعدادات مواقيت الصلاة</div>
-          <button type="button" aria-label="إغلاق" onClick={onClose} className="opacity-50 hover:opacity-80 p-1"><X size={18} /></button>
+          <button type="button" aria-label="إغلاق" onClick={onClose} className="opacity-50 hover:opacity-80 transition-opacity p-1"><X size={18} /></button>
         </div>
 
         {/* P5 */}
@@ -337,11 +337,11 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
                 <div className="flex items-center gap-2">
                   <button type="button"
                     onClick={() => setReminders({ iqamaOffsets: { ...iqamaOffsets, [p]: Math.max(0, (iqamaOffsets[p] ?? 15) - 5) } })}
-                    className="w-8 h-8 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] grid place-items-center text-sm">−</button>
+                    className="w-8 h-8 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] transition-colors grid place-items-center text-sm">−</button>
                   <span className="w-12 text-center text-sm font-medium tabular-nums">{iqamaOffsets[p] ?? 15} د</span>
                   <button type="button"
                     onClick={() => setReminders({ iqamaOffsets: { ...iqamaOffsets, [p]: Math.min(60, (iqamaOffsets[p] ?? 15) + 5) } })}
-                    className="w-8 h-8 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] grid place-items-center text-sm">+</button>
+                    className="w-8 h-8 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] transition-colors grid place-items-center text-sm">+</button>
                 </div>
               </div>
             ))}

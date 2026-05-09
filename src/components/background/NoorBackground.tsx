@@ -123,7 +123,7 @@ export function NoorBackground() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(7,8,11,.00) 0%, rgba(7,8,11,.35) 35%, rgba(7,8,11,.75) 72%, rgba(7,8,11,.95) 100%)"
+              "linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--bg) 35%, transparent) 35%, color-mix(in srgb, var(--bg) 75%, transparent) 72%, color-mix(in srgb, var(--bg) 95%, transparent) 100%)"
           }}
         />
       </div>
