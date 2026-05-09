@@ -246,8 +246,8 @@ export function LibraryPage() {
       {/* Hadith Books Grid — at top for quick access */}
       <div className="grid grid-cols-2 gap-3" role="list" aria-label="كتب الحديث">
         {HADITH_BOOKS_STATIC.map((book) => (
+          <div key={book.key} role="listitem">
           <button type="button"
-            key={book.key}
             dir="rtl"
             onClick={() => navigate(`/hadith/${book.key}`)}
             className="press-effect text-right rounded-3xl p-4 glass border border-[var(--stroke)] transition active:scale-95 cv-auto"
@@ -265,6 +265,7 @@ export function LibraryPage() {
               {book.count.toLocaleString("ar-EG")} حديث
             </div>
           </button>
+          </div>
         ))}
       </div>
 
@@ -314,7 +315,7 @@ export function LibraryPage() {
       </div>
 
       <div className="space-y-3" role="list" aria-label="مواد المكتبة">
-        {entries.map((entry) => <LibraryEntryCard key={entry.key} entry={entry} />)}
+        {entries.map((entry) => <div key={entry.key} role="listitem"><LibraryEntryCard entry={entry} /></div>)}
         {entries.length === 0 && (
           <div dir="rtl" className="flex flex-col items-center py-12 gap-4">
             <Search size={40} aria-hidden="true" className="text-[var(--muted)] opacity-20" />

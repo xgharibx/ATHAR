@@ -1274,6 +1274,7 @@ function HomeWidgetsCard(props: {
         {order.map((key, i) => (
           <div
             key={key}
+            role="listitem"
             className="flex items-center gap-3 glass rounded-2xl border border-[var(--stroke)] px-3 py-2.5"
           >
             <div className="flex flex-col gap-0.5">

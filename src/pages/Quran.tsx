@@ -769,8 +769,8 @@ export function QuranPage() {
               const isMedinan = SURAH_REVELATION[s.id] === "medinan";
               const isCurrent = lastRead?.surahId === s.id;
               return (
+                <div key={s.id} role="listitem">
                 <button type="button"
-                  key={s.id}
                   onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
                   className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)]"
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
@@ -817,6 +817,7 @@ export function QuranPage() {
                     <span className="text-[10px]">آية</span>
                   </div>
                 </button>
+                </div>
               );
             })}
           </div>

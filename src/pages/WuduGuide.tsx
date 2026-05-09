@@ -125,8 +125,8 @@ export function WuduGuidePage() {
         {WUDU_STEPS.map((step) => {
           const isDone = done.has(step.id);
           return (
+            <div key={step.id} role="listitem">
             <button type="button"
-              key={step.id}
               onClick={() => toggle(step.id)}
               aria-pressed={isDone}
               aria-label={`${step.title}${isDone ? " — تم" : ""}`}
@@ -191,6 +191,7 @@ export function WuduGuidePage() {
                 </div>
               </div>
             </button>
+            </div>
           );
         })}
       </div>

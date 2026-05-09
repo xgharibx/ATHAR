@@ -416,8 +416,8 @@ export function SearchPage() {
             {results.map((r) => {
               const identity = getSectionIdentity(r.sectionId);
               return (
+                <div key={r.key} role="listitem">
                 <button type="button"
-                  key={r.key}
                   onClick={() => navigate(`/c/${r.sectionId}?focus=${r.index}`)}
                   className="group w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
                 >
@@ -455,6 +455,7 @@ export function SearchPage() {
                     </div>
                   )}
                 </button>
+                </div>
               );
             })}
           </div>
@@ -487,10 +488,12 @@ export function SearchPage() {
           />
         ) : (
           <div className="space-y-2" role="list" aria-label="نتائج القرآن">
-            {quranResults.map((r, idx) =>
-              r.type === "surah" ? (
+            {quranResults.map((r, idx) => {
+              const _qKey = r.type === "surah" ? `s-${r.surah.id}` : `a-${r.surah.id}-${r.ayahIndex}-${idx}`;
+              return (
+                <div key={_qKey} role="listitem">
+              {r.type === "surah" ? (
                 <button type="button"
-                  key={`s-${r.surah.id}`}
                   onClick={() => navigate(`/quran/${r.surah.id}`)}
                   className="w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
                 >
@@ -505,7 +508,6 @@ export function SearchPage() {
                 </button>
               ) : (
                 <button type="button"
-                  key={`a-${r.surah.id}-${r.ayahIndex}-${idx}`}
                   onClick={() => navigate(`/quran/${r.surah.id}?a=${r.ayahIndex}`)}
                   className="group w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
                 >
@@ -535,8 +537,10 @@ export function SearchPage() {
                     {r.text.slice(0, 200)}{r.text.length > 200 ? "…" : ""}
                   </div>
                 </button>
-              )
-            )}
+              )}
+                </div>
+              );
+            })}
           </div>
         )}
       </Card>
@@ -574,8 +578,8 @@ export function SearchPage() {
         ) : (
           <div className="space-y-2" role="list" aria-label="نتائج المكتبة">
             {libraryResults.map((entry) => (
+              <div key={entry.key} role="listitem">
               <button type="button"
-                key={entry.key}
                 onClick={() => navigate(`/library/${entry.collectionId}/${entry.id}`)}
                 className="w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
               >
@@ -601,6 +605,7 @@ export function SearchPage() {
                   </div>
                 )}
               </button>
+              </div>
             ))}
           </div>
         )}
@@ -660,8 +665,8 @@ export function SearchPage() {
               const g = h.g[0] ?? "";
               const color = gradeColor[g] ?? "#6b7280";
               return (
+                <div key={h.n} role="listitem">
                 <button type="button"
-                  key={h.n}
                   dir="rtl"
                   onClick={() => navigate(`/hadith/${hadithBookKey}/${h.n}`)}
                   className="w-full text-right glass rounded-3xl p-4 hover:bg-[var(--card-2)] transition border border-[var(--stroke)] press-effect glass-hover"
@@ -683,6 +688,7 @@ export function SearchPage() {
                     {hadithPreview(h.t, 200)}
                   </div>
                 </button>
+                </div>
               );
             })}
           </div>

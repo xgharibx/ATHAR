@@ -1389,14 +1389,15 @@ function SheikhScreen({
         ) : (
           <div className="space-y-2" role="list" aria-label="قائمة الفيديوهات">
             {visibleVideos.slice(0, videoPage * PAGE_SIZE).map((v) => (
+              <div key={v.id} role="listitem">
               <VideoListRow
-                key={v.id}
                 video={v}
                 channel={channel}
                 progress={progress[v.id]}
                 bookmarked={!!bookmarks[v.id]}
                 onClick={() => navigate(`/video-library/watch/${v.id}`)}
               />
+              </div>
             ))}
             {videoPage * PAGE_SIZE < visibleVideos.length && (
               <button
