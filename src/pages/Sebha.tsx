@@ -225,6 +225,7 @@ function CircularRing({
             : "bg-accent-12 border-accent-25 hover:bg-accent-16"
         )}
         aria-label="اضغط للعد"
+        aria-keyshortcuts="Space"
         style={{ pointerEvents: "auto" }}
       >
         {children}

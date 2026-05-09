@@ -1359,7 +1359,7 @@ function SheikhScreen({
           <span className="text-xs opacity-40">{visibleVideos.length}</span>
         </div>
         {/* Sort chips */}
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2">
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2" role="group" aria-label="ترتيب الفيديوهات">
           {(["default", "newest", "oldest", "duration-desc", "duration-asc", "alpha"] as const).map((sk) => {
             const labels: Record<typeof sk, string> = { default: "افتراضي", newest: "الأحدث", oldest: "الأقدم", "duration-desc": "الأطول", "duration-asc": "الأقصر", alpha: "أ-ي" };
             return (
@@ -1561,7 +1561,7 @@ function CourseScreen({
           <span className="text-xs opacity-40">{courseVideos.length} درس</span>
         </div>
         {/* Sort chips */}
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2">
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2" role="group" aria-label="ترتيب الفيديوهات">
           {(["default", "newest", "oldest", "duration-desc", "duration-asc", "alpha"] as const).map((sk) => {
             const labels: Record<typeof sk, string> = { default: "افتراضي", newest: "الأحدث", oldest: "الأقدم", "duration-desc": "الأطول", "duration-asc": "الأقصر", alpha: "أ-ي" };
             return (
@@ -2003,7 +2003,7 @@ function TopicScreen({
           <span className="text-xs opacity-40">{visibleVideos.length}</span>
         </div>
         {/* Sort chips */}
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2">
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2" role="group" aria-label="ترتيب الفيديوهات">
           {(["default", "newest", "oldest", "duration-desc", "duration-asc", "alpha"] as const).map((sk) => {
             const labels: Record<typeof sk, string> = { default: "افتراضي", newest: "الأحدث", oldest: "الأقدم", "duration-desc": "الأطول", "duration-asc": "الأقصر", alpha: "أ-ي" };
             return (

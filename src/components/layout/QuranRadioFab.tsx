@@ -102,7 +102,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
         </div>
 
         {/* Stations */}
-        <div className="space-y-1.5 mb-3">
+        <div className="space-y-1.5 mb-3" role="group" aria-label="محطات الراديو">
           {QURAN_RADIO_STATIONS.map((station, i) => (
             <button type="button"
               key={i}

@@ -1357,6 +1357,7 @@ export function MushafPage() {
               onClick={(e) => { e.stopPropagation(); goPage(currentPage + 1); }}
               disabled={currentPage >= totalPages}
               aria-label="الصفحة التالية"
+              aria-keyshortcuts="ArrowLeft"
             >
               <ChevronLeft size={15} />
               <span>التالية</span>
@@ -1367,6 +1368,7 @@ export function MushafPage() {
               onClick={(e) => { e.stopPropagation(); goPage(currentPage - 1); }}
               disabled={currentPage <= 1}
               aria-label="الصفحة السابقة"
+              aria-keyshortcuts="ArrowRight"
             >
               <span>السابقة</span>
               <ChevronRight size={15} />

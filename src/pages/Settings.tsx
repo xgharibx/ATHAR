@@ -370,7 +370,7 @@ export function SettingsPage() {
                 <div className="text-xs opacity-60 mt-0.5">Arabic ↔ English</div>
               </div>
             </div>
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5" role="group" aria-label="اختيار لغة الواجهة">
               {(["ar", "en"] as const).map((lang) => (
                 <button type="button"
                   key={lang}
@@ -397,7 +397,7 @@ export function SettingsPage() {
               <div className="text-sm font-medium">اتجاه النص</div>
               <div className="text-xs opacity-60 mt-0.5">RTL / LTR · مفيد لمستخدمي الإنجليزية</div>
             </div>
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5" role="group" aria-label="اختيار اتجاه النص">
               {([
                 { id: "auto", label: "تلقائي" },
                 { id: "rtl", label: "RTL ←" },
@@ -840,7 +840,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2" role="group" aria-label="اختيار صوت التذكير">
             {REMINDER_SOUND_OPTIONS.map((option) => {
               const active = reminders.soundProfile === option.id;
               return (
@@ -920,7 +920,7 @@ export function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2" role="group" aria-label="اختيار صوت الأذان">
                 {PRAYER_SOUND_OPTIONS.map((option) => {
                   const active = reminders.prayerSoundProfile === option.id;
                   return (

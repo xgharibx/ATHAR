@@ -992,7 +992,7 @@ export function InsightsPage() {
         <div className="flex items-center gap-2 mb-3">
           <Flame size={16} className="text-[var(--accent)]" />
           <div className="font-semibold text-sm">نشاط الأذكار</div>
-          <div className="mr-auto flex gap-1">
+          <div className="mr-auto flex gap-1" role="group" aria-label="عرض بيانات النشاط">
             {([7, 28, 90] as const).map((v) => (
               <button
                 key={v}
