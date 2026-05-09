@@ -450,7 +450,7 @@ export function QuranPlansPage() {
             <div className="text-base font-bold">إعادة تعيين الخطة؟</div>
             <div className="text-sm opacity-60">سيتم حذف جميع بيانات التقدم الحالية.</div>
             <div className="flex gap-2">
-              <Button variant="ghost" className="flex-1" onClick={() => setConfirmReset(false)}>
+              <Button variant="ghost" className="flex-1" autoFocus onClick={() => setConfirmReset(false)}>
                 إلغاء
               </Button>
               <Button

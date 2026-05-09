@@ -157,6 +157,7 @@ function PackCard({
             className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-50 hover:opacity-100"
             aria-label="عرض الأذكار"
             aria-expanded={expanded}
+            aria-controls={`pack-items-${pack.id}`}
           >
             {expanded ? <ChevronUp size={15} aria-hidden="true" /> : <ChevronDown size={15} aria-hidden="true" />}
           </button>
@@ -210,7 +211,7 @@ function PackCard({
         </div>
       </div>
       {expanded && pack.items.length > 0 && (
-        <div className="space-y-1 border-t border-[var(--stroke)] pt-3">
+        <div id={`pack-items-${pack.id}`} className="space-y-1 border-t border-[var(--stroke)] pt-3">
           {pack.items.map((it, i) => (
             <div key={i} className="flex items-center justify-between gap-2 text-xs opacity-70">
               <span className="line-clamp-2 leading-snug">{it.text}</span>

@@ -290,7 +290,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
       <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 space-y-5" role="dialog" aria-modal="true" aria-label="إعدادات مواقيت الصلاة">
         <div className="flex items-center justify-between">
           <div className="font-semibold">إعدادات مواقيت الصلاة</div>
-          <button type="button" aria-label="إغلاق" onClick={onClose} className="opacity-50 hover:opacity-80 transition-opacity p-1"><X size={18} aria-hidden="true" /></button>
+          <button type="button" aria-label="إغلاق" onClick={onClose} autoFocus className="opacity-50 hover:opacity-80 transition-opacity p-1"><X size={18} aria-hidden="true" /></button>
         </div>
 
         {/* P5 */}

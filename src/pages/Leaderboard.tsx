@@ -770,13 +770,13 @@ function LeaderboardAdminCard(props: {
             تحكم سريع في حظر الأسماء، الإخفاء، والاسم الإجباري من داخل التطبيق.
           </div>
         </div>
-        <Button variant={expanded ? "secondary" : "outline"} aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
+        <Button variant={expanded ? "secondary" : "outline"} aria-expanded={expanded} aria-controls="lb-admin-panel" onClick={() => setExpanded((v) => !v)}>
           {expanded ? "إخفاء" : "فتح"}
         </Button>
       </div>
 
       {expanded && (
-        <div className="mt-4 space-y-4">
+        <div id="lb-admin-panel" className="mt-4 space-y-4">
           {!hasEndpoint ? (
             <div className="rounded-2xl border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-xs text-yellow-200 leading-6">
               لا يمكن استخدام لوحة الإدارة قبل ضبط VITE_LEADERBOARD_ENDPOINT وربطها بدالة Supabase المنشورة.
@@ -1071,7 +1071,7 @@ function LocalFriendsCard(props: {
             <span className="text-[10px] opacity-50 tabular-nums">{localFriends.length.toLocaleString("ar-EG")} صديق</span>
           )}
         </div>
-        <Button variant="secondary" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
+        <Button variant="secondary" aria-expanded={expanded} aria-controls="lb-friends-import" onClick={() => setExpanded((v) => !v)}>
           {expanded ? "إخفاء" : "إدارة"}
         </Button>
       </div>
@@ -1117,7 +1117,7 @@ function LocalFriendsCard(props: {
 
       {/* Import / export area */}
       {expanded && (
-        <div className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
+        <div id="lb-friends-import" className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
           <div>
             <div className="text-xs font-semibold mb-2">كود مشاركتي</div>
             <div className="flex gap-2">
@@ -1266,7 +1266,7 @@ function GroupKhatmaCard() {
 
       {/* Create form */}
       {mode === "create" && !groupKhatma && (
-        <div className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
+        <div id="lb-friends-import" className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
           <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="اسم الختمة (مثال: ختمة رمضان)" aria-label="اسم الختمة" />
           <textarea
             value={membersRaw}
@@ -1286,7 +1286,7 @@ function GroupKhatmaCard() {
 
       {/* Import form */}
       {mode === "import" && !groupKhatma && (
-        <div className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
+        <div id="lb-friends-import" className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
           <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" aria-label="كود الختمة" />
           {importError && <div className="text-xs text-[var(--danger)]">{importError}</div>}
           <Button onClick={handleImport} disabled={!importCode.trim()}>استيراد الختمة</Button>
