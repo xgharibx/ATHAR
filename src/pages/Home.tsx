@@ -732,7 +732,8 @@ export function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 page-enter">
+      <div className="space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+        <span className="sr-only">جارٍ التحميل…</span>
         <div className="glass-strong rounded-3xl p-5 space-y-4">
           <div className="skeleton h-8 w-3/4 rounded-xl" />
           <div className="skeleton h-4 w-1/2 rounded-lg" />

@@ -46,7 +46,7 @@ export function LibraryItemPage() {
       .slice(0, 4);
   }, [data, entry]);
 
-  if (isLoading) return <Card className="p-5"><div className="skeleton h-24 rounded-3xl" /></Card>;
+  if (isLoading) return <Card className="p-5" role="status" aria-label="جارٍ التحميل…"><span className="sr-only">جارٍ التحميل…</span><div className="skeleton h-24 rounded-3xl" /></Card>;
 
   if (!entry) {
     return (

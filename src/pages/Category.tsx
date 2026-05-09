@@ -33,7 +33,8 @@ export function CategoryPage() {
   }, [sp]);
 
   if (isLoading) return (
-    <div className="space-y-4 page-enter">
+    <div className="space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+      <span className="sr-only">جارٍ التحميل…</span>
       <div className="glass-strong rounded-3xl p-5 space-y-3">
         <div className="skeleton h-3 w-16 rounded-lg" />
         <div className="skeleton h-7 w-48 rounded-xl" />

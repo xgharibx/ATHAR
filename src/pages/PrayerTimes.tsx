@@ -234,7 +234,7 @@ function CityRow({ city, country, label, onRemove }: {
         </button>
       </div>
       {isLoading ? (
-        <div className="text-xs opacity-40">جارٍ التحميل...</div>
+        <div className="text-xs opacity-40" role="status" aria-live="polite">جارٍ التحميل...</div>
       ) : (error || !data) ? (
         <div className="text-xs opacity-40">تعذر التحميل</div>
       ) : (
@@ -379,7 +379,7 @@ function WeeklyTab() {
   const { data, isLoading, error } = usePrayerCalendar(now.getFullYear(), now.getMonth() + 1);
   const todayDay = now.getDate();
 
-  if (isLoading) return <div className="text-sm opacity-50 p-2">جارٍ التحميل...</div>;
+  if (isLoading) return <div className="text-sm opacity-50 p-2" role="status" aria-live="polite">جارٍ التحميل...</div>;
   if (error || !data) return <div className="text-sm opacity-50 p-2">تعذر تحميل الجدول الأسبوعي</div>;
 
   const todayIdx = data.findIndex((d) => Number(d.date.gregorian.day) === todayDay);
@@ -451,7 +451,7 @@ function MonthlyTab() {
         <div className="font-semibold text-sm">{MONTH_NAMES[viewMonth - 1]} {viewYear}</div>
         <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronLeft size={16} /></button>
       </div>
-      {isLoading && <div className="text-sm opacity-50">جارٍ التحميل...</div>}
+      {isLoading && <div className="text-sm opacity-50" role="status" aria-live="polite">جارٍ التحميل...</div>}
       {(error || (!isLoading && !data)) && <div className="text-sm opacity-50">تعذر تحميل التقويم الشهري</div>}
       {data && (
         <div className="overflow-x-auto -mx-1">
@@ -615,7 +615,7 @@ function HijriCalendarTab() {
         <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronLeft size={16} /></button>
       </div>
 
-      {isLoading && <div className="text-sm opacity-50">جارٍ التحميل...</div>}
+      {isLoading && <div className="text-sm opacity-50" role="status" aria-live="polite">جارٍ التحميل...</div>}
       {(error || (!isLoading && !data)) && <div className="text-sm opacity-50">تعذر تحميل التقويم</div>}
 
       {calendarGrid && (
@@ -1048,7 +1048,8 @@ export function PrayerTimesPage() {
   const iqamaOffsets = reminders.iqamaOffsets ?? { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 };
 
   if (prayerTimes.isLoading) return (
-    <div className="p-4 md:p-5 space-y-4 page-enter">
+    <div className="p-4 md:p-5 space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+      <span className="sr-only">جارٍ التحميل…</span>
       <PrayerTimesPageSkeleton />
     </div>
   );

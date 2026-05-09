@@ -976,6 +976,7 @@ export function InsightsPage() {
                 key={v}
                 type="button"
                 onClick={() => setHeatmapView(v)}
+                aria-pressed={heatmapView === v}
                 className={`text-[10px] px-2 py-0.5 rounded-full border transition ${
                   heatmapView === v
                     ? "border-accent-40 bg-accent-15 text-[var(--accent)]"
@@ -1019,6 +1020,7 @@ export function InsightsPage() {
                   <div
                     key={cell.key}
                     title={`${cell.key}: ${count}`}
+                    aria-label={isFuture ? cell.key : `${cell.key}: ${count} ${count === 1 ? "ذكر" : "أذكار"}`}
                     className={`aspect-square rounded-md transition-colors ${bg} ${cell.isToday ? "ring-2 ring-[var(--accent)] ring-offset-1 ring-offset-transparent" : ""}`}
                   />
                 );

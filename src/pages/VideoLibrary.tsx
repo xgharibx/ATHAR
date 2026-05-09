@@ -2078,7 +2078,8 @@ export function VideoLibraryPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 page-enter" dir="rtl">
+      <div className="space-y-4 page-enter" dir="rtl" role="status" aria-label="جارٍ التحميل…">
+        <span className="sr-only">جارٍ التحميل…</span>
         <div className="rounded-3xl glass-strong border border-[var(--stroke)] p-5 space-y-3">
           <div className="skeleton h-7 w-48 rounded-2xl" />
           <div className="skeleton h-4 w-64 rounded-2xl" />

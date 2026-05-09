@@ -73,7 +73,8 @@ export function StatSkeleton() {
 /** Full-page loading skeleton */
 export function PageSkeleton() {
   return (
-    <div className="space-y-4 page-enter">
+    <div className="space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
+      <span className="sr-only">جارٍ التحميل…</span>
       <HomeCardSkeleton />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <StatSkeleton />

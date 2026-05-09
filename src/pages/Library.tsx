@@ -179,7 +179,7 @@ export function LibraryPage() {
   const featured = data?.flat[featuredIndex] ?? null;
 
   if (isLoading) {
-    return <div className="space-y-3 page-enter"><Card className="p-5"><div className="skeleton h-8 w-44 rounded-xl" /><div className="skeleton h-20 w-full rounded-2xl mt-4" /></Card></div>;
+    return <div className="space-y-3 page-enter" role="status" aria-label="جارٍ التحميل…"><span className="sr-only">جارٍ التحميل…</span><Card className="p-5"><div className="skeleton h-8 w-44 rounded-xl" /><div className="skeleton h-20 w-full rounded-2xl mt-4" /></Card></div>;
   }
 
   if (error || !data) {

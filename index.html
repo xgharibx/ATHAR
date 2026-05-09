@@ -31,14 +31,14 @@
   <body class="bg-[var(--bg)] text-[var(--fg)]">
     <noscript>هذا التطبيق يحتاج JavaScript ليعمل.</noscript>
     <!-- Loading screen: prevents black/white flash before React mounts (critical for Android WebView) -->
-    <div id="app-loader" style="
+    <div id="app-loader" role="status" aria-label="جارٍ تحميل أثر…" style="
       position:fixed;inset:0;z-index:9999;
       background:#0a0c12;
       display:flex;align-items:center;justify-content:center;
       flex-direction:column;gap:16px;
       transition:opacity 0.4s ease;
     ">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <circle cx="32" cy="32" r="30" stroke="#2F4F37" stroke-width="4"/>
         <circle cx="32" cy="32" r="30" stroke="#7EC8A4" stroke-width="4"
           stroke-dasharray="188" stroke-dashoffset="94"
