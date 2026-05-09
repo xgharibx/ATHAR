@@ -61,6 +61,26 @@ function parseJuzParam(raw: string | null) {
   return !Number.isNaN(parsed) && parsed >= 1 && parsed <= 30 ? parsed : null;
 }
 
+// Curated list of complete, uplifting Quran verses for daily display
+const DAILY_VERSES: Array<{ surahId: number; ayahIndex: number }> = [
+  { surahId: 2,   ayahIndex: 152 }, { surahId: 2,   ayahIndex: 186 },
+  { surahId: 2,   ayahIndex: 255 }, { surahId: 2,   ayahIndex: 286 },
+  { surahId: 3,   ayahIndex: 139 }, { surahId: 3,   ayahIndex: 160 },
+  { surahId: 6,   ayahIndex: 54  }, { surahId: 7,   ayahIndex: 56  },
+  { surahId: 10,  ayahIndex: 62  }, { surahId: 13,  ayahIndex: 28  },
+  { surahId: 14,  ayahIndex: 7   }, { surahId: 16,  ayahIndex: 97  },
+  { surahId: 21,  ayahIndex: 87  }, { surahId: 23,  ayahIndex: 1   },
+  { surahId: 25,  ayahIndex: 63  }, { surahId: 39,  ayahIndex: 53  },
+  { surahId: 40,  ayahIndex: 60  }, { surahId: 55,  ayahIndex: 13  },
+  { surahId: 65,  ayahIndex: 3   }, { surahId: 67,  ayahIndex: 1   },
+  { surahId: 93,  ayahIndex: 5   }, { surahId: 94,  ayahIndex: 5   },
+  { surahId: 94,  ayahIndex: 6   }, { surahId: 112, ayahIndex: 1   },
+];
+
+function getDailyVerseIdx(): number {
+  return Math.floor(Date.now() / 86400000) % DAILY_VERSES.length;
+}
+
 function parseISODate(dateISO: string) {
   const match = (dateISO ?? "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
@@ -105,6 +125,7 @@ export function QuranPage() {
   const bookmarks = useNoorStore((s) => s.quranBookmarks);
   const readingHistory = useNoorStore((s) => s.quranReadingHistory);
   const quranStreak = useNoorStore((s) => s.quranStreak);
+  const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const quranNotes = useNoorStore((s) => s.quranNotes);
   const quranHighlights = useNoorStore((s) => s.quranHighlights);
   const prefs = useNoorStore((s) => s.prefs);
@@ -122,6 +143,8 @@ export function QuranPage() {
   }, []);
 
   const [query, setQuery] = React.useState("");
+  // Defer ayah search so surah list stays responsive while user types
+  const deferredQuery = React.useDeferredValue(query);
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
   const [showBookmarks, setShowBookmarks] = React.useState(false);
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress">("mushaf");
@@ -201,6 +224,18 @@ export function QuranPage() {
     };
   }, [data, khatmaDays, khatmaDone, khatmaStartISO, todayISO]);
 
+  // Daily verse of the day
+  const dailyVerse = React.useMemo(() => {
+    if (!data) return null;
+    const ref = DAILY_VERSES[getDailyVerseIdx()];
+    if (!ref) return null;
+    const surah = data.find((s) => s.id === ref.surahId);
+    if (!surah) return null;
+    const text = surah.ayahs[ref.ayahIndex - 1];
+    if (!text) return null;
+    return { text, surahName: surah.name, surahId: ref.surahId, ayahIndex: ref.ayahIndex };
+  }, [data]);
+
   // Set of surah IDs that have at least one bookmark
   const bookmarkedSurahs = React.useMemo(() => {
     const s = new Set<number>();
@@ -266,7 +301,7 @@ export function QuranPage() {
 
   const ayahSearch = React.useMemo(() => {
     if (!data) return { results: [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }>, totalFound: 0 };
-    const q = normalize(query);
+    const q = normalize(deferredQuery);
     if (!q || q.length < 2) return { results: [], totalFound: 0 };
 
     const out: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
@@ -286,7 +321,7 @@ export function QuranPage() {
     }
 
     return { results: out, totalFound };
-  }, [data, query]);
+  }, [data, deferredQuery]);
 
   const ayahResults = ayahSearch.results;
   const ayahTotalFound = ayahSearch.totalFound;
@@ -411,6 +446,7 @@ export function QuranPage() {
             style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 35%, transparent)" }}
           >
             <span>📖 {quranStats.started.toLocaleString("ar-EG")} سورة</span>
+            {(quranDailyAyahs[todayISO] ?? 0) > 0 && <span style={{ color: "var(--accent)", opacity: 1 }}>اليوم: {(quranDailyAyahs[todayISO] ?? 0).toLocaleString("ar-EG")} آية</span>}
             {quranStreak > 0 && <span>🔥 {quranStreak.toLocaleString("ar-EG")} يوم</span>}
             {quranStats.completed > 0 && <span style={{ color: "var(--ok)", opacity: 1 }}>✓ {quranStats.completed.toLocaleString("ar-EG")} مكتملة</span>}
             {/* Plans page link */}
@@ -445,6 +481,38 @@ export function QuranPage() {
           </div>
         )}
       </Card>
+
+      {/* ── Verse of the Day ──────────────────────────────── */}
+      {mode === "surahs" && !query && dailyVerse && (
+        <button
+          type="button"
+          onClick={() => navigate(`/mushaf?surah=${dailyVerse.surahId}&ayah=${dailyVerse.ayahIndex}`)}
+          className="w-full text-right rounded-3xl border transition-all active:scale-[0.99] quran-surface overflow-hidden"
+          style={{
+            background: "color-mix(in srgb, var(--accent) 7%, var(--card))",
+            borderColor: "color-mix(in srgb, var(--accent) 22%, transparent)",
+          }}
+          aria-label={`آية اليوم — ${dailyVerse.surahName} آية ${dailyVerse.ayahIndex}`}
+        >
+          <div className="px-5 py-4">
+            <div className="flex items-center gap-2 mb-3 text-[11px] opacity-60">
+              <span aria-hidden="true">⭐</span>
+              <span>آية اليوم</span>
+              <span className="mr-auto opacity-70" style={{ color: "var(--accent)" }}>
+                {dailyVerse.surahName} ﴿{toArabicNumeral(dailyVerse.ayahIndex)}﴾
+              </span>
+            </div>
+            <p
+              className="arabic-text text-lg leading-10 text-right"
+              dir="rtl"
+              lang="ar"
+              style={{ color: "var(--fg)" }}
+            >
+              {dailyVerse.text}
+            </p>
+          </div>
+        </button>
+      )}
 
       {mode === "surahs" ? (
         <Card className="p-0 quran-surface overflow-hidden" role="tabpanel" id="quran-panel-surahs" aria-labelledby="quran-tab-surahs" tabIndex={0}>
@@ -742,7 +810,7 @@ export function QuranPage() {
                         {r.surahName} • ﴿{r.ayahIndex.toLocaleString("ar-EG")}﴾
                       </div>
                       <div className="mt-2 text-sm opacity-80 leading-8 arabic-text line-clamp-3">
-                        {highlightAyah(r.text, query)}
+                        {highlightAyah(r.text, deferredQuery)}
                       </div>
                     </div>
                     <div className="text-xs opacity-60 tabular-nums">{r.surahId.toLocaleString("ar-EG")}</div>
