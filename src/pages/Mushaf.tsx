@@ -1193,7 +1193,7 @@ export function MushafPage() {
 
       {/* ── A5: Sleep timer countdown chip ───────────────── */}
       {sleepMinutes > 0 && (
-        <div className="mushaf-sleep-chip" onClick={() => activateSleepTimer(0)} aria-label="إلغاء مؤقت النوم">
+        <div className="mushaf-sleep-chip" role="button" tabIndex={0} onClick={() => activateSleepTimer(0)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activateSleepTimer(0); } }} aria-label="إلغاء مؤقت النوم">
           <Timer size={11} aria-hidden="true" />
           <span>{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
         </div>
@@ -1518,7 +1518,7 @@ export function MushafPage() {
       {/* ── Reciter picker sheet ─────────────────────────── */}
       {showReciterSheet && (
         <>
-          <div className="mushaf-overlay" onClick={() => setShowReciterSheet(false)} />
+          <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowReciterSheet(false)} />
           <div className="mushaf-jump-sheet" onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="mushaf-sheet-title">اختر القارئ</div>
@@ -1582,7 +1582,7 @@ export function MushafPage() {
       {/* ── Page jump sheet (M5: Dial wheel) ────────────── */}
       {showJump && (
         <>
-          <div className="mushaf-overlay" onClick={() => setShowJump(false)} />
+          <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowJump(false)} />
           <div className="mushaf-jump-sheet" onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="mushaf-sheet-title">الانتقال إلى صفحة</div>
@@ -1598,7 +1598,7 @@ export function MushafPage() {
       {/* ── تدبّر (Reflection) sheet ──────────────────────── */}
       {noteSheetOpen && selectedItem && (
         <>
-          <div className="mushaf-overlay" onClick={() => setNoteSheetOpen(false)} />
+          <div className="mushaf-overlay" aria-hidden="true" onClick={() => setNoteSheetOpen(false)} />
           <div className="mushaf-note-sheet" onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-3">
@@ -1687,7 +1687,7 @@ export function MushafPage() {
       {/* ── Q11: Inline tafsir sheet ────────────────────── */}
       {tafsirItem && (
         <>
-          <div className="mushaf-overlay" onClick={() => setTafsirItem(null)} />
+          <div className="mushaf-overlay" aria-hidden="true" onClick={() => setTafsirItem(null)} />
           {/* zIndex must be > overlay (210) — do NOT set lower */}
           <div
             className="mushaf-note-sheet"
@@ -1838,7 +1838,7 @@ export function MushafPage() {
       {/* ── Settings sheet ──────────────────────────────── */}
       {showSettings && (
         <>
-          <div className="mushaf-overlay" onClick={() => setShowSettings(false)} />
+          <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowSettings(false)} />
           <div className="mushaf-jump-sheet" style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">
@@ -2171,7 +2171,7 @@ export function MushafPage() {
       {/* ── More actions sheet ──────────────────────────── */}
       {showMoreSheet && (
         <>
-          <div className="mushaf-overlay" onClick={() => setShowMoreSheet(false)} />
+          <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowMoreSheet(false)} />
           <div className="mushaf-jump-sheet" style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">

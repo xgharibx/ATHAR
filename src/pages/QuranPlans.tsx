@@ -444,8 +444,8 @@ export function QuranPlansPage() {
 
       {/* Confirm reset dialog */}
       {confirmReset && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center p-4" onClick={() => setConfirmReset(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-4" onClick={() => setConfirmReset(false)} onKeyDown={(e) => { if (e.key === "Escape") setConfirmReset(false); }}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
           <Card className="relative w-full max-w-sm p-5 space-y-4 mb-4" role="dialog" aria-modal="true" aria-label="إعادة تعيين الخطة" onClick={(e) => e.stopPropagation()}>
             <div className="text-base font-bold">إعادة تعيين الخطة؟</div>
             <div className="text-sm opacity-60">سيتم حذف جميع بيانات التقدم الحالية.</div>
