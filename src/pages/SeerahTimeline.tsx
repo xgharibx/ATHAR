@@ -104,7 +104,7 @@ export default function SeerahTimeline() {
               style={{ color: "var(--fg)" }}
             />
             {query && (
-              <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
+              <button type="button" aria-label="مسح البحث" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
                 <X size={13} />
               </button>
             )}

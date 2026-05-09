@@ -126,7 +126,7 @@ export function QuranVocabPage() {
           <button type="button"
             onClick={() => setReviewMode(false)}
             className="px-5 py-2.5 rounded-2xl text-sm font-medium"
-            style={{ background: "var(--accent)", color: "#fff" }}
+            style={{ background: "var(--accent)", color: "var(--on-accent)" }}
           >
             العودة للاستعراض
           </button>
@@ -229,7 +229,7 @@ export function QuranVocabPage() {
           style={{
             background: flipped ? "var(--accent)" : "var(--card)",
             border: "1px solid var(--stroke)",
-            color: flipped ? "#fff" : "var(--fg)",
+            color: flipped ? "var(--on-accent)" : "var(--fg)",
             boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
           }}
         >
@@ -251,7 +251,7 @@ export function QuranVocabPage() {
               >
                 {card.arabic}
               </div>
-              <div className="h-px opacity-30" style={{ background: "#fff" }} />
+              <div className="h-px opacity-30" style={{ background: "rgba(7,8,11,0.25)" }} />
               <p className="text-lg leading-relaxed font-medium">{card.meaning}</p>
               {card.frequency > 0 && (
                 <p className="text-xs opacity-70">
@@ -268,7 +268,7 @@ export function QuranVocabPage() {
             onClick={handleNext}
             disabled={cardIndex >= deck.length - 1}
             className="px-6 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-30"
-            style={{ background: "var(--accent)", color: "#fff" }}
+            style={{ background: "var(--accent)", color: "var(--on-accent)" }}
           >
             التالي ←
           </button>

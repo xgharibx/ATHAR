@@ -57,7 +57,7 @@ function StoryCard({
         </div>
         <div
           className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
-          style={{ background: "var(--accent)", color: "#fff" }}
+          style={{ background: "var(--accent)", color: "var(--on-accent)" }}
         >
           {story.nameAr.charAt(0)}
         </div>
@@ -210,7 +210,7 @@ export function ProphetStoriesPage() {
                 style={{ background: "var(--card)", color: "var(--fg)", border: "1px solid var(--stroke)" }}
               />
               {query && (
-                <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
+                <button type="button" aria-label="مسح البحث" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80">
                   <X size={13} />
                 </button>
               )}

@@ -195,7 +195,7 @@ export function DuasPage() {
                 </div>
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"
-                  style={{ background: "var(--accent)", color: "#fff", opacity: 0.85 }}
+                  style={{ background: "var(--accent)", color: "var(--on-accent)", opacity: 0.85 }}
                 >
                   {idx + 1}
                 </span>

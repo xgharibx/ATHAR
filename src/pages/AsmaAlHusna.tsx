@@ -125,7 +125,7 @@ export function AsmaAlHusnaPage() {
                   className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
                   style={{
                     background: tab === t ? "#f59e0b" : "var(--card)",
-                    color: tab === t ? "#fff" : "var(--fg)",
+                    color: tab === t ? "var(--on-accent)" : "var(--fg)",
                     border: "1px solid var(--stroke)",
                   }}
                 >
@@ -150,7 +150,7 @@ export function AsmaAlHusnaPage() {
               style={{
                 background: isExpanded ? "var(--accent)" : "var(--card)",
                 border: `1px solid ${isExpanded ? "transparent" : "var(--stroke)"}`,
-                color: isExpanded ? "#fff" : "var(--fg)",
+                color: isExpanded ? "var(--on-accent)" : "var(--fg)",
                 gridColumn: isExpanded ? "span 2" : undefined,
               }}
             >
@@ -162,7 +162,7 @@ export function AsmaAlHusnaPage() {
                 <div className="flex items-start justify-between">
                   <span
                     className="text-xs opacity-60 mt-1"
-                    style={{ color: isExpanded ? "rgba(255,255,255,0.8)" : "var(--fg)" }}
+                    style={{ color: isExpanded ? "rgba(7,8,11,0.55)" : "var(--fg)" }}
                   >
                     {name.id}
                   </span>
@@ -196,7 +196,7 @@ export function AsmaAlHusnaPage() {
                   onClick={(e) => { e.stopPropagation(); void shareAsma(name); }}
                   aria-label="مشاركة"
                   className="p-1.5 rounded-lg transition-colors"
-                  style={{ color: isExpanded ? "rgba(255,255,255,0.6)" : "var(--fg)", opacity: 0.5 }}
+                  style={{ color: isExpanded ? "rgba(7,8,11,0.5)" : "var(--fg)", opacity: 0.5 }}
                 >
                   <Share2 size={13} />
                 </button>
@@ -205,7 +205,7 @@ export function AsmaAlHusnaPage() {
                   onClick={(e) => { e.stopPropagation(); toggleMemorized(name.id); }}
                   aria-label={isMem ? "إلغاء الحفظ" : "تمييز كمحفوظ"}
                   className="p-1.5 rounded-lg transition-colors"
-                  style={{ color: isMem ? (isExpanded ? "#fff" : "var(--accent)") : (isExpanded ? "rgba(255,255,255,0.5)" : "var(--fg)"), opacity: isMem ? 1 : 0.4 }}
+                  style={{ color: isMem ? (isExpanded ? "var(--on-accent)" : "var(--accent)") : (isExpanded ? "rgba(7,8,11,0.4)" : "var(--fg)"), opacity: isMem ? 1 : 0.4 }}
                 >
                   <Brain size={14} />
                 </button>
@@ -214,7 +214,7 @@ export function AsmaAlHusnaPage() {
                   onClick={(e) => { e.stopPropagation(); toggleFavorite(name.id); }}
                   aria-label={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
                   className="p-1.5 rounded-lg transition-colors"
-                  style={{ color: isFav ? "#ef4444" : (isExpanded ? "rgba(255,255,255,0.5)" : "var(--fg)"), opacity: isFav ? 1 : 0.4 }}
+                  style={{ color: isFav ? "#ef4444" : (isExpanded ? "rgba(7,8,11,0.4)" : "var(--fg)"), opacity: isFav ? 1 : 0.4 }}
                 >
                   <Heart size={14} fill={isFav ? "#ef4444" : "none"} />
                 </button>

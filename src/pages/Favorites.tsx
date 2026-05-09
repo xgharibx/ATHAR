@@ -621,7 +621,7 @@ export function FavoritesPage() {
                   <div className="flex items-center gap-3 mb-2">
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center text-base font-bold shrink-0"
-                      style={{ background: "var(--accent)", color: "#fff" }}
+                      style={{ background: "var(--accent)", color: "var(--on-accent)" }}
                     >
                       {story.nameAr.charAt(0)}
                     </div>
