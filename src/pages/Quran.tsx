@@ -18,6 +18,44 @@ function normalize(s: string) {
   return stripDiacritics((s ?? "").toLowerCase()).replaceAll(/\s+/g, " ").trim();
 }
 
+/** Highlights search query matches in Arabic text (diacritic-insensitive). */
+function highlightAyah(text: string, rawQuery: string): React.ReactNode {
+  const q = normalize(rawQuery);
+  if (!q || q.length < 2) return text;
+  const DIACRITICS = "[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]*";
+  try {
+    const pattern = [...q]
+      .map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join(DIACRITICS);
+    const regex = new RegExp(`(${pattern})`, "g");
+    const parts = text.split(regex);
+    if (parts.length <= 1) return text;
+    return (
+      <>
+        {parts.map((part, i) =>
+          i % 2 === 1 ? (
+            <mark
+              key={i}
+              style={{
+                background: "color-mix(in srgb, var(--accent) 35%, transparent)",
+                color: "inherit",
+                borderRadius: "2px",
+                padding: "0 1px",
+              }}
+            >
+              {part}
+            </mark>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  } catch {
+    return text;
+  }
+}
+
 function parseJuzParam(raw: string | null) {
   const parsed = raw ? Number(raw) : Number.NaN;
   return !Number.isNaN(parsed) && parsed >= 1 && parsed <= 30 ? parsed : null;
@@ -125,7 +163,7 @@ export function QuranPage() {
     const today = parseISODate(todayISO);
     if (!start || !today) return null;
 
-    const days = Math.max(1, Math.min(365, Math.floor(khatmaDays)));
+    const days = Math.max(1, Math.min(730, Math.floor(khatmaDays)));
     const flat: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
 
     for (const surah of data) {
@@ -599,6 +637,19 @@ export function QuranPage() {
 
           {/* ── Surah list — clean full-width rows ─────────────── */}
           <div id="quran-surah-list" role="list" aria-label="قائمة السور">
+            {sortedFiltered.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-12 gap-3 opacity-60">
+                <span className="text-3xl" aria-hidden="true">🔍</span>
+                <p className="text-sm">لا توجد سور تطابق البحث</p>
+                <button
+                  type="button"
+                  className="text-xs underline opacity-70"
+                  onClick={() => { setFilterJuz(null); setQuery(""); }}
+                >
+                  إزالة الفلتر
+                </button>
+              </div>
+            )}
             {sortedFiltered.map((s, idx) => {
               const maxRead = readingHistory[String(s.id)] ?? 0;
               const pct = s.ayahs.length ? Math.min(100, Math.round((maxRead / s.ayahs.length) * 100)) : 0;
@@ -690,8 +741,8 @@ export function QuranPage() {
                       <div className="text-sm font-semibold arabic-text truncate">
                         {r.surahName} • ﴿{r.ayahIndex.toLocaleString("ar-EG")}﴾
                       </div>
-                      <div className="mt-2 text-sm opacity-80 leading-8 arabic-text line-clamp-2">
-                        {r.text}
+                      <div className="mt-2 text-sm opacity-80 leading-8 arabic-text line-clamp-3">
+                        {highlightAyah(r.text, query)}
                       </div>
                     </div>
                     <div className="text-xs opacity-60 tabular-nums">{r.surahId.toLocaleString("ar-EG")}</div>

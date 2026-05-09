@@ -314,6 +314,35 @@ export function QuranVocabPage() {
           </button>
         </div>
 
+        {/* Deck completion banner */}
+        {cardIndex >= deck.length - 1 && deck.length > 0 && (
+          <div
+            className="w-full max-w-sm rounded-2xl p-4 text-center"
+            style={{
+              background: "color-mix(in srgb, var(--ok, #3ddc97) 12%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--ok, #3ddc97) 30%, transparent)",
+            }}
+            role="status"
+            aria-live="polite"
+          >
+            <div className="text-xl mb-1" aria-hidden="true">🎉</div>
+            <p className="text-sm font-semibold" style={{ color: "var(--ok, #3ddc97)" }}>
+              {reviewMode ? "أتممت مراجعة المحفوظات!" : "أتممت الاستعراض!"}
+            </p>
+            <p className="text-[11px] opacity-60 mt-0.5">
+              {learned.size > 0 ? `حفظت ${learned.size.toLocaleString("ar-EG")} كلمة` : "اضغط ✓ لإضافة كلمات لمحفوظاتك"}
+            </p>
+            <button
+              type="button"
+              onClick={handleShuffle}
+              className="mt-3 text-xs font-medium px-4 py-2 rounded-xl transition-all"
+              style={{ background: "color-mix(in srgb, var(--ok, #3ddc97) 20%, transparent)", color: "var(--ok, #3ddc97)" }}
+            >
+              خلط وإعادة
+            </button>
+          </div>
+        )}
+
         {/* Action row: Mark learned + Share + Copy */}
         <div className="flex items-center gap-2 flex-wrap justify-center">
           <button
