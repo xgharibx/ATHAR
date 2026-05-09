@@ -386,6 +386,18 @@ export function InsightsPage() {
   );
 
   // Per-juz reading completion (juz 1-30)
+  // 7-week Quran reading heatmap data
+  const quranHeatmap = React.useMemo(() => {
+    const days: { key: string; count: number; isToday: boolean }[] = [];
+    const today = new Date();
+    for (let i = 48; i >= 0; i--) {
+      const d = new Date(today.getTime() - i * 86400000);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      days.push({ key, count: quranDailyAyahs[key] ?? 0, isToday: i === 0 });
+    }
+    return days;
+  }, [quranDailyAyahs]);
+
   const quranJuzCompletion = React.useMemo(() => {
     if (!quranData) return [] as { juz: number; pct: number; complete: boolean }[];
     const totals: Record<number, number> = {};
@@ -1348,6 +1360,42 @@ export function InsightsPage() {
               </div>
             </div>
           )}
+          {/* Quran reading heatmap — last 7 weeks */}
+          {quranHeatmap.some((d) => d.count > 0) && (() => {
+            const maxCount = Math.max(...quranHeatmap.map((d) => d.count), 1);
+            const DOW_SHORT = ["أح", "اث", "ثل", "أر", "خم", "جم", "سب"];
+            return (
+              <div className="mt-4">
+                <div className="text-xs opacity-50 mb-2">تقويم القراءة (7 أسابيع)</div>
+                <div className="grid grid-cols-7 gap-0.5 mb-0.5">
+                  {DOW_SHORT.map((l) => <div key={l} className="text-center text-[8px] opacity-40">{l}</div>)}
+                </div>
+                <div className="grid gap-0.5" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
+                  {quranHeatmap.map((d) => {
+                    const intensity = d.count === 0 ? 0 : Math.min(1, d.count / Math.max(1, maxCount * 0.6));
+                    const alpha = d.count === 0 ? 0 : 0.15 + intensity * 0.75;
+                    return (
+                      <div
+                        key={d.key}
+                        className={`aspect-square rounded-sm ${d.isToday ? "ring-1 ring-[var(--accent)]" : ""}`}
+                        style={{
+                          background: d.count === 0 ? "var(--card)" : `color-mix(in srgb, var(--ok) ${Math.round(alpha * 100)}%, transparent)`,
+                        }}
+                        title={`${d.key}: ${d.count.toLocaleString("ar-EG")} آية`}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-end gap-1.5 mt-1.5 text-[9px] opacity-45">
+                  <span>قليل</span>
+                  {([0.15, 0.4, 0.65, 0.9] as number[]).map((a, i) => (
+                    <div key={i} className="w-3 h-3 rounded-sm" style={{ background: `color-mix(in srgb, var(--ok) ${Math.round(a * 100)}%, transparent)` }} />
+                  ))}
+                  <span>كثير</span>
+                </div>
+              </div>
+            );
+          })()}
         </Card>
       )}
 
