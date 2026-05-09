@@ -343,6 +343,20 @@ export function InsightsPage() {
 
   const todayQuranAyahs = quranDailyAyahs[civilTodayKey] ?? 0;
   const quranGoal = Math.max(1, quranDailyGoal ?? 10);
+
+  // Day-of-week reading pattern (0=Sun ... 6=Sat)
+  const quranDowPattern = React.useMemo(() => {
+    const totals = [0, 0, 0, 0, 0, 0, 0];
+    const counts = [0, 0, 0, 0, 0, 0, 0];
+    for (const [k, v] of Object.entries(quranDailyAyahs)) {
+      if (!v) continue;
+      const d = new Date(k + "T00:00:00");
+      const dow = d.getDay();
+      totals[dow] += v;
+      counts[dow]++;
+    }
+    return totals.map((t, i) => (counts[i] > 0 ? Math.round(t / counts[i]) : 0));
+  }, [quranDailyAyahs]);
   const quranGoalPct = Math.min(100, Math.round((todayQuranAyahs / quranGoal) * 100));
 
   const quranSurahLengths = React.useMemo(() => {
@@ -1218,6 +1232,34 @@ export function InsightsPage() {
               </div>
             </>
           )}
+          {/* Day-of-week Quran reading pattern */}
+          {quranDowPattern.some((v) => v > 0) && (() => {
+            const DAY_NAMES_AR = ["أح", "اث", "ثل", "أر", "خم", "جم", "سب"];
+            const maxDow = Math.max(1, ...quranDowPattern);
+            const bestDow = quranDowPattern.indexOf(Math.max(...quranDowPattern));
+            return (
+              <div className="mt-4">
+                <div className="text-xs opacity-50 mb-2 flex items-center justify-between">
+                  <span>نمط القراءة حسب اليوم</span>
+                  <span className="text-[10px]" style={{ color: "var(--accent)" }}>أكثر يوم: {DAY_NAMES_AR[bestDow]}</span>
+                </div>
+                <div className="flex items-end gap-1.5" style={{ height: "48px" }} role="img" aria-label="نمط القراءة حسب أيام الأسبوع">
+                  {quranDowPattern.map((v, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
+                      <div
+                        className="w-full rounded-t-sm transition-all"
+                        style={{
+                          height: v > 0 ? `${Math.max(4, Math.round((v / maxDow) * 36))}px` : "3px",
+                          background: i === bestDow ? "var(--accent)" : v > 0 ? "color-mix(in srgb, var(--accent) 45%, transparent)" : "var(--card)",
+                        }}
+                      />
+                      <span className="text-[9px] leading-none opacity-40">{DAY_NAMES_AR[i]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </Card>
       )}
 
