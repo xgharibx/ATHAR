@@ -32,7 +32,7 @@ function StoryCard({
 
   return (
     <div
-      className="rounded-2xl overflow-hidden transition-all duration-200"
+      className="rounded-2xl overflow-hidden transition-all duration-200 cv-auto"
       style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
     >
       <button type="button"

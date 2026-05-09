@@ -146,7 +146,7 @@ export default function SeerahTimeline() {
                   </div>
 
                   {/* Event card */}
-                  <div className="relative mb-1 min-w-0 flex-1 overflow-hidden rounded-3xl p-4 glass glass-hover">
+                  <div className="relative mb-1 min-w-0 flex-1 overflow-hidden rounded-3xl p-4 glass glass-hover cv-auto">
                     <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
                     <div className="relative">
                     {/* Year badge + category */}

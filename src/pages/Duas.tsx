@@ -99,6 +99,9 @@ export function DuasPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="ابحث في الأدعية..."
                 aria-label="بحث في الأدعية"
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
                 className="flex-1 bg-transparent text-sm outline-none"
                 style={{ color: "var(--fg)" }}
               />
@@ -107,10 +110,12 @@ export function DuasPage() {
               )}
             </div>
             {/* Tabs */}
-            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-label="تصفية الأدعية">
               {DUAS_CATEGORIES.map((cat) => (
                 <button type="button"
                   key={cat.id}
+                  role="tab"
+                  aria-selected={activeTab === cat.id}
                   onClick={() => setActiveTab(cat.id)}
                   className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
                   style={{
@@ -124,6 +129,8 @@ export function DuasPage() {
               ))}
               <button type="button"
                 key="__favorites__"
+                role="tab"
+                aria-selected={activeTab === "__favorites__"}
                 onClick={() => setActiveTab("__favorites__")}
                 className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
                 style={{

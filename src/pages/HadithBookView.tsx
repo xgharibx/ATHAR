@@ -269,9 +269,13 @@ export function HadithBookViewPage() {
         <div
           ref={sectionsRef}
           dir="rtl"
+          role="tablist"
+          aria-label="تصفية الأبواب"
           className="flex gap-2 px-3 pb-3 overflow-x-auto no-scrollbar"
         >
           <button type="button"
+            role="tab"
+            aria-selected={activeSectionId === null}
             onClick={() => setActiveSectionId(null)}
             className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic press-effect", activeSectionId === null ? "font-bold" : "glass border-[var(--stroke)]")}
             style={activeSectionId === null ? { background: accentColor, borderColor: "transparent" } : undefined}
@@ -281,6 +285,8 @@ export function HadithBookViewPage() {
           {pack.sections.map((s) => (
             <button type="button"
               key={s.id}
+              role="tab"
+              aria-selected={activeSectionId === s.id}
               onClick={() => setActiveSectionId(s.id)}
               className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic whitespace-nowrap press-effect", activeSectionId === s.id ? "font-bold" : "glass border-[var(--stroke)]")}
               style={activeSectionId === s.id ? { background: accentColor, borderColor: "transparent" } : undefined}

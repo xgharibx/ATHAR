@@ -170,7 +170,7 @@ export function NearbyMosquesPage() {
       {/* Mosque list */}
       {mosques.length > 0 && (
         <div className="space-y-2">
-          <div className="text-xs font-semibold opacity-60 uppercase tracking-wide mb-3">
+          <div className="text-xs font-semibold opacity-60 uppercase tracking-wide mb-3" aria-live="polite" aria-atomic="true">
             {mosques.length} مسجد في نطاق 5 كم
           </div>
           {mosques.map((mosque, i) => {

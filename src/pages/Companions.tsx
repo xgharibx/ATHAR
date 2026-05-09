@@ -157,7 +157,7 @@ export default function Companions() {
               key={companion.id}
               onClick={() => setExpanded(isOpen ? null : companion.id)}
               aria-expanded={isOpen}
-              className="relative w-full overflow-hidden rounded-3xl p-4 text-right transition glass glass-hover press-effect"
+              className="relative w-full overflow-hidden rounded-3xl p-4 text-right transition glass glass-hover press-effect cv-auto"
             >
               <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
               {/* Top row */}

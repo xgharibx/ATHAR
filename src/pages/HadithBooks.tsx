@@ -108,7 +108,7 @@ function BookCard({ book }: { book: HadithBookMeta }) {
     <button type="button"
       dir="rtl"
       onClick={() => navigate(`/hadith/${book.key}`)}
-      className="relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect"
+      className="relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect cv-auto"
     >
       <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
       {/* Left accent bar */}
