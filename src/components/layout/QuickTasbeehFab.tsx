@@ -24,6 +24,25 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
 
   // Ref for the FAB trigger button (for focus return on dialog close)
   const fabRef = React.useRef<HTMLButtonElement>(null);
+
+  // Focus trap: cycle Tab/Shift+Tab within the open dialog
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const trapFocus = React.useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab") return;
+    const el = panelRef.current;
+    if (!el) return;
+    const focusable = Array.from(el.querySelectorAll<HTMLElement>(
+      'button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+    ));
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  }, []);
   // Return focus to FAB trigger when dialog closes
   React.useEffect(() => {
     if (!open && !drawerOpen) { fabRef.current?.focus(); }
@@ -91,6 +110,8 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
       <div
         className="w-[280px] glass-strong rounded-3xl p-4 border border-[var(--stroke)] page-enter"
         style={{ boxShadow: "0 12px 48px rgba(0,0,0,0.5)" }}
+        ref={panelRef}
+        onKeyDown={trapFocus}
         role="dialog"
         aria-modal="true"
         aria-label="تسبيح سريع"
