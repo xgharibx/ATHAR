@@ -251,7 +251,7 @@ export function QuranVocabPage() {
               >
                 {card.arabic}
               </div>
-              <div className="h-px opacity-30" style={{ background: "rgba(7,8,11,0.25)" }} />
+              <div className="h-px opacity-30" style={{ background: "color-mix(in srgb, var(--on-accent) 25%, transparent)" }} />
               <p className="text-lg leading-relaxed font-medium">{card.meaning}</p>
               {card.frequency > 0 && (
                 <p className="text-xs opacity-70">

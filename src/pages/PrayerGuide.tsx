@@ -106,7 +106,7 @@ export function PrayerGuidePage() {
               >
                 <div className="flex items-center gap-2">
                   {isOpen ? (
-                    <ChevronUp size={16} style={{ color: isOpen ? "rgba(7,8,11,0.55)" : "var(--accent)" }} />
+                    <ChevronUp size={16} style={{ color: isOpen ? "color-mix(in srgb, var(--on-accent) 55%, transparent)" : "var(--accent)" }} />
                   ) : (
                     <ChevronDown size={16} style={{ color: "var(--accent)" }} />
                   )}
@@ -118,7 +118,7 @@ export function PrayerGuidePage() {
                     <span
                       className="text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold flex-shrink-0"
                       style={{
-                        background: isOpen ? "rgba(7,8,11,0.12)" : "var(--accent)",
+                        background: isOpen ? "color-mix(in srgb, var(--on-accent) 12%, transparent)" : "var(--accent)",
                         color: "var(--on-accent)",
                       }}
                     >
@@ -138,16 +138,16 @@ export function PrayerGuidePage() {
 
               {isOpen && (
                 <div className="px-4 pb-4">
-                  <div className="h-px mb-3" style={{ background: "rgba(7,8,11,0.18)" }} />
+                  <div className="h-px mb-3" style={{ background: "color-mix(in srgb, var(--on-accent) 18%, transparent)" }} />
                   {step.arabic && (
                     <p
                       className="text-base leading-loose text-right mb-3 font-medium"
-                      style={{ fontFamily: "var(--font-arabic, inherit)", color: "rgba(7,8,11,0.88)" }}
+                      style={{ fontFamily: "var(--font-arabic, inherit)", color: "color-mix(in srgb, var(--on-accent) 88%, transparent)" }}
                     >
                       {step.arabic}
                     </p>
                   )}
-                  <p className="text-sm leading-relaxed text-right" style={{ color: "rgba(7,8,11,0.75)" }}>
+                  <p className="text-sm leading-relaxed text-right" style={{ color: "color-mix(in srgb, var(--on-accent) 75%, transparent)" }}>
                     {step.description}
                   </p>
                   <div className="flex items-center gap-2 justify-end mt-3">
@@ -158,7 +158,7 @@ export function PrayerGuidePage() {
                         toast.success("تم النسخ");
                       }}
                       className="p-2 rounded-xl transition-opacity hover:opacity-75"
-                      style={{ background: "rgba(7,8,11,0.1)", color: "var(--on-accent)" }}
+                      style={{ background: "color-mix(in srgb, var(--on-accent) 10%, transparent)", color: "var(--on-accent)" }}
                     >
                       <Copy size={14} />
                     </button>
@@ -166,7 +166,7 @@ export function PrayerGuidePage() {
                       type="button"
                       onClick={() => sharePrayerStep(step)}
                       className="p-2 rounded-xl transition-opacity hover:opacity-75"
-                      style={{ background: "rgba(7,8,11,0.1)", color: "var(--on-accent)" }}
+                      style={{ background: "color-mix(in srgb, var(--on-accent) 10%, transparent)", color: "var(--on-accent)" }}
                     >
                       <Share2 size={14} />
                     </button>
