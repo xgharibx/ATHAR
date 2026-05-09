@@ -402,6 +402,18 @@ export function InsightsPage() {
     [quranStats.totalAyahs]
   );
 
+  // Phase 52: 30-day reading consistency score
+  const quranConsistency30 = React.useMemo(() => {
+    const today = new Date();
+    let daysRead = 0;
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today.getTime() - i * 86400000);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      if ((quranDailyAyahs[key] ?? 0) > 0) daysRead++;
+    }
+    return { daysRead, pct: Math.round((daysRead / 30) * 100) };
+  }, [quranDailyAyahs]);
+
   // Meccan vs Medinan reading breakdown
   const quranRevelationStats = React.useMemo(() => {
     if (!quranData) return { meccanRead: 0, meccanTotal: 0, medinanRead: 0, medinanTotal: 0 };
@@ -1266,6 +1278,24 @@ export function InsightsPage() {
                 <MiniStatSmall label="الأسبوع" value={quranWeekTotal.toLocaleString("ar-EG")} />
                 <MiniStatSmall label="أفضل يوم" value={bestDay > 0 ? bestDay.toLocaleString("ar-EG") : "—"} />
                 <MiniStatSmall label="أيام نشطة" value={activeDaysCount.toLocaleString("ar-EG")} />
+              </div>
+            );
+          })()}
+          {/* Phase 52: Reading consistency chip */}
+          {quranConsistency30.daysRead > 0 && (() => {
+            const { daysRead, pct } = quranConsistency30;
+            const grade = pct >= 80 ? "ممتاز" : pct >= 60 ? "جيد جداً" : pct >= 40 ? "جيد" : pct >= 20 ? "مقبول" : "ابدأ";
+            const gradeColor = pct >= 80 ? "var(--ok)" : pct >= 60 ? "var(--accent)" : pct >= 40 ? "#fb923c" : "#f87171";
+            return (
+              <div className="mb-4 rounded-xl p-3 border" style={{ background: "color-mix(in srgb, var(--card) 80%, var(--bg))", borderColor: "color-mix(in srgb, var(--stroke) 40%, transparent)" }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] opacity-60">انتظام 30 يوم</span>
+                  <span className="text-[11px] font-bold tabular-nums" style={{ color: gradeColor }}>{pct.toLocaleString("ar-EG")}٪ &mdash; {grade}</span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 50%, transparent)" }}>
+                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: gradeColor }} />
+                </div>
+                <p className="text-[10px] opacity-45 mt-1">{daysRead.toLocaleString("ar-EG")} من 30 يوم قرأت فيها</p>
               </div>
             );
           })()}
