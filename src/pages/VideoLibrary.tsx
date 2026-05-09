@@ -443,7 +443,7 @@ function LessonRow({
         style={isActive ? { background: `${accent}10` } : { background: "var(--card)" }}
       >
         <div
-          className={cn("text-[12px] font-semibold arabic-text leading-[1.4] line-clamp-2", isActive ? "text-white" : "opacity-85")}
+          className={cn("text-[12px] font-semibold arabic-text leading-[1.4] line-clamp-2", isActive ? "text-[var(--fg)]" : "opacity-85")}
         >
           {video.title}
         </div>

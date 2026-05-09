@@ -54,7 +54,7 @@ export function PwaInstallBanner() {
   return (
     <div
       dir="rtl"
-      className="fixed bottom-20 inset-x-3 z-50 flex items-center gap-3 rounded-2xl border border-[var(--stroke)] bg-[rgba(10,12,20,.96)] px-4 py-3 shadow-2xl backdrop-blur-xl"
+      className="fixed bottom-20 inset-x-3 z-50 flex items-center gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--bg)] px-4 py-3 shadow-2xl backdrop-blur-xl"
       role="banner"
       aria-label="دعوة لتثبيت التطبيق"
     >
@@ -68,10 +68,10 @@ export function PwaInstallBanner() {
 
       {/* Text */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-white leading-snug">
+        <p className="text-sm font-semibold text-[var(--fg)] leading-snug">
           ثبّت أثر على شاشتك الرئيسية
         </p>
-        <p className="text-xs text-white/55 mt-0.5">
+        <p className="text-xs text-[var(--muted)] mt-0.5">
           وصول أسرع بدون متصفح
         </p>
       </div>
@@ -88,7 +88,7 @@ export function PwaInstallBanner() {
       <button type="button"
         onClick={handleDismiss}
         aria-label="إغلاق"
-        className="shrink-0 rounded-xl p-1.5 text-white/40 hover:text-white/70 active:scale-95 transition-transform"
+        className="shrink-0 rounded-xl p-1.5 text-[var(--muted-2)] hover:text-[var(--muted)] active:scale-95 transition-transform"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
