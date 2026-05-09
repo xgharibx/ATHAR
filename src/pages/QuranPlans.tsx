@@ -99,7 +99,7 @@ function ProgressRing({ pct, size = 72 }: { pct: number; size?: number }) {
   const circ = 2 * Math.PI * r;
   const dash = circ * Math.max(0, Math.min(1, pct / 100));
   return (
-    <svg width={size} height={size} className="shrink-0 -rotate-90">
+    <svg width={size} height={size} className="shrink-0 -rotate-90" aria-hidden="true">
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--stroke)" strokeWidth={5} />
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--accent)" strokeWidth={5}
         strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
@@ -434,7 +434,7 @@ export function QuranPlansPage() {
       {confirmReset && (
         <div className="fixed inset-0 z-50 flex items-end justify-center p-4" onClick={() => setConfirmReset(false)}>
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <Card className="relative w-full max-w-sm p-5 space-y-4 mb-4" onClick={(e) => e.stopPropagation()}>
+          <Card className="relative w-full max-w-sm p-5 space-y-4 mb-4" role="dialog" aria-modal="true" aria-label="إعادة تعيين الخطة" onClick={(e) => e.stopPropagation()}>
             <div className="text-base font-bold">إعادة تعيين الخطة؟</div>
             <div className="text-sm opacity-60">سيتم حذف جميع بيانات التقدم الحالية.</div>
             <div className="flex gap-2">

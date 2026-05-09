@@ -65,7 +65,7 @@ export function NoorBackground() {
   }, [reduceMotion, theme, isMobile]);
 
   return (
-    <div className="fixed inset-0 -z-10 pointer-events-none">
+    <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden="true">
       {/* Always-on gradient layer */}
       <div className="absolute inset-0">
         <div

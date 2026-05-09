@@ -182,7 +182,12 @@ export function CommandPalette(props: Props) {
       />
 
       {/* Panel */}
-      <div className={cn("absolute left-1/2 top-14 -translate-x-1/2 w-[92vw] max-w-2xl opacity-0 scale-[.98] transition", props.open && "opacity-100 scale-100")}>
+      <div
+        className={cn("absolute left-1/2 top-14 -translate-x-1/2 w-[92vw] max-w-2xl opacity-0 scale-[.98] transition", props.open && "opacity-100 scale-100")}
+        role="dialog"
+        aria-modal="true"
+        aria-label="البحث السريع"
+      >
         <div className="glass-strong rounded-3xl overflow-hidden border border-[var(--stroke)]">
           <Command className="w-full">
             <div className="flex items-center gap-3 px-4 py-4 border-b border-[var(--stroke)]">

@@ -196,7 +196,7 @@ function CircularRing({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 224 224" style={{ pointerEvents: "none" }}>
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 224 224" style={{ pointerEvents: "none" }} aria-hidden="true">
         <circle cx="112" cy="112" r={RING_R} fill="none" stroke="var(--stroke)" strokeWidth="6" />
         <circle
           cx="112"

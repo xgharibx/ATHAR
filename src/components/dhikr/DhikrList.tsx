@@ -687,7 +687,7 @@ export function DhikrList(props: Readonly<{
         {addOpen ? (
           <div className="fixed inset-0 z-[10000] bg-[var(--card)]5 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
             <button type="button" className="absolute inset-0" aria-label="إغلاق" onClick={() => setAddOpen(false)} />
-            <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-[var(--stroke)] p-5 pb-32 md:pb-5 shadow-2xl" dir="rtl">
+            <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-[var(--stroke)] p-5 pb-32 md:pb-5 shadow-2xl" dir="rtl" role="dialog" aria-modal="true" aria-label="إضافة ذكر">
               <div className="flex items-center justify-between gap-3">
                 <div className="font-semibold">إضافة ذكر</div>
                 <button type="button"

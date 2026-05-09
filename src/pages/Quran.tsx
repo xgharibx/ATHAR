@@ -350,7 +350,7 @@ export function QuranPage() {
                 {lastRead.ayahIndex > 0 ? ` · الآية ${toArabicNumeral(lastRead.ayahIndex)}` : ""}
               </div>
             </div>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-30 shrink-0"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-30 shrink-0" aria-hidden="true"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </button>
         ) : null}
 
@@ -375,7 +375,7 @@ export function QuranPage() {
               {khatmaStartISO && khatmaDays && khatma?.isFinished && (
                 <span style={{ color: "var(--ok)", opacity: 1 }}>✓</span>
               )}
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-40"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-40" aria-hidden="true"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
           </div>
         )}
@@ -390,7 +390,7 @@ export function QuranPage() {
               className="text-xs opacity-45 hover:opacity-80 transition flex items-center gap-1.5"
             >
               <span>📅 خطط التلاوة</span>
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-50"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="opacity-50" aria-hidden="true"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
           </div>
         )}

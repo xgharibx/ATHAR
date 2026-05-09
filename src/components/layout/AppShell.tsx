@@ -330,6 +330,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
               to={link.path}
               end={link.path === "/"}
               onClick={props.onNavigate}
+              aria-label={link.label}
               className={({ isActive }) => cn(
                 "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-1 border transition active:scale-[.94]",
                 isActive
@@ -337,10 +338,14 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
                   : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
               )}
             >
-              <div className="w-8 h-8 rounded-xl grid place-items-center" style={{ background: `${link.color}18` }}>
-                <link.icon size={15} style={{ color: link.color }} />
-              </div>
-              <span className="text-[10px] font-medium opacity-70 text-center leading-tight">{link.label}</span>
+              {({ isActive }) => (
+                <>
+                  <div className="w-8 h-8 rounded-xl grid place-items-center" style={{ background: `${link.color}18` }}>
+                    <link.icon size={15} style={{ color: link.color }} aria-hidden="true" />
+                  </div>
+                  <span className="text-[10px] font-medium opacity-70 text-center leading-tight" aria-hidden="true">{link.label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </div>

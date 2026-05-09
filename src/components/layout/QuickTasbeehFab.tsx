@@ -56,7 +56,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
         onClick={() => setOpen(true)}
         aria-label="تسبيح سريع"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="10" />
           <path d="M12 6v6l4 2" />
         </svg>
@@ -83,6 +83,9 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
       <div
         className="w-[280px] glass-strong rounded-3xl p-4 border border-[var(--stroke)] page-enter"
         style={{ boxShadow: "0 12px 48px rgba(0,0,0,0.5)" }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="تسبيح سريع"
       >
         {/* Close */}
         <div className="flex items-center justify-between mb-3">

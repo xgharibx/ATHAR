@@ -79,7 +79,7 @@ export function PrayerCountdown(props: Readonly<{
 
       <div className="relative shrink-0" style={{ width: containerSize, height: containerSize }}>
         {/* SVG uses viewBox for coordinate system; fills container 100% so it scales */}
-        <svg width="100%" height="100%" viewBox={`0 0 ${ringSize} ${ringSize}`} className="-rotate-90">
+        <svg width="100%" height="100%" viewBox={`0 0 ${ringSize} ${ringSize}`} className="-rotate-90" aria-hidden="true">
           <circle
             cx={ringSize / 2}
             cy={ringSize / 2}

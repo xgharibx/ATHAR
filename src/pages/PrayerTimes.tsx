@@ -287,7 +287,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-[var(--card)]0 backdrop-blur-sm p-4">
-      <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 space-y-5">
+      <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 space-y-5" role="dialog" aria-modal="true" aria-label="إعدادات مواقيت الصلاة">
         <div className="flex items-center justify-between">
           <div className="font-semibold">إعدادات مواقيت الصلاة</div>
           <button type="button" aria-label="إغلاق" onClick={onClose} className="opacity-50 hover:opacity-80 transition-opacity p-1"><X size={18} /></button>
@@ -939,7 +939,7 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
     <div className="space-y-4">
       <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">قوس اليوم الشمسي</div>
       <div className="rounded-2xl overflow-hidden border border-[var(--stroke)]" style={{ background: "linear-gradient(160deg, #0d1a2e, #1a0a2e)" }}>
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 180 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 180 }} aria-hidden="true">
           <defs>
             <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#ff7b35" stopOpacity="0.8" />

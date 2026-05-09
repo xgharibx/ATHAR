@@ -76,6 +76,9 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
       <div
         className="w-[280px] glass-strong rounded-3xl p-4 border border-[var(--stroke)] page-enter"
         style={{ boxShadow: "0 12px 48px rgba(0,0,0,0.5)" }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="راديو القرآن"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-3">

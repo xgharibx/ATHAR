@@ -200,7 +200,7 @@ export function QiblaPage() {
         {/* Compass rose */}
         <div className="relative w-64 h-64">
           {/* Outer ring with cardinal directions */}
-          <svg viewBox="0 0 240 240" className="w-full h-full">
+          <svg viewBox="0 0 240 240" className="w-full h-full" aria-hidden="true">
             {/* Animated CSS for spinning outer ring */}
             <style>{`@keyframes compassRingSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
             {/* Background circle */}

@@ -98,6 +98,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
               to={item.path}
               className={`floating-nav-item ${active ? "active" : ""}`}
               aria-label={item.label}
+              aria-current={active ? "page" : undefined}
             >
               <div className="relative">
                 <item.icon size={18} strokeWidth={active ? 2.2 : 1.8} />

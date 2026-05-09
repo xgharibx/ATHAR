@@ -1310,7 +1310,7 @@ export function HomePage() {
                         </div>
                         <div className="shrink-0">
                           <div className="w-11 h-11 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center">
-                            <svg width="40" height="40" viewBox="0 0 60 60">
+                            <svg width="40" height="40" viewBox="0 0 60 60" aria-hidden="true">
                               <circle cx="30" cy="30" r={r} fill="transparent" stroke="var(--stroke)" strokeWidth="6" />
                               <circle
                                 cx="30" cy="30" r={r}
