@@ -142,7 +142,7 @@ export function OnboardingFlow() {
           </div>
 
           <button type="button"
-            className="w-full mt-5 py-3.5 rounded-2xl bg-[var(--accent)] text-white font-semibold text-sm arabic-text disabled:opacity-60 transition"
+            className="w-full mt-5 py-3.5 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] font-semibold text-sm arabic-text disabled:opacity-60 transition"
             onClick={handleAction}
             disabled={loading}
           >

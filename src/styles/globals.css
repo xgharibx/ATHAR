@@ -456,7 +456,7 @@ html.midnight body.transparent-mode .glass-strong {
 
 .quran-page-inner {
   padding: 1.25rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.06));
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--stroke));
   border-radius: 1.25rem;
   background: color-mix(in srgb, var(--fg) 5%, var(--bg));
   box-shadow:
@@ -1671,7 +1671,7 @@ body.quran-focus-mode .quran-surface {
   border: none;
   box-shadow:
     0 6px 24px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
+    0 0 0 1px var(--stroke);
   transition: transform 200ms ease, box-shadow 200ms ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;

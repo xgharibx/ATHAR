@@ -1187,7 +1187,7 @@ export function PrayerTimesPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <div className="text-sm font-semibold">{row.label}</div>
-                        {isActive && <Badge className="text-[10px] bg-accent-16 border-accent-20 text-white">الآن</Badge>}
+                        {isActive && <Badge className="text-[10px] bg-accent-16 border-accent-20 text-[var(--accent)]">الآن</Badge>}
                         {!isActive && isNext && <Badge className="text-[10px]">التالي</Badge>}
                       </div>
                     </div>
