@@ -113,7 +113,7 @@ export function DuasPage() {
               )}
             </div>
             {/* Tabs */}
-            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-label="تصفية الأدعية"
+            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-orientation="horizontal" aria-label="تصفية الأدعية"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);

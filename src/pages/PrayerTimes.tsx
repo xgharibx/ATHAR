@@ -1153,7 +1153,7 @@ export function PrayerTimesPage() {
       </Card>
 
       {/* Tab bar */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" role="tablist" aria-label="عرض مواقيت الصلاة"
+      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" role="tablist" aria-orientation="horizontal" aria-label="عرض مواقيت الصلاة"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);

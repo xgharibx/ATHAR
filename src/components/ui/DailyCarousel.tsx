@@ -210,7 +210,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
       </div>
 
       {/* Dot indicators */}
-      <div className="flex items-center justify-center gap-2 pb-3" role="tablist" aria-label="تنقل بين الشرائح">
+      <div className="flex items-center justify-center gap-2 pb-3" role="tablist" aria-orientation="horizontal" aria-label="تنقل بين الشرائح">
         {[0, 1, 2].map((i) => (
           <button type="button"
             key={i}

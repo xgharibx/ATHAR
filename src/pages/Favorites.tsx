@@ -239,7 +239,7 @@ export function FavoritesPage() {
         {/* Tab switcher */}
         <div
           className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar"
-          role="tablist"
+          role="tablist" aria-orientation="horizontal"
           aria-label="تبويبات المفضلة"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];

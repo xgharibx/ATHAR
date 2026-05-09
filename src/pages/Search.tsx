@@ -215,7 +215,7 @@ export function SearchPage() {
         </div>
 
         {/* Tab switcher */}
-        <div className="mt-4 flex gap-2" role="tablist" aria-label="نوع البحث"
+        <div className="mt-4 flex gap-2" role="tablist" aria-orientation="horizontal" aria-label="نوع البحث"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);

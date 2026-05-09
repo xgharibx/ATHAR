@@ -213,7 +213,7 @@ export function HadithMemoPage() {
 
       {/* Tab bar */}
       <div
-        role="tablist"
+        role="tablist" aria-orientation="horizontal"
         aria-label="وضع البطاقات"
         className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass"
           onKeyDown={(e) => {

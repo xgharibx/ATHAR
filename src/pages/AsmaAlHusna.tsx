@@ -122,7 +122,7 @@ export function AsmaAlHusnaPage() {
               )}
             </div>
             {/* Filter tabs */}
-            <div className="flex gap-2" role="tablist" aria-label="تصفية الأسماء"
+            <div className="flex gap-2" role="tablist" aria-orientation="horizontal" aria-label="تصفية الأسماء"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);

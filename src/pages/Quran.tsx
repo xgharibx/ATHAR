@@ -331,7 +331,7 @@ export function QuranPage() {
           </div>
 
           {/* Mode toggle — search surahs vs ayahs */}
-          <div className="mt-3 flex rounded-2xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden w-fit" role="tablist" aria-label="وضع البحث"
+          <div className="mt-3 flex rounded-2xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden w-fit" role="tablist" aria-orientation="horizontal" aria-label="وضع البحث"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);
@@ -581,7 +581,7 @@ export function QuranPage() {
             style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 40%, transparent)" }}
           >
             {/* Sort toggle */}
-            <div className="flex rounded-xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden text-sm" role="tablist" aria-label="ترتيب السور"
+            <div className="flex rounded-xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden text-sm" role="tablist" aria-orientation="horizontal" aria-label="ترتيب السور"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);

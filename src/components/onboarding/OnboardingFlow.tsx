@@ -135,7 +135,7 @@ export function OnboardingFlow() {
           <p className="text-sm opacity-70 text-center leading-relaxed mb-8 arabic-text">{current.description}</p>
 
           {/* Step dots */}
-          <div className="onboarding-step-dots" role="tablist" aria-label="خطوات التهيئة">
+          <div className="onboarding-step-dots" role="tablist" aria-orientation="horizontal" aria-label="خطوات التهيئة">
             {STEPS.map((_, i) => (
               <span key={i} className={`onboarding-dot${i === step ? " active" : ""}`} role="tab" aria-selected={i === step} aria-label={`خطوة ${i + 1} من ${STEPS.length}`} />
             ))}

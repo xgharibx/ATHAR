@@ -270,7 +270,7 @@ export function HadithBookViewPage() {
         <div
           ref={sectionsRef}
           dir="rtl"
-          role="tablist"
+          role="tablist" aria-orientation="horizontal"
           aria-label="تصفية الأبواب"
           className="flex gap-2 px-3 pb-3 overflow-x-auto no-scrollbar"
           onKeyDown={(e) => {

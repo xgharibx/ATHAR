@@ -84,7 +84,7 @@ export default function Companions() {
             </button>
           </div>
           {/* Category filter chips */}
-          <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="تصفية الصحابة" style={{ scrollbarWidth: "none" }}
+          <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-orientation="horizontal" aria-label="تصفية الصحابة" style={{ scrollbarWidth: "none" }}
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);

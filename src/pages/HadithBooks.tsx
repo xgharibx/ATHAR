@@ -397,7 +397,7 @@ export function HadithBooksPage() {
       </div>
 
       {/* Tab bar */}
-      <div className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass" role="tablist" aria-label="أقسام الحديث"
+      <div className="relative z-10 mx-4 mb-5 flex overflow-hidden rounded-2xl glass" role="tablist" aria-orientation="horizontal" aria-label="أقسام الحديث"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);

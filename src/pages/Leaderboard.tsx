@@ -296,7 +296,7 @@ export function LeaderboardPage() {
           الصيغة: ذكر + قرآن×٣ + صلاة×٤٠ + تسبيح
         </div>
 
-        <div role="tablist" aria-label="الفترة الزمنية" className="mt-3 flex flex-wrap gap-2"
+        <div role="tablist" aria-orientation="horizontal" aria-label="الفترة الزمنية" className="mt-3 flex flex-wrap gap-2"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);
@@ -311,7 +311,7 @@ export function LeaderboardPage() {
           <BoardTab label="سنوي" active={period === "yearly"} onClick={() => setPeriod("yearly")} controls="lb-board-panel" />
         </div>
 
-        <div role="tablist" aria-label="نوع اللوحة" className="mt-3 flex flex-wrap gap-2"
+        <div role="tablist" aria-orientation="horizontal" aria-label="نوع اللوحة" className="mt-3 flex flex-wrap gap-2"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);
@@ -843,7 +843,7 @@ function LeaderboardAdminCard(props: {
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <div className="rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
                   <div className="text-sm font-semibold">حظر أسماء أو كلمات</div>
-                  <div role="tablist" aria-label="نمط التطابق" className="flex gap-2 flex-wrap"
+                  <div role="tablist" aria-orientation="horizontal" aria-label="نمط التطابق" className="flex gap-2 flex-wrap"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);
