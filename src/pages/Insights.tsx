@@ -1087,7 +1087,7 @@ export function InsightsPage() {
             </span>
           )}
         </div>
-        <div className="flex items-end gap-1.5" style={{ height: "80px" }}>
+        <div className="flex items-end gap-1.5" style={{ height: "80px" }} role="img" aria-label="مخطط نشاط الأسبوع: آخر ٧ أيام">
           {last7Days.map((day) => {
             const barH = day.count > 0 ? Math.max(6, Math.round((day.count / maxWeekDay) * 60)) : 3;
             return (
@@ -1179,7 +1179,7 @@ export function InsightsPage() {
                 <span>نشاط القراءة (7 أيام)</span>
                 <span className="tabular-nums">{quranWeekTotal.toLocaleString("ar-EG")} آية</span>
               </div>
-              <div className="flex items-end gap-1.5" style={{ height: "64px" }}>
+              <div className="flex items-end gap-1.5" style={{ height: "64px" }} role="img" aria-label="مخطط قراءة القرآن: آخر ٧ أيام">
                 {quranLast7Days.map((day) => {
                   const barH = day.count > 0 ? Math.max(6, Math.round((day.count / quranMaxWeekDay) * 48)) : 3;
                   return (
@@ -1398,19 +1398,20 @@ export function InsightsPage() {
             </span>
           </div>
         ) : null}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-2" role="list" aria-label="الإنجازات">
           {unlockedMilestones.map((m) => (
             <div
               key={m.id}
-              className={[
+              role="listitem"
+            className={[
                 "flex flex-col items-center gap-1 py-3 rounded-2xl border transition-all",
                 m.unlocked
                   ? "border-accent-35 bg-accent-10"
                   : "border-[var(--stroke)] bg-[var(--card)] opacity-40 grayscale",
               ].join(" ")}
-              title={m.unlocked ? `مفتوح — ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم سلسلة`}` : `يتطلب ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم متواصل`}`}
+              aria-label={m.unlocked ? `${m.label} — مفتوح — ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم سلسلة`}` : `${m.label} — يتطلب ${m.type === "total" ? `${m.req.toLocaleString("ar-EG")} ذكر` : `${m.req.toLocaleString("ar-EG")} يوم متواصل`}`}
             >
-              <span className="text-2xl leading-none">{m.emoji}</span>
+              <span className="text-2xl leading-none" aria-hidden="true">{m.emoji}</span>
               <span className="text-[11px] font-medium text-center leading-tight">{m.label}</span>
               <span className="text-[10px] opacity-55 tabular-nums">
                 {m.type === "total" ? m.req.toLocaleString("ar-EG") : `${m.req.toLocaleString("ar-EG")}د`}

@@ -408,7 +408,7 @@ export function SearchPage() {
             description="جرّب كلمات مختلفة أو أقصر"
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" role="list" aria-label="نتائج الأذكار">
             {results.map((r) => {
               const identity = getSectionIdentity(r.sectionId);
               return (
@@ -482,7 +482,7 @@ export function SearchPage() {
             description="جرّب اسم سورة أو كلمة قرآنية"
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" role="list" aria-label="نتائج القرآن">
             {quranResults.map((r, idx) =>
               r.type === "surah" ? (
                 <button type="button"
@@ -568,7 +568,7 @@ export function SearchPage() {
             description="جرّب كلمة من الحديث أو اسم راوٍ أو موضوعاً مثل النية أو الصبر"
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" role="list" aria-label="نتائج المكتبة">
             {libraryResults.map((entry) => (
               <button type="button"
                 key={entry.key}
@@ -649,7 +649,7 @@ export function SearchPage() {
             description="جرّب كلمة مختلفة أو اختر كتاباً آخر"
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" role="list" aria-label="نتائج الحديث">
             {hadithResults.map((h) => {
               const book = HADITH_BOOKS_STATIC.find((b) => b.key === hadithBookKey);
               const gradeColor: Record<string, string> = { sahih: "#10b981", hasan: "#3b82f6", daif: "#ef4444", maudu: "#6b7280" };

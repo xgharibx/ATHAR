@@ -666,6 +666,7 @@ export function SettingsPage() {
                 <button type="button"
                   key={p.value}
                   onClick={() => setPrefs({ quranDailyGoal: p.value })}
+                  aria-pressed={(prefs.quranDailyGoal ?? 10) === p.value}
                   className={[
                     "px-3 py-2 rounded-xl border text-xs transition min-h-[36px]",
                     (prefs.quranDailyGoal ?? 10) === p.value
@@ -703,6 +704,7 @@ export function SettingsPage() {
               <button type="button"
                 key={r.id}
                 onClick={() => setPrefs({ quranReciter: r.id })}
+                aria-pressed={(prefs.quranReciter ?? "Alafasy_128kbps") === r.id}
                 className={[
                   "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px] text-right",
                   (prefs.quranReciter ?? "Alafasy_128kbps") === r.id
@@ -710,7 +712,7 @@ export function SettingsPage() {
                     : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                 ].join(" ")}
               >
-                <span className="text-base shrink-0">🎙</span>
+                <span className="text-base shrink-0" aria-hidden="true">🎙</span>
                 <span className="text-xs">{r.label}</span>
               </button>
             ))}

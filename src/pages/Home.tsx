@@ -1106,10 +1106,11 @@ export function HomePage() {
                   style={{ width: `${xpPct}%`, backgroundColor: xpLevel.color }}
                 />
               </div>
-              <div className="mt-2.5 flex gap-2 flex-wrap">
+              <div className="mt-2.5 flex gap-2 flex-wrap" role="list" aria-label="المهام">
                 {quests.map((q) => (
                   <div
                     key={q.id}
+                    role="listitem"
                     className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all"
                     style={q.done ? {
                       background: "color-mix(in srgb, var(--ok) 15%, transparent)",
@@ -1146,7 +1147,7 @@ export function HomePage() {
                 </div>
               )}
               {showItems && (
-                <div id="home-checklist-items" className="mt-3 space-y-2">
+                <div id="home-checklist-items" className="mt-3 space-y-2" role="list" aria-label="قائمة العبادات اليومية">
                   {DAILY_CHECKLIST_ITEMS.slice(0, checklistShowAll ? DAILY_CHECKLIST_ITEMS.length : CHECKLIST_INITIAL_LIMIT).map((item) => {
                     const isDone = !!dailyChecklistToday[item.id];
                     return (
@@ -1288,7 +1289,7 @@ export function HomePage() {
                   </div>
                 </div>
               )}
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3" role="list" aria-label="التسابيح السريعة">
                 {QUICK_TASBEEH.map((it) => {
                   const target = tasbeehTarget;
                   const v = Math.min(target, quickTasbeeh[it.key] ?? 0);
@@ -1410,7 +1411,7 @@ export function HomePage() {
               ) : quran.error || !dailyWird ? (
                 <div className="mt-4 text-sm opacity-65 leading-7">تعذر تحميل ورد اليوم.</div>
               ) : dailyWirdExpanded ? (
-                <div id="home-daily-wird-content" className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div id="home-daily-wird-content" className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3" role="list" aria-label="ورد اليوم">
                   {dailyWird.items.map((p) => (
                     <button type="button"
                       key={`${p.surahId}:${p.ayahIndex}`}
