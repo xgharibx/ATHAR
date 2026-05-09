@@ -63,7 +63,7 @@ export function SourcesPage() {
       <Card className="p-5">
         <div className="flex items-center gap-2">
           <Database size={18} className="text-[var(--accent)]" />
-          <div className="font-semibold">المصادر والبيانات</div>
+          <h1 className="font-semibold text-base leading-none">المصادر والبيانات</h1>
         </div>
 
         <div className="mt-3 text-sm opacity-70 leading-7">

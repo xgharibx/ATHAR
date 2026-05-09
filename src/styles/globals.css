@@ -23,6 +23,8 @@
 
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
 
+  color-scheme: dark;
+
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
@@ -44,6 +46,8 @@
   --stroke: rgba(15, 19, 37, 0.14);
 
   --shadow: 0 18px 50px rgba(15, 19, 37, 0.12);
+
+  color-scheme: light;
 }
 
 .noor {
@@ -2102,6 +2106,63 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
+/* ═══════════════════════════════════════════════════════════════
+   High-contrast accessibility: boost muted opacity & borders
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-contrast: more) {
+  :root {
+    --muted:   rgba(245, 247, 255, 0.92);
+    --muted-2: rgba(245, 247, 255, 0.80);
+    --stroke:  rgba(255, 255, 255, 0.22);
+    --card:    rgba(255, 255, 255, 0.10);
+    --card-2:  rgba(255, 255, 255, 0.15);
+  }
+  .light {
+    --muted:   rgba(15, 19, 37, 0.88);
+    --muted-2: rgba(15, 19, 37, 0.72);
+    --stroke:  rgba(15, 19, 37, 0.30);
+    --card:    rgba(15, 19, 37, 0.10);
+    --card-2:  rgba(15, 19, 37, 0.16);
+  }
+  /* Ensure muted text elements hit contrast thresholds */
+  .opacity-50, .opacity-55, .opacity-60, .opacity-65 { opacity: 0.85 !important; }
+  .opacity-40, .opacity-45 { opacity: 0.72 !important; }
+  .opacity-30, .opacity-35 { opacity: 0.60 !important; }
+  /* Thicker focus ring in high contrast */
+  :focus-visible {
+    outline-width: 3px;
+    outline-offset: 4px;
+  }
+}
+/* ═══════════════════════════════════════════════════════════════
+   Forced-colors (Windows High Contrast Mode) support
+   ═══════════════════════════════════════════════════════════════ */
+@media (forced-colors: active) {
+  /* Restore borders that rely on color-mix/opacity — they become invisible in HCM */
+  .glass,
+  .glass-strong,
+  .glass-card {
+    border: 1px solid ButtonText;
+  }
+  /* Ensure progress rings have visible strokes */
+  .progress-ring-circle {
+    forced-color-adjust: none;
+  }
+  /* Keep accent-colored text readable */
+  .text-\[var\(--accent\)\],
+  .floating-nav-item.active span {
+    forced-color-adjust: none;
+  }
+  /* Skeleton shimmer is meaningless in HCM — show as plain block */
+  .skeleton {
+    background: ButtonFace;
+    animation: none;
+  }
+}
+
+
+
+
 
 /* -------------------------------------------------------
    Focus Mode â€” hides chrome so user can focus on dhikr

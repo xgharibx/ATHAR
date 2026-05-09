@@ -287,9 +287,10 @@ export function LibraryPage() {
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" role="group" aria-label="تصفية بالموضوع">
         <button type="button"
           onClick={() => setTagFilter(null)}
+          aria-pressed={!tagFilter}
           className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", !tagFilter ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
         >
           كل الموضوعات
@@ -297,6 +298,7 @@ export function LibraryPage() {
         {tags.map(([tag, count]) => (
           <button type="button"
             key={tag}
+            aria-pressed={tagFilter === tag}
             onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
             className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
           >

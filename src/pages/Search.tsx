@@ -199,7 +199,7 @@ export function SearchPage() {
       <Card className="p-5">
         <div className="flex items-center gap-2">
           <Search size={18} className="opacity-70" />
-          <div className="font-semibold">بحث</div>
+          <h1 className="font-semibold text-base leading-none">بحث</h1>
         </div>
         <div className="mt-4 relative flex items-center gap-2">
           <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث في الأذكار والقرآن والمكتبة…" />
@@ -215,8 +215,10 @@ export function SearchPage() {
         </div>
 
         {/* Tab switcher */}
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex gap-2" role="tablist" aria-label="نوع البحث">
           <button type="button"
+            role="tab"
+            aria-selected={searchTab === "adhkar"}
             onClick={() => setSearchTab("adhkar")}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
@@ -228,6 +230,8 @@ export function SearchPage() {
             🤲 الأذكار
           </button>
           <button type="button"
+            role="tab"
+            aria-selected={searchTab === "quran"}
             onClick={() => setSearchTab("quran")}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
@@ -239,6 +243,8 @@ export function SearchPage() {
             <BookOpen size={13} /> القرآن
           </button>
           <button type="button"
+            role="tab"
+            aria-selected={searchTab === "library"}
             onClick={() => setSearchTab("library")}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
@@ -250,6 +256,8 @@ export function SearchPage() {
             <LibraryBig size={13} /> المكتبة
           </button>
           <button type="button"
+            role="tab"
+            aria-selected={searchTab === "hadith"}
             onClick={() => setSearchTab("hadith")}
             className={cn(
               "flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition min-h-[36px]",
@@ -370,7 +378,7 @@ export function SearchPage() {
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="text-sm font-semibold">النتائج</div>
           {q.trim() && (
-            <div className="text-xs opacity-55 tabular-nums">
+            <div className="text-xs opacity-55 tabular-nums" aria-live="polite" aria-atomic="true">
               {totalHits > 50 ? `${results.length} من ${totalHits}` : results.length}
             </div>
           )}

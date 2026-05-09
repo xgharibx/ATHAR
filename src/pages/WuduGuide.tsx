@@ -60,7 +60,7 @@ export function WuduGuidePage() {
                   <div className="text-xs opacity-60">دليل الوضوء</div>
                 </div>
                 <h1 className="text-xl font-semibold" style={{ color: "#06b6d4" }}>كيفية الوضوء</h1>
-                <div className="text-sm opacity-70 mt-1 tabular-nums">{done.size} / {WUDU_STEPS.length} خطوات</div>
+                <div className="text-sm opacity-70 mt-1 tabular-nums" aria-live="polite" aria-atomic="true">{done.size} / {WUDU_STEPS.length} خطوات</div>
               </div>
               <div className="flex items-center gap-1 mt-1">
                 <button
@@ -120,6 +120,8 @@ export function WuduGuidePage() {
             <button type="button"
               key={step.id}
               onClick={() => toggle(step.id)}
+              aria-pressed={isDone}
+              aria-label={`${step.title}${isDone ? " — تم" : ""}`}
               className="w-full text-right rounded-2xl p-4 transition-all duration-200 flex items-start gap-3"
               style={{
                 background: isDone

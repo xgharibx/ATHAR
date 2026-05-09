@@ -116,11 +116,13 @@ export function AsmaAlHusnaPage() {
               )}
             </div>
             {/* Filter tabs */}
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="tablist" aria-label="تصفية الأسماء">
               {(["all", "memorized", "favorites"] as FilterTab[]).map((t) => (
                 <button
                   key={t}
                   type="button"
+                  role="tab"
+                  aria-selected={tab === t}
                   onClick={() => setTab(t)}
                   className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
                   style={{
@@ -157,6 +159,8 @@ export function AsmaAlHusnaPage() {
               <button
                 type="button"
                 className="w-full text-right p-4"
+                aria-expanded={isExpanded}
+                aria-label={`${name.arabic} — ${name.meaning}`}
                 onClick={() => setExpandedId(isExpanded ? null : name.id)}
               >
                 <div className="flex items-start justify-between">

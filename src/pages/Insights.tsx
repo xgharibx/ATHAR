@@ -666,6 +666,7 @@ export function InsightsPage() {
 
   return (
     <div className="space-y-4 page-enter">
+      <h1 className="sr-only">رؤيتي</h1>
       {/* I6: XP Level badge */}
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">

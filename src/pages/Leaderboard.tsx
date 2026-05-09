@@ -262,7 +262,7 @@ export function LeaderboardPage() {
       <Card className="p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-sm font-semibold">لوحة المتصدرين</div>
+            <h1 className="text-sm font-semibold leading-none">لوحة المتصدرين</h1>
             <div className="text-xs opacity-65 mt-1 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[var(--accent)] inline-block opacity-80" />
               {identity.alias}

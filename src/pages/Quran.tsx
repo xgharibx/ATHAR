@@ -303,7 +303,7 @@ export function QuranPage() {
         {/* Title + search */}
         <div className="px-5 pt-5 pb-4">
           <div className="quran-home-hero-ornament mb-4">
-            <div className="quran-title text-2xl font-bold" style={{ color: "var(--accent)" }}>القرآن الكريم</div>
+            <h1 className="quran-title text-2xl font-bold" style={{ color: "var(--accent)" }}>القرآن الكريم</h1>
           </div>
 
           {/* Search — always visible, large */}
@@ -327,9 +327,9 @@ export function QuranPage() {
           </div>
 
           {/* Mode toggle — search surahs vs ayahs */}
-          <div className="mt-3 flex rounded-2xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden w-fit">
-            <button type="button" onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
-            <button type="button" onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
+          <div className="mt-3 flex rounded-2xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden w-fit" role="tablist" aria-label="وضع البحث">
+            <button type="button" role="tab" aria-selected={mode === "surahs"} onClick={() => setMode("surahs")} className={`px-4 h-9 text-sm transition ${mode === "surahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>السور</button>
+            <button type="button" role="tab" aria-selected={mode === "ayahs"} onClick={() => setMode("ayahs")} className={`px-4 h-9 text-sm transition ${mode === "ayahs" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}>بحث بالآيات</button>
           </div>
         </div>
 
@@ -561,14 +561,18 @@ export function QuranPage() {
             style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 40%, transparent)" }}
           >
             {/* Sort toggle */}
-            <div className="flex rounded-xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden text-sm">
+            <div className="flex rounded-xl bg-[var(--card)] border border-[var(--stroke)] overflow-hidden text-sm" role="tablist" aria-label="ترتيب السور">
               <button type="button"
+                role="tab"
+                aria-selected={sortMode === "mushaf"}
                 onClick={() => setSortMode("mushaf")}
                 className={`px-3.5 h-9 transition ${sortMode === "mushaf" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
               >
                 المصحف
               </button>
               <button type="button"
+                role="tab"
+                aria-selected={sortMode === "progress"}
                 onClick={() => setSortMode("progress")}
                 className={`px-3.5 h-9 transition ${sortMode === "progress" ? "bg-accent-20 text-[var(--accent)] font-semibold" : "opacity-55 hover:opacity-90"}`}
               >

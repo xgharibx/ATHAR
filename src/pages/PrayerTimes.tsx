@@ -1090,7 +1090,7 @@ export function PrayerTimesPage() {
       {!isRefreshing && !manualRefreshing && <>
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-xl font-bold">مواقيت الصلاة</div>
+        <h1 className="text-xl font-bold">مواقيت الصلاة</h1>
         <div className="flex items-center gap-1.5">
           <Button variant="secondary" size="sm" aria-label="القبلة" onClick={() => navigate("/qibla")}>
             <Compass size={15} />
@@ -1146,9 +1146,9 @@ export function PrayerTimesPage() {
       </Card>
 
       {/* Tab bar */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" role="tablist" aria-label="عرض مواقيت الصلاة">
         {TABS.map((tab) => (
-          <button type="button" key={tab.key} onClick={() => setActiveTab(tab.key)}
+          <button type="button" key={tab.key} role="tab" aria-selected={activeTab === tab.key} onClick={() => setActiveTab(tab.key)}
             className={cn(
               "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition",
               activeTab === tab.key

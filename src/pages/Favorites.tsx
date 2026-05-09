@@ -212,7 +212,7 @@ export function FavoritesPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Heart size={18} className="text-[var(--accent)]" />
-            <div className="font-semibold">المفضلة</div>
+            <div className="font-semibold"><h1 className="inline text-base leading-none">المفضلة</h1></div>
           </div>
           <div className="flex items-center gap-2">
             {activeTab === "adhkar" && items.length > 0 && (

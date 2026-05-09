@@ -23,7 +23,7 @@ export function NotFoundPage() {
 
           <div className="mt-4 text-4xl">🔍</div>
 
-          <div className="mt-4 text-xl font-bold">الصفحة غير موجودة</div>
+          <div className="mt-4 text-xl font-bold"><h1 className="inline text-xl font-bold">الصفحة غير موجودة</h1></div>
           <div className="mt-2 text-sm opacity-65 leading-7">
             ربما انتهى الرابط، أو تم نقل الصفحة إلى مكان آخر.
           </div>

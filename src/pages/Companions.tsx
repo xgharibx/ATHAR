@@ -83,8 +83,10 @@ export default function Companions() {
             </button>
           </div>
           {/* Category filter chips */}
-          <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+          <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="تصفية الصحابة" style={{ scrollbarWidth: "none" }}>
             <button type="button"
+              role="tab"
+              aria-selected={activeCategory === "all"}
               onClick={() => setActiveCategory("all")}
               className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition glass-hover press-effect"
               style={{
@@ -101,6 +103,8 @@ export default function Companions() {
               return (
                 <button type="button"
                   key={cat.key}
+                  role="tab"
+                  aria-selected={isActive}
                   onClick={() => setActiveCategory(cat.key)}
                   className="shrink-0 rounded-full px-3 py-1 text-xs font-arabic transition whitespace-nowrap glass-hover press-effect"
                   style={{
@@ -148,6 +152,7 @@ export default function Companions() {
             <button type="button"
               key={companion.id}
               onClick={() => setExpanded(isOpen ? null : companion.id)}
+              aria-expanded={isOpen}
               className="relative w-full overflow-hidden rounded-3xl p-4 text-right transition glass glass-hover press-effect"
             >
               <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
