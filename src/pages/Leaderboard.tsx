@@ -1136,6 +1136,7 @@ function LocalFriendsCard(props: {
                 value={importCode}
                 onChange={(e) => { setImportCode(e.target.value); setImportError(""); }}
                 placeholder="الصق كود الصديق هنا"
+                aria-label="رمز الصديق للإضافة"
               />
               <Button onClick={handleImport} disabled={!importCode.trim()}>
                 <Plus size={14} />

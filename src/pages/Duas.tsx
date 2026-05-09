@@ -160,7 +160,7 @@ export function DuasPage() {
         {query ? `نتائج البحث: ${displayedDuas.length} دعاء` : null}
       </div>
       {/* Duas list */}
-      <div className="px-4 pt-4 space-y-4">
+      <div className="px-4 pt-4 space-y-4" role="list" aria-label="قائمة الأدعية">
         {/* Category stats row */}
         {!showFavorites && !query && (
           <div className="flex items-center justify-between pb-1">
@@ -182,6 +182,7 @@ export function DuasPage() {
           return (
             <div
               key={dua.id}
+              role="listitem"
               className="rounded-2xl p-4 cv-auto"
               style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
             >

@@ -89,7 +89,8 @@ export function PageSkeleton() {
 /** Prayer times page skeleton */
 export function PrayerTimesPageSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" role="status" aria-label="جارٍ تحميل مواقيت الصلاة…">
+      <span className="sr-only">جارٍ تحميل مواقيت الصلاة…</span>
       {/* Title */}
       <Skeleton className="h-7 w-44 rounded-xl" />
       {/* Next prayer card */}

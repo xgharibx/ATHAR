@@ -32,6 +32,7 @@ function StoryCard({
 
   return (
     <div
+      role="listitem"
       className="rounded-2xl overflow-hidden transition-all duration-200 cv-auto"
       style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
     >
@@ -229,7 +230,7 @@ export function ProphetStoriesPage() {
         {query ? `نتائج البحث: ${filtered.length} قصة` : null}
       </div>
       {/* Stories */}
-      <div className="px-4 pt-4 space-y-3">
+      <div className="px-4 pt-4 space-y-3" role="list" aria-label="قائمة قصص الأنبياء">
         {filtered.length === 0 ? (
           <div className="text-center py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>
             {showBookmarksOnly ? "لا توجد قصص محفوظة" : "لا توجد نتائج"}

@@ -23,12 +23,13 @@ class RouteErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div dir="rtl" className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6 text-center">
-          <div className="text-2xl">!</div>
+        <div dir="rtl" role="alert" className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6 text-center">
+          <div className="text-2xl" aria-hidden="true">!</div>
           <div className="text-base font-semibold opacity-90">حدث خطأ في هذه الصفحة</div>
           <button type="button"
             className="px-4 py-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-sm"
             onClick={() => this.setState({ hasError: false })}
+            aria-label="إعادة المحاولة لتحميل الصفحة"
           >
             إعادة المحاولة
           </button>

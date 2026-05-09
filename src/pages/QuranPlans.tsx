@@ -407,12 +407,14 @@ export function QuranPlansPage() {
                 inputMode="numeric"
                 className="flex-1 bg-[var(--card)] border border-[var(--stroke)] rounded-2xl px-3 py-2 text-sm text-right focus:outline-none focus:border-accent-60"
                 placeholder="عدد الأيام"
+                aria-label="عدد أيام الخطة المخصصة"
+                aria-describedby="custom-days-hint"
               />
               <Button onClick={handleCustomStart} className="shrink-0 text-sm px-4">
                 ابدأ
               </Button>
             </div>
-            <div className="text-[10px] opacity-40 mt-1 text-right">
+            <div id="custom-days-hint" className="text-[10px] opacity-40 mt-1 text-right">
               {Number(customDays) > 0
                 ? `${toArabicNumeral(Math.ceil(TOTAL_QURAN_AYAHS / Math.max(1, Number(customDays))))} آية يومياً`
                 : "أدخل عدداً بين ٧ و٧٣٠"}

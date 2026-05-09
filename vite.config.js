@@ -86,6 +86,23 @@ export default defineConfig(function (_a) {
                             description: "الأذكار والآيات المحفوظة لديك",
                             url: "/favorites"
                         }
+                    ],
+                    prefer_related_applications: false,
+                    screenshots: [
+                        {
+                            src: "icons/screenshot-mobile.png",
+                            sizes: "390x844",
+                            type: "image/png",
+                            form_factor: "narrow",
+                            label: "الشاشة الرئيسية لتطبيق أثر"
+                        },
+                        {
+                            src: "icons/screenshot-desktop.png",
+                            sizes: "1280x800",
+                            type: "image/png",
+                            form_factor: "wide",
+                            label: "واجهة سطح المكتب لتطبيق أثر"
+                        }
                     ]
                 },
                 workbox: {

@@ -154,7 +154,7 @@ export default function Companions() {
       </div>
 
       {/* Cards grid */}
-      <div className="relative z-10 grid grid-cols-1 gap-3 p-4">
+      <div className="relative z-10 grid grid-cols-1 gap-3 p-4" role="list" aria-label="قائمة الصحابة">
         {filtered.length === 0 && (
           <div className="text-center py-10 opacity-50 text-sm font-arabic" style={{ color: "var(--fg)" }}>
             {showBookmarksOnly ? "لا توجد صحابة محفوظون" : "لا توجد نتائج"}
@@ -165,6 +165,7 @@ export default function Companions() {
           return (
             <div
               key={companion.id}
+              role="listitem"
               className="relative overflow-hidden rounded-3xl glass cv-auto"
               style={{ border: "1px solid var(--stroke)" }}
             >

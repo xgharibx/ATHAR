@@ -169,7 +169,7 @@ export function NearbyMosquesPage() {
 
       {/* Mosque list */}
       {mosques.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2" role="list" aria-label="المساجد القريبة">
           <div className="text-xs font-semibold opacity-60 uppercase tracking-wide mb-3" aria-live="polite" aria-atomic="true">
             {mosques.length} مسجد في نطاق 5 كم
           </div>
@@ -180,12 +180,13 @@ export function NearbyMosquesPage() {
                 ? `${Math.round(mosque.distanceKm * 1000)} م`
                 : `${mosque.distanceKm.toFixed(2)} كم`;
             return (
-              <Card key={mosque.id} className="p-4">
+              <Card key={mosque.id} role="listitem" className="p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xl"
                       style={{ backgroundColor: "var(--card)" }}
+                      aria-hidden="true"
                     >
                       🕌
                     </div>

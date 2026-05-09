@@ -156,7 +156,7 @@ export function AsmaAlHusnaPage() {
         {query ? `نتائج البحث: ${filtered.length} من أسماء الله الحسنى` : null}
       </div>
       {/* Grid */}
-      <div className="px-4 pt-4 grid grid-cols-2 gap-3">
+      <div className="px-4 pt-4 grid grid-cols-2 gap-3" role="list" aria-label="أسماء الله الحسنى">
         {filtered.map((name) => {
           const isExpanded = expandedId === name.id;
           const isMem = memorized.includes(name.id);
@@ -164,6 +164,7 @@ export function AsmaAlHusnaPage() {
           return (
             <div
               key={name.id}
+              role="listitem"
               className="rounded-2xl transition-all duration-200 cv-auto"
               style={{
                 background: isExpanded ? "var(--accent)" : "var(--card)",
