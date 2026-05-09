@@ -17,10 +17,17 @@ function useRadioState() {
   return state;
 }
 
-export function QuranRadioFab() {
+export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
+  // All hooks must be declared before any early return
   const [open, setOpen] = React.useState(false);
   const radio = useRadioState();
   const location = useLocation();
+
+  // Close expansion when the hamburger drawer opens
+  React.useEffect(() => { if (drawerOpen) setOpen(false); }, [drawerOpen]);
+
+  // Hide when drawer is open — all hooks already called above
+  if (drawerOpen) return null;
 
   const isMushaf = location.pathname.startsWith("/mushaf") || location.pathname.startsWith("/quran");
 

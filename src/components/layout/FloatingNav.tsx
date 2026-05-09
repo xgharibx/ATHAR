@@ -17,7 +17,7 @@ const NAV_ITEMS = [
   { path: "/leaderboard", label: "الترتيب", icon: Trophy },
 ] as const;
 
-export function FloatingNav() {
+export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   const location = useLocation();
   const [hidden, setHidden] = React.useState(false);
   const lastScrollY = React.useRef(0);
@@ -84,8 +84,10 @@ export function FloatingNav() {
 
   return (
     <nav
-      className={`floating-nav xl:hidden ${hidden ? "nav-hidden" : ""}`}
+      className={`floating-nav xl:hidden ${hidden || drawerOpen ? "nav-hidden" : ""}`}
       aria-label="التنقل الرئيسي"
+      aria-hidden={drawerOpen ? "true" : undefined}
+      style={drawerOpen ? { pointerEvents: "none" } : undefined}
     >
       <div className="flex items-center gap-0.5">
         {NAV_ITEMS.map((item) => {

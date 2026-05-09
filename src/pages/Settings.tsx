@@ -1,14 +1,15 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, Type, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, RotateCw, Type, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import pkgJson from "../../package.json";
 
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { Slider } from "@/components/ui/Slider";
 import { Input } from "@/components/ui/Input";
-import { useNoorStore, type NoorTheme, type ExportBlobV1, type HomeWidgetKey } from "@/store/noorStore";
+import { useNoorStore, DEFAULT_HOME_WIDGETS_ORDER, type NoorTheme, type ExportBlobV1, type HomeWidgetKey } from "@/store/noorStore";
 import { downloadJson } from "@/lib/download";
 import { clamp } from "@/lib/utils";
 import {
@@ -217,7 +218,7 @@ export function SettingsPage() {
         </button>
       </div>
 
-      <Card className="p-4">
+      <Card id="settings-summary" className="p-4">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={16} className="text-[var(--accent)]" />
           <div className="text-sm font-semibold">ملخص بياناتك</div>
@@ -242,7 +243,7 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      <Card className="p-5">
+      <Card id="settings-appearance" className="p-5">
         <div className="flex items-center gap-2">
           <Palette size={18} className="text-[var(--accent)]" />
           <div className="font-semibold">المظهر</div>
@@ -283,6 +284,13 @@ export function SettingsPage() {
               <Switch checked={prefs.reduceMotion} onCheckedChange={(v) => setPrefs({ reduceMotion: v })} />
             }
           />
+          <SettingRow
+            title="الوضع الشفاف"
+            desc="خلفية زجاجية مضيئة للبطاقات"
+            right={
+              <Switch checked={prefs.transparentMode} onCheckedChange={(v) => setPrefs({ transparentMode: v })} />
+            }
+          />
         </div>
 
         {/* Custom accent color */}
@@ -308,7 +316,7 @@ export function SettingsPage() {
               </label>
               {prefs.customAccent && (
                 <button type="button"
-                  onClick={() => setPrefs({ customAccent: undefined })}
+                  onClick={() => { setPrefs({ customAccent: undefined }); toast("تم مسح اللون المخصص"); }}
                   className="text-xs px-2.5 py-1.5 rounded-xl bg-white/8 border border-white/10 opacity-70 hover:opacity-100 transition min-h-[36px]"
                 >
                   إعادة ضبط
@@ -361,15 +369,15 @@ export function SettingsPage() {
               {(["ar", "en"] as const).map((lang) => (
                 <button type="button"
                   key={lang}
-                  onClick={() => setPrefs({ uiLanguage: lang })}
+                  onClick={() => lang === "ar" ? setPrefs({ uiLanguage: lang }) : toast("الترجمة الإنجليزية قريبًا")}
                   className={[
-                    "px-4 py-2 rounded-xl border text-sm transition min-h-[40px]",
+                    "px-4 py-2 rounded-xl border text-sm transition min-h-[40px] relative",
                     (prefs.uiLanguage ?? "ar") === lang
                       ? "bg-[var(--accent)]/15 border-[var(--accent)]/35 font-semibold"
-                      : "bg-white/6 border-white/10 hover:bg-white/10"
+                      : "bg-white/6 border-white/10 hover:bg-white/10 opacity-60"
                   ].join(" ")}
                 >
-                  {lang === "ar" ? "عربي" : "English"}
+                  {lang === "ar" ? "عربي" : <span className="flex items-center gap-1">English <span className="text-[9px] bg-white/15 rounded px-1 py-0.5 leading-none">قريبًا</span></span>}
                 </button>
               ))}
             </div>
@@ -425,7 +433,7 @@ export function SettingsPage() {
       {/* Se5: Home widgets reorder */}
       <HomeWidgetsCard prefs={prefs} setPrefs={setPrefs} />
 
-      <Card className="p-5">
+      <Card id="settings-reading" className="p-5">
         <div className="flex items-center gap-2">
           <SlidersHorizontal size={18} className="text-[var(--accent)]" />
           <div className="font-semibold">القراءة</div>
@@ -634,10 +642,10 @@ export function SettingsPage() {
             <div className="flex items-center gap-2 flex-wrap">
               {/* Presets */}
               {([
-                { label: "١٠ آيات", value: 10 },
-                { label: "صفحة (١٥)", value: 15 },
-                { label: "٥ صفحات (٧٥)", value: 75 },
-                { label: "جزء (٢٠٨)", value: 208 },
+                { label: "مبتدئ — ١٠ آيات", value: 10 },
+                { label: "منتظم — صفحة", value: 15 },
+                { label: "متميز — ٥ صفحات", value: 75 },
+                { label: "حافظ — جزء كامل", value: 208 },
               ]).map((p) => (
                 <button type="button"
                   key={p.value}
@@ -715,7 +723,7 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      <Card className="p-5">
+      <Card id="settings-tasbeeh" className="p-5">
         <div className="flex items-center gap-2">
           <Sparkles size={18} className="text-[var(--accent)]" />
           <div className="font-semibold">تجربة التسبیح</div>
@@ -730,6 +738,13 @@ export function SettingsPage() {
             }
           />
           <SettingRow
+            title="أصوات العدّ"
+            desc="صوت خفيف عند كل عدّة"
+            right={
+              <Switch checked={prefs.enableSounds} onCheckedChange={(v) => setPrefs({ enableSounds: v })} />
+            }
+          />
+          <SettingRow
             title="الانتقال التلقائي"
             desc="ينتقل للذكر التالي عند الاكتمال"
             right={
@@ -739,7 +754,7 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      <Card className="p-5">
+      <Card id="settings-reminders" className="p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Bell size={18} className="text-[var(--accent)]" />
@@ -781,6 +796,25 @@ export function SettingsPage() {
             }}
           />
         </div>
+
+        {isNative && reminders.enabled && (
+          <div className="mt-2 flex justify-end">
+            <button type="button"
+              onClick={async () => {
+                try {
+                  await syncReminders(reminders);
+                  toast.success("تمت مزامنة التذكيرات");
+                } catch {
+                  toast.error("تعذرت المزامنة");
+                }
+              }}
+              className="text-xs px-3 py-1.5 rounded-xl border border-white/12 bg-white/6 hover:bg-white/10 transition flex items-center gap-1.5 min-h-[36px]"
+            >
+              <RotateCw size={12} />
+              مزامنة الآن
+            </button>
+          </div>
+        )}
 
         {!isNative ? (
           <div className="mt-4 text-xs opacity-65 leading-6">
@@ -912,6 +946,9 @@ export function SettingsPage() {
             </div>
           </div>
 
+          <div className="md:col-span-2 pt-3 pb-1">
+            <div className="text-xs font-semibold opacity-55 border-b border-white/8 pb-2">تذكيرات الأذكار اليومية</div>
+          </div>
           <div className="glass rounded-3xl p-4 border border-white/10">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -1021,14 +1058,14 @@ export function SettingsPage() {
                 aria-label="حديث الفجر اليومي"
                 checked={reminders.dailyHadithNotif ?? false}
                 onCheckedChange={(v) => setReminders({ dailyHadithNotif: v })}
-                disabled={!reminders.enabled || !reminders.prayerAlertsEnabled}
+                disabled={!reminders.enabled}
               />
             </div>
           </div>
         </div>
       </Card>
 
-      <Card className="p-5">
+      <Card id="settings-backup" className="p-5">
         <div className="flex items-center justify-between gap-4">
           <div>
             <div className="text-sm font-semibold">النسخ الاحتياطي</div>
@@ -1071,27 +1108,28 @@ export function SettingsPage() {
       </Card>
 
       {/* Se8 + Se9: Security & Advanced */}
-      <Card className="p-5">
+      <Card id="settings-security" className="p-5">
         <div className="flex items-center gap-2 mb-4">
           <Fingerprint size={18} className="text-[var(--accent)]" />
           <div className="font-semibold">الأمان والمتقدّم</div>
         </div>
         <div className="space-y-3">
-          {/* Se8: Biometric lock */}
-          <SettingRow
-            title="القفل البيومتري"
-            desc={isNative ? "حماية التطبيق ببصمة الإصبع أو التعرف على الوجه" : "متاح في تطبيق الهاتف فقط"}
-            right={
-              <Switch
-                checked={prefs.biometricLock ?? false}
-                onCheckedChange={(v) => {
-                  if (!isNative) { toast("القفل البيومتري متاح في تطبيق الهاتف فقط"); return; }
-                  setPrefs({ biometricLock: v });
-                  toast(v ? "سيُطلب منك بصمة الإصبع عند الفتح" : "تم إيقاف القفل البيومتري");
-                }}
-              />
-            }
-          />
+          {/* Se8: Biometric lock — only shown on native */}
+          {isNative && (
+            <SettingRow
+              title="القفل البيومتري"
+              desc="حماية التطبيق ببصمة الإصبع أو التعرف على الوجه"
+              right={
+                <Switch
+                  checked={prefs.biometricLock ?? false}
+                  onCheckedChange={(v) => {
+                    setPrefs({ biometricLock: v });
+                    toast(v ? "سيُطلب منك بصمة الإصبع عند الفتح" : "تم إيقاف القفل البيومتري");
+                  }}
+                />
+              }
+            />
+          )}
           {/* Se9: App icon variants */}
           <div className="glass rounded-3xl p-4 border border-white/10">
             <div className="flex items-center gap-2 mb-2">
@@ -1126,7 +1164,7 @@ export function SettingsPage() {
       </Card>
 
       {/* محتوى وأدلة */}
-      <Card className="p-5">
+      <Card id="settings-content" className="p-5">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-base">📚</span>
           <div className="text-sm font-semibold">محتوى وأدلة</div>
@@ -1160,7 +1198,7 @@ export function SettingsPage() {
       <DangerZone />
 
       <div className="text-[11px] opacity-40 text-center pb-2 leading-5">
-        ATHAR • أثر · v1.0.0 · بيانات محلية
+        ATHAR • أثر · v{pkgJson.version} · بيانات محلية
       </div>
     </div>
   );
@@ -1184,7 +1222,7 @@ function HomeWidgetsCard(props: {
   setPrefs: (partial: Partial<import("@/store/noorStore").Preferences>) => void;
 }) {
   const { prefs, setPrefs } = props;
-  const order: HomeWidgetKey[] = prefs.homeWidgetsOrder ?? ["prayer", "hadith", "wisdom", "dailyStep", "checklist", "tasbeeh", "dailyWird", "smart"];
+  const order: HomeWidgetKey[] = prefs.homeWidgetsOrder ?? [...DEFAULT_HOME_WIDGETS_ORDER];
 
   const moveUp = (i: number) => {
     if (i === 0) return;
@@ -1239,7 +1277,15 @@ function HomeWidgetsCard(props: {
               tabIndex={key === "prayer" ? 0 : undefined}
               onClick={key === "prayer" ? () => { document.getElementById("prayer-settings")?.scrollIntoView({ behavior: "smooth", block: "center" }); } : undefined}
               onKeyDown={key === "prayer" ? (e) => { if (e.key === "Enter" || e.key === " ") document.getElementById("prayer-settings")?.scrollIntoView({ behavior: "smooth", block: "center" }); } : undefined}
-            >{HOME_WIDGET_LABELS[key]}</span>
+            >
+              {HOME_WIDGET_LABELS[key]}
+              {(key === "wisdom" || key === "dailyVerse") && (
+                <span className="text-[10px] opacity-35 bg-white/6 rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن شريط اليومي</span>
+              )}
+              {key === "quests" && (
+                <span className="text-[10px] opacity-35 bg-white/6 rounded-md px-1.5 py-0.5 mr-1 whitespace-nowrap">ضمن القائمة</span>
+              )}
+            </span>
             <Switch
               aria-label={HOME_WIDGET_LABELS[key]}
               checked={prefs.homeWidgets[key] ?? true}
@@ -1278,6 +1324,16 @@ function DangerZone() {
     try {
       localStorage.clear();
       sessionStorage.clear();
+      // Also wipe all IndexedDB databases (quran cache, etc.)
+      if (typeof indexedDB !== "undefined" && indexedDB.databases) {
+        void indexedDB.databases().then((dbs) => {
+          for (const db of dbs) {
+            if (db.name) indexedDB.deleteDatabase(db.name);
+          }
+        });
+      } else {
+        indexedDB.deleteDatabase("noor-quran-cache-v1");
+      }
       toast.success("تم مسح جميع البيانات");
       setTimeout(() => window.location.reload(), 800);
     } catch {

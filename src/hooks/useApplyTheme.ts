@@ -65,12 +65,17 @@ export function useApplyTheme() {
   const arabicFont = useNoorStore((s) => s.prefs.arabicFont);
   const textDir = useNoorStore((s) => s.prefs.textDir);
   const uiLanguage = useNoorStore((s) => s.prefs.uiLanguage);
+  const transparentMode = useNoorStore((s) => s.prefs.transparentMode);
 
   useEffect(() => {
     apply(theme);
 
-    // Always-on immersive transparent mode
-    document.body.classList.add("transparent-mode");
+    // Immersive transparent mode — respects the user preference
+    if (transparentMode) {
+      document.body.classList.add("transparent-mode");
+    } else {
+      document.body.classList.remove("transparent-mode");
+    }
 
     const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
     if (!mq || theme !== "system") return;
@@ -78,7 +83,7 @@ export function useApplyTheme() {
     const onChange = () => apply("system");
     mq.addEventListener?.("change", onChange);
     return () => mq.removeEventListener?.("change", onChange);
-  }, [theme]);
+  }, [theme, transparentMode]);
 
   useEffect(() => {
     const root = document.documentElement;

@@ -139,7 +139,7 @@ export function CommandPalette(props: Props) {
       return;
     }
     try {
-      const out = fuse.search(query).slice(0, 12).map((r) => r.item);
+      const out = fuse.search(query).slice(0, 20).map((r) => r.item);
       setResults(out);
     } catch {
       setResults([]);
@@ -148,15 +148,11 @@ export function CommandPalette(props: Props) {
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        props.setOpen(!props.open);
-      }
       if (e.key === "Escape") props.setOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [props]);
+  }, [props.setOpen]);
 
   const go = (path: string) => {
     navigate(path);
@@ -208,6 +204,8 @@ export function CommandPalette(props: Props) {
               <Command.Group heading="الصفحات" className="px-2">
                 <Item onSelect={() => go("/")} icon={<span className="text-base">🏠</span>}>الرئيسية</Item>
                 <Item onSelect={() => go("/quran")} icon={<span className="text-base">📖</span>}>المصحف</Item>
+                <Item onSelect={() => go("/sebha")} icon={<span className="text-base">📿</span>}>السبحة</Item>
+                <Item onSelect={() => go("/prayer-times")} icon={<span className="text-base">🕌</span>}>مواقيت الصلاة</Item>
                 <Item onSelect={() => go("/library")} icon={<LibraryBig size={16} />}>المكتبة الإسلامية</Item>
                 <Item onSelect={() => go("/search")} icon={<span className="text-base">🔍</span>}>البحث</Item>
                 <Item onSelect={() => go("/favorites")} icon={<span className="text-base">❤️</span>}>المفضلة</Item>
@@ -271,7 +269,7 @@ export function CommandPalette(props: Props) {
                 <>
                   <Command.Separator className="h-px bg-white/10 my-2" />
                   <Command.Group heading="الأقسام" className="px-2">
-                    {data.db.sections.slice(0, 12).map((s) => {
+                    {data.db.sections.map((s) => {
                       const identity = getSectionIdentity(s.id);
                       return (
                         <Item key={s.id} onSelect={() => go(`/c/${s.id}`)} icon={<span className="text-base">{identity.icon}</span>}>

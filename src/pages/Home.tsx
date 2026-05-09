@@ -1070,6 +1070,7 @@ export function HomePage() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-sm font-semibold">المهام والأهداف اليومية</div>
+                  {(homeWidgets.quests ?? true) && (
                   <button
                     type="button"
                     className="text-xs opacity-55 mt-0.5 hover:opacity-80 transition-opacity text-right"
@@ -1082,6 +1083,7 @@ export function HomePage() {
                   >
                     {xpLevel.emoji} {xpLevel.label} — {totalXp.toLocaleString("ar-SA")} نقطة
                   </button>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge>{`${DAILY_CHECKLIST_ITEMS.length - adaptiveMission.debtToday.length}/${DAILY_CHECKLIST_ITEMS.length}`}</Badge>
@@ -1094,14 +1096,15 @@ export function HomePage() {
                   </button>
                 </div>
               </div>
-              {/* XP progress bar */}
+              {/* XP progress bar + quest chips — hidden when quests widget is off */}
+              {(homeWidgets.quests ?? true) && (
+              <>
               <div className="mt-2.5 h-1 rounded-full bg-white/8 overflow-hidden">
                 <div
                   className="h-full rounded-full transition-[width] duration-700"
                   style={{ width: `${xpPct}%`, backgroundColor: xpLevel.color }}
                 />
               </div>
-              {/* Quest chips */}
               <div className="mt-2.5 flex gap-2 flex-wrap">
                 {quests.map((q) => (
                   <div
@@ -1122,6 +1125,8 @@ export function HomePage() {
                   </div>
                 ))}
               </div>
+              </>
+              )}
               {/* Checklist items progress bar */}
               {DAILY_CHECKLIST_ITEMS.length > 0 && (
                 <div className="mt-2.5 h-1 rounded-full bg-white/8 overflow-hidden">

@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock } from "lucide-react";
+import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock, BookMarked, Clapperboard, Trophy } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -39,11 +39,7 @@ const BottomSheetContent = React.forwardRef<HTMLDivElement, {
   const dragRef = React.useRef({ startY: 0, currentY: 0, active: false });
 
   const onTouchStart = React.useCallback((e: React.TouchEvent) => {
-    // Only activate drag from the top 72px (pill handle zone)
-    const rect = sheetRef.current?.getBoundingClientRect();
-    if (!rect) return;
     const touchY = e.touches[0].clientY;
-    if (touchY - rect.top > 72) return;
     dragRef.current = { startY: touchY, currentY: touchY, active: true };
   }, []);
 
@@ -157,6 +153,9 @@ const MAIN_NAV_LINKS = [
   { path: "/prayer-times", icon: Clock, label: "الصلاة", color: "#60a5fa" },
   { path: "/search", icon: Search, label: "البحث", color: "#e879f9" },
   { path: "/favorites", icon: Heart, label: "المفضلة", color: "#fb7185" },
+  { path: "/video-library", icon: Clapperboard, label: "الدورات", color: "#f472b6" },
+  { path: "/library", icon: BookMarked, label: "المكتبة", color: "#34d399" },
+  { path: "/leaderboard", icon: Trophy, label: "الترتيب", color: "#fbbf24" },
   { path: "/insights", icon: LineChart, label: "إحصاء", color: "#3ddc97" },
   { path: "/settings", icon: Settings2, label: "إعدادات", color: "#a78bfa" },
 ] as const;
@@ -231,18 +230,18 @@ function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onN
   );
 }
 
-function SidebarContent(props: { onNavigate?: () => void }) {
+function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
   const { data } = useAdhkarDB();
   const progress = useNoorStore((s) => s.progress);
   const activityToday = useNoorStore((s) => s.activity[todayISO()] ?? 0);
+  const prefs = useNoorStore((s) => s.prefs);
+  const setPrefs = useNoorStore((s) => s.setPrefs);
 
   const smartSummary = React.useMemo(() => {
     if (!data) return { percent: 0, done: 0, total: 0 };
-
     const { db } = data;
     let done = 0;
     let total = 0;
-
     for (const s of db.sections) {
       for (let i = 0; i < s.content.length; i++) {
         const target = coerceCount(s.content[i]?.count);
@@ -252,17 +251,24 @@ function SidebarContent(props: { onNavigate?: () => void }) {
         done += current;
       }
     }
-
     return { percent: pct(done, total), done, total };
   }, [data, progress]);
 
   if (!data) return null;
   const { db } = data;
 
+  const cycleTheme = () => {
+    const ALL_THEMES = ["system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist"] as const;
+    const idx = ALL_THEMES.indexOf(prefs.theme as typeof ALL_THEMES[number]);
+    const next = ALL_THEMES[(idx + 1) % ALL_THEMES.length];
+    setPrefs({ theme: next });
+    toast(`🎨 ${themeLabel(next)}`, { duration: 1500 });
+  };
+
   return (
     <div className="h-full flex flex-col" dir="rtl">
-      {/* Pill handle (mobile bottom-sheet style) */}
-      <div className="flex justify-center pt-3 pb-1 xl:hidden">
+      {/* Pill handle */}
+      <div className={`flex justify-center pt-3 pb-1 ${props.mobile ? "" : "xl:hidden"}`}>
         <div className="w-10 h-1 rounded-full bg-white/20" />
       </div>
 
@@ -277,19 +283,31 @@ function SidebarContent(props: { onNavigate?: () => void }) {
             <div className="text-[11px] opacity-55 mt-0.5">اترك أثراً طيباً</div>
           </div>
           <button type="button"
-            onClick={props.onNavigate}
-            className="xl:hidden w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90"
-            aria-label="إغلاق"
+            onClick={cycleTheme}
+            className="w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90"
+            aria-label={`تبديل المظهر (الحالي: ${themeLabel(prefs.theme)})`}
           >
-            <X size={16} className="opacity-60" />
+            {prefs.theme === 'light' ? <Moon size={16} className="opacity-60" /> : <Sun size={16} className="opacity-60" />}
           </button>
+          {props.onNavigate && (
+            <button type="button"
+              onClick={props.onNavigate}
+              className={`w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90 ${props.mobile ? "" : "xl:hidden"}`}
+              aria-label="إغلاق"
+            >
+              <X size={16} className="opacity-60" />
+            </button>
+          )}
         </div>
 
         {/* Today's stats strip */}
         <div className="mt-3 flex items-center gap-2">
           <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
             <div className="text-[11px] opacity-55 uppercase tracking-wider">نشاط اليوم</div>
-            <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: "var(--accent)" }}>{activityToday}</div>
+            <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: "var(--accent)" }}>
+              {activityToday}
+              <span className="text-[10px] font-normal opacity-60 mr-1">ذكر</span>
+            </div>
           </div>
           <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
             <div className="text-[11px] opacity-55 uppercase tracking-wider">الإنجاز</div>
@@ -301,118 +319,9 @@ function SidebarContent(props: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      {/* Divider */}
       <div className="h-px mx-5 bg-white/8" />
 
       {/* Main navigation links */}
-      <div className="px-4 py-3">
-        <div className="grid grid-cols-4 gap-2">
-          {MAIN_NAV_LINKS.map((link) => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              end={link.path === "/"}
-              onClick={props.onNavigate}
-              className={({ isActive }) => cn(
-                "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-1 border transition active:scale-[.94]",
-                isActive
-                  ? "bg-[var(--accent)]/12 border-[var(--accent)]/30"
-                  : "bg-white/4 border-white/6 hover:bg-white/8"
-              )}
-            >
-              <div
-                className="w-8 h-8 rounded-xl grid place-items-center"
-                style={{ background: `${link.color}18` }}
-              >
-                <link.icon size={15} style={{ color: link.color }} />
-              </div>
-              <span className="text-[10px] font-medium opacity-70 text-center leading-tight">{link.label}</span>
-            </NavLink>
-          ))}
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="h-px mx-5 bg-white/8" />
-
-      {/* Sections list */}
-      <div className="px-3 pt-3 pb-2">
-        <div className="px-2 mb-2 text-[11px] font-semibold opacity-45 uppercase tracking-wider">الأقسام</div>
-      </div>
-      <div className="flex-1 overflow-auto overscroll-contain px-3 pb-6 space-y-1 drawer-stagger" style={{ maxHeight: "calc(100dvh - 400px)" }}>
-        {db.sections.map((s) => (
-          <SidebarItem key={s.id} s={s} onNavigate={props.onNavigate} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MobileSidebarContent(props: { onNavigate?: () => void }) {
-  const { data } = useAdhkarDB();
-  const progress = useNoorStore((s) => s.progress);
-  const activityToday = useNoorStore((s) => s.activity[todayISO()] ?? 0);
-
-  const smartSummary = React.useMemo(() => {
-    if (!data) return { percent: 0 };
-    const { db } = data;
-    let done = 0, total = 0;
-    for (const s of db.sections) {
-      for (let i = 0; i < s.content.length; i++) {
-        const target = coerceCount(s.content[i]?.count);
-        const key = `${s.id}:${i}`;
-        const current = Math.min(Math.max(0, Number(progress[key]) || 0), target);
-        total += target;
-        done += current;
-      }
-    }
-    return { percent: pct(done, total) };
-  }, [data, progress]);
-
-  if (!data) return null;
-
-  return (
-    <div className="h-full flex flex-col" dir="rtl">
-      <div className="flex justify-center pt-3 pb-1">
-        <div className="w-10 h-1 rounded-full bg-white/20" />
-      </div>
-
-      <div className="px-5 pt-3 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/15 shadow-lg">
-            <LogoMark className="w-full h-full" title="Athar" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-bold text-base" style={{fontFamily:"'Georgia','Times New Roman',serif",letterSpacing:"0.04em"}}>Athar</div>
-            <div className="text-[11px] opacity-55 mt-0.5">اترك أثراً طيباً</div>
-          </div>
-          <button type="button"
-            onClick={props.onNavigate}
-            className="w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90"
-            aria-label="إغلاق"
-          >
-            <X size={16} className="opacity-60" />
-          </button>
-        </div>
-
-        {/* Today's stats strip */}
-        <div className="mt-3 flex items-center gap-2">
-          <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
-            <div className="text-[11px] opacity-55 uppercase tracking-wider">نشاط اليوم</div>
-            <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: "var(--accent)" }}>{activityToday}</div>
-          </div>
-          <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
-            <div className="text-[11px] opacity-55 uppercase tracking-wider">الإنجاز</div>
-            <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: smartSummary.percent >= 100 ? "var(--ok)" : "var(--accent)" }}>{smartSummary.percent}%</div>
-          </div>
-        </div>
-        <div className="mt-2 h-1 rounded-full bg-white/8 overflow-hidden">
-          <div className="h-full progress-accent" style={{ width: `${smartSummary.percent}%` }} />
-        </div>
-      </div>
-
-      <div className="h-px mx-5 bg-white/8" />
-
       <div className="px-4 py-3">
         <div className="grid grid-cols-4 gap-2">
           {MAIN_NAV_LINKS.map((link) => (
@@ -439,16 +348,25 @@ function MobileSidebarContent(props: { onNavigate?: () => void }) {
 
       <div className="h-px mx-5 bg-white/8" />
 
+      {/* Sections list */}
       <div className="px-3 pt-3 pb-2">
         <div className="px-2 mb-2 text-[11px] font-semibold opacity-45 uppercase tracking-wider">الأقسام</div>
       </div>
-      <div className="flex-1 overflow-auto overscroll-contain px-3 pb-6 space-y-1">
-        {data.db.sections.map((s) => (
+      <div
+        className="flex-1 overflow-auto overscroll-contain px-3 pb-6 space-y-1 drawer-stagger"
+        style={props.mobile ? undefined : { maxHeight: "calc(100dvh - 400px)" }}
+      >
+        {db.sections.map((s) => (
           <SidebarItem key={s.id} s={s} onNavigate={props.onNavigate} />
         ))}
       </div>
     </div>
   );
+}
+
+/** Alias kept for the mobile hamburger drawer — renders SidebarContent in mobile mode */
+function MobileSidebarContent(props: { onNavigate?: () => void }) {
+  return <SidebarContent mobile onNavigate={props.onNavigate} />;
 }
 
 export function AppShell() {
@@ -461,18 +379,26 @@ export function AppShell() {
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
 
-  // De11: Alt+T keyboard shortcut to toggle dark/light
+  // De11: Alt+T keyboard shortcut to cycle all 12 themes; Ctrl+K to open command palette
   React.useEffect(() => {
+    const ALL_THEMES: import("@/store/noorStore").NoorTheme[] = [
+      "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist",
+    ];
     const handler = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 't') {
-        const next = prefs.theme === 'light' ? 'dark' : 'light';
+        const idx = ALL_THEMES.indexOf(prefs.theme as import("@/store/noorStore").NoorTheme);
+        const next = ALL_THEMES[(idx + 1) % ALL_THEMES.length];
         setPrefs({ theme: next });
-        toast(next === 'dark' ? '🌙 المظهر الداكن' : '☀️ المظهر الفاتح', { duration: 1500 });
+        toast(`🎨 ${themeLabel(next)}`, { duration: 1500 });
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
       }
     };
     globalThis.addEventListener('keydown', handler);
     return () => globalThis.removeEventListener('keydown', handler);
-  }, [prefs.theme, setPrefs]);
+  }, [prefs.theme, setPrefs, setPaletteOpen]);
 
   React.useEffect(() => {
     appShellMountedCount += 1;
@@ -513,16 +439,16 @@ export function AppShell() {
       ) : null}
 
       {/* Floating bottom navigation for mobile */}
-      <FloatingNav />
+      <FloatingNav drawerOpen={drawerOpen} />
 
       {/* Floating quick tasbeeh FAB */}
       <React.Suspense fallback={null}>
-        <QuickTasbeehFab />
+        <QuickTasbeehFab drawerOpen={drawerOpen} />
       </React.Suspense>
 
       {/* Quran Radio FAB */}
       <React.Suspense fallback={null}>
-        <QuranRadioFab />
+        <QuranRadioFab drawerOpen={drawerOpen} />
       </React.Suspense>
 
       {/* Top Bar */}
@@ -571,18 +497,25 @@ export function AppShell() {
               </IconButton>
 
               {/* Settings: hide at very narrow viewport (accessible via hamburger menu) */}
-              <NavLink to="/settings" aria-label="الإعدادات" className="inline-flex items-center justify-center rounded-2xl p-2.5 bg-white/6 hover:bg-white/10 border border-white/10 transition active:scale-[.99] min-h-[44px] min-w-[44px] max-[340px]:hidden">
+              <NavLink
+                to="/settings"
+                aria-label="الإعدادات"
+                data-noor-tip="الإعدادات"
+                className="max-[340px]:hidden inline-flex items-center justify-center rounded-2xl p-2.5 bg-white/6 hover:bg-white/10 border border-white/10 transition active:scale-[.99] min-h-[44px] min-w-[44px]"
+              >
                 <Settings2 size={18} />
               </NavLink>
 
               {/* Theme toggle: hide at very narrow viewport */}
               <IconButton
-                aria-label={prefs.theme === 'light' ? 'تبديل إلى المظهر الداكن' : 'تبديل إلى المظهر الفاتح'}
+                aria-label={`تبديل المظهر (${themeLabel(prefs.theme)})`}
                 className="max-[340px]:hidden"
                 onClick={() => {
-                  const next = prefs.theme === 'light' ? 'dark' : 'light';
+                  const ALL_THEMES = ["system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist"] as const;
+                  const idx = ALL_THEMES.indexOf(prefs.theme as typeof ALL_THEMES[number]);
+                  const next = ALL_THEMES[(idx + 1) % ALL_THEMES.length];
                   setPrefs({ theme: next });
-                  toast(next === 'dark' ? '🌙 المظهر الداكن' : '☀️ المظهر الفاتح', { duration: 1500 });
+                  toast(`🎨 ${themeLabel(next)}`, { duration: 1500 });
                 }}
               >
                 {prefs.theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}

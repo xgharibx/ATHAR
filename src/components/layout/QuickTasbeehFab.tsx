@@ -11,21 +11,28 @@ const TASBEEHAT = [
 
 type TasbeehKey = typeof TASBEEHAT[number]["key"];
 
-export function QuickTasbeehFab() {
+export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
+  // All hooks must be declared before any early return
   const [open, setOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<TasbeehKey>("subhanallah");
   const storedTarget = useNoorStore((s) => s.sebhaTarget);
   const [target, setTarget] = React.useState<33 | 100 | 1000>(100);
+  const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
+  const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
+  const prefs = useNoorStore((s) => s.prefs);
+  const [pulse, setPulse] = React.useState(false);
+
+  // Close expansion when the hamburger drawer opens
+  React.useEffect(() => { if (drawerOpen) setOpen(false); }, [drawerOpen]);
   // Sync FAB target with Sebha stored target on open to prevent lock
   React.useEffect(() => {
     if (open && (storedTarget === 33 || storedTarget === 100 || storedTarget === 1000)) {
       setTarget(storedTarget as 33 | 100 | 1000);
     }
   }, [open, storedTarget]);
-  const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
-  const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
-  const prefs = useNoorStore((s) => s.prefs);
-  const [pulse, setPulse] = React.useState(false);
+
+  // Hide when drawer is open — all hooks already called above
+  if (drawerOpen) return null;
 
   const count = quickTasbeeh[selected] ?? 0;
   const pct = Math.min(count / target, 1);
