@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Bookmark, BookOpen, Search, Shuffle, Volume2, X } from "lucide-react";
+import { Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
@@ -147,6 +147,7 @@ export function QuranPage() {
   const deferredQuery = React.useDeferredValue(query);
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
   const [showBookmarks, setShowBookmarks] = React.useState(false);
+  const [showProgressGrid, setShowProgressGrid] = React.useState(false);
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress">("mushaf");
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
 
@@ -471,6 +472,19 @@ export function QuranPage() {
             })()}
             {quranStreak > 0 && <span>🔥 {quranStreak.toLocaleString("ar-EG")} يوم</span>}
             {quranStats.completed > 0 && <span style={{ color: "var(--ok)", opacity: 1 }}>✓ {quranStats.completed.toLocaleString("ar-EG")} مكتملة</span>}
+            {/* Progress grid toggle */}
+            {quranStats.started > 0 && (
+              <button type="button"
+                onClick={() => setShowProgressGrid((v) => !v)}
+                aria-pressed={showProgressGrid}
+                aria-label="خريطة التقدم"
+                className="flex items-center gap-1 text-xs transition"
+                style={{ color: showProgressGrid ? "var(--accent)" : undefined, opacity: showProgressGrid ? 1 : 0.5 }}
+              >
+                <LayoutGrid size={11} aria-hidden="true" />
+                <span>خريطة</span>
+              </button>
+            )}
             {/* Plans page link */}
             <button type="button"
               onClick={() => navigate("/quran/plans")}
@@ -502,6 +516,61 @@ export function QuranPage() {
             </button>
           </div>
         )}
+      {/* ── 114-surah progress grid ────────────────────────────── */}
+      {showProgressGrid && data && mode === "surahs" && !query && (
+        <div
+          className="quran-surface rounded-3xl border px-4 py-4"
+          style={{ borderColor: "color-mix(in srgb, var(--stroke) 35%, transparent)" }}
+          aria-label="خريطة تقدم قراءة السور"
+        >
+          <div className="text-[10px] font-semibold opacity-40 mb-2.5 flex items-center justify-between">
+            <span>خريطة السور — ١١٤ سورة</span>
+            <div className="flex items-center gap-3 text-[9px]">
+              <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm" style={{ background: "var(--ok)" }}></span>مكتملة</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm" style={{ background: "var(--accent)" }}></span>جاري</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-sm" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}></span>لم تبدأ</span>
+            </div>
+          </div>
+          <div
+            className="grid gap-0.5"
+            style={{ gridTemplateColumns: "repeat(19, 1fr)" }}
+            role="list"
+          >
+            {data.map((s) => {
+              const maxRead = readingHistory[String(s.id)] ?? 0;
+              const pct = s.ayahs.length ? Math.min(100, Math.round((maxRead / s.ayahs.length) * 100)) : 0;
+              const isComplete = pct >= 100;
+              const isStarted = pct > 0 && pct < 100;
+              const isCurrent = lastRead?.surahId === s.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="listitem"
+                  onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
+                  title={`${s.name} — ${pct > 0 ? `${pct}%` : "لم تقرأ"}`}
+                  aria-label={`${s.name}${isComplete ? " – مكتملة" : isStarted ? ` – ${pct}%` : ""}`}
+                  className="rounded-sm transition-all active:scale-90 hover:opacity-80"
+                  style={{
+                    aspectRatio: "1",
+                    background: isComplete
+                      ? "color-mix(in srgb, var(--ok) 70%, transparent)"
+                      : isStarted
+                      ? `color-mix(in srgb, var(--accent) ${Math.max(20, Math.round(pct * 0.7))}%, transparent)`
+                      : "var(--card)",
+                    border: isCurrent ? "1.5px solid var(--accent)" : isComplete ? "none" : "1px solid var(--stroke)",
+                    opacity: isComplete ? 1 : isStarted ? 0.85 : 0.4,
+                  }}
+                />
+              );
+            })}
+          </div>
+          <div className="text-[10px] opacity-35 mt-2 text-center tabular-nums">
+            {quranStats.completed.toLocaleString("ar-EG")} مكتملة · {(quranStats.started - quranStats.completed).toLocaleString("ar-EG")} جاري · {(114 - quranStats.started).toLocaleString("ar-EG")} لم تبدأ
+          </div>
+        </div>
+      )}
+
       </Card>
 
       {/* ── Today's khatma reading target ─────────────────── */}
