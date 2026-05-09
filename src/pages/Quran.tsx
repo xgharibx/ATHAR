@@ -325,7 +325,7 @@ export function QuranPage() {
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-90 transition"
                 aria-label="مسح البحث"
               >
-                <X size={14} />
+                <X size={14} aria-hidden="true" />
               </button>
             )}
           </div>

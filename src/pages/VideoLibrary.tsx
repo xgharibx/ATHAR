@@ -750,6 +750,8 @@ function VideoHome({
             </div>
             <button
               type="button"
+              aria-label={searchOpen ? "إغلاق البحث" : "بحث"}
+              aria-pressed={searchOpen}
               onClick={() => {
                 setSearchOpen(!searchOpen);
                 if (searchOpen) setQ("");
@@ -759,7 +761,7 @@ function VideoHome({
                 searchOpen && "bg-accent-20 border-accent-50",
               )}
             >
-              {searchOpen ? <X size={17} /> : <Search size={17} />}
+              {searchOpen ? <X size={17} aria-hidden="true" /> : <Search size={17} aria-hidden="true" />}
             </button>
           </div>
 

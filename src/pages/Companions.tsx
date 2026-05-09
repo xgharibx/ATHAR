@@ -146,7 +146,7 @@ export default function Companions() {
             />
             {query && (
               <button type="button" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80 transition-opacity" aria-label="مسح البحث">
-                <X size={13} />
+                <X size={13} aria-hidden="true" />
               </button>
             )}
           </div>

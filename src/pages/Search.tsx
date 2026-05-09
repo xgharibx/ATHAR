@@ -205,7 +205,7 @@ export function SearchPage() {
           <Input autoFocus value={q} onChange={(e) => setQ(e.target.value)} aria-label="حقل البحث" placeholder="ابحث في الأذكار والقرآن والمكتبة…" spellCheck={false} autoComplete="off" autoCapitalize="none" dir="rtl" />
           {q ? (
             <IconButton aria-label="مسح" onClick={() => setQ("")}>
-              <X size={16} />
+              <X size={16} aria-hidden="true" />
             </IconButton>
           ) : null}
         </div>

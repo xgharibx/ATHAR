@@ -97,7 +97,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
             className="w-9 h-9 rounded-full bg-[var(--card)] border border-[var(--stroke)] grid place-items-center text-xs"
             aria-label="إغلاق"
           >
-            <X size={14} />
+            <X size={14} aria-hidden="true" />
           </button>
         </div>
 

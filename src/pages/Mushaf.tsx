@@ -1101,7 +1101,7 @@ export function MushafPage() {
           onClick={(e) => { e.stopPropagation(); handleBack(); }}
           aria-label="رجوع إلى القرآن"
         >
-          <ArrowRight size={18} />
+          <ArrowRight size={18} aria-hidden="true" />
         </button>
         <div className="mushaf-chrome-info" onClick={(e) => e.stopPropagation()}>
           <div className="mushaf-chrome-surah-name">{pageSurahName || pageSurahEnglish}</div>
@@ -1109,9 +1109,9 @@ export function MushafPage() {
         </div>
         {/* Font scale controls in toolbar */}
         <div className="flex items-center shrink-0" onClick={(e) => e.stopPropagation()}>
-          <button type="button" className="mushaf-chrome-icon-btn !p-1" aria-label="تصغير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}><ZoomOut size={13} /></button>
+          <button type="button" className="mushaf-chrome-icon-btn !p-1" aria-label="تصغير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}><ZoomOut size={13} aria-hidden="true" /></button>
           <span className="text-[10px] opacity-50 tabular-nums w-7 text-center select-none">{Math.round(fontScale * 100)}%</span>
-          <button type="button" className="mushaf-chrome-icon-btn !p-1" aria-label="تكبير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}><ZoomIn size={13} /></button>
+          <button type="button" className="mushaf-chrome-icon-btn !p-1" aria-label="تكبير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}><ZoomIn size={13} aria-hidden="true" /></button>
         </div>
         {/* Phase 2B: Tajweed color toggle */}
         <button type="button"
@@ -1127,7 +1127,7 @@ export function MushafPage() {
           aria-label="إعدادات"
           onClick={(e) => { e.stopPropagation(); setShowSettings((v) => !v); }}
         >
-          <Settings size={16} />
+          <Settings size={16} aria-hidden="true" />
         </button>
         {/* More actions */}
         <button type="button"
@@ -1135,14 +1135,14 @@ export function MushafPage() {
           aria-label="المزيد"
           onClick={(e) => { e.stopPropagation(); setShowMoreSheet((v) => !v); }}
         >
-          <MoreVertical size={17} />
+          <MoreVertical size={17} aria-hidden="true" />
         </button>
       </div>
 
       {/* ── Q17: In-page search bar ───────────────────────── */}
       {showSearch && (
         <div className="mushaf-search-bar" onClick={(e) => e.stopPropagation()}>
-          <Search size={14} className="shrink-0 opacity-50" />
+          <Search size={14} aria-hidden="true" className="shrink-0 opacity-50" />
           <input
             type="text"
             value={inPageSearch}
@@ -1163,7 +1163,7 @@ export function MushafPage() {
             onClick={() => { setInPageSearch(""); setShowSearch(false); }}
             aria-label="إغلاق البحث"
           >
-            <X size={14} />
+            <X size={14} aria-hidden="true" />
           </button>
         </div>
       )}
@@ -1194,7 +1194,7 @@ export function MushafPage() {
       {/* ── A5: Sleep timer countdown chip ───────────────── */}
       {sleepMinutes > 0 && (
         <div className="mushaf-sleep-chip" onClick={() => activateSleepTimer(0)} aria-label="إلغاء مؤقت النوم">
-          <Timer size={11} />
+          <Timer size={11} aria-hidden="true" />
           <span>{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
         </div>
       )}
@@ -1359,7 +1359,7 @@ export function MushafPage() {
               aria-label="الصفحة التالية"
               aria-keyshortcuts="ArrowLeft"
             >
-              <ChevronLeft size={15} />
+              <ChevronLeft size={15} aria-hidden="true" />
               <span>التالية</span>
             </button>
             <span className="mushaf-page-nav-num">{toArabicNumeral(currentPage)} / {toArabicNumeral(totalPages)}</span>
@@ -1371,7 +1371,7 @@ export function MushafPage() {
               aria-keyshortcuts="ArrowRight"
             >
               <span>السابقة</span>
-              <ChevronRight size={15} />
+              <ChevronRight size={15} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -1381,7 +1381,7 @@ export function MushafPage() {
       {selectedItem && (
         <div className="mushaf-action-bar" onClick={(e) => e.stopPropagation()}>
           <button type="button" className="mushaf-action-btn" onClick={doCopy} aria-label="نسخ الآية">
-            <Copy size={18} />
+            <Copy size={18} aria-hidden="true" />
             <span>نسخ</span>
           </button>
           <button type="button"
@@ -1392,7 +1392,7 @@ export function MushafPage() {
             }}
             aria-label="علامة"
           >
-            <Bookmark size={18} fill={isSelBookmarked ? "currentColor" : "none"} />
+            <Bookmark size={18} aria-hidden="true" fill={isSelBookmarked ? "currentColor" : "none"} />
             <span>علامة</span>
           </button>
           <button type="button"
@@ -1400,7 +1400,7 @@ export function MushafPage() {
             onClick={() => playAyah(selectedItem.surahId, selectedItem.originalAyah, selectedItem.displayAyah)}
             aria-label="تلاوة"
           >
-            {playingKey === selKey ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            {playingKey === selKey ? <VolumeX size={18} aria-hidden="true" /> : <Volume2 size={18} aria-hidden="true" />}
             <span>تلاوة</span>
           </button>
           <button type="button"
@@ -1437,7 +1437,7 @@ export function MushafPage() {
             }}
             aria-label="تدبّر"
           >
-            <Pencil size={18} />
+            <Pencil size={18} aria-hidden="true" />
             <span>تدبّر</span>
           </button>
           <button type="button" className="mushaf-action-btn" onClick={doShare} aria-label="مشاركة">
@@ -1459,7 +1459,7 @@ export function MushafPage() {
             onClick={() => setSelectedItem(null)}
             aria-label="إغلاق"
           >
-            <X size={18} />
+            <X size={18} aria-hidden="true" />
             <span>إغلاق</span>
           </button>
         </div>
@@ -1490,27 +1490,27 @@ export function MushafPage() {
             }}
             aria-label={playingKey ? "إيقاف التلاوة" : "تشغيل التلاوة"}
           >
-            {playingKey ? <Pause size={15} /> : <Play size={15} />}
+            {playingKey ? <Pause size={15} aria-hidden="true" /> : <Play size={15} aria-hidden="true" />}
           </button>
           <button type="button"
             className="mushaf-audio-reciter mushaf-audio-reciter-btn"
             onClick={() => setShowReciterSheet(true)}
             aria-label="اختيار القارئ"
           >
-            <Mic2 size={12} style={{ opacity: 0.6, flexShrink: 0 }} />
+            <Mic2 size={12} aria-hidden="true" style={{ opacity: 0.6, flexShrink: 0 }} />
             <span>
               {playingKey
                 ? `▶ يُشغَّل · آية ${playingKey.split(":")[1] ?? ""}`
                 : (QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي")}
             </span>
-            <ChevronDown size={12} style={{ opacity: 0.5, flexShrink: 0 }} />
+            <ChevronDown size={12} aria-hidden="true" style={{ opacity: 0.5, flexShrink: 0 }} />
           </button>
           <button type="button"
             className="mushaf-audio-toggle"
             onClick={() => setAudioBarVisible(false)}
             aria-label="إخفاء"
           >
-            <X size={14} />
+            <X size={14} aria-hidden="true" />
           </button>
         </div>
       )}
@@ -1539,7 +1539,7 @@ export function MushafPage() {
                         setShowReciterSheet(false);
                       }}
                     >
-                      <Mic2 size={14} />
+                      <Mic2 size={14} aria-hidden="true" />
                       {r.label}
                     </button>
                     {/* Per-reciter page download */}
@@ -1555,10 +1555,10 @@ export function MushafPage() {
                             : "bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-90"}`}
                     >
                       {dlState === "done"
-                        ? <CheckCircle2 size={11} />
+                        ? <CheckCircle2 size={11} aria-hidden="true" />
                         : typeof dlState === "object"
                           ? <span className="text-[8px] tabular-nums leading-none">{dlState.done}</span>
-                          : <Download size={11} />}
+                          : <Download size={11} aria-hidden="true" />}
                     </button>
                   </div>
                 );
@@ -1610,7 +1610,7 @@ export function MushafPage() {
                 onClick={() => setNoteSheetOpen(false)}
                 aria-label="إغلاق"
               >
-                <X size={16} />
+                <X size={16} aria-hidden="true" />
               </button>
             </div>
             {/* Quoted ayah text */}
@@ -1749,10 +1749,10 @@ export function MushafPage() {
                     navigator.clipboard.writeText(`${ayahTxt}\n\n${src}:\n${tafseerTxt}`).then(() => toast.success("تم النسخ ✓")).catch(() => {});
                   }}
                 >
-                  <Copy size={15} />
+                  <Copy size={15} aria-hidden="true" />
                 </button>
                 <button type="button" className="mushaf-icon-close" onClick={() => setTafsirItem(null)} aria-label="إغلاق">
-                  <X size={15} />
+                  <X size={15} aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -1843,14 +1843,14 @@ export function MushafPage() {
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">
               <span className="mushaf-sheet-title">إعدادات القراءة</span>
-              <button type="button" aria-label="إغلاق" className="mushaf-icon-close" onClick={() => setShowSettings(false)}><X size={16} /></button>
+              <button type="button" aria-label="إغلاق" className="mushaf-icon-close" onClick={() => setShowSettings(false)}><X size={16} aria-hidden="true" /></button>
             </div>
             {/* Font scale */}
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs opacity-55 shrink-0">الخط</span>
-              <button type="button" aria-label="تصغير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(-0.1)}><ZoomOut size={14} /></button>
+              <button type="button" aria-label="تصغير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(-0.1)}><ZoomOut size={14} aria-hidden="true" /></button>
               <span className="text-xs opacity-60 tabular-nums w-8 text-center">{Math.round(fontScale * 100)}%</span>
-              <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} /></button>
+              <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} aria-hidden="true" /></button>
             </div>
             {/* Q3: Translation */}
             <div className="flex items-center justify-between mb-3">
@@ -1923,7 +1923,7 @@ export function MushafPage() {
 
             {/* Reciter */}
             <button type="button" className="mushaf-btn-secondary w-full mb-3" onClick={() => { setShowSettings(false); setShowReciterSheet(true); }}>
-              <Mic2 size={14} />
+              <Mic2 size={14} aria-hidden="true" />
               {QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي"}
             </button>
             {/* Q7: Playback speed */}
@@ -2014,7 +2014,7 @@ export function MushafPage() {
                 onClick={() => setShowSurahInfo((v) => !v)}
                 className="flex items-center gap-1.5 text-xs opacity-55 hover:opacity-90 transition mb-2"
               >
-                <Info size={13} />
+                <Info size={13} aria-hidden="true" />
                 <span>معلومات السورة</span>
               </button>
               {showSurahInfo && lastItem && (
@@ -2058,7 +2058,7 @@ export function MushafPage() {
                 onClick={downloadPageAudio}
                 disabled={!!cacheProgress}
               >
-                <Download size={14} />
+                <Download size={14} aria-hidden="true" />
                 {cacheProgress
                   ? `جاري التحميل… ${cacheProgress.done}/${cacheProgress.total}`
                   : "تحميل الصفحة للاستماع دون إنترنت"}
@@ -2076,7 +2076,7 @@ export function MushafPage() {
                 onClick={downloadAllTajweedData}
                 disabled={!!tajweedDownloadProgress}
               >
-                <Download size={14} />
+                <Download size={14} aria-hidden="true" />
                 {tajweedDownloadProgress
                   ? `جارٍ التحميل… ${tajweedDownloadProgress.done}/114 سورة`
                   : "تحميل ألوان التجويد لجميع السور"}
@@ -2094,7 +2094,7 @@ export function MushafPage() {
             {/* ── A5: Sleep timer ──────────────────────────── */}
             <div className="mb-3">
               <div className="text-xs opacity-50 mb-1.5 flex items-center gap-1">
-                <Timer size={12} />
+                <Timer size={12} aria-hidden="true" />
                 مؤقت النوم
                 {sleepMinutes > 0 && (
                   <span className="text-[10px] text-[var(--accent)] mr-1">{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
@@ -2114,7 +2114,7 @@ export function MushafPage() {
             {/* ── A4: Quran Radio ──────────────────────────── */}
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs opacity-50 flex items-center gap-1"><Radio size={12} />راديو القرآن</span>
+                <span className="text-xs opacity-50 flex items-center gap-1"><Radio size={12} aria-hidden="true" />راديو القرآن</span>
                 <button type="button"
                   onClick={handleRadioToggle}
                   className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioState.playing ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
@@ -2134,7 +2134,7 @@ export function MushafPage() {
             {/* ── A6: Equalizer (Web Audio) ─────────────── */}
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs opacity-50 flex items-center gap-1"><SlidersHorizontal size={12} />المعادل الصوتي</span>
+                <span className="text-xs opacity-50 flex items-center gap-1"><SlidersHorizontal size={12} aria-hidden="true" />المعادل الصوتي</span>
                 <button type="button"
                   onClick={() => setEqEnabled((v) => !v)}
                   className={`relative w-12 h-6 rounded-full transition-colors ${eqEnabled ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
@@ -2176,7 +2176,7 @@ export function MushafPage() {
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">
               <span className="mushaf-sheet-title">الإجراءات السريعة</span>
-              <button type="button" aria-label="إغلاق" className="mushaf-icon-close" onClick={() => setShowMoreSheet(false)}><X size={16} /></button>
+              <button type="button" aria-label="إغلاق" className="mushaf-icon-close" onClick={() => setShowMoreSheet(false)}><X size={16} aria-hidden="true" /></button>
             </div>
 
             {/* ── سجّل ورد اليوم — only when khatma plan active ── */}
@@ -2248,7 +2248,7 @@ export function MushafPage() {
               style={{ borderColor: "var(--stroke)" }}
               onClick={() => { setShowJump(true); setShowMoreSheet(false); }}
             >
-              <span className="opacity-55"><MoreVertical size={16} /></span>
+              <span className="opacity-55"><MoreVertical size={16} aria-hidden="true" /></span>
               <div>
                 <div className="text-sm">الانتقال إلى صفحة</div>
                 <div className="text-[10px] opacity-40">الصفحة {currentPage} من {totalPages}</div>

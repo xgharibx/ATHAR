@@ -695,7 +695,7 @@ export function DhikrList(props: Readonly<{
                   className="h-10 w-10 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center"
                   aria-label="إغلاق"
                 >
-                  <X size={16} />
+                  <X size={16} aria-hidden="true" />
                 </button>
               </div>
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px] gap-3">

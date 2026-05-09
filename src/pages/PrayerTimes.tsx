@@ -230,7 +230,7 @@ function CityRow({ city, country, label, onRemove }: {
       <div className="flex items-center justify-between mb-2">
         <div className="font-semibold text-sm">{label}</div>
         <button type="button" onClick={onRemove} className="opacity-40 hover:opacity-70 transition-opacity p-1" aria-label="حذف المدينة">
-          <X size={13} />
+          <X size={13} aria-hidden="true" />
         </button>
       </div>
       {isLoading ? (
@@ -290,7 +290,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
       <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 space-y-5" role="dialog" aria-modal="true" aria-label="إعدادات مواقيت الصلاة">
         <div className="flex items-center justify-between">
           <div className="font-semibold">إعدادات مواقيت الصلاة</div>
-          <button type="button" aria-label="إغلاق" onClick={onClose} className="opacity-50 hover:opacity-80 transition-opacity p-1"><X size={18} /></button>
+          <button type="button" aria-label="إغلاق" onClick={onClose} className="opacity-50 hover:opacity-80 transition-opacity p-1"><X size={18} aria-hidden="true" /></button>
         </div>
 
         {/* P5 */}
@@ -353,7 +353,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
           <div className="text-xs font-semibold opacity-60 mb-2 uppercase tracking-wide">صوت أذان مخصص</div>
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={() => fileRef.current?.click()}>
-              <Plus size={14} /> رفع ملف MP3
+              <Plus size={14} aria-hidden="true" /> رفع ملف MP3
             </Button>
             {customAdhanBase64 && (
               <>
@@ -447,9 +447,9 @@ function MonthlyTab() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronRight size={16} /></button>
+        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronRight size={16} aria-hidden="true" /></button>
         <div className="font-semibold text-sm">{MONTH_NAMES[viewMonth - 1]} {viewYear}</div>
-        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronLeft size={16} /></button>
+        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronLeft size={16} aria-hidden="true" /></button>
       </div>
       {isLoading && <div className="text-sm opacity-50" role="status" aria-live="polite">جارٍ التحميل...</div>}
       {(error || (!isLoading && !data)) && <div className="text-sm opacity-50">تعذر تحميل التقويم الشهري</div>}
@@ -539,7 +539,7 @@ function TrackingTab({ timings }: { timings: Record<string, string> | null }) {
                 <div className="flex items-center gap-3">
                   <div className={cn("w-9 h-9 rounded-xl border-2 grid place-items-center transition",
                     prayed ? "bg-[var(--accent)] border-[var(--accent)]" : "border-[var(--stroke)] bg-[var(--card)]")}>
-                    {prayed && <Check size={16} strokeWidth={3} />}
+                    {prayed && <Check size={16} aria-hidden="true" strokeWidth={3} />}
                   </div>
                   <div>
                     <div className="text-sm font-semibold">{PRAYER_LABELS[p]}</div>
@@ -610,9 +610,9 @@ function HijriCalendarTab() {
       )}
 
       <div className="flex items-center justify-between gap-2">
-        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronRight size={16} /></button>
+        <button type="button" aria-label="الشهر السابق" onClick={prev} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronRight size={16} aria-hidden="true" /></button>
         <div className="font-semibold text-sm text-center">{MONTH_NAMES[viewMonth - 1]} {viewYear}</div>
-        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronLeft size={16} /></button>
+        <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronLeft size={16} aria-hidden="true" /></button>
       </div>
 
       {isLoading && <div className="text-sm opacity-50" role="status" aria-live="polite">جارٍ التحميل...</div>}
@@ -720,7 +720,7 @@ function CitiesTab() {
       <div className="flex items-center justify-between">
         <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">{favoriteCities.length} مدن محفوظة</div>
         <Button variant="secondary" size="sm" onClick={() => setShowAdd((v) => !v)}>
-          <Plus size={13} /> إضافة مدينة
+          <Plus size={13} aria-hidden="true" /> إضافة مدينة
         </Button>
       </div>
 
@@ -1067,7 +1067,7 @@ export function PrayerTimesPage() {
         <Card className="p-5 text-sm">
           <div className="opacity-70">تعذر تحميل صفحة مواقيت الصلاة حاليًا.</div>
           <Button className="mt-4" variant="secondary" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
-            <RefreshCw size={15} className={manualRefreshing || prayerTimes.isFetching ? "animate-spin" : ""} />
+            <RefreshCw size={15} aria-hidden="true" className={manualRefreshing || prayerTimes.isFetching ? "animate-spin" : ""} />
             تحديث المواقيت
           </Button>
         </Card>
@@ -1100,10 +1100,10 @@ export function PrayerTimesPage() {
         <h1 className="text-xl font-bold">مواقيت الصلاة</h1>
         <div className="flex items-center gap-1.5">
           <Button variant="secondary" size="sm" aria-label="القبلة" onClick={() => navigate("/qibla")}>
-            <Compass size={15} />
+            <Compass size={15} aria-hidden="true" />
           </Button>
           <Button variant="secondary" size="sm" aria-label="مساجد" onClick={() => navigate("/mosques")}>
-            <MapPin size={15} />
+            <MapPin size={15} aria-hidden="true" />
           </Button>
           <Button variant="secondary" size="sm" aria-label="مشاركة" onClick={async () => {
             if (!timings) return;
@@ -1118,10 +1118,10 @@ export function PrayerTimesPage() {
             <Settings2 size={15} />
           </Button>
           <Button variant="secondary" size="sm" aria-label="تحديث" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
-            <RefreshCw size={15} className={manualRefreshing || prayerTimes.isFetching ? "animate-spin" : ""} />
+            <RefreshCw size={15} aria-hidden="true" className={manualRefreshing || prayerTimes.isFetching ? "animate-spin" : ""} />
           </Button>
           <Button variant="outline" size="sm" aria-label="رجوع" onClick={() => navigate(-1)}>
-            <ArrowRight size={15} />
+            <ArrowRight size={15} aria-hidden="true" />
           </Button>
         </div>
       </div>
@@ -1146,7 +1146,7 @@ export function PrayerTimesPage() {
           </div>
           {data.__fromCache && !isOnline && (
             <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-3 py-1.5 text-[11px] opacity-60">
-              <TimerReset size={12} /> يتم عرض آخر نسخة محفوظة بدون اتصال.
+              <TimerReset size={12} aria-hidden="true" /> يتم عرض آخر نسخة محفوظة بدون اتصال.
             </div>
           )}
         </div>

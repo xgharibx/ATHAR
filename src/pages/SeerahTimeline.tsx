@@ -111,7 +111,7 @@ export default function SeerahTimeline() {
             />
             {query && (
               <button type="button" aria-label="مسح البحث" onClick={() => setQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-80 transition-opacity">
-                <X size={13} />
+                <X size={13} aria-hidden="true" />
               </button>
             )}
           </div>

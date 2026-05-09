@@ -292,11 +292,11 @@ export function HadithReaderPage() {
               className="h-11 w-11 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] shrink-0"
               aria-label="رجوع"
             >
-              <ArrowRight size={19} className="text-[var(--fg)]" />
+              <ArrowRight size={19} aria-hidden="true" className="text-[var(--fg)]" />
             </button>
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2 flex-wrap">
-                <BookOpenText size={15} style={{ color: accentColor }} />
+                <BookOpenText size={15} aria-hidden="true" style={{ color: accentColor }} />
                 <span className="text-[11px] font-semibold opacity-55">قراءة حديثية</span>
                 <span className="rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor }}>
                   ح {Number.isFinite(n) ? n.toLocaleString("ar-EG") : "—"}
@@ -320,15 +320,15 @@ export function HadithReaderPage() {
               }}
               className={cn(isMemoCard && "ring-1 ring-accent-40")}
             >
-              <BrainCircuit size={18} style={{ color: isMemoCard ? accentColor : "var(--muted)" }} />
+              <BrainCircuit size={18} aria-hidden="true" style={{ color: isMemoCard ? accentColor : "var(--muted)" }} />
             </IconButton>
             <IconButton aria-label="حفظ" onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}>
-              <Bookmark size={18} className={isBookmarked ? "fill-current" : ""} style={{ color: isBookmarked ? accentColor : "var(--muted)" }} />
+              <Bookmark size={18} aria-hidden="true" className={isBookmarked ? "fill-current" : ""} style={{ color: isBookmarked ? accentColor : "var(--muted)" }} />
             </IconButton>
-            <IconButton aria-label="نسخ" onClick={copyText}><Copy size={16} className="text-[var(--muted)]" /></IconButton>
-            <IconButton aria-label="مشاركة" onClick={shareText}><Share2 size={16} className="text-[var(--muted)]" /></IconButton>
+            <IconButton aria-label="نسخ" onClick={copyText}><Copy size={16} aria-hidden="true" className="text-[var(--muted)]" /></IconButton>
+            <IconButton aria-label="مشاركة" onClick={shareText}><Share2 size={16} aria-hidden="true" className="text-[var(--muted)]" /></IconButton>
             <IconButton aria-label="ملاحظة" aria-pressed={showNoteEditor} onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}>
-              <StickyNote size={16} className={existingNote ? "fill-current" : ""} style={{ color: existingNote ? accentColor : "var(--muted)" }} />
+              <StickyNote size={16} aria-hidden="true" className={existingNote ? "fill-current" : ""} style={{ color: existingNote ? accentColor : "var(--muted)" }} />
             </IconButton>
           </div>
         </Card>
@@ -362,7 +362,7 @@ export function HadithReaderPage() {
                 <div className="min-w-0 flex-1">
                   <div className="mb-2 flex items-center gap-2 flex-wrap">
                     <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor }}>
-                      <Hash size={12} />
+                      <Hash size={12} aria-hidden="true" />
                       {hadith.a.toLocaleString("ar-EG")}
                     </span>
                     {hadith.g.map((g) => <GradeChip key={g} g={g} />)}
@@ -412,7 +412,7 @@ export function HadithReaderPage() {
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold opacity-55">ملاحظتي</span>
               <button type="button" onClick={() => setShowNoteEditor(false)} className="h-9 w-9 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center opacity-70 hover:opacity-100" aria-label="إغلاق">
-                <X size={14} />
+                <X size={14} aria-hidden="true" />
               </button>
             </div>
             <textarea
@@ -440,7 +440,7 @@ export function HadithReaderPage() {
                 className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-xl font-semibold transition press-effect"
                 style={{ background: accentColor, color: "var(--on-accent)" }}
               >
-                <Check size={12} /> حفظ
+                <Check size={12} aria-hidden="true" /> حفظ
               </button>
             </div>
           </Card>

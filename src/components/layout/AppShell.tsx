@@ -295,7 +295,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
               className={`w-11 h-11 rounded-xl bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] active:scale-90 ${props.mobile ? "" : "xl:hidden"}`}
               aria-label="إغلاق"
             >
-              <X size={16} className="opacity-60" />
+              <X size={16} aria-hidden="true" className="opacity-60" />
             </button>
           )}
         </div>
