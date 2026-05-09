@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const LEARNED_KEY = "noor_vocab_learned";
-
 function loadLearned(): Set<number> {
   try {
     const v = localStorage.getItem(LEARNED_KEY);
@@ -241,7 +240,7 @@ export function QuranVocabPage() {
 
   function handleLearn(id: number) {
     const next = new Set(learned);
-    if (next.has(id)) { next.delete(id); } else { next.add(id); toast.success("تمت الإضافة إلى المحفوظات"); }
+    if (next.has(id)) { next.delete(id); } else { next.add(id); toast.success("تمت الإضافة إلى المحفوظات"); recordTodayReview(); setVocabStreak(computeVocabStreak()); }
     setLearned(next);
     saveLearned(next);
   }
@@ -798,9 +797,16 @@ export function QuranVocabPage() {
                   }}
                 />
               </div>
-              <p className="text-[10px] opacity-50">
-                {Math.round((learned.size / QURAN_VOCAB.length) * 100)}٪ محفوظ
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[10px] opacity-50">
+                  {Math.round((learned.size / QURAN_VOCAB.length) * 100)}٪ محفوظ
+                </p>
+                {vocabStreak > 0 && (
+                  <span className="text-[10px] flex items-center gap-0.5 tabular-nums" style={{ color: "#fb923c" }}>
+                    ������ {vocabStreak.toLocaleString("ar-EG")} يوم
+                  </span>
+                )}
+              </div>
             </div>
           )}
           {learned.size > 0 && (
