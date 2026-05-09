@@ -322,7 +322,7 @@ export function HadithReaderPage() {
             >
               <BrainCircuit size={18} aria-hidden="true" style={{ color: isMemoCard ? accentColor : "var(--muted)" }} />
             </IconButton>
-            <IconButton aria-label="حفظ" onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}>
+            <IconButton aria-label="حفظ" aria-pressed={isBookmarked} onClick={() => bookKey && toggleHadithBookmark(bookKey, n)}>
               <Bookmark size={18} aria-hidden="true" className={isBookmarked ? "fill-current" : ""} style={{ color: isBookmarked ? accentColor : "var(--muted)" }} />
             </IconButton>
             <IconButton aria-label="نسخ" onClick={copyText}><Copy size={16} aria-hidden="true" className="text-[var(--muted)]" /></IconButton>

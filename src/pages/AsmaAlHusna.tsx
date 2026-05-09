@@ -233,6 +233,7 @@ export function AsmaAlHusnaPage() {
                   type="button"
                   onClick={(e) => { e.stopPropagation(); toggleMemorized(name.id); }}
                   aria-label={isMem ? "إلغاء الحفظ" : "تمييز كمحفوظ"}
+                  aria-pressed={isMem}
                   className="p-1.5 rounded-lg transition-colors"
                   style={{ color: isMem ? (isExpanded ? "var(--on-accent)" : "var(--accent)") : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isMem ? 1 : 0.4 }}
                 >
@@ -242,6 +243,7 @@ export function AsmaAlHusnaPage() {
                   type="button"
                   onClick={(e) => { e.stopPropagation(); toggleFavorite(name.id); }}
                   aria-label={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
+                  aria-pressed={isFav}
                   className="p-1.5 rounded-lg transition-colors"
                   style={{ color: isFav ? "#ef4444" : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isFav ? 1 : 0.4 }}
                 >

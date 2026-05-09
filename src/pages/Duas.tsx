@@ -212,6 +212,7 @@ export function DuasPage() {
                   </button>
                   <button type="button"
                     aria-label={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
+                    aria-pressed={isFav}
                     onClick={() => toggleDuaFavorite(dua.id)}
                     className="p-1.5 rounded-lg transition-colors"
                     style={{ color: isFav ? "#ef4444" : "var(--fg)", opacity: isFav ? 1 : 0.4 }}

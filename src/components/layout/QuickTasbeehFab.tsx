@@ -80,6 +80,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
           right: "calc(16px + var(--sar))",
         }}
         onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
         aria-label="تسبيح سريع"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

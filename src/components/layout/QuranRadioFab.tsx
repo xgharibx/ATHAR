@@ -72,6 +72,7 @@ export function QuranRadioFab({ drawerOpen }: { drawerOpen?: boolean }) {
           left: "16px",
         }}
         onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
         aria-label="راديو القرآن"
       >
         {radio.loading ? (

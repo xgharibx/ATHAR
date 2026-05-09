@@ -370,6 +370,7 @@ export function DhikrCard(props: {
 
             <IconButton
               aria-label="مفضلة"
+              aria-pressed={fav}
               onClick={() => toggleFavorite(sectionId, index)}
               className={cn(fav && "bg-accent-14 border-accent-24")}
             >
