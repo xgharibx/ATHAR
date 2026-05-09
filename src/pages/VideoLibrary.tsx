@@ -1387,7 +1387,7 @@ function SheikhScreen({
             <div className="text-xs opacity-50 mt-1 leading-5">شغّل أداة المزامنة لتحميل محتوى هذه القناة</div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" role="list" aria-label="قائمة الفيديوهات">
             {visibleVideos.slice(0, videoPage * PAGE_SIZE).map((v) => (
               <VideoListRow
                 key={v.id}

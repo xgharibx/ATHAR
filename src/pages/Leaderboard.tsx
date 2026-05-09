@@ -423,14 +423,14 @@ export function LeaderboardPage() {
                     ? "تحدي تسبيح اليوم"
                     : "أفضل نتائج القسم"}
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2" role="list" aria-label="ترتيب المتسابقين">
           {mergedRows.length === 0 ? (
             <div className="glass rounded-3xl border border-[var(--stroke)] px-4 py-5 text-sm opacity-70 leading-7 text-center">
               لا توجد نتائج منشورة لهذا التصنيف بعد. ابدأ بالمزامنة لرفع أول نتيجة.
             </div>
           ) : (
             mergedRows.map((r, idx) => (
-              <div key={r.id} className={cn(
+              <div key={r.id} role="listitem" className={cn(
                 "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
                 r.id === myEntry.id ? "border-accent-35 bg-accent-8" : "border-[var(--stroke)]"
               )}>
@@ -1078,13 +1078,14 @@ function LocalFriendsCard(props: {
       </div>
 
       {/* Friend list */}
-      <div className="mt-3 space-y-2">
+      <div className="mt-3 space-y-2" role="list" aria-label="قائمة الأصدقاء">
         {allRows.length === 0 ? (
           <div className="text-xs opacity-50 text-center py-3">أضف أصدقاء لمقارنة تقدمكم المشترك.</div>
         ) : (
           allRows.map((f, idx) => (
             <div
               key={f.id}
+              role="listitem"
               className={cn(
                 "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
                 f.id === props.myStats.id ? "border-accent-35 bg-accent-8" : "border-[var(--stroke)]"
