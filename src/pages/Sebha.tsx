@@ -660,7 +660,8 @@ export function SebhaPage() {
             {/* S3 - Sessions history toggle */}
             <IconButton
               aria-label="سجل الجلسات"
-              aria-pressed={showHistory}
+              aria-expanded={showHistory}
+              aria-controls="sebha-history-panel"
               onClick={() => setShowHistory((v) => !v)}
               className={cn(showHistory && "text-[var(--accent)]")}
             >
@@ -700,7 +701,7 @@ export function SebhaPage() {
 
       {/* S3 - Sessions history panel */}
       {showHistory && (
-        <Card className="p-4">
+        <Card id="sebha-history-panel" className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <History size={15} aria-hidden="true" className="text-[var(--accent)]" />

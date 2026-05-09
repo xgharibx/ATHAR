@@ -822,6 +822,11 @@ function VideoHome({
       {/* ── Search results ── */}
       {searchResults && q.trim() && (
         <div className="space-y-4">
+          <div className="sr-only" aria-live="polite" aria-atomic="true">
+            {searchResults.videos.length === 0 && searchResults.courses.length === 0
+              ? `لا نتائج للبحث عن "${q}"`
+              : `${searchResults.videos.length + searchResults.courses.length} نتيجة للبحث عن "${q}"`}
+          </div>
           {/* Channel filter chips */}
           {searchResults.channelChips.length > 1 && (
             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" role="group" aria-label="تصفية بالقناة">
@@ -900,7 +905,7 @@ function VideoHome({
             </section>
           )}
           {searchResults.videos.length === 0 && searchResults.courses.length === 0 && (
-            <div className="glass rounded-3xl p-7 text-center">
+            <div className="glass rounded-3xl p-7 text-center" role="status">
               <div className="text-3xl mb-2" aria-hidden="true">🔍</div>
               <div className="font-semibold">لا نتائج لـ "{q}"</div>
               <div className="text-xs opacity-50 mt-1">جرّب كلمة مختلفة أو تفقد الإملاء</div>

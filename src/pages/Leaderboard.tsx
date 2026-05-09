@@ -1138,13 +1138,14 @@ function LocalFriendsCard(props: {
                 onChange={(e) => { setImportCode(e.target.value); setImportError(""); }}
                 placeholder="الصق كود الصديق هنا"
                 aria-label="رمز الصديق للإضافة"
+                aria-describedby="lb-friend-import-error"
               />
               <Button onClick={handleImport} disabled={!importCode.trim()}>
                 <Plus size={14} aria-hidden="true" />
                 إضافة
               </Button>
             </div>
-            {importError && <div role="alert" className="mt-1 text-xs text-[var(--danger)]">{importError}</div>}
+            <div id="lb-friend-import-error" role="alert" className="mt-1 text-xs text-[var(--danger)]">{importError}</div>
           </div>
         </div>
       )}
@@ -1287,8 +1288,8 @@ function GroupKhatmaCard() {
       {/* Import form */}
       {mode === "import" && !groupKhatma && (
         <div id="lb-friends-import" className="mt-4 space-y-3 border-t border-[var(--stroke)] pt-4">
-          <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" aria-label="كود الختمة" />
-          {importError && <div className="text-xs text-[var(--danger)]">{importError}</div>}
+          <Input value={importCode} onChange={(e) => { setImportCode(e.target.value); setImportError(""); }} placeholder="الصق كود الختمة هنا" aria-label="كود الختمة" aria-describedby="lb-khatma-import-error" />
+          <div id="lb-khatma-import-error" role="alert" className="text-xs text-[var(--danger)]">{importError}</div>
           <Button onClick={handleImport} disabled={!importCode.trim()}>استيراد الختمة</Button>
         </div>
       )}
