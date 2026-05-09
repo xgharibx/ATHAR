@@ -1081,7 +1081,7 @@ export function MushafPage() {
 
   return (
     <div
-      className="mushaf-reader"
+      className="mushaf-reader page-enter"
       data-mushaf-theme={prefs.quranTheme}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}

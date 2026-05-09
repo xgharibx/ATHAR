@@ -59,7 +59,7 @@ export function SourcesPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 page-enter">
       <Card className="p-5">
         <div className="flex items-center gap-2">
           <Database size={18} className="text-[var(--accent)]" />
