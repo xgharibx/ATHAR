@@ -368,12 +368,14 @@ export function DhikrList(props: Readonly<{
                 variant={(moreOpen || confirmReset || confirmDone || confirmDeleteCategory) ? "primary" : "secondary"}
                 onClick={() => setMoreOpen((prev) => !prev)}
                 aria-label="خيارات إضافية"
+                aria-expanded={(moreOpen || confirmReset || confirmDone || confirmDeleteCategory)}
+                aria-controls="dhikr-more-panel"
               >
                 <MoreHorizontal size={16} aria-hidden="true" />
               </Button>
             </div>
             {(moreOpen || confirmReset || confirmDone || confirmDeleteCategory) && (
-              <div className="mt-2 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+              <div id="dhikr-more-panel" className="mt-2 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                 {confirmReset ? (
                   <>
                     <Button

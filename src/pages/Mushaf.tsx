@@ -1957,6 +1957,8 @@ export function MushafPage() {
                     <button type="button"
                       key={n}
                       onClick={() => setLoopCount(n)}
+                      aria-label={n === -1 ? "تكرار لا نهائي" : `تكرار ${n} مرات`}
+                      aria-pressed={loopCount === n}
                       className={`px-2.5 py-1 rounded-xl text-xs border transition ${loopCount === n ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
                     >{n === -1 ? "∞" : `${n}×`}</button>
                   ))}
@@ -2012,13 +2014,15 @@ export function MushafPage() {
             <div className="mt-1">
               <button type="button"
                 onClick={() => setShowSurahInfo((v) => !v)}
+                aria-expanded={showSurahInfo}
+                aria-controls="mushaf-surah-info"
                 className="flex items-center gap-1.5 text-xs opacity-55 hover:opacity-90 transition mb-2"
               >
                 <Info size={13} aria-hidden="true" />
                 <span>معلومات السورة</span>
               </button>
               {showSurahInfo && lastItem && (
-                <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-center text-sm">
+                <div id="mushaf-surah-info" className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-center text-sm">
                   {[
                     ["السورة", lastItem.surahName],
                     ["الاسم بالإنجليزية", pageSurahEnglish || ""],

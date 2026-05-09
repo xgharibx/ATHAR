@@ -719,13 +719,13 @@ function CitiesTab() {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="text-xs font-semibold opacity-60 uppercase tracking-wide">{favoriteCities.length} مدن محفوظة</div>
-        <Button variant="secondary" size="sm" onClick={() => setShowAdd((v) => !v)}>
+        <Button variant="secondary" size="sm" onClick={() => setShowAdd((v) => !v)} aria-expanded={showAdd} aria-controls="pt-add-city-panel">
           <Plus size={13} aria-hidden="true" /> إضافة مدينة
         </Button>
       </div>
 
       {showAdd && (
-        <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
+        <div id="pt-add-city-panel" className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
           <div className="text-sm font-semibold">إضافة مدينة جديدة</div>
           <div className="grid grid-cols-2 gap-2">
             <div>
