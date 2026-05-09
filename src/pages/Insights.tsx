@@ -331,6 +331,23 @@ export function InsightsPage() {
     [quranLast7Days]
   );
 
+  // Last 4 weeks total (for bar chart)
+  const quranWeeklyBreakdown = React.useMemo(() => {
+    const today = new Date();
+    const weeks: { label: string; total: number; isCurrent: boolean }[] = [];
+    for (let w = 3; w >= 0; w--) {
+      const endOffset = w * 7; // days back to end of this week
+      let total = 0;
+      for (let d = 0; d < 7; d++) {
+        const day = new Date(today.getTime() - (endOffset + d) * 86400000);
+        const key = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+        total += quranDailyAyahs[key] ?? 0;
+      }
+      weeks.push({ label: w === 0 ? "هذا الأسبوع" : w === 1 ? "الماضي" : `منذ ${w}أسبوع`, total, isCurrent: w === 0 });
+    }
+    return weeks;
+  }, [quranDailyAyahs]);
+
   const quranMonthTotal = React.useMemo(() => {
     const now = new Date();
     const y = now.getFullYear();
@@ -1341,6 +1358,32 @@ export function InsightsPage() {
                         }}
                       />
                       <span className="text-[9px] leading-none opacity-40">{DAY_NAMES_AR[i]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+          {/* Weekly comparison chart */}
+          {quranWeeklyBreakdown.some((w) => w.total > 0) && (() => {
+            const maxWeek = Math.max(...quranWeeklyBreakdown.map((w) => w.total), 1);
+            return (
+              <div className="mt-4">
+                <div className="text-xs opacity-50 mb-2">القراءة الأسبوعية (4 أسابيع)</div>
+                <div className="flex items-end gap-2 h-20">
+                  {quranWeeklyBreakdown.map((wk) => (
+                    <div key={wk.label} className="flex-1 flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
+                      {wk.total > 0 && <span className="text-[9px] opacity-60 tabular-nums">{wk.total.toLocaleString("ar-EG")}</span>}
+                      <div
+                        className="w-full rounded-t-md"
+                        style={{
+                          height: wk.total > 0 ? `${Math.max(4, Math.round((wk.total / maxWeek) * 56))}px` : "3px",
+                          background: wk.isCurrent ? "var(--accent)" : wk.total > 0 ? "color-mix(in srgb, var(--accent) 40%, transparent)" : "var(--card)",
+                          opacity: wk.total === 0 ? 0.4 : 1,
+                        }}
+                        title={`${wk.label}: ${wk.total.toLocaleString("ar-EG")} آية`}
+                      />
+                      <span className="text-[9px] leading-none opacity-45 text-center">{wk.label}</span>
                     </div>
                   ))}
                 </div>
