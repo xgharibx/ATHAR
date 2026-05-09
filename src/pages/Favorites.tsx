@@ -239,6 +239,7 @@ export function FavoritesPage() {
         {/* Tab switcher */}
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar" role="tablist" aria-label="تبويبات المفضلة">
           <button type="button"
+            id="fav-tab-adhkar"
             role="tab"
             aria-selected={activeTab === "adhkar"}
             onClick={() => setActiveTab("adhkar")}
@@ -253,6 +254,7 @@ export function FavoritesPage() {
             الأذكار {items.length > 0 && <span className="text-[11px] opacity-60">({items.length})</span>}
           </button>
           <button type="button"
+            id="fav-tab-quran"
             role="tab"
             aria-selected={activeTab === "quran"}
             onClick={() => setActiveTab("quran")}
@@ -267,6 +269,7 @@ export function FavoritesPage() {
             القرآن {quranBmList.length > 0 && <span className="text-[11px] opacity-60">({quranBmList.length})</span>}
           </button>
           <button type="button"
+            id="fav-tab-hadith"
             role="tab"
             aria-selected={activeTab === "hadith"}
             onClick={() => setActiveTab("hadith")}
@@ -281,6 +284,7 @@ export function FavoritesPage() {
             الأحاديث {hadithBmList.length > 0 && <span className="text-[11px] opacity-60">({hadithBmList.length})</span>}
           </button>
           <button type="button"
+            id="fav-tab-duas"
             role="tab"
             aria-selected={activeTab === "duas"}
             onClick={() => setActiveTab("duas")}
@@ -295,6 +299,7 @@ export function FavoritesPage() {
             الأدعية {duaFavItems.length > 0 && <span className="text-[11px] opacity-60">({duaFavItems.length})</span>}
           </button>
           <button type="button"
+            id="fav-tab-stories"
             role="tab"
             aria-selected={activeTab === "stories"}
             onClick={() => setActiveTab("stories")}
@@ -309,6 +314,7 @@ export function FavoritesPage() {
             القصص {storyFavItems.length > 0 && <span className="text-[11px] opacity-60">({storyFavItems.length})</span>}
           </button>
           <button type="button"
+            id="fav-tab-companions"
             role="tab"
             aria-selected={activeTab === "companions"}
             onClick={() => setActiveTab("companions")}
@@ -327,7 +333,7 @@ export function FavoritesPage() {
 
       {/* ── Adhkar tab ── */}
       {activeTab === "adhkar" && (
-      <Card className="p-5">
+      <Card className="p-5" role="tabpanel" id="fav-panel-adhkar" aria-labelledby="fav-tab-adhkar" tabIndex={0}>
         {items.length === 0 ? (
           <EmptyState
             variant="favorites"
@@ -408,7 +414,7 @@ export function FavoritesPage() {
 
       {/* ── Quran bookmarks tab ── */}
       {activeTab === "quran" && (
-        <Card className="p-5">
+        <Card className="p-5" role="tabpanel" id="fav-panel-quran" aria-labelledby="fav-tab-quran" tabIndex={0}>
           {quranBmList.length === 0 ? (
             <EmptyState
               variant="quran-favorites"
@@ -469,7 +475,7 @@ export function FavoritesPage() {
 
       {/* ── Hadith bookmarks tab ── */}
       {activeTab === "hadith" && (
-        <Card className="p-5">
+        <Card className="p-5" role="tabpanel" id="fav-panel-hadith" aria-labelledby="fav-tab-hadith" tabIndex={0}>
           {hadithBmList.length === 0 ? (
             <EmptyState
               variant="favorites"
@@ -557,7 +563,7 @@ export function FavoritesPage() {
       )}
       {/* ── Duas favorites tab ── */}
       {activeTab === "duas" && (
-        <Card className="p-5">
+        <Card className="p-5" role="tabpanel" id="fav-panel-duas" aria-labelledby="fav-tab-duas" tabIndex={0}>
           {duaFavItems.length === 0 ? (
             <EmptyState
               variant="favorites"
@@ -609,7 +615,7 @@ export function FavoritesPage() {
       )}
       {/* ── Prophet Stories bookmarks tab ── */}
       {activeTab === "stories" && (
-        <Card className="p-5">
+        <Card className="p-5" role="tabpanel" id="fav-panel-stories" aria-labelledby="fav-tab-stories" tabIndex={0}>
           {storyFavItems.length === 0 ? (
             <EmptyState
               variant="favorites"
@@ -660,7 +666,7 @@ export function FavoritesPage() {
 
       {/* ── Companions bookmarks tab ── */}
       {activeTab === "companions" && (
-        <Card className="p-5">
+        <Card className="p-5" role="tabpanel" id="fav-panel-companions" aria-labelledby="fav-tab-companions" tabIndex={0}>
           {companionFavItems.length === 0 ? (
             <EmptyState
               variant="favorites"

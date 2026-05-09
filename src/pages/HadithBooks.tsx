@@ -401,6 +401,7 @@ export function HadithBooksPage() {
         {(["library", "search"] as const).map((t) => (
           <button type="button"
             key={t}
+            id={`hadith-books-tab-${t}`}
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
@@ -418,7 +419,7 @@ export function HadithBooksPage() {
 
       {/* Library tab */}
       {tab === "library" && (
-        <div className="relative z-10">
+        <div className="relative z-10" role="tabpanel" id="hadith-books-panel-library" aria-labelledby="hadith-books-tab-library" tabIndex={0}>
           {/* 7E: الأربعينيات hero */}
           {arbaini.length > 0 && (
             <div className="px-4 mb-6">
@@ -460,7 +461,7 @@ export function HadithBooksPage() {
       )}
 
       {/* Search tab */}
-      {tab === "search" && <SearchTab books={sorted} />}
+      {tab === "search" && <div role="tabpanel" id="hadith-books-panel-search" aria-labelledby="hadith-books-tab-search" tabIndex={0}><SearchTab books={sorted} /></div>}
     </div>
   );
 }

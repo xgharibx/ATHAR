@@ -856,6 +856,8 @@ export function SettingsPage() {
                   <button type="button"
                     onClick={() => setReminders({ soundProfile: option.id })}
                     className="w-full text-right"
+                    aria-pressed={active}
+                    aria-label={`صوت التذكير: اختيار صوت ${option.label}`}
                     disabled={!reminders.enabled && isNative}
                   >
                     <div className="text-sm font-semibold">{option.label}</div>
@@ -863,6 +865,7 @@ export function SettingsPage() {
                   <div className="mt-3 flex justify-end">
                     <button type="button"
                       onClick={() => void toggleReminderPreview(option.id)}
+                      aria-label={playingPreview === `reminder:${option.id}` ? `إيقاف معاينة صوت ${option.label}` : `معاينة صوت ${option.label}`}
                       className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-xs transition hover:bg-[var(--card-2)]"
                     >
                       {playingPreview === `reminder:${option.id}` ? <Square size={12} /> : <Play size={12} />}
@@ -933,6 +936,8 @@ export function SettingsPage() {
                       <button type="button"
                         onClick={() => setReminders({ prayerSoundProfile: option.id })}
                         className="w-full text-right"
+                        aria-pressed={active}
+                        aria-label={`صوت الأذان: اختيار صوت ${option.label}`}
                         disabled={!reminders.enabled && isNative}
                       >
                         <div className="text-sm font-semibold">{option.label}</div>
@@ -940,6 +945,7 @@ export function SettingsPage() {
                       <div className="mt-3 flex justify-end">
                         <button type="button"
                           onClick={() => void togglePrayerPreview(option.id)}
+                          aria-label={playingPreview === `prayer:${option.id}` ? `إيقاف معاينة صوت ${option.label}` : `معاينة صوت ${option.label}`}
                           className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-xs transition hover:bg-[var(--card-2)]"
                         >
                           {playingPreview === `prayer:${option.id}` ? <Square size={12} /> : <Play size={12} />}

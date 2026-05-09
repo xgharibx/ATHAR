@@ -1155,7 +1155,7 @@ export function PrayerTimesPage() {
       {/* Tab bar */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" role="tablist" aria-label="عرض مواقيت الصلاة">
         {TABS.map((tab) => (
-          <button type="button" key={tab.key} role="tab" aria-selected={activeTab === tab.key} onClick={() => setActiveTab(tab.key)}
+          <button type="button" key={tab.key} id={`pt-tab-${tab.key}`} role="tab" aria-selected={activeTab === tab.key} onClick={() => setActiveTab(tab.key)}
             className={cn(
               "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition",
               activeTab === tab.key
@@ -1172,7 +1172,7 @@ export function PrayerTimesPage() {
       <Card className="p-5">
         {/* TODAY */}
         {activeTab === "today" && (
-          <div className="space-y-2.5">
+          <div className="space-y-2.5" role="tabpanel" id="pt-panel-today" aria-labelledby="pt-tab-today" tabIndex={0}>
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm font-semibold">تفاصيل اليوم</div>
               <div className="text-[10px] opacity-40">الإقامة بعد الأذان بالدقائق المحددة</div>
@@ -1223,7 +1223,7 @@ export function PrayerTimesPage() {
 
         {/* WEEKLY */}
         {activeTab === "weekly" && (
-          <div>
+          <div role="tabpanel" id="pt-panel-weekly" aria-labelledby="pt-tab-weekly" tabIndex={0}>
             <div className="text-sm font-semibold mb-4">صلوات الأسبوع الحالي</div>
             <WeeklyTab />
           </div>
@@ -1231,18 +1231,18 @@ export function PrayerTimesPage() {
 
         {/* MONTHLY */}
         {activeTab === "monthly" && (
-          <div>
+          <div role="tabpanel" id="pt-panel-monthly" aria-labelledby="pt-tab-monthly" tabIndex={0}>
             <div className="text-sm font-semibold mb-4">التقويم الشهري للمواقيت</div>
             <MonthlyTab />
           </div>
         )}
 
         {/* TRACKING */}
-        {activeTab === "track" && <TrackingTab timings={timings} />}
+        {activeTab === "track" && <div role="tabpanel" id="pt-panel-track" aria-labelledby="pt-tab-track" tabIndex={0}><TrackingTab timings={timings} /></div>}
 
         {/* HIJRI */}
         {activeTab === "hijri" && (
-          <div>
+          <div role="tabpanel" id="pt-panel-hijri" aria-labelledby="pt-tab-hijri" tabIndex={0}>
             <div className="text-sm font-semibold mb-4">التقويم الهجري والمناسبات الإسلامية</div>
             <HijriCalendarTab />
           </div>
@@ -1250,17 +1250,17 @@ export function PrayerTimesPage() {
 
         {/* CITIES */}
         {activeTab === "cities" && (
-          <div>
+          <div role="tabpanel" id="pt-panel-cities" aria-labelledby="pt-tab-cities" tabIndex={0}>
             <div className="text-sm font-semibold mb-4">مواقيت الصلاة في مدن أخرى</div>
             <CitiesTab />
           </div>
         )}
 
         {/* STATS */}
-        {activeTab === "stats" && <StatsTab />}
+        {activeTab === "stats" && <div role="tabpanel" id="pt-panel-stats" aria-labelledby="pt-tab-stats" tabIndex={0}><StatsTab /></div>}
 
         {/* ARC */}
-        {activeTab === "arc" && <DayArcTab timings={timings} />}
+        {activeTab === "arc" && <div role="tabpanel" id="pt-panel-arc" aria-labelledby="pt-tab-arc" tabIndex={0}><DayArcTab timings={timings} /></div>}
       </Card>
 
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}

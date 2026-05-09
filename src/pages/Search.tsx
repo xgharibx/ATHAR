@@ -217,6 +217,7 @@ export function SearchPage() {
         {/* Tab switcher */}
         <div className="mt-4 flex gap-2" role="tablist" aria-label="نوع البحث">
           <button type="button"
+            id="search-tab-adhkar"
             role="tab"
             aria-selected={searchTab === "adhkar"}
             onClick={() => setSearchTab("adhkar")}
@@ -230,6 +231,7 @@ export function SearchPage() {
             🤲 الأذكار
           </button>
           <button type="button"
+            id="search-tab-quran"
             role="tab"
             aria-selected={searchTab === "quran"}
             onClick={() => setSearchTab("quran")}
@@ -243,6 +245,7 @@ export function SearchPage() {
             <BookOpen size={13} /> القرآن
           </button>
           <button type="button"
+            id="search-tab-library"
             role="tab"
             aria-selected={searchTab === "library"}
             onClick={() => setSearchTab("library")}
@@ -256,6 +259,7 @@ export function SearchPage() {
             <LibraryBig size={13} /> المكتبة
           </button>
           <button type="button"
+            id="search-tab-hadith"
             role="tab"
             aria-selected={searchTab === "hadith"}
             onClick={() => setSearchTab("hadith")}
@@ -374,7 +378,7 @@ export function SearchPage() {
 
       {/* ── Adhkar results ────────────────────────────────────────────────── */}
       {searchTab === "adhkar" && (
-      <Card className="p-5">
+      <Card className="p-5" role="tabpanel" id="search-panel-adhkar" aria-labelledby="search-tab-adhkar" tabIndex={0}>
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="text-sm font-semibold">النتائج</div>
           {q.trim() && (
@@ -447,7 +451,7 @@ export function SearchPage() {
 
       {/* ── Quran results ─────────────────────────────────────────────────── */}
       {searchTab === "quran" && (
-      <Card className="p-5">
+      <Card className="p-5" role="tabpanel" id="search-panel-quran" aria-labelledby="search-tab-quran" tabIndex={0}>
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="text-sm font-semibold">نتائج القرآن</div>
           {q.trim() && quranResults.length > 0 && (
@@ -527,7 +531,7 @@ export function SearchPage() {
 
       {/* ── Library results ───────────────────────────────────────────────── */}
       {searchTab === "library" && (
-      <Card className="p-5">
+      <Card className="p-5" role="tabpanel" id="search-panel-library" aria-labelledby="search-tab-library" tabIndex={0}>
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="text-sm font-semibold">نتائج المكتبة</div>
           {q.trim() && libraryResults.length > 0 && (
@@ -592,7 +596,7 @@ export function SearchPage() {
 
       {/* ── Hadith results ────────────────────────────────────────────────── */}
       {searchTab === "hadith" && (
-      <Card className="p-5">
+      <Card className="p-5" role="tabpanel" id="search-panel-hadith" aria-labelledby="search-tab-hadith" tabIndex={0}>
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="text-sm font-semibold">بحث في الأحاديث</div>
           {hadithResults.length > 0 && q.trim() && (

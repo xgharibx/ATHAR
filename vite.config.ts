@@ -50,6 +50,7 @@ export default defineConfig(({ mode }) => {
         start_url: "/",
         scope: "/",
         display: "standalone",
+        display_override: ["window-controls-overlay", "standalone"],
         orientation: "portrait-primary",
         categories: ["lifestyle", "education", "utilities"],
         theme_color: "#2F4F37",
