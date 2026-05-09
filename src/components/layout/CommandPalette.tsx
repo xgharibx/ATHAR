@@ -176,6 +176,7 @@ export function CommandPalette(props: Props) {
     >
       {/* Overlay */}
       <div
+        aria-hidden="true"
         className={cn("absolute inset-0 bg-black/50 backdrop-blur-sm opacity-0", props.open && "opacity-100")}
         onClick={() => props.setOpen(false)}
       />

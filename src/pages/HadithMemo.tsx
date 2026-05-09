@@ -63,9 +63,13 @@ function FlipCard({
 }) {
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={isFlipped ? "اضغط لإخفاء الإجابة" : "اضغط لعرض الإجابة"}
       className="relative w-full cursor-pointer select-none"
       style={{ perspective: "1200px", minHeight: 260 }}
       onClick={onFlip}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onFlip(); } }}
     >
       <div
         className="relative w-full h-full transition-transform duration-500"

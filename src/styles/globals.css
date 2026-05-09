@@ -265,6 +265,11 @@ body {
     );
   }
 
+  /* Light theme: force glass-strong border to use themed stroke (overrides inline border-white/* utilities) */
+  .light .glass-strong {
+    border-color: var(--stroke) !important;
+  }
+
   .glass-strong {
     background: linear-gradient(180deg, var(--card-2), var(--card));
     border: 1px solid var(--stroke);

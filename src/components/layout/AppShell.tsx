@@ -199,7 +199,7 @@ function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onN
         "group flex items-center gap-3 w-full rounded-2xl px-3.5 py-3 transition-all active:scale-[.97]",
         isActive
           ? "bg-accent-10 border border-accent-25"
-          : "hover:bg-white/6 border border-transparent"
+          : "hover:bg-[var(--card)] border border-transparent"
       )}
     >
       {/* Icon badge */}
@@ -214,7 +214,7 @@ function SidebarItem({ s, onNavigate }: { s: import("@/data/types").Section; onN
       <div className="flex-1 min-w-0">
         <div className="text-[13px] font-medium truncate">{s.title}</div>
         <div className="mt-1 flex items-center gap-2">
-          <div className="flex-1 h-1 rounded-full bg-white/8 overflow-hidden">
+          <div className="flex-1 h-1 rounded-full bg-[var(--card-2)] overflow-hidden">
             <div
               className="h-full rounded-full transition-[width] duration-300"
               style={{ width: `${percent}%`, background: identity.accent }}
@@ -269,13 +269,13 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
     <div className="h-full flex flex-col" dir="rtl">
       {/* Pill handle */}
       <div className={`flex justify-center pt-3 pb-1 ${props.mobile ? "" : "xl:hidden"}`}>
-        <div className="w-10 h-1 rounded-full bg-white/20" />
+        <div className="w-10 h-1 rounded-full bg-[var(--stroke)]" />
       </div>
 
       {/* Profile-like header */}
       <div className="px-5 pt-3 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/15 shadow-lg">
+          <div className="w-12 h-12 rounded-2xl overflow-hidden border border-[var(--stroke)] shadow-lg">
             <LogoMark className="w-full h-full" title="Athar" />
           </div>
           <div className="flex-1 min-w-0">
@@ -284,7 +284,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
           </div>
           <button type="button"
             onClick={cycleTheme}
-            className="w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90"
+            className="w-11 h-11 rounded-xl bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] active:scale-90"
             aria-label={`تبديل المظهر (الحالي: ${themeLabel(prefs.theme)})`}
           >
             {prefs.theme === 'light' ? <Moon size={16} className="opacity-60" /> : <Sun size={16} className="opacity-60" />}
@@ -292,7 +292,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
           {props.onNavigate && (
             <button type="button"
               onClick={props.onNavigate}
-              className={`w-11 h-11 rounded-xl bg-white/8 grid place-items-center transition hover:bg-white/12 active:scale-90 ${props.mobile ? "" : "xl:hidden"}`}
+              className={`w-11 h-11 rounded-xl bg-[var(--card)] grid place-items-center transition hover:bg-[var(--card-2)] active:scale-90 ${props.mobile ? "" : "xl:hidden"}`}
               aria-label="إغلاق"
             >
               <X size={16} className="opacity-60" />
@@ -302,24 +302,24 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
 
         {/* Today's stats strip */}
         <div className="mt-3 flex items-center gap-2">
-          <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
+          <div className="flex-1 rounded-xl bg-[var(--card)] px-3 py-2 border border-[var(--stroke)]">
             <div className="text-[11px] opacity-55 uppercase tracking-wider">نشاط اليوم</div>
             <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: "var(--accent)" }}>
               {activityToday}
               <span className="text-[10px] font-normal opacity-60 mr-1">ذكر</span>
             </div>
           </div>
-          <div className="flex-1 rounded-xl bg-white/6 px-3 py-2 border border-white/8">
+          <div className="flex-1 rounded-xl bg-[var(--card)] px-3 py-2 border border-[var(--stroke)]">
             <div className="text-[11px] opacity-55 uppercase tracking-wider">الإنجاز</div>
             <div className="text-sm font-bold tabular-nums mt-0.5" style={{ color: smartSummary.percent >= 100 ? "var(--ok)" : "var(--accent)" }}>{smartSummary.percent}%</div>
           </div>
         </div>
-        <div className="mt-2 h-1 rounded-full bg-white/8 overflow-hidden">
+        <div className="mt-2 h-1 rounded-full bg-[var(--card-2)] overflow-hidden">
           <div className="h-full progress-accent" style={{ width: `${smartSummary.percent}%` }} />
         </div>
       </div>
 
-      <div className="h-px mx-5 bg-white/8" />
+      <div className="h-px mx-5 bg-[var(--stroke)]" />
 
       {/* Main navigation links */}
       <div className="px-4 py-3">
@@ -334,7 +334,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
                 "flex flex-col items-center gap-1.5 rounded-2xl py-3 px-1 border transition active:scale-[.94]",
                 isActive
                   ? "bg-accent-12 border-accent-30"
-                  : "bg-white/4 border-white/6 hover:bg-white/8"
+                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
               )}
             >
               <div className="w-8 h-8 rounded-xl grid place-items-center" style={{ background: `${link.color}18` }}>
@@ -346,7 +346,7 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
         </div>
       </div>
 
-      <div className="h-px mx-5 bg-white/8" />
+      <div className="h-px mx-5 bg-[var(--stroke)]" />
 
       {/* Sections list */}
       <div className="px-3 pt-3 pb-2">
@@ -501,7 +501,7 @@ export function AppShell() {
                 to="/settings"
                 aria-label="الإعدادات"
                 data-noor-tip="الإعدادات"
-                className="max-[340px]:hidden inline-flex items-center justify-center rounded-2xl p-2.5 bg-white/6 hover:bg-white/10 border border-white/10 transition active:scale-[.99] min-h-[44px] min-w-[44px]"
+                className="max-[340px]:hidden inline-flex items-center justify-center rounded-2xl p-2.5 bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] transition active:scale-[.99] min-h-[44px] min-w-[44px]"
               >
                 <Settings2 size={18} />
               </NavLink>
