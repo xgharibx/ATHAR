@@ -137,9 +137,10 @@ export function LeaderboardPage() {
       board,
       score: myBoardScore,
       day: todayKey,
+      joinedAt: identity.joinedAt,
       sectionId: board === "section" ? selectedSection : undefined
     }) satisfies LeaderboardEntry,
-    [board, myBoardScore, myStats.id, myStats.name, selectedSection, todayKey]
+    [board, identity.joinedAt, myBoardScore, myStats.id, myStats.name, selectedSection, todayKey]
   );
 
   const localRows = React.useMemo(
@@ -429,27 +430,33 @@ export function LeaderboardPage() {
               لا توجد نتائج منشورة لهذا التصنيف بعد. ابدأ بالمزامنة لرفع أول نتيجة.
             </div>
           ) : (
-            mergedRows.map((r, idx) => (
-              <div key={r.id} role="listitem" className={cn(
-                "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
-                r.id === myEntry.id ? "border-accent-35 bg-accent-8" : "border-[var(--stroke)]"
-              )}>
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center text-xs tabular-nums">
-                    {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1).toLocaleString("ar-EG")}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold truncate">{r.name}</div>
-                    <div className="text-[11px] opacity-60">
-                      {r.id === myEntry.id
-                        ? `أنت • انضممت: ${new Date(identity.joinedAt + "T00:00:00").toLocaleDateString("ar-EG", { day: "numeric", month: "short", year: "numeric" })}`
-                        : (r.day ? `عضو • ${new Date(r.day + "T00:00:00").toLocaleDateString("ar-EG", { day: "numeric", month: "short" })}` : "عضو")}
+            mergedRows.map((r, idx) => {
+              const joinedDate = formatLeaderboardJoinedDate(r.id === myEntry.id ? identity.joinedAt : r.joinedAt);
+
+              return (
+                <div key={r.id} role="listitem" className={cn(
+                  "glass rounded-3xl p-3 border flex items-center justify-between gap-3",
+                  r.id === myEntry.id ? "border-accent-35 bg-accent-8" : "border-[var(--stroke)]"
+                )}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center text-xs tabular-nums">
+                      {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1).toLocaleString("ar-EG")}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold truncate">{r.name}</div>
+                      <div className="text-[11px] opacity-60">
+                        {r.id === myEntry.id
+                          ? `أنت • انضممت: ${joinedDate || "غير متاح"}`
+                          : joinedDate
+                            ? `عضو • انضم: ${joinedDate}`
+                            : "عضو"}
+                      </div>
                     </div>
                   </div>
+                  <div className="text-sm font-semibold tabular-nums">{r.score.toLocaleString("ar-EG")}</div>
                 </div>
-                <div className="text-sm font-semibold tabular-nums">{r.score.toLocaleString("ar-EG")}</div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </Card>
@@ -498,6 +505,13 @@ function BoardTab(props: { label: string; active: boolean; onClick: () => void; 
       {props.label}
     </Button>
   );
+}
+
+function formatLeaderboardJoinedDate(dateISO?: string) {
+  if (!dateISO || !/^\d{4}-\d{2}-\d{2}$/.test(dateISO)) return "";
+  const date = new Date(`${dateISO}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("ar-EG", { day: "numeric", month: "short", year: "numeric" });
 }
 
 function LeaderboardAdminCard(props: {
@@ -749,7 +763,7 @@ function LeaderboardAdminCard(props: {
       });
       setConfirmResetScores(false);
       setAdminTone("ok");
-      setAdminHint("تم تصفير نقاط لوحة المتصدرين مع الإبقاء على قواعد الحظر والمراجعات.");
+      setAdminHint("تم تصفير نقاط لوحة المتصدرين مع حفظ تواريخ الانضمام وقواعد الحظر والمراجعات.");
       await props.onRefreshBoard();
     } catch (error) {
       setAdminTone("error");
@@ -820,7 +834,7 @@ function LeaderboardAdminCard(props: {
               <div className="rounded-3xl border border-danger-20 bg-danger-8 p-4 space-y-3">
                 <div className="text-sm font-semibold text-[var(--danger)]">إعادة تشغيل اللوحة</div>
                 <div className="text-[11px] leading-6 opacity-75">
-                  هذا الإجراء يمسح جميع النقاط المنشورة وسجل النتائج من الخادم، لكنه يُبقي قواعد الحظر ومراجعات الأسماء كما هي.
+                  هذا الإجراء يمسح جميع النقاط المنشورة وسجل النتائج من الخادم، لكنه يُبقي تواريخ الانضمام وقواعد الحظر ومراجعات الأسماء كما هي.
                 </div>
                 {confirmResetScores ? (
                   <div className="flex flex-wrap gap-2">

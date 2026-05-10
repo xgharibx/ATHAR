@@ -66,6 +66,9 @@ export function validateSubmitPayload(payload: LeaderboardSubmitPayload) {
   if (!payload.identity?.alias || payload.identity.alias.length > LEADERBOARD_POLICY.MAX_ALIAS_LENGTH) {
     return { ok: false as const, reason: "bad-alias" };
   }
+  if (payload.identity.joinedAt && !isValidDayISO(payload.identity.joinedAt)) {
+    return { ok: false as const, reason: "bad-joinedAt" };
+  }
   if (!isValidDayISO(payload.day)) return { ok: false as const, reason: "bad-day" };
   if (Math.abs(dayDiffFromToday(payload.day)) > LEADERBOARD_POLICY.MAX_DAYS_SKEW) {
     return { ok: false as const, reason: "day-skew" };

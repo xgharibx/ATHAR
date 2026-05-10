@@ -82,6 +82,11 @@ function isMissingRelationError(error) {
   return error?.code === "42P01" || String(error?.message ?? "").includes("does not exist");
 }
 
+function isMissingFunctionError(error) {
+  const message = String(error?.message ?? "");
+  return error?.code === "42883" || message.includes("function") && message.includes("does not exist");
+}
+
 async function readNameBlocklist(db) {
   if (Date.now() - blocklistCache.loadedAt < BLOCKLIST_CACHE_MS) {
     return blocklistCache.rows;
@@ -133,6 +138,24 @@ async function readUserModerationMap(db, userIds) {
   if (res.error) {
     if (!isMissingRelationError(res.error)) {
       console.error("leaderboard_user_moderation map read failed", res.error);
+    }
+    return new Map();
+  }
+
+  return new Map((res.data ?? []).map((row) => [row.user_id, row]));
+}
+
+async function readUserProfileMap(db, userIds) {
+  if (!Array.isArray(userIds) || userIds.length === 0) return new Map();
+
+  const res = await db
+    .from("leaderboard_user_profiles")
+    .select("user_id,joined_at,first_seen_at,last_seen_at,total_submissions")
+    .in("user_id", userIds);
+
+  if (res.error) {
+    if (!isMissingRelationError(res.error)) {
+      console.error("leaderboard_user_profiles map read failed", res.error);
     }
     return new Map();
   }
@@ -471,7 +494,7 @@ async function handleAdminPost(req, db, denoEnv, body) {
     const deleteRollups = await db.from("leaderboard_rollups").delete().not("day", "is", null);
     if (deleteRollups.error) return json({ ok: false, error: "rollups-reset-failed" }, 500);
 
-    return json({ ok: true, reset: { scope: "all-scores" } });
+    return json({ ok: true, reset: { scope: "all-scores", profilesPreserved: true } });
   }
 
   return json({ ok: false, error: "unknown-admin-action" }, 400);
@@ -507,6 +530,38 @@ function dayDiff(day) {
   return Math.floor((utcA - utcB) / ms);
 }
 
+function normalizeJoinedAt(input, fallbackDay) {
+  const fallback = validDay(fallbackDay) ? fallbackDay : dateOnly(new Date());
+  const value = String(input ?? "").slice(0, 10);
+  if (!validDay(value)) return fallback;
+  if (dayDiff(value) > 1) return fallback;
+  return value;
+}
+
+async function upsertUserProfile(db, payload, resolvedAlias) {
+  const joinedAt = normalizeJoinedAt(payload?.identity?.joinedAt, payload?.day);
+  const boardCount = 5 + Object.keys(payload?.scores?.sections ?? {}).length;
+  const res = await db.rpc("leaderboard_upsert_user_profile", {
+    p_user_id: payload.identity.id,
+    p_joined_at: joinedAt,
+    p_alias: resolvedAlias,
+    p_fingerprint_hash: payload.identity.fingerprint,
+    p_last_day: payload.day,
+    p_board_count: boardCount
+  });
+
+  if (res.error) {
+    if (isMissingFunctionError(res.error) || isMissingRelationError(res.error)) {
+      console.error("leaderboard profile SQL is not installed", res.error);
+    } else {
+      console.error("leaderboard_user_profiles upsert failed", res.error);
+    }
+    return { ok: false, joinedAt };
+  }
+
+  return { ok: true, joinedAt };
+}
+
 function sanitizePayload(payload) {
   const rawScores = payload?.scores ?? {};
   const sectionEntries = Object.entries(rawScores.sections ?? {})
@@ -517,7 +572,8 @@ function sanitizePayload(payload) {
     ...payload,
     identity: {
       ...payload.identity,
-      alias: normalizeAliasInput(payload?.identity?.alias)
+      alias: normalizeAliasInput(payload?.identity?.alias),
+      joinedAt: normalizeJoinedAt(payload?.identity?.joinedAt, payload?.day)
     },
     scores: {
       global: clampInt(rawScores.global),
@@ -729,8 +785,11 @@ denoRuntime.serve(async (req) => {
       reason: aliasDecision.reason
     });
 
+    const profileResult = await upsertUserProfile(db, payload, aliasDecision.alias);
+    if (!profileResult.ok) return json({ ok: false, error: "profile-upsert-failed" }, 500);
+
     if (aliasDecision.hidden) {
-      return json({ ok: true, hidden: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status });
+      return json({ ok: true, hidden: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, joinedAt: profileResult.joinedAt });
     }
 
     const incomingScoreSignature = scoreSignature(payload.scores);
@@ -748,7 +807,7 @@ denoRuntime.serve(async (req) => {
     if (!lastSnapshotRes.error && lastSnapshotRes.data?.payload?.scores) {
       const previousScoreSignature = scoreSignature(lastSnapshotRes.data.payload.scores);
       if (previousScoreSignature === incomingScoreSignature) {
-        return json({ ok: true, deduped: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false });
+        return json({ ok: true, deduped: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt });
       }
     }
 
@@ -761,7 +820,7 @@ denoRuntime.serve(async (req) => {
       .limit(1);
 
     if (!duplicateRes.error && (duplicateRes.data?.length ?? 0) > 0) {
-      return json({ ok: true, deduped: true });
+      return json({ ok: true, deduped: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt });
     }
 
     const dayCountRes = await db
@@ -826,7 +885,7 @@ denoRuntime.serve(async (req) => {
       if (rollupInsert.error) return json({ ok: false, error: "rollup-insert-failed" }, 500);
     }
 
-    return json({ ok: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false });
+    return json({ ok: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt });
   }
 
   if (req.method === "GET") {
@@ -861,10 +920,13 @@ denoRuntime.serve(async (req) => {
     const rowsRes = await query;
     if (rowsRes.error) return json({ ok: false, error: "read-failed" }, 500);
 
+    const userIds = [...new Set((rowsRes.data ?? []).map((row) => row.user_id).filter(Boolean))];
+
     const moderationMap = await readUserModerationMap(
       db,
-      [...new Set((rowsRes.data ?? []).map((row) => row.user_id).filter(Boolean))]
+      userIds
     );
+    const profileMap = await readUserProfileMap(db, userIds);
     const blocklistRows = await readNameBlocklist(db);
 
     const grouped = aggregateRollupRows(rowsRes.data ?? [])
@@ -874,6 +936,7 @@ denoRuntime.serve(async (req) => {
         board,
         score: r.score,
         day,
+        joinedAt: profileMap.get(r.userId)?.joined_at ?? undefined,
         sectionId: r.sectionId ?? undefined
       }))
       .filter((row) => !(moderationMap.get(row.id)?.hidden))

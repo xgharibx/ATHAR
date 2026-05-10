@@ -7,6 +7,7 @@ export type LeaderboardEntry = {
   board: LeaderboardBoard;
   score: number;
   day?: string;
+  joinedAt?: string;
   sectionId?: string;
   sectionTitle?: string;
   meta?: Record<string, number | string | boolean | null>;
@@ -48,6 +49,7 @@ export type LeaderboardSubmitPayload = {
     id: string;
     alias: string;
     fingerprint: string;
+    joinedAt?: string;
   };
   scores: LeaderboardScoreBundle;
   checksum: string;
@@ -391,6 +393,7 @@ export function getLocalRowsFromHistory(opts: {
       board,
       score,
       day: todayISO,
+      joinedAt: identity.joinedAt,
       sectionId
     }
   ];
@@ -542,11 +545,12 @@ export async function buildSubmitPayload(day: string, scores: LeaderboardScoreBu
 
   const generatedAt = new Date().toISOString();
   const fingerprint = await sha256(`${identity.id}|${identity.secret}`);
+  const payloadIdentity = { id: identity.id, alias, fingerprint, joinedAt: identity.joinedAt };
   const preChecksum = JSON.stringify({
     v: 1,
     generatedAt,
     day,
-    identity: { id: identity.id, alias, fingerprint },
+    identity: payloadIdentity,
     scores: cleanScores
   });
   const checksum = await sha256(`${preChecksum}|${identity.secret}`);
@@ -555,7 +559,7 @@ export async function buildSubmitPayload(day: string, scores: LeaderboardScoreBu
     v: 1,
     generatedAt,
     day,
-    identity: { id: identity.id, alias, fingerprint },
+    identity: payloadIdentity,
     scores: cleanScores,
     checksum
   } satisfies LeaderboardSubmitPayload;
@@ -724,7 +728,8 @@ export async function fetchBoardRows(opts: {
       ...row,
       name: normalizeAlias(row.name, String(row.id ?? "anon")),
       board: sanitizeBoardName(String(row.board ?? "global")),
-      score: normalizeScore(row.score)
+      score: normalizeScore(row.score),
+      joinedAt: typeof row.joinedAt === "string" && parseISO(row.joinedAt) ? row.joinedAt : undefined
     }))
     .slice(0, 100);
 }
