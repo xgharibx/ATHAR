@@ -1006,6 +1006,11 @@ export function QuranPage() {
                         const mins = Math.max(1, Math.round(s.ayahs.length / 8));
                         return <span>· ~{mins.toLocaleString("ar-EG")} دق</span>;
                       })()}
+                      {sortMode === "nearly" && maxRead > 0 && maxRead < s.ayahs.length && (
+                        <span className="tabular-nums" style={{ color: "var(--accent)" }}>
+                          · {(s.ayahs.length - maxRead).toLocaleString("ar-EG")} آية متبقية
+                        </span>
+                      )}
                     </div>
                     {/* Progress line */}
                     {pct > 0 && pct < 100 && (
