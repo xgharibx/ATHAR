@@ -361,6 +361,23 @@ export function InsightsPage() {
   const todayQuranAyahs = quranDailyAyahs[civilTodayKey] ?? 0;
   const quranGoal = Math.max(1, quranDailyGoal ?? 10);
 
+  // Phase 61: Monthly reading trend (last 6 months)
+  const quranMonthlyTrend = React.useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const prefix = `${y}-${m}-`;
+      const total = Object.entries(quranDailyAyahs)
+        .filter(([k]) => k.startsWith(prefix))
+        .reduce((s, [, v]) => s + (v ?? 0), 0);
+      const MONTHS_AR = ["ين", "فب", "مار", "أبر", "ماي", "يون", "يول", "أغ", "سب", "أكت", "نوف", "ديس"];
+      const isCurrent = i === 5;
+      return { label: MONTHS_AR[d.getMonth()] ?? "", total, isCurrent };
+    });
+  }, [quranDailyAyahs]);
+
   // Day-of-week reading pattern (0=Sun ... 6=Sat)
   const quranDowPattern = React.useMemo(() => {
     const totals = [0, 0, 0, 0, 0, 0, 0];
@@ -1496,6 +1513,32 @@ export function InsightsPage() {
                         title={`${wk.label}: ${wk.total.toLocaleString("ar-EG")} آية`}
                       />
                       <span className="text-[9px] leading-none opacity-45 text-center">{wk.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+          {/* Phase 61: Monthly reading trend */}
+          {quranMonthlyTrend.some((m) => m.total > 0) && (() => {
+            const maxM = Math.max(...quranMonthlyTrend.map((m) => m.total), 1);
+            return (
+              <div className="mt-4">
+                <div className="text-xs opacity-50 mb-2">القراءة الشهرية (6 أشهر)</div>
+                <div className="flex items-end gap-1.5 h-20">
+                  {quranMonthlyTrend.map((mo) => (
+                    <div key={mo.label} className="flex-1 flex flex-col items-center gap-1" style={{ height: "100%", justifyContent: "flex-end" }}>
+                      {mo.total > 0 && <span className="text-[9px] opacity-60 tabular-nums">{mo.total.toLocaleString("ar-EG")}</span>}
+                      <div
+                        className="w-full rounded-t-md transition-all duration-500"
+                        style={{
+                          height: mo.total > 0 ? `${Math.max(4, Math.round((mo.total / maxM) * 56))}px` : "3px",
+                          background: mo.isCurrent ? "var(--accent)" : mo.total > 0 ? "color-mix(in srgb, var(--accent) 38%, transparent)" : "var(--card)",
+                          opacity: mo.total === 0 ? 0.35 : 1,
+                        }}
+                        title={`${mo.label}: ${mo.total.toLocaleString("ar-EG")} آية`}
+                      />
+                      <span className="text-[9px] leading-none opacity-45 text-center">{mo.label}</span>
                     </div>
                   ))}
                 </div>
