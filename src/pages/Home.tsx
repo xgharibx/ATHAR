@@ -1477,7 +1477,7 @@ export function HomePage() {
               }}
               aria-label="آية اليوم — انتقل للمصحف"
             >
-              <div className="text-[10px] font-semibold opacity-40 mb-2 tracking-wide">������ آية اليوم</div>
+              <div className="text-[10px] font-semibold opacity-40 mb-2 tracking-wide">✨ آية اليوم</div>
               <div
                 className="text-base leading-8 mb-2 text-right"
                 style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}
@@ -1496,35 +1496,6 @@ export function HomePage() {
         return null;
       })}
 
-      {/* ── كلمة اليوم — vocab ── */}
-      {dailyVocabWord && (
-        <button
-          type="button"
-          onClick={() => navigate("/quran-vocab")}
-          className="w-full text-right rounded-3xl border transition-all active:scale-[0.99] p-4"
-          style={{
-            background: "color-mix(in srgb, var(--accent) 6%, var(--card))",
-            borderColor: "color-mix(in srgb, var(--accent) 20%, transparent)",
-          }}
-          aria-label="كلمة اليوم — انتقل إلى مفردات القرآن"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-semibold opacity-45 mb-1.5 tracking-wide uppercase">★ كلمة اليوم</div>
-              <div
-                className="text-2xl font-bold mb-1 leading-tight"
-                style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--accent)" }}
-                lang="ar"
-              >
-                {dailyVocabWord.arabic}
-              </div>
-              <div className="text-sm font-medium opacity-75">{dailyVocabWord.meaning}</div>
-            </div>
-            <div className="text-[10px] opacity-30 self-center">❮</div>
-          </div>
-        </button>
-      )}
-
       {/* هدف آيات اليوم */}
       {(prefs.quranDailyGoal ?? 10) > 0 && (() => {
         const todayAyahs = quranDailyAyahs[civilTodayKey] ?? 0;
@@ -1542,7 +1513,7 @@ export function HomePage() {
             }}
             aria-label="هدف القرآن اليومي"
           >
-            <span className="text-base shrink-0" aria-hidden="true">{met ? "✅" : "������"}</span>
+            <span className="text-base shrink-0" aria-hidden="true">{met ? "✅" : "📖"}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-semibold" style={{ color: met ? "var(--ok)" : "var(--accent)" }}>آيات اليوم</span>
@@ -1611,7 +1582,7 @@ export function HomePage() {
             style={{ background: "color-mix(in srgb, var(--accent) 5%, var(--card))", borderColor: "color-mix(in srgb, var(--accent) 18%, transparent)" }}
             aria-label="ختمة القرآن"
           >
-            <span className="text-base shrink-0" aria-hidden="true">������</span>
+            <span className="text-base shrink-0" aria-hidden="true">📖</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>ختمة القرآن</span>

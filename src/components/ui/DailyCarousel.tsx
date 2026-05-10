@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { DAILY_VERSES } from "@/data/dailyVerses";
 import { HADITHS } from "@/data/hadiths";
 import { getTodayWisdom } from "@/data/dailyWisdom";
+import { QURAN_VOCAB } from "@/data/quranVocab";
 import { Button } from "@/components/ui/Button";
 import toast from "react-hot-toast";
 
@@ -17,7 +18,7 @@ function dateIndex(dateKey: string, length: number, offset = 0): number {
   return hash % length;
 }
 
-const SLIDE_LABELS = ["آية اليوم", "حديث اليوم", "تدبر اليوم"] as const;
+const SLIDE_LABELS = ["آية اليوم", "حديث اليوم", "تدبر اليوم", "كلمة اليوم"] as const;
 
 export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const navigate = useNavigate();
@@ -36,6 +37,13 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   }, [dateKey]);
 
   const wisdom = React.useMemo(() => getTodayWisdom(dateKey), [dateKey]);
+
+  const vocabWord = React.useMemo(() => {
+    if (!QURAN_VOCAB.length) return null;
+    let hash = 0;
+    for (let i = 0; i < dateKey.length; i++) hash = (hash * 31 + dateKey.charCodeAt(i)) >>> 0;
+    return QURAN_VOCAB[hash % QURAN_VOCAB.length] ?? null;
+  }, [dateKey]);
 
   const copyShare = React.useCallback(async (text: string) => {
     try {
@@ -58,7 +66,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   React.useEffect(() => {
     const timer = setInterval(() => {
       if (Date.now() < pauseUntilRef.current) return;
-      setActiveIdx((prev) => (prev + 1) % 3);
+      setActiveIdx((prev) => (prev + 1) % 4);
     }, 4000);
     return () => clearInterval(timer);
   }, []);
@@ -73,7 +81,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     pauseUntilRef.current = Date.now() + 8000;
     if (Math.abs(delta) > 40) {
       setActiveIdx((prev) => {
-        if (delta > 0) return Math.min(prev + 1, 2); // swipe left → next
+        if (delta > 0) return Math.min(prev + 1, 3); // swipe left → next
         return Math.max(prev - 1, 0); // swipe right → prev
       });
     }
@@ -82,8 +90,8 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   return (
     <Card className="p-0 overflow-hidden" role="region" aria-label="محتوى يومي" aria-roledescription="عرض دوار" tabIndex={0}
       onKeyDown={(e: React.KeyboardEvent) => {
-        if (e.key === 'ArrowLeft') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; setActiveIdx((p) => (p + 1) % 3); }
-        else if (e.key === 'ArrowRight') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; setActiveIdx((p) => (p - 1 + 3) % 3); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; setActiveIdx((p) => (p + 1) % 4); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; setActiveIdx((p) => (p - 1 + 4) % 4); }
       }}>
       {/* Header label */}
       <div className="flex items-center justify-between px-4 pt-3 pb-0">
@@ -206,12 +214,44 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
               <span className="text-xs opacity-55 arabic-text">{wisdom.source}</span>
             </div>
           </div>
+
+          {/* Slide 4: كلمة اليوم */}
+          <div id="carousel-slide-3" role="group" aria-roledescription="شريحة" aria-label="كلمة اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+            {vocabWord ? (
+              <button
+                type="button"
+                onClick={() => navigate("/quran-vocab")}
+                className="w-full text-right"
+                aria-label="انتقل إلى مفردات القرآن"
+              >
+                <div
+                  className="text-3xl font-bold mb-1.5 leading-tight arabic-text"
+                  style={{ color: "var(--accent)" }}
+                  lang="ar"
+                >
+                  {vocabWord.arabic}
+                </div>
+                <div className="text-sm font-medium opacity-75 mb-2">{vocabWord.meaning}</div>
+                <div className="flex items-center justify-between">
+                  <span
+                    className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                    style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
+                  >
+                    صف {vocabWord.id} • تردد {vocabWord.frequency.toLocaleString("ar-EG")}×
+                  </span>
+                  <span className="text-[10px] opacity-40">اضغط للتعلم ❬</span>
+                </div>
+              </button>
+            ) : (
+              <div className="text-sm opacity-50 py-4 text-center">لا توجد كلمة</div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Dot indicators */}
       <div className="flex items-center justify-center gap-2 pb-3" role="tablist" aria-orientation="horizontal" aria-label="تنقل بين الشرائح">
-        {[0, 1, 2].map((i) => (
+        {[0, 1, 2, 3].map((i) => (
           <button type="button"
             key={i}
             role="tab"

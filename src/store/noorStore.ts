@@ -54,7 +54,7 @@ export type Preferences = {
   quranLineHeight: number; // 1.8 - 3.0
   quranPageSize: number; // ayahs per page
   quranHideMarkers: boolean;
-  quranTheme: "default" | "sepia" | "midnight" | "parchment";
+  quranTheme: "default" | "sepia" | "midnight" | "parchment" | "forest" | "rose" | "ocean" | "desert" | "dawn";
   quranLetterSpacing: number; // em, 0 - 0.12
   quranWordSpacing: number;   // em, 0 - 0.25
   quranScrollMode: "page" | "scroll";
