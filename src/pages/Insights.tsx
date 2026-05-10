@@ -402,6 +402,12 @@ export function InsightsPage() {
     [quranStats.totalAyahs]
   );
 
+  // Phase 59: Best Quran reading streak (all-time)
+  const quranBestStreak = React.useMemo(
+    () => computeBestStreak(quranDailyAyahs as Record<string, number>),
+    [quranDailyAyahs]
+  );
+
   // Phase 52: 30-day reading consistency score
   const quranConsistency30 = React.useMemo(() => {
     const today = new Date();
@@ -1261,12 +1267,20 @@ export function InsightsPage() {
               <BookOpen size={16} className="text-[var(--accent)]" aria-hidden="true" />
               <div className="font-semibold text-sm">إحصاءات القرآن</div>
             </div>
-            {quranStreak > 0 && (
-              <div className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-xl bg-accent-10 border border-accent-20">
-                <Flame size={11} className="text-[var(--accent)]" aria-hidden="true" />
-                <span className="tabular-nums">{quranStreak.toLocaleString("ar-EG")} يوم</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1.5">
+              {quranStreak > 0 && (
+                <div className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-xl bg-accent-10 border border-accent-20">
+                  <Flame size={11} className="text-[var(--accent)]" aria-hidden="true" />
+                  <span className="tabular-nums">{quranStreak.toLocaleString("ar-EG")} يوم</span>
+                </div>
+              )}
+              {quranBestStreak > quranStreak && quranBestStreak > 1 && (
+                <div className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-lg opacity-55" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}>
+                  <span>★</span>
+                  <span className="tabular-nums">{quranBestStreak.toLocaleString("ar-EG")}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {(() => {
