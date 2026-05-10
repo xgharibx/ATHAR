@@ -1477,7 +1477,7 @@ export function HomePage() {
               }}
               aria-label="آية اليوم — انتقل للمصحف"
             >
-              <div className="text-[10px] font-semibold opacity-40 mb-2 tracking-wide">������ آية اليوم</div>
+              <div className="text-[10px] font-semibold opacity-40 mb-2 tracking-wide">������ آية اليوم</div>
               <div
                 className="text-base leading-8 mb-2 text-right"
                 style={{ fontFamily: "var(--font-arabic, inherit)", color: "var(--fg)" }}
@@ -1542,7 +1542,7 @@ export function HomePage() {
             }}
             aria-label="هدف القرآن اليومي"
           >
-            <span className="text-base shrink-0" aria-hidden="true">{met ? "✅" : "������"}</span>
+            <span className="text-base shrink-0" aria-hidden="true">{met ? "✅" : "������"}</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-semibold" style={{ color: met ? "var(--ok)" : "var(--accent)" }}>آيات اليوم</span>
@@ -1554,6 +1554,38 @@ export function HomePage() {
               {todayAyahs >= 4 && (
                 <p className="text-[10px] mt-1 opacity-40 tabular-nums">≈{Math.max(1, Math.round(todayAyahs / 8)).toLocaleString("ar-EG")} دقيقة قراءة اليوم</p>
               )}
+              {/* Phase 63: 7-day reading sparkline */}
+              {(() => {
+                const today = new Date();
+                const days = Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date(today);
+                  d.setDate(today.getDate() - (6 - i));
+                  const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                  return quranDailyAyahs[k] ?? 0;
+                });
+                const maxDay = Math.max(...days, 1);
+                if (days.every((v) => v === 0)) return null;
+                return (
+                  <div className="flex items-end gap-0.5 mt-2 h-5" aria-hidden="true">
+                    {days.map((v, i) => (
+                      <div
+                        key={i}
+                        className="flex-1 rounded-t-sm"
+                        style={{
+                          height: v > 0 ? `${Math.max(3, Math.round((v / maxDay) * 18))}px` : "2px",
+                          background: i === 6
+                            ? (met ? "var(--ok)" : "var(--accent)")
+                            : v > 0
+                              ? `color-mix(in srgb, ${met ? "var(--ok)" : "var(--accent)"} 40%, transparent)`
+                              : "rgba(255,255,255,0.07)",
+                          opacity: v === 0 ? 0.4 : 1,
+                          alignSelf: "flex-end",
+                        }}
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
             <span className="text-[10px] opacity-30 shrink-0">❮</span>
           </button>
@@ -1579,7 +1611,7 @@ export function HomePage() {
             style={{ background: "color-mix(in srgb, var(--accent) 5%, var(--card))", borderColor: "color-mix(in srgb, var(--accent) 18%, transparent)" }}
             aria-label="ختمة القرآن"
           >
-            <span className="text-base shrink-0" aria-hidden="true">������</span>
+            <span className="text-base shrink-0" aria-hidden="true">������</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>ختمة القرآن</span>
