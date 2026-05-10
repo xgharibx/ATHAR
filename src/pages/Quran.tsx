@@ -940,6 +940,36 @@ export function QuranPage() {
             </div>
           )}
 
+          {/* Phase 64: Sort mode summary bar */}
+          {(sortMode === "nearly" || sortMode === "unread") && sortedFiltered.length > 0 && (() => {
+            if (sortMode === "nearly") {
+              const totalRemaining = sortedFiltered.reduce((sum, s) => {
+                const maxRead = readingHistory[String(s.id)] ?? 0;
+                return sum + Math.max(0, s.ayahs.length - maxRead);
+              }, 0);
+              const readMins = Math.max(1, Math.round(totalRemaining / 8));
+              return (
+                <div className="px-4 py-1.5 text-[10px] opacity-50 flex items-center gap-2" style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 25%, transparent)" }}>
+                  <span>{sortedFiltered.length.toLocaleString("ar-EG")} سورة قيد القراءة</span>
+                  <span>·</span>
+                  <span>{totalRemaining.toLocaleString("ar-EG")} آية متبقية (~{readMins.toLocaleString("ar-EG")} دقيقة)</span>
+                </div>
+              );
+            }
+            if (sortMode === "unread") {
+              const totalAyahs = sortedFiltered.reduce((sum, s) => sum + s.ayahs.length, 0);
+              const readMins = Math.max(1, Math.round(totalAyahs / 8));
+              return (
+                <div className="px-4 py-1.5 text-[10px] opacity-50 flex items-center gap-2" style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 25%, transparent)" }}>
+                  <span>{sortedFiltered.length.toLocaleString("ar-EG")} سورة لم تُقرأ</span>
+                  <span>·</span>
+                  <span>{totalAyahs.toLocaleString("ar-EG")} آية (~{readMins.toLocaleString("ar-EG")} دقيقة)</span>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           {/* ── Surah list — clean full-width rows ─────────────── */}
           <div id="quran-surah-list" role="list" aria-label="قائمة السور">
             {sortedFiltered.length === 0 && (
