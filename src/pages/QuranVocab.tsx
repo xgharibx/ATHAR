@@ -761,6 +761,40 @@ export function QuranVocabPage() {
           </button>
         </div>
 
+        {/* Phase 62: Weekly featured word from mid/rare tier */}
+        {(() => {
+          const MID_RARE = QURAN_VOCAB.filter((w) => w.id >= 51);
+          const weekNum = Math.floor(Date.now() / (7 * 86400000));
+          const featured = MID_RARE[weekNum % MID_RARE.length];
+          if (!featured) return null;
+          const isLearned = learned.has(featured.id);
+          return (
+            <div
+              className="w-full max-w-sm rounded-2xl p-3 flex items-center gap-3"
+              style={{ background: "color-mix(in srgb, #a78bfa 9%, var(--card))", border: "1px solid rgba(167,139,250,0.25)" }}
+            >
+              <div className="shrink-0 text-xs font-bold px-2 py-1 rounded-xl" style={{ background: "rgba(167,139,250,0.15)", color: "#a78bfa" }}>
+                كلمة
+              </div>
+              <div className="flex-1 min-w-0 text-right">
+                <div className="font-bold arabic-text text-sm">{featured.arabic}</div>
+                <div className="text-[11px] opacity-60 truncate">{featured.meaning}</div>
+              </div>
+              <button
+                type="button"
+                className="shrink-0 p-1.5 rounded-xl transition-all active:scale-90"
+                style={isLearned
+                  ? { background: "color-mix(in srgb, var(--ok) 15%, transparent)", color: "var(--ok)" }
+                  : { background: "rgba(167,139,250,0.15)", color: "#a78bfa" }}
+                onClick={() => handleLearn(featured.id)}
+                aria-label={isLearned ? "إلغاء حفظ الكلمة المختارة" : "حفظ الكلمة المختارة"}
+              >
+                <CheckCircle2 size={14} aria-hidden="true" />
+              </button>
+            </div>
+          );
+        })()}
+
         {/* Stats mini-card */}
         <div
           className="w-full max-w-sm rounded-2xl p-4 text-center"
