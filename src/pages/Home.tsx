@@ -925,7 +925,7 @@ export function HomePage() {
                           ? "color-mix(in srgb, var(--accent) 60%, transparent)"
                           : isComplete
                             ? "color-mix(in srgb, var(--ok) 30%, transparent)"
-                            : pctDone > 0 ? "color-mix(in srgb, var(--accent) 40%, transparent)" : "var(--card)",
+                            : pctDone > 0 ? "color-mix(in srgb, var(--accent) 40%, transparent)" : "var(--stroke)",
                         transform: isDragging ? "scale(1.07)" : undefined,
                         boxShadow: isDragging ? "0 8px 28px rgba(0,0,0,0.45)" : undefined,
                         zIndex: isDragging ? 10 : undefined,
@@ -967,7 +967,7 @@ export function HomePage() {
                           ? "color-mix(in srgb, var(--accent) 60%, transparent)"
                           : isComplete
                             ? "color-mix(in srgb, var(--ok) 30%, transparent)"
-                            : pctDone > 0 ? `${identity.accent}40` : "var(--card)",
+                            : pctDone > 0 ? `${identity.accent}40` : "var(--stroke)",
                         transform: isDragging ? "scale(1.07)" : undefined,
                         boxShadow: isDragging ? "0 8px 28px rgba(0,0,0,0.45)" : undefined,
                         zIndex: isDragging ? 10 : undefined,
