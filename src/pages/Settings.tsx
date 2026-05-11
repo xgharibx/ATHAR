@@ -288,8 +288,8 @@ export function SettingsPage() {
             }
           />
           <SettingRow
-            title="الوضع الشفاف"
-            desc="خلفية زجاجية مضيئة للبطاقات"
+            title="الوضع الزجاجي الشفاف"
+            desc="تشغيله يجعل البطاقات أخف وشفافة، وإيقافه يرجع الألوان العميقة"
             right={
               <Switch checked={prefs.transparentMode} onCheckedChange={(v) => setPrefs({ transparentMode: v })} />
             }

@@ -415,7 +415,7 @@ const DEFAULT_PREFS: Preferences = {
   enableHaptics: true,
   enableSounds: false,
   reduceMotion: false,
-  transparentMode: true,
+  transparentMode: false,
   customAccent: undefined,
   arabicFont: "noto_naskh",
   uiLanguage: "ar",
