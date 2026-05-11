@@ -321,24 +321,24 @@ body {
 
 /* Transparent Mode Logic */
 body.transparent-mode {
-  --card: color-mix(in srgb, var(--bg) 76%, transparent);
-  --card-2: color-mix(in srgb, var(--bg) 72%, var(--accent) 14%);
+  --card: rgba(0, 0, 0, 0.05);
+  --card-2: rgba(0, 0, 0, 0.15);
   /* Keep bg as is, so the 3D background is visible behind the now-transparent cards */
 }
 body.transparent-mode .glass,
 body.transparent-mode .glass-strong {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--card-2) 92%, transparent), color-mix(in srgb, var(--card) 88%, transparent));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.008));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-color: color-mix(in srgb, var(--stroke) 85%, transparent);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  border-color: rgba(255,255,255,0.06);
+  box-shadow: none;
 }
 /* For dark/roses/forest themes specifically where text needs contrast */
 html.roses body.transparent-mode .glass-strong,
 html.forest body.transparent-mode .glass-strong,
 html.bees body.transparent-mode .glass-strong,
 html.midnight body.transparent-mode .glass-strong {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--card-2) 96%, transparent), color-mix(in srgb, var(--card) 90%, transparent));
+  background: rgba(0, 0, 0, 0.16);
 }
 
 /* Arabic typography improvements */
