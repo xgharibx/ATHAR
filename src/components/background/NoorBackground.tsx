@@ -73,7 +73,7 @@ export function NoorBackground() {
           style={{
             background:
               "radial-gradient(900px 600px at 18% 10%, var(--accent), transparent 62%), radial-gradient(900px 650px at 82% 28%, var(--accent-2), transparent 60%), radial-gradient(900px 700px at 50% 120%, var(--accent), transparent 62%)",
-            opacity: transparent ? 0.22 : 0.14
+            opacity: transparent ? 0.35 : 0.22
           }}
         />
 
@@ -123,7 +123,7 @@ export function NoorBackground() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--bg) 35%, transparent) 35%, color-mix(in srgb, var(--bg) 75%, transparent) 72%, color-mix(in srgb, var(--bg) 95%, transparent) 100%)"
+              "linear-gradient(180deg, rgba(7,8,11,.00) 0%, rgba(7,8,11,.35) 35%, rgba(7,8,11,.75) 72%, rgba(7,8,11,.95) 100%)"
           }}
         />
       </div>
