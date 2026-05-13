@@ -51,14 +51,27 @@ export function CommandPalette(props: Props) {
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<FlatDhikr[]>([]);
 
+  // Normalize Arabic: strip diacritics + unify alef/ta/ya variants for matching
+  /* eslint-disable no-misleading-character-class */
+  const normalizeArabic = React.useCallback((text: string) =>
+    text
+      .replace(/[\u064B-\u065F\u0610-\u061A\u06D6-\u06EF\u0670]/g, "")
+      .replace(/[أإآٱ]/g, "ا")
+      .replace(/ة/g, "ه")
+      .replace(/ى/g, "ي"),
+  []);
+  /* eslint-enable no-misleading-character-class */
+
   const fuse = React.useMemo(() => {
     if (!data) return null;
-    return new Fuse(data.flat, {
+    // Map items to include normalized text so diacritic-free queries match diacritical text
+    const indexed = data.flat.map((d) => ({ ...d, _norm: normalizeArabic(d.text ?? "") }));
+    return new Fuse(indexed, {
       includeScore: true,
       threshold: 0.35,
-      keys: ["text", "sectionTitle", "sectionId"]
+      keys: ["_norm", "sectionTitle", "sectionId"]
     });
-  }, [data]);
+  }, [data, normalizeArabic]);
 
   // Quran surah fuzzy search index
   const surahFuse = React.useMemo(() => {
@@ -69,17 +82,6 @@ export function CommandPalette(props: Props) {
       keys: ["name", "englishName", "id"],
     });
   }, [quranData]);
-
-  // De10: Ayah-level search — normalize Arabic to strip diacritics + alef variants for matching
-  /* eslint-disable no-misleading-character-class */
-  const normalizeArabic = React.useCallback((text: string) =>
-    text
-      .replace(/[\u064B-\u065F\u0610-\u061A\u06D6-\u06EF\u0670]/g, "")
-      .replace(/[أإآٱ]/g, "ا")
-      .replace(/ة/g, "ه")
-      .replace(/ى/g, "ي"),
-  []);
-  /* eslint-enable no-misleading-character-class */
 
   const ayahIndex = React.useMemo(() => {
     if (!quranData) return [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string; normalized: string }>;
@@ -143,12 +145,12 @@ export function CommandPalette(props: Props) {
       return;
     }
     try {
-      const out = fuse.search(query).slice(0, 20).map((r) => r.item);
+      const out = fuse.search(normalizeArabic(query)).slice(0, 20).map((r) => r.item);
       setResults(out);
     } catch {
       setResults([]);
     }
-  }, [fuse, query]);
+  }, [fuse, query, normalizeArabic]);
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -194,7 +196,7 @@ export function CommandPalette(props: Props) {
         aria-label="البحث السريع"
       >
         <div className="glass-strong rounded-3xl overflow-hidden border border-[var(--stroke)]">
-          <Command className="w-full">
+          <Command className="w-full" shouldFilter={false}>
             <div className="flex items-center gap-3 px-4 py-4 border-b border-[var(--stroke)]">
               <Search size={18} aria-hidden="true" className="opacity-70" />
               <Command.Input
@@ -215,85 +217,89 @@ export function CommandPalette(props: Props) {
                 لا توجد نتائج.
               </Command.Empty>
 
-              <Command.Group heading="الصفحات" className="px-2">
-                <Item onSelect={() => go("/")} icon={<span className="text-base" aria-hidden="true">🏠</span>}>الرئيسية</Item>
-                <Item onSelect={() => go("/quran")} icon={<span className="text-base" aria-hidden="true">📖</span>}>المصحف</Item>
-                <Item onSelect={() => go("/sebha")} icon={<span className="text-base" aria-hidden="true">📿</span>}>السبحة</Item>
-                <Item onSelect={() => go("/prayer-times")} icon={<span className="text-base" aria-hidden="true">🕌</span>}>مواقيت الصلاة</Item>
-                <Item onSelect={() => go("/library")} icon={<LibraryBig size={16} aria-hidden="true" />}>المكتبة الإسلامية</Item>
-                <Item onSelect={() => go("/search")} icon={<span className="text-base" aria-hidden="true">🔍</span>}>البحث</Item>
-                <Item onSelect={() => go("/favorites")} icon={<span className="text-base" aria-hidden="true">❤️</span>}>المفضلة</Item>
-                <Item onSelect={() => go("/insights")} icon={<span className="text-base" aria-hidden="true">📊</span>}>الإحصاءات</Item>
-                <Item onSelect={() => go("/leaderboard")} icon={<span className="text-base" aria-hidden="true">🏆</span>}>المتصدرون</Item>
-                <Item onSelect={() => go("/settings")} icon={<span className="text-base" aria-hidden="true">⚙️</span>}>الإعدادات</Item>
-              </Command.Group>
-
-              <Command.Separator className="h-px bg-[var(--card)] my-2" />
-              <Command.Group heading="محتوى وأدلة" className="px-2">
-                <Item onSelect={() => go("/asma")} icon={<span className="text-base" aria-hidden="true">✨</span>}>أسماء الله الحسنى</Item>
-                <Item onSelect={() => go("/duas")} icon={<span className="text-base" aria-hidden="true">🤲</span>}>الأدعية المأثورة</Item>
-                <Item onSelect={() => go("/library")} icon={<span className="text-base" aria-hidden="true">📚</span>}>صحيح مسلم والجوامع</Item>
-                <Item onSelect={() => go("/quran-vocab")} icon={<span className="text-base" aria-hidden="true">📖</span>}>مفردات القرآن</Item>
-                <Item onSelect={() => go("/stories")} icon={<span className="text-base" aria-hidden="true">🕌</span>}>قصص الأنبياء</Item>
-                <Item onSelect={() => go("/prayer-guide")} icon={<span className="text-base" aria-hidden="true">🧎</span>}>كيفية الصلاة</Item>
-                <Item onSelect={() => go("/wudu")} icon={<span className="text-base" aria-hidden="true">💧</span>}>كيفية الوضوء</Item>
-              </Command.Group>
-
-              <Command.Separator className="h-px bg-[var(--card)] my-2" />
-              <Command.Group heading="روابط إضافية" className="px-2">
-                <Item onSelect={() => go("/sources")}>المصادر والبيانات</Item>
-              </Command.Group>
-
-              <Command.Separator className="h-px bg-[var(--card)] my-2" />
-
-              <Command.Group heading="أوامر سريعة" className="px-2">
-                <Item
-                  onSelect={() => {
-                    cycleTheme();
-                    props.setOpen(false);
-                  }}
-                  icon={
-                    theme === "dark" ? <Moon size={16} aria-hidden="true" /> : theme === "light" ? <Sun size={16} aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />
-                  }
-                >
-                  تبديل المظهر (الحالي: {themeLabel(theme)})
-                </Item>
-                <Item
-                  onSelect={() => {
-                    const blob = exportState();
-                    downloadJson(`ATHAR-نسخة-احتياطية-${blob.exportedAt.slice(0, 10)}.athar`, blob);
-                    toast.success("تم تنزيل النسخة الاحتياطية");
-                    props.setOpen(false);
-                  }}
-                  icon={<Download size={16} aria-hidden="true" />}
-                >
-                  نسخ احتياطي سريع
-                </Item>
-                {quranLastRead && (
-                  <Item
-                    onSelect={() => go(`/mushaf?surah=${quranLastRead.surahId}&ayah=${quranLastRead.ayahIndex}`)}
-                    icon={<BookOpen size={16} aria-hidden="true" />}
-                  >
-                    تابع قراءة القرآن (آية {quranLastRead.ayahIndex} من سورة {quranLastRead.surahId})
-                  </Item>
-                )}
-              </Command.Group>
-
-              {data?.db?.sections?.length ? (
+              {!query.trim() && (
                 <>
-                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
-                  <Command.Group heading="الأقسام" className="px-2">
-                    {data.db.sections.map((s) => {
-                      const identity = getSectionIdentity(s.id);
-                      return (
-                        <Item key={s.id} onSelect={() => go(`/c/${s.id}`)} icon={<span className="text-base">{identity.icon}</span>}>
-                          {s.title}
-                        </Item>
-                      );
-                    })}
+                  <Command.Group heading="الصفحات" className="px-2">
+                    <Item onSelect={() => go("/")} icon={<span className="text-base" aria-hidden="true">🏠</span>}>الرئيسية</Item>
+                    <Item onSelect={() => go("/quran")} icon={<span className="text-base" aria-hidden="true">📖</span>}>المصحف</Item>
+                    <Item onSelect={() => go("/sebha")} icon={<span className="text-base" aria-hidden="true">📿</span>}>السبحة</Item>
+                    <Item onSelect={() => go("/prayer-times")} icon={<span className="text-base" aria-hidden="true">🕌</span>}>مواقيت الصلاة</Item>
+                    <Item onSelect={() => go("/library")} icon={<LibraryBig size={16} aria-hidden="true" />}>المكتبة الإسلامية</Item>
+                    <Item onSelect={() => go("/search")} icon={<span className="text-base" aria-hidden="true">🔍</span>}>البحث</Item>
+                    <Item onSelect={() => go("/favorites")} icon={<span className="text-base" aria-hidden="true">❤️</span>}>المفضلة</Item>
+                    <Item onSelect={() => go("/insights")} icon={<span className="text-base" aria-hidden="true">📊</span>}>الإحصاءات</Item>
+                    <Item onSelect={() => go("/leaderboard")} icon={<span className="text-base" aria-hidden="true">🏆</span>}>المتصدرون</Item>
+                    <Item onSelect={() => go("/settings")} icon={<span className="text-base" aria-hidden="true">⚙️</span>}>الإعدادات</Item>
                   </Command.Group>
+
+                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                  <Command.Group heading="محتوى وأدلة" className="px-2">
+                    <Item onSelect={() => go("/asma")} icon={<span className="text-base" aria-hidden="true">✨</span>}>أسماء الله الحسنى</Item>
+                    <Item onSelect={() => go("/duas")} icon={<span className="text-base" aria-hidden="true">🤲</span>}>الأدعية المأثورة</Item>
+                    <Item onSelect={() => go("/library")} icon={<span className="text-base" aria-hidden="true">📚</span>}>صحيح مسلم والجوامع</Item>
+                    <Item onSelect={() => go("/quran-vocab")} icon={<span className="text-base" aria-hidden="true">📖</span>}>مفردات القرآن</Item>
+                    <Item onSelect={() => go("/stories")} icon={<span className="text-base" aria-hidden="true">🕌</span>}>قصص الأنبياء</Item>
+                    <Item onSelect={() => go("/prayer-guide")} icon={<span className="text-base" aria-hidden="true">🧎</span>}>كيفية الصلاة</Item>
+                    <Item onSelect={() => go("/wudu")} icon={<span className="text-base" aria-hidden="true">💧</span>}>كيفية الوضوء</Item>
+                  </Command.Group>
+
+                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                  <Command.Group heading="روابط إضافية" className="px-2">
+                    <Item onSelect={() => go("/sources")}>المصادر والبيانات</Item>
+                  </Command.Group>
+
+                  <Command.Separator className="h-px bg-[var(--card)] my-2" />
+
+                  <Command.Group heading="أوامر سريعة" className="px-2">
+                    <Item
+                      onSelect={() => {
+                        cycleTheme();
+                        props.setOpen(false);
+                      }}
+                      icon={
+                        theme === "dark" ? <Moon size={16} aria-hidden="true" /> : theme === "light" ? <Sun size={16} aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />
+                      }
+                    >
+                      تبديل المظهر (الحالي: {themeLabel(theme)})
+                    </Item>
+                    <Item
+                      onSelect={() => {
+                        const blob = exportState();
+                        downloadJson(`ATHAR-نسخة-احتياطية-${blob.exportedAt.slice(0, 10)}.athar`, blob);
+                        toast.success("تم تنزيل النسخة الاحتياطية");
+                        props.setOpen(false);
+                      }}
+                      icon={<Download size={16} aria-hidden="true" />}
+                    >
+                      نسخ احتياطي سريع
+                    </Item>
+                    {quranLastRead && (
+                      <Item
+                        onSelect={() => go(`/mushaf?surah=${quranLastRead.surahId}&ayah=${quranLastRead.ayahIndex}`)}
+                        icon={<BookOpen size={16} aria-hidden="true" />}
+                      >
+                        تابع قراءة القرآن (آية {quranLastRead.ayahIndex} من سورة {quranLastRead.surahId})
+                      </Item>
+                    )}
+                  </Command.Group>
+
+                  {data?.db?.sections?.length ? (
+                    <>
+                      <Command.Separator className="h-px bg-[var(--card)] my-2" />
+                      <Command.Group heading="الأقسام" className="px-2">
+                        {data.db.sections.map((s) => {
+                          const identity = getSectionIdentity(s.id);
+                          return (
+                            <Item key={s.id} onSelect={() => go(`/c/${s.id}`)} icon={<span className="text-base">{identity.icon}</span>}>
+                              {s.title}
+                            </Item>
+                          );
+                        })}
+                      </Command.Group>
+                    </>
+                  ) : null}
                 </>
-              ) : null}
+              )}
 
               {surahResults.length ? (
                 <>
