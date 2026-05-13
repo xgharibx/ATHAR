@@ -123,6 +123,7 @@ export function DhikrList(props: Readonly<{
   const [focusMode, setFocusMode] = React.useState(false);
   const [moreOpen, setMoreOpen] = React.useState(false);
   const [headerVisible, setHeaderVisible] = React.useState(true);
+  const [scrollingUp, setScrollingUp] = React.useState(false);
   const headerCardRef = React.useRef<HTMLDivElement>(null);
   const virtuosoRef = React.useRef<VirtuosoHandle>(null);
 
@@ -137,15 +138,36 @@ export function DhikrList(props: Readonly<{
     return () => obs.disconnect();
   }, []);
 
+  // Track scroll direction: hide compact header when scrolling up
+  React.useEffect(() => {
+    let lastY = window.scrollY;
+    let timeoutId: number | null = null;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastY;
+      lastY = y;
+      if (delta < -2) {
+        setScrollingUp(true);
+        if (timeoutId !== null) clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => setScrollingUp(false), 250);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (timeoutId !== null) clearTimeout(timeoutId);
+    };
+  }, []);
+
   // D2: category completion confetti + 3E record completion
   const prevPercentRef = React.useRef<number>(stats.percent);
   React.useEffect(() => {
     if (stats.percent >= 100 && prevPercentRef.current < 100 && props.items.length > 0) {
       recordSectionCompletion(props.sectionId);
+      // Reduced particle counts for smooth 60fps on mobile
       getConfetti().then((c) => {
-        c({ particleCount: 120, spread: 80, startVelocity: 30, scalar: 1.0, origin: { y: 0.6 } });
-        setTimeout(() => c({ particleCount: 60, spread: 100, startVelocity: 20, scalar: 0.9, origin: { x: 0.2, y: 0.8 } }), 300);
-        setTimeout(() => c({ particleCount: 60, spread: 100, startVelocity: 20, scalar: 0.9, origin: { x: 0.8, y: 0.8 } }), 500);
+        c({ particleCount: 55, spread: 75, startVelocity: 28, scalar: 0.9, origin: { y: 0.6 } });
+        setTimeout(() => c({ particleCount: 30, spread: 90, startVelocity: 18, scalar: 0.85, origin: { x: 0.2, y: 0.75 } }), 350);
       });
     }
     prevPercentRef.current = stats.percent;
@@ -326,10 +348,10 @@ export function DhikrList(props: Readonly<{
           "fixed top-0 left-0 right-0 z-[100] px-4 py-2 flex items-center gap-3",
           "glass-strong border-b border-[var(--stroke)]",
           "transition-all duration-200",
-          headerVisible ? "opacity-0 -translate-y-2 pointer-events-none" : "opacity-100 translate-y-0",
+          (headerVisible || scrollingUp) ? "opacity-0 -translate-y-2 pointer-events-none" : "opacity-100 translate-y-0",
         ].join(" ")}
         style={{ paddingTop: "max(8px, calc(8px + env(safe-area-inset-top, 0px)))" }}
-        aria-hidden={headerVisible ? "true" : undefined}
+        aria-hidden={(headerVisible || scrollingUp) ? "true" : undefined}
       >
         <span className="text-base leading-none" aria-hidden="true">{identity.icon}</span>
         <div className="flex-1 min-w-0">

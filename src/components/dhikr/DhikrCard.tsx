@@ -11,7 +11,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { isDailySection } from "@/lib/dailySections";
 
 // Lazy-load heavy libraries — only imported when actually needed
-const getGsap = () => import("gsap").then((m) => m.default ?? m);
+// Note: GSAP removed from hot path — ring + ripple now use CSS transitions
 const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
 const getToPng = () => import("html-to-image").then((m) => m.toPng);
 import toast from "react-hot-toast";
@@ -57,6 +57,8 @@ export function DhikrCard(props: {
   const cardRef = React.useRef<HTMLDivElement>(null);
   const ringRef = React.useRef<SVGCircleElement>(null);
   const swipeRef = React.useRef({ x: 0, y: 0, active: false });
+  // Throttle per-tap theme confetti (only every Nth tap on mobile)
+  const tapCountRef = React.useRef(0);
   const [swipeHint, setSwipeHint] = React.useState(false);
   const [isLongPressing, setIsLongPressing] = React.useState(false);
   const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -166,17 +168,11 @@ export function DhikrCard(props: {
     }
   }, []);
 
-  // Animate ring on every count
+  // Pre-warm confetti module during idle so first celebration is instant
   React.useEffect(() => {
-    if (!ringRef.current) return;
-    const radius = 22;
-    const circumference = 2 * Math.PI * radius;
-    const pct = target ? current / target : 0;
-    const offset = circumference - pct * circumference;
-
-    const el = ringRef.current;
-    getGsap().then((g) => g.to(el, { strokeDashoffset: offset, duration: 0.25, ease: "power2.out" }));
-  }, [current, target]);
+    const tid = window.setTimeout(() => { void getConfetti(); }, 2000);
+    return () => clearTimeout(tid);
+  }, []);
 
   // Celebrate on completion (throttled)
   React.useEffect(() => {
@@ -213,41 +209,47 @@ export function DhikrCard(props: {
 
   const onCount = () => {
     const next = increment({ sectionId, index, target });
+    tapCountRef.current++;
     
-    // Improved Feedbacks
+    // Haptic feedback
     if (prefs.enableHaptics && navigator.vibrate) {
       navigator.vibrate(12);
     }
     
-    // micro ripple
+    // Micro ripple — pure CSS, zero JS overhead
     if (cardRef.current) {
       const el = cardRef.current;
-      getGsap().then((g) => g.fromTo(el, { scale: 1 }, { scale: 0.995, duration: 0.08, yoyo: true, repeat: 1 }));
+      el.classList.remove('dhikr-tap-pulse');
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      void el.offsetWidth; // force reflow to restart animation
+      el.classList.add('dhikr-tap-pulse');
     }
     
-    // Theme-Specific Particles (Roses / Bees)
-    if (prefs.theme === "roses") {
-      getConfetti().then((c) => c({
-        particleCount: 8,
-        spread: 40,
-        startVelocity: 15,
-        scalar: 0.7,
-        colors: ['#fb7185', '#f43f5e', '#ffe4e6'],
-        origin: { y: 0.8 },
-        ticks: 80,
-        gravity: 0.5,
-      }));
-    } else if (prefs.theme === "bees") {
-      getConfetti().then((c) => c({
-        particleCount: 5,
-        spread: 60,
-        startVelocity: 20,
-        scalar: 0.6,
-        colors: ['#fbbf24', '#f59e0b', '#000000'],
-        shapes: ['circle'],
-        origin: { y: 0.8 },
-        gravity: 0.8
-      }));
+    // Theme-Specific Particles — throttled to every 6th tap to stay smooth on mobile
+    if (tapCountRef.current % 6 === 0) {
+      if (prefs.theme === "roses") {
+        getConfetti().then((c) => c({
+          particleCount: 6,
+          spread: 40,
+          startVelocity: 14,
+          scalar: 0.7,
+          colors: ['#fb7185', '#f43f5e', '#ffe4e6'],
+          origin: { y: 0.8 },
+          ticks: 70,
+          gravity: 0.5,
+        }));
+      } else if (prefs.theme === "bees") {
+        getConfetti().then((c) => c({
+          particleCount: 4,
+          spread: 55,
+          startVelocity: 18,
+          scalar: 0.6,
+          colors: ['#fbbf24', '#f59e0b', '#000000'],
+          shapes: ['circle'],
+          origin: { y: 0.8 },
+          gravity: 0.8
+        }));
+      }
     }
 
     // Completion confetti
@@ -321,13 +323,12 @@ export function DhikrCard(props: {
 
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
-  const initialOffset = circumference - (current / target) * circumference;
 
   return (
     <motion.div
       ref={cardRef}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.18 }}
       className={cn(
         "glass-strong rounded-3xl border border-[var(--stroke)] overflow-hidden cv-auto glass-hover",
@@ -452,12 +453,15 @@ export function DhikrCard(props: {
                     cx="24"
                     cy="24"
                     r={radius}
-                    style={{ stroke: done ? "var(--ok)" : "var(--accent)" }}
                     strokeWidth="3"
                     fill="none"
                     strokeLinecap="round"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={initialOffset}
+                    style={{
+                      strokeDasharray: circumference,
+                      strokeDashoffset: circumference - (current / target) * circumference,
+                      stroke: done ? "var(--ok)" : "var(--accent)",
+                      transition: "stroke-dashoffset 0.22s cubic-bezier(0.2,0,0,1), stroke 0.3s ease",
+                    }}
                     className="progress-ring-circle"
                   />
                 </svg>

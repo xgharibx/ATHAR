@@ -221,6 +221,8 @@ export function HomePage() {
   const [draggingStripId, setDraggingStripId] = React.useState<string | null>(null);
   const stripLongPressRef = React.useRef<number | null>(null);
   const stripDragWasActive = React.useRef(false);
+  const stripAutoScrollRafRef = React.useRef<number | null>(null);
+  const stripScrollSpeedRef = React.useRef<number>(0);
 
   const defaultStripIds = React.useMemo(() => {
     const saved: string[] = prefs.homeStripOrder ?? [];
@@ -273,6 +275,38 @@ export function HomePage() {
 
   const onStripPointerMove = React.useCallback((e: React.PointerEvent) => {
     if (!draggingStripId) return;
+
+    // Edge auto-scroll: when pointer is near left/right edge, scroll the strip
+    const container = stripScrollRef.current;
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      const EDGE_ZONE = 60; // px from each edge
+      const MAX_SPEED = 10; // px per frame
+      const leftDist = e.clientX - rect.left;
+      const rightDist = rect.right - e.clientX;
+      let speed = 0;
+      if (leftDist < EDGE_ZONE) {
+        speed = -((EDGE_ZONE - leftDist) / EDGE_ZONE) * MAX_SPEED;
+      } else if (rightDist < EDGE_ZONE) {
+        speed = ((EDGE_ZONE - rightDist) / EDGE_ZONE) * MAX_SPEED;
+      }
+      stripScrollSpeedRef.current = speed;
+      if (speed !== 0 && stripAutoScrollRafRef.current === null) {
+        const tick = () => {
+          if (stripScrollRef.current && stripScrollSpeedRef.current !== 0) {
+            stripScrollRef.current.scrollLeft += stripScrollSpeedRef.current;
+            stripAutoScrollRafRef.current = requestAnimationFrame(tick);
+          } else {
+            stripAutoScrollRafRef.current = null;
+          }
+        };
+        stripAutoScrollRafRef.current = requestAnimationFrame(tick);
+      } else if (speed === 0 && stripAutoScrollRafRef.current !== null) {
+        cancelAnimationFrame(stripAutoScrollRafRef.current);
+        stripAutoScrollRafRef.current = null;
+      }
+    }
+
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const itemEl = el?.closest("[data-strip-id]") as HTMLElement | null;
     const overId = itemEl?.dataset?.stripId;
@@ -288,6 +322,12 @@ export function HomePage() {
   }, [draggingStripId, defaultStripIds]);
 
   const onStripPointerUp = React.useCallback(() => {
+    // Cancel any ongoing edge auto-scroll
+    if (stripAutoScrollRafRef.current !== null) {
+      cancelAnimationFrame(stripAutoScrollRafRef.current);
+      stripAutoScrollRafRef.current = null;
+    }
+    stripScrollSpeedRef.current = 0;
     if (draggingStripId && liveStripIds) {
       setPrefs({ homeStripOrder: liveStripIds });
     }
@@ -881,12 +921,12 @@ export function HomePage() {
           onPointerCancel={onStripPointerUp}
         >
           {/* Fixed-height hint text — prevents layout shift when dragging starts */}
-          <div className="relative mb-1" style={{ height: "14px" }}>
+          <div className="relative mb-1" style={{ height: "13px" }}>
             {draggingStripId && (
-              <div className="absolute inset-x-0 text-[10px] opacity-40 text-center arabic-text">اسحب لإعادة الترتيب · ارفع إصبعك للحفظ</div>
+              <div className="absolute inset-x-0 text-[8px] opacity-40 text-center arabic-text leading-none">اسحب لإعادة الترتيب · ارفع إصبعك للحفظ</div>
             )}
             {!draggingStripId && !prefs.homeStripOrder && (
-              <div className="absolute inset-x-0 text-[10px] opacity-30 text-center arabic-text select-none">اضغط مطولاً على أي قسم لإعادة ترتيبه</div>
+              <div className="absolute inset-x-0 text-[8px] opacity-30 text-center arabic-text leading-none select-none">اضغط مطولاً على أي قسم لإعادة ترتيبه</div>
             )}
           </div>
           <div className="flex gap-2 pb-0.5" style={{ width: "max-content" }}>

@@ -96,21 +96,24 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
             return (
               <div
                 key={item.path}
-                className="floating-nav-item"
-                style={{ opacity: 0.45, cursor: "default", pointerEvents: "none" }}
+                className="floating-nav-item relative"
+                style={{ cursor: "default", pointerEvents: "none" }}
                 aria-disabled="true"
                 aria-label="الدورات — قريباً"
               >
-                <div className="relative" aria-hidden="true">
+                {/* Dim the icon+label but not the badge */}
+                <div style={{ opacity: 0.45 }} aria-hidden="true">
                   <item.icon size={18} strokeWidth={1.8} />
-                  <span
-                    className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none"
-                    style={{ background: "var(--accent)", color: "var(--on-accent)" }}
-                  >
-                    قريباً
-                  </span>
                 </div>
-                <span aria-hidden="true">{item.label}</span>
+                <span style={{ opacity: 0.45 }} aria-hidden="true">{item.label}</span>
+                {/* Badge at full opacity, overlaying the top of the icon */}
+                <div
+                  className="absolute top-0 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold px-2 py-[3px] rounded-full leading-none shadow-md"
+                  style={{ background: "var(--accent)", color: "var(--on-accent)", zIndex: 2 }}
+                  aria-hidden="true"
+                >
+                  قريباً
+                </div>
               </div>
             );
           }
