@@ -6,8 +6,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { ArrowRight, ArrowUpRight, Bookmark, BookOpenText, Copy, Layers3, Loader2, WifiOff } from "lucide-react";
-import { useHadithPack, useHadithPackProgress, HADITH_PACK_SIZES_MB } from "@/data/useHadithBook";
+import { ArrowRight, ArrowUpRight, Bookmark, BookOpenText, Copy, Loader2, WifiOff } from "lucide-react";
+import { useHadithPackProgress, HADITH_PACK_SIZES_MB } from "@/data/useHadithBook";
 import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview, type HadithItem } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 import { Badge } from "@/components/ui/Badge";

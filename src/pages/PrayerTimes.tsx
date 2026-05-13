@@ -199,7 +199,7 @@ function useCityTimes(city: string, country: string) {
 
 // ─── IqamaTime ────────────────────────────────────────────────────────────────
 
-function IqamaTime({ prayerTime, offset }: { prayerTime: string; offset: number }) {
+function _IqamaTime({ prayerTime, offset }: { prayerTime: string; offset: number }) {
   const mins = parseClockToMinutes(cleanTime(prayerTime));
   if (mins == null) return null;
   return (

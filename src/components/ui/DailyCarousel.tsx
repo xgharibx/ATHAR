@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Copy, Share2 } from "lucide-react";
+import { BookOpen, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { DAILY_VERSES } from "@/data/dailyVerses";
 import { HADITHS } from "@/data/hadiths";

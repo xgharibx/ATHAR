@@ -216,7 +216,7 @@ export function QuranPlansPage() {
       }
     }
     if (changed) localStorage.setItem(storageKey, JSON.stringify(shown));
-  }, [activePlan?.pct, khatmaStartISO]);
+  }, [activePlan, khatmaStartISO]);
 
   // ── Start a plan ─────────────────────────────────────────────────────────────
   function startPlan(days: number) {

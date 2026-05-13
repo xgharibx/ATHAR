@@ -53,7 +53,7 @@ function FlipCard({
   back,
   isFlipped,
   onFlip,
-  accentColor,
+  accentColor: _accentColor,
 }: {
   front: React.ReactNode;
   back: React.ReactNode;

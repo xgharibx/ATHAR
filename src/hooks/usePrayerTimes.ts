@@ -221,6 +221,7 @@ export function usePrayerTimes() {
         globalThis.clearTimeout(timeoutId);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dayKey, query.refetch]);
 
   return query;

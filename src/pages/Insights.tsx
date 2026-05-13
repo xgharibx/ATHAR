@@ -554,7 +554,7 @@ export function InsightsPage() {
       const pages = ayahs > 0 ? Math.max(0.5, ayahs / AYAHS_PER_PAGE) : 0;
       return { key: k, ayahs, pages, isToday: i === 6, label: DAY_LABELS[d.getDay()] ?? "" };
     });
-  }, [quranDailyAyahs]);
+  }, [quranDailyAyahs, AYAHS_PER_PAGE]);
 
   const quranMaxPageDay = React.useMemo(
     () => Math.max(1, ...quranPageLast7Days.map((d) => d.pages)),
@@ -1394,10 +1394,10 @@ export function InsightsPage() {
               : `${daysLeft.toLocaleString("ar-EG")} يوم`;
             return (
               <div className="mb-3 -mt-2 flex items-center gap-1.5 text-[11px] opacity-50">
-                <span>������</span>
+                <span>������</span>
                 <span>بمعدلك الحالي ({avgPerDay.toLocaleString("ar-EG")} آية/يوم):</span>
                 <span className="font-semibold opacity-100" style={{ color: daysLeft < 365 ? "var(--ok)" : undefined }}>
-                  {remaining === 0 ? "ختمت القرآن ������" : `ختمة خلال ~${timeLabel}`}
+                  {remaining === 0 ? "ختمت القرآن ������" : `ختمة خلال ~${timeLabel}`}
                 </span>
               </div>
             );

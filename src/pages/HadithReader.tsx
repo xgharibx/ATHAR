@@ -187,9 +187,8 @@ export function HadithReaderPage() {
   const n = parseInt(hadithNumber ?? "1", 10);
   const { data: pack, isLoading } = useHadithPack(bookKey);
 
-  const { prefs, hadithBookmarks, toggleHadithBookmark, setHadithProgress, hadithNotes, setHadithNote, addHadithMemoCard, hadithMemoCards } = useNoorStore(
+  const { hadithBookmarks, toggleHadithBookmark, setHadithProgress, hadithNotes, setHadithNote, addHadithMemoCard, hadithMemoCards } = useNoorStore(
     (s) => ({
-      prefs: s.prefs,
       hadithBookmarks: s.hadithBookmarks,
       toggleHadithBookmark: s.toggleHadithBookmark,
       setHadithProgress: s.setHadithProgress,

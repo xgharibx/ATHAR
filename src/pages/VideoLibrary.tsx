@@ -1424,7 +1424,7 @@ function CourseScreen({
   data,
   courseId,
   progress,
-  bookmarks,
+  bookmarks: _bookmarks,
   navigate,
   activeVideoId,
 }: {
@@ -1439,7 +1439,10 @@ function CourseScreen({
   const [sortKey, setSortKey] = React.useState<"default" | "newest" | "oldest" | "duration-desc" | "duration-asc" | "alpha">("default");
   const course = data.courseById.get(courseId);
   const channel = course ? data.channelById.get(course.channelId) : undefined;
-  const courseVideos = course ? (data.videosByCourse.get(course.id) ?? []) : [];
+  const courseVideos = React.useMemo(
+    () => course ? (data.videosByCourse.get(course.id) ?? []) : [],
+    [course, data.videosByCourse]
+  );
   const stats = aggregateProgress(courseVideos, progress);
   const accent = channel?.accent ?? "var(--accent)";
 
@@ -1653,7 +1656,10 @@ function WatchScreen({
     return preferred ?? video.courseIds[0];
   })() : undefined;
   const course = courseId ? data.courseById.get(courseId) : undefined;
-  const courseVideos = course ? (data.videosByCourse.get(course.id) ?? []) : [];
+  const courseVideos = React.useMemo(
+    () => course ? (data.videosByCourse.get(course.id) ?? []) : [],
+    [course, data.videosByCourse]
+  );
   const index = courseVideos.findIndex((v) => v.id === videoId);
   const nextVideo = index >= 0 ? courseVideos[index + 1] : undefined;
   const prevVideo = index > 0 ? courseVideos[index - 1] : undefined;

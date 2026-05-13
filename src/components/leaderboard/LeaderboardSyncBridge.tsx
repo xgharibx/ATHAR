@@ -25,7 +25,7 @@ export function LeaderboardSyncBridge() {
   const lastSyncedKeyRef = React.useRef("");
   const syncingRef = React.useRef(false);
 
-  const sections = data?.db.sections ?? [];
+  const sections = React.useMemo(() => data?.db.sections ?? [], [data]);
   const stats = React.useMemo(
     () =>
       buildLeaderboardScoreStats({

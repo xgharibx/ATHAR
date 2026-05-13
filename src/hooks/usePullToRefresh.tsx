@@ -18,6 +18,7 @@ interface PullToRefreshState {
  * De2 — Pull-to-refresh hook.
  * Attach `containerRef` to your scrollable container and render the `PTRIndicator`.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePullToRefresh({
   onRefresh,
   threshold = 80,

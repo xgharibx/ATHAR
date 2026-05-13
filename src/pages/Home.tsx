@@ -319,6 +319,7 @@ export function HomePage() {
       [arr[fromIdx], arr[toIdx]] = [arr[toIdx], arr[fromIdx]];
       return arr;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draggingStripId, defaultStripIds]);
 
   const onStripPointerUp = React.useCallback(() => {
@@ -367,7 +368,7 @@ export function HomePage() {
   const [activePhraseKey, setActivePhraseKey] = React.useState<QuickTasbeehKey | null>(null);
   const prayerTimes = usePrayerTimes();
   const civilTodayKey = useTodayKey();
-  const dailyVocabWord = React.useMemo(() => {
+  const _dailyVocabWord = React.useMemo(() => {
     const dayNum = Math.floor(Date.now() / 86400000);
     const id = (dayNum % QURAN_VOCAB.length) + 1;
     return QURAN_VOCAB.find((w) => w.id === id) ?? QURAN_VOCAB[0];

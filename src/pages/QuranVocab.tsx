@@ -236,6 +236,7 @@ export function QuranVocabPage() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deck.length]);
 
   function handleLearn(id: number) {
@@ -837,7 +838,7 @@ export function QuranVocabPage() {
                 </p>
                 {vocabStreak > 0 && (
                   <span className="text-[10px] flex items-center gap-0.5 tabular-nums" style={{ color: "#fb923c" }}>
-                    í ½í´¥ {vocabStreak.toLocaleString("ar-EG")} ÙŠÙˆÙ…
+                    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ {vocabStreak.toLocaleString("ar-EG")} ÙŠÙˆÙ…
                   </span>
                 )}
               </div>

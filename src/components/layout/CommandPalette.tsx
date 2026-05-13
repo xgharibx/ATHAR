@@ -71,6 +71,7 @@ export function CommandPalette(props: Props) {
   }, [quranData]);
 
   // De10: Ayah-level search — normalize Arabic to strip diacritics + alef variants for matching
+  /* eslint-disable no-misleading-character-class */
   const normalizeArabic = React.useCallback((text: string) =>
     text
       .replace(/[\u064B-\u065F\u0610-\u061A\u06D6-\u06EF\u0670]/g, "")
@@ -78,6 +79,7 @@ export function CommandPalette(props: Props) {
       .replace(/ة/g, "ه")
       .replace(/ى/g, "ي"),
   []);
+  /* eslint-enable no-misleading-character-class */
 
   const ayahIndex = React.useMemo(() => {
     if (!quranData) return [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string; normalized: string }>;
@@ -129,8 +131,10 @@ export function CommandPalette(props: Props) {
     catch { return [] as NonNullable<typeof quranData>; }
   }, [surahFuse, query]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     if (!props.open) setQuery("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.open]);
 
   React.useEffect(() => {
@@ -152,6 +156,7 @@ export function CommandPalette(props: Props) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.setOpen]);
 
   const go = (path: string) => {

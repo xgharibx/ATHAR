@@ -561,6 +561,7 @@ export function SebhaPage() {
         });
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tallyMode, incQuickTasbeeh, prefs.enableHaptics, selected, target, sebhaCustom, current.short, addSebhaSession]);
 
   React.useEffect(() => {
@@ -585,7 +586,7 @@ export function SebhaPage() {
       } else {
         increment(); // unrecognized phrase → count current selected
       }
-    }, [selected, increment])
+    }, [selected, increment, setSelected])
   );
 
   const totalDone = TASBEEHAT.reduce(

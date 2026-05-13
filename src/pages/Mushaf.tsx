@@ -1,11 +1,11 @@
 import * as React from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  ArrowRight, Bookmark, Globe, MoreVertical, Play, Pause,
+  ArrowRight, Bookmark, MoreVertical, Play, Pause,
   ChevronDown, Copy, Share2, VolumeX, Volume2, X, Pencil,
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2, Repeat2,
   Eye, EyeOff, CheckCircle2, Languages, Search,
-  Repeat, SkipForward, ArrowUpRight, Settings, Info, Shuffle,
+  ArrowUpRight, Settings, Info, Shuffle,
   Radio, Timer, Download, SlidersHorizontal,
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
@@ -138,7 +138,7 @@ function buildPageIndex(
     // All other surahs (except 9): basmalah is prepended to the first ayah's text
     const firstHasBasmalahPrefix = !firstIsBasmalah && firstText.length > 0 &&
       BASMALAH_NFC.some((v) => firstText.startsWith(v));
-    const hasBasmalahHeader = surah.id !== 9 && (firstIsBasmalah || firstHasBasmalahPrefix);
+    const _hasBasmalahHeader = surah.id !== 9 && (firstIsBasmalah || firstHasBasmalahPrefix);
 
     for (let i = 0; i < raw.length; i++) {
       const originalAyah = i + 1;
@@ -209,7 +209,7 @@ export function MushafPage() {
   const lastRead = useNoorStore((s) => s.quranLastRead);
 
   const totalPages = pmData?.totalPages ?? 604;
-  const pageMap = pmData?.map ?? {};
+  const pageMap = React.useMemo(() => pmData?.map ?? {}, [pmData]);
 
   // Build page index (one-time, memoized)
   const pageIndex = React.useMemo(() => {
@@ -265,7 +265,7 @@ export function MushafPage() {
   }, [navigate, setPrefs, totalPages, currentPage]);
 
   // Page items
-  const pageItems = pageIndex.get(currentPage) ?? [];
+  const pageItems = React.useMemo(() => pageIndex.get(currentPage) ?? [], [pageIndex, currentPage]);
   const playableItems = React.useMemo(
     () => pageItems.filter((item) => !item.isBasmalahHeader && item.displayAyah > 0),
     [pageItems]
@@ -432,7 +432,7 @@ export function MushafPage() {
   // Q3: Translation
   const [showTranslation, setShowTranslation] = React.useState(false);
   const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
-  const [translationLoading, setTranslationLoading] = React.useState(false);
+  const [_translationLoading, setTranslationLoading] = React.useState(false);
 
   // Q11-B: Inline tafseer mode (قراءة mode)
   const [inlineTafseer, setInlineTafseerState] = React.useState(() => prefs.mushafInlineTafseer ?? false);
@@ -769,7 +769,7 @@ export function MushafPage() {
     });
   }, [setPrefs]);
 
-  const doJump = () => {
+  const _doJump = () => {
     const p = Number(jumpInput);
     if (p >= 1 && p <= 604) { goPage(p); setShowJump(false); setJumpInput(""); }
     else toast.error("رقم صفحة غير صالح (1–604)");

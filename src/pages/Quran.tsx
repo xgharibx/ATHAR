@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { useNoorStore } from "@/store/noorStore";
-import toast from "react-hot-toast";
 import { stripDiacritics } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";

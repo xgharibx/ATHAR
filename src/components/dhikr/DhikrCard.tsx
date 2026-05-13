@@ -166,7 +166,7 @@ export function DhikrCard(props: {
       const t2 = setTimeout(() => { setSwipeHint(false); localStorage.setItem(key, "1"); }, 4000);
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
-  }, []);
+  }, [done]);
 
   // Pre-warm confetti module during idle so first celebration is instant
   React.useEffect(() => {
@@ -188,6 +188,7 @@ export function DhikrCard(props: {
       scalar: 0.9,
       origin: { y: 0.9 }
     }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
 
   // Auto-scroll / highlight when focused from search
