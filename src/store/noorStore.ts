@@ -72,6 +72,7 @@ export type Preferences = {
   enableSounds: boolean;
   reduceMotion: boolean;
   transparentMode: boolean;
+  bgVibrancyBoost?: boolean; // increase background color intensity
   customAccent?: string; // override --accent, e.g. "#ff5555"
   arabicFont?: "noto_naskh" | "amiri" | "hafs"; // Se1
   uiLanguage?: "ar" | "en"; // Se3
@@ -415,7 +416,8 @@ const DEFAULT_PREFS: Preferences = {
   enableHaptics: true,
   enableSounds: false,
   reduceMotion: false,
-  transparentMode: true,
+  transparentMode: false,
+  bgVibrancyBoost: true,
   customAccent: undefined,
   arabicFont: "noto_naskh",
   uiLanguage: "ar",

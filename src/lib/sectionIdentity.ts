@@ -38,6 +38,7 @@ const IDENTITIES: Record<string, SectionIdentity> = {
   forgotten_sunnahs:{ accent: "#38bdf8", grad: "from-sky-400/15 to-cyan-400/10",       icon: "☀️", badge: "سنن",             bg: "rgba(56,189,248,.06)"  },
   my_adhkar:       { accent: "#ec4899", grad: "from-pink-500/15 to-rose-400/10",       icon: "✦", badge: "أذكاري",           bg: "rgba(236,72,153,.06)"  },
   custom:          { accent: "#ec4899", grad: "from-pink-500/15 to-rose-400/10",       icon: "✦", badge: "خاص",              bg: "rgba(236,72,153,.06)"  },
+  multiplied_dhikr:{ accent: "#f59e0b", grad: "from-amber-500/15 to-yellow-400/10",   icon: "✨", badge: "المضاعف",           bg: "rgba(245,158,11,.06)"  },
 };
 
 const DEFAULT_IDENTITY: SectionIdentity = {

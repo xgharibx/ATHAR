@@ -19,6 +19,7 @@ export function NoorBackground() {
   const reduceMotion = useNoorStore((s) => s.prefs.reduceMotion);
   const theme = useNoorStore((s) => s.prefs.theme);
   const transparent = useNoorStore((s) => s.prefs.transparentMode);
+  const bgVibrancyBoost = useNoorStore((s) => s.prefs.bgVibrancyBoost ?? true);
   const [webglOk, setWebglOk] = React.useState(true);
   const isMobile = useIsMobile();
   // T5: Defer 3D starfield until browser is idle to avoid blocking LCP
@@ -73,7 +74,7 @@ export function NoorBackground() {
           style={{
             background:
               "radial-gradient(900px 600px at 18% 10%, var(--accent), transparent 62%), radial-gradient(900px 650px at 82% 28%, var(--accent-2), transparent 60%), radial-gradient(900px 700px at 50% 120%, var(--accent), transparent 62%)",
-            opacity: transparent ? 0.35 : 0.22
+            opacity: bgVibrancyBoost ? (transparent ? 0.35 : 0.22) : (transparent ? 0.22 : 0.14)
           }}
         />
 
