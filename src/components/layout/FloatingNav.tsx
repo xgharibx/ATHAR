@@ -91,6 +91,30 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
     >
       <div className="flex items-center gap-0.5">
         {NAV_ITEMS.map((item) => {
+          // الدورات — coming soon, non-interactive
+          if (item.path === "/video-library") {
+            return (
+              <div
+                key={item.path}
+                className="floating-nav-item"
+                style={{ opacity: 0.45, cursor: "default", pointerEvents: "none" }}
+                aria-disabled="true"
+                aria-label="الدورات — قريباً"
+              >
+                <div className="relative" aria-hidden="true">
+                  <item.icon size={18} strokeWidth={1.8} />
+                  <span
+                    className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] font-bold px-1.5 py-0.5 rounded-full leading-none"
+                    style={{ background: "var(--accent)", color: "var(--on-accent)" }}
+                  >
+                    قريباً
+                  </span>
+                </div>
+                <span aria-hidden="true">{item.label}</span>
+              </div>
+            );
+          }
+
           const active = isActive(item.path) || (item.path === "/" && isAdhkarPage);
           return (
             <NavLink

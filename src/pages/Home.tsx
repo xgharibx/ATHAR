@@ -880,12 +880,15 @@ export function HomePage() {
           onPointerUp={onStripPointerUp}
           onPointerCancel={onStripPointerUp}
         >
-          {draggingStripId && (
-            <div className="text-[10px] opacity-40 text-center mb-1 arabic-text">اسحب لإعادة الترتيب · ارفع إصبعك للحفظ</div>
-          )}
-          {!draggingStripId && !prefs.homeStripOrder && (
-            <div className="text-[10px] opacity-30 text-center mb-1 arabic-text select-none">اضغط مطولاً على أي قسم لإعادة ترتيبه</div>
-          )}
+          {/* Fixed-height hint text — prevents layout shift when dragging starts */}
+          <div className="relative mb-1" style={{ height: "14px" }}>
+            {draggingStripId && (
+              <div className="absolute inset-x-0 text-[10px] opacity-40 text-center arabic-text">اسحب لإعادة الترتيب · ارفع إصبعك للحفظ</div>
+            )}
+            {!draggingStripId && !prefs.homeStripOrder && (
+              <div className="absolute inset-x-0 text-[10px] opacity-30 text-center arabic-text select-none">اضغط مطولاً على أي قسم لإعادة ترتيبه</div>
+            )}
+          </div>
           <div className="flex gap-2 pb-0.5" style={{ width: "max-content" }}>
             {/* ── Fixed "+" add custom button (not draggable) — always first ── */}
             <button type="button"
