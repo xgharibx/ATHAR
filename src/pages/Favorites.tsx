@@ -75,8 +75,11 @@ export function FavoritesPage() {
     const out: Array<{ bookKey: string; n: number }> = [];
     for (const [k, v] of Object.entries(hadithBookmarks)) {
       if (!v) continue;
-      const [bookKey, nStr] = k.split(":");
-      out.push({ bookKey, n: Number(nStr) });
+      const parts = k.split(":");
+      if (parts.length !== 2) continue;
+      const n = Number(parts[1]);
+      if (!Number.isFinite(n)) continue;
+      out.push({ bookKey: parts[0], n });
     }
     return out.sort((a, b) => a.bookKey.localeCompare(b.bookKey) || a.n - b.n);
   }, [hadithBookmarks]);
@@ -180,9 +183,11 @@ export function FavoritesPage() {
     const out: Array<{ surahId: number; surahName: string; ayahIndex: number; note?: string; highlight?: string }> = [];
     for (const [k, v] of Object.entries(quranBookmarks)) {
       if (!v) continue;
-      const [sid, aidx] = k.split(":");
-      const surahId = Number(sid);
-      const ayahIndex = Number(aidx);
+      const parts = k.split(":");
+      if (parts.length !== 2) continue;
+      const surahId = Number(parts[0]);
+      const ayahIndex = Number(parts[1]);
+      if (!Number.isFinite(surahId) || !Number.isFinite(ayahIndex)) continue;
       const surahName = quranData.find((s) => s.id === surahId)?.name ?? `${surahId}`;
       out.push({ surahId, surahName, ayahIndex, note: quranNotes[k] || undefined, highlight: quranHighlights[k] || undefined });
     }

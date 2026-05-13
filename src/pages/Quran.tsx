@@ -264,9 +264,11 @@ export function QuranPage() {
     const out: Array<{ surahId: number; surahName: string; ayahIndex: number; note?: string; highlight?: string }> = [];
     for (const [k, v] of Object.entries(bookmarks)) {
       if (!v) continue;
-      const [surahIdStr, ayahStr] = k.split(":");
-      const surahId = Number(surahIdStr);
-      const ayahIndex = Number(ayahStr);
+      const parts = k.split(":");
+      if (parts.length !== 2) continue;
+      const surahId = Number(parts[0]);
+      const ayahIndex = Number(parts[1]);
+      if (!Number.isFinite(surahId) || !Number.isFinite(ayahIndex)) continue;
       const surahName = surahMap.get(surahId) ?? `${surahId}`;
       const note = quranNotes[k] || undefined;
       const highlight = quranHighlights[k] || undefined;
