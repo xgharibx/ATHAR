@@ -273,15 +273,11 @@ export function DhikrCard(props: {
   };
 
   const doShareText = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({ text: displayText });
-      } else {
-        await doCopy();
-        toast("المشاركة غير مدعومة — تم النسخ بدلًا من ذلك.");
-      }
-    } catch {
-      // ignore
+    if (navigator.share) {
+      await navigator.share({ text: displayText }).catch(() => {});
+    } else {
+      await doCopy();
+      toast("المشاركة غير مدعومة — تم النسخ بدلًا من ذلك.");
     }
   };
 
