@@ -664,6 +664,7 @@ export function DhikrList(props: Readonly<{
             style={{ height: "100%" }}
             data={orderedEntries}
             atTopStateChange={(atTop) => setShowBackToTop(!atTop)}
+            components={{ Footer: () => <div style={{ height: 96 }} aria-hidden="true" /> }}
             itemContent={(displayIndex, entry) => (
               <div className="pb-4">
                 {reorderMode ? (

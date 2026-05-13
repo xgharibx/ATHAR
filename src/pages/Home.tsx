@@ -608,7 +608,9 @@ export function HomePage() {
       nextChecklist?.title ??
       (isDailyWirdDone ? "حافظ على الاستمرارية وراجع نية الغد" : "أنهِ ورد اليوم قبل النوم");
 
-    if (isMorningWindow) {
+    if (!isDailyWirdDone) {
+      suggestedAction = "أنهِ ورد القرآن اليوم";
+    } else if (isMorningWindow) {
       suggestedAction = "ابدأ يومك بأذكار الصباح";
     } else if (isEveningWindow) {
       suggestedAction = "لا تنسَ أذكار المساء";
