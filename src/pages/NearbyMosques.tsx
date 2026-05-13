@@ -129,7 +129,15 @@ export function NearbyMosquesPage() {
       {/* Geo error */}
       {geo.status === "error" && (
         <Card className="p-4 space-y-3">
-          <div className="text-sm opacity-70">{geo.msg}</div>
+          <div className="text-sm opacity-70">
+            {geo.msg.includes("denied") || geo.msg.includes("User denied")
+              ? "رفضت الإذن بالوصول للموقع. يرجى السماح للتطبيق بتحديد موقعك من الإعدادات."
+              : geo.msg.includes("unavailable")
+              ? "تعذّر تحديد موقعك. تأكد من تفعيل خدمات الموقع الجغرافي."
+              : geo.msg.includes("timeout")
+              ? "انتهت مهلة طلب الموقع. حاول مرة أخرى."
+              : "تعذّر تحديد موقعك الجغرافي."}
+          </div>
           <Button variant="secondary" size="sm" onClick={requestGeo}>
             <RefreshCw size={14} aria-hidden="true" /> إعادة المحاولة
           </Button>
