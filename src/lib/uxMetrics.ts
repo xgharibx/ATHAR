@@ -31,7 +31,8 @@ function writeStore(store: UxMetricsStore) {
 
 export function trackUxEvent(eventName: string) {
   const store = readStore();
-  store.events[eventName] = (store.events[eventName] ?? 0) + 1;
+  const current = typeof store.events[eventName] === "number" ? store.events[eventName] : 0;
+  store.events[eventName] = current + 1;
   writeStore(store);
 }
 
