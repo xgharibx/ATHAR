@@ -611,7 +611,7 @@ export function DhikrList(props: Readonly<{
       </Card>
       </div>
 
-      <div style={{ height: "calc(100dvh - 240px)", minHeight: "440px" }} className={compact ? "dhikr-compact" : ""}>
+      <div className={["dhikr-scroll-area", compact ? "dhikr-compact" : ""].join(" ")}>
         {stats.percent >= 100 && (
           <div className="mb-3 space-y-2">
             <div className="rounded-3xl border border-ok-30 bg-ok-10 px-5 py-4 flex items-center gap-3">
@@ -803,8 +803,9 @@ export function DhikrList(props: Readonly<{
           <button type="button"
             onClick={() => virtuosoRef.current?.scrollToIndex({ index: 0, behavior: "smooth" })}
             aria-label="العودة إلى أعلى"
+            style={{ bottom: "calc(var(--dhikr-fixed-bottom, 26px) + 48px + 8px)" }}
             className={[
-              "fixed bottom-[calc(80px+env(safe-area-inset-bottom,0px))] left-4 z-40",
+              "fixed left-4 z-40",
               "w-11 h-11 rounded-2xl glass-strong border border-[var(--stroke)] shadow-xl",
               "flex items-center justify-center transition-all duration-200",
               "hover:scale-105 active:scale-95",
@@ -817,8 +818,9 @@ export function DhikrList(props: Readonly<{
           <button type="button"
             onClick={() => setFocusMode(false)}
             aria-label="إنهاء وضع التركيز"
+            style={{ bottom: "var(--dhikr-fixed-bottom, 26px)" }}
             className={[
-              "fixed bottom-[calc(16px+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 z-50",
+              "fixed left-1/2 -translate-x-1/2 z-50",
               "px-5 py-2.5 rounded-2xl glass-strong border border-[var(--stroke)] shadow-2xl",
               "flex items-center gap-2 text-sm font-medium transition-all duration-200",
               "hover:scale-105 active:scale-95 focus-mode-exit",

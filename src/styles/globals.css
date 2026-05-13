@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -33,6 +33,8 @@
   --mobile-nav-height: 76px;
   --mobile-fab-size: 56px;
   --mobile-fab-gap: 12px;
+  /* Fixed position buttons sit above the floating nav on mobile */
+  --dhikr-fixed-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
 .light {
@@ -1794,6 +1796,23 @@ body.quran-focus-mode .quran-surface {
 @media (max-width: 1279px) {
   .pb-floating-nav {
     padding-bottom: calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--mobile-fab-size) + var(--mobile-fab-gap) + var(--sab));
+  }
+  :root {
+    --dhikr-fixed-bottom: calc(var(--mobile-nav-height) + var(--mobile-nav-gap) + env(safe-area-inset-bottom, 0px) + 10px);
+  }
+}
+
+
+/* -------------------------------------------------------
+   Dhikr scroll area: fills viewport minus header + floating nav
+   ------------------------------------------------------- */
+.dhikr-scroll-area {
+  height: calc(100dvh - 240px);
+  min-height: 440px;
+}
+@media (max-width: 1279px) {
+  .dhikr-scroll-area {
+    height: calc(100dvh - 240px - 88px - env(safe-area-inset-bottom, 0px));
   }
 }
 
