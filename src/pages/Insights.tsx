@@ -539,7 +539,7 @@ export function InsightsPage() {
   const prayerConsistencyAvg = React.useMemo(() => {
     const withData = prayerConsistency.filter((d) => d.done > 0);
     if (!withData.length) return 0;
-    return Math.round(withData.reduce((s, d) => s + d.done, 0) / prayerConsistency.length * 10) / 10;
+    return Math.round((withData.reduce((s, d) => s + d.done, 0) / withData.length) * 10) / 10;
   }, [prayerConsistency]);
 
   // I3: Quran pages per day (estimated from ayahs; 6236 ayahs / 604 pages ≈ 10.32 ayahs/page)
