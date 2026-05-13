@@ -11,6 +11,8 @@ const SECTION_ORDER = [
   "waking",
   "prayer",
   "salawat",
+  "al_mudhaaf",
+  "multiplied_dhikr",
   "forgotten_sunnahs",
   "adhan",
   "sleep",

@@ -20,7 +20,7 @@ const IDENTITIES: Record<string, SectionIdentity> = {
   mosque:          { accent: "#0ea5e9", grad: "from-sky-500/15 to-blue-500/10",        icon: "🕌", badge: "مسجد",            bg: "rgba(14,165,233,.06)"  },
   toilet:          { accent: "#6b7280", grad: "from-gray-500/15 to-slate-500/10",      icon: "🚿", badge: "دخول",            bg: "rgba(107,114,128,.06)" },
   adhan:           { accent: "#f43f5e", grad: "from-rose-500/15 to-pink-500/10",       icon: "📣", badge: "أذان",            bg: "rgba(244,63,94,.06)"   },
-  misc:            { accent: "#a78bfa", grad: "from-purple-400/15 to-indigo-400/10",   icon: "☪️",  badge: "متنوع",           bg: "rgba(167,139,250,.06)" },
+  misc:            { accent: "#a78bfa", grad: "from-purple-400/15 to-indigo-400/10",   icon: "☪️",  badge: "متفرقة",           bg: "rgba(167,139,250,.06)" },
   waking:          { accent: "#fb923c", grad: "from-orange-400/15 to-yellow-400/10",   icon: "🌄", badge: "صحو",             bg: "rgba(251,146,60,.06)"  },
   wudu:            { accent: "#06b6d4", grad: "from-cyan-500/15 to-sky-400/10",        icon: "💧", badge: "وضوء",            bg: "rgba(6,182,212,.06)"   },
   food:            { accent: "#84cc16", grad: "from-lime-500/15 to-green-400/10",      icon: "🍽️", badge: "طعام",            bg: "rgba(132,204,22,.06)"  },
@@ -38,7 +38,8 @@ const IDENTITIES: Record<string, SectionIdentity> = {
   forgotten_sunnahs:{ accent: "#38bdf8", grad: "from-sky-400/15 to-cyan-400/10",       icon: "☀️", badge: "سنن",             bg: "rgba(56,189,248,.06)"  },
   my_adhkar:       { accent: "#ec4899", grad: "from-pink-500/15 to-rose-400/10",       icon: "✦", badge: "أذكاري",           bg: "rgba(236,72,153,.06)"  },
   custom:          { accent: "#ec4899", grad: "from-pink-500/15 to-rose-400/10",       icon: "✦", badge: "خاص",              bg: "rgba(236,72,153,.06)"  },
-  multiplied_dhikr:{ accent: "#f59e0b", grad: "from-amber-500/15 to-yellow-400/10",   icon: "✨", badge: "المضاعف",           bg: "rgba(245,158,11,.06)"  },
+  al_mudhaaf:      { accent: "#10b981", grad: "from-emerald-500/15 to-teal-400/10",    icon: "💫", badge: "المضاعف",          bg: "rgba(16,185,129,.06)"  },
+  multiplied_dhikr:{ accent: "#f59e0b", grad: "from-amber-500/15 to-yellow-400/10",   icon: "✨", badge: "متنوع",            bg: "rgba(245,158,11,.06)"  },
 };
 
 const DEFAULT_IDENTITY: SectionIdentity = {
