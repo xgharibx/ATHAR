@@ -34,7 +34,7 @@ if (!isLocalHost) {
       if (sessionStorage.getItem(UPDATE_APPLY_GUARD_KEY) === "1") return;
       sessionStorage.setItem(UPDATE_APPLY_GUARD_KEY, "1");
     } catch {
-      // ignore session storage errors
+      return; // guard cannot be set — skip update to avoid loops
     }
 
     try {
