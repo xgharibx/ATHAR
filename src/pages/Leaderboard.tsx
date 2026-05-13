@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
-import { useNoorStore, type LocalFriend } from "@/store/noorStore";
+import { useNoorStore, type LocalFriend, type GroupKhatmaState } from "@/store/noorStore";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { cn } from "@/lib/utils";
@@ -1236,7 +1236,7 @@ function GroupKhatmaCard() {
         setImportError("كود المجموعة غير صالح.");
         return;
       }
-      setGroupKhatma(data as Parameters<typeof setGroupKhatma>[0]);
+      setGroupKhatma(data as GroupKhatmaState);
       setImportCode("");
       setMode("view");
     } catch {
@@ -1271,7 +1271,7 @@ function GroupKhatmaCard() {
               {copied ? "تم" : "كود المشاركة"}
             </Button>
             <button type="button"
-              onClick={() => setGroupKhatma(null as unknown as Parameters<typeof setGroupKhatma>[0])}
+              onClick={() => setGroupKhatma(null)}
               className="text-[var(--danger)] opacity-50 hover:opacity-100 transition"
               aria-label="حذف الختمة"
             >

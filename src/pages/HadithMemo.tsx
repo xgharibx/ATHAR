@@ -53,13 +53,11 @@ function FlipCard({
   back,
   isFlipped,
   onFlip,
-  accentColor: _accentColor,
 }: {
   front: React.ReactNode;
   back: React.ReactNode;
   isFlipped: boolean;
   onFlip: () => void;
-  accentColor: string;
 }) {
   return (
     <div
@@ -293,7 +291,6 @@ export function HadithMemoPage() {
           <FlipCard
             isFlipped={isFlipped}
             onFlip={() => setIsFlipped((f) => !f)}
-            accentColor={accentColor}
             front={
               <div dir="rtl">
                 <p className="text-[10px] text-[var(--muted)] mb-2 font-arabic">

@@ -489,9 +489,9 @@ export function SearchPage() {
         ) : (
           <div className="space-y-2" role="list" aria-label="نتائج القرآن">
             {quranResults.map((r, idx) => {
-              const _qKey = r.type === "surah" ? `s-${r.surah.id}` : `a-${r.surah.id}-${r.ayahIndex}-${idx}`;
+              const qKey = r.type === "surah" ? `s-${r.surah.id}` : `a-${r.surah.id}-${r.ayahIndex}-${idx}`;
               return (
-                <div key={_qKey} role="listitem">
+                <div key={qKey} role="listitem">
               {r.type === "surah" ? (
                 <button type="button"
                   onClick={() => navigate(`/quran/${r.surah.id}`)}

@@ -45,7 +45,7 @@ export function DuasPage() {
       setCopied(id);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
       copyTimerRef.current = setTimeout(() => setCopied(null), 2000);
-    });
+    }).catch(() => toast.error("تعذّر النسخ"));
   }
 
   async function shareDua(text: string, source?: string) {
@@ -54,7 +54,7 @@ export function DuasPage() {
       if (navigator.share) { await navigator.share({ text: full }); }
       else { await navigator.clipboard.writeText(full); toast.success("تم النسخ"); }
     } catch {
-      try { await navigator.clipboard.writeText(full); toast.success("تم النسخ"); } catch {}
+      try { await navigator.clipboard.writeText(full); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
     }
   }
 

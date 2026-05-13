@@ -1424,14 +1424,12 @@ function CourseScreen({
   data,
   courseId,
   progress,
-  bookmarks: _bookmarks,
   navigate,
   activeVideoId,
 }: {
   data: DBPayload;
   courseId: string;
   progress: Record<string, VideoLibraryProgress>;
-  bookmarks: Record<string, boolean>;
   navigate: (path: string) => void;
   activeVideoId?: string;
 }) {
@@ -2156,7 +2154,6 @@ export function VideoLibraryPage() {
         data={data}
         courseId={params.courseId}
         progress={progress}
-        bookmarks={bookmarks}
         navigate={navigate}
         activeVideoId={undefined}
       />

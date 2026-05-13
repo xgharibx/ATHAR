@@ -18,7 +18,7 @@ function RuqyahItemCard({ item, idx }: { item: RuqyahItem; idx: number }) {
       if (navigator.share) { await navigator.share({ text }); }
       else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
     } catch {
-      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch {}
+      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
     }
   }, [item.arabic]);
 

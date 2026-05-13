@@ -299,13 +299,6 @@ export function QiblaPage() {
               );
             })}
             {/* Cardinal labels */}
-            {(["ش", "ش.ش", "غ", "ج.ش", "ج", "ج.ج", "ش", "ش.غ"] as const).map((label, i) => {
-              const angle = (i * 45 - 90) * Math.PI / 180;
-              const r = 72;
-              const _x = 120 + r * Math.cos(angle);
-              const _y = 120 + r * Math.sin(angle) + 4;
-              return null; // Skip overlapping labels
-            })}
             <text x="120" y="38" textAnchor="middle" fill="var(--muted)" fontSize="13" fontWeight="bold">ش</text>
             <text x="202" y="124" textAnchor="middle" fill="var(--muted-2)" fontSize="11">ق</text>
             <text x="120" y="210" textAnchor="middle" fill="var(--muted-2)" fontSize="11">ج</text>

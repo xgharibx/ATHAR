@@ -235,7 +235,7 @@ export function InsightsPage() {
   // I1: dynamic heatmap based on view
   const { heatmap, maxCount } = React.useMemo(() => {
     const weeks = buildHeatmap(activity, heatmapView);
-    const maxCount = Math.max(1, ...Object.values(activity).map(v => v ?? 0));
+    const maxCount = Object.values(activity).reduce((max, v) => Math.max(max, v ?? 0), 1);
     return { heatmap: weeks, maxCount };
   }, [activity, heatmapView]);
 

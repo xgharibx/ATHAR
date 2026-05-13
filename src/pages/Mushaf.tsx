@@ -138,8 +138,6 @@ function buildPageIndex(
     // All other surahs (except 9): basmalah is prepended to the first ayah's text
     const firstHasBasmalahPrefix = !firstIsBasmalah && firstText.length > 0 &&
       BASMALAH_NFC.some((v) => firstText.startsWith(v));
-    const _hasBasmalahHeader = surah.id !== 9 && (firstIsBasmalah || firstHasBasmalahPrefix);
-
     for (let i = 0; i < raw.length; i++) {
       const originalAyah = i + 1;
       const pageNum = Number(pageMap[`${surah.id}:${originalAyah}`]);
@@ -432,7 +430,6 @@ export function MushafPage() {
   // Q3: Translation
   const [showTranslation, setShowTranslation] = React.useState(false);
   const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
-  const [_translationLoading, setTranslationLoading] = React.useState(false);
 
   // Q11-B: Inline tafseer mode (قراءة mode)
   const [inlineTafseer, setInlineTafseerState] = React.useState(() => prefs.mushafInlineTafseer ?? false);
@@ -636,7 +633,6 @@ export function MushafPage() {
     const toFetch = surahIds.filter((sid) => !translationData[sid]);
     if (toFetch.length === 0) return;
     let mounted = true;
-    setTranslationLoading(true);
     Promise.all(toFetch.map((sid) =>
       fetch(`https://api.alquran.cloud/v1/surah/${sid}/en.sahih`)
         .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
@@ -652,8 +648,7 @@ export function MushafPage() {
         for (const { sid, ayahs } of results) upd[sid] = ayahs;
         return upd;
       });
-    }).catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); })
-      .finally(() => { if (mounted) setTranslationLoading(false); });
+    }).catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); });
     return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showTranslation, tafsirItem, currentPage]);
@@ -757,7 +752,6 @@ export function MushafPage() {
 
   // Page jump
   const [showJump, setShowJump] = React.useState(false);
-  const [jumpInput, setJumpInput] = React.useState("");
 
   // Font scale: 0.7 – 1.6 in 0.1 steps — default 1.0 fills mobile viewport naturally
   const [fontScale, setFontScale] = React.useState<number>(() => prefs.mushafFontScale ?? 1.0);
@@ -768,12 +762,6 @@ export function MushafPage() {
       return next;
     });
   }, [setPrefs]);
-
-  const _doJump = () => {
-    const p = Number(jumpInput);
-    if (p >= 1 && p <= 604) { goPage(p); setShowJump(false); setJumpInput(""); }
-    else toast.error("رقم صفحة غير صالح (1–604)");
-  };
 
   // Touch swipe (horizontal only) + M4 pinch-to-zoom
   const touchStartX = React.useRef<number | null>(null);

@@ -197,18 +197,6 @@ function useCityTimes(city: string, country: string) {
   });
 }
 
-// ─── IqamaTime ────────────────────────────────────────────────────────────────
-
-function _IqamaTime({ prayerTime, offset }: { prayerTime: string; offset: number }) {
-  const mins = parseClockToMinutes(cleanTime(prayerTime));
-  if (mins == null) return null;
-  return (
-    <div dir="ltr" className="text-[10px] opacity-40 tabular-nums text-left">
-      إقامة {formatMinutes12h(mins + offset)}
-    </div>
-  );
-}
-
 function IqamaTimeInline({ prayerTime, offset }: { prayerTime: string; offset: number }) {
   const mins = parseClockToMinutes(cleanTime(prayerTime));
   if (mins == null) return null;

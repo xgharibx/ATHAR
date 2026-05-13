@@ -33,7 +33,6 @@ import { coerceCount } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
-import { QURAN_VOCAB } from "@/data/quranVocab";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
@@ -368,11 +367,6 @@ export function HomePage() {
   const [activePhraseKey, setActivePhraseKey] = React.useState<QuickTasbeehKey | null>(null);
   const prayerTimes = usePrayerTimes();
   const civilTodayKey = useTodayKey();
-  const _dailyVocabWord = React.useMemo(() => {
-    const dayNum = Math.floor(Date.now() / 86400000);
-    const id = (dayNum % QURAN_VOCAB.length) + 1;
-    return QURAN_VOCAB.find((w) => w.id === id) ?? QURAN_VOCAB[0];
-  }, []);
   const worshipDayKey = useTodayKey({
     mode: "ibadah",
     fajrTime: prayerTimes.data?.data?.timings?.Fajr,
@@ -544,7 +538,7 @@ export function HomePage() {
     // Quest auto-resolution
     const ayahsToday = Number(quranDailyAyahs[civilTodayKey] ?? 0);
     const dhikrToday = Number(activity[civilTodayKey] ?? 0);
-    const tasbeehMax = Math.max(...Object.values(quickTasbeeh).map((v) => Number(v) || 0), 0);
+    const tasbeehMax = Object.values(quickTasbeeh).reduce((max, v) => Math.max(max, Number(v) || 0), 0);
 
     const quests = [
       { id: "quran5", label: "اقرأ ٥ آيات", done: ayahsToday >= 5, icon: "📖" },
