@@ -33,6 +33,7 @@ import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { cn } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import toast from "react-hot-toast";
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                               */
@@ -247,10 +248,15 @@ export function HadithReaderPage() {
     return pack.sections.find((s) => s.id === hadith.s)?.title ?? null;
   }, [pack, hadith]);
 
-  const copyText = () => {
+  const copyText = async () => {
     if (!hadith) return;
     const text = `${hadith.t}\n\n— ${hadithRef(meta?.title ?? "", hadith.a)}`;
-    navigator.clipboard.writeText(text).catch(() => {});
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("تم النسخ");
+    } catch {
+      toast.error("تعذّر النسخ");
+    }
   };
 
   const shareText = async () => {
