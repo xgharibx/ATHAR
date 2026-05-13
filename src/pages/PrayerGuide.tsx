@@ -11,8 +11,7 @@ async function sharePrayerStep(step: { title: string; arabic?: string; descripti
   if (navigator.share) {
     await navigator.share({ text }).catch(() => {});
   } else {
-    await navigator.clipboard.writeText(text).catch(() => {});
-    toast.success("تم النسخ");
+    try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
   }
 }
 
@@ -155,8 +154,7 @@ export function PrayerGuidePage() {
                     <button
                       type="button"
                       onClick={async () => {
-                        await navigator.clipboard.writeText([step.title, step.arabic, step.description].filter(Boolean).join("\n\n")).catch(() => {});
-                        toast.success("تم النسخ");
+                        try { await navigator.clipboard.writeText([step.title, step.arabic, step.description].filter(Boolean).join("\n\n")); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
                       }}
                       aria-label="نسخ الخطوة"
                       className="p-2 rounded-xl transition-opacity hover:opacity-75"

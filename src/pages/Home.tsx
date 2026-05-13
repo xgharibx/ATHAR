@@ -1433,7 +1433,7 @@ export function HomePage() {
                   <Button variant="secondary" disabled={!dailyWird} onClick={async () => {
                     if (!dailyWird) return;
                     if (navigator.share) { await navigator.share({ text: dailyWird.copyText }).catch(() => {}); }
-                    else { await navigator.clipboard.writeText(dailyWird.copyText).catch(() => {}); toast.success("تم النسخ"); }
+                    else { try { await navigator.clipboard.writeText(dailyWird.copyText); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
                   }}>
                     <Share2 size={16} />
                   </Button>

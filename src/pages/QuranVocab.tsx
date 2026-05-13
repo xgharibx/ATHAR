@@ -883,8 +883,7 @@ export function QuranVocabPage() {
                 if (navigator.share) {
                   await navigator.share({ text }).catch(() => {});
                 } else {
-                  await navigator.clipboard.writeText(text).catch(() => {});
-                  toast.success("تم نسخ قائمة المحفوظات");
+                  try { await navigator.clipboard.writeText(text); toast.success("تم نسخ قائمة المحفوظات"); } catch { toast.error("تعذّر النسخ"); }
                 }
               }}
               aria-label="نسخ قائمة المحفوظات"

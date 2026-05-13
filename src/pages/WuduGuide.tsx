@@ -178,8 +178,7 @@ export function WuduGuidePage() {
                       if (navigator.share) {
                         await navigator.share({ text }).catch(() => {});
                       } else {
-                        await navigator.clipboard.writeText(text).catch(() => {});
-                        toast.success("تم النسخ");
+                        try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
                       }
                     }}
                     className="p-1.5 rounded-lg opacity-50 hover:opacity-100 transition-opacity"

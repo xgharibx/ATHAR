@@ -720,8 +720,7 @@ export function SebhaPage() {
                     if (navigator.share) {
                       await navigator.share({ text }).catch(() => {});
                     } else {
-                      await navigator.clipboard.writeText(text).catch(() => {});
-                      toast.success("تم النسخ");
+                      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
                     }
                   }}
                   className="flex items-center gap-1 text-xs opacity-50 hover:opacity-80 transition"
