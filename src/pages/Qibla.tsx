@@ -188,30 +188,44 @@ export function QiblaPage() {
     }
   }, []);
 
-  // Listen to deviceorientation
+  // Listen to device orientation — cross-platform compass strategy:
+  //   • deviceorientationabsolute (Chrome/Android): alpha = CW degrees from North → heading = alpha
+  //   • deviceorientation + webkitCompassHeading (iOS): already CW from North
+  //   • Non-absolute alpha without webkitCompassHeading: IGNORED (relative to initial, not useful)
   React.useEffect(() => {
+    const gotAbsolute = { current: false };
+
+    const handleAbsolute = (e: DeviceOrientationEvent) => {
+      if (e.alpha == null) return;
+      gotAbsolute.current = true;
+      // Chrome deviceorientationabsolute: alpha is clockwise compass bearing from magnetic North
+      const heading = ((e.alpha % 360) + 360) % 360;
+      const smoothed = smoothHeading(compassHeadingRef.current, heading);
+      compassHeadingRef.current = smoothed;
+      setOrient((o) => ({ ...o, heading: smoothed, accuracy: null, supported: true }));
+    };
+
     const handleOrientation = (e: DeviceOrientationEvent) => {
-      // webkitCompassHeading is iOS-specific (degrees from true north, 0 = north, clockwise)
+      if (gotAbsolute.current) return; // absolute events take priority
       const w = e as DeviceOrientationEvent & { webkitCompassHeading?: number; webkitCompassAccuracy?: number };
       let heading: number | null = null;
       let accuracy: number | null = null;
       if (w.webkitCompassHeading != null) {
+        // iOS: webkitCompassHeading is CW degrees from True North
         heading = w.webkitCompassHeading;
         accuracy = typeof w.webkitCompassAccuracy === "number" ? Math.abs(w.webkitCompassAccuracy) : null;
-      } else if (e.alpha != null) {
-        // Android: alpha is rotation around z-axis, 0 = screen faces north
-        // Convert: heading = 360 - alpha (approximately)
-        heading = (360 - e.alpha + 360) % 360;
       }
-      if (heading != null) {
-        const smoothedHeading = smoothHeading(compassHeadingRef.current, heading);
-        compassHeadingRef.current = smoothedHeading;
-        setOrient((o) => ({ ...o, heading: smoothedHeading, accuracy, supported: true }));
-      }
+      // Non-absolute alpha without webkitCompassHeading is relative — skip it
+      if (heading == null) return;
+      const smoothed = smoothHeading(compassHeadingRef.current, heading);
+      compassHeadingRef.current = smoothed;
+      setOrient((o) => ({ ...o, heading: smoothed, accuracy, supported: true }));
     };
 
+    globalThis.addEventListener("deviceorientationabsolute", handleAbsolute, true);
     globalThis.addEventListener("deviceorientation", handleOrientation, true);
     return () => {
+      globalThis.removeEventListener("deviceorientationabsolute", handleAbsolute, true);
       globalThis.removeEventListener("deviceorientation", handleOrientation, true);
     };
   }, []);
@@ -293,7 +307,7 @@ export function QiblaPage() {
               return null; // Skip overlapping labels
             })}
             <text x="120" y="38" textAnchor="middle" fill="var(--muted)" fontSize="13" fontWeight="bold">ش</text>
-            <text x="202" y="124" textAnchor="middle" fill="var(--muted-2)" fontSize="11">ش</text>
+            <text x="202" y="124" textAnchor="middle" fill="var(--muted-2)" fontSize="11">ق</text>
             <text x="120" y="210" textAnchor="middle" fill="var(--muted-2)" fontSize="11">ج</text>
             <text x="38" y="124" textAnchor="middle" fill="var(--muted-2)" fontSize="11">غ</text>
 
@@ -334,8 +348,8 @@ export function QiblaPage() {
             </div>
             {geo.status === "ok" && (
               <div dir="ltr" className="text-[10px] opacity-35 font-mono mt-0.5">
-                {(geo as { status: "ok"; lat: number; lng: number }).lat.toFixed(4)}°N,
-                {" "}{(geo as { status: "ok"; lat: number; lng: number }).lng.toFixed(4)}°E
+                {(geo as { status: "ok"; lat: number; lng: number }).lat >= 0 ? (geo as { status: "ok"; lat: number; lng: number }).lat.toFixed(4) + "°N" : Math.abs((geo as { status: "ok"; lat: number; lng: number }).lat).toFixed(4) + "°S"},
+                {" "}{(geo as { status: "ok"; lat: number; lng: number }).lng >= 0 ? (geo as { status: "ok"; lat: number; lng: number }).lng.toFixed(4) + "°E" : Math.abs((geo as { status: "ok"; lat: number; lng: number }).lng).toFixed(4) + "°W"}
                 {declination != null && (
                   <span className="ml-2 opacity-80">D={declination > 0 ? "+" : ""}{declination.toFixed(1)}°</span>
                 )}
@@ -424,11 +438,11 @@ export function QiblaPage() {
           <div className="space-y-2 text-sm">
             <div className="flex gap-4">
               <div className="opacity-60">خط العرض</div>
-              <div dir="ltr" className="font-mono font-medium">{geo.lat.toFixed(4)}°N</div>
+              <div dir="ltr" className="font-mono font-medium">{Math.abs(geo.lat).toFixed(4)}°{geo.lat >= 0 ? "N" : "S"}</div>
             </div>
             <div className="flex gap-4">
               <div className="opacity-60">خط الطول</div>
-              <div dir="ltr" className="font-mono font-medium">{geo.lng.toFixed(4)}°E</div>
+              <div dir="ltr" className="font-mono font-medium">{Math.abs(geo.lng).toFixed(4)}°{geo.lng >= 0 ? "E" : "W"}</div>
             </div>
             <div className="flex gap-4">
               <div className="opacity-60">الدقة</div>
@@ -445,9 +459,11 @@ export function QiblaPage() {
       {/* Info card */}
       <Card className="p-4 text-sm opacity-70 space-y-1">
         <div className="font-semibold opacity-100 mb-2">كيفية الاستخدام</div>
-        <p>١. اضغط "تفعيل البوصلة" إن ظهر الزر (iOS يحتاج إذن)</p>
-        <p>٢. الجزء الأحمر من السهم يشير نحو الكعبة المشرفة</p>
-        <p>٣. وجِّه جهازك حتى يصبح السهم مستقيماً للأعلى</p>
+        <p>١. امسك الجهاز أفقياً (موازياً للأرض) للحصول على أدق النتائج</p>
+        <p>٢. اضغط "تفعيل البوصلة" إن ظهر الزر (iOS يحتاج إذن صريح)</p>
+        <p>٣. رأس السهم يشير نحو الكعبة المشرفة</p>
+        <p>٤. دوِّر الجهاز حتى يصبح السهم مستقيماً للأعلى — فأنت تواجه القبلة</p>
+        <p>٥. إن كانت الدقة ضعيفة، حرّك الجهاز على شكل رقم ٨ لمعايرة البوصلة</p>
       </Card>
     </div>
   );
