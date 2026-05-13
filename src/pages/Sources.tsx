@@ -54,6 +54,7 @@ export function SourcesPage() {
     setPacks(next);
     setCustomText("");
     setCustomBenefit("");
+    setCustomCount("1");
     void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
     toast.success("تمت إضافة الذكر");
   };
