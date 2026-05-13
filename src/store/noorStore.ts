@@ -1012,8 +1012,10 @@ export const useNoorStore = create<NoorState>()(
         }),
 
       bumpActivityToday: () => {
-        const key = todayISO();
-        set((s) => ({ activity: { ...s.activity, [key]: (s.activity[key] ?? 0) + 1 } }));
+        set((s) => {
+          const key = todayISO();
+          return { activity: { ...s.activity, [key]: (s.activity[key] ?? 0) + 1 } };
+        });
       },
 
       ensureDailyResets: (fajrTime) => {
@@ -1285,8 +1287,8 @@ export const useNoorStore = create<NoorState>()(
       // 3E: Section completion history
       sectionCompletions: {},
       recordSectionCompletion: (sectionId) => {
-        const today = todayISO();
         set((s) => {
+          const today = todayISO();
           const prev = s.sectionCompletions[sectionId] ?? [];
           if (prev[prev.length - 1] === today) return {};
           return { sectionCompletions: { ...s.sectionCompletions, [sectionId]: [...prev, today].slice(-365) } };
