@@ -386,6 +386,20 @@ export function AppShell() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [isPrimaryShell, setIsPrimaryShell] = React.useState(true);
   const [footerExpanded, setFooterExpanded] = React.useState(false);
+  const topBarRef = React.useRef<HTMLElement>(null);
+
+  // Measure top bar height and expose it as --topbar-h so children can position below it
+  React.useEffect(() => {
+    const el = topBarRef.current;
+    if (!el) return;
+    const update = () => {
+      document.documentElement.style.setProperty("--topbar-h", `${el.getBoundingClientRect().height}px`);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
@@ -508,7 +522,7 @@ export function AppShell() {
       </React.Suspense>
 
       {/* Top Bar */}
-      <header className="sticky top-0 z-30" style={{ paddingTop: "var(--sat)" }}>
+      <header ref={topBarRef} className="sticky top-0 z-30" style={{ paddingTop: "var(--sat)" }}>
         <div className="mx-auto max-w-[1400px] px-4 pt-3">
           <div className="glass rounded-3xl px-3 py-3 flex items-center justify-between gap-2 overflow-hidden">
             {/* Logo + mobile menu — allowed to shrink at high zoom */}

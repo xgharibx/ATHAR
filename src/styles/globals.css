@@ -1804,16 +1804,10 @@ body.quran-focus-mode .quran-surface {
 
 
 /* -------------------------------------------------------
-   Dhikr scroll area: fills viewport minus header + floating nav
+   Dhikr scroll area: let Virtuoso use window scroll naturally
    ------------------------------------------------------- */
 .dhikr-scroll-area {
-  height: calc(100dvh - 240px);
-  min-height: 440px;
-}
-@media (max-width: 1279px) {
-  .dhikr-scroll-area {
-    height: calc(100dvh - 240px - 88px - env(safe-area-inset-bottom, 0px));
-  }
+  min-height: 40dvh;
 }
 
 /* -------------------------------------------------------

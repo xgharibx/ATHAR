@@ -1,4 +1,5 @@
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
@@ -127,34 +128,37 @@ export function DhikrList(props: Readonly<{
   const headerCardRef = React.useRef<HTMLDivElement>(null);
   const virtuosoRef = React.useRef<VirtuosoHandle>(null);
 
-  React.useEffect(() => {
-    const el = headerCardRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => setHeaderVisible(entry.isIntersecting),
-      { threshold: 0, rootMargin: "-1px 0px 0px 0px" }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  // Track scroll direction: hide compact header when scrolling up
+  // Unified scroll handler: track header visibility + scroll direction
   React.useEffect(() => {
     let lastY = window.scrollY;
     let timeoutId: number | null = null;
-    const onScroll = () => {
+
+    const checkState = () => {
+      const el = headerCardRef.current;
       const y = window.scrollY;
       const delta = y - lastY;
       lastY = y;
+
+      // Header visible = its bottom edge is still below the sticky topbar
+      if (el) {
+        const topbarH = parseFloat(
+          document.documentElement.style.getPropertyValue("--topbar-h") || "80"
+        );
+        setHeaderVisible(el.getBoundingClientRect().bottom > topbarH);
+      }
+
+      // Scroll direction: briefly flag scrollingUp to hide compact header
       if (delta < -2) {
         setScrollingUp(true);
         if (timeoutId !== null) clearTimeout(timeoutId);
         timeoutId = window.setTimeout(() => setScrollingUp(false), 250);
       }
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+
+    checkState();
+    window.addEventListener("scroll", checkState, { passive: true });
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", checkState);
       if (timeoutId !== null) clearTimeout(timeoutId);
     };
   }, []);
@@ -342,29 +346,32 @@ export function DhikrList(props: Readonly<{
     <div className="relative isolate">
       <div className="dhikr-page-stars absolute inset-0 pointer-events-none" />
 
-      {/* Sticky compact header — appears when the main header Card scrolls out of view */}
-      <div
-        className={[
-          "fixed top-0 left-0 right-0 z-[100] px-4 py-2 flex items-center gap-3",
-          "glass-strong border-b border-[var(--stroke)]",
-          "transition-all duration-200",
-          (headerVisible || scrollingUp) ? "opacity-0 -translate-y-2 pointer-events-none" : "opacity-100 translate-y-0",
-        ].join(" ")}
-        style={{ paddingTop: "max(8px, calc(8px + env(safe-area-inset-top, 0px)))" }}
-        aria-hidden={(headerVisible || scrollingUp) ? "true" : undefined}
-      >
-        <span className="text-base leading-none" aria-hidden="true">{identity.icon}</span>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold truncate" style={{ color: identity.accent }}>{props.title}</div>
-          <div className="mt-1 h-1 rounded-full bg-[var(--card)] overflow-hidden">
-            <div
-              className="h-full rounded-full transition-[width] duration-300"
-              style={{ width: `${stats.percent}%`, background: identity.accent }}
-            />
+      {/* Sticky compact header — portalled to body to escape framer-motion's will-change:transform containing block */}
+      {createPortal(
+        <div
+          className={[
+            "fixed left-0 right-0 z-[100] px-4 py-2 flex items-center gap-3",
+            "glass-strong border-b border-[var(--stroke)]",
+            "transition-all duration-200",
+            (headerVisible || scrollingUp) ? "opacity-0 -translate-y-2 pointer-events-none" : "opacity-100 translate-y-0",
+          ].join(" ")}
+          style={{ top: "var(--topbar-h, 80px)", paddingTop: "8px" }}
+          aria-hidden={(headerVisible || scrollingUp) ? "true" : undefined}
+        >
+          <span className="text-base leading-none" aria-hidden="true">{identity.icon}</span>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold truncate" style={{ color: identity.accent }}>{props.title}</div>
+            <div className="mt-1 h-1 rounded-full bg-[var(--card)] overflow-hidden">
+              <div
+                className="h-full rounded-full transition-[width] duration-300"
+                style={{ width: `${stats.percent}%`, background: identity.accent }}
+              />
+            </div>
           </div>
-        </div>
-        <div className="text-[11px] opacity-55 tabular-nums shrink-0">{stats.percent}%</div>
-      </div>
+          <div className="text-[11px] opacity-55 tabular-nums shrink-0">{stats.percent}%</div>
+        </div>,
+        document.body
+      )}
 
       <div className="relative z-[1] space-y-4">
       <div ref={headerCardRef}>
@@ -648,7 +655,7 @@ export function DhikrList(props: Readonly<{
           </div>
         )}
         {props.items.length === 0 && isMyAdhkarSection ? (
-          <div className="h-full rounded-3xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center p-6 text-center">
+          <div className="min-h-[40dvh] rounded-3xl border border-[var(--stroke)] bg-[var(--card)] grid place-items-center p-6 text-center">
             <div>
               <div className="text-3xl mb-3">✦</div>
               <div className="font-semibold">أذكاري</div>
@@ -661,10 +668,10 @@ export function DhikrList(props: Readonly<{
         ) : (
           <Virtuoso
             ref={virtuosoRef}
-            style={{ height: "100%" }}
+            useWindowScroll
             data={orderedEntries}
             atTopStateChange={(atTop) => setShowBackToTop(!atTop)}
-            components={{ Footer: () => <div style={{ height: 96 }} aria-hidden="true" /> }}
+            components={{ Footer: () => <div style={{ height: 120 }} aria-hidden="true" /> }}
             itemContent={(displayIndex, entry) => (
               <div className="pb-4">
                 {reorderMode ? (
