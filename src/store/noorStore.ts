@@ -773,8 +773,8 @@ export const useNoorStore = create<NoorState>()(
       quranLastReadDate: null,
       quranDailyAyahs: {},
       recordQuranRead: (count = 1) => {
-        const today = todayISO();
         set((s) => {
+          const today = todayISO();
           const prevDate = s.quranLastReadDate;
           const dayBefore = (() => {
             const d = new Date();
