@@ -307,11 +307,25 @@ export function MushafPage() {
   // Chrome auto-hide
   const [showChrome, setShowChrome] = React.useState(true);
   const chromeTimer = React.useRef<number | null>(null);
+  const lastScrollYRef = React.useRef(0);
   const flashChrome = React.useCallback(() => {
     setShowChrome(true);
     if (chromeTimer.current) clearTimeout(chromeTimer.current);
-    chromeTimer.current = window.setTimeout(() => setShowChrome(false), 4000);
+    chromeTimer.current = window.setTimeout(() => setShowChrome(false), 5500);
   }, []);
+  // Scroll-direction-aware hide: hide when reading down, show when scrolling back up
+  const handleContentScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const y = e.currentTarget.scrollTop;
+    const delta = y - lastScrollYRef.current;
+    lastScrollYRef.current = y;
+    if (Math.abs(delta) < 10) return;
+    if (delta > 0) {
+      setShowChrome(false);
+      if (chromeTimer.current) { clearTimeout(chromeTimer.current); chromeTimer.current = null; }
+    } else {
+      flashChrome();
+    }
+  }, [flashChrome]);
   React.useEffect(() => { flashChrome(); }, [currentPage, flashChrome]);
   React.useEffect(() => () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); }, []);
 
@@ -1223,6 +1237,7 @@ export function MushafPage() {
           className={`mushaf-page-content${pageTransDir ? " page-sliding" : ""}`}
           dir="rtl"
           style={{ "--mushaf-font-scale": fontScale, ...(pageTransDir ? { "--mushaf-slide-dir": pageTransDir === "left" ? "-1" : "1" } : {}) } as React.CSSProperties}
+          onScroll={handleContentScroll}
         >
           {/* Always-visible tiny strip */}
           <div className="mushaf-page-info-strip">
@@ -1497,7 +1512,7 @@ export function MushafPage() {
 
       {/* ── Audio player bar ──────────────────────────────── */}
       {!selectedItem && audioBarVisible && (
-        <div className="mushaf-audio-bar" onClick={(e) => e.stopPropagation()}>
+        <div className={`mushaf-audio-bar${showChrome ? "" : " chrome-hidden"}`} onClick={(e) => e.stopPropagation()}>
           <button type="button"
             className="mushaf-audio-play-btn"
             onClick={() => {

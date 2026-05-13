@@ -2916,7 +2916,12 @@ header {
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(201, 162, 39, 0.2);
-  transition: transform 0.3s ease;
+  transition: transform 0.32s ease, opacity 0.32s ease;
+}
+.mushaf-audio-bar.chrome-hidden {
+  opacity: 0;
+  transform: translateY(110%);
+  pointer-events: none;
 }
 .mushaf-audio-play-btn {
   width: 32px;
@@ -3324,6 +3329,19 @@ header {
 [data-mushaf-theme="forest"] .mushaf-page-nav { border-top-color: rgba(80, 160, 80, 0.2) !important; }
 [data-mushaf-theme="forest"] .mushaf-page-nav-btn { color: #6dd984 !important; border-color: rgba(80, 160, 80, 0.3) !important; background: rgba(30, 90, 40, 0.15) !important; }
 [data-mushaf-theme="forest"] .mushaf-page-nav-num { color: #c8e6c9 !important; }
+[data-mushaf-theme="forest"] .mushaf-page-strip {
+  background: rgba(10, 26, 14, 0.97) !important;
+  border-top-color: rgba(80, 160, 80, 0.15) !important;
+}
+[data-mushaf-theme="forest"] .mushaf-page-chip { background: rgba(80, 160, 80, 0.08) !important; color: rgba(200, 230, 200, 0.5) !important; }
+[data-mushaf-theme="forest"] .mushaf-page-chip.active { background: #2d7d3a !important; color: #c8e6c9 !important; }
+[data-mushaf-theme="forest"] .mushaf-audio-bar {
+  background: rgba(10, 26, 14, 0.97) !important;
+  border-top-color: rgba(80, 160, 80, 0.15) !important;
+}
+[data-mushaf-theme="forest"] .mushaf-audio-play-btn { color: #6dd984 !important; border-color: rgba(80, 160, 80, 0.3) !important; background: rgba(30, 90, 40, 0.15) !important; }
+[data-mushaf-theme="forest"] .mushaf-audio-reciter { color: #c8e6c9 !important; }
+[data-mushaf-theme="forest"] .mushaf-audio-toggle { color: rgba(200, 230, 200, 0.5) !important; }
 
 [data-mushaf-theme="rose"] .mushaf-reader { background-color: #1a0810 !important; }
 [data-mushaf-theme="rose"] .mushaf-page-content {
@@ -3352,6 +3370,19 @@ header {
 [data-mushaf-theme="rose"] .mushaf-page-nav { border-top-color: rgba(180, 80, 110, 0.2) !important; }
 [data-mushaf-theme="rose"] .mushaf-page-nav-btn { color: #f9a8c0 !important; border-color: rgba(180, 80, 110, 0.3) !important; background: rgba(80, 15, 35, 0.15) !important; }
 [data-mushaf-theme="rose"] .mushaf-page-nav-num { color: #f3c6d0 !important; }
+[data-mushaf-theme="rose"] .mushaf-page-strip {
+  background: rgba(26, 8, 16, 0.97) !important;
+  border-top-color: rgba(180, 80, 110, 0.15) !important;
+}
+[data-mushaf-theme="rose"] .mushaf-page-chip { background: rgba(180, 80, 110, 0.08) !important; color: rgba(243, 198, 208, 0.5) !important; }
+[data-mushaf-theme="rose"] .mushaf-page-chip.active { background: #8b2252 !important; color: #f3c6d0 !important; }
+[data-mushaf-theme="rose"] .mushaf-audio-bar {
+  background: rgba(26, 8, 16, 0.97) !important;
+  border-top-color: rgba(180, 80, 110, 0.15) !important;
+}
+[data-mushaf-theme="rose"] .mushaf-audio-play-btn { color: #f9a8c0 !important; border-color: rgba(180, 80, 110, 0.3) !important; background: rgba(80, 15, 35, 0.2) !important; }
+[data-mushaf-theme="rose"] .mushaf-audio-reciter { color: #f3c6d0 !important; }
+[data-mushaf-theme="rose"] .mushaf-audio-toggle { color: rgba(243, 198, 208, 0.5) !important; }
 
 [data-mushaf-theme="ocean"] .mushaf-reader { background-color: #051820 !important; }
 [data-mushaf-theme="ocean"] .mushaf-page-content {
@@ -3380,6 +3411,19 @@ header {
 [data-mushaf-theme="ocean"] .mushaf-page-nav { border-top-color: rgba(50, 150, 160, 0.2) !important; }
 [data-mushaf-theme="ocean"] .mushaf-page-nav-btn { color: #4dd0e1 !important; border-color: rgba(50, 150, 160, 0.3) !important; background: rgba(5, 50, 65, 0.15) !important; }
 [data-mushaf-theme="ocean"] .mushaf-page-nav-num { color: #b2dfdb !important; }
+[data-mushaf-theme="ocean"] .mushaf-page-strip {
+  background: rgba(5, 24, 32, 0.97) !important;
+  border-top-color: rgba(50, 150, 160, 0.15) !important;
+}
+[data-mushaf-theme="ocean"] .mushaf-page-chip { background: rgba(50, 150, 160, 0.08) !important; color: rgba(178, 223, 219, 0.5) !important; }
+[data-mushaf-theme="ocean"] .mushaf-page-chip.active { background: #0e6873 !important; color: #b2dfdb !important; }
+[data-mushaf-theme="ocean"] .mushaf-audio-bar {
+  background: rgba(5, 24, 32, 0.97) !important;
+  border-top-color: rgba(50, 150, 160, 0.15) !important;
+}
+[data-mushaf-theme="ocean"] .mushaf-audio-play-btn { color: #4dd0e1 !important; border-color: rgba(50, 150, 160, 0.3) !important; background: rgba(5, 50, 65, 0.2) !important; }
+[data-mushaf-theme="ocean"] .mushaf-audio-reciter { color: #b2dfdb !important; }
+[data-mushaf-theme="ocean"] .mushaf-audio-toggle { color: rgba(178, 223, 219, 0.5) !important; }
 
 /* ── M5: Dial wheel for page jump ───────────────────────────── */
 .mushaf-dial-container {
