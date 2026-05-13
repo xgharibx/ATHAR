@@ -386,7 +386,7 @@ export function HadithMemoPage() {
                     if (navigator.share) { await navigator.share({ text }); }
                     else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }
                   } catch {
-                    try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
+                    try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
                   }
                 }}
                 className="rounded-lg border border-[var(--stroke)] bg-[var(--card)] p-1.5 opacity-60 transition hover:opacity-100 press-effect"
