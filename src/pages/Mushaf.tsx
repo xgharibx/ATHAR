@@ -580,7 +580,7 @@ export function MushafPage() {
             pst.currentIdx = nextIdx;
             const next = pst.items[nextIdx];
             playItemCoreRef.current?.(next.surahId, next.originalAyah, next.displayAyah);
-          } else if (pst.useRange) {
+          } else if (pst.useRange && pst.items.length > 0) {
             pst.currentIdx = rangeMin;
             const next = pst.items[rangeMin];
             playItemCoreRef.current?.(next.surahId, next.originalAyah, next.displayAyah);
