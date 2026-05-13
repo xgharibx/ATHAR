@@ -507,7 +507,7 @@ export function DhikrList(props: Readonly<{
                     });
                     const text = lines.join("\n").trim() + "\n\n• أثر";
                     if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                    else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+                    else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
                   }}
                 >
                   <Share2 size={16} />

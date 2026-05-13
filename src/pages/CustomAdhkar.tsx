@@ -166,7 +166,7 @@ function PackCard({
               const lines = pack.items.map((it) => `• ${it.text}${it.count > 1 ? ` (${it.count}×)` : ""}`).join("\n");
               const text = `${pack.title}\n\n${lines}\n\n• أثر`;
               if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-              else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+              else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
             }}
             className="p-2 rounded-xl hover:bg-[var(--card)] transition-colors opacity-50 hover:opacity-100"
             aria-label="مشاركة الحزمة"
