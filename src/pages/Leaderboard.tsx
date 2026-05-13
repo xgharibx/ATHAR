@@ -161,7 +161,7 @@ export function LeaderboardPage() {
     const source = usingRemoteRows ? remoteRows : localRows.length > 0 ? localRows : [myEntry];
     const all = serverHidden && usingRemoteRows ? source.filter((r) => r.id !== myEntry.id) : source;
     return all
-      .filter((r) => r.board === board && (board !== "section" || r.sectionId === selectedSection))
+      .filter((r) => r.board === board && (board !== "section" || !selectedSection || r.sectionId === selectedSection))
       .sort((a, b) => b.score - a.score)
       .slice(0, 30);
   }, [board, localRows, myEntry, remoteRows, selectedSection, serverHidden, usingRemoteRows]);

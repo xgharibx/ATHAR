@@ -51,6 +51,7 @@ const DEFAULT_IDENTITY: SectionIdentity = {
 };
 
 export function getSectionIdentity(sectionId: string): SectionIdentity {
+  if (!sectionId) return DEFAULT_IDENTITY;
   // Try exact match first
   if (IDENTITIES[sectionId]) return IDENTITIES[sectionId]!;
   // Try prefix match
