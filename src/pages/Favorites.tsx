@@ -617,7 +617,7 @@ export function FavoritesPage() {
                   <div className="flex flex-col gap-2 shrink-0">
                     <Button
                       variant="outline"
-                      onClick={() => { void navigator.clipboard.writeText(dua.arabic).then(() => toast.success("تم النسخ")); }}
+                      onClick={() => { navigator.clipboard.writeText(dua.arabic).then(() => toast.success("تم النسخ")).catch(() => toast.error("تعذّر النسخ")); }}
                       aria-label="نسخ الدعاء"
                     >
                       <Copy size={14} aria-hidden="true" />
