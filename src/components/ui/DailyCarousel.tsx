@@ -54,7 +54,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
         toast.success("تم النسخ");
       }
     } catch {
-      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { /* ignore */ }
+      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
     }
   }, []);
 

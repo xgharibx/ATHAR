@@ -372,7 +372,7 @@ export function QuranPlansPage() {
                 const remaining = Math.max(0, activePlan.days - activePlan.elapsed);
                 const text = `📖 خطة ختمة القرآن الكريم\n${activePlan.name}\n\nالتقدم: ${activePlan.pct.toLocaleString("ar-EG")}٪ (${activePlan.doneCount.toLocaleString("ar-EG")} يوم مكتمل)\nالمتبقي: ${remaining.toLocaleString("ar-EG")} يوم\nالورد اليومي: ${activePlan.dailyAyahs.toLocaleString("ar-EG")} آية\n\nاترك أثراً طيباً 🌟`;
                 if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+                else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
               }}
             >
               <Share2 className="w-4 h-4" />

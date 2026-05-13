@@ -1101,7 +1101,7 @@ export function PrayerTimesPage() {
             const lines = PRIMARY_PRAYERS.map((p) => `${PRAYER_LABELS[p]}: ${cleanTime(timings[p] ?? "")}`);
             const text = `مواقيت الصلاة اليوم:\n${lines.join("\n")}\n\n• أثر`;
             if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-            else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+            else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
           }}>
             <Share2 size={15} />
           </Button>

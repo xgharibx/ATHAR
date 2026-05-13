@@ -835,7 +835,7 @@ export function HomePage() {
                       const emoji = streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨";
                       const text = `${emoji} سلسلة ${streak} يوم متواصل في تطبيق أثر!\n\nالاستمرار في الذكر والعبادة — اترك أثراً طيباً.`;
                       if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                      else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+                      else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
                     }}
                   >
                     {streak >= 30 ? "🔥" : streak >= 7 ? "⚡" : "✨"} {streak} يوم متواصل
@@ -1125,7 +1125,7 @@ export function HomePage() {
                     onClick={async () => {
                       const text = `وصلت لمستوى: ${xpLevel.emoji} ${xpLevel.label} (${totalXp.toLocaleString("ar-SA")} نقطة) في تطبيق أثر!\n\nاترك أثراً طيباً كل يوم.`;
                       if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                      else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+                      else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
                     }}
                   >
                     {xpLevel.emoji} {xpLevel.label} — {totalXp.toLocaleString("ar-SA")} نقطة

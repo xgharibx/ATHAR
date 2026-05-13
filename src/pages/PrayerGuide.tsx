@@ -28,7 +28,7 @@ export function PrayerGuidePage() {
     });
     const text = `دليل الصلاة خطوة بخطوة\n\n${lines.join("\n\n")}\n\n• أثر`;
     if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-    else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+    else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
   };
 
   return (
