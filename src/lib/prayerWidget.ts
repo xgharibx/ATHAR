@@ -104,7 +104,7 @@ export function buildWidgetPayload(
       const m = ((mins % 1440) + 1440) % 1440 % 60;
       suhoor = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     }
-    iftar = (timings["Maghrib"] ?? "").split(" ")[0] ?? null;
+    iftar = (timings["Maghrib"] ?? "").split(" ")[0] || null;
   }
 
   return {
