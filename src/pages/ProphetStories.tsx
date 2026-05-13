@@ -80,8 +80,8 @@ function StoryCard({
                 الدروس المستفادة:
               </p>
               <ul role="list" className="space-y-1.5">
-                {story.lessons.map((lesson, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-right" style={{ color: "var(--fg)" }}>
+                {story.lessons.map((lesson) => (
+                  <li key={lesson} className="flex items-start gap-2 text-sm text-right" style={{ color: "var(--fg)" }}>
                     <span style={{ color: "var(--accent)" }} className="mt-0.5 flex-shrink-0">•</span>
                     <span className="opacity-80">{lesson}</span>
                   </li>
@@ -101,8 +101,12 @@ function StoryCard({
                 if (navigator.share) {
                   await navigator.share({ text }).catch(() => {});
                 } else {
-                  await navigator.clipboard.writeText(text).catch(() => {});
-                  toast.success("تم النسخ");
+                  try {
+                    await navigator.clipboard.writeText(text);
+                    toast.success("تم النسخ");
+                  } catch {
+                    toast.error("تعذّر النسخ");
+                  }
                 }
               }}
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"

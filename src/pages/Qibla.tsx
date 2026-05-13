@@ -376,7 +376,7 @@ export function QiblaPage() {
                 const dir = formatBearing(qiblaBearing);
                 const text = `اتجاه القبلة من موقعي: ${Math.round(qiblaBearing)}° (${dir})`;
                 if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                else { await navigator.clipboard.writeText(text).catch(() => {}); toast.success("تم النسخ"); }
+                else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
               }}
               aria-label="مشاركة اتجاه القبلة"
               className="mt-2 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full opacity-60 hover:opacity-90 transition"

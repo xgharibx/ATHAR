@@ -240,8 +240,12 @@ export default function Companions() {
                         if (navigator.share) {
                           await navigator.share({ text }).catch(() => {});
                         } else {
-                          await navigator.clipboard.writeText(text).catch(() => {});
-                          toast.success("تم النسخ");
+                          try {
+                            await navigator.clipboard.writeText(text);
+                            toast.success("تم النسخ");
+                          } catch {
+                            toast.error("تعذّر النسخ");
+                          }
                         }
                       }}
                       className="flex items-center gap-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-3 py-1.5 text-xs transition-all glass-hover press-effect"
