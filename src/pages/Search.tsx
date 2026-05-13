@@ -488,8 +488,8 @@ export function SearchPage() {
           />
         ) : (
           <div className="space-y-2" role="list" aria-label="نتائج القرآن">
-            {quranResults.map((r, idx) => {
-              const qKey = r.type === "surah" ? `s-${r.surah.id}` : `a-${r.surah.id}-${r.ayahIndex}-${idx}`;
+            {quranResults.map((r) => {
+              const qKey = r.type === "surah" ? `s-${r.surah.id}` : `a-${r.surah.id}-${r.ayahIndex}`;
               return (
                 <div key={qKey} role="listitem">
               {r.type === "surah" ? (
@@ -665,7 +665,7 @@ export function SearchPage() {
               const g = h.g[0] ?? "";
               const color = gradeColor[g] ?? "#6b7280";
               return (
-                <div key={h.n} role="listitem">
+                <div key={`${hadithBookKey}-${h.n}`} role="listitem">
                 <button type="button"
                   dir="rtl"
                   onClick={() => navigate(`/hadith/${hadithBookKey}/${h.n}`)}
