@@ -160,9 +160,13 @@ export function SettingsPage() {
   };
 
   const onBackup = () => {
-    const blob = exportState();
-    downloadJson(`ATHAR-نسخة-احتياطية-${blob.exportedAt.slice(0, 10)}.athar`, blob);
-    toast.success("تم تنزيل النسخة الاحتياطية");
+    try {
+      const blob = exportState();
+      downloadJson(`ATHAR-نسخة-احتياطية-${blob.exportedAt.slice(0, 10)}.athar`, blob);
+      toast.success("تم تنزيل النسخة الاحتياطية");
+    } catch {
+      toast.error("فشل تنزيل النسخة الاحتياطية");
+    }
   };
 
   // Se7: Share backup via native share sheet (for cloud save to Google Drive / iCloud)

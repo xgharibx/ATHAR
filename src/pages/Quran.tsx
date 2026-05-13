@@ -260,13 +260,14 @@ export function QuranPage() {
 
   const bookmarksList = React.useMemo(() => {
     if (!data) return [] as Array<{ surahId: number; surahName: string; ayahIndex: number; note?: string; highlight?: string }>;
+    const surahMap = new Map(data.map((s) => [s.id, s.name]));
     const out: Array<{ surahId: number; surahName: string; ayahIndex: number; note?: string; highlight?: string }> = [];
     for (const [k, v] of Object.entries(bookmarks)) {
       if (!v) continue;
       const [surahIdStr, ayahStr] = k.split(":");
       const surahId = Number(surahIdStr);
       const ayahIndex = Number(ayahStr);
-      const surahName = data.find((s) => s.id === surahId)?.name ?? `${surahId}`;
+      const surahName = surahMap.get(surahId) ?? `${surahId}`;
       const note = quranNotes[k] || undefined;
       const highlight = quranHighlights[k] || undefined;
       out.push({ surahId, surahName, ayahIndex, note, highlight });

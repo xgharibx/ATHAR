@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
-import { useIslamicLibraryDB, dorarSearchUrl } from "@/data/useIslamicLibraryDB";
+import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
 import type { FlatLibraryEntry, LibraryCollection } from "@/data/libraryTypes";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
@@ -388,6 +388,3 @@ export function LibraryPage() {
     </div>
   );
 }
-
-// eslint-disable-next-line react-refresh/only-export-components
-export { dorarSearchUrl };
