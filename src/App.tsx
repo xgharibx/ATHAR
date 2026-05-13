@@ -11,6 +11,7 @@ import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels } from "@/lib/reminders";
+import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 
 // T7: Per-route error boundary - prevents a single page crash from killing the whole app
@@ -212,6 +213,17 @@ export default function App() {
   // 11C: Pre-create default notification channels on native platforms
   React.useEffect(() => {
     void ensureDefaultNotificationChannels();
+  }, []);
+
+  // Widget data bridge: sync adhkar + wird progress to native SharedPreferences
+  // so Android home-screen widgets can display live data.
+  React.useEffect(() => {
+    void syncAllWidgets();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void syncAllWidgets();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
 
   // 3C: Register notification deep-link listener on native platforms

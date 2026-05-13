@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ultimate Full Prayer Times Widget (4×3 / 4×2)
+  - Shows all 5 prayers (Fajr, Dhuhr, Asr, Maghrib, Isha) each in its own row
+  - Next prayer row highlighted with gold background + live countdown
+  - Passed prayers dimmed with ✓, future prayers neutral
+  - Suhoor / Iftar rows shown only during Ramadan
+  - Tap anywhere to open prayer times page in app
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/prayer_full_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/noor_widget_background"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Header: title (right) + date (left) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/prayer_full_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:textColor="#7AAB80"
+            android:textSize="10sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:text="مواقيت الصلاة"
+            android:textColor="#FFE8B0"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Live countdown to next prayer -->
+    <TextView
+        android:id="@+id/prayer_full_countdown"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:gravity="end"
+        android:text="جارٍ التحميل..."
+        android:textColor="#C8DBC0"
+        android:textSize="11sp" />
+
+    <!-- Thin divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="4dp"
+        android:background="#22FFFFFF" />
+
+    <!-- ===== PRAYER ROWS ===== -->
+
+    <!-- Fajr -->
+    <LinearLayout
+        android:id="@+id/row_fajr"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp">
+
+        <TextView
+            android:id="@+id/status_fajr"
+            android:layout_width="26dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:textSize="10sp"
+            android:textColor="#7AAB80" />
+
+        <TextView
+            android:id="@+id/name_fajr"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="الفجر"
+            android:textColor="#C8DBC0"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/time_fajr"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:paddingStart="8dp"
+            android:text="--:--"
+            android:textColor="#A8C4A8"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Dhuhr -->
+    <LinearLayout
+        android:id="@+id/row_dhuhr"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp">
+
+        <TextView
+            android:id="@+id/status_dhuhr"
+            android:layout_width="26dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:textSize="10sp"
+            android:textColor="#7AAB80" />
+
+        <TextView
+            android:id="@+id/name_dhuhr"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="الظهر"
+            android:textColor="#C8DBC0"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/time_dhuhr"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:paddingStart="8dp"
+            android:text="--:--"
+            android:textColor="#A8C4A8"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Asr -->
+    <LinearLayout
+        android:id="@+id/row_asr"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp">
+
+        <TextView
+            android:id="@+id/status_asr"
+            android:layout_width="26dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:textSize="10sp"
+            android:textColor="#7AAB80" />
+
+        <TextView
+            android:id="@+id/name_asr"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="العصر"
+            android:textColor="#C8DBC0"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/time_asr"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:paddingStart="8dp"
+            android:text="--:--"
+            android:textColor="#A8C4A8"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Maghrib -->
+    <LinearLayout
+        android:id="@+id/row_maghrib"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp">
+
+        <TextView
+            android:id="@+id/status_maghrib"
+            android:layout_width="26dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:textSize="10sp"
+            android:textColor="#7AAB80" />
+
+        <TextView
+            android:id="@+id/name_maghrib"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="المغرب"
+            android:textColor="#C8DBC0"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/time_maghrib"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:paddingStart="8dp"
+            android:text="--:--"
+            android:textColor="#A8C4A8"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Isha -->
+    <LinearLayout
+        android:id="@+id/row_isha"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp">
+
+        <TextView
+            android:id="@+id/status_isha"
+            android:layout_width="26dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:textSize="10sp"
+            android:textColor="#7AAB80" />
+
+        <TextView
+            android:id="@+id/name_isha"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="العشاء"
+            android:textColor="#C8DBC0"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/time_isha"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:paddingStart="8dp"
+            android:text="--:--"
+            android:textColor="#A8C4A8"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Ramadan: Suhoor (hidden by default) -->
+    <LinearLayout
+        android:id="@+id/row_suhoor"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="26dp"
+            android:layout_height="wrap_content"
+            android:text="🌙"
+            android:textSize="10sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="السحور"
+            android:textColor="#B8CCFF"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/time_suhoor"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:paddingStart="8dp"
+            android:text="--:--"
+            android:textColor="#9AABDF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Ramadan: Iftar (hidden by default) -->
+    <LinearLayout
+        android:id="@+id/row_iftar"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="26dp"
+            android:layout_height="wrap_content"
+            android:text="☀"
+            android:textSize="10sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="الإفطار"
+            android:textColor="#FFD580"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/time_iftar"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:paddingStart="8dp"
+            android:text="--:--"
+            android:textColor="#E8C060"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>

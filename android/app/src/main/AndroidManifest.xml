@@ -73,6 +73,10 @@
             android:label="Athar Tasbeeh Widget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <!-- Interactive counter actions — fired by button PendingIntents -->
+                <action android:name="com.athar.adhkar.TASBEEH_INCREMENT" />
+                <action android:name="com.athar.adhkar.TASBEEH_RESET" />
+                <action android:name="com.athar.adhkar.TASBEEH_NEXT" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -99,6 +103,42 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/noor_widget_sunnah_info" />
+        </receiver>
+        <!-- ── NEW: Full Prayer Times Widget (4×3 — all 5 prayers) ── -->
+        <receiver
+            android:name=".NoorPrayerFullWidgetProvider"
+            android:exported="true"
+            android:label="Athar Full Prayer Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_prayer_full_info" />
+        </receiver>
+        <!-- ── NEW: Daily Adhkar Progress Widget (4×2) ── -->
+        <receiver
+            android:name=".NoorAdhkarWidgetProvider"
+            android:exported="true"
+            android:label="Athar Adhkar Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_adhkar_info" />
+        </receiver>
+        <!-- ── NEW: Quran Wird Progress Widget (4×2) ── -->
+        <receiver
+            android:name=".NoorWirdWidgetProvider"
+            android:exported="true"
+            android:label="Athar Wird Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_wird_info" />
         </receiver>
     </application>
 

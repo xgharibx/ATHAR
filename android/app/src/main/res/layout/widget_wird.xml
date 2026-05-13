@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Daily Quran Wird Progress Widget (4×2)
+  - Shows current surah + ayah, today's reading count, and daily goal progress
+  - Progress bar fills from left as reading advances
+  - "متابعة القراءة" button opens app directly to last position
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wird_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/noor_widget_background"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/wird_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:textColor="#7AAB80"
+            android:textSize="10sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:text="ورد القرآن"
+            android:textColor="#FFE8B0"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Current position: surah + ayah -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- Reading stats: ayahs + goal -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/wird_ayahs_read"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 آية"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/wird_goal_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="اليوم"
+                android:textColor="#7AAB80"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+        <!-- Current surah name (right-aligned) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/wird_surah_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="سورة البقرة"
+                android:textColor="#FFE8B0"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/wird_ayah_ref"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="الآية ١"
+                android:textColor="#9BB89D"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Progress bar: today read / daily goal -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="8dp">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/widget_progress_track" />
+
+        <View
+            android:id="@+id/wird_progress_fill"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/widget_progress_fill" />
+
+    </FrameLayout>
+
+    <!-- Progress label + open button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/wird_progress_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:text="0% من الهدف"
+            android:textColor="#7AAB80"
+            android:textSize="10sp" />
+
+        <TextView
+            android:id="@+id/wird_open_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="26dp"
+            android:background="@drawable/noor_widget_pill"
+            android:gravity="center"
+            android:paddingHorizontal="12dp"
+            android:text="متابعة القراءة"
+            android:textColor="#1E3822"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>
