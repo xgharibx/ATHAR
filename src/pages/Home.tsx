@@ -506,15 +506,14 @@ export function HomePage() {
   }, [quickTasbeeh, tasbeehTarget]);
 
   const streak = React.useMemo(() => {
-    const set = new Set(Object.keys(activity).filter((k) => (activity[k] ?? 0) > 0));
     let s = 0;
-    const today = new Date();
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
     for (let i = 0; i < 3650; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
       const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      if (set.has(k)) s++;
-      else break;
+      if (!activity[k] || (activity[k] ?? 0) <= 0) break;
+      s++;
+      d.setDate(d.getDate() - 1);
     }
     return s;
   }, [activity]);
@@ -557,7 +556,7 @@ export function HomePage() {
 
     return { quests, doneCount, totalXp, xpLevel, xpPct };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs]);
+  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs, quranReadingHistory]);
 
   const prayerContext = React.useMemo<PrayerContext>(() => {
     const timings = prayerTimes.data?.data?.timings;

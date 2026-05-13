@@ -206,7 +206,8 @@ export function usePrayerTimes() {
 
     const scheduleMidnightRefresh = () => {
       const nextMidnight = new Date();
-      nextMidnight.setHours(24, 0, 2, 0);
+      nextMidnight.setDate(nextMidnight.getDate() + 1);
+      nextMidnight.setHours(0, 0, 2, 0);
       const msUntilRefresh = Math.max(1000, nextMidnight.getTime() - Date.now());
       timeoutId = globalThis.setTimeout(() => {
         void query.refetch();
