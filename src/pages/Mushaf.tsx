@@ -327,6 +327,12 @@ export function MushafPage() {
   React.useEffect(() => { flashChrome(); }, [currentPage, flashChrome]);
   React.useEffect(() => () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); }, []);
 
+  // Set browser tab title
+  React.useEffect(() => {
+    document.title = `المصحف الشريف — صفحة ${currentPage} — أثر`;
+    return () => { document.title = "أثر"; };
+  }, [currentPage]);
+
   // Selected ayah
   const [selectedItem, setSelectedItem] = React.useState<PageItem | null>(null);
 
