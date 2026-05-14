@@ -1,0 +1,21 @@
+Ibn al-Qayyim daily reflection excerpts
+
+Arabic source: Wikisource Arabic (ويكي مصدر)
+License shown by Wikisource pages: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+
+Primary source pages used for the curated Daily Wisdom pool:
+- https://ar.wikisource.org/wiki/كتاب_الفوائد
+- https://ar.wikisource.org/wiki/كتاب_الفوائد/1
+- https://ar.wikisource.org/wiki/كتاب_الفوائد/2
+- https://ar.wikisource.org/wiki/كتاب_الفوائد/3
+- https://ar.wikisource.org/wiki/إغاثة_اللهفان
+- https://ar.wikisource.org/wiki/إغاثة_اللهفان/الباب_الرابع
+- https://ar.wikisource.org/wiki/إغاثة_اللهفان/الباب_العاشر
+
+Attribution format in the app:
+- ابن القيم — كتاب الفوائد
+- ابن القيم — إغاثة اللهفان
+
+Notes:
+- Excerpts are shortened and curated for the app's daily reflection card.
+- Modern printed editions, proprietary databases, and unverified PDFs were not used as direct sources for this pool.
