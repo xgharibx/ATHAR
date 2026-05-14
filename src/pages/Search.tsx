@@ -113,13 +113,19 @@ export function SearchPage() {
       }
     }
 
-    // Ayah text matches — diacritic-stripped, up to 50 results
-    const normalTerm = stripDiacritics(term);
+    // Ayah text matches — diacritic-stripped + alef/hamza normalized, up to 50 results
+    const normalizeQuran = (s: string) =>
+      stripDiacritics(s)
+        .replace(/[أإآٱ]/g, "ا")
+        .replace(/وة/g, "اة")   // Quranic ortho: صلوة/زكوة/حيوة → modern spelling
+        .replace(/ة/g, "ه")
+        .replace(/ى/g, "ي");
+    const normalTerm = normalizeQuran(term);
     let ayahCount = 0;
     for (const surah of quranData) {
       if (ayahCount >= 50) break;
       for (let i = 0; i < surah.ayahs.length && ayahCount < 50; i++) {
-        if (stripDiacritics(surah.ayahs[i]).includes(normalTerm)) {
+        if (normalizeQuran(surah.ayahs[i]).includes(normalTerm)) {
           out.push({ type: "ayah", surah, ayahIndex: i + 1, text: surah.ayahs[i] });
           ayahCount++;
         }
