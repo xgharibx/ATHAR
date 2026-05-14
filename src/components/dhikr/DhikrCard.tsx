@@ -42,6 +42,7 @@ export function DhikrCard(props: {
   const progress = useNoorStore((s) => Math.max(0, Number(s.progress[key]) || 0));
   const increment = useNoorStore((s) => s.increment);
   const decrement = useNoorStore((s) => s.decrement);
+  const setItemCount = useNoorStore((s) => s.setItemCount);
   const resetItem = useNoorStore((s) => s.resetItem);
   const toggleFavorite = useNoorStore((s) => s.toggleFavorite);
   const fav = useNoorStore((s) => !!s.favorites[key]);
@@ -123,10 +124,9 @@ export function DhikrCard(props: {
     const dy = e.changedTouches[0].clientY - swipeRef.current.y;
     if (Math.abs(dx) > 80 && Math.abs(dy) < 50) {
       if (dx > 0) {
-        // De7: Right swipe → complete all remaining
-        const toAdd = target - current;
-        if (toAdd > 0) {
-          for (let i = 0; i < toAdd; i++) increment({ sectionId, index, target });
+        // De7: Right swipe → complete all remaining (single mutation)
+        if (current < target) {
+          setItemCount({ sectionId, index, count: target });
         }
         if (navigator.vibrate) navigator.vibrate([15, 10, 15]);
         toast.success("✓ تم إتمام الذكر", { duration: 1500 });

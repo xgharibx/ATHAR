@@ -301,6 +301,7 @@ type NoorState = {
 
   increment: (opts: { sectionId: string; index: number; target: number }) => number;
   decrement: (opts: { sectionId: string; index: number; target?: number }) => number;
+  setItemCount: (opts: { sectionId: string; index: number; count: number }) => void;
   resetItem: (sectionId: string, index: number, target?: number) => void;
   resetSection: (sectionId: string) => void;
 
@@ -907,6 +908,14 @@ export const useNoorStore = create<NoorState>()(
         const next = Math.max(0, current - 1);
         set((s) => ({ progress: { ...s.progress, [key]: next } }));
         return next;
+      },
+
+      setItemCount: ({ sectionId, index, count }) => {
+        get().ensureDailyResets();
+        const key = `${sectionId}:${index}`;
+        const safeCount = Math.max(0, toSafeInt(count));
+        set((s) => ({ progress: { ...s.progress, [key]: safeCount } }));
+        get().bumpActivityToday();
       },
 
       resetItem: (sectionId, index, _target) => {
