@@ -138,9 +138,12 @@ function CircularRing({
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (pointerRef.current) return;
     const { angle, dist, radius } = getAngleAndDist(e.clientX, e.clientY);
+    // Only handle taps/drags within the circle; ignore corners of the square container
+    if (dist > radius) return;
     const nearRing = dist > radius * 0.52;
+    // Always prevent native click synthesis — all counting goes through pointer handlers
+    e.preventDefault();
     if (nearRing) {
-      e.preventDefault(); // prevent button click when grabbing ring
       containerRef.current!.setPointerCapture(e.pointerId);
       setIsDragging(true);
       setDragAngleDeg(angle);
@@ -177,7 +180,8 @@ function CircularRing({
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
     const ref = pointerRef.current;
     if (!ref || ref.pointerId !== e.pointerId) return;
-    if (!ref.hasMoved && !ref.isDrag) onClick(); // center tap
+    // Count on any tap (center or ring area) as long as pointer didn't move enough to be a drag
+    if (!ref.hasMoved) onClick();
     setIsDragging(false);
     pointerRef.current = null;
   }
