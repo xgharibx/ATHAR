@@ -515,10 +515,8 @@ export function DhikrCard(props: {
                 <IconButton
                   aria-label="إعادة العد"
                   onClick={() => {
-                    if (isDailyLockedItem) return;
                     setConfirmItemReset(true);
                   }}
-                  className={cn(isDailyLockedItem && "opacity-40 pointer-events-none")}
                 >
                   <RotateCcw size={16} aria-hidden="true" className="opacity-70" />
                 </IconButton>
