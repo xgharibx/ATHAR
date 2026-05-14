@@ -14,7 +14,10 @@ import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 function normalize(s: string) {
-  return stripDiacritics((s ?? "").toLowerCase()).replaceAll(/\s+/g, " ").trim();
+  return stripDiacritics((s ?? "").toLowerCase())
+    .replace(/[\u0622\u0623\u0625\u0671]/g, "\u0627") // normalize alef variants (madda, hamza above/below, wasla) → plain alef
+    .replaceAll(/\s+/g, " ")
+    .trim();
 }
 
 /** Highlights search query matches in Arabic text (diacritic-insensitive). */
