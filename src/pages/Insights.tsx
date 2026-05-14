@@ -1394,10 +1394,10 @@ export function InsightsPage() {
               : `${daysLeft.toLocaleString("ar-EG")} يوم`;
             return (
               <div className="mb-3 -mt-2 flex items-center gap-1.5 text-[11px] opacity-50">
-                <span>������</span>
+                <span>📖</span>
                 <span>بمعدلك الحالي ({avgPerDay.toLocaleString("ar-EG")} آية/يوم):</span>
                 <span className="font-semibold opacity-100" style={{ color: daysLeft < 365 ? "var(--ok)" : undefined }}>
-                  {remaining === 0 ? "ختمت القرآن ������" : `ختمة خلال ~${timeLabel}`}
+                  {remaining === 0 ? "ختمت القرآن 🏆" : `ختمة خلال ~${timeLabel}`}
                 </span>
               </div>
             );

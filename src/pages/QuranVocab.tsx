@@ -317,7 +317,7 @@ export function QuranVocabPage() {
                   مفردات القرآن
                   {vocabStreak > 0 && (
                     <span className="text-base font-bold tabular-nums" style={{ color: "var(--accent)" }} title="سلسلة المراجعة اليومية">
-                      ������{vocabStreak.toLocaleString("ar-EG")}
+                        🔥{vocabStreak.toLocaleString("ar-EG")}
                     </span>
                   )}
                 </h1>
@@ -480,7 +480,7 @@ export function QuranVocabPage() {
           {/* Quiz done screen */}
           {quizDone && (
             <div className="flex flex-col items-center gap-4 py-10 text-center">
-              <div className="text-5xl">{quizCorrect / quizTotal >= 0.8 ? "������" : quizCorrect / quizTotal >= 0.5 ? "������" : "������"}</div>
+              <div className="text-5xl">{quizCorrect / quizTotal >= 0.8 ? "🏆" : quizCorrect / quizTotal >= 0.5 ? "⭐" : "💪"}</div>
               <div className="text-lg font-bold">أتممت الاختبار</div>
               <div className="text-2xl font-bold tabular-nums" style={{ color: "#a78bfa" }}>
                 {quizCorrect.toLocaleString("ar-EG")} / {quizTotal.toLocaleString("ar-EG")}
@@ -838,7 +838,7 @@ export function QuranVocabPage() {
                 </p>
                 {vocabStreak > 0 && (
                   <span className="text-[10px] flex items-center gap-0.5 tabular-nums" style={{ color: "#fb923c" }}>
-                    ������ {vocabStreak.toLocaleString("ar-EG")} يوم
+                    🔥 {vocabStreak.toLocaleString("ar-EG")} يوم
                   </span>
                 )}
               </div>
