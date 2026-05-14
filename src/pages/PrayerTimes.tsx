@@ -1187,7 +1187,7 @@ export function PrayerTimesPage() {
               const showIqama  = row.type === "prayer" && row.prayerName && offset != null;
               return (
                 <div key={row.id}
-                  className={cn("rounded-2xl border px-4 py-3 flex items-center justify-between gap-3 transition", rowStyles(row, isActive, isNext))}>
+                  className={cn("rounded-2xl border px-4 py-3 flex items-start justify-start gap-x-3 gap-y-1.5 flex-wrap transition", rowStyles(row, isActive, isNext))}>
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-2xl bg-[var(--card-2)] grid place-items-center shrink-0">
                       <Icon size={18} aria-hidden="true" className="opacity-80" />
@@ -1200,19 +1200,16 @@ export function PrayerTimesPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="shrink-0 flex items-center gap-2.5">
+                  <div className="shrink-0 flex flex-col items-end gap-1.5 ms-auto">
                     <div className="text-right">
                       <div className="text-[10px] opacity-40 mb-0.5">{row.type === "prayer" ? "أذان" : "الوقت"}</div>
                       <div dir="ltr" className="text-sm font-medium tabular-nums">{row.timeLabel}</div>
                     </div>
                     {showIqama && row.prayerName && (
-                      <>
-                        <div className="w-px h-8 bg-[var(--card-2)] self-center" />
-                        <div className="text-right">
-                          <div className="text-[10px] opacity-40 mb-0.5">إقامة</div>
-                          <IqamaTimeInline prayerTime={timings[row.prayerName] ?? ""} offset={iqamaOffsets[row.prayerName] ?? 15} />
-                        </div>
-                      </>
+                      <div className="text-right">
+                        <div className="text-[10px] opacity-40 mb-0.5">إقامة</div>
+                        <IqamaTimeInline prayerTime={timings[row.prayerName] ?? ""} offset={iqamaOffsets[row.prayerName] ?? 15} />
+                      </div>
                     )}
                   </div>
                 </div>
