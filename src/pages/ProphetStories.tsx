@@ -142,14 +142,17 @@ export function ProphetStoriesPage() {
   const [bookmarks, setBookmarks] = React.useState<Set<string>>(() => loadStoryBookmarks());
 
   const toggleBookmark = React.useCallback((id: string) => {
+    const wasBookmarked = bookmarks.has(id);
     setBookmarks((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) { next.delete(id); toast.success("تمت إزالة الحفظ"); }
-      else { next.add(id); toast.success("تم الحفظ ✓"); }
+      if (next.has(id)) { next.delete(id); }
+      else { next.add(id); }
       saveStoryBookmarks(next);
       return next;
     });
-  }, []);
+    if (wasBookmarked) { toast.success("تمت إزالة الحفظ"); }
+    else { toast.success("تم الحفظ ✓"); }
+  }, [bookmarks]);
 
   const filtered = React.useMemo(() => {
     let list = PROPHET_STORIES;
