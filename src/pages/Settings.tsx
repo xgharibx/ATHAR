@@ -82,6 +82,8 @@ export function SettingsPage() {
   const setReminders = useNoorStore((s) => s.setReminders);
   const exportState = useNoorStore((s) => s.exportState);
   const importState = useNoorStore((s) => s.importState);
+  const sebhaTarget = useNoorStore((s) => s.sebhaTarget);
+  const setSebhaTarget = useNoorStore((s) => s.setSebhaTarget);
   const favorites = useNoorStore((s) => s.favorites);
   const quranBookmarks = useNoorStore((s) => s.quranBookmarks);
   const activity = useNoorStore((s) => s.activity);
@@ -213,6 +215,31 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-4 page-enter">
+      {/* ── Quick section jump-nav ── */}
+      <div
+        className="flex gap-2 overflow-x-auto no-scrollbar pb-1 px-1"
+        role="navigation"
+        aria-label="انتقال سريع لأقسام الإعدادات"
+      >
+        {([
+          { label: "🎨 المظهر",     id: "settings-appearance" },
+          { label: "🏠 الرئيسية",   id: "settings-home-widgets" },
+          { label: "📖 القراءة",    id: "settings-reading" },
+          { label: "📿 التسبيح",   id: "settings-tasbeeh" },
+          { label: "🔔 التذكيرات", id: "settings-reminders" },
+          { label: "💾 النسخ",     id: "settings-backup" },
+        ] as const).map(({ label, id }) => (
+          <button
+            type="button"
+            key={id}
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="shrink-0 text-xs px-3 py-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition whitespace-nowrap"
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Quick backup strip */}
       <div className="flex items-center justify-between gap-3 px-1">
         <span className="text-xs opacity-55">احتفظ ببياناتك بأمان</span>
@@ -442,7 +469,9 @@ export function SettingsPage() {
       </Card>
 
       {/* Se5: Home widgets reorder */}
-      <HomeWidgetsCard prefs={prefs} setPrefs={setPrefs} />
+      <div id="settings-home-widgets">
+        <HomeWidgetsCard prefs={prefs} setPrefs={setPrefs} />
+      </div>
 
       <Card id="settings-reading" className="p-5">
         <div className="flex items-center gap-2">
@@ -773,6 +802,44 @@ export function SettingsPage() {
               <Switch checked={prefs.autoAdvanceDhikr ?? true} onCheckedChange={(v) => setPrefs({ autoAdvanceDhikr: v })} />
             }
           />
+        </div>
+
+        {/* ── Sebha / quick-tasbeeh goal ── */}
+        <div className="mt-5 glass rounded-3xl p-4 border border-[var(--stroke)]">
+          <div className="text-sm font-semibold mb-1">هدف السبحة اليومي</div>
+          <div className="text-xs opacity-65 mb-3">يُطبَّق في الصفحة الرئيسية وصفحة السبحة</div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {([33, 100, 200, 500] as const).map((v) => (
+              <button type="button"
+                key={v}
+                onClick={() => setSebhaTarget(v)}
+                aria-pressed={sebhaTarget === v}
+                className={[
+                  "px-4 py-2 rounded-xl border text-sm font-semibold transition min-h-[40px]",
+                  sebhaTarget === v
+                    ? "bg-accent-15 border-accent-35"
+                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
+                ].join(" ")}
+              >
+                {v.toLocaleString("ar-EG")}
+              </button>
+            ))}
+            <div className="flex items-center gap-2 mr-auto">
+              <button type="button"
+                className="w-9 h-9 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
+                onClick={() => setSebhaTarget(Math.max(10, sebhaTarget - 10))}
+                aria-label="تقليل الهدف"
+              >−</button>
+              <span className="w-14 text-center text-sm tabular-nums font-semibold">
+                {sebhaTarget.toLocaleString("ar-EG")}
+              </span>
+              <button type="button"
+                className="w-9 h-9 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
+                onClick={() => setSebhaTarget(Math.min(9999, sebhaTarget + 10))}
+                aria-label="زيادة الهدف"
+              >+</button>
+            </div>
+          </div>
         </div>
       </Card>
 

@@ -191,6 +191,8 @@ export function HomePage() {
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
   const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
   const resetAllQuickTasbeeh = useNoorStore((s) => s.resetAllQuickTasbeeh);
+  const sebhaTarget = useNoorStore((s) => s.sebhaTarget);
+  const setSebhaTarget = useNoorStore((s) => s.setSebhaTarget);
 
   const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
   const setDailyWirdDone = useNoorStore((s) => s.setDailyWirdDone);
@@ -341,7 +343,9 @@ export function HomePage() {
   const [checklistExpanded, setChecklistExpanded] = React.useState(false);
   const [checklistShowAll, setChecklistShowAll] = React.useState(false);
   const [dailyWirdExpanded, setDailyWirdExpanded] = React.useState(false);
-  const [tasbeehTarget, setTasbeehTarget] = React.useState<33 | 100>(100);
+  // tasbeehTarget persisted via sebhaTarget in store; snap to nearest supported value for home widget
+  const tasbeehTarget: 33 | 100 = sebhaTarget === 33 ? 33 : 100;
+  const setTasbeehTarget = (v: 33 | 100) => setSebhaTarget(v);
   const homeWidgets = React.useMemo(
     () => ({ ...DEFAULT_HOME_WIDGETS, ...prefs.homeWidgets }),
     [prefs.homeWidgets]
