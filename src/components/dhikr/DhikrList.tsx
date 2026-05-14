@@ -55,6 +55,13 @@ export function DhikrList(props: Readonly<{
   const [customBenefit, setCustomBenefit] = React.useState("");
   const isDailySectionLocked = isDailySection(props.sectionId);
   const isMyAdhkarSection = props.sectionId === MY_ADHKAR_SECTION_ID;
+
+  React.useEffect(() => {
+    if (props.title) {
+      document.title = `${props.title} — أثر`;
+      return () => { document.title = "أثر"; };
+    }
+  }, [props.title]);
   const hasItems = props.items.length > 0;
   const identity = React.useMemo(() => getSectionIdentity(props.sectionId), [props.sectionId]);
 
