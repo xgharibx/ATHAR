@@ -1200,17 +1200,22 @@ export function PrayerTimesPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="shrink-0 flex flex-col items-end gap-1.5 ms-auto">
-                    <div className="text-right">
-                      <div className="text-[10px] opacity-40 mb-0.5">{row.type === "prayer" ? "أذان" : "الوقت"}</div>
-                      <div dir="ltr" className="text-sm font-medium tabular-nums">{row.timeLabel}</div>
-                    </div>
-                    {showIqama && row.prayerName && (
+                  <div className="shrink-0 ms-auto">
+                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                       <div className="text-right">
-                        <div className="text-[10px] opacity-40 mb-0.5">إقامة</div>
-                        <IqamaTimeInline prayerTime={timings[row.prayerName] ?? ""} offset={iqamaOffsets[row.prayerName] ?? 15} />
+                        <div className="text-[10px] opacity-40 mb-0.5">{row.type === "prayer" ? "أذان" : "الوقت"}</div>
+                        <div dir="ltr" className="text-sm font-medium tabular-nums">{row.timeLabel}</div>
                       </div>
-                    )}
+                      {showIqama && row.prayerName && (
+                        <>
+                          <div className="w-px self-stretch bg-[var(--card-2)]" />
+                          <div className="text-right">
+                            <div className="text-[10px] opacity-40 mb-0.5">إقامة</div>
+                            <IqamaTimeInline prayerTime={timings[row.prayerName] ?? ""} offset={iqamaOffsets[row.prayerName] ?? 15} />
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

@@ -69,7 +69,12 @@ export function PrayerCountdown(props: Readonly<{
           <Bell size={14} aria-hidden="true" className={isImminent ? "text-[var(--accent)] animate-bounce" : "opacity-60"} />
           <span>الحالة الآن</span>
         </div>
-        <div className={[compact ? "mt-2 text-2xl" : "mt-3 text-4xl", "font-bold leading-tight break-words"].join(" ")} aria-live="polite" aria-atomic="true">
+        <div
+          className={[compact ? "mt-2 font-bold leading-tight break-words" : "mt-3 text-4xl font-bold leading-tight break-words"].join(" ")}
+          style={compact ? { fontSize: "clamp(1rem, 4.5vw, 1.5rem)" } : undefined}
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {schedule.currentPhase.label}
         </div>
         <div dir="ltr" className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-snug break-words"].join(" ")}>

@@ -1402,8 +1402,8 @@ export function HomePage() {
           if (!homeWidgets.dailyWird) return null;
           return (
             <Card key="dailyWird" className={`p-5 transition-colors ${isDailyWirdDone ? "border border-ok-25" : ""}`}>
-              <div className="flex items-center justify-between gap-3">
-                <div>
+              <div className="flex items-start gap-2 flex-wrap mb-0">
+                <div className="flex-1 min-w-[7rem]">
                   <div className="flex items-center gap-2">
                     <div className="text-sm font-semibold">ورد اليوم</div>
                     {wirdStreak > 1 && (
@@ -1416,7 +1416,7 @@ export function HomePage() {
                     {dailyWird ? `آيات ${dailyWird.meta.from}–${dailyWird.meta.to} من ${dailyWird.meta.total}` : "مختارات يومية من القرآن"}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="ms-auto flex items-center gap-2 flex-wrap justify-end shrink-0">
                   <button type="button"
                     onClick={() => setDailyWirdExpanded((v) => !v)}
                     className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center transition active:scale-90"
@@ -1426,9 +1426,8 @@ export function HomePage() {
                   >
                     <ChevronDown size={14} aria-hidden="true" className={cn("transition-transform duration-200", dailyWirdExpanded && "rotate-180")} />
                   </button>
-                  <Button variant="secondary" onClick={copyDailyWird} disabled={!dailyWird}>
+                  <Button variant="secondary" onClick={copyDailyWird} disabled={!dailyWird} aria-label="نسخ الورد">
                     <Copy size={16} aria-hidden="true" />
-                    نسخ
                   </Button>
                   <Button variant="secondary" disabled={!dailyWird} onClick={async () => {
                     if (!dailyWird) return;

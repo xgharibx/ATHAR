@@ -50,7 +50,7 @@ export function PrayerWidget() {
           <span className="font-semibold text-sm">مواقيت الصلاة</span>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          <span className="text-[11px] opacity-60 bg-[var(--card)] px-2 py-1 rounded-full border border-[var(--stroke)]">
+          <span className="text-[11px] opacity-60 bg-[var(--card)] px-2 py-1 rounded-full border border-[var(--stroke)] whitespace-nowrap">
             {date.hijri.weekday.ar} • {date.hijri.date}
           </span>
           {isFetching && (
