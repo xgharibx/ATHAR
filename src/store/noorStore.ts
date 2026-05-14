@@ -927,7 +927,6 @@ export const useNoorStore = create<NoorState>()(
 
       resetSection: (sectionId) => {
         get().ensureDailyResets();
-        if (isDailySection(sectionId)) return;
 
         set((s) => {
           const next = { ...s.progress };

@@ -469,7 +469,7 @@ export function DhikrList(props: Readonly<{
                     variant="outline"
                     className="shrink-0"
                     onClick={() => setConfirmReset(true)}
-                    disabled={isDailySectionLocked || !hasItems}
+                    disabled={!hasItems}
                   >
                     <RotateCcw size={16} aria-hidden="true" />
                     تصفير
