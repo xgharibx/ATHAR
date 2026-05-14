@@ -31,14 +31,17 @@ export default function Companions() {
 
   const toggleBookmark = React.useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    const wasBookmarked = bookmarks.has(id);
     setBookmarks((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) { next.delete(id); toast.success("تمت إزالة الحفظ"); }
-      else { next.add(id); toast.success("تم الحفظ ✓"); }
+      if (next.has(id)) { next.delete(id); }
+      else { next.add(id); }
       saveCompanionBookmarks(next);
       return next;
     });
-  }, []);
+    if (wasBookmarked) { toast.success("تمت إزالة الحفظ"); }
+    else { toast.success("تم الحفظ ✓"); }
+  }, [bookmarks]);
 
   const filtered = React.useMemo(() => {
     let list = activeCategory === "all" ? COMPANIONS : COMPANIONS.filter((c) => c.category === activeCategory);
