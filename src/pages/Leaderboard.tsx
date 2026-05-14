@@ -51,7 +51,10 @@ export function LeaderboardPage() {
   const endpoint = (import.meta.env.VITE_LEADERBOARD_ENDPOINT as string | undefined) ?? "";
   const [identity] = React.useState(() => getLeaderboardIdentity());
   const mountedRef = React.useRef(true);
-  React.useEffect(() => () => { mountedRef.current = false; }, []);
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const [board, setBoard] = React.useState<LeaderboardBoard>("global");
   const [period, setPeriod] = React.useState<LeaderboardPeriod>("daily");

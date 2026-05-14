@@ -72,7 +72,10 @@ export function OnboardingFlow() {
   const [loading, setLoading] = React.useState(false);
   const current = STEPS[step];
   const mountedRef = React.useRef(true);
-  React.useEffect(() => () => { mountedRef.current = false; }, []);
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const handleAction = async () => {
     setLoading(true);

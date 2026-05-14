@@ -63,9 +63,12 @@ export function DhikrCard(props: {
   const [isLongPressing, setIsLongPressing] = React.useState(false);
   const longPressTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = React.useRef(true);
-  React.useEffect(() => () => {
-    mountedRef.current = false;
-    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    };
   }, []);
   const [confirmItemReset, setConfirmItemReset] = React.useState(false);
   // D5: per-card local font scale

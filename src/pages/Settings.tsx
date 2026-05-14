@@ -917,6 +917,7 @@ export function SettingsPage() {
                   >
                     <span>{prayer.label}</span>
                     <Switch
+                      aria-label={`تنبيه ${prayer.label}`}
                       checked={reminders.prayerAlerts?.[prayer.id] ?? true}
                       onCheckedChange={(v) => setReminders({
                         prayerAlerts: { ...reminders.prayerAlerts, [prayer.id]: v },
