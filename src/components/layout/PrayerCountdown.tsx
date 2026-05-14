@@ -72,7 +72,7 @@ export function PrayerCountdown(props: Readonly<{
         <div className={[compact ? "mt-2 text-2xl" : "mt-3 text-4xl", "font-bold leading-tight break-words"].join(" ")} aria-live="polite" aria-atomic="true">
           {schedule.currentPhase.label}
         </div>
-        <div dir="ltr" className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-6 whitespace-nowrap overflow-hidden text-ellipsis"].join(" ")}>
+        <div dir="ltr" className={[compact ? "mt-2 text-sm" : "mt-3 text-lg", "font-medium tabular-nums leading-snug break-words"].join(" ")}>
           {schedule.currentPhase.value}
         </div>
       </div>
@@ -103,7 +103,7 @@ export function PrayerCountdown(props: Readonly<{
         <div className="absolute inset-0 grid place-items-center text-center px-2 overflow-hidden">
           <div className="w-full">
             <div className="text-[10px] opacity-55 leading-tight">الوقت المتبقي</div>
-            <div className={[compact ? "mt-0.5 text-xs" : "mt-1 text-sm", "font-bold tabular-nums whitespace-nowrap overflow-hidden text-ellipsis"].join(" ")}>
+            <div className={[compact ? "mt-0.5 text-[10px]" : "mt-1 text-[12px]", "font-bold tabular-nums leading-tight"].join(" ")}>
               {formatCountdown(schedule.diffSec)}
             </div>
             <div className="mt-0.5 text-[10px] opacity-55 leading-tight overflow-hidden text-ellipsis whitespace-nowrap">حتى {schedule.nextPhase.label}</div>

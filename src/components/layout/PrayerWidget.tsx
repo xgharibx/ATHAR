@@ -70,7 +70,7 @@ export function PrayerWidget() {
 
       {/* Prayer times grid — scrollable at high zoom so times are never clipped */}
       <div className="overflow-x-auto -mx-1 px-1">
-        <div className="grid grid-cols-5 gap-1 text-center" style={{ minWidth: "260px" }}>
+        <div className="grid grid-cols-5 gap-1 text-center" style={{ minWidth: "16.25rem" }}>
         {schedule.primary.map((prayer) => {
           const isCurrent = schedule.current.name === prayer.name;
           const isNext = schedule.next.name === prayer.name;
@@ -88,7 +88,7 @@ export function PrayerWidget() {
               <span className={cn("text-[11px]", isCurrent ? "opacity-95 font-semibold" : isNext ? "opacity-85" : "opacity-55")}>
                 {prayer.label}
               </span>
-              <span dir="ltr" className={cn("text-sm font-medium tabular-nums", isCurrent && "text-[var(--accent)]")}>
+              <span dir="ltr" className={cn("text-xs font-medium tabular-nums", isCurrent && "text-[var(--accent)]")}>
                 {prayer.timeLabel}
               </span>
             </div>
