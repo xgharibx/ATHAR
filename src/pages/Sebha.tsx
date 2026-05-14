@@ -950,10 +950,14 @@ export function SebhaPage() {
 
         {/* S2 - Custom dhikr card */}
         {sebhaCustom ? (
-          <button type="button"
+          <div
+            role="button"
+            tabIndex={0}
             onClick={() => setSelected("custom")}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected("custom"); } }}
+            aria-pressed={selected === "custom"}
             className={cn(
-              "glass rounded-3xl p-4 text-right border transition active:scale-[.98]",
+              "glass rounded-3xl p-4 text-right border transition active:scale-[.98] cursor-pointer",
               selected === "custom"
                 ? "border-accent-35 bg-accent-8"
                 : "border-[var(--stroke)] hover:bg-[var(--card)]"
@@ -997,7 +1001,7 @@ export function SebhaPage() {
                 }}
               />
             </div>
-          </button>
+          </div>
         ) : (
           <button type="button"
             onClick={() => setShowCustomForm(true)}
