@@ -12,7 +12,7 @@ import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { useNoorStore } from "@/store/noorStore";
 import { getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
-import { stripDiacritics } from "@/lib/arabic";
+import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import {
   getRadioState,
@@ -661,7 +661,7 @@ export function MushafPage() {
 
   // Q17: Normalized search for ayah matching
   const normalizedSearch = React.useMemo(
-    () => (showSearch && inPageSearch ? stripDiacritics(inPageSearch.trim()) : ""),
+    () => (showSearch && inPageSearch ? normalizeArabicSearch(inPageSearch.trim()) : ""),
     [showSearch, inPageSearch]
   );
 
@@ -1178,7 +1178,7 @@ export function MushafPage() {
           />
           {inPageSearch && (
             <span className="text-[11px] opacity-45 shrink-0">
-              {playableItems.filter((i) => stripDiacritics(i.text).includes(normalizedSearch)).length} نتيجة
+              {playableItems.filter((i) => normalizeArabicSearch(i.text).includes(normalizedSearch)).length} نتيجة
             </span>
           )}
           <button type="button"
@@ -1271,7 +1271,7 @@ export function MushafPage() {
                     // Q9: Memorization mode per-ayah reveal
                     const isRevealed = !memorizationMode || revealedItems.has(k);
                     // Q17: Search match highlight
-                    const isSearchMatch = normalizedSearch ? stripDiacritics(item.text).includes(normalizedSearch) : false;
+                    const isSearchMatch = normalizedSearch ? normalizeArabicSearch(item.text).includes(normalizedSearch) : false;
                     // Q3: Translation text
                     const transText = showTranslation ? (translationData[item.surahId]?.[item.originalAyah] ?? "") : "";
                     // Q11-B: Inline tafseer text

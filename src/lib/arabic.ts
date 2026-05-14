@@ -5,8 +5,19 @@
 const ARABIC_DIACRITICS =
   /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g;
 
+/** Alef variants: madda (آ), hamza above (أ), hamza below (إ), wasla (ٱ) → plain alef (ا) */
+const ALEF_VARIANTS = /[\u0622\u0623\u0625\u0671]/g;
+
 export function stripDiacritics(input: string) {
   return input.replace(ARABIC_DIACRITICS, "");
+}
+
+/**
+ * Strip diacritics AND normalize alef variants to plain alef for Arabic search.
+ * Use this for both query and source text to enable diacritic/alef-insensitive matching.
+ */
+export function normalizeArabicSearch(input: string) {
+  return stripDiacritics(input).replace(ALEF_VARIANTS, "\u0627");
 }
 
 /** Convert western digits to Arabic-Indic (e.g. 5 → ٥) */
