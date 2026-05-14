@@ -1616,7 +1616,7 @@ export function HomePage() {
         return (
           <button
             type="button"
-            onClick={() => navigate("/quran-plans")}
+            onClick={() => navigate("/quran/plans")}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all active:scale-[0.99]"
             style={{ background: "color-mix(in srgb, var(--accent) 5%, var(--card))", borderColor: "color-mix(in srgb, var(--accent) 18%, transparent)" }}
             aria-label="ختمة القرآن"
