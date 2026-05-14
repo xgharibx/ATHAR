@@ -126,11 +126,14 @@ export function WuduGuidePage() {
           const isDone = done.has(step.id);
           return (
             <div key={step.id} role="listitem">
-            <button type="button"
+            <div
+              role="button"
+              tabIndex={0}
               onClick={() => toggle(step.id)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(step.id); } }}
               aria-pressed={isDone}
               aria-label={`${step.title}${isDone ? " — تم" : ""}`}
-              className="w-full text-right rounded-2xl p-4 transition-all duration-200 flex items-start gap-3"
+              className="w-full text-right rounded-2xl p-4 transition-all duration-200 flex items-start gap-3 cursor-pointer"
               style={{
                 background: isDone
                   ? "color-mix(in srgb, var(--ok, #3ddc97) 12%, var(--card))"
@@ -189,7 +192,7 @@ export function WuduGuidePage() {
                   </button>
                 </div>
               </div>
-            </button>
+            </div>
             </div>
           );
         })}
