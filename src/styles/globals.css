@@ -3279,16 +3279,14 @@ header {
 
 /* ── M2: Page slide transition ─────────────────────────────── */
 .mushaf-page-content.page-sliding {
-  animation: mushaf-slide-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: mushaf-slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes mushaf-slide-in {
   from {
-    transform: translateX(calc(var(--mushaf-slide-dir, -1) * 55%)) scale(0.97);
-    opacity: 0;
+    transform: translateX(calc(var(--mushaf-slide-dir, -1) * 28px)) scale(0.986);
   }
   to {
     transform: translateX(0) scale(1);
-    opacity: 1;
   }
 }
 
@@ -4485,4 +4483,12 @@ a:focus-visible,
   .vocab-flip-card {
     transition: none;
   }
+}
+
+/* ── Mushaf user-chosen text colour override ──────────────────
+   Two-attribute selector (0-3-0) beats all per-theme overrides
+   (0-2-0). Placed last in source for cascade tie-breaking.      */
+[data-mushaf-theme][data-mushaf-tc] .mushaf-text-block,
+[data-mushaf-theme][data-mushaf-tc] .mushaf-page-content {
+  color: var(--mushaf-custom-tc) !important;
 }

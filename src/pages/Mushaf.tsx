@@ -1109,6 +1109,10 @@ export function MushafPage() {
     <div
       className="mushaf-reader page-enter"
       data-mushaf-theme={prefs.quranTheme}
+      {...(prefs.mushafTextColor ? {
+        "data-mushaf-tc": "1",
+        style: { "--mushaf-custom-tc": prefs.mushafTextColor } as React.CSSProperties,
+      } : {})}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       onTouchMove={onTouchMove}
@@ -1146,6 +1150,14 @@ export function MushafPage() {
           onClick={(e) => { e.stopPropagation(); setTajweedMode((v) => !v); }}
         >
           <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "system-ui" }}>ت</span>
+        </button>
+        {/* Focus / reading mode */}
+        <button type="button"
+          className="mushaf-chrome-icon-btn"
+          aria-label="وضع القراءة"
+          onClick={(e) => { e.stopPropagation(); if (chromeTimer.current) clearTimeout(chromeTimer.current); chromeTimer.current = null; setShowChrome(false); }}
+        >
+          <EyeOff size={15} aria-hidden="true" />
         </button>
         {/* Settings */}
         <button type="button"
@@ -2089,6 +2101,43 @@ export function MushafPage() {
                     onClick={() => setPrefs({ quranTheme: t })}
                     className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
                   >{{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق", forest: "🌲 غابة", rose: "🌹 وردي", ocean: "🌊 بحر", desert: "🏜️ صحراء", dawn: "🌅 فجر" }[t]}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── M4: Font / text colour ────────────────────── */}
+            <div className="mt-1 mb-3">
+              <div className="text-xs opacity-50 mb-1.5 flex items-center gap-1.5">
+                لون الخط
+                {tajweedMode && <span className="text-[10px] opacity-70" style={{ color: "#d97706" }}>· التجويد يلوّن الحركات</span>}
+              </div>
+              <div className="flex gap-1.5 flex-wrap items-center">
+                <button type="button"
+                  onClick={() => setPrefs({ mushafTextColor: undefined })}
+                  className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${
+                    !prefs.mushafTextColor ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"
+                  }`}
+                >افتراضي</button>
+                {([
+                  { color: "#000000", label: "أسود" },
+                  { color: "#1a1208", label: "حبر" },
+                  { color: "#2d3557", label: "نيلي" },
+                  { color: "#1a3a1a", label: "أخضر" },
+                  { color: "#5c2a00", label: "بني" },
+                  { color: "#c9a227", label: "ذهبي" },
+                  { color: "#e8d8c8", label: "فاتح" },
+                  { color: "#ffffff", label: "أبيض" },
+                ] as const).map(({ color, label }) => (
+                  <button type="button"
+                    key={color}
+                    title={label}
+                    aria-label={label}
+                    onClick={() => setPrefs({ mushafTextColor: color })}
+                    className={`w-7 h-7 rounded-full border-2 transition shrink-0 ${
+                      prefs.mushafTextColor === color ? "border-[var(--accent)] scale-110" : "border-transparent"
+                    }`}
+                    style={{ background: color, boxShadow: "0 0 0 1px rgba(0,0,0,0.18)" }}
+                  />
                 ))}
               </div>
             </div>

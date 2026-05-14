@@ -55,6 +55,7 @@ export type Preferences = {
   quranPageSize: number; // ayahs per page
   quranHideMarkers: boolean;
   quranTheme: "default" | "sepia" | "midnight" | "parchment" | "forest" | "rose" | "ocean" | "desert" | "dawn";
+  mushafTextColor?: string; // user-chosen text colour override (hex)
   quranLetterSpacing: number; // em, 0 - 0.12
   quranWordSpacing: number;   // em, 0 - 0.25
   quranScrollMode: "page" | "scroll";
@@ -406,6 +407,7 @@ const DEFAULT_PREFS: Preferences = {
   quranPageSize: 12,
   quranHideMarkers: false,
   quranTheme: "default" as const,
+  mushafTextColor: undefined,
   quranLetterSpacing: 0,
   quranWordSpacing: 0,
   quranScrollMode: "page" as const,
