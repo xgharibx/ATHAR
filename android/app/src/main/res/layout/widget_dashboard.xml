@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ultimate Daily Dashboard Widget (4×4)
+
+  Combines in one screen:
+    1. Greeting + Hijri date header
+    2. Today's 5 prayers — dot status row + next-prayer countdown
+    3. Morning & Evening adhkar progress bars
+    4. Quran wird progress bar + current position
+    5. Streak days badge + total score
+    6. "افتح أثر" action button
+
+  Data sources (SharedPreferences "CapacitorStorage"):
+    • noor_widget_prayer_v2   — prayer times & next prayer
+    • noor_widget_adhkar_v1   — morning / evening adhkar done/total
+    • noor_widget_wird_v1     — ayahsRead, dailyGoal, currentSurah, currentAyah
+    • noor_widget_dashboard_v1 — streakDays, totalScore, levelAr, levelEmoji
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dashboard_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg_dashboard"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:layoutDirection="rtl">
+
+    <!-- ══════════════════════════════════════════
+         ROW 1: Greeting + Date
+         ══════════════════════════════════════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- Greeting -->
+        <TextView
+            android:id="@+id/dash_greeting"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:text="يوم طيب"
+            android:textColor="#E8F8E8"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <!-- Hijri date -->
+        <TextView
+            android:id="@+id/dash_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textColor="#88BFA8"
+            android:textSize="10sp" />
+
+    </LinearLayout>
+
+    <!-- Thin separator -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="6dp"
+        android:background="#22FFFFFF" />
+
+    <!-- ══════════════════════════════════════════
+         ROW 2: Prayer status dots + next countdown
+         ══════════════════════════════════════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Section title -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start"
+                android:text="الصلوات"
+                android:textColor="#A8D8B8"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <!-- Next prayer countdown -->
+            <TextView
+                android:id="@+id/dash_next_countdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textColor="#EAD58D"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+        <!-- Five prayer dots -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:weightSum="5">
+
+            <!-- Fajr -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/dot_fajr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:text="○" android:textColor="#AAAAAA"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="فجر"
+                    android:textColor="#88BBAA"
+                    android:textSize="9sp" />
+            </LinearLayout>
+
+            <!-- Dhuhr -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/dot_dhuhr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:text="○" android:textColor="#AAAAAA"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ظهر"
+                    android:textColor="#88BBAA"
+                    android:textSize="9sp" />
+            </LinearLayout>
+
+            <!-- Asr -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/dot_asr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:text="○" android:textColor="#AAAAAA"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="عصر"
+                    android:textColor="#88BBAA"
+                    android:textSize="9sp" />
+            </LinearLayout>
+
+            <!-- Maghrib -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/dot_maghrib"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:text="○" android:textColor="#AAAAAA"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="مغرب"
+                    android:textColor="#88BBAA"
+                    android:textSize="9sp" />
+            </LinearLayout>
+
+            <!-- Isha -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/dot_isha"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:text="○" android:textColor="#AAAAAA"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="عشاء"
+                    android:textColor="#88BBAA"
+                    android:textSize="9sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Thin separator -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="6dp"
+        android:background="#22FFFFFF" />
+
+    <!-- ══════════════════════════════════════════
+         ROW 3: Adhkar progress
+         ══════════════════════════════════════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:text="أذكار اليوم"
+            android:textColor="#A8D8B8"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <!-- Morning row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="☀ "
+                android:textSize="11sp"
+                android:textColor="#EAD58D" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="صباح  "
+                android:textColor="#CCDDBB"
+                android:textSize="10sp" />
+            <!-- Progress bar track -->
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/widget_progress_track">
+                <View
+                    android:id="@+id/dash_morning_fill"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="start"
+                    android:background="@drawable/widget_progress_fill" />
+            </FrameLayout>
+            <TextView
+                android:id="@+id/dash_morning_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:gravity="end"
+                android:minWidth="36dp"
+                android:textColor="#EAD58D"
+                android:textSize="10sp"
+                android:text="0/0" />
+        </LinearLayout>
+
+        <!-- Evening row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌙 "
+                android:textSize="11sp"
+                android:textColor="#88BBEE" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="مساء  "
+                android:textColor="#CCDDBB"
+                android:textSize="10sp" />
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/widget_progress_track">
+                <View
+                    android:id="@+id/dash_evening_fill"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="start"
+                    android:background="@drawable/widget_dash_fill_green" />
+            </FrameLayout>
+            <TextView
+                android:id="@+id/dash_evening_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:gravity="end"
+                android:minWidth="36dp"
+                android:textColor="#88BBEE"
+                android:textSize="10sp"
+                android:text="0/0" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Thin separator -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="6dp"
+        android:background="#22FFFFFF" />
+
+    <!-- ══════════════════════════════════════════
+         ROW 4: Quran wird + streak
+         ══════════════════════════════════════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- Left: Quran wird -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📖 ورد القرآن"
+                android:textColor="#A8D8B8"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/widget_progress_track">
+                    <View
+                        android:id="@+id/dash_wird_fill"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="start"
+                        android:background="@drawable/widget_progress_fill" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/dash_wird_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:textColor="#EAD58D"
+                    android:textSize="10sp"
+                    android:text="0/0" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/dash_wird_surah"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="#77AABB"
+                android:textSize="9sp"
+                android:text="ابدأ المصحف" />
+
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:background="#22FFFFFF" />
+
+        <!-- Right: Streak + level -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/dash_streak_emoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="🔥"
+                android:textSize="22sp" />
+
+            <TextView
+                android:id="@+id/dash_streak_days"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="#EAD58D"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:text="١ يوم" />
+
+            <TextView
+                android:id="@+id/dash_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="#88BBA0"
+                android:textSize="9sp"
+                android:text="مبتدئ" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- ══════════════════════════════════════════
+         ROW 5: Open button
+         ══════════════════════════════════════════ -->
+    <Button
+        android:id="@+id/dash_open_btn"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/widget_btn_ghost"
+        android:text="افتح أثر"
+        android:textColor="#EAFFEE"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

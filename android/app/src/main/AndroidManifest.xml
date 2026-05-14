@@ -140,6 +140,18 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_wird_info" />
         </receiver>
+        <!-- ── NEW: Ultimate Daily Dashboard Widget (4×4) ── -->
+        <receiver
+            android:name=".NoorDashboardWidgetProvider"
+            android:exported="true"
+            android:label="Athar Dashboard Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_dashboard_info" />
+        </receiver>
     </application>
 
     <!-- Permissions -->
