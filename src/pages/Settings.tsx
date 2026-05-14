@@ -574,8 +574,8 @@ export function SettingsPage() {
             title="خلفية المصحف"
             desc="لون خلفية صفحة القراءة"
             right={
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
+              <div className="flex items-center gap-1 flex-wrap">
+                {(["default", "sepia", "midnight", "parchment", "forest", "rose", "ocean", "desert", "dawn"] as const).map((t) => (
                   <button type="button"
                     key={t}
                     onClick={() => setPrefs({ quranTheme: t })}
@@ -587,7 +587,7 @@ export function SettingsPage() {
                         : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                     ].join(" ")}
                   >
-                    {{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق" }[t]}
+                    {{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق", forest: "🌲 غابة", rose: "🌹 وردي", ocean: "🌊 بحر", desert: "🏜️ صحراء", dawn: "🌅 فجر" }[t]}
                   </button>
                 ))}
               </div>

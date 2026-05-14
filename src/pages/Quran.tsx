@@ -818,15 +818,15 @@ export function QuranPage() {
             </label>
 
             {/* Theme color dots */}
-            <div className="mr-auto flex items-center gap-1.5">
-              {(["default", "sepia", "midnight", "parchment"] as const).map((t) => (
+            <div className="mr-auto flex items-center gap-1">
+              {(["default", "sepia", "midnight", "parchment", "forest", "rose", "ocean", "desert", "dawn"] as const).map((t) => (
                 <button type="button"
                   key={t}
                   onClick={() => setPrefs({ quranTheme: t })}
                   className={`w-5 h-5 rounded-full border-2 transition-all ${prefs.quranTheme === t ? "scale-125 border-[var(--accent)]" : "border-[var(--stroke)] opacity-50 hover:opacity-80"}`}
-                  style={{ background: { default: "#1e1b2e", sepia: "#c8a97a", midnight: "#0d1b2a", parchment: "#f0e6c8" }[t] }}
-                  title={{ default: "افتراضي", sepia: "سيبيا", midnight: "ليلي", parchment: "رق" }[t]}
-                  aria-label={{ default: "افتراضي", sepia: "سيبيا", midnight: "ليلي", parchment: "رق" }[t]}
+                  style={{ background: { default: "#1e1b2e", sepia: "#c8a97a", midnight: "#0d1b2a", parchment: "#f0e6c8", forest: "#0a1a0e", rose: "#2a0a12", ocean: "#0a1525", desert: "#2a1a08", dawn: "#1a0d22" }[t] }}
+                  title={{ default: "افتراضي", sepia: "سيبيا", midnight: "ليلي", parchment: "رق", forest: "غابة", rose: "وردي", ocean: "بحر", desert: "صحراء", dawn: "فجر" }[t]}
+                  aria-label={{ default: "افتراضي", sepia: "سيبيا", midnight: "ليلي", parchment: "رق", forest: "غابة", rose: "وردي", ocean: "بحر", desert: "صحراء", dawn: "فجر" }[t]}
                 />
               ))}
             </div>
