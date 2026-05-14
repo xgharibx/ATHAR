@@ -1372,35 +1372,6 @@ export function MushafPage() {
           ))}
           </div>
 
-          {/* Page number */}
-          <div className={`mushaf-page-num ${currentPage % 2 === 0 ? "left" : "right"}`}>
-            {toArabicNumeral(currentPage)}
-          </div>
-
-          {/* Bottom page nav */}
-          <div className="mushaf-page-nav">
-            <button type="button"
-              className="mushaf-page-nav-btn"
-              onClick={(e) => { e.stopPropagation(); goPage(currentPage + 1); }}
-              disabled={currentPage >= totalPages}
-              aria-label="الصفحة التالية"
-              aria-keyshortcuts="ArrowLeft"
-            >
-              <ChevronLeft size={15} aria-hidden="true" />
-              <span>التالية</span>
-            </button>
-            <span className="mushaf-page-nav-num">{toArabicNumeral(currentPage)} / {toArabicNumeral(totalPages)}</span>
-            <button type="button"
-              className="mushaf-page-nav-btn"
-              onClick={(e) => { e.stopPropagation(); goPage(currentPage - 1); }}
-              disabled={currentPage <= 1}
-              aria-label="الصفحة السابقة"
-              aria-keyshortcuts="ArrowRight"
-            >
-              <span>السابقة</span>
-              <ChevronRight size={15} aria-hidden="true" />
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1493,18 +1464,38 @@ export function MushafPage() {
         </div>
       )}
 
-      {/* ── Page scrubber strip (Phase 2F) ─────────────────── */}
-      <div className="mushaf-page-strip" ref={pageStripRef} onClick={(e) => e.stopPropagation()}>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-          <button type="button"
-            key={p}
-            data-page={p}
-            className={`mushaf-page-chip${p === currentPage ? " active" : ""}`}
-            onClick={(e) => { e.stopPropagation(); goPage(p); }}
-          >
-            {toArabicNumeral(p)}
-          </button>
-        ))}
+      {/* ── Bottom bar: prev/next + page strip (auto-hide with chrome) ─── */}
+      <div className={`mushaf-bottom-bar${showChrome || !!selectedItem ? "" : " chrome-hidden"}`} onClick={(e) => e.stopPropagation()}>
+        <button type="button"
+          className="mushaf-bottom-nav-btn"
+          onClick={(e) => { e.stopPropagation(); goPage(currentPage - 1); }}
+          disabled={currentPage <= 1}
+          aria-label="الصفحة السابقة"
+          aria-keyshortcuts="ArrowRight"
+        >
+          <ChevronRight size={16} aria-hidden="true" />
+        </button>
+        <div className="mushaf-page-strip" ref={pageStripRef}>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <button type="button"
+              key={p}
+              data-page={p}
+              className={`mushaf-page-chip${p === currentPage ? " active" : ""}`}
+              onClick={(e) => { e.stopPropagation(); goPage(p); }}
+            >
+              {toArabicNumeral(p)}
+            </button>
+          ))}
+        </div>
+        <button type="button"
+          className="mushaf-bottom-nav-btn"
+          onClick={(e) => { e.stopPropagation(); goPage(currentPage + 1); }}
+          disabled={currentPage >= totalPages}
+          aria-label="الصفحة التالية"
+          aria-keyshortcuts="ArrowLeft"
+        >
+          <ChevronLeft size={16} aria-hidden="true" />
+        </button>
       </div>
 
       {/* ── Audio player bar ──────────────────────────────── */}
