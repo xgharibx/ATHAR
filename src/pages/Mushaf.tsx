@@ -440,12 +440,13 @@ export function MushafPage() {
   // Q11-B: Inline tafseer mode (قراءة mode)
   const [inlineTafseer, setInlineTafseerState] = React.useState(() => prefs.mushafInlineTafseer ?? false);
   const setInlineTafseer = React.useCallback((v: boolean | ((prev: boolean) => boolean)) => {
-    setInlineTafseerState((prev) => {
-      const next = typeof v === "function" ? v(prev) : v;
-      setPrefs({ mushafInlineTafseer: next });
-      return next;
-    });
-  }, [setPrefs]);
+    setInlineTafseerState(v);
+  }, []);
+  // Sync inline tafseer setting to prefs
+  React.useEffect(() => {
+    setPrefs({ mushafInlineTafseer: inlineTafseer });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inlineTafseer]);
   const [inlineTafseerSource, setInlineTafseerSource] = React.useState<"muyassar" | "jalalayn">("muyassar");
   const [inlineTafseerData, setInlineTafseerData] = React.useState<Record<number, string[]>>({});
   const [inlineTafseerLoading, setInlineTafseerLoading] = React.useState(false);
@@ -458,12 +459,13 @@ export function MushafPage() {
   // Phase 2B: Tajweed color mode
   const [tajweedMode, setTajweedModeState] = React.useState(() => prefs.mushafTajweedMode ?? false);
   const setTajweedMode = React.useCallback((v: boolean | ((prev: boolean) => boolean)) => {
-    setTajweedModeState((prev) => {
-      const next = typeof v === "function" ? v(prev) : v;
-      setPrefs({ mushafTajweedMode: next });
-      return next;
-    });
-  }, [setPrefs]);
+    setTajweedModeState(v);
+  }, []);
+  // Sync tajweed setting to prefs
+  React.useEffect(() => {
+    setPrefs({ mushafTajweedMode: tajweedMode });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tajweedMode]);
 
   // Q17: In-page search
   const [inPageSearch, setInPageSearch] = React.useState("");
@@ -762,12 +764,13 @@ export function MushafPage() {
   // Font scale: 0.7 – 1.6 in 0.1 steps — default 1.0 fills mobile viewport naturally
   const [fontScale, setFontScale] = React.useState<number>(() => prefs.mushafFontScale ?? 1.0);
   const bumpFont = React.useCallback((delta: number) => {
-    setFontScale((prev) => {
-      const next = Math.round(Math.max(0.7, Math.min(1.6, prev + delta)) * 10) / 10;
-      setPrefs({ mushafFontScale: next });
-      return next;
-    });
-  }, [setPrefs]);
+    setFontScale((prev) => Math.round(Math.max(0.7, Math.min(1.6, prev + delta)) * 10) / 10);
+  }, []);
+  // Sync font scale to prefs whenever it changes
+  React.useEffect(() => {
+    setPrefs({ mushafFontScale: fontScale });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fontScale]);
 
   // Touch swipe (horizontal only) + M4 pinch-to-zoom
   const touchStartX = React.useRef<number | null>(null);
