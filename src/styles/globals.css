@@ -3700,49 +3700,7 @@ header {
 }
 .mushaf-sleep-chip:hover { opacity: 0.75; transform: translateX(-50%) scale(0.97); }
 
-/* ═══════════════════════════════════════════════════════════════
-   De6 — Styled CSS tooltips on icon buttons
-   Use: add data-noor-tip="label" to the button element
-   ═══════════════════════════════════════════════════════════════ */
-[data-noor-tip] {
-  position: relative;
-}
 
-[data-noor-tip]::after {
-  content: attr(data-noor-tip);
-  position: absolute;
-  bottom: calc(100% + 7px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px) scale(0.94);
-  white-space: nowrap;
-  background: rgba(12, 12, 18, 0.94);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.68rem;
-  font-weight: 500;
-  font-family: system-ui, sans-serif;
-  padding: 0.3rem 0.65rem;
-  border-radius: 0.55rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  z-index: 9999;
-  direction: rtl;
-  unicode-bidi: embed;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-}
-
-[data-noor-tip]:hover::after {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1);
-}
-
-/* Don't show tooltip on touch (active) */
-[data-noor-tip]:active::after {
-  opacity: 0;
-}
 
 /* ═══════════════════════════════════════════════════════════════
    De2 — Pull-to-refresh indicator

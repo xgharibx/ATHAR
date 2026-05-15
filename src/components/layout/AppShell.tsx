@@ -570,7 +570,7 @@ export function AppShell() {
               <NavLink
                 to="/settings"
                 aria-label="الإعدادات"
-                data-noor-tip="الإعدادات"
+
                 className="max-[340px]:hidden inline-flex items-center justify-center rounded-2xl p-2.5 bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] transition active:scale-[.99] min-h-[44px] min-w-[44px]"
               >
                 <Settings2 size={18} />

@@ -10,7 +10,6 @@ export const IconButton = React.forwardRef<
     <button type="button"
       ref={ref}
       aria-label={ariaLabel}
-      data-noor-tip={ariaLabel}
       className={cn(
         "inline-flex items-center justify-center rounded-2xl p-2.5 bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] transition active:scale-[.99] min-h-[44px] min-w-[44px]",
         className
