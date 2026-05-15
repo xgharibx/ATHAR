@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, Clock, Sunrise, CloudSun, Moon } from "lucide-react";
-import { formatMinutes12h } from "@/lib/prayerSchedule";
 import { buildPrayerSchedule } from "@/lib/prayerSchedule";
 import { PrayerCountdown } from "./PrayerCountdown";
 
@@ -104,7 +103,6 @@ export function PrayerWidget() {
         const duhaMoment     = schedule.extraMoments.find((m) => m.id === "duha");
         const midnightMoment = schedule.extraMoments.find((m) => m.id === "midnight");
         if (!sunriseMoment && !duhaMoment && !midnightMoment) return null;
-        const duhaStart = duhaMoment?.minutes != null ? formatMinutes12h(duhaMoment.minutes) : null;
         return (
           <div className="mt-3 border-t border-[var(--stroke)] pt-3 text-[11px] opacity-65 space-y-1.5">
             {/* Day row */}
@@ -118,11 +116,11 @@ export function PrayerWidget() {
                   </div>
                 )}
                 {sunriseMoment && duhaMoment && <span className="opacity-30">·</span>}
-                {duhaMoment && duhaStart && (
+                {duhaMoment && (
                   <div className="flex items-center gap-1.5">
                     <CloudSun size={12} aria-hidden="true" className="text-[#ffd27d]" />
                     <span>{duhaMoment.label}</span>
-                    <span dir="ltr" className="tabular-nums font-medium">{duhaStart}</span>
+                    <span dir="ltr" className="tabular-nums font-medium">{duhaMoment.value}</span>
                   </div>
                 )}
               </div>
