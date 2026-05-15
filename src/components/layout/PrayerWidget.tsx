@@ -4,7 +4,8 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Clock, Sunrise, CloudSun } from "lucide-react";
+import { ArrowLeft, Clock, Sunrise, CloudSun, Moon } from "lucide-react";
+import { formatMinutes12h } from "@/lib/prayerSchedule";
 import { buildPrayerSchedule } from "@/lib/prayerSchedule";
 import { PrayerCountdown } from "./PrayerCountdown";
 
@@ -97,26 +98,41 @@ export function PrayerWidget() {
         </div>
       </div>
 
-      {/* P10: Golden hour — Sunrise / Ishraq / Duha */}
+      {/* P10: Golden hour — Sunrise / Duha / Midnight */}
       {(() => {
-        const sunriseMoment = schedule.extraMoments.find((m) => m.id === "sunrise");
-        const duhaMoment    = schedule.extraMoments.find((m) => m.id === "duha");
-        if (!sunriseMoment && !duhaMoment) return null;
+        const sunriseMoment  = schedule.extraMoments.find((m) => m.id === "sunrise");
+        const duhaMoment     = schedule.extraMoments.find((m) => m.id === "duha");
+        const midnightMoment = schedule.extraMoments.find((m) => m.id === "midnight");
+        if (!sunriseMoment && !duhaMoment && !midnightMoment) return null;
+        const duhaStart = duhaMoment?.minutes != null ? formatMinutes12h(duhaMoment.minutes) : null;
         return (
-          <div className="mt-3 flex items-center gap-2 flex-wrap border-t border-[var(--stroke)] pt-3 text-[11px] opacity-65">
-            {sunriseMoment && (
-              <div className="flex items-center gap-1.5">
-                <Sunrise size={12} aria-hidden="true" className="text-[#ffd27d]" />
-                <span>{sunriseMoment.label}</span>
-                <span dir="ltr" className="tabular-nums font-medium">{sunriseMoment.value}</span>
+          <div className="mt-3 border-t border-[var(--stroke)] pt-3 text-[11px] opacity-65 space-y-1.5">
+            {/* Day row */}
+            {(sunriseMoment || duhaMoment) && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {sunriseMoment && (
+                  <div className="flex items-center gap-1.5">
+                    <Sunrise size={12} aria-hidden="true" className="text-[#ffd27d]" />
+                    <span>{sunriseMoment.label}</span>
+                    <span dir="ltr" className="tabular-nums font-medium">{sunriseMoment.value}</span>
+                  </div>
+                )}
+                {sunriseMoment && duhaMoment && <span className="opacity-30">·</span>}
+                {duhaMoment && duhaStart && (
+                  <div className="flex items-center gap-1.5">
+                    <CloudSun size={12} aria-hidden="true" className="text-[#ffd27d]" />
+                    <span>{duhaMoment.label}</span>
+                    <span dir="ltr" className="tabular-nums font-medium">{duhaStart}</span>
+                  </div>
+                )}
               </div>
             )}
-            {sunriseMoment && duhaMoment && <span className="opacity-30">·</span>}
-            {duhaMoment && (
+            {/* Night row */}
+            {midnightMoment && (
               <div className="flex items-center gap-1.5">
-                <CloudSun size={12} aria-hidden="true" className="text-[#ffd27d]" />
-                <span>{duhaMoment.label}</span>
-                <span dir="ltr" className="tabular-nums font-medium">{duhaMoment.value}</span>
+                <Moon size={12} aria-hidden="true" className="text-[#93c5fd]" />
+                <span>{midnightMoment.label}</span>
+                <span dir="ltr" className="tabular-nums font-medium">{midnightMoment.value}</span>
               </div>
             )}
           </div>
