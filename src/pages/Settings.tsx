@@ -791,9 +791,8 @@ export function SettingsPage() {
           <SettingRow
             title="أصوات العدّ"
             desc="صوت خفيف عند كل عدّة"
-            right={
-              <Switch checked={prefs.enableSounds} onCheckedChange={(v) => setPrefs({ enableSounds: v })} />
-            }
+            disabled
+            right={<Switch checked={false} />}
           />
           <SettingRow
             title="الانتقال التلقائي"
@@ -1394,13 +1393,13 @@ function HomeWidgetsCard(props: {
   );
 }
 
-function SettingRow(props: { title: string; desc: string; right: React.ReactNode }) {
+function SettingRow(props: { title: string; desc: string; right: React.ReactNode; disabled?: boolean }) {
   // Inject aria-label on the right element so screen readers can name the control
   const labeledRight = React.isValidElement(props.right)
     ? React.cloneElement(props.right as React.ReactElement<Record<string, unknown>>, { "aria-label": props.title })
     : props.right;
   return (
-    <div className="glass rounded-3xl p-4 border border-[var(--stroke)] flex items-center justify-between gap-4">
+    <div className={`glass rounded-3xl p-4 border border-[var(--stroke)] flex items-center justify-between gap-4${props.disabled ? " opacity-35 pointer-events-none select-none" : ""}`}>
       <div className="min-w-0">
         <div className="text-sm font-semibold">{props.title}</div>
         <div className="text-xs opacity-65 mt-1 leading-5">{props.desc}</div>
