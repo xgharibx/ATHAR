@@ -55,7 +55,6 @@ export type Preferences = {
   quranPageSize: number; // ayahs per page
   quranHideMarkers: boolean;
   quranTheme: "default" | "sepia" | "midnight" | "parchment" | "forest" | "rose" | "ocean" | "desert" | "dawn";
-  mushafTextColor?: string; // user-chosen text colour override (hex)
   quranLetterSpacing: number; // em, 0 - 0.12
   quranWordSpacing: number;   // em, 0 - 0.25
   quranScrollMode: "page" | "scroll";
@@ -73,7 +72,6 @@ export type Preferences = {
   enableSounds: boolean;
   reduceMotion: boolean;
   transparentMode: boolean;
-  bgVibrancyBoost?: boolean; // increase background color intensity
   customAccent?: string; // override --accent, e.g. "#ff5555"
   arabicFont?: "noto_naskh" | "amiri" | "hafs"; // Se1
   uiLanguage?: "ar" | "en"; // Se3
@@ -230,15 +228,13 @@ type NoorState = {
   addSebhaSession: (s: SebhaSession) => void;
   clearSebhaSessions: () => void;
 
+  // Sebha goal target
+  sebhaTarget: number;
+  setSebhaTarget: (t: number) => void;
+
   // Sebha custom dhikr
   sebhaCustom: { phrase: string; target: number } | null;
   setSebhaCustom: (v: { phrase: string; target: number } | null) => void;
-
-  // Sebha persisted preferences
-  sebhaTarget: number;
-  setSebhaTarget: (t: number) => void;
-  sebhaSelected: string;
-  setSebhaSelected: (k: string) => void;
 
   // Prayer log (P9)
   prayerLog: Record<string, Record<string, boolean>>; // dateISO -> prayerName -> prayed
@@ -302,7 +298,6 @@ type NoorState = {
 
   increment: (opts: { sectionId: string; index: number; target: number }) => number;
   decrement: (opts: { sectionId: string; index: number; target?: number }) => number;
-  setItemCount: (opts: { sectionId: string; index: number; count: number }) => void;
   resetItem: (sectionId: string, index: number, target?: number) => void;
   resetSection: (sectionId: string) => void;
 
@@ -407,7 +402,6 @@ const DEFAULT_PREFS: Preferences = {
   quranPageSize: 12,
   quranHideMarkers: false,
   quranTheme: "default" as const,
-  mushafTextColor: undefined,
   quranLetterSpacing: 0,
   quranWordSpacing: 0,
   quranScrollMode: "page" as const,
@@ -419,8 +413,7 @@ const DEFAULT_PREFS: Preferences = {
   enableHaptics: true,
   enableSounds: false,
   reduceMotion: false,
-  transparentMode: false,
-  bgVibrancyBoost: true,
+  transparentMode: true,
   customAccent: undefined,
   arabicFont: "noto_naskh",
   uiLanguage: "ar",
@@ -718,13 +711,11 @@ export const useNoorStore = create<NoorState>()(
       addSebhaSession: (s) => set((st) => ({ sebhaSessions: [s, ...st.sebhaSessions].slice(0, 100) })),
       clearSebhaSessions: () => set({ sebhaSessions: [] }),
 
-      sebhaCustom: null,
-      setSebhaCustom: (v) => set({ sebhaCustom: v }),
-
       sebhaTarget: 100,
       setSebhaTarget: (t) => set({ sebhaTarget: t }),
-      sebhaSelected: "subhanallah",
-      setSebhaSelected: (k) => set({ sebhaSelected: k }),
+
+      sebhaCustom: null,
+      setSebhaCustom: (v) => set({ sebhaCustom: v }),
 
       prayerLog: {},
       setPrayerLogged: (dateISO, prayer, done) => {
@@ -776,8 +767,8 @@ export const useNoorStore = create<NoorState>()(
       quranLastReadDate: null,
       quranDailyAyahs: {},
       recordQuranRead: (count = 1) => {
+        const today = todayISO();
         set((s) => {
-          const today = todayISO();
           const prevDate = s.quranLastReadDate;
           const dayBefore = (() => {
             const d = new Date();
@@ -792,16 +783,10 @@ export const useNoorStore = create<NoorState>()(
             : prevDate === dayBefore ? s.quranStreak + 1
             : 1;
           const todayCount = (s.quranDailyAyahs[today] ?? 0) + count;
-          // Prune entries older than 90 days to keep localStorage tidy
-          const cutoff = new Date();
-          cutoff.setDate(cutoff.getDate() - 90);
-          const cutoffISO = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, "0")}-${String(cutoff.getDate()).padStart(2, "0")}`;
-          const updated = { ...s.quranDailyAyahs, [today]: todayCount };
-          for (const k of Object.keys(updated)) { if (k < cutoffISO) delete updated[k]; }
           return {
             quranLastReadDate: today,
             quranStreak: newStreak,
-            quranDailyAyahs: updated,
+            quranDailyAyahs: { ...s.quranDailyAyahs, [today]: todayCount },
           };
         });
       },
@@ -872,6 +857,8 @@ export const useNoorStore = create<NoorState>()(
           prefs: {
             ...s.prefs,
             ...partial,
+            // Always-on immersive mode
+            transparentMode: true
           }
         })),
 
@@ -912,17 +899,14 @@ export const useNoorStore = create<NoorState>()(
         return next;
       },
 
-      setItemCount: ({ sectionId, index, count }) => {
+      resetItem: (sectionId, index, target) => {
         get().ensureDailyResets();
         const key = `${sectionId}:${index}`;
-        const safeCount = Math.max(0, toSafeInt(count));
-        set((s) => ({ progress: { ...s.progress, [key]: safeCount } }));
-        get().bumpActivityToday();
-      },
 
-      resetItem: (sectionId, index, _target) => {
-        get().ensureDailyResets();
-        const key = `${sectionId}:${index}`;
+        if (isDailySection(sectionId) && target) {
+          const current = toSafeInt(get().progress[key]);
+          if (current >= target) return;
+        }
 
         set((s) => {
           const next = { ...s.progress };
@@ -933,6 +917,7 @@ export const useNoorStore = create<NoorState>()(
 
       resetSection: (sectionId) => {
         get().ensureDailyResets();
+        if (isDailySection(sectionId)) return;
 
         set((s) => {
           const next = { ...s.progress };
@@ -1017,10 +1002,8 @@ export const useNoorStore = create<NoorState>()(
         }),
 
       bumpActivityToday: () => {
-        set((s) => {
-          const key = todayISO();
-          return { activity: { ...s.activity, [key]: (s.activity[key] ?? 0) + 1 } };
-        });
+        const key = todayISO();
+        set((s) => ({ activity: { ...s.activity, [key]: (s.activity[key] ?? 0) + 1 } }));
       },
 
       ensureDailyResets: (fajrTime) => {
@@ -1292,8 +1275,8 @@ export const useNoorStore = create<NoorState>()(
       // 3E: Section completion history
       sectionCompletions: {},
       recordSectionCompletion: (sectionId) => {
+        const today = todayISO();
         set((s) => {
-          const today = todayISO();
           const prev = s.sectionCompletions[sectionId] ?? [];
           if (prev[prev.length - 1] === today) return {};
           return { sectionCompletions: { ...s.sectionCompletions, [sectionId]: [...prev, today].slice(-365) } };
@@ -1400,7 +1383,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 27,
+      version: 26,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -1457,7 +1440,6 @@ export const useNoorStore = create<NoorState>()(
           sebhaSessions: Array.isArray((state as Partial<NoorState>).sebhaSessions) ? (state as Partial<NoorState>).sebhaSessions! : [],
           sebhaCustom: (state as Partial<NoorState>).sebhaCustom ?? null,
           sebhaTarget: (state as Partial<NoorState>).sebhaTarget ?? 100,
-          sebhaSelected: (state as Partial<NoorState>).sebhaSelected ?? "subhanallah",
           // hadith user-state fields are NOT in persist (see partialize above);
           // they'll be loaded from IDB by hydrateHadithState() in main.tsx
           hadithBookmarks: {},

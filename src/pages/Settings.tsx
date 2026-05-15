@@ -371,7 +371,7 @@ export function SettingsPage() {
             {([
               { id: "noto_naskh", label: "نوتو نسخ", sample: "بسم الله" },
               { id: "amiri", label: "أميري", sample: "بسم الله" },
-              { id: "hafs", label: "حفص القرآني", sample: "بسم الله" },
+              { id: "hafs", label: "شهرزاد القرآني", sample: "بسم الله" },
             ] as const).map((f) => (
               <button type="button"
                 key={f.id}
@@ -545,6 +545,28 @@ export function SettingsPage() {
                 onValueChange={(v) => setPrefs({ quranLineHeight: clamp(v[0] ?? 2.55, 1.8, 3) })}
                 aria-label="تباعد سطور القرآن"
               />
+            </div>
+          </div>
+
+          {/* ── Live Preview — right after the main sliders ── */}
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+            <div className="text-xs opacity-65 mb-3">معاينة مباشرة</div>
+            <div
+              className="arabic-text"
+              style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
+            >
+              سُبْحَانَ اللَّهِ وَبِحَمْدِهِ
+            </div>
+            <div
+              className="arabic-text quran-text mt-3"
+              style={{
+                fontSize: `${18 * prefs.quranFontScale}px`,
+                lineHeight: prefs.quranLineHeight,
+                letterSpacing: `${prefs.quranLetterSpacing ?? 0}em`,
+                wordSpacing: `${prefs.quranWordSpacing ?? 0}em`,
+              }}
+            >
+              ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ
             </div>
           </div>
 
@@ -751,26 +773,6 @@ export function SettingsPage() {
             ))}
           </div>
 
-          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
-            <div className="text-xs opacity-65 mb-2">معاينة مباشرة</div>
-            <div
-              className="arabic-text"
-              style={{ fontSize: `${prefs.fontScale}rem`, lineHeight: prefs.lineHeight }}
-            >
-              سُبْحَانَ اللَّهِ وَبِحَمْدِهِ
-            </div>
-            <div
-              className="arabic-text quran-text mt-3"
-              style={{
-                fontSize: `${18 * prefs.quranFontScale}px`,
-                lineHeight: prefs.quranLineHeight,
-                letterSpacing: `${prefs.quranLetterSpacing ?? 0}em`,
-                wordSpacing: `${prefs.quranWordSpacing ?? 0}em`,
-              }}
-            >
-              ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ
-            </div>
-          </div>
         </div>
       </Card>
 

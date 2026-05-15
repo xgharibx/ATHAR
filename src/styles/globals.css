@@ -360,7 +360,7 @@ html.midnight body.transparent-mode .glass-strong {
 [data-arabic-font="hafs"] .arabic-text,
 [data-arabic-font="hafs"] .quran-text,
 [data-arabic-font="hafs"] .quran-title {
-  font-family: "KFGQPC Uthmanic Script HAFS", "Amiri Quran", "Noto Naskh Arabic", serif !important;
+  font-family: "Scheherazade New", "Amiri", "Noto Naskh Arabic", serif !important;
 }
 
 .dhikr-flow {
