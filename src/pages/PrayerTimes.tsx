@@ -1090,31 +1090,60 @@ export function PrayerTimesPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-xl font-bold">مواقيت الصلاة</h1>
         <div className="flex items-center gap-1.5">
-          <Button variant="secondary" size="sm" aria-label="القبلة" onClick={() => navigate("/qibla")}>
-            <Compass size={15} aria-hidden="true" />
-          </Button>
-          <Button variant="secondary" size="sm" aria-label="مساجد" onClick={() => navigate("/mosques")}>
-            <MapPin size={15} aria-hidden="true" />
-          </Button>
-          <Button variant="secondary" size="sm" aria-label="مشاركة" onClick={async () => {
+          <Button variant="secondary" size="sm" aria-label="مشاركة المواقيت" onClick={async () => {
             if (!timings) return;
             const lines = PRIMARY_PRAYERS.map((p) => `${PRAYER_LABELS[p]}: ${cleanTime(timings[p] ?? "")}`);
             const text = `مواقيت الصلاة اليوم:\n${lines.join("\n")}\n\n• أثر`;
             if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
             else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
           }}>
-            <Share2 size={15} />
+            <Share2 size={15} aria-hidden="true" />
+            <span className="hidden sm:inline">مشاركة</span>
           </Button>
-          <Button variant="secondary" size="sm" aria-label="إعدادات" onClick={() => setShowSettings(true)}>
-            <Settings2 size={15} />
+          <Button variant="secondary" size="sm" aria-label="إعدادات المواقيت" onClick={() => setShowSettings(true)}>
+            <Settings2 size={15} aria-hidden="true" />
+            <span className="hidden sm:inline">إعدادات</span>
           </Button>
-          <Button variant="secondary" size="sm" aria-label="تحديث" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
+          <Button variant="secondary" size="sm" aria-label="تحديث المواقيت" onClick={() => void refreshPrayerTimes()} disabled={manualRefreshing || prayerTimes.isFetching}>
             <RefreshCw size={15} aria-hidden="true" className={manualRefreshing || prayerTimes.isFetching ? "animate-spin" : ""} />
           </Button>
           <Button variant="outline" size="sm" aria-label="رجوع" onClick={() => navigate(-1)}>
             <ArrowRight size={15} aria-hidden="true" />
+            رجوع
           </Button>
         </div>
+      </div>
+
+      {/* Quick feature cards — Qibla & Nearby Mosques */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={() => navigate("/qibla")}
+          className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition glass press-effect text-right w-full"
+          aria-label="فتح بوصلة القبلة"
+        >
+          <div className="w-10 h-10 rounded-xl bg-accent-10 border border-accent-20 flex items-center justify-center shrink-0">
+            <Compass size={20} className="text-[var(--accent)]" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-semibold">القبلة</div>
+            <div className="text-[11px] opacity-55 mt-0.5">اتجاه مكة المكرمة</div>
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate("/mosques")}
+          className="flex items-center gap-3 px-4 py-3.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition glass press-effect text-right w-full"
+          aria-label="البحث عن مساجد قريبة"
+        >
+          <div className="w-10 h-10 rounded-xl bg-accent-10 border border-accent-20 flex items-center justify-center shrink-0">
+            <MapPin size={20} className="text-[var(--accent)]" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-semibold">المساجد القريبة</div>
+            <div className="text-[11px] opacity-55 mt-0.5">ابحث عن مسجد حولك</div>
+          </div>
+        </button>
       </div>
 
       {/* Dates card */}
