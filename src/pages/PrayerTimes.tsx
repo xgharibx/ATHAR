@@ -1252,6 +1252,52 @@ export function PrayerTimesPage() {
                 </div>
               );
             })}
+
+            {/* Night Sixths (Layl) section */}
+            {schedule.nightSixths.length > 0 && (
+              <div className="mt-6 pt-5 border-t border-[var(--stroke)]">
+                <div className="flex items-center gap-2 mb-3">
+                  <Moon size={14} className="text-[#93c5fd]" aria-hidden="true" />
+                  <span className="text-sm font-semibold">أسداس الليل</span>
+                  <span className="text-[10px] opacity-40 ms-auto">من المغرب إلى الفجر</span>
+                </div>
+                <div className="space-y-1">
+                  {schedule.nightSixths.map((sixth, idx) => {
+                    const isActive = schedule.currentSixthIndex === idx && idx < 6;
+                    return (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "flex items-center justify-between gap-3 rounded-xl px-3 py-2 transition",
+                          isActive
+                            ? "bg-[#1e2d4a] border border-[#2d4a7a]"
+                            : "border border-transparent"
+                        )}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {sixth.isMaghrib ? (
+                            <Sunset size={13} className="text-[#ffd27d] shrink-0" aria-hidden="true" />
+                          ) : sixth.isFajr ? (
+                            <Sunrise size={13} className="text-[#ffd27d] shrink-0" aria-hidden="true" />
+                          ) : (
+                            <span className="text-[11px] text-[#93c5fd] opacity-70 w-[18px] shrink-0 font-medium">{sixth.fractionLabel}</span>
+                          )}
+                          <span className={cn("text-xs", isActive ? "font-semibold" : "opacity-60")}>
+                            {sixth.label}
+                          </span>
+                          {isActive && (
+                            <Badge className="text-[10px] bg-[#1a3a6a] border-[#2d5a9a] text-[#93c5fd]">الآن</Badge>
+                          )}
+                        </div>
+                        <span dir="ltr" className={cn("text-xs tabular-nums font-medium shrink-0", isActive ? "text-[#93c5fd]" : "opacity-55")}>
+                          {sixth.timeLabel}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

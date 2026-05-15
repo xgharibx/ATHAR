@@ -49,6 +49,16 @@ export type PrayerDetailRow = {
   prayerName?: PrimaryPrayerName;
 };
 
+export type NightSixth = {
+  index: number;          // 0–6 (7 boundary points defining 6 parts)
+  label: string;          // Arabic label
+  fractionLabel: string;  // e.g. "¹⁄₆"
+  timeLabel: string;      // formatted clock time
+  minutes: number | null; // raw minutes from start-of-day (may exceed 1439)
+  isMaghrib: boolean;
+  isFajr: boolean;
+};
+
 export type PrayerScheduleModel = {
   primary: ComputedPrayer[];
   current: ComputedPrayer;
@@ -62,6 +72,8 @@ export type PrayerScheduleModel = {
   forbiddenWindows: ForbiddenWindow[];
   detailRows: PrayerDetailRow[];
   islamicMidnightLabel: string;
+  nightSixths: NightSixth[];
+  currentSixthIndex: number | null;
 };
 
 const PRIMARY_PRAYER_ORDER: PrimaryPrayerName[] = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
@@ -273,6 +285,56 @@ function buildMinuteContext(timings: PrayerTimings, dayStart: Date): PrayerMinut
     imsakMinutes,
     nextDayFajrMinutes: offsetMinutes(fajrMinutes, 1440),
   };
+}
+
+const NIGHT_SIXTH_LABELS = [
+  "المغرب · بداية الليل",
+  "ينتهي السدس الأوّل",
+  "ينتهي الثلث الأوّل",
+  "منتصف الليل",
+  "يبدأ الثلث الأخير",
+  "يبدأ السدس الأخير",
+  "الفجر · نهاية الليل",
+];
+const NIGHT_SIXTH_FRACTIONS = ["", "¹⁄₆", "²⁄₆", "³⁄₆", "⁴⁄₆", "⁵⁄₆", ""];
+
+function buildNightSixths(
+  context: PrayerMinuteContext,
+  now: Date,
+): { sixths: NightSixth[]; currentSixthIndex: number | null } {
+  const { maghribMinutes, fajrMinutes } = context;
+  if (maghribMinutes == null || fajrMinutes == null) return { sixths: [], currentSixthIndex: null };
+
+  const nightDuration = (fajrMinutes + 1440) - maghribMinutes;
+  const sixthDuration = nightDuration / 6;
+
+  const sixths: NightSixth[] = [];
+  for (let i = 0; i <= 6; i++) {
+    const mins = maghribMinutes + sixthDuration * i;
+    sixths.push({
+      index: i,
+      label: NIGHT_SIXTH_LABELS[i],
+      fractionLabel: NIGHT_SIXTH_FRACTIONS[i],
+      timeLabel: formatMinutes12h(Math.round(mins) % 1440),
+      minutes: mins,
+      isMaghrib: i === 0,
+      isFajr: i === 6,
+    });
+  }
+
+  // Determine which sixth the current time falls in
+  const nowRaw = now.getHours() * 60 + now.getMinutes();
+  // If before maghrib, treat as post-midnight (add 1440 for night-crossing comparison)
+  const nowNorm = nowRaw < maghribMinutes ? nowRaw + 1440 : nowRaw;
+  let currentSixthIndex: number | null = null;
+  for (let i = 0; i < 6; i++) {
+    if (nowNorm >= sixths[i].minutes! && nowNorm < sixths[i + 1].minutes!) {
+      currentSixthIndex = i;
+      break;
+    }
+  }
+
+  return { sixths, currentSixthIndex };
 }
 
 function buildExtraMoments(timings: PrayerTimings, context: PrayerMinuteContext): PrayerExtraMoment[] {
@@ -649,6 +711,7 @@ export function buildPrayerSchedule(timings: PrayerTimings, now = new Date()): P
     fallbackCurrentPhase,
     fallbackNextPhase,
   });
+  const { sixths: nightSixths, currentSixthIndex } = buildNightSixths(context, now);
 
   return {
     primary,
@@ -663,5 +726,7 @@ export function buildPrayerSchedule(timings: PrayerTimings, now = new Date()): P
     forbiddenWindows,
     detailRows,
     islamicMidnightLabel: formatRange(context.islamicMidnightMinutes, null),
+    nightSixths,
+    currentSixthIndex,
   };
 }
