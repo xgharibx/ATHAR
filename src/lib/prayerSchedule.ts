@@ -291,7 +291,7 @@ function buildExtraMoments(timings: PrayerTimings, context: PrayerMinuteContext)
     },
     {
       id: "midnight",
-      label: "منتصف الليل الشرعي",
+      label: "منتصف الليل",
       value: formatRange(context.islamicMidnightMinutes, null),
       minutes: context.islamicMidnightMinutes,
     },
@@ -402,7 +402,7 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
     {
       id: "midnight",
       type: "marker",
-      label: "منتصف الليل الشرعي",
+      label: "منتصف الليل",
       timeLabel: formatRange(context.islamicMidnightMinutes, null),
     },
     {
