@@ -3,7 +3,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  AlertTriangle, ArrowRight, BarChart2, CalendarDays, Check, ChevronLeft, ChevronRight,
+  AlarmClock, AlertTriangle, ArrowRight, BarChart2, CalendarDays, Check, ChevronLeft, ChevronRight,
   Clock3, CloudSun, Compass, Globe, MapPin, Moon, MoonStar, Plus, RefreshCw,
   Settings2, Share2, Sparkles, Sunrise, Sunset, TimerReset, Trash2, X,
 } from "lucide-react";
@@ -126,6 +126,7 @@ function rowIcon(row: PrayerDetailRow) {
   if (row.id === "midnight")   return Moon;
   if (row.id === "last-third") return Sparkles;
   if (row.id === "tahajjud")   return MoonStar;
+  if (row.id === "imsak")      return AlarmClock;
   return Clock3;
 }
 

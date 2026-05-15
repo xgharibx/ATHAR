@@ -199,6 +199,7 @@ type PrayerMinuteContext = {
   sunsetForbiddenStart: number | null;
   islamicMidnightMinutes: number | null;
   tahajjudStart: number | null;
+  imsakMinutes: number | null;
   nextDayFajrMinutes: number | null;
 };
 
@@ -253,6 +254,8 @@ function buildMinuteContext(timings: PrayerTimings, dayStart: Date): PrayerMinut
       ? null
       : maghribMinutes + ((nightDurationMinutes * 2) / 3);
 
+  const imsakMinutes = offsetMinutes(fajrMinutes, -10);
+
   return {
     dayStart,
     fajrMinutes,
@@ -267,6 +270,7 @@ function buildMinuteContext(timings: PrayerTimings, dayStart: Date): PrayerMinut
     sunsetForbiddenStart,
     islamicMidnightMinutes,
     tahajjudStart,
+    imsakMinutes,
     nextDayFajrMinutes: offsetMinutes(fajrMinutes, 1440),
   };
 }
@@ -296,6 +300,12 @@ function buildExtraMoments(timings: PrayerTimings, context: PrayerMinuteContext)
       label: "التهجد",
       value: formatRange(context.tahajjudStart, beforeMinute(context.nextDayFajrMinutes)),
       minutes: context.tahajjudStart,
+    },
+    {
+      id: "imsak",
+      label: "الإمساك",
+      value: formatRange(context.imsakMinutes, null),
+      minutes: context.imsakMinutes,
     },
   ];
 }
@@ -406,6 +416,12 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
       type: "moment",
       label: "صلاة التهجد",
       timeLabel: formatRange(context.tahajjudStart, beforeMinute(context.nextDayFajrMinutes)),
+    },
+    {
+      id: "imsak",
+      type: "marker",
+      label: "الإمساك",
+      timeLabel: formatRange(context.imsakMinutes, null),
     },
   ];
 }
