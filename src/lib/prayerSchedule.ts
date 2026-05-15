@@ -396,9 +396,15 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
       timeLabel: formatRange(context.islamicMidnightMinutes, null),
     },
     {
+      id: "last-third",
+      type: "marker",
+      label: "الثلث الأخير من الليل",
+      timeLabel: formatRange(context.tahajjudStart, beforeMinute(context.nextDayFajrMinutes)),
+    },
+    {
       id: "tahajjud",
       type: "moment",
-      label: "التهجد",
+      label: "صلاة التهجد",
       timeLabel: formatRange(context.tahajjudStart, beforeMinute(context.nextDayFajrMinutes)),
     },
   ];
