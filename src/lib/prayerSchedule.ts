@@ -390,6 +390,12 @@ function buildDetailRows(timings: PrayerTimings, context: PrayerMinuteContext): 
       prayerName: "Isha",
     },
     {
+      id: "midnight",
+      type: "marker",
+      label: "منتصف الليل الشرعي",
+      timeLabel: formatRange(context.islamicMidnightMinutes, null),
+    },
+    {
       id: "tahajjud",
       type: "moment",
       label: "التهجد",

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle, ArrowRight, BarChart2, CalendarDays, Check, ChevronLeft, ChevronRight,
-  Clock3, CloudSun, Compass, Globe, MapPin, MoonStar, Plus, RefreshCw,
+  Clock3, CloudSun, Compass, Globe, MapPin, Moon, MoonStar, Plus, RefreshCw,
   Settings2, Share2, Sunrise, Sunset, TimerReset, Trash2, X,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -123,6 +123,7 @@ function rowIcon(row: PrayerDetailRow) {
   if (row.id === "sunrise")    return Sunrise;
   if (row.id === "sunset")     return Sunset;
   if (row.id === "duha")       return CloudSun;
+  if (row.id === "midnight")   return Moon;
   if (row.id === "tahajjud")   return MoonStar;
   return Clock3;
 }
