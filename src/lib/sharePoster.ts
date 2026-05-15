@@ -8,6 +8,19 @@ type PosterTheme = {
   themeName: string;
 };
 
+/** Pre-load the Arabic fonts the page uses so canvas ctx.fillText renders them correctly. */
+async function preloadFonts() {
+  const weights = ["400", "500", "700"];
+  const families = ['"Noto Naskh Arabic"', '"Amiri"'];
+  const loads: Promise<FontFace[]>[] = [];
+  for (const fam of families) {
+    for (const w of weights) {
+      loads.push(document.fonts.load(`${w} 48px ${fam}`));
+    }
+  }
+  await Promise.allSettled(loads);
+}
+
 function readCssVar(name: string) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
@@ -153,10 +166,12 @@ function posterCandidates(themeName: string) {
 
 export async function renderDhikrPosterBlob(opts: {
   text: string;
-  footerAppName?: string;
+  sectionTitle?: string;
+  count?: number;
   footerUrl?: string;
-  subtitle?: string;
 }) {
+  await preloadFonts();
+
   const theme = getThemeFromCss();
   const W = 1080;
   const H = 1350;
@@ -170,154 +185,263 @@ export async function renderDhikrPosterBlob(opts: {
 
   const rng = mulberry32(seedFromString(`${theme.themeName}|${opts.text.slice(0, 40)}`));
 
-  // Background: try real photo if provided, else fallback to gradient
+  // ── 1. Background ─────────────────────────────────────────────────────────
+  // Try optional theme photo, fallback to layered gradient
   let bgImage: HTMLImageElement | null = null;
   const candidates = posterCandidates(theme.themeName);
   if (candidates.length) {
     const pick = candidates[Math.floor(rng() * candidates.length)] || candidates[0];
-    try {
-      bgImage = await loadImage(pick);
-    } catch {
-      bgImage = null;
-    }
+    try { bgImage = await loadImage(pick); } catch { bgImage = null; }
   }
 
   if (bgImage) {
     drawCover(ctx, bgImage, 0, 0, W, H);
-    // Darken for readability
-    ctx.fillStyle = "rgba(0,0,0,0.32)";
+    ctx.fillStyle = "rgba(0,0,0,0.50)";
     ctx.fillRect(0, 0, W, H);
-
-    // Theme tint
-    ctx.fillStyle = rgba(theme.accent, 0.10);
+    ctx.fillStyle = rgba(theme.accent, 0.08);
     ctx.fillRect(0, 0, W, H);
   } else {
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, theme.bg);
-    bg.addColorStop(1, rgba(theme.accent, 0.12));
+    // Deep gradient base
+    const bg = ctx.createLinearGradient(0, 0, W * 0.4, H);
+    const bgRgb = parseRgb(theme.bg) ?? { r: 7, g: 8, b: 11 };
+    bg.addColorStop(0, `rgb(${bgRgb.r},${bgRgb.g},${bgRgb.b})`);
+    bg.addColorStop(0.55, rgba(theme.accent, 0.07));
+    bg.addColorStop(1, rgba(theme.accent2, 0.12));
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Soft glows
+    // Ambient glows
     ctx.save();
-    ctx.globalAlpha = 0.9;
-    const glow1 = ctx.createRadialGradient(W * 0.25, H * 0.2, 20, W * 0.25, H * 0.2, W * 0.55);
-    glow1.addColorStop(0, rgba(theme.accent, 0.22));
-    glow1.addColorStop(1, rgba(theme.accent, 0));
-    ctx.fillStyle = glow1;
-    ctx.fillRect(0, 0, W, H);
+    const g1 = ctx.createRadialGradient(W * 0.15, H * 0.1, 10, W * 0.15, H * 0.1, W * 0.7);
+    g1.addColorStop(0, rgba(theme.accent, 0.28));
+    g1.addColorStop(1, rgba(theme.accent, 0));
+    ctx.fillStyle = g1; ctx.fillRect(0, 0, W, H);
 
-    const glow2 = ctx.createRadialGradient(W * 0.75, H * 0.35, 20, W * 0.75, H * 0.35, W * 0.6);
-    glow2.addColorStop(0, rgba(theme.accent2, 0.20));
-    glow2.addColorStop(1, rgba(theme.accent2, 0));
-    ctx.fillStyle = glow2;
-    ctx.fillRect(0, 0, W, H);
+    const g2 = ctx.createRadialGradient(W * 0.85, H * 0.75, 10, W * 0.85, H * 0.75, W * 0.65);
+    g2.addColorStop(0, rgba(theme.accent2, 0.22));
+    g2.addColorStop(1, rgba(theme.accent2, 0));
+    ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
     ctx.restore();
 
-    // Bokeh circles
+    // Bokeh orbs
     ctx.save();
-    for (let i = 0; i < 16; i++) {
-      const x = rng() * W;
-      const y = rng() * H;
-      const r = 40 + rng() * 160;
-      ctx.globalAlpha = 0.05 + rng() * 0.06;
+    for (let i = 0; i < 20; i++) {
+      const bx = rng() * W;
+      const by = rng() * H;
+      const br = 30 + rng() * 180;
+      ctx.globalAlpha = 0.03 + rng() * 0.055;
       ctx.fillStyle = i % 2 ? theme.accent : theme.accent2;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
     }
     ctx.restore();
   }
 
-  // Content card
-  const pad = 84;
-  const cardX = pad;
-  const cardY = 150;
-  const cardW = W - pad * 2;
-  const cardH = H - 360;
-
+  // ── 2. Top accent bar ─────────────────────────────────────────────────────
+  const barH = 128;
+  const barGrad = ctx.createLinearGradient(0, 0, W, 0);
+  barGrad.addColorStop(0, rgba(theme.accent, 0.92));
+  barGrad.addColorStop(0.5, rgba(theme.accent2, 0.85));
+  barGrad.addColorStop(1, rgba(theme.accent, 0.92));
   ctx.save();
-  roundRect(ctx, cardX, cardY, cardW, cardH, 56);
-  ctx.fillStyle = "rgba(0,0,0,0.28)";
+  roundRect(ctx, 0, 0, W, barH, 0);
+  ctx.fillStyle = barGrad;
   ctx.fill();
-  ctx.strokeStyle = rgba(theme.fg, 0.14);
-  ctx.lineWidth = 3;
+  // Subtle inner shadow at bottom of bar
+  const barShadow = ctx.createLinearGradient(0, barH - 16, 0, barH);
+  barShadow.addColorStop(0, "rgba(0,0,0,0)");
+  barShadow.addColorStop(1, "rgba(0,0,0,0.25)");
+  ctx.fillStyle = barShadow;
+  ctx.fill();
+  ctx.restore();
+
+  // App name in the bar — centered Arabic bold
+  ctx.save();
+  ctx.direction = "rtl";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "rgba(0,0,0,0.72)";
+  ctx.font = `800 52px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
+  ctx.fillText("أثر", W / 2, barH / 2 + 4);
+  ctx.restore();
+
+  // Small diamond ornament left/right of the app name
+  const dmX = W / 2;
+  const dmY = barH / 2 + 4;
+  const dmOff = 120;
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.40)";
+  for (const sign of [-1, 1]) {
+    const cx = dmX + sign * dmOff;
+    ctx.beginPath();
+    ctx.moveTo(cx, dmY - 10);
+    ctx.lineTo(cx + 9, dmY);
+    ctx.lineTo(cx, dmY + 10);
+    ctx.lineTo(cx - 9, dmY);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // ── 3. Main content card ──────────────────────────────────────────────────
+  const pad = 72;
+  const cardX = pad;
+  const cardY = barH + 72;
+  const cardW = W - pad * 2;
+  const cardH = H - barH - 72 - 200; // leave room for footer
+
+  // Card background (glass)
+  ctx.save();
+  roundRect(ctx, cardX, cardY, cardW, cardH, 52);
+  ctx.fillStyle = "rgba(0,0,0,0.30)";
+  ctx.fill();
+  // Glass border — accent tinted
+  ctx.strokeStyle = rgba(theme.accent, 0.28);
+  ctx.lineWidth = 2.5;
   ctx.stroke();
   ctx.restore();
 
-  // Subtitle
-  const subtitle = (opts.subtitle ?? "ذكر").trim();
+  // Inner top highlight line
   ctx.save();
-  ctx.direction = "rtl";
-  ctx.textAlign = "right";
-  ctx.fillStyle = rgba(theme.fg, 0.78);
-  ctx.font = "700 28px 'Noto Sans Arabic','Noto Naskh Arabic','Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillText(subtitle, cardX + cardW - 52, cardY + 78);
+  roundRect(ctx, cardX + 2, cardY + 2, cardW - 4, 3, 2);
+  ctx.fillStyle = rgba(theme.accent, 0.35);
+  ctx.fill();
   ctx.restore();
 
-  // Dhikr text
+  // ── 3a. Section title pill (top inside card) ──────────────────────────────
+  const sectionTitle = (opts.sectionTitle ?? "ذكر").trim();
+  const titleFont = `700 30px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
+  ctx.save();
+  ctx.font = titleFont;
+  const titleMeasure = ctx.measureText(sectionTitle);
+  const pillW = Math.min(titleMeasure.width + 64, cardW - 80);
+  const pillH = 54;
+  const pillX = cardX + (cardW - pillW) / 2;
+  const pillY = cardY + 52;
+
+  roundRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
+  ctx.fillStyle = rgba(theme.accent, 0.18);
+  ctx.fill();
+  ctx.strokeStyle = rgba(theme.accent, 0.40);
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.direction = "rtl";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = theme.accent;
+  ctx.fillText(sectionTitle, pillX + pillW / 2, pillY + pillH / 2);
+  ctx.restore();
+
+  // ── 3b. Ornamental separator ──────────────────────────────────────────────
+  const sepY = cardY + 52 + pillH + 36;
+  ctx.save();
+  ctx.strokeStyle = rgba(theme.fg, 0.12);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cardX + 60, sepY);
+  ctx.lineTo(cardX + cardW - 60, sepY);
+  ctx.stroke();
+  // Small diamond in center
+  const sdCx = W / 2;
+  const sdCy = sepY;
+  ctx.fillStyle = rgba(theme.accent, 0.55);
+  ctx.beginPath();
+  ctx.moveTo(sdCx, sdCy - 7); ctx.lineTo(sdCx + 7, sdCy);
+  ctx.lineTo(sdCx, sdCy + 7); ctx.lineTo(sdCx - 7, sdCy);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  // ── 3c. Dhikr text (centered, auto-sized) ─────────────────────────────────
   const text = formatLeadingIstiadhahBasmalah((opts.text ?? "").trim());
   const fontSize = fontSizeByLength(text.length);
-  const lineHeight = Math.round(fontSize * 1.55);
+  const lineHeight = Math.round(fontSize * 1.68);
+  const arabicFont = `700 ${fontSize}px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
 
   ctx.save();
   ctx.direction = "rtl";
-  ctx.textAlign = "right";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
   ctx.fillStyle = theme.fg;
-  ctx.font = `700 ${fontSize}px 'Noto Naskh Arabic','Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif`;
+  ctx.font = arabicFont;
 
-  const textX = cardX + cardW - 52;
-  const textTop = cardY + 150;
-  const maxWidth = cardW - 104;
+  const textAreaTop = sepY + 52;
+  const textAreaBottom = cardY + cardH - 110;
+  const maxWidth = cardW - 88;
+  const centerX = W / 2;
 
   const paragraphs = text.split("\n");
   const allLines: string[] = [];
   for (const p of paragraphs) {
-    const lines = wrapRtlText(ctx, p, maxWidth);
+    const wrapped = wrapRtlText(ctx, p, maxWidth);
     if (allLines.length) allLines.push("");
-    allLines.push(...lines);
+    allLines.push(...wrapped);
   }
 
-  let y = textTop;
-  const maxY = cardY + cardH - 110;
+  // Vertically center the text block within the available area
+  const totalTextH = allLines.length * lineHeight - (lineHeight - fontSize);
+  const availH = textAreaBottom - textAreaTop;
+  let ty = textAreaTop + Math.max(0, (availH - totalTextH) / 2) + fontSize;
+
   for (const line of allLines) {
-    if (y > maxY) break;
-    if (!line) {
-      y += Math.round(lineHeight * 0.6);
-      continue;
-    }
-    ctx.fillText(line, textX, y);
-    y += lineHeight;
+    if (ty > textAreaBottom) break;
+    if (!line) { ty += Math.round(lineHeight * 0.55); continue; }
+    ctx.fillText(line, centerX, ty);
+    ty += lineHeight;
   }
   ctx.restore();
 
-  // Footer
-  const appName = (opts.footerAppName ?? "ATHAR").trim();
+  // ── 3d. Count badge (bottom inside card) ──────────────────────────────────
+  if (opts.count && opts.count > 1) {
+    const countText = `× ${opts.count}`;
+    const countFont = `700 26px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
+    ctx.save();
+    ctx.font = countFont;
+    const cw = ctx.measureText(countText).width + 52;
+    const ch = 44;
+    const cx = cardX + (cardW - cw) / 2;
+    const cy = cardY + cardH - ch - 34;
+    roundRect(ctx, cx, cy, cw, ch, ch / 2);
+    ctx.fillStyle = rgba(theme.accent, 0.14);
+    ctx.fill();
+    ctx.strokeStyle = rgba(theme.accent, 0.32);
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = rgba(theme.fg, 0.85);
+    ctx.fillText(countText, cx + cw / 2, cy + ch / 2);
+    ctx.restore();
+  }
+
+  // ── 4. Footer ─────────────────────────────────────────────────────────────
+  const footerY = cardY + cardH + 52;
+  const footerH = 100;
   const footerUrl = (opts.footerUrl ?? "xgharibx.github.io/ATHAR").trim();
 
   ctx.save();
-  roundRect(ctx, cardX, cardY + cardH + 44, cardW, 96, 42);
+  roundRect(ctx, cardX, footerY, cardW, footerH, 40);
   ctx.fillStyle = "rgba(0,0,0,0.22)";
   ctx.fill();
-  ctx.strokeStyle = rgba(theme.fg, 0.14);
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = rgba(theme.fg, 0.10);
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
+  // App name right-aligned
   ctx.direction = "rtl";
   ctx.textAlign = "right";
-  ctx.fillStyle = rgba(theme.fg, 0.92);
-  ctx.font = "800 32px 'Noto Sans Arabic','Noto Naskh Arabic','Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillText(appName, cardX + cardW - 52, cardY + cardH + 106);
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = rgba(theme.fg, 0.95);
+  ctx.font = `800 30px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
+  ctx.fillText("أثر • ATHAR", cardX + cardW - 44, footerY + footerH / 2);
 
+  // URL left-aligned
   ctx.textAlign = "left";
-  ctx.fillStyle = rgba(theme.fg, 0.64);
-  ctx.font = "700 22px 'Noto Sans Arabic','Noto Naskh Arabic','Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillText(footerUrl, cardX + 52, cardY + cardH + 106);
+  ctx.fillStyle = rgba(theme.fg, 0.52);
+  ctx.font = `500 22px 'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif`;
+  ctx.fillText(footerUrl, cardX + 44, footerY + footerH / 2);
   ctx.restore();
 
-  const blob = await new Promise<Blob>((resolve, reject) => {
+  return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
   });
-
-  return blob;
 }

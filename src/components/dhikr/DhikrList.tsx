@@ -736,6 +736,7 @@ export function DhikrList(props: Readonly<{
                 )}
                 <DhikrCard
                   sectionId={props.sectionId}
+                  sectionTitle={props.title}
                   index={entry.originalIndex}
                   item={entry.item}
                   autoFocus={props.focusIndex === entry.originalIndex}

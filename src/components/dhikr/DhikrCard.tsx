@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 
 import { cn, clamp } from "@/lib/utils";
 import { formatLeadingIstiadhahBasmalah, normalizeText, stripDiacritics } from "@/lib/arabic";
-import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { useNoorStore } from "@/store/noorStore";
 import { coerceCount, type DhikrItem } from "@/data/types";
 import { IconButton } from "@/components/ui/IconButton";
 import { isDailySection } from "@/lib/dailySections";
+import { SharePosterModal } from "@/components/dhikr/SharePosterModal";
 
 // Lazy-load heavy libraries — only imported when actually needed
 // Note: GSAP removed from hot path — ring + ripple now use CSS transitions
@@ -30,12 +30,13 @@ export function DhikrCard(props: {
   sectionId: string;
   index: number;
   item: DhikrItem;
+  sectionTitle?: string;
   autoFocus?: boolean;
   totalItems?: number;
   onComplete?: () => void;
   focusMode?: boolean;
 }) {
-  const { sectionId, index, item, focusMode } = props;
+  const { sectionId, index, item, focusMode, sectionTitle } = props;
 
   const key = `${sectionId}:${index}`;
   const prefs = useNoorStore((s) => s.prefs);
@@ -54,6 +55,8 @@ export function DhikrCard(props: {
   const remaining = Math.max(0, target - current);
   const done = current >= target;
   const isDailyLockedItem = isDailySection(sectionId) && done;
+
+  const [posterOpen, setPosterOpen] = React.useState(false);
 
   const cardRef = React.useRef<HTMLDivElement>(null);
   const ringRef = React.useRef<SVGCircleElement>(null);
@@ -284,41 +287,8 @@ export function DhikrCard(props: {
     }
   };
 
-  const doShareImage = async () => {
-    try {
-      const poster = await renderDhikrPosterBlob({
-        text: displayText,
-        subtitle: `العدد: ${target}`,
-        footerAppName: "ATHAR • أثر",
-        footerUrl: "xgharibx.github.io/ATHAR"
-      });
-      const file = new File([poster], "athar-dhikr.png", { type: "image/png" });
-
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "ATHAR" });
-        return;
-      }
-
-      const url = URL.createObjectURL(poster);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "athar-dhikr.png";
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-    } catch {
-      // Fallback: screenshot the card
-      try {
-        if (!cardRef.current) return;
-        const toPng = await getToPng();
-        const png = await toPng(cardRef.current, { pixelRatio: 2 });
-        const a = document.createElement("a");
-        a.href = png;
-        a.download = "athar-dhikr.png";
-        a.click();
-      } catch {
-        toast.error("تعذر مشاركة الصورة");
-      }
-    }
+  const doShareImage = () => {
+    setPosterOpen(true);
   };
 
   const radius = 22;
@@ -579,6 +549,15 @@ export function DhikrCard(props: {
           </div>
         ) : null}
       </div>
+
+      {posterOpen && (
+        <SharePosterModal
+          text={displayText}
+          sectionTitle={sectionTitle}
+          count={target}
+          onClose={() => setPosterOpen(false)}
+        />
+      )}
     </motion.div>
   );
 }

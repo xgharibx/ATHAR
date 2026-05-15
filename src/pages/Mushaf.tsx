@@ -851,8 +851,7 @@ export function MushafPage() {
       const verse = `${selectedItem.text} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾`;
       const blob = await renderDhikrPosterBlob({
         text: verse,
-        subtitle: `${selectedItem.surahName} • ${selectedItem.surahId}:${selectedItem.displayAyah}`,
-        footerAppName: "ATHAR • أثر",
+        sectionTitle: `${selectedItem.surahName} • ${selectedItem.surahId}:${selectedItem.displayAyah}`,
         footerUrl: "xgharibx.github.io/ATHAR",
       });
       const file = new File([blob], `athar-${selectedItem.surahId}-${selectedItem.displayAyah}.png`, { type: "image/png" });
@@ -1679,8 +1678,7 @@ export function MushafPage() {
                   try {
                     const blob = await renderDhikrPosterBlob({
                       text: reflection,
-                      subtitle: `${selectedItem.surahName} · آية ${toArabicNumeral(selectedItem.displayAyah)}`,
-                      footerAppName: "أثر • ATHAR",
+                      sectionTitle: `${selectedItem.surahName} · آية ${toArabicNumeral(selectedItem.displayAyah)}`,
                       footerUrl: "athar.app",
                     });
                     const fname = `tadabbur-${selectedItem.surahId}-${selectedItem.displayAyah}.png`;
