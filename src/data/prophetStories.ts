@@ -21,7 +21,7 @@ export type ProphetStory = {
   lessons: string[];
 };
 
-export const PROPHET_STORIES: ProphetStory[
+export const PROPHET_STORIES: ProphetStory[] = [
   {
     id: "adam",
     name: "Adam",
