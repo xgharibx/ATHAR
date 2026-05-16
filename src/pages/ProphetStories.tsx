@@ -29,6 +29,11 @@ function StoryCard({
   onToggleBookmark: (id: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [openChapter, setOpenChapter] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    if (!open) setOpenChapter(null);
+  }, [open]);
 
   return (
     <div
@@ -57,7 +62,10 @@ function StoryCard({
           {story.period && (
             <div className="text-xs opacity-50 mt-0.5">{story.period}</div>
           )}
-          {story.fullStory && (
+          {story.chapters && story.chapters.length > 0 && (
+            <div className="text-[10px] font-semibold mt-1" style={{ color: "var(--accent)" }}>📚 {story.chapters.length} فصول</div>
+          )}
+          {!story.chapters && story.fullStory && (
             <div className="text-[10px] font-semibold mt-1" style={{ color: "var(--accent)" }}>📖 قصة كاملة</div>
           )}
         </div>
@@ -76,13 +84,53 @@ function StoryCard({
         style={{ maxHeight: open ? "2500px" : "0", paddingBottom: open ? "16px" : "0" }}
       >
           <div className="h-px" style={{ background: "var(--stroke)" }} />
-          <div className="space-y-3">
-            {(story.fullStory ?? story.summary).split('\n\n').map((para, i) => (
-              <p key={i} className="text-sm leading-loose text-right" style={{ color: "var(--fg)", opacity: 0.85 }}>
-                {para}
-              </p>
-            ))}
-          </div>
+          {story.chapters && story.chapters.length > 0 ? (
+            <div className="space-y-2">
+              {story.chapters.map((chapter, idx) => {
+                const chOpen = openChapter === idx;
+                return (
+                  <div key={idx} className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--stroke)" }}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenChapter(chOpen ? null : idx)}
+                      className="w-full flex items-center justify-between px-3 py-3 text-right"
+                      style={{ color: "var(--fg)" }}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        {chOpen
+                          ? <ChevronUp size={14} aria-hidden="true" style={{ color: "var(--accent)" }} />
+                          : <ChevronDown size={14} aria-hidden="true" style={{ color: "var(--accent)" }} />}
+                      </div>
+                      <span className="flex-1 text-right text-sm font-semibold mr-2" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
+                        {chapter.title}
+                      </span>
+                    </button>
+                    <div
+                      className="overflow-hidden transition-all duration-300"
+                      style={{ maxHeight: chOpen ? "1500px" : "0" }}
+                    >
+                      <div className="px-3 pb-3 space-y-3">
+                        <div className="h-px" style={{ background: "var(--stroke)" }} />
+                        {chapter.content.split('\n\n').map((para, i) => (
+                          <p key={i} className="text-sm leading-loose text-right" style={{ color: "var(--fg)", opacity: 0.85 }}>
+                            {para}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {(story.fullStory ?? story.summary).split('\n\n').map((para, i) => (
+                <p key={i} className="text-sm leading-loose text-right" style={{ color: "var(--fg)", opacity: 0.85 }}>
+                  {para}
+                </p>
+              ))}
+            </div>
+          )}
           {story.quranRefs && story.quranRefs.length > 0 && (
             <div>
               <p className="text-xs font-bold mb-2" style={{ color: "var(--accent)" }}>المراجع القرآنية:</p>
@@ -138,7 +186,9 @@ function StoryCard({
                 const lessons = story.lessons.length > 0
                   ? "\n\nالدروس المستفادة:\n" + story.lessons.map((l) => `• ${l}`).join("\n")
                   : "";
-                const text = `${story.nameAr}\n\n${story.fullStory ?? story.summary}${lessons}`;
+                const text = story.chapters && story.chapters.length > 0
+                  ? `${story.nameAr}\n\n${story.chapters.map(c => `【${c.title}】\n${c.content}`).join('\n\n')}${lessons}`
+                  : `${story.nameAr}\n\n${story.fullStory ?? story.summary}${lessons}`;
                 if (navigator.share) {
                   await navigator.share({ text }).catch(() => {});
                 } else {
