@@ -237,30 +237,30 @@ export function AsmaAlHusnaPage() {
                   type="button"
                   onClick={(e) => { e.stopPropagation(); void shareAsma(name); }}
                   aria-label="مشاركة"
-                  className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-black/10"
                   style={{ color: isExpanded ? "color-mix(in srgb, var(--on-accent) 50%, transparent)" : "var(--fg)", opacity: 0.5 }}
                 >
-                  <Share2 size={13} aria-hidden="true" />
+                  <Share2 size={16} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); toggleMemorized(name.id); }}
                   aria-label={isMem ? "إلغاء الحفظ" : "تمييز كمحفوظ"}
                   aria-pressed={isMem}
-                  className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-black/10"
                   style={{ color: isMem ? (isExpanded ? "var(--on-accent)" : "var(--accent)") : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isMem ? 1 : 0.4 }}
                 >
-                  <Brain size={14} aria-hidden="true" />
+                  <Brain size={16} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); toggleFavorite(name.id); }}
                   aria-label={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
                   aria-pressed={isFav}
-                  className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors hover:bg-black/10"
                   style={{ color: isFav ? "#ef4444" : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isFav ? 1 : 0.4 }}
                 >
-                  <Heart size={14} aria-hidden="true" fill={isFav ? "#ef4444" : "none"} />
+                  <Heart size={16} aria-hidden="true" fill={isFav ? "#ef4444" : "none"} />
                 </button>
               </div>
             </div>
@@ -269,8 +269,25 @@ export function AsmaAlHusnaPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-16 opacity-50" style={{ color: "var(--fg)" }}>
-          لا توجد نتائج
+        <div className="flex flex-col items-center gap-1 py-16 opacity-50" style={{ color: "var(--fg)" }}>
+          {query ? (
+            <>
+              <span>لا توجد نتائج</span>
+              <span className="text-xs opacity-70">جرّب كلمة مختلفة</span>
+            </>
+          ) : tab === "memorized" ? (
+            <>
+              <span>لم تحفظ أي اسم بعد</span>
+              <span className="text-xs opacity-70">انقر 🧠 على أي اسم لتبدأ</span>
+            </>
+          ) : tab === "favorites" ? (
+            <>
+              <span>لا توجد أسماء مفضلة</span>
+              <span className="text-xs opacity-70">انقر ❤️ على أي اسم لتضيفه</span>
+            </>
+          ) : (
+            <span>لا توجد نتائج</span>
+          )}
         </div>
       )}
     </div>
