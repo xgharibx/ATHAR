@@ -57,6 +57,9 @@ function StoryCard({
           {story.period && (
             <div className="text-xs opacity-50 mt-0.5">{story.period}</div>
           )}
+          {story.fullStory && (
+            <div className="text-[10px] font-semibold mt-1" style={{ color: "var(--accent)" }}>📖 قصة كاملة</div>
+          )}
         </div>
         <div
           className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
@@ -70,15 +73,32 @@ function StoryCard({
         id={`story-panel-${story.id}`}
         aria-hidden={!open}
         className="overflow-hidden px-4 space-y-4 transition-all duration-300"
-        style={{ maxHeight: open ? "800px" : "0", paddingBottom: open ? "16px" : "0" }}
+        style={{ maxHeight: open ? "1500px" : "0", paddingBottom: open ? "16px" : "0" }}
       >
           <div className="h-px" style={{ background: "var(--stroke)" }} />
-          <p
-            className="text-sm leading-loose text-right"
-            style={{ color: "var(--fg)", opacity: 0.85 }}
-          >
-            {story.summary}
-          </p>
+          <div className="space-y-3">
+            {(story.fullStory ?? story.summary).split('\n\n').map((para, i) => (
+              <p key={i} className="text-sm leading-loose text-right" style={{ color: "var(--fg)", opacity: 0.85 }}>
+                {para}
+              </p>
+            ))}
+          </div>
+          {story.quranRefs && story.quranRefs.length > 0 && (
+            <div>
+              <p className="text-xs font-bold mb-2" style={{ color: "var(--accent)" }}>المراجع القرآنية:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {story.quranRefs.map((ref) => (
+                  <span
+                    key={ref}
+                    className="text-xs px-2.5 py-0.5 rounded-full"
+                    style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}
+                  >
+                    {ref}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           {story.lessons.length > 0 && (
             <div>
               <p className="text-xs font-bold mb-2" style={{ color: "var(--accent)" }}>
@@ -102,7 +122,7 @@ function StoryCard({
                 const lessons = story.lessons.length > 0
                   ? "\n\nالدروس المستفادة:\n" + story.lessons.map((l) => `• ${l}`).join("\n")
                   : "";
-                const text = `${story.nameAr}\n\n${story.summary}${lessons}`;
+                const text = `${story.nameAr}\n\n${story.fullStory ?? story.summary}${lessons}`;
                 if (navigator.share) {
                   await navigator.share({ text }).catch(() => {});
                 } else {
