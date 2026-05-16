@@ -33,7 +33,7 @@ function StoryCard({
   return (
     <div
       role="listitem"
-      className="rounded-2xl overflow-hidden transition-all duration-200 cv-auto"
+      className={`rounded-2xl overflow-hidden transition-all duration-200${!open ? " cv-auto" : ""}`}
       style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}
     >
       <button type="button"
@@ -66,7 +66,12 @@ function StoryCard({
         </div>
       </button>
 
-      <div id={`story-panel-${story.id}`} hidden={!open} className="px-4 pb-4 space-y-4">
+      <div
+        id={`story-panel-${story.id}`}
+        aria-hidden={!open}
+        className="overflow-hidden px-4 space-y-4 transition-all duration-300"
+        style={{ maxHeight: open ? "800px" : "0", paddingBottom: open ? "16px" : "0" }}
+      >
           <div className="h-px" style={{ background: "var(--stroke)" }} />
           <p
             className="text-sm leading-loose text-right"
@@ -109,7 +114,7 @@ function StoryCard({
                   }
                 }
               }}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 min-h-[44px] rounded-full transition-all"
               style={{ background: "var(--stroke)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.7 }}
             >
               <Share2 size={13} aria-hidden="true" />
@@ -120,7 +125,7 @@ function StoryCard({
               onClick={(e) => { e.stopPropagation(); onToggleBookmark(story.id); }}
               aria-pressed={bookmarked}
               aria-label={bookmarked ? "إلغاء حفظ القصة" : "حفظ القصة"}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 min-h-[44px] rounded-full transition-all"
               style={bookmarked
                 ? { background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 35%, transparent)" }
                 : { background: "var(--stroke)", color: "var(--fg)", border: "1px solid var(--stroke)", opacity: 0.7 }}
@@ -182,7 +187,7 @@ export function ProphetStoriesPage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 aria-label="رجوع"
-                className="mt-1 p-2 rounded-xl flex-shrink-0"
+                className="mt-1 p-2 rounded-xl flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={{ background: "var(--card)", color: "var(--fg)" }}
               >
                 <ArrowRight size={18} aria-hidden="true" />
@@ -199,7 +204,7 @@ export function ProphetStoriesPage() {
                 type="button"
                 onClick={() => setShowBookmarksOnly((v) => !v)}
                 aria-pressed={showBookmarksOnly}
-                className="mt-1 p-2 rounded-xl transition-all"
+                className="mt-1 p-2 rounded-xl transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
                 style={showBookmarksOnly
                   ? { background: "rgba(245,158,11,0.2)", color: "#f59e0b" }
                   : { background: "var(--card)", color: "var(--fg)" }}
@@ -241,8 +246,20 @@ export function ProphetStoriesPage() {
       {/* Stories */}
       <div className="px-4 pt-4 space-y-3" role="list" aria-label="قائمة قصص الأنبياء">
         {filtered.length === 0 ? (
-          <div className="text-center py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>
-            {showBookmarksOnly ? "لا توجد قصص محفوظة" : "لا توجد نتائج"}
+          <div className="flex flex-col items-center gap-1 py-10 opacity-50 text-sm" style={{ color: "var(--fg)" }}>
+            {showBookmarksOnly ? (
+            <>
+              <span>لا توجد قصص محفوظة</span>
+              <span className="text-xs opacity-70">انقر 🔖 على أي قصة لتحفظها</span>
+            </>
+          ) : query ? (
+            <>
+              <span>لا توجد نتائج</span>
+              <span className="text-xs opacity-70">جرّب كلمة مختلفة</span>
+            </>
+          ) : (
+            <span>لا توجد نتائج</span>
+          )}
           </div>
         ) : filtered.map((story) => (
           <StoryCard
