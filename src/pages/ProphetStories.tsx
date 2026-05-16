@@ -73,7 +73,7 @@ function StoryCard({
         id={`story-panel-${story.id}`}
         aria-hidden={!open}
         className="overflow-hidden px-4 space-y-4 transition-all duration-300"
-        style={{ maxHeight: open ? "1500px" : "0", paddingBottom: open ? "16px" : "0" }}
+        style={{ maxHeight: open ? "2500px" : "0", paddingBottom: open ? "16px" : "0" }}
       >
           <div className="h-px" style={{ background: "var(--stroke)" }} />
           <div className="space-y-3">
