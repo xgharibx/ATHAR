@@ -83,6 +83,8 @@ export type Preferences = {
   prayerCalcMethod: number; // 1-23 AlAdhan method, default 5 (Egyptian)
   asrMadhab: 0 | 1; // 0=Shafi'i, 1=Hanafi
   homeStripOrder?: string[]; // ordered IDs of azkar strip cards
+  mushafTextColor?: string; // custom Mushaf text colour hex
+  bgVibrancyBoost?: boolean; // boost background vibrancy
 };
 
 export type SebhaSession = {
@@ -232,6 +234,10 @@ type NoorState = {
   sebhaTarget: number;
   setSebhaTarget: (t: number) => void;
 
+  // Sebha selected dhikr (persisted across sessions)
+  sebhaSelected: string;
+  setSebhaSelected: (v: string) => void;
+
   // Sebha custom dhikr
   sebhaCustom: { phrase: string; target: number } | null;
   setSebhaCustom: (v: { phrase: string; target: number } | null) => void;
@@ -298,6 +304,7 @@ type NoorState = {
 
   increment: (opts: { sectionId: string; index: number; target: number }) => number;
   decrement: (opts: { sectionId: string; index: number; target?: number }) => number;
+  setItemCount: (opts: { sectionId: string; index: number; count: number }) => void;
   resetItem: (sectionId: string, index: number, target?: number) => void;
   resetSection: (sectionId: string) => void;
 
@@ -717,6 +724,9 @@ export const useNoorStore = create<NoorState>()(
       sebhaCustom: null,
       setSebhaCustom: (v) => set({ sebhaCustom: v }),
 
+      sebhaSelected: "subhanallah",
+      setSebhaSelected: (v) => set({ sebhaSelected: v }),
+
       prayerLog: {},
       setPrayerLogged: (dateISO, prayer, done) => {
         set((s) => ({
@@ -897,6 +907,11 @@ export const useNoorStore = create<NoorState>()(
         const next = Math.max(0, current - 1);
         set((s) => ({ progress: { ...s.progress, [key]: next } }));
         return next;
+      },
+
+      setItemCount: ({ sectionId, index, count }) => {
+        const key = `${sectionId}:${index}`;
+        set((s) => ({ progress: { ...s.progress, [key]: Math.max(0, count) } }));
       },
 
       resetItem: (sectionId, index, target) => {
