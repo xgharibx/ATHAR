@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronRight, Users, Search, X, Bookmark, BookmarkCheck, Share2 } from "lucide-react";
-import { COMPANIONS, COMPANION_CATEGORIES, type Companion } from "@/data/companions";
+import { COMPANIONS, COMPANION_CATEGORIES, type Companion, type CompanionChapter } from "@/data/companions";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
@@ -223,18 +223,36 @@ export default function Companions() {
               </div>
               </button>
 
-              {/* Expandable bio */}
+              {/* Expandable bio / chapters */}
               <div
                 id={`companion-panel-${companion.id}`}
                 hidden={!isOpen}
-                className="relative px-4 pb-4 text-right font-arabic text-sm leading-7"
+                className="relative px-4 pb-4 text-right font-arabic"
                 style={{
                   color: "var(--fg)",
                   borderTop: "1px solid var(--stroke)",
                 }}
               >
-                  {companion.brief}
-                  <div className="mt-2 flex justify-end gap-2">
+                {companion.chapters && companion.chapters.length > 0 ? (
+                  <div className="mt-3 space-y-5">
+                    {companion.chapters.map((ch: CompanionChapter, i: number) => (
+                      <div key={i}>
+                        <h3
+                          className="text-sm font-bold mb-2"
+                          style={{ color: "var(--accent)" }}
+                        >
+                          {i + 1}. {ch.title}
+                        </h3>
+                        {ch.content.split("\n\n").map((para, j) => (
+                          <p key={j} className="text-sm leading-loose mb-2">{para}</p>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm leading-loose mt-3">{companion.brief}</p>
+                )}
+                  <div className="mt-3 flex justify-end gap-2">
                     <button
                       type="button"
                       onClick={async (e) => {
