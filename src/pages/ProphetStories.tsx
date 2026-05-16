@@ -99,6 +99,22 @@ function StoryCard({
               </div>
             </div>
           )}
+          {story.sources && story.sources.length > 0 && (
+            <div>
+              <p className="text-xs font-bold mb-2" style={{ color: "var(--fg)", opacity: 0.6 }}>📚 المصادر:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {story.sources.map((src) => (
+                  <span
+                    key={src}
+                    className="text-xs px-2.5 py-0.5 rounded-full"
+                    style={{ background: "color-mix(in srgb, var(--fg) 8%, transparent)", color: "var(--fg)", opacity: 0.75, border: "1px solid color-mix(in srgb, var(--fg) 15%, transparent)" }}
+                  >
+                    {src}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           {story.lessons.length > 0 && (
             <div>
               <p className="text-xs font-bold mb-2" style={{ color: "var(--accent)" }}>
