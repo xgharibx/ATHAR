@@ -29,6 +29,15 @@ export function AsmaAlHusnaPage() {
 
   const dailyAsmaId = React.useMemo(() => getDailyAsmaId(), []);
 
+  // Close expanded card on ESC key
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && expandedId !== null) setExpandedId(null);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [expandedId]);
+
   const filtered = React.useMemo(() => {
     let list = ASMA_AL_HUSNA;
     if (tab === "memorized") list = list.filter((n) => memorized.includes(n.id));
@@ -108,7 +117,7 @@ export function AsmaAlHusnaPage() {
               <input
                 type="search"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => { setQuery(e.target.value); setExpandedId(null); }}
                 aria-label="بحث في أسماء الله الحسنى"
                 placeholder="ابحث بالاسم أو المعنى..."
                 spellCheck={false}
@@ -118,7 +127,7 @@ export function AsmaAlHusnaPage() {
                 style={{ color: "var(--fg)" }}
               />
               {query && (
-                <button type="button" onClick={() => setQuery("")} className="opacity-50 text-xs" aria-label="مسح البحث">✕</button>
+                <button type="button" onClick={() => { setQuery(""); setExpandedId(null); }} className="opacity-50 text-xs" aria-label="مسح البحث">✕</button>
               )}
             </div>
             {/* Filter tabs */}
@@ -138,7 +147,7 @@ export function AsmaAlHusnaPage() {
                   type="button"
                   role="tab"
                   aria-selected={tab === t}
-                  onClick={() => setTab(t)}
+                  onClick={() => { setTab(t); setExpandedId(null); }}
                   className="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-all"
                   style={{
                     background: tab === t ? "#f59e0b" : "var(--card)",
@@ -168,7 +177,7 @@ export function AsmaAlHusnaPage() {
             <div
               key={name.id}
               role="listitem"
-              className="rounded-2xl transition-all duration-200 cv-auto"
+              className={`rounded-2xl transition-all duration-200${!isExpanded ? " cv-auto" : ""}`}
               style={{
                 background: isExpanded ? "var(--accent)" : "var(--card)",
                 border: `1px solid ${isExpanded ? "transparent" : "var(--stroke)"}`,
@@ -212,9 +221,13 @@ export function AsmaAlHusnaPage() {
               {/* Benefit panel */}
               <div
                 id={`asma-panel-${name.id}`}
-                hidden={!isExpanded}
-                className="px-4 pb-3 text-sm opacity-90 leading-relaxed text-right"
-                style={{ color: "color-mix(in srgb, var(--on-accent) 88%, transparent)" }}
+                aria-hidden={!isExpanded}
+                className="overflow-hidden px-4 text-sm opacity-90 leading-relaxed text-right transition-all duration-300"
+                style={{
+                  maxHeight: isExpanded ? "400px" : "0",
+                  paddingBottom: isExpanded ? "12px" : "0",
+                  color: "color-mix(in srgb, var(--on-accent) 88%, transparent)",
+                }}
               >
                 {name.benefit}
               </div>
@@ -224,7 +237,7 @@ export function AsmaAlHusnaPage() {
                   type="button"
                   onClick={(e) => { e.stopPropagation(); void shareAsma(name); }}
                   aria-label="مشاركة"
-                  className="p-1.5 rounded-lg transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors"
                   style={{ color: isExpanded ? "color-mix(in srgb, var(--on-accent) 50%, transparent)" : "var(--fg)", opacity: 0.5 }}
                 >
                   <Share2 size={13} aria-hidden="true" />
@@ -234,7 +247,7 @@ export function AsmaAlHusnaPage() {
                   onClick={(e) => { e.stopPropagation(); toggleMemorized(name.id); }}
                   aria-label={isMem ? "إلغاء الحفظ" : "تمييز كمحفوظ"}
                   aria-pressed={isMem}
-                  className="p-1.5 rounded-lg transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors"
                   style={{ color: isMem ? (isExpanded ? "var(--on-accent)" : "var(--accent)") : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isMem ? 1 : 0.4 }}
                 >
                   <Brain size={14} aria-hidden="true" />
@@ -244,7 +257,7 @@ export function AsmaAlHusnaPage() {
                   onClick={(e) => { e.stopPropagation(); toggleFavorite(name.id); }}
                   aria-label={isFav ? "إلغاء التفضيل" : "إضافة للمفضلة"}
                   aria-pressed={isFav}
-                  className="p-1.5 rounded-lg transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors"
                   style={{ color: isFav ? "#ef4444" : (isExpanded ? "color-mix(in srgb, var(--on-accent) 40%, transparent)" : "var(--fg)"), opacity: isFav ? 1 : 0.4 }}
                 >
                   <Heart size={14} aria-hidden="true" fill={isFav ? "#ef4444" : "none"} />
