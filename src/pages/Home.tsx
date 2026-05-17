@@ -1655,7 +1655,7 @@ export function HomePage() {
             { icon: "💧", label: "الوضوء", route: "/wudu" },
             { icon: "🌟", label: "الصحابة", route: "/companions" },
             { icon: "📜", label: "الرقية الشرعية", route: "/ruqyah" },
-            { icon: "🗓", label: "السيرة النبوية", route: "/seerah" },
+            { icon: "🕌", label: "السيرة النبوية", route: "/seerah" },
             { icon: "📚", label: "الأحاديث", route: "/hadith" },
             { icon: "🏅", label: "حفظ الحديث", route: "/hadith/memo" },
             { icon: "📊", label: "الإحصاءات", route: "/insights" },

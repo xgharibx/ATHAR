@@ -1,7 +1,7 @@
 import * as React from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, BookOpenText, Check, Clock, Copy, ExternalLink, Heart, Library, Search, Share2, Sparkles, Users } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpenText, Check, Copy, ExternalLink, Heart, Library, Search, Share2, Sparkles, Users } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Badge } from "@/components/ui/Badge";
@@ -355,23 +355,23 @@ export function LibraryPage() {
         <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" aria-hidden="true" />
       </button>
 
-      {/* Seerah timeline entry card */}
+      {/* Seerah books entry card */}
       <button type="button"
         dir="rtl"
         onClick={() => navigate("/seerah")}
         className="w-full text-right rounded-2xl p-4 flex items-center gap-4 transition active:scale-95"
-        style={{ background: "linear-gradient(135deg, #8b5cf622, #06b6d422)", border: "1px solid #8b5cf633" }}
+        style={{ background: "linear-gradient(135deg, #10b98122, #059669 15%)", border: "1px solid #10b98133" }}
       >
         <div
           className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "#8b5cf622" }}
+          style={{ background: "#10b98122" }}
         >
-          <Clock size={22} aria-hidden="true" style={{ color: "#8b5cf6" }} />
+          <BookOpenText size={22} aria-hidden="true" style={{ color: "#10b981" }} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm text-[var(--fg)] font-arabic">السيرة النبوية</p>
           <p className="text-xs text-[var(--muted)] mt-0.5 font-arabic">
-            21 حدثًا • رحلة حياة النبي ﷺ على خط الزمن
+            16 كتاباً • سيرة النبي ﷺ المفصّلة فصلاً فصلاً
           </p>
         </div>
         <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" aria-hidden="true" />
