@@ -199,14 +199,8 @@ export const REMINDER_SOUND_OPTIONS: Array<{
   fileName: string;
 }> = [
   {
-    id: "birds_dawn",
-    label: "طيور",
-    description: "",
-    fileName: "birds_dawn.mp3",
-  },
-  {
     id: "rain_calm",
-    label: "مطر 1",
+    label: "مطر هادئ",
     description: "",
     fileName: "rain_calm.ogg",
   },
@@ -223,36 +217,6 @@ export const PRAYER_SOUND_OPTIONS: Array<{
     label: "أذان الحرم",
     description: "",
     fileName: "adhan_haram.mp3",
-  },
-  {
-    id: "adhan_fajr",
-    label: "أذان الفجر",
-    description: "",
-    fileName: "adhan_fajr.mp3",
-  },
-  {
-    id: "iqama_soft",
-    label: "إقامة هادئة",
-    description: "",
-    fileName: "iqama_soft.mp3",
-  },
-  {
-    id: "aladhan_adhan_3",
-    label: "مؤذن 3",
-    description: "",
-    fileName: "aladhan_adhan_3.mp3",
-  },
-  {
-    id: "aladhan_adhan_4",
-    label: "مؤذن 4",
-    description: "",
-    fileName: "aladhan_adhan_4.mp3",
-  },
-  {
-    id: "aladhan_adhan_7",
-    label: "مؤذن 7",
-    description: "",
-    fileName: "aladhan_adhan_7.mp3",
   },
 ];
 
@@ -661,8 +625,8 @@ export async function ensureDefaultNotificationChannels(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
     await Promise.all([
-      ensureReminderChannel("birds_dawn"),
-      ensurePrayerChannel("aladhan_adhan_3"),
+      ensureReminderChannel("rain_calm"),
+      ensurePrayerChannel("adhan_haram"),
     ]);
   } catch { /* non-fatal */ }
 }

@@ -16,7 +16,7 @@ async function fetchJson(url: string): Promise<unknown> {
  *
  * Cache hierarchy:
  * 1. IndexedDB (Dexie) — instant, parsed data, survives page refreshes
- * 2. public/data/quran.json — offline-friendly / same-origin, served by SW
+ * 2. public/data/quran.json — bundled in the web build and Capacitor APK
  * 3. Remote CDN — last-resort network fallback
  */
 export async function loadQuranDB(): Promise<QuranDB> {

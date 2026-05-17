@@ -26,6 +26,7 @@ import {
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
+import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import toast from "react-hot-toast";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -182,8 +183,8 @@ export function MushafPage() {
   const { page: pageParam } = useParams<{ page?: string }>();
   const [sp] = useSearchParams();
 
-  const { data: quranDB, isLoading: dbLoading } = useQuranDB();
-  const { data: pmData, isLoading: pmLoading } = useQuranPageMap();
+  const { data: quranDB, isLoading: dbLoading, isError: dbError, refetch: refetchQuranDB } = useQuranDB();
+  const { data: pmData, isLoading: pmLoading, isError: pmError, refetch: refetchPageMap } = useQuranPageMap();
   // Keep a ref so audio callbacks can access latest DB without closure stale-ness
   const quranDBRef = React.useRef(quranDB);
   React.useEffect(() => { quranDBRef.current = quranDB; }, [quranDB]);
@@ -518,6 +519,15 @@ export function MushafPage() {
   const [tajweedDownloadProgress, setTajweedDownloadProgress] = React.useState<{ done: number; total: number } | null>(null);
   // A2-B: Per-reciter page download progress
   const [reciterDownloadProgress, setReciterDownloadProgress] = React.useState<Record<string, { done: number; total: number } | "done">>({});
+  React.useEffect(() => {
+    let alive = true;
+    ensureMushafCoreOffline()
+      .catch(() => undefined)
+      .finally(() => {
+        if (!alive) return;
+      });
+    return () => { alive = false; };
+  }, []);
 
   // A4: Quran Radio
   const radioState = useRadioState();
@@ -1093,7 +1103,30 @@ export function MushafPage() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center" role="status">
             <div className="w-10 h-10 border-2 border-[#2F4F37] border-t-transparent rounded-full animate-spin mx-auto mb-4" aria-hidden="true" />
-            <div className="text-sm opacity-60">تحميل المصحف…</div>
+            <div className="text-sm opacity-60">فتح المصحف…</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!quranDB || !pmData || dbError || pmError) {
+    return (
+      <div className="mushaf-reader" dir="rtl">
+        <div className="flex-1 flex items-center justify-center p-5">
+          <div className="max-w-sm text-center rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-5">
+            <div className="text-3xl mb-3" aria-hidden="true">📖</div>
+            <div className="font-semibold mb-2">تعذر فتح المصحف</div>
+            <p className="text-sm opacity-70 leading-7">
+              يحتاج التطبيق إلى تحميل بيانات المصحف مرة واحدة. اتصل بالإنترنت واضغط إعادة المحاولة، ثم يمكنك تحميله للقراءة دون إنترنت.
+            </p>
+            <button
+              type="button"
+              className="mt-4 w-full rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-[var(--on-accent)]"
+              onClick={() => { void refetchQuranDB(); void refetchPageMap(); }}
+            >
+              إعادة المحاولة
+            </button>
           </div>
         </div>
       </div>

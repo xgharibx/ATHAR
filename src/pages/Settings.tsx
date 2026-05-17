@@ -24,6 +24,7 @@ import {
   stopSoundPreview,
   syncReminders
 } from "@/lib/reminders";
+import { downloadMushafCore, getMushafOfflineStatus, type MushafOfflineProgress, type MushafOfflineStatus } from "@/lib/mushafOffline";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
@@ -100,6 +101,12 @@ export function SettingsPage() {
   const [isNative, setIsNative] = React.useState(false);
   const [notifPerm, setNotifPerm] = React.useState<"unknown" | "granted" | "denied" | "prompt">("unknown");
   const [playingPreview, setPlayingPreview] = React.useState<string | null>(null);
+  const [mushafOfflineStatus, setMushafOfflineStatus] = React.useState<MushafOfflineStatus | null>(null);
+  const [mushafOfflineProgress, setMushafOfflineProgress] = React.useState<MushafOfflineProgress | null>(null);
+
+  const refreshMushafOfflineStatus = React.useCallback(async () => {
+    setMushafOfflineStatus(await getMushafOfflineStatus());
+  }, []);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -126,6 +133,30 @@ export function SettingsPage() {
       stopSoundPreview();
     };
   }, []);
+
+  React.useEffect(() => {
+    void refreshMushafOfflineStatus();
+  }, [refreshMushafOfflineStatus]);
+
+  const downloadOfflineMushaf = React.useCallback(async () => {
+    setMushafOfflineProgress({ done: 0, total: 3, label: "تهيئة النسخة المحلية" });
+    try {
+      await downloadMushafCore(setMushafOfflineProgress);
+      await refreshMushafOfflineStatus();
+      toast.success("تم تحديث نسخة المصحف المحلية");
+    } catch {
+      toast.error("تعذر تحديث نسخة المصحف المحلية");
+    } finally {
+      setMushafOfflineProgress(null);
+    }
+  }, [refreshMushafOfflineStatus]);
+
+  const mushafProgressPct = mushafOfflineProgress
+    ? Math.round((mushafOfflineProgress.done / mushafOfflineProgress.total) * 100)
+    : 0;
+  const mushafPinnedDate = mushafOfflineStatus?.pinnedAt
+    ? new Date(mushafOfflineStatus.pinnedAt).toLocaleDateString("ar-EG")
+    : null;
 
   const toggleReminderPreview = async (soundProfile: typeof REMINDER_SOUND_OPTIONS[number]["id"]) => {
     const key = `reminder:${soundProfile}`;
@@ -844,6 +875,67 @@ export function SettingsPage() {
         </div>
       </Card>
 
+      <Card id="settings-offline-content" className="p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-start gap-2 min-w-0">
+            <Download size={18} className="mt-1 text-[var(--accent)] shrink-0" aria-hidden="true" />
+            <div className="min-w-0">
+              <div className="font-semibold">المحتوى دون إنترنت</div>
+              <div className="text-xs opacity-65 mt-1 leading-6">
+                بيانات المصحف الأساسية مضمّنة داخل التطبيق، وتعمل بعد تثبيت APK مباشرة.
+              </div>
+            </div>
+          </div>
+          <span
+            className="rounded-full border px-3 py-1 text-[11px] font-semibold"
+            style={{
+              borderColor: mushafOfflineStatus?.ready ? "color-mix(in srgb, var(--ok) 35%, transparent)" : "var(--stroke)",
+              background: mushafOfflineStatus?.ready ? "color-mix(in srgb, var(--ok) 12%, transparent)" : "var(--card)",
+              color: mushafOfflineStatus?.ready ? "var(--ok)" : "var(--muted)",
+            }}
+          >
+            مضمّن
+          </span>
+        </div>
+
+        <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">المصحف للقراءة</div>
+              <div className="text-xs opacity-65 mt-1 leading-6">
+                {mushafOfflineStatus?.ready
+                  ? (mushafOfflineStatus.indexedDBReady
+                    ? `مضمّن داخل APK ونسخة التخزين المحلي جاهزة منذ ${mushafPinnedDate ?? "آخر تشغيل"}`
+                    : `مضمّن داخل APK، والحجم التقريبي ${mushafOfflineStatus.sizeLabel}`)
+                  : "جارٍ التحقق من نسخة المصحف"}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant={mushafOfflineStatus?.indexedDBReady ? "secondary" : "primary"}
+                onClick={() => void downloadOfflineMushaf()}
+                disabled={!!mushafOfflineProgress}
+              >
+                <Download size={14} aria-hidden="true" />
+                {mushafOfflineStatus?.indexedDBReady ? "تحديث النسخة المحلية" : "تجهيز التخزين المحلي"}
+              </Button>
+            </div>
+          </div>
+          {mushafOfflineProgress && (
+            <div className="mt-4" role="status" aria-live="polite">
+              <div className="flex items-center justify-between gap-3 text-xs opacity-70">
+                <span>{mushafOfflineProgress.label}</span>
+                <span className="tabular-nums">{mushafProgressPct}%</span>
+              </div>
+              <div className="mt-2 h-2 rounded-full bg-[var(--card-2)] overflow-hidden border border-[var(--stroke)]">
+                <div className="h-full rounded-full transition-all" style={{ width: `${mushafProgressPct}%`, background: "var(--accent)" }} />
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
       <Card id="settings-reminders" className="p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -923,14 +1015,14 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2" role="group" aria-label="اختيار صوت التذكير">
+          <div className="mt-3 grid grid-cols-1 gap-2" role="group" aria-label="اختيار صوت التذكير">
             {REMINDER_SOUND_OPTIONS.map((option) => {
               const active = reminders.soundProfile === option.id;
               return (
                 <div
                   key={option.id}
                   className={[
-                    "rounded-2xl border p-3 transition",
+                    "rounded-2xl border p-3 transition flex flex-wrap items-center justify-between gap-3",
                     active
                       ? "bg-accent-12 border-accent-30"
                       : "bg-[var(--card)] border-[var(--stroke)]",
@@ -938,14 +1030,14 @@ export function SettingsPage() {
                 >
                   <button type="button"
                     onClick={() => setReminders({ soundProfile: option.id })}
-                    className="w-full text-right"
+                    className="min-w-0 flex-1 text-right"
                     aria-pressed={active}
                     aria-label={`صوت التذكير: اختيار صوت ${option.label}`}
                     disabled={!reminders.enabled && isNative}
                   >
                     <div className="text-sm font-semibold">{option.label}</div>
                   </button>
-                  <div className="mt-3 flex justify-end">
+                  <div className="flex justify-end">
                     <button type="button"
                       onClick={() => void toggleReminderPreview(option.id)}
                       aria-label={playingPreview === `reminder:${option.id}` ? `إيقاف معاينة صوت ${option.label}` : `معاينة صوت ${option.label}`}
@@ -1004,14 +1096,14 @@ export function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2" role="group" aria-label="اختيار صوت الأذان">
+              <div className="mt-3 grid grid-cols-1 gap-2" role="group" aria-label="اختيار صوت الأذان">
                 {PRAYER_SOUND_OPTIONS.map((option) => {
                   const active = reminders.prayerSoundProfile === option.id;
                   return (
                     <div
                       key={option.id}
                       className={[
-                        "rounded-2xl border p-3 transition",
+                        "rounded-2xl border p-3 transition flex flex-wrap items-center justify-between gap-3",
                         active
                           ? "bg-accent-12 border-accent-30"
                           : "bg-[var(--card)] border-[var(--stroke)]",
@@ -1019,14 +1111,14 @@ export function SettingsPage() {
                     >
                       <button type="button"
                         onClick={() => setReminders({ prayerSoundProfile: option.id })}
-                        className="w-full text-right"
+                        className="min-w-0 flex-1 text-right"
                         aria-pressed={active}
                         aria-label={`صوت الأذان: اختيار صوت ${option.label}`}
                         disabled={!reminders.enabled && isNative}
                       >
                         <div className="text-sm font-semibold">{option.label}</div>
                       </button>
-                      <div className="mt-3 flex justify-end">
+                      <div className="flex justify-end">
                         <button type="button"
                           onClick={() => void togglePrayerPreview(option.id)}
                           aria-label={playingPreview === `prayer:${option.id}` ? `إيقاف معاينة صوت ${option.label}` : `معاينة صوت ${option.label}`}

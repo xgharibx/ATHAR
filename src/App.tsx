@@ -13,6 +13,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels } from "@/lib/reminders";
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
+import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 
 // T7: Per-route error boundary - prevents a single page crash from killing the whole app
 class RouteErrorBoundary extends React.Component<
@@ -156,6 +157,29 @@ export default function App() {
 
     const timeoutId = setTimeout(runPrefetch, 1200);
     return () => clearTimeout(timeoutId);
+  }, []);
+
+  React.useEffect(() => {
+    const w = globalThis as typeof globalThis & {
+      requestIdleCallback?: (cb: () => void) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    const prepareMushaf = () => {
+      void ensureMushafCoreOffline().catch(() => {
+        // Settings and the reader expose a retry path if the first background attempt fails.
+      });
+    };
+
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(prepareMushaf);
+      return () => {
+        if (typeof w.cancelIdleCallback === "function") w.cancelIdleCallback(id);
+      };
+    }
+
+    const timeoutId = globalThis.setTimeout(prepareMushaf, 1200);
+    return () => globalThis.clearTimeout(timeoutId);
   }, []);
 
   React.useEffect(() => {

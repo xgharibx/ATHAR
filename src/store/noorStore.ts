@@ -32,14 +32,8 @@ export type NoorTheme =
   | "sunset"
   | "mist";
 
-export type ReminderSoundProfile = "birds_dawn" | "rain_calm";
-export type PrayerSoundProfile =
-  | "adhan_haram"
-  | "adhan_fajr"
-  | "iqama_soft"
-  | "aladhan_adhan_3"
-  | "aladhan_adhan_4"
-  | "aladhan_adhan_7";
+export type ReminderSoundProfile = "rain_calm";
+export type PrayerSoundProfile = "adhan_haram";
 export type PrayerAlertPrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
 export type PrayerAlertPreferences = Record<PrayerAlertPrayer, boolean>;
 export type HomeWidgetKey = "prayer" | "hadith" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird" | "dailyVerse" | "quests";
@@ -489,8 +483,8 @@ function normalizePrefs(value: unknown): Preferences {
 
 const DEFAULT_REMINDERS: Reminders = {
   enabled: false,
-  soundProfile: "birds_dawn",
-  prayerSoundProfile: "aladhan_adhan_3",
+  soundProfile: "rain_calm",
+  prayerSoundProfile: "adhan_haram",
   prayerAlertsEnabled: true,
   prayerAlerts: {
     Fajr: true,
@@ -517,8 +511,6 @@ function normalizeReminderSoundProfile(value: unknown): ReminderSoundProfile {
   }
 
   switch (value.trim()) {
-    case "birds_dawn":
-      return "birds_dawn";
     case "rain_calm":
       return "rain_calm";
     default:
@@ -567,16 +559,6 @@ function normalizePrayerSoundProfile(value: unknown): PrayerSoundProfile {
   switch (value.trim()) {
     case "adhan_haram":
       return "adhan_haram";
-    case "adhan_fajr":
-      return "adhan_fajr";
-    case "iqama_soft":
-      return "iqama_soft";
-    case "aladhan_adhan_3":
-      return "aladhan_adhan_3";
-    case "aladhan_adhan_4":
-      return "aladhan_adhan_4";
-    case "aladhan_adhan_7":
-      return "aladhan_adhan_7";
     default:
       return DEFAULT_REMINDERS.prayerSoundProfile;
   }

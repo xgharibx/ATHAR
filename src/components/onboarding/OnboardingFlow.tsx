@@ -122,6 +122,9 @@ export function OnboardingFlow() {
     }
   };
 
+  const actionLabel = loading ? "جارٍ…" : current.action;
+  const showLaterButton = "prayerReminders" in current && current.prayerReminders;
+
   return (
     <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" onClick={(e) => e.stopPropagation()} dir="rtl">
       <AnimatePresence mode="wait">
@@ -146,25 +149,27 @@ export function OnboardingFlow() {
 
           <button type="button"
             autoFocus
-            className="w-full mt-5 py-3.5 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] font-semibold text-sm arabic-text disabled:opacity-60 transition"
+            className="w-full mt-5 py-3.5 px-4 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] font-semibold text-sm leading-snug whitespace-normal arabic-text disabled:opacity-60 transition"
             onClick={handleAction}
             disabled={loading}
           >
-            {loading ? "جارٍ…" : current.action}
+            {actionLabel}
           </button>
 
-          {step < STEPS.length - 1 && !("prayerReminders" in current && current.prayerReminders) && (
+          {step < STEPS.length - 1 && !showLaterButton && (
             <button type="button"
               className="w-full mt-2 py-2.5 text-sm opacity-45 hover:opacity-70 transition arabic-text"
               onClick={handleSkip}
+              disabled={loading}
             >
               تخطي
             </button>
           )}
-          {"prayerReminders" in current && current.prayerReminders && (
+          {showLaterButton && (
             <button type="button"
               className="w-full mt-2 py-2.5 text-sm opacity-45 hover:opacity-70 transition arabic-text"
               onClick={handleLater}
+              disabled={loading}
             >
               لاحقاً
             </button>
