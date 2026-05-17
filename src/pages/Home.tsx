@@ -854,20 +854,20 @@ export function HomePage() {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2 max-w-xl">
-                <Button className="press-effect" onClick={() => onQuick(heroAdhkar.id)}>{heroAdhkar.label}</Button>
+                <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" onClick={() => onQuick(heroAdhkar.id)}>{heroAdhkar.label}</Button>
                 {quranLastRead ? (
-                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : `/mushaf/1`); }}>
+                  <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : `/mushaf/1`); }}>
                     📖 {quranLastReadSurahName ? `تابع ${quranLastReadSurahName}` : "تابع القرآن"}
                   </Button>
                 ) : (
-                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/mushaf/1"); }}>المصحف</Button>
+                  <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/mushaf/1"); }}>المصحف</Button>
                 )}
                 {lastVisitedSection ? (
-                  <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
+                  <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:last_section"); navigate(`/c/${lastVisitedSection.id}`); }}>
                     تابع آخر قسم
                   </Button>
                 ) : null}
-                <Button className="press-effect" variant="secondary" onClick={() => { trackUxEvent("home_cta:sebha"); navigate("/sebha"); }}>السبحة</Button>
+                <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:sebha"); navigate("/sebha"); }}>السبحة</Button>
                 <HomeRadioButton />
                 <button type="button"
                   onClick={onRandom}
@@ -882,11 +882,11 @@ export function HomePage() {
               {quranReadingPct > 0 && (
                 <button type="button"
                   onClick={() => navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : "/mushaf/1")}
-                  className="mt-3 flex items-center gap-2.5 group"
+                  className="mt-3 inline-flex max-w-full flex-wrap items-center gap-2.5 group text-right"
                   aria-label={`القرآن: ${quranReadingPct}% مقروء`}
                 >
                   <span className="text-xs opacity-60" aria-hidden="true">📖</span>
-                  <div className="w-28 h-1.5 rounded-full bg-[var(--card)] overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={quranReadingPct} aria-label={`${quranReadingPct}% مقروء`}>
+                  <div className="w-28 h-1.5 rounded-full bg-[var(--card)] overflow-hidden shrink-0" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={quranReadingPct} aria-label={`${quranReadingPct}% مقروء`}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{ width: `${quranReadingPct}%`, background: "var(--accent)" }}
@@ -901,7 +901,7 @@ export function HomePage() {
                     </span>
                   )}
                   {quranLastRead && quranLastReadSurahName && (
-                    <span className="text-[10px] opacity-40 arabic-text line-clamp-2 leading-tight max-w-[70px]">{quranLastReadSurahName}</span>
+                    <span className="text-[11px] opacity-45 arabic-text leading-snug max-w-full sm:max-w-[11rem]">{quranLastReadSurahName}</span>
                   )}
                 </button>
               )}
@@ -977,7 +977,7 @@ export function HomePage() {
                       }}
                     >
                       <span className="text-[22px] leading-none" aria-hidden="true">📝</span>
-                      <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 max-w-[60px] line-clamp-2">{pack.title}</span>
+                      <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 max-w-[76px] text-center whitespace-normal">{pack.title}</span>
                       <div className="w-full h-[3px] rounded-full bg-[var(--card)] overflow-hidden mt-1">
                         <div className="h-full rounded-full transition-all duration-300"
                           style={{ width: `${pctDone}%`, background: isComplete ? "var(--ok)" : "var(--accent)" }} />
@@ -1019,7 +1019,7 @@ export function HomePage() {
                       }}
                     >
                       <span className="text-[22px] leading-none">{identity.icon}</span>
-                      <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 w-full text-center line-clamp-2">{identity.badge}</span>
+                      <span className="text-[10px] font-medium opacity-60 leading-tight mt-0.5 w-full text-center whitespace-normal">{identity.badge}</span>
                       <div className="w-full h-[3px] rounded-full bg-[var(--card)] overflow-hidden mt-1">
                         <div className="h-full rounded-full transition-all duration-300"
                           style={{ width: `${pctDone}%`, background: isComplete ? "var(--ok)" : identity.accent }} />
@@ -1282,14 +1282,14 @@ export function HomePage() {
           if (!homeWidgets.tasbeeh) return null;
           return (
             <Card key="tasbeeh" className="p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <button type="button" onClick={() => navigate("/sebha")} className="text-sm font-semibold hover:opacity-75 transition-opacity text-right">
                     مختارات اليوم ↗
                   </button>
                   <div className="mt-1 text-xs opacity-55">هدف التسبيح: {tasbeehTarget}</div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2">
                   <div className="flex rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1">
                     {[33, 100].map((target) => (
                       <button type="button"
@@ -1309,8 +1309,8 @@ export function HomePage() {
                   <Badge>{`${quickTotal.done}/${quickTotal.total}`}</Badge>
                   {confirmTasbeehReset ? (
                     <>
-                      <Button size="sm" variant="danger" onClick={() => { resetAllQuickTasbeeh(); toast.success("تم تصفير التسابيح"); setConfirmTasbeehReset(false); }}>تأكيد</Button>
-                      <Button size="sm" variant="secondary" onClick={() => setConfirmTasbeehReset(false)}>إلغاء</Button>
+                      <Button size="sm" variant="danger" className="shrink-0" onClick={() => { resetAllQuickTasbeeh(); toast.success("تم تصفير التسابيح"); setConfirmTasbeehReset(false); }}>تأكيد</Button>
+                      <Button size="sm" variant="secondary" className="shrink-0" onClick={() => setConfirmTasbeehReset(false)}>إلغاء</Button>
                     </>
                   ) : (
                     <IconButton
@@ -1359,17 +1359,17 @@ export function HomePage() {
                         incQuickTasbeeh(it.key, tasbeehTarget);
                       }}
                       className={cn(
-                        "glass rounded-3xl p-3 text-right transition border select-none press-effect glass-hover min-h-[110px] overflow-hidden",
+                        "glass rounded-3xl p-3 text-right transition border select-none press-effect glass-hover min-h-[120px]",
                         activePhraseKey === it.key
                           ? "border-accent-60 ring-2 ring-accent-30 bg-accent-10"
                           : "border-[var(--stroke)]"
                       )}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1 overflow-hidden">
+                        <div className="min-w-0 flex-1">
                           <div
-                            className="text-sm font-semibold arabic-text"
-                            style={{ lineHeight: "1.55", maxHeight: "3.1em", overflow: "hidden", display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 2 } as React.CSSProperties}
+                            className="text-sm font-semibold arabic-text whitespace-normal break-words"
+                            style={{ lineHeight: "1.65" }}
                           >{it.label}</div>
                           <div className="mt-1 text-xs opacity-65 tabular-nums">{v}/{target}</div>
                         </div>
@@ -1391,7 +1391,7 @@ export function HomePage() {
                           </div>
                         </div>
                       </div>
-                      <div className="mt-3 flex items-center justify-between gap-2">
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                         <div className="text-xs opacity-70">انقر للعدّ</div>
                         <Badge>{done ? "تم" : `${target - v} متبقّي`}</Badge>
                       </div>

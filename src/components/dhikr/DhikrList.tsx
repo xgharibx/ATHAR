@@ -449,7 +449,7 @@ export function DhikrList(props: Readonly<{
               </Button>
             </div>
             {(moreOpen || confirmReset || confirmDone || confirmDeleteCategory) && (
-              <div id="dhikr-more-panel" role="toolbar" aria-label="خيارات إضافية" className="mt-2 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+              <div id="dhikr-more-panel" role="toolbar" aria-label="خيارات إضافية" className="mt-2 flex flex-wrap items-center gap-2 pb-1">
                 {confirmReset ? (
                   <>
                     <Button
@@ -850,22 +850,22 @@ export function DhikrList(props: Readonly<{
 
       {/* Prev / Next Section navigation */}
       {(prevSection || nextSection) && (
-        <div className="flex items-center justify-between gap-2 mt-2 px-1">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mt-2 px-1">
           {nextSection ? (
             <button type="button"
               onClick={() => navigate(`/c/${nextSection.id}`)}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-start"
+              className="flex items-start gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-start text-right"
             >
               <ChevronRight size={16} aria-hidden="true" className="opacity-60 shrink-0" />
-              <span className="text-xs opacity-65 line-clamp-2 leading-tight">{nextSection.title}</span>
+              <span className="min-w-0 text-xs opacity-65 leading-snug whitespace-normal break-words">{nextSection.title}</span>
             </button>
           ) : <div className="flex-1" />}
           {prevSection ? (
             <button type="button"
               onClick={() => navigate(`/c/${prevSection.id}`)}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-end"
+              className="flex items-start gap-2 px-3 py-2.5 rounded-2xl glass border border-[var(--stroke)] press-effect text-sm min-h-[44px] flex-1 justify-end text-right"
             >
-              <span className="text-xs opacity-65 line-clamp-2 leading-tight">{prevSection.title}</span>
+              <span className="min-w-0 text-xs opacity-65 leading-snug whitespace-normal break-words">{prevSection.title}</span>
               <ChevronLeft size={16} aria-hidden="true" className="opacity-60 shrink-0" />
             </button>
           ) : <div className="flex-1" />}

@@ -308,7 +308,7 @@ export function DhikrCard(props: {
       <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
       <div className="p-4 md:p-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           {!focusMode && (
           <div className="flex items-center gap-1.5 flex-wrap">
             <IconButton aria-label="نسخ الذكر" onClick={doCopy}>
@@ -406,7 +406,7 @@ export function DhikrCard(props: {
 
         {/* Counter (under text) */}
         <div className={cn("mt-4 glass rounded-2xl p-3 border border-[var(--stroke)] relative overflow-hidden", done && "done-shimmer")}>
-          <div className="flex items-center justify-between gap-3 relative">
+          <div className="flex flex-wrap items-center justify-between gap-3 relative">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-12 h-12 relative grid place-items-center shrink-0">
                 <svg width="100%" height="100%" viewBox="0 0 48 48" aria-hidden="true">
@@ -454,7 +454,7 @@ export function DhikrCard(props: {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <IconButton
                 aria-label="تراجع خطوة"
                 onClick={() => {
@@ -469,13 +469,13 @@ export function DhikrCard(props: {
               {confirmItemReset ? (
                 <>
                   <button type="button"
-                    className="text-[11px] px-2.5 rounded-xl bg-danger-15 border border-danger-30 text-[var(--danger)] min-h-[44px] transition active:scale-[.97]"
+                    className="shrink-0 whitespace-nowrap text-[11px] px-2.5 rounded-xl bg-danger-15 border border-danger-30 text-[var(--danger)] min-h-[44px] transition active:scale-[.97]"
                     onClick={() => { resetItem(sectionId, index, target); setConfirmItemReset(false); }}
                   >
                     تأكيد
                   </button>
                   <button type="button"
-                    className="text-[11px] px-2.5 rounded-xl bg-[var(--card)] border border-[var(--stroke)] min-h-[44px] transition active:scale-[.97]"
+                    className="shrink-0 whitespace-nowrap text-[11px] px-2.5 rounded-xl bg-[var(--card)] border border-[var(--stroke)] min-h-[44px] transition active:scale-[.97]"
                     onClick={() => setConfirmItemReset(false)}
                   >
                     إلغاء

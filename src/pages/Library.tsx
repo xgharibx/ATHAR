@@ -1,7 +1,7 @@
 import * as React from "react";
 import Fuse from "fuse.js";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, BookOpenText, Check, Copy, ExternalLink, Heart, Library, Search, Share2, Sparkles, Users } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ArrowRight, ArrowUpRight, BookOpenText, Check, Copy, ExternalLink, Heart, Library, Search, Share2, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Badge } from "@/components/ui/Badge";
@@ -132,9 +132,219 @@ function CollectionCard({ collection, active, onClick }: { collection: LibraryCo
   );
 }
 
-export function LibraryPage() {
+type LibrarySection = {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: string;
+  accent: string;
+  route: string;
+  badge?: string;
+  featured?: boolean;
+};
+
+const LIBRARY_SECTIONS: LibrarySection[] = [
+  {
+    id: "hadith",
+    title: "أحاديث",
+    subtitle: "كتب الحديث والمختارات النبوية",
+    description: "كل بطاقات الحديث داخل مكان واحد: كتب الحديث، المختارات، البحث، الفوائد، والتصفية بالموضوع.",
+    icon: "📚",
+    accent: "#10b981",
+    route: "/library/hadith",
+    badge: "المكتبة الحديثية",
+    featured: true,
+  },
+  {
+    id: "stories",
+    title: "قصص الأنبياء",
+    subtitle: "قصص مرتبة بفصول ودروس",
+    description: "رحلة إيمانية مع الأنبياء عليهم السلام بأسلوب بطاقات قابلة للفتح والحفظ والمشاركة.",
+    icon: "🕌",
+    accent: "#f59e0b",
+    route: "/stories",
+  },
+  {
+    id: "seerah",
+    title: "السيرة النبوية",
+    subtitle: "16 كتاباً في حياة النبي ﷺ",
+    description: "السيرة المفصلة من النسب والولادة إلى الوفاة الشريفة، فصلاً فصلاً داخل بطاقات منظمة.",
+    icon: "🌙",
+    accent: "#10b981",
+    route: "/seerah",
+  },
+  {
+    id: "companions",
+    title: "الصحابة",
+    subtitle: "سير موجزة لأصحاب النبي ﷺ",
+    description: "بطاقات تعريفية بروح تربوية عن الصحابة الكرام ومواقفهم وأثرهم.",
+    icon: "🌟",
+    accent: "#f97316",
+    route: "/companions",
+  },
+  {
+    id: "wudu",
+    title: "الوضوء",
+    subtitle: "خطوات الطهارة العملية",
+    description: "دليل واضح ومتدرج لأعمال الوضوء والسنن والتنبيهات المهمة.",
+    icon: "💧",
+    accent: "#06b6d4",
+    route: "/wudu",
+  },
+  {
+    id: "prayer-guide",
+    title: "كيفية الصلاة",
+    subtitle: "تعلم الصلاة خطوة بخطوة",
+    description: "دليل عملي من التكبير إلى التسليم مع ترتيب يساعد على الفهم والمراجعة.",
+    icon: "🧎",
+    accent: "#8b5cf6",
+    route: "/prayer-guide",
+  },
+  {
+    id: "asma",
+    title: "أسماء الله الحسنى",
+    subtitle: "تدبر ومعانٍ مختصرة",
+    description: "أسماء الله الحسنى في بطاقات هادئة تساعد على الحفظ والتأمل والعمل.",
+    icon: "✨",
+    accent: "#eab308",
+    route: "/asma",
+  },
+  {
+    id: "quran-vocab",
+    title: "مفردات القرآن",
+    subtitle: "معاني قرآنية قريبة",
+    description: "مفردات مختارة من القرآن الكريم مع المعنى والسياق لتقريب التدبر.",
+    icon: "📖",
+    accent: "#22c55e",
+    route: "/quran-vocab",
+  },
+  {
+    id: "hadith-memo",
+    title: "حفظ الحديث",
+    subtitle: "مراجعة وتثبيت الأحاديث",
+    description: "مساحة مخصصة لحفظ الأحاديث ومراجعتها بطريقة منظمة داخل التطبيق.",
+    icon: "🏅",
+    accent: "#ec4899",
+    route: "/hadith/memo",
+  },
+  {
+    id: "duas",
+    title: "الأدعية",
+    subtitle: "أدعية جامعة ومأثورة",
+    description: "مجموعة أدعية مرتبة للقراءة اليومية والمواقف المتكررة.",
+    icon: "🤲",
+    accent: "#14b8a6",
+    route: "/duas",
+  },
+  {
+    id: "ruqyah",
+    title: "الرقية الشرعية",
+    subtitle: "آيات وأدعية مأثورة",
+    description: "الفاتحة، آية الكرسي، المعوذات، وأدعية نبوية للرقية الشرعية.",
+    icon: "🛡️",
+    accent: "#6366f1",
+    route: "/ruqyah",
+  },
+];
+
+function LibraryHubCard({ section }: { section: LibrarySection }) {
   const navigate = useNavigate();
-  useScrollRestoration();
+  return (
+    <button
+      type="button"
+      onClick={() => navigate(section.route)}
+      className={cn(
+        "group relative overflow-hidden rounded-2xl border p-4 text-right transition press-effect cv-auto",
+        section.featured ? "col-span-full min-h-[150px]" : "min-h-[168px]"
+      )}
+      style={{
+        background: `linear-gradient(135deg, color-mix(in srgb, ${section.accent} 18%, var(--card)), var(--card))`,
+        borderColor: `color-mix(in srgb, ${section.accent} 35%, var(--stroke))`,
+      }}
+    >
+      <div className="pointer-events-none absolute inset-0 dhikr-card-stars opacity-45" aria-hidden="true" />
+      <div className="relative flex h-full flex-col">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl"
+            style={{
+              background: `color-mix(in srgb, ${section.accent} 16%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${section.accent} 28%, transparent)`,
+            }}
+            aria-hidden="true"
+          >
+            {section.icon}
+          </div>
+          <ArrowRight size={16} className="mt-2 shrink-0 rotate-180 opacity-35 transition group-hover:opacity-70" aria-hidden="true" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          {section.badge && (
+            <div
+              className="mb-2 inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold"
+              style={{ background: `color-mix(in srgb, ${section.accent} 16%, transparent)`, color: section.accent }}
+            >
+              {section.badge}
+            </div>
+          )}
+          <h2 className="font-arabic text-base font-bold leading-7" style={{ color: section.accent }}>
+            {section.title}
+          </h2>
+          <p className="mt-0.5 text-xs font-semibold opacity-60">{section.subtitle}</p>
+          <p className="mt-3 text-xs leading-6 opacity-65 line-clamp-3">{section.description}</p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function LibraryHubView() {
+  const navigate = useNavigate();
+  const featured = LIBRARY_SECTIONS.find((section) => section.featured);
+  const sections = LIBRARY_SECTIONS.filter((section) => !section.featured);
+
+  return (
+    <div className="space-y-4 page-enter" dir="rtl">
+      <Card className="relative overflow-hidden p-5">
+        <div className="pointer-events-none absolute inset-0 dhikr-card-stars opacity-45" aria-hidden="true" />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-45"
+          style={{
+            background: "linear-gradient(135deg, color-mix(in srgb, #10b981 13%, transparent), color-mix(in srgb, #f59e0b 9%, transparent))",
+          }}
+          aria-hidden="true"
+        />
+        <div className="relative flex items-start gap-3">
+          <IconButton aria-label="رجوع" onClick={() => navigate(-1)}><ArrowRight size={18} /></IconButton>
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <BookOpenText size={19} aria-hidden="true" className="text-[var(--accent)]" />
+              <span className="text-xs opacity-60">مكتبة أثر</span>
+            </div>
+            <h1 className="text-xl font-bold">المكتبة الإسلامية</h1>
+            <p className="mt-2 text-sm leading-7 opacity-70">
+              كل أبواب المحتوى في مكان واحد: حديث، سيرة، قصص، أدعية، عبادات، وحفظ.
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {featured && <LibraryHubCard section={featured} />}
+
+      <div className="grid grid-cols-2 gap-3" role="list" aria-label="أقسام المكتبة">
+        {sections.map((section) => (
+          <div key={section.id} role="listitem">
+            <LibraryHubCard section={section} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HadithLibraryView() {
+  const navigate = useNavigate();
   const { data, isLoading, error } = useIslamicLibraryDB();
   const [q, setQ] = React.useState("");
   const [collectionFilter, setCollectionFilter] = React.useState<string>("all");
@@ -196,9 +406,9 @@ export function LibraryPage() {
           <div className="min-w-0">
             <div className="flex items-center gap-2" role="search" aria-label="بحث في المكتبة">
               <BookOpenText size={19} aria-hidden="true" className="text-[var(--accent)]" />
-              <h1 className="text-lg font-bold">المكتبة الإسلامية</h1>
+              <h1 className="text-lg font-bold">أحاديث</h1>
             </div>
-            <div className="text-xs opacity-55 mt-1">قراءة داخل التطبيق، بحث سريع، وروابط تحقق اختيارية.</div>
+            <div className="text-xs opacity-55 mt-1">كتب الحديث، مختارات نبوية، بحث سريع، وفوائد عملية.</div>
           </div>
         </div>
 
@@ -219,28 +429,6 @@ export function LibraryPage() {
             <div className="text-xs opacity-50 mt-2">{featured.source.title}</div>
           </button>
         )}
-
-        {/* ── Ruqyah featured card ── */}
-        <button type="button"
-          onClick={() => navigate("/ruqyah")}
-          className="w-full text-right press-effect mt-3 rounded-3xl border p-4 flex items-center gap-3 transition"
-          style={{
-            background: "rgba(99,102,241,0.08)",
-            borderColor: "rgba(99,102,241,0.25)",
-          }}
-        >
-          <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-xl"
-            style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)" }}
-          >
-            🛡️
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-bold arabic-text" style={{ color: "rgba(167,139,250,0.95)" }}>أذكار الرقية الشرعية</div>
-            <div className="text-xs opacity-55 arabic-text mt-0.5">الفاتحة · آية الكرسي · المعوذات · أدعية نبوية</div>
-          </div>
-          <ArrowRight size={14} className="opacity-35 shrink-0 rotate-180" aria-hidden="true" />
-        </button>
       </Card>
 
       {/* Hadith Books Grid — at top for quick access */}
@@ -331,52 +519,6 @@ export function LibraryPage() {
         )}
       </div>
 
-      {/* Hadith Books Grid placeholder — moved above search */}
-
-      {/* Companions entry card */}
-      <button type="button"
-        dir="rtl"
-        onClick={() => navigate("/companions")}
-        className="w-full text-right rounded-2xl p-4 flex items-center gap-4 transition active:scale-95"
-        style={{ background: "linear-gradient(135deg, #f59e0b22, #ef444422)", border: "1px solid #f59e0b33" }}
-      >
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "#f59e0b22" }}
-        >
-          <Users size={22} style={{ color: "#f59e0b" }} aria-hidden="true" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-[var(--fg)] font-arabic">الصحابة الكرام</p>
-          <p className="text-xs text-[var(--muted)] mt-0.5 font-arabic">
-            20 صحابيًا • سيَر موجزة لأصحاب النبي ﷺ
-          </p>
-        </div>
-        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" aria-hidden="true" />
-      </button>
-
-      {/* Seerah books entry card */}
-      <button type="button"
-        dir="rtl"
-        onClick={() => navigate("/seerah")}
-        className="w-full text-right rounded-2xl p-4 flex items-center gap-4 transition active:scale-95"
-        style={{ background: "linear-gradient(135deg, #10b98122, #059669 15%)", border: "1px solid #10b98133" }}
-      >
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "#10b98122" }}
-        >
-          <BookOpenText size={22} aria-hidden="true" style={{ color: "#10b981" }} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-sm text-[var(--fg)] font-arabic">السيرة النبوية</p>
-          <p className="text-xs text-[var(--muted)] mt-0.5 font-arabic">
-            16 كتاباً • سيرة النبي ﷺ المفصّلة فصلاً فصلاً
-          </p>
-        </div>
-        <ArrowRight size={16} className="text-[var(--muted)] rotate-180 shrink-0" aria-hidden="true" />
-      </button>
-
       <Card className="p-4">
         <div className="flex items-start gap-2">
           <ExternalLink size={16} aria-hidden="true" className="text-[var(--accent)] shrink-0 mt-1" />
@@ -387,4 +529,10 @@ export function LibraryPage() {
       </Card>
     </div>
   );
+}
+
+export function LibraryPage() {
+  useScrollRestoration();
+  const location = useLocation();
+  return location.pathname === "/library/hadith" ? <HadithLibraryView /> : <LibraryHubView />;
 }

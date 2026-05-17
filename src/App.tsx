@@ -266,6 +266,7 @@ export default function App() {
           <Route path="wudu" element={<S><WuduGuidePage /></S>} />
           <Route path="ruqyah" element={<S><RuqyahPage /></S>} />
           <Route path="library" element={<S><LibraryPage /></S>} />
+          <Route path="library/hadith" element={<S><LibraryPage /></S>} />
           <Route path="library/:collectionId/:entryId" element={<S><LibraryItemPage /></S>} />
           <Route path="video-library" element={<S><VideoLibraryPage /></S>} />
           <Route path="video-library/course/:courseId" element={<S><VideoLibraryPage /></S>} />

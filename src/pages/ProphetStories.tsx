@@ -80,8 +80,7 @@ function StoryCard({
       <div
         id={`story-panel-${story.id}`}
         aria-hidden={!open}
-        className="overflow-hidden px-4 space-y-4 transition-all duration-300"
-        style={{ maxHeight: open ? "2500px" : "0", paddingBottom: open ? "16px" : "0" }}
+        className={open ? "px-4 pb-4 space-y-4" : "hidden"}
       >
           <div className="h-px" style={{ background: "var(--stroke)" }} />
           {story.chapters && story.chapters.length > 0 ? (
@@ -106,8 +105,8 @@ function StoryCard({
                       </span>
                     </button>
                     <div
-                      className="overflow-hidden transition-all duration-300"
-                      style={{ maxHeight: chOpen ? "1500px" : "0" }}
+                      className={chOpen ? "block" : "hidden"}
+                      aria-hidden={!chOpen}
                     >
                       <div className="px-3 pb-3 space-y-3">
                         <div className="h-px" style={{ background: "var(--stroke)" }} />

@@ -16,6 +16,13 @@ export function DuasPage() {
   const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   React.useEffect(() => () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current); }, []);
 
+  const selectTab = React.useCallback((tabId: string, tabElement?: HTMLElement | null) => {
+    setActiveTab(tabId);
+    window.requestAnimationFrame(() => {
+      tabElement?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    });
+  }, []);
+
   const duaFavorites = useNoorStore((s) => s.duaFavorites);
   const toggleDuaFavorite = useNoorStore((s) => s.toggleDuaFavorite);
 
@@ -113,7 +120,7 @@ export function DuasPage() {
               )}
             </div>
             {/* Tabs */}
-            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none" role="tablist" aria-orientation="horizontal" aria-label="تصفية الأدعية"
+            <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar" role="tablist" aria-orientation="horizontal" aria-label="تصفية الأدعية"
           onKeyDown={(e) => {
             const tabs = Array.from(e.currentTarget.querySelectorAll('[role="tab"]')) as HTMLButtonElement[];
             const idx = tabs.findIndex(t => t === document.activeElement);
@@ -129,7 +136,7 @@ export function DuasPage() {
                   role="tab"
                   aria-controls="duas-list-panel"
                   aria-selected={activeTab === cat.id}
-                  onClick={() => setActiveTab(cat.id)}
+                  onClick={(e) => selectTab(cat.id, e.currentTarget)}
                   className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
                   style={{
                     background: activeTab === cat.id ? "#059669" : "var(--card)",
@@ -145,7 +152,7 @@ export function DuasPage() {
                 role="tab"
                 aria-controls="duas-list-panel"
                 aria-selected={activeTab === "__favorites__"}
-                onClick={() => setActiveTab("__favorites__")}
+                onClick={(e) => selectTab("__favorites__", e.currentTarget)}
                 className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
                 style={{
                   background: activeTab === "__favorites__" ? "#ef4444" : "var(--card)",

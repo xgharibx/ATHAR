@@ -465,6 +465,7 @@ export function AppShell() {
       "/qibla": "اتجاه القبلة",
       "/video-library": "مكتبة الفيديو",
       "/library": "المكتبة الإسلامية",
+      "/library/hadith": "أحاديث",
       "/hadith": "كتب الحديث",
       "/hadith/memo": "مراجعة الأحاديث",
       "/companions": "الصحابة الكرام",

@@ -99,8 +99,7 @@ function BookCard({
       <div
         id={`seerah-panel-${book.id}`}
         aria-hidden={!open}
-        className="overflow-hidden transition-all duration-300"
-        style={{ maxHeight: open ? "6000px" : "0" }}
+        className={open ? "block" : "hidden"}
       >
         <div className="px-4 pb-4 space-y-4">
           <div className="h-px" style={{ background: "var(--stroke)" }} />
@@ -146,8 +145,8 @@ function BookCard({
                       </span>
                     </button>
                     <div
-                      className="overflow-hidden transition-all duration-300"
-                      style={{ maxHeight: chOpen ? "3000px" : "0" }}
+                      className={chOpen ? "block" : "hidden"}
+                      aria-hidden={!chOpen}
                     >
                       <div className="px-3 pb-4 space-y-3">
                         <div className="h-px" style={{ background: "var(--stroke)" }} />
