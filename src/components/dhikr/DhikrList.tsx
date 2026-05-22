@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { RotateCcw, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown, Timer, Square, MoreHorizontal, Trash2, Share2 } from "lucide-react";
+import { RotateCcw, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown, Timer, Square, MoreHorizontal, Trash2, Share2, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
 
 const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
@@ -18,7 +18,7 @@ import { pct } from "@/lib/utils";
 import { isDailySection } from "@/lib/dailySections";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
-import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem, removeCustomDhikrItem } from "@/data/packs";
+import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem, removeCustomDhikrItem, updateCustomDhikrItem } from "@/data/packs";
 import { Input } from "@/components/ui/Input";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
@@ -40,6 +40,7 @@ export function DhikrList(props: Readonly<{
   const moveSectionItem = useNoorStore((s) => s.moveSectionItem);
   const resetSectionItemOrder = useNoorStore((s) => s.resetSectionItemOrder);
   const removeCustomPackItem = useNoorStore((s) => s.removeCustomPackItem);
+  const updateCustomPackItem = useNoorStore((s) => s.updateCustomPackItem);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: adhkarData } = useAdhkarDB();
@@ -50,6 +51,7 @@ export function DhikrList(props: Readonly<{
   const [confirmDeleteCategory, setConfirmDeleteCategory] = React.useState(false);
   const [deletingItemIdx, setDeletingItemIdx] = React.useState<number | null>(null);
   const [addOpen, setAddOpen] = React.useState(false);
+  const [editingItemIdx, setEditingItemIdx] = React.useState<number | null>(null);
   const [customText, setCustomText] = React.useState("");
   const [customCount, setCustomCount] = React.useState("1");
   const [customBenefit, setCustomBenefit] = React.useState("");
@@ -343,14 +345,37 @@ export function DhikrList(props: Readonly<{
       return;
     }
 
-    addCustomDhikrItem({ text, count, benefit: customBenefit, sectionId: props.sectionId, sectionTitle: props.title });
+    if (editingItemIdx !== null) {
+      // Edit mode
+      if (isMyAdhkarSection) {
+        updateCustomDhikrItem(props.sectionId, editingItemIdx, { text, count, benefit: customBenefit });
+        void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
+      } else if (props.isCustomSection) {
+        updateCustomPackItem(props.sectionId, editingItemIdx, { text, count });
+      }
+      toast.success("تم تعديل الذكر");
+    } else {
+      addCustomDhikrItem({ text, count, benefit: customBenefit, sectionId: props.sectionId, sectionTitle: props.title });
+      void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
+      toast.success("تمتت إضافة الذكر");
+    }
+
     setCustomText("");
     setCustomBenefit("");
     setCustomCount("1");
+    setEditingItemIdx(null);
     setAddOpen(false);
-    void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
-    toast.success("تمت إضافة الذكر");
   };
+
+  function openEditItem(originalIndex: number) {
+    const item = props.items[originalIndex];
+    if (!item) return;
+    setCustomText(item.text);
+    setCustomCount(String(coerceCount(item.count)));
+    setCustomBenefit(item.benefit ?? "");
+    setEditingItemIdx(originalIndex);
+    setAddOpen(true);
+  }
 
   const handleDeleteItem = (originalIndex: number) => {
     if (isMyAdhkarSection) {
@@ -740,13 +765,22 @@ export function DhikrList(props: Readonly<{
                         </button>
                       </div>
                     ) : (
-                      <button type="button"
-                        onClick={() => setDeletingItemIdx(entry.originalIndex)}
-                        className="p-1.5 rounded-xl opacity-30 hover:opacity-70 transition text-[var(--danger)]"
-                        aria-label="حذف الذكر"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                      <div className="flex gap-1">
+                        <button type="button"
+                          onClick={() => openEditItem(entry.originalIndex)}
+                          className="p-1.5 rounded-xl opacity-30 hover:opacity-70 transition text-[var(--accent)]"
+                          aria-label="تعديل الذكر"
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button type="button"
+                          onClick={() => setDeletingItemIdx(entry.originalIndex)}
+                          className="p-1.5 rounded-xl opacity-30 hover:opacity-70 transition text-[var(--danger)]"
+                          aria-label="حذف الذكر"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
@@ -770,64 +804,105 @@ export function DhikrList(props: Readonly<{
           />
         )}
         {!addOpen ? (
-          <button type="button"
-            onClick={() => setAddOpen(true)}
-            aria-label="إضافة ذكر"
-            className="fixed right-4 z-[9991] h-14 w-14 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] shadow-2xl grid place-items-center active:scale-95 transition"
-            style={{ bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--mobile-fab-size) + var(--mobile-fab-gap) + var(--sab))" }}
-          >
-            <Plus size={22} aria-hidden="true" />
-          </button>
+          (isMyAdhkarSection || props.isCustomSection) ? (
+            <button type="button"
+              onClick={() => { setEditingItemIdx(null); setCustomText(""); setCustomCount("1"); setCustomBenefit(""); setAddOpen(true); }}
+              aria-label="إضافة ذكر"
+              className="fixed right-4 z-[9991] h-14 w-14 rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] shadow-2xl grid place-items-center active:scale-95 transition"
+              style={{ bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--mobile-fab-size) + var(--mobile-fab-gap) + var(--sab))" }}
+            >
+              <Plus size={22} aria-hidden="true" />
+            </button>
+          ) : null
         ) : null}
         {addOpen ? (
-          <div className="fixed inset-0 z-[10000] bg-[var(--card)]5 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
-            <button type="button" className="absolute inset-0" aria-label="إغلاق" onClick={() => setAddOpen(false)} />
-            <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-[var(--stroke)] p-5 pb-32 md:pb-5 shadow-2xl" dir="rtl" role="dialog" aria-modal="true" aria-label="إضافة ذكر">
-              <div className="flex items-center justify-between gap-3">
-                <div className="font-semibold">إضافة ذكر</div>
-                <button type="button"
-                  onClick={() => setAddOpen(false)}
-                  className="h-10 w-10 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center"
-                  aria-label="إغلاق"
-                >
-                  <X size={16} aria-hidden="true" />
-                </button>
-              </div>
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px] gap-3">
-                <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm text-[var(--fg)]">
-                  {props.title}
+          <div className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
+            <button type="button" className="absolute inset-0" aria-label="إغلاق" onClick={() => { setAddOpen(false); setEditingItemIdx(null); }} />
+            <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-[var(--stroke)] overflow-hidden shadow-2xl" dir="rtl" role="dialog" aria-modal="true" aria-label={editingItemIdx !== null ? "تعديل ذكر" : "إضافة ذكر"}>
+              {/* Drag handle */}
+              <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 rounded-full bg-[var(--stroke)]" /></div>
+              <div className="px-5 pb-5 pb-safe">
+                {/* Header */}
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl" aria-hidden="true">{editingItemIdx !== null ? "✏️" : "✨"}</span>
+                    <div>
+                      <div className="font-semibold text-sm">{editingItemIdx !== null ? "تعديل ذكر" : "إضافة ذكر جديد"}</div>
+                      <div className="text-xs opacity-50 truncate max-w-[160px]">{props.title}</div>
+                    </div>
+                  </div>
+                  <button type="button"
+                    onClick={() => { setAddOpen(false); setEditingItemIdx(null); }}
+                    className="h-9 w-9 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center hover:bg-[var(--card-2)] transition"
+                    aria-label="إغلاق"
+                  >
+                    <X size={15} aria-hidden="true" />
+                  </button>
                 </div>
-                <Input
-                  type="number"
-                  min={1}
-                  value={customCount}
-                  onChange={(event) => setCustomCount(event.target.value)}
-                  inputMode="numeric"
-                  placeholder="العدد"
-                  aria-label="عدد التكرار"
+
+                {/* Count row */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex-1 text-xs opacity-55">عدد التكرار</div>
+                  <div className="flex items-center gap-2">
+                    <button type="button"
+                      onClick={() => setCustomCount((v) => String(Math.max(1, parseInt(v, 10) - 1 || 1)))}
+                      className="h-8 w-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center hover:bg-[var(--card-2)] transition text-sm"
+                      aria-label="تقليل العدد"
+                    >−</button>
+                    <input
+                      type="number"
+                      min={1}
+                      max={9999}
+                      value={customCount}
+                      onChange={(e) => setCustomCount(e.target.value)}
+                      inputMode="numeric"
+                      className="w-16 h-8 px-2 rounded-xl bg-[var(--card)] border border-[var(--stroke)] text-center text-sm outline-none focus:border-[var(--accent)]"
+                      aria-label="عدد التكرار"
+                    />
+                    <button type="button"
+                      onClick={() => setCustomCount((v) => String(Math.min(9999, parseInt(v, 10) + 1 || 1)))}
+                      className="h-8 w-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center hover:bg-[var(--card-2)] transition text-sm"
+                      aria-label="زيادة العدد"
+                    >+</button>
+                  </div>
+                </div>
+
+                {/* Text area */}
+                <textarea
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  placeholder="اكتب الذكر هنا…"
+                  aria-label="نص الذكر الجديد"
+                  autoFocus
+                  dir="rtl"
+                  spellCheck={false}
+                  rows={4}
+                  className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm leading-7 outline-none focus:border-[var(--accent)] resize-none transition"
                 />
+                <div className="flex justify-end mt-0.5 mb-3">
+                  <span className="text-[10px] opacity-35 tabular-nums">{customText.length} حرف</span>
+                </div>
+
+                {/* Benefit/source */}
+                <Input
+                  value={customBenefit}
+                  onChange={(e) => setCustomBenefit(e.target.value)}
+                  placeholder="المصدر أو فضل الذكر (اختياري)"
+                  aria-label="المصدر أو الفضل"
+                />
+
+                {/* Action buttons */}
+                <div className="flex gap-2 mt-4">
+                  <Button variant="outline" className="flex-none" onClick={() => { setAddOpen(false); setEditingItemIdx(null); }}>إلغاء</Button>
+                  <Button className="flex-1" onClick={addMyDhikr} disabled={!customText.trim()}>
+                    {editingItemIdx !== null ? (
+                      <><Pencil size={15} aria-hidden="true" /> حفظ التعديل</>
+                    ) : (
+                      <><Plus size={15} aria-hidden="true" /> إضافة الذكر</>
+                    )}
+                  </Button>
+                </div>
               </div>
-              <textarea
-                value={customText}
-                onChange={(event) => setCustomText(event.target.value)}
-                placeholder="اكتب الذكر"
-                aria-label="نص الذكر الجديد"
-                autoFocus
-                dir="rtl"
-                spellCheck={false}
-                className="form-field-readable mt-3 min-h-36 w-full rounded-3xl border border-[var(--stroke)] px-4 py-3 text-sm leading-7 outline-none focus:border-accent-40"
-              />
-              <Input
-                className="mt-3"
-                value={customBenefit}
-                onChange={(event) => setCustomBenefit(event.target.value)}
-                placeholder="المصدر أو الفضل"
-                aria-label="المصدر أو الفضل"
-              />
-              <Button className="mt-4 w-full" onClick={addMyDhikr}>
-                <Plus size={16} aria-hidden="true" />
-                حفظ الذكر
-              </Button>
             </div>
           </div>
         ) : null}

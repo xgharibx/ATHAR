@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Plus, ArrowRight, BookOpen, ChevronDown, ChevronUp, Share2 } from "lucide-react";
+import { Trash2, Plus, ArrowRight, BookOpen, ChevronDown, ChevronUp, Share2, Pencil, X, Check } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { useNoorStore } from "@/store/noorStore";
@@ -82,45 +82,75 @@ function PackForm({
   function setItemCount(i: number, v: number) { setItems((prev) => prev.map((item, idx) => idx === i ? { ...item, count: v } : item)); }
 
   const valid = title.trim().length > 0 && items.some((it) => it.text.trim().length > 0);
+  const validCount = items.filter((it) => it.text.trim().length > 0).length;
 
   return (
-    <Card className="p-5 space-y-4" dir="rtl">
-      <h2 className="font-semibold text-base">{initial ? "تعديل الحزمة" : "إنشاء حزمة أذكار"}</h2>
-      <div>
-      <label htmlFor="pack-title" className="text-xs opacity-60 block mb-1">اسم الحزمة</label>
-        <Input
-          id="pack-title"
-          placeholder="مثال: أذكاري الخاصة"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          dir="rtl"
-        />
-      </div>
-      <div>
-        <div className="text-xs opacity-60 mb-1">الأذكار <span className="opacity-40">(النص • العدد)</span></div>
-        {items.map((it, i) => (
-          <ItemRow
-            key={it.id}
-            index={i}
-            text={it.text}
-            count={it.count}
-            onText={(v) => setItemText(i, v)}
-            onCount={(v) => setItemCount(i, v)}
-            onRemove={() => removeRow(i)}
-          />
-        ))}
-        <button type="button"
-          onClick={addRow}
-          className="mt-3 flex items-center gap-1 text-xs opacity-60 hover:opacity-100 transition-opacity"
-        >
-          <Plus size={14} aria-hidden="true" /> إضافة ذكر
+    <Card className="overflow-hidden" dir="rtl">
+      {/* Form header */}
+      <div
+        className="px-5 py-4 flex items-center justify-between gap-3"
+        style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)", borderBottom: "1px solid var(--stroke)" }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-xl" aria-hidden="true">{initial ? "✏️" : "✨"}</span>
+          <div>
+            <div className="font-semibold text-sm">{initial ? "تعديل الحزمة" : "إنشاء حزمة أذكار"}</div>
+            <div className="text-[11px] opacity-50">أضف أذكارك الخاصة واحفظها</div>
+          </div>
+        </div>
+        <button type="button" onClick={onCancel} className="h-8 w-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] grid place-items-center opacity-60 hover:opacity-100 transition" aria-label="إلغاء">
+          <X size={14} aria-hidden="true" />
         </button>
       </div>
-      <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={onCancel}>إلغاء</Button>
-        <Button variant="primary" onClick={() => valid && onSave(title.trim(), items.filter((it) => it.text.trim()))} disabled={!valid}>
-          حفظ
-        </Button>
+
+      <div className="p-5 space-y-4">
+        {/* Pack title */}
+        <div>
+          <label htmlFor="pack-title" className="text-xs font-medium opacity-60 block mb-1.5">اسم الحزمة <span className="text-[var(--danger)]">*</span></label>
+          <Input
+            id="pack-title"
+            placeholder="مثال: أذكاري الخاصة"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            dir="rtl"
+          />
+        </div>
+
+        {/* Items */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-medium opacity-60">الأذكار</div>
+            {validCount > 0 && (
+              <div className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--card)] border border-[var(--stroke)] opacity-60">{validCount} ذكر</div>
+            )}
+          </div>
+          {items.map((it, i) => (
+            <ItemRow
+              key={it.id}
+              index={i}
+              text={it.text}
+              count={it.count}
+              onText={(v) => setItemText(i, v)}
+              onCount={(v) => setItemCount(i, v)}
+              onRemove={() => removeRow(i)}
+            />
+          ))}
+          <button type="button"
+            onClick={addRow}
+            className="mt-3 flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border border-dashed border-[var(--stroke)] hover:border-[var(--accent)] hover:bg-[var(--card)] opacity-60 hover:opacity-100 transition-all w-full justify-center"
+          >
+            <Plus size={14} aria-hidden="true" /> إضافة ذكر
+          </button>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 pt-1">
+          <Button variant="outline" onClick={onCancel} className="flex-none">إلغاء</Button>
+          <Button variant="primary" className="flex-1" onClick={() => valid && onSave(title.trim(), items.filter((it) => it.text.trim()))} disabled={!valid}>
+            <Check size={15} aria-hidden="true" />
+            {initial ? "حفظ التعديل" : "إنشاء الحزمة"}
+          </Button>
+        </div>
       </div>
     </Card>
   );
@@ -138,8 +168,28 @@ function PackCard({
   onDelete: () => void;
   onEdit: () => void;
 }) {
+  const updateCustomPackItem = useNoorStore((s) => s.updateCustomPackItem);
+  const removeCustomPackItem = useNoorStore((s) => s.removeCustomPackItem);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [expanded, setExpanded] = React.useState(false);
+  const [editingItemIdx, setEditingItemIdx] = React.useState<number | null>(null);
+  const [editText, setEditText] = React.useState("");
+  const [editCount, setEditCount] = React.useState(1);
+  const [confirmItemDeleteIdx, setConfirmItemDeleteIdx] = React.useState<number | null>(null);
+
+  function startEditItem(i: number) {
+    const it = pack.items[i];
+    if (!it) return;
+    setEditText(it.text);
+    setEditCount(it.count);
+    setEditingItemIdx(i);
+  }
+
+  function saveEditItem() {
+    if (editingItemIdx === null || !editText.trim()) return;
+    updateCustomPackItem(pack.id, editingItemIdx, { text: editText.trim(), count: editCount });
+    setEditingItemIdx(null);
+  }
 
   return (
     <Card className="p-4 space-y-3" dir="rtl">
@@ -210,12 +260,75 @@ function PackCard({
           </Button>
         </div>
       </div>
+
+      {/* Expanded items list with per-item edit/delete */}
       {expanded && pack.items.length > 0 && (
-        <div id={`pack-items-${pack.id}`} className="space-y-1 border-t border-[var(--stroke)] pt-3">
+        <div id={`pack-items-${pack.id}`} className="space-y-1.5 border-t border-[var(--stroke)] pt-3">
           {pack.items.map((it, i) => (
-            <div key={i} className="flex items-center justify-between gap-2 text-xs opacity-70">
-              <span className="line-clamp-2 leading-snug">{it.text}</span>
-              <span className="shrink-0 opacity-50">× {it.count}</span>
+            <div key={i}>
+              {editingItemIdx === i ? (
+                // Inline edit form
+                <div className="flex items-center gap-2 bg-[var(--card)] rounded-xl px-3 py-2 border border-[var(--accent)]/30">
+                  <input
+                    type="text"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    autoFocus
+                    dir="rtl"
+                    className="flex-1 bg-transparent text-xs outline-none"
+                    aria-label="تعديل نص الذكر"
+                  />
+                  <input
+                    type="number"
+                    min={1}
+                    value={editCount}
+                    onChange={(e) => setEditCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    className="w-12 bg-transparent text-xs text-center outline-none border border-[var(--stroke)] rounded-lg px-1 py-0.5"
+                    aria-label="عدد التكرار"
+                  />
+                  <button type="button" onClick={saveEditItem} className="p-1 rounded-lg text-[var(--ok)] hover:bg-ok-10 transition" aria-label="حفظ">
+                    <Check size={13} />
+                  </button>
+                  <button type="button" onClick={() => setEditingItemIdx(null)} className="p-1 rounded-lg opacity-50 hover:opacity-100 transition" aria-label="إلغاء">
+                    <X size={13} />
+                  </button>
+                </div>
+              ) : confirmItemDeleteIdx === i ? (
+                // Delete confirm row
+                <div className="flex items-center justify-between gap-2 rounded-xl bg-danger-10 border border-danger-20 px-3 py-2">
+                  <span className="text-xs opacity-70 line-clamp-1 flex-1">{it.text}</span>
+                  <div className="flex gap-1 shrink-0">
+                    <button type="button"
+                      onClick={() => { removeCustomPackItem(pack.id, i); setConfirmItemDeleteIdx(null); }}
+                      className="text-[10px] px-2 py-1 rounded-lg bg-danger-20 text-[var(--danger)]"
+                    >تأكيد</button>
+                    <button type="button"
+                      onClick={() => setConfirmItemDeleteIdx(null)}
+                      className="text-[10px] px-2 py-1 rounded-lg bg-[var(--card)] border border-[var(--stroke)] opacity-60"
+                    >إلغاء</button>
+                  </div>
+                </div>
+              ) : (
+                // Normal item row
+                <div className="flex items-center justify-between gap-2 text-xs rounded-xl px-2 py-1.5 hover:bg-[var(--card)] group transition">
+                  <span className="line-clamp-2 leading-snug flex-1 opacity-70">{it.text}</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="opacity-40 tabular-nums">× {it.count}</span>
+                    <button type="button" onClick={() => startEditItem(i)}
+                      className="p-1 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition text-[var(--accent)]"
+                      aria-label="تعديل"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                    <button type="button" onClick={() => setConfirmItemDeleteIdx(i)}
+                      className="p-1 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition text-[var(--danger)]"
+                      aria-label="حذف"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

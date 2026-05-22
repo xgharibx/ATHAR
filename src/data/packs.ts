@@ -124,6 +124,38 @@ export function removeCustomDhikrItem(sectionId: string, itemIndex: number): Noo
   return nextPacks;
 }
 
+export function updateCustomDhikrItem(
+  sectionId: string,
+  itemIndex: number,
+  update: { text: string; count: number; benefit?: string },
+): NoorPack[] {
+  const packs = loadPacks();
+  const packIdx = packs.findIndex((p) => p.sections.some((s) => s.id === sectionId));
+  if (packIdx < 0) return packs;
+  const pack = { ...packs[packIdx] };
+  pack.sections = pack.sections.map((s) =>
+    s.id !== sectionId
+      ? s
+      : {
+          ...s,
+          content: s.content.map((item, i) =>
+            i !== itemIndex
+              ? item
+              : {
+                  ...item,
+                  text: update.text.trim(),
+                  count: coerceCount(update.count),
+                  benefit: update.benefit?.trim() ?? item.benefit ?? "",
+                },
+          ),
+        },
+  );
+  const next = [...packs];
+  next[packIdx] = pack;
+  savePacks(next);
+  return next;
+}
+
 export function addPackFromJson(json: Record<string, unknown>, name?: string): NoorPack {
   // Accept either {sections:[...]} (DB) OR {id,title,items:[...]} (section export)
   let sections: Section[] = [];

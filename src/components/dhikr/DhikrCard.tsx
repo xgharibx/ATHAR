@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, RotateCcw, Share2, ZoomIn, ZoomOut } from "lucide-react";
+import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, MoreHorizontal, RotateCcw, Share2, ZoomIn, ZoomOut } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { cn, clamp } from "@/lib/utils";
@@ -75,6 +75,7 @@ export function DhikrCard(props: {
     };
   }, []);
   const [confirmItemReset, setConfirmItemReset] = React.useState(false);
+  const [actionsOpen, setActionsOpen] = React.useState(false);
   // D5: per-card local font scale
   const [localFontScale, setLocalFontScale] = React.useState(1.0);
   const milestonesHit = React.useRef<Set<number>>(new Set([
@@ -310,48 +311,74 @@ export function DhikrCard(props: {
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-3">
           {!focusMode && (
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <IconButton aria-label="نسخ الذكر" onClick={doCopy}>
-              <Copy size={16} aria-hidden="true" className="opacity-80" />
-            </IconButton>
-
-            <IconButton aria-label="مشاركة النص" onClick={doShareText}>
-              <Share2 size={16} aria-hidden="true" className="opacity-80" />
-            </IconButton>
-
-            <IconButton aria-label="مشاركة كصورة" onClick={doShareImage}>
-              <ImageDown size={16} aria-hidden="true" className="opacity-80" />
-            </IconButton>
-
-            {/* D5: per-card font scale */}
+          <div className="flex items-center gap-1">
+            {/* Toggle button — always visible */}
             <IconButton
-              aria-label="تصغير الخط"
-              onClick={() => setLocalFontScale((s) => Math.max(0.65, +(s - 0.15).toFixed(2)))}
-              className={cn(localFontScale <= 0.65 && "opacity-30 pointer-events-none")}
+              aria-label={actionsOpen ? "إخفاء الأدوات" : "إظهار الأدوات"}
+              aria-expanded={actionsOpen}
+              onClick={() => setActionsOpen((v) => !v)}
+              className={cn(actionsOpen && "bg-accent-14 border-accent-24")}
             >
-              <ZoomOut size={14} aria-hidden="true" className="opacity-80" />
-            </IconButton>
-            <IconButton
-              aria-label="تكبير الخط"
-              onClick={() => setLocalFontScale((s) => Math.min(2.1, +(s + 0.15).toFixed(2)))}
-              className={cn(localFontScale >= 2.1 && "opacity-30 pointer-events-none")}
-            >
-              <ZoomIn size={14} aria-hidden="true" className="opacity-80" />
+              <MoreHorizontal size={15} aria-hidden="true" className="opacity-70" />
             </IconButton>
 
-            <IconButton
-              aria-label="مفضلة"
-              aria-pressed={fav}
-              onClick={() => toggleFavorite(sectionId, index)}
-              className={cn(fav && "bg-accent-14 border-accent-24")}
+            {/* Sliding actions panel */}
+            <div
+              style={{
+                maxWidth: actionsOpen ? "280px" : "0px",
+                overflow: "hidden",
+                transition: "max-width 300ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease",
+                opacity: actionsOpen ? 1 : 0,
+              }}
+              aria-hidden={!actionsOpen}
             >
-              <Heart size={16} aria-hidden="true" className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
-            </IconButton>
-            {sourceUrl ? (
-              <IconButton aria-label="فتح المصدر" onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}>
-                <ExternalLink size={16} aria-hidden="true" className="opacity-80" />
-              </IconButton>
-            ) : null}
+              <div className="flex items-center gap-1 pr-1">
+                <IconButton aria-label="نسخ الذكر" onClick={doCopy} tabIndex={actionsOpen ? 0 : -1}>
+                  <Copy size={16} aria-hidden="true" className="opacity-80" />
+                </IconButton>
+
+                <IconButton aria-label="مشاركة النص" onClick={doShareText} tabIndex={actionsOpen ? 0 : -1}>
+                  <Share2 size={16} aria-hidden="true" className="opacity-80" />
+                </IconButton>
+
+                <IconButton aria-label="مشاركة كصورة" onClick={doShareImage} tabIndex={actionsOpen ? 0 : -1}>
+                  <ImageDown size={16} aria-hidden="true" className="opacity-80" />
+                </IconButton>
+
+                {/* D5: per-card font scale */}
+                <IconButton
+                  aria-label="تصغير الخط"
+                  tabIndex={actionsOpen ? 0 : -1}
+                  onClick={() => setLocalFontScale((s) => Math.max(0.65, +(s - 0.15).toFixed(2)))}
+                  className={cn(localFontScale <= 0.65 && "opacity-30 pointer-events-none")}
+                >
+                  <ZoomOut size={14} aria-hidden="true" className="opacity-80" />
+                </IconButton>
+                <IconButton
+                  aria-label="تكبير الخط"
+                  tabIndex={actionsOpen ? 0 : -1}
+                  onClick={() => setLocalFontScale((s) => Math.min(2.1, +(s + 0.15).toFixed(2)))}
+                  className={cn(localFontScale >= 2.1 && "opacity-30 pointer-events-none")}
+                >
+                  <ZoomIn size={14} aria-hidden="true" className="opacity-80" />
+                </IconButton>
+
+                <IconButton
+                  aria-label="مفضلة"
+                  aria-pressed={fav}
+                  tabIndex={actionsOpen ? 0 : -1}
+                  onClick={() => toggleFavorite(sectionId, index)}
+                  className={cn(fav && "bg-accent-14 border-accent-24")}
+                >
+                  <Heart size={16} aria-hidden="true" className={cn(fav ? "text-[var(--accent)]" : "opacity-80")} />
+                </IconButton>
+                {sourceUrl ? (
+                  <IconButton aria-label="فتح المصدر" tabIndex={actionsOpen ? 0 : -1} onClick={() => window.open(sourceUrl, "_blank", "noopener,noreferrer")}>
+                    <ExternalLink size={16} aria-hidden="true" className="opacity-80" />
+                  </IconButton>
+                ) : null}
+              </div>
+            </div>
           </div>
           )}
           <div className="flex flex-col items-end gap-1.5 self-center shrink-0">

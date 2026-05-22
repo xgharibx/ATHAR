@@ -372,6 +372,7 @@ type NoorState = {
   updateCustomPack: (id: string, patch: Partial<Pick<CustomAdhkarPack, "title" | "items">>) => void;
   deleteCustomPack: (id: string) => void;
   removeCustomPackItem: (packId: string, itemIndex: number) => void;
+  updateCustomPackItem: (packId: string, itemIndex: number, patch: { text: string; count: number }) => void;
 
   // 3E: Section completion history (for weekly stats)
   sectionCompletions: Record<string, string[]>; // sectionId → ISO date array
@@ -1268,6 +1269,8 @@ export const useNoorStore = create<NoorState>()(
         set((s) => ({ customPacks: s.customPacks.filter((p) => p.id !== id) })),
       removeCustomPackItem: (packId, itemIndex) =>
         set((s) => ({ customPacks: s.customPacks.map((p) => p.id !== packId ? p : { ...p, items: p.items.filter((_, i) => i !== itemIndex) }) })),
+      updateCustomPackItem: (packId, itemIndex, patch) =>
+        set((s) => ({ customPacks: s.customPacks.map((p) => p.id !== packId ? p : { ...p, items: p.items.map((it, i) => i !== itemIndex ? it : { ...it, ...patch }) }) })),
 
       // 3E: Section completion history
       sectionCompletions: {},
