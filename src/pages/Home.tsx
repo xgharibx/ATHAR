@@ -278,31 +278,35 @@ export function HomePage() {
     const startY = e.clientY;
     if (stripLongPressRef.current) clearTimeout(stripLongPressRef.current);
 
-    const cancel = () => {
+    const cleanup = () => {
       if (stripLongPressRef.current) { clearTimeout(stripLongPressRef.current); stripLongPressRef.current = null; }
       window.removeEventListener("pointermove", onEarlyMove);
       window.removeEventListener("pointerup", onEarlyUp);
       window.removeEventListener("pointercancel", onEarlyUp);
     };
-    const onEarlyMove = (me: PointerEvent) => {
-      if (Math.abs(me.clientX - startX) > 8 || Math.abs(me.clientY - startY) > 8) cancel();
+    const activateDrag = () => {
+      cleanup();
+      setDraggingStripId(id);
+      setLiveStripIds([...defaultStripIds]);
+      stripDragWasActive.current = true;
+      if (prefs.enableHaptics && "vibrate" in navigator) navigator.vibrate(20);
     };
-    const onEarlyUp = () => cancel();
+    const onEarlyMove = (me: PointerEvent) => {
+      const absDx = Math.abs(me.clientX - startX);
+      const absDy = Math.abs(me.clientY - startY);
+      // Vertical scroll intent → cancel drag
+      if (absDy > 8 && absDy > absDx) { cleanup(); return; }
+      // Horizontal swipe → start drag immediately, no long-press needed
+      if (absDx > 10) activateDrag();
+    };
+    const onEarlyUp = () => cleanup();
 
     window.addEventListener("pointermove", onEarlyMove);
     window.addEventListener("pointerup", onEarlyUp);
     window.addEventListener("pointercancel", onEarlyUp);
 
-    stripLongPressRef.current = window.setTimeout(() => {
-      window.removeEventListener("pointermove", onEarlyMove);
-      window.removeEventListener("pointerup", onEarlyUp);
-      window.removeEventListener("pointercancel", onEarlyUp);
-      stripLongPressRef.current = null;
-      setDraggingStripId(id);
-      setLiveStripIds([...defaultStripIds]);
-      stripDragWasActive.current = true;
-      if (prefs.enableHaptics && "vibrate" in navigator) navigator.vibrate(35);
-    }, 420);
+    // Fallback: long-press also activates drag (280ms, shorter than before)
+    stripLongPressRef.current = window.setTimeout(activateDrag, 280);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultStripIds, prefs.enableHaptics]);
 
@@ -958,7 +962,7 @@ export function HomePage() {
               <div className="absolute inset-x-0 text-[8px] opacity-40 text-center arabic-text leading-none">اسحب لإعادة الترتيب · ارفع إصبعك للحفظ</div>
             )}
             {!draggingStripId && !prefs.homeStripOrder && (
-              <div className="absolute inset-x-0 text-[8px] opacity-30 text-center arabic-text leading-none select-none">اضغط مطولاً على أي قسم لإعادة ترتيبه</div>
+              <div className="absolute inset-x-0 text-[8px] opacity-30 text-center arabic-text leading-none select-none">اسحب يميناً أو يساراً لإعادة ترتيب الأقسام</div>
             )}
           </div>
           <div className="flex gap-2 pb-0.5" style={{ width: "max-content" }}>
