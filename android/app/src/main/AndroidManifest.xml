@@ -34,77 +34,7 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
-        <receiver
-            android:name=".NoorWidgetProvider"
-            android:exported="true"
-            android:label="Athar Daily Widget">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/noor_widget_info" />
-        </receiver>
-        <receiver
-            android:name=".NoorCompactWidgetProvider"
-            android:exported="true"
-            android:label="Athar Compact Widget">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/noor_widget_compact_info" />
-        </receiver>
-        <receiver
-            android:name=".NoorPrayerWidgetProvider"
-            android:exported="true"
-            android:label="Athar Prayer Widget">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/noor_widget_prayer_info" />
-        </receiver>
-        <receiver
-            android:name=".NoorTasbeehWidgetProvider"
-            android:exported="true"
-            android:label="Athar Tasbeeh Widget">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <!-- Interactive counter actions — fired by button PendingIntents -->
-                <action android:name="com.athar.adhkar.TASBEEH_INCREMENT" />
-                <action android:name="com.athar.adhkar.TASBEEH_RESET" />
-                <action android:name="com.athar.adhkar.TASBEEH_NEXT" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/noor_widget_tasbeeh_info" />
-        </receiver>
-        <receiver
-            android:name=".NoorQuranWidgetProvider"
-            android:exported="true"
-            android:label="Athar Quran Widget">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/noor_widget_quran_info" />
-        </receiver>
-        <receiver
-            android:name=".NoorSunnahWidgetProvider"
-            android:exported="true"
-            android:label="Athar Sunnah Widget">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/noor_widget_sunnah_info" />
-        </receiver>
-        <!-- ── NEW: Full Prayer Times Widget (4×3 — all 5 prayers) ── -->
+        <!-- Prayer Times Widget (4×3) -->
         <receiver
             android:name=".NoorPrayerFullWidgetProvider"
             android:exported="true"
@@ -116,7 +46,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_prayer_full_info" />
         </receiver>
-        <!-- ── NEW: Daily Adhkar Progress Widget (4×2) ── -->
+        <!-- Daily Adhkar Progress Widget (4×2) -->
         <receiver
             android:name=".NoorAdhkarWidgetProvider"
             android:exported="true"
@@ -128,7 +58,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_adhkar_info" />
         </receiver>
-        <!-- ── NEW: Quran Wird Progress Widget (4×2) ── -->
+        <!-- Quran Wird Progress Widget (4×2) -->
         <receiver
             android:name=".NoorWirdWidgetProvider"
             android:exported="true"
@@ -140,7 +70,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_wird_info" />
         </receiver>
-        <!-- ── NEW: Ultimate Daily Dashboard Widget (4×4) ── -->
+        <!-- Daily Dashboard Widget (4×4) -->
         <receiver
             android:name=".NoorDashboardWidgetProvider"
             android:exported="true"

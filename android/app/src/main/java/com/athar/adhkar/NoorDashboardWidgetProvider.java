@@ -43,7 +43,6 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
     private static final String KEY_WIRD          = "CapacitorStorage.noor_widget_wird_v1";
     private static final String KEY_DASHBOARD     = "CapacitorStorage.noor_widget_dashboard_v1";
 
-    private static final int BAR_TOTAL_WEIGHT = 1000;
 
     // ─── Prayer dot symbols ────────────────────────────────────────
     private static final String DOT_DONE   = "✓";
@@ -185,8 +184,8 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             if (json == null) {
                 views.setTextViewText(R.id.dash_morning_count, "--");
                 views.setTextViewText(R.id.dash_evening_count, "--");
-                setBarWeight(views, R.id.dash_morning_fill, 0);
-                setBarWeight(views, R.id.dash_evening_fill, 0);
+                setBarScale(views, R.id.dash_morning_fill, 0);
+                setBarScale(views, R.id.dash_evening_fill, 0);
                 return;
             }
 
@@ -207,8 +206,8 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         } catch (Exception e) {
             views.setTextViewText(R.id.dash_morning_count, "--");
             views.setTextViewText(R.id.dash_evening_count, "--");
-            setBarWeight(views, R.id.dash_morning_fill, 0);
-            setBarWeight(views, R.id.dash_evening_fill, 0);
+            setBarScale(views, R.id.dash_morning_fill, 0);
+            setBarScale(views, R.id.dash_evening_fill, 0);
         }
     }
 
@@ -220,7 +219,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             if (json == null) {
                 views.setTextViewText(R.id.dash_wird_count, "--");
                 views.setTextViewText(R.id.dash_wird_surah, "ابدأ المصحف");
-                setBarWeight(views, R.id.dash_wird_fill, 0);
+                setBarScale(views, R.id.dash_wird_fill, 0);
                 return;
             }
 
@@ -239,7 +238,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         } catch (Exception e) {
             views.setTextViewText(R.id.dash_wird_count, "--");
             views.setTextViewText(R.id.dash_wird_surah, "");
-            setBarWeight(views, R.id.dash_wird_fill, 0);
+            setBarScale(views, R.id.dash_wird_fill, 0);
         }
     }
 
@@ -274,13 +273,19 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
     // ─── Progress bar helpers ──────────────────────────────────────
 
     private void applyBar(RemoteViews views, int fillId, int done, int total) {
-        int weight = (total > 0) ? Math.min(BAR_TOTAL_WEIGHT, (done * BAR_TOTAL_WEIGHT) / total) : 0;
-        setBarWeight(views, fillId, weight);
+        int pct = (total > 0) ? Math.min(100, (done * 100) / total) : 0;
+        setBarScale(views, fillId, pct);
     }
 
-    /** Set layout_weight on a view inside a LinearLayout (hack via setInt). */
-    private void setBarWeight(RemoteViews views, int viewId, int weight) {
-        views.setInt(viewId, "setLayoutWeight", weight);
+    /** Scale a fill view horizontally from its left edge (0–100%). */
+    private void setBarScale(RemoteViews views, int viewId, int pct) {
+        if (pct <= 0) {
+            views.setViewVisibility(viewId, View.INVISIBLE);
+        } else {
+            views.setViewVisibility(viewId, View.VISIBLE);
+            views.setFloat(viewId, "setScaleX", Math.min(1f, pct / 100f));
+            views.setFloat(viewId, "setPivotX", 0f);
+        }
     }
 
     // ─── Utilities ────────────────────────────────────────────────

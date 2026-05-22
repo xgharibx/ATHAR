@@ -99,7 +99,7 @@
 
             <View
                 android:id="@+id/adhkar_morning_fill"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/widget_progress_fill" />
 
@@ -162,7 +162,7 @@
 
             <View
                 android:id="@+id/adhkar_evening_fill"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/widget_progress_fill" />
 

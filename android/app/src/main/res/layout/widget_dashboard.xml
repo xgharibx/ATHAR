@@ -270,7 +270,7 @@
                 android:background="@drawable/widget_progress_track">
                 <View
                     android:id="@+id/dash_morning_fill"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="start"
                     android:background="@drawable/widget_progress_fill" />
@@ -313,7 +313,7 @@
                 android:background="@drawable/widget_progress_track">
                 <View
                     android:id="@+id/dash_evening_fill"
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="start"
                     android:background="@drawable/widget_dash_fill_green" />
@@ -377,7 +377,7 @@
                     android:background="@drawable/widget_progress_track">
                     <View
                         android:id="@+id/dash_wird_fill"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_gravity="start"
                         android:background="@drawable/widget_progress_fill" />
