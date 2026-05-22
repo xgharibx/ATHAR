@@ -24,6 +24,7 @@ export function LeaderboardSyncBridge() {
   const [retryTick, setRetryTick] = React.useState(0);
   const lastSyncedKeyRef = React.useRef("");
   const syncingRef = React.useRef(false);
+  const pendingSyncRef = React.useRef(false);
 
   const sections = React.useMemo(() => data?.db.sections ?? [], [data]);
   const stats = React.useMemo(
@@ -67,7 +68,10 @@ export function LeaderboardSyncBridge() {
     if (isRateLimited()) return;
 
     const timeoutId = window.setTimeout(async () => {
-      if (syncingRef.current) return;
+      if (syncingRef.current) {
+        pendingSyncRef.current = true;
+        return;
+      }
       if (isRateLimited()) return;
       syncingRef.current = true;
       try {
@@ -79,6 +83,10 @@ export function LeaderboardSyncBridge() {
         }
       } finally {
         syncingRef.current = false;
+        if (pendingSyncRef.current) {
+          pendingSyncRef.current = false;
+          setRetryTick((value) => value + 1);
+        }
       }
     }, AUTO_SYNC_DEBOUNCE_MS);
 
