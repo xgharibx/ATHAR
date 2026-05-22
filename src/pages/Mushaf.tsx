@@ -309,25 +309,38 @@ export function MushafPage() {
   const [showChrome, setShowChrome] = React.useState(true);
   const chromeTimer = React.useRef<number | null>(null);
   const lastScrollYRef = React.useRef(0);
+  const scrollIntentRef = React.useRef(0);
   const flashChrome = React.useCallback(() => {
+    scrollIntentRef.current = 0;
     setShowChrome(true);
     if (chromeTimer.current) clearTimeout(chromeTimer.current);
     chromeTimer.current = window.setTimeout(() => setShowChrome(false), 5500);
   }, []);
-  // Scroll-direction-aware hide: hide when reading down, show when scrolling back up
+  // Hide only on clear downward reading intent. Scroll bounce must not re-show chrome.
   const handleContentScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const y = e.currentTarget.scrollTop;
     const delta = y - lastScrollYRef.current;
     lastScrollYRef.current = y;
-    if (Math.abs(delta) < 10) return;
+    if (Math.abs(delta) < 4) return;
+
+    if (y <= 4) {
+      scrollIntentRef.current = 0;
+      return;
+    }
+
     if (delta > 0) {
+      scrollIntentRef.current = Math.max(0, scrollIntentRef.current + delta);
+    } else {
+      scrollIntentRef.current = Math.max(0, scrollIntentRef.current + delta * 0.5);
+    }
+
+    if (scrollIntentRef.current > 36) {
       setShowChrome(false);
       if (chromeTimer.current) { clearTimeout(chromeTimer.current); chromeTimer.current = null; }
-    } else {
-      flashChrome();
+      scrollIntentRef.current = 0;
     }
-  }, [flashChrome]);
-  React.useEffect(() => { flashChrome(); }, [currentPage, flashChrome]);
+  }, []);
+  React.useEffect(() => { lastScrollYRef.current = 0; scrollIntentRef.current = 0; flashChrome(); }, [currentPage, flashChrome]);
   React.useEffect(() => () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); }, []);
 
   // Set browser tab title
