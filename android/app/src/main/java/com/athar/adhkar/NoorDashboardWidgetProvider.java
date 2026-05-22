@@ -54,6 +54,27 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         R.id.dot_fajr, R.id.dot_dhuhr, R.id.dot_asr,
         R.id.dot_maghrib, R.id.dot_isha
     };
+    private static final int[] MORNING_SEGMENTS = {
+        R.id.dash_morning_seg_01, R.id.dash_morning_seg_02,
+        R.id.dash_morning_seg_03, R.id.dash_morning_seg_04,
+        R.id.dash_morning_seg_05, R.id.dash_morning_seg_06,
+        R.id.dash_morning_seg_07, R.id.dash_morning_seg_08,
+        R.id.dash_morning_seg_09, R.id.dash_morning_seg_10
+    };
+    private static final int[] EVENING_SEGMENTS = {
+        R.id.dash_evening_seg_01, R.id.dash_evening_seg_02,
+        R.id.dash_evening_seg_03, R.id.dash_evening_seg_04,
+        R.id.dash_evening_seg_05, R.id.dash_evening_seg_06,
+        R.id.dash_evening_seg_07, R.id.dash_evening_seg_08,
+        R.id.dash_evening_seg_09, R.id.dash_evening_seg_10
+    };
+    private static final int[] WIRD_SEGMENTS = {
+        R.id.dash_wird_seg_01, R.id.dash_wird_seg_02,
+        R.id.dash_wird_seg_03, R.id.dash_wird_seg_04,
+        R.id.dash_wird_seg_05, R.id.dash_wird_seg_06,
+        R.id.dash_wird_seg_07, R.id.dash_wird_seg_08,
+        R.id.dash_wird_seg_09, R.id.dash_wird_seg_10
+    };
 
     // ─── AtharWidgetProvider contract ─────────────────────────────
 
@@ -184,8 +205,8 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             if (json == null) {
                 views.setTextViewText(R.id.dash_morning_count, "--");
                 views.setTextViewText(R.id.dash_evening_count, "--");
-                setBarScale(views, R.id.dash_morning_fill, 0);
-                setBarScale(views, R.id.dash_evening_fill, 0);
+                setBarSegments(views, MORNING_SEGMENTS, 0);
+                setBarSegments(views, EVENING_SEGMENTS, 0);
                 return;
             }
 
@@ -200,14 +221,14 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
             views.setTextViewText(R.id.dash_morning_count, mDone + "/" + mTotal);
             views.setTextViewText(R.id.dash_evening_count, eDone + "/" + eTotal);
-            applyBar(views, R.id.dash_morning_fill, mDone, mTotal);
-            applyBar(views, R.id.dash_evening_fill, eDone, eTotal);
+            applyBar(views, MORNING_SEGMENTS, mDone, mTotal);
+            applyBar(views, EVENING_SEGMENTS, eDone, eTotal);
 
         } catch (Exception e) {
             views.setTextViewText(R.id.dash_morning_count, "--");
             views.setTextViewText(R.id.dash_evening_count, "--");
-            setBarScale(views, R.id.dash_morning_fill, 0);
-            setBarScale(views, R.id.dash_evening_fill, 0);
+            setBarSegments(views, MORNING_SEGMENTS, 0);
+            setBarSegments(views, EVENING_SEGMENTS, 0);
         }
     }
 
@@ -219,7 +240,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             if (json == null) {
                 views.setTextViewText(R.id.dash_wird_count, "--");
                 views.setTextViewText(R.id.dash_wird_surah, "ابدأ المصحف");
-                setBarScale(views, R.id.dash_wird_fill, 0);
+                setBarSegments(views, WIRD_SEGMENTS, 0);
                 return;
             }
 
@@ -233,12 +254,12 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             views.setTextViewText(R.id.dash_wird_surah,
                 currentSurah.isEmpty() ? "ابدأ المصحف"
                     : "سورة " + currentSurah + " ‧ الآية " + toArabicNumerals(currentAyah));
-            applyBar(views, R.id.dash_wird_fill, ayahsRead, dailyGoal);
+            applyBar(views, WIRD_SEGMENTS, ayahsRead, dailyGoal);
 
         } catch (Exception e) {
             views.setTextViewText(R.id.dash_wird_count, "--");
             views.setTextViewText(R.id.dash_wird_surah, "");
-            setBarScale(views, R.id.dash_wird_fill, 0);
+            setBarSegments(views, WIRD_SEGMENTS, 0);
         }
     }
 
@@ -272,19 +293,16 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
     // ─── Progress bar helpers ──────────────────────────────────────
 
-    private void applyBar(RemoteViews views, int fillId, int done, int total) {
-        int pct = (total > 0) ? Math.min(100, (done * 100) / total) : 0;
-        setBarScale(views, fillId, pct);
+    private void applyBar(RemoteViews views, int[] segmentIds, int done, int total) {
+        int active = total > 0
+            ? Math.min(segmentIds.length, Math.max(0, (done * segmentIds.length + total - 1) / total))
+            : 0;
+        setBarSegments(views, segmentIds, active);
     }
 
-    /** Scale a fill view horizontally from its left edge (0–100%). */
-    private void setBarScale(RemoteViews views, int viewId, int pct) {
-        if (pct <= 0) {
-            views.setViewVisibility(viewId, View.INVISIBLE);
-        } else {
-            views.setViewVisibility(viewId, View.VISIBLE);
-            views.setFloat(viewId, "setScaleX", Math.min(1f, pct / 100f));
-            views.setFloat(viewId, "setPivotX", 0f);
+    private void setBarSegments(RemoteViews views, int[] segmentIds, int activeCount) {
+        for (int i = 0; i < segmentIds.length; i++) {
+            views.setViewVisibility(segmentIds[i], i < activeCount ? View.VISIBLE : View.INVISIBLE);
         }
     }
 

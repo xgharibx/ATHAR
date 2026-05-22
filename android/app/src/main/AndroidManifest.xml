@@ -38,7 +38,7 @@
         <receiver
             android:name=".NoorPrayerFullWidgetProvider"
             android:exported="true"
-            android:label="Athar Full Prayer Widget">
+            android:label="@string/widget_prayer_full_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -50,7 +50,7 @@
         <receiver
             android:name=".NoorAdhkarWidgetProvider"
             android:exported="true"
-            android:label="Athar Adhkar Widget">
+            android:label="@string/widget_adhkar_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -62,7 +62,7 @@
         <receiver
             android:name=".NoorWirdWidgetProvider"
             android:exported="true"
-            android:label="Athar Wird Widget">
+            android:label="@string/widget_wird_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -74,13 +74,94 @@
         <receiver
             android:name=".NoorDashboardWidgetProvider"
             android:exported="true"
-            android:label="Athar Dashboard Widget">
+            android:label="@string/widget_dashboard_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_dashboard_info" />
+        </receiver>
+
+        <!-- General Daily Widget (3×2) -->
+        <receiver
+            android:name=".NoorWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_daily_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/noor_widget_info" />
+        </receiver>
+
+        <!-- Compact Daily Widget (2×1) -->
+        <receiver
+            android:name=".NoorCompactWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_compact_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/noor_widget_compact_info" />
+        </receiver>
+
+        <!-- Prayer Countdown Widget (4×2) -->
+        <receiver
+            android:name=".NoorPrayerWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_prayer_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/noor_widget_prayer_info" />
+        </receiver>
+
+        <!-- Quran Verse Widget (4×2) -->
+        <receiver
+            android:name=".NoorQuranWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_quran_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/noor_widget_quran_info" />
+        </receiver>
+
+        <!-- Sunnah Widget (4×2) -->
+        <receiver
+            android:name=".NoorSunnahWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_sunnah_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/noor_widget_sunnah_info" />
+        </receiver>
+
+        <!-- Interactive Tasbeeh Widget (2×2) -->
+        <receiver
+            android:name=".NoorTasbeehWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_tasbeeh_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.athar.adhkar.TASBEEH_INCREMENT" />
+                <action android:name="com.athar.adhkar.TASBEEH_RESET" />
+                <action android:name="com.athar.adhkar.TASBEEH_NEXT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/noor_widget_tasbeeh_info" />
         </receiver>
     </application>
 

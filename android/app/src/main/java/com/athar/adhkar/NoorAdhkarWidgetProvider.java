@@ -38,9 +38,20 @@ public class NoorAdhkarWidgetProvider extends AtharWidgetProvider {
     private static final String PREFS_FILE = "CapacitorStorage";
     private static final String WIDGET_KEY = "CapacitorStorage.noor_widget_adhkar_v1";
 
-    // Progress bar max width in dp; approximated via layout_weight manipulation
-    // For RemoteViews we use setInt to set layout weight (only works on LinearLayout children)
-    private static final int BAR_TOTAL_WEIGHT = 1000;
+    private static final int[] MORNING_SEGMENTS = {
+        R.id.adhkar_morning_seg_01, R.id.adhkar_morning_seg_02,
+        R.id.adhkar_morning_seg_03, R.id.adhkar_morning_seg_04,
+        R.id.adhkar_morning_seg_05, R.id.adhkar_morning_seg_06,
+        R.id.adhkar_morning_seg_07, R.id.adhkar_morning_seg_08,
+        R.id.adhkar_morning_seg_09, R.id.adhkar_morning_seg_10
+    };
+    private static final int[] EVENING_SEGMENTS = {
+        R.id.adhkar_evening_seg_01, R.id.adhkar_evening_seg_02,
+        R.id.adhkar_evening_seg_03, R.id.adhkar_evening_seg_04,
+        R.id.adhkar_evening_seg_05, R.id.adhkar_evening_seg_06,
+        R.id.adhkar_evening_seg_07, R.id.adhkar_evening_seg_08,
+        R.id.adhkar_evening_seg_09, R.id.adhkar_evening_seg_10
+    };
 
     @Override
     protected AtharWidgetSpec getSpec() {
@@ -84,29 +95,25 @@ public class NoorAdhkarWidgetProvider extends AtharWidgetProvider {
                 // Morning
                 views.setTextViewText(R.id.adhkar_morning_count,
                     morningDone + "/" + morningTotal);
-                applyProgressBar(views,
-                    R.id.adhkar_morning_fill,
-                    morningDone, morningTotal);
+                applyProgressBar(views, MORNING_SEGMENTS, morningDone, morningTotal);
 
                 // Evening
                 views.setTextViewText(R.id.adhkar_evening_count,
                     eveningDone + "/" + eveningTotal);
-                applyProgressBar(views,
-                    R.id.adhkar_evening_fill,
-                    eveningDone, eveningTotal);
+                applyProgressBar(views, EVENING_SEGMENTS, eveningDone, eveningTotal);
 
             } else {
                 views.setTextViewText(R.id.adhkar_morning_count, "افتح التطبيق");
                 views.setTextViewText(R.id.adhkar_evening_count, "--");
-                setProgressWidth(views, R.id.adhkar_morning_fill, 0);
-                setProgressWidth(views, R.id.adhkar_evening_fill, 0);
+                setProgressSegments(views, MORNING_SEGMENTS, 0);
+                setProgressSegments(views, EVENING_SEGMENTS, 0);
             }
 
         } catch (Exception e) {
             views.setTextViewText(R.id.adhkar_morning_count, "--");
             views.setTextViewText(R.id.adhkar_evening_count, "--");
-            setProgressWidth(views, R.id.adhkar_morning_fill, 0);
-            setProgressWidth(views, R.id.adhkar_evening_fill, 0);
+            setProgressSegments(views, MORNING_SEGMENTS, 0);
+            setProgressSegments(views, EVENING_SEGMENTS, 0);
         }
 
         // Tap → open app
@@ -121,46 +128,18 @@ public class NoorAdhkarWidgetProvider extends AtharWidgetProvider {
         manager.updateAppWidget(appWidgetId, views);
     }
 
-    /**
-     * Set the width of a progress fill view as a percentage of its parent.
-     * RemoteViews cannot set layout_weight directly, so we use setViewVisibility
-     * toggling: the fill view has layout_width="0dp" by default; we set its
-     * width via setInt with "setLayoutParams" workaround using a fixed pixel width
-     * proportional to the container.  For simplicity we use a fixed 240dp total
-     * and scale it.
-     */
-    private void applyProgressBar(RemoteViews views, int fillId, int done, int total) {
+    private void applyProgressBar(RemoteViews views, int[] segmentIds, int done, int total) {
         if (total <= 0) {
-            setProgressWidth(views, fillId, 0);
+            setProgressSegments(views, segmentIds, 0);
             return;
         }
-        int pct = Math.min(100, (done * 100) / total);
-        setProgressWidth(views, fillId, pct);
+        int active = Math.min(segmentIds.length, Math.max(0, (done * segmentIds.length + total - 1) / total));
+        setProgressSegments(views, segmentIds, active);
     }
 
-    /**
-     * Set fill view width to (pct/100) of parent by toggling visibility.
-     * Since RemoteViews doesn't support setLayoutParams directly for fill bars,
-     * we approximate by using a weighted layout: the fill view starts as 0dp
-     * and we set its weight.  Note: setLayoutParams via reflection is unavailable
-     * in RemoteViews, so we use a FrameLayout overlay approach with the fill View
-     * having a fixed percentage width set via android:layout_width in XML anchored
-     * to a FrameLayout.  We control it with setViewVisibility thresholds (10 buckets).
-     *
-     * For precision: we use setInt(viewId, "setVisibility", ...) and pre-baked
-     * 10 fill-level drawables.  Instead here we use a simpler but effective approach:
-     * We show/hide the fill completely if 0 or 100%, otherwise we use setScaleX.
-     */
-    private void setProgressWidth(RemoteViews views, int fillId, int pct) {
-        if (pct <= 0) {
-            views.setViewVisibility(fillId, View.INVISIBLE);
-        } else {
-            views.setViewVisibility(fillId, View.VISIBLE);
-            // Scale the fill bar horizontally from its left edge
-            float scale = pct / 100f;
-            views.setFloat(fillId, "setScaleX", scale);
-            // Pivot to left so it grows left→right
-            views.setFloat(fillId, "setPivotX", 0f);
+    private void setProgressSegments(RemoteViews views, int[] segmentIds, int activeCount) {
+        for (int i = 0; i < segmentIds.length; i++) {
+            views.setViewVisibility(segmentIds[i], i < activeCount ? View.VISIBLE : View.INVISIBLE);
         }
     }
 }

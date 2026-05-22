@@ -40,6 +40,13 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
 
     private static final String PREFS_FILE = "CapacitorStorage";
     private static final String WIDGET_KEY = "CapacitorStorage.noor_widget_wird_v1";
+    private static final int[] WIRD_SEGMENTS = {
+        R.id.wird_progress_seg_01, R.id.wird_progress_seg_02,
+        R.id.wird_progress_seg_03, R.id.wird_progress_seg_04,
+        R.id.wird_progress_seg_05, R.id.wird_progress_seg_06,
+        R.id.wird_progress_seg_07, R.id.wird_progress_seg_08,
+        R.id.wird_progress_seg_09, R.id.wird_progress_seg_10
+    };
 
     @Override
     protected AtharWidgetSpec getSpec() {
@@ -135,13 +142,9 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
     // ─────────────────────────────────────────────────────
 
     private void setProgressBar(RemoteViews views, int pct) {
-        if (pct <= 0) {
-            views.setViewVisibility(R.id.wird_progress_fill, View.INVISIBLE);
-        } else {
-            views.setViewVisibility(R.id.wird_progress_fill, View.VISIBLE);
-            float scale = Math.min(1f, pct / 100f);
-            views.setFloat(R.id.wird_progress_fill, "setScaleX", scale);
-            views.setFloat(R.id.wird_progress_fill, "setPivotX", 0f);
+        int active = Math.min(WIRD_SEGMENTS.length, Math.max(0, (pct + 9) / 10));
+        for (int i = 0; i < WIRD_SEGMENTS.length; i++) {
+            views.setViewVisibility(WIRD_SEGMENTS[i], i < active ? View.VISIBLE : View.INVISIBLE);
         }
     }
 

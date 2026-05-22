@@ -108,23 +108,30 @@
     </LinearLayout>
 
     <!-- Progress bar: today read / daily goal -->
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="8dp"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:background="@drawable/widget_progress_track"
+        android:orientation="horizontal">
 
         <View
-            android:layout_width="match_parent"
+            android:id="@+id/wird_progress_seg_01"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:background="@drawable/widget_progress_track" />
-
-        <View
-            android:id="@+id/wird_progress_fill"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="@drawable/widget_progress_fill" />
+        <View android:id="@+id/wird_progress_seg_02" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+        <View android:id="@+id/wird_progress_seg_03" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+        <View android:id="@+id/wird_progress_seg_04" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+        <View android:id="@+id/wird_progress_seg_05" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+        <View android:id="@+id/wird_progress_seg_06" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+        <View android:id="@+id/wird_progress_seg_07" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+        <View android:id="@+id/wird_progress_seg_08" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+        <View android:id="@+id/wird_progress_seg_09" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+        <View android:id="@+id/wird_progress_seg_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
 
-    </FrameLayout>
+    </LinearLayout>
 
     <!-- Progress label + open button -->
     <LinearLayout

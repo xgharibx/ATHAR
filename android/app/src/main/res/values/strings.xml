@@ -8,6 +8,16 @@
     <string name="widget_phrase">&#x627;&#x641;&#x62A;&#x62D; &#x648;&#x631;&#x62F;&#x643; &#x648;&#x627;&#x628;&#x62F;&#x623; &#x627;&#x644;&#x630;&#x643;&#x631;</string>
     <string name="widget_action">&#x641;&#x62A;&#x62D; &#x627;&#x644;&#x62A;&#x637;&#x628;&#x64A;&#x642;</string>
     <string name="widget_description">&#x648;&#x62F;&#x62C;&#x62A; &#x623;&#x62B;&#x631;</string>
+    <string name="widget_daily_label">Athar Daily Widget</string>
+    <string name="widget_compact_label">Athar Compact Widget</string>
+    <string name="widget_prayer_label">Athar Prayer Widget</string>
+    <string name="widget_prayer_full_label">Athar Full Prayer Widget</string>
+    <string name="widget_adhkar_label">Athar Adhkar Widget</string>
+    <string name="widget_wird_label">Athar Wird Widget</string>
+    <string name="widget_dashboard_label">Athar Dashboard Widget</string>
+    <string name="widget_tasbeeh_label">Athar Tasbeeh Widget</string>
+    <string name="widget_quran_label">Athar Quran Widget</string>
+    <string name="widget_sunnah_label">Athar Sunnah Widget</string>
     <!-- 11C: Notification channel names shown in Android Settings > App Notifications -->
     <string name="channel_prayer_name">&#x62A;&#x646;&#x628;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
     <string name="channel_prayer_desc">&#x623;&#x630;&#x627;&#x646; &#x627;&#x644;&#x635;&#x644;&#x648;&#x627;&#x62A; &#x627;&#x644;&#x62E;&#x645;&#x633; &#x648;&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
