@@ -220,7 +220,7 @@ export function DhikrList(props: Readonly<{
     let remaining = autoReadSpeedRef.current;
     let currentIdx = autoReadIdx;
     setAutoReadCountdown(remaining);
-    virtuosoRef.current?.scrollToIndex({ index: currentIdx, align: "start", behavior: "smooth" });
+    virtuosoRef.current?.scrollToIndex({ index: currentIdx, align: "center", behavior: "smooth" });
     const id = setInterval(() => {
       remaining -= 1;
       setAutoReadCountdown(remaining);
@@ -235,7 +235,7 @@ export function DhikrList(props: Readonly<{
         remaining = autoReadSpeedRef.current;
         setAutoReadCountdown(remaining);
         setAutoReadIdx(currentIdx);
-        virtuosoRef.current?.scrollToIndex({ index: currentIdx, align: "start", behavior: "smooth" });
+        virtuosoRef.current?.scrollToIndex({ index: currentIdx, align: "center", behavior: "smooth" });
       }
     }, 1000);
     autoReadIntervalRef.current = id;
@@ -745,7 +745,7 @@ export function DhikrList(props: Readonly<{
                   onComplete={() => {
                     const nextIdx = displayIndex + 1;
                     if (nextIdx < orderedEntries.length) {
-                      virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "start", behavior: "smooth" });
+                      virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "center", behavior: "smooth" });
                     }
                   }}
                 />
