@@ -604,7 +604,7 @@ export function AppShell() {
 
       {/* Layout */}
       <div className="mx-auto max-w-[1400px] px-4 pb-floating-nav">
-        <div className="mt-4 grid grid-cols-12 gap-4">
+        <div className="mt-4 grid grid-cols-12 gap-4 app-layout-grid">
           {/* Desktop Sidebar */}
           <aside className="hidden xl:block col-span-3 2xl:col-span-2">
             <div className="glass-strong rounded-3xl sticky top-[96px] overflow-hidden" style={{ height: "calc(100dvh - 120px)" }}>

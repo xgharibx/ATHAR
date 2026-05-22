@@ -2211,12 +2211,20 @@ html {
 
 
 /* -------------------------------------------------------
-   Focus Mode â€” hides chrome so user can focus on dhikr
+   Focus Mode -- hides chrome so user can focus on dhikr
    ------------------------------------------------------- */
+
+/* Slide app topbar off the top + fade */
 body.focus-mode header {
+  transform: translateY(-100%);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms ease;
+}
+
+/* Pull content grid up to fill the vacated topbar space */
+body.focus-mode .app-layout-grid {
+  margin-top: var(--focus-offset, -80px);
+  transition: margin-top 350ms ease;
 }
 
 body.focus-mode .floating-nav {
@@ -2226,9 +2234,18 @@ body.focus-mode .floating-nav {
   transition: opacity 300ms ease, transform 300ms ease;
 }
 
-/* Smooth re-entry when focus mode exits */
+/* -------------------------------------------------------
+   Dhikr scroll -- hide app topbar when compact bar shows
+   ------------------------------------------------------- */
+body.dhikr-scrolled header {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Smooth transitions on app topbar for both modes */
 header {
-  transition: opacity 300ms ease;
+  transition: transform 300ms ease, opacity 300ms ease;
 }
 
 @keyframes focusModePulse {

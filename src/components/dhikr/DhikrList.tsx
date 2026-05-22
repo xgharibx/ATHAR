@@ -243,17 +243,30 @@ export function DhikrList(props: Readonly<{
   }, [autoReadActive, autoReadIdx, orderedEntries.length, stopAutoRead]);
   React.useEffect(() => () => { if (autoReadIntervalRef.current) clearInterval(autoReadIntervalRef.current); }, []);
 
-  // Apply / remove focus-mode class on body
+  // Apply / remove focus-mode class on body + compute --focus-offset for CSS
   React.useEffect(() => {
     if (focusMode) {
       document.body.classList.add("focus-mode");
+      const topbarH = parseFloat(
+        document.documentElement.style.getPropertyValue("--topbar-h") || "80"
+      );
+      document.documentElement.style.setProperty("--focus-offset", `-${topbarH}px`);
     } else {
       document.body.classList.remove("focus-mode");
+      document.documentElement.style.removeProperty("--focus-offset");
     }
     return () => {
       document.body.classList.remove("focus-mode");
+      document.documentElement.style.removeProperty("--focus-offset");
     };
   }, [focusMode]);
+
+  // Sync dhikr-scrolled on body so the app topbar can hide via CSS
+  const compactBarVisible = !headerVisible && !scrollingUp;
+  React.useEffect(() => {
+    document.body.classList.toggle("dhikr-scrolled", compactBarVisible);
+    return () => { document.body.classList.remove("dhikr-scrolled"); };
+  }, [compactBarVisible]);
 
   // Prev / next sections for quick navigation
   const { prevSection, nextSection } = React.useMemo(() => {
@@ -362,13 +375,16 @@ export function DhikrList(props: Readonly<{
             "transition-all duration-200",
             (headerVisible || scrollingUp) ? "opacity-0 -translate-y-2 pointer-events-none" : "opacity-100 translate-y-0",
           ].join(" ")}
-          style={{ top: "var(--topbar-h, 80px)", paddingTop: "8px" }}
+          style={{
+            top: compactBarVisible ? "var(--sat, 0px)" : "var(--topbar-h, 80px)",
+            paddingTop: compactBarVisible ? "calc(var(--sat, 0px) + 8px)" : "8px",
+          }}
           aria-hidden={(headerVisible || scrollingUp) ? "true" : undefined}
         >
           <span className="text-base leading-none" aria-hidden="true">{identity.icon}</span>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-semibold truncate" style={{ color: identity.accent }}>{props.title}</div>
-            <div className="mt-1 h-1 rounded-full bg-[var(--card)] overflow-hidden">
+            <div className="mt-1 h-[3px] rounded-full bg-white/10 overflow-hidden">
               <div
                 className="h-full rounded-full transition-[width] duration-300"
                 style={{ width: `${stats.percent}%`, background: identity.accent }}
@@ -615,7 +631,7 @@ export function DhikrList(props: Readonly<{
             </div>
           )}
 
-          <div className="mt-4 h-2.5 rounded-full bg-[var(--card)] overflow-hidden border border-[var(--stroke)]">
+          <div className="mt-4 h-1.5 rounded-full bg-white/[.08] overflow-hidden">
             <div
               className="h-full rounded-full transition-[width] duration-500"
               style={{ width: `${stats.percent}%`, background: identity.accent }}
