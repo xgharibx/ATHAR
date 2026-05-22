@@ -241,8 +241,10 @@ export function MushafPage() {
       p = Number(pageMap[`${surahParam}:1`]) || Number(pageMap[`${surahParam}:2`]) || 1;
     }
     setCurrentPage(p);
+    // Keep quranMushafPage in sync so the Home 'تابع سورة' button returns to the correct page
+    setPrefs({ quranMushafPage: p });
     navigate(`/mushaf/${p}`, { replace: true });
-  }, [surahParam, ayahParam, pageMap, navigate]);
+  }, [surahParam, ayahParam, pageMap, navigate, setPrefs]);
 
   // Sync URL param when navigating via browser back/forward
   React.useEffect(() => {

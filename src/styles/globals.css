@@ -2396,14 +2396,15 @@ header {
   border-radius: 2px;
   /* Top + bottom horizontal vine borders via background layers */
   background-color: rgba(255, 251, 240, 0.6);
+  /* Removed backdrop-filter: it caused scroll-time repaint glitches at non-integer zoom levels */
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 22'%3E%3Cg fill='none'%3E%3Cpath d='M0 11 Q11 8 22 11 Q33 14 44 11' stroke='%23558b2f' stroke-width='1.2' fill='none' opacity='.7'/%3E%3Cg transform='translate(22,11)'%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.65'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='2.5' fill='%23f39c12' opacity='.9'/%3E%3C/g%3E%3Cellipse cx='11' cy='8' rx='4' ry='7' fill='%23558b2f' opacity='.5' transform='rotate(-30 11 8)'/%3E%3Cg transform='translate(33,14)'%3E%3Ccircle r='3' fill='%23e91e63' opacity='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 22'%3E%3Cg fill='none'%3E%3Cpath d='M0 11 Q11 8 22 11 Q33 14 44 11' stroke='%23558b2f' stroke-width='1.2' fill='none' opacity='.7'/%3E%3Cg transform='translate(22,11)'%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.65'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='2.5' fill='%23f39c12' opacity='.9'/%3E%3C/g%3E%3Cellipse cx='11' cy='8' rx='4' ry='7' fill='%23558b2f' opacity='.5' transform='rotate(-30 11 8)'/%3E%3Cg transform='translate(33,14)'%3E%3Ccircle r='3' fill='%23e91e63' opacity='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   background-position: top center, bottom center;
   background-repeat: repeat-x, repeat-x;
   background-size: auto 22px, auto 22px;
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
+  /* contain: paint isolates repaints to this box, preventing scroll-triggered full-page repaints */
+  contain: paint;
   /* Rich parchment shadow */
   box-shadow:
     0 2px 24px rgba(0,0,0,0.07),
@@ -2500,6 +2501,9 @@ header {
   /* Layered borders: outer gold + inner cream + decorative fill */
   border: 2px solid rgba(185, 130, 20, 0.85);
   border-radius: 6px;
+  /* translateZ promotes this element to its own GPU compositing layer,
+     isolating the surahFrameGlow box-shadow animation from the scroll surface */
+  transform: translateZ(0);
   animation: surahFrameGlow 7s ease-in-out infinite;
   /* Floral rose pattern as subtle bg texture */
   background-image:
@@ -2544,6 +2548,8 @@ header {
   width: 28px;
   height: 28px;
   pointer-events: none;
+  /* Promote to GPU compositing layer so scale+opacity animation doesn't trigger scroll repaints */
+  will-change: transform, opacity;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Cg transform='translate(14,14)'%3E%3Cellipse rx='5.5' ry='9' fill='%23c0392b' opacity='.62'/%3E%3Cellipse rx='5.5' ry='9' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='5.5' ry='9' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='5.5' ry='9' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='5.5' ry='9' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='4' fill='%23f39c12' opacity='.85'/%3E%3Ccircle r='2' fill='%23f1c40f'/%3E%3C/g%3E%3C/svg%3E");
   background-size: contain;
   background-repeat: no-repeat;
