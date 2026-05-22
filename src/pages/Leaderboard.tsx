@@ -27,6 +27,8 @@ import {
   getLocalRowsFromHistory,
   submitLeaderboardAdminAction,
   syncLeaderboardSnapshot,
+  isRateLimited,
+  clearRateLimitBackoff,
   validateLeaderboardAlias,
   type LeaderboardAdminAliasAuditRow,
   type LeaderboardAdminBlocklistRow,
@@ -35,6 +37,7 @@ import {
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const COOLDOWN_MS = 45_000;
+const LAST_SUBMIT_KEY = "noor_lb_last_submit_at";
 
 type BoardLoadState = "idle" | "loading" | "ok" | "error";
 
@@ -63,7 +66,13 @@ export function LeaderboardPage() {
   const [boardLoadState, setBoardLoadState] = React.useState<BoardLoadState>(endpoint ? "loading" : "idle");
   const [syncState, setSyncState] = React.useState<"idle" | "syncing" | "ok" | "error" | "cooldown">("idle");
   const [syncHint, setSyncHint] = React.useState("");
-  const [lastSubmitAt, setLastSubmitAt] = React.useState(0);
+  const [lastSubmitAt, setLastSubmitAt] = React.useState(() => {
+    try { return Number(localStorage.getItem(LAST_SUBMIT_KEY) ?? "0"); } catch { return 0; }
+  });
+  const persistLastSubmitAt = React.useCallback((ts: number) => {
+    setLastSubmitAt(ts);
+    try { localStorage.setItem(LAST_SUBMIT_KEY, String(ts)); } catch { /* ignore */ }
+  }, []);
   const [cooldownLeft, setCooldownLeft] = React.useState(0);
   const [serverHidden, setServerHidden] = React.useState(false);
   const [showAdminCard, setShowAdminCard] = React.useState(() => hasLocalLeaderboardAdminToken());
@@ -218,8 +227,14 @@ export function LeaderboardPage() {
       return;
     }
 
+    if (!bypassCooldown && isRateLimited()) {
+      setSyncState("error");
+      setSyncHint("الخادم قيّد الطلبات مؤقتًا، أعد المحاولة بعد قليل");
+      return;
+    }
+
     if (!bypassCooldown) {
-      setLastSubmitAt(Date.now());
+      persistLastSubmitAt(Date.now());
     }
 
     if (!endpoint) {
@@ -257,9 +272,10 @@ export function LeaderboardPage() {
 
     setServerHidden(false);
     setSyncState("ok");
+    clearRateLimitBackoff();
     setSyncHint(flush.sent > 0 ? "تم تحديث نقاطك على الخادم" : "لا توجد تغييرات معلقة");
     if (pullAfter) await pullBoard();
-  }, [endpoint, lastSubmitAt, myStats.scores, pullBoard, todayKey]);
+  }, [endpoint, lastSubmitAt, myStats.scores, persistLastSubmitAt, pullBoard, todayKey]);
 
   return (
     <div className="space-y-4 page-enter">

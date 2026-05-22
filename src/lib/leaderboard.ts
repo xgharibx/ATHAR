@@ -115,6 +115,8 @@ const JOINED_KEY = "noor_lb_joined_v2";
 const QUEUE_KEY = "noor_lb_queue_v2";
 const HISTORY_KEY = "noor_lb_history_v2";
 const ADMIN_TOKEN_KEY = "noor_lb_admin_token_v1";
+const RATE_LIMIT_UNTIL_KEY = "noor_lb_rate_limit_until";
+const RATE_LIMIT_DEFAULT_BACKOFF_MS = 5 * 60 * 1000; // 5 minutes
 
 const INVISIBLE_ALIAS_CHARS_RE = /[\u200B-\u200F\u2060\uFEFF]/g;
 const MULTI_SPACE_RE = /\s+/g;
@@ -577,6 +579,10 @@ export async function syncLeaderboardSnapshot(
     return { ok: false, sent: 0, reason: null } satisfies FlushQueueResult;
   }
 
+  if (isRateLimited()) {
+    return { ok: false, sent: 0, reason: "rate_limited" } satisfies FlushQueueResult;
+  }
+
   return flushQueue(endpoint);
 }
 
@@ -625,9 +631,38 @@ export function enqueuePayload(payload: LeaderboardSubmitPayload) {
   });
 }
 
+export function isRateLimited(): boolean {
+  try {
+    const until = Number(localStorage.getItem(RATE_LIMIT_UNTIL_KEY) ?? "0");
+    return Date.now() < until;
+  } catch {
+    return false;
+  }
+}
+
+function setRateLimitBackoff(retryAfterHeader: string | null) {
+  try {
+    const seconds = retryAfterHeader ? Number(retryAfterHeader) : NaN;
+    const backoffMs = Number.isFinite(seconds) && seconds > 0
+      ? seconds * 1000
+      : RATE_LIMIT_DEFAULT_BACKOFF_MS;
+    localStorage.setItem(RATE_LIMIT_UNTIL_KEY, String(Date.now() + backoffMs));
+  } catch {
+    // ignore
+  }
+}
+
+export function clearRateLimitBackoff() {
+  try {
+    localStorage.removeItem(RATE_LIMIT_UNTIL_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 function shouldRetryStatus(status: number) {
   if (status >= 500) return true;
-  return [401, 403, 404, 408, 425, 429].includes(status);
+  return [401, 403, 404, 408, 425].includes(status); // 429 handled separately
 }
 
 export async function flushQueue(endpoint: string): Promise<FlushQueueResult> {
@@ -670,9 +705,15 @@ export async function flushQueue(endpoint: string): Promise<FlushQueueResult> {
         continue;
       }
 
-      if (shouldRetryStatus(res.status)) {
+      if (res.status === 429) {
+        setRateLimitBackoff(res.headers.get("Retry-After"));
+        // push remaining (unprocessed) items back to queue and stop
+        remaining.push(item, ...queue.slice(queue.indexOf(item) + 1));
+        lastError = "rate_limited";
+        break;
+      } else if (shouldRetryStatus(res.status)) {
         remaining.push(item);
-        lastError = res.status === 429 ? "rate_limited" : res.status === 401 || res.status === 403 ? "auth" : "network_retry";
+        lastError = res.status === 401 || res.status === 403 ? "auth" : "network_retry";
       } else {
         droppedPermanent += 1;
         lastError = res.status === 400 || res.status === 422 ? "invalid_payload" : "server";

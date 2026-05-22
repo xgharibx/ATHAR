@@ -3,7 +3,7 @@ import * as React from "react";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useTodayKey } from "@/hooks/useTodayKey";
-import { syncLeaderboardAliasFromServer, syncLeaderboardSnapshot } from "@/lib/leaderboard";
+import { isRateLimited, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot } from "@/lib/leaderboard";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { useNoorStore } from "@/store/noorStore";
 
@@ -64,9 +64,11 @@ export function LeaderboardSyncBridge() {
   React.useEffect(() => {
     if (!endpoint || sections.length === 0) return;
     if (snapshotKey === lastSyncedKeyRef.current) return;
+    if (isRateLimited()) return;
 
     const timeoutId = window.setTimeout(async () => {
       if (syncingRef.current) return;
+      if (isRateLimited()) return;
       syncingRef.current = true;
       try {
         const flush = await syncLeaderboardSnapshot(endpoint, todayKey, stats.scores);
