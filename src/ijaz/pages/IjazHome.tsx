@@ -13,14 +13,6 @@ import { ScrollReveal, TextReveal, AnimatedCounter } from '@/ijaz/components/eff
 import { CinematicTypewriter, AnimatedGradientText } from '@/ijaz/components/effects/TextEffects';
 import { useIsMobile } from '@/ijaz/hooks/useIsMobile';
 
-import CinematicCosmos from '@/ijaz/components/three/CinematicCosmos';
-
-import ShaderBackground from '@/ijaz/components/effects/ShaderBackground';
-
-import SacredGeometry from '@/ijaz/components/effects/SacredGeometry';
-
-import ParticleField from '@/ijaz/components/effects/ParticleField';
-
 /* ================================================================
    DATA
    ================================================================ */
@@ -178,6 +170,92 @@ function FloatingNav() {
   );
 }
 
+type StaticStarsBackdropVariant = 'hero' | 'gold' | 'emerald' | 'violet';
+
+function StaticStarsBackdrop({
+  variant,
+  mobile = false,
+  className = '',
+}: {
+  variant: StaticStarsBackdropVariant;
+  mobile?: boolean;
+  className?: string;
+}) {
+  const palette = {
+    hero: {
+      blobA: 'rgba(212,168,83,0.28)',
+      blobB: 'rgba(45,212,168,0.20)',
+      blobC: 'rgba(74,144,217,0.16)',
+      overlay:
+        'radial-gradient(circle at 50% 30%, rgba(212,168,83,0.14) 0%, rgba(212,168,83,0.05) 28%, transparent 58%), linear-gradient(180deg, rgba(10,10,15,0.08) 0%, rgba(10,10,15,0.42) 58%, rgba(10,10,15,0.84) 100%)',
+    },
+    gold: {
+      blobA: 'rgba(212,168,83,0.20)',
+      blobB: 'rgba(240,214,138,0.12)',
+      blobC: 'rgba(74,144,217,0.10)',
+      overlay:
+        'radial-gradient(circle at 50% 40%, rgba(212,168,83,0.08) 0%, transparent 55%), linear-gradient(180deg, rgba(10,10,15,0.02) 0%, rgba(10,10,15,0.22) 100%)',
+    },
+    emerald: {
+      blobA: 'rgba(45,212,168,0.18)',
+      blobB: 'rgba(212,168,83,0.12)',
+      blobC: 'rgba(74,144,217,0.12)',
+      overlay:
+        'radial-gradient(circle at 50% 35%, rgba(45,212,168,0.08) 0%, transparent 54%), linear-gradient(180deg, rgba(10,10,15,0.04) 0%, rgba(10,10,15,0.20) 100%)',
+    },
+    violet: {
+      blobA: 'rgba(168,85,247,0.20)',
+      blobB: 'rgba(212,168,83,0.16)',
+      blobC: 'rgba(74,144,217,0.10)',
+      overlay:
+        'radial-gradient(circle at 50% 50%, rgba(168,85,247,0.10) 0%, transparent 56%), linear-gradient(180deg, rgba(10,10,15,0.03) 0%, rgba(10,10,15,0.28) 100%)',
+    },
+  }[variant];
+
+  return (
+    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`} aria-hidden="true">
+      <div className="absolute inset-0 dhikr-page-stars" style={{ opacity: mobile ? 0.16 : 0.24 }} />
+      <div className="absolute inset-0 dhikr-card-stars" style={{ opacity: mobile ? 0.10 : 0.15 }} />
+      <div
+        className="athar-bg-blob"
+        style={{
+          width: mobile ? 260 : 420,
+          height: mobile ? 260 : 420,
+          left: '-10%',
+          top: '-8%',
+          background: palette.blobA,
+          animation: mobile ? undefined : 'atharFloatA 18s ease-in-out infinite',
+        }}
+      />
+      <div
+        className="athar-bg-blob"
+        style={{
+          width: mobile ? 300 : 500,
+          height: mobile ? 300 : 500,
+          right: '-16%',
+          top: variant === 'violet' ? '4%' : '12%',
+          background: palette.blobB,
+          animation: mobile ? undefined : 'atharFloatB 22s ease-in-out infinite',
+        }}
+      />
+      {!mobile && (
+        <div
+          className="athar-bg-blob"
+          style={{
+            width: 560,
+            height: 560,
+            left: '18%',
+            bottom: '-32%',
+            background: palette.blobC,
+            animation: 'atharFloatA 26s ease-in-out infinite',
+          }}
+        />
+      )}
+      <div className="absolute inset-0" style={{ background: palette.overlay }} />
+    </div>
+  );
+}
+
 /* ================================================================
    HOME PAGE
    ================================================================ */
@@ -200,29 +278,14 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const handleMouse = (e: MouseEvent) => {
-      document.documentElement.style.setProperty('--cursor-x', e.clientX + 'px');
-      document.documentElement.style.setProperty('--cursor-y', e.clientY + 'px');
-    };
-    window.addEventListener('mousemove', handleMouse);
-    return () => window.removeEventListener('mousemove', handleMouse);
-  }, []);
-
   return (
-    <main className="relative min-h-screen particle-cursor">
-      <ScrollProgress />
-      <FloatingNav />
+    <main className="relative min-h-screen">
+      {!isMobile && <ScrollProgress />}
+      {!isMobile && <FloatingNav />}
 
       {/* ═══════════ SECTION 1: CINEMATIC HERO ═══════════ */}
-      <section data-section className="relative min-h-screen min-h-[100svh] flex items-center justify-center overflow-hidden">
-        {/* Multi-layer background — starfield always on (matches original MIRC) */}
-        <div className="absolute inset-0 z-0">
-          <CinematicCosmos variant="full" />
-        </div>
-        <div className="absolute inset-0 z-[1]">
-          <ParticleField variant="gold-dust" density={0.5} speed={0.5} interactive={false} />
-        </div>
+      <section data-section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
+        <StaticStarsBackdrop variant="hero" mobile={isMobile} className="z-0" />
 
         {/* Gradient overlays */}
         <div className="absolute inset-0 z-[2] bg-gradient-to-b from-vanta/40 via-transparent to-vanta pointer-events-none" />
@@ -404,11 +467,7 @@ export default function HomePage() {
       {/* ═══════════ SECTION 2: BEFORE / AFTER TIMELINE ═══════════ */}
       <section data-section className="relative py-16 md:py-28 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-vanta via-deep-navy/30 to-vanta" />
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 opacity-30">
-            <SacredGeometry color="#d4a853" intensity={0.5} />
-          </div>
-        )}
+        <StaticStarsBackdrop variant="gold" mobile={isMobile} className="z-0" />
 
         <div className="container mx-auto px-6 relative z-10">
           <ScrollReveal variant="blur">
@@ -717,11 +776,7 @@ export default function HomePage() {
       {/* ═══════════ SECTION 5: FEATURED VERSE ═══════════ */}
       <section data-section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cosmic-purple/10 to-transparent" />
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 opacity-20">
-            <ParticleField variant="divine-light" density={0.3} speed={0.3} interactive={false} />
-          </div>
-        )}
+        <StaticStarsBackdrop variant="emerald" mobile={isMobile} className="z-0" />
         <div className="container mx-auto px-6 max-w-4xl relative z-10">
           <ScrollReveal variant="scale">
             <VerseDisplay verse={featuredVerse} size="lg" />
@@ -1008,11 +1063,7 @@ export default function HomePage() {
       {/* ═══════════ FINAL CTA ═══════════ */}
       <section className="relative py-20 md:py-36 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cosmic-purple/15 to-vanta" />
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 opacity-40">
-            <ShaderBackground variant="golden" intensity={0.6} />
-          </div>
-        )}
+        <StaticStarsBackdrop variant="violet" mobile={isMobile} className="z-0" />
 
         <div className="container mx-auto px-6 text-center relative z-10">
           <ScrollReveal variant="scale">
