@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
-// Mecca coordinates
-const MECCA_LAT = 21.4225;
-const MECCA_LNG = 39.8262;
-const DECLINATION_CACHE_TTL = 24 * 60 * 60 * 1000;
+// Kaaba coordinates (Adhan.js authoritative values)
+const MECCA_LAT = 21.4225241;
+const MECCA_LNG = 39.8261818;
 const COMPASS_ACCURACY_WARN_AT = 15;
 const HEADING_SMOOTHING = 0.28;
 
@@ -39,30 +38,6 @@ function smoothHeading(prev: number | null, next: number): number {
   return normalizeDegrees(prev + delta * HEADING_SMOOTHING);
 }
 
-function declinationCacheKey(lat: number, lng: number) {
-  return `athar:qibla:declination:${lat.toFixed(2)}:${lng.toFixed(2)}`;
-}
-
-function readCachedDeclination(lat: number, lng: number): number | null {
-  try {
-    const raw = localStorage.getItem(declinationCacheKey(lat, lng));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { value?: unknown; savedAt?: unknown };
-    if (typeof parsed.value !== "number" || typeof parsed.savedAt !== "number") return null;
-    if (Date.now() - parsed.savedAt > DECLINATION_CACHE_TTL) return null;
-    return parsed.value;
-  } catch {
-    return null;
-  }
-}
-
-function writeCachedDeclination(lat: number, lng: number, value: number) {
-  try {
-    localStorage.setItem(declinationCacheKey(lat, lng), JSON.stringify({ value, savedAt: Date.now() }));
-  } catch {
-    // Storage can be unavailable; the live value is still usable for this session.
-  }
-}
 
 function formatBearing(deg: number) {
   const dirs = ["شمال", "شمال شرق", "شرق", "جنوب شرق", "جنوب", "جنوب غرب", "غرب", "شمال غرب"];
@@ -78,10 +53,11 @@ type GeoState =
   | { status: "unsupported" };
 
 type OrientationState = {
-  heading: number | null; // degrees true north
+  heading: number | null; // degrees TRUE north (both sources already give true north)
   accuracy: number | null;
   supported: boolean;
   permissionGranted: boolean;
+  tiltWarning: boolean; // phone held too upright for reliable flat compass reading
 };
 
 export function QiblaPage() {
@@ -92,37 +68,9 @@ export function QiblaPage() {
     accuracy: null,
     supported: false,
     permissionGranted: false,
+    tiltWarning: false,
   });
   const compassHeadingRef = React.useRef<number | null>(null);
-  const [declination, setDeclination] = React.useState<number | null>(null);
-
-  // Fetch magnetic declination from NOAA when coordinates are ready
-  const geoOk  = geo.status === "ok";
-  const geoLat = geo.status === "ok" ? geo.lat : 0;
-  const geoLng = geo.status === "ok" ? geo.lng : 0;
-  React.useEffect(() => {
-    if (!geoOk) return;
-    const cachedDeclination = readCachedDeclination(geoLat, geoLng);
-    if (cachedDeclination != null) setDeclination(cachedDeclination);
-    let active = true;
-    fetch(
-      `https://www.ngdc.noaa.gov/geomag-web/calculators/calculateDeclination?lat1=${geoLat}&lon1=${geoLng}&key=EAU51&resultFormat=json`,
-    )
-      .then((r) => r.json() as Promise<{ result: Array<{ declination: number }> }>)
-      .then((data) => {
-        const d = data.result?.[0]?.declination;
-        if (typeof d === "number" && active) {
-          setDeclination(d);
-          writeCachedDeclination(geoLat, geoLng, d);
-        }
-      })
-      .catch(() => {
-        /* silent — falls back to uncorrected bearing */
-      });
-    return () => {
-      active = false;
-    };
-  }, [geoOk, geoLat, geoLng]);
 
   // Request geolocation
   const requestGeo = React.useCallback(() => {
@@ -189,8 +137,9 @@ export function QiblaPage() {
   }, []);
 
   // Listen to device orientation — cross-platform compass strategy:
-  //   • deviceorientationabsolute (Chrome/Android): alpha = CW degrees from North → heading = alpha
-  //   • deviceorientation + webkitCompassHeading (iOS): already CW from North
+  //   • deviceorientationabsolute (Chrome/Android): alpha is CCW from True North (W3C spec, Chrome 50+)
+  //     → CW bearing = (360 - alpha). Both sources output True North — no declination correction needed.
+  //   • deviceorientation + webkitCompassHeading (iOS): CW from True North (already corrected)
   //   • Non-absolute alpha without webkitCompassHeading: IGNORED (relative to initial, not useful)
   React.useEffect(() => {
     const gotAbsolute = { current: false };
@@ -198,11 +147,13 @@ export function QiblaPage() {
     const handleAbsolute = (e: DeviceOrientationEvent) => {
       if (e.alpha == null) return;
       gotAbsolute.current = true;
-      // Chrome deviceorientationabsolute: alpha is clockwise compass bearing from magnetic North
-      const heading = ((e.alpha % 360) + 360) % 360;
+      // W3C spec / Chrome 50+: alpha is COUNTER-clockwise from True North → convert to CW bearing
+      const heading = ((360 - e.alpha) % 360 + 360) % 360;
       const smoothed = smoothHeading(compassHeadingRef.current, heading);
       compassHeadingRef.current = smoothed;
-      setOrient((o) => ({ ...o, heading: smoothed, accuracy: null, supported: true }));
+      // Warn if phone is too upright (|beta| > 65°) — gimbal lock degrades accuracy
+      const tiltWarning = Math.abs(e.beta ?? 0) > 65;
+      setOrient((o) => ({ ...o, heading: smoothed, accuracy: null, supported: true, tiltWarning }));
     };
 
     const handleOrientation = (e: DeviceOrientationEvent) => {
@@ -234,21 +185,19 @@ export function QiblaPage() {
     geo.status === "ok" ? calcQiblaBearing(geo.lat, geo.lng) : null;
 
   // Compass needle rotation: needle points to qibla direction
-  // Apply magnetic declination correction when available:
-  //   True heading = Magnetic heading + Declination
-  //   needle = (qiblaBearing_true - trueHeading + 360) % 360
-  //          = (qiblaBearing - compassHeading - declination + 720) % 360
+  // Both heading sources (deviceorientationabsolute + webkitCompassHeading) are already True North.
+  // No declination correction needed — just: needle = (qiblaBearing - trueHeading + 360) % 360
   const needleRotation = React.useMemo(() => {
     if (qiblaBearing == null) return 0;
     const heading = orient.heading;
-    const dec = declination ?? 0;
-    if (heading == null) return qiblaBearing; // Static true bearing
-    return ((qiblaBearing - heading - dec) % 360 + 360) % 360;
-  }, [qiblaBearing, orient.heading, declination]);
+    if (heading == null) return qiblaBearing; // Static: assume phone pointing North
+    return ((qiblaBearing - heading) % 360 + 360) % 360;
+  }, [qiblaBearing, orient.heading]);
 
   const hasOrientation = orient.supported && orient.heading != null;
   const compassAccuracy = orient.accuracy;
   const hasPoorCompassAccuracy = compassAccuracy != null && compassAccuracy > COMPASS_ACCURACY_WARN_AT;
+  const hasTiltWarning = orient.tiltWarning;
 
   return (
     <div className="p-4 md:p-5 space-y-4 max-w-lg mx-auto" dir="rtl">
@@ -343,13 +292,10 @@ export function QiblaPage() {
               <div dir="ltr" className="text-[10px] opacity-35 font-mono mt-0.5">
                 {(geo as { status: "ok"; lat: number; lng: number }).lat >= 0 ? (geo as { status: "ok"; lat: number; lng: number }).lat.toFixed(4) + "°N" : Math.abs((geo as { status: "ok"; lat: number; lng: number }).lat).toFixed(4) + "°S"},
                 {" "}{(geo as { status: "ok"; lat: number; lng: number }).lng >= 0 ? (geo as { status: "ok"; lat: number; lng: number }).lng.toFixed(4) + "°E" : Math.abs((geo as { status: "ok"; lat: number; lng: number }).lng).toFixed(4) + "°W"}
-                {declination != null && (
-                  <span className="ml-2 opacity-80">D={declination > 0 ? "+" : ""}{declination.toFixed(1)}°</span>
-                )}
               </div>
             )}
-            {declination != null && Math.abs(declination) >= 0.3 && (
-              <div className="text-[10px] opacity-50 mt-0.5">انحراف مغناطيسي: {declination > 0 ? "+" : ""}{declination.toFixed(1)}° (مُصحَّح)</div>
+            {hasTiltWarning && hasOrientation && (
+              <div className="text-[11px] text-[var(--danger)] opacity-80 mt-1">امسك الجهاز أفقياً للحصول على دقة أعلى</div>
             )}
             {!hasOrientation && (
               <div className="text-xs opacity-40 mt-2">
