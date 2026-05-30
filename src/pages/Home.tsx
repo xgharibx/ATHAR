@@ -31,7 +31,7 @@ import { trackUxEvent } from "@/lib/uxMetrics";
 import { useQuranDB } from "@/data/useQuranDB";
 import { coerceCount } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
-import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { formatPrayerHijriDate, type PrayerHijriDate, usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
@@ -131,7 +131,9 @@ function timeGreeting(hour: number): string {
   return "ليلة سعيدة";
 }
 
-function getHijriDate(): string {
+function getHijriDate(hijri?: PrayerHijriDate): string {
+  const syncedHijri = formatPrayerHijriDate(hijri);
+  if (syncedHijri) return syncedHijri;
   try {
     return new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
       day: "numeric",
@@ -273,9 +275,61 @@ export function HomePage() {
 
   const activeStripIds = liveStripIds ?? defaultStripIds;
 
+  const updateStripAutoScroll = React.useCallback((clientX: number) => {
+    const container = stripScrollRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const EDGE_ZONE = 60;
+    const MAX_SPEED = 10;
+    const leftDist = clientX - rect.left;
+    const rightDist = rect.right - clientX;
+    let speed = 0;
+
+    if (leftDist < EDGE_ZONE) {
+      speed = -((EDGE_ZONE - leftDist) / EDGE_ZONE) * MAX_SPEED;
+    } else if (rightDist < EDGE_ZONE) {
+      speed = ((EDGE_ZONE - rightDist) / EDGE_ZONE) * MAX_SPEED;
+    }
+
+    stripScrollSpeedRef.current = speed;
+    if (speed !== 0 && stripAutoScrollRafRef.current === null) {
+      const tick = () => {
+        if (stripScrollRef.current && stripScrollSpeedRef.current !== 0) {
+          stripScrollRef.current.scrollLeft += stripScrollSpeedRef.current;
+          stripAutoScrollRafRef.current = requestAnimationFrame(tick);
+        } else {
+          stripAutoScrollRafRef.current = null;
+        }
+      };
+      stripAutoScrollRafRef.current = requestAnimationFrame(tick);
+    } else if (speed === 0 && stripAutoScrollRafRef.current !== null) {
+      cancelAnimationFrame(stripAutoScrollRafRef.current);
+      stripAutoScrollRafRef.current = null;
+    }
+  }, [stripScrollRef]);
+
+  const reorderStripAtPoint = React.useCallback((draggedId: string, clientX: number, clientY: number) => {
+    const el = document.elementFromPoint(clientX, clientY);
+    const itemEl = el?.closest("[data-strip-id]") as HTMLElement | null;
+    const overId = itemEl?.dataset?.stripId;
+    if (!overId || overId === draggedId) return;
+
+    setLiveStripIds((prev) => {
+      const arr = [...(prev ?? defaultStripIds)];
+      const fromIdx = arr.indexOf(draggedId);
+      const toIdx = arr.indexOf(overId);
+      if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return prev;
+      const [moved] = arr.splice(fromIdx, 1);
+      arr.splice(toIdx, 0, moved);
+      return arr;
+    });
+  }, [defaultStripIds]);
+
   const onStripItemPointerDown = React.useCallback((id: string, e: React.PointerEvent) => {
     const startX = e.clientX;
     const startY = e.clientY;
+    stripDragWasActive.current = false;
     if (stripLongPressRef.current) clearTimeout(stripLongPressRef.current);
 
     const cleanup = () => {
@@ -287,7 +341,7 @@ export function HomePage() {
     const activateDrag = () => {
       cleanup();
       setDraggingStripId(id);
-      setLiveStripIds([...defaultStripIds]);
+      setLiveStripIds((prev) => prev ?? [...defaultStripIds]);
       stripDragWasActive.current = true;
       if (prefs.enableHaptics && "vibrate" in navigator) navigator.vibrate(20);
     };
@@ -297,7 +351,11 @@ export function HomePage() {
       // Vertical scroll intent → cancel drag
       if (absDy > 8 && absDy > absDx) { cleanup(); return; }
       // Horizontal swipe → start drag immediately, no long-press needed
-      if (absDx > 10) activateDrag();
+      if (absDx > 10) {
+        activateDrag();
+        updateStripAutoScroll(me.clientX);
+        reorderStripAtPoint(id, me.clientX, me.clientY);
+      }
     };
     const onEarlyUp = () => cleanup();
 
@@ -308,56 +366,14 @@ export function HomePage() {
     // Fallback: long-press also activates drag (280ms, shorter than before)
     stripLongPressRef.current = window.setTimeout(activateDrag, 280);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultStripIds, prefs.enableHaptics]);
+  }, [defaultStripIds, prefs.enableHaptics, reorderStripAtPoint, updateStripAutoScroll]);
 
-  const onStripPointerMove = React.useCallback((e: React.PointerEvent) => {
+  const onStripPointerMove = React.useCallback((pointer: { clientX: number; clientY: number }) => {
     if (!draggingStripId) return;
 
-    // Edge auto-scroll: when pointer is near left/right edge, scroll the strip
-    const container = stripScrollRef.current;
-    if (container) {
-      const rect = container.getBoundingClientRect();
-      const EDGE_ZONE = 60; // px from each edge
-      const MAX_SPEED = 10; // px per frame
-      const leftDist = e.clientX - rect.left;
-      const rightDist = rect.right - e.clientX;
-      let speed = 0;
-      if (leftDist < EDGE_ZONE) {
-        speed = -((EDGE_ZONE - leftDist) / EDGE_ZONE) * MAX_SPEED;
-      } else if (rightDist < EDGE_ZONE) {
-        speed = ((EDGE_ZONE - rightDist) / EDGE_ZONE) * MAX_SPEED;
-      }
-      stripScrollSpeedRef.current = speed;
-      if (speed !== 0 && stripAutoScrollRafRef.current === null) {
-        const tick = () => {
-          if (stripScrollRef.current && stripScrollSpeedRef.current !== 0) {
-            stripScrollRef.current.scrollLeft += stripScrollSpeedRef.current;
-            stripAutoScrollRafRef.current = requestAnimationFrame(tick);
-          } else {
-            stripAutoScrollRafRef.current = null;
-          }
-        };
-        stripAutoScrollRafRef.current = requestAnimationFrame(tick);
-      } else if (speed === 0 && stripAutoScrollRafRef.current !== null) {
-        cancelAnimationFrame(stripAutoScrollRafRef.current);
-        stripAutoScrollRafRef.current = null;
-      }
-    }
-
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const itemEl = el?.closest("[data-strip-id]") as HTMLElement | null;
-    const overId = itemEl?.dataset?.stripId;
-    if (!overId || overId === draggingStripId) return;
-    setLiveStripIds((prev) => {
-      const arr = [...(prev ?? defaultStripIds)];
-      const fromIdx = arr.indexOf(draggingStripId);
-      const toIdx = arr.indexOf(overId);
-      if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return prev;
-      [arr[fromIdx], arr[toIdx]] = [arr[toIdx], arr[fromIdx]];
-      return arr;
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draggingStripId, defaultStripIds]);
+    updateStripAutoScroll(pointer.clientX);
+    reorderStripAtPoint(draggingStripId, pointer.clientX, pointer.clientY);
+  }, [draggingStripId, reorderStripAtPoint, updateStripAutoScroll]);
 
   const onStripPointerUp = React.useCallback(() => {
     // Cancel any ongoing edge auto-scroll
@@ -374,6 +390,23 @@ export function HomePage() {
     // wasDragging stays true briefly so onClick ignores the tap
     window.setTimeout(() => { stripDragWasActive.current = false; }, 80);
   }, [draggingStripId, liveStripIds, setPrefs]);
+
+  React.useEffect(() => {
+    if (!draggingStripId) return;
+
+    const handlePointerMove = (event: PointerEvent) => onStripPointerMove(event);
+    const handlePointerUp = () => onStripPointerUp();
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+    };
+  }, [draggingStripId, onStripPointerMove, onStripPointerUp]);
   // ── End strip drag ─────────────────────────────────────────
 
   const [checklistExpanded, setChecklistExpanded] = React.useState(false);
@@ -866,7 +899,7 @@ export function HomePage() {
               <div className="mb-2 flex items-center gap-2 flex-wrap">
                 <Sparkles size={14} className="text-[var(--accent)]" aria-hidden="true" />
                 <span className="text-xs font-medium opacity-65">{timeGreeting(new Date().getHours())}</span>
-                {(() => { const h = getHijriDate(); return h ? <span className="text-xs opacity-50 border border-[var(--stroke)] rounded-full px-2 py-0.5">{h}</span> : null; })()}
+                {(() => { const h = getHijriDate(prayerTimes.data?.data?.date?.hijri); return h ? <span className="text-xs opacity-50 border border-[var(--stroke)] rounded-full px-2 py-0.5">{h}</span> : null; })()}
                 {streak > 0 && (
                   <button
                     type="button"
@@ -952,7 +985,7 @@ export function HomePage() {
           ref={stripScrollRef}
           className="overflow-x-auto no-scrollbar -mx-0.5 px-0.5"
           style={{ touchAction: draggingStripId ? "none" : "pan-x" }}
-          onPointerMove={onStripPointerMove}
+          onPointerMove={(e) => onStripPointerMove(e)}
           onPointerUp={onStripPointerUp}
           onPointerCancel={onStripPointerUp}
         >

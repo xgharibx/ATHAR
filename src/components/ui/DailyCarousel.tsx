@@ -97,14 +97,22 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     setActiveIdx(idx);
   }, []);
 
+  const goNext = React.useCallback(() => {
+    setActiveIdx((prev) => (prev + 1) % 4);
+  }, []);
+
+  const goPrev = React.useCallback(() => {
+    setActiveIdx((prev) => (prev - 1 + 4) % 4);
+  }, []);
+
   // Auto-advance every 4 seconds
   React.useEffect(() => {
     const timer = setInterval(() => {
       if (Date.now() < pauseUntilRef.current) return;
-      setActiveIdx((prev) => (prev + 1) % 4);
+      goNext();
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [goNext]);
 
   const handleTouchStart = React.useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -115,20 +123,18 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     const delta = touchStartX.current - e.changedTouches[0].clientX;
     pauseUntilRef.current = Date.now() + 8000;
     if (Math.abs(delta) > 40) {
-      setActiveIdx((prev) => {
-        if (delta > 0) return Math.min(prev + 1, 3); // swipe left → next
-        return Math.max(prev - 1, 0); // swipe right → prev
-      });
+      if (delta > 0) goNext(); // swipe left → next
+      else goPrev(); // swipe right → prev
     }
-  }, []);
+  }, [goNext, goPrev]);
 
   return (
     <>
     <style>{`@keyframes spin-once { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     <Card className="p-0 overflow-hidden" role="region" aria-label="محتوى يومي" aria-roledescription="عرض دوار" tabIndex={0}
       onKeyDown={(e: React.KeyboardEvent) => {
-        if (e.key === 'ArrowLeft') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; setActiveIdx((p) => (p + 1) % 4); }
-        else if (e.key === 'ArrowRight') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; setActiveIdx((p) => (p - 1 + 4) % 4); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; goNext(); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; goPrev(); }
       }}>
       {/* Header label */}
       <div className="flex items-center justify-between px-4 pt-3 pb-0">
@@ -157,8 +163,9 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
         <div
           style={{
             display: "flex",
+            direction: "ltr",
             width: "100%",
-            transform: `translateX(${activeIdx * 100}%)`,
+            transform: `translateX(-${activeIdx * 100}%)`,
             transition: "transform 0.35s ease",
           }}
         >

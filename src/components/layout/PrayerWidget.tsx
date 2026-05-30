@@ -1,16 +1,30 @@
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { formatPrayerHijriDate, usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Clock, Sunrise, CloudSun, Moon } from "lucide-react";
+import { ArrowLeft, Clock, Sunrise, CloudSun, Moon, RotateCw } from "lucide-react";
 import { buildPrayerSchedule } from "@/lib/prayerSchedule";
 import { PrayerCountdown } from "./PrayerCountdown";
 
+function formatPrayerCacheTime(cachedAt?: string): string {
+  if (!cachedAt) return "";
+  const parsed = new Date(cachedAt);
+  if (Number.isNaN(parsed.getTime())) return "";
+  try {
+    return new Intl.DateTimeFormat("ar-EG-u-nu-arab", {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(parsed);
+  } catch {
+    return parsed.toLocaleTimeString();
+  }
+}
+
 export function PrayerWidget() {
   const navigate = useNavigate();
-  const { data, isLoading, error, isFetching } = usePrayerTimes();
+  const { data, isLoading, error, isFetching, refetch } = usePrayerTimes();
   const [nowTs, setNowTs] = React.useState(() => Date.now());
 
   React.useEffect(() => {
@@ -20,7 +34,10 @@ export function PrayerWidget() {
 
   const timings = data?.data?.timings;
   const date = data?.data?.date;
+  const hijriLabel = formatPrayerHijriDate(date?.hijri);
   const isCached = !!data?.__fromCache;
+  const cachedAtLabel = formatPrayerCacheTime(data?.__cachedAt);
+  const sourceLabel = data?.__sourceLabel;
   const [isOnline, setIsOnline] = React.useState(() => navigator.onLine);
   React.useEffect(() => {
     const update = () => setIsOnline(navigator.onLine);
@@ -44,23 +61,43 @@ export function PrayerWidget() {
 
   return (
     <Card className="p-4 mb-6 relative overflow-hidden">
-      <div className="flex items-start justify-between gap-3 mb-4">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-center gap-2">
           <Clock size={16} aria-hidden="true" className="text-[var(--accent)]" />
           <span className="font-semibold text-sm">مواقيت الصلاة</span>
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end">
+        <div className="flex w-full items-center gap-2 flex-wrap justify-start sm:w-auto sm:justify-end">
+          {sourceLabel ? (
+            <span className="text-[10px] opacity-55 bg-[var(--card)] px-2 py-1 rounded-full border border-[var(--stroke)] whitespace-nowrap max-w-full">
+              {isCached ? `آخر نسخة: ${sourceLabel}` : sourceLabel}
+            </span>
+          ) : null}
           <span className="text-[11px] opacity-60 bg-[var(--card)] px-2 py-1 rounded-full border border-[var(--stroke)] whitespace-nowrap">
-            {date.hijri.weekday.ar} • {date.hijri.date}
+            {date.hijri.weekday.ar} • {hijriLabel || date.hijri.date}
           </span>
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+            aria-label="تحديث مواقيت الصلاة"
+            title="تحديث مواقيت الصلاة"
+            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+          >
+            <RotateCw size={14} aria-hidden="true" className={cn(isFetching && "animate-spin")} />
+          </button>
           {isFetching && (
             <span aria-hidden="true" className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" title="يتم التحديث..." />
           )}
         </div>
       </div>
 
-      {isCached && !isOnline ? (
-        <div className="mb-3 text-[11px] opacity-55">يتم عرض آخر نسخة محفوظة — تحقق من الاتصال.</div>
+      {isCached ? (
+        <div className="mb-3 text-[11px] opacity-55 leading-5">
+          {isOnline ? "يتم عرض آخر نسخة محفوظة" : "انقطع الاتصال — يتم عرض آخر مواقيت محفوظة"}
+          {sourceLabel ? ` من ${sourceLabel}` : ""}
+          {cachedAtLabel ? ` • آخر تحديث ${cachedAtLabel}` : ""}
+          {isOnline ? " — اضغط تحديث للمحاولة الآن." : " — أعد الاتصال ثم اضغط تحديث."}
+        </div>
       ) : null}
 
       {/* Live countdown to next prayer */}

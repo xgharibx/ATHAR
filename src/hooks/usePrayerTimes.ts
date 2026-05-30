@@ -33,6 +33,8 @@ type PrayerTimesResponse = {
   };
 };
 
+export type PrayerHijriDate = PrayerTimesResponse["data"]["date"]["hijri"];
+
 type PrayerTimesData = PrayerTimesResponse & {
   __fromCache?: boolean;
   __cachedAt?: string;
@@ -50,12 +52,13 @@ function readCached(dayKey: string, locationKey: string): PrayerTimesData | null
   try {
     const raw = localStorage.getItem(cacheKey(dayKey, locationKey));
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as PrayerTimesResponse & { cachedAt?: string };
+    const parsed = JSON.parse(raw) as PrayerTimesData & { cachedAt?: string };
     if (!parsed?.data?.timings) return null;
     return {
       ...parsed,
       __fromCache: true,
-      __cachedAt: parsed.cachedAt
+      __cachedAt: parsed.cachedAt,
+      __sourceLabel: parsed.__sourceLabel,
     };
   } catch {
     return null;
@@ -68,6 +71,24 @@ function writeCached(dayKey: string, locationKey: string, payload: PrayerTimesRe
     localStorage.setItem(cacheKey(dayKey, locationKey), JSON.stringify(out));
   } catch {
     // ignore storage failures
+  }
+}
+
+export function formatPrayerHijriDate(hijri?: PrayerHijriDate): string {
+  const rawDate = hijri?.date?.trim();
+  const monthName = hijri?.month?.ar?.trim();
+  if (!rawDate || !monthName) return "";
+
+  const [dayPart, , yearPart] = rawDate.split("-");
+  const day = Number(dayPart);
+  const year = Number(yearPart);
+  if (!Number.isFinite(day) || !Number.isFinite(year)) return "";
+
+  try {
+    const numberFormat = new Intl.NumberFormat("ar-EG-u-nu-arab", { useGrouping: false });
+    return `${numberFormat.format(day)} ${monthName} ${numberFormat.format(year)} هـ`;
+  } catch {
+    return `${day} ${monthName} ${year} هـ`;
   }
 }
 
@@ -132,6 +153,15 @@ export function usePrayerTimes() {
   const city = "Cairo";
   const country = "Egypt";
   const cityLocationKey = `city:${city}:${country}:${method}:${school}`;
+  const initialCachedData = React.useMemo(() => {
+    const cachedCoords = readCachedCoords();
+    if (cachedCoords) {
+      const locationKey = `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}`;
+      const cached = readCached(dayKey, locationKey);
+      if (cached) return cached;
+    }
+    return readCached(dayKey, cityLocationKey) ?? undefined;
+  }, [cityLocationKey, dayKey, method, school]);
 
   const query = useQuery<PrayerTimesData>({
     queryKey: ["prayer-times", "v3", dayKey, method, school],
@@ -187,7 +217,7 @@ export function usePrayerTimes() {
         throw new Error("تعذر جلب مواقيت الصلاة");
       }
     },
-    initialData: () => readCached(dayKey, cityLocationKey) ?? undefined,
+    placeholderData: initialCachedData,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
