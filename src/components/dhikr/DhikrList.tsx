@@ -748,39 +748,41 @@ export function DhikrList(props: Readonly<{
                   </div>
                 ) : null}
                 {(props.isCustomSection || isMyAdhkarSection) && !reorderMode && (
-                  <div className="flex justify-end mb-1 px-1">
+                  <div className="flex justify-end mb-1.5 px-1 gap-1.5">
                     {deletingItemIdx === entry.originalIndex ? (
-                      <div className="flex gap-1">
-                        <button type="button"
-                          onClick={() => { handleDeleteItem(entry.originalIndex); setDeletingItemIdx(null); }}
-                          className="text-[10px] px-2.5 py-1 rounded-xl bg-danger-20 text-[var(--danger)] border border-danger-20"
-                        >
-                          تأكيد الحذف
-                        </button>
+                      <>
                         <button type="button"
                           onClick={() => setDeletingItemIdx(null)}
-                          className="text-[10px] px-2.5 py-1 rounded-xl bg-[var(--card)] border border-[var(--stroke)]"
+                          className="h-9 px-3 rounded-xl text-xs bg-[var(--card)] border border-[var(--stroke)] opacity-70 hover:opacity-100 active:opacity-100 transition"
                         >
                           إلغاء
                         </button>
-                      </div>
+                        <button type="button"
+                          onClick={() => { handleDeleteItem(entry.originalIndex); setDeletingItemIdx(null); }}
+                          className="h-9 px-3 rounded-xl text-xs bg-danger-15 text-[var(--danger)] border border-danger-30 hover:bg-danger-20 active:bg-danger-20 transition font-medium"
+                        >
+                          تأكيد الحذف
+                        </button>
+                      </>
                     ) : (
-                      <div className="flex gap-1">
+                      <>
                         <button type="button"
                           onClick={() => openEditItem(entry.originalIndex)}
-                          className="p-1.5 rounded-xl opacity-30 hover:opacity-70 transition text-[var(--accent)]"
+                          className="h-9 px-3 rounded-xl text-xs flex items-center gap-1.5 bg-accent-8 text-[var(--accent)] border border-accent-20 hover:bg-accent-14 active:bg-accent-14 transition"
                           aria-label="تعديل الذكر"
                         >
-                          <Pencil size={13} />
+                          <Pencil size={12} />
+                          تعديل
                         </button>
                         <button type="button"
                           onClick={() => setDeletingItemIdx(entry.originalIndex)}
-                          className="p-1.5 rounded-xl opacity-30 hover:opacity-70 transition text-[var(--danger)]"
+                          className="h-9 px-3 rounded-xl text-xs flex items-center gap-1.5 bg-danger-8 text-[var(--danger)] border border-danger-20 hover:bg-danger-15 active:bg-danger-15 transition"
                           aria-label="حذف الذكر"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={12} />
+                          حذف
                         </button>
-                      </div>
+                      </>
                     )}
                   </div>
                 )}

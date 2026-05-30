@@ -268,30 +268,49 @@ function PackCard({
             <div key={i}>
               {editingItemIdx === i ? (
                 // Inline edit form
-                <div className="flex items-center gap-2 bg-[var(--card)] rounded-xl px-3 py-2 border border-[var(--accent)]/30">
-                  <input
-                    type="text"
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    autoFocus
-                    dir="rtl"
-                    className="flex-1 bg-transparent text-xs outline-none"
-                    aria-label="تعديل نص الذكر"
-                  />
-                  <input
-                    type="number"
-                    min={1}
-                    value={editCount}
-                    onChange={(e) => setEditCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                    className="w-12 bg-transparent text-xs text-center outline-none border border-[var(--stroke)] rounded-lg px-1 py-0.5"
-                    aria-label="عدد التكرار"
-                  />
-                  <button type="button" onClick={saveEditItem} className="p-1 rounded-lg text-[var(--ok)] hover:bg-ok-10 transition" aria-label="حفظ">
-                    <Check size={13} />
-                  </button>
-                  <button type="button" onClick={() => setEditingItemIdx(null)} className="p-1 rounded-lg opacity-50 hover:opacity-100 transition" aria-label="إلغاء">
-                    <X size={13} />
-                  </button>
+                <div className="rounded-2xl border border-[var(--accent)]/40 bg-[var(--card)] overflow-hidden" dir="rtl">
+                  <div className="px-3 pt-3 pb-2 border-b border-[var(--stroke)]">
+                    <div className="text-[10px] font-semibold opacity-40 mb-1.5">نص الذكر</div>
+                    <input
+                      type="text"
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      autoFocus
+                      dir="rtl"
+                      className="w-full bg-transparent text-sm outline-none placeholder:opacity-30"
+                      placeholder="اكتب الذكر…"
+                      aria-label="تعديل نص الذكر"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] opacity-50">التكرار</span>
+                      <div className="flex items-center gap-1">
+                        <button type="button"
+                          onClick={() => setEditCount((c) => Math.max(1, c - 1))}
+                          className="h-7 w-7 rounded-lg bg-[var(--card-2)] border border-[var(--stroke)] text-sm grid place-items-center opacity-70 hover:opacity-100 active:opacity-100 transition"
+                          aria-label="تقليل"
+                        >−</button>
+                        <span className="w-9 text-center text-sm font-semibold tabular-nums">{editCount}</span>
+                        <button type="button"
+                          onClick={() => setEditCount((c) => Math.min(9999, c + 1))}
+                          className="h-7 w-7 rounded-lg bg-[var(--card-2)] border border-[var(--stroke)] text-sm grid place-items-center opacity-70 hover:opacity-100 active:opacity-100 transition"
+                          aria-label="زيادة"
+                        >+</button>
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button type="button" onClick={() => setEditingItemIdx(null)}
+                        className="h-8 px-3 rounded-xl text-xs bg-[var(--card-2)] border border-[var(--stroke)] opacity-60 hover:opacity-100 active:opacity-100 transition"
+                        aria-label="إلغاء"
+                      >إلغاء</button>
+                      <button type="button" onClick={saveEditItem}
+                        className="h-8 px-3 rounded-xl text-xs bg-[var(--accent)] text-[var(--on-accent)] disabled:opacity-40 transition flex items-center gap-1"
+                        disabled={!editText.trim()}
+                        aria-label="حفظ"
+                      ><Check size={12} />حفظ</button>
+                    </div>
+                  </div>
                 </div>
               ) : confirmItemDeleteIdx === i ? (
                 // Delete confirm row
@@ -310,21 +329,21 @@ function PackCard({
                 </div>
               ) : (
                 // Normal item row
-                <div className="flex items-center justify-between gap-2 text-xs rounded-xl px-2 py-1.5 hover:bg-[var(--card)] group transition">
-                  <span className="line-clamp-2 leading-snug flex-1 opacity-70">{it.text}</span>
+                <div className="flex items-center justify-between gap-2 text-xs rounded-xl px-2 py-1.5 active:bg-[var(--card)] hover:bg-[var(--card)] transition min-h-[44px]">
+                  <span className="line-clamp-2 leading-snug flex-1 opacity-80">{it.text}</span>
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="opacity-40 tabular-nums">× {it.count}</span>
+                    <span className="text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded-full bg-[var(--card)] border border-[var(--stroke)] opacity-60">× {it.count}</span>
                     <button type="button" onClick={() => startEditItem(i)}
-                      className="p-1 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition text-[var(--accent)]"
+                      className="h-8 w-8 rounded-xl grid place-items-center opacity-50 hover:opacity-100 active:opacity-100 hover:bg-accent-10 active:bg-accent-10 transition text-[var(--accent)]"
                       aria-label="تعديل"
                     >
-                      <Pencil size={12} />
+                      <Pencil size={13} />
                     </button>
                     <button type="button" onClick={() => setConfirmItemDeleteIdx(i)}
-                      className="p-1 rounded-lg opacity-0 group-hover:opacity-60 hover:!opacity-100 transition text-[var(--danger)]"
+                      className="h-8 w-8 rounded-xl grid place-items-center opacity-50 hover:opacity-100 active:opacity-100 hover:bg-danger-10 active:bg-danger-10 transition text-[var(--danger)]"
                       aria-label="حذف"
                     >
-                      <Trash2 size={12} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
