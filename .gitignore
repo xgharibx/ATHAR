@@ -25,3 +25,10 @@ Thumbs.db
 
 # perf audit artifacts
 lighthouse-*.json
+
+# Reference source projects (not part of the app build)
+MIRC/
+CMIRC/
+extracted_*.txt
+final_extracted_content.txt
+extracted_content*.txt

@@ -1,0 +1,108 @@
+import { VideoResource } from '@/ijaz/types';
+
+export const videos: VideoResource[] = [
+  {
+    id: 'vid-1',
+    youtubeId: 'Xr5OFn8OUGI',
+    title: 'Scientific Miracles in the Quran - Universe Expansion',
+    titleAr: 'الإعجاز العلمي في القرآن - توسع الكون',
+    description: 'Dr. Haitham Talaat explains how the Quran described the expansion of the universe 1400 years before Hubble',
+    descriptionAr: 'يشرح د. هيثم طلعت كيف وصف القرآن توسع الكون قبل هابل بـ 1400 عام',
+    thumbnailUrl: 'https://img.youtube.com/vi/Xr5OFn8OUGI/maxresdefault.jpg',
+    relatedMiracleIds: ['miracle-universe-expansion'],
+    category: 'cosmological',
+    duration: '25:30',
+  },
+  {
+    id: 'vid-2',
+    youtubeId: 'QGp3GEg9kOs',
+    title: 'Embryology in the Quran',
+    titleAr: 'علم الأجنة في القرآن',
+    description: 'Detailed analysis of Quranic embryological descriptions and their alignment with modern science',
+    descriptionAr: 'تحليل مفصل للأوصاف القرآنية لعلم الأجنة وتوافقها مع العلم الحديث',
+    thumbnailUrl: 'https://img.youtube.com/vi/QGp3GEg9kOs/maxresdefault.jpg',
+    relatedMiracleIds: ['miracle-embryology-stages'],
+    category: 'biological',
+    duration: '32:15',
+  },
+  {
+    id: 'vid-3',
+    youtubeId: 'dWLmGSKb1iE',
+    title: 'Mountains as Pegs - Geological Miracle',
+    titleAr: 'الجبال أوتاداً - المعجزة الجيولوجية',
+    description: 'How the Quran described mountains having deep roots like pegs, confirmed by modern geology',
+    descriptionAr: 'كيف وصف القرآن الجبال بأن لها جذوراً عميقة كالأوتاد، وهو ما أكده علم الجيولوجيا الحديث',
+    thumbnailUrl: 'https://img.youtube.com/vi/dWLmGSKb1iE/maxresdefault.jpg',
+    relatedMiracleIds: ['miracle-mountains-pegs'],
+    category: 'earth-sciences',
+    duration: '18:45',
+  },
+  {
+    id: 'vid-4',
+    youtubeId: 'A5wBkFAGFn0',
+    title: 'Prophecies of Muhammad in Previous Scriptures',
+    titleAr: 'نبوءات محمد في الكتب السابقة',
+    description: 'Evidence from Torah and Bible prophesying the coming of Prophet Muhammad (PBUH)',
+    descriptionAr: 'أدلة من التوراة والإنجيل تتنبأ بقدوم النبي محمد ﷺ',
+    thumbnailUrl: 'https://img.youtube.com/vi/A5wBkFAGFn0/maxresdefault.jpg',
+    relatedMiracleIds: ['miracle-prophecy-torah', 'miracle-prophecy-bible'],
+    category: 'prophecies',
+    duration: '45:00',
+  },
+  {
+    id: 'vid-5',
+    youtubeId: 'LrGEFgKn0CA',
+    title: 'Refuting Atheism - The Cosmological Argument',
+    titleAr: 'دحض الإلحاد - البرهان الكوني',
+    description: 'Dr. Haitham Talaat presents the cosmological argument for the existence of God',
+    descriptionAr: 'يقدم د. هيثم طلعت البرهان الكوني على وجود الله',
+    thumbnailUrl: 'https://img.youtube.com/vi/LrGEFgKn0CA/maxresdefault.jpg',
+    relatedMiracleIds: ['miracle-kalam-cosmological'],
+    category: 'logical-philosophical',
+    duration: '38:20',
+  },
+  {
+    id: 'vid-6',
+    youtubeId: 'J5T1fGZA2bc',
+    title: 'The Big Bang in the Quran',
+    titleAr: 'الانفجار العظيم في القرآن',
+    description: 'Analysis of Surah Al-Anbiya verse 30 and its description of the Big Bang',
+    descriptionAr: 'تحليل آية 30 من سورة الأنبياء ووصفها للانفجار العظيم',
+    thumbnailUrl: 'https://img.youtube.com/vi/J5T1fGZA2bc/maxresdefault.jpg',
+    relatedMiracleIds: ['miracle-big-bang'],
+    category: 'cosmological',
+    duration: '28:10',
+  },
+  {
+    id: 'vid-7',
+    youtubeId: 'K8pnGKaOz3k',
+    title: 'Deep Sea Darkness - Oceanic Miracle',
+    titleAr: 'ظلمات البحار - المعجزة المحيطية',
+    description: 'How the Quran described layers of darkness in deep seas before submarine exploration',
+    descriptionAr: 'كيف وصف القرآن طبقات الظلام في أعماق البحار قبل الاستكشاف بالغواصات',
+    thumbnailUrl: 'https://img.youtube.com/vi/K8pnGKaOz3k/maxresdefault.jpg',
+    relatedMiracleIds: ['miracle-deep-sea-darkness'],
+    category: 'earth-sciences',
+    duration: '22:30',
+  },
+  {
+    id: 'vid-8',
+    youtubeId: 'N7rE2qLJ7xQ',
+    title: 'The Fine-Tuning Argument',
+    titleAr: 'برهان الضبط الدقيق',
+    description: 'Exploring the fine-tuning of universal constants as evidence for intelligent design',
+    descriptionAr: 'استكشاف الضبط الدقيق للثوابت الكونية كدليل على التصميم الذكي',
+    thumbnailUrl: 'https://img.youtube.com/vi/N7rE2qLJ7xQ/maxresdefault.jpg',
+    relatedMiracleIds: ['miracle-fine-tuning'],
+    category: 'logical-philosophical',
+    duration: '42:00',
+  },
+];
+
+export const getVideosByMiracleId = (miracleId: string): VideoResource[] => {
+  return videos.filter((v) => v.relatedMiracleIds.includes(miracleId));
+};
+
+export const getVideosByCategory = (category: string): VideoResource[] => {
+  return videos.filter((v) => v.category === category);
+};

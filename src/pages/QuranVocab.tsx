@@ -81,7 +81,7 @@ export function QuranVocabPage() {
   const navigate = useNavigate();
   useScrollRestoration();
   const [reviewMode, setReviewMode] = React.useState(false);
-  const [tierFilter, setTierFilter] = React.useState<"all" | "top" | "mid" | "rare">("all");
+  const [tierFilter, setTierFilter] = React.useState<"all" | "top" | "mid" | "rare" | "misunderstood">("all");
   const [browseMode, setBrowseMode] = React.useState(false);
   const [browseQuery, setBrowseQuery] = React.useState("");
   const [quizMode, setQuizMode] = React.useState(false);
@@ -160,6 +160,7 @@ export function QuranVocabPage() {
     if (tierFilter === "top") base = base.filter((w) => w.id <= 50);
     else if (tierFilter === "mid") base = base.filter((w) => w.id >= 51 && w.id <= 150);
     else if (tierFilter === "rare") base = base.filter((w) => w.id >= 151);
+    else if (tierFilter === "misunderstood") base = base.filter((w) => !!w.wrongMeaning);
     setDeck(base.length > 0 ? base : [...QURAN_VOCAB]);
     setCardIndex(0);
     setFlipped(false);
@@ -436,7 +437,8 @@ export function QuranVocabPage() {
                 { key: "all", label: "الكل" },
                 { key: "top", label: "⭐ عليا (50)" },
                 { key: "mid", label: "⚪ وسطى (100)" },
-                { key: "rare", label: "⚫ نادرة (50)" },
+                { key: "rare", label: "⚫ نادرة (70)" },
+                { key: "misunderstood", label: "⚠️ قد تُفهم خطأً" },
               ] as const).map(({ key, label }) => (
                 <button
                   key={key}
@@ -602,6 +604,7 @@ export function QuranVocabPage() {
                   <span className="text-base font-bold" style={{ fontFamily: "var(--font-arabic, inherit)", color: word.id === dailyWordId ? "var(--accent)" : "var(--fg)" }}>{word.arabic}</span>
                   {word.id === dailyWordId && <Star size={10} style={{ color: "var(--accent)", flexShrink: 0 }} />}
                   {learned.has(word.id) && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: "color-mix(in srgb, var(--ok) 18%, transparent)", color: "var(--ok)" }}>✓</span>}
+                  {word.wrongMeaning && <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: "color-mix(in srgb, #f97316 12%, transparent)", color: "#f97316" }}>⚠️</span>}
                 </div>
                 <p className="text-xs opacity-60 line-clamp-1 text-right">{word.meaning.split('—').slice(-1)[0]?.trim() ?? word.meaning}</p>
               </div>
@@ -628,11 +631,17 @@ export function QuranVocabPage() {
             onClick={() => setFlipped((f) => { if (!f) { recordTodayReview(); setVocabStreak(computeVocabStreak()); } return !f; })}
             aria-label={flipped ? `إخفاء معنى كلمة ${card.arabic}` : `كشف معنى كلمة ${card.arabic}`}
             className={`vocab-flip-card w-full${flipped ? " is-flipped" : ""}`}
-            style={{ minHeight: "14rem" }}
+            style={{ minHeight: card.wrongMeaning ? "17rem" : "14rem" }}
           >
             {/* Front face — Arabic word */}
             <div className="vocab-card-face vocab-card-front" aria-hidden={flipped ? true : undefined}>
               <div className="text-center">
+                {card.wrongMeaning && (
+                  <div className="inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full mb-3"
+                    style={{ background: "color-mix(in srgb, #f97316 12%, transparent)", color: "#f97316", border: "1px solid rgba(249,115,22,0.3)" }}>
+                    ⚠️ قد تُفهم خطأً
+                  </div>
+                )}
                 <div className="text-5xl font-bold mb-4" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
                   {card.arabic}
                 </div>
@@ -643,7 +652,12 @@ export function QuranVocabPage() {
               </div>
             </div>
             {/* Back face — meaning */}
-            <div className="vocab-card-face vocab-card-back" aria-hidden={!flipped ? true : undefined}>
+            <div className="vocab-card-face vocab-card-back" aria-hidden={!flipped ? true : undefined}
+              style={card.wrongMeaning ? {
+                background: "color-mix(in srgb, #dc2626 13%, var(--card))",
+                border: "1px solid rgba(220,38,38,0.35)",
+                boxShadow: "inset 0 0 40px rgba(220,38,38,0.08)",
+              } : undefined}>
               <div className="text-center space-y-3">
                 <div className="text-3xl font-bold" style={{ fontFamily: "var(--font-arabic, inherit)" }}>
                   {card.arabic}
@@ -661,10 +675,33 @@ export function QuranVocabPage() {
                     </div>
                   );
                 })()}
+                {card.wrongMeaning && (
+                  <div className="w-full">
+                    <div className="h-px mb-2.5 opacity-20" style={{ background: "var(--on-accent)" }} />
+                    <p className="text-[10px] font-semibold mb-1 opacity-50">⚠️ يُظن خطأً أنها تعني</p>
+                    <p className="text-base font-bold" style={{ color: "#fca5a5" }}>
+                      {card.wrongMeaning}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </button>
         </div>
+
+        {/* Deep meaning panel — visible below the card when flipped */}
+        {flipped && card.deepMeaning && (
+          <div className="w-full max-w-sm rounded-2xl p-4" dir="rtl"
+            style={{ background: "color-mix(in srgb, #06b6d4 8%, var(--card))", border: "1px solid rgba(6,182,212,0.25)" }}>
+            <div className="text-xs font-semibold mb-2 flex items-center gap-1.5" style={{ color: "#06b6d4" }}>
+              💡 الفهم الصحيح والعميق
+            </div>
+            <p className="text-sm leading-relaxed text-right" style={{ color: "var(--fg)", opacity: 0.9 }}>{card.deepMeaning}</p>
+            {card.example && (
+              <p className="text-xs mt-2.5 opacity-55 font-medium text-right" style={{ color: "var(--fg)", fontFamily: "var(--font-arabic, inherit)" }}>{card.example}</p>
+            )}
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="flex items-center gap-4">

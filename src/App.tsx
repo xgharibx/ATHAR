@@ -89,6 +89,18 @@ const QuranPlansPage = React.lazy(() => import("@/pages/QuranPlans").then((m) =>
 const CustomAdhkarPage = React.lazy(() => import("@/pages/CustomAdhkar").then((m) => ({ default: m.CustomAdhkarPage })));
 const NearbyMosquesPage = React.lazy(() => import("@/pages/NearbyMosques").then((m) => ({ default: m.NearbyMosquesPage })));
 
+// ── الإعجاز العلمي (MIRC) section ──
+import { IjazShell } from "@/components/layout/IjazShell";
+const IjazHome          = React.lazy(() => import("@/ijaz/pages/IjazHome"));
+const IjazMiracles      = React.lazy(() => import("@/ijaz/pages/IjazMiracles"));
+const IjazMiracleDetail = React.lazy(() => import("@/ijaz/pages/IjazMiracleDetail"));
+const IjazCategory      = React.lazy(() => import("@/ijaz/pages/IjazCategory"));
+const IjazJourney       = React.lazy(() => import("@/ijaz/pages/IjazJourney"));
+const IjazRefute        = React.lazy(() => import("@/ijaz/pages/IjazRefute"));
+const IjazTimeline      = React.lazy(() => import("@/ijaz/pages/IjazTimeline"));
+const IjazVerseExplorer = React.lazy(() => import("@/ijaz/pages/IjazVerseExplorer"));
+const IjazSearch        = React.lazy(() => import("@/ijaz/pages/IjazSearch"));
+
 export default function App() {
   useApplyTheme();
   const navigate = useNavigate();
@@ -265,6 +277,18 @@ export default function App() {
       <PwaInstallBanner />
       <Routes>
         <Route path="mushaf/:page?" element={<S><MushafPage /></S>} />
+        {/* ── الإعجاز العلمي section (full-screen dark theme) ── */}
+        <Route path="ijaz" element={<IjazShell />}>
+          <Route index element={<S><IjazHome /></S>} />
+          <Route path="miracles" element={<S><IjazMiracles /></S>} />
+          <Route path="miracles/:slug" element={<S><IjazMiracleDetail /></S>} />
+          <Route path="categories/:category" element={<S><IjazCategory /></S>} />
+          <Route path="journey" element={<S><IjazJourney /></S>} />
+          <Route path="refute" element={<S><IjazRefute /></S>} />
+          <Route path="timeline" element={<S><IjazTimeline /></S>} />
+          <Route path="verse-explorer" element={<S><IjazVerseExplorer /></S>} />
+          <Route path="search" element={<S><IjazSearch /></S>} />
+        </Route>
         <Route element={<AppShell />}>
           <Route index element={<S><HomePage /></S>} />
           <Route path="c/:id" element={<S><CategoryPage /></S>} />

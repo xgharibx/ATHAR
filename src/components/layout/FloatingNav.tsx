@@ -1,6 +1,6 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { House, BookOpenText, Heart, BookMarked, Clapperboard, Trophy } from "lucide-react";
+import { House, BookOpenText, Heart, BookMarked, Sparkles, Trophy } from "lucide-react";
 import { useNoorStore } from "@/store/noorStore";
 
 function todayISO() {
@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { path: "/", label: "الرئيسية", icon: House },
   { path: "/quran", label: "القرآن", icon: BookOpenText },
   { path: "/favorites", label: "المفضلة", icon: Heart },
-  { path: "/video-library", label: "الدورات", icon: Clapperboard },
+  { path: "/ijaz", label: "الإعجاز", icon: Sparkles },
   { path: "/library", label: "المكتبة", icon: BookMarked },
   { path: "/leaderboard", label: "الترتيب", icon: Trophy },
 ] as const;
@@ -91,33 +91,6 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
     >
       <div className="flex items-center gap-0.5">
         {NAV_ITEMS.map((item) => {
-          // الدورات — coming soon, non-interactive
-          if (item.path === "/video-library") {
-            return (
-              <div
-                key={item.path}
-                className="floating-nav-item relative"
-                style={{ cursor: "default", pointerEvents: "none" }}
-                aria-disabled="true"
-                aria-label="الدورات — قريباً"
-              >
-                {/* Dim the icon+label but not the badge */}
-                <div style={{ opacity: 0.45 }} aria-hidden="true">
-                  <item.icon size={18} strokeWidth={1.8} />
-                </div>
-                <span style={{ opacity: 0.45 }} aria-hidden="true">{item.label}</span>
-                {/* Badge at full opacity, overlaying the top of the icon */}
-                <div
-                  className="absolute top-0 left-1/2 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold px-2 py-[3px] rounded-full leading-none shadow-md"
-                  style={{ background: "var(--accent)", color: "var(--on-accent)", zIndex: 2 }}
-                  aria-hidden="true"
-                >
-                  قريباً
-                </div>
-              </div>
-            );
-          }
-
           const active = isActive(item.path) || (item.path === "/" && isAdhkarPage);
           return (
             <NavLink

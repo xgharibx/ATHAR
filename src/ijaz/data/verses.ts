@@ -1,0 +1,225 @@
+import { QuranicVerse } from '@/ijaz/types';
+
+export const verses: QuranicVerse[] = [
+  // === COSMOLOGICAL ===
+  {
+    id: 'verse-dhariyat-47',
+    surah: 'الذاريات',
+    surahNumber: 51,
+    ayahNumber: 47,
+    arabicText: 'وَالسَّمَاءَ بَنَيْنَاهَا بِأَيْدٍ وَإِنَّا لَمُوسِعُونَ',
+    translation: 'And the heaven We constructed with strength, and indeed, We are [its] expander.',
+    transliteration: 'Was-samaa-a banaynaaha bi-aydin wa-innaa lamoosiAAoon',
+    keywords: ['expansion', 'universe', 'heaven', 'cosmos', 'توسع', 'الكون', 'السماء'],
+  },
+  {
+    id: 'verse-anbiya-30',
+    surah: 'الأنبياء',
+    surahNumber: 21,
+    ayahNumber: 30,
+    arabicText: 'أَوَلَمْ يَرَ الَّذِينَ كَفَرُوا أَنَّ السَّمَاوَاتِ وَالْأَرْضَ كَانَتَا رَتْقًا فَفَتَقْنَاهُمَا ۖ وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ ۖ أَفَلَا يُؤْمِنُونَ',
+    translation: 'Have those who disbelieved not considered that the heavens and the earth were a joined entity, and We separated them and made from water every living thing? Then will they not believe?',
+    transliteration: 'Awalam yara allatheena kafaroo anna assamawati waalarda kanata ratqan fafataqnahuma wajaAAalna mina almaa-i kulla shay-in hayyin afala yu/minoona',
+    keywords: ['big bang', 'creation', 'water', 'life', 'الانفجار', 'الماء', 'حي', 'رتق', 'فتق'],
+  },
+  {
+    id: 'verse-tariq-3',
+    surah: 'الطارق',
+    surahNumber: 86,
+    ayahNumber: 3,
+    arabicText: 'النَّجْمُ الثَّاقِبُ',
+    translation: 'It is the piercing star (Pulsar)',
+    transliteration: 'An-najmu ath-thaqib',
+    keywords: ['pulsar', 'star', 'piercing', 'نجم', 'ثاقب'],
+  },
+  {
+    id: 'verse-rahman-33',
+    surah: 'الرحمن',
+    surahNumber: 55,
+    ayahNumber: 33,
+    arabicText: 'يَا مَعْشَرَ الْجِنِّ وَالْإِنسِ إِنِ اسْتَطَعْتُمْ أَن تَنفُذُوا مِنْ أَقْطَارِ السَّمَاوَاتِ وَالْأَرْضِ فَانفُذُوا ۚ لَا تَنفُذُونَ إِلَّا بِسُلْطَانٍ',
+    translation: 'O company of jinn and mankind, if you are able to pass beyond the regions of the heavens and the earth, then pass. You will not pass except by authority [from Allah].',
+    transliteration: 'Ya maAAshara aljinni waalinsi ini istataAAtum an tanfuthoo min aqtari assamawati waalardi faonfuthoo la tanfuthoona illa bisultanin',
+    keywords: ['space travel', 'regions', 'authority', 'أقطار', 'السماوات', 'سلطان'],
+  },
+  {
+    id: 'verse-anbiya-33',
+    surah: 'الأنبياء',
+    surahNumber: 21,
+    ayahNumber: 33,
+    arabicText: 'وَهُوَ الَّذِي خَلَقَ اللَّيْلَ وَالنَّهَارَ وَالشَّمْسَ وَالْقَمَرَ ۖ كُلٌّ فِي فَلَكٍ يَسْبَحُونَ',
+    translation: 'And it is He who created the night and the day and the sun and the moon; all [heavenly bodies] in an orbit are swimming.',
+    transliteration: 'Wahuwa allathee khalaqa allayla waannahara waashshamsa waalqamara kullun fee falakin yasbahoona',
+    keywords: ['orbit', 'sun', 'moon', 'swimming', 'فلك', 'يسبحون', 'الشمس', 'القمر'],
+  },
+  // === BIOLOGICAL ===
+  {
+    id: 'verse-muminun-12-14',
+    surah: 'المؤمنون',
+    surahNumber: 23,
+    ayahNumber: 12,
+    ayahNumberEnd: 14,
+    arabicText: 'وَلَقَدْ خَلَقْنَا الْإِنسَانَ مِن سُلَالَةٍ مِّن طِينٍ ﴿١٢﴾ ثُمَّ جَعَلْنَاهُ نُطْفَةً فِي قَرَارٍ مَّكِينٍ ﴿١٣﴾ ثُمَّ خَلَقْنَا النُّطْفَةَ عَلَقَةً فَخَلَقْنَا الْعَلَقَةَ مُضْغَةً فَخَلَقْنَا الْمُضْغَةَ عِظَامًا فَكَسَوْنَا الْعِظَامَ لَحْمًا ثُمَّ أَنشَأْنَاهُ خَلْقًا آخَرَ ۚ فَتَبَارَكَ اللَّهُ أَحْسَنُ الْخَالِقِينَ ﴿١٤﴾',
+    translation: 'And certainly did We create man from an extract of clay. Then We placed him as a sperm-drop in a firm lodging. Then We made the sperm-drop into a clinging clot, and We made the clot into a lump [of flesh], and We made [from] the lump, bones, and We covered the bones with flesh; then We developed him into another creation. So blessed is Allah, the best of creators.',
+    keywords: ['embryology', 'creation', 'stages', 'نطفة', 'علقة', 'مضغة', 'عظام', 'لحم'],
+  },
+  {
+    id: 'verse-nahl-66',
+    surah: 'النحل',
+    surahNumber: 16,
+    ayahNumber: 66,
+    arabicText: 'وَإِنَّ لَكُمْ فِي الْأَنْعَامِ لَعِبْرَةً ۖ نُّسْقِيكُم مِّمَّا فِي بُطُونِهِ مِن بَيْنِ فَرْثٍ وَدَمٍ لَّبَنًا خَالِصًا سَائِغًا لِّلشَّارِبِينَ',
+    translation: 'And indeed, for you in grazing livestock is a lesson. We give you drink from what is in their bellies - between excretion and blood - pure milk, palatable to drinkers.',
+    keywords: ['milk', 'production', 'blood', 'livestock', 'لبن', 'فرث', 'دم'],
+  },
+  {
+    id: 'verse-nahl-68-69',
+    surah: 'النحل',
+    surahNumber: 16,
+    ayahNumber: 68,
+    ayahNumberEnd: 69,
+    arabicText: 'وَأَوْحَىٰ رَبُّكَ إِلَى النَّحْلِ أَنِ اتَّخِذِي مِنَ الْجِبَالِ بُيُوتًا وَمِنَ الشَّجَرِ وَمِمَّا يَعْرِشُونَ ﴿٦٨﴾ ثُمَّ كُلِي مِن كُلِّ الثَّمَرَاتِ فَاسْلُكِي سُبُلَ رَبِّكِ ذُلُلًا ۚ يَخْرُجُ مِن بُطُونِهَا شَرَابٌ مُّخْتَلِفٌ أَلْوَانُهُ فِيهِ شِفَاءٌ لِّلنَّاسِ ۗ إِنَّ فِي ذَٰلِكَ لَآيَةً لِّقَوْمٍ يَتَفَكَّرُونَ ﴿٦٩﴾',
+    translation: 'And your Lord inspired the bee, saying: "Take for yourself among the mountains, houses, and among the trees and [in] that which they construct. Then eat from all the fruits and follow the ways of your Lord laid down [for you]." There emerges from their bellies a drink, varying in colors, in which there is healing for people. Indeed in that is a sign for a people who give thought.',
+    keywords: ['bee', 'honey', 'healing', 'النحل', 'شراب', 'شفاء'],
+  },
+  {
+    id: 'verse-zumar-6',
+    surah: 'الزمر',
+    surahNumber: 39,
+    ayahNumber: 6,
+    arabicText: 'يَخْلُقُكُمْ فِي بُطُونِ أُمَّهَاتِكُمْ خَلْقًا مِّن بَعْدِ خَلْقٍ فِي ظُلُمَاتٍ ثَلَاثٍ',
+    translation: 'He creates you in the wombs of your mothers, creation after creation, within three darknesses.',
+    keywords: ['three', 'darknesses', 'womb', 'creation', 'ظلمات', 'ثلاث', 'بطون'],
+  },
+  {
+    id: 'verse-alaq-1-2',
+    surah: 'العلق',
+    surahNumber: 96,
+    ayahNumber: 1,
+    ayahNumberEnd: 2,
+    arabicText: 'اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ ﴿١﴾ خَلَقَ الْإِنسَانَ مِنْ عَلَقٍ ﴿٢﴾',
+    translation: 'Read in the name of your Lord who created. Created man from a clinging substance.',
+    keywords: ['alaq', 'clinging', 'creation', 'علق', 'خلق'],
+  },
+  // === EARTH SCIENCES ===
+  {
+    id: 'verse-naba-6-7',
+    surah: 'النبأ',
+    surahNumber: 78,
+    ayahNumber: 6,
+    ayahNumberEnd: 7,
+    arabicText: 'أَلَمْ نَجْعَلِ الْأَرْضَ مِهَادًا ﴿٦﴾ وَالْجِبَالَ أَوْتَادًا ﴿٧﴾',
+    translation: 'Have We not made the earth a resting place? And the mountains as stakes (pegs)?',
+    keywords: ['mountains', 'pegs', 'stakes', 'earth', 'جبال', 'أوتاد', 'الأرض'],
+  },
+  {
+    id: 'verse-nur-40',
+    surah: 'النور',
+    surahNumber: 24,
+    ayahNumber: 40,
+    arabicText: 'أَوْ كَظُلُمَاتٍ فِي بَحْرٍ لُّجِّيٍّ يَغْشَاهُ مَوْجٌ مِّن فَوْقِهِ مَوْجٌ مِّن فَوْقِهِ سَحَابٌ ۚ ظُلُمَاتٌ بَعْضُهَا فَوْقَ بَعْضٍ إِذَا أَخْرَجَ يَدَهُ لَمْ يَكَدْ يَرَاهَا',
+    translation: 'Or [they are] like darknesses within an unfathomable sea which is covered by waves, upon which are waves, over which are clouds - darknesses, some of them upon others. When one puts out his hand, he can hardly see it.',
+    keywords: ['deep sea', 'darkness', 'waves', 'layers', 'بحر', 'لجي', 'ظلمات', 'موج'],
+  },
+  {
+    id: 'verse-naziat-30',
+    surah: 'النازعات',
+    surahNumber: 79,
+    ayahNumber: 30,
+    arabicText: 'وَالْأَرْضَ بَعْدَ ذَٰلِكَ دَحَاهَا',
+    translation: 'And after that He spread the earth.',
+    transliteration: 'Waalarda baAAda thalika dahaha',
+    keywords: ['earth', 'egg-shaped', 'spread', 'دحا', 'الأرض'],
+  },
+  {
+    id: 'verse-anbiya-31',
+    surah: 'الأنبياء',
+    surahNumber: 21,
+    ayahNumber: 31,
+    arabicText: 'وَجَعَلْنَا فِي الْأَرْضِ رَوَاسِيَ أَن تَمِيدَ بِهِمْ وَجَعَلْنَا فِيهَا فِجَاجًا سُبُلًا لَّعَلَّهُمْ يَهْتَدُونَ',
+    translation: 'And We placed within the earth firmly set mountains, lest it should shift with them, and We made therein [mountain] passes [as] roads that they might be guided.',
+    keywords: ['mountains', 'stability', 'tectonic', 'رواسي', 'تميد'],
+  },
+  {
+    id: 'verse-furqan-53',
+    surah: 'الفرقان',
+    surahNumber: 25,
+    ayahNumber: 53,
+    arabicText: 'وَهُوَ الَّذِي مَرَجَ الْبَحْرَيْنِ هَٰذَا عَذْبٌ فُرَاتٌ وَهَٰذَا مِلْحٌ أُجَاجٌ وَجَعَلَ بَيْنَهُمَا بَرْزَخًا وَحِجْرًا مَّحْجُورًا',
+    translation: 'And it is He who has released [simultaneously] the two seas, one fresh and sweet and one salty and bitter, and He placed between them a barrier and prohibiting partition.',
+    keywords: ['two seas', 'barrier', 'salt', 'fresh', 'بحرين', 'برزخ', 'عذب', 'ملح'],
+  },
+  // === PROPHECIES ===
+  {
+    id: 'verse-rum-2-4',
+    surah: 'الروم',
+    surahNumber: 30,
+    ayahNumber: 2,
+    ayahNumberEnd: 4,
+    arabicText: 'غُلِبَتِ الرُّومُ ﴿٢﴾ فِي أَدْنَى الْأَرْضِ وَهُم مِّن بَعْدِ غَلَبِهِمْ سَيَغْلِبُونَ ﴿٣﴾ فِي بِضْعِ سِنِينَ ۗ لِلَّهِ الْأَمْرُ مِن قَبْلُ وَمِن بَعْدُ ۚ وَيَوْمَئِذٍ يَفْرَحُ الْمُؤْمِنُونَ ﴿٤﴾',
+    translation: 'The Romans have been defeated. In the nearest land. But they, after their defeat, will overcome. Within three to nine years. To Allah belongs the command before and after. And that day the believers will rejoice.',
+    keywords: ['Romans', 'prophecy', 'victory', 'defeat', 'الروم', 'غلبت', 'سيغلبون'],
+  },
+  {
+    id: 'verse-fath-27',
+    surah: 'الفتح',
+    surahNumber: 48,
+    ayahNumber: 27,
+    arabicText: 'لَّقَدْ صَدَقَ اللَّهُ رَسُولَهُ الرُّؤْيَا بِالْحَقِّ ۖ لَتَدْخُلُنَّ الْمَسْجِدَ الْحَرَامَ إِن شَاءَ اللَّهُ آمِنِينَ مُحَلِّقِينَ رُءُوسَكُمْ وَمُقَصِّرِينَ لَا تَخَافُونَ',
+    translation: 'Certainly has Allah showed to His Messenger the vision in truth. You will surely enter al-Masjid al-Haram, if Allah wills, in safety, with your heads shaved and [hair] shortened, not fearing [anyone].',
+    keywords: ['Makkah', 'conquest', 'prophecy', 'المسجد الحرام', 'الفتح'],
+  },
+  {
+    id: 'verse-qamar-45',
+    surah: 'القمر',
+    surahNumber: 54,
+    ayahNumber: 45,
+    arabicText: 'سَيُهْزَمُ الْجَمْعُ وَيُوَلُّونَ الدُّبُرَ',
+    translation: 'Their multitude will be defeated, and they will turn their backs [in retreat].',
+    keywords: ['Badr', 'defeat', 'prophecy', 'يهزم', 'الجمع'],
+  },
+  {
+    id: 'verse-araf-157',
+    surah: 'الأعراف',
+    surahNumber: 7,
+    ayahNumber: 157,
+    arabicText: 'الَّذِينَ يَتَّبِعُونَ الرَّسُولَ النَّبِيَّ الْأُمِّيَّ الَّذِي يَجِدُونَهُ مَكْتُوبًا عِندَهُمْ فِي التَّوْرَاةِ وَالْإِنجِيلِ',
+    translation: 'Those who follow the Messenger, the unlettered prophet, whom they find written in what they have of the Torah and the Gospel.',
+    keywords: ['unlettered', 'prophet', 'Torah', 'Gospel', 'الأمي', 'التوراة', 'الإنجيل'],
+  },
+  // === LOGICAL/PHILOSOPHICAL ===
+  {
+    id: 'verse-tur-35-36',
+    surah: 'الطور',
+    surahNumber: 52,
+    ayahNumber: 35,
+    ayahNumberEnd: 36,
+    arabicText: 'أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ أَمْ هُمُ الْخَالِقُونَ ﴿٣٥﴾ أَمْ خَلَقُوا السَّمَاوَاتِ وَالْأَرْضَ ۚ بَل لَّا يُوقِنُونَ ﴿٣٦﴾',
+    translation: 'Or were they created by nothing, or were they the creators [of themselves]? Or did they create the heavens and the earth? Rather, they are not certain.',
+    keywords: ['creation', 'nothing', 'creator', 'خلقوا', 'غير شيء', 'الخالقون'],
+  },
+  {
+    id: 'verse-hashr-22-24',
+    surah: 'الحشر',
+    surahNumber: 59,
+    ayahNumber: 22,
+    ayahNumberEnd: 24,
+    arabicText: 'هُوَ اللَّهُ الَّذِي لَا إِلَٰهَ إِلَّا هُوَ ۖ عَالِمُ الْغَيْبِ وَالشَّهَادَةِ ۖ هُوَ الرَّحْمَٰنُ الرَّحِيمُ ﴿٢٢﴾ هُوَ اللَّهُ الَّذِي لَا إِلَٰهَ إِلَّا هُوَ الْمَلِكُ الْقُدُّوسُ السَّلَامُ الْمُؤْمِنُ الْمُهَيْمِنُ الْعَزِيزُ الْجَبَّارُ الْمُتَكَبِّرُ ۚ سُبْحَانَ اللَّهِ عَمَّا يُشْرِكُونَ ﴿٢٣﴾ هُوَ اللَّهُ الْخَالِقُ الْبَارِئُ الْمُصَوِّرُ ۖ لَهُ الْأَسْمَاءُ الْحُسْنَىٰ ﴿٢٤﴾',
+    translation: 'He is Allah, other than whom there is no deity, Knower of the unseen and the witnessed. He is the Entirely Merciful, the Especially Merciful. He is Allah, other than whom there is no deity, the Sovereign, the Pure, the Perfection, the Grantor of Security, the Overseer, the Exalted in Might, the Compeller, the Superior. Exalted is Allah above whatever they associate with Him. He is Allah, the Creator, the Originator, the Fashioner; to Him belong the best names.',
+    keywords: ['names', 'Allah', 'creator', 'الأسماء', 'الحسنى', 'الخالق', 'البارئ'],
+  },
+];
+
+export const getVerseById = (id: string): QuranicVerse | undefined => {
+  return verses.find((v) => v.id === id);
+};
+
+export const getVersesByKeyword = (keyword: string): QuranicVerse[] => {
+  const lower = keyword.toLowerCase();
+  return verses.filter(
+    (v) =>
+      v.keywords.some((k) => k.toLowerCase().includes(lower)) ||
+      v.arabicText.includes(keyword) ||
+      v.translation.toLowerCase().includes(lower)
+  );
+};
