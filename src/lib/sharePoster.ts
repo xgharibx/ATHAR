@@ -254,6 +254,26 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.fill();
   ctx.restore();
 
+  // Decorative star/arabesque ornaments in bar edges
+  ctx.save();
+  ctx.globalAlpha = 0.15;
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
+  // Left ornament cluster
+  for (let i = 0; i < 5; i++) {
+    const ox = 40 + i * 22;
+    const oy = barH / 2;
+    const or = 3 + (i % 2) * 3;
+    ctx.beginPath(); ctx.arc(ox, oy, or, 0, Math.PI * 2); ctx.fill();
+  }
+  // Right ornament cluster
+  for (let i = 0; i < 5; i++) {
+    const ox = W - 40 - i * 22;
+    const oy = barH / 2;
+    const or = 3 + (i % 2) * 3;
+    ctx.beginPath(); ctx.arc(ox, oy, or, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+
   // App name in the bar — centered Arabic bold
   ctx.save();
   ctx.direction = "rtl";
@@ -283,28 +303,51 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.restore();
 
   // ── 3. Main content card ──────────────────────────────────────────────────
-  const pad = 72;
+  const pad = 64;
   const cardX = pad;
-  const cardY = barH + 72;
+  const cardY = barH + 64;
   const cardW = W - pad * 2;
-  const cardH = H - barH - 72 - 200; // leave room for footer
+  const cardH = H - barH - 64 - 180; // leave room for footer
 
-  // Card background (glass)
+  // Card background — deep glass with subtle gradient
   ctx.save();
-  roundRect(ctx, cardX, cardY, cardW, cardH, 52);
-  ctx.fillStyle = "rgba(0,0,0,0.30)";
+  roundRect(ctx, cardX, cardY, cardW, cardH, 56);
+  const cardBg = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+  cardBg.addColorStop(0, "rgba(0,0,0,0.38)");
+  cardBg.addColorStop(1, rgba(theme.accent, 0.06));
+  ctx.fillStyle = cardBg;
   ctx.fill();
-  // Glass border — accent tinted
-  ctx.strokeStyle = rgba(theme.accent, 0.28);
-  ctx.lineWidth = 2.5;
+  ctx.restore();
+
+  // Card outer glow / border
+  ctx.save();
+  roundRect(ctx, cardX, cardY, cardW, cardH, 56);
+  ctx.strokeStyle = rgba(theme.accent, 0.32);
+  ctx.lineWidth = 2;
   ctx.stroke();
   ctx.restore();
 
-  // Inner top highlight line
+  // Top highlight shimmer line inside card
   ctx.save();
-  roundRect(ctx, cardX + 2, cardY + 2, cardW - 4, 3, 2);
-  ctx.fillStyle = rgba(theme.accent, 0.35);
+  const shimmerGrad = ctx.createLinearGradient(cardX + 40, 0, cardX + cardW - 40, 0);
+  shimmerGrad.addColorStop(0, rgba(theme.accent, 0));
+  shimmerGrad.addColorStop(0.3, rgba(theme.accent, 0.55));
+  shimmerGrad.addColorStop(0.7, rgba(theme.accent, 0.55));
+  shimmerGrad.addColorStop(1, rgba(theme.accent, 0));
+  roundRect(ctx, cardX + 40, cardY + 2, cardW - 80, 3, 2);
+  ctx.fillStyle = shimmerGrad;
   ctx.fill();
+  ctx.restore();
+
+  // Soft inner radial glow (top-center of card)
+  ctx.save();
+  const innerGlow = ctx.createRadialGradient(W / 2, cardY, 0, W / 2, cardY, cardW * 0.7);
+  innerGlow.addColorStop(0, rgba(theme.accent, 0.10));
+  innerGlow.addColorStop(1, rgba(theme.accent, 0));
+  roundRect(ctx, cardX, cardY, cardW, cardH, 56);
+  ctx.clip();
+  ctx.fillStyle = innerGlow;
+  ctx.fillRect(cardX, cardY, cardW, cardH);
   ctx.restore();
 
   // ── 3a. Section title pill (top inside card) ──────────────────────────────
@@ -313,15 +356,20 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.save();
   ctx.font = titleFont;
   const titleMeasure = ctx.measureText(sectionTitle);
-  const pillW = Math.min(titleMeasure.width + 64, cardW - 80);
-  const pillH = 54;
+  const pillW = Math.min(titleMeasure.width + 72, cardW - 80);
+  const pillH = 56;
   const pillX = cardX + (cardW - pillW) / 2;
-  const pillY = cardY + 52;
+  const pillY = cardY + 56;
 
+  // Pill bg with accent glow
   roundRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
-  ctx.fillStyle = rgba(theme.accent, 0.18);
+  const pillBg = ctx.createLinearGradient(pillX, pillY, pillX + pillW, pillY);
+  pillBg.addColorStop(0, rgba(theme.accent, 0.22));
+  pillBg.addColorStop(0.5, rgba(theme.accent, 0.30));
+  pillBg.addColorStop(1, rgba(theme.accent, 0.22));
+  ctx.fillStyle = pillBg;
   ctx.fill();
-  ctx.strokeStyle = rgba(theme.accent, 0.40);
+  ctx.strokeStyle = rgba(theme.accent, 0.55);
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
@@ -329,32 +377,39 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = theme.accent;
+  ctx.shadowColor = rgba(theme.accent, 0.6);
+  ctx.shadowBlur = 8;
   ctx.fillText(sectionTitle, pillX + pillW / 2, pillY + pillH / 2);
+  ctx.shadowBlur = 0;
   ctx.restore();
 
   // ── 3b. Ornamental separator ──────────────────────────────────────────────
-  const sepY = cardY + 52 + pillH + 36;
+  const sepY = cardY + 56 + pillH + 40;
   ctx.save();
-  ctx.strokeStyle = rgba(theme.fg, 0.12);
+  // Fading line
+  const sepGrad = ctx.createLinearGradient(cardX + 48, 0, cardX + cardW - 48, 0);
+  sepGrad.addColorStop(0, rgba(theme.fg, 0));
+  sepGrad.addColorStop(0.2, rgba(theme.fg, 0.18));
+  sepGrad.addColorStop(0.8, rgba(theme.fg, 0.18));
+  sepGrad.addColorStop(1, rgba(theme.fg, 0));
+  ctx.strokeStyle = sepGrad;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(cardX + 60, sepY);
-  ctx.lineTo(cardX + cardW - 60, sepY);
+  ctx.moveTo(cardX + 48, sepY);
+  ctx.lineTo(cardX + cardW - 48, sepY);
   ctx.stroke();
-  // Small diamond in center
-  const sdCx = W / 2;
-  const sdCy = sepY;
-  ctx.fillStyle = rgba(theme.accent, 0.55);
-  ctx.beginPath();
-  ctx.moveTo(sdCx, sdCy - 7); ctx.lineTo(sdCx + 7, sdCy);
-  ctx.lineTo(sdCx, sdCy + 7); ctx.lineTo(sdCx - 7, sdCy);
-  ctx.closePath(); ctx.fill();
+  // Centered ornament: ✦ glyph
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = rgba(theme.accent, 0.65);
+  ctx.font = `400 28px 'Noto Naskh Arabic','Segoe UI',Arial,sans-serif`;
+  ctx.fillText("✦", W / 2, sepY);
   ctx.restore();
 
   // ── 3c. Dhikr text (centered, auto-sized) ─────────────────────────────────
   const text = formatLeadingIstiadhahBasmalah((opts.text ?? "").trim());
   const fontSize = fontSizeByLength(text.length);
-  const lineHeight = Math.round(fontSize * 1.68);
+  const lineHeight = Math.round(fontSize * 1.72);
   const arabicFont = `700 ${fontSize}px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
 
   ctx.save();
@@ -364,9 +419,9 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.fillStyle = theme.fg;
   ctx.font = arabicFont;
 
-  const textAreaTop = sepY + 52;
-  const textAreaBottom = cardY + cardH - 110;
-  const maxWidth = cardW - 88;
+  const textAreaTop = sepY + 56;
+  const textAreaBottom = cardY + cardH - 120;
+  const maxWidth = cardW - 96;
   const centerX = W / 2;
 
   const paragraphs = text.split("\n");
@@ -385,7 +440,12 @@ export async function renderDhikrPosterBlob(opts: {
   for (const line of allLines) {
     if (ty > textAreaBottom) break;
     if (!line) { ty += Math.round(lineHeight * 0.55); continue; }
+    // Subtle text shadow for depth
+    ctx.shadowColor = "rgba(0,0,0,0.45)";
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 2;
     ctx.fillText(line, centerX, ty);
+    ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
     ty += lineHeight;
   }
   ctx.restore();
@@ -396,47 +456,60 @@ export async function renderDhikrPosterBlob(opts: {
     const countFont = `700 26px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
     ctx.save();
     ctx.font = countFont;
-    const cw = ctx.measureText(countText).width + 52;
-    const ch = 44;
+    const cw = ctx.measureText(countText).width + 56;
+    const ch = 46;
     const cx = cardX + (cardW - cw) / 2;
-    const cy = cardY + cardH - ch - 34;
+    const cy = cardY + cardH - ch - 38;
     roundRect(ctx, cx, cy, cw, ch, ch / 2);
-    ctx.fillStyle = rgba(theme.accent, 0.14);
+    ctx.fillStyle = rgba(theme.accent, 0.16);
     ctx.fill();
-    ctx.strokeStyle = rgba(theme.accent, 0.32);
+    ctx.strokeStyle = rgba(theme.accent, 0.40);
     ctx.lineWidth = 1.5;
     ctx.stroke();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = rgba(theme.fg, 0.85);
+    ctx.fillStyle = rgba(theme.fg, 0.90);
+    ctx.font = countFont;
     ctx.fillText(countText, cx + cw / 2, cy + ch / 2);
     ctx.restore();
   }
 
   // ── 4. Footer ─────────────────────────────────────────────────────────────
-  const footerY = cardY + cardH + 52;
-  const footerH = 100;
-  const footerUrl = (opts.footerUrl ?? "xgharibx.github.io/ATHAR").trim();
+  const footerY = cardY + cardH + 48;
+  const footerH = 96;
+  const footerUrl = (opts.footerUrl ?? "www.athark.org").trim();
 
   ctx.save();
-  roundRect(ctx, cardX, footerY, cardW, footerH, 40);
-  ctx.fillStyle = "rgba(0,0,0,0.22)";
+  roundRect(ctx, cardX, footerY, cardW, footerH, 44);
+  const footerBg = ctx.createLinearGradient(cardX, footerY, cardX + cardW, footerY);
+  footerBg.addColorStop(0, "rgba(0,0,0,0.28)");
+  footerBg.addColorStop(1, rgba(theme.accent, 0.08));
+  ctx.fillStyle = footerBg;
   ctx.fill();
-  ctx.strokeStyle = rgba(theme.fg, 0.10);
+  ctx.strokeStyle = rgba(theme.accent, 0.20);
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // App name right-aligned
+  // Brand name right-aligned with glow
   ctx.direction = "rtl";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   ctx.fillStyle = rgba(theme.fg, 0.95);
-  ctx.font = `800 30px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
+  ctx.shadowColor = rgba(theme.accent, 0.45);
+  ctx.shadowBlur = 10;
+  ctx.font = `800 28px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
   ctx.fillText("أثر • ATHAR", cardX + cardW - 44, footerY + footerH / 2);
+  ctx.shadowBlur = 0;
+
+  // Accent dot separator
+  ctx.textAlign = "center";
+  ctx.fillStyle = rgba(theme.accent, 0.50);
+  ctx.font = `400 20px 'Segoe UI',Arial,sans-serif`;
+  ctx.fillText("·", W / 2, footerY + footerH / 2);
 
   // URL left-aligned
   ctx.textAlign = "left";
-  ctx.fillStyle = rgba(theme.fg, 0.52);
+  ctx.fillStyle = rgba(theme.fg, 0.48);
   ctx.font = `500 22px 'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif`;
   ctx.fillText(footerUrl, cardX + 44, footerY + footerH / 2);
   ctx.restore();

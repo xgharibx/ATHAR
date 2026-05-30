@@ -877,7 +877,7 @@ export function MushafPage() {
       const blob = await renderDhikrPosterBlob({
         text: verse,
         sectionTitle: `${selectedItem.surahName} • ${selectedItem.surahId}:${selectedItem.displayAyah}`,
-        footerUrl: "xgharibx.github.io/ATHAR",
+        footerUrl: "www.athark.org",
       });
       const file = new File([blob], `athar-${selectedItem.surahId}-${selectedItem.displayAyah}.png`, { type: "image/png" });
       if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); return; }
