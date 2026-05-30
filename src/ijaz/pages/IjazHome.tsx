@@ -426,6 +426,19 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<MiracleCategory | 'all'>('all');
   const [activeShowcase, setActiveShowcase] = useState(0);
   const isMobile = useIsMobile();
+  const activeHeroShowcase = beforeAfterShowcases[activeShowcase];
+
+  const heroBadges = [
+    { label: `${miracles.length}+ معجزة موثقة`, color: '#f0d68a', tone: 'rgba(212,168,83,0.12)', border: 'rgba(212,168,83,0.20)' },
+    { label: `${seekerPaths.length} مسارات للدخول`, color: '#8ef2d7', tone: 'rgba(45,212,168,0.10)', border: 'rgba(45,212,168,0.18)' },
+    { label: `سبق حتى ${activeHeroShowcase.gap}`, color: '#9cc8ff', tone: 'rgba(74,144,217,0.10)', border: 'rgba(74,144,217,0.18)' },
+  ] as const;
+
+  const heroStats = [
+    { value: `${miracles.length}+`, label: 'دليلاً موثقاً', color: '#f0d68a', tone: 'rgba(212,168,83,0.12)', border: 'rgba(212,168,83,0.20)' },
+    { value: `${categories.length}`, label: 'أقسام كبرى', color: '#8ef2d7', tone: 'rgba(45,212,168,0.10)', border: 'rgba(45,212,168,0.18)' },
+    { value: activeHeroShowcase.gap, label: 'سبق قرآني', color: '#9cc8ff', tone: 'rgba(74,144,217,0.10)', border: 'rgba(74,144,217,0.18)' },
+  ] as const;
 
   const featuredVerse = verses[0];
   const filteredMiracles =
@@ -469,6 +482,33 @@ export default function HomePage() {
               className="mb-4 md:mb-6 lg:mb-8"
             >
               <span className="font-amiri text-gold-primary/40 text-2xl">{'\uFDFD'}</span>
+            </motion.div>
+
+            {/* Signal badges */}
+            <motion.div
+              initial={{ opacity: 0, y: -14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.8 }}
+              className="mb-4 md:mb-6 flex flex-wrap items-center justify-center gap-2.5"
+            >
+              {heroBadges.map((badge) => (
+                <span
+                  key={badge.label}
+                  className="inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[11px] sm:text-xs font-tajawal font-semibold backdrop-blur-md"
+                  style={{
+                    color: badge.color,
+                    background: badge.tone,
+                    border: `1px solid ${badge.border}`,
+                    boxShadow: `0 0 24px ${badge.tone}`,
+                  }}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: badge.color, boxShadow: `0 0 10px ${badge.color}` }}
+                  />
+                  {badge.label}
+                </span>
+              ))}
             </motion.div>
 
             {/* Hook question */}
@@ -535,21 +575,140 @@ export default function HomePage() {
               </p>
             </motion.div>
 
-            {/* Ornamental divider */}
+            {/* Hero spotlight panel */}
             <motion.div
-              className="flex items-center justify-center gap-3 my-4 md:my-6"
-              initial={{ opacity: 0, scaleX: 0 }}
-              animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ delay: 1.5, duration: 0.8 }}
+              className="mt-6 md:mt-8 max-w-6xl mx-auto"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.45, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="h-px w-20 bg-gradient-to-r from-transparent to-gold-primary/50" />
-              <div className="w-2 h-2 rotate-45 border border-gold-primary/50" />
-              <div className="h-px w-20 bg-gradient-to-l from-transparent to-gold-primary/50" />
+              <div
+                className="relative overflow-hidden rounded-[30px] p-3 md:p-4 glass-premium"
+                style={{
+                  border: '1px solid rgba(212,168,83,0.14)',
+                  background: 'linear-gradient(160deg, rgba(9,11,18,0.92) 0%, rgba(14,18,28,0.88) 55%, rgba(9,11,18,0.94) 100%)',
+                  boxShadow: '0 28px 90px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
+                }}
+              >
+                <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_top,rgba(212,168,83,0.12),transparent_44%)]" />
+                <div className="absolute inset-0 dhikr-card-stars opacity-30" />
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeHeroShowcase.miracleSlug}
+                    initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, y: -12, filter: 'blur(8px)' }}
+                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative grid gap-3 lg:grid-cols-[1.2fr_0.95fr]"
+                  >
+                    <div
+                      className="rounded-[24px] px-4 py-5 md:px-6 md:py-6 text-right overflow-hidden"
+                      style={{
+                        background: 'linear-gradient(180deg, rgba(17,23,36,0.90) 0%, rgba(12,17,26,0.86) 100%)',
+                        border: '1px solid rgba(212,168,83,0.10)',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                      }}
+                    >
+                      <div className="absolute inset-0 opacity-50 bg-[radial-gradient(circle_at_top_right,rgba(45,212,168,0.10),transparent_38%)]" />
+                      <div className="relative z-10 flex items-center justify-between gap-3">
+                        <span
+                          className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-tajawal font-semibold"
+                          style={{
+                            color: '#f0d68a',
+                            background: 'rgba(212,168,83,0.10)',
+                            border: '1px solid rgba(212,168,83,0.18)',
+                          }}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-gold-primary shadow-[0_0_10px_rgba(212,168,83,0.65)]" />
+                          نافذة من الإعجاز
+                        </span>
+                        <span className="text-3xl md:text-4xl leading-none">{activeHeroShowcase.icon}</span>
+                      </div>
+
+                      <div className="relative z-10 mt-5">
+                        <p className="font-amiri text-[1.55rem] md:text-4xl leading-[1.95] text-verse-green verse-glow-pulse">
+                          {activeHeroShowcase.quranText}
+                        </p>
+                        <div className="mt-4 flex flex-wrap items-center justify-end gap-2 text-[11px] md:text-xs font-tajawal">
+                          <span
+                            className="px-3 py-1 rounded-full"
+                            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(240,214,138,0.78)' }}
+                          >
+                            {activeHeroShowcase.surah}
+                          </span>
+                          <span
+                            className="px-3 py-1 rounded-full"
+                            style={{ background: 'rgba(74,144,217,0.10)', border: '1px solid rgba(74,144,217,0.16)', color: '#9cc8ff' }}
+                          >
+                            سبق حتى {activeHeroShowcase.gap}
+                          </span>
+                        </div>
+                        <p className="mt-4 text-sm md:text-base text-text-secondary font-tajawal leading-relaxed max-w-2xl mr-auto">
+                          {activeHeroShowcase.after}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3">
+                      <div className="grid grid-cols-3 gap-3">
+                        {heroStats.map((stat) => (
+                          <div
+                            key={stat.label}
+                            className="rounded-[22px] px-3 py-4 text-center"
+                            style={{
+                              background: stat.tone,
+                              border: `1px solid ${stat.border}`,
+                              boxShadow: `0 0 24px ${stat.tone}`,
+                            }}
+                          >
+                            <div className="font-amiri text-lg md:text-2xl font-bold leading-none" style={{ color: stat.color }}>
+                              {stat.value}
+                            </div>
+                            <div className="mt-2 text-[10px] md:text-[11px] font-tajawal text-text-secondary leading-snug">
+                              {stat.label}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div
+                        className="rounded-[24px] px-4 py-4 md:px-5 text-right"
+                        style={{
+                          background: 'linear-gradient(180deg, rgba(14,18,28,0.92) 0%, rgba(9,12,18,0.92) 100%)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                        }}
+                      >
+                        <div className="text-[11px] font-tajawal tracking-wide text-red-300/70">قبل أن يصل إليه العلم</div>
+                        <p className="mt-2 text-sm md:text-[15px] text-text-secondary font-tajawal leading-relaxed">
+                          {activeHeroShowcase.before}
+                        </p>
+                        <div className="mt-4 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                        <div className="mt-4 flex items-center justify-between gap-3">
+                          <span className="text-[10px] font-tajawal text-text-muted">يتبدل المشهد تلقائياً</span>
+                          <div className="flex items-center gap-2">
+                            {beforeAfterShowcases.map((item, index) => (
+                              <button
+                                key={item.miracleSlug}
+                                type="button"
+                                onClick={() => setActiveShowcase(index)}
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  index === activeShowcase ? 'w-7 bg-gold-primary shadow-[0_0_10px_rgba(212,168,83,0.45)]' : 'w-2 bg-white/20 hover:bg-white/35'
+                                }`}
+                                aria-label={`عرض المشهد ${index + 1}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </motion.div>
 
             {/* CTA Buttons */}
             <motion.div
-              className="flex flex-wrap items-center justify-center gap-4 mt-4 md:mt-6"
+              className="flex flex-wrap items-center justify-center gap-4 mt-5 md:mt-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.8 }}
@@ -574,10 +733,15 @@ export default function HomePage() {
 
             {/* Typewriter miracle preview */}
             <motion.div
-              className="mt-6 md:mt-8 lg:mt-10 glass-premium rounded-2xl px-6 py-4 max-w-xl mx-auto"
+              className="mt-5 md:mt-7 lg:mt-8 rounded-2xl px-5 py-4 max-w-2xl mx-auto"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 2.2 }}
+              style={{
+                background: 'linear-gradient(180deg, rgba(10,10,15,0.78) 0%, rgba(14,17,24,0.72) 100%)',
+                border: '1px solid rgba(212,168,83,0.10)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.24)',
+              }}
             >
               <p className="text-text-muted text-xs font-tajawal mb-2">
                 {'\u0645\u0639\u062C\u0632\u0627\u062A \u062A\u0646\u062A\u0638\u0631\u0643:'}
