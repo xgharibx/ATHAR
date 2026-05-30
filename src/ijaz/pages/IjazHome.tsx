@@ -186,36 +186,199 @@ function StaticStarsBackdrop({
       blobA: 'rgba(212,168,83,0.28)',
       blobB: 'rgba(45,212,168,0.20)',
       blobC: 'rgba(74,144,217,0.16)',
+      grid: 'rgba(212,168,83,0.06)',
+      ring: 'rgba(255,255,255,0.10)',
+      node: 'rgba(240,214,138,0.72)',
+      line: 'rgba(212,168,83,0.18)',
+      spotlight: 'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.08) 0%, rgba(212,168,83,0.05) 24%, transparent 64%)',
       overlay:
         'radial-gradient(circle at 50% 30%, rgba(212,168,83,0.14) 0%, rgba(212,168,83,0.05) 28%, transparent 58%), linear-gradient(180deg, rgba(10,10,15,0.08) 0%, rgba(10,10,15,0.42) 58%, rgba(10,10,15,0.84) 100%)',
+      nodes: [
+        { x: 16, y: 18, r: 1.3 },
+        { x: 26, y: 15, r: 1.1 },
+        { x: 34, y: 24, r: 1.15 },
+        { x: 67, y: 16, r: 1.2 },
+        { x: 77, y: 22, r: 1.4 },
+        { x: 72, y: 32, r: 1.05 },
+      ],
+      lines: [[0, 1], [1, 2], [3, 4], [4, 5], [2, 5]] as Array<[number, number]>,
+      sparkles: [
+        { x: '12%', y: '28%', size: 4, delay: '0s', duration: '4.2s', color: 'rgba(255,255,255,0.82)' },
+        { x: '83%', y: '18%', size: 5, delay: '0.8s', duration: '5.4s', color: 'rgba(240,214,138,0.90)' },
+        { x: '72%', y: '62%', size: 3, delay: '1.6s', duration: '4.8s', color: 'rgba(45,212,168,0.78)' },
+        { x: '21%', y: '72%', size: 4, delay: '0.4s', duration: '5.1s', color: 'rgba(74,144,217,0.72)' },
+        { x: '58%', y: '26%', size: 3, delay: '1.1s', duration: '4.6s', color: 'rgba(255,255,255,0.74)' },
+      ],
     },
     gold: {
       blobA: 'rgba(212,168,83,0.20)',
       blobB: 'rgba(240,214,138,0.12)',
       blobC: 'rgba(74,144,217,0.10)',
+      grid: 'rgba(212,168,83,0.05)',
+      ring: 'rgba(240,214,138,0.08)',
+      node: 'rgba(240,214,138,0.68)',
+      line: 'rgba(212,168,83,0.14)',
+      spotlight: 'radial-gradient(circle at 50% 50%, rgba(212,168,83,0.08) 0%, transparent 62%)',
       overlay:
         'radial-gradient(circle at 50% 40%, rgba(212,168,83,0.08) 0%, transparent 55%), linear-gradient(180deg, rgba(10,10,15,0.02) 0%, rgba(10,10,15,0.22) 100%)',
+      nodes: [
+        { x: 24, y: 24, r: 1.1 },
+        { x: 36, y: 20, r: 1.15 },
+        { x: 48, y: 27, r: 1.05 },
+        { x: 61, y: 22, r: 1.2 },
+        { x: 74, y: 28, r: 1.25 },
+      ],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 4]] as Array<[number, number]>,
+      sparkles: [
+        { x: '18%', y: '18%', size: 3, delay: '0s', duration: '5.6s', color: 'rgba(240,214,138,0.85)' },
+        { x: '78%', y: '24%', size: 4, delay: '1.1s', duration: '4.9s', color: 'rgba(255,255,255,0.78)' },
+        { x: '62%', y: '72%', size: 3, delay: '0.5s', duration: '5.2s', color: 'rgba(212,168,83,0.82)' },
+        { x: '28%', y: '70%', size: 4, delay: '1.7s', duration: '4.5s', color: 'rgba(255,255,255,0.74)' },
+      ],
     },
     emerald: {
       blobA: 'rgba(45,212,168,0.18)',
       blobB: 'rgba(212,168,83,0.12)',
       blobC: 'rgba(74,144,217,0.12)',
+      grid: 'rgba(45,212,168,0.05)',
+      ring: 'rgba(45,212,168,0.08)',
+      node: 'rgba(45,212,168,0.66)',
+      line: 'rgba(45,212,168,0.14)',
+      spotlight: 'radial-gradient(circle at 50% 42%, rgba(45,212,168,0.08) 0%, transparent 58%)',
       overlay:
         'radial-gradient(circle at 50% 35%, rgba(45,212,168,0.08) 0%, transparent 54%), linear-gradient(180deg, rgba(10,10,15,0.04) 0%, rgba(10,10,15,0.20) 100%)',
+      nodes: [
+        { x: 18, y: 30, r: 1.1 },
+        { x: 30, y: 24, r: 1.2 },
+        { x: 42, y: 34, r: 1.15 },
+        { x: 66, y: 26, r: 1.1 },
+        { x: 76, y: 36, r: 1.3 },
+      ],
+      lines: [[0, 1], [1, 2], [2, 3], [3, 4]] as Array<[number, number]>,
+      sparkles: [
+        { x: '16%', y: '22%', size: 3, delay: '0.3s', duration: '5.3s', color: 'rgba(45,212,168,0.85)' },
+        { x: '82%', y: '18%', size: 4, delay: '1.1s', duration: '4.7s', color: 'rgba(255,255,255,0.76)' },
+        { x: '64%', y: '62%', size: 3, delay: '1.7s', duration: '5s', color: 'rgba(212,168,83,0.72)' },
+        { x: '24%', y: '76%', size: 4, delay: '0.7s', duration: '5.5s', color: 'rgba(74,144,217,0.72)' },
+      ],
     },
     violet: {
       blobA: 'rgba(168,85,247,0.20)',
       blobB: 'rgba(212,168,83,0.16)',
       blobC: 'rgba(74,144,217,0.10)',
+      grid: 'rgba(168,85,247,0.05)',
+      ring: 'rgba(168,85,247,0.09)',
+      node: 'rgba(196,181,253,0.70)',
+      line: 'rgba(168,85,247,0.15)',
+      spotlight: 'radial-gradient(circle at 50% 44%, rgba(168,85,247,0.10) 0%, transparent 60%)',
       overlay:
         'radial-gradient(circle at 50% 50%, rgba(168,85,247,0.10) 0%, transparent 56%), linear-gradient(180deg, rgba(10,10,15,0.03) 0%, rgba(10,10,15,0.28) 100%)',
+      nodes: [
+        { x: 20, y: 20, r: 1.1 },
+        { x: 28, y: 30, r: 1.2 },
+        { x: 40, y: 22, r: 1.05 },
+        { x: 70, y: 18, r: 1.1 },
+        { x: 82, y: 28, r: 1.25 },
+        { x: 74, y: 40, r: 1.1 },
+      ],
+      lines: [[0, 1], [1, 2], [3, 4], [4, 5]] as Array<[number, number]>,
+      sparkles: [
+        { x: '14%', y: '26%', size: 3, delay: '0.1s', duration: '5.1s', color: 'rgba(196,181,253,0.86)' },
+        { x: '82%', y: '16%', size: 4, delay: '1.2s', duration: '4.8s', color: 'rgba(255,255,255,0.78)' },
+        { x: '68%', y: '60%', size: 3, delay: '1.8s', duration: '5.4s', color: 'rgba(168,85,247,0.82)' },
+        { x: '26%', y: '72%', size: 4, delay: '0.6s', duration: '4.9s', color: 'rgba(212,168,83,0.75)' },
+      ],
     },
   }[variant];
 
+  const visibleNodeCount = mobile ? Math.min(4, palette.nodes.length) : palette.nodes.length;
+  const visibleNodes = palette.nodes.slice(0, visibleNodeCount);
+  const visibleLines = palette.lines.filter(([from, to]) => from < visibleNodeCount && to < visibleNodeCount);
+  const visibleSparkles = mobile ? palette.sparkles.slice(0, 3) : palette.sparkles;
+
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`} aria-hidden="true">
-      <div className="absolute inset-0 dhikr-page-stars" style={{ opacity: mobile ? 0.16 : 0.24 }} />
-      <div className="absolute inset-0 dhikr-card-stars" style={{ opacity: mobile ? 0.10 : 0.15 }} />
+      <div className="absolute inset-0 dhikr-page-stars" style={{ opacity: mobile ? 0.18 : 0.28 }} />
+      <div className="absolute inset-0 dhikr-card-stars" style={{ opacity: mobile ? 0.12 : 0.18 }} />
+      <div className="absolute inset-0" style={{ background: palette.spotlight }} />
+      <div
+        className="absolute inset-0"
+        style={{
+          opacity: mobile ? 0.08 : 0.14,
+          backgroundImage: `linear-gradient(${palette.grid} 1px, transparent 1px), linear-gradient(90deg, ${palette.grid} 1px, transparent 1px)`,
+          backgroundSize: mobile ? '56px 56px' : '76px 76px',
+          maskImage: 'radial-gradient(circle at center, black 0%, rgba(0,0,0,0.75) 46%, transparent 84%)',
+          WebkitMaskImage: 'radial-gradient(circle at center, black 0%, rgba(0,0,0,0.75) 46%, transparent 84%)',
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-[18%] rounded-full border"
+        style={{
+          width: mobile ? 220 : 420,
+          height: mobile ? 220 : 420,
+          transform: 'translateX(-50%)',
+          borderColor: palette.ring,
+          boxShadow: `0 0 32px ${palette.line}`,
+          opacity: mobile ? 0.36 : 0.52,
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-[24%] rounded-full border"
+        style={{
+          width: mobile ? 140 : 280,
+          height: mobile ? 140 : 280,
+          transform: 'translateX(-50%)',
+          borderColor: palette.line,
+          opacity: mobile ? 0.24 : 0.34,
+        }}
+      />
+      <div
+        className="absolute left-[10%] right-[10%] top-[16%] h-px"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${palette.line}, transparent)`,
+          opacity: mobile ? 0.5 : 0.8,
+        }}
+      />
+      <svg
+        className="absolute inset-0"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        style={{ opacity: mobile ? 0.34 : 0.55, mixBlendMode: 'screen' }}
+      >
+        {visibleLines.map(([from, to]) => (
+          <line
+            key={`${from}-${to}`}
+            x1={visibleNodes[from]?.x}
+            y1={visibleNodes[from]?.y}
+            x2={visibleNodes[to]?.x}
+            y2={visibleNodes[to]?.y}
+            stroke={palette.line}
+            strokeWidth="0.18"
+          />
+        ))}
+        {visibleNodes.map((node, index) => (
+          <g key={`${variant}-node-${index}`}>
+            <circle cx={node.x} cy={node.y} r={node.r * 1.9} fill={palette.line} opacity="0.22" />
+            <circle cx={node.x} cy={node.y} r={node.r} fill={palette.node} />
+          </g>
+        ))}
+      </svg>
+      {visibleSparkles.map((sparkle, index) => (
+        <div
+          key={`${variant}-sparkle-${index}`}
+          className="absolute rounded-full"
+          style={{
+            left: sparkle.x,
+            top: sparkle.y,
+            width: sparkle.size,
+            height: sparkle.size,
+            background: sparkle.color,
+            boxShadow: `0 0 ${sparkle.size * 5}px ${sparkle.color}`,
+            opacity: 0.75,
+            animation: `glowPulse ${sparkle.duration} ease-in-out ${sparkle.delay} infinite`,
+          }}
+        />
+      ))}
       <div
         className="athar-bg-blob"
         style={{
