@@ -9707,6 +9707,126 @@ Modern astrophysics confirms: every astronomical body has a specified term — s
     summaryAr: 'يصف القرآن دورة المياه الكاملة — التبخر وتشكيل السحاب والمطر والأنهار المتدفقة إلى البحر والعودة — بدقة علمية تطابق الدورة الهيدرولوجية الحديثة التي اكتُشفت في القرن السابع عشر فقط.',
     description: 'The Quran describes the water cycle in multiple verses with remarkable completeness: Surah Az-Zumar (39:21): "Do you not see that Allah sent down water from the sky and channeled it through springs in the earth — then He brings forth crops of varying colors with it — then they wither and you see them turn yellow — then He makes them into chaff." Surah An-Nur (24:43): "Do you not see that Allah drives clouds, then joins them together, then makes them into a mass, and you see the rain emerge from within it..." Surah Al-A\'raf (7:57): "And it is He who sends the winds as good tidings before His mercy until, when they have carried heavy rainclouds, We drive them to a dead land and We send down rain therein and bring forth thereby [some] of all the fruits..." Surah Ar-Rum (30:48): "It is Allah who sends the winds, and they stir the clouds and spread them in the sky however He wills, and He makes them fragments so you see the rain emerge from within them." The complete cycle described: (1) EVAPORATION: Water lifted from seas/land (implied in "sends down from sky"). (2) CLOUD FORMATION: Winds drive clouds, they join together, become heavy. (3) PRECIPITATION: Rain falls from clouds. (4) SURFACE RUNOFF: Water channels through earth (springs, rivers). (5) AGRICULTURE: Crops grow, then decay — nutrient cycling. (6) RETURN TO SEA: Rivers flow back. The complete modern hydrological cycle was only formally described by Pierre Perrault and Edme Mariotte in 1674–1686, over 1000 years after the Quran. Dr. Haitham Talaat highlights that Surah 39:21\'s description of water going "through springs in the earth" correctly describes groundwater and the soil infiltration step of the water cycle.',
     descriptionAr: 'يصف القرآن دورة المياه الكاملة في آيات متعددة: الزمر (39:21): "أَلَمْ تَرَ أَنَّ اللَّهَ أَنزَلَ مِنَ السَّمَاءِ مَاءً فَسَلَكَهُ يَنَابِيعَ فِي الْأَرْضِ". النور (24:43): "أَلَمْ تَرَ أَنَّ اللَّهَ يُزْجِي سَحَابًا ثُمَّ يُؤَلِّفُ بَيْنَهُ ثُمَّ يَجْعَلُهُ رُكَامًا فَتَرَى الْوَدْقَ يَخْرُجُ مِنْ خِلَالِهِ". الدورة الكاملة: (1) التبخر، (2) تشكيل السحاب، (3) هطول الأمطار، (4) تدفق السطح والمياه الجوفية، (5) الزراعة، (6) العودة للبحر. وُصفت الدورة الهيدرولوجية الحديثة الكاملة لأول مرة من قِبَل بيير بيرولت في 1674 — بعد أكثر من 1000 سنة من القرآن.',
+    deepDiveAr: `"فَسَلَكَهُ يَنَابِيعَ فِي الْأَرْضِ" — المرحلة المفقودة اكتُشفت بعد 1,064 سنة
+===
+يقول الله تعالى في سورة الزمر (39:21): "أَلَمْ تَرَ أَنَّ اللَّهَ أَنزَلَ مِنَ السَّمَاءِ مَاءً فَسَلَكَهُ يَنَابِيعَ فِي الْأَرْضِ ثُمَّ يُخْرِجُ بِهِ زَرْعًا مُّخْتَلِفًا أَلْوَانُهُ".
+
+التحليل اللغوي: "فَسَلَكَهُ يَنَابِيعَ فِي الْأَرْضِ" = أدخله في مسالك تحت الأرض فأصبح ينابيع تظهر على السطح — وهو ما يسميه علم الهيدرولوجيا: Infiltration (التسرب) ثم Groundwater (المياه الجوفية) ثم Springs (الينابيع). هذه هي المرحلة الرابعة من الدورة الهيدرولوجية الستة.
+
+الخطأ الشائع قبل القرن السابع عشر: أرسطو وثيوفراستوس اعتقدا أن الينابيع تنشأ من قنوات سرية تربط البحر بالجبال — لا من المطر. هذه النظرية ظلت سائدة حتى بيير بيرولت (Pierre Perrault) عام 1674 الذي أثبت قياسياً أن كميات المطر الساقطة على حوض نهر السين تكفي لتغذية الأنهار والينابيع — أي أن الماء يأتي من الأمطار لا من الأعماق.
+
+القرآن يصف بدقة: ماء ينزل من السماء → يتسرب في الأرض (فَسَلَكَهُ) → يظهر كينابيع (يَنَابِيعَ فِي الْأَرْضِ) → يُنبت الزرع. هذا هو مسار المياه الجوفية بالضبط. الفجوة: 1674 − 610 = 1,064 سنة. المرجع: Perrault, P. (1674). "De l'Origine des Fontaines." Paris. Nace, R.L. (1974). "Pierre Perrault: The Man and His Contributions to Modern Hydrology." EOS, AGU.
+
+
+الدورة الهيدرولوجية الحديثة — التسلسل العلمي الكامل (1,064 سنة)
+===
+علم الهيدرولوجيا يحدد ست مراحل للدورة الهيدرولوجية. القرآن يصف كل مرحلة في آيات مختلفة:
+
+المرحلة 1 — التبخر: "وَأَرْسَلْنَا الرِّيَاحَ لَوَاقِحَ" (15:22) — الرياح تحمل بخار الماء من سطح البحر والأرض.
+
+المرحلة 2 — تكوين السحاب: "أَلَمْ تَرَ أَنَّ اللَّهَ يُزْجِي سَحَابًا ثُمَّ يُؤَلِّفُ بَيْنَهُ ثُمَّ يَجْعَلُهُ رُكَامًا" (24:43) — السحاب يتراكم بثلاث مراحل دقيقة.
+
+المرحلة 3 — الهطول: "فَتَرَى الْوَدْقَ يَخْرُجُ مِنْ خِلَالِهِ" (24:43) — المطر يخرج من داخل السحاب.
+
+المرحلة 4 — التسرب والمياه الجوفية: "فَسَلَكَهُ يَنَابِيعَ فِي الْأَرْضِ" (39:21) — المرحلة المفقودة في علم ما قبل 1674م.
+
+المرحلة 5 — الزراعة والتحلل: "ثُمَّ يُخْرِجُ بِهِ زَرْعًا مُّخْتَلِفًا أَلْوَانُهُ ثُمَّ يَهِيجُ فَتَرَاهُ مُصْفَرًّا ثُمَّ يَجْعَلُهُ حُطَامًا" (39:21) — دورة المغذيات في التربة.
+
+المرحلة 6 — العودة المتوازنة: "وَأَنزَلْنَا مِنَ السَّمَاءِ مَاءً بِقَدَرٍ فَأَسْكَنَّاهُ فِي الْأَرْضِ" (23:18) — دورة محكمة ومتوازنة.
+
+أول توثيق علمي للدورة الكاملة: Pierre Perrault (1674) + Edme Mariotte (1686) + Edmund Halley (1687 — وصف التبخر). الفجوة: 1674 − 610 = 1,064 سنة. المرجع: Chow, V.T., Maidment, D.R. & Mays, L.W. (1988). "Applied Hydrology." McGraw-Hill.
+
+
+تشكيل السحاب في سورة النور — وصف أرصادي تدريجي دقيق
+===
+يقول الله تعالى في سورة النور (24:43): "أَلَمْ تَرَ أَنَّ اللَّهَ يُزْجِي سَحَابًا ثُمَّ يُؤَلِّفُ بَيْنَهُ ثُمَّ يَجْعَلُهُ رُكَامًا فَتَرَى الْوَدْقَ يَخْرُجُ مِنْ خِلَالِهِ".
+
+أربع مراحل بأربعة أفعال دقيقة:
+
+(1) "يُزْجِي سَحَابًا" = يسوق السحاب هادئاً تدريجياً — Advection: انتقال الكتل الهوائية الرطبة أفقياً بفعل الرياح.
+
+(2) "يُؤَلِّفُ بَيْنَهُ" = يجمع ويوحّد بين أجزاء السحاب المتفرقة — Coalescence: اندماج قطيرات الماء الصغيرة (10-100 ميكرون) لتكوين قطرات أكبر (2+ مم) تسقط مطراً.
+
+(3) "يَجْعَلُهُ رُكَامًا" = يجعله كتلة مراكمة عمودية — Cumulonimbus formation: السحاب الركامي الممطر الذي يرتفع حتى 12 كم فوق السطح.
+
+(4) "فَتَرَى الْوَدْقَ يَخْرُجُ مِنْ خِلَالِهِ" = ترى المطر يخرج من داخل السحاب — Precipitation من قلب السحابة لا من أطرافها.
+
+التطابق الكامل مع علم الأرصاد الجوية الحديث: Advection → Coalescence → Cumulonimbus formation → Precipitation. المرجع: Ludlam, F.H. (1980). "Clouds and Storms." Pennsylvania State University Press. WMO Cloud Atlas (2017). World Meteorological Organization.
+
+
+"يُزْجِي" + "يُؤَلِّفُ" + "يَجْعَلُ رُكَامًا" — ثلاثة أفعال لثلاث مراحل فيزيائية مستقلة
+===
+الاختيار اللغوي الدقيق في آية النور (24:43) يكشف عن معرفة علمية لا يمكن عزوها للصدفة:
+
+"يُزْجِي" (من: أزجى) — السوق التدريجي الهادئ، لا الدفع العنيف. في الفيزياء الجوية: Advection = الانتقال الأفقي البطيء لكتل الهواء.
+
+"يُؤَلِّفُ بَيْنَهُ" (من: ألّف بين) — الجمع الذي يُنشئ وحدة جديدة. في فيزياء السحاب: Coalescence = اندماج قطيرات منفصلة في قطرة واحدة أكبر — العملية المسؤولة تحديداً عن تضخم السحاب حتى يصبح ممطراً.
+
+"يَجْعَلُهُ رُكَامًا" (من: رَكَمَ) — التراكم الذي يوحي بالعمق والارتفاع. في الأرصاد: Cumulonimbus = السحاب الركامي العمودي الذي يتراكم للأعلى بشكل مميز.
+
+لو كان هذا وصفاً بشرياً عادياً في القرن السابع لكفى فعل واحد مثل "يكثّف السحاب". بدلاً من ذلك: ثلاثة أفعال مختلفة — كل منها يقابل بدقة مصطلحاً علمياً حديثاً مستقلاً. هذا المستوى من الدقة لم يُعرف إلا مع نشأة علم الأرصاد الجوية الحديث في القرن العشرين. المرجع: Lane, E.W. (1863). "An Arabic-English Lexicon." Williams & Norgate, London. Emanuel, K. (1994). "Atmospheric Convection." Oxford University Press.`,
+    deepDive: `"He Channeled It Through Springs in the Earth" — The Missing Step, Discovered 1,064 Years Later
+===
+Surah Az-Zumar (39:21): "Do you not see that Allah sent down water from the sky and channeled it (fa-salakahu) through springs in the earth (yanabi'a fi l-ard) — then He brings forth crops of varying colors with it?"
+
+The Arabic "fa-salakahu yanabi'a fi l-ard" precisely describes water entering the earth → traveling through underground channels → emerging as springs. This is what modern hydrology calls: Infiltration → Groundwater Recharge → Spring Emergence — the 4th stage of the hydrological cycle.
+
+The ancient error: From Aristotle (Meteorologica, ~340 BC) through medieval science, the dominant theory was that springs came from the sea through underground channels — not from rainfall. Pierre Perrault (1674) was the FIRST to MEASURE that rainfall over the Seine basin was sufficient to account for river and spring discharge — proving springs come from rain, not from the sea.
+
+The Quranic sequence: Rain descends from sky → channeled into earth (fa-salakahu) → emerges as springs (yanabi'a fi l-ard) → nourishes crops. This matches the scientific infiltration-to-springs pathway, formally established 1,064 years after the Quran.
+
+Reference: Perrault, P. (1674). "De l'Origine des Fontaines." Paris. Nace, R.L. (1974). "Pierre Perrault: The Man and His Contributions to Modern Hydrology." EOS, AGU.
+
+
+The Modern Hydrological Cycle — Complete Scientific Sequence (Gap: 1,064 Years)
+===
+Modern hydrology identifies 6 stages in the water cycle. The Quran describes every single stage across different verses — a complete description over 1,000 years before it was scientifically established:
+
+Stage 1 — Evaporation: "We sent the fertilizing winds" (15:22) — winds carrying water vapor from oceans and land surfaces.
+
+Stage 2 — Cloud Formation: "Allah drives clouds, then joins them together, then makes them into a mass" (24:43) — condensation and cloud growth described in three distinct stages.
+
+Stage 3 — Precipitation: "you see the rain emerge from within it" (24:43) — rainfall from the interior of the cloud.
+
+Stage 4 — Infiltration/Groundwater: "He channeled it through springs in the earth" (39:21) — subsurface water flow and spring emergence — the stage missing from pre-1674 science.
+
+Stage 5 — Agriculture/Decomposition: "He brings forth crops of varying colors — then they wither and turn yellow — then He makes them into chaff" (39:21) — nutrient cycling and organic decomposition.
+
+Stage 6 — Calibrated Return: "We sent down water from the sky in measured amounts" (23:18) — a balanced, perpetual cycle.
+
+First formal scientific establishment: Pierre Perrault (1674) + Edme Mariotte (1686) + Edmund Halley (1687, evaporation quantified). Gap: 1674 - 610 = 1,064 years. Reference: Chow, V.T. et al. (1988). "Applied Hydrology." McGraw-Hill.
+
+
+Cloud Formation in Surah An-Nur — A Progressive Meteorological Description
+===
+Surah An-Nur (24:43): "Do you not see that Allah drives clouds (yuzji sahaban), then joins them together (yu'allifu baynahu), then makes them into a mass (yaj'aluhu rukaman) — and you see the rain emerge from within it (fa-tara l-wadqa yakhruju min khilalihi)?"
+
+Four stages described with four distinct verbs:
+
+(1) "yuzji" — to drive gently and progressively (not forcefully). Meteorological term: Advection — horizontal movement of moist air masses by wind. The gradual, smooth transport of clouds across the sky.
+
+(2) "yu'allifu baynahu" — to unite separate things into one whole. Meteorological term: Coalescence — the merging of tiny cloud droplets (10-100 micrometers) into larger rain droplets (2+ mm). This is the specific mechanism by which clouds grow heavy enough to produce rainfall.
+
+(3) "yaj'aluhu rukaman" — to pile up into a vertical mass. Meteorological term: Cumulonimbus formation — vertical buildup of convective clouds reaching up to 12 km altitude.
+
+(4) "fa-tara l-wadqa yakhruju min khilalihi" — "you see rain emerge from WITHIN it" — Precipitation from the core of the cloud, not from edges.
+
+Reference: WMO Cloud Atlas (2017). World Meteorological Organization. Ludlam, F.H. (1980). "Clouds and Storms: The Behavior and Effect of Water in the Atmosphere." Pennsylvania State University Press.
+
+
+"Yuzji" + "Yu'allif" + "Yaj'alu Rukaman" — Three Verbs, Three Distinct Physical Phases
+===
+The precision of three different verbs in An-Nur (24:43) reveals meteorological knowledge impossible for 7th-century Arabia:
+
+"Yuzji" (from: azja) — gradual, gentle driving — distinct from forceful pushing (dafa'a). Arabic dictionaries define this as slow, progressive movement. In cloud physics: Advection = slow horizontal movement of air masses.
+
+"Yu'allifu baynahu" (from: allafa bayna) — to unite previously separate entities into an integrated whole. In cloud microphysics: Coalescence = cloud droplets colliding and merging into larger droplets. This specific verb implies the creation of a new unified entity from separate parts — not mere gathering.
+
+"Yaj'aluhu rukaman" (from: rakama) — to pile, accumulate into a vertical heap. Arabic linguists note rukam implies vertical stacking (not horizontal spreading). Cumulonimbus clouds grow VERTICALLY — the Arabic captures this distinctive morphology precisely.
+
+The critical observation: A 7th-century human describing clouds would naturally use one verb such as "gathers" or "darkens." Instead, three semantically distinct verbs each precisely match a modern meteorological stage — Advection, Coalescence, Cumulonimbus formation. This specificity was not described in scientific literature until modern meteorology.
+
+Reference: Lane, E.W. (1863). "An Arabic-English Lexicon." Williams & Norgate, London. Emanuel, K. (1994). "Atmospheric Convection." Oxford University Press.`,
     verses: [
       {
         id: 'verse-zumar-21-water',
@@ -9774,6 +9894,106 @@ Modern astrophysics confirms: every astronomical body has a specified term — s
     summaryAr: 'يقرر القرآن أن جلود المعذَّبين حين تنضج تُبدَّل بجلود أخرى — مما يدل على أن الألم يُحسّ في الجلد. اكتشف العلم الحديث أن مستقبلات الألم (النيسيبتورات) تتركز في الجلد لا في الأنسجة الأعمق إلا في القرن العشرين.',
     description: 'Surah An-Nisa (4:56): "Indeed, those who disbelieve in Our verses — We will drive them into a fire. Every time their skins are roasted through (نَضِجَتْ جُلُودُهُمْ), We will replace them with other skins (جُلُودًا غَيْرَهَا) so they may taste the punishment. Indeed, Allah is ever Exalted in Might and Wise." The key scientific insight: Why would God replace the SKIN specifically in order for punishment to continue? If pain were felt in the bones, muscles, or deeper tissues, the skin would be irrelevant to the experience of pain. The verse implies that SKIN is the organ of pain sensation. Modern dermatological science confirms: (1) NOCICEPTORS IN SKIN: The skin is densely packed with pain receptors (nociceptors) — free nerve endings that detect heat, pressure, and chemical damage. There are approximately 200 pain receptors per square centimeter of skin surface. (2) THERMAL PAIN SPECIFICALLY: Heat pain (burning) is detected almost entirely by cutaneous nociceptors in the skin — particularly Type-C and Type-A-delta nerve fibers. These are not present at the same density in muscles or bones. (3) SPECIFICITY OF SKIN: If the skin is completely destroyed (as in severe burns), pain sensation from that area is eliminated — which is why severe burn victims paradoxically feel less pain than mild burn victims. (4) HISTORICAL IMPOSSIBILITY: In the 7th century, there was no understanding of pain receptors or the physiology of pain. The concept that skin (specifically) was the organ of pain sensation was not established until the 19th–20th century (Charles Bell, 1811; Max von Frey, 1895). (5) LINGUISTIC PRECISION: The verse says the skin is replaced to "taste" (يَذُوقُوا) the punishment — using the Arabic word for sensory tasting/experiencing — linking sensory perception directly to the skin.',
     descriptionAr: 'يقول الله تعالى في سورة النساء (4:56): "إِنَّ الَّذِينَ كَفَرُوا بِآيَاتِنَا سَوْفَ نُصْلِيهِمْ نَارًا كُلَّمَا نَضِجَتْ جُلُودُهُمْ بَدَّلْنَاهُمْ جُلُودًا غَيْرَهَا لِيَذُوقُوا الْعَذَابَ". السؤال العلمي: لماذا يُبدَّل الجلد تحديداً ليستمر الألم؟ هذا يدل ضمنياً على أن الجلد هو عضو الإحساس بالألم. يؤكد علم الجلد الحديث: (1) مستقبلات الألم (نيسيبتورات) مركزة في الجلد — 200 مستقبل/سم². (2) ألم الحرارة يُحسّ عبر النهايات العصبية الجلدية. (3) عند تدمير الجلد الكامل (حروق شديدة) تنعدم الحساسية. (4) لم يُعرف ذلك حتى ماكس فون فراي 1895م.',
+    deepDiveAr: `"كُلَّمَا نَضِجَتْ جُلُودُهُمْ بَدَّلْنَاهُمْ جُلُودًا غَيْرَهَا" — الدلالة العلمية للتبديل
+===
+يقول الله تعالى في سورة النساء (4:56): "إِنَّ الَّذِينَ كَفَرُوا بِآيَاتِنَا سَوْفَ نُصْلِيهِمْ نَارًا كُلَّمَا نَضِجَتْ جُلُودُهُمْ بَدَّلْنَاهُمْ جُلُودًا غَيْرَهَا لِيَذُوقُوا الْعَذَابَ إِنَّ اللَّهَ كَانَ عَزِيزًا حَكِيمًا".
+
+السؤال الجوهري من منظور علم الأعصاب: لماذا يُبدَّل الجلد تحديداً — لا العضلات ولا العظام ولا الأعصاب العميقة — لاستمرار الإحساس بالألم؟
+
+التحليل المنطقي: "لِيَذُوقُوا الْعَذَابَ" = الغرض الصريح من تبديل الجلد هو إعادة القدرة على الإحساس. هذا يضمن ضمنياً: الجلد = العضو المسؤول عن الإحساس بألم الحرارة. لو كان الألم يُحسّ في الأعضاء الداخلية → تبديل الجلد لا أثر له. لو كان الجلد مجرد غطاء وقائي → لما أعاد تبديله القدرة على الإحساس.
+
+الاستحالة التاريخية: في القرن السابع كان نموذج جالينوس (~200م) هو المرجع الطبي السائد — فيه الألم "خلل في الأخلاط الأربعة" لا عضو حسي محدد. الجلد كان يُعتبر حاجزاً وقائياً لا عضواً حسياً مستقلاً. لم يُعترف بالجلد كعضو حسي مستقل للألم إلا مع ماكس فون فراي (1895م). الفجوة: 1895 − 610 = 1,285 سنة.
+
+
+النيسيبتورات — مستقبلات الألم المتركزة في الجلد (1,285 سنة)
+===
+اكتشف علم الأعصاب الحديث أن الجلد يحتوي على مستقبلات ألم متخصصة بكثافة عالية:
+
+النيسيبتورات (Nociceptors): نهايات عصبية حرة موزعة في طبقتي الجلد (البشرة والأدمة). الكثافة: ~200 مستقبل ألم لكل سم² من سطح الجلد — أعلى بكثير مما في العضلات أو العظام.
+
+ثلاثة أنواع رئيسية: (1) ميكانيكية — تستجيب للضغط والجرح، (2) حرارية — تستجيب للحرارة والبرودة وهي المسؤولة عن ألم الحروق، (3) كيميائية — تستجيب للحموض والمواد الكيميائية.
+
+ألم الحروق تحديداً: ألم الحرارة الشديد يُحسّ بالأساس عبر الألياف الجلدية من نوع Type-C و Type-A-delta — وهي مركزة في الجلد تحديداً وليس بالكثافة ذاتها في العضلات أو العظام.
+
+أول توثيق منهجي: ماكس فون فراي (Max von Frey) عام 1895 — أول من حدد مستقبلات الألم في الجلد كحاسة جلدية مستقلة. الفجوة: 1895 − 610 = 1,285 سنة. جائزة نوبل 2021: David Julius و Ardem Patapoutian لاكتشاف مستقبل TRPV1 للحرارة والألم في الجلد. المرجع: Von Frey, M. (1895). "Beitrage zur Physiologie des Schmerzsinns." Ber. Saechs. Ges. Wiss., Leipzig.
+
+
+علم الحروق يؤكد — الجلد = عضو الإحساس بالألم
+===
+الطب السريري لعلاج الحروق يثبت مباشرةً ما تضمنته الآية الكريمة:
+
+حروق الدرجة الأولى (البشرة سليمة): ألم حاد شديد — النيسيبتورات الجلدية كلها تُرسل إشارات ألم مستمرة.
+
+حروق الدرجة الثانية (إصابة جزئية للأدمة): ألم شديد — النيسيبتورات في الطبقات المتبقية نشطة.
+
+حروق الدرجة الثالثة (تدمير الجلد كاملاً — Full Thickness Burn): المنطقة المحترقة لا ألم فيها مطلقاً — جميع النيسيبتورات الجلدية دُمِّرت مع الجلد. المريض لا يشعر بأي ألم في المنطقة الشديدة الاحتراق.
+
+زرع الجلد (Skin Graft): إعادة جلد سليم إلى المنطقة المحروقة → تعود الحساسية والقدرة على الشعور بالألم تدريجياً.
+
+هذا يطابق الآية بدقة: "نَضِجَتْ جُلُودُهُمْ" = تدمير الجلد = فقد الإحساس بالألم. "بَدَّلْنَاهُمْ جُلُودًا غَيْرَهَا" = إعادة الجلد = إعادة الإحساس. "لِيَذُوقُوا الْعَذَابَ" = الغرض هو إعادة القدرة على الشعور بالألم. المرجع: Herndon, D.N. (ed.) (2018). "Total Burn Care." 5th Edition. Elsevier.
+
+
+"لِيَذُوقُوا" — الفعل القرآني يربط الإحساس الحسي المباشر بالجلد
+===
+"يَذُوقُوا" من "ذَاقَ" — الجذر في العربية يدل على الإدراك الحسي المباشر، كإدراك الطعم باللسان — أعلى درجات التجربة الحسية المباشرة.
+
+الآية تجعل الجلد أداة "الذوق" الحسي للعذاب — وهذا يربط صراحةً بين الجلد والإدراك الحسي الأولي للألم.
+
+مقارنة بعلم ما قبل القرن التاسع عشر: أرسطو اعتبر الألم "انفعال النفس" لا عضواً حسياً. جالينوس (~200م) — الجلد حاجز وقائي، الإحساس في الأعصاب العامة بلا تمييز. تشارلز بيل (Charles Bell, 1811م) — ميّز الأعصاب الحسية عن الحركية لكنه لم يحدد الجلد كعضو الألم. ماكس فون فراي (1895م) — أول من حدد الجلد بالذات كعضو يحمل مستقبلات ألم مستقلة.
+
+النتيجة: الآية بصياغتها الدقيقة — تبديل الجلد تحديداً لإعادة الإحساس بالعذاب — تتضمن حقيقة علمية لم تُكتشف إلا بعد 1,285 سنة: الجلد هو العضو الأول للإحساس بالألم الحراري. المرجع: Von Frey, M. (1895). Ber. Saechs. Ges. Wiss. Julius, D. & Basbaum, A.I. (2001). "Molecular mechanisms of nociception." Nature, 413, 203-210.`,
+    deepDive: `"Every Time Their Skins Are Roasted Through, We Replace Them" — The Scientific Implication of Skin Replacement
+===
+Surah An-Nisa (4:56): "Indeed, those who disbelieve — We will drive them into a fire. Every time their skins are roasted through (kullama nadijat juluduhum), We will replace them with other skins (baddalnahu juludan ghayrahay) so they may taste the punishment (li-yadhuwqu l-adhab). Indeed, Allah is ever Exalted in Might and Wise."
+
+The central scientific question: Why specifically replace the SKIN — not muscles, bones, nerves, or internal organs — in order to restore pain sensation?
+
+The logical implication: The stated purpose is "li-yadhuwqu l-adhab" — "so they may TASTE the punishment." If pain were experienced through deeper structures, replacing skin would be irrelevant to pain restoration. The verse therefore implies: SKIN = the primary organ of pain sensation.
+
+The historical impossibility: In the 7th century, Galen's medical framework (~200 CE) dominated. Galen viewed the skin as a protective barrier, not an independent sensory organ. Pain was considered a disturbance in the four humors — not localized to skin. The concept of skin as the PRIMARY pain organ was not established until Max von Frey (1895), who identified four distinct cutaneous senses: pain, heat, cold, and touch — all localized specifically in skin.
+
+
+Nociceptors — Pain Receptors Concentrated in the Skin (Gap: 1,285 Years)
+===
+Modern neuroscience confirms what the verse implies: the skin contains specialized pain receptors at high density.
+
+Nociceptors: free nerve endings distributed throughout the dermis and epidermis. Density: approximately 200 nociceptors per cm² of skin surface — significantly higher than in muscle or bone.
+
+Three types: (1) Mechanical nociceptors (pressure/laceration), (2) Thermal nociceptors (heat/cold — burn detection), (3) Chemical nociceptors (acids/toxins). The THERMAL nociceptors are activated by fire/burning and are concentrated specifically in the skin.
+
+Type-C and Type-A-delta fibers: the two nerve fiber types responsible for heat pain — located in the dermis and epidermis. They are NOT present at comparable density in muscles or bones.
+
+First systematic identification: Max von Frey (1895) systematically mapped skin sensitivity and established pain as one of four specific cutaneous senses. Gap: 1895 - 610 = 1,285 years. Nobel Prize 2021: David Julius (UCSF) and Ardem Patapoutian (Scripps) — discovery of TRPV1 (heat/pain receptor in skin). Reference: Von Frey, M. (1895). Ber. Saechs. Ges. Wiss., Leipzig. Julius, D. & Basbaum, A.I. (2001). Nature, 413, 203-210.
+
+
+Burn Medicine Confirms — Skin Destruction Eliminates Pain Sensation
+===
+Clinical burn medicine directly validates the Quranic statement with reproducible clinical data:
+
+First-degree burns (epidermis intact): intense pain — all cutaneous nociceptors intact and signaling continuously.
+
+Second-degree burns (partial thickness — dermis partially damaged): severe pain — surviving nociceptors in remaining skin layers remain active.
+
+Third-degree burns (full thickness — complete skin destruction): PAINLESS in the burned area — all cutaneous nociceptors are destroyed with the skin. Paradoxically, the most severely burned areas feel NO pain because the pain-sensing organ (skin) is gone.
+
+Skin grafting: healthy donor skin grafted onto a third-degree burn area → pain sensation RETURNS to the previously painless area as new nociceptors establish.
+
+This directly matches the verse: "skins roasted through" (nociceptors destroyed = no pain) → "replaced with new skins" (nociceptors restored = pain returns) → "so they may taste the punishment" (pain capacity restored = purpose achieved).
+
+Reference: Herndon, D.N. (ed.) (2018). "Total Burn Care." 5th Edition. Elsevier. Sheridan, R.L. & Tompkins, R.G. (2004). "Burns." BMJ, 328, 1427-1429.
+
+
+"Li-Yadhuwqu" — The Quranic Verb Links Direct Sensory Perception to the Skin
+===
+"Yadhuwqu" (from: dhaqa) — to taste, to experience through direct sensory contact. In Arabic, this root implies the most immediate, direct form of sensory experience — as direct as tasting with the tongue.
+
+The verse makes the skin the instrument of "tasting" (direct sensory experiencing) of the punishment — explicitly linking the skin to primary sensory perception.
+
+Historical contrast of impossibility: Aristotle identified five senses but considered pain a "passion of the soul" — not a skin-specific phenomenon. Galen (~200 CE) continued this — skin as protective covering, pain as humoral disturbance. Charles Bell (1811) distinguished sensory from motor nerves — but did not identify skin as THE pain organ specifically. Max von Frey (1895) — first to map and identify cutaneous pain receptors as a distinct sense localized in skin.
+
+The Quranic verse, by specifying that new SKIN is needed to restore pain experience (not new muscles, not new bones, not new nerves in general) — implies a physiological precision 1,285 years ahead of its scientific discovery: skin is the primary organ of thermal pain sensation.
+
+Reference: Bell, C. (1811). "Idea of a New Anatomy of the Brain." Strahan & Preston, London. Von Frey, M. (1895). Ber. Saechs. Ges. Wiss. Julius, D. & Basbaum, A.I. (2001). Nature, 413, 203-210.`,
     verses: [
       {
         id: 'verse-nisa-56',
