@@ -756,6 +756,68 @@ This phrase marks the moment consciousness, soul, and personhood enter the biolo
     summaryAr: 'يتحدث القرآن عن الخلق "في ظلمات ثلاث" في الرحم، المطابقة لثلاث طبقات تشريحية.',
     description: 'Surah Az-Zumar (39:6): "He creates you in the wombs of your mothers, creation after creation, within three darknesses." Modern anatomy has identified exactly three layers that surround the embryo in the womb: (1) The anterior abdominal wall (جدار البطن الأمامي), (2) The uterine wall (جدار الرحم), (3) The amniochorionic membrane (الأغشية المحيطة بالجنين - الأمنيون والمشيمة). These three layers create complete darkness around the embryo, blocking all light. Dr. Haitham Talaat notes that the verse uses "ظُلُمَاتٍ ثَلَاثٍ" (three specific darknesses) rather than a general term, indicating precise anatomical knowledge impossible in the 7th century. The phrase "خَلْقًا مِّن بَعْدِ خَلْقٍ" (creation after creation) further indicates the staged nature of embryonic development.',
     descriptionAr: 'سورة الزمر (39:6): "يَخْلُقُكُمْ فِي بُطُونِ أُمَّهَاتِكُمْ خَلْقًا مِّن بَعْدِ خَلْقٍ فِي ظُلُمَاتٍ ثَلَاثٍ". حدد التشريح الحديث ثلاث طبقات بالضبط تحيط بالجنين: جدار البطن الأمامي، وجدار الرحم، والأغشية المحيطة بالجنين.',
+    deepDiveAr: `تحليل لغوي: لماذا "ثلاث" تحديداً وليس "عدة"؟
+===
+لو أراد أي إنسان في القرن السابع وصف الظلام داخل الرحم، لقال «في الظلام» أو «في الظلمة» — مفرد عام. لكن القرآن يقول "ظُلُمَاتٍ ثَلَاثٍ" — جمع محدد بعدد دقيق: ثلاث، لا اثنتان، لا أربع.
+
+المعجزة اللغوية: كلمة «ظلمات» جمع «ظلمة»، وهي في اللغة العربية تُستخدم للأشياء المتعددة المتمايزة — ليس ظلاماً واحداً له درجات، بل ثلاث ظلمات كل منها طبقة مستقلة تماماً بتشريحها وطبيعتها. هذا بالضبط ما يصفه علم التشريح الحديث.
+
+الطبقات الثلاث: التطابق التشريحي الكامل
+===
+الطبقة الأولى — جدار البطن الأمامي (Anterior Abdominal Wall):
+تتكون من: الجلد + الدهون تحت الجلد + عضلات البطن + اللفافة. سماكة متغيرة من 2 إلى 10 سم. مستقلة تماماً في تشريحها وعمقها — هذه هي الظلمة الخارجية.
+
+الطبقة الثانية — جدار الرحم (Uterine Wall / Myometrium):
+تتكون من ثلاث طبقات عضلية داخلها (نعم — الجدار الرحمي نفسه ثلاثي الطبقات). سُمكه في فترة الحمل يصل إلى 1-2 سم قبل التمدد. طبقة مستقلة بنسيجها وبنيتها.
+
+الطبقة الثالثة — الأغشية الجنينية (Amniochorionic Membrane):
+تتكون من الكوريون (المشيمة) + الأمنيون. تشكّل الكيس الأمنيوسي المحيط بالجنين مباشرة. السائل الأمنيوسي بداخله يزيد العزل الضوئي الكامل.
+
+النتيجة: صفر من الضوء يصل إلى الجنين. أي إضاءة خارجية تمر بثلاث حواجز منفصلة ومستقلة تشريحياً.
+
+ما كان يُعتقد في القرن السابع
+===
+الطب اليوناني (جالينوس، أبقراط) والعربي قبل الإسلام:
+• لم يكن أحد يعرف وجود ثلاث طبقات منفصلة حول الجنين بأسمائها التشريحية
+• التشريح المنهجي للإنسان كان محرماً في معظم الحضارات القديمة وشبه معدوم
+• لم يُكتشف الكيس الأمنيوسي بوضوح علمي إلا في القرن التاسع عشر الميلادي
+• التصوير بالموجات فوق الصوتية (الأولتراساوند) الذي أوضح هذه الطبقات: اخترع عام 1958م
+
+"خَلْقًا مِّن بَعْدِ خَلْقٍ": المعجزة الثانية في الآية ذاتها
+===
+الآية لا تتحدث فقط عن الظلمات، بل تصف عملية الخلق بـ«خلقاً من بعد خلق» — أي الخلق التدريجي المرحلي. وهذا بالضبط ما أثبته علم الأجنة: المراحل التسلسلية (نطفة → علقة → مضغة → عظام → لحم). الجنين لا يظهر مكتملاً دفعة واحدة — بل يُخلق خلقاً من بعد خلق، درجة درجة، في ظلام تلك الطبقات الثلاث.`,
+    deepDive: `Linguistic Analysis: Why "Three" Specifically — Not "Several" or "Deep"?
+===
+Any human observer in the 7th century describing the darkness inside the womb would say "in darkness" (singular, vague). The Quran says "ظُلُمَاتٍ ثَلَاثٍ" — a specific plural with a precise count: three, not two, not four.
+
+The Arabic word "ظلمات" (zulumaat) is the plural of "ظلمة" (darkness) — used specifically for multiple, distinct, separate darknesses. Not one darkness with gradations, but three anatomically independent barriers. This is precisely what modern anatomy describes.
+
+The Three Layers: Complete Anatomical Correspondence
+===
+Layer 1 — Anterior Abdominal Wall:
+Composed of: skin + subcutaneous fat + abdominal muscles + fascia. Thickness ranges 2–10 cm. Anatomically independent. This is the outer darkness.
+
+Layer 2 — Uterine Wall (Myometrium):
+Composed of three muscular sub-layers (the uterine wall itself is tri-layered). Thickness 1–2 cm during early pregnancy. A distinct anatomical structure with its own tissue type and vascular supply.
+
+Layer 3 — Amniochorionic Membrane:
+Composed of chorion (placental membrane) + amnion. Forms the amniotic sac surrounding the embryo directly. The amniotic fluid inside provides additional optical isolation.
+
+Result: Zero light reaches the embryo. Any external light must pass through three separate, anatomically independent barriers.
+
+What the 7th Century Knew
+===
+Greek medicine (Galen, Hippocrates) and pre-Islamic Arab medicine:
+• No one knew there were three anatomically distinct layers surrounding the embryo
+• Systematic human dissection was largely forbidden or nonexistent in ancient cultures
+• The amniotic sac was not clearly described scientifically until the 19th century
+• Ultrasound imaging that clarified these layers was invented in 1958 CE
+
+For 1,352 years after this verse was revealed, no anatomist had mapped these three exact layers in the way the Quran describes them.
+
+"Creation After Creation": The Second Miracle in the Same Verse
+===
+The verse doesn't only speak of the three darknesses — it describes the process as "خَلْقًا مِّن بَعْدِ خَلْقٍ" (creation after creation) — sequential, staged creation. This is exactly what embryology confirmed: Nutfah → Alaqah → Mudghah → Bones → Flesh. The embryo does not appear complete at once. It is created stage by stage, in the darkness of those three layers. Two separate scientific realities — staged embryonic development AND three anatomical layers — expressed in a single Quranic verse.`,
     verses: [
       {
         id: 'verse-zumar-6',
@@ -803,6 +865,94 @@ This phrase marks the moment consciousness, soul, and personhood enter the biolo
     summaryAr: 'يعلن القرآن أن كل شيء حي خُلق من الماء — حقيقة أكدها علم الأحياء والكيمياء الحيوية الحديثان.',
     description: 'Surah Al-Anbiya (21:30): "...and We made from water every living thing. Then will they not believe?" The cytoplasm of living cells is 70-90% water. Water is the universal solvent enabling all biochemical reactions. No known life exists without water. NASA\'s search for extraterrestrial life follows the principle "follow the water." Dr. Haitham Talaat documents in his books that this declaration was made in the 7th century Arabian desert, where water was scarce and its role in life\'s chemistry was completely unknown. The verse doesn\'t say "most" or "many"—it says "كُلَّ شَيْءٍ حَيٍّ" (every living thing), an absolute universal statement that modern biology has confirmed without exception.',
     descriptionAr: 'سورة الأنبياء (21:30): "وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ أَفَلَا يُؤْمِنُونَ". السيتوبلازم في الخلايا الحية يتكون من 70-90% ماء. لا يوجد كائن حي معروف بدون ماء.',
+    deepDiveAr: `تحليل لغوي: «كُلَّ» — أقوى كلمة في علم الأحياء
+===
+القرآن لا يقول «أكثر الأشياء الحية» ولا «كثير من المخلوقات» — يقول «كُلَّ شَيْءٍ حَيٍّ»: كل شيء، بلا استثناء واحد.
+
+هذه الحصرية المطلقة في القرن السابع الميلادي جريئة بشكل مذهل:
+• لا أحد كان يعرف البكتيريا (اكتُشفت عام 1676م على يد ليفنهوك)
+• لا أحد كان يعرف الخلية (اكتُشفت عام 1665م على يد روبرت هوك)
+• لا أحد كان يعرف ما تتكون منه الكائنات الحية داخلياً
+• ومع ذلك التصريح جاء مطلقاً، شاملاً، بلا تحفظ
+
+الماء في الخلية: الأرقام التي تصدم العلماء
+===
+داخل كل خلية حية في جسمك الآن:
+• 70-90% من محتوى الخلية هو ماء
+• جميع التفاعلات الكيميائية الحيوية تحدث في وسط مائي
+• بروتينات الخلية تحتاج الماء لتحافظ على شكلها الوظيفي (طي البروتين)
+• نقل الأيونات عبر غشاء الخلية يعتمد كلياً على جزيئات الماء
+• الحمض النووي DNA يحتاج الماء لقراءته وتضاعفه
+
+على المستوى الأشمل:
+• كل النباتات: 80-95% ماء
+• كل الحشرات: 60-80% ماء
+• الميكروبات والفطريات والفيروسات: تعتمد كلها على الوسط المائي للعمل
+• الوحيدات المعروفة التي تقاوم الجفاف الشديد (الـ tardigrades) لا تموت — بل تدخل حالة سبات وتعود للحياة فوراً بإضافة الماء
+
+نظريات نشأة الحياة: الماء في المركز دائماً
+===
+نظرية الحساء البدائي (Stanley Miller, 1953): الحياة بدأت في محيط مائي دافئ حيث تشكلت الجزيئات العضوية الأولى.
+
+نظرية الفتحات الحرارية المائية (Hydrothermal Vents): الحياة نشأت بالقرب من الفتحات البركانية في قاع المحيط — أي في الماء.
+
+nASA — «اتبع الماء»: استراتيجية ناسا الرسمية في البحث عن الحياة خارج الأرض هي تتبع الماء. كل مهمة إلى المريخ أو أقمار المشتري وزحل تبحث أولاً عن آثار ماء سائل.
+
+المعجزة الزمنية: 13 قرناً بين التصريح والإثبات
+===
+• 632م — وفاة النبي محمد والقرآن مكتوب كاملاً: "جعلنا من الماء كل شيء حي"
+• 1665م — روبرت هوك يرى أول خلية بالمجهر
+• 1676م — ليفنهوك يكتشف البكتيريا (أول كائن حي مجهري)
+• 1839م — نظرية الخلية: كل الكائنات الحية تتكون من خلايا
+• 1900م — الكيمياء الحيوية تثبت أن الماء وسط جميع التفاعلات
+• 1953م — واتسون وكريك يكتشفان DNA — يحتاج الماء للعمل
+• اليوم — لم يُعثر على أي كائن حي لا يحتاج الماء
+
+التصريح جاء قبل اكتشاف الخلية بـ 1,033 سنة. قبل نظرية الخلية بـ 1,207 سنة. قبل الكيمياء الحيوية الحديثة بأكثر من 12 قرناً.`,
+    deepDive: `Linguistic Analysis: "Every" — The Boldest Word in Biology
+===
+The Quran does not say "most living things" or "many creatures" — it says "كُلَّ شَيْءٍ حَيٍّ": every living thing, without a single exception.
+
+This absolute universality stated in the 7th century CE is astonishing:
+• No one then knew about bacteria (discovered 1676 CE by Leeuwenhoek)
+• No one then knew about cells (discovered 1665 CE by Robert Hooke)
+• No one then knew what living organisms were made of internally
+• And yet the declaration came absolute, universal, with zero qualification
+
+Water Inside Every Cell: The Numbers That Shock Scientists
+===
+Inside every living cell in your body right now:
+• 70-90% of cell content is water
+• All biochemical reactions occur in an aqueous medium
+• Proteins require water to maintain their functional shape (protein folding)
+• Ion transport across cell membranes depends entirely on water molecules
+• DNA requires water to be read and replicated
+
+At the macro level:
+• All plants: 80-95% water
+• All insects: 60-80% water
+• Microbes, fungi, viruses: all depend on aqueous media to function
+• The only organisms that resist extreme desiccation (tardigrades) don't die — they enter suspended animation and revive instantly when water is added
+
+Origin of Life Theories: Water Always at the Center
+===
+Primordial Soup Theory (Stanley Miller, 1953): Life began in a warm aqueous ocean where the first organic molecules formed.
+
+Hydrothermal Vent Theory: Life originated near volcanic vents at the ocean floor — in water.
+
+NASA's "Follow the Water": NASA's official strategy for finding extraterrestrial life is to track water. Every mission to Mars or the moons of Jupiter and Saturn first searches for traces of liquid water.
+
+The Timeline: 13 Centuries Between the Declaration and Its Proof
+===
+• 632 CE — The Quran is complete: "We made from water every living thing"
+• 1665 CE — Robert Hooke sees the first cell under a microscope
+• 1676 CE — Leeuwenhoek discovers bacteria (first observed microorganism)
+• 1839 CE — Cell Theory established: all living things are made of cells
+• 1900 CE — Biochemistry proves water is the medium of all reactions
+• 1953 CE — Watson and Crick discover DNA — which requires water to function
+• Today — No living organism has ever been found that does not require water
+
+The declaration preceded the discovery of the cell by 1,033 years. It preceded Cell Theory by 1,207 years. It preceded modern biochemistry by over 12 centuries. The word "every" has been tested against every living thing discovered since — and remains unbroken.`,
     verses: [
       {
         id: 'verse-anbiya-30-water',
