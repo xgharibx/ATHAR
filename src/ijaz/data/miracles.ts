@@ -3633,6 +3633,70 @@ This is precisely what stunned modern scientists when they read the verse: not "
     summaryAr: 'يذكر القرآن أن الجلد المحترق يُبدَّل بجلد جديد ليستمر الألم — يؤكد الطب الحديث أن مستقبلات الألم (النوسيسبتور) تتركز في الجلد.',
     description: 'Surah An-Nisa (4:56) states: "Indeed, those who disbelieve in Our verses — We will drive them into a Fire. Every time their skins are roasted through We will replace them with other skins so they may taste the punishment." The key phrase "بَدَّلْنَاهُمْ جُلُودًا غَيْرَهَا لِيَذُوقُوا الْعَذَابَ" (We replace them with other skins so they may taste the punishment) reveals a profound medical fact: the reason for replacing the skin is explicitly stated as continuing the sensation of pain. Modern medicine has confirmed that pain receptors (nociceptors) are predominantly found in the skin (dermis and epidermis). In third-degree burns, the skin and its nerve endings are completely destroyed, which paradoxically makes the burned area painless. For pain sensation to resume, new skin with functioning nerve endings must form. Professor Tagatat Tejasen, the Chairman of the Department of Anatomy at Chiang Mai University in Thailand, was so impressed by this scientific accuracy in the Quran that he accepted Islam. Dr. Haitham Talaat documents that this precise correlation between skin destruction and pain cessation was unknown until modern dermatological and neurological research, and the Quran\'s statement that skin replacement is needed specifically "so they may taste the punishment" (i.e., feel pain) demonstrates knowledge of the skin\'s role as the primary organ of pain sensation.',
     descriptionAr: 'يقول الله تعالى في سورة النساء (4:56): "إِنَّ الَّذِينَ كَفَرُوا بِآيَاتِنَا سَوْفَ نُصْلِيهِمْ نَارًا كُلَّمَا نَضِجَتْ جُلُودُهُم بَدَّلْنَاهُمْ جُلُودًا غَيْرَهَا لِيَذُوقُوا الْعَذَابَ". العبارة المفتاحية "بَدَّلْنَاهُمْ جُلُودًا غَيْرَهَا لِيَذُوقُوا الْعَذَابَ" تكشف حقيقة طبية عميقة: سبب تبديل الجلد مذكور صراحة وهو استمرار الإحساس بالألم. أكد الطب الحديث أن مستقبلات الألم (النوسيسبتور) توجد بشكل رئيسي في الجلد (الأدمة والبشرة). في الحروق من الدرجة الثالثة يُدمَّر الجلد ونهاياته العصبية بالكامل، مما يجعل المنطقة المحروقة — بشكل متناقض — عديمة الإحساس بالألم. ولكي يعود الإحساس بالألم يجب أن ينمو جلد جديد بنهايات عصبية فاعلة. البروفيسور تاغاتات تيجاسين، رئيس قسم التشريح في جامعة شيانغ ماي بتايلاند، أعلن إسلامه بعد تحققه من هذه الدقة العلمية. يوثق د. هيثم طلعت أن هذا الربط الدقيق بين تدمير الجلد وتوقف الألم لم يكن معروفاً إلا بالأبحاث الطبية الحديثة، وأن تعليل القرآن لتبديل الجلد بقوله "لِيَذُوقُوا الْعَذَابَ" يدل على معرفة بأن الجلد هو العضو الرئيسي للإحساس بالألم.',
+    deepDiveAr: `الآية التي أدهشت علماء التشريح
+===
+سورة النساء (4:56): "كُلَّمَا نَضِجَتْ جُلُودُهُم بَدَّلْنَاهُمْ جُلُودًا غَيْرَهَا لِيَذُوقُوا الْعَذَابَ" — تحمل هذه الآية حقيقة طبية دقيقة غابت عن البشرية أربعة عشر قرناً: سبب تبديل الجلد مذكور صراحة، وهو استمرار الإحساس بالألم (لِيَذُوقُوا). هذا يعني أن القرآن ربط بين الجلد تحديداً والقدرة على الشعور بالألم — وهو ما يُعرفه الطب الحديث باسم الوظيفة الأولى للنوسيسبتور (مستقبلات الألم) الموزعة في طبقات الجلد.
+
+في القرن السابع لم يكن أحد يعرف أن للجلد وظيفة محورية في استقبال الألم. كان الاعتقاد السائد أن الألم يُنتج في الأعضاء الداخلية والأعصاب المركزية. الربط القرآني الصريح بين تبديل الجلد وإعادة الإحساس بالألم يكشف عن علم تجاوز المعرفة الطبية لعشرات القرون.
+
+
+التشريح الحديث يكشف لماذا الجلد هو مقر الألم
+===
+تحتوي البشرة (Epidermis) والأدمة (Dermis) على كثافة عالية من النوسيسبتور — مستقبلات حرارية (نوع C وA-delta) تستجيب للحرارة والضغط والمواد الكيميائية الضارة. هذه المستقبلات هي خط الدفاع الأول لجسم الإنسان ضد الإصابات.
+
+في الحروق من الدرجة الثالثة (Full-Thickness Burns) تُدمَّر جميع طبقات الجلد بما فيها الأعصاب — مما يُحدث مفارقة طبية مذهلة: الحرق الأعمق هو الأقل إيلاماً لحظة الإصابة، بينما الحرق السطحي يُسبب ألماً شديداً لبقاء المستقبلات. وثّق هذه المفارقة هيتياراتشي وديويولسكي في مجلة BMJ عام 2004، وهي حقيقة متعارف عليها في طب الحروق الحديث.
+
+لكي يعود الإحساس بالألم بعد الحرق العميق يجب أن ينشأ جلد جديد ونهايات عصبية جديدة — بالضبط ما يقوله القرآن: تبديل الجلد كي يتجدد الإحساس.
+
+
+شهادة البروفيسور تاغاتات تيجاسين
+===
+البروفيسور تاغاتات تيجاسين — رئيس قسم التشريح في جامعة شيانغ ماي (تايلاند) وأحد كبار علماء التشريح في آسيا — درس هذه الآية بدقة علمية ووجد أنها تصف بدقة متناهية ما أثبته علم التشريح العصبي الحديث.
+
+في مؤتمر العلامات العلمية في القرآن والسنة (1987) أعلن البروفيسور تيجاسين إسلامه قائلاً: "في الماضي كنت أعتقد أن الطب سيتعارض مع الإسلام، ولكن بعد هذه الدراسة وجدت أن كل ما يقوله القرآن عن التشريح البشري صحيح علمياً بالكامل". شهادته هي واحدة من أقوى شهادات العلماء على الإعجاز العلمي في القرآن.
+
+البروفيسور بورفيس وزملاؤه في كتاب Neuroscience (الطبعة الخامسة، 2012) يؤكدون أن الجلد يحمل الكثافة الأعلى من النوسيسبتور في الجسم، وأن وظيفته الإنذارية — الألم — لا تُستعاد إلا بنمو جلد سليم بنهايات عصبية جديدة.
+
+
+دلالة "لِيَذُوقُوا" — التعليل العلمي في النص القرآني
+===
+الجملة القرآنية لا تذكر تبديل الجلد فحسب، بل تعلل السبب بصيغة غائية: "لِيَذُوقُوا الْعَذَابَ" (كي يتذوقوا العذاب). هذا التعليل يجعل الآية أكثر من مجرد وصف — بل هو تأكيد صريح على الرابط السببي: الجلد الجديد = إعادة الإحساس بالألم.
+
+في علم البلاغة القرآنية، اللام في "لِيَذُوقُوا" هي لام التعليل — أي أن الغرض الوحيد المذكور لتبديل الجلد هو استمرار الإحساس. لو كان الهدف مجرد العقاب الجسدي لما احتاج القرآن لتبرير تبديل الجلد تحديداً. التبرير الصريح يكشف عن معرفة أن الجلد هو العضو المختص بالإحساس، لا العظام ولا الأعضاء الداخلية.
+
+هذا التزامن بين اللغة القرآنية والتشريح العلمي — من كتاب كُتب قبل 1,400 عام — هو دليل بالغ الأثر على الإعجاز العلمي في كتاب الله.`,
+    deepDive: `The Verse That Astonished Anatomists
+===
+Surah An-Nisa (4:56): "Every time their skins are roasted through, We will replace them with other skins so they may taste the punishment." This verse contains a precise medical fact hidden from humanity for fourteen centuries: the reason for skin replacement is explicitly stated — to resume pain sensation ("so they may taste"). The Quran directly links skin specifically with the capacity to feel pain — which modern medicine identifies as the primary function of nociceptors (pain receptors) distributed throughout the skin layers.
+
+In the 7th century, no one knew the skin played a central role in pain reception. The prevailing belief was that pain originated in internal organs and the central nervous system. The Quran's explicit connection between skin replacement and the resumption of pain reveals knowledge that outpaced medical science by many centuries.
+
+
+Modern Anatomy Reveals Why the Skin Is the Home of Pain
+===
+The epidermis and dermis contain a high density of nociceptors — thermoreceptors (type C and A-delta fibers) that respond to heat, pressure, and harmful chemicals. These receptors are the body's first line of defense against injury.
+
+In third-degree (full-thickness) burns, all skin layers including nerve endings are destroyed — producing a remarkable medical paradox: the deepest burn is the least painful at the moment of injury, while superficial burns cause intense pain because receptors remain intact. This paradox was documented by Hettiaratchy and Dziewulski in the British Medical Journal (BMJ, 2004) and is an established principle of modern burn medicine.
+
+For pain sensation to return after deep burns, new skin and new nerve endings must form — exactly what the Quran states: replace the skin so sensation is renewed.
+
+
+Professor Tejasen's Testimony
+===
+Professor Tagatat Tejasen — Chairman of the Department of Anatomy at Chiang Mai University, Thailand, and one of Asia's foremost anatomists — studied this verse with scientific rigor and found it accurately describes what modern neuro-anatomy has established.
+
+At the First International Conference on Scientific Signs in the Quran and Sunnah (1987), Professor Tejasen publicly accepted Islam, stating: "In the past I was told the Quran might contradict science, but after this study I found everything the Quran says about human anatomy is completely scientifically correct." His testimony stands as one of the most powerful scholarly endorsements of Quranic scientific accuracy.
+
+Purves et al. in Neuroscience (5th edition, 2012) confirm that the skin carries the highest density of nociceptors in the body, and that its warning function — pain — cannot be restored without new healthy skin bearing new nerve endings.
+
+
+The Significance of "So They May Taste" — Scientific Reasoning in Quranic Text
+===
+The Quranic phrase does not merely describe skin replacement — it provides a causal reason with a purpose clause: "so they may taste the punishment" (li-yadhooqu). This transforms the verse into an explicit causal statement: new skin = restored pain sensation.
+
+In Quranic rhetoric, the lam (li-) is the lam of purpose — indicating the sole stated purpose of skin replacement is the continuation of sensation. If the intent were mere physical punishment, there would be no need to justify why the skin specifically is replaced. The explicit justification reveals knowledge that skin is the organ specialized for sensation — not bones, not internal organs.
+
+This alignment between Quranic language and scientific anatomy — from a book written 1,400 years ago — is a powerful demonstration of divine knowledge in the words of Allah.`,
     verses: [
       {
         id: 'verse-nisa-56',
@@ -3693,6 +3757,70 @@ This is precisely what stunned modern scientists when they read the verse: not "
     summaryAr: 'يؤكد القرآن قدرة الله على إعادة تسوية البنان (أطراف الأصابع) — أكثر العلامات تفرداً لكل إنسان — لم يكتشفها العلم إلا في القرن التاسع عشر.',
     description: 'Surah Al-Qiyamah (75:3-4) states: "Does man think that We will not assemble his bones? Yes, [We are] Able — [even] to proportion his fingertips." When deniers questioned resurrection, Allah did not merely affirm bone reassembly—He went further to emphasize the ability to reconstruct the fingertips ("بَنَانَهُ"). Why single out the fingertips? Sir Francis Galton established in 1892 that fingerprints are absolutely unique to each individual—no two humans have ever been found with identical fingerprints, not even identical twins. Modern forensic science estimated the probability of two identical fingerprints as 1 in 64 billion. The Quran\'s emphasis on fingertips rather than any other body part reveals a deep understanding that the fingertip is the ultimate identifier of each human being. Sir William Herschel began fingerprint identification in 1858, and Sir Henry Faulds published his findings in Nature journal in 1880. The complete science of fingerprint identification (dactylography) was only established in the late 19th century. Dr. Haitham Talaat documents that this specific emphasis on the fingertip as the unique marker of identity—chosen above all other body parts—demonstrates knowledge inaccessible to any 7th century human.',
     descriptionAr: 'يقول الله تعالى في سورة القيامة (75:3-4): "أَيَحْسَبُ الْإِنسَانُ أَلَّن نَّجْمَعَ عِظَامَهُ ﴿٣﴾ بَلَىٰ قَادِرِينَ عَلَىٰ أَن نُّسَوِّيَ بَنَانَهُ ﴿٤﴾". عندما شكك المنكرون في البعث، لم يكتفِ الله بتأكيد إعادة جمع العظام — بل أكد قدرته على إعادة تسوية البنان (أطراف الأصابع). لماذا خصّ البنان بالذكر؟ أثبت السير فرانسيس غالتون عام 1892 أن بصمات الأصابع فريدة تماماً لكل فرد — لم يُعثر قط على بصمتين متطابقتين حتى بين التوائم المتماثلة. قدّر علم الطب الشرعي الحديث احتمال تطابق بصمتين بنسبة 1 من 64 مليار. تأكيد القرآن على البنان دون سائر أعضاء الجسم يكشف عن فهم عميق بأن طرف الإصبع هو المعرّف النهائي لكل إنسان. بدأ السير وليام هيرشل التعرف بالبصمات عام 1858، ونشر السير هنري فولدز نتائجه في مجلة نيتشر عام 1880. لم يتأسس علم البصمات (الدكتيلوغرافيا) بالكامل إلا في أواخر القرن التاسع عشر. يوثق د. هيثم طلعت أن هذا التخصيص الدقيق لطرف الإصبع كعلامة تفرد — المختار فوق كل أعضاء الجسم — يدل على معرفة يستحيل أن يصل إليها أي بشري في القرن السابع.',
+    deepDiveAr: `"بَنَانَهُ" — كلمة واحدة تُلخص اكتشافاً علمياً
+===
+سورة القيامة (75:3-4): "أَيَحْسَبُ الْإِنسَانُ أَلَّن نَّجْمَعَ عِظَامَهُ * بَلَىٰ قَادِرِينَ عَلَىٰ أَن نُّسَوِّيَ بَنَانَهُ". لما أنكر المنكرون البعث واحتجوا بتفرق العظام لم يكتفِ الله بالرد بإعادة تجميع العظام — بل رفع مستوى الإعجاز: قادرون على إعادة تسوية بنانه. البنان: أطراف الأصابع.
+
+لماذا أطراف الأصابع تحديداً؟ لو كان القصد مجرد الإشارة إلى إعادة خلق الجسم كاملاً لكان يكفي ذكر الأعضاء الكبرى. إفراد البنان بالذكر يشير إلى خاصية استثنائية في طرف الإصبع — وهذه الخاصية لم تُكتشف إلا بعد اثني عشر قرناً: تفرد البصمة.
+
+الراغب الأصفهاني في مفردات ألفاظ القرآن يعرّف البنان بأنه أطراف الأصابع التي تُميّز الإنسان في أدق تفاصيله — تعريف لغوي كلاسيكي يتوافق بشكل مدهش مع الاكتشاف العلمي الحديث.
+
+
+علم البصمات — من غالتون إلى المعيار الذهبي
+===
+السير وليام هيرشل بدأ استخدام البصمات للتعرف على الأشخاص في البنغال عام 1858. السير هنري فولدز نشر في مجلة Nature عام 1880 أول دراسة علمية تثبت ثبات البصمات وتفردها مدى الحياة. ثم جاء السير فرانسيس غالتون عام 1892 بكتابه Finger Prints ليؤسس الإطار الإحصائي: احتمال تطابق بصمتين هو 1 من 64 مليار.
+
+لم يُعثر قط على بصمتين متطابقتين في التاريخ البشري — حتى بين التوائم المتماثلة الذين يحملون حمضاً نووياً متطابقاً. البصمة تتشكل بين الأسبوعين 10 و16 من النمو الجنيني استجابةً لعوامل ميكانيكية عشوائية في الرحم، وتظل ثابتة حتى الموت.
+
+أنيل K. جين وزملاؤه في كتاب Handbook of Biometrics (Springer, 2007) يؤكدون أن البصمة تظل — حتى في عصر البيومترات الرقمية — المعيار الذهبي للتعرف على الهوية في أكثر من 185 دولة.
+
+
+التفرد الذي لم يعرفه أحد في القرن السابع
+===
+في القرن السابع لم يكن أحد يعرف أن لأطراف الأصابع أهمية خاصة. الناس كانوا يختمون وثائقهم بالخاتم أو يُوقّعون بأسمائهم. لم يكن ثمة أي مفهوم علمي أو ثقافي يجعل طرف الإصبع رمزاً للتعريف الفردي.
+
+حتى الأنظمة القانونية الرومانية والعربية القديمة لم تستخدم البصمات للتعرف على الأشخاص — هذا الاستخدام بدأ فقط في النصف الثاني من القرن التاسع عشر. ومع ذلك اختار القرآن — في سياق يُثبت قدرة الله المطلقة — أن يخص طرف الإصبع بالذكر دون يد أو قدم أو وجه أو أي عضو آخر.
+
+هذا الاختيار الدقيق يكشف أن مؤلف القرآن يعلم أن طرف الإصبع هو أكثر أعضاء الجسم تفرداً وتميزاً — معرفة غابت عن الإنسانية أكثر من اثني عشر قرناً.
+
+
+الإعجاز في صياغة التحدي
+===
+صياغة الآية تُبرز الإعجاز أكثر: الله لم يقل فقط "نقدر على إعادة البعث" بل تحدى بأصعب مسألة ممكنة: بل نقدر على إعادة تسوية بنانه. اختيار الأصعب والأدق والأكثر تفرداً في الجسم هو إثبات على القدرة المطلقة — كأنه يقول: لو أمكنك أن تُثبت تفرد طرف إصبعك بين 64 مليار إنسان فافعل، ونحن نعيد خلق هذا التفرد بالكامل.
+
+د. هيثم طلعت يوثق أن كلمة "نُسَوِّيَ" (نُعيد تسوية) تعني إعادة البنية الكاملة لأخاديد الجلد والنتوءات بنفس نمطها الفريد — وهو ما يُسميه علم البصمات بـ Dermatoglyphics. هذه الدقة اللغوية المذهلة مضافة إلى اختيار البنان تجعل الآية من أقوى أدلة الإعجاز العلمي في القرآن الكريم.`,
+    deepDive: `"Bananahu" — One Word That Encodes a Scientific Discovery
+===
+Surah Al-Qiyamah (75:3-4): "Does man think that We will not assemble his bones? Yes — We are Able to proportion his fingertips." When deniers challenged the resurrection by pointing to scattered bones, Allah did not merely reassert bone reassembly — He elevated the demonstration: rather, We can recreate even his fingertips. The word bananahu specifically refers to the fingertips.
+
+Why the fingertips specifically? If the intent were simply to affirm full-body recreation, mentioning major organs would suffice. Singling out the fingertips implies an extraordinary property unique to the fingertip — a property not discovered until 12 centuries later: the uniqueness of the fingerprint.
+
+The classical Arabic linguist Al-Raghib Al-Isfahani in Mufradat Alfaz al-Quran defines banan as the fingertips by which a person is distinguished in their finest details — a traditional linguistic definition that aligns remarkably with the modern scientific discovery.
+
+
+The Science of Fingerprints — From Galton to the Golden Biometric
+===
+Sir William Herschel began using fingerprints for personal identification in Bengal in 1858. Sir Henry Faulds published in Nature (1880) the first scientific study confirming fingerprints are permanent and individually unique throughout life. Then Sir Francis Galton in his 1892 work Finger Prints established the statistical framework: the probability of two matching fingerprints is 1 in 64 billion.
+
+No two identical fingerprints have ever been found in human history — not even among identical twins who share identical DNA. Fingerprints form between weeks 10 and 16 of embryonic development in response to random mechanical forces in the womb, and remain unchanged until death.
+
+Anil K. Jain et al. in Handbook of Biometrics (Springer, 2007) confirm that fingerprints remain — even in the age of digital biometrics — the gold standard for identity recognition in more than 185 countries.
+
+
+The Uniqueness Unknown in the 7th Century
+===
+In the 7th century, no one knew that fingertips held any special significance. People sealed documents with signet rings or signed their names. There was no scientific or cultural concept making the fingertip a symbol of individual identity.
+
+Even ancient Roman and Arab legal systems did not use fingerprints for identification — this practice only began in the second half of the 19th century. Yet the Quran — in a context affirming Allah's absolute power — specifically chose to mention the fingertip above the hand, foot, face, or any other body part.
+
+This precise selection reveals that the Author of the Quran knew the fingertip is the most individually unique organ in the human body — knowledge absent from humanity for over twelve centuries.
+
+
+The Genius of the Challenge's Formulation
+===
+The verse's formulation amplifies the miracle: Allah did not simply say "We are able to resurrect" — He issued the most demanding possible demonstration: We can even recreate his fingertips. Choosing the most complex, most precise, and most individually unique part of the body is a proof of absolute power — as if to say: if you can prove your fingertip is unique among 64 billion people, do so. We recreate that exact uniqueness in full on the Day of Resurrection.
+
+Dr. Haitham Talaat documents that the word nusawwiya (We proportion/reconstruct) implies full reconstruction of the skin ridge and loop patterns in their exact unique configuration — what fingerprint science calls Dermatoglyphics. This extraordinary linguistic precision, combined with the specific choice of fingertips, makes this verse one of the strongest proofs of the Quran's scientific miracle.`,
     verses: [
       {
         id: 'verse-qiyamah-3-4',
