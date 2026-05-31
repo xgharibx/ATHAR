@@ -808,9 +808,15 @@ export function QuranPage() {
                 value={prefs.quranReciter}
                 onChange={(event) => setPrefs({ quranReciter: event.target.value })}
                 className="bg-transparent text-xs outline-none"
+                style={{ color: 'var(--fg, #fff)', backgroundColor: 'transparent' }}
               >
                 {QURAN_RECITERS.map((reciter) => (
-                  <option key={reciter.id} value={reciter.id} className="bg-[#101814] text-white">
+                  <option
+                    key={reciter.id}
+                    value={reciter.id}
+                    className="bg-[#101814] text-white"
+                    style={{ backgroundColor: '#101814', color: '#ffffff' }}
+                  >
                     {reciter.label}
                   </option>
                 ))}
