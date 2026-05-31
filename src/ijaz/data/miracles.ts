@@ -12245,6 +12245,42 @@ What 7th-century people knew about whales: they are large marine animals that ca
     summaryAr: 'ينهى القرآن الكريم والسنة عن التبول في الماء الراكد ويصف الماء الجاري بالطهارة. تفسر علم الأحياء الدقيقة الحديث: الماء الجاري يطهر نفسه ذاتياً؛ الماء الراكد ينشر الكوليرا والتيفوئيد والملاريا والبلهارسيا — بصيرة دقيقة في الصحة العامة قبل 1400 عام من نظرية الجراثيم.',
     description: 'The Prophet Muhammad ﷺ said: "None of you should urinate in stagnant water (الماء الدائم) and then wash in it." (Bukhari, Muslim). Also: "Do not urinate into still, standing water." (Abu Dawud). Additionally: "Water (flowing) is pure and purifying (طَهُور) — nothing makes it impure." The Quran (Al-Anfal 8:11): "He sent down upon you from the sky rain (مَاءً طَهُورًا) — to purify you therewith." The Arabic term TAHOOR (طهور) means not just clean but self-purifying — a unique property of flowing water. Modern microbiology explains the precise science: (1) STAGNANT WATER DISEASES: Still water is a breeding ground for: Vibrio cholerae (cholera) — requires stagnant warm water; Plasmodium falciparum (malaria) — mosquitoes breed in still water; Schistosoma mansoni (schistosomiasis) — snail hosts require still water; Salmonella typhi (typhoid) — fecal-oral transmission in still water; Cryptosporidium and Giardia — protozoa that thrive in still water. (2) FLOWING WATER SELF-PURIFICATION: Rivers and streams purify themselves through: dilution, UV exposure, oxygenation, turbulence (which kills anaerobic bacteria), and microbial competition. A clean river restores its natural bacterial balance within days. (3) PROHIBITION SAVES MILLIONS: The specific Islamic prohibitions against contaminating still water and the encouragement of flowing water for washing prevented epidemics that killed millions in medieval Europe. (4) TAHOOR WATER: The Quranic term "tahoor" — water that purifies itself AND purifies others — is a uniquely appropriate scientific description of flowing water\'s self-purifying properties.',
     descriptionAr: 'قال النبي ﷺ: "لا يبولن أحدكم في الماء الدائم ثم يغتسل فيه" (البخاري). والماء "طَهُور" = مطهِّر لنفسه وللغير. علم الأحياء الدقيقة الحديث يفسر: (1) الماء الراكد ينشر: الكوليرا، الملاريا، البلهارسيا، التيفوئيد، الجياردية. (2) الماء الجاري يتطهر ذاتياً: التخفيف، الأشعة فوق البنفسجية، الأكسجين، الاضطراب (يقتل البكتيريا اللاهوائية). (3) التحريم الإسلامي للماء الراكد أنقذ ملايين من الأوبئة التي اجتاحت أوروبا. (4) "طهور" = مصطلح علمي دقيق لخاصية تطهر الماء الجاري.',
+    deepDiveAr: `"طهور" — أدق كلمة في علم الصحة المائية
+===
+قال النبي ﷺ: "الماء طَهُور لا يُنجِّسُه شيء" (أبو داود، الترمذي). كلمة "طهور" في اللغة العربية تعني: طاهر في نفسه ومطهِّر لغيره — خاصيتان في كلمة واحدة. هذا التمييز دقيق: ليس كل طاهر مطهِّراً (الزيت طاهر لكن لا يطهِّر). الكيمياء المائية الحديثة سمَّت هذه الظاهرة "التطهر الذاتي للنهر" (River Self-Purification) — عملية تحكمها: الأكسجة، التخفيف، الأشعة فوق البنفسجية، والمنافسة الميكروبية. استخدام كلمة "طهور" بدلاً من "طاهر" في القرن السابع — قبل اكتشاف الجراثيم — تمييز علمي دقيق لخاصية لم تُفهَم إلا في القرن التاسع عشر.
+
+
+الماء الراكد — حاضنة الأمراض القاتلة الأربعة
+===
+تحليل وبائي حديث: الماء الراكد هو البيئة الأمثل لأربعة أمراض قاتلة: (1) الكوليرا (Vibrio cholerae): تتكاثر في الماء الراكد الدافئ الغني بالعناصر الغذائية؛ سبعة جوائح عالمية، 1.4 مليار إنسان في خطر سنوياً. (2) الملاريا: بعوض الأنوفيلس يتكاثر حصراً في المياه الراكدة الضحلة؛ 600,000 وفاة سنوياً. (3) البلهارسيا: 200 مليون مصاب؛ حلزونات المياه العذبة الوسيطة تحتاج ماء راكداً. (4) التيفوئيد: 11 مليون حالة سنوياً عبر التلوث البرازي للمياه الراكدة. الخلاصة: منع التبول في الماء الراكد — الأمر النبوي الصريح — هو أدق تعليمة وقائية لوقف هذه الأمراض الأربعة دفعة واحدة. لم يُعرف سببها إلا في القرن التاسع عشر.
+
+
+الماء الجاري — آلية التطهير الذاتي
+===
+تحليل علمي لعمليات التطهر الذاتي في الأنهار: (1) الأكسجة بالاضطراب: الماء المتحرك يكتسب الأكسجين المذاب — تنشط البكتيريا الهوائية في تحليل المواد العضوية، ويقتل الاضطراب الميكانيكي البكتيريا اللاهوائية المسببة للأمراض. (2) التخفيف: يُخفف تركيز الكائنات الممرضة إلى دون الجرعة المُعدية. (3) الأشعة فوق البنفسجية: الأنهار الضحلة الجارية تتعرض للأشعة فوق البنفسجية التي تقتل معظم الممرضات. (4) المنافسة الميكروبية: مجتمعات ميكروبية متنوعة في قاع النهر تطغى على الممرضات وتقضي عليها. "لا تُلوِّث الماء الراكد" — ملخص لكل هذا العلم في أمر واحد، قبل 1,200 سنة من اكتشاف روبرت كوخ لبكتيريا الكوليرا (1883م).
+
+
+الاستحالة المعرفية — 1400 سنة قبل نظرية الجراثيم
+===
+ما الذي كان يعرفه الناس في القرن السابع عن العلاقة بين الماء والمرض؟ كانوا يعرفون: المستنقعات مرتبطة بالأمراض — عبر نظرية "الميازما" (الهواء الفاسد). ما لم يكونوا يعرفونه: (1) نظرية الجراثيم: لم تُصَغ حتى باستور وكوخ (1860-1883م). (2) Vibrio cholerae: اكتُشفت 1854م (جون سنو، لندن). (3) آلية التطهر الذاتي للأنهار: لم تُوضع كنظرية علمية حتى القرن العشرين. (4) دور الاضطراب الميكانيكي في القضاء على الممرضات: لم يُفهم إلا في علم الهيدرولوجيا الحديث. السؤال: من أين جاءت الفروق الدقيقة — تحريم الماء الراكد تحديداً، وتمييز الماء الجاري بكلمة "طهور" — في القرن السابع الميلادي؟`,
+    deepDive: `"Tahoor" — The Most Precise Word in Water Health Science
+===
+The Prophet ﷺ said: "Water is tahoor (purifying) — nothing makes it impure." (Abu Dawud, Tirmidhi). The Arabic "tahoor" means: pure in itself AND purifying to others — two properties in one word. This is a precise scientific distinction: not every pure thing is purifying (oil is pure but does not purify). Modern water chemistry named this phenomenon "River Self-Purification" — governed by oxygenation, dilution, UV penetration, and microbial competition. Using "tahoor" instead of "tahir" (merely pure) in the 7th century — before the discovery of microbes — is a scientific distinction that could not have been made without knowledge beyond its time.
+
+
+Stagnant Water — Incubator of the Four Deadliest Diseases
+===
+Modern epidemiology: stagnant water is the optimal environment for four of humanity's deadliest diseases: (1) CHOLERA (Vibrio cholerae): thrives in warm, nutrient-rich stagnant water; 7 global pandemics, 1.4 billion at risk annually. (2) MALARIA: Anopheles mosquitoes breed exclusively in shallow stagnant water; 600,000 deaths annually. (3) SCHISTOSOMIASIS: 200 million infected; freshwater snail hosts require still water. (4) TYPHOID (Salmonella typhi): 11 million cases/year via fecal contamination of standing water. Conclusion: the Prophetic prohibition on contaminating stagnant water is the most precise single public health instruction that could prevent all four diseases simultaneously — 1,200+ years before their causes were scientifically identified.
+
+
+Flowing Water — The Self-Purification Mechanism
+===
+Scientific analysis of river self-purification: (1) TURBULENT OXYGENATION: moving water absorbs dissolved oxygen — aerobic bacteria decompose organic matter, while mechanical turbulence kills anaerobic disease-causing pathogens. (2) DILUTION: pathogen concentration is reduced below infectious doses within short distances. (3) UV PENETRATION: shallow flowing rivers allow direct UV sterilization of most pathogens. (4) MICROBIAL COMPETITION: diverse riverbed microbial communities outcompete and eliminate incoming pathogens. "Do not contaminate stagnant water" summarizes all of this science in one command — 1,200 years before Robert Koch discovered Vibrio cholerae (1883).
+
+
+The Knowledge Gap — 1,400 Years Before Germ Theory
+===
+What did 7th-century people know about water and disease? They knew: swamps are associated with illness — explained by the miasma theory (bad air). What they did NOT know: (1) Germ theory was not formulated until Pasteur and Koch (1860-1883). (2) Vibrio cholerae was not identified until 1854 (John Snow, London). (3) River self-purification was not established as a scientific theory until the 20th century. (4) The role of mechanical turbulence in killing pathogens was not understood until modern hydrology. The question: where did the precise distinctions come from — prohibiting specifically stagnant water, and distinguishing flowing water with the specific word "tahoor" — in the 7th century CE?`,
     verses: [
       {
         id: 'verse-anfal-11',
@@ -12300,6 +12336,42 @@ What 7th-century people knew about whales: they are large marine animals that ca
     summaryAr: 'تصف سورة فاطر (35:27-28) تنوع ألوان الجبال والثمار وألوان البشر والدواب والأنعام آيات لأولي الخشية. تؤكد الجيولوجيا الحديثة أن ألوان الصخور تعكس تركيبها المعدني — معرفة جيولوجية لم تُدوَّن منهجياً إلا في القرنين الثامن عشر والتاسع عشر.',
     description: 'Surah Fatir (35:27-28): "Do you not see that Allah sends down rain from the sky, and We produce thereby fruits of varying colors? And in the mountains are tracts of white and red of varying shades and [of] black — intensely dark (غَرَابِيبُ سُودٌ). And among people and moving creatures and grazing livestock are various colors similarly. Only those fear Allah, from among His servants, who have knowledge (الْعُلَمَاءُ)." This passage is remarkable because: (1) ROCK COLORS = MINERAL COMPOSITION: The Quran specifically mentions white, red with varying shades, and black mountains. Modern geology confirms: WHITE MOUNTAINS = chalk (CaCO₃), quartz (SiO₂), gypsum (CaSO₄), marble; RED MOUNTAINS = iron oxide (Fe₂O₃, hematite) or red sandstone; BLACK MOUNTAINS = basalt (volcanic, iron + magnesium silicates), magnetite, obsidian; VARYING SHADES = different concentrations of iron oxide and other minerals. (2) SPECIFICALLY "INTENSELY DARK BLACK": The Arabic "غرابيب سود" (literally "raven black") refers to volcanic basalt — the most iron-rich, darkest mountain rock. This distinction between ordinary dark rock and the intensely black volcanic basalt is precisely correct in geology. (3) HUMAN SKIN DIVERSITY: The passage mentions variation in human skin colors alongside mountain and fruit colors — attributing all to the same divine creative act. Modern biology confirms skin color (melanin concentration) is as much a genetic adaptation to geography as mineral color is in rocks. (4) "THOSE WITH KNOWLEDGE FEAR GOD MOST": The verse ends by saying only those with knowledge truly appreciate these signs — implying that deeper scientific knowledge leads to deeper awe.',
     descriptionAr: 'يقول الله تعالى في سورة فاطر (35:27-28): "... وَمِنَ الْجِبَالِ جُدَدٌ بِيضٌ وَحُمْرٌ مُّخْتَلِفٌ أَلْوَانُهَا وَغَرَابِيبُ سُودٌ ﴿٢٧﴾ وَمِنَ النَّاسِ وَالدَّوَابِّ وَالْأَنْعَامِ مُخْتَلِفٌ أَلْوَانُهُ كَذَٰلِكَ إِنَّمَا يَخْشَى اللَّهَ مِنْ عِبَادِهِ الْعُلَمَاءُ". الجيولوجيا الحديثة تؤكد: الجبال البيضاء = كالسيوم وكوارتز. الجبال الحمراء = أكسيد الحديد (هيماتيت). الجبال السوداء = بازلت بركاني (غني بالحديد والمغنيسيوم). "غرابيب سود" = البازلت البالغ السواد كلون الغراب — وصف جيولوجي دقيق للصخور البركانية.',
+    deepDiveAr: `"جُدَدٌ بِيضٌ وَحُمْرٌ وَغَرَابِيبُ سُودٌ" — قراءة جيولوجية دقيقة
+===
+يقول الله تعالى في سورة فاطر (35:27): "وَمِنَ الْجِبَالِ جُدَدٌ بِيضٌ وَحُمْرٌ مُّخْتَلِفٌ أَلْوَانُهَا وَغَرَابِيبُ سُودٌ". الآية تحدد ثلاثة ألوان للجبال: (1) بِيض (بيضاء)، (2) حُمر مختلف ألوانها (حمراء بدرجات متعددة)، (3) غرابيب سود (شديدة السواد كالغراب). علم الجيولوجيا الحديث — علم تصنيف الصخور — يعترف بهذه الألوان الثلاثة كمعرِّفات معيارية للتركيب المعدني. الآية لم تقل "جبال ملونة" بشكل عام — بل حددت الأبيض والأحمر (بدرجات) والأسود الشديد تحديداً — وهو تصنيف يطابق النظام الجيولوجي الحديث لأصناف الصخور الثلاثة الرئيسية. ثم تنتهي الآية بـ"إِنَّمَا يَخْشَى اللَّهَ مِنْ عِبَادِهِ الْعُلَمَاءُ" — دعوة صريحة للعلم كطريق للتقوى.
+
+
+الجبال البيضاء والحمراء — المعادن في ثيابها
+===
+تفسير الجيولوجيا الحديثة لألوان الجبال: الجبال البيضاء: صخور الكالسيوم (الحجر الجيري CaCO₃، الجبس CaSO₄، الرخام، الكوارتز SiO₂). جميعها فاتحة لأن ذراتها لا تمتص الضوء المرئي. الجبال الحمراء بدرجات متعددة: الأحمر = تركيز أكسيد الحديد (الهيماتيت Fe₂O₃) الذي يلوِّن الصخر الرملي والحجر الجيري. "مختلف ألوانها" = دقة مذهلة: 0.5% من الهيماتيت = وردي، 1% = أحمر فاتح، 2% = أحمر داكن. يعني تعبير "مختلف ألوانها" أن درجات الحمرة تعكس تراكيز مختلفة من معدن واحد. الجيولوجيا الميدانية تستخدم هذا التدرج اليوم لتقدير محتوى الحديد في الصخور — مطابقة دقيقة للوصف القرآني.
+
+
+"غرابيب سود" — البازلت البركاني والأشد سواداً
+===
+العبارة القرآنية "غرابيب سود" ليست مجرد "سوداء" — "غرابيب" جمع "غِربيب" من "الغراب" (الطائر الأسود الحالك). تعني: سوداء سواداً شديداً بالغاً، أشد من مجرد الأسود العادي. الجيولوجيا الحديثة: هذا وصف دقيق للبازلت البركاني (Basalt) — الصخر الناري البالغ السواد المكوَّن عند تبريد اللاف البركاني. تركيبه: 45-52% SiO₂ + أكسيد الحديد + المغنيسيوم + أكسيد التيتانيوم. البازلت هو أكثر صخور القشرة الأرضية انتشاراً (يغطي قيعان البحار والجزر البركانية والسهول البركانية). التمييز الدقيق بين الأسود العادي و"الأسود كالغراب" لم يكن له قيمة عملية في القرن السابع — لكنه يصف بدقة الفرق بين الصخر الداكن الاعتيادي والبازلت البركاني الأشد سواداً.
+
+
+الاستحالة المعرفية — ما كان ممكن معرفته قبل علم المعادن
+===
+ما الذي كان يعرفه أهل القرن السابع عن ألوان الجبال؟ كانوا يعرفون: الجبال تختلف في ألوانها. ما لم يكونوا يعرفونه: (1) علم المعادن المنهجي (Mineralogy) لم يُؤسَّس حتى جيورجيوس أغريكولا (1556م) وجيمس هوتون (1795م). (2) العلاقة بين أكسيد الحديد ولون الصخر: لم تُفهَم كيميائياً إلا في القرن التاسع عشر. (3) التمييز بين البازلت البركاني وغيره من الصخور الداكنة: لم يُوضَّح إلا في القرن التاسع عشر مع تصنيف الصخور النارية. (4) إجماع علم الجيولوجيا الحديث على أن اللون الصخري هو مفتاح التركيب المعدني: القرن العشرون. التساؤل: كيف اختار نص من القرن السابع هذه الأصناف الثلاثة للجبال — الأبيض، الأحمر المتدرج، والأسود الغربيبي — بدقة تطابق التصنيف الجيولوجي الحديث تماماً؟`,
+    deepDive: `"White, Red, and Intensely Black" — A Precise Geological Reading
+===
+Surah Fatir (35:27): "And in the mountains are tracts of white and red of varying shades and [of] black — intensely dark." The verse identifies three mountain colors: (1) white (biyd), (2) red of varying shades (humr mukhtalif alwanuha), (3) intensely black like ravens (gharabib sud). Modern geology — the science of rock classification — recognizes these three colors as standard diagnostic indicators of mineral composition. The verse did not say "colorful mountains" generically — it specified white, red (in gradations), and intensely black specifically — which maps precisely onto the three main rock type categories of modern geology. The verse then ends: "Only those who have knowledge truly fear Allah" — an explicit call to science as a path to awe.
+
+
+White and Red Mountains — Minerals in Plain Sight
+===
+Modern geological interpretation of mountain colors: WHITE MOUNTAINS: calcium-based rocks (limestone CaCO₃, gypsum CaSO₄, marble, quartz SiO₂). White because their atoms do not absorb visible light. RED MOUNTAINS with varying shades: redness = concentration of iron oxide (hematite Fe₂O₃) staining sandstone and limestone. "VARYING SHADES" — remarkable precision: 0.5% hematite = pink, 1% = light red, 2% = dark red. The phrase "varying shades" means degrees of redness reflect different concentrations of a single mineral — iron oxide. Field geology uses this gradation today to estimate iron content in rocks — precisely matching the Quranic description.
+
+
+"Intensely Black" — Volcanic Basalt Precisely Identified
+===
+The Quranic phrase "gharabib sud" is not simply "black" — "gharabib" is plural of "ghirbib" from "ghurab" (raven — the intensely black bird). It means: black to an extreme degree, blacker than ordinary black. Modern geology: this precisely describes volcanic basalt — the deeply black igneous rock formed by cooling lava. Composition: 45-52% SiO₂ + iron oxide + magnesium + titanium oxide. Basalt is the most abundant rock in the Earth's crust (covering ocean floors, volcanic islands, and lava plains). The specific distinction between ordinary dark rock and "raven-black" — having no practical value in the 7th century — precisely describes the geological difference between ordinary dark rock and the most intensely black volcanic basalt.
+
+
+The Knowledge Gap — Before Modern Mineralogy
+===
+What did 7th-century people know about mountain colors? They knew: mountains differ in color. What they did NOT know: (1) Systematic mineralogy was not established until Georgius Agricola (1556) and James Hutton (1795). (2) The relationship between iron oxide concentration and rock color was not understood chemically until the 19th century. (3) The distinction between volcanic basalt and other dark rocks was not clarified until 19th-century igneous rock classification. (4) The scientific consensus that rock color is the key to mineral composition: 20th century. The question: how did a 7th-century text select exactly these three mountain categories — white, gradated red, and raven-black — with precision that maps perfectly onto the modern geological classification system?`,
     verses: [
       {
         id: 'verse-fatir-27-28',
@@ -12356,6 +12428,42 @@ What 7th-century people knew about whales: they are large marine animals that ca
     summaryAr: 'يصف القرآن الله بأنه "الذي جعل لكم من الشجر الأخضر ناراً" (يس 36:80) — يفسر الكيمياء الحيوية الحديثة أن النباتات الخضراء تخزن طاقة الشمس عبر التمثيل الضوئي، وجميع الخشب/الوقود الأحفوري (فحم، نفط) هي في الأساس طاقة مخزنة بالتمثيل الضوئي تُطلق كنار.',
     description: 'Surah Ya-Sin (36:80): "Who made for you from the green tree fire (مِنَ الشَّجَرِ الْأَخْضَرِ نَارًا) — and then from it you ignite." This verse describes fire coming from a green tree. The Quran could have said "dry wood" (the obvious fuel source) — but it specifically says GREEN tree. This is scientifically profound: (1) PHOTOSYNTHESIS STORES SOLAR ENERGY: Green plants use chlorophyll to capture solar energy and store it as chemical bonds in glucose (C₆H₁₂O₆). The chemical equation: 6CO₂ + 6H₂O + sunlight → C₆H₁₂O₆ + 6O₂. The "fire" (energy) comes from reversing this: burning wood releases the stored solar energy. (2) ALL FIRE COMES FROM GREEN TREES: Wood burns because it releases photosynthetically stored solar energy. Coal is compressed ancient plant material (photosynthesis from 300 million years ago). Oil and natural gas are decomposed ancient marine photosynthetic organisms. ALL combustion on Earth ultimately traces to photosynthesis — fire truly comes from the green tree. (3) SPECIFICALLY "GREEN" TREE: A dry tree has lost the chlorophyll and is simply releasing stored energy. A GREEN tree is actively storing solar energy (photosynthesis). The Quran specifies the green tree because that is where the energy storage (the source of fire potential) is actively occurring. (4) MODERN CONFIRMATION: This understanding of fire as released photosynthetic solar energy was only formulated after Lavoisier (1770s), Priestley, and Ingen-Housz discovered photosynthesis and combustion chemistry.',
     descriptionAr: 'يقول الله تعالى في سورة يس (36:80): "الَّذِي جَعَلَ لَكُم مِّنَ الشَّجَرِ الْأَخْضَرِ نَارًا فَإِذَا أَنتُم مِّنْهُ تُوقِدُونَ". القرآن يقول "الأخضر" — لا "الجاف". علم الكيمياء الحيوية يكشف: (1) التمثيل الضوئي يخزن طاقة الشمس: 6CO₂+6H₂O+ضوء → C₆H₁₂O₆+6O₂. الحرق يعكس هذا: يطلق الطاقة الشمسية المخزنة. (2) جميع النيران على الأرض تأتي من الشجر الأخضر: الخشب من تمثيل ضوئي مباشر. الفحم من نباتات متحجرة (قبل 300 مليون سنة). النفط والغاز من كائنات بحرية ضوئية قديمة. (3) "الأخضر" تحديداً لأن الكلوروفيل هو موضع تخزين الطاقة — الأكثر دقة علمياً.',
+    deepDiveAr: `"من الشجر الأخضر ناراً" — المفارقة العلمية الكبرى
+===
+يقول الله تعالى في سورة يس (36:80): "الَّذِي جَعَلَ لَكُم مِّنَ الشَّجَرِ الْأَخْضَرِ نَارًا فَإِذَا أَنتُم مِّنْهُ تُوقِدُونَ". لاحظ: القرآن لم يقل "من الشجر اليابس" أو "من الحطب" — بل قال "الشجر الأخضر". ظاهرياً تبدو مفارقة: الشجر الأخضر رطب لا يشتعل. لكن الكيمياء الحيوية الحديثة تكشف أن كلمة "أخضر" هي الأدق علمياً على الإطلاق: (1) اللون الأخضر = الكلوروفيل = موضع التمثيل الضوئي. (2) التمثيل الضوئي هو العملية التي تخزِّن طاقة الشمس في روابط كيميائية. (3) النار هي تحرير هذه الطاقة المخزنة. بعبارة أخرى: "الشجر الأخضر" = مخزن الطاقة الشمسية. النار = طاقة الشمس المحررة. لفظة "أخضر" هي بالضبط الصفة الكيميائية الصحيحة.
+
+
+التمثيل الضوئي — تخزين الطاقة الشمسية في الكلوروفيل
+===
+عملية التمثيل الضوئي (اكتشفها إنغن-هوز، 1779م): النباتات الخضراء تستخدم الكلوروفيل (الصبغة الخضراء) لامتصاص الضوء وتخزين طاقته. المعادلة الكيميائية: 6CO₂ + 6H₂O + 2800 كيلوجول ضوئي → C₆H₁₂O₆ + 6O₂. الاحتراق (النار) هو عكس هذه المعادلة: C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + 2800 كيلوجول حراري. إذن: حرق الخشب = تحرير ضوء الشمس المخزَّن في الشجر الأخضر. الحرارة التي تشعر بها عند إيقاد النار = طاقة شمسية التقطها الكلوروفيل وخزَّنها. الاسم الصحيح للنار في لغة الكيمياء: "طاقة ضوئية شمسية محررة من التمثيل الضوئي". الوصف القرآني "من الشجر الأخضر نار" هو تعبير كيميائي دقيق لم يكن ممكن صياغته إلا بعد 1779م.
+
+
+الوقود الأحفوري — ملايين سنين من التمثيل الضوئي تُحرق
+===
+الفحم الحجري: ضُغطت غابات العصر الكربوني (قبل 300-350 مليون سنة) تحت طبقات الأرض. تلك الغابات كانت شجراً أخضر. الفحم = شجر أخضر متحجر يحتوي على طاقة شمسية مخزَّنة. النفط والغاز الطبيعي: تكوَّنا من تراكم الطحالب والكائنات البحرية الضوئية الدقيقة (phytoplankton) على مدى ملايين السنين. تلك الكائنات كانت خضراء (كلوروفيل). كل الطاقة الكهربائية في العالم المنتجة من محطات الفحم والنفط = طاقة شمسية خزَّنها الشجر الأخضر. كل محرك سيارة = يحرق الشجر الأخضر القديم. الآية القرآنية "من الشجر الأخضر ناراً" صادقة حرفياً على كل نار أُوقدت على وجه الأرض — بما فيها النار الناتجة عن الوقود الأحفوري.
+
+
+الاستحالة المعرفية — ما كان ممكن معرفته قبل 1779م
+===
+ما كان يعرفه الناس في القرن السابع عن النار والخشب: الخشب الجاف يشتعل، الرطب لا يشتعل. ما لم يكونوا يعرفونه: (1) التمثيل الضوئي اكتشفه إنغن-هوز 1779م — بعد 1,169 سنة من نزول الآية. (2) الكلوروفيل ودوره في تخزين الطاقة الشمسية: اكتشف في القرن التاسع عشر. (3) معادلة الاحتراق وعلاقتها بعكس التمثيل الضوئي: فهِمها العلم كيميائياً في القرن التاسع عشر مع لافوازييه. (4) أن الفحم والنفط هما شجر أخضر قديم: لم يُؤكَّد إلا في القرن التاسع عشر-العشرين بعلم الجيولوجيا التطورية. السؤال الجوهري: لماذا قال القرآن "الشجر الأخضر" تحديداً — لا "الشجر الجاف" الذي يعرفه الجميع كوقود؟ الإجابة الكيميائية: لأن "الأخضر" هو المصدر الحقيقي للطاقة — وهذا ما لم يُعرَف إلا بعد 1779م.`,
+    deepDive: `"From the Green Tree, Fire" — The Great Scientific Paradox
+===
+Surah Ya-Sin (36:80): "Who made for you from the green tree fire — and then from it you ignite." Note: the Quran did not say "from the dry wood" or "from timber" — it said the GREEN tree. Superficially a paradox: green trees are moist and do not ignite easily. But modern biochemistry reveals that "green" is the most scientifically precise word possible: (1) the color green = chlorophyll = the site of photosynthesis; (2) photosynthesis is the process that stores solar energy as chemical bonds; (3) fire is the release of that stored energy. In other words: "green tree" = the storage unit of solar energy; fire = the solar energy being released. The word "green" is the chemically correct descriptor — and it was only possible to understand why in 1779 CE.
+
+
+Photosynthesis — Storing Solar Energy in Chlorophyll
+===
+Photosynthesis (discovered by Jan Ingen-Housz, 1779): green plants use chlorophyll to absorb light and store its energy. The chemical equation: 6CO₂ + 6H₂O + 2800 kJ solar energy → C₆H₁₂O₆ + 6O₂. Combustion (fire) is the reverse: C₆H₁₂O₆ + 6O₂ → 6CO₂ + 6H₂O + 2800 kJ heat. Therefore: burning wood = releasing sunlight stored in the green tree. The warmth felt from a fire = solar energy that was captured by chlorophyll. The chemically accurate name for fire: "photosynthetically stored solar energy being released." The Quranic description "from the green tree, fire" is a chemically precise statement that could not have been formulated until 1779 CE — 1,169 years after the verse was revealed.
+
+
+Fossil Fuels — Millions of Years of Photosynthesis Released as Fire
+===
+Coal: formed from compressed Carboniferous forests (300-350 million years ago). Those forests were green trees. Coal = fossilized green trees containing stored solar energy. Oil and natural gas: formed from accumulated marine phytoplankton (photosynthetic microorganisms) over millions of years. Those organisms were green (chlorophyll). Every coal and oil power plant in the world = releasing solar energy stored by green trees. Every car engine = burning ancient green trees. The Quranic verse "from the green tree, fire" is literally true of every fire ever ignited on Earth — including fire produced from fossil fuels.
+
+
+The Knowledge Gap — Before Ingen-Housz (1779)
+===
+What did 7th-century people know about fire and wood? Dry wood burns; wet wood does not. What they did NOT know: (1) Photosynthesis was discovered by Ingen-Housz in 1779 — 1,169 years after the verse was revealed. (2) Chlorophyll and its role in storing solar energy: discovered in the 19th century. (3) The combustion equation as the chemical reverse of photosynthesis: understood by Lavoisier in the 19th century. (4) That coal and oil are ancient green plants: confirmed by 19th-20th century geological science. The essential question: why did the Quran say specifically "the GREEN tree" — not "the dry wood" which everyone knew as fuel? The chemical answer: because "green" identifies chlorophyll — the actual storage site of the energy that fire releases. This could only be understood after 1779.`,
     verses: [
       {
         id: 'verse-yasin-80',
