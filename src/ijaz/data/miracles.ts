@@ -4140,6 +4140,78 @@ One word — "lawaqih" — captures both phenomena with remarkable precision tha
     summaryAr: 'يستخدم القرآن كلمة "أدنى" التي تعني "الأقرب" و"الأخفض" معاً — منطقة البحر الميت حيث هُزم الروم هي فعلاً أخفض نقطة على سطح الأرض.',
     description: 'Surah Ar-Rum (30:2-3) states: "The Romans have been defeated in the nearest/lowest land (أَدْنَى الْأَرْضِ)." The Arabic word "أَدْنَى" (adna) is a superlative form that carries two simultaneous meanings: (1) "nearest" (closest geographically to the Arabian Peninsula), and (2) "lowest" (the lowest elevation). The battle between the Romans and Persians took place near the Dead Sea region in Palestine/Jordan. Modern geographical measurements have confirmed that the Dead Sea region is the lowest point on Earth\'s surface, at approximately -430.5 meters (-1,412 feet) below sea level. This dual meaning was impossible to verify without modern measurement instruments — altimeters, satellite measurements, and global topographic surveys. No human in the 7th century could have known that this specific region was the lowest point on all of Earth\'s land surface. Dr. Haitham Talaat documents that the Arabic language\'s ability to convey multiple simultaneous meanings is itself part of the miracle — the word "أدنى" encodes geographical knowledge that would only be discoverable with modern technology. The verse also contains a fulfilled prophecy (the Roman victory) as discussed in the prophecy of the Roman victory miracle.',
     descriptionAr: 'يقول الله تعالى في سورة الروم (30:2-3): "غُلِبَتِ الرُّومُ فِي أَدْنَى الْأَرْضِ". كلمة "أَدْنَى" صيغة تفضيل تحمل معنيين متزامنين: (1) "الأقرب" جغرافياً إلى الجزيرة العربية، و(2) "الأخفض" ارتفاعاً. جرت المعركة بين الروم والفرس قرب منطقة البحر الميت في فلسطين/الأردن. أكدت القياسات الجغرافية الحديثة أن منطقة البحر الميت هي أخفض نقطة على سطح الأرض، على عمق نحو -430.5 متراً تحت مستوى سطح البحر. هذا المعنى المزدوج كان يستحيل التحقق منه بدون أدوات القياس الحديثة — مقاييس الارتفاع والقياسات الفضائية والمسوحات الطبوغرافية العالمية. لم يكن بإمكان أي بشري في القرن السابع أن يعرف أن هذه المنطقة بالذات هي أخفض نقطة على كل سطح الأرض اليابسة. يوثق د. هيثم طلعت أن قدرة اللغة العربية على نقل معانٍ متعددة متزامنة هي بحد ذاتها جزء من المعجزة — كلمة "أدنى" تشفّر معرفة جغرافية لم يكن بالإمكان اكتشافها إلا بالتكنولوجيا الحديثة.',
+    deepDiveAr: `"أَدْنَى الْأَرْضِ" — كلمة واحدة تحمل معنيين علميين
+===
+سورة الروم (30:2-3) تصف موقع الهزيمة الرومانية بـ"أَدْنَى الْأَرْضِ". كلمة "أَدْنَى" في العربية صيغة تفضيل من الجذر "د-ن-و" وتحمل معنيين متزامنين: الأول "الأقرب" مسافةً من الجزيرة العربية، والثاني "الأخفض" ارتفاعاً — وكلا المعنيين حقيقيان في الوقت نفسه.
+
+أثبت ابن منظور في لسان العرب وابن فارس في مقاييس اللغة أن الجذر "د-ن-و" يحمل كلا المعنيين أصالةً في اللغة العربية الكلاسيكية. لم يكن اختيار "أَدْنَى" عشوائياً — إذ لو أُريد الأقرب جغرافياً فقط لكان الأنسب "أقرب"، ولو أُريد الأخفض فقط لكان الأنسب "أخفض" أو "أسفل".
+
+في القرن السابع لم يكن في وسع أحد التحقق من أي المعنيين يصف حقيقةً علمية — إذ لم تكن أدوات القياس الدقيقة موجودة. لكن القرآن اختار الكلمة التي تحمل الحقيقتين معاً.
+
+
+القياسات الحديثة: البحر الميت عند -430.5 متراً
+===
+أثبتت مهمة رادار تضاريس المكوك الفضائي التابع لناسا (NASA SRTM) في عام 2000 أن منطقة البحر الميت في فلسطين/الأردن هي أخفض نقطة على وجه الأرض، إذ يقع سطحه على -430.5 متراً (-1,412 قدماً) تحت مستوى البحر. هذه بالضبط المنطقة التي جرت فيها المعركة بين الروم والفرس حول عامَي 613-614م.
+
+المؤرخ والتر كاجي في كتابه "هرقل: إمبراطور بيزنطة" (Cambridge University Press, 2003) يوثق أن المعارك الرومانية-الفارسية دارت في المنطقة بين الشام وفلسطين المحاذية للبحر الميت.
+
+لم يكن ممكناً للعلم اليوناني أو الفارسي أو العربي في القرن السابع قياس الارتفاعات بدقة كافية للتحقق من أخفض نقطة على الأرض. أدوات المسح الطبوغرافي الدقيق لم تُطوَّر إلا في القرن التاسع عشر، والقياسات الفضائية في القرن العشرين.
+
+
+المعجزة اللغوية: كلاهما صحيح في آن واحد
+===
+الإعجاز هنا في أن الكلمة صادقة في معنييها معاً. منطقة البحر الميت هي فعلاً:
+- أقرب أجزاء الأرض المأهولة إلى الجزيرة العربية (المعنى الجغرافي المباشر)
+- أخفض نقطة على سطح الأرض بـ-430.5 متراً (المعنى العلمي الدقيق)
+
+لو استخدم النص البشري في القرن السابع "القريبة" لكان صادقاً ظاهرياً لكنه لن يحمل المعنى العلمي الدقيق. لو استخدم "الأخفض" لبدت غريبةً للسامع إذ تبدو السهول مستويةً للعين المجردة في تلك المنطقة. فقط "أَدْنَى" تجمع الحقيقتين في كلمة واحدة.
+
+يُحاجج د. هيثم طلعت أن هذا النوع من الدقة المُسبقة لا يمكن تفسيره بالصدفة أو بالمعرفة البشرية المتاحة في القرن السابع.
+
+
+من اكتشف أخفض نقطة على الأرض؟
+===
+الاكتشاف العلمي لأعماق البحر الميت جاء تدريجياً. أوائل المستكشفين الغربيين في القرن التاسع عشر — من بينهم الملازم الأمريكي ويليام فرانسيس لينش في رحلته عام 1848 — لجؤوا إلى قياس بارومتري نسبي أثبت أن المنطقة أخفض من مستوى البحر. لكن القياس الدقيق جاء مع المسح الفضائي في القرن العشرين.
+
+قبل هذه الاكتشافات لم يكن لأحد في القرن السابع أي طريقة للمعرفة. المنطقة كانت معروفة كأرض منخفضة لكن أن تكون أخفض نقطة على الأرض بأسرها كان مستحيل الإثبات.
+
+الآية القرآنية تشفّر هذه الحقيقة الجغرافية الدقيقة في كلمة واحدة — "أَدْنَى" — بدقة لم يُمكن التحقق منها إلا بالتكنولوجيا الحديثة.`,
+    deepDive: `"Adna al-Ard" — One Word Carrying Two Scientific Meanings
+===
+Surah Ar-Rum (30:2-3) describes the location of the Roman defeat as "adna al-ard" (the nearest/lowest land). The Arabic word "adna" is a superlative from the root d-n-w and carries two simultaneous meanings: (1) "nearest" — closest geographically to the Arabian Peninsula, and (2) "lowest" — the lowest elevation point. Both meanings are accurate simultaneously.
+
+Ibn Manzur in Lisan al-Arab and Ibn Faris in Maqayis al-Lughah confirm that the root d-n-w inherently carries both meanings in classical Arabic. The choice of "adna" was not arbitrary — if only "nearest" was intended, "aqrab" would have been more specific; if only "lowest," "akfad" or "asfal" would have been used.
+
+In the 7th century, no one could verify which meaning described a scientific truth — no accurate measurement instruments existed. Yet the Quran chose the single word that holds both truths simultaneously.
+
+
+Modern Measurements Confirm: Dead Sea at -430.5 Meters
+===
+NASA's Shuttle Radar Topography Mission (SRTM) in 2000 confirmed that the Dead Sea region in Palestine/Jordan is the lowest exposed point on Earth, with its surface at -430.5 meters (-1,412 feet) below sea level. This is precisely the region where the Roman-Persian battles took place around 613-614 CE.
+
+Historian Walter Kaegi in "Heraclius: Emperor of Byzantium" (Cambridge University Press, 2003) documents that the Roman-Persian campaigns were fought in the Levant and Palestine region adjacent to the Dead Sea.
+
+No Greek, Persian, or Arab science in the 7th century could measure elevations with sufficient precision to determine the lowest point on Earth. Accurate topographic surveying was not developed until the 19th century; space-based measurements arrived in the 20th.
+
+
+The Linguistic Miracle: Both Meanings Are True Simultaneously
+===
+The miracle is that the word is truthful in both meanings at once. The Dead Sea region is indeed:
+- The nearest inhabited land to the Arabian Peninsula (the immediate geographic meaning)
+- The lowest point on Earth's surface at -430.5m (the precise scientific meaning)
+
+Had a 7th-century human author written "al-qaribah" (the near one), it would be geographically accurate but miss the scientific precision. Had they written "al-akfad" (the lowest), it would seem odd to listeners since the area appears flat to the naked eye. Only "adna" encodes both truths in one word.
+
+Dr. Haitham Talaat argues that this kind of pre-emptive precision cannot be explained by coincidence or by the human knowledge available in the 7th century.
+
+
+Who Discovered the Lowest Point on Earth?
+===
+The scientific discovery of the Dead Sea's extraordinary depth came in stages. Among the earliest Western explorers, U.S. Navy Lieutenant William Francis Lynch in his 1848 expedition used barometric measurements to prove the region was below sea level. Precise modern measurements were achieved through 20th-century satellite topographic surveys.
+
+Before these discoveries, no one in the 7th century had any means of knowing. The region was known as a low-lying area, but that it was the lowest point on all of Earth's surface was impossible to establish.
+
+The Quranic verse encodes this precise geographical fact in one word — "adna" — with accuracy that could not be measured until the advent of modern technology.`,
     verses: [
       {
         id: 'verse-rum-2-3-adna',
@@ -4200,6 +4272,86 @@ One word — "lawaqih" — captures both phenomena with remarkable precision tha
     summaryAr: 'أعلن القرآن أن جسد فرعون سيُحفظ آيةً للأجيال القادمة — واكتُشفت مومياؤه محفوظة فعلاً، أكد ذلك موريس بوكاي.',
     description: 'Surah Yunus (10:92) states: "Today We will preserve your body so you can be a sign to those who come after you. And indeed, many among the people, of Our signs, are heedless." This verse was revealed about the Pharaoh who pursued Moses and the Israelites and drowned in the sea. The Quran makes an extraordinary claim: Pharaoh\'s body would be preserved as a sign for future generations. When the mummy thought to be the Pharaoh of the Exodus (either Ramesses II or his son Merneptah) was discovered and examined, it was found remarkably well-preserved. Dr. Maurice Bucaille, a French physician, was invited in 1981 to examine the mummy of Merneptah in Cairo. His examination revealed salt deposits in the body consistent with death by drowning in seawater. This finding astonished him because the Quran — unlike the Bible, which says Pharaoh simply drowned without mentioning body preservation — specifically promised that the body would be saved as a sign. Bucaille documented his research in his landmark book "The Bible, the Quran and Science" (La Bible, le Coran et la Science, 1976), in which he concluded that the Quran contains scientific knowledge that could not have originated from a human source. The preservation of an ancient body for over 3,000 years, combined with a specific Quranic declaration of this preservation, demonstrates a remarkable prophecy fulfilled.',
     descriptionAr: 'يقول الله تعالى في سورة يونس (10:92): "فَالْيَوْمَ نُنَجِّيكَ بِبَدَنِكَ لِتَكُونَ لِمَنْ خَلْفَكَ آيَةً ۚ وَإِنَّ كَثِيرًا مِّنَ النَّاسِ عَنْ آيَاتِنَا لَغَافِلُونَ". نزلت هذه الآية عن فرعون الذي طارد موسى وبني إسرائيل وغرق في البحر. يطلق القرآن إعلاناً استثنائياً: سيُحفظ جسد فرعون آيةً للأجيال القادمة. عندما اكتُشفت المومياء التي يُعتقد أنها فرعون الخروج (سواء رمسيس الثاني أو ابنه مرنبتاح) وفُحصت، وُجدت محفوظة بشكل لافت. دُعي الدكتور موريس بوكاي، الطبيب الفرنسي، عام 1981 لفحص مومياء مرنبتاح في القاهرة. كشف فحصه عن ترسبات ملحية في الجسم تتوافق مع الموت غرقاً في مياه البحر. أذهله هذا الاكتشاف لأن القرآن — بخلاف الكتاب المقدس الذي يذكر فقط غرق فرعون دون ذكر حفظ الجسد — وعد تحديداً بأن الجسد سيُنجّى آيةً. وثّق بوكاي أبحاثه في كتابه الرائد "التوراة والإنجيل والقرآن والعلم" (La Bible, le Coran et la Science, 1976)، الذي خلص فيه إلى أن القرآن يحتوي معرفة علمية لا يمكن أن تكون من مصدر بشري. حفظ جسد قديم لأكثر من 3000 عام، مع إعلان قرآني محدد بهذا الحفظ، يُثبت نبوءة بارزة تحققت.',
+    deepDiveAr: `"نُنَجِّيكَ بِبَدَنِكَ" — الإعلان القرآني قبل اكتشاف المومياء بـ1200 عام
+===
+سورة يونس (10:92): "فَالْيَوْمَ نُنَجِّيكَ بِبَدَنِكَ لِتَكُونَ لِمَنْ خَلْفَكَ آيَةً". يطلق القرآن إعلاناً استثنائياً: لن يختفي جسد فرعون في أعماق البحر، بل سيُحفظ ليكون آيةً مرئية للأجيال القادمة. الكلمة الحاسمة هي "بِبَدَنِكَ" — بجسدك المادي — وليس "بذِكرِكَ" أو "بقصتك".
+
+في القرن السابع لم يكن أحد يعرف أن جسد فرعون موجود في مكان ما. الحوادث وقعت قبل نحو 3000 عام والبحر يكتم أسراره. الكتاب المقدس في سفر الخروج (14:28) يذكر غرق جيش فرعون لكنه لا يُشير بكلمة إلى حفظ الجسد آيةً. القرآن وحده يطلق هذا الوعد المحدد القابل للتحقق.
+
+مومياء رمسيس الثاني اكتُشفت في كهف دير البحري عام 1881، وفُحصت لاحقاً مومياء مرنبتاح ابنه — أحد أبرز المرشحين لفرعون الخروج.
+
+
+موريس بوكاي: الطبيب الذي أذهله القرآن
+===
+في عام 1981 دُعي الدكتور موريس بوكاي، الطبيب الفرنسي المتخصص وعضو الأكاديمية الفرنسية للطب، إلى القاهرة لفحص مومياء مرنبتاح. ما وجده أذهله: ترسبات ملحية بارزة داخل الجسم تتوافق مع الغرق في مياه البحر المالحة لا في مياه النيل العذبة.
+
+اللافت أن بوكاي كان يعمل دون علم مسبق بالنص القرآني المتعلق بفرعون. عندما أُخبر بالآية "نُنَجِّيكَ بِبَدَنِكَ" أُصيب بذهول تام. عاد إلى فرنسا ليتعلم العربية ويدرس القرآن وعكف سنوات على البحث، ثم نشر كتابه الرائد "التوراة والإنجيل والقرآن والعلم" (La Bible, le Coran et la Science, 1976) الذي خلص فيه إلى أن القرآن يحتوي معرفة علمية لا يمكن أن تكون من مصدر بشري.
+
+نشر بوكاي لاحقاً كتاب "مومياوات الفراعنة: تحقيقات طبية حديثة" (Mummies of the Pharaohs: Modern Medical Investigations, St. Martin's Press, 1990) موثقاً الأدلة الجنائية التفصيلية.
+
+
+الأدلة الجنائية: ملح البحر في جسد الفرعون
+===
+الفحص الجنائي الحديث للمومياء كشف عن مؤشرات متعددة:
+- ترسبات الملح (كلوريد الصوديوم) بتركيزات تتوافق مع مياه البحر لا مياه النيل العذبة
+- آثار تشير إلى الغرق لا إلى الوفاة في اليابسة
+- حالة حفظ استثنائية رغم مرور أكثر من 3000 عام
+
+هذه النتائج الجنائية لم تكن معروفة عند كتابة القرآن. التحنيط المصري القديم كان يُزيل الأعضاء الداخلية ويستخدم النطرون (كربونات الصوديوم) — لكن ترسبات ملح البحر في الجسم جاءت زيادةً على ما هو متوقع من عملية التحنيط وحدها.
+
+الحفظ نفسه استثنائي: 3000 عام في الأرض والجسد ما زال يمكن فحصه جنائياً — أداءً للدور الذي أعلنه القرآن: "آيةً لِمَنْ خَلْفَكَ".
+
+
+المعجزة في التفصيل: "بِبَدَنِكَ" وليس "بِرُوحِكَ"
+===
+الدقة اللغوية في الآية مذهلة. "نُنَجِّيكَ بِبَدَنِكَ" — الإنجاء يكون بالجسد المادي. هذا يعني:
+- لن يغرق الجسد في أعماق البحر لا يُرى أبداً
+- الجسد سيبقى سليماً بما يكفي ليكون "آيةً" مرئية للأجيال القادمة
+- هذه الآية موجهة إلى من يأتي بعد فرعون — أجيال المستقبل
+
+لم يقل القرآن: "سيُذكر اسمك"، ولا "ستبقى قصتك"، بل "بِبَدَنِكَ" — الجسد المادي الملموس. هذا التفصيل كان مستحيلاً التحقق منه في القرن السابع، ولم يتحقق إلا عندما رُفع الغطاء عن تابوت مرنبتاح في متحف القاهرة.
+
+المقارنة مع التوراة تُضيف طبقة إضافية: لو كان النبي محمد يستند إلى النصوص اليهودية كما يزعم بعضهم، فمن أين جاء هذا التفصيل الفريد غير الموجود في التوراة ولا في الكتاب المقدس؟`,
+    deepDive: `"Bibadanik" — A Declaration 1,200 Years Before the Mummy's Discovery
+===
+Surah Yunus (10:92): "Today We will save you in your body (bibadanik) that you may be to those who succeed you a sign." The Quran makes an extraordinary declaration: Pharaoh's body would not disappear into the depths of the sea — it would be preserved as a visible sign for future generations. The critical word is "bibadanik" — in your body, your physical body — not "in your soul," "in your memory," or "in your legacy."
+
+In the 7th century, no one knew that any Pharaoh's body existed anywhere. The events had occurred roughly 3,000 years earlier. The Bible (Exodus 14:28) mentions only that Pharaoh's army drowned, with no mention of body preservation. The Quran alone makes this specific, verifiable promise.
+
+The mummy of Ramesses II was discovered in the Deir el-Bahari cache in 1881. His son Merneptah's mummy — one of the strongest candidates for the Pharaoh of the Exodus — was later examined.
+
+
+Dr. Maurice Bucaille: The Physician Astonished by the Quran
+===
+In 1981, Dr. Maurice Bucaille — a French physician and member of the French National Academy of Medicine — was invited to Cairo to medically examine Merneptah's mummy. What he found astonished him: prominent salt deposits inside the body inconsistent with drowning in freshwater, but consistent with drowning in saltwater.
+
+Notably, Bucaille was working without prior knowledge of the Quranic verse about Pharaoh. When informed of the verse "We will save you in your body," he was struck speechless. He returned to France, learned Arabic, studied the Quran, and spent years in research before publishing "The Bible, the Quran and Science" (La Bible, le Coran et la Science, 1976), concluding that the Quran contains scientific knowledge that could not have originated from a human source.
+
+Bucaille later published "Mummies of the Pharaohs: Modern Medical Investigations" (St. Martin's Press, 1990) documenting the forensic evidence in detail.
+
+
+Forensic Evidence: Sea Salt in Pharaoh's Body
+===
+Modern forensic examination of the mummy revealed multiple indicators:
+- Salt (sodium chloride) deposits at concentrations consistent with seawater, not the freshwater of the Nile
+- Physical evidence suggesting drowning rather than death on land
+- Exceptional preservation despite more than 3,000 years
+
+These forensic findings were unknown when the Quran was written. Ancient Egyptian mummification involved removing internal organs and using natron (sodium carbonate) — but the seawater salt deposits found in the body were additional to what normal mummification would produce.
+
+The preservation itself is remarkable: 3,000 years in the earth and the body remains forensically examinable — fulfilling precisely the role the Quran declared: "a sign for those who come after."
+
+
+The Miracle of Specificity: "Bibadanik" — Your Body, Not Your Memory
+===
+The linguistic precision of the verse is striking. "We will save you in your body" means:
+- The body would not sink to the ocean depths, unseen and lost forever
+- The body would remain sufficiently intact to serve as a visible "sign" for future observers
+- This sign was explicitly directed at generations yet to come
+
+The Quran did not say "your name will be remembered" or "your story will survive" — it said "in your body" — the tangible, physical body. This detail was impossible to verify in the 7th century and was confirmed only when the lid was lifted on Merneptah's sarcophagus in the Cairo Museum.
+
+The comparison with the Bible adds another dimension: if the Prophet Muhammad was drawing from Jewish scriptures, where did this specific detail come from? Neither the Torah nor the Bible contains any prophecy about Pharaoh's body being preserved as a sign for future generations.`,
     verses: [
       {
         id: 'verse-yunus-92',
