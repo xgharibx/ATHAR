@@ -7056,6 +7056,120 @@ The word "tatma'innu" (Arabic root t-m-a-n): conveys stability, steadiness, and 
     summaryAr: 'يصف القرآن الجنين بـ"المضغة" — مصطلح وجده علماء الأجنة الحديثون دقيقاً بشكل مذهل للجنين الحامل للسوميتات في 28-31 يوماً، الذي يشبه بصرياً قطعة من العلكة الممضوغة.',
     description: 'Surah Al-Mu\'minun (23:14) describes embryonic development: "Then We made the sperm-drop into a clinging clot (alaqah), and We made the clinging clot into a chewed lump (mudghah), and We made the chewed lump into bones, and We clothed the bones with flesh; then We developed him into another creation." The Arabic word "mudghah" (مُضْغَة) literally means "a piece of substance that has been chewed" or "a chewed lump." At 28–31 days of development (the 4th week), the human embryo: (1) IS VISUALLY CHEWED: The somite blocks on the embryo\'s back create depressions and ridges that make it look exactly like a piece of chewed gum or bitten meat. (2) IS TINY: A mudghah in Arabic refers to a morsel just large enough to be placed in the mouth — the embryo at this stage is approximately 4–6 mm, precisely the size of such a morsel. (3) HAS "BITE MARKS": The somites (which form vertebrae and muscles) create a segmented pattern resembling the indentations of teeth marks. Canadian embryologist Keith L. Moore, who contributed to the textbook "The Developing Human," studied the Quranic descriptions of embryology and stated: "The Quran\'s descriptions of the developing embryo use terms that correspond accurately to the stages of human development." He verified that "mudghah" perfectly describes the chewed appearance of the 4th-week embryo. The Quran also makes a distinction: "مُّضْغَةٍ مُّخَلَّقَةٍ وَغَيْرِ مُخَلَّقَةٍ" (22:5) — "formed mudghah and unformed mudghah" — corresponding to the distinction between embryos developing normally and those that are malformed/will be miscarried, a distinction modern embryology confirms.',
     descriptionAr: 'تصف سورة المؤمنون (23:14) التطور الجنيني: "ثُمَّ خَلَقْنَا النُّطْفَةَ عَلَقَةً فَخَلَقْنَا الْعَلَقَةَ مُضْغَةً فَخَلَقْنَا الْمُضْغَةَ عِظَامًا فَكَسَوْنَا الْعِظَامَ لَحْمًا ثُمَّ أَنشَأْنَاهُ خَلْقًا آخَرَ". كلمة "مُضْغَة" تعني حرفياً "قطعة لحم قُضمت". في اليوم 28-31 من التطور، الجنين البشري يبدو بالضبط كقطعة لحم ممضوغة بسبب أجزاء السوميتات على ظهره. أكد عالم الأجنة الكندي كيث مور أن "مضغة" تصف بدقة مذهلة مظهر جنين الأسبوع الرابع. كما يميز القرآن بين "مُضْغَةٍ مُّخَلَّقَةٍ وَغَيْرِ مُخَلَّقَةٍ" — الجنين الطبيعي والمشوه — تمييزاً تؤكده علم الأجنة الحديث.',
+    deepDiveAr: `مُضْغَة — التشريح اللغوي وحقيقة الجنين في الأسبوع الرابع
+===
+كلمة "مُضْغَة" مشتقة من الجذر "مَضَغَ" (يمضغ) — وتعني بالتحديد: قطعة اللحم أو المادة التي جرى عضّها ومضغها؛ لا مجرد "قطعة صغيرة" ولا مجرد "لحم".
+
+في اليوم 28-31 من التطور الجنيني (مراحل كارنيجي Carnegie Stage 10–13):
+- الجنين البشري يبلغ 4–6 ملم — حجم اللقمة في الفم تماماً
+- السطح الظهري للجنين مكسو بحدبات وانبعاجات تشبه بصرياً أثر أسنان في لحم ممضوغ
+- هذه الانبعاجات هي أجزاء السوميتات (Somites) التي ستتشكل منها الفقرات والعضلات
+
+عرب القرن السابع الميلادي لم يكن لديهم علم أجنة ولا مجاهر. اختيار القرآن لكلمة "مُضْغَة" — وهي كلمة حسّية طعامية تعني "الممضوغ" — يطابق التشريح البصري لجنين الأسبوع الرابع بدقة لا يمكن التحقق منها إلا بالمجهر.
+
+
+السوميتات — بصمة الأسنان في جسم الجنين
+===
+السوميتات (Somites) هي كتل من الخلايا الوسيطة تتشكل على جانبي العمود الفقري الجنيني في أزواج منتظمة:
+- تبدأ بالظهور في اليوم الثامن والعشرين من التطور
+- بحلول اليوم 31-32: نحو 25-30 زوجاً من السوميتات مرئية
+- كل زوج يرتفع كحدبة صغيرة بين منخفضين — يخلق نمط "الأسنان المنغرسة" الذي يُعطي الجنين مظهر اللحم الممضوغ
+
+ماذا تُكوّن السوميتات لاحقاً؟
+- الفقرات والضلوع (الهيكل العظمي المحوري)
+- العضلات الهيكلية للظهر والأطراف
+- الطبقات العميقة من الجلد (الأدمة)
+
+مصطلح "Somite" صُكّ في القرن التاسع عشر الميلادي — بعد الوصف القرآني للمضغة بأكثر من 1,200 سنة.
+
+
+مُضْغَةٍ مُّخَلَّقَةٍ وَغَيْرِ مُخَلَّقَةٍ — تمييز لم يعرفه الطب إلا حديثاً
+===
+يقول الله تعالى في سورة الحج (22:5): "...مُّضْغَةٍ مُّخَلَّقَةٍ وَغَيْرِ مُخَلَّقَةٍ لِّنُبَيِّنَ لَكُمْ..."
+
+القرآن يُفرّق صراحةً بين نوعين من المضغة:
+- مُخَلَّقَة: مضغة مُشكَّلة تماماً وطبيعية — ستكتمل وتُولد
+- غير مُخَلَّقَة: مضغة غير مُشكَّلة أو مشوهة — ستُجهَض
+
+ما تقوله الكيمياء الحيوية وعلم الأجنة الحديث:
+- نحو 50% من البيوض المخصبة لا تتطور لجنين سليم
+- الأسبوع الرابع هو النافذة الحرجة التي يتباين فيها التطور الطبيعي عن الشاذ بشكل واضح
+- الجنين المشوه يبدو "غير مُشكَّل" في هذه المرحلة بالضبط بسبب اضطراب السوميتات
+
+أكد عالم الأجنة كيث مور (1986) أن هذا التمييز القرآني "واسع الأفق بشكل لافت" ويوازي الفهم الحديث للإجهاض التلقائي المبكر.
+
+
+شهادة كيث مور — عالم أجنة من أكثر الكتب المدرسية انتشاراً في العالم
+===
+كيث إل. مور (University of Toronto)، المؤلف المشارك لكتاب "The Developing Human" (الجنين النامي)، المستخدم في أكثر من 20 دولة كمرجع معياري في علم الأجنة.
+
+بعد دراسته للأوصاف القرآنية، أعلن مور في ورقته العلمية (1986):
+- "مُضْغَة" تصف بدقة مذهلة المظهر البصري لجنين الأسبوع الرابع بسبب السوميتات
+- التسلسل في سورة المؤمنون (23:14): نطفة — علقة — مضغة — عظام — لحم يطابق تسلسل مراحل كارنيجي بدقة علمية
+- التمييز بين المضغة المخلقة وغير المخلقة يوازي الفهم الحديث للإجهاض التلقائي في الأسبوع الرابع
+
+المرجع الرئيسي: Moore, K.L. (1986). "A Scientist's Interpretation of References to Embryology in the Quran." Journal of IMA, 18:15-17.
+المرجع الثاني: Moore, K.L. & Persaud, T.V.N. (1993). "The Developing Human." W.B. Saunders.
+
+الفجوة الزمنية بين الوصف القرآني (610م) وتأكيد كيث مور العلمي (1986م): 1,376 سنة.`,
+    deepDive: `"Mudghah" — Linguistic Anatomy and the 4th-Week Embryo
+===
+The Arabic word "mudghah" derives from the root "madagha" (to chew) — it specifically means a piece of substance that has been bitten and chewed. Not simply "a small piece" or "flesh," but flesh bearing the mark of the chewing action.
+
+At days 28–31 of human development (Carnegie Stages 10–13):
+- The embryo is 4–6 mm — precisely the size of a morsel one would place in the mouth
+- The dorsal surface is covered by ridges and indentations that visually resemble teeth marks in bitten food
+- These features are created by somite blocks lining either side of the developing notochord
+
+7th-century Arabia had no embryology, no microscopes, and no scientific framework for describing early embryonic development. The Quran's choice of "mudghah" — a culinary, tactile word meaning "chewed piece" — matches the precise visual anatomy of the 4th-week embryo that could only be confirmed with magnification.
+
+
+Somites — The "Tooth Marks" of Embryonic Development
+===
+Somites are blocks of paraxial mesoderm cells that form in pairs along the embryo's developing spine with extraordinary regularity:
+- Formation begins around day 28
+- By days 31–32: approximately 25–30 somite pairs are visible
+- Each pair elevates as a small ridge between two depressions — creating a segmented, "bitten" pattern
+
+What somites eventually become:
+- Vertebrae and ribs (axial skeleton)
+- Skeletal muscles of the back and limbs
+- Deep skin layers (dermis)
+
+The term "somite" was coined in 19th-century embryology — over 1,200 years after the Quran described the mudghah stage. Their visual segmented ridging is the direct anatomical cause of the embryo's "chewed lump" appearance, documented in Carnegie Stage photographs.
+
+
+"Formed and Unformed" — A Medical Distinction Unknown Until Modern Times
+===
+Surah Al-Hajj (22:5) states: "...a formed mudghah (chewed lump) and an unformed [one], that We may show you [Our power]..."
+
+The Quran explicitly distinguishes two types of mudghah:
+- Mukhallaqah (formed): a properly developing, complete embryo — will develop to term
+- Ghayr mukhallaqah (unformed): an incomplete or malformed embryo — will be miscarried
+
+What modern embryology confirms:
+- Approximately 50% of fertilized eggs fail to develop normally
+- The 4th–5th week is the critical window where normal and abnormal development diverge visibly
+- Malformed embryos at this stage show irregular somite patterns and disorganized structure — they appear visually "unformed"
+
+Embryologist Keith Moore (1986) specifically noted this Quranic distinction is "remarkably prescient" and corresponds accurately to modern obstetric understanding of spontaneous early pregnancy loss.
+
+
+Keith Moore's Scientific Testimony — From the World's Most Used Embryology Textbook
+===
+Keith L. Moore (University of Toronto), co-author of "The Developing Human: Clinically Oriented Embryology" — used as a standard embryology reference in 20+ countries.
+
+After studying Quranic embryological descriptions, Moore stated in his 1986 scientific paper:
+- "Mudghah" accurately describes the visual appearance of the 4th-week embryo due to somite ridging
+- The developmental sequence in Al-Mu'minun 23:14 (nutfah — alaqah — mudghah — bones — flesh) matches the Carnegie stage sequence accurately
+- The formed/unformed mudghah distinction corresponds to modern understanding of spontaneous abortion at the 4th-week stage
+
+Key references:
+- Moore, K.L. (1986). "A Scientist's Interpretation of References to Embryology in the Quran." Journal of IMA, 18:15-17.
+- Moore, K.L. & Persaud, T.V.N. (1993). "The Developing Human." W.B. Saunders. (Standard textbook, 20+ countries.)
+- Sadler, T.W. (2018). "Langman's Medical Embryology." Wolters Kluwer. 14th Ed. (Week 4 embryo images document somite ridging.)
+
+Time gap between the Quranic description (610 CE) and Keith Moore's scientific confirmation (1986 CE): 1,376 years.`,
     verses: [
       {
         id: 'verse-muminun-14',
@@ -7120,6 +7234,122 @@ The word "tatma'innu" (Arabic root t-m-a-n): conveys stability, steadiness, and 
     summaryAr: 'يُقسم القرآن بـ"النجم الثاقب" — اكتشف علم الفلك الحديث النجوم النابضة (البلسارات): نجوم نيوترونية تُطلق أشعة إشعاعية دوارة تخترق الفضاء حرفياً، مطابقةً للاسم القرآني بدقة.',
     description: 'Surah At-Tariq (86:1–3) states: "By the sky and the night comer — And what can make you know what is the night comer? — It is the piercing star (النَّجْمُ الثَّاقِبُ)." The Arabic word "thaqib" (ثَاقِب) is derived from "thaqaba" (ثقب) — to pierce, to bore through, to make a hole. A "thaqib" star is literally a star that pierces. Pulsars (discovered 1967 by Jocelyn Bell Burnell) are rapidly rotating neutron stars that emit beams of electromagnetic radiation from their magnetic poles. These beams sweep through space like a lighthouse beam — literally "piercing" through the cosmos. Key characteristics matching the Quranic name: (1) PIERCING BEAMS: Pulsars emit highly focused, intense radiation beams — the most powerful in the universe — that literally drill through interstellar space. (2) NIGHT COMERS: Pulsar signals arrive at Earth as regular "knocks" — the Arabic "al-tariq" (الطارق) also means "the one who knocks/comes in the night." (3) NEUTRON DENSITY: Neutron stars are the densest objects short of black holes — a teaspoon would weigh billions of tons. Their intense gravity and magnetic fields create conditions unimaginable to 7th century Arabs. (4) REGULAR PULSES: Some pulsars pulse hundreds of times per second with clock-like precision — explaining the solemn oath in the Quran as emphasizing something of profound regularity and precision.',
     descriptionAr: 'يقول الله تعالى في سورة الطارق (86:1-3): "وَالسَّمَاءِ وَالطَّارِقِ ﴿1﴾ وَمَا أَدْرَاكَ مَا الطَّارِقُ ﴿2﴾ النَّجْمُ الثَّاقِبُ". كلمة "ثاقب" من "ثقب" — يخترق ويثقب. النجوم النابضة (البلسارات)، التي اكتُشفت عام 1967، هي نجوم نيوترونية تُطلق أشعة إشعاعية مركزة تخترق الفضاء الكوني حرفياً. خصائص تطابق الاسم القرآني: (1) أشعة ثاقبة: تُطلق البلسارات أشعة إشعاعية مركزة هي الأقوى في الكون. (2) الطارق = المنتظم: يُطلق بعض البلسارات نبضات مئات المرات في الثانية بدقة ساعية.',
+    deepDiveAr: `ثَاقِب — جذر لغوي يصف فيزياء النجوم النابضة بدقة
+===
+كلمة "ثاقب" مشتقة من الجذر "ثَقَبَ" — يخترق، يثقب، يجعل ثقباً. "النجم الثاقب" هو النجم الذي يخترق.
+
+في اللغة العربية، استُخدمت الكلمة لنور النجم الذي "يثقب" ظلمة الليل. لكن القرآن لا يذكرها عرضاً — بل يُقسم بها قسماً مؤكداً ويُعظّم شأنها: "وَمَا أَدْرَاكَ مَا الطَّارِقُ" (ما الذي سيجعلك تعلم ما هو؟).
+
+البلسارات (Pulsars)، المكتشفة عام 1967:
+- نجوم نيوترونية تُطلق أشعة إشعاعية مركزة من قطبيها المغناطيسيين
+- هذه الأشعة تخترق حرفياً: الغبار الكوني، والغاز بين النجوم، والمسافات اللاحدودية
+- أشعة البلسارات الراديوية تخترق السحب الغبارية التي تعترض الضوء المرئي تماماً — هي "ثقب" حرفي في النسيج الكوني
+- قدرة الأشعة: تصل إلى 10^37 واط — من أقوى مصادر الطاقة المعروفة في الكون
+
+الاسم القرآني "ثاقب" ينطبق على البلسار فيزيائياً لا مجازياً.
+
+
+البلسارات — الجثث النجمية الصارخة
+===
+عندما تنفجر نجمة ضخمة (8-20 ضعف كتلة الشمس) في مستعر أعظم (Supernova)، يتهاوى نواتها إلى كرة قطرها ~20 كيلومتراً — أكثف من نواة ذرية.
+
+هذه "الجثة النجمية" تدور بسرعة مذهلة:
+- بعض البلسارات الميلي-ثانية تدور 700 مرة في الثانية الواحدة
+- بلسار سرطانية النجوم (Crab Pulsar): 30 نبضة في الثانية، بقية مستعر أعظم رصده الصينيون عام 1054م
+- الحقل المغناطيسي: 10^8 إلى 10^15 غاوس (مقارنةً بـ 0.5 غاوس للأرض)
+- قدرة الأشعة المُطلَقة: تصل إلى 10^37 واط
+
+الكثافة: ملعقة صغيرة من مادة النجم النيوتروني تزن ~مليار طن. هذه أرقام حقيقية، لا مبالغة.
+
+
+الطارق — القارع الليلي: دقة لغوية مزدوجة في كلمة واحدة
+===
+"الطارق" (al-Tariq) يعني في العربية: "الذي يطرق ويأتي ليلاً". في التراث العربي: الطارق هو الزائر الذي يطرق بابك في الليل دون إذن مسبق — مفاجئ ومنتظم.
+
+البلسارات تجمع الخاصيتين معاً:
+1. القرع الليلي: إشارات البلسارات تصل إلى الأرض كـ"طرقات" منتظمة بدقة — نبضات راديوية تتكرر بانتظام آلي دقيق
+2. الاختراق الثاقب: الأشعة تخترق الغبار والغاز الكوني
+
+حين اكتشفت جوسيلين بيل برنيل إشارات أول بلسار عام 1967، سُمّيت في البداية "LGM-1" (Little Green Men 1) لأن الانتظام الدقيق جعلها تبدو اصطناعية — النبض كان أشبه برسالة منتظمة تُقرع ليلاً ونهاراً.
+
+الاسم القرآني "الطارق الثاقب" يختزل خاصيتين فيزيائيتين اكتشفهما العلم بعد 1,357 سنة.
+
+
+اكتشاف 1967 وشهادة علم الفلك الحديث
+===
+جوسيلين بيل برنيل (Cambridge، 1967): أول رصد لإشارات بلسار.
+أنتوني هيويش: شارك في جائزة نوبل للفيزياء عام 1974.
+
+حقائق فيزيائية عن البلسارات:
+- أكثر من 3,000 بلسار مُرصَد حتى الآن في مجرتنا وحدها
+- الدقة الزمنية للبلسارات تُستخدم لاختبار نظرية النسبية العامة لآينشتاين بأدق الطرق المعروفة
+- أشعة البلسارات تخترق المجرة بأكملها — بعضها مرصود في المجرات المجاورة
+- بعض البلسارات تُصدر أشعة غاما وأشعة سينية وأشعة راديوية في آنٍ واحد
+
+بلسار سرطانية النجوم كان يُطلق نبضاته الثاقبة منذ قبل اكتمال الرسالة القرآنية — فكان "ثاقباً" حين نزل القسم به.
+
+المرجع: Hewish, A. et al. (1968). "Observation of a Rapidly Pulsating Radio Source." Nature, 217:709-713. (جائزة نوبل 1974)
+المرجع: Lorimer, D.R. & Kramer, M. (2004). "Handbook of Pulsar Astronomy." Cambridge University Press.
+
+الفجوة الزمنية بين القسم القرآني بالنجم الثاقب (610م) وأول رصد للبلسارات (1967م): 1,357 سنة.`,
+    deepDive: `"Thaqib" — A Linguistic Root That Describes Pulsar Physics
+===
+The word "thaqib" (ثَاقِب) derives from the root "thaqaba" — to pierce, to bore through, to make a hole. "Al-Najm al-Thaqib" is literally "the piercing star."
+
+In classical Arabic, the word described a star whose light "pierces" through the darkness of night. But the Quran does not use it casually — it swears by this object solemnly and asks: "And what can make you know what is the night comer?" — marking it as something extraordinary.
+
+Pulsars (discovered 1967):
+- Rapidly rotating neutron stars emitting focused beams of electromagnetic radiation from their magnetic poles
+- These beams physically pierce through: interstellar dust clouds, cosmic gas, and vast intergalactic distances
+- Radio pulsar beams penetrate dust clouds that block all visible light — they are literally the universe's most powerful piercing emitters
+- Beam power: up to 10^37 watts — among the most luminous objects in the universe
+
+The Arabic "thaqib" describes pulsar physics literally, not metaphorically.
+
+
+Pulsars — The Screaming Corpses of Dead Stars
+===
+When a massive star (8–20 solar masses) dies in a supernova explosion, its core collapses to a sphere approximately 20 km in diameter — denser than an atomic nucleus.
+
+This stellar "corpse" rotates at extraordinary speeds:
+- Millisecond pulsars rotate up to 700 times per second
+- The Crab Pulsar: 30 pulses per second, remnant of a supernova recorded by Chinese astronomers in 1054 CE
+- Magnetic field strength: 10^8 to 10^15 gauss (Earth's field = 0.5 gauss)
+- Beam power: up to 10^37 watts
+
+Physical extremes: a teaspoon of neutron star material weighs approximately 1 billion tons. The intense magnetic field channels all radiation into two focused beams that sweep through space like a cosmic lighthouse — literally piercing the galaxy with every rotation.
+
+
+"Al-Tariq" — The Night Knocker: Double Linguistic Precision in One Word
+===
+"Al-Tariq" (الطارق) means in Arabic: "the one who knocks and arrives at night." In Arab tradition, a "tariq" was an unexpected visitor who knocked at your door in the darkness — both a nocturnal presence and a persistent knocker.
+
+Pulsars encode both properties simultaneously:
+1. Night knocking: Pulsar signals arrive at Earth as precisely timed "knocks" — repeating radio pulses of extraordinary regularity, like a cosmic clock beating in the dark
+2. Piercing: Their focused beams pierce through the galaxy's dust and gas
+
+When Jocelyn Bell Burnell first detected pulsar signals in 1967, she initially named them "LGM-1" (Little Green Men 1) because the precision of the pulses seemed artificial — like a regular, rhythmic knock broadcasting through the cosmic night.
+
+The Quranic phrase "al-Tariq al-Thaqib" encodes two physical properties — regular nocturnal arrival and piercing emission — that science confirmed 1,357 years later.
+
+
+The 1967 Discovery and Modern Astrophysics
+===
+Jocelyn Bell Burnell (Cambridge, 1967): first detection of pulsar radio signals.
+Antony Hewish: shared Nobel Prize in Physics 1974.
+
+Key astrophysical facts:
+- Over 3,000 pulsars catalogued in our galaxy alone
+- Pulsar timing precision is used to test Einstein's General Relativity — providing its most accurate real-world validation
+- Pulsar beams pierce through the entire Milky Way; some detected in neighboring galaxies
+- Some pulsars emit simultaneously: radio waves, X-rays, and gamma rays (multi-wavelength piercers)
+- The Crab Pulsar has been emitting 30 piercing pulses per second continuously — it was already "piercing" when the Quran named the phenomenon
+
+Key references:
+- Hewish, A. et al. (1968). "Observation of a Rapidly Pulsating Radio Source." Nature, 217:709-713. (Nobel Prize 1974)
+- Lorimer, D.R. & Kramer, M. (2004). "Handbook of Pulsar Astronomy." Cambridge University Press.
+
+Time gap between the Quranic oath by the piercing star (610 CE) and the scientific discovery of pulsars (1967 CE): 1,357 years.`,
     verses: [
       {
         id: 'verse-tariq-1-3',
