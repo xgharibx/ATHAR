@@ -5953,7 +5953,7 @@ Three descriptions in two verses — for objects unknown to science before the 2
 (ب) جائزة نوبل في الفسيولوجيا أو الطب 2017:
 حصل عليها جيفري هول، ومايكل روسباش، ومايكل يانغ، لاكتشاف الآليات الجزيئية للإيقاع اليومي المحكوم بالضوء والظلام. الملخص: أجسادنا مُبرمَجة على مستوى الجينات لتعمل بشكل مختلف في الظلام.
 
-مسافة 1430 سنة بين نزول الآية وجائزة نوبل الممنوحة على موضوعها. القرآن لخّص كل هذا في كلمة واحدة: "لِبَاسًا".`,
+مسافة 1407 سنة بين نزول الآية (610 م) وجائزة نوبل الممنوحة على موضوعها (2017 م). القرآن لخّص كل هذا في كلمة واحدة: "لِبَاسًا".`,
     deepDive: `"Libaas" (Libaasaan) — Why "Covering/Garment" Is the Most Precise Word Possible
 ===
 The Quran describes night as "libaas" (a garment/covering) in two places:
@@ -6006,7 +6006,7 @@ Classified nighttime light exposure (Light at Night) as a "probable human carcin
 (B) Nobel Prize in Physiology or Medicine 2017:
 Awarded to Jeffrey Hall, Michael Rosbash, and Michael Young for discovering the molecular mechanisms of the circadian rhythm controlled by light and darkness. The summary: our bodies are genetically programmed to operate differently in darkness.
 
-1,430 years between the revelation of the verse and the Nobel Prize awarded for its subject matter. The Quran summarized all of this in a single word: "libaasaan" (a garment).`,
+1,407 years between the revelation of the verse (610 CE) and the Nobel Prize awarded for its subject matter (2017 CE). The Quran summarized all of this in a single word: "libaasaan" (a garment).`,
     verses: [
       {
         id: 'verse-naba-9-10-night',
