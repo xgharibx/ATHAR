@@ -5437,6 +5437,98 @@ The combined constraint: geographic marker (Kedar = Hejaz) + universal mission s
     summaryAr: 'يقول القرآن إن الشمس "تجري لمستقر لها" — يؤكد علم الفلك الحديث أن الشمس تتحرك نحو الأوج الشمسي في كوكبة هرقل بسرعة 19.7 كم/ث، قبل أكثر من 1100 عام من اكتشاف هيرشل.',
     description: 'Surah Ya-Sin (36:38) states: "And the sun runs to an appointed resting place (mustaqarr). That is the determination of the Exalted in Might, the Knowing." The Arabic word "مُسْتَقَرٌّ" (mustaqarr) means both a resting/stopping place AND an appointed orbit. For centuries, astronomers believed the sun was stationary at the center of the solar system. Only with modern astrophysics was it discovered that: (1) The sun moves toward the Solar Apex — a specific point in the constellation Hercules — at approximately 19.7 km/s (70,000 km/h). This was first detected by William Herschel in 1783. (2) The sun also orbits the galactic center at approximately 220 km/s, completing one orbit every ~225–250 million years. (3) Surah Al-Anbiya (21:33) adds that the sun and moon each "swim" (يَسْبَحُون) in their own orbit — the Arabic root for orbiting through space. The Quranic phrase "تَجْرِي لِمُسْتَقَرٍّ لَّهَا" is linguistically precise: "tajri" is a present participle meaning continuous motion; "mustaqarr" is the appointed destination/resting place. This precisely describes the Solar Apex — the sun\'s appointed destination toward which it continuously moves. Dr. Haitham Talaat documents that before modern astronomy, no human civilization had any knowledge of the sun\'s proper motion. Even after Copernicus (1543) established heliocentrism, the sun was still considered stationary until Herschel\'s 1783 discovery — over 1100 years after the Quran\'s revelation.',
     descriptionAr: 'يقول الله تعالى في سورة يس (36:38): "وَالشَّمْسُ تَجْرِي لِمُسْتَقَرٍّ لَّهَا ذَٰلِكَ تَقْدِيرُ الْعَزِيزِ الْعَلِيمِ". كلمة "مُسْتَقَرٌّ" تعني مكان التوقف والاستقرار أو المسار المقرر. لقرون طويلة كان الفلكيون يعتقدون أن الشمس ثابتة. ولم يُكتشف إلا في الفيزياء الفلكية الحديثة أن الشمس تتحرك نحو الأوج الشمسي في كوكبة هرقل بسرعة 19.7 كم/ث، اكتشف ذلك وليام هيرشل عام 1783. وتدور الشمس أيضاً حول مركز المجرة بسرعة 220 كم/ث. يوثق د. هيثم طلعت أنه قبل علم الفلك الحديث، لم تكن لأي حضارة بشرية أي معرفة بالحركة الذاتية للشمس.',
+    deepDiveAr: `"وَالشَّمْسُ تَجْرِي لِمُسْتَقَرٍّ لَّهَا" — المعنى اللغوي الدقيق
+===
+الآية في سورة يس (36:38): "وَالشَّمْسُ تَجْرِي لِمُسْتَقَرٍّ لَّهَا ذَٰلِكَ تَقْدِيرُ الْعَزِيزِ الْعَلِيمِ".
+
+تحليل الكلمات الجوهرية:
+- "تَجْرِي": مضارع مستمر = حركة نشطة مستمرة لا تتوقف.
+- "لِمُسْتَقَرٍّ": اللام تفيد الغاية والتوجه = تتحرك نحو هدف. "مستقر" من "استقر" = مكان الاستقرار المحدد، الوجهة المقررة.
+- "لَّهَا": الملكية = مستقر خاص بها وحدها.
+
+التفسير المادي الدقيق: الشمس في حركة مستمرة نحو نقطة فلكية محددة مقررة لها — وهذا بالضبط ما يصف "الأوج الشمسي" (Solar Apex).
+
+وأضافت سورة الأنبياء (21:33): "كُلٌّ فِي فَلَكٍ يَسْبَحُونَ" — الشمس والقمر كلٌّ يسبح في مسار مداري. "يسبحون" تصف الحركة السلسة في الفضاء — كالسباحة في وسط سائل.
+
+
+وليام هيرشل 1783 — الاكتشاف الذي تأخر أكثر من 1100 عام
+===
+يُوثِّق د. هيثم طلعت في "الإعجاز العلمي" أن الشمس كانت تُعتبر ثابتة في مركز المنظومة الشمسية حتى ما بعد كوبرنيكوس (1543). حتى كوبرنيكوس، الذي أثبت مركزية الشمس، ظنّ أن الشمس ثابتة لا تتحرك.
+
+في عام 1783، رصد العالم الفلكي وليام هيرشل الحركة الذاتية للنجوم القريبة، وأدرك أنها تتحرك بعيداً عن نقطة محددة — مما يعني أن الشمس تتحرك نحو تلك النقطة. سمّى تلك النقطة "الأوج الشمسي" (Solar Apex)، وحدّد موقعها في كوكبة هرقل.
+
+المسافة الزمنية بين نزول الآية (حوالي 610م) وبين اكتشاف هيرشل (1783م): أكثر من 1173 عاماً. في تلك القرون كلها كان العلماء يعتقدون أن الشمس ثابتة — بينما يصف القرآن حركتها المستمرة نحو وجهتها.
+
+
+الأوج الشمسي — الحقيقة الفلكية الكاملة
+===
+الأوج الشمسي هو نقطة محددة في الفضاء تتجه نحوها الشمس بحركتها الذاتية:
+- الاتجاه: كوكبة هرقل (نقطة محددة بالإحداثيات الفلكية).
+- السرعة: 19.7 كم/ث (70,000 كم/ساعة).
+- هذه الحركة مستمرة لا تتوقف.
+
+فضلاً عن ذلك، تدور الشمس حول مركز مجرة درب التبانة بسرعة 220 كم/ث، وتكمل دورة كاملة كل 225-250 مليون عام. لم تكن لأي حضارة بشرية قبل الحقبة الحديثة أي معرفة بهذه الحركات.
+
+"الأوج الشمسي" يطابق لفظياً ومعنوياً "المستقر" القرآني: نقطة وجهة محددة تتحرك نحوها الشمس باستمرار، مقررة بدقة في أقاصي الفضاء.
+
+
+الإعجاز المضاعف — ثلاثة مستويات في آيتين
+===
+تُقدّم الآيتان (يس 36:38 والأنبياء 21:33) ثلاثة مستويات من الدقة العلمية:
+
+(1) حركة الشمس المستمرة — لا ثبات: "تجري" (مضارع نشط).
+(2) الوجهة المحددة — الأوج الشمسي: "لمستقر لها".
+(3) الدوران الفلكي — الحركة المدارية: "كل في فلك يسبحون".
+
+هذا مقابل الأخطاء العلمية التي استمرت قروناً بعد القرآن: حتى نيوتن (1687) كان يُعامل الشمس كجسم ثابت فعلياً. ولم يُثبت دورانها حول مركز المجرة إلا في القرن العشرين.
+
+أن يجمع نص من القرن السابع الميلادي بين هذه الحقائق الثلاث في عبارتين شعريتين موجزتين — يتجاوز حدود المعرفة البشرية لكل عصر حتى القرن العشرين.`,
+    deepDive: `"The Sun Runs to an Appointed Resting Place" — What the Arabic Precisely Means
+===
+Surah Ya-Sin (36:38) states: "And the sun runs to an appointed resting place (mustaqarr). That is the determination of the Exalted in Might, the Knowing."
+
+Linguistic analysis of the key terms:
+- "tajri" (تجري): present continuous = ongoing, active, unceasing motion.
+- "mustaqarr" (مستقر): from "istaqarra" = a settled, appointed place; the designated destination. The prefix "li" (لِ) indicates purposeful movement toward that destination.
+- "laha" (لها): possessive — its own appointed destination, unique to the sun.
+
+The precise physical reading: the sun is in continuous motion toward a specific, pre-appointed point in space — which is exactly what "Solar Apex" describes.
+
+Surah Al-Anbiya (21:33) adds: "All in an orbit are swimming (yasbahun)" — the sun, moon, day, and night each swim in their own orbital path. The Arabic root "sabaha" describes smooth motion through a medium — like swimming.
+
+
+William Herschel 1783 — The Discovery That Came 1100+ Years Later
+===
+Dr. Haitham Talaat documents in "Scientific Miracles" that the sun was considered stationary at the center of the solar system until well after Copernicus (1543). Even Copernicus, who established heliocentrism, assumed the sun itself was motionless.
+
+In 1783, astronomer William Herschel analyzed the proper motions of nearby stars and realized they appeared to move away from a specific point — meaning the sun itself must be moving toward that point. He named this the Solar Apex and located it in the constellation Hercules.
+
+The time gap between the Quran's revelation (approx. 610 CE) and Herschel's discovery (1783 CE): more than 1173 years. Through all those centuries, scientists believed the sun was stationary — while the Quran described its continuous motion toward its destination.
+
+
+The Solar Apex — The Complete Astronomical Reality
+===
+The Solar Apex is a specific point in space toward which the sun moves by its own proper motion:
+- Direction: the constellation Hercules (precisely specified astronomical coordinates).
+- Speed: approximately 19.7 km/s (70,000 km/h).
+- This motion is continuous and does not stop.
+
+In addition, the sun orbits the Milky Way galactic center at approximately 220 km/s, completing one orbit every 225-250 million years. No human civilization before the modern era possessed any knowledge of these solar motions.
+
+The "Solar Apex" matches the Quranic "mustaqarr" both lexically and scientifically: a specific appointed destination toward which the sun continuously moves — determined with precision in the depths of space.
+
+
+The Double Miracle — Three Scientific Layers in Two Verses
+===
+The two verses (Ya-Sin 36:38 and Al-Anbiya 21:33) present three distinct levels of scientific accuracy:
+
+(1) The sun's continuous active motion — not stationary: "tajri" (present continuous active verb).
+(2) The specific destination — the Solar Apex: "li-mustaqarrin laha" (to its appointed place).
+(3) Orbital motion — each body follows its own path: "kullu fi falakin yasbahun."
+
+This contrasts with scientific errors that persisted for centuries after the Quran: Newton (1687) still treated the sun as effectively fixed in his equations; the sun's galactic orbit was not confirmed until the 20th century.
+
+That a 7th-century text combines these three astronomical realities in two concise poetic phrases surpasses the boundaries of human knowledge of every era before the 20th century.`,
     verses: [
       {
         id: 'verse-yasin-38',
@@ -5501,6 +5593,96 @@ The combined constraint: geographic marker (Kedar = Hejaz) + universal mission s
     summaryAr: 'يخاطب القرآن النحلة بأفعال عربية مؤنثة حصراً — يؤكد علم الحشرات الحديث أن جميع النحل العامل (البناة والمحصِّدات وصانعات العسل) إناث بيولوجياً.',
     description: 'Surah An-Nahl (16:68–69) states: "And your Lord revealed to the bee: Take for yourself among the mountains houses, and among the trees and in that which they construct. Then eat from all the fruits and follow the ways of your Lord laid down [for you]. There emerges from their bellies a drink, varying in colors, in which there is healing for people." The remarkable scientific miracle lies in the Arabic grammar. ALL verbs addressed to "the bee" use FEMININE forms: اتَّخِذِي (ittakhidhi — take! 2nd person feminine singular command), كُلِي (kuli — eat! feminine command), اسْلُكِي (usluki — follow! feminine command). In 7th century Arabia — and in the entire pre-modern world — the prevailing belief was that the "king" bee ruled the hive and was male. This belief persisted until Charles Butler\'s 1609 work "The Feminine Monarchie" first described the queen bee. Modern entomology established that ALL worker bees — those that build hives, collect nectar, produce honey, and guard the colony — are BIOLOGICALLY FEMALE (XX chromosomes). The "queen" bee is female. Drone (male) bees do nothing except mate once, then die or are expelled. The Quran\'s consistent feminine verbs for the bee\'s activities precisely map onto the scientific reality that all productive bees are female. An Arabic author relying on assumption would have used masculine forms — the grammatical default for Arabic groups. The feminine was specifically chosen — and it is scientifically exact.',
     descriptionAr: 'تقول سورة النحل (16:68–69): "وَأَوْحَىٰ رَبُّكَ إِلَى النَّحْلِ أَنِ اتَّخِذِي مِنَ الْجِبَالِ بُيُوتًا وَمِنَ الشَّجَرِ وَمِمَّا يَعْرِشُونَ ثُمَّ كُلِي مِن كُلِّ الثَّمَرَاتِ فَاسْلُكِي سُبُلَ رَبِّكِ ذُلُلًا". المعجزة تكمن في القواعد العربية: جميع الأفعال الموجهة للنحلة مؤنثة: "اتَّخِذِي" و"كُلِي" و"اسْلُكِي". في القرن السابع كان الاعتقاد السائد أن "ملك" الخلية ذكر، واستمر هذا حتى عمل تشارلز بتلر عام 1609. أثبت علم الحشرات الحديث أن جميع النحل العامل إناث بيولوجياً.',
+    deepDiveAr: `المعجزة اللغوية — أفعال الأمر المؤنثة في سورة النحل
+===
+في سورة النحل (16:68-69) يخاطب الله تعالى النحلة: "وَأَوْحَىٰ رَبُّكَ إِلَى النَّحْلِ أَنِ اتَّخِذِي مِنَ الْجِبَالِ بُيُوتًا وَمِنَ الشَّجَرِ وَمِمَّا يَعْرِشُونَ ثُمَّ كُلِي مِن كُلِّ الثَّمَرَاتِ فَاسْلُكِي سُبُلَ رَبِّكِ ذُلُلًا يَخْرُجُ مِن بُطُونِهَا شَرَابٌ مُّخْتَلِفٌ أَلْوَانُهُ فِيهِ شِفَاءٌ لِّلنَّاسِ".
+
+الأفعال الجوهرية وصيغتها:
+- "اتَّخِذِي" (ittakhidhi): أمر مؤنث مفرد = أنتِ (المؤنث) خذي.
+- "كُلِي" (kuli): أمر مؤنث مفرد = أنتِ كلي.
+- "اسْلُكِي" (usluki): أمر مؤنث مفرد = أنتِ اسلكي.
+
+في اللغة العربية، الجمع المختلط أو المجهول الجنس يُعامل بالمذكر كأصل قياسي. كاتب بشري يقول "اتَّخِذُوا" (مذكر جمع) بناءً على الافتراض السائد. لكن القرآن اختار المؤنث المفرد بدقة — وهو الصائب علمياً.
+
+
+معتقد عصر النبوة — "ملك الخلية" كان يُظن ذكراً
+===
+في القرن السابع الميلادي، في الجزيرة العربية وفي العالم القديم كله، كان الاعتقاد الراسخ أن خلية النحل تحكمها "الملك" الذكر. استمر هذا الاعتقاد قروناً متطاولة عبر الحضارات.
+
+أول من صحّح هذا المعتقد في العلم الغربي كان العالم الطبيعي الإنجليزي تشارلز بتلر في كتابه "الملكية المؤنثة" (The Feminine Monarchie, 1609) — بعد نزول القرآن بنحو ألف عام. سمّى بتلر كتابه بهذا الاسم لأنه اكتشف مفاجأة أن القائدة "ملكة" أنثى.
+
+الخلاصة: لو كان القرآن يعكس معرفة بشرية من القرن السابع، لاستخدم الصيغة المذكرة — لأنها كانت الاعتقاد السائد والافتراض اللغوي القياسي معاً.
+
+
+الحقيقة البيولوجية — جميع النحل العامل إناث
+===
+أثبت علم الحشرات الحديث حقيقة بيولوجية قاطعة في خلية نحل العسل (Apis mellifera):
+
+- النحل العامل (50,000–80,000 نحلة في الخلية): جميعها إناث بيولوجياً (كروموسومات XX مزدوجة). هنّ من يبنين الخلية، ويجمعن الرحيق، ويصنعن العسل، ويحرسن الخلية.
+- الملكة: أنثى.
+- الطائرة (ذكور النحل): تؤدي وظيفة تكاثرية واحدة فقط، ثم تموت أو تُطرد. لا تبني، ولا تجمع رحيقاً، ولا تنتج عسلاً.
+
+المرجع: Winston, M.L. (1987). "The Biology of the Honey Bee". Harvard University Press.
+
+القرآن وصف النشاطات الثلاثة الرئيسية للنحل (البناء، والتغذية، والسلوك) بصيغة المؤنث — وهي بالضبط الأنشطة التي تؤديها الإناث فحسب.
+
+
+الدقة اللغوية المعجزة — لماذا المؤنث ليس اعتباطاً؟
+===
+يُدرك علماء اللغة العربية أن الاختيار بين المذكر والمؤنث في خطاب الجماعات له دلالة قاطعة:
+
+(1) لو قال القرآن "اتَّخِذُوا" (مذكر) لكان هذا موافقاً للافتراض البشري المعروف في القرن السابع (النحل يُقاد بملك ذكر).
+
+(2) المؤنث المفرد الذي اختاره القرآن ينطبق على النحلة العاملة تحديداً — وهي الأنثى البيولوجية.
+
+(3) لا يمكن تفسير هذا الاختيار بالصدفة: القرآن خاطب النحل (جمع) بصيغة المفرد المؤنث. هذا يعني: كل فرد من هذا النوع المقصود (النحل العامل) هو أنثى.
+
+ثلاثة أفعال مؤنثة متتالية — عن نشاطات ثلاثة كلها تؤديها الإناث حصراً — في عصر لم يكن فيه أحد يعلم أن النحل العامل إناث: هذا مستوى من الدقة لا يُفسَّر إلا بالوحي.`,
+    deepDive: `The Linguistic Miracle — Exclusive Feminine Command Verbs in Surah An-Nahl
+===
+In Surah An-Nahl (16:68-69), God addresses the bee: "And your Lord revealed to the bee: Take for yourself among the mountains houses, and among the trees and in that which they construct. Then eat from all the fruits and follow the ways of your Lord laid down for you. There emerges from their bellies a drink, varying in colors, in which there is healing for people."
+
+The three command verbs in the address:
+- "ittakhidhi" (اتَّخِذِي): 2nd person feminine singular imperative = "you [female], take."
+- "kuli" (كُلِي): 2nd person feminine singular imperative = "you [female], eat."
+- "usluki" (اسْلُكِي): 2nd person feminine singular imperative = "you [female], follow."
+
+In Arabic grammar, when addressing a mixed or gender-unknown group, the masculine form is the standard default rule. A human author relying on assumption would write "ittakhidhu" (masculine plural). The Quran specifically chose the feminine singular — and it is scientifically exact.
+
+
+The 7th-Century Belief — The "King" Bee Was Thought to Be Male
+===
+In 7th-century Arabia — and throughout the entire pre-modern world — the prevailing and unquestioned belief was that a male "king" bee ruled the hive. This belief persisted across all civilizations for centuries.
+
+The first Westerner to correctly identify the hive's ruler as female was English naturalist Charles Butler, in his 1609 book "The Feminine Monarchie" — approximately 1000 years after the Quran's revelation. Butler named his book in recognition of this surprising discovery.
+
+The implication is clear: if the Quran reflected 7th-century human knowledge, it would have used masculine verbs — which matched both the prevailing belief and the grammatical default for Arabic.
+
+
+The Biological Reality — All Worker Bees Are Female
+===
+Modern entomology has established with complete certainty in the honey bee colony (Apis mellifera):
+
+- Worker bees (50,000-80,000 per hive): all biologically female (diploid XX chromosomes). They build the hive, collect nectar, produce honey, and guard the colony.
+- The queen: female.
+- Drone bees (males): serve only one reproductive function, then die or are expelled. They do not build, forage, or produce honey.
+
+Reference: Winston, M.L. (1987). "The Biology of the Honey Bee." Harvard University Press.
+
+The Quran described the three core bee activities (building, foraging, following paths) with feminine verbs — and these are precisely the activities performed exclusively by female bees.
+
+
+Why the Feminine Cannot Be Dismissed — The Precision of Divine Choice
+===
+Arabic linguists recognize that the choice between masculine and feminine in addressing groups carries definitive meaning:
+
+(1) If the Quran had used "ittakhidhu" (masculine) it would have matched both the 7th-century human belief (bees led by a male king) and the standard Arabic grammatical default for groups.
+
+(2) The feminine singular the Quran chose specifically describes the worker bee — which is biologically female.
+
+(3) This cannot be attributed to coincidence: the Quran addressed bees (a collective noun) using the feminine singular — meaning each individual of this specific type engaged in these activities is female.
+
+Three consecutive feminine verbs — for three activities all performed exclusively by female bees — in an era when no one knew worker bees were female: this level of precision has no explanation other than divine revelation.`,
     verses: [
       {
         id: 'verse-nahl-68-69-bee',
