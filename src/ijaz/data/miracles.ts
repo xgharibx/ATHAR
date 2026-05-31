@@ -10644,7 +10644,7 @@ The 7th-century impossibility: the deepest traditional human dive (pearl fishing
 ===
 19 عدد أولي — لا يقبل القسمة إلا على 1 وعلى نفسه. في نظرية المعلومات وعلم التشفير الحديث: الأعداد الأولية هي الأساس الذي يُبنى عليه كل نظام ترميز آمن. خوارزميات RSA وSHA الحديثة تعتمد بالكامل على الأعداد الأولية.
 
-الرقم 19 تحديداً: هو العدد الأولي الثامن. يظهر في توزيع بنفورد الطبيعي للأرقام في النصوص الكبيرة. في الرياضيات المعيارية، الأسس الأولية تنتج أكثر أنظمة الترميز كفاءة وخلواً من التكرار — بمعنى أن بنية رياضية مبنية على 19 لا يمكن اختزالها أو استنساخها بطريقة عد مختلفة.
+الرقم 19 تحديداً: هو العدد الأولي الثامن. في الجبر التجريدي، المجموعة الدورية Z/19Z تتميز بأن كل عنصر غير صفري فيها يُولّد المجموعة كاملة — بمعنى أن نظام عد مبنياً على 19 يغطي فضاء الأرقام بالكامل دون ثغرات أو تكرار. في الرياضيات المعيارية، الأسس الأولية تنتج أكثر أنظمة الترميز كفاءة وخلواً من التكرار — بمعنى أن بنية رياضية مبنية على 19 لا يمكن اختزالها أو استنساخها بطريقة عد مختلفة.
 
 ما يُلاحظه علماء الرياضيات: اختيار عدد أولي كمفتاح ترميز هو الأمثل رياضياً لنظام يضمن نزاهة المعلومات. مبادئ التشفير الرياضي لم تُعرف رسمياً إلا في القرن العشرين (RSA: ريفست وشامير وأدلمان، 1978م).
 
@@ -10686,7 +10686,7 @@ The Prime Number 19 — Mathematical Significance as a Coding Key
 ===
 19 is a prime number — divisible only by 1 and itself. In information theory and cryptography: prime numbers are the foundation of every secure coding system. All modern RSA and SHA encryption algorithms depend on prime numbers.
 
-Why 19 specifically: it is the 8th prime number. It appears in the natural distribution of numbers described by Benford's Law. In modular arithmetic, prime number bases produce the most efficient and non-redundant coding systems — a mathematical structure built on 19 cannot be reduced or accidentally reproduced by a different counting method.
+Why 19 specifically: it is the 8th prime number. In abstract algebra, the cyclic group Z/19Z has the property that every non-zero element generates the entire group — meaning a counting system built on 19 covers its full number space with no gaps or redundancy. In modular arithmetic, prime number bases produce the most efficient and non-redundant coding systems — a mathematical structure built on 19 cannot be reduced or accidentally reproduced by a different counting method.
 
 What mathematicians observe: choosing a prime number as a coding key is the mathematically optimal choice for a system guaranteeing information integrity. The formal principles of prime-based cryptography were not established until the 20th century (RSA: Rivest, Shamir, Adleman, 1978).
 
