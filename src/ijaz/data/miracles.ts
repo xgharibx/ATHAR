@@ -8579,6 +8579,155 @@ Note: Surah At-Tariq (86:1–3): "By the heaven and the Tariq... the piercing/kn
     summaryAr: 'يصف القرآن العسل بأنه "شفاء للناس" — أكدت الكيمياء الحيوية الحديثة أن العسل له خصائص مضادة للبكتيريا والفطريات وعلاج الجروح بآليات متعددة ومتميزة.',
     description: 'Surah An-Nahl (16:69): "Then eat from all the fruits and follow the ways of your Lord laid down [for you]. There emerges from their bellies a drink, varying in colors, in which there is healing for people (شِفَاءٌ لِّلنَّاسِ). Indeed in that is a sign for people who give thought." The Prophet Muhammad (ﷺ) also said: "Honey is a remedy for every illness." Modern science has confirmed honey\'s healing properties through multiple mechanisms: (1) HYDROGEN PEROXIDE: Glucose oxidase in honey produces hydrogen peroxide, a powerful antiseptic — killing bacteria including MRSA. (2) LOW pH: Honey\'s acidic pH (3.2–4.5) inhibits most pathogens, which require neutral to alkaline environments. (3) LOW WATER ACTIVITY: The high sugar concentration creates osmotic pressure that dehydrates and kills bacteria. (4) METHYLGLYOXAL (MGO): Manuka honey contains high levels of MGO, which directly damages bacterial DNA and proteins. (5) BEE DEFENSIN-1: Honey contains bee defensin-1 protein (royalactin pathway) with broad antimicrobial activity. (6) WOUND HEALING: Honey maintains moist wound environment, has anti-inflammatory properties, and stimulates tissue regeneration. The World Health Organization (WHO) and clinical trials confirm honey is effective against wound infections, burns, and gastrointestinal disorders — including antibiotic-resistant bacteria. Medical-grade honey (Manuka) is approved for clinical use in US, EU, and UK.',
     descriptionAr: 'يقول الله تعالى في سورة النحل (16:69): "يَخْرُجُ مِن بُطُونِهَا شَرَابٌ مُّخْتَلِفٌ أَلْوَانُهُ فِيهِ شِفَاءٌ لِّلنَّاسِ". أكد العلم الحديث خصائص العسل العلاجية بآليات متعددة: (1) بيروكسيد الهيدروجين: مضاد حيوي قوي. (2) حموضة منخفضة (pH 3.2-4.5): تثبط معظم مسببات الأمراض. (3) نشاط مائي منخفض: الضغط التناضحي يُميت البكتيريا. (4) الميثيلجليوكسال (MGO) في عسل المانوكا: يتلف DNA البكتيريا مباشرة. (5) ديفينسين-1: بروتين مضاد للميكروبات. وافقت منظمة الصحة العالمية وهيئات الغذاء والدواء على العسل الطبي للاستخدام السريري.',
+    deepDiveAr: `"شِفَاءٌ لِّلنَّاسِ" — دقة اللفظ القرآني
+===
+يقول الله تعالى في سورة النحل (16:69): "يَخْرُجُ مِن بُطُونِهَا شَرَابٌ مُّخْتَلِفٌ أَلْوَانُهُ فِيهِ شِفَاءٌ لِّلنَّاسِ".
+
+ثلاث دلالات لغوية في العبارة:
+- "شِفَاء" لا "دواء": الشفاء = التعافي الكامل، لا مجرد علاج أعراض — وهذا ما تؤكده الأبحاث: العسل لا يقتل البكتيريا فحسب بل يُحفّز التئام الجروح وإعادة بناء الأنسجة
+- "لِلنَّاسِ" = لجميع الناس، لا لفئة محددة — يفسّره العلم: آليات العسل المتعددة تعمل ضد أنواع مختلفة جداً من البكتيريا والفطريات
+- "فِيهِ" = في داخله — وصف كيميائي دقيق: الخصائص العلاجية نابعة من التركيب الداخلي للعسل
+
+في القرن السابع الميلادي: كان العسل يُستخدم شعبياً للتحلية — لكن لا أحد كان يملك أي تفسير لماذا يحفظ الجروح ويقتل الميكروبات. وصف القرآن بهذه الدقة الكيميائية يتخطى المعرفة الطبية المتاحة آنذاك.
+
+
+الآليات البيوكيميائية — ستة أسلحة في آنٍ واحد
+===
+يعمل العسل على مستوى بيوكيميائي بست آليات مستقلة ومتزامنة:
+
+(1) بيروكسيد الهيدروجين (H2O2):
+- إنزيم الغلوكوز أوكسيداز (من غدد النحلة) يتفاعل مع الغلوكوز وينتج بيروكسيد الهيدروجين
+- مضاد حيوي طبيعي قوي — يقتل MRSA والبكتيريا المقاومة للمضادات الحيوية
+
+(2) حموضة منخفضة (pH 3.2–4.5):
+- معظم البكتيريا الممرضة تحتاج pH محايداً (6.5–7.5) للنمو
+- بيئة العسل الحامضة تثبط نمو البكتيريا وتمنع تكاثرها
+
+(3) نشاط مائي منخفض (aw أقل من 0.6):
+- التركيز السكري العالي يخلق ضغطاً تناضحياً يسحب الماء من داخل الخلية البكتيرية — يُجفّفها ويقتلها
+
+(4) الميثيلجليوكسال (MGO) — عسل المانوكا:
+- Mavric et al. (2008) حدّدوا MGO كمادة فعّالة رئيسية في عسل المانوكا النيوزيلندي
+- يتلف DNA البكتيريا وبروتيناتها مباشرة — الفجوة: 2008م − 610م = 1,398 سنة
+
+(5) ديفينسين-1 (Bee Defensin-1):
+- بروتين مناعي تُضيفه النحلة أثناء تصنيع العسل
+- اكتُشف بواسطة van den Berg et al. (2008) — نشاط مضاد للميكروبات واسع الطيف
+
+(6) مضاد للالتهاب:
+- يثبط إنزيمات الأكسدة الحلقية (COX) المسؤولة عن الالتهاب — يُسرّع التئام الجروح
+
+
+عسل المانوكا — المقاومة لـ MRSA (1,397 سنة)
+===
+MRSA (Methicillin-Resistant Staphylococcus aureus) = أخطر بكتيريا مقاومة للمضادات الحيوية في المستشفيات — قتلت آلاف المرضى حول العالم.
+
+اكتشاف مذهل: العسل يهزم MRSA التي لا يهزمها البنسلين والميثيسيلين.
+
+Cooper et al. (2010) نشروا في Journal of Antimicrobial Chemotherapy:
+- عسل ميديهاني (Manuka) يثبّط أغشية MRSA والبكتيريا الزرقاء (Pseudomonas aeruginosa) الحيوية
+- العسل لا يُفقد فاعليته بالتكرار — لأن آلياته متعددة ومتزامنة، والبكتيريا لا تستطيع تطوير مقاومة لست آليات في آنٍ واحد
+
+الموافقات الرسمية:
+- إدارة الغذاء والدواء الأمريكية (FDA): وافقت على عسل ميديهاني للاستخدام الطبي في 2007م
+- المملكة المتحدة (MHRA): وافقت في 2004م
+- الفجوة: 2007م − 610م = 1,397 سنة
+
+
+مراجعة كوكرين 2015 — الذهب العلمي في الطب
+===
+مراجعة كوكرين (Cochrane Review) = أعلى مستوى من الأدلة الطبية — تجميع وتحليل جميع الدراسات السريرية العشوائية.
+
+Jull et al. (2015) في قاعدة بيانات كوكرين:
+- العسل يتفوق على ضمادات الجروح التقليدية في علاج الجروح والحروق والقرح
+- يُسرّع التئام الجروح بشكل ملحوظ مقارنة بالمضادات الحيوية الموضعية
+- فعّال في الإصابات التي فشلت فيها المضادات الحيوية الاعتيادية
+
+نطاق الشفاء المؤكد علمياً اليوم:
+- الجروح والحروق (الاستخدام السريري المعتمد)
+- التهابات الجهاز الهضمي (تثبيط H. pylori)
+- التهابات الجهاز التنفسي العلوي
+- الفم والأسنان (ضد Streptococcus mutans)
+
+"شِفَاءٌ لِّلنَّاسِ" — الشفاء موثق علمياً لأمراض متعددة تمس جميع الناس، تماماً كما وصف القرآن الكريم.
+
+المرجع: Jull, A.B. et al. (2015). "Honey as a topical treatment for wounds." Cochrane Database of Systematic Reviews, 3, CD005083.`,
+    deepDive: `"Healing for People" — The Precision of the Quranic Claim
+===
+Surah An-Nahl (16:69): "There emerges from their bellies a drink, varying in colors, in which there is healing for people (shifa'un li-n-nas)."
+
+Three precise linguistic points:
+- "Shifa'" not "dawa'": healing (complete recovery) not just treatment of symptoms — confirmed by biochemistry: honey does not merely inhibit bacteria but actively promotes wound healing and tissue regeneration
+- "Li-n-nas" (for the people) = for all people, not a specific group — honey's multiple mechanisms work against vastly different bacteria, fungi, and viruses
+- "Fihi" = in it — a precise chemical description: the therapeutic properties arise from honey's internal composition
+
+In the 7th century: honey was used as a sweetener and folk remedy, but no one could explain WHY it preserved wounds or killed microbes. The Quran's specific claim of broad therapeutic properties preceded any biochemical understanding by over 1,300 years.
+
+
+Six Biochemical Weapons — Simultaneous Mechanisms
+===
+Honey operates at the biochemical level through six independent, simultaneous mechanisms:
+
+(1) Hydrogen Peroxide (H2O2):
+- Glucose oxidase enzyme (from bee glands) reacts with glucose producing H2O2
+- A powerful natural antiseptic — kills MRSA and antibiotic-resistant bacteria
+
+(2) Low pH (3.2–4.5):
+- Most pathogenic bacteria require neutral pH (6.5–7.5) to grow
+- Honey's acidic environment inhibits bacterial growth and prevents reproduction
+
+(3) Low Water Activity (aw below 0.6):
+- The high sugar concentration creates osmotic pressure that draws water out of bacterial cells — dehydrating and killing them
+
+(4) Methylglyoxal (MGO) — Manuka Honey:
+- Mavric et al. (2008) identified MGO as the key active compound in New Zealand Manuka honey
+- Directly damages bacterial DNA and proteins
+- Time gap: 2008 CE − 610 CE = 1,398 years
+
+(5) Bee Defensin-1:
+- An immune protein added by bees during honey production
+- Discovered by van den Berg et al. (2008): broad-spectrum antimicrobial activity against Gram-positive and Gram-negative bacteria
+
+(6) Anti-inflammatory:
+- Inhibits cyclo-oxygenase (COX) enzymes responsible for inflammation — accelerating wound healing
+
+
+Manuka Honey vs. MRSA — 1,397 Years Later
+===
+MRSA (Methicillin-Resistant Staphylococcus aureus) is one of the most dangerous antibiotic-resistant bacteria in hospitals — resistant to penicillin, methicillin, and most modern antibiotics.
+
+The discovery: honey defeats MRSA that penicillin cannot touch.
+
+Cooper et al. (2010) published in the Journal of Antimicrobial Chemotherapy:
+- Medihoney (Manuka) inhibits MRSA biofilms and Pseudomonas aeruginosa (the other major hospital superbug)
+- Honey does not lose effectiveness through repeated exposure — bacteria cannot develop resistance to six simultaneous attack mechanisms
+
+Official regulatory approvals:
+- FDA (USA): approved Medihoney for medical wound care — 2007 CE
+- MHRA (UK): approved 2004 CE
+- Time gap: 2007 CE − 610 CE = 1,397 years
+
+Reference: Cooper, R.A. et al. (2010). "Inhibition of biofilms of Pseudomonas aeruginosa by Medihoney." Journal of Antimicrobial Chemotherapy, 65(6), 1237–1243.
+
+
+The Cochrane Review 2015 — Gold Standard of Clinical Evidence
+===
+A Cochrane Review = the highest level of medical evidence — systematic analysis of all randomized clinical trials.
+
+Jull et al. (2015) in the Cochrane Database:
+- Honey outperforms conventional wound dressings in treating wounds, burns, and ulcers
+- Accelerates wound healing significantly compared to topical antibiotics
+- Effective against wounds where conventional antibiotics have failed
+
+Scientifically confirmed healing scope today:
+- Wounds and burns (approved clinical use)
+- Gastrointestinal infections (H. pylori inhibition)
+- Upper respiratory tract infections
+- Oral bacteria (Streptococcus mutans — dental caries prevention)
+
+"Healing for people" — healing is scientifically documented for multiple diseases affecting all people, exactly as the Quran described 1,405 years ago.
+
+Reference: Jull, A.B. et al. (2015). "Honey as a topical treatment for wounds." Cochrane Database of Systematic Reviews, 3, CD005083.`,
     verses: [
       {
         id: 'verse-nahl-69-honey',
@@ -8634,6 +8783,126 @@ Note: Surah At-Tariq (86:1–3): "By the heaven and the Tariq... the piercing/kn
     summaryAr: 'يُقسم القرآن بـ"السَّمَاءِ ذَاتِ الْحُبُكِ" — اكتشف علم الكون الحديث أن البنية الكبيرة للكون تشكل "شبكة كونية" ضخمة من الخيوط والفراغات والعقد تشبه إلى حد كبير النسيج المنسوج.',
     description: 'Surah Adh-Dhariyat (51:7) states: "By the heaven with its paths/weave (وَالسَّمَاءِ ذَاتِ الْحُبُكِ)." The Arabic word "hubuk" (حُبُك) is the plural of "habikah" which means: (1) woven/braided texture, (2) orderly paths/lanes, (3) beautiful wave-like patterns. The Quran swears by this specific structural property of the heavens. Modern cosmology has revealed the large-scale structure of the universe is precisely a "cosmic web": (1) COSMIC FILAMENTS: Matter in the universe is not uniformly distributed but arranged in vast filaments (like threads) connecting galaxy clusters, stretching hundreds of millions of light-years. (2) COSMIC VOIDS: Between filaments are vast empty regions (voids) — the spaces between threads in the web. (3) GALAXY CLUSTERS: At the intersections of filaments are galaxy clusters and superclusters — the "knots" in the web. (4) REMARKABLE RESEMBLANCE: Simulations of the cosmic web (Millennium Simulation, IllustrisTNG) show a structure that looks strikingly like woven fabric — braided filaments with enclosed voids. (5) SLOAN GREAT WALL: The largest known structure in the universe (1.37 billion light-years) is a filamentary structure — part of the cosmic web. Dr. Haitham Talaat notes that the word "hubuk" — describing woven, beautiful paths in the heavens — is an extraordinary description of the cosmic web\'s filamentary structure, confirmed only with 20th-century galaxy surveys.',
     descriptionAr: 'يقول الله تعالى في سورة الذاريات (51:7): "وَالسَّمَاءِ ذَاتِ الْحُبُكِ". كلمة "حبك" تعني: (1) نسيج منسوج/مضفور، (2) مسالك منتظمة، (3) أنماط موجية جميلة. اكتشف علم الكون الحديث البنية الكبيرة للكون: (1) الخيوط الكونية: المادة مرتبة في خيوط ضخمة تربط عناقيد المجرات. (2) الفراغات الكونية: مناطق فارغة بين الخيوط. (3) عناقيد المجرات: عند تقاطعات الخيوط — "عقد" الشبكة. (4) المحاكاة الكونية (Millennium Simulation، IllustrisTNG) تُظهر بنية تشبه النسيج المنسوج بشكل مذهل.',
+    deepDiveAr: `"الْحُبُكِ" — المعنى اللغوي الذي سبق علم الكون
+===
+يقول الله تعالى في سورة الذاريات (51:7): "وَالسَّمَاءِ ذَاتِ الْحُبُكِ".
+
+"حُبُك" = جمع "حِبَاك" من الفعل "حَبَكَ" = نسج بإحكام، ضفّر، شبّك. للكلمة ثلاثة معانٍ متكاملة:
+(1) النسيج المنسوج/المضفور: الأنماط المشتبكة كالحبل أو النسيج
+(2) المسالك المنتظمة: الطرق والخطوط المتوازية المنتظمة
+(3) الأنماط الجميلة الدائرية: كالأمواج على الماء أو الرمال
+
+القرآن لم يقل "السماء" فحسب — بل أقسم بها لأنها "ذَاتِ الْحُبُكِ" = تمتلك هذه الخاصية بالذات.
+
+في القرن السابع الميلادي: السماء تبدو كقبة زرقاء منقوطة بنجوم عشوائية. لا يوجد أي مؤشر بصري على بنية منسوجة في الكون. الخيوط الكونية غير مرئية بالعين المجردة — تكشف عنها خرائط الكون فقط.
+
+
+مسح CfA 1986م — الاكتشاف الأول للبنية الشبكية (1,376 سنة)
+===
+أول اكتشاف واضح للبنية الكبيرة للكون على شكل شبكة:
+
+de Lapparent, Geller & Huchra (1986) — مسح سنتر-فور-أستروفيزيكس (CfA):
+- رسموا مواضع آلاف المجرات في شريحة كونية
+- اكتشفوا بنية مفاجئة: المجرات لا تتوزع عشوائياً — بل تتمركز في خيوط وجدران ضخمة تحيط بفراغات كبيرة
+- وصف الباحثون الهيكل بـ"الفقاعات الصابونية" (soap bubbles) — بنية شبكية واضحة
+
+الفجوة: 1986م − 610م = 1,376 سنة.
+
+المرجع: de Lapparent, V., Geller, M.J., & Huchra, J.P. (1986). "A Slice of the Universe." Astrophysical Journal Letters, 302, L1–L5.
+
+ثم جاء مسح SDSS (2000م+): رسم مواضع أكثر من 3 ملايين مجرة — وأكّد بصورة قاطعة البنية الشبكية الكاملة للكون، التي تبدو بالضبط كنسيج منسوج.
+
+
+محاكاة الكون — ميلانيوم 2005م وIllustrisTNG 2018م
+===
+محاكاة ميلانيوم (Springel et al., Nature 2005):
+- أضخم محاكاة كمبيوترية للكون حتى ذلك الوقت
+- محاكاة تكوّن المجرات من الانفجار العظيم إلى اليوم
+- النتيجة: الكون ينظّم نفسه تلقائياً في خيوط وعقد وفراغات — تماماً كالنسيج المنسوج
+- الصورة الناتجة: شبكة ضخمة من الخيوط — وصفها كل عالم شاهدها بـ"الشبكة الكونية" (Cosmic Web)
+- الفجوة: 2005م − 610م = 1,395 سنة
+
+محاكاة IllustrisTNG (Springel et al., MNRAS 2018):
+- الأكثر تفصيلاً حتى اليوم — تشمل الغاز والمادة المظلمة والنجوم والثقوب السوداء
+- الصور: شبكة كونية مذهلة الجمال — خيوط من المجرات تلتقي عند عقد ضخمة، محاطة بفراغات شاسعة
+- الفجوة: 2018م − 610م = 1,408 سنة
+
+
+لماذا أقسم الله بـ"الحُبُكِ"؟ — الاختيار المعجز
+===
+الشبكة الكونية تتكون من ثلاثة عناصر تُجسّد جميعها معاني "حُبُك":
+
+الخيوط الكونية (Filaments): خيوط من المادة المظلمة والغاز تمتد مئات الملايين من السنوات الضوئية — تماماً كخيوط النسيج.
+
+الفراغات الكونية (Voids): مناطق شبه فارغة يتراوح قطرها 100–500 مليون سنة ضوئية — تماماً كالفراغات بين خيوط النسيج.
+
+عناقيد المجرات (Clusters): عند تقاطعات الخيوط — تماماً كعُقَد النسيج.
+
+كلمة "حُبُك" تجمع المعاني الثلاثة: نسيج منسوج + مسالك منتظمة + أنماط جميلة — وكل هذه المعاني تنطبق بدقة مذهلة على الشبكة الكونية.
+
+أقسم الله بهذه الخاصية لأنها دليل على دقة الخلق — "السماء ذات الحبك" تعني كوناً منسجماً بنظام هندسي دقيق لا يراه إلا من يملك التقنية الكافية للكشف عنه.`,
+    deepDive: `"Hubuk" — A Linguistic Precision That Preceded Cosmology
+===
+Surah Adh-Dhariyat (51:7): "By the heaven with its hubuk (وَالسَّمَاءِ ذَاتِ الْحُبُكِ)."
+
+"Hubuk" is the plural of "hibak," from the root h-b-k meaning: to weave tightly, to braid, to interlock. The word carries three integrated meanings:
+(1) Woven/braided texture: interlocked patterns like rope or fabric
+(2) Orderly lanes/tracks: parallel, regular pathways
+(3) Beautiful circular/wave patterns: like ripples on water or wind patterns on sand
+
+The Quran does not merely say "the heaven" — it swears by a specific QUALITY: that it "possesses hubuk." This specific quality was an extraordinary statement in the 7th century.
+
+In the 7th century: the sky appeared as a blue dome randomly dotted with stars. There was no visual indication of any woven structure in the universe. Cosmic filaments are completely invisible to the naked eye — they only became detectable with 20th-century galaxy surveys.
+
+
+The CfA Survey 1986 — First Discovery of the Filamentary Structure
+===
+First clear observational discovery of the universe's large-scale structure as a network:
+
+de Lapparent, Geller & Huchra (1986) — Center for Astrophysics (CfA) Redshift Survey:
+- Mapped the positions of thousands of galaxies in a cosmic slice
+- Discovered a shocking structure: galaxies do NOT distribute randomly — they cluster along filaments and walls surrounding enormous empty voids
+- Researchers described it as a "soap bubble" structure — a clear net/web pattern
+
+Time gap: 1986 CE − 610 CE = 1,376 years.
+
+Reference: de Lapparent, V., Geller, M.J., & Huchra, J.P. (1986). "A Slice of the Universe." Astrophysical Journal Letters, 302, L1–L5.
+
+Then the Sloan Digital Sky Survey (SDSS, 2000+) mapped over 3 million galaxies — conclusively confirming the full cosmic web structure, which looks exactly like woven fabric.
+
+
+The Millennium Simulation 2005 and IllustrisTNG 2018
+===
+Millennium Simulation (Springel et al., Nature 2005):
+- Largest computer simulation of the universe at that time
+- Simulated galaxy formation from the Big Bang to the present
+- Result: the universe spontaneously organizes into filaments, nodes, and voids — exactly like woven fabric
+- The output image: a vast web — every scientist who saw it called it the "Cosmic Web"
+- Time gap: 2005 CE − 610 CE = 1,395 years
+
+Reference: Springel, V. et al. (2005). "Simulations of the formation, evolution and clustering of galaxies and quasars." Nature, 435, 629–636.
+
+IllustrisTNG (Springel et al., MNRAS 2018):
+- Most detailed simulation to date — includes gas, dark matter, stars, and black holes
+- Images: a stunningly beautiful cosmic web — filaments of galaxies meeting at massive nodes, surrounded by vast voids
+- Time gap: 2018 CE − 610 CE = 1,408 years
+
+Reference: Springel, V. et al. (2018). "First results from the IllustrisTNG simulations." MNRAS, 475(1), 624–647.
+
+
+The Three-Part Structure — Filaments, Voids, and Nodes
+===
+The cosmic web consists of three elements — all embodying the meanings of "hubuk":
+
+Cosmic Filaments: strands of dark matter and gas stretching hundreds of millions of light-years — exactly like threads in fabric.
+
+Cosmic Voids: near-empty regions 100–500 million light-years in diameter — exactly like the empty spaces between threads.
+
+Galaxy Clusters: at filament intersections — exactly like the knots in fabric.
+
+The word "hubuk" encompasses all three senses: woven texture + orderly lanes + beautiful patterns — and all three apply with remarkable precision to the cosmic web.
+
+The Quran chose this specific word to swear by a quality of the sky that would only be discovered 1,376–1,408 years later — a quality completely invisible to 7th-century observation, revealed only by modern telescopy and computational simulation.`,
     verses: [
       {
         id: 'verse-dhariyat-7',
