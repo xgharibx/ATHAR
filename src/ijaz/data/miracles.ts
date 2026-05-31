@@ -3105,6 +3105,80 @@ The Necessary Being (واجب الوجود) must be uncaused, eternal, immateria
     summaryAr: 'التعقيد الاستثنائي والمعلومات المحددة في الأنظمة البيولوجية تشير إلى التصميم الذكي.',
     description: 'Dr. Haitham Talaat in "بصائر" presents the Design Argument with multiple layers: (1) BIOLOGICAL INFORMATION: DNA contains specified complex information (3.2 billion base pairs in human genome). Information always traces back to a mind. Random processes do not generate specified information. (2) IRREDUCIBLE COMPLEXITY: Many biological systems (bacterial flagellum, blood clotting cascade, immune system) require all their parts simultaneously to function. They could not have been built gradually. (3) MOLECULAR MACHINES: The cell contains nanotechnology more sophisticated than anything humans have built—ATP synthase (a rotary motor), kinesin (a walking transporter), ribosome (a protein factory). (4) FINE-TUNING OF BIOLOGY: The genetic code itself is optimized to minimize errors—a design feature that points to a designer. The Quran states: "This is the creation of Allah. So show Me what those other than Him have created" (31:11).',
     descriptionAr: 'يقدم د. هيثم طلعت في "بصائر" برهان التصميم بطبقات متعددة: المعلومات البيولوجية في DNA، والتعقيد غير القابل للاختزال في الأنظمة البيولوجية، والآلات الجزيئية في الخلية، والضبط الدقيق في البيولوجيا.',
+    deepDiveAr: `المعلومات البيولوجية في DNA: دليل على العقل
+===
+يحتوي DNA البشري على 3.2 مليار قاعدة نيتروجينية تُشكّل معلومات محددة ومعقدة تعادل آلاف المجلدات الموسوعية من حيث كثافة المعلومات. هذه ليست تعقيداً كيميائياً عشوائياً — بل معلومات مُحددة: تعليمات لبناء البروتينات، وتسلسلات تنظيمية، وآليات تصحيح الأخطاء.
+
+مبدأ أساسي في علم المعلومات: المعلومات المحددة المعقدة لا تنتج عن عمليات عشوائية أبداً. كل مصدر معروف للمعلومات المحددة هو العقل (Mind). بيل غيتس قال: "DNA أشبه ببرنامج حاسوبي لكنه أكثر تعقيداً بكثير من أي برنامج صنعناه." فرنسيس كريك، المشارك في اكتشاف بنية DNA، أقر أن النشوء التلقائي للحياة من الكيمياء تحدٍّ "يكاد يكون معجزاً" — إذ يستلزم توليد المعلومات الجينية ابتداءً من تفاعلات كيميائية عشوائية.
+
+
+التعقيد غير القابل للاختزال: أنظمة لا تعمل إلا مكتملة
+===
+أنظمة بيولوجية كثيرة تحتاج جميع أجزائها في آنٍ واحد لتؤدي وظيفتها. لا يمكن بناؤها تدريجياً لأن النظام غير المكتمل لا يؤدي أي وظيفة — فالانتقاء الطبيعي لا يملك ما يختاره.
+
+مايكل بيهي في «الصندوق الأسود لداروين» (1996): "نظام واحد يتكون من أجزاء متعددة متناسقة تتفاعل لأداء الوظيفة الأساسية، بحيث يؤدي إزالة أي جزء منها إلى توقف النظام كله."
+
+أبرز الأمثلة:
+- السوط البكتيري: محرك دوراني نانوي بـ40 بروتيناً — إزالة واحد يوقفه كله
+- شلال تخثر الدم: 12 بروتيناً في ترتيب دقيق — إزالة واحد والشخص ينزف حتى الموت
+- الجهاز المناعي: يولّد أجساماً مضادة ضد مسببات أمراض لم يقابلها من قبل
+
+
+الآلات الجزيئية: التقنية النانوية في كل خلية
+===
+خلية واحدة تحتوي على تكنولوجيا نانوية تفوق أي ما أنجزه المهندسون البشريون:
+
+- ATP سينثاز: محرك دوراني نانوي يُنتج ATP عملة طاقة الخلية بكفاءة تفوق 90%، يدور 150 دورة في الثانية، يُصنع 3 جزيئات ATP في كل دورة
+- كينيسين: ناقل جزيئي يسير حرفياً على الأنابيب الدقيقة حاملاً شحناته بخطوات ثنائية منتظمة
+- ريبوزوم: مصنع بروتيني نانوي يُترجم الشفرة الجينية إلى بروتينات وظيفية بمعدل خطأ لا يتجاوز 1 لكل 10,000 حمض أميني
+
+كل هذه الآلات لم يكن داروين يعلم بوجودها. اكتشافها منذ عام 1950 أحدث ثورة في دلالة التصميم.
+
+
+القرآن والتصميم: هَذَا خَلْقُ اللَّهِ
+===
+يُطلق القرآن تحدياً منطقياً دقيقاً في آية واحدة (لقمان 31:11): "هَٰذَا خَلْقُ اللَّهِ فَأَرُونِي مَاذَا خَلَقَ الَّذِينَ مِن دُونِهِ" — التحدي منطقي لا إنكار له: إن ادّعيتَ أن للخلق سواه أو لا مُبدِع له، أرِنا مثالاً واحداً لمعلومات محددة معقدة ذات وظيفة نشأت بدون عقل.
+
+ابن القيم في «مفتاح دار السعادة»: "دليل الصنعة على الصانع أجلى وأوضح البراهين، إذ كل مصنوع يدل على صانعه بقدر دقته وإحكامه."
+
+البرهان الحديث للتصميم كما صاغه ويليام دمبسكي (1998): متى وجدنا تعقيداً محدداً عالياً مع وظيفة ومعلومات — فالاستنتاج الموثوق به هو الذكاء. DNA يستوفي كل معيار.`,
+    deepDive: `Biological Information in DNA: Evidence of Mind
+===
+Human DNA contains 3.2 billion base pairs encoding specified complex information equivalent to thousands of encyclopedia volumes. This is not mere chemical complexity — it is specified information: instructions for building proteins, regulatory sequences, and error-correction mechanisms.
+
+Fundamental principle of information science: specified complex information never arises from random processes. Every known source of specified complex information is intelligence (mind). Bill Gates: "DNA is like a computer program but far more advanced than any software we've ever created." Francis Crick, co-discoverer of DNA's structure, admitted the spontaneous origin of life from chemistry is an "almost miraculous" problem — requiring genetic information to arise de novo from random chemical reactions.
+
+
+Irreducible Complexity: Systems That Must Be Complete to Work
+===
+Many biological systems require all their parts to function simultaneously. They cannot be built incrementally because half-built systems perform no function — and thus natural selection has nothing to select for.
+
+Michael Behe (Darwin's Black Box, 1996): "A single system composed of several well-matched interacting parts that contribute to the basic function, where removal of any one of the parts causes the system to effectively cease functioning."
+
+Key examples:
+- Bacterial flagellum: a rotary nano-motor with ~40 protein components — remove one and it stops entirely
+- Blood clotting cascade: 12 proteins in precise sequence — remove one and the person bleeds to death
+- The immune system: generates antibodies against pathogens it has never encountered
+
+
+Molecular Machines: Nanotechnology Inside Every Cell
+===
+A single cell contains nanotechnology more sophisticated than anything human engineers have built:
+
+- ATP synthase: a rotary nano-motor producing ATP (cellular energy currency) at >90% efficiency, spinning 150 revolutions per second, making 3 ATP molecules per revolution
+- Kinesin: a molecular walker that literally walks along microtubule tracks carrying molecular cargo in precise two-footed steps
+- The ribosome: a protein-manufacturing nano-factory translating genetic code into functional proteins with an error rate of ~1 per 10,000 amino acids
+
+Each of these machines was unknown to Darwin. Their discovery since 1950 has radically deepened the design inference.
+
+
+The Quran and the Design Argument: A Single-Verse Challenge
+===
+The Quran issues a precise logical challenge in one verse (Luqman 31:11): "This is the creation of Allah. So show Me what those other than Him have created." The challenge is logically unanswerable: if you claim creation has no designer, produce even one example of specified complex information with function arising without a mind.
+
+Ibn al-Qayyim in Miftah Dar al-Sa'ada: "The argument from craftsmanship to the craftsman is the clearest and most obvious of all proofs — every created thing points to its Creator in proportion to its precision and perfection."
+
+The modern design argument (William Dembski, 1998) shows design detection is scientifically rigorous: whenever we encounter high specified complexity + function + information, we reliably infer intelligence. DNA meets every criterion. The Quran anticipated this reasoning by 14 centuries.`,
     verses: [
       {
         id: 'verse-luqman-11',
@@ -3158,6 +3232,88 @@ The Necessary Being (واجب الوجود) must be uncaused, eternal, immateria
     summaryAr: 'القيم والواجبات الأخلاقية الموضوعية لا يمكن تأسيسها إلا على مُشرِّع أخلاقي متعالٍ — الله.',
     description: 'Dr. Haitham Talaat in "بصائر" presents: Premise 1: If God does not exist, objective moral values and duties do not exist. Premise 2: Objective moral values and duties do exist. Conclusion: Therefore, God exists. Without God, morality is reduced to mere human opinion, social convention, or evolutionary byproduct. But we know with certainty that torturing innocents for pleasure, genocide, and child abuse are OBJECTIVELY wrong—not just socially undesirable. On atheism, humans are just rearranged atoms with no objective moral status. Dr. Haitham Talaat systematically refutes atheistic attempts to ground morality: (1) Social contract theory fails because it\'s subjective and culture-relative. (2) Evolutionary ethics fails because evolution doesn\'t produce moral truths—it produces survival behaviors. (3) Utilitarianism fails because "greatest good" has no objective standard without God.',
     descriptionAr: 'يقدم د. هيثم طلعت في "بصائر": إذا لم يوجد الله، فلا توجد قيم أخلاقية موضوعية. لكن القيم الأخلاقية الموضوعية موجودة (تعذيب الأبرياء خطأ موضوعياً). إذاً الله موجود. يفنّد بشكل منهجي محاولات الإلحاد لتأسيس الأخلاق.',
+    deepDiveAr: `البرهان الأخلاقي: صياغة منطقية صارمة
+===
+يسير البرهان على ثلاث خطوات:
+
+المقدمة الأولى: إذا لم يوجد الله، فلا توجد قيم أخلاقية موضوعية.
+المقدمة الثانية: القيم الأخلاقية الموضوعية موجودة.
+النتيجة: إذاً الله موجود.
+
+"موضوعي" يعني: صحيح بصرف النظر عما يعتقده البشر. تعذيب الأطفال الأبرياء لمتعة التعذيب خطأ — ليس لأن مجتمعاً اتفق على ذلك، بل لأنه خطأ في ذاته، حتى لو أجمع كل البشر على قبوله.
+
+على الإلحاد: البشر مجرد ذرات مُرتّبة، نتاج تطور عشوائي أعمى. لا يوجد تمييز موضوعي بين «الإنسان» و«الفيروس» — كلاهما يتصرف وفق طبيعته. مصطلح «الشر» يفقد معناه الحقيقي.
+
+
+إخفاق البدائل الإلحادية لتأسيس الأخلاق
+===
+ثلاثة محاولات رئيسية، وكلها تفشل:
+
+(١) العقد الاجتماعي: الأخلاق مجرد اتفاق جماعي. المشكلة: يُجيز استعباد أقلية بقرار أغلبية ظالمة. النازية كانت «عقداً اجتماعياً». لا يوجد معيار خارج الاتفاق يحكم عليه.
+
+(٢) الأخلاق التطورية: التطور ينتج سلوكيات بقاء لا حقائق أخلاقية. بعض النماذج التطورية تجد «مزايا» للاعتداء — هل يجعله ذلك صحيحاً أخلاقياً؟ ج. إي. مور سمّى هذا «المغالطة الطبيعية»: «هو كذا» لا يستلزم «يجب أن يكون كذا».
+
+(٣) النفعية: الخير ما يُسعد أكثر عدد. المشكلة: تُبيح تعذيب بريء واحد لإسعاد مليون. لا معيار موضوعي لـ«السعادة» دون إله يحدد طبيعة الإنسان والفلاح الحقيقي.
+
+
+الفطرة الأخلاقية: دليل قرآني على المُشرِّع الأخلاقي
+===
+حدوسنا الأخلاقية العميقة — أن الإبادة الجماعية شر، وأن العدل واجب، وأن تعذيب الأبرياء خطأ حقيقي — أكثر يقيناً من أي مقدمة فلسفية. إذا أفضت حجة إلى نتيجة تُنكر هذه الحدوس فالحجة هي المرفوضة.
+
+هذه الحدوس الأخلاقية شبه الكونية عبر ثقافات متباينة جداً خير تفسيرها: مصدر مشترك أودع معرفة أخلاقية أساسية في الطبيعة البشرية — وهو ما وصفه القرآن بدقة: "فَأَلْهَمَهَا فُجُورَهَا وَتَقْوَاهَا" (الشمس 91:8).
+
+سي إس لويس في «مسيحية بسيطة»: «الجدال الأخلاقي الإنساني — شخصان يتجادلان — كلاهما يفترض أن ثمة قانوناً يمكن الاحتكام إليه. لو لم يكن هناك قانون موضوعي لما كان للجدال معنى أصلاً.»
+
+
+ريتشارد سوينبيرن والبرهان الأخلاقي الحديث
+===
+أستاذ أكسفورد ريتشارد سوينبيرن: «الحقائق الأخلاقية الموضوعية — القيم الصحيحة بصرف النظر عن آرائنا — تحتاج إلى أساس في الله الذي ذاته هي الخير المطلق.»
+
+الفيلسوف ماكي (الملحد) أقر أن الحقائق الأخلاقية الموضوعية «غريبة» جداً بالنسبة للكون المادي — لذا رفضها. لكن رفضه يتعارض مع ما نعرفه بيقين حدسي: أن تعذيب الأبرياء خطأ حقيقي لا مجرد كراهية شخصية.
+
+الغزالي: الأخلاق الحقيقية لا تنبع من العقل وحده ولا من المجتمع وحده، بل من الشريعة المبنية على طبيعة الإنسان كما خلقه الله — وهذا يُفسّر لماذا تكون المعرفة الأخلاقية فطرية في كل الثقافات.`,
+    deepDive: `The Moral Argument: Strict Logical Form
+===
+Premise 1: If God does not exist, objective moral values and duties do not exist.
+Premise 2: Objective moral values and duties do exist.
+Conclusion: Therefore, God exists.
+
+"Objective" means: true regardless of what anyone thinks or feels. The torture of innocent children for pleasure is wrong — not because society agreed to call it wrong, but because it IS wrong, even if every human being approved of it.
+
+On atheism: humans are rearranged atoms produced by a blind evolutionary process. There is no principled distinction between "human" and "virus" — both act according to their nature. The term "evil" loses all real meaning.
+
+William Lane Craig: "If God does not exist, there is no difference between a Mother Teresa and a Hitler — both are just complex chemical reactions whose actions have no ultimate moral significance."
+
+
+Why Atheistic Foundations for Morality Fail
+===
+Three main attempts — all fail:
+
+(1) Social Contract Theory: Morality is collective agreement. Problem: a tyrannical majority can legitimately enslave a minority. Nazism was a "social contract." There is no external standard to judge the contract itself.
+
+(2) Evolutionary Ethics: Evolution produces survival behaviors, not moral truths. Rape and infanticide have "evolutionary advantages" in certain theoretical models — does that make them morally right? G.E. Moore called this the "Naturalistic Fallacy": "is" does not imply "ought."
+
+(3) Utilitarianism: The right action maximizes happiness for the most people. Problem: it licenses torturing one innocent person to please a million. Without God to define human nature and genuine flourishing, "happiness" has no objective content.
+
+
+The Moral Intuition: Evidence for a Moral Lawgiver
+===
+Our deep moral intuitions — that genocide is wrong, that justice matters, that torturing innocents is truly evil — are far more certain than any philosophical premise. If an argument leads to the conclusion that these things are not really wrong, the argument has been refuted by the intuition.
+
+These near-universal moral intuitions across radically different cultures are best explained by a common Source who inscribed basic moral knowledge in human nature — precisely what the Quran describes: "And inspired it with its wickedness and its righteousness" (91:8).
+
+C.S. Lewis in Mere Christianity: "Human moral arguments — two people quarreling — both presuppose a Law they can appeal to. If there were no objective Law, the argument would be meaningless."
+
+
+Richard Swinburne and the Grounding of Objective Morality
+===
+Oxford philosopher Richard Swinburne: "Objective moral facts — facts about values that hold regardless of our opinions — require grounding in God, whose very nature is the absolute Good."
+
+Philosopher J.L. Mackie (atheist) admitted that objective moral facts are "metaphysically queer" entities in a material universe — so he rejected them. But his rejection conflicts with what we know with certainty by intuition: that torturing innocents is genuinely wrong, not merely distasteful.
+
+Al-Ghazali: True morality does not derive from reason alone or society alone, but from Divine Law built upon human nature as Allah created it — aligning with the fact that moral knowledge is innate (fitra) across all cultures.
+
+The Quran encapsulates the entire moral argument in two verses (91:7-8): "By the soul and He who proportioned it — and inspired it with its wickedness and its righteousness." The Moral Lawgiver who inscribed the moral law in us is the same Creator whose existence the argument proves.`,
     verses: [
       {
         id: 'verse-shams-7-8',
