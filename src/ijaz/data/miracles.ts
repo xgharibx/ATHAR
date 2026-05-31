@@ -10902,6 +10902,90 @@ The Quranic oath by "Al-Khunnas Al-Jawari Al-Kunnas" = an oath by objects whose 
     summaryAr: 'يشير القرآن مراراً إلى تعاقب الليل والنهار والتغيرات الموسمية — تفسر الفلكيات الحديثة ذلك من خلال ميل محور الأرض 23.5 درجة، الذي ينتج الفصول الأربعة والتباين في أطوال الليل والنهار عبر العام.',
     description: 'Surah Al-Imran (3:190): "Indeed, in the creation of the heavens and the earth and the alternation of the night and the day (اخْتِلَافِ اللَّيْلِ وَالنَّهَارِ) are signs for those of understanding." Surah Al-Hajj (22:61): "That is because Allah causes the night to enter the day and causes the day to enter the night (يُولِجُ اللَّيْلَ فِي النَّهَارِ وَيُولِجُ النَّهَارَ فِي اللَّيْلِ)." The term "اختلاف" (ikhtilaf) means difference/alternation — implying the day and night are not equal in length and they vary systematically throughout the year. "يُولِج" (yulij) means to cause to enter, penetrate, or insert one into another — suggesting a gradual, continuous process. Modern geophysics explains: (1) AXIAL TILT (23.5°): Earth\'s axis is tilted at 23.5° relative to its orbital plane. This tilt causes: varying day lengths, the four seasons, and the migration of sunrise/sunset positions along the horizon. (2) SEASONAL IKHTILAF: In summer, nights are short and days are long. In winter, this reverses. The "difference" in day/night length is maximal at the poles (months of continuous day or night) and minimal at the equator. (3) "ENTERING" ONE INTO THE OTHER: The transition between night and day is gradual — dawn and dusk last for minutes (tropics) to hours (polar regions) as one "penetrates" the other. (4) THE EQUINOXES AND SOLSTICES: The Quran\'s reference to "alternation" encompasses the complete annual cycle of equinoxes (equal day/night) and solstices (maximum difference).',
     descriptionAr: 'يقول الله تعالى في سورة آل عمران (3:190): "إِنَّ فِي خَلْقِ السَّمَاوَاتِ وَالْأَرْضِ وَاخْتِلَافِ اللَّيْلِ وَالنَّهَارِ لَآيَاتٍ لِّأُولِي الْأَلْبَابِ". وفي سورة الحج (22:61): "يُولِجُ اللَّيْلَ فِي النَّهَارِ وَيُولِجُ النَّهَارَ فِي اللَّيْلِ". كلمة "اختلاف" تعني التفاوت والتناوب المنهجي. الفيزياء الجيولوجية الحديثة تفسر: (1) ميل محور الأرض 23.5°: سبب الفصول الأربعة وتفاوت الليل والنهار. (2) "يولج" = يدخل تدريجياً — الانتقال التدريجي بين الليل والنهار (الفجر والغسق). (3) الاعتدالان والانقلابان يتضمنهما "الاختلاف".',
+    deepDiveAr: `دلالة "اختلاف" — التفاوت المنهجي لا مجرد التناوب
+===
+يقول الله تعالى في سورة آل عمران (3:190): "إِنَّ فِي خَلْقِ السَّمَاوَاتِ وَالْأَرْضِ وَاخْتِلَافِ اللَّيْلِ وَالنَّهَارِ لَآيَاتٍ لِّأُولِي الْأَلْبَابِ".
+
+الكلمة المحورية: "اختلاف" — من "خالف" = خالف، تباين، تفاوت. لو كان المعنى مجرد التناوب المنتظم لاستُخدمت كلمات مثل "تعاقب" أو "تناوب". أما "اختلاف" فتعني التباين في المقدار — أي أن الليل والنهار ليسا متساويَين في الطول ويتفاوتان بشكل منهجي.
+
+دلالة الاختيار اللغوي: في اللغة العربية الفصحى، "اختلاف الليل والنهار" تعني أن الليل تارة يطول وتارة يقصر، والنهار كذلك — وأن هذا التباين ذاته آية كونية. لو كانت الأرض غير مائلة المحور لكان الليل والنهار متساويَين دائماً — وما صحّ استخدام "اختلاف".
+
+المرجع: الطبري، محمد بن جرير. جامع البيان. تفسير سورة آل عمران: 190. الزمخشري (538هـ). الكشاف. دار الكتاب العربي. Ibn Manzur (711 AH). Lisan al-Arab, entry: kh-l-f.
+
+
+ميل محور الأرض 23.5° — السبب الفيزيائي للاختلاف
+===
+الفيزياء الفلكية الحديثة تفسر "اختلاف الليل والنهار" بظاهرة واحدة: محور الأرض مائل بزاوية 23.5° من العمودي على مستوى مداره حول الشمس.
+
+النتائج المباشرة لهذا الميل: (1) الفصول الأربعة: عندما يميل نصف الكرة الشمالي نحو الشمس — صيف (نهار أطول). عندما يبتعد — شتاء (ليل أطول). (2) التباين في طول الليل والنهار: عند الانقلاب الصيفي يصل طول النهار فوق 66.5° شمالاً إلى 24 ساعة كاملة. عند الانقلاب الشتوي يصل طول الليل إلى 24 ساعة في المنطقة ذاتها. (3) الاعتدالان: مرتين في السنة يتساوى الليل والنهار في كل أنحاء الأرض.
+
+اكتشاف ميلانكوفيتش: ميلوتين ميلانكوفيتش (1879-1958م) أثبت رياضياً العلاقة الكاملة بين ميل محور الأرض والتغيرات المناخية على مدى آلاف السنين — "دورات ميلانكوفيتش" التي تحكم حقب الجليد.
+
+المرجع: Milankovitch, M. (1941). "Canon of Insolation and the Ice Age Problem." Royal Serbian Academy. Hartmann, W.K. (2005). "Moons and Planets." Thomson Brooks/Cole.
+
+
+"يُولِجُ اللَّيْلَ فِي النَّهَارِ" — الإيلاج التدريجي
+===
+في سورة الحج (22:61): "ذَلِكَ بِأَنَّ اللَّهَ يُولِجُ اللَّيْلَ فِي النَّهَارِ وَيُولِجُ النَّهَارَ فِي اللَّيْلِ".
+
+"يُولِج" = من "ولَج" = دخل شيء داخل شيء آخر تدريجياً وبانتقال سلس. هذا وصف دقيق للغاية لظاهرة الفجر والغسق: الفجر الصادق ليس انقلاباً مفاجئاً — بل تسرّب تدريجي لضوء الشمس أثناء إشراقها من وراء الأفق. في المناطق القطبية يمتد هذا "الإيلاج" ساعات. حتى في المناطق المدارية يستغرق الفجر 20-40 دقيقة.
+
+الفيزياء وراء الإيلاج: الغلاف الجوي ينكسر ضوء الشمس ويشتته قبل شروقها — مما يجعل الانتقال بين الليل والنهار انتقالاً تدريجياً ناعماً لا انقطاعاً مفاجئاً. الكلمة "يُولِج" تستحضر صورة التداخل المتبادل — ليس "يدفع" أو "يُزيل" بل "يُدخل في".
+
+المرجع: الطبري. جامع البيان. تفسير الحج: 61. Meinel, A.B. & Meinel, M.P. (1983). "Sunsets, Twilights and Evening Skies." Cambridge University Press.
+
+
+الاستحالة المعرفية — ما كان معروفاً في 610م
+===
+في القرن السابع الميلادي: تفسير تعاقب الليل والنهار في معظم الحضارات كان دينياً أو أسطورياً. لا أحد يعرف شكل الأرض بدقة، ناهيك عن ميل محورها.
+
+الفارق المعرفي: ميل محور الأرض لم يُقَس بدقة علمية إلا في عصر الفلك الحديث. العلاقة الرياضية الكاملة بين ميل المحور والمناخ والفصول: ميلانكوفيتش 1941م. الفيزياء الكاملة للفجر والغسق من خلال الكسر الجوي: القرن التاسع عشر.
+
+الملاحظة الجوهرية: استخدام "اختلاف" بدلاً من "تعاقب" واستخدام "يُولِج" بدلاً من "يُبدِّل" — اختياران لغويان يصفان بدقة الظاهرة الفيزيائية كما تشرحها الفلكيات الحديثة. الآية تسمي "اختلاف الليل والنهار" آية لأولي الألباب — مما يشير إلى أن فهمها الكامل يستلزم التحقيق العلمي.
+
+المرجع: El-Naggar, Z. (2007). "Treasures in the Sunnah." Al-Falah Foundation, Cairo. Bucaille, M. (1976). "The Bible, the Quran and Science." Seghers, Paris.`,
+    deepDive: `The Linguistic Precision of "Ikhtilaf" — Difference, Not Simple Alternation
+===
+Allah says in Surah Al-Imran (3:190): "Indeed, in the creation of the heavens and the earth and the ikhtilaf of night and day are signs for people of understanding."
+
+The key term: "ikhtilaf" — from "khaalafa" = to differ, to vary in measure. If the meaning were simple regular alternation, Arabic has precise words: "ta'aqub" (succession) or "tanawub" (rotation). "Ikhtilaf" specifically means variation in quantity — night and day are not equal in length and vary systematically.
+
+The linguistic choice: "ikhtilaf al-layl wal-nahar" implies night is sometimes long and sometimes short — this very variation is a cosmic sign. If Earth's axis were untilted, day and night would always be equal — and "ikhtilaf" would be the wrong word. A 7th-century author writing generically would use "ta'aqub" not "ikhtilaf."
+
+Reference: Al-Tabari (839-923 CE). Jami al-Bayan. Commentary on Al-Imran: 190. Al-Zamakhshari (1075-1144 CE). Al-Kashshaf. Ibn Manzur (1290 CE). Lisan al-Arab, entry: kh-l-f.
+
+
+Earth's 23.5 Degree Axial Tilt — The Physical Cause of Varying Day Lengths
+===
+Modern astrophysics explains "ikhtilaf al-layl wal-nahar" through one phenomenon: Earth's rotational axis is tilted 23.5 degrees from the perpendicular to its orbital plane.
+
+Direct consequences: Seasons — when the Northern Hemisphere tilts toward the Sun it is summer (longer days); when away it is winter (longer nights). Day length variation — at the summer solstice above 66.5 degrees N, the sun does not set for 24 hours; at the winter solstice the sun does not rise. Equinoxes — twice a year (March and September) night and day are equal everywhere.
+
+Milankovitch cycles: Milutin Milankovitch (1879-1958) mathematically proved the complete relationship between Earth's axial tilt and long-term climate change. His 1941 work established the full mathematical framework governing ice ages.
+
+Reference: Milankovitch, M. (1941). "Canon of Insolation and the Ice Age Problem." Royal Serbian Academy. Hartmann, W.K. (2005). "Moons and Planets." Thomson Brooks/Cole.
+
+
+"Yulij" — The Gradual Penetration of Night into Day
+===
+Surah Al-Hajj (22:61): "That is because Allah causes the night to enter (yuliju) the day and causes the day to enter (yuliju) the night."
+
+"Yulij" = from "walaja" = for one thing to gradually enter inside another through a smooth, continuous transition. This is a precise description of twilight: dawn is not a sudden switch — it is a gradual infiltration of sunlight as the sun rises below the horizon. In polar regions this "penetration" lasts for hours; even in tropical regions dawn takes 20-40 minutes.
+
+The atmospheric physics: the atmosphere refracts and scatters sunlight before sunrise — creating a gradual smooth transition. This same refraction extends the actual day length by approximately 4 additional minutes at each end. The word "yulij" (enters into) is more precise than all alternatives: "yubaddilu" (replaces) or "yazilu" (removes) do not capture the actual overlap.
+
+Reference: Al-Tabari. Jami al-Bayan. Commentary on Al-Hajj: 61. Meinel, A.B. & Meinel, M.P. (1983). "Sunsets, Twilights and Evening Skies." Cambridge University Press.
+
+
+The Knowledge Gap — What Was Knowable in 610 CE
+===
+In the 7th century CE: explanations for night and day in most civilizations were religious or mythological. No one knew Earth's precise shape, let alone its axial tilt.
+
+The knowledge gap: precise measurement of Earth's axial tilt required modern observatories. The complete mathematical relationship between axial tilt and climate was not established until Milankovitch (1941). The physics of twilight through atmospheric refraction was not rigorously quantified until the 19th century.
+
+The key observation: choosing "ikhtilaf" instead of "ta'aqub" and "yulij" instead of "yubaddil" — two linguistic choices that precisely describe the physical phenomenon as modern astrophysics explains it. The verse calls this variation a "sign for people of understanding" — implying its full significance requires scientific investigation. The 23.5 degree tilt, the seasons, the equinoxes and solstices, and the twilight gradient are all contained within "ikhtilaf al-layl wal-nahar."
+
+Reference: El-Naggar, Z. (2007). "Treasures in the Sunnah." Al-Falah Foundation, Cairo. Bucaille, M. (1976). "The Bible, the Quran and Science." Seghers, Paris.`,
     verses: [
       {
         id: 'verse-imran-190',
@@ -10957,6 +11041,108 @@ The Quranic oath by "Al-Khunnas Al-Jawari Al-Kunnas" = an oath by objects whose 
     summaryAr: 'يقرر القرآن أن الإنسان خُلق "في أحسن تقويم" — يؤكد علم التشريح الحديث أن جسم الإنسان يظهر تناسقاً ثنائياً رائعاً وتوضعاً مثالياً للأعضاء ورياضيات نسبية (بما فيها النسبة الذهبية) لا يضاهيها أي كائن آخر.',
     description: 'Surah At-Tin (95:4): "We have certainly created man in the best of stature/form (فِي أَحْسَنِ تَقْوِيمٍ)." The word "taqwim" (تقويم) comes from "qawama" — to make erect, to perfect the structure, to calibrate — and means not just "form" but "optimal calibration/proportion." Modern anatomy reveals multiple extraordinary features: (1) BILATERAL SYMMETRY: The human body is bilaterally symmetric — left/right halves mirror each other. This optimal symmetry is associated with genetic fitness, immune function, and reproductive success. (2) UPRIGHT POSTURE (QIYAM): Humans are the only fully bipedal mammals with upright spine — freeing the hands for tool use, language, and complex social interaction. No other primate has this perfect upright stance. (3) GOLDEN RATIO (φ ≈ 1.618): The human body exhibits the golden ratio in multiple proportions: overall height to navel height, navel to foot to navel to head, finger segment ratios, face proportions (mouth to chin to face width), and DNA coil proportions. (4) HAND PRECISION: Human hands have 27 bones, enabling over 100 distinct grip configurations — unmatched in any other species. (5) BRAIN-TO-BODY RATIO: Humans have the highest brain-to-body mass ratio of any animal (when adjusted for body size). (6) VOCAL APPARATUS: The human vocal tract, larynx position, and oral anatomy are uniquely configured for complex speech — the "optimal calibration" for language.',
     descriptionAr: 'يقول الله تعالى في سورة التين (95:4): "لَقَدْ خَلَقْنَا الْإِنسَانَ فِي أَحْسَنِ تَقْوِيمٍ". كلمة "تقويم" من "قوَّم" = معناها التعديل والتصحيح والجعل مستقيماً مثالياً. يكشف علم التشريح الحديث: (1) التناسق الثنائي الكامل للجسم البشري. (2) الوضع الرأسي المنتصب — الإنسان الكائن الوحيد ذو المشية الثنائية المثالية. (3) النسبة الذهبية (φ ≈ 1.618) في نسب الجسم المتعددة. (4) اليد البشرية: 27 عظمة، أكثر من 100 نوع قبضة. (5) نسبة الدماغ إلى الجسم — الأعلى في المملكة الحيوانية.',
+    deepDiveAr: `دلالة "تقويم" — التعديل المثالي والمعايرة الدقيقة
+===
+يقول الله تعالى في سورة التين (95:4): "لَقَدْ خَلَقْنَا الْإِنسَانَ فِي أَحْسَنِ تَقْوِيمٍ".
+
+الجذر اللغوي: "تقويم" من "قوَّم" = عدَّل، صحَّح، سوَّى، جعل مستقيماً، معايرة دقيقة. لم يقل القرآن "في أحسن صورة" (best appearance) ولا "في أحسن خِلقة" — بل "في أحسن تقويم" أي: في أدق معايرة وأحكم ضبط.
+
+الفرق الدلالي الدقيق: "تقويم" في العربية يُستخدم لمعايرة الآلات الدقيقة، وتقويم الأسنان (orthodontics)، وتقويم العظام (orthopedics) — كلها تعني الضبط الدقيق لتحقيق الوظيفة المثلى. تطبيق هذا المصطلح على الإنسان يعني: الجسم البشري ليس مجرد شكل جميل بل نظام مُعَيَّر بدقة رياضية.
+
+ابن منظور في لسان العرب (ت 711هـ): "القِوام: العدل والاستقامة. التقويم: التسوية والتعديل". الراغب الأصفهاني في المفردات: "التقويم: جعل الشيء قائماً على أكمل وجه".
+
+المرجع: Ibn Manzur (711 AH). Lisan al-Arab. Vol. 12, entry: q-w-m. Al-Raghib al-Asfahani (d. 1108 CE). Al-Mufradat fi Gharib al-Quran.
+
+
+الوضع الرأسي المنتصب والتناسق الثنائي — فريد في المملكة الحيوانية
+===
+علم التشريح الحديث يكشف أن "أحسن تقويم" يتجلى في خاصيتين لا يشاركه فيهما أي كائن آخر:
+
+(1) الوضع الرأسي المنتصب الكامل: الإنسان الكائن الوحيد ذو المشية الثنائية الكاملة المنتصبة. الفقرة العجزية مائلة للخلف، الحوض مستوٍ، ركبة الإنسان تقفل تماماً في وضع الانتصاب. 99.9% من ثقل الجسم يمر عبر خط عمودي من الأذن إلى الكاحل. لا شمبانزي ولا قرد يستطيع الوقوف المنتصب الكامل لفترة مستمرة.
+
+النتائج التشريحية: اليدان حرتان للأداة واللغة والتعبير. الحنجرة انزلقت للأسفل مما أتاح التحكم الدقيق في النطق. الدماغ اتسع لأن المشية الثنائية تستهلك طاقة أقل مما وفّر طاقة للدماغ.
+
+(2) التناسق الثنائي الكامل: النصف الأيمن من الجسم يعكس النصف الأيسر بدقة رياضية. هذا التناسق مرتبط بالاستقرار الوراثي والكفاءة المناعية — هو مؤشر حرفي على "التقويم" الأمثل.
+
+المرجع: Lovejoy, C.O. (1988). "Evolution of Human Walking." Scientific American, 259(5), 118-125. Gangestad, S.W. & Thornhill, R. (1999). "Individual differences in developmental precision." Proceedings of the Royal Society B, 266, 953-960.
+
+
+النسبة الذهبية في نسب الجسم البشري
+===
+النسبة الذهبية (phi ~ 1.618) تظهر بشكل موثق في نسب جسم الإنسان:
+
+النسب الموثقة: الطول الكلي مقسوماً على المسافة من السرة إلى الأرض ~ phi. المسافة من السرة إلى الأرض مقسومة على المسافة من الركبة إلى الأرض ~ phi. طول أجزاء الأصابع (السلاميات): كل سلامية مقسومة على السابقة لها ~ phi. نسب الوجه: عرض الوجه مقسوم على عرض الأنف، ارتفاع الوجه مقسوم على عرض الوجه. حلزون الأذن الداخلية (القوقعة) يتبع النسبة اللوغاريتمية الذهبية.
+
+ليوناردو دا فينشي (1490م) وثّق هذه النسب في "رجل فيتروفيوس". ريكيتس (1982م) أكد رياضياً النسبة الذهبية في نسب الوجه. لا كائن حي آخر يُظهر هذا الاتساق في النسبة الذهبية — مما يجعل الجسم البشري "معايَراً" رياضياً بطريقة فريدة.
+
+لماذا النسبة الذهبية؟ في الرياضيات، النسبة الذهبية هي الحل الأمثل لمسألة التقسيم الذي يُعظّم الكفاءة والتوازن — وهي تنتج أكثر الهياكل استقراراً واقتصاداً في الطاقة.
+
+المرجع: Livio, M. (2002). "The Golden Ratio." Broadway Books. Ricketts, R.M. (1982). "The Biologic Significance of the Divine Proportion." American Journal of Orthodontics, 81(5), 351-370.
+
+
+اليد والدماغ — دقة بيولوجية لا مثيل لها
+===
+"أحسن تقويم" يتجلى أيضاً في عضوين يميزان الإنسان تميزاً مطلقاً:
+
+اليد البشرية: 27 عظمة، 29 مفصلاً، أكثر من 30 عضلة ووتراً. نتيجة: أكثر من 100 نوع مختلف من القبضات والإمساكات. الإبهام المعارض يسمح بالإمساك الدقيق (pincer grip) الذي لا يتقنه أي كائن آخر بهذا المستوى. مساحة الدماغ المخصصة للتحكم في اليدين تعادل مساحة التحكم في باقي الجسم كله تقريباً.
+
+الدماغ البشري: نسبة دماغ/جسم مُصحَّحة (encephalization quotient) = 7.5 — أعلى من أي حيوان آخر (الدلافين 5، الشمبانزي 2.5). القشرة الأمامية تشكل 29% من حجم الدماغ عند الإنسان مقارنة بـ17% عند الشمبانزي.
+
+الجهاز الصوتي: موضع الحنجرة المنخفض عند الإنسان يُتيح تحكماً دقيقاً في إنتاج الأصوات — شرط لإنتاج حروف المد والصوامت الدقيقة في اللغة. المجموع: الوضع المنتصب + التناسق الثنائي + النسبة الذهبية + اليد الدقيقة + الدماغ الأكبر + الجهاز الصوتي = "أحسن تقويم" — معايرة شاملة لكل النظام.
+
+المرجع: Lieberman, D.E. (2011). "The Evolution of the Human Head." Harvard University Press. Napier, J.R. (1993). "Hands." Princeton University Press.`,
+    deepDive: `The Linguistic Weight of "Taqwim" — Optimal Calibration, Not Just Form
+===
+Allah says in Surah At-Tin (95:4): "We have certainly created man in the best of taqwim."
+
+The root: "taqwim" from "qawwama" = to make upright, to calibrate, to adjust to perfect precision. The Quran does not say "fi ahsani surah" (best appearance) or "fi ahsani khalq" (best body) — but "fi ahsani taqwim" — in the most perfect calibration.
+
+The distinction: "taqwim" in Arabic is used for calibrating precise instruments, orthodontics (taqwim al-asnan), and orthopedics (taqwim al-izham) — all meaning precise adjustment for optimal function. Applying this to the human body means: not merely beautiful in appearance but calibrated with mathematical precision for optimal performance.
+
+Ibn Manzur in Lisan al-Arab (d. 711 AH): "al-qiwam: justice and uprightness. al-taqwim: making level, adjusting, perfecting." Al-Raghib al-Asfahani in Al-Mufradat: "taqwim: making a thing stand in the most complete manner possible."
+
+Reference: Ibn Manzur (1290 CE). Lisan al-Arab. Vol. 12, entry: q-w-m. Al-Raghib al-Asfahani (d. 1108 CE). Al-Mufradat fi Gharib al-Quran.
+
+
+Upright Bipedalism and Bilateral Symmetry — Unique in the Animal Kingdom
+===
+Modern anatomy reveals that "best taqwim" manifests first in two properties shared by no other living creature:
+
+Full upright bipedalism: humans are the only species with fully erect two-legged locomotion. The sacrum tilts backward, the pelvis is level, the human knee locks fully in the standing position. 99.9% of body weight passes through a vertical line from ear to ankle. No chimpanzee or ape can maintain a fully erect stance for extended periods.
+
+Anatomical consequences: hands are freed for tools, language, and expression. The larynx descended, enabling precise vocalization control. The brain expanded because bipedal gait consumes less energy than quadrupedal locomotion, releasing energy for the brain.
+
+Bilateral symmetry: the right half mirrors the left with mathematical precision. This symmetry correlates with genetic stability and immune competence — a literal indicator of optimal "taqwim." Research shows greater bilateral symmetry associates with higher intelligence, better health, and greater reproductive success.
+
+Reference: Lovejoy, C.O. (1988). "Evolution of Human Walking." Scientific American, 259(5), 118-125. Gangestad, S.W. & Thornhill, R. (1999). "Individual differences in developmental precision." Proceedings of the Royal Society B, 266, 953-960.
+
+
+The Golden Ratio in Human Body Proportions
+===
+The golden ratio (phi ~ 1.618) — the "divine proportion" — appears repeatedly and documentably in human body proportions:
+
+Documented ratios: total height divided by navel-to-floor distance ~ phi. Navel-to-floor divided by knee-to-floor ~ phi. Finger phalanx ratios: each bone divided by the preceding one ~ phi. Facial proportions: face width divided by nose width, face height divided by face width follow phi. The inner ear cochlea follows the logarithmic golden spiral.
+
+Leonardo da Vinci (1490) documented these in the Vitruvian Man. Ricketts (1982) mathematically confirmed the golden ratio in facial proportions. No other vertebrate shows this consistent appearance of phi across its body — making human proportions uniquely "calibrated."
+
+Why phi? In mathematics, the golden ratio is the optimal solution to self-similar proportional division — it produces the most stable, energy-efficient structures. Its consistent appearance throughout the human form reflects deep mathematical organization.
+
+Reference: Livio, M. (2002). "The Golden Ratio." Broadway Books. Ricketts, R.M. (1982). "The Biologic Significance of the Divine Proportion." American Journal of Orthodontics, 81(5), 351-370.
+
+
+The Hand and Brain — Unparalleled Biological Precision
+===
+"Best taqwim" is also manifest in two organs that distinguish humans absolutely:
+
+The human hand: 27 bones, 29 joints, more than 30 muscles and tendons. Result: more than 100 distinct grip configurations. The opposable thumb enables the precision pincer grip no other species achieves at this level. The brain area dedicated to hand control is roughly equal to the area controlling the entire rest of the body.
+
+The human brain: encephalization quotient (EQ) = 7.5 — higher than any other animal (dolphins 5, chimpanzees 2.5). The prefrontal cortex constitutes 29% of total brain volume in humans vs. 17% in chimpanzees — the center of planning, abstract thought, and language.
+
+The vocal apparatus: the lowered position of the human larynx enables precise vocalization control — a prerequisite for the vowels and fine consonants of language. No other species has this "vocal taqwim."
+
+The full picture: upright posture + bilateral symmetry + golden ratio proportions + precise hand + largest relative brain + vocal apparatus = "fi ahsani taqwim" — a comprehensive calibration of the entire system, not one organ.
+
+Reference: Lieberman, D.E. (2011). "The Evolution of the Human Head." Harvard University Press. Napier, J.R. (1993). "Hands." Princeton University Press.`,
     verses: [
       {
         id: 'verse-tin-4',
