@@ -1611,6 +1611,62 @@ Each of these three realities was unknown in the 7th century. Their combination 
     summaryAr: 'يصف القرآن حاجزاً غير مرئي بين المياه العذبة والمالحة يمنع الاختلاط — أكده علم المحيطات الحديث.',
     description: 'Surah Al-Furqan (25:53): "And it is He who has released the two seas, one fresh and sweet and one salty and bitter, and He placed between them a barrier and prohibiting partition." Modern oceanography has discovered that when fresh water and salt water meet (such as at river estuaries), they don\'t immediately mix. A physical barrier called a "halocline" (a zone of sharp salinity change) exists between them, maintaining their distinct properties. This is caused by differences in water density. The Quran\'s word "بَرْزَخًا" (barzakhan) means a barrier/partition, and "حِجْرًا مَّحْجُورًا" means a forbidden partition — indicating the two bodies of water are actively prevented from mixing, which precisely matches the halocline phenomenon.',
     descriptionAr: 'سورة الفرقان (25:53): "وَهُوَ الَّذِي مَرَجَ الْبَحْرَيْنِ هَذَا عَذْبٌ فُرَاتٌ وَهَذَا مِلْحٌ أُجَاجٌ وَجَعَلَ بَيْنَهُمَا بَرْزَخًا وَحِجْرًا مَحْجُورًا". اكتشف علم المحيطات الحديث أن المياه العذبة والمالحة لا تختلط فوراً عند التقائهما، بل يوجد حاجز فيزيائي يُسمى "الهالوكلاين".',
+    deepDiveAr: `
+الهالوكلاين: الحاجز الذي لا تراه العين
+===
+اكتشف العلماء في القرن العشرين أن مياه البحار العذبة والمالحة لا تختلط فوراً عند التقائها — بل يفصل بينهما حاجز مائي يُعرف بـ"الهالوكلاين" (Halocline): منطقة انتقال حادة في الملوحة والكثافة.
+
+الفيزياء وراء الظاهرة: المياه العذبة كثافتها ~1000 كغم/م³ بينما المياه المالحة ~1025 كغم/م³. هذا الفرق يخلق طبقة فاصلة تمنع الاختلاط الفوري، تماماً كطبقة الزيت فوق الماء.
+
+
+البرزخ والحجر المحجور: دقة لغوية متناهية
+===
+استخدم القرآن مصطلحين مختلفين في نفس الآية:
+- «بَرْزَخًا»: حاجز/فاصل مادي (الهالوكلاين)
+- «حِجْرًا مَحْجُورًا»: حظر مزدوج — أي حاجز محروس بمنع مُضاعَف
+
+هذا التمييز الدقيق يتطابق مع ما يصفه علم المحيطات: الهالوكلاين ليس مجرد حد بصري بل حاجز فيزيائي نشط يحفظ خصائص كل كتلة مائية.
+
+
+أمثلة موثّقة من المحيطات
+===
+- مصب نهر الأمازون في الأطلسي: يمتد تأثيره مئات الكيلومترات داخل المحيط مع الحفاظ على منطقة هالوكلاين واضحة.
+- مضيق جبل طارق: تسير المياه الأطلسية العذبة نسبياً فوق المياه المتوسطية الأكثر ملوحة في اتجاهات معاكسة مع فاصل هالوكلاين محدد.
+- اكتشف جاك كوستو في ستينيات القرن الماضي ظاهرة الحاجز بين المياه في سواحل المتوسط.
+
+
+ما كان يعرفه العرب في القرن السابع
+===
+لم تكن مصطلحات "الهالوكلاين" أو "كثافة المياه" أو "طبقات الملوحة" معروفة في القرن السابع الميلادي. كان المشاهد العادي يرى البحرين يلتقيان دون أن يفهم لماذا يبدوان منفصلين. اختيار القرآن لكلمتي «بَرْزَخًا وَحِجْرًا مَحْجُورًا» — بدلاً من كلمة واحدة — يصف بدقة آلية ظاهرة علمية لم تُفسَّر إلا بعد أكثر من ألف وثلاثمائة عام.
+`,
+    deepDive: `
+The Halocline: The Invisible Barrier
+===
+Modern oceanographers discovered in the 20th century that fresh and salt water do not immediately mix when they meet. A physical boundary called a "halocline" — a zone of sharp salinity and density change — separates them and prevents rapid mixing.
+
+The physics: Fresh water density ~1000 kg/m3 vs. salt water ~1025 kg/m3. This density difference creates a layered boundary, similar to oil floating on water, maintained by the difference in ionic concentration.
+
+
+Barzakh and Hijr Mahjoor: Precise Dual Terminology
+===
+The Quran uses two distinct terms in the same verse:
+- "Barzakhan" (برزخاً): a physical partition — the halocline itself
+- "Hijran Mahjoorana" (حجراً محجوراً): a doubly-forbidden barrier — a barrier that is itself prohibited/guarded
+
+This precise linguistic distinction matches oceanographic description: the halocline is not merely a visual boundary but an active physical barrier that preserves each water mass's properties.
+
+
+Documented Examples
+===
+- Amazon River mouth (Atlantic): The halocline extends hundreds of kilometers offshore, keeping river water and ocean water stratified.
+- Strait of Gibraltar: Atlantic surface water (lower salinity) flows east over deeper, saltier Mediterranean water flowing west — with a distinct halocline between them.
+- Jacques Cousteau documented the sea-water barrier phenomenon in the Mediterranean in the 1960s.
+
+
+What Was Known in the 7th Century
+===
+The concepts of "halocline," "water density layers," or "salinity stratification" were entirely unknown in 7th-century Arabia. An observer could see two seas meeting but had no framework to explain why they appeared separated. The Quran's choice of two specific technical terms — "barzakhan" AND "hijran mahjoorana" — precisely describes the mechanism of a phenomenon not scientifically explained until 1,300+ years later.
+`,
     verses: [
       {
         id: 'verse-furqan-53',
@@ -1657,6 +1713,115 @@ Each of these three realities was unknown in the 7th century. Their combination 
     summaryAr: 'يستخدم القرآن كلمة "دحاها" لشكل الأرض — مشتقة من "دحية" بمعنى بيضة النعامة، متطابقة مع شكل الأرض الكروي المفلطح.',
     description: 'Surah An-Nazi\'at (79:30): "And after that He spread the earth" — "وَالْأَرْضَ بَعْدَ ذَلِكَ دَحَاهَا". The Arabic root "دحا" (daha) comes from "الدحية" which is the Arabic word for an ostrich egg. An ostrich egg is not perfectly spherical—it is an oblate spheroid, wider at the middle and slightly flattened at the poles. This is precisely the shape of the Earth, which is an oblate spheroid due to its rotation—wider at the equator by about 43 km compared to the pole-to-pole diameter. Dr. Haitham Talaat notes that in the 7th century, the common belief was either a flat earth or a perfect sphere. The concept of an oblate spheroid Earth was only confirmed by satellite measurements in the 20th century.',
     descriptionAr: 'سورة النازعات (79:30): "وَالْأَرْضَ بَعْدَ ذَلِكَ دَحَاهَا". الجذر العربي "دحا" مشتق من "الدحية" وهي بيضة النعامة. بيضة النعامة ليست كروية تماماً — إنها كرة مفلطحة، أعرض في الوسط ومسطحة قليلاً عند القطبين. وهذا تماماً شكل الأرض.',
+    deepDiveAr: `
+تحليل لغوي: «دَحَاهَا» — الفعل الذي يحمل شكل الأرض
+===
+الفعل «دحا» في اللغة العربية ليس مجرد «بسط» أو «فرش» — بل هو مشتق من «الدُّحِيَّة» و«الأُدحيَّة»: وهي عشّ النعامة الذي تبيض فيه بيضها في الرمال.
+
+وبيضة النعامة — أكبر بيضة طائر حي — ليست كرة كاملة. إنها كرة مفلطحة (Oblate Spheroid): مضغوطة في الأعلى والأسفل، أعرض في منتصفها.
+
+العرب في الجاهلية استخدموا «دحا» لوصف شيء يُدفع ويُسَوّى ليأخذ شكلاً مفلطحاً غير كامل الاستدارة.
+
+القرآن لم يقل «كوّرها» (كرة كاملة) ولا «سطّحها» (مستوية) — بل «دحَاهَا»: كروية مضغوطة.
+هذا الاختيار اللغوي يستبعد مسبقاً نموذجين:
+- الأرض المسطحة.
+- الكرة الكاملة التامة.
+ويثبت النموذج الثالث: الكرة المفلطحة — وهو بالضبط ما أثبته العلم.
+
+
+الكرة المفلطحة: ما كشفه علم الجيوديسيا
+===
+الأرض ليست كرة كاملة — إنها كرة مفلطحة (Oblate Spheroid):
+- نصف قطر خط الاستواء: ~6,378 كم.
+- نصف القطر القطبي: ~6,357 كم.
+- الفرق: ~21 كم — أي الأرض أعرض عند الاستواء من القطب إلى القطب بنحو 43 كم.
+
+سبب الانبعاج: دوران الأرض حول محورها يولّد قوة طاردة مركزية تدفع المادة نحو خط الاستواء.
+
+مراحل الاكتشاف التاريخية:
+- نيوتن (1687): تنبّأ نظرياً بأن الأرض مفلطحة بسبب الدوران.
+- البعثة الجيوديسية الفرنسية (1735-1744): قاست درجات خطوط الطول عند الاستواء وعند القطب وأثبتت الفرق.
+- أقمار الاستطلاع (القرن العشرون): قياس دقيق لشكل الأرض بدقة متناهية.
+
+
+دحا، دحية، دحياء — الجذر الذي ربط الكلمة بالشكل
+===
+معاجم اللغة العربية الكلاسيكية تشهد:
+- «الأُدحيَّة»: مكان بيض النعامة في الرمال — مستدير ومفلطح.
+- «الدَّحِيَّة»: الشيء الذي يُدحى ويُدفع ليستوي بشكل مفلطح.
+- ابن منظور في «لسان العرب»: الدحو هو البسط مع الاستدارة غير التامة.
+
+بيضة النعامة — أكبر بيضة طائر حي — ليست كرة كاملة. إنها مضغوطة في أعلاها وأسفلها وأعرض في منتصفها.
+
+الأرض وبيضة النعامة تشتركان في الخاصية ذاتها: كروية لكن ليست كرة كاملة — مضغوطة عند القطبين، منتفخة عند خط الاستواء.
+
+
+ما كان الناس يعتقدونه في القرن السابع
+===
+في القرن السابع الميلادي، كانت ثلاثة نماذج سائدة لشكل الأرض:
+أولاً — الأرض المسطحة: اعتقاد شعبي واسع في الجزيرة العربية.
+ثانياً — الكرة الكاملة: النموذج اليوناني (أرسطو، إيراتوسثينيس) — كرة كاملة تماماً.
+ثالثاً — لا رأي محدد عن الشكل الدقيق.
+
+لم يكن في تلك الحقبة أي شخص في الجزيرة العربية يعلم — أو يُدرّس — أن الأرض كرة مفلطحة. هذا المفهوم احتاج حتى القرن الثامن عشر ليثبت تجريبياً.
+
+القرآن اختار «دحاها» — الكلمة الوحيدة في العربية التي تصف شكلاً كروياً غير تام، مفلطحاً — في القرن السابع الميلادي.
+`,
+    deepDive: `
+Linguistic Analysis: "Dahaha" — The Verb That Encodes Earth's Shape
+===
+The verb "daha" in Arabic is not simply "spread" or "flatten" — it derives from "al-duhiyya" and "al-udhiyya": the nest that an ostrich makes in the sand to lay its eggs.
+
+An ostrich egg — the largest egg of any living bird — is not a perfect sphere. It is an oblate spheroid: compressed at top and bottom, and widest in the middle.
+
+Classical Arabic used "daha" to describe something pushed and shaped into a form that is rounded but not perfectly spherical.
+
+The Quran did not say "kawwaraha" (made it a perfect sphere) or "sattahaha" (made it flat) — it said "dahaha": flattened-spherical.
+This precise word choice rules out two models in advance:
+- A flat earth.
+- A perfect sphere.
+And affirms the third model: the oblate spheroid — exactly what science confirmed.
+
+
+The Oblate Spheroid: What Geodesy Revealed
+===
+Earth is not a perfect sphere — it is an oblate spheroid:
+- Equatorial radius: ~6,378 km.
+- Polar radius: ~6,357 km.
+- Difference: ~21 km (equatorial diameter exceeds pole-to-pole by ~43 km).
+
+Cause: Earth's rotation generates centrifugal force that pushes mass toward the equator.
+
+Historical milestones of discovery:
+- Newton (1687): theoretically predicted that Earth must be oblate due to rotation.
+- French Geodesic Mission (1735-1744): measured degree-lengths at the equator vs. the pole and confirmed the difference.
+- Reconnaissance satellites (20th century): precisely measured Earth's shape to millimeter accuracy.
+
+
+Daha, Duhiyya, Udhiyya — The Root That Links the Word to the Shape
+===
+Classical Arabic dictionaries testify:
+- "Al-udhiyya": the ostrich's nesting hollow in the sand — circular and flattened.
+- "Al-dahiyya": something pushed and shaped into a non-perfectly-round form.
+- Ibn Manzur in "Lisan al-Arab": dahw is a spreading with incomplete roundness.
+
+The ostrich egg — the largest egg of any living bird — is not a perfect sphere. It is compressed at top and bottom, widest in the middle.
+
+Earth and the ostrich egg share the same property: spherical but not perfectly so — compressed at the poles, bulging at the equator.
+
+
+What People Believed in the 7th Century
+===
+In the 7th century CE, three models of Earth's shape were prevalent:
+
+First — Flat Earth: widely held popular belief in Arabia and neighboring civilizations.
+Second — Perfect sphere: the Greek model (Aristotle, Eratosthenes) — a mathematically perfect ball.
+Third — No specific view on the precise shape.
+
+No one in 7th-century Arabia knew — or taught — that Earth was an oblate spheroid. This concept required until the 18th century to be proven experimentally.
+
+The Quran chose "dahaha" — the only word in Arabic that describes a spherical but imperfect, flattened shape — in the 7th century CE.
+`,
     verses: [
       {
         id: 'verse-naziat-30',
