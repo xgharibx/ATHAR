@@ -11495,6 +11495,106 @@ Reference: El-Naggar, Z. (2007). "Treasures in the Sunnah." Al-Falah Foundation,
     summaryAr: 'يقرر القرآن أن الذكر والأنثى كلاهما خُلقا "من نطفة إذا تُمنى" — مما يشير إلى أن الجنس يحدده مساهمة الذكر. تؤكد الجينيات الحديثة أن الجنس يتحدد بالكروموسوم X أو Y المحمول في الحيوان المنوي (لا البويضة) — حقيقة لم تُعرف حتى عام 1905م.',
     description: 'Surah An-Najm (53:45-46): "And that He creates the two mates — the male and female (الزَّوْجَيْنِ الذَّكَرَ وَالْأُنثَى) — from a sperm drop (مِن نُّطْفَةٍ) when it is emitted (إِذَا تُمْنَى)." Key observations: (1) "WHEN EMITTED" = AT THE MOMENT OF SPERM EJACULATION: The Arabic "إذا تُمنى" (idha tumna) means "when it is emitted/ejaculated." This specifies that sex is determined at the moment of sperm emission — not during fertilization, not during development. Modern genetics confirms: the X or Y chromosome of the sperm is fixed before ejaculation — the sex of the offspring is predetermined in the sperm itself. (2) "FROM A SPERM DROP": The verse says both male AND female are created from the nutfa (sperm drop). The egg was not identified until 1827 (Karl Ernst von Baer). In the 7th century, it was believed sex was determined by heat/cold during gestation, or by the dominant parent\'s "seed." The Quran attributes both male and female to the nutfa — pointing to the sperm as the determinant. (3) CHROMOSOMAL REALITY: Human sperm carry either chromosome X (female-determining) or chromosome Y (male-determining). Eggs carry ONLY chromosome X. Therefore the father\'s sperm determines sex: Y-sperm → male, X-sperm → female. The mother\'s contribution is always X. (4) HISTORICAL IGNORANCE: Ancient Greeks (Aristotle, Hippocrates) attributed sex to heat, womb position, or both parents\' qualities equally. In Arab culture, sons were prized and families sometimes blamed mothers for producing daughters — yet the Quran\'s verse points to the nutfa (father\'s sperm). (5) Discovery: Clarence McClung identified the Y chromosome as sex-determining in 1905. Nettie Stevens confirmed XX/XY mechanism in 1905.',
     descriptionAr: 'يقول الله تعالى في سورة النجم (53:45-46): "وَأَنَّهُ خَلَقَ الزَّوْجَيْنِ الذَّكَرَ وَالْأُنثَى ﴿٤٥﴾ مِن نُّطْفَةٍ إِذَا تُمْنَى". ملاحظات مهمة: (1) "إذا تُمنى" = عند إطلاق الحيوانات المنوية — الجنس يُحدَّد في الحيوان المنوي قبل الإطلاق. (2) كلا الجنسين من "نطفة" — تشير إلى الحيوان المنوي كمحدِّد. (3) الحقيقة الكروموسومية: الحيوانات المنوية إما X (أنثى) أو Y (ذكر)؛ البويضات دائماً X. الأب يحدد الجنس. (4) الاكتشاف: كلارنس ماكلونج عام 1905م.',
+    deepDiveAr: `دلالة "إذا تُمنى" — لحظة تحديد الجنس
+===
+يقول الله تعالى في سورة النجم (53:45-46): "وَأَنَّهُ خَلَقَ الزَّوْجَيْنِ الذَّكَرَ وَالْأُنثَى مِن نُّطْفَةٍ إِذَا تُمْنَى".
+
+الكلمة المحورية: "إِذَا تُمْنَى" — من "منى" = أُطلق، أُفرز، انسكب. تعني لحظة إطلاق الحيوان المنوي وانبثاقه. الدلالة الزمنية دقيقة جداً: الجنس يتحدد في اللحظة التي يُطلَق فيها الحيوان المنوي، لا أثناء الحمل ولا بعده.
+
+الدلالة الثانية: "مِن نُّطْفَةٍ" — النطفة في العربية تعني القطرة الصغيرة من المني. القرآن يقول صراحةً أن كلاً من الذكر والأنثى يخلق من هذه النطفة — محدِّداً الأب كمصدر تحديد الجنس، وليس الأم.
+
+الأثر العلمي: الحيوان المنوي يحمل إما كروموسوم X (ينتج أنثى) أو كروموسوم Y (ينتج ذكراً). هذا الكروموسوم محدَّد في الحيوان المنوي قبل الإطلاق — بالتحديد كما وصف القرآن "إذا تُمنى". البويضة دائماً تحمل X فقط.
+
+المرجع: ابن القيم الجوزية. "التبيان في أقسام القرآن". تفسير سورة النجم. الطبري. جامع البيان. تفسير النجم: 45-46.
+
+
+آلية XX/XY — الأب يحدد الجنس
+===
+علم الوراثة الحديث يكشف الآلية الكاملة التي أشار إليها القرآن.
+
+الحيوان المنوي (النطفة): يمر بالانقسام الاختزالي في الخصيتين. كل حيوان منوي يحمل إما كروموسوم X أو كروموسوم Y. 50% من الحيوانات المنوية تحمل X و50% تحمل Y. هذا الكروموسوم محدَّد في كل حيوان منوي قبل الإطلاق.
+
+البويضة: دائماً تحمل كروموسوم X فقط. لا خيار لها في تحديد الجنس.
+
+نتيجة التلقيح: حيوان منوي Y + بويضة X = ذكر (XY). حيوان منوي X + بويضة X = أنثى (XX). القرار كله في الحيوان المنوي للأب — في النطفة التي "تُمنى".
+
+الدقة الإشارية: القرآن قال "الذكر والأنثى... من نطفة إذا تُمنى" — كلاهما من الحيوان المنوي. لم يقل "من نطفة وبيضة". هذا توصيف علمي دقيق: الكروموسوم المحدِّد للجنس موجود في الحيوان المنوي وحده.
+
+المرجع: Moore, K.L. & Persaud, T.V.N. (2003). "The Developing Human." Saunders, Philadelphia. Stevens, N.M. (1905). "Studies in spermatogenesis." Carnegie Institution, Washington DC.
+
+
+الخطأ التاريخي الكبير — ثقافات ألقت اللوم على الأم
+===
+قبل عام 1905م: كان الاعتقاد السائد أن الأم أو الرحم يحدد جنس الجنين.
+
+أرسطو (384-322 ق.م): اعتقد أن الجنس يتحدد بالحرارة — الجنين الحار يصير ذكراً والبارد أنثى، وأن درجة حرارة الرحم وعوامل من الأم هي المحددة. هذا الاعتقاد ظل سائداً في الطب اليوناني والإسلامي والأوروبي قروناً طويلة.
+
+الثقافة العربية الجاهلية والرومانية واليونانية: كانت تُحمِّل الزوجات مسؤولية إنجاب البنات. حتى ملوك أوروبا في القرن السادس عشر (هنري الثامن) طلقوا زوجاتهم لأنهن "لم يُنجبن ذكوراً" — مع أن الكروموسوم Y من الأب هو السبب الوحيد.
+
+النص القرآني: أشار بوضوح إلى النطفة كمصدر تحديد الجنس — وهو ما أثبته العلم عام 1905م فقط، بعد 1300 سنة من نزول الآية.
+
+المرجع: Aristotle. "De Generatione Animalium." Book IV. McClung, C.E. (1902). "The accessory chromosome: sex determinant?" Biological Bulletin, 3(1-2), 43-84.
+
+
+الاستحالة المعرفية — ما كان معروفاً في القرن السابع
+===
+في القرن السابع الميلادي: لم يكن أحد يعرف وجود الكروموسومات، ولا البويضة التي لم تُكتشف إلا عام 1827م، ولا الآلية الجينية لتحديد الجنس.
+
+الفوارق الزمنية: اكتشاف البويضة البشرية: 1827م (Karl Ernst von Baer). اكتشاف الكروموسومات: 1882م (Walther Flemming). تحديد الجنس بالكروموسومات: 1905م (Stevens/McClung). الجينوم البشري الكامل: 2003م.
+
+الإشارة القرآنية الدقيقة: لم يقل القرآن "من أب وأم" — بل قال "من نطفة إذا تُمنى". هذا يعني حصر المصدر في الحيوان المنوي، وتوقيت التحديد عند لحظة الإطلاق — وهو بالضبط ما أثبته علم الوراثة. كاتب في القرن السابع يكتب عادةً عن الجنس في سياق الرحم أو الحرارة أو الأم — لا في سياق النطفة المُطلَقة بالتحديد.
+
+المرجع: Von Baer, K.E. (1827). "De Ovi Mammalium et Hominis Genesi." Leipzig. Stevens, N.M. (1905). "Studies in spermatogenesis." Carnegie Institution, Washington DC.`,
+    deepDive: `"When Emitted" — Sex Determined at Ejaculation
+===
+Allah says in Surah An-Najm (53:45-46): "And that He creates the two mates — the male and female — from a sperm drop (nutfa) when it is emitted (idha tumna)."
+
+The key phrase: "idha tumna" — from the root "mana" = to flow out, to be ejaculated. The precise temporal meaning: sex is determined at the moment of ejaculation — not during pregnancy, not in the womb, but at the instant of emission.
+
+The second implication: "from a nutfa" — the nutfa (sperm drop) is the stated source of both male and female. The Quran attributes sex determination to the sperm (father's contribution), not to the mother. This directly contradicts the dominant ancient belief that mothers or womb conditions were responsible.
+
+The scientific link: sperm carry either chromosome X (producing female) or chromosome Y (producing male). This chromosome is fixed in each sperm before ejaculation — precisely as the Quran states "when emitted." The egg always carries only X and has no role in sex determination.
+
+Reference: Ibn al-Qayyim al-Jawziyya. "Al-Tibyan fi Aqsam al-Quran." Commentary on An-Najm. Al-Tabari. Jami al-Bayan. An-Najm: 45-46.
+
+
+The XX/XY Mechanism — The Father Determines Sex
+===
+Modern genetics reveals the complete mechanism pointed to by the Quran.
+
+Sperm (the nutfa): undergoes meiosis in the testes. Each resulting sperm carries either chromosome X or chromosome Y. 50% of sperm carry X, 50% carry Y. This chromosome is fixed in each sperm before ejaculation.
+
+The egg: always carries only chromosome X. It plays no role in determining the offspring's sex.
+
+Result of fertilization: Y-sperm + X-egg = male (XY). X-sperm + X-egg = female (XX). The entire sex-determining decision rests with the father's sperm — the nutfa "when emitted."
+
+The Quranic precision: the verse says "both male and female... from a nutfa when emitted" — attributing both sexes to the sperm alone. It does not say "from sperm and egg." This is scientifically exact: the sex-determining chromosome resides in the sperm alone, fixed at the moment of its emission.
+
+Reference: Moore, K.L. & Persaud, T.V.N. (2003). "The Developing Human: Clinically Oriented Embryology." 7th ed. Saunders. Stevens, N.M. (1905). "Studies in spermatogenesis." Carnegie Institution, Washington DC.
+
+
+The Historical Error — Cultures That Blamed the Mother
+===
+Before 1905: the prevailing belief across all major civilizations was that the mother or womb environment determined the child's sex.
+
+Aristotle (384-322 BCE): believed sex was determined by heat — a warmer womb produces males, cooler produces females — with the mother's physiology as the controlling factor. This view dominated Greek, Roman, and European medicine for over 2,000 years.
+
+Pre-Islamic Arab culture and Roman/Greek cultures alike blamed wives for "producing daughters." European kings as late as the 16th century (Henry VIII of England) divorced wives for failing to produce male heirs — while the Y chromosome in the husband's sperm was the sole determinant all along.
+
+The Quranic text: pointed clearly to the nutfa (father's sperm drop) as the source of both male and female — 1,300 years before the XY mechanism was confirmed in 1905.
+
+Reference: Aristotle. "De Generatione Animalium." Book IV. McClung, C.E. (1902). "The accessory chromosome." Biological Bulletin, 3(1-2), 43-84.
+
+
+The Knowledge Gap — What Was Knowable in the 7th Century
+===
+In the 7th century CE: no one knew of chromosomes, the human egg was not discovered until 1827, and the genetic mechanism of sex determination was entirely unknown.
+
+Key discovery dates: human egg discovered: 1827 (Karl Ernst von Baer). Chromosomes identified: 1882 (Walther Flemming). Sex determined by chromosomes confirmed: 1905 (Stevens/McClung). Complete human genome mapped: 2003.
+
+The Quranic precision: the Quran did not say "from father and mother" — it said "from a nutfa when emitted." This pinpoints the sperm as the sole source and the moment of ejaculation as the timing of sex determination — exactly what genetics confirmed in 1905. A 7th-century author writing about biological sex would naturally reference the womb, the mother's condition, or "heat" — not the emitted sperm drop as the complete determinant.
+
+Reference: Von Baer, K.E. (1827). "De Ovi Mammalium et Hominis Genesi." Leipzig. Stevens, N.M. (1905). "Studies in spermatogenesis." Carnegie Institution, Washington DC. Moore, K.L. (2003). "The Developing Human." Saunders.`,
     verses: [
       {
         id: 'verse-najm-45-46',
@@ -11551,6 +11651,108 @@ Reference: El-Naggar, Z. (2007). "Treasures in the Sunnah." Al-Falah Foundation,
     summaryAr: 'وعد القرآن بحفظه التام قبل 1400 عام. اليوم هو الكتاب الأكثر حفظاً في التاريخ — مع أكثر من 10 ملايين "حافظ" حفظوا النص الكامل البالغ 604 صفحة كلمة بكلمة. لا يوجد كتاب مقدس قديم آخر حافظ على نص واحد غير متغير في جميع النسخ حول العالم.',
     description: 'Surah Al-Hijr (15:9): "Indeed, it is We who sent down the Quran and indeed, We will be its guardian (لَحَافِظُونَ)." This verse makes a remarkable claim: God will personally preserve the Quran. The historical and empirical evidence is extraordinary: (1) 10+ MILLION HAFIZ: A "Hafiz" (حافظ) is someone who has memorized the entire Quran — all 604 pages, 6,236 verses, 77,430 words, ~330,000 characters — word for word, with correct pronunciation (tajweed). Currently over 10 million people worldwide have achieved this, many as young as children. No other book in history has been memorized in its entirety by millions of people. (2) SINGLE TEXT WORLDWIDE: Every copy of the Quran worldwide — from Morocco to Indonesia — is letter-identical. There are no variant manuscripts, no textual disputes, no "Dead Sea Scrolls" with different versions. This is in stark contrast to the Bible (thousands of manuscript variants), the Torah (multiple textual traditions), and virtually every other ancient text. (3) UNCHANGED FOR 1,400 YEARS: The oldest complete Quran manuscripts (Topkapi, 8th century; Birmingham Quran, carbon-dated to 568-645 CE) are letter-for-letter identical to Qurans printed today. (4) THE HAFIZ MECHANISM: Even if every printed Quran were destroyed, millions of people carry the complete text in their memory — an "oral hard drive" that ensures survival. This human backup system is unique to the Quran. (5) COMPARATIVE HISTORY: The Bible has over 5,800 Greek NT manuscripts alone, with ~400,000 textual variants (differences between manuscripts). The Quran has zero substantive variants.',
     descriptionAr: 'يقول الله تعالى في سورة الحجر (15:9): "إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ". الدليل التاريخي والتجريبي رائع: (1) أكثر من 10 ملايين حافظ: الحافظ من حفظ القرآن كاملاً — 604 صفحة، 6236 آية، 77430 كلمة. لا يوجد كتاب آخر في التاريخ حفظه الملايين كاملاً. (2) نص واحد في العالم كله: كل نسخ القرآن من المغرب إلى إندونيسيا متطابقة حرفاً. (3) قرآن برمنغهام (مؤرخ 568-645م) متطابق مع نسخ اليوم. (4) مقارنة: الإنجيل فيه أكثر من 400,000 اختلاف نصي بين مخطوطاته. القرآن: صفر اختلاف جوهري.',
+    deepDiveAr: `دلالة "لَحَافِظُونَ" — ضمان إلهي بصيغة المبالغة
+===
+يقول الله تعالى في سورة الحجر (15:9): "إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ".
+
+"لَحَافِظُونَ": اللام للتوكيد القطعي. "حافظون" صيغة جمع المبالغة — تدل على الحفظ المستمر الدائم الكامل. ليست "سنحفظه مرة" — بل "نحن حافظون له باستمرار في كل لحظة". التعبير يُجسِّد الحفظ كوصف دائم لا انقطاع فيه.
+
+"الذكر": من الجذر "ذكر" = ما يُذكر ويُحفظ في الصدور. اختيار هذه الكلمة بدلاً من "كتاب" يُعلن منذ البداية أن القرآن سيُحفظ في القلوب والعقول — وليس فقط في الصفحات. وهذا بالضبط ما حدث.
+
+"إِنَّا نَحْنُ": توكيد مزدوج (إن + نحن). الذي أنزل هو بذاته يتولى الحفظ. هذه دعوى قابلة للتكذيب التاريخي — لا تصمد إلا إذا تحققت فعلاً.
+
+المرجع: الزمخشري. الكشاف. تفسير الحجر: 9. الراغب الأصفهاني. المفردات في غريب القرآن. مادة: ح-ف-ظ.
+
+
+10 ملايين حافظ — النسخة الاحتياطية الحية
+===
+الآلية التي أودع الله بها الحفظ: أن يحمل الملايين النص كاملاً في صدورهم.
+
+الأرقام: أكثر من 10 ملايين حافظ في العالم اليوم يحفظون القرآن كله كلمةً بكلمة — 604 صفحة، 6236 آية، 77430 كلمة، ~330,000 حرف. أصغرهم أطفال في السابعة أو الثامنة. يشمل بلاداً لا يتحدث أهلها العربية كإندونيسيا وإيران وباكستان والسنغال.
+
+الفريد في التاريخ: لم يُحفظ كتاب آخر كاملاً على يد الملايين. التوراة (~79,000 كلمة عبرية) لا يحفظها كاملاً أحد موثَّق. الإنجيل (~137,000 كلمة يونانية) لا يوجد توثيق لمن حفظه كاملاً قط.
+
+آلية الحماية: لو أُتلفت كل نسخ القرآن المطبوعة في يوم واحد — يبقى النص محفوظاً في صدور عشرة ملايين إنسان على الأقل موزَّعين في كل قارات الأرض. هذا "القرص الاحتياطي الحي" لا نظير له في تاريخ الكتابة الإنسانية.
+
+المرجع: UNESCO (2001). "Quran Recitation — Oral Heritage of Humanity." Esposito, J.L. (1999). "The Oxford History of Islam." Oxford University Press.
+
+
+صفر اختلافات جوهرية — مقارنةً بـ400,000 في الإنجيل
+===
+الدليل التاريخي الأقوى على تحقق الوعد: غياب أي اختلافات جوهرية بين مخطوطات القرآن عبر 14 قرناً.
+
+قرآن برمنغهام (2015م): جامعة برمنغهام البريطانية أجرت تأريخاً بالكربون المشع لمخطوطة قرآنية — نتيجتها: 568-645م، أي إبان حياة النبي أو بعد وفاته بسنوات قليلة. المخطوطة مطابقة تماماً لنسخ القرآن اليوم حرفاً وكلمة.
+
+قرآن طوب قابي (إسطنبول): يعود إلى القرن الثامن الميلادي — مطابق تماماً للنسخ الحديثة.
+
+مقارنة مع الكتاب المقدس: العهد الجديد وحده فيه أكثر من 5,800 مخطوطة يونانية تحتوي على نحو 400,000 اختلاف نصي — أي أكثر من عدد كلمات النص كله. العهد القديم فيه تقاليد نصية متعددة (المسورية، السبعينية، السامرية) بآلاف الاختلافات.
+
+القرآن: صفر اختلافات جوهرية. الاختلافات الموجودة فقط في رسم بعض الحروف وعلامات الضبط — لا في الكلمات نفسها.
+
+المرجع: Metzger, B.M. (2005). "A Textual Commentary on the Greek New Testament." Deutsche Bibelgesellschaft. Alba Fedeli (2015). "Early Quranic Manuscripts." University of Birmingham.
+
+
+الدعوى التحدية — وعد تحقق عبر 1400 عام
+===
+الآية لم تكن وصفاً للماضي — كانت وعداً مستقبلياً في لحظة الوحي.
+
+السياق التاريخي: عندما نزلت الآية في مكة قبل 1400 سنة، كان القرآن قيد التنزيل لم يكتمل بعد. الوعد "إنا له لحافظون" كان مستقبلياً — قابلاً للتكذيب التاريخي في أي لحظة.
+
+التحقق الفعلي: النص القرآني الذي يتلوه مسلم في جاكرتا هو نفسه بالضبط الذي يتلوه مسلم في نيجيريا، وهو نفسه المحفوظ في مخطوطات القرن الثامن الميلادي. لم يحدث هذا لأي كتاب آخر في تاريخ البشرية عبر 14 قرناً وعبر مئات الثقافات.
+
+التحدي المنطقي: هذا الوعد الصريح القابل للتكذيب هو بذاته دليل على المصدر الإلهي — لا يجرؤ مؤلف بشري في القرن السابع على اختراع مثل هذا الوعد. تحققه بهذه الدقة على مدى 14 قرناً يتجاوز أي تفسير بشري.
+
+المرجع: Sadeghi, B. & Goudarzi, M. (2012). "San'a'1 and the Origins of the Quran." Der Islam, 87(1-2). Alba Fedeli (2015). "Early Quranic Manuscripts." University of Birmingham.`,
+    deepDive: `"La-Hafizoon" — God's Personal Guarantee in Emphatic Form
+===
+Allah says in Surah Al-Hijr (15:9): "Indeed, it is We who sent down the Quran (al-dhikr) and indeed, We will be its guardian (la-hafizoon)."
+
+"La-hafizoon": the lam (la-) is emphatic — absolute certainty. "Hafizoon" is the intensive plural form signifying continuous, complete, unceasing preservation. Not "We will protect it once" — but "We are perpetual guardians of it at every moment." Arabic grammar encodes eternal ongoing preservation as a divine attribute.
+
+"Al-dhikr" (the Reminder): from the root "dhikr" = to remember, to preserve in hearts and minds. Choosing this word instead of "kitab" (book) announces that the Quran will be preserved in human memories — not only on pages. This is precisely how it has been transmitted for 14 centuries.
+
+"Inna nahnu" (indeed, We): double emphasis. The same One who revealed it personally guarantees its preservation. This is a falsifiable prophecy — it could have been disproven at any point over 1,400 years, by any corruption, variant, or loss.
+
+Reference: Al-Zamakhshari. Al-Kashshaf. Commentary on Al-Hijr: 9. Al-Raghib al-Asfahani. Mufradat fi Gharib al-Quran. Root: h-f-z.
+
+
+10 Million Hafiz — The Living Backup System
+===
+The mechanism embedded in Quranic preservation: millions of humans carrying the complete text in their memories.
+
+The numbers: over 10 million Hafiz worldwide have memorized the entire Quran word-for-word — 604 pages, 6,236 verses, 77,430 words, ~330,000 characters. Many are children as young as 7-8 years old. This spans populations in Indonesia, Iran, Pakistan, and Senegal — countries where Arabic is not the native language.
+
+The uniqueness: no other book in human history has been memorized in its entirety by millions of people. The Torah (~79,000 Hebrew words) — no known complete oral memorizers. The New Testament (~137,000 Greek words) — no documented complete memorizer in history.
+
+The protection: if every printed Quran in the world were destroyed in one day, the complete text would survive intact in at least 10 million human memories distributed across every continent. This "living distributed backup" has no parallel in the history of any written text.
+
+Reference: UNESCO (2001). "Quran Recitation — Oral Heritage of Humanity." Esposito, J.L. (1999). "The Oxford History of Islam." Oxford University Press.
+
+
+Zero Textual Variants vs. 400,000 in the New Testament
+===
+The strongest historical evidence for the fulfilled promise: the complete absence of substantive variants across all Quran manuscripts worldwide.
+
+The Birmingham Quran (2015): the University of Birmingham radiocarbon-dated a Quran manuscript — result: 568-645 CE, within or immediately after the Prophet's lifetime. It is letter-perfect with all Qurans printed today. The Topkapi Quran (Istanbul) dates to the 8th century CE — identical letter-for-letter with modern editions.
+
+Comparison with the Bible: the Greek New Testament alone has over 5,800 manuscripts containing approximately 400,000 textual variant readings — more variants than there are words in the text itself. The Old Testament exists in multiple textual traditions (Masoretic, Septuagint, Samaritan Pentateuch) with thousands of differences.
+
+The Quran: zero substantive variants. Differences between manuscripts are limited to scribal style (vowel markings, letter spacing) — never actual word changes. Every copy from Morocco to Indonesia is letter-identical.
+
+Reference: Metzger, B.M. (2005). "A Textual Commentary on the Greek New Testament." Deutsche Bibelgesellschaft. Alba Fedeli (2015). "Early Quranic Manuscripts." University of Birmingham. Sadeghi, B. & Goudarzi, M. (2012). Der Islam, 87(1-2).
+
+
+The Falsifiable Prophecy — Fulfilled Across 14 Centuries
+===
+The verse was not a description of the past — it was a future promise made when the Quran was still being revealed, potentially falsifiable by any subsequent corruption or loss.
+
+The context: when this verse descended in Mecca approximately 1,400 years ago, the Quran was not yet complete. The promise "We will be its guardian" was a future claim that challenged history to disprove it.
+
+The empirical fulfillment: a Quran recited in Jakarta is letter-identical to one recited in Nigeria, to a manuscript preserved in Istanbul from 800 CE. This has happened across 14 centuries, hundreds of cultures, and billions of believers — without a single committee enforcing uniformity, without a printing press for the first 900 years.
+
+The logical force: this explicit preservation promise is itself evidence of divine origin. No 7th-century human author would dare make such a specific, historically falsifiable claim. Its perfect fulfillment over 1,400 years across all nations transcends any human explanation.
+
+Reference: Sadeghi, B. & Goudarzi, M. (2012). "San'a'1 and the Origins of the Quran." Der Islam, 87(1-2). Alba Fedeli (2015). "Early Quranic Manuscripts." University of Birmingham.`,
     verses: [
       {
         id: 'verse-hijr-9',
