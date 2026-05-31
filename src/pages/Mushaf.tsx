@@ -1156,6 +1156,7 @@ export function MushafPage() {
     <div
       className="mushaf-reader page-enter"
       data-mushaf-theme={prefs.quranTheme}
+      data-mushaf-clean={(prefs.mushafCleanMode ?? true) ? "1" : "0"}
       {...(prefs.mushafTextColor ? {
         "data-mushaf-tc": "1",
         style: { "--mushaf-custom-tc": prefs.mushafTextColor } as React.CSSProperties,
@@ -2148,6 +2149,23 @@ export function MushafPage() {
                     className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${prefs.quranTheme === t ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
                   >{{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق", forest: "🌲 غابة", rose: "🌹 وردي", ocean: "🌊 بحر", desert: "🏜️ صحراء", dawn: "🌅 فجر" }[t]}</button>
                 ))}
+              </div>
+            </div>
+
+            {/* ── M3b: Reading layout (clean vs classic frame) ── */}
+            <div className="mt-1 mb-3">
+              <div className="text-xs opacity-50 mb-1.5">نمط الصفحة</div>
+              <div className="flex gap-1.5">
+                <button type="button"
+                  onClick={() => setPrefs({ mushafCleanMode: true })}
+                  aria-pressed={(prefs.mushafCleanMode ?? true)}
+                  className={`flex-1 text-[11px] px-2.5 py-2 rounded-xl border transition ${(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                >📖 قراءة مريحة</button>
+                <button type="button"
+                  onClick={() => setPrefs({ mushafCleanMode: false })}
+                  aria-pressed={!(prefs.mushafCleanMode ?? true)}
+                  className={`flex-1 text-[11px] px-2.5 py-2 rounded-xl border transition ${!(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                >🌺 إطار زخرفي</button>
               </div>
             </div>
 

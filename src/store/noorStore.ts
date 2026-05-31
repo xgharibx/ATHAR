@@ -59,6 +59,7 @@ export type Preferences = {
   mushafInlineTafseer?: boolean; // persist inline tafseer toggle
   mushafWbwMode?: boolean; // persist word-by-word translation toggle
   mushafTajweedMode?: boolean; // persist tajweed color coding toggle
+  mushafCleanMode?: boolean; // premium minimal borderless reading layout (default on)
   showBenefits: boolean;
   stripDiacritics: boolean;
   enable3D: boolean;

@@ -2452,6 +2452,77 @@ header {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 44'%3E%3Cg fill='none' transform='scale(-1,1) translate(-22,0)'%3E%3Cpath d='M11 0 Q8 11 11 22 Q14 33 11 44' stroke='%23558b2f' stroke-width='1.2' fill='none' opacity='.7'/%3E%3Cg transform='translate(11,11)'%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.65'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(72)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(144)'/%3E%3Cellipse rx='4' ry='6' fill='%23c0392b' opacity='.55' transform='rotate(216)'/%3E%3Cellipse rx='4' ry='6' fill='%23e74c3c' opacity='.55' transform='rotate(288)'/%3E%3Ccircle r='2.5' fill='%23f39c12' opacity='.9'/%3E%3C/g%3E%3Cellipse cx='7' cy='22' rx='4' ry='7' fill='%23558b2f' opacity='.5' transform='rotate(-30 7 22)'/%3E%3Cg transform='translate(11,34)'%3E%3Ccircle r='3' fill='%23e91e63' opacity='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
+/* ═══════════════════════════════════════════════════
+   Clean Reading Mode — premium minimal Madinah-style layout
+   Activated by [data-mushaf-clean="1"] on .mushaf-reader.
+   Strips the ornamental frame for a calm, spacious reading
+   surface with larger, airier Uthmanic typography.
+   ═══════════════════════════════════════════════════ */
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-page-content {
+  max-width: min(100%, 760px);
+  padding: 1.5rem 1.5rem 1.25rem;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  background-image: none;
+  box-shadow: none;
+}
+/* Hide the side vine borders entirely in clean mode */
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-page-content::before,
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-page-content::after {
+  display: none;
+}
+
+/* Calm minimal surah header — no floral frame, no animation */
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-surah-frame {
+  width: auto;
+  margin: 0.6rem auto 1.1rem;
+  padding: 0.7rem 1.5rem 0.9rem;
+  border: none;
+  border-radius: 0;
+  background: none;
+  background-image: none;
+  animation: none;
+  box-shadow: none;
+  /* slim gold rule under the surah name */
+  border-bottom: 1.5px solid rgba(185, 130, 20, 0.32);
+}
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-surah-frame::before,
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-surah-frame::after,
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-surah-frame-corner {
+  display: none;
+}
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-surah-frame-name {
+  animation: none;
+  color: #1b5e20;
+  font-size: calc(var(--mushaf-font-scale, 1) * 1.42rem);
+  letter-spacing: 0.05em;
+}
+
+/* Airier, larger reading text for the premium minimal feel */
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-text-block {
+  font-size: calc(var(--mushaf-font-scale, 1) * 1.48rem);
+  line-height: 2.75;
+  padding: 0.5rem 0.25rem;
+}
+.mushaf-reader[data-mushaf-clean="1"] .mushaf-basmalah-line {
+  font-size: calc(var(--mushaf-font-scale, 1) * 1.5rem);
+  margin: 0.7rem 0 1rem;
+}
+
+/* Landscape: widen the reading column and tighten vertical padding so
+   rotated devices show a comfortable spread instead of cut-off text */
+@media (orientation: landscape) {
+  .mushaf-reader[data-mushaf-clean="1"] .mushaf-page-content {
+    max-width: min(100%, 1040px);
+    padding-top: 0.9rem;
+  }
+  .mushaf-reader[data-mushaf-clean="1"] .mushaf-text-block {
+    line-height: 2.5;
+  }
+}
+
 /* Mushaf main text area — flex column so content is vertically centered on short pages */
 .mushaf-page-main {
   display: flex;
