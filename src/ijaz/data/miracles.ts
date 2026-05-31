@@ -4412,6 +4412,80 @@ The comparison with the Bible adds another dimension: if the Prophet Muhammad wa
     summaryAr: 'ينسب القرآن ملكة البيان إلى التعليم الإلهي — نظرية نعوم تشومسكي في النحو الكلي تدعم فكرة ملكة لغوية فطرية غير مفسَّرة في البشر.',
     description: 'Surah Ar-Rahman (55:3-4) states: "Created man, taught him clear speech (al-bayan)." The Arabic word "الْبَيَانَ" (al-bayan) means eloquent, articulate speech — the ability to express complex thoughts, emotions, abstract ideas, and even discuss the non-existent or hypothetical. The Quran attributes this extraordinary faculty directly to divine teaching, not to random evolutionary development. Remarkably, modern linguistics has arrived at a similar conclusion through purely scientific investigation. Noam Chomsky\'s Universal Grammar (UG) theory, the dominant paradigm in modern linguistics, posits that humans are born with an innate language faculty — a biological endowment that allows every child to acquire any human language. This faculty cannot be explained by general learning mechanisms or by imitation alone. In their landmark paper "The Faculty of Language: What Is It, Who Has It, and How Did It Evolve?" (Science, 2002), Chomsky, Hauser, and Fitch argued that the core computational mechanism of language (recursion) is unique to humans and has no clear evolutionary precursor. Steven Pinker\'s "The Language Instinct" (1994) further documents that language is an "instinct" — a biological endowment rather than a cultural invention. Dr. Haitham Talaat in "بصائر" (Basaar/Insights) argues that the language faculty is one of the strongest evidences for deliberate design rather than blind natural selection. No animal communication system approaches the generative, recursive, infinite capacity of human language. The gap between human language and animal communication is not gradual but categorical — a "great leap" that defies purely gradualist evolutionary explanation.',
     descriptionAr: 'يقول الله تعالى في سورة الرحمن (55:3-4): "خَلَقَ الْإِنسَانَ ﴿٣﴾ عَلَّمَهُ الْبَيَانَ ﴿٤﴾". كلمة "الْبَيَانَ" تعني القدرة على الكلام الفصيح المعبّر — القدرة على التعبير عن الأفكار المعقدة والمشاعر والمفاهيم المجردة وحتى مناقشة غير الموجود والافتراضي. ينسب القرآن هذه الملكة الاستثنائية مباشرة إلى التعليم الإلهي، لا إلى تطور عشوائي. واللافت أن علم اللسانيات الحديث وصل إلى استنتاج مشابه عبر البحث العلمي البحت. نظرية النحو الكلي (Universal Grammar) لنعوم تشومسكي، النموذج المهيمن في اللسانيات الحديثة، تفترض أن البشر يولدون بملكة لغوية فطرية — هبة بيولوجية تمكّن كل طفل من اكتساب أي لغة بشرية. لا يمكن تفسير هذه الملكة بآليات التعلم العامة أو بالتقليد وحده. في ورقتهم البارزة "ملكة اللغة: ما هي، من يملكها، وكيف تطورت؟" (مجلة Science، 2002)، حاجج تشومسكي وهاوزر وفيتش بأن الآلية الحاسوبية الجوهرية للغة (التكرارية) فريدة بالبشر وليس لها سلف تطوري واضح. كما يوثق ستيفن بينكر في "غريزة اللغة" (1994) أن اللغة "غريزة" — هبة بيولوجية وليست اختراعاً ثقافياً. يحاجج د. هيثم طلعت في "بصائر" بأن ملكة اللغة من أقوى الأدلة على التصميم المتعمد لا الانتقاء الطبيعي الأعمى. لا يقارب أي نظام تواصل حيواني القدرة التوليدية والتكرارية واللانهائية للغة البشرية. الفجوة بين لغة الإنسان وتواصل الحيوان ليست تدريجية بل فئوية — "قفزة كبرى" تتحدى التفسير التطوري التدريجي البحت.',
+    deepDiveAr: `"الْبَيَانَ" — الملكة التي نسبها القرآن إلى التعليم الإلهي
+===
+سورة الرحمن (55:3-4): "خَلَقَ الْإِنسَانَ عَلَّمَهُ الْبَيَانَ". كلمة "الْبَيَانَ" في اللغة العربية لا تعني مجرد الكلام — بل تعني القدرة على التعبير الفصيح المبيّن: إيصال الأفكار المعقدة والمجردة والوجدانية وحتى تصوّر ما لم يوجد بعد.
+
+القرآن لا يقول "خلقه فنطق" — بل "عَلَّمَهُ الْبَيَانَ". الفعل "عَلَّمَ" يُحيل إلى منح إلهي مقصود لا إلى نتاج عشوائي. هذا التمييز جوهري: اللغة لم تنشأ بالتطور التدريجي بل أُعطيت عطاءً.
+
+ما يجعل الآية أكثر إعجازاً أنها لا تقول إن الإنسان "اخترع" اللغة أو "اكتسبها" ثقافياً، بل إنه "عُلِّمها" — وهو الوصف الدقيق الذي توصل إليه العلم الحديث بعد قرون من البحث.
+
+
+نعوم تشومسكي والنحو الكلي — المعجزة اللغوية
+===
+نعوم تشومسكي، أبرز لغوي في القرن العشرين، طوّر نظرية النحو الكلي (Universal Grammar): كل طفل بشري، في أي ثقافة، يولد بملكة لغوية فطرية تمكّنه من اكتساب أي لغة بشرية. هذه الملكة ليست مكتسبة بالتعلم العام ولا بالتقليد وحده — إنها مُدمجة بيولوجياً في الدماغ.
+
+"Aspects of the Theory of Syntax" (MIT Press، 1965) أسس تشومسكي فيه هذا الاتجاه الذي حوّل مسار علم اللسانيات. الآن يواجه العلماء سؤالاً محرجاً: من أين جاءت هذه الملكة الفطرية؟ لا تطور تدريجي يفسرها، ولا سلف حيواني يحملها.
+
+القرآن أجاب قبل 1400 عام: "عَلَّمَهُ الْبَيَانَ" — أُعطيت للإنسان تعليماً إلهياً مباشراً.
+
+
+ورقة Science 2002 — التكرارية فريدة بالإنسان
+===
+في عام 2002 نشر تشومسكي ورفيقاه هاوزر وفيتش ورقة بالغة الأهمية في مجلة Science (298:5598) بعنوان "ملكة اللغة: ما هي، من يملكها، وكيف تطورت؟". خلاصتهم: الآلية الجوهرية للغة هي التكرارية (Recursion) — القدرة على تضمين جملة داخل جملة بلا حدود — وهذه الخاصية فريدة بالإنسان وليس لها سلف تطوري واضح في أي نظام تواصل حيواني.
+
+ستيفن بينكر في كتابه "غريزة اللغة" (The Language Instinct، William Morrow، 1994) يوثق أن اللغة ليست اختراعاً ثقافياً بل "غريزة" بيولوجية — الأطفال يكتسبون اللغة تلقائياً دون تعليم رسمي، وهذا يكشف عن قدرة مُصمَّمة لا مكتسبة.
+
+د. هيثم طلعت في "بصائر" يستخدم هذه الأدلة ليحاجج: لا يمكن أن تنشأ ملكة بهذا التعقيد البيولوجي والتكراري دون مصدر ذكي متعمد.
+
+
+الفجوة الفئوية بين اللغة البشرية وتواصل الحيوان
+===
+الفجوة بين لغة الإنسان وتواصل الحيوانات ليست فجوة كمية — ليست مجرد "لغة أكثر تعقيداً" — بل فجوة فئوية جوهرية. لا يوجد في عالم الحيوان ما يقارب:
+- التكرارية اللانهائية: إنشاء جمل جديدة لا حصر لها من قواعد محدودة
+- المرجعية المزاحة: الحديث عن الماضي والمستقبل والمجرد والافتراضي
+- التراكيب الخلافية: الإيرونيا والشعر والحجة الفلسفية
+
+رصد العلماء تجارب مكثفة مع الشمبانزي والدلافين والببغاوات — لا شيء يقارب حتى لغة طفل في الثالثة من عمره. "القفزة الكبرى" التي وصفها تشومسكي بين الحيوان والإنسان تبقى أحد أعمق الألغاز في العلم الحديث.
+
+القرآن لا يقدم هذا الغموض بل يزيله: "عَلَّمَهُ الْبَيَانَ" — الله علّم الإنسان هذه الملكة الفريدة مباشرة.`,
+    deepDive: `"Al-Bayan" — The Faculty the Quran Attributes to Divine Teaching
+===
+Surah Ar-Rahman (55:3-4): "Created man — taught him al-bayan (clear, articulate speech)." The Arabic word "al-bayan" goes beyond mere vocalization — it encompasses the capacity to express complex ideas, abstract concepts, emotions, and even hypotheticals with precision and nuance.
+
+Crucially, the Quran says Allah "taught" (allama) man al-bayan — the verb connotes an intentional, direct divine bestowal, not gradual random emergence. This is not the description of a natural process but of a gift.
+
+The verse does not say man "invented" language or "developed" it culturally. It says he was taught it — and that language is innately given, not acquired. That precise distinction took modern linguistics until the 20th century to rediscover.
+
+
+Chomsky's Universal Grammar — The Scientific Corroboration
+===
+Noam Chomsky — the most cited linguist in history — revolutionized the field with his Universal Grammar (UG) theory: every human child is born with an innate language faculty, a biological endowment that enables acquisition of any human language without explicit instruction. This capacity cannot be explained by general learning mechanisms, imitation, or reinforcement.
+
+In "Aspects of the Theory of Syntax" (MIT Press, 1965), Chomsky established that the mind contains an abstract grammar template present at birth. Critically, this faculty has no explanation within standard evolutionary biology: it appears suddenly, fully formed, with no gradual precursors in the fossil record or in any living animal species.
+
+The Quran described this 1,400 years ago: al-bayan was not evolved — it was taught by God.
+
+
+The 2002 Science Paper: Recursion Unique to Humans
+===
+In a landmark 2002 paper in Science (298:5598), Chomsky, Hauser, and Fitch identified recursion — the ability to embed sentences within sentences indefinitely — as the core computational property of human language. Their conclusion: this property is unique to humans and has no clear evolutionary precursor in any known animal communication system.
+
+Steven Pinker's "The Language Instinct" (William Morrow, 1994) provides the complementary argument: children acquire language spontaneously, effortlessly, and universally across all cultures — pointing to a hardwired, designed capacity rather than a learned one.
+
+Dr. Haitham Talaat in "Basaar" uses these findings to argue: a biological capacity of this sophistication — with no evolutionary ancestor — demands an intentional intelligent source, exactly as the Quran states.
+
+
+The Categorical Gap Between Human Language and Animal Communication
+===
+The gap between human language and animal communication is not a gap of degree — not just "more complex" — but a gap of kind. No animal system approaches human language in three fundamental capacities:
+- Infinite recursion: generating boundless new sentences from finite rules
+- Displacement: discussing the past, future, abstract, and hypothetical
+- Hierarchical structure: poetry, irony, philosophical argument, metaphor
+
+Decades of intensive research with chimpanzees, dolphins, and parrots have confirmed this categorical gap. No animal reaches even the linguistic level of a three-year-old child. Chomsky describes this as a "great leap" with no evolutionary bridge.
+
+Modern science has thoroughly documented the gap — but cannot explain it. The Quran, uniquely, provides the explanation: "Allama-hu al-bayan" — God taught him speech. The origin of language is not a scientific mystery but a theological statement.`,
     verses: [
       {
         id: 'verse-rahman-3-4',
@@ -4474,6 +4548,78 @@ The comparison with the Bible adds another dimension: if the Prophet Muhammad wa
     summaryAr: 'يصف القرآن دورة الماء الكاملة — المطر من السماء يسلك ينابيع في الأرض — قبل نحو 1000 عام من وصف برنارد باليسي لها عام 1580.',
     description: 'Surah Az-Zumar (39:21) states: "Do you not see that Allah sends down rain from the sky and makes it flow as springs in the earth; then He produces thereby crops of varying colors." This single verse encapsulates the complete water cycle: (1) Evaporation and precipitation — "sends down rain from the sky" (أَنزَلَ مِنَ السَّمَاءِ مَاءً), (2) Infiltration into groundwater — "makes it flow as springs in the earth" (فَسَلَكَهُ يَنَابِيعَ فِي الْأَرْضِ), (3) Plant uptake and biological use — "produces thereby crops of varying colors" (ثُمَّ يُخْرِجُ بِهِ زَرْعًا مُّخْتَلِفًا أَلْوَانُهُ). Other verses complement this description: Surah Al-Mu\'minun (23:18): "And We sent down rain from the sky in a measured amount and settled it in the earth." Surah At-Tariq (86:11): "By the sky which returns" — describing the sky\'s role in the water cycle of returning water as rain. The concept that rain water seeps into the ground and emerges as springs was not scientifically understood until Bernard Palissy described it in 1580, and it was not widely accepted until Pierre Perrault (1674) and Edme Mariotte (1686) conducted quantitative studies proving that rainfall was sufficient to account for river flow. Earlier Greek philosophers like Aristotle and Plato held incorrect theories — some believed springs were fed by underground reservoirs connected to a great subterranean sea, not by rainwater infiltration. Dr. Haitham Talaat documents that the Quran\'s precise description of the water cycle predated its scientific understanding by nearly a millennium.',
     descriptionAr: 'يقول الله تعالى في سورة الزمر (39:21): "أَلَمْ تَرَ أَنَّ اللَّهَ أَنزَلَ مِنَ السَّمَاءِ مَاءً فَسَلَكَهُ يَنَابِيعَ فِي الْأَرْضِ ثُمَّ يُخْرِجُ بِهِ زَرْعًا مُّخْتَلِفًا أَلْوَانُهُ". تختصر هذه الآية الواحدة دورة الماء الكاملة: (1) التبخر والهطول — "أنزل من السماء ماء"، (2) التسرب إلى المياه الجوفية — "فسلكه ينابيع في الأرض"، (3) الامتصاص النباتي والاستخدام البيولوجي — "ثم يخرج به زرعاً مختلفاً ألوانه". وتكمل آيات أخرى هذا الوصف: سورة المؤمنون (23:18): "وَأَنزَلْنَا مِنَ السَّمَاءِ مَاءً بِقَدَرٍ فَأَسْكَنَّاهُ فِي الْأَرْضِ"، وسورة الطارق (86:11): "وَالسَّمَاءِ ذَاتِ الرَّجْعِ" — واصفة دور السماء في إرجاع الماء مطراً. لم يُفهم علمياً أن مياه الأمطار تتسرب إلى الأرض وتخرج ينابيع إلا عندما وصفها برنارد باليسي عام 1580، ولم تُقبل على نطاق واسع إلا بعد دراسات بيير بيرو (1674) وإدم ماريوت (1686) الكمية. الفلاسفة اليونانيون القدامى كأرسطو وأفلاطون كانوا يحملون نظريات خاطئة — بعضهم آمن بأن الينابيع تغذيها خزانات جوفية متصلة ببحر عظيم تحت الأرض لا بتسرب مياه الأمطار. يوثق د. هيثم طلعت أن وصف القرآن الدقيق لدورة الماء سبق فهمها العلمي بنحو ألف عام.',
+    deepDiveAr: `آية الزمر (39:21) — وصف دورة الماء الكاملة في جملة واحدة
+===
+سورة الزمر (39:21): "أَلَمْ تَرَ أَنَّ اللَّهَ أَنزَلَ مِنَ السَّمَاءِ مَاءً فَسَلَكَهُ يَنَابِيعَ فِي الْأَرْضِ ثُمَّ يُخْرِجُ بِهِ زَرْعًا مُّخْتَلِفًا أَلْوَانُهُ". هذه الآية الواحدة تصف ثلاث مراحل متتالية لدورة الماء:
+(1) الهطول: "أنزل من السماء ماء"
+(2) التسرب والتخزين: "فسلكه ينابيع في الأرض" — الماء يتسرب عبر الصخور ويخرج ينابيع
+(3) الاستخدام البيولوجي: "يخرج به زرعاً مختلفاً ألوانه"
+
+الفعل "فَسَلَكَهُ" يصف بدقة مذهلة مسار الماء: يدخل الأرض ويسلك طريقه عبرها ليخرج ينابيع — وهو وصف دقيق للتسرب المائي (infiltration) وتغذية طبقات المياه الجوفية، وهو ما لم يُفهم علمياً إلا في القرن السادس عشر.
+
+
+برنارد باليسي وبيير بيرو: من اكتشف دورة الماء علمياً؟
+===
+الإجابة واضحة تاريخياً:
+- برنارد باليسي 1580: أول من وصف بشكل صحيح أن الأمطار هي مصدر الينابيع والأنهار، في كتابه "Discours admirables de la nature des eaux et fontaines" (باريس، 1580).
+- بيير بيرو 1674: قاس كميات الأمطار ونسبها للجريان المائي وأثبت رياضياً أن المطر يكفي لإمداد الأنهار.
+- إدم ماريوت 1686: دراسات كمية مستقلة تؤكد نتائج بيرو.
+
+قبل ذلك، أرسطو وأفلاطون اعتقدا أن الينابيع تُغذَّى من بحر جوفي عظيم أو من تكثف بخار الماء داخل الكهوف. الفهم العلمي الصحيح جاء متأخراً 1000 عام عن القرآن.
+
+
+"وَالسَّمَاءِ ذَاتِ الرَّجْعِ" — السماء التي تُرجع الماء
+===
+سورة الطارق (86:11) تُقسم بـ"وَالسَّمَاءِ ذَاتِ الرَّجْعِ" — السماء التي ترجع. مفسرو القرآن قديماً تساءلوا: ما الذي تُرجعه السماء؟ الجواب العلمي الحديث: تُرجع الماء الذي تبخّر من الأرض على شكل أمطار — وهذه بالضبط مرحلة الهطول في دورة الماء.
+
+سورة المؤمنون (23:18) تضيف: "وَأَنزَلْنَا مِنَ السَّمَاءِ مَاءً بِقَدَرٍ فَأَسْكَنَّاهُ فِي الْأَرْضِ" — الماء ينزل "بقدر" محدد ويُسكَن في الأرض، أي يُخزَّن في طبقات المياه الجوفية. كلمة "بِقَدَرٍ" تشير إلى التوازن الدقيق لدورة الماء الكوكبية.
+
+د. هيثم طلعت يُلاحظ أن مجموع هذه الآيات يُغطي كل مراحل دورة الماء الهيدرولوجية الحديثة: التبخر، والتكثف، والهطول، والتسرب، والتخزين الجوفي، والجريان النهري.
+
+
+أرسطو وأفلاطون كانا مخطئين: القرآن صحّح الفلاسفة
+===
+الفلسفة اليونانية القديمة كانت تحكم التفكير العلمي لأكثر من 1500 عام. أرسطو في "Meteorologica" اعتقد أن الينابيع تُغذَّى من بخار ماء يتكثف داخل الكهوف والجبال الباردة، أو من بحر جوفي عظيم. هذه النظريات كانت خاطئة.
+
+القرآن في القرن السابع يصف المسار الصحيح: ماء يُنزله الله من السماء، يتسرب في الأرض، ويخرج ينابيع — "فَسَلَكَهُ يَنَابِيعَ فِي الْأَرْضِ". هذا ما أثبته باليسي عام 1580 وبيرو عام 1674 وماريوت عام 1686 تجريبياً.
+
+الهيدرولوجيا الحديثة تؤكد: يتحرك نحو 505,000 كيلومتر مكعب من الماء عبر دورة الماء العالمية سنوياً (أوكي وكاناي، مجلة Science، 2006). القرآن وصف هذه الدورة بدقة علمية كاملة قبل 1000 عام من اكتشافها.`,
+    deepDive: `Surah Az-Zumar (39:21) — The Complete Water Cycle in One Verse
+===
+Surah Az-Zumar (39:21): "Do you not see that Allah sends down rain from the sky and makes it flow as springs in the earth; then He produces thereby crops of varying colors." This single verse describes three consecutive stages of the water cycle:
+(1) Precipitation: "sends down rain from the sky"
+(2) Infiltration and storage: "makes it flow as springs in the earth" — water percolates through rock strata and emerges as springs
+(3) Biological utilization: "produces thereby crops of varying colors"
+
+The Arabic verb "fasalakahu" is particularly precise: it describes water entering the earth and threading its way through it to emerge as springs — an exact description of groundwater infiltration and aquifer recharge, a process not scientifically understood until the 16th century.
+
+
+Palissy, Perrault & Mariotte: Who Scientifically Discovered the Water Cycle?
+===
+The historical record is clear:
+- Bernard Palissy (1580): First to correctly describe that rainfall is the source of springs and rivers, in "Discours admirables de la nature des eaux et fontaines" (Paris, 1580).
+- Pierre Perrault (1674): Measured rainfall and river flow on the Seine River, mathematically proving rainfall was sufficient to account for river discharge.
+- Edme Mariotte (1686): Independent quantitative studies confirming Perrault's findings.
+
+Before these discoveries, Aristotle and Plato held incorrect theories — some believed springs were fed by a great underground sea or by vapor condensing inside caves. The correct scientific understanding came 1,000 years after the Quran already described it accurately.
+
+
+"Dhat al-Raj" — The Sky That Returns Water
+===
+Surah At-Tariq (86:11) swears by "the sky which returns" (dhat al-raj). Classical commentators asked: what does the sky return? The modern scientific answer: it returns the water that evaporated from the Earth as precipitation — precisely the precipitation phase of the hydrological cycle.
+
+Surah Al-Mu'minun (23:18) adds: "And We sent down rain from the sky in a measured amount and settled it in the earth." The phrase "in a measured amount" (bi-qadarin) points to the precise balance of the planetary water cycle — the equilibrium between evaporation, precipitation, and groundwater storage.
+
+Dr. Haitham Talaat notes that taken together, these Quranic verses cover every stage of the modern hydrological cycle: evaporation, condensation, precipitation, infiltration, groundwater storage, and surface runoff.
+
+
+Aristotle and Plato Were Wrong: The Quran Corrected the Philosophers
+===
+Ancient Greek philosophy dominated scientific thought for over 1,500 years. In his "Meteorologica," Aristotle proposed that springs were fed by vapors condensing inside cold caves and mountains, or by a great subterranean sea. These theories were wrong — and they remained the dominant view for centuries.
+
+The Quran, in the 7th century, describes the correct mechanism: water descends from the sky, infiltrates the earth, and emerges as springs — "fasalakahu yanabi'a fi al-ard." This is exactly what Palissy proved in 1580, Perrault confirmed in 1674, and Mariotte verified in 1686.
+
+Modern hydrology confirms: approximately 505,000 km3 of water move through the global water cycle annually (Oki & Kanae, Science, 2006). The Quran described this cycle with complete scientific accuracy 1,000 years before its discovery — correcting the greatest philosophers of antiquity and standing as a verified miracle against modern science.`,
     verses: [
       {
         id: 'verse-zumar-21',
