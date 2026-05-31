@@ -1143,9 +1143,163 @@ export const miracles: Miracle[] = [
     },
     visualizationType: 'logic',
     tags: ['إمكان', 'وجوب', 'واجب', 'ممكن', 'contingency', 'necessary', 'being'],
-    relatedMiracleIds: ['miracle-kalam-cosmological', 'miracle-design-argument'],
+    relatedMiracleIds: ['miracle-kalam-cosmological', 'miracle-tasalsul', 'miracle-design-argument'],
     videoIds: [],
     order: 22,
+  },
+  // ================================================================
+  // ██████  برهان استحالة التسلسل — THE REGRESS ARGUMENT
+  // ================================================================
+  {
+    id: 'miracle-tasalsul',
+    slug: 'infinite-regress',
+    title: 'The Impossibility of Infinite Regress',
+    titleAr: 'برهان استحالة التسلسل',
+    category: 'logical-philosophical',
+    subcategory: 'First Cause',
+    summary: 'An infinite chain of causes is mathematically and logically impossible — there must be a First Uncaused Cause.',
+    summaryAr: 'التسلسل اللانهائي للأسباب مستحيل عقلاً ورياضياً — ولا بد من سبب أول غير مسبَّب.',
+    description: `Dr. Haitham Talaat presents in "بصائر" the argument of Tasalsul (infinite regress) as one of the most devastating rational proofs for the existence of God. Any existing thing must be explained in one of three ways:
+
+(1) TASALSUL — Infinite Regress: A caused B caused C caused D, stretching back to infinity with no starting point. This is IMPOSSIBLE because: (a) An actually infinite series of past events cannot be traversed to reach "now." If you had to cross infinitely many stepping stones to get here, you could never arrive. (b) David Hilbert's mathematical theorem proves that an actual infinite set leads to irresoluble contradictions (Hilbert's Hotel Paradox). (c) The Borde-Guth-Vilenkin Theorem (2003) proves mathematically that any universe with an average positive expansion rate must have had a beginning — eliminating an eternal past. (d) The Second Law of Thermodynamics: if the universe were infinitely old, all usable energy would have been dissipated long ago (heat death). The universe still has abundant free energy — therefore it is not infinitely old.
+
+(2) DAWR — Circular Causality: A causes B which causes A. This is IMPOSSIBLE because it requires a thing to exist BEFORE itself — a logical self-contradiction. X cannot be the cause of itself.
+
+(3) AL-WAJIB — Termination at a Necessary Being: The only logical escape is that the causal chain terminates at something that does NOT require a cause — a self-existent, necessary being. This being must be: (a) Uncaused — it exists necessarily, not contingently. (b) Eternal — outside of time, since time began with creation. (c) Immaterial — matter is contingent; the First Cause is not. (d) Enormously powerful — it brought all matter, energy, time, and space into existence from nothing. (e) Personal — it chose to create; a timeless, spaceless, immaterial, enormously powerful personal being: this is God.
+
+The Quran encapsulates all three possibilities and eliminates two in a single verse (At-Tur 52:35): "Were they created from nothing, or are they themselves the creators?" — Created from nothing with no cause (Tasalsul/ex nihilo)? Or self-created (Dawr)? Both are impossible. The only remaining option is that they were created by a Being outside themselves.`,
+    descriptionAr: `يُقدِّم د. هيثم طلعت في "بصائر" برهانَ التسلسل واحداً من أكثر الأدلة العقلية حسماً على وجود الله. كل موجود لا بد أن يُفسَّر بإحدى ثلاث طرق:
+
+(١) التسلسل: أ سبّب ب سبّب ج سبّب د... إلى ما لا نهاية دون نقطة بداية. وهذا مستحيل لأن: (أ) سلسلة لانهائية فعلية من الأحداث الماضية لا يمكن اجتيازها للوصول إلى "الآن" — لو كنتَ تحتاج إلى اجتياز ما لا نهاية له لتصل إلى هنا، لما وصلتَ أبداً. (ب) نظرية ديفيد هيلبرت الرياضية تُثبت أن المجموعة اللانهائية الفعلية تُفضي إلى تناقضات لا حلّ لها (مفارقة فندق هيلبرت). (ج) نظرية بورد-غوث-فيلنكين (2003) تُثبت رياضياً أن أي كون ذو معدل توسع موجب لا بد أن له بداية — مما يستبعد الماضي الأزلي. (د) القانون الثاني للديناميكا الحرارية: لو كان الكون لا نهائي القِدَم لَنَفِدَت طاقته الحرة منذ الأزل. الكون لا يزال يحمل طاقة وفيرة — إذاً هو ليس أزلياً.
+
+(٢) الدور: أ يسبّب ب ويسبّب ب أ. هذا مستحيل لأنه يستلزم وجود الشيء قبل نفسه — تناقض ذاتي صريح.
+
+(٣) الانتهاء إلى الواجب: المخرج الوحيد المنطقي هو أن تنتهي سلسلة الأسباب إلى شيء لا يحتاج هو نفسه إلى سبب — موجود واجب الوجود بذاته. هذا الموجود يجب أن يكون: (أ) غير مسبَّب — يوجد بالضرورة لا بالإمكان. (ب) أزلياً — خارج الزمان، إذ الزمان بدأ مع الخلق. (ج) غير مادي — المادة ممكنة والمادة حادثة. (د) بالغ القدرة — أوجد المادة والطاقة والزمان والمكان من العدم. (هـ) شخصياً — اختار أن يخلق؛ وهذا الموجود اللازماني اللامكاني غير المادي بالغ القدرة الذي اختار الخلق هو الله.
+
+القرآن الكريم يلتقط الاحتمالات الثلاثة ويُبطل اثنتين في آية واحدة (الطور 52:35): "أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ أَمْ هُمُ الْخَالِقُونَ" — أخُلقوا من غير شيء بلا سبب (التسلسل/العدم)؟ أم خلقوا أنفسهم (الدور)؟ كلاهما مستحيل — فلا بد من خالق خارجهم.`,
+    verses: [
+      {
+        id: 'verse-tur-35-36',
+        surah: 'الطور',
+        surahNumber: 52,
+        ayahNumber: 35,
+        ayahNumberEnd: 36,
+        arabicText: 'أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ أَمْ هُمُ الْخَالِقُونَ ۞ أَمْ خَلَقُوا السَّمَاوَاتِ وَالْأَرْضَ ۚ بَل لَّا يُوقِنُونَ',
+        translation: 'Or were they created by nothing, or were they themselves the creators? Or did they create the heavens and the earth? Rather, they are not certain.',
+        keywords: ['creation', 'creator', 'cause', 'خلق', 'سبب', 'واجب'],
+      },
+      {
+        id: 'verse-ikhlas-1-4',
+        surah: 'الإخلاص',
+        surahNumber: 112,
+        ayahNumber: 1,
+        ayahNumberEnd: 4,
+        arabicText: 'قُلْ هُوَ اللَّهُ أَحَدٌ ۞ اللَّهُ الصَّمَدُ ۞ لَمْ يَلِدْ وَلَمْ يُولَدْ ۞ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ',
+        translation: 'Say: He is Allah, [who is] One, Allah, the Eternal Refuge. He neither begets nor is born, nor is there to Him any equivalent.',
+        keywords: ['eternal', 'uncaused', 'necessary', 'أحد', 'الصمد', 'أزلي'],
+      },
+      {
+        id: 'verse-baqara-255-qayyum-2',
+        surah: 'البقرة',
+        surahNumber: 2,
+        ayahNumber: 255,
+        arabicText: 'اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ',
+        translation: 'Allah — there is no deity except Him, the Ever-Living, the Self-Sustaining. Neither drowsiness overtakes Him nor sleep.',
+        keywords: ['self-sustaining', 'eternal', 'القيوم', 'الحي', 'أزلي'],
+      },
+    ],
+    scientificEvidence: [
+      {
+        id: 'tasalsul-bgv',
+        title: 'Borde-Guth-Vilenkin Theorem (2003)',
+        titleAr: 'نظرية بورد-غوث-فيلنكين (2003)',
+        description: 'Arvind Borde, Alan Guth, and Alexander Vilenkin proved mathematically that any universe (or multiverse) that has on average been expanding throughout its history cannot be eternal in the past — it must have had an absolute beginning. This eliminates all eternal-universe models including eternal inflation and oscillating universe models.',
+        descriptionAr: 'أثبت بورد وغوث وفيلنكين رياضياً أن أي كون (أو متعدد أكوان) ذو معدل توسع إجمالي موجب عبر تاريخه لا يمكن أن يكون أزلياً في الماضي — لا بد أن له بداية مطلقة. يُبطل هذا جميع نماذج الكون الأزلي بما فيها التضخم الأزلي ونماذج الكون المتذبذب.',
+        source: 'Borde, A., Guth, A. H., & Vilenkin, A. (2003). "Inflationary Spacetimes Are Incomplete in Past Directions". Physical Review Letters, 90(15).',
+        year: '2003',
+        scientist: 'Arvind Borde, Alan Guth, Alexander Vilenkin',
+      },
+      {
+        id: 'tasalsul-hilbert',
+        title: "Hilbert's Hotel: Impossibility of Actual Infinites",
+        titleAr: 'فندق هيلبرت: استحالة اللانهاية الفعلية',
+        description: "David Hilbert, one of history's greatest mathematicians, demonstrated that an actually infinite set of things leads to logical contradictions (Hilbert's Hotel Paradox). A hotel with infinitely many occupied rooms can still accommodate infinitely more guests without anyone checking out — generating absurdities that prove actual infinites cannot exist in reality. Therefore, an infinite regress of past causes is impossible in the real world.",
+        descriptionAr: 'أثبت ديفيد هيلبرت، أحد أعظم علماء الرياضيات في التاريخ، أن المجموعة اللانهائية الفعلية تُفضي إلى تناقضات منطقية (مفارقة فندق هيلبرت): فندق بغرف مشغولة لا نهائية يستطيع استيعاب ضيوف لا نهائيين دون أن يغادر أحد — مما يُنتج محالات تُثبت أن اللانهائيات الفعلية لا يمكن أن توجد في الواقع. إذاً تسلسل لا نهائي من الأسباب الماضية مستحيل.',
+        source: "Hilbert, D. (1926). 'Über das Unendliche' (On the Infinite). Mathematische Annalen.",
+        year: '1926',
+        scientist: 'David Hilbert',
+      },
+      {
+        id: 'tasalsul-thermodynamics',
+        title: 'Second Law of Thermodynamics — Finite Age Proof',
+        titleAr: 'القانون الثاني للديناميكا الحرارية — دليل على محدودية العمر',
+        description: 'The Second Law of Thermodynamics states that in a closed system, entropy (disorder) always increases. If the universe were infinitely old, it would have reached maximum entropy (heat death) long ago — all energy perfectly dispersed with no gradients left to do work. The fact that stars still shine and free energy still exists proves the universe cannot be infinitely old, demolishing the infinite regress model.',
+        descriptionAr: 'ينص القانون الثاني للديناميكا الحرارية على أن الإنتروبيا (الفوضى) في النظام المغلق تزداد دائماً. لو كان الكون لا نهائي القِدَم لبلغ الإنتروبيا القصوى (الموت الحراري) منذ الأزل — مع توزع الطاقة تماماً دون أي تدرجات تُنجز شغلاً. وجود النجوم المضيئة والطاقة الحرة يُثبت أن الكون لا يمكن أن يكون أزلياً، مما يُهدم نموذج التسلسل.',
+        source: 'Clausius, R. (1865). "Über verschiedene für die Anwendung bequeme Formen der Hauptgleichungen der mechanischen Wärmetheorie". Annalen der Physik.',
+        year: '1865',
+        scientist: 'Rudolf Clausius',
+      },
+      {
+        id: 'tasalsul-kalam-craig',
+        title: 'The Kalam Cosmological Argument — Modern Formulation',
+        titleAr: 'البرهان الكلامي الكوني — الصياغة الحديثة',
+        description: 'William Lane Craig revived and modernized the Kalam Cosmological Argument: (1) Everything that begins to exist has a cause. (2) The universe began to exist. (3) Therefore, the universe has a cause. This argument, originally formulated by Al-Ghazali (1058–1111), is considered by many contemporary philosophers of religion to be one of the strongest arguments for the existence of God. The premises are supported by both scientific evidence (BGV theorem, thermodynamics) and philosophical logic (impossibility of actual infinites).',
+        descriptionAr: 'أحيا ويليام لين كريج وطوّر البرهان الكلامي الكوني: (١) كل ما يبدأ في الوجود له سبب. (٢) الكون بدأ في الوجود. (٣) إذاً للكون سبب. هذا البرهان، الذي صاغه الإمام الغزالي أصلاً (1058–1111)، يعدّه كثير من فلاسفة الدين المعاصرين من أقوى الأدلة على وجود الله. المقدمتان مدعومتان بالأدلة العلمية (نظرية BGV، الديناميكا الحرارية) والمنطق الفلسفي (استحالة اللانهاية الفعلية).',
+        source: 'Craig, W. L. (1979). "The Kalām Cosmological Argument". Wipf and Stock Publishers.',
+        year: '1979',
+        scientist: 'William Lane Craig',
+      },
+      {
+        id: 'tasalsul-ghazali',
+        title: "Al-Ghazali's Original Formulation — Tahafut al-Falasifa",
+        titleAr: 'صياغة الغزالي الأصلية — تهافت الفلاسفة',
+        description: "Imam Al-Ghazali (1058–1111) in his masterwork 'Tahafut al-Falasifa' (The Incoherence of the Philosophers) first rigorously demonstrated the impossibility of an infinite past causal series. His argument: if the past were infinite, an actually infinite number of souls would have already lived and died, which is impossible. Moreover, if one infinite series (souls) could exist, you could have a greater or lesser infinite, which contradicts the nature of infinity. Al-Ghazali's proof influenced Aquinas (1225–1274), who incorporated similar reasoning in his 'Five Ways' — demonstrating that Islamic philosophy gave birth to some of Western philosophy's most foundational arguments.",
+        descriptionAr: 'أثبت الإمام الغزالي (1058–1111) في تحفته "تهافت الفلاسفة" أول مرة بصرامة استحالة سلسلة أسباب ماضية لا نهائية. حجته: لو كان الماضي لا نهائياً لكان قد عاش وماتَ بالفعل عدد لا نهائي من الأرواح، وهذا مستحيل. كذلك لو كانت هناك سلسلة لانهائية (أرواح) فيمكن أن تكون هناك سلسلة أكبر أو أصغر، وهذا يُناقض طبيعة اللانهاية. أثّر برهان الغزالي على الأكويني (1225–1274) الذي دمج استدلالاً مماثلاً في "طرقه الخمس" — مما يُظهر أن الفلسفة الإسلامية أنجبت بعض أكثر الحجج أساسيةً في الفلسفة الغربية.',
+        source: "Al-Ghazali (1095). 'Tahafut al-Falasifa' (The Incoherence of the Philosophers). Trans. S. A. Kamali, 1963.",
+        year: '1095',
+        scientist: 'Imam Al-Ghazali',
+      },
+    ],
+    bookSource: {
+      bookId: 'basaar',
+      bookTitle: 'Basaar (Insights)',
+      bookTitleAr: 'بصائر',
+      author: 'Dr. Haitham Talaat',
+      authorAr: 'د. هيثم طلعت',
+      chapter: 'The Regress Argument',
+      chapterAr: 'برهان استحالة التسلسل',
+      pageRange: 'Chapters 2–4',
+      fullText: `The Tasalsul (Regress) Argument is the cornerstone of Kalam theology, originally formulated by Al-Ghazali and perfected through Islamic rational tradition.
+
+Every existent must have one of three explanations:
+1. TASALSUL (Infinite Regress): An infinite chain of causes with no beginning — logically and mathematically impossible. Hilbert proved actual infinites lead to contradictions; the BGV theorem proves the universe had an absolute beginning; thermodynamics proves it cannot be infinitely old.
+2. DAWR (Circular Causality): A causes B causes A — logically impossible as it requires a thing to precede itself.
+3. AL-WAJIB (Necessary Being): The chain terminates at an uncaused, self-existent, eternal being.
+
+The Quran captures all three and eliminates two in one verse (52:35): "Were they created from nothing or are they the creators?" — from nothing (Tasalsul) is impossible; self-created (Dawr) is impossible; therefore a Creator exists.
+
+The Necessary Being (واجب الوجود) must be uncaused, eternal, immaterial, enormously powerful, and personal (since it chose to create a temporal world from a timeless state). This is precisely the God described by the Quran.`,
+      fullTextAr: `برهان التسلسل هو حجر الأساس في علم الكلام الإسلامي، صاغه الغزالي أصلاً وصقله العقلاء المسلمون.
+
+كل موجود لا بد أن يُفسَّر بإحدى ثلاث طرق:
+١. التسلسل: سلسلة لا نهائية من الأسباب بلا بداية — مستحيلة عقلاً ورياضياً. هيلبرت أثبت أن اللانهائيات الفعلية تُفضي إلى تناقضات، نظرية BGV تُثبت أن للكون بداية مطلقة، والديناميكا الحرارية تُثبت أنه ليس أزلياً.
+٢. الدور: أ يسبّب ب ويسبّب ب أ — مستحيل لأنه يستلزم تقدُّم الشيء على نفسه.
+٣. الانتهاء إلى واجب الوجود: تنتهي السلسلة إلى موجود واجب غير مسبَّب قائم بذاته.
+
+القرآن يلتقط الاحتمالات الثلاثة ويُبطل اثنتين في آية واحدة (52:35): "أم خُلقوا من غير شيء أم هم الخالقون" — من غير شيء (التسلسل) مستحيل، خلقوا أنفسهم (الدور) مستحيل، إذاً ثمة خالق.
+
+واجب الوجود يجب أن يكون غير مسبَّب وأزلياً وغير مادي وبالغ القدرة وشخصياً (إذ اختار خلق عالم زمني من حالة لازمانية). هذا هو الله تعالى كما وصفه القرآن الكريم.`,
+    },
+    visualizationType: 'logic',
+    tags: [
+      'تسلسل', 'دور', 'واجب', 'ممكن', 'أزلي', 'سبب أول', 'برهان كلامي',
+      'غزالي', 'لانهاية', 'هيلبرت', 'ديناميكا حرارية',
+      'regress', 'infinite', 'first cause', 'kalam', 'necessary', 'eternal',
+      'ghazali', 'hilbert', 'thermodynamics', 'bgv',
+    ],
+    relatedMiracleIds: ['miracle-contingency', 'miracle-kalam-cosmological', 'miracle-design-argument'],
+    videoIds: [],
+    order: 22.5,
   },
   {
     id: 'miracle-design-argument',
