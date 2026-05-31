@@ -5739,6 +5739,102 @@ Three consecutive feminine verbs — for three activities all performed exclusiv
     summaryAr: 'يقسم القرآن بـ"الخُنَّس الجَوَار الكُنَّس" — النجوم المتراجعة السائرة المختفية — وصف ثلاثي يتطابق مع التعريف الحديث للثقوب السوداء بدقة مذهلة.',
     description: 'Surah At-Takwir (81:15–16) states: "So I swear by the retreating stars (al-khunnas), which move and then hide (al-kunnas)." The Arabic root meanings carry stunning precision: (1) الْخُنَّسِ (al-khunnas): from خَنَسَ (khanasa) = to retreat, recede, shrink backward. A black hole is a star that has collapsed inward — the ultimate retreating. (2) الْجَوَارِ (al-jawar): running, moving, sweeping through space — matching the black hole\'s immense gravitational sweep that pulls all matter and light into itself. (3) الْكُنَّسِ (al-kunnas): from كَنَسَ (kanasa) = to hide, conceal, sweep into a den, disappear. A black hole is invisible — its gravity prevents even light from escaping, making it perfectly "hidden." A BLACK HOLE is defined by all three attributes: a COLLAPSED star (retreated), with enormous gravitational influence that SWEEPS everything around it, yet is completely INVISIBLE (hidden) from all detection. Dr. Haitham Talaat notes that classical mufassirun such as Ibn Kathir interpreted these verses as referring to the five visible planets known to Arabs which appear to "retrograde." But the deeper Arabic linguistic meanings precisely describe black holes — not conceived scientifically until Karl Schwarzschild\'s 1916 solution to Einstein\'s equations, and not named "black hole" until John Wheeler in 1967. The Quran\'s "I swear by" indicates these are among the greatest signs in creation.',
     descriptionAr: 'يقول الله تعالى في سورة التكوير (81:15–16): "فَلَا أُقْسِمُ بِالْخُنَّسِ ﴿١٥﴾ الْجَوَارِ الْكُنَّسِ". دلالات الجذور العربية تحمل دقة مذهلة: (1) الْخُنَّسِ: من "خَنَسَ" = تراجع، انكمش إلى الداخل. الثقب الأسود نجم انهار نحو الداخل. (2) الْجَوَارِ: سائرة، تجري في الفضاء، تسحب كل شيء بجاذبيتها. (3) الْكُنَّسِ: من "كَنَسَ" = اختبأ، اختفى. الثقب الأسود غير مرئي لأن جاذبيته تمنع الضوء من الهروب. لم تتصور العلوم وجود الثقوب السوداء حتى حل شفارتسشيلد عام 1916.',
+    deepDiveAr: `الخُنَّس، الجَوَار، الكُنَّس — تحليل لغوي معمّق للجذور الثلاثة
+===
+يقسم الله تعالى في سورة التكوير (81:15–16) بثلاثة أوصاف متتالية لأجرام كونية بعينها:
+
+(1) الْخُنَّسِ: من الجذر "خَنَسَ" — يعني التراجع والانكماش إلى الداخل. العرب يقولون: "خنس الرجل" أي تأخَّر وتراجع. الشيء الذي يخنس هو الذي ينكمش على نفسه وينسحب إلى الداخل.
+
+(2) الْجَوَارِ: من الجذر "جَرَى" — يعني الحركة السريعة والجريان. لكن لاحظ أنها وُصفت بصيغة تدل على الاستمرارية والشمولية: شيء يمتد تأثيره ويجتاح ما حوله. مما يلتقط الجاذبية الهائلة التي تسحب حتى الضوء.
+
+(3) الْكُنَّسِ: من الجذر "كَنَسَ" — يعني الاختباء والاختفاء. تقول العرب "كنست الظبية" أي دخلت مكمنها وتوارت عن الأنظار. هذا هو وصف الثقب الأسود بدقة: جسم لا يُرى، لأن جاذبيته تمنع حتى الضوء من الهروب.
+
+ثلاثة أفعال متتالية تصف بدقة: نجمًا انكمش على نفسه، له تأثير جاذبي هائل، وهو غير مرئي بالكامل.
+
+
+تفسير ابن كثير والأقدمون — حين كانت الكواكب الخمسة هي المقصودة
+===
+يُورد الإمام ابن كثير (ت 774 هـ) في تفسيره أن "الخُنَّس الجَوَار الكُنَّس" تشير إلى الكواكب الخمسة المعروفة في ذلك الزمن: زحل، والمشتري، والمريخ، والزهرة، وعطارد.
+
+سبب هذا التفسير: تلك الكواكب تبدو أحياناً وكأنها "تتراجع" في حركتها (الحركة الرجعية retrograde motion)، وتختفي أحياناً في ضوء الشمس.
+
+لكن العلماء المعاصرين المتخصصين في الإعجاز العلمي يشيرون إلى أن التفسير القرآني لا يتعارض مع تفسير ابن كثير، بل الآية أوسع دلالة: فالجذور اللغوية تنطبق على الكواكب الخمسة في القرن السابع، وتنطبق بدقة أعظم على الثقوب السوداء في القرن العشرين.
+
+هذا هو أحد أوجه الإعجاز: نص واحد ينطبق على ما كان معروفاً وعلى ما سيُكتشف.
+
+
+كارل شفارتسشيلد 1916 وجون ويلر 1967 — الثقوب السوداء علمياً
+===
+لم يتصور أي عالم وجود الثقوب السوداء حتى عام 1916 حين حلّ الفيزيائي الألماني كارل شفارتسشيلد (1873–1916) معادلات أينشتاين العامة للنسبية، ووجد حلاً يصف منطقة في الفضاء لا يمكن لأي شيء — ولا الضوء — أن يهرب منها.
+
+المراحل الزمنية:
+- 1916: شفارتسشيلد يشتق "نصف قطر شفارتسشيلد" الذي يحدد أفق الحدث.
+- 1939: أوبنهايمر وسنايدر يثبتان أن النجوم يمكنها فعلاً أن تنهار لتشكّل هذه الأجسام.
+- 1967: جون ويلر يُطلق عليها اسم "الثقب الأسود" (Black Hole) للمرة الأولى.
+- 2019: مشروع تلسكوب أفق الحدث (EHT) يلتقط أول صورة حقيقية لثقب أسود (M87*).
+
+المسافة الزمنية بين نزول القرآن (610 م) وأول توصيف علمي للثقوب السوداء (1916): 1306 سنة.
+
+
+التطابق الثلاثي المعجز — الانكماش، الجذب الهائل، والاختفاء التام
+===
+الثقب الأسود — وفق التعريف الفيزيائي الحديث — يتسم بثلاث خصائص جوهرية:
+
+(1) الانهيار والانكماش إلى الداخل: الثقب الأسود هو نجم انهار على نفسه بشكل كامل تحت وطأة جاذبيته. هذا هو "الخُنَّس" — المتراجع المنكمش.
+
+(2) التأثير الجاذبي الهائل: جاذبيته تسحب الغاز، والنجوم، والضوء، والزمان-المكان نفسه. كل ما يقترب يُجتاح ويُبتلع. هذا هو "الجَوَار" — السائر الساحب.
+
+(3) الاختفاء التام عن الأنظار: لا يُرى بأي تلسكوب مباشرة. حتى أول "صورة" له عام 2019 كانت في الواقع صورة لما حوله (هالة الإشعاع) لا له. هذا هو "الكُنَّس" — المختبئ في مكمنه.
+
+ثلاثة أوصاف في آيتين، لأجرام لم يعلم بها أحد قبل القرن العشرين، على لسان نبي أمي في صحراء الجزيرة العربية عام 610 م. هذا التطابق الثلاثي لا تفسير له إلا الوحي الإلهي.`,
+    deepDive: `Al-Khunnas, Al-Jawar, Al-Kunnas — Deep Linguistic Analysis of the Three Roots
+===
+In Surah At-Takwir (81:15-16), God swears by three consecutive descriptions of certain celestial objects:
+
+(1) Al-Khunnas (al-khunnas): from the root "khanasa" — means to retreat, recede, collapse inward. In classical Arabic, "khanasa al-rajul" means the person stepped back and withdrew. What "khunnas" describes is something that retreats into itself, collapses backward.
+
+(2) Al-Jawar (al-jawar): from the root "jara" — means moving, running, flowing. But note the form implies continuous sweeping force: something whose influence extends outward and overwhelms its surroundings — matching the immense gravitational pull that sweeps in everything, including light.
+
+(3) Al-Kunnas (al-kunnas): from the root "kanasa" — means to hide, conceal, disappear into a den. The Arabs said "kanasati al-zhabiyatu" meaning the gazelle entered its lair and vanished from sight. This precisely describes a black hole: a body that cannot be seen, because its gravity prevents even light from escaping.
+
+Three consecutive descriptors — for an object that collapsed inward, has overwhelming gravitational influence, and is completely invisible.
+
+
+Ibn Kathir and the Classical Interpreters — When Planets Were the Accepted Reading
+===
+Imam Ibn Kathir (d. 774 AH / 1373 CE) records in his Tafsir that "al-khunnas al-jawar al-kunnas" refers to the five planets visible to the Arabs: Saturn, Jupiter, Mars, Venus, and Mercury.
+
+The reasoning: these planets appear to "retreat" (retrograde motion) at certain times, and disappear into the sun's glare at others — which matches the root meanings superficially.
+
+Contemporary scholars of scientific miracles note that this is not a contradiction but a characteristic of Quranic depth: the linguistic roots simultaneously described what was known in the 7th century (retrograde planets), while more precisely describing what would only be discovered 13 centuries later (black holes).
+
+The breadth of the Quranic expression — encompassing both interpretations with a single set of words — is itself part of the miracle.
+
+
+Schwarzschild 1916 and Wheeler 1967 — Black Holes Defined Scientifically
+===
+No scientist conceptualized the existence of black holes until 1916, when German physicist Karl Schwarzschild (1873-1916) solved Einstein's general relativity equations and found a solution describing a region of spacetime from which nothing — not even light — could escape.
+
+The timeline:
+- 1916: Schwarzschild derives the "Schwarzschild radius," defining what we now call the event horizon.
+- 1939: Oppenheimer and Snyder prove that real stars can collapse to form such objects.
+- 1967: John Wheeler coins the term "black hole" for the first time.
+- 2019: The Event Horizon Telescope (EHT) captures the first actual image of a black hole (M87*).
+
+The gap between the Quran's revelation (610 CE) and the first scientific description of black holes (1916): 1,306 years.
+
+
+The Triple Match — Collapse, Gravitational Sweep, and Total Invisibility
+===
+A black hole — by modern physical definition — has three essential properties:
+
+(1) Inward collapse: A black hole is a star that collapsed completely under its own gravity. This is "al-khunnas" — the retreating, collapsed one.
+
+(2) Immense gravitational influence: Its gravity pulls gas, stars, light, and spacetime itself. Anything that approaches is swept in and consumed. This is "al-jawar" — the running, sweeping one.
+
+(3) Complete invisibility: It cannot be directly observed by any telescope. Even the first "image" captured in 2019 was actually an image of the surrounding radiation halo — not the black hole itself. This is "al-kunnas" — the one hiding in its den.
+
+Three descriptions in two verses — for objects unknown to science before the 20th century — spoken by an unlettered prophet in the Arabian desert in 610 CE. This triple correspondence has no explanation other than divine revelation.`,
     verses: [
       {
         id: 'verse-takwir-15-16',
@@ -5805,6 +5901,112 @@ Three consecutive feminine verbs — for three activities all performed exclusiv
     summaryAr: 'يصف القرآن الليل بأنه "لباس" للراحة — يؤكد علم الأحياء الزمني الحديث أن الظلام يحفز الميلاتونين، وهو أساسي لإصلاح DNA ووظيفة المناعة وإزالة نفايات الدماغ.',
     description: 'Multiple Quranic verses describe night in precise biological terms: Surah An-Naba (78:9–10): "And made your sleep [a means for] rest. And made the night as a covering (libaasan)." Surah Al-Furqan (25:47): "And it is He who made the night for you as clothing (libaasan) and sleep as rest and made the day a resurrection." The Arabic word "لِبَاسًا" (libaas) means a garment or covering that wraps around and envelops completely — precisely how darkness functions biologically: (1) MELATONIN: The pineal gland produces melatonin ONLY in complete darkness. Melatonin regulates the entire circadian rhythm, sleep architecture, and immune function. Even small amounts of light suppress melatonin within minutes. (2) DNA REPAIR: During deep sleep triggered by darkness, the body undergoes intensive DNA repair, protein synthesis, tissue restoration, and growth hormone release. (3) GLYMPHATIC BRAIN CLEANING: Nedergaard\'s landmark 2013 Science paper discovered that during sleep, the brain activates a glymphatic system removing toxic waste proteins (including Alzheimer\'s-associated amyloid) — a massive cleaning that happens ONLY under the "covering" of night. (4) WHO CLASSIFICATION: The World Health Organization classified nighttime light exposure as a "probable human carcinogen" in 2007. Shift workers exposed to light at night show significantly higher rates of cancer and metabolic disorders. The Quran\'s choice of "clothing" (libaas) is profound — not just "darkness" but something that wraps around and protects the entire body, precisely matching how biological darkness envelops all cellular systems simultaneously.',
     descriptionAr: 'تصف آيات قرآنية متعددة الليل بمصطلحات بيولوجية دقيقة: سورة النبأ (78:9–10): "وَجَعَلْنَا نَوْمَكُمْ سُبَاتًا وَجَعَلْنَا اللَّيْلَ لِبَاسًا". سورة الفرقان (25:47): "وَهُوَ الَّذِي جَعَلَ لَكُمُ اللَّيْلَ لِبَاسًا وَالنَّوْمَ سُبَاتًا". كلمة "لِبَاس" تعني غطاءً يلتف ويحيط بالكامل. وهكذا تعمل الظلمة بيولوجياً: الميلاتونين يُنتج فقط في الظلام التام، إصلاح DNA يحدث خلال النوم العميق، والجهاز اللمفاوي للدماغ (اكتشاف نيدرغارد 2013) ينظف الدماغ من البروتينات السامة فقط تحت "غطاء" الليل.',
+    deepDiveAr: `"لِبَاسًا" — الاختيار اللغوي المعجز لوصف الليل
+===
+يصف القرآن الليل في موضعين بكلمة "لِبَاس" (لباس/ثوب):
+- سورة النبأ (78:10): "وَجَعَلْنَا اللَّيْلَ لِبَاسًا"
+- سورة الفرقان (25:47): "وَهُوَ الَّذِي جَعَلَ لَكُمُ اللَّيْلَ لِبَاسًا"
+
+"لِبَاس" في العربية لا يعني مجرد الغطاء، بل يعني ما يلتف حولك ويحيط بجسمك من كل جهة. اختار القرآن هذه الكلمة تحديداً لأن الظلام يعمل بيولوجياً بالطريقة ذاتها: لا يكفي غياب بعض الضوء، بل يجب أن يحيط الظلام بك من كل اتجاه حتى تبدأ الآليات البيولوجية.
+
+القرآن لم يقل "الليل راحة" أو "الليل هدوء" — بل اختار "لِبَاس" الذي يعني الإحاطة والتغطية الكاملة. وهذا بالضبط ما يتطلبه إنتاج الميلاتونين.
+
+كلمة واحدة تلتقط ما احتاج العلم قروناً حتى يدركه.
+
+
+الميلاتونين — الهرمون الذي لا يُنتج إلا في الظلام التام
+===
+يُنتج جسم الإنسان الميلاتونين في الغدة الصنوبرية بالدماغ — لكن فقط في الظلام التام.
+
+الحقائق البيولوجية الموثقة:
+- الإنتاج يبدأ بعد حوالي 2 ساعة من الغروب عند الظلام الكامل.
+- الضوء الأزرق (من شاشات الهواتف) يثبط إنتاج الميلاتونين حتى بكميات بالغة الصغر (أقل من 30 لوكس).
+- الميلاتونين يتحكم في الإيقاع اليومي (Circadian Rhythm) بالكامل.
+- ينظم النوم، والمناعة، وإصلاح DNA، والتوازن الهرموني.
+- يُعتبر من أقوى مضادات الأكسدة الطبيعية في جسم الإنسان.
+
+إذا نمت في غرفة بها ضوء خافت، ينخفض الميلاتونين بشكل ملحوظ. الجسم يحتاج حرفياً إلى "لباس" من الظلام يحيط به من كل جهة.
+
+المرجع: Reiter, R.J. et al. (2010). "Melatonin as an antioxidant". Journal of Pineal Research.
+
+
+إصلاح DNA والجهاز الجليمفاوي — الشفاء الخفي تحت "لباس الليل"
+===
+اكتشف العلماء في العقود الأخيرة آليتين حيويتين لا تعملان إلا في الظلام أثناء النوم:
+
+(1) إصلاح DNA: خلال النوم العميق الذي يُحرّكه الظلام، تُشغِّل الخلايا آليات إصلاح الحمض النووي. الضرر التراكمي لجذور الأكسيجين الحرة الذي يحدث طوال اليوم يُصلَح أثناء الليل. الحرمان المزمن من النوم يرتبط مباشرة بتلف الحمض النووي وزيادة خطر السرطان.
+
+(2) الجهاز الجليمفاوي للدماغ: اكتشفت الدكتورة مايكن نيدرغارد (جامعة روتشستر) عام 2013 أن الدماغ يحتوي على جهاز تنظيف كامل يعمل فقط أثناء النوم: خلايا الدماغ تنكمش بنسبة 60%، فيتدفق السائل النخاعي الشوكي بين الخلايا ليغسل البروتينات السامة (بما فيها بروتين أميلويد بيتا المرتبط بمرض الزهايمر).
+
+هذا يعني: الدماغ يشفي نفسه ويتطهر فقط تحت "لباس الليل" الذي يلتف حوله بالكامل.
+
+المرجع: Iliff, J.J. et al. (2013). "A Paravascular Pathway". Science Translational Medicine.
+
+
+منظمة الصحة العالمية وجائزة نوبل 2017 — العلم يؤكد الآية
+===
+تراكم الأدلة العلمية على أهمية "لباس الليل" البيولوجي بلغ ذروتين مؤسسيتين:
+
+(أ) منظمة الصحة العالمية WHO (2007):
+صنّفت التعرض للضوء في ساعات الليل (Light at Night) بوصفه "مسبباً محتملاً للسرطان عند البشر". العمال بنظام الورديات الليلية يُظهرون معدلات أعلى بكثير من سرطان الثدي وسرطان البروستاتا والاضطرابات الأيضية.
+
+(ب) جائزة نوبل في الفسيولوجيا أو الطب 2017:
+حصل عليها جيفري هول، ومايكل روسباش، ومايكل يانغ، لاكتشاف الآليات الجزيئية للإيقاع اليومي المحكوم بالضوء والظلام. الملخص: أجسادنا مُبرمَجة على مستوى الجينات لتعمل بشكل مختلف في الظلام.
+
+مسافة 1430 سنة بين نزول الآية وجائزة نوبل الممنوحة على موضوعها. القرآن لخّص كل هذا في كلمة واحدة: "لِبَاسًا".`,
+    deepDive: `"Libaas" (Libaasaan) — Why "Covering/Garment" Is the Most Precise Word Possible
+===
+The Quran describes night as "libaas" (a garment/covering) in two places:
+- Surah An-Naba (78:10): "And We made the night a covering (libaasaan)."
+- Surah Al-Furqan (25:47): "And it is He who made the night for you as a garment (libaasaan)."
+
+In Arabic, "libaas" doesn't mean a mere shade or cover — it means something that wraps around you entirely from every direction. The Quran chose this word precisely because darkness operates biologically in exactly this way: partial dimness is insufficient. Darkness must envelop you completely from every direction before biological mechanisms activate.
+
+The Quran didn't say "night is rest" or "night is quiet" — it chose "libaas" which means complete envelopment. And this is precisely what melatonin production requires.
+
+One word captured what science needed centuries to understand.
+
+
+Melatonin — The Hormone That Only Works in Complete Darkness
+===
+The human body produces melatonin in the pineal gland of the brain — but only in complete darkness.
+
+Documented biological facts:
+- Production begins approximately 2 hours after sunset in complete darkness.
+- Blue light (from phone screens) suppresses melatonin production even at extremely low levels (less than 30 lux).
+- Melatonin controls the entire Circadian Rhythm.
+- It regulates sleep architecture, immune function, DNA repair, and hormonal balance.
+- It is considered one of the most powerful natural antioxidants in the human body.
+
+If you sleep in a dimly lit room, melatonin drops significantly. The body literally needs a "garment" of darkness to wrap around it from every direction.
+
+Reference: Reiter, R.J. et al. (2010). "Melatonin as an antioxidant: biochemical mechanisms." Journal of Pineal Research.
+
+
+DNA Repair and the Glymphatic System — Hidden Healing Under the Cover of Night
+===
+Scientists have discovered two vital biological mechanisms that only operate in darkness during sleep:
+
+(1) DNA Repair: During deep sleep triggered by darkness, cells activate DNA repair mechanisms. The cumulative damage from free radicals throughout the day is repaired during the night. Chronic sleep deprivation is directly linked to DNA damage accumulation and significantly increased cancer risk.
+
+(2) The Glymphatic Brain Cleaning System: Dr. Maiken Nedergaard (University of Rochester, 2013) discovered that the brain contains a complete waste-removal system that operates ONLY during sleep: brain cells shrink by 60%, allowing cerebrospinal fluid to flow between cells and flush toxic proteins — including amyloid-beta associated with Alzheimer's disease.
+
+This means: the brain heals itself and detoxifies exclusively under the "garment" of night that wraps around it completely.
+
+Reference: Iliff, J.J. et al. (2013). "A Paravascular Pathway Facilitates CSF Flow Through the Brain Parenchyma." Science Translational Medicine, 5(210).
+
+
+The WHO 2007 and Nobel Prize 2017 — Science Confirms the Verse
+===
+The accumulation of scientific evidence about the importance of the biological "garment of night" reached two institutional peaks:
+
+(A) World Health Organization WHO (2007):
+Classified nighttime light exposure (Light at Night) as a "probable human carcinogen." Night-shift workers exposed to light at night show significantly higher rates of breast cancer, prostate cancer, and metabolic disorders.
+
+(B) Nobel Prize in Physiology or Medicine 2017:
+Awarded to Jeffrey Hall, Michael Rosbash, and Michael Young for discovering the molecular mechanisms of the circadian rhythm controlled by light and darkness. The summary: our bodies are genetically programmed to operate differently in darkness.
+
+1,430 years between the revelation of the verse and the Nobel Prize awarded for its subject matter. The Quran summarized all of this in a single word: "libaasaan" (a garment).`,
     verses: [
       {
         id: 'verse-naba-9-10-night',
