@@ -1295,6 +1295,116 @@ This precise molecular selectivity — which we only began to understand in the 
     summaryAr: 'يصف القرآن الجبال بأنها "أوتاد" مغروسة في الأرض — يؤكد علم الجيولوجيا الحديث أن للجبال جذوراً عميقة تثبت الصفائح التكتونية.',
     description: 'Surah An-Naba (78:6-7): "Have We not made the earth a resting place? And the mountains as stakes (pegs)?" The Arabic word "أَوْتَادًا" (awtaadan) means pegs or stakes that are driven into the ground. Modern geology has confirmed that mountains have deep roots extending far below the earth\'s surface—some mountain roots extend to a depth 4-5 times their visible height. This is called the "isostasy" principle. Just as a tent peg has most of its length buried underground to provide stability, mountains have massive root structures that penetrate into the upper mantle. Dr. Haitham Talaat extensively documents that the stabilizing role of mountains in plate tectonics—reducing seismic vibrations and preventing the earth\'s surface from shifting—matches the Quran\'s additional statement in Surah Al-Anbiya (21:31): "And We placed firm mountains in the earth, lest it should shift with them." Frank Press (former president of the US National Academy of Sciences) in his book "Earth" illustrated mountain roots extending deep into the lithosphere like pegs.',
     descriptionAr: 'سورة النبأ (78:6-7): "أَلَمْ نَجْعَلِ الْأَرْضَ مِهَادًا وَالْجِبَالَ أَوْتَادًا". كلمة "أوتاداً" تعني الأوتاد أو الحصص المغروسة في الأرض. أكد علم الجيولوجيا الحديث أن للجبال جذوراً عميقة تمتد تحت سطح الأرض — بعض جذور الجبال تمتد إلى عمق 4-5 أضعاف ارتفاعها المرئي.',
+    deepDiveAr: `
+تحليل لغوي: «أَوْتَادًا» — كلمة تحتاج مجهراً جيولوجياً لفهمها
+===
+العرب في القرن السابع كانوا يصفون الجبال بالشموخ والارتفاع والعظمة — لكن القرآن اختار كلمة «أَوْتَادًا» (أوتاد).
+
+الوتد في اللغة العربية: قطعة تُدقّ في الأرض، معظمها مدفون تحت السطح، وجزء يسير يظهر فوقه. وظيفتها التثبيت، لا الارتفاع.
+
+هذا الاختيار اللغوي يفترض مسبقاً وجود امتداد ضخم تحت الأرض — وهو بالضبط ما اكتشفه علم الجيولوجيا الحديث بعد أكثر من 1200 عام.
+
+لو كان القائل إنساناً يصف ما يراه لقال «رواسي» أو «قمماً» — لكنه قال «أوتاداً»، وهو وصف لما لا يُرى.
+
+
+مبدأ الإيزوستازي: الجذر الخفي للجبل
+===
+اكتشف الجيولوجي البريطاني جورج إيري عام 1855م مبدأ «الإيزوستازي»: لكل جبل جذر عميق يمتد في الوشاح (Mantle) تحت القشرة الأرضية.
+
+الأرقام الحديثة تكشف الحقيقة الكاملة:
+- جبال الهيمالايا: ارتفاع مرئي ~8.8 كم — جذر تحت الأرض ~50-80 كم.
+- جبال الألب: ارتفاع مرئي ~4 كم — جذر ~30 كم.
+- جبال الأطلس: جذور تمتد ~40 كم تحت السطح.
+
+النسبة: الجذر المخفي يساوي 4 إلى 10 أضعاف الجزء المرئي — تماماً كالوتد.
+
+فرانك برس، الرئيس السابق لأكاديمية العلوم الأمريكية، رسم هذه الجذور في كتابه «الأرض» بصورة وتد — دون أن يعلم أن القرآن سبقه بهذا الوصف بأكثر من ألف عام.
+
+
+آيتان، حقيقة جيولوجية واحدة: الجبال تثبّت الأرض
+===
+القرآن يصف الجبال في موضعين بوظيفة التثبيت:
+
+سورة النبأ (78:7): «وَالْجِبَالَ أَوْتَادًا» — الجبال كأوتاد.
+
+سورة الأنبياء (21:31): «وَجَعَلْنَا فِي الْأَرْضِ رَوَاسِيَ أَن تَمِيدَ بِهِمْ» — جعلنا الجبال رواسي لئلا تميد بهم الأرض.
+
+علم تكتونية الألواح الحديث يؤكد:
+- الجبال تقلل من حدة الاهتزازات الزلزالية.
+- جذور الجبال تعمل كمراسٍ تمنع الانزلاق السريع للصفائح.
+- المناطق الجبلية أكثر استقراراً تكتونياً مقارنة بالسهول.
+
+الوصفان القرآنيان — الأوتاد والرسو — يكملان بعضهما علمياً: الأول يصف البنية، والثاني يصف الوظيفة.
+
+
+ما كان يُعرف في القرن السابع عن باطن الأرض
+===
+في القرن السابع الميلادي، لم تكن توجد أي أداة لقياس ما تحت الأرض. الحضارات القديمة اعتقدت أن:
+- الجبال تعبير عن صلابة الأرض — لا أكثر.
+- أفلاطون وأرسطو وصفا الجبال كتضاريس سطحية فحسب.
+- لا أحد تخيّل أن للجبال جذوراً مخفية تفوق ارتفاعها المرئي.
+
+أول قياس موثق للكثافة الداخلية للأرض: 1774م (مشروع شيهالييون).
+أول نظرية لجذور الجبال (إيزوستازي): 1855م.
+أول صور زلزالية لجذور الجبال: القرن العشرون.
+
+13 قرناً فصلت بين التصريح القرآني والإثبات العلمي.
+`,
+    deepDive: `
+Linguistic Analysis: "Awtad" — A Word That Requires a Geological Instrument to Understand
+===
+Arabs in the 7th century described mountains by their towering height and immensity — but the Quran chose the word "awtadan" (pegs/stakes).
+
+In Arabic, a peg (watad) is a spike driven into the ground: most of it is buried underground, with only a small portion visible above. Its function is anchoring, not rising.
+
+This linguistic choice presupposes a massive subsurface extension — exactly what modern geology discovered more than 1,200 years later.
+
+If the speaker were a human describing what they see, they would say "summits" or "great heights" — but the Quran said "pegs": a description of what cannot be seen.
+
+
+The Isostasy Principle: The Mountain's Hidden Root
+===
+British geologist George Airy discovered the "isostasy" principle in 1855: every mountain has a deep root extending into the mantle beneath the Earth's crust.
+
+Modern measurements reveal the full picture:
+- Himalayas: visible height ~8.8 km — underground root ~50-80 km.
+- Alps: visible height ~4 km — root ~30 km.
+- Atlas Mountains: roots extending ~40 km below the surface.
+
+The ratio: the hidden root equals 4 to 10 times the visible portion — exactly like a peg.
+
+Frank Press, former president of the US National Academy of Sciences, illustrated these roots in his book "Earth" with the image of a peg — unaware that the Quran had used this precise description more than a thousand years earlier.
+
+
+Two Verses, One Geological Reality: Mountains Stabilize the Earth
+===
+The Quran describes mountains' stabilizing function in two places:
+
+Surah An-Naba (78:7): "And the mountains as pegs" — structural description.
+
+Surah Al-Anbiya (21:31): "And We placed firm mountains in the earth lest it should shift with them" — functional description.
+
+Modern plate tectonics confirms:
+- Mountains reduce the intensity of seismic vibrations.
+- Mountain roots act as anchors that prevent rapid tectonic plate slippage.
+- Mountain regions are tectonically more stable compared to plains.
+
+The two Quranic descriptions — pegs and anchoring — scientifically complement each other: the first describes the structure, the second describes the function.
+
+
+What the 7th Century Knew About the Earth's Interior
+===
+In the 7th century, there was no instrument for measuring what lies beneath the Earth's surface. Ancient civilizations believed:
+- Mountains were expressions of the Earth's hardness — nothing more.
+- Plato and Aristotle described mountains only as surface topography.
+- No one imagined that mountains had hidden roots exceeding their visible height.
+
+First documented measurement of the Earth's internal density: 1774 (Schiehallion project).
+First theory of mountain roots (isostasy): 1855.
+First seismic imaging of mountain roots: 20th century.
+
+13 centuries separated the Quranic declaration from its scientific proof.
+`,
     verses: [
       {
         id: 'verse-naba-6-7',
@@ -1349,6 +1459,106 @@ This precise molecular selectivity — which we only began to understand in the 
     summaryAr: 'يصف القرآن طبقات الظلام والأمواج الداخلية في أعماق البحار — ظواهر اكتُشفت فقط بتقنية الغواصات الحديثة.',
     description: 'Surah An-Nur (24:40): "Or [they are] like darknesses within an unfathomable sea which is covered by waves, upon which are waves, over which are clouds - darknesses, some of them upon others." This verse describes three remarkable oceanographic phenomena: (1) INTERNAL WAVES: "waves upon which are waves" — scientists discovered internal waves that occur at the boundary between water layers of different densities, distinct from surface waves. These were only discovered in the 20th century. (2) LAYERS OF DARKNESS: Light is absorbed progressively in the ocean — red light disappears at 200m, orange at 300m, yellow at 500m, green at 700m, blue at 1000m. Below 1000m is total darkness. (3) OVERLAPPING DARKNESSES: The verse describes "darknesses, some upon others" — matching the progressive absorption of different wavelengths of light. Dr. Haitham Talaat emphasizes that no human being in the 7th century could have dived deep enough to observe these phenomena, and submarine technology was only developed in the 20th century.',
     descriptionAr: 'سورة النور (24:40): "أَوْ كَظُلُمَاتٍ فِي بَحْرٍ لُّجِّيٍّ يَغْشَاهُ مَوْجٌ مِّن فَوْقِهِ مَوْجٌ مِّن فَوْقِهِ سَحَابٌ ظُلُمَاتٌ بَعْضُهَا فَوْقَ بَعْضٍ". تصف هذه الآية ثلاث ظواهر محيطية: الأمواج الداخلية، وطبقات الظلام، والظلمات المتراكبة.',
+    deepDiveAr: `
+تحليل لغوي: «بَحْرٍ لُّجِّيٍّ» — الآية اختارت الأعمق
+===
+القرآن لا يقول «بحر» فحسب، بل يقول «بَحْرٍ لُّجِّيٍّ» — من «اللُّجَّة» في العربية، وهي قاع الشيء وأعمقه وما لا يُبلغ قعره.
+
+هذا التحديد جوهري: الظواهر الثلاث التي تصفها الآية — الأمواج الداخلية، وطبقات الظلام، والظلمات المتراكبة — لا توجد إلا في البحار العميقة جداً. في الأعماق الضحلة لا أمواج داخلية مستقلة ولا ظلمات متراكبة.
+
+اختيار «لُّجِّيٍّ» لم يكن وصفاً شعرياً — بل تحديد علمي دقيق لمسرح الحدث.
+
+
+«مَوْجٌ مِّن فَوْقِهِ مَوْجٌ» — الأمواج الداخلية: اكتشاف القرن العشرين
+===
+الآية تصف نوعين من الأمواج: موج تحته موج.
+
+الموج المرئي على السطح — كل البشرية رأته منذ الأزل.
+
+لكن «موج من فوقه موج» يشير إلى موجٍ آخر أسفل الموج السطحي — وهذا هو ما اكتشفته الأجهزة الصوتية الحديثة (السونار) في القرن العشرين:
+
+الأمواج الداخلية (Internal Waves): تنشأ عند حدود الكثافة بين طبقات المياه ذات درجات حرارة مختلفة (ما يُعرف بـ«الثرموكلاين»). ارتفاعها يصل إلى مئات الأمتار، وتتحرك في الظلام التام على أعماق 100-2000 متر — غير مرئية من السطح تماماً.
+
+لم يكن بإمكان أي إنسان في القرن السابع الغوص إلى هذه الأعماق ولا اكتشاف هذه الأمواج.
+
+
+«ظُلُمَاتٌ بَعْضُهَا فَوْقَ بَعْضٍ» — طبقات الظلام: ترتيب مذهل
+===
+الآية لا تقول «ظلام» بل «ظُلُمَاتٌ» — جمع، طبقات متعددة متراكبة.
+
+علم البصريات البحرية الحديث يكشف ما يلي:
+- الضوء الأحمر يختفي عند عمق ~200 متر.
+- الضوء البرتقالي عند ~300 متر.
+- الضوء الأصفر عند ~500 متر.
+- الضوء الأخضر عند ~700 متر.
+- الضوء الأزرق عند ~1000 متر.
+- ما دون 1000 متر: ظلام تام مطلق.
+
+كل لون يختفي في طبقة مختلفة — ظلمة فوق ظلمة، تراكب حقيقي طبقة طبقة. هذا هو بالضبط ما يصفه «ظُلُمَاتٌ بَعْضُهَا فَوْقَ بَعْضٍ».
+
+
+ثلاث معجزات في آية واحدة: الإعجاز المتراكب
+===
+سورة النور (24:40) تضغط ثلاث حقائق محيطية مستقلة في آية واحدة:
+
+أولاً — الأمواج الداخلية أسفل الأمواج السطحية: لم تُكتشف إلا بالسونار في القرن العشرين.
+
+ثانياً — الظلمات المتراكبة طبقة فوق طبقة: لم تُفهم آليتها إلا مع علم بصريات البحار الحديث.
+
+ثالثاً — «سَحَابٌ» فوق الكل: الغيوم التي تحجب الضوء من الأعلى — حقيقة أرصادية جوية تضاف لحجب الضوء من فوق في حين تمتصه المياه من تحت.
+
+كل واحدة من هذه الحقائق الثلاث كانت مجهولة في القرن السابع. اجتماعها في آية واحدة بهذا الترتيب الصحيح (سطح، أعماق، سماء) هو الإعجاز بعينه.
+`,
+    deepDive: `
+Linguistic Analysis: "Lujji" — The Verse Chose the Deepest Word
+===
+The Quran does not say "a sea" (bahr) but "a lujji sea" — from "lujja" in Arabic, meaning the very bottom and unfathomable depth of something.
+
+This specification is essential: the three phenomena described — internal waves, layered darkness, and compounded darknesses — only exist in very deep seas. In shallow waters there are no independent internal waves and no stacked layers of darkness.
+
+The choice of "lujji" was not poetic ornamentation — it was precise scientific designation of the setting.
+
+
+"Waves Upon Waves" — Internal Waves: A 20th-Century Discovery
+===
+The verse describes two types of waves: a wave beneath which is another wave.
+
+The visible wave on the surface — all of humanity has seen that since time immemorial.
+
+But "waves upon which are waves" points to another wave beneath the surface wave — and this is exactly what modern acoustic instruments (sonar) discovered in the 20th century:
+
+Internal Waves: they form at the density boundary between water layers of different temperatures (the "thermocline"). They can reach hundreds of meters in height and travel in total darkness at depths of 100-2,000 meters — completely invisible from the surface.
+
+No human in the 7th century could dive to these depths or discover these waves.
+
+
+"Darknesses Upon Darknesses" — Layered Darkness: A Stunning Sequence
+===
+The verse does not say "darkness" (singular) but "darknesses" (plural) — multiple stacked layers.
+
+Modern marine optics reveals the following:
+- Red light disappears at ~200 m depth.
+- Orange light at ~300 m.
+- Yellow light at ~500 m.
+- Green light at ~700 m.
+- Blue light at ~1,000 m.
+- Below 1,000 m: complete total darkness.
+
+Each color vanishes in a different layer — darkness upon darkness, a genuine layer-by-layer stacking. This is precisely what "darknesses, some upon others" describes.
+
+
+Three Miracles in One Verse: Compounded Scientific Precision
+===
+Surah An-Nur (24:40) compresses three independent oceanographic facts into a single verse:
+
+First — Internal waves beneath surface waves: not discovered until sonar technology in the 20th century.
+
+Second — Stacked darknesses layer upon layer: the mechanism only understood with modern marine optics.
+
+Third — "Clouds" above everything: clouds blocking light from above, while water absorbs it from below — an atmospheric detail that completes the light-blocking picture.
+
+Each of these three realities was unknown in the 7th century. Their combination in one verse, in the correct order (surface, depths, sky), is the miracle itself.
+`,
     verses: [
       {
         id: 'verse-nur-40',
