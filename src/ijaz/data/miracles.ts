@@ -6396,6 +6396,102 @@ The Quran described this entire range in one sentence: "Nor smaller than that no
     summaryAr: 'يصف القرآن تكوّن السحاب في مراحل متسلسلة — دفع وتجميع وتراكم — مطابقاً للفهم الأرصادي الحديث لتطور السحاب الركامي، بما في ذلك تكوين البرد داخلياً.',
     description: 'Surah An-Nur (24:43) states: "Do you not see that Allah drives clouds? Then He brings them together, then He makes them into a mass, and you see the rain emerge from within it. And He sends down from the sky, mountains [of clouds] within which is hail, and He strikes with it whom He wills and averts it from whom He wills." This single verse describes a precise sequence: (1) يُزْجِي (drives/steers clouds) — updrafts and wind shear drive cloud formation. (2) يُؤَلِّفُ (gathers/joins) — cloud particles aggregate through collision-coalescence. (3) يَجْعَلُهُ رُكَامًا (makes into a heap/mass) — cumulonimbus clouds stack vertically to heights of 12–15 km. (4) الْوَدْق يَخْرُجُ مِنْ خِلَالِهِ (rain emerges from within it) — rain is produced inside the cloud, not externally. (5) مِن جِبَالٍ فِيهَا مِن بَرَدٍ (mountains [of clouds] containing hail within) — hail forms inside the upper ice region of the cumulonimbus. The description of clouds as "mountains" (jibal جبال) is remarkable: cumulonimbus clouds are called "mountains of the sky" in modern meteorology and can reach up to 15 km — the height of the Himalayas. Dr. Haitham Talaat notes that the sequential description (drive → gather → stack → rain/hail emerges) precisely matches the modern meteorological model of cumulonimbus development documented only in the 20th century.',
     descriptionAr: 'يقول الله تعالى في سورة النور (24:43): "أَلَمْ تَرَ أَنَّ اللَّهَ يُزْجِي سَحَابًا ثُمَّ يُؤَلِّفُ بَيْنَهُ ثُمَّ يَجْعَلُهُ رُكَامًا فَتَرَى الْوَدْقَ يَخْرُجُ مِنْ خِلَالِهِ وَيُنَزِّلُ مِنَ السَّمَاءِ مِن جِبَالٍ فِيهَا مِن بَرَدٍ". تصف هذه الآية تسلسلاً دقيقاً: (1) يُزْجِي = يدفع السحاب (التيارات الصاعدة). (2) يُؤَلِّفُ = يجمع الجسيمات السحابية. (3) رُكَامًا = السحاب الركامي يتراكم رأسياً حتى 12-15 كم. (4) الْوَدْق يَخْرُجُ مِنْ خِلَالِهِ = المطر ينشأ داخل السحابة. (5) جِبَالٍ فِيهَا بَرَد = البرد يتكون في المنطقة الجليدية العليا. وصف السحاب بـ"الجبال" رائع: السحاب الركامي يُسمى "جبال السماء" في علم الأرصاد الحديث.',
+    deepDiveAr: `خمس مراحل في آية واحدة — الدقة العلمية للتسلسل القرآني
+===
+سورة النور 24:43 تصف تكوّن السحاب في تسلسل دقيق من خمس مراحل متعاقبة:
+
+(1) يُزْجِي — يدفع ويحرّك: تيارات الرياح والتيارات الصاعدة تحرّك بخار الماء وتُنشئ نوى السحاب.
+(2) يُؤَلِّفُ بَيْنَهُ — يجمع ويلاحم: الجسيمات السحابية (قطرات ماء وبلورات جليد) تلتحم عبر التصادم والتلاحم (collision-coalescence) لتكبر.
+(3) يَجْعَلُهُ رُكَامًا — يصنعه تراكماً رأسياً: السحابة تنمو عمودياً إلى ارتفاعات شاهقة (السحاب الركامي يصل إلى 12–15 كم).
+(4) الْوَدْقَ يَخْرُجُ مِنْ خِلَالِهِ — المطر ينبثق من الداخل: المطر يتكوّن داخل السحابة لا خارجها — شلالات من داخل البنية السحابية.
+(5) جِبَالٍ فِيهَا مِن بَرَدٍ — جبال تحوي البرد في أعماقها: السحاب الركامي الممطر يشبه الجبال الشاهقة، وبداخله في المنطقة العليا البرد يتكوّن.
+
+لم يكن أي إنسان في القرن السابع الميلادي يعلم هذا التسلسل. لم يكن هناك طائرات استكشافية، ولا رادار دوبلر، ولا صور أقمار صناعية. الكشف العلمي لهذه المراحل جاء متأخراً آلاف السنين.
+
+
+يُزْجِي ويُؤَلِّفُ — الديناميكا الجوية لنشأة السحاب
+===
+لكلمة "يُزْجِي" دلالة علمية بالغة الدقة: لا تعني فقط "يرسل" بل "يدفع ويحرّك بلطف وتدريج". يصف علم الأرصاد الحديث:
+
+- التيارات الصاعدة (Updrafts): تيارات هواء دافئ ترتفع بسرعة ودفع مستمر، تحمل بخار الماء لتشكّل البداية السحابية.
+- قصّ الرياح (Wind Shear): تباين سرعات الرياح على ارتفاعات مختلفة "يسوق" السحاب في اتجاهات محددة.
+
+أما "يُؤَلِّفُ بَيْنَهُ": لا تعني مجرد الاقتراب، بل التأليف والجمع مع ترابط. هذا بالضبط ما تصفه ظاهرة collision-coalescence: قطرات الماء الصغيرة تصطدم وتندمج لتكوّن قطرات أكبر. يُؤَلِّفُ = يُولِّف بين الجزيئات السحابية حتى تصير كتلة واحدة.
+
+كلمتان فقط وصفتا مرحلتين كاملتين من مراحل علم الأرصاد الديناميكي.
+
+
+رُكَامًا — السحاب الجبلي الذي ارتفاعه 15 كم
+===
+الكلمة "رُكَامًا" من الجذر (ر-ك-م) = التراكم الرأسي. يُسمى السحاب الركامي في علم الأرصاد: Cumulonimbus (من اللاتينية: Cumulus = تراكم + Nimbus = مطر).
+
+خصائص السحاب الركامي:
+- يتراكم رأسياً من 2 كم حتى 15 كم ارتفاعاً.
+- قاعدته في نطاق التكاثف (2–3 كم) وقمته في الستراتوسفير.
+- يشبه في شكله ومظهره الجبال الشاهقة — وهذا تحديداً ما أسماه القرآن "جِبَالٍ" في نفس الآية.
+
+يقول علماء الأرصاد الحديثون: "Cumulonimbus clouds are the mountains of the atmosphere." القرآن قال "جِبَالٍ" قبل 14 قرناً.
+
+وصف Wallace & Hobbs (2006) في كتابهما المرجعي Atmospheric Science يُشرح تكوّن الركام عبر نفس التسلسل الذي ذكره القرآن: دفع → تجميع → نمو رأسي → هطول.
+
+
+الْوَدْقَ مِنْ خِلَالِهِ والبَرَد الداخلي — التأكيد التجريبي
+===
+تفصيل علمي حاسم يميّز الآية عن أي وصف بشري ممكن:
+
+"الْوَدْقَ يَخْرُجُ مِنْ خِلَالِهِ": المطر يخرج من "خلال" (وسط وداخل) السحابة. هذا الوصف صحيح: المطر يتكوّن داخل بنية السحابة ويتساقط من خلالها — لا يأتي من خارجها ولا ينشأ في الفراغ.
+
+"جِبَالٍ فِيهَا مِن بَرَدٍ": البرد ليس في السحاب العادي — بل في النوع الجبلي الركامي فقط. وهو يتكوّن في المنطقة العليا من السحابة حيث تنخفض درجة الحرارة إلى ما دون الصفر (40- درجة مئوية وأقل). أكد ذلك Keith Browning (1963) في بحثه الرائد "The growth of large hail within a steady updraft" — البرد ينمو داخل التيارات الصاعدة في أعلى السحابة الركامية.
+
+الآية لم تقل "ينزل البرد من السماء" فحسب — بل قالت إن في تلك الجبال السحابية برداً في داخلها — دقة وصفية لم تُعرف إلا بالرادار الجوي في القرن العشرين.`,
+    deepDive: `Five Stages in One Verse — The Scientific Precision of the Quranic Sequence
+===
+Surah An-Nur 24:43 describes cloud formation in a precise sequence of five successive stages:
+
+(1) Yuzji — drives and steers: wind currents and updrafts move water vapor to initiate cloud nucleation.
+(2) Yu'allifu — gathers and unites: cloud particles (water droplets and ice crystals) merge through collision-coalescence to grow in size.
+(3) Yaj'aluhu rukaman — makes it into a vertical mass: the cloud grows upward to enormous heights (cumulonimbus clouds reach 12–15 km).
+(4) Al-wadq yakhruju min khilalihi — rain emerges from within it: rain forms inside the cloud structure, not outside it — cascading downward through the cloud's interior.
+(5) Jibalin fiha min barad — mountains containing hail within them: the towering cumulonimbus resembles mountains, and inside its upper region hail forms.
+
+No human in the 7th century CE knew this sequence. There were no research aircraft, no Doppler radar, no satellite imagery. Scientific documentation of these stages came millennia later.
+
+
+Yuzji and Yu'allifu — The Atmospheric Dynamics of Cloud Formation
+===
+The word "yuzji" carries precise scientific meaning: not merely "sends" but "drives and steers with gradual, sustained motion." Modern meteorology describes:
+
+- Updrafts: rapidly rising warm air currents that carry water vapor upward, continuously driving early cloud formation.
+- Wind Shear: differential wind speeds at varying altitudes that "steer" clouds in specific directions.
+
+And "yu'allifu baynahhu": not mere proximity but active unification with bonding. This precisely describes collision-coalescence: small water droplets collide and merge to form progressively larger drops. Yu'allifu = unifies the cloud particles into a single cohesive mass.
+
+Two words described two complete stages of dynamic atmospheric science.
+
+
+Rukaman — The Mountain Cloud Reaching 15 km
+===
+The word "rukaman" derives from the root (r-k-m) = vertical accumulation. Modern meteorology calls this cloud type: Cumulonimbus (from Latin: Cumulus = accumulation + Nimbus = rain).
+
+Characteristics of cumulonimbus clouds:
+- Stack vertically from 2 km up to 15 km altitude.
+- Base sits in the condensation zone (2–3 km); top extends into the stratosphere.
+- In appearance and form they resemble towering mountains — exactly what the Quran calls them: "jibal" (mountains) in the same verse.
+
+Modern meteorologists state: "Cumulonimbus clouds are the mountains of the atmosphere." The Quran used "mountains" 14 centuries earlier.
+
+Wallace & Hobbs (2006) in their landmark textbook Atmospheric Science describe cumulonimbus development through the exact same sequence the Quran presents: drive → gather → vertical growth → precipitation.
+
+
+Rain from Within and Internal Hail — Experimental Confirmation
+===
+A scientifically decisive detail that distinguishes this verse from any possible human description:
+
+"Al-wadq yakhruju min khilalihi": Rain comes from "within" the cloud. This is accurate: rain forms inside the cloud structure and falls through it — it does not arrive from outside or form in empty air.
+
+"Jibalin fiha min barad": Hail is not found in ordinary clouds — only in the towering cumulonimbus type. It forms in the upper zone of the cloud where temperatures drop to -40°C and below. Keith Browning confirmed this in 1963 in his landmark paper "The growth of large hail within a steady updraft" — hail grows inside the updraft region at the top of the cumulonimbus cloud.
+
+The verse did not merely say "hail falls from the sky" — it said that within those cloud-mountains, hail exists inside them — a descriptive precision unknown until 20th-century radar meteorology.`,
     verses: [
       {
         id: 'verse-nur-43',
@@ -6451,6 +6547,108 @@ The Quran described this entire range in one sentence: "Nor smaller than that no
     summaryAr: 'يصف القرآن نملة تحذر مستعمرتها برسالة كلامية دقيقة — يؤكد علم النمل الحديث امتلاك النمل تواصلاً فيرموني متطوراً وإشارات إنذار وتنظيماً دفاعياً للمستعمرة.',
     description: 'Surah An-Naml (27:18) states: "Until, when they came upon the valley of the ants, an ant said, \'O ants, enter your dwellings that you not be crushed by Solomon and his soldiers while they perceive not.\'" Several remarkable scientific details are embedded: (1) THE ANT COMMUNICATES: The Quran describes the ant issuing a warning to the entire colony — modern science confirms ants release alarm pheromones that trigger immediate colony-wide responses within seconds. (2) FEMININE PRONOUN: The Arabic uses the feminine "قَالَتْ" (qaalat — she said) for the ant. ALL worker ants are biologically female — exactly as with honey bees (Surah An-Nahl). (3) NAMED LOCATION "VALLEY OF ANTS": Modern myrmecology shows certain ant species do establish territories in valleys near rivers where humidity and soil conditions are optimal. (4) THE ANT SHOWS AWARENESS: The ant notes that Solomon\'s army "may not be aware" (لَا يَشْعُرُونَ) — this attribution of awareness and perception to the ant is remarkable. Research shows ant colonies exhibit collective intelligence: problem-solving, task delegation, and environmental monitoring. (5) ANT SOCIAL STRUCTURE: The Quran describes a community (nahml) entering "their dwellings" (masaakinakum) — ants build complex underground societies with specialized chambers for brood, food storage, and fungus farming.',
     descriptionAr: 'يقول الله تعالى في سورة النمل (27:18): "حَتَّىٰ إِذَا أَتَوْا عَلَىٰ وَادِ النَّمْلِ قَالَتْ نَمْلَةٌ يَا أَيُّهَا النَّمْلُ ادْخُلُوا مَسَاكِنَكُمْ لَا يَحْطِمَنَّكُمْ سُلَيْمَانُ وَجُنُودُهُ وَهُمْ لَا يَشْعُرُونَ". تفاصيل علمية رائعة: (1) استخدام المؤنث "قَالَتْ" — جميع نمل العمل إناث بيولوجياً. (2) التواصل الجماعي: يؤكد علم النمل الحديث أن النمل يُطلق فيرومونات إنذار تثير استجابة فورية على مستوى المستعمرة. (3) التنظيم الاجتماعي: "مَسَاكِنَكُمْ" — يبني النمل مجتمعات تحت الأرض بغرف متخصصة. (4) الوعي البيئي: يُظهر النمل ذكاءً جماعياً في المراقبة البيئية وحل المشكلات.',
+    deepDiveAr: `"قَالَتْ نَمْلَةٌ" — حرفٌ واحد يختزل حقيقة بيولوجية لم تُكتشف إلا في القرن العشرين
+===
+في سورة النمل (27:18) استخدم القرآن الفعل المؤنث "قَالَتْ" — "هي قالت" — للنملة التي حذّرت مستعمرتها. لم تكن هذه غلطة نحوية ولا استعارة أدبية. كانت بياناً بيولوجياً دقيقاً:
+
+في مستعمرات النمل:
+- الملكة (Queen): أنثى واحدة مختصة بالتكاثر.
+- نمل العمل (Worker Ants): جميعهن إناث — وهن من يقمن بالبناء والتواصل والحراسة والبحث عن الطعام.
+- الذكور (Males/Drones): وظيفتهم الوحيدة التزاوج مع الملكة، ثم يموتون.
+
+إذاً النملة التي نطقت بالتحذير وسعت لإنقاذ المستعمرة هي نملة عاملة — أنثى. القرآن قال "قَالَتْ" دون تردد. هذا ليس من قبيل المصادفة — لأن اللغة العربية لديها المذكر والمؤنث، واختيار المؤنث كان دقيقاً.
+
+نفس الدقة وردت في سورة النحل: "وَأَوْحَىٰ رَبُّكَ إِلَى النَّحْلِ... كُلِي... وَاسْلُكِي" — ضمائر مؤنثة للنحلة العاملة، وهي أيضاً أنثى بيولوجياً.
+
+
+الفيرومونات — اللغة الكيميائية للنمل
+===
+ما نسمّيه "قالت النملة" في القرآن، يصفه العلم الحديث بـ: إفراز الفيرومونات (Pheromones) — مواد كيميائية تُبثّ في الهواء تحمل رسائل دقيقة تستقبلها أعضاء استشعار خاصة (القرون والمستقبلات الكيميائية) لدى النمل الآخر.
+
+أنواع فيرومونات الإنذار:
+- فيرومونات الخطر (Alarm Pheromones): تُفرز من غدة Dufour وغدد الفكوك، وتنتشر في الهواء خلال ثوانٍ، فتثير استجابة دفاعية فورية على مستوى المستعمرة.
+- التواصل المعلوماتي: تشير بعض الأنواع إلى الموقع والحجم وطبيعة الخطر — تواصل متعدد الأبعاد.
+
+وثّق Edward O. Wilson في كتابه The Insect Societies (1971) الآلية الكاملة لتواصل النمل الكيميائي. ثم وسّع Bert Hölldobler وWilson البحث في كتابهما الموسوعي The Ants (1990).
+
+المسافة الزمنية بين الآية القرآنية (610 م) وأول توثيق علمي شامل لتواصل النمل الكيميائي (1971 م): 1361 سنة.
+
+
+الذكاء الجماعي — المستعمرة كعقل واحد
+===
+ما فعلته النملة في الآية القرآنية هو بالضبط ما يصفه علم النمل الحديث:
+
+(1) رصدت خطراً (جيش سليمان) — المراقبة البيئية.
+(2) قيّمت الوضع (لَا يَشْعُرُونَ = الجيش لا يقصد الأذى لكنه قادر على التحطيم) — إدراك السياق.
+(3) بثّت رسالة إنذار جماعياً — التواصل الموسّع.
+(4) أعطت تعليمات واضحة (ادْخُلُوا مَسَاكِنَكُمْ) — قيادة الاستجابة.
+
+يصف العلم الحديث النمل بأنه يمتلك Swarm Intelligence (الذكاء السرابي): قدرة المستعمرة ككل على حل المشكلات المعقدة وتوزيع المهام ومراقبة البيئة — دون قائد مركزي. كل نملة تُسهم في الذكاء الجماعي. أثبتت دراسات E.O. Wilson في جامعة هارفارد أن مستعمرات النمل تتخذ قرارات جماعية أكثر دقة من أي نملة منفردة.
+
+
+"ادْخُلُوا مَسَاكِنَكُمْ" — الهندسة المعمارية تحت الأرض
+===
+كلمة "مَسَاكِن" (جمع مَسكَن = منزل) تصف منشآت متعددة ومتخصصة. وهذا تحديداً ما اكتشفه علم النمل الحديث:
+
+تحت الأرض تبني مستعمرات النمل شبكات معقدة تشمل:
+- حجرات الحضنة: لرعاية البيض واليرقات والعذارى في ظروف حرارة ورطوبة محكومة.
+- مخازن الطعام: حجرات مخصصة لتخزين الطعام في درجات حرارة منخفضة.
+- حدائق الفطر (في بعض الأنواع): النمل القاطع للأوراق يزرع الفطر في حجرات خاصة كمصدر غذائي.
+- ممرات التهوية: أنفاق عمودية دقيقة تنظّم الهواء وتمنع الاختناق.
+
+أكبر مستعمرة نمل سُجّلت امتدت أفقياً لأكثر من 6000 كم في جنوب أوروبا (مستعمرة النمل الأرجنتيني Linepithema humile) — مجتمع حقيقي بمساكن حقيقية كما وصف القرآن.`,
+    deepDive: `"An Ant Said" — One Feminine Word That Captured a Biological Reality
+===
+In Surah An-Naml (27:18), the Quran used the feminine verb "qaalat" — "she said" — for the ant that warned her colony. This was not a grammatical error or a literary convention. It was a precise biological statement:
+
+In ant colonies:
+- The Queen: one female dedicated to reproduction.
+- Worker Ants: all are biologically female — they build, communicate, guard, and forage.
+- Males (Drones): their sole function is mating with the queen, after which they die.
+
+Therefore, the ant that spoke the warning and worked to save the colony was a worker ant — a female. The Quran said "qaalat" (she said) without hesitation. Arabic has both masculine and feminine forms; the choice of feminine was precise.
+
+The same accuracy appears in Surah An-Nahl: "And your Lord inspired the bee... eat... and follow the ways" — all feminine pronouns for the worker bee, which is also biologically female.
+
+
+Pheromones — The Chemical Language of Ants
+===
+What we call "the ant said" in the Quran, modern science describes as: pheromone release — chemical substances broadcast into the air carrying precise messages received by specialized sensory organs (antennae and chemoreceptors) of other ants.
+
+Types of alarm pheromones:
+- Alarm Pheromones: released from Dufour's gland and mandibular glands, spreading through the air within seconds, triggering an immediate colony-wide defensive response.
+- Information-rich communication: some species signal the location, size, and nature of a threat — a multi-dimensional communication system.
+
+Edward O. Wilson documented the complete mechanism of ant chemical communication in The Insect Societies (1971). Wilson and Bert Hölldobler expanded the research in their encyclopedic work The Ants (1990).
+
+The time gap between the Quranic verse (610 CE) and the first comprehensive scientific documentation of ant chemical communication (1971 CE): 1,361 years.
+
+
+Collective Intelligence — The Colony as a Single Mind
+===
+What the ant did in the Quranic verse is precisely what modern myrmecology describes:
+
+(1) Detected a threat (Solomon's army) — environmental monitoring.
+(2) Assessed the situation (they are unaware / do not intend harm, but can crush) — contextual awareness.
+(3) Broadcast a colony-wide alarm — distributed communication.
+(4) Issued clear instructions (enter your dwellings) — response leadership.
+
+Modern science describes ants as possessing Swarm Intelligence: the colony's collective ability to solve complex problems, delegate tasks, and monitor the environment — without a central leader. Each ant contributes to collective intelligence. Research led by E.O. Wilson at Harvard demonstrated that ant colonies make decisions more accurately than any individual ant.
+
+The Quran's depiction of the ant reasoning, assessing, and broadcasting a precisely targeted warning matches modern research on colonial cognition.
+
+
+"Enter Your Dwellings" — Underground Architecture
+===
+The word "masaakin" (plural of maskan = dwelling) describes multiple specialized structures. This is exactly what modern myrmecology has discovered:
+
+Underground, ant colonies build complex networks including:
+- Brood Chambers: for nurturing eggs, larvae, and pupae under controlled temperature and humidity.
+- Food Storage Chambers: dedicated rooms for food storage at regulated temperatures.
+- Fungus Gardens (in certain species): leaf-cutter ants cultivate fungus in specialized chambers as a food source.
+- Ventilation Shafts: precise vertical tunnels that regulate airflow and prevent suffocation.
+
+The largest documented ant supercolony extended horizontally over 6,000 km across southern Europe (Argentine ant, Linepithema humile) — a true community with true dwellings, exactly as the Quran described.`,
     verses: [
       {
         id: 'verse-naml-18',
