@@ -75,6 +75,33 @@ const journeySteps: JourneyStep[] = [
     particleVariant: 'gold-dust',
   },
   {
+    id: 7,
+    titleAr: 'أصل الحياة',
+    titleEn: 'The Origin of Life',
+    icon: '🧬',
+    gradientFrom: '#06b6d4',
+    gradientTo: '#0284c7',
+    questionAr: 'كيف نشأت الحياة من مادة جامدة؟',
+    contentAr: `DNA يحمل معلومات أكثر من أي مكتبة بشرية. مكتشف DNA فرانسيس كريك قال: "احتمال نشوء الحياة عشوائيًا على الأرض ضئيل للغاية لدرجة تجعله شبه مستحيل".
+
+كمية المعلومات في الجين الواحد = 10^40,000 بت. احتمال تشكّل بروتين واحد عشوائيًا: 1/10^164. وعدد الذرات في الكون: 10^80.
+
+الانفجار الكمبري: ظهور مفاجئ لـ 50 شعبة حيوانية دون أسلاف — معضلة يعترف بها المتخصصون.
+
+الحياة لا تنشأ من المادة وحدها — هي تحتاج معلومة مُبرمَجة. والمعلومة تصدر دائمًا عن عقل.`,
+    verseAr: 'وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ',
+    verseSurah: 'الأنبياء : 30',
+    evidenceAr: [
+      'DNA يحمل 3.2 مليار "حرف" من المعلومات — أكثر من موسوعة بريتانيكا بألف مرة',
+      'احتمال تشكّل بروتين واحد عشوائيًا: 1/10^164 — أصغر من حدود الاحتمال الكوني',
+      'الانفجار الكمبري: 50 شعبة حيوانية ظهرت فجأة دون أسلاف تطورية معروفة',
+    ],
+    linkSlug: 'origin-of-life',
+    linkLabel: 'اقرأ عن أصل الحياة',
+    bgVariant: 'deep',
+    particleVariant: 'nebula',
+  },
+  {
     id: 3,
     titleAr: '\u0627\u0644\u0642\u0631\u0622\u0646 \u064A\u062A\u062D\u062F\u0649',
     titleEn: 'The Quran Challenges',
@@ -90,6 +117,8 @@ const journeySteps: JourneyStep[] = [
       '\u0627\u0644\u0642\u0631\u0622\u0646 \u062A\u062D\u062F\u0649 \u062A\u062F\u0631\u064A\u062C\u064A\u064B\u0627: \u0645\u062B\u0644\u0647 \u2192 10 \u0633\u0648\u0631 \u2192 \u0633\u0648\u0631\u0629 \u0648\u0627\u062D\u062F\u0629',
       '\u0639\u062C\u0632 \u0623\u0628\u0644\u063A \u0639\u0631\u0628 \u0627\u0644\u0641\u0635\u0627\u062D\u0629 \u0627\u0644\u0630\u064A\u0646 \u062D\u0627\u0631\u0628\u0648\u0627 \u0644\u0643\u0646\u0647\u0645 \u0644\u0645 \u064A\u0633\u062A\u0637\u064A\u0639\u0648\u0627 \u0627\u0644\u062A\u0642\u0644\u064A\u062F',
     ],
+    linkSlug: 'quran-challenge',
+    linkLabel: 'اقرأ عن تحدي القرآن',
     bgVariant: 'divine',
     particleVariant: 'divine-light',
   },
@@ -101,11 +130,11 @@ const journeySteps: JourneyStep[] = [
     gradientFrom: '#4A90D9',
     gradientTo: '#2563eb',
     questionAr: '\u0645\u0627 \u0627\u0644\u062F\u0644\u064A\u0644 \u0639\u0644\u0649 \u0623\u0646 \u0627\u0644\u0642\u0631\u0622\u0646 \u0645\u0646 \u0627\u0644\u0644\u0647\u061F',
-    contentAr: '\u0647\u0646\u0627 \u062A\u0628\u062F\u0623 \u0627\u0644\u0631\u062D\u0644\u0629 \u0627\u0644\u062D\u0642\u064A\u0642\u064A\u0629. \u062A\u062E\u064A\u0644 \u0631\u062C\u0644\u064B\u0627 \u0623\u064F\u0645\u0651\u064A\u064B\u0627 \u0641\u064A \u0635\u062D\u0631\u0627\u0621 \u0627\u0644\u062C\u0632\u064A\u0631\u0629 \u0627\u0644\u0639\u0631\u0628\u064A\u0629 \u0641\u064A \u0627\u0644\u0642\u0631\u0646 \u0627\u0644\u0633\u0627\u0628\u0639:\n\n\u2022 \u0648\u0635\u0641 \u062A\u0648\u0633\u0639 \u0627\u0644\u0643\u0648\u0646 \u0628\u062F\u0642\u0629 (\u0627\u0643\u062A\u064F\u0634\u0641 1929)\n\u2022 \u0648\u0635\u0641 \u0645\u0631\u0627\u062D\u0644 \u0627\u0644\u062C\u0646\u064A\u0646 \u0628\u062F\u0642\u0629 (\u0627\u0643\u062A\u064F\u0634\u0641 1974)\n\u2022 \u0648\u0635\u0641 \u062C\u0630\u0648\u0631 \u0627\u0644\u062C\u0628\u0627\u0644 \u0643\u0627\u0644\u0623\u0648\u062A\u0627\u062F (\u0627\u0643\u062A\u064F\u0634\u0641 1906)\n\u2022 \u0648\u0635\u0641 \u0638\u0644\u0645\u0627\u062A \u0623\u0639\u0645\u0627\u0642 \u0627\u0644\u0628\u062D\u0631 (\u0627\u0643\u062A\u064F\u0634\u0641 1960)\n\u2022 \u0648\u0635\u0641 \u0645\u0646\u0637\u0642\u0629 \u0627\u0644\u0646\u0627\u0635\u064A\u0629 \u0641\u064A \u0627\u0644\u062F\u0645\u0627\u063A (\u0627\u0643\u062A\u064F\u0634\u0641 2000)\n\n25 \u0645\u0639\u062C\u0632\u0629 \u0639\u0644\u0645\u064A\u0629. \u0648\u0644\u0627 \u062E\u0637\u0623 \u0648\u0627\u062D\u062F. \u0627\u062D\u062A\u0645\u0627\u0644 \u0627\u0644\u0635\u062F\u0641\u0629: 1/10^26.',
+    contentAr: '\u0647\u0646\u0627 \u062A\u0628\u062F\u0623 \u0627\u0644\u0631\u062D\u0644\u0629 \u0627\u0644\u062D\u0642\u064A\u0642\u064A\u0629. \u062A\u062E\u064A\u0644 \u0631\u062C\u0644\u064B\u0627 \u0623\u064F\u0645\u0651\u064A\u064B\u0627 \u0641\u064A \u0635\u062D\u0631\u0627\u0621 \u0627\u0644\u062C\u0632\u064A\u0631\u0629 \u0627\u0644\u0639\u0631\u0628\u064A\u0629 \u0641\u064A \u0627\u0644\u0642\u0631\u0646 \u0627\u0644\u0633\u0627\u0628\u0639:\n\n\u2022 \u0648\u0635\u0641 \u062A\u0648\u0633\u0639 \u0627\u0644\u0643\u0648\u0646 \u0628\u062F\u0642\u0629 (\u0627\u0643\u062A\u064F\u0634\u0641 1929)\n\u2022 \u0648\u0635\u0641 \u0645\u0631\u0627\u062D\u0644 \u0627\u0644\u062C\u0646\u064A\u0646 \u0628\u062F\u0642\u0629 (\u0627\u0643\u062A\u064F\u0634\u0641 1974)\n\u2022 \u0648\u0635\u0641 \u062C\u0630\u0648\u0631 \u0627\u0644\u062C\u0628\u0627\u0644 \u0643\u0627\u0644\u0623\u0648\u062A\u0627\u062F (\u0627\u0643\u062A\u064F\u0634\u0641 1906)\n\u2022 \u0648\u0635\u0641 \u0638\u0644\u0645\u0627\u062A \u0623\u0639\u0645\u0627\u0642 \u0627\u0644\u0628\u062D\u0631 (\u0627\u0643\u062A\u064F\u0634\u0641 1960)\n\u2022 \u0648\u0635\u0641 \u0645\u0646\u0637\u0642\u0629 \u0627\u0644\u0646\u0627\u0635\u064A\u0629 \u0641\u064A \u0627\u0644\u062F\u0645\u0627\u063A (\u0627\u0643\u062A\u064F\u0634\u0641 2000)\n\n50+ معجزة علمية. ولا خطأ واحد. \u0627\u062D\u062A\u0645\u0627\u0644 \u0627\u0644\u0635\u062F\u0641\u0629: 1/10^50.',
     verseAr: '\u0633\u064E\u0646\u064F\u0631\u0650\u064A\u0647\u0650\u0645\u0652 \u0622\u064A\u064E\u0627\u062A\u0650\u0646\u064E\u0627 \u0641\u0650\u064A \u0627\u0644\u0652\u0622\u0641\u064E\u0627\u0642\u0650 \u0648\u064E\u0641\u0650\u064A \u0623\u064E\u0646\u0641\u064F\u0633\u0650\u0647\u0650\u0645\u0652',
     verseSurah: '\u0641\u0635\u0644\u062A : 53',
     evidenceAr: [
-      '25 \u0645\u0639\u062C\u0632\u0629 \u0639\u0644\u0645\u064A\u0629 \u0645\u0648\u062B\u0642\u0629 \u0641\u064A \u0627\u0644\u0643\u0648\u0646\u064A\u0627\u062A \u0648\u0627\u0644\u0623\u062D\u064A\u0627\u0621 \u0648\u0627\u0644\u0623\u0631\u0636',
+      '50+ معجزة علمية موثقة في الكونيات والأحياء والأرض',
       '\u0643\u0644 \u0645\u0639\u062C\u0632\u0629 \u0633\u0628\u0642\u062A \u0627\u0644\u0639\u0644\u0645 \u0628\u0645\u0626\u0627\u062A \u0627\u0644\u0633\u0646\u064A\u0646',
       '\u0644\u0627 \u064A\u0648\u062C\u062F \u062E\u0637\u0623 \u0639\u0644\u0645\u064A \u0648\u0627\u062D\u062F \u0641\u064A \u0643\u0644 \u0627\u0644\u0642\u0631\u0622\u0646',
     ],
@@ -119,8 +148,8 @@ const journeySteps: JourneyStep[] = [
     titleAr: '\u0627\u0644\u0646\u0628\u0648\u0621\u0627\u062A',
     titleEn: 'The Prophecies',
     icon: '\u{1F52E}',
-    gradientFrom: '#9b59b6',
-    gradientTo: '#7c3aed',
+    gradientFrom: '#8b5cf6',
+    gradientTo: '#6366f1',
     questionAr: '\u0647\u0644 \u064A\u0645\u0643\u0646 \u0644\u0623\u062D\u062F \u0623\u0646 \u064A\u062A\u0646\u0628\u0623 \u0628\u0627\u0644\u0645\u0633\u062A\u0642\u0628\u0644\u061F',
     contentAr: '\u0627\u0644\u0642\u0631\u0622\u0646 \u0641\u0639\u0644\u0647\u0627. \u0648\u0644\u064A\u0633 \u0645\u0631\u0629 \u0648\u0627\u062D\u062F\u0629.\n\n\u062A\u0646\u0628\u0623 \u0628\u0627\u0646\u062A\u0635\u0627\u0631 \u0627\u0644\u0631\u0648\u0645 \u0641\u064A \u0623\u0642\u0644 \u0645\u0646 9 \u0633\u0646\u0648\u0627\u062A \u2014 \u0648\u062D\u062F\u062B. \u062A\u0646\u0628\u0623 \u0628\u062D\u0641\u0638 \u062C\u0633\u062F \u0641\u0631\u0639\u0648\u0646 \u2014 \u0648\u0647\u0627 \u0647\u0648 \u0641\u064A \u0627\u0644\u0645\u062A\u062D\u0641. \u062A\u0646\u0628\u0623 \u0628\u0641\u062A\u062D \u0627\u0644\u0642\u0633\u0637\u0646\u0637\u064A\u0646\u064A\u0629 \u2014 \u0648\u0641\u064F\u062A\u062D\u062A 1453. \u062A\u0646\u0628\u0623 \u0628\u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u0633\u0627\u0639\u0629 \u0645\u0646 \u0643\u062B\u0631\u0629 \u0627\u0644\u0632\u0644\u0627\u0632\u0644 \u0625\u0644\u0649 \u062A\u0637\u0627\u0648\u0644 \u0627\u0644\u0631\u0639\u0627\u0629 \u0641\u064A \u0627\u0644\u0628\u0646\u064A\u0627\u0646.\n\n\u0643\u0644 \u0646\u0628\u0648\u0621\u0629 \u0625\u0636\u0627\u0641\u064A\u0629 \u062A\u062A\u062D\u0642\u0642 \u062A\u064F\u0636\u0639\u0641 \u0627\u062D\u062A\u0645\u0627\u0644 \u0627\u0644\u0635\u062F\u0642 \u0623\u0636\u0639\u0627\u0641\u064B\u0627 \u0645\u0636\u0627\u0639\u0641\u0629.',
     verseAr: '\u063A\u064F\u0644\u0650\u0628\u064E\u062A\u0650 \u0627\u0644\u0631\u0651\u064F\u0648\u0645\u064F \u0641\u0650\u064A \u0623\u064E\u062F\u0652\u0646\u064E\u0649 \u0627\u0644\u0652\u0623\u064E\u0631\u0652\u0636\u0650 \u0648\u064E\u0647\u064F\u0645 \u0645\u0651\u0650\u0646 \u0628\u064E\u0639\u0652\u062F\u0650 \u063A\u064E\u0644\u064E\u0628\u0650\u0647\u0650\u0645\u0652 \u0633\u064E\u064A\u064E\u063A\u0652\u0644\u0650\u0628\u064F\u0648\u0646\u064E',
@@ -136,6 +165,32 @@ const journeySteps: JourneyStep[] = [
     particleVariant: 'geometric',
   },
   {
+    id: 8,
+    titleAr: 'البشارات في الكتب السماوية',
+    titleEn: 'Biblical Prophecies',
+    icon: '📜',
+    gradientFrom: '#e879f9',
+    gradientTo: '#a855f7',
+    questionAr: 'هل يُذكر محمد ﷺ في الكتاب المقدس؟',
+    contentAr: `الإجابة: نعم. وليس مرة واحدة.
+
+• التثنية 18:18: "أقيم لهم نبيًا من إخوتهم مثلك" — الإخوة هم أبناء إسماعيل، ومثل موسى يعني نبيًا أمّيًا جاء بشريعة كاملة.
+• نشيد الأناشيد 5:16: كلمة "محمداً" موجودة حرفيًا في النص العبري الأصلي.
+• إشعياء 42: "عبدي الذي أنصره" — وصف مطابق للنبي ﷺ وبلاد العرب.
+• يوحنا 16:7: "الباراكليت" الذي يعلّم كل شيء = البارقليطا = أحمد ﷺ.`,
+    verseAr: 'الَّذِينَ يَتَّبِعُونَ الرَّسُولَ النَّبِيَّ الْأُمِّيَّ الَّذِي يَجِدُونَهُ مَكْتُوبًا عِندَهُمْ فِي التَّوْرَاةِ وَالْإِنجِيلِ',
+    verseSurah: 'الأعراف : 157',
+    evidenceAr: [
+      'التثنية 18:18 — "من إخوتهم" تشير لبني إسماعيل، ولم تتحقق في أي نبي آخر',
+      'نشيد الأناشيد 5:16 — كلمة "محمداً" موجودة حرفيًا في النص العبري الأصلي',
+      'يوحنا 16:7 — "الباراكليت" لا ينطبق على الروح القدس بل على نبي بشري',
+    ],
+    linkSlug: 'prophecy-torah',
+    linkLabel: 'اقرأ عن البشارات في الكتب السماوية',
+    bgVariant: 'divine',
+    particleVariant: 'divine-light',
+  },
+  {
     id: 6,
     titleAr: '\u0627\u0644\u062E\u064F\u0644\u0627\u0635\u0629',
     titleEn: 'The Conclusion',
@@ -143,7 +198,7 @@ const journeySteps: JourneyStep[] = [
     gradientFrom: '#d4a853',
     gradientTo: '#f0d68a',
     questionAr: '\u0645\u0627\u0630\u0627 \u064A\u0639\u0646\u064A \u0643\u0644 \u0647\u0630\u0627\u061F',
-    contentAr: '\u0644\u0642\u062F \u0631\u0623\u064A\u062A \u0627\u0644\u0622\u0646:\n\n1. \u0627\u0644\u0643\u0648\u0646 \u0644\u0647 \u062E\u0627\u0644\u0642 (\u062F\u0644\u064A\u0644 \u0627\u0644\u0642\u064E\u0644\u0627\u0645 \u0627\u0644\u0643\u0648\u0646\u064A)\n2. \u0627\u0644\u062E\u0627\u0644\u0642 \u0630\u0643\u064A \u0648\u0639\u0627\u0644\u0650\u0645 (\u062F\u0644\u064A\u0644 \u0627\u0644\u0636\u0628\u0637 \u0627\u0644\u062F\u0642\u064A\u0642)\n3. \u0645\u062D\u0645\u062F \uFDFA \u0644\u0645 \u064A\u0643\u0646 \u064A\u0645\u0644\u0643 \u0647\u0630\u0627 \u0627\u0644\u0639\u0644\u0645 (\u0623\u064F\u0645\u0651\u064A \u0641\u064A \u0627\u0644\u0635\u062D\u0631\u0627\u0621)\n4. \u0627\u0644\u0642\u0631\u0622\u0646 \u064A\u062D\u0645\u0644 \u0639\u0644\u0645\u064B\u0627 \u0644\u0645 \u064A\u0643\u0646 \u0645\u0645\u0643\u0646\u064B\u0627 (25 \u0645\u0639\u062C\u0632\u0629)\n5. \u0627\u0644\u0646\u0628\u0648\u0621\u0627\u062A \u062A\u062D\u0642\u0642\u062A (\u0625\u062E\u0628\u0627\u0631 \u0628\u0627\u0644\u063A\u064A\u0628)\n\n\u0627\u0644\u062E\u0644\u0627\u0635\u0629 \u0627\u0644\u0645\u0646\u0637\u0642\u064A\u0629 \u0627\u0644\u0648\u062D\u064A\u062F\u0629: \u0647\u0630\u0627 \u0627\u0644\u0643\u062A\u0627\u0628 \u0645\u0646 \u0639\u0646\u062F \u0627\u0644\u0644\u0647\u060C \u0648\u0645\u062D\u0645\u062F \uFDFA \u0631\u0633\u0648\u0644\u0647.\n\n\u0648\u0625\u0630\u0627 \u0643\u0627\u0646 \u0627\u0644\u0642\u0631\u0622\u0646 \u0645\u0646 \u0627\u0644\u0644\u0647 \u2014 \u0641\u0627\u0644\u0625\u0633\u0644\u0627\u0645 \u062D\u0642.',
+    contentAr: '\u0644\u0642\u062F \u0631\u0623\u064A\u062A \u0627\u0644\u0622\u0646:\n\n1. \u0627\u0644\u0643\u0648\u0646 \u0644\u0647 \u062E\u0627\u0644\u0642 (\u062F\u0644\u064A\u0644 \u0627\u0644\u0642\u064E\u0644\u0627\u0645 \u0627\u0644\u0643\u0648\u0646\u064A)\n2. \u0627\u0644\u062E\u0627\u0644\u0642 \u0630\u0643\u064A \u0648\u0639\u0627\u0644\u0650\u0645 (\u062F\u0644\u064A\u0644 \u0627\u0644\u0636\u0628\u0637 \u0627\u0644\u062F\u0642\u064A\u0642)\n3. \u0645\u062D\u0645\u062F \uFDFA \u0644\u0645 \u064A\u0643\u0646 \u064A\u0645\u0644\u0643 \u0647\u0630\u0627 \u0627\u0644\u0639\u0644\u0645 (\u0623\u064F\u0645\u0651\u064A \u0641\u064A \u0627\u0644\u0635\u062D\u0631\u0627\u0621)\n4. \u0627\u0644\u0642\u0631\u0622\u0646 \u064A\u062D\u0645\u0644 \u0639\u0644\u0645\u064B\u0627 \u0644\u0645 \u064A\u0643\u0646 \u0645\u0645\u0643\u0646\u064B\u0627 (50+ معجزة)\n5. النبوءات تحققت (إخبار بالغيب)\n6. البشارات مكتوبة في الكتب السابقة\n\n\u0627\u0644\u062E\u0644\u0627\u0635\u0629 \u0627\u0644\u0645\u0646\u0637\u0642\u064A\u0629 \u0627\u0644\u0648\u062D\u064A\u062F\u0629: \u0647\u0630\u0627 \u0627\u0644\u0643\u062A\u0627\u0628 \u0645\u0646 \u0639\u0646\u062F \u0627\u0644\u0644\u0647\u060C \u0648\u0645\u062D\u0645\u062F \uFDFA \u0631\u0633\u0648\u0644\u0647.\n\n\u0648\u0625\u0630\u0627 \u0643\u0627\u0646 \u0627\u0644\u0642\u0631\u0622\u0646 \u0645\u0646 \u0627\u0644\u0644\u0647 \u2014 \u0641\u0627\u0644\u0625\u0633\u0644\u0627\u0645 \u062D\u0642.',
     verseAr: '\u0648\u064E\u0645\u064E\u0627 \u0623\u064E\u0631\u0652\u0633\u064E\u0644\u0652\u0646\u064E\u0627\u0643\u064E \u0625\u0650\u0644\u0651\u064E\u0627 \u0631\u064E\u062D\u0652\u0645\u064E\u0629\u064B \u0644\u0651\u0650\u0644\u0652\u0639\u064E\u0627\u0644\u064E\u0645\u0650\u064A\u0646\u064E',
     verseSurah: '\u0627\u0644\u0623\u0646\u0628\u064A\u0627\u0621 : 107',
     evidenceAr: [
@@ -191,7 +246,7 @@ export default function JourneyPage() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden" dir="rtl">
+    <main className="relative min-h-screen overflow-hidden bg-[#020617]" dir="rtl">
       {/* ===== IMMERSIVE BACKGROUND: Shader + Particles per step ===== */}
       <div className="fixed inset-0 z-0">
         <AnimatePresence mode="wait">
@@ -201,16 +256,18 @@ export default function JourneyPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.2 }}
-            className="absolute inset-0"
+            className="absolute inset-0 opacity-60"
           >
-            <ShaderBackground variant={step.bgVariant} />
+            <ShaderBackground variant={step.bgVariant} intensity={0.5} />
           </motion.div>
         </AnimatePresence>
-        <div className="absolute inset-0 z-[1]">
-          <ParticleField variant={step.particleVariant} density={0.6} speed={0.3} />
+        <div className="absolute inset-0 z-[1] opacity-50">
+          <ParticleField variant={step.particleVariant} density={0.3} speed={0.3} />
         </div>
-        {/* Extra vignette overlay */}
-        <div className="absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(2,6,23,0.7)_100%)]" />
+        {/* Solid dark scrim — keeps text readable over any shader brightness */}
+        <div className="absolute inset-0 z-[2]" style={{ background: 'rgba(2,6,23,0.52)' }} />
+        {/* Edge vignette for depth */}
+        <div className="absolute inset-0 z-[3] bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(2,6,23,0.80)_100%)]" />
       </div>
 
       {/* ===== FLOATING PROGRESS BAR ===== */}
@@ -290,7 +347,7 @@ export default function JourneyPage() {
             >
               {/* Step Badge */}
               <ScrollReveal variant="fade-up">
-                <div className="text-center mb-10">
+                <div className="text-center mb-8">
                   <motion.div
                     className="inline-flex items-center gap-3 px-5 py-2 rounded-full glass-premium mb-6"
                     style={{ borderColor: step.gradientFrom + '30' }}
@@ -302,11 +359,11 @@ export default function JourneyPage() {
                     <span className="text-sm font-tajawal font-bold" style={{ color: step.gradientFrom }}>
                       {step.titleAr}
                     </span>
-                    <span className="text-xs text-text-muted font-tajawal">({step.titleEn})</span>
+                    <span className="hidden sm:inline text-xs text-text-muted font-tajawal">({step.titleEn})</span>
                   </motion.div>
 
                   {/* The Question — cinematic reveal */}
-                  <h1 className="font-amiri text-3xl sm:text-4xl md:text-5xl font-bold leading-relaxed">
+                  <h1 className="font-amiri text-2xl sm:text-3xl md:text-5xl font-bold leading-relaxed">
                     <AnimatedGradientText
                       colors={[step.gradientFrom, step.gradientTo, '#ffffff', step.gradientFrom]}
                     >
@@ -319,7 +376,7 @@ export default function JourneyPage() {
               {/* Verse (if any) */}
               {step.verseAr && (
                 <motion.div
-                  className="text-center my-10 py-8 px-6 rounded-2xl glass-premium cosmic-border"
+                  className="text-center my-7 py-5 px-4 rounded-2xl glass-premium cosmic-border"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
@@ -337,7 +394,7 @@ export default function JourneyPage() {
 
               {/* Content Card */}
               <motion.div
-                className="holographic-card rounded-2xl p-8 mb-10"
+                className="holographic-card rounded-2xl p-5 sm:p-8 mb-7"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
@@ -348,7 +405,7 @@ export default function JourneyPage() {
               </motion.div>
 
               {/* Evidence Points */}
-              <div className="space-y-3 mb-10">
+              <div className="space-y-2.5 mb-7">
                 <p className="text-text-muted text-xs font-tajawal tracking-widest uppercase mb-4">
                   {'\u0627\u0644\u0623\u062F\u0644\u0629'}
                 </p>
@@ -358,7 +415,7 @@ export default function JourneyPage() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 + i * 0.12 }}
-                    className="flex items-start gap-4 p-5 rounded-xl glass-premium group hover:scale-[1.01] transition-transform"
+                    className="flex items-start gap-3 p-3.5 sm:p-5 rounded-xl glass-premium group hover:scale-[1.01] transition-transform"
                   >
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs"

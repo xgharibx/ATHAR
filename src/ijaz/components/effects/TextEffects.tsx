@@ -64,7 +64,7 @@ interface AnimatedGradientTextProps {
 export function AnimatedGradientText({
   children,
   className = '',
-  colors = ['#d4a853', '#f0d078', '#2dd4a8', '#4a90d9', '#a855f7', '#d4a853'],
+  colors = ['#6366f1', '#a5b4fc', '#e879f9', '#2dd4a8', '#a5b4fc', '#6366f1'],
 }: AnimatedGradientTextProps) {
   const gradient = colors.join(', ');
   

@@ -100,7 +100,7 @@ function ScrollProgress() {
       className="fixed top-0 left-0 right-0 h-[2px] z-[100] origin-left"
       style={{
         scaleX,
-        background: 'linear-gradient(90deg, #d4a853, #2dd4a8, #4a90d9, #a855f7)',
+        background: 'linear-gradient(90deg, #6366f1, #a5b4fc, #e879f9, #2dd4a8)',
       }}
     />
   );
@@ -117,9 +117,8 @@ function FloatingNav() {
     '\u0627\u0644\u0623\u0631\u0642\u0627\u0645',
     '\u0645\u0633\u0627\u0631\u0643',
     '\u0622\u064A\u0629',
-    '\u0627\u0644\u0623\u0642\u0633\u0627\u0645',
-    '\u0627\u0644\u0645\u0639\u062C\u0632\u0627\u062A',
     '\u0627\u0644\u0634\u0628\u0647\u0627\u062A',
+    '\u0627\u0644\u0623\u0642\u0633\u0627\u0645',
     '\u0627\u0644\u0645\u0635\u0627\u062F\u0631',
   ];
 
@@ -420,6 +419,46 @@ function StaticStarsBackdrop({
 }
 
 /* ================================================================
+   MOBILE GALAXY BACKDROP — nebula gradients + deferred NoorStarfield
+   ================================================================ */
+function MobileGalaxyBackdrop() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      {/* Deep galaxy nebula — purple/indigo core */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: [
+            'radial-gradient(ellipse 90% 52% at 50% 14%, rgba(55,28,105,0.58) 0%, rgba(18,12,44,0.36) 44%, transparent 74%)',
+            'radial-gradient(ellipse 52% 62% at 10% 64%, rgba(18,42,92,0.26) 0%, transparent 64%)',
+            'radial-gradient(ellipse 48% 46% at 90% 36%, rgba(28,14,68,0.22) 0%, transparent 60%)',
+            'radial-gradient(ellipse 38% 48% at 62% 82%, rgba(8,30,62,0.18) 0%, transparent 66%)',
+          ].join(', '),
+        }}
+      />
+      {/* Galactic center gold glow */}
+      <div
+        className="absolute"
+        style={{
+          top: '-8%',
+          left: '-18%',
+          right: '-18%',
+          height: '58%',
+          background: 'radial-gradient(ellipse 68% 58% at 50% 30%, rgba(212,168,83,0.10) 0%, transparent 72%)',
+        }}
+      />
+      {/* Bottom-fade for text readability */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, rgba(8,11,18,0.06) 0%, rgba(8,11,18,0.40) 55%, rgba(8,11,18,0.92) 100%)',
+        }}
+      />
+    </div>
+  );
+}
+
+/* ================================================================
    HOME PAGE
    ================================================================ */
 export default function HomePage() {
@@ -461,7 +500,9 @@ export default function HomePage() {
 
       {/* ═══════════ SECTION 1: CINEMATIC HERO ═══════════ */}
       <section data-section className="relative min-h-[100svh] flex items-center justify-center overflow-hidden">
-        <StaticStarsBackdrop variant="hero" mobile={isMobile} className="z-0" />
+        {isMobile
+          ? <MobileGalaxyBackdrop />
+          : <StaticStarsBackdrop variant="hero" mobile={false} className="z-0" />}
 
         {/* Gradient overlays */}
         <div className="absolute inset-0 z-[2] bg-gradient-to-b from-vanta/40 via-transparent to-vanta pointer-events-none" />
@@ -595,9 +636,9 @@ export default function HomePage() {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeHeroShowcase.miracleSlug}
-                    initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, y: -12, filter: 'blur(8px)' }}
+                    initial={{ opacity: 0, y: isMobile ? 8 : 16, ...(isMobile ? {} : { filter: 'blur(8px)' }) }}
+                    animate={{ opacity: 1, y: 0, ...(isMobile ? {} : { filter: 'blur(0px)' }) }}
+                    exit={{ opacity: 0, y: isMobile ? -6 : -12, ...(isMobile ? {} : { filter: 'blur(8px)' }) }}
                     transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                     className="relative grid gap-3 lg:grid-cols-[1.2fr_0.95fr]"
                   >
@@ -691,11 +732,15 @@ export default function HomePage() {
                                 key={item.miracleSlug}
                                 type="button"
                                 onClick={() => setActiveShowcase(index)}
-                                className={`h-2 rounded-full transition-all duration-300 ${
-                                  index === activeShowcase ? 'w-7 bg-gold-primary shadow-[0_0_10px_rgba(212,168,83,0.45)]' : 'w-2 bg-white/20 hover:bg-white/35'
-                                }`}
+                                className="p-2 -m-2 flex items-center justify-center"
                                 aria-label={`عرض المشهد ${index + 1}`}
-                              />
+                              >
+                                <span
+                                  className={`h-2 rounded-full transition-all duration-300 block ${
+                                    index === activeShowcase ? 'w-7 bg-gold-primary shadow-[0_0_10px_rgba(212,168,83,0.45)]' : 'w-2 bg-white/20'
+                                  }`}
+                                />
+                              </button>
                             ))}
                           </div>
                         </div>
@@ -715,8 +760,8 @@ export default function HomePage() {
             >
               <Link
                 to="/ijaz/journey"
-                className="group relative overflow-hidden px-10 py-4 rounded-2xl font-tajawal font-bold text-lg text-vanta holographic-card breathing-glow"
-                style={{ background: 'linear-gradient(135deg, #d4a853, #f0d68a)' }}
+                className="group relative overflow-hidden px-10 py-4 rounded-2xl font-tajawal font-bold text-lg text-white holographic-card breathing-glow"
+                style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #e879f9)' }}
               >
                 <span className="ijaz-cta-shine" aria-hidden />
                 <span className="relative z-10">
@@ -731,7 +776,8 @@ export default function HomePage() {
               </Link>
             </motion.div>
 
-            {/* Typewriter miracle preview */}
+            {/* Typewriter miracle preview — desktop only (avoids mobile re-render cost) */}
+            {!isMobile && (
             <motion.div
               className="mt-5 md:mt-7 lg:mt-8 rounded-2xl px-5 py-4 max-w-2xl mx-auto"
               initial={{ opacity: 0 }}
@@ -762,6 +808,7 @@ export default function HomePage() {
                 cursor
               />
             </motion.div>
+            )}
           </motion.div>
         </div>
 
@@ -793,7 +840,6 @@ export default function HomePage() {
 
       {/* ═══════════ SECTION 2: BEFORE / AFTER TIMELINE ═══════════ */}
       <section data-section className="relative py-16 md:py-28 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-vanta via-deep-navy/30 to-vanta" />
         <StaticStarsBackdrop variant="gold" mobile={isMobile} className="z-0" />
 
         <div className="container mx-auto px-6 relative z-10">
@@ -820,9 +866,9 @@ export default function HomePage() {
                   idx === activeShowcase && (
                     <motion.div
                       key={item.miracleSlug}
-                      initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                      exit={{ opacity: 0, y: -30, filter: 'blur(10px)' }}
+                      initial={{ opacity: 0, y: isMobile ? 16 : 30, ...(isMobile ? {} : { filter: 'blur(10px)' }) }}
+                      animate={{ opacity: 1, y: 0, ...(isMobile ? {} : { filter: 'blur(0px)' }) }}
+                      exit={{ opacity: 0, y: isMobile ? -10 : -30, ...(isMobile ? {} : { filter: 'blur(10px)' }) }}
                       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                     >
                       <Link to={'/miracles/' + item.miracleSlug}>
@@ -960,17 +1006,22 @@ export default function HomePage() {
             </AnimatePresence>
 
             {/* Dots */}
-            <div className="flex justify-center gap-3 mt-8">
+            <div className="flex justify-center gap-1 mt-8">
               {beforeAfterShowcases.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveShowcase(i)}
-                  className={`h-2 rounded-full transition-all duration-500 ${
-                    i === activeShowcase
-                      ? 'bg-gold-primary w-8 shadow-[0_0_10px_rgba(212,168,83,0.4)]'
-                      : 'bg-text-muted/20 w-2 hover:bg-text-muted/40'
-                  }`}
-                />
+                  className="p-2 -m-2 flex items-center justify-center"
+                  aria-label={`عرض المعجزة ${i + 1}`}
+                >
+                  <span
+                    className={`h-2 rounded-full transition-all duration-500 block ${
+                      i === activeShowcase
+                        ? 'bg-gold-primary w-8 shadow-[0_0_10px_rgba(212,168,83,0.4)]'
+                        : 'bg-text-muted/20 w-2'
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           </div>
@@ -1003,7 +1054,7 @@ export default function HomePage() {
                 target: 40,
                 suffix: '+',
                 label: '\u0645\u0639\u062C\u0632\u0629 \u0639\u0644\u0645\u064A\u0629 \u0645\u0648\u062B\u0642\u0629',
-                color: '#d4a853',
+                color: '#a5b4fc',
               },
               {
                 target: 20,
@@ -1111,136 +1162,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════════ SECTION 6: CATEGORIES ═══════════ */}
-      <section data-section className="relative py-24">
-        <div className="container mx-auto px-6">
-          <ScrollReveal variant="blur">
-            <div className="text-center mb-16">
-              <h2 className="font-amiri text-3xl md:text-5xl font-bold mb-4 gold-gradient-text">
-                {'\u0623\u0642\u0633\u0627\u0645 \u0627\u0644\u0625\u0639\u062C\u0627\u0632'}
-              </h2>
-              <p className="text-text-secondary font-tajawal text-lg max-w-2xl mx-auto">
-                {'\u062E\u0645\u0633\u0629 \u0645\u062C\u0627\u0644\u0627\u062A \u0645\u0646 \u0627\u0644\u0623\u062F\u0644\u0629 \u0627\u0644\u0633\u0627\u062D\u0642\u0629 \u0627\u0644\u062A\u064A \u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u0641\u0633\u064A\u0631\u0647\u0627 \u0628\u063A\u064A\u0631 \u0627\u0644\u0648\u062D\u064A'}
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-            {categories.map((cat, i) => (
-              <ScrollReveal key={cat.id} variant="fade-up" delay={i * 0.08}>
-                <Link to={'/categories/' + cat.id} className="block group">
-                  <div
-                    className="glass-premium rounded-2xl p-6 text-center hover:scale-[1.05] transition-all duration-500 holographic-card h-full"
-                    style={{ borderColor: cat.color + '20' }}
-                  >
-                    <div
-                      className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
-                      style={{ background: cat.color + '15' }}
-                    >
-                      {cat.icon}
-                    </div>
-                    <h3 className="text-text-primary font-amiri text-lg font-bold mb-1">{cat.nameAr}</h3>
-                    <p className="text-text-muted text-xs font-tajawal">{cat.name}</p>
-                    <p className="text-text-muted text-xs font-tajawal mt-2 line-clamp-2">{cat.descriptionAr}</p>
-                    <span
-                      className="inline-block mt-3 text-xs font-tajawal font-semibold px-3 py-1 rounded-full"
-                      style={{ background: cat.color + '15', color: cat.color }}
-                    >
-                      {miracles.filter((m) => m.category === cat.id).length}{' '}
-                      {'\u0645\u0639\u062C\u0632\u0629'}
-                    </span>
-                  </div>
-                </Link>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════ SECTION 7: MIRACLES GRID ═══════════ */}
-      <section data-section className="relative py-24">
-        <div className="container mx-auto px-6">
-          <ScrollReveal variant="blur">
-            <div className="text-center mb-10">
-              <h2 className="font-amiri text-3xl md:text-5xl font-bold mb-4 gold-gradient-text">
-                {'\u0627\u0644\u0645\u0639\u062C\u0632\u0627\u062A \u0627\u0644\u0639\u0644\u0645\u064A\u0629'}
-              </h2>
-              <p className="text-text-secondary font-tajawal text-lg max-w-2xl mx-auto">
-                {'\u0643\u0644 \u0645\u0639\u062C\u0632\u0629 \u0645\u0648\u062B\u0642\u0629 \u0628\u0627\u0644\u0622\u064A\u0627\u062A \u0627\u0644\u0642\u0631\u0622\u0646\u064A\u0629 \u0648\u0627\u0644\u0623\u062F\u0644\u0629 \u0627\u0644\u0639\u0644\u0645\u064A\u0629 \u0627\u0644\u062D\u062F\u064A\u062B\u0629'}
-              </p>
-            </div>
-          </ScrollReveal>
-
-          {/* Filter pills */}
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-5 py-2.5 rounded-full text-sm font-tajawal transition-all duration-300 ${
-                selectedCategory === 'all'
-                  ? 'bg-gold-primary/20 text-gold-primary border border-gold-primary/30 shadow-[0_0_15px_rgba(212,168,83,0.15)]'
-                  : 'bg-space-blue/30 text-text-muted border border-border-subtle hover:text-text-secondary'
-              }`}
-            >
-              {'\u0627\u0644\u0643\u0644'}
-            </button>
-            {categories.map((cat) => (
-              <CategoryBadge
-                key={cat.id}
-                category={cat.id}
-                interactive
-                selected={selectedCategory === cat.id}
-                size="md"
-                onClick={() => setSelectedCategory(selectedCategory === cat.id ? 'all' : cat.id)}
-              />
-            ))}
-          </div>
-
-          {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence mode="popLayout">
-              {filteredMiracles.map((miracle, i) => (
-                <motion.div
-                  key={miracle.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4, delay: i * 0.05 }}
-                >
-                  <MiracleCard miracle={miracle} index={i} />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-
-          <ScrollReveal variant="fade-up" delay={0.3}>
-            <div className="text-center mt-14">
-              <Link
-                to="/ijaz/miracles"
-                className="group relative overflow-hidden inline-flex items-center gap-3 px-10 py-4 rounded-2xl font-tajawal font-bold text-lg text-vanta holographic-card"
-                style={{ background: 'linear-gradient(135deg, #d4a853, #f0d68a)' }}
-              >
-                <span className="relative z-10">
-                  {'\u0639\u0631\u0636 \u062C\u0645\u064A\u0639 \u0627\u0644\u0645\u0639\u062C\u0632\u0627\u062A'} ({miracles.length})
-                </span>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="relative z-10 rotate-180"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </Link>
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ═══════════ SECTION 8: DOUBT RESOLVER ═══════════ */}
+      {/* ═══════════ SECTION 6: DOUBT RESOLVER ═══════════ */}
       <section data-section className="relative py-16 md:py-28">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-red-950/5 to-transparent" />
         <div className="container mx-auto px-6 max-w-4xl relative z-10">
@@ -1286,7 +1208,7 @@ export default function HomePage() {
               <div className="text-center mt-10">
                 <Link
                   to="/ijaz/refute"
-                  className="px-8 py-3 rounded-2xl border border-gold-primary/30 text-gold-primary font-tajawal text-sm font-bold hover:bg-gold-primary/10 transition-all cosmic-border"
+                  className="px-8 py-3 rounded-2xl border border-[rgba(99,102,241,0.40)] text-indigo-300 font-tajawal text-sm font-bold hover:bg-indigo-500/10 transition-all cosmic-border"
                 >
                   {'\u0627\u0633\u062A\u0643\u0634\u0641 \u062C\u0645\u064A\u0639 \u0627\u0644\u0631\u062F\u0648\u062F \u2190'}
                 </Link>
@@ -1296,7 +1218,53 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════════ SECTION 9: BOOKS SOURCE ═══════════ */}
+      {/* ═══════════ SECTION 7: CATEGORIES ═══════════ */}
+      <section data-section className="relative py-24">
+        <div className="container mx-auto px-6">
+          <ScrollReveal variant="blur">
+            <div className="text-center mb-16">
+              <h2 className="font-amiri text-3xl md:text-5xl font-bold mb-4 gold-gradient-text">
+                {'\u0623\u0642\u0633\u0627\u0645 \u0627\u0644\u0625\u0639\u062C\u0627\u0632'}
+              </h2>
+              <p className="text-text-secondary font-tajawal text-lg max-w-2xl mx-auto">
+                {'\u062E\u0645\u0633\u0629 \u0645\u062C\u0627\u0644\u0627\u062A \u0645\u0646 \u0627\u0644\u0623\u062F\u0644\u0629 \u0627\u0644\u0633\u0627\u062D\u0642\u0629 \u0627\u0644\u062A\u064A \u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u0641\u0633\u064A\u0631\u0647\u0627 \u0628\u063A\u064A\u0631 \u0627\u0644\u0648\u062D\u064A'}
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+            {categories.map((cat, i) => (
+              <ScrollReveal key={cat.id} variant="fade-up" delay={i * 0.08}>
+                <Link to={'/ijaz/miracles'} className="block group">
+                  <div
+                    className="glass-premium rounded-2xl p-6 text-center hover:scale-[1.05] transition-all duration-500 holographic-card h-full"
+                    style={{ borderColor: cat.color + '20' }}
+                  >
+                    <div
+                      className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6"
+                      style={{ background: cat.color + '15' }}
+                    >
+                      {cat.icon}
+                    </div>
+                    <h3 className="text-text-primary font-amiri text-lg font-bold mb-1">{cat.nameAr}</h3>
+                    <p className="text-text-muted text-xs font-tajawal">{cat.name}</p>
+                    <p className="text-text-muted text-xs font-tajawal mt-2 line-clamp-2">{cat.descriptionAr}</p>
+                    <span
+                      className="inline-block mt-3 text-xs font-tajawal font-semibold px-3 py-1 rounded-full"
+                      style={{ background: cat.color + '15', color: cat.color }}
+                    >
+                      {miracles.filter((m) => m.category === cat.id).length}{' '}
+                      {'\u0645\u0639\u062C\u0632\u0629'}
+                    </span>
+                  </div>
+                </Link>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ SECTION 8: BOOKS SOURCE ═══════════ */}
       <section data-section className="relative py-24 overflow-hidden">
         <div className="container mx-auto px-6 max-w-5xl">
           <ScrollReveal variant="blur">
@@ -1318,7 +1286,7 @@ export default function HomePage() {
                 descAr:
                   '\u0628\u0631\u0627\u0647\u064A\u0646 \u0639\u0642\u0644\u064A\u0629 \u0639\u0644\u0649 \u0648\u062C\u0648\u062F \u0627\u0644\u062E\u0627\u0644\u0642 \u0648\u062F\u062D\u0636 \u0627\u0644\u0625\u0644\u062D\u0627\u062F',
                 icon: '\u{1F9E0}',
-                color: '#d4a853',
+                color: '#a5b4fc',
               },
               {
                 titleAr: '\u0627\u0644\u0625\u0639\u062C\u0627\u0632 \u0627\u0644\u0639\u0644\u0645\u064A',
@@ -1402,8 +1370,8 @@ export default function HomePage() {
             </p>
             <Link
               to="/ijaz/journey"
-              className="group relative inline-flex items-center gap-3 overflow-hidden px-14 py-6 rounded-2xl font-tajawal font-bold text-xl text-vanta holographic-card breathing-glow"
-              style={{ background: 'linear-gradient(135deg, #d4a853, #f0d68a)' }}
+              className="group relative inline-flex items-center gap-3 overflow-hidden px-14 py-6 rounded-2xl font-tajawal font-bold text-xl text-white holographic-card breathing-glow"
+              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #e879f9)' }}
             >
               <span className="relative z-10">
                 {'\u0627\u0628\u062F\u0623 \u0631\u062D\u0644\u062A\u0643 \u0627\u0644\u0622\u0646'}

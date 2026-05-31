@@ -2,6 +2,8 @@ import * as React from "react";
 import { Outlet, useLocation, useNavigate, NavLink } from "react-router-dom";
 import { ArrowRight, Home, Search, BookOpen, Sparkles, Clock, Zap } from "lucide-react";
 
+const NoorStarfield = React.lazy(() => import('@/components/background/NoorStarfield'));
+
 /* ----------------------------------------------------------------
    IjazShell — thin wrapper that mounts the الإعجاز العلمي section
    inside the main Noor app. Provides the dark-space theme
@@ -21,6 +23,31 @@ export function IjazShell() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [isMobile, setIsMobile] = React.useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
+  const [starfieldReady, setStarfieldReady] = React.useState(false);
+
+  React.useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  React.useEffect(() => {
+    const w = globalThis as typeof globalThis & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof w.requestIdleCallback === 'function') {
+      const id = w.requestIdleCallback(() => setStarfieldReady(true), { timeout: 2000 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const id = setTimeout(() => setStarfieldReady(true), 2000);
+    return () => clearTimeout(id);
+  }, []);
+
   const isActive = (path: string, exact = false) => {
     if (exact) return location.pathname === path;
     return location.pathname.startsWith(path);
@@ -28,6 +55,18 @@ export function IjazShell() {
 
   return (
     <div className="ijaz-shell dark" dir="rtl">
+      {/* ── Fixed star canvas — behind ALL ijaz content ── */}
+      <div
+        aria-hidden="true"
+        style={{ position: 'fixed', inset: 0, zIndex: -1, background: '#080b12', pointerEvents: 'none' }}
+      >
+        {starfieldReady && (
+          <React.Suspense fallback={null}>
+            <NoorStarfield mobile={isMobile} />
+          </React.Suspense>
+        )}
+      </div>
+
       {/* ── Top bar ── */}
       <header className="ijaz-topbar">
         <span className="ijaz-topbar-glow" aria-hidden />

@@ -4483,23 +4483,24 @@ a:focus-visible,
    Always dark-space theme regardless of app theme toggle.
    ================================================================ */
 .ijaz-shell {
-  --ijaz-bg: #0a0a0f;
-  --ijaz-bg2: #0d1117;
+  --ijaz-bg: #080b12;
+  --ijaz-bg2: #0c1018;
   --ijaz-card: rgba(255,255,255,0.06);
   --ijaz-card2: rgba(255,255,255,0.10);
   --ijaz-stroke: rgba(255,255,255,0.10);
-  --ijaz-gold: #d4a853;
-  --ijaz-gold-light: #f0d68a;
-  --ijaz-gold-glow: rgba(212,168,83,0.18);
+  --ijaz-gold: #6366f1;
+  --ijaz-gold-light: #a5b4fc;
+  --ijaz-gold-glow: rgba(99,102,241,0.28);
+  --ijaz-rose: #e879f9;
   --ijaz-green: #2dd4a8;
-  --ijaz-purple: #a78bfa;
+  --ijaz-purple: #a5b4fc;
   --ijaz-text: #e6edf3;
   --ijaz-muted: rgba(230,237,243,0.65);
   --ijaz-topbar-h: 52px;
   --ijaz-subnav-h: 44px;
 
   min-height: 100dvh;
-  background-color: var(--ijaz-bg);
+  background-color: transparent;
   color: var(--ijaz-text);
   font-family: 'Tajawal', 'Cairo', system-ui, sans-serif;
   overflow-x: hidden;
@@ -4516,12 +4517,12 @@ a:focus-visible,
   height: var(--ijaz-topbar-h);
   padding: 0 16px;
   background:
-    radial-gradient(120% 180% at 100% 0%, rgba(212,168,83,0.10) 0%, transparent 55%),
-    radial-gradient(120% 180% at 0% 0%, rgba(167,139,250,0.10) 0%, transparent 55%),
+    radial-gradient(120% 180% at 100% 0%, rgba(99,102,241,0.14) 0%, transparent 55%),
+    radial-gradient(120% 180% at 0% 0%, rgba(232,121,249,0.10) 0%, transparent 55%),
     rgba(8,9,14,0.82);
   backdrop-filter: blur(16px) saturate(1.2);
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border-bottom: 1px solid rgba(212,168,83,0.16);
+  border-bottom: 1px solid rgba(99,102,241,0.22);
   box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 24px -12px rgba(0,0,0,0.8);
   overflow: hidden;
 }
@@ -4532,10 +4533,10 @@ a:focus-visible,
   pointer-events: none;
   background-image:
     radial-gradient(1px 1px at 12% 40%, rgba(255,255,255,0.55), transparent 60%),
-    radial-gradient(1px 1px at 28% 70%, rgba(212,168,83,0.6), transparent 60%),
-    radial-gradient(1.5px 1.5px at 52% 30%, rgba(255,255,255,0.5), transparent 60%),
-    radial-gradient(1px 1px at 73% 60%, rgba(167,139,250,0.55), transparent 60%),
-    radial-gradient(1px 1px at 88% 35%, rgba(45,212,168,0.5), transparent 60%);
+    radial-gradient(1px 1px at 28% 70%, rgba(99,102,241,0.7), transparent 60%),
+    radial-gradient(1.5px 1.5px at 52% 30%, rgba(232,121,249,0.55), transparent 60%),
+    radial-gradient(1px 1px at 73% 60%, rgba(165,180,252,0.60), transparent 60%),
+    radial-gradient(1px 1px at 88% 35%, rgba(45,212,168,0.55), transparent 60%);
   opacity: 0.7;
   animation: ijazStarDrift 9s ease-in-out infinite alternate;
 }
@@ -4553,8 +4554,8 @@ a:focus-visible,
   gap: 6px;
   padding: 6px 12px 6px 10px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(212,168,83,0.16), rgba(212,168,83,0.04));
-  border: 1px solid rgba(212,168,83,0.28);
+  background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(232,121,249,0.06));
+  border: 1px solid rgba(99,102,241,0.32);
   color: var(--ijaz-gold-light);
   font-size: 13px;
   font-weight: 700;
@@ -4562,8 +4563,8 @@ a:focus-visible,
   transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 .ijaz-back-btn:hover {
-  background: linear-gradient(135deg, rgba(212,168,83,0.26), rgba(212,168,83,0.08));
-  box-shadow: 0 0 18px -4px var(--ijaz-gold-glow);
+  background: linear-gradient(135deg, rgba(99,102,241,0.28), rgba(232,121,249,0.12));
+  box-shadow: 0 0 20px -4px var(--ijaz-gold-glow), 0 0 30px -8px rgba(232,121,249,0.20);
   transform: translateY(-1px);
 }
 .ijaz-back-btn:active { transform: translateY(0) scale(0.97); }
@@ -4580,7 +4581,7 @@ a:focus-visible,
   margin-right: auto;
 }
 .ijaz-brand-text {
-  background: linear-gradient(100deg, #f0d68a 0%, #fff7e0 45%, #d4a853 100%);
+  background: linear-gradient(100deg, #a5b4fc 0%, #e879f9 30%, #fdf4ff 50%, #2dd4a8 72%, #6366f1 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -4644,10 +4645,10 @@ a:focus-visible,
   border-color: rgba(255,255,255,0.08);
 }
 .ijaz-nav-item.active {
-  background: linear-gradient(135deg, rgba(212,168,83,0.22), rgba(167,139,250,0.12));
+  background: linear-gradient(135deg, rgba(99,102,241,0.24), rgba(232,121,249,0.12));
   color: var(--ijaz-gold-light);
-  border-color: rgba(212,168,83,0.4);
-  box-shadow: 0 0 16px -4px var(--ijaz-gold-glow), 0 0 0 1px rgba(212,168,83,0.12) inset;
+  border-color: rgba(99,102,241,0.48);
+  box-shadow: 0 0 16px -4px var(--ijaz-gold-glow), 0 0 20px -8px rgba(232,121,249,0.18), 0 0 0 1px rgba(99,102,241,0.14) inset;
 }
 .ijaz-nav-item.active::after {
   content: "";
@@ -4667,6 +4668,51 @@ a:focus-visible,
   .ijaz-brand-text { font-size: 13px; }
   .ijaz-back-btn { font-size: 12px; padding: 5px 10px; }
   .ijaz-nav-item { font-size: 11.5px; padding: 5px 11px; }
+}
+
+/* ── Mobile tab-bar: all 6 nav items visible in one row ── */
+@media (max-width: 640px) {
+  .ijaz-shell { --ijaz-subnav-h: 54px; }
+
+  .ijaz-subnav {
+    overflow: hidden;
+    -webkit-mask-image: none;
+    mask-image: none;
+    padding: 0;
+    gap: 0;
+    height: var(--ijaz-subnav-h);
+    scroll-snap-type: none;
+    -webkit-overflow-scrolling: auto;
+  }
+
+  .ijaz-nav-item {
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    padding: 5px 2px 4px;
+    border-radius: 0;
+    border: none;
+    border-bottom: 2.5px solid transparent;
+    font-size: 9.5px;
+    font-weight: 700;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+    scroll-snap-align: unset;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .ijaz-nav-item.active {
+    background: rgba(99,102,241,0.10);
+    border-bottom-color: var(--ijaz-gold);
+    box-shadow: none;
+    color: var(--ijaz-gold-light);
+  }
+
+  .ijaz-nav-item.active::after { display: none; }
 }
 
 /* Primary CTA sweeping shine */
@@ -4732,34 +4778,54 @@ a:focus-visible,
   position: relative;
   overflow: hidden;
   border-radius: 1rem;
-  background: rgba(13, 17, 23, 0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(212, 168, 83, 0.1);
+  background: rgba(8, 11, 18, 0.42);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(99, 102, 241, 0.16);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .ijaz-shell .glass-card:hover {
-  border-color: rgba(212, 168, 83, 0.3);
-  box-shadow: 0 0 40px rgba(212, 168, 83, 0.1), inset 0 0 40px rgba(212, 168, 83, 0.02);
-  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.52);
+  background: rgba(10, 6, 30, 0.60);
+  box-shadow:
+    0 0 0 1.5px rgba(99, 102, 241, 0.38),
+    0 0 40px rgba(99, 102, 241, 0.22),
+    0 0 80px rgba(232, 121, 249, 0.14),
+    0 0 50px rgba(45, 212, 168, 0.08),
+    0 12px 40px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+  transform: scale(1.025) translateY(-2px);
+}
+/* Touch devices: apply active-state glow instead of hover */
+@media (hover: none) {
+  .ijaz-shell .glass-card:active {
+    border-color: rgba(99, 102, 241, 0.30);
+    box-shadow: 0 0 32px rgba(99, 102, 241, 0.12), 0 0 20px rgba(232, 121, 249, 0.08), inset 0 1px 0 rgba(255,255,255,0.06);
+    transform: scale(0.98);
+  }
 }
 
 /* Premium glass with blur layers */
 .ijaz-shell .glass-premium {
-  background: rgba(10, 10, 15, 0.7);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(212, 168, 83, 0.08);
+  background: rgba(5, 8, 18, 0.74);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  border: 1px solid rgba(99, 102, 241, 0.18);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.02),
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 0 0 1px rgba(232, 121, 249, 0.06),
+    0 20px 60px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 /* Holographic sweep */
 .ijaz-shell .holographic-card {
   position: relative;
   overflow: hidden;
+  background: rgba(5, 8, 18, 0.82);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
 }
 .ijaz-shell .holographic-card::before {
   content: '';
@@ -4767,11 +4833,12 @@ a:focus-visible,
   inset: 0;
   background: linear-gradient(
     105deg,
-    transparent 40%,
-    rgba(212, 168, 83, 0.05) 45%,
-    rgba(212, 168, 83, 0.15) 50%,
-    rgba(212, 168, 83, 0.05) 55%,
-    transparent 60%
+    transparent 35%,
+    rgba(99, 102, 241, 0.07) 42%,
+    rgba(165, 180, 252, 0.16) 48%,
+    rgba(232, 121, 249, 0.14) 54%,
+    rgba(45, 212, 168, 0.09) 60%,
+    transparent 67%
   );
   transform: translateX(-100%);
   transition: transform 0.8s ease;
@@ -4794,9 +4861,10 @@ a:focus-visible,
   background: conic-gradient(
     from 0deg,
     transparent,
-    rgba(212, 168, 83, 0.3),
+    rgba(99, 102, 241, 0.35),
+    rgba(232, 121, 249, 0.25),
     transparent,
-    rgba(45, 212, 168, 0.2),
+    rgba(45, 212, 168, 0.25),
     transparent
   );
   opacity: 0;
@@ -4813,8 +4881,8 @@ a:focus-visible,
   animation: ijazBreathe 4s ease-in-out infinite;
 }
 @keyframes ijazBreathe {
-  0%, 100% { box-shadow: 0 0 20px rgba(212, 168, 83, 0.1), 0 0 60px rgba(212, 168, 83, 0.05); }
-  50% { box-shadow: 0 0 40px rgba(212, 168, 83, 0.2), 0 0 80px rgba(212, 168, 83, 0.1); }
+  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.18), 0 0 60px rgba(232, 121, 249, 0.06), 0 0 40px rgba(45, 212, 168, 0.05); }
+  50% { box-shadow: 0 0 50px rgba(99, 102, 241, 0.38), 0 0 90px rgba(232, 121, 249, 0.16), 0 0 60px rgba(45, 212, 168, 0.10); }
 }
 
 /* Verse glow pulse */
@@ -4836,7 +4904,7 @@ a:focus-visible,
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(212, 168, 83, 0.3), rgba(45, 212, 168, 0.2), rgba(74, 144, 217, 0.3));
+  background: linear-gradient(135deg, rgba(99,102,241,0.50), rgba(232,121,249,0.40), rgba(45,212,168,0.38), rgba(165,180,252,0.35));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -4854,7 +4922,7 @@ a:focus-visible,
   border-radius: inherit;
   background: conic-gradient(
     from var(--glow-angle, 0deg),
-    #d4a853, #2dd4a8, #4a90d9, #a855f7, #d4a853
+    #6366f1, #e879f9, #2dd4a8, #a5b4fc, #e879f9, #6366f1
   );
   opacity: 0;
   transition: opacity 0.5s ease;
@@ -4867,7 +4935,7 @@ a:focus-visible,
 
 /* Gold gradient text */
 .ijaz-shell .text-gold-gradient {
-  background: linear-gradient(135deg, #d4a853, #f0d68a, #d4a853);
+  background: linear-gradient(135deg, #6366f1, #a5b4fc, #e879f9);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -4875,7 +4943,7 @@ a:focus-visible,
 
 /* Gold shimmer text */
 .ijaz-shell .text-shimmer {
-  background: linear-gradient(90deg, #d4a853 0%, #f0d68a 25%, #ffffff 50%, #f0d68a 75%, #d4a853 100%);
+  background: linear-gradient(90deg, #6366f1 0%, #a5b4fc 20%, #e879f9 40%, #ffffff 50%, #e879f9 60%, #a5b4fc 80%, #6366f1 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -4895,13 +4963,13 @@ a:focus-visible,
   padding: 0.75rem 2rem;
   border-radius: 0.75rem;
   font-weight: 600;
-  color: #0a0a0f;
+  color: #fff;
   overflow: hidden;
-  background: linear-gradient(135deg, #d4a853, #f0d68a);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6, #e879f9);
   transition: all 0.3s ease;
 }
 .ijaz-shell .btn-gold:hover {
-  box-shadow: 0 0 30px rgba(212, 168, 83, 0.5);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.55), 0 0 60px rgba(232, 121, 249, 0.25);
   transform: translateY(-1px);
 }
 .ijaz-shell .btn-gold-outline {
@@ -4912,16 +4980,16 @@ a:focus-visible,
   padding: 0.75rem 2rem;
   border-radius: 0.75rem;
   font-weight: 600;
-  color: #d4a853;
-  border: 1px solid rgba(212, 168, 83, 0.3);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.35);
   background: transparent;
   overflow: hidden;
   transition: all 0.3s ease;
 }
 .ijaz-shell .btn-gold-outline:hover {
-  background: rgba(212, 168, 83, 0.1);
-  border-color: #d4a853;
-  box-shadow: 0 0 20px rgba(212, 168, 83, 0.2);
+  background: rgba(99, 102, 241, 0.12);
+  border-color: #6366f1;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.25), 0 0 40px rgba(232, 121, 249, 0.12);
 }
 
 /* Category badge */
@@ -4932,9 +5000,9 @@ a:focus-visible,
   padding: 0.375rem 1rem;
   border-radius: 9999px;
   font-size: 0.875rem;
-  background: rgba(212, 168, 83, 0.08);
-  border: 1px solid rgba(212, 168, 83, 0.15);
-  color: #f0d68a;
+  background: rgba(99, 102, 241, 0.10);
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  color: #a5b4fc;
 }
 
 /* Divine divider */
@@ -4943,8 +5011,8 @@ a:focus-visible,
   width: 100%;
   height: 1px;
   margin: 4rem 0;
-  background: linear-gradient(90deg, transparent, #d4a853, transparent);
-  opacity: 0.3;
+  background: linear-gradient(90deg, transparent, #6366f1, #e879f9, #6366f1, transparent);
+  opacity: 0.4;
 }
 .ijaz-shell .divine-divider::before {
   content: '✦';
@@ -4952,10 +5020,20 @@ a:focus-visible,
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  color: #d4a853;
+  color: #e879f9;
   font-size: 1.2rem;
   background: var(--ijaz-bg);
   padding: 0 1rem;
+}
+
+/* Gold gradient shimmer text — used on section headings */
+.ijaz-shell .gold-gradient-text {
+  background: linear-gradient(135deg, #6366f1 0%, #a5b4fc 22%, #e879f9 42%, #2dd4a8 60%, #a5b4fc 80%, #6366f1 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: ijazShimmerText 9s linear infinite;
 }
 
 /* Quranic verse text */
