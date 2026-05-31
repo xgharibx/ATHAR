@@ -9,11 +9,13 @@ import { categories } from '@/ijaz/data/categories';
 import { MiracleCategory } from '@/ijaz/types';
 import { ScrollReveal } from '@/ijaz/components/effects/ScrollAnimations';
 import { AnimatedGradientText } from '@/ijaz/components/effects/TextEffects';
+import { useScrollRestoration } from '@/hooks/useScrollRestoration';
 
 import ParticleField from '@/ijaz/components/effects/ParticleField';
 import SacredGeometry from '@/ijaz/components/effects/SacredGeometry';
 
 export default function MiraclesPage() {
+  useScrollRestoration();
   const [selectedCategory, setSelectedCategory] = useState<MiracleCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<'order' | 'category'>('order');
 
