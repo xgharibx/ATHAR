@@ -10324,6 +10324,98 @@ The grand conclusion: "And of everything We created two mates" describes what be
     summaryAr: 'يقرر القرآن "إن أوهن البيوت لبيت العنكبوت" — يؤكد علم المواد أنه رغم قوة حرير العنكبوت بشكل لا يصدق لكل وحدة وزن، فإن بيت العنكبوت يوفر صفر عزل حراري أو مأوى هيكلي أو حماية، مما يجعله وظيفياً أضعف المساكن.',
     description: 'Surah Al-Ankabut (29:41): "The example of those who take allies other than Allah is like that of the spider who takes a home (بَيْتًا). And indeed, the weakest of homes (أَوْهَنَ الْبُيُوتِ) is the home of the spider, if they only knew." At first, the verse seems to invite scientific objection: spider silk is extraordinarily strong — it is stronger by weight than steel. So why is the spider\'s HOUSE the weakest? Modern science clarifies the distinction: (1) SPIDER SILK vs. SPIDER WEB/HOUSE: Spider silk per se is incredibly strong (~1.3 GPa tensile strength, stronger than steel). However, the HOUSE (web) a spider builds offers NO: thermal insulation, shelter from rain or wind, structural protection, or community defense. A spider\'s web can be destroyed by a single finger. (2) BIOLOGICAL VULNERABILITIES: A spider\'s web has no back wall, no roof, no floor — it is just threads suspended in air. It cannot protect the spider from predators, rain, or temperature extremes. (3) SOCIAL ANALOGY: The verse uses the spider\'s house as an analogy for weak alliances — just as a spider\'s web looks intricate but provides no real strength, alliances other than with Allah appear strong but are functionally weak. (4) MOST SPIDERS ARE SOLITARY AND CANNIBALISTIC: The female spider often eats the male — even its own family offers no support. The spider\'s home community is zero. (5) SCIENTIFIC ACCURACY: Materials scientists note the Quran specifically says "house" (بَيْتًا) not "silk" — a precise distinction that separates the material property from the structural/protective function.',
     descriptionAr: 'يقول الله تعالى في سورة العنكبوت (29:41): "مَثَلُ الَّذِينَ اتَّخَذُوا مِن دُونِ اللَّهِ أَوْلِيَاءَ كَمَثَلِ الْعَنكَبُوتِ اتَّخَذَتْ بَيْتًا وَإِنَّ أَوْهَنَ الْبُيُوتِ لَبَيْتُ الْعَنكَبُوتِ لَوْ كَانُوا يَعْلَمُونَ". التمييز الدقيق: (1) حرير العنكبوت: قوة شد ~1.3 جيجاباسكال (أقوى من الفولاذ وزناً). (2) بيت العنكبوت: لا عزل حراري، لا مأوى، لا حماية — يمكن تدميره بإصبع واحد. (3) القرآن يقول "بيتًا" لا "حريرًا" — تمييز دقيق بين خاصية المادة والوظيفة الهيكلية.',
+    deepDiveAr: `"بَيْتًا" لا "حريراً" — التمييز القرآني الدقيق بين المادة والوظيفة
+===
+يقول الله تعالى في سورة العنكبوت (29:41): "مَثَلُ الَّذِينَ اتَّخَذُوا مِن دُونِ اللَّهِ أَوْلِيَاءَ كَمَثَلِ الْعَنكَبُوتِ اتَّخَذَتْ بَيْتًا وَإِنَّ أَوْهَنَ الْبُيُوتِ لَبَيْتُ الْعَنكَبُوتِ لَوْ كَانُوا يَعْلَمُونَ".
+
+الاختيار اللغوي الحاسم: القرآن يستخدم "بَيْتًا" (بيت = دار، مسكن، ما يؤوي ويحمي) لا "خَيْطًا" أو "نَسِيجًا" أو "حَريراً". هذا التمييز جوهري في ضوء علم المواد الحديث:
+
+لو قال القرآن "وإن أضعف الخيوط خيط العنكبوت" لكان خطأً علمياً صريحاً — لأن حرير العنكبوت أقوى من الفولاذ وزناً. لكنه يقول "أَوْهَنَ الْبُيُوتِ" — الوهن في الوظيفة البنائية والحمائية للمسكن لا في خاصية المادة. وهذا صحيح تماماً.
+
+الاستحالة التاريخية: في القرن السابع لم يكن أحد يعرف أن حرير العنكبوت أقوى من الفولاذ — هذه الخاصية قُيِّست علمياً في القرن العشرين. المفارقة العكسية: لو افترض إنسان القرن السابع أن الآية تتحدث عن ضعف المادة لتوقع أن العلم سيؤكد ضعف الحرير — لكن العلم الحديث أثبت العكس تماماً. هذا يدل دلالة قاطعة على أن الآية تتحدث عن الوظيفة البنائية للمسكن لا عن المادة. المرجع: Lane, E.W. (1863). "An Arabic-English Lexicon." Williams & Norgate. Entry: بَيْت. Vollrath, F. & Knight, D.P. (2001). "Liquid crystalline spinning of spider silk." Nature, 410, 541–548.
+
+
+قوة حرير العنكبوت المذهلة مقابل انعدام الحماية الوظيفية — مفارقة 1.3 جيجاباسكال
+===
+علم المواد الحديث يكشف مفارقة مذهلة تؤكد دقة التعبير القرآني:
+
+حرير العنكبوت (Dragline silk): قوة شد ~1.3 جيجاباسكال — تتجاوز الفولاذ الكربوني (~0.4–1.0 جيجاباسكال). صلابة تشابك ~160 ميغاجول/م³ — أعلى من أي مادة طبيعية معروفة. الجمع الفريد بين القوة والمرونة: حرير العنكبوت يمتص طاقة الصدمات بكفاءة تفوق كيفلار وأراميد والفولاذ الممزوج.
+
+لكن بيت العنكبوت (web كمأوى): لا سقف يقي من المطر، لا جدران تقي من الرياح، لا أرضية تقي من الأرض الرطبة — مجرد خيوط في الهواء. لا عزل حراري. يمكن تدميره بأصبع واحد. لا حماية من الحيوانات المفترسة الأكبر.
+
+المقارنة الحاسمة: بيت النمل — يحمي من الأمطار، حرارة متحكم بها، دفاع منظّم بالآلاف. بيت النحل — ثلاث طبقات، عازل حراري دقيق، يحفظ الغذاء لأشهر. بيت الطائر — كأس محكم بالريش معزول. بيت العنكبوت — نسيج للاصطياد لا للإيواء، متوسط عمره أقل من 24 ساعة قبل التدهور.
+
+الخلاصة: حرير العنكبوت = من أقوى المواد في الطبيعة. بيت العنكبوت = أضعف مسكن. القرآن يقول "أَوْهَنَ الْبُيُوتِ" — وهو صادق تماماً. المرجع: Vollrath, F. & Knight, D.P. (2001). Nature, 410, 541–548. Gosline, J.M. et al. (1999). Journal of Experimental Biology, 202, 3295–3303.
+
+
+الصفر البيولوجي الكامل — بيت بلا سقف ولا جدران ولا أسرة ولا مجتمع
+===
+علم الأحياء يؤكد من زاوية إضافية أن بيت العنكبوت هو "أوهن البيوت" في جميع المعايير:
+
+البنية الهيكلية المعدومة: لا سقف، لا جدران، لا أرضية — الشبكة مكشوفة من كل جانب. الشبكة الواحدة تتدهور في أقل من 24 ساعة وتحتاج إعادة بناء يومية بتكلفة استقلابية عالية. أدنى اضطراب بيئي (مطر، ريح، حيوان) يدمر البيت كاملاً.
+
+البنية الاجتماعية المعدومة: معظم أنواع العناكب (40,000 نوع) عازلة — لا قبيلة ولا تعاون ولا دفاع جماعي. الأنثى تأكل الذكر بعد التزاوج في معظم الأنواع (عنكبوت الأرمل الأسود، عنكبوت الباب الفخي، الناشبات الدوارة). لا رعاية مستمرة للصغار — البيضة في كيس تُترك وحدها. "أسرة" العنكبوت لا تحمي بعضها.
+
+مقارنة موجزة: ملكة النمل تعيش 15 عاماً في بيت محكم وتُربّي ملايين الأبناء. ملكة النحل تحمي أسرة 40,000 نحلة بمبنى هندسي دقيق. العنكبوت يعيش وحيداً في شبكة تستمر أقل من 24 ساعة. المرجع: Foelix, R.F. (2011). "Biology of Spiders." 3rd ed. Oxford University Press. Herberstein, M.E. (ed.) (2011). "Spider Behaviour." Cambridge University Press.
+
+
+"لَوْ كَانُوا يَعْلَمُونَ" — التحدي العلمي والإشكالية المعكوسة
+===
+"لَوْ كَانُوا يَعْلَمُونَ" = لو أنهم يعلمون — صيغة تحدي تفترض أن الفهم الكامل للآية يتطلب علماً لم يكن متاحاً بعد.
+
+الإشكالية المعكوسة: علم المواد الحديث اكتشف أن حرير العنكبوت مادة استثنائية القوة — مما أثار اعتراضاً ظاهرياً: "كيف يكون بيته أوهن البيوت وحريره أقوى من الفولاذ؟". هذا الاعتراض تحديداً يُثبت أن الآية تتحدث عن الوظيفة البنائية لا المادة — وأن فهمها الصحيح يتطلب التمييز العلمي بين Tensile strength (قوة الشد للمادة) و Structural performance (الأداء الحمائي للمنشأة).
+
+المعرفة التي جاءت: Vollrath & Knight (2001) أثبتا في Nature أن حرير العنكبوت مادة استثنائية لكنها تُستخدم للاصطياد لا للإيواء. علماء المواد يسعون لتصنيع حرير عنكبوت اصطناعي (Lewis 2006، Xia et al. 2010) لصنع سترات واقية وخيوط جراحية — لكن هذه المادة الاستثنائية تبني أضعف مسكن.
+
+"لَوْ كَانُوا يَعْلَمُونَ" = الفهم الكامل يتطلب علماً يميز بين خاصية المادة والوظيفة البنائية — وهذا التمييز لم يُعرف منهجياً إلا في القرن العشرين. المرجع: Vollrath, F. & Knight, D.P. (2001). Nature, 410. Lewis, R.V. (2006). "Spider Silk: Ancient Ideas for New Biomaterials." Chemical Reviews, 106(9), 3762–3774.`,
+    deepDive: `"Baytan" Not "Hariran" — The Quranic Precision Between Material and Function
+===
+Surah Al-Ankabut (29:41): "The example of those who take allies other than Allah is like that of the spider who takes a home (baytan). And indeed, the weakest of homes (awhana l-buyut) is the home of the spider, if they only knew."
+
+The critical linguistic choice: the Quran uses "baytan" (house/dwelling — what shelters and protects) — NOT "khaytan" (thread), "nasijan" (woven fabric), or "hariran" (silk). This distinction is fundamental:
+
+Had the Quran said "the weakest of threads is the spider's thread," it would be a clear scientific error — spider silk is stronger than steel by weight. But it says "awhana l-buyut" — the weakness is in the STRUCTURAL AND PROTECTIVE FUNCTION of the dwelling, not in the material. This is precisely correct.
+
+The historical impossibility: In the 7th century, no one knew that spider silk is stronger than steel — this was measured only in the 20th century. Had a 7th-century person assumed the verse meant material weakness, they would expect science to confirm silk weakness — but modern science proved the opposite. This confirms the verse speaks about functional weakness, not material weakness. Reference: Lane, E.W. (1863). "An Arabic-English Lexicon." Entry: bayt. Vollrath, F. & Knight, D.P. (2001). "Liquid crystalline spinning of spider silk." Nature, 410, 541–548.
+
+
+Spider Silk Strength vs. Spider Web Protective Function (The 1.3 GPa Paradox)
+===
+Modern materials science reveals a stunning paradox that confirms the Quranic precision:
+
+Spider silk (dragline silk): tensile strength ~1.3 GPa — exceeds high-carbon steel (~0.4–1.0 GPa). Toughness ~160 MJ/m³ — higher than any known natural material. Unique combination of strength and elasticity: spider silk absorbs impact energy more efficiently than Kevlar, aramid, or alloyed steel.
+
+Yet the spider's house (web as shelter): no roof, no walls, no floor — just threads suspended in air. No thermal insulation from heat or cold. No barrier against rain or wind. Destroyable by a single human finger. No protection from larger predators. Average lifespan of one web: less than 24 hours before structural degradation.
+
+The decisive comparison: Ant house — weatherproof, temperature-regulated, organized defense by thousands. Bee hive — triple-layered, thermally precise, food storage for months, 40,000-member community. Bird nest — weatherproof insulated cup. Spider web — a hunting trap, not a shelter, rebuilt daily at high metabolic cost.
+
+Conclusion: Spider silk = among the strongest materials in nature. Spider's house = the weakest shelter in nature. The Quran says "the weakest of houses" — and it is exactly correct. Reference: Vollrath, F. & Knight, D.P. (2001). Nature, 410, 541–548. Gosline, J.M. et al. (1999). Journal of Experimental Biology, 202, 3295–3303.
+
+
+Biological Zero — A House with No Roof, No Walls, No Family, No Community
+===
+Biology confirms from another angle that the spider's house is "the weakest of houses" in all structural and social criteria:
+
+Physical structure: no roof from rain, no walls from wind, no floor from damp ground — the web is exposed from every side. One web deteriorates in less than 24 hours and requires daily rebuilding at high metabolic cost. Any environmental disturbance (rain, wind, animal) destroys the house entirely.
+
+Social structure: most spider species (~40,000 species) are solitary — no tribe, no cooperation, no collective defense. The female eats the male after mating in most species (black widow, trap-door spider, orb weavers). No sustained parental care — the egg sac is left alone. The spider's "family" provides no mutual protection.
+
+Brief comparison: queen ant lives 15 years in a robust nest and raises millions of offspring. Queen bee protects a family of 40,000 in a precision-engineered hive. The spider lives alone in a web lasting less than 24 hours.
+
+Reference: Foelix, R.F. (2011). "Biology of Spiders." 3rd ed. Oxford University Press. Herberstein, M.E. (ed.) (2011). "Spider Behaviour: Flexibility and Versatility." Cambridge University Press.
+
+
+"If They Only Knew" — The Scientific Challenge and the Inverted Objection
+===
+"Law kanu ya'lamun" = "if they only knew" — a formula of challenge implying that full understanding of this verse requires knowledge not yet available.
+
+The inverted objection: Modern materials science discovered that spider silk is exceptionally strong — prompting the apparent objection: "How can the spider's house be the weakest if its silk is stronger than steel?" This objection proves exactly that the verse speaks about structural function, not material — and its correct understanding requires the scientific distinction between Tensile strength (material property) and Structural performance (shelter/protection performance of the built structure).
+
+The knowledge that came: Vollrath & Knight (2001) proved in Nature that spider silk is an extraordinary material — but used for hunting, not shelter. Materials engineers now explicitly distinguish: tensile strength of fibers vs. structural performance of the built assembly. The spider's house ranks first in fiber strength and last in shelter performance.
+
+Spider silk as a sought-after material: researchers have been trying to synthesize artificial spider silk for decades (Lewis 2006; Xia et al. 2010) for bulletproof vests and surgical sutures. Yet this extraordinary material builds "the weakest of houses" — exactly as the Quran states.
+
+"If they only knew" = full understanding requires knowledge distinguishing material from function — a distinction not systematically established until the 20th century. Reference: Lewis, R.V. (2006). "Spider Silk: Ancient Ideas for New Biomaterials." Chemical Reviews, 106(9), 3762–3774. Vollrath, F. & Knight, D.P. (2001). Nature, 410, 541–548.`,
     verses: [
       {
         id: 'verse-ankabut-41',
@@ -10379,6 +10471,84 @@ The grand conclusion: "And of everything We created two mates" describes what be
     summaryAr: 'يصف القرآن أعماق البحر بأنها "ظلمات بعضها فوق بعض" — تؤكد الأوقيانوغرافيا الحديثة وجود ثلاث مناطق متميزة من الظلام المتزايد: منطقة الشفق (200-1000م)، منطقة منتصف الليل (1000-4000م)، والمنطقة الهاوية (+4000م) حيث لا يخترق أي ضوء.',
     description: 'Surah An-Nur (24:40): "Or [they are] like darknesses within a deep sea which is covered by waves, upon which are waves, over which are clouds — darknesses, some of them upon others. When one puts out his hand [therein], he can hardly see it. And he for whom Allah has not granted light — for him there is no light." The Quran describes a specific situation: deep sea with multiple LAYERS of darkness: (1) Internal waves covering each other, (2) Surface waves, (3) Clouds above. The key insight: WAVES BELOW THE SURFACE. Modern oceanography has confirmed: (1) INTERNAL WAVES: Deep below the surface, internal waves (waves at the thermocline boundary) cause additional light scattering and darkness — invisible from the surface. These were only discovered with modern oceanographic instruments. (2) THREE LAYERS OF DARKNESS ZONES: The photic zone (0–200m) receives light. Below this: the mesopelagic (200–1000m, twilight zone), the bathypelagic (1000–4000m, midnight zone, <1% light), the abyssal zone (4000m+, absolute darkness). (3) LAYERED STRUCTURE: These layers correspond to "darknesses upon darknesses" — each zone is darker than the one above it, creating stacked layers. (4) HAND INVISIBLE IN THE DEEP: Below ~200m, a human hand is invisible to the naked eye. Below 1000m, bioluminescence is the only light. (5) 7th CENTURY IMPOSSIBILITY: In the 7th century, diving technology could only reach a few meters. The deep sea structure with internal waves was only discovered in the 20th century.',
     descriptionAr: 'يقول الله تعالى في سورة النور (24:40): "أَوْ كَظُلُمَاتٍ فِي بَحْرٍ لُّجِّيٍّ يَغْشَاهُ مَوْجٌ مِّن فَوْقِهِ مَوْجٌ مِّن فَوْقِهِ سَحَابٌ ظُلُمَاتٌ بَعْضُهَا فَوْقَ بَعْضٍ". يصف القرآن: (1) موج داخلي تحت السطح. (2) موج سطحي. (3) سحاب فوق. أكدت الأوقيانوغرافيا الحديثة: (1) الأمواج الداخلية عند الحد الحراري — اكتُشفت بأجهزة حديثة فقط. (2) ثلاث مناطق ظلام (شفق، منتصف الليل، الهاوية). (3) "ظلمات بعضها فوق بعض" — كل منطقة أكثر ظلاماً من التي فوقها.',
+    deepDiveAr: `"مَوْجٌ مِّن فَوْقِهِ مَوْجٌ" — الأمواج الداخلية تحت السطح: اكتُشفت 1,357 سنة بعد القرآن
+===
+يقول الله تعالى في سورة النور (24:40): "أَوْ كَظُلُمَاتٍ فِي بَحْرٍ لُّجِّيٍّ يَغْشَاهُ مَوْجٌ مِّن فَوْقِهِ مَوْجٌ مِّن فَوْقِهِ سَحَابٌ ظُلُمَاتٌ بَعْضُهَا فَوْقَ بَعْضٍ إِذَا أَخْرَجَ يَدَهُ لَمْ يَكَدْ يَرَاهَا".
+
+التحليل اللغوي الدقيق: "مَوْجٌ مِّن فَوْقِهِ مَوْجٌ" = موج ثانٍ فوق الموج الأول — طبقتان متراكمتان من الأمواج في الموقع ذاته. السؤال العلمي: كيف يكون هناك موجان مستقلان في الموضع نفسه؟
+
+الجواب العلمي الحديث — الأمواج الداخلية (Internal Waves): داخل المحيطات توجد أمواج ضخمة عند خط الحرارة (Thermocline) — الحد الفاصل بين الماء الدافئ العلوي والماء البارد العميق — على عمق 100–1000م. هذه الأمواج الداخلية يمكن أن يصل ارتفاعها إلى 100م (أكبر بكثير من الأمواج السطحية البالغة 2–3م في المتوسط). لا يمكن رؤيتها أو اكتشافها من السطح بأي أداة تقليدية — فُهمت وقُيِّست لأول مرة بأجهزة السونار والأجهزة الحديثة في القرن العشرين.
+
+الاستحالة التاريخية: في القرن السابع كان الإنسان يعلم عن الأمواج السطحية فقط. لا توجد أي إشارة في أي علم قديم — يوناني أو فارسي أو عربي — إلى أمواج تحت السطح. أول دراسة منهجية للأمواج الداخلية: Mowbray & Rarity (1967). الفجوة: 1967 − 610 = 1,357 سنة. المرجع: Apel, J.R. (2002). "Oceanic Internal Waves and Solitons." NOAA/SAR Marine User's Manual.
+
+
+"ظُلُمَاتٌ بَعْضُهَا فَوْقَ بَعْضٍ" — ثلاث مناطق ظلام مرتبة طبقياً
+===
+وصف القرآن "ظُلُمَاتٌ بَعْضُهَا فَوْقَ بَعْضٍ" — ظلمات يعلو بعضها بعضاً — يطابق بدقة ما اكتشفه علم الأوقيانوغرافيا الحديث:
+
+المنطقة الضوئية (Epipelagic): 0–200م — يخترقها الضوء، الألوان مميزة، الحياة مرئية. المنطقة الشفقية (Mesopelagic / Twilight Zone): 200–1000م — أقل من 1٪ من الضوء السطحي، أكثر ظلاماً من أظلم ليل على اليابسة. منطقة منتصف الليل (Bathypelagic): 1000–4000م — لا ضوء شمسي مطلقاً، الضوء الوحيد من كائنات مضيئة ذاتياً. المنطقة الهاوية (Abyssal Zone): فوق 4000م — ظلام دامس مطلق أبدي.
+
+كل منطقة أكثر ظلاماً من التي فوقها — ليس ظلاماً واحداً متجانساً بل "بَعْضُهَا فَوْقَ بَعْضٍ" — هذا التدرج الطبقي للظلام. الفجوة مع أول استكشاف منهجي للأعماق: بعثة HMS Challenger (1872–1876). الفجوة: 1872 − 610 = 1,262 سنة. المرجع: Herring, P. (2002). "The Biology of the Deep Ocean." Oxford University Press.
+
+
+"بَحْرٍ لُّجِّيٍّ" — دلالة لغوية علمية دقيقة وغياب الضوء الكامل
+===
+"لُّجِّيٍّ" من "لُجَّة البحر" — في معاجم اللغة العربية: الجزء الأعمق والأهيج والأكثر ظلاماً من البحر. ابن منظور في لسان العرب: "لُجَّة الماء: معظمه وعمقه ومكان التيارات القوية والمجهول".
+
+هذا وصف دقيق لواقع فيزيائي: على أعماق تتجاوز 200م — الضغط يتضاعف (1 ضغط جوي كل 10م)، درجة الحرارة تنخفض حادة عند خط الحرارة، التيارات العميقة مختلفة تماماً، الحياة البيولوجية تتحول جذرياً (كائنات شفافة أو مضيئة ذاتياً). بيئة مختلفة كلياً عن السطح.
+
+"إِذَا أَخْرَجَ يَدَهُ لَمْ يَكَدْ يَرَاهَا": مقياس قابل للتحقق. في مياه البحر العميق: على 200م — أقل من 1٪ من الضوء السطحي. على 1000م — لا ضوء شمسي قابل للقياس. اليد غير مرئية تماماً بدون إضاءة اصطناعية. المرجع: Denton, E. (1990). "Light and Vision at Depths Greater than 200m." Progress in Oceanography, 24(1–4).
+
+
+"إِذَا أَخْرَجَ يَدَهُ لَمْ يَكَدْ يَرَاهَا" — التحقق العلمي المباشر من أعماق المحيط
+===
+الآية تختم بصورة حية وقابلة للتحقق: إنسان في أعماق البحر لا يكاد يرى يده.
+
+التحقق الكمي: منحنى انطفاء الضوء في مياه المحيط: على 200م — أقل من 1٪ من الضوء السطحي. على 600م — أقل من 0.001٪. على 1000م فما فوق — صفر ضوء شمسي قابل للقياس.
+
+أول تحقق مباشر بصري: الغواصة Trieste (Piccard & Walsh, 1960) في خندق ماريانا على عمق 10,916م — ظلام دامس مطلق، لا يرى الإنسان يده بدون مصابيح. الغواصة Alvin (WHOI, 1964) على 3,658م — تأكيد مباشر لعدم رؤية اليد بدون إضاءة اصطناعية.
+
+استحالة بشرية في القرن السابع: أعمق غطسة بشرية تقليدية (صيد اللؤلؤ) لا تتجاوز 30–40م. لا طريقة كانت متاحة لأحد في القرن السابع لمعرفة ما يحدث على أعماق 200م فأكثر. المعرفة الدقيقة بانطفاء الضوء في الأعماق تطلبت تطوير السونار والغواصات والأجهزة الضوئية الدقيقة في القرن العشرين. المرجع: Herring, P. (2002). "The Biology of the Deep Ocean." Oxford University Press. Walsh, D. & Piccard, J. (1960). Trieste dive records. WHOI Alvin expedition records (1964–present).`,
+    deepDive: `"Waves Upon Waves" — Subsurface Internal Waves Discovered 1,357 Years Later
+===
+Surah An-Nur (24:40): "Or [they are] like darknesses within a deep sea (bahrin lujjiyyin) covered by waves (mawjun), upon which are waves (min fawqihi mawjun), over which are clouds — darknesses, some of them upon others. When one puts out his hand therein, he can hardly see it."
+
+The precise linguistic analysis: "mawjun min fawqihi mawjun" = a second wave on top of the first — two distinct layers of waves stacked in the same location. The scientific question: how can there be two independent waves at the same place?
+
+The modern scientific answer — Internal Waves: inside oceans, massive waves exist at the thermocline — the temperature boundary between warm upper water and cold deep water — at depths of 100–1,000m. These internal waves can reach 100m in height (far larger than surface waves averaging 2–3m). They are invisible from the surface and undetectable by any traditional means — first understood and measured with modern sonar and oceanographic instruments in the 20th century.
+
+The 7th-century impossibility: humans knew only about surface waves. No ancient science — Greek, Persian, or Arabic — mentioned subsurface waves. First systematic study: Mowbray & Rarity (1967), Journal of Fluid Mechanics. Gap: 1967 - 610 = 1,357 years. Reference: Apel, J.R. (2002). "Oceanic Internal Waves and Solitons." NOAA/SAR Marine User's Manual.
+
+
+"Darknesses Upon Darknesses" — Three Stacked Zones of Increasing Darkness
+===
+The Quran's "zulumatun ba'duha fawqa ba'din" — darknesses, some upon others — precisely matches what modern oceanography confirms:
+
+Photic zone (Epipelagic): 0–200m — sunlight penetrates, colors distinguishable, life visible. Mesopelagic zone (Twilight Zone): 200–1,000m — less than 1% of surface light, darker than the darkest land night. Bathypelagic zone (Midnight Zone): 1,000–4,000m — absolutely no sunlight, only bioluminescence from creatures. Abyssal zone: 4,000m+ — complete, permanent, total darkness.
+
+Each zone is darker than the one above it — not uniform darkness but layered gradation: "some upon others." This layered structure was described in the Quran 1,262 years before the HMS Challenger expedition (1872–1876) first systematically explored the deep ocean. Gap: 1872 - 610 = 1,262 years. Reference: Herring, P. (2002). "The Biology of the Deep Ocean." Oxford University Press.
+
+
+"A Deep Sea" (Lujji) — Scientific Precision in the Arabic Term for the Abyss
+===
+"Lujjiyyin" (from: lujjat al-bahr) — Arabic lexicographers define lujja as the deepest, most turbulent, most powerful, and most unknown part of the sea. Ibn Manzur, Lisan al-Arab: "lujjat al-ma' = its depth, its main body, the place of powerful currents and the unknown."
+
+This is not a general sea — it is the lujji sea: the deep sea specifically. Below 200m: pressure doubles every 10m (1 atmosphere per 10m depth). Temperature drops sharply at the thermocline. Deep currents are completely different from surface currents. Biological life transforms radically — transparent or bioluminescent creatures dominate. A completely different environment from the surface.
+
+"When one puts out his hand, he can hardly see it": a precise, testable specification. In deep seawater: at 200m — less than 1% of surface light remains. At 1,000m — zero measurable sunlight. The hand is completely invisible without artificial illumination. Reference: Denton, E. (1990). "Light and Vision at Depths Greater than 200m." Progress in Oceanography, 24(1–4).
+
+
+"He Can Hardly See His Hand" — Direct Scientific Verification from the Ocean Floor
+===
+The verse closes with a vivid, scientifically testable image: a person in the deep sea can barely see their own hand.
+
+Quantitative verification — Light Extinction Curve in seawater: at 200m — less than 1% of surface light. At 600m — less than 0.001%. At 1,000m and beyond — zero measurable sunlight.
+
+First direct visual confirmation: Trieste submersible (Piccard & Walsh, 1960) at Mariana Trench, 10,916m — total absolute darkness, hand completely invisible without lights. Alvin submersible (WHOI, 1964) at 3,658m — confirmed inability to see the hand without artificial illumination.
+
+The 7th-century impossibility: the deepest traditional human dive (pearl fishing) reached approximately 30–40m. No method existed in the 7th century to know what occurs at depths of 200m and beyond. Precise knowledge of light extinction in the deep ocean required development of sonar, submersibles, and precision optical instruments in the 20th century.
+
+"He can HARDLY see it" (lam yakad yaraha — barely, not quite) matches optical extinction measurements precisely — the Quranic image is not hyperbolic, it is quantitatively accurate at ocean depths impossible to verify without 20th-century technology. Reference: Herring, P. (2002). "The Biology of the Deep Ocean." Oxford University Press. Walsh, D. & Piccard, J. (1960). Trieste dive records. WHOI Alvin expedition records (1964–present).`,
     verses: [
       {
         id: 'verse-nur-40',
