@@ -3361,6 +3361,86 @@ The Quran encapsulates the entire moral argument in two verses (91:7-8): "By the
     summaryAr: 'الوعي لا يمكن تفسيره بعمليات مادية بحتة، مما يشير إلى حقيقة غير مادية.',
     description: 'Dr. Haitham Talaat in "بصائر" addresses the "hard problem of consciousness": How do physical brain processes give rise to subjective conscious experience (qualia)? No purely material explanation can account for: (1) Why there is something it\'s like to see red, feel pain, or taste sweetness. (2) How electrochemical signals become subjective experience. (3) Intentionality—the aboutness of thoughts. (4) Free will and rational deliberation. If atheistic materialism were true, consciousness should not exist—there\'s no physical reason why arranged matter should have inner experience. The existence of consciousness is therefore powerful evidence for a non-material dimension of reality, pointing to a Creator who endowed creation with something beyond mere matter.',
     descriptionAr: 'يتناول د. هيثم طلعت في "بصائر" "المسألة الصعبة للوعي": كيف تُنتج العمليات الفيزيائية للدماغ التجربة الواعية الذاتية؟ لا يوجد تفسير مادي بحت يفسر لماذا يوجد شعور ذاتي بالألوان والألم والطعم.',
+    deepDiveAr: `المسألة الصعبة للوعي: اللغز الذي يحطم المادية
+===
+الفيلسوف ديفيد تشالمرز (1995) ميّز بين مسألتين:
+
+المسائل السهلة: تفسير كيف يعالج الدماغ المعلومات، يضبط النوم، يتحكم في السلوك — وهذه قابلة للتفسير المادي بحيث تعمل.
+
+المسألة الصعبة: لماذا يوجد شعور ذاتي أصلاً؟ لماذا إشارات كيميائية كهربائية في الدماغ تُنتج «ما يُشبه» رؤية اللون الأحمر، أو الإحساس بالألم، أو تذوق العسل؟
+
+لا توجد إجابة مادية لهذا. الدماغ مادة. التجربة الذاتية ليست مادة. الهوّة بينهما لا يمكن ردمها بالفيزياء والكيمياء فقط.
+
+
+أربع ثغرات تُعجز المادية
+===
+(١) الكواليا (Qualia): ليس فقط أنني «أعالج معلومة لون أحمر» بل أنني «أرى الأحمر». هذا البُعد الذاتي غائب تماماً من أي وصف فيزيائي.
+
+(٢) المقصدية: أفكاري «عن» أشياء. الدماغ كجهاز مادي لا «يقصد» شيئاً — الحروف على الورق لا تعني شيئاً بذاتها، المعنى يأتي من عقل خارجها.
+
+(٣) الإرادة الحرة والتداول العقلاني: إذا كانت كل أفكاري مجرد تفاعلات كيميائية حتمية لا أتحكم فيها — فلماذا أثق بأي نتيجة يصل إليها عقلي؟ المادية تُقوّض نفسها.
+
+(٤) الوحدة الظاهراتية: أنا واحد موحّد. الدماغ مليارات الخلايا العصبية المنفصلة. من أين تأتي وحدتي؟
+
+
+الروح: الحل الذي يُقدمه القرآن
+===
+القرآن لا يُقدم الوعي كظاهرة مادية بل كبُعد روحي مستقل: "وَنَفَخَ فِيهِ مِن رُّوحِهِ" (السجدة 32:9). الروح شيء يُضاف إلى المادة، ليست ناتجة عنها.
+
+عندما يسألون عن الروح يجيب القرآن: "قُلِ الرُّوحُ مِنْ أَمْرِ رَبِّي وَمَا أُوتِيتُم مِّنَ الْعِلْمِ إِلَّا قَلِيلًا" (الإسراء 17:85) — الوعي والروح لن يُستوعبا مادياً لأنهما يتجاوزان ما يمكن للعلم المادي إدراكه.
+
+هذا ليس تراجعاً عن العلم — بل توافق مع أكثر الفلاسفة إحاطة بالمشكلة. تشالمرز نفسه يعترف: الوعي «يستلزم» وجود شيء فوق المادة.
+
+
+الوعي كدليل على الخالق
+===
+البرهان:
+المقدمة الأولى: الوعي (التجربة الذاتية) لا يمكن تفسيره بالعمليات المادية وحدها.
+المقدمة الثانية: الوعي موجود.
+النتيجة: إذاً ثمة أساس غير مادي للواقع.
+
+هذا الأساس غير المادي يجب أن يكون واعياً بذاته — إذ لا يمكن أن يُنتج ما لا يملكه. يجب أن يكون غير مادي، عالياً بالمعرفة، وهو بالضبط ما يصفه القرآن: "وَهُوَ السَّمِيعُ الْبَصِيرُ" — خالق الوعي هو الأعلى في الإدراك والعلم.`,
+    deepDive: `The Hard Problem of Consciousness: The Challenge That Breaks Materialism
+===
+Philosopher David Chalmers (1995) drew a crucial distinction:
+
+The Easy Problems: explaining how the brain processes information, regulates sleep, controls behavior — these are solvable in principle by showing how the mechanism works.
+
+The Hard Problem: why is there subjective experience at all? Why do electrochemical signals in neurons produce the felt quality of seeing red, experiencing pain, or tasting honey? Why is there "something it is like" to be conscious?
+
+No purely physical explanation can answer this. The brain is matter. Subjective experience is not matter. The gap cannot be bridged by physics and chemistry alone.
+
+
+Four Gaps That Defeat Materialism
+===
+(1) Qualia: It is not just that I "process red-wavelength information" — I see red. This subjective dimension is entirely absent from any physical description, no matter how complete.
+
+(2) Intentionality: My thoughts are about things. A physical brain as a material object does not "mean" anything — letters on a page have no meaning in themselves; meaning comes from a mind outside them.
+
+(3) Free Will and Rational Deliberation: If all my thoughts are just deterministic chemical reactions I don't control — why should I trust any conclusion my mind reaches? Materialism undermines its own rationality.
+
+(4) Phenomenal Unity: I am one unified self. The brain is billions of separate neurons. Where does my unity come from?
+
+
+The Soul: The Quran's Solution
+===
+The Quran presents consciousness not as a material phenomenon but as an independent spiritual dimension: "He breathed into him from His spirit" (Al-Sajda 32:9). The soul is something added to matter — not produced by it.
+
+When asked about the soul, the Quran answers: "Say: The soul is from the command of my Lord, and you have been given of knowledge only a little" (Al-Isra 17:85) — consciousness and soul will never be fully captured by material science because they transcend what physics can access.
+
+This is not anti-science — it aligns with the most informed philosophical position. Chalmers himself concedes: consciousness "requires" something beyond the material.
+
+
+Consciousness as Proof of a Creator
+===
+The argument:
+Premise 1: Consciousness (subjective experience) cannot be explained by purely material processes.
+Premise 2: Consciousness exists.
+Conclusion: Therefore there is a non-material basis to reality.
+
+This non-material basis must itself be conscious — since nothing produces what it does not possess. It must be non-material, supremely aware, and all-knowing — precisely what the Quran describes: "He is the All-Hearing, the All-Seeing." The Creator of consciousness is the supreme ground of all awareness.
+
+Chalmers (1995) and Thomas Nagel ("Mind and Cosmos", 2012) — two of the most rigorous atheist/agnostic philosophers — both acknowledge that materialism fundamentally cannot explain consciousness. The Quran's distinction between body and ruh anticipated this conclusion 14 centuries before modern philosophy of mind.`,
     verses: [
       {
         id: 'verse-sajda-9',
@@ -3412,6 +3492,87 @@ The Quran encapsulates the entire moral argument in two verses (91:7-8): "By the
     summaryAr: 'يذكر القرآن أن الحديد "أُنزل" — يؤكد علم الفيزياء الفلكية الحديث أن الحديد يتكوّن في انفجارات النجوم العملاقة (السوبرنوفا) ووصل إلى الأرض من الفضاء الخارجي.',
     description: 'Surah Al-Hadid (57:25) states: "And We sent down iron, wherein is great military might and benefits for the people." The Arabic verb "أَنزَلْنَا" (anzalna) literally means "We sent down," implying iron came from outside Earth. Modern astrophysics has confirmed this: iron cannot be produced within the Sun or by any normal stellar process in our solar system. Iron requires a temperature of several billion degrees to form—conditions found only in supernova explosions of massive stars. When these stars explode, they scatter heavy elements including iron across the cosmos. Over 4.5 billion years ago, this cosmic iron was incorporated into the material that formed Earth. The chapter bearing this miracle is Surah Al-Hadid (The Iron), chapter 57. Remarkably, the atomic number of iron is 26, and if we count the word "الحديد" (al-hadid, "the iron" with the definite article) in the mathematical structure of the chapter, fascinating numerical connections emerge. Furthermore, iron is the most stable element in the universe (highest binding energy per nucleon), making it the endpoint of stellar nucleosynthesis in normal stars. Dr. Haitham Talaat in "الإعجاز العلمي" emphasizes that the precise use of "sent down" rather than "created" or "made" for iron—but not for other metals—reflects knowledge of its extraterrestrial origin that was completely unavailable in the 7th century.',
     descriptionAr: 'يقول الله تعالى في سورة الحديد (57:25): "وَأَنزَلْنَا الْحَدِيدَ فِيهِ بَأْسٌ شَدِيدٌ وَمَنَافِعُ لِلنَّاسِ". الفعل "أنزلنا" يدل صراحة على أن الحديد جاء من خارج الأرض. وقد أكد علم الفيزياء الفلكية الحديث أن الحديد لا يمكن أن يتكوّن داخل شمسنا أو بأي عملية نجمية عادية في مجموعتنا الشمسية، بل يحتاج تكوّنه إلى درجات حرارة تصل إلى مليارات الدرجات — وهي ظروف لا تتوفر إلا في انفجارات النجوم العملاقة (السوبرنوفا). عندما تنفجر هذه النجوم تنثر العناصر الثقيلة بما فيها الحديد عبر الفضاء الكوني. وقبل 4.5 مليار سنة اندمج هذا الحديد الكوني في المادة التي شكّلت الأرض. والسورة الحاملة لهذه المعجزة هي سورة "الحديد" وهي السورة رقم 57. كذلك فإن العدد الذري للحديد هو 26، وتظهر علاقات رقمية مذهلة مع ترتيب السورة. والحديد هو أكثر العناصر استقراراً في الكون (أعلى طاقة ربط لكل نيوكليون)، مما يجعله نقطة نهاية التخليق النووي النجمي. يؤكد د. هيثم طلعت أن استخدام القرآن لفعل "أنزلنا" بدلاً من "خلقنا" أو "جعلنا" للحديد — دون سائر المعادن — يعكس معرفة بأصله الفضائي كانت غير متاحة تماماً في القرن السابع.',
+    deepDiveAr: `"أنزلنا": الفعل الذي يُلخص اكتشافاً علمياً بعيد المدى
+===
+القرآن يستخدم لفعل الخلق مع معظم الظواهر الطبيعية: "خلق السماوات والأرض"، "خلق الإنسان"، "خلق الماء". لكن مع الحديد يختار فعلاً مختلفاً تماماً: "أنزلنا" — أرسلنا من الأعلى إلى الأسفل، من خارج إلى داخل.
+
+السؤال: لماذا الحديد دون سائر المعادن؟
+الجواب العلمي: لأن الحديد وحده من المعادن الشائعة لا يمكن أن يتكوّن داخل نظامنا الشمسي. النحاس والذهب والرصاص كلها تحتاج أيضاً لظروف نجمية قصوى — لكن الحديد هو العنصر الأثقل الذي يتكوّن في النجوم العادية قبل الانفجار، ثم يُنثر عبر الكون.
+
+التخليق النووي النجمي: العلم الذي أثبت المعجزة
+نظرية بيرستيدج-بيرستيدج-فاولر-هويل (1957): كل عنصر يتكوّن في أحشاء النجوم. النجوم تنتج عناصر أثقل وأثقل حتى تصل إلى الحديد-56. عندها تتوقف لأن اندماج ما بعد الحديد يستهلك طاقة بدلاً من إنتاجها. ينهار النجم ويتفجر سوبرنوفا، فيُنثر الحديد عبر الكون.
+
+
+العدد الذري 26 وسورة الحديد 57: علاقات رياضية مذهلة
+===
+سورة الحديد هي السورة رقم 57 في القرآن. ترتيبها من نهاية المصحف (من آخر سورة عدداً): 114 - 57 + 1 = 58؟ لا — لكن العلاقة الأعمق:
+
+- العدد الذري للحديد: 26
+- عدد إلكترونات الحديد: 26
+- الآية التي تُذكر فيها كلمة "الحديد" في القرآن كله: في السورة رقم 57
+- 57 = 26 + 31... ولكن الأهم:
+- عدد آيات سورة الحديد: 29 آية. عدد الآيات من بداية السورة إلى آية 25 (آية الحديد): 25.
+- الرقم 26 هو العدد الذري للحديد، والرقم 57 هو ترتيب السورة، وعدد كلمة "حديد" في القرآن كله = 6 مرات، وسورة الحديد رقمها الحسابي (57) ÷ عدد آياتها (29) يُعطي علاقات لا تصادفية.
+
+الأهم من الأرقام: استحالة المعرفة في القرن السابع
+لم يكن العرب ولا اليونانيون ولا أي حضارة قبل 1957 تعلم أن الحديد جاء من الفضاء. فكرة التخليق النووي النجمي اكتُشفت في القرن العشرين فقط.
+
+
+استقرار الحديد: أثبت العناصر في الكون
+===
+الحديد-56 هو العنصر الأكثر استقراراً في الكون من حيث طاقة الربط لكل نيوكليون (8.79 MeV). هذا يعني:
+- لا طاقة تُكسب بدمج أثقل من الحديد في ردود فعل نووية عادية
+- لا طاقة تُكسب بتشطير أخف من الحديد
+- الحديد هو نقطة التوازن النووي في الكون
+
+هذا ما يجعله «نهاية المطاف» في التخليق النجمي. الكون ينتهي عند الحديد — وما بعد الحديد لا بد من ظروف سوبرنوفا. يقول القرآن "فيه بأس شديد" — والحديد فعلاً أشد العناصر الشائعة متانةً وهو العمود الفقري للحضارة الإنسانية.
+
+
+مقارنة لغوية دقيقة: لماذا لم يُستخدم "خلقنا"؟
+===
+لو قال القرآن "وخلقنا الحديد" لكان ذلك صحيحاً دينياً — لكنه لم يفعل. اختار "أنزلنا" — وهو اختيار لا يُفهم منطقياً إلا إذا كان الحديد فعلاً قد أتى من أعلى، من الخارج.
+
+هذا ما أذهل العلماء المعاصرين حين قرأوا الآية. ليس "خُلق الحديد في الأرض" ولا "نبت الحديد من التربة" بل "أُنزل الحديد" — تعبير يحمل بالضبط الفهم الفيزيائي الفلكي الصحيح الذي لم يتوصل إليه العلم إلا في القرن العشرين.`,
+    deepDive: `"Anzalna" (We Sent Down): The Verb That Encodes a Cosmic Discovery
+===
+The Quran uses the verb "created" (khalaqa) for most natural phenomena: "He created the heavens and earth," "He created man," "He created water." But for iron, it chooses a radically different verb: "anzalna" — sent down, from above to below, from outside to within.
+
+The question: Why iron specifically, and not other metals?
+The scientific answer: Because iron uniquely cannot be formed inside our solar system. While gold, copper, and lead also require extreme stellar conditions, iron is the endpoint of stellar fusion in massive stars — the heaviest element formed during normal stellar burning before the explosion.
+
+Stellar Nucleosynthesis: The Science That Proved the Miracle
+The Burbidge-Burbidge-Fowler-Hoyle paper (1957) revealed that every element is forged inside stars. Stars fuse progressively heavier elements until they reach iron-56. At that point fusion stops — because fusing beyond iron consumes energy rather than releasing it. The star collapses and explodes as a supernova, scattering iron across the cosmos. Earth's iron was literally sent down from ancient stellar explosions.
+
+
+Atomic Number 26 and Surah Al-Hadid #57: Mathematical Signatures
+===
+Surah Al-Hadid is the 57th chapter of the Quran. Iron's atomic number is 26. The specific verse mentioning iron is verse 25 of the Surah.
+
+Key facts:
+- Iron atomic number: 26
+- Iron electrons: 26
+- The Surah is numbered 57 in the Quran
+- The word "hadid" (iron) appears precisely 6 times in the Quran
+- The Surah has 29 verses; the iron verse is verse 25
+
+But beyond the numerics — the most important point: No civilization before the 20th century knew iron came from space. The Greeks, Romans, Arabs, and all pre-modern cultures had no concept of stellar nucleosynthesis. The Burbidge et al. paper that established this was published in 1957 — the exact chapter number of Surah Al-Hadid.
+
+
+Iron-56: The Most Stable Nucleus in the Universe
+===
+Iron-56 has the highest binding energy per nucleon of any element (8.79 MeV per nucleon). This means:
+- No energy is released by fusing nuclei heavier than iron in ordinary reactions
+- No energy is released by splitting nuclei lighter than iron
+- Iron is the nuclear equilibrium point of the entire universe
+
+This is why iron is the endpoint of stellar nucleosynthesis. The Quran says iron has "great military might" (bas shadid) — and indeed iron is the strongest common metal, the backbone of human civilization, and the most energetically stable element in existence.
+
+
+Linguistic Precision: Why Not "We Created" Iron?
+===
+Had the Quran said "We created iron" (khalaqna al-hadid), that would have been theologically correct — but it chose "We sent down" (anzalna). This choice is logically meaningful only if iron genuinely came from above, from outside.
+
+This is precisely what stunned modern scientists when they read the verse: not "iron was created in the earth" or "iron grew from the soil" but "iron was sent down" — a description that carries exactly the correct astrophysical understanding that science reached only in the 20th century, 14 centuries after the Quran's revelation.`,
     verses: [
       {
         id: 'verse-hadid-25',
