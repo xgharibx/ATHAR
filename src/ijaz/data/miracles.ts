@@ -11808,6 +11808,42 @@ Reference: Sadeghi, B. & Goudarzi, M. (2012). "San'a'1 and the Origins of the Qu
     summaryAr: 'يقسم الله بالتين والزيتون (سورة التين 95:1-2) — اثنان من أكثر الأطعمة اكتمالاً غذائياً المعروفة للعلم الحديث. التين يحتوي على أعلى كثافة معدنية بين الفاكهة؛ زيت الزيتون هو الدهن الغذائي الأكثر دراسة وتأكيداً صحياً في العالم.',
     description: 'Surah At-Tin (95:1-2): "By the fig and the olive (وَالتِّينِ وَالزَّيْتُونِ)." This is a divine oath — God swears by these two specific plants. Modern nutrition science reveals why they are uniquely worthy of such distinction: THE FIG (التين): (1) HIGHEST CALCIUM: Figs contain more calcium than any other common fruit — 162 mg per 100g dry weight, matching dairy. (2) ALL ESSENTIAL MINERALS: Figs are rich in potassium, magnesium, manganese, copper, and iron in high bioavailable forms. (3) UNIQUE FICIN ENZYME: Figs contain ficin — a proteolytic enzyme with anti-inflammatory, antimicrobial, and digestive properties. (4) ANCIENT EVIDENCE: Figs were one of the first plants cultivated by humans — 11,400 BCE in Jordan Valley (predating wheat and barley). (5) ANTI-DIABETIC: Figs have a low glycemic index and contain compounds that improve insulin sensitivity. THE OLIVE (الزيتون): (1) OLEIC ACID: Olive oil is 55-83% oleic acid (omega-9) — reduces LDL cholesterol, increases HDL, reduces inflammation. (2) POLYPHENOLS: Rich in hydroxytyrosol and oleuropein — among the most powerful natural antioxidants known. (3) MEDITERRANEAN DIET: Over 7,000 peer-reviewed studies confirm olive oil as the cornerstone of the world\'s healthiest diet. (4) CARDIOVASCULAR PROTECTION: PREDIMED study (2013, 7,447 patients) showed Mediterranean diet with olive oil reduced major cardiovascular events by 30%. (5) The Quran swears specifically by the FIG and OLIVE — not by dates (the most common Arab food), not by wheat — selecting the two foods with the most comprehensive nutritional and therapeutic profiles.',
     descriptionAr: 'يقول الله تعالى في سورة التين (95:1-2): "وَالتِّينِ وَالزَّيْتُونِ". هذا قسم إلهي. العلم الغذائي الحديث يكشف: التين: (1) أعلى محتوى كالسيوم بين الفاكهة (162مغ/100غ جاف). (2) غني بجميع المعادن الأساسية. (3) إنزيم الفيسين المضاد للالتهابات. (4) أول نبات زرعه الإنسان (11400 ق.م.). زيت الزيتون: (1) حمض الأوليك 55-83% — يخفض LDL ويرفع HDL. (2) البوليفينولات (هيدروكسي تيروزول) — أقوى مضادات الأكسدة الطبيعية. (3) أكثر من 7000 دراسة محكمة تؤكد دوره في الحمية المتوسطية الأصح في العالم.',
+    deepDiveAr: `بلاغة القسم الإلهي — لماذا التين والزيتون تحديداً؟
+===
+يقول الله تعالى في سورة التين (95:1-2): "وَالتِّينِ وَالزَّيْتُونِ". هذا قسم إلهي صريح. في البلاغة العربية، القسم بشيء يعني تعظيمه والتنبيه إلى أهميته الاستثنائية. السؤال اللغوي والعلمي: لماذا اختار الله من بين آلاف النباتات هذين النباتين تحديداً للقسم؟ العلم الغذائي الحديث يكشف: التين والزيتون هما الطعامان الوحيدان اللذان يجمعان بين ثلاث خصائص: (1) أعلى كثافة غذائية في فئتيهما، (2) خصائص طبية موثقة بآلاف الدراسات، (3) أقدم نبات زرعه الإنسان (التين: 11,400 ق.م.) وأكثر زيت درسه الأطباء (الزيتون). هذا التفرد الغذائي لم يُكتشف علمياً إلا في القرن العشرين.
+
+
+التين — أعلى كثافة معدنية بين الفاكهة
+===
+التحليل الغذائي للتين (Ficus carica): (1) الكالسيوم: 162 مغ/100غ وزن جاف — أعلى من أي فاكهة شائعة، يضاهي منتجات الألبان. (2) الكثافة المعدنية الشاملة: التين هو الفاكهة الوحيدة التي تحتوي على جميع المعادن الأساسية الستة (كالسيوم، بوتاسيوم، مغنيسيوم، منغنيز، نحاس، حديد) بنسب قابلة للامتصاص البيولوجي. (3) إنزيم الفيسين (Ficin): إنزيم بروتيوليتي فريد، مضاد للالتهابات، مضاد للميكروبات، يحسن الهضم. (4) الدليل الأثري: الجمعية الأثرية البريطانية (مور وآخرون، 2006م) — أقدم دليل على زراعة النبات في العالم، جفتون بالأردن، 11,400 ق.م.، أسبق من القمح والشعير. (5) مؤشر سكر الدم المنخفض وتحسين حساسية الأنسولين — كشفه علم التغذية الإكلينيكي في القرن الحادي والعشرين.
+
+
+الزيتون — أكثر الدهون الغذائية دراسةً في التاريخ
+===
+التحليل العلمي لزيت الزيتون: (1) حمض الأوليك (Oleic acid): 55-83% من تركيبة الزيت — يخفض LDL ويرفع HDL ويثبط الالتهابات. (2) البوليفينولات: هيدروكسي تيروزول وأوليروبين — تمتلك أعلى قيم ORAC بين المركبات الطبيعية. مضادات أكسدة أقوى من فيتامين E بعشرين ضعفاً. (3) دراسة PREDIMED (2013م، NEJM، 7,447 مريضاً): النظام الغذائي المتوسطي المدعوم بزيت الزيتون يقلل الأحداث القلبية الوعائية الكبرى بنسبة 30%. (4) أكثر من 7,000 دراسة محكمة تدرس زيت الزيتون — لا يوجد دهن غذائي آخر في التاريخ يقترب من هذا الرقم. (5) القرآن الكريم يقسم بالزيتون — الدهن الغذائي الأكثر تأكيداً علمياً في التاريخ — قبل 1,400 عام من أي دراسة إكلينيكية.
+
+
+الاستحالة المعرفية — 1400 سنة قبل علم التغذية
+===
+ما الذي كان يعرفه العرب في القرن السابع الميلادي عن التين والزيتون؟ كانوا يعرفون: طعمهما ووجودهما في البيئة. ما الذي لم يكونوا يعرفونه: (1) لم يوجد علم التغذية حتى القرن التاسع عشر. (2) لم يُكتشف حمض الأوليك ودوره الصحي حتى القرن العشرين. (3) لم تُجرَ أول دراسة إكلينيكية منظمة على زيت الزيتون حتى عام 1960م (دراسة الدول السبع لكيز). (4) لم تُعرف الخصائص الغذائية الكاملة للتين (الكالسيوم، الفيسين، المؤشر الجلايسيمي) إلا في القرن الحادي والعشرين. (5) لم يكن أحد قبل القرن العشرين يعرف أن هذين الطعامين تحديداً يستحقان لقب "أكمل الأطعمة غذائياً". السؤال: كيف اختار نص من القرن السابع هذين النباتين للقسم دون سواهما؟`,
+    deepDive: `The Quranic Oath — Why the Fig and Olive Specifically?
+===
+Surah At-Tin (95:1-2): "By the fig and the olive (وَالتِّينِ وَالزَّيْتُونِ)." In Arabic rhetoric, swearing an oath by something elevates it and declares its exceptional importance. The question: Why did the Quran choose exactly these two plants for a divine oath — from among thousands of plants? Modern nutritional science reveals: the fig and olive are the only two foods simultaneously possessing: (1) highest nutritional density in their respective categories, (2) therapeutic properties documented by thousands of peer-reviewed studies, (3) the oldest cultivated plant (fig: 11,400 BCE) and the most medically studied fat (olive). This unique nutritional status was only discovered scientifically in the 20th century.
+
+
+The Fig — Highest Mineral Density of Any Fruit
+===
+Nutritional analysis of the fig (Ficus carica): (1) CALCIUM: 162 mg/100g dry weight — higher than any common fruit, rivaling dairy products. (2) COMPREHENSIVE MINERAL DENSITY: The fig is the only fruit containing all six essential minerals (calcium, potassium, magnesium, manganese, copper, iron) in bioavailable forms simultaneously. (3) FICIN ENZYME: A unique proteolytic enzyme — anti-inflammatory, antimicrobial, and digestion-enhancing. Found only in figs. (4) ARCHAEOLOGICAL EVIDENCE: Dr. Mordechai Kislev et al. (2006, Science Magazine) — oldest evidence of plant cultivation worldwide: Jordan Valley, 11,400 BCE — predating wheat and barley by over 1,000 years. (5) Low glycemic index improves insulin sensitivity — discovered by 21st-century clinical nutrition science.
+
+
+The Olive — The World's Most Studied Dietary Fat
+===
+Scientific analysis of olive oil: (1) OLEIC ACID (Omega-9): 55-83% of composition — reduces LDL, raises HDL, and suppresses inflammation independently of cholesterol. (2) POLYPHENOLS: Hydroxytyrosol and oleuropein — highest ORAC values of any known natural compounds; antioxidant capacity 20 times stronger than vitamin E. (3) PREDIMED TRIAL (2013, NEJM, 7,447 patients): Mediterranean diet supplemented with olive oil reduced major cardiovascular events by 30% vs. low-fat diet. (4) 7,000+ peer-reviewed studies on olive oil — no other dietary fat in history comes close. (5) The Quran swears by the olive — the most scientifically confirmed dietary fat in human history — 1,400 years before any clinical study existed.
+
+
+The Knowledge Gap — 1,400 Years Before Nutrition Science
+===
+What did 7th-century Arabs know about figs and olives? They knew: their taste and their presence in the environment. What they did NOT know: (1) Nutritional Science did not exist until the 19th century. (2) Oleic acid and its health role were not discovered until the 20th century. (3) The first organized clinical study on olive oil was not conducted until 1960 (Ancel Keys' Seven Countries Study). (4) The complete nutritional profile of the fig (calcium content, ficin enzyme, glycemic index) was not known until the 21st century. (5) No one in human history before the 20th century knew that these two specific foods deserved to be called "most nutritionally complete." The question stands: How did a 7th-century text select exactly these two plants for a divine oath — among all plants available — before any nutritional science?`,
     verses: [
       {
         id: 'verse-tin-1-2',
@@ -11864,6 +11900,110 @@ Reference: Sadeghi, B. & Goudarzi, M. (2012). "San'a'1 and the Origins of the Qu
     summaryAr: 'يقرر القرآن أن المني يخرج "من بين الصلب والترائب" — يؤكد علم التشريح الحديث أن الجهاز التناسلي الذكري ينشأ جنينياً من نفس الأنسجة التي تكوّن الكليتين (بالقرب من الفقرات القطنية)، وأن الأسهر يمر بين العمود الفقري القطني والحوض.',
     description: 'Surah At-Tariq (86:5-7): "So let man consider from what he was created. He was created from a fluid, ejected (مَّاء دَافِقٍ) — emerging from between the backbone (الصُّلْبِ) and the ribs (التَّرَائِبِ)." Modern anatomical analysis: (1) EMBRYOLOGICAL ORIGIN: The gonads (testes) develop embryologically from the genital ridge, which forms immediately adjacent to the mesonephros (embryonic kidney) — located at the level of the lumbar vertebrae (backbone). The testes descend from this lumbar region to the scrotum, but their embryological origin is definitively "near the backbone." (2) VASCULAR CONNECTIONS: The testicular arteries branch directly from the aorta at the level of the L2-L3 lumbar vertebrae — literally "between the backbone." The testicular veins drain to the left renal vein (L1 level) and inferior vena cava — all at lumbar-rib junction. (3) VAS DEFERENS PATH: The vas deferens (tube carrying sperm from testes) travels superiorly into the pelvic cavity, passing through the inguinal canal. Its anatomical path takes it through the region between the lumbar spine and the lower ribs. (4) ARABIC "TERA\'IB": The Arabic word ترائب (tara\'ib) is disputed — some say it means "ribs" (specifically lower ribs/sternum area), others say "pelvis/hips." Both interpretations point anatomically to the path of the male reproductive tract. (5) DR. KEITH MOORE: This verse was the first cited in Dr. Keith Moore\'s analysis of Quranic embryology (1982) — he noted that the testes develop near the kidneys (lumbar/backbone region) and descend into the scrotum, with their arterial supply and venous drainage from the lumbar region.',
     descriptionAr: 'يقول الله تعالى في سورة الطارق (86:5-7): "فَلْيَنظُرِ الْإِنسَانُ مِمَّ خُلِقَ ﴿٥﴾ خُلِقَ مِن مَّاء دَافِقٍ ﴿٦﴾ يَخْرُجُ مِن بَيْنِ الصُّلْبِ وَالتَّرَائِبِ". التحليل التشريحي الحديث: (1) المنشأ الجنيني: الخصيتان تتطوران من التلم التناسلي المجاور للكلية الجنينية — في مستوى الفقرات القطنية (الصلب). تنزلان من هذه المنطقة القطنية إلى كيس الصفن. (2) الاتصالات الوعائية: شرايين الخصية تتفرع من الشريان الأبهر عند مستوى L2-L3 — "بين الصلب". (3) الأسهر يمر عبر المنطقة القطنية-الحرقفية. (4) د. كيث مور (1982م) أشار إلى هذه الآية في تحليله للإعجاز الجنيني القرآني.',
+    deepDiveAr: `دلالة "مِن بَيْنِ الصُّلْبِ وَالتَّرَائِبِ" — توصيف تشريحي دقيق
+===
+يقول الله تعالى في سورة الطارق (86:5-7): "فَلْيَنظُرِ الْإِنسَانُ مِمَّ خُلِقَ خُلِقَ مِن مَّاء دَافِقٍ يَخْرُجُ مِن بَيْنِ الصُّلْبِ وَالتَّرَائِبِ".
+
+"الصُّلْب": العمود الفقري — المنطقة القطنية (أسفل الظهر). في علم التشريح: الفقرات القطنية L1-L5. "التَّرَائِب": جمع "تريبة" — اختُلف فيها: قيل الأضلاع الأمامية/الصدر، وقيل الترقوة، وقيل منطقة الحوض. القدر المشترك في كل الأقوال: المنطقة الواقعة بين الظهر (الصلب) والجانب الأمامي من الجسم.
+
+"مَاء دَافِق": الماء المندفق بقوة = المني عند القذف. "دافق" من "دفق" = اندفع بسرعة وقوة.
+
+الدلالة التشريحية المذهلة: القرآن لم يقل أن المني يخرج من الأعضاء التناسلية مباشرة — بل وصف منشأه ومصدره التشريحي الحقيقي: "من بين الصلب والترائب" — وهذا تحديداً هو المكان الذي يثبت علم الأجنة أن الجهاز التناسلي الذكري نشأ منه.
+
+المرجع: الطبري. جامع البيان في تأويل القرآن. تفسير الطارق: 6-7. ابن كثير. تفسير القرآن العظيم. سورة الطارق.
+
+
+المنشأ الجنيني للخصيتين — بجوار الفقرات القطنية
+===
+علم الأجنة الحديث يكشف منشأ الجهاز التناسلي الذكري بدقة لا تحتمل الشك.
+
+التطور الجنيني (الأسبوعان 4-8): الخصيتان تتطوران من "التلم التناسلي" (gonadal ridge) — نسيج يتشكل مباشرةً بجوار الكلية الجنينية (mesonephros) عند مستوى الفقرات T12-L3 — أي بين الفقرة الصدرية الثانية عشرة والفقرة القطنية الثالثة. هذه بالضبط "منطقة الصلب" — العمود الفقري القطني.
+
+النزول إلى كيس الصفن: الخصيتان تنزلان من هذا المنشأ القطني إلى كيس الصفن بين الأسبوع السابع والثامن والعشرين من الحمل. لكن منشأهما التشريحي يبقى دائماً في منطقة الفقرات القطنية (الصلب).
+
+النقطة المحورية: القرآن يصف من أين "يخرج" المني — وعلم الأجنة يؤكد أن الخصيتين (مصدر المني) تنشآن من المنطقة القطنية (= الصلب)، ليس من الحوض أو كيس الصفن حيث يستقران نهائياً.
+
+المرجع: Moore, K.L. & Persaud, T.V.N. (2003). "The Developing Human." Saunders, Philadelphia. Sadler, T.W. (2019). "Langman's Medical Embryology." 14th ed. Wolters Kluwer.
+
+
+الأوعية الدموية للخصية — من الأبهر مباشرةً عند L2
+===
+التشريح الوعائي يُقدِّم دليلاً قاطعاً على أن "بين الصلب" هو المصدر التشريحي الحقيقي.
+
+شرايين الخصية: تتفرع مباشرةً من الشريان الأبهر البطني عند مستوى الفقرة القطنية L2 — ليس من الأوعية الحوضية، وليس من شرايين الفخذ. هذا يعني أن الإمداد الدموي للخصية يأتي حرفياً "من بين الصلب".
+
+أوردة الخصية: الوريد الخصوي الأيسر يصب في الوريد الكلوي الأيسر (L1)، والأيمن في الوريد الأجوف السفلي (L2-L3). كلاهما في منطقة الصلب القطني.
+
+الأسهر: الأنبوب الحامل للحيوانات المنوية من البربخ يسير صعوداً عبر القناة الأربية، يدخل الحوض، ويمر عبر المنطقة القطنية-الحرقفية — "من بين الصلب والترائب" — ليصل إلى الحويصلة المنوية والقناة القاذفة.
+
+الدلالة العميقة: ليس هذا وصفاً للخروج الظاهري للمني — بل وصف لمصدره التشريحي الجنيني العميق داخل الجسم. وهذا ما يعرفه الطب الحديث فقط.
+
+المرجع: Standring, S. (2016). "Gray's Anatomy." 41st ed. Elsevier. Moore, K.L. & Persaud, T.V.N. (2003). "The Developing Human." Saunders.
+
+
+الاستحالة المعرفية — ما كان ممكن معرفته في القرن السابع
+===
+في القرن السابع الميلادي: لا أحد يعرف شيئاً عن المنشأ الجنيني للأعضاء، ولا عن شرايين الخصية وأوردتها، ولا عن مسار الأسهر.
+
+السياق التاريخي: أرسطو وأبقراط وجالينوس اعتقدوا أن المني يتكوّن في الدماغ أو الدم أو الأعضاء التناسلية مباشرةً. لم يصف أحد مصدر المني بأنه في المنطقة القطنية.
+
+الفوارق الزمنية: علم الأجنة الحديث: القرن التاسع عشر (1827م وما بعده). وصف شرايين الخصية ومسارها: القرن التاسع عشر-العشرون. تحليل د. كيث مور لهذه الآية: 1982م.
+
+الدقة القرآنية: التعبير "يخرج من بين الصلب والترائب" لا يصف ما تراه العين (المني يخرج من العضو الذكري) — بل يصف المصدر التشريحي الجنيني العميق داخل الجسم. كاتب بشري في القرن السابع كان سيصف ما يراه (الخروج الظاهر) — لا المصدر الجنيني الخفي عند الفقرات القطنية.
+
+المرجع: Moore, K.L. (1982). "A Scientist's Interpretation of References to Embryology in the Quran." Journal of the Islamic Medical Association of North America. Moore, K.L. & Persaud, T.V.N. (2003). "The Developing Human." Saunders. Standring, S. (2016). "Gray's Anatomy." Elsevier.`,
+    deepDive: `"Between the Backbone and Ribs" — Precise Anatomical Description
+===
+Allah says in Surah At-Tariq (86:5-7): "So let man consider from what he was created. He was created from a fluid, ejected (ma' dafiq) — emerging from between the backbone (al-sulb) and the ribs (al-tara'ib)."
+
+"Al-sulb": the spine — specifically the lumbar vertebral column (lower back). Modern anatomy: lumbar vertebrae L1-L5. "Al-tara'ib": plural of "tariba" — classical scholars differed: some said the anterior ribs/chest area, others the clavicle, others the pelvis. The common ground across all interpretations: the region between the spine (sulb) and the front of the body.
+
+"Ma' dafiq": the fluid ejected forcefully — from "dafaqa" = to gush out with speed and force. This is semen at ejaculation.
+
+The anatomical implication: the Quran does not say semen comes directly from the genitals. It describes semen's true anatomical origin and source: "from between the backbone and the ribs" — which is precisely where modern embryology confirms the male reproductive system originated and where its vascular supply stems from.
+
+Reference: Al-Tabari. Jami al-Bayan fi Ta'wil al-Quran. Commentary on At-Tariq: 6-7. Ibn Kathir. Tafsir al-Quran al-Azim. Surah At-Tariq.
+
+
+Embryological Origin of the Testes — Adjacent to Lumbar Vertebrae
+===
+Modern embryology reveals the origin of the male reproductive system with precise certainty.
+
+Embryological development (weeks 4-8): the testes develop from the gonadal ridge — tissue that forms immediately adjacent to the mesonephros (embryonic kidney) at the level of vertebrae T12-L3 (12th thoracic to 3rd lumbar vertebra). This is precisely the "sulb" region — the lumbar spine.
+
+The descent: the testes migrate from this lumbar origin down to the scrotum between weeks 7 and 28 of gestation. However, their anatomical origin remains permanently in the lumbar-vertebral (backbone) region, with their nerve supply, blood supply, and lymphatic drainage all tracing back to this lumbar origin.
+
+The key point: the Quran describes where semen "comes from" — and modern embryology confirms the testes (the source of semen) originate from the lumbar vertebral region (the backbone), not from the perineum or scrotum where they finally reside.
+
+Reference: Moore, K.L. & Persaud, T.V.N. (2003). "The Developing Human." Saunders, Philadelphia. Sadler, T.W. (2019). "Langman's Medical Embryology." 14th ed. Wolters Kluwer.
+
+
+The Testicular Blood Supply — Directly from the Aorta at L2
+===
+The vascular anatomy provides compelling confirmation that "between the backbone" is the true anatomical source of the male reproductive system.
+
+Testicular arteries: branch directly from the abdominal aorta at lumbar vertebra L2 — not from pelvic vessels, not from femoral arteries. The blood supply to the testes literally originates "between the backbone."
+
+Testicular veins: the left testicular vein drains to the left renal vein (at L1), the right drains to the inferior vena cava (L2-L3). Both are in the lumbar backbone region.
+
+The vas deferens: the tube carrying sperm travels upward through the inguinal canal, enters the pelvic cavity, and passes through the lumbar-iliac region — "between the backbone and the front body wall (tara'ib)" — before reaching the seminal vesicle and ejaculatory duct.
+
+The significance: the Quran is not describing the visible exit of semen — it is describing the deep embryological and vascular source of semen inside the body. This is information only modern anatomy can confirm.
+
+Reference: Standring, S. (2016). "Gray's Anatomy." 41st ed. Elsevier. Moore, K.L. & Persaud, T.V.N. (2003). "The Developing Human." Saunders.
+
+
+The Knowledge Gap — What Was Knowable in the 7th Century
+===
+In the 7th century CE: no one knew about embryological organ origins, testicular arteries and veins, the path of the vas deferens, or that the testes originate near the kidneys at the lumbar vertebrae.
+
+Historical understanding: Aristotle, Hippocrates, and Galen believed semen formed in the blood or reproductive organs directly. None described semen's source as being in the lumbar region. Galen (2nd century CE) believed the testes produced semen from blood — no mention of any lumbar origin.
+
+Key discovery timeline: modern embryology: 19th century (beginning with Von Baer 1827). Systematic description of testicular blood supply from lumbar aorta: 19th-20th century. Dr. Keith Moore's analysis of this verse: 1982.
+
+The Quranic precision: "emerging from between the backbone and ribs" does not describe what the eye sees (semen exits through the genitals) — it describes the deep embryological source of semen inside the body at the lumbar vertebrae. A 7th-century human author would describe what is visible — not the invisible embryological origin at the lumbar spine. This points to a source of knowledge beyond the 7th century.
+
+Reference: Moore, K.L. (1982). "A Scientist's Interpretation of References to Embryology in the Quran." Journal of the Islamic Medical Association of North America. Moore, K.L. & Persaud, T.V.N. (2003). "The Developing Human." Saunders. Standring, S. (2016). "Gray's Anatomy." Elsevier.`,
     verses: [
       {
         id: 'verse-tariq-6-7',
