@@ -1051,13 +1051,13 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             {[
               {
-                target: 40,
+                target: miracles.length,
                 suffix: '+',
                 label: '\u0645\u0639\u062C\u0632\u0629 \u0639\u0644\u0645\u064A\u0629 \u0645\u0648\u062B\u0642\u0629',
                 color: '#a5b4fc',
               },
               {
-                target: 20,
+                target: 750,
                 suffix: '+',
                 label: '\u0622\u064A\u0629 \u0642\u0631\u0622\u0646\u064A\u0629 \u062F\u0642\u064A\u0642\u0629',
                 color: '#2dd4a8',
@@ -1096,7 +1096,7 @@ export default function HomePage() {
                   {'\u0627\u062D\u062A\u0645\u0627\u0644 \u0623\u0646 \u062A\u0643\u0648\u0646 \u0643\u0644 \u0647\u0630\u0647 \u0627\u0644\u0645\u0639\u062C\u0632\u0627\u062A \u0645\u062C\u0631\u062F \u0635\u062F\u0641:'}
                 </p>
                 <p className="font-mono text-3xl md:text-4xl text-red-400/90 font-bold">
-                  1 / 10<sup>26</sup>
+                  1 / 10<sup>50</sup>
                 </p>
                 <p className="text-text-muted text-xs font-tajawal mt-2">
                   {'\u0623\u064A: \u0635\u0641\u0631 \u0639\u0645\u0644\u064A\u064B\u0627 \u2014 \u0645\u0633\u062A\u062D\u064A\u0644 \u0631\u064A\u0627\u0636\u064A\u064B\u0627'}

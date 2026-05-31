@@ -5,9 +5,7 @@ import { Link } from 'react-router-dom';
 import { ScrollReveal, TextReveal } from '@/ijaz/components/effects/ScrollAnimations';
 import { AnimatedGradientText, CinematicTypewriter } from '@/ijaz/components/effects/TextEffects';
 
-/* Dynamic 3D / particle imports — no SSR */
-import ShaderBackground from '@/ijaz/components/effects/ShaderBackground';
-import ParticleField from '@/ijaz/components/effects/ParticleField';
+/* Dynamic imports — no SSR */
 import SacredGeometry from '@/ijaz/components/effects/SacredGeometry';
 
 /* ================================================================
@@ -247,7 +245,7 @@ export default function JourneyPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020617]" dir="rtl">
-      {/* ===== IMMERSIVE BACKGROUND: Shader + Particles per step ===== */}
+      {/* ===== BACKGROUND: Pure CSS stars per step (replaces WebGL for mobile performance) ===== */}
       <div className="fixed inset-0 z-0">
         <AnimatePresence mode="wait">
           <motion.div
@@ -256,15 +254,23 @@ export default function JourneyPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.2 }}
-            className="absolute inset-0 opacity-60"
+            className="absolute inset-0"
           >
-            <ShaderBackground variant={step.bgVariant} intensity={0.5} />
+            <div className="absolute inset-0 dhikr-page-stars" style={{ opacity: 0.28 }} />
+            <div className="absolute inset-0 dhikr-card-stars" style={{ opacity: 0.16 }} />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(ellipse 80% 55% at 50% 28%, ${step.gradientFrom}28 0%, ${step.gradientTo}0f 42%, transparent 70%)`,
+              }}
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(180deg, rgba(2,6,23,0.06) 0%, rgba(2,6,23,0.30) 100%)' }}
+            />
           </motion.div>
         </AnimatePresence>
-        <div className="absolute inset-0 z-[1] opacity-50">
-          <ParticleField variant={step.particleVariant} density={0.3} speed={0.3} />
-        </div>
-        {/* Solid dark scrim — keeps text readable over any shader brightness */}
+        {/* Solid dark scrim — keeps text readable */}
         <div className="absolute inset-0 z-[2]" style={{ background: 'rgba(2,6,23,0.52)' }} />
         {/* Edge vignette for depth */}
         <div className="absolute inset-0 z-[3] bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(2,6,23,0.80)_100%)]" />
