@@ -11505,7 +11505,7 @@ Reference: El-Naggar, Z. (2007). "Treasures in the Sunnah." Al-Falah Foundation,
 
 الأثر العلمي: الحيوان المنوي يحمل إما كروموسوم X (ينتج أنثى) أو كروموسوم Y (ينتج ذكراً). هذا الكروموسوم محدَّد في الحيوان المنوي قبل الإطلاق — بالتحديد كما وصف القرآن "إذا تُمنى". البويضة دائماً تحمل X فقط.
 
-المرجع: ابن القيم الجوزية. "التبيان في أقسام القرآن". تفسير سورة النجم. الطبري. جامع البيان. تفسير النجم: 45-46.
+المرجع: ابن كثير. تفسير القرآن العظيم. تفسير سورة النجم: 45-46. الطبري. جامع البيان في تأويل القرآن. تفسير النجم: 45-46.
 
 
 آلية XX/XY — الأب يحدد الجنس
@@ -11555,7 +11555,7 @@ The second implication: "from a nutfa" — the nutfa (sperm drop) is the stated 
 
 The scientific link: sperm carry either chromosome X (producing female) or chromosome Y (producing male). This chromosome is fixed in each sperm before ejaculation — precisely as the Quran states "when emitted." The egg always carries only X and has no role in sex determination.
 
-Reference: Ibn al-Qayyim al-Jawziyya. "Al-Tibyan fi Aqsam al-Quran." Commentary on An-Najm. Al-Tabari. Jami al-Bayan. An-Najm: 45-46.
+Reference: Ibn Kathir. Tafsir al-Quran al-Azim. Commentary on An-Najm: 45-46. Al-Tabari. Jami al-Bayan fi Ta'wil al-Quran. An-Najm: 45-46.
 
 
 The XX/XY Mechanism — The Father Determines Sex
@@ -11655,7 +11655,7 @@ Reference: Von Baer, K.E. (1827). "De Ovi Mammalium et Hominis Genesi." Leipzig.
 ===
 يقول الله تعالى في سورة الحجر (15:9): "إِنَّا نَحْنُ نَزَّلْنَا الذِّكْرَ وَإِنَّا لَهُ لَحَافِظُونَ".
 
-"لَحَافِظُونَ": اللام للتوكيد القطعي. "حافظون" صيغة جمع المبالغة — تدل على الحفظ المستمر الدائم الكامل. ليست "سنحفظه مرة" — بل "نحن حافظون له باستمرار في كل لحظة". التعبير يُجسِّد الحفظ كوصف دائم لا انقطاع فيه.
+"لَحَافِظُونَ": اللام للتوكيد القطعي. "حافظون" جمع اسم الفاعل "حافظ" على وزن فاعل — يدل على الفاعلية المستمرة الثابتة في الحفظ. ليست "سنحفظه مرة" — بل "نحن حافظون له دائماً في كل لحظة". اسم الفاعل يُفيد الثبوت والديمومة حين يقع خبراً في هذا السياق.
 
 "الذكر": من الجذر "ذكر" = ما يُذكر ويُحفظ في الصدور. اختيار هذه الكلمة بدلاً من "كتاب" يُعلن منذ البداية أن القرآن سيُحفظ في القلوب والعقول — وليس فقط في الصفحات. وهذا بالضبط ما حدث.
 
@@ -11707,7 +11707,7 @@ Reference: Von Baer, K.E. (1827). "De Ovi Mammalium et Hominis Genesi." Leipzig.
 ===
 Allah says in Surah Al-Hijr (15:9): "Indeed, it is We who sent down the Quran (al-dhikr) and indeed, We will be its guardian (la-hafizoon)."
 
-"La-hafizoon": the lam (la-) is emphatic — absolute certainty. "Hafizoon" is the intensive plural form signifying continuous, complete, unceasing preservation. Not "We will protect it once" — but "We are perpetual guardians of it at every moment." Arabic grammar encodes eternal ongoing preservation as a divine attribute.
+"La-hafizoon": the lam (la-) is emphatic — absolute certainty. "Hafizoon" is the plural of the active participle "hafiz" (from the root h-f-z, on the fa'il pattern) — denoting the ongoing state of being a guardian/preserver. Not "We will protect it once" — but "We are perpetual preservers of it at every moment." The active participle used as a predicate in Arabic conveys a continuous, enduring attribute.
 
 "Al-dhikr" (the Reminder): from the root "dhikr" = to remember, to preserve in hearts and minds. Choosing this word instead of "kitab" (book) announces that the Quran will be preserved in human memories — not only on pages. This is precisely how it has been transmitted for 14 centuries.
 
