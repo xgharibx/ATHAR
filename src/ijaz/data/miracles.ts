@@ -7881,7 +7881,7 @@ Surah Ar-Rum (30:2–3): "The Romans have been defeated — in adna al-ard (أَ
 
 The Arabic "adna" derives from the root "dana/dunuw" and carries two equally valid meanings in classical Arabic:
 - Al-aqrab (nearest): the most common interpretation in classical tafsir
-- Al-akhhfad (lowest): from "dani" — low, inferior, close to the ground
+- Al-adna in its "lowest" sense: from "dani'" — low, inferior, close to the ground
 
 Classical commentators chose "nearest" as the clearer meaning to them. But the geographic reality revealed by modern surveying shows the second meaning — "lowest" — is physically accurate: the battle occurred in the region containing the Dead Sea, the lowest exposed point on Earth's surface.
 
