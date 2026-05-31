@@ -2665,6 +2665,98 @@ To prophesy victory for the vastly outnumbered few against a triple-strength arm
     summaryAr: 'الضرورة المنطقية بأن كل ما بدأ في الوجود لا بد له من سبب، مما يثبت وجود الخالق.',
     description: 'The Kalam Cosmological Argument, extensively presented by Dr. Haitham Talaat in "بصائر" (Basaar), follows this logical structure: Premise 1: Everything that begins to exist has a cause. Premise 2: The universe began to exist. Conclusion: Therefore, the universe has a cause. The evidence for Premise 2 includes: (1) The Big Bang theory proves the universe had a beginning. (2) The Second Law of Thermodynamics — if the universe were eternal, it would have reached maximum entropy (heat death) by now. (3) Borde-Guth-Vilenkin theorem (2003) — any universe that has been, on average, expanding throughout its history must have a beginning. The cause of the universe must be: (a) outside of time (timeless, since time itself began), (b) outside of space (spaceless), (c) immaterial, (d) incredibly powerful, (e) personal (a decision to create requires will). The Quran references this argument directly in Surah At-Tur (52:35-36): "Or were they created by nothing, or were they the creators [of themselves]? Or did they create the heavens and the earth?"',
     descriptionAr: 'البرهان الكلامي الكوني، الذي يقدمه د. هيثم طلعت بشكل مستفيض في "بصائر": المقدمة الأولى: كل ما بدأ في الوجود لا بد له من سبب. المقدمة الثانية: الكون بدأ في الوجود. النتيجة: إذاً الكون له سبب. يجب أن يكون هذا السبب: خارج الزمان، خارج المكان، غير مادي، ذو قدرة عظيمة، وذو إرادة.',
+    deepDiveAr: `
+البرهان في صورته المنطقية الصارمة
+===
+البرهان الكلامي الكوني بُني على قياس منطقي صارم من مقدمتين لا يستطيع أي عاقل إنكارهما بسهولة:
+
+المقدمة الأولى: كل ما بدأ في الوجود لا بد له من سبب.
+المقدمة الثانية: الكون بدأ في الوجود.
+النتيجة: إذاً الكون لا بد له من سبب.
+
+رفض المقدمة الأولى يعني القبول بأن الأشياء تنبثق من العدم دون سبب — وهذا يُفسد كل منطق علمي وتجريبي. رفض المقدمة الثانية يتعارض مع كل ما أثبته العلم الحديث. والنتيجة تلزم من المقدمتين بالضرورة المنطقية.
+
+
+دليل العلم على المقدمة الثانية: الكون بدأ في الوجود
+===
+ثلاثة أدلة علمية مستقلة تؤكد أن للكون بداية:
+
+(1) نظرية الانفجار العظيم: في مطلع القرن العشرين أثبت هابل توسع الكون. تتبُّع هذا التوسع للوراء يُفضي إلى لحظة صفرية: نقطة تفرد كانت فيها الكثافة لانهائية والحجم صفراً — بداية المادة والطاقة والزمان والمكان معاً.
+
+(2) القانون الثاني للديناميكا الحرارية: أي نظام مغلق يسير نحو أقصى إنتروبيا. لو كان الكون أزلياً لكان قد بلغ حالة الموت الحراري (توقف كل عمليات الطاقة) منذ أزل لا نهاية له. لكننا نُلاحظ نجوماً تشتعل وطاقة وفيرة — دليل قاطع على حداثة الكون.
+
+(3) نظرية بورد-غوث-فيلنكين (2003): أثبت ثلاثة من كبار علماء الفيزياء النظرية رياضياً أن أي كون يتوسع في المتوسط لا بد أن له بداية مطلقة — حتى لو كان متعدد الأكوان.
+
+
+خصائص سبب الوجود الخمس
+===
+سبب الكون يجب أن يكون متصفاً بخمس صفات ضرورية بالاستنتاج المنطقي:
+
+(1) خارج الزمان: لأن الزمان بدأ مع الخلق، والسبب لا بد أن يسبق مسبَّبه.
+(2) خارج المكان: لأن المكان بدأ مع الكون أيضاً.
+(3) غير مادي: لأن كل المادة والطاقة ظهرت مع الخلق.
+(4) بالغ القدرة: إذ أوجد الكون المادي الهائل من العدم المطلق.
+(5) ذو إرادة: تحديد لحظة الخلق يستلزم إرادة؛ القوى الفيزيائية غير الشخصية لا تختار — الاختيار صفة الشخص العاقل.
+
+هذه الصفات الخمس مجتمعة لا تنطبق على أي شيء في الكون — وتنطبق بالضبط على ما تُعرِّف به الأديان الإبراهيمية الخالقَ.
+
+
+القرآن والبرهان الكلامي: سبق عقلي بأربعة عشر قرناً
+===
+قبل أن يولد إيمانويل كانط أو وليام كريغ بقرون، صاغ القرآن لُبَّ هذا البرهان في آية واحدة:
+
+«أَمْ خُلِقُوا مِنْ غَيْرِ شَيْءٍ أَمْ هُمُ الْخَالِقُونَ» (الطور 52:35)
+
+هذا سؤال ثلاثي الاحتمالات: أُوجدوا بلا سبب؟ مستحيل. أَوجدوا أنفسهم؟ مستحيل. إذاً أوجدهم غيرهم — ولا بد أن يكون ذلك الغير لا يحتاج هو نفسه إلى موجِد.
+
+العلم الحديث بكل أدواته المتطورة انتهى إلى نفس الخلاصة التي تضمنتها هذه الآية منذ أربعة عشر قرناً.
+`,
+    deepDive: `
+The Argument in Its Strict Logical Form
+===
+The Kalam Cosmological Argument is built on two premises that no rational person can easily deny:
+
+Premise 1: Everything that begins to exist has a cause.
+Premise 2: The universe began to exist.
+Conclusion: Therefore, the universe has a cause.
+
+Denying Premise 1 means accepting that things pop into existence from absolute nothing with no cause — which destroys all scientific and empirical reasoning. Denying Premise 2 contradicts everything modern science has established. The conclusion follows from the premises with strict logical necessity.
+
+
+Science Confirms Premise 2 — The Universe Began to Exist
+===
+Three independent scientific lines of evidence confirm the universe had a beginning:
+
+(1) The Big Bang: In the early 20th century, Hubble proved the universe is expanding. Tracing this expansion backward leads to a singularity: a zero-point where density was infinite and volume was zero — the beginning of matter, energy, time, and space together.
+
+(2) The Second Law of Thermodynamics: Any closed system moves toward maximum entropy. If the universe were eternal, it would have reached heat death (cessation of all energy processes) an infinite time ago. Yet we observe burning stars and abundant free energy — conclusive evidence the universe is young.
+
+(3) The Borde-Guth-Vilenkin Theorem (2003): Three leading theoretical physicists proved mathematically that any universe that has been, on average, expanding must have an absolute beginning — even in multiverse models.
+
+
+The Five Required Properties of the Cause of Existence
+===
+The cause of the universe must possess five properties by logical deduction:
+
+(1) Timeless: Because time began with the creation, and a cause must precede its effect.
+(2) Spaceless: Because space also began with the universe.
+(3) Immaterial: Because all matter and energy emerged with creation.
+(4) Enormously powerful: Having brought the entire physical universe into existence from absolute nothing.
+(5) Personal: The choice of a specific moment of creation requires will; impersonal physical forces do not choose — choosing is the attribute of a personal, rational agent.
+
+These five properties combined do not describe anything within the universe — they describe precisely what Abrahamic religions define as the Creator.
+
+
+The Quran and the Kalam Argument: 14 Centuries of Rational Precedence
+===
+Centuries before Immanuel Kant or William Lane Craig were born, the Quran captured the core of this argument in a single verse:
+
+"Or were they created from nothing, or were they themselves the creators?" (At-Tur 52:35)
+
+This is a three-option question: Did they come into existence without a cause? Impossible. Did they create themselves? Impossible. Therefore something external to them created them — and that something must itself require no creator.
+
+Modern science with all its advanced instruments arrived at the same conclusion already contained in this verse fourteen centuries ago.
+`,
     verses: [
       {
         id: 'verse-tur-35-36',
@@ -2719,6 +2811,100 @@ To prophesy victory for the vastly outnumbered few against a triple-strength arm
     summaryAr: 'كل ممكن يحتاج إلى واجب الوجود كأساسه النهائي — مما يثبت وجود الله.',
     description: 'Dr. Haitham Talaat presents in "بصائر" the Contingency (Imkan/Wujub) Argument: Everything that exists is either necessary (must exist by its own nature) or contingent (could have not existed). The universe and everything in it is contingent—nothing in it must exist; everything could have been otherwise. A contingent thing requires an external explanation for its existence. An infinite regress of contingent things is impossible (each link needs explanation). Therefore, there must be a Necessary Being (واجب الوجود) that exists by its own nature and grounds all contingent reality. This Necessary Being must be: self-existent, eternal, independent, unique. The Arabic philosophical tradition (Ilm al-Kalam) developed this argument extensively, and the Quran alludes to it in multiple verses emphasizing Allah as "Al-Qayyum" (القيوم) — The Self-Subsisting, upon whom all existence depends.',
     descriptionAr: 'يقدم د. هيثم طلعت في "بصائر" برهان الإمكان والوجوب: كل موجود إما واجب الوجود (يجب أن يوجد بطبيعته) أو ممكن الوجود (يمكن ألا يوجد). الكون وكل ما فيه ممكن الوجود. الممكن يحتاج لسبب خارجي. التسلسل اللانهائي للممكنات مستحيل. إذاً لا بد من واجب الوجود.',
+    deepDiveAr: `
+الوجود بين الإمكان والوجوب
+===
+يُميّز الفلاسفة والمتكلمون بين نوعين من الموجودات:
+
+الممكن (المحتَمَل): ما يمكن أن يوجد ويمكن ألا يوجد — وجوده ليس ضرورياً بذاته، بل يحتاج إلى سبب خارجي. الإنسان، الشجرة، الكوكب، بل الكون كله — كلها ممكنة: يمكن تصور عدمها.
+
+الواجب: ما لا يمكن تصور عدمه — يوجد بذاته وبطبيعته، ولا يحتاج إلى سبب خارجي لأن وجوده ضروري بنفسه.
+
+السؤال الكوني الجوهري: لماذا يوجد شيء بدلاً من لا شيء؟ الإجابة الوحيدة المنطقية: لأن ثمة واجب الوجود.
+
+
+لماذا يستحيل التسلسل اللانهائي للممكنات
+===
+لو كان كل شيء ممكناً ولا يوجد واجب الوجود، فإننا نواجه مشكلة: كل ممكن يحتاج إلى سبب، وذلك السبب يحتاج بدوره إلى سبب، وهكذا إلى ما لا نهاية.
+
+هذا التسلسل اللانهائي مستحيل لثلاثة أسباب:
+
+(1) التسلسل اللانهائي لا ينتج تفسيراً حقيقياً: أن تقول "أ سبّب ب" ثم "ب سبّب ج" إلى ما لا نهاية لا يجيب على السؤال لماذا يوجد أي شيء أصلاً — فكل حلقة في السلسلة تبقى بحاجة إلى تفسير.
+
+(2) الرياضيات تُثبت استحالة اللانهاية الفعلية: مفارقة فندق هيلبرت تُبيّن أن مجموعة لانهائية فعلية تُفضي إلى تناقضات منطقية لا حلّ لها.
+
+(3) الواقع المُلاحَظ يدل على البداية: الانفجار العظيم ونظرية بورد-غوث-فيلنكين تُثبتان أن سلسلة الأسباب المادية لها بداية فعلية — أي هي ليست لانهائية.
+
+
+واجب الوجود: الصفات الضرورية للمبدأ الأول
+===
+واجب الوجود يجب أن يكون متصفاً بصفات ضرورية تُستنتج من طبيعته:
+
+(1) قائم بذاته: لا يحتاج إلى سبب خارجي لأن وجوده ضروري بطبيعته.
+(2) أزلي: لا يُمكن أن يكون حادثاً، لأن الحادث ممكن وليس واجباً.
+(3) مستقل: لا يعتمد على شيء آخر في وجوده أو استمراره.
+(4) فريد: لا يمكن أن يكون هناك واجبا وجود متعددان، لأن كل منهما سيُحدّد الآخر وهو ما يُبطل وجوبه.
+
+هذه الصفات — القيام بالذات، الأزلية، الاستقلال، الوحدانية — هي بالضبط صفات الله كما يُقرِّرها القرآن والتراث الكلامي الإسلامي.
+
+
+القيوم: الاسم الذي يُلخص البرهان
+===
+«اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ» (البقرة 2:255)
+
+القيّوم في اللغة: القائم بذاته المُقيم لغيره. الجذر: قام — يقوم — قيّوم. هو الذي وجوده قائم بنفسه، ووجود كل شيء آخر قائم به.
+
+هذا الاسم يُعبّر عن ثلاث حقائق بكلمة واحدة: واجب الوجود (قائم بذاته)، سبب وجود كل الممكنات (مُقيم لغيره)، دائم الوجود (لا يعتريه توقف أو تغيّر).
+
+علم الكلام الإسلامي طوّر هذا البرهان بصورة غير مسبوقة على يد الإمام الغزالي وابن سينا وابن رشد — وكلهم انطلقوا من هذا المفهوم القرآني الذي سبقهم بقرون.
+`,
+    deepDive: `
+Existence Between Contingency and Necessity
+===
+Philosophers and theologians distinguish between two types of existing things:
+
+Contingent (possible): What can exist and can also not-exist — its existence is not necessary in itself, but requires an external cause. Humans, trees, planets, even the entire universe — all are contingent: their non-existence is conceivable.
+
+Necessary: What cannot be conceived as non-existent — it exists by its own nature and requires no external cause, because its existence is self-necessitated.
+
+The fundamental cosmic question: Why does anything exist rather than nothing? The only logically coherent answer: because there is a Necessary Being.
+
+
+Why an Infinite Regress of Contingent Things is Impossible
+===
+If everything were contingent and no Necessary Being existed, we face an insuperable problem: every contingent thing needs a cause, and that cause needs a cause in turn, and so on to infinity.
+
+This infinite regress is impossible for three reasons:
+
+(1) An infinite regress produces no real explanation: Saying "A caused B" then "B caused C" to infinity does not answer why anything exists at all — every link in the chain remains in need of explanation.
+
+(2) Mathematics proves actual infinites are impossible: Hilbert's Hotel Paradox demonstrates that an actually infinite set produces irresolvable logical contradictions.
+
+(3) Observed reality points to a beginning: The Big Bang and the Borde-Guth-Vilenkin theorem prove that the chain of material causes has an actual beginning — meaning it is not infinite.
+
+
+The Necessary Being: Required Properties of the First Principle
+===
+The Necessary Being must possess properties that follow necessarily from its nature:
+
+(1) Self-existent: It requires no external cause because its existence is necessary by its own nature.
+(2) Eternal: It cannot be originated, because an originated thing is contingent — not necessary.
+(3) Independent: It depends on nothing else for its existence or continuation.
+(4) Unique: There cannot be two Necessary Beings, because each would limit the other, which would negate their necessity.
+
+These properties — self-existence, eternity, independence, uniqueness — are precisely the attributes of Allah as established by the Quran and the Islamic theological tradition.
+
+
+Al-Qayyum: The Name That Encapsulates the Argument
+===
+"Allah — there is no deity except Him, the Ever-Living, the Self-Sustaining (Al-Qayyum)" (Al-Baqarah 2:255)
+
+Al-Qayyum in Arabic: the one whose existence is self-sustaining and who sustains all others in their existence. Root: qaama — to stand, to subsist. He is the one whose existence stands by itself, and upon whom the existence of everything else stands.
+
+This single name encodes three truths: Necessary Being (self-subsisting), the Cause of all contingent existence (sustaining all others), and permanent existence (no cessation or change).
+
+Islamic scholastic theology developed this argument in unprecedented depth through Al-Ghazali, Ibn Sina, and Ibn Rushd — all of whom built upon this Quranic concept that preceded them by centuries.
+`,
     verses: [
       {
         id: 'verse-baqara-255-qayyum',
