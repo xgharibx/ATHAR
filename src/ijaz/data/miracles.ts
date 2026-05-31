@@ -6072,6 +6072,112 @@ Awarded to Jeffrey Hall, Michael Rosbash, and Michael Young for discovering the 
     summaryAr: 'يحتوي القرآن على تناسقات في عدد الكلمات مستحيلة إحصائياً: "الدنيا" و"الآخرة" 115 مرة لكل منهما، "الحياة" و"الموت" 145 مرة لكل منهما — عبر 23 سنة من الوحي على يد نبي أمي.',
     description: 'Dr. Haitham Talaat documents the Quran\'s internal numerical balance as a profound logical argument for its divine origin. The Quran was revealed in fragments over 23 years — never written as a complete text by Muhammad, who was illiterate and had no counting tools. Yet detailed word-count studies reveal perfect symmetries statistically impossible by coincidence: (1) "الدُّنْيَا" (this world) appears exactly 115 times. "الْآخِرَة" (the hereafter) appears exactly 115 times — a perfect balance between material and spiritual existence. (2) "الْحَيَاة" (life) appears 145 times. "الْمَوْت" (death) appears 145 times — life and death perfectly balanced. (3) "الْمَلَائِكَة" (angels) appears 88 times. "الشَّيَاطِين" (devils) appears 88 times — opposing forces balanced. (4) "الشَّهْر" (month) appears 12 times — precisely the number of months in a year. (5) "الْيَوْم" (day, singular) appears 365 times — precisely the number of days in a solar year. (6) "الصَّلَاة" (prayer) appears as a commanded obligation exactly 5 times — matching the 5 daily prayers. The probability of any one of these coincidences is astronomically small. Achieving ALL of them simultaneously across a text revealed in different contexts over 23 years, by someone without writing or word-counting tools, is mathematically impossible by chance. The Quran alludes to this: "If it had been from other than Allah, they would have found within it much contradiction" (4:82) — but instead, the Quran contains impossible internal precision.',
     descriptionAr: 'يوثق د. هيثم طلعت التناسق العددي الداخلي للقرآن باعتباره حجة منطقية عميقة على أصله الإلهي. نزل القرآن منجَّماً على مدى 23 عاماً — لم يُكتب كاملاً قط بواسطة محمد الأمي بلا أدوات للعدّ. ومع ذلك تكشف الدراسات عن تناسقات مستحيلة: (1) "الدُّنْيَا" 115 مرة و"الْآخِرَة" 115 مرة. (2) "الْحَيَاة" 145 مرة و"الْمَوْت" 145 مرة. (3) "الْمَلَائِكَة" 88 مرة و"الشَّيَاطِين" 88 مرة. (4) "الشَّهْر" 12 مرة = عدد أشهر السنة. (5) "الْيَوْم" 365 مرة = عدد أيام السنة الشمسية. (6) "الصَّلَاة" فريضة 5 مرات = الصلوات الخمس.',
+    deepDiveAr: `التناسق العددي في القرآن — ست معادلات مستحيلة بالصدفة
+===
+نزل القرآن الكريم على مدار 23 عاماً (610–632 م) في مناسبات متفرقة وبأسباب نزول مختلفة، على لسان نبي أمي لا يقرأ ولا يكتب، في عصر لم تكن فيه أدوات حوسبة ولا برامج عدّ. ومع ذلك، حين أجرى العلماء حصراً حاسوبياً للكلمات المتقابلة، اكتشفوا تناسقات عددية لا تُعزى إلى الصدفة:
+
+(1) الدُّنْيَا ↔ الْآخِرَة: 115 = 115
+(2) الْحَيَاة ↔ الْمَوْت: 145 = 145
+(3) الْمَلَائِكَة ↔ الشَّيَاطِين: 88 = 88
+(4) الشَّهْر: 12 مرة = عدد أشهر السنة تحديداً
+(5) الْيَوْم (المفرد): 365 مرة = عدد أيام السنة الشمسية تحديداً
+(6) الصَّلَاة بصيغة الفريضة: 5 مرات = الصلوات الخمس تحديداً
+
+كل من هذه التناسقات منفردةً أمرٌ عجيب. كلها معاً في نص واحد، نُزِّل على مدى 23 عاماً، يجعل احتمال الصدفة قريباً من الصفر رياضياً.
+
+
+الدنيا والآخرة — الميزان المثالي بين عالمين
+===
+اختار الله لفظتين متضادتين تماماً: "الدُّنْيَا" (هذه الحياة الدنيوية) و"الْآخِرَة" (الحياة الآخرة).
+
+كلتاهما تظهران في سياقات متباينة تماماً عبر السور المكية والمدنية، نازلتين في مناسبات مختلفة على مدى 23 عاماً. ومع ذلك، حصراً دقيقاً يكشف:
+- "الدنيا": 115 مرة.
+- "الآخرة": 115 مرة.
+
+الرسالة اللاهوتية والعلمية: القرآن يضع الدنيا والآخرة في الميزان بالتساوي التام. كأن الله يقول لأصحاب النبي والأجيال المتأخرة على حدٍّ سواء: لا الدنيا أولى بالاهتمام، ولا الآخرة مهملة — التوازن تام.
+
+اكتُشف هذا التوازن بالحوسبة في القرن العشرين. النبي لم يكن يعدّ كلماته.
+
+
+اليوم 365 والشهر 12 — الكون المضمَّن في النص
+===
+من أكثر التناسقات إثارةً للدهشة:
+
+"الْيَوْم" (بصيغة المفرد، يوم واحد): يرد في القرآن 365 مرة — وهو تحديداً عدد أيام السنة الشمسية.
+
+"الشَّهْر" (بصيغة المفرد، شهر واحد): يرد في القرآن 12 مرة — وهو تحديداً عدد أشهر السنة.
+
+يقول الله في القرآن نفسه: "إِنَّ عِدَّةَ الشُّهُورِ عِندَ اللَّهِ اثْنَا عَشَرَ شَهْرًا" (التوبة 9:36). الآية تذكر 12 شهراً — والقرآن كله يذكر كلمة "شهر" 12 مرة. النص والمحتوى متسقان رياضياً.
+
+لاحظ: لم تُضفِ أي آية إضافية "شهر" لإيصال العدد إلى 12. الانسجام جاء تلقائياً عبر الوحي.
+
+
+الحياة والموت والملائكة والشياطين — التوازن المطلق
+===
+أربع معادلات أخرى في ضوء واحد:
+
+(أ) الحياة = الموت: 145 = 145
+القرآن يذكر "الحياة" و"الموت" بتوازن رياضي تام. لا سبيل إلى هذا بدون إحصاء أو تخطيط مسبق.
+
+(ب) الملائكة = الشياطين: 88 = 88
+قوتان متعارضتان في الكون الروحي — بالتوازن التام في كلام الله.
+
+(ج) الصلاة (الفريضة): تُذكر الصلاة بمعنى الفريضة المأمور بها 5 مرات — وهو عدد الصلوات التي فُرضت ليلة المعراج.
+
+هذه ليست مصادفة واحدة. هذه ست مصادفات مستقلة في نص واحد، نزل منجَّماً، على أمي. الجمع بين هذه الاحتمالات يجعل مصدراً إلهياً الاستنتاجَ الأعقل.`,
+    deepDive: `The Quran's Numerical Symmetry — Six Equations Statistically Impossible by Chance
+===
+The Quran was revealed over 23 years (610–632 CE), in scattered occasions with different contexts, spoken by an illiterate prophet with no writing or counting tools, in an era with no computing technology. Yet when scholars performed computational word counts of paired opposites, they found numerical symmetries that cannot be attributed to chance:
+
+(1) Dunya (this world) = Akhira (hereafter): 115 = 115
+(2) Hayat (life) = Mawt (death): 145 = 145
+(3) Malaika (angels) = Shayatin (devils): 88 = 88
+(4) Shahr (month): appears exactly 12 times = months in a year
+(5) Yawm (day, singular): appears exactly 365 times = days in a solar year
+(6) Salah (prayer as a commanded obligation): appears exactly 5 times = the 5 daily prayers
+
+Each symmetry alone is remarkable. All of them together in a single text, revealed over 23 years, makes the probability of coincidence mathematically near zero.
+
+
+Dunya and Akhira — The Perfect Balance Between Two Worlds
+===
+God chose two completely opposite words: "al-Dunya" (this worldly life) and "al-Akhira" (the afterlife).
+
+Both appear in completely different contexts across Meccan and Medinan chapters, revealed on different occasions over 23 years. Yet a precise count reveals:
+- "Dunya": 115 times.
+- "Akhira": 115 times.
+
+The theological and scientific message: the Quran places this world and the next in perfectly equal weight. As if God says to every generation: neither world dominates — the balance is exact.
+
+This balance was discovered computationally in the 20th century. The Prophet was not counting his words.
+
+
+Yawm 365 and Shahr 12 — The Cosmos Embedded in the Text
+===
+Among the most striking symmetries:
+
+"Yawm" (day, singular): appears in the Quran 365 times — precisely the number of days in a solar year.
+
+"Shahr" (month, singular): appears in the Quran 12 times — precisely the number of months in a year.
+
+God states in the Quran itself: "Indeed, the number of months with Allah is twelve months" (At-Tawbah 9:36). The verse mentions 12 months — and the entire Quran uses the word "shahr" exactly 12 times. The content and the text are mathematically consistent.
+
+Note: no verse added an extra "shahr" to bring the total to 12. The harmony arose spontaneously across the 23-year revelation.
+
+
+Life, Death, Angels, Devils — The Absolute Balance
+===
+Four more equations in one light:
+
+(A) Hayat (life) = Mawt (death): 145 = 145
+The Quran mentions "life" and "death" in perfect mathematical balance. This is impossible without prior counting or planning.
+
+(B) Malaika (angels) = Shayatin (devils): 88 = 88
+Two opposing forces in the spiritual universe — in perfect balance in the words of God.
+
+(C) Salah (prayer as obligation): mentioned exactly 5 times as a commanded act — matching the 5 daily prayers established on the Night of Ascension.
+
+These are not one coincidence. These are six independent coincidences in one text, revealed in fragments, to an illiterate prophet. Combining these probabilities makes divine authorship the most rational conclusion.`,
     verses: [
       {
         id: 'verse-nisa-82-balance',
@@ -6130,6 +6236,102 @@ Awarded to Jeffrey Hall, Michael Rosbash, and Michael Young for discovering the 
     summaryAr: 'يصرح القرآن بوجود أشياء أصغر من الذرة — في القرن السابع عندما اعتُقد أن الذرة غير قابلة للتقسيم، كان هذا علماً بشرياً مستحيلاً.',
     description: 'Surah Saba (34:3) states: "Not absent from Him is an atom\'s weight within the heavens or within the earth or [anything] smaller than that or greater, but that it is in a clear register." Surah Yunus (10:61) repeats: "Not absent from your Lord is an atom\'s weight within the earth or within the heaven or what is smaller than that or what is greater." The critical phrase is "وَلَا أَصْغَرَ مِن ذَٰلِكَ وَلَا أَكْبَرَ" — "nor smaller than that nor greater." In the 7th century, the Arabic word "dharra/zarra" (ذرة) referred to the smallest known particle — what we would call an atom. The prevailing view in Greek and Arab natural philosophy was that atoms (atomos = indivisible) were the ultimate smallest unit of matter. The Quran\'s statement that there exists something SMALLER than a dharra was scientifically meaningless or paradoxical to 7th century Arabs. Modern particle physics discovered: (1) The ATOM is itself divisible — containing electrons, protons, neutrons. (2) Protons and neutrons are made of QUARKS — even smaller. (3) Quarks may be composed of still smaller "preons." (4) Standard Model lists 17 fundamental particles — all "smaller than an atom." (5) The universe\'s mass-energy exists at scales ranging from the Planck length (10^-35 m) to the observable universe (8.8×10^26 m). The Quran\'s insistence that things exist "smaller than an atom and larger" aligns with the modern scientific understanding of a continuous hierarchy of scales from the quantum to the cosmic.',
     descriptionAr: 'يقول الله تعالى في سورة سبأ (34:3): "وَلَا يَعْزُبُ عَنْهُ مِثْقَالُ ذَرَّةٍ فِي السَّمَاوَاتِ وَلَا فِي الْأَرْضِ وَلَا أَصْغَرُ مِن ذَٰلِكَ وَلَا أَكْبَرُ إِلَّا فِي كِتَابٍ مُّبِينٍ". العبارة الحاسمة هي "وَلَا أَصْغَرَ مِن ذَٰلِكَ" — وجود شيء أصغر من الذرة. في القرن السابع، اعتُقد أن الذرة هي أصغر وحدة للمادة وأنها غير قابلة للتقسيم (أتوموس يونانياً = غير قابل للانقسام). اكتشف الفيزياء الحديثة: (1) الذرة نفسها قابلة للتقسيم — إلكترونات وبروتونات ونيوترونات. (2) البروتونات والنيوترونات مكونة من كواركات — أصغر. (3) النموذج القياسي يعدد 17 جسيماً أساسياً — كلها أصغر من الذرة.',
+    deepDiveAr: `"وَلَا أَصْغَرَ مِن ذَٰلِكَ" — جملة في القرن السابع تتحدى أرسطو وديموقريطس
+===
+في عصر النبي صلى الله عليه وسلم، كانت الفلسفة الطبيعية — يونانية وعربية — تتبنى موقفاً واحداً راسخاً:
+
+الذرة (أتوموس يونانياً = atomos = "غير قابل للانقسام"): هي أصغر وحدة موجودة في الكون. هذا ما علّمه ديموقريطس (460–370 ق.م)، وتبنّاه أرسطو بصيغة مختلفة، وظل المرجع المقبول عقلياً لأكثر من ألف عام.
+
+القرآن في آية واحدة كسر هذا الاعتقاد بوضوح تام:
+- سورة سبأ (34:3): "وَلَا أَصْغَرُ مِن ذَٰلِكَ وَلَا أَكْبَرُ إِلَّا فِي كِتَابٍ مُّبِينٍ"
+- سورة يونس (10:61): "وَلَا أَصْغَرَ مِن ذَٰلِكَ وَلَا أَكْبَرَ"
+
+"ذَٰلِكَ" يعود على "مثقال ذرة" — أي: يوجد ما هو أصغر من الذرة. في القرن السابع، لم يكن هذا بياناً علمياً منطقياً لأي إنسان — كان يبدو متناقضاً مع الفلسفة الطبيعية السائدة. تكرر هذا التصريح مرتين في القرآن تأكيداً على أهميته.
+
+
+جيجي تومسون 1897 — كسر الذرة وإثبات ما هو أصغر منها
+===
+ظل الاعتقاد بأن الذرة هي أصغر جسيم قائماً حتى نهاية القرن التاسع عشر. ثم جاءت الاكتشافات التي غيّرت الفيزياء:
+
+- 1897: جيجي تومسون يكتشف الإلكترون (سالب الشحنة) داخل الذرة. أول دليل على أن الذرة قابلة للانقسام وتحتوي على أجزاء.
+- 1911: إرنست رذرفورد يكتشف النواة الذرية — يثبت أن الذرة فارغة معظمها وتحتوي على نواة كثيفة صغيرة.
+- 1913: نيلز بور يضع نموذج الذرة الكمي — إلكترونات في مدارات محددة حول النواة.
+- 1932: جيمس تشادويك يكتشف النيوترون — جسيم ثالث داخل الذرة.
+
+المسافة الزمنية بين الآية القرآنية (610 م) وأول إثبات تجريبي لوجود جسيمات أصغر من الذرة (1897): 1287 سنة.
+
+
+الكواركات والنموذج القياسي — المزيد مما هو أصغر من الذرة
+===
+لم يتوقف الاكتشاف عند البروتون والنيوترون والإلكترون:
+
+- 1964: موري غيل-مان وجورج زفايغ يقترحان الكواركات — جسيمات أصغر تتكون منها البروتونات والنيوترونات. أُثبتت تجريبياً عام 1968 (تجارب SLAC).
+- النموذج القياسي الحديث: يُحصي 17 جسيماً أساسياً (6 كواركات + 6 ليبتونات + 4 بوزونات قوى + بوزون هيغز). كلها أصغر من الذرة.
+- بوزون هيغز: اكتُشف عام 2012 (CERN / LHC) — يشرح كيف تكتسب الجسيمات كتلتها.
+
+ما كان "مستحيلاً وجوده" في القرن السابع — شيء أصغر من الذرة — أصبح علماً كاملاً يستوعب 17 جسيماً أساسياً وحقولاً كمومية لا نهاية لها.
+
+
+التسلسل الهرمي الكمي — الكون الذي أشار إليه القرآن
+===
+ما يلفت الانتباه أن القرآن لم يقل فقط "يوجد ما هو أصغر من الذرة" — بل قال: "وَلَا أَصْغَرُ مِن ذَٰلِكَ وَلَا أَكْبَرُ". هذا الوصف المزدوج يُشير إلى تسلسل هرمي كامل من الصغر إلى الكبر:
+
+التسلسل الكوني الموثَّق علمياً:
+- طول بلانك: 10^-35 متر (أصغر مسافة ذات معنى فيزيائي)
+- الكواركات: ~10^-19 متر
+- البروتون/النيوترون: ~10^-15 متر
+- الذرة: ~10^-10 متر
+- الجزيئات → الخلايا → الكائنات → الكواكب → النجوم → المجرات → الكون المرصود: ~8.8×10^26 متر
+
+القرآن وصف هذا المدى بجملة واحدة: "لَا أَصْغَرُ مِن ذَٰلِكَ وَلَا أَكْبَرُ إِلَّا فِي كِتَابٍ مُّبِينٍ". علم الله محيط بكل مستوى من مستويات الوجود.`,
+    deepDive: `"Nor Smaller than That" — A 7th-Century Statement That Challenged Aristotle and Democritus
+===
+In the time of the Prophet (PBUH), natural philosophy — Greek and Arab alike — held one firmly established position:
+
+The atom (Greek: atomos = "indivisible"): the smallest unit in existence. This is what Democritus taught (460–370 BCE), what Aristotle endorsed in modified form, and what remained the accepted intellectual reference for over a thousand years.
+
+In a single verse, the Quran broke this belief with complete clarity:
+- Surah Saba (34:3): "Nor is absent from Him an atom's weight... nor what is smaller than that nor what is greater, but it is in a clear Register."
+- Surah Yunus (10:61): "...nor what is smaller than that nor what is greater."
+
+"That" refers back to "an atom's weight" — meaning: something smaller than an atom exists. In the 7th century, this was not logically possible for any human — it appeared contradictory to all prevailing natural philosophy. This statement is repeated twice in the Quran, emphasizing its importance.
+
+
+J.J. Thomson 1897 — Splitting the Atom, Proving the Smaller
+===
+The belief that the atom was the smallest particle persisted until the end of the 19th century. Then came the discoveries that changed physics:
+
+- 1897: J.J. Thomson discovers the electron (negatively charged) inside the atom. First proof that the atom is divisible and contains components.
+- 1911: Ernest Rutherford discovers the atomic nucleus — proves the atom is mostly empty space with a dense central nucleus.
+- 1913: Niels Bohr places electrons in quantized orbital shells around the nucleus.
+- 1932: James Chadwick discovers the neutron — a third internal component of the atom.
+
+The time gap between the Quranic verse (610 CE) and the first experimental proof of particles smaller than the atom (1897): 1,287 years.
+
+
+Quarks and the Standard Model — Even More Below the Atom
+===
+Discovery did not stop at proton, neutron, and electron:
+
+- 1964: Murray Gell-Mann and George Zweig propose quarks — sub-components of protons and neutrons. Confirmed experimentally in 1968 (SLAC experiments).
+- Modern Standard Model: catalogues 17 fundamental particles (6 quarks + 6 leptons + 4 force bosons + Higgs boson). All are smaller than the atom.
+- Higgs boson: discovered in 2012 (CERN / LHC) — explains how particles acquire mass.
+
+What was "impossible to exist" in the 7th century — something smaller than an atom — became an entire science encompassing 17 fundamental particles and infinite quantum fields.
+
+
+The Quantum Hierarchy — The Universe the Quran Pointed To
+===
+What is particularly striking is that the Quran didn't just say "something smaller than an atom exists" — it said "nor smaller than that nor greater." This double description points to a complete hierarchy from the smallest to the largest:
+
+The scientifically documented cosmic scale:
+- Planck length: 10^-35 meters (smallest physically meaningful distance)
+- Quarks: ~10^-19 meters
+- Proton/Neutron: ~10^-15 meters
+- Atom: ~10^-10 meters
+- Molecules, cells, organisms, planets, stars, galaxies, observable universe: ~8.8x10^26 meters
+
+The Quran described this entire range in one sentence: "Nor smaller than that nor greater, but that it is in a clear Register." God's knowledge encompasses every level of existence.`,
     verses: [
       {
         id: 'verse-saba-3',
