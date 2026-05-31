@@ -7817,6 +7817,124 @@ Key references:
     summaryAr: 'يقرر القرآن أن الروم هُزموا في "أدنى الأرض" — وقعت المعركة بالقرب من البحر الميت، أخفض نقطة على سطح الأرض (-430م)، وهي حقيقة جغرافية لم تُعرف حتى المسح الحديث.',
     description: 'Surah Ar-Rum (30:2–4) states: "The Romans have been defeated — in the nearest land (فِي أَدْنَى الْأَرْضِ). But they, after their defeat, will overcome within three to nine years." The Arabic "adna" (أَدْنَى) has two meanings: (1) "nearest" (most common understanding), (2) "lowest" (from the root دنو — to be low, inferior, close to the ground). The Roman-Persian battle of 614 CE where the Romans were defeated occurred near Adhri\'at (modern Bosra, Jordan/Syria region) and the broader area includes the Dead Sea region — the lowest point on Earth\'s surface at approximately -430 meters below sea level. Historical context: (1) The major Roman defeat by Persians in 614 CE included Jerusalem and the Dead Sea region. (2) The Dead Sea is -430m below sea level — the lowest exposed point on Earth\'s surface. (3) In 7th century Arabia, no instruments existed to determine the "lowest" point on Earth — modern precise geodetic measurements only established this in the 19th century. (4) The word "adna al-ard" chosen by the Quran — when interpreted as "lowest land" — is scientifically accurate for the region where the battle was concentrated. Moreover, the prophecy of Roman victory within 3–9 years was fulfilled in 622–628 CE — an additional scientific/prophetic miracle within the same verse.',
     descriptionAr: 'تقول سورة الروم (30:2-4): "غُلِبَتِ الرُّومُ ﴿٢﴾ فِي أَدْنَى الْأَرْضِ وَهُم مِّن بَعْدِ غَلَبِهِمْ سَيَغْلِبُونَ ﴿٣﴾ فِي بِضْعِ سِنِينَ". كلمة "أدنى" لها معنيان: (1) الأقرب، (2) الأخفض. المعركة الرومانية-الفارسية عام 614م وقعت في منطقة البحر الميت — أخفض نقطة على سطح الأرض (-430م). في القرن السابع لم توجد أدوات لتحديد أخفض نقطة على الأرض — أُثبتت هذه الحقيقة بالمسح الجيوديسي الحديث في القرن التاسع عشر. كما تحققت النبوءة بالانتصار الروماني في 622-628م.',
+    deepDiveAr: `أَدْنَى — كلمة عربية تحمل معنيين، أحدهما مستحيل المعرفة عام 614م
+===
+يقول الله تعالى في سورة الروم (30:2-3): "غُلِبَتِ الرُّومُ فِي أَدْنَى الْأَرْضِ".
+
+كلمة "أَدْنَى" في العربية مشتقة من جذر "دَنَا/دنو" وتحمل معنيين متساويين في الاستخدام العربي:
+- الأَقرب (nearest): المعنى الأكثر شيوعاً في التفاسير القديمة
+- الأَخفض (lowest): من معنى "الدنيء" — المنخفض، الأقرب إلى الأرض
+
+المفسرون القدامى اختاروا "الأقرب" لأنه المعنى الأوضح لهم. لكن الحقيقة الجغرافية التي أثبتها المسح الحديث تكشف أن المعنى الثاني "الأخفض" هو الأدق علمياً: المعركة وقعت في المنطقة التي تضم البحر الميت — أخفض نقطة مكشوفة على سطح الأرض.
+
+في القرن السابع الميلادي لم يكن بالإمكان معرفة أن هذه المنطقة هي "الأخفض" — لا خرائط طبوغرافية، ولا أجهزة قياس ارتفاع، ولا مسح جيوديسي.
+
+
+البحر الميت — أخفض نقطة مكشوفة على سطح الأرض
+===
+البحر الميت يقع على الحدود بين الأردن وفلسطين في أخدود الأردن (Jordan Rift Valley).
+
+الأرقام الدقيقة:
+- ارتفاع سطح البحر الميت: -430 متراً تحت مستوى سطح البحر (2026م)
+- هذا يجعله الأخفض من بين جميع النقاط المكشوفة على اليابسة في العالم
+- مقارنة: ثاني أخفض نقطة هي تورفان (الصين) عند -154 متراً — البحر الميت أخفض بثلاثة أضعاف
+- أخدود الأردن نفسه هو أعمق انخفاض قاري على اليابسة في العالم
+
+أول قياس علمي دقيق:
+- الملازم الأمريكي ويليام فرانسيس لينش (William Francis Lynch) 1848م: قاس ارتفاع البحر الميت وأثبت انخفاضه بـ 394 قدماً (120م) تحت مستوى البحر المتوسط — أول تأكيد علمي بالأدوات الحديثة
+- نشر نتائجه: Lynch, W.F. (1849). "Narrative of the United States Expedition to the River Jordan and the Dead Sea." Lea & Blanchard, Philadelphia.
+- القياسات الحديثة بالأقمار الاصطناعية دقّقت الرقم إلى -430 متراً
+
+الفجوة الزمنية بين الآية القرآنية (610م) وأول إثبات علمي لانخفاض المنطقة (1848م): 1,238 سنة.
+
+
+المعركة الرومانية-الفارسية 614م — السياق التاريخي
+===
+الروم البيزنطيون والفرس الساسانيون خاضوا حروباً متصلة في بداية القرن السابع:
+
+614م: الهزيمة الرومانية:
+- الجيش الفارسي بقيادة شهربراز اجتاح بلاد الشام وسيطر على القدس
+- أسر الفرس "صليب المسيح" الذي كان يُعدّه الروم مقدساً
+- منطقة المعركة الرئيسية والانسحاب الروماني: حوض الأردن ومنطقة البحر الميت — منطقة "أدنى الأرض" بالمعنيين (أقرب من مكة المكرمة للمسلمين آنذاك، وأخفض نقطة جغرافياً)
+
+هرقل والإمبراطورية البيزنطية كانا في أسوأ حالاتهما — لم يكن أي عاقل يتصور انتصاراً رومانياً وشيكاً.
+
+ومع ذلك أعلن القرآن الكريم النبوءة: "وَهُم مِّن بَعْدِ غَلَبِهِمْ سَيَغْلِبُونَ فِي بِضْعِ سِنِينَ" (بضع = 3 إلى 9 سنوات).
+
+
+النبوءة المتحققة — معجزة مزدوجة في آيتين
+===
+في عام 622م بدأ الإمبراطور هرقل حملته المضادة، وفي 628م:
+- هزم الفرس هزيمة ساحقة في نينوى (627م)
+- أُعيد "صليب المسيح" إلى القدس (629م)
+- تحققت النبوءة في 9 سنوات بالضبط من الهزيمة (614م + 9 = 623م للبداية، 628م للاكتمال)
+
+المعجزة مزدوجة:
+1. معجزة جغرافية: "أدنى الأرض" = أخفض نقطة على الأرض (فيزيائياً)، حقيقة لم يُثبتها العلم إلا بعد 1,238 سنة
+2. معجزة نبوية: الإعلان عن انتصار روماني في أحلك لحظاتهم، تحقق بالأجل المحدد
+
+المرجع: Kaegi, W.E. (2003). "Heraclius: Emperor of Byzantium." Cambridge University Press.
+المرجع: Neev, D. & Emery, K.O. (1995). "The Destruction of Sodom, Gomorrah, and Jericho." Oxford University Press.`,
+    deepDive: `"Adna" — One Arabic Word, Two Meanings, One Impossible to Know in 614 CE
+===
+Surah Ar-Rum (30:2–3): "The Romans have been defeated — in adna al-ard (أَدْنَى الْأَرْضِ)."
+
+The Arabic "adna" derives from the root "dana/dunuw" and carries two equally valid meanings in classical Arabic:
+- Al-aqrab (nearest): the most common interpretation in classical tafsir
+- Al-akhhfad (lowest): from "dani" — low, inferior, close to the ground
+
+Classical commentators chose "nearest" as the clearer meaning to them. But the geographic reality revealed by modern surveying shows the second meaning — "lowest" — is physically accurate: the battle occurred in the region containing the Dead Sea, the lowest exposed point on Earth's surface.
+
+In 610 CE, it was impossible to know this region was the "lowest" — no topographic maps, no elevation instruments, no geodetic survey existed in 7th-century Arabia.
+
+
+The Dead Sea — Earth's Lowest Exposed Point
+===
+The Dead Sea lies on the Jordan-Palestine border in the Jordan Rift Valley.
+
+Precise measurements:
+- Dead Sea surface elevation: −430 meters below sea level (2026)
+- This makes it the lowest exposed land point on Earth — no other land surface is lower
+- Comparison: second-lowest point is Turpan Depression, China, at −154 m — the Dead Sea is nearly three times lower
+- The Jordan Rift Valley itself is the deepest continental depression on land in the world
+
+First scientific measurement:
+- US Navy Lieutenant William Francis Lynch (1848): measured the Dead Sea at 394 feet (120 m) below the Mediterranean — first scientifically instrumented confirmation of the region's extreme depth
+- Published: Lynch, W.F. (1849). "Narrative of the United States Expedition to the River Jordan and the Dead Sea." Lea & Blanchard, Philadelphia.
+- Modern satellite geodesy refined the figure to −430 m
+
+Time gap between the Quranic verse (610 CE) and the first scientific confirmation of the region's depth (1848 CE): 1,238 years.
+
+
+The Roman-Persian War of 614 CE — Historical Context
+===
+The Byzantine Romans and Sassanid Persians fought continuous wars in the early 7th century:
+
+614 CE — The Roman Defeat:
+- The Persian army under general Shahrbaraz swept through the Levant and captured Jerusalem
+- The Persians seized the True Cross — a sacred relic held by the Romans
+- The main battlefield and Roman retreat route: the Jordan Basin and Dead Sea region — "adna al-ard" in both senses (geographically nearest to the Arabian Peninsula and physically lowest on Earth)
+
+Emperor Heraclius and the Byzantine Empire were at their absolute lowest — no rational observer expected a Roman recovery within a decade.
+
+Yet the Quran declared the prophecy: "But after their defeat they will overcome — within bida' sineen (3 to 9 years)."
+
+
+The Fulfilled Prophecy — A Double Miracle in Two Verses
+===
+In 622 CE, Emperor Heraclius launched his counteroffensive. By 628 CE:
+- Heraclius defeated Persia decisively at the Battle of Nineveh (627 CE)
+- The True Cross was returned to Jerusalem (629 CE)
+- The prophecy fulfilled within 9 years of the defeat (614 CE + 9 = 623 CE for the start, 628 CE for completion)
+
+The miracle is double:
+1. Geographic miracle: "adna al-ard" = the lowest point on Earth (physically) — a fact science could not confirm until 1,238 years after the verse
+2. Prophetic miracle: announcing Roman victory at their darkest moment, fulfilled within the stated timeframe
+
+Key references:
+- Lynch, W.F. (1849). "Narrative of the United States Expedition to the River Jordan and the Dead Sea." Lea & Blanchard.
+- Kaegi, W.E. (2003). "Heraclius: Emperor of Byzantium." Cambridge University Press.
+- Neev, D. & Emery, K.O. (1995). "The Destruction of Sodom, Gomorrah, and Jericho." Oxford University Press.`,
     verses: [
       {
         id: 'verse-rum-2-4',
@@ -7876,6 +7994,150 @@ Key references:
     summaryAr: 'يُسمي القرآن النوم "وفاة صغرى" واليقظة "بعثاً" — يؤكد علم الأعصاب الحديث أن النوم يتضمن تغييرات درامية في حالة الدماغ وتوطيد الذاكرة وإصلاح خلوي يشبه الموت والتجدد.',
     description: 'Surah Az-Zumar (39:42) states: "Allah takes the souls at the time of their death, and those that have not died during their sleep. He keeps those for which He has decreed death and sends back the others for a specified term." Surah Al-An\'am (6:60): "It is He who takes your souls by night (في النوم), and He knows what you have committed by day." The Quran explicitly equates sleep with a form of death (wafah = taking/death) and waking with return. Modern neuroscience has confirmed: (1) BRAIN DEATH-LIKE STATE IN DEEP SLEEP: During NREM Stage 3 (deep sleep), the brain\'s default mode network shuts down to a level resembling general anesthesia. Consciousness is effectively suspended — exactly the "minor death" described. (2) GLYMPHATIC CLEANING: During sleep, the brain\'s glymphatic system activates and clears toxic metabolites (including amyloid beta associated with Alzheimer\'s) — a profound cellular renewal process. (3) MEMORY CONSOLIDATION: Sleep is essential for transferring short-term memories to long-term storage — the "self" is literally re-formed during sleep. (4) CELLULAR REPAIR: DNA repair, protein synthesis, and cellular regeneration peak during deep sleep — matching the metaphor of "resurrection" at waking. (5) DREAMS IN REM: The Quran mentions souls "returning" from sleep — during REM sleep, the brain is nearly as active as waking, and personal identity/experience (the "self") reconstitutes. Dr. Haitham Talaat notes the Quran\'s precise distinction between the FULL wafah (death) and the nightly wafah (sleep) — where the soul "returns" — prefigures the modern understanding of consciousness as a process that can be suspended and restored.',
     descriptionAr: 'يقول الله تعالى في سورة الزمر (39:42): "اللَّهُ يَتَوَفَّى الْأَنفُسَ حِينَ مَوْتِهَا وَالَّتِي لَمْ تَمُتْ فِي مَنَامِهَا فَيُمْسِكُ الَّتِي قَضَىٰ عَلَيْهَا الْمَوْتَ وَيُرْسِلُ الْأُخْرَىٰ إِلَىٰ أَجَلٍ مُّسَمًّى". يعادل القرآن صراحةً النوم بنوع من الوفاة واليقظة بالعودة. أكد علم الأعصاب الحديث: (1) حالة تشبه الموت في النوم العميق: الشبكة الافتراضية للدماغ تُغلق. (2) التنظيف الجليمفاوي: تُنشَّط أثناء النوم لإزالة السموم الخلوية. (3) توطيد الذاكرة: ضروري لنقل الذكريات. (4) إصلاح DNA: يبلغ ذروته أثناء النوم العميق.',
+    deepDiveAr: `"يَتَوَفَّى" في المنام — دقة لغوية قرآنية تصف حالة فيزيولوجية
+===
+يقول الله تعالى في سورة الزمر (39:42): "اللَّهُ يَتَوَفَّى الْأَنفُسَ حِينَ مَوْتِهَا وَالَّتِي لَمْ تَمُتْ فِي مَنَامِهَا فَيُمْسِكُ الَّتِي قَضَىٰ عَلَيْهَا الْمَوْتَ وَيُرْسِلُ الْأُخْرَىٰ إِلَىٰ أَجَلٍ مُّسَمًّى".
+
+كلمة "يَتَوَفَّى" مشتقة من "الوفاء" = الاستيفاء والأخذ الكامل. تعني: أخذ الشيء بالكامل — لا جزء منه.
+
+القرآن يستخدم نفس الكلمة للموت وللنوم — مع الفارق أن روح النائم "تُرسَل" (ترجع) إلى الجسد، وروح الميت "تُمسَك" (تُحتجَز).
+
+هذه المعادلة الدقيقة بين الوفاة والنوم ليست مجازاً شعرياً — يؤكد علم الأعصاب الحديث أنها تصف واقعاً فيزيولوجياً حرفياً:
+- في النوم العميق (NREM Stage 3): الوعي يُعلَّق تعليقاً شبه كامل
+- الشبكة الافتراضية للدماغ (Default Mode Network) تنطفئ إلى مستوى مشابه للتخدير العام
+- على مقياس الوعي من صفر (غياب كامل) إلى مئة (يقظة تامة): النوم العميق يقع بين 5 و 15
+
+
+الجهاز الجليمفاوي — تنظيف الدماغ في الليل
+===
+في عام 2013م، نشرت ماكن نيدرغارد (Maiken Nedergaard) وزملاؤها في مجلة Science اكتشافاً ثورياً:
+
+الجهاز الجليمفاوي (Glymphatic System):
+- شبكة من القنوات حول الأوعية الدماغية تُصبح نشطة بشكل رئيسي أثناء النوم
+- خلال النوم: تتمدد خلايا الدماغ بنسبة 60% مما يفتح مسارات لجريان السائل الدماغي الشوكي
+- السائل يُزيل المواد الأيضية السامة بما فيها:
+  - بروتين بيتا-أميلويد (beta-amyloid) — المرتبط بمرض الزهايمر
+  - بروتين تاو (tau) — المرتبط بأمراض التنكس العصبي
+  - اللاكتات والمخلفات الخلوية الأخرى
+
+بمعنى آخر: الدماغ "يموت" جزئياً كل ليلة ليُجدَّد ويُنظَّف — ثم "يُبعَث" صباحاً.
+
+المرجع: Xie, L. et al. (2013). "Sleep Drives Metabolite Clearance from the Adult Brain." Science, 342(6156):373-377.
+الفجوة: 2013م − 610م = 1,403 سنة.
+
+
+توطيد الذاكرة — "الروح" التي تُعاد بناؤها ليلياً
+===
+ما الذي يحدث للذاكرة والهوية أثناء النوم؟
+
+في مرحلة NREM:
+- الحُصين (Hippocampus) "يُعيد تشغيل" تجارب اليوم بسرعة متعددة الأضعاف
+- هذه الإعادة تُرسّخ الذكريات قصيرة المدى في التخزين طويل الأمد بالقشرة المخية
+- بدون هذه العملية: المعلومات تُمحى ولا تترسخ
+
+في مرحلة REM:
+- الدماغ شبه نشط كالحالة اليقظة
+- تُحوَّل الذكريات العاطفية وتُعالَج
+- "الذات" — بمعنى هوية الشخص وتجاربه — تُعاد بناؤها ليلياً
+
+أبحاث روبرت ستيكغولد (Robert Stickgold، Harvard Medical School) أثبتت أن الحرمان من النوم يُدمر توطيد الذاكرة — الشخص يصبح بالحرف "غير مكتمل" صباحاً بدون هذا الإعادة الليلية.
+
+المرجع: Stickgold, R. (2005). "Sleep-dependent memory consolidation." Nature, 437:1272-1278.
+الفجوة: 2005م − 610م = 1,395 سنة.
+
+
+إصلاح DNA والتجديد الخلوي — البعث الليلي
+===
+النوم العميق هو النافذة الأساسية للتجديد الخلوي:
+
+1. إصلاح DNA:
+- الخلايا العصبية وخلايا الجسم تُصلح تلف DNA المتراكم أثناء اليقظة
+- بروتينات الإصلاح (مثل PARP و RAD51) تُنشَّط بشكل تفضيلي أثناء النوم
+- الحرمان من النوم يُراكم تلف DNA بمعدلات مرتبطة بالسرطان والشيخوخة المبكرة
+
+2. إفراز هرمون النمو:
+- ~75% من الجرعة اليومية لهرمون النمو (GH) تُطلَق أثناء النوم العميق
+- هرمون النمو: يُصلح الأنسجة ويُجدد الخلايا ويُعيد بناء العضلات
+
+3. الجهاز المناعي:
+- خلايا NK (Natural Killer) وخلايا T تُنشَّط أثناء النوم
+- قلة النوم ترفع مستوى السيتوكينات الالتهابية وتُضعف المناعة
+
+القرآن قال: "يُرسِلُ الأُخرى إلى أجل مسمى" — الروح تُعاد إلى جسد مُجدَّد ومُنقى ومُصلَّح.
+
+المرجع: Walker, M. (2017). "Why We Sleep." Scribner. (النوم وإصلاح DNA وهرمون النمو والمناعة)`,
+    deepDive: `"Yatawaffa" During Sleep — Quranic Precision Describing a Physiological State
+===
+Surah Az-Zumar (39:42): "Allah takes the souls (yatawaffa) at the time of their death, and those that have not died — during their sleep. He keeps those for which He has decreed death and sends back the others for a specified term."
+
+The word "yatawaffa" derives from "wafa'" = complete fulfillment, taking in full — to take something entirely, not partially.
+
+The Quran uses the same word for both death and sleep — with the difference that the sleeping person's soul is "sent back" (yursil) to the body, while the dead person's soul is "retained" (yumsik).
+
+This precise equation between death and sleep is not poetic metaphor — modern neuroscience confirms it as physiologically literal:
+- In deep NREM Stage 3 sleep: consciousness is suspended to a level comparable to general anesthesia
+- The brain's Default Mode Network (responsible for self-awareness) shuts down completely
+- On a consciousness scale from 0 (total absence) to 100 (full wakefulness): deep sleep registers 5–15
+
+
+The Glymphatic System — The Brain's Nightly Cleanse
+===
+In 2013, Maiken Nedergaard and colleagues published a landmark paper in Science:
+
+The Glymphatic System:
+- A network of channels around brain blood vessels, primarily active during sleep
+- During sleep: brain cells shrink by approximately 60%, opening channels for cerebrospinal fluid flow
+- This fluid removes toxic metabolic waste including:
+  - Beta-amyloid protein — linked to Alzheimer's disease
+  - Tau protein — linked to neurodegenerative diseases
+  - Lactate and other cellular metabolic debris
+
+The brain partially "dies" each night (ceases information processing) to be cleaned and renewed — then is "resurrected" each morning.
+
+Reference: Xie, L. et al. (2013). "Sleep Drives Metabolite Clearance from the Adult Brain." Science, 342(6156):373–377.
+Time gap: 2013 CE − 610 CE = 1,403 years.
+
+
+Memory Consolidation — The "Self" Rebuilt Each Night
+===
+During NREM sleep:
+- The hippocampus "replays" daytime experiences at accelerated speed
+- This replay transfers short-term memories to long-term cortical storage
+- Without this process: information is erased and fails to consolidate
+
+During REM sleep:
+- The brain is nearly as active as in waking
+- Emotional memories are processed and integrated
+- The "self" — personal identity, knowledge, experienced history — is literally rebuilt each night
+
+Robert Stickgold (Harvard Medical School) showed that sleep deprivation completely destroys memory consolidation — the person is literally "incomplete" in the morning without the nightly rebuilding.
+
+Reference: Stickgold, R. (2005). "Sleep-dependent memory consolidation." Nature, 437:1272–1278.
+Time gap: 2005 CE − 610 CE = 1,395 years.
+
+
+DNA Repair and Cellular Renewal — The Nightly Resurrection
+===
+Deep sleep is the primary window for cellular renewal:
+
+1. DNA Repair:
+- Neurons and body cells repair DNA damage accumulated during waking hours
+- Repair proteins (including PARP and RAD51) are preferentially activated during sleep
+- Sleep deprivation accumulates DNA damage at rates linked to cancer and accelerated aging
+
+2. Growth Hormone Release:
+- ~75% of the daily growth hormone (GH) dose is released during deep sleep
+- Growth hormone repairs tissues, renews cells, rebuilds muscle
+
+3. Immune Activation:
+- NK (Natural Killer) cells and T cells are enhanced during sleep
+- Sleep deprivation elevates inflammatory cytokines and suppresses immunity
+
+The Quran said: "He sends back the others for a specified term" — the soul returns to a body that has been cleaned, repaired, and renewed.
+
+All of this — glymphatic cleaning, memory rebuilding, DNA repair, growth hormone release — was unknown in the 7th century and confirmed only in the 20th–21st centuries.
+
+Reference: Walker, M. (2017). "Why We Sleep." Scribner.`,
     verses: [
       {
         id: 'verse-zumar-42',
