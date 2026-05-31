@@ -10049,6 +10049,82 @@ Reference: Bell, C. (1811). "Idea of a New Anatomy of the Brain." Strahan & Pres
     summaryAr: 'يقرر القرآن أن الشمس "تجري لمستقر لها" — تؤكد الفيزياء الفلكية الحديثة أن الشمس تدور حول مركز المجرة بسرعة 220 كم/ث، وتكمل دورة كل 225 مليون سنة، وتتجه نحو النقطة الشمسية القمة (كوكبة هرقل).',
     description: 'Surah Ya-Sin (36:38): "And the sun runs [on course] toward its settling place (تَجْرِي لِمُسْتَقَرٍّ لَّهَا). That is the determination of the Exalted in Might, the Knowing." The Arabic verb تَجْرِي (tajri) means "runs/flows" — indicating active motion, not just apparent motion as seen from Earth. The phrase لِمُسْتَقَرٍّ لَّهَا means "to a settling place of its own" — a destination point. Modern astrophysics has confirmed: (1) THE SUN MOVES: The sun is NOT stationary. It orbits the Milky Way galaxy at approximately 220 km/s (792,000 km/h), taking about 225 million years to complete one orbit (a "cosmic year"). (2) SOLAR APEX: The sun moves in a specific direction — toward a point in the constellation Hercules called the Solar Apex (coordinates: RA 18h 28m, Dec +34°) — exactly "running toward a settling place of its own." This was discovered by William Herschel in 1783. (3) SELF-ROTATION: The sun also rotates on its own axis, completing one rotation approximately every 27 days (at the equator). (4) 7TH CENTURY IMPOSSIBILITY: In the 7th century, the prevailing Ptolemaic model held the Earth at the center with the sun revolving around it. The idea that the sun itself "runs" to its own destination was not conceived — yet the Quran uses an active verb (تَجْرِي = "runs by its own motion") rather than a passive one.',
     descriptionAr: 'يقول الله تعالى في سورة يس (36:38): "وَالشَّمْسُ تَجْرِي لِمُسْتَقَرٍّ لَّهَا ذَٰلِكَ تَقْدِيرُ الْعَزِيزِ الْعَلِيمِ". الفعل "تَجْرِي" يدل على الحركة النشطة، لا الظاهرية. عبارة "لمستقر لها" تعني وجهة خاصة بها. أكدت الفيزياء الفلكية الحديثة: (1) الشمس تتحرك: تدور حول المجرة بسرعة 220 كم/ث. (2) النقطة الشمسية القمة: الشمس تتجه نحو كوكبة هرقل — اكتشاف وليام هيرشل 1783. (3) النموذج البطلمي في القرن السابع لم يتصور أن الشمس "تجري" بحركتها الخاصة.',
+    deepDiveAr: `"تَجْرِي" — الفعل النشط يُثبت حركة الشمس الذاتية (1,173 سنة)
+===
+يقول الله تعالى في سورة يس (36:38): "وَالشَّمْسُ تَجْرِي لِمُسْتَقَرٍّ لَّهَا ذَٰلِكَ تَقْدِيرُ الْعَزِيزِ الْعَلِيمِ".
+
+الفعل "تَجْرِي" (مضارع من جَرَى) = يجري بحركته الذاتية المستمرة — لا مجرد الحركة الظاهرية كما تُرى من الأرض.
+
+الاستحالة التاريخية: في القرن السابع كان النموذج البطلمي (Ptolemaic model) هو المرجع الفلكي الحاكم — فيه الأرض ساكنة في المركز والشمس تدور حولها. في هذا الإطار: الشمس "تتحرك" بالنسبة للأرض فقط — لكنها لا "تجري" بحركة خاصة بها نحو وجهة محددة. استخدام القرآن لفعل نشط (تجري = runs by its own motion) بدلاً من فعل ظاهري مثل "يدور" أو "يُرى" دقة علمية كانت مستحيلة في سياق القرن السابع.
+
+الاكتشاف الحديث: وليام هيرشل (William Herschel) عام 1783 درس الحركة الذاتية للنجوم القريبة وتوصل إلى أن الشمس نفسها تتحرك نحو نقطة ثابتة في السماء — النقطة القمة (Solar Apex) في كوكبة هرقل — بسرعة ~20 كم/ث نسبةً إلى النجوم المجاورة. الفجوة: 1783 − 610 = 1,173 سنة. المرجع: Herschel, W. (1783). "On the Proper Motion of the Sun and Solar System." Philosophical Transactions of the Royal Society, 73, 247–283.
+
+
+"لِمُسْتَقَرٍّ لَّهَا" — وجهة خاصة بالشمس: النقطة القمة
+===
+عبارة "لِمُسْتَقَرٍّ لَّهَا" تتضمن دلالتين متكاملتين:
+
+(1) "لِمُسْتَقَرٍّ" = لها وجهة أو مستقر محدد تتجه إليه — لا تجري عشوائياً. (2) "لَّهَا" = لها هي / خاص بها — الحركة باتجاه وجهتها الخاصة وليس دورانها الظاهري حول الأرض.
+
+هذا بالضبط ما اكتشفه هيرشل عام 1783: للشمس نقطة وجهة محددة في الفضاء تتجه نحوها. النقطة القمة (Solar Apex): إحداثيات RA 18h 28m، Dec +34° في كوكبة هرقل. الشمس تتحرك نحو هذه النقطة بسرعة ~20 كم/ث نسبةً إلى النجوم القريبة.
+
+بالمنطق البلاغي: لو كان المقصود مجرد الدوران الظاهري كما يراه إنسان القرن السابع لكفى قول "تدور" أو "تمر" — أما "تَجْرِي لِمُسْتَقَرٍّ لَّهَا" فهو يصف حركة موجَّهة نحو وجهة خاصة بالشمس ذاتها. المرجع: Herschel, W. (1783). Philosophical Transactions of the Royal Society, 73, 247–283. NASA/JPL Solar Apex coordinates dataset.
+
+
+المدار المجري — الشمس تجري بسرعة 220 كم/ث حول مركز درب التبانة
+===
+بالإضافة إلى الحركة نحو النقطة القمة تؤكد الفيزياء الفلكية الحديثة طبقة ثانية من الحركة الذاتية للشمس:
+
+الشمس تدور حول مركز مجرة درب التبانة بسرعة ~220 كم/ث (792,000 كم/ساعة) على مسافة 26,000 سنة ضوئية من المركز. السنة الكونية (Galactic Year): وقت دورة كاملة = 225 مليون سنة أرضية. الشمس في حركة مستمرة لا تتوقف — "تجري" حرفياً لا مجازاً.
+
+تحديد هذه السرعة المجرية بدقة: Mark Reid و Andreas Brunthaler من مركز هارفارد-سميثسونيان للفيزياء الفلكية عام 2004 قاسا الحركة الذاتية لمصدر النجمة القطبية المجرية (Sgr A*) ورصدا موقع الشمس ومسارها بدقة غير مسبوقة. الفجوة: 2004 − 610 = 1,394 سنة. المرجع: Reid, M.J. & Brunthaler, A. (2004). "The Proper Motion of Sgr A*." The Astrophysical Journal, 616(2), 872–884.
+
+
+"وَالشَّمْسُ تَجْرِي" — تقديم المبتدأ في العربية يُخصص الحركة الذاتية
+===
+في البلاغة العربية وعلم النحو: تقديم المبتدأ على الفعل في جملة "وَالشَّمْسُ تَجْرِي" يُفيد التخصيص والتوكيد — أي: الشمس هي التي تجري بحركتها الخاصة لا مجرد أنها تبدو متحركة.
+
+المقارنة: لو قيل "تجري الشمس" (فعل + فاعل) → وصف عام للحدث. لكن "وَالشَّمْسُ تَجْرِي" (مبتدأ + خبر فعلي) → تخصيص: الشمس بالذات — هي التي تجري. الفعل المضارع "تَجْرِي" يدل على الاستمرارية والديمومة: الشمس تجري الآن وكل وقت.
+
+التناقض مع نموذج القرن السابع: في الكونيات اليونانية والبطلمية الشائعة آنذاك الأجرام السماوية ثابتة في أفلاكها حول الأرض الساكنة. فكرة أن الشمس "تجري" بحركة ذاتية حقيقية نحو وجهة محددة لم يتصورها أي علم أو فلسفة في القرن السابع. المرجع: Ptolemy (c. 150 CE). "Almagest." Trans. Toomer, G.J. (1998). Princeton University Press.`,
+    deepDive: `"Tajri" — The Active Verb Proves the Sun's Own Motion (Gap: 1,173 Years)
+===
+Surah Ya-Sin (36:38): "And the sun runs (tajri) toward its settling place of its own (li-mustaqarrin laha). That is the determination of the Exalted in Might, the Knowing."
+
+The verb "tajri" (present tense of jara) = runs/flows by its own motion — indicating continuous, active self-motion, NOT merely apparent motion as observed from a fixed Earth.
+
+The 7th-century impossibility: The Ptolemaic geocentric model governed all astronomy in the 7th century — Earth fixed at center, sun revolving around it. In this framework, the sun's "motion" was entirely relative to Earth's observation point. Using an active verb "runs by its own motion" toward a specific destination — rather than a passive term like "revolves" or "appears to move" — was scientifically inconceivable in this context.
+
+The modern discovery: William Herschel (1783) studied the proper motion of nearby stars and determined that the sun itself moves toward a fixed point in space — the Solar Apex in the constellation Hercules — at approximately 20 km/s relative to nearby stars. This was the first confirmation that the sun "runs toward a settling place of its own." Gap: 1783 - 610 = 1,173 years. Reference: Herschel, W. (1783). "On the Proper Motion of the Sun and Solar System." Philosophical Transactions of the Royal Society, 73, 247–283.
+
+
+"Li-Mustaqarrin Laha" — The Sun's Own Destination: The Solar Apex
+===
+The Arabic phrase "li-mustaqarrin laha" contains two precise components:
+
+(1) "li-mustaqarrin" = toward a specific settling place — the sun moves toward a defined spatial destination, not randomly. (2) "laha" = of its own / for itself — this settling place belongs specifically to the sun, distinguishing its own directed motion from its apparent rotation around Earth.
+
+This is exactly what Herschel confirmed in 1783: the sun has a specific destination in space toward which it moves. The Solar Apex: coordinates RA 18h 28m, Dec +34° in the constellation Hercules. The sun moves toward this point at ~20 km/s relative to neighboring stars.
+
+The logical precision: if the verse meant only the apparent daily motion as seen by a 7th-century observer, simpler terms like "revolves" or "passes" would suffice. "Runs toward a settling place of its own" describes directed, self-driven motion toward a specific spatial destination — a concept unimaginable in Ptolemaic astronomy. Reference: Herschel, W. (1783). Philosophical Transactions of the Royal Society, 73, 247–283. ESA Hipparcos catalogue data on solar proper motion.
+
+
+The Galactic Orbit — The Sun Runs at 220 km/s Around the Milky Way
+===
+Beyond the Solar Apex motion, modern astrophysics confirms a second layer of the sun's own motion:
+
+The sun orbits the center of the Milky Way galaxy at approximately 220 km/s (792,000 km/h), at a distance of ~26,000 light-years from the galactic center. One complete orbit — a "galactic year" — takes approximately 225 million Earth years. The sun is in perpetual, continuous motion — it literally "runs" without stopping.
+
+Precision measurement: Mark Reid and Andreas Brunthaler (Harvard-Smithsonian Center for Astrophysics, 2004) measured the proper motion of the galactic center black hole Sgr A* using VLBI, directly determining the sun's galactic orbital velocity to unprecedented precision. Gap: 2004 - 610 = 1,394 years. Reference: Reid, M.J. & Brunthaler, A. (2004). "The Proper Motion of Sgr A*." The Astrophysical Journal, 616(2), 872–884.
+
+
+"Wa l-Shamsu Tajri" — Arabic Grammatical Emphasis Specifies Self-Motion
+===
+In Arabic rhetoric and grammar, the sentence structure "al-shamsu tajri" (subject + predicate verb) rather than "tajri l-shamsu" (verb + subject) carries a specific nuance: it emphasizes the SUBJECT — the sun itself runs by its own motion, specifying self-directed action.
+
+Comparison: "Tajri l-shamsu" (verb + subject) = "the sun runs" — general description. "Wa l-shamsu tajri" (subject + verb-predicate) = "as for the sun — IT runs" — emphasis on the sun's own self-directed running. The present tense "tajri" (imperfect/continuous) indicates ongoing, perpetual action: the sun IS running — now and always.
+
+Contrast with 7th-century cosmological models: In Aristotelian-Ptolemaic cosmology, heavenly bodies were fixed in crystalline spheres revolving around a stationary Earth. The sun had no "self-motion" — it was carried by its sphere. The concept of the sun having its own directed motion toward its own specific destination was entirely outside all 7th-century astronomical frameworks — Greek, Persian, Indian, or Arabic. Reference: Ptolemy (c. 150 CE). "Almagest." Trans. Toomer, G.J. (1998). Princeton University Press. Herschel, W. (1783). Philosophical Transactions of the Royal Society, 73.`,
     verses: [
       {
         id: 'verse-yasin-38',
@@ -10104,6 +10180,86 @@ Reference: Bell, C. (1811). "Idea of a New Anatomy of the Brain." Strahan & Pres
     summaryAr: 'يقرر القرآن "خلقنا كل شيء زوجين" — تؤكد الفيزياء الحديثة ذلك على أعمق المستويات: مادة/مادة مضادة، جسيم/ضد الجسيم، شحنة موجبة/سالبة، لف للأعلى/للأسفل — تماثل الزوجية قانون أساسي للفيزياء.',
     description: 'Surah Adh-Dhariyat (51:49): "And of everything We created two mates (زَوْجَيْنِ); perhaps you will be reminded." Surah Ya-Sin (36:36): "Exalted is He who created all pairs — from what the earth grows and from themselves and from that which they do not know." The phrase "from that which they do not know" is particularly remarkable — pairs that humans had not yet discovered. Modern physics has confirmed pair symmetry at every level: (1) MATTER-ANTIMATTER: Paul Dirac predicted (1928) and Carl Anderson confirmed (1932) that every particle has an antiparticle — the positron (antielectron). This pair symmetry extends to quarks, leptons, bosons, and all fundamental particles. (2) PARTICLE PAIRS: Proton/antiproton, electron/positron, neutron/antineutron, quark/antiquark — every known particle has an antiparticle twin. (3) CHARGE PAIRS: Every electric charge is balanced by its opposite — positive/negative. (4) SPIN PAIRS: Quantum spin has two states: +½ and -½ (spin up and spin down). (5) ELECTROMAGNETIC PAIRS: Electric and magnetic fields are paired. (6) BIOLOGICAL PAIRS: Male/female reproduction (sexual dimorphism) in all multicellular life. (7) FORCE PAIRS: Newton\'s third law — every action has an equal and opposite reaction. The phrase "from that which they do not know" covers pairs unknown in the 7th century: matter-antimatter pairs, quark pairs, neutrino/antineutrino pairs, etc.',
     descriptionAr: 'يقول الله تعالى في سورة الذاريات (51:49): "وَمِن كُلِّ شَيْءٍ خَلَقْنَا زَوْجَيْنِ لَعَلَّكُمْ تَذَكَّرُونَ". وفي سورة يس (36:36): "سُبْحَانَ الَّذِي خَلَقَ الْأَزْوَاجَ كُلَّهَا مِمَّا تُنبِتُ الْأَرْضُ وَمِنْ أَنفُسِهِمْ وَمِمَّا لَا يَعْلَمُونَ". عبارة "مما لا يعلمون" ملحوظة — أزواج لم يكتشفها البشر بعد. أكدت الفيزياء الحديثة تماثل الأزواج: (1) مادة-مادة مضادة: بول ديراك (1928) / كارل أندرسون (1932). (2) أزواج الجسيمات: كل جسيم له ضد-جسيم. (3) الشحنات، اللف الكمي، الأزواج الكهرومغناطيسية — كل مستوى.',
+    deepDiveAr: `"وَمِن كُلِّ شَيْءٍ خَلَقْنَا زَوْجَيْنِ" — شمولية الزوجية: من البيولوجيا إلى ما دون الذرة
+===
+يقول الله تعالى في سورة الذاريات (51:49): "وَمِن كُلِّ شَيْءٍ خَلَقْنَا زَوْجَيْنِ لَعَلَّكُمْ تَذَكَّرُونَ". وفي سورة يس (36:36): "سُبْحَانَ الَّذِي خَلَقَ الْأَزْوَاجَ كُلَّهَا مِمَّا تُنبِتُ الْأَرْضُ وَمِنْ أَنفُسِهِمْ وَمِمَّا لَا يَعْلَمُونَ".
+
+"وَمِن كُلِّ شَيْءٍ" = من كل شيء في الوجود — تعميم مطلق لا استثناء فيه. هذا التعميم يشمل مستويات لم يتصورها أي إنسان في القرن السابع: البيولوجيا (ذكر/أنثى)، الكيمياء (أيون/أيون مضاد)، الفيزياء النووية، وما دون الذرة (جسيم/ضد-جسيم).
+
+الاستحالة التاريخية: في القرن السابع كانت الأزواج الملاحظة تقتصر على الذكر/الأنثى في الحيوان والنبات. لم يُعرف شيء عن الزوجية الذرية أو ما دون الذرة. بول ديراك (1928) اشتق من معادلات الكم النسبية أن لكل جسيم "مضاداً" بشحنة معاكسة. كارل أندرسون (1932) أثبت وجود البوزيترون (ضد الإلكترون) — أول ضد-جسيم مرصود. الفجوة: 1932 − 610 = 1,322 سنة. المرجع: Anderson, C.D. (1933). "The Positive Electron." Physical Review, 43(6), 491–494.
+
+
+أزواج المادة والمادة المضادة — اكتشاف مستحيل في القرن السابع (1,322 سنة)
+===
+aكتشاف الفيزياء الحديثة الأعمق يؤكد الزوجية الكونية الشاملة:
+
+معادلة ديراك (1928): بول ديراك دمج ميكانيكا الكم مع النسبية الخاصة ووجد أن الحل الرياضي يستلزم وجود "صورة مرآة" لكل جسيم — بنفس الكتلة وشحنة معاكسة. هذا مبدأ رياضي بحت لا افتراض تجريبي.
+
+التأكيد التجريبي (1932): كارل أندرسون في كاليفورنيا رصد في غرفة الضباب جسيماً بكتلة الإلكترون وشحنة موجبة — البوزيترون. جائزة نوبل: ديراك 1933، أندرسون 1936.
+
+إنتاج الأزواج (Pair Production): عند تحويل طاقة (فوتون) إلى مادة تنتج الطبيعة دائماً زوجاً: جسيم + ضد-جسيم. لا يمكن إنتاج مادة بدون مضادها — قانون طبيعي مطلق. الآن: كل جسيم معروف له ضد-جسيم: بروتون/ضد-بروتون، نيوترون/ضد-نيوترون، كوارك/ضد-كوارك، نيوترينو/ضد-نيوترينو. الفجوة: 1932 − 610 = 1,322 سنة. المرجع: Dirac, P.A.M. (1928). "The Quantum Theory of the Electron." Proceedings of the Royal Society A, 117, 610–624.
+
+
+"مِمَّا لَا يَعْلَمُونَ" — توقع قرآني صريح بأزواج لم تُكتشف بعد
+===
+الآية في سورة يس (36:36) تُقسّم الأزواج إلى ثلاث فئات بشكل صريح وغير مسبوق:
+
+(1) "مِمَّا تُنبِتُ الْأَرْضُ" = الأزواج النباتية — الأزهار مؤنثة/مذكرة. (2) "وَمِنْ أَنفُسِهِمْ" = الأزواج البشرية والحيوانية — ذكر/أنثى. (3) "وَمِمَّا لَا يَعْلَمُونَ" = أزواج لا يعلمها البشر بعد — توقع صريح بوجود أصناف من الزوجية لم تُكتشف.
+
+هذا التقسيم الثلاثي غير موجود في أي نص علمي أو فلسفي في القرن السابع. الأزواج التي كانت مجهولة عام 610م واكتُشفت لاحقاً: الكوارك وضد-الكوارك (1969، SLAC Stanford)، النيوترينو وضد-النيوترينو (1956، Reines-Cowan)، اللبتونات وأضدادها، البوزونات الزوجية (W+/W-).
+
+هذا توقع كوني بوجود أصناف زوجية خارج إدراك البشر — لا مجرد نقل ملاحظة بشرية. المرجع: Gell-Mann, M. (1964). "A Schematic Model of Baryons and Mesons." Physics Letters, 8(3), 214–215. Reines, F. & Cowan, C.L. (1956). "The Neutrino." Nature, 178, 446.
+
+
+تماثل CPT — القانون الفيزيائي الأعمق يبني الكون على الأزواج
+===
+أعمق قوانين الفيزياء النظرية الحديثة تؤكد أن الزوجية بُنية كونية أصيلة:
+
+تماثل CPT: كل عملية فيزيائية تبقى ثابتة تحت ثلاثة تحويلات مجتمعة — الشحنة (C: استبدال كل جسيم بضده)، التكافؤ (P: عكس الفضاء)، الزمن (T: عكس اتجاهه). هذا يعني: لكل جسيم ضد-جسيم مُطابق وإلا تنكسر هذه المعادلة الأساسية.
+
+النموذج المعياري (Standard Model): مبنيٌّ على مبادئ تماثل زوجي في كل مستوى: الكواركات في أزواج (up/down, charm/strange, top/bottom)، اللبتونات في أزواج (electron/neutrino)، البوزونات في أزواج (W+/W-). ما من وحدة بنائية أساسية في الكون إلا ولها زوج أو ضد.
+
+النتيجة الكبرى: آية "وَمِن كُلِّ شَيْءٍ خَلَقْنَا زَوْجَيْنِ" تصف حقيقة صارت قانون فيزياء أساسياً في القرن العشرين: الزوجية (Pair Symmetry) مبدأ بنائي للكون على أعمق المستويات. المرجع: Streater, R.F. & Wightman, A.S. (1964). "PCT, Spin and Statistics, and All That." W.A. Benjamin. Particle Data Group (2022). "Review of Particle Physics." Progress of Theoretical and Experimental Physics.`,
+    deepDive: `"From Everything" — The Universal Scope of Pair-Symmetry: From Biology to Subatomic Physics
+===
+Surah Adh-Dhariyat (51:49): "And of everything (min kulli shay'in) We created two mates (zawjayni); perhaps you will be reminded." Surah Ya-Sin (36:36): "Exalted is He who created all pairs — from what the earth grows, and from themselves, and from that which they do not know (mimma la ya'lamun)."
+
+"Min kulli shay'in" = from everything — an absolute universal quantifier with no exceptions. This generalization encompasses levels no 7th-century human could conceive: biology (male/female), chemistry (ion/counter-ion), nuclear physics, and subatomic physics (particle/antiparticle).
+
+The 7th-century state of knowledge: observable pairs were limited to male/female in animals and plants. Nothing was known of atomic or subatomic pairing. Paul Dirac (1928) derived from relativistic quantum equations that every particle must have an "antiparticle" with opposite charge. Carl Anderson (1932) confirmed the positron (anti-electron) — the first observed antiparticle. Gap: 1932 - 610 = 1,322 years. Reference: Anderson, C.D. (1933). "The Positive Electron." Physical Review, 43(6), 491–494.
+
+
+Matter-Antimatter Pairs — A 7th-Century Impossibility (Gap: 1,322 Years)
+===
+The deepest discovery of modern physics confirms universal pair-symmetry extending to the most fundamental level of reality:
+
+Dirac's equation (1928): Paul Dirac combined quantum mechanics with special relativity and found that the mathematical solution REQUIRES the existence of a "mirror image" for every particle — same mass, opposite charge. This was a purely mathematical necessity, not an experimental hypothesis.
+
+Experimental confirmation (1932): Carl Anderson at Caltech observed in a cloud chamber a particle with the mass of an electron but positive charge — the positron. First experimentally confirmed antiparticle. Nobel Prize: Dirac 1933, Anderson 1936.
+
+Pair production: when energy (a photon) converts to matter, nature ALWAYS produces a pair — particle + antiparticle. Matter cannot be created without its antimatter twin — an absolute law of nature. Now confirmed: every known particle has an antiparticle: proton/antiproton, neutron/antineutron, quark/antiquark, neutrino/antineutrino. Gap: 1932 - 610 = 1,322 years. Reference: Dirac, P.A.M. (1928). "The Quantum Theory of the Electron." Proceedings of the Royal Society A, 117, 610–624.
+
+
+"From What They Do Not Know" — An Explicit Quranic Prediction of Undiscovered Pairs
+===
+Surah Ya-Sin (36:36) explicitly divides pairs into three categories — an unprecedented taxonomy:
+
+(1) "From what the earth grows" = plant pairs — male/female flowers, sexually reproducing plants. (2) "From themselves" = human and animal pairs — male/female. (3) "From what they do not know" = pairs unknown to them yet — an explicit advance prediction that categories of pairing exist beyond human knowledge.
+
+This three-part taxonomy appears nowhere in any 7th-century scientific or philosophical text — no one conceived that pairing could be a cosmic law extending to invisible, subatomic matter. Pairs that were unknown in 610 CE and discovered later: quark/antiquark (1969, SLAC Stanford); neutrino/antineutrino (1956, Reines-Cowan); lepton pairs; boson pairs (W+/W-).
+
+The third category "from what they do not know" is not metaphor — it is a specific predictive statement that the pairing principle extends to realms beyond 7th-century knowledge. Reference: Gell-Mann, M. (1964). "A Schematic Model of Baryons and Mesons." Physics Letters, 8(3), 214–215. Reines, F. & Cowan, C.L. (1956). "The Neutrino." Nature, 178, 446.
+
+
+CPT Symmetry — The Deepest Law of Physics Built on Pairs
+===
+The deepest theoretical framework of modern physics confirms that pairing is a foundational cosmic structure:
+
+CPT symmetry: every physical process remains invariant under three combined transformations — Charge conjugation (C: replace every particle with its antiparticle), Parity (P: mirror-reverse space), and Time reversal (T: reverse time direction). This requires that every particle has an exact antiparticle partner — otherwise this foundational equation is violated.
+
+The Standard Model of particle physics is built on pair symmetry at every level: quarks in pairs (up/down, charm/strange, top/bottom); leptons in pairs (electron/electron-neutrino); bosons in pairs (W+/W-). There is no fundamental building block of the universe without a corresponding pair or antiparticle.
+
+The grand conclusion: "And of everything We created two mates" describes what became a foundational law of 20th-century physics: Pair Symmetry is a structural principle of the universe at its deepest levels. Reference: Streater, R.F. & Wightman, A.S. (1964). "PCT, Spin and Statistics, and All That." W.A. Benjamin. Particle Data Group (2022). "Review of Particle Physics." Progress of Theoretical and Experimental Physics.`,
     verses: [
       {
         id: 'verse-dhariyat-49',
