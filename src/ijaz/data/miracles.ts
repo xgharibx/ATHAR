@@ -2145,6 +2145,80 @@ The description matches: chosen, bringing justice to all nations (not one people
     summaryAr: 'يحتوي الإنجيل على نبوءات عن "الفارقليط" (المعزي) المطابقة للنبي محمد ﷺ.',
     description: 'In the Gospel of John, Jesus (peace be upon him) prophesied the coming of the "Paraclete" (Παράκλητος, Parakletos). Dr. Haitham Talaat documents in "رسول الأميين" that: (1) John 14:16 - "I will ask the Father, and He will give you another Helper, that He may be with you forever" (2) John 16:7 - "It is to your advantage that I go away; for if I do not go away, the Helper will not come to you" (3) John 16:13 - "when He, the Spirit of Truth, comes, He will guide you into all the truth; for He will not speak on His own initiative, but whatever He hears, He will speak" — this matches the Quran\'s description of Muhammad: "Nor does he speak from [his own] inclination. It is not but a revelation revealed" (53:3-4). The Greek "Parakletos" could also be a corruption of "Periklytos" (Περικλυτός) which means "the praised one" — the exact meaning of "Muhammad" (محمد) and "Ahmad" (أحمد) in Arabic.',
     descriptionAr: 'في إنجيل يوحنا، تنبأ عيسى عليه السلام بقدوم "الفارقليط" (Παράκλητος). يوثق د. هيثم طلعت أن: يوحنا 16:13 "لأنه لا يتكلم من نفسه بل كل ما يسمع يتكلم به" — وهذا يتطابق مع وصف القرآن لمحمد: "وما ينطق عن الهوى إن هو إلا وحي يوحى". والكلمة اليونانية "Parakletos" قد تكون تحريفاً لـ"Periklytos" التي تعني "المحمود" — المعنى الدقيق لـ"محمد" و"أحمد".',
+    deepDiveAr: `
+الفارقليط: الاسم بين التحريف والأصل
+===
+«الفارقليط» تعريب للكلمة اليونانية «Παράκλητος» (Parakletos) التي تعني «المعزي» أو «المؤيد». لكن المخطوطات اليونانية الأقدم تُظهر اختلافاً في الضبط بين «Parakletos» (ب-ي-ت-ا) و«Periklytos» (ب-ي-ر-ي-ك) وكلاهما يكتبان بحروف متقاربة في اليونانية القديمة.
+
+«Periklytos» معناها باليونانية: «الممجَّد» / «المحمود» — وهو المعنى الحرفي لاسم «محمد» في العربية.
+
+القرآن ينص صراحةً على هذا الاسم: «وَمُبَشِّرًا بِرَسُولٍ يَأْتِي مِن بَعْدِي اسْمُهُ أَحْمَدُ» (الصف 61:6). أحمد ومحمد جذرهما واحد (ح-م-د) = الحمد والتمجيد.
+
+
+يوحنا 16:13 — الوصف الذي لا ينطبق على الروح القدس
+===
+«وأما متى جاء ذاك روح الحق فهو يرشدكم إلى جميع الحق لأنه لا يتكلم من نفسه بل كل ما يسمع يتكلم به وهو يخبركم بأمور آتية».
+
+ثلاثة أوصاف دقيقة:
+1. «لا يتكلم من نفسه» — يوافق تماماً: «وما ينطق عن الهوى إن هو إلا وحي يوحى» (النجم 53:3-4).
+2. «كل ما يسمع يتكلم به» — طريقة الوحي على محمد ﷺ بالضبط: تلقّي ثم تبليغ.
+3. «يخبركم بأمور آتية» — وهو ما فعله النبي بالعشرات من النبوءات التي تحققت.
+
+الروح القدس في اللاهوت المسيحي موجود أزلياً ولا «يسمع» أحداً ولا ينتظر وحياً — فالأوصاف الثلاثة تُشير إلى شخص بشري يتلقى رسالة.
+
+
+يوحنا 14:16 و 15:26 — القادم بعد عيسى
+===
+«وأنا أطلب من الأب فيعطيكم معزياً آخر ليمكث معكم إلى الأبد» (14:16).
+
+«آخر» = غيره تماماً. «يمكث إلى الأبد» — رسالة محمد ﷺ هي خاتم الرسالات، موجودة إلى يوم القيامة بخلاف رسالة موسى وعيسى اللتين نُسخت.
+
+«متى جاء المعزي الذي سأرسله أنا إليكم من الأب روح الحق الذي من عند الأب ينبثق فهو يشهد لي» (15:26) — أي أن القادم سيصادق على رسالة عيسى ويشهد لها. والقرآن يشهد لعيسى كنبي ورسول وروح الله.
+
+
+القرآن: النبي الأمي المكتوب في الكتب السابقة
+===
+«الَّذِينَ يَتَّبِعُونَ الرَّسُولَ النَّبِيَّ الْأُمِّيَّ الَّذِي يَجِدُونَهُ مَكْتُوبًا عِندَهُمْ فِي التَّوْرَاةِ وَالْإِنجِيلِ» (الأعراف 7:157).
+
+القرآن يُقرّر أن وصف محمد ﷺ موجود في التوراة والإنجيل — وهو ما تُثبته هذه الآيات بالتفصيل. علماء أحبار اليهود الذين اعتنقوا الإسلام مثل عبد الله بن سلام شهدوا بأنهم وجدوا صفة النبي في كتبهم.
+`,
+    deepDive: `
+The Paraclete: The Name Between Corruption and Origin
+===
+The "Paraclete" is a transliteration of Greek "Parakletos" (comforter/advocate). However, early Greek manuscripts show a variant spelling close to "Periklytos" — the two differ by only one letter in ancient Greek uncial script.
+
+"Periklytos" in Greek means: "the praised one" / "the glorified one" — the exact meaning of the name "Muhammad" in Arabic.
+
+The Quran explicitly states this name: "And giving good tidings of a messenger to come after me, whose name is Ahmad" (61:6). Ahmad and Muhammad share the same Arabic root (H-M-D) = praise and glorification.
+
+
+John 16:13 — A Description That Cannot Fit the Holy Spirit
+===
+"But when He, the Spirit of Truth, comes, He will guide you into all truth; for He will not speak on His own initiative, but whatever He hears, He will speak; and He will disclose to you what is to come."
+
+Three precise characteristics:
+1. "Will not speak on His own initiative" — matches exactly: "Nor does he speak from his own inclination. It is not but a revelation revealed" (Quran 53:3-4).
+2. "Whatever He hears, He will speak" — describes precisely the prophetic mode of Muhammad (PBUH): receiving then conveying.
+3. "Will disclose to you what is to come" — which the Prophet did through dozens of verified historical prophecies.
+
+The Holy Spirit in Christian theology is eternal and does not "hear" anyone or await revelation — all three descriptors point to a human person who receives a divine message.
+
+
+John 14:16 and 15:26 — The One Coming After Jesus
+===
+"I will ask the Father, and He will give you another Helper, that He may be with you forever" (14:16).
+
+"Another" = completely different from himself. "With you forever" — Muhammad's (PBUH) message is the final revelation, present until the Day of Judgment, unlike the missions of Moses and Jesus which were superseded.
+
+"When the Helper comes, whom I will send to you from the Father, that is the Spirit of Truth who proceeds from the Father, He will testify about Me" (15:26) — meaning the coming one will validate and testify to Jesus's mission. The Quran does testify to Jesus as prophet, messenger, and spirit from God.
+
+
+The Quran: The Unlettered Prophet Written in Previous Scriptures
+===
+"Those who follow the Messenger, the unlettered prophet, whom they find written in what they have of the Torah and the Gospel" (Quran 7:157).
+
+The Quran states that a description of Muhammad (PBUH) exists in the Torah and Gospel — exactly what these verses demonstrate in detail. Jewish scholars who embraced Islam, such as Abdullah ibn Salam, testified that they found the Prophet's description in their scriptures.
+`,
     verses: [
       {
         id: 'verse-saff-6',
@@ -2197,6 +2271,90 @@ The description matches: chosen, bringing justice to all nations (not one people
     summaryAr: 'كون النبي محمد ﷺ أمياً ومع ذلك أنتج القرآن الكامل لغوياً هو بحد ذاته برهان لا يُدحض.',
     description: 'Dr. Haitham Talaat\'s book "رسول الأميين" (The Messenger to the Unlettered) presents comprehensive evidence that Prophet Muhammad (PBUH) was genuinely unlettered—unable to read or write. This is confirmed by: (1) His own community\'s testimony, including both supporters and enemies. (2) Historical documentation from Arab and non-Arab sources. (3) The Quran itself (7:157, 62:2). Yet this unlettered man produced the Quran, which: has never been matched in its linguistic perfection by Arabia\'s greatest poets, contains detailed scientific knowledge unknown for 1400 years, contains precise historical prophecies, contains no internal contradictions across 6,236 verses revealed over 23 years, revolutionized laws, philosophy, science, and civilization. The impossibility of an unlettered man in 7th century Arabia producing such a text is the proof. Every alternative explanation (he copied from others, he was a genius) is systematically refuted in the book.',
     descriptionAr: 'يقدم كتاب د. هيثم طلعت "رسول الأميين" أدلة شاملة على أن النبي محمد ﷺ كان أمياً حقاً لا يقرأ ولا يكتب. ومع ذلك أنتج القرآن الذي: لم يُضاهَ في كماله اللغوي من أعظم شعراء العرب، ويحتوي معارف علمية مجهولة لـ 1400 عام، ويحوي نبوءات تاريخية دقيقة، ولا يحتوي تناقضات داخلية عبر 6236 آية.',
+    deepDiveAr: `
+إثبات الأمية: شهادة الأعداء قبل الأصدقاء
+===
+الدليل الأقوى على أمية النبي ﷺ ليس شهادة أصحابه — بل شهادة أعدائه الذين تربصوا به وحرصوا على كشف أي ثغرة.
+
+مشركو قريش كانوا أشد الناس عداوة للنبي ﷺ وأكثرهم دراية بسيرته. لو كان يقرأ أو يكتب لأعلنوها حجة قاطعة في ردّ رسالته. لكنهم لم يفعلوا — لأنهم علموا أنه لا يقرأ ولا يكتب.
+
+القرآن نفسه يتحدى: «وَمَا كُنتَ تَتْلُو مِن قَبْلِهِ مِن كِتَابٍ وَلَا تَخُطُّهُ بِيَمِينِكَ إِذًا لَّارْتَابَ الْمُبْطِلُونَ» (العنكبوت 29:48) — أي لو كان يعرف القراءة والكتابة لكان ذلك مدخلاً للشك. لكنه لم يكن كذلك.
+
+
+التحدي اللغوي: أمي في مواجهة فحول الشعر
+===
+الجزيرة العربية في القرن السابع كانت أمة الفصاحة بامتياز: أسواق عكاظ، ومجنة، وذي المجاز تجمع فحول الشعر من كل القبائل.
+
+القرآن تحدى هؤلاء الفصحاء — المحترفين المتخصصين في الكلام العربي — أن يأتوا بمثله أو بعشر سور أو بسورة واحدة. فعجزوا.
+
+أبو جهل وقرشيون آخرون كانوا يستمعون للقرآن سراً ليلاً رغم عدائهم الظاهر — اعترافاً منهم بعظمته التي لم يستطيعوا إنكارها.
+
+أمي لا يقرأ ولا يكتب في مجتمع العرب الأقحاح — ومع ذلك أنتج الكتاب الذي أعجز فصحاءهم على مدى أربعة عشر قرناً.
+
+
+المعرفة المستحيلة: ما لم يكن يعرفه أحد في الجزيرة
+===
+النبي ﷺ لم يغادر الجزيرة العربية إلا في رحلتين تجاريتين إلى الشام. ومع ذلك جاء القرآن بـ:
+- تفاصيل دقيقة عن التاريخ اليهودي والمسيحي والفارسي غير معروفة للعرب.
+- أسماء أنبياء وأحداث لم تكن لدى العرب مصادر للاطلاع عليها.
+- معلومات علمية عن علم الأجنة والفلك والمحيطات تسبق اكتشافها بقرون.
+- نبوءات تاريخية تحققت بعد وفاته.
+
+التفسير الوحيد المعقول لهذا المجموع الهائل هو الوحي الإلهي.
+
+
+إعجاز الاتساق: 6236 آية على 23 عاماً بلا تناقض
+===
+نزل القرآن مفرقاً على 23 عاماً في أحداث ومواقف متباينة: في مكة وفي المدينة، في الحرب وفي السلم، في الشدة وفي الرخاء.
+
+لو كان من عند بشر لتراكمت فيه التناقضات — كما في كل كتابة بشرية طويلة عبر الزمن.
+
+القرآن يتحدى هذا صراحة: «أَفَلَا يَتَدَبَّرُونَ الْقُرْآنَ وَلَوْ كَانَ مِنْ عِندِ غَيْرِ اللَّهِ لَوَجَدُوا فِيهِ اخْتِلَافًا كَثِيرًا» (النساء 4:82).
+
+في أربعة عشر قرناً، مع كل العداوات والتدقيق المستمر، لم يثبت أحد تناقضاً داخلياً حقيقياً في القرآن — في حين أن كل كتاب بشري مطوّل يحتوي على تناقضات.
+`,
+    deepDive: `
+Proving Illiteracy: The Testimony of Enemies Before Friends
+===
+The strongest proof of the Prophet's illiteracy is not his companions' testimony — it is his enemies' silence on the matter.
+
+The Quraysh polytheists were the most hostile toward the Prophet (PBUH) and the most knowledgeable of his personal history. Had he been able to read or write, they would have proclaimed it as decisive evidence against his claim. They never did — because they knew he could not.
+
+The Quran itself issues the challenge: "You did not recite before it any scripture, nor did you inscribe one with your right hand. Otherwise the falsifiers would have had [cause for] doubt" (29:48) — meaning his illiteracy was precisely what sealed out the possibility of forgery.
+
+
+The Linguistic Challenge: An Illiterate Man vs. Arabia's Greatest Poets
+===
+7th-century Arabia was a civilization defined by mastery of language: the poetry fairs of Ukaz, Majanna, and Dhu'l-Majaz gathered the greatest poets from all tribes.
+
+The Quran challenged these professional masters of Arabic — to produce something matching it, or ten chapters like it, or even one chapter. They could not.
+
+Abu Jahl and other Qurayshi leaders would secretly listen to the Quran at night despite their public hostility — an involuntary admission of its greatness they could not deny.
+
+An illiterate man among Arabia's native eloquent people produced the book that defeated all their poets for fourteen centuries.
+
+
+Impossible Knowledge: What No One in Arabia Could Know
+===
+The Prophet (PBUH) left Arabia only on two trading journeys to Syria. Yet the Quran contains:
+- Precise details about Jewish, Christian, and Persian history unknown to Arabs.
+- Names of prophets and historical events with no available Arab sources.
+- Scientific information about embryology, astronomy, and oceanography centuries ahead of discovery.
+- Historical prophecies fulfilled after his death.
+
+The only rational explanation for this entire corpus is divine revelation.
+
+
+The Miracle of Consistency: 6,236 Verses Over 23 Years — Zero Contradictions
+===
+The Quran was revealed piecemeal over 23 years in vastly different circumstances: in Makkah and Madinah, in war and peace, in hardship and ease.
+
+Had it been of human origin, contradictions would have accumulated — as they do in all lengthy human writing across time.
+
+The Quran issues this challenge explicitly: "Then do they not reflect upon the Quran? If it had been from other than Allah, they would have found within it much contradiction" (4:82).
+
+For fourteen centuries, through all hostility and scrutiny, no one has proven a genuine internal contradiction in the Quran — while every lengthy human book contains contradictions.
+`,
     verses: [
       {
         id: 'verse-juma-2',
