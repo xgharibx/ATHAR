@@ -4824,6 +4824,90 @@ Modern hydrology confirms: approximately 505,000 km3 of water move through the g
     summaryAr: '\u0628\u0634\u0651\u0631 \u0639\u064A\u0633\u0649 \u0639\u0644\u064A\u0647 \u0627\u0644\u0633\u0644\u0627\u0645 \u0635\u0631\u0627\u062D\u0629\u064B \u0628\u0645\u062C\u064A\u0621 "\u0627\u0644\u0641\u0627\u0631\u0642\u0644\u064A\u0637" \u2014 \u0648\u0645\u0639\u0646\u0649 "\u0628\u064A\u0631\u064A\u0643\u0644\u0648\u062A\u0648\u0633" \u0627\u0644\u064A\u0648\u0646\u0627\u0646\u064A\u0629 = "\u0627\u0644\u0645\u062D\u0645\u0648\u062F" \u064A\u0637\u0627\u0628\u0642 "\u0623\u062D\u0645\u062F".',
     description: 'Dr. Haitham Talaat in "Ilm al-Kitab" presents evidence from the Gospel of John (14:16, 15:26, 16:7-14) where Jesus promises "another Paraclete." The Greek "Parakletos" means "helper/comforter," but "Periklytos" (\u03A0\u03B5\u03C1\u03AF\u03BA\u03BB\u03C5\u03C4\u03BF\u03C2) means "the praised/glorified one" \u2014 the exact meaning of "Ahmad." The Quran confirms: "I give glad tidings of a messenger to come after me whose name is Ahmad" (61:6). The Paraclete description matches Muhammad precisely: (1) "he will guide you into all the truth" \u2014 complete final guidance. (2) "he will not speak on his own authority, but whatever he hears he will speak" \u2014 revelation, not personal speech. (3) "he will glorify me" \u2014 Islam honors Jesus as a prophet. The Quran predicted the distortion: "A party of them used to hear the words of Allah and then distort them" (2:75).',
     descriptionAr: '\u064A\u0642\u062F\u0645 \u062F. \u0647\u064A\u062B\u0645 \u0637\u0644\u0639\u062A \u0641\u064A "\u0639\u0644\u0645 \u0627\u0644\u0643\u062A\u0627\u0628" \u0623\u062F\u0644\u0629\u064B \u062A\u0641\u0635\u064A\u0644\u064A\u0629 \u0645\u0646 \u0625\u0646\u062C\u064A\u0644 \u064A\u0648\u062D\u0646\u0627 (14:16\u060C 16:7-14): \u0628\u0634\u0651\u0631 \u0639\u064A\u0633\u0649 \u0628\u0640"\u0641\u0627\u0631\u0642\u0644\u064A\u0637 \u0622\u062E\u0631". \u0627\u0644\u064A\u0648\u0646\u0627\u0646\u064A\u0629 "Periklytos" = "\u0627\u0644\u0645\u062D\u0645\u0648\u062F" = "\u0623\u062D\u0645\u062F". \u064A\u0624\u0643\u062F \u0627\u0644\u0642\u0631\u0622\u0646 \u0647\u0630\u0627: "\u0648\u0645\u0628\u0634\u0651\u0631\u0627\u064B \u0628\u0631\u0633\u0648\u0644 \u064A\u0623\u062A\u064A \u0645\u0646 \u0628\u0639\u062F\u064A \u0627\u0633\u0645\u0647 \u0623\u062D\u0645\u062F" (61:6). \u0648\u0635\u0641 \u0627\u0644\u0641\u0627\u0631\u0642\u0644\u064A\u0637 \u064A\u0637\u0627\u0628\u0642 \u0645\u062D\u0645\u062F\u0627\u064B \u0628\u062F\u0642\u0629.',
+    deepDiveAr: `"الفارقليط" في إنجيل يوحنا — التحليل اللغوي الأصلي
+===
+يبشّر عيسى عليه السلام في إنجيل يوحنا بمجيء "فارقليط آخر" في ثلاثة مواضع: يوحنا 14:16، يوحنا 15:26، ويوحنا 16:7-14. الكلمة اليونانية في المخطوطات الحالية "Parakletos" تعني "المعزّي/المساعد"، لكن الباحثين يُثبتون أن الكلمة الأصلية كانت "Periklytos" التي تعني "المحمود/المُمجَّد".
+
+قاموس ليدل وسكوت اليوناني الإنجليزي (Liddell & Scott, 1940, A Greek-English Lexicon, Clarendon Press) — المرجع الأشمل للغة اليونانية القديمة — يُثبت أن "Periklytos" تعني "the much-praised, the renowned, the glorified" — وهو المعنى الحرفي لاسم "أحمد": الأكثر حمداً وثناءً.
+
+الفارق في الكتابة اليونانية بين الكلمتين بسيط: para- مقابل peri- — تغيير طفيف في النسخ يُفقد الاسم معناه الصريح المطابق لاسم النبي.
+
+
+"بيريكلوتوس" و"أحمد" — تطابق لغوي كامل
+===
+اسم النبي صلى الله عليه وسلم له صيغتان: "محمد" (الأكثر حمداً) و"أحمد" (الأكثر ثناءً وحمداً). كلا الاسمين من الجذر العربي "ح م د".
+
+"Periklytos" في اليونانية = "peri" (تماماً/بالكامل) + "klytos" (المُمجَّد/المحمود) = "الأكثر إشادة وتمجيداً". الترجمة الدقيقة = "أحمد".
+
+يؤكد القرآن هذه البشارة مباشرة في سورة الصف (61:6): "وَمُبَشِّرًا بِرَسُولٍ يَأْتِي مِن بَعْدِي اسْمُهُ أَحْمَدُ". القرآن حدّد الاسم بدقة — المطابق لـ"بيريكلوتوس" اليونانية.
+
+د. هيثم طلعت في "علم الكتاب" يوثق هذا التطابق اللغوي الكامل بين النص القرآني والنص اليوناني الأصلي، مبيناً أن هذا التوافق الدقيق لا يمكن أن يكون مصادفة.
+
+
+وصف الفارقليط يطابق النبي محمد صلى الله عليه وسلم تفصيلاً
+===
+أربعة أوصاف دقيقة في الإنجيل تنطبق على النبي محمد:
+
+(1) يوحنا 16:13: "لا يتكلم من نفسه بل كل ما يسمعه يتكلم به" — يصف الوحي النبوي بدقة مذهلة. القرآن يؤكد: "وَمَا يَنطِقُ عَنِ الْهَوَى إِنْ هُوَ إِلَّا وَحْيٌ يُوحَى" (النجم 53:3-4).
+
+(2) يوحنا 16:12-13: "سيرشدكم إلى جميع الحق" — يصف النبوة الختامية الكاملة التي يُقدّمها الإسلام بوصفه خاتمة الرسالات.
+
+(3) يوحنا 16:14: "هو يمجدني" — الإسلام يُكرم عيسى عليه السلام نبياً وروحاً من الله. لا دين في العالم يُكرم عيسى بعد المسيحية كما يُكرمه الإسلام.
+
+(4) يوحنا 14:16: "فارقليط آخر" — كلمة "آخر" (allos بالإغريقية) تعني "آخر من نفس الجنس" أي نبي، لا شيئاً مختلف الطبيعة.
+
+
+التحريف والمخطوطات — الدليل النصي والتنبؤ القرآني
+===
+أشار القرآن مسبقاً إلى تحريف النص المقدس في البقرة (2:75): "وَقَدْ كَانَ فَرِيقٌ مِّنْهُمْ يَسْمَعُونَ كَلَامَ اللَّهِ ثُمَّ يُحَرِّفُونَهُ مِن بَعْدِ مَا عَقَلُوهُ" — وهذا التنبؤ سابق لأي تحليل نصي حديث.
+
+بعض المخطوطات السريانية للإنجيل استخدمت "مهمداناً" (Mhamadana بالسريانية) أي "المحمود" — مما يُشير إلى أن النص الأصلي حمل معنى الحمد. ترجمة بيشيتا السريانية (Peshitta) من أقدم ترجمات الإنجيل وأكثرها صلة بالمصادر الأرامية الأصلية.
+
+الفارق الكتابي الطفيف (para- بدلاً من peri-) كافٍ لإخفاء الاسم الصريح من النص — وهو النمط ذاته الذي أشار إليه القرآن في وصف التحريف اللغوي للنصوص المقدسة.
+
+مجمل الأدلة: اسم "بيريكلوتوس" بمعنى "المحمود/أحمد" + تطابق الأوصاف الأربعة + الشاهد القرآني المسبق + شهادة المخطوطات السريانية — تُشكّل دليلاً منهجياً متكاملاً على أن بشارة عيسى عليه السلام كانت بالنبي محمد صلى الله عليه وسلم.`,
+    deepDive: `"The Paraclete" in the Gospel of John — The Original Linguistic Analysis
+===
+Jesus promises "another Paraclete" in the Gospel of John at three locations: John 14:16, John 15:26, and John 16:7-14. The Greek word in existing manuscripts is "Parakletos" (helper/comforter), but scholars demonstrate the original word was "Periklytos" — meaning "the praised" or "the glorified one."
+
+Liddell & Scott (1940), A Greek-English Lexicon, Clarendon Press — the definitive authority on ancient Greek — defines "Periklytos" as "much-praised, famous, renowned, glorified." This is the precise meaning of the Arabic name "Ahmad": the most praised one.
+
+The manuscript difference between the two words is minimal: para- vs peri- — a minor copying variation sufficient to replace the name's explicit meaning. Both words exist in classical Greek; only Periklytos matches the name prophesied in the Quran.
+
+
+"Periklytos" and "Ahmad" — A Complete Linguistic Match
+===
+The Prophet has two names: "Muhammad" (the greatly praised) and "Ahmad" (the most praised of all). Both derive from the Arabic root h-m-d (praise, commendation).
+
+"Periklytos" in Greek = "peri" (very, fully) + "klytos" (renowned, praised, glorified) = "the fully glorified, the most praised." The precise translation = "Ahmad."
+
+The Quran confirms this prophecy directly in Surah As-Saf (61:6): "And giving good tidings of a messenger to come after me, whose name is Ahmad." The Quran identifies the exact name — which matches "Periklytos" precisely.
+
+Dr. Haitham Talaat in "Ilm al-Kitab" documents this complete linguistic correspondence between the Quranic text and the original Greek, arguing this precise match cannot be coincidental.
+
+
+The Paraclete Descriptions Match Muhammad Precisely
+===
+Four specific descriptions in the Gospel match the Prophet Muhammad:
+
+(1) John 16:13: "He will not speak on his own; he will speak only what he hears" — describes prophetic revelation with remarkable accuracy. The Quran confirms: "He does not speak from his own desire. It is nothing but revelation revealed" (An-Najm 53:3-4).
+
+(2) John 16:12-13: "He will guide you into all the truth" — describes the final, complete prophethood presenting comprehensive guidance for all of human life.
+
+(3) John 16:14: "He will glorify me" — Islam honors Jesus as a noble prophet and the word (kalima) of Allah. No world religion after Christianity honors Jesus as Islam does.
+
+(4) John 14:16: "another Paraclete" — the Greek word "allos" (another) means "another of the same kind" — a prophet, not a being of different nature.
+
+
+Manuscript Evidence, Textual Distortion, and the Quran's Prediction
+===
+The Quran predicted textual distortion in Al-Baqarah (2:75): "A party of them used to hear the words of Allah and then distort them after they had understood them." This prediction precedes all modern textual criticism by centuries.
+
+Some ancient Syriac manuscripts of the Gospel used "Mhamadana" (the praised one in Aramaic/Syriac) in this passage — indicating the original word carried the meaning of praise. The Syriac Peshitta is among the oldest Gospel translations, maintaining closer proximity to the original Aramaic sources.
+
+The minimal textual change (para- instead of peri-) was sufficient to conceal the Prophet's name while preserving the word's grammatical role — exactly the kind of subtle linguistic distortion the Quran described.
+
+The cumulative evidence: "Periklytos" meaning "Ahmad," the four matching descriptions, the Quranic prediction, and the Syriac manuscript witness — together form a systematic, multi-layered case that Jesus's promised "Paraclete" was the Prophet Muhammad.`,
     verses: [
       {
         id: 'verse-saf-6',
@@ -4884,6 +4968,102 @@ Modern hydrology confirms: approximately 505,000 km3 of water move through the g
     summaryAr: '\u0627\u062D\u062A\u0645\u0627\u0644 \u0646\u0634\u0623\u0629 \u0627\u0644\u062D\u064A\u0627\u0629 \u0628\u0627\u0644\u0635\u062F\u0641\u0629 \u064A\u0633\u0627\u0648\u064A \u0641\u0639\u0644\u064A\u0627\u064B \u0635\u0641\u0631\u0627\u064B \u2014 \u0627\u0644\u0639\u0644\u0645 \u0627\u0644\u062D\u062F\u064A\u062B \u0623\u062B\u0628\u062A \u0623\u0646 \u0646\u0634\u0623\u0629 \u0627\u0644\u062D\u064A\u0627\u0629 \u0645\u0634\u0643\u0644\u0629 \u0639\u0635\u064A\u0629 \u0628\u062F\u0648\u0646 \u062E\u0627\u0644\u0642.',
     description: 'Dr. Haitham Talaat in "Basaar" presents the Origin of Life as a decisive argument for God: (1) PROBABILITY: The probability of randomly assembling even ONE functional protein (~150 amino acids) is approximately 1 in 10^164. This exceeds the total number of atomic combinations possible in the observable universe since the Big Bang. (2) THE CHICKEN-AND-EGG PROBLEM: DNA needs proteins to replicate. Proteins need DNA to be made. Neither can exist without the other. No naturalistic model has solved this. (3) NATURAL SELECTION CANNOT HELP: It only operates on self-replicating entities. Before the first self-replicating molecule, there is nothing to select. (4) ALL NATURALISTIC MODELS HAVE FAILED: RNA World, Hydrothermal Vents, Clay hypothesis, Panspermia \u2014 each shifts the problem but cannot solve it. Nobel laureate Francis Crick called the origin of life "almost a miracle."',
     descriptionAr: '\u064A\u0642\u062F\u0645 \u062F. \u0647\u064A\u062B\u0645 \u0637\u0644\u0639\u062A \u0641\u064A "\u0628\u0635\u0627\u0626\u0631" \u0645\u0634\u0643\u0644\u0629 \u0646\u0634\u0623\u0629 \u0627\u0644\u062D\u064A\u0627\u0629 \u062D\u062C\u0629\u064B \u062D\u0627\u0633\u0645\u0629: (1) \u0627\u0644\u0627\u062D\u062A\u0645\u0627\u0644: 1 \u0641\u064A 10^164. (2) \u0645\u0634\u0643\u0644\u0629 \u0627\u0644\u062F\u064A\u062C\u0627\u062C\u0629 \u0648\u0627\u0644\u0628\u064A\u0636\u0629: DNA \u064A\u062D\u062A\u0627\u062C \u0628\u0631\u0648\u062A\u064A\u0646\u0627\u062A \u0648\u0627\u0644\u0628\u0631\u0648\u062A\u064A\u0646\u0627\u062A \u062A\u062D\u062A\u0627\u062C DNA. (3) \u0627\u0644\u0627\u0646\u062A\u062E\u0627\u0628 \u0627\u0644\u0637\u0628\u064A\u0639\u064A \u0644\u0627 \u064A\u0633\u0627\u0639\u062F. (4) \u062C\u0645\u064A\u0639 \u0627\u0644\u0646\u0645\u0627\u0630\u062C \u0627\u0644\u0637\u0628\u064A\u0639\u064A\u0629 \u0641\u0634\u0644\u062A. \u0633\u0645\u0651\u0649 \u0641\u0631\u0627\u0646\u0633\u064A\u0633 \u0643\u0631\u064A\u0643 \u0646\u0634\u0623\u0629 \u0627\u0644\u062D\u064A\u0627\u0629 "\u0634\u0628\u0647 \u0645\u0639\u062C\u0632\u0629".',
+    deepDiveAr: `حجة الاحتمال — 1 في 10^164 — الاستحالة الرياضية
+===
+يُقدّم د. هيثم طلعت في "بصائر" حجة الاحتمال الرياضي بوصفها المحور الأول: احتمال تشكّل بروتين وظيفي واحد عشوائياً (من نحو 150 حمض أميني) يساوي تقريباً 1 في 10^164.
+
+للمقارنة: عدد الذرات في الكون المرئي كله يُقدَّر بـ 10^80. احتمال 1 في 10^164 يفوق هذا العدد بـ 84 مرتبة قوة. عالم الرياضيات إميل بوريل (Emile Borel, 1913) وضع قانوناً يُثبت أن كل حادث احتماله أقل من 1 في 10^50 يعدّ مستحيلاً كونياً — واحتمال 1 في 10^164 يتجاوز هذا الحد بـ 114 مرتبة.
+
+حتى لو كان الكون بأسره مختبراً واحداً يعمل منذ الانفجار العظيم، لا يكفي الوقت ولا المادة لإنتاج بروتين وظيفي واحد بالصدفة. هذا ليس ضعفاً في الصدفة — بل انهيارها رياضياً.
+
+فريد هويل (Fred Hoyle, The Intelligent Universe, 1983) وصف احتمال تشكّل الخلية الأولى بالصدفة بـ 1 في 10^40000، وشبّهه بـ"إعصار يمر عبر مقبرة طائرات ويُركّب طائرة بوينغ 747 صالحة للطيران تلقائياً".
+
+
+معضلة الدجاجة والبيضة الجينية — DNA والبروتينات
+===
+في قلب مشكلة نشأة الحياة معضلة منطقية مغلقة لا حل لها بدون خالق:
+- DNA يحتاج إلى بروتينات (إنزيمات) لنسخه وإصلاحه وترجمته
+- البروتينات لا تُصنع إلا بتعليمات DNA
+- أيهما جاء أولاً؟
+
+فرضية "عالم RNA" — المحاولة الرائدة لحل هذه المعضلة — تفشل لأن: (1) RNA لا يتجمّع تلقائياً في ظروف ما قبل الحياة دون إنزيمات. (2) لا يوجد جزيء RNA يستطيع التضاعف الذاتي في ظروف واقعية موثّقة. (3) الجسر من RNA إلى نظام DNA/بروتين الكامل لا يزال غير مفسَّر.
+
+هارولد بيرنهارت (Harold Bernhardt, 2012, Biology Direct, 7:23) سمّى هذه الفرضية "أسوأ نظرية لنشأة الحياة — باستثناء كل النظريات الأخرى" — اعتراف صريح بأن العلم لا يملك حلاً حقيقياً.
+
+الإجابة القرآنية في سورة الأنبياء (21:30): "وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ" — الحياة حدث إلهي مقصود لا عملية عشوائية.
+
+
+فشل النماذج الطبيعية الأربعة — مراجعة نقدية
+===
+استعرض د. هيثم طلعت النماذج الأربعة الكبرى لنشأة الحياة وبيّن قصور كل منها:
+
+(1) تجربة ميلر-يوري (Stanley Miller & Harold Urey, 1953): أنتجت أحماضاً أمينية بسيطة في ظروف مُتحكَّم فيها ومُصطنعة. المشكلة: الأحماض الأمينية ليست بروتينات — الفجوة بينهما كالفجوة بين حروف متناثرة ورواية متماسكة ذات معنى.
+
+(2) الفتحات الحرارية المائية (Hydrothermal Vents): المياه الساخنة جداً تكسر الروابط الكيميائية بدلاً من بنائها — الثرموديناميكا تعمل ضد تراكم التعقيد البيولوجي.
+
+(3) فرضية الطين (Clay hypothesis, Graham Cairns-Smith, 1966): الطين لا يحمل معلومات جينية ولا يستطيع نقل تعليمات لبناء الحياة — الفرضية تُفسّر التجمّع لا المعلومات.
+
+(4) الانسباء الكوني (Panspermia): يُرجّئ المشكلة إلى مكان آخر في الكون ولا يحلها — من أين جاءت الحياة هناك؟
+
+
+فرانسيس كريك وشهادة "شبه المعجزة"
+===
+فرانسيس كريك (Francis Crick) — مكتشف مشارك لتركيب DNA مع واتسون (جائزة نوبل في الفيزيولوجيا 1962)، وملحد مُعلَن — كتب في "Life Itself: Its Origin and Nature" (Simon and Schuster, 1981): "أصل الحياة يبدو شبه معجزة، لكثرة الشروط التي كان ينبغي أن تتوفر لبدئها".
+
+اضطر كريك بسبب إدراكه لاستحالة الاحتمالات إلى اقتراح "الانسباء المُوجَّه" (Directed Panspermia): حضارة فضائية ذكية أرسلت الحياة إلى الأرض عمداً — أي أنه قبل فكرة "تصميم ذكي" من فضائيين لكنه رفضها من الله.
+
+فريد هويل (Fred Hoyle, 1915-2001) — عالم الفلك البريطاني — حسب أن احتمال تشكّل الخلية الأولى بالصدفة هو 1 في 10^40000، ووصف الفكرة بأنها كـ"إعصار في مقبرة طائرات يُركّب بوينغ 747".
+
+القرآن الكريم يُقدّم الإجابة الوحيدة المقنعة في سورة الأنبياء (21:30): "وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ" — الله أراد الحياة فكانت. نشأة الحياة ليست مشكلة مادية تنتظر حلاً عشوائياً، بل حدث إلهي مقصود.`,
+    deepDive: `The Probability Argument — 1 in 10^164 — Mathematical Impossibility
+===
+Dr. Haitham Talaat in "Basaar" presents the mathematical probability argument as the primary pillar of the origin-of-life case: the probability of randomly assembling even ONE functional protein (~150 amino acids) is approximately 1 in 10^164.
+
+For comparison: the total number of atoms in the observable universe is estimated at 10^80. The probability 1 in 10^164 exceeds the total atomic count by 84 orders of magnitude. Mathematician Emile Borel (1913) established that any event with probability below 1 in 10^50 constitutes a "cosmic impossibility." The probability 1 in 10^164 exceeds this threshold by 114 orders of magnitude.
+
+Even if the entire universe were a single laboratory operating since the Big Bang, there would be insufficient time and matter to produce one functional protein by chance.
+
+Fred Hoyle (The Intelligent Universe, 1983) calculated the probability of the simplest living cell forming by chance at 1 in 10^40,000, comparing it to "a tornado sweeping through a junkyard assembling a Boeing 747 from the pieces."
+
+
+The DNA-Protein Chicken-and-Egg Dilemma
+===
+At the heart of the origin-of-life problem is a logically closed dilemma without natural solution:
+- DNA requires proteins (enzymes) to copy, repair, and express itself
+- Proteins are only built following DNA instructions
+- Which came first?
+
+The RNA World hypothesis — the leading attempt to escape this dilemma — fails because: (1) RNA cannot self-assemble in realistic prebiotic conditions without protein enzymes. (2) No RNA molecule has demonstrated genuine self-replication in realistic prebiotic conditions. (3) The transition from the RNA World to the full DNA/protein system remains entirely unexplained.
+
+Harold Bernhardt (2012), Biology Direct (7:23), explicitly called this hypothesis "the worst theory of the early evolution of life (except for all the others)" — a frank admission that science possesses no genuine solution.
+
+The Quranic answer in Surah Al-Anbiya (21:30): "And We made from water every living thing" — life is an intentional divine event, not a random process.
+
+
+All Four Naturalistic Models Have Failed — A Critical Survey
+===
+Dr. Haitham Talaat surveys the four leading origin-of-life models and demonstrates each one fails:
+
+(1) Miller-Urey Experiment (Stanley Miller & Harold Urey, 1953): produced simple amino acids in controlled, artificial conditions. Problem: amino acids are not proteins — the gap between them is like the gap between scattered letters and a coherent novel.
+
+(2) Hydrothermal Vents: hot acidic water breaks chemical bonds rather than forming them — the laws of thermodynamics work against accumulating biological complexity in these conditions.
+
+(3) Clay Hypothesis (Graham Cairns-Smith, 1966): clay cannot carry genetic information or transmit building instructions for life — the hypothesis explains assembly, not information.
+
+(4) Panspermia: merely transfers the problem to elsewhere in the universe — where did life originate in the location it came from? It solves nothing.
+
+No experiment has ever produced a self-replicating system from purely non-biological chemistry. The origin of life remains, in the words of Nobel laureate Francis Crick, "almost a miracle."
+
+
+Francis Crick and the "Almost a Miracle" Admission
+===
+Francis Crick — co-discoverer of the DNA double helix (Nobel Prize in Physiology or Medicine, 1962), committed atheist — wrote in "Life Itself: Its Origin and Nature" (Simon and Schuster, 1981): "The origin of life appears to be almost a miracle, so many are the conditions which would have had to be satisfied to get it going."
+
+Crick proposed "Directed Panspermia" — the theory that an advanced alien civilization intentionally seeded life on Earth — because he recognized that the probabilities make natural abiogenesis impossible, but refused to accept God and instead invented intelligent space aliens as the designer.
+
+Fred Hoyle (1915-2001), British astronomer, calculated the probability of the simplest cell forming by chance at 1 in 10^40,000 — describing it as comparable to "a tornado in a junkyard assembling a Boeing 747." Hoyle was forced by his mathematics to acknowledge the evidence pointed toward intelligence.
+
+The Quran provides the only logically satisfying answer: "And We made from water every living thing" (Al-Anbiya 21:30) — God willed life, and it was. The origin of life is not a material problem awaiting a chance solution; it is evidence of intentional divine creation.`,
     verses: [
       {
         id: 'verse-anbiya-30-life',
