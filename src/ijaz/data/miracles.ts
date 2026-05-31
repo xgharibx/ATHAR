@@ -7406,6 +7406,140 @@ Time gap between the Quranic oath by the piercing star (610 CE) and the scientif
     summaryAr: 'يصف القرآن السماء بأنها "سقف محفوظ" — يؤكد علم الغلاف الجوي الحديث أن الغلاف الجوي يؤدي وظائف وقائية متعددة: الحماية من الأشعة فوق البنفسجية والنيازك والأشعة الكونية وتطرف درجات الحرارة.',
     description: 'Surah Al-Anbiya (21:32) states: "And We made the sky a protected ceiling (سَقْفًا مَّحْفُوظًا), but they, from its signs, are turning away." Two precise words: (1) "SAQF" (سقف = ceiling/roof) — The sky is described as a ROOF, not merely "air above." Modern atmospheric science understands the atmosphere as a multi-layered protective envelope — effectively a "ceiling" over the surface. (2) "MAHFUZ" (محفوظ = preserved/protected/guarding) — The Quran says the ceiling itself is guarding (muhafiz) and is guarded. The atmosphere provides multiple layers of protection: OZONE LAYER: Absorbs 97–99% of ultraviolet radiation that would otherwise sterilize Earth\'s surface. Without it, no complex life could survive. VAN ALLEN BELTS: Electromagnetic shield created by Earth\'s magnetic field deflects cosmic rays and solar wind — a "shield" in space above the atmosphere. ABLATION SHIELD: The atmosphere burns up approximately 100 tons of meteoric material every day — cosmic debris that would otherwise crater the surface. THERMAL REGULATION: Greenhouse gases maintain surface temperature in the range suitable for life (average +15°C vs. -18°C without atmosphere). PRESSURE MAINTENANCE: The 1 ATM of pressure at sea level prevents bodily fluids from boiling at body temperature. Dr. Haitham Talaat notes that the Quran\'s choice of "ceiling" (saqf) — a structural, functional term — rather than simply "sky" or "heavens" is remarkably precise for describing the atmosphere\'s role as a protective structural layer over the Earth.',
     descriptionAr: 'يقول الله تعالى في سورة الأنبياء (21:32): "وَجَعَلْنَا السَّمَاءَ سَقْفًا مَّحْفُوظًا وَهُمْ عَنْ آيَاتِهَا مُعْرِضُونَ". كلمتان دقيقتان: (1) "سقف" — السماء كسقف هيكلي وليس مجرد هواء. (2) "محفوظ" — يحفظ ومحفوظ. الغلاف الجوي يوفر: (أ) طبقة الأوزون: تمتص 97-99% من الأشعة فوق البنفسجية. (ب) أحزمة فان ألن: درع كهرومغناطيسي يصرف الأشعة الكونية. (ج) درع الاحتراق: يحرق 100 طن من مواد النيازك يومياً. (د) التنظيم الحراري: يحافظ على درجة حرارة السطح ضمن النطاق الملائم للحياة.',
+    deepDiveAr: `"سقف" و"محفوظ" — دقة لغوية تصف نظام حماية متعدد الطبقات
+===
+يقول الله تعالى في سورة الأنبياء (21:32): "وَجَعَلْنَا السَّمَاءَ سَقْفًا مَّحْفُوظًا". كلمتان تحملان أكبر مما يبدو:
+
+"سقف" (Saqf): في العربية = سقف البيت — هيكل فوقك يحمي ويغطي. القرآن لا يقول "هواء" ولا "فضاء" ولا "سماء مجردة" — بل "سقف". علم الغلاف الجوي الحديث يصف الغلاف بالضبط كـ"سقف وظيفي هيكلي" يحمي سطح الأرض.
+
+"محفوظ" (Mahfuz): مزدوج المعنى:
+- يحفَظ (مبني للمجهول): الغلاف محمي ومحفوظ بآليات خاصة (المغناطيسية الأرضية، الروابط الجاذبية)
+- يَحفظ (اسم فاعل): الغلاف بذاته حافظ وحارس لما تحته
+
+لم يوجد في القرن السابع الميلادي مفهوم "طبقات الحماية الجوية" — ولا الأوزون، ولا الأشعة فوق البنفسجية، ولا الأشعة الكونية. ومع ذلك اختار القرآن كلمة تصف الغلاف كـ"سقف" يَحفَظ ومحفوظ — وهو ما أثبته العلم بعد 14 قرناً.
+
+
+طبقة الأوزون — الدرع الذي يمنع تعقيم سطح الأرض
+===
+طبقة الأوزون (Ozone Layer) توجد على ارتفاع 15–35 كيلومتراً في الستراتوسفير، وتتكون من جزيئات O₃.
+
+ماذا تفعل؟
+- تمتص 97–99% من الأشعة فوق البنفسجية B و C (UV-B & UV-C)
+- الأشعة فوق البنفسجية C تدمر الحمض النووي DNA مباشرةً — بدون الأوزون، الكائنات الحية على السطح لن تتجاوز خلايا بدائية
+- الأشعة B تسبب سرطان الجلد وإعتام العدسة وتدمر النظام المناعي
+
+تاريخ الاكتشاف:
+- شارل فابري وهنري بويسون (Fabry & Buisson) 1913م: أول قياس كمي لامتصاص الأشعة فوق البنفسجية في الغلاف الجوي
+- سيدني تشابمان (Sidney Chapman) 1930م: شرح الآلية الكيميائية لتكوين الأوزون وتفكيكه
+- الفجوة بين الوصف القرآني للسقف المحفوظ (610م) وأول تأكيد علمي لوظيفة الحماية (1913م): 1,303 سنة
+
+
+أحزمة فان ألن — الدرع الكوني الخارجي الذي يحمي الغلاف نفسه
+===
+أحزمة فان ألن (Van Allen Belts) اكتشفت عام 1958م على يد جيمس فان ألن باستخدام بيانات القمر الاصطناعي Explorer 1.
+
+ما هي؟
+- حزامان إشعاعيان يتشكلان من المجال المغناطيسي للأرض
+- الحزام الداخلي: 1,000–12,000 كيلومتر فوق السطح
+- الحزام الخارجي: 15,000–60,000 كيلومتر فوق السطح
+
+ماذا يفعلان؟
+- يصرفان ويحبسان جزيئات الرياح الشمسية عالية الطاقة
+- يحمون الغلاف الجوي من الاقتلاع بواسطة الرياح الشمسية (Mars فقد غلافه الجوي لأنه فقد مجاله المغناطيسي ولم تعد لديه أحزمة مماثلة)
+- بدونها: الغلاف الجوي نفسه سيتآكل ويتبدد في الفضاء
+
+"محفوظ" القرآنية تشمل هذا المعنى الدقيق: الغلاف الجوي محمي من فوقه بأحزمة غير مرئية.
+الفجوة الزمنية: 1958م − 610م = 1,348 سنة.
+
+
+درع النيازك والتنظيم الحراري — الوظائف الخفية للسقف المحفوظ
+===
+الغلاف الجوي يؤدي وظيفتين حمائيتين إضافيتين لا تراهما بالعين المجردة:
+
+1. درع الاحتراق (Ablation Shield):
+- الغلاف الجوي يحرق ~100 طن من المواد الكونية يومياً قبل أن تصل إلى السطح
+- بدون هذا الدرع: سطح الأرض سيتحول إلى سطح القمر — مليء بالفوهات
+- القمر بلا غلاف جوي = محفور ومدمر. الأرض بغلافها = محمية
+
+2. التنظيم الحراري (Thermal Regulation):
+- متوسط درجة حرارة الأرض بالغلاف الجوي: +15°C
+- متوسط درجة حرارة الأرض بدون الغلاف: -18°C
+- الفرق: 33 درجة مئوية — يتيح وجود الحياة
+- الغازات الدفيئة (CO₂, H₂O, CH₄) هي جزء من "السقف" الحافظ
+
+3. الضغط الجوي:
+- 1 ضغط جوي (ATM) عند مستوى سطح البحر يمنع سوائل الجسم من الغليان عند درجة حرارة الجسم
+- فوق 19 كيلومتراً بدون بدلة: سوائل الجسم تغلي (Ebullism)
+
+المرجع: Lutgens, F.K. & Tarbuck, E.J. (2018). "The Atmosphere: An Introduction to Meteorology." Pearson. 14th Ed.`,
+    deepDive: `"Saqf" and "Mahfuz" — Linguistic Precision for a Multi-Layer Shield
+===
+Surah Al-Anbiya (21:32): "And We made the sky a protected ceiling (سَقْفًا مَّحْفُوظًا)." Two precise words carry enormous scientific weight:
+
+"Saqf" (سقف) = ceiling/roof — a structural, functional term. The Quran does not say "air," "space," or even just "sky" — it says "ceiling." Modern atmospheric science describes the atmosphere as precisely that: a functional structural envelope that covers and protects the surface below.
+
+"Mahfuz" (محفوظ) = dual meaning:
+- Passive (preserved/protected): the ceiling itself is maintained and guarded by mechanisms (Earth's magnetism, gravity)
+- Active (preserving/guarding): the ceiling actively guards everything beneath it
+
+In 7th-century Arabia, there was no concept of atmospheric protection layers, UV radiation, ozone, or cosmic rays. Yet the Quran selected a word that describes the sky as a functional "ceiling" that both protects and is protected — confirmed by science 14 centuries later.
+
+
+The Ozone Layer — The Shield That Prevents Sterilization of Earth's Surface
+===
+The ozone layer (O₃) exists at 15–35 km altitude in the stratosphere.
+
+What it does:
+- Absorbs 97–99% of ultraviolet B and C radiation (UV-B & UV-C)
+- UV-C directly destroys DNA — without ozone, surface life would be limited to single-celled organisms in shielded environments
+- UV-B causes skin cancer, cataracts, and immune system suppression
+
+Discovery timeline:
+- Charles Fabry & Henri Buisson (1913): first quantitative measurement of UV absorption in the atmosphere
+- Sydney Chapman (1930): explained the chemical mechanism of ozone formation and destruction (Chapman cycle)
+- The Quran's "protected ceiling" (610 CE) to first scientific confirmation of UV-blocking function (1913 CE): 1,303 years
+
+
+Van Allen Belts — The Outer Cosmic Shield That Protects the Atmosphere Itself
+===
+Van Allen Belts were discovered in 1958 by James Van Allen using data from the Explorer 1 satellite.
+
+What they are:
+- Two radiation belts formed and held by Earth's magnetic field
+- Inner belt: 1,000–12,000 km above Earth's surface
+- Outer belt: 15,000–60,000 km above Earth's surface
+
+What they do:
+- Deflect and trap high-energy solar wind particles and cosmic rays
+- Protect the atmosphere itself from being stripped away by solar wind
+- Mars lost its magnetic field → its Van Allen equivalent collapsed → solar wind stripped Mars's atmosphere → Mars is now largely airless
+
+"Mahfuz" (the ceiling is guarded) encompasses this precise meaning: the atmosphere itself is protected from above by invisible shields.
+Time gap: 1958 CE − 610 CE = 1,348 years.
+
+
+Meteor Shield and Thermal Regulation — The Invisible Guardians
+===
+The atmosphere performs two additional protective functions invisible to the naked eye:
+
+1. Ablation Shield (Meteor Incineration):
+- The atmosphere burns up approximately 100 tons of cosmic debris every single day
+- Without this shield: Earth's surface would resemble the Moon — pocked with craters
+- The Moon (no atmosphere) is heavily cratered; Earth (atmosphere) is protected. This is the literal "guarding" function
+
+2. Thermal Regulation:
+- Earth's average surface temperature with atmosphere: +15°C
+- Earth's average surface temperature without atmosphere: -18°C
+- Difference: 33°C — the greenhouse effect enables liquid water and life
+- Greenhouse gases (CO₂, H₂O, CH₄) are part of the "guarding ceiling"
+
+3. Atmospheric Pressure:
+- 1 ATM at sea level prevents bodily fluids from boiling at body temperature
+- Above 19 km without a pressure suit: ebullism — bodily fluids boil
+
+The Quran's "ceiling that guards" encompasses UV shielding, cosmic ray deflection, meteor incineration, thermal regulation, and pressure maintenance — a complete multi-layer protection system described in two words 1,400 years before atmospheric science.
+
+Reference: Lutgens, F.K. & Tarbuck, E.J. (2018). "The Atmosphere: An Introduction to Meteorology." Pearson. 14th Ed.`,
     verses: [
       {
         id: 'verse-anbiya-32',
@@ -7461,6 +7595,164 @@ Time gap between the Quranic oath by the piercing star (610 CE) and the scientif
     summaryAr: 'يقرر القرآن "وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ" — عرب القرن السابع المحاطون بالصحراء لم يكن لديهم سبب للاعتقاد بذلك. تؤكد الكيمياء الحيوية الحديثة أن الماء هو المذيب العالمي والشرط المطلق لجميع الحياة المعروفة.',
     description: 'Surah Al-Anbiya (21:30) states: "And We made from water every living thing (وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ). Then will they not believe?" The statement is absolute — "EVERY living thing" is made from water. Modern biochemistry confirms this on multiple levels: (1) CELLULAR COMPOSITION: All living cells are 70–90% water by mass. Water is the medium in which all biochemical reactions occur. (2) UNIVERSAL SOLVENT: Water\'s polarity and hydrogen bonding make it the only known substance capable of dissolving the enormous variety of biochemical compounds needed for life. (3) ORIGIN OF LIFE: All current scientific models of life\'s origin (hydrothermal vents, tidal pools, ice-covered lakes) require liquid water as a prerequisite. (4) SEARCH FOR LIFE: NASA\'s prime directive in searching for extraterrestrial life is "follow the water" — because no known life exists without it. (5) DNA AND PROTEINS: DNA replication, protein synthesis, enzyme catalysis, ATP production — ALL require water as an essential participant, not merely a solvent. (6) PHOTOSYNTHESIS: Water (H₂O) is split to release oxygen in photosynthesis — making Earth\'s oxygen atmosphere (and all aerobic life) dependent on water. In 7th century Arabia, surrounded by the world\'s largest desert, stating that ALL life comes from water had no cultural or agricultural basis. The Quran\'s categorical declaration was scientifically vindicated only with the development of biochemistry in the 19th–20th centuries.',
     descriptionAr: 'يقول الله تعالى في سورة الأنبياء (21:30): "وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ أَفَلَا يُؤْمِنُونَ". التصريح مطلق — "كل شيء حي" من الماء. تؤكد الكيمياء الحيوية الحديثة ذلك: (1) التركيب الخلوي: جميع الخلايا الحية 70-90% ماء. (2) المذيب العالمي: قطبية الماء تجعله المذيب الوحيد القادر على إذابة المركبات الكيميائية الحيوية. (3) أصل الحياة: جميع النماذج العلمية الحالية لأصل الحياة تتطلب الماء السائل. (4) بحث ناسا عن الحياة: "اتبع الماء" هو التوجيه الأساسي. (5) التمثيل الضوئي: تحليل الماء يُنتج الأكسجين الذي تعتمد عليه الحياة الهوائية.',
+    deepDiveAr: `"مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ" — الإطلاق العلمي في الكلمة القرآنية
+===
+يقول الله تعالى في سورة الأنبياء (21:30): "وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ أَفَلَا يُؤْمِنُونَ".
+
+كلمة "كُلَّ" في الآية مطلقة تماماً — لا استثناء، لا تحفظ. "كل شيء حي من الماء".
+
+السياق الحضاري: عرب القرن السابع الميلادي عاشوا في أكبر صحراء في العالم. الماء عندهم ندرة متناهية — لا مبرر ثقافياً ولا علمياً ولا عملياً لتعميم "كل حياة من الماء". لا يوجد حوت في الصحراء، ولا ظاهرة طبيعية في بيئتهم تقود إلى هذه النتيجة.
+
+ما أثبته علم الأحياء الجزيئي الحديث:
+- جميع الخلايا الحية: 70–90% ماء من الكتلة
+- الدماغ البشري: 73% ماء. الرئتان: 83%. الدم: 79%. العظام: 31%
+- لا كيمياء حيوية معروفة تعمل بدون ماء كوسيط
+- لا حياة معروفة في أي مكان في الكون تستغني عن الماء
+
+المرجع: Alberts, B. et al. (2022). "Molecular Biology of the Cell." W.W. Norton. 7th Edition.
+
+
+الماء — المذيب الوحيد القادر على تمكين الحياة
+===
+ما الذي يجعل الماء فريداً من بين كل المواد السائلة الموجودة في الكون؟
+
+1. القطبية وجسور الهيدروجين:
+- جزيء الماء (H₂O) قطبي: أكسجين يحمل شحنة سالبة جزئية، هيدروجين يحمل موجبة
+- كل جزيء ماء يمكنه تكوين 4 جسور هيدروجينية مع جيرانه
+- هذه الشبكة تُذيب الملوحات والأحماض الأمينية والسكريات والقواعد النيتروجينية والبروتينات
+
+2. الثابت العازل الكهربائي العالي (80.1 عند 25°C):
+- يُضعف الروابط الأيونية بين الجزيئات المذابة — يُحررها للتفاعل
+- لا يوجد سائل آخر شائع يملك هذا المعامل العالي مع الخواص الحيوية الأخرى
+
+3. السعة الحرارية النوعية العالية (4.18 جول/جرام/°C):
+- يمتص الماء طاقة حرارية هائلة دون ارتفاع كبير في الحرارة — يُثبّت درجة حرارة الخلية
+- أساسي لضبط حرارة الجسم
+
+4. التوتر السطحي والتماسك (Cohesion):
+- يمكّن النقل في الأوعية الدموية والأنابيب الشعرية في النباتات
+- أساسي لارتفاع الماء من جذور الأشجار إلى قممها
+
+
+أصل الحياة — جميع النماذج العلمية تشترط الماء
+===
+جميع النماذج العلمية المُقترحة لأصل الحياة تتفق على نقطة واحدة: الماء ضرورة حتمية.
+
+نموذج "الحساء البدائي" (Primordial Soup):
+- أوبارين وهولدين (1920s): الحياة نشأت في المحيطات البدائية المليئة بالجزيئات العضوية
+- تجربة ميلر-يوري (Miller-Urey) 1953م: ماء + غازات بدائية + طاقة = أحماض أمينية (لبنات الحياة)
+- الفجوة: 1953م − 610م = 1,343 سنة
+
+نموذج الفتحات الحرارية المائية (Hydrothermal Vents):
+- اكتشفت عام 1977م على يد كورليس وآخرين بالغواصة Alvin (قاع المحيط الهادئ)
+- كشفت عن أجتماعات حية كاملة حول فتحات ساخنة بدون ضوء شمس — الماء وحده هو الوسط
+- الفجوة: 1977م − 610م = 1,367 سنة
+
+نموذج البِرك المتقطعة (Tidal Pools) و الصفائح الجليدية (Ice Worlds):
+- كل هذه النماذج — رغم اختلافها — تشترك في شرط واحد: الماء السائل
+
+لا نموذج واحد علمي موثوق يقترح حياة ممكنة بدون ماء.
+
+
+ناسا وقاعدة "اتبع الماء" — الإجماع العلمي الدولي
+===
+ناسا وكل وكالات الفضاء الكبرى تتبنى استراتيجية واحدة في البحث عن الحياة خارج الأرض: "Follow the Water" (اتبع الماء).
+
+أهداف البحث الحالية عام 2026م:
+- المريخ: مركبات Curiosity و Perseverance تبحث عن آثار الماء القديم وبيئات رطبة
+- أوروبا (قمر المشتري): محيط تحت الجليد يُقدَّر حجمه بضعف حجم مياه الأرض — مهمة Europa Clipper
+- إنسيلادوس (قمر زحل): مرصوده ثعبان Cassini: فورات مائية تصل إلى الفضاء مباشرةً
+- تيتان (قمر زحل): مهمة Dragonfly 2034م — بحث عن كيمياء حيوية في بيئة الميثان السائل (بديل الماء؟)
+
+لماذا الماء بالتحديد؟
+- لا كيمياء حيوية معروفة تعمل بدون ماء سائل
+- اكتشاف أي كوكب خارج المجموعة الشمسية في "المنطقة الصالحة للحياة" يعني: المنطقة التي يكون فيها الماء سائلاً
+
+القرآن الكريم قرر في القرن السابع: "كُلَّ شَيْءٍ حَيٍّ مِنَ الْمَاءِ".
+ناسا تقول اليوم: "لا حياة بدون ماء."
+الإجماع العلمي الدولي الكامل يُؤكد ما قرره القرآن قبل 1,400 سنة.`,
+    deepDive: `"Every Living Thing from Water" — The Scientific Absoluteness of the Quranic Statement
+===
+Surah Al-Anbiya (21:30): "And We made from water every living thing (وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ). Then will they not believe?"
+
+The word "kull" (كُلَّ) = every, all — absolute, no exception, no qualifier. Not "most living things" or "water-dwelling creatures" — ALL living things.
+
+The cultural context: 7th-century Arabia sat in the middle of the world's largest desert. Water was extreme scarcity — no natural observation available to a desert-dwelling people would suggest that ALL life comes from water. There is no cultural, agricultural, or observational basis for this universal claim.
+
+What modern biochemistry confirms:
+- All living cells: 70–90% water by mass
+- Human brain: 73% water. Lungs: 83%. Blood: 79%. Bones: 31%
+- No known biochemistry operates without water as the working medium
+- No life anywhere in the known universe has been found to exist without water
+
+Reference: Alberts, B. et al. (2022). "Molecular Biology of the Cell." W.W. Norton. 7th Ed.
+
+
+Water — The Only Solvent That Can Enable Life
+===
+What makes water uniquely capable of enabling life among all liquids in the universe?
+
+1. Polarity and hydrogen bonding:
+- The H₂O molecule is polar: oxygen carries partial negative charge, hydrogens carry partial positive
+- Each water molecule can form up to 4 hydrogen bonds with neighbors
+- This network dissolves salts, amino acids, sugars, nucleotides, and proteins — the full palette of biochemistry
+
+2. High dielectric constant (80.1 at 25°C):
+- Weakens ionic bonds between dissolved molecules — freeing them to react with each other
+- No other common solvent combines this with water's other life-enabling properties
+
+3. High specific heat capacity (4.18 J/g·°C):
+- Absorbs enormous heat energy with minimal temperature change — stabilizes cellular temperature
+- Essential for thermoregulation in all living organisms
+
+4. Surface tension and cohesion:
+- Enables capillary action — water transport in plant stems (trees can pull water 100+ meters upward)
+- Enables blood circulation in fine capillaries
+
+
+Origin of Life — Every Scientific Model Requires Water
+===
+All competing scientific models for the origin of life agree on one point: liquid water is mandatory.
+
+Primordial Soup model (Oparin-Haldane, 1920s):
+- Life arose in primitive oceans rich in organic molecules
+- Miller-Urey experiment (1953): water + primitive gases + electrical energy → amino acids (life's building blocks)
+- Time gap: 1953 CE − 610 CE = 1,343 years
+
+Hydrothermal Vent model:
+- Discovery: 1977 CE by Corliss et al. using the submersible Alvin (Pacific Ocean floor)
+- Revealed complete living ecosystems around hot water vents — no sunlight, only water as the medium
+- Time gap: 1977 CE − 610 CE = 1,367 years
+
+Tidal pools, ice-covered lakes, and panspermia models:
+- Every competing model — despite their differences — shares the same single prerequisite: liquid water
+
+Not one credible scientific origin-of-life model proposes life without water.
+
+
+NASA's "Follow the Water" — The Global Scientific Consensus
+===
+NASA and all major space agencies adopt a single strategy for searching for extraterrestrial life: "Follow the Water."
+
+Current search targets (2026):
+- Mars: Curiosity and Perseverance rovers search for ancient water traces and wet environments
+- Europa (Jupiter's moon): subsurface ocean estimated at twice Earth's total water volume — Europa Clipper mission
+- Enceladus (Saturn's moon): Cassini spacecraft detected water geysers erupting directly into space
+- Titan (Saturn's moon): Dragonfly mission 2034 — searching for biochemistry in liquid methane (water alternative?)
+
+Why water specifically?
+- No known biochemistry operates without liquid water
+- The definition of "habitable zone" for exoplanets = the orbital distance at which water can remain liquid
+
+The Quran stated in the 7th century: "Every living thing from water."
+NASA states today: "No life without water."
+The complete international scientific consensus confirms what the Quran declared 1,400 years before modern biochemistry existed.
+
+Key references:
+- Alberts, B. et al. (2022). "Molecular Biology of the Cell." W.W. Norton. 7th Ed. (cellular water composition)
+- Miller, S.L. (1953). "A Production of Amino Acids Under Possible Primitive Earth Conditions." Science, 117:528–529.
+- Corliss, J.B. et al. (1979). "Submarine Thermal Springs on the Galapagos Rift." Science, 203:1073–1083.
+- NASA Astrobiology Strategy (2015 & 2022). astrobiology.nasa.gov`,
     verses: [
       {
         id: 'verse-anbiya-30',
