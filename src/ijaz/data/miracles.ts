@@ -2401,6 +2401,86 @@ For fourteen centuries, through all hostility and scrutiny, no one has proven a 
     summaryAr: 'في وقت شديد الضعف، تنبأ القرآن بأن المسلمين سيدخلون مكة منتصرين.',
     description: 'Surah Al-Fath (48:27): "You will surely enter al-Masjid al-Haram, if Allah wills, in safety, with your heads shaved and [hair] shortened, not fearing [anyone]." This verse was revealed after the Treaty of Hudaybiyyah (628 CE) when the Muslims were denied entry to Makkah and were in a position of perceived weakness. The prophecy was fulfilled two years later with the peaceful conquest of Makkah in 630 CE, when 10,000 Muslims entered the city without bloodshed.',
     descriptionAr: 'سورة الفتح (48:27): "لَتَدْخُلُنَّ الْمَسْجِدَ الْحَرَامَ إِن شَاءَ اللَّهُ آمِنِينَ مُحَلِّقِينَ رُءُوسَكُمْ وَمُقَصِّرِينَ لَا تَخَافُونَ". نزلت بعد صلح الحديبية عندما مُنع المسلمون من دخول مكة. تحققت بعد عامين بفتح مكة السلمي.',
+    deepDiveAr: `
+السياق التاريخي: المسلمون في أضعف حالاتهم
+===
+عام 628م، بعد ست سنوات من الهجرة، ذهب النبي صلى الله عليه وسلم وصحابته لأداء العمرة فصدّهم المشركون عند الحديبية. عادوا دون دخول مكة ووقّعوا معاهدة بدت في ظاهرها مجحفة.
+
+في هذا الجو من الإحباط وشعور الهزيمة، وبينما كان المسلمون لا يملكون حتى حق الدخول إلى بيت الله، نزلت سورة الفتح ببشرى: "لَتَدْخُلُنَّ الْمَسْجِدَ الْحَرَامَ إِن شَاءَ اللَّهُ آمِنِينَ مُحَلِّقِينَ رُءُوسَكُمْ وَمُقَصِّرِينَ لَا تَخَافُونَ" (48:27).
+
+هذه النبوءة كانت تعني أن يذهب المسلمون لأداء العمرة بأمان تام — وهذا كان يبدو مستحيلاً آنذاك.
+
+
+الآية الكريمة: تفاصيل دقيقة لا يجترئ البشر على توقعها
+===
+ما يلفت النظر ليس فقط النبوءة بالدخول، بل تفاصيلها المذهلة:
+
+(1) "آمِنِينَ" — دخول بأمان تام، لا بالحرب والدماء.
+(2) "مُحَلِّقِينَ رُءُوسَكُمْ وَمُقَصِّرِينَ" — سيؤدون شعائر العمرة كاملة.
+(3) "لَا تَخَافُونَ" — دون خوف من أحد.
+
+إذا كان هذا من وضع إنساني لجاء في لحظة قوة، لا لحظة ضعف. أما أن تُصاغ هذه التفاصيل في أحلك لحظات الضعف — فهذا يتجاوز التفكير البشري العادي.
+
+
+التحقق: فتح مكة 630م — السلام حيث لم يتوقعه أحد
+===
+عام 630م، أي بعد عامين من نزول الآية، دخل النبي صلى الله عليه وسلم مكة على رأس عشرة آلاف مقاتل.
+
+ما وقع كان استثنائياً في التاريخ: دخول شبه سلمي، عفو عام، لا انتقام ولا سفك دماء يُذكر.
+
+أدى المسلمون العمرة محلقين رؤوسهم ومقصرين، آمنين لا يخافون — تماماً كما وصفت الآية.
+
+ثلاث تفاصيل دقيقة في ظرف يعجز فيه أي إنسان عن توقعها — وكلها تحققت.
+
+
+الدرس: "إِنَّا فَتَحْنَا لَكَ فَتْحًا مُّبِينًا"
+===
+سورة الفتح نفسها تُعلِّم درساً جوهرياً: ما بدا هزيمة عند الحديبية كان في الحقيقة "فتحاً مبيناً" (48:1).
+
+المنطق الإلهي يختلف عن المنطق البشري. صلح الحديبية أوجد الاستقرار الذي جعل الفتح ممكناً. الظاهر هزيمة والباطن نصر — وهذه السنة الإلهية تتكرر في القرآن.
+
+أن يقول النبي صلى الله عليه وسلم هذا في 628م والتاريخ يُصدِّقه في 630م — فتلك شهادة لا يملكها إلا نبي يتلقى وحياً حقيقياً.
+`,
+    deepDive: `
+The Historical Context: Muslims at Their Weakest Point
+===
+In 628 CE, six years after the Hijra, the Prophet (PBUH) and his companions traveled for Umrah but were blocked by the polytheists at Hudaybiyyah. They returned without entering Makkah and signed a treaty that appeared, on its surface, to be deeply unfavorable to Muslims.
+
+In this atmosphere of frustration and apparent defeat — while Muslims were denied even the right to enter Allah's House — Surah Al-Fath descended with a promise: "You will surely enter al-Masjid al-Haram, if Allah wills, in safety, with your heads shaved and hair shortened, not fearing anyone" (48:27).
+
+This prophecy meant Muslims would one day perform Umrah in complete safety — something that appeared impossible at that moment.
+
+
+The Verse: Precise Details No Human Would Dare Predict
+===
+What is remarkable is not merely the prophecy of entry, but its extraordinary specific details:
+
+(1) "In safety" — entry without war or bloodshed.
+(2) "With your heads shaved and hair shortened" — they would complete the full Umrah rituals.
+(3) "Not fearing anyone" — without fear of any opposing force.
+
+Had this been a human composition, it would have emerged from a position of strength, not weakness. To prophesy all these precise details at the darkest moment of vulnerability — that exceeds normal human calculation entirely.
+
+
+The Fulfillment: Conquest of Makkah 630 CE — Peace Where No One Expected It
+===
+In 630 CE, two years after the verse was revealed, the Prophet (PBUH) entered Makkah at the head of ten thousand fighters.
+
+What occurred was extraordinary in history: a nearly bloodless entry, a general amnesty, no revenge and virtually no bloodshed.
+
+The Muslims performed Umrah with their heads shaved and hair shortened, in safety without fear — exactly as the verse described.
+
+Three precise details, in circumstances no human could reasonably predict — and all three were fulfilled.
+
+
+The Lesson: "Indeed, We Have Given You a Clear Conquest" (48:1)
+===
+Surah Al-Fath itself teaches a foundational lesson: what appeared to be defeat at Hudaybiyyah was in reality "a clear conquest" (48:1).
+
+Divine logic differs from human logic. The Hudaybiyyah treaty created the stability that made the conquest possible. What appeared as defeat was inwardly victory — a recurring pattern throughout the Quran.
+
+That the Prophet (PBUH) declared this in 628 CE — and history confirmed it in 630 CE — is testimony that only a prophet receiving true revelation could provide.
+`,
     verses: [
       {
         id: 'verse-fath-27',
@@ -2447,6 +2527,94 @@ For fourteen centuries, through all hostility and scrutiny, no one has proven a 
     summaryAr: 'تنبأ القرآن بهزيمة جيش قريش عندما كان المسلمون أقل عدداً بكثير — تحققت في غزوة بدر.',
     description: 'Surah Al-Qamar (54:45): "Their multitude will be defeated, and they will turn their backs [in retreat]." This verse was revealed in Makkah, years before the Battle of Badr (624 CE). At the time, Muslims were a small, persecuted minority. Omar ibn al-Khattab reportedly said: "When this verse was revealed, I wondered which multitude would be defeated?" The prophecy was dramatically fulfilled at Badr, where 313 poorly-equipped Muslims defeated 1,000 well-armed Quraysh warriors.',
     descriptionAr: 'سورة القمر (54:45): "سَيُهْزَمُ الْجَمْعُ وَيُوَلُّونَ الدُّبُرَ". نزلت هذه الآية في مكة، قبل سنوات من غزوة بدر (624م). تحققت النبوءة حين هزم 313 مسلماً قليلي التسليح 1000 مقاتل من قريش.',
+    deepDiveAr: `
+النبوءة المكية في قلب دار الكفر
+===
+سورة القمر نزلت في مكة، في وقت كان فيه المسلمون مضطهدين مستضعفين، بلا جيوش ولا دولة ولا حتى حرية العبادة.
+
+في هذا الظرف نزلت الآية: "سَيُهْزَمُ الْجَمْعُ وَيُوَلُّونَ الدُّبُرَ" (54:45).
+
+"سَيُهْزَمُ" — المضارع المقترن بالسين: نبوءة بحدث مستقبلي حتمي. "الجَمْع" — الحشد الكبير من الأعداء. "يُوَلُّونَ الدُّبُرَ" — ينهزمون فراراً بأقصى إهانة.
+
+عمر بن الخطاب رضي الله عنه روى: لما نزلت هذه الآية قلت في نفسي: أيُّ جمع سيُهزم؟ — ولم يعلم إذ ذاك.
+
+
+الفارق العددي في بدر: 313 مقابل الألف
+===
+معركة بدر (624م) كانت اختباراً حاسماً لهذه النبوءة:
+
+المسلمون: 313 رجلاً، معهم فرسان قليلون وأسلحة محدودة.
+قريش: ما يقارب 1000 مقاتل، منهم 100 فارس ومعهم إمدادات وافرة.
+
+النسبة تقريباً واحد إلى ثلاثة أو أشد. في المنطق العسكري البشري: النتيجة المتوقعة محسومة لقريش.
+
+لكن الآية كانت قد صدرت. والنتيجة جاءت بالعكس: انهزمت قريش، وقُتل 70 من قادتها وأُسر 70 آخرون.
+
+
+ميدان بدر: لحظة تحقق النبوءة
+===
+روى عمر بن الخطاب رضي الله عنه أنه حين رأى المشركين يولّون فراراً في بدر تذكّر هذه الآية وأدرك أنها تتحقق أمام عينيه.
+
+النبي صلى الله عليه وسلم كان يقرأ الآية 54:45 وهو يرمي حفنة من التراب في وجوه المشركين في أحداث بدر — ربطاً وثيقاً بين النبوءة وتحققها.
+
+ما كان يبدو لعمر سؤالاً مفتوحاً — أي جمع؟ — وجد إجابته في أكثر اللحظات البطولية درامية في التاريخ الإسلامي.
+
+
+أهمية بدر الاستراتيجية والإيمانية
+===
+بدر لم تكن مجرد معركة عسكرية. كانت:
+- أول اختبار عسكري حقيقي للدولة الإسلامية الناشئة.
+- نقطة تحول نفسية وإيمانية للمسلمين.
+- دليلاً قاطعاً على صدق النبوءة الإلهية.
+
+القرآن سمّاها "يوم الفرقان" (8:41): يوم فرّق الله بين الحق والباطل.
+
+أن تُنبئ بانتصار الفئة القليلة على الجيش الثلاثي المعداد قبل سنوات ثم يتحقق ذلك بدقة — يُثبت أن مصدر هذا الكلام لا يمكن أن يكون بشرياً.
+`,
+    deepDive: `
+A Meccan Prophecy at the Heart of Enemy Territory
+===
+Surah Al-Qamar was revealed in Makkah, at a time when Muslims were persecuted, powerless, without armies, state authority, or even freedom of worship.
+
+In this context came the verse: "Their multitude will be defeated, and they will turn their backs [in retreat]" (54:45).
+
+"Sa-yuhzamu" — the future tense construction: a prophecy of an inevitable future event. "Al-Jam'u" — the great assembled multitude of enemies. "Yuwallun al-dubur" — they will flee in retreat, the ultimate humiliation.
+
+Omar ibn al-Khattab narrated: "When this verse was revealed, I said to myself: which multitude will be defeated?" — he did not know at the time.
+
+
+The Numerical Gap at Badr: 313 vs. 1,000
+===
+The Battle of Badr (624 CE) was the decisive test of this prophecy:
+
+Muslims: 313 men, with few horses and limited weapons.
+Quraysh: approximately 1,000 fighters, including 100 cavalry with abundant supplies.
+
+A ratio of roughly one-to-three or worse. By human military logic: the expected outcome was decisively in Quraysh's favor.
+
+But the verse had already been issued. The result was the opposite: Quraysh was defeated, 70 of their leaders were killed and 70 more were captured.
+
+
+The Battlefield of Badr: The Moment Prophecy Was Fulfilled
+===
+Omar ibn al-Khattab narrated that when he saw the polytheists fleeing in retreat at Badr, he remembered this very verse and realized it was being fulfilled before his eyes.
+
+The Prophet (PBUH) recited verse 54:45 while throwing a handful of dust toward the polytheists during the Battle of Badr — drawing a direct link between the prophecy and its fulfillment.
+
+What appeared to Omar as an open question — "which multitude?" — found its answer in the most dramatic heroic moment in Islamic history.
+
+
+The Strategic and Spiritual Significance of Badr
+===
+Badr was not merely a military engagement. It was:
+- The first real military test of the nascent Islamic state.
+- A psychological and faith-defining turning point for Muslims.
+- Conclusive proof of the truth of divine prophecy.
+
+The Quran called it "the Day of Criterion" (8:41): the day Allah distinguished between truth and falsehood.
+
+To prophesy victory for the vastly outnumbered few against a triple-strength army years beforehand — and have it fulfilled with precision — establishes that the source of these words cannot be human.
+`,
     verses: [
       {
         id: 'verse-qamar-45',
