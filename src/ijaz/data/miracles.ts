@@ -5126,6 +5126,92 @@ The Quran provides the only logically satisfying answer: "And We made from water
     summaryAr: '\u064A\u0637\u0631\u062D \u0627\u0644\u0642\u0631\u0622\u0646 \u062A\u062D\u062F\u064A\u0627\u064B \u0641\u0631\u064A\u062F\u0627\u064B \u062E\u0627\u0644\u062F\u0627\u064B \u0644\u0625\u0646\u062A\u0627\u062C \u0633\u0648\u0631\u0629 \u0645\u062B\u0644\u0647 \u2014 \u0628\u0639\u062F 1400 \u0639\u0627\u0645\u060C \u0644\u0645 \u064A\u0646\u062C\u062D \u0623\u062D\u062F\u060C \u0645\u0645\u0627 \u064A\u062B\u0628\u062A \u0623\u0635\u0644\u0647 \u0627\u0644\u0625\u0644\u0647\u064A.',
     description: 'Dr. Haitham Talaat in "Rasul al-Ummiyyin" discusses the Quran\'s challenge (tahhaddi/i\'jaz) as unique evidence of divine origin: (1) THE CHALLENGE was graduated: first "produce a book like it" (17:88), then "ten chapters" (11:13), finally "one chapter" (10:38; 2:23). After 1400 years, the challenge stands unanswered. (2) THE UNLETTERED PROPHET: Muhammad could not read or write (7:157-158; 29:48) \u2014 confirmed by history and the Quran itself. For an illiterate man to produce what Arabic scholars universally acknowledge as the greatest literary work in Arabic is itself decisive proof. (3) THE LINGUISTIC MIRACLE: Arabic linguists find in the Quran: (a) A unique rhythm/rhyme unlike any poetry or prose. (b) Information density unmatched in any text. (c) Any word change reduces its precision. (d) The Quran says about itself: "Do they not contemplate the Quran? If it had been from other than Allah, they would have found within it much contradiction" (4:82). (4) THE ENEMIES COULD NOT RESPOND: Arab masters of eloquence chose to fight rather than respond linguistically (8:31).',
     descriptionAr: '\u064A\u0646\u0627\u0642\u0634 \u062F. \u0647\u064A\u062B\u0645 \u0637\u0644\u0639\u062A \u0641\u064A "\u0631\u0633\u0648\u0644 \u0627\u0644\u0623\u0645\u064A\u064A\u0646" \u062A\u062D\u062F\u064A \u0627\u0644\u0642\u0631\u0622\u0646 (\u0627\u0644\u062A\u062D\u062F\u064A/\u0627\u0644\u0625\u0639\u062C\u0627\u0632): (1) \u0627\u0644\u062A\u062D\u062F\u064A \u062A\u062F\u0631\u062C\u0649: \u0643\u062A\u0627\u0628 \u0643\u0627\u0645\u0644 \u062B\u0645 10 \u0633\u0648\u0631 \u062B\u0645 \u0633\u0648\u0631\u0629 \u0648\u0627\u062D\u062F\u0629. (2) \u0627\u0644\u0646\u0628\u064A \u0627\u0644\u0623\u0645\u064A \u2014 \u0645\u0639\u062C\u0632\u0629 \u0628\u0630\u0627\u062A\u0647\u0627. (3) \u0627\u0644\u0645\u0639\u062C\u0632\u0629 \u0627\u0644\u0644\u063A\u0648\u064A\u0629: \u0644\u063A\u0629 \u0641\u0631\u064A\u062F\u0629 \u0644\u0627 \u064A\u0633\u0628\u0642\u0647\u0627 \u0634\u0639\u0631 \u0648\u0644\u0627 \u0646\u062B\u0631. (4) \u0627\u0644\u062E\u0635\u0648\u0645 \u0644\u0645 \u064A\u0633\u062A\u0637\u064A\u0639\u0648\u0627 \u0627\u0644\u0631\u062F.',
+    deepDiveAr: `تحدي القرآن المتدرج — من الكتاب الكامل إلى السورة الواحدة
+===
+يناقش د. هيثم طلعت في "رسول الأميين" أن تحدي القرآن تدرّج في ثلاث مراحل متصاعدة في التخفيف الظاهري:
+- المرحلة الأولى (الإسراء 17:88): "قل لئن اجتمعت الإنس والجن على أن يأتوا بمثل هذا القرآن لا يأتون بمثله" — تحدي إنتاج كتاب كامل مثله.
+- المرحلة الثانية (هود 11:13): "فأتوا بعشر سور مثله مفتريات" — خُفِّف إلى عشر سور.
+- المرحلة الثالثة (يونس 10:38؛ البقرة 2:23): "فأتوا بسورة من مثله" — سورة واحدة فقط.
+
+بعد 1400 عام، لم يُنتج أحد سورة واحدة يوافق عليها علماء اللغة العربية. أقصر سورة في القرآن (الكوثر) ثلاث آيات فحسب. التحدي لا يزال مفتوحاً لكل إنس وجن على وجه الأرض حتى الآن.
+
+هذا التدرج يكشف استراتيجية إعجازية: كلما خُفِّف التحدي لإزالة الأعذار، زاد الإثبات. العجز عن سورة واحدة أدل على الإعجاز من العجز عن كتاب كامل.
+
+
+النبي الأمي — معجزة في حد ذاتها
+===
+النبي محمد صلى الله عليه وسلم لم يكن يقرأ ولا يكتب — يؤكده القرآن صراحةً (الأعراف 7:157-158) وكل السير الموثقة. وفي العنكبوت (29:48): "وما كنت تتلو من قبله من كتاب ولا تخطه بيمينك".
+
+الدلالة المنطقية قاطعة: رجل أمي في مجتمع شفهي، لم يتعلم على يد معلم، ولم يسافر لدراسة الآداب، أنتج في 23 عاماً نصاً يُجمع علماء اللغة العربية — جميعهم — على أنه أعلى قمم البيان العربي. هذا بمفرده يطرح سؤالاً منطقياً لا مناص منه: من أين جاء هذا؟
+
+وثّق الإمام أبو بكر الباقلاني (ت 1013م) في "إعجاز القرآن" أن القرآن يعمل بمستوى لغوي لم يبلغه بشر — في عصر كانت فيه الفصاحة أعلى معايير الحضارة.
+
+
+الإعجاز البياني — ما عجز عنه أصحاب الفصاحة
+===
+للإعجاز البياني أربعة أبعاد متميزة:
+
+(1) القرآن ليس شعراً ولا نثراً — له إيقاع فريد لا نظير له في التراث العربي كله. ابتكر جنساً أدبياً فريداً لم يوجد قبله ولا بعده.
+
+(2) كل كلمة لا تُعوَّض: محاولات علماء اللغة لإحلال كلمة محل أخرى مع الحفاظ على كل طبقات المعنى فشلت جميعها — خاصية لا يملكها أي نص بشري.
+
+(3) اتساق داخلي تام: "أفلا يتدبرون القرآن ولو كان من عند غير الله لوجدوا فيه اختلافاً كثيراً" (النساء 4:82). كتاب من 114 سورة نزل على فترة 23 عاماً في ظروف متباينة — لا يحوي تناقضاً واحداً. هذا قابل للدحض — أي تناقض موثق يكفي لنقضه. لم يُعثر على شيء.
+
+(4) الشمولية بمستوى بياني واحد: تشريع، تاريخ، أخلاق، عقيدة، علم — كل ذلك بمستوى لغوي واحد رفيع طوال الكتاب.
+
+
+صمت الفصحاء — الدليل التاريخي الحاسم
+===
+الحجة الأكثر إقناعاً ليست ما قاله المسلمون — بل ما فعله أعداء النبي: كانوا سادة الفصاحة العربية، ولديهم كل دوافع دحض القرآن، وأمامهم نصه كاملاً.
+
+لم يُنتجوا سورة مضادة. بدلاً من ذلك قال كبراؤهم: "لا تسمعوا لهذا القرآن والغوا فيه" (فصلت 41:26) — اعتراف ضمني بالعجز وخشية من تأثيره على من يسمعه.
+
+الوليد بن المغيرة — من أعظم شعراء عصره — قال بعد سماع القرآن: "والله إن له لحلاوة، وإن عليه لطلاوة، وإن أعلاه لمثمر، وإن أسفله لمغدق، وما هو بكلام البشر." لم يستطع رفضه أدبياً — فلجأ إلى وصفه بالسحر.
+
+د. غاري ميلر (الرياضي والقسيس المسيحي) درس القرآن ليدحضه، فأسلم، وكتب في "القرآن المذهل" (1990): "القرآن كتاب فريد لا يشبه أي كتاب آخر في العالم."`,
+    deepDive: `The Graduated Challenge — From a Whole Book Down to One Chapter
+===
+Dr. Haitham Talaat in "Rasul al-Ummiyyin" examines the three-stage Quranic challenge that progressively lowered the bar to remove every excuse:
+- Stage 1 (Al-Isra 17:88): "Say: If mankind and jinn gathered to produce the like of this Quran, they could not produce its like, even helping one another." Challenge: produce an equivalent book.
+- Stage 2 (Hud 11:13): "Bring ten forged chapters like it." Challenge reduced to ten chapters.
+- Stage 3 (Yunus 10:38; Al-Baqarah 2:23): "Bring one chapter like it." Challenge reduced to a single chapter.
+
+After 1400 years, not one chapter has been produced that Arabic scholars agree matches the Quran's quality. The shortest Quranic chapter (Al-Kawthar) is only three verses. The challenge remains open to every human and jinn today.
+
+This graduated strategy is itself evidence: each time the challenge was lowered to remove excuses, the proof deepened. Failing to produce one chapter is more decisive than failing to produce a whole book.
+
+
+The Unlettered Prophet — A Miracle in Itself
+===
+Muhammad was unable to read or write — confirmed explicitly by the Quran (Al-A'raf 7:157-158) and all historical accounts. The Quran states: "You did not recite any book before it, nor did you write one with your right hand" (Al-Ankabut 29:48).
+
+The logical implication is inescapable: an illiterate man in an oral society, trained by no teacher, traveled to study no literary tradition, produced in 23 years a text that every serious scholar of the Arabic language acknowledges as the supreme pinnacle of Arabic literary excellence.
+
+Al-Baqillani (d. 1013 CE) in "I'jaz al-Quran" documents that the Quran operates at a literary level no human author could have reached — in a civilization where eloquence was the highest mark of achievement. He demonstrates this through exhaustive comparison with the finest Arabic poetry and prose of the era.
+
+
+The Rhetorical Inimitability — What Masters of Arabic Could Not Produce
+===
+The Quran's literary inimitability has four distinct dimensions:
+
+(1) It occupies a unique literary form: not poetry (no consistent meter), not prose (no ordinary prose rhythm) — it created its own genre, unlike anything before or after in Arabic literature.
+
+(2) Every word is irreplaceable: scholarly attempts to substitute even a single word while preserving all semantic layers have universally failed — a property no human text possesses.
+
+(3) Zero internal contradiction across 114 chapters revealed over 23 years in varying circumstances: "Do they not contemplate the Quran? If it had been from other than Allah, they would have found within it much contradiction" (An-Nisa 4:82). This is falsifiable — any confirmed contradiction disproves it. None has been found.
+
+(4) Total scope at a single literary level: law, history, ethics, theology, cosmology — every domain addressed with the same elevated style throughout the entire book.
+
+
+The Silence of the Eloquent — The Most Powerful Historical Proof
+===
+The most compelling evidence is not what Muslims say — it is what the Prophet's enemies did. They were masters of Arabic eloquence with every motive to produce a counter-chapter, and full access to the Quran.
+
+They did not produce one. Instead their leaders said: "Do not listen to this Quran and speak loudly over it" (Fussilat 41:26) — a tacit admission of defeat and fear of its impact on any who heard it.
+
+Al-Walid ibn al-Mughirah — one of the greatest Arabic poets of the era — said after hearing the Quran: "By God, it has sweetness, it has radiance. Its top is fruitful, its base is abundant — it is not the speech of any human." He could find no literary refutation and resorted to calling it "magic."
+
+Dr. Gary Miller (mathematician and Christian priest) studied the Quran to refute it, accepted Islam, and wrote in "The Amazing Quran" (1990): "The Quran is a very special book unlike any other in the world."`,
     verses: [
       {
         id: 'verse-isra-88',
@@ -5196,6 +5282,98 @@ The Quran provides the only logically satisfying answer: "And We made from water
     summaryAr: '\u064A\u062D\u062A\u0648\u064A \u0625\u0634\u0639\u064A\u0627\u0621 42 \u0639\u0644\u0649 \u0646\u0628\u0648\u0621\u0629 \u062A\u0641\u0635\u064A\u0644\u064A\u0629 \u0639\u0646 \u0639\u0628\u062F \u0627\u0644\u0644\u0647 \u0645\u0646 \u0645\u0646\u0637\u0642\u0629 \u0642\u064A\u062F\u0627\u0631/\u0627\u0644\u062C\u0632\u064A\u0631\u0629 \u0627\u0644\u0639\u0631\u0628\u064A\u0629 \u2014 \u062A\u0637\u0627\u0628\u0642 \u0645\u062D\u0645\u062F\u0627\u064B \u0635\u0644\u0649 \u0627\u0644\u0644\u0647 \u0639\u0644\u064A\u0647 \u0648\u0633\u0644\u0645 \u0648\u0644\u0627 \u0623\u062D\u062F\u0627\u064B \u063A\u064A\u0631\u0647.',
     description: 'Dr. Haitham Talaat in "Ilm al-Kitab" presents Isaiah 42 as one of the clearest biblical prophecies of Muhammad: Isaiah 42 describes a "servant of God" with specific characteristics: (1) "Here is my servant... my chosen one in whom I delight" \u2014 paralleling the meaning of "Muhammad" (the praised one). (2) "He will not shout or cry out, or raise his voice in the streets" \u2014 matching the documented gentle character of Muhammad. (3) "He will bring justice to the nations" \u2014 Muhammad established a complete legal and moral system for all humanity. (4) "He will not falter or be discouraged till he establishes justice on earth" \u2014 Muhammad persisted for 23 years. (5) MOST SIGNIFICANTLY: "Let the settlements where Kedar lives rejoice... let them shout from the mountaintops" (42:11). KEDAR (\u0642\u064A\u062F\u0627\u0631) is the second son of Ishmael (Genesis 25:13) \u2014 ancestor of the Hejaz Arabs where Mecca is. No prophet after Isaiah came from the Kedar region until Muhammad. (6) "He will sing a new song" \u2014 pointing to the Quran as a new revelation.',
     descriptionAr: '\u064A\u0642\u062F\u0645 \u062F. \u0647\u064A\u062B\u0645 \u0637\u0644\u0639\u062A \u0641\u064A "\u0639\u0644\u0645 \u0627\u0644\u0643\u062A\u0627\u0628" \u0625\u0634\u0639\u064A\u0627\u0621 42 \u0628\u0648\u0635\u0641\u0647 \u0646\u0628\u0648\u0621\u0629 \u0648\u0627\u0636\u062D\u0629: (1) "\u0645\u062E\u062A\u0627\u0631\u064A \u0627\u0644\u0630\u064A \u0633\u0631\u062A \u0628\u0647 \u0646\u0641\u0633\u064A" = "\u0645\u062D\u0645\u062F/\u0623\u062D\u0645\u062F". (2) "\u0644\u0627 \u064A\u0635\u0631\u062E \u0648\u0644\u0627 \u064A\u0639\u0644\u0648 \u0635\u0648\u062A\u0647 \u0641\u064A \u0627\u0644\u0634\u0648\u0627\u0631\u0639" = \u0623\u062E\u0644\u0627\u0642 \u0645\u062D\u0645\u062F. (3) \u064A\u0623\u062A\u064A \u0628\u0627\u0644\u0639\u062F\u0644 \u0644\u0644\u0623\u0645\u0645. (4) \u0627\u0644\u0623\u0647\u0645: "\u0627\u0644\u0642\u0631\u0649 \u0627\u0644\u062A\u064A \u0633\u0643\u0646\u0647\u0627 \u0642\u064A\u062F\u0627\u0631 \u062A\u0647\u0644\u0644" \u2014 \u0642\u064A\u062F\u0627\u0631 (\u0625\u0633\u0645\u0627\u0639\u064A\u0644 \u0627\u0644\u062B\u0627\u0646\u064A) = \u0639\u0631\u0628 \u0627\u0644\u062D\u062C\u0627\u0632 \u062D\u064A\u062B \u0645\u0643\u0629.',
+    deepDiveAr: `إشعياء 42 — نبوءة عن عبد الله من منطقة عربية تحديداً
+===
+يُقدّم د. هيثم طلعت في "علم الكتاب" إشعياء 42 بوصفه من أوضح نبوءات التوراة عن النبي محمد صلى الله عليه وسلم. الفصل يصف "عبد الله" بسلسلة من الأوصاف التفصيلية الدقيقة التي لا تنطبق معاً على أي شخصية أخرى في التاريخ.
+
+إشعياء 42:1: "هوذا عبدي الذي أعضده، مختاري الذي سرّت به نفسي." العبرية القديمة في إشعياء 42:1 تحتوي على صيغة "Hemda" أو "Mahmad" (الأكثر حمداً/المحبوب) — مقابلة مباشرة لاسمي "محمد" (الأكثر حمداً) و"أحمد" (الأحق بالحمد).
+
+النبوءة لم تكتفِ بوصف الشخص — بل حددت الموقع الجغرافي بدقة لا تقبل التأويل: "لتفرح البرية ومدنها، والقرى التي يسكنها قيدار" (إشعياء 42:11).
+
+
+"قيدار" — الدليل الجغرافي الحاسم
+===
+قيدار (Kedar) هو الابن الثاني لإسماعيل بن إبراهيم عليهما السلام (التكوين 25:13). قبائل قيدار هي القبائل العربية التي سكنت شمال غرب الجزيرة العربية — منطقة الحجاز التي تضم مكة المكرمة والمدينة المنورة. موثّق في موسوعة بريتانيكا ومصادر التاريخ القديم.
+
+نبّأ إشعياء في القرن الثامن قبل الميلاد. بعده بسبعة قرون ونصف، لم يظهر نبي من منطقة قيدار ينشر عدلاً للأمم — حتى ظهر محمد صلى الله عليه وسلم في مكة المكرمة عام 610 ميلادية.
+
+اسم "أحمد" القرآني — الذي يُبشّر به عيسى في الصف 61:6 — يُكمل الصورة: "مختاري الذي سررت به نفسي" (إشعياء) + "Mahmad/Hemda" (عبري) + قيدار الجغرافي = تعيين دقيق لمحمد صلى الله عليه وسلم.
+
+
+الأوصاف الستة — تطابق تفصيلي مع محمد صلى الله عليه وسلم
+===
+ستة أوصاف في إشعياء 42 تنطبق على محمد صلى الله عليه وسلم دون سواه:
+
+(1) "لا يصرخ ولا يعلو صوته في الشوارع" (42:2) — أخلاق النبي الموثّقة: رفق المصطفى صلى الله عليه وسلم وتواضعه في الجهر والحديث موثّق في كل كتب السيرة.
+
+(2) "يأتي بالحق للأمم" (42:1) — الإسلام رسالة عالمية للبشرية جمعاء بمنظومة قانونية وأخلاقية متكاملة.
+
+(3) "لا يكل ولا ينكسر حتى يضع الحق في الأرض" (42:4) — محمد صلى الله عليه وسلم استمر 23 عاماً في الدعوة رغم الاضطهاد والمقاطعة والحرب.
+
+(4) "جزائر تنتظر شريعته" (42:4) — انتشر الإسلام إلى الجزر والقارات في كل اتجاه.
+
+(5) "يفتح عيوناً عمياء، يخرج من الحبس المقيدين" (42:7) — رسالة التحرر من الشرك والعبودية والقيود الروحية.
+
+(6) "غنّوا للرب أغنية جديدة" (42:10) — الوحي الجديد = القرآن الكريم، كتاب لم يُوحَ بمثله قط.
+
+
+لماذا لا تنطبق على غيره؟ — الحصرية التاريخية
+===
+د. هيثم طلعت يُبيّن أن النبوءة تحتوي على قيد ثلاثي لا يمكن فكّه:
+
+(1) المنطقة: قيدار/الحجاز العربي — يستبعد كل أنبياء بني إسرائيل وكل نبي من منطقة جغرافية أخرى.
+
+(2) الزمن: "بعد إشعياء" الذي عاش حوالي 700 ق.م — يستبعد كل من سبقه.
+
+(3) النطاق: رسالة عالمية للأمم كلها بمنظومة عدل كاملة — يستبعد كل نبوءة محدودة النطاق أو قومية.
+
+المحصلة: القيد الجغرافي (قيدار = الحجاز) + نطاق الرسالة العالمي + الاسم (Mahmad/محمد) + التأكيد القرآني (الصف 61:6 + الأعراف 7:157) = نبوءة إشعياء تشير إلى محمد صلى الله عليه وسلم حصراً ولا غيره.`,
+    deepDive: `Isaiah 42 — A Prophecy About God's Servant from a Specific Arab Region
+===
+Dr. Haitham Talaat in "Ilm al-Kitab" presents Isaiah 42 as one of the clearest biblical prophecies of Muhammad. The chapter describes a specific "servant of God" with a chain of detailed characteristics that match no other historical figure simultaneously.
+
+Isaiah 42:1 opens: "Here is my servant, whom I uphold, my chosen one in whom I delight." The ancient Hebrew of Isaiah 42:1 includes a form "Hemda" or "Mahmad" (most beloved, most praised) — a direct parallel to the Arabic names "Muhammad" (the most praised) and "Ahmad" (the most worthy of praise).
+
+The prophecy does not stop at describing the person — it specifies the geographic location with unmistakable precision: "Let the settlements where Kedar lives rejoice... let them shout from the mountaintops" (Isaiah 42:11).
+
+
+"Kedar" — The Decisive Geographic Evidence
+===
+Kedar is the second son of Ishmael son of Abraham (Genesis 25:13). The Kedar tribes were the Arab tribes who inhabited northwest Arabia — the Hejaz region that includes Mecca and Medina. This is documented in the Encyclopedia Britannica and ancient historical records.
+
+Isaiah prophesied in the 8th century BC. For seven and a half centuries after Isaiah, no prophet emerged from the Kedar region to bring justice to all nations — until Muhammad appeared in Mecca in 610 CE.
+
+The Quranic name "Ahmad" — prophesied by Jesus in As-Saf 61:6 — completes the picture: Isaiah's "my chosen one in whom I delight" + the Hebrew "Mahmad/Hemda" + the geographic Kedar marker = a precise identification of Muhammad.
+
+
+Six Specific Characteristics — A Detailed Match with Muhammad
+===
+Six descriptions in Isaiah 42 match Muhammad and no other prophet:
+
+(1) "He will not shout or cry out, or raise his voice in the streets" (42:2) — the documented prophetic character: the Prophet's gentleness and measured speech are recorded throughout every biography source.
+
+(2) "He will bring justice to the nations" (42:1) — Islam is a universal mission to all humanity with a comprehensive legal and moral system.
+
+(3) "He will not falter or be discouraged till he establishes justice on earth" (42:4) — Muhammad persisted for 23 years through persecution, siege, and war.
+
+(4) "The islands will put their hope in his law" (42:4) — Islam spread to islands and continents in every direction.
+
+(5) "To open eyes that are blind, to free captives from prison" (42:7) — the mission of liberation from idolatry, spiritual imprisonment, and social slavery.
+
+(6) "Sing a new song to the Lord" (42:10) — the new revelation = the Quran, an unprecedented form of divine communication.
+
+
+Why No Other Prophet Fits — The Historical Exclusivity
+===
+Dr. Haitham Talaat demonstrates that the prophecy contains a three-fold lock that cannot be broken:
+
+(1) Region: Kedar/Arabian Hejaz — excludes every Israelite prophet and every prophet from any other geographic region.
+
+(2) Timing: "after Isaiah" who lived around 700 BC — excludes everyone before him.
+
+(3) Scope: a universal mission to all nations with a complete system of justice — excludes every limited or national prophecy.
+
+The combined constraint: geographic marker (Kedar = Hejaz) + universal mission scope + the name (Mahmad/Muhammad) + Quranic confirmation (As-Saf 61:6, Al-A'raf 7:157) = Isaiah's prophecy points exclusively and uniquely to Muhammad, the Prophet of Islam.`,
     verses: [
       {
         id: 'verse-araf-157-isaiah',
