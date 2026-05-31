@@ -9341,6 +9341,132 @@ Modern research confirms: every meeting point between two water masses of differ
     summaryAr: 'يقرر القرآن أنه في التطور الجنيني تُخلق العظام أولاً ثم تُكسى باللحم — تؤكد علم الأجنة الحديث هذا التسلسل الدقيق: يتشكل الهيكل العظمي قبل أن تلتف حوله الأنسجة العضلية.',
     description: 'Surah Al-Mu\'minun (23:14): "Then We made the sperm-drop into a clinging clot, and We made the clot into a lump [of flesh], and We made the lump into bones (فَخَلَقْنَا الْمُضْغَةَ عِظَامًا), and We clothed the bones with flesh (فَكَسَوْنَا الْعِظَامَ لَحْمًا); then We developed him into another creation. So blessed is Allah, the best of creators." The key sequence: bones THEN flesh — "kasawna" (كَسَوْنَا) means "We clothed/dressed" — bones are the foundation that gets wrapped in flesh. Modern embryology confirms: (1) EXACT SEQUENCE: Bones (ossification centers) begin forming at week 6–7 of embryonic development. Skeletal muscle development begins at weeks 5–6 but the attachment and wrapping of muscle around bone (myogenesis and differentiation) follows skeletal formation. (2) CARTILAGE SCAFFOLD: The skeletal system begins as a cartilaginous scaffold (from mesenchymal cells) that gradually ossifies — this scaffold exists BEFORE the full musculature develops. (3) OSSIFICATION SEQUENCE: Endochondral ossification begins week 8 — ossification centers form in cartilage, then replace it with bone. Muscle cells attach to periosteum as bones solidify. (4) "CLOTHED": The Quranic metaphor of "clothing" bones with flesh precisely describes how muscles wrap, attach, and surround the bony scaffold — a remarkable description for the 7th century. (5) PROF. KEITH MOORE: Embryologist Keith Moore noted that Surah 23:14 contains an accurate description of embryonic stages that matches modern embryology sequences.',
     descriptionAr: 'يقول الله تعالى في سورة المؤمنون (23:14): "فَخَلَقْنَا الْمُضْغَةَ عِظَامًا فَكَسَوْنَا الْعِظَامَ لَحْمًا ثُمَّ أَنشَأْنَاهُ خَلْقًا آخَرَ فَتَبَارَكَ اللَّهُ أَحْسَنُ الْخَالِقِينَ". التسلسل الرئيسي: عظام ثم لحم — "كَسَوْنَا" تعني كَسَوْنا/غَطَّيْنا — العظام هي الأساس الذي يُلف باللحم. تؤكد علم الأجنة الحديث: (1) التسلسل الدقيق: تبدأ مراكز التعظم في الأسابيع 6-7. (2) القالب الغضروفي: يتشكل قبل تطور الجهاز العضلي الكامل. (3) "التكسية": يصف مجازياً التفاف العضلات حول الهيكل العظمي — وصف ملحوظ للقرن السابع.',
+    deepDiveAr: `"فَكَسَوْنَا الْعِظَامَ لَحْمًا" — دلالة التسلسل في الاختيار اللغوي
+===
+يقول الله تعالى في سورة المؤمنون (23:14): "فَخَلَقْنَا الْمُضْغَةَ عِظَامًا فَكَسَوْنَا الْعِظَامَ لَحْمًا".
+
+التحليل اللغوي:
+"فَخَلَقْنَا الْمُضْغَةَ عِظَامًا" = حوّلنا المضغة إلى عظام — العظام هي المرحلة الأولى
+"فَكَسَوْنَا الْعِظَامَ لَحْمًا" = كَسَوْنَا من "كَسَا" = ألبسَ وغطّى — كما تُكسى الأجسام بالثياب
+
+"كَسَوْنَا" تضمّن ثلاثة معانٍ علمية دقيقة في آنٍ واحد:
+(1) التسلسل: العظام أولاً — اللحم ثانياً (لا العكس)
+(2) الإحاطة: اللحم يلتف حول العظام من الخارج — لا أن العظام تنشأ داخل كتلة لحمية
+(3) الحماية: العظام قالب ثابت يُكسى — كالهيكل الذي يُكسى بالجلد والعضلات
+
+في القرن السابع: لم تكن هناك أدوات لمشاهدة الجنين في مراحله المبكرة — ما يبدو للعيان هو اللحم. لكن القرآن يذكر العظام أولاً — وهو ما لا يُدرَك إلا بالمجهر.
+
+
+التطور الجنيني — التسلسل العلمي الموثق (1,373 سنة)
+===
+علم الأجنة الحديث يؤكد: العظام تسبق اللحم في التسلسل الجنيني الدقيق.
+
+الأسبوع 4-5: تتمايز الخلايا اللحمية المتوسطة (Mesenchymal cells) وتشكّل القالب الغضروفي (Cartilaginous scaffold) — الهيكل العظمي في صورته الأولى.
+
+الأسبوع 6-8: تظهر مراكز التعظم الأولية (Primary ossification centers) في الجسم الوسطي — يبدأ الغضروف بالتحول إلى عظم حقيقي عبر التعظم الغضروفي (Endochondral ossification). الخلايا البانية للعظم (Osteoblasts) تترسّب المصفوفة العظمية.
+
+الألياف العضلية (Myogenesis): الخلايا العضلية الأولية (Myoblasts) تنتقل وتلتصق بالسمحاق (Periosteum) للعظام المتشكّلة — تلتف حولها من الخارج.
+
+النتيجة الحتمية: القالب العظمي موجود أولاً — ثم تلتف العضلات حوله وتلتصق = "التكسية" بالضبط.
+
+أول توثيق علمي منهجي لهذا التسلسل في علم الأجنة الحديث:
+Keith Moore & T.V.N. Persaud — "The Developing Human" (1983م) — حيث أقرّ موور بدقة الوصف القرآني.
+الفجوة: 1983م − 610م = 1,373 سنة.
+المرجع: Moore, K.L. & Persaud, T.V.N. (1983). "The Developing Human." 3rd Edition. W.B. Saunders.
+
+
+التعظم الغضروفي — المسار التفصيلي من القالب إلى العظم المكسوّ
+===
+المسار التفصيلي للتعظم الغضروفي (Endochondral Ossification):
+
+(1) الخلايا اللحمية المتوسطة تتجمع وتتمايز → يتكون نموذج غضروفي (نسخة غضروفية من العظم المستقبلي)
+(2) تظهر مراكز التعظم الأولية في الجسم الوسطي — الأسبوع 8
+(3) الخلايا الغضروفية تتكلّس → تُستبدل بالعظم عبر الخلايا البانية للعظم (Osteoblasts)
+(4) تظهر مراكز التعظم الثانوية في الطرفين (Epiphyses) — بعد الولادة
+(5) في كل هذه المراحل: الخلايا العضلية (Myoblasts) تهاجر وتلتصق بالسمحاق وتلتف حول العظام
+
+النتيجة: الهيكل العظمي يسبق تطوّر الغلاف العضلي — تماماً كما وصف القرآن بكلمة "كَسَوْنَا".
+
+مقارنة بما قبل القرن العشرين: أرسطو وجالينوس اعتقدا أن الدم يتجمد ليشكل الجنين — لم يُعرف التسلسل الدقيق (عظام ثم التفاف عضلات) إلا بالمجهر الحديث والتصوير الجنيني.
+
+
+الآية الكاملة — وصف تسلسل جنيني بلا ثغرة
+===
+الآيات 23:12-14 تصف المراحل الكاملة بترتيب علمي دقيق:
+
+"مِن سُلَالَةٍ مِّن طِينٍ" (23:12) = المادة الخام (الكيمياء العضوية — كربون وأكسجين وهيدروجين ومعادن)
+"نُطْفَةً فِي قَرَارٍ مَّكِينٍ" (23:13) = الحيوان المنوي في الرحم المستقر
+"عَلَقَةً" = تعني المتعلقة ودم متجمد — الانغراس الأسبوع 1-2
+"مُضْغَةً" = قدر ما يُمضغ — الأسابيع 3-4 (الشكل مع نتوءات تشبه أثر الأسنان)
+"عِظَامًا" = مراكز التعظم — الأسبوع 6-8
+"كَسَوْنَا الْعِظَامَ لَحْمًا" = التكسية العضلية — ما بعد الأسبوع 8
+"ثُمَّ أَنشَأْنَاهُ خَلْقًا آخَرَ" = ظهور الجهاز العصبي وتمايز الأعضاء الكامل
+
+كل مرحلة تطابق مرحلة علمية موثقة — هذا التسلسل الكامل لم يُعرف إلا في القرن العشرين.
+د. كيث موور ضمّن الوصف القرآني في كتابه "The Developing Human" وأقرّ بدقة التسلسل الجنيني المذكور في سورة المؤمنون.`,
+    deepDive: `"We Clothed the Bones with Flesh" — The Sequential Precision of the Quranic Choice
+===
+Surah Al-Mu'minun (23:14): "And We made the lump [of flesh] into bones, and We clothed the bones with flesh; then We developed him into another creation. So blessed is Allah, the best of creators."
+
+Linguistic analysis:
+"Fa-khalaqna al-mudghata idaman" = We converted the lump into bones — bones are the FIRST stage
+"Fa-kasawna al-idama lahman" = "kasawna" from "kasa" = to clothe, to dress — as a body is dressed in garments
+
+"Kasawna" (We clothed) encodes three precise scientific meanings simultaneously:
+(1) Sequence: bones FIRST — flesh SECOND (not the reverse)
+(2) Wrapping: flesh wraps around bones from the outside — not bones forming inside a flesh mass
+(3) Foundation: bones are the fixed scaffold that gets dressed — like a frame covered in muscle
+
+In the 7th century: there were no tools to observe an embryo in its early stages — the true developmental sequence was invisible to the naked eye. What appears externally in a developed fetus is flesh — yet the Quran specifies bones first.
+
+
+Embryonic Development — The Documented Scientific Sequence (Gap: 1,373 Years)
+===
+Modern embryology confirms: bones precede flesh in the precise embryonic sequence.
+
+Weeks 4-5: Mesenchymal cells differentiate to form the cartilaginous scaffold — the skeletal system in its first form, before any mineralization.
+
+Weeks 6-8: Primary ossification centers appear in the diaphysis — cartilage begins converting to true bone via endochondral ossification. Osteoblasts deposit bone matrix around the cartilage scaffold.
+
+Myogenesis (muscle formation): Myoblasts (muscle precursor cells) migrate from the somites and attach to the periosteum (bone membrane) of the forming bones — they wrap around the bony scaffold from the outside.
+
+Conclusion: the skeletal scaffold exists FIRST — then muscles wrap around and attach to it = precisely what "We clothed (kasawna)" describes.
+
+First comprehensive scientific documentation of this sequence in modern embryology:
+Keith Moore & T.V.N. Persaud — "The Developing Human" (1983 CE) — the edition in which Moore acknowledged the accuracy of the Quranic embryological description.
+Time gap: 1983 CE - 610 CE = 1,373 years.
+Reference: Moore, K.L. & Persaud, T.V.N. (1983). "The Developing Human." 3rd Edition. W.B. Saunders.
+
+
+Endochondral Ossification — The Detailed Process from Scaffold to Clothed Bone
+===
+The detailed pathway of Endochondral Ossification:
+
+(1) Mesenchymal cells condense and differentiate → form a cartilaginous model (a cartilage template of the future bone)
+(2) Primary ossification centers appear in the diaphysis (bone shaft) — Week 8
+(3) Chondrocytes calcify → replaced by bone via osteoblasts depositing bone matrix
+(4) Secondary ossification centers form in the epiphyses (bone ends) — postnatal
+(5) Throughout: myoblasts migrate and attach to the periosteum, wrapping around the bones as they solidify
+
+Inevitable result: the skeletal system precedes the muscular envelope — exactly as the Quran described with "kasawna."
+
+Critical contrast with pre-20th century knowledge: Aristotle and Galen believed blood coagulated to form the embryo — the precise sequence (bones scaffold first, then muscle wrapping) was unknown until modern microscopy and embryonic imaging.
+
+
+The Complete Verses 23:12-14 — A Gapless Embryological Description
+===
+Surah 23:12-14 describes the complete developmental stages in verified scientific order:
+
+"From clay" (23:12) = raw material (organic chemistry — carbon, oxygen, hydrogen, nitrogen, minerals)
+"A sperm-drop in a secure place" (23:13) = spermatozoon implanted in the stable uterus
+"Alaqah" = implantation and early blood formation — Weeks 1-2 (alaqah = attached + resembles a blood clot)
+"Mudghah" = morula/somite stage — Weeks 3-4 (shape resembles a chewed piece with somite ridges)
+"Bones (idam)" = ossification centers — Weeks 6-8
+"Clothed with flesh (lahm)" = myogenesis and muscle attachment — post-Week 8
+"Then We developed him into another creation" = emergence of nervous system, sensory organs, full differentiation
+
+Every stage corresponds to a documented embryological phase — this complete sequence was unknown until the 20th century.
+Dr. Keith Moore, author of the standard embryology textbook "The Developing Human," included Quranic embryological stages in his revised edition and acknowledged the accuracy of the developmental sequence described in Surah 23:12-14.`,
     verses: [
       {
         id: 'verse-muminun-14',
@@ -9396,6 +9522,136 @@ Modern research confirms: every meeting point between two water masses of differ
     summaryAr: 'يستخدم القرآن كلمة "يُكَوِّرُ" (يلف/يطوي كالعمامة) لكيفية لف الليل على النهار — هذا الفعل المحدد يعني سطحاً كرويًا، يصف بدقة مخروط ظل الأرض الدائر على كرة.',
     description: 'Surah Az-Zumar (39:5): "He created the heavens and earth in truth. He wraps (يُكَوِّرُ) the night over the day and wraps (يُكَوِّرُ) the day over the night and has subjected the sun and the moon, each running [its course] for a specified term. Unquestionably, He is the Exalted in Might, the Perpetual Forgiver." The Arabic word "yukawwiru" (يُكَوِّرُ) comes from the root "kawwara" which means to coil, to wrap around into a ball or sphere, specifically to wind a turban (imamah) around one\'s head. This is a highly specific word choice: (1) SPHERICAL IMPLICATION: The verb "yukawwiru" — coiling/winding around — only makes sense on a spherical surface. You cannot "coil" night over day on a flat surface; you can only do this on a sphere. (2) CONTINUOUS WRAPPING: The present continuous tense (yukawwiru, not kawwara) indicates an ongoing, perpetual process — day and night continuously wrapping over each other — exactly what happens on a rotating sphere. (3) MUTUAL WRAPPING: Both directions are stated — night over day AND day over night — describing the alternation as a continuous spherical rotation. (4) HELIOCENTRIC MOTION: The verse also "subjected" the sun and moon with a "specified term" — suggesting orbital mechanics. (5) EARLIEST SPHERICAL EARTH CLAIM: This verse predates the Greek/Roman consensus on Earth\'s shape becoming widely known in Arabia. The specific technical word "yukawwiru" for spherical coiling would have been meaningless if the Earth were flat.',
     descriptionAr: 'يقول الله تعالى في سورة الزمر (39:5): "يُكَوِّرُ اللَّيْلَ عَلَى النَّهَارِ وَيُكَوِّرُ النَّهَارَ عَلَى اللَّيْلِ". الكلمة "يُكَوِّرُ" من "كَوَّرَ" تعني: يلف/يطوي في شكل كروي، يطوي العمامة حول الرأس. (1) التضمين الكروي: فعل "التكوير" لا يصح إلا على سطح كروي — لا يمكنك "تكوير" الليل على النهار على سطح مستوٍ. (2) الاستمرارية: المضارع المستمر يدل على عملية مستمرة متواصلة. (3) التكوير المتبادل: ذكر الاتجاهين — الليل على النهار والنهار على الليل — يصف التدوير الكروي.',
+    deepDiveAr: `"يُكَوِّرُ" — فعل الكروية الحصري في اللغة العربية
+===
+يقول الله تعالى في سورة الزمر (39:5): "يُكَوِّرُ اللَّيْلَ عَلَى النَّهَارِ وَيُكَوِّرُ النَّهَارَ عَلَى اللَّيْلِ وَسَخَّرَ الشَّمْسَ وَالْقَمَرَ كُلٌّ يَجْرِي لِأَجَلٍ مُّسَمًّى".
+
+التحليل اللغوي الجذري:
+الجذر "كَوَّرَ" يعني في اللغة العربية:
+(1) جعل الشيء كالكور/الكرة: صيّره كروياً مستديراً
+(2) طوى العمامة على الرأس: لفّها دورةً بعد دورة حول شكل كروي (الرأس)
+(3) دحرج وطوى في شكل مستدير
+
+معجم لين (Lane, 1863م): "kawwara = to make (a thing) round like a ball; to wind (a turban) round the head."
+
+لماذا "يُكَوِّرُ" ولم يُقل "يُغَطِّي" أو "يَجعل"؟
+- "يُغَطِّي" = يغطي (ينطبق على أي سطح مسطح أو كروي)
+- "يُلقي" = يُلقي (لا يتضمن الحركة الكروية)
+- "يُكَوِّرُ" = يلف بشكل كروي: لا يصح على السطح المسطح — يصح فقط على السطح الكروي
+
+فعل "يُكَوِّرُ" في المضارع المستمر: يدل على عملية متواصلة ومتكررة — لا حادثة مرة واحدة.
+
+
+خط الفاصل (Terminator Line) — الدليل الفلكي على التكوير (1,362 سنة)
+===
+خط الفاصل (Terminator) = الحدّ الفاصل بين جانب النهار وجانب الليل على سطح الأرض.
+
+على الأرض الكروية: خط الفاصل هو دائرة عظمى (Great Circle) تدور باستمرار حول الكرة الأرضية مع دوران الأرض.
+
+"التكوير" الحقيقي: خط الفاصل يلف حول الأرض كما تلف العمامة حول الرأس — دورة كاملة كل 24 ساعة — هذا هو "يُكَوِّرُ اللَّيْلَ عَلَى النَّهَارِ" بالضبط.
+
+على الأرض المسطحة: خط الفاصل سيكون خطاً مستقيماً يمر فوق القرص — لا "تكوير" ولا لفّ.
+
+أول تصوير فضائي يُظهر خط الفاصل الكروي:
+- Luna 3 (1959م): أول صورة فضائية تُظهر جانبي الأرض (المضاء والمعتم)
+- Blue Marble (NASA, 1972م): أول صورة كاملة تُظهر تكوير الليل على النهار
+الفجوة: 1972م − 610م = 1,362 سنة.
+
+
+التكوير المتبادل — الليل والنهار في دوران كروي مستمر
+===
+الآية تذكر الاتجاهين معاً: "يُكَوِّرُ اللَّيْلَ عَلَى النَّهَارِ" + "يُكَوِّرُ النَّهَارَ عَلَى اللَّيْلِ".
+
+الدلالة العلمية لهذا التكوير المزدوج:
+- من نصف الكرة الغربي: تُكوَّر الليل على النهار (يأتي الليل بعد النهار من جهة الغرب)
+- من نصف الكرة الشرقي: يُكوَّر النهار على الليل في الوقت ذاته
+
+كلا الحركتين تحدثان في آنٍ واحد على أجزاء مختلفة من كرة واحدة — هذا التزامن المتبادل لا يُفسَّر إلا على كرة دوّارة.
+
+مقارنة بالمفهوم العربي القديم:
+في الجزيرة العربية قبل الإسلام: كان يُعتقد أن الشمس "تطلع" و"تغرب" — حركة أفقية فوق الأرض. لم يكن في المفهوم الشائع أي "تكوير" أو "لف" — بل عبور مستقيم. اختيار "يُكَوِّرُ" كان مخالفاً تماماً للمشاهدة الحسية — ولم يُفهم معناه الكامل إلا بعد رؤية الأرض من الفضاء.
+
+
+"وَسَخَّرَ الشَّمْسَ وَالْقَمَرَ لِأَجَلٍ مُّسَمًّى" — قانون الحركة الكونية
+===
+الآية لا تكتفي بوصف كروية الأرض — بل تضيف: "وَسَخَّرَ الشَّمْسَ وَالْقَمَرَ كُلٌّ يَجْرِي لِأَجَلٍ مُّسَمًّى".
+
+"سَخَّرَ" = أخضع لقانون ثابت — لا عشوائية: الشمس والقمر خاضعان لقوانين فيزيائية ثابتة (الجاذبية وميكانيكا المدارات).
+
+"كُلٌّ يَجْرِي" = كل منهما يجري بمسار محدد:
+- القمر: دورة فلكية 27.3 يوماً (نجمية)، 29.5 يوماً (قمرية)
+- الشمس: تتحرك نسبةً للنجوم المجاورة، وتدور حول مركز المجرة في ~225 مليون سنة
+
+"لِأَجَلٍ مُّسَمًّى" = لأمد محدد لكل منهما — يشير إلى نهاية مقدرة:
+- الشمس ستستهلك وقودها الهيدروجيني خلال ~5 مليار سنة — أجل مسمى
+- القمر يبتعد 3.8 سم سنوياً عن الأرض — مسار محسوب بدقة
+
+الفيزياء الفلكية الحديثة تؤكد: كل جسم فلكي له "أجل مسمى" — التطور النجمي والتحلل المداري والنهايات المحسوبة هي صميم علم الفيزياء النجمية.`,
+    deepDive: `"Yukawwiru" — The Exclusively Spherical Verb in Arabic
+===
+Surah Az-Zumar (39:5): "He wraps (yukawwiru) the night over the day and wraps (yukawwiru) the day over the night and has subjected the sun and the moon, each running for a specified term."
+
+Root linguistic analysis:
+The root "kawwara" carries three meanings in classical Arabic, all implying sphericity:
+(1) To make something round/spherical — to form it into a ball (kura)
+(2) To wind a turban (imamah) around the head — wrapping in circular motion around a curved surface
+(3) To roll up into a rounded bundle
+
+Lane's Arabic-English Lexicon (1863): "kawwara = to make (a thing) round like a ball; to wind (a turban) round the head."
+
+Why "yukawwiru" and not other Arabic words?
+- "yughaththi" = to cover (applicable to any surface, flat or curved)
+- "yulqi" = to cast over (no spherical implication)
+- "yukawwiru" = to wrap spherically: meaningless on a flat surface — only applicable on a spherical surface
+
+Present continuous tense (yukawwiru, not kawwara): indicates an ongoing, perpetual, repeating process — not a one-time event.
+
+
+The Terminator Line — Astronomical Evidence for Spherical Wrapping (Gap: 1,362 Years)
+===
+The terminator line = the boundary between the day-lit and night-dark sides of Earth.
+
+On a spherical Earth: the terminator is a great circle that continuously sweeps around the globe as Earth rotates.
+
+The coiling visualized: the terminator wraps around Earth exactly as a turban wraps around a head — one complete revolution every 24 hours. This is precisely what "yukawwiru al-layla ala al-nahar" describes.
+
+On a flat Earth: the terminator would be a straight line crossing the disc — no coiling, no spherical wrapping.
+
+First photographic evidence of the spherical terminator from space:
+- Luna 3 (1959 CE): first spacecraft image showing Earth's illuminated and dark sides simultaneously
+- Blue Marble (NASA, 1972 CE): first complete full-sphere Earth photograph showing night/day coiling
+Time gap: 1972 CE - 610 CE = 1,362 years.
+
+
+Bidirectional Coiling — Day and Night in Continuous Spherical Rotation
+===
+The verse states BOTH directions: "He wraps night over day" AND "He wraps day over night" — simultaneously.
+
+Scientific significance of this bidirectionality:
+- From the Western Hemisphere: night coils over day (night advances from the west)
+- From the Eastern Hemisphere: day coils over night at the same moment
+
+Both movements occur simultaneously on different portions of a single rotating sphere — this mutual simultaneity can only be explained by a rotating sphere.
+
+Comparison to 7th century Arabian understanding:
+In pre-Islamic Arabia, the common understanding was that the sun rises and sets — horizontal motion above the earth. There was no conceptual framework for coiling or wrapping — only a straight passage overhead. The choice of "yukawwiru" ran completely counter to direct sensory observation — its full physical meaning could only be understood after seeing Earth from space.
+
+
+"He Subjected the Sun and Moon for a Specified Term" — The Law of Cosmic Motion
+===
+The verse adds beyond spherical Earth: "He subjected the sun and the moon, each running for a specified term (li-ajalin musamman)."
+
+"Sakhkhara" (subjected) = placed under fixed law — no randomness: the sun and moon obey constant physical laws (gravity, orbital mechanics).
+
+"Kullun yajri" (each is running) = each has its own continuous motion on its own path:
+- The Moon: 27.3-day sidereal orbit, 29.5-day synodic month
+- The Sun: moves relative to neighboring stars; orbits the Milky Way center in approximately 225 million years
+
+"Li-ajalin musamman" (for a specified term) = each has a defined end state:
+- The Sun will exhaust its hydrogen fuel in approximately 5 billion years — a specified term
+- The Moon drifts 3.8 cm farther from Earth per year — a calculated trajectory to a defined endpoint
+
+Modern astrophysics confirms: every astronomical body has a specified term — stellar evolution, orbital decay, and end-states are core subjects of astrophysics, confirming the Quranic framework of cosmic motion governed by fixed law with defined durations.`,
     verses: [
       {
         id: 'verse-zumar-5',
