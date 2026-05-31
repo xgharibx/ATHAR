@@ -15,6 +15,61 @@ export const miracles: Miracle[] = [
     summaryAr: 'ذكر القرآن أن الكون يتوسع قبل 1400 عام من اكتشاف إدوين هابل في عام 1929.',
     description: 'In Surah Adh-Dhariyat (51:47), Allah says: "And the heaven We constructed with strength, and indeed, We are [its] expander." The Arabic word "لَمُوسِعُونَ" (lamoosi\'oon) is a present participle, indicating a continuous, ongoing expansion. This precisely matches the discovery by Edwin Hubble in 1929 that galaxies are moving away from each other, meaning the universe is in a state of continuous expansion. Dr. Haitham Talaat extensively documents that no human civilization at the time of the Quran\'s revelation had any concept of an expanding universe. The prevailing view, even among the greatest scientists until the 20th century, was of a static universe. Einstein himself initially added a "cosmological constant" to his equations to force a static model, which he later called his "greatest blunder." The Quran\'s use of the active participle form is a linguistic miracle within a scientific one—it didn\'t say "We expanded it" (past tense) but "We are [continuously] expanding it." This matches the accelerating expansion discovered through observations of Type Ia supernovae by Saul Perlmutter, Brian Schmidt, and Adam Riess (Nobel Prize 2011).',
     descriptionAr: 'في سورة الذاريات (51:47)، يقول الله تعالى: "وَالسَّمَاءَ بَنَيْنَاهَا بِأَيْدٍ وَإِنَّا لَمُوسِعُونَ". كلمة "لَمُوسِعُونَ" اسم فاعل يدل على التجدد والاستمرار، مما يعني توسعاً مستمراً. وهذا يتطابق تماماً مع اكتشاف إدوين هابل عام 1929 أن المجرات تبتعد عن بعضها البعض. يوثق د. هيثم طلعت بشكل مستفيض أنه لم تكن أي حضارة بشرية في وقت نزول القرآن تملك أي مفهوم عن كون متوسع. كان الرأي السائد، حتى بين أعظم العلماء حتى القرن العشرين، هو نموذج الكون الساكن. حتى أينشتاين نفسه أضاف في البداية "الثابت الكوني" إلى معادلاته لفرض نموذج ساكن، وهو ما وصفه لاحقاً بأنه "أعظم خطأ" ارتكبه.',
+    deepDiveAr: `تحليل لغوي دقيق
+===
+كلمة "لَمُوسِعُونَ" = لام التوكيد + اسم الفاعل "موسعون" من مادة (و-س-ع). صيغة اسم الفاعل في العربية تدل على الاستمرار والتجدد المستمر. لو أراد النص الإخبار عن توسع انتهى في الماضي لقال: "وسَّعناها" (فعل ماضٍ)، لكنه قال: "إِنَّا لَمُوسِعُونَ" — والمعنى: نحن الآن وفي كل لحظة نوسّعه. هذا الاختيار الصرفي الدقيق هو المعجزة اللغوية داخل المعجزة العلمية.
+
+خط الزمن العلمي
+===
+• 1915 — أينشتاين ينشر النسبية العامة → معادلاته تتنبأ تلقائياً بكون متمدد، فيُضيف "الثابت الكوني Λ" لإلغاء التمدد والإبقاء على "الكون الساكن"
+• 1922 — ألكسندر فريدمان يحل معادلات أينشتاين بلا Λ ويثبت رياضياً أن الكون إما متمدد أو منكمش
+• 1927 — جورج لوميتر يتنبأ رياضياً بتمدد الكون ويصيغ ما يُسمى الآن قانون هابل-لوميتر
+• 1929 — إدوين هابل يرصد أن المجرات كلها تبتعد بسرعات تتناسب مع أبعادها ← أول إثبات تجريبي في التاريخ
+• 1998 — بيرلموتر ورفاقه يكتشفون أن التمدد يتسارع بفعل "الطاقة المظلمة" ← جائزة نوبل 2011
+
+ملاحظة جوهرية: الكون لا "يتوسع في فضاء خارجي"، بل الفضاء نفسه يتمدد بين جميع النقاط.
+
+لماذا لا يمكن للبشر أن يكونوا مصدر هذا العلم؟
+===
+بين عام 610م (نزول الآية) وعام 1929م، مضت 1300 سنة من العلم البشري المتراكم:
+• علماء الفلك الإسلاميون الكبار (ابن الهيثم، البيروني، ابن الشاطر) — وصلوا لأدق حسابات فلكية عصرهم، لكن لم يصل أحدهم لفكرة الكون المتمدد
+• عصر النهضة الأوروبي (كوبرنيكوس، غاليليو، نيوتن) — نيوتن افترض صريحاً كوناً ثابتاً أزلياً لا بداية له
+• أينشتاين نفسه في مطلع القرن العشرين — رفض التمدد وأضاف Λ ليُلغيه من معادلاته، ثم ندم
+
+الآية قُرئت في الصلوات وحُفظت في الصدور 13 قرناً قبل أن يدرك العلم ما تصفه.
+
+البُعد الروحي للتوسع
+===
+"وَالسَّمَاءَ بَنَيْنَاهَا بِأَيْدٍ" — بنيناها بقوة بالغة متعاظمة (أيدٍ: جمع أيد من اليد بمعنى القدرة).
+التوسع المستمر للكون دليل حيّ على استمرار فعل الخلق الإلهي — الله لم "يصنع الكون ثم يتركه"، بل هو القيوم القائم على خلقه لحظةً بلحظة. كل مجرة تبتعد الآن عن الأخرى هي آية تُقرأ في السماء في كل لحظة.`,
+    deepDive: `Linguistic Precision: The Grammar of a Miracle
+===
+"Lamoosi'oon" (لَمُوسِعُونَ) is an ACTIVE PRESENT PARTICIPLE — indicating continuous, perpetual, ongoing action with no implied end. Compare: if the verse said "wassa'nahaa" (past tense: "We expanded it"), that would describe a completed action. Instead it says "We ARE [continuously] expanders" — an eternal present-tense creative act.
+This single grammatical choice is the linguistic miracle within the scientific one: 1,400 years before Hubble, the Quran used a grammatical form that perfectly matches a universe still expanding today, and accelerating.
+
+Scientific Timeline
+===
+• 1915 — Einstein publishes General Relativity → his equations predict an expanding universe; he adds the "cosmological constant Λ" to force a static model. He later called this his "greatest blunder"
+• 1922 — Alexander Friedmann solves Einstein's equations without Λ, proving mathematically the universe must be dynamic
+• 1927 — Georges Lemaître independently derives expansion and formulates what we now call the Hubble-Lemaître Law
+• 1929 — Edwin Hubble empirically confirms all galaxies recede at speeds proportional to their distance (redshift) — first observational proof in history
+• 1998 — Perlmutter, Schmidt & Riess discover expansion is ACCELERATING, driven by dark energy → Nobel Prize 2011
+
+Critical note: The universe does not expand "into" pre-existing space — space itself is stretching between all points simultaneously.
+
+Why No Human Source Is Possible
+===
+Across 1,300 years of accumulated knowledge (610 CE → 1929 CE):
+• Islamic golden-age astronomers (Ibn al-Haytham, al-Biruni, Ibn al-Shatir) produced the world's most advanced pre-modern astronomy — none arrived at an expanding universe
+• European Renaissance (Copernicus, Galileo, Kepler, Newton) — Newton explicitly assumed an eternal, static, infinite universe in his Principia
+• Einstein (early 20th century) — rejected expansion and invented a constant specifically to eliminate it from his own field equations
+
+The verse was recited in prayers, memorized by millions, and written in manuscripts for 13 centuries before science discovered what it described.
+
+The Spiritual Dimension
+===
+"We built the heaven with might (aydin), and We ARE [continually] expanders." — The present tense is not poetic. The universe's ongoing expansion is the visible, measurable signature of Allah's continuous creative governance (القيومية — al-Qayyumiyya).
+Every galaxy receding into the dark is a verse being read across the cosmos, moment by moment, in every direction.`,
     verses: [
       {
         id: 'verse-dhariyat-47',
@@ -76,6 +131,68 @@ export const miracles: Miracle[] = [
     summaryAr: 'يصف القرآن السماوات والأرض بأنهما كانتا رتقاً واحداً ثم فتقناهما — وصف دقيق للانفجار العظيم.',
     description: 'Surah Al-Anbiya (21:30) states: "Have those who disbelieved not considered that the heavens and the earth were a joined entity, and We separated them and made from water every living thing?" The Arabic word "ratqan" (رتقاً) means a sewn-together, unified mass, while "fataqnahuma" (فتقناهما) means we ripped/split them apart. This is a remarkably precise description of the Big Bang theory, which posits that all matter and energy in the observable universe originated from a singular point of infinite density (singularity) approximately 13.8 billion years ago. Dr. Haitham Talaat emphasizes that the simultaneous mention of life originating from water in the same verse adds another layer of scientific precision, as abiogenesis research confirms water\'s essential role in the origin of life. The verse also uses the rhetorical question format "أَوَلَمْ يَرَ" (Have they not seen/considered?), challenging disbelievers with observable evidence—the very methodology of modern science.',
     descriptionAr: 'تقول سورة الأنبياء (21:30): "أَوَلَمْ يَرَ الَّذِينَ كَفَرُوا أَنَّ السَّمَاوَاتِ وَالْأَرْضَ كَانَتَا رَتْقًا فَفَتَقْنَاهُمَا وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ أَفَلَا يُؤْمِنُونَ". كلمة "رتقاً" تعني كتلة واحدة مخيطة ملتحمة، و"فتقناهما" تعني شققناهما وفصلناهما. وهذا وصف دقيق بشكل لافت لنظرية الانفجار العظيم. يؤكد د. هيثم طلعت أن الذكر المتزامن لنشأة الحياة من الماء في نفس الآية يضيف طبقة أخرى من الدقة العلمية.',
+    deepDiveAr: `تحليل المعجم القرآني
+===
+• "رَتْقًا" — اسم من مادة (ر-ت-ق): يصف الشيء الملتئم المخيط المُحكم الذي لا فرجة فيه. في الاستخدام العربي الفصيح: رَتَق الجرح = التأم والتحم تماماً. الرتق ضد الفتق.
+• "فَفَتَقْنَاهُمَا" — فعل ماضٍ من (ف-ت-ق): الفتق هو الشق العنيف والتمزيق المفاجئ. يقال "فتق الثوبَ" = شقّه وأبانه. الفعل يدل على انفصال قسري مفاجئ.
+
+هذان اللفظان يصفان بدقة مذهلة: الحالة الأولى للكون (كل المادة والطاقة والزمكان في نقطة تفرد Singularity بكثافة لانهائية) ثم لحظة الانفجار والانفصال المفاجئ بسرعات مذهلة.
+
+خط الزمن العلمي
+===
+• 1927 — جورج لوميتر يقترح "الذرة الأولية" ← أول صياغة علمية رسمية لنظرية الانفجار العظيم
+• 1929 — إدوين هابل يثبت تمدد الكون ← دليل غير مباشر قوي على وجود بداية مطلقة للكون
+• 1948 — غاموف وآلفر وهيرمان يتنبؤون رياضياً بوجود "إشعاع الخلفية الكونية" CMB
+• 1965 — بنزياس وويلسون يكتشفون CMB بالمصادفة ← جائزة نوبل 1978 ← أقوى دليل تجريبي على الانفجار العظيم
+• 1980 — آلان غوث يطور نظرية التضخم الكوني ← تفسر التجانس المذهل للكون في جميع الاتجاهات
+• 2003 — نظرية BGV (بورد-غوث-فيلنكين) تثبت رياضياً أن أي كون ذو توسع إجمالي موجب لا بد أن له بداية مطلقة
+
+اللحظات الأولى من الخلق
+===
+الزمن ١٠⁻⁴³ ثانية = حقبة بلانك ← أعلى كثافة ممكنة فيزيائياً (كثافة بلانك)
+الزمن ١٠⁻³⁶ ثانية = حقبة التضخم ← توسع مفاجئ بمعامل ١٠²⁶ في أجزاء لا تُدرك من الثانية
+الزمن ٣ دقائق = تكوّن أوائل النوى الذرية (الهيدروجين والهيليوم)
+الزمن ٣٨٠,٠٠٠ سنة = الكون يبرد بما يكفي للذرات المستقرة ← انطلاق فوتونات CMB التي نرصدها اليوم
+الزمن ١٣.٨ مليار سنة = الآن
+
+الماء والحياة في الآية ذاتها — معجزة مزدوجة
+===
+"وَجَعَلْنَا مِنَ الْمَاءِ كُلَّ شَيْءٍ حَيٍّ" — في الآية ذاتها التي تصف الانفجار العظيم يُذكر أن الحياة مصدرها الماء. هذا توأمة فريدة بين حقيقتين أثبتهما العلم الحديث باستقلالية تامة:
+١ — أصل الكون: الانفجار العظيم من تفرد واحد (رتق → فتق)
+٢ — أصل الحياة: ارتباطها الجوهري بجزيء الماء
+
+لا يوجد في أدبيات البشر قبل القرن العشرين — لا في الفلسفة اليونانية، ولا في الفلك العربي، ولا في الرومانية أو الفارسية — نص جمع هاتين الحقيقتين في جملة واحدة.`,
+    deepDive: `Lexical Analysis: Two Words That Define Everything
+===
+• "RATQAN" (رتقاً) — from root (R-T-Q): perfectly stitched, sealed, seamless — no gap, no void, no separation. Classical Arabic: "rataqa al-jarah" = the wound healed completely and seamlessly. Ratq is the direct antonym of Fatq.
+• "FATAQNAHUMA" (فتقناهما) — from root (F-T-Q): to violently rip apart, split forcefully, tear open. Classical Arabic: "fataqa al-thawb" = to tear the garment open. The word implies sudden, explosive separation.
+
+Together, these two words describe: (1) the pre-Big-Bang singularity — all matter, energy, and spacetime compressed into one zero-volume point of infinite density, and (2) the explosive moment of creation — the Big Bang itself.
+
+Scientific Timeline
+===
+• 1927 — Georges Lemaître proposes the "primeval atom" (l'atome primitif) — first formal scientific model of the Big Bang
+• 1929 — Hubble proves universal expansion — the strongest indirect evidence the universe had an absolute beginning
+• 1948 — Gamow, Alpher & Herman predict Cosmic Microwave Background (CMB) radiation from mathematical models
+• 1965 — Penzias & Wilson accidentally discover CMB → Nobel Prize 1978 → strongest empirical evidence for the Big Bang ever found
+• 1980 — Alan Guth develops Cosmic Inflation theory → explains the extraordinary uniformity of the universe in all directions
+• 2003 — BGV Theorem (Borde-Guth-Vilenkin) proves mathematically that any expanding universe must have had an absolute beginning
+
+The First Moments of Creation
+===
+t = 10⁻⁴³ sec → Planck epoch — maximum physically possible energy density
+t = 10⁻³⁶ sec → Inflation epoch — universe expands by a factor of 10²⁶ almost instantaneously
+t = 3 minutes → First atomic nuclei (hydrogen & helium) form via nucleosynthesis
+t = 380,000 years → Universe cools enough for stable atoms; CMB photons released — these are what we detect today across the entire sky
+t = 13.8 billion years → NOW
+
+Water and Life — A Double Miracle in One Verse
+===
+"And We made from water every living thing" — in the SAME verse that describes the Big Bang. This pairs two independently verified 20th-century scientific discoveries into a single sentence:
+1 — Origin of the universe: Big Bang singularity (ratqan → fataqnahuma)
+2 — Origin of life: its fundamental dependence on the water molecule
+
+No pre-20th-century human text — Greek philosophy, Arabic astronomy, Roman or Persian scholarship — combines both facts in a single sentence. The Miller-Urey experiment (1953) confirmed water's essential role in the chemistry of life's origins. The James Webb Space Telescope (2022) continues to find water molecules in star-forming regions and exoplanet atmospheres across the cosmos.`,
     verses: [
       {
         id: 'verse-anbiya-30',

@@ -12,6 +12,7 @@ import MiracleVisual from '@/ijaz/components/visuals/MiracleVisualRegistry';
 import { ScrollReveal } from '@/ijaz/components/effects/ScrollAnimations';
 import { AnimatedGradientText } from '@/ijaz/components/effects/TextEffects';
 import { useIsMobile } from '@/ijaz/hooks/useIsMobile';
+import DeepDivePanel from '@/ijaz/components/ui/DeepDivePanel';
 
 /* Dynamic 3D \u2014 no SSR */
 import ParticleField from '@/ijaz/components/effects/ParticleField';
@@ -114,9 +115,27 @@ export default function MiracleDetailPage() {
                     <p className="text-text-primary font-tajawal text-base md:text-lg leading-loose" dir="rtl">
                       {miracle.descriptionAr}
                     </p>
-                    <p className="text-text-muted font-tajawal text-sm leading-relaxed mt-6 pt-4 border-t border-white/5" dir="ltr">
-                      {miracle.description}
-                    </p>
+                    {miracle.deepDiveAr && (
+                      <DeepDivePanel
+                        content={miracle.deepDiveAr}
+                        dir="rtl"
+                        accentColor={accentColor}
+                        lang="ar"
+                      />
+                    )}
+                    <div className="mt-6 pt-4 border-t border-white/5">
+                      <p className="text-text-muted font-tajawal text-sm leading-relaxed" dir="ltr">
+                        {miracle.description}
+                      </p>
+                      {miracle.deepDive && (
+                        <DeepDivePanel
+                          content={miracle.deepDive}
+                          dir="ltr"
+                          accentColor={accentColor}
+                          lang="en"
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               </ScrollReveal>

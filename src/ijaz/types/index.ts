@@ -43,6 +43,8 @@ export interface Miracle {
   summaryAr: string;
   description: string;
   descriptionAr: string;
+  deepDive?: string;
+  deepDiveAr?: string;
   verses: QuranicVerse[];
   scientificEvidence: ScientificEvidence[];
   bookSource: BookSource;
