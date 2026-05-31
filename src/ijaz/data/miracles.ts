@@ -8193,6 +8193,126 @@ Reference: Walker, M. (2017). "Why We Sleep." Scribner.`,
     summaryAr: 'يصف القرآن الجبال بأنها "أوتاد" تثبت الأرض — تؤكد الجيولوجيا الحديثة أن الجبال لها جذور قشرية عميقة تمتد في الوشاح، مما يوفر التوازن الايزوستاتيكي ويمنع التحولات التكتونية المفرطة.',
     description: 'Surah An-Naba (78:6–7) states: "Have We not made the earth a resting place? And the mountains as pegs (awtad وَتَدًا)?" Surah Al-Anbiya (21:31): "And We placed firmly fixed mountains on the earth, lest it should shift beneath them (أَن تَمِيدَ بِهِمْ)." The key claim: mountains PREVENT the earth from "maiding" (shaking/swaying). Modern geology confirms this through isostasy: (1) MOUNTAIN ROOTS: Mountains have "roots" extending deep into the mantle — the Himalayan range root goes down ~70 km below the surface. Like an iceberg (only ~10% above water), a mountain\'s visible peak represents only a small fraction of its total crustal depth. (2) ISOSTATIC BALANCE: These deep roots provide gravitational and structural balance — the lithosphere "floats" on the asthenosphere, and mountain roots anchor the crust against lateral movements. (3) TECTONIC STABILIZATION: The distribution of mountain ranges provides structural resistance to crustal sliding. Without mountain chains, the thin oceanic and continental crusts would undergo catastrophic lateral sliding. (4) "AWTAD" = PEGS: The Arabic "watad" (وتد) means a peg/stake driven into the ground. A peg\'s essential property is having a body below the surface as well as above — exactly like mountains with their deep roots. (5) CRUSTAL THICKNESS: Where mountains form, the crust thickens (root formation) — providing the stability described. This root structure was only confirmed by seismic surveys in the 20th century.',
     descriptionAr: 'يقول الله تعالى في سورة النبأ (78:6-7): "أَلَمْ نَجْعَلِ الْأَرْضَ مِهَادًا ﴿٦﴾ وَالْجِبَالَ أَوْتَادًا". وفي سورة الأنبياء (21:31): "وَجَعَلْنَا فِي الْأَرْضِ رَوَاسِيَ أَن تَمِيدَ بِهِمْ". الادعاء الرئيسي: الجبال تمنع الأرض من "الميد" (الاهتزاز/الانزلاق). تؤكد الجيولوجيا الحديثة ذلك من خلال الايزوستاسي: (1) جذور الجبال: تمتد ~70 كم في الوشاح. (2) التوازن الايزوستاتيكي: الجذور توفر توازناً هيكلياً. (3) كلمة "أوتاد" = أوتاد مغروزة — خاصيتها الأساسية وجود جزء تحت السطح تماماً مثل جذور الجبال.',
+    deepDiveAr: `أَوْتَاد — كلمة تكشف الحقيقة الجيولوجية من تحت الأرض
+===
+يقول الله تعالى في سورة النبأ (78:6-7): "أَلَمْ نَجْعَلِ الْأَرْضَ مِهَادًا وَالْجِبَالَ أَوْتَادًا".
+
+كلمة "وَتَد" (وتد) في العربية = خازوق أو مسمار يُدق في الأرض. الخاصية الجوهرية للوتد أنه لا يؤدي وظيفته بالجزء الظاهر فوق الأرض — بل بالجزء الكبير المدفون تحتها. وتد بلا جزء تحت السطح ليس وتداً — إنه مجرد عصا.
+
+القرآن اختار هذه الكلمة تحديداً للجبال، لا كلمة "صخرة" أو "تل" أو "عظمة" — وهذا يعني بالضرورة أن للجبال أجزاء ضخمة مدفونة تحت السطح.
+
+في القرن السابع الميلادي: الجبال تبدو كتلاً صلبة تجلس فوق الأرض — لا يوجد أي مؤشر بصري أو حسي يدل على امتداد عميق تحت السطح.
+
+سورة الأنبياء (21:31): "وَجَعَلْنَا فِي الْأَرْضِ رَوَاسِيَ أَن تَمِيدَ بِهِمْ" — الجبال الراسخة تمنع الأرض من الاهتزاز والانزلاق. وظيفة هذا التثبيت لا تتم إلا بالجذور العميقة، تماماً كوظيفة الوتد.
+
+
+التوازن الايزوستاتيكي — اكتشاف آيري 1855م
+===
+في عام 1855م طرح الفلكي البريطاني جورج آيري (George Airy) نظرية الايزوستاسي (Isostasy):
+
+الاكتشاف: القشرة الأرضية تطفو على الوشاح الأكثر كثافة — مثل جبال الجليد تماماً:
+- جبل الجليد: 10% فوق الماء، 90% تحته
+- الجبل: القمة المرئية تمثل جزءاً صغيراً من الامتداد الكلي للجذور
+- الجبال الأعلى تمتلك جذوراً أعمق لتحقيق التوازن الجاذبي
+
+الأرقام الدقيقة:
+- سمك القشرة تحت المحيطات: ~10 كم
+- سمك القشرة القارية العادية: ~35 كم
+- سمك القشرة تحت الهيمالايا: ~70-80 كم (جذر عمقه ~35-45 كم إضافياً)
+- سمك القشرة تحت جبال الألب: 40-50 كم
+
+الفجوة: 1855م − 610م = 1,245 سنة (النظرية فقط — التأكيد الزلزالي جاء لاحقاً).
+
+المرجع: Airy, G.B. (1855). "On the Computation of the Effect of the Attraction of Mountain-Masses." Philosophical Transactions of the Royal Society.
+
+
+جذور الجبال — التأكيد الزلزالي (موهوروفيتشيتش 1909م)
+===
+في عام 1909م اكتشف الجيوفيزيائي كرواتي أندريا موهوروفيتشيتش (Andrija Mohorovicic) الحد الفاصل بين القشرة الأرضية والوشاح باستخدام موجات الزلازل — وهو ما يُعرف اليوم بـ"منطقة موهو" (Moho Discontinuity).
+
+هذا الاكتشاف وفّر أول دليل تجريبي مباشر على عمق جذور الجبال:
+- تحت الجبال: منطقة موهو تنزل عميقاً — تأكيد قاطع لوجود الجذور
+- تحت السهول: منطقة موهو أقرب للسطح
+- المنطقة الجبلية تطفو على الوشاح بجذورها تماماً كما وصف آيري وكما أشارت كلمة "أوتاد"
+
+الفجوة: 1909م − 610م = 1,299 سنة.
+
+المرجع: Mohorovicic, A. (1909). "Das Beben vom 8.X.1909." Jahrbuch des meteorologischen Observatoriums in Zagreb.
+
+
+"أَن تَمِيدَ بِهِمْ" — التحقق الجيوفيزيائي النهائي
+===
+"تَمِيدَ" من الفعل "مادَ" = تتحرك، تتأرجح، تنزلق، تضطرب.
+
+ماذا يحدث لو لم توجد جذور الجبال؟
+- الصفائح القارية تجلس فوق الأستينوسفير (الوشاح اللزج)
+- بدون الكتل الجذرية العميقة للجبال: تفقد الصفائح نقاط التثبيت الجاذبي
+- نماذج الديناميكا الجيوفيزيائية تُظهر أن إزالة الجذور الجبلية تؤدي إلى انزلاق قاري مضطرب
+
+الجبال لا تثبّت الأرض بثقلها الظاهر فوق السطح — بل بجذورها الغائرة في الوشاح. هذا هو المعنى الحرفي الدقيق لـ"الوتد" و"لئلا تميد".
+
+المرجع: Turcotte, D.L. & Schubert, G. (2014). "Geodynamics." Cambridge University Press, 3rd Edition. (نماذج الاستقرار التكتوني ودور جذور الجبال)`,
+    deepDive: `"Awtad" — A Word That Reveals What Is Underground
+===
+Surah An-Naba (78:6–7): "Have We not made the earth a resting place? And the mountains as pegs (awtad)?"
+
+The Arabic "watad" (وتد) = a peg or stake driven into the ground. The fundamental property of a peg: its function comes from the large portion UNDERGROUND, not the small visible tip. A peg with no underground portion is merely a stick.
+
+The Quran chose "awtad" (pegs) specifically for mountains — not "rocks," not "hills," not "masses" — implying by definition that mountains have massive buried extensions beneath the surface.
+
+In the 7th century: mountains appeared as solid blocks sitting on the surface. There was no sensory or visual indication of any deep underground extension.
+
+Surah Al-Anbiya (21:31): "And We placed firmly fixed mountains on the earth, lest it should shift (tamida) beneath them." The stabilizing function described requires deep roots — exactly the function of a peg.
+
+
+Isostasy — Airy's 1855 Discovery
+===
+In 1855, British astronomer George Airy proposed the theory of isostasy:
+
+The Discovery: Earth's crust floats on the denser mantle — exactly like icebergs:
+- Iceberg: ~10% above water, ~90% below
+- Mountain: the visible peak is a small fraction of its total crustal depth
+- Taller mountains have deeper roots to maintain gravitational equilibrium
+
+Precise measurements (confirmed by seismic surveys):
+- Ocean crust thickness: ~10 km
+- Average continental crust: ~35 km
+- Under the Himalayas: ~70–80 km (a root extending ~35–45 km below average)
+- Under the Alps: ~40–50 km
+
+Time gap: 1855 CE − 610 CE = 1,245 years.
+
+Reference: Airy, G.B. (1855). "On the Computation of the Effect of the Attraction of Mountain-Masses." Philosophical Transactions of the Royal Society.
+
+
+Mountain Roots — Seismic Confirmation (Mohorovicic 1909)
+===
+In 1909, Croatian geophysicist Andrija Mohorovicic discovered the boundary between Earth's crust and mantle using earthquake waves — the "Moho Discontinuity."
+
+This provided the first direct empirical evidence for mountain root depth:
+- Under mountains: the Moho boundary descends sharply — confirming the deep roots
+- Under plains: the Moho boundary is much shallower
+- Mountain ranges float on the mantle via their roots, exactly as Airy's model predicted and as "awtad" implies
+
+Time gap: 1909 CE − 610 CE = 1,299 years.
+
+Reference: Mohorovicic, A. (1909). "Das Beben vom 8.X.1909." Jahrbuch des meteorologischen Observatoriums in Zagreb.
+
+
+"Lest It Should Shift" — Geophysical Confirmation
+===
+"Tamida" (تَمِيدَ) = to sway, rock, oscillate, slide.
+
+What would happen without mountain roots?
+- Continental plates rest atop the asthenosphere (viscous mantle)
+- Without the deep gravitational anchoring of mountain roots: plates lose their stabilizing mass constraints
+- Geodynamic models (Turcotte & Schubert) show that removing mountain crustal roots produces catastrophic differential plate sliding
+
+Mountains do not stabilize the Earth through their visible mass above ground — but through their deep roots embedded in the mantle. This is the precise literal meaning of "watad" (peg) and "lest it should shift."
+
+The Quran described this underground anchoring mechanism — indistinguishable from 7th-century surface observation — which geophysics only confirmed 1,245–1,299 years later.
+
+Reference: Turcotte, D.L. & Schubert, G. (2014). "Geodynamics." Cambridge University Press, 3rd Edition.`,
     verses: [
       {
         id: 'verse-naba-6-7',
@@ -8258,6 +8378,143 @@ Reference: Walker, M. (2017). "Why We Sleep." Scribner.`,
     summaryAr: 'يصف القرآن مراراً النجوم كدلائل للملاحة — تعتمد الملاحة السماوية الحديثة ومسبقات GPS ومسارات المسابير الفضائية على المواضع النجمية الدقيقة التي أشار إليها القرآن.',
     description: 'Surah An-Nahl (16:16): "And landmarks; and by the stars they are guided." Surah Al-An\'am (6:97): "And it is He who placed for you the stars that you may be guided by them through the darknesses of the land and sea." Surah Al-Mulk (67:5): "And We have certainly adorned the nearest heaven with stars and have made [from] them what drives away the devils and have prepared for them the punishment of the Blaze." The Quran makes several precise statements: (1) STARS FOR GUIDANCE: The use of stars for navigation is described as a divine gift. Before compasses and GPS, stellar navigation was the ONLY way to cross oceans and deserts — the Quranic description acknowledged this 1,400 years before modern navigational instrumentation. (2) STARS IN THE NEAREST HEAVEN: Surah Al-Mulk specifies stars are in the "nearest heaven" (السَّمَاءَ الدُّنْيَا) — all visible stars are indeed within our own galaxy, the nearest cosmological "layer." (3) NAVIGATION PRECISION: The North Star (Polaris), the Southern Cross, and other navigational stars are fixed reference points with consistent positions. Modern GPS satellites essentially replicate the celestial triangulation method the Quran described. (4) DEEP SPACE NAVIGATION: NASA\'s Voyager, Pioneer, and New Horizons probes navigate by stellar triangulation — the same principle the Quran describes. (5) PULSAR TIMING NAVIGATION: Modern proposals for deep space navigation use pulsar timing (the "piercing stars") as cosmic GPS reference points — vindicating the Quranic connection between stars and guidance.',
     descriptionAr: 'يقول الله تعالى في سورة النحل (16:16): "وَعَلَامَاتٍ وَبِالنَّجْمِ هُمْ يَهْتَدُونَ". وفي سورة الأنعام (6:97): "وَهُوَ الَّذِي جَعَلَ لَكُمُ النُّجُومَ لِتَهْتَدُوا بِهَا فِي ظُلُمَاتِ الْبَرِّ وَالْبَحْرِ". يصف القرآن النجوم كدلائل دقيقة للملاحة. قبل البوصلة ونظام GPS، كانت الملاحة السماوية الطريقة الوحيدة لعبور المحيطات والصحاري. تعتمد مسبرات ناسا فوياجر والمقترحات الحديثة لملاحة الفضاء العميق على الطريقة ذاتها التي وصفها القرآن.',
+    deepDiveAr: `"ظُلُمَاتِ الْبَرِّ وَالْبَحْرِ" — دقة جغرافية مزدوجة
+===
+يقول الله تعالى في سورة الأنعام (6:97): "وَهُوَ الَّذِي جَعَلَ لَكُمُ النُّجُومَ لِتَهْتَدُوا بِهَا فِي ظُلُمَاتِ الْبَرِّ وَالْبَحْرِ".
+
+الآية لا تقول "الليل" فحسب — بل تحدد بيئتين بالاسم: البَرّ والبَحْر.
+
+هذا التحديد بالغ الدقة علمياً:
+- في البحر (المحيط): لا معالم أرضية مطلقاً — النجوم هي الإشارة الوحيدة للاتجاه
+- في البرّ القاحل (الصحراء): نفس الوضع — رمال متطابقة، لا طرق، لا علامات بصرية ثابتة — النجوم هي الدليل الوحيد
+
+كان يمكن للقرآن أن يقول "في الظلام" أو "في الليل" — لكنه حدّد: البرّ والبحر. هذان هما بالضبط البيئتان اللتان اعتمد فيهما الإنسان تاريخياً على النجوم بدلاً من أي دليل آخر. دليل على معرفة دقيقة بشروط الملاحة، لا صياغة شعرية عامة.
+
+
+الملاحة النجمية — من الجزيرة العربية إلى المحيط الهادئ
+===
+قبل البوصلة وGPS، كانت النجوم الوسيلة الوحيدة للملاحة عبر المسافات الكبيرة:
+
+الملاحون العرب:
+- اعتمدوا على نجم القطب الشمالي (الجدي/بولاريس) لتحديد الشمال
+- واعتمدوا على نجم سُهيل (Canopus) لتحديد الجنوب
+- طوّروا "علم الأنواء" — نظام ملاحي نجمي دقيق لعبور المحيط الهندي
+
+البولينيزيون:
+- عبروا 10 ملايين كم مربع من المحيط الهادئ بالتجديف وحده
+- اعتمدوا حصراً على النجوم، والأمواج، وطيران الطيور
+- وصلوا هاواي وجزيرة الفصح ونيوزيلندا بدون أي أداة ملاحية
+
+كريستوفر كولومبوس (1492م):
+- استخدم ارتفاع النجم القطبي (بولاريس) لتتبع خط العرض عبر الأطلسي
+
+نورمان بوودتش:
+- أصدر عام 1802م كتاب "الملاح الأمريكي العملي" (The American Practical Navigator)
+- جمّع وقنّن علم الملاحة السماوية بدقة رياضية — بعد 1,192 سنة من الآية.
+
+
+GPS — التطبيق الحديث لمبدأ قرآني قديم
+===
+nظام GPS يعمل على نفس مبدأ الملاحة النجمية بدقة:
+
+الملاحة النجمية: قِس الزاوية بين نجمين أو أكثر معروفَي المواضع → احسب موقعك
+GPS: قِس التأخير الزمني من أقمار اصطناعية معروفة المواضع → احسب موقعك
+
+المبدأ واحد: نقاط مرجعية ثابتة ومعروفة الموضع → التثليث المكاني.
+
+الخط الزمني:
+- أُعلن عن اكتمال نظام GPS في 27 أبريل 1995م (24 قمراً اصطناعياً، سلاح الجو الأمريكي)
+- الفجوة: 1995م − 610م = 1,385 سنة
+
+القرآن لم يصف التقنية — وصف المبدأ: نقاط مرجعية سماوية ثابتة تُمكّن من الاهتداء في البر والبحر. هذا المبدأ أصبح تقنية GPS بعد أربعة عشر قرناً.
+
+
+XNAV — ملاحة الفضاء العميق بالنجوم النابضة
+===
+أحدث تطبيق لمبدأ الملاحة النجمية: استخدام النجوم النابضة (Pulsars) كإشارات GPS في الفضاء.
+
+النجوم النابضة:
+- بقايا نجمية منهارة تُصدر نبضات أشعة X بدقة ساعة ذرية
+- معروفة المواضع، ثابتة، موزّعة في أرجاء المجرة
+
+XNAV (X-ray Pulsar Navigation):
+- المقترح الأصلي: Sheikh et al. (2006)
+- المبدأ: قِس توقيت نبضات أشعة X من عدة نجوم نابضة → حدّد موقعك في أي مكان بالمجرة
+- ناسا اختبرت XNAV عملياً على المحطة الفضائية الدولية (جهاز NICER، 2017-2018م)
+
+الفجوة: 2006م − 610م = 1,396 سنة.
+
+المرجع: Sheikh, S.I. et al. (2006). "Spacecraft Navigation Using X-Ray Pulsars." Journal of Guidance, Control, and Dynamics, 29(1), 49-63.
+
+تأمّل: سورة الطارق (86:1-3): "وَالسَّمَاءِ وَالطَّارِقِ... النَّجْمُ الثَّاقِبُ" — الطارق = الذي يطرق بإيقاع = وصف مثالي للنجم النابض (Pulsar) الذي يُصدر نبضات منتظمة.`,
+    deepDive: `"Darknesses of the Land and Sea" — Double Geographic Precision
+===
+Surah Al-An'am (6:97): "And it is He who placed for you the stars that you may be guided by them through the darknesses of the land and sea."
+
+The verse does not say "night" in general — it specifies two environments by name: land and sea.
+
+This is scientifically precise:
+- At sea (the open ocean): no terrestrial landmarks whatsoever — stars are the only directional reference
+- On land (desert): identical situation — uniform sands, no roads, no fixed visual markers — stars are the only reliable guide
+
+The Quran could have said "in the darkness" or "at night" — but it specified: land and sea. These are exactly the two environments where humans historically relied on stars instead of any other guide. This reflects precise navigational knowledge, not general poetic phrasing.
+
+
+Stellar Navigation — From Arabia to the Pacific Ocean
+===
+Before compass and GPS, stars were the only means of navigation across large distances:
+
+Arab sailors:
+- Used Polaris (al-Jadyi, North Star) to fix north
+- Used Canopus (Suhail) to fix south
+- Developed "Ilm al-Anwa'" — a sophisticated stellar navigation system for crossing the Indian Ocean
+
+Polynesians:
+- Crossed 10 million km2 of the Pacific Ocean by paddling alone
+- Used only stars, wave patterns, and bird flight — no instruments
+- Reached Hawaii, Easter Island, and New Zealand with zero mechanical navigation tools
+
+Christopher Columbus (1492 CE):
+- Used Polaris altitude to track latitude across the Atlantic
+
+Nathaniel Bowditch:
+- Published "The American Practical Navigator" (1802) — systematically codified celestial navigation with mathematical precision, 1,192 years after the verse.
+
+
+GPS — The Modern Embodiment of a Quranic Principle
+===
+GPS operates on the identical principle as stellar navigation:
+
+Celestial navigation: measure angles to two or more stars of known positions → calculate your location
+GPS: measure time delays from satellites of known positions → calculate your location
+
+Same principle: fixed reference points of known position → spatial triangulation.
+
+Timeline:
+- GPS declared fully operational: April 27, 1995 (24 satellites, US Air Force)
+- Time gap: 1995 CE − 610 CE = 1,385 years
+
+The Quran did not describe the technology — it described the principle: fixed celestial reference points enabling guidance through the darknesses of land and sea. That principle became GPS technology fourteen centuries later.
+
+
+XNAV — Deep Space Navigation by Pulsar Stars
+===
+The most advanced application of the stellar navigation principle: using pulsars as GPS signals in deep space.
+
+Pulsars:
+- Collapsed stellar remnants that emit X-ray pulses with atomic-clock precision
+- Known positions, stable, distributed throughout the galaxy
+
+XNAV (X-ray Pulsar Navigation):
+- Original proposal: Sheikh et al. (2006)
+- Principle: measure timing of X-ray pulses from several pulsars → determine your position anywhere in the galaxy
+- NASA demonstrated XNAV aboard the International Space Station (NICER instrument, 2017–2018)
+
+Time gap: 2006 CE − 610 CE = 1,396 years.
+
+Reference: Sheikh, S.I. et al. (2006). "Spacecraft Navigation Using X-Ray Pulsars." Journal of Guidance, Control, and Dynamics, 29(1), 49-63.
+
+Note: Surah At-Tariq (86:1–3): "By the heaven and the Tariq... the piercing/knocking star (al-najm al-thaqib)." Tariq = one who knocks in a rhythmic pattern — a precise description of a pulsar, which emits regular, rhythmic pulses that can be heard as knocking when converted to audio.`,
     verses: [
       {
         id: 'verse-nahl-16',
