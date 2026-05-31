@@ -1872,6 +1872,86 @@ The Quran chose "dahaha" — the only word in Arabic that describes a spherical 
     summaryAr: 'تنبأ القرآن بأن الروم المهزومين سينتصرون في بضع سنين (3-9) — وتحقق بالضبط.',
     description: 'Surah Ar-Rum (30:2-4): "The Romans have been defeated in the nearest land. But they, after their defeat, will overcome within three to nine years." When these verses were revealed (around 615 CE), the Byzantine Romans had suffered a devastating defeat at the hands of the Sassanid Persians. All military experts of the time considered the Roman Empire finished. The Quran made a bold, time-specific prophecy: the Romans would win within "بِضْعِ سِنِينَ" (bid\' sineen) — a word meaning 3 to 9 years. The Romans indeed defeated the Persians in 622-625 CE, within the prophesied timeframe. Dr. Haitham Talaat documents from "علم الكتاب" that this prophecy was: (1) made against all odds, (2) time-specific, (3) publicly declared, and (4) fulfilled precisely. The verse also mentions "أَدْنَى الْأَرْضِ" (the nearest/lowest land) — the Dead Sea region where the battle took place is the lowest point on Earth\'s surface, at approximately 430 meters below sea level.',
     descriptionAr: 'سورة الروم (30:2-4): "غُلِبَتِ الرُّومُ فِي أَدْنَى الْأَرْضِ وَهُم مِّن بَعْدِ غَلَبِهِمْ سَيَغْلِبُونَ فِي بِضْعِ سِنِينَ". عندما نزلت هذه الآيات (حوالي 615م)، كان الروم قد منوا بهزيمة ساحقة من الفرس الساسانيين. تنبأ القرآن بنصرهم خلال 3-9 سنوات — وتحقق بالفعل.',
+    deepDiveAr: `
+بِضْعِ سِنِينَ: دقة التوقيت اللغوي
+===
+«بِضْع» في اللغة العربية تعني من ثلاثة إلى تسعة — ليس «بعض الوقت» بصورة مبهمة، بل نطاق محدد ضيّق لا يتجاوز التسع.
+
+نزلت الآيات حوالي عام 615م بُعيد الهزيمة البيزنطية المدوّية أمام الفرس الساسانيين. وكان العالم كله يظن أن الإمبراطورية البيزنطية انتهت.
+
+تحقق الانتصار: 622-627م — أي خلال اثنتي عشرة سنة من نزول الآية، وضمن التوقيت المحدد بالضبط.
+
+أي نتيجة أخرى — هزيمة الروم بعد عشر سنين أو أكثر، أو عدم انتصارهم أصلاً — كانت ستكذّب القرآن أمام الناس علناً. لكن الأمر تحقق.
+
+
+أَدْنَى الْأَرْضِ: أعمق أرض في العالم
+===
+«أدنى» في العربية تحمل معنيين: «الأقرب» (قرباً جغرافياً) و«الأخفض» (منخفضاً طبوغرافياً). الآية تجمع المعنيين في كلمة واحدة.
+
+منطقة البحر الميت وتخوم الشام — حيث دارت المعارك البيزنطية-الساسانية الحاسمة — تقع على عمق ~430 متراً تحت مستوى سطح البحر: أخفض نقطة على اليابسة في العالم.
+
+هذه الحقيقة الجغرافية لم تُكتشف علمياً إلا بالمسح الجيوديسي الحديث. لم يكن أهل الجزيرة العربية في القرن السابع يملكون الأدوات لمعرفة هذا.
+
+القرآن وصف الموقع بكلمة تحمل الوصف الجغرافي الصحيح قبل ألف وأربعمائة عام.
+
+
+الجرأة على التنبؤ: رهان علني في مواجهة العالم
+===
+أعلن القرآن هذه النبوءة عَلَناً أمام مشركي قريش — وهو إعلان يُعرّض صاحبه للتكذيب الفوري لو لم تتحقق.
+
+رهن أبو بكر الصديق مع مشركي قريش على انتصار الروم — استناداً للنبوءة القرآنية — وكسب رهانه.
+
+عام 615م: الفرس يحتلون أنطاكية، الإسكندرية، القدس — والإمبراطورية البيزنطية تبدو في حالة انهيار نهائي.
+
+لم تكن هناك أي مؤشرات عسكرية أو سياسية تُشير إلى إمكانية انتصار الروم. ومع ذلك — تحقق كل شيء.
+
+
+التسلسل التاريخي: من الهزيمة إلى النصر
+===
+615م: الهزيمة البيزنطية الكبرى — الفرس يحتلون أنطاكية والإسكندرية والقدس.
+619م: الفرس يُكملون احتلال مصر — الإمبراطورية البيزنطية تبدو منتهية تماماً.
+622م: الإمبراطور هرقل يُطلق هجوماً مضاداً مباغتاً بقيادته الشخصية.
+627م: معركة نينوى — الانتصار البيزنطي الحاسم وانهيار الدولة الساسانية.
+
+النبوءة: ~615م. التحقق: 627م. المدة: ضمن «بضع سنين» تحديداً.
+`,
+    deepDive: `
+"Bid' Sineen": The Precision of the Arabic Timeframe
+===
+"Bid'" in Arabic means specifically 3 to 9 — not "a few" vaguely, but a defined narrow range. Verses revealed ~615 CE after Byzantium's catastrophic defeat by the Sassanid Persians.
+
+Roman victory: 622-627 CE — fulfilled within exactly the prophesied window.
+
+Any other outcome — Roman defeat, or recovery taking more than 9 years — would have publicly falsified the Quran before all of Makkah. Yet the prophecy was fulfilled precisely.
+
+
+"Adna al-Ard": The Lowest Land on Earth
+===
+"Adna" in Arabic carries two meanings simultaneously: "nearest" (closest geographically) and "lowest" (lowest in elevation).
+
+The Dead Sea region and the Levant — where the decisive Byzantine-Sassanid battles took place — sits ~430 meters below sea level: the lowest point on Earth's dry land.
+
+This geographical fact was only confirmed by modern geodetic surveys. No 7th-century Arabian had the instruments to know this. The Quran's single word "adna" encoded the precise topographic description 1,400 years before it was measurable.
+
+
+Public Prophecy Against All Odds
+===
+The Quran declared this prophecy openly before all of Makkah — staking its credibility on a specific historical outcome.
+
+Abu Bakr publicly wagered with the polytheists of Quraysh on the Roman victory based on this Quranic prophecy — and won his wager.
+
+By 615 CE: Persians had occupied Antioch, Alexandria, Jerusalem — the Byzantine Empire appeared finished by all strategic indicators. No human intelligence at the time could have predicted Roman recovery.
+
+
+The Historical Timeline
+===
+615 CE: Byzantine catastrophic defeat — Persians occupy Antioch, Alexandria, Jerusalem.
+619 CE: Persians complete conquest of Egypt — Byzantine Empire appears permanently broken.
+622 CE: Emperor Heraclius launches a surprise personal counter-offensive.
+627 CE: Battle of Nineveh — decisive Byzantine victory; Sassanid Empire collapses.
+
+Prophecy: ~615 CE. Fulfilled: 627 CE. Exactly within the "bid' sineen" (3-9 years) window.
+`,
     verses: [
       {
         id: 'verse-rum-2-4',
@@ -1925,6 +2005,88 @@ The Quran chose "dahaha" — the only word in Arabic that describes a spherical 
     summaryAr: 'تحتوي التوراة على نبوءات تتطابق مع النبي محمد ﷺ — موثقة بشكل مستفيض في "رسول الأميين".',
     description: 'Dr. Haitham Talaat in "رسول الأميين" (The Messenger to the Unlettered) extensively documents prophecies in the Torah that point to Prophet Muhammad (PBUH): (1) Deuteronomy 18:18 - "I will raise up for them a prophet like you from among their brothers" — "brothers" of the Israelites (descendants of Isaac) are the Ishmaelites (Arabs, descendants of Ishmael). (2) Deuteronomy 33:2 - "The LORD came from Sinai, and dawned on them from Seir; He shone forth from Mount Paran" — Paran is the mountain range of Makkah where Muhammad received revelation. (3) Genesis 21:13,18 - God\'s promise that Ishmael\'s descendants would become a great nation. (4) Isaiah 42:1-4 — the description of a servant who would bring justice to the nations, with details matching Prophet Muhammad. (5) The Song of Solomon 5:16 — the Hebrew word "Muhammadim" (מחמדים) appears, which is a form of Muhammad. The Quran references these prophecies: "whom they find written in what they have of the Torah and the Gospel" (7:157).',
     descriptionAr: 'يوثق د. هيثم طلعت في "رسول الأميين" نبوءات التوراة التي تشير للنبي محمد ﷺ: (1) تثنية 18:18 — "أقيم لهم نبياً من وسط إخوتهم مثلك" — إخوة بني إسرائيل (أبناء إسحاق) هم الإسماعيليون (العرب). (2) تثنية 33:2 — "جاء الرب من سيناء وأشرق لهم من سعير وتلألأ من جبل فاران" — فاران هي سلسلة جبال مكة. (3) إشعياء 42 — وصف عبد يحقق العدل للأمم.',
+    deepDiveAr: `
+تثنية 18:18 — «نبي من وسط إخوتهم»
+===
+النص العبري الأصلي: «أقيم لهم نبياً من وسط إخوتهم مثلك وأضع كلامي في فمه».
+
+«إخوة» بني إسرائيل (أبناء إسحاق عليه السلام) هم — وفق النصّ التوراتي ذاته — أبناء إسماعيل عليه السلام، أي العرب. فهما أخوان شقيقان من أبيهما إبراهيم عليه السلام.
+
+النبي الذي «مثل موسى»: جاء بشريعة كاملة تنظّم الحياة والدولة والعبادة، وحكم دولة، وقاد جيشاً، واجتمعت فيه النبوة والقيادة — هذا الوصف ينطبق على محمد ﷺ دون سائر الأنبياء، ولا ينطبق على عيسى عليه السلام الذي لم يحكم دولة ولم يُشرّع شريعة مدنية.
+
+
+تثنية 33:2 — سيناء، سعير، فاران: تسلسل ثلاثة أنبياء
+===
+«جاء الرب من سيناء، وأشرق لهم من سعير، وتلألأ من جبل فاران».
+
+التسلسل الجغرافي-التاريخي:
+- سيناء: حيث تلقّى موسى عليه السلام التوراة — شريعة بني إسرائيل.
+- سعير (جبال جنوب فلسطين / الأردن): ارتبطت تاريخياً بعيسى عليه السلام والإنجيل.
+- فاران: سلسلة جبال الحجاز — المنطقة التي نزل فيها الوحي على محمد ﷺ في غار حراء.
+
+التسلسل يختم في الجزيرة العربية — حيث ختم الله الأنبياء والرسالات.
+
+
+نشيد الأنشاد 5:16 — «محمديم» بالعبرية
+===
+النص العبري الأصلي: «חִכּוֹ מַמְתַקִּים וְכֻלּוֹ מַחֲמַדִּים» — «وكلّه محمديم».
+
+كلمة «מחמדים» (محمديم) هي صيغة التعظيم العبرية (جمع التبجيل) لاسم «محمد».
+
+المترجمون في الترجمات العربية والإنجليزية حوّلوها إلى «كله مشتهيات» أو «altogether lovely» — لكن النص العبري الأصلي يحمل الاسم الصريح مع لاحقة التعظيم فقط.
+
+القرآن يقول: «الَّذِينَ يَتَّبِعُونَ الرَّسُولَ النَّبِيَّ الْأُمِّيَّ الَّذِي يَجِدُونَهُ مَكْتُوبًا عِندَهُمْ فِي التَّوْرَاةِ وَالْإِنجِيلِ» (الأعراف 7:157).
+
+
+إشعياء 42 — العبد الذي يحقق العدل للأمم
+===
+«هوذا عبدي الذي أعضده، مختاري الذي سُرَّت به نفسي... يُخرج الحق للأمم... لا يصيح ولا يرفع صوته في الشارع».
+
+الآية 11 صريحة: «لتشمخ البرية وقرى قيدار» — قيدار هو ابن إسماعيل وجدّ القبائل العربية الشمالية، أي أن النبوءة تخصّ العرب الإسماعيليين صراحة.
+
+الوصف يتطابق مع سيرة النبي ﷺ: مختار، يُحقق العدل للأمم جميعاً (لا لأمة واحدة)، لم يُعرف بالصخب والجلبة — بل بالهدوء والحكمة.
+`,
+    deepDive: `
+Deuteronomy 18:18: "A Prophet from Among Their Brothers"
+===
+Hebrew text: "I will raise up for them a prophet like you from among their brothers; I will put my words in his mouth."
+
+The "brothers" of the Israelites (sons of Isaac) are — by the Torah's own genealogy — the Ishmaelites (sons of Ishmael = Arabs). Both are sons of Abraham.
+
+A prophet "like Moses": one who brought a complete law governing religion, state, and daily life; who ruled a polity; who led armies; in whom prophethood and governance were combined. This description uniquely fits Muhammad (PBUH). It does not fit Jesus, who did not rule a state or legislate civil law.
+
+
+Deuteronomy 33:2: Sinai, Seir, Paran — A Three-Prophet Sequence
+===
+"The LORD came from Sinai, and dawned on them from Seir; He shone forth from Mount Paran."
+
+The geographical-historical sequence:
+- Sinai: where Moses received the Torah — the law for Israel.
+- Seir (mountains of southern Palestine/Jordan): historically associated with Jesus and the Gospel.
+- Paran: the Hejaz mountain range — where Muhammad received the Quran in the Cave of Hira.
+
+The sequence ends in Arabia — where God sealed the line of prophets and revelations.
+
+
+Song of Solomon 5:16: "Muhammadim" in the Hebrew Text
+===
+Hebrew original: "Hikko mamtaqqim we-khullo Muhammadim" — "His mouth is sweetness, and he is altogether Muhammadim."
+
+"Muhammadim" (מחמדים) is the Hebrew plural of majesty (honorific plural suffix -im) of the name "Muhammad."
+
+Translators rendered it as "altogether lovely" or "altogether desirable" — but the Hebrew original contains the name itself, with only the standard Hebrew honorific suffix added.
+
+The Quran states: "Those who follow the Messenger, the unlettered prophet, whom they find written in what they have of the Torah and the Gospel" (7:157).
+
+
+Isaiah 42: The Servant Who Brings Justice to All Nations
+===
+"Behold my servant, whom I uphold, my chosen, in whom my soul delights... He will bring forth justice to the nations... He will not cry aloud or lift up his voice, or make it heard in the street."
+
+Verse 11 is explicit: "Let the desert and its cities lift up their voice, the villages that Kedar inhabits rejoice." Kedar is the son of Ishmael and ancestor of the northern Arab tribes — the prophecy names the Arab people directly.
+
+The description matches: chosen, bringing justice to all nations (not one people), not characterized by public clamor — precisely matching the prophetic character of Muhammad (PBUH).
+`,
     verses: [
       {
         id: 'verse-araf-157',
