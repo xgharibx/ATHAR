@@ -10952,7 +10952,7 @@ The key term: "ikhtilaf" — from "khaalafa" = to differ, to vary in measure. If
 
 The linguistic choice: "ikhtilaf al-layl wal-nahar" implies night is sometimes long and sometimes short — this very variation is a cosmic sign. If Earth's axis were untilted, day and night would always be equal — and "ikhtilaf" would be the wrong word. A 7th-century author writing generically would use "ta'aqub" not "ikhtilaf."
 
-Reference: Al-Tabari (839-923 CE). Jami al-Bayan. Commentary on Al-Imran: 190. Al-Zamakhshari (1075-1144 CE). Al-Kashshaf. Ibn Manzur (1290 CE). Lisan al-Arab, entry: kh-l-f.
+Reference: Al-Tabari (839-923 CE). Jami al-Bayan. Commentary on Al-Imran: 190. Al-Zamakhshari (1075-1144 CE). Al-Kashshaf. Ibn Manzur (d. 1311 CE / 711 AH). Lisan al-Arab, entry: kh-l-f.
 
 
 Earth's 23.5 Degree Axial Tilt — The Physical Cause of Varying Day Lengths
@@ -11101,7 +11101,7 @@ The distinction: "taqwim" in Arabic is used for calibrating precise instruments,
 
 Ibn Manzur in Lisan al-Arab (d. 711 AH): "al-qiwam: justice and uprightness. al-taqwim: making level, adjusting, perfecting." Al-Raghib al-Asfahani in Al-Mufradat: "taqwim: making a thing stand in the most complete manner possible."
 
-Reference: Ibn Manzur (1290 CE). Lisan al-Arab. Vol. 12, entry: q-w-m. Al-Raghib al-Asfahani (d. 1108 CE). Al-Mufradat fi Gharib al-Quran.
+Reference: Ibn Manzur (d. 1311 CE / 711 AH). Lisan al-Arab. Vol. 12, entry: q-w-m. Al-Raghib al-Asfahani (d. 1108 CE). Al-Mufradat fi Gharib al-Quran.
 
 
 Upright Bipedalism and Bilateral Symmetry — Unique in the Animal Kingdom
