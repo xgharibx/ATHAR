@@ -247,6 +247,82 @@ No pre-20th-century human text — Greek philosophy, Arabic astronomy, Roman or 
     summaryAr: 'يصف القرآن جميع الأجرام السماوية بأنها تسبح في أفلاك محددة، وهي حقيقة أثبتها علم الميكانيكا المدارية.',
     description: 'In Surah Al-Anbiya (21:33): "And it is He who created the night and the day and the sun and the moon; all [heavenly bodies] in an orbit are swimming." The word "يَسْبَحُونَ" (yasbahoona) means swimming/floating—an extraordinary description of orbital motion in the vacuum of space. In the 7th century, the prevailing belief was that the sun was stationary (or moved across the sky flat). The Quran states that both the sun AND the moon are in orbits, and the word used implies self-propelled motion, matching our understanding that celestial bodies orbit through their own momentum in curved spacetime. Dr. Haitham Talaat notes the plural form "kullun" (each one) implies ALL celestial bodies, not just the sun and moon mentioned.',
     descriptionAr: 'في سورة الأنبياء (21:33): "وَهُوَ الَّذِي خَلَقَ اللَّيْلَ وَالنَّهَارَ وَالشَّمْسَ وَالْقَمَرَ كُلٌّ فِي فَلَكٍ يَسْبَحُونَ". كلمة "يسبحون" تصف حركة السباحة والطفو — وصف مذهل للحركة المدارية في فراغ الفضاء.',
+    deepDiveAr: `تحليل لغوي: ثلاث كلمات تحمل ثلاثة أسرار
+===
+• "كُلٌّ" — كل واحد منهم دون استثناء. حذف حرف العطف للدلالة على الشمول المطلق. الشمس والقمر والنجوم والمجرات — كلٌّ له فلك.
+• "فَلَكٍ" — من (ف-ل-ك): مسار دائري حلقي. استخدمه العرب لوصف حلقات الغزل الدائرية. الكلمة تصف بدقة المسارات الإهليلجية والدائرية للأجرام.
+• "يَسْبَحُونَ" — فعل مضارع من السباحة: حركة ذاتية مستمرة في وسط ما. يصف تحركاً لا يحتاج قوةً خارجية تدفعه باستمرار — وهذا بالضبط ما يصفه قانون نيوتن الأول في الفضاء الفارغ.
+
+ثلاثة مستويات للمدارات في آية واحدة
+===
+المستوى الأول — الكواكب تدور حول الشمس:
+أثبته كبلر رياضياً عام 1609، وأرساه نيوتن بالمعادلات عام 1687. في القرن السابع كان المعتقد السائد هو المركزية الأرضية (نموذج بطليموس): كل شيء يدور حول الأرض الثابتة.
+
+المستوى الثاني — الشمس تدور حول مركز مجرة درب التبانة:
+الشمس تقطع 828,000 كم/ساعة في مدارها. دورة كاملة = 225 إلى 250 مليون سنة ("السنة الكونية"). أثبته الفلك الحديث في القرن العشرين.
+
+المستوى الثالث — المجرات تتحرك في عناقيد كونية:
+مجرة درب التبانة تتحرك مع المجموعة المحلية بسرعة ~600 كم/ثانية نحو المجمع العذراء العملاق. اكتشاف القرن العشرين.
+
+كلمة "كُلٌّ" تشمل الثلاثة جميعاً. لو قال القرآن "الشمس والقمر يسبحان في فلك" لكان وصفاً محدوداً — لكنه قال "كُلٌّ في فَلَكٍ يَسْبَحُونَ".
+
+ما كان العلم يظن في القرن السابع
+===
+نموذج بطليموس (القرن الثاني الميلادي) هيمن 1400 سنة: الأرض مركز ثابت، والأجرام مثبتة على أفلاك بلورية شفافة تدور حولها. الشمس تدور حول الأرض، لا حول شيء آخر.
+
+• كوبرنيكوس طعن في النموذج البطلموسي عام 1543 — بعد نزول الآية بـ 930 سنة
+• غاليليو عوقب بالإقامة الجبرية بسبب دفاعه عن مركزية الشمس
+• نيوتن وضع المعادلات الرياضية للمدارات عام 1687
+
+الآية قُرئت وحُفظت طوال هذه القرون بينما كان العلم يتخبط في النموذج الخاطئ.
+
+لماذا "يسبحون" هي الكلمة الفيزيائية الأدق؟
+===
+لماذا "يسبحون" وليس "يطيرون" أو "يتحركون"؟
+السباحة تحمل ثلاث دلالات فيزيائية حديثة في آنٍ واحد:
+١ — حركة مستمرة بلا احتكاك: الفضاء فراغ شبه تام. الأجرام تواصل حركتها المدارية إلى الأبد بلا قوة دافعة (قانون نيوتن الأول).
+٢ — حركة في "وسط" محيط: النسبية العامة تصف الجاذبية كانحناء في نسيج الزمكان — الأجرام تسبح حرفياً في هذا النسيج المنحني.
+٣ — حركة ذاتية لا تحتاج دفعاً خارجياً مستمراً: الجسم يحافظ على مداره بذاته.`,
+    deepDive: `\"Yasbahoona\" — The Physics of a Single Word
+===
+\"يَسْبَحُونَ\" (yasbahoona) = \"they are swimming\" — chosen with extraordinary precision:
+• Swimming implies CONTINUOUS, SELF-SUSTAINING motion (no ongoing force needed — Newton's First Law: an object in motion stays in motion in frictionless space)
+• Swimming implies motion WITHIN a surrounding medium (General Relativity: celestial bodies literally swim through curved spacetime geometry — Einstein's medium)
+• The present tense means this is happening NOW and always
+• The plural masculine includes ALL celestial objects, not just the sun and moon named in the verse
+
+Three Orbital Tiers in One Verse
+===
+Tier 1 — Planets orbit the Sun:
+Kepler (1609) proved planets move in elliptical orbits. Newton (1687) explained WHY mathematically. In the 7th century, the Ptolemaic geocentric model was accepted truth: everything orbits the fixed Earth on crystal spheres.
+
+Tier 2 — The Sun orbits the Milky Way:
+The Sun travels at 828,000 km/h in its orbit around the galactic center. One full orbit = 225–250 million years (one "cosmic year"). Modern astronomy confirmed this in the 20th century.
+
+Tier 3 — Galaxies move within galaxy clusters:
+The Milky Way moves with the Local Group toward the Virgo Supercluster at ~600 km/s. Discovered in the 20th century.
+
+\"Kullun\" (كُلٌّ) covers all three tiers simultaneously.
+
+The Ptolemaic World vs. The Quranic Statement
+===
+For 1,400 years after Ptolemy (2nd century CE), educated humanity believed:
+• Earth is the fixed, immovable center of the universe
+• The Sun, Moon, and planets are embedded in transparent crystal spheres rotating around Earth
+• The Sun does NOT orbit anything — it circles Earth
+
+Copernicus challenged this in 1543 — 930 years AFTER the Quranic verse. Galileo was placed under house arrest for supporting it. Newton formalized orbital mechanics in 1687.
+
+The Quran stated plainly in the 7th century that ALL heavenly bodies are swimming in their own orbits — directly contradicting unquestioned scientific orthodoxy.
+
+Why \"Swimming\" Is the Physically Perfect Metaphor
+===
+Why not \"flying,\" \"moving,\" or \"rotating\"? Swimming carries three physical properties at once:
+1 — Zero friction: Space is a near-perfect vacuum. Objects sustain orbital motion indefinitely without any continued push.
+2 — A surrounding medium: In General Relativity, gravity is curvature in the spacetime fabric — bodies literally swim through this curved medium.
+3 — Self-propelled continuity: No external force is needed once orbital motion is established.
+
+The Arabic word carries all three simultaneously. No other word in the language achieves this.`,
     verses: [
       {
         id: 'verse-anbiya-33',
@@ -300,6 +376,84 @@ No pre-20th-century human text — Greek philosophy, Arabic astronomy, Roman or 
     summaryAr: 'يصف القرآن نجماً "ثاقباً" يخترق الظلام — يتطابق مع خصائص النجوم النابضة المكتشفة عام 1967.',
     description: 'Surah At-Tariq (86:1-3): "By the sky and the night comer - And what can make you know what is the night comer? - It is the piercing star." The Arabic "الطارق" means that which knocks/comes at night, and "الثاقب" means piercing/penetrating. Pulsars are rapidly rotating neutron stars that emit beams of electromagnetic radiation. They were discovered by Jocelyn Bell Burnell in 1967. They are called "pulsars" because they appear to pulse—emitting radio waves that pierce through space like a cosmic lighthouse. The description of a star that knocks (produces rhythmic pulses) and pierces (its radiation penetrates through space) is an astonishingly precise description of a pulsar. Dr. Haitham Talaat highlights that no civilization in the 7th century had any knowledge of neutron stars or electromagnetic radiation.',
     descriptionAr: 'سورة الطارق (86:1-3): "وَالسَّمَاءِ وَالطَّارِقِ وَمَا أَدْرَاكَ مَا الطَّارِقُ النَّجْمُ الثَّاقِبُ". كلمة "الطارق" تعني الذي يطرق بالليل، و"الثاقب" يعني المخترق النافذ. النجوم النابضة (Pulsars) هي نجوم نيوترونية سريعة الدوران تبث حزماً من الإشعاع الكهرومغناطيسي.',
+    deepDiveAr: `تحليل اسم "الطارق"
+===
+"الطارق" في اللغة العربية: اسم فاعل من (ط-ر-ق). الطرق = الضرب والدق بانتظام. يقال: طرق الباب = دقّه بشكل متكرر. ومنه "المِطرقة" = أداة الدق المتكررة. الاستخدام الكلاسيكي: "الطارق بالليل" = الزائر الذي يدق بابك في منتصف الليل.
+
+النجم النابض يطرق بانتظام مذهل يتجاوز خيال البشر:
+• النجم النابض PSR J1748-2446ad يصدر 716 نبضة في الثانية الواحدة
+• كل نبضة منتظمة بدقة تفوق أفضل ساعات الذرة البشرية الصنع
+• حين اكتشفت جوسيلين بيل الإشارة عام 1967، سمّى فريقها الإشارة "LGM-1" (الكائنات الخضراء الصغيرة 1) — ظنّوها للوهلة الأولى رسالة من حضارة فضائية لاستحالة هذا الانتظام في الطبيعة
+
+تحليل اسم "الثاقب"
+===
+"الثاقب" في اللغة: اسم فاعل من (ث-ق-ب). الثقب = الاختراق والنفاذ عبر الشيء الصلب والكثيف. يقال: ثقب الجدار = اخترقه ونفذ من جانبيه. "مثقاب" = الأداة التي تنفذ عبر المواد الصلبة.
+
+إشعاع النجوم النابضة ثاقب بمعنيين علميين حقيقيين:
+أولاً — ينفذ عبر سُحُب الغاز والغبار الكونية الكثيفة التي تحجب الضوء المرئي تماماً. لهذا بالذات نرصد النجوم النابضة رغم المسافات الشاسعة وكثافة المواد الكونية بينها وبيننا.
+ثانياً — أشعة X وأشعة جاما الصادرة عن بعض النجوم النابضة تخترق المادة بطريقة لا يفعلها أي ضوء مرئي عادي. بعض هذا الإشعاع يمر عبر أنظمة نجمية بأكملها.
+
+الحقائق الفيزيائية المذهلة للنجم النابض
+===
+• الكتلة: من 1.4 إلى 2.1 ضعف كتلة الشمس — مضغوطة في كرة قطرها ~20 كيلومتراً فقط
+• الكثافة: ملعقة صغيرة واحدة من مادته = مليار طن على سطح الأرض
+• سرعة الدوران: يصل إلى 716 دورة في الثانية (النجوم النابضة المللي ثانوية)
+• المجال المغناطيسي: أقوى مجال مغناطيسي معروف في الكون — تريليون ضعف مجال الأرض
+• بث الإشعاع: حزمتان من الإشعاع تنبثقان من القطبين المغناطيسيين كمنارة دوارة كونية
+• الدقة الزمنية: دقة نبضاته تُستخدم لضبط "ساعات الفضاء" وملاحة المسابير الكونية
+
+سياق القَسَم القرآني
+===
+"وَالسَّمَاءِ وَالطَّارِقِ" — الله يُقسم بالسماء وبهذا النجم معاً. في القرآن، القَسَم الإلهي يُعظّم المُقسَم به ويستدعي التأمل فيه. القَسَم بشيء لا يعرف أحد في زمن التنزيل كنهه الحقيقي = دعوة مفتوحة للبحث والاكتشاف.
+
+خط الزمن: 1357 سنة بين الوصف والاكتشاف
+===
+• 610م — نزول سورة الطارق ووصف "النجم الثاقب الطارق"
+• 1054م — رصد فلكيون صينيون وعرب انفجار مستعر أعظم (SN 1054) أنتج سديم السرطان وأحد أشهر النجوم النابضة — لكن لم يدرك أحد ماهيته
+• 1967م — جوسيلين بيل بورنيل تكتشف PSR B1919+21 أول نجم نابض مرصود في التاريخ
+• 1974م — جائزة نوبل للفيزياء لهيولش وتايلور على اكتشاف النجوم النابضة (جوسيلين بيل استُثنيت رغم كونها المكتشِفة الفعلية في قضية نوبل المثيرة للجدل)
+• 1993م — نوبل أخرى لتايلور وهولز لتوظيف النجوم النابضة في التحقق التجريبي من النسبية العامة`,
+    deepDive: `"At-Tariq" — The Knocker: A Name That Defines a Physics Phenomenon
+===
+"الطارق" (At-Tariq) from root (T-R-Q): to knock, strike, or rap rhythmically and repeatedly. Classical Arabic: "tariq al-layl" = the one who knocks on your door at night. "Mitraqah" = a hammer that strikes repeatedly.
+
+Pulsars knock with physically impossible regularity:
+• PSR J1748-2446ad pulses 716 times per second with perfect metronomic regularity
+• Each pulse surpasses atomic clocks in precision — the most accurate natural timekeepers ever discovered
+• When Jocelyn Bell first detected the signal in 1967, the team nicknamed it "LGM-1" (Little Green Men 1) — they briefly thought it was an alien civilization's transmission. Nothing natural should be THAT perfectly regular.
+
+"Ath-Thaqib" — The Piercer: Radiation That Goes Through Everything
+===
+"الثاقب" (Ath-Thaqib) from root (Th-Q-B): to pierce, drill through, penetrate a solid object completely. Classical Arabic: "thaqaba al-jidar" = to drill through a wall from side to side. "Mithqab" = a drill bit that goes through hard materials.
+
+Pulsar radiation is "thaqib" in two verified scientific senses:
+First: Radio waves from pulsars pierce through dense clouds of interstellar gas and dust that block visible light entirely — this is precisely WHY we can detect them across thousands of light-years despite the material between us and them.
+Second: X-ray and gamma-ray emissions from some pulsars penetrate matter in ways ordinary light cannot. Some pulsar radiation passes through entire star systems with minimal absorption.
+
+The Neutron Star: Staggering Physical Reality
+===
+• Mass: 1.4–2.1× the Sun's mass — compressed into a sphere only ~20 km in diameter
+• Density: One teaspoon of pulsar material = approximately 1 billion tons on Earth
+• Rotation: Some spin 716 complete rotations per second (millisecond pulsars)
+• Magnetic field: Up to 1 trillion times stronger than Earth's magnetic field — the most intense known in the universe
+• Radiation: Two beams emit from the magnetic poles like a sweeping cosmic lighthouse
+• Timing precision: So accurate they serve as natural cosmic clocks for deep-space spacecraft navigation
+
+The Oath Context: An Invitation to Discover
+===
+"By the sky and At-Tariq" — In the Quran, divine oaths elevate what is sworn by and call attention to it. Swearing by an object whose true nature was unknown to anyone in the 7th century is both a description and an open invitation: investigate what this is.
+
+The description "piercing, knocking star" would mean nothing specific to a 7th-century listener — only 20th-century physics could decode it.
+
+Timeline: 1,357 Years Between Description and Discovery
+===
+• 610 CE — Surah At-Tariq revealed: "the piercing, knocking star"
+• 1054 CE — Chinese and Arab astronomers record supernova SN 1054 → produced Crab Nebula, home to the famous Crab Pulsar — but no one knew its nature
+• 1967 CE — Jocelyn Bell Burnell discovers PSR B1919+21, the first observed pulsar
+• 1974 CE — Nobel Prize in Physics for pulsar discovery (Bell controversially excluded despite being the actual discoverer)
+• 1993 CE — Nobel Prize to Taylor & Hulse for using pulsars to verify General Relativity
+
+The verse named and precisely described the object 1,357 years before humanity knew it existed.`,
     verses: [
       {
         id: 'verse-tariq-3',
