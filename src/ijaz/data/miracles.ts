@@ -6704,6 +6704,122 @@ The largest documented ant supercolony extended horizontally over 6,000 km acros
     summaryAr: 'يصف القرآن السماوات وهي "تُطوى كطيّ السجل للكتب" يوم القيامة — يقترح علم الكون الحديث الانكماش الكبير وطيّ الزمكان ونماذج الكون الدوري المتسقة مع هذه الصورة.',
     description: 'Surah Al-Anbiya (21:104) states: "The Day when We will fold the heaven like the folding of a [written] sheet for the books. As We began the first creation, We will repeat it — a promise binding upon Us. Indeed, We will do it." Surah At-Takwir (81:1–2) adds: "When the sun is wrapped up. When the stars are darkened." The Quranic imagery contains multiple cosmologically precise elements: (1) "يَطْوِي السَّمَاءَ كَطَيِّ السِّجِلِّ لِلْكُتُبِ" — "Fold the heaven like a scroll." Modern cosmology describes spacetime as a fabric (Einstein\'s General Relativity) that can be curved, folded, and collapsed. The Big Crunch theory (if dark energy changes sign) predicts the universe reverses its expansion and all spacetime is compressed. (2) "كَمَا بَدَأْنَا أَوَّلَ خَلْقٍ نُّعِيدُهُ" — "As We began the first creation, We will repeat it." This describes cyclic cosmology — the Ekpyrotic model and Penrose\'s Conformal Cyclic Cosmology (CCC) propose that the universe undergoes repeated cycles of expansion and contraction. (3) "إِذَا الشَّمْسُ كُوِّرَتْ" — "When the sun is wrapped up." The sun will eventually exhaust its hydrogen fuel and expand into a red giant, then collapse. Modern astrophysics confirms the sun will "wrap up" in approximately 5 billion years. (4) "وَإِذَا النُّجُومُ انكَدَرَتْ" — "When the stars are darkened." The ultimate fate of all stars is to exhaust their fuel and go dark (heat death/stellar burnout). Dr. Haitham Talaat notes that describing the heavens being "folded" requires understanding spacetime as a structure — a concept developed only with Einstein\'s 1916 General Theory of Relativity.',
     descriptionAr: 'يقول الله تعالى في سورة الأنبياء (21:104): "يَوْمَ نَطْوِي السَّمَاءَ كَطَيِّ السِّجِلِّ لِلْكُتُبِ كَمَا بَدَأْنَا أَوَّلَ خَلْقٍ نُّعِيدُهُ وَعْدًا عَلَيْنَا إِنَّا كُنَّا فَاعِلِينَ". وتضيف سورة التكوير (81:1–2): "إِذَا الشَّمْسُ كُوِّرَتْ ﴿١﴾ وَإِذَا النُّجُومُ انكَدَرَتْ". تحتوي الصور القرآنية على عناصر كونية دقيقة: (1) طيّ السماء كالسجل — يصف الكون الحديث الزمكان كنسيج قابل للطيّ والانهيار. (2) "كما بدأنا أول خلق نعيده" — يصف الكونيات الدورية — نموذج بنروز الكوني الدوري. (3) "الشمس كوّرت" — ستنهي الشمس وقودها وتنكمش بعد 5 مليار سنة. (4) "النجوم انكدرت" — مصير جميع النجوم الانطفاء.',
+    deepDiveAr: `كُوِّرَتْ — كلمة قرآنية في القرن السابع تصف انطفاء الشمس بدقة علمية
+===
+سورة التكوير (81:1) تقول: "إِذَا الشَّمْسُ كُوِّرَتْ". الجذر "كوّر" في العربية يعني اللفّ والتدوير — كلفّ العمامة أو تدوير الكرة. كوّرت = لُفَّت، طُويت، أُطفئت ضوؤها بعد أن تُلفّ على نفسها.
+
+ما الذي سيحدث للشمس وفق العلم الحديث؟
+- الشمس تستهلك هيدروجينها في التفاعل النووي الحراري بمعدل 600 مليون طن في الثانية.
+- بعد ~5 مليار سنة: تنتفخ إلى عملاق أحمر (Red Giant) يبتلع الأرض وكوكب المريخ.
+- ثم تنكمش إلى قزم أبيض (White Dwarf) وتبرد تدريجياً وتُطفأ.
+
+الكلمة "كُوِّرَتْ" تصف بدقة مذهلة هذا الانطفاء بعد التورم: الشمس تُلفّ على نفسها وتنطفئ. لم يكن لأي فلكي أو فيلسوف في القرن السابع أن يتصور هذا المصير المحدد للنجوم.
+
+أما "النُّجُومُ انكَدَرَتْ" (التكوير 81:2): انكدر = تساقط وانطفأ لونه. مصير جميع النجوم في الكون هو نفاد وقودها النووي والانطفاء — سواء كانت قزماً أبيض أو نجماً نيوترونياً أو ثقباً أسود. آخر نجم سينطفئ بعد تريليونات السنين.
+
+
+الزمكان كنسيج — آينشتاين 1916 والمفهوم الذي أتاح فهم "الطيّ"
+===
+سورة الأنبياء (21:104): "يَوْمَ نَطْوِي السَّمَاءَ كَطَيِّ السِّجِلِّ لِلْكُتُبِ". كلمة "نَطْوِي" تعني الطيّ الحرفي — مثل طيّ ورقة أو لفافة.
+
+حتى يكون "طيّ السماء" له معنى فيزيائي، يجب أن تكون السماء (الكون) شيئاً قابلاً للطيّ — بنية، نسيج، كيان له أبعاد.
+
+هذا بالضبط ما أثبته ألبرت آينشتاين في نظرية النسبية العامة (1916):
+- الكون ليس فراغاً — بل نسيج رباعي الأبعاد (الزمكان: 3 أبعاد مكانية + الزمن).
+- هذا النسيج يمكن أن يُثنى بفعل الكتلة (تحنّي الزمكان).
+- وفي سيناريو الانكماش الكبير (Big Crunch) يمكن أن ينهار هذا النسيج كله.
+
+المسافة الزمنية بين الآية (610 م) وأول إثبات علمي لأن الكون نسيج قابل للطيّ (1916 م): 1,306 سنة.
+
+أما "كَمَا بَدَأْنَا أَوَّلَ خَلْقٍ نُّعِيدُهُ": يصف إعادة الخلق بعد طيّ الكون — أي دورة كونية جديدة بعد نهاية هذه الدورة.
+
+
+الكون الدوري — نموذج بنروز وتطابقه مع "كَمَا بَدَأْنَا نُعِيدُهُ"
+===
+جملة "كَمَا بَدَأْنَا أَوَّلَ خَلْقٍ نُّعِيدُهُ" كانت تبدو لأمد طويل مجرد وعد بعثي. اليوم تُطابقها نظريات كونية متقدمة:
+
+نموذج روجر بنروز — الكونيات الدورية المطابِقة (CCC):
+Conformal Cyclic Cosmology — كتاب "Cycles of Time" (2010) — جائزة نوبل 2020
+- الكون يمر بدورات (Aeons) لا نهاية لها.
+- كل دورة تبدأ بانفجار عظيم (Big Bang) وتنتهي بتحلّل كل المادة إلى فوتونات.
+- ثم تبدأ دورة جديدة — هي بالنسبة للكون الجديد "انفجار عظيم" جديد.
+
+النموذج الإكبيروتي (Ekpyrotic Model, 1999 — Steinhardt وTurok):
+- الكون نتاج تصادم بين "غشائين" كونيين (Branes) في أبعاد أعلى.
+- التصادم يتكرر دورياً — دورة لا نهاية لها من الخلق والطيّ وإعادة الخلق.
+
+القرآن وصف هذا المبدأ بجملة واحدة قبل 14 قرناً.
+
+
+مصير النجوم — الانطفاء الحراري النهائي
+===
+"وَإِذَا النُّجُومُ انكَدَرَتْ" — ليست مجرد صورة شعرية. هي وصف للمصير الكوني للنجوم وفق الفيزياء الحديثة:
+
+التسلسل الزمني الكوني للانطفاء:
+- خلال 10^14 سنة: آخر النجوم ذات الكتلة المنخفضة تنطفئ (أقزام حمراء → أقزام بيضاء → أقزام سوداء).
+- خلال 10^40 سنة: كل البروتونات تتحلل (إذا كانت نظرية تحلل البروتون صحيحة).
+- خلال 10^67 سنة: الثقوب السوداء تتبخر بإشعاع هوكينغ.
+- خلال 10^100 سنة وما بعد: الموت الحراري الكامل — لا طاقة قابلة للاستخدام، لا نجوم، لا ضوء.
+
+"انكدرت" يصف بدقة تامة هذا الانطفاء التدريجي الكامل للنجوم عبر الكون. وصف القرآن هذا المصير قبل أن تعرف البشرية أن النجوم تحترق وقوداً وستنطفئ.`,
+    deepDive: `"Kuwwirat" — A 7th-Century Word Describing the Sun's Fate with Scientific Precision
+===
+Surah At-Takwir (81:1) states: "When the sun is kuwwirat." The Arabic root "kawwara" means to wind, coil, or wrap — like winding a turban or rolling up a scroll. Kuwwirat = she was wrapped up, wound, her light extinguished after being coiled inward.
+
+What will actually happen to the sun according to modern astrophysics?
+- The sun burns hydrogen through nuclear fusion at approximately 600 million tons per second.
+- In ~5 billion years: it expands into a Red Giant, engulfing Earth and Mars.
+- Then it contracts into a White Dwarf and gradually cools and darkens.
+
+The word "kuwwirat" describes with stunning precision this collapse after expansion: the sun is wound up and extinguished. No astronomer or philosopher in the 7th century could have conceived this specific stellar fate.
+
+And "the stars are ankadarat" (At-Takwir 81:2): ankadara = fell and lost its brightness. The fate of all stars in the universe is exhausting their nuclear fuel and darkening — whether as a white dwarf, neutron star, or black hole. The last star will extinguish after trillions of years.
+
+
+Spacetime as Fabric — Einstein 1916 and the Concept That Made "Folding" Possible
+===
+Surah Al-Anbiya (21:104): "The Day when We will fold the heaven like the folding of a written scroll." The word "natawi" means literal folding — like folding a piece of paper or rolling up a scroll.
+
+For the "folding of the heavens" to have a physical meaning, the heaven (universe) must be something foldable — a structure, a fabric, an entity with dimensions.
+
+This is precisely what Albert Einstein proved in General Relativity (1916):
+- The universe is not empty space — it is a four-dimensional fabric (spacetime: 3 spatial dimensions + time).
+- This fabric bends under the influence of mass (spacetime curvature).
+- In the Big Crunch scenario, this entire fabric could collapse inward.
+
+The time gap between the Quranic verse (610 CE) and the first scientific proof that the universe is a foldable fabric (1916 CE): 1,306 years.
+
+And "As We began the first creation, We will repeat it": describes a new creation after the folding of the universe — a new cosmic cycle following the end of this one.
+
+
+Cyclic Cosmology — Penrose's CCC and Its Match with "We Will Repeat It"
+===
+The phrase "As We began the first creation, We will repeat it" long appeared to be simply an eschatological promise. Today it is matched by advanced cosmological theories:
+
+Roger Penrose's Conformal Cyclic Cosmology (CCC):
+"Cycles of Time" (2010) — Nobel Prize in Physics 2020
+- The universe passes through endless cycles (Aeons).
+- Each cycle begins with a Big Bang and ends with all matter decaying into photons.
+- A new cycle then begins — which to the new universe constitutes a fresh Big Bang.
+
+The Ekpyrotic Model (1999, Steinhardt & Turok):
+- The universe results from the collision of two cosmic "branes" in higher dimensions.
+- The collision repeats cyclically — an endless cycle of creation, folding, and re-creation.
+
+The Quran described this principle in a single phrase 14 centuries ago.
+
+
+The Fate of Stars — Final Thermal Death
+===
+"When the stars are darkened" — not merely poetic imagery. It is a description of the cosmic fate of stars according to modern physics:
+
+The cosmic timeline of stellar extinction:
+- Within 10^14 years: the last low-mass stars go dark (red dwarfs → white dwarfs → black dwarfs).
+- Within 10^40 years: all protons decay (if proton decay theory is correct).
+- Within 10^67 years: black holes evaporate via Hawking radiation.
+- Within 10^100+ years: complete heat death — no usable energy, no stars, no light.
+
+"Ankadarat" precisely describes this complete, gradual extinction of all stars across the universe. The Quran described this fate before humanity knew stars burn fuel and will eventually go dark.`,
     verses: [
       {
         id: 'verse-anbiya-104',
@@ -6769,6 +6885,110 @@ The largest documented ant supercolony extended horizontally over 6,000 km acros
     summaryAr: 'يقرر القرآن أن القلوب تطمئن بذكر الله، ويُسند إليها التفكير — اكتشف علم الأعصاب القلبي الحديث أن القلب يملك 40,000 خلية عصبية تشكل دماغه الخاص يؤثر على الإدراك والعاطفة والصحة.',
     description: 'Multiple Quranic verses attribute cognitive and emotional functions to the heart: Surah Ar-Ra\'d (13:28): "Verily, in the remembrance of Allah do hearts find rest/tranquility (تَطْمَئِنُّ الْقُلُوبُ)." Surah Al-Hajj (22:46): "It is not eyes that are blinded, but blinded are the hearts which are within the chests." Surah Al-A\'raf (7:179): "They have hearts with which they do not understand." The Quran consistently attributes reasoning, understanding, blindness, and tranquility to the HEART — not the brain. For centuries this seemed metaphorical. Modern neurocardiology has discovered: (1) THE HEART\'S BRAIN: The heart contains approximately 40,000 neurons (its own intrinsic nervous system). This "heart brain" can act independently, learn, remember, and make functional decisions — even when separated from the body. (2) MORE SIGNALS TO BRAIN: The heart sends MORE neural signals to the brain than the brain sends to the heart. Heart rhythms directly influence brain activity, perception, and cognition — the opposite of what was assumed. (3) HEART RATE VARIABILITY (HRV): HeartMath Institute research shows that positive emotional states create coherent HRV patterns that enhance cognitive performance, immune function, and stress resilience. The "tranquility" (itmi\'nan) the Quran describes has measurable physiological correlates. (4) HEART FIELD: The heart generates an electromagnetic field 60 times stronger than the brain, measurable up to several feet from the body. (5) CARDIAC INTELLIGENCE: Research confirms the heart uses the same neurotransmitters (norepinephrine, dopamine, serotonin) as the brain — suggesting independent processing. Dr. Haitham Talaat documents that the Quran\'s attribution of cognitive and emotional functions to the heart\'s specific location (within the chest) was scientifically vindicated by neurocardiology — a field that emerged only in the 1990s.',
     descriptionAr: 'تُسند آيات قرآنية متعددة وظائف إدراكية وعاطفية للقلب: سورة الرعد (13:28): "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ". سورة الحج (22:46): "فَإِنَّهَا لَا تَعْمَى الْأَبْصَارُ وَلَٰكِن تَعْمَى الْقُلُوبُ الَّتِي فِي الصُّدُورِ". يُسند القرآن التعقل والعمى والاطمئنان للقلب لا للدماغ. اكتشف علم الأعصاب القلبي الحديث: (1) دماغ القلب: 40,000 خلية عصبية تشكل جهازاً عصبياً داخلياً مستقلاً. (2) القلب يُرسل إشارات أكثر للدماغ مما يستقبل. (3) معدل تغيرية نبضات القلب (HRV) يؤثر مباشرة على الإدراك ووظيفة المناعة. (4) المجال الكهرومغناطيسي للقلب أقوى 60 مرة من الدماغ.',
+    deepDiveAr: `"الْقُلُوبُ الَّتِي فِي الصُّدُورِ" — لماذا يُحدّد القرآن موضع القلب في الصدر؟
+===
+سورة الحج (22:46): "فَإِنَّهَا لَا تَعْمَى الْأَبْصَارُ وَلَٰكِن تَعْمَى الْقُلُوبُ الَّتِي فِي الصُّدُورِ".
+
+العبارة الدقيقة هنا: "الْقُلُوبُ الَّتِي فِي الصُّدُورِ" — القلوب التي في الصدور. لماذا يُضيف القرآن هذا التحديد التشريحي؟ أليس الجميع يعلم أن القلب في الصدر؟
+
+البشر قبل القرن السابع — بل حتى القرن التاسع عشر — لم يعرفوا أن للقلب وظيفة إدراكية وعاطفية حقيقية. أرسطو وصف القلب بأنه مركز الوعي والعقل، لكن الفلسفة الطبيعية لاحقاً نقلت هذا للدماغ وظلّ القلب مجرد مضخة.
+
+حين يقول القرآن "الْقُلُوبُ الَّتِي فِي الصُّدُورِ" فإنه يُثبّت الوظيفة الإدراكية في موضعها التشريحي الصحيح: القلب العضوي — لا القلب المجازي. هذا التحديد صار له أهمية علمية بالغة في ضوء علم الأعصاب القلبي الحديث.
+
+
+دماغ القلب — 40,000 خلية عصبية غيّرت الطب
+===
+الاكتشاف الذي أسّس علم الأعصاب القلبي (Neurocardiology):
+
+عام 1994: دكتور J. Andrew Armour ودكتور Jeffrey Ardell ينشران بحثهما الرائد "Neurocardiology" (دار نشر Oxford University Press).
+
+الاكتشاف: القلب يحتوي على جهاز عصبي داخلي متكامل (Intrinsic Cardiac Nervous System) يضم ~40,000 خلية عصبية.
+
+هذا "الدماغ القلبي" قادر على:
+- الإدراك والتذكّر والتعلّم باستقلالية عن الدماغ.
+- الاستجابة للمعلومات البيئية والعاطفية بمعالجة مستقلة.
+- اتخاذ قرارات وظيفية — حتى حين يُفصل القلب عن الجسم في التجارب المعملية.
+
+المسافة الزمنية بين الآيات القرآنية التي تُسند الإدراك للقلب (610 م) وأول توثيق علمي لدماغ القلب (1994 م): 1,384 سنة.
+
+
+القلب يُرسل للدماغ أكثر مما يستقبل — عكس ما اعتقدنا
+===
+الاعتقاد السائد قبل علم الأعصاب القلبي: الدماغ هو المسيطر — يُرسل أوامره للقلب فيُطيع.
+
+الحقيقة التي كشفها البحث الحديث:
+- القلب يُرسل إلى الدماغ أكثر من 80% من الإشارات العصبية، بينما لا يُرسل الدماغ إلى القلب إلا أقل من 20%.
+- إيقاعات القلب تؤثر مباشرة على: الإدراك المعرفي، الانتباه، القرارات، الإبداع، المعالجة الانفعالية.
+- المجال الكهرومغناطيسي للقلب أقوى 60 مرة من مجال الدماغ — يمكن قياسه على بُعد عدة أقدام من الجسم.
+- القلب يستخدم نفس الناقلات العصبية التي يستخدمها الدماغ: النورإبينفرين، الدوبامين، السيروتونين.
+
+القلب لا ينتظر أوامر الدماغ — بل يُصدر معلومات تُشكّل وعي الدماغ. القرآن قال "عمى القلوب" و"اطمئنان القلوب" قبل أن نعرف أن القلب يُرسل لا يستقبل فحسب.
+
+
+تَطْمَئِنُّ الْقُلُوبُ — القياس الفيزيولوجي للاطمئنان
+===
+"أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ" (الرعد 13:28). الاطمئنان في القرآن ليس وصفاً مجازياً — اكتشف العلم الحديث له قياساً فيزيولوجياً محدداً:
+
+مؤسسة HeartMath (تأسست 1991، بحوث منشورة 1994–2009):
+- معدل تغيرية نبضات القلب (Heart Rate Variability — HRV): يقيس النمط الإيقاعي بين ضربات القلب.
+- الحالات الإيجابية (الاطمئنان، الامتنان، الحب): تُنتج نمطاً "متناسقاً" (Coherent) من HRV.
+- الأنماط المتناسقة تُحسّن: الإدراك المعرفي، وظيفة الجهاز المناعي، تنظيم الضغط العصبي.
+
+البحث المرجعي: McCraty, R. et al. (2009). "The Coherent Heart." Integral Review, 5(2): 10–115.
+
+كلمة "تَطْمَئِنُّ": جذرها (ط-م-أ-ن) يفيد الاستقرار والثبات والسكون. أنماط HRV المتناسقة تُظهر بالضبط هذا الثبات الإيقاعي القابل للقياس. الاطمئنان الذي وصفه القرآن له ارتباط بيولوجي موثوق في فيزيولوجيا القلب.`,
+    deepDive: `"Hearts Which Are Within the Chests" — Why Does the Quran Locate the Heart Anatomically?
+===
+Surah Al-Hajj (22:46): "For indeed, it is not eyes that are blinded, but blinded are the hearts which are within the chests."
+
+The precise phrase: "hearts which are within the chests" — al-qulub allati fi al-sudur. Why does the Quran add this anatomical specification? Doesn't everyone know the heart is in the chest?
+
+Before the 7th century — indeed until the 19th century — humans did not know the heart had genuine cognitive and emotional functions. Aristotle described the heart as the center of consciousness and reason, but natural philosophy later transferred these functions to the brain, leaving the heart as "merely a pump."
+
+When the Quran says "hearts which are within the chests" it anchors the cognitive function in the correct anatomical location: the physical heart — not a metaphorical heart. This specification acquired profound scientific significance in light of modern neurocardiology.
+
+
+The Heart's Brain — 40,000 Neurons That Changed Medicine
+===
+The discovery that established Neurocardiology as a field:
+
+1994: Dr. J. Andrew Armour and Dr. Jeffrey Ardell publish their landmark work "Neurocardiology" (Oxford University Press).
+
+Discovery: the heart contains a complete intrinsic nervous system (Intrinsic Cardiac Nervous System) comprising ~40,000 neurons.
+
+This "cardiac brain" is capable of:
+- Perceiving, remembering, and learning independently of the brain.
+- Responding to environmental and emotional information with its own processing.
+- Making functional decisions — even when the heart is separated from the body in laboratory experiments.
+
+The time gap between the Quranic verses attributing cognition to the heart (610 CE) and the first scientific documentation of the heart's own brain (1994 CE): 1,384 years.
+
+
+The Heart Commands the Brain — The Opposite of What We Assumed
+===
+The prevailing assumption before neurocardiology: the brain is in command — it sends orders to the heart, which obeys.
+
+The reality revealed by modern research:
+- The heart sends MORE than 80% of neural signals to the brain; the brain sends less than 20% back to the heart.
+- Heart rhythms directly influence: cognition, attention, decision-making, creativity, and emotional processing.
+- The heart's electromagnetic field is 60 times stronger than the brain's field — measurable several feet from the body.
+- The heart uses the same neurotransmitters as the brain: norepinephrine, dopamine, and serotonin.
+
+The heart does not wait for the brain's instructions — it broadcasts information that shapes the brain's awareness. The Quran spoke of "blindness of hearts" and "hearts finding rest" before we knew the heart transmits rather than merely receives.
+
+
+"Do Hearts Find Rest" — The Physiological Measurement of Tranquility
+===
+"Verily, in the remembrance of Allah do hearts find rest" (Ar-Ra'd 13:28). The "rest" (itmi'nan) the Quran describes is not a metaphor — modern science has discovered its precise physiological measurement:
+
+HeartMath Institute (founded 1991, research published 1994–2009):
+- Heart Rate Variability (HRV): measures the rhythmic pattern between heartbeats.
+- Positive states (tranquility, gratitude, love): produce a "coherent" HRV pattern.
+- Coherent HRV patterns measurably improve: cognitive performance, immune function, and autonomic nervous system regulation.
+
+Key reference: McCraty, R. et al. (2009). "The Coherent Heart." Integral Review, 5(2): 10–115.
+
+The word "tatma'innu" (Arabic root t-m-a-n): conveys stability, steadiness, and calm. Coherent HRV patterns show exactly this measurable rhythmic stability. The tranquility the Quran described has a verifiable biological correlate in cardiac physiology.`,
     verses: [
       {
         id: 'verse-rad-28',
