@@ -4894,6 +4894,18 @@ a:focus-visible,
   50% { text-shadow: 0 0 40px rgba(45, 212, 168, 0.3), 0 0 80px rgba(45, 212, 168, 0.1); }
 }
 
+/* Disable paint-triggering animations on mobile to prevent scroll jank */
+@media (max-width: 768px) {
+  .ijaz-shell .breathing-glow {
+    animation: none !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.18) !important;
+  }
+  .ijaz-shell .verse-glow-pulse {
+    animation: none !important;
+    text-shadow: 0 0 20px rgba(45, 212, 168, 0.15) !important;
+  }
+}
+
 /* Cosmic gradient border */
 .ijaz-shell .cosmic-border {
   position: relative;

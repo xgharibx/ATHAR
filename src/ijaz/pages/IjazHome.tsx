@@ -923,8 +923,8 @@ export default function HomePage() {
                                   <div className="h-px w-8 bg-red-400/25" />
                                 </div>
                                 <motion.div
-                                  animate={{ boxShadow: ['0 0 15px rgba(220,38,38,0.06)', '0 0 50px rgba(220,38,38,0.3)', '0 0 15px rgba(220,38,38,0.06)'] }}
-                                  transition={{ duration: 3, repeat: Infinity }}
+                                  animate={!isMobile ? { boxShadow: ['0 0 15px rgba(220,38,38,0.06)', '0 0 50px rgba(220,38,38,0.3)', '0 0 15px rgba(220,38,38,0.06)'] } : undefined}
+                                  transition={!isMobile ? { duration: 3, repeat: Infinity } : undefined}
                                   className="w-20 h-20 md:w-28 md:h-28 rounded-full flex items-center justify-center text-4xl md:text-6xl"
                                   style={{ background: 'radial-gradient(circle, rgba(127,29,29,0.45) 0%, rgba(69,10,10,0.15) 100%)', border: '1px solid rgba(220,38,38,0.18)' }}
                                 >
@@ -978,8 +978,8 @@ export default function HomePage() {
                                   <div className="h-px w-8 bg-verse-green/20" />
                                 </div>
                                 <motion.div
-                                  animate={{ boxShadow: ['0 0 15px rgba(45,212,168,0.08)', '0 0 60px rgba(45,212,168,0.4)', '0 0 15px rgba(45,212,168,0.08)'] }}
-                                  transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
+                                  animate={!isMobile ? { boxShadow: ['0 0 15px rgba(45,212,168,0.08)', '0 0 60px rgba(45,212,168,0.4)', '0 0 15px rgba(45,212,168,0.08)'] } : undefined}
+                                  transition={!isMobile ? { duration: 3, repeat: Infinity, delay: 1.5 } : undefined}
                                   className="w-20 h-20 md:w-28 md:h-28 rounded-full flex items-center justify-center text-4xl md:text-6xl"
                                   style={{ background: 'radial-gradient(circle, rgba(6,78,59,0.55) 0%, rgba(2,44,34,0.18) 100%)', border: '1px solid rgba(45,212,168,0.22)' }}
                                 >
