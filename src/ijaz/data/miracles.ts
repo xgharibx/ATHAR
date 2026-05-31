@@ -501,6 +501,77 @@ The verse named and precisely described the object 1,357 years before humanity k
     summaryAr: 'الدقة الاستثنائية للثوابت الكونية تشير إلى تصميم متعمد، كما يُحتج في كتاب "بصائر" لد. هيثم طلعت.',
     description: 'The fine-tuning argument is one of the most powerful rational proofs for a Creator. Dr. Haitham Talaat in "بصائر" (Basaar) extensively documents how the fundamental constants of the universe—the gravitational constant, the strong nuclear force, the electromagnetic coupling constant, the cosmological constant—are tuned to extraordinarily precise values. If any of these were altered by even one part in 10^60, the universe would either collapse instantly or expand so rapidly that no stars, planets, or life could form. Roger Penrose calculated that the odds of our universe\'s low entropy state occurring by chance is 1 in 10^(10^123). The Quran points to this design in numerous verses: "Who perfected everything He created" (32:7), "You do not see in the creation of the Most Merciful any inconsistency" (67:3). This is not a god-of-the-gaps argument; it is an inference to the best explanation from the data itself.',
     descriptionAr: 'برهان الضبط الدقيق من أقوى البراهين العقلية على وجود الخالق. يوثق د. هيثم طلعت في "بصائر" كيف أن الثوابت الأساسية للكون — ثابت الجاذبية، والقوة النووية القوية، وثابت الاقتران الكهرومغناطيسي، والثابت الكوني — مضبوطة بقيم بالغة الدقة. لو تغيرت أي منها بمقدار جزء واحد من 10^60، لانهار الكون فوراً أو توسع بسرعة تمنع تكوّن النجوم والكواكب والحياة.',
+    deepDiveAr: `الثوابت الكونية: ما هي ولماذا تهمنا؟
+===
+الثابت الكوني هو رقم رياضي ثابت لا يتغير في كل أنحاء الكون وفي كل الأزمنة. لم يختره أحد من علماء الفيزياء — وُجد هكذا. المثير للدهشة أن هذه الثوابت مضبوطة بدقة مذهلة لتسمح بوجود حياة مثلنا:
+
+• ثابت الجاذبية G: لو كان أكبر بقليل ← النجوم تحترق بسرعة مرعبة وتنفجر قبل أن تتكون الكواكب. لو كان أصغر ← لم يتجمع أي غاز ليكوّن نجماً أبداً.
+• القوة النووية الشديدة: لو كانت أقوى بـ 2% ← لا هيدروجين في الكون (احترق كله). لو كانت أضعف بـ 2% ← لا عناصر ثقيلة (لا كربون، لا أكسجين، لا حياة).
+• الثابت الكوني Λ (الطاقة المظلمة): مضبوط بدقة 1 جزء من 10^120 (رقم يتجاوز قدرة العقل البشري على تصوره).
+• شحنة الإلكترون: لو تغيرت بنسبة ضئيلة ← لا ذرات مستقرة، لا جزيئات، لا حياة.
+
+حساب بنروز: الرقم الذي يسكت العلماء
+===
+قام عالم الرياضيات والفيزياء الكبير روجر بنروز بحساب احتمال أن يكون الكون في حالة الانتروبيا المنخفضة (النظام العالي) التي نلاحظها:
+الاحتمال = 1 من 10^(10^123)
+
+لنضع هذا الرقم في منظوره:
+• عدد ذرات الكون المرئي كله = 10^80
+• لو كتبنا "الصفر" على كل ذرة في الكون، لا يكفي لكتابة هذا الرقم
+• بنروز نفسه (غير المسلم) قال: "هذا لا يمكن تفسيره بالمصادفة العمياء"
+
+ثلاثة ردود على "المصادفة" و"تعدد الأكوان"
+===
+الرد الأول — المصادفة مستحيلة:
+رقم بنروز 10^(10^123) يجعل المصادفة العمياء ليست "غير محتملة" فحسب، بل مستحيلة عملياً بأي معيار رياضي.
+
+الرد الثاني — تعدد الأكوان (Multiverse) لا يحل المشكلة:
+حتى لو وُجدت ملايين الأكوان، فإن آلية توليدها تحتاج هي ذاتها إلى ضبط دقيق. نقلنا المشكلة درجة واحدة لا أكثر. كما أن تعدد الأكوان لا يمكن اختباره علمياً — ليس علماً، بل فلسفة.
+
+الرد الثالث — المصمم الأذكى:
+الاستدلال الأقوى رياضياً هو "الاستدلال على أفضل تفسير" (Inference to the Best Explanation). ضبط دقيق بهذه الدرجة = تصميم. التصميم = مصمم. المصمم يجب أن يكون خارج الكون (سابقاً له)، خارج الزمان والمكان، ذا إرادة وقدرة.
+
+الضبط الدقيق في القرآن
+===
+"الَّذِي أَحْسَنَ كُلَّ شَيْءٍ خَلَقَهُ" (السجدة 32:7) — "أحسن" لا تعني فقط جمّل، بل أتقن وأعطى كل شيء صورته الأكمل الملائمة له. الدقة الرياضية للثوابت الكونية هي التجسيد الحرفي لهذا الإتقان.
+
+"مَّا تَرَىٰ فِي خَلْقِ الرَّحْمَٰنِ مِن تَفَاوُتٍ" (الملك 67:3) — لا تفاوت = توحّد القوانين في كل الكون. هذا بالضبط ما يكتشفه الفيزيائيون: نفس ثوابت الطبيعة تُحكم الكون من أقصاه لأقصاه.`,
+    deepDive: `The Constants: What They Are and Why They Matter
+===
+A physical constant is a number that remains fixed throughout the entire universe across all time. No physicist chose these values — they simply ARE. What's astonishing is that they're tuned with extraordinary precision to permit life:
+
+• Gravitational constant G: Slightly stronger → stars burn explosively fast, no planets form. Slightly weaker → no gas ever collapses to form a star.
+• Strong nuclear force: 2% stronger → all hydrogen fuses, no hydrogen remains in the universe. 2% weaker → no heavy elements form (no carbon, no oxygen, no life).
+• Cosmological constant Λ (dark energy): Tuned to 1 part in 10^120. Larger → the universe tears itself apart instantly. Smaller → it collapses before any structure forms.
+• Electron charge: Slight variation → no stable atoms, no chemistry, no molecules, no life.
+
+Penrose's Calculation: The Number That Silences Physicists
+===
+Sir Roger Penrose — mathematician, physicist, Nobel laureate — calculated the probability that our universe's initial low-entropy (highly ordered) state arose by chance:
+
+Probability = 1 in 10^(10^123)
+
+To put this number in perspective:
+• Total atoms in the observable universe ≈ 10^80
+• If you wrote a zero on every atom in the entire universe, you still couldn't write this number
+• Penrose himself (a non-Muslim) stated: "This is absurdly small... It cannot be explained by random chance"
+
+Three Responses to "Chance" and "Multiverse"
+===
+Response 1 — Chance is mathematically eliminated:
+Penrose's 10^(10^123) doesn't make chance "unlikely" — it makes it functionally impossible by any mathematical standard ever used in science.
+
+Response 2 — Multiverse doesn't solve the problem:
+Even if infinite universes exist, the mechanism that generates them requires its own fine-tuning. We've merely pushed the problem back one level. Furthermore, multiverse theories are inherently untestable — they're philosophy, not empirical science.
+
+Response 3 — The most powerful inference:
+"Inference to the Best Explanation" is the standard of rigorous science. Fine-tuning of this precision → design. Design → a designer. The designer must be: prior to the universe, outside spacetime, immaterial, enormously powerful, and intentional (design requires will).
+
+Fine-Tuning in the Quran
+===
+"Who perfected everything He created" (32:7) — "ahsana" (أحسن) means not merely beautified but optimized — giving each created thing its most complete, fitting, and precisely calibrated form. The mathematical precision of universal constants is the literal embodiment of this.
+
+"You do not see in the creation of the Most Merciful any inconsistency" (67:3) — No inconsistency = perfect uniformity of physical laws across the entire cosmos. Physicists continue to discover this: the same constants govern reality from the smallest quantum particle to the largest observable structure, 13.8 billion light-years away.`,
     verses: [
       {
         id: 'verse-mulk-3',
@@ -559,6 +630,72 @@ The verse named and precisely described the object 1,357 years before humanity k
     summaryAr: 'يصف القرآن مراحل الجنين بدقة متناهية باستخدام مصطلحات عربية تتطابق تماماً مع نتائج علم الأجنة الحديث.',
     description: 'Surah Al-Mu\'minun (23:12-14) describes the stages of human embryonic development with extraordinary precision: (1) "سُلَالَةٍ مِّن طِينٍ" (extract of clay) - the essential minerals and elements of the human body are found in earth/clay. (2) "نُطْفَةً" (nutfah/drop) - the fertilized ovum/zygote. (3) "عَلَقَةً" (alaqah/clinging clot) - has THREE meanings in Arabic: leech, suspended thing, and blood clot. At the alaqah stage, the embryo: looks like a leech, hangs suspended from the uterine wall, and has blood that doesn\'t yet circulate (resembling a clot). (4) "مُضْغَةً" (mudghah/chewed lump) - at 28 days, the embryo looks exactly like a chewed piece of gum with teeth marks (somites). (5) "عِظَامًا" (bones) then "لَحْمًا" (flesh/muscles) - bones develop first from mesenchyme, then muscles wrap around them. Dr. Haitham Talaat documents from "الإعجاز العلمي" that Professor Keith Moore, one of the world\'s leading embryologists, confirmed these descriptions match modern embryological observations and could not have been known in the 7th century.',
     descriptionAr: 'تصف سورة المؤمنون (23:12-14) مراحل تطور الجنين البشري بدقة استثنائية: سلالة من طين، ثم نطفة، ثم علقة (لها ثلاثة معانٍ: العلقة الدودية، والشيء المعلق، والدم المتجمد)، ثم مضغة (قطعة ممضوغة)، ثم عظاماً ثم لحماً. يوثق د. هيثم طلعت أن البروفيسور كيث مور، أحد أبرز علماء الأجنة في العالم، أكد أن هذه الأوصاف تتطابق مع الملاحظات الجنينية الحديثة.',
+    deepDiveAr: `التحليل اللغوي: خمس كلمات تخفي خمسة أسرار علمية
+===
+المرحلة الأولى — "نُطْفَة": تعني في اللغة العربية القطرة الصغيرة من الماء. تصوير مذهل للحيوان المنوي المتحد مع البويضة، لا سيما أن الإنسان يخرج من بين الصلب والترائب (86:7) — إشارة إلى منطقة الكلى والأضلاع السفلية حيث تتشكل الخصية جنينياً قبل نزولها.
+
+المرحلة الثانية — "عَلَقَة": ثلاثة معانٍ في آنٍ واحد:
+• العَلَقة (الدودة الماصة للدم / الطفيلي) — الجنين يمتص الدم من جدار الرحم تماماً كالعلقة
+• المعلَّق — الجنين يتعلق فعلياً بجدار الرحم عبر التعشيش (implantation) في الأيام 6-12
+• الدم المتخثر — كتلة الدم الراكد في الجنين المبكر قبل أن يبدأ القلب بالنبض (يوم 22)
+كيث مور: "لا يمكن أن تصف كلمة واحدة ثلاث حقائق علمية متميزة بهذا الوضوح إلا بوحي"
+
+المرحلة الثالثة — "مُضْغَة": تعني قطعة اللحم الممضوغة. في اليوم 28، السوميتات (somites) تشكّل تضاريس على الجنين تشبه تماماً بصمات الأسنان. قارن كيث مور الجنين في هذه المرحلة بعلكة ممضوغة ووجد التطابق كاملاً.
+
+المرحلة الرابعة — "عِظَام ثم لَحْم": الترتيب الدقيق أذهل العلماء. العظام تتشكل من الميزينشيم (mesenchyme) في الأسبوع السادس، ثم تلتف العضلات (اللحم) حولها لاحقاً. عكس هذا الترتيب في الكتب القديمة — ظنوا أن اللحم يأتي أولاً.
+
+ماذا قال كيث مور؟
+===
+البروفيسور كيث مور مؤلف كتاب "الإنسان المتطور" (The Developing Human)، المرجع الطبي الذي يُدرَّس في الكليات الطبية العالمية. بعد دراسة الآيات القرآنية:
+
+"كنت أعتقد أن الأوروبيين اكتشفوا علم الأجنة الحديث، لكن بعد قراءة هذه الآيات أدركت أن هذا العلم كان موجوداً في القرآن قبل 14 قرناً... من المستحيل أن تكون هذه المعلومات من مصدر بشري في القرن السابع الميلادي."
+
+أضاف مور طبعة إسلامية لكتابه، مستشهداً بالآيات القرآنية كدليل على الدقة العلمية.
+
+لماذا لا يمكن أن يكون مصدره بشرياً؟
+===
+الطب اليوناني في القرن السابع (جالينوس وأبقراط) اعتقد:
+• أن البذرة الذكرية والأنثوية تمتزجان فوراً لتكوّن الجنين
+• أن القلب يتشكل أولاً (خطأ — الجنين يبدأ بالأنبوب العصبي)
+• لم يكن لديهم مصطلح "مضغة" أو "علقة" بهذا المعنى الدقيق
+
+لا مجهر. لا أدوات تصوير. لا أبحاث تشريحية متقدمة. ومع ذلك الوصف دقيق بدرجة تثير الدهشة.`,
+    deepDive: `Linguistic Analysis: Five Words Concealing Five Scientific Secrets
+===
+Stage 1 — "Nutfah" (drop): Arabic for a tiny drop of water. Precisely captures the fertilized zygote — one sperm meeting one egg. The Quran adds (86:7) that man is created from between the backbone and ribs — the precise embryonic region where the testes form before descending, confirmed only by modern developmental biology.
+
+Stage 2 — "Alaqah": One word, three simultaneous scientific meanings:
+• Leech — the embryo attaches to the uterine wall and draws blood from it exactly like a leech
+• That which clings/is suspended — the embryo implants into the uterine wall (days 6-12), literally hanging there
+• Blood clot — the early embryo contains stagnant, non-circulating blood before the heart begins beating (day 22)
+Keith Moore: "No single word in any 7th-century language could describe three distinct scientific realities simultaneously — this could only come from revelation."
+
+Stage 3 — "Mudghah" (chewed lump): At day 28, the somites create ridges and indentations on the embryo's surface that look exactly like teeth marks in a chewed piece of gum. Keith Moore physically compared the embryo at this stage with a chewed piece of gum and found the match complete.
+
+Stage 4 — "Bones, then flesh": The precise sequence stunned scientists. Skeletal elements (bones) differentiate from mesenchyme in week 6, then the muscles (flesh) wrap around them afterward. Ancient medical texts had this backwards — they believed flesh preceded structure.
+
+What Keith Moore Said
+===
+Professor Keith Moore authored "The Developing Human" — the standard medical embryology textbook used in medical schools worldwide. After studying the Quranic verses:
+
+"I was amazed at the scientific accuracy of these statements made in the 7th century CE... It is impossible that this information was from a human source in the 7th century."
+
+Moore added an Islamic edition of his textbook, citing Quranic verses as evidence of scientific accuracy.
+
+The Timeline That Makes a Human Source Impossible
+===
+Greek medicine in the 7th century (Galen and Hippocrates) believed:
+• Male and female "seed" blend immediately to form the embryo — no sequential stages
+• The heart forms first (wrong — the neural tube develops before a beating heart)
+• No concept of "mudghah" or "alaqah" with these precise, anatomically verified meanings
+
+No microscope. No ultrasound. No advanced dissection. No knowledge of cellular biology. And yet the Quran describes embryonic development in precise, sequentially correct, anatomically verified terms that match what only 20th-century embryology confirmed.
+
+"Then We Developed Him Into Another Creation"
+===
+Surah Al-Mu'minun 23:14 ends with "ثُمَّ أَنشَأْنَاهُ خَلْقًا آخَرَ" — "then We developed him into ANOTHER creation."
+
+This phrase marks the moment consciousness, soul, and personhood enter the biological process — transforming a developing organism into a human being. Modern biology can describe the physical process but cannot account for consciousness itself. The Quran acknowledges this transition explicitly, distinguishing between the biological stages (which are described precisely) and the spiritual dimension (which is divine).`,
     verses: [
       {
         id: 'verse-muminun-12-14',
