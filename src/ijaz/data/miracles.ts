@@ -12063,6 +12063,42 @@ Reference: Moore, K.L. (1982). "A Scientist's Interpretation of References to Em
     summaryAr: 'يدعو القرآن إلى التفكر في خلق الإبل (الغاشية 88:17). تكشف الأحياء الحديثة أن الجمل مارد بيولوجي مذهل: كريات دم حمراء بيضاوية (لا كروية) لتحمل الجفاف، سنام يخزن 36 كجم من الدهن (لا الماء)، ثلاثة جفون، وأنف يستعيد 70% من رطوبة الزفير.',
     description: 'Surah Al-Ghashiya (88:17): "Do they not look at the camels — how they are created (كَيْفَ خُلِقَتْ)?" The Quran specifically singles out the camel for contemplation. Modern biology reveals why — the camel is the most extraordinarily adapted large mammal on Earth: (1) OVAL RED BLOOD CELLS: Unlike ALL other mammals (which have round red blood cells), camel RBCs are elliptical/oval. This allows the RBCs to continue moving through narrowed blood vessels when the camel is severely dehydrated. A camel can lose 25-30% of its body weight in water (a human dies at ~12%) and its blood still flows. (2) THE HUMP — STORED FAT, NOT WATER: This is a common misconception. The hump stores fat (up to 36 kg). When metabolized, this fat releases metabolic water. The myth likely arose because the hump enables survival in waterless conditions. (3) THREE EYELIDS: Camels have three eyelids per eye — two with lashes (for dust) and a transparent nictitating membrane that can be closed to protect the eye while the camel can still see. (4) MOISTURE RECOVERY: Camel nasal passages have a countercurrent heat-exchange system — when exhaling, moisture is recaptured by specially designed turbinate bones, recovering up to 70% of water from exhaled breath. (5) STOMACH: Three-compartment stomach with symbiotic bacteria that allow ultra-efficient fermentation and protein recycling. (6) TEMPERATURE REGULATION: Camels can allow their body temperature to rise by 6°C (from 34°C to 40°C) before sweating, conserving enormous amounts of water. No other mammal has this thermoregulatory flexibility.',
     descriptionAr: 'يقول الله تعالى في سورة الغاشية (88:17): "أَفَلَا يَنظُرُونَ إِلَى الْإِبِلِ كَيْفَ خُلِقَتْ". الأحياء الحديثة تكشف: (1) كريات الدم البيضاوية — الجمل الوحيد من الثدييات ذو كريات دم حمراء بيضاوية، تستمر في الحركة عند الجفاف الشديد. (2) السنام — يخزن 36 كجم دهناً لا ماء. (3) ثلاثة جفون للعين — منها غشاء شفاف للحماية. (4) الأنف يستعيد 70% من رطوبة الزفير. (5) يتحمل فقد 25-30% من وزنه ماء (الإنسان يموت عند 12%). (6) يرفع حرارته 6 درجات قبل التعرق.',
+    deepDiveAr: `الدعوة القرآنية — لماذا الجمل تحديداً؟
+===
+يقول الله تعالى في سورة الغاشية (88:17): "أَفَلَا يَنظُرُونَ إِلَى الْإِبِلِ كَيْفَ خُلِقَتْ". هذه دعوة إلهية صريحة للتفكر في خلق الجمل. السؤال: لماذا الجمل من بين كل المخلوقات؟ الأحياء الحديثة تقدم الإجابة: الجمل هو أكثر الثدييات الكبيرة إبداعاً في التكيف البيولوجي على وجه الأرض. يجمع في جسمه تكيفات لا توجد مجتمعة في أي ثدي آخر: (1) كريات دم فريدة بين 5,000 نوع من الثدييات، (2) أنف يعيد 70% من الرطوبة بهندسة لا مثيل لها، (3) تحمل جفاف يصل إلى 30% من الوزن دون موت. هذه الدعوة للتأمل كانت عامة عند نزول القرآن — لكن علم الأحياء في القرن العشرين كشف لماذا الجمل يستحق هذه الدعوة الخاصة.
+
+
+كريات الدم البيضاوية — المعجزة الخلوية الفريدة
+===
+كل ثدييات الأرض (5,416 نوع) — سوى الجمليات — تمتلك كريات دم حمراء دائرية مقعرة. الجمليات (الجمل، الناقة، اللاما، الألباكا) فريدة في امتلاكها كريات دم بيضاوية (إهليلجية). الأهمية العلمية: عند الجفاف الشديد، تضيق الأوعية الدموية وتتكاثف البلازما — الكريات الدائرية تتمدد وتنفجر (تحلل الدم)، أما البيضاوية فتحافظ على شكلها وتستمر في الحركة. نتيجة: الجمل يفقد 25-30% من وزنه ماء ودمه لا يزال يجري (الإنسان يموت عند 12%). الكريات البيضاوية تتمدد إلى 240% من حجمها الجاف دون انفجار — لا توجد في أي حيوان آخر. المرجع: شميدت-نيلسن (1964م، جامعة ديوك).
+
+
+استعادة الرطوبة — مختبر حيوي في خطم الجمل
+===
+عظام التربينا في أنف الجمل مطوية في متاهة معقدة. آلية العمل عند الزفير: الهواء الدافئ الرطب يمر على هذه العظام المبردة — تتكثف الرطوبة وتُمتص بنسبة 70% قبل خروج الهواء. عند الشهيق: العظام تدفئ وترطب الهواء البارد الجاف. النتيجة: الجمل يزفر هواء بارداً جافاً جداً (يحتفظ بالرطوبة)، في حين يتسامح مع رفع حرارة جسمه 6 درجات مئوية (من 34 إلى 40) قبل بدء التعرق. هذان النظامان معاً — استعادة رطوبة الزفير والتسامح الحراري — يجعلان الجمل كفء بيولوجياً بلا نظير في الصحراء. لا يوجد ثدي آخر يجمع هذين النظامين. المرجع: شميدت-نيلسن وآخرون (1981م).
+
+
+الاستحالة المعرفية — ما كان ممكن معرفته قبل 1400 عام
+===
+ما كان يعرفه العرب في القرن السابع عن الجمل: طبيعته الصحراوية وقدرته على الصبر عن الماء. ما لم يكونوا يعرفونه: (1) الكريات الدم البيضاوية — لم تُكتشف إلا في القرن التاسع عشر مع اختراع المجهر. (2) ميكانيزم استعادة الرطوبة في الأنف — لم يُفهم إلا في دراسات شميدت-نيلسن (1964-1981م). (3) السبب الخلوي لتحمل الجفاف — لم يُعرف إلا بعد اختراع التقنيات البيولوجية الجزيئية. (4) أن الجمل هو الفريد من بين 5,416 نوع من الثدييات — لم يُعرف إلا بعد دراسة المقارنة البيولوجية في القرن العشرين. السؤال: لماذا دعا القرآن إلى التأمل في الجمل تحديداً — قبل 1,400 عام من اكتشاف ما يجعله فريداً علمياً؟`,
+    deepDive: `The Quranic Invitation — Why the Camel Specifically?
+===
+Surah Al-Ghashiya (88:17): "Do they not look at the camels — how they are created?" This is an explicit divine invitation to contemplate the camel's creation. The question: why the camel, specifically? Modern biology provides the answer: the camel is the most extraordinarily adapted large mammal on Earth. Its body combines adaptations not found together in any other mammal: (1) red blood cells unique among 5,000+ mammal species, (2) a nose that recaptures 70% of exhaled moisture through unparalleled engineering, (3) survival through dehydration to 30% body weight loss. This invitation was general when the Quran was revealed — but 20th-century biology revealed exactly why the camel uniquely deserves this special Quranic spotlight.
+
+
+Oval Red Blood Cells — The Unique Cellular Marvel
+===
+All 5,416 mammal species — except camelids — possess biconcave, disc-shaped (round) red blood cells. Camelids (camels, dromedaries, llamas, alpacas) are uniquely ellipsoidal (oval). Scientific significance: during severe dehydration, blood vessels narrow and plasma concentrates — round RBCs swell and lyse (hemolysis); oval RBCs maintain their shape and continue circulating. Result: a camel can lose 25-30% of its body weight in water without blood failure (a human dies at ~12%). Oval RBCs can expand to 240% of their dry volume without rupturing — found in no other living animal. Camels can also drink 200 liters in 3 minutes without hemolysis — impossible in any other mammal. Reference: Knut Schmidt-Nielsen (1964, Duke University).
+
+
+Moisture Recovery — A Living Laboratory in the Camel's Nose
+===
+The turbinate bones in the camel's nasal passage are folded into a complex labyrinth. During exhalation: warm moist air passes over these cooled bones and up to 70% of water vapor condenses and is reabsorbed before air exits. During inhalation: the bones warm and humidify cold dry air. Result: the camel exhales very cool, very dry air (retaining moisture), while tolerating a 6°C body temperature rise (34°C to 40°C) before sweating begins. These two systems together — respiratory moisture recovery and thermal tolerance — make the camel biologically unrivaled in desert efficiency. No other mammal combines both. Reference: Schmidt-Nielsen et al. (1981, Respiration Physiology).
+
+
+The Knowledge Gap — What Was Knowable 1,400 Years Ago
+===
+What 7th-century Arabs knew about camels: their desert endurance and ability to go without water. What they did NOT know: (1) Oval red blood cells — not discovered until the 19th century with the invention of microscopy. (2) The nasal moisture-recovery mechanism — not understood until Schmidt-Nielsen's studies (1964-1981). (3) The cellular reason for dehydration tolerance — not known until 20th-century molecular biology. (4) That the camel is unique among all 5,416 mammal species — not confirmed until 20th-century comparative biology. The Quran's invitation to contemplate the camel's creation was recorded 1,400 years before any of these biological discoveries — yet it specifically singles out the one animal that would prove to be the most biologically extraordinary.`,
     verses: [
       {
         id: 'verse-ghashiya-17',
@@ -12118,6 +12154,42 @@ Reference: Moore, K.L. (1982). "A Scientist's Interpretation of References to Em
     summaryAr: 'يصف القرآن يونس (ع) يبتلعه الحوت (الصافات 37:142) وينجو. يؤكد علم الأحياء البحرية الحديث أن الحيتان الضخمة (وقروش الحوت) لديها حناجر/معدات كبيرة بما يكفي لاحتواء إنسان، وكيمياء حيوية فريدة تجعل البقاء القصير نظرياً ممكناً.',
     description: 'Surah As-Saffat (37:142): "And the fish swallowed him (فَالْتَقَمَهُ الْحُوتُ), while he was blameworthy." Surah Al-Anbiya (21:87): "And [remember] Dhul-Nun (ذَا النُّون — Jonah), when he went off in anger and thought that We would not decree [anything] upon him. And he called out within the darknesses (فِي الظُّلُمَاتِ): \'There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.\'" Modern biology reveals: (1) SPERM WHALE ANATOMY: Sperm whales (Physeter macrocephalus) have throats 35-45 cm wide and multiple stomach chambers. The first stomach chamber (forestomach) can hold 600-800 liters and lacks digestive glands — it is a storage and muscular grinding chamber. A human could fit in a large specimen. (2) WHALE SHARK: Whale sharks (Rhincodon typus) also have throats and stomachs theoretically large enough to hold a human. They are filter feeders with minimal stomach acid. (3) DOCUMENTED CASE (1891): James Bartley, a sailor on a whaling ship, was swallowed by a sperm whale and found alive inside its stomach 15 hours later. He survived with skin bleached white from stomach acids and spent his life with a yellowed, wrinkled skin. While controversial, it illustrates biological possibility. (4) GAS EXCHANGE: The whale stomach contains trapped air in the forestomach during digestion. Some oxygen would be available for minutes to hours. (5) "DARKNESSES": The Quran specifies "darknesses" (plural) — matching the multiple chamber anatomy. The plural "ظلمات" aligns with: deep ocean darkness + whale stomach darkness + night darkness — three layers.',
     descriptionAr: 'يقول الله تعالى في سورة الصافات (37:142): "فَالْتَقَمَهُ الْحُوتُ". وفي الأنبياء (21:87): "وَذَا النُّونِ ... فَنَادَى فِي الظُّلُمَاتِ". علم الأحياء البحرية يكشف: (1) الحوت الأسنك: فتحة حلق 35-45 سم، معدة أولى تتسع لـ 800 لتر بدون غدد هاضمة — مجرد هرس ميكانيكي. (2) قرش الحوت: فلتر غذاء بحمض معدي ضئيل. (3) حالة جيمس بارتلي (1891): بلعه حوت وأُخرج حياً بعد 15 ساعة (نزاعي لكن يُظهر الإمكانية). (4) هواء محبوس في الفرشكمان للتنفس. (5) "الظلمات" جمع — ثلاث ظلمات: الليل + أعماق البحر + معدة الحوت.',
+    deepDiveAr: `الحوت الأسنك — التشريح وإمكانية البقاء
+===
+الحوت الأسنك (Physeter macrocephalus) هو أكبر الحيوانات المفترسة في التاريخ. تشريح الجهاز الهضمي: فتحة الحلق 35-45 سم في البالغين. معدة رباعية الحجرات: (1) الحجرة الأولى (الفرشكمان): مساحة 600-800 لتر، عضلية صرفة، بدون غدد هاضمة ولا إنزيمات هضمية — تخزين وسحق ميكانيكي فقط. (2) الحجرات التالية: بدايات الهضم الكيميائي. الخلاصة: إنسان في الحجرة الأولى سيكون في مكان الهواء المحبوس والضغط الميكانيكي — لا حمض هضمي. الأكسجين المحبوس في الحجرة الأولى يتيح البقاء لفترة قصيرة. الحوت يغوص إلى 2,000 متر (أعماق مظلمة تماماً). هذا الوصف القرآني — ابتلاع ثم بقاء — متوافق تشريحياً مع الحوت الأسنك.
+
+
+الظلمات — الجمع القرآني الدقيق
+===
+يقول الله تعالى في سورة الأنبياء (21:87): "فَنَادَى فِي الظُّلُمَاتِ" — الظلمات جمع، لا مفرد. المفسرون الكلاسيكيون (ابن كثير، الطبري، السيوطي) رصدوا ثلاث ظلمات: (1) ظلمة الليل، (2) ظلمة أعماق البحر، (3) ظلمة باطن الحوت. العلم الحديث يضيف دقة: الحوت الأسنك يغوص إلى 2,000 متر حيث لا يصل ضوء الشمس (المنطقة المظلمة تبدأ من 200 متر). معدة الحوت في هذا العمق: ظلمة مطلقة. الليل: ظلمة ثالثة. الجمع القرآني "الظلمات" — يتطابق مع الواقع الثلاثي بدقة لم يكن يستطيع كاتب بشري في القرن السابع التحقق منها.
+
+
+حالة جيمس بارتلي (1891م) — السياق التاريخي
+===
+عام 1891م: جيمس بارتلي، بحار بريطاني على السفينة الحوتية ستار أوف ذي إيست قرب جزر فوكلاند — ابتلعه حوت أسنك أثناء عمليات الصيد. عُثر عليه حياً داخل معدة الحوت بعد 15 ساعة من الذبح وفتح المعدة. عاش بقية حياته وجلده مُبيَّض من الأحماض ومُجعَّد. ملاحظة منهجية: القصة موثقة صحفياً في وقتها لكن تفاصيلها متنازع عليها أكاديمياً. أهميتها: لا تُثبت المعجزة بل تُثبت الإمكانية البيولوجية. علم الأحياء البحرية الحديث لا ينفي نظرياً إمكانية البقاء لفترة قصيرة في الحجرة الأولى من معدة حوت أسنك كبير — بسبب غياب الحمض الهضمي وتوافر الهواء.
+
+
+الاستحالة المعرفية — ما كان ممكن معرفته في القرن السابع
+===
+ما كان يعرفه أهل القرن السابع عن الحيتان: أنها ضخمة وتبتلع الأسماك. ما لم يكونوا يعرفونه: (1) تشريح المعدة الرباعية وغياب الحمض في الحجرة الأولى — لم يُكتشف إلا في علم التشريح الحديث. (2) عمق غوص الحوت (2,000 متر) وانعدام الضوء — لم يُعرف إلا في القرن العشرين بالغواصات. (3) الثلاثية الدقيقة للظلمات — لا يمكن التحقق منها دون تشريح الحوت ودراسة سلوكه. السؤال: هل كان مؤلف بشري في القرن السابع يستطيع أن يختار "الظلمات" جمعاً بثلاث طبقات — بدلاً من مفرد "الظلمة" — بدون معرفة هذه التفاصيل الثلاث؟`,
+    deepDive: `The Sperm Whale — Anatomy and Survival Possibility
+===
+The sperm whale (Physeter macrocephalus) is the largest toothed predator in history. Digestive anatomy: throat opening 35-45 cm in adults. Four-chamber stomach: (1) Forestomach (first chamber): 600-800 liter capacity, purely muscular, NO digestive glands and NO digestive enzymes — mechanical storage only. (2) Subsequent chambers: chemical digestion begins. Conclusion: a human in the forestomach would be in a space with trapped air and mechanical pressure — but no digestive acid. Trapped oxygen in the forestomach allows short-term survival. The sperm whale dives to 2,000 meters (completely lightless). The Quranic description — swallowing then survival — is anatomically consistent with the sperm whale specifically.
+
+
+The Darknesses — The Precise Quranic Plural
+===
+Surah Al-Anbiya (21:87): "he called out within the darknesses (fi al-zulumati)" — plural, not singular. Classical commentators (Ibn Kathir, Al-Tabari, Al-Suyuti) identified three darknesses: (1) the darkness of the night, (2) the darkness of the ocean depths, (3) the darkness of the whale's interior. Modern science adds precision: the sperm whale dives to 2,000 meters, well below the photic zone (sunlight ends at ~200m) — absolute darkness. The whale's stomach at this depth: total darkness. Night: a third darkness. The Quranic plural "zulumaat" (Arabic plural meaning more than two) precisely matches the three-layer reality — a detail no 7th-century human could verify.
+
+
+The James Bartley Case (1891) — Historical Context
+===
+In 1891, James Bartley, a British sailor aboard the whaling ship Star of the East near the Falkland Islands, was swallowed by a sperm whale during a hunt. He was found alive inside the whale's stomach 15 hours later when the whale was caught and its stomach opened. He survived the rest of his life with bleached, wrinkled skin from stomach acids. Methodological note: the story is documented in contemporary newspapers but disputed in academic circles. Its relevance: it demonstrates biological possibility, not proof of miracle. Modern marine biology does not theoretically exclude brief survival in the forestomach of a large sperm whale — due to the absence of digestive acid and presence of trapped air in the first chamber.
+
+
+The Knowledge Gap — What Was Knowable in the 7th Century
+===
+What 7th-century people knew about whales: they are large marine animals that can swallow fish. What they did NOT know: (1) The four-chamber anatomy and absence of digestive acid in the forestomach — not discovered until modern anatomy. (2) Diving depth (2,000 meters) and absolute darkness at depth — not confirmed until 20th-century submarine exploration. (3) The precise three-layer darkness (night + deep ocean + stomach interior) — impossible to verify without dissection and behavioral study of sperm whales. The question: could a 7th-century human author have chosen the plural "darknesses" (three layers) rather than the singular "darkness" — without knowing these three specific physical realities?`,
     verses: [
       {
         id: 'verse-saffat-142',
