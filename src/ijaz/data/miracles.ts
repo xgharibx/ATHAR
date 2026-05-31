@@ -1005,6 +1005,98 @@ The declaration preceded the discovery of the cell by 1,033 years. It preceded C
     summaryAr: 'يقرر القرآن أن العسل فيه شفاء للناس — أكده الطب الحديث وعلم الأدوية.',
     description: 'Surah An-Nahl (16:68-69) describes honey as containing "شِفَاءٌ لِّلنَّاسِ" (healing for people). Modern research has confirmed honey\'s remarkable medicinal properties: antibacterial action (honey produces hydrogen peroxide and has low pH), wound healing acceleration (Manuka honey is now used in clinical wound care), antioxidant properties, anti-inflammatory effects, and effectiveness against antibiotic-resistant bacteria including MRSA. The verse\'s use of the feminine gender "اتَّخِذِي" (take for yourself, feminine) and "كُلِي" (eat, feminine) for commanding the bee is also scientifically precise — worker bees, which produce honey, are all female.',
     descriptionAr: 'سورة النحل (16:68-69) تصف العسل بأن فيه "شِفَاءٌ لِّلنَّاسِ". أكد البحث الحديث خصائص العسل الطبية: المضاد للبكتيريا، وتسريع شفاء الجروح، ومضاد الأكسدة، ومضاد الالتهاب. واستخدام صيغة المؤنث "اتخذي" و"كلي" في مخاطبة النحل دقيق علمياً — فعاملات النحل المنتجات للعسل كلهن إناث.',
+    deepDiveAr: `
+تحليل لغوي: «شِفَاءٌ» — الكلمة التي أعجزت الطب القديم
+===
+القرآن لا يقول «العسل مفيد» أو «العسل دواء»، بل يقول «فِيهِ شِفَاءٌ لِّلنَّاسِ» — وكلمة «شِفَاء» في العربية تعني الاستئصال التام للمرض، وليس مجرد التخفيف.
+
+«للناس» — وليس «لبعضهم» أو «لحالات معينة». هذا تعميم مطلق.
+
+في الطب القديم، كان العسل يُستخدم أحياناً، لكن آليته لم تُفهم. القرآن قرر الحقيقة الكاملة قبل 13 قرناً من اكتشاف الأساس الكيميائي لهذا الشفاء.
+
+
+ثلاثة أسلحة في مادة واحدة: الآلية الثلاثية للعسل المضادة للبكتيريا
+===
+اكتشف العلم الحديث أن العسل يقاوم البكتيريا بثلاث آليات متزامنة:
+
+أولاً — النشاط الأوزموزي: تركيز السكر العالي جداً (حوالي 80%) يسحب الماء من البكتيريا ويقتلها بالجفاف.
+
+ثانياً — بيروكسيد الهيدروجين: إنزيم «جلوكوز أوكسيداز» في العسل ينتج بيروكسيد الهيدروجين تدريجياً، وهو مطهر يدمر جدران الخلايا البكتيرية.
+
+ثالثاً — الحموضة المنخفضة: درجة حموضة العسل (3.2-4.5) تمنع نمو معظم البكتيريا المضرة.
+
+هذه الثلاثية تجعل العسل فعّالاً حتى ضد البكتيريا المقاومة للمضادات الحيوية (MRSA) التي استعصت على الدواء الحديث.
+
+
+من التقليد الشعبي إلى الموافقة الرسمية: رحلة العلم نحو ما قاله القرآن
+===
+- 1988م: عالم نيوزيلندي Peter Molan يثبت للمرة الأولى الآلية العلمية للنشاط المضاد للبكتيريا في العسل.
+- 2007م: عسل مانوكا يحصل على موافقة تنظيمية رسمية لاستخدامه في علاج الجروح السريرية في نيوزيلندا وأستراليا.
+- 2015م: مراجعة Cochrane المنهجية تؤكد فاعلية العسل في الجروح المزمنة — أعلى مستوى في التدرج الدليلي الطبي.
+- 2019م: الهيئة الأمريكية (FDA) تُقرّ مستحضرات العسل الطبي لعلاج الجروح.
+
+13 قرناً من «قيل ذلك» إلى «أُثبت ذلك».
+
+
+إعجاز الضمير: المؤنث يكشف سر النحلة العاملة
+===
+الآية تخاطب النحلة بصيغة المؤنث تحديداً: «اتَّخِذِي» و«كُلِي» و«اسْلُكِي».
+
+في قواعد العربية، لو كان المقصود الجماعة بشكل عام لاستُخدمت صيغة الجمع. لكن الاختيار كان المؤنث المفرد — أي التوجيه لكائن أنثى بعينه.
+
+الحقيقة العلمية:
+- النحل الذي يخرج لجمع الرحيق وبناء الخلية وإنتاج العسل = النحل العامل.
+- النحل العامل بأكمله = إناث (كروموسوم XX، عقيمات).
+- الذكور لا يجمعون رحيقاً ولا يبنون ولا ينتجون عسلاً — وجودهم موسمي فقط.
+
+لم يُعرف هذا إلا في القرن السابع عشر، حين اكتشف يان سفامردام عبر المجهر أن النحل العامل إناث.
+`,
+    deepDive: `
+Linguistic Analysis: "Shifa" — The Word That Outdid Ancient Medicine
+===
+The Quran does not say honey is "beneficial" or "a remedy." It says "fihi shifa'un lil-nas" — and "shifa" in Arabic means the complete removal of illness, not mere alleviation.
+
+"For people" — not "for some people" or "for certain cases." This is an absolute universal statement.
+
+Ancient medicine occasionally used honey, but its mechanism was entirely unknown. The Quran declared the complete truth 13 centuries before the biochemical basis of that healing was discovered.
+
+
+Three Weapons in One Substance: Honey's Triple Antibacterial Mechanism
+===
+Modern science has discovered honey resists bacteria through three simultaneous mechanisms:
+
+First — Osmotic action: The very high sugar concentration (around 80%) draws water out of bacterial cells, killing them by dehydration.
+
+Second — Hydrogen peroxide: The enzyme "glucose oxidase" in honey gradually produces hydrogen peroxide, a potent antiseptic that destroys bacterial cell walls.
+
+Third — Low pH: Honey's acidity (pH 3.2-4.5) prevents the growth of most harmful bacteria.
+
+This chemical triple-action makes honey effective even against antibiotic-resistant bacteria (MRSA) — which has defeated modern pharmaceutical antibiotics.
+
+
+From Folk Remedy to Official Approval: Science's Journey Toward What the Quran Said
+===
+- 1988: New Zealand scientist Peter Molan proved for the first time the scientific mechanism of antibacterial activity in honey.
+- 2007: Manuka honey received official regulatory approval for clinical wound care in New Zealand and Australia.
+- 2015: Cochrane Systematic Review confirmed honey's effectiveness for chronic wounds — the highest level in the medical evidence hierarchy.
+- 2019: The FDA approved medical honey preparations for wound treatment.
+
+13 centuries from "it was declared" to "it was proven."
+
+
+The Gender Miracle: Feminine Commands That Revealed the Worker Bee's Secret
+===
+The verse addresses the bee in the feminine singular form specifically: "ittakhidhi" (take for yourself), "kuli" (eat), "usluki" (follow) — all feminine.
+
+In Arabic grammar, to address a general group one would use plural forms. The choice of feminine singular indicates a specific female being.
+
+The scientific reality:
+- The bees that collect nectar, build the hive, and produce honey = worker bees.
+- All worker bees = female (XX chromosome, sterile).
+- Male drones do not collect nectar, build, or produce honey — they exist only seasonally.
+
+This was not discovered until the 17th century, when Jan Swammerdam revealed through the microscope that worker bees are female.
+`,
     verses: [
       {
         id: 'verse-nahl-68-69',
@@ -1059,6 +1151,100 @@ The declaration preceded the discovery of the cell by 1,033 years. It preceded C
     summaryAr: 'يصف القرآن إنتاج اللبن من بين الفرث والدم — متطابقاً مع علم وظائف الأعضاء الحديث.',
     description: 'Surah An-Nahl (16:66): "We give you drink from what is in their bellies - between excretion (فَرْثٍ) and blood (دَمٍ) - pure milk." Modern physiology confirms this precise description: nutrients from digested food (فرث/excretion) are absorbed into the bloodstream. The mammary glands then extract these nutrients from the blood to produce milk. Milk is literally produced "between" the digestive contents and the blood. The verse\'s description of the process as occurring "مِن بَيْنِ" (from between) is physiologically precise.',
     descriptionAr: 'سورة النحل (16:66): "نُّسْقِيكُم مِّمَّا فِي بُطُونِهِ مِن بَيْنِ فَرْثٍ وَدَمٍ لَّبَنًا خَالِصًا". يؤكد علم وظائف الأعضاء الحديث هذا الوصف الدقيق: تُمتص المغذيات من الطعام المهضوم (الفرث) إلى مجرى الدم، ثم تستخلص الغدد الثديية هذه المغذيات من الدم لإنتاج اللبن.',
+    deepDiveAr: `
+تحليل لغوي: «مِن بَيْنِ» — أدق وصف فسيولوجي في تاريخ الأدب
+===
+الآية لا تقول «من الطعام» ولا «من الدم» — تقول «مِن بَيْنِ فَرْثٍ وَدَمٍ».
+
+«من بين» في العربية تفيد الصدور من المنطقة الواقعة بين شيئين — من الحد الفاصل بين الاثنين. هذا ليس توصيفاً شعرياً مجازياً، بل وصف تشريحي للمسار: المغذيات تنتقل من تجويف الأمعاء إلى مجرى الدم، ثم تُستخلص من الدم بواسطة الغدد الثديية لتُحوَّل إلى لبن.
+
+اللبن ليس دماً، وليس طعاماً مهضوماً — هو شيء ثالث ينشأ «من بين» الاثنين.
+
+
+مسار إنتاج اللبن: ثلاث مراحل في سبع كلمات
+===
+علم وظائف الأعضاء الحديث يصف مسار إنتاج الحليب في ثلاث مراحل دقيقة:
+
+المرحلة الأولى — الهضم (الفَرْث): الطعام يُهضم في الجهاز الهضمي وتنتج مواد الهضم (الفَرْث في اللغة القرآنية = محتوى الكرش المهضوم).
+
+المرحلة الثانية — الامتصاص إلى الدم: المغذيات (أحماض أمينية، سكريات، دهون) تُمتص عبر جدار الأمعاء إلى مجرى الدم.
+
+المرحلة الثالثة — الاستخلاص بواسطة الغدد الثديية: الغدد الثديية تنتقي المغذيات المحددة من الدم وتُركّبها في شكل حليب — «لَبَنًا خَالِصًا».
+
+القرآن ضغط هذه العملية المعقدة في «مِن بَيْنِ فَرْثٍ وَدَمٍ» — وهو وصف لا يمكن أن يصدر إلا عن عليم بالتفاصيل.
+
+
+ما لم يكن يُعرف في القرن السابع الميلادي عن فيزيولوجيا الإدرار
+===
+لم يكن في القرن السابع أي علم بفيزيولوجيا إدرار اللبن. ما كان يُعرف ويُؤمن:
+
+- الحليب ينبع من الثدي بشكل طبيعي.
+- بعض الأطباء القدامى (جالينوس) ظنوا أن الحليب صورة منقلبة من الدم مباشرة.
+- لا أحد وصف علاقة محددة بمحتوى الكرش (الفَرْث) أو تتبّع المسار بدقة «من بين الفرث والدم».
+
+القرآن وضع الفرث أولاً، ثم الدم — مما يطابق تماماً الترتيب الفسيولوجي الحقيقي: الهضم يسبق الامتصاص إلى الدم.
+
+
+«لَبَنًا خَالِصًا» — نقاء كيميائي في مادة بالغة التعقيد
+===
+كلمة «خَالِصًا» (نقي، غير مشوب) وصف كيميائي مذهل:
+
+الحليب ينشأ «من بين» مواد ملوثة (محتوى الأمعاء) ودم حاوٍ على كل شيء، ومع ذلك يخرج نقياً لا يحمل أثراً من مصادره.
+
+الغدد الثديية تعمل كمصفاة انتقائية بالغة الدقة:
+- تسمح بمرور الأحماض الأمينية والسكريات المحددة والأجسام المضادة.
+- تمنع دخول الملوثات والمواد غير المرغوبة.
+- تُنتج مزيجاً متوازناً تماماً لاحتياجات المولود.
+
+هذه الانتقائية الجزيئية الدقيقة — التي لم نبدأ بفهمها إلا في القرن العشرين — هي ما أشار إليه القرآن بكلمة واحدة: «خَالِصًا».
+`,
+    deepDive: `
+Linguistic Analysis: "min bayni" — The Most Precise Physiological Description in Literary History
+===
+The verse does not say "from food" or "from blood" — it says "from between excretion (farth) and blood (dam)."
+
+"Min bayni" in Arabic means emerging from the zone lying between two things — from the interface between them. This is not poetic metaphor but a physiological description of the path: nutrients pass from the intestinal contents into the bloodstream, then are extracted from the blood by mammary glands and converted into milk.
+
+Milk is not blood, and not digested food — it is a third thing that arises "from between" the two.
+
+
+The Path of Milk Production: Three Stages in Seven Words
+===
+Modern physiology describes the milk production pathway in three precise stages:
+
+Stage 1 — Digestion (al-farth): Food is digested in the gastrointestinal tract, producing digestive material (farth in the Quranic term = digested rumen contents).
+
+Stage 2 — Absorption into blood: Nutrients (amino acids, sugars, fats) are absorbed through the intestinal wall into the bloodstream.
+
+Stage 3 — Extraction by mammary glands: The mammary glands selectively draw specific nutrients from the blood and synthesize them into milk — "pure milk" (laban khalisan).
+
+The Quran compressed this complex process into "min bayni farthin wa-dam" — a description that could only come from one who knows the details.
+
+
+What the 7th Century Did Not Know About Lactation Physiology
+===
+In the 7th century, there was no science of lactation physiology. What was known and believed:
+
+- Milk flows naturally from the breast.
+- Some ancient physicians (Galen) believed milk was simply transformed blood.
+- No one described a specific relationship with digestive contents (farth) or traced the pathway precisely as "between farth and blood."
+
+The Quran places farth first, then blood — exactly matching the true physiological sequence: digestion precedes absorption into blood.
+
+
+"Pure Milk" — Chemical Purity in a Biochemically Complex Product
+===
+The word "khalisan" (pure, unadulterated) is a remarkable chemical description:
+
+Milk arises "from between" contaminated materials (intestinal contents) and blood carrying everything — yet it emerges pure, bearing no trace of its sources.
+
+The mammary glands act as an extraordinarily precise selective filter:
+- They allow passage of specific amino acids, sugars, and antibodies.
+- They block entry of contaminants and unwanted substances.
+- They produce a perfectly balanced mixture for the newborn's needs.
+
+This precise molecular selectivity — which we only began to understand in the 20th century — is what the Quran indicated with a single word: "khalisan" (pure).
+`,
     verses: [
       {
         id: 'verse-nahl-66',
