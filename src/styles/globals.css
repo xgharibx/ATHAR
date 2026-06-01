@@ -3352,6 +3352,39 @@ header {
   font-weight: 700;
 }
 
+/* ── Smart page indicator (replaces 604-chip strip) ── */
+.mushaf-page-indicator {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  color: rgba(26, 18, 8, 0.65);
+  transition: opacity 0.12s;
+}
+.mushaf-page-indicator:hover { opacity: 0.8; }
+.mushaf-page-indicator-num {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2F4F37;
+}
+.mushaf-page-indicator-sep { opacity: 0.4; font-size: 0.8rem; }
+.mushaf-page-indicator-total { font-size: 0.78rem; opacity: 0.6; }
+[data-mushaf-theme="sepia"] .mushaf-page-indicator { color: rgba(58, 30, 8, 0.7); }
+[data-mushaf-theme="sepia"] .mushaf-page-indicator-num { color: #5a2e0a; }
+[data-mushaf-theme="midnight"] .mushaf-page-indicator { color: rgba(200, 218, 232, 0.6); }
+[data-mushaf-theme="midnight"] .mushaf-page-indicator-num { color: #c8dae8; }
+[data-mushaf-theme="parchment"] .mushaf-page-indicator { color: rgba(42, 26, 5, 0.6); }
+[data-mushaf-theme="parchment"] .mushaf-page-indicator-num { color: #5a3a10; }
+[data-mushaf-theme="forest"] .mushaf-page-indicator { color: rgba(200, 230, 200, 0.6); }
+[data-mushaf-theme="forest"] .mushaf-page-indicator-num { color: #6dd984; }
+[data-mushaf-theme="rose"] .mushaf-page-indicator-num { color: #f9a8c0; }
+
 /* ── Session summary card ────────────────────────── */
 .mushaf-session-card {
   position: fixed;

@@ -255,11 +255,13 @@ export function MushafPage() {
 
   const goPage = React.useCallback((p: number) => {
     const clamped = Math.max(1, Math.min(totalPages, p));
-    // M2: Slide animation direction
+    // M2: Quick slide animation direction (snappy, no loading flash)
     if (clamped !== currentPage) {
       setPageTransDir(clamped > currentPage ? "left" : "right");
       if (pageTransTimer.current) clearTimeout(pageTransTimer.current);
-      pageTransTimer.current = window.setTimeout(() => setPageTransDir(null), 380);
+      pageTransTimer.current = window.setTimeout(() => setPageTransDir(null), 220);
+      // Always start the new page at the top (fixes landscape staying scrolled)
+      if (pageContentRef.current) pageContentRef.current.scrollTop = 0;
     }
     setCurrentPage(clamped);
     setPrefs({ quranMushafPage: clamped });
@@ -315,7 +317,7 @@ export function MushafPage() {
     scrollIntentRef.current = 0;
     setShowChrome(true);
     if (chromeTimer.current) clearTimeout(chromeTimer.current);
-    chromeTimer.current = window.setTimeout(() => setShowChrome(false), 5500);
+    chromeTimer.current = window.setTimeout(() => setShowChrome(false), 2200);
   }, []);
   // Hide only on clear downward reading intent. Scroll bounce must not re-show chrome.
   const handleContentScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -410,6 +412,7 @@ export function MushafPage() {
 
   // Phase 2F: Page scrubber strip
   const pageStripRef = React.useRef<HTMLDivElement>(null);
+  const pageContentRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (!selectedItem) { setNoteSheetOpen(false); setShareSheetOpen(false); return; }
     const key = `${selectedItem.surahId}:${selectedItem.displayAyah}`;
@@ -1233,20 +1236,6 @@ export function MushafPage() {
           <div className="mushaf-chrome-surah-name">{pageSurahName || pageSurahEnglish}</div>
           <div className="mushaf-chrome-meta">صفحة {toArabicNumeral(currentPage)} · الجزء {toArabicNumeral(pageJuz)}</div>
         </div>
-        {/* Font scale controls in toolbar */}
-        <div className="flex items-center shrink-0" onClick={(e) => e.stopPropagation()}>
-          <button type="button" className="mushaf-chrome-icon-btn !p-1" aria-label="تصغير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(-0.1); }}><ZoomOut size={13} aria-hidden="true" /></button>
-          <span className="text-[10px] opacity-50 tabular-nums w-7 text-center select-none">{Math.round(fontScale * 100)}%</span>
-          <button type="button" className="mushaf-chrome-icon-btn !p-1" aria-label="تكبير الخط" onClick={(e) => { e.stopPropagation(); bumpFont(0.1); }}><ZoomIn size={13} aria-hidden="true" /></button>
-        </div>
-        {/* Phase 2B: Tajweed color toggle */}
-        <button type="button"
-          className={`mushaf-chrome-icon-btn${tajweedMode ? " active" : ""}`}
-          aria-label="تجويد"
-          onClick={(e) => { e.stopPropagation(); setTajweedMode((v) => !v); }}
-        >
-          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "system-ui" }}>ت</span>
-        </button>
         {/* Focus / reading mode */}
         <button type="button"
           className="mushaf-chrome-icon-btn"
@@ -1255,7 +1244,7 @@ export function MushafPage() {
         >
           <EyeOff size={15} aria-hidden="true" />
         </button>
-        {/* Settings */}
+        {/* Settings (font size, tajweed & all reading options live here) */}
         <button type="button"
           className={`mushaf-chrome-icon-btn${showSettings ? " active" : ""}`}
           aria-label="إعدادات"
@@ -1339,6 +1328,7 @@ export function MushafPage() {
         onClick={() => { setSelectedItem(null); flashChrome(); }}
       >
         <div
+          ref={pageContentRef}
           className={`mushaf-page-content${pageTransDir ? " page-sliding" : ""}`}
           dir="rtl"
           style={{ "--mushaf-font-scale": fontScale, ...(pageTransDir ? { "--mushaf-slide-dir": pageTransDir === "left" ? "-1" : "1" } : {}) } as React.CSSProperties}
@@ -1583,18 +1573,16 @@ export function MushafPage() {
         >
           <ChevronRight size={16} aria-hidden="true" />
         </button>
-        <div className="mushaf-page-strip" ref={pageStripRef}>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button type="button"
-              key={p}
-              data-page={p}
-              className={`mushaf-page-chip${p === currentPage ? " active" : ""}`}
-              onClick={(e) => { e.stopPropagation(); goPage(p); }}
-            >
-              {toArabicNumeral(p)}
-            </button>
-          ))}
-        </div>
+        <button type="button"
+          className="mushaf-page-indicator"
+          ref={pageStripRef as React.RefObject<HTMLButtonElement>}
+          onClick={(e) => { e.stopPropagation(); setShowJump(true); }}
+          aria-label="الانتقال إلى صفحة"
+        >
+          <span className="mushaf-page-indicator-num">{toArabicNumeral(currentPage)}</span>
+          <span className="mushaf-page-indicator-sep">/</span>
+          <span className="mushaf-page-indicator-total">{toArabicNumeral(totalPages)}</span>
+        </button>
         <button type="button"
           className="mushaf-bottom-nav-btn"
           onClick={(e) => { e.stopPropagation(); goPage(currentPage + 1); }}
