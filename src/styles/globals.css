@@ -2505,6 +2505,10 @@ header {
   font-size: calc(var(--mushaf-font-scale, 1) * 1.48rem);
   line-height: 2.75;
   padding: 0.5rem 0.25rem;
+  /* Real Madinah-page feel: every line stretches edge-to-edge, last line centered */
+  text-align: justify;
+  text-align-last: center;
+  text-justify: inter-word;
 }
 .mushaf-reader[data-mushaf-clean="1"] .mushaf-basmalah-line {
   font-size: calc(var(--mushaf-font-scale, 1) * 1.5rem);
@@ -3237,6 +3241,37 @@ header {
   scrollbar-width: none;
 }
 .mushaf-tadabbur-quote::-webkit-scrollbar { display: none; }
+
+/* ── Ayah share-options grid (Ayah-style sheet) ─────── */
+.mushaf-share-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.mushaf-share-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.85rem 0.5rem;
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  background: var(--card);
+  color: var(--fg);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  transition: transform 0.12s, background 0.15s, border-color 0.15s;
+}
+.mushaf-share-opt:active { transform: scale(0.96); }
+.mushaf-share-opt:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--stroke));
+}
+.mushaf-share-opt:disabled { opacity: 0.45; cursor: wait; }
+.mushaf-share-opt svg { color: var(--accent); }
 
 /* ── Bottom bar: wraps prev/next nav + page strip ─── */
 .mushaf-bottom-bar {

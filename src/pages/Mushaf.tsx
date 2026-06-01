@@ -7,6 +7,7 @@ import {
   Eye, EyeOff, CheckCircle2, Languages, Search,
   ArrowUpRight, Settings, Info, Shuffle,
   Radio, Timer, Download, SlidersHorizontal,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -396,6 +397,10 @@ export function MushafPage() {
   const [noteSheetOpen, setNoteSheetOpen] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState("");
 
+  // Share-options sheet (Ayah-style)
+  const [shareSheetOpen, setShareSheetOpen] = React.useState(false);
+  const [shareBusy, setShareBusy] = React.useState(false);
+
   // Phase 2F: Reading timer
   const sessionStartRef = React.useRef(Date.now());
   const pagesReadRef = React.useRef(new Set<number>());
@@ -406,7 +411,7 @@ export function MushafPage() {
   // Phase 2F: Page scrubber strip
   const pageStripRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
-    if (!selectedItem) { setNoteSheetOpen(false); return; }
+    if (!selectedItem) { setNoteSheetOpen(false); setShareSheetOpen(false); return; }
     const key = `${selectedItem.surahId}:${selectedItem.displayAyah}`;
     setNoteDraft(notes[key] ?? "");
   }, [notes, selectedItem]);
@@ -861,6 +866,7 @@ export function MushafPage() {
         if (tafsirItem) { setTafsirItem(null); return; }
         if (showJump) { setShowJump(false); return; }
         if (noteSheetOpen) { setNoteSheetOpen(false); return; }
+        if (shareSheetOpen) { setShareSheetOpen(false); return; }
         if (selectedItem) { setSelectedItem(null); return; }
         handleBack();
       }
@@ -870,23 +876,6 @@ export function MushafPage() {
   }, [currentPage, goPage, handleBack, navigate, noteSheetOpen, selectedItem, showJump, showSettings, showSearch, tafsirItem]);
 
   // Share selected ayah
-  const doShare = async () => {
-    if (!selectedItem) return;
-    try {
-      const verse = `${selectedItem.text} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾`;
-      const blob = await renderDhikrPosterBlob({
-        text: verse,
-        sectionTitle: `${selectedItem.surahName} • ${selectedItem.surahId}:${selectedItem.displayAyah}`,
-        footerUrl: "www.athark.org",
-      });
-      const file = new File([blob], `athar-${selectedItem.surahId}-${selectedItem.displayAyah}.png`, { type: "image/png" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); return; }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = file.name; a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-    } catch { toast.error("تعذر المشاركة"); }
-  };
-
   const doCopy = async () => {
     if (!selectedItem) return;
     try {
@@ -895,6 +884,65 @@ export function MushafPage() {
       );
       toast.success("تم النسخ");
     } catch { toast.error("تعذر النسخ"); }
+  };
+
+  // ── Ayah share options (Ayah-style sheet) ──────────────
+  // Fetch the English (Sahih) translation for a single ayah, reusing cached data.
+  const getAyahTranslation = React.useCallback(async (surahId: number, originalAyah: number): Promise<string> => {
+    const cached = translationData[surahId]?.[originalAyah];
+    if (cached) return cached;
+    try {
+      const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahId}/en.sahih`);
+      const json = await res.json();
+      const ayahs: { text: string }[] = json?.data?.ayahs ?? [];
+      const arr: string[] = [];
+      ayahs.forEach((a, i) => { arr[i + 1] = a.text; });
+      setTranslationData((prev) => ({ ...prev, [surahId]: arr }));
+      return arr[originalAyah] ?? "";
+    } catch { return ""; }
+  }, [translationData]);
+
+  const shareAyahImage = async (withTranslation: boolean) => {
+    if (!selectedItem) return;
+    setShareBusy(true);
+    try {
+      const verse = `${selectedItem.text} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾`;
+      const translation = withTranslation
+        ? await getAyahTranslation(selectedItem.surahId, selectedItem.originalAyah)
+        : undefined;
+      const blob = await renderDhikrPosterBlob({
+        text: verse,
+        sectionTitle: `${selectedItem.surahName} • ${selectedItem.surahId}:${selectedItem.displayAyah}`,
+        footerUrl: "www.athark.org",
+        translation: translation || undefined,
+      });
+      const file = new File([blob], `athar-${selectedItem.surahId}-${selectedItem.displayAyah}.png`, { type: "image/png" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); }
+      else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a"); a.href = url; a.download = file.name; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
+      setShareSheetOpen(false);
+    } catch { toast.error("تعذر المشاركة"); }
+    finally { setShareBusy(false); }
+  };
+
+  const shareAyahText = async (withTranslation: boolean) => {
+    if (!selectedItem) return;
+    setShareBusy(true);
+    try {
+      const ref = `(${selectedItem.surahName} ${selectedItem.surahId}:${selectedItem.displayAyah})`;
+      let body = `${selectedItem.text} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾\n${ref}`;
+      if (withTranslation) {
+        const tr = await getAyahTranslation(selectedItem.surahId, selectedItem.originalAyah);
+        if (tr) body += `\n\n${tr}`;
+      }
+      if (navigator.share) { await navigator.share({ text: body }); }
+      else { await navigator.clipboard.writeText(body); toast.success("تم النسخ"); }
+      setShareSheetOpen(false);
+    } catch { toast.error("تعذر المشاركة"); }
+    finally { setShareBusy(false); }
   };
 
   const markPageReviewed = React.useCallback(() => {
@@ -1499,7 +1547,7 @@ export function MushafPage() {
             <Pencil size={18} aria-hidden="true" />
             <span>تدبّر</span>
           </button>
-          <button type="button" className="mushaf-action-btn" onClick={doShare} aria-label="مشاركة">
+          <button type="button" className="mushaf-action-btn" onClick={() => setShareSheetOpen(true)} aria-label="مشاركة">
             <Share2 size={18} />
             <span>إرسال</span>
           </button>
@@ -1670,6 +1718,48 @@ export function MushafPage() {
               total={totalPages}
               onConfirm={(p) => { goPage(p); setShowJump(false); }}
             />
+          </div>
+        </>
+      )}
+
+      {/* ── Share-options sheet (Ayah-style) ─────────────── */}
+      {shareSheetOpen && selectedItem && (
+        <>
+          <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShareSheetOpen(false)} />
+          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="خيارات المشاركة" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShareSheetOpen(false); } }} onClick={(e) => e.stopPropagation()} dir="rtl">
+            <div className="mushaf-sheet-handle" />
+            <div className="flex items-center justify-between mb-2">
+              <span className="mushaf-sheet-title">
+                مشاركة · {selectedItem.surahName} ﴿{toArabicNumeral(selectedItem.displayAyah)}﴾
+              </span>
+              <button type="button" className="mushaf-icon-close" onClick={() => setShareSheetOpen(false)} aria-label="إغلاق">
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="mushaf-tadabbur-quote" dir="rtl">{selectedItem.text}</div>
+            <div className="mushaf-share-grid" aria-busy={shareBusy}>
+              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahImage(false)}>
+                <ImageIcon size={20} aria-hidden="true" />
+                <span>صورة</span>
+              </button>
+              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahImage(true)}>
+                <ImageIcon size={20} aria-hidden="true" />
+                <span>صورة مع الترجمة</span>
+              </button>
+              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahText(false)}>
+                <Share2 size={20} aria-hidden="true" />
+                <span>نص الآية</span>
+              </button>
+              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahText(true)}>
+                <Languages size={20} aria-hidden="true" />
+                <span>النص مع الترجمة</span>
+              </button>
+              <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => { doCopy(); setShareSheetOpen(false); }}>
+                <Copy size={20} aria-hidden="true" />
+                <span>نسخ النص</span>
+              </button>
+            </div>
+            {shareBusy && <div className="text-center text-[11px] opacity-50 mt-2">جارٍ التحضير…</div>}
           </div>
         </>
       )}

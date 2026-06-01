@@ -169,6 +169,7 @@ export async function renderDhikrPosterBlob(opts: {
   sectionTitle?: string;
   count?: number;
   footerUrl?: string;
+  translation?: string;
 }) {
   await preloadFonts();
 
@@ -432,8 +433,24 @@ export async function renderDhikrPosterBlob(opts: {
     allLines.push(...wrapped);
   }
 
-  // Vertically center the text block within the available area
-  const totalTextH = allLines.length * lineHeight - (lineHeight - fontSize);
+  // Optional translation block (LTR), drawn below the Arabic
+  const translation = (opts.translation ?? "").trim();
+  const transFontSize = 30;
+  const transLineHeight = Math.round(transFontSize * 1.45);
+  let transLines: string[] = [];
+  if (translation) {
+    ctx.save();
+    ctx.direction = "ltr";
+    ctx.font = `400 ${transFontSize}px 'Segoe UI',Tahoma,Arial,sans-serif`;
+    transLines = wrapRtlText(ctx, translation, maxWidth);
+    ctx.restore();
+  }
+  const transBlockH = transLines.length
+    ? transLines.length * transLineHeight + 36 /* gap above */
+    : 0;
+
+  // Vertically center the combined (Arabic + translation) block
+  const totalTextH = allLines.length * lineHeight - (lineHeight - fontSize) + transBlockH;
   const availH = textAreaBottom - textAreaTop;
   let ty = textAreaTop + Math.max(0, (availH - totalTextH) / 2) + fontSize;
 
@@ -449,6 +466,23 @@ export async function renderDhikrPosterBlob(opts: {
     ty += lineHeight;
   }
   ctx.restore();
+
+  // Draw translation lines (LTR, dimmed) under the Arabic
+  if (transLines.length) {
+    ctx.save();
+    ctx.direction = "ltr";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `400 ${transFontSize}px 'Segoe UI',Tahoma,Arial,sans-serif`;
+    ctx.fillStyle = rgba(theme.fg, 0.82);
+    let ty2 = ty + 36;
+    for (const line of transLines) {
+      if (ty2 > textAreaBottom) break;
+      ctx.fillText(line, centerX, ty2);
+      ty2 += transLineHeight;
+    }
+    ctx.restore();
+  }
 
   // ── 3d. Count badge (bottom inside card) ──────────────────────────────────
   if (opts.count && opts.count > 1) {
