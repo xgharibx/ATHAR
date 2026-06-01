@@ -133,20 +133,19 @@ export function DhikrList(props: Readonly<{
   const [focusMode, setFocusMode] = React.useState(false);
   const [moreOpen, setMoreOpen] = React.useState(false);
   const [headerVisible, setHeaderVisible] = React.useState(true);
-  const [scrollingUp, setScrollingUp] = React.useState(false);
+  // Smart compact bar: shown when scrolling up, hidden when scrolling down
+  const [barShown, setBarShown] = React.useState(true);
   const headerCardRef = React.useRef<HTMLDivElement>(null);
   const virtuosoRef = React.useRef<VirtuosoHandle>(null);
 
   // Unified scroll handler: track header visibility + scroll direction
   React.useEffect(() => {
     let lastY = window.scrollY;
-    let timeoutId: number | null = null;
 
     const checkState = () => {
       const el = headerCardRef.current;
       const y = window.scrollY;
       const delta = y - lastY;
-      lastY = y;
 
       // Header visible = its bottom edge is still below the sticky topbar
       if (el) {
@@ -156,19 +155,18 @@ export function DhikrList(props: Readonly<{
         setHeaderVisible(el.getBoundingClientRect().bottom > topbarH);
       }
 
-      // Scroll direction: briefly flag scrollingUp to hide compact header
-      if (delta < -2) {
-        setScrollingUp(true);
-        if (timeoutId !== null) clearTimeout(timeoutId);
-        timeoutId = window.setTimeout(() => setScrollingUp(false), 250);
-      }
+      // Smart direction: scrolling up reveals the bar, scrolling down hides it
+      if (delta < -4) setBarShown(true);
+      else if (delta > 4) setBarShown(false);
+      // Always reveal near the very top
+      if (y < 40) setBarShown(true);
+      lastY = y;
     };
 
     checkState();
     window.addEventListener("scroll", checkState, { passive: true });
     return () => {
       window.removeEventListener("scroll", checkState);
-      if (timeoutId !== null) clearTimeout(timeoutId);
     };
   }, []);
 
@@ -264,7 +262,7 @@ export function DhikrList(props: Readonly<{
   }, [focusMode]);
 
   // Sync dhikr-scrolled on body so the app topbar can hide via CSS
-  const compactBarVisible = !headerVisible && !scrollingUp;
+  const compactBarVisible = !headerVisible && barShown;
   React.useEffect(() => {
     document.body.classList.toggle("dhikr-scrolled", compactBarVisible);
     return () => { document.body.classList.remove("dhikr-scrolled"); };
@@ -398,13 +396,13 @@ export function DhikrList(props: Readonly<{
             "fixed left-0 right-0 z-[100] px-4 py-2 flex items-center gap-3",
             "glass-strong border-b border-[var(--stroke)]",
             "transition-all duration-200",
-            (headerVisible || scrollingUp) ? "opacity-0 -translate-y-2 pointer-events-none" : "opacity-100 translate-y-0",
+            compactBarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none",
           ].join(" ")}
           style={{
             top: compactBarVisible ? "var(--sat, 0px)" : "var(--topbar-h, 80px)",
             paddingTop: compactBarVisible ? "calc(var(--sat, 0px) + 8px)" : "8px",
           }}
-          aria-hidden={(headerVisible || scrollingUp) ? "true" : undefined}
+          aria-hidden={compactBarVisible ? undefined : "true"}
         >
           <span className="text-base leading-none" aria-hidden="true">{identity.icon}</span>
           <div className="flex-1 min-w-0">
@@ -655,13 +653,6 @@ export function DhikrList(props: Readonly<{
               <span>يتجدد مع الفجر · متبقّي {midnightLabel}</span>
             </div>
           )}
-
-          <div className="mt-4 h-1.5 rounded-full bg-white/[.08] overflow-hidden">
-            <div
-              className="h-full rounded-full transition-[width] duration-500"
-              style={{ width: `${stats.percent}%`, background: identity.accent }}
-            />
-          </div>
         </div>
       </Card>
       </div>

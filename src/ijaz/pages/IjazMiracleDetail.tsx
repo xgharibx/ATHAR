@@ -70,6 +70,9 @@ export default function MiracleDetailPage() {
           </div>
         )}
 
+        {/* Lightweight CSS starfield — works on mobile too (no WebGL) */}
+        <div aria-hidden className="ijaz-stars absolute inset-0 z-[1] pointer-events-none" />
+
         {/* Multi-layer gradient overlays for depth — kept subtle so visual can breathe */}
         <div className="absolute inset-0 z-[2] bg-gradient-to-t from-vanta via-vanta/10 to-transparent" />
         <div className="absolute inset-0 z-[2] bg-gradient-to-r from-vanta/20 via-transparent to-vanta/20" />

@@ -411,7 +411,7 @@ export function MushafPage() {
   const [sessionDurationMin, setSessionDurationMin] = React.useState(0);
 
   // Phase 2F: Page scrubber strip
-  const pageStripRef = React.useRef<HTMLDivElement>(null);
+  const pageStripRef = React.useRef<HTMLButtonElement>(null);
   const pageContentRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (!selectedItem) { setNoteSheetOpen(false); setShareSheetOpen(false); return; }
@@ -1575,7 +1575,7 @@ export function MushafPage() {
         </button>
         <button type="button"
           className="mushaf-page-indicator"
-          ref={pageStripRef as React.RefObject<HTMLButtonElement>}
+          ref={pageStripRef}
           onClick={(e) => { e.stopPropagation(); setShowJump(true); }}
           aria-label="الانتقال إلى صفحة"
         >
