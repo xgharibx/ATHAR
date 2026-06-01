@@ -14,6 +14,12 @@ import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotif
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
+import { ANGELS_SECTION } from "@/data/angels";
+import { DIVINE_BOOKS_SECTION } from "@/data/divineBooks";
+import { ISLAM_PILLARS_SECTION } from "@/data/islamPillars";
+import { FAITH_PILLARS_SECTION } from "@/data/faithPillars";
+import { FAITH_BRANCHES_SECTION } from "@/data/faithBranches";
+import { MAJOR_SINS_SECTION } from "@/data/majorSins";
 
 // T7: Per-route error boundary - prevents a single page crash from killing the whole app
 class RouteErrorBoundary extends React.Component<
@@ -73,6 +79,7 @@ const AsmaAlHusnaPage = React.lazy(() => import("@/pages/AsmaAlHusna").then((m) 
 const DuasPage = React.lazy(() => import("@/pages/Duas").then((m) => ({ default: m.DuasPage })));
 const QuranVocabPage = React.lazy(() => import("@/pages/QuranVocab").then((m) => ({ default: m.QuranVocabPage })));
 const ProphetStoriesPage = React.lazy(() => import("@/pages/ProphetStories").then((m) => ({ default: m.ProphetStoriesPage })));
+const KnowledgeSectionPage = React.lazy(() => import("@/pages/KnowledgeSection").then((m) => ({ default: m.KnowledgeSectionPage })));
 const PrayerGuidePage = React.lazy(() => import("@/pages/PrayerGuide").then((m) => ({ default: m.PrayerGuidePage })));
 const WuduGuidePage = React.lazy(() => import("@/pages/WuduGuide").then((m) => ({ default: m.WuduGuidePage })));
 const RuqyahPage = React.lazy(() => import("@/pages/Ruqyah").then((m) => ({ default: m.RuqyahPage })));
@@ -310,6 +317,12 @@ export default function App() {
           <Route path="duas" element={<S><DuasPage /></S>} />
           <Route path="quran-vocab" element={<S><QuranVocabPage /></S>} />
           <Route path="stories" element={<S><ProphetStoriesPage /></S>} />
+          <Route path="angels" element={<S><KnowledgeSectionPage config={ANGELS_SECTION} /></S>} />
+          <Route path="divine-books" element={<S><KnowledgeSectionPage config={DIVINE_BOOKS_SECTION} /></S>} />
+          <Route path="islam-pillars" element={<S><KnowledgeSectionPage config={ISLAM_PILLARS_SECTION} /></S>} />
+          <Route path="faith-pillars" element={<S><KnowledgeSectionPage config={FAITH_PILLARS_SECTION} /></S>} />
+          <Route path="faith-branches" element={<S><KnowledgeSectionPage config={FAITH_BRANCHES_SECTION} /></S>} />
+          <Route path="major-sins" element={<S><KnowledgeSectionPage config={MAJOR_SINS_SECTION} /></S>} />
           <Route path="prayer-guide" element={<S><PrayerGuidePage /></S>} />
           <Route path="wudu" element={<S><WuduGuidePage /></S>} />
           <Route path="ruqyah" element={<S><RuqyahPage /></S>} />
