@@ -236,14 +236,16 @@ export default function AntCommunicationVisual({ className }: MiracleVisualProps
         style={{ background: 'linear-gradient(to top, rgba(10,26,0,0.92) 0%, rgba(10,26,0,0.5) 60%, rgba(10,26,0,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '♀', label: 'قالَت — مؤنث', sub: 'جميع العاملات إناث' },
-            { icon: '🧪', label: 'فيرومون إنذار', sub: 'Wilson 1971' },
-            { icon: '🏠', label: 'مساكن = غرف', sub: 'مجتمع منظم' },
-            { icon: '🧬', label: 'XX كروموسوم', sub: 'إناث بيولوجياً' },
-          ].map(({ icon, label, sub }) => (
+            { d: 'M12 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M12 9v8 M9 14h6', label: 'قالَت — مؤنث', sub: 'جميع العاملات إناث' },
+            { d: 'M9 3h6 M10 3v6l-4 8a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-4-8V3', label: 'فيرومون إنذار', sub: 'Wilson 1971' },
+            { d: 'M3 10l9-7 9 7 M5 9v11h14V9 M10 20v-6h4v6', label: 'مساكن = غرف', sub: 'مجتمع منظم' },
+            { d: 'M4 3c8 4 8 14 16 18 M20 3C12 7 12 17 4 21 M7 5h10 M7 19h10', label: 'XX كروموسوم', sub: 'إناث بيولوجياً' },
+          ].map(({ d, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(40,80,20,0.1)', border: '1px solid rgba(80,160,40,0.22)', backdropFilter: 'blur(8px)' }}>
-              <span style={{ fontSize: 10 }}>{icon}</span>
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="rgba(180,240,140,0.92)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <path d={d} />
+              </svg>
               <div>
                 <span className="text-[10px] font-bold font-tajawal" style={{ color: 'rgba(180,240,140,0.92)' }}>{label}</span>
                 <span className="text-[8px] font-tajawal mr-1" style={{ color: 'rgba(120,180,80,0.6)' }}>{sub}</span>

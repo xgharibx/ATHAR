@@ -10,10 +10,10 @@ import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 
 export default function MoralArgumentVisual({ className }: MiracleVisualProps) {
   const moralFacts = [
-    { text: 'قتل الأبرياء شر مطلق', icon: '🚫' },
-    { text: 'الظلم خطأ بالضرورة', icon: '⚖️' },
-    { text: 'الرحمة خير في ذاتها', icon: '💝' },
-    { text: 'الصدق فضيلة مطلقة', icon: '✨' },
+    { text: 'قتل الأبرياء شر مطلق', d: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M5 5l14 14' },
+    { text: 'الظلم خطأ بالضرورة', d: 'M12 3v18 M7 7h10 M5 7l-2 5a3.5 3.5 0 0 0 7 0L8 7 M19 7l-2 5a3.5 3.5 0 0 0 7 0l-2-5 M8 21h8' },
+    { text: 'الرحمة خير في ذاتها', d: 'M12 21s-7-4.35-9.5-8.5C1 9 2.5 5.5 6 5.5c2 0 3 1.5 4 3 1-1.5 2-3 4-3 3.5 0 5 3.5 3.5 7C19 16.65 12 21 12 21z' },
+    { text: 'الصدق فضيلة مطلقة', d: 'M12 2 14.4 8.8 21.6 9.1 16 13.5 17.8 20.5 12 16.5 6.2 20.5 8 13.5 2.4 9.1 9.6 8.8z' },
   ];
 
   return (
@@ -109,7 +109,7 @@ export default function MoralArgumentVisual({ className }: MiracleVisualProps) {
               transition={{ delay: 4 + i * 0.2 }}
               className="bg-space-blue/15 border border-border-subtle rounded-full px-3 py-1 flex items-center gap-1.5"
             >
-              <span className="text-xs">{fact.icon}</span>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#d4a853" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d={fact.d} /></svg>
               <span className="text-[9px] text-text-secondary font-tajawal">{fact.text}</span>
             </motion.div>
           ))}

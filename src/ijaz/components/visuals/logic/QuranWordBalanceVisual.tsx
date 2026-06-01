@@ -228,15 +228,17 @@ export default function QuranWordBalanceVisual({ className }: MiracleVisualProps
         </p>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '⚖️', label: 'حياة / موت', sub: '145 / 145' },
-            { icon: '🌍', label: 'دنيا / آخرة', sub: '115 / 115' },
-            { icon: '😇', label: 'ملائكة / شياطين', sub: '88 / 88' },
-            { icon: '👥', label: 'رجل / امرأة', sub: '24 / 24' },
-            { icon: '📅', label: 'اليوم', sub: '365 مرة' },
-          ].map(({ icon, label, sub }) => (
+            { d: 'M12 3v18 M7 7h10 M5 7l-2 5a3.5 3.5 0 0 0 7 0L8 7 M19 7l-2 5a3.5 3.5 0 0 0 7 0l-2-5 M8 21h8', label: 'حياة / موت', sub: '145 / 145' },
+            { d: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M2 12h20 M12 2a15 15 0 0 1 0 20 M12 2a15 15 0 0 0 0 20', label: 'دنيا / آخرة', sub: '115 / 115' },
+            { d: 'M12 3a9 9 0 0 1 9 9 M12 3a9 9 0 0 0-9 9 M3 12a4 4 0 0 0 8 0 M13 12a4 4 0 0 0 8 0 M9 18h6', label: 'ملائكة / شياطين', sub: '88 / 88' },
+            { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75', label: 'رجل / امرأة', sub: '24 / 24' },
+            { d: 'M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', label: 'اليوم', sub: '365 مرة' },
+          ].map(({ d, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(180,140,30,0.07)', border: '1px solid rgba(200,160,40,0.2)', backdropFilter: 'blur(8px)' }}>
-              <span style={{ fontSize: 10 }}>{icon}</span>
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="rgba(255,220,120,0.92)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <path d={d} />
+              </svg>
               <div>
                 <span className="text-[10px] font-bold font-tajawal" style={{ color: 'rgba(255,220,120,0.92)' }}>{label}</span>
                 <span className="text-[8px] font-tajawal mr-1" style={{ color: 'rgba(200,170,80,0.6)' }}>{sub}</span>

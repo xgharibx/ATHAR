@@ -193,14 +193,16 @@ export default function AtmosphereCeilingVisual({ className }: MiracleVisualProp
         style={{ background: 'linear-gradient(to top, rgba(0,10,26,0.92) 0%, rgba(0,10,26,0.5) 60%, rgba(0,10,26,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🛡️', label: 'سقف = roof', sub: 'structural term' },
-            { icon: '☀️', label: 'أوزون UV', sub: '97–99% blocked' },
-            { icon: '🌠', label: '100 طن/يوم', sub: 'meteor ablation' },
-            { icon: '🧲', label: 'Van Allen', sub: 'cosmic ray shield' },
-          ].map(({ icon, label, sub }) => (
+            { d: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', label: 'سقف = roof', sub: 'structural term' },
+            { d: 'M12 2v3 M12 19v3 M5 12H2 M22 12h-3 M5 5l2 2 M17 17l2 2 M19 5l-2 2 M7 17l-2 2 M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z', label: 'أوزون UV', sub: '97–99% blocked' },
+            { d: 'M3 12c4-6 14-6 18 0 M5 12l-2 4 M19 12l2 4 M12 12v6', label: '100 طن/يوم', sub: 'meteor ablation' },
+            { d: 'M6 4v6a6 6 0 0 0 12 0V4 M6 4h3 M15 4h3 M12 16v4 M9 20h6', label: 'Van Allen', sub: 'cosmic ray shield' },
+          ].map(({ d, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(20,40,80,0.1)', border: '1px solid rgba(60,100,180,0.22)', backdropFilter: 'blur(8px)' }}>
-              <span style={{ fontSize: 10 }}>{icon}</span>
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="rgba(160,210,255,0.92)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <path d={d} />
+              </svg>
               <div>
                 <span className="text-[10px] font-bold font-tajawal" style={{ color: 'rgba(160,210,255,0.92)' }}>{label}</span>
                 <span className="text-[8px] font-tajawal mr-1" style={{ color: 'rgba(100,150,200,0.6)' }}>{sub}</span>

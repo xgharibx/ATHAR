@@ -134,14 +134,16 @@ export default function NumberNineteenVisual({ className }: MiracleVisualProps) 
         style={{ background: 'linear-gradient(to top, rgba(2,0,8,0.92) 0%, rgba(2,0,8,0.5) 60%, rgba(2,0,8,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '🔢', label: '19 حرفًا', sub: 'بسملة' },
-            { icon: '📚', label: '114 = 19×6', sub: 'سورة' },
-            { icon: '☠️', label: 'عدد أولي', sub: 'prime' },
-            { icon: '⚛️', label: 'Rashad 1974', sub: 'اكتشاف' },
-          ].map(({ icon, label, sub }) => (
+            { d: 'M4 7V4h16v3 M9 20h6 M12 4v16', label: '19 حرفًا', sub: 'بسملة' },
+            { d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M4 19.5V5a2 2 0 0 1 2-2h14v14 M4 19.5A2.5 2.5 0 0 0 6.5 22H20', label: '114 = 19×6', sub: 'سورة' },
+            { d: 'M12 3v18 M3 12h18 M6 6l12 12 M18 6 6 18', label: 'عدد أولي', sub: 'prime' },
+            { d: 'M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z M12 2a10 10 0 0 1 8.7 5 M3.3 17A10 10 0 0 1 12 2 M20.7 17A10 10 0 0 1 5 21', label: 'Rashad 1974', sub: 'اكتشاف' },
+          ].map(({ d, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(8,4,20,0.1)', border: '1px solid rgba(100,80,200,0.22)', backdropFilter: 'blur(8px)' }}>
-              <span style={{ fontSize: 10 }}>{icon}</span>
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="rgba(200,180,255,0.92)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <path d={d} />
+              </svg>
               <div>
                 <span className="text-[10px] font-bold font-tajawal" style={{ color: 'rgba(200,180,255,0.92)' }}>{label}</span>
                 <span className="text-[8px] font-tajawal mr-1" style={{ color: 'rgba(120,100,200,0.6)' }}>{sub}</span>

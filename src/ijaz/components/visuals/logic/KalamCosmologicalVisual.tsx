@@ -33,10 +33,10 @@ const steps = [
 ];
 
 const causeProperties = [
-  { text: 'خارج الزمان والمكان', icon: '∞' },
-  { text: 'قادر على الخلق من العدم', icon: '💪' },
-  { text: 'مريد مختار', icon: '🎯' },
-  { text: 'واحد أحد', icon: '1️⃣' },
+  { text: 'خارج الزمان والمكان', d: 'M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z' },
+  { text: 'قادر على الخلق من العدم', d: 'M13 2 3 14h9l-1 8 10-12h-9l1-8z' },
+  { text: 'مريد مختار', d: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12z M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z' },
+  { text: 'واحد أحد', d: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M11 8l2-1v9' },
 ];
 
 export default function KalamCosmologicalVisual({ className }: MiracleVisualProps) {
@@ -117,9 +117,9 @@ export default function KalamCosmologicalVisual({ className }: MiracleVisualProp
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 4 + i * 0.3, type: 'spring' }}
-                className="bg-gold-primary/5 border border-gold-primary/15 rounded-lg p-2 text-center"
+                className="bg-gold-primary/5 border border-gold-primary/15 rounded-lg p-2 text-center flex flex-col items-center"
               >
-                <span className="text-sm">{prop.icon}</span>
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#d4a853" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d={prop.d} /></svg>
                 <p className="text-[10px] font-tajawal text-text-secondary mt-1">{prop.text}</p>
               </motion.div>
             ))}

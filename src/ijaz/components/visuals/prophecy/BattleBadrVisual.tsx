@@ -43,9 +43,9 @@ export default function BattleBadrVisual({ className }: MiracleVisualProps) {
               313
             </motion.p>
             <div className="mt-3 space-y-1 text-[10px] text-text-muted font-tajawal">
-              <p>🐴 فرسان: 2</p>
-              <p>🐪 إبل: 70</p>
-              <p>⚔️ سيوف قليلة</p>
+              <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22V3 M4 3c4-2 8 2 12 0v8c-4 2-8-2-12 0"/></svg><span>فرسان: 2</span></p>
+              <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18c2 0 2-6 5-6s3 6 5 6 2-6 5-6 3 4 5 4 M2 18h18"/></svg><span>إبل: 70</span></p>
+              <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5 M13 19l6-6 M16 16l4 4 M19 21l2-2"/></svg><span>سيوف قليلة</span></p>
             </div>
             {/* Dot grid representing 313 */}
             <div className="mt-3 flex flex-wrap justify-center gap-[2px]">
@@ -92,9 +92,9 @@ export default function BattleBadrVisual({ className }: MiracleVisualProps) {
               1000
             </motion.p>
             <div className="mt-3 space-y-1 text-[10px] text-text-muted font-tajawal">
-              <p>🐴 فرسان: 100</p>
-              <p>🐪 إبل: 700</p>
-              <p>⚔️ تسليح كامل</p>
+              <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22V3 M4 3c4-2 8 2 12 0v8c-4 2-8-2-12 0"/></svg><span>فرسان: 100</span></p>
+              <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M2 18c2 0 2-6 5-6s3 6 5 6 2-6 5-6 3 4 5 4 M2 18h18"/></svg><span>إبل: 700</span></p>
+              <p className="flex items-center justify-center gap-1.5"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5 M13 19l6-6 M16 16l4 4 M19 21l2-2"/></svg><span>تسليح كامل</span></p>
             </div>
             {/* Dot grid representing ~1000 */}
             <div className="mt-3 flex flex-wrap justify-center gap-[2px]">

@@ -105,14 +105,16 @@ export default function QuranPreservationVisual({ className }: MiracleVisualProp
         style={{ background: 'linear-gradient(to top, rgba(5,4,8,0.92) 0%, rgba(5,4,8,0.5) 60%, rgba(5,4,8,0) 100%)', paddingTop: 20 }}>
         <div className="flex flex-wrap justify-center gap-1.5">
           {[
-            { icon: '📜', label: 'Birmingham', sub: '568-645 CE' },
-            { icon: '📖', label: '114 سورة', sub: 'متطابقة' },
-            { icon: '🔍', label: 'carbon dated', sub: "Sana'a 1972" },
-            { icon: '✅', label: 'لا تغيير', sub: '14 قرنا' },
-          ].map(({ icon, label, sub }) => (
+            { d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M4 19.5V5a2 2 0 0 1 2-2h14v14 M4 19.5A2.5 2.5 0 0 0 6.5 22H20', label: 'Birmingham', sub: '568-645 CE' },
+            { d: 'M2 5c3-1.5 6-1.5 10 0v15c-4-1.5-7-1.5-10 0z M22 5c-3-1.5-6-1.5-10 0v15c4-1.5 7-1.5 10 0z', label: '114 سورة', sub: 'متطابقة' },
+            { d: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M21 21l-5-5', label: 'carbon dated', sub: "Sana'a 1972" },
+            { d: 'M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4 12 14.01l-3-3', label: 'لا تغيير', sub: '14 قرنا' },
+          ].map(({ d, label, sub }) => (
             <div key={label} className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: 'rgba(10,8,20,0.1)', border: '1px solid rgba(80,60,160,0.22)', backdropFilter: 'blur(8px)' }}>
-              <span style={{ fontSize: 10 }}>{icon}</span>
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="rgba(200,185,255,0.92)" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <path d={d} />
+              </svg>
               <div>
                 <span className="text-[10px] font-bold font-tajawal" style={{ color: 'rgba(200,185,255,0.92)' }}>{label}</span>
                 <span className="text-[8px] font-tajawal mr-1" style={{ color: 'rgba(120,100,200,0.6)' }}>{sub}</span>
