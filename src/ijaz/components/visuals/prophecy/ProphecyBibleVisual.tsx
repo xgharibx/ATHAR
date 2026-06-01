@@ -1,247 +1,101 @@
-
-import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 
-// النبوءة في الإنجيل — Prophecy in the Gospel (الصف 6)
-// Cinematic: a radiant open Gospel under a descending shaft of light, golden
-// motes streaming down, and the transliteration chain Parakletos → Periklytos → أحمد.
+// 📜 البشارة في الإنجيل — The Gospel's promise of "the Paraclete" → Periklytos → Ahmad ﷺ
+// Unfurling Gospel scroll + word-by-word highlight + transliteration match cards (same design as Isaiah 40).
+
+type Tok = { t: string; c?: string };
+const VERSE: Tok[] = [
+  { t: 'And I will ask the Father, and he will give you another' },
+  { t: 'Paraclete', c: '#d4a853' }, { t: ', to be with you' },
+  { t: 'forever', c: '#2dd4a8' }, { t: '.' },
+];
+
+const MATCHES = [
+  { ref: 'يوحنا 14:16', text: '“another Paraclete”', match: 'παράκλητος Paraklētos = المُعزِّي', color: '#d4a853' },
+  { ref: 'Greek', text: 'περικλυτός Periklytos', match: 'الأكثر حمدًا · المُمَجَّد', color: '#f472b6' },
+  { ref: 'الصف 6', text: '“اسمه أحمد”', match: 'أحمد ﷺ = الأكثر حمدًا (= Periklytos)', color: '#2dd4a8' },
+];
 
 export default function ProphecyBibleVisual({ className }: MiracleVisualProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animId = 0;
-    let time = 0;
-
-    // Descending light motes
-    const motes = Array.from({ length: 70 }, () => ({
-      x: 0.5 + (Math.random() - 0.5) * 0.4,
-      y: Math.random(),
-      r: Math.random() * 1.8 + 0.5,
-      speed: Math.random() * 0.0025 + 0.0008,
-      drift: (Math.random() - 0.5) * 0.0004,
-      phase: Math.random() * Math.PI * 2,
-    }));
-
-    const stars = Array.from({ length: 80 }, () => ({
-      x: Math.random(), y: Math.random(), r: Math.random() * 1.2 + 0.3,
-      tw: Math.random() * Math.PI * 2,
-    }));
-
-    const draw = () => {
-      time += 0.016;
-      const w = canvas.offsetWidth;
-      const h = canvas.offsetHeight;
-
-      // Background — violet sanctuary
-      const bg = ctx.createRadialGradient(w * 0.5, h * 0.25, 0, w * 0.5, h * 0.5, w * 0.85);
-      bg.addColorStop(0, '#140f24');
-      bg.addColorStop(1, '#070512');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, w, h);
-
-      // Stars
-      for (const s of stars) {
-        const t = Math.sin(time * 1.5 + s.tw) * 0.5 + 0.5;
-        ctx.beginPath();
-        ctx.arc(s.x * w, s.y * h, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200,180,255,${0.15 + t * 0.35})`;
-        ctx.fill();
-      }
-
-      // Descending shaft of light
-      const cx = w * 0.5;
-      const pulse = 0.16 + Math.sin(time * 1.1) * 0.06;
-      const shaft = ctx.createLinearGradient(cx, 0, cx, h * 0.72);
-      shaft.addColorStop(0, `rgba(220,200,255,${pulse + 0.12})`);
-      shaft.addColorStop(0.5, `rgba(192,168,224,${pulse})`);
-      shaft.addColorStop(1, 'rgba(192,168,224,0)');
-      ctx.beginPath();
-      ctx.moveTo(cx - w * 0.05, 0);
-      ctx.lineTo(cx + w * 0.05, 0);
-      ctx.lineTo(cx + w * 0.2, h * 0.72);
-      ctx.lineTo(cx - w * 0.2, h * 0.72);
-      ctx.closePath();
-      ctx.fillStyle = shaft;
-      ctx.fill();
-
-      // Motes streaming down the shaft
-      for (const p of motes) {
-        p.y += p.speed;
-        p.x += p.drift;
-        if (p.y > 0.72) { p.y = 0; p.x = 0.5 + (Math.random() - 0.5) * 0.4; }
-        const tw = Math.sin(time * 2 + p.phase) * 0.5 + 0.5;
-        ctx.beginPath();
-        ctx.arc(p.x * w, p.y * h, p.r * (0.6 + tw * 0.6), 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(230,215,255,${tw * 0.5})`;
-        ctx.fill();
-      }
-
-      // ---- Open Gospel book ----
-      const bookCx = w * 0.5;
-      const bookCy = h * 0.62;
-      const reveal = Math.min(1, time / 1.4);
-      const ease = 1 - Math.pow(1 - reveal, 3);
-      const bw = w * 0.32 * ease;
-      const bh = h * 0.2;
-      const spineH = bh * 0.12;
-
-      // Book glow halo
-      const halo = ctx.createRadialGradient(bookCx, bookCy, 0, bookCx, bookCy, bw * 1.1);
-      const haloP = 0.25 + Math.sin(time * 1.5) * 0.1;
-      halo.addColorStop(0, `rgba(212,168,83,${haloP})`);
-      halo.addColorStop(1, 'rgba(212,168,83,0)');
-      ctx.beginPath();
-      ctx.arc(bookCx, bookCy, bw * 1.1, 0, Math.PI * 2);
-      ctx.fillStyle = halo;
-      ctx.fill();
-
-      if (bw > 6) {
-        // Two pages (left + right) as slanted quads
-        const pageGrad = ctx.createLinearGradient(0, bookCy - bh / 2, 0, bookCy + bh / 2);
-        pageGrad.addColorStop(0, 'rgba(245,238,220,0.95)');
-        pageGrad.addColorStop(1, 'rgba(210,198,170,0.9)');
-        // left page
-        ctx.beginPath();
-        ctx.moveTo(bookCx, bookCy - bh / 2 + spineH);
-        ctx.lineTo(bookCx - bw, bookCy - bh / 2);
-        ctx.lineTo(bookCx - bw, bookCy + bh / 2);
-        ctx.lineTo(bookCx, bookCy + bh / 2 - spineH);
-        ctx.closePath();
-        ctx.fillStyle = pageGrad;
-        ctx.fill();
-        // right page
-        ctx.beginPath();
-        ctx.moveTo(bookCx, bookCy - bh / 2 + spineH);
-        ctx.lineTo(bookCx + bw, bookCy - bh / 2);
-        ctx.lineTo(bookCx + bw, bookCy + bh / 2);
-        ctx.lineTo(bookCx, bookCy + bh / 2 - spineH);
-        ctx.closePath();
-        ctx.fillStyle = pageGrad;
-        ctx.fill();
-
-        // Spine
-        ctx.strokeStyle = 'rgba(120,90,40,0.5)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(bookCx, bookCy - bh / 2 + spineH);
-        ctx.lineTo(bookCx, bookCy + bh / 2 - spineH);
-        ctx.stroke();
-
-        // Text lines on both pages
-        ctx.strokeStyle = 'rgba(90,70,40,0.4)';
-        ctx.lineWidth = 1;
-        const lines = 6;
-        for (let i = 0; i < lines; i++) {
-          const ly = bookCy - bh / 2 + 10 + (i / lines) * (bh - 16);
-          const prog = Math.max(0, Math.min(1, (time - 1.4 - i * 0.12) / 0.4));
-          if (prog <= 0) continue;
-          // highlight 4th line (the prophecy line)
-          const isKey = i === 3;
-          ctx.strokeStyle = isKey ? `rgba(45,212,168,${0.7 * prog})` : `rgba(90,70,40,${0.4 * prog})`;
-          ctx.lineWidth = isKey ? 2 : 1;
-          // left
-          ctx.beginPath();
-          ctx.moveTo(bookCx - bw + 12, ly);
-          ctx.lineTo(bookCx - bw + 12 + (bw - 20) * 0.78 * prog, ly);
-          ctx.stroke();
-          // right
-          ctx.beginPath();
-          ctx.moveTo(bookCx + 8, ly);
-          ctx.lineTo(bookCx + 8 + (bw - 20) * 0.78 * prog, ly);
-          ctx.stroke();
-        }
-      }
-
-      animId = requestAnimationFrame(draw);
-    };
-
-    let started = false;
-    const observer = new ResizeObserver(() => {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = canvas.offsetWidth * dpr;
-      canvas.height = canvas.offsetHeight * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      if (!started) { started = true; draw(); }
-    });
-    observer.observe(canvas);
-    return () => {
-      cancelAnimationFrame(animId);
-      observer.disconnect();
-    };
-  }, []);
-
   return (
-    <div className={`relative w-full h-full overflow-hidden ${className || ''}`}>
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+    <div className={`relative w-full h-full flex flex-col items-center justify-center gap-3 px-5 py-6 select-none overflow-hidden ${className || ''}`}>
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0c0a16] via-[#0d1117] to-[#0a1010] pointer-events-none" />
+      {/* Soft glow behind scroll */}
+      <motion.div
+        className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+        style={{ width: 360, height: 240, background: 'radial-gradient(ellipse at center, rgba(168,140,255,0.14), transparent 70%)' }}
+        animate={{ opacity: [0.5, 0.85, 0.5] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+      />
 
       {/* Title */}
       <motion.p
-        initial={{ opacity: 0, y: -14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="absolute top-4 left-0 right-0 text-center font-amiri text-lg text-[#c8b0ec] z-10 pointer-events-none"
-        style={{ textShadow: '0 0 18px rgba(192,168,224,0.5)' }}
+        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+        className="relative z-10 font-tajawal text-[11px] tracking-[0.25em]" style={{ color: 'rgba(212,168,83,0.7)' }}
       >
-        البشارة في الإنجيل
+        إنجيل يوحنا · البشارة بالمُعزِّي
       </motion.p>
 
-      {/* Transliteration chain */}
-      <div className="absolute top-[26%] left-0 right-0 z-10 flex flex-col items-center gap-2 px-4 pointer-events-none">
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          {[
-            { t: 'Parakletos', s: 'παράκλητος' },
-            { t: 'Periklytos', s: 'περικλυτός' },
-          ].map((x, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.6 + i * 0.5, duration: 0.5 }}
-              className="text-center rounded-lg bg-[#1a1530]/70 border border-[#a090c0]/25 px-3 py-1 backdrop-blur-sm"
-            >
-              <p className="font-mono text-xs text-[#c8b0ec]">{x.t}</p>
-              <p className="font-mono text-[9px] text-[#a090c0]/60">{x.s}</p>
-            </motion.div>
-          ))}
-          <motion.svg
-            viewBox="0 0 24 12" className="w-6 h-3"
-            initial={{ opacity: 0 }} animate={{ opacity: [0.3, 1, 0.3] }}
-            transition={{ delay: 2.4, duration: 1.4, repeat: Infinity }}
-          >
-            <path d="M2 6 H18 M14 2 L20 6 L14 10" fill="none" stroke="#d4a853" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </motion.svg>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 2.8, type: 'spring', stiffness: 200 }}
-            className="rounded-lg bg-gold-primary/10 border border-gold-primary/35 px-4 py-1"
-            style={{ boxShadow: '0 0 22px rgba(212,168,83,0.25)' }}
-          >
-            <p className="font-amiri text-lg text-gold-primary">أحمد</p>
-            <p className="text-[8px] text-text-muted font-tajawal text-center">الأكثر حمدًا</p>
-          </motion.div>
-        </div>
+      {/* ── Unfurling scroll ── */}
+      <div className="relative z-10 w-full max-w-md flex items-stretch justify-center">
+        <div className="w-3.5 rounded-l-sm shrink-0" style={{ background: 'linear-gradient(90deg,#4a2f5e,#7a5aa0 40%,#5b3d80)' }} />
+        <motion.div
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: 1, opacity: 1 }}
+          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          style={{ transformOrigin: 'center', background: 'linear-gradient(180deg,#f0e9da,#e6dcc6 55%,#dccfb2)', boxShadow: 'inset 0 0 26px rgba(90,70,120,0.3)' }}
+          className="flex-1 px-4 py-4 relative"
+        >
+          <div className="absolute inset-y-0 left-0 w-4 pointer-events-none" style={{ background: 'linear-gradient(90deg,rgba(70,50,100,0.32),transparent)' }} />
+          <div className="absolute inset-y-0 right-0 w-4 pointer-events-none" style={{ background: 'linear-gradient(270deg,rgba(70,50,100,0.32),transparent)' }} />
+
+          <p className="text-center leading-relaxed text-[13px] md:text-sm font-serif" style={{ color: '#332a44' }}>
+            {VERSE.map((tok, i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0 }}
+                animate={tok.c
+                  ? { opacity: 1, color: [tok.c, '#332a44', tok.c], textShadow: ['0 0 0px transparent', `0 0 10px ${tok.c}99`, '0 0 0px transparent'] }
+                  : { opacity: 1 }}
+                transition={tok.c
+                  ? { opacity: { delay: 0.9 + i * 0.16, duration: 0.4 }, default: { delay: 1.6, duration: 3.2, repeat: Infinity, repeatDelay: 1.5 } }
+                  : { delay: 0.9 + i * 0.16, duration: 0.4 }}
+                style={{ fontWeight: tok.c ? 700 : 400 }}
+              >
+                {tok.t}{' '}
+              </motion.span>
+            ))}
+          </p>
+        </motion.div>
+        <div className="w-3.5 rounded-r-sm shrink-0" style={{ background: 'linear-gradient(270deg,#4a2f5e,#7a5aa0 40%,#5b3d80)' }} />
       </div>
 
-      {/* Verse */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 3.2, duration: 1.6 }}
-        className="absolute bottom-4 left-0 right-0 text-center z-10 pointer-events-none"
-      >
-        <p className="font-amiri text-xs md:text-sm text-verse-green/75 px-4" style={{ textShadow: '0 0 20px rgba(45,212,168,0.3)' }}>
-          وَمُبَشِّرًا بِرَسُولٍ يَأْتِي مِن بَعْدِي اسْمُهُ أَحْمَدُ
-        </p>
-        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الصف : 6</p>
-      </motion.div>
+      {/* Prophecy matches */}
+      <div className="relative z-10 flex flex-col gap-2 w-full max-w-md">
+        {MATCHES.map((m, i) => (
+          <motion.div
+            key={m.ref + i}
+            initial={{ opacity: 0, x: -18 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 2.2 + i * 0.25, duration: 0.5 }}
+            className="rounded-lg p-2.5"
+            style={{ background: m.color + '12', border: `1px solid ${m.color}30` }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0" style={{ background: m.color + '25', color: m.color }}>
+                {m.ref}
+              </span>
+              <span className="text-gray-300 text-[11px] italic truncate">{m.text}</span>
+            </div>
+            <p className="text-[11px] font-tajawal font-medium flex items-center gap-1.5" dir="rtl" style={{ color: m.color }}>
+              <span className="font-amiri">↩</span>
+              <span>{m.match}</span>
+            </p>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }

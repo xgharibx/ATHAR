@@ -1,7 +1,11 @@
-
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+
+// 🐪 أَفَلَا يَنظُرُونَ إِلَى الْإِبِلِ كَيْفَ خُلِقَتْ — Camel Adaptation (الغاشية 17)
+// ULTIMATE: a blazing desert with a scorching sun, layered drifting dunes, a
+// sandstorm haze and heat shimmer, a walking camel leaving a footprint trail,
+// and labeled callout lines pointing to its survival adaptations.
 
 export default function CamelAdaptationVisual({ className }: MiracleVisualProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,88 +19,186 @@ export default function CamelAdaptationVisual({ className }: MiracleVisualProps)
     let animId: number;
     let time = 0;
 
-    // Sand dunes
-    const dunePoints: [number, number][] = [];
+    // sandstorm particles
+    const sand = Array.from({ length: 70 }, () => ({
+      x: Math.random(), y: Math.random(),
+      sp: 0.001 + Math.random() * 0.003,
+      r: 0.5 + Math.random() * 1.4,
+      a: Math.random() * 0.25 + 0.05,
+    }));
+
+    const tracks: { x: number; y: number; a: number }[] = [];
 
     const draw = () => {
-      time += 0.007;
+      time += 0.008;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
 
-      // Desert sky
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.55);
-      skyGrad.addColorStop(0, '#0d0800'); skyGrad.addColorStop(0.5, '#1a1000'); skyGrad.addColorStop(1, '#2a1800');
-      ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, w, h * 0.55);
+      // sky
+      const sky = ctx.createLinearGradient(0, 0, 0, h * 0.6);
+      sky.addColorStop(0, '#3a1d04');
+      sky.addColorStop(0.5, '#6b3a0a');
+      sky.addColorStop(1, '#a86417');
+      ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h * 0.6);
 
-      // Stars in sky
-      for (let i = 0; i < 40; i++) {
-        const sx = (Math.sin(i * 47.3) * 0.5 + 0.5) * w;
-        const sy = (Math.cos(i * 31.7) * 0.5 + 0.5) * h * 0.45;
-        const sa = Math.sin(time * 0.5 + i * 0.4) * 0.1 + 0.2;
-        ctx.beginPath(); ctx.arc(sx, sy, 0.8, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,230,180,${sa})`; ctx.fill();
-      }
+      // blazing sun
+      const sunX = w * 0.78, sunY = h * 0.22;
+      const sunR = Math.min(w, h) * 0.09;
+      const halo = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR * 3);
+      halo.addColorStop(0, 'rgba(255,230,160,0.5)');
+      halo.addColorStop(0.3, 'rgba(255,180,80,0.22)');
+      halo.addColorStop(1, 'rgba(255,150,50,0)');
+      ctx.beginPath(); ctx.arc(sunX, sunY, sunR * 3, 0, Math.PI * 2); ctx.fillStyle = halo; ctx.fill();
+      const sunBody = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR);
+      sunBody.addColorStop(0, '#fff4d0'); sunBody.addColorStop(1, '#ffac3a');
+      ctx.beginPath(); ctx.arc(sunX, sunY, sunR + Math.sin(time * 2) * 2, 0, Math.PI * 2);
+      ctx.fillStyle = sunBody; ctx.fill();
 
-      // Sand
-      const sandGrad = ctx.createLinearGradient(0, h * 0.5, 0, h);
-      sandGrad.addColorStop(0, '#2a1800'); sandGrad.addColorStop(0.3, '#3a2008'); sandGrad.addColorStop(1, '#1a0e00');
-      ctx.fillStyle = sandGrad; ctx.fillRect(0, h * 0.5, w, h * 0.5);
-
-      // Dune waves
-      for (let d = 0; d < 3; d++) {
-        const dY = h * (0.55 + d * 0.12);
-        ctx.strokeStyle = `rgba(80,50,10,${0.2 - d * 0.05})`; ctx.lineWidth = 1;
+      // layered dunes
+      const duneColors = ['#7a4410', '#5e330b', '#3f2207'];
+      const baseY = [0.58, 0.68, 0.78];
+      duneColors.forEach((col, d) => {
         ctx.beginPath();
-        for (let x = 0; x <= w; x += 5) {
-          const dy = dY + Math.sin(x * 0.015 + time * 0.2 + d) * 8;
-          x === 0 ? ctx.moveTo(x, dy) : ctx.lineTo(x, dy);
+        ctx.moveTo(0, h);
+        for (let x = 0; x <= w; x += 6) {
+          const y = h * baseY[d] + Math.sin(x * 0.006 + d * 2 + time * 0.1) * (18 - d * 4) + Math.sin(x * 0.02 + d) * 6;
+          ctx.lineTo(x, y);
         }
+        ctx.lineTo(w, h); ctx.closePath();
+        ctx.fillStyle = col; ctx.fill();
+      });
+
+      // ground level for camel
+      const groundY = h * baseY[1] - 6;
+
+      // footprint trail
+      ctx.fillStyle = 'rgba(40,22,6,0.5)';
+      tracks.forEach((t) => {
+        t.a -= 0.0015;
+        if (t.a > 0) {
+          ctx.beginPath(); ctx.ellipse(t.x, t.y, 3, 2, 0, 0, Math.PI * 2);
+          ctx.globalAlpha = Math.max(0, t.a); ctx.fill(); ctx.globalAlpha = 1;
+        }
+      });
+      while (tracks.length && tracks[0].a <= 0) tracks.shift();
+
+      // ── camel walking ──
+      const camX = w * 0.4 + Math.sin(time * 0.12) * w * 0.06;
+      const camY = groundY;
+      const u = Math.min(w, h) * 0.012; // unit
+      const sway = Math.sin(time * 1.4) * 1.2;
+
+      ctx.save();
+      ctx.translate(camX, camY + sway);
+      const camFill = 'rgba(120,75,25,0.92)';
+      const camStroke = 'rgba(70,42,12,0.8)';
+      ctx.fillStyle = camFill; ctx.strokeStyle = camStroke; ctx.lineWidth = 1;
+
+      // legs (animated)
+      const legPhase = time * 2.2;
+      const legs = [
+        { x: -3.2 * u, ph: 0 }, { x: -1.2 * u, ph: Math.PI },
+        { x: 2.4 * u, ph: Math.PI * 0.5 }, { x: 4.2 * u, ph: Math.PI * 1.5 },
+      ];
+      legs.forEach((lg) => {
+        const swing = Math.sin(legPhase + lg.ph) * 1.2 * u;
+        ctx.strokeStyle = camStroke; ctx.lineWidth = 1.6 * u; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(lg.x, -1.2 * u);
+        ctx.quadraticCurveTo(lg.x + swing * 0.4, 1.4 * u, lg.x + swing, 3.4 * u);
+        ctx.stroke();
+        // footprint drop
+        if (Math.abs(swing) < 0.15 * u && Math.random() < 0.3)
+          tracks.push({ x: camX + lg.x + swing, y: camY + 3.4 * u + sway, a: 0.45 });
+      });
+      ctx.lineCap = 'butt';
+
+      // body
+      ctx.beginPath();
+      ctx.ellipse(0.5 * u, -2.6 * u, 4.6 * u, 2.2 * u, 0.04, 0, Math.PI * 2);
+      ctx.fillStyle = camFill; ctx.fill(); ctx.strokeStyle = camStroke; ctx.lineWidth = 1; ctx.stroke();
+      // hump
+      ctx.beginPath();
+      ctx.ellipse(0.6 * u, -4.6 * u, 2.1 * u, 1.9 * u, -0.15, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      // neck
+      ctx.beginPath();
+      ctx.moveTo(3.6 * u, -3.4 * u);
+      ctx.quadraticCurveTo(5.6 * u, -4.6 * u, 5.9 * u, -7 * u);
+      ctx.lineWidth = 1.4 * u; ctx.strokeStyle = camFill; ctx.stroke();
+      // head
+      ctx.beginPath();
+      ctx.ellipse(6.2 * u, -7.6 * u, 1.2 * u, 0.8 * u, 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = camFill; ctx.fill();
+      // muzzle
+      ctx.beginPath();
+      ctx.ellipse(7.1 * u, -7.0 * u, 0.7 * u, 0.5 * u, 0.5, 0, Math.PI * 2);
+      ctx.fill();
+      // ear
+      ctx.beginPath();
+      ctx.moveTo(5.7 * u, -8.2 * u); ctx.lineTo(5.4 * u, -9 * u); ctx.lineTo(6.0 * u, -8.4 * u);
+      ctx.closePath(); ctx.fill();
+      // tail
+      ctx.strokeStyle = camStroke; ctx.lineWidth = 0.4 * u;
+      ctx.beginPath();
+      ctx.moveTo(-4 * u, -3 * u);
+      ctx.quadraticCurveTo(-5 * u + Math.sin(time * 3) * 0.5 * u, -1.4 * u, -4.6 * u, 0.4 * u);
+      ctx.stroke();
+      ctx.restore();
+
+      // heat shimmer streaks near ground
+      for (let i = 0; i < 8; i++) {
+        const hx = (i / 8) * w + Math.sin(time + i) * 6;
+        ctx.strokeStyle = `rgba(255,210,140,${0.04 + Math.sin(time * 2 + i) * 0.02})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(hx, groundY + 8);
+        ctx.quadraticCurveTo(hx + 4, groundY + 2, hx, groundY - 6);
         ctx.stroke();
       }
 
-      // ── Camel silhouette ────────────────────────────────────────────
-      const camX = w * 0.42 + Math.sin(time * 0.15) * w * 0.02;
-      const camY = h * 0.54;
-      const sc = Math.min(w, h) * 0.0025;
-      ctx.fillStyle = 'rgba(80,50,15,0.55)';
-      ctx.strokeStyle = 'rgba(100,65,20,0.3)'; ctx.lineWidth = 1;
-      // Body
-      ctx.beginPath(); ctx.ellipse(camX, camY, 55 * sc * 10, 28 * sc * 10, 0.05, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-      // Hump
-      ctx.beginPath(); ctx.ellipse(camX + 8 * sc * 10, camY - 32 * sc * 10, 22 * sc * 10, 20 * sc * 10, -0.2, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-      // Neck
-      ctx.beginPath();
-      ctx.moveTo(camX + 30 * sc * 10, camY - 18 * sc * 10);
-      ctx.quadraticCurveTo(camX + 55 * sc * 10, camY - 30 * sc * 10, camX + 60 * sc * 10, camY - 48 * sc * 10);
-      ctx.lineWidth = 14 * sc * 10; ctx.strokeStyle = 'rgba(80,50,15,0.55)'; ctx.stroke();
-      // Head
-      ctx.beginPath(); ctx.ellipse(camX + 62 * sc * 10, camY - 52 * sc * 10, 12 * sc * 10, 9 * sc * 10, 0.3, 0, Math.PI * 2);
-      ctx.fill();
-      // Legs
-      for (let l = 0; l < 4; l++) {
-        const lx = camX - 35 * sc * 10 + l * 22 * sc * 10;
-        const legWave = l < 2 ? Math.sin(time * 1.2) * 5 * sc * 10 : -Math.sin(time * 1.2) * 5 * sc * 10;
-        ctx.strokeStyle = 'rgba(80,50,15,0.5)'; ctx.lineWidth = 7 * sc * 10;
-        ctx.beginPath(); ctx.moveTo(lx, camY + 22 * sc * 10); ctx.lineTo(lx + legWave, camY + 52 * sc * 10); ctx.stroke();
-      }
+      // sandstorm particles
+      sand.forEach((p) => {
+        p.x += p.sp; if (p.x > 1.05) { p.x = -0.05; p.y = Math.random(); }
+        ctx.beginPath(); ctx.arc(p.x * w, p.y * h * 0.85, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(220,180,110,${p.a})`; ctx.fill();
+      });
 
-      // Temperature readout
-      const tempPulse = Math.sin(time * 2) * 0.1 + 0.4;
-      ctx.font = `8px monospace`; ctx.textAlign = 'right';
-      ctx.fillStyle = `rgba(255,160,60,${tempPulse})`;
-      ctx.fillText('~40 C', w * 0.97, h * 0.15);
-      ctx.fillText('body temp', w * 0.97, h * 0.2);
+      // callout adaptations
+      const callouts = [
+        { x: camX + 0.6 * Math.min(w, h) * 0.012, y: camY - 4.6 * Math.min(w, h) * 0.012, lx: w * 0.12, ly: h * 0.2, en: 'سَنام = دهون', sub: 'fat, not water' },
+        { x: camX + 6.2 * Math.min(w, h) * 0.012, y: camY - 7.6 * Math.min(w, h) * 0.012, lx: w * 0.86, ly: h * 0.46, en: 'مَنخران يُغلَقان', sub: 'closing nostrils' },
+        { x: camX - 3 * Math.min(w, h) * 0.012, y: camY + 3 * Math.min(w, h) * 0.012, lx: w * 0.12, ly: h * 0.55, en: 'أقدام عريضة', sub: 'wide soft feet' },
+      ];
+      callouts.forEach((c, i) => {
+        const on = (Math.sin(time * 0.9 - i * 1.6) * 0.5 + 0.5);
+        ctx.strokeStyle = `rgba(255,210,140,${0.15 + on * 0.4})`;
+        ctx.lineWidth = 0.8; ctx.setLineDash([2, 3]);
+        ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(c.lx, c.ly); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath(); ctx.arc(c.x, c.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,220,150,${0.4 + on * 0.5})`; ctx.fill();
+        ctx.textAlign = c.lx < w * 0.5 ? 'left' : 'right';
+        ctx.font = 'bold 8px sans-serif';
+        ctx.fillStyle = `rgba(255,225,160,${0.4 + on * 0.5})`;
+        ctx.fillText(c.en, c.lx, c.ly - 5);
+        ctx.font = '7px monospace';
+        ctx.fillStyle = `rgba(200,160,90,${0.3 + on * 0.4})`;
+        ctx.fillText(c.sub, c.lx, c.ly + 5);
+      });
 
-      // Hump water label
-      ctx.font = `7px sans-serif`; ctx.textAlign = 'left';
-      ctx.fillStyle = `rgba(180,140,80,0.3)`;
-      ctx.fillText('دهون = طاقة', w * 0.04, h * 0.3);
-      ctx.fillText('not water!', w * 0.04, h * 0.36);
+      // temp readout
+      const tempPulse = Math.sin(time * 2) * 0.15 + 0.55;
+      ctx.font = 'bold 9px monospace'; ctx.textAlign = 'right';
+      ctx.fillStyle = `rgba(255,150,50,${tempPulse})`;
+      ctx.fillText('50°C', w * 0.97, h * 0.12);
+      ctx.font = '7px monospace';
+      ctx.fillStyle = 'rgba(255,180,100,0.5)';
+      ctx.fillText('±6°C body tolerance', w * 0.97, h * 0.165);
 
-      // main label
-      ctx.font = `bold 10px serif`; ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(200,160,80,0.45)'; ctx.shadowColor = 'rgba(160,120,40,0.2)'; ctx.shadowBlur = 8;
+      // verse label
+      ctx.font = 'bold 11px serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,210,140,0.55)';
+      ctx.shadowColor = 'rgba(200,150,60,0.3)'; ctx.shadowBlur = 12;
       ctx.fillText('أَفَلَا يَنظُرُونَ إِلَى الْإِبِلِ كَيْفَ خُلِقَتْ', w * 0.5, h * 0.95);
       ctx.shadowBlur = 0;
 

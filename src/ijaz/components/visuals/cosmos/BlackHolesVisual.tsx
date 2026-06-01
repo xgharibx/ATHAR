@@ -43,7 +43,6 @@ export default function BlackHolesVisual({ className }: MiracleVisualProps) {
     const draw = () => {
       time += 0.007;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      const dpr = window.devicePixelRatio || 1;
       const cx = w * 0.5, cy = h * 0.46;
       const bhR = Math.min(w, h) * 0.115; // black hole radius
 
@@ -220,7 +219,7 @@ export default function BlackHolesVisual({ className }: MiracleVisualProps) {
 
         // Arabic
         ctx.fillStyle = color;
-        ctx.font = `bold ${12 * dpr}px serif`;
+        ctx.font = `bold 12px serif`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.shadowColor = color; ctx.shadowBlur = 8;
         ctx.fillText(text, wax, way - 5);
@@ -228,7 +227,7 @@ export default function BlackHolesVisual({ className }: MiracleVisualProps) {
         // Sub
         ctx.globalAlpha = pulse * 0.65; ctx.shadowBlur = 0;
         ctx.fillStyle = 'rgba(200,180,150,0.7)';
-        ctx.font = `${8 * dpr}px sans-serif`;
+        ctx.font = `8px sans-serif`;
         ctx.fillText(sub, wax, way + 10);
         ctx.restore();
       });

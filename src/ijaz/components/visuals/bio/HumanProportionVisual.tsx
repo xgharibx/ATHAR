@@ -1,11 +1,11 @@
-
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 
-// 🧑 لَقَدْ خَلَقْنَا الْإِنسَانَ فِي أَحْسَنِ تَقْوِيمٍ — Human Proportion
-// At-Tin 95:4 — We created man in the best of form
-// Golden ratio φ=1.618 in human body proportions
+// 🧑 لَقَدْ خَلَقْنَا الْإِنسَانَ فِي أَحْسَنِ تَقْوِيمٍ — Human Proportion (التين 4)
+// ULTIMATE: a Vitruvian-style figure inscribed in a rotating circle + square, with
+// golden-ratio division points that sweep into place one by one, a growing φ spiral,
+// and animated calipers measuring height = armspan — geometry of perfect form.
 
 export default function HumanProportionVisual({ className }: MiracleVisualProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,97 +18,133 @@ export default function HumanProportionVisual({ className }: MiracleVisualProps)
 
     let animId: number;
     let time = 0;
+    const phi = 1.618;
 
     const draw = () => {
-      time += 0.007;
+      time += 0.008;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
       const cx = w * 0.5, cy = h * 0.5;
-      const figH = Math.min(h * 0.72, w * 0.7);
+      const figH = Math.min(h * 0.62, w * 0.78);
       const figW = figH * 0.38;
+      const reveal = Math.min(1, time / 3);
 
       ctx.fillStyle = '#06030a'; ctx.fillRect(0, 0, w, h);
 
-      // Soft radial glow behind figure
-      const figGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, figH * 0.6);
-      figGlow.addColorStop(0, 'rgba(160,100,200,0.04)');
-      figGlow.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = figGlow; ctx.fillRect(0, 0, w, h);
+      // glow
+      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, figH * 0.75);
+      glow.addColorStop(0, 'rgba(160,100,200,0.06)');
+      glow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
 
-      // ── Human silhouette ──────────────────────────────────────
-      const figAlpha = Math.sin(time * 1.2) * 0.04 + 0.18;
-      const figY = cy - figH * 0.45;
-      // Head
+      const figY = cy - figH * 0.5;
+      const feetY = cy + figH * 0.5;
       const headR = figH * 0.1;
-      ctx.beginPath(); ctx.arc(cx, figY + headR, headR, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200,160,255,${figAlpha * 3})`; ctx.fill();
-      ctx.strokeStyle = `rgba(180,130,220,${figAlpha * 2})`; ctx.lineWidth = 1;
+
+      // Rotating inscribed circle + square (Vitruvian frame)
+      const frameR = figH * 0.5;
+      ctx.save();
+      ctx.translate(cx, cy);
+      // circle
+      ctx.beginPath();
+      ctx.arc(0, 0, frameR, -Math.PI / 2, -Math.PI / 2 + reveal * Math.PI * 2);
+      ctx.strokeStyle = `rgba(255,220,100,${0.25 + Math.sin(time * 2) * 0.06})`;
+      ctx.lineWidth = 1;
       ctx.stroke();
-      // Body
+      // square (slowly rotating)
+      ctx.rotate(Math.sin(time * 0.2) * 0.05);
+      ctx.strokeStyle = `rgba(100,200,255,${0.18 * reveal})`;
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(-frameR * 0.82, -frameR * 0.82, frameR * 1.64, frameR * 1.64);
+      ctx.restore();
+
+      // Figure silhouette
+      const figAlpha = Math.sin(time * 1.2) * 0.05 + 0.22;
+      ctx.beginPath(); ctx.arc(cx, figY + headR, headR, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,160,255,${figAlpha * 2.4})`; ctx.fill();
+      ctx.strokeStyle = `rgba(190,140,230,${figAlpha * 2})`; ctx.lineWidth = 1; ctx.stroke();
+
       const bodyTop = figY + headR * 2;
       ctx.beginPath();
       ctx.moveTo(cx - figW * 0.25, bodyTop);
       ctx.lineTo(cx - figW * 0.5, bodyTop + figH * 0.35);
-      ctx.lineTo(cx - figW * 0.3, bodyTop + figH * 0.6);
-      ctx.lineTo(cx + figW * 0.3, bodyTop + figH * 0.6);
+      ctx.lineTo(cx - figW * 0.3, bodyTop + figH * 0.58);
+      ctx.lineTo(cx + figW * 0.3, bodyTop + figH * 0.58);
       ctx.lineTo(cx + figW * 0.5, bodyTop + figH * 0.35);
       ctx.lineTo(cx + figW * 0.25, bodyTop);
       ctx.closePath();
-      ctx.fillStyle = `rgba(160,110,200,${figAlpha * 2.5})`; ctx.fill();
-      ctx.strokeStyle = `rgba(180,130,220,${figAlpha * 1.5})`; ctx.lineWidth = 0.8; ctx.stroke();
-      // Legs
-      ctx.beginPath();
-      ctx.moveTo(cx - figW * 0.3, bodyTop + figH * 0.6);
-      ctx.lineTo(cx - figW * 0.35, bodyTop + figH);
-      ctx.lineTo(cx - figW * 0.1, bodyTop + figH);
-      ctx.lineTo(cx - figW * 0.05, bodyTop + figH * 0.6);
-      ctx.closePath();
-      ctx.fillStyle = `rgba(150,100,190,${figAlpha * 2})`; ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(cx + figW * 0.3, bodyTop + figH * 0.6);
-      ctx.lineTo(cx + figW * 0.35, bodyTop + figH);
-      ctx.lineTo(cx + figW * 0.1, bodyTop + figH);
-      ctx.lineTo(cx + figW * 0.05, bodyTop + figH * 0.6);
-      ctx.closePath();
-      ctx.fillStyle = `rgba(150,100,190,${figAlpha * 2})`; ctx.fill();
+      ctx.fillStyle = `rgba(165,115,205,${figAlpha * 2.2})`; ctx.fill();
+      ctx.strokeStyle = `rgba(190,140,230,${figAlpha * 1.4})`; ctx.lineWidth = 0.8; ctx.stroke();
 
-      // ── Golden ratio lines ─────────────────────────────────
-      const phi = 1.618;
-      const feetY = bodyTop + figH;
+      for (const sgn of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(cx + sgn * figW * 0.3, bodyTop + figH * 0.58);
+        ctx.lineTo(cx + sgn * figW * 0.35, bodyTop + figH * 0.98);
+        ctx.lineTo(cx + sgn * figW * 0.1, bodyTop + figH * 0.98);
+        ctx.lineTo(cx + sgn * figW * 0.05, bodyTop + figH * 0.58);
+        ctx.closePath();
+        ctx.fillStyle = `rgba(150,100,190,${figAlpha * 1.8})`; ctx.fill();
+      }
+      // outstretched arms
+      ctx.strokeStyle = `rgba(165,115,205,${figAlpha * 2})`;
+      ctx.lineWidth = figW * 0.16;
+      ctx.lineCap = 'round';
+      const armY = bodyTop + figH * 0.14;
+      ctx.beginPath();
+      ctx.moveTo(cx - figW * 1.3, armY);
+      ctx.lineTo(cx + figW * 1.3, armY);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+
+      // Golden-ratio division points sweeping in
       const totalH = feetY - figY;
-      // Navel divides body in golden ratio
+      const divisions = [
+        { y: feetY - totalH / phi, label: 'φ السُّرّة', color: '255,220,100' },
+        { y: figY + headR * 2, label: 'الكتفان', color: '255,180,120' },
+        { y: feetY - totalH / (phi * phi), label: 'φ²', color: '255,200,80' },
+      ];
+      divisions.forEach((d, i) => {
+        const dp = Math.max(0, Math.min(1, (reveal * 3) - i));
+        if (dp <= 0) return;
+        const lineW = figW * 1.5 * dp;
+        ctx.strokeStyle = `rgba(${d.color},${0.3 + Math.sin(time * 2 + i) * 0.1})`;
+        ctx.lineWidth = 0.9;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(cx - lineW, d.y);
+        ctx.lineTo(cx + lineW, d.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font = '8px monospace'; ctx.textAlign = 'left';
+        ctx.fillStyle = `rgba(${d.color},${0.6 * dp})`;
+        ctx.fillText(d.label, cx + lineW + 4, d.y + 3);
+      });
+
+      // φ spiral growing from navel
       const navelY = feetY - totalH / phi;
-      ctx.strokeStyle = `rgba(255,220,100,${0.25 + Math.sin(time * 2) * 0.08})`; ctx.lineWidth = 0.8;
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath(); ctx.moveTo(cx - figW * 0.6, navelY); ctx.lineTo(cx + figW * 0.6, navelY); ctx.stroke();
-      ctx.setLineDash([]);
-      // Phi label
-      ctx.font = `7px monospace`; ctx.textAlign = 'left';
-      ctx.fillStyle = `rgba(255,220,100,0.4)`;
-      ctx.fillText('φ = 1.618', cx + figW * 0.65, navelY + 4);
-
-      // Arm span = height lines
-      const armY = bodyTop + figH * 0.18;
-      ctx.strokeStyle = `rgba(100,200,255,0.2)`; ctx.lineWidth = 0.8;
-      ctx.beginPath(); ctx.moveTo(cx - figW * 1.4, armY); ctx.lineTo(cx + figW * 1.4, armY); ctx.stroke();
-      ctx.font = `6px monospace`; ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(100,200,255,0.3)';
-      ctx.fillText('بسط اليدين = الطول', cx, armY - 5);
-
-      // Fibonacci spiral hint
-      let spR = 8; let spX = cx + figW * 0.1, spY = navelY;
-      ctx.strokeStyle = `rgba(200,150,255,0.15)`; ctx.lineWidth = 0.6;
-      for (let i = 0; i < 6; i++) {
+      let spR = figH * 0.02; let spX = cx + figW * 0.08, spY = navelY;
+      const spiralSteps = Math.floor(reveal * 7);
+      ctx.strokeStyle = 'rgba(210,160,255,0.3)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < spiralSteps; i++) {
         const startA = (i % 4) * (Math.PI / 2);
-        ctx.beginPath(); ctx.arc(spX, spY, spR, startA, startA + Math.PI / 2); ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(spX, spY, spR, startA, startA + Math.PI / 2);
+        ctx.stroke();
         spX += Math.cos(startA + Math.PI / 2) * spR;
         spY += Math.sin(startA + Math.PI / 2) * spR;
-        spR *= phi * 0.7;
+        spR *= phi * 0.72;
       }
 
+      // φ readout
+      ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
+      ctx.fillStyle = `rgba(255,220,100,${0.5 + Math.sin(time * 3) * 0.15})`;
+      ctx.fillText('φ = 1.6180339…', cx, figY - 6);
+
       // أحسن تقويم label
-      ctx.font = `bold 11px serif`; ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(200,160,255,0.5)'; ctx.shadowColor = 'rgba(160,100,255,0.3)'; ctx.shadowBlur = 10;
-      ctx.fillText('أَحْسَنِ تَقْوِيمٍ', w * 0.5, h * 0.95);
+      ctx.font = 'bold 12px serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(205,165,255,0.55)';
+      ctx.shadowColor = 'rgba(160,100,255,0.4)'; ctx.shadowBlur = 12;
+      ctx.fillText('أَحْسَنِ تَقْوِيمٍ', w * 0.5, h * 0.96);
       ctx.shadowBlur = 0;
 
       animId = requestAnimationFrame(draw);
@@ -127,8 +163,7 @@ export default function HumanProportionVisual({ className }: MiracleVisualProps)
   }, []);
 
   return (
-    <div className={`relative w-full h-full overflow-hidden ${className || ''}`}
-      style={{ background: '#06030a' }}>
+    <div className={`relative w-full h-full overflow-hidden ${className || ''}`} style={{ background: '#06030a' }}>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}

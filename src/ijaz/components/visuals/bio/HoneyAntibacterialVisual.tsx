@@ -1,11 +1,11 @@
-
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 
-// 🍯 فِيهِ شِفَاءٌ لِلنَّاسِ — Honey as Healing
-// An-Nahl 16:69 — honey contains healing for people
-// H2O2, defensin-1, MGO, pH 3.2-4.5, osmotic — all antibacterial
+// 🍯 فِيهِ شِفَاءٌ لِلنَّاسِ — Honey as Healing (النحل 69)
+// ULTIMATE: a living honeycomb glows and drips; antibacterial agents (H₂O₂, MGO,
+// Defensin-1) actively hunt bacteria across the field, strike them, and detonate
+// them in golden bursts — a visible immune battle inside the honey.
 
 export default function HoneyAntibacterialVisual({ className }: MiracleVisualProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,17 +19,23 @@ export default function HoneyAntibacterialVisual({ className }: MiracleVisualPro
     let animId: number;
     let time = 0;
 
-    // Hexagonal honeycomb grid
-    type HexCell = { cx: number; cy: number; fill: number; bacteria: boolean };
+    type HexCell = { cx: number; cy: number; fill: number };
     const hexCells: HexCell[] = [];
 
-    // Honey particles (H2O2 and MGO)
-    type HParticle = { x: number; y: number; vx: number; vy: number; type: 'h2o2' | 'mgo' | 'defensin'; alpha: number };
-    const hParticles: HParticle[] = [];
+    type Agent = { x: number; y: number; type: 'h2o2' | 'mgo' | 'defensin'; target: number; speed: number };
+    const agents: Agent[] = [];
 
-    // Bacteria being destroyed
-    type BacteriaCell = { x: number; y: number; size: number; dying: boolean; deathProgress: number; phase: number };
-    const bacteriaCells: BacteriaCell[] = [];
+    type Bacteria = { x: number; y: number; size: number; phase: number; dying: number; alive: boolean };
+    const bacteria: Bacteria[] = [];
+
+    type Burst = { x: number; y: number; life: number };
+    const bursts: Burst[] = [];
+
+    type Drip = { x: number; y: number; vy: number; len: number };
+    const drips: Drip[] = [];
+
+    const COLORS = { h2o2: '180,220,255', mgo: '255,180,60', defensin: '160,255,160' };
+    const LABEL = { h2o2: 'H₂O₂', mgo: 'MGO', defensin: 'DEF' };
 
     const buildHex = (w: number, h: number) => {
       hexCells.length = 0;
@@ -37,81 +43,182 @@ export default function HoneyAntibacterialVisual({ className }: MiracleVisualPro
       const hexW = hexR * 2;
       const hexH = Math.sqrt(3) * hexR;
       const cols = Math.ceil(w / (hexW * 0.75)) + 1;
-      const rows = Math.ceil(h * 0.55 / hexH) + 1;
+      const rows = Math.ceil(h / hexH) + 1;
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const cx = c * hexW * 0.75;
-          const cy = (r % 1 === 0 ? 0 : hexH * 0.5) + r * hexH + h * 0.1;
           const isOdd = c % 2 === 1;
-          hexCells.push({ cx, cy: cy + (isOdd ? hexH * 0.5 : 0), fill: Math.random(), bacteria: Math.random() < 0.05 });
+          const cy = r * hexH + (isOdd ? hexH * 0.5 : 0);
+          hexCells.push({ cx, cy, fill: Math.random() });
         }
       }
     };
 
     let lastW = 0, lastH = 0;
 
-    const drawHex = (cx: number, cy: number, r: number, fillAmt: number) => {
+    const drawHex = (cx: number, cy: number, r: number) => {
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
         const a = (i * Math.PI) / 3 - Math.PI / 6;
-        i === 0 ? ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r)
-          : ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+        if (i === 0) ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+        else ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
       }
       ctx.closePath();
     };
 
+    const spawnBacteria = (w: number, h: number) => {
+      bacteria.push({
+        x: Math.random() * w * 0.8 + w * 0.1,
+        y: Math.random() * h * 0.55 + h * 0.12,
+        size: Math.random() * 4 + 5,
+        phase: Math.random() * Math.PI * 2,
+        dying: 0,
+        alive: true,
+      });
+    };
+
+    const spawnAgent = (w: number, h: number) => {
+      const types: ('h2o2' | 'mgo' | 'defensin')[] = ['h2o2', 'mgo', 'defensin'];
+      agents.push({
+        x: Math.random() * w,
+        y: Math.random() * h * 0.6 + h * 0.1,
+        type: types[Math.floor(Math.random() * 3)],
+        target: -1,
+        speed: Math.random() * 0.6 + 0.9,
+      });
+    };
+
     const draw = () => {
-      time += 0.007;
+      time += 0.008;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
-      if (w !== lastW || h !== lastH) { buildHex(w, h); lastW = w; lastH = h; }
+      if (w !== lastW || h !== lastH) {
+        buildHex(w, h); lastW = w; lastH = h;
+        bacteria.length = 0; agents.length = 0;
+        for (let i = 0; i < 6; i++) spawnBacteria(w, h);
+        for (let i = 0; i < 14; i++) spawnAgent(w, h);
+      }
 
       ctx.fillStyle = '#0f0800'; ctx.fillRect(0, 0, w, h);
 
-      // ── Honeycomb background ──────────────────────────────────
+      // Honeycomb with pulsing golden fill
       const hexR = Math.min(w, h) * 0.06;
       hexCells.forEach((cell) => {
-        const honeyAlpha = 0.15 + cell.fill * 0.2 + Math.sin(time * 0.5 + cell.cx * 0.01) * 0.04;
-        drawHex(cell.cx, cell.cy, hexR * 0.92, 0);
-        const honeyGrad = ctx.createRadialGradient(cell.cx, cell.cy, 0, cell.cx, cell.cy, hexR);
-        honeyGrad.addColorStop(0, `rgba(220,160,20,${honeyAlpha})`);
-        honeyGrad.addColorStop(1, `rgba(160,100,10,${honeyAlpha * 0.5})`);
-        ctx.fillStyle = honeyGrad; ctx.fill();
-        ctx.strokeStyle = `rgba(180,130,30,${honeyAlpha * 0.8})`; ctx.lineWidth = 0.7; ctx.stroke();
+        const a = 0.14 + cell.fill * 0.18 + Math.sin(time * 1.2 + cell.cx * 0.02 + cell.cy * 0.02) * 0.06;
+        drawHex(cell.cx, cell.cy, hexR * 0.92);
+        const g = ctx.createRadialGradient(cell.cx, cell.cy, 0, cell.cx, cell.cy, hexR);
+        g.addColorStop(0, `rgba(230,170,30,${a})`);
+        g.addColorStop(1, `rgba(150,95,10,${a * 0.5})`);
+        ctx.fillStyle = g; ctx.fill();
+        ctx.strokeStyle = `rgba(190,140,35,${a})`; ctx.lineWidth = 0.8; ctx.stroke();
       });
 
-      // ── Honey glow center ─────────────────────────────────────
-      const glowGrad = ctx.createRadialGradient(w * 0.5, h * 0.42, 0, w * 0.5, h * 0.42, w * 0.3);
-      glowGrad.addColorStop(0, 'rgba(220,160,30,0.12)');
-      glowGrad.addColorStop(0.5, 'rgba(180,120,20,0.06)');
-      glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = glowGrad; ctx.fillRect(0, 0, w, h);
+      // Central honey glow
+      const glow = ctx.createRadialGradient(w * 0.5, h * 0.42, 0, w * 0.5, h * 0.42, w * 0.35);
+      glow.addColorStop(0, 'rgba(230,170,40,0.14)');
+      glow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
 
-      // Spawn honey particles
-      if (hParticles.length < 60 && Math.random() < 0.3) {
-        const types: ('h2o2' | 'mgo' | 'defensin')[] = ['h2o2', 'mgo', 'defensin'];
-        hParticles.push({
-          x: Math.random() * w, y: Math.random() * h * 0.7 + h * 0.1,
-          vx: (Math.random() - 0.5) * 0.8, vy: (Math.random() - 0.5) * 0.6,
-          type: types[Math.floor(Math.random() * 3)], alpha: 0.7,
-        });
+      // Honey drips
+      if (Math.random() < 0.04) drips.push({ x: Math.random() * w, y: h * 0.62, vy: 0.3, len: 0 });
+      for (let i = drips.length - 1; i >= 0; i--) {
+        const d = drips[i];
+        d.vy += 0.02; d.y += d.vy; d.len = Math.min(d.len + 0.5, 18);
+        const grd = ctx.createLinearGradient(d.x, d.y - d.len, d.x, d.y);
+        grd.addColorStop(0, 'rgba(230,170,40,0)');
+        grd.addColorStop(1, 'rgba(245,195,70,0.7)');
+        ctx.strokeStyle = grd; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(d.x, d.y - d.len); ctx.lineTo(d.x, d.y); ctx.stroke();
+        ctx.beginPath(); ctx.arc(d.x, d.y, 2.4, 0, Math.PI * 2); ctx.fillStyle = 'rgba(250,205,80,0.8)'; ctx.fill();
+        if (d.y > h) drips.splice(i, 1);
       }
 
-      hParticles.forEach((p, i) => {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > w) p.vx *= -1;
-        if (p.y < h * 0.1 || p.y > h * 0.75) p.vy *= -1;
-        const colors = { h2o2: 'rgba(180,220,255,', mgo: 'rgba(255,180,60,', defensin: 'rgba(160,255,160,' };
-        ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-        ctx.fillStyle = colors[p.type] + p.alpha + ')'; ctx.fill();
-        ctx.font = `5px monospace`; ctx.textAlign = 'center';
-        ctx.fillStyle = colors[p.type] + p.alpha * 0.7 + ')';
-        ctx.fillText(p.type === 'h2o2' ? 'H₂O₂' : p.type === 'mgo' ? 'MGO' : 'DEF', p.x, p.y - 6);
+      // Maintain populations
+      if (bacteria.filter(b => b.alive).length < 5 && Math.random() < 0.03) spawnBacteria(w, h);
+
+      // Bacteria
+      bacteria.forEach((b) => {
+        if (!b.alive) return;
+        if (b.dying > 0) {
+          b.dying += 0.05;
+          const p = b.dying;
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.size * (1 + p), 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255,210,90,${Math.max(0, 1 - p)})`;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          if (b.dying >= 1) { b.alive = false; bursts.push({ x: b.x, y: b.y, life: 0 }); }
+          return;
+        }
+        b.x += Math.sin(time * 0.8 + b.phase) * 0.4;
+        b.y += Math.cos(time * 0.6 + b.phase) * 0.3;
+        // rod-shaped bacterium
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.phase + time * 0.3);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, b.size, b.size * 0.5, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(120,180,90,0.55)';
+        ctx.strokeStyle = 'rgba(150,220,110,0.8)';
+        ctx.lineWidth = 1;
+        ctx.fill(); ctx.stroke();
+        ctx.restore();
       });
 
+      // Agents hunt nearest living bacterium
+      agents.forEach((ag) => {
+        // pick target
+        if (ag.target < 0 || !bacteria[ag.target]?.alive || bacteria[ag.target]?.dying > 0) {
+          let best = -1, bestD = Infinity;
+          bacteria.forEach((b, idx) => {
+            if (!b.alive || b.dying > 0) return;
+            const d = Math.hypot(b.x - ag.x, b.y - ag.y);
+            if (d < bestD) { bestD = d; best = idx; }
+          });
+          ag.target = best;
+        }
+        const tgt = ag.target >= 0 ? bacteria[ag.target] : null;
+        if (tgt && tgt.alive) {
+          const dx = tgt.x - ag.x, dy = tgt.y - ag.y;
+          const d = Math.hypot(dx, dy) || 1;
+          ag.x += (dx / d) * ag.speed;
+          ag.y += (dy / d) * ag.speed;
+          if (d < tgt.size + 3 && tgt.dying === 0) tgt.dying = 0.01;
+        } else {
+          ag.x += Math.sin(time + ag.y) * 0.3;
+          ag.y += Math.cos(time + ag.x) * 0.3;
+        }
+        const col = COLORS[ag.type];
+        ctx.beginPath();
+        ctx.arc(ag.x, ag.y, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${col},0.9)`;
+        ctx.shadowColor = `rgba(${col},0.8)`; ctx.shadowBlur = 6;
+        ctx.fill(); ctx.shadowBlur = 0;
+        ctx.font = '5px monospace'; ctx.textAlign = 'center';
+        ctx.fillStyle = `rgba(${col},0.7)`;
+        ctx.fillText(LABEL[ag.type], ag.x, ag.y - 6);
+      });
+
+      // Bursts
+      for (let i = bursts.length - 1; i >= 0; i--) {
+        const bu = bursts[i];
+        bu.life += 0.04;
+        const p = bu.life;
+        for (let k = 0; k < 8; k++) {
+          const a = (k / 8) * Math.PI * 2;
+          const rr = p * 24;
+          ctx.beginPath();
+          ctx.arc(bu.x + Math.cos(a) * rr, bu.y + Math.sin(a) * rr, 2 * (1 - p), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,215,100,${Math.max(0, 1 - p)})`;
+          ctx.fill();
+        }
+        if (bu.life >= 1) bursts.splice(i, 1);
+      }
+
       // شِفَاءٌ label
-      ctx.font = `bold 12px serif`; ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(220,180,60,0.6)'; ctx.shadowColor = 'rgba(200,150,40,0.4)'; ctx.shadowBlur = 12;
-      ctx.fillText('فِيهِ شِفَاءٌ لِلنَّاسِ', w * 0.5, h * 0.88);
+      ctx.font = 'bold 13px serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(225,185,65,0.65)';
+      ctx.shadowColor = 'rgba(200,150,40,0.5)'; ctx.shadowBlur = 14;
+      ctx.fillText('فِيهِ شِفَاءٌ لِلنَّاسِ', w * 0.5, h * 0.9);
       ctx.shadowBlur = 0;
 
       animId = requestAnimationFrame(draw);
@@ -130,8 +237,7 @@ export default function HoneyAntibacterialVisual({ className }: MiracleVisualPro
   }, []);
 
   return (
-    <div className={`relative w-full h-full overflow-hidden ${className || ''}`}
-      style={{ background: '#0f0800' }}>
+    <div className={`relative w-full h-full overflow-hidden ${className || ''}`} style={{ background: '#0f0800' }}>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}

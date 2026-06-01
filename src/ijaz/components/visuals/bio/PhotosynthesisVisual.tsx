@@ -1,7 +1,11 @@
-
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
+
+// 🌿 فَأَخْرَجْنَا بِهِ نَبَاتَ كُلِّ شَيْءٍ — Photosynthesis (الأنعام 99)
+// ULTIMATE: golden sunbeams pour onto a glowing leaf; CO₂ enters through stomata,
+// pulsing chloroplasts fire green light-reactions, sugar (C₆H₁₂O₆) assembles, O₂
+// streams out, water rises through the stem, and the equation glows beneath.
 
 export default function PhotosynthesisVisual({ className }: MiracleVisualProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,109 +19,164 @@ export default function PhotosynthesisVisual({ className }: MiracleVisualProps) 
     let animId: number;
     let time = 0;
 
-    type Photon = { x: number; y: number; vy: number; alpha: number };
-    const photons: Photon[] = Array.from({ length: 12 }, (_, i) => ({
-      x: 0.2 + i * 0.055,
-      y: Math.random() * 0.4,
-      vy: 0.003 + Math.random() * 0.002,
-      alpha: 0.6 + Math.random() * 0.4,
+    type Photon = { x: number; y: number; vy: number; alpha: number; col: string };
+    const photons: Photon[] = Array.from({ length: 26 }, () => ({
+      x: 0.1 + Math.random() * 0.8,
+      y: Math.random(),
+      vy: 0.004 + Math.random() * 0.004,
+      alpha: 0.5 + Math.random() * 0.5,
+      col: Math.random() > 0.5 ? '255,235,120' : '255,210,90',
     }));
 
-    type GasParticle = { x: number; y: number; vx: number; vy: number; type: 'CO2' | 'O2'; alpha: number };
-    const gases: GasParticle[] = [
-      ...Array.from({ length: 5 }, () => ({ x: 0.05 + Math.random() * 0.2, y: 0.3 + Math.random() * 0.5, vx: 0.0008, vy: (Math.random() - 0.5) * 0.0005, type: 'CO2' as const, alpha: 0.35 })),
-      ...Array.from({ length: 5 }, () => ({ x: 0.75 + Math.random() * 0.2, y: 0.3 + Math.random() * 0.5, vx: 0.0008, vy: (Math.random() - 0.5) * 0.0005, type: 'O2' as const, alpha: 0.35 })),
-    ];
+    // gas particles: CO2 entering bottom, O2 leaving
+    type Gas = { x: number; y: number; t: number; sp: number; kind: 'CO2' | 'O2' };
+    const gases: Gas[] = [];
 
     const draw = () => {
-      time += 0.007;
+      time += 0.008;
       const w = canvas.offsetWidth, h = canvas.offsetHeight;
 
-      // Deep green bg
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
-      bgGrad.addColorStop(0, '#010e04'); bgGrad.addColorStop(0.5, '#000a02'); bgGrad.addColorStop(1, '#010e04');
-      ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, w, h);
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#06210a');
+      bg.addColorStop(0.5, '#021205');
+      bg.addColorStop(1, '#010a03');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
 
-      // Leaf cross-section outline
-      const lx = w * 0.5, ly = h * 0.5;
-      const lW = w * 0.75, lH = h * 0.45;
+      // sunbeams from top
+      for (let i = 0; i < 6; i++) {
+        const bx = (i / 6 + 0.08) * w;
+        ctx.save();
+        ctx.translate(bx, 0);
+        ctx.rotate(0.1 + Math.sin(time * 0.4 + i) * 0.02);
+        const beam = ctx.createLinearGradient(0, 0, 0, h * 0.55);
+        beam.addColorStop(0, 'rgba(255,225,120,0.14)');
+        beam.addColorStop(1, 'rgba(255,200,80,0)');
+        ctx.fillStyle = beam;
+        ctx.beginPath();
+        ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.lineTo(34, h * 0.55); ctx.lineTo(-34, h * 0.55);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+
+      // photons falling
+      photons.forEach((p) => {
+        p.y += p.vy; if (p.y > 1) { p.y = 0; p.x = 0.1 + Math.random() * 0.8; }
+        const g = ctx.createRadialGradient(p.x * w, p.y * h, 0, p.x * w, p.y * h, 5);
+        g.addColorStop(0, `rgba(${p.col},${p.alpha * 0.7})`);
+        g.addColorStop(1, `rgba(${p.col},0)`);
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(p.x * w, p.y * h, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x * w, p.y * h, 1.6, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.col},${p.alpha})`; ctx.fill();
+      });
+
+      // ── stem rising from bottom ──
+      const stemX = w * 0.5;
+      ctx.strokeStyle = 'rgba(50,140,50,0.6)'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(stemX, h);
+      ctx.quadraticCurveTo(stemX + Math.sin(time * 0.5) * 6, h * 0.78, stemX, h * 0.62);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      // water rising up stem
+      for (let k = 0; k < 4; k++) {
+        const t = (time * 0.5 + k * 0.25) % 1;
+        const wy = h - t * (h * 0.38);
+        ctx.beginPath(); ctx.arc(stemX + Math.sin(t * 6) * 3, wy, 1.6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(120,200,255,0.55)'; ctx.fill();
+      }
+
+      // ── leaf ──
+      const lx = w * 0.5, ly = h * 0.46;
+      const lW = Math.min(w, h) * 0.72, lH = Math.min(w, h) * 0.42;
+      // leaf body
       ctx.save();
       ctx.beginPath();
-      ctx.ellipse(lx, ly, lW * 0.5, lH * 0.5, 0, 0, Math.PI * 2);
+      ctx.moveTo(lx - lW * 0.5, ly);
+      ctx.quadraticCurveTo(lx - lW * 0.25, ly - lH * 0.55, lx + lW * 0.45, ly - lH * 0.32);
+      ctx.quadraticCurveTo(lx + lW * 0.55, ly, lx + lW * 0.45, ly + lH * 0.32);
+      ctx.quadraticCurveTo(lx - lW * 0.25, ly + lH * 0.55, lx - lW * 0.5, ly);
+      ctx.closePath();
+      const leafGrad = ctx.createLinearGradient(lx - lW * 0.5, ly - lH * 0.5, lx + lW * 0.5, ly + lH * 0.5);
+      leafGrad.addColorStop(0, 'rgba(45,140,50,0.55)');
+      leafGrad.addColorStop(0.5, 'rgba(30,100,35,0.5)');
+      leafGrad.addColorStop(1, 'rgba(20,75,25,0.55)');
+      ctx.fillStyle = leafGrad; ctx.fill();
+      ctx.strokeStyle = 'rgba(70,180,70,0.4)'; ctx.lineWidth = 1.4; ctx.stroke();
       ctx.clip();
 
-      // Leaf tissues
-      const leafGrad = ctx.createLinearGradient(0, ly - lH * 0.5, 0, ly + lH * 0.5);
-      leafGrad.addColorStop(0, 'rgba(20,80,20,0.3)');
-      leafGrad.addColorStop(0.3, 'rgba(10,50,10,0.2)');
-      leafGrad.addColorStop(0.6, 'rgba(15,60,15,0.15)');
-      leafGrad.addColorStop(1, 'rgba(20,70,20,0.3)');
-      ctx.fillStyle = leafGrad; ctx.fillRect(0, 0, w, h);
+      // veins
+      ctx.strokeStyle = 'rgba(120,200,90,0.3)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(lx - lW * 0.48, ly); ctx.lineTo(lx + lW * 0.44, ly - lH * 0.05); ctx.stroke();
+      ctx.lineWidth = 0.8;
+      for (let v = 0; v < 6; v++) {
+        const vx = lx - lW * 0.32 + v * lW * 0.14;
+        ctx.beginPath(); ctx.moveTo(vx, ly - lH * 0.01 * v); ctx.lineTo(vx - lW * 0.06, ly - lH * 0.34); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(vx, ly + lH * 0.01 * v); ctx.lineTo(vx - lW * 0.06, ly + lH * 0.34); ctx.stroke();
+      }
 
-      // Chloroplast cells (ovals in mesophyll)
+      // chloroplasts (pulsing light reactions)
       for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 6; c++) {
-          const cx2 = lx - lW * 0.35 + c * lW * 0.14;
-          const cy2 = ly - lH * 0.15 + r * lH * 0.15 + Math.sin(time + r * 1.5 + c * 0.7) * 3;
-          const active = (Math.floor(time * 1.2) + r + c) % 3 === 0;
-          ctx.beginPath(); ctx.ellipse(cx2, cy2, 14, 10, 0.3, 0, Math.PI * 2);
-          ctx.fillStyle = active ? 'rgba(40,160,60,0.35)' : 'rgba(20,80,30,0.2)';
+        for (let c = 0; c < 7; c++) {
+          const cx2 = lx - lW * 0.36 + c * lW * 0.12;
+          const cy2 = ly - lH * 0.2 + r * lH * 0.2 + Math.sin(time + r + c * 0.5) * 3;
+          const pulse = Math.sin(time * 2 + r * 1.3 + c * 0.8) * 0.5 + 0.5;
+          ctx.beginPath(); ctx.ellipse(cx2, cy2, 11, 7, 0.3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${40 + pulse * 60},${130 + pulse * 90},${50},${0.3 + pulse * 0.3})`;
           ctx.fill();
-          ctx.strokeStyle = active ? 'rgba(60,200,80,0.3)' : 'rgba(40,120,50,0.15)';
-          ctx.lineWidth = 0.8; ctx.stroke();
-          if (active) {
-            ctx.beginPath(); ctx.arc(cx2, cy2, 4, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(120,255,80,0.25)'; ctx.fill();
+          if (pulse > 0.7) {
+            const gl = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, 10);
+            gl.addColorStop(0, `rgba(150,255,110,${(pulse - 0.7) * 0.8})`);
+            gl.addColorStop(1, 'rgba(150,255,110,0)');
+            ctx.fillStyle = gl;
+            ctx.beginPath(); ctx.arc(cx2, cy2, 10, 0, Math.PI * 2); ctx.fill();
           }
         }
       }
-
-      // Leaf vein (midrib)
-      ctx.strokeStyle = 'rgba(40,120,30,0.25)'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(lx - lW * 0.45, ly); ctx.lineTo(lx + lW * 0.45, ly); ctx.stroke();
-      for (let v = 0; v < 5; v++) {
-        const vx2 = lx - lW * 0.3 + v * lW * 0.15;
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(vx2, ly); ctx.lineTo(vx2 - 20, ly - lH * 0.3); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(vx2, ly); ctx.lineTo(vx2 - 20, ly + lH * 0.3); ctx.stroke();
-      }
-
       ctx.restore();
 
-      // Leaf outline
-      ctx.strokeStyle = 'rgba(40,120,40,0.2)'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.ellipse(lx, ly, lW * 0.5, lH * 0.5, 0, 0, Math.PI * 2); ctx.stroke();
-
-      // Photons coming from above
-      photons.forEach((p) => {
-        p.y += p.vy; if (p.y > 0.75) p.y = 0;
-        const inLeaf = p.y > 0.28 && p.y < 0.72;
-        if (inLeaf) p.alpha *= 0.97; else p.alpha = Math.min(0.9, p.alpha + 0.01);
-        const pGrad = ctx.createRadialGradient(p.x * w, p.y * h, 0, p.x * w, p.y * h, 5);
-        pGrad.addColorStop(0, `rgba(255,230,80,${p.alpha * 0.7})`);
-        pGrad.addColorStop(1, 'rgba(255,200,60,0)');
-        ctx.fillStyle = pGrad; ctx.fillRect(0, 0, w, h);
-        ctx.beginPath(); ctx.arc(p.x * w, p.y * h, 2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,240,100,${p.alpha * 0.8})`; ctx.fill();
+      // stomata (bottom edge) emitting/absorbing
+      const stomata = [lx - lW * 0.2, lx + lW * 0.05, lx + lW * 0.28];
+      stomata.forEach((sx, i) => {
+        const sy = ly + lH * (0.34 + Math.sin(i) * 0.02);
+        ctx.beginPath(); ctx.ellipse(sx, sy, 4, 2, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(20,60,20,0.7)'; ctx.fill();
+        // spawn gases
+        if (Math.random() < 0.04) gases.push({ x: sx, y: sy, t: 0, sp: 0.4 + Math.random() * 0.4, kind: 'CO2' });
+        if (Math.random() < 0.04) gases.push({ x: sx, y: sy, t: 0, sp: 0.4 + Math.random() * 0.4, kind: 'O2' });
       });
 
-      // CO2 / O2 particles
-      gases.forEach((g) => {
-        g.x += g.vx; g.y += g.vy;
-        if (g.x > 1.1) g.x = g.type === 'CO2' ? -0.05 : 0.5;
-        if (g.y < 0.1 || g.y > 0.9) g.vy *= -1;
-        const col = g.type === 'O2' ? `rgba(120,200,255,${g.alpha})` : `rgba(200,180,100,${g.alpha})`;
-        ctx.font = `6px bold monospace`; ctx.textAlign = 'center';
-        ctx.fillStyle = col; ctx.fillText(g.type, g.x * w, g.y * h);
-      });
+      // gas particles
+      for (let i = gases.length - 1; i >= 0; i--) {
+        const g = gases[i];
+        g.t += 0.01;
+        const gx = g.x + Math.sin(g.t * 4 + i) * 8;
+        // O2 floats up out of the leaf; CO2 drifts up into the leaf
+        const yy = g.kind === 'O2' ? g.y - g.t * 60 : g.y + 30 - g.t * 60;
+        ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center';
+        const a = Math.max(0, 0.7 - g.t * 0.6);
+        ctx.fillStyle = g.kind === 'O2' ? `rgba(120,200,255,${a})` : `rgba(210,190,110,${a})`;
+        ctx.fillText(g.kind === 'O2' ? 'O₂' : 'CO₂', gx, yy);
+        if (g.t > 1.1) gases.splice(i, 1);
+      }
 
-      // Equation strip
-      ctx.font = `7px monospace`; ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(80,180,80,0.3)';
-      ctx.fillText('6CO\u2082 + 6H\u2082O + light \u2192 C\u2086H\u2081\u2082O\u2086 + 6O\u2082', w * 0.5, h * 0.88);
+      // sugar assembling glow at center
+      const sugarPulse = Math.sin(time * 1.2) * 0.5 + 0.5;
+      ctx.font = `bold ${9 + sugarPulse * 2}px monospace`; ctx.textAlign = 'center';
+      ctx.fillStyle = `rgba(255,240,150,${0.4 + sugarPulse * 0.4})`;
+      ctx.shadowColor = 'rgba(255,220,100,0.5)'; ctx.shadowBlur = 8;
+      ctx.fillText('C₆H₁₂O₆', lx, ly + 4);
+      ctx.shadowBlur = 0;
 
-      ctx.font = `bold 10px serif`; ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(80,180,80,0.4)'; ctx.shadowColor = 'rgba(40,140,40,0.2)'; ctx.shadowBlur = 8;
+      // equation strip
+      ctx.font = '8px monospace'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(120,210,120,0.5)';
+      ctx.fillText('6CO₂ + 6H₂O + ☀ → C₆H₁₂O₆ + 6O₂', w * 0.5, h * 0.86);
+
+      // verse label
+      ctx.font = 'bold 11px serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(130,220,130,0.55)';
+      ctx.shadowColor = 'rgba(50,160,50,0.3)'; ctx.shadowBlur = 12;
       ctx.fillText('فَأَخْرَجْنَا بِهِ نَبَاتَ كُلِّ شَيْءٍ', w * 0.5, h * 0.95);
       ctx.shadowBlur = 0;
 
