@@ -59,7 +59,7 @@ export default function CloudsWeightVisual({ className }: MiracleVisualProps) {
     let nextLightning = 200 + Math.random() * 200;
 
     // Weight indicators
-    const weightTexts = ['500,000 tons', '1.1 million lbs', '≈ mass of 100 elephants'];
+    const weightTexts = ['٠٥٠ألف طن', '٨١٠أ مليون كيلو', '≈ وزن ١٠٠ فيل'];
     let currentWeightIdx = 0;
     let weightAlpha = 0;
     let weightTimer = 0;
@@ -86,8 +86,8 @@ export default function CloudsWeightVisual({ className }: MiracleVisualProps) {
 
     const draw = () => {
       time += 1;
-      const w = canvas.width;
-      const h = canvas.height;
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
 
       // Sky gradient background
       const sky = ctx.createLinearGradient(0, 0, 0, h);
@@ -204,9 +204,9 @@ export default function CloudsWeightVisual({ className }: MiracleVisualProps) {
       if (weightTimer > 0) {
         weightTimer--;
         if (weightTimer < 20) weightAlpha *= 0.9;
-        ctx.font = `bold ${Math.max(18, w * 0.025)}px monospace`;
+        ctx.font = `bold ${Math.max(16, w * 0.045)}px Tajawal, monospace`;
         ctx.textAlign = 'center';
-        ctx.fillStyle = `rgba(255,204,0,${weightAlpha * 0.8})`;
+        ctx.fillStyle = `rgba(255,204,0,${weightAlpha * 0.85})`;
         ctx.fillText(weightTexts[currentWeightIdx], w * 0.5, h * 0.6);
 
         // Downward arrows indicating weight
@@ -237,8 +237,10 @@ export default function CloudsWeightVisual({ className }: MiracleVisualProps) {
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
@@ -257,6 +259,19 @@ export default function CloudsWeightVisual({ className }: MiracleVisualProps) {
       className={`relative w-full h-full overflow-hidden ${className || ''}`}
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+
+      {/* Verse */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.4, duration: 2 }}
+        className="absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none"
+      >
+        <p className="font-amiri text-sm md:text-lg text-verse-green/80 px-4" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
+          حَتَّىٰ إِذَا أَقَلَّتْ سَحَابًا ثِقَالًا سُقْنَاهُ لِبَلَدٍ مَّيِّتٍ
+        </p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الأعراف : 57</p>
+      </motion.div>
     </motion.div>
   );
 }

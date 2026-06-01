@@ -60,8 +60,8 @@ export default function IronSentDownVisual({ className }: MiracleVisualProps) {
 
     const draw = () => {
       time += 1;
-      const w = canvas.width;
-      const h = canvas.height;
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
 
       // Background — deep space
       const bg = ctx.createRadialGradient(w * 0.5, h * 0.35, 0, w * 0.5, h * 0.35, w * 0.7);
@@ -230,8 +230,10 @@ export default function IronSentDownVisual({ className }: MiracleVisualProps) {
     };
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
@@ -250,6 +252,41 @@ export default function IronSentDownVisual({ className }: MiracleVisualProps) {
       className={`relative w-full h-full overflow-hidden ${className || ''}`}
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+
+      {/* Context pills */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 1 }}
+        className="absolute top-4 left-0 right-0 flex flex-wrap items-center justify-center gap-2 px-4 z-10 pointer-events-none"
+      >
+        {[
+          { label: 'سوبرنوفا', sub: 'مصدر الحديد' },
+          { label: 'سورة ٥٧', sub: 'الحديد' },
+          { label: 'العدد الذري ٢٦', sub: 'Fe' },
+        ].map((p, i) => (
+          <div
+            key={i}
+            className="rounded-full border border-[#ff7a30]/25 bg-[#1a0e08]/70 px-3 py-1 text-center backdrop-blur-sm"
+          >
+            <p className="font-amiri text-xs text-[#ffb070]">{p.label}</p>
+            <p className="text-[8px] text-text-muted font-tajawal">{p.sub}</p>
+          </div>
+        ))}
+      </motion.div>
+
+      {/* Verse */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.4, duration: 2 }}
+        className="absolute bottom-6 left-0 right-0 text-center z-10 pointer-events-none"
+      >
+        <p className="font-amiri text-sm md:text-lg text-verse-green/80 px-4" style={{ textShadow: '0 0 30px rgba(45,212,168,0.3)' }}>
+          وَأَنزَلْنَا الْحَدِيدَ فِيهِ بَأْسٌ شَدِيدٌ وَمَنَافِعُ لِلنَّاسِ
+        </p>
+        <p className="text-gold-primary/50 text-xs font-tajawal mt-1">الحديد : 25</p>
+      </motion.div>
     </motion.div>
   );
 }

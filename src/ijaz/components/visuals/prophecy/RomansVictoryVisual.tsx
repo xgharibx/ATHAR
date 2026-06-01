@@ -61,6 +61,14 @@ export default function RomansVictoryVisual({ className }: MiracleVisualProps) {
           transition={{ duration: 1 }}
           className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-red-900/40 via-gold-primary/30 to-green-500/40 origin-top"
         />
+        {/* Continuous pulse traveling down the timeline \u2014 the march of history */}
+        <motion.div
+          aria-hidden
+          animate={{ top: ['0%', '100%'], opacity: [0, 1, 0] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+          className="absolute left-1/2 -translate-x-1/2 w-2 h-2 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(45,212,168,0.9), transparent 70%)', boxShadow: '0 0 12px rgba(45,212,168,0.6)' }}
+        />
 
         <div className="space-y-6">
           {events.map((event, i) => (

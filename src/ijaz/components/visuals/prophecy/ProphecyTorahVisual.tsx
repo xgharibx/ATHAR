@@ -41,6 +41,14 @@ export default function ProphecyTorahVisual({ className }: MiracleVisualProps) {
 
       {/* Prophecy cards */}
       <div className="relative z-10 w-full max-w-lg space-y-4">
+        {/* Continuous descending light sweep — revelation glow */}
+        <motion.div
+          aria-hidden
+          animate={{ y: ['-10%', '110%'], opacity: [0, 0.5, 0] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="pointer-events-none absolute left-0 right-0 h-16 -z-0"
+          style={{ background: 'linear-gradient(180deg, transparent, rgba(212,168,83,0.18), transparent)' }}
+        />
         {prophecies.map((p, i) => (
           <motion.div
             key={i}
@@ -68,7 +76,16 @@ export default function ProphecyTorahVisual({ className }: MiracleVisualProps) {
               />
               {/* Fulfillment */}
               <p className="text-text-secondary text-xs font-tajawal flex items-start gap-1.5">
-                <span className="text-verse-green/70 mt-0.5">✓</span>
+                <motion.svg
+                  viewBox="0 0 16 16"
+                  className="w-3.5 h-3.5 mt-0.5 shrink-0"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 1.4 + i * 0.6, type: 'spring', stiffness: 300 }}
+                >
+                  <circle cx="8" cy="8" r="7" fill="none" stroke="rgba(45,212,168,0.5)" strokeWidth="1.2" />
+                  <path d="M 4.5 8.2 L 7 10.5 L 11.5 5.5" fill="none" stroke="#2dd4a8" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </motion.svg>
                 {p.fulfillment}
               </p>
             </div>

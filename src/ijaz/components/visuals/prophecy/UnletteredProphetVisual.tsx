@@ -18,6 +18,22 @@ export default function UnletteredProphetVisual({ className }: MiracleVisualProp
         style={{ background: 'radial-gradient(circle, rgba(212,168,83,0.08), transparent 70%)' }}
       />
 
+      {/* Continuous descending revelation particles */}
+      {[0, 1, 2, 3, 4].map((n) => (
+        <motion.div
+          key={n}
+          aria-hidden
+          className="absolute top-0 w-1 h-1 rounded-full"
+          style={{
+            left: `${42 + n * 4}%`,
+            background: 'radial-gradient(circle, rgba(212,168,83,0.9), transparent 70%)',
+            boxShadow: '0 0 8px rgba(212,168,83,0.6)',
+          }}
+          animate={{ y: ['-5%', '45vh'], opacity: [0, 0.9, 0] }}
+          transition={{ duration: 2.6, repeat: Infinity, delay: n * 0.5, ease: 'easeIn' }}
+        />
+      ))}
+
       <div className="relative z-10 flex items-center gap-8 md:gap-16">
         {/* LEFT: Empty page — illiteracy */}
         <motion.div

@@ -1,12 +1,45 @@
 
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 
-// 🥛 إنتاج اللبن — Milk Production
-// "وَإِنَّ لَكُمْ فِي الْأَنْعَامِ لَعِبْرَةً نُّسْقِيكُم مِّمَّا فِي بُطُونِهِ مِن بَيْنِ فَرْثٍ وَدَمٍ لَّبَنًا خَالِصًا سَائِغًا لِّلشَّارِبِينَ"
+// إنتاج اللبن — Milk Production
+// "وَإِنَّ لَكُمْ فِي الْأَنْعَامِ لَعِبْرَةً"
 // Blood → filtered between digested food (فرث) and blood (دم) → pure white milk
 
 export default function MilkProductionVisual({ className }: MiracleVisualProps) {
+  const foodParticles = useMemo(
+    () => Array.from({ length: 15 }, () => ({
+      cx: 50 + Math.random() * 60,
+      cy: 100 + Math.random() * 140,
+      r: 2 + Math.random() * 3,
+      hue: 80 + Math.random() * 40,
+      light: 25 + Math.random() * 15,
+      dy: Math.random() * 6 - 3,
+      dur: 2 + Math.random(),
+    })),
+    [],
+  );
+  const bloodParticles = useMemo(
+    () => Array.from({ length: 18 }, () => ({
+      cx: 290 + Math.random() * 60,
+      cy: 100 + Math.random() * 140,
+      dy: Math.random() * 8 - 4,
+      dur: 1.5 + Math.random(),
+    })),
+    [],
+  );
+  const milkParticles = useMemo(
+    () => Array.from({ length: 10 }, () => ({
+      cx: 170 + Math.random() * 60,
+      cy: 100 + Math.random() * 150,
+      r: 2 + Math.random() * 2,
+      dur: 2 + Math.random(),
+      delay: Math.random(),
+    })),
+    [],
+  );
+
   return (
     <div className={`relative w-full h-full overflow-hidden bg-gradient-to-b from-[#0a0812] to-[#080510] flex flex-col items-center justify-center ${className || ''}`}>
       {/* Main diagram */}
@@ -26,16 +59,16 @@ export default function MilkProductionVisual({ className }: MiracleVisualProps) 
           <text x="80" y="70" textAnchor="middle" fill="#7ab850" fontSize="12" fontFamily="Amiri">فَرْث</text>
           <text x="80" y="60" textAnchor="middle" fill="#5a8a40" fontSize="7" fontFamily="Tajawal">Digested Food</text>
           {/* Intestinal content particles */}
-          {Array.from({ length: 15 }).map((_, i) => (
+          {foodParticles.map((p, i) => (
             <motion.circle
               key={'f' + i}
-              cx={50 + Math.random() * 60}
-              cy={100 + Math.random() * 140}
-              r={2 + Math.random() * 3}
-              fill={`hsl(${80 + Math.random() * 40}, 50%, ${25 + Math.random() * 15}%)`}
+              cx={p.cx}
+              cy={p.cy}
+              r={p.r}
+              fill={`hsl(${p.hue}, 50%, ${p.light}%)`}
               opacity={0.5}
-              animate={{ y: [0, Math.random() * 6 - 3, 0] }}
-              transition={{ duration: 2 + Math.random(), repeat: Infinity }}
+              animate={{ y: [0, p.dy, 0] }}
+              transition={{ duration: p.dur, repeat: Infinity }}
             />
           ))}
         </motion.g>
@@ -50,16 +83,16 @@ export default function MilkProductionVisual({ className }: MiracleVisualProps) 
           <text x="320" y="70" textAnchor="middle" fill="#d05050" fontSize="12" fontFamily="Amiri">دَم</text>
           <text x="320" y="60" textAnchor="middle" fill="#a04040" fontSize="7" fontFamily="Tajawal">Blood</text>
           {/* Blood cells */}
-          {Array.from({ length: 18 }).map((_, i) => (
+          {bloodParticles.map((p, i) => (
             <motion.circle
               key={'b' + i}
-              cx={290 + Math.random() * 60}
-              cy={100 + Math.random() * 140}
+              cx={p.cx}
+              cy={p.cy}
               r={3}
               fill="#c03030"
               opacity={0.5}
-              animate={{ y: [0, Math.random() * 8 - 4, 0] }}
-              transition={{ duration: 1.5 + Math.random(), repeat: Infinity }}
+              animate={{ y: [0, p.dy, 0] }}
+              transition={{ duration: p.dur, repeat: Infinity }}
             />
           ))}
         </motion.g>
@@ -90,19 +123,19 @@ export default function MilkProductionVisual({ className }: MiracleVisualProps) 
           <text x="200" y="58" textAnchor="middle" fill="#d0c8b0" fontSize="7" fontFamily="Tajawal">Pure Milk</text>
 
           {/* Milk droplets */}
-          {Array.from({ length: 10 }).map((_, i) => (
+          {milkParticles.map((p, i) => (
             <motion.circle
               key={'m' + i}
-              cx={170 + Math.random() * 60}
-              cy={100 + Math.random() * 150}
-              r={2 + Math.random() * 2}
+              cx={p.cx}
+              cy={p.cy}
+              r={p.r}
               fill="#f5f0e0"
               opacity={0.4}
               animate={{
                 y: [0, -5, 0],
                 opacity: [0.3, 0.6, 0.3],
               }}
-              transition={{ duration: 2 + Math.random(), repeat: Infinity, delay: Math.random() }}
+              transition={{ duration: p.dur, repeat: Infinity, delay: p.delay }}
             />
           ))}
 

@@ -20,11 +20,17 @@ export default function ContingencyVisual({ className }: MiracleVisualProps) {
 
   return (
     <div className={cls}>
-      <svg className="absolute inset-0 w-full h-full opacity-[0.03]" viewBox="0 0 300 300">
+      <motion.svg
+        className="absolute inset-0 w-full h-full opacity-[0.04]"
+        viewBox="0 0 300 300"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
+        style={{ transformOrigin: '50% 50%' }}
+      >
         {Array.from({ length: 10 }).map((_, i) => (
           <circle key={i} cx="150" cy="150" r={30 + i * 15} fill="none" stroke="#4A90D9" strokeWidth="0.5" strokeDasharray="4 8" />
         ))}
-      </svg>
+      </motion.svg>
 
       <motion.div
         initial={{ opacity: 0 }}

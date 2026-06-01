@@ -23,8 +23,8 @@ export default function DesignArgumentVisual({ className }: MiracleVisualProps) 
 
     const draw = () => {
       time += 0.01;
-      const w = canvas.width;
-      const h = canvas.height;
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
       const cx = w / 2;
 
       ctx.fillStyle = '#050510';
@@ -149,8 +149,10 @@ export default function DesignArgumentVisual({ className }: MiracleVisualProps) 
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);

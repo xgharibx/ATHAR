@@ -39,7 +39,15 @@ export default function MoralArgumentVisual({ className }: MiracleVisualProps) {
         transition={{ duration: 0.8 }}
         className="relative z-10 mb-4"
       >
-        <svg viewBox="0 0 200 120" className="w-40 h-24 mx-auto">
+        {/* Transcendent light source above the scales */}
+        <motion.div
+          aria-hidden
+          animate={{ opacity: [0.15, 0.4, 0.15], scale: [0.9, 1.1, 0.9] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-6 left-1/2 -translate-x-1/2 w-28 h-28 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(212,168,83,0.35), transparent 70%)' }}
+        />
+        <svg viewBox="0 0 200 120" className="w-40 h-24 mx-auto relative">
           {/* Central pillar */}
           <line x1="100" y1="10" x2="100" y2="110" stroke="#d4a853" strokeWidth="2" opacity="0.4" />
           {/* Base */}

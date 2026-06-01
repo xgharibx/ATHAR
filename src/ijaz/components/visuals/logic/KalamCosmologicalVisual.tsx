@@ -89,8 +89,8 @@ export default function KalamCosmologicalVisual({ className }: MiracleVisualProp
             {i < steps.length - 1 && (
               <motion.div
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.4 }}
-                transition={{ delay: 0.8 + i * 0.8 }}
+                animate={{ opacity: [0.2, 0.6, 0.2], y: [0, 3, 0] }}
+                transition={{ delay: 0.8 + i * 0.8, duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
                 className="flex justify-center py-1"
               >
                 <svg viewBox="0 0 20 20" className="w-5 h-5">

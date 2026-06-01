@@ -62,8 +62,8 @@ export default function HoneyHealingVisual({ className }: MiracleVisualProps) {
 
     const draw = () => {
       time += 0.01;
-      const w = canvas.width;
-      const h = canvas.height;
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
 
       // Warm amber background
       const bg = ctx.createLinearGradient(0, 0, 0, h);
@@ -196,8 +196,10 @@ export default function HoneyHealingVisual({ className }: MiracleVisualProps) {
 
     let started = false;
     const observer = new ResizeObserver(() => {
-      canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 2);
-      canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 2);
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (!started) { started = true; draw(); }
     });
     observer.observe(canvas);
