@@ -326,6 +326,7 @@ export function LeaderboardPage() {
             else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
             else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
           }}>
+          <BoardTab label="يومي" active={period === "daily"} onClick={() => setPeriod("daily")} controls="lb-board-panel" />
           <BoardTab label="أسبوعي" active={period === "weekly"} onClick={() => setPeriod("weekly")} controls="lb-board-panel" />
           <BoardTab label="شهري" active={period === "monthly"} onClick={() => setPeriod("monthly")} controls="lb-board-panel" />
           <BoardTab label="سنوي" active={period === "yearly"} onClick={() => setPeriod("yearly")} controls="lb-board-panel" />

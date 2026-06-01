@@ -6,7 +6,8 @@ const REMINDER_IDS = {
   morning: 9101,
   evening: 9102,
   dailyWird: 9103,
-  khatma: 9104
+  khatma: 9104,
+  tasbeeh: 9105
 } as const;
 
 const PRAYER_NOTIFICATION_IDS = {
@@ -135,6 +136,33 @@ const KHATMA_PHRASES = [
   "كل يوم تقرأ فيه يقربك من نور الآخرة",
   "الختمة رفيقة العمر… واصلها اليوم",
   "من ختم القرآن كان له دعوة مستجابة",
+];
+
+// Smart nudge phrases — shown when the user has started but not finished today's azkar
+const MORNING_NUDGE_PHRASES = [
+  "لم تُكمل أذكار الصباح بعد… أكمل وردك ولو القليل",
+  "بقي القليل على إتمام أذكار الصباح — أكملها الآن",
+  "بدأت أذكار الصباح فلا تتركها ناقصة، أتمّها لله",
+  "خطوة واحدة تفصلك عن إتمام حصن صباحك",
+];
+
+const EVENING_NUDGE_PHRASES = [
+  "لم تُكمل أذكار المساء بعد… أتمّها قبل النوم",
+  "بقي القليل على إتمام أذكار المساء — أكملها الآن",
+  "بدأت أذكار المساء فلا تتركها ناقصة، أتمّها لله",
+  "اختم مساءك بإتمام ما تبقّى من أذكارك",
+];
+
+// N6: Tasbeeh & istighfar reminder phrases (rotate daily)
+const TASBEEH_PHRASES = [
+  "خذ دقيقة: سبّح الله مئة مرة تُغرس لك نخلة في الجنة",
+  "أكثِر من الاستغفار… فمن لزم الاستغفار جعل الله له من كل همّ فرجًا",
+  "سبحان الله وبحمده مئة مرة تُحَطّ بها الخطايا ولو كانت مثل زبد البحر",
+  "لحظة تسبيح خير لك من الدنيا وما فيها",
+  "أستغفر الله العظيم وأتوب إليه — رددها الآن بقلب حاضر",
+  "لا إله إلا الله وحده لا شريك له… أكثِر منها اليوم",
+  "سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر",
+  "اغرس لنفسك غراسًا في الجنة بالتسبيح والاستغفار الآن",
 ];
 
 const PRAYER_FOLLOWUP_PHRASES: Record<PrayerTimingName, string> = {
@@ -348,6 +376,7 @@ export async function cancelAllReminders() {
       { id: REMINDER_IDS.evening },
       { id: REMINDER_IDS.dailyWird },
       { id: REMINDER_IDS.khatma },
+      { id: REMINDER_IDS.tasbeeh },
       { id: PRAYER_NOTIFICATION_IDS.Fajr },
       { id: PRAYER_NOTIFICATION_IDS.Dhuhr },
       { id: PRAYER_NOTIFICATION_IDS.Asr },
@@ -384,48 +413,66 @@ type NotificationAudioConfig = {
   soundFile: string;
 };
 
-function buildRepeatingNotification(options: {
-  id: number;
-  title: string;
-  body: string;
-  hhmm: string;
-  audio: NotificationAudioConfig;
-  extra?: Record<string, string>;
-}) {
-  const at = nextAtLocalTime(options.hhmm);
-  if (!at) return null;
+/** N6: Smart completion snapshot for today's daily azkar (computed by caller). */
+export type ReminderCompletionInfo = {
+  morningDone?: boolean;
+  morningStarted?: boolean;
+  eveningDone?: boolean;
+  eveningStarted?: boolean;
+};
 
-  return {
-    id: options.id,
-    title: options.title,
-    body: options.body,
-    channelId: options.audio.channelId,
-    sound: options.audio.soundFile,
-    smallIcon: REMINDER_NOTIFICATION_ICON,
-    largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-    iconColor: REMINDER_ICON_COLOR,
-    extra: options.extra,
-    schedule: { at, repeats: true, every: "day" as const },
-  };
+/**
+ * Daily-repeating anchor for a reminder. When `skipToday` is true (the section is
+ * already completed today), push the first occurrence to tomorrow so we don't nag.
+ */
+function reminderAnchor(hhmm: string, skipToday: boolean): Date | null {
+  const at = nextAtLocalTime(hhmm);
+  if (!at) return null;
+  if (skipToday) {
+    const now = new Date();
+    const isToday =
+      at.getFullYear() === now.getFullYear() &&
+      at.getMonth() === now.getMonth() &&
+      at.getDate() === now.getDate();
+    if (isToday) at.setDate(at.getDate() + 1);
+  }
+  return at;
 }
 
-function buildReminderNotifications(reminders: Reminders, audio: NotificationAudioConfig) {
+function buildReminderNotifications(
+  reminders: Reminders,
+  audio: NotificationAudioConfig,
+  completion?: ReminderCompletionInfo,
+) {
+  const c = completion ?? {};
+
+  // Smart body: if started-but-not-done, nudge to finish; otherwise motivate to begin.
+  const morningBody = c.morningStarted && !c.morningDone
+    ? dailyPhrase(MORNING_NUDGE_PHRASES)
+    : dailyPhrase(MORNING_PHRASES);
+  const eveningBody = c.eveningStarted && !c.eveningDone
+    ? dailyPhrase(EVENING_NUDGE_PHRASES)
+    : dailyPhrase(EVENING_PHRASES);
+
   const plans = [
     {
       enabled: reminders.morningEnabled,
       id: REMINDER_IDS.morning,
       title: "أثر — تذكير الصباح",
-      body: dailyPhrase(MORNING_PHRASES),
+      body: morningBody,
       hhmm: reminders.morningTime,
       extra: { route: "/c/morning" },
+      // Smart skip: if already completed today, don't nag again — schedule from tomorrow.
+      skipToday: !!c.morningDone,
     },
     {
       enabled: reminders.eveningEnabled,
       id: REMINDER_IDS.evening,
       title: "أثر — تذكير المساء",
-      body: dailyPhrase(EVENING_PHRASES),
+      body: eveningBody,
       hhmm: reminders.eveningTime,
       extra: { route: "/c/evening" },
+      skipToday: !!c.eveningDone,
     },
     {
       enabled: reminders.dailyWirdEnabled,
@@ -434,6 +481,7 @@ function buildReminderNotifications(reminders: Reminders, audio: NotificationAud
       body: dailyPhrase(DAILY_WIRD_PHRASES),
       hhmm: reminders.dailyWirdTime,
       extra: { route: "/quran" },
+      skipToday: false,
     },
     {
       enabled: reminders.khatmaEnabled,
@@ -442,20 +490,35 @@ function buildReminderNotifications(reminders: Reminders, audio: NotificationAud
       body: dailyPhrase(KHATMA_PHRASES),
       hhmm: reminders.khatmaTime,
       extra: { route: "/quran/plans" },
+      skipToday: false,
+    },
+    {
+      enabled: reminders.tasbeehEnabled,
+      id: REMINDER_IDS.tasbeeh,
+      title: "أثر — تسبيح واستغفار",
+      body: dailyPhrase(TASBEEH_PHRASES),
+      hhmm: reminders.tasbeehTime,
+      extra: { route: "/sebha" },
+      skipToday: false,
     },
   ];
 
   return plans.flatMap((plan) => {
     if (!plan.enabled) return [];
-    const notification = buildRepeatingNotification({
+    const at = reminderAnchor(plan.hhmm, plan.skipToday);
+    if (!at) return [];
+    return [{
       id: plan.id,
       title: plan.title,
       body: plan.body,
-      hhmm: plan.hhmm,
-      audio,
-      extra: (plan as { extra?: Record<string, string> }).extra,
-    });
-    return notification ? [notification] : [];
+      channelId: audio.channelId,
+      sound: audio.soundFile,
+      smallIcon: REMINDER_NOTIFICATION_ICON,
+      largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+      iconColor: REMINDER_ICON_COLOR,
+      extra: plan.extra,
+      schedule: { at, repeats: true, every: "day" as const },
+    }];
   });
 }
 
@@ -631,7 +694,11 @@ export async function ensureDefaultNotificationChannels(): Promise<void> {
   } catch { /* non-fatal */ }
 }
 
-export async function syncReminders(reminders: Reminders, prayerTimings?: PrayerNotificationTimings | null) {
+export async function syncReminders(
+  reminders: Reminders,
+  prayerTimings?: PrayerNotificationTimings | null,
+  completion?: ReminderCompletionInfo,
+) {
   if (!Capacitor.isNativePlatform()) return;
 
   const { LocalNotifications } = await import("@capacitor/local-notifications");
@@ -663,7 +730,7 @@ export async function syncReminders(reminders: Reminders, prayerTimings?: Prayer
 
   const notificationAudio = await ensureReminderChannel(reminders.soundProfile);
 
-  const notifications: LocalNotification[] = buildReminderNotifications(reminders, notificationAudio);
+  const notifications: LocalNotification[] = buildReminderNotifications(reminders, notificationAudio, completion);
 
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);

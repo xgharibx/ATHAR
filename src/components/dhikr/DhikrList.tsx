@@ -133,19 +133,18 @@ export function DhikrList(props: Readonly<{
   const [focusMode, setFocusMode] = React.useState(false);
   const [moreOpen, setMoreOpen] = React.useState(false);
   const [headerVisible, setHeaderVisible] = React.useState(true);
-  // Smart compact bar: shown when scrolling up, hidden when scrolling down
-  const [barShown, setBarShown] = React.useState(true);
+  // Premium compact bar: hidden while actively scrolling, slides back in when scrolling stops
+  const [isScrolling, setIsScrolling] = React.useState(false);
   const headerCardRef = React.useRef<HTMLDivElement>(null);
   const virtuosoRef = React.useRef<VirtuosoHandle>(null);
 
-  // Unified scroll handler: track header visibility + scroll direction
+  // Unified scroll handler: track header visibility + active-scroll state
   React.useEffect(() => {
-    let lastY = window.scrollY;
+    let idleTimer: number | null = null;
 
     const checkState = () => {
       const el = headerCardRef.current;
       const y = window.scrollY;
-      const delta = y - lastY;
 
       // Header visible = its bottom edge is still below the sticky topbar
       if (el) {
@@ -155,18 +154,22 @@ export function DhikrList(props: Readonly<{
         setHeaderVisible(el.getBoundingClientRect().bottom > topbarH);
       }
 
-      // Smart direction: scrolling up reveals the bar, scrolling down hides it
-      if (delta < -4) setBarShown(true);
-      else if (delta > 4) setBarShown(false);
-      // Always reveal near the very top
-      if (y < 40) setBarShown(true);
-      lastY = y;
+      // Mark as actively scrolling, then clear shortly after the last scroll event
+      if (y > 4) {
+        setIsScrolling(true);
+        if (idleTimer !== null) clearTimeout(idleTimer);
+        idleTimer = window.setTimeout(() => setIsScrolling(false), 380);
+      } else {
+        // At the very top — never treat as scrolling
+        setIsScrolling(false);
+      }
     };
 
     checkState();
     window.addEventListener("scroll", checkState, { passive: true });
     return () => {
       window.removeEventListener("scroll", checkState);
+      if (idleTimer !== null) clearTimeout(idleTimer);
     };
   }, []);
 
@@ -261,12 +264,14 @@ export function DhikrList(props: Readonly<{
     };
   }, [focusMode]);
 
-  // Sync dhikr-scrolled on body so the app topbar can hide via CSS
-  const compactBarVisible = !headerVisible && barShown;
+  // Once the header card scrolls under the topbar, keep the app topbar hidden.
+  const scrolledPastHeader = !headerVisible;
+  // The premium progress bar slides in only when scrolling has stopped.
+  const compactBarVisible = scrolledPastHeader && !isScrolling;
   React.useEffect(() => {
-    document.body.classList.toggle("dhikr-scrolled", compactBarVisible);
+    document.body.classList.toggle("dhikr-scrolled", scrolledPastHeader);
     return () => { document.body.classList.remove("dhikr-scrolled"); };
-  }, [compactBarVisible]);
+  }, [scrolledPastHeader]);
 
   // Prev / next sections for quick navigation
   const { prevSection, nextSection } = React.useMemo(() => {
@@ -389,32 +394,43 @@ export function DhikrList(props: Readonly<{
     <div className="relative isolate">
       <div className="dhikr-page-stars absolute inset-0 pointer-events-none" />
 
-      {/* Sticky compact header — portalled to body to escape framer-motion's will-change:transform containing block */}
+      {/* Premium floating progress bar — portalled to body to escape framer-motion's containing block.
+          Hidden while scrolling, slides in with a live animated fill when scrolling stops. */}
       {createPortal(
         <div
           className={[
-            "fixed left-0 right-0 z-[100] px-4 py-2 flex items-center gap-3",
-            "glass-strong border-b border-[var(--stroke)]",
-            "transition-all duration-200",
-            compactBarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none",
+            "fixed left-3 right-3 z-[100] flex items-center gap-3",
+            "rounded-2xl px-4 py-2.5",
+            "dhikr-progress-pill",
+            "transition-all duration-300 ease-out",
+            compactBarVisible
+              ? "opacity-100 translate-y-0 scale-100"
+              : "opacity-0 -translate-y-3 scale-[0.97] pointer-events-none",
           ].join(" ")}
           style={{
-            top: compactBarVisible ? "var(--sat, 0px)" : "var(--topbar-h, 80px)",
-            paddingTop: compactBarVisible ? "calc(var(--sat, 0px) + 8px)" : "8px",
+            top: "calc(var(--sat, 0px) + 8px)",
+            // @ts-expect-error custom property for accent-driven styling
+            "--pill-accent": identity.accent,
           }}
           aria-hidden={compactBarVisible ? undefined : "true"}
         >
-          <span className="text-base leading-none" aria-hidden="true">{identity.icon}</span>
+          <span className="text-lg leading-none shrink-0" aria-hidden="true">{identity.icon}</span>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold truncate" style={{ color: identity.accent }}>{props.title}</div>
-            <div className="mt-1 h-[3px] rounded-full bg-white/10 overflow-hidden">
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-[13px] font-semibold truncate" style={{ color: identity.accent }}>{props.title}</div>
+              <div className="text-[12px] font-bold tabular-nums shrink-0" style={{ color: identity.accent }}>
+                {stats.percent}%
+              </div>
+            </div>
+            <div className="mt-1.5 dhikr-progress-track">
               <div
-                className="h-full rounded-full transition-[width] duration-300"
-                style={{ width: `${stats.percent}%`, background: identity.accent }}
-              />
+                className="dhikr-progress-glow"
+                style={{ width: `${stats.percent}%` }}
+              >
+                <span className="dhikr-progress-shimmer" aria-hidden="true" />
+              </div>
             </div>
           </div>
-          <div className="text-[11px] opacity-55 tabular-nums shrink-0">{stats.percent}%</div>
         </div>,
         document.body
       )}

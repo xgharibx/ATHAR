@@ -114,6 +114,8 @@ export default function App() {
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
   const reminders = useNoorStore((s) => s.reminders);
   const onboardingDone = useNoorStore((s) => s.onboardingDone);
+  const sectionCompletions = useNoorStore((s) => s.sectionCompletions);
+  const progress = useNoorStore((s) => s.progress);
   const location = useLocation();
   const prayerTimes = usePrayerTimes();
   const fajrTime = prayerTimes.data?.data?.timings?.Fajr ?? null;
@@ -136,6 +138,22 @@ export default function App() {
     prayerTimes.data?.data?.timings?.Isha,
     prayerTimes.data?.data?.timings?.Maghrib,
   ]);
+
+  // N6: Smart-reminder completion snapshot — lets reminders skip already-done azkar
+  // and switch to a "finish what you started" nudge when partially complete.
+  const reminderCompletion = React.useMemo(() => {
+    const now = new Date();
+    const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const doneToday = (id: string) => (sectionCompletions[id] ?? []).includes(todayISO);
+    const startedToday = (id: string) =>
+      Object.entries(progress).some(([k, v]) => k.startsWith(`${id}:`) && Number(v) > 0);
+    return {
+      morningDone: doneToday("morning"),
+      morningStarted: startedToday("morning"),
+      eveningDone: doneToday("evening"),
+      eveningStarted: startedToday("evening"),
+    };
+  }, [sectionCompletions, progress]);
 
   // Show animated splash once per browser/app session
   const [showSplash, setShowSplash] = React.useState<boolean>(() => {
@@ -250,8 +268,16 @@ export default function App() {
   }, [ensureDailyResets, fajrTime]);
 
   React.useEffect(() => {
-    void syncReminders(reminders, notificationPrayerTimings);
-  }, [notificationPrayerTimings, reminders]);
+    void syncReminders(reminders, notificationPrayerTimings, reminderCompletion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    notificationPrayerTimings,
+    reminders,
+    reminderCompletion.morningDone,
+    reminderCompletion.morningStarted,
+    reminderCompletion.eveningDone,
+    reminderCompletion.eveningStarted,
+  ]);
 
   // 11C: Pre-create default notification channels on native platforms
   React.useEffect(() => {

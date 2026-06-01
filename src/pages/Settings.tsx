@@ -1251,6 +1251,31 @@ export function SettingsPage() {
               />
             </div>
           </div>
+
+          {/* N6 — Tasbeeh & istighfar nudge */}
+          <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold">تسبيح واستغفار</div>
+                <div className="text-xs opacity-65 mt-1">تذكير لطيف للذكر خلال يومك</div>
+              </div>
+              <Switch
+                aria-label="تذكير التسبيح والاستغفار"
+                checked={reminders.tasbeehEnabled ?? false}
+                onCheckedChange={(v) => setReminders({ tasbeehEnabled: v })}
+                disabled={!reminders.enabled}
+              />
+            </div>
+            <div className="mt-3">
+              <Input
+                type="time"
+                dir="ltr"
+                value={reminders.tasbeehTime}
+                onChange={(e) => setReminders({ tasbeehTime: e.target.value })}
+                disabled={!reminders.enabled || !reminders.tasbeehEnabled}
+              />
+            </div>
+          </div>
         </div>
       </Card>
 

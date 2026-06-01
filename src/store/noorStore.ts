@@ -104,6 +104,8 @@ export type Reminders = {
   dailyWirdTime: string; // HH:MM
   khatmaEnabled: boolean;
   khatmaTime: string; // HH:MM
+  tasbeehEnabled: boolean; // N6 — tasbeeh & istighfar nudge
+  tasbeehTime: string; // HH:MM
   dailyHadithNotif: boolean; // Phase 10 — daily hadith at Fajr
   iqamaOffsets: Record<PrayerAlertPrayer, number>; // minutes after adhan per prayer
 };
@@ -503,6 +505,8 @@ const DEFAULT_REMINDERS: Reminders = {
   dailyWirdTime: "21:00",
   khatmaEnabled: false,
   khatmaTime: "21:15",
+  tasbeehEnabled: false,
+  tasbeehTime: "13:00",
   dailyHadithNotif: false,
   iqamaOffsets: { Fajr: 20, Dhuhr: 15, Asr: 15, Maghrib: 10, Isha: 15 }
 };
