@@ -61,7 +61,11 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
         for (int id : appWidgetIds) {
-            updateLive(context, manager, id);
+            try {
+                updateLive(context, manager, id);
+            } catch (Throwable t) {
+                // Never surface "couldn't load widget"; skip this id safely.
+            }
         }
     }
 

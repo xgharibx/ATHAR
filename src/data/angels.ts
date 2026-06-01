@@ -2,7 +2,7 @@ import type { KnowledgeSectionConfig } from "@/pages/KnowledgeSection";
 
 export const ANGELS_SECTION: KnowledgeSectionConfig = {
   title: "الملائكة",
-  icon: "👼",
+  icon: "�",
   accent: "#38bdf8",
   bookmarkKey: "noor_angels_bookmarks",
   unitLabel: "بطاقة",

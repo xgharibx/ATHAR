@@ -146,6 +146,16 @@ type LibrarySection = {
 
 const LIBRARY_SECTIONS: LibrarySection[] = [
   {
+    id: "asma",
+    title: "أسماء الله الحسنى",
+    subtitle: "تدبر ومعانٍ مختصرة",
+    description: "أسماء الله الحسنى في بطاقات هادئة تساعد على الحفظ والتأمل والعمل.",
+    icon: "✨",
+    accent: "#eab308",
+    route: "/asma",
+    featured: true,
+  },
+  {
     id: "hadith",
     title: "أحاديث",
     subtitle: "كتب الحديث والمختارات النبوية",
@@ -154,7 +164,6 @@ const LIBRARY_SECTIONS: LibrarySection[] = [
     accent: "#10b981",
     route: "/library/hadith",
     badge: "المكتبة الحديثية",
-    featured: true,
   },
   {
     id: "stories",
@@ -206,7 +215,7 @@ const LIBRARY_SECTIONS: LibrarySection[] = [
     title: "الملائكة",
     subtitle: "عالم الملائكة ووظائفهم",
     description: "تعرّف على الملائكة الواردين في القرآن والسنة وما أخبر به النبي ﷺ عنهم ووظائف كلٍّ منهم.",
-    icon: "👼",
+    icon: "�",
     accent: "#38bdf8",
     route: "/angels",
   },
@@ -254,15 +263,6 @@ const LIBRARY_SECTIONS: LibrarySection[] = [
     icon: "🧎",
     accent: "#8b5cf6",
     route: "/prayer-guide",
-  },
-  {
-    id: "asma",
-    title: "أسماء الله الحسنى",
-    subtitle: "تدبر ومعانٍ مختصرة",
-    description: "أسماء الله الحسنى في بطاقات هادئة تساعد على الحفظ والتأمل والعمل.",
-    icon: "✨",
-    accent: "#eab308",
-    route: "/asma",
   },
   {
     id: "quran-vocab",

@@ -65,10 +65,18 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
-        checkDayReset(prefs);
-        for (int id : appWidgetIds) {
-            updateSingle(context, manager, id, prefs);
+        try {
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
+            checkDayReset(prefs);
+            for (int id : appWidgetIds) {
+                try {
+                    updateSingle(context, manager, id, prefs);
+                } catch (Throwable t) {
+                    // Never surface "couldn't load widget"; skip this id safely.
+                }
+            }
+        } catch (Throwable t) {
+            // Guard the whole update path.
         }
     }
 
