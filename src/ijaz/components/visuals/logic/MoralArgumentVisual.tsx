@@ -1,128 +1,206 @@
-
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { MiracleVisualProps } from '../MiracleVisualRegistry';
 
-// ⚖️ البرهان الأخلاقي — Moral Argument
-// 1. If God does not exist, objective moral values do not exist
-// 2. Objective moral values DO exist
-// 3. Therefore, God exists
-// Visual: Scales of justice, moral compass pointing to transcendent source
+// الحجة الأخلاقية — The Moral Argument
+// Cinematic: a luminous balance scale settles into perfect equilibrium while
+// streams of objective moral values rise from it toward a single transcendent
+// source of light — grounding objective morality in the Divine.
+
+const STEPS = [
+  { n: '١', text: 'لو لا الله، لا قيم موضوعية' },
+  { n: '٢', text: 'القيم الموضوعية موجودة' },
+  { n: '∴', text: 'إذن الله موجود' },
+];
+
+const MORAL_FACTS = ['العدل', 'الرحمة', 'الصدق', 'حُرمة الظلم'];
 
 export default function MoralArgumentVisual({ className }: MiracleVisualProps) {
-  const moralFacts = [
-    { text: 'قتل الأبرياء شر مطلق', d: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M5 5l14 14' },
-    { text: 'الظلم خطأ بالضرورة', d: 'M12 3v18 M7 7h10 M5 7l-2 5a3.5 3.5 0 0 0 7 0L8 7 M19 7l-2 5a3.5 3.5 0 0 0 7 0l-2-5 M8 21h8' },
-    { text: 'الرحمة خير في ذاتها', d: 'M12 21s-7-4.35-9.5-8.5C1 9 2.5 5.5 6 5.5c2 0 3 1.5 4 3 1-1.5 2-3 4-3 3.5 0 5 3.5 3.5 7C19 16.65 12 21 12 21z' },
-    { text: 'الصدق فضيلة مطلقة', d: 'M12 2 14.4 8.8 21.6 9.1 16 13.5 17.8 20.5 12 16.5 6.2 20.5 8 13.5 2.4 9.1 9.6 8.8z' },
-  ];
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId = 0;
+    let time = 0;
+
+    const rays = Array.from({ length: 40 }, () => ({
+      x: 0.3 + Math.random() * 0.4,
+      r: Math.random() * 1.4 + 0.6,
+      sp: Math.random() * 0.5 + 0.4,
+      delay: Math.random() * 3,
+    }));
+
+    const draw = () => {
+      time += 0.016;
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+
+      const bg = ctx.createRadialGradient(w * 0.5, h * 0.18, 0, w * 0.5, h * 0.6, w * 0.9);
+      bg.addColorStop(0, '#0d1218');
+      bg.addColorStop(1, '#05070a');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      // transcendent source at top
+      const srcX = w * 0.5;
+      const srcY = h * 0.12;
+      const pulse = 0.6 + Math.sin(time * 1.6) * 0.3;
+      const sg = ctx.createRadialGradient(srcX, srcY, 0, srcX, srcY, w * 0.3);
+      sg.addColorStop(0, `rgba(255,240,200,${0.5 * pulse + 0.15})`);
+      sg.addColorStop(0.5, `rgba(212,168,83,${0.18 * pulse})`);
+      sg.addColorStop(1, 'rgba(212,168,83,0)');
+      ctx.beginPath();
+      ctx.arc(srcX, srcY, w * 0.3, 0, Math.PI * 2);
+      ctx.fillStyle = sg;
+      ctx.fill();
+
+      // rising value particles toward the source
+      const baseY = h * 0.62;
+      for (const r of rays) {
+        const t = ((time - r.delay) % 3.5) / 3.5;
+        if (t < 0) continue;
+        const ez = t;
+        const px = (r.x + (0.5 - r.x) * ez) * w + Math.sin(time * 2 + r.x * 10) * 6;
+        const py = baseY + (srcY - baseY) * ez;
+        const alpha = Math.sin(t * Math.PI) * 0.8;
+        ctx.beginPath();
+        ctx.arc(px, py, r.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,225,150,${alpha})`;
+        ctx.fill();
+      }
+
+      // luminous balance scale settling to equilibrium
+      const settle = Math.min(1, time / 3);
+      const tilt = Math.sin(time * 1.2) * (1 - settle) * 0.25;
+      const cx = w * 0.5;
+      const beamY = baseY;
+      const armLen = w * 0.16;
+
+      ctx.save();
+      ctx.translate(cx, beamY);
+      ctx.rotate(tilt);
+      // beam
+      ctx.strokeStyle = 'rgba(212,168,83,0.85)';
+      ctx.lineWidth = 2.4;
+      ctx.shadowColor = 'rgba(212,168,83,0.6)';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(-armLen, 0);
+      ctx.lineTo(armLen, 0);
+      ctx.stroke();
+      // pans
+      for (const side of [-1, 1]) {
+        const px = side * armLen;
+        ctx.beginPath();
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px - 12, 22);
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px + 12, 22);
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(px, 26, 13, Math.PI, Math.PI * 2, true);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // central post
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(212,168,83,0.7)';
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.moveTo(cx, beamY);
+      ctx.lineTo(cx, beamY + h * 0.14);
+      ctx.stroke();
+      // pivot glow
+      ctx.beginPath();
+      ctx.arc(cx, beamY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,245,210,0.95)';
+      ctx.fill();
+
+      animId = requestAnimationFrame(draw);
+    };
+
+    let started = false;
+    const observer = new ResizeObserver(() => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (!started) { started = true; draw(); }
+    });
+    observer.observe(canvas);
+    return () => {
+      cancelAnimationFrame(animId);
+      observer.disconnect();
+    };
+  }, []);
 
   return (
-    <div className={`relative w-full h-full overflow-hidden bg-gradient-to-b from-[#080815] to-[#050508] flex flex-col items-center justify-center p-4 ${className || ''}`}>
-      {/* Radial moral compass background */}
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-        className="absolute w-[300px] h-[300px] opacity-[0.03]"
-      >
-        <svg viewBox="0 0 300 300">
-          <circle cx="150" cy="150" r="140" stroke="#d4a853" strokeWidth="0.5" fill="none" />
-          <circle cx="150" cy="150" r="100" stroke="#d4a853" strokeWidth="0.5" fill="none" />
-          <line x1="150" y1="10" x2="150" y2="290" stroke="#d4a853" strokeWidth="0.3" />
-          <line x1="10" y1="150" x2="290" y2="150" stroke="#d4a853" strokeWidth="0.3" />
-        </svg>
-      </motion.div>
+    <div className={`relative w-full h-full overflow-hidden ${className || ''}`}>
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-      {/* Scales of Justice - SVG */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
+      <motion.p
+        initial={{ opacity: 0, y: -14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 mb-4"
+        className="absolute top-3 left-0 right-0 text-center font-amiri text-base md:text-lg text-gold-primary z-10 pointer-events-none"
+        style={{ textShadow: '0 0 18px rgba(212,168,83,0.4)' }}
       >
-        {/* Transcendent light source above the scales */}
-        <motion.div
-          aria-hidden
-          animate={{ opacity: [0.15, 0.4, 0.15], scale: [0.9, 1.1, 0.9] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-6 left-1/2 -translate-x-1/2 w-28 h-28 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(212,168,83,0.35), transparent 70%)' }}
-        />
-        <svg viewBox="0 0 200 120" className="w-40 h-24 mx-auto relative">
-          {/* Central pillar */}
-          <line x1="100" y1="10" x2="100" y2="110" stroke="#d4a853" strokeWidth="2" opacity="0.4" />
-          {/* Base */}
-          <rect x="70" y="108" width="60" height="6" rx="3" fill="#d4a853" opacity="0.3" />
-          {/* Beam */}
-          <motion.g
-            animate={{ rotate: [-2, 2, -2] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            style={{ transformOrigin: '100px 20px' }}
-          >
-            <line x1="25" y1="20" x2="175" y2="20" stroke="#d4a853" strokeWidth="2" opacity="0.5" />
-            {/* Left pan — "without God" */}
-            <line x1="25" y1="20" x2="25" y2="55" stroke="#d4a853" strokeWidth="1" opacity="0.3" />
-            <line x1="5" y1="55" x2="45" y2="55" stroke="#d4a853" strokeWidth="1" opacity="0.3" />
-            <path d="M 5 55 Q 25 70 45 55" stroke="#d4a853" strokeWidth="1" fill="rgba(212,168,83,0.05)" opacity="0.4" />
-            <text x="25" y="80" textAnchor="middle" fill="#c0392b" fontSize="6" fontFamily="Tajawal" opacity="0.6">بدون إله</text>
-            <text x="25" y="88" textAnchor="middle" fill="#c0392b" fontSize="5" fontFamily="Tajawal" opacity="0.4">لا أخلاق مطلقة</text>
-            {/* Right pan — "with God" */}
-            <line x1="175" y1="20" x2="175" y2="45" stroke="#d4a853" strokeWidth="1" opacity="0.3" />
-            <line x1="155" y1="45" x2="195" y2="45" stroke="#d4a853" strokeWidth="1" opacity="0.3" />
-            <path d="M 155 45 Q 175 60 195 45" stroke="#2dd4a8" strokeWidth="1" fill="rgba(45,212,168,0.05)" opacity="0.4" />
-            <text x="175" y="70" textAnchor="middle" fill="#2dd4a8" fontSize="6" fontFamily="Tajawal" opacity="0.6">مع الله</text>
-            <text x="175" y="78" textAnchor="middle" fill="#2dd4a8" fontSize="5" fontFamily="Tajawal" opacity="0.4">أساس الأخلاق المطلقة</text>
-          </motion.g>
-          {/* Top ornament */}
-          <circle cx="100" cy="12" r="5" fill="#d4a853" opacity="0.3" />
-        </svg>
-      </motion.div>
+        الحجة الأخلاقية
+      </motion.p>
 
-      {/* Logical structure */}
-      <div className="relative z-10 w-full max-w-md space-y-3">
-        {[
-          { n: '١', text: 'إذا لم يكن الله موجودًا، فلا قيم أخلاقية مطلقة', color: '#4A90D9' },
-          { n: '٢', text: 'القيم الأخلاقية المطلقة موجودة فعلاً', color: '#4A90D9' },
-          { n: '∴', text: 'إذن الله موجود', color: '#2dd4a8' },
-        ].map((step, i) => (
+      {/* Premise chain */}
+      <div className="absolute left-2 top-[26%] flex flex-col gap-1.5 z-10 pointer-events-none">
+        {STEPS.map((s, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1 + i * 0.6, duration: 0.4 }}
-            className={`flex items-center gap-3 p-3 rounded-lg border ${i === 2 ? 'bg-verse-green/5 border-verse-green/20' : 'bg-space-blue/20 border-blue-400/10'}`}
+            transition={{ delay: 0.5 + i * 0.45, duration: 0.5 }}
+            className={`flex items-center gap-1.5 rounded-md px-2 py-1 backdrop-blur-sm border ${
+              i === 2 ? 'bg-verse-green/15 border-verse-green/40' : 'bg-black/30 border-gold-primary/20'
+            }`}
           >
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-              style={{ backgroundColor: step.color + '20', color: step.color }}>
-              {step.n}
-            </div>
-            <p className="font-amiri text-sm text-text-primary">{step.text}</p>
+            <span className={`font-amiri text-xs ${i === 2 ? 'text-verse-green' : 'text-gold-primary'}`}>{s.n}</span>
+            <span className={`font-tajawal text-[10px] md:text-xs ${i === 2 ? 'text-verse-green' : 'text-text-secondary'}`}>{s.text}</span>
           </motion.div>
         ))}
       </div>
 
-      {/* Moral facts that everyone knows */}
+      {/* Moral facts pills */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 3.5 }}
-        className="relative z-10 mt-4 w-full max-w-md"
+        transition={{ delay: 1.8, duration: 0.8 }}
+        className="absolute bottom-[16%] left-0 right-0 flex flex-wrap justify-center gap-1.5 px-4 z-10 pointer-events-none"
       >
-        <p className="text-center text-[10px] text-text-muted font-tajawal mb-2">حقائق أخلاقية يعرفها كل إنسان:</p>
-        <div className="flex flex-wrap justify-center gap-2">
-          {moralFacts.map((fact, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 4 + i * 0.2 }}
-              className="bg-space-blue/15 border border-border-subtle rounded-full px-3 py-1 flex items-center gap-1.5"
-            >
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#d4a853" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d={fact.d} /></svg>
-              <span className="text-[9px] text-text-secondary font-tajawal">{fact.text}</span>
-            </motion.div>
-          ))}
-        </div>
+        {MORAL_FACTS.map((m, i) => (
+          <motion.span
+            key={m}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 2 + i * 0.18, duration: 0.4 }}
+            className="rounded-full bg-gold-primary/10 border border-gold-primary/30 px-2.5 py-0.5 font-amiri text-xs text-gold-primary"
+          >
+            {m}
+          </motion.span>
+        ))}
       </motion.div>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2.6, duration: 1.2 }}
+        className="absolute bottom-4 left-0 right-0 text-center font-amiri text-xs md:text-sm text-verse-green/75 px-4 z-10 pointer-events-none"
+        style={{ textShadow: '0 0 20px rgba(45,212,168,0.3)' }}
+      >
+        إِنَّ اللَّهَ يَأْمُرُ بِالْعَدْلِ وَالْإِحْسَانِ — النحل : 90
+      </motion.p>
     </div>
   );
 }
