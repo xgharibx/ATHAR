@@ -808,9 +808,9 @@ export function DhikrList(props: Readonly<{
                           onClick={() => openEditItem(entry.originalIndex)}
                           className="h-9 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition font-semibold"
                           style={{
-                            background: "color-mix(in srgb, var(--accent) 24%, var(--card))",
-                            color: "color-mix(in srgb, var(--accent) 88%, white)",
-                            borderColor: "color-mix(in srgb, var(--accent) 50%, transparent)",
+                            background: "var(--accent)",
+                            color: "var(--on-accent)",
+                            borderColor: "color-mix(in srgb, var(--accent) 62%, transparent)",
                           }}
                           aria-label="تعديل الذكر"
                         >

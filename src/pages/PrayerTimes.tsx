@@ -23,7 +23,6 @@ import { toArabicIndic } from "@/lib/arabic";
 import { PTRIndicator, usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useNoorStore } from "@/store/noorStore";
 import type { PrayerAlertPrayer } from "@/store/noorStore";
-import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -277,8 +276,8 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
   React.useEffect(() => { return () => { audioRef.current?.pause(); }; }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-[var(--card)]0 backdrop-blur-sm p-4">
-      <Card className="w-full max-w-md max-h-[85vh] overflow-y-auto p-5 space-y-5" role="dialog" aria-modal="true" aria-label="إعدادات مواقيت الصلاة">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--card)]0 backdrop-blur-sm p-4">
+      <Card className="w-full max-w-md max-h-[78dvh] overflow-y-auto p-5 space-y-5" role="dialog" aria-modal="true" aria-label="إعدادات مواقيت الصلاة">
         <div className="flex items-center justify-between">
           <div className="font-semibold">إعدادات مواقيت الصلاة</div>
           <button type="button" aria-label="إغلاق" onClick={onClose} autoFocus className="opacity-50 hover:opacity-80 transition-opacity p-1"><X size={18} aria-hidden="true" /></button>
@@ -330,7 +329,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
                     onClick={() => setReminders({ iqamaOffsets: { ...iqamaOffsets, [p]: Math.max(0, (iqamaOffsets[p] ?? 15) - 5) } })}
                     aria-label={`تقليل وقت إقامة ${PRAYER_LABELS[p]}`}
                     className="w-8 h-8 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)] transition-colors grid place-items-center text-sm">−</button>
-                  <span className="w-12 text-center text-sm font-medium tabular-nums">{iqamaOffsets[p] ?? 15} د</span>
+                  <span className="w-12 text-center text-sm font-medium tabular-nums">{toArabicIndic(String(iqamaOffsets[p] ?? 15))}</span>
                   <button type="button"
                     onClick={() => setReminders({ iqamaOffsets: { ...iqamaOffsets, [p]: Math.min(60, (iqamaOffsets[p] ?? 15) + 5) } })}
                     aria-label={`زيادة وقت إقامة ${PRAYER_LABELS[p]}`}
@@ -1002,7 +1001,6 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
 
 export function PrayerTimesPage() {
   const navigate       = useNavigate();
-  useScrollRestoration();
   const prayerTimes    = usePrayerTimes();
   const reminders      = useNoorStore((s) => s.reminders);
   const [now, setNow]  = React.useState(() => new Date());
@@ -1038,6 +1036,10 @@ export function PrayerTimesPage() {
   React.useEffect(() => {
     const id = globalThis.setInterval(() => setNow(new Date()), 30_000);
     return () => globalThis.clearInterval(id);
+  }, []);
+
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
 
   const data     = prayerTimes.data;
