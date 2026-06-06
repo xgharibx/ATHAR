@@ -278,7 +278,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
             {hadith ? (
               <>
                 <div
-                  className="text-base leading-9 text-right mb-2 font-medium arabic-text"
+                  className="text-base leading-9 text-right mb-2 font-medium arabic-text max-h-44 overflow-y-auto pr-1"
                   style={{ color: "var(--fg)" }}
                 >
                   {hadith.t}

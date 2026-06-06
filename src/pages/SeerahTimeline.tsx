@@ -36,7 +36,17 @@ function BookCard({
 }) {
   const [open, setOpen] = React.useState(false);
   const [openChapter, setOpenChapter] = React.useState<number | null>(null);
+  const chapterRefs = React.useRef<Array<HTMLDivElement | null>>([]);
   const color = getSeerahBookColor(book.category);
+
+  const handleToggleChapter = React.useCallback((idx: number, isOpen: boolean) => {
+    const next = isOpen ? null : idx;
+    setOpenChapter(next);
+    if (next === null) return;
+    window.setTimeout(() => {
+      chapterRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }, []);
 
   React.useEffect(() => {
     if (!open) setOpenChapter(null);
@@ -117,12 +127,15 @@ function BookCard({
                 return (
                   <div
                     key={idx}
+                    ref={(el) => {
+                      chapterRefs.current[idx] = el;
+                    }}
                     className="rounded-xl overflow-hidden"
                     style={{ border: `1px solid color-mix(in srgb, ${color} 25%, var(--stroke))` }}
                   >
                     <button
                       type="button"
-                      onClick={() => setOpenChapter(chOpen ? null : idx)}
+                      onClick={() => handleToggleChapter(idx, chOpen)}
                       className="w-full flex items-center justify-between px-3 py-3 text-right"
                       style={{ color: "var(--fg)" }}
                     >

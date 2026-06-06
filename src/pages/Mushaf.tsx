@@ -226,6 +226,7 @@ export function MushafPage() {
   const [currentPage, setCurrentPage] = React.useState<number>(() =>
     rawPage >= 1 ? Math.min(rawPage, 604) : (prefs.quranMushafPage ?? 1)
   );
+  const pageScrollMemoryRef = React.useRef<Record<number, number>>({});
 
   // Handle ?surah= param: jump to first page of that surah (or specific ayah)
   const didJumpRef = React.useRef(false);
@@ -258,11 +259,12 @@ export function MushafPage() {
     const clamped = Math.max(1, Math.min(totalPages, p));
     // M2: Quick slide animation direction (snappy, no loading flash)
     if (clamped !== currentPage) {
+      if (pageContentRef.current) {
+        pageScrollMemoryRef.current[currentPage] = pageContentRef.current.scrollTop;
+      }
       setPageTransDir(clamped > currentPage ? "left" : "right");
       if (pageTransTimer.current) clearTimeout(pageTransTimer.current);
       pageTransTimer.current = window.setTimeout(() => setPageTransDir(null), 220);
-      // Always start the new page at the top (fixes landscape staying scrolled)
-      if (pageContentRef.current) pageContentRef.current.scrollTop = 0;
     }
     setCurrentPage(clamped);
     setPrefs({ quranMushafPage: clamped });
@@ -325,6 +327,7 @@ export function MushafPage() {
   // Hide only on clear downward reading intent. Scroll bounce must not re-show chrome.
   const handleContentScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const y = e.currentTarget.scrollTop;
+    pageScrollMemoryRef.current[currentPage] = y;
     const delta = y - lastScrollYRef.current;
     lastScrollYRef.current = y;
     if (Math.abs(delta) < 4) return;
@@ -345,7 +348,7 @@ export function MushafPage() {
       if (chromeTimer.current) { clearTimeout(chromeTimer.current); chromeTimer.current = null; }
       scrollIntentRef.current = 0;
     }
-  }, []);
+  }, [currentPage]);
   React.useEffect(() => { lastScrollYRef.current = 0; scrollIntentRef.current = 0; if (showChromeRef.current) flashChrome(); }, [currentPage, flashChrome]);
   React.useEffect(() => () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); }, []);
 
@@ -416,6 +419,15 @@ export function MushafPage() {
   // Phase 2F: Page scrubber strip
   const pageStripRef = React.useRef<HTMLButtonElement>(null);
   const pageContentRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    const id = window.requestAnimationFrame(() => {
+      if (!pageContentRef.current) return;
+      const savedTop = pageScrollMemoryRef.current[currentPage];
+      pageContentRef.current.scrollTop = Number.isFinite(savedTop) ? savedTop : 0;
+      lastScrollYRef.current = pageContentRef.current.scrollTop;
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [currentPage]);
   React.useEffect(() => {
     if (!selectedItem) { setNoteSheetOpen(false); setShareSheetOpen(false); return; }
     const key = `${selectedItem.surahId}:${selectedItem.displayAyah}`;

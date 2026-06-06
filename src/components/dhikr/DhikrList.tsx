@@ -55,6 +55,7 @@ export function DhikrList(props: Readonly<{
   const [customText, setCustomText] = React.useState("");
   const [customCount, setCustomCount] = React.useState("1");
   const [customBenefit, setCustomBenefit] = React.useState("");
+  const editSheetRef = React.useRef<HTMLDivElement | null>(null);
   const isDailySectionLocked = isDailySection(props.sectionId);
   const isMyAdhkarSection = props.sectionId === MY_ADHKAR_SECTION_ID;
   const customSectionItemCount = React.useMemo(() => {
@@ -393,6 +394,9 @@ export function DhikrList(props: Readonly<{
     setCustomBenefit(item.benefit ?? "");
     setEditingItemIdx(originalIndex);
     setAddOpen(true);
+    window.setTimeout(() => {
+      editSheetRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }, 0);
   }
 
   const handleDeleteItem = (originalIndex: number) => {
@@ -802,7 +806,12 @@ export function DhikrList(props: Readonly<{
                       <>
                         <button type="button"
                           onClick={() => openEditItem(entry.originalIndex)}
-                          className="h-9 px-3 rounded-xl text-xs flex items-center gap-1.5 bg-accent-8 text-[var(--accent)] border border-accent-20 hover:bg-accent-14 active:bg-accent-14 transition"
+                          className="h-9 px-3 rounded-xl text-xs flex items-center gap-1.5 border transition font-semibold"
+                          style={{
+                            background: "color-mix(in srgb, var(--accent) 24%, var(--card))",
+                            color: "color-mix(in srgb, var(--accent) 88%, white)",
+                            borderColor: "color-mix(in srgb, var(--accent) 50%, transparent)",
+                          }}
                           aria-label="تعديل الذكر"
                         >
                           <Pencil size={12} />
@@ -852,9 +861,9 @@ export function DhikrList(props: Readonly<{
           )
         ) : null}
         {addOpen ? (
-          <div className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm flex items-end md:items-center justify-center p-4">
+          <div className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
             <button type="button" className="absolute inset-0" aria-label="إغلاق" onClick={() => { setAddOpen(false); setEditingItemIdx(null); }} />
-            <div className="relative z-10 glass-strong w-full max-w-lg rounded-3xl border border-[var(--stroke)] overflow-hidden shadow-2xl" dir="rtl" role="dialog" aria-modal="true" aria-label={editingItemIdx !== null ? "تعديل ذكر" : "إضافة ذكر"}>
+            <div ref={editSheetRef} className="relative z-10 glass-strong w-full max-w-lg max-h-[86dvh] rounded-3xl border border-[var(--stroke)] overflow-auto shadow-2xl" dir="rtl" role="dialog" aria-modal="true" aria-label={editingItemIdx !== null ? "تعديل ذكر" : "إضافة ذكر"}>
               {/* Drag handle */}
               <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 rounded-full bg-[var(--stroke)]" /></div>
               <div className="px-5 pb-5 pb-safe">

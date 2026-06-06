@@ -30,6 +30,16 @@ function StoryCard({
 }) {
   const [open, setOpen] = React.useState(false);
   const [openChapter, setOpenChapter] = React.useState<number | null>(null);
+  const chapterRefs = React.useRef<Array<HTMLDivElement | null>>([]);
+
+  const handleToggleChapter = React.useCallback((idx: number, isOpen: boolean) => {
+    const next = isOpen ? null : idx;
+    setOpenChapter(next);
+    if (next === null) return;
+    window.setTimeout(() => {
+      chapterRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }, []);
 
   React.useEffect(() => {
     if (!open) setOpenChapter(null);
@@ -88,10 +98,17 @@ function StoryCard({
               {story.chapters.map((chapter, idx) => {
                 const chOpen = openChapter === idx;
                 return (
-                  <div key={idx} className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--stroke)" }}>
+                  <div
+                    key={idx}
+                    ref={(el) => {
+                      chapterRefs.current[idx] = el;
+                    }}
+                    className="rounded-xl overflow-hidden"
+                    style={{ border: "1px solid var(--stroke)" }}
+                  >
                     <button
                       type="button"
-                      onClick={() => setOpenChapter(chOpen ? null : idx)}
+                      onClick={() => handleToggleChapter(idx, chOpen)}
                       className="w-full flex items-center justify-between px-3 py-3 text-right"
                       style={{ color: "var(--fg)" }}
                     >

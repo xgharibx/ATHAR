@@ -175,7 +175,7 @@ export function PrayerWidget() {
       })()}
 
       <Button variant="secondary" className="mt-4 w-full justify-between" onClick={() => navigate("/prayer-times")}>
-        عرض التفاصيل الكاملة للمواقيت
+        مواقيت الصلاة • القبلة • الإعدادات
         <ArrowLeft size={16} aria-hidden="true" />
       </Button>
     </Card>
