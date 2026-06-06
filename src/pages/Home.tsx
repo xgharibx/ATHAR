@@ -954,7 +954,7 @@ export function HomePage() {
                 <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" onClick={() => onQuick(heroAdhkar.id)}>{heroAdhkar.label}</Button>
                 {prefs.quranMushafPage ? (
                   <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : `/mushaf/1`); }}>
-                    📖 {quranResumeMeta?.surahName ? `تابع ${quranResumeMeta.surahName} · صفحة ${toArabicNumeral(quranResumeMeta.page)}` : "تابع القرآن"}
+                    📖 {quranResumeMeta?.surahName ? `تابع ${quranResumeMeta.surahName}` : "تابع القرآن"}
                   </Button>
                 ) : (
                   <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/mushaf/1"); }}>المصحف</Button>

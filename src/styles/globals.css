@@ -4769,6 +4769,7 @@ a:focus-visible,
   --ijaz-muted: rgba(230,237,243,0.65);
   --ijaz-topbar-h: 52px;
   --ijaz-subnav-h: 44px;
+  --ijaz-safe-top: env(safe-area-inset-top, 0px);
 
   min-height: 100dvh;
   background-color: transparent;
@@ -4785,8 +4786,8 @@ a:focus-visible,
   display: flex;
   align-items: center;
   gap: 12px;
-  height: var(--ijaz-topbar-h);
-  padding: 0 16px;
+  height: calc(var(--ijaz-topbar-h) + var(--ijaz-safe-top));
+  padding: calc(var(--ijaz-safe-top) + 4px) 16px 4px;
   background:
     radial-gradient(120% 180% at 100% 0%, rgba(99,102,241,0.14) 0%, transparent 55%),
     radial-gradient(120% 180% at 0% 0%, rgba(232,121,249,0.10) 0%, transparent 55%),
@@ -4884,7 +4885,7 @@ a:focus-visible,
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   position: sticky;
-  top: var(--ijaz-topbar-h);
+  top: calc(var(--ijaz-topbar-h) + var(--ijaz-safe-top));
   z-index: 49;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
@@ -5002,7 +5003,7 @@ a:focus-visible,
 
 /* ── Content area ── */
 .ijaz-content {
-  min-height: calc(100dvh - var(--ijaz-topbar-h) - var(--ijaz-subnav-h));
+  min-height: calc(100dvh - var(--ijaz-topbar-h) - var(--ijaz-subnav-h) - var(--ijaz-safe-top));
 }
 
 /* ── Spinner ── */

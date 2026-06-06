@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { BookOpen, Share2, Shuffle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { DAILY_VERSES } from "@/data/dailyVerses";
-import { HADITHS } from "@/data/hadiths";
 import { DAILY_WISDOMS } from "@/data/dailyWisdom";
 import { QURAN_VOCAB } from "@/data/quranVocab";
 import { Button } from "@/components/ui/Button";
+import { HADITH_BOOKS_STATIC, HADITH_GRADE_LABELS } from "@/data/hadithTypes";
+import { useHadithIndex, useHadithPack } from "@/data/useHadithBook";
 import toast from "react-hot-toast";
 
 function dateIndex(dateKey: string, length: number, offset = 0): number {
@@ -27,15 +28,22 @@ function randomOtherIdx(current: number, length: number): number {
 }
 
 const SLIDE_LABELS = ["آية اليوم", "حديث اليوم", "تدبر اليوم", "كلمة اليوم"] as const;
-const ARRAY_LENGTHS = [DAILY_VERSES.length, HADITHS.length, DAILY_WISDOMS.length, QURAN_VOCAB.length] as const;
+const ARRAY_LENGTHS = [DAILY_VERSES.length, 1, DAILY_WISDOMS.length, QURAN_VOCAB.length] as const;
 
 export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const navigate = useNavigate();
+  const { data: hadithBooksIndex } = useHadithIndex();
+  const hadithBooks = React.useMemo(() => {
+    const base = (hadithBooksIndex && hadithBooksIndex.length > 0) ? hadithBooksIndex : HADITH_BOOKS_STATIC;
+    return [...base].sort((a, b) => a.order - b.order);
+  }, [hadithBooksIndex]);
+
   const [activeIdx, setActiveIdx] = React.useState(1);
   const pauseUntilRef = React.useRef<number>(0);
   const touchStartX = React.useRef<number>(0);
   // null = show daily item; number = user-shuffled index (resets on new dateKey)
   const [shuffleIdx, setShuffleIdx] = React.useState<[number | null, number | null, number | null, number | null]>([null, null, null, null]);
+  const [hadithOverride, setHadithOverride] = React.useState<{ bookKey: string; hadithNumber: number } | null>(null);
   const [spinSlide, setSpinSlide] = React.useState<number | null>(null);
 
   // Reset shuffles when day changes
@@ -43,12 +51,13 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   if (prevDateKey.current !== dateKey) {
     prevDateKey.current = dateKey;
     setShuffleIdx([null, null, null, null]);
+    setHadithOverride(null);
   }
 
   // Daily indices (deterministic per date)
   const dailyIdxs = React.useMemo<[number, number, number, number]>(() => {
     const v = dateIndex(dateKey, DAILY_VERSES.length, 77);
-    const h = dateIndex(dateKey, HADITHS.length);
+    const h = 0;
     let wHash = 0;
     for (let i = 0; i < dateKey.length; i++) wHash = (wHash * 31 + dateKey.charCodeAt(i)) >>> 0;
     const w = DAILY_WISDOMS.length ? wHash % DAILY_WISDOMS.length : 0;
@@ -61,12 +70,52 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   // Active indices: shuffled override OR daily
   const activeIdxs = shuffleIdx.map((s, i) => s ?? dailyIdxs[i]) as [number, number, number, number];
 
+  const dailyHadithPick = React.useMemo(() => {
+    if (hadithBooks.length === 0) return { bookKey: "nawawi", hadithNumber: 1 };
+    const book = hadithBooks[dateIndex(dateKey, hadithBooks.length, 191)] ?? hadithBooks[0];
+    const hadithNumber = dateIndex(dateKey, Math.max(1, book.count), 577) + 1;
+    return { bookKey: book.key, hadithNumber };
+  }, [dateKey, hadithBooks]);
+
+  const activeHadithPick = hadithOverride ?? dailyHadithPick;
+  const { data: activeHadithPack, isLoading: hadithLoading } = useHadithPack(activeHadithPick.bookKey);
+
+  const hadith = React.useMemo(() => {
+    if (!activeHadithPack || activeHadithPack.hadiths.length === 0) return null;
+    return activeHadithPack.hadiths.find((item) => item.n === activeHadithPick.hadithNumber)
+      ?? activeHadithPack.hadiths[(activeHadithPick.hadithNumber - 1) % activeHadithPack.hadiths.length]
+      ?? activeHadithPack.hadiths[0]
+      ?? null;
+  }, [activeHadithPack, activeHadithPick.hadithNumber]);
+
+  const hadithBookMeta = React.useMemo(
+    () => hadithBooks.find((b) => b.key === activeHadithPick.bookKey) ?? HADITH_BOOKS_STATIC.find((b) => b.key === activeHadithPick.bookKey) ?? null,
+    [activeHadithPick.bookKey, hadithBooks]
+  );
+
+  const hadithGradeLabel = React.useMemo(() => {
+    const raw = hadith?.g?.[0] ?? hadithBookMeta?.grade ?? "";
+    if (!raw) return "";
+    const gradeKey = raw.toLowerCase();
+    return HADITH_GRADE_LABELS[gradeKey] ?? raw;
+  }, [hadith?.g, hadithBookMeta?.grade]);
+
   const verse     = DAILY_VERSES[activeIdxs[0]] ?? null;
-  const hadith    = HADITHS[activeIdxs[1]] ?? null;
   const wisdom    = DAILY_WISDOMS[activeIdxs[2]] ?? null;
   const vocabWord = QURAN_VOCAB[activeIdxs[3]] ?? null;
 
   const handleShuffle = React.useCallback((slideIdx: 0 | 1 | 2 | 3) => {
+    if (slideIdx === 1) {
+      const pool = hadithBooks.length > 0 ? hadithBooks : HADITH_BOOKS_STATIC;
+      const randomBook = pool[Math.floor(Math.random() * pool.length)] ?? pool[0];
+      const randomNumber = Math.floor(Math.random() * Math.max(1, randomBook.count)) + 1;
+      setHadithOverride({ bookKey: randomBook.key, hadithNumber: randomNumber });
+      setSpinSlide(slideIdx);
+      setTimeout(() => setSpinSlide(null), 400);
+      pauseUntilRef.current = Date.now() + 15000;
+      return;
+    }
+
     const current = shuffleIdx[slideIdx] ?? dailyIdxs[slideIdx];
     const next = randomOtherIdx(current, ARRAY_LENGTHS[slideIdx]);
     setShuffleIdx((prev) => {
@@ -78,7 +127,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     setTimeout(() => setSpinSlide(null), 400);
     // Pause auto-advance for 15 s after shuffle
     pauseUntilRef.current = Date.now() + 15000;
-  }, [shuffleIdx, dailyIdxs]);
+  }, [shuffleIdx, dailyIdxs, hadithBooks]);
 
   const copyShare = React.useCallback(async (text: string) => {
     try {
@@ -140,7 +189,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
       <div className="flex items-center justify-between px-4 pt-3 pb-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">{SLIDE_LABELS[activeIdx]}</span>
-          {shuffleIdx[activeIdx] !== null && (
+          {(activeIdx === 1 ? hadithOverride !== null : shuffleIdx[activeIdx] !== null) && (
             <span
               className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full"
               style={{ background: "color-mix(in srgb, var(--accent) 18%, transparent)", color: "var(--accent)" }}
@@ -149,7 +198,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
             </span>
           )}
         </div>
-        <span className="text-xs opacity-40">{shuffleIdx[activeIdx] !== null ? "اضغط ← للتجديد" : "يتجدد يومياً"}</span>
+        <span className="text-xs opacity-40">{(activeIdx === 1 ? hadithOverride !== null : shuffleIdx[activeIdx] !== null) ? "اضغط ← للتجديد" : "يتجدد يومياً"}</span>
       </div>
 
       {/* Slides — transform-based so each slide is always 100% of the card */}
@@ -232,28 +281,36 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                   className="text-base leading-9 text-right mb-2 font-medium arabic-text"
                   style={{ color: "var(--fg)" }}
                 >
-                  {hadith.arabic}
+                  {hadith.t}
                 </div>
                 <div className="flex items-center gap-2 justify-between flex-wrap">
-                  <button type="button"
-                    onClick={() => handleShuffle(1)}
-                    className="p-1.5 rounded-lg transition press-effect"
-                    aria-label="حديث عشوائي"
-                    title="حديث جديد"
-                    style={{ color: shuffleIdx[1] !== null ? "var(--accent)" : undefined, opacity: shuffleIdx[1] !== null ? 1 : 0.55 }}
-                  >
-                    <Shuffle size={14} aria-hidden="true" style={spinSlide === 1 ? { animation: "spin-once 0.4s ease" } : undefined} />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button type="button"
+                      onClick={() => handleShuffle(1)}
+                      className="p-1.5 rounded-lg transition press-effect"
+                      aria-label="حديث عشوائي"
+                      title="حديث جديد"
+                      style={{ color: hadithOverride !== null ? "var(--accent)" : undefined, opacity: hadithOverride !== null ? 1 : 0.55 }}
+                    >
+                      <Shuffle size={14} aria-hidden="true" style={spinSlide === 1 ? { animation: "spin-once 0.4s ease" } : undefined} />
+                    </button>
+                    <Button
+                      className="press-effect text-xs h-7 px-3"
+                      variant="secondary"
+                      onClick={() => navigate(`/hadith/${activeHadithPick.bookKey}/${hadith.n}`)}
+                    >
+                      <BookOpen size={12} aria-hidden="true" />
+                      افتح في المكتبة
+                    </Button>
+                  </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <button type="button"
-                      onClick={() => copyShare(`${hadith.arabic}\n— ${hadith.narrator} • ${hadith.source}`)}
+                      onClick={() => copyShare(`${hadith.t}\n— ${hadithBookMeta?.title ?? activeHadithPick.bookKey} • ح${hadith.n}`)}
                       className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition"
                       aria-label="مشاركة الحديث"
                     >
                       <Share2 size={14} />
                     </button>
-                    <span className="text-xs opacity-60">{hadith.narrator}</span>
-                    <span className="h-1 w-1 rounded-full opacity-30" style={{ background: "var(--fg)" }} />
                     <span
                       className="text-xs px-2 py-0.5 rounded-full font-semibold"
                       style={{
@@ -261,13 +318,18 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                         color: "var(--accent)",
                       }}
                     >
-                      {hadith.source}
+                      {hadithBookMeta?.title ?? activeHadithPick.bookKey} · ح{hadith.n}
                     </span>
+                    {hadithGradeLabel ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: "color-mix(in srgb, var(--ok) 16%, transparent)", color: "var(--ok)" }}>
+                        {hadithGradeLabel}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </>
             ) : (
-              <div className="text-sm opacity-50 py-4 text-center">لا يوجد حديث</div>
+              <div className="text-sm opacity-50 py-4 text-center">{hadithLoading ? "جارٍ تحميل الحديث…" : "لا يوجد حديث"}</div>
             )}
           </div>
 

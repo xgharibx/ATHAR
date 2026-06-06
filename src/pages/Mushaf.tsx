@@ -2007,21 +2007,6 @@ export function MushafPage() {
               <span className="text-xs opacity-60 tabular-nums w-8 text-center">{Math.round(fontScale * 100)}%</span>
               <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} aria-hidden="true" /></button>
             </div>
-            {/* Phase 56: Random Ayah jump */}
-            <button
-              type="button"
-              className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center mb-3"
-              onClick={() => {
-                if (!quranDB || quranDB.length === 0) return;
-                const randomSurah = quranDB[Math.floor(Math.random() * quranDB.length)]!;
-                const randomAyah = Math.floor(Math.random() * randomSurah.ayahs.length) + 1;
-                setShowSettings(false);
-                navigate(`/mushaf?surah=${randomSurah.id}&ayah=${randomAyah}`);
-              }}
-            >
-              <Shuffle size={14} />
-              آية عشوائية
-            </button>
             {/* Q3: Translation */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs opacity-65">الترجمة الإنجليزية</span>
@@ -2265,119 +2250,6 @@ export function MushafPage() {
               </div>
             </div>
 
-            {/* ── A2: Download page audio for offline ─────── */}
-            <div className="mb-3">
-              <button type="button"
-                className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center"
-                onClick={downloadPageAudio}
-                disabled={!!cacheProgress}
-              >
-                <Download size={14} aria-hidden="true" />
-                {cacheProgress
-                  ? `جاري التحميل… ${cacheProgress.done}/${cacheProgress.total}`
-                  : "تحميل الصفحة للاستماع دون إنترنت"}
-              </button>
-            </div>
-
-            {/* ── Tajweed offline download ──────────────────── */}
-            <div className="mb-3">
-              <div className="text-xs opacity-50 mb-1.5 flex items-center gap-1">
-                <span style={{ fontSize: 12, fontWeight: 700 }}>ت</span>
-                تحميل بيانات التجويد للعمل دون إنترنت
-              </div>
-              <button type="button"
-                className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center"
-                onClick={downloadAllTajweedData}
-                disabled={!!tajweedDownloadProgress}
-              >
-                <Download size={14} aria-hidden="true" />
-                {tajweedDownloadProgress
-                  ? `جارٍ التحميل… ${tajweedDownloadProgress.done}/114 سورة`
-                  : "تحميل ألوان التجويد لجميع السور"}
-              </button>
-              {tajweedDownloadProgress && (
-                <div className="mt-1.5 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{ width: `${(tajweedDownloadProgress.done / 114) * 100}%`, background: "var(--accent)" }}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* ── A5: Sleep timer ──────────────────────────── */}
-            <div className="mb-3">
-              <div className="text-xs opacity-50 mb-1.5 flex items-center gap-1">
-                <Timer size={12} aria-hidden="true" />
-                مؤقت النوم
-                {sleepMinutes > 0 && (
-                  <span className="text-[10px] text-[var(--accent)] mr-1">{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
-                )}
-              </div>
-              <div className="flex gap-1 flex-wrap">
-                {([0, 15, 30, 45, 60, 90] as const).map((m) => (
-                  <button type="button"
-                    key={m}
-                    onClick={() => activateSleepTimer(m)}
-                    className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${sleepMinutes === m ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
-                  >{m === 0 ? "إيقاف" : `${m} د`}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* ── A4: Quran Radio ──────────────────────────── */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs opacity-50 flex items-center gap-1"><Radio size={12} aria-hidden="true" />راديو القرآن</span>
-                <button type="button"
-                  onClick={handleRadioToggle}
-                  className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioState.playing ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
-                >{radioState.loading ? "جارٍ التشغيل…" : radioState.playing ? "⏹ إيقاف" : "▶ تشغيل"}</button>
-              </div>
-              <div className="flex gap-1 flex-wrap">
-                {QURAN_RADIO_STATIONS.map((st, i) => (
-                  <button type="button"
-                    key={st.label}
-                    onClick={() => handleRadioStationSelect(i)}
-                    className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioState.stationIdx === i ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
-                  >{st.label}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* ── A6: Equalizer (Web Audio) ─────────────── */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs opacity-50 flex items-center gap-1"><SlidersHorizontal size={12} aria-hidden="true" />المعادل الصوتي</span>
-                <button type="button"
-                  onClick={() => setEqEnabled((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${eqEnabled ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
-                  role="switch" aria-checked={eqEnabled}
-                >
-                  <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${eqEnabled ? "right-1" : "right-7"}`} />
-                </button>
-              </div>
-              {eqEnabled && (
-                <div className="space-y-2 p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] opacity-50 w-10 shrink-0">باس</span>
-                    <input type="range" min={-12} max={12} step={1} value={bassGain}
-                      aria-label="درجة الباس"
-                      onChange={(e) => setBassGain(Number(e.target.value))}
-                      className="flex-1 h-1 accent-[var(--accent)]" />
-                    <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{bassGain > 0 ? "+" : ""}{bassGain}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] opacity-50 w-10 shrink-0">تريبل</span>
-                    <input type="range" min={-12} max={12} step={1} value={trebleGain}
-                      aria-label="درجة التريبل"
-                      onChange={(e) => setTrebleGain(Number(e.target.value))}
-                      className="flex-1 h-1 accent-[var(--accent)]" />
-                    <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{trebleGain > 0 ? "+" : ""}{trebleGain}</span>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </>
       )}
@@ -2468,6 +2340,132 @@ export function MushafPage() {
                 <div className="text-[10px] opacity-40">الصفحة {currentPage} من {totalPages}</div>
               </div>
             </button>
+
+            {/* ── Random ayah ── */}
+            <button
+              type="button"
+              className="w-full flex items-center gap-3 py-3.5 px-1 border-b text-right transition"
+              style={{ borderColor: "var(--stroke)" }}
+              onClick={() => {
+                if (!quranDB || quranDB.length === 0) return;
+                const randomSurah = quranDB[Math.floor(Math.random() * quranDB.length)]!;
+                const randomAyah = Math.floor(Math.random() * randomSurah.ayahs.length) + 1;
+                setShowMoreSheet(false);
+                navigate(`/mushaf?surah=${randomSurah.id}&ayah=${randomAyah}`);
+              }}
+            >
+              <span className="opacity-55"><Shuffle size={16} aria-hidden="true" /></span>
+              <div>
+                <div className="text-sm">آية عشوائية</div>
+                <div className="text-[10px] opacity-40">انتقال سريع إلى موضع جديد للتلاوة</div>
+              </div>
+            </button>
+
+            {/* ── Offline and audio quick tools ── */}
+            <div className="mb-3 mt-3 p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
+              <div className="text-xs opacity-50 mb-2">أدوات سريعة</div>
+
+              <button type="button"
+                className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center mb-2"
+                onClick={downloadPageAudio}
+                disabled={!!cacheProgress}
+              >
+                <Download size={14} aria-hidden="true" />
+                {cacheProgress
+                  ? `جاري التحميل… ${cacheProgress.done}/${cacheProgress.total}`
+                  : "تحميل الصفحة للاستماع دون إنترنت"}
+              </button>
+
+              <button type="button"
+                className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center mb-2"
+                onClick={downloadAllTajweedData}
+                disabled={!!tajweedDownloadProgress}
+              >
+                <Download size={14} aria-hidden="true" />
+                {tajweedDownloadProgress
+                  ? `جارٍ التحميل… ${tajweedDownloadProgress.done}/114 سورة`
+                  : "تحميل ألوان التجويد كاملة"}
+              </button>
+              {tajweedDownloadProgress && (
+                <div className="mb-2 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{ width: `${(tajweedDownloadProgress.done / 114) * 100}%`, background: "var(--accent)" }}
+                  />
+                </div>
+              )}
+
+              <div className="mb-2">
+                <div className="text-xs opacity-50 mb-1.5 flex items-center gap-1">
+                  <Timer size={12} aria-hidden="true" />
+                  مؤقت النوم
+                  {sleepMinutes > 0 && (
+                    <span className="text-[10px] text-[var(--accent)] mr-1">{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
+                  )}
+                </div>
+                <div className="flex gap-1 flex-wrap">
+                  {([0, 15, 30, 45, 60, 90] as const).map((m) => (
+                    <button type="button"
+                      key={m}
+                      onClick={() => activateSleepTimer(m)}
+                      className={`text-[10px] px-2.5 py-1.5 rounded-xl border transition ${sleepMinutes === m ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                    >{m === 0 ? "إيقاف" : `${m} د`}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs opacity-50 flex items-center gap-1"><Radio size={12} aria-hidden="true" />راديو القرآن</span>
+                  <button type="button"
+                    onClick={handleRadioToggle}
+                    className={`px-2.5 py-1 rounded-xl text-xs border transition ${radioState.playing ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                  >{radioState.loading ? "جارٍ التشغيل…" : radioState.playing ? "⏹ إيقاف" : "▶ تشغيل"}</button>
+                </div>
+                <div className="flex gap-1 flex-wrap">
+                  {QURAN_RADIO_STATIONS.map((st, i) => (
+                    <button type="button"
+                      key={st.label}
+                      onClick={() => handleRadioStationSelect(i)}
+                      className={`text-[10px] px-2 py-1 rounded-xl border transition ${radioState.stationIdx === i ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                    >{st.label}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs opacity-50 flex items-center gap-1"><SlidersHorizontal size={12} aria-hidden="true" />المعادل الصوتي</span>
+                  <button type="button"
+                    onClick={() => setEqEnabled((v) => !v)}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${eqEnabled ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
+                    role="switch" aria-checked={eqEnabled}
+                  >
+                    <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${eqEnabled ? "right-1" : "right-7"}`} />
+                  </button>
+                </div>
+                {eqEnabled && (
+                  <div className="space-y-2 p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] opacity-50 w-10 shrink-0">باس</span>
+                      <input type="range" min={-12} max={12} step={1} value={bassGain}
+                        aria-label="درجة الباس"
+                        onChange={(e) => setBassGain(Number(e.target.value))}
+                        className="flex-1 h-1 accent-[var(--accent)]" />
+                      <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{bassGain > 0 ? "+" : ""}{bassGain}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] opacity-50 w-10 shrink-0">تريبل</span>
+                      <input type="range" min={-12} max={12} step={1} value={trebleGain}
+                        aria-label="درجة التريبل"
+                        onChange={(e) => setTrebleGain(Number(e.target.value))}
+                        className="flex-1 h-1 accent-[var(--accent)]" />
+                      <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{trebleGain > 0 ? "+" : ""}{trebleGain}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* ── Reading plans ── */}
             <button type="button"

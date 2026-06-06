@@ -361,7 +361,12 @@ export function DhikrList(props: Readonly<{
     if (editingItemIdx !== null) {
       // Edit mode
       if (isMyAdhkarSection || !props.isCustomSection) {
-        updateCustomDhikrItem(props.sectionId, editingItemIdx, { text, count, benefit: customBenefit });
+        const mapped = toCustomItemIndex(editingItemIdx);
+        if (mapped === null) {
+          toast.error("لا يمكن تعديل هذا الذكر");
+          return;
+        }
+        updateCustomDhikrItem(props.sectionId, mapped, { text, count, benefit: customBenefit });
         void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
       } else if (props.isCustomSection) {
         updateCustomPackItem(props.sectionId, editingItemIdx, { text, count });
@@ -392,13 +397,25 @@ export function DhikrList(props: Readonly<{
 
   const handleDeleteItem = (originalIndex: number) => {
     if (isMyAdhkarSection || !props.isCustomSection) {
-      removeCustomDhikrItem(props.sectionId, originalIndex);
+      const mapped = toCustomItemIndex(originalIndex);
+      if (mapped === null) {
+        toast.error("لا يمكن حذف هذا الذكر");
+        return;
+      }
+      removeCustomDhikrItem(props.sectionId, mapped);
       void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
     } else if (props.isCustomSection) {
       removeCustomPackItem(props.sectionId, originalIndex);
     }
     toast.success("تم الحذف");
   };
+
+  const toCustomItemIndex = React.useCallback((originalIndex: number): number | null => {
+    if (props.isCustomSection || isMyAdhkarSection) return originalIndex;
+    const mapped = originalIndex - firstCustomItemIndex;
+    if (mapped < 0) return null;
+    return mapped;
+  }, [firstCustomItemIndex, isMyAdhkarSection, props.isCustomSection]);
 
   return (
     <div className="relative isolate">
