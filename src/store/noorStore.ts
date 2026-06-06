@@ -412,6 +412,7 @@ const DEFAULT_PREFS: Preferences = {
   quranScrollMode: "page" as const,
   quranDailyGoal: 10,
   quranReciter: "Alafasy_128kbps",
+  mushafTajweedMode: true,
   showBenefits: true,
   stripDiacritics: false,
   enable3D: true,
@@ -1382,7 +1383,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 26,
+      version: 27,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -1403,9 +1404,13 @@ export const useNoorStore = create<NoorState>()(
         const persistedReminders =
           state.reminders && typeof state.reminders === "object" ? state.reminders : undefined;
         const mergedReminders = { ...DEFAULT_REMINDERS, ...persistedReminders };
+        const normalizedPrefs = normalizePrefs(persistedPrefs);
+        // Force Tajweed ON for all existing users when upgrading to v27.
+        normalizedPrefs.mushafTajweedMode = true;
+
         return {
           ...state,
-          prefs: normalizePrefs(persistedPrefs),
+          prefs: normalizedPrefs,
           reminders: {
             ...mergedReminders,
             soundProfile: normalizeReminderSoundProfile(mergedReminders.soundProfile),

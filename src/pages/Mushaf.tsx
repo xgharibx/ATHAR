@@ -483,7 +483,7 @@ export function MushafPage() {
   const [wbwLoading, setWbwLoading] = React.useState(false);
 
   // Phase 2B: Tajweed color mode
-  const [tajweedMode, setTajweedModeState] = React.useState(() => prefs.mushafTajweedMode ?? false);
+  const [tajweedMode, setTajweedModeState] = React.useState(() => prefs.mushafTajweedMode ?? true);
   const setTajweedMode = React.useCallback((v: boolean | ((prev: boolean) => boolean)) => {
     setTajweedModeState(v);
   }, []);
