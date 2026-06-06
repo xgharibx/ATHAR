@@ -14,6 +14,7 @@ import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotif
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
+import { ensureAllWbwSurahsCached } from "@/lib/quranWBW";
 import { ANGELS_SECTION } from "@/data/angels";
 import { DIVINE_BOOKS_SECTION } from "@/data/divineBooks";
 import { ISLAM_PILLARS_SECTION } from "@/data/islamPillars";
@@ -205,6 +206,9 @@ export default function App() {
     const prepareMushaf = () => {
       void ensureMushafCoreOffline().catch(() => {
         // Settings and the reader expose a retry path if the first background attempt fails.
+      });
+      void ensureAllWbwSurahsCached().catch(() => {
+        // Mushaf still exposes a manual retry inside the reader if background warming fails.
       });
     };
 

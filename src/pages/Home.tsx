@@ -29,6 +29,7 @@ import { pct, cn } from "@/lib/utils";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { trackUxEvent } from "@/lib/uxMetrics";
 import { useQuranDB } from "@/data/useQuranDB";
+import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { coerceCount } from "@/data/types";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { formatPrayerHijriDate, type PrayerHijriDate, usePrayerTimes } from "@/hooks/usePrayerTimes";
@@ -38,6 +39,7 @@ import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
 import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
 import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
+import { toArabicNumeral } from "@/lib/quranMeta";
 
 function useRadioState() {
   const [state, setState] = React.useState(getRadioState);
@@ -425,6 +427,32 @@ export function HomePage() {
     if (!quranLastRead || !quran.data) return null;
     return quran.data.find((s) => s.id === quranLastRead.surahId)?.name ?? null;
   }, [quran.data, quranLastRead]);
+  const { data: quranPageMapData } = useQuranPageMap();
+  const quranResumeMeta = React.useMemo(() => {
+    const resumePage = prefs.quranMushafPage;
+    if (!resumePage || !quran.data || !quranPageMapData?.map) {
+      return quranLastReadSurahName ? { surahName: quranLastReadSurahName, page: resumePage ?? 1 } : null;
+    }
+
+    let matchedSurahId: number | null = null;
+    for (const [ayahKey, page] of Object.entries(quranPageMapData.map)) {
+      if (page !== resumePage) continue;
+      const surahId = Number(ayahKey.split(":")[0]);
+      if (Number.isFinite(surahId)) {
+        matchedSurahId = surahId;
+        break;
+      }
+    }
+
+    if (!matchedSurahId) {
+      return quranLastReadSurahName ? { surahName: quranLastReadSurahName, page: resumePage } : null;
+    }
+
+    return {
+      surahName: quran.data.find((surah) => surah.id === matchedSurahId)?.name ?? quranLastReadSurahName ?? null,
+      page: resumePage,
+    };
+  }, [prefs.quranMushafPage, quran.data, quranLastReadSurahName, quranPageMapData]);
 
   const quranReadingPct = React.useMemo(() => {
     if (!quran.data) return 0;
@@ -924,9 +952,9 @@ export function HomePage() {
 
               <div className="mt-4 flex flex-wrap gap-2 max-w-xl">
                 <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" onClick={() => onQuick(heroAdhkar.id)}>{heroAdhkar.label}</Button>
-                {quranLastRead ? (
+                {prefs.quranMushafPage ? (
                   <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:continue_quran"); navigate(prefs.quranMushafPage ? `/mushaf/${prefs.quranMushafPage}` : `/mushaf/1`); }}>
-                    📖 {quranLastReadSurahName ? `تابع ${quranLastReadSurahName}` : "تابع القرآن"}
+                    📖 {quranResumeMeta?.surahName ? `تابع ${quranResumeMeta.surahName} · صفحة ${toArabicNumeral(quranResumeMeta.page)}` : "تابع القرآن"}
                   </Button>
                 ) : (
                   <Button className="press-effect max-w-full whitespace-normal leading-snug text-center" variant="secondary" onClick={() => { trackUxEvent("home_cta:quran"); navigate("/mushaf/1"); }}>المصحف</Button>
@@ -969,8 +997,8 @@ export function HomePage() {
                       🔥 {quranStreak}
                     </span>
                   )}
-                  {quranLastRead && quranLastReadSurahName && (
-                    <span className="text-[11px] opacity-45 arabic-text leading-snug max-w-full sm:max-w-[11rem]">{quranLastReadSurahName}</span>
+                  {quranResumeMeta?.surahName && (
+                    <span className="text-[11px] opacity-45 arabic-text leading-snug max-w-full sm:max-w-[14rem]">{quranResumeMeta.surahName} · صفحة {toArabicNumeral(quranResumeMeta.page)}</span>
                   )}
                 </button>
               )}

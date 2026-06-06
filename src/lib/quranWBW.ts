@@ -38,6 +38,8 @@ function getDB(): NoorWbwDexie {
   return _db;
 }
 
+let ensureAllWbwPromise: Promise<void> | null = null;
+
 const MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // 1 year — WBW data rarely changes
 
 async function idbGet(surahId: number): Promise<WbwSurah | null> {
@@ -56,6 +58,11 @@ async function idbSet(surahId: number, data: WbwSurah): Promise<void> {
   } catch {
     // IDB write failure is non-fatal
   }
+}
+
+export async function hasWbwSurahCached(surahId: number): Promise<boolean> {
+  const cached = await idbGet(surahId);
+  return !!cached;
 }
 
 interface QuranComWord {
@@ -102,6 +109,27 @@ export async function loadWbwSurah(surahId: number): Promise<WbwSurah> {
 
   await idbSet(surahId, result);
   return result;
+}
+
+export async function downloadAllWbwSurahs(onProgress?: (progress: { done: number; total: number }) => void): Promise<void> {
+  const total = 114;
+  let done = 0;
+  onProgress?.({ done, total });
+
+  for (let surahId = 1; surahId <= total; surahId += 1) {
+    await loadWbwSurah(surahId);
+    done += 1;
+    onProgress?.({ done, total });
+  }
+}
+
+export async function ensureAllWbwSurahsCached(onProgress?: (progress: { done: number; total: number }) => void): Promise<void> {
+  if (!ensureAllWbwPromise) {
+    ensureAllWbwPromise = downloadAllWbwSurahs(onProgress).finally(() => {
+      ensureAllWbwPromise = null;
+    });
+  }
+  return ensureAllWbwPromise;
 }
 
 // ─── Tajweed renderer ────────────────────────────────────────────────────────

@@ -18,7 +18,7 @@ import { pct } from "@/lib/utils";
 import { isDailySection } from "@/lib/dailySections";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
-import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem, removeCustomDhikrItem, updateCustomDhikrItem } from "@/data/packs";
+import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem, loadPacks, removeCustomDhikrItem, updateCustomDhikrItem } from "@/data/packs";
 import { Input } from "@/components/ui/Input";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
@@ -57,6 +57,16 @@ export function DhikrList(props: Readonly<{
   const [customBenefit, setCustomBenefit] = React.useState("");
   const isDailySectionLocked = isDailySection(props.sectionId);
   const isMyAdhkarSection = props.sectionId === MY_ADHKAR_SECTION_ID;
+  const customSectionItemCount = React.useMemo(() => {
+    if (props.isCustomSection || isMyAdhkarSection) return props.items.length;
+    const packs = loadPacks();
+    const section = packs.flatMap((pack) => pack.sections).find((candidate) => candidate.id === props.sectionId);
+    return section?.content.length ?? 0;
+  }, [isMyAdhkarSection, props.isCustomSection, props.items.length, props.sectionId]);
+  const firstCustomItemIndex = React.useMemo(
+    () => Math.max(0, props.items.length - customSectionItemCount),
+    [customSectionItemCount, props.items.length],
+  );
 
   React.useEffect(() => {
     if (props.title) {
@@ -350,7 +360,7 @@ export function DhikrList(props: Readonly<{
 
     if (editingItemIdx !== null) {
       // Edit mode
-      if (isMyAdhkarSection) {
+      if (isMyAdhkarSection || !props.isCustomSection) {
         updateCustomDhikrItem(props.sectionId, editingItemIdx, { text, count, benefit: customBenefit });
         void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
       } else if (props.isCustomSection) {
@@ -381,7 +391,7 @@ export function DhikrList(props: Readonly<{
   }
 
   const handleDeleteItem = (originalIndex: number) => {
-    if (isMyAdhkarSection) {
+    if (isMyAdhkarSection || !props.isCustomSection) {
       removeCustomDhikrItem(props.sectionId, originalIndex);
       void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
     } else if (props.isCustomSection) {
@@ -754,7 +764,7 @@ export function DhikrList(props: Readonly<{
                     </div>
                   </div>
                 ) : null}
-                {(props.isCustomSection || isMyAdhkarSection) && !reorderMode && (
+                {(props.isCustomSection || isMyAdhkarSection || entry.originalIndex >= firstCustomItemIndex) && !reorderMode && (
                   <div className="flex justify-end mb-1.5 px-1 gap-1.5">
                     {deletingItemIdx === entry.originalIndex ? (
                       <>
@@ -813,7 +823,7 @@ export function DhikrList(props: Readonly<{
           />
         )}
         {!addOpen ? (
-          (isMyAdhkarSection || props.isCustomSection) ? (
+          (
             <button type="button"
               onClick={() => { setEditingItemIdx(null); setCustomText(""); setCustomCount("1"); setCustomBenefit(""); setAddOpen(true); }}
               aria-label="إضافة ذكر"
@@ -822,7 +832,7 @@ export function DhikrList(props: Readonly<{
             >
               <Plus size={22} aria-hidden="true" />
             </button>
-          ) : null
+          )
         ) : null}
         {addOpen ? (
           <div className="fixed inset-0 z-[10000] bg-black/40 backdrop-blur-sm flex items-end md:items-center justify-center p-4">

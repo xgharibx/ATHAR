@@ -112,9 +112,9 @@ export function DhikrCard(props: {
     longPressTimerRef.current = setTimeout(() => {
       if (!mountedRef.current) return;
       setIsLongPressing(false);
-      void doCopy();
+      void doCopy(true);
       if (navigator.vibrate) navigator.vibrate([20, 10, 20]);
-    }, 600);
+    }, 1000);
   };
   const onSwipeTouchEnd = (e: React.TouchEvent) => {
     if (longPressTimerRef.current) {
@@ -270,12 +270,13 @@ export function DhikrCard(props: {
     }
   };
 
-  const doCopy = async () => {
+  const doCopy = async (silent = false) => {
     try {
       await navigator.clipboard.writeText(displayText);
-      toast.success("تم النسخ");
     } catch {
-      toast.error("تعذر النسخ");
+      if (!silent) {
+        // Explicit copy actions stay quiet by default per UX request.
+      }
     }
   };
 
@@ -283,8 +284,7 @@ export function DhikrCard(props: {
     if (navigator.share) {
       await navigator.share({ text: displayText }).catch(() => {});
     } else {
-      await doCopy();
-      toast("المشاركة غير مدعومة — تم النسخ بدلًا من ذلك.");
+      await doCopy(true);
     }
   };
 
@@ -333,7 +333,7 @@ export function DhikrCard(props: {
               aria-hidden={!actionsOpen}
             >
               <div className="flex items-center gap-1 pr-1">
-                <IconButton aria-label="نسخ الذكر" onClick={doCopy} tabIndex={actionsOpen ? 0 : -1}>
+                <IconButton aria-label="نسخ الذكر" onClick={() => { void doCopy(); }} tabIndex={actionsOpen ? 0 : -1}>
                   <Copy size={16} aria-hidden="true" className="opacity-80" />
                 </IconButton>
 

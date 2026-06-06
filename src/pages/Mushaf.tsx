@@ -25,9 +25,10 @@ import {
   toggleRadio as toggleSharedRadio,
 } from "@/lib/radioPlayer";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
-import { loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
+import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
+import { getEnglishAyahTranslation, loadEnglishTranslationCache } from "@/lib/quranTranslationLocal";
 import toast from "react-hot-toast";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -391,7 +392,7 @@ export function MushafPage() {
     setSelectedItem((prev) =>
       prev?.surahId === item.surahId && prev?.originalAyah === item.originalAyah ? null : item
     );
-    setLastRead(item.surahId, item.displayAyah);
+    setLastRead(item.surahId, item.originalAyah);
     sessionAyahCountRef.current += 1;
     recordQuranRead(1);
     flashChrome();
@@ -460,7 +461,7 @@ export function MushafPage() {
   const playItemCoreRef = React.useRef<((surahId: number, originalAyah: number, displayAyah: number) => void) | null>(null);
 
   // Q3: Translation
-  const [showTranslation, setShowTranslation] = React.useState(false);
+  const [showTranslation, setShowTranslation] = React.useState(true);
   const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
 
   // Q11-B: Inline tafseer mode (قراءة mode)
@@ -676,19 +677,13 @@ export function MushafPage() {
     const toFetch = surahIds.filter((sid) => !translationData[sid]);
     if (toFetch.length === 0) return;
     let mounted = true;
-    Promise.all(toFetch.map((sid) =>
-      fetch(`https://api.alquran.cloud/v1/surah/${sid}/en.sahih`)
-        .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-        .then((data) => {
-          const ayahs: string[] = [];
-          for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
-          return { sid, ayahs };
-        })
-    )).then((results) => {
+    loadEnglishTranslationCache().then((cache) => {
       if (!mounted) return;
       setTranslationData((prev) => {
         const upd = { ...prev };
-        for (const { sid, ayahs } of results) upd[sid] = ayahs;
+        for (const sid of toFetch) {
+          if (cache[sid]) upd[sid] = cache[sid];
+        }
         return upd;
       });
     }).catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); });
@@ -897,13 +892,9 @@ export function MushafPage() {
     const cached = translationData[surahId]?.[originalAyah];
     if (cached) return cached;
     try {
-      const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahId}/en.sahih`);
-      const json = await res.json();
-      const ayahs: { text: string }[] = json?.data?.ayahs ?? [];
-      const arr: string[] = [];
-      ayahs.forEach((a, i) => { arr[i + 1] = a.text; });
+      const arr = (await loadEnglishTranslationCache())[surahId] ?? [];
       setTranslationData((prev) => ({ ...prev, [surahId]: arr }));
-      return arr[originalAyah] ?? "";
+      return arr[originalAyah] ?? await getEnglishAyahTranslation(surahId, originalAyah);
     } catch { return ""; }
   }, [translationData]);
 
@@ -954,7 +945,7 @@ export function MushafPage() {
     const playableItems = pageItems.filter((item) => !item.isBasmalahHeader && item.displayAyah > 0);
     const lastPlayable = playableItems[playableItems.length - 1];
     if (!lastPlayable) return;
-    setLastRead(lastPlayable.surahId, lastPlayable.displayAyah);
+    setLastRead(lastPlayable.surahId, lastPlayable.originalAyah);
     sessionAyahCountRef.current += playableItems.length;
     recordQuranRead(playableItems.length);
     toast.success("تم حفظ مراجعة الصفحة");
@@ -1026,13 +1017,10 @@ export function MushafPage() {
   // Tajweed offline: download WBW/Tajweed data for all 114 surahs into IndexedDB
   const downloadAllTajweedData = React.useCallback(async () => {
     setTajweedDownloadProgress({ done: 0, total: 114 });
-    let done = 0;
     try {
-      for (let sid = 1; sid <= 114; sid++) {
-        await loadWbwSurah(sid);
-        done++;
-        setTajweedDownloadProgress({ done, total: 114 });
-      }
+      await downloadAllWbwSurahs(({ done, total }) => {
+        setTajweedDownloadProgress({ done, total });
+      });
       toast.success("✓ تم تحميل بيانات التجويد كاملةً للعمل دون إنترنت");
     } catch {
       toast.error("تعذر تحميل بيانات التجويد — تحقق من الاتصال");
@@ -1245,6 +1233,14 @@ export function MushafPage() {
           onClick={(e) => { e.stopPropagation(); if (chromeTimer.current) clearTimeout(chromeTimer.current); chromeTimer.current = null; setShowChrome(false); }}
         >
           <EyeOff size={15} aria-hidden="true" />
+        </button>
+        <button type="button"
+          className={`mushaf-chrome-icon-btn${tajweedMode ? " active" : ""}`}
+          aria-label={tajweedMode ? "إيقاف التجويد" : "تشغيل التجويد"}
+          onClick={(e) => { e.stopPropagation(); setTajweedMode((v) => !v); }}
+          title={tajweedMode ? "إيقاف التجويد" : "تشغيل التجويد"}
+        >
+          <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1 }}>ت</span>
         </button>
         {/* Settings (font size, tajweed & all reading options live here) */}
         <button type="button"
@@ -2038,22 +2034,6 @@ export function MushafPage() {
                 <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${showTranslation ? "right-1" : "right-7"}`} />
               </button>
             </div>
-
-            {/* Phase 2B: Tajweed color coding */}
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <div className="text-xs opacity-65">تلوين التجويد</div>
-                <div className="text-[10px] opacity-40">تلوين الكلمات بألوان أحكام التجويد</div>
-              </div>
-              <button type="button"
-                onClick={() => setTajweedMode((v) => !v)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${tajweedMode ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
-                role="switch" aria-checked={tajweedMode}
-              >
-                <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${tajweedMode ? "right-1" : "right-7"}`} />
-              </button>
-            </div>
-
             {/* Q11-B: Inline Tafseer */}
             <div className="mb-3 p-3 rounded-2xl border"
               style={{
