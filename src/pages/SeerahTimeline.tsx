@@ -44,7 +44,11 @@ function BookCard({
     setOpenChapter(next);
     if (next === null) return;
     window.setTimeout(() => {
-      chapterRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const el = chapterRefs.current[idx];
+      if (!el) return;
+      const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--topbar-h") || "0");
+      const top = el.getBoundingClientRect().top + window.scrollY - headerH - 12;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     }, 0);
   }, []);
 

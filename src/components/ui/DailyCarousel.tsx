@@ -214,13 +214,12 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
             display: "flex",
             direction: "ltr",
             width: "100%",
-            minHeight: "15rem",
             transform: `translateX(-${activeIdx * 100}%)`,
             transition: "transform 0.35s ease",
           }}
         >
           {/* Slide 1: آية اليوم */}
-          <div id="carousel-slide-0" role="group" aria-roledescription="شريحة" aria-label="آية اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem", display: "flex", flexDirection: "column" }}>
+          <div id="carousel-slide-0" role="group" aria-roledescription="شريحة" aria-label="آية اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {verse ? (
               <>
                 <div
@@ -229,7 +228,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                 >
                   {verse.arabic}
                 </div>
-                <div className="pt-2 flex items-center justify-between gap-2 flex-wrap mt-auto">
+                <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-1.5">
                     <Button
                       className="press-effect text-xs h-7 px-3"
@@ -275,7 +274,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 2: حديث اليوم */}
-          <div id="carousel-slide-1" role="group" aria-roledescription="شريحة" aria-label="حديث اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem", display: "flex", flexDirection: "column" }}>
+          <div id="carousel-slide-1" role="group" aria-roledescription="شريحة" aria-label="حديث اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {hadith ? (
               <>
                 <div
@@ -284,7 +283,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                 >
                   {hadith.t}
                 </div>
-                <div className="flex items-center gap-2 justify-between flex-wrap mt-auto">
+                <div className="flex items-center gap-2 justify-between flex-wrap">
                   <div className="flex items-center gap-1.5">
                     <button type="button"
                       onClick={() => handleShuffle(1)}
@@ -335,14 +334,14 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 3: تدبر اليوم */}
-          <div id="carousel-slide-2" role="group" aria-roledescription="شريحة" aria-label="تدبر اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem", display: "flex", flexDirection: "column" }}>
+          <div id="carousel-slide-2" role="group" aria-roledescription="شريحة" aria-label="تدبر اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             <div
               className="text-base leading-9 text-right font-medium arabic-text max-h-44 overflow-y-auto pr-1"
               style={{ color: "var(--fg)" }}
             >
               {wisdom.text}
             </div>
-            <div className="pt-2 flex items-center justify-between mt-auto">
+            <div className="pt-2 flex items-center justify-between">
               <div className="flex items-center gap-1">
                 <button type="button"
                   onClick={() => copyShare(`${wisdom.text}\n— ${wisdom.source}`)}
@@ -366,7 +365,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 4: كلمة اليوم */}
-          <div id="carousel-slide-3" role="group" aria-roledescription="شريحة" aria-label="كلمة اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem", display: "flex", flexDirection: "column" }}>
+          <div id="carousel-slide-3" role="group" aria-roledescription="شريحة" aria-label="كلمة اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {vocabWord ? (
               <>
                 <button
@@ -393,7 +392,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     <span className="text-[10px] opacity-40">اضغط للتعلم ❬</span>
                   </div>
                 </button>
-                <div className="pt-2 flex justify-start mt-auto">
+                <div className="pt-2 flex justify-start">
                   <button type="button"
                     onClick={() => handleShuffle(3)}
                     className="p-1.5 rounded-lg transition press-effect"

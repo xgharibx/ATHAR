@@ -1589,8 +1589,6 @@ export function MushafPage() {
           aria-label="الانتقال إلى صفحة"
         >
           <span className="mushaf-page-indicator-num">{toArabicNumeral(currentPage)}</span>
-          <span className="mushaf-page-indicator-sep">/</span>
-          <span className="mushaf-page-indicator-total">{toArabicNumeral(totalPages)}</span>
         </button>
         <button type="button"
           className="mushaf-bottom-nav-btn"
