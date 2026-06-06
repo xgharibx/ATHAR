@@ -2592,6 +2592,21 @@ header {
   text-align: justify;
   text-align-last: center;
   text-justify: inter-word;
+  font-family:
+    "KFGQPC Uthmanic Script HAFS",
+    "UthmanicHafs",
+    "Uthmanic Script",
+    "Amiri Quran",
+    "Scheherazade New",
+    "Amiri",
+    "Noto Naskh Arabic",
+    "Traditional Arabic",
+    Tahoma,
+    Arial,
+    serif;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  font-variant-ligatures: contextual common-ligatures;
 }
 .mushaf-reader[data-mushaf-clean="1"] .mushaf-basmalah-line {
   font-size: calc(var(--mushaf-font-scale, 1) * 1.5rem);
@@ -2760,25 +2775,50 @@ header {
 /* Basmalah */
 .mushaf-basmalah-line {
   text-align: center;
-  font-family: "Amiri", serif;
+  font-family:
+    "KFGQPC Uthmanic Script HAFS",
+    "UthmanicHafs",
+    "Uthmanic Script",
+    "Amiri Quran",
+    "Scheherazade New",
+    "Amiri",
+    "Noto Naskh Arabic",
+    serif;
   font-size: calc(var(--mushaf-font-scale, 1) * 1.4rem);
   color: #2e7d32;
   margin: 0.5rem 0 0.7rem;
   font-weight: 700;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.06);
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  font-variant-ligatures: contextual common-ligatures;
 }
 
 /* Main text block — seamless parchment (bg lives on .mushaf-reader) */
 .mushaf-text-block {
   direction: rtl;
   text-align: center;
-  font-family: "Amiri", "Noto Naskh Arabic", serif;
+  font-family:
+    "KFGQPC Uthmanic Script HAFS",
+    "UthmanicHafs",
+    "Uthmanic Script",
+    "Amiri Quran",
+    "Scheherazade New",
+    "Amiri",
+    "Noto Naskh Arabic",
+    "Traditional Arabic",
+    Tahoma,
+    Arial,
+    serif;
   font-size: calc(var(--mushaf-font-scale, 1) * 1.35rem);
   line-height: 2.45;
   color: #2c3e50;
   word-spacing: 0;
   letter-spacing: 0;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  font-variant-ligatures: contextual common-ligatures;
   hyphens: none;
   padding: 0.25rem 0;
   margin-bottom: 0.35rem;
