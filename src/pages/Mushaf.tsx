@@ -310,6 +310,8 @@ export function MushafPage() {
 
   // Chrome auto-hide
   const [showChrome, setShowChrome] = React.useState(true);
+  const showChromeRef = React.useRef(true);
+  React.useEffect(() => { showChromeRef.current = showChrome; }, [showChrome]);
   const chromeTimer = React.useRef<number | null>(null);
   const lastScrollYRef = React.useRef(0);
   const scrollIntentRef = React.useRef(0);
@@ -343,7 +345,7 @@ export function MushafPage() {
       scrollIntentRef.current = 0;
     }
   }, []);
-  React.useEffect(() => { lastScrollYRef.current = 0; scrollIntentRef.current = 0; flashChrome(); }, [currentPage, flashChrome]);
+  React.useEffect(() => { lastScrollYRef.current = 0; scrollIntentRef.current = 0; if (showChromeRef.current) flashChrome(); }, [currentPage, flashChrome]);
   React.useEffect(() => () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); }, []);
 
   // Set browser tab title
@@ -523,7 +525,7 @@ export function MushafPage() {
       setSessionDurationMin(elapsed);
       setShowSessionSummary(true);
     } else {
-      navigate("/quran");
+      navigate("/quran", { replace: true });
     }
   }, [navigate]);
 
@@ -2509,7 +2511,7 @@ export function MushafPage() {
           <div
             className="mushaf-overlay"
             style={{ zIndex: 249 }}
-            onClick={() => { setShowSessionSummary(false); navigate("/quran"); }}
+            onClick={() => { setShowSessionSummary(false); navigate("/quran", { replace: true }); }}
           />
           <div className="mushaf-session-card" role="dialog" aria-modal="true" aria-label="ملخص جلسة القراءة" dir="rtl">
             <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }} aria-hidden="true">📖</div>
@@ -2539,7 +2541,7 @@ export function MushafPage() {
             <button type="button"
               className="mushaf-btn-primary"
               style={{ width: "100%" }}
-              onClick={() => { setShowSessionSummary(false); navigate("/quran"); }}
+              onClick={() => { setShowSessionSummary(false); navigate("/quran", { replace: true }); }}
             >
               حسنًا
             </button>
