@@ -534,10 +534,10 @@ html.midnight body.transparent-mode .glass-strong {
   text-align: justify;
   text-justify: inter-word;
   font-family:
-    "UthmanicHafs",
-    "KFGQPC Uthmanic Script HAFS",
     "Amiri Quran",
     "Scheherazade New",
+    "UthmanicHafs",
+    "KFGQPC Uthmanic Script HAFS",
     "Noto Naskh Arabic",
     "Noto Sans Arabic",
     "Amiri",
@@ -2602,11 +2602,11 @@ header {
   text-align-last: center;
   text-justify: inter-word;
   font-family:
+    "Amiri Quran",
+    "Scheherazade New",
     "UthmanicHafs",
     "KFGQPC Uthmanic Script HAFS",
     "Uthmanic Script",
-    "Amiri Quran",
-    "Scheherazade New",
     "Amiri",
     "Noto Naskh Arabic",
     "Traditional Arabic",
@@ -2785,11 +2785,11 @@ header {
 .mushaf-basmalah-line {
   text-align: center;
   font-family:
+    "Amiri Quran",
+    "Scheherazade New",
     "UthmanicHafs",
     "KFGQPC Uthmanic Script HAFS",
     "Uthmanic Script",
-    "Amiri Quran",
-    "Scheherazade New",
     "Amiri",
     "Noto Naskh Arabic",
     serif;
@@ -2809,11 +2809,11 @@ header {
   direction: rtl;
   text-align: center;
   font-family:
+    "Amiri Quran",
+    "Scheherazade New",
     "UthmanicHafs",
     "KFGQPC Uthmanic Script HAFS",
     "Uthmanic Script",
-    "Amiri Quran",
-    "Scheherazade New",
     "Amiri",
     "Noto Naskh Arabic",
     "Traditional Arabic",

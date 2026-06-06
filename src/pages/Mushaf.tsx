@@ -742,7 +742,6 @@ export function MushafPage() {
   // Phase 2A/2B: Fetch word-by-word data for all surahs on current page
   // Triggered by either WBW mode or Tajweed mode (both need the same data)
   React.useEffect(() => {
-    if (!tajweedMode) return;
     const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
     const toFetch = surahIds.filter((sid) => !wbwData[sid]);
     if (toFetch.length === 0) return;
@@ -761,7 +760,7 @@ export function MushafPage() {
       .finally(() => { if (mounted) setWbwLoading(false); });
     return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tajweedMode, currentPage]);
+  }, [currentPage]);
 
   // Q11-B: Fetch tafseer for popup when tafsirItem opens (works even when inline tafseer is OFF)
   React.useEffect(() => {
@@ -1376,7 +1375,7 @@ export function MushafPage() {
                     // Q11-B: Inline tafseer text
                     const tafseerText = inlineTafseer ? (inlineTafseerData[item.surahId]?.[item.originalAyah] ?? "") : "";
                     // Phase 2B: Word-by-word data for Tajweed mode
-                    const wbwVerse = tajweedMode ? (wbwData[item.surahId]?.[item.originalAyah] ?? null) : null;
+                    const wbwVerse = wbwData[item.surahId]?.[item.originalAyah] ?? null;
                     // M1: Real-time playing highlight
                     const isPlaying = playingKey === k;
 
@@ -1401,9 +1400,9 @@ export function MushafPage() {
                         }}
                       >
                         {/* Phase 2B: Tajweed coloring OR plain text */}
-                        {wbwVerse && tajweedMode ? (
+                        {wbwVerse ? (
                           wbwVerse.map((word, wi) => (
-                            <React.Fragment key={wi}>{renderTajweed(word.tj)}{" "}</React.Fragment>
+                            <React.Fragment key={wi}>{tajweedMode ? renderTajweed(word.tj) : word.ar}{" "}</React.Fragment>
                           ))
                         ) : (
                           item.text
