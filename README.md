@@ -52,7 +52,20 @@ Supported JSON formats:
 
 ## Android APK (Capacitor)
 
-See: `tools/android/README.md`
+See: `tools/android/README.md` and `RELEASE_CHECKLIST_MOBILE_AR.md`
+
+## iOS App (Capacitor)
+
+The same web code ships to iOS via the `ios/` Xcode project:
+
+```bash
+npm run ios        # build web → sync ios → open Xcode (requires macOS)
+```
+
+No Mac? The `iOS Build` GitHub Actions workflow builds (and optionally
+uploads to TestFlight) on a macOS runner.
+
+See: `RELEASE_CHECKLIST_IOS_AR.md`
 
 ---
 

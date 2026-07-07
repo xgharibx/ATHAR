@@ -633,10 +633,25 @@ function buildDailyHadithNotification(
   };
 }
 
+/**
+ * iOS has no notification channels (createChannel rejects with "unimplemented"),
+ * and its notification sounds must be bundled .caf/.wav files. Map our web sound
+ * names to a .caf equivalent — if the file isn't bundled in the iOS app, the
+ * system falls back to the default notification sound at delivery time.
+ */
+function toIosSoundFile(fileName: string): string {
+  return fileName.replace(/\.(mp3|ogg)$/i, ".caf");
+}
+
 async function ensureReminderChannel(soundProfile: ReminderSoundProfile) {
-  const { LocalNotifications } = await import("@capacitor/local-notifications");
   const sound = getReminderSoundOption(soundProfile);
   const channelId = getReminderChannelId(soundProfile);
+
+  if (Capacitor.getPlatform() === "ios") {
+    return { channelId, soundFile: toIosSoundFile(sound.fileName) };
+  }
+
+  const { LocalNotifications } = await import("@capacitor/local-notifications");
 
   await LocalNotifications.createChannel({
     id: channelId,
@@ -657,9 +672,14 @@ async function ensureReminderChannel(soundProfile: ReminderSoundProfile) {
 }
 
 async function ensurePrayerChannel(soundProfile: PrayerSoundProfile) {
-  const { LocalNotifications } = await import("@capacitor/local-notifications");
   const sound = getPrayerSoundOption(soundProfile);
   const channelId = getPrayerChannelId(soundProfile);
+
+  if (Capacitor.getPlatform() === "ios") {
+    return { channelId, soundFile: toIosSoundFile(sound.fileName) };
+  }
+
+  const { LocalNotifications } = await import("@capacitor/local-notifications");
 
   await LocalNotifications.createChannel({
     id: channelId,
