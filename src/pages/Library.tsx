@@ -37,15 +37,15 @@ function LibraryEntryCard({ entry }: { entry: FlatLibraryEntry }) {
   const toggleLibraryFavorite = useNoorStore((s) => s.toggleLibraryFavorite);
   const [copied, setCopied] = React.useState(false);
   const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  React.useEffect(() => () => { if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current); }, []);
+  React.useEffect(() => () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current); }, []);
 
   const onCopy = async () => {
     try {
       await copyEntry(entry);
       setCopied(true);
       toast.success("تم النسخ");
-      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
-      copyTimerRef.current = window.setTimeout(() => setCopied(false), 1400);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 1400);
     } catch {
       toast.error("تعذر النسخ");
     }
@@ -145,6 +145,17 @@ type LibrarySection = {
 };
 
 const LIBRARY_SECTIONS: LibrarySection[] = [
+  {
+    id: "companion",
+    title: "رفيق أثر",
+    subtitle: "مرشدك الذكي الشخصي",
+    description: "رفيق ذكي يعرف رحلتك اليومية ويقترح خطوتك التالية، مع محادثة مؤصلة بالمصادر وضوابط شرعية.",
+    icon: "🤝",
+    accent: "#c96f4a",
+    route: "/companion",
+    badge: "جديد",
+    featured: true,
+  },
   {
     id: "asma",
     title: "أسماء الله الحسنى",

@@ -30,7 +30,8 @@ export type NoorTheme =
   | "sapphire"
   | "violet"
   | "sunset"
-  | "mist";
+  | "mist"
+  | "bustan";
 
 export type ReminderSoundProfile = "rain_calm";
 export type PrayerSoundProfile = "adhan_haram";
@@ -221,6 +222,8 @@ type NoorState = {
   // 6C: Daily tasbeeh log for weekly stats
   tasbeehDailyLog: Record<string, Record<string, number>>; // dateKey → {phraseKey → count}
   incTasbeehDailyLog: (dateKey: string, key: string) => void;
+  // Widget bridge: bulk-merge home-screen widget tasbeeh counts into stats
+  mergeWidgetTasbeeh: (dateKey: string, counts: Record<string, number>) => void;
 
   // Sebha sessions history
   sebhaSessions: SebhaSession[];
@@ -693,6 +696,28 @@ export const useNoorStore = create<NoorState>()(
           }
           pruned[dateKey] = { ...day, [key]: (day[key] ?? 0) + 1 };
           return { tasbeehDailyLog: pruned };
+        });
+      },
+
+      // Bulk-merge tasbeeh taps made on the Android home-screen widget into
+      // the same stats the in-app Sebha feeds (daily log, lifetime, activity).
+      mergeWidgetTasbeeh: (dateKey, counts) => {
+        set((s) => {
+          const day = { ...(s.tasbeehDailyLog[dateKey] ?? {}) };
+          const lifetime = { ...s.tasbeehLifetime };
+          let added = 0;
+          for (const [key, n] of Object.entries(counts)) {
+            if (typeof n !== "number" || n <= 0) continue;
+            day[key] = (day[key] ?? 0) + n;
+            lifetime[key] = (lifetime[key] ?? 0) + n;
+            added += n;
+          }
+          if (!added) return {};
+          return {
+            tasbeehDailyLog: { ...s.tasbeehDailyLog, [dateKey]: day },
+            tasbeehLifetime: lifetime,
+            activity: { ...s.activity, [dateKey]: (s.activity[dateKey] ?? 0) + added },
+          };
         });
       },
       resetQuickTasbeeh: (key) =>

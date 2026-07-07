@@ -26,8 +26,7 @@ import java.util.Locale;
  */
 public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
 
-    private static final String PREFS_FILE = "CapacitorStorage";
-    private static final String WIDGET_KEY = "CapacitorStorage.noor_widget_prayer_v2";
+    private static final String WIDGET_KEY = "noor_widget_prayer_v2";
 
     @Override
     protected AtharWidgetSpec getSpec() {
@@ -60,8 +59,7 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.noor_widget_prayer);
 
         try {
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
-            String json = prefs.getString(WIDGET_KEY, null);
+            String json = WidgetData.readJson(context, WIDGET_KEY);
 
             SimpleDateFormat dateFmt = new SimpleDateFormat("EEEE، d MMMM", new Locale("ar"));
             views.setTextViewText(R.id.noor_widget_date, dateFmt.format(new Date()));

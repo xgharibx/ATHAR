@@ -42,7 +42,7 @@
     </LinearLayout>
 
     <!-- Thin divider -->
-    <View
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
@@ -94,28 +94,28 @@
             android:background="@drawable/widget_progress_track"
             android:orientation="horizontal">
 
-            <View
+            <ImageView
                 android:id="@+id/adhkar_morning_seg_01"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_morning_seg_02" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_morning_seg_03" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_morning_seg_04" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_morning_seg_05" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_morning_seg_06" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_morning_seg_07" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_morning_seg_08" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_morning_seg_09" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_morning_seg_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_morning_seg_02" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_morning_seg_03" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_morning_seg_04" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_morning_seg_05" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_morning_seg_06" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_morning_seg_07" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_morning_seg_08" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_morning_seg_09" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_morning_seg_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
 
         </LinearLayout>
 
     </LinearLayout>
 
     <!-- 8dp gap -->
-    <View
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="6dp" />
 
@@ -164,21 +164,21 @@
             android:background="@drawable/widget_progress_track"
             android:orientation="horizontal">
 
-            <View
+            <ImageView
                 android:id="@+id/adhkar_evening_seg_01"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_evening_seg_02" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_evening_seg_03" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_evening_seg_04" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_evening_seg_05" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_evening_seg_06" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_evening_seg_07" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_evening_seg_08" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_evening_seg_09" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <View android:id="@+id/adhkar_evening_seg_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_evening_seg_02" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_evening_seg_03" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_evening_seg_04" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_evening_seg_05" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_evening_seg_06" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_evening_seg_07" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_evening_seg_08" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_evening_seg_09" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
+            <ImageView android:id="@+id/adhkar_evening_seg_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
 
         </LinearLayout>
 

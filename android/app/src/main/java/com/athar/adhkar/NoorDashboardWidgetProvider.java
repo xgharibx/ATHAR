@@ -38,10 +38,17 @@ import java.util.Locale;
 public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
     private static final String PREFS_FILE        = "CapacitorStorage";
-    private static final String KEY_PRAYER        = "CapacitorStorage.noor_widget_prayer_v2";
-    private static final String KEY_ADHKAR        = "CapacitorStorage.noor_widget_adhkar_v1";
-    private static final String KEY_WIRD          = "CapacitorStorage.noor_widget_wird_v1";
-    private static final String KEY_DASHBOARD     = "CapacitorStorage.noor_widget_dashboard_v1";
+    private static final String KEY_PRAYER        = "noor_widget_prayer_v2";
+    private static final String KEY_ADHKAR        = "noor_widget_adhkar_v1";
+    private static final String KEY_WIRD          = "noor_widget_wird_v1";
+    private static final String KEY_DASHBOARD     = "noor_widget_dashboard_v1";
+
+    /** Read raw key first (what @capacitor/preferences writes), then legacy prefixed key. */
+    private static String readJson(SharedPreferences prefs, String key) {
+        String raw = prefs.getString(key, null);
+        if (raw != null && !raw.isEmpty()) return raw;
+        return prefs.getString("CapacitorStorage." + key, null);
+    }
 
 
     // ─── Prayer dot symbols ────────────────────────────────────────
@@ -140,7 +147,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
     private void applyPrayerSection(RemoteViews views, SharedPreferences prefs) {
         try {
-            String json = prefs.getString(KEY_PRAYER, null);
+            String json = readJson(prefs, KEY_PRAYER);
             if (json == null) {
                 setAllDotsFuture(views);
                 views.setTextViewText(R.id.dash_next_countdown, "افتح التطبيق");
@@ -205,7 +212,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
     private void applyAdhkarSection(RemoteViews views, SharedPreferences prefs) {
         try {
-            String json = prefs.getString(KEY_ADHKAR, null);
+            String json = readJson(prefs, KEY_ADHKAR);
             if (json == null) {
                 views.setTextViewText(R.id.dash_morning_count, "--");
                 views.setTextViewText(R.id.dash_evening_count, "--");
@@ -240,7 +247,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
     private void applyWirdSection(RemoteViews views, SharedPreferences prefs) {
         try {
-            String json = prefs.getString(KEY_WIRD, null);
+            String json = readJson(prefs, KEY_WIRD);
             if (json == null) {
                 views.setTextViewText(R.id.dash_wird_count, "--");
                 views.setTextViewText(R.id.dash_wird_surah, "ابدأ المصحف");
@@ -271,7 +278,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
     private void applyStreakSection(RemoteViews views, SharedPreferences prefs) {
         try {
-            String json = prefs.getString(KEY_DASHBOARD, null);
+            String json = readJson(prefs, KEY_DASHBOARD);
             if (json == null) {
                 views.setTextViewText(R.id.dash_streak_days, "١ يوم");
                 views.setTextViewText(R.id.dash_streak_emoji, "🌱");

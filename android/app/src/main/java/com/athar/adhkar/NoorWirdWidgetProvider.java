@@ -38,8 +38,7 @@ import java.util.Locale;
  */
 public class NoorWirdWidgetProvider extends AtharWidgetProvider {
 
-    private static final String PREFS_FILE = "CapacitorStorage";
-    private static final String WIDGET_KEY = "CapacitorStorage.noor_widget_wird_v1";
+    private static final String WIDGET_KEY = "noor_widget_wird_v1";
     private static final int[] WIRD_SEGMENTS = {
         R.id.wird_progress_seg_01, R.id.wird_progress_seg_02,
         R.id.wird_progress_seg_03, R.id.wird_progress_seg_04,
@@ -78,8 +77,7 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.wird_date, dateFmt.format(new Date()));
 
         try {
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
-            String json = prefs.getString(WIDGET_KEY, null);
+            String json = WidgetData.readJson(context, WIDGET_KEY);
 
             if (json != null) {
                 JSONObject payload    = new JSONObject(json);

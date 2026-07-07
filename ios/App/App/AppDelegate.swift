@@ -1,10 +1,27 @@
 import UIKit
 import Capacitor
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+
+    /// App Group shared with the (optional) WidgetKit extension.
+    /// Must match the App Group enabled on both targets in Xcode.
+    static let widgetAppGroup = "group.com.athar.adhkar"
+
+    /// Widget payload keys written by the web app via @capacitor/preferences.
+    /// The plugin stores them in UserDefaults.standard with a "CapacitorStorage." prefix;
+    /// widget extensions can only read the shared App Group, so we mirror them across.
+    private static let widgetKeys = [
+        "noor_widget_prayer_v2",
+        "noor_widget_adhkar_v1",
+        "noor_widget_wird_v1",
+        "noor_widget_dashboard_v1",
+    ]
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -12,13 +29,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
-        // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
-        // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
+        // The user may be heading to the home screen — hand the widgets fresh data.
+        mirrorWidgetDataToAppGroup()
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
-        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
-        // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+        mirrorWidgetDataToAppGroup()
+    }
+
+    /// Copies the web app's widget payloads into the shared App Group and asks
+    /// WidgetKit to re-render. No-ops harmlessly until a widget extension +
+    /// App Group are configured in Xcode (see ios/WidgetExtension/README.md).
+    private func mirrorWidgetDataToAppGroup() {
+        guard let shared = UserDefaults(suiteName: AppDelegate.widgetAppGroup) else { return }
+        let standard = UserDefaults.standard
+        for key in AppDelegate.widgetKeys {
+            if let value = standard.string(forKey: "CapacitorStorage." + key) {
+                shared.set(value, forKey: key)
+            }
+        }
+        #if canImport(WidgetKit)
+        if #available(iOS 14.0, *) {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+        #endif
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {

@@ -70,14 +70,8 @@ export type DashboardWidgetPayload = {
 async function nativeSet(key: string, value: string): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
-    // Dynamic import avoids bundling issues when running in web/PWA context
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mod = await (Function("m", "return import(m)")(
-      ["@capacitor", "preferences"].join("/")
-    ) as Promise<any>);
-    if (mod?.Preferences?.set) {
-      await mod.Preferences.set({ key, value });
-    }
+    const { Preferences } = await import("@capacitor/preferences");
+    await Preferences.set({ key, value });
   } catch {
     // Plugin not available — silently degrade
   }
@@ -236,4 +230,7 @@ export async function syncAllWidgets(): Promise<void> {
     syncWirdWidget(),
     syncDashboardWidget(),
   ]);
+  // Repaint home-screen widgets immediately with the data we just wrote.
+  const { refreshHomeWidgets } = await import("@/lib/widgetRefresh");
+  await refreshHomeWidgets();
 }

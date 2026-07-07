@@ -12,6 +12,7 @@ public class MainActivity extends BridgeActivity {
         // 11C: Install AndroidX SplashScreen compat — required for Android 12+ splash
         //      to transition correctly (prevents black flash and respects postSplashScreenTheme)
         SplashScreen.installSplashScreen(this);
+        registerPlugin(WidgetRefreshPlugin.class);
         super.onCreate(savedInstanceState);
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -20,6 +21,14 @@ public class MainActivity extends BridgeActivity {
                 handleAtharBackPressed();
             }
         });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // The user is likely heading to the home screen — make sure every
+        // widget repaints with the freshest data the web app just synced.
+        WidgetUpdater.updateAll(this);
     }
 
     private void handleAtharBackPressed() {

@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.widget.RemoteViews;
 
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -35,6 +37,13 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
     static final String KEY_INDEX  = "dhikr_index";
     static final String KEY_COUNT  = "dhikr_count";
     static final String KEY_DATE   = "dhikr_date";
+
+    /**
+     * Daily totals mirrored into the app-readable "CapacitorStorage" prefs so
+     * home-screen tasbeeh counts toward the user's in-app stats (streak,
+     * weekly charts, lifetime counters). Read by src/lib/tasbeehWidgetSync.ts.
+     */
+    static final String TOTALS_KEY = "noor_widget_tasbeeh_totals_v1";
 
     // Dhikr names (Arabic) and per-phrase target counts
     private static final String[] DHIKR_AR = {
@@ -109,6 +118,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
 
         if (ACTION_INCREMENT.equals(action)) {
             count++;
+            bumpDailyTotal(context, DHIKR_AR[index]);
             SharedPreferences.Editor ed = prefs.edit();
             if (count >= DHIKR_TARGET[index]) {
                 // Auto-advance to next dhikr
@@ -198,6 +208,35 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
     // ─────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────
+
+    /**
+     * Mirror each home-screen tap into an app-readable daily-totals JSON:
+     *   { "date": "YYYY-MM-DD", "counts": { "<phrase>": n, ... }, "total": N }
+     * Stored in the "CapacitorStorage" prefs file so the web app can merge it
+     * into the user's stats via @capacitor/preferences.
+     */
+    private static void bumpDailyTotal(Context context, String phrase) {
+        try {
+            SharedPreferences appPrefs = WidgetData.prefs(context);
+            String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+            String existing = appPrefs.getString(TOTALS_KEY, null);
+            JSONObject payload = existing != null ? new JSONObject(existing) : new JSONObject();
+            if (!today.equals(payload.optString("date"))) {
+                payload = new JSONObject();
+                payload.put("date", today);
+            }
+            JSONObject counts = payload.optJSONObject("counts");
+            if (counts == null) {
+                counts = new JSONObject();
+                payload.put("counts", counts);
+            }
+            counts.put(phrase, counts.optInt(phrase, 0) + 1);
+            payload.put("total", payload.optInt("total", 0) + 1);
+            appPrefs.edit().putString(TOTALS_KEY, payload.toString()).apply();
+        } catch (Throwable ignored) {
+            // Totals mirroring is best-effort; the widget counter itself is source of truth.
+        }
+    }
 
     /** Reset counters and index if the stored date differs from today. */
     private static void checkDayReset(SharedPreferences prefs) {

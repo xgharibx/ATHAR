@@ -232,7 +232,7 @@ export function usePrayerTimes() {
   }, [query.data]);
 
   React.useEffect(() => {
-    let timeoutId: number | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const scheduleMidnightRefresh = () => {
       const nextMidnight = new Date();

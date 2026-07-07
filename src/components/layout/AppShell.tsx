@@ -13,6 +13,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { cn, pct } from "@/lib/utils";
 import { IconButton } from "@/components/ui/IconButton";
 import { LogoMark } from "@/components/brand/LogoMark";
+import { GardenOrnaments } from "@/components/brand/GardenOrnaments";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 
@@ -407,7 +408,7 @@ export function AppShell() {
   // De11: Alt+T keyboard shortcut to cycle all 12 themes; Ctrl+K to open command palette
   React.useEffect(() => {
     const ALL_THEMES: import("@/store/noorStore").NoorTheme[] = [
-      "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist",
+      "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist", "bustan",
     ];
     const handler = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 't') {
@@ -448,6 +449,7 @@ export function AppShell() {
       "/quran": "القرآن الكريم",
       "/quran/plans": "خطط التلاوة",
       "/sebha": "السبحة الرقمية",
+      "/companion": "رفيق أثر",
       "/prayer-times": "مواقيت الصلاة",
       "/search": "البحث",
       "/favorites": "المفضلة",
@@ -501,6 +503,7 @@ export function AppShell() {
       </a>
 
       <NoorBackground />
+      <GardenOrnaments />
       <OfflineBanner />
 
       {paletteOpen ? (

@@ -43,7 +43,8 @@ export function CommandPalette(props: Props) {
       sapphire: "ياقوت",
       violet: "بنفسجي",
       sunset: "غروب",
-      mist: "ضباب"
+      mist: "ضباب",
+      bustan: "بستان"
     };
     return map[t] ?? "تلقائي";
   };
@@ -166,7 +167,7 @@ export function CommandPalette(props: Props) {
     props.setOpen(false);
   };
 
-  const ALL_THEMES: NoorTheme[] = ["roses", "noor", "sapphire", "violet", "sunset", "forest", "midnight", "bees", "mist", "dark", "light", "system"];
+  const ALL_THEMES: NoorTheme[] = ["roses", "noor", "sapphire", "violet", "sunset", "forest", "midnight", "bees", "mist", "bustan", "dark", "light", "system"];
 
   const cycleTheme = () => {
     const idx = ALL_THEMES.indexOf(theme);

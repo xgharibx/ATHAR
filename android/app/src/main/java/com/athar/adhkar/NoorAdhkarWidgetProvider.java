@@ -35,8 +35,7 @@ import java.util.Locale;
  */
 public class NoorAdhkarWidgetProvider extends AtharWidgetProvider {
 
-    private static final String PREFS_FILE = "CapacitorStorage";
-    private static final String WIDGET_KEY = "CapacitorStorage.noor_widget_adhkar_v1";
+    private static final String WIDGET_KEY = "noor_widget_adhkar_v1";
 
     private static final int[] MORNING_SEGMENTS = {
         R.id.adhkar_morning_seg_01, R.id.adhkar_morning_seg_02,
@@ -83,8 +82,7 @@ public class NoorAdhkarWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.adhkar_date, dateFmt.format(new Date()));
 
         try {
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
-            String json = prefs.getString(WIDGET_KEY, null);
+            String json = WidgetData.readJson(context, WIDGET_KEY);
 
             if (json != null) {
                 JSONObject payload  = new JSONObject(json);

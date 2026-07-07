@@ -33,8 +33,7 @@ import java.util.Locale;
  */
 public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
 
-    private static final String PREFS_FILE = "CapacitorStorage";
-    private static final String WIDGET_KEY = "CapacitorStorage.noor_widget_prayer_v2";
+    private static final String WIDGET_KEY = "noor_widget_prayer_v2";
 
     // View IDs for the five prayer rows — must match widget_prayer_full.xml
     private static final int[] ROW_IDS    = {
@@ -100,8 +99,7 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.prayer_full_date, dateFmt.format(new Date()));
 
         try {
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
-            String json = prefs.getString(WIDGET_KEY, null);
+            String json = WidgetData.readJson(context, WIDGET_KEY);
 
             if (json != null) {
                 JSONObject payload  = new JSONObject(json);

@@ -99,6 +99,17 @@ export function SourcesPage() {
             <ExternalLink size={16} aria-hidden="true" />
             islambook.com
           </a>
+
+          <a
+            href="https://qul.tarteel.ai/"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="فتح المكتبة القرآنية الشاملة QUL في تبويب جديد"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] text-sm min-h-[44px]"
+          >
+            <ExternalLink size={16} aria-hidden="true" />
+            QUL — المكتبة القرآنية الشاملة
+          </a>
         </div>
 
       </Card>

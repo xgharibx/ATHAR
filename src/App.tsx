@@ -73,6 +73,7 @@ const QuranPage = React.lazy(() => import("@/pages/Quran").then((m) => ({ defaul
 const MushafPage = React.lazy(() => import("@/pages/Mushaf").then((m) => ({ default: m.MushafPage })));
 const PrayerTimesPage = React.lazy(() => import("@/pages/PrayerTimes").then((m) => ({ default: m.PrayerTimesPage })));
 const SebhaPage = React.lazy(() => import("@/pages/Sebha").then((m) => ({ default: m.SebhaPage })));
+const CompanionPage = React.lazy(() => import("@/pages/Companion").then((m) => ({ default: m.CompanionPage })));
 const QiblaPage = React.lazy(() => import("@/pages/Qibla").then((m) => ({ default: m.QiblaPage })));
 
 // C1-C7: New content pages
@@ -225,8 +226,8 @@ export default function App() {
 
   React.useEffect(() => {
     ensureDailyResets(fajrTime);
-    let midnightTimeoutId: number | null = null;
-    let ibadahTimeoutId: number | null = null;
+    let midnightTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    let ibadahTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const scheduleMidnightReset = () => {
       const nextMidnight = getNextLocalMidnight(new Date());
@@ -289,11 +290,18 @@ export default function App() {
   }, []);
 
   // Widget data bridge: sync adhkar + wird progress to native SharedPreferences
-  // so Android home-screen widgets can display live data.
+  // so Android home-screen widgets can display live data. Before pushing data
+  // out, pull in tasbeeh taps made on the home-screen widget so they count
+  // toward streaks and stats.
   React.useEffect(() => {
-    void syncAllWidgets();
+    const syncWidgets = async () => {
+      const { mergeTasbeehFromWidget } = await import("@/lib/tasbeehWidgetSync");
+      await mergeTasbeehFromWidget();
+      await syncAllWidgets();
+    };
+    void syncWidgets();
     const onVisible = () => {
-      if (document.visibilityState === "visible") void syncAllWidgets();
+      if (document.visibilityState === "visible") void syncWidgets();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
@@ -335,6 +343,7 @@ export default function App() {
           <Route path="quran/plans" element={<S><QuranPlansPage /></S>} />
           <Route path="adhkar/custom" element={<S><CustomAdhkarPage /></S>} />
           <Route path="sebha" element={<S><SebhaPage /></S>} />
+          <Route path="companion" element={<S><CompanionPage /></S>} />
           <Route path="qibla" element={<S><QiblaPage /></S>} />
           <Route path="mosques" element={<S><NearbyMosquesPage /></S>} />
           <Route path="prayer-times" element={<S><PrayerTimesPage /></S>} />

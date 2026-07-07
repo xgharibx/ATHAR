@@ -134,19 +134,18 @@ export async function syncPrayerWidget(timings: Record<string, string>): Promise
   }
 
   // On native, also persist via Capacitor Preferences so native widget code can read it.
-  // The module name is built at runtime to avoid Rollup static analysis bundling it.
   if (Capacitor.isNativePlatform()) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mod = await (Function("m", "return import(m)")(["@capacitor", "preferences"].join("/")) as Promise<any>);
-      if (mod?.Preferences?.set) {
-        await mod.Preferences.set({ key: WIDGET_KEY, value });
-        if (Capacitor.getPlatform() === "android") {
-          await mod.Preferences.set({
-            key: "noor_widget_last_update",
-            value: new Date().toISOString(),
-          });
-        }
+      const { Preferences } = await import("@capacitor/preferences");
+      await Preferences.set({ key: WIDGET_KEY, value });
+      if (Capacitor.getPlatform() === "android") {
+        await Preferences.set({
+          key: "noor_widget_last_update",
+          value: new Date().toISOString(),
+        });
+        // Repaint the prayer widgets with the fresh timings right away.
+        const { refreshHomeWidgets } = await import("@/lib/widgetRefresh");
+        await refreshHomeWidgets();
       }
     } catch {
       // Plugin not available — widget sync degrades to localStorage only

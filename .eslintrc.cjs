@@ -4,7 +4,9 @@ module.exports = {
   extends: ["eslint:recommended", "plugin:react-hooks/recommended", "prettier"],
   parser: "@typescript-eslint/parser",
   plugins: ["react-refresh", "@typescript-eslint"],
-  ignorePatterns: ["dist", "node_modules"],
+  // CMIRC/MIRC are reference source projects (gitignored) with their own eslint
+  // setups — walking into them breaks plugin resolution.
+  ignorePatterns: ["dist", "node_modules", "CMIRC", "MIRC", "android", "ios"],
   rules: {
     "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
     // TypeScript compiler handles unused-var & undefined checks — base ESLint rules

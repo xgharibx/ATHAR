@@ -41,6 +41,7 @@ const THEME_ACCENTS: Record<NoorTheme, string> = {
   violet:   "#c4b5fd",
   sunset:   "#fb923c",
   mist:     "#e5e7eb",
+  bustan:   "#c96f4a",
 };
 
 const PRAYER_ALERT_OPTIONS = [
@@ -332,6 +333,7 @@ export function SettingsPage() {
           <ThemeChip value="violet" label="بنفسجي" active={prefs.theme === "violet"} onClick={() => setPrefs({ theme: "violet" })} />
           <ThemeChip value="sunset" label="غروب" active={prefs.theme === "sunset"} onClick={() => setPrefs({ theme: "sunset" })} />
           <ThemeChip value="mist" label="ضباب" active={prefs.theme === "mist"} onClick={() => setPrefs({ theme: "mist" })} />
+          <ThemeChip value="bustan" label="بستان 🦋" active={prefs.theme === "bustan"} onClick={() => setPrefs({ theme: "bustan" })} />
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
