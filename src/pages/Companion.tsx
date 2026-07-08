@@ -9,7 +9,7 @@
  *    the next best step, with sources and scholarly-referral guardrails.
  */
 import * as React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Sparkles, Send, Settings2, KeyRound, Trash2, Square } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -19,6 +19,8 @@ import {
   describeError,
   getApiKey,
   getModel,
+  hasAppProvidedAccess,
+  isCompanionReady,
   setApiKey,
   setModel,
   streamCompanionReply,
@@ -39,6 +41,7 @@ export function CompanionPage() {
   const navigate = useNavigate();
 
   const [hasKey, setHasKey] = React.useState(() => !!getApiKey());
+  const ready = hasAppProvidedAccess() || hasKey;
   const [showSettings, setShowSettings] = React.useState(false);
   const [keyDraft, setKeyDraft] = React.useState("");
   const [model, setModelState] = React.useState(getModel);
@@ -56,12 +59,25 @@ export function CompanionPage() {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, streamingText]);
 
+  // Deep-linked question (e.g. اشرح الحديث / تدبّر الآية from the home carousel):
+  // /companion?ask=… — auto-send when the companion is ready, else prefill.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const askHandled = React.useRef(false);
+  React.useEffect(() => {
+    const ask = searchParams.get("ask");
+    if (!ask || askHandled.current) return;
+    askHandled.current = true;
+    setSearchParams({}, { replace: true });
+    if (isCompanionReady()) void send(ask);
+    else setInput(ask);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const send = React.useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || busyRef.current) return;
-    if (!getApiKey()) {
-      setShowSettings(true);
-      toast("أضف مفتاح API أولًا لتفعيل الرفيق الذكي", { icon: "🔑" });
+    if (!isCompanionReady()) {
+      toast("المحادثة الذكية قيد التفعيل — قريبًا بإذن الله ✨", { icon: "🤝" });
       return;
     }
 
@@ -122,7 +138,7 @@ export function CompanionPage() {
           <div>
             <h1 className="text-lg font-bold text-[var(--fg)]">رفيق أثر</h1>
             <p className="text-xs text-[var(--muted-2)]">
-              {hasKey ? "مرشدك الذكي — يعرف رحلتك ويقترح خطوتك التالية" : "الوضع الذكي بدون اتصال — أضف مفتاحًا لتفعيل المحادثة"}
+              {ready ? "مرشدك الذكي — يعرف رحلتك ويقترح خطوتك التالية" : "الوضع الذكي يعمل الآن — والمحادثة الذكية قريبًا"}
             </p>
           </div>
         </div>
@@ -139,29 +155,6 @@ export function CompanionPage() {
       {/* Settings panel */}
       {showSettings ? (
         <div className="mt-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <KeyRound className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
-            مفتاح Claude API
-          </div>
-          <p className="text-xs leading-relaxed text-[var(--muted)]">
-            يُحفظ المفتاح على جهازك فقط ولا يغادر إلا مباشرةً إلى Anthropic.
-            احصل على مفتاح من console.anthropic.com — تُحاسَب على استهلاكك مباشرة.
-          </p>
-          <div className="flex gap-2">
-            <input
-              type="password"
-              dir="ltr"
-              value={keyDraft}
-              onChange={(e) => setKeyDraft(e.target.value)}
-              placeholder="sk-ant-…"
-              aria-label="مفتاح API"
-              className="form-field-readable flex-1 rounded-xl border border-[var(--stroke)] px-3 py-2 text-sm"
-            />
-            <button type="button" onClick={saveKey}
-              className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-black/80 active:scale-95 transition">
-              حفظ
-            </button>
-          </div>
           <div className="flex items-center justify-between gap-2">
             <label className="text-xs text-[var(--muted)]" htmlFor="companion-model">النموذج</label>
             <select
@@ -175,12 +168,44 @@ export function CompanionPage() {
               ))}
             </select>
           </div>
-          {hasKey ? (
-            <button type="button" onClick={clearKey}
-              className="flex items-center gap-1.5 text-xs text-[var(--danger)] hover:opacity-80">
-              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> حذف المفتاح من هذا الجهاز
-            </button>
-          ) : null}
+
+          {hasAppProvidedAccess() ? (
+            <p className="text-xs leading-relaxed text-[var(--muted)]">
+              المحادثة الذكية مفعّلة لجميع المستخدمين — لا حاجة لأي إعداد. 🤝
+            </p>
+          ) : (
+            <details className="text-xs">
+              <summary className="cursor-pointer text-[var(--muted)] flex items-center gap-1.5">
+                <KeyRound className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
+                خيارات متقدمة: مفتاح خاص
+              </summary>
+              <p className="mt-2 leading-relaxed text-[var(--muted-2)]">
+                إن كان لديك مفتاح Claude API خاص يمكنك استعماله مؤقتًا —
+                يُحفظ على جهازك فقط ولا يغادر إلا مباشرةً إلى Anthropic.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <input
+                  type="password"
+                  dir="ltr"
+                  value={keyDraft}
+                  onChange={(e) => setKeyDraft(e.target.value)}
+                  placeholder="sk-ant-…"
+                  aria-label="مفتاح API"
+                  className="form-field-readable flex-1 rounded-xl border border-[var(--stroke)] px-3 py-2 text-sm"
+                />
+                <button type="button" onClick={saveKey}
+                  className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-bold text-black/80 active:scale-95 transition">
+                  حفظ
+                </button>
+              </div>
+              {hasKey ? (
+                <button type="button" onClick={clearKey}
+                  className="mt-2 flex items-center gap-1.5 text-xs text-[var(--danger)] hover:opacity-80">
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> حذف المفتاح من هذا الجهاز
+                </button>
+              ) : null}
+            </details>
+          )}
         </div>
       ) : null}
 
@@ -236,9 +261,9 @@ export function CompanionPage() {
                 </button>
               ))}
             </div>
-            {!hasKey ? (
+            {!ready ? (
               <p className="mt-3 text-[11px] text-[var(--muted-2)]">
-                المحادثة تتطلب مفتاح Claude API — اضغط ⚙️ بالأعلى لإضافته.
+                المحادثة الذكية قيد التفعيل وستصل للجميع قريبًا — الوضع الذكي أعلاه يعمل الآن. ✨
               </p>
             ) : null}
           </div>

@@ -5,12 +5,19 @@ public class AtharWidgetSpec {
     public final String title;
     public final String[] phrases;
     public final String actionLabel;
+    /** In-app route this widget opens (e.g. "/quran"). Null → home. */
+    public final String route;
 
     public AtharWidgetSpec(int layoutId, String title, String[] phrases, String actionLabel) {
+        this(layoutId, title, phrases, actionLabel, null);
+    }
+
+    public AtharWidgetSpec(int layoutId, String title, String[] phrases, String actionLabel, String route) {
         this.layoutId = layoutId;
         this.title = title;
         this.phrases = phrases;
         this.actionLabel = actionLabel;
+        this.route = route;
     }
 
     public String resolvePhrase() {

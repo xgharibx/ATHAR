@@ -1,59 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Prayer Countdown Widget (4×2) — Athar premium design
+  Sky-phase gradient background (set from Java by next prayer), interval
+  progress ring (Canvas bitmap), hero countdown, prayer name + time.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/noor_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/noor_widget_background"
     android:gravity="center_vertical"
-    android:orientation="vertical"
-    android:padding="18dp">
+    android:orientation="horizontal"
+    android:padding="16dp">
 
-    <TextView
-        android:id="@+id/noor_widget_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:textColor="#FFE8B0"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+    <!-- Interval ring with mini time centered -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.42">
 
-    <TextView
-        android:id="@+id/noor_widget_phrase"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_weight="1"
-        android:ellipsize="end"
-        android:gravity="center_vertical|end"
-        android:maxLines="2"
-        android:textColor="#FFFFFF"
-        android:textSize="19sp"
-        android:textStyle="bold" />
+        <ImageView
+            android:id="@+id/prayer_ring"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/prayer_ring_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:text="--:--"
+                android:textColor="#FFFFFF"
+                android:textSize="17sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/prayer_ring_ampm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="#C9DCC9"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Texts -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_weight="0.58"
+        android:layout_marginStart="10dp"
+        android:gravity="end"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/noor_widget_action"
-            android:layout_width="wrap_content"
+            android:id="@+id/noor_widget_title"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/noor_widget_pill"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
-            android:textColor="#2F4F37"
-            android:textSize="11sp"
+            android:gravity="end"
+            android:text="الصلاة القادمة"
+            android:textColor="#C9DCC9"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/noor_widget_phrase"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:gravity="end"
+            android:maxLines="1"
+            android:includeFontPadding="false"
+            android:text="العشاء"
+            android:textColor="#FFFFFF"
+            android:textSize="30sp"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/prayer_countdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:gravity="end"
+            android:text=""
+            android:textColor="#FFE8B0"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/noor_widget_date"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginTop="6dp"
             android:gravity="end"
-            android:textColor="#D6E9C6"
-            android:textSize="11sp" />
+            android:textColor="#A9C4A9"
+            android:textSize="10sp" />
     </LinearLayout>
+
 </LinearLayout>

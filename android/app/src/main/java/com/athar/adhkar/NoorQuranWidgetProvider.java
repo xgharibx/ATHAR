@@ -13,7 +13,8 @@ public class NoorQuranWidgetProvider extends AtharWidgetProvider {
                 "اجعل وردك قبل الانشغال",
                 "استمع للآيات ثم كررها للحفظ"
             },
-            "افتح المصحف"
+            "افتح المصحف",
+            "/quran"
         );
     }
 }

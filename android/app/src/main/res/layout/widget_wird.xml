@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Daily Quran Wird Progress Widget (4×2)
-  - Shows current surah + ayah, today's reading count, and daily goal progress
-  - Progress bar fills from left as reading advances
-  - "متابعة القراءة" button opens app directly to last position
+  Daily Quran Wird Widget (4×2) — Athar premium design
+  Hero ayah count, emerald Canvas progress bar with glow, gold pill.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/wird_root"
@@ -11,9 +9,8 @@
     android:layout_height="match_parent"
     android:background="@drawable/noor_widget_background"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:padding="16dp">
 
-    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,7 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="start"
-            android:textColor="#7AAB80"
+            android:textColor="#8FBC9C"
             android:textSize="10sp" />
 
         <TextView
@@ -35,21 +32,19 @@
             android:gravity="end"
             android:text="ورد القرآن"
             android:textColor="#FFE8B0"
-            android:textSize="13sp"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
-
     </LinearLayout>
 
-    <!-- Current position: surah + ayah -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="4dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- Reading stats: ayahs + goal -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -63,7 +58,8 @@
                 android:layout_height="wrap_content"
                 android:text="0 آية"
                 android:textColor="#FFFFFF"
-                android:textSize="22sp"
+                android:textSize="26sp"
+                android:fontFamily="sans-serif-medium"
                 android:textStyle="bold" />
 
             <TextView
@@ -71,12 +67,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="اليوم"
-                android:textColor="#7AAB80"
+                android:textColor="#8FBC9C"
                 android:textSize="10sp" />
-
         </LinearLayout>
 
-        <!-- Current surah name (right-aligned) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -89,9 +83,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:text="سورة البقرة"
-                android:textColor="#FFE8B0"
-                android:textSize="14sp"
+                android:text="سورة الفاتحة"
+                android:textColor="#F6DFA4"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-medium"
                 android:textStyle="bold" />
 
             <TextView
@@ -102,42 +97,21 @@
                 android:text="الآية ١"
                 android:textColor="#9BB89D"
                 android:textSize="10sp" />
-
         </LinearLayout>
-
     </LinearLayout>
 
-    <!-- Progress bar: today read / daily goal -->
-    <LinearLayout
+    <ImageView
+        android:id="@+id/wird_bar"
         android:layout_width="match_parent"
-        android:layout_height="8dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/widget_progress_track"
-        android:orientation="horizontal">
+        android:layout_height="10dp"
+        android:layout_marginTop="6dp"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
 
-        <ImageView
-            android:id="@+id/wird_progress_seg_01"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/widget_progress_fill" />
-        <ImageView android:id="@+id/wird_progress_seg_02" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-        <ImageView android:id="@+id/wird_progress_seg_03" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-        <ImageView android:id="@+id/wird_progress_seg_04" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-        <ImageView android:id="@+id/wird_progress_seg_05" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-        <ImageView android:id="@+id/wird_progress_seg_06" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-        <ImageView android:id="@+id/wird_progress_seg_07" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-        <ImageView android:id="@+id/wird_progress_seg_08" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-        <ImageView android:id="@+id/wird_progress_seg_09" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-        <ImageView android:id="@+id/wird_progress_seg_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-
-    </LinearLayout>
-
-    <!-- Progress label + open button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="7dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -148,21 +122,21 @@
             android:layout_weight="1"
             android:gravity="start"
             android:text="0% من الهدف"
-            android:textColor="#7AAB80"
+            android:textColor="#8FBC9C"
             android:textSize="10sp" />
 
         <TextView
             android:id="@+id/wird_open_btn"
             android:layout_width="wrap_content"
-            android:layout_height="26dp"
+            android:layout_height="28dp"
             android:background="@drawable/noor_widget_pill"
             android:gravity="center"
-            android:paddingHorizontal="12dp"
+            android:paddingHorizontal="14dp"
             android:text="متابعة القراءة"
-            android:textColor="#1E3822"
-            android:textSize="10sp"
+            android:textColor="#26301B"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
-
     </LinearLayout>
 
 </LinearLayout>

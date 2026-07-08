@@ -3,26 +3,21 @@ package com.athar.adhkar;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.widget.RemoteViews;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
 /**
- * Prayer widget that reads live data from SharedPreferences.
+ * Prayer Countdown Widget (4×2) — premium redesign.
  *
- * The web layer writes prayer data via @capacitor/preferences under:
- *   SharedPreferences file : "CapacitorStorage"
- *   Key                    : "CapacitorStorage.noor_widget_prayer_v2"
- *
- * Payload JSON shape (see src/lib/prayerWidget.ts):
- *   { nextPrayer: { nameAr, time } | null, prayers: [...], updatedAt }
+ * The background is a sky that follows the day: dawn indigo before الفجر,
+ * bright emerald at الظهر, golden العصر, ember المغرب, deep-night العشاء.
+ * A Canvas ring shows how far along the current prayer interval is, with a
+ * hero countdown to the next prayer.
  */
 public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
 
@@ -30,17 +25,12 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
 
     @Override
     protected AtharWidgetSpec getSpec() {
-        // Fallback spec used when live data is unavailable
         return new AtharWidgetSpec(
             R.layout.noor_widget_prayer,
             "الصلاة القادمة",
-            new String[] {
-                "استعد للصلاة قبل الأذان بدقائق",
-                "الصلاة نور وراحة للقلب",
-                "حي على الفلاح",
-                "ثبت قلبك على الصلاة في وقتها"
-            },
-            "مواقيت الصلاة"
+            new String[] { "افتح التطبيق لتحميل المواقيت" },
+            "المواقيت",
+            "/prayer-times"
         );
     }
 
@@ -57,83 +47,129 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
 
     private void updateLive(Context context, AppWidgetManager manager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.noor_widget_prayer);
+        views.setTextViewText(R.id.noor_widget_date, dateLine());
+
+        String nextName = null;
+        String nextTime = null;
+        float intervalProgress = 0f;
 
         try {
             String json = WidgetData.readJson(context, WIDGET_KEY);
-
-            SimpleDateFormat dateFmt = new SimpleDateFormat("EEEE، d MMMM", new Locale("ar"));
-            views.setTextViewText(R.id.noor_widget_date, dateFmt.format(new Date()));
-
             if (json != null) {
                 JSONObject payload = new JSONObject(json);
+                JSONArray prayers  = payload.optJSONArray("prayers");
 
                 if (!payload.isNull("nextPrayer")) {
                     JSONObject next = payload.getJSONObject("nextPrayer");
-                    String nameAr = next.getString("nameAr");
-                    String time24 = next.getString("time");
-                    String countdown = buildCountdown(time24);
-
-                    views.setTextViewText(R.id.noor_widget_title, "الصلاة القادمة");
-                    views.setTextViewText(R.id.noor_widget_phrase, nameAr + "   " + format12h(time24));
-                    views.setTextViewText(R.id.noor_widget_action,
-                        countdown.isEmpty() ? "مواقيت الصلاة" : countdown);
-                } else {
-                    views.setTextViewText(R.id.noor_widget_title, "صلوات اليوم");
-                    views.setTextViewText(R.id.noor_widget_phrase, "اكتملت صلوات اليوم ✓");
-                    views.setTextViewText(R.id.noor_widget_action, "مواقيت الصلاة");
+                    nextName = next.optString("nameAr", null);
+                    nextTime = next.optString("time", null);
                 }
-            } else {
-                // App not opened yet — prompt user
-                views.setTextViewText(R.id.noor_widget_title, "الصلاة القادمة");
-                views.setTextViewText(R.id.noor_widget_phrase, "افتح التطبيق لتحميل المواقيت");
-                views.setTextViewText(R.id.noor_widget_action, "فتح التطبيق");
+
+                // Interval progress: elapsed fraction between the previous
+                // prayer (or midnight) and the next prayer.
+                if (nextTime != null && prayers != null) {
+                    int nowMin  = nowMinutes();
+                    int nextMin = toMinutes(nextTime);
+                    int prevMin = 0;
+                    for (int i = 0; i < prayers.length(); i++) {
+                        JSONObject p = prayers.getJSONObject(i);
+                        if (p.optBoolean("passed", false)) {
+                            prevMin = Math.max(prevMin, toMinutes(p.optString("time", "0:0")));
+                        }
+                    }
+                    int span = Math.max(1, nextMin - prevMin);
+                    intervalProgress = Math.max(0f, Math.min(1f, (nowMin - prevMin) / (float) span));
+                } else if (nextTime == null && prayers != null && prayers.length() > 0) {
+                    // All prayers passed — show tomorrow's Fajr, ring full.
+                    JSONObject fajr = prayers.getJSONObject(0);
+                    nextName = fajr.optString("nameAr", "الفجر") + " غدًا";
+                    nextTime = fajr.optString("time", null);
+                    intervalProgress = 1f;
+                }
             }
-        } catch (Exception e) {
-            views.setTextViewText(R.id.noor_widget_title, "الصلاة القادمة");
-            views.setTextViewText(R.id.noor_widget_phrase, "افتح التطبيق");
-            views.setTextViewText(R.id.noor_widget_action, "مواقيت الصلاة");
+        } catch (Exception ignored) {
+            // fall through to placeholder state
         }
 
-        // Tap opens app
-        Intent intent = new Intent(context, MainActivity.class)
-            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pi = PendingIntent.getActivity(context, appWidgetId, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        if (nextName != null && nextTime != null) {
+            views.setTextViewText(R.id.noor_widget_title, "الصلاة القادمة");
+            views.setTextViewText(R.id.noor_widget_phrase, nextName);
+            views.setTextViewText(R.id.prayer_ring_time, format12hTime(nextTime));
+            views.setTextViewText(R.id.prayer_ring_ampm, amPmArabic(nextTime));
+            String cd = buildCountdown(nextTime);
+            views.setTextViewText(R.id.prayer_countdown, cd.isEmpty() ? "حان الوقت 🕌" : "بعد " + cd);
+            views.setInt(R.id.noor_widget_root, "setBackgroundResource", skyFor(nextName));
+        } else {
+            views.setTextViewText(R.id.noor_widget_title, "مواقيت الصلاة");
+            views.setTextViewText(R.id.noor_widget_phrase, "افتح التطبيق");
+            views.setTextViewText(R.id.prayer_ring_time, "--:--");
+            views.setTextViewText(R.id.prayer_ring_ampm, "");
+            views.setTextViewText(R.id.prayer_countdown, "لتحميل المواقيت");
+            views.setInt(R.id.noor_widget_root, "setBackgroundResource", R.drawable.noor_widget_background);
+        }
+
+        views.setImageViewBitmap(R.id.prayer_ring,
+            WidgetCanvas.ring(context, 120, 8, intervalProgress));
+
+        PendingIntent pi = openApp(context, appWidgetId * 22, "/prayer-times");
         views.setOnClickPendingIntent(R.id.noor_widget_root, pi);
-        views.setOnClickPendingIntent(R.id.noor_widget_action, pi);
 
         manager.updateAppWidget(appWidgetId, views);
     }
 
-    /** Convert "HH:MM" to Arabic 12-hour format. */
-    private String format12h(String time24) {
+    /** Sky-phase background resource for the upcoming prayer. */
+    static int skyFor(String nameAr) {
+        if (nameAr == null) return R.drawable.noor_widget_background;
+        if (nameAr.contains("الفجر"))   return R.drawable.widget_bg_sky_fajr;
+        if (nameAr.contains("الظهر") || nameAr.contains("الجمعة")) return R.drawable.widget_bg_sky_dhuhr;
+        if (nameAr.contains("العصر"))   return R.drawable.widget_bg_sky_asr;
+        if (nameAr.contains("المغرب"))  return R.drawable.widget_bg_sky_maghrib;
+        if (nameAr.contains("العشاء"))  return R.drawable.widget_bg_sky_isha;
+        return R.drawable.noor_widget_background;
+    }
+
+    private static int toMinutes(String hhmm) {
+        try {
+            String[] p = hhmm.split(":");
+            return Integer.parseInt(p[0].trim()) * 60 + Integer.parseInt(p[1].trim());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static int nowMinutes() {
+        Calendar cal = Calendar.getInstance();
+        return cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
+    }
+
+    private static String format12hTime(String time24) {
         try {
             String[] p = time24.split(":");
-            int h = Integer.parseInt(p[0]);
-            int m = Integer.parseInt(p[1]);
-            String suffix = h < 12 ? "ص" : "م";
+            int h = Integer.parseInt(p[0].trim());
+            int m = Integer.parseInt(p[1].trim());
             int h12 = h % 12;
             if (h12 == 0) h12 = 12;
-            return String.format(Locale.US, "%d:%02d %s", h12, m, suffix);
+            return String.format(Locale.US, "%d:%02d", h12, m);
         } catch (Exception e) {
             return time24;
         }
     }
 
-    /** Return human-readable countdown to "HH:MM", or "" if already passed. */
-    private String buildCountdown(String time24) {
+    private static String amPmArabic(String time24) {
         try {
-            String[] p = time24.split(":");
-            int targetH = Integer.parseInt(p[0]);
-            int targetM = Integer.parseInt(p[1]);
-            Calendar cal = Calendar.getInstance();
-            int diff = (targetH * 60 + targetM) - (cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE));
-            if (diff <= 0) return "";
-            if (diff < 60) return "بعد " + diff + " دقيقة";
-            int h = diff / 60, min = diff % 60;
-            return min == 0 ? "بعد " + h + " ساعة" : "بعد " + h + "س " + min + "د";
+            int h = Integer.parseInt(time24.split(":")[0].trim());
+            return h < 12 ? "صباحًا" : "مساءً";
         } catch (Exception e) {
             return "";
         }
+    }
+
+    private static String buildCountdown(String time24) {
+        int target = toMinutes(time24);
+        int diff = target - nowMinutes();
+        if (diff <= 0) return "";
+        if (diff < 60) return diff + " دقيقة";
+        int h = diff / 60, m = diff % 60;
+        return m == 0 ? h + " ساعة" : h + "س " + m + "د";
     }
 }

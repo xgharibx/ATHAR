@@ -193,6 +193,157 @@
   color-scheme: light;
 }
 
+/* بستان ambiance: soft garden-light washes across the whole canvas */
+.bustan body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1100px 520px at 88% -8%, rgba(201, 111, 74, 0.13), transparent 62%),
+    radial-gradient(900px 480px at -10% 22%, rgba(125, 155, 118, 0.15), transparent 60%),
+    radial-gradient(760px 420px at 60% 108%, rgba(233, 195, 106, 0.12), transparent 60%);
+  background-attachment: fixed;
+}
+
+.waraq {
+  /* ورق — manuscript paper: real grain, sepia ink, rubricated accents.
+     Applied together with .light so all light-mode refinements carry over. */
+  --bg: #efe7d5;
+  --fg: #2c2114;
+  --muted: rgba(44, 33, 20, 0.75);
+  --muted-2: rgba(44, 33, 20, 0.55);
+  --card: rgba(252, 248, 238, 0.72);
+  --card-2: rgba(44, 33, 20, 0.07);
+  --stroke: rgba(74, 52, 28, 0.22);
+  --accent: #8f3b2c;   /* rubrication red — the ink of manuscript headings */
+  --accent-2: #1f6e5c; /* oxidized green ink */
+  --shadow: 0 14px 38px rgba(74, 52, 28, 0.16);
+  color-scheme: light;
+}
+
+/* ── ورق: the page itself ────────────────────────────────────────────────
+   A live fractal-noise grain (SVG turbulence) multiplied over warm paper,
+   with ruled deckle vignette at the edges — it reads as fiber, not flat color. */
+.waraq body {
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.055'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23p)'/%3E%3C/svg%3E"),
+    radial-gradient(1200px 620px at 50% -12%, rgba(255, 250, 234, 0.85), transparent 60%),
+    linear-gradient(180deg, #f2ead8 0%, #ece2cc 55%, #e6dabf 100%);
+  background-attachment: fixed;
+}
+
+/* Aged deckle edges — a fixed vignette under the UI chrome */
+.waraq body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow:
+    inset 0 0 90px rgba(74, 52, 28, 0.14),
+    inset 0 0 18px rgba(74, 52, 28, 0.08);
+}
+
+/* Cards feel like sheets laid on the desk: warm paper fill + ink hairline */
+.waraq .glass-card,
+.waraq [class*="rounded-2xl"][class*="border"] {
+  box-shadow: 0 1px 0 rgba(255, 253, 245, 0.85) inset, 0 2px 10px rgba(74, 52, 28, 0.07);
+}
+
+/* Manuscript typography: serif Latin; Arabic already reads as naskh */
+.waraq {
+  font-family: Georgia, "Times New Roman", "Noto Naskh Arabic", serif;
+}
+
+.fanous {
+  /* فانوس — Ramadan lantern: warm darkness lit by a breathing amber glow */
+  --bg: #140e06;
+  --fg: #fdf3e3;
+  --muted: rgba(253, 243, 227, 0.74);
+  --muted-2: rgba(253, 243, 227, 0.54);
+  --card: rgba(255, 184, 77, 0.08);
+  --card-2: rgba(255, 184, 77, 0.13);
+  --stroke: rgba(255, 184, 77, 0.22);
+  --accent: #ffb84d;
+  --accent-2: #ff8a3d;
+}
+
+/* The lantern light itself: a warm halo that slowly breathes */
+.fanous body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(720px 520px at 50% -6%, rgba(255, 170, 60, 0.22), transparent 62%),
+    radial-gradient(1200px 800px at 50% 115%, rgba(120, 60, 10, 0.18), transparent 60%);
+  background-attachment: fixed;
+}
+.fanous body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(560px 400px at 50% 0%, rgba(255, 190, 90, 0.14), transparent 65%);
+  animation: fanous-breathe 6.5s ease-in-out infinite;
+}
+@keyframes fanous-breathe {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+.reduce-motion .fanous body::after,
+.fanous.reduce-motion body::after { animation: none; }
+
+.sajjada {
+  /* سجادة — prayer rug: deep burgundy wool with a woven kilim motif */
+  --bg: #200a10;
+  --fg: #f8ecdf;
+  --muted: rgba(248, 236, 223, 0.75);
+  --muted-2: rgba(248, 236, 223, 0.55);
+  --card: rgba(232, 176, 75, 0.07);
+  --card-2: rgba(232, 176, 75, 0.12);
+  --stroke: rgba(232, 176, 75, 0.24);
+  --accent: #e8b04b;
+  --accent-2: #7fb069;
+}
+
+/* The weave: repeating kilim diamonds, barely-there like wool under lamplight */
+.sajjada body {
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23e8b04b' stroke-opacity='0.10'%3E%3Cpath d='M28 2 54 28 28 54 2 28Z'/%3E%3Cpath d='M28 14 42 28 28 42 14 28Z'/%3E%3Ccircle cx='28' cy='28' r='3'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(180deg, #240c13 0%, #1c0910 60%, #15060b 100%);
+  background-attachment: fixed;
+}
+.sajjada body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: inset 0 0 110px rgba(0, 0, 0, 0.45);
+}
+
+.mihrab {
+  /* محراب — zellige mosaic: lapis night, turquoise tile, a lit prayer niche */
+  --bg: #071b33;
+  --fg: #eaf6ff;
+  --muted: rgba(234, 246, 255, 0.75);
+  --muted-2: rgba(234, 246, 255, 0.55);
+  --card: rgba(46, 196, 182, 0.08);
+  --card-2: rgba(46, 196, 182, 0.13);
+  --stroke: rgba(46, 196, 182, 0.24);
+  --accent: #2ec4b6;
+  --accent-2: #f4d35e;
+}
+
+/* Zellige: eight-point star tiles shimmering faintly, arch light from above */
+.mihrab body {
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%232ec4b6' stroke-opacity='0.10'%3E%3Cpath d='M32 4 39 25 60 32 39 39 32 60 25 39 4 32 25 25Z'/%3E%3Cpath d='M32 18 36 28 46 32 36 36 32 46 28 36 18 32 28 28Z'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(700px 480px at 50% -10%, rgba(244, 211, 94, 0.10), transparent 60%),
+    linear-gradient(180deg, #0a2140 0%, #071b33 55%, #04101f 100%);
+  background-attachment: fixed;
+}
+
 /* ── بستان ambient garden ornaments ─────────────────────────────────────
    Rendered by GardenOrnaments.tsx only when the bustan theme is active.
    Purely decorative: aria-hidden, pointer-events none, honors reduce-motion. */
@@ -249,6 +400,57 @@
   animation: none;
 }
 .reduce-motion .garden-petal {
+  display: none;
+}
+
+/* ── ورق ambient artifacts ──────────────────────────────────────────────── */
+
+/* Silk bookmark ribbon draped from the top edge */
+.paper-ribbon {
+  position: absolute;
+  top: -6px;
+  inset-inline-end: 34px;
+  width: 26px;
+  height: 118px;
+  background: linear-gradient(180deg, #a34534 0%, #8f3b2c 55%, #7a2f22 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 86%, 0 100%);
+  box-shadow: -2px 4px 8px rgba(74, 52, 28, 0.28);
+  opacity: 0.92;
+}
+
+/* Turned page corner, bottom start side */
+.paper-fold {
+  position: absolute;
+  bottom: 0;
+  inset-inline-start: 0;
+  width: 46px;
+  height: 46px;
+  background: linear-gradient(45deg, transparent 48%, rgba(74, 52, 28, 0.10) 50%, #f7f0df 52%, #fffaf0 100%);
+  border-start-end-radius: 6px;
+  box-shadow: 3px -3px 7px rgba(74, 52, 28, 0.12);
+}
+
+/* Slow-drifting dust motes in the reading light */
+.paper-mote {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 250, 230, 0.95), rgba(233, 195, 106, 0.35) 70%, transparent);
+  animation: paper-drift 26s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes paper-drift {
+  0%   { transform: translate(0, 0); opacity: 0.55; }
+  25%  { transform: translate(-26px, 34px); opacity: 0.85; }
+  50%  { transform: translate(14px, 68px); opacity: 0.5; }
+  75%  { transform: translate(38px, 28px); opacity: 0.8; }
+  100% { transform: translate(0, 0); opacity: 0.55; }
+}
+
+.reduce-motion .paper-mote {
+  animation: none;
   display: none;
 }
 

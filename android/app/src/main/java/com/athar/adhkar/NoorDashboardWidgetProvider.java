@@ -61,27 +61,6 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         R.id.dot_fajr, R.id.dot_dhuhr, R.id.dot_asr,
         R.id.dot_maghrib, R.id.dot_isha
     };
-    private static final int[] MORNING_SEGMENTS = {
-        R.id.dash_morning_seg_01, R.id.dash_morning_seg_02,
-        R.id.dash_morning_seg_03, R.id.dash_morning_seg_04,
-        R.id.dash_morning_seg_05, R.id.dash_morning_seg_06,
-        R.id.dash_morning_seg_07, R.id.dash_morning_seg_08,
-        R.id.dash_morning_seg_09, R.id.dash_morning_seg_10
-    };
-    private static final int[] EVENING_SEGMENTS = {
-        R.id.dash_evening_seg_01, R.id.dash_evening_seg_02,
-        R.id.dash_evening_seg_03, R.id.dash_evening_seg_04,
-        R.id.dash_evening_seg_05, R.id.dash_evening_seg_06,
-        R.id.dash_evening_seg_07, R.id.dash_evening_seg_08,
-        R.id.dash_evening_seg_09, R.id.dash_evening_seg_10
-    };
-    private static final int[] WIRD_SEGMENTS = {
-        R.id.dash_wird_seg_01, R.id.dash_wird_seg_02,
-        R.id.dash_wird_seg_03, R.id.dash_wird_seg_04,
-        R.id.dash_wird_seg_05, R.id.dash_wird_seg_06,
-        R.id.dash_wird_seg_07, R.id.dash_wird_seg_08,
-        R.id.dash_wird_seg_09, R.id.dash_wird_seg_10
-    };
 
     // ─── AtharWidgetProvider contract ─────────────────────────────
 
@@ -116,27 +95,22 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
         // ── 1. Header: greeting + Gregorian date ──────────────────
         views.setTextViewText(R.id.dash_greeting, resolveGreeting());
-        SimpleDateFormat dateFmt = new SimpleDateFormat("EEEE، d MMMM", new Locale("ar"));
-        views.setTextViewText(R.id.dash_date, dateFmt.format(new Date()));
+        views.setTextViewText(R.id.dash_date, dateLine());
 
         // ── 2. Prayer dots & countdown ────────────────────────────
         applyPrayerSection(views, prefs);
 
         // ── 3. Adhkar progress bars ───────────────────────────────
-        applyAdhkarSection(views, prefs);
+        applyAdhkarSection(context, views, prefs);
 
         // ── 4. Quran wird progress ────────────────────────────────
-        applyWirdSection(views, prefs);
+        applyWirdSection(context, views, prefs);
 
         // ── 5. Streak + level ─────────────────────────────────────
         applyStreakSection(views, prefs);
 
         // ── 6. Tap → open app ─────────────────────────────────────
-        Intent intent = new Intent(context, MainActivity.class)
-            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pi = PendingIntent.getActivity(
-            context, appWidgetId, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pi = openApp(context, appWidgetId * 24, null);
         views.setOnClickPendingIntent(R.id.dashboard_root, pi);
         views.setOnClickPendingIntent(R.id.dash_open_btn, pi);
 
@@ -210,14 +184,14 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
     // ─── Adhkar section ───────────────────────────────────────────
 
-    private void applyAdhkarSection(RemoteViews views, SharedPreferences prefs) {
+    private void applyAdhkarSection(Context context, RemoteViews views, SharedPreferences prefs) {
         try {
             String json = readJson(prefs, KEY_ADHKAR);
             if (json == null) {
                 views.setTextViewText(R.id.dash_morning_count, "--");
                 views.setTextViewText(R.id.dash_evening_count, "--");
-                setBarSegments(views, MORNING_SEGMENTS, 0);
-                setBarSegments(views, EVENING_SEGMENTS, 0);
+                views.setImageViewBitmap(R.id.dash_morning_bar, WidgetCanvas.barGold(context, 280, 7, 0f));
+                views.setImageViewBitmap(R.id.dash_evening_bar, WidgetCanvas.barDusk(context, 280, 7, 0f));
                 return;
             }
 
@@ -232,26 +206,28 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
             views.setTextViewText(R.id.dash_morning_count, mDone + "/" + mTotal);
             views.setTextViewText(R.id.dash_evening_count, eDone + "/" + eTotal);
-            applyBar(views, MORNING_SEGMENTS, mDone, mTotal);
-            applyBar(views, EVENING_SEGMENTS, eDone, eTotal);
+            views.setImageViewBitmap(R.id.dash_morning_bar,
+                WidgetCanvas.barGold(context, 280, 7, mTotal > 0 ? mDone / (float) mTotal : 0f));
+            views.setImageViewBitmap(R.id.dash_evening_bar,
+                WidgetCanvas.barDusk(context, 280, 7, eTotal > 0 ? eDone / (float) eTotal : 0f));
 
         } catch (Exception e) {
             views.setTextViewText(R.id.dash_morning_count, "--");
             views.setTextViewText(R.id.dash_evening_count, "--");
-            setBarSegments(views, MORNING_SEGMENTS, 0);
-            setBarSegments(views, EVENING_SEGMENTS, 0);
+            views.setImageViewBitmap(R.id.dash_morning_bar, WidgetCanvas.barGold(context, 280, 7, 0f));
+            views.setImageViewBitmap(R.id.dash_evening_bar, WidgetCanvas.barDusk(context, 280, 7, 0f));
         }
     }
 
     // ─── Wird section ─────────────────────────────────────────────
 
-    private void applyWirdSection(RemoteViews views, SharedPreferences prefs) {
+    private void applyWirdSection(Context context, RemoteViews views, SharedPreferences prefs) {
         try {
             String json = readJson(prefs, KEY_WIRD);
             if (json == null) {
                 views.setTextViewText(R.id.dash_wird_count, "--");
                 views.setTextViewText(R.id.dash_wird_surah, "ابدأ المصحف");
-                setBarSegments(views, WIRD_SEGMENTS, 0);
+                views.setImageViewBitmap(R.id.dash_wird_bar, WidgetCanvas.barEmerald(context, 280, 7, 0f));
                 return;
             }
 
@@ -265,12 +241,13 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             views.setTextViewText(R.id.dash_wird_surah,
                 currentSurah.isEmpty() ? "ابدأ المصحف"
                     : "سورة " + currentSurah + " ‧ الآية " + toArabicNumerals(currentAyah));
-            applyBar(views, WIRD_SEGMENTS, ayahsRead, dailyGoal);
+            views.setImageViewBitmap(R.id.dash_wird_bar,
+                WidgetCanvas.barEmerald(context, 280, 7, dailyGoal > 0 ? Math.min(1f, ayahsRead / (float) dailyGoal) : 0f));
 
         } catch (Exception e) {
             views.setTextViewText(R.id.dash_wird_count, "--");
             views.setTextViewText(R.id.dash_wird_surah, "");
-            setBarSegments(views, WIRD_SEGMENTS, 0);
+            views.setImageViewBitmap(R.id.dash_wird_bar, WidgetCanvas.barEmerald(context, 280, 7, 0f));
         }
     }
 
@@ -302,20 +279,6 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         }
     }
 
-    // ─── Progress bar helpers ──────────────────────────────────────
-
-    private void applyBar(RemoteViews views, int[] segmentIds, int done, int total) {
-        int active = total > 0
-            ? Math.min(segmentIds.length, Math.max(0, (done * segmentIds.length + total - 1) / total))
-            : 0;
-        setBarSegments(views, segmentIds, active);
-    }
-
-    private void setBarSegments(RemoteViews views, int[] segmentIds, int activeCount) {
-        for (int i = 0; i < segmentIds.length; i++) {
-            views.setViewVisibility(segmentIds[i], i < activeCount ? View.VISIBLE : View.INVISIBLE);
-        }
-    }
 
     // ─── Utilities ────────────────────────────────────────────────
 

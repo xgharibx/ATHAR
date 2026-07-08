@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Share2, Shuffle } from "lucide-react";
+import { BookOpen, Share2, Shuffle, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { DAILY_VERSES } from "@/data/dailyVerses";
 import { DAILY_WISDOMS } from "@/data/dailyWisdom";
@@ -238,6 +238,16 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                       <BookOpen size={12} aria-hidden="true" />
                       اقرأ في سياقها
                     </Button>
+                    <Button
+                      className="press-effect text-xs h-7 px-3"
+                      variant="secondary"
+                      onClick={() => navigate(`/companion?ask=${encodeURIComponent(
+                        `تدبّر معي هذه الآية: اشرحها شرحًا ميسرًا مع سبب النزول إن صحّ، وثلاث فوائد عملية ليومي:\n﴿${verse.arabic.slice(0, 500)}﴾ — ${verse.surahName} (${verse.ayahIndex})`
+                      )}`)}
+                    >
+                      <Sparkles size={12} aria-hidden="true" />
+                      تدبّر بالذكاء
+                    </Button>
                     <button type="button"
                       onClick={() => handleShuffle(0)}
                       className="p-1.5 rounded-lg transition press-effect"
@@ -301,6 +311,16 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     >
                       <BookOpen size={12} aria-hidden="true" />
                       افتح في المكتبة
+                    </Button>
+                    <Button
+                      className="press-effect text-xs h-7 px-3"
+                      variant="secondary"
+                      onClick={() => navigate(`/companion?ask=${encodeURIComponent(
+                        `اشرح لي هذا الحديث شرحًا ميسرًا: غريب الألفاظ، المعنى الإجمالي، وثلاث فوائد عملية، مع درجة الحديث إن كانت معروفة:\n«${hadith.t.slice(0, 600)}»\n— ${hadithBookMeta?.title ?? activeHadithPick.bookKey} • ح${hadith.n}`
+                      )}`)}
+                    >
+                      <Sparkles size={12} aria-hidden="true" />
+                      اشرح الحديث
                     </Button>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">

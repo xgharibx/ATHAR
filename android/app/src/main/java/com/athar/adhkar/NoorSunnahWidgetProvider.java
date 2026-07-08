@@ -13,7 +13,8 @@ public class NoorSunnahWidgetProvider extends AtharWidgetProvider {
                 "ابدأ باليمين في اللباس والطهور",
                 "تبسمك في وجه أخيك صدقة"
             },
-            "سنن اليوم"
+            "سنن اليوم",
+            "/library/hadith"
         );
     }
 }

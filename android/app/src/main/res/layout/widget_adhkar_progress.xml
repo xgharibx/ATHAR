@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Daily Adhkar Progress Widget (4×2)
-  - Shows morning and evening adhkar completion: "X من Y"
-  - Progress bars for each section
-  - Tap to open the app
-  - Data synced from web app via Capacitor Preferences
+  Daily Adhkar Progress Widget (4×2) — Athar premium design
+  Canvas-rendered gradient bars (sunrise gold / dusk indigo) with glow,
+  Hijri date header, gold action pill. Bars bound via setImageViewBitmap.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/adhkar_root"
@@ -12,9 +10,8 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg_adhkar"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:padding="16dp">
 
-    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -27,7 +24,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="start"
-            android:textColor="#6AA8B8"
+            android:textColor="#8FBCC8"
             android:textSize="10sp" />
 
         <TextView
@@ -35,25 +32,17 @@
             android:layout_height="wrap_content"
             android:gravity="end"
             android:text="أذكاري اليوم"
-            android:textColor="#A8D8E8"
-            android:textSize="13sp"
+            android:textColor="#EAF6FA"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
-
     </LinearLayout>
 
-    <!-- Thin divider -->
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="6dp"
-        android:background="#22FFFFFF" />
-
-    <!-- Morning Adhkar row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginTop="6dp"
         android:gravity="center_vertical"
         android:orientation="vertical">
 
@@ -68,10 +57,10 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:text="الأذكار الصباحية ☀"
+                android:text="أذكار الصباح ☀️"
                 android:textColor="#FFE8B0"
                 android:textSize="12sp"
-                android:textStyle="bold" />
+                android:fontFamily="sans-serif-medium" />
 
             <TextView
                 android:id="@+id/adhkar_morning_count"
@@ -80,46 +69,21 @@
                 android:layout_marginStart="8dp"
                 android:gravity="start"
                 android:text="--/--"
-                android:textColor="#EAD58D"
-                android:textSize="11sp"
+                android:textColor="#F6DFA4"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium"
                 android:textStyle="bold" />
-
         </LinearLayout>
 
-        <!-- Morning progress bar -->
-        <LinearLayout
+        <ImageView
+            android:id="@+id/adhkar_morning_bar"
             android:layout_width="match_parent"
-            android:layout_height="6dp"
-            android:layout_marginTop="4dp"
-            android:background="@drawable/widget_progress_track"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/adhkar_morning_seg_01"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_morning_seg_02" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_morning_seg_03" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_morning_seg_04" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_morning_seg_05" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_morning_seg_06" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_morning_seg_07" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_morning_seg_08" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_morning_seg_09" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_morning_seg_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-
-        </LinearLayout>
-
+            android:layout_height="9dp"
+            android:layout_marginTop="5dp"
+            android:scaleType="fitXY"
+            android:importantForAccessibility="no" />
     </LinearLayout>
 
-    <!-- 8dp gap -->
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="6dp" />
-
-    <!-- Evening Adhkar row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -138,10 +102,10 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:text="الأذكار المسائية 🌙"
+                android:text="أذكار المساء 🌙"
                 android:textColor="#C8CCFF"
                 android:textSize="12sp"
-                android:textStyle="bold" />
+                android:fontFamily="sans-serif-medium" />
 
             <TextView
                 android:id="@+id/adhkar_evening_count"
@@ -150,41 +114,21 @@
                 android:layout_marginStart="8dp"
                 android:gravity="start"
                 android:text="--/--"
-                android:textColor="#B0B8FF"
-                android:textSize="11sp"
+                android:textColor="#B8BEFF"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium"
                 android:textStyle="bold" />
-
         </LinearLayout>
 
-        <!-- Evening progress bar -->
-        <LinearLayout
+        <ImageView
+            android:id="@+id/adhkar_evening_bar"
             android:layout_width="match_parent"
-            android:layout_height="6dp"
-            android:layout_marginTop="4dp"
-            android:background="@drawable/widget_progress_track"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/adhkar_evening_seg_01"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_evening_seg_02" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_evening_seg_03" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_evening_seg_04" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_evening_seg_05" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_evening_seg_06" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_evening_seg_07" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_evening_seg_08" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_evening_seg_09" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-            <ImageView android:id="@+id/adhkar_evening_seg_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="1dp" android:layout_weight="1" android:background="@drawable/widget_progress_fill" />
-
-        </LinearLayout>
-
+            android:layout_height="9dp"
+            android:layout_marginTop="5dp"
+            android:scaleType="fitXY"
+            android:importantForAccessibility="no" />
     </LinearLayout>
 
-    <!-- Footer: open button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -195,15 +139,15 @@
         <TextView
             android:id="@+id/adhkar_open_btn"
             android:layout_width="wrap_content"
-            android:layout_height="26dp"
+            android:layout_height="28dp"
             android:background="@drawable/noor_widget_pill"
             android:gravity="center"
-            android:paddingHorizontal="12dp"
+            android:paddingHorizontal="14dp"
             android:text="افتح الأذكار"
-            android:textColor="#1E3822"
-            android:textSize="10sp"
+            android:textColor="#26301B"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
-
     </LinearLayout>
 
 </LinearLayout>

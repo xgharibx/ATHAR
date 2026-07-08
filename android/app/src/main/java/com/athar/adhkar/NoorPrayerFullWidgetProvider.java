@@ -94,10 +94,10 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         RemoteViews views = new RemoteViews(
             context.getPackageName(), R.layout.widget_prayer_full);
 
-        // Arabic date header
-        SimpleDateFormat dateFmt = new SimpleDateFormat("EEEE، d MMMM", new Locale("ar"));
-        views.setTextViewText(R.id.prayer_full_date, dateFmt.format(new Date()));
+        // Arabic date header — Gregorian + Hijri (umalqura)
+        views.setTextViewText(R.id.prayer_full_date, dateLine());
 
+        String skyName = null;
         try {
             String json = WidgetData.readJson(context, WIDGET_KEY);
 
@@ -178,6 +178,7 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
                 if (nextNameAr == null) {
                     views.setTextViewText(R.id.prayer_full_countdown, "اكتملت صلوات اليوم ✓");
                 }
+                skyName = nextNameAr;
 
             } else {
                 // Data not synced yet
@@ -191,12 +192,12 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
             views.setTextViewText(R.id.prayer_full_countdown, "تعذّر تحميل المواقيت");
         }
 
-        // Tap → open app
-        Intent intent = new Intent(context, MainActivity.class)
-            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pi = PendingIntent.getActivity(
-            context, appWidgetId, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        // Sky follows the day: background shifts with the upcoming prayer
+        views.setInt(R.id.prayer_full_root, "setBackgroundResource",
+            NoorPrayerWidgetProvider.skyFor(skyName));
+
+        // Tap → open prayer times directly
+        PendingIntent pi = openApp(context, appWidgetId * 23, "/prayer-times");
         views.setOnClickPendingIntent(R.id.prayer_full_root, pi);
 
         manager.updateAppWidget(appWidgetId, views);

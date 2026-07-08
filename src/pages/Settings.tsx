@@ -42,6 +42,10 @@ const THEME_ACCENTS: Record<NoorTheme, string> = {
   sunset:   "#fb923c",
   mist:     "#e5e7eb",
   bustan:   "#c96f4a",
+  waraq:    "#8f3b2c",
+  fanous:   "#ffb84d",
+  sajjada:  "#e8b04b",
+  mihrab:   "#2ec4b6",
 };
 
 const PRAYER_ALERT_OPTIONS = [
@@ -334,6 +338,10 @@ export function SettingsPage() {
           <ThemeChip value="sunset" label="غروب" active={prefs.theme === "sunset"} onClick={() => setPrefs({ theme: "sunset" })} />
           <ThemeChip value="mist" label="ضباب" active={prefs.theme === "mist"} onClick={() => setPrefs({ theme: "mist" })} />
           <ThemeChip value="bustan" label="بستان 🦋" active={prefs.theme === "bustan"} onClick={() => setPrefs({ theme: "bustan" })} />
+          <ThemeChip value="waraq" label="ورق 📜" active={prefs.theme === "waraq"} onClick={() => setPrefs({ theme: "waraq" })} />
+          <ThemeChip value="fanous" label="فانوس 🏮" active={prefs.theme === "fanous"} onClick={() => setPrefs({ theme: "fanous" })} />
+          <ThemeChip value="sajjada" label="سجادة 🧿" active={prefs.theme === "sajjada"} onClick={() => setPrefs({ theme: "sajjada" })} />
+          <ThemeChip value="mihrab" label="محراب 🕌" active={prefs.theme === "mihrab"} onClick={() => setPrefs({ theme: "mihrab" })} />
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">

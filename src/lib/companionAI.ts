@@ -15,6 +15,26 @@ import { useNoorStore } from "@/store/noorStore";
 const KEY_STORAGE = "noor_companion_api_key_v1";
 const MODEL_STORAGE = "noor_companion_model_v1";
 
+/**
+ * App-provided credentials — the user never has to enter anything.
+ * Configure ONE of these at build time (.env.local / CI secret):
+ *   VITE_COMPANION_API_KEY   — Anthropic API key baked into the build
+ *   VITE_COMPANION_PROXY_URL — your proxy that injects the key server-side
+ *                              (same Messages API surface; safer to ship)
+ * A locally-stored key (advanced settings) is kept as a final fallback.
+ */
+const APP_KEY: string = (import.meta.env.VITE_COMPANION_API_KEY as string | undefined) ?? "";
+const PROXY_URL: string = (import.meta.env.VITE_COMPANION_PROXY_URL as string | undefined) ?? "";
+
+export function hasAppProvidedAccess(): boolean {
+  return !!(APP_KEY || PROXY_URL);
+}
+
+/** True when the companion can chat right now (app key, proxy, or local key). */
+export function isCompanionReady(): boolean {
+  return hasAppProvidedAccess() || !!getApiKey();
+}
+
 export type CompanionMessage = { role: "user" | "assistant"; content: string };
 
 export const COMPANION_MODELS = [
@@ -149,13 +169,20 @@ export function describeError(err: unknown): CompanionError {
  * Stream a companion reply. Yields incremental text chunks.
  * The caller is responsible for aborting via the returned controller if needed.
  */
+function createClient(): Anthropic {
+  if (PROXY_URL) {
+    // The proxy injects the real key server-side; the placeholder keeps the SDK happy.
+    return new Anthropic({ apiKey: "proxy", baseURL: PROXY_URL, dangerouslyAllowBrowser: true });
+  }
+  const apiKey = APP_KEY || getApiKey();
+  if (!apiKey) throw new Error("no-api-key");
+  return new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+}
+
 export async function* streamCompanionReply(
   history: CompanionMessage[],
 ): AsyncGenerator<string, void, void> {
-  const apiKey = getApiKey();
-  if (!apiKey) throw new Error("no-api-key");
-
-  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+  const client = createClient();
   const model = getModel();
   const ctx = buildCompanionContext();
 

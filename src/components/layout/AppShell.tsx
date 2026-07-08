@@ -408,7 +408,7 @@ export function AppShell() {
   // De11: Alt+T keyboard shortcut to cycle all 12 themes; Ctrl+K to open command palette
   React.useEffect(() => {
     const ALL_THEMES: import("@/store/noorStore").NoorTheme[] = [
-      "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist", "bustan",
+      "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab",
     ];
     const handler = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 't') {

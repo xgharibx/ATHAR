@@ -16,6 +16,10 @@ const THEME_META_COLORS: Record<NoorTheme, string> = {
   sunset:   "#160a06",
   mist:     "#0b0d12",
   bustan:   "#f3ede2",
+  waraq:    "#efe7d5",
+  fanous:   "#140e06",
+  sajjada:  "#200a10",
+  mihrab:   "#071b33",
 };
 
 function setMetaThemeColor(color: string) {
@@ -43,7 +47,11 @@ function apply(theme: NoorTheme) {
     "violet",
     "sunset",
     "mist",
-    "bustan"
+    "bustan",
+    "waraq",
+    "fanous",
+    "sajjada",
+    "mihrab"
   );
 
   if (theme === "system") {
@@ -53,12 +61,12 @@ function apply(theme: NoorTheme) {
     return;
   }
 
-  if (theme === "bustan") {
-    // بستان is a light theme at heart: apply "light" too so every existing
-    // light-mode refinement (form fields, nav, skeletons…) carries over,
-    // then .bustan variables override the palette.
-    root.classList.add("light", "bustan");
-    setMetaThemeColor(THEME_META_COLORS.bustan);
+  if (theme === "bustan" || theme === "waraq") {
+    // Light-hearted themes: apply "light" too so every existing light-mode
+    // refinement (form fields, nav, skeletons…) carries over, then the
+    // theme's own variables + textures override the palette.
+    root.classList.add("light", theme);
+    setMetaThemeColor(THEME_META_COLORS[theme]);
     return;
   }
 

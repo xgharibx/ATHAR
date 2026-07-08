@@ -3,49 +3,19 @@ package com.athar.adhkar;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.view.View;
 import android.widget.RemoteViews;
 
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
 /**
- * Daily Quran Wird Progress Widget (4×2)
+ * Daily Quran Wird Widget (4×2) — premium redesign.
  *
- * Reads Quran reading data written by widgetDataBridge.ts:
- *   SharedPreferences file : "CapacitorStorage"
- *   Key                    : "CapacitorStorage.noor_widget_wird_v1"
- *
- * Payload JSON shape:
- *   {
- *     "ayahsRead": 15,
- *     "dailyGoal": 20,
- *     "currentSurah": "البقرة",
- *     "currentAyah": 45,
- *     "updatedAt": "2024-01-15T09:30:00Z"
- *   }
- *
- * Shows:
- *   • Big count "15 آية" read today
- *   • Current surah name + ayah reference (Arabic)
- *   • Gold progress bar (ayahsRead / dailyGoal)
- *   • "متابعة القراءة" button to open the app
+ * Hero ayah count + current surah, emerald Canvas progress bar with glow.
+ * Tap continues reading exactly where the user left off (/quran).
  */
 public class NoorWirdWidgetProvider extends AtharWidgetProvider {
 
     private static final String WIDGET_KEY = "noor_widget_wird_v1";
-    private static final int[] WIRD_SEGMENTS = {
-        R.id.wird_progress_seg_01, R.id.wird_progress_seg_02,
-        R.id.wird_progress_seg_03, R.id.wird_progress_seg_04,
-        R.id.wird_progress_seg_05, R.id.wird_progress_seg_06,
-        R.id.wird_progress_seg_07, R.id.wird_progress_seg_08,
-        R.id.wird_progress_seg_09, R.id.wird_progress_seg_10
-    };
 
     @Override
     protected AtharWidgetSpec getSpec() {
@@ -53,7 +23,8 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
             R.layout.widget_wird,
             "ورد القرآن",
             new String[] { "افتح التطبيق لمزامنة الورد" },
-            "متابعة القراءة"
+            "متابعة القراءة",
+            "/quran"
         );
     }
 
@@ -69,98 +40,48 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
     }
 
     private void updateLive(Context context, AppWidgetManager manager, int appWidgetId) {
-        RemoteViews views = new RemoteViews(
-            context.getPackageName(), R.layout.widget_wird);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_wird);
 
-        // Date header
-        SimpleDateFormat dateFmt = new SimpleDateFormat("EEEE، d MMMM", new Locale("ar"));
-        views.setTextViewText(R.id.wird_date, dateFmt.format(new Date()));
+        views.setTextViewText(R.id.wird_date, dateLine());
 
+        float progress = 0f;
         try {
             String json = WidgetData.readJson(context, WIDGET_KEY);
-
             if (json != null) {
-                JSONObject payload    = new JSONObject(json);
-                int ayahsRead         = payload.optInt("ayahsRead", 0);
-                int dailyGoal         = payload.optInt("dailyGoal", 20);
-                String currentSurah   = payload.optString("currentSurah", "");
-                int currentAyah       = payload.optInt("currentAyah", 1);
+                JSONObject payload  = new JSONObject(json);
+                int ayahsRead       = payload.optInt("ayahsRead", 0);
+                int dailyGoal       = Math.max(1, payload.optInt("dailyGoal", 10));
+                String currentSurah = payload.optString("currentSurah", "");
+                int currentAyah     = payload.optInt("currentAyah", 1);
 
-                // Reading count
+                progress = Math.min(1f, ayahsRead / (float) dailyGoal);
+                int pct = Math.round(progress * 100);
+
                 views.setTextViewText(R.id.wird_ayahs_read, ayahsRead + " آية");
-                views.setTextViewText(R.id.wird_goal_label,
-                    "من " + dailyGoal + " الهدف اليومي");
-
-                // Current position
-                if (!currentSurah.isEmpty()) {
-                    views.setTextViewText(R.id.wird_surah_name, "سورة " + currentSurah);
-                    views.setTextViewText(R.id.wird_ayah_ref, "الآية " + toArabicNumerals(currentAyah));
-                } else {
-                    views.setTextViewText(R.id.wird_surah_name, "لم تبدأ بعد");
-                    views.setTextViewText(R.id.wird_ayah_ref, "افتح المصحف");
-                }
-
-                // Progress bar
-                int pct = dailyGoal > 0 ? Math.min(100, (ayahsRead * 100) / dailyGoal) : 0;
-                setProgressBar(views, pct);
-
-                // Progress label
-                String label = pct >= 100
-                    ? "أتممت ورد اليوم ✓"
-                    : pct + "٪ من الهدف";
-                views.setTextViewText(R.id.wird_progress_label, label);
-
+                views.setTextViewText(R.id.wird_goal_label, "الهدف: " + dailyGoal + " آية");
+                views.setTextViewText(R.id.wird_surah_name,
+                    currentSurah.isEmpty() ? "ابدأ القراءة" : "سورة " + currentSurah);
+                views.setTextViewText(R.id.wird_ayah_ref, "الآية " + currentAyah);
+                views.setTextViewText(R.id.wird_progress_label,
+                    pct >= 100 ? "اكتمل وردك اليوم ✓" : pct + "% من الهدف");
             } else {
-                views.setTextViewText(R.id.wird_ayahs_read, "—");
-                views.setTextViewText(R.id.wird_goal_label, "");
-                views.setTextViewText(R.id.wird_surah_name, "افتح التطبيق");
-                views.setTextViewText(R.id.wird_ayah_ref, "لتحميل الورد");
-                views.setTextViewText(R.id.wird_progress_label, "لا توجد بيانات");
-                setProgressBar(views, 0);
+                views.setTextViewText(R.id.wird_ayahs_read, "--");
+                views.setTextViewText(R.id.wird_goal_label, "افتح التطبيق للمزامنة");
+                views.setTextViewText(R.id.wird_surah_name, "ورد القرآن");
+                views.setTextViewText(R.id.wird_ayah_ref, "");
+                views.setTextViewText(R.id.wird_progress_label, "");
             }
-
         } catch (Exception e) {
-            views.setTextViewText(R.id.wird_ayahs_read, "—");
-            views.setTextViewText(R.id.wird_surah_name, "تعذّر التحميل");
-            views.setTextViewText(R.id.wird_ayah_ref, "");
+            views.setTextViewText(R.id.wird_ayahs_read, "--");
             views.setTextViewText(R.id.wird_progress_label, "");
-            setProgressBar(views, 0);
         }
 
-        // Tap → open app
-        Intent intent = new Intent(context, MainActivity.class)
-            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pi = PendingIntent.getActivity(
-            context, appWidgetId, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        views.setImageViewBitmap(R.id.wird_bar, WidgetCanvas.barEmerald(context, 300, 10, progress));
+
+        PendingIntent pi = openApp(context, appWidgetId * 21, "/quran");
         views.setOnClickPendingIntent(R.id.wird_root, pi);
         views.setOnClickPendingIntent(R.id.wird_open_btn, pi);
 
         manager.updateAppWidget(appWidgetId, views);
-    }
-
-    // ─────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────
-
-    private void setProgressBar(RemoteViews views, int pct) {
-        int active = Math.min(WIRD_SEGMENTS.length, Math.max(0, (pct + 9) / 10));
-        for (int i = 0; i < WIRD_SEGMENTS.length; i++) {
-            views.setViewVisibility(WIRD_SEGMENTS[i], i < active ? View.VISIBLE : View.INVISIBLE);
-        }
-    }
-
-    /** Convert an integer to Eastern Arabic (Indic) numerals used in Arabic text. */
-    private String toArabicNumerals(int n) {
-        String s = String.valueOf(n);
-        StringBuilder sb = new StringBuilder();
-        for (char c : s.toCharArray()) {
-            if (c >= '0' && c <= '9') {
-                sb.append((char) ('\u0660' + (c - '0')));
-            } else {
-                sb.append(c);
-            }
-        }
-        return sb.toString();
     }
 }

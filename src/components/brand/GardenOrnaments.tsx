@@ -70,6 +70,19 @@ function Butterfly({ size, className, style }: { size: number; className?: strin
   );
 }
 
+/** ورق (paper) theme artifacts: silk bookmark ribbon, turned corner, dust motes. */
+function PaperOrnaments() {
+  return (
+    <div className="garden-ornaments" aria-hidden="true">
+      <div className="paper-ribbon" />
+      <div className="paper-fold" />
+      <span className="paper-mote" style={{ top: "22%", insetInlineStart: "18%", animationDelay: "0s" }} />
+      <span className="paper-mote" style={{ top: "38%", insetInlineEnd: "22%", animationDelay: "-9s" }} />
+      <span className="paper-mote" style={{ top: "64%", insetInlineStart: "40%", animationDelay: "-17s" }} />
+    </div>
+  );
+}
+
 function Petal({ left, delay, duration }: { left: string; delay: number; duration: number }) {
   return (
     <svg
@@ -87,6 +100,7 @@ function Petal({ left, delay, duration }: { left: string; delay: number; duratio
 
 export function GardenOrnaments() {
   const theme = useNoorStore((s) => s.prefs.theme);
+  if (theme === "waraq") return <PaperOrnaments />;
   if (theme !== "bustan") return null;
 
   return (

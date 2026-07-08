@@ -167,6 +167,10 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.tasbeeh_count, String.valueOf(count));
         views.setTextViewText(R.id.tasbeeh_progress_text, count + " / " + target);
 
+        // Glowing gold progress ring around the count
+        views.setImageViewBitmap(R.id.tasbeeh_ring,
+            WidgetCanvas.ring(context, 150, 9, target > 0 ? count / (float) target : 0f));
+
         // Central tap zone → increment
         Intent incIntent = new Intent(context, NoorTasbeehWidgetProvider.class)
             .setAction(ACTION_INCREMENT)
@@ -194,12 +198,8 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
             nextIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.tasbeeh_btn_next, nextPi);
 
-        // Root tap → open app
-        Intent openIntent = new Intent(context, MainActivity.class)
-            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent openPi = PendingIntent.getActivity(
-            context, appWidgetId * 10 + 3,
-            openIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        // Root tap → open the Sebha screen directly
+        PendingIntent openPi = openApp(context, appWidgetId * 10 + 3, "/sebha");
         views.setOnClickPendingIntent(R.id.tasbeeh_root, openPi);
 
         manager.updateAppWidget(appWidgetId, views);

@@ -31,7 +31,11 @@ export type NoorTheme =
   | "violet"
   | "sunset"
   | "mist"
-  | "bustan";
+  | "bustan"
+  | "waraq"
+  | "fanous"
+  | "sajjada"
+  | "mihrab";
 
 export type ReminderSoundProfile = "rain_calm";
 export type PrayerSoundProfile = "adhan_haram";

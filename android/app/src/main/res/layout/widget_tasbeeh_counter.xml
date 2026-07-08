@@ -1,67 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Ultimate Interactive Tasbeeh Widget (2×2)
-  - Central tap zone increments the counter without opening the app
-  - Shows dhikr name in Arabic, big count, progress "X / Y"
-  - Reset (bottom-left) and Next Dhikr (bottom-right) buttons
+  Interactive Tasbeeh Widget (2×2) — Athar premium design
+  A glowing gold gradient ring (Canvas bitmap) wraps the live count.
+  Tap anywhere in the ring to count; ghost reset + gold next below.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/tasbeeh_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/noor_widget_background"
-    android:padding="12dp">
+    android:padding="10dp">
 
-    <!-- Central tap zone — occupies full widget, increments count -->
-    <LinearLayout
+    <!-- Tap zone with the ring + count stack -->
+    <FrameLayout
         android:id="@+id/tasbeeh_tap_zone"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="30dp"
-        android:gravity="center"
-        android:orientation="vertical">
+        android:layout_marginBottom="30dp">
 
-        <!-- Dhikr name in Arabic (gold) -->
-        <TextView
-            android:id="@+id/tasbeeh_dhikr_text"
+        <ImageView
+            android:id="@+id/tasbeeh_ring"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:maxLines="1"
-            android:text="سُبْحَانَ اللَّه"
-            android:textColor="#FFE8B0"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_margin="2dp"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no" />
 
-        <!-- Big count number -->
-        <TextView
-            android:id="@+id/tasbeeh_count"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_height="match_parent"
             android:gravity="center"
-            android:text="0"
-            android:textColor="#FFFFFF"
-            android:textSize="46sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
 
-        <!-- Progress "X / Y" -->
-        <TextView
-            android:id="@+id/tasbeeh_progress_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="0 / 33"
-            android:textColor="#9BB89D"
-            android:textSize="11sp" />
+            <TextView
+                android:id="@+id/tasbeeh_dhikr_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingHorizontal="26dp"
+                android:text="سُبْحَانَ اللَّه"
+                android:textColor="#FFE8B0"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/tasbeeh_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:text="0"
+                android:textColor="#FFFFFF"
+                android:textSize="44sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold" />
 
-    <!-- Bottom action row: Reset (left) | Next (right) -->
+            <TextView
+                android:id="@+id/tasbeeh_progress_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="0 / 33"
+                android:textColor="#9BB89D"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Bottom actions -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="28dp"
+        android:layout_height="26dp"
         android:layout_gravity="bottom"
         android:gravity="center_vertical"
         android:orientation="horizontal">
@@ -74,13 +86,14 @@
             android:gravity="center"
             android:paddingHorizontal="10dp"
             android:text="إعادة"
-            android:textColor="#8FB89A"
+            android:textColor="#A9CBB0"
             android:textSize="10sp" />
 
         <ImageView
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:importantForAccessibility="no" />
 
         <TextView
             android:id="@+id/tasbeeh_btn_next"
@@ -90,10 +103,10 @@
             android:gravity="center"
             android:paddingHorizontal="10dp"
             android:text="التالي ›"
-            android:textColor="#1E3822"
+            android:textColor="#26301B"
             android:textSize="10sp"
+            android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
-
     </LinearLayout>
 
 </FrameLayout>
