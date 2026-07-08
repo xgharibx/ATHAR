@@ -74,6 +74,8 @@ const MushafPage = React.lazy(() => import("@/pages/Mushaf").then((m) => ({ defa
 const PrayerTimesPage = React.lazy(() => import("@/pages/PrayerTimes").then((m) => ({ default: m.PrayerTimesPage })));
 const SebhaPage = React.lazy(() => import("@/pages/Sebha").then((m) => ({ default: m.SebhaPage })));
 const CompanionPage = React.lazy(() => import("@/pages/Companion").then((m) => ({ default: m.CompanionPage })));
+const HadithSharhPage = React.lazy(() => import("@/pages/HadithSharh").then((m) => ({ default: m.HadithSharhPage })));
+const TasmeePage = React.lazy(() => import("@/pages/Tasmee").then((m) => ({ default: m.TasmeePage })));
 const QiblaPage = React.lazy(() => import("@/pages/Qibla").then((m) => ({ default: m.QiblaPage })));
 
 // C1-C7: New content pages
@@ -344,6 +346,8 @@ export default function App() {
           <Route path="adhkar/custom" element={<S><CustomAdhkarPage /></S>} />
           <Route path="sebha" element={<S><SebhaPage /></S>} />
           <Route path="companion" element={<S><CompanionPage /></S>} />
+          <Route path="library/sharh" element={<S><HadithSharhPage /></S>} />
+          <Route path="tasmee" element={<S><TasmeePage /></S>} />
           <Route path="qibla" element={<S><QiblaPage /></S>} />
           <Route path="mosques" element={<S><NearbyMosquesPage /></S>} />
           <Route path="prayer-times" element={<S><PrayerTimesPage /></S>} />

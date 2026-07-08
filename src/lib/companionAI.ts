@@ -145,6 +145,87 @@ export function buildContextBlock(ctx: CompanionContext): string {
   return lines.join("\n");
 }
 
+// ─── Companion memory (on-device only) ──────────────────────────────────────
+// The companion remembers what you've asked about across sessions — goals,
+// surahs you were working on, struggles you mentioned — so answers build on
+// your journey instead of starting cold. Stored only in localStorage.
+
+const MEMORY_KEY = "noor_companion_memory_v1";
+const MEMORY_MAX = 14;
+
+type MemoryEntry = { q: string; d: string };
+
+export function getMemory(): MemoryEntry[] {
+  try {
+    const raw = localStorage.getItem(MEMORY_KEY);
+    const arr = raw ? (JSON.parse(raw) as MemoryEntry[]) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+export function recordMemory(question: string): void {
+  try {
+    const entry: MemoryEntry = {
+      q: question.replace(/\s+/g, " ").trim().slice(0, 140),
+      d: todayISO(),
+    };
+    const next = [...getMemory(), entry].slice(-MEMORY_MAX);
+    localStorage.setItem(MEMORY_KEY, JSON.stringify(next));
+  } catch {
+    // memory is best-effort
+  }
+}
+
+export function clearMemory(): void {
+  try { localStorage.removeItem(MEMORY_KEY); } catch { /* ignore */ }
+}
+
+function buildMemoryBlock(): string {
+  const mem = getMemory();
+  if (mem.length === 0) return "";
+  const lines = mem.slice(-8).map((m) => `- (${m.d}) ${m.q}`);
+  return "ذاكرة محادثات سابقة مع هذا المستخدم (استعن بها لتكون نصيحتك متصلة برحلته، ولا تسردها عليه):\n" + lines.join("\n");
+}
+
+// ─── خاطرة الجمعة — the personal weekly reflection ──────────────────────────
+
+/** Build a prompt for a personalized weekly reflection from the user's REAL week. */
+export function buildWeeklyReflectionPrompt(): string {
+  const s = useNoorStore.getState();
+  const activity: Record<string, number> = (s as { activity?: Record<string, number> }).activity ?? {};
+  const dailyAyahs: Record<string, number> = s.quranDailyAyahs ?? {};
+  const tasbeehLog = s.tasbeehDailyLog ?? {};
+  const completions = s.sectionCompletions ?? {};
+
+  let activeDays = 0;
+  let ayahs = 0;
+  let tasbeeh = 0;
+  let morningDays = 0;
+  let eveningDays = 0;
+  const d = new Date();
+  for (let i = 0; i < 7; i++) {
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    if ((activity[key] ?? 0) > 0) activeDays++;
+    ayahs += dailyAyahs[key] ?? 0;
+    tasbeeh += Object.values(tasbeehLog[key] ?? {}).reduce((a, b) => a + (typeof b === "number" ? b : 0), 0);
+    if ((completions["morning"] ?? []).includes(key)) morningDays++;
+    if ((completions["evening"] ?? []).includes(key)) eveningDays++;
+    d.setDate(d.getDate() - 1);
+  }
+  const lastRead = s.quranLastRead?.surahId ? `آخر قراءة: سورة رقم ${s.quranLastRead.surahId}` : "";
+
+  return [
+    "اكتب لي «خاطرة الجمعة»: خاطرة إيمانية قصيرة (٤-٦ فقرات) مخصّصة لي بناءً على أسبوعي الفعلي التالي، تبدأ بحمد الله، وتتضمن آية وحديثًا صحيحًا يناسبان حالي مع ذكر المصدر، وتختم بدعاء ونصيحة عملية واحدة للأسبوع القادم:",
+    `- أيام النشاط: ${activeDays} من 7`,
+    `- آيات قرأتها: ${ayahs}`,
+    `- تسبيحات: ${tasbeeh}`,
+    `- أذكار الصباح: ${morningDays} أيام | أذكار المساء: ${eveningDays} أيام`,
+    lastRead,
+  ].filter(Boolean).join("\n");
+}
+
 // ─── Streaming chat ──────────────────────────────────────────────────────────
 
 export type CompanionError = { kind: "auth" | "rate" | "network" | "other"; message: string };
@@ -186,9 +267,14 @@ export async function* streamCompanionReply(
   const model = getModel();
   const ctx = buildCompanionContext();
 
+  // Remember what was asked so future sessions build on this one.
+  const lastUser = [...history].reverse().find((m) => m.role === "user");
+  if (lastUser) recordMemory(lastUser.content);
+
   // Haiku doesn't support adaptive thinking; Opus/Sonnet do.
   const thinking = model === "claude-haiku-4-5" ? undefined : ({ type: "adaptive" } as const);
 
+  const memoryBlock = buildMemoryBlock();
   const stream = client.messages.stream({
     model,
     max_tokens: 4096,
@@ -196,8 +282,8 @@ export async function* streamCompanionReply(
     system: [
       // Stable core first (cacheable prefix) …
       { type: "text", text: SYSTEM_CORE, cache_control: { type: "ephemeral" } },
-      // … volatile per-day context after the breakpoint.
-      { type: "text", text: buildContextBlock(ctx) },
+      // … volatile per-day context + cross-session memory after the breakpoint.
+      { type: "text", text: buildContextBlock(ctx) + (memoryBlock ? "\n\n" + memoryBlock : "") },
     ],
     messages: history.map((m) => ({ role: m.role, content: m.content })),
   });

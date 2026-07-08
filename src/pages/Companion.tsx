@@ -16,6 +16,8 @@ import { toast } from "react-hot-toast";
 import {
   COMPANION_MODELS,
   buildCompanionContext,
+  buildWeeklyReflectionPrompt,
+  clearMemory,
   describeError,
   getApiKey,
   getModel,
@@ -26,6 +28,7 @@ import {
   streamCompanionReply,
   type CompanionMessage,
 } from "@/lib/companionAI";
+import { GrowthTree } from "@/components/brand/GrowthTree";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const QUICK_PROMPTS = [
@@ -169,6 +172,13 @@ export function CompanionPage() {
             </select>
           </div>
 
+          <button type="button"
+            onClick={() => { clearMemory(); toast("تم مسح ذاكرة الرفيق", { icon: "🧹" }); }}
+            className="flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--fg)]"
+          >
+            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> مسح ذاكرة الرفيق (ما يتذكره من محادثاتك)
+          </button>
+
           {hasAppProvidedAccess() ? (
             <p className="text-xs leading-relaxed text-[var(--muted)]">
               المحادثة الذكية مفعّلة لجميع المستخدمين — لا حاجة لأي إعداد. 🤝
@@ -212,6 +222,28 @@ export function CompanionPage() {
       {/* Smart offline board — always available, shows the user's real next steps */}
       {messages.length === 0 && streamingText === null ? (
         <div className="mt-5 space-y-3">
+          {/* شجرة الأثر — your week, growing */}
+          <GrowthTree />
+
+          {/* خاطرة الجمعة — the personal weekly reflection */}
+          <button type="button"
+            onClick={() => void send(buildWeeklyReflectionPrompt())}
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-accent-35 bg-accent-15 px-4 py-3 text-start transition hover:opacity-90 active:scale-[0.99]"
+          >
+            <div>
+              <div className="text-sm font-bold text-[var(--accent)]">
+                خاطرة الجمعة ✨
+                {new Date().getDay() === 5 ? (
+                  <span className="ms-2 rounded-full bg-[var(--accent)] px-2 py-0.5 text-[10px] font-bold text-black/80">اليوم جمعة</span>
+                ) : null}
+              </div>
+              <div className="mt-0.5 text-xs text-[var(--muted)]">
+                خاطرة مكتوبة لك وحدك — من أسبوعك الحقيقي: قراءتك، أذكارك، وتسبيحك
+              </div>
+            </div>
+            <Sparkles className="h-5 w-5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+          </button>
+
           <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4">
             <div className="text-sm font-semibold mb-3">خطواتك المقترحة اليوم</div>
             <div className="grid gap-2">

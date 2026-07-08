@@ -35,7 +35,16 @@ export type NoorTheme =
   | "waraq"
   | "fanous"
   | "sajjada"
-  | "mihrab";
+  | "mihrab"
+  | "midad"
+  | "layl"
+  | "teen"
+  | "jura"
+  | "andalus"
+  | "sakina"
+  | "shafaq"
+  | "mushaf"
+  | "sama";
 
 export type ReminderSoundProfile = "rain_calm";
 export type PrayerSoundProfile = "adhan_haram";

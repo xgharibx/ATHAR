@@ -46,6 +46,15 @@ const THEME_ACCENTS: Record<NoorTheme, string> = {
   fanous:   "#ffb84d",
   sajjada:  "#e8b04b",
   mihrab:   "#2ec4b6",
+  midad:    "#4dff88",
+  layl:     "#aab8ff",
+  teen:     "#7b6cf6",
+  jura:     "#ff4d2e",
+  andalus:  "#a8781f",
+  sakina:   "#7a8a6f",
+  shafaq:   "#6ef2c3",
+  mushaf:   "#e9c36a",
+  sama:     "#ffe8a0",
 };
 
 const PRAYER_ALERT_OPTIONS = [
@@ -342,6 +351,15 @@ export function SettingsPage() {
           <ThemeChip value="fanous" label="فانوس 🏮" active={prefs.theme === "fanous"} onClick={() => setPrefs({ theme: "fanous" })} />
           <ThemeChip value="sajjada" label="سجادة 🧿" active={prefs.theme === "sajjada"} onClick={() => setPrefs({ theme: "sajjada" })} />
           <ThemeChip value="mihrab" label="محراب 🕌" active={prefs.theme === "mihrab"} onClick={() => setPrefs({ theme: "mihrab" })} />
+          <ThemeChip value="sama" label="سماء 🌅" active={prefs.theme === "sama"} onClick={() => setPrefs({ theme: "sama" })} />
+          <ThemeChip value="midad" label="مداد 🖥️" active={prefs.theme === "midad"} onClick={() => setPrefs({ theme: "midad" })} />
+          <ThemeChip value="layl" label="ليل 🌌" active={prefs.theme === "layl"} onClick={() => setPrefs({ theme: "layl" })} />
+          <ThemeChip value="teen" label="طين 🏺" active={prefs.theme === "teen"} onClick={() => setPrefs({ theme: "teen" })} />
+          <ThemeChip value="jura" label="جرأة ⬛" active={prefs.theme === "jura"} onClick={() => setPrefs({ theme: "jura" })} />
+          <ThemeChip value="andalus" label="أندلس 🏛️" active={prefs.theme === "andalus"} onClick={() => setPrefs({ theme: "andalus" })} />
+          <ThemeChip value="sakina" label="سكينة 🎋" active={prefs.theme === "sakina"} onClick={() => setPrefs({ theme: "sakina" })} />
+          <ThemeChip value="shafaq" label="شفق ❄️" active={prefs.theme === "shafaq"} onClick={() => setPrefs({ theme: "shafaq" })} />
+          <ThemeChip value="mushaf" label="مصحف 📕" active={prefs.theme === "mushaf"} onClick={() => setPrefs({ theme: "mushaf" })} />
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">

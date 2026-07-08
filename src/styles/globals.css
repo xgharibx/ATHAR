@@ -344,6 +344,320 @@
   background-attachment: fixed;
 }
 
+/* ════════════════════════════════════════════════════════════════════════
+   THEME LAB — eight unrelated worlds + the living sky.
+   Each theme carries a *mechanic*, not just a palette.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.midad {
+  /* مداد — phosphor terminal: CRT green, scanlines, monospace ink */
+  --bg: #020b04;
+  --fg: #c2ffd6;
+  --muted: rgba(194, 255, 214, 0.72);
+  --muted-2: rgba(194, 255, 214, 0.5);
+  --card: rgba(77, 255, 136, 0.06);
+  --card-2: rgba(77, 255, 136, 0.1);
+  --stroke: rgba(77, 255, 136, 0.26);
+  --accent: #4dff88;
+  --accent-2: #b7ff4d;
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+.midad body {
+  background-color: var(--bg);
+  background-image: radial-gradient(900px 600px at 50% -10%, rgba(77, 255, 136, 0.07), transparent 60%);
+  background-attachment: fixed;
+}
+.midad body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+  animation: midad-flicker 4s steps(60) infinite;
+}
+@keyframes midad-flicker {
+  0%, 100% { opacity: 0.9; }
+  92%      { opacity: 0.9; }
+  93%      { opacity: 0.72; }
+  94%      { opacity: 0.9; }
+}
+.reduce-motion .midad body::after,
+.midad.reduce-motion body::after { animation: none; }
+
+.layl {
+  /* ليل — true-black AMOLED night with a twinkling star field */
+  --bg: #000000;
+  --fg: #eef1f8;
+  --muted: rgba(238, 241, 248, 0.72);
+  --muted-2: rgba(238, 241, 248, 0.5);
+  --card: rgba(160, 180, 255, 0.07);
+  --card-2: rgba(160, 180, 255, 0.11);
+  --stroke: rgba(160, 180, 255, 0.2);
+  --accent: #aab8ff;
+  --accent-2: #ffd780;
+}
+.layl body {
+  background-color: #000;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, #fff, transparent),
+    radial-gradient(1px 1px at 32% 8%, #cfd8ff, transparent),
+    radial-gradient(1.6px 1.6px at 54% 26%, #fff, transparent),
+    radial-gradient(1px 1px at 71% 12%, #ffe9c9, transparent),
+    radial-gradient(1.2px 1.2px at 88% 22%, #fff, transparent),
+    radial-gradient(1px 1px at 22% 42%, #cfd8ff, transparent),
+    radial-gradient(1.4px 1.4px at 44% 56%, #fff, transparent),
+    radial-gradient(1px 1px at 66% 48%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 81% 62%, #ffe9c9, transparent),
+    radial-gradient(1px 1px at 9% 74%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 37% 86%, #cfd8ff, transparent),
+    radial-gradient(1px 1px at 78% 88%, #fff, transparent);
+  background-attachment: fixed;
+}
+.layl body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(1.4px 1.4px at 27% 30%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 58% 14%, #fff, transparent),
+    radial-gradient(1.6px 1.6px at 84% 40%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 16% 60%, #fff, transparent),
+    radial-gradient(1.4px 1.4px at 62% 76%, #fff, transparent);
+  animation: layl-twinkle 5.5s ease-in-out infinite;
+}
+@keyframes layl-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 1; }
+}
+.reduce-motion .layl body::after,
+.layl.reduce-motion body::after { animation: none; opacity: 0.6; }
+
+.teen {
+  /* طين — claymorphism: molded, puffy surfaces that squish when pressed */
+  --bg: #eef0f6;
+  --fg: #2c3046;
+  --muted: rgba(44, 48, 70, 0.72);
+  --muted-2: rgba(44, 48, 70, 0.52);
+  --card: #f6f7fb;
+  --card-2: #eceef7;
+  --stroke: rgba(44, 48, 70, 0.1);
+  --accent: #7b6cf6;
+  --accent-2: #f6a56c;
+  --shadow: 10px 12px 26px rgba(90, 100, 140, 0.24);
+  color-scheme: light;
+}
+.teen body { background: linear-gradient(180deg, #f2f3f9, #e8eaf3); background-attachment: fixed; }
+.teen [class*="rounded-2xl"],
+.teen [class*="rounded-3xl"] {
+  box-shadow:
+    inset 3px 4px 8px rgba(255, 255, 255, 0.9),
+    inset -3px -5px 8px rgba(90, 100, 140, 0.14),
+    7px 9px 20px rgba(90, 100, 140, 0.2);
+}
+.teen button { transition: transform 0.12s ease; }
+.teen button:active { transform: scale(0.95); }
+
+.jura {
+  /* جرأة — neubrutalism: raw black borders, hard offset shadows, loud type */
+  --bg: #f5f2ea;
+  --fg: #14120c;
+  --muted: rgba(20, 18, 12, 0.78);
+  --muted-2: rgba(20, 18, 12, 0.58);
+  --card: #fffdf5;
+  --card-2: #f2ecdb;
+  --stroke: #14120c;
+  --accent: #ff4d2e;
+  --accent-2: #2e6bff;
+  --shadow: 6px 6px 0 rgba(20, 18, 12, 1);
+  color-scheme: light;
+}
+.jura body { background: var(--bg); }
+.jura [class*="rounded-2xl"][class*="border"],
+.jura [class*="rounded-3xl"][class*="border"] {
+  box-shadow: 5px 5px 0 0 #14120c;
+}
+.jura h1, .jura h2, .jura h3 { font-weight: 900; }
+
+.andalus {
+  /* أندلس — brass & marble: veined ivory stone with polished brass inlay */
+  --bg: #f6f1e6;
+  --fg: #2e2a20;
+  --muted: rgba(46, 42, 32, 0.74);
+  --muted-2: rgba(46, 42, 32, 0.55);
+  --card: rgba(255, 253, 246, 0.75);
+  --card-2: rgba(46, 42, 32, 0.06);
+  --stroke: rgba(168, 120, 31, 0.35);
+  --accent: #a8781f;
+  --accent-2: #1e5c46;
+  --shadow: 0 14px 34px rgba(90, 70, 20, 0.14);
+  color-scheme: light;
+}
+.andalus body {
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.02' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='420' height='420' filter='url(%23m)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #f8f4ea, #f1eadb);
+  background-attachment: fixed;
+}
+.andalus [class*="rounded-2xl"][class*="border"] {
+  border-top: 2px solid rgba(168, 120, 31, 0.5);
+}
+
+.sakina {
+  /* سكينة — zen ink: stone quiet, one brush-drawn enso behind everything */
+  --bg: #eceae6;
+  --fg: #3a3a37;
+  --muted: rgba(58, 58, 55, 0.72);
+  --muted-2: rgba(58, 58, 55, 0.52);
+  --card: rgba(255, 255, 255, 0.6);
+  --card-2: rgba(58, 58, 55, 0.06);
+  --stroke: rgba(58, 58, 55, 0.16);
+  --accent: #55524c;
+  --accent-2: #7a8a6f;
+  --shadow: 0 8px 22px rgba(58, 58, 55, 0.1);
+  color-scheme: light;
+}
+.sakina body {
+  background: linear-gradient(180deg, #efedea, #e7e4df);
+  background-attachment: fixed;
+}
+.sakina body::after {
+  content: "";
+  position: fixed;
+  top: -8vh;
+  inset-inline-end: -14vw;
+  width: 66vmin;
+  height: 66vmin;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  border: 14px solid rgba(58, 58, 55, 0.07);
+  border-left-color: transparent;
+  transform: rotate(-24deg);
+  filter: blur(1px);
+}
+
+.shafaq {
+  /* شفق — nordic aurora: icy glass under a slow-drifting polar ribbon */
+  --bg: #0b1220;
+  --fg: #eaf4ff;
+  --muted: rgba(234, 244, 255, 0.74);
+  --muted-2: rgba(234, 244, 255, 0.54);
+  --card: rgba(140, 200, 255, 0.07);
+  --card-2: rgba(140, 200, 255, 0.11);
+  --stroke: rgba(140, 200, 255, 0.2);
+  --accent: #6ef2c3;
+  --accent-2: #9b8cff;
+}
+.shafaq body {
+  background: linear-gradient(180deg, #0d1526 0%, #0b1220 55%, #070b16 100%);
+  background-attachment: fixed;
+}
+.shafaq body::after {
+  content: "";
+  position: fixed;
+  top: -12vh;
+  left: -10vw;
+  right: -10vw;
+  height: 46vh;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(115deg,
+    rgba(110, 242, 195, 0.16) 8%,
+    rgba(155, 140, 255, 0.14) 38%,
+    rgba(110, 242, 195, 0.1) 62%,
+    rgba(64, 156, 255, 0.12) 90%);
+  filter: blur(46px);
+  animation: shafaq-drift 18s ease-in-out infinite alternate;
+}
+@keyframes shafaq-drift {
+  from { transform: translateX(-4vw) skewY(-2deg); opacity: 0.7; }
+  to   { transform: translateX(4vw) skewY(2deg); opacity: 1; }
+}
+.reduce-motion .shafaq body::after,
+.shafaq.reduce-motion body::after { animation: none; }
+
+.mushaf {
+  /* مصحف — bound leather: maroon hide, gilded frame, stitched spine */
+  --bg: #2a1114;
+  --fg: #f6ead8;
+  --muted: rgba(246, 234, 216, 0.76);
+  --muted-2: rgba(246, 234, 216, 0.56);
+  --card: rgba(233, 195, 106, 0.07);
+  --card-2: rgba(233, 195, 106, 0.12);
+  --stroke: rgba(233, 195, 106, 0.28);
+  --accent: #e9c36a;
+  --accent-2: #b9553f;
+}
+.mushaf body {
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='l'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.07'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23l)'/%3E%3C/svg%3E"),
+    radial-gradient(900px 620px at 50% -14%, rgba(233, 195, 106, 0.1), transparent 60%),
+    linear-gradient(180deg, #2f1316 0%, #260f12 60%, #1c0a0c 100%);
+  background-attachment: fixed;
+}
+.mushaf body::after {
+  content: "";
+  position: fixed;
+  inset: 10px;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 14px;
+  box-shadow:
+    inset 0 0 0 1px rgba(233, 195, 106, 0.35),
+    inset 0 0 0 6px transparent,
+    inset 0 0 0 7px rgba(233, 195, 106, 0.16);
+}
+
+/* ── سماء: the living sky — palette follows the upcoming prayer ─────────── */
+.sama {
+  --fg: #f2f6f1;
+  --muted: rgba(242, 246, 241, 0.75);
+  --muted-2: rgba(242, 246, 241, 0.55);
+  --card: rgba(255, 255, 255, 0.07);
+  --card-2: rgba(255, 255, 255, 0.11);
+  --stroke: rgba(255, 255, 255, 0.16);
+}
+.sama body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(900px 560px at 50% -12%, var(--sama-glow), transparent 62%),
+    linear-gradient(180deg, var(--sama-top) 0%, var(--bg) 58%, var(--sama-deep) 100%);
+  background-attachment: fixed;
+  transition: background-color 1.2s ease;
+}
+.sama-fajr {
+  --bg: #1c2145; --sama-top: #2a2c55; --sama-deep: #0b1226;
+  --sama-glow: rgba(194, 168, 255, 0.16);
+  --accent: #c2a8ff; --accent-2: #ffd9a0;
+}
+.sama-dhuhr {
+  --bg: #0d3a26; --sama-top: #1b5a3c; --sama-deep: #06170e;
+  --sama-glow: rgba(255, 242, 192, 0.18);
+  --accent: #ffe8a0; --accent-2: #7fe3ae;
+}
+.sama-asr {
+  --bg: #3a2f14; --sama-top: #4a3d1e; --sama-deep: #171106;
+  --sama-glow: rgba(246, 223, 164, 0.2);
+  --accent: #f6dfa4; --accent-2: #d8b25e;
+}
+.sama-maghrib {
+  --bg: #471f12; --sama-top: #5c2a1a; --sama-deep: #150806;
+  --sama-glow: rgba(255, 178, 122, 0.2);
+  --accent: #ffb27a; --accent-2: #ff7f66;
+}
+.sama-isha {
+  --bg: #0d1330; --sama-top: #1a2140; --sama-deep: #05081a;
+  --sama-glow: rgba(175, 184, 255, 0.14);
+  --accent: #afb8ff; --accent-2: #ffd780;
+}
+
 /* ── بستان ambient garden ornaments ─────────────────────────────────────
    Rendered by GardenOrnaments.tsx only when the bustan theme is active.
    Purely decorative: aria-hidden, pointer-events none, honors reduce-motion. */

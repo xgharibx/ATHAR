@@ -20,7 +20,65 @@ const THEME_META_COLORS: Record<NoorTheme, string> = {
   fanous:   "#140e06",
   sajjada:  "#200a10",
   mihrab:   "#071b33",
+  midad:    "#020b04",
+  layl:     "#000000",
+  teen:     "#eef0f6",
+  jura:     "#f5f2ea",
+  andalus:  "#f6f1e6",
+  sakina:   "#eceae6",
+  shafaq:   "#0b1220",
+  mushaf:   "#2a1114",
+  sama:     "#0a1f15",
 };
+
+/** Themes that are light at heart — applied together with .light so every
+ *  existing light-mode refinement carries over before their own overrides. */
+const LIGHT_COMPOUND: ReadonlySet<NoorTheme> = new Set([
+  "bustan", "waraq", "teen", "jura", "andalus", "sakina",
+]);
+
+const ALL_THEME_CLASSES = [
+  "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire",
+  "violet", "sunset", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab",
+  "midad", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf",
+  "sama", "sama-fajr", "sama-dhuhr", "sama-asr", "sama-maghrib", "sama-isha",
+];
+
+const SAMA_META: Record<string, string> = {
+  fajr: "#1c2145",
+  dhuhr: "#0d3a26",
+  asr: "#3a2f14",
+  maghrib: "#471f12",
+  isha: "#0d1330",
+};
+
+/**
+ * سماء: the living theme — its palette follows the *upcoming prayer*, using
+ * the same prayer payload the home-screen widgets read. Falls back to the
+ * clock when timings haven't been fetched yet.
+ */
+function samaPhase(): "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" {
+  try {
+    const raw = localStorage.getItem("noor_widget_prayer_v2");
+    if (raw) {
+      const p = JSON.parse(raw) as { nextPrayer?: { nameAr?: string } | null };
+      const name = p?.nextPrayer?.nameAr ?? "";
+      if (name.includes("الفجر")) return "fajr";
+      if (name.includes("الظهر")) return "dhuhr";
+      if (name.includes("العصر")) return "asr";
+      if (name.includes("المغرب")) return "maghrib";
+      if (name.includes("العشاء")) return "isha";
+    }
+  } catch {
+    // fall through to clock-based phase
+  }
+  const h = new Date().getHours();
+  if (h < 5) return "fajr";
+  if (h < 13) return "dhuhr";
+  if (h < 17) return "asr";
+  if (h < 20) return "maghrib";
+  return "isha";
+}
 
 function setMetaThemeColor(color: string) {
   let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
@@ -35,24 +93,7 @@ function setMetaThemeColor(color: string) {
 function apply(theme: NoorTheme) {
   const root = document.documentElement;
 
-  root.classList.remove(
-    "dark",
-    "light",
-    "noor",
-    "midnight",
-    "forest",
-    "bees",
-    "roses",
-    "sapphire",
-    "violet",
-    "sunset",
-    "mist",
-    "bustan",
-    "waraq",
-    "fanous",
-    "sajjada",
-    "mihrab"
-  );
+  root.classList.remove(...ALL_THEME_CLASSES);
 
   if (theme === "system") {
     const isDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
@@ -61,10 +102,14 @@ function apply(theme: NoorTheme) {
     return;
   }
 
-  if (theme === "bustan" || theme === "waraq") {
-    // Light-hearted themes: apply "light" too so every existing light-mode
-    // refinement (form fields, nav, skeletons…) carries over, then the
-    // theme's own variables + textures override the palette.
+  if (theme === "sama") {
+    const phase = samaPhase();
+    root.classList.add("sama", `sama-${phase}`);
+    setMetaThemeColor(SAMA_META[phase] ?? THEME_META_COLORS.sama);
+    return;
+  }
+
+  if (LIGHT_COMPOUND.has(theme)) {
     root.classList.add("light", theme);
     setMetaThemeColor(THEME_META_COLORS[theme]);
     return;
@@ -96,12 +141,27 @@ export function useApplyTheme() {
       document.body.classList.remove("transparent-mode");
     }
 
-    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-    if (!mq || theme !== "system") return;
+    if (theme === "system") {
+      const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+      if (!mq) return;
+      const onChange = () => apply("system");
+      mq.addEventListener?.("change", onChange);
+      return () => mq.removeEventListener?.("change", onChange);
+    }
 
-    const onChange = () => apply("system");
-    mq.addEventListener?.("change", onChange);
-    return () => mq.removeEventListener?.("change", onChange);
+    if (theme === "sama") {
+      // The living sky re-evaluates when you come back to the app and on a
+      // gentle interval, so the palette rolls through the day with you.
+      const onVisible = () => {
+        if (document.visibilityState === "visible") apply("sama");
+      };
+      document.addEventListener("visibilitychange", onVisible);
+      const timer = window.setInterval(() => apply("sama"), 5 * 60 * 1000);
+      return () => {
+        document.removeEventListener("visibilitychange", onVisible);
+        window.clearInterval(timer);
+      };
+    }
   }, [theme, transparentMode]);
 
   useEffect(() => {

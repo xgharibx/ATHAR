@@ -408,7 +408,7 @@ export function AppShell() {
   // De11: Alt+T keyboard shortcut to cycle all 12 themes; Ctrl+K to open command palette
   React.useEffect(() => {
     const ALL_THEMES: import("@/store/noorStore").NoorTheme[] = [
-      "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab",
+      "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "midad", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf",
     ];
     const handler = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 't') {
@@ -450,6 +450,8 @@ export function AppShell() {
       "/quran/plans": "خطط التلاوة",
       "/sebha": "السبحة الرقمية",
       "/companion": "رفيق أثر",
+      "/library/sharh": "الموسوعة الحديثية",
+      "/tasmee": "التسميع",
       "/prayer-times": "مواقيت الصلاة",
       "/search": "البحث",
       "/favorites": "المفضلة",
