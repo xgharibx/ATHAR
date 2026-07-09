@@ -8,6 +8,13 @@ import { getLocalDateKey } from "@/lib/dayBoundaries";
 const PRAYER_ACTION_TYPE_ID = "PRAYER_ACTIONS";
 const MARK_PRAYED_ACTION_ID = "mark_prayed";
 
+// N10: "ذكرني بعد ساعة" on the daily habit reminders (morning/evening adhkar, daily
+// wird, khatma, tasbeeh) — reschedules a one-off copy 60 minutes later without
+// touching the recurring daily schedule those IDs already own.
+const REMINDER_ACTION_TYPE_ID = "REMINDER_ACTIONS";
+const SNOOZE_ACTION_ID = "snooze_60";
+const SNOOZE_MINUTES = 60;
+
 const REMINDER_IDS = {
   morning: 9101,
   evening: 9102,
@@ -15,6 +22,17 @@ const REMINDER_IDS = {
   khatma: 9104,
   tasbeeh: 9105
 } as const;
+
+// One-off snooze instances get their own IDs so re-scheduling them never collides
+// with (or disturbs) the recurring daily notification under REMINDER_IDS.
+const REMINDER_SNOOZE_IDS = {
+  morning: 9111,
+  evening: 9112,
+  dailyWird: 9113,
+  khatma: 9114,
+  tasbeeh: 9115
+} as const;
+type ReminderKey = keyof typeof REMINDER_IDS;
 
 const PRAYER_NOTIFICATION_IDS = {
   Fajr: 9201,
@@ -404,6 +422,12 @@ export async function cancelAllReminders() {
       { id: REMINDER_IDS.dailyWird },
       { id: REMINDER_IDS.khatma },
       { id: REMINDER_IDS.tasbeeh },
+      // N10: pending snoozes
+      { id: REMINDER_SNOOZE_IDS.morning },
+      { id: REMINDER_SNOOZE_IDS.evening },
+      { id: REMINDER_SNOOZE_IDS.dailyWird },
+      { id: REMINDER_SNOOZE_IDS.khatma },
+      { id: REMINDER_SNOOZE_IDS.tasbeeh },
       { id: PRAYER_NOTIFICATION_IDS.Fajr },
       { id: PRAYER_NOTIFICATION_IDS.Dhuhr },
       { id: PRAYER_NOTIFICATION_IDS.Asr },
@@ -481,10 +505,14 @@ function buildReminderNotifications(
     ? dailyPhrase(EVENING_NUDGE_PHRASES)
     : dailyPhrase(EVENING_PHRASES);
 
-  const plans = [
+  const plans: Array<{
+    enabled: boolean; id: number; key: ReminderKey; title: string; body: string;
+    hhmm: string; extra: Record<string, string>; skipToday: boolean;
+  }> = [
     {
       enabled: reminders.morningEnabled,
       id: REMINDER_IDS.morning,
+      key: "morning",
       title: "أثر — تذكير الصباح",
       body: morningBody,
       hhmm: reminders.morningTime,
@@ -495,6 +523,7 @@ function buildReminderNotifications(
     {
       enabled: reminders.eveningEnabled,
       id: REMINDER_IDS.evening,
+      key: "evening",
       title: "أثر — تذكير المساء",
       body: eveningBody,
       hhmm: reminders.eveningTime,
@@ -504,6 +533,7 @@ function buildReminderNotifications(
     {
       enabled: reminders.dailyWirdEnabled,
       id: REMINDER_IDS.dailyWird,
+      key: "dailyWird",
       title: "أثر — وردك اليومي",
       body: dailyPhrase(DAILY_WIRD_PHRASES),
       hhmm: reminders.dailyWirdTime,
@@ -513,6 +543,7 @@ function buildReminderNotifications(
     {
       enabled: reminders.khatmaEnabled,
       id: REMINDER_IDS.khatma,
+      key: "khatma",
       title: "أثر — خطة الختمة",
       body: dailyPhrase(KHATMA_PHRASES),
       hhmm: reminders.khatmaTime,
@@ -522,6 +553,7 @@ function buildReminderNotifications(
     {
       enabled: reminders.tasbeehEnabled,
       id: REMINDER_IDS.tasbeeh,
+      key: "tasbeeh",
       title: "أثر — تسبيح واستغفار",
       body: dailyPhrase(TASBEEH_PHRASES),
       hhmm: reminders.tasbeehTime,
@@ -540,10 +572,11 @@ function buildReminderNotifications(
       body: plan.body,
       channelId: audio.channelId,
       sound: audio.soundFile,
+      actionTypeId: REMINDER_ACTION_TYPE_ID,
+      extra: { ...plan.extra, reminderKey: plan.key, title: plan.title, body: plan.body },
       smallIcon: REMINDER_NOTIFICATION_ICON,
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
-      extra: plan.extra,
       schedule: { at, repeats: true, every: "day" as const },
     }];
   });
@@ -752,6 +785,10 @@ export async function ensureDefaultNotificationChannels(): Promise<void> {
             id: PRAYER_ACTION_TYPE_ID,
             actions: [{ id: MARK_PRAYED_ACTION_ID, title: "تمت الصلاة ✓" }],
           },
+          {
+            id: REMINDER_ACTION_TYPE_ID,
+            actions: [{ id: SNOOZE_ACTION_ID, title: `ذكرني بعد ساعة` }],
+          },
         ],
       }),
     ]);
@@ -841,6 +878,34 @@ export async function registerNotificationDeepLinkListener(
         if (typeof prayerName === "string" && typeof dateISO === "string") {
           import("@/store/noorStore").then(({ useNoorStore }) => {
             useNoorStore.getState().setPrayerLogged(dateISO, prayerName, true);
+          });
+        }
+        return;
+      }
+
+      // N10: "ذكرني بعد ساعة" — reschedule a one-off copy under this reminder's
+      // dedicated snooze ID, without touching the recurring daily schedule.
+      if (action.actionId === SNOOZE_ACTION_ID) {
+        const reminderKey = extra?.reminderKey;
+        if (typeof reminderKey === "string" && reminderKey in REMINDER_SNOOZE_IDS) {
+          const snoozeId = REMINDER_SNOOZE_IDS[reminderKey as ReminderKey];
+          const at = new Date(Date.now() + SNOOZE_MINUTES * 60_000);
+          import("@capacitor/local-notifications").then(({ LocalNotifications }) => {
+            LocalNotifications.schedule({
+              notifications: [{
+                id: snoozeId,
+                title: action.notification.title ?? "أثر",
+                body: action.notification.body ?? "",
+                channelId: action.notification.channelId,
+                sound: action.notification.sound,
+                smallIcon: action.notification.smallIcon,
+                largeIcon: action.notification.largeIcon,
+                iconColor: action.notification.iconColor,
+                actionTypeId: REMINDER_ACTION_TYPE_ID,
+                extra,
+                schedule: { at },
+              }],
+            }).catch(() => {});
           });
         }
         return;
