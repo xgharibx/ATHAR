@@ -4,7 +4,7 @@ import {
   ArrowRight, Bookmark, MoreVertical, Play, Pause,
   ChevronDown, Copy, Share2, VolumeX, Volume2, X, Pencil,
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Mic2, Repeat2,
-  Eye, EyeOff, CheckCircle2, Languages, Search,
+  Eye, EyeOff, CheckCircle2, Languages, Search, WholeWord,
   ArrowUpRight, Settings, Info, Shuffle,
   Radio, Timer, Download, SlidersHorizontal,
   Image as ImageIcon,
@@ -439,6 +439,11 @@ export function MushafPage() {
     pagesReadRef.current.add(currentPage);
   }, [currentPage]);
 
+  // Dismiss any open word-translation popup when the page changes
+  React.useEffect(() => {
+    setActiveWord(null);
+  }, [currentPage]);
+
   // Phase 2F: Auto-scroll page strip to keep current page centred
   React.useEffect(() => {
     if (!pageStripRef.current) return;
@@ -505,6 +510,20 @@ export function MushafPage() {
     setPrefs({ mushafTajweedMode: tajweedMode });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tajweedMode]);
+
+  // Word-by-word tap-to-translate mode: opt-in so it never interferes with the
+  // existing tap-to-select-ayah interaction. The wbwData pipeline already fetches
+  // translation + transliteration per word (used today only for Tajweed coloring) —
+  // this just surfaces what was already being downloaded but never shown.
+  const [wbwMode, setWbwModeState] = React.useState(() => prefs.mushafWbwMode ?? false);
+  const setWbwMode = React.useCallback((v: boolean | ((prev: boolean) => boolean)) => {
+    setWbwModeState(v);
+  }, []);
+  React.useEffect(() => {
+    setPrefs({ mushafWbwMode: wbwMode });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wbwMode]);
+  const [activeWord, setActiveWord] = React.useState<{ ar: string; tr: string; tl: string } | null>(null);
 
   // Q17: In-page search
   const [inPageSearch, setInPageSearch] = React.useState("");
@@ -1253,6 +1272,14 @@ export function MushafPage() {
         >
           <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1 }}>ت</span>
         </button>
+        <button type="button"
+          className={`mushaf-chrome-icon-btn${wbwMode ? " active" : ""}`}
+          aria-label={wbwMode ? "إيقاف الترجمة الفورية للكلمات" : "تشغيل الترجمة الفورية للكلمات"}
+          onClick={(e) => { e.stopPropagation(); setWbwMode((v) => !v); setActiveWord(null); }}
+          title={wbwMode ? "إيقاف الترجمة الفورية للكلمات" : "تشغيل الترجمة الفورية للكلمات — انقر أي كلمة لمعناها"}
+        >
+          <WholeWord size={16} aria-hidden="true" />
+        </button>
         {/* Settings (font size, tajweed & all reading options live here) */}
         <button type="button"
           className={`mushaf-chrome-icon-btn${showSettings ? " active" : ""}`}
@@ -1328,6 +1355,25 @@ export function MushafPage() {
         <div className="mushaf-sleep-chip" role="button" tabIndex={0} onClick={() => activateSleepTimer(0)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activateSleepTimer(0); } }} aria-label="إلغاء مؤقت النوم">
           <Timer size={11} aria-hidden="true" />
           <span>{Math.floor(sleepRemaining / 60)}:{String(sleepRemaining % 60).padStart(2, "0")}</span>
+        </div>
+      )}
+
+      {/* ── Word-by-word tap-to-translate info bar ───────── */}
+      {wbwMode && activeWord && (
+        <div className="mushaf-word-bar" role="status" onClick={(e) => e.stopPropagation()}>
+          <div className="mushaf-word-bar-ar arabic-text">{activeWord.ar}</div>
+          <div className="mushaf-word-bar-meta">
+            {activeWord.tl && <span className="mushaf-word-bar-tl" dir="ltr">{activeWord.tl}</span>}
+            {activeWord.tr && <span className="mushaf-word-bar-tr" dir="ltr">{activeWord.tr}</span>}
+          </div>
+          <button
+            type="button"
+            className="mushaf-word-bar-close"
+            aria-label="إغلاق"
+            onClick={() => setActiveWord(null)}
+          >
+            <X size={14} aria-hidden="true" />
+          </button>
         </div>
       )}
 
@@ -1417,10 +1463,23 @@ export function MushafPage() {
                           handleAyahTap(e, item);
                         }}
                       >
-                        {/* Phase 2B: Tajweed coloring OR plain text */}
+                        {/* Phase 2B: Tajweed coloring OR plain text; each word becomes a tap
+                            target for its translation/transliteration when wbwMode is on */}
                         {wbwVerse ? (
                           wbwVerse.map((word, wi) => (
-                            <React.Fragment key={wi}>{tajweedMode ? renderTajweed(word.tj) : word.ar}{" "}</React.Fragment>
+                            <React.Fragment key={wi}>
+                              {wbwMode ? (
+                                <span
+                                  className="mushaf-wbw-word"
+                                  onClick={(e) => { e.stopPropagation(); setActiveWord(word); }}
+                                >
+                                  {tajweedMode ? renderTajweed(word.tj) : word.ar}
+                                </span>
+                              ) : (
+                                tajweedMode ? renderTajweed(word.tj) : word.ar
+                              )}
+                              {" "}
+                            </React.Fragment>
                           ))
                         ) : (
                           item.text

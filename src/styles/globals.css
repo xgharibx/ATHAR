@@ -4585,6 +4585,78 @@ header {
 }
 .mushaf-sleep-chip:hover { opacity: 0.75; transform: translateX(-50%) scale(0.97); }
 
+/* ── Word-by-word tap-to-translate ──────────────────────────── */
+.mushaf-wbw-word {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.mushaf-wbw-word:hover,
+.mushaf-wbw-word:active {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.mushaf-word-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(10, 14, 20, 0.92);
+  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 10px 12px 10px 16px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  animation: mushaf-word-bar-in 0.18s ease both;
+}
+@keyframes mushaf-word-bar-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.mushaf-word-bar-ar {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.mushaf-word-bar-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.mushaf-word-bar-tl {
+  font-size: 0.72rem;
+  opacity: 0.55;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mushaf-word-bar-tr {
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mushaf-word-bar-close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  border: none;
+}
+.mushaf-word-bar-close:hover { background: rgba(255, 255, 255, 0.16); }
 
 
 /* ═══════════════════════════════════════════════════════════════
