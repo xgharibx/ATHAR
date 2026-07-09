@@ -162,6 +162,16 @@ export default defineConfig(({ mode }) => {
               cacheableResponse: { statuses: [0, 200] }
             }
           },
+          // Mutashabihat (similar-ayah) dataset — small, single file, CacheFirst
+          {
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/gh\/Waqar144\/Quran_Mutashabihat_Data.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "mutashabihat-v1",
+              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
           // WBW/Tajweed API — CacheFirst (data doesn't change)
           {
             urlPattern: /^https:\/\/api\.quran\.com\/.*/i,

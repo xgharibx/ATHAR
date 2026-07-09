@@ -28,6 +28,7 @@ import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { TAFSIR_EDITIONS, getTafsirLabel, loadTafsirSurah } from "@/lib/tafsirEditions";
+import { getMutashabihatForAyah, type MutashabihMatch } from "@/lib/mutashabihat";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { getEnglishAyahTranslation, loadEnglishTranslationCache } from "@/lib/quranTranslationLocal";
 import { TRANSLATION_EDITIONS, getTranslationLabel, loadTranslationEdition } from "@/lib/translationEditions";
@@ -546,6 +547,10 @@ export function MushafPage() {
   // Q11: Tafsir sheet
   const [tafsirItem, setTafsirItem] = React.useState<PageItem | null>(null);
 
+  // Mutashabihat (similar ayahs) shown alongside tafsir for the open ayah
+  const [mutashabihatMatches, setMutashabihatMatches] = React.useState<MutashabihMatch[]>([]);
+  const [mutashabihatLoading, setMutashabihatLoading] = React.useState(false);
+
   // M2: Page slide direction
   const [pageTransDir, setPageTransDir] = React.useState<"left" | "right" | null>(null);
   const pageTransTimer = React.useRef<number | null>(null);
@@ -823,6 +828,30 @@ export function MushafPage() {
     return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tafsirItem, inlineTafseerSource]);
+
+  // Mutashabihat: look up similar-ayah matches for the open ayah once the Quran DB is loaded
+  React.useEffect(() => {
+    if (!tafsirItem || !quranDB) { setMutashabihatMatches([]); return; }
+    let mounted = true;
+    setMutashabihatLoading(true);
+    getMutashabihatForAyah(quranDB, tafsirItem.surahId, tafsirItem.originalAyah)
+      .then((matches) => { if (mounted) setMutashabihatMatches(matches); })
+      .catch(() => { if (mounted) setMutashabihatMatches([]); })
+      .finally(() => { if (mounted) setMutashabihatLoading(false); });
+    return () => { mounted = false; };
+  }, [tafsirItem, quranDB]);
+
+  // Jump to a specific surah/ayah from within an already-mounted Mushaf page — bypasses
+  // the ?surah=&ayah= URL-param effect above, which only ever fires once per mount
+  // (didJumpRef), so it can't handle a second in-app jump while already on this page.
+  const jumpToAyah = React.useCallback((surahId: number, ayahIndex: number) => {
+    const page = Number(pageMap[`${surahId}:${ayahIndex}`]) || Number(pageMap[`${surahId}:1`]) || null;
+    if (!page) { toast.error("تعذر تحديد صفحة الآية"); return; }
+    setTafsirItem(null);
+    setCurrentPage(page);
+    setPrefs({ quranMushafPage: page });
+    navigate(`/mushaf/${page}`, { replace: false });
+  }, [pageMap, navigate, setPrefs]);
 
   // Page jump
   const [showJump, setShowJump] = React.useState(false);
@@ -2045,6 +2074,46 @@ export function MushafPage() {
                 <span className="opacity-35 text-xs">لا يوجد تفسير لهذه الآية</span>
               )}
             </div>
+
+            {/* Mutashabihat — similar-wording ayahs, a common memorization stumbling block */}
+            {(mutashabihatLoading || mutashabihatMatches.length > 0) && (
+              <div className="mb-4">
+                <div className="flex items-center gap-1.5 mb-2 text-xs font-semibold opacity-70">
+                  <span aria-hidden="true">🔀</span>
+                  <span>آيات متشابهة{mutashabihatMatches.length > 0 ? ` (${toArabicNumeral(mutashabihatMatches.length)})` : ""}</span>
+                </div>
+                {mutashabihatLoading ? (
+                  <span className="flex items-center gap-2 py-1 opacity-40 text-xs">
+                    <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" aria-hidden="true" />
+                    جارٍ البحث عن آيات متشابهة…
+                  </span>
+                ) : (
+                  <div className="space-y-1.5">
+                    {mutashabihatMatches.map((m, i) => {
+                      const surah = quranDB?.find((s) => s.id === m.ref.surahId);
+                      const snippet = surah?.ayahs?.[m.ref.ayahStart - 1] ?? "";
+                      const isSameAyah = m.ref.surahId === tafsirItem.surahId && m.ref.ayahStart === tafsirItem.originalAyah;
+                      if (isSameAyah) return null;
+                      return (
+                        <button type="button"
+                          key={`${m.ref.surahId}-${m.ref.ayahStart}-${i}`}
+                          onClick={() => jumpToAyah(m.ref.surahId, m.ref.ayahStart)}
+                          className="w-full text-right p-2.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition"
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-semibold" style={{ color: "var(--accent)" }}>
+                              {surah?.name ?? ""} ﴿{toArabicNumeral(m.ref.ayahStart)}{m.ref.ayahEnd !== m.ref.ayahStart ? `-${toArabicNumeral(m.ref.ayahEnd)}` : ""}﴾
+                            </span>
+                            <ArrowUpRight size={12} aria-hidden="true" className="opacity-40 shrink-0" />
+                          </div>
+                          <div className="arabic-text text-xs opacity-75 line-clamp-2" dir="rtl">{snippet}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
           </div>
         </>
