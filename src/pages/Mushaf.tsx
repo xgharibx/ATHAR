@@ -27,6 +27,7 @@ import {
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
+import { TAFSIR_EDITIONS, getTafsirLabel, loadTafsirSurah } from "@/lib/tafsirEditions";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { getEnglishAyahTranslation, loadEnglishTranslationCache } from "@/lib/quranTranslationLocal";
 import toast from "react-hot-toast";
@@ -491,7 +492,7 @@ export function MushafPage() {
     setPrefs({ mushafInlineTafseer: inlineTafseer });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inlineTafseer]);
-  const [inlineTafseerSource, setInlineTafseerSource] = React.useState<"muyassar" | "jalalayn">("muyassar");
+  const [inlineTafseerSource, setInlineTafseerSource] = React.useState<string>("muyassar");
   const [inlineTafseerData, setInlineTafseerData] = React.useState<Record<number, string[]>>({});
   const [inlineTafseerLoading, setInlineTafseerLoading] = React.useState(false);
 
@@ -728,34 +729,36 @@ export function MushafPage() {
     [showSearch, inPageSearch]
   );
 
-  // Q11-B: Fetch tafseer for all surahs on current page when inline tafseer is on
+  // Q11-B: Fetch tafseer for all surahs on current page when inline tafseer is on.
+  // Source changes are tracked via a ref rather than a second "clear on change" effect —
+  // two effects both keyed on inlineTafseerSource run with the SAME closure snapshot, so
+  // a separate clear-effect's setInlineTafseerData({}) wasn't visible to this effect's
+  // `toFetch` filter in the same pass; every surah looked "already fetched" (under the
+  // old source) and a source switch silently never refetched anything.
+  const prevTafseerSourceRef = React.useRef(inlineTafseerSource);
   React.useEffect(() => {
     if (!inlineTafseer) return;
+    const sourceChanged = prevTafseerSourceRef.current !== inlineTafseerSource;
+    prevTafseerSourceRef.current = inlineTafseerSource;
     const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
-    const toFetch = surahIds.filter((sid) => !inlineTafseerData[sid]);
+    const toFetch = sourceChanged ? surahIds : surahIds.filter((sid) => !inlineTafseerData[sid]);
     if (toFetch.length === 0) return;
     let mounted = true;
     setInlineTafseerLoading(true);
     // Muyassar: load from bundled local JSON (offline, no network needed after SW precache)
-    // Jalalayn: fetch from alquran.cloud (cached by SW on first fetch)
+    // Everything else: fetch from the tafsir_api CDN, cached in IndexedDB after first load
     const loadData: Promise<Array<{ sid: number; ayahs: string[] }>> =
-      inlineTafseerSource === "jalalayn"
-        ? Promise.all(toFetch.map((sid) =>
-            fetch(`https://api.alquran.cloud/v1/surah/${sid}/ar.jalalayn`)
-              .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-              .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
-                const ayahs: string[] = [];
-                for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
-                return { sid, ayahs };
-              })
-          ))
-        : loadMuyassarCache().then((cache) =>
+      inlineTafseerSource === "muyassar"
+        ? loadMuyassarCache().then((cache) =>
             toFetch.map((sid) => ({ sid, ayahs: (cache[String(sid)] ?? []) as string[] }))
-          );
+          )
+        : Promise.all(toFetch.map((sid) =>
+            loadTafsirSurah(inlineTafseerSource, sid).then((ayahs) => ({ sid, ayahs }))
+          ));
     loadData.then((results) => {
       if (!mounted) return;
       setInlineTafseerData((prev) => {
-        const upd = { ...prev };
+        const upd = sourceChanged ? {} : { ...prev };
         for (const { sid, ayahs } of results) upd[sid] = ayahs;
         return upd;
       });
@@ -764,11 +767,6 @@ export function MushafPage() {
     return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inlineTafseer, inlineTafseerSource, currentPage]);
-
-  // Q11-B: Clear cached tafseer data when source changes
-  React.useEffect(() => {
-    setInlineTafseerData({});
-  }, [inlineTafseerSource]);
 
   // Phase 2A/2B: Fetch word-by-word data for all surahs on current page
   // Triggered by either WBW mode or Tajweed mode (both need the same data)
@@ -800,15 +798,9 @@ export function MushafPage() {
     let mounted = true;
     setInlineTafseerLoading(true);
     const loadData: Promise<string[]> =
-      inlineTafseerSource === "jalalayn"
-        ? fetch(`https://api.alquran.cloud/v1/surah/${sid}/ar.jalalayn`)
-            .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-            .then((data: { data?: { ayahs?: Array<{ numberInSurah: number; text: string }> } }) => {
-              const ayahs: string[] = [];
-              for (const a of data?.data?.ayahs ?? []) ayahs[a.numberInSurah] = a.text;
-              return ayahs;
-            })
-        : loadMuyassarCache().then((cache) => (cache[String(sid)] ?? []) as string[]);
+      inlineTafseerSource === "muyassar"
+        ? loadMuyassarCache().then((cache) => (cache[String(sid)] ?? []) as string[])
+        : loadTafsirSurah(inlineTafseerSource, sid);
     loadData.then((ayahs) => {
       if (!mounted) return;
       setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
@@ -1527,7 +1519,7 @@ export function MushafPage() {
                             ) : tafseerText ? (
                               <>
                                 <span className="block text-[10px] font-semibold mb-1 opacity-40" style={{ color: "var(--accent)" }}>
-                                  {inlineTafseerSource === "muyassar" ? "✦ التفسير الميسر" : "✦ تفسير الجلالين"}
+                                  {`✦ تفسير ${getTafsirLabel(inlineTafseerSource)}`}
                                 </span>
                                 <span className="opacity-85">{tafseerText}</span>
                               </>
@@ -1977,7 +1969,7 @@ export function MushafPage() {
                   onClick={() => {
                     const ayahTxt = `${tafsirItem.text} ﴿${tafsirItem.displayAyah}﴾`;
                     const tafseerTxt = inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ?? "";
-                    const src = inlineTafseerSource === "muyassar" ? "التفسير الميسر" : "تفسير الجلالين";
+                    const src = `تفسير ${getTafsirLabel(inlineTafseerSource)}`;
                     navigator.clipboard.writeText(`${ayahTxt}\n\n${src}:\n${tafseerTxt}`).then(() => toast.success("تم النسخ ✓")).catch(() => {});
                   }}
                 >
@@ -2002,19 +1994,19 @@ export function MushafPage() {
               <span className="opacity-45 mr-1">﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾</span>
             </div>
 
-            {/* Source tabs */}
-            <div className="flex gap-1.5 p-1 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] mb-3">
-              {(["muyassar", "jalalayn"] as const).map((src) => (
+            {/* Source tabs — 10 tafsirs, horizontally scrollable */}
+            <div className="flex gap-1.5 p-1 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] mb-3 overflow-x-auto no-scrollbar">
+              {TAFSIR_EDITIONS.map(({ slug, label }) => (
                 <button type="button"
-                  key={src}
-                  onClick={() => setInlineTafseerSource(src)}
-                  className={`flex-1 py-1.5 rounded-xl text-xs font-semibold transition ${
-                    inlineTafseerSource === src
+                  key={slug}
+                  onClick={() => setInlineTafseerSource(slug)}
+                  className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    inlineTafseerSource === slug
                       ? "bg-accent-20 text-[var(--accent)] border border-accent-30"
                       : "opacity-55 hover:opacity-80"
                   }`}
                 >
-                  {src === "muyassar" ? "التفسير الميسر" : "تفسير الجلالين"}
+                  {label}
                 </button>
               ))}
             </div>
@@ -2040,29 +2032,6 @@ export function MushafPage() {
               )}
             </div>
 
-            {/* External reference links */}
-            <div className="flex flex-wrap gap-2 pb-1">
-              {[
-                { label: "ابن كثير", href: `https://quran.ksu.edu.sa/tafseer/katheer/sura${tafsirItem.surahId}-aya${tafsirItem.displayAyah}.html#katheer` },
-                { label: "الطبري", href: `https://tafsir.app/tabari/${tafsirItem.surahId}/${tafsirItem.displayAyah}` },
-                { label: "القرطبي", href: `https://tafsir.app/qurtubi/${tafsirItem.surahId}/${tafsirItem.displayAyah}` },
-                { label: "السعدي", href: `https://tafsir.app/saadi/${tafsirItem.surahId}/${tafsirItem.displayAyah}` },
-                { label: "البغوي", href: `https://tafsir.app/baghawi/${tafsirItem.surahId}/${tafsirItem.displayAyah}` },
-              ].map(({ label, href }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs opacity-55 hover:opacity-90 active:opacity-90 transition px-3 py-1.5 rounded-xl border"
-                  style={{ background: "color-mix(in srgb, var(--accent) 8%, transparent)", borderColor: "color-mix(in srgb, var(--accent) 20%, transparent)" }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ArrowUpRight size={11} aria-hidden="true" />
-                  <span>{label}</span>
-                </a>
-              ))}
-            </div>
           </div>
         </>
       )}
@@ -2119,18 +2088,18 @@ export function MushafPage() {
                 </button>
               </div>
               {inlineTafseer && (
-                <div className="flex gap-1.5 p-1 rounded-xl bg-black/20 border border-[var(--stroke)]">
-                  {(["muyassar", "jalalayn"] as const).map((src) => (
+                <div className="flex gap-1.5 p-1 rounded-xl bg-black/20 border border-[var(--stroke)] overflow-x-auto no-scrollbar">
+                  {TAFSIR_EDITIONS.map(({ slug, label }) => (
                     <button type="button"
-                      key={src}
-                      onClick={() => setInlineTafseerSource(src)}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition ${
-                        inlineTafseerSource === src
+                      key={slug}
+                      onClick={() => setInlineTafseerSource(slug)}
+                      className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                        inlineTafseerSource === slug
                           ? "bg-accent-20 text-[var(--accent)] border border-accent-30"
                           : "opacity-50 hover:opacity-80"
                       }`}
                     >
-                      {src === "muyassar" ? "الميسر" : "الجلالين"}
+                      {label}
                     </button>
                   ))}
                 </div>

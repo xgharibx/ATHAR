@@ -140,12 +140,13 @@ export default defineConfig(({ mode }) => {
               cacheableResponse: { statuses: [0, 200] }
             }
           },
-          // Tafseer + Translation API — CacheFirst so tafseer is available offline after first visit
+          // Tafsir library (spa5k/tafsir_api via jsDelivr) — CacheFirst, text never changes.
+          // Also cached per-surah in IndexedDB (src/lib/tafsirEditions.ts) for a real offline read.
           {
-            urlPattern: /^https:\/\/api\.alquran\.cloud\/.*/i,
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/gh\/spa5k\/tafsir_api.*/i,
             handler: "CacheFirst",
             options: {
-              cacheName: "tafseer-api-v1",
+              cacheName: "tafsir-api-v1",
               expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 365 },
               cacheableResponse: { statuses: [0, 200] }
             }
