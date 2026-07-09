@@ -1,6 +1,12 @@
 import { Capacitor } from "@capacitor/core";
 import type { LocalNotification } from "@capacitor/local-notifications";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
+import { getLocalDateKey } from "@/lib/dayBoundaries";
+
+// N9: Actionable prayer notifications — "تمت الصلاة" lets the user log a prayer
+// (and cancel its gentle follow-up) directly from the notification shade.
+const PRAYER_ACTION_TYPE_ID = "PRAYER_ACTIONS";
+const MARK_PRAYED_ACTION_ID = "mark_prayed";
 
 const REMINDER_IDS = {
   morning: 9101,
@@ -554,6 +560,10 @@ function buildPrayerNotifications(
     const at = todayAtLocalTime(prayerTimings[prayerName] ?? "");
     if (!at) return [];
 
+    // Same-day key at schedule-build time — the notification always fires the same
+    // calendar day it's scheduled for (prayer times never cross midnight for "today").
+    const extra = { prayerName, dateISO: getLocalDateKey(at) };
+
     // Main adhan notification
     const main = {
       id: PRAYER_NOTIFICATION_IDS[prayerName],
@@ -565,6 +575,8 @@ function buildPrayerNotifications(
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
       schedule: { at },
+      actionTypeId: PRAYER_ACTION_TYPE_ID,
+      extra,
     };
 
     // N2: Gentle follow-up 30 min later — cancelled by setPrayerLogged when user logs the prayer
@@ -581,6 +593,8 @@ function buildPrayerNotifications(
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
       schedule: { at: followUpAt },
+      actionTypeId: PRAYER_ACTION_TYPE_ID,
+      extra,
     };
 
     return [main, followUp];
@@ -728,9 +742,18 @@ async function ensurePrayerChannel(soundProfile: PrayerSoundProfile) {
 export async function ensureDefaultNotificationChannels(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
     await Promise.all([
       ensureReminderChannel("rain_calm"),
       ensurePrayerChannel("adhan_haram"),
+      LocalNotifications.registerActionTypes({
+        types: [
+          {
+            id: PRAYER_ACTION_TYPE_ID,
+            actions: [{ id: MARK_PRAYED_ACTION_ID, title: "تمت الصلاة ✓" }],
+          },
+        ],
+      }),
     ]);
   } catch { /* non-fatal */ }
 }
@@ -809,6 +832,20 @@ export async function registerNotificationDeepLinkListener(
     "localNotificationActionPerformed",
     (action) => {
       const extra = action.notification.extra as Record<string, unknown> | undefined;
+
+      // N9: "تمت الصلاة" action button — log the prayer directly from the
+      // notification shade without opening/navigating the app.
+      if (action.actionId === MARK_PRAYED_ACTION_ID) {
+        const prayerName = extra?.prayerName;
+        const dateISO = extra?.dateISO;
+        if (typeof prayerName === "string" && typeof dateISO === "string") {
+          import("@/store/noorStore").then(({ useNoorStore }) => {
+            useNoorStore.getState().setPrayerLogged(dateISO, prayerName, true);
+          });
+        }
+        return;
+      }
+
       const route = extra?.route;
       if (typeof route === "string" && route.startsWith("/")) {
         navigate(route);
