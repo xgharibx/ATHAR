@@ -32,3 +32,6 @@ CMIRC/
 extracted_*.txt
 final_extracted_content.txt
 extracted_content*.txt
+
+# Claude Code local settings (machine-specific permissions/launch state)
+.claude/
