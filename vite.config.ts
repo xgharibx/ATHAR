@@ -151,6 +151,17 @@ export default defineConfig(({ mode }) => {
               cacheableResponse: { statuses: [0, 200] }
             }
           },
+          // Translation library (fawazahmed0/quran-api via jsDelivr) — CacheFirst, text never
+          // changes. Also cached whole-edition in IndexedDB (src/lib/translationEditions.ts).
+          {
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/gh\/fawazahmed0\/quran-api.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "translation-api-v1",
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] }
+            }
+          },
           // WBW/Tajweed API — CacheFirst (data doesn't change)
           {
             urlPattern: /^https:\/\/api\.quran\.com\/.*/i,

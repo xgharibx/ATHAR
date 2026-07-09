@@ -30,6 +30,7 @@ import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { TAFSIR_EDITIONS, getTafsirLabel, loadTafsirSurah } from "@/lib/tafsirEditions";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { getEnglishAyahTranslation, loadEnglishTranslationCache } from "@/lib/quranTranslationLocal";
+import { TRANSLATION_EDITIONS, getTranslationLabel, loadTranslationEdition } from "@/lib/translationEditions";
 import toast from "react-hot-toast";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -481,6 +482,8 @@ export function MushafPage() {
   // Q3: Translation
   const [showTranslation, setShowTranslation] = React.useState(true);
   const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
+  const [translationSource, setTranslationSource] = React.useState<string>("bundled-en-sahih");
+  const prevTranslationSourceRef = React.useRef(translationSource);
 
   // Q11-B: Inline tafseer mode (قراءة mode)
   const [inlineTafseer, setInlineTafseerState] = React.useState(() => prefs.mushafInlineTafseer ?? false);
@@ -701,27 +704,38 @@ export function MushafPage() {
 
   React.useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
 
-  // Q3: Fetch translation for all surahs on current page when translation panel is open
+  // Q3: Fetch translation for all surahs on current page when translation panel is open.
+  // Source-change detection uses a ref rather than a companion "clear cache" effect —
+  // see the identical fix/explanation on the tafsir fetch effect above; two effects
+  // both keyed on the same "source" state race each other's closures otherwise.
   React.useEffect(() => {
     if (!showTranslation && tafsirItem === null) return;
+    const sourceChanged = prevTranslationSourceRef.current !== translationSource;
+    prevTranslationSourceRef.current = translationSource;
     const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
     if (tafsirItem) surahIds.push(tafsirItem.surahId);
-    const toFetch = surahIds.filter((sid) => !translationData[sid]);
+    const toFetch = sourceChanged ? surahIds : surahIds.filter((sid) => !translationData[sid]);
     if (toFetch.length === 0) return;
     let mounted = true;
-    loadEnglishTranslationCache().then((cache) => {
+    const loadData: Promise<Record<number, string[]>> =
+      translationSource === "bundled-en-sahih"
+        ? loadEnglishTranslationCache().then((cache) => {
+            const upd: Record<number, string[]> = {};
+            for (const sid of toFetch) if (cache[sid]) upd[sid] = cache[sid];
+            return upd;
+          })
+        : loadTranslationEdition(translationSource).then((whole) => {
+            const upd: Record<number, string[]> = {};
+            for (const sid of toFetch) if (whole[sid]) upd[sid] = whole[sid];
+            return upd;
+          });
+    loadData.then((fetched) => {
       if (!mounted) return;
-      setTranslationData((prev) => {
-        const upd = { ...prev };
-        for (const sid of toFetch) {
-          if (cache[sid]) upd[sid] = cache[sid];
-        }
-        return upd;
-      });
+      setTranslationData((prev) => ({ ...(sourceChanged ? {} : prev), ...fetched }));
     }).catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); });
     return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTranslation, tafsirItem, currentPage]);
+  }, [showTranslation, tafsirItem, currentPage, translationSource]);
 
   // Q17: Normalized search for ayah matching
   const normalizedSearch = React.useMemo(
@@ -2054,15 +2068,34 @@ export function MushafPage() {
               <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} aria-hidden="true" /></button>
             </div>
             {/* Q3: Translation */}
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs opacity-65">الترجمة الإنجليزية</span>
-              <button type="button"
-                onClick={() => setShowTranslation((v) => !v)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${showTranslation ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
-                role="switch" aria-checked={showTranslation}
-              >
-                <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${showTranslation ? "right-1" : "right-7"}`} />
-              </button>
+            <div className="mb-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs opacity-65">{getTranslationLabel(translationSource)}</span>
+                <button type="button"
+                  onClick={() => setShowTranslation((v) => !v)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${showTranslation ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
+                  role="switch" aria-checked={showTranslation}
+                >
+                  <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${showTranslation ? "right-1" : "right-7"}`} />
+                </button>
+              </div>
+              {showTranslation && (
+                <div className="flex gap-1.5 p-1 mt-2 rounded-xl bg-black/20 border border-[var(--stroke)] overflow-x-auto no-scrollbar">
+                  {TRANSLATION_EDITIONS.map(({ slug, label }) => (
+                    <button type="button"
+                      key={slug}
+                      onClick={() => setTranslationSource(slug)}
+                      className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                        translationSource === slug
+                          ? "bg-accent-20 text-[var(--accent)] border border-accent-30"
+                          : "opacity-50 hover:opacity-80"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             {/* Q11-B: Inline Tafseer */}
             <div className="mb-3 p-3 rounded-2xl border"
@@ -2337,7 +2370,7 @@ export function MushafPage() {
             {([
               { label: "بحث في الصفحة", sub: "ابحث داخل آيات الصفحة الحالية", icon: <Search size={16} aria-hidden="true" />, active: showSearch,
                 onPress: () => { setShowSearch((v) => !v); if (showSearch) setInPageSearch(""); setShowMoreSheet(false); } },
-              { label: "الترجمة الإنجليزية", sub: "ترجمة Sahih International", icon: <Languages size={16} aria-hidden="true" />, active: showTranslation,
+              { label: "الترجمة", sub: getTranslationLabel(translationSource), icon: <Languages size={16} aria-hidden="true" />, active: showTranslation,
                 onPress: () => { setShowTranslation((v) => !v); setShowMoreSheet(false); } },
               { label: memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ", sub: "اختبر حفظك آية بآية", icon: memorizationMode ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />, active: memorizationMode,
                 onPress: () => { setMemorizationMode((v) => { if (v) setRevealedItems(new Set()); return !v; }); flashChrome(); setShowMoreSheet(false); } },
