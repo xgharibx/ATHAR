@@ -14,6 +14,7 @@ import { downloadJson } from "@/lib/download";
 import { clamp } from "@/lib/utils";
 import {
   cancelAllReminders,
+  ensureExactAlarmPermission,
   getNotificationPermission,
   isNativePlatform,
   playPrayerSoundPreview,
@@ -576,15 +577,15 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">حجم خط القرآن</div>
-              <div className="text-xs opacity-70 tabular-nums">{Math.round(prefs.quranFontScale * 100).toLocaleString("ar-EG")}٪</div>
+              <div className="text-xs opacity-70 tabular-nums">{Math.round((prefs.mushafFontScale ?? 1) * 100).toLocaleString("ar-EG")}٪</div>
             </div>
             <div className="mt-3">
               <Slider
-                value={[prefs.quranFontScale]}
-                min={0.9}
+                value={[prefs.mushafFontScale ?? 1]}
+                min={0.7}
                 max={1.6}
                 step={0.01}
-                onValueChange={(v) => setPrefs({ quranFontScale: clamp(v[0] ?? 1.1, 0.9, 1.6) })}
+                onValueChange={(v) => setPrefs({ mushafFontScale: clamp(v[0] ?? 1, 0.7, 1.6) })}
                 aria-label="حجم خط القرآن"
               />
             </div>
@@ -619,7 +620,7 @@ export function SettingsPage() {
             <div
               className="arabic-text quran-text mt-3"
               style={{
-                fontSize: `${18 * prefs.quranFontScale}px`,
+                fontSize: `${18 * (prefs.mushafFontScale ?? 1)}px`,
                 lineHeight: prefs.quranLineHeight,
                 letterSpacing: `${prefs.quranLetterSpacing ?? 0}em`,
                 wordSpacing: `${prefs.quranWordSpacing ?? 0}em`,
@@ -630,29 +631,6 @@ export function SettingsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <SettingRow
-              title="حجم صفحة المصحف"
-              desc={`عدد الآيات بكل صفحة: ${prefs.quranPageSize.toLocaleString("ar-EG")}`}
-              right={
-                <div className="flex items-center gap-2">
-                  {[8, 12, 16].map((n) => (
-                    <button type="button"
-                      key={n}
-                      onClick={() => setPrefs({ quranPageSize: n })}
-                      aria-pressed={prefs.quranPageSize === n}
-                      className={[
-                        "px-4 py-3 rounded-xl border text-sm transition min-h-[44px]",
-                        prefs.quranPageSize === n
-                          ? "bg-accent-15 border-accent-35"
-                          : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
-                      ].join(" ")}
-                    >
-                      {n.toLocaleString("ar-EG")}
-                    </button>
-                  ))}
-                </div>
-              }
-            />
             <SettingRow
               title="إخفاء أرقام الآيات"
               desc="وضع تركيز للقراءة بدون علامات"
@@ -698,31 +676,6 @@ export function SettingsPage() {
                     ].join(" ")}
                   >
                     {{ default: "🌑 افتراضي", sepia: "🟫 سيبيا", midnight: "🌙 ليلي", parchment: "📜 رق", forest: "🌲 غابة", rose: "🌹 وردي", ocean: "🌊 بحر", desert: "🏜️ صحراء", dawn: "🌅 فجر" }[t]}
-                  </button>
-                ))}
-              </div>
-            }
-          />
-
-          {/* ── Quran scroll mode control ──── */}
-          <SettingRow
-            title="وضع التمرير"
-            desc="صفحات منفصلة أو تمرير متواصل"
-            right={
-              <div className="flex gap-2">
-                {(["page", "scroll"] as const).map((m) => (
-                  <button type="button"
-                    key={m}
-                    onClick={() => setPrefs({ quranScrollMode: m })}
-                    aria-pressed={prefs.quranScrollMode === m}
-                    className={[
-                      "text-xs px-3 py-2 rounded-xl border transition min-h-[36px]",
-                      prefs.quranScrollMode === m
-                        ? "bg-accent-15 border-accent-35"
-                        : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
-                    ].join(" ")}
-                  >
-                    {m === "page" ? "📄 صفحات" : "📜 تمرير"}
                   </button>
                 ))}
               </div>
@@ -997,6 +950,7 @@ export function SettingsPage() {
                   toast.error("لم يتم السماح بالإشعارات");
                   return;
                 }
+                await ensureExactAlarmPermission();
                 await syncReminders({ ...reminders, enabled: true });
                 toast.success("تم تفعيل التذكيرات");
               } catch {
@@ -1356,18 +1310,18 @@ export function SettingsPage() {
           <div className="font-semibold">الأمان والمتقدّم</div>
         </div>
         <div className="space-y-3">
-          {/* Se8: Biometric lock — only shown on native */}
+          {/* Se8: Biometric lock — only shown on native. Not implemented yet (no native
+              biometric plugin wired in), so this is an honest "coming soon" stub rather
+              than a switch that falsely promises protection it can't enforce. */}
           {isNative && (
             <SettingRow
               title="القفل البيومتري"
-              desc="حماية التطبيق ببصمة الإصبع أو التعرف على الوجه"
+              desc="حماية التطبيق ببصمة الإصبع أو التعرف على الوجه — قريبًا"
               right={
                 <Switch
-                  checked={prefs.biometricLock ?? false}
-                  onCheckedChange={(v) => {
-                    setPrefs({ biometricLock: v });
-                    toast(v ? "سيُطلب منك بصمة الإصبع عند الفتح" : "تم إيقاف القفل البيومتري");
-                  }}
+                  checked={false}
+                  disabled
+                  onCheckedChange={() => toast("قريبًا — القفل البيومتري قيد التطوير")}
                 />
               }
             />

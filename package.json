@@ -40,6 +40,7 @@
     "@tsparticles/engine": "^4.1.0",
     "@tsparticles/react": "^4.1.0",
     "@tsparticles/slim": "^4.1.0",
+    "adhan": "^4.4.4",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

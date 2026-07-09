@@ -10,12 +10,14 @@ import { MiracleCategory } from '@/ijaz/types';
 import { ScrollReveal } from '@/ijaz/components/effects/ScrollAnimations';
 import { AnimatedGradientText } from '@/ijaz/components/effects/TextEffects';
 import { useScrollRestoration } from '@/hooks/useScrollRestoration';
+import { useIsMobile } from '@/ijaz/hooks/useIsMobile';
 
 import ParticleField from '@/ijaz/components/effects/ParticleField';
 import SacredGeometry from '@/ijaz/components/effects/SacredGeometry';
 
 export default function MiraclesPage() {
   useScrollRestoration();
+  const isMobile = useIsMobile();
   const [selectedCategory, setSelectedCategory] = useState<MiracleCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<'order' | 'category'>('order');
 
@@ -34,13 +36,17 @@ export default function MiraclesPage() {
 
   return (
     <main className="min-h-screen relative" dir="rtl">
-      {/* Background effects */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <ParticleField variant="gold-dust" density={0.6} speed={0.2} />
-      </div>
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-30">
-        <SacredGeometry color="#d4a853" intensity={0.15} />
-      </div>
+      {/* Background effects — disabled on mobile for performance/battery */}
+      {!isMobile && (
+        <>
+          <div className="fixed inset-0 z-0 pointer-events-none">
+            <ParticleField variant="gold-dust" density={0.6} speed={0.2} />
+          </div>
+          <div className="fixed inset-0 z-0 pointer-events-none opacity-30">
+            <SacredGeometry color="#d4a853" intensity={0.15} />
+          </div>
+        </>
+      )}
 
       {/* Hero Section */}
       <section className="relative z-10 pt-28 pb-12">

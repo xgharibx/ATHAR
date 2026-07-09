@@ -367,6 +367,27 @@ export async function requestNotificationPermission(): Promise<"granted" | "deni
   return p.display as "granted" | "denied" | "prompt";
 }
 
+/**
+ * Android 12+ silently downgrades scheduled reminders to inexact alarms (which can
+ * arrive minutes late) unless the user has granted the "Alarms & reminders" exact-alarm
+ * setting. This is a separate switch from the notification permission itself, and the
+ * OS gives no in-app prompt for it — the app has to detect it and send the user to the
+ * system settings screen. No-op on iOS/other platforms (Android-only Capacitor API).
+ */
+export async function ensureExactAlarmPermission(): Promise<void> {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== "android") return;
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    const current = await LocalNotifications.checkExactNotificationSetting();
+    if (current.exact_alarm !== "granted") {
+      await LocalNotifications.changeExactNotificationSetting();
+    }
+  } catch {
+    // Older Android/OEM WebViews may not expose this setting screen — reminders
+    // still work, just potentially a few minutes late; nothing else to do here.
+  }
+}
+
 export async function cancelAllReminders() {
   const { LocalNotifications } = await import("@capacitor/local-notifications");
 

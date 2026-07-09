@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { CalculationMethod, Coordinates, Madhab, PrayerTimes as AdhanPrayerTimes, type CalculationParameters } from "adhan";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { useNoorStore } from "@/store/noorStore";
 import { syncPrayerWidget } from "@/lib/prayerWidget";
@@ -131,6 +132,77 @@ function writeCachedCoords(lat: number, lng: number) {
   }
 }
 
+// Aladhan numeric method codes → the closest matching `adhan` calculation method.
+// Used only for the fully-offline fallback below, so a few rarer codes (e.g. Jafari,
+// France, Russia) map to their nearest documented equivalent rather than an exact match.
+function methodToCalculationParameters(method: number): CalculationParameters {
+  switch (method) {
+    case 1: return CalculationMethod.Karachi();
+    case 2: return CalculationMethod.NorthAmerica(); // ISNA
+    case 3: return CalculationMethod.MuslimWorldLeague();
+    case 4: return CalculationMethod.UmmAlQura();
+    case 5: return CalculationMethod.Egyptian();
+    case 7: return CalculationMethod.Tehran();
+    case 8: return CalculationMethod.Dubai(); // Gulf Region — closest available
+    case 9: return CalculationMethod.Kuwait();
+    case 10: return CalculationMethod.Qatar();
+    case 11: return CalculationMethod.Singapore();
+    case 13: return CalculationMethod.Turkey();
+    case 15: return CalculationMethod.MoonsightingCommittee();
+    case 16: return CalculationMethod.Dubai();
+    default: return CalculationMethod.MuslimWorldLeague();
+  }
+}
+
+function two(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+/**
+ * Fully offline prayer-time computation (Jean Meeus astronomical formulas via the
+ * `adhan` package) — the last-resort fallback when there is no network AND no cached
+ * API response for this day/location yet (e.g. first launch with no connectivity).
+ * Device-local clock time is used for formatting, which is correct as long as the
+ * device's timezone matches the coordinates it's physically standing at (always true
+ * in practice for a phone).
+ */
+function computeLocalPrayerTimes(lat: number, lng: number, date: Date, method: number, school: number): PrayerTimesResponse {
+  const params = methodToCalculationParameters(method);
+  params.madhab = school === 1 ? Madhab.Hanafi : Madhab.Shafi;
+  const times = new AdhanPrayerTimes(new Coordinates(lat, lng), date, params);
+  const fmt = (d: Date) => `${two(d.getHours())}:${two(d.getMinutes())}`;
+
+  const hijriParts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "numeric", year: "numeric" }).formatToParts(date);
+  const part = (t: string) => hijriParts.find((p) => p.type === t)?.value ?? "1";
+
+  return {
+    data: {
+      timings: {
+        Fajr: fmt(times.fajr),
+        Sunrise: fmt(times.sunrise),
+        Dhuhr: fmt(times.dhuhr),
+        Asr: fmt(times.asr),
+        Maghrib: fmt(times.maghrib),
+        Isha: fmt(times.isha),
+      },
+      date: {
+        readable: date.toDateString(),
+        hijri: {
+          date: `${two(Number(part("day")))}-${two(Number(part("month")))}-${part("year")}`,
+          month: {
+            en: new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { month: "long" }).format(date),
+            ar: new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "long" }).format(date),
+          },
+          weekday: {
+            en: new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date),
+            ar: new Intl.DateTimeFormat("ar-SA", { weekday: "long" }).format(date),
+          },
+        },
+      },
+    },
+  };
+}
+
 function getCurrentPosition(timeoutMs = 2500): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -214,8 +286,17 @@ export function usePrayerTimes() {
       } catch {
         const cached = readCached(dayKey, cityLocationKey);
         if (cached) return cached;
-        throw new Error("تعذر جلب مواقيت الصلاة");
       }
+
+      // 4) Fully offline last resort: compute locally (Jean Meeus formulas via `adhan`)
+      // from the best coordinates we have, so a no-connectivity first launch never
+      // shows a bare error instead of today's prayer times.
+      const fallbackCoords = cachedCoords ?? { lat: 30.0444, lng: 31.2357 }; // Cairo, matches the city fallback above
+      const computed: PrayerTimesData = {
+        ...computeLocalPrayerTimes(fallbackCoords.lat, fallbackCoords.lng, new Date(), method, school),
+        __sourceLabel: cachedCoords ? "حساب محلي (بلا إنترنت)" : "حساب محلي — القاهرة (بلا إنترنت)",
+      };
+      return computed;
     },
     placeholderData: initialCachedData,
     staleTime: Infinity,

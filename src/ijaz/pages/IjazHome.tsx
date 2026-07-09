@@ -871,7 +871,7 @@ export default function HomePage() {
                       exit={{ opacity: 0, y: isMobile ? -10 : -30, ...(isMobile ? {} : { filter: 'blur(10px)' }) }}
                       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                     >
-                      <Link to={'/miracles/' + item.miracleSlug}>
+                      <Link to={'/ijaz/miracles/' + item.miracleSlug}>
                         <div
                           className="relative cursor-pointer group rounded-3xl overflow-hidden"
                           style={{

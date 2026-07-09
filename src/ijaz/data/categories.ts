@@ -1,4 +1,9 @@
 import { Category, MiracleCategory } from '@/ijaz/types';
+import { miracles } from '@/ijaz/data/miracles';
+
+function countMiracles(category: MiracleCategory): number {
+  return miracles.filter((m) => m.category === category).length;
+}
 
 export const categories: Category[] = [
   {
@@ -11,7 +16,7 @@ export const categories: Category[] = [
     color: '#4A90D9',
     glowColor: 'rgba(74, 144, 217, 0.3)',
     sceneType: 'cosmos',
-    miracleCount: 12,
+    miracleCount: countMiracles('cosmological'),
   },
   {
     id: 'biological',
@@ -23,7 +28,7 @@ export const categories: Category[] = [
     color: '#2DD4A8',
     glowColor: 'rgba(45, 212, 168, 0.3)',
     sceneType: 'microscopic',
-    miracleCount: 10,
+    miracleCount: countMiracles('biological'),
   },
   {
     id: 'earth-sciences',
@@ -35,7 +40,7 @@ export const categories: Category[] = [
     color: '#F59E0B',
     glowColor: 'rgba(245, 158, 11, 0.3)',
     sceneType: 'earth',
-    miracleCount: 8,
+    miracleCount: countMiracles('earth-sciences'),
   },
   {
     id: 'prophecies',
@@ -47,7 +52,7 @@ export const categories: Category[] = [
     color: '#D4A853',
     glowColor: 'rgba(212, 168, 83, 0.3)',
     sceneType: 'timeline',
-    miracleCount: 15,
+    miracleCount: countMiracles('prophecies'),
   },
   {
     id: 'logical-philosophical',
@@ -59,7 +64,7 @@ export const categories: Category[] = [
     color: '#A855F7',
     glowColor: 'rgba(168, 85, 247, 0.3)',
     sceneType: 'logic',
-    miracleCount: 12,
+    miracleCount: countMiracles('logical-philosophical'),
   },
 ];
 

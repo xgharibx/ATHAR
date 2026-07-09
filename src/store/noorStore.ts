@@ -894,8 +894,6 @@ export const useNoorStore = create<NoorState>()(
           prefs: {
             ...s.prefs,
             ...partial,
-            // Always-on immersive mode
-            transparentMode: true
           }
         })),
 

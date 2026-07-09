@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock, BookMarked, Clapperboard, Trophy } from "lucide-react";
+import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock, BookMarked, Clapperboard, Trophy, Sparkles } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -142,10 +142,29 @@ function themeLabel(theme: string) {
     sapphire: "ياقوت",
     violet: "بنفسجي",
     sunset: "غروب",
-    mist: "ضباب"
+    mist: "ضباب",
+    bustan: "بستان",
+    waraq: "ورق",
+    fanous: "فانوس",
+    sajjada: "سجادة",
+    mihrab: "محراب",
+    sama: "سماء",
+    midad: "مداد",
+    layl: "ليل",
+    teen: "طين",
+    jura: "جرأة",
+    andalus: "أندلس",
+    sakina: "سكينة",
+    shafaq: "شفق",
+    mushaf: "مصحف"
   };
   return map[theme] ?? "تلقائي";
 }
+
+const ALL_THEMES_CYCLE: import("@/store/noorStore").NoorTheme[] = [
+  "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist",
+  "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "midad", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf",
+];
 
 const MAIN_NAV_LINKS = [
   { path: "/", icon: House, label: "الرئيسية", color: "#ffd780" },
@@ -154,6 +173,7 @@ const MAIN_NAV_LINKS = [
   { path: "/prayer-times", icon: Clock, label: "الصلاة", color: "#60a5fa" },
   { path: "/search", icon: Search, label: "البحث", color: "#e879f9" },
   { path: "/favorites", icon: Heart, label: "المفضلة", color: "#fb7185" },
+  { path: "/ijaz", icon: Sparkles, label: "الإعجاز", color: "#c4b5fd" },
   { path: "/video-library", icon: Clapperboard, label: "الدورات", color: "#f472b6" },
   { path: "/library", icon: BookMarked, label: "المكتبة", color: "#34d399" },
   { path: "/leaderboard", icon: Trophy, label: "الترتيب", color: "#fbbf24" },
@@ -260,9 +280,8 @@ function SidebarContent(props: { onNavigate?: () => void; mobile?: boolean }) {
   const { db } = data;
 
   const cycleTheme = () => {
-    const ALL_THEMES = ["system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist"] as const;
-    const idx = ALL_THEMES.indexOf(prefs.theme as typeof ALL_THEMES[number]);
-    const next = ALL_THEMES[(idx + 1) % ALL_THEMES.length];
+    const idx = ALL_THEMES_CYCLE.indexOf(prefs.theme as import("@/store/noorStore").NoorTheme);
+    const next = ALL_THEMES_CYCLE[(idx + 1) % ALL_THEMES_CYCLE.length];
     setPrefs({ theme: next });
     toast(`🎨 ${themeLabel(next)}`, { duration: 1500 });
   };
@@ -405,15 +424,12 @@ export function AppShell() {
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
 
-  // De11: Alt+T keyboard shortcut to cycle all 12 themes; Ctrl+K to open command palette
+  // De11: Alt+T keyboard shortcut to cycle all themes; Ctrl+K to open command palette
   React.useEffect(() => {
-    const ALL_THEMES: import("@/store/noorStore").NoorTheme[] = [
-      "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "midad", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf",
-    ];
     const handler = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 't') {
-        const idx = ALL_THEMES.indexOf(prefs.theme as import("@/store/noorStore").NoorTheme);
-        const next = ALL_THEMES[(idx + 1) % ALL_THEMES.length];
+        const idx = ALL_THEMES_CYCLE.indexOf(prefs.theme as import("@/store/noorStore").NoorTheme);
+        const next = ALL_THEMES_CYCLE[(idx + 1) % ALL_THEMES_CYCLE.length];
         setPrefs({ theme: next });
         toast(`🎨 ${themeLabel(next)}`, { duration: 1500 });
       }
@@ -587,9 +603,8 @@ export function AppShell() {
                 aria-label={`تبديل المظهر (${themeLabel(prefs.theme)})`}
                 className="max-[340px]:hidden"
                 onClick={() => {
-                  const ALL_THEMES = ["system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist"] as const;
-                  const idx = ALL_THEMES.indexOf(prefs.theme as typeof ALL_THEMES[number]);
-                  const next = ALL_THEMES[(idx + 1) % ALL_THEMES.length];
+                  const idx = ALL_THEMES_CYCLE.indexOf(prefs.theme as import("@/store/noorStore").NoorTheme);
+                  const next = ALL_THEMES_CYCLE[(idx + 1) % ALL_THEMES_CYCLE.length];
                   setPrefs({ theme: next });
                   toast(`🎨 ${themeLabel(next)}`, { duration: 1500 });
                 }}

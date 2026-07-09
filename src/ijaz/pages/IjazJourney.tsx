@@ -443,7 +443,7 @@ export default function JourneyPage() {
                   transition={{ delay: 0.8 }}
                 >
                   <Link
-                    to={'/miracles/' + step.linkSlug}
+                    to={'/ijaz/miracles/' + step.linkSlug}
                     className="inline-flex items-center gap-2 text-sm font-tajawal px-5 py-2.5 rounded-xl glass-premium hover:scale-105 transition-all group"
                     style={{ borderColor: step.gradientFrom + '30' }}
                   >

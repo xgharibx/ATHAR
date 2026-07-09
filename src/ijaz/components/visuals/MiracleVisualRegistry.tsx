@@ -50,6 +50,7 @@ const visualMap: Record<string, ComponentType<MiracleVisualProps>> = {
   // ═══ LOGICAL ═══
   'miracle-kalam-cosmological': lazy(() => import('./logic/KalamCosmologicalVisual')),
   'miracle-contingency': lazy(() => import('./logic/ContingencyVisual')),
+  'miracle-tasalsul': lazy(() => import('./logic/InfiniteRegressVisual')),
   'miracle-design-argument': lazy(() => import('./logic/DesignArgumentVisual')),
   'miracle-morality-argument': lazy(() => import('./logic/MoralArgumentVisual')),
   'miracle-consciousness': lazy(() => import('./logic/ConsciousnessVisual')),

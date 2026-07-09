@@ -3186,7 +3186,7 @@ header {
 /* Airier, larger reading text for the premium minimal feel */
 .mushaf-reader[data-mushaf-clean="1"] .mushaf-text-block {
   font-size: calc(var(--mushaf-font-scale, 1) * 1.48rem);
-  line-height: 2.75;
+  line-height: var(--mushaf-line-height, 2.75);
   padding: 0.5rem 0.25rem;
   /* Real Madinah-page feel: every line stretches edge-to-edge, last line centered */
   text-align: justify;
@@ -3221,7 +3221,7 @@ header {
     padding-top: 0.9rem;
   }
   .mushaf-reader[data-mushaf-clean="1"] .mushaf-text-block {
-    line-height: 2.5;
+    line-height: var(--mushaf-line-height, 2.5);
   }
 }
 
@@ -3412,10 +3412,10 @@ header {
     Arial,
     serif;
   font-size: calc(var(--mushaf-font-scale, 1) * 1.35rem);
-  line-height: 2.45;
+  line-height: var(--mushaf-line-height, 2.45);
   color: #2c3e50;
-  word-spacing: 0;
-  letter-spacing: 0;
+  word-spacing: var(--mushaf-word-spacing, 0);
+  letter-spacing: var(--mushaf-letter-spacing, 0);
   font-kerning: normal;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   font-variant-ligatures: contextual common-ligatures;

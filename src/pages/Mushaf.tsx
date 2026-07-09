@@ -1340,7 +1340,13 @@ export function MushafPage() {
           ref={pageContentRef}
           className={`mushaf-page-content${pageTransDir ? " page-sliding" : ""}`}
           dir="rtl"
-          style={{ "--mushaf-font-scale": fontScale, ...(pageTransDir ? { "--mushaf-slide-dir": pageTransDir === "left" ? "-1" : "1" } : {}) } as React.CSSProperties}
+          style={{
+            "--mushaf-font-scale": fontScale,
+            "--mushaf-line-height": prefs.quranLineHeight,
+            "--mushaf-letter-spacing": `${prefs.quranLetterSpacing ?? 0}em`,
+            "--mushaf-word-spacing": `${prefs.quranWordSpacing ?? 0}em`,
+            ...(pageTransDir ? { "--mushaf-slide-dir": pageTransDir === "left" ? "-1" : "1" } : {}),
+          } as React.CSSProperties}
           onScroll={handleContentScroll}
         >
           {/* Always-visible tiny strip */}
@@ -1423,9 +1429,11 @@ export function MushafPage() {
                           <span className="mushaf-wbw-loading">⋯</span>
                         ) : null}
                         {"\u200F"}
-                        <span className={`mushaf-ayah-num${isBookmarked ? " bookmarked" : ""}${isLastRead ? " last-read" : ""}`}>
-                          ﴿{toArabicNumeral(item.displayAyah)}﴾
-                        </span>
+                        {!prefs.quranHideMarkers && (
+                          <span className={`mushaf-ayah-num${isBookmarked ? " bookmarked" : ""}${isLastRead ? " last-read" : ""}`}>
+                            ﴿{toArabicNumeral(item.displayAyah)}﴾
+                          </span>
+                        )}
                         {isSajda && <span className="mushaf-sajda-badge" aria-label="سجدة تلاوة">ۖ</span>}
                         {" "}
                         {/* Q3: Inline translation (only show if wbw mode is off) */}

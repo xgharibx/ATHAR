@@ -206,7 +206,16 @@ export default function App() {
       cancelIdleCallback?: (id: number) => void;
     };
 
+    // Respect the OS/browser data-saver signal — this prefetch pulls the
+    // entire Quran's word-by-word dataset (114 requests) in the background;
+    // don't spend a metered/limited connection's data budget on it uninvited.
+    const connection = (navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }).connection;
+    const isDataConstrained = !!connection?.saveData || connection?.effectiveType === "2g" || connection?.effectiveType === "slow-2g";
+
     const prepareMushaf = () => {
+      if (isDataConstrained) return;
       void ensureMushafCoreOffline().catch(() => {
         // Settings and the reader expose a retry path if the first background attempt fails.
       });
