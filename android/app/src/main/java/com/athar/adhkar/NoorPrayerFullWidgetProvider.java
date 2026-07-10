@@ -130,12 +130,14 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
 
                 // Populate 5 prayer rows
                 int count = prayers != null ? Math.min(prayers.length(), ROW_IDS.length) : 0;
+                int passedCount = 0;
                 for (int i = 0; i < count; i++) {
                     JSONObject p     = prayers.getJSONObject(i);
                     String nameAr    = p.optString("nameAr", FALLBACK_NAMES[i]);
                     String time24    = p.optString("time", "--:--");
                     boolean passed   = p.optBoolean("passed", false);
                     boolean isNext   = nameAr.equals(nextNameAr);
+                    if (passed) passedCount++;
 
                     views.setTextViewText(NAME_IDS[i], nameAr);
                     views.setTextViewText(TIME_IDS[i], format12h(time24));
@@ -180,6 +182,17 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
                 }
                 skyName = nextNameAr;
 
+                // Gold sweep-gradient ring (WidgetCanvas) showing today's prayer
+                // completion — matches the dashboard/tasbeeh widgets' visual
+                // language instead of leaving this widget as flat text rows.
+                if (count > 0) {
+                    float ringProgress = passedCount / (float) count;
+                    views.setImageViewBitmap(R.id.prayer_full_ring,
+                        WidgetCanvas.ring(context, 34, 4f, ringProgress));
+                    views.setTextViewText(R.id.prayer_full_ring_label,
+                        toArabicNumerals(passedCount) + "/" + toArabicNumerals(count));
+                }
+
             } else {
                 // Data not synced yet
                 showPlaceholders(views);
@@ -210,6 +223,7 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
     private void showPlaceholders(RemoteViews views) {
         views.setViewVisibility(R.id.row_suhoor, android.view.View.GONE);
         views.setViewVisibility(R.id.row_iftar, android.view.View.GONE);
+        views.setTextViewText(R.id.prayer_full_ring_label, "");
         for (int i = 0; i < ROW_IDS.length; i++) {
             views.setTextViewText(NAME_IDS[i], FALLBACK_NAMES[i]);
             views.setTextViewText(TIME_IDS[i], "--:--");
@@ -253,5 +267,14 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    /** Convert Latin digits to Arabic-Indic numerals. */
+    private static String toArabicNumerals(int n) {
+        return String.valueOf(n)
+            .replace('0', '٠').replace('1', '١').replace('2', '٢')
+            .replace('3', '٣').replace('4', '٤').replace('5', '٥')
+            .replace('6', '٦').replace('7', '٧').replace('8', '٨')
+            .replace('9', '٩');
     }
 }
