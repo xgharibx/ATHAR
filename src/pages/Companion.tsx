@@ -146,7 +146,14 @@ export function CompanionPage() {
             <Sparkles className="h-5 w-5 text-[var(--accent)]" aria-hidden="true" />
           </span>
           <div>
-            <h1 className="text-lg font-bold text-[var(--fg)]">رفيق أثر</h1>
+            <h1 className="flex items-center gap-2 text-lg font-bold text-[var(--fg)]">
+              رفيق أثر
+              {ready && hasAppProvidedAccess(provider) ? (
+                <span className="rounded-full bg-accent-15 border border-accent-35 px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
+                  مجاني الآن ✨
+                </span>
+              ) : null}
+            </h1>
             <p className="text-xs text-[var(--muted-2)]">
               {ready ? "مرشدك الذكي — يعرف رحلتك ويقترح خطوتك التالية" : "الوضع الذكي يعمل الآن — والمحادثة الذكية قريبًا"}
             </p>
