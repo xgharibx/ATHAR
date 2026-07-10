@@ -195,6 +195,12 @@ export function MushafPage() {
   React.useEffect(() => { quranDBRef.current = quranDB; }, [quranDB]);
   // Track which surahs we've already toasted a completion for this session
   const sessionSurahCompletedRef = React.useRef(new Set<number>());
+  // Refs so the audio onended callback (set up in an effect keyed only on the
+  // reciter) can always reach the *current* page-map/page/navigator without
+  // going stale — same pattern as quranDBRef above.
+  const pageMapRef = React.useRef<Record<string, number>>({});
+  const currentPageRef = React.useRef<number>(1);
+  const goPageRef = React.useRef<(p: number) => void>(() => {});
 
   const prefs = useNoorStore((s) => s.prefs);
   const setPrefs = useNoorStore((s) => s.setPrefs);
@@ -274,6 +280,10 @@ export function MushafPage() {
     navigate(`/mushaf/${clamped}`, { replace: true });
   }, [navigate, setPrefs, totalPages, currentPage]);
 
+  React.useEffect(() => { pageMapRef.current = pageMap; }, [pageMap]);
+  React.useEffect(() => { currentPageRef.current = currentPage; }, [currentPage]);
+  React.useEffect(() => { goPageRef.current = goPage; }, [goPage]);
+
   // Page items
   const pageItems = React.useMemo(() => pageIndex.get(currentPage) ?? [], [pageIndex, currentPage]);
   const playableItems = React.useMemo(
@@ -281,6 +291,33 @@ export function MushafPage() {
     [pageItems]
   );
   const firstPlayableItem = playableItems[0] ?? null;
+
+  // Continuous "auto-advance" playback queue: every remaining ayah of the
+  // CURRENT surah starting from (surahId, fromOriginalAyah), spanning as many
+  // mushaf pages as the surah covers — not just the current page. pageIndex
+  // already holds every page in memory, so this is a synchronous scan, no
+  // extra fetch. Range-loop keeps its own page-scoped items (its start/end
+  // indices are UI-bound to the current page's playableItems).
+  const buildSurahQueue = React.useCallback(
+    (surahId: number, fromOriginalAyah: number) => {
+      const queue: { surahId: number; originalAyah: number; displayAyah: number }[] = [];
+      for (let p = currentPage; p <= totalPages; p++) {
+        const items = pageIndex.get(p);
+        if (!items) break;
+        const matches = items.filter((it) => !it.isBasmalahHeader && it.displayAyah > 0 && it.surahId === surahId);
+        if (matches.length === 0) {
+          if (queue.length > 0) break; // the surah has already ended on an earlier page
+          continue;
+        }
+        for (const it of matches) {
+          if (p === currentPage && it.originalAyah < fromOriginalAyah) continue;
+          queue.push({ surahId: it.surahId, originalAyah: it.originalAyah, displayAyah: it.displayAyah });
+        }
+      }
+      return queue;
+    },
+    [pageIndex, currentPage, totalPages]
+  );
 
   // Group by surah
   const surahGroups = React.useMemo((): SurahGroup[] => {
@@ -636,6 +673,13 @@ export function MushafPage() {
       }
       audioRef.current = audio;
       setPlayingKey(key);
+      // Cross-page auto-advance: if the ayah now playing isn't on the page
+      // the reader is looking at, turn the mushaf to follow it — otherwise
+      // playback would keep going while the screen sits on the old page.
+      const targetPage = Number(pageMapRef.current[`${surahId}:${originalAyah}`]);
+      if (Number.isFinite(targetPage) && targetPage >= 1 && targetPage !== currentPageRef.current) {
+        goPageRef.current(targetPage);
+      }
       audio.play().catch(() => toast.error("تعذر تشغيل التلاوة"));
       audio.onended = () => {
         // Guard: if component unmounted or a newer audio took over, bail out
@@ -697,7 +741,12 @@ export function MushafPage() {
     pst.loop = loopEnabled;
     pst.loopRemaining = loopEnabled ? loopCount : 0;
     pst.advance = autoAdvance;
-    const snapshot = playableItems.map((i) => ({ surahId: i.surahId, originalAyah: i.originalAyah, displayAyah: i.displayAyah }));
+    // Range-loop stays page-scoped (its start/end indices are bound to the
+    // current page's playableItems in the UI); plain auto-advance spans the
+    // whole surah across pages so playback no longer stops mid-surah.
+    const snapshot = (autoAdvance && !loopRange)
+      ? buildSurahQueue(surahId, originalAyah)
+      : playableItems.map((i) => ({ surahId: i.surahId, originalAyah: i.originalAyah, displayAyah: i.displayAyah }));
     const curIdx = snapshot.findIndex((i) => i.surahId === surahId && i.originalAyah === originalAyah);
     pst.items = snapshot;
     pst.currentIdx = curIdx >= 0 ? curIdx : 0;
@@ -705,7 +754,7 @@ export function MushafPage() {
     pst.rangeStartIdx = Math.max(0, loopRangeStartIdx);
     pst.rangeEndIdx = Math.min(snapshot.length - 1, Math.max(loopRangeStartIdx, loopRangeEndIdx));
     playItemCoreRef.current?.(surahId, originalAyah, displayAyah);
-  }, [playingKey, playbackSpeed, loopEnabled, loopCount, autoAdvance, playableItems, loopRange, loopRangeStartIdx, loopRangeEndIdx]);
+  }, [playingKey, playbackSpeed, loopEnabled, loopCount, autoAdvance, playableItems, loopRange, loopRangeStartIdx, loopRangeEndIdx, buildSurahQueue]);
 
   React.useEffect(() => () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; } }, []);
 
