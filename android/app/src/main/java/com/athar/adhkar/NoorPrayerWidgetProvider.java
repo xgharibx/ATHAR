@@ -3,6 +3,8 @@ package com.athar.adhkar;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
+import android.os.Build;
+import android.os.SystemClock;
 import android.widget.RemoteViews;
 
 import org.json.JSONArray;
@@ -96,15 +98,35 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             views.setTextViewText(R.id.noor_widget_phrase, nextName);
             views.setTextViewText(R.id.prayer_ring_time, format12hTime(nextTime));
             views.setTextViewText(R.id.prayer_ring_ampm, amPmArabic(nextTime));
-            String cd = buildCountdown(nextTime);
-            views.setTextViewText(R.id.prayer_countdown, cd.isEmpty() ? "حان الوقت 🕌" : "بعد " + cd);
             views.setInt(R.id.noor_widget_root, "setBackgroundResource", skyFor(nextName));
+
+            // Genuinely live countdown: the OS ticks a real Chronometer view
+            // in the launcher's own process, second by second, whether or
+            // not this app is even running — not a string re-rendered on
+            // whatever schedule the widget's own update job happens to fire.
+            // setChronometerCountDown (the count-DOWN mode) needs API 24; on
+            // older devices we fall back to the pre-computed static string.
+            long untilMs = millisUntilNext(nextTime);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && untilMs > 0) {
+                views.setViewVisibility(R.id.prayer_countdown, android.view.View.VISIBLE);
+                views.setViewVisibility(R.id.prayer_countdown_static, android.view.View.GONE);
+                views.setChronometerCountDown(R.id.prayer_countdown, true);
+                long base = SystemClock.elapsedRealtime() + untilMs;
+                views.setChronometer(R.id.prayer_countdown, base, "بعد %s", true);
+            } else {
+                views.setViewVisibility(R.id.prayer_countdown, android.view.View.GONE);
+                views.setViewVisibility(R.id.prayer_countdown_static, android.view.View.VISIBLE);
+                String cd = buildCountdown(nextTime);
+                views.setTextViewText(R.id.prayer_countdown_static, cd.isEmpty() ? "حان الوقت 🕌" : "بعد " + cd);
+            }
         } else {
             views.setTextViewText(R.id.noor_widget_title, "مواقيت الصلاة");
             views.setTextViewText(R.id.noor_widget_phrase, "افتح التطبيق");
             views.setTextViewText(R.id.prayer_ring_time, "--:--");
             views.setTextViewText(R.id.prayer_ring_ampm, "");
-            views.setTextViewText(R.id.prayer_countdown, "لتحميل المواقيت");
+            views.setViewVisibility(R.id.prayer_countdown, android.view.View.GONE);
+            views.setViewVisibility(R.id.prayer_countdown_static, android.view.View.VISIBLE);
+            views.setTextViewText(R.id.prayer_countdown_static, "لتحميل المواقيت");
             views.setInt(R.id.noor_widget_root, "setBackgroundResource", R.drawable.noor_widget_background);
         }
 
@@ -171,5 +193,27 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
         if (diff < 60) return diff + " دقيقة";
         int h = diff / 60, m = diff % 60;
         return m == 0 ? h + " ساعة" : h + "س " + m + "د";
+    }
+
+    /** Milliseconds from now until the next occurrence of time24 (HH:MM),
+     *  rolling to tomorrow if that time-of-day has already passed today. */
+    private static long millisUntilNext(String time24) {
+        try {
+            String[] p = time24.split(":");
+            int targetH = Integer.parseInt(p[0].trim());
+            int targetM = Integer.parseInt(p[1].trim());
+            Calendar target = Calendar.getInstance();
+            target.set(Calendar.HOUR_OF_DAY, targetH);
+            target.set(Calendar.MINUTE, targetM);
+            target.set(Calendar.SECOND, 0);
+            target.set(Calendar.MILLISECOND, 0);
+            long now = System.currentTimeMillis();
+            if (target.getTimeInMillis() <= now) {
+                target.add(Calendar.DAY_OF_YEAR, 1);
+            }
+            return target.getTimeInMillis() - now;
+        } catch (Exception e) {
+            return -1;
+        }
     }
 }

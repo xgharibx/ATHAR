@@ -209,6 +209,12 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         views.setInt(R.id.prayer_full_root, "setBackgroundResource",
             NoorPrayerWidgetProvider.skyFor(skyName));
 
+        // Starfield reseeds each real update (~once per minute at most, per
+        // AtharWidgetProvider's update cadence) so the sky visibly shifts
+        // over the day instead of being one static frame forever.
+        views.setImageViewBitmap(R.id.prayer_full_stars,
+            WidgetCanvas.starfield(context, 250, 160, 46, System.currentTimeMillis() / 60000));
+
         // Tap → open prayer times directly
         PendingIntent pi = openApp(context, appWidgetId * 23, "/prayer-times");
         views.setOnClickPendingIntent(R.id.prayer_full_root, pi);

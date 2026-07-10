@@ -2,12 +2,15 @@ package com.athar.adhkar;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.SweepGradient;
+
+import java.util.Random;
 
 /**
  * Runtime Canvas renderer for widget art.
@@ -121,6 +124,51 @@ public final class WidgetCanvas {
         Paint gloss = new Paint(Paint.ANTI_ALIAS_FLAG);
         gloss.setShader(new LinearGradient(0, 0, 0, h, 0x40FFFFFF, 0x00FFFFFF, Shader.TileMode.CLAMP));
         c.drawRoundRect(fill, r, r, gloss);
+        return bmp;
+    }
+
+    /**
+     * Procedural starfield, matching the in-app NoorStarfield's warm-gold
+     * palette (#ffd780). RemoteViews can't run a real-time animation loop —
+     * there's no requestAnimationFrame equivalent, and a continuously
+     * redrawing widget would drain battery, which the platform actively
+     * discourages. Instead: each widget refresh reseeds the star positions
+     * (same technique classic screensavers used), so the sky visibly shifts
+     * from update to update rather than sitting static forever.
+     *
+     * @param seed vary per-refresh (e.g. System.currentTimeMillis() / update
+     *             interval) so the pattern changes on each real update but
+     *             stays stable within a single render.
+     */
+    public static Bitmap starfield(Context ctx, int widthDp, int heightDp, int starCount, long seed) {
+        int w = Math.max(48, (int) dp(ctx, widthDp));
+        int h = Math.max(48, (int) dp(ctx, heightDp));
+        Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmp);
+        Random rnd = new Random(seed);
+
+        Paint star = new Paint(Paint.ANTI_ALIAS_FLAG);
+        Paint glow = new Paint(Paint.ANTI_ALIAS_FLAG);
+        glow.setMaskFilter(new BlurMaskFilter(dp(ctx, 2.5f), BlurMaskFilter.Blur.NORMAL));
+
+        for (int i = 0; i < starCount; i++) {
+            float x = rnd.nextFloat() * w;
+            float y = rnd.nextFloat() * h;
+            // Most stars are tiny and dim; a few are bigger "hero" stars with
+            // a soft glow — same distribution the CSS starfield uses so the
+            // widget reads as part of the same sky, not a different asset.
+            boolean hero = rnd.nextFloat() < 0.12f;
+            float r = hero ? dp(ctx, 1.4f + rnd.nextFloat() * 1.0f) : dp(ctx, 0.5f + rnd.nextFloat() * 0.6f);
+            int alpha = hero ? (140 + rnd.nextInt(90)) : (40 + rnd.nextInt(90));
+            int color = (GOLD_LIGHT & 0x00FFFFFF) | (alpha << 24);
+
+            if (hero) {
+                glow.setColor((GOLD & 0x00FFFFFF) | ((alpha / 3) << 24));
+                c.drawCircle(x, y, r * 2.2f, glow);
+            }
+            star.setColor(color);
+            c.drawCircle(x, y, r, star);
+        }
         return bmp;
     }
 

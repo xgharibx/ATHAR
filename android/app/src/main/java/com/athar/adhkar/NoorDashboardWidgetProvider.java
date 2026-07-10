@@ -109,7 +109,11 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         // ── 5. Streak + level ─────────────────────────────────────
         applyStreakSection(views, prefs);
 
-        // ── 6. Tap → open app ─────────────────────────────────────
+        // ── 6. Starfield — reseeds each real update ────────────────
+        views.setImageViewBitmap(R.id.dashboard_stars,
+            WidgetCanvas.starfield(context, 280, 280, 70, System.currentTimeMillis() / 60000));
+
+        // ── 7. Tap → open app ─────────────────────────────────────
         PendingIntent pi = openApp(context, appWidgetId * 24, null);
         views.setOnClickPendingIntent(R.id.dashboard_root, pi);
         views.setOnClickPendingIntent(R.id.dash_open_btn, pi);

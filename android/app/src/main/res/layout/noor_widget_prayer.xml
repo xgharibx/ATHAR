@@ -11,7 +11,7 @@
     android:background="@drawable/noor_widget_background"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="10dp">
 
     <!-- Interval ring with mini time centered -->
     <FrameLayout
@@ -76,37 +76,55 @@
             android:id="@+id/noor_widget_phrase"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="1dp"
             android:ellipsize="end"
             android:gravity="end"
             android:maxLines="1"
             android:includeFontPadding="false"
             android:text="العشاء"
             android:textColor="#FFFFFF"
-            android:textSize="30sp"
+            android:textSize="22sp"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="bold" />
+
+        <!-- A real Chronometer, not a TextView: the OS ticks this live,
+             second by second, with zero app-process/broadcast involvement —
+             genuinely live, not "updates whenever the widget happens to
+             refresh." Falls back to a static TextView pre-Android 7.0
+             (isCountDown needs API 24); see NoorPrayerWidgetProvider. -->
+        <Chronometer
+            android:id="@+id/prayer_countdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:gravity="end"
+            android:text=""
+            android:textColor="#FFE8B0"
+            android:textSize="13sp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/prayer_countdown"
+            android:id="@+id/prayer_countdown_static"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="1dp"
             android:gravity="end"
             android:text=""
             android:textColor="#FFE8B0"
-            android:textSize="15sp"
+            android:textSize="13sp"
             android:fontFamily="sans-serif-medium"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/noor_widget_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="3dp"
             android:gravity="end"
             android:textColor="#A9C4A9"
-            android:textSize="10sp" />
+            android:textSize="9sp" />
     </LinearLayout>
 
 </LinearLayout>

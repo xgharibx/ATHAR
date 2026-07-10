@@ -7,13 +7,26 @@
   - Suhoor / Iftar rows shown only during Ramadan
   - Tap anywhere to open prayer times page in app
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/prayer_full_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/noor_widget_background"
-    android:orientation="vertical"
-    android:padding="12dp">
+    android:background="@drawable/noor_widget_background">
+
+    <!-- Procedural starfield (WidgetCanvas), reseeded on every real update —
+         same warm-gold sky the rest of the app uses, not a flat card. -->
+    <ImageView
+        android:id="@+id/prayer_full_stars"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="12dp">
 
     <!-- Header: progress ring (day's prayers) + title/date + countdown -->
     <LinearLayout
@@ -391,4 +404,6 @@
 
     </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>
