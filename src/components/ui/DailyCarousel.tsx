@@ -384,8 +384,11 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
             </div>
           </div>
 
-          {/* Slide 4: كلمة اليوم */}
-          <div id="carousel-slide-3" role="group" aria-roledescription="شريحة" aria-label="كلمة اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          {/* Slide 4: كلمة اليوم — content is naturally shorter than the other
+              slides (a single word + meaning), but the carousel track sizes
+              every slide to the tallest one, so center it instead of leaving
+              it top-aligned with a large dead gap underneath. */}
+          <div id="carousel-slide-3" role="group" aria-roledescription="شريحة" aria-label="كلمة اليوم" className="flex flex-col justify-center" style={{ flex: "0 0 100%", width: "100%", minHeight: "100%", padding: "0.75rem 1rem 1rem" }}>
             {vocabWord ? (
               <>
                 <button

@@ -120,11 +120,15 @@ export function NoorBackground() {
           )}
         </div>
 
+        {/* Fades to the theme's own --bg, not a hardcoded dark color — a
+            hardcoded near-black fade here washed every light theme (فاتح،
+            بستان، ورق، طين، جرة، الأندلس، سكينة) with a dark bottom half,
+            since it never adapted to the active palette. */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(7,8,11,.00) 0%, rgba(7,8,11,.35) 35%, rgba(7,8,11,.75) 72%, rgba(7,8,11,.95) 100%)"
+              "linear-gradient(180deg, color-mix(in srgb, var(--bg) 0%, transparent) 0%, color-mix(in srgb, var(--bg) 35%, transparent) 35%, color-mix(in srgb, var(--bg) 75%, transparent) 72%, color-mix(in srgb, var(--bg) 95%, transparent) 100%)"
           }}
         />
       </div>

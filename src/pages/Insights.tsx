@@ -2114,7 +2114,10 @@ export function InsightsPage() {
 function MiniStatSmall(props: { label: string; value: string; accent?: boolean }) {
   return (
     <div className={`glass rounded-2xl p-2.5 border text-center ${props.accent ? "border-accent-30 bg-accent-8" : "border-[var(--stroke)]"}`}>
-      <div className="text-[11px] opacity-55 truncate">{props.label}</div>
+      {/* Two-line wrap, not truncate: "أفضل يوم" vs "أفضل سلسلة" both clip to
+          the identical "أفضل…" when cut off, making adjacent stat cards
+          indistinguishable at a glance. */}
+      <div className="text-[10px] leading-tight opacity-55 break-words">{props.label}</div>
       <div className={`text-sm font-bold mt-0.5 tabular-nums ${props.accent ? "text-[var(--accent)]" : ""}`}>{props.value}</div>
     </div>
   );
