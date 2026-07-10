@@ -98,6 +98,7 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.prayer_full_date, dateLine());
 
         String skyName = null;
+        int prevMin = 0, nextMin = -1;
         try {
             String json = WidgetData.readJson(context, WIDGET_KEY);
 
@@ -137,7 +138,8 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
                     String time24    = p.optString("time", "--:--");
                     boolean passed   = p.optBoolean("passed", false);
                     boolean isNext   = nameAr.equals(nextNameAr);
-                    if (passed) passedCount++;
+                    if (passed) { passedCount++; prevMin = Math.max(prevMin, toMinutesOfDay(time24)); }
+                    if (isNext) nextMin = toMinutesOfDay(time24);
 
                     views.setTextViewText(NAME_IDS[i], nameAr);
                     views.setTextViewText(TIME_IDS[i], format12h(time24));
@@ -205,15 +207,20 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
             views.setTextViewText(R.id.prayer_full_countdown, "تعذّر تحميل المواقيت");
         }
 
-        // Sky follows the day: background shifts with the upcoming prayer
-        views.setInt(R.id.prayer_full_root, "setBackgroundResource",
-            NoorPrayerWidgetProvider.skyFor(skyName));
+        // Continuous sky — LERPs from the phase just passed toward the one
+        // being counted down to, same fraction the header countdown uses,
+        // instead of jumping between 5 fixed images.
+        int toPhase = NoorPrayerWidgetProvider.phaseFor(skyName);
+        int fromPhase = NoorPrayerWidgetProvider.prevPhase(toPhase);
+        float skyBlend = intervalProgressFor(prevMin, nextMin);
+        views.setImageViewBitmap(R.id.prayer_full_sky,
+            WidgetCanvas.sky(context, 250, 220, fromPhase, toPhase, skyBlend, 26f));
 
         // Starfield reseeds each real update (~once per minute at most, per
         // AtharWidgetProvider's update cadence) so the sky visibly shifts
         // over the day instead of being one static frame forever.
         views.setImageViewBitmap(R.id.prayer_full_stars,
-            WidgetCanvas.starfield(context, 250, 160, 46, System.currentTimeMillis() / 60000));
+            WidgetCanvas.starfield(context, 250, 220, 46, System.currentTimeMillis() / 60000));
 
         // Tap → open prayer times directly
         PendingIntent pi = openApp(context, appWidgetId * 23, "/prayer-times");
@@ -273,6 +280,25 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    private static int toMinutesOfDay(String time24) {
+        try {
+            String[] p = time24.split(":");
+            return Integer.parseInt(p[0].trim()) * 60 + Integer.parseInt(p[1].trim());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /** Elapsed fraction (0..1) of the way from prevMin to nextMin — the same
+     *  quantity the countdown ring/sky use to agree on "how far through". */
+    private static float intervalProgressFor(int prevMin, int nextMin) {
+        if (nextMin < 0) return 1f; // all prayers passed — treat as "at" the next phase
+        Calendar cal = Calendar.getInstance();
+        int nowMin = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
+        int span = Math.max(1, nextMin - prevMin);
+        return Math.max(0f, Math.min(1f, (nowMin - prevMin) / (float) span));
     }
 
     /** Convert Latin digits to Arabic-Indic numerals. */

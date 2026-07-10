@@ -22,6 +22,16 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg_dashboard">
 
+    <!-- Continuous sky (WidgetCanvas.sky) — the flagship widget gets the
+         same live-shifting background as the two prayer widgets, driven by
+         the same interval-progress fraction, instead of one static fill. -->
+    <ImageView
+        android:id="@+id/dashboard_sky"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
     <!-- Procedural starfield (WidgetCanvas), reseeded on every real update. -->
     <ImageView
         android:id="@+id/dashboard_stars"

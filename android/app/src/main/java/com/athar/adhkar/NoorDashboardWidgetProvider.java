@@ -97,8 +97,10 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.dash_greeting, resolveGreeting());
         views.setTextViewText(R.id.dash_date, dateLine());
 
-        // ── 2. Prayer dots & countdown ────────────────────────────
-        applyPrayerSection(views, prefs);
+        // ── 2. Prayer dots & countdown (+ continuous sky, since this is
+        //      the one section that actually knows what phase of the day
+        //      it is) ──────────────────────────────────────────────────
+        int nightPhase = applyPrayerSection(context, views, prefs);
 
         // ── 3. Adhkar progress bars ───────────────────────────────
         applyAdhkarSection(context, views, prefs);
@@ -109,9 +111,15 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         // ── 5. Streak + level ─────────────────────────────────────
         applyStreakSection(views, prefs);
 
-        // ── 6. Starfield — reseeds each real update ────────────────
-        views.setImageViewBitmap(R.id.dashboard_stars,
-            WidgetCanvas.starfield(context, 280, 280, 70, System.currentTimeMillis() / 60000));
+        // ── 6. Starfield — only during the fajr/isha sky, matching the
+        //      other widgets; reseeds each real update. ─────────────
+        if (nightPhase == 1) {
+            views.setViewVisibility(R.id.dashboard_stars, View.VISIBLE);
+            views.setImageViewBitmap(R.id.dashboard_stars,
+                WidgetCanvas.starfield(context, 280, 280, 70, System.currentTimeMillis() / 60000));
+        } else {
+            views.setViewVisibility(R.id.dashboard_stars, View.GONE);
+        }
 
         // ── 7. Tap → open app ─────────────────────────────────────
         PendingIntent pi = openApp(context, appWidgetId * 24, null);
@@ -123,13 +131,17 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
     // ─── Prayer section ────────────────────────────────────────────
 
-    private void applyPrayerSection(RemoteViews views, SharedPreferences prefs) {
+    /** @return 1 if the current/next phase pair includes fajr or isha (the
+     *  starfield should show), 0 otherwise. */
+    private int applyPrayerSection(Context context, RemoteViews views, SharedPreferences prefs) {
         try {
             String json = readJson(prefs, KEY_PRAYER);
             if (json == null) {
                 setAllDotsFuture(views);
                 views.setTextViewText(R.id.dash_next_countdown, "افتح التطبيق");
-                return;
+                views.setImageViewBitmap(R.id.dashboard_sky,
+                    WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f, 26f));
+                return 1;
             }
 
             JSONObject payload = new JSONObject(json);
@@ -148,14 +160,19 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             // Map prayer names to dot indices: فجر=0, ظهر=1, عصر=2, مغرب=3, عشاء=4
             boolean[] passed = new boolean[5];
             boolean[] isNext = new boolean[5];
+            int prevMin = 0, nextMin = -1, nextIdx = WidgetCanvas.PHASE_ISHA;
 
             if (prayers != null) {
                 for (int i = 0; i < prayers.length() && i < 5; i++) {
                     JSONObject p = prayers.getJSONObject(i);
                     passed[i] = p.optBoolean("passed", false);
+                    int timeMin = toMinutesOfDay(p.optString("time", "0:0"));
+                    if (passed[i]) prevMin = Math.max(prevMin, timeMin);
                     String nameAr = p.optString("nameAr", "");
                     if (nextNameAr != null && nextNameAr.equals(nameAr)) {
                         isNext[i] = true;
+                        nextMin = timeMin;
+                        nextIdx = i;
                     }
                 }
             }
@@ -173,10 +190,39 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
                 }
             }
 
+            // Continuous sky — same LERP-by-interval-fraction as the other
+            // two prayer widgets, so all three widgets agree on the sky.
+            int fromIdx = NoorPrayerWidgetProvider.prevPhase(nextIdx);
+            float blend = intervalProgressFor(prevMin, nextMin);
+            views.setImageViewBitmap(R.id.dashboard_sky,
+                WidgetCanvas.sky(context, 280, 280, fromIdx, nextIdx, blend, 26f));
+            return (nextIdx == WidgetCanvas.PHASE_FAJR || nextIdx == WidgetCanvas.PHASE_ISHA
+                || fromIdx == WidgetCanvas.PHASE_FAJR || fromIdx == WidgetCanvas.PHASE_ISHA) ? 1 : 0;
+
         } catch (Exception e) {
             setAllDotsFuture(views);
             views.setTextViewText(R.id.dash_next_countdown, "");
+            views.setImageViewBitmap(R.id.dashboard_sky,
+                WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f, 26f));
+            return 1;
         }
+    }
+
+    private static int toMinutesOfDay(String time24) {
+        try {
+            String[] p = time24.split(":");
+            return Integer.parseInt(p[0].trim()) * 60 + Integer.parseInt(p[1].trim());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private static float intervalProgressFor(int prevMin, int nextMin) {
+        if (nextMin < 0) return 1f;
+        Calendar cal = Calendar.getInstance();
+        int nowMin = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
+        int span = Math.max(1, nextMin - prevMin);
+        return Math.max(0f, Math.min(1f, (nowMin - prevMin) / (float) span));
     }
 
     private void setAllDotsFuture(RemoteViews views) {

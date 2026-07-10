@@ -13,6 +13,15 @@
     android:layout_height="match_parent"
     android:background="@drawable/noor_widget_background">
 
+    <!-- Continuous sky (WidgetCanvas.sky) — replaces the old 5-static-drawable
+         swap; LERPs by the same interval fraction the countdown uses. -->
+    <ImageView
+        android:id="@+id/prayer_full_sky"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
     <!-- Procedural starfield (WidgetCanvas), reseeded on every real update —
          same warm-gold sky the rest of the app uses, not a flat card. -->
     <ImageView

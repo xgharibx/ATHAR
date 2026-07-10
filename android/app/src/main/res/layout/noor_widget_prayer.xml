@@ -4,14 +4,34 @@
   Sky-phase gradient background (set from Java by next prayer), interval
   progress ring (Canvas bitmap), hero countdown, prayer name + time.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/noor_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/noor_widget_background"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="10dp">
+    android:background="@drawable/noor_widget_background">
+
+    <!-- Continuous sky (WidgetCanvas.sky) — LERPs between phase colors by
+         interval progress instead of jumping between 5 static drawables. -->
+    <ImageView
+        android:id="@+id/prayer_sky"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <ImageView
+        android:id="@+id/prayer_stars"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="10dp">
 
     <!-- Interval ring with mini time centered -->
     <FrameLayout
@@ -127,4 +147,6 @@
             android:textSize="9sp" />
     </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

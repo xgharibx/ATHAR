@@ -98,7 +98,23 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             views.setTextViewText(R.id.noor_widget_phrase, nextName);
             views.setTextViewText(R.id.prayer_ring_time, format12hTime(nextTime));
             views.setTextViewText(R.id.prayer_ring_ampm, amPmArabic(nextTime));
-            views.setInt(R.id.noor_widget_root, "setBackgroundResource", skyFor(nextName));
+
+            // Continuous sky: LERPs from the current phase toward the one
+            // we're counting down to, using the same fraction as the ring —
+            // the sky and the ring always agree on "how far through" we are.
+            int toPhase = phaseFor(nextName);
+            int fromPhase = prevPhase(toPhase);
+            views.setImageViewBitmap(R.id.prayer_sky,
+                WidgetCanvas.sky(context, 250, 110, fromPhase, toPhase, intervalProgress, 26f));
+            boolean nightPhase = toPhase == WidgetCanvas.PHASE_FAJR || toPhase == WidgetCanvas.PHASE_ISHA
+                || fromPhase == WidgetCanvas.PHASE_FAJR || fromPhase == WidgetCanvas.PHASE_ISHA;
+            if (nightPhase) {
+                views.setViewVisibility(R.id.prayer_stars, android.view.View.VISIBLE);
+                views.setImageViewBitmap(R.id.prayer_stars,
+                    WidgetCanvas.starfield(context, 250, 110, 26, System.currentTimeMillis() / 60000));
+            } else {
+                views.setViewVisibility(R.id.prayer_stars, android.view.View.GONE);
+            }
 
             // Genuinely live countdown: the OS ticks a real Chronometer view
             // in the launcher's own process, second by second, whether or
@@ -127,6 +143,7 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             views.setViewVisibility(R.id.prayer_countdown, android.view.View.GONE);
             views.setViewVisibility(R.id.prayer_countdown_static, android.view.View.VISIBLE);
             views.setTextViewText(R.id.prayer_countdown_static, "لتحميل المواقيت");
+            views.setViewVisibility(R.id.prayer_stars, android.view.View.GONE);
             views.setInt(R.id.noor_widget_root, "setBackgroundResource", R.drawable.noor_widget_background);
         }
 
@@ -148,6 +165,26 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
         if (nameAr.contains("المغرب"))  return R.drawable.widget_bg_sky_maghrib;
         if (nameAr.contains("العشاء"))  return R.drawable.widget_bg_sky_isha;
         return R.drawable.noor_widget_background;
+    }
+
+    /** Same name matching as skyFor(), but returns a WidgetCanvas.PHASE_*
+     *  index for the continuous LERP renderer instead of a static drawable. */
+    static int phaseFor(String nameAr) {
+        if (nameAr == null) return WidgetCanvas.PHASE_ISHA;
+        if (nameAr.contains("الفجر"))   return WidgetCanvas.PHASE_FAJR;
+        if (nameAr.contains("الظهر") || nameAr.contains("الجمعة")) return WidgetCanvas.PHASE_DHUHR;
+        if (nameAr.contains("العصر"))   return WidgetCanvas.PHASE_ASR;
+        if (nameAr.contains("المغرب"))  return WidgetCanvas.PHASE_MAGHRIB;
+        if (nameAr.contains("العشاء"))  return WidgetCanvas.PHASE_ISHA;
+        return WidgetCanvas.PHASE_ISHA;
+    }
+
+    /** The phase immediately before `toPhase` in the fixed daily cycle
+     *  (fajr → dhuhr → asr → maghrib → isha → fajr…) — prayer phases always
+     *  occur in this order, so "the phase we're currently in" is always
+     *  knowable from "the phase we're counting down to" alone. */
+    static int prevPhase(int toPhase) {
+        return (toPhase + 4) % 5; // +4 mod 5 == -1 mod 5, without a negative index
     }
 
     private static int toMinutes(String hhmm) {
