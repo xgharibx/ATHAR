@@ -10,7 +10,7 @@
  */
 import * as React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Sparkles, Send, Settings2, KeyRound, Trash2, Square } from "lucide-react";
+import { Sparkles, Send, Settings2, KeyRound, Trash2, Square, History, Plus, Pencil, Check, X as XIcon } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -35,8 +35,30 @@ import {
   streamCompanionReply,
   type CompanionMessage,
 } from "@/lib/companionAI";
+import {
+  deleteConversation,
+  getConversation,
+  listConversations,
+  newConversationId,
+  renameConversation,
+  saveConversation,
+  titleFromMessages,
+  type CompanionConversation,
+} from "@/lib/companionHistory";
 import { GrowthTree } from "@/components/brand/GrowthTree";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+
+/** Relative "قبل ٣ ساعات"-style label for the history list. */
+function relativeTime(ms: number): string {
+  const diff = Date.now() - ms;
+  const min = Math.floor(diff / 60_000);
+  if (min < 1) return "الآن";
+  if (min < 60) return `قبل ${min.toLocaleString("ar-EG")} د`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `قبل ${hr.toLocaleString("ar-EG")} س`;
+  const day = Math.floor(hr / 24);
+  return `قبل ${day.toLocaleString("ar-EG")} يوم`;
+}
 
 const QUICK_PROMPTS = [
   "ما الخطوة الأنسب لي الآن في يومي الإيماني؟",
@@ -70,6 +92,78 @@ export function CompanionPage() {
   React.useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, streamingText]);
+
+  // ── Conversation history (per-device, IndexedDB) ────────────────────────
+  const [showHistory, setShowHistory] = React.useState(false);
+  const [history, setHistory] = React.useState<CompanionConversation[]>([]);
+  const [renamingId, setRenamingId] = React.useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = React.useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = React.useState<string | null>(null);
+  const currentIdRef = React.useRef<string | null>(null);
+  const currentTitleRef = React.useRef<string>("");
+  const createdAtRef = React.useRef<number>(Date.now());
+
+  const refreshHistory = React.useCallback(() => {
+    void listConversations().then(setHistory);
+  }, []);
+
+  React.useEffect(() => { refreshHistory(); }, [refreshHistory]);
+
+  // Autosave the active conversation whenever it changes.
+  React.useEffect(() => {
+    if (messages.length === 0) return;
+    if (!currentIdRef.current) {
+      currentIdRef.current = newConversationId();
+      createdAtRef.current = Date.now();
+    }
+    if (!currentTitleRef.current) currentTitleRef.current = titleFromMessages(messages);
+    void saveConversation({
+      id: currentIdRef.current,
+      title: currentTitleRef.current,
+      messages,
+      createdAt: createdAtRef.current,
+      updatedAt: Date.now(),
+    }).then(refreshHistory);
+  }, [messages, refreshHistory]);
+
+  const startNewChat = React.useCallback(() => {
+    currentIdRef.current = null;
+    currentTitleRef.current = "";
+    createdAtRef.current = Date.now();
+    setMessages([]);
+    setStreamingText(null);
+    setInput("");
+    setShowHistory(false);
+  }, []);
+
+  const loadConversation = React.useCallback((conv: CompanionConversation) => {
+    currentIdRef.current = conv.id;
+    currentTitleRef.current = conv.title;
+    createdAtRef.current = conv.createdAt;
+    setMessages(conv.messages);
+    setStreamingText(null);
+    setInput("");
+    setShowHistory(false);
+  }, []);
+
+  const openConversation = React.useCallback((id: string) => {
+    void getConversation(id).then((conv) => { if (conv) loadConversation(conv); });
+  }, [loadConversation]);
+
+  const commitRename = React.useCallback((id: string) => {
+    const title = renameDraft.trim();
+    setRenamingId(null);
+    if (!title) return;
+    if (id === currentIdRef.current) currentTitleRef.current = title;
+    void renameConversation(id, title).then(refreshHistory);
+  }, [renameDraft, refreshHistory]);
+
+  const confirmDelete = React.useCallback((id: string) => {
+    if (confirmDeleteId !== id) { setConfirmDeleteId(id); return; }
+    setConfirmDeleteId(null);
+    if (id === currentIdRef.current) startNewChat();
+    void deleteConversation(id).then(refreshHistory);
+  }, [confirmDeleteId, refreshHistory, startNewChat]);
 
   // Deep-linked question (e.g. اشرح الحديث / تدبّر الآية from the home carousel):
   // /companion?ask=… — auto-send when the companion is ready, else prefill.
@@ -162,19 +256,111 @@ export function CompanionPage() {
             </p>
           </div>
         </div>
-        <button type="button"
-          onClick={() => setShowSettings((v) => !v)}
-          aria-label="إعدادات الرفيق"
-          aria-expanded={showSettings}
-          className="rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 hover:bg-[var(--card-2)] transition"
-        >
-          <Settings2 className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button type="button"
+            onClick={() => setShowHistory(true)}
+            aria-label="المحادثات السابقة"
+            className="rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 hover:bg-[var(--card-2)] transition"
+          >
+            <History className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <button type="button"
+            onClick={() => setShowSettings(true)}
+            aria-label="إعدادات الرفيق"
+            aria-expanded={showSettings}
+            className="rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 hover:bg-[var(--card-2)] transition"
+          >
+            <Settings2 className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
       </div>
 
-      {/* Settings panel */}
+      {/* History slide-over */}
+      {showHistory ? (
+        <div className="fixed inset-0 z-50 flex justify-start" dir="rtl">
+          <button type="button" aria-label="إغلاق" onClick={() => setShowHistory(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+          <div className="relative flex h-full w-[86%] max-w-sm flex-col bg-[var(--bg)] shadow-2xl">
+            <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
+              <h2 className="text-sm font-bold">المحادثات السابقة</h2>
+              <button type="button" onClick={() => setShowHistory(false)} aria-label="إغلاق"
+                className="rounded-lg p-1.5 hover:bg-[var(--card-2)] transition">
+                <XIcon className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+            <div className="p-3">
+              <button type="button" onClick={startNewChat}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2.5 text-sm font-bold text-black/80 active:scale-[0.99] transition">
+                <Plus className="h-4 w-4" aria-hidden="true" /> محادثة جديدة
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-1.5">
+              {history.length === 0 ? (
+                <p className="mt-6 text-center text-xs text-[var(--muted-2)]">لا توجد محادثات محفوظة بعد</p>
+              ) : history.map((conv) => (
+                <div key={conv.id}
+                  className={[
+                    "rounded-xl border px-3 py-2.5 transition",
+                    conv.id === currentIdRef.current ? "border-accent-35 bg-accent-15" : "border-[var(--stroke)] bg-[var(--card)]",
+                  ].join(" ")}
+                >
+                  {renamingId === conv.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        autoFocus
+                        value={renameDraft}
+                        onChange={(e) => setRenameDraft(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") commitRename(conv.id); if (e.key === "Escape") setRenamingId(null); }}
+                        className="form-field-readable flex-1 rounded-lg border border-[var(--stroke)] px-2 py-1 text-xs"
+                      />
+                      <button type="button" onClick={() => commitRename(conv.id)} aria-label="حفظ الاسم" className="rounded-lg p-1.5 hover:bg-[var(--card-2)]">
+                        <Check className="h-3.5 w-3.5 text-[var(--ok)]" aria-hidden="true" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => openConversation(conv.id)} className="block w-full text-start">
+                      <div className="truncate text-sm font-medium">{conv.title}</div>
+                      <div className="mt-0.5 text-[11px] text-[var(--muted-2)]">{relativeTime(conv.updatedAt)} · {conv.messages.length.toLocaleString("ar-EG")} رسالة</div>
+                    </button>
+                  )}
+                  {renamingId !== conv.id ? (
+                    <div className="mt-1.5 flex items-center gap-1 border-t border-[var(--stroke)] pt-1.5">
+                      <button type="button"
+                        onClick={() => { setRenamingId(conv.id); setRenameDraft(conv.title); }}
+                        className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--card-2)] transition">
+                        <Pencil className="h-3 w-3" aria-hidden="true" /> إعادة تسمية
+                      </button>
+                      <button type="button"
+                        onClick={() => confirmDelete(conv.id)}
+                        className={[
+                          "flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] transition",
+                          confirmDeleteId === conv.id ? "bg-[var(--danger)]/15 text-[var(--danger)]" : "text-[var(--muted)] hover:text-[var(--danger)] hover:bg-[var(--card-2)]",
+                        ].join(" ")}>
+                        <Trash2 className="h-3 w-3" aria-hidden="true" /> {confirmDeleteId === conv.id ? "تأكيد الحذف؟" : "حذف"}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Settings slide-over */}
       {showSettings ? (
-        <div className="mt-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4 space-y-3">
+        <div className="fixed inset-0 z-50 flex justify-end" dir="rtl">
+          <button type="button" aria-label="إغلاق" onClick={() => setShowSettings(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+          <div className="relative flex h-full w-[86%] max-w-sm flex-col bg-[var(--bg)] shadow-2xl">
+            <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
+              <h2 className="text-sm font-bold">إعدادات الرفيق</h2>
+              <button type="button" onClick={() => setShowSettings(false)} aria-label="إغلاق"
+                className="rounded-lg p-1.5 hover:bg-[var(--card-2)] transition">
+                <XIcon className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div className="flex items-center justify-between gap-2">
             <label className="text-xs text-[var(--muted)]" htmlFor="companion-model">النموذج</label>
             <select
@@ -234,6 +420,8 @@ export function CompanionPage() {
               ) : null}
             </details>
           )}
+            </div>
+          </div>
         </div>
       ) : null}
 
@@ -243,28 +431,16 @@ export function CompanionPage() {
           {/* شجرة الأثر — your week, growing */}
           <GrowthTree />
 
-          {/* خاطرة الجمعة — the personal weekly reflection */}
-          <button type="button"
-            onClick={() => void send(buildWeeklyReflectionPrompt())}
-            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-accent-35 bg-accent-15 px-4 py-3 text-start transition hover:opacity-90 active:scale-[0.99]"
-          >
-            <div>
-              <div className="text-sm font-bold text-[var(--accent)]">
-                خاطرة الجمعة ✨
-                {new Date().getDay() === 5 ? (
-                  <span className="ms-2 rounded-full bg-[var(--accent)] px-2 py-0.5 text-[10px] font-bold text-black/80">اليوم جمعة</span>
-                ) : null}
-              </div>
-              <div className="mt-0.5 text-xs text-[var(--muted)]">
-                خاطرة مكتوبة لك وحدك — من أسبوعك الحقيقي: قراءتك، أذكارك، وتسبيحك
-              </div>
-            </div>
-            <Sparkles className="h-5 w-5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
-          </button>
-
           <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4">
-            <div className="text-sm font-semibold mb-3">خطواتك المقترحة اليوم</div>
+            <div className="text-sm font-semibold mb-3">اقتراحات اليوم</div>
             <div className="grid gap-2">
+              <SmartStep
+                icon="✨"
+                label={new Date().getDay() === 5 ? "خاطرة الجمعة — اليوم جمعة" : "خاطرة الجمعة"}
+                action="اكتبها لي"
+                onClick={() => void send(buildWeeklyReflectionPrompt())}
+                accent
+              />
               {!ctx.morningDone ? (
                 <SmartStep icon="☀️" label="أذكار الصباح لم تكتمل بعد" action="ابدأ الآن" onClick={() => navigate("/c/morning")} />
               ) : null}
@@ -297,25 +473,25 @@ export function CompanionPage() {
             <div className="mt-3 text-[11px] text-[var(--muted-2)]">
               سلسلة المواظبة: {ctx.streakDays.toLocaleString("ar-EG")} يوم 🔥
             </div>
-          </div>
 
-          {/* Quick prompts (AI mode) */}
-          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4">
-            <div className="text-sm font-semibold mb-2">اسأل رفيقك</div>
-            <div className="flex flex-wrap gap-2">
-              {QUICK_PROMPTS.map((q) => (
-                <button type="button" key={q}
-                  onClick={() => void send(q)}
-                  className="rounded-full border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-1.5 text-xs hover:border-accent-35 transition">
-                  {q}
-                </button>
-              ))}
+            {/* Quick prompts */}
+            <div className="mt-4 border-t border-[var(--stroke)] pt-3">
+              <div className="text-xs text-[var(--muted)] mb-2">أو اسأل رفيقك مباشرة</div>
+              <div className="flex flex-wrap gap-2">
+                {QUICK_PROMPTS.map((q) => (
+                  <button type="button" key={q}
+                    onClick={() => void send(q)}
+                    className="rounded-full border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-1.5 text-xs hover:border-accent-35 transition">
+                    {q}
+                  </button>
+                ))}
+              </div>
+              {!ready ? (
+                <p className="mt-3 text-[11px] text-[var(--muted-2)]">
+                  المحادثة الذكية قيد التفعيل وستصل للجميع قريبًا — الوضع الذكي أعلاه يعمل الآن. ✨
+                </p>
+              ) : null}
             </div>
-            {!ready ? (
-              <p className="mt-3 text-[11px] text-[var(--muted-2)]">
-                المحادثة الذكية قيد التفعيل وستصل للجميع قريبًا — الوضع الذكي أعلاه يعمل الآن. ✨
-              </p>
-            ) : null}
           </div>
         </div>
       ) : null}
@@ -375,12 +551,15 @@ export function CompanionPage() {
   );
 }
 
-function SmartStep(props: { icon: string; label: string; action: string; onClick: () => void }) {
+function SmartStep(props: { icon: string; label: string; action: string; onClick: () => void; accent?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2.5">
+    <div className={[
+      "flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5",
+      props.accent ? "border-accent-35 bg-accent-15" : "border-[var(--stroke)] bg-[var(--card-2)]",
+    ].join(" ")}>
       <div className="flex items-center gap-2.5 text-sm">
         <span aria-hidden="true">{props.icon}</span>
-        <span>{props.label}</span>
+        <span className={props.accent ? "font-semibold text-[var(--accent)]" : undefined}>{props.label}</span>
       </div>
       <button type="button" onClick={props.onClick}
         className="shrink-0 rounded-lg bg-accent-15 border border-accent-35 px-3 py-1 text-xs font-semibold text-[var(--accent)] hover:bg-accent-15/80 transition">
