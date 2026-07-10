@@ -20,10 +20,14 @@ import {
   clearMemory,
   describeError,
   getApiKey,
+  getMinimaxKey,
   getModel,
   hasAppProvidedAccess,
   isCompanionReady,
+  isProviderReady,
+  providerForModel,
   setApiKey,
+  setMinimaxKey,
   setModel,
   streamCompanionReply,
   type CompanionMessage,
@@ -44,10 +48,12 @@ export function CompanionPage() {
   const navigate = useNavigate();
 
   const [hasKey, setHasKey] = React.useState(() => !!getApiKey());
-  const ready = hasAppProvidedAccess() || hasKey;
+  const [hasMinimaxKey, setHasMinimaxKey] = React.useState(() => !!getMinimaxKey());
   const [showSettings, setShowSettings] = React.useState(false);
   const [keyDraft, setKeyDraft] = React.useState("");
   const [model, setModelState] = React.useState(getModel);
+  const provider = providerForModel(model);
+  const ready = isProviderReady(provider);
 
   const [messages, setMessages] = React.useState<CompanionMessage[]>([]);
   const [input, setInput] = React.useState("");
@@ -115,18 +121,19 @@ export function CompanionPage() {
   const saveKey = () => {
     const k = keyDraft.trim();
     if (!k) return;
-    setApiKey(k);
+    if (provider === "minimax") { setMinimaxKey(k); setHasMinimaxKey(true); }
+    else { setApiKey(k); setHasKey(true); }
     setKeyDraft("");
-    setHasKey(true);
     setShowSettings(false);
     toast.success("تم حفظ المفتاح على جهازك فقط");
   };
 
   const clearKey = () => {
-    setApiKey("");
-    setHasKey(false);
+    if (provider === "minimax") { setMinimaxKey(""); setHasMinimaxKey(false); }
+    else { setApiKey(""); setHasKey(false); }
     toast("تم حذف المفتاح", { icon: "🗑️" });
   };
+  const hasLocalKey = provider === "minimax" ? hasMinimaxKey : hasKey;
 
   const isBusy = streamingText !== null;
 
@@ -179,9 +186,9 @@ export function CompanionPage() {
             <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> مسح ذاكرة الرفيق (ما يتذكره من محادثاتك)
           </button>
 
-          {hasAppProvidedAccess() ? (
+          {hasAppProvidedAccess(provider) ? (
             <p className="text-xs leading-relaxed text-[var(--muted)]">
-              المحادثة الذكية مفعّلة لجميع المستخدمين — لا حاجة لأي إعداد. 🤝
+              المحادثة الذكية مفعّلة لجميع المستخدمين على هذا النموذج — لا حاجة لأي إعداد. 🤝
             </p>
           ) : (
             <details className="text-xs">
@@ -190,8 +197,9 @@ export function CompanionPage() {
                 خيارات متقدمة: مفتاح خاص
               </summary>
               <p className="mt-2 leading-relaxed text-[var(--muted-2)]">
-                إن كان لديك مفتاح Claude API خاص يمكنك استعماله مؤقتًا —
-                يُحفظ على جهازك فقط ولا يغادر إلا مباشرةً إلى Anthropic.
+                {provider === "minimax"
+                  ? "إن كان لديك مفتاح MiniMax API خاص يمكنك استعماله — يُحفظ على جهازك فقط ولا يغادر إلا مباشرةً إلى MiniMax."
+                  : "إن كان لديك مفتاح Claude API خاص يمكنك استعماله مؤقتًا — يُحفظ على جهازك فقط ولا يغادر إلا مباشرةً إلى Anthropic."}
               </p>
               <div className="mt-2 flex gap-2">
                 <input
@@ -199,7 +207,7 @@ export function CompanionPage() {
                   dir="ltr"
                   value={keyDraft}
                   onChange={(e) => setKeyDraft(e.target.value)}
-                  placeholder="sk-ant-…"
+                  placeholder={provider === "minimax" ? "sk-api-…" : "sk-ant-…"}
                   aria-label="مفتاح API"
                   className="form-field-readable flex-1 rounded-xl border border-[var(--stroke)] px-3 py-2 text-sm"
                 />
@@ -208,7 +216,7 @@ export function CompanionPage() {
                   حفظ
                 </button>
               </div>
-              {hasKey ? (
+              {hasLocalKey ? (
                 <button type="button" onClick={clearKey}
                   className="mt-2 flex items-center gap-1.5 text-xs text-[var(--danger)] hover:opacity-80">
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> حذف المفتاح من هذا الجهاز

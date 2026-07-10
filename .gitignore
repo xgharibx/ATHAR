@@ -35,3 +35,6 @@ extracted_content*.txt
 
 # Claude Code local settings (machine-specific permissions/launch state)
 .claude/
+
+# Supabase CLI local project-link cache (machine-specific)
+supabase/.temp/

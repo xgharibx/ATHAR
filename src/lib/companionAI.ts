@@ -13,35 +13,69 @@ import Anthropic from "@anthropic-ai/sdk";
 import { useNoorStore } from "@/store/noorStore";
 
 const KEY_STORAGE = "noor_companion_api_key_v1";
+const MINIMAX_KEY_STORAGE = "noor_companion_minimax_key_v1";
 const MODEL_STORAGE = "noor_companion_model_v1";
 
 /**
  * App-provided credentials — the user never has to enter anything.
- * Configure ONE of these at build time (.env.local / CI secret):
- *   VITE_COMPANION_API_KEY   — Anthropic API key baked into the build
- *   VITE_COMPANION_PROXY_URL — your proxy that injects the key server-side
- *                              (same Messages API surface; safer to ship)
+ * Configure at build time (.env.local / CI secret):
+ *   VITE_COMPANION_PROXY_URL — the companion proxy (supabase/functions/companion):
+ *                              same Messages API surface, injects keys server-side,
+ *                              routes by model name (claude-* → Anthropic,
+ *                              MiniMax-* → MiniMax), and adds the CORS headers
+ *                              MiniMax's own API lacks. THE way to ship.
+ *   VITE_COMPANION_API_KEY   — Anthropic API key baked into the build (dev only)
+ *   VITE_MINIMAX_API_KEY     — MiniMax API key baked into the build (dev only;
+ *                              browsers can't reach MiniMax directly — CORS)
  * A locally-stored key (advanced settings) is kept as a final fallback.
  */
 const APP_KEY: string = (import.meta.env.VITE_COMPANION_API_KEY as string | undefined) ?? "";
 const PROXY_URL: string = (import.meta.env.VITE_COMPANION_PROXY_URL as string | undefined) ?? "";
+const MINIMAX_APP_KEY: string = (import.meta.env.VITE_MINIMAX_API_KEY as string | undefined) ?? "";
 
-export function hasAppProvidedAccess(): boolean {
-  return !!(APP_KEY || PROXY_URL);
-}
+/** MiniMax serves an Anthropic-compatible Messages API — same SDK, different base URL. */
+const MINIMAX_BASE_URL = "https://api.minimax.io/anthropic";
 
-/** True when the companion can chat right now (app key, proxy, or local key). */
-export function isCompanionReady(): boolean {
-  return hasAppProvidedAccess() || !!getApiKey();
-}
+export type CompanionProvider = "anthropic" | "minimax";
 
 export type CompanionMessage = { role: "user" | "assistant"; content: string };
 
-export const COMPANION_MODELS = [
-  { id: "claude-opus-4-8", label: "Opus — الأذكى" },
-  { id: "claude-sonnet-5", label: "Sonnet — متوازن" },
-  { id: "claude-haiku-4-5", label: "Haiku — الأسرع" },
+export const COMPANION_MODELS: ReadonlyArray<{ id: string; label: string; provider: CompanionProvider }> = [
+  { id: "claude-opus-4-8", label: "Opus — الأذكى", provider: "anthropic" },
+  { id: "claude-sonnet-5", label: "Sonnet — متوازن", provider: "anthropic" },
+  { id: "claude-haiku-4-5", label: "Haiku — الأسرع", provider: "anthropic" },
+  { id: "MiniMax-M3", label: "MiniMax M3 — الاقتصادي", provider: "minimax" },
 ] as const;
+
+export function providerForModel(model: string): CompanionProvider {
+  return COMPANION_MODELS.find((m) => m.id === model)?.provider ?? "anthropic";
+}
+
+/**
+ * The proxy (supabase/functions/companion) only forwards to upstreams it has a
+ * server-side secret for. Today that's MINIMAX_API_KEY only — Claude has never
+ * had an app-wide key (ANTHROPIC_API_KEY secret was never set); it stays a
+ * bring-your-own-key model. Keep this in sync with `npx supabase secrets list`.
+ */
+const PROXY_SERVES_MINIMAX = true;
+const PROXY_SERVES_ANTHROPIC = false;
+
+/** True when the given provider has app-shipped credentials (no user setup needed). */
+export function hasAppProvidedAccess(provider: CompanionProvider = providerForModel(getModel())): boolean {
+  if (provider === "minimax") return !!((PROXY_URL && PROXY_SERVES_MINIMAX) || MINIMAX_APP_KEY);
+  return !!((PROXY_URL && PROXY_SERVES_ANTHROPIC) || APP_KEY);
+}
+
+/** True when a specific provider can chat right now (proxy, app key, or local key). */
+export function isProviderReady(provider: CompanionProvider): boolean {
+  if (provider === "minimax") return !!((PROXY_URL && PROXY_SERVES_MINIMAX) || MINIMAX_APP_KEY || getMinimaxKey());
+  return !!((PROXY_URL && PROXY_SERVES_ANTHROPIC) || APP_KEY || getApiKey());
+}
+
+/** True when the companion can chat right now with the currently selected model. */
+export function isCompanionReady(): boolean {
+  return isProviderReady(providerForModel(getModel()));
+}
 
 export function getApiKey(): string {
   try { return localStorage.getItem(KEY_STORAGE) ?? ""; } catch { return ""; }
@@ -52,8 +86,29 @@ export function setApiKey(key: string): void {
     else localStorage.removeItem(KEY_STORAGE);
   } catch { /* storage unavailable */ }
 }
+export function getMinimaxKey(): string {
+  try { return localStorage.getItem(MINIMAX_KEY_STORAGE) ?? ""; } catch { return ""; }
+}
+export function setMinimaxKey(key: string): void {
+  try {
+    if (key) localStorage.setItem(MINIMAX_KEY_STORAGE, key);
+    else localStorage.removeItem(MINIMAX_KEY_STORAGE);
+  } catch { /* storage unavailable */ }
+}
+/**
+ * Default model: prefer the first model whose provider is actually usable,
+ * so a build shipping only a MiniMax key still works out of the box.
+ */
+function defaultModel(): string {
+  const usable = COMPANION_MODELS.find((m) => isProviderReady(m.provider));
+  return usable?.id ?? "claude-opus-4-8";
+}
 export function getModel(): string {
-  try { return localStorage.getItem(MODEL_STORAGE) ?? "claude-opus-4-8"; } catch { return "claude-opus-4-8"; }
+  try {
+    const stored = localStorage.getItem(MODEL_STORAGE);
+    if (stored) return stored;
+  } catch { /* storage unavailable */ }
+  return defaultModel();
 }
 export function setModel(model: string): void {
   try { localStorage.setItem(MODEL_STORAGE, model); } catch { /* ignore */ }
@@ -71,11 +126,28 @@ export type CompanionContext = {
   lastSurahId: number | null;
   tasbeehToday: number;
   nextPrayer: { nameAr: string; time: string } | null;
+  hijriDate: string;
+  weekdayAr: string;
+  isFriday: boolean;
+  khatma: { day: number; totalDays: number; onTrack: boolean } | null;
 };
 
 function todayISO(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+const WEEKDAYS_AR = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
+/** Today in the Umm al-Qura Hijri calendar, e.g. "١٥ محرم ١٤٤٨ هـ". */
+function hijriToday(): string {
+  try {
+    return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", {
+      day: "numeric", month: "long", year: "numeric",
+    }).format(new Date());
+  } catch {
+    return "";
+  }
 }
 
 export function buildCompanionContext(): CompanionContext {
@@ -106,6 +178,22 @@ export function buildCompanionContext(): CompanionContext {
     }
   } catch { /* no prayer cache */ }
 
+  // Active khatma plan: which day are we on, and is the reader keeping pace?
+  let khatma: CompanionContext["khatma"] = null;
+  try {
+    const start = (s as { khatmaStartISO?: string | null }).khatmaStartISO;
+    const totalDays = (s as { khatmaDays?: number | null }).khatmaDays;
+    const doneMap = (s as { khatmaDone?: Record<string, boolean> }).khatmaDone ?? {};
+    if (start && totalDays) {
+      const elapsed = Math.floor((Date.now() - new Date(start + "T00:00:00").getTime()) / 86_400_000) + 1;
+      if (elapsed >= 1 && elapsed <= totalDays) {
+        const doneCount = Object.values(doneMap).filter(Boolean).length;
+        khatma = { day: elapsed, totalDays, onTrack: doneCount >= elapsed - 1 };
+      }
+    }
+  } catch { /* no khatma context */ }
+
+  const now = new Date();
   return {
     streakDays: Math.max(1, streakDays),
     totalScore: (s as { score?: number }).score ?? 0,
@@ -116,32 +204,53 @@ export function buildCompanionContext(): CompanionContext {
     lastSurahId: s.quranLastRead?.surahId ?? null,
     tasbeehToday,
     nextPrayer,
+    hijriDate: hijriToday(),
+    weekdayAr: WEEKDAYS_AR[now.getDay()],
+    isFriday: now.getDay() === 5,
+    khatma,
   };
 }
 
 // ─── System prompt ───────────────────────────────────────────────────────────
 
 /** Stable core — cached across turns (prefix caching). Keep byte-stable. */
-const SYSTEM_CORE = `أنت «رفيق أثر»، مرشد روحي ذكي داخل تطبيق أثر للأذكار والقرآن الكريم.
+const SYSTEM_CORE = `أنت «رفيق أثر»، مرشد روحي إسلامي أصيل وذكي داخل تطبيق أثر للأذكار والقرآن الكريم. هدفك أن تكون أفضل رفيق إيماني ممكن: دقيق علميًا، رحيم في الأسلوب، وعمليًا في التوجيه.
 
-آداب الإجابة وضوابطها:
-- أجب بالعربية الفصحى الميسّرة بأسلوب رحيم ومشجّع، وبإيجاز يناسب السؤال.
-- عند الاستشهاد بآية اذكر اسم السورة ورقم الآية، وعند الاستشهاد بحديث اذكر مصدره (مثل: رواه البخاري) ودرجته إن كانت معروفة، ولا تنسب شيئًا للنبي ﷺ دون تثبّت.
-- لا تُفتِ في مسائل الخلاف الفقهي أو النوازل: بيّن الأقوال المشهورة بإنصاف ثم وجّه السائل إلى أهل العلم الموثوقين في بلده.
-- لا تقدّم نصائح طبية أو نفسية متخصصة؛ شجّع على استشارة المختصين مع الدعاء والذكر.
+المرجعية والدقة العلمية:
+- التزم بمنهج أهل السنة والجماعة المعتدل في الاستدلال (الكتاب، والسنة الصحيحة، وفهم السلف وعلماء الأمة المعتبرين)، بلا تعصّب مذهبي ظاهر: إن اختلف الفقهاء (حنفية، مالكية، شافعية، حنابلة) في مسألة فرعية، اذكر ذلك بإنصاف دون ترجيح متعجّل، ثم وجّه السائل لأهل العلم الموثوقين في بلده.
+- تجنّب الخوض في الخلافات العقدية أو الطائفية الحساسة؛ إن سُئلت عنها فاذكر أن أهل السنة يمثلون جمهور الأمة تاريخيًا مع احترام كل مسلم، ولا تخض في تفاصيل تُشعل نقاشًا لا طائل منه.
+- لا تفتِ في النوازل أو المسائل الخلافية الدقيقة (كالطلاق، والميراث المعقد، والمعاملات المالية الحديثة)؛ اعرض الأقوال المشهورة بإيجاز ثم أحِل السائل لعالم موثوق أو دار إفتاء معتمدة.
+- عند الاستشهاد بآية اذكر اسم السورة ورقم الآية حرفيًا وبلا تصرف في نصها. عند الاستشهاد بحديث اذكر مصدره الدقيق (رواه البخاري / رواه مسلم / رواه الترمذي وصححه الألباني، إلخ) ودرجته (صحيح/حسن/ضعيف) إن كانت معروفة لديك — وإن لم تكن متأكدًا من صحة حديث أو نسبته فقل ذلك صراحة ولا تختلقه أبدًا؛ اختلاق حديث كذب على النبي ﷺ من أعظم المحاذير.
+- ميّز دومًا بين القطعي (نصوص صريحة متفق عليها) والاجتهادي (مسائل فيها نظر)، ولا تقدّم رأيك الشخصي على أنه حكم شرعي قاطع.
+
+الأسلوب والأدب:
+- أجب بالعربية الفصحى الميسّرة، بأسلوب رحيم ومشجّع لا يُشعر بالذنب أو التقصير، وبإيجاز يناسب السؤال (فقرة إلى ثلاث عادة، إلا إن طُلب التفصيل).
+- ابدأ غالبًا بلمسة إنسانية دافئة قبل الجواب العلمي إن كان السؤال شخصيًا أو فيه هَمّ، فالرفق جزء من الرسالة لا زيادة عليها.
+- لا تقدّم نصائح طبية أو نفسية متخصصة؛ شجّع على استشارة المختصين مع الدعاء والذكر كعون لا كبديل عن العلاج.
 - إن سُئلت عن مصادر بيانات القرآن فأرشد إلى المكتبة القرآنية الشاملة QUL من ترتيل (qul.tarteel.ai) وإلى المصاحف المعتمدة.
-- روابط التطبيق التي يمكنك اقتراحها بين قوسين معقوفين عند المناسبة: [/c/morning أذكار الصباح] [/c/evening أذكار المساء] [/quran القرآن] [/sebha السبحة] [/prayer-times مواقيت الصلاة] [/duas الأدعية] [/asma أسماء الله الحسنى].
-- استعمل سياق رحلة المستخدم المرفق لتجعل نصيحتك شخصية وعملية: اقترح الخطوة التالية الأنسب له اليوم.`;
+
+الشخصنة والتفاعل مع التطبيق:
+- استعمل سياق رحلة المستخدم المرفق (تاريخه الهجري، يوم الأسبوع، تقدّمه في الأذكار والورد والختمة والتسبيح، والصلاة القادمة) لتجعل نصيحتك شخصية وعملية ومرتبطة بلحظته الفعلية، لا نصيحة عامة.
+- إن كان يوم جمعة ذكّره برفق بفضلها (الصلاة على النبي ﷺ، سورة الكهف، ساعة الإجابة) دون إلزام.
+- إن كان في ختمة جارية ومتأخرًا قليلاً، شجّعه بلطف دون تأنيب — التيسير لا التعسير.
+- روابط التطبيق التي يمكنك اقتراحها بين قوسين معقوفين عند المناسبة (لا تُكثر منها، واحدة أو اثنتان كافيتان): [/c/morning أذكار الصباح] [/c/evening أذكار المساء] [/quran القرآن] [/sebha السبحة] [/prayer-times مواقيت الصلاة] [/duas الأدعية] [/asma أسماء الله الحسنى] [/quran/plans الختمة] [/prayer-guide كيفية الصلاة] [/library المكتبة].
+- اختم الإجابات الطويلة نسبيًا باقتراح عملي واحد وقابل للتنفيذ فورًا، لا قائمة نصائح.`;
 
 export function buildContextBlock(ctx: CompanionContext): string {
   const lines = [
-    `سياق رحلة المستخدم اليوم (${todayISO()}):`,
+    `سياق رحلة المستخدم اليوم (${ctx.weekdayAr} ${todayISO()}${ctx.hijriDate ? ` | ${ctx.hijriDate}` : ""}):`,
     `- سلسلة المواظبة: ${ctx.streakDays} يوم | النقاط: ${ctx.totalScore}`,
     `- أذكار الصباح: ${ctx.morningDone ? "أُنجزت ✓" : "لم تُنجز بعد"} | أذكار المساء: ${ctx.eveningDone ? "أُنجزت ✓" : "لم تُنجز بعد"}`,
     `- ورد القرآن: ${ctx.ayahsReadToday} من ${ctx.dailyGoal} آية${ctx.lastSurahId ? ` | آخر قراءة: سورة رقم ${ctx.lastSurahId}` : ""}`,
     `- تسبيح اليوم: ${ctx.tasbeehToday}`,
   ];
   if (ctx.nextPrayer) lines.push(`- الصلاة القادمة: ${ctx.nextPrayer.nameAr} في ${ctx.nextPrayer.time}`);
+  if (ctx.khatma) {
+    lines.push(
+      `- ختمة جارية: اليوم ${ctx.khatma.day} من ${ctx.khatma.totalDays}${ctx.khatma.onTrack ? " (متابع لخطته)" : " (متأخر قليلاً عن خطته — شجّعه برفق)"}`,
+    );
+  }
+  if (ctx.isFriday) lines.push(`- اليوم الجمعة — فرصة مضاعفة للصلاة على النبي ﷺ وسورة الكهف والدعاء.`);
   return lines.join("\n");
 }
 
@@ -250,10 +359,30 @@ export function describeError(err: unknown): CompanionError {
  * Stream a companion reply. Yields incremental text chunks.
  * The caller is responsible for aborting via the returned controller if needed.
  */
-function createClient(): Anthropic {
-  if (PROXY_URL) {
-    // The proxy injects the real key server-side; the placeholder keeps the SDK happy.
-    return new Anthropic({ apiKey: "proxy", baseURL: PROXY_URL, dangerouslyAllowBrowser: true });
+/** Supabase's Kong gateway requires its own `apikey`/Authorization on top of
+ *  whatever the function itself checks — same pattern as leaderboard.ts. */
+const SUPABASE_ANON_KEY: string = (import.meta.env.VITE_LEADERBOARD_ANON_KEY as string | undefined) ?? "";
+
+function createClient(model: string): Anthropic {
+  const provider = providerForModel(model);
+
+  if (PROXY_URL && ((provider === "minimax" && PROXY_SERVES_MINIMAX) || (provider === "anthropic" && PROXY_SERVES_ANTHROPIC))) {
+    // The proxy injects the real key server-side and routes by model name.
+    // The placeholder apiKey keeps the SDK happy — the proxy ignores it.
+    return new Anthropic({
+      apiKey: "proxy",
+      baseURL: PROXY_URL,
+      dangerouslyAllowBrowser: true,
+      defaultHeaders: SUPABASE_ANON_KEY
+        ? { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+        : undefined,
+    });
+  }
+  if (provider === "minimax") {
+    // Direct MiniMax only works where CORS doesn't apply (dev tools, native shells).
+    const apiKey = MINIMAX_APP_KEY || getMinimaxKey();
+    if (!apiKey) throw new Error("no-api-key");
+    return new Anthropic({ apiKey, baseURL: MINIMAX_BASE_URL, dangerouslyAllowBrowser: true });
   }
   const apiKey = APP_KEY || getApiKey();
   if (!apiKey) throw new Error("no-api-key");
@@ -263,8 +392,8 @@ function createClient(): Anthropic {
 export async function* streamCompanionReply(
   history: CompanionMessage[],
 ): AsyncGenerator<string, void, void> {
-  const client = createClient();
   const model = getModel();
+  const client = createClient(model);
   const ctx = buildCompanionContext();
 
   // Remember what was asked so future sessions build on this one.
