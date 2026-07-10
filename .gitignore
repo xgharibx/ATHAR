@@ -38,3 +38,6 @@ extracted_content*.txt
 
 # Supabase CLI local project-link cache (machine-specific)
 supabase/.temp/
+
+# Raw third-party data sources not yet parsed/integrated into the app
+tools/data-sources/

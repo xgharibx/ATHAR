@@ -12,6 +12,9 @@ import * as React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Sparkles, Send, Settings2, KeyRound, Trash2, Square } from "lucide-react";
 import { toast } from "react-hot-toast";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import type { Components } from "react-markdown";
 
 import {
   COMPANION_MODELS,
@@ -323,7 +326,7 @@ export function CompanionPage() {
           <MessageBubble key={i} role={m.role} text={m.content} />
         ))}
         {streamingText !== null ? (
-          <MessageBubble role="assistant" text={streamingText || "…"} streaming />
+          streamingText ? <MessageBubble role="assistant" text={streamingText} streaming /> : <TypingIndicator />
         ) : null}
         <div ref={endRef} />
       </div>
@@ -387,28 +390,93 @@ function SmartStep(props: { icon: string; label: string; action: string; onClick
   );
 }
 
-/** Renders text; [/route label] tokens become in-app links. */
+/** Human-friendly fallback labels for known routes, used when the model emits
+ *  a bare path with no label (malformed output — should be rare, not absent). */
+const ROUTE_FALLBACK_LABELS: Record<string, string> = {
+  "/c/morning": "أذكار الصباح", "/c/evening": "أذكار المساء", "/quran": "القرآن",
+  "/quran/plans": "خطة الختمة", "/sebha": "السبحة", "/prayer-times": "مواقيت الصلاة",
+  "/duas": "الأدعية", "/asma": "أسماء الله الحسنى", "/prayer-guide": "طريقة الصلاة",
+  "/library": "المكتبة",
+};
+
+/**
+ * The model's own [/route label] shorthand (documented in the system prompt)
+ * becomes a real Markdown link before rendering, e.g. [/quran القرآن] →
+ * [القرآن](/quran) — from there react-markdown treats it like any other link.
+ *
+ * Also tolerates the malformed forms actually observed from the model
+ * (missing leading slash, missing label, trailing slash) instead of leaving
+ * raw bracket syntax visible in the chat — a label-less bracket is still a
+ * broken-looking chat bubble even if the intent was clear.
+ */
+function appLinksToMarkdown(text: string): string {
+  let out = text.replace(/\[(\/[a-z0-9/_-]+)\s+([^\]]+)\]/gi, (_m, route, label) => `[${label}](${route})`);
+  out = out.replace(/\[\/?(quran\/plans|quran|c\/morning|c\/evening|sebha|prayer-times|duas|asma|prayer-guide|library)\/?\]/gi, (_m, path) => {
+    const route = `/${path}`;
+    return `[${ROUTE_FALLBACK_LABELS[route] ?? path}](${route})`;
+  });
+  return out;
+}
+
+/** Markdown renderer tuned for a narrow chat bubble: compact spacing, small
+ *  heading sizes (a chat reply is never a document), scrollable tables. */
+const markdownComponents: Components = {
+  a: ({ href, children }) => {
+    const to = href ?? "";
+    if (to.startsWith("/")) {
+      return (
+        <Link to={to} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+          {children}
+        </Link>
+      );
+    }
+    return (
+      <a href={to} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">
+        {children}
+      </a>
+    );
+  },
+  h1: ({ children }) => <h3 className="mb-1.5 mt-2 text-base font-bold text-[var(--fg)] first:mt-0">{children}</h3>,
+  h2: ({ children }) => <h4 className="mb-1.5 mt-2 text-[15px] font-bold text-[var(--fg)] first:mt-0">{children}</h4>,
+  h3: ({ children }) => <h5 className="mb-1 mt-2 text-sm font-bold text-[var(--fg)] first:mt-0">{children}</h5>,
+  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+  strong: ({ children }) => <strong className="font-bold text-[var(--fg)]">{children}</strong>,
+  ul: ({ children }) => <ul className="mb-2 me-4 list-disc space-y-1 last:mb-0">{children}</ul>,
+  ol: ({ children }) => <ol className="mb-2 me-4 list-decimal space-y-1 last:mb-0">{children}</ol>,
+  li: ({ children }) => <li className="ps-1">{children}</li>,
+  hr: () => <hr className="my-2.5 border-[var(--stroke)]" />,
+  blockquote: ({ children }) => (
+    <blockquote className="my-2 border-e-2 border-accent-35 pe-3 text-[var(--muted)]">{children}</blockquote>
+  ),
+  code: ({ children }) => <code className="rounded bg-[var(--card-2)] px-1 py-0.5 font-mono text-[12px]" dir="ltr">{children}</code>,
+  table: ({ children }) => (
+    <div className="my-2 overflow-x-auto rounded-lg border border-[var(--stroke)]">
+      <table className="w-full text-xs">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className="bg-[var(--card-2)]">{children}</thead>,
+  th: ({ children }) => <th className="px-2 py-1.5 text-start font-semibold">{children}</th>,
+  td: ({ children }) => <td className="border-t border-[var(--stroke)] px-2 py-1.5">{children}</td>,
+};
+
 function MessageBubble(props: { role: "user" | "assistant"; text: string; streaming?: boolean }) {
-  const parts = React.useMemo(() => parseAppLinks(props.text), [props.text]);
   const isUser = props.role === "user";
   return (
     <div className={isUser ? "flex justify-start" : "flex justify-end"}>
       <div
         className={[
-          "max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed",
+          "max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
           isUser
-            ? "bg-accent-15 border border-accent-35"
+            ? "whitespace-pre-wrap bg-accent-15 border border-accent-35"
             : "bg-[var(--card)] border border-[var(--stroke)]",
         ].join(" ")}
       >
-        {parts.map((p, i) =>
-          p.type === "link" ? (
-            <Link key={i} to={p.route} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
-              {p.label}
-            </Link>
-          ) : (
-            <React.Fragment key={i}>{p.text}</React.Fragment>
-          ),
+        {isUser ? (
+          props.text
+        ) : (
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+            {appLinksToMarkdown(props.text)}
+          </ReactMarkdown>
         )}
         {props.streaming ? <span className="animate-pulse"> ▍</span> : null}
       </div>
@@ -416,17 +484,20 @@ function MessageBubble(props: { role: "user" | "assistant"; text: string; stream
   );
 }
 
-type LinkPart = { type: "link"; route: string; label: string } | { type: "text"; text: string };
-
-function parseAppLinks(text: string): LinkPart[] {
-  const out: LinkPart[] = [];
-  const re = /\[(\/[a-z0-9/_-]+)\s+([^\]]+)\]/gi;
-  let last = 0;
-  for (let m = re.exec(text); m; m = re.exec(text)) {
-    if (m.index > last) out.push({ type: "text", text: text.slice(last, m.index) });
-    out.push({ type: "link", route: m[1], label: m[2] });
-    last = m.index + m[0].length;
-  }
-  if (last < text.length) out.push({ type: "text", text: text.slice(last) });
-  return out;
+/** Bouncing-dots "thinking" indicator — shown while streamingText is still empty,
+ *  so a long invisible model-thinking phase never looks like a frozen app. */
+function TypingIndicator() {
+  return (
+    <div className="flex justify-end">
+      <div className="flex items-center gap-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3.5">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--muted)]"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }

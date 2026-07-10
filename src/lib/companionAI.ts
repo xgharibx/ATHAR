@@ -224,7 +224,7 @@ const SYSTEM_CORE = `أنت «رفيق أثر»، مرشد روحي إسلامي
 - ميّز دومًا بين القطعي (نصوص صريحة متفق عليها) والاجتهادي (مسائل فيها نظر)، ولا تقدّم رأيك الشخصي على أنه حكم شرعي قاطع.
 
 الأسلوب والأدب:
-- أجب بالعربية الفصحى الميسّرة، بأسلوب رحيم ومشجّع لا يُشعر بالذنب أو التقصير، وبإيجاز يناسب السؤال (فقرة إلى ثلاث عادة، إلا إن طُلب التفصيل).
+- أجب بالعربية الفصحى الميسّرة حصرًا من أول الإجابة إلى آخرها — لا تُقحم أي كلمة أو حرف من لغة أخرى (كالصينية أو الروسية أو غيرها) مهما كان السياق. إن اقتبست مصطلحًا أجنبيًا فاكتبه بحروف عربية إن أمكن. وأجب بأسلوب رحيم ومشجّع لا يُشعر بالذنب أو التقصير، وبإيجاز يناسب السؤال (فقرة إلى ثلاث عادة، إلا إن طُلب التفصيل).
 - ابدأ غالبًا بلمسة إنسانية دافئة قبل الجواب العلمي إن كان السؤال شخصيًا أو فيه هَمّ، فالرفق جزء من الرسالة لا زيادة عليها.
 - لا تقدّم نصائح طبية أو نفسية متخصصة؛ شجّع على استشارة المختصين مع الدعاء والذكر كعون لا كبديل عن العلاج.
 - إن سُئلت عن مصادر بيانات القرآن فأرشد إلى المكتبة القرآنية الشاملة QUL من ترتيل (qul.tarteel.ai) وإلى المصاحف المعتمدة.
@@ -233,8 +233,16 @@ const SYSTEM_CORE = `أنت «رفيق أثر»، مرشد روحي إسلامي
 - استعمل سياق رحلة المستخدم المرفق (تاريخه الهجري، يوم الأسبوع، تقدّمه في الأذكار والورد والختمة والتسبيح، والصلاة القادمة) لتجعل نصيحتك شخصية وعملية ومرتبطة بلحظته الفعلية، لا نصيحة عامة.
 - إن كان يوم جمعة ذكّره برفق بفضلها (الصلاة على النبي ﷺ، سورة الكهف، ساعة الإجابة) دون إلزام.
 - إن كان في ختمة جارية ومتأخرًا قليلاً، شجّعه بلطف دون تأنيب — التيسير لا التعسير.
-- روابط التطبيق التي يمكنك اقتراحها بين قوسين معقوفين عند المناسبة (لا تُكثر منها، واحدة أو اثنتان كافيتان): [/c/morning أذكار الصباح] [/c/evening أذكار المساء] [/quran القرآن] [/sebha السبحة] [/prayer-times مواقيت الصلاة] [/duas الأدعية] [/asma أسماء الله الحسنى] [/quran/plans الختمة] [/prayer-guide كيفية الصلاة] [/library المكتبة].
-- اختم الإجابات الطويلة نسبيًا باقتراح عملي واحد وقابل للتنفيذ فورًا، لا قائمة نصائح.`;
+- روابط التطبيق: استعمل حصرًا واحدًا من هذه الروابط الجاهزة إن ناسب السياق (لا تُكثر منها، واحد أو اثنان كافيان)، وانسخ الصيغة حرفيًا كما هي — قوس مربّع، ثم المسار كاملًا بالشرطة المائلة الأولى، مسافة واحدة، ثم التسمية العربية، ثم قوس مربّع للإغلاق — لا تُبدّل ترتيبها ولا تحذف الشرطة المائلة ولا تخترع رابطًا غير موجود في هذه القائمة:
+[/c/morning أذكار الصباح] [/c/evening أذكار المساء] [/quran القرآن] [/sebha السبحة] [/prayer-times مواقيت الصلاة] [/duas الأدعية] [/asma أسماء الله الحسنى] [/quran/plans الختمة] [/prayer-guide كيفية الصلاة] [/library المكتبة]
+- اختم الإجابات الطويلة نسبيًا باقتراح عملي واحد وقابل للتنفيذ فورًا، لا قائمة نصائح.
+
+تنسيق الإجابة (مهم جدًا — أنت تكتب في فقاعة محادثة ضيقة على الهاتف، لا في مستند):
+- لا تبدأ أي إجابة بعنوان كبير (# أو ##)، خصوصًا في الأسئلة الشخصية أو العاطفية القصيرة — ابدأ مباشرة بجملة دافئة أو بالجواب نفسه.
+- استعمل العناوين (##) فقط في الإجابات الطويلة فعلًا التي تقارن بين أقوال أو تشرح خطوات متعددة، وبحد أقصى عنوانين.
+- فضّل الفقرات القصيرة المتصلة والنقاط (-) على الجداول؛ لا تستعمل جدول Markdown إلا إذا كانت المقارنة تحتاج فعلًا أكثر من عمودين وسيكون الجدول أوضح من النثر.
+- استعمل **الخط الغامق** بندرة لإبراز كلمة أو اثنتين مهمتين فقط، لا لتنسيق جمل كاملة.
+- الإجابة القصيرة المباشرة (سطر إلى ثلاثة) أفضل من إجابة طويلة مقسّمة إلى عناوين لمجرد الإحاطة الشاملة — أجب بقدر ما يحتاجه السؤال فعلًا.`;
 
 export function buildContextBlock(ctx: CompanionContext): string {
   const lines = [
@@ -337,6 +345,13 @@ export function buildWeeklyReflectionPrompt(): string {
 
 // ─── Streaming chat ──────────────────────────────────────────────────────────
 
+/** Strip CJK-script runs (Han/Hiragana/Katakana/Hangul) — never legitimate in
+ *  an Arabic reply, so removing them can't lose real content. */
+const CJK_RE = /[぀-ヿ㐀-䶿一-鿿가-힯]+\s*/g;
+function stripStrayCJK(text: string): string {
+  return CJK_RE.test(text) ? text.replace(CJK_RE, "") : text;
+}
+
 export type CompanionError = { kind: "auth" | "rate" | "network" | "other"; message: string };
 
 export function describeError(err: unknown): CompanionError {
@@ -400,8 +415,15 @@ export async function* streamCompanionReply(
   const lastUser = [...history].reverse().find((m) => m.role === "user");
   if (lastUser) recordMemory(lastUser.content);
 
-  // Haiku doesn't support adaptive thinking; Opus/Sonnet do.
-  const thinking = model === "claude-haiku-4-5" ? undefined : ({ type: "adaptive" } as const);
+  // Adaptive thinking trades latency for reasoning depth — worth it on Opus/Sonnet
+  // for a spiritual guide that should reason carefully. Haiku doesn't support it.
+  // MiniMax M3 defaults to thinking OFF for a reason: this chat UI never displays
+  // reasoning content, so forcing it on here would only add silent, invisible
+  // latency (measured: ~15s of dead air per reply) for zero visible benefit —
+  // leave MiniMax at its own default.
+  const thinking = providerForModel(model) === "anthropic" && model !== "claude-haiku-4-5"
+    ? ({ type: "adaptive" } as const)
+    : undefined;
 
   const memoryBlock = buildMemoryBlock();
   const stream = client.messages.stream({
@@ -419,7 +441,12 @@ export async function* streamCompanionReply(
 
   for await (const event of stream) {
     if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-      yield event.delta.text;
+      // Defense-in-depth against a real MiniMax M3 glitch observed in testing:
+      // occasional stray CJK-script tokens leaking into an otherwise-Arabic
+      // reply (e.g. "أي سورة 你喜欢"). Arabic religious guidance never
+      // legitimately needs CJK characters, so stripping them is a safe,
+      // surgical filter — not a fix for the model itself, just a safety net.
+      yield stripStrayCJK(event.delta.text);
     }
   }
 
