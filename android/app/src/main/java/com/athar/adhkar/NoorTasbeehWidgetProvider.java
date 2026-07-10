@@ -171,6 +171,19 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         views.setImageViewBitmap(R.id.tasbeeh_ring,
             WidgetCanvas.ring(context, 150, 9, target > 0 ? count / (float) target : 0f));
 
+        // Living sky: no prayer-schedule data here, so the mood is derived
+        // purely from wall-clock time instead of the actual next prayer.
+        WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
+        views.setImageViewBitmap(R.id.tasbeeh_sky,
+            WidgetCanvas.sky(context, 150, 150, sky.fromPhase, sky.toPhase, sky.blend, 26f));
+        if (sky.isNight()) {
+            views.setViewVisibility(R.id.tasbeeh_stars, android.view.View.VISIBLE);
+            views.setImageViewBitmap(R.id.tasbeeh_stars,
+                WidgetCanvas.starfield(context, 150, 150, 20, System.currentTimeMillis() / 60000));
+        } else {
+            views.setViewVisibility(R.id.tasbeeh_stars, android.view.View.GONE);
+        }
+
         // Central tap zone → increment
         Intent incIntent = new Intent(context, NoorTasbeehWidgetProvider.class)
             .setAction(ACTION_INCREMENT)

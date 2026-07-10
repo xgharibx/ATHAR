@@ -3,13 +3,33 @@
   Daily Quran Wird Widget (4×2) — Athar premium design
   Hero ayah count, emerald Canvas progress bar with glow, gold pill.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/wird_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/noor_widget_background"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@drawable/noor_widget_background">
+
+    <!-- Living sky (WidgetCanvas.clockPhase/sky) — approximate time-of-day
+         mood background, this widget has no prayer-schedule data of its own. -->
+    <ImageView
+        android:id="@+id/wird_sky"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <ImageView
+        android:id="@+id/wird_stars"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -139,4 +159,6 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

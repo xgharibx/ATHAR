@@ -16,7 +16,6 @@
     <string name="widget_wird_label">Athar Wird Widget</string>
     <string name="widget_dashboard_label">Athar Dashboard Widget</string>
     <string name="widget_tasbeeh_label">Athar Tasbeeh Widget</string>
-    <string name="widget_quran_label">Athar Quran Widget</string>
     <string name="widget_sunnah_label">Athar Sunnah Widget</string>
     <!-- 11C: Notification channel names shown in Android Settings > App Notifications -->
     <string name="channel_prayer_name">&#x62A;&#x646;&#x628;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>

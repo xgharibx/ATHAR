@@ -10,6 +10,7 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.SweepGradient;
 
+import java.util.Calendar;
 import java.util.Random;
 
 /**
@@ -50,6 +51,49 @@ public final class WidgetCanvas {
         int ra = (int) (aa + (ba - aa) * t), rr = (int) (ar + (br - ar) * t);
         int rg = (int) (ag + (bg - ag) * t), rb = (int) (ab + (bb - ab) * t);
         return (ra << 24) | (rr << 16) | (rg << 8) | rb;
+    }
+
+    /** Wall-clock-derived sky phase, for widgets that aren't tied to the
+     *  day's actual (geolocation-based) prayer schedule — Adhkar/Wird/
+     *  Tasbeeh still deserve a living background, just anchored to
+     *  approximate dawn/day/afternoon/sunset/night buckets instead. */
+    public static final class ClockSky {
+        public final int fromPhase, toPhase;
+        public final float blend;
+        ClockSky(int fromPhase, int toPhase, float blend) {
+            this.fromPhase = fromPhase;
+            this.toPhase = toPhase;
+            this.blend = blend;
+        }
+        public boolean isNight() {
+            return fromPhase == PHASE_FAJR || fromPhase == PHASE_ISHA
+                || toPhase == PHASE_FAJR || toPhase == PHASE_ISHA;
+        }
+    }
+
+    private static final int[][] CLOCK_BOUNDS = {
+        { 4 * 60, PHASE_FAJR },
+        { 6 * 60, PHASE_DHUHR },
+        { 15 * 60, PHASE_ASR },
+        { 18 * 60, PHASE_MAGHRIB },
+        { 19 * 60 + 30, PHASE_ISHA },
+    };
+
+    public static ClockSky clockPhase() {
+        Calendar cal = Calendar.getInstance();
+        int nowMin = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
+        int idx = 0;
+        for (int i = 0; i < CLOCK_BOUNDS.length; i++) {
+            if (nowMin >= CLOCK_BOUNDS[i][0]) idx = i;
+        }
+        int fromPhase = CLOCK_BOUNDS[idx][1];
+        int toPhase = CLOCK_BOUNDS[(idx + 1) % CLOCK_BOUNDS.length][1];
+        int startMin = CLOCK_BOUNDS[idx][0];
+        int endMin = CLOCK_BOUNDS[(idx + 1) % CLOCK_BOUNDS.length][0];
+        if (endMin <= startMin) endMin += 24 * 60; // wraps past midnight
+        int adjNow = nowMin < startMin ? nowMin + 24 * 60 : nowMin;
+        float blend = Math.max(0f, Math.min(1f, (adjNow - startMin) / (float) Math.max(1, endMin - startMin)));
+        return new ClockSky(fromPhase, toPhase, blend);
     }
 
     private WidgetCanvas() {}

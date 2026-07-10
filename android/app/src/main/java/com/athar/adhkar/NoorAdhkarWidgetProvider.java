@@ -75,6 +75,19 @@ public class NoorAdhkarWidgetProvider extends AtharWidgetProvider {
         views.setImageViewBitmap(R.id.adhkar_morning_bar, WidgetCanvas.barGold(context, 300, 9, morningP));
         views.setImageViewBitmap(R.id.adhkar_evening_bar, WidgetCanvas.barDusk(context, 300, 9, eveningP));
 
+        // Living sky: no prayer-schedule data here, so the mood is derived
+        // purely from wall-clock time instead of the actual next prayer.
+        WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
+        views.setImageViewBitmap(R.id.adhkar_sky,
+            WidgetCanvas.sky(context, 250, 110, sky.fromPhase, sky.toPhase, sky.blend, 26f));
+        if (sky.isNight()) {
+            views.setViewVisibility(R.id.adhkar_stars, android.view.View.VISIBLE);
+            views.setImageViewBitmap(R.id.adhkar_stars,
+                WidgetCanvas.starfield(context, 250, 110, 26, System.currentTimeMillis() / 60000));
+        } else {
+            views.setViewVisibility(R.id.adhkar_stars, android.view.View.GONE);
+        }
+
         PendingIntent morningPi = openApp(context, appWidgetId * 20, "/c/morning");
         views.setOnClickPendingIntent(R.id.adhkar_root, morningPi);
         views.setOnClickPendingIntent(R.id.adhkar_open_btn, morningPi);

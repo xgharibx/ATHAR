@@ -122,19 +122,6 @@
                 android:resource="@xml/noor_widget_prayer_info" />
         </receiver>
 
-        <!-- Quran Verse Widget (4×2) -->
-        <receiver
-            android:name=".NoorQuranWidgetProvider"
-            android:exported="true"
-            android:label="@string/widget_quran_label">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/noor_widget_quran_info" />
-        </receiver>
-
         <!-- Sunnah Widget (4×2) -->
         <receiver
             android:name=".NoorSunnahWidgetProvider"

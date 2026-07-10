@@ -78,6 +78,19 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
 
         views.setImageViewBitmap(R.id.wird_bar, WidgetCanvas.barEmerald(context, 300, 10, progress));
 
+        // Living sky: no prayer-schedule data here, so the mood is derived
+        // purely from wall-clock time instead of the actual next prayer.
+        WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
+        views.setImageViewBitmap(R.id.wird_sky,
+            WidgetCanvas.sky(context, 250, 110, sky.fromPhase, sky.toPhase, sky.blend, 26f));
+        if (sky.isNight()) {
+            views.setViewVisibility(R.id.wird_stars, android.view.View.VISIBLE);
+            views.setImageViewBitmap(R.id.wird_stars,
+                WidgetCanvas.starfield(context, 250, 110, 26, System.currentTimeMillis() / 60000));
+        } else {
+            views.setViewVisibility(R.id.wird_stars, android.view.View.GONE);
+        }
+
         PendingIntent pi = openApp(context, appWidgetId * 21, "/quran");
         views.setOnClickPendingIntent(R.id.wird_root, pi);
         views.setOnClickPendingIntent(R.id.wird_open_btn, pi);

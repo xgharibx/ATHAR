@@ -20,7 +20,6 @@ public final class WidgetUpdater {
         NoorCompactWidgetProvider.class,
         NoorPrayerWidgetProvider.class,
         NoorPrayerFullWidgetProvider.class,
-        NoorQuranWidgetProvider.class,
         NoorSunnahWidgetProvider.class,
         NoorTasbeehWidgetProvider.class,
         NoorAdhkarWidgetProvider.class,

@@ -156,18 +156,7 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
         manager.updateAppWidget(appWidgetId, views);
     }
 
-    /** Sky-phase background resource for the upcoming prayer. */
-    static int skyFor(String nameAr) {
-        if (nameAr == null) return R.drawable.noor_widget_background;
-        if (nameAr.contains("الفجر"))   return R.drawable.widget_bg_sky_fajr;
-        if (nameAr.contains("الظهر") || nameAr.contains("الجمعة")) return R.drawable.widget_bg_sky_dhuhr;
-        if (nameAr.contains("العصر"))   return R.drawable.widget_bg_sky_asr;
-        if (nameAr.contains("المغرب"))  return R.drawable.widget_bg_sky_maghrib;
-        if (nameAr.contains("العشاء"))  return R.drawable.widget_bg_sky_isha;
-        return R.drawable.noor_widget_background;
-    }
-
-    /** Same name matching as skyFor(), but returns a WidgetCanvas.PHASE_*
+    /** Maps a prayer's Arabic name to a WidgetCanvas.PHASE_*
      *  index for the continuous LERP renderer instead of a static drawable. */
     static int phaseFor(String nameAr) {
         if (nameAr == null) return WidgetCanvas.PHASE_ISHA;

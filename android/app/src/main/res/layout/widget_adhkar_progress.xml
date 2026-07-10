@@ -4,13 +4,33 @@
   Canvas-rendered gradient bars (sunrise gold / dusk indigo) with glow,
   Hijri date header, gold action pill. Bars bound via setImageViewBitmap.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/adhkar_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_bg_adhkar"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@drawable/widget_bg_adhkar">
+
+    <!-- Living sky (WidgetCanvas.clockPhase/sky) — approximate time-of-day
+         mood background, this widget has no prayer-schedule data of its own. -->
+    <ImageView
+        android:id="@+id/adhkar_sky"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <ImageView
+        android:id="@+id/adhkar_stars"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -150,4 +170,6 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>
