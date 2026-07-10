@@ -60,8 +60,10 @@ const RAMADAN_IDS = {
 // N5: Daily hadith at Fajr (Phase 10)
 const DAILY_HADITH_ID = 9501;
 
-// 40 brief excerpts from Nawawi's 40 Hadiths (rotate daily)
-const DAILY_HADITH_FAJR_PHRASES = [
+// 40 brief excerpts from Nawawi's 40 Hadiths (rotate daily). Exported so
+// other real-source callers (e.g. the companion's weekly reflection) can
+// reuse the same grounded, non-AI-generated set instead of duplicating it.
+export const DAILY_HADITH_FAJR_PHRASES = [
   "إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى",
   "الإسلام أن تشهد أن لا إله إلا الله وأن محمداً رسول الله",
   "بُني الإسلام على خمس: شهادة أن لا إله إلا الله وأن محمداً رسوله",

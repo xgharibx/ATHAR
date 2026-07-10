@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Share2, Shuffle, Sparkles } from "lucide-react";
+import { BookOpen, BookOpenText, Share2, Shuffle, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { DAILY_VERSES } from "@/data/dailyVerses";
 import { DAILY_WISDOMS } from "@/data/dailyWisdom";
@@ -315,12 +315,22 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     <Button
                       className="press-effect text-xs h-7 px-3"
                       variant="secondary"
+                      onClick={() => navigate("/library/sharh")}
+                      title="شرح موثّق من الموسوعة الحديثية الميسرة (hadeethenc.com)"
+                    >
+                      <BookOpenText size={12} aria-hidden="true" />
+                      شرح موثّق
+                    </Button>
+                    <Button
+                      className="press-effect text-xs h-7 px-3"
+                      variant="secondary"
                       onClick={() => navigate(`/companion?ask=${encodeURIComponent(
                         `اشرح لي هذا الحديث شرحًا ميسرًا: غريب الألفاظ، المعنى الإجمالي، وثلاث فوائد عملية. درجته الموثّقة من مصدره ${hadithGradeLabel ? `«${hadithGradeLabel}»` : "غير محددة هنا"} — اعتمد هذه الدرجة كما هي ولا تجتهد في تغييرها:\n«${hadith.t.slice(0, 600)}»\n— ${hadithBookMeta?.title ?? activeHadithPick.bookKey} • ح${hadith.n}`
                       )}`)}
+                      title="شرح بمساعدة الذكاء الاصطناعي — غير مُراجَع شرعيًا، للفهم السريع فقط"
                     >
                       <Sparkles size={12} aria-hidden="true" />
-                      اشرح الحديث
+                      اشرح بالذكاء الاصطناعي
                     </Button>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">

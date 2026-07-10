@@ -11,6 +11,7 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { useNoorStore } from "@/store/noorStore";
+import { DAILY_HADITH_FAJR_PHRASES } from "@/lib/reminders";
 
 const KEY_STORAGE = "noor_companion_api_key_v1";
 const MINIMAX_KEY_STORAGE = "noor_companion_minimax_key_v1";
@@ -333,13 +334,21 @@ export function buildWeeklyReflectionPrompt(): string {
   }
   const lastRead = s.quranLastRead?.surahId ? `آخر قراءة: سورة رقم ${s.quranLastRead.surahId}` : "";
 
+  // A real hadith, picked deterministically (not by the model) from the
+  // bundled Nawawi's Forty — the model is given this exact text to reflect
+  // on and is explicitly forbidden from inventing or substituting its own,
+  // since an LLM asked to "cite a sahih hadith" has no way to verify one.
+  const dayIndex = Math.floor(Date.now() / 86_400_000);
+  const todaysHadith = DAILY_HADITH_FAJR_PHRASES[dayIndex % DAILY_HADITH_FAJR_PHRASES.length];
+
   return [
-    "اكتب لي «خاطرة الجمعة»: خاطرة إيمانية قصيرة (٤-٦ فقرات) مخصّصة لي بناءً على أسبوعي الفعلي التالي، تبدأ بحمد الله، وتتضمن آية وحديثًا صحيحًا يناسبان حالي مع ذكر المصدر، وتختم بدعاء ونصيحة عملية واحدة للأسبوع القادم:",
+    "اكتب لي «خاطرة الجمعة»: خاطرة إيمانية قصيرة (٤-٦ فقرات) مخصّصة لي بناءً على أسبوعي الفعلي التالي، تبدأ بحمد الله، وتتضمن آية تناسب حالي، وتختم بدعاء ونصيحة عملية واحدة للأسبوع القادم:",
     `- أيام النشاط: ${activeDays} من 7`,
     `- آيات قرأتها: ${ayahs}`,
     `- تسبيحات: ${tasbeeh}`,
     `- أذكار الصباح: ${morningDays} أيام | أذكار المساء: ${eveningDays} أيام`,
     lastRead,
+    `اربط خاطرتك بهذا الحديث النبوي تحديدًا (من الأربعين النووية) — لا تستبدله ولا تخترع حديثًا آخر ولا تُغيّر لفظه أو معناه:\n«${todaysHadith}»`,
   ].filter(Boolean).join("\n");
 }
 
