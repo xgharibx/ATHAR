@@ -154,6 +154,67 @@ public final class WidgetCanvas {
     }
 
     /**
+     * A dial with tick marks and a gold needle pointing at `bearingDeg`
+     * (0° = up/North, clockwise) — the Qibla widget's static compass tile.
+     */
+    public static Bitmap compassArrow(Context ctx, int sizeDp, float bearingDeg) {
+        int px = Math.max(48, (int) dp(ctx, sizeDp));
+        Bitmap bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmp);
+        float cx = px / 2f, cy = px / 2f;
+        float radius = px / 2f - dp(ctx, 4);
+
+        Paint dial = new Paint(Paint.ANTI_ALIAS_FLAG);
+        dial.setStyle(Paint.Style.STROKE);
+        dial.setStrokeWidth(dp(ctx, 1.5f));
+        dial.setColor(TRACK);
+        c.drawCircle(cx, cy, radius, dial);
+
+        // Tick marks every 30°
+        Paint tick = new Paint(Paint.ANTI_ALIAS_FLAG);
+        tick.setColor(TRACK);
+        tick.setStrokeWidth(dp(ctx, 1.5f));
+        for (int deg = 0; deg < 360; deg += 30) {
+            double rad = Math.toRadians(deg - 90);
+            float x1 = cx + (float) Math.cos(rad) * (radius - dp(ctx, 4));
+            float y1 = cy + (float) Math.sin(rad) * (radius - dp(ctx, 4));
+            float x2 = cx + (float) Math.cos(rad) * radius;
+            float y2 = cy + (float) Math.sin(rad) * radius;
+            c.drawLine(x1, y1, x2, y2, tick);
+        }
+
+        c.save();
+        c.rotate(bearingDeg, cx, cy);
+
+        float needleLen = radius - dp(ctx, 6);
+        Paint glow = new Paint(Paint.ANTI_ALIAS_FLAG);
+        glow.setColor(GLOW_GOLD);
+        glow.setStyle(Paint.Style.STROKE);
+        glow.setStrokeWidth(dp(ctx, 5f));
+        glow.setStrokeCap(Paint.Cap.ROUND);
+        glow.setMaskFilter(new BlurMaskFilter(dp(ctx, 4f), BlurMaskFilter.Blur.NORMAL));
+        c.drawLine(cx, cy, cx, cy - needleLen, glow);
+
+        Paint needle = new Paint(Paint.ANTI_ALIAS_FLAG);
+        needle.setShader(new LinearGradient(cx, cy, cx, cy - needleLen, GOLD_DEEP, GOLD_LIGHT, Shader.TileMode.CLAMP));
+        needle.setStyle(Paint.Style.STROKE);
+        needle.setStrokeWidth(dp(ctx, 3f));
+        needle.setStrokeCap(Paint.Cap.ROUND);
+        c.drawLine(cx, cy, cx, cy - needleLen, needle);
+
+        Paint tip = new Paint(Paint.ANTI_ALIAS_FLAG);
+        tip.setColor(GOLD_LIGHT);
+        c.drawCircle(cx, cy - needleLen, dp(ctx, 3f), tip);
+        c.restore();
+
+        Paint hub = new Paint(Paint.ANTI_ALIAS_FLAG);
+        hub.setColor(GOLD);
+        c.drawCircle(cx, cy, dp(ctx, 3.5f), hub);
+
+        return bmp;
+    }
+
+    /**
      * Rounded horizontal progress bar with a gradient fill and soft glow.
      * Direction is RTL (fills from the right) to match the app.
      *

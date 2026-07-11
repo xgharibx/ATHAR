@@ -220,6 +220,34 @@ function resolveLevelFromScore(score: number): { ar: string; emoji: string } {
   return                     { ar: "مبتدئ",   emoji: "🌱" };
 }
 
+export type QiblaWidgetPayload = { lat: number; lng: number; updatedAt: string };
+
+/**
+ * Sync the user's last-known coordinates to the Qibla widget — the same
+ * cached location (noor_prayer_coords_v1) prayer-time calculation already
+ * relies on, so this adds no new location capture, just reuses it. The
+ * widget computes bearing + distance to the Kaaba natively from these.
+ */
+export async function syncQiblaWidget(): Promise<void> {
+  const KEY = "noor_widget_qibla_v1";
+  try {
+    const raw = localStorage.getItem("noor_prayer_coords_v1");
+    if (!raw) return;
+    const cached = JSON.parse(raw) as { lat?: number; lng?: number };
+    if (!Number.isFinite(cached.lat) || !Number.isFinite(cached.lng)) return;
+    const payload: QiblaWidgetPayload = {
+      lat: cached.lat as number,
+      lng: cached.lng as number,
+      updatedAt: new Date().toISOString(),
+    };
+    const value = JSON.stringify(payload);
+    try { localStorage.setItem(KEY, value); } catch { /* ignore */ }
+    await nativeSet(KEY, value);
+  } catch {
+    // No cached location yet — the widget falls back to its own empty state.
+  }
+}
+
 /**
  * Sync all widget data in one call.
  * Call this on app foreground and after significant state changes.
@@ -229,6 +257,7 @@ export async function syncAllWidgets(): Promise<void> {
     syncAdhkarWidget(),
     syncWirdWidget(),
     syncDashboardWidget(),
+    syncQiblaWidget(),
   ]);
   // Repaint home-screen widgets immediately with the data we just wrote.
   const { refreshHomeWidgets } = await import("@/lib/widgetRefresh");
