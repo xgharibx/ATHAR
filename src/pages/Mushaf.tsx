@@ -856,8 +856,11 @@ export function MushafPage() {
       .catch(() => { if (mounted) toast.error("تعذر تحميل البيانات"); })
       .finally(() => { if (mounted) setWbwLoading(false); });
     return () => { mounted = false; };
+  // pageItems is empty until quranDB finishes loading; including it (not just
+  // currentPage) makes this effect re-fire once real data arrives instead of
+  // permanently fetching nothing for the page the reader first lands on.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage]);
+  }, [currentPage, pageItems]);
 
   // Q11-B: Fetch tafseer for popup when tafsirItem opens (works even when inline tafseer is OFF)
   React.useEffect(() => {
