@@ -147,10 +147,12 @@ export function DhikrList(props: Readonly<{
   const [isScrolling, setIsScrolling] = React.useState(false);
   const headerCardRef = React.useRef<HTMLDivElement>(null);
   // Plain-list scroll controller. This used to be react-virtuoso's
-  // VirtuosoHandle, but its window-scroll mode silently rendered ZERO items
-  // (scroller stuck at height 0) — a blank reader in dev AND production.
-  // Sections top out around ~50 cards, so virtualization buys nothing here;
-  // a plain render + scrollIntoView keeps every existing call site working.
+  // VirtuosoHandle. Its window-scroll mode renders zero items whenever the
+  // measurement tick can't run (hidden/occluded WebView — rAF and observers
+  // suspended); on a normal visible device it worked. Sections top out
+  // around ~50 cards, so virtualization bought nothing here anyway — a
+  // plain render is simpler, immune to that failure mode, and this
+  // controller keeps every existing scrollToIndex call site working.
   const itemElsRef = React.useRef<(HTMLDivElement | null)[]>([]);
   const virtuosoRef = React.useRef({
     scrollToIndex(opts: { index: number; align?: "start" | "center" | "end"; behavior?: ScrollBehavior }) {
