@@ -28,6 +28,10 @@ export const TAFSIR_EDITIONS: TafsirEdition[] = [
   { slug: "ar-tafsir-al-wasit", label: "الوسيط" },
   { slug: "ar-tafseer-tanwir-al-miqbas", label: "تنوير المقباس" },
   { slug: "ar-tafsir-al-mukhtasar", label: "المختصر" },
+  // English editions — same spa5k/tafsir_api source/CDN as the Arabic set above.
+  { slug: "en-tafisr-ibn-kathir", label: "الإنجليزية — ابن كثير" },
+  { slug: "en-tafsir-al-mukhtasar", label: "الإنجليزية — المختصر" },
+  { slug: "en-tafsir-maarif-ul-quran", label: "الإنجليزية — معارف القرآن" },
 ];
 
 export function getTafsirLabel(slug: string): string {
