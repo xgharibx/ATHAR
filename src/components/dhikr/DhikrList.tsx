@@ -2,7 +2,6 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { RotateCcw, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown, Timer, Square, MoreHorizontal, Trash2, Share2, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -147,7 +146,53 @@ export function DhikrList(props: Readonly<{
   // Premium compact bar: hidden while actively scrolling, slides back in when scrolling stops
   const [isScrolling, setIsScrolling] = React.useState(false);
   const headerCardRef = React.useRef<HTMLDivElement>(null);
-  const virtuosoRef = React.useRef<VirtuosoHandle>(null);
+  // Plain-list scroll controller. This used to be react-virtuoso's
+  // VirtuosoHandle, but its window-scroll mode silently rendered ZERO items
+  // (scroller stuck at height 0) — a blank reader in dev AND production.
+  // Sections top out around ~50 cards, so virtualization buys nothing here;
+  // a plain render + scrollIntoView keeps every existing call site working.
+  const itemElsRef = React.useRef<(HTMLDivElement | null)[]>([]);
+  const virtuosoRef = React.useRef({
+    scrollToIndex(opts: { index: number; align?: "start" | "center" | "end"; behavior?: ScrollBehavior }) {
+      // Computed window scroll instead of el.scrollIntoView: a layout
+      // wrapper with overflow-x hidden silently becomes scrollIntoView's
+      // scroll target (per spec overflow-y computes to auto there), so
+      // scrollIntoView scrolls that non-scrolling box and the page never
+      // moves. Window math has no ancestor to get confused by. The smooth
+      // animation is driven by rAF ourselves because native
+      // scrollTo({behavior:"smooth"}) is a silent no-op on some engines.
+      let top = 0;
+      if (opts.index > 0 || opts.align !== undefined) {
+        const el = itemElsRef.current[opts.index];
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const topbarH = parseFloat(document.documentElement.style.getPropertyValue("--topbar-h") || "80");
+        if (opts.align === "start") top = window.scrollY + rect.top - topbarH - 8;
+        else if (opts.align === "end") top = window.scrollY + rect.bottom - window.innerHeight + 8;
+        else top = window.scrollY + rect.top - Math.max(topbarH, (window.innerHeight - rect.height) / 2);
+        top = Math.max(0, top);
+      }
+      // Instant when smooth isn't wanted — or CAN'T run: rAF is suspended in
+      // hidden/occluded tabs, and reduced-motion users shouldn't be animated.
+      const reduceMotion = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (opts.behavior !== "smooth" || document.hidden || reduceMotion) {
+        window.scrollTo(0, top);
+        return;
+      }
+      const start = window.scrollY;
+      const delta = top - start;
+      if (Math.abs(delta) < 2) return;
+      const duration = Math.min(650, Math.max(250, Math.abs(delta) * 0.35));
+      const t0 = performance.now();
+      const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+      const step = (now: number) => {
+        const p = Math.min(1, (now - t0) / duration);
+        window.scrollTo(0, start + delta * ease(p));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    },
+  });
 
   // Unified scroll handler: track header visibility + active-scroll state
   React.useEffect(() => {
@@ -164,6 +209,9 @@ export function DhikrList(props: Readonly<{
         );
         setHeaderVisible(el.getBoundingClientRect().bottom > topbarH);
       }
+
+      // Back-to-top affordance (was Virtuoso's atTopStateChange)
+      setShowBackToTop(y > 400);
 
       // Mark as actively scrolling, then clear shortly after the last scroll event
       if (y > 4) {
@@ -752,14 +800,13 @@ export function DhikrList(props: Readonly<{
             </div>
           </div>
         ) : (
-          <Virtuoso
-            ref={virtuosoRef}
-            useWindowScroll
-            data={orderedEntries}
-            atTopStateChange={(atTop) => setShowBackToTop(!atTop)}
-            components={{ Footer: () => <div style={{ height: 120 }} aria-hidden="true" /> }}
-            itemContent={(displayIndex, entry) => (
-              <div className="pb-4">
+          <div>
+            {orderedEntries.map((entry, displayIndex) => (
+              <div
+                key={entry.originalIndex}
+                ref={(el) => { itemElsRef.current[displayIndex] = el; }}
+                className="pb-4"
+              >
                 {reorderMode ? (
                   <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2">
                     <div className="text-xs tabular-nums opacity-65">{displayIndex + 1}</div>
@@ -845,8 +892,9 @@ export function DhikrList(props: Readonly<{
                   }}
                 />
               </div>
-            )}
-          />
+            ))}
+            <div style={{ height: 120 }} aria-hidden="true" />
+          </div>
         )}
         {!addOpen ? (
           (
