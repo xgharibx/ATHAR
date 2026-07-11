@@ -7,6 +7,7 @@ import { DAILY_WISDOMS } from "@/data/dailyWisdom";
 import { QURAN_VOCAB } from "@/data/quranVocab";
 import { Button } from "@/components/ui/Button";
 import { fetchDailyHadith, fetchRandomHadith, type SharhHadith } from "@/lib/hadithSharhAPI";
+import { syncSunnahWidget } from "@/lib/widgetDataBridge";
 import toast from "react-hot-toast";
 
 function dateIndex(dateKey: string, length: number, offset = 0): number {
@@ -52,7 +53,13 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     let alive = true;
     setHadithLoading(true);
     fetchDailyHadith(dateKey)
-      .then((h) => { if (alive) setDailyHadith(h); })
+      .then((h) => {
+        if (!alive) return;
+        setDailyHadith(h);
+        // Mirror the exact same record to the home-screen widget — same
+        // text, attribution, grade, nothing re-derived.
+        if (h) void syncSunnahWidget({ id: h.id, hadeeth: h.hadeeth, attribution: h.attribution, grade: h.grade });
+      })
       .finally(() => { if (alive) setHadithLoading(false); });
     return () => { alive = false; };
   }, [dateKey]);

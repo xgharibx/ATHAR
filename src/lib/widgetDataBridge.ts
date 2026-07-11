@@ -220,6 +220,31 @@ function resolveLevelFromScore(score: number): { ar: string; emoji: string } {
   return                     { ar: "مبتدئ",   emoji: "🌱" };
 }
 
+export type SunnahWidgetPayload = { id: string; hadeeth: string; attribution: string; grade: string; updatedAt: string };
+
+/**
+ * Sync today's real hadith (text + attribution + grade — the same
+ * hadeethenc.com record the home-page card shows) to the Sunnah widget.
+ * Call this once DailyCarousel resolves it client-side; the widget itself
+ * has no way to fetch hadeethenc.com on its own.
+ */
+export async function syncSunnahWidget(hadith: { id: string; hadeeth: string; attribution: string; grade: string } | null): Promise<void> {
+  if (!hadith) return;
+  const KEY = "noor_widget_sunnah_v1";
+  const payload: SunnahWidgetPayload = {
+    id: hadith.id,
+    hadeeth: hadith.hadeeth,
+    attribution: hadith.attribution,
+    grade: hadith.grade,
+    updatedAt: new Date().toISOString(),
+  };
+  const value = JSON.stringify(payload);
+  try { localStorage.setItem(KEY, value); } catch { /* ignore */ }
+  await nativeSet(KEY, value);
+  const { refreshHomeWidgets } = await import("@/lib/widgetRefresh");
+  await refreshHomeWidgets();
+}
+
 export type QiblaWidgetPayload = { lat: number; lng: number; updatedAt: string };
 
 /**
