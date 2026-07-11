@@ -93,7 +93,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
       pauseUntilRef.current = Date.now() + 15000;
       setShowHadithExplanation(false);
       setHadithLoading(true);
-      void fetchRandomHadith().then((h) => { setHadithOverride(h); setHadithLoading(false); });
+      void fetchRandomHadith(hadith?.id).then((h) => { setHadithOverride(h); setHadithLoading(false); });
       return;
     }
 
@@ -108,7 +108,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     setTimeout(() => setSpinSlide(null), 400);
     // Pause auto-advance for 15 s after shuffle
     pauseUntilRef.current = Date.now() + 15000;
-  }, [shuffleIdx, dailyIdxs]);
+  }, [shuffleIdx, dailyIdxs, hadith]);
 
   const copyShare = React.useCallback(async (text: string) => {
     try {

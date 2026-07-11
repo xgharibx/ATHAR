@@ -160,6 +160,38 @@ function seededIndex(seed: string, length: number): number {
   return hash % length;
 }
 
+// ── No-repeat memory ──────────────────────────────────────────────────────
+//
+// A persisted ring buffer of recently-shown hadith IDs. Persisted (not just
+// in-memory) so shuffling repeatedly in one sitting AND reopening the app
+// tomorrow both avoid hadiths you just saw — the pool (4,280 real hadiths,
+// verified against hadeethenc's own category counts) is large enough that a
+// bounded recent-history window, not full dedup, is what actually matters
+// for "doesn't feel repetitive".
+const RECENT_KEY = "noor_sharh_recent_v1";
+const RECENT_MAX = 80;
+
+function getRecentIds(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    const arr = raw ? (JSON.parse(raw) as unknown) : [];
+    return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function pushRecentId(id: string): void {
+  try {
+    const recent = getRecentIds().filter((x) => x !== id);
+    recent.push(id);
+    while (recent.length > RECENT_MAX) recent.shift();
+    localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+  } catch {
+    // non-fatal — worst case a shuffle repeats sooner than intended
+  }
+}
+
 /** The day's hadith — same real record for everyone on the same date. Text,
  *  grade, attribution, and explanation all come from this one authoritative
  *  source, so the daily card never needs an AI-written stand-in. */
@@ -167,13 +199,39 @@ export async function fetchDailyHadith(dateKey: string): Promise<SharhHadith | n
   const leaves = await fetchLeafCategories();
   const total = leaves.reduce((sum, c) => sum + Number(c.hadeeths_count), 0);
   if (total === 0) return null;
-  return fetchHadithAtGlobalIndex(leaves, seededIndex(dateKey, total));
+  const hadith = await fetchHadithAtGlobalIndex(leaves, seededIndex(dateKey, total));
+  if (hadith) pushRecentId(hadith.id);
+  return hadith;
 }
 
-/** A different real hadith, for the shuffle action. */
-export async function fetchRandomHadith(): Promise<SharhHadith | null> {
+/**
+ * A different real hadith, for the shuffle action — never the one currently
+ * on screen, and not one of the last RECENT_MAX shown (persisted, so this
+ * holds across shuffles and across app sessions). The pool is verified to
+ * be ~4,280 real hadiths (every leaf category hadeethenc actually lists
+ * hadiths under), so rejection sampling against an 80-item exclusion
+ * window converges in a couple of draws almost always.
+ */
+export async function fetchRandomHadith(excludeId?: string): Promise<SharhHadith | null> {
   const leaves = await fetchLeafCategories();
   const total = leaves.reduce((sum, c) => sum + Number(c.hadeeths_count), 0);
   if (total === 0) return null;
-  return fetchHadithAtGlobalIndex(leaves, Math.floor(Math.random() * total));
+  const recent = new Set(getRecentIds());
+  if (excludeId) recent.add(excludeId);
+
+  const maxAttempts = Math.min(30, total);
+  let lastDrawn: SharhHadith | null = null;
+  for (let i = 0; i < maxAttempts; i++) {
+    const hadith = await fetchHadithAtGlobalIndex(leaves, Math.floor(Math.random() * total));
+    if (!hadith) continue;
+    lastDrawn = hadith;
+    if (!recent.has(hadith.id)) {
+      pushRecentId(hadith.id);
+      return hadith;
+    }
+  }
+  // Only reachable if the exclusion window is large relative to the pool —
+  // not the case here, but never surface "no hadith" over a same-again one.
+  if (lastDrawn) pushRecentId(lastDrawn.id);
+  return lastDrawn;
 }
