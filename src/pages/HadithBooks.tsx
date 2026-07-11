@@ -309,11 +309,14 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
             {results.length >= 50 ? "أكثر من 50" : results.length} نتيجة
           </p>
           {results.map((r) => (
-            <button type="button"
+            <div
               key={`${r.bookKey}:${r.item.n}`}
+              role="button"
+              tabIndex={0}
               dir="rtl"
               onClick={() => navigate(`/hadith/${r.bookKey}/${r.item.n}`)}
-              className="group relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect"
+              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate(`/hadith/${r.bookKey}/${r.item.n}`)}
+              className="group relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect cursor-pointer"
             >
               <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
               <div className="relative px-4 py-3">
@@ -342,7 +345,7 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
                   {previewText(r.item.t)}
                 </p>
               </div>
-            </button>
+            </div>
           ))}
         </div>
       )}

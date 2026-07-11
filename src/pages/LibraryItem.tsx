@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, BookOpenText, Check, Copy, ExternalLink, Heart, Share2 } from "lucide-react";
+import { ArrowRight, BookOpenText, Check, Copy, ExternalLink, Heart, Share2, ScrollText } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Badge } from "@/components/ui/Badge";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { useIslamicLibraryDB, dorarSearchUrl } from "@/data/useIslamicLibraryDB";
+import { getLibraryHadithLinks, type LibraryHadithLink } from "@/lib/libraryHadithLinks";
+import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
@@ -31,6 +33,22 @@ export function LibraryItemPage() {
   const toggleLibraryFavorite = useNoorStore((s) => s.toggleLibraryFavorite);
 
   const entry = data?.byKey.get(key) ?? null;
+
+  // If this is one of the library's curated hadith cards (matn only, no
+  // isnad), check whether it's actually one of the real 9 bundled books —
+  // most of them are — so the reader can jump to the full experience
+  // (isnad, grading, sharh explanation, bookmarks) instead of staying on
+  // this thin card. Matched offline by text, not guessed; see
+  // libraryHadithLinks.ts.
+  const [hadithLinks, setHadithLinks] = React.useState<LibraryHadithLink[]>([]);
+  React.useEffect(() => {
+    let alive = true;
+    setHadithLinks([]);
+    if (entry?.kind !== "hadith" || !params.entryId) return;
+    getLibraryHadithLinks(params.entryId).then((links) => { if (alive) setHadithLinks(links); });
+    return () => { alive = false; };
+  }, [entry?.kind, params.entryId]);
+
   const related = React.useMemo(() => {
     if (!data || !entry) return [];
     const tagSet = new Set(entry.tags);
@@ -116,6 +134,24 @@ export function LibraryItemPage() {
         <div className="arabic-text text-xl md:text-2xl leading-[2.4] font-medium text-right select-text">
           {entry.arabic}
         </div>
+
+        {hadithLinks.length > 0 && (
+          <button type="button"
+            onClick={() => navigate(`/hadith/${hadithLinks[0]!.bookKey}/${hadithLinks[0]!.n}`)}
+            className="mt-5 w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 text-right transition hover:brightness-110 active:scale-[0.99]"
+            style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 30%, transparent)" }}
+          >
+            <ScrollText size={20} aria-hidden="true" style={{ color: "var(--accent)" }} className="shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold" style={{ color: "var(--accent)" }}>افتح القراءة الكاملة بالإسناد</div>
+              <div className="text-[11px] opacity-60 mt-0.5">
+                {HADITH_BOOKS_STATIC.find((b) => b.key === hadithLinks[0]!.bookKey)?.title ?? hadithLinks[0]!.bookKey}
+                {" · ح"}{hadithLinks[0]!.n.toLocaleString("ar-EG")}
+                {hadithLinks.length > 1 ? ` (+${(hadithLinks.length - 1).toLocaleString("ar-EG")} مصادر أخرى)` : ""}
+              </div>
+            </div>
+          </button>
+        )}
       </Card>
 
       {(entry.explanation || entry.benefits.length > 0) && (

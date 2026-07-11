@@ -20,9 +20,13 @@ import {
   BookOpenText,
   Hash,
   Info,
+  User,
+  ExternalLink,
 } from "lucide-react";
 import { useHadithPack, getHadithByNumber } from "@/data/useHadithBook";
 import { getSharhIdFor } from "@/lib/hadithSharhLinks";
+import { parseIsnadChain } from "@/lib/isnadParser";
+import { lookupNarratorBio, type NarratorBio } from "@/lib/narratorLookup";
 import {
   HADITH_BOOKS_STATIC,
   HADITH_GRADE_LABELS,
@@ -327,6 +331,18 @@ export function HadithReaderPage() {
     return splitHadithText(hadith.t);
   }, [hadith]);
 
+  // Isnad as a chain of narrator links, for the tappable chain visual.
+  const isnadChain = useMemo(() => parseIsnadChain(hadithSplit?.isnad ?? ""), [hadithSplit]);
+
+  // Narrator bio popup — opened by tapping a link in the chain.
+  const [narratorPopup, setNarratorPopup] = useState<{ name: string; bio: NarratorBio | null; loading: boolean } | null>(null);
+  const openNarrator = (name: string) => {
+    setNarratorPopup({ name, bio: null, loading: true });
+    lookupNarratorBio(name).then((bio) => {
+      setNarratorPopup((prev) => (prev && prev.name === name ? { name, bio, loading: false } : prev));
+    });
+  };
+
   const fontSizeClass = useMemo(() => {
     return "text-xl";
   }, []);
@@ -417,7 +433,20 @@ export function HadithReaderPage() {
           </Card>
         )}
 
-        {hadith && hadithSplit && (
+        {/* Text genuinely missing from this edition — a real gap in the
+            bundled data (~1% of entries, mostly in صحيح مسلم), not a load
+            failure. Say so honestly instead of showing a blank card. */}
+        {hadith && !hadith.t.trim() && (
+          <Card className="p-6 text-center">
+            <p className="text-sm font-arabic opacity-70 py-6">
+              نص هذا الحديث غير متوفر في هذه النسخة الرقمية.
+              <br />
+              <span className="text-xs opacity-60">استخدم أزرار «السابق» أو «التالي» للانتقال إلى حديث آخر.</span>
+            </p>
+          </Card>
+        )}
+
+        {hadith && hadith.t.trim() && hadithSplit && (
           <>
             {/* Metadata card */}
             <Card className="relative overflow-hidden p-4">
@@ -440,16 +469,97 @@ export function HadithReaderPage() {
               </div>
             </Card>
 
-            {/* Isnad */}
+            {/* Isnad — chain of tappable narrator links */}
             {hadithSplit.isnad && (
               <Card className="relative overflow-hidden p-4">
                 <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
                 <div className="absolute inset-y-0 right-0 w-1 opacity-70" style={{ background: accentColor }} />
                 <div className="relative pr-2">
-                  <p className="mb-2 text-[11px] font-semibold opacity-55 font-arabic">الإسناد</p>
-                  <p className="text-sm font-arabic text-[var(--fg)] opacity-65 leading-loose">
-                    {hadithSplit.isnad}
+                  <p className="mb-3 text-[11px] font-semibold opacity-55 font-arabic">
+                    الإسناد {isnadChain.length > 0 && <span className="opacity-60">— اضغط على راوٍ لمعرفته</span>}
                   </p>
+                  {isnadChain.length > 0 ? (
+                    <div className="flex flex-wrap items-center gap-2" dir="rtl">
+                      {isnadChain.map((link, i) => (
+                        <React.Fragment key={i}>
+                          <button type="button"
+                            onClick={() => openNarrator(link.name)}
+                            className="inline-flex items-center gap-1.5 rounded-2xl border px-3 py-1.5 text-xs font-arabic transition hover:brightness-110 active:scale-95"
+                            style={{
+                              borderColor: "color-mix(in srgb, var(--accent) 30%, transparent)",
+                              background: narratorPopup?.name === link.name ? "color-mix(in srgb, var(--accent) 18%, transparent)" : "var(--card)",
+                            }}
+                          >
+                            <User size={11} aria-hidden="true" style={{ color: accentColor }} />
+                            {link.name}
+                          </button>
+                          {i < isnadChain.length - 1 && (
+                            <ChevronLeft size={13} aria-hidden="true" className="opacity-30 shrink-0" />
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-arabic text-[var(--fg)] opacity-65 leading-loose">
+                      {hadithSplit.isnad}
+                    </p>
+                  )}
+                </div>
+              </Card>
+            )}
+
+            {/* Narrator bio popup */}
+            {narratorPopup && (
+              <Card className="relative overflow-hidden p-4">
+                <div className="absolute inset-y-0 right-0 w-1 opacity-70" style={{ background: accentColor }} />
+                <div className="relative pr-2">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <User size={16} aria-hidden="true" style={{ color: accentColor }} className="shrink-0" />
+                      <h2 className="text-sm font-bold font-arabic truncate">{narratorPopup.bio?.name ?? narratorPopup.name}</h2>
+                    </div>
+                    <IconButton aria-label="إغلاق" onClick={() => setNarratorPopup(null)}><X size={14} aria-hidden="true" /></IconButton>
+                  </div>
+
+                  {narratorPopup.loading && (
+                    <div className="flex items-center gap-2 py-4 text-xs opacity-55">
+                      <Loader2 size={14} aria-hidden="true" className="animate-spin" />
+                      جارٍ البحث عن ترجمة الراوي…
+                    </div>
+                  )}
+
+                  {!narratorPopup.loading && !narratorPopup.bio && (
+                    <p className="text-xs opacity-55 py-3">
+                      لم يُعثر على ترجمة موثوقة لهذا الاسم. قد يكون مذكوراً بكنية أو اسم مختصر يصعب مطابقته تلقائياً.
+                    </p>
+                  )}
+
+                  {!narratorPopup.loading && narratorPopup.bio && (
+                    <>
+                      <p className="text-sm leading-7 opacity-80">{narratorPopup.bio.extract}</p>
+                      <div className="mt-3 flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full opacity-55" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}>
+                          {narratorPopup.bio.source === "companion" ? "من صفحة الصحابة داخل التطبيق" : "من ويكيبيديا العربية"}
+                        </span>
+                        {narratorPopup.bio.companionId && (
+                          <button type="button"
+                            onClick={() => navigate(`/companions?open=${narratorPopup.bio!.companionId}`)}
+                            className="text-[11px] font-semibold flex items-center gap-1"
+                            style={{ color: accentColor }}
+                          >
+                            السيرة الكاملة <ChevronLeft size={11} aria-hidden="true" />
+                          </button>
+                        )}
+                        {narratorPopup.bio.url && (
+                          <a href={narratorPopup.bio.url} target="_blank" rel="noopener noreferrer"
+                            className="text-[11px] font-semibold flex items-center gap-1" style={{ color: accentColor }}
+                          >
+                            ويكيبيديا <ExternalLink size={11} aria-hidden="true" />
+                          </a>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </Card>
             )}

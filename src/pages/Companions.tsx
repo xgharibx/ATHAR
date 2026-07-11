@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, ChevronRight, Users, Search, X, Bookmark, BookmarkCheck, Share2 } from "lucide-react";
 import { COMPANIONS, COMPANION_CATEGORIES, type Companion, type CompanionChapter } from "@/data/companions";
 import { Card } from "@/components/ui/Card";
@@ -23,8 +23,19 @@ function saveCompanionBookmarks(s: Set<string>) {
 export default function Companions() {
   const navigate = useNavigate();
   useScrollRestoration();
+  const [searchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState<Companion["category"] | "all">("all");
-  const [expanded, setExpanded] = useState<string | null>(null);
+  // Deep-linked from a narrator tap in the hadith reader (?open=<id>) opens straight to that companion's bio.
+  const [expanded, setExpanded] = useState<string | null>(() => searchParams.get("open"));
+  React.useEffect(() => {
+    const openId = searchParams.get("open");
+    if (!openId) return;
+    const timer = setTimeout(() => {
+      document.getElementById(`companion-panel-${openId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 250);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [query, setQuery] = useState("");
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [bookmarks, setBookmarks] = useState<Set<string>>(() => loadCompanionBookmarks());
