@@ -9,6 +9,7 @@ import { ArrowRight, Search, Library, BookOpen, Bookmark, BrainCircuit, Copy } f
 import Fuse from "fuse.js";
 import { HADITH_BOOKS_STATIC, HADITH_GRADE_LABELS, type HadithBookMeta, type HadithItem } from "@/data/hadithTypes";
 import { useHadithIndex, loadHadithPack } from "@/data/useHadithBook";
+import { normalizeArabicSearch } from "@/lib/arabic";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
@@ -206,12 +207,23 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
       try {
         const pack = await loadHadithPack(key);
         if (!pack) continue;
+        // Two compounding bugs made this effectively return nothing for any
+        // realistic query: (1) the bundled text is fully vocalized — nobody
+        // types diacritics on a phone keyboard, so an undiacritized query
+        // never fuzzy-matched — fixed by normalizing both sides the same way
+        // the rest of the app's Arabic search does; (2) Fuse's default
+        // location/distance scoring assumes matches sit near the start of
+        // the field, but the matn (what a search term usually hits) can
+        // start hundreds of characters in, after the full isnad chain —
+        // fixed with ignoreLocation, since hadith text isn't a short label.
         const fuse = new Fuse(pack.hadiths, {
           keys: ["t"],
           threshold: 0.35,
           minMatchCharLength: 2,
+          ignoreLocation: true,
+          getFn: (obj) => normalizeArabicSearch((obj as HadithItem).t),
         });
-        const hits = fuse.search(q, { limit: 5 });
+        const hits = fuse.search(normalizeArabicSearch(q), { limit: 5 });
         const meta = books.find((b) => b.key === key);
         for (const h of hits) {
           allResults.push({
