@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Routes, Route, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { AppShell } from "@/components/layout/AppShell";
@@ -379,7 +379,10 @@ export default function App() {
           <Route path="wudu" element={<S><WuduGuidePage /></S>} />
           <Route path="ruqyah" element={<S><RuqyahPage /></S>} />
           <Route path="library" element={<S><LibraryPage /></S>} />
-          <Route path="library/hadith" element={<S><LibraryPage /></S>} />
+          {/* Hadith used to have two separate pages here and at /hadith with
+              different stats and different designs — merged into one at
+              /hadith; this just keeps old links working. */}
+          <Route path="library/hadith" element={<Navigate to="/hadith" replace />} />
           <Route path="library/:collectionId/:entryId" element={<S><LibraryItemPage /></S>} />
           <Route path="video-library" element={<S><VideoLibraryPage /></S>} />
           <Route path="video-library/course/:courseId" element={<S><VideoLibraryPage /></S>} />

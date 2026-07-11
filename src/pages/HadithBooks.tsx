@@ -4,17 +4,24 @@
  * Route: /hadith
  */
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Search, Library, BookOpen, Bookmark, BrainCircuit, Copy } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Search, Library, BookOpen, Bookmark, BrainCircuit, Copy, Check, Heart, Share2, Sparkles } from "lucide-react";
 import { HADITH_BOOKS_STATIC, type HadithBookMeta } from "@/data/hadithTypes";
 import { useHadithIndex } from "@/data/useHadithBook";
 import { searchFullHadithCorpus, prewarmFullHadithSearch, type FullHadithSearchResult } from "@/lib/fullHadithSearch";
+import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
+import type { FlatLibraryEntry, LibraryCollection } from "@/data/libraryTypes";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
+import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
 import { GradeChip } from "@/components/hadith/GradeChip";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { cn } from "@/lib/utils";
+import { stripDiacritics } from "@/lib/arabic";
 
 /* ------------------------------------------------------------------ */
 /* الأربعينيات hero card (7E)                                           */
@@ -138,6 +145,258 @@ function BookCard({ book }: { book: HadithBookMeta }) {
         </div>
       </div>
     </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Curated tab — the 69 hand-picked, editorially-annotated hadiths      */
+/* (benefits, tags, collections). Used to live on its own page at        */
+/* /library/hadith with a different header and different stats than      */
+/* this page — confusing (is it 69 hadiths or 36,000?) since both were    */
+/* reachable as "أحاديث". Merged in here as one more facet of the same   */
+/* hadith experience instead of a second page.                          */
+/* ------------------------------------------------------------------ */
+
+const CURATED_GRADE_LABELS: Record<string, string> = {
+  agreed: "متفق عليه",
+  sahih: "صحيح",
+  hasan: "حسن",
+  curated: "تحريري",
+};
+
+function curatedEntryPreview(entry: FlatLibraryEntry) {
+  return entry.arabic.length > 230 ? `${entry.arabic.slice(0, 230)}…` : entry.arabic;
+}
+
+async function copyCuratedEntry(entry: FlatLibraryEntry) {
+  await navigator.clipboard.writeText(`${entry.arabic}\n\n${entry.source.title}${entry.narrator ? ` — ${entry.narrator}` : ""}`);
+}
+
+function CuratedEntryCard({ entry }: { entry: FlatLibraryEntry }) {
+  const navigate = useNavigate();
+  const favorite = useNoorStore((s) => !!s.libraryFavorites[entry.key]);
+  const toggleLibraryFavorite = useNoorStore((s) => s.toggleLibraryFavorite);
+  const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current); }, []);
+
+  const onCopy = async () => {
+    try {
+      await copyCuratedEntry(entry);
+      setCopied(true);
+      toast.success("تم النسخ");
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopied(false), 1400);
+    } catch {
+      toast.error("تعذر النسخ");
+    }
+  };
+
+  const onShare = async () => {
+    const text = `${entry.arabic}\n\n${entry.source.title}`;
+    try {
+      if (navigator.share) await navigator.share({ title: entry.title, text });
+      else await navigator.clipboard.writeText(text);
+      toast.success("جاهز للمشاركة");
+    } catch {
+      toast.error("تعذرت المشاركة");
+    }
+  };
+
+  return (
+    <Card className="p-4 overflow-hidden relative">
+      <div className="absolute inset-y-0 right-0 w-1.5 opacity-80" style={{ background: entry.collectionAccent }} />
+      <div className="flex items-start justify-between gap-3">
+        <button type="button"
+          onClick={() => navigate(`/library/${entry.collectionId}/${entry.id}`)}
+          className="min-w-0 flex-1 text-right"
+        >
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <span className="text-base">{entry.collectionIcon}</span>
+            <span className="text-xs font-semibold" style={{ color: entry.collectionAccent }}>{entry.collectionTitle}</span>
+            <Badge className="px-2 py-0.5 text-[10px]">{entry.chapterTitle}</Badge>
+            <Badge className="px-2 py-0.5 text-[10px]">{CURATED_GRADE_LABELS[entry.grade] ?? entry.grade}</Badge>
+          </div>
+          <div className="text-sm font-semibold opacity-75 mb-2 arabic-text">{entry.title}</div>
+          <div className="arabic-text text-base md:text-lg leading-9 font-medium text-right">{curatedEntryPreview(entry)}</div>
+        </button>
+        <ArrowUpRight size={17} className="opacity-45 shrink-0 mt-1" aria-hidden="true" />
+      </div>
+
+      <div className="mt-3 border-t border-[var(--stroke)] pt-3 space-y-2">
+        <div className="flex items-center justify-between gap-3 text-xs opacity-65">
+          <span>{entry.narrator || "فائدة محررة"}</span>
+          <span className="font-semibold">{entry.source.title}</span>
+        </div>
+        {entry.benefits[0] && <div className="text-xs opacity-60 leading-6 line-clamp-2">{entry.benefits[0]}</div>}
+        <div className="flex items-center justify-between gap-2 pt-1">
+          <div className="flex flex-wrap gap-1.5 min-w-0">
+            {entry.tags.slice(0, 3).map((tag) => <Badge key={tag} className="px-2 py-0.5 text-[10px]">{tag}</Badge>)}
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <IconButton aria-label="نسخ" onClick={onCopy}>{copied ? <Check size={15} /> : <Copy size={15} />}</IconButton>
+            <IconButton aria-label="مفضلة" aria-pressed={favorite} onClick={() => toggleLibraryFavorite(entry.collectionId, entry.id)}>
+              <Heart size={15} aria-hidden="true" className={favorite ? "fill-red-400 text-red-400" : "opacity-70"} />
+            </IconButton>
+            <IconButton aria-label="مشاركة" onClick={onShare}><Share2 size={15} /></IconButton>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function CuratedCollectionCard({ collection, active, onClick }: { collection: LibraryCollection; active: boolean; onClick: () => void }) {
+  return (
+    <button type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "min-w-[220px] text-right rounded-3xl border p-4 transition press-effect",
+        active ? "bg-[var(--card)] border-[var(--stroke)]" : "glass border-[var(--stroke)] hover:bg-[var(--card-2)]"
+      )}
+      style={active ? { borderColor: collection.accent } : undefined}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-xl">{collection.icon}</span>
+        <div className="min-w-0">
+          <div className="text-sm font-semibold truncate" style={{ color: collection.accent }}>{collection.title}</div>
+          <div className="text-[11px] opacity-50 truncate">{collection.subtitle}</div>
+        </div>
+      </div>
+      <div className="text-xs opacity-60 leading-5 line-clamp-2">{collection.description}</div>
+      <div className="mt-3 text-[11px] opacity-45 tabular-nums">{collection.entries.length.toLocaleString("ar-EG")} مادة</div>
+    </button>
+  );
+}
+
+function CuratedTab() {
+  const { data, isLoading, error } = useIslamicLibraryDB();
+  const [q, setQ] = useState("");
+  const [collectionFilter, setCollectionFilter] = useState<string>("all");
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+
+  const fuse = useMemo(() => {
+    if (!data) return null;
+    return new Fuse(data.flat, {
+      includeScore: true,
+      threshold: 0.25,
+      keys: [
+        { name: "searchText", weight: 3 },
+        { name: "arabic", weight: 3 },
+        { name: "title", weight: 2 },
+        { name: "narrator", weight: 1.5 },
+        { name: "tags", weight: 1.2 },
+        { name: "source.title", weight: 1 },
+      ],
+    });
+  }, [data]);
+
+  const tags = useMemo(() => {
+    if (!data) return [];
+    const counts = new Map<string, number>();
+    for (const entry of data.flat) {
+      for (const tag of entry.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 18);
+  }, [data]);
+
+  const entries = useMemo(() => {
+    if (!data) return [] as FlatLibraryEntry[];
+    const base = q.trim() && fuse
+      ? fuse.search(stripDiacritics(q.trim())).map((result) => result.item)
+      : data.flat;
+    return base
+      .filter((entry) => collectionFilter === "all" || entry.collectionId === collectionFilter)
+      .filter((entry) => !tagFilter || entry.tags.includes(tagFilter))
+      .slice(0, q.trim() ? 80 : 200);
+  }, [collectionFilter, data, fuse, q, tagFilter]);
+
+  const featuredIndex = Math.floor(Date.now() / 86400000) % (data?.flat.length ?? 1);
+  const featured = data?.flat[featuredIndex] ?? null;
+  const navigate = useNavigate();
+
+  if (isLoading) {
+    return <div className="px-4 pt-4 space-y-3" role="status" aria-label="جارٍ التحميل…"><span className="sr-only">جارٍ التحميل…</span><div className="skeleton h-8 w-44 rounded-xl" /><div className="skeleton h-20 w-full rounded-2xl mt-4" /></div>;
+  }
+  if (error || !data) {
+    return <div className="px-4 pt-4"><Card className="p-5"><div className="font-semibold">تعذر تحميل المختارات</div><div className="text-sm opacity-60 mt-2">أعد فتح الصفحة بعد قليل.</div></Card></div>;
+  }
+
+  return (
+    <div dir="rtl" className="px-4 pt-2 space-y-4">
+      {featured && (
+        <button type="button"
+          onClick={() => navigate(`/library/${featured.collectionId}/${featured.id}`)}
+          className="w-full text-right rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 hover:bg-[var(--card-2)] transition"
+        >
+          <div className="flex items-center gap-2 mb-2"><Sparkles size={15} className="text-[var(--accent)]" aria-hidden="true" /><span className="text-xs font-semibold opacity-60">بداية مقترحة</span></div>
+          {featured.title && <div className="text-xs font-semibold mb-1 font-arabic" style={{ color: featured.collectionAccent }}>{featured.collectionTitle} · {featured.title}</div>}
+          <div className="arabic-text leading-8 text-sm md:text-base line-clamp-3">{featured.arabic}</div>
+          <div className="text-xs opacity-50 mt-2">{featured.source.title}</div>
+        </button>
+      )}
+
+      <div className="relative" role="search" aria-label="بحث في المختارات">
+        <Search size={16} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] pointer-events-none" />
+        <Input value={q} onChange={(event) => setQ(event.target.value)} type="search" placeholder="ابحث في المختارات، الراوي، أو الموضوع…" aria-label="بحث في المختارات" spellCheck={false} autoComplete="off" autoCapitalize="none" className="pr-9" />
+      </div>
+
+      <div className="overflow-x-auto no-scrollbar -mx-0.5 px-0.5">
+        <div className="flex gap-2 pb-1" style={{ width: "max-content" }}>
+          <CuratedCollectionCard
+            collection={{ ...data.db.collections[0]!, id: "all", title: "الكل", subtitle: "كل المختارات", description: "اعرض كل المواد المتاحة داخل التطبيق.", icon: "🌟", accent: "var(--accent)", entries: data.flat }}
+            active={collectionFilter === "all"}
+            onClick={() => setCollectionFilter("all")}
+          />
+          {data.db.collections.map((collection) => (
+            <CuratedCollectionCard key={collection.id} collection={collection} active={collectionFilter === collection.id} onClick={() => setCollectionFilter(collection.id)} />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" role="group" aria-label="تصفية بالموضوع">
+        <button type="button"
+          onClick={() => setTagFilter(null)}
+          aria-pressed={!tagFilter}
+          className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", !tagFilter ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+        >
+          كل الموضوعات
+        </button>
+        {tags.map(([tag, count]) => (
+          <button type="button"
+            key={tag}
+            aria-pressed={tagFilter === tag}
+            onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+            className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
+          >
+            {tag} <span className="opacity-60 tabular-nums">{count.toLocaleString("ar-EG")}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between gap-2 px-1">
+        <div className="text-sm font-semibold">المواد المختارة</div>
+        <div className="text-xs opacity-50 tabular-nums" aria-live="polite" aria-atomic="true">{entries.length.toLocaleString("ar-EG")}</div>
+      </div>
+
+      <div className="space-y-3 pb-4" role="list" aria-label="المواد المختارة">
+        {entries.map((entry) => <div key={entry.key} role="listitem"><CuratedEntryCard entry={entry} /></div>)}
+        {entries.length === 0 && (
+          <div dir="rtl" className="flex flex-col items-center py-12 gap-4">
+            <Search size={40} aria-hidden="true" className="text-[var(--muted)] opacity-20" />
+            <p className="text-sm text-[var(--muted)] font-arabic text-center">لا توجد نتائج للفلاتر الحالية</p>
+            <button
+              type="button"
+              onClick={() => { setTagFilter(null); setCollectionFilter("all"); setQ(""); }}
+              className="text-xs px-4 py-2 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition font-arabic"
+            >
+              إعادة ضبط الفلاتر
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -298,7 +557,7 @@ export function HadithBooksPage() {
   useScrollRestoration();
   const { data: indexBooks } = useHadithIndex();
   const books = indexBooks ?? HADITH_BOOKS_STATIC;
-  const [tab, setTab] = useState<"library" | "search">("library");
+  const [tab, setTab] = useState<"library" | "curated" | "search">("library");
 
   // Sort by order
   const sorted = useMemo(() => [...books].sort((a, b) => a.order - b.order), [books]);
@@ -321,9 +580,9 @@ export function HadithBooksPage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <Library size={19} aria-hidden="true" className="text-[var(--accent)]" />
-                <h1 className="text-lg font-bold">الكتب الحديثية</h1>
+                <h1 className="text-lg font-bold">الأحاديث</h1>
               </div>
-              <div className="text-xs opacity-55 mt-1">الكتب الستة وما يلحق بها</div>
+              <div className="text-xs opacity-55 mt-1">الكتب التسعة، مختارات نبوية، وبحث شامل — في مكان واحد</div>
             </div>
             <IconButton aria-label="بطاقات الحفظ" onClick={() => navigate("/hadith/memo")}>
               <BrainCircuit size={18} aria-hidden="true" style={{ color: "var(--accent)" }} />
@@ -358,7 +617,7 @@ export function HadithBooksPage() {
             else if (e.key === 'Home') { e.preventDefault(); tabs[0].focus(); tabs[0].click(); }
             else if (e.key === 'End') { e.preventDefault(); tabs[tabs.length-1].focus(); tabs[tabs.length-1].click(); }
           }}>
-        {(["library", "search"] as const).map((t) => (
+        {(["library", "curated", "search"] as const).map((t) => (
           <button type="button"
             key={t}
             id={`hadith-books-tab-${t}`}
@@ -372,8 +631,8 @@ export function HadithBooksPage() {
               : { color: "var(--muted)" }
             }
           >
-            {t === "library" ? <BookOpen size={14} aria-hidden="true" /> : <Search size={14} aria-hidden="true" />}
-            {t === "library" ? "المكتبة" : "البحث"}
+            {t === "library" ? <BookOpen size={14} aria-hidden="true" /> : t === "curated" ? <Sparkles size={14} aria-hidden="true" /> : <Search size={14} aria-hidden="true" />}
+            {t === "library" ? "المكتبة" : t === "curated" ? "المختارات" : "البحث"}
           </button>
         ))}
       </div>
@@ -424,6 +683,9 @@ export function HadithBooksPage() {
           </p>
         </div>
       )}
+
+      {/* Curated tab */}
+      {tab === "curated" && <div role="tabpanel" id="hadith-books-panel-curated" aria-labelledby="hadith-books-tab-curated" tabIndex={0}><CuratedTab /></div>}
 
       {/* Search tab */}
       {tab === "search" && <div role="tabpanel" id="hadith-books-panel-search" aria-labelledby="hadith-books-tab-search" tabIndex={0}><SearchTab books={sorted} /></div>}
