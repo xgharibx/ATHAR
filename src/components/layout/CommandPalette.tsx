@@ -57,7 +57,8 @@ export function CommandPalette(props: Props) {
       andalus: "أندلس",
       sakina: "سكينة",
       shafaq: "شفق",
-      mushaf: "مصحف"
+      mushaf: "مصحف",
+      diwan: "الديوان"
     };
     return map[t] ?? "تلقائي";
   };

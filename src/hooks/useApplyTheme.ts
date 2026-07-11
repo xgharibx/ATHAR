@@ -29,12 +29,13 @@ const THEME_META_COLORS: Record<NoorTheme, string> = {
   shafaq:   "#0b1220",
   mushaf:   "#2a1114",
   sama:     "#0a1f15",
+  diwan:    "#f5f1e6",
 };
 
 /** Themes that are light at heart — applied together with .light so every
  *  existing light-mode refinement carries over before their own overrides. */
 const LIGHT_COMPOUND: ReadonlySet<NoorTheme> = new Set([
-  "bustan", "waraq", "teen", "jura", "andalus", "sakina",
+  "bustan", "waraq", "teen", "jura", "andalus", "sakina", "diwan",
 ]);
 
 const ALL_THEME_CLASSES = [
@@ -42,6 +43,7 @@ const ALL_THEME_CLASSES = [
   "violet", "sunset", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab",
   "midad", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf",
   "sama", "sama-fajr", "sama-dhuhr", "sama-asr", "sama-maghrib", "sama-isha",
+  "diwan",
 ];
 
 const SAMA_META: Record<string, string> = {

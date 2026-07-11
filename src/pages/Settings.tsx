@@ -56,6 +56,7 @@ const THEME_ACCENTS: Record<NoorTheme, string> = {
   shafaq:   "#6ef2c3",
   mushaf:   "#e9c36a",
   sama:     "#ffe8a0",
+  diwan:    "#1f6b4a",
 };
 
 const PRAYER_ALERT_OPTIONS = [
@@ -361,6 +362,7 @@ export function SettingsPage() {
           <ThemeChip value="sakina" label="سكينة 🎋" active={prefs.theme === "sakina"} onClick={() => setPrefs({ theme: "sakina" })} />
           <ThemeChip value="shafaq" label="شفق ❄️" active={prefs.theme === "shafaq"} onClick={() => setPrefs({ theme: "shafaq" })} />
           <ThemeChip value="mushaf" label="مصحف 📕" active={prefs.theme === "mushaf"} onClick={() => setPrefs({ theme: "mushaf" })} />
+          <ThemeChip value="diwan" label="الديوان 🪶" active={prefs.theme === "diwan"} onClick={() => setPrefs({ theme: "diwan" })} />
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">

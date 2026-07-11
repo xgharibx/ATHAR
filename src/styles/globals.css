@@ -658,6 +658,42 @@
   --accent: #afb8ff; --accent-2: #ffd780;
 }
 
+.diwan {
+  /* الديوان — an archival register: warm cream page, deep-green ink,
+     gilded rule lines. Applied together with .light so all light-mode
+     refinements carry over. Distinct from ورق's aged-paper grain — this
+     reads as a clean, precise ledger, not weathered fiber. */
+  --bg: #f5f1e6;
+  --fg: #1d2420;
+  --muted: rgba(29, 36, 32, 0.72);
+  --muted-2: rgba(29, 36, 32, 0.54);
+  --card: rgba(31, 107, 74, 0.055);
+  --card-2: rgba(31, 107, 74, 0.09);
+  --stroke: rgba(169, 118, 31, 0.24);
+  --accent: #1f6b4a;   /* deep register-ink green */
+  --accent-2: #a9761f; /* gilded gold */
+  --shadow: 0 14px 38px rgba(29, 36, 32, 0.12);
+  color-scheme: light;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Naskh Arabic", serif;
+}
+
+/* الديوان: faint ruled guide-lines across the page, like register paper,
+   plus a soft gold-and-green wash top and bottom. */
+.diwan body {
+  background-color: var(--bg);
+  background-image:
+    repeating-linear-gradient(180deg, transparent 0 34px, rgba(169, 118, 31, 0.07) 34px 35px),
+    radial-gradient(1000px 480px at 90% -10%, rgba(31, 107, 74, 0.10), transparent 62%),
+    radial-gradient(820px 460px at -8% 12%, rgba(169, 118, 31, 0.10), transparent 58%);
+  background-attachment: fixed;
+}
+
+/* Cards read as sheets pinned to the register: crisp hairline + faint lift */
+.diwan .glass-card,
+.diwan [class*="rounded-2xl"][class*="border"] {
+  box-shadow: 0 1px 0 rgba(255, 253, 246, 0.9) inset, 0 2px 10px rgba(29, 36, 32, 0.06);
+}
+
 /* ── بستان ambient garden ornaments ─────────────────────────────────────
    Rendered by GardenOrnaments.tsx only when the bustan theme is active.
    Purely decorative: aria-hidden, pointer-events none, honors reduce-motion. */

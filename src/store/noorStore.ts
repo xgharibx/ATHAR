@@ -44,7 +44,8 @@ export type NoorTheme =
   | "sakina"
   | "shafaq"
   | "mushaf"
-  | "sama";
+  | "sama"
+  | "diwan";
 
 export type ReminderSoundProfile = "rain_calm";
 export type PrayerSoundProfile = "adhan_haram";
