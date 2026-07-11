@@ -12,7 +12,7 @@ import {
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { useNoorStore } from "@/store/noorStore";
-import { getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
+import { getHizbForAyah, getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import {
@@ -1078,11 +1078,11 @@ export function MushafPage() {
     if (prevPageRef.current === currentPage) return;
     prevPageRef.current = currentPage;
     const juzNum = pageJuz;
-    const hizb = Math.max(1, Math.ceil((currentPage / 604) * 60));
+    const hizb = firstItem ? getHizbForAyah(firstItem.surahId, firstItem.originalAyah) : 1;
     setJuzOverlay(`الجزء ${toArabicNumeral(juzNum)} · الحزب ${toArabicNumeral(hizb)}`);
     if (juzOverlayTimer.current) clearTimeout(juzOverlayTimer.current);
     juzOverlayTimer.current = window.setTimeout(() => setJuzOverlay(null), 2600);
-  }, [currentPage, pageJuz]);
+  }, [currentPage, pageJuz, firstItem]);
   React.useEffect(() => () => {
     if (juzOverlayTimer.current) clearTimeout(juzOverlayTimer.current);
     if (pageTransTimer.current) clearTimeout(pageTransTimer.current);
