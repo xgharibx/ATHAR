@@ -110,3 +110,70 @@ export async function fetchSharhHadith(id: string): Promise<SharhHadith> {
     365 * 24 * 60 * 60 * 1000,
   );
 }
+
+// ── Daily/random hadith picker — a real record, no AI, no cross-referencing ──
+//
+// hadeethenc.com has no text-search or random endpoint, only category browse
+// + paginated lists + fetch-by-id. So "pick today's hadith" is done entirely
+// with those primitives: flatten to leaf categories (the ones that actually
+// hold hadiths — fetchSharhList only works on those), pick a single global
+// index deterministically (or randomly), and page into whichever leaf holds
+// it. Every field shown — text, grade, attribution, explanation — comes from
+// the one fetchSharhHadith() call this resolves to, so there is nothing to
+// match up and nothing for an LLM to fabricate.
+
+/** Every category (root + nested), fetched once and cached. */
+async function fetchAllCategories(): Promise<SharhCategory[]> {
+  return getJson<SharhCategory[]>(`/categories/list/?language=ar`, "all-categories");
+}
+
+/** Leaf categories: nothing else lists them as a parent, and they actually
+ *  hold hadiths — the only categories fetchSharhList can page through. */
+export async function fetchLeafCategories(): Promise<SharhCategory[]> {
+  const all = await fetchAllCategories();
+  const parentIds = new Set(all.map((c) => c.parent_id).filter((id): id is string => !!id));
+  return all.filter((c) => !parentIds.has(c.id) && Number(c.hadeeths_count) > 0);
+}
+
+async function fetchHadithAtGlobalIndex(leaves: SharhCategory[], globalIndex: number): Promise<SharhHadith | null> {
+  let idx = globalIndex;
+  for (const cat of leaves) {
+    const count = Number(cat.hadeeths_count);
+    if (idx < count) {
+      const perPage = 20;
+      const page = Math.floor(idx / perPage) + 1;
+      const posInPage = idx % perPage;
+      const listPage = await fetchSharhList(cat.id, page);
+      const item = listPage.items[posInPage] ?? listPage.items[0];
+      if (!item) return null;
+      return fetchSharhHadith(item.id);
+    }
+    idx -= count;
+  }
+  return null;
+}
+
+function seededIndex(seed: string, length: number): number {
+  if (length <= 0) return 0;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  return hash % length;
+}
+
+/** The day's hadith — same real record for everyone on the same date. Text,
+ *  grade, attribution, and explanation all come from this one authoritative
+ *  source, so the daily card never needs an AI-written stand-in. */
+export async function fetchDailyHadith(dateKey: string): Promise<SharhHadith | null> {
+  const leaves = await fetchLeafCategories();
+  const total = leaves.reduce((sum, c) => sum + Number(c.hadeeths_count), 0);
+  if (total === 0) return null;
+  return fetchHadithAtGlobalIndex(leaves, seededIndex(dateKey, total));
+}
+
+/** A different real hadith, for the shuffle action. */
+export async function fetchRandomHadith(): Promise<SharhHadith | null> {
+  const leaves = await fetchLeafCategories();
+  const total = leaves.reduce((sum, c) => sum + Number(c.hadeeths_count), 0);
+  if (total === 0) return null;
+  return fetchHadithAtGlobalIndex(leaves, Math.floor(Math.random() * total));
+}
