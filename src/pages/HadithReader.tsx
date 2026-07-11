@@ -448,7 +448,7 @@ export function HadithReaderPage() {
                       <Hash size={12} aria-hidden="true" />
                       {hadith.a.toLocaleString("ar-EG")}
                     </span>
-                    {hadith.g.map((g) => <GradeChip key={g} grade={g} />)}
+                    {[...new Set(hadith.g)].map((g) => <GradeChip key={g} grade={g} />)}
                     {sectionTitle && <Badge className="max-w-[240px] truncate px-2 py-0.5 text-[10px]">{sectionTitle}</Badge>}
                   </div>
                   <div className="text-xs opacity-60 leading-6">
