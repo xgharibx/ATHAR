@@ -6,7 +6,7 @@ import { DAILY_VERSES } from "@/data/dailyVerses";
 import { DAILY_WISDOMS } from "@/data/dailyWisdom";
 import { QURAN_VOCAB } from "@/data/quranVocab";
 import { Button } from "@/components/ui/Button";
-import { fetchDailyHadith, fetchRandomHadith, type SharhHadith } from "@/lib/hadithSharhAPI";
+import { fetchDailyHadith, fetchRandomHadith, fetchSharhHadith, type SharhHadith } from "@/lib/hadithSharhAPI";
 import { syncSunnahWidget } from "@/lib/widgetDataBridge";
 import toast from "react-hot-toast";
 
@@ -30,14 +30,50 @@ function randomOtherIdx(current: number, length: number): number {
 const SLIDE_LABELS = ["آية اليوم", "حديث اليوم", "تدبر اليوم", "كلمة اليوم"] as const;
 const ARRAY_LENGTHS = [DAILY_VERSES.length, 1, DAILY_WISDOMS.length, QURAN_VOCAB.length] as const;
 
+// Persists whatever the user last shuffled to, so closing and reopening the
+// app shows the same card instead of silently reverting to the day's
+// deterministic pick — shuffleIdx/hadithOverride used to be plain React
+// state, gone the moment the component unmounted.
+const SHUFFLE_PERSIST_KEY = "noor_daily_carousel_shuffle_v1";
+
+type PersistedShuffle = {
+  dateKey: string;
+  shuffleIdx: [number | null, number | null, number | null, number | null];
+  hadithOverrideId: string | null;
+};
+
+function readPersistedShuffle(dateKey: string): PersistedShuffle | null {
+  try {
+    const raw = localStorage.getItem(SHUFFLE_PERSIST_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedShuffle;
+    if (!parsed || parsed.dateKey !== dateKey) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writePersistedShuffle(state: PersistedShuffle): void {
+  try {
+    localStorage.setItem(SHUFFLE_PERSIST_KEY, JSON.stringify(state));
+  } catch {
+    // non-fatal — worst case a restart loses the shuffle position
+  }
+}
+
 export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const navigate = useNavigate();
 
   const [activeIdx, setActiveIdx] = React.useState(1);
   const pauseUntilRef = React.useRef<number>(0);
   const touchStartX = React.useRef<number>(0);
-  // null = show daily item; number = user-shuffled index (resets on new dateKey)
-  const [shuffleIdx, setShuffleIdx] = React.useState<[number | null, number | null, number | null, number | null]>([null, null, null, null]);
+  // null = show daily item; number = user-shuffled index (resets on new
+  // dateKey). Seeded from localStorage so a shuffle survives closing and
+  // reopening the app instead of silently reverting to the day's pick.
+  const [shuffleIdx, setShuffleIdx] = React.useState<[number | null, number | null, number | null, number | null]>(
+    () => readPersistedShuffle(dateKey)?.shuffleIdx ?? [null, null, null, null],
+  );
   const [spinSlide, setSpinSlide] = React.useState<number | null>(null);
 
   // حديث اليوم — a real hadeethenc.com record (text + grade + attribution +
@@ -64,6 +100,30 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     return () => { alive = false; };
   }, [dateKey]);
 
+  // Restore a shuffled-to hadith across app restarts: shuffleIdx itself
+  // persists fine (it's just numbers), but the hadith override is a full
+  // fetched record, so only its id is persisted and the record is re-fetched
+  // (served from hadithSharhAPI's own cache, so this is instant offline).
+  // hasRestoredRef gates the write-back effect below — without it, that
+  // effect's first run (before this fetch resolves, hadithOverride still
+  // null) persists hadithOverrideId: null and clobbers the very value this
+  // effect is about to restore.
+  const hasRestoredRef = React.useRef(false);
+  React.useEffect(() => {
+    let alive = true;
+    hasRestoredRef.current = false;
+    const persisted = readPersistedShuffle(dateKey);
+    if (!persisted?.hadithOverrideId) {
+      hasRestoredRef.current = true;
+      return;
+    }
+    fetchSharhHadith(persisted.hadithOverrideId)
+      .then((h) => { if (alive) setHadithOverride(h); })
+      .catch(() => {})
+      .finally(() => { if (alive) hasRestoredRef.current = true; });
+    return () => { alive = false; };
+  }, [dateKey]);
+
   // Reset shuffles when day changes
   const prevDateKey = React.useRef(dateKey);
   if (prevDateKey.current !== dateKey) {
@@ -72,6 +132,14 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     setHadithOverride(null);
     setShowHadithExplanation(false);
   }
+
+  // Keep localStorage in sync with whatever's currently shown, so the next
+  // app launch resumes here instead of the day's default pick. Skipped
+  // until the restore attempt above has finished — see hasRestoredRef.
+  React.useEffect(() => {
+    if (!hasRestoredRef.current) return;
+    writePersistedShuffle({ dateKey, shuffleIdx, hadithOverrideId: hadithOverride?.id ?? null });
+  }, [dateKey, shuffleIdx, hadithOverride]);
 
   // Daily indices (deterministic per date)
   const dailyIdxs = React.useMemo<[number, number, number, number]>(() => {

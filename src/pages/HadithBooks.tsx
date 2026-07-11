@@ -1,44 +1,20 @@
 ﻿/**
  * HadithBooks — Phase 7
- * Gallery of 9 hadith books with الأربعينيات hero (7E), Fuse.js global search (7B).
+ * Gallery of 9 hadith books with الأربعينيات hero (7E), full-corpus search (7B).
  * Route: /hadith
  */
 import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Search, Library, BookOpen, Bookmark, BrainCircuit, Copy } from "lucide-react";
-import Fuse from "fuse.js";
-import { HADITH_BOOKS_STATIC, HADITH_GRADE_LABELS, type HadithBookMeta, type HadithItem } from "@/data/hadithTypes";
-import { useHadithIndex, loadHadithPack } from "@/data/useHadithBook";
-import { normalizeArabicSearch } from "@/lib/arabic";
+import { HADITH_BOOKS_STATIC, type HadithBookMeta } from "@/data/hadithTypes";
+import { useHadithIndex } from "@/data/useHadithBook";
+import { searchFullHadithCorpus, prewarmFullHadithSearch, type FullHadithSearchResult } from "@/lib/fullHadithSearch";
 import { useNoorStore } from "@/store/noorStore";
 import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
+import { GradeChip } from "@/components/hadith/GradeChip";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
-
-/* ------------------------------------------------------------------ */
-/* Grade chip                                                            */
-/* ------------------------------------------------------------------ */
-
-const GRADE_COLORS: Record<string, string> = {
-  sahih: "#10b981",
-  hasan: "#f59e0b",
-  daif: "#ef4444",
-  maudu: "#6b7280",
-};
-
-function GradeChip({ grade }: { grade: string }) {
-  const color = GRADE_COLORS[grade] ?? "#6b7280";
-  const label = HADITH_GRADE_LABELS[grade] ?? grade;
-  return (
-    <span
-      className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-      style={{ background: color + "22", color }}
-    >
-      {label}
-    </span>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /* الأربعينيات hero card (7E)                                           */
@@ -166,25 +142,22 @@ function BookCard({ book }: { book: HadithBookMeta }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Search tab (7B) — Fuse.js across loaded packs                        */
+/* Search tab — same full-corpus index/matching as every other hadith   */
+/* search surface in the app (src/lib/fullHadithSearch.ts), so a query   */
+/* returns the same results here as it does from the Library.           */
 /* ------------------------------------------------------------------ */
-
-type SearchResult = {
-  bookKey: string;
-  bookTitle: string;
-  bookColor: string;
-  item: HadithItem;
-};
 
 function SearchTab({ books }: { books: HadithBookMeta[] }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [results, setResults] = useState<FullHadithSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bookMeta = useCallback((key: string) => books.find((b) => b.key === key), [books]);
 
   useEffect(() => {
+    prewarmFullHadithSearch();
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
@@ -198,50 +171,10 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
     }
     setLoading(true);
     setSearched(true);
-
-    // Load packs lazily; smaller books first for UX
-    const priorityOrder = ["nawawi", "qudsi", "bukhari", "muslim", "abudawud", "tirmidhi", "nasai", "ibnmajah", "malik"];
-    const allResults: SearchResult[] = [];
-
-    for (const key of priorityOrder) {
-      try {
-        const pack = await loadHadithPack(key);
-        if (!pack) continue;
-        // Two compounding bugs made this effectively return nothing for any
-        // realistic query: (1) the bundled text is fully vocalized — nobody
-        // types diacritics on a phone keyboard, so an undiacritized query
-        // never fuzzy-matched — fixed by normalizing both sides the same way
-        // the rest of the app's Arabic search does; (2) Fuse's default
-        // location/distance scoring assumes matches sit near the start of
-        // the field, but the matn (what a search term usually hits) can
-        // start hundreds of characters in, after the full isnad chain —
-        // fixed with ignoreLocation, since hadith text isn't a short label.
-        const fuse = new Fuse(pack.hadiths, {
-          keys: ["t"],
-          threshold: 0.35,
-          minMatchCharLength: 2,
-          ignoreLocation: true,
-          getFn: (obj) => normalizeArabicSearch((obj as HadithItem).t),
-        });
-        const hits = fuse.search(normalizeArabicSearch(q), { limit: 5 });
-        const meta = books.find((b) => b.key === key);
-        for (const h of hits) {
-          allResults.push({
-            bookKey: key,
-            bookTitle: meta?.title ?? key,
-            bookColor: meta?.color ?? "#888",
-            item: h.item,
-          });
-        }
-        if (allResults.length >= 50) break;
-      } catch {
-        // skip failed pack
-      }
-    }
-
-    setResults(allResults.slice(0, 50));
+    const hits = await searchFullHadithCorpus(q, 50);
+    setResults(hits);
     setLoading(false);
-  }, [books]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
@@ -308,45 +241,48 @@ function SearchTab({ books }: { books: HadithBookMeta[] }) {
           <p className="text-xs text-[var(--muted)] font-arabic" aria-live="polite" aria-atomic="true">
             {results.length >= 50 ? "أكثر من 50" : results.length} نتيجة
           </p>
-          {results.map((r) => (
-            <div
-              key={`${r.bookKey}:${r.item.n}`}
-              role="button"
-              tabIndex={0}
-              dir="rtl"
-              onClick={() => navigate(`/hadith/${r.bookKey}/${r.item.n}`)}
-              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate(`/hadith/${r.bookKey}/${r.item.n}`)}
-              className="group relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect cursor-pointer"
-            >
-              <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-              <div className="relative px-4 py-3">
-                {/* Book tag */}
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: r.bookColor + "22", color: r.bookColor }}>
-                    {r.bookTitle}
-                  </span>
-                  <span className="text-[10px] text-[var(--muted)]">ح{r.item.n}</span>
-                  {r.item.g?.length > 0 && <GradeChip grade={r.item.g[0]!} />}
-                  <button type="button"
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      try { await navigator.clipboard.writeText(r.item.t); toast.success("تم النسخ"); }
-                      catch { toast.error("تعذر النسخ"); }
-                    }}
-                    className="mr-auto p-1 rounded-lg opacity-40 hover:opacity-80 transition-opacity"
-                    aria-label="نسخ الحديث"
-                  >
-                    <Copy size={12} aria-hidden="true" />
-                  </button>
+          {results.map((r) => {
+            const meta = bookMeta(r.bookKey);
+            return (
+              <div
+                key={`${r.bookKey}:${r.n}`}
+                role="button"
+                tabIndex={0}
+                dir="rtl"
+                onClick={() => navigate(`/hadith/${r.bookKey}/${r.n}`)}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate(`/hadith/${r.bookKey}/${r.n}`)}
+                className="group relative w-full overflow-hidden rounded-3xl text-right glass glass-hover press-effect cursor-pointer"
+              >
+                <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
+                <div className="relative px-4 py-3">
+                  {/* Book tag */}
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ background: (meta?.color ?? "#888") + "22", color: meta?.color ?? "#888" }}>
+                      {meta?.title ?? r.bookKey}
+                    </span>
+                    <span className="text-[10px] text-[var(--muted)]">ح{r.n}</span>
+                    {r.grade && <GradeChip grade={r.grade} size="sm" />}
+                    <button type="button"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try { await navigator.clipboard.writeText(r.snippet); toast.success("تم النسخ"); }
+                        catch { toast.error("تعذر النسخ"); }
+                      }}
+                      className="mr-auto p-1 rounded-lg opacity-40 hover:opacity-80 transition-opacity"
+                      aria-label="نسخ الحديث"
+                    >
+                      <Copy size={12} aria-hidden="true" />
+                    </button>
+                  </div>
+                  {/* Preview */}
+                  <p className="text-[12px] font-arabic text-[var(--fg)] leading-relaxed line-clamp-3">
+                    {previewText(r.snippet)}
+                  </p>
                 </div>
-                {/* Preview */}
-                <p className="text-[12px] font-arabic text-[var(--fg)] leading-relaxed line-clamp-3">
-                  {previewText(r.item.t)}
-                </p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -9,9 +9,12 @@ import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { useIslamicLibraryDB, dorarSearchUrl } from "@/data/useIslamicLibraryDB";
 import { getLibraryHadithLinks, type LibraryHadithLink } from "@/lib/libraryHadithLinks";
+import { getSharhIdFor } from "@/lib/hadithSharhLinks";
 import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useTakhrij } from "@/lib/useTakhrij";
+import { TakhrijCard } from "@/components/hadith/TakhrijCard";
 
 const GRADE_LABELS: Record<string, string> = {
   agreed: "متفق عليه",
@@ -48,6 +51,22 @@ export function LibraryItemPage() {
     getLibraryHadithLinks(params.entryId).then((links) => { if (alive) setHadithLinks(links); });
     return () => { alive = false; };
   }, [entry?.kind, params.entryId]);
+
+  // Real, cited grading from dorar.net for this curated card — only once we
+  // know it maps to a real book/number (hadithLinks above). Same hook and
+  // same TakhrijCard component as the full reader, so every hadith surface
+  // has identical structure, not a per-page reinvention.
+  const primaryLink = hadithLinks[0] ?? null;
+  const { takhrij, loading: takhrijLoading } = useTakhrij(primaryLink?.bookKey, primaryLink?.n, entry?.arabic);
+
+  const [sharhId, setSharhId] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    let alive = true;
+    setSharhId(null);
+    if (!primaryLink) return;
+    getSharhIdFor(primaryLink.bookKey, primaryLink.n).then((id) => { if (alive) setSharhId(id); });
+    return () => { alive = false; };
+  }, [primaryLink]);
 
   const related = React.useMemo(() => {
     if (!data || !entry) return [];
@@ -153,6 +172,16 @@ export function LibraryItemPage() {
           </button>
         )}
       </Card>
+
+      {primaryLink && (takhrijLoading || takhrij) && (
+        <TakhrijCard
+          takhrij={takhrij}
+          loading={takhrijLoading}
+          sharhId={sharhId}
+          onOpenSharh={(id) => navigate(`/library/sharh?h=${id}`)}
+          accentColor={entry.collectionAccent}
+        />
+      )}
 
       {(entry.explanation || entry.benefits.length > 0) && (
         <Card className="p-5">

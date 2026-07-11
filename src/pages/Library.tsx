@@ -15,6 +15,8 @@ import { HADITH_BOOKS_STATIC } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 import { cn } from "@/lib/utils";
 import { stripDiacritics } from "@/lib/arabic";
+import { searchFullHadithCorpus, prewarmFullHadithSearch, type FullHadithSearchResult } from "@/lib/fullHadithSearch";
+import { GradeChip } from "@/components/hadith/GradeChip";
 
 const GRADE_LABELS: Record<string, string> = {
   agreed: "متفق عليه",
@@ -386,6 +388,28 @@ function LibraryHubCard({ section }: { section: LibrarySection }) {
   );
 }
 
+function FullCorpusResultCard({ result }: { result: FullHadithSearchResult }) {
+  const navigate = useNavigate();
+  const book = HADITH_BOOKS_STATIC.find((b) => b.key === result.bookKey);
+  return (
+    <button
+      type="button"
+      dir="rtl"
+      onClick={() => navigate(`/hadith/${result.bookKey}/${result.n}`)}
+      className="w-full text-right rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4 hover:bg-[var(--card-2)] transition press-effect"
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${book?.color ?? "#888"}22`, color: book?.color ?? "#888" }}>
+          {book?.title ?? result.bookKey}
+        </span>
+        <span className="text-[10px] opacity-50 tabular-nums">ح{result.n.toLocaleString("ar-EG")}</span>
+        {result.grade && <GradeChip grade={result.grade} size="sm" />}
+      </div>
+      <div className="arabic-text text-sm leading-8 line-clamp-3">{result.snippet}</div>
+    </button>
+  );
+}
+
 function LibraryHubView() {
   const navigate = useNavigate();
   const featured = LIBRARY_SECTIONS.find((section) => section.featured);
@@ -436,6 +460,34 @@ function HadithLibraryView() {
   const [q, setQ] = React.useState("");
   const [collectionFilter, setCollectionFilter] = React.useState<string>("all");
   const [tagFilter, setTagFilter] = React.useState<string | null>(null);
+
+  // Full-corpus search — covers all 36,472 hadiths across the 9 books, not
+  // just the 199 hand-curated Library entries.
+  const [fullResults, setFullResults] = React.useState<FullHadithSearchResult[]>([]);
+  const [fullSearchLoading, setFullSearchLoading] = React.useState(false);
+  const fullSearchDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    prewarmFullHadithSearch();
+  }, []);
+
+  React.useEffect(() => {
+    if (fullSearchDebounceRef.current) clearTimeout(fullSearchDebounceRef.current);
+    const term = q.trim();
+    if (term.length < 2) {
+      setFullResults([]);
+      setFullSearchLoading(false);
+      return;
+    }
+    setFullSearchLoading(true);
+    fullSearchDebounceRef.current = setTimeout(() => {
+      searchFullHadithCorpus(term, 40)
+        .then((results) => setFullResults(results))
+        .catch(() => setFullResults([]))
+        .finally(() => setFullSearchLoading(false));
+    }, 400);
+    return () => { if (fullSearchDebounceRef.current) clearTimeout(fullSearchDebounceRef.current); };
+  }, [q]);
 
   const fuse = React.useMemo(() => {
     if (!data) return null;
@@ -594,7 +646,9 @@ function HadithLibraryView() {
         {entries.length === 0 && (
           <div dir="rtl" className="flex flex-col items-center py-12 gap-4">
             <Search size={40} aria-hidden="true" className="text-[var(--muted)] opacity-20" />
-            <p className="text-sm text-[var(--muted)] font-arabic text-center">لا توجد نتائج للفلاتر الحالية</p>
+            <p className="text-sm text-[var(--muted)] font-arabic text-center">
+              {q.trim() ? "لا نتائج في المختارات — جارٍ البحث في كل الكتب أدناه" : "لا توجد نتائج للفلاتر الحالية"}
+            </p>
             <button
               type="button"
               onClick={() => { setTagFilter(null); setCollectionFilter("all"); setQ(""); }}
@@ -605,6 +659,37 @@ function HadithLibraryView() {
           </div>
         )}
       </div>
+
+      {q.trim().length >= 2 && (
+        <>
+          <div className="flex items-center justify-between gap-2 px-1 pt-2">
+            <div className="text-sm font-semibold">نتائج من كل كتب الحديث</div>
+            <div className="text-xs opacity-50 tabular-nums" aria-live="polite" aria-atomic="true">
+              {fullSearchLoading ? "…" : `${fullResults.length.toLocaleString("ar-EG")}${fullResults.length >= 40 ? "+" : ""}`}
+            </div>
+          </div>
+          <div className="text-xs opacity-55 -mt-2 px-1">بحث حي في ٣٦٬٤٧٢ حديثًا من الكتب التسعة، وليس فقط المختارات أعلاه.</div>
+
+          {fullSearchLoading && fullResults.length === 0 && (
+            <div className="flex items-center justify-center py-8 gap-2 text-[var(--muted)]" role="status">
+              <div className="w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+              <span className="text-xs font-arabic">جارٍ تحميل فهرس البحث…</span>
+            </div>
+          )}
+
+          {!fullSearchLoading && fullResults.length === 0 && (
+            <div className="py-6 text-center text-xs text-[var(--muted)] font-arabic">لا نتائج مطابقة في أي من الكتب التسعة</div>
+          )}
+
+          <div className="space-y-3" role="list" aria-label="نتائج البحث الكامل">
+            {fullResults.map((r) => (
+              <div key={`${r.bookKey}:${r.n}`} role="listitem">
+                <FullCorpusResultCard result={r} />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <Card className="p-4">
         <div className="flex items-start gap-2">

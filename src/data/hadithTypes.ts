@@ -63,8 +63,20 @@ export const HADITH_GRADE_LABELS: Record<string, string> = {
   maudu: "موضوع",
 };
 
+/** One color mapping for hadith grade chips — shared by every surface that shows one. */
+export const HADITH_GRADE_COLORS: Record<string, string> = {
+  sahih: "#10b981",
+  hasan: "#f59e0b",
+  daif: "#ef4444",
+  maudu: "#6b7280",
+};
+
 export function hadithGradeLabel(g: string): string {
   return HADITH_GRADE_LABELS[g] ?? g;
+}
+
+export function hadithGradeColor(g: string): string {
+  return HADITH_GRADE_COLORS[g] ?? "#6b7280";
 }
 
 /**
@@ -103,7 +115,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 1,
     grade: "sahih",
     description: "أصح كتاب في السنة النبوية، جمع الإمام محمد بن إسماعيل البخاري",
-    count: 7563,
+    count: 7589,
     sectionCount: 97,
   },
   {
@@ -114,7 +126,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 2,
     grade: "sahih",
     description: "ثاني أصح كتاب في السنة النبوية، جمع الإمام مسلم بن الحجاج",
-    count: 7453,
+    count: 7563,
     sectionCount: 56,
   },
   {
@@ -136,7 +148,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 4,
     grade: "mixed",
     description: "للإمام محمد بن عيسى الترمذي، مع بيان درجة كل حديث",
-    count: 3956,
+    count: 3998,
     sectionCount: 49,
   },
   {
@@ -147,7 +159,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 5,
     grade: "mixed",
     description: "للإمام أحمد بن شعيب النسائي، من الكتب الستة المعتمدة",
-    count: 5761,
+    count: 5765,
     sectionCount: 51,
   },
   {
@@ -158,7 +170,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 6,
     grade: "mixed",
     description: "للإمام محمد بن يزيد القزويني ابن ماجه، تمام الكتب الستة",
-    count: 4341,
+    count: 4343,
     sectionCount: 37,
   },
   {
@@ -169,7 +181,7 @@ export const HADITH_BOOKS_STATIC: HadithBookMeta[] = [
     order: 7,
     grade: "sahih",
     description: "للإمام مالك بن أنس، أقدم كتاب في السنة النبوية الموثّق",
-    count: 1832,
+    count: 1858,
     sectionCount: 61,
   },
   {

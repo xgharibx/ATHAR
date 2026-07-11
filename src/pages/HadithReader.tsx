@@ -27,6 +27,9 @@ import { useHadithPack, getHadithByNumber } from "@/data/useHadithBook";
 import { getSharhIdFor } from "@/lib/hadithSharhLinks";
 import { parseIsnadChain } from "@/lib/isnadParser";
 import { lookupNarratorBio, type NarratorBio } from "@/lib/narratorLookup";
+import { useTakhrij } from "@/lib/useTakhrij";
+import { TakhrijCard } from "@/components/hadith/TakhrijCard";
+import { GradeChip } from "@/components/hadith/GradeChip";
 import {
   HADITH_BOOKS_STATIC,
   HADITH_GRADE_LABELS,
@@ -201,25 +204,6 @@ async function shareHadithPoster(opts: {
 
 /* ------------------------------------------------------------------ */
 
-function GradeChip({ g }: { g: string }) {
-  const colors: Record<string, string> = {
-    sahih: "#10b981",
-    hasan: "#f59e0b",
-    daif: "#ef4444",
-    maudu: "#6b7280",
-  };
-  const color = colors[g] ?? "#6b7280";
-  const label = HADITH_GRADE_LABELS[g] ?? g;
-  return (
-    <span
-      className="text-xs font-semibold px-3 py-1 rounded-full"
-      style={{ background: color + "22", color }}
-    >
-      {label}
-    </span>
-  );
-}
-
 /* ------------------------------------------------------------------ */
 
 export function HadithReaderPage() {
@@ -333,6 +317,11 @@ export function HadithReaderPage() {
 
   // Isnad as a chain of narrator links, for the tappable chain visual.
   const isnadChain = useMemo(() => parseIsnadChain(hadithSplit?.isnad ?? ""), [hadithSplit]);
+
+  // Real grading (takhrij) from dorar.net — who graded this hadith and what
+  // they said, not just a flat "sahih"/"hasan" tag. See useTakhrij for the
+  // bundled-then-live lookup strategy (shared by every hadith surface).
+  const { takhrij, loading: takhrijLoading } = useTakhrij(bookKey, n, hadithSplit?.matn);
 
   // Narrator bio popup — opened by tapping a link in the chain.
   const [narratorPopup, setNarratorPopup] = useState<{ name: string; bio: NarratorBio | null; loading: boolean } | null>(null);
@@ -459,7 +448,7 @@ export function HadithReaderPage() {
                       <Hash size={12} aria-hidden="true" />
                       {hadith.a.toLocaleString("ar-EG")}
                     </span>
-                    {hadith.g.map((g) => <GradeChip key={g} g={g} />)}
+                    {hadith.g.map((g) => <GradeChip key={g} grade={g} />)}
                     {sectionTitle && <Badge className="max-w-[240px] truncate px-2 py-0.5 text-[10px]">{sectionTitle}</Badge>}
                   </div>
                   <div className="text-xs opacity-60 leading-6">
@@ -468,6 +457,14 @@ export function HadithReaderPage() {
                 </div>
               </div>
             </Card>
+
+            <TakhrijCard
+              takhrij={takhrij}
+              loading={takhrijLoading}
+              sharhId={sharhId}
+              onOpenSharh={(id) => navigate(`/library/sharh?h=${id}`)}
+              accentColor={accentColor}
+            />
 
             {/* Isnad — chain of tappable narrator links */}
             {hadithSplit.isnad && (

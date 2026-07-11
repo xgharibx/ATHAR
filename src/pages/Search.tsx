@@ -16,7 +16,7 @@ import { useIslamicLibraryDB } from "@/data/useIslamicLibraryDB";
 import type { FlatLibraryEntry } from "@/data/libraryTypes";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { cn, contrastText } from "@/lib/utils";
-import { stripDiacritics } from "@/lib/arabic";
+import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview } from "@/data/hadithTypes";
 import { useHadithPack } from "@/data/useHadithBook";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -181,10 +181,10 @@ export function SearchPage() {
 
   const hadithResults = React.useMemo(() => {
     if (!hadithPack || !q.trim()) return [];
-    const term = stripDiacritics(q.trim());
+    const term = normalizeArabicSearch(q.trim());
     const hits: Array<{ n: number; a: number; t: string; g: string[] }> = [];
     for (const h of hadithPack.hadiths) {
-      if (stripDiacritics(h.t).includes(term)) {
+      if (normalizeArabicSearch(h.t).includes(term)) {
         hits.push(h);
         if (hits.length >= 50) break;
       }

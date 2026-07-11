@@ -19,12 +19,17 @@ interface HadithProgressRow { bookKey: string; n: number } // last-read hadith n
 interface HadithNoteRow     { key: string; text: string; updatedAt: number }
 interface HadithMemoCardRow { key: string; card: HadithMemoCard; updatedAt: number }
 
+// Phase 12: full-corpus search index (all 36k hadiths, not just curated ones)
+export type FullSearchIndexEntry = [bookKey: string, n: number, snippet: string, grade: string];
+interface SearchIndexRow { key: "full"; data: FullSearchIndexEntry[]; cachedAt: number }
+
 class HadithDexie extends Dexie {
   packs!: Table<HadithPackCache, string>;
   bookmarks!: Table<HadithBookmarkRow, string>;
   progress!:  Table<HadithProgressRow, string>;
   notes!:     Table<HadithNoteRow,     string>;
   memoCards!: Table<HadithMemoCardRow, string>;
+  searchIndex!: Table<SearchIndexRow, string>;
 
   constructor() {
     super("athar-hadith-v1");
@@ -35,6 +40,14 @@ class HadithDexie extends Dexie {
       progress:  "bookKey",
       notes:     "key",
       memoCards: "key",
+    });
+    this.version(3).stores({
+      packs:       "key",
+      bookmarks:   "key",
+      progress:    "bookKey",
+      notes:       "key",
+      memoCards:   "key",
+      searchIndex: "key",
     });
   }
 }
@@ -132,6 +145,26 @@ export async function idbGetAllHadithMemoCards(): Promise<Record<string, HadithM
     const rows = await getDB().memoCards.toArray();
     return Object.fromEntries(rows.map((r) => [r.key, r.card]));
   } catch { return {}; }
+}
+
+// Full-corpus search index cache (kept 30 days, same as book packs)
+export async function idbGetSearchIndex(): Promise<FullSearchIndexEntry[] | null> {
+  try {
+    const row = await getDB().searchIndex.get("full");
+    if (!row) return null;
+    if (Date.now() - row.cachedAt > MAX_AGE_MS) return null;
+    return row.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function idbSetSearchIndex(data: FullSearchIndexEntry[]): Promise<void> {
+  try {
+    await getDB().searchIndex.put({ key: "full", data, cachedAt: Date.now() });
+  } catch {
+    // non-fatal — index stays in memory for this session only
+  }
 }
 
 // One-time migration: write localStorage data (from noorStore v24) into IDB
