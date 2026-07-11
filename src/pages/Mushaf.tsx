@@ -12,7 +12,7 @@ import {
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { useNoorStore } from "@/store/noorStore";
-import { getHizbForAyah, getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
+import { getHizbForAyah, getJuzForAyah, getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import {
@@ -1127,6 +1127,65 @@ export function MushafPage() {
     } catch { toast.error("تعذر التحميل"); }
     finally { setCacheProgress(null); }
   }, [playableItems, prefs.quranReciter]);
+
+  // A2-C: Bulk offline download — whole surah or whole juz, not just the
+  // current page. pageIndex already holds every page in memory (same data
+  // buildSurahQueue uses for continuous playback), so this is a synchronous
+  // scan + sequential cache.add() loop, no extra fetching required.
+  const [bulkDownloadProgress, setBulkDownloadProgress] = React.useState<{ done: number; total: number; label: string } | null>(null);
+
+  const collectAudioItems = React.useCallback(
+    (predicate: (surahId: number, originalAyah: number) => boolean) => {
+      const items: { surahId: number; originalAyah: number }[] = [];
+      for (const list of pageIndex.values()) {
+        for (const it of list) {
+          if (!it.isBasmalahHeader && it.displayAyah > 0 && predicate(it.surahId, it.originalAyah)) {
+            items.push({ surahId: it.surahId, originalAyah: it.originalAyah });
+          }
+        }
+      }
+      return items;
+    },
+    [pageIndex]
+  );
+
+  const runBulkDownload = React.useCallback(
+    async (items: { surahId: number; originalAyah: number }[], label: string, successLabel: string) => {
+      if (!("caches" in window)) { toast.error("التخزين غير متاح في هذا المتصفح"); return; }
+      if (items.length === 0) return;
+      setBulkDownloadProgress({ done: 0, total: items.length, label });
+      try {
+        const cache = await caches.open("mushaf-audio-v1");
+        let done = 0;
+        for (const item of items) {
+          const s = String(item.surahId).padStart(3, "0");
+          const a = String(item.originalAyah).padStart(3, "0");
+          const url = `https://everyayah.com/data/${prefs.quranReciter ?? "Alafasy_128kbps"}/${s}${a}.mp3`;
+          try { await cache.add(url); } catch { /* network or CORS — skip */ }
+          done++;
+          setBulkDownloadProgress({ done, total: items.length, label });
+        }
+        toast.success(`✓ تم تخزين ${successLabel} كاملة (${done} آية) للاستماع دون إنترنت`);
+      } catch { toast.error("تعذر التحميل"); }
+      finally { setBulkDownloadProgress(null); }
+    },
+    [prefs.quranReciter]
+  );
+
+  const downloadSurahAudio = React.useCallback(async () => {
+    const anchor = lastItem ?? firstItem;
+    if (!anchor) return;
+    const items = collectAudioItems((surahId) => surahId === anchor.surahId);
+    await runBulkDownload(items, anchor.surahName, anchor.surahName);
+  }, [lastItem, firstItem, collectAudioItems, runBulkDownload]);
+
+  const downloadJuzAudio = React.useCallback(async () => {
+    const anchor = firstItem;
+    if (!anchor) return;
+    const targetJuz = getJuzForAyah(anchor.surahId, anchor.originalAyah);
+    const items = collectAudioItems((surahId, ayah) => getJuzForAyah(surahId, ayah) === targetJuz);
+    await runBulkDownload(items, `الجزء ${targetJuz}`, `الجزء ${toArabicNumeral(targetJuz)}`);
+  }, [firstItem, collectAudioItems, runBulkDownload]);
 
   // Tajweed offline: download WBW/Tajweed data for all 114 surahs into IndexedDB
   const downloadAllTajweedData = React.useCallback(async () => {
@@ -2565,13 +2624,41 @@ export function MushafPage() {
               <button type="button"
                 className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center mb-2"
                 onClick={downloadPageAudio}
-                disabled={!!cacheProgress}
+                disabled={!!cacheProgress || !!bulkDownloadProgress}
               >
                 <Download size={14} aria-hidden="true" />
                 {cacheProgress
                   ? `جاري التحميل… ${cacheProgress.done}/${cacheProgress.total}`
                   : "تحميل الصفحة للاستماع دون إنترنت"}
               </button>
+
+              <button type="button"
+                className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center mb-2"
+                onClick={downloadSurahAudio}
+                disabled={!!cacheProgress || !!bulkDownloadProgress}
+              >
+                <Download size={14} aria-hidden="true" />
+                {bulkDownloadProgress
+                  ? `${bulkDownloadProgress.label}… ${bulkDownloadProgress.done}/${bulkDownloadProgress.total}`
+                  : `تحميل ${pageSurahName} كاملة`}
+              </button>
+
+              <button type="button"
+                className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center mb-2"
+                onClick={downloadJuzAudio}
+                disabled={!!cacheProgress || !!bulkDownloadProgress}
+              >
+                <Download size={14} aria-hidden="true" />
+                تحميل الجزء {toArabicNumeral(pageJuz)} كاملًا
+              </button>
+              {bulkDownloadProgress && (
+                <div className="mb-2 h-1.5 rounded-full bg-[var(--card)] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{ width: `${(bulkDownloadProgress.done / bulkDownloadProgress.total) * 100}%`, background: "var(--accent)" }}
+                  />
+                </div>
+              )}
 
               <button type="button"
                 className="mushaf-btn-secondary w-full flex items-center gap-2 justify-center mb-2"

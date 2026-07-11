@@ -105,6 +105,14 @@ export function getHizbForAyah(surahId: number, ayah: number): number {
   return result;
 }
 
+/** Returns the juz (1–30) that a given (surah, ayah) falls in — every juz
+ *  is exactly 2 hizbs, so this reuses the same real boundary data. More
+ *  precise than getSurahJuz() (surah-level) for ayahs inside a surah that
+ *  spans a juz boundary. */
+export function getJuzForAyah(surahId: number, ayah: number): number {
+  return Math.ceil(getHizbForAyah(surahId, ayah) / 2);
+}
+
 /** Converts Western digits to Arabic-Indic (Eastern Arabic) numerals. */
 export function toArabicNumeral(n: number): string {
   const map = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
