@@ -6,7 +6,7 @@ import { DAILY_VERSES } from "@/data/dailyVerses";
 import { DAILY_WISDOMS } from "@/data/dailyWisdom";
 import { QURAN_VOCAB } from "@/data/quranVocab";
 import { Button } from "@/components/ui/Button";
-import { fetchDailyHadith, fetchRandomHadith, fetchSharhHadith, type SharhHadith } from "@/lib/hadithSharhAPI";
+import { fetchDailyHadith, fetchRandomHadith, fetchSharhHadith, prewarmSharhBundle, type SharhHadith } from "@/lib/hadithSharhAPI";
 import { syncSunnahWidget } from "@/lib/widgetDataBridge";
 import toast from "react-hot-toast";
 
@@ -65,6 +65,10 @@ function writePersistedShuffle(state: PersistedShuffle): void {
 export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const navigate = useNavigate();
 
+  // Warm the offline explanation bundle as soon as the home screen mounts, so
+  // the first sharh the user opens (here or in the reader) is instant.
+  React.useEffect(() => { prewarmSharhBundle(); }, []);
+
   const [activeIdx, setActiveIdx] = React.useState(1);
   const pauseUntilRef = React.useRef<number>(0);
   const touchStartX = React.useRef<number>(0);
@@ -92,13 +96,17 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
       .then((h) => {
         if (!alive) return;
         setDailyHadith(h);
-        // Mirror the exact same record to the home-screen widget — same
-        // text, attribution, grade, nothing re-derived.
-        if (h) void syncSunnahWidget({ id: h.id, hadeeth: h.hadeeth, attribution: h.attribution, grade: h.grade });
       })
       .finally(() => { if (alive) setHadithLoading(false); });
     return () => { alive = false; };
   }, [dateKey]);
+
+  // Mirror whatever hadith is currently shown (daily OR the one the user
+  // shuffled to) onto the home-screen widget — same record, nothing
+  // re-derived — so the widget and the card never disagree.
+  React.useEffect(() => {
+    if (hadith) void syncSunnahWidget({ id: hadith.id, hadeeth: hadith.hadeeth, attribution: hadith.attribution, grade: hadith.grade });
+  }, [hadith]);
 
   // Restore a shuffled-to hadith across app restarts: shuffleIdx itself
   // persists fine (it's just numbers), but the hadith override is a full

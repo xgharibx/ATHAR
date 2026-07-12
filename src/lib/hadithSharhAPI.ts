@@ -7,7 +7,13 @@
  * Hadiths (hadeethenc.com).
  *
  * Everything the user opens is cached locally, so revisits work offline.
+ *
+ * The explanations our sharh-links map points to are ALSO pre-bundled into
+ * the app (public/data/hadith/sharh-bundled.json) so they render offline on
+ * first view without any network — see the bundle loader below. Anything not
+ * in the bundle still falls back to a live hadeethenc fetch.
  */
+import { publicDataUrl } from "@/data/publicAssetUrl";
 
 const BASE = "https://hadeethenc.com/api/v1";
 const CACHE_PREFIX = "noor_sharh_v1:";
@@ -102,8 +108,31 @@ export async function fetchSharhList(categoryId: string, page: number): Promise<
   return { items, hasMore };
 }
 
-/** Full hadith with شرح/فوائد/غريب. Cached forever once opened (content is stable). */
+// Pre-bundled explanations (offline). Loaded once, lazily, on first sharh open.
+let bundle: Record<string, SharhHadith> | null = null;
+let bundleLoading: Promise<Record<string, SharhHadith>> | null = null;
+function loadSharhBundle(): Promise<Record<string, SharhHadith>> {
+  if (bundle) return Promise.resolve(bundle);
+  if (!bundleLoading) {
+    bundleLoading = fetch(publicDataUrl("data/hadith/sharh-bundled.json"))
+      .then((res) => (res.ok ? res.json() : {}))
+      .then((data: Record<string, SharhHadith>) => { bundle = data; return data; })
+      .catch(() => ({}));
+  }
+  return bundleLoading;
+}
+
+/** Kick off the bundle load in the background so the first sharh is instant. */
+export function prewarmSharhBundle(): void {
+  void loadSharhBundle();
+}
+
+/** Full hadith with شرح/فوائد/غريب. Bundled offline first (instant, no
+ *  network), then localStorage cache, then a live hadeethenc fetch. */
 export async function fetchSharhHadith(id: string): Promise<SharhHadith> {
+  const b = await loadSharhBundle();
+  const hit = b[String(id)];
+  if (hit) return hit;
   return getJson<SharhHadith>(
     `/hadeeths/one/?language=ar&id=${encodeURIComponent(id)}`,
     `h:${id}`,
