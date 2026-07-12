@@ -25,7 +25,10 @@ export function useTakhrij(
     getBundledTakhrij(bookKey, n)
       .then((bundled) => {
         if (!alive) return null;
-        if (bundled) { setTakhrij(bundled); return null; }
+        // Use the bundled entry only if it actually carries a ruling — an
+        // empty pre-crawled entry (nothing found at crawl time) shouldn't
+        // block a fresh live lookup with the improved matching.
+        if (bundled && (bundled.exact || bundled.others.length > 0)) { setTakhrij(bundled); return null; }
         return getTakhrijFor(bookKey, n, matnText);
       })
       .then((live) => { if (alive && live) setTakhrij(live); })

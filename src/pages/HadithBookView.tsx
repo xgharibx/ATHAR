@@ -8,10 +8,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { ArrowRight, ArrowUpRight, Bookmark, BookOpenText, Copy, Loader2, WifiOff } from "lucide-react";
 import { useHadithPackProgress, HADITH_PACK_SIZES_MB } from "@/data/useHadithBook";
-import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview, type HadithItem } from "@/data/hadithTypes";
+import { HADITH_BOOKS_STATIC, hadithPreview, type HadithItem } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { GradeChip } from "@/components/hadith/GradeChip";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
@@ -30,26 +31,6 @@ function SectionHeader({ title }: { title: string }) {
         {title}
       </p>
     </div>
-  );
-}
-
-function GradeBadge({ grades }: { grades: string[] }) {
-  if (!grades.length) return null;
-  const g = grades[0];
-  const colors: Record<string, string> = {
-    sahih: "#10b981",
-    hasan: "#f59e0b",
-    daif: "#ef4444",
-    maudu: "#6b7280",
-  };
-  const color = colors[g] ?? "#6b7280";
-  return (
-    <span
-      className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
-      style={{ background: color + "22", color }}
-    >
-      {hadithGradeLabel(g)}
-    </span>
   );
 }
 
@@ -89,7 +70,7 @@ function HadithRow({
                 {item.a.toLocaleString("ar-EG")}
               </span>
               {sectionTitle && <Badge className="max-w-[180px] truncate px-2 py-0.5 text-[10px]">{sectionTitle}</Badge>}
-              <GradeBadge grades={item.g} />
+              {item.g[0] && <GradeChip grade={item.g[0]} size="sm" />}
             </div>
             <p className="arabic-text text-base leading-8 font-semibold text-[var(--fg)] line-clamp-3">
               {hadithPreview(item.t, 190)}

@@ -69,7 +69,11 @@ function bookMatches(bookKey: string, source: string): boolean {
 class DorarCacheDexie extends Dexie {
   cache!: Table<{ key: string; data: DorarTakhrij; cachedAt: number }, string>;
   constructor() {
-    super("noor-dorar-cache-v1");
+    // v2: v1 cached "not found" even when the dorar search had thrown a
+    // transient error (cold start / rate limit), pinning famous hadiths like
+    // نية to a permanent "لم يُعثر". v2 starts clean and only ever caches a
+    // real response — see getTakhrijFor.
+    super("noor-dorar-cache-v2");
     this.version(1).stores({ cache: "key" });
   }
 }
@@ -155,6 +159,9 @@ function textOverlap(a: string, b: string): number {
   return hits / wordsA.size;
 }
 
+// Throws if the dorar search itself failed (so the caller can avoid caching a
+// transient error as a permanent "not found"). Returns empty data only when
+// the search genuinely succeeded but nothing matched.
 async function fetchTakhrij(bookKey: string, n: number, matnText: string): Promise<DorarTakhrij> {
   // A long query can over-constrain dorar's search; a very short one is too
   // noisy. ~90 normalized characters of the matn (skipping the isnad, which
@@ -163,30 +170,62 @@ async function fetchTakhrij(bookKey: string, n: number, matnText: string): Promi
   const query = normalizeArabicSearch(matnText).slice(0, 90);
   if (query.length < 10) return { exact: null, others: [] };
 
-  let results: DorarGrading[];
-  try {
-    results = await searchDorar(query);
-  } catch {
-    return { exact: null, others: [] };
-  }
+  const results = await searchDorar(query); // may throw — intentional
 
   let exact: DorarGrading | null = null;
   const others: DorarGrading[] = [];
+  let best: { r: DorarGrading; overlap: number } | null = null;
   for (const r of results) {
+    const overlap = textOverlap(matnText, r.snippet);
+    if (!best || overlap > best.overlap) best = { r, overlap };
     const isBareInteger = /^\d+$/.test(r.pageOrNumber.trim());
     if (!exact && bookMatches(bookKey, r.source) && isBareInteger && Number(r.pageOrNumber) === n) {
       // Cross-check text overlap so a numbering-scheme collision (rare, but
       // possible for books with more than one numbering tradition) doesn't
       // slip through just because the book name and number happened to match.
-      if (textOverlap(matnText, r.snippet) > 0.35) {
+      if (overlap > 0.35) {
         exact = r;
         continue;
       }
     }
-    if (textOverlap(matnText, r.snippet) > 0.45) others.push(r);
+    if (overlap > 0.45) others.push(r);
   }
-  // Don't duplicate the exact match inside "others".
-  const otherResults = others.filter((r) => r !== exact).slice(0, 6);
+  let otherResults = others.filter((r) => r !== exact).slice(0, 6);
+
+  // Best-candidate fallback: nothing crossed the strict thresholds, but the
+  // hadith is clearly present (e.g. نية, whose الأربعون النووية wording differs
+  // enough from dorar's to miss 0.45). Rather than "لم يُعثر", surface the
+  // single most authoritative close ruling. Books like nawawi/qudsi collect
+  // from the canonical books and have no keyword/number alignment of their
+  // own, so this is their normal path.
+  //
+  // Prefer a result from a PRIMARY canonical book (البخاري/مسلم/السنن…) — its
+  // grading is authoritative — over a random high-overlap commentary. Picking
+  // purely by word-overlap once surfaced a niche عِلَل discussion claiming the
+  // نية chains "لا يصح منها شيء", which is actively misleading for the single
+  // most authentic hadith.
+  if (!exact && otherResults.length === 0 && results.length > 0) {
+    const CANON = Object.values(BOOK_KEYWORDS).flat();
+    // Being in either Sahih IS the grade — prefer صحيح البخاري/مسلم over the
+    // sunan when both matched, then fall back to word-overlap order.
+    const isSahihayn = (s: string) => s.includes("صحيح البخاري") || s.includes("صحيح مسلم");
+    const canonical = results
+      .map((r) => ({ r, overlap: textOverlap(matnText, r.snippet) }))
+      .filter((x) => x.overlap > 0.3 && CANON.some((k) => x.r.source.includes(k)))
+      .sort((a, b) => {
+        const rank = Number(isSahihayn(b.r.source)) - Number(isSahihayn(a.r.source));
+        return rank !== 0 ? rank : b.overlap - a.overlap;
+      });
+    if (canonical.length > 0) {
+      otherResults = [canonical[0]!.r];
+    } else if (best && best.overlap > 0.5) {
+      // No canonical source at all — only accept a non-canonical commentary
+      // when the wording match is very strong, so a loose match can't
+      // masquerade as this hadith's ruling.
+      otherResults = [best.r];
+    }
+  }
+
   return { exact, others: otherResults };
 }
 
@@ -202,7 +241,16 @@ export async function getTakhrijFor(bookKey: string, n: number, matnText: string
     // IDB unavailable — fall through to a live fetch
   }
 
-  const data = await fetchTakhrij(bookKey, n, matnText);
+  let data: DorarTakhrij;
+  try {
+    data = await fetchTakhrij(bookKey, n, matnText);
+  } catch {
+    // The search errored (network / proxy cold start / rate limit). Return
+    // empty for now but DON'T cache it — a retry on the next visit can still
+    // find the real grading. Caching here is what used to pin famous hadiths
+    // to a permanent "not found".
+    return { exact: null, others: [] };
+  }
   try {
     await getDB().cache.put({ key, data, cachedAt: Date.now() });
   } catch {

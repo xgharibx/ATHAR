@@ -3,10 +3,12 @@
  * Flip-card memorization with SM-2 spaced repetition for Nawawi 40.
  * Route: /hadith/memo
  */
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, BrainCircuit, CheckCircle, ChevronLeft, ChevronRight, Copy, Share2 } from "lucide-react";
-import { useHadithPack } from "@/data/useHadithBook";
+import { useHadithPack, loadHadithPack } from "@/data/useHadithBook";
+import { HADITH_BOOKS_STATIC, type HadithItem, type HadithPack } from "@/data/hadithTypes";
+import { splitHadithText } from "@/lib/hadithText";
 import { useNoorStore } from "@/store/noorStore";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
@@ -24,20 +26,6 @@ const RATING_LABELS: { rating: 0 | 1 | 2 | 3; label: string; color: string; bg: 
   { rating: 3, label: "سهل",   color: "#10b981", bg: "#10b98122" },
 ];
 
-function splitHadithText(text: string): { isnad: string; matn: string } {
-  const markers = [
-    " قَالَ:", " قَالَ :", "قال:",
-    "أَنَّ رَسُولَ", "أن رسول الله",
-    "عَنِ النَّبِيِّ", "عَنِ النَّبِيِّ صَلَّى",
-  ];
-  let earliest = -1;
-  for (const m of markers) {
-    const idx = text.indexOf(m);
-    if (idx !== -1 && (earliest === -1 || idx < earliest)) earliest = idx;
-  }
-  if (earliest <= 0) return { isnad: "", matn: text };
-  return { isnad: text.slice(0, earliest).trim(), matn: text.slice(earliest).trim() };
-}
 
 function todayISO() {
   const d = new Date();
@@ -112,10 +100,14 @@ function FlipCard({
 /* Main page                                                             */
 /* ------------------------------------------------------------------ */
 
+/** A card in the deck carries which book it came from — memo cards are added
+ *  from the reader for ANY of the 9 books, not just Nawawi. */
+type DeckCard = { bookKey: string; item: HadithItem };
+
 export function HadithMemoPage() {
   const navigate = useNavigate();
   useScrollRestoration();
-  const { data: nawawi } = useHadithPack("nawawi");
+  const { data: nawawi } = useHadithPack("nawawi"); // the "add" tab browses Nawawi 40
   const accentColor = "var(--accent)";
 
   const { hadithMemoCards, addHadithMemoCard, reviewHadithMemo } = useNoorStore((s) => ({
@@ -126,35 +118,76 @@ export function HadithMemoPage() {
 
   const today = todayISO();
 
-  // Compute cards due today
-  const dueCards = useMemo(() => {
-    if (!nawawi) return [];
-    return nawawi.hadiths.filter((h) => {
-      const cardKey = `nawawi:${h.n}`;
-      const card = hadithMemoCards[cardKey];
-      if (!card) return false;
-      return card.due <= today;
-    });
-  }, [nawawi, hadithMemoCards, today]);
+  // Which books have memo cards (keys are "bookKey:n"). Cards can be added
+  // from any book's reader, so we resolve each card's text by loading the
+  // packs those cards actually belong to — not just Nawawi.
+  const neededBooks = useMemo(() => {
+    const set = new Set<string>();
+    for (const key of Object.keys(hadithMemoCards)) {
+      const book = key.split(":")[0];
+      if (book) set.add(book);
+    }
+    return [...set];
+  }, [hadithMemoCards]);
 
-  // All cards added
-  const allCards = useMemo(() => {
-    if (!nawawi) return [];
-    return nawawi.hadiths.filter((h) => !!hadithMemoCards[`nawawi:${h.n}`]);
-  }, [nawawi, hadithMemoCards]);
+  const [packs, setPacks] = useState<Record<string, HadithPack>>({});
+  useEffect(() => {
+    let alive = true;
+    const missing = neededBooks.filter((b) => !packs[b]);
+    if (missing.length === 0) return;
+    Promise.all(missing.map((b) => loadHadithPack(b).then((p) => [b, p] as const))).then((pairs) => {
+      if (!alive) return;
+      setPacks((prev) => {
+        const next = { ...prev };
+        for (const [b, p] of pairs) if (p) next[b] = p;
+        return next;
+      });
+    });
+    return () => { alive = false; };
+  }, [neededBooks, packs]);
+
+  const bookTitle = (key: string) =>
+    packs[key]?.title ?? HADITH_BOOKS_STATIC.find((b) => b.key === key)?.title ?? key;
+
+  // Every added card across every book, resolved to its hadith text.
+  const allCards = useMemo<DeckCard[]>(() => {
+    const out: DeckCard[] = [];
+    for (const key of Object.keys(hadithMemoCards)) {
+      const [book, nStr] = key.split(":");
+      const pack = packs[book];
+      if (!pack) continue;
+      const item = pack.hadiths.find((h) => h.n === Number(nStr));
+      if (item) out.push({ bookKey: book, item });
+    }
+    return out;
+  }, [hadithMemoCards, packs]);
+
+  // Cards due for review today (across all books).
+  const dueCards = useMemo<DeckCard[]>(
+    () => allCards.filter(({ bookKey, item }) => {
+      const card = hadithMemoCards[`${bookKey}:${item.n}`];
+      return card && card.due <= today;
+    }),
+    [allCards, hadithMemoCards, today],
+  );
 
   const [viewMode, setViewMode] = useState<"due" | "add">("due");
   const [cardIndex, setCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  const currentCards = viewMode === "due" ? dueCards : nawawi?.hadiths ?? [];
-  const currentHadith = currentCards[cardIndex];
-  const cardKey = currentHadith ? `nawawi:${currentHadith.n}` : null;
+  const addDeck = useMemo<DeckCard[]>(
+    () => (nawawi?.hadiths ?? []).map((item) => ({ bookKey: "nawawi", item })),
+    [nawawi],
+  );
+
+  const currentCards = viewMode === "due" ? dueCards : addDeck;
+  const current = currentCards[cardIndex];
+  const cardKey = current ? `${current.bookKey}:${current.item.n}` : null;
   const cardState = cardKey ? hadithMemoCards[cardKey] : null;
   const isAdded = cardKey ? !!hadithMemoCards[cardKey] : false;
 
-  const { isnad, matn } = currentHadith
-    ? splitHadithText(currentHadith.t)
+  const { isnad, matn } = current
+    ? splitHadithText(current.item.t)
     : { isnad: "", matn: "" };
 
   const handleRate = (rating: 0 | 1 | 2 | 3) => {
@@ -165,9 +198,8 @@ export function HadithMemoPage() {
     setCardIndex((i) => Math.min(i + 1, currentCards.length - 1));
   };
 
-  const doneCount = allCards.filter((h) => {
-    const ck = `nawawi:${h.n}`;
-    const c = hadithMemoCards[ck];
+  const doneCount = allCards.filter(({ bookKey, item }) => {
+    const c = hadithMemoCards[`${bookKey}:${item.n}`];
     return c && c.due > today;
   }).length;
 
@@ -185,7 +217,7 @@ export function HadithMemoPage() {
                 <BrainCircuit size={19} aria-hidden="true" style={{ color: accentColor }} />
                 <h1 className="text-lg font-bold">بطاقات الحفظ</h1>
               </div>
-              <div className="text-xs opacity-55 mt-1">الأربعون النووية</div>
+              <div className="text-xs opacity-55 mt-1">احفظ بالتكرار المتباعد — من أي كتاب</div>
             </div>
           </div>
         </Card>
@@ -260,7 +292,7 @@ export function HadithMemoPage() {
       )}
 
       {/* Flip card area */}
-      {currentHadith && (
+      {current && (
         <div className="relative z-10 space-y-4 px-4">
           {/* Progress bar */}
           <div className="flex items-center justify-between mb-1">
@@ -294,7 +326,7 @@ export function HadithMemoPage() {
             front={
               <div dir="rtl">
                 <p className="text-[10px] text-[var(--muted)] mb-2 font-arabic">
-                  حديث {currentHadith.a.toLocaleString("ar-EG")} — اضغط للكشف
+                  {bookTitle(current.bookKey)} · حديث {current.item.a.toLocaleString("ar-EG")} — اضغط للكشف
                 </p>
                 {isnad ? (
                   <p className="text-sm font-arabic text-[var(--fg)] opacity-60 leading-loose">{isnad}</p>
@@ -360,13 +392,13 @@ export function HadithMemoPage() {
             </button>
             <div className="flex items-center gap-3">
               <span className="text-xs text-[var(--muted)] font-arabic">
-                {currentHadith.a.toLocaleString("ar-EG")}
+                {current.item.a.toLocaleString("ar-EG")}
               </span>
               <button
                 type="button"
                 onClick={async () => {
                   try {
-                    await navigator.clipboard.writeText(currentHadith.t);
+                    await navigator.clipboard.writeText(current.item.t);
                     toast.success("تم النسخ");
                   } catch {
                     toast.error("تعذر النسخ");
@@ -381,7 +413,7 @@ export function HadithMemoPage() {
               <button
                 type="button"
                 onClick={async () => {
-                  const text = `${currentHadith.t}\n\n• ATHAR أثر — الأربعون النووية`;
+                  const text = `${current.item.t}\n\n• ATHAR أثر — ${bookTitle(current.bookKey)}`;
                   try {
                     if (navigator.share) { await navigator.share({ text }); }
                     else { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); }

@@ -20,6 +20,7 @@ import {
   type SharhHadith,
   type SharhListItem,
 } from "@/lib/hadithSharhAPI";
+import { verdictColor } from "@/lib/dorarTakhrij";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 type View =
@@ -220,7 +221,7 @@ export function HadithSharhPage() {
               </span>
               {hadith.grade ? (
                 <span className="rounded-full px-2.5 py-0.5 text-xs font-bold"
-                  style={{ background: "color-mix(in srgb, var(--ok) 16%, transparent)", color: "var(--ok)" }}>
+                  style={{ background: verdictColor(hadith.grade) + "22", color: verdictColor(hadith.grade) }}>
                   {hadith.grade}
                 </span>
               ) : null}

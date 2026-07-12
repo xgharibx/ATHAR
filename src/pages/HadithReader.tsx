@@ -19,7 +19,6 @@ import {
   BrainCircuit,
   BookOpenText,
   Hash,
-  Info,
   User,
   ExternalLink,
 } from "lucide-react";
@@ -28,6 +27,7 @@ import { getSharhIdFor } from "@/lib/hadithSharhLinks";
 import { parseIsnadChain } from "@/lib/isnadParser";
 import { lookupNarratorBio, type NarratorBio } from "@/lib/narratorLookup";
 import { useTakhrij } from "@/lib/useTakhrij";
+import { splitHadithText } from "@/lib/hadithText";
 import { TakhrijCard } from "@/components/hadith/TakhrijCard";
 import { GradeChip } from "@/components/hadith/GradeChip";
 import {
@@ -48,57 +48,6 @@ import toast from "react-hot-toast";
 /* Helpers                                                               */
 /* ------------------------------------------------------------------ */
 
-// Split full hadith text into isnad (narrator chain) and matn (content).
-//
-// Multi-narrator chains repeat "قال: حدثنا فلان، قال: حدثنا فلان..." once per
-// link, so splitting at the FIRST such marker (the old behavior) only peeled
-// off the first narrator and left the rest of the chain sitting inside
-// "matn". The real isnad/matn boundary is the LAST marker occurring before
-// the quoted saying — the one immediately introducing it — not the first.
-//
-// This dataset doesn't punctuate "قال" with a colon consistently (checked
-// against the bundled bukhari.json: most hadiths have none at all), but it
-// does reliably wrap the actual quoted matn in a literal `"`. So markers are
-// the primary signal when present; a bare quote mark is the fallback when
-// they aren't — covers the large share of hadiths with no colon anywhere.
-function splitHadithText(text: string): { isnad: string; matn: string } {
-  const QUOTE = "\"";
-  const firstQuote = text.indexOf(QUOTE);
-  // Only look for markers before the quote, so a "قال" inside the quoted
-  // matn itself (reported speech within reported speech) can't be picked.
-  const searchSpace = firstQuote > 0 ? text.slice(0, firstQuote) : text;
-
-  const markers = [
-    " قَالَ:", " قَالَ :", "قال:",
-    " يَقُولُ:", " يَقُولُ :", "يقول:",
-    "أَنَّ رَسُولَ", "أن رسول الله",
-    "عَنِ النَّبِيِّ", "عَنِ النَّبِيِّ صَلَّى",
-  ];
-  let latest = -1;
-  let latestMarkerLen = 0;
-  for (const m of markers) {
-    const idx = searchSpace.lastIndexOf(m);
-    if (idx !== -1 && idx > latest) { latest = idx; latestMarkerLen = m.length; }
-  }
-
-  let cut: number;
-  if (latest > 0) {
-    // Keep the marker itself ("...يقول:") attached to isnad — it's the
-    // narrator's own words introducing the quote, not part of it.
-    cut = latest + latestMarkerLen;
-  } else if (firstQuote > 8) {
-    cut = firstQuote;
-  } else {
-    return { isnad: "", matn: text };
-  }
-
-  const isnad = text.slice(0, cut).trim();
-  // Strip a leading/trailing literal quote mark (with its RLM wrapper and
-  // any trailing full stop) — it's source punctuation, not content.
-  const QUOTE_EDGE = /^[‏\s]*"[‏\s]*|[‏\s]*"[‏\s]*\.?[‏\s]*$/g;
-  const matn = text.slice(cut).trim().replace(QUOTE_EDGE, "").trim();
-  return { isnad, matn };
-}
 
 // Share-as-poster: draw a beautiful canvas card and share or download it
 async function shareHadithPoster(opts: {
@@ -390,16 +339,6 @@ export function HadithReaderPage() {
             <IconButton aria-label="ملاحظة" aria-pressed={showNoteEditor} onClick={() => { setDraftNote(existingNote); setShowNoteEditor((v) => !v); }}>
               <StickyNote size={16} aria-hidden="true" className={existingNote ? "fill-current" : ""} style={{ color: existingNote ? accentColor : "var(--muted)" }} />
             </IconButton>
-            {sharhId && (
-              <button type="button"
-                onClick={() => navigate(`/library/sharh?h=${sharhId}`)}
-                className="flex items-center gap-1.5 h-10 shrink-0 rounded-2xl px-3.5 text-xs font-semibold transition hover:brightness-110 active:scale-[0.97]"
-                style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor }}
-              >
-                <Info size={14} aria-hidden="true" />
-                الشرح الكامل
-              </button>
-            )}
           </div>
         </Card>
       </div>
