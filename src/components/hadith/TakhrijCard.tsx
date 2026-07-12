@@ -7,31 +7,43 @@ import * as React from "react";
 import { ScrollText, Loader2, Info, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { verdictColor, type DorarTakhrij } from "@/lib/dorarTakhrij";
+import { GradeChip } from "@/components/hadith/GradeChip";
 
 export function TakhrijCard({
   takhrij,
   loading,
+  grades,
   sharhId,
   onOpenSharh,
   accentColor = "var(--accent)",
 }: {
   takhrij: DorarTakhrij | null;
   loading: boolean;
+  /** The book's own bundled grade tags (صحيح/حسن/…), shown as quick badges. */
+  grades?: string[];
   sharhId?: string | null;
   onOpenSharh?: (sharhId: string) => void;
   accentColor?: string;
 }) {
   const [showOtherOpinions, setShowOtherOpinions] = React.useState(false);
+  const uniqueGrades = grades ? [...new Set(grades)] : [];
 
   return (
     <Card className="relative overflow-hidden p-4">
       <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
       <div className="absolute inset-y-0 right-0 w-1 opacity-70" style={{ background: accentColor }} />
       <div className="relative pr-2">
-        <p className="mb-3 text-[11px] font-semibold opacity-55 font-arabic flex items-center gap-1.5">
-          <ScrollText size={13} aria-hidden="true" />
-          التخريج والحكم
-        </p>
+        <div className="mb-3 flex items-center justify-between gap-2 flex-wrap">
+          <p className="text-[11px] font-semibold opacity-55 font-arabic flex items-center gap-1.5">
+            <ScrollText size={13} aria-hidden="true" />
+            التخريج والحكم
+          </p>
+          {uniqueGrades.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {uniqueGrades.map((g) => <GradeChip key={g} grade={g} size="sm" />)}
+            </div>
+          )}
+        </div>
 
         {loading && !takhrij && (
           <div className="flex items-center gap-2 py-3 text-xs opacity-55">

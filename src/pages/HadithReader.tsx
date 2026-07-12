@@ -18,7 +18,6 @@ import {
   Check,
   BrainCircuit,
   BookOpenText,
-  Hash,
   User,
   ExternalLink,
 } from "lucide-react";
@@ -29,7 +28,7 @@ import { lookupNarratorBio, type NarratorBio } from "@/lib/narratorLookup";
 import { useTakhrij } from "@/lib/useTakhrij";
 import { splitHadithText } from "@/lib/hadithText";
 import { TakhrijCard } from "@/components/hadith/TakhrijCard";
-import { GradeChip } from "@/components/hadith/GradeChip";
+import { SharhSection } from "@/components/hadith/SharhSection";
 import {
   HADITH_BOOKS_STATIC,
   HADITH_GRADE_LABELS,
@@ -37,7 +36,6 @@ import {
   type HadithItem,
 } from "@/data/hadithTypes";
 import { useNoorStore } from "@/store/noorStore";
-import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { cn } from "@/lib/utils";
@@ -376,36 +374,12 @@ export function HadithReaderPage() {
 
         {hadith && hadith.t.trim() && hadithSplit && (
           <>
-            {/* Metadata card */}
-            <Card className="relative overflow-hidden p-4">
-              <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
-              <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
-              <div className="relative flex items-start justify-between gap-3 pr-2">
-                <div className="min-w-0 flex-1">
-                  <div className="mb-2 flex items-center gap-2 flex-wrap">
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor }}>
-                      <Hash size={12} aria-hidden="true" />
-                      {hadith.a.toLocaleString("ar-EG")}
-                    </span>
-                    {[...new Set(hadith.g)].map((g) => <GradeChip key={g} grade={g} />)}
-                    {sectionTitle && <Badge className="max-w-[240px] truncate px-2 py-0.5 text-[10px]">{sectionTitle}</Badge>}
-                  </div>
-                  <div className="text-xs opacity-60 leading-6">
-                    {hadithRef(meta?.title ?? "", hadith.a)}
-                  </div>
-                </div>
-              </div>
-            </Card>
+            {/* Reading order: الإسناد → المتن → الحكم والتخريج → الشرح.
+                Chain of narration, then the hadith itself (the hero), then
+                the ruling, then the scholarly explanation — all on one page,
+                nothing hidden behind a "read it elsewhere" link. */}
 
-            <TakhrijCard
-              takhrij={takhrij}
-              loading={takhrijLoading}
-              sharhId={sharhId}
-              onOpenSharh={(id) => navigate(`/library/sharh?h=${id}`)}
-              accentColor={accentColor}
-            />
-
-            {/* Isnad — chain of tappable narrator links */}
+            {/* 1) Isnad — chain of tappable narrator links */}
             {hadithSplit.isnad && (
               <Card className="relative overflow-hidden p-4">
                 <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
@@ -500,7 +474,7 @@ export function HadithReaderPage() {
               </Card>
             )}
 
-            {/* Matn */}
+            {/* 2) المتن — the hadith itself (the hero) */}
             <Card className="relative overflow-hidden p-5 md:p-6">
               <div className="pointer-events-none absolute inset-0 dhikr-card-stars" aria-hidden />
               <div className="absolute inset-y-0 right-0 w-1.5 opacity-90" style={{ background: accentColor }} />
@@ -512,8 +486,22 @@ export function HadithReaderPage() {
                 <p dir="rtl" className={`${fontSizeClass} arabic-text font-bold text-[var(--fg)] leading-[2.25]`}>
                   {hadithSplit.matn}
                 </p>
+                {meta?.title && (
+                  <p className="mt-4 text-xs opacity-55 leading-6">{hadithRef(meta.title, hadith.a)}</p>
+                )}
               </div>
             </Card>
+
+            {/* 3) الحكم والتخريج — who narrated it, who graded it, and the ruling */}
+            <TakhrijCard
+              takhrij={takhrij}
+              loading={takhrijLoading}
+              grades={hadith.g}
+              accentColor={accentColor}
+            />
+
+            {/* 4) الشرح الميسّر — the scholarly explanation, inline */}
+            <SharhSection sharhId={sharhId} matn={hadithSplit.matn} accentColor={accentColor} />
           </>
         )}
 
