@@ -62,17 +62,43 @@ export type CompanionContext = {
   totalScore: number;
   morningDone: boolean;
   eveningDone: boolean;
+  sleepDone: boolean;
+  prayerDone: boolean;
   ayahsReadToday: number;
   dailyGoal: number;
   lastSurahId: number | null;
   tasbeehToday: number;
   nextPrayer: { nameAr: string; time: string } | null;
   hijriDate: string;
+  hijriDay: number;
+  hijriMonth: number;
+  hijriMonthName: string;
   weekdayAr: string;
+  weekdayTomorrowAr: string;
   isFriday: boolean;
+  isTomorrowFriday: boolean;
+  isThursday: boolean;
   isRamadan: boolean;
+  isLastTenNights: boolean;
+  daysToRamadan: number | null;
+  daysToFriday: number;
+  timePhase: TimePhase;
+  hoursToNextPrayer: number | null;
+  adherenceWeek: Array<{ dateISO: string; weekdayAr: string; score: number }>;
   khatma: { day: number; totalDays: number; onTrack: boolean } | null;
+  remainingTodayHints: string[];
 };
+
+export type TimePhase =
+  | "fajr-pre"
+  | "fajr"
+  | "duha"
+  | "dhuhr"
+  | "asr"
+  | "maghrib"
+  | "isha"
+  | "late-night"
+  | "qiyam";
 
 function todayISO(): string {
   const d = new Date();
@@ -80,15 +106,56 @@ function todayISO(): string {
 }
 
 const WEEKDAYS_AR = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+const WEEKDAYS_AR_LONG = [
+  "يوم الأحد", "يوم الإثنين", "يوم الثلاثاء", "يوم الأربعاء", "يوم الخميس", "يوم الجمعة", "يوم السبت",
+];
+
+const HIJRI_MONTHS_AR = [
+  "", "محرَّم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة",
+  "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة",
+];
+
+function parseHijriParts(): { day: number; month: number; year: number } {
+  try {
+    const parts = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", {
+      day: "numeric", month: "numeric", year: "numeric",
+    }).formatToParts(new Date());
+    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? "0");
+    return { day: get("day"), month: get("month"), year: get("year") };
+  } catch {
+    return { day: 0, month: 0, year: 0 };
+  }
+}
 
 function hijriToday(): string {
-  try {
-    return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", {
-      day: "numeric", month: "long", year: "numeric",
-    }).format(new Date());
-  } catch {
-    return "";
-  }
+  const p = parseHijriParts();
+  if (!p.month) return "";
+  return `${p.day.toLocaleString("ar-EG")} ${HIJRI_MONTHS_AR[p.month]} ${p.year.toLocaleString("ar-EG")} هـ`;
+}
+
+function computeTimePhase(hour: number): TimePhase {
+  if (hour < 4) return "qiyam";
+  if (hour < 6) return "fajr-pre";
+  if (hour < 9) return "fajr";
+  if (hour < 11) return "duha";
+  if (hour < 15) return "dhuhr";
+  if (hour < 17) return "asr";
+  if (hour < 19) return "maghrib";
+  if (hour < 22) return "isha";
+  return "late-night";
+}
+
+function hoursUntilTodayAt(hhmm: string): number | null {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
+  if (!m) return null;
+  const hh = Number(m[1]), mm = Number(m[2]);
+  if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(hh, mm, 0, 0);
+  const diffH = (target.getTime() - now.getTime()) / 3_600_000;
+  if (diffH < -2) return diffH + 24;
+  return diffH;
 }
 
 export function buildCompanionContext(): CompanionContext {
@@ -100,6 +167,9 @@ export function buildCompanionContext(): CompanionContext {
     prefs?: { quranDailyGoal?: number };
     quranLastRead?: { surahId: number } | null;
     tasbeehDailyLog?: Record<string, Record<string, number>>;
+    khatmaStartISO?: string | null;
+    khatmaDays?: number | null;
+    khatmaDone?: Record<string, boolean>;
   };
   const today = todayISO();
 
@@ -129,9 +199,9 @@ export function buildCompanionContext(): CompanionContext {
 
   let khatma: CompanionContext["khatma"] = null;
   try {
-    const start = (useNoorStore.getState() as unknown as { khatmaStartISO?: string | null }).khatmaStartISO;
-    const totalDays = (useNoorStore.getState() as unknown as { khatmaDays?: number | null }).khatmaDays;
-    const doneMap = (useNoorStore.getState() as unknown as { khatmaDone?: Record<string, boolean> }).khatmaDone ?? {};
+    const start = s.khatmaStartISO;
+    const totalDays = s.khatmaDays;
+    const doneMap = s.khatmaDone ?? {};
     if (start && totalDays) {
       const elapsed = Math.floor((Date.now() - new Date(start + "T00:00:00").getTime()) / 86_400_000) + 1;
       if (elapsed >= 1 && elapsed <= totalDays) {
@@ -141,30 +211,89 @@ export function buildCompanionContext(): CompanionContext {
     }
   } catch { /* no khatma context */ }
 
-  let isRamadan = false;
-  try {
-    const parts = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "numeric" })
-      .formatToParts(new Date());
-    const monthNum = Number(parts.find((p) => p.type === "month")?.value ?? "0");
-    isRamadan = monthNum === 9;
-  } catch { /* ignore */ }
+  const hijri = parseHijriParts();
+  const isRamadan = hijri.month === 9;
+  const isLastTenNights = isRamadan && hijri.day >= 21;
+  let daysToRamadan: number | null = null;
+  if (!isRamadan && hijri.month && hijri.year) {
+    const now = new Date();
+    let nextRamadanStart = new Date(now.getFullYear(), 2, 1); // rough — March; Hijri shifts ~11d/year
+    try {
+      for (let d2 = 0; d2 < 380; d2++) {
+        const t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d2);
+        const parts = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "numeric" })
+          .formatToParts(t);
+        const m = Number(parts.find((p) => p.type === "month")?.value ?? "0");
+        if (m === 9) { daysToRamadan = d2; break; }
+      }
+    } catch { /* ignore */ }
+    void nextRamadanStart;
+  }
 
   const now = new Date();
+  const weekdayIdx = now.getDay();
+  const tomorrowIdx = (weekdayIdx + 1) % 7;
+  const daysToFriday = (5 - weekdayIdx + 7) % 7;
+
+  // 7-day adherence map (oldest → today)
+  const adherenceWeek: Array<{ dateISO: string; weekdayAr: string; score: number }> = [];
+  for (let i = 6; i >= 0; i--) {
+    const dd = new Date(now);
+    dd.setDate(now.getDate() - i);
+    const iso = `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, "0")}-${String(dd.getDate()).padStart(2, "0")}`;
+    adherenceWeek.push({
+      dateISO: iso,
+      weekdayAr: WEEKDAYS_AR[dd.getDay()],
+      score: activity[iso] ?? 0,
+    });
+  }
+
+  // What's left today
+  const remainingTodayHints: string[] = [];
+  const completions = s.sectionCompletions ?? {};
+  const morningDone = (completions["morning"] ?? []).includes(today);
+  const eveningDone = (completions["evening"] ?? []).includes(today);
+  const sleepDone = (completions["sleep"] ?? []).includes(today);
+  const prayerDone = (completions["prayer"] ?? []).includes(today);
+  const ayahsToday = (s.quranDailyAyahs ?? {})[today] ?? 0;
+  const dailyGoal = s.prefs?.quranDailyGoal ?? 10;
+  const hour = now.getHours();
+  if (!morningDone && hour < 11) remainingTodayHints.push("أذكار الصباح لم تُنجز بعد");
+  if (!eveningDone && hour >= 15) remainingTodayHints.push("أذكار المساء بانتظارك");
+  if (!sleepDone && hour >= 21) remainingTodayHints.push("أذكار النوم لم تُقرأ بعد");
+  if (ayahsToday < dailyGoal) remainingTodayHints.push(`ورد القرآن: ${ayahsToday}/${dailyGoal} آية`);
+  if (tasbeehToday === 0 && hour >= 6) remainingTodayHints.push("لم تسبّح اليوم");
+
   return {
     streakDays: Math.max(1, streakDays),
     totalScore: s.score ?? 0,
-    morningDone: (s.sectionCompletions?.["morning"] ?? []).includes(today),
-    eveningDone: (s.sectionCompletions?.["evening"] ?? []).includes(today),
-    ayahsReadToday: (s.quranDailyAyahs ?? {})[today] ?? 0,
-    dailyGoal: s.prefs?.quranDailyGoal ?? 10,
+    morningDone,
+    eveningDone,
+    sleepDone,
+    prayerDone,
+    ayahsReadToday: ayahsToday,
+    dailyGoal,
     lastSurahId: s.quranLastRead?.surahId ?? null,
     tasbeehToday,
     nextPrayer,
     hijriDate: hijriToday(),
-    weekdayAr: WEEKDAYS_AR[now.getDay()],
-    isFriday: now.getDay() === 5,
+    hijriDay: hijri.day,
+    hijriMonth: hijri.month,
+    hijriMonthName: HIJRI_MONTHS_AR[hijri.month] ?? "",
+    weekdayAr: WEEKDAYS_AR_LONG[weekdayIdx],
+    weekdayTomorrowAr: WEEKDAYS_AR_LONG[tomorrowIdx],
+    isFriday: weekdayIdx === 5,
+    isTomorrowFriday: tomorrowIdx === 5,
+    isThursday: weekdayIdx === 4,
     isRamadan,
+    isLastTenNights,
+    daysToRamadan,
+    daysToFriday,
+    timePhase: computeTimePhase(hour),
+    hoursToNextPrayer: nextPrayer ? hoursUntilTodayAt(nextPrayer.time) : null,
+    adherenceWeek,
     khatma,
+    remainingTodayHints,
   };
 }
 
@@ -200,6 +329,23 @@ const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ 
 - "cite" حين تريد الاستشهاد بآية أو حديث فعلًا — سيُحقن لك المقتطف ومصدره. لا تستعمل صياغات مثل «رواه البخاري» دون أن تمرر المصدر عبر الأداة أولًا.
 - "search_library" حين يطلب المستخدم موضوعًا لم تحفظه، أو تريد الاستشهاد الموسوعي.
 
+### الوعي بالوقت واليوم (مهم جدًا — خط أحمر)
+في بداية كل محادثة ستحصل على كتلة «سياق» فيها:
+- اسم اليوم بالأحرف العربية (مثال: «يوم الأربعاء») واسم الغد (مثال: «يوم الخميس»).
+- التاريخ الهجري باليوم والشهر والسنة.
+- هل اليوم جمعة؟ هل الغد جمعة؟ كم يومًا تفصلنا عن الجمعة القادمة؟
+- هل نحن في رمضان؟ هل نحن في العشر الأواخر؟
+- ما الذي أنجزه المستخدم اليوم فعلًا وما الذي تبقّى.
+- خريطة أيام الأسبوع السبعة بنقاط نشاطه.
+
+**قواعد صارمة:**
+1. لا تدَّعِ أن يومًا ما هو يومٌ آخر. إن كان السياق يقول «يوم الأربعاء»، فلا تقل «غدًا جمعة» — بل قل «الغد يوم الخميس، ويوم الجمعة بعد غدٍ». احسب الفرق بنفسك من «كم يومًا تفصلنا عن الجمعة».
+2. عند السؤال عن «الغد»: اقرأ weekdayTomorrowAr من السياق ولا تخمّن.
+3. لا تخلط «يوم الجمعة» بـ«يوم الخميس» (خميس يعني ليلة الجمعة القادمة، وهو يوم صيام مستحب).
+4. إن كانت ليلة الجمعة (مساء الخميس) فأرشد لآداب ليلة الجمعة، لا لآداب يوم الجمعة نفسها.
+5. إن كانت ليلة ٢٧ من رمضان فذكِّر بليلة القدر بقدر رفيق لا واعظ.
+6. إن كان الباقي اليوم متضمَّنًا في «remainingTodayHints»، فابدأ به قبل أي نصيحة عامة.
+
 ### التنسيق
 - لا تبدأ بعنوان (#). العناوين فقط في الإجابات الطويلة فعلًا (## ووحيدة غالبًا).
 - الفقرات القصيرة والنقاط أفضل من الجداول.
@@ -208,22 +354,57 @@ const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ 
 `;
 
 export function buildContextBlock(ctx: CompanionContext): string {
+  const today = todayISO();
   const lines = [
-    `سياق رحلة المستخدم اليوم (${ctx.weekdayAr} ${todayISO()}${ctx.hijriDate ? ` | ${ctx.hijriDate}` : ""}):`,
-    `- سلسلة المواظبة: ${ctx.streakDays} يوم | النقاط: ${ctx.totalScore}`,
-    `- أذكار الصباح: ${ctx.morningDone ? "أُنجزت ✓" : "لم تُنجز بعد"} | أذكار المساء: ${ctx.eveningDone ? "أُنجزت ✓" : "لم تُنجز بعد"}`,
-    `- ورد القرآن: ${ctx.ayahsReadToday} من ${ctx.dailyGoal} آية${ctx.lastSurahId ? ` | آخر قراءة: سورة رقم ${ctx.lastSurahId}` : ""}`,
-    `- تسبيح اليوم: ${ctx.tasbeehToday}`,
+    `اليوم: ${ctx.weekdayAr} (${today})${ctx.hijriDate ? ` | ${ctx.hijriDate}` : ""}`,
+    `الغد: ${ctx.weekdayTomorrowAr} | الجمعة القادمة بعد ${ctx.daysToFriday === 0 ? "اليوم نفسه" : `${ctx.daysToFriday} يوم`}.`,
+    `الوقت: ${timePhaseLabel(ctx.timePhase)}.`,
   ];
-  if (ctx.nextPrayer) lines.push(`- الصلاة القادمة: ${ctx.nextPrayer.nameAr} في ${ctx.nextPrayer.time}`);
-  if (ctx.khatma) {
-    lines.push(
-      `- ختمة جارية: اليوم ${ctx.khatma.day} من ${ctx.khatma.totalDays}${ctx.khatma.onTrack ? " (متابع لخطته)" : " (متأخر قليلاً عن خطته — شجِّعه برفق)"}`,
-    );
+  if (ctx.hoursToNextPrayer !== null && ctx.nextPrayer) {
+    lines.push(`الصلاة القادمة: ${ctx.nextPrayer.nameAr} في ${ctx.nextPrayer.time} (بعد ${ctx.hoursToNextPrayer.toFixed(1)} ساعة تقريبًا).`);
   }
-  if (ctx.isFriday) lines.push(`- اليوم الجمعة — فرصةٌ مضاعفة للصلاة على النبي ﷺ وسورة الكهف والدعاء.`);
-  if (ctx.isRamadan) lines.push(`- شهر رمضان — روحانية عالية، اقترح الورد والأدعية المناسبة.`);
+
+  lines.push(`إنجازات اليوم: أذكار الصباح ${ctx.morningDone ? "✓" : "✗"} | أذكار المساء ${ctx.eveningDone ? "✓" : "✗"} | أذكار النوم ${ctx.sleepDone ? "✓" : "✗"} | أذكار الصلاة ${ctx.prayerDone ? "✓" : "✗"} | تسبيح ${ctx.tasbeehToday} مرة | ورد قرآن ${ctx.ayahsReadToday}/${ctx.dailyGoal} آية.`);
+  if (ctx.remainingTodayHints.length > 0) {
+    lines.push(`ما تبقَّى اليوم: ${ctx.remainingTodayHints.join(" • ")}.`);
+  }
+  if (ctx.streakDays > 1) lines.push(`السلسلة الحالية: ${ctx.streakDays} يومًا متواصلًا.`);
+  if (ctx.lastSurahId) lines.push(`آخر موضع قرأه: سورة رقم ${ctx.lastSurahId}.`);
+  if (ctx.khatma) {
+    lines.push(`الختمة: اليوم ${ctx.khatma.day} من ${ctx.khatma.totalDays}${ctx.khatma.onTrack ? " — متابع" : " — متأخر قليلًا (شجِّعه)"}.`);
+  }
+
+  // Tomorrow-aware nudges
+  if (ctx.isTomorrowFriday) {
+    lines.push(`غدًا الجمعة: فرصة لقراءة سورة الكهف، والصلاة على النبي ﷺ، والدعاء في ساعة الإجابة.`);
+  } else if (ctx.isThursday) {
+    lines.push(`اليوم الخميس: صيامه مستحب (أبو أيوب الأنصاري رضي الله عنه).`);
+  }
+  if (ctx.isLastTenNights) {
+    lines.push(`العشر الأواخر من رمضان: ليلة القدر خير من ألف شهر — احرص على إحيائها.`);
+  } else if (ctx.isRamadan) {
+    lines.push(`رمضان: روحانية عالية — اقترح الورد والأدعية المناسبة.`);
+  } else if (ctx.daysToRamadan !== null && ctx.daysToRamadan <= 60) {
+    lines.push(`رمضان بعد ${ctx.daysToRamadan} يومًا — إن أراد المستخدم خطة استعدادية فاقترح.`);
+  }
+
+  // 7-day adherence (compact, oldest → newest)
+  lines.push(`خريطة الأسبوع (الأقدم → الأحدث): ${ctx.adherenceWeek.map((d) => `${d.weekdayAr}:${d.score}`).join(" | ")}.`);
   return lines.join("\n");
+}
+
+function timePhaseLabel(p: TimePhase): string {
+  switch (p) {
+    case "qiyam": return "ساعات السَّحَر (وقت قيام الليل)";
+    case "fajr-pre": return "قبل الفجر";
+    case "fajr": return "وقت الفجر";
+    case "duha": return "وقت الضحى";
+    case "dhuhr": return "وقت الظهر";
+    case "asr": return "وقت العصر";
+    case "maghrib": return "وقت المغرب";
+    case "isha": return "وقت العشاء";
+    case "late-night": return "آخر الليل";
+  }
 }
 
 /* ─── Routes the next_step tool may target ──────────────────────────────── */

@@ -20,7 +20,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Sparkles, Send, History, Plus, Pencil, Check, Copy, X as XIcon,
   Mic, MicOff, Volume2, VolumeX, Search, Pin, Share2, Image as ImageIcon,
-  AlertCircle, Loader2,
+  AlertCircle, Loader2, MessageSquareQuote, Download,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
@@ -40,6 +40,12 @@ import {
   type VerificationReport,
 } from "@/lib/companionAI";
 import { appLinksToMarkdown } from "@/lib/companionMarkdown";
+import {
+  exportConversationText,
+  groupConversationsByRecency,
+  previewSnippet,
+  type HistoryGroup,
+} from "@/lib/companionHistoryGroup";
 import {
   addPin,
   deleteConversation,
@@ -136,6 +142,21 @@ export function CompanionPage() {
     if (hour < 20) return `${salam}، مساؤك خير 🌆`;
     return `${salam}، طابت ليلتك 🌙`;
   }, []);
+
+  const fridayCountdown = React.useMemo(() => {
+    if (ctx.isFriday) return "اليوم الجمعة 🌿";
+    if (ctx.daysToFriday === 1) return "غدًا الجمعة";
+    if (ctx.daysToFriday === 2) return "بعد غدٍ الجمعة";
+    return `الجمعة بعد ${ctx.daysToFriday} أيام`;
+  }, [ctx.isFriday, ctx.daysToFriday]);
+
+  const prayerCountdown = React.useMemo(() => {
+    if (!ctx.nextPrayer || ctx.hoursToNextPrayer === null) return null;
+    const h = ctx.hoursToNextPrayer;
+    if (h < 1) return `${Math.max(1, Math.round(h * 60))} دقيقة حتى ${ctx.nextPrayer.nameAr}`;
+    if (h < 3) return `${h.toFixed(1)} ساعة حتى ${ctx.nextPrayer.nameAr}`;
+    return `${ctx.nextPrayer.nameAr} في ${ctx.nextPrayer.time}`;
+  }, [ctx.nextPrayer, ctx.hoursToNextPrayer]);
 
   const primary = React.useMemo(() => {
     const hour = new Date().getHours();
@@ -448,15 +469,23 @@ export function CompanionPage() {
         <div className="fixed inset-0 z-50 flex justify-start" dir="rtl">
           <button type="button" aria-label="إغلاق" onClick={() => setShowHistory(false)}
             className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-          <div className="relative flex h-full w-[88%] max-w-sm flex-col bg-[var(--bg)] shadow-2xl">
+          <div className="relative flex h-full w-[92%] max-w-md flex-col bg-[var(--bg)] shadow-2xl">
             <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
-              <h2 className="text-sm font-bold">المحادثات السابقة</h2>
+              <div>
+                <h2 className="text-sm font-bold">المحادثات السابقة</h2>
+                <p className="text-[11px] text-[var(--muted-2)]">
+                  {history.length === 0
+                    ? "تبدأ رحلتك من هنا"
+                    : `${history.length.toLocaleString("ar-EG")} محادثة محفوظة على جهازك`}
+                </p>
+              </div>
               <button type="button" onClick={() => setShowHistory(false)} aria-label="إغلاق"
                 className="rounded-lg p-1.5 hover:bg-[var(--card-2)] transition">
                 <XIcon className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
-            <div className="border-b border-[var(--stroke)] p-3">
+
+            <div className="border-b border-[var(--stroke)] p-3 space-y-2">
               <div className="relative">
                 <Search className="absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50" aria-hidden="true" />
                 <input
@@ -467,63 +496,43 @@ export function CompanionPage() {
                   aria-label="بحث في المحادثات"
                 />
               </div>
-            </div>
-            <div className="p-3">
               <button type="button" onClick={startNewChat}
                 className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2.5 text-sm font-bold text-black/80 active:scale-[0.99] transition">
                 <Plus className="h-4 w-4" aria-hidden="true" /> محادثة جديدة
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-1.5">
+
+            <div className="flex-1 overflow-y-auto px-2 pb-4">
               {filteredHistory.length === 0 ? (
-                <p className="mt-6 text-center text-xs text-[var(--muted-2)]">
-                  {historyQuery ? "لا نتائج" : "لا توجد محادثات محفوظة بعد"}
-                </p>
-              ) : filteredHistory.map((conv) => (
-                <div key={conv.id}
-                  className={[
-                    "rounded-xl border px-3 py-2.5 transition",
-                    conv.id === currentIdRef.current ? "border-accent-35 bg-accent-15" : "border-[var(--stroke)] bg-[var(--card)]",
-                  ].join(" ")}
-                >
-                  {renamingId === conv.id ? (
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        autoFocus
-                        value={renameDraft}
-                        onChange={(e) => setRenameDraft(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") commitRename(conv.id); if (e.key === "Escape") setRenamingId(null); }}
-                        className="form-field-readable flex-1 rounded-lg border border-[var(--stroke)] px-2 py-1 text-xs"
-                      />
-                      <button type="button" onClick={() => commitRename(conv.id)} aria-label="حفظ الاسم" className="rounded-lg p-1.5 hover:bg-[var(--card-2)]">
-                        <Check className="h-3.5 w-3.5 text-[var(--ok)]" aria-hidden="true" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button type="button" onClick={() => openConversation(conv.id)} className="block w-full text-start">
-                      <div className="truncate text-sm font-medium">{conv.title}</div>
-                      <div className="mt-0.5 text-[11px] text-[var(--muted-2)]">{relativeTime(conv.updatedAt)} · {conv.messages.length.toLocaleString("ar-EG")} رسالة</div>
-                    </button>
-                  )}
-                  {renamingId !== conv.id ? (
-                    <div className="mt-1.5 flex items-center gap-1 border-t border-[var(--stroke)] pt-1.5">
-                      <button type="button"
-                        onClick={() => { setRenamingId(conv.id); setRenameDraft(conv.title); }}
-                        className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--card-2)] transition">
-                        <Pencil className="h-3 w-3" aria-hidden="true" /> إعادة تسمية
-                      </button>
-                      <button type="button"
-                        onClick={() => confirmDelete(conv.id)}
-                        className={[
-                          "flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] transition",
-                          confirmDeleteId === conv.id ? "bg-[var(--danger)]/15 text-[var(--danger)]" : "text-[var(--muted)] hover:text-[var(--danger)] hover:bg-[var(--card-2)]",
-                        ].join(" ")}>
-                        {confirmDeleteId === conv.id ? "تأكيد الحذف؟" : "حذف"}
-                      </button>
-                    </div>
-                  ) : null}
+                <div className="px-4 py-10 text-center">
+                  <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-accent-15 border border-accent-35 mb-3">
+                    <Sparkles className="h-6 w-6 text-[var(--accent)]" aria-hidden="true" />
+                  </div>
+                  <p className="text-sm font-semibold">
+                    {historyQuery ? "لا توجد نتائج" : "لا توجد محادثات بعد"}
+                  </p>
+                  <p className="mt-1 text-xs text-[var(--muted-2)]">
+                    {historyQuery
+                      ? "جرّب كلمة مختلفة أو افتح محادثة جديدة."
+                      : "ابدأ أول محادثة مع «أثر» وستظهر هنا تلقائيًا."}
+                  </p>
                 </div>
-              ))}
+              ) : (
+                <HistoryGroups
+                  conversations={filteredHistory}
+                  currentId={currentIdRef.current}
+                  renamingId={renamingId}
+                  renameDraft={renameDraft}
+                  onRenameDraftChange={setRenameDraft}
+                  confirmDeleteId={confirmDeleteId}
+                  query={historyQuery}
+                  onOpen={openConversation}
+                  onStartRename={(c) => { setRenamingId(c.id); setRenameDraft(c.title); }}
+                  onCommitRename={commitRename}
+                  onConfirmDelete={confirmDelete}
+                  onExport={(c) => downloadConversation(c)}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -566,6 +575,23 @@ export function CompanionPage() {
             ) : null}
           </div>
 
+          {/* Awareness strip: Friday countdown + prayer countdown + Hijri date */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-1 text-[11px] text-[var(--muted)]">
+              🕌 {fridayCountdown}
+            </span>
+            {prayerCountdown ? (
+              <span className="rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-1 text-[11px] text-[var(--muted)]">
+                ⏰ {prayerCountdown}
+              </span>
+            ) : null}
+            {ctx.hijriDate ? (
+              <span className="rounded-full border border-accent-35 bg-accent-15 px-2.5 py-1 text-[11px] text-[var(--accent)]">
+                {ctx.hijriDate}
+              </span>
+            ) : null}
+          </div>
+
           {primary ? (
             <button type="button" onClick={primary.onClick}
               className="flex w-full items-center gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3.5 text-start transition hover:border-accent-35 active:scale-[0.99]">
@@ -578,6 +604,37 @@ export function CompanionPage() {
                 {primary.action}
               </span>
             </button>
+          ) : null}
+
+          {/* 7-day adherence mini-bar — gives Athar's "I see you" feel */}
+          {ctx.adherenceWeek.some((d) => d.score > 0) ? (
+            <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5">
+              <div className="mb-1.5 flex items-center justify-between text-[10.5px] text-[var(--muted-2)]">
+                <span>أسبوعك (الأقدم → الأحدث)</span>
+                <span>{ctx.streakDays} يوم متواصل</span>
+              </div>
+              <div className="flex items-end gap-1">
+                {ctx.adherenceWeek.map((d) => {
+                  const h = Math.min(28, Math.max(4, d.score * 4));
+                  const isToday = d.dateISO === ctx.adherenceWeek[ctx.adherenceWeek.length - 1].dateISO;
+                  return (
+                    <div key={d.dateISO} className="flex flex-1 flex-col items-center gap-1">
+                      <div
+                        className={[
+                          "w-full rounded-md transition-all",
+                          d.score > 0 ? (isToday ? "bg-[var(--accent)]" : "bg-accent-35") : "bg-[var(--card-2)]",
+                        ].join(" ")}
+                        style={{ height: `${h}px` }}
+                        title={`${d.weekdayAr}: ${d.score} نشاط`}
+                      />
+                      <span className={["text-[9px]", isToday ? "text-[var(--accent)] font-bold" : "text-[var(--muted-2)]"].join(" ")}>
+                        {d.weekdayAr.slice(0, 3)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           ) : null}
 
           <div>
@@ -895,5 +952,166 @@ const markdownComponents: Components = {
   blockquote: ({ children }) => (
     <blockquote className="my-2 border-e-2 border-accent-35 pe-3 text-[var(--muted)]">{children}</blockquote>
   ),
+  em: ({ children }) => <em className="italic text-[var(--fg)]">{children}</em>,
   code: ({ children }) => <code className="rounded bg-[var(--card-2)] px-1 py-0.5 font-mono text-[12px]" dir="ltr">{children}</code>,
+  pre: ({ children }) => <pre className="my-2 overflow-x-auto rounded-lg bg-[var(--card-2)] p-3 text-xs leading-6" dir="ltr">{children}</pre>,
+  hr: () => <hr className="my-3 border-[var(--stroke)]" />,
 };
+
+/* ─── Conversation history grouping + export helpers (in lib) ────────────── */
+
+function downloadConversation(conv: CompanionConversation): void {
+  try {
+    const blob = new Blob([exportConversationText(conv)], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `athar-${conv.id.slice(2, 10)}.txt`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast.success("تم تنزيل المحادثة");
+  } catch {
+    toast.error("تعذَّر تصدير المحادثة");
+  }
+}
+
+function HistoryGroups(props: {
+  conversations: CompanionConversation[];
+  currentId: string | null;
+  renamingId: string | null;
+  renameDraft: string;
+  onRenameDraftChange: (v: string) => void;
+  confirmDeleteId: string | null;
+  query: string;
+  onOpen: (id: string) => void;
+  onStartRename: (c: CompanionConversation) => void;
+  onCommitRename: (id: string) => void;
+  onConfirmDelete: (id: string) => void;
+  onExport: (c: CompanionConversation) => void;
+}) {
+  const groups = React.useMemo(() => groupConversationsByRecency(props.conversations), [props.conversations]);
+  if (groups.length === 0) return null;
+  return (
+    <div className="space-y-4 pt-2">
+      {groups.map((g) => (
+        <section key={g.key}>
+          <header className="sticky top-0 z-[1] -mx-2 mb-1.5 bg-[var(--bg)]/95 px-3 py-1 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-2)]">
+              <span>{g.label}</span>
+              <span className="text-[var(--muted-2)]/60">·</span>
+              <span>{g.items.length.toLocaleString("ar-EG")}</span>
+            </div>
+          </header>
+          <div className="space-y-1.5">
+            {g.items.map((conv) => (
+              <HistoryItem
+                key={conv.id}
+                conv={conv}
+                isCurrent={conv.id === props.currentId}
+                isRenaming={props.renamingId === conv.id}
+                renameDraft={props.renameDraft}
+                onRenameDraftChange={props.onRenameDraftChange}
+                confirmDelete={props.confirmDeleteId === conv.id}
+                query={props.query}
+                onOpen={() => props.onOpen(conv.id)}
+                onStartRename={() => props.onStartRename(conv)}
+                onCommitRename={() => props.onCommitRename(conv.id)}
+                onConfirmDelete={() => props.onConfirmDelete(conv.id)}
+                onExport={() => props.onExport(conv)}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function HistoryItem(props: {
+  conv: CompanionConversation;
+  isCurrent: boolean;
+  isRenaming: boolean;
+  renameDraft: string;
+  onRenameDraftChange: (v: string) => void;
+  confirmDelete: boolean;
+  query: string;
+  onOpen: () => void;
+  onStartRename: () => void;
+  onCommitRename: () => void;
+  onConfirmDelete: () => void;
+  onExport: () => void;
+}) {
+  const preview = React.useMemo(() => previewSnippet(props.conv), [props.conv]);
+  return (
+    <div
+      className={[
+        "rounded-2xl border transition",
+        props.isCurrent ? "border-accent-35 bg-accent-15" : "border-[var(--stroke)] bg-[var(--card)] hover:border-accent-35/60",
+      ].join(" ")}
+    >
+      {props.isRenaming ? (
+        <div className="flex items-center gap-1.5 px-3 py-2.5">
+          <input
+            autoFocus
+            value={props.renameDraft}
+            onChange={(e) => props.onRenameDraftChange(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") props.onCommitRename(); if (e.key === "Escape") props.onOpen(); }}
+            className="form-field-readable flex-1 rounded-lg border border-[var(--stroke)] px-2 py-1 text-xs"
+          />
+          <button type="button" onClick={props.onCommitRename} aria-label="حفظ الاسم" className="rounded-lg p-1.5 hover:bg-[var(--card-2)]">
+            <Check className="h-3.5 w-3.5 text-[var(--ok)]" aria-hidden="true" />
+          </button>
+        </div>
+      ) : (
+        <button type="button" onClick={props.onOpen} className="block w-full px-3 py-2.5 text-start">
+          <div className="flex items-start gap-2">
+            <span className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-accent-15 border border-accent-35">
+              <MessageSquareQuote className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-sm font-semibold">{props.conv.title}</span>
+                {props.isCurrent ? (
+                  <span className="shrink-0 rounded-full bg-accent-15 border border-accent-35 px-1.5 py-0.5 text-[9px] font-bold text-[var(--accent)]">
+                    الحالية
+                  </span>
+                ) : null}
+              </div>
+              {preview ? (
+                <div className="mt-1 line-clamp-2 text-[11.5px] leading-5 text-[var(--muted)]">{preview}</div>
+              ) : null}
+              <div className="mt-1.5 flex items-center gap-2 text-[10.5px] text-[var(--muted-2)]">
+                <span>{relativeTime(props.conv.updatedAt)}</span>
+                <span className="opacity-40">·</span>
+                <span>{props.conv.messages.length.toLocaleString("ar-EG")} رسالة</span>
+              </div>
+            </div>
+          </div>
+        </button>
+      )}
+      {!props.isRenaming ? (
+        <div className="flex items-center gap-0.5 border-t border-[var(--stroke)] px-2 py-1">
+          <button type="button"
+            onClick={props.onStartRename}
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--card-2)] transition">
+            <Pencil className="h-3 w-3" aria-hidden="true" /> تسمية
+          </button>
+          <button type="button"
+            onClick={props.onExport}
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--card-2)] transition">
+            <Download className="h-3 w-3" aria-hidden="true" /> تصدير
+          </button>
+          <span className="flex-1" />
+          <button type="button"
+            onClick={props.onConfirmDelete}
+            className={[
+              "flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] transition",
+              props.confirmDelete ? "bg-[var(--danger)]/15 text-[var(--danger)]" : "text-[var(--muted)] hover:text-[var(--danger)] hover:bg-[var(--card-2)]",
+            ].join(" ")}>
+            {props.confirmDelete ? "تأكيد الحذف؟" : "حذف"}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
