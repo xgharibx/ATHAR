@@ -20,11 +20,16 @@ import { Link } from "react-router-dom";
 
 import {
   isCompanionReady,
+  ROUTE_LABELS,
   streamCompanionReply,
   type CompanionMessage,
   type VerificationReport,
 } from "@/lib/companionAI";
-import { appLinksToMarkdown } from "@/lib/companionMarkdown";
+import { splitIntoSegments } from "@/lib/companionBlocks";
+
+function navigateRoute(route: string) {
+  try { window.dispatchEvent(new CustomEvent("athar-companion-navigate", { detail: { route } })); } catch { /* ignore */ }
+}
 
 export function CompanionModal(props: {
   open: boolean;
@@ -170,10 +175,63 @@ const modalComponents: Components = {
     }
     return <a href={to} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline">{children}</a>;
   },
-  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+  p: ({ children }) => <p className="mb-2 last:mb-0 leading-7">{children}</p>,
   strong: ({ children }) => <strong className="font-bold">{children}</strong>,
-  ul: ({ children }) => <ul className="mb-2 me-4 list-disc">{children}</ul>,
+  em: ({ children }) => <em className="italic text-[var(--accent)]">{children}</em>,
+  ul: ({ children }) => <ul className="mb-2 me-4 list-disc marker:text-[var(--accent)]">{children}</ul>,
+  blockquote: ({ children }) => <blockquote className="my-2 border-s-4 border-accent-35 bg-accent-8 ps-3 py-1 text-[var(--muted)]">{children}</blockquote>,
 };
+
+const MODAL_CALLOUT: Record<string, { border: string; bg: string; label: string; icon: string; accent: string }> = {
+  verse: { border: "border-sky-400/50", bg: "bg-sky-500/10", label: "آية", icon: "📖", accent: "text-sky-200" },
+  hadith: { border: "border-emerald-400/50", bg: "bg-emerald-500/10", label: "حديث", icon: "📜", accent: "text-emerald-200" },
+  dua: { border: "border-rose-400/50", bg: "bg-rose-500/10", label: "دعاء", icon: "🤲", accent: "text-rose-200" },
+  tip: { border: "border-amber-400/50", bg: "bg-amber-500/10", label: "نصيحة", icon: "💡", accent: "text-amber-200" },
+  warn: { border: "border-red-400/50", bg: "bg-red-500/10", label: "تنبيه", icon: "⚠️", accent: "text-red-200" },
+  info: { border: "border-violet-400/50", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
+};
+
+function ModalCalloutBlock({ kind, children }: { kind: keyof typeof MODAL_CALLOUT; children: React.ReactNode }) {
+  const s = MODAL_CALLOUT[kind];
+  return (
+    <div className={["my-1.5 overflow-hidden rounded-xl border", s.border, s.bg].join(" ")}>
+      <div className={["flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider", s.accent].join(" ")}>
+        <span>{s.icon}</span><span>{s.label}</span>
+      </div>
+      <div className="arabic-text px-2.5 pb-2.5 pt-0.5 text-[14px] leading-7 whitespace-pre-wrap">{children}</div>
+    </div>
+  );
+}
+
+function ModalActionButton({ route, children }: { route: string; children: React.ReactNode }) {
+  const label = ROUTE_LABELS[route] ?? route;
+  return (
+    <button type="button" onClick={() => navigateRoute(route)}
+      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-xl border border-accent-35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 px-3 py-2 text-start text-[12.5px] font-semibold text-emerald-100 transition active:scale-[0.99]">
+      <span className="flex items-center gap-2">
+        <Sparkles className="h-3 w-3 text-emerald-200" aria-hidden="true" />
+        <span>{children}</span>
+      </span>
+      <span className="text-[10px] uppercase tracking-wider text-emerald-300/80">{label} ←</span>
+    </button>
+  );
+}
+
+function ModalBubbleContent({ text, streaming }: { text: string; streaming?: boolean }) {
+  const segs = React.useMemo(() => splitIntoSegments(text), [text]);
+  return (
+    <>
+      {segs.map((s, i) => {
+        if (s.kind === "callout") return <ModalCalloutBlock key={i} kind={s.calloutKind}>{s.text}</ModalCalloutBlock>;
+        if (s.kind === "action") return <ModalActionButton key={i} route={s.route}>{s.label}</ModalActionButton>;
+        return (
+          <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} components={modalComponents}>{s.text}</ReactMarkdown>
+        );
+      })}
+      {streaming ? <span className="inline-block animate-pulse"> ▍</span> : null}
+    </>
+  );
+}
 
 function ModalBubble(props: { role: "user" | "assistant"; text: string; streaming?: boolean }) {
   const isUser = props.role === "user";
@@ -183,14 +241,7 @@ function ModalBubble(props: { role: "user" | "assistant"; text: string; streamin
         "max-w-[92%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
         isUser ? "bg-accent-15 border border-accent-35 text-[var(--fg)]" : "bg-[var(--card)] border border-[var(--stroke)]",
       ].join(" ")}>
-        {isUser ? props.text : (
-          <>
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={modalComponents}>
-              {appLinksToMarkdown(props.text)}
-            </ReactMarkdown>
-            {props.streaming ? <span className="inline-block animate-pulse"> ▍</span> : null}
-          </>
-        )}
+        {isUser ? props.text : <ModalBubbleContent text={props.text} streaming={props.streaming} />}
       </div>
     </div>
   );

@@ -87,6 +87,55 @@ async function buildSearchIndex(): Promise<Passage[]> {
   }
 }
 
+async function buildTafsirIndex(): Promise<Passage[]> {
+  try {
+    // tafseer-muyassar.json — Spanish tafsir, but rich Arabic text is interleaved.
+    // We grab the Arabic intro/summary if present.
+    const raw = await fetchJSON<{ surahs?: Array<{ id: number; name: string; verses?: Array<{ number: number; text: string }> }> }>(
+      "/data/tafseer-muyassar.json",
+    );
+    const out: Passage[] = [];
+    for (const s of raw.surahs ?? []) {
+      for (const v of s.verses ?? []) {
+        const text = String(v.text ?? "").trim();
+        if (text.length < 40) continue;
+        out.push({
+          source: `tafsir:${s.id}:${v.number}`,
+          sourceLabel: `تفسير الميسر — سورة ${s.name} (${v.number})`,
+          text,
+        });
+      }
+    }
+    return out;
+  } catch (err) {
+    console.warn("[athar-knowledge] tafsir index skipped:", err);
+    return [];
+  }
+}
+
+async function buildProphetStoriesIndex(): Promise<Passage[]> {
+  try {
+    const mod = await import("@/data/prophetStories" as string);
+    const stories: Array<{ id?: string; name?: string; title?: string; summary?: string; text?: string; lessons?: string[] }> =
+      (mod as { PROPHET_STORIES?: unknown }).PROPHET_STORIES as Array<{ id?: string; name?: string; title?: string; summary?: string; text?: string; lessons?: string[] }> ??
+      (mod as unknown as Array<{ id?: string; name?: string; title?: string; summary?: string; text?: string; lessons?: string[] }>);
+    if (!Array.isArray(stories)) return [];
+    return stories.map((s, i) => ({
+      source: `prophet:${s.id ?? i}`,
+      sourceLabel: `قصة ${s.name ?? s.title ?? ""}`,
+      text: [
+        s.title ? `العنوان: ${s.title}` : "",
+        s.summary ?? "",
+        s.text ?? "",
+        s.lessons?.length ? `الدروس: ${s.lessons.join(" • ")}` : "",
+      ].filter(Boolean).join("\n"),
+    }));
+  } catch (err) {
+    console.warn("[athar-knowledge] prophet stories skipped:", err);
+    return [];
+  }
+}
+
 async function buildQuranVerses(): Promise<Map<string, string>> {
   if (QURAN_VERSES) return QURAN_VERSES;
   try {
@@ -126,8 +175,13 @@ async function getIndex(): Promise<Passage[]> {
   if (INDEX) return INDEX;
   if (!INDEX_PROMISE) {
     INDEX_PROMISE = (async () => {
-      const [a, b] = await Promise.all([buildSharhIndex(), buildSearchIndex()]);
-      const all = [...a, ...b];
+      const [a, b, c, d] = await Promise.all([
+        buildSharhIndex(),
+        buildSearchIndex(),
+        buildTafsirIndex(),
+        buildProphetStoriesIndex(),
+      ]);
+      const all = [...a, ...b, ...c, ...d];
       INDEX = all;
       return all;
     })();

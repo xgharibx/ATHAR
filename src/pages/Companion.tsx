@@ -41,6 +41,10 @@ import {
 } from "@/lib/companionAI";
 import { appLinksToMarkdown } from "@/lib/companionMarkdown";
 import {
+  splitIntoSegments,
+  type Segment,
+} from "@/lib/companionBlocks";
+import {
   exportConversationText,
   groupConversationsByRecency,
   previewSnippet,
@@ -146,14 +150,22 @@ export function CompanionPage() {
   }, [navigate]);
 
   const greeting = React.useMemo(() => {
-    const hour = new Date().getHours();
     const salam = "السلام عليكم";
-    if (hour < 5) return `${salam} — قيامٌ مبارك 🌙`;
-    if (hour < 12) return `${salam}، صباحك خير ☀️`;
-    if (hour < 17) return `${salam} 🌿`;
-    if (hour < 20) return `${salam}، مساؤك خير 🌆`;
-    return `${salam}، طابت ليلتك 🌙`;
-  }, []);
+    const name = profile.greetingName ? ` يا ${profile.greetingName}` : "";
+    const weekdayName = ctx.weekdayAr.replace(/^يوم\s*/, "");
+    switch (ctx.timePhase) {
+      case "qiyam": return `${salam}${name} — قيام مبارك، ربي يقبل منك 🌙`;
+      case "fajr-pre": return `${salam}${name} — أظنّك ساهر الليلة، ثَبِّتْك الله 🌙`;
+      case "fajr": return `${salam}${name}، صباحٌ مبارك — أذكار الصباح تُفتحِك على يومٍ طيّب ☀️`;
+      case "duha": return `${salam}${name}، الضحى حلو، لو تسبّح قبل أن تنشغل يكون يومك أنور 🌿`;
+      case "dhuhr": return `${salam}${name} — وقتٌ مبارك، احفظ سورة قصيرة الآن وتأملها قبل المغرب 🌤️`;
+      case "asr": return `${salam}${name}، العصر يكاد يدخل — ختمها قبل أن تُفوتك 🌇`;
+      case "maghrib": return `${salam}${name}، أُفطرت تقبّل الله، لو تقرأ آية الكرسي قبل النوم فعلاً 🌆`;
+      case "isha": return `${salam}${name}، ليلةٌ طيبة، أذكار النوم الآن قبل أن يسبقك النعاس 🌙`;
+      case "late-night": return `${salam}${name} — تأخّرت الليلة، ولو «سبحان الله» ثلاثين مرة فقد جبرتها ✨`;
+      default: return `${salam}${name}، ${weekdayName} مبارك ✨`;
+    }
+  }, [ctx.timePhase, ctx.weekdayAr, profile.greetingName]);
 
   const fridayCountdown = React.useMemo(() => {
     if (ctx.isFriday) return "اليوم الجمعة 🌿";
@@ -251,16 +263,31 @@ export function CompanionPage() {
   }, [messages]);
 
   const generateFollowUps = React.useCallback((lastUser: string, reply: string): string[] => {
-    const text = `${lastUser} ${reply}`.toLowerCase();
+    const text = `${lastUser} ${reply}`;
+    const lower = text.toLowerCase();
+    const candidates: Array<[RegExp, string]> = [
+      [/صبر|ابتلاء|همّ|حزن|مصيبة/, "ادعُ لي بالصبر على الابتلاء"],
+      [/شكر|حمد|سعادة|فرح/, "اقترح لي أذكارًا للشكر"],
+      [/استغفر|توبة|ذنب|مقصّر/, "علّمني بابًا من أبواب التوبة العمليّة"],
+      [/آية|تدبر|قرآن|سورة/, "اقترح آية قصيرة عن حالي"],
+      [/صلاة|ركوع|سجود|إمام/, "علِّمني دعاءً يقال بعد الصلاة"],
+      [/سبح|تسبيح|ذكر|استغفار/, "ما أفضل صيغ التسبيح الآن؟"],
+      [/موت|ميت|فقد|فقدت/, "ادعُ لي ولأهلي ولمن فقدتهم"],
+      [/قلق|خوف|همّ|ضيق|أرق/, "اقترح دعاءً يصرف الهم"],
+      [/دراسة|امتحان|دراسة|عمل/, "ادعُ لي بالتيسير والتوفيق"],
+      [/زواج|خطبة|زوجه/, "اقترح دعاءً للتوفيق في أمر الزواج"],
+      [/رزق|مال|عمل/, "ما أفضل دعاء لتوسعة الرزق؟"],
+      [/ابن|بنت|ولد|أطفال/, "علّمني كيف أعلّم أطفالي الصلاة"],
+      [/بر|أم|أب|والدين/, "ما فضل بر الوالدين عمليًا؟"],
+    ];
+    const matches = candidates.filter(([re]) => re.test(lower)).map(([, q]) => q);
+    const fallbacks = ["اقترح آية قصيرة عن حالي", "علِّمني دعاءً مأثورًا اليومي", "ادعُ لي ولأهلي"];
     const out: string[] = [];
-    if (/صبر|ابتلاء|همّ|حزن/.test(text)) out.push("ادعُ لي بالصبر على الابتلاء");
-    if (/شكر|حمد|سعادة/.test(text)) out.push("اقترح لي أذكارًا للشكر");
-    if (/استغفر|توبة|ذنب/.test(text)) out.push("ما فضل الاستغفار في اليوم؟");
-    if (/قرآن|تدبر|آية/.test(text)) out.push("اقترح آية قصيرة عن حالي");
-    if (/صلاة|دعاء|ركوع/.test(text)) out.push("علِّمني دعاءً يقال بعد الصلاة");
-    if (/سبح|تسبيح|ذكر/.test(text)) out.push("ما أفضل صيغ التسبيح الآن؟");
-    while (out.length < 3) out.push(["حدثني عن حديث اليوم", "ما الخطوة التالية عمليًا؟", "ادعُ لي ولأهلي"][out.length] ?? "أعطني آية عن حالي");
-    return Array.from(new Set(out)).slice(0, 3);
+    for (const q of [...matches, ...fallbacks]) {
+      if (!out.includes(q)) out.push(q);
+      if (out.length === 3) break;
+    }
+    return out;
   }, []);
 
   const speakFinal = React.useCallback((text: string) => {
@@ -869,23 +896,54 @@ function OnboardingCard({ onDone, initial }: { onDone: (p: Partial<CompanionProf
 
 function ThinkingIndicator({ onStop, isSpeaking }: { onStop: () => void; isSpeaking: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl border border-accent-35 bg-accent-8 px-4 py-3.5">
-      <div className="flex items-center gap-3">
-        <span className="relative grid h-8 w-8 place-items-center rounded-full border border-accent-35 bg-accent-15">
-          <span className="absolute inset-0 rounded-full bg-[var(--accent)]/30 animate-ping" />
-          <Sparkles className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
-        </span>
-        <div className="flex flex-col">
-          <span className="text-xs font-semibold text-[var(--fg)]">أثر يفكّر…</span>
-          <span className="text-[10px] text-[var(--muted-2)]">
-            {isSpeaking ? "يُلقي عليك الإجابة صوتيًا" : "يقرأ سؤالك ويبحث في الموسوعة"}
+    <div className="relative overflow-hidden rounded-2xl border border-accent-35 bg-gradient-to-br from-accent-15 via-[var(--card)] to-[var(--card)] px-4 py-3.5 shadow-[0_0_24px_-6px_var(--accent)]">
+      {/* Sweeping gradient stripe */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 -start-1/2 w-1/2 bg-gradient-to-r from-transparent via-[var(--accent)]/15 to-transparent"
+        style={{ animation: "athar-thinking-sweep 2.4s ease-in-out infinite" }}
+      />
+      <div className="relative flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {/* Concentric gradient orb */}
+          <span className="relative grid h-10 w-10 place-items-center rounded-full">
+            <span
+              className="absolute inset-0 rounded-full opacity-60"
+              style={{
+                background: "conic-gradient(from 0deg, var(--accent), color-mix(in srgb, var(--accent) 30%, transparent), var(--accent))",
+                animation: "athar-orb-spin 3s linear infinite",
+                filter: "blur(2px)",
+              }}
+            />
+            <span className="absolute inset-1 rounded-full bg-gradient-to-br from-emerald-300/40 via-emerald-500/30 to-teal-500/30 backdrop-blur" />
+            <Sparkles className="relative h-4 w-4 text-emerald-100" aria-hidden="true" />
           </span>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-bold text-[var(--fg)]">
+              {isSpeaking ? "يلقيها عليك صوتيًا" : "يفكّر معك الآن"}
+            </span>
+            <span className="text-[10px] text-[var(--muted-2)] flex items-center gap-1">
+              <span
+                className="inline-block h-1 w-1 rounded-full bg-[var(--accent)]"
+                style={{ animation: "athar-pulse 1.2s ease-in-out infinite" }}
+              />
+              <span
+                className="inline-block h-1 w-1 rounded-full bg-[var(--accent)]"
+                style={{ animation: "athar-pulse 1.2s ease-in-out infinite", animationDelay: "0.15s" }}
+              />
+              <span
+                className="inline-block h-1 w-1 rounded-full bg-[var(--accent)]"
+                style={{ animation: "athar-pulse 1.2s ease-in-out infinite", animationDelay: "0.3s" }}
+              />
+            </span>
+          </div>
         </div>
+        <button type="button" onClick={onStop}
+          className="rounded-lg border border-[var(--stroke)] bg-[var(--bg)]/60 px-2.5 py-1 text-[11px] text-[var(--muted)] backdrop-blur-sm transition hover:text-[var(--fg)]">
+          إيقاف
+        </button>
       </div>
-      <button type="button" onClick={onStop}
-        className="flex items-center gap-1 rounded-lg border border-[var(--stroke)] bg-[var(--card)] px-2 py-1 text-[11px] text-[var(--muted)]">
-        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> إيقاف
-      </button>
+      <style>{`@keyframes athar-orb-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } } @keyframes athar-pulse { 0%, 100% { opacity: 0.3; transform: scale(0.85) } 50% { opacity: 1; transform: scale(1.1) } } @keyframes athar-thinking-sweep { 0% { transform: translateX(-100%) } 100% { transform: translateX(300%) } }`}</style>
     </div>
   );
 }
@@ -920,10 +978,7 @@ function MessageBubble(props: {
     <div className="flex justify-end gap-2">
       <div className="min-w-0 max-w-[88%]">
         <div className="rounded-2xl rounded-tl-md border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm leading-relaxed">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-            {appLinksToMarkdown(props.text)}
-          </ReactMarkdown>
-          {props.streaming ? <span className="inline-block animate-pulse"> ▍</span> : null}
+          <BubbleContent text={props.text} streaming={!!props.streaming} />
         </div>
         {!props.streaming && props.text.trim() ? (
           <div className="mt-1.5 flex items-center gap-1 px-1 text-[11px] text-[var(--muted-2)]">
@@ -959,23 +1014,37 @@ function navigateRoute(route: string) {
   } catch { /* ignore */ }
 }
 
+/* ─── Bubble content: pre-split into text / callout / action segments ─── */
+
 const CALLOUT_STYLES: Record<string, { border: string; bg: string; label: string; icon: string; accent: string }> = {
-  verse: { border: "border-sky-500/40", bg: "bg-sky-500/10", label: "آية", icon: "📖", accent: "text-sky-200" },
-  hadith: { border: "border-emerald-500/40", bg: "bg-emerald-500/10", label: "حديث", icon: "📜", accent: "text-emerald-200" },
-  dua: { border: "border-rose-500/40", bg: "bg-rose-500/10", label: "دعاء", icon: "🤲", accent: "text-rose-200" },
-  tip: { border: "border-amber-500/40", bg: "bg-amber-500/10", label: "نصيحة", icon: "💡", accent: "text-amber-200" },
-  warn: { border: "border-red-500/40", bg: "bg-red-500/10", label: "تنبيه", icon: "⚠️", accent: "text-red-200" },
-  info: { border: "border-violet-500/40", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
+  verse: { border: "border-sky-400/50", bg: "bg-sky-500/10", label: "آية", icon: "📖", accent: "text-sky-200" },
+  hadith: { border: "border-emerald-400/50", bg: "bg-emerald-500/10", label: "حديث", icon: "📜", accent: "text-emerald-200" },
+  dua: { border: "border-rose-400/50", bg: "bg-rose-500/10", label: "دعاء", icon: "🤲", accent: "text-rose-200" },
+  tip: { border: "border-amber-400/50", bg: "bg-amber-500/10", label: "نصيحة", icon: "💡", accent: "text-amber-200" },
+  warn: { border: "border-red-400/50", bg: "bg-red-500/10", label: "تنبيه", icon: "⚠️", accent: "text-red-200" },
+  info: { border: "border-violet-400/50", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
 };
 
-function ActionButton({ href, children }: { href: string; children: React.ReactNode }) {
-  const route = href.replace(/^action:/, "");
+function CalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; children: React.ReactNode }) {
+  const style = CALLOUT_STYLES[kind];
+  return (
+    <div className={["my-2 overflow-hidden rounded-2xl border", style.border, style.bg].join(" ")}>
+      <div className={["flex items-center gap-1.5 px-3 py-1.5 text-[10.5px] font-bold uppercase tracking-wider", style.accent].join(" ")}>
+        <span aria-hidden="true">{style.icon}</span>
+        <span>{style.label}</span>
+      </div>
+      <div className="arabic-text px-3 pb-3 pt-1 text-[15.5px] leading-8 text-[var(--fg)] whitespace-pre-wrap">{children}</div>
+    </div>
+  );
+}
+
+function ActionButton({ route, children }: { route: string; children: React.ReactNode }) {
   const label = ROUTE_LABELS[route] ?? route;
   return (
     <button
       type="button"
       onClick={() => navigateRoute(route)}
-      className="group my-1.5 inline-flex w-full items-center justify-between gap-2 rounded-2xl border border-accent-35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 px-3.5 py-2.5 text-start text-sm font-semibold text-emerald-100 shadow-sm transition hover:border-emerald-400/60 hover:from-emerald-500/25 hover:to-teal-500/15 active:scale-[0.99]"
+      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-2xl border border-accent-35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 px-3.5 py-2.5 text-start text-sm font-semibold text-emerald-100 shadow-sm transition hover:border-emerald-400/60 hover:from-emerald-500/25 hover:to-teal-500/15 active:scale-[0.99]"
     >
       <span className="flex items-center gap-2">
         <span className="grid h-7 w-7 place-items-center rounded-xl bg-emerald-500/30 text-emerald-100">
@@ -991,52 +1060,56 @@ function ActionButton({ href, children }: { href: string; children: React.ReactN
   );
 }
 
-function CalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; children: React.ReactNode }) {
-  const style = CALLOUT_STYLES[kind];
+function BubbleContent({ text, streaming }: { text: string; streaming?: boolean }) {
+  const segments = React.useMemo(() => splitIntoSegments(text), [text]);
+  const isLastIdx = segments.length - 1;
   return (
-    <div className={["my-2.5 rounded-2xl border px-3.5 py-3", style.border, style.bg].join(" ")}>
-      <div className={["mb-1.5 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider", style.accent].join(" ")}>
-        <span aria-hidden="true">{style.icon}</span>
-        <span>{style.label}</span>
-      </div>
-      <div className="arabic-text text-[15px] leading-8 text-[var(--fg)]">{children}</div>
-    </div>
+    <>
+      {segments.map((seg, i) => {
+        if (seg.kind === "callout") {
+          return (
+            <CalloutBlock key={`c-${i}`} kind={seg.calloutKind}>
+              {seg.text}
+            </CalloutBlock>
+          );
+        }
+        if (seg.kind === "action") {
+          return <ActionButton key={`a-${i}`} route={seg.route}>{seg.label}</ActionButton>;
+        }
+        return (
+          <ReactMarkdown key={`t-${i}`} remarkPlugins={[remarkGfm]} components={markdownComponents}>
+            {seg.text}
+          </ReactMarkdown>
+        );
+      })}
+      {streaming ? <ShimmerCursor /> : null}
+    </>
   );
 }
 
-function detectCallout(children: React.ReactNode): { kind: keyof typeof CALLOUT_STYLES | null; rest: React.ReactNode } {
-  // Walk children: first text node may carry the [callout:type] marker.
-  let kind: keyof typeof CALLOUT_STYLES | null = null;
-  const arr = React.Children.toArray(children);
-  if (arr.length > 0) {
-    const first = arr[0];
-    if (React.isValidElement(first)) {
-      const propsChildren = first.props && (first.props as { children?: React.ReactNode }).children;
-      const innerArr = React.Children.toArray(propsChildren);
-      if (innerArr.length > 0 && typeof innerArr[0] === "string") {
-        const m = /^\s*\[callout:(verse|hadith|dua|tip|warn|info)\]\s*/i.exec(innerArr[0] as string);
-        if (m) {
-          kind = (m[1].toLowerCase()) as keyof typeof CALLOUT_STYLES;
-          const newFirstChild = (innerArr[0] as string).replace(m[0], "");
-          const newInner = [newFirstChild, ...innerArr.slice(1)];
-          const newFirst = React.cloneElement(first as React.ReactElement<{ children?: React.ReactNode }>, {
-            ...(first.props as object),
-            children: newInner,
-          });
-          arr[0] = newFirst;
-        }
-      }
-    }
-  }
-  return { kind, rest: arr };
+function ShimmerCursor() {
+  return (
+    <span className="relative inline-block align-baseline" aria-hidden="true">
+      <span
+        className="absolute -start-1 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[var(--accent)]/30 blur-md"
+        style={{ animation: "athar-cursor-glow 1s ease-in-out infinite" }}
+      />
+      <span
+        className="relative inline-block h-[1.15em] w-[3px] -mb-[3px] ms-0.5 rounded-full"
+        style={{
+          background: "linear-gradient(180deg, color-mix(in srgb, var(--accent) 100%, transparent 0%) 0%, color-mix(in srgb, var(--accent) 35%, transparent 65%) 100%)",
+          boxShadow: "0 0 10px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 2px var(--accent)",
+          animation: "athar-cursor-blink 0.9s ease-in-out infinite",
+        }}
+      />
+      <style>{`@keyframes athar-cursor-blink { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } } @keyframes athar-cursor-glow { 0%, 100% { opacity: 0.4; transform: translateY(-50%) scale(1) } 50% { opacity: 0.85; transform: translateY(-50%) scale(1.4) } }`}</style>
+    </span>
+  );
 }
 
 const markdownComponents: Components = {
   a: ({ href, children }) => {
     const to = href ?? "";
-    if (to.startsWith("action:")) {
-      return <ActionButton href={to}>{children}</ActionButton>;
-    }
     if (to.startsWith("/")) {
       return (
         <Link to={to} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
@@ -1053,11 +1126,7 @@ const markdownComponents: Components = {
   h1: ({ children }) => <h3 className="mb-2 mt-3 text-base font-bold text-[var(--fg)] first:mt-0">{children}</h3>,
   h2: ({ children }) => <h4 className="mb-2 mt-3 text-[15px] font-bold text-[var(--fg)] first:mt-0">{children}</h4>,
   h3: ({ children }) => <h5 className="mb-1.5 mt-2 text-[14px] font-bold text-[var(--accent)] first:mt-0">{children}</h5>,
-  p: ({ children }) => {
-    const { kind, rest } = detectCallout(children);
-    if (kind) return <CalloutBlock kind={kind}>{rest}</CalloutBlock>;
-    return <p className="mb-2 last:mb-0">{children}</p>;
-  },
+  p: ({ children }) => <p className="mb-2 last:mb-0 leading-7">{children}</p>,
   strong: ({ children }) => <strong className="font-bold text-[var(--fg)]">{children}</strong>,
   em: ({ children }) => <em className="italic text-[var(--accent)]">{children}</em>,
   ul: ({ children }) => <ul className="mb-2.5 me-5 list-disc space-y-1.5 last:mb-0 marker:text-[var(--accent)]">{children}</ul>,
@@ -1198,17 +1267,25 @@ function HistoryItem(props: {
   const containerCls = [
     "group relative overflow-hidden rounded-2xl border transition-all duration-200",
     variant === "pinned"
-      ? "border-amber-300/30 bg-gradient-to-br from-amber-500/10 via-[var(--card)] to-[var(--card)] shadow-lg shadow-amber-500/5 hover:border-amber-300/60"
+      ? "border-amber-300/35 shadow-[0_4px_24px_-8px_rgba(251,191,36,0.4)]"
       : props.isCurrent
-        ? "border-accent-35 bg-gradient-to-br from-accent-15 via-[var(--card)] to-[var(--card)] shadow-md"
-        : "border-[var(--stroke)] bg-[var(--card)]/85 backdrop-blur-md hover:border-accent-35/60 hover:bg-[var(--card)]",
+        ? "border-accent-35 shadow-[0_4px_20px_-8px_var(--accent)]"
+        : "border-[var(--stroke)]/70 shadow-sm",
   ].join(" ");
 
+  const containerBg = variant === "pinned"
+    ? "bg-gradient-to-br from-amber-500/[0.12] via-[var(--card)]/95 to-emerald-500/[0.06] backdrop-blur-xl"
+    : props.isCurrent
+      ? "bg-gradient-to-br from-accent-15 via-[var(--card)]/95 to-[var(--card)]/95 backdrop-blur-xl"
+      : "bg-[var(--card)]/75 backdrop-blur-xl hover:bg-[var(--card)]/95 hover:border-accent-35/50";
+
   const iconCls = [
-    "mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-xl border",
+    "mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl border shadow-inner",
     variant === "pinned"
-      ? "bg-amber-500/15 border-amber-300/40"
-      : "bg-accent-15 border-accent-35",
+      ? "bg-gradient-to-br from-amber-400/20 to-amber-500/10 border-amber-300/40 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+      : props.isCurrent
+        ? "bg-gradient-to-br from-[var(--accent)]/20 to-[var(--accent)]/5 border-accent-35 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+        : "bg-gradient-to-br from-accent-15 to-[var(--card-2)] border-accent-35/40",
   ].join(" ");
 
   const iconEl = variant === "pinned"
@@ -1216,17 +1293,29 @@ function HistoryItem(props: {
     : <MessageSquareQuote className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />;
 
   return (
-    <div className={containerCls}>
-      {/* Subtle decorative gradient strip on the right edge for premium feel */}
+    <div className={[containerCls, containerBg].join(" ")}>
+      {/* Top-edge spark for premium feel — small rotating star at top-left */}
       <div
         aria-hidden="true"
         className={[
-          "pointer-events-none absolute inset-y-0 end-0 w-1",
+          "pointer-events-none absolute -start-2 -top-2 h-12 w-12 rounded-full opacity-60 blur-md transition-opacity group-hover:opacity-90",
           variant === "pinned"
-            ? "bg-gradient-to-b from-amber-300/60 via-amber-300/20 to-transparent"
+            ? "bg-gradient-to-br from-amber-300/40 to-transparent"
             : props.isCurrent
-              ? "bg-gradient-to-b from-[var(--accent)]/60 via-[var(--accent)]/20 to-transparent"
-              : "bg-gradient-to-b from-[var(--accent)]/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition",
+              ? "bg-gradient-to-br from-[var(--accent)]/40 to-transparent"
+              : "bg-gradient-to-br from-[var(--accent)]/15 to-transparent",
+        ].join(" ")}
+      />
+      {/* Right-edge strip */}
+      <div
+        aria-hidden="true"
+        className={[
+          "pointer-events-none absolute inset-y-0 end-0 w-[3px]",
+          variant === "pinned"
+            ? "bg-gradient-to-b from-amber-300/80 via-amber-300/30 to-transparent"
+            : props.isCurrent
+              ? "bg-gradient-to-b from-[var(--accent)]/80 via-[var(--accent)]/30 to-transparent"
+              : "bg-gradient-to-b from-[var(--accent)]/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition",
         ].join(" ")}
       />
       {props.isRenaming ? (
@@ -1244,29 +1333,29 @@ function HistoryItem(props: {
         </div>
       ) : (
         <button type="button" onClick={props.onOpen} className="block w-full px-3.5 py-3 text-start">
-          <div className="flex items-start gap-2.5">
+          <div className="flex items-start gap-3">
             <span className={iconCls}>{iconEl}</span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className={[
-                  "truncate text-[13.5px] font-bold",
-                  variant === "pinned" ? "text-amber-100" : "text-[var(--fg)]",
+                  "truncate text-[14px] font-extrabold leading-tight tracking-tight",
+                  variant === "pinned" ? "text-amber-50" : "text-[var(--fg)]",
                 ].join(" ")}>{props.conv.title}</span>
                 {props.isCurrent ? (
-                  <span className="shrink-0 rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-extrabold text-black">
+                  <span className="shrink-0 rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-extrabold text-black shadow-sm">
                     جارية
                   </span>
                 ) : null}
               </div>
               {preview ? (
                 <div className={[
-                  "mt-1 line-clamp-2 text-[11.5px] leading-5",
-                  variant === "pinned" ? "text-amber-100/70" : "text-[var(--muted)]",
+                  "mt-1.5 line-clamp-2 text-[11.5px] leading-5",
+                  variant === "pinned" ? "text-amber-100/75" : "text-[var(--muted)]",
                 ].join(" ")}>{preview}</div>
               ) : null}
               <div className={[
-                "mt-1.5 flex items-center gap-1.5 text-[10.5px]",
-                variant === "pinned" ? "text-amber-200/60" : "text-[var(--muted-2)]",
+                "mt-2 flex items-center gap-1.5 text-[10px] font-medium",
+                variant === "pinned" ? "text-amber-200/70" : "text-[var(--muted-2)]",
               ].join(" ")}>
                 <span>{relativeTime(props.conv.updatedAt)}</span>
                 <span className="opacity-40">·</span>
