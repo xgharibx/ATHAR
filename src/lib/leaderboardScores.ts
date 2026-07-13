@@ -25,7 +25,13 @@ export function getDailyTasbeeh(todayISO: string) {
 export function buildLeaderboardScoreStats(input: {
   sections: Section[];
   progress: Record<string, number>;
-  quranAyahIndex: number;
+  /**
+   * Ayahs actually *read today* (from `quranDailyAyahs[todayKey]`), NOT the
+   * bookmark position. Using the bookmark meant the Quran score never reset,
+   * counted identically on every day, and inflated when jumping to a late
+   * surah — so it now reflects genuine daily reading activity instead.
+   */
+  quranAyahsToday: number;
   prayersDone: Record<string, boolean>;
   quickTasbeeh: Record<string, number>;
   todayISO: string;
@@ -46,7 +52,7 @@ export function buildLeaderboardScoreStats(input: {
   const rawTasbeeh = Number(input.quickTasbeeh[dailyTasbeeh.key] ?? 0) || 0;
   const tasbeehDailyScore = Math.max(0, Math.min(rawTasbeeh, dailyTasbeeh.target));
   const dhikr = Object.values(input.progress).reduce((total, value) => total + (Number(value) || 0), 0);
-  const quran = Math.max(0, input.quranAyahIndex || 0);
+  const quran = Math.max(0, input.quranAyahsToday || 0);
   const prayers = Object.keys(input.prayersDone).filter((key) => input.prayersDone[key]).length;
   const global = dhikr + quran * 3 + prayers * 40 + tasbeehDailyScore;
 

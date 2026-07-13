@@ -194,6 +194,7 @@ export type ExportBlobV1 = {
   lastDailyResetISO?: string | null;
   lastCivilResetISO?: string | null;
   lastIbadahResetISO?: string | null;
+  lastKnownFajrTime?: string | null;
   dailyChecklist?: Record<string, Record<string, boolean>>;
   dailyBetterStepDone?: Record<string, boolean>;
   hadithBookmarks?: Record<string, boolean>;
@@ -222,6 +223,10 @@ type NoorState = {
   sectionItemOrder: Record<string, number[]>; // sectionId -> ordered original indexes
   lastCivilResetISO: string | null;
   lastIbadahResetISO: string | null;
+  // Last Fajr clock ("HH:mm") seen by ensureDailyResets — lets store actions
+  // (e.g. recordQuranRead) attribute activity to the same ibaadah-day boundary
+  // the rest of the app uses, without threading prayer times through them.
+  lastKnownFajrTime: string | null;
 
   // Home quick tasbeeh
   quickTasbeeh: Record<string, number>; // key: string -> count
@@ -656,6 +661,7 @@ export const useNoorStore = create<NoorState>()(
       sectionItemOrder: {},
       lastCivilResetISO: null,
       lastIbadahResetISO: null,
+      lastKnownFajrTime: null,
 
       quickTasbeeh: {},
       incQuickTasbeeh: (key, target = 100) => {
@@ -820,11 +826,16 @@ export const useNoorStore = create<NoorState>()(
             prevDate === today ? s.quranStreak
             : prevDate === dayBefore ? s.quranStreak + 1
             : 1;
-          const todayCount = (s.quranDailyAyahs[today] ?? 0) + count;
+          // Daily-ayah tally is bucketed by the ibaadah day (Fajr boundary) so
+          // it lines up with the leaderboard, checklist, and adhkar resets —
+          // pre-Fajr reading counts toward the day that is ending, not the next
+          // one. Streak keeps the simpler civil-day semantics it always used.
+          const ibadahKey = getIbadahDateKey(new Date(), s.lastKnownFajrTime);
+          const todayCount = (s.quranDailyAyahs[ibadahKey] ?? 0) + count;
           return {
             quranLastReadDate: today,
             quranStreak: newStreak,
-            quranDailyAyahs: { ...s.quranDailyAyahs, [today]: todayCount },
+            quranDailyAyahs: { ...s.quranDailyAyahs, [ibadahKey]: todayCount },
           };
         });
       },
@@ -1049,6 +1060,12 @@ export const useNoorStore = create<NoorState>()(
 
         const nextState: Partial<NoorState> = {};
 
+        // Cache the latest Fajr clock so store actions with no prayer-times
+        // context (e.g. recordQuranRead) can bucket by the ibaadah day too.
+        if (fajrTime && get().lastKnownFajrTime !== fajrTime) {
+          nextState.lastKnownFajrTime = fajrTime;
+        }
+
         if (lastCivilResetISO !== civilToday) {
           nextState.lastCivilResetISO = civilToday;
         }
@@ -1106,6 +1123,7 @@ export const useNoorStore = create<NoorState>()(
           lastDailyResetISO: s.lastCivilResetISO,
           lastCivilResetISO: s.lastCivilResetISO,
           lastIbadahResetISO: s.lastIbadahResetISO,
+          lastKnownFajrTime: s.lastKnownFajrTime,
           dailyChecklist: s.dailyChecklist,
           dailyBetterStepDone: s.dailyBetterStepDone,
           sebhaSessions: s.sebhaSessions,
@@ -1162,6 +1180,7 @@ export const useNoorStore = create<NoorState>()(
           khatmaDone: blob.khatmaDone ?? {},
           lastCivilResetISO: blob.lastCivilResetISO ?? blob.lastDailyResetISO ?? null,
           lastIbadahResetISO: blob.lastIbadahResetISO ?? blob.lastDailyResetISO ?? null,
+          lastKnownFajrTime: blob.lastKnownFajrTime ?? null,
           dailyChecklist: blob.dailyChecklist ?? {},
           dailyBetterStepDone: blob.dailyBetterStepDone ?? {},
           sebhaSessions: Array.isArray(blob.sebhaSessions) ? blob.sebhaSessions : [],
@@ -1217,6 +1236,7 @@ export const useNoorStore = create<NoorState>()(
         sebhaCustom: null,
         lastCivilResetISO: null,
         lastIbadahResetISO: null,
+        lastKnownFajrTime: null,
       }),
       resetQuranData: () => set({
         quranBookmarks: {},
@@ -1462,6 +1482,7 @@ export const useNoorStore = create<NoorState>()(
           sectionItemOrder: sanitizeOrderMap(state.sectionItemOrder),
           lastCivilResetISO: state.lastCivilResetISO ?? state.lastDailyResetISO ?? null,
           lastIbadahResetISO: state.lastIbadahResetISO ?? state.lastDailyResetISO ?? null,
+          lastKnownFajrTime: (state as Partial<NoorState>).lastKnownFajrTime ?? null,
           dailyChecklist: state.dailyChecklist ?? {},
           dailyBetterStepDone: state.dailyBetterStepDone ?? {},
           prayerLog: (state as Partial<NoorState>).prayerLog ?? {},

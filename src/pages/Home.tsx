@@ -622,13 +622,13 @@ export function HomePage() {
   // 5C: Quests + XP
   const questsData = React.useMemo(() => {
     const prayersDone: Record<string, boolean> = prayerLog[civilTodayKey] ?? {};
-    const quranAyahsToday = quranReadingHistory
-      ? Object.values(quranReadingHistory).reduce((a, v) => a + (Number(v) || 0), 0)
-      : 0;
+    // Ayahs actually read today — not the cumulative furthest-reached total,
+    // which used to inflate XP by summing every surah's high-water mark.
+    const ayahsToday = Number(quranDailyAyahs[civilTodayKey] ?? 0);
     const scores = buildLeaderboardScoreStats({
       sections: sections,
       progress: progressMap,
-      quranAyahIndex: quranAyahsToday,
+      quranAyahsToday: ayahsToday,
       prayersDone,
       quickTasbeeh,
       todayISO: civilTodayKey,
@@ -636,7 +636,6 @@ export function HomePage() {
     const totalXp = scores.global;
 
     // Quest auto-resolution
-    const ayahsToday = Number(quranDailyAyahs[civilTodayKey] ?? 0);
     const dhikrToday = Number(activity[civilTodayKey] ?? 0);
     const tasbeehMax = Object.values(quickTasbeeh).reduce((max, v) => Math.max(max, Number(v) || 0), 0);
 
@@ -657,7 +656,7 @@ export function HomePage() {
 
     return { quests, doneCount, totalXp, xpLevel, xpPct };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs, quranReadingHistory]);
+  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs]);
 
   const prayerContext = React.useMemo<PrayerContext>(() => {
     const timings = prayerTimes.data?.data?.timings;

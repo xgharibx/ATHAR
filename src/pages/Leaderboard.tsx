@@ -47,7 +47,7 @@ export function LeaderboardPage() {
   const prayerTimes = usePrayerTimes();
   const todayKey = useTodayKey({ mode: "ibadah", fajrTime: prayerTimes.data?.data?.timings?.Fajr });
   const progress = useNoorStore((s) => s.progress);
-  const quranLastRead = useNoorStore((s) => s.quranLastRead);
+  const quranAyahsToday = useNoorStore((s) => s.quranDailyAyahs[todayKey] ?? 0);
   const prayersDone = useNoorStore((s) => s.dailyChecklist[todayKey] ?? {});
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
 
@@ -105,12 +105,12 @@ export function LeaderboardPage() {
       buildLeaderboardScoreStats({
         sections,
         progress,
-        quranAyahIndex: quranLastRead?.ayahIndex ?? 0,
+        quranAyahsToday,
         prayersDone,
         quickTasbeeh,
         todayISO: todayKey
       }),
-    [prayersDone, progress, quranLastRead?.ayahIndex, quickTasbeeh, sections, todayKey]
+    [prayersDone, progress, quranAyahsToday, quickTasbeeh, sections, todayKey]
   );
 
   const myStats = React.useMemo(() => {
@@ -313,7 +313,7 @@ export function LeaderboardPage() {
           تحدي تسبيح اليوم: <span className="font-semibold">{myStats.tasbeehDailyLabel}</span> • الهدف {myStats.tasbeehDailyTarget.toLocaleString("ar-EG")}
         </div>
         <div className="mt-1 text-[11px] opacity-45">
-          الصيغة: ذكر + قرآن×٣ + صلاة×٤٠ + تسبيح
+          الصيغة: ذكر + قرآن×٣ + مهام×٤٠ + تسبيح
         </div>
 
         <div role="tablist" aria-orientation="horizontal" aria-label="الفترة الزمنية" className="mt-3 flex flex-wrap gap-2"
@@ -344,7 +344,7 @@ export function LeaderboardPage() {
           }}>
           <BoardTab label="الذكر" active={board === "dhikr"} onClick={() => setBoard("dhikr")} controls="lb-board-panel" />
           <BoardTab label="القرآن" active={board === "quran"} onClick={() => setBoard("quran")} controls="lb-board-panel" />
-          <BoardTab label="الصلوات" active={board === "prayers"} onClick={() => setBoard("prayers")} controls="lb-board-panel" />
+          <BoardTab label="المهام اليومية" active={board === "prayers"} onClick={() => setBoard("prayers")} controls="lb-board-panel" />
           <BoardTab label="تسبيح اليوم" active={board === "tasbeeh_daily"} onClick={() => setBoard("tasbeeh_daily")} controls="lb-board-panel" />
           <BoardTab label="قسم" active={board === "section"} onClick={() => setBoard("section")} controls="lb-board-panel" />
         </div>
@@ -439,7 +439,7 @@ export function LeaderboardPage() {
               : board === "quran"
                 ? "أفضل نتائج القرآن"
                 : board === "prayers"
-                  ? "أفضل نتائج الصلوات"
+                  ? "أفضل نتائج المهام اليومية"
                   : board === "tasbeeh_daily"
                     ? "تحدي تسبيح اليوم"
                     : "أفضل نتائج القسم"}
@@ -1131,7 +1131,7 @@ function LocalFriendsCard(props: {
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{f.alias}</div>
-                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {f.dhikr.toLocaleString("ar-EG")} · قرآن {f.quran.toLocaleString("ar-EG")} · صلاة {f.prayers.toLocaleString("ar-EG")}</div>
+                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {f.dhikr.toLocaleString("ar-EG")} · قرآن {f.quran.toLocaleString("ar-EG")} · مهام {f.prayers.toLocaleString("ar-EG")}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">

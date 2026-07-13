@@ -1,7 +1,7 @@
 {
   "name": "athar-adhkar",
   "private": true,
-  "version": "1.2.17",
+  "version": "1.2.18",
   "type": "module",
   "description": "ATHAR — The ultimate Adhkar experience (PWA + Android & iOS-ready via Capacitor).",
   "scripts": {
