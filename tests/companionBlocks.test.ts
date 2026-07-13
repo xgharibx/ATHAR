@@ -77,3 +77,25 @@ describe("splitIntoSegments — mixed", () => {
     expect(segs.filter((s) => s.kind === "action").length).toBe(1);
   });
 });
+
+describe("splitIntoSegments — legacy route shorthand", () => {
+  it("promotes 'افتح [/c/morning]' to an action block", () => {
+    const segs = splitIntoSegments("افتح [/c/morning]");
+    expect(segs).toContainEqual({
+      kind: "action",
+      label: "افتح أذكار الصباح",
+      route: "/c/morning",
+    });
+  });
+  it("works with explicit label after the route", () => {
+    const segs = splitIntoSegments("اقرأ [/quran وردي]");
+    expect(segs).toContainEqual({ kind: "action", label: "اقرأ وردي", route: "/quran" });
+  });
+  it("handles multiple imperative phrases in one message", () => {
+    const segs = splitIntoSegments("افتح [/c/morning] ثم اقرأ [/quran وردي]");
+    const actions = segs.filter((s) => s.kind === "action");
+    expect(actions.length).toBe(2);
+    expect(actions[0].kind === "action" && actions[0].route).toBe("/c/morning");
+    expect(actions[1].kind === "action" && actions[1].route).toBe("/quran");
+  });
+});

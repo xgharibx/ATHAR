@@ -1,56 +1,99 @@
 /**
  * CompanionModal — an in-page overlay version of the Companion chat.
  *
- * Shares the same AI and memory as the /companion route (since both go
- * through companionAI.ts). Lets long-context pages (Mushaf, DhikrList, Hadith
- * detail) host an inline "اسأل أثر" without forcing a full navigation.
+ * Shares the same AI + memory as the /companion route (both go through
+ * companionAI.ts). Lets long-context pages (Mushaf, DhikrList, Hadith
+ * detail) host an inline "ask Athar" without forcing a full navigation.
  *
- * Keeps the same UI primitives — header, thinking indicator, message bubble,
- * composer — but compressed; the full voice + history search features live on
- * the dedicated /companion page.
+ * The optional `context` prop surfaces a chip at the top of the modal so the
+ * user can see what page the AI is looking at, and includes a hint that is
+ * prepended to the user's first message so the AI knows which verse/section
+ * is in view.
  */
 import * as React from "react";
 import {
-  Sparkles, Send, X as XIcon, AlertCircle, Loader2,
+  Sparkles, Send, X as XIcon, AlertCircle, Loader2, History, Plus, Mic, MicOff,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import type { Components } from "react-markdown";
 import { Link } from "react-router-dom";
 
 import {
-  isCompanionReady,
   ROUTE_LABELS,
+  isCompanionReady,
   streamCompanionReply,
   type CompanionMessage,
   type VerificationReport,
 } from "@/lib/companionAI";
 import { splitIntoSegments } from "@/lib/companionBlocks";
+import type { AtharContext } from "@/components/companion/FloatingAthar";
+
+const CALLOUT_STYLES: Record<string, { border: string; bg: string; label: string; icon: string; accent: string }> = {
+  verse: { border: "border-sky-400/50", bg: "bg-sky-500/10", label: "آية", icon: "📖", accent: "text-sky-200" },
+  hadith: { border: "border-emerald-400/50", bg: "bg-emerald-500/10", label: "حديث", icon: "📜", accent: "text-emerald-200" },
+  dua: { border: "border-rose-400/50", bg: "bg-rose-500/10", label: "دعاء", icon: "🤲", accent: "text-rose-200" },
+  tip: { border: "border-amber-400/50", bg: "bg-amber-500/10", label: "نصيحة", icon: "💡", accent: "text-amber-200" },
+  warn: { border: "border-red-400/50", bg: "bg-red-500/10", label: "تنبيه", icon: "⚠️", accent: "text-red-200" },
+  info: { border: "border-violet-400/50", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
+};
 
 function navigateRoute(route: string) {
   try { window.dispatchEvent(new CustomEvent("athar-companion-navigate", { detail: { route } })); } catch { /* ignore */ }
+}
+
+const HISTORY_KEY = "noor_companion_modal_history_v1";
+type ModalConv = { id: string; title: string; messages: CompanionMessage[]; updatedAt: number };
+
+function loadModalHistory(): ModalConv[] {
+  try { const raw = localStorage.getItem(HISTORY_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; }
+}
+function saveModalHistory(arr: ModalConv[]) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0, 30))); } catch { /* ignore */ }
 }
 
 export function CompanionModal(props: {
   open: boolean;
   onClose: () => void;
   prefill?: string;
+  context?: AtharContext;
 }) {
   const [messages, setMessages] = React.useState<CompanionMessage[]>([]);
   const [input, setInput] = React.useState(props.prefill ?? "");
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
   const [verification, setVerification] = React.useState<VerificationReport | null>(null);
+  const [showHistory, setShowHistory] = React.useState(false);
+  const [history, setHistory] = React.useState<ModalConv[]>([]);
+  const [convId, setConvId] = React.useState<string | null>(null);
   const busyRef = React.useRef(false);
   const abortRef = React.useRef<AbortController | null>(null);
   const endRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (props.open) setInput(props.prefill ?? "");
+    if (props.open) {
+      setInput(props.prefill ?? "");
+      setHistory(loadModalHistory());
+    }
   }, [props.open, props.prefill]);
 
   React.useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, streamingText]);
+
+  // Persist history whenever messages change
+  React.useEffect(() => {
+    if (messages.length === 0) return;
+    const id = convId ?? `mh_${Date.now()}`;
+    if (!convId) setConvId(id);
+    const title = messages[0]?.content.slice(0, 40) ?? "محادثة";
+    const next: ModalConv = { id, title, messages, updatedAt: Date.now() };
+    const arr = [next, ...history.filter((h) => h.id !== id)].slice(0, 30);
+    setHistory(arr);
+    saveModalHistory(arr);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
+  const buildPrefill = (text: string) => {
+    if (!props.context?.hint) return text;
+    return `${text}\n\n(ملاحظة: الزائر حاليًا في ${props.context.title ?? "صفحة غير محددة"} — ${props.context.hint})`;
+  };
 
   const send = async (text: string) => {
     const trimmed = text.trim();
@@ -59,7 +102,8 @@ export function CompanionModal(props: {
     busyRef.current = true;
     const controller = new AbortController();
     abortRef.current = controller;
-    const history: CompanionMessage[] = [...messages, { role: "user", content: trimmed }];
+    const augmented = buildPrefill(trimmed);
+    const history: CompanionMessage[] = [...messages, { role: "user", content: augmented }];
     setMessages(history);
     setInput("");
     setStreamingText("");
@@ -92,24 +136,108 @@ export function CompanionModal(props: {
     setStreamingText(null);
   };
 
+  const startNew = () => {
+    stop();
+    setMessages([]);
+    setInput(props.prefill ?? "");
+    setStreamingText(null);
+    setVerification(null);
+    setConvId(null);
+    setShowHistory(false);
+  };
+
+  const loadHistoryConv = (c: ModalConv) => {
+    stop();
+    setMessages(c.messages);
+    setConvId(c.id);
+    setStreamingText(null);
+    setShowHistory(false);
+  };
+
   if (!props.open) return null;
 
+  const isBusy = streamingText !== null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-2 sm:p-4" dir="rtl">
-      <div className="relative flex h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-[var(--stroke)] bg-[var(--bg)] shadow-2xl">
-        <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-[var(--accent)]" aria-hidden="true" />
-            <h2 className="text-sm font-bold">أثر</h2>
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:p-4" dir="rtl">
+      <div
+        aria-hidden="true"
+        onClick={props.onClose}
+        className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 via-black/55 to-emerald-950/30 backdrop-blur-md"
+      />
+      <div
+        className="relative flex h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-emerald-400/30 bg-gradient-to-br from-emerald-950/95 via-[var(--bg)] to-[var(--bg)] shadow-[0_20px_60px_-12px_rgba(16,185,129,0.5)] backdrop-blur-xl"
+      >
+        {/* Decorative glow */}
+        <div aria-hidden="true" className="pointer-events-none absolute -top-24 -start-24 h-64 w-64 rounded-full bg-emerald-500/15 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -end-24 h-64 w-64 rounded-full bg-teal-500/10 blur-3xl" />
+
+        {/* Header */}
+        <div className="relative flex items-center justify-between gap-2 border-b border-emerald-400/15 px-4 py-3">
+          <div className="flex items-center gap-2.5">
+            <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md shadow-emerald-500/30">
+              <Sparkles className="h-4 w-4 text-emerald-950" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="text-sm font-extrabold leading-tight">أثر</h2>
+              <p className="text-[10.5px] text-emerald-200/70">رفيقك الذكي</p>
+            </div>
           </div>
-          <button type="button" onClick={props.onClose} aria-label="إغلاق" className="rounded-lg p-1.5 hover:bg-[var(--card-2)]">
-            <XIcon className="h-4 w-4" aria-hidden="true" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button type="button" onClick={() => setShowHistory((s) => !s)} aria-label="المحادثات"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-emerald-400/20 bg-emerald-500/10 text-emerald-100 transition hover:bg-emerald-500/20">
+              <History className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button type="button" onClick={startNew} aria-label="محادثة جديدة"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-emerald-400/20 bg-emerald-500/10 text-emerald-100 transition hover:bg-emerald-500/20">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button type="button" onClick={props.onClose} aria-label="إغلاق"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/5 text-white/80 transition hover:bg-white/10">
+              <XIcon className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3" aria-live="polite">
+
+        {/* Context chip */}
+        {props.context?.title ? (
+          <div className="relative border-b border-emerald-400/10 bg-emerald-500/5 px-4 py-2">
+            <div className="flex items-center gap-2 text-[11px]">
+              <span aria-hidden="true">{props.context.icon ?? "📍"}</span>
+              <span className="font-semibold text-emerald-100">{props.context.title}</span>
+              {props.context.subtitle ? <span className="text-emerald-200/60">— {props.context.subtitle}</span> : null}
+            </div>
+          </div>
+        ) : null}
+
+        {/* History panel */}
+        {showHistory ? (
+          <div className="relative border-b border-emerald-400/10 bg-emerald-950/40 px-3 py-2 max-h-56 overflow-y-auto">
+            {history.length === 0 ? (
+              <p className="px-2 py-4 text-center text-[11px] text-emerald-200/60">لا توجد محادثات سابقة هنا</p>
+            ) : (
+              history.map((c) => (
+                <button key={c.id} type="button" onClick={() => loadHistoryConv(c)}
+                  className="block w-full truncate rounded-lg px-2 py-1.5 text-start text-[12px] text-emerald-100 transition hover:bg-emerald-500/15">
+                  <span className="opacity-60">{new Date(c.updatedAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="ms-2">{c.title}</span>
+                </button>
+              ))
+            )}
+          </div>
+        ) : null}
+
+        {/* Conversation */}
+        <div className="relative flex-1 overflow-y-auto px-3 py-3 space-y-3" aria-live="polite">
           {messages.length === 0 && !streamingText ? (
-            <div className="rounded-2xl border border-accent-35 bg-accent-8 p-4 text-center">
-              <p className="text-sm text-[var(--muted)]">اسأل «أثر» عن هذه الصفحة — جاوبك هنا دون أن تغادرها.</p>
+            <div className="grid h-full place-items-center text-center">
+              <div>
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-emerald-400/20 to-teal-500/20 border border-emerald-400/30 mb-3 shadow-[0_0_30px_-6px_rgba(16,185,129,0.5)]">
+                  <Sparkles className="h-7 w-7 text-emerald-200" aria-hidden="true" />
+                </div>
+                <p className="text-sm font-semibold text-emerald-100">اسأل «أثر» عن هذه الصفحة</p>
+                <p className="mt-1 text-[11.5px] text-emerald-200/70 max-w-xs">جاوبك هنا دون أن تغادرها. استفسر عن آية، فائدة حديث، أو دعاء.</p>
+              </div>
             </div>
           ) : null}
           {messages.map((m, i) => (
@@ -119,9 +247,17 @@ export function CompanionModal(props: {
             streamingText
               ? <ModalBubble role="assistant" text={streamingText} streaming />
               : (
-                <div className="flex items-center gap-2 rounded-2xl border border-accent-35 bg-accent-8 px-4 py-2.5 text-xs text-[var(--fg)]">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--accent)]" aria-hidden="true" />
-                  أثر يفكّر…
+                <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-3.5 py-2.5 text-[11px] text-emerald-100">
+                  <span className="relative grid h-6 w-6 place-items-center rounded-full">
+                    <span
+                      className="absolute inset-0 rounded-full opacity-60"
+                      style={{ background: "conic-gradient(from 0deg, #6ee7b7, transparent, #6ee7b7)", animation: "athar-modal-spin 2.6s linear infinite", filter: "blur(1.5px)" }}
+                    />
+                    <span className="absolute inset-0.5 rounded-full bg-emerald-900/40" />
+                    <Sparkles className="relative h-3 w-3 text-emerald-200" aria-hidden="true" />
+                  </span>
+                  <span>يفكّر معك…</span>
+                  <style>{`@keyframes athar-modal-spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }`}</style>
                 </div>
               )
           ) : null}
@@ -133,29 +269,32 @@ export function CompanionModal(props: {
           ) : null}
           <div ref={endRef} />
         </div>
-        <div className="border-t border-[var(--stroke)] p-2">
+
+        {/* Composer */}
+        <div className="relative border-t border-emerald-400/15 p-2 bg-emerald-950/40 backdrop-blur-sm">
           <div className="flex items-end gap-1.5">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(input); } }}
               rows={1}
-              placeholder="اسأل أثر…"
-              className="form-field-readable max-h-28 flex-1 resize-none rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-sm focus:outline-none focus:border-accent-35"
+              placeholder={props.context?.title ? `اسأل أثر عن «${props.context.title}»…` : "اسأل أثر…"}
+              className="form-field-readable max-h-28 flex-1 resize-none rounded-xl border border-emerald-400/20 bg-white/5 px-3 py-2 text-sm text-emerald-50 placeholder:text-emerald-200/40 focus:outline-none focus:border-emerald-400/60"
             />
-            {streamingText !== null ? (
-              <button type="button" onClick={stop} aria-label="إيقاف" className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--stroke)] bg-[var(--card)]">
+            {isBusy ? (
+              <button type="button" onClick={stop} aria-label="إيقاف"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/5 text-white/80">
                 <XIcon className="h-4 w-4" aria-hidden="true" />
               </button>
             ) : (
               <button type="button" onClick={() => void send(input)} disabled={!input.trim()} aria-label="إرسال"
-                className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--accent)] text-black/80 disabled:opacity-40 active:scale-95 transition">
+                className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-emerald-950 shadow-md shadow-emerald-500/30 disabled:opacity-40 active:scale-95 transition">
                 <Send className="h-4 w-4 -scale-x-100" aria-hidden="true" />
               </button>
             )}
           </div>
-          <p className="mt-1 text-center text-[10px] text-[var(--muted-2)]">
-            فتح المحادثة الكاملة: <Link to="/companion" className="text-[var(--accent)] underline-offset-2 hover:underline">/companion</Link>
+          <p className="mt-1.5 text-center text-[10px] text-emerald-200/50">
+            للدردشة الكاملة: <Link to="/companion" onClick={props.onClose} className="font-semibold text-emerald-200 underline-offset-2 hover:underline">/companion</Link>
           </p>
         </div>
       </div>
@@ -163,36 +302,8 @@ export function CompanionModal(props: {
   );
 }
 
-const modalComponents: Components = {
-  a: ({ href, children }) => {
-    const to = href ?? "";
-    if (to.startsWith("/")) {
-      return (
-        <Link to={to} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
-          {children}
-        </Link>
-      );
-    }
-    return <a href={to} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline">{children}</a>;
-  },
-  p: ({ children }) => <p className="mb-2 last:mb-0 leading-7">{children}</p>,
-  strong: ({ children }) => <strong className="font-bold">{children}</strong>,
-  em: ({ children }) => <em className="italic text-[var(--accent)]">{children}</em>,
-  ul: ({ children }) => <ul className="mb-2 me-4 list-disc marker:text-[var(--accent)]">{children}</ul>,
-  blockquote: ({ children }) => <blockquote className="my-2 border-s-4 border-accent-35 bg-accent-8 ps-3 py-1 text-[var(--muted)]">{children}</blockquote>,
-};
-
-const MODAL_CALLOUT: Record<string, { border: string; bg: string; label: string; icon: string; accent: string }> = {
-  verse: { border: "border-sky-400/50", bg: "bg-sky-500/10", label: "آية", icon: "📖", accent: "text-sky-200" },
-  hadith: { border: "border-emerald-400/50", bg: "bg-emerald-500/10", label: "حديث", icon: "📜", accent: "text-emerald-200" },
-  dua: { border: "border-rose-400/50", bg: "bg-rose-500/10", label: "دعاء", icon: "🤲", accent: "text-rose-200" },
-  tip: { border: "border-amber-400/50", bg: "bg-amber-500/10", label: "نصيحة", icon: "💡", accent: "text-amber-200" },
-  warn: { border: "border-red-400/50", bg: "bg-red-500/10", label: "تنبيه", icon: "⚠️", accent: "text-red-200" },
-  info: { border: "border-violet-400/50", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
-};
-
-function ModalCalloutBlock({ kind, children }: { kind: keyof typeof MODAL_CALLOUT; children: React.ReactNode }) {
-  const s = MODAL_CALLOUT[kind];
+function ModalCalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; children: React.ReactNode }) {
+  const s = CALLOUT_STYLES[kind];
   return (
     <div className={["my-1.5 overflow-hidden rounded-xl border", s.border, s.bg].join(" ")}>
       <div className={["flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider", s.accent].join(" ")}>
@@ -207,12 +318,12 @@ function ModalActionButton({ route, children }: { route: string; children: React
   const label = ROUTE_LABELS[route] ?? route;
   return (
     <button type="button" onClick={() => navigateRoute(route)}
-      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-xl border border-accent-35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 px-3 py-2 text-start text-[12.5px] font-semibold text-emerald-100 transition active:scale-[0.99]">
+      className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 px-3 py-2 text-start text-[12.5px] font-semibold text-emerald-50 transition hover:from-emerald-500/30 hover:to-teal-500/20 active:scale-[0.99]">
       <span className="flex items-center gap-2">
         <Sparkles className="h-3 w-3 text-emerald-200" aria-hidden="true" />
         <span>{children}</span>
       </span>
-      <span className="text-[10px] uppercase tracking-wider text-emerald-300/80">{label} ←</span>
+      <span className="text-[10px] uppercase tracking-wider text-emerald-200/70">{label} ←</span>
     </button>
   );
 }
@@ -225,10 +336,12 @@ function ModalBubbleContent({ text, streaming }: { text: string; streaming?: boo
         if (s.kind === "callout") return <ModalCalloutBlock key={i} kind={s.calloutKind}>{s.text}</ModalCalloutBlock>;
         if (s.kind === "action") return <ModalActionButton key={i} route={s.route}>{s.label}</ModalActionButton>;
         return (
-          <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} components={modalComponents}>{s.text}</ReactMarkdown>
+          <div key={i} className="prose-invert-arabic text-[14px] leading-7 text-emerald-50/95">
+            <span style={{ whiteSpace: "pre-wrap" }}>{s.text}</span>
+          </div>
         );
       })}
-      {streaming ? <span className="inline-block animate-pulse"> ▍</span> : null}
+      {streaming ? <span className="ms-0.5 inline-block h-3.5 w-[2px] align-middle rounded-full bg-emerald-300 animate-pulse" /> : null}
     </>
   );
 }
@@ -236,12 +349,16 @@ function ModalBubbleContent({ text, streaming }: { text: string; streaming?: boo
 function ModalBubble(props: { role: "user" | "assistant"; text: string; streaming?: boolean }) {
   const isUser = props.role === "user";
   return (
-    <div className={isUser ? "flex justify-start" : "flex justify-end"}>
+    <div className={isUser ? "flex justify-end" : "flex justify-start"}>
       <div className={[
         "max-w-[92%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
-        isUser ? "bg-accent-15 border border-accent-35 text-[var(--fg)]" : "bg-[var(--card)] border border-[var(--stroke)]",
+        isUser
+          ? "bg-emerald-500/15 border border-emerald-400/30 text-emerald-50"
+          : "bg-white/[0.04] border border-white/10 text-emerald-50/95 backdrop-blur-sm",
       ].join(" ")}>
-        {isUser ? props.text : <ModalBubbleContent text={props.text} streaming={props.streaming} />}
+        {isUser
+          ? <span style={{ whiteSpace: "pre-wrap" }}>{props.text}</span>
+          : <ModalBubbleContent text={props.text} streaming={props.streaming} />}
       </div>
     </div>
   );

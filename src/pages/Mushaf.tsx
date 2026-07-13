@@ -2840,6 +2840,16 @@ export function MushafPage() {
 
       <FloatingAthar
         modalMode
+        context={{
+          icon: "📖",
+          title: selectedItem
+            ? `${selectedItem.surahName} • ${toArabicNumeral(selectedItem.surahId)}:${toArabicNumeral(selectedItem.displayAyah)}`
+            : `صفحة ${toArabicNumeral(currentPage)} من المصحف`,
+          subtitle: selectedItem ? `${toArabicNumeral(selectedItem.surahId)}:${toArabicNumeral(selectedItem.displayAyah)}` : "",
+          hint: selectedItem
+            ? `الزائر يقرأ حاليًا الآية «﴿${selectedItem.text.slice(0, 120)}﴾» ويريد شرحها مع فوائد عملية.`
+            : `الزائر يتصفح صفحة ${toArabicNumeral(currentPage)} من المصحف.`,
+        }}
         prefill={
           selectedItem
             ? `تدبَّر معي هذه الآية: اشرحها شرحًا ميسَّرًا مع فوائد عملية لحياتي اليومية:\n﴿${selectedItem.text.slice(0, 400)}﴾`
