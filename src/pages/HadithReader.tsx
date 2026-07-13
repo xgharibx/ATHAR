@@ -172,6 +172,11 @@ export function HadithReaderPage() {
       hadithMemoCards: s.hadithMemoCards,
     }),
   );
+  // The matn honours the app-wide reading size + line-height (Settings →
+  // حجم الخط), same preference the adhkar and Quran text follow — matters
+  // most for older readers who scale everything up.
+  const fontScale = useNoorStore((s) => s.prefs.fontScale);
+  const lineHeight = useNoorStore((s) => s.prefs.lineHeight);
 
   const noteKey = `${bookKey}:${n}`;
   const existingNote = hadithNotes[noteKey] ?? "";
@@ -279,9 +284,6 @@ export function HadithReaderPage() {
     });
   };
 
-  const fontSizeClass = useMemo(() => {
-    return "text-xl";
-  }, []);
 
   return (
     <div dir="rtl" className="relative min-h-screen-safe overflow-hidden page-enter pb-floating-nav">
@@ -483,7 +485,8 @@ export function HadithReaderPage() {
                   <p className="text-[11px] font-semibold opacity-55 font-arabic">المتن</p>
                   <span className="h-2 w-16 rounded-full" style={{ background: accentColor }} />
                 </div>
-                <p dir="rtl" className={`${fontSizeClass} arabic-text font-bold text-[var(--fg)] leading-[2.25]`}>
+                <p dir="rtl" className="arabic-text font-bold text-[var(--fg)]"
+                  style={{ fontSize: `${(fontScale * 1.32).toFixed(3)}rem`, lineHeight: Math.max(lineHeight, 2) }}>
                   {hadithSplit.matn}
                 </p>
                 {meta?.title && (
