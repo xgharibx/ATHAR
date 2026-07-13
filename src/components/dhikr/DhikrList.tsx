@@ -763,7 +763,7 @@ export function DhikrList(props: Readonly<{
                 <div className="text-sm font-semibold" style={{ color: "var(--ok)" }}>اكتمل القسم</div>
                 <div className="text-xs opacity-65 mt-0.5">
                   {isDailySectionLocked
-                    ? "أحسنت — يتجدد تلقائيًا عند منتصف الليل"
+                    ? "أحسنت — يتجدد تلقائيًا مع أذان الفجر"
                     : "قرأت جميع الأذكار في هذا القسم"}
                 </div>
               </div>
