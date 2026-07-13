@@ -15,6 +15,9 @@ export interface CompanionConversation {
   messages: CompanionMessage[];
   createdAt: number;
   updatedAt: number;
+  pinned?: boolean;
+  pinnedAt?: number;
+  topic?: string;
 }
 
 class CompanionDexie extends Dexie {
@@ -23,6 +26,7 @@ class CompanionDexie extends Dexie {
   constructor() {
     super("athar-companion-v1");
     this.version(1).stores({ conversations: "id, updatedAt" });
+    this.version(2).stores({ conversations: "id, updatedAt, pinned, pinnedAt" });
   }
 }
 
@@ -59,6 +63,15 @@ export async function saveConversation(conv: CompanionConversation): Promise<voi
 export async function renameConversation(id: string, title: string): Promise<void> {
   try {
     await getDB().conversations.update(id, { title, updatedAt: Date.now() });
+  } catch { /* ignore */ }
+}
+
+export async function pinConversation(id: string, pinned: boolean): Promise<void> {
+  try {
+    await getDB().conversations.update(id, {
+      pinned,
+      pinnedAt: pinned ? Date.now() : undefined,
+    });
   } catch { /* ignore */ }
 }
 

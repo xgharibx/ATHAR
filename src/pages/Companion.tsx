@@ -20,7 +20,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Sparkles, Send, History, Plus, Pencil, Check, Copy, X as XIcon,
   Mic, MicOff, Volume2, VolumeX, Search, Pin, Share2, Image as ImageIcon,
-  AlertCircle, Loader2, MessageSquareQuote, Download,
+  AlertCircle, Loader2, MessageSquareQuote, Download, Star,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
@@ -45,6 +45,7 @@ import {
   groupConversationsByRecency,
   previewSnippet,
   type HistoryGroup,
+  type HistoryLayout,
 } from "@/lib/companionHistoryGroup";
 import {
   addPin,
@@ -52,6 +53,7 @@ import {
   getConversation,
   listConversations,
   newConversationId,
+  pinConversation,
   renameConversation,
   saveConversation,
   savePartialStream,
@@ -132,6 +134,16 @@ export function CompanionPage() {
   const abortRef = React.useRef<AbortController | null>(null);
   const endRef = React.useRef<HTMLDivElement>(null);
   const ctx = React.useMemo(buildCompanionContext, []);
+
+  // Bridge action buttons (rendered from markdown) → react-router navigation
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ route: string }>).detail;
+      if (detail?.route) navigate(detail.route);
+    };
+    window.addEventListener("athar-companion-navigate", handler);
+    return () => window.removeEventListener("athar-companion-navigate", handler);
+  }, [navigate]);
 
   const greeting = React.useMemo(() => {
     const hour = new Date().getHours();
@@ -429,6 +441,17 @@ export function CompanionPage() {
     return f.search(historyQuery).map((r) => r.item);
   }, [history, historyQuery]);
 
+  const togglePinConversation = React.useCallback(async (conv: CompanionConversation) => {
+    const next = !conv.pinned;
+    setHistory((cur) => cur.map((c) => c.id === conv.id ? { ...c, pinned: next, pinnedAt: next ? Date.now() : undefined } : c));
+    if (currentIdRef.current === conv.id) {
+      setMessages((m) => m);
+    }
+    await pinConversation(conv.id, next);
+  }, []);
+
+  const historyLayout = React.useMemo(() => groupConversationsByRecency(filteredHistory), [filteredHistory]);
+
   const isBusy = streamingText !== null;
 
   return (
@@ -519,7 +542,7 @@ export function CompanionPage() {
                 </div>
               ) : (
                 <HistoryGroups
-                  conversations={filteredHistory}
+                  layout={historyLayout}
                   currentId={currentIdRef.current}
                   renamingId={renamingId}
                   renameDraft={renameDraft}
@@ -531,6 +554,7 @@ export function CompanionPage() {
                   onCommitRename={commitRename}
                   onConfirmDelete={confirmDelete}
                   onExport={(c) => downloadConversation(c)}
+                  onTogglePin={togglePinConversation}
                 />
               )}
             </div>
@@ -553,23 +577,23 @@ export function CompanionPage() {
 
       {/* Welcome hero (only when no conversation yet and not onboarding) */}
       {messages.length === 0 && streamingText === null && !showOnboarding ? (
-        <div className="mt-6 space-y-5">
-          <div className="relative overflow-hidden rounded-3xl border border-accent-35 bg-accent-8 p-6 text-center">
+        <div className="mt-3 space-y-3.5">
+          <div className="relative overflow-hidden rounded-2xl border border-accent-35 bg-accent-8 p-4 text-center">
             <div className="pointer-events-none absolute inset-0 -z-10 opacity-60"
               style={{ background: "radial-gradient(ellipse at top, color-mix(in srgb, var(--accent) 18%, transparent), transparent 65%)" }} />
-            <div className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-accent-15 border border-accent-35 animate-pulse">
-              <Sparkles className="h-8 w-8 text-[var(--accent)]" aria-hidden="true" />
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-accent-15 border border-accent-35 animate-pulse">
+              <Sparkles className="h-6 w-6 text-[var(--accent)]" aria-hidden="true" />
             </div>
-            <h2 className="mt-3 text-lg font-bold text-[var(--fg)]">
+            <h2 className="mt-2 text-base font-bold text-[var(--fg)]">
               {greeting}{profile.greetingName ? ` ${profile.greetingName}` : ""}
             </h2>
-            <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-[var(--muted)]">
+            <p className="mx-auto mt-1 max-w-md text-[13px] leading-relaxed text-[var(--muted)]">
               أنا <span className="font-semibold text-[var(--accent)]">أثر</span>، رفيقك في الطريق إلى الله.
               {ctx.streakDays > 1 ? ` سلسلتك ${ctx.streakDays.toLocaleString("ar-EG")} يوم 🔥 — ` : " "}
               بمَ أُعينك اليوم؟
             </p>
             {profile.onboarded ? (
-              <p className="mt-1 text-[11px] text-[var(--muted-2)]">
+              <p className="mt-0.5 text-[10.5px] text-[var(--muted-2)]">
                 أنت {LEVEL_LABEL[profile.level]}
               </p>
             ) : null}
@@ -577,16 +601,16 @@ export function CompanionPage() {
 
           {/* Awareness strip: Friday countdown + prayer countdown + Hijri date */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-1 text-[11px] text-[var(--muted)]">
+            <span className="rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-0.5 text-[10.5px] text-[var(--muted)]">
               🕌 {fridayCountdown}
             </span>
             {prayerCountdown ? (
-              <span className="rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-1 text-[11px] text-[var(--muted)]">
+              <span className="rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-0.5 text-[10.5px] text-[var(--muted)]">
                 ⏰ {prayerCountdown}
               </span>
             ) : null}
             {ctx.hijriDate ? (
-              <span className="rounded-full border border-accent-35 bg-accent-15 px-2.5 py-1 text-[11px] text-[var(--accent)]">
+              <span className="rounded-full border border-accent-35 bg-accent-15 px-2.5 py-0.5 text-[10.5px] text-[var(--accent)]">
                 {ctx.hijriDate}
               </span>
             ) : null}
@@ -594,13 +618,13 @@ export function CompanionPage() {
 
           {primary ? (
             <button type="button" onClick={primary.onClick}
-              className="flex w-full items-center gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3.5 text-start transition hover:border-accent-35 active:scale-[0.99]">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-15 text-lg" aria-hidden="true">{primary.icon}</span>
+              className="flex w-full items-center gap-2.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 text-start transition hover:border-accent-35 active:scale-[0.99]">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-15 text-base" aria-hidden="true">{primary.icon}</span>
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] text-[var(--muted-2)]">خطوتك التالية الآن</div>
-                <div className="truncate text-sm font-semibold text-[var(--fg)]">{primary.label}</div>
+                <div className="text-[10px] text-[var(--muted-2)]">خطوتك التالية الآن</div>
+                <div className="truncate text-[12.5px] font-semibold text-[var(--fg)]">{primary.label}</div>
               </div>
-              <span className="shrink-0 rounded-lg bg-accent-15 border border-accent-35 px-3 py-1 text-xs font-semibold text-[var(--accent)]">
+              <span className="shrink-0 rounded-md bg-accent-15 border border-accent-35 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--accent)]">
                 {primary.action}
               </span>
             </button>
@@ -608,14 +632,14 @@ export function CompanionPage() {
 
           {/* 7-day adherence mini-bar — gives Athar's "I see you" feel */}
           {ctx.adherenceWeek.some((d) => d.score > 0) ? (
-            <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5">
-              <div className="mb-1.5 flex items-center justify-between text-[10.5px] text-[var(--muted-2)]">
+            <div className="rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-2">
+              <div className="mb-1 flex items-center justify-between text-[10px] text-[var(--muted-2)]">
                 <span>أسبوعك (الأقدم → الأحدث)</span>
                 <span>{ctx.streakDays} يوم متواصل</span>
               </div>
               <div className="flex items-end gap-1">
                 {ctx.adherenceWeek.map((d) => {
-                  const h = Math.min(28, Math.max(4, d.score * 4));
+                  const h = Math.min(24, Math.max(4, d.score * 4));
                   const isToday = d.dateISO === ctx.adherenceWeek[ctx.adherenceWeek.length - 1].dateISO;
                   return (
                     <div key={d.dateISO} className="flex flex-1 flex-col items-center gap-1">
@@ -627,7 +651,7 @@ export function CompanionPage() {
                         style={{ height: `${h}px` }}
                         title={`${d.weekdayAr}: ${d.score} نشاط`}
                       />
-                      <span className={["text-[9px]", isToday ? "text-[var(--accent)] font-bold" : "text-[var(--muted-2)]"].join(" ")}>
+                      <span className={["text-[8.5px]", isToday ? "text-[var(--accent)] font-bold" : "text-[var(--muted-2)]"].join(" ")}>
                         {d.weekdayAr.slice(0, 3)}
                       </span>
                     </div>
@@ -638,28 +662,28 @@ export function CompanionPage() {
           ) : null}
 
           <div>
-            <div className="mb-2 px-1 text-xs text-[var(--muted)]">جرّب أن تسألني</div>
-            <div className="flex flex-wrap gap-2">
+            <div className="mb-1.5 px-1 text-[10.5px] text-[var(--muted)]">جرّب أن تسألني</div>
+            <div className="flex flex-wrap gap-1.5">
               {new Date().getDay() === 5 ? (
                 <button type="button"
                   onClick={() => void send(buildWeeklyReflectionPrompt())}
-                  className="rounded-full border border-accent-35 bg-accent-15 px-3 py-1.5 text-xs font-semibold text-[var(--accent)] transition hover:bg-accent-15/80">
-                  ✨ اكتب لي {FRIDAY}
+                  className="rounded-full border border-accent-35 bg-accent-15 px-2.5 py-1 text-[11.5px] font-semibold text-[var(--accent)] transition hover:bg-accent-15/80">
+                  ✨ {FRIDAY}
                 </button>
               ) : null}
               {QUICK_PROMPTS.map((q) => (
                 <button type="button" key={q}
                   onClick={() => void send(q)}
-                  className="rounded-full border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-1.5 text-xs transition hover:border-accent-35">
+                  className="rounded-full border border-[var(--stroke)] bg-[var(--card-2)] px-2.5 py-1 text-[11.5px] transition hover:border-accent-35">
                   {q}
                 </button>
               ))}
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-1.5 text-[11px]">
+            <div className="mt-2 grid grid-cols-2 gap-1 text-[10.5px]">
               {MOOD_PROMPTS.map(([label, mood]) => (
                 <button type="button" key={mood}
                   onClick={() => void send(label)}
-                  className="rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-2 py-1.5 text-start text-[var(--muted-2)] hover:bg-[var(--card-2)] transition">
+                  className="rounded-lg border border-[var(--stroke)] bg-[var(--card)] px-2 py-1.5 text-start text-[var(--muted-2)] hover:bg-[var(--card-2)] transition">
                   {mood === "مضطرب" ? "😟" : mood === "مُفتَر" ? "🍂" : mood === "شاكر" ? "🤲" : mood === "تائب" ? "💧" : "🌙"} {label}
                 </button>
               ))}
@@ -925,11 +949,94 @@ function MessageBubble(props: {
   );
 }
 
-/* ─── Markdown renderer (chips for routes, real links otherwise) ───────── */
+/* ─── Markdown renderer with action buttons + callout blocks ────────────── */
+
+function navigateRoute(route: string) {
+  try {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("athar-companion-navigate", { detail: { route } }));
+    }
+  } catch { /* ignore */ }
+}
+
+const CALLOUT_STYLES: Record<string, { border: string; bg: string; label: string; icon: string; accent: string }> = {
+  verse: { border: "border-sky-500/40", bg: "bg-sky-500/10", label: "آية", icon: "📖", accent: "text-sky-200" },
+  hadith: { border: "border-emerald-500/40", bg: "bg-emerald-500/10", label: "حديث", icon: "📜", accent: "text-emerald-200" },
+  dua: { border: "border-rose-500/40", bg: "bg-rose-500/10", label: "دعاء", icon: "🤲", accent: "text-rose-200" },
+  tip: { border: "border-amber-500/40", bg: "bg-amber-500/10", label: "نصيحة", icon: "💡", accent: "text-amber-200" },
+  warn: { border: "border-red-500/40", bg: "bg-red-500/10", label: "تنبيه", icon: "⚠️", accent: "text-red-200" },
+  info: { border: "border-violet-500/40", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
+};
+
+function ActionButton({ href, children }: { href: string; children: React.ReactNode }) {
+  const route = href.replace(/^action:/, "");
+  const label = ROUTE_LABELS[route] ?? route;
+  return (
+    <button
+      type="button"
+      onClick={() => navigateRoute(route)}
+      className="group my-1.5 inline-flex w-full items-center justify-between gap-2 rounded-2xl border border-accent-35 bg-gradient-to-br from-emerald-500/15 to-teal-500/10 px-3.5 py-2.5 text-start text-sm font-semibold text-emerald-100 shadow-sm transition hover:border-emerald-400/60 hover:from-emerald-500/25 hover:to-teal-500/15 active:scale-[0.99]"
+    >
+      <span className="flex items-center gap-2">
+        <span className="grid h-7 w-7 place-items-center rounded-xl bg-emerald-500/30 text-emerald-100">
+          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+        <span>{children}</span>
+      </span>
+      <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-emerald-300/80">
+        <span>{label}</span>
+        <span className="transition group-hover:-translate-x-0.5">←</span>
+      </span>
+    </button>
+  );
+}
+
+function CalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; children: React.ReactNode }) {
+  const style = CALLOUT_STYLES[kind];
+  return (
+    <div className={["my-2.5 rounded-2xl border px-3.5 py-3", style.border, style.bg].join(" ")}>
+      <div className={["mb-1.5 flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider", style.accent].join(" ")}>
+        <span aria-hidden="true">{style.icon}</span>
+        <span>{style.label}</span>
+      </div>
+      <div className="arabic-text text-[15px] leading-8 text-[var(--fg)]">{children}</div>
+    </div>
+  );
+}
+
+function detectCallout(children: React.ReactNode): { kind: keyof typeof CALLOUT_STYLES | null; rest: React.ReactNode } {
+  // Walk children: first text node may carry the [callout:type] marker.
+  let kind: keyof typeof CALLOUT_STYLES | null = null;
+  const arr = React.Children.toArray(children);
+  if (arr.length > 0) {
+    const first = arr[0];
+    if (React.isValidElement(first)) {
+      const propsChildren = first.props && (first.props as { children?: React.ReactNode }).children;
+      const innerArr = React.Children.toArray(propsChildren);
+      if (innerArr.length > 0 && typeof innerArr[0] === "string") {
+        const m = /^\s*\[callout:(verse|hadith|dua|tip|warn|info)\]\s*/i.exec(innerArr[0] as string);
+        if (m) {
+          kind = (m[1].toLowerCase()) as keyof typeof CALLOUT_STYLES;
+          const newFirstChild = (innerArr[0] as string).replace(m[0], "");
+          const newInner = [newFirstChild, ...innerArr.slice(1)];
+          const newFirst = React.cloneElement(first as React.ReactElement<{ children?: React.ReactNode }>, {
+            ...(first.props as object),
+            children: newInner,
+          });
+          arr[0] = newFirst;
+        }
+      }
+    }
+  }
+  return { kind, rest: arr };
+}
 
 const markdownComponents: Components = {
   a: ({ href, children }) => {
     const to = href ?? "";
+    if (to.startsWith("action:")) {
+      return <ActionButton href={to}>{children}</ActionButton>;
+    }
     if (to.startsWith("/")) {
       return (
         <Link to={to} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
@@ -943,16 +1050,22 @@ const markdownComponents: Components = {
       </a>
     );
   },
-  h1: ({ children }) => <h3 className="mb-1.5 mt-2 text-base font-bold text-[var(--fg)] first:mt-0">{children}</h3>,
-  h2: ({ children }) => <h4 className="mb-1.5 mt-2 text-[15px] font-bold text-[var(--fg)] first:mt-0">{children}</h4>,
-  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+  h1: ({ children }) => <h3 className="mb-2 mt-3 text-base font-bold text-[var(--fg)] first:mt-0">{children}</h3>,
+  h2: ({ children }) => <h4 className="mb-2 mt-3 text-[15px] font-bold text-[var(--fg)] first:mt-0">{children}</h4>,
+  h3: ({ children }) => <h5 className="mb-1.5 mt-2 text-[14px] font-bold text-[var(--accent)] first:mt-0">{children}</h5>,
+  p: ({ children }) => {
+    const { kind, rest } = detectCallout(children);
+    if (kind) return <CalloutBlock kind={kind}>{rest}</CalloutBlock>;
+    return <p className="mb-2 last:mb-0">{children}</p>;
+  },
   strong: ({ children }) => <strong className="font-bold text-[var(--fg)]">{children}</strong>,
-  ul: ({ children }) => <ul className="mb-2 me-4 list-disc space-y-1 last:mb-0">{children}</ul>,
-  ol: ({ children }) => <ol className="mb-2 me-4 list-decimal space-y-1 last:mb-0">{children}</ol>,
+  em: ({ children }) => <em className="italic text-[var(--accent)]">{children}</em>,
+  ul: ({ children }) => <ul className="mb-2.5 me-5 list-disc space-y-1.5 last:mb-0 marker:text-[var(--accent)]">{children}</ul>,
+  ol: ({ children }) => <ol className="mb-2.5 me-5 list-decimal space-y-1.5 last:mb-0 marker:text-[var(--accent)] marker:font-bold">{children}</ol>,
+  li: ({ children }) => <li className="leading-7">{children}</li>,
   blockquote: ({ children }) => (
-    <blockquote className="my-2 border-e-2 border-accent-35 pe-3 text-[var(--muted)]">{children}</blockquote>
+    <blockquote className="my-2.5 rounded-xl border-s-4 border-accent-35 bg-accent-8 ps-3 pe-2 py-2 text-[var(--muted)]">{children}</blockquote>
   ),
-  em: ({ children }) => <em className="italic text-[var(--fg)]">{children}</em>,
   code: ({ children }) => <code className="rounded bg-[var(--card-2)] px-1 py-0.5 font-mono text-[12px]" dir="ltr">{children}</code>,
   pre: ({ children }) => <pre className="my-2 overflow-x-auto rounded-lg bg-[var(--card-2)] p-3 text-xs leading-6" dir="ltr">{children}</pre>,
   hr: () => <hr className="my-3 border-[var(--stroke)]" />,
@@ -976,7 +1089,7 @@ function downloadConversation(conv: CompanionConversation): void {
 }
 
 function HistoryGroups(props: {
-  conversations: CompanionConversation[];
+  layout: HistoryLayout;
   currentId: string | null;
   renamingId: string | null;
   renameDraft: string;
@@ -988,15 +1101,49 @@ function HistoryGroups(props: {
   onCommitRename: (id: string) => void;
   onConfirmDelete: (id: string) => void;
   onExport: (c: CompanionConversation) => void;
+  onTogglePin: (c: CompanionConversation) => void;
 }) {
-  const groups = React.useMemo(() => groupConversationsByRecency(props.conversations), [props.conversations]);
-  if (groups.length === 0) return null;
+  const { pinned, groups } = props.layout;
+  if (pinned.length === 0 && groups.length === 0) return null;
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-5 pt-2">
+      {pinned.length > 0 ? (
+        <section>
+          <header className="sticky top-0 z-[1] -mx-2 mb-2 bg-gradient-to-b from-[var(--bg)] via-[var(--bg)]/95 to-transparent px-3 py-1.5 backdrop-blur-md">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-300/90">
+              <Star className="h-3 w-3 fill-amber-300 text-amber-300" aria-hidden="true" />
+              <span>المثبَّتة</span>
+              <span className="text-amber-300/50">·</span>
+              <span>{pinned.length.toLocaleString("ar-EG")}</span>
+            </div>
+          </header>
+          <div className="space-y-1.5">
+            {pinned.map((conv) => (
+              <HistoryItem
+                key={conv.id}
+                conv={conv}
+                isCurrent={conv.id === props.currentId}
+                isRenaming={props.renamingId === conv.id}
+                renameDraft={props.renameDraft}
+                onRenameDraftChange={props.onRenameDraftChange}
+                confirmDelete={props.confirmDeleteId === conv.id}
+                query={props.query}
+                variant="pinned"
+                onOpen={() => props.onOpen(conv.id)}
+                onStartRename={() => props.onStartRename(conv)}
+                onCommitRename={() => props.onCommitRename(conv.id)}
+                onConfirmDelete={() => props.onConfirmDelete(conv.id)}
+                onExport={() => props.onExport(conv)}
+                onTogglePin={() => props.onTogglePin(conv)}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
       {groups.map((g) => (
         <section key={g.key}>
-          <header className="sticky top-0 z-[1] -mx-2 mb-1.5 bg-[var(--bg)]/95 px-3 py-1 backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-2)]">
+          <header className="sticky top-0 z-[1] -mx-2 mb-1.5 bg-gradient-to-b from-[var(--bg)] via-[var(--bg)]/95 to-transparent px-3 py-1.5 backdrop-blur-md">
+            <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-[var(--muted-2)]">
               <span>{g.label}</span>
               <span className="text-[var(--muted-2)]/60">·</span>
               <span>{g.items.length.toLocaleString("ar-EG")}</span>
@@ -1013,11 +1160,13 @@ function HistoryGroups(props: {
                 onRenameDraftChange={props.onRenameDraftChange}
                 confirmDelete={props.confirmDeleteId === conv.id}
                 query={props.query}
+                variant="default"
                 onOpen={() => props.onOpen(conv.id)}
                 onStartRename={() => props.onStartRename(conv)}
                 onCommitRename={() => props.onCommitRename(conv.id)}
                 onConfirmDelete={() => props.onConfirmDelete(conv.id)}
                 onExport={() => props.onExport(conv)}
+                onTogglePin={() => props.onTogglePin(conv)}
               />
             ))}
           </div>
@@ -1035,20 +1184,51 @@ function HistoryItem(props: {
   onRenameDraftChange: (v: string) => void;
   confirmDelete: boolean;
   query: string;
+  variant: "default" | "pinned";
   onOpen: () => void;
   onStartRename: () => void;
   onCommitRename: () => void;
   onConfirmDelete: () => void;
   onExport: () => void;
+  onTogglePin: () => void;
 }) {
   const preview = React.useMemo(() => previewSnippet(props.conv), [props.conv]);
+  const variant = props.variant;
+
+  const containerCls = [
+    "group relative overflow-hidden rounded-2xl border transition-all duration-200",
+    variant === "pinned"
+      ? "border-amber-300/30 bg-gradient-to-br from-amber-500/10 via-[var(--card)] to-[var(--card)] shadow-lg shadow-amber-500/5 hover:border-amber-300/60"
+      : props.isCurrent
+        ? "border-accent-35 bg-gradient-to-br from-accent-15 via-[var(--card)] to-[var(--card)] shadow-md"
+        : "border-[var(--stroke)] bg-[var(--card)]/85 backdrop-blur-md hover:border-accent-35/60 hover:bg-[var(--card)]",
+  ].join(" ");
+
+  const iconCls = [
+    "mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-xl border",
+    variant === "pinned"
+      ? "bg-amber-500/15 border-amber-300/40"
+      : "bg-accent-15 border-accent-35",
+  ].join(" ");
+
+  const iconEl = variant === "pinned"
+    ? <Star className="h-4 w-4 fill-amber-300 text-amber-300" aria-hidden="true" />
+    : <MessageSquareQuote className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />;
+
   return (
-    <div
-      className={[
-        "rounded-2xl border transition",
-        props.isCurrent ? "border-accent-35 bg-accent-15" : "border-[var(--stroke)] bg-[var(--card)] hover:border-accent-35/60",
-      ].join(" ")}
-    >
+    <div className={containerCls}>
+      {/* Subtle decorative gradient strip on the right edge for premium feel */}
+      <div
+        aria-hidden="true"
+        className={[
+          "pointer-events-none absolute inset-y-0 end-0 w-1",
+          variant === "pinned"
+            ? "bg-gradient-to-b from-amber-300/60 via-amber-300/20 to-transparent"
+            : props.isCurrent
+              ? "bg-gradient-to-b from-[var(--accent)]/60 via-[var(--accent)]/20 to-transparent"
+              : "bg-gradient-to-b from-[var(--accent)]/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition",
+        ].join(" ")}
+      />
       {props.isRenaming ? (
         <div className="flex items-center gap-1.5 px-3 py-2.5">
           <input
@@ -1063,24 +1243,31 @@ function HistoryItem(props: {
           </button>
         </div>
       ) : (
-        <button type="button" onClick={props.onOpen} className="block w-full px-3 py-2.5 text-start">
-          <div className="flex items-start gap-2">
-            <span className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-accent-15 border border-accent-35">
-              <MessageSquareQuote className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />
-            </span>
+        <button type="button" onClick={props.onOpen} className="block w-full px-3.5 py-3 text-start">
+          <div className="flex items-start gap-2.5">
+            <span className={iconCls}>{iconEl}</span>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="truncate text-sm font-semibold">{props.conv.title}</span>
+              <div className="flex items-center gap-1.5">
+                <span className={[
+                  "truncate text-[13.5px] font-bold",
+                  variant === "pinned" ? "text-amber-100" : "text-[var(--fg)]",
+                ].join(" ")}>{props.conv.title}</span>
                 {props.isCurrent ? (
-                  <span className="shrink-0 rounded-full bg-accent-15 border border-accent-35 px-1.5 py-0.5 text-[9px] font-bold text-[var(--accent)]">
-                    الحالية
+                  <span className="shrink-0 rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-extrabold text-black">
+                    جارية
                   </span>
                 ) : null}
               </div>
               {preview ? (
-                <div className="mt-1 line-clamp-2 text-[11.5px] leading-5 text-[var(--muted)]">{preview}</div>
+                <div className={[
+                  "mt-1 line-clamp-2 text-[11.5px] leading-5",
+                  variant === "pinned" ? "text-amber-100/70" : "text-[var(--muted)]",
+                ].join(" ")}>{preview}</div>
               ) : null}
-              <div className="mt-1.5 flex items-center gap-2 text-[10.5px] text-[var(--muted-2)]">
+              <div className={[
+                "mt-1.5 flex items-center gap-1.5 text-[10.5px]",
+                variant === "pinned" ? "text-amber-200/60" : "text-[var(--muted-2)]",
+              ].join(" ")}>
                 <span>{relativeTime(props.conv.updatedAt)}</span>
                 <span className="opacity-40">·</span>
                 <span>{props.conv.messages.length.toLocaleString("ar-EG")} رسالة</span>
@@ -1090,7 +1277,19 @@ function HistoryItem(props: {
         </button>
       )}
       {!props.isRenaming ? (
-        <div className="flex items-center gap-0.5 border-t border-[var(--stroke)] px-2 py-1">
+        <div className="flex items-center gap-0.5 border-t border-[var(--stroke)]/60 bg-[var(--bg)]/30 px-1.5 py-0.5 backdrop-blur-sm">
+          <button type="button"
+            onClick={props.onTogglePin}
+            className={[
+              "flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] transition",
+              variant === "pinned"
+                ? "text-amber-200 hover:text-amber-100"
+                : "text-[var(--muted)] hover:text-amber-300 hover:bg-amber-500/10",
+            ].join(" ")}
+            aria-label={variant === "pinned" ? "إلغاء التثبيت" : "تثبيت"}>
+            <Star className={["h-3 w-3", variant === "pinned" ? "fill-amber-300 text-amber-300" : ""].join(" ")} aria-hidden="true" />
+            {variant === "pinned" ? "مثبتة" : "تثبيت"}
+          </button>
           <button type="button"
             onClick={props.onStartRename}
             className="flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--card-2)] transition">
