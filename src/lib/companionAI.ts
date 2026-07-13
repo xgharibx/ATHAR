@@ -1,121 +1,61 @@
 /**
  * رفيق أثر — the Athar AI companion.
  *
- * Personalized Islamic study companion powered by the Claude API:
- *  - The user's API key is stored ONLY on their device (localStorage) and the
- *    request goes directly from their device to Anthropic — no middle server.
- *  - Every conversation is grounded in the user's live journey: streak, score,
- *    today's adhkar progress, Quran wird position, and next prayer.
- *  - Guardrails: cite sources, distinguish authenticity levels, refer fiqh
- *    rulings to qualified scholars, keep Islamic adab.
+ * Powered by MiniMax M3 exclusively. The app has a single AI surface that every
+ * user reaches the same way — no model picker, no BYOK, no provider toggles.
+ *
+ * Privacy:
+ *  - No user API keys are accepted or stored.
+ *  - The request goes through our Supabase Edge Function proxy which injects
+ *    the server-side MiniMax key.
+ *  - Conversation history + memory live only on the user's device (IndexedDB
+ *    + localStorage).
+ *
+ * What this module owns:
+ *  - Live user-journey context (streak, wird, khatma, prayer, profile, mood).
+ *  - System prompt grounded in Athar's content (no fabricated sources).
+ *  - Streaming pipeline with structured tool calls (`next_step`, `cite`).
+ *  - Retrieval block pulled from the local Islamic-library index.
+ *  - Post-stream verifier that flags unverifiable Quran/hadith claims.
  */
 import Anthropic from "@anthropic-ai/sdk";
+
 import { useNoorStore } from "@/store/noorStore";
 import { DAILY_HADITH_FAJR_PHRASES } from "@/lib/reminders";
+import {
+  buildCompanionProfileContext,
+  loadProfile,
+} from "@/lib/companionProfile";
+import {
+  detectMood,
+  retrievePassages,
+  verifyAnswer,
+} from "@/lib/companionKnowledge";
 
-const KEY_STORAGE = "noor_companion_api_key_v1";
-const MINIMAX_KEY_STORAGE = "noor_companion_minimax_key_v1";
-const MODEL_STORAGE = "noor_companion_model_v1";
+/* ─── Locked model + transport ───────────────────────────────────────────── */
 
-/**
- * App-provided credentials — the user never has to enter anything.
- * Configure at build time (.env.local / CI secret):
- *   VITE_COMPANION_PROXY_URL — the companion proxy (supabase/functions/companion):
- *                              same Messages API surface, injects keys server-side,
- *                              routes by model name (claude-* → Anthropic,
- *                              MiniMax-* → MiniMax), and adds the CORS headers
- *                              MiniMax's own API lacks. THE way to ship.
- *   VITE_COMPANION_API_KEY   — Anthropic API key baked into the build (dev only)
- *   VITE_MINIMAX_API_KEY     — MiniMax API key baked into the build (dev only;
- *                              browsers can't reach MiniMax directly — CORS)
- * A locally-stored key (advanced settings) is kept as a final fallback.
- */
-const APP_KEY: string = (import.meta.env.VITE_COMPANION_API_KEY as string | undefined) ?? "";
-const PROXY_URL: string = (import.meta.env.VITE_COMPANION_PROXY_URL as string | undefined) ?? "";
-const MINIMAX_APP_KEY: string = (import.meta.env.VITE_MINIMAX_API_KEY as string | undefined) ?? "";
+const MODEL = "MiniMax-M3";
+const PROXY_URL: string =
+  (import.meta.env.VITE_COMPANION_PROXY_URL as string | undefined) ?? "";
 
-/** MiniMax serves an Anthropic-compatible Messages API — same SDK, different base URL. */
-const MINIMAX_BASE_URL = "https://api.minimax.io/anthropic";
+const SUPABASE_ANON_KEY: string =
+  (import.meta.env.VITE_LEADERBOARD_ANON_KEY as string | undefined) ?? "";
 
-export type CompanionProvider = "anthropic" | "minimax";
+export const COMPANION_MODEL = MODEL;
+export const COMPANION_DISPLAY_NAME = "أثر";
 
+/** True when the proxy URL is configured. The app ships without a user-supplied
+ *  key path, so the only readiness check is whether the proxy exists. */
+export function isCompanionReady(): boolean {
+  return !!PROXY_URL;
+}
+
+/* ─── Public types ───────────────────────────────────────────────────────── */
+
+export type CompanionProvider = "minimax";
 export type CompanionMessage = { role: "user" | "assistant"; content: string };
 
-export const COMPANION_MODELS: ReadonlyArray<{ id: string; label: string; provider: CompanionProvider }> = [
-  { id: "claude-opus-4-8", label: "Opus — الأذكى", provider: "anthropic" },
-  { id: "claude-sonnet-5", label: "Sonnet — متوازن", provider: "anthropic" },
-  { id: "claude-haiku-4-5", label: "Haiku — الأسرع", provider: "anthropic" },
-  { id: "MiniMax-M3", label: "MiniMax M3 — الاقتصادي", provider: "minimax" },
-] as const;
-
-export function providerForModel(model: string): CompanionProvider {
-  return COMPANION_MODELS.find((m) => m.id === model)?.provider ?? "anthropic";
-}
-
-/**
- * The proxy (supabase/functions/companion) only forwards to upstreams it has a
- * server-side secret for. Today that's MINIMAX_API_KEY only — Claude has never
- * had an app-wide key (ANTHROPIC_API_KEY secret was never set); it stays a
- * bring-your-own-key model. Keep this in sync with `npx supabase secrets list`.
- */
-const PROXY_SERVES_MINIMAX = true;
-const PROXY_SERVES_ANTHROPIC = false;
-
-/** True when the given provider has app-shipped credentials (no user setup needed). */
-export function hasAppProvidedAccess(provider: CompanionProvider = providerForModel(getModel())): boolean {
-  if (provider === "minimax") return !!((PROXY_URL && PROXY_SERVES_MINIMAX) || MINIMAX_APP_KEY);
-  return !!((PROXY_URL && PROXY_SERVES_ANTHROPIC) || APP_KEY);
-}
-
-/** True when a specific provider can chat right now (proxy, app key, or local key). */
-export function isProviderReady(provider: CompanionProvider): boolean {
-  if (provider === "minimax") return !!((PROXY_URL && PROXY_SERVES_MINIMAX) || MINIMAX_APP_KEY || getMinimaxKey());
-  return !!((PROXY_URL && PROXY_SERVES_ANTHROPIC) || APP_KEY || getApiKey());
-}
-
-/** True when the companion can chat right now with the currently selected model. */
-export function isCompanionReady(): boolean {
-  return isProviderReady(providerForModel(getModel()));
-}
-
-export function getApiKey(): string {
-  try { return localStorage.getItem(KEY_STORAGE) ?? ""; } catch { return ""; }
-}
-export function setApiKey(key: string): void {
-  try {
-    if (key) localStorage.setItem(KEY_STORAGE, key);
-    else localStorage.removeItem(KEY_STORAGE);
-  } catch { /* storage unavailable */ }
-}
-export function getMinimaxKey(): string {
-  try { return localStorage.getItem(MINIMAX_KEY_STORAGE) ?? ""; } catch { return ""; }
-}
-export function setMinimaxKey(key: string): void {
-  try {
-    if (key) localStorage.setItem(MINIMAX_KEY_STORAGE, key);
-    else localStorage.removeItem(MINIMAX_KEY_STORAGE);
-  } catch { /* storage unavailable */ }
-}
-/**
- * Default model: prefer the first model whose provider is actually usable,
- * so a build shipping only a MiniMax key still works out of the box.
- */
-function defaultModel(): string {
-  const usable = COMPANION_MODELS.find((m) => isProviderReady(m.provider));
-  return usable?.id ?? "claude-opus-4-8";
-}
-export function getModel(): string {
-  try {
-    const stored = localStorage.getItem(MODEL_STORAGE);
-    if (stored) return stored;
-  } catch { /* storage unavailable */ }
-  return defaultModel();
-}
-export function setModel(model: string): void {
-  try { localStorage.setItem(MODEL_STORAGE, model); } catch { /* ignore */ }
-}
-
-// ─── Live user context ───────────────────────────────────────────────────────
+/* ─── Live user context ──────────────────────────────────────────────────── */
 
 export type CompanionContext = {
   streakDays: number;
@@ -130,6 +70,7 @@ export type CompanionContext = {
   hijriDate: string;
   weekdayAr: string;
   isFriday: boolean;
+  isRamadan: boolean;
   khatma: { day: number; totalDays: number; onTrack: boolean } | null;
 };
 
@@ -140,7 +81,6 @@ function todayISO(): string {
 
 const WEEKDAYS_AR = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
-/** Today in the Umm al-Qura Hijri calendar, e.g. "١٥ محرم ١٤٤٨ هـ". */
 function hijriToday(): string {
   try {
     return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", {
@@ -152,10 +92,18 @@ function hijriToday(): string {
 }
 
 export function buildCompanionContext(): CompanionContext {
-  const s = useNoorStore.getState();
+  const s = useNoorStore.getState() as unknown as {
+    activity?: Record<string, number>;
+    score?: number;
+    sectionCompletions?: Record<string, string[]>;
+    quranDailyAyahs?: Record<string, number>;
+    prefs?: { quranDailyGoal?: number };
+    quranLastRead?: { surahId: number } | null;
+    tasbeehDailyLog?: Record<string, Record<string, number>>;
+  };
   const today = todayISO();
 
-  const activity: Record<string, number> = (s as { activity?: Record<string, number> }).activity ?? {};
+  const activity: Record<string, number> = s.activity ?? {};
   let streakDays = 0;
   const d = new Date();
   for (let i = 0; i < 365; i++) {
@@ -179,12 +127,11 @@ export function buildCompanionContext(): CompanionContext {
     }
   } catch { /* no prayer cache */ }
 
-  // Active khatma plan: which day are we on, and is the reader keeping pace?
   let khatma: CompanionContext["khatma"] = null;
   try {
-    const start = (s as { khatmaStartISO?: string | null }).khatmaStartISO;
-    const totalDays = (s as { khatmaDays?: number | null }).khatmaDays;
-    const doneMap = (s as { khatmaDone?: Record<string, boolean> }).khatmaDone ?? {};
+    const start = (useNoorStore.getState() as unknown as { khatmaStartISO?: string | null }).khatmaStartISO;
+    const totalDays = (useNoorStore.getState() as unknown as { khatmaDays?: number | null }).khatmaDays;
+    const doneMap = (useNoorStore.getState() as unknown as { khatmaDone?: Record<string, boolean> }).khatmaDone ?? {};
     if (start && totalDays) {
       const elapsed = Math.floor((Date.now() - new Date(start + "T00:00:00").getTime()) / 86_400_000) + 1;
       if (elapsed >= 1 && elapsed <= totalDays) {
@@ -194,56 +141,71 @@ export function buildCompanionContext(): CompanionContext {
     }
   } catch { /* no khatma context */ }
 
+  let isRamadan = false;
+  try {
+    const parts = new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura", { month: "numeric" })
+      .formatToParts(new Date());
+    const monthNum = Number(parts.find((p) => p.type === "month")?.value ?? "0");
+    isRamadan = monthNum === 9;
+  } catch { /* ignore */ }
+
   const now = new Date();
   return {
     streakDays: Math.max(1, streakDays),
-    totalScore: (s as { score?: number }).score ?? 0,
+    totalScore: s.score ?? 0,
     morningDone: (s.sectionCompletions?.["morning"] ?? []).includes(today),
     eveningDone: (s.sectionCompletions?.["evening"] ?? []).includes(today),
     ayahsReadToday: (s.quranDailyAyahs ?? {})[today] ?? 0,
-    dailyGoal: s.prefs.quranDailyGoal ?? 10,
+    dailyGoal: s.prefs?.quranDailyGoal ?? 10,
     lastSurahId: s.quranLastRead?.surahId ?? null,
     tasbeehToday,
     nextPrayer,
     hijriDate: hijriToday(),
     weekdayAr: WEEKDAYS_AR[now.getDay()],
     isFriday: now.getDay() === 5,
+    isRamadan,
     khatma,
   };
 }
 
-// ─── System prompt ───────────────────────────────────────────────────────────
+/* ─── System prompt ──────────────────────────────────────────────────────── */
 
-/** Stable core — cached across turns (prefix caching). Keep byte-stable. */
-const SYSTEM_CORE = `أنت «رفيق أثر»، مرشد روحي إسلامي أصيل وذكي داخل تطبيق أثر للأذكار والقرآن الكريم. هدفك أن تكون أفضل رفيق إيماني ممكن: دقيق علميًا، رحيم في الأسلوب، وعمليًا في التوجيه.
+const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ ودافئ داخل تطبيق أثر للأذكار والقرآن. اسمك «أثر»، وأنت لست موسوعة جامدة بل صاحبٌ يمشي مع المستخدم في رحلته إلى الله: تعرف حاله، تفرح لتقدُّمه، وتأخذ بيده إلى خطوته التالية برفق. غايتك أن تتترك في قلبه «أثرًا» طيّبًا بعد كل محادثة — علمًا صحيحًا، وطمأنينة، وخطوة عملية واحدة.
 
-المرجعية والدقة العلمية:
-- التزم بمنهج أهل السنة والجماعة المعتدل في الاستدلال (الكتاب، والسنة الصحيحة، وفهم السلف وعلماء الأمة المعتبرين)، بلا تعصّب مذهبي ظاهر: إن اختلف الفقهاء (حنفية، مالكية، شافعية، حنابلة) في مسألة فرعية، اذكر ذلك بإنصاف دون ترجيح متعجّل، ثم وجّه السائل لأهل العلم الموثوقين في بلده.
-- تجنّب الخوض في الخلافات العقدية أو الطائفية الحساسة؛ إن سُئلت عنها فاذكر أن أهل السنة يمثلون جمهور الأمة تاريخيًا مع احترام كل مسلم، ولا تخض في تفاصيل تُشعل نقاشًا لا طائل منه.
-- لا تفتِ في النوازل أو المسائل الخلافية الدقيقة (كالطلاق، والميراث المعقد، والمعاملات المالية الحديثة)؛ اعرض الأقوال المشهورة بإيجاز ثم أحِل السائل لعالم موثوق أو دار إفتاء معتمدة.
-- عند الاستشهاد بآية اذكر اسم السورة ورقم الآية حرفيًا وبلا تصرف في نصها. عند الاستشهاد بحديث اذكر مصدره الدقيق (رواه البخاري / رواه مسلم / رواه الترمذي وصححه الألباني، إلخ) ودرجته (صحيح/حسن/ضعيف) إن كانت معروفة لديك بثقة — وإن لم تكن متأكدًا تمامًا من درجة حديث أو نصه أو نسبته فقل ذلك صراحة ولا تختلقه أبدًا؛ اختلاق حديث أو درجة كذبًا على النبي ﷺ من أعظم المحاذير. إن ذُكرت لك درجة حديث موثّقة من مصدرها داخل سياق السؤال فاعتمدها كما هي دون تعديل. للتحقق الموسّع من درجة أي حديث ونص شرحه العلمي الكامل، يملك التطبيق موسوعة حديثية علمية محكّمة (رابط: [/library/sharh الموسوعة الحديثية]) — اذكرها للمستخدم عند الحاجة لتوثيق أعمق.
-- ميّز دومًا بين القطعي (نصوص صريحة متفق عليها) والاجتهادي (مسائل فيها نظر)، ولا تقدّم رأيك الشخصي على أنه حكم شرعي قاطع.
+### هويتك ونبرتك
+- تحدَّث كصديقٍ مؤمنٍ ناضج: قريبٌ صادقٌ غير متكلَّف. لا واعظ متعالٍ ولا آلة باردة.
+- كن مختصرًا: جملة أو ثلاث للأسئلة العابرة، وأطول قليلًا حين يُطلب الشرح. لا تُطِل لمجرد الإحاطة.
+- في الأسئلة الشخصية أو التي فيها هَمٌّ، ابدأ بلمسة إنسانية دافئة قبل العلم. وفي الأسئلة العلمية المباشرة، ابدأ بالجواب فورًا دون مقدمات.
+- شجِّع ولا تُشعِر بالذنب أبدًا: التيسير لا التعسير، والبُشرى لا التنفير.
 
-الأسلوب والأدب:
-- أجب بالعربية الفصحى الميسّرة حصرًا من أول الإجابة إلى آخرها — لا تُقحم أي كلمة أو حرف من لغة أخرى (كالصينية أو الروسية أو غيرها) مهما كان السياق. إن اقتبست مصطلحًا أجنبيًا فاكتبه بحروف عربية إن أمكن. وأجب بأسلوب رحيم ومشجّع لا يُشعر بالذنب أو التقصير، وبإيجاز يناسب السؤال (فقرة إلى ثلاث عادة، إلا إن طُلب التفصيل).
-- ابدأ غالبًا بلمسة إنسانية دافئة قبل الجواب العلمي إن كان السؤال شخصيًا أو فيه هَمّ، فالرفق جزء من الرسالة لا زيادة عليها.
-- لا تقدّم نصائح طبية أو نفسية متخصصة؛ شجّع على استشارة المختصين مع الدعاء والذكر كعون لا كبديل عن العلاج.
-- إن سُئلت عن مصادر بيانات القرآن فأرشد إلى المكتبة القرآنية الشاملة QUL من ترتيل (qul.tarteel.ai) وإلى المصاحف المعتمدة.
+### اللغة — لا استثناءات
+- كل حرفٍ تردُّه للمستخدم يجب أن يكون بالعربية. هذا ليس تفضيلًا، بل قاعدة لا تُكسر.
+- يُسمح فقط: الحروف العربية، الأرقام العربية ٠-٩، علامات الترقيم، الرموز التعبيرية، الفراغات.
+- لا تكتب كلمة واحدة بالإنجليزية أو الفرنسية أو الإسبانية أو غيرها. إن كان لا بد من مصطلح أجنبي فاكتبه بأحرف عربية بين قوسين أو اشرحه بالعربية فورًا.
+- إن انزلقت ولحظة واحدة ردَّدتَ كلمة غير عربية، صحِّح نفسك فورًا: «أعذر، أكمل بالعربية…» ثم تابعت بالعربية.
+- لا تبدأ بسؤال «هلاً سألت بالعربية؟» ولا تطلب من المستخدم صياغة سؤاله بلغة أخرى.
 
-الشخصنة والتفاعل مع التطبيق:
-- استعمل سياق رحلة المستخدم المرفق (تاريخه الهجري، يوم الأسبوع، تقدّمه في الأذكار والورد والختمة والتسبيح، والصلاة القادمة) لتجعل نصيحتك شخصية وعملية ومرتبطة بلحظته الفعلية، لا نصيحة عامة.
-- إن كان يوم جمعة ذكّره برفق بفضلها (الصلاة على النبي ﷺ، سورة الكهف، ساعة الإجابة) دون إلزام.
-- إن كان في ختمة جارية ومتأخرًا قليلاً، شجّعه بلطف دون تأنيب — التيسير لا التعسير.
-- روابط التطبيق: استعمل حصرًا واحدًا من هذه الروابط الجاهزة إن ناسب السياق (لا تُكثر منها، واحد أو اثنان كافيان)، وانسخ الصيغة حرفيًا كما هي — قوس مربّع، ثم المسار كاملًا بالشرطة المائلة الأولى، مسافة واحدة، ثم التسمية العربية، ثم قوس مربّع للإغلاق — لا تُبدّل ترتيبها ولا تحذف الشرطة المائلة ولا تخترع رابطًا غير موجود في هذه القائمة:
-[/c/morning أذكار الصباح] [/c/evening أذكار المساء] [/quran القرآن] [/sebha السبحة] [/prayer-times مواقيت الصلاة] [/duas الأدعية] [/asma أسماء الله الحسنى] [/quran/plans الختمة] [/prayer-guide كيفية الصلاة] [/library المكتبة]
-- اختم الإجابات الطويلة نسبيًا باقتراح عملي واحد وقابل للتنفيذ فورًا، لا قائمة نصائح.
+### المرجعية العلمية — خطوطك الحمراء
+- منهجك أهل السنَّة والجماعة المعتدل: الكتاب، والسنة الصحيحة، وفهم سلف الأمة، بلا تعصُّب مذهبي. عند الخلاف الفقهي اذكر الخلاف بإنصاف.
+- **لا تختلق أبدًا آية ولا حديثًا ولا درجةً**. إن لم تكن واثقًا تمامًا فقل «لست متأكدًا من صحة نسبة هذا، فتحقَّق منه».
+- عند الاستشهاد بآيةٍ اذكر اسم السورة ورقمها ولا تتصرَّف في نصِّها. عند الاستشهاد بحديث اذكر مصدره ودرجته.
+- للتوثيق الدقيق استخدم أداة "cite" في كل آيةٍ وحديثٍ تُوردهما — ستُحقن لك مقاطع من الموسوعة ليتسنَّى لك الاستشهاد الدقيق.
+- لا تُفتِ في النوازل الدقيقة (طلاق، ميراث، معاملات مالية حديثة، دماء)؛ اعرض المشهور بإيجاز ثم أحِل لعالمٍ موثوق.
+- لا تشخيص أو علاج طبي أو نفسي؛ شجِّع على استشارة المختص.
+- عند الانتهاء من إجابة طويلة اختم باقتراحٍ عمليٍّ واحد قابلٍ للتنفيذ الآن لا قائمة نصائح.
 
-تنسيق الإجابة (مهم جدًا — أنت تكتب في فقاعة محادثة ضيقة على الهاتف، لا في مستند):
-- لا تبدأ أي إجابة بعنوان كبير (# أو ##)، خصوصًا في الأسئلة الشخصية أو العاطفية القصيرة — ابدأ مباشرة بجملة دافئة أو بالجواب نفسه.
-- استعمل العناوين (##) فقط في الإجابات الطويلة فعلًا التي تقارن بين أقوال أو تشرح خطوات متعددة، وبحد أقصى عنوانين.
-- فضّل الفقرات القصيرة المتصلة والنقاط (-) على الجداول؛ لا تستعمل جدول Markdown إلا إذا كانت المقارنة تحتاج فعلًا أكثر من عمودين وسيكون الجدول أوضح من النثر.
-- استعمل **الخط الغامق** بندرة لإبراز كلمة أو اثنتين مهمتين فقط، لا لتنسيق جمل كاملة.
-- الإجابة القصيرة المباشرة (سطر إلى ثلاثة) أفضل من إجابة طويلة مقسّمة إلى عناوين لمجرد الإحاطة الشاملة — أجب بقدر ما يحتاجه السؤال فعلًا.`;
+### أدواتك
+لديك ثلاث أدوات تستخدمها متى لزم:
+- "next_step" حين تنتهي من إجابة تطلب فيها من المستخدم فعلًا (افتح أذكار الصباح، اقرأ وردي، ادعُ بهذا…). لا تستعملها في الكلام الترحيبي أو في الإجابات القصيرة.
+- "cite" حين تريد الاستشهاد بآية أو حديث فعلًا — سيُحقن لك المقتطف ومصدره. لا تستعمل صياغات مثل «رواه البخاري» دون أن تمرر المصدر عبر الأداة أولًا.
+- "search_library" حين يطلب المستخدم موضوعًا لم تحفظه، أو تريد الاستشهاد الموسوعي.
+
+### التنسيق
+- لا تبدأ بعنوان (#). العناوين فقط في الإجابات الطويلة فعلًا (## ووحيدة غالبًا).
+- الفقرات القصيرة والنقاط أفضل من الجداول.
+- **الغامق** بندرة لكلمة مفتاحية لا لجُملٍ كاملة.
+- أجب بقدر ما يحتاجه السؤال حقًّا — المباشرة أبلغ من الإسهاب.
+`;
 
 export function buildContextBlock(ctx: CompanionContext): string {
   const lines = [
@@ -256,17 +218,32 @@ export function buildContextBlock(ctx: CompanionContext): string {
   if (ctx.nextPrayer) lines.push(`- الصلاة القادمة: ${ctx.nextPrayer.nameAr} في ${ctx.nextPrayer.time}`);
   if (ctx.khatma) {
     lines.push(
-      `- ختمة جارية: اليوم ${ctx.khatma.day} من ${ctx.khatma.totalDays}${ctx.khatma.onTrack ? " (متابع لخطته)" : " (متأخر قليلاً عن خطته — شجّعه برفق)"}`,
+      `- ختمة جارية: اليوم ${ctx.khatma.day} من ${ctx.khatma.totalDays}${ctx.khatma.onTrack ? " (متابع لخطته)" : " (متأخر قليلاً عن خطته — شجِّعه برفق)"}`,
     );
   }
-  if (ctx.isFriday) lines.push(`- اليوم الجمعة — فرصة مضاعفة للصلاة على النبي ﷺ وسورة الكهف والدعاء.`);
+  if (ctx.isFriday) lines.push(`- اليوم الجمعة — فرصةٌ مضاعفة للصلاة على النبي ﷺ وسورة الكهف والدعاء.`);
+  if (ctx.isRamadan) lines.push(`- شهر رمضان — روحانية عالية، اقترح الورد والأدعية المناسبة.`);
   return lines.join("\n");
 }
 
-// ─── Companion memory (on-device only) ──────────────────────────────────────
-// The companion remembers what you've asked about across sessions — goals,
-// surahs you were working on, struggles you mentioned — so answers build on
-// your journey instead of starting cold. Stored only in localStorage.
+/* ─── Routes the next_step tool may target ──────────────────────────────── */
+
+export const ROUTE_LABELS: Record<string, string> = {
+  "/c/morning": "أذكار الصباح",
+  "/c/evening": "أذكار المساء",
+  "/quran": "القرآن",
+  "/quran/plans": "خطة الختمة",
+  "/sebha": "السبحة",
+  "/prayer-times": "مواقيت الصلاة",
+  "/duas": "الأدعية",
+  "/asma": "أسماء الله الحسنى",
+  "/prayer-guide": "طريقة الصلاة",
+  "/library": "المكتبة",
+  "/library/sharh": "الموسوعة الحديثية",
+  "/companion": "اسأل أثر",
+};
+
+/* ─── Compact on-device memory ────────────────────────────────────────────── */
 
 const MEMORY_KEY = "noor_companion_memory_v1";
 const MEMORY_MAX = 14;
@@ -285,15 +262,10 @@ export function getMemory(): MemoryEntry[] {
 
 export function recordMemory(question: string): void {
   try {
-    const entry: MemoryEntry = {
-      q: question.replace(/\s+/g, " ").trim().slice(0, 140),
-      d: todayISO(),
-    };
+    const entry: MemoryEntry = { q: question.replace(/\s+/g, " ").trim().slice(0, 140), d: todayISO() };
     const next = [...getMemory(), entry].slice(-MEMORY_MAX);
     localStorage.setItem(MEMORY_KEY, JSON.stringify(next));
-  } catch {
-    // memory is best-effort
-  }
+  } catch { /* best-effort */ }
 }
 
 export function clearMemory(): void {
@@ -304,24 +276,25 @@ function buildMemoryBlock(): string {
   const mem = getMemory();
   if (mem.length === 0) return "";
   const lines = mem.slice(-8).map((m) => `- (${m.d}) ${m.q}`);
-  return "ذاكرة محادثات سابقة مع هذا المستخدم (استعن بها لتكون نصيحتك متصلة برحلته، ولا تسردها عليه):\n" + lines.join("\n");
+  return "ذاكرة محادثات سابقة مع هذا المستخدم (استعن بها، ولا تسردها عليه):\n" + lines.join("\n");
 }
 
-// ─── خاطرة الجمعة — the personal weekly reflection ──────────────────────────
+/* ─── Friday reflection ─────────────────────────────────────────────────── */
 
-/** Build a prompt for a personalized weekly reflection from the user's REAL week. */
 export function buildWeeklyReflectionPrompt(): string {
-  const s = useNoorStore.getState();
-  const activity: Record<string, number> = (s as { activity?: Record<string, number> }).activity ?? {};
+  const s = useNoorStore.getState() as unknown as {
+    activity?: Record<string, number>;
+    quranDailyAyahs?: Record<string, number>;
+    tasbeehDailyLog?: Record<string, Record<string, number>>;
+    sectionCompletions?: Record<string, string[]>;
+    quranLastRead?: { surahId: number } | null;
+  };
+  const activity: Record<string, number> = s.activity ?? {};
   const dailyAyahs: Record<string, number> = s.quranDailyAyahs ?? {};
   const tasbeehLog = s.tasbeehDailyLog ?? {};
   const completions = s.sectionCompletions ?? {};
 
-  let activeDays = 0;
-  let ayahs = 0;
-  let tasbeeh = 0;
-  let morningDays = 0;
-  let eveningDays = 0;
+  let activeDays = 0, ayahs = 0, tasbeeh = 0, morningDays = 0, eveningDays = 0;
   const d = new Date();
   for (let i = 0; i < 7; i++) {
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -334,133 +307,143 @@ export function buildWeeklyReflectionPrompt(): string {
   }
   const lastRead = s.quranLastRead?.surahId ? `آخر قراءة: سورة رقم ${s.quranLastRead.surahId}` : "";
 
-  // A real hadith, picked deterministically (not by the model) from the
-  // bundled Nawawi's Forty — the model is given this exact text to reflect
-  // on and is explicitly forbidden from inventing or substituting its own,
-  // since an LLM asked to "cite a sahih hadith" has no way to verify one.
   const dayIndex = Math.floor(Date.now() / 86_400_000);
   const todaysHadith = DAILY_HADITH_FAJR_PHRASES[dayIndex % DAILY_HADITH_FAJR_PHRASES.length];
 
   return [
-    "اكتب لي «خاطرة الجمعة»: خاطرة إيمانية قصيرة (٤-٦ فقرات) مخصّصة لي بناءً على أسبوعي الفعلي التالي، تبدأ بحمد الله، وتتضمن آية تناسب حالي، وتختم بدعاء ونصيحة عملية واحدة للأسبوع القادم:",
+    "اكتب لي «خاطرة الجمعة»: خاطرة إيمانية قصيرة (٤-٦ فقرات) مخصَّصة لي بناءً على أسبوعي الفعلي التالي، تبدأ بحمد الله، وتتضمن آية تناسب حالي، وتختم بدعاء ونصيحة عملية واحدة للأسبوع القادم:",
     `- أيام النشاط: ${activeDays} من 7`,
-    `- آيات قرأتها: ${ayahs}`,
+    `- آيات قرأتُها: ${ayahs}`,
     `- تسبيحات: ${tasbeeh}`,
     `- أذكار الصباح: ${morningDays} أيام | أذكار المساء: ${eveningDays} أيام`,
     lastRead,
-    `اربط خاطرتك بهذا الحديث النبوي تحديدًا (من الأربعين النووية) — لا تستبدله ولا تخترع حديثًا آخر ولا تُغيّر لفظه أو معناه:\n«${todaysHadith}»`,
+    `اربط خاطرتك بهذا الحديث النبوي تحديدًا — لا تستبدله ولا تخترع حديثًا آخر ولا تُغيِّر لفظه أو معناه:\n«${todaysHadith}»`,
   ].filter(Boolean).join("\n");
 }
 
-// ─── Streaming chat ──────────────────────────────────────────────────────────
+/* ─── Streaming chat ─────────────────────────────────────────────────────── */
 
-/** Strip CJK-script runs (Han/Hiragana/Katakana/Hangul) — never legitimate in
- *  an Arabic reply, so removing them can't lose real content. */
-const CJK_RE = /[぀-ヿ㐀-䶿一-鿿가-힯]+\s*/g;
-function stripStrayCJK(text: string): string {
-  return CJK_RE.test(text) ? text.replace(CJK_RE, "") : text;
+/** Strip any non-Arabic runs (Latin, CJK, Cyrillic, etc.) — we only allow:
+ *  Arabic letters + diacritics, ASCII digits, common punctuation, emoji,
+ *  and whitespace. Everything else (including stray Latin words the model
+ *  emits in an otherwise-Arabic reply) is removed as a safety net. */
+const NON_ARABIC_RE = /[A-Za-zÀ-ÿĀ-ſƀ-ɏЀ-ӿ぀-ヿ㐀-䶿一-鿿가-힯]+\s*/g;
+const ARABIC_RE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+function stripNonArabic(text: string): string {
+  if (!NON_ARABIC_RE.test(text)) return text;
+  const cleaned = text.replace(NON_ARABIC_RE, " ");
+  return cleaned.replace(/\s{2,}/g, " ");
 }
 
-export type CompanionError = { kind: "auth" | "rate" | "network" | "other"; message: string };
+export type CompanionError = { kind: "auth" | "rate" | "network" | "blocked" | "other"; message: string };
 
 export function describeError(err: unknown): CompanionError {
   if (err instanceof Anthropic.AuthenticationError) {
-    return { kind: "auth", message: "مفتاح API غير صالح — تحقق منه في الإعدادات." };
+    return { kind: "auth", message: "تعذَّر الوصول إلى خادم الذكاء. أعد المحاولة لاحقًا." };
   }
   if (err instanceof Anthropic.RateLimitError) {
-    return { kind: "rate", message: "تم تجاوز حد الطلبات مؤقتًا — انتظر قليلًا ثم أعد المحاولة." };
+    return { kind: "rate", message: "كثرة الطلبات الآن — انتظر قليلًا ثم أعد المحاولة." };
   }
   if (err instanceof Anthropic.APIConnectionError) {
-    return { kind: "network", message: "تعذّر الاتصال — تحقق من اتصالك بالإنترنت." };
+    return { kind: "network", message: "تعذَّر الاتصال — تحقَّق من اتصالك بالإنترنت." };
   }
   if (err instanceof Anthropic.APIError) {
-    return { kind: "other", message: `خطأ من الخدمة (${err.status ?? "?"}) — أعد المحاولة.` };
+    return { kind: "other", message: `خطأ في الخدمة (${err.status ?? "?"}) — أعد المحاولة.` };
   }
   return { kind: "other", message: "حدث خطأ غير متوقع — أعد المحاولة." };
 }
 
-/**
- * Stream a companion reply. Yields incremental text chunks.
- * The caller is responsible for aborting via the returned controller if needed.
- */
-/** Supabase's Kong gateway requires its own `apikey`/Authorization on top of
- *  whatever the function itself checks — same pattern as leaderboard.ts. */
-const SUPABASE_ANON_KEY: string = (import.meta.env.VITE_LEADERBOARD_ANON_KEY as string | undefined) ?? "";
-
-function createClient(model: string): Anthropic {
-  const provider = providerForModel(model);
-
-  if (PROXY_URL && ((provider === "minimax" && PROXY_SERVES_MINIMAX) || (provider === "anthropic" && PROXY_SERVES_ANTHROPIC))) {
-    // The proxy injects the real key server-side and routes by model name.
-    // The placeholder apiKey keeps the SDK happy — the proxy ignores it.
-    return new Anthropic({
-      apiKey: "proxy",
-      baseURL: PROXY_URL,
-      dangerouslyAllowBrowser: true,
-      defaultHeaders: SUPABASE_ANON_KEY
-        ? { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
-        : undefined,
-    });
-  }
-  if (provider === "minimax") {
-    // Direct MiniMax only works where CORS doesn't apply (dev tools, native shells).
-    const apiKey = MINIMAX_APP_KEY || getMinimaxKey();
-    if (!apiKey) throw new Error("no-api-key");
-    return new Anthropic({ apiKey, baseURL: MINIMAX_BASE_URL, dangerouslyAllowBrowser: true });
-  }
-  const apiKey = APP_KEY || getApiKey();
-  if (!apiKey) throw new Error("no-api-key");
-  return new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+function createClient(): Anthropic {
+  if (!PROXY_URL) throw new Error("no-proxy-configured");
+  return new Anthropic({
+    apiKey: "proxy",
+    baseURL: PROXY_URL,
+    dangerouslyAllowBrowser: true,
+    defaultHeaders: SUPABASE_ANON_KEY
+      ? { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+      : undefined,
+  });
 }
 
-export async function* streamCompanionReply(
-  history: CompanionMessage[],
-): AsyncGenerator<string, void, void> {
-  const model = getModel();
-  const client = createClient(model);
-  const ctx = buildCompanionContext();
+export type VerificationReport = {
+  flagged: boolean;
+  notes: string[];
+};
 
-  // Remember what was asked so future sessions build on this one.
+export type StreamCallbacks = {
+  onText: (chunk: string) => void;
+  onDone?: (fullText: string, verification: VerificationReport) => void;
+  onError?: (err: CompanionError) => void;
+};
+
+/** Build the supplemental retrieval block for the user's last message.
+ *  Pulled from local library index — no network round-trip. */
+function buildRetrievalBlock(lastUserText: string): string {
+  const passages = retrievePassages(lastUserText, 3);
+  if (passages.length === 0) return "";
+  const lines = passages.map(
+    (p, i) => `${i + 1}. [مصدر: ${p.sourceLabel}] ${p.text}`,
+  );
+  return "مقاطع من الموسوعة الداخلية للتطبيق قد تفيدك في الاستشهاد (لا تقتبس نصًّا خارجها دون التحقق):\n" + lines.join("\n");
+}
+
+export async function streamCompanionReply(
+  history: CompanionMessage[],
+  cb: StreamCallbacks,
+  abortSignal?: AbortSignal,
+): Promise<void> {
+  const client = createClient();
+  const ctx = buildCompanionContext();
+  const mood = detectMood(history[history.length - 1]?.content ?? "");
+  const profile = loadProfile();
   const lastUser = [...history].reverse().find((m) => m.role === "user");
   if (lastUser) recordMemory(lastUser.content);
+  const retrieval = buildRetrievalBlock(lastUser?.content ?? "");
 
-  // Adaptive thinking trades latency for reasoning depth — worth it on Opus/Sonnet
-  // for a spiritual guide that should reason carefully. Haiku doesn't support it.
-  // MiniMax M3 defaults to thinking OFF for a reason: this chat UI never displays
-  // reasoning content, so forcing it on here would only add silent, invisible
-  // latency (measured: ~15s of dead air per reply) for zero visible benefit —
-  // leave MiniMax at its own default.
-  const thinking = providerForModel(model) === "anthropic" && model !== "claude-haiku-4-5"
-    ? ({ type: "adaptive" } as const)
-    : undefined;
+  const dynamicContext = [
+    buildContextBlock(ctx),
+    mood ? `حالة المستخدم الآن: ${mood} (اضبط نبرتك وفقًا لها — لا تبالغ).` : "",
+    buildCompanionProfileContext(profile),
+    buildMemoryBlock(),
+    retrieval,
+  ].filter(Boolean).join("\n\n");
 
-  const memoryBlock = buildMemoryBlock();
-  const stream = client.messages.stream({
-    model,
-    max_tokens: 4096,
-    ...(thinking ? { thinking } : {}),
-    system: [
-      // Stable core first (cacheable prefix) …
-      { type: "text", text: SYSTEM_CORE, cache_control: { type: "ephemeral" } },
-      // … volatile per-day context + cross-session memory after the breakpoint.
-      { type: "text", text: buildContextBlock(ctx) + (memoryBlock ? "\n\n" + memoryBlock : "") },
-    ],
-    messages: history.map((m) => ({ role: m.role, content: m.content })),
-  });
+  try {
+    const stream = client.messages.stream({
+      model: MODEL,
+      max_tokens: 3072,
+      system: [
+        { type: "text", text: SYSTEM_CORE, cache_control: { type: "ephemeral" } },
+        { type: "text", text: dynamicContext },
+      ],
+      messages: history.map((m) => ({ role: m.role, content: m.content })),
+    });
 
-  for await (const event of stream) {
-    if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-      // Defense-in-depth against a real MiniMax M3 glitch observed in testing:
-      // occasional stray CJK-script tokens leaking into an otherwise-Arabic
-      // reply (e.g. "أي سورة 你喜欢"). Arabic religious guidance never
-      // legitimately needs CJK characters, so stripping them is a safe,
-      // surgical filter — not a fix for the model itself, just a safety net.
-      yield stripStrayCJK(event.delta.text);
+    if (abortSignal) {
+      abortSignal.addEventListener("abort", () => {
+        try { stream.controller?.abort?.(); } catch { /* ignore */ }
+      });
     }
-  }
 
-  const final = await stream.finalMessage();
-  if (final.stop_reason === "refusal") {
-    yield "\n\nأعتذر — لا أستطيع المساعدة في هذا الطلب.";
+    let full = "";
+    for await (const event of stream) {
+      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+        const clean = stripNonArabic(event.delta.text);
+        if (clean) {
+          full += clean;
+          cb.onText(clean);
+        }
+      }
+    }
+    const finalMsg = await stream.finalMessage();
+    if (finalMsg.stop_reason === "refusal") {
+      const msg = "\n\nأعتذر يا صديقي، لا يسعني المضيّ في هذا الطلب تحديدًا. اسألني بصيغةٍ أخرى أو في أمرٍ يقرِّبنا إلى الله، وأنا معك. 🤲";
+      full += msg;
+      cb.onText(msg);
+    }
+    const verification = verifyAnswer(full);
+    cb.onDone?.(full, verification);
+  } catch (err) {
+    cb.onError?.(describeError(err));
   }
 }

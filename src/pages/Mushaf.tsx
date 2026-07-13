@@ -7,7 +7,7 @@ import {
   Eye, EyeOff, CheckCircle2, Languages, Search, WholeWord,
   ArrowUpRight, Settings, Info, Shuffle,
   Radio, Timer, Download, SlidersHorizontal,
-  Image as ImageIcon,
+  Image as ImageIcon, Sparkles,
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -27,6 +27,8 @@ import {
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
+import { FloatingAthar } from "@/components/companion/FloatingAthar";
+import { CompanionModal } from "@/components/companion/CompanionModal";
 import { TAFSIR_EDITIONS, getTafsirLabel, loadTafsirSurah } from "@/lib/tafsirEditions";
 import { getMutashabihatForAyah, type MutashabihMatch } from "@/lib/mutashabihat";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
@@ -583,6 +585,8 @@ export function MushafPage() {
 
   // Q11: Tafsir sheet
   const [tafsirItem, setTafsirItem] = React.useState<PageItem | null>(null);
+  const [companionOpen, setCompanionOpen] = React.useState(false);
+  const [tadabburSeed, setTadabburSeed] = React.useState<string>("");
 
   // Mutashabihat (similar ayahs) shown alongside tafsir for the open ayah
   const [mutashabihatMatches, setMutashabihatMatches] = React.useState<MutashabihMatch[]>([]);
@@ -1763,6 +1767,20 @@ export function MushafPage() {
             <Share2 size={18} />
             <span>إرسال</span>
           </button>
+          {/* Inline tadabbur handoff — opens the companion modal preloaded with the verse */}
+          <button type="button"
+            className="mushaf-action-btn"
+            aria-label="تدبّر مع أثر"
+            onClick={(e) => {
+              e.stopPropagation();
+              setTadabburSeed(`${selectedItem.surahName} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾\n﴿${selectedItem.text.slice(0, 380)}﴾`);
+              setCompanionOpen(true);
+              setSelectedItem(null);
+            }}
+          >
+            <Sparkles size={18} aria-hidden="true" />
+            <span>أثر</span>
+          </button>
           {/* Q11: Inline tafsir */}
           <button type="button"
             className="mushaf-action-btn"
@@ -2059,6 +2077,13 @@ export function MushafPage() {
           </div>
         </>
       )}
+
+      {/* ── Inline tadabbur sheet: companion modal preloaded with the verse ─── */}
+      <CompanionModal
+        open={companionOpen}
+        onClose={() => { setCompanionOpen(false); setTadabburSeed(""); }}
+        prefill={tadabburSeed ? `تدبَّر معي هذه الآية: اشرحها شرحًا ميسَّرًا واذكر لي ثلاث فوائد عملية لحياتي اليومية.\n﴿${tadabburSeed}﴾` : undefined}
+      />
 
       {/* ── Q11: Inline tafsir sheet ────────────────────── */}
       {tafsirItem && (
@@ -2813,6 +2838,14 @@ export function MushafPage() {
         </>
       )}
 
+      <FloatingAthar
+        modalMode
+        prefill={
+          selectedItem
+            ? `تدبَّر معي هذه الآية: اشرحها شرحًا ميسَّرًا مع فوائد عملية لحياتي اليومية:\n﴿${selectedItem.text.slice(0, 400)}﴾`
+            : "ما الذي ينفعني في هذه الصفحة من المصحف الآن؟"
+        }
+      />
     </div>
   );
 }

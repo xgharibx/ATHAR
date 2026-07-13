@@ -1,40 +1,26 @@
 /**
- * companion — Anthropic-Messages-API proxy for the رفيق أثر AI companion.
+ * companion — Anthropic-Messages-API proxy for رفيق أثر.
  *
- * The app's Anthropic SDK points its baseURL here; this function forwards the
- * request to the right upstream (by model name) and injects the API key
- * server-side, so no key ever ships inside the app bundle:
- *   - MiniMax-*  → https://api.minimax.io/anthropic (MINIMAX_API_KEY secret)
- *   - claude-*   → https://api.anthropic.com        (ANTHROPIC_API_KEY secret)
- *
- * Also solves browser CORS: MiniMax's API sends no CORS headers, so a direct
- * browser call is impossible — this proxy responds with permissive CORS and
- * streams SSE straight through.
+ * Routes requests to MiniMax only. The app has a single AI surface for users;
+ * provider/model selection is not exposed client-side and is not honored here
+ * if attempted. The Anthropic SDK points baseURL at this function; we inject
+ * the upstream key server-side, solve browser CORS for the upstream (which
+ * sends none), and stream SSE straight through.
  */
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  // "*" here is a literal wildcard, valid because Access-Control-Allow-Origin
-  // is also "*" (no credentialed request). The Anthropic SDK sends several
-  // x-stainless-* diagnostic headers the browser's real preflight checks for
-  // — an explicit allow-list has to name every one of them or the browser
-  // silently blocks the actual request after the preflight succeeds.
   "Access-Control-Allow-Headers": "*",
   "Access-Control-Allow-Methods": "POST,OPTIONS",
 };
 
-// Only the models the app actually offers — nobody can burn the key on other models.
-const ALLOWED_MODELS = new Set([
-  "claude-opus-4-8",
-  "claude-sonnet-5",
-  "claude-haiku-4-5",
-  "MiniMax-M3",
-]);
+const MINIMAX_MODEL = "MiniMax-M3";
+const MINIMAX_UPSTREAM = "https://api.minimax.io/anthropic/v1/messages";
 
-const MAX_TOKENS_CAP = 8192;
-const MAX_BODY_BYTES = 256 * 1024; // generous for long conversations, blocks abuse
+const MAX_TOKENS_CAP = 4096;
+const MAX_BODY_BYTES = 256 * 1024;
 const WINDOW_MS = 60_000;
-const MAX_REQ_PER_WINDOW = 20; // per IP per minute — chat is human-paced
+const MAX_REQ_PER_WINDOW = 24;
 const limiter = new Map<string, { count: number; startAt: number }>();
 
 function clientKey(req: Request): string {
@@ -60,7 +46,6 @@ function rateLimit(req: Request): boolean {
 }
 
 function jsonError(message: string, status: number): Response {
-  // Anthropic-style error envelope so the SDK surfaces it cleanly.
   return new Response(
     JSON.stringify({ type: "error", error: { type: "invalid_request_error", message } }),
     { status, headers: { "Content-Type": "application/json", ...CORS_HEADERS } },
@@ -76,7 +61,6 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
   if (req.method !== "POST") return jsonError("method-not-allowed", 405);
 
-  // The Anthropic SDK appends /v1/messages to its baseURL.
   const url = new URL(req.url);
   if (!url.pathname.endsWith("/v1/messages")) return jsonError("not-found", 404);
 
@@ -92,22 +76,20 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     return jsonError("invalid JSON", 400);
   }
 
-  const model = String(body.model ?? "");
-  if (!ALLOWED_MODELS.has(model)) return jsonError(`model not allowed: ${model}`, 400);
+  // The app ships only one model. Anything else is treated as the locked model
+  // — there's no UI to pick anything else, and no reason to honor it if hit.
+  const requested = String(body.model ?? "");
+  if (requested && requested !== MINIMAX_MODEL) {
+    body = { ...body, model: MINIMAX_MODEL };
+  }
   if (typeof body.max_tokens === "number" && body.max_tokens > MAX_TOKENS_CAP) {
     body.max_tokens = MAX_TOKENS_CAP;
   }
 
-  const isMinimax = model.startsWith("MiniMax");
-  const upstreamUrl = isMinimax
-    ? "https://api.minimax.io/anthropic/v1/messages"
-    : "https://api.anthropic.com/v1/messages";
-  const apiKey = isMinimax
-    ? denoRuntime.env.get("MINIMAX_API_KEY")
-    : denoRuntime.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) return jsonError(`no server key configured for ${isMinimax ? "MiniMax" : "Anthropic"} models`, 503);
+  const apiKey = denoRuntime.env.get("MINIMAX_API_KEY");
+  if (!apiKey) return jsonError("no server key configured", 503);
 
-  const upstream = await fetch(upstreamUrl, {
+  const upstream = await fetch(MINIMAX_UPSTREAM, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -117,8 +99,6 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     body: JSON.stringify(body),
   });
 
-  // Pass the upstream response through untouched (JSON or SSE stream alike),
-  // adding CORS so browsers accept it.
   const headers = new Headers(CORS_HEADERS);
   const contentType = upstream.headers.get("content-type");
   if (contentType) headers.set("Content-Type", contentType);

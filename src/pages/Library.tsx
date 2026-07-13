@@ -22,7 +22,7 @@ type LibrarySection = {
 const LIBRARY_SECTIONS: LibrarySection[] = [
   {
     id: "companion",
-    title: "رفيق أثر",
+    title: "أثر — رفيقك الذكي",
     subtitle: "مرشدك الذكي الشخصي",
     description: "رفيق ذكي يعرف رحلتك اليومية ويقترح خطوتك التالية، مع محادثة مؤصلة بالمصادر وضوابط شرعية.",
     icon: "🤝",

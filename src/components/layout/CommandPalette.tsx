@@ -237,6 +237,7 @@ export function CommandPalette(props: Props) {
                   <Command.Group heading="الصفحات" className="px-2">
                     <Item onSelect={() => go("/")} icon={<span className="text-base" aria-hidden="true">🏠</span>}>الرئيسية</Item>
                     <Item onSelect={() => go("/quran")} icon={<span className="text-base" aria-hidden="true">📖</span>}>المصحف</Item>
+                    <Item onSelect={() => go("/companion")} icon={<span className="text-base" aria-hidden="true">✨</span>}>أثر — رفيقك الذكي</Item>
                     <Item onSelect={() => go("/sebha")} icon={<span className="text-base" aria-hidden="true">📿</span>}>السبحة</Item>
                     <Item onSelect={() => go("/prayer-times")} icon={<span className="text-base" aria-hidden="true">🕌</span>}>مواقيت الصلاة</Item>
                     <Item onSelect={() => go("/library")} icon={<LibraryBig size={16} aria-hidden="true" />}>المكتبة الإسلامية</Item>

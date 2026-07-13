@@ -1,6 +1,6 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { House, BookOpenText, Heart, BookMarked, Sparkles, Trophy } from "lucide-react";
+import { House, BookOpenText, Sparkles, BookMarked, Atom, Trophy } from "lucide-react";
 import { useNoorStore } from "@/store/noorStore";
 
 function todayISO() {
@@ -11,8 +11,8 @@ function todayISO() {
 const NAV_ITEMS = [
   { path: "/", label: "الرئيسية", icon: House },
   { path: "/quran", label: "القرآن", icon: BookOpenText },
-  { path: "/favorites", label: "المفضلة", icon: Heart },
-  { path: "/ijaz", label: "الإعجاز", icon: Sparkles },
+  { path: "/companion", label: "أثر", icon: Sparkles },
+  { path: "/ijaz", label: "الإعجاز", icon: Atom },
   { path: "/library", label: "المكتبة", icon: BookMarked },
   { path: "/leaderboard", label: "الترتيب", icon: Trophy },
 ] as const;

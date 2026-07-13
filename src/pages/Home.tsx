@@ -28,6 +28,7 @@ import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { pct, cn } from "@/lib/utils";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { trackUxEvent } from "@/lib/uxMetrics";
+import { FloatingAthar } from "@/components/companion/FloatingAthar";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { coerceCount } from "@/data/types";
@@ -1702,6 +1703,7 @@ export function HomePage() {
         </div>
       </Card>
 
+      <FloatingAthar prefill="ما أفضل ما أبدأ به يومي من الذكر والقرآن الآن؟" />
     </div>
   );
 }

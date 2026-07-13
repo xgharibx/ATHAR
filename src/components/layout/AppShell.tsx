@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock, BookMarked, Clapperboard, Trophy, Sparkles } from "lucide-react";
+import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock, BookMarked, Clapperboard, Trophy, Sparkles, Atom } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -168,12 +168,13 @@ const ALL_THEMES_CYCLE: import("@/store/noorStore").NoorTheme[] = [
 
 const MAIN_NAV_LINKS = [
   { path: "/", icon: House, label: "الرئيسية", color: "#ffd780" },
+  { path: "/companion", icon: Sparkles, label: "أثر", color: "#6ee7b7" },
   { path: "/quran", icon: BookOpenText, label: "القرآن", color: "#9ae6ff" },
   { path: "/sebha", icon: CircleDot, label: "السبحة", color: "#facc15" },
   { path: "/prayer-times", icon: Clock, label: "الصلاة", color: "#60a5fa" },
   { path: "/search", icon: Search, label: "البحث", color: "#e879f9" },
   { path: "/favorites", icon: Heart, label: "المفضلة", color: "#fb7185" },
-  { path: "/ijaz", icon: Sparkles, label: "الإعجاز", color: "#c4b5fd" },
+  { path: "/ijaz", icon: Atom, label: "الإعجاز", color: "#c4b5fd" },
   { path: "/video-library", icon: Clapperboard, label: "الدورات", color: "#f472b6" },
   { path: "/library", icon: BookMarked, label: "المكتبة", color: "#34d399" },
   { path: "/leaderboard", icon: Trophy, label: "الترتيب", color: "#fbbf24" },
@@ -465,7 +466,7 @@ export function AppShell() {
       "/quran": "القرآن الكريم",
       "/quran/plans": "خطط التلاوة",
       "/sebha": "السبحة الرقمية",
-      "/companion": "رفيق أثر",
+      "/companion": "أثر — رفيقك الذكي",
       "/library/sharh": "الموسوعة الحديثية",
       "/tasmee": "التسميع",
       "/prayer-times": "مواقيت الصلاة",
