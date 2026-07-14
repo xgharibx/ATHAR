@@ -18,6 +18,7 @@ import { sajdaInSurah, loadQuranExtras, getEnglishRowPreview, type QuranExtras }
 import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
 import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { getReciter } from "@/lib/quranReciters";
+import { loadQuranPageMap } from "@/data/quranLoad";
 
 function normalize(s: string) {
   return normalizeArabicSearch((s ?? "").toLowerCase()).replaceAll(/\s+/g, " ").trim();
@@ -162,6 +163,7 @@ export function QuranPage() {
   const [reciterQuery, setReciterQuery] = React.useState("");
   const [showTranslation, setShowTranslation] = React.useState(false);
   const [extras, setExtras] = React.useState<QuranExtras | null>(null);
+  const [pageMap, setPageMap] = React.useState<Record<string, number> | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent" | "unread" | "nearly">("mushaf");
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
@@ -178,6 +180,11 @@ export function QuranPage() {
       void loadQuranExtras().then(setExtras).catch(() => {});
     }
   }, [showTranslation, infoSurahId]);
+
+  // Phase 5 — Lazy-load mushaf page map for page-number badges in the list
+  React.useEffect(() => {
+    void loadQuranPageMap().then((m) => setPageMap(m.map)).catch(() => {});
+  }, []);
 
   // Phase 2 — Keyboard shortcuts: "/" focuses search, "Esc" clears it
   React.useEffect(() => {
@@ -981,7 +988,7 @@ export function QuranPage() {
             </div>
           )}
 
-          {/* ── Juz strip ──────────────────────────────────────── */}
+          {/* ── Juz strip (Phase 5: with hizb indicators) ───────────────── */}
           <div
             className="quran-juz-strip px-3 py-2"
             style={{ borderBottom: "1px solid color-mix(in srgb, var(--stroke) 30%, transparent)" }}
@@ -991,21 +998,32 @@ export function QuranPage() {
               const jpct = juzProgress[j] ?? 0;
               const isDone = jpct >= 100;
               const isActive = filterJuz === j;
+              // Each juz has two hizbs; show which hizbs are touched
+              const h1 = (j - 1) * 2 + 1;
+              const h2 = (j - 1) * 2 + 2;
+              const h1Done = (juzProgress[h1] ?? 0) >= 100;
+              const h2Done = (juzProgress[h2] ?? 0) >= 100;
               return (
-                <button type="button"
-                  key={j}
-                  className={`quran-juz-btn ${isActive ? "active" : ""}`}
-                  onClick={() => setFilterJuz(filterJuz === j ? null : j)}
-                  aria-label={`الجزء ${j.toLocaleString("ar-EG")}${jpct > 0 ? ` — ${jpct.toLocaleString("ar-EG")}٪` : ""}`}
-                  aria-pressed={filterJuz === j}
-                  style={!isActive && jpct > 0 ? {
-                    background: isDone ? "rgba(52,211,153,0.18)" : `color-mix(in srgb, var(--accent) ${Math.round(12 + jpct * 0.45)}%, transparent)`,
-                    borderColor: isDone ? "rgba(52,211,153,0.4)" : "var(--accent-subtle, rgba(var(--accent-rgb),0.3))"
-                  } : undefined}
-                >
-                  {j.toLocaleString("ar-EG")}
-                  {isDone && <span className="block text-[7px] leading-none" style={{ color: "var(--ok)" }}>✓</span>}
-                </button>
+                <div key={j} className="relative inline-flex flex-col items-center">
+                  <button type="button"
+                    className={`quran-juz-btn ${isActive ? "active" : ""}`}
+                    onClick={() => setFilterJuz(filterJuz === j ? null : j)}
+                    aria-label={`الجزء ${j.toLocaleString("ar-EG")}${jpct > 0 ? ` — ${jpct.toLocaleString("ar-EG")}٪` : ""}`}
+                    aria-pressed={filterJuz === j}
+                    style={!isActive && jpct > 0 ? {
+                      background: isDone ? "rgba(52,211,153,0.18)" : `color-mix(in srgb, var(--accent) ${Math.round(12 + jpct * 0.45)}%, transparent)`,
+                      borderColor: isDone ? "rgba(52,211,153,0.4)" : "var(--accent-subtle, rgba(var(--accent-rgb),0.3))"
+                    } : undefined}
+                  >
+                    {j.toLocaleString("ar-EG")}
+                    {isDone && <span className="block text-[7px] leading-none" style={{ color: "var(--ok)" }}>✓</span>}
+                  </button>
+                  {/* Hizb quarter markers */}
+                  <div className="mt-0.5 flex gap-0.5">
+                    <span className={["h-1 w-1 rounded-full", h1Done ? "bg-emerald-400" : "bg-[var(--muted-2)]/30"].join(" ")} />
+                    <span className={["h-1 w-1 rounded-full", h2Done ? "bg-emerald-400" : "bg-[var(--muted-2)]/30"].join(" ")} />
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -1082,6 +1100,7 @@ export function QuranPage() {
               const showJuzHeader = sortMode === "mushaf" && !filterJuz && !query && (idx === 0 || currJuz !== prevJuz);
               const sajdasHere = sajdaInSurah(s.id);
               const firstEnglish = showTranslation ? getEnglishRowPreview(extras, s.id) : null;
+              const mushafPage = pageMap ? pageMap[`${s.id}:1`] : undefined;
               return (
                 <React.Fragment key={s.id}>
                   {showJuzHeader && (
@@ -1127,6 +1146,11 @@ export function QuranPage() {
                       </span>
                       <span>·</span>
                       <span className="tabular-nums" aria-label={`عدد آيات السورة: ${s.ayahs.length}`}>{s.ayahs.length.toLocaleString("ar-EG")} آية</span>
+                      {mushafPage ? (
+                        <span className="tabular-nums opacity-45" title={`صفحة المصحف ${mushafPage}`}>
+                          · ص {toArabicNumeral(mushafPage)}
+                        </span>
+                      ) : null}
                       {sortMode === "unread" && (() => {
                         const mins = Math.max(1, Math.round(s.ayahs.length / 8));
                         return <span>· ~{mins.toLocaleString("ar-EG")} دق</span>;
