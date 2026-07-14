@@ -1,4 +1,5 @@
 import * as React from "react";
+import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, Filter, Plus } from "lucide-react";
@@ -658,7 +659,26 @@ export function QuranPage() {
                 </span>
               );
             })()}
-            {quranStreak > 0 && <span>🔥 {quranStreak.toLocaleString("ar-EG")} يوم</span>}
+            {quranStreak > 0 && (
+              <button
+                type="button"
+                onClick={async () => {
+                  const text = `🔥 سلسلتي في القرآن ${quranStreak.toLocaleString("ar-EG")} يوم متتالٍ\nقرأت ${quranStats.totalAyahs.toLocaleString("ar-EG")} آية، ${quranStats.completed.toLocaleString("ar-EG")} سور مكتملة.`;
+                  try {
+                    if (navigator.share) {
+                      await navigator.share({ text, title: "سلسلة قراءة القرآن" });
+                    } else {
+                      await navigator.clipboard.writeText(text);
+                      toast.success("نُسخت السلسلة");
+                    }
+                  } catch { /* ignore */ }
+                }}
+                className="text-xs transition hover:opacity-100"
+                title="مشاركة السلسلة"
+                aria-label={`مشاركة سلسلة ${quranStreak.toLocaleString("ar-EG")} يوم`}>
+                🔥 {quranStreak.toLocaleString("ar-EG")} يوم
+              </button>
+            )}
             {quranStats.completed > 0 && <span style={{ color: "var(--ok)", opacity: 1 }}>✓ {quranStats.completed.toLocaleString("ar-EG")} مكتملة</span>}
             {/* Progress grid toggle */}
             {quranStats.started > 0 && (
@@ -948,9 +968,23 @@ export function QuranPage() {
 
             {/* Random surah */}
             <button type="button"
-              onClick={() => { if (!data || data.length === 0) return; navigate(`/mushaf?surah=${data[Math.floor(Math.random() * data.length)]!.id}`); }}
+              onClick={() => {
+                if (!data || data.length === 0) return;
+                // Prefer the next unread ayah; otherwise fall back to a
+                // random surah weighted slightly toward the current sort
+                // (so 'unread' mode doesn't keep sending you to a surah
+                // you've finished).
+                const candidates = sortMode === "unread" || sortMode === "nearly"
+                  ? data.filter((s) => (readingHistory[String(s.id)] ?? 0) < s.ayahs.length)
+                  : data;
+                const pool = candidates.length > 0 ? candidates : data;
+                const next = pool[Math.floor(Math.random() * pool.length)]!;
+                const r = readingHistory[String(next.id)] ?? 0;
+                const ayahIndex = r < next.ayahs.length ? r + 1 : 1;
+                navigate(`/mushaf?surah=${next.id}&ayah=${ayahIndex}`);
+              }}
               className="w-9 h-9 rounded-xl border bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-100 flex items-center justify-center transition shrink-0"
-              title="سورة عشوائية" aria-label="سورة عشوائية"
+              title="سورة عشوائية (تفضّل غير المقروء)" aria-label="سورة عشوائية"
             >
               <Shuffle size={14} aria-hidden="true" />
             </button>
