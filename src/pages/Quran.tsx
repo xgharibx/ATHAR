@@ -16,6 +16,8 @@ import { FloatingAthar } from "@/components/companion/FloatingAthar";
 import { SurahInfoModal } from "@/components/quran/SurahInfoModal";
 import { sajdaInSurah, loadQuranExtras, getEnglishRowPreview, type QuranExtras } from "@/data/quranExtras";
 import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
+import { ReciterPicker } from "@/components/quran/ReciterPicker";
+import { getReciter } from "@/lib/quranReciters";
 
 function normalize(s: string) {
   return normalizeArabicSearch((s ?? "").toLowerCase()).replaceAll(/\s+/g, " ").trim();
@@ -891,27 +893,14 @@ export function QuranPage() {
               EN
             </button>
 
-            <label className="inline-flex h-9 items-center gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 text-xs opacity-75 transition focus-within:opacity-100">
+            <button type="button"
+              onClick={() => setReciterOpen(true)}
+              aria-label="اختيار القارئ"
+              className="h-9 px-2.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] opacity-75 hover:opacity-100 transition shrink-0 inline-flex items-center gap-1.5 text-xs"
+            >
               <Volume2 size={13} className="text-[var(--accent)]" />
-              <select
-                aria-label="القارئ"
-                value={prefs.quranReciter}
-                onChange={(event) => setPrefs({ quranReciter: event.target.value })}
-                className="bg-transparent text-xs outline-none"
-                style={{ color: 'var(--fg, #fff)', backgroundColor: 'transparent' }}
-              >
-                {QURAN_RECITERS.map((reciter) => (
-                  <option
-                    key={reciter.id}
-                    value={reciter.id}
-                    className="bg-[#101814] text-white"
-                    style={{ backgroundColor: '#101814', color: '#ffffff' }}
-                  >
-                    {reciter.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <span className="max-w-[7rem] truncate">{getReciter(prefs.quranReciter)?.label ?? "القارئ"}</span>
+            </button>
 
             {/* Theme color dots */}
             <div className="mr-auto flex items-center gap-1">
@@ -1241,6 +1230,14 @@ export function QuranPage() {
         open={infoSurahId !== null}
         surah={infoSurahId !== null ? (data?.find((s) => s.id === infoSurahId) ?? null) : null}
         onClose={() => setInfoSurahId(null)}
+      />
+
+      {/* Phase 4 — Reciter picker (search + grouped by Murattal/Mujawwad/Legacy) */}
+      <ReciterPicker
+        open={reciterOpen}
+        value={prefs.quranReciter}
+        onChange={(id) => setPrefs({ quranReciter: id })}
+        onClose={() => setReciterOpen(false)}
       />
 
       {/* Phase 1 — Context-aware Athar (knows which surah the user is browsing,
