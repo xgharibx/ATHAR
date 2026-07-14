@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid } from "lucide-react";
+import { Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, Filter } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
@@ -12,6 +12,9 @@ import { useNoorStore } from "@/store/noorStore";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { FloatingAthar } from "@/components/companion/FloatingAthar";
+import { SurahInfoModal } from "@/components/quran/SurahInfoModal";
+import { sajdaInSurah } from "@/data/quranExtras";
 
 function normalize(s: string) {
   return normalizeArabicSearch((s ?? "").toLowerCase()).replaceAll(/\s+/g, " ").trim();
@@ -147,6 +150,10 @@ export function QuranPage() {
   const [mode, setMode] = React.useState<"surahs" | "ayahs">("surahs");
   const [showBookmarks, setShowBookmarks] = React.useState(false);
   const [showProgressGrid, setShowProgressGrid] = React.useState(false);
+  const [infoSurahId, setInfoSurahId] = React.useState<number | null>(null);
+  const [reciterOpen, setReciterOpen] = React.useState(false);
+  const [reciterQuery, setReciterQuery] = React.useState("");
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent" | "unread" | "nearly">("mushaf");
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
   const [filterRevelation, setFilterRevelation] = React.useState<"meccan" | "medinan" | null>(null);
@@ -155,6 +162,24 @@ export function QuranPage() {
   React.useEffect(() => {
     setFilterJuz(parseJuzParam(searchParams.get("juz")));
   }, [searchParams]);
+
+  // Phase 2 — Keyboard shortcuts: "/" focuses search, "Esc" clears it
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isTyping = target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable;
+      if (isTyping) return;
+      if (e.key === "/") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      } else if (e.key === "Escape" && query) {
+        setQuery("");
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [query]);
 
   // Auto-scroll to currently reading surah on first load (only when not filtered/queried)
   const currentSurahRef = React.useRef<HTMLDivElement | null>(null);
@@ -431,12 +456,13 @@ export function QuranPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               type="search"
-              placeholder={mode === "ayahs" ? "ابحث داخل الآيات…" : "ابحث عن سورة… (مثال: الكهف، ١٨)"}
+              placeholder={mode === "ayahs" ? "ابحث داخل الآيات…" : "ابحث عن سورة… (مثال: الكهف، ٢:٢٥٥، ٢:١٨)"}
               aria-label={mode === "ayahs" ? "بحث داخل الآيات" : "بحث عن سورة"}
               spellCheck={false}
               autoComplete="off"
               autoCapitalize="none"
               className="pr-10 pl-9 h-11 text-sm"
+              ref={searchInputRef}
             />
             {query && (
               <button type="button"
@@ -1001,6 +1027,7 @@ export function QuranPage() {
               const currJuz = getSurahJuz(s.id);
               const prevJuz = idx > 0 ? getSurahJuz(sortedFiltered[idx - 1]!.id) : null;
               const showJuzHeader = sortMode === "mushaf" && !filterJuz && !query && (idx === 0 || currJuz !== prevJuz);
+              const sajdasHere = sajdaInSurah(s.id);
               return (
                 <React.Fragment key={s.id}>
                   {showJuzHeader && (
@@ -1013,10 +1040,11 @@ export function QuranPage() {
                       جزء {toArabicNumeral(currJuz)}
                     </div>
                   )}
-                <div role="listitem" ref={isCurrent ? currentSurahRef : undefined}>
+                <div role="listitem" ref={isCurrent ? currentSurahRef : undefined}
+                  className="relative">
                 <button type="button"
                   onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
-                  className="w-full flex items-center gap-4 px-5 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)]"
+                  className="w-full flex items-center gap-4 ps-5 pe-2 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)]"
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >
                   {/* Number badge */}
@@ -1026,11 +1054,16 @@ export function QuranPage() {
 
                   {/* Name + meta */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex items-baseline gap-2 flex-wrap">
                       <span className="text-[17px] arabic-text font-semibold leading-snug">{s.name}</span>
                       {isCurrent && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>جاري</span>}
                       {pct >= 100 && <span className="text-[10px] font-bold shrink-0" style={{ color: "var(--ok)" }}>✓</span>}
                       {bookmarkedSurahs.has(s.id) && <Bookmark size={10} aria-hidden="true" className="shrink-0 opacity-70" style={{ color: "var(--accent)" }} />}
+                      {sajdasHere.length > 0 ? (
+                        <span title="في السورة موضع سجدة" className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/15 border border-amber-500/40 px-1.5 py-0.5 text-[9px] font-bold text-amber-200">
+                          سجدة
+                        </span>
+                      ) : null}
                     </div>
                     <div className="mt-0.5 flex items-center gap-2 text-[11px] opacity-45">
                       {s.englishName && <span lang="en">{s.englishName}</span>}
@@ -1071,6 +1104,15 @@ export function QuranPage() {
                     {toArabicNumeral(s.ayahs.length)}<br />
                     <span className="text-[10px]">آية</span>
                   </div>
+
+                  {/* Info button (Phase 1: opens SurahInfoModal) */}
+                  <button type="button"
+                    onClick={(e) => { e.stopPropagation(); setInfoSurahId(s.id); }}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); } }}
+                    aria-label={`معلومات سورة ${s.name}`}
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35">
+                    <Info size={14} aria-hidden="true" />
+                  </button>
                 </button>
                 </div>
                 </React.Fragment>
@@ -1123,7 +1165,41 @@ export function QuranPage() {
         </Card>
       )}
 
+      {/* Phase 1 — Surah info modal (opens from the i-button on each row) */}
+      <SurahInfoModal
+        open={infoSurahId !== null}
+        surah={infoSurahId !== null ? (data?.find((s) => s.id === infoSurahId) ?? null) : null}
+        onClose={() => setInfoSurahId(null)}
+      />
 
+      {/* Phase 1 — Context-aware Athar (knows which surah the user is browsing,
+          sort/filter state, recent surahs, khatma target) */}
+      <FloatingAthar
+        modalMode
+        context={{
+          icon: "📖",
+          title: lastRead
+            ? `تتصفّح القرآن — آخر قراءة: ${lastReadSurahName ?? `سورة ${lastRead.surahId}`}`
+            : "تتصفّح فهرس القرآن",
+          subtitle: [
+            filterJuz !== null ? `الجزء ${filterJuz}` : null,
+            filterRevelation ? (filterRevelation === "meccan" ? "مكية" : "مدنية") : null,
+            sortMode !== "mushaf" ? `الترتيب: ${sortMode}` : null,
+          ].filter(Boolean).join(" · "),
+          hint: `الزائر يتصفّح قائمة سور القرآن. الفلتر النشط: ${[
+            filterJuz !== null ? `الجزء ${filterJuz}` : "كل الأجزاء",
+            filterRevelation ? (filterRevelation === "meccan" ? "مكية" : "مدنية") : "كل أنواع النزول",
+            sortMode !== "mushaf" ? `الترتيب: ${sortMode}` : null,
+          ].filter(Boolean).join("، ")}. آخر قراءة: ${lastReadSurahName ?? "لم يبدأ بعد"}. السور الحديثة: ${recentSurahs.slice(0, 5).map((id) => data?.find((s) => s.id === id)?.name ?? "").filter(Boolean).join("، ")}. إذا سأل عن سورة معينة فحدّثه بمعلوماتها الأساسية واقترح الافتتاح بها.`,
+        }}
+        prefill={
+          query
+            ? `ما رأيك في سور القرآن بحسب ما أبحث عنه: «${query}»؟ اقترح ٣ سور تناسب قصدي وافتح لي أيها تريد.`
+            : lastRead
+              ? `اقترح عليَّ ختمةً أو ترتيب قراءة يناسب وضعي الحالي. آخر قراءة لي: ${lastReadSurahName ?? `سورة ${lastRead.surahId}`} (الآية ${lastRead.ayahIndex}).${khatma ? ` ختمتي: ${khatma.meta.percent}٪ مكتملة.` : ""}`
+              : "ما أحسن خطة لبدء قراءة القرآن؟ راعِ أنني مبتدئ (أو: منتظم/متقدم حسب ما تعرفه)."
+        }
+      />
     </div>
   );
 }

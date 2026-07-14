@@ -21,6 +21,12 @@ interface PageMapCache {
   pinnedAt?: number;
 }
 
+interface ExtrasCache {
+  key: string;
+  value: unknown;
+  cachedAt: number;
+}
+
 export type QuranOfflineCacheMeta = {
   cachedAt: number;
   pinnedAt?: number;
@@ -30,6 +36,7 @@ export type QuranOfflineCacheMeta = {
 class NoorQuranDexie extends Dexie {
   quranCache!: Table<QuranCache, string>;
   pageMapCache!: Table<PageMapCache, string>;
+  extrasCache!: Table<ExtrasCache, string>;
 
   constructor() {
     super("noor-quran-cache-v1");
@@ -39,6 +46,11 @@ class NoorQuranDexie extends Dexie {
     this.version(2).stores({
       quranCache: "key",
       pageMapCache: "key",
+    });
+    this.version(3).stores({
+      quranCache: "key",
+      pageMapCache: "key",
+      extrasCache: "key",
     });
   }
 }
@@ -153,5 +165,24 @@ export async function idbSetPageMapPinned(pinned: boolean): Promise<void> {
     await getDB().pageMapCache.put({ ...row, pinnedAt: pinned ? Date.now() : undefined });
   } catch {
     // ignore
+  }
+}
+
+/* ─── Generic key/value cache for translation / tafsir bundles ─────── */
+
+export async function idbGetExtras<T>(key: string): Promise<T | null> {
+  try {
+    const row = await getDB().extrasCache.get(key);
+    return (row?.value as T) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function idbSetExtras<T>(key: string, value: T): Promise<void> {
+  try {
+    await getDB().extrasCache.put({ key, value: value as unknown, cachedAt: Date.now() });
+  } catch {
+    /* best-effort */
   }
 }
