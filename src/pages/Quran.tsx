@@ -14,7 +14,7 @@ import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { FloatingAthar } from "@/components/companion/FloatingAthar";
 import { SurahInfoModal } from "@/components/quran/SurahInfoModal";
-import { sajdaInSurah } from "@/data/quranExtras";
+import { sajdaInSurah, loadQuranExtras, getEnglishRowPreview, type QuranExtras } from "@/data/quranExtras";
 import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
 
 function normalize(s: string) {
@@ -158,6 +158,8 @@ export function QuranPage() {
   const [infoSurahId, setInfoSurahId] = React.useState<number | null>(null);
   const [reciterOpen, setReciterOpen] = React.useState(false);
   const [reciterQuery, setReciterQuery] = React.useState("");
+  const [showTranslation, setShowTranslation] = React.useState(false);
+  const [extras, setExtras] = React.useState<QuranExtras | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent" | "unread" | "nearly">("mushaf");
   const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
@@ -167,6 +169,13 @@ export function QuranPage() {
   React.useEffect(() => {
     setFilterJuz(parseJuzParam(searchParams.get("juz")));
   }, [searchParams]);
+
+  // Phase 3 — Lazy-load translation + tafsir bundles in the background
+  React.useEffect(() => {
+    if (showTranslation || infoSurahId !== null) {
+      void loadQuranExtras().then(setExtras).catch(() => {});
+    }
+  }, [showTranslation, infoSurahId]);
 
   // Phase 2 — Keyboard shortcuts: "/" focuses search, "Esc" clears it
   React.useEffect(() => {
@@ -867,6 +876,21 @@ export function QuranPage() {
               <Shuffle size={14} aria-hidden="true" />
             </button>
 
+            {/* Phase 3 — Translation toggle */}
+            <button type="button"
+              onClick={() => setShowTranslation((v) => !v)}
+              aria-pressed={showTranslation}
+              aria-label={showTranslation ? "إخفاء الترجمة الإنجليزية" : "إظهار الترجمة الإنجليزية"}
+              title={showTranslation ? "إخفاء الترجمة الإنجليزية" : "إظهار الترجمة الإنجليزية"}
+              className={[
+                "h-9 px-2.5 rounded-xl border text-[11px] font-semibold transition shrink-0",
+                showTranslation
+                  ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
+                  : "bg-[var(--card)] border-[var(--stroke)] opacity-55 hover:opacity-100",
+              ].join(" ")}>
+              EN
+            </button>
+
             <label className="inline-flex h-9 items-center gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 text-xs opacity-75 transition focus-within:opacity-100">
               <Volume2 size={13} className="text-[var(--accent)]" />
               <select
@@ -1068,6 +1092,7 @@ export function QuranPage() {
               const prevJuz = idx > 0 ? getSurahJuz(sortedFiltered[idx - 1]!.id) : null;
               const showJuzHeader = sortMode === "mushaf" && !filterJuz && !query && (idx === 0 || currJuz !== prevJuz);
               const sajdasHere = sajdaInSurah(s.id);
+              const firstEnglish = showTranslation ? getEnglishRowPreview(extras, s.id) : null;
               return (
                 <React.Fragment key={s.id}>
                   {showJuzHeader && (
@@ -1137,6 +1162,12 @@ export function QuranPage() {
                         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "var(--accent)" }} />
                       </div>
                     )}
+                    {/* Phase 3 — Translation preview */}
+                    {firstEnglish ? (
+                      <p lang="en" className="mt-1.5 line-clamp-2 text-[11.5px] italic leading-5 text-[var(--muted)] border-t border-[var(--stroke)]/30 pt-1.5">
+                        {firstEnglish}
+                      </p>
+                    ) : null}
                   </div>
 
                   {/* Ayah count */}
