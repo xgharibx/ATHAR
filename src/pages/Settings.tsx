@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, RotateCw, Type, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, RotateCw, Type, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft, Search, X, Vibrate, Moon, Volume2, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import pkgJson from "../../package.json";
@@ -28,7 +28,15 @@ import {
 import { downloadMushafCore, getMushafOfflineStatus, clearMushafOfflineCore, type MushafOfflineProgress, type MushafOfflineStatus } from "@/lib/mushafOffline";
 import { QURAN_RECITERS, getReciter } from "@/lib/quranReciters";
 import { ReciterPicker } from "@/components/quran/ReciterPicker";
+import { TranslationPicker } from "@/components/quran/TranslationPicker";
+import { TRANSLATION_SOURCES, getTranslation as getTranslationAny, type TranslationId } from "@/lib/quranTranslations";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import {
+  SECTIONS,
+  SETTINGS_CATEGORIES,
+  type SettingsSectionId,
+  filterSettingsSections,
+} from "@/lib/settingsLayout";
 
 const THEME_ACCENTS: Record<NoorTheme, string> = {
   system:   "#ffd780",
@@ -87,6 +95,93 @@ function ThemeChip(props: { value: NoorTheme; label: string; active: boolean; on
       />
       {props.label}
     </button>
+  );
+}
+
+/* ── Smart Settings: 4 most-used toggles pinned to the top ──────────────── */
+function QuickTogglesStrip(props: {
+  prefs: ReturnType<typeof useNoorStore.getState>["prefs"];
+  setPrefs: ReturnType<typeof useNoorStore.getState>["setPrefs"];
+  reminders: ReturnType<typeof useNoorStore.getState>["reminders"];
+  setReminders: ReturnType<typeof useNoorStore.getState>["setReminders"];
+}) {
+  const { prefs, setPrefs, reminders, setReminders } = props;
+  const isDark =
+    prefs.theme === "dark" ||
+    prefs.theme === "noor" ||
+    prefs.theme === "midnight" ||
+    prefs.theme === "forest";
+  const toggleDark = (next: boolean) => {
+    setPrefs({ theme: next ? "dark" : "light" });
+  };
+  // Sound ≈ reminder.soundProfile being non-default + reminders.enabled — the most
+  // common reason users toggle "sound" is to silence reminders.
+  const soundOn = reminders.enabled;
+  const toggleSound = (next: boolean) => setReminders({ enabled: next });
+
+  const cycleSoundProfile = () => {
+    const idx = REMINDER_SOUND_OPTIONS.findIndex((o) => o.id === reminders.soundProfile);
+    const next = REMINDER_SOUND_OPTIONS[(idx + 1) % REMINDER_SOUND_OPTIONS.length];
+    if (next) setReminders({ soundProfile: next.id });
+  };
+
+  return (
+    <div className="mt-2 flex gap-1.5 overflow-x-auto no-scrollbar" role="toolbar" aria-label="تبديلات سريعة">
+      <button
+        type="button"
+        aria-pressed={!!prefs.enableHaptics}
+        onClick={() => setPrefs({ enableHaptics: !prefs.enableHaptics })}
+        className={[
+          "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11.5px] transition",
+          prefs.enableHaptics
+            ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
+            : "border-[var(--stroke)] bg-[var(--card)] opacity-80",
+        ].join(" ")}
+        title="اهتزاز"
+      >
+        <Vibrate size={12} aria-hidden="true" />
+        اهتزاز
+      </button>
+      <button
+        type="button"
+        aria-pressed={soundOn}
+        onClick={() => toggleSound(!soundOn)}
+        className={[
+          "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11.5px] transition",
+          soundOn
+            ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
+            : "border-[var(--stroke)] bg-[var(--card)] opacity-80",
+        ].join(" ")}
+        title="الأصوات"
+      >
+        <Volume2 size={12} aria-hidden="true" />
+        الأصوات
+      </button>
+      <button
+        type="button"
+        aria-pressed={isDark}
+        onClick={() => toggleDark(!isDark)}
+        className={[
+          "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11.5px] transition",
+          isDark
+            ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
+            : "border-[var(--stroke)] bg-[var(--card)] opacity-80",
+        ].join(" ")}
+        title="الوضع الداكن"
+      >
+        <Moon size={12} aria-hidden="true" />
+        ليلي
+      </button>
+      <button
+        type="button"
+        onClick={cycleSoundProfile}
+        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] text-[11.5px] transition"
+        title="صوت التذكير"
+      >
+        <Bell size={12} aria-hidden="true" />
+        {REMINDER_SOUND_OPTIONS.find((o) => o.id === reminders.soundProfile)?.label ?? "صوت"}
+      </button>
+    </div>
   );
 }
 
@@ -262,33 +357,133 @@ export function SettingsPage() {
     }
   };
 
+  // ── Smart Settings: search + auto-highlight nav + collapse-by-default ──
+  const [search, setSearch] = React.useState("");
+  const [activeSection, setActiveSection] = React.useState<SettingsSectionId | null>(null);
+  const visibleIds = React.useMemo(() => filterSettingsSections(search), [search]);
+  const visibleSet = React.useMemo(() => new Set(visibleIds), [visibleIds]);
+
+  // Auto-highlight the section currently in view (IntersectionObserver).
+  React.useEffect(() => {
+    const targets = SECTIONS
+      .map((s) => document.getElementById(`settings-${s.id}`))
+      .filter((el): el is HTMLElement => !!el);
+    if (targets.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]?.target.id) {
+          const id = visible[0].target.id.replace(/^settings-/, "") as SettingsSectionId;
+          setActiveSection((cur) => (cur === id ? cur : id));
+        }
+      },
+      { rootMargin: "-20% 0px -55% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
+    );
+    for (const t of targets) observer.observe(t);
+    return () => observer.disconnect();
+  }, []);
+
+  // Toggle each <#settings-*> section's visibility based on the search query.
+  // Avoids touching every Card body in this 1700-line file; the filter just sets
+  // display:none on whole anchors. Default-opened section is exempted.
+  React.useEffect(() => {
+    for (const s of SECTIONS) {
+      const el = document.getElementById(`settings-${s.id}`);
+      if (!el) continue;
+      const visible = visibleSet.has(s.id);
+      el.style.display = visible ? "" : "none";
+    }
+    return () => {
+      // On unmount, restore everything so navigating away doesn't leave stale styles.
+      for (const s of SECTIONS) {
+        const el = document.getElementById(`settings-${s.id}`);
+        if (el) el.style.display = "";
+      }
+    };
+  }, [visibleSet]);
+
   return (
     <div className="space-y-4 page-enter">
-      {/* ── Quick section jump-nav ── */}
-      <div
-        className="flex gap-2 overflow-x-auto no-scrollbar pb-1 px-1"
-        role="navigation"
-        aria-label="انتقال سريع لأقسام الإعدادات"
-      >
-        {([
-          { label: "🎨 المظهر",     id: "settings-appearance" },
-          { label: "🏠 الرئيسية",   id: "settings-home-widgets" },
-          { label: "📖 القراءة",    id: "settings-reading" },
-          { label: "📜 القرآن",     id: "settings-quran" },
-          { label: "📿 التسبيح",   id: "settings-tasbeeh" },
-          { label: "🔔 التذكيرات", id: "settings-reminders" },
-          { label: "💾 النسخ",     id: "settings-backup" },
-        ] as const).map(({ label, id }) => (
-          <button
-            type="button"
-            key={id}
-            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            className="shrink-0 text-xs px-3 py-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] transition whitespace-nowrap"
-          >
-            {label}
-          </button>
-        ))}
+      {/* ── Search bar ── */}
+      <div className="sticky top-0 z-20 -mx-3 px-3 pt-1 pb-2 bg-gradient-to-b from-[var(--bg)] via-[var(--bg)] to-[var(--bg)]/85 backdrop-blur-md">
+        <div className="relative">
+          <Search size={14} className="absolute top-1/2 -translate-y-1/2 start-3 opacity-50 pointer-events-none" aria-hidden="true" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ابحث في الإعدادات… (مظهر، تذكيرات، ترجمة…)"
+            aria-label="البحث في الإعدادات"
+            className="w-full ps-9 pe-9 py-2.5 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] text-sm focus:outline-none focus:ring-2 focus:ring-accent-30 placeholder:opacity-50"
+          />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute top-1/2 -translate-y-1/2 end-2 p-1 rounded-full hover:bg-[var(--card-2)] opacity-60 hover:opacity-100"
+              aria-label="مسح البحث"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+
+        {/* ── Quick toggles — 4 most-used prefs always one tap away ── */}
+        <QuickTogglesStrip prefs={prefs} setPrefs={setPrefs} reminders={reminders} setReminders={setReminders} />
+
+        {/* ── Smart sticky section nav (auto-highlights currently visible section) ── */}
+        <nav
+          className="mt-2 flex gap-1.5 overflow-x-auto no-scrollbar"
+          aria-label="انتقال سريع لأقسام الإعدادات"
+        >
+          {SECTIONS
+            .filter((s) => visibleSet.has(s.id))
+            .map((s) => {
+              const isActive = activeSection === s.id;
+              return (
+                <button
+                  type="button"
+                  key={s.id}
+                  onClick={() => document.getElementById(`settings-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  aria-current={isActive ? "true" : undefined}
+                  className={[
+                    "shrink-0 text-[11.5px] px-2.5 py-1.5 rounded-full border transition whitespace-nowrap",
+                    isActive
+                      ? "bg-accent-20 border-accent-40 text-[var(--accent)] font-semibold"
+                      : "border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)]",
+                  ].join(" ")}
+                >
+                  {s.icon} {s.title}
+                </button>
+              );
+            })}
+          {visibleIds.length === 0 ? (
+            <span className="text-[11.5px] opacity-55 px-2 py-1.5">لا توجد نتائج لـ «{search}»</span>
+          ) : null}
+        </nav>
       </div>
+
+      {/* Render category dividers as visual breaks between grouped cards. */}
+      {SETTINGS_CATEGORIES.map((cat) => {
+        const grouped = visibleIds.filter((id) => {
+          const sec = SECTIONS.find((s) => s.id === id);
+          return sec?.category === cat.id;
+        });
+        if (grouped.length === 0) return null;
+        return (
+          <div
+            key={cat.id}
+            className="flex items-center gap-3 px-1 pt-2"
+            aria-hidden="true"
+          >
+            <div className="text-[11px] font-semibold opacity-65 tracking-wide">{cat.title}</div>
+            <div className="text-[10px] opacity-45">{cat.description}</div>
+            <div className="flex-1 h-px bg-[var(--stroke)]" />
+          </div>
+        );
+      })}
 
       {/* Quick backup strip */}
       <div className="flex items-center justify-between gap-3 px-1">
@@ -791,6 +986,7 @@ export function SettingsPage() {
       </Card>
 
       <QuranSettingsCard />
+      <TranslationSettingsCard />
 
       <Card id="settings-tasbeeh" className="p-5">
         <div className="flex items-center gap-2">
@@ -1407,6 +1603,54 @@ export function SettingsPage() {
         onClose={() => setShowReciterPicker(false)}
       />
     </div>
+  );
+}
+
+function TranslationSettingsCard() {
+  const prefs = useNoorStore((s) => s.prefs);
+  const setPrefs = useNoorStore((s) => s.setPrefs);
+  const [status, setStatus] = React.useState<Partial<Record<TranslationId, "ready">>>({});
+
+  React.useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const next: Partial<Record<TranslationId, "ready">> = {};
+      for (const src of TRANSLATION_SOURCES) {
+        if (src.bundled) continue;
+        try {
+          await getTranslationAny(src.id, 1);
+          if (cancelled) return;
+          next[src.id] = "ready";
+        } catch {
+          // Network failure is non-fatal — Saheeh is the safe fallback.
+        }
+      }
+      if (!cancelled) setStatus(next);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <Card id="settings-translation" className="p-5">
+      <div className="flex items-center gap-2">
+        <Globe size={18} className="text-[var(--accent)]" aria-hidden="true" />
+        <div className="font-semibold">ترجمة القرآن</div>
+      </div>
+      <div className="mt-1 text-[11px] text-[var(--muted-2)]">
+        اختر مصدر الترجمة الذي يظهر أسفل كل آية في المصحف.
+      </div>
+      <div className="mt-4">
+        <TranslationPicker
+          enabled={!!prefs.mushafShowTranslation}
+          value={(prefs.quranTranslationId as TranslationId | undefined) ?? "saheeh"}
+          onEnabledChange={(v) => setPrefs({ mushafShowTranslation: v })}
+          onChange={(id) => setPrefs({ quranTranslationId: id })}
+          status={status}
+        />
+      </div>
+    </Card>
   );
 }
 

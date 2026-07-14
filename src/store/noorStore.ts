@@ -75,6 +75,8 @@ export type Preferences = {
   mushafWbwMode?: boolean; // persist word-by-word translation toggle
   mushafTajweedMode?: boolean; // persist tajweed color coding toggle
   mushafCleanMode?: boolean; // premium minimal borderless reading layout (default on)
+  mushafShowTranslation?: boolean; // master toggle for translation overlay in Mushaf
+  quranTranslationId?: "saheeh" | "yusuf_ali" | "jalandhry";
   quranSortMode?: "mushaf" | "progress" | "recent" | "unread" | "nearly";
   quranFilterJuz?: number | null;
   quranFilterRevelation?: "all" | "meccan" | "medinan" | null;
@@ -439,6 +441,8 @@ const DEFAULT_PREFS: Preferences = {
   quranSortMode: "mushaf" as const,
   quranFilterJuz: null,
   quranFilterRevelation: "all" as const,
+  mushafShowTranslation: false,
+  quranTranslationId: "saheeh" as const,
   quranLetterSpacing: 0,
   quranWordSpacing: 0,
   quranScrollMode: "page" as const,
@@ -817,6 +821,8 @@ export const useNoorStore = create<NoorState>()(
 
       quranReadingHistory: {},
       reviewedPagesToday: [] as string[],
+      mushafShowTranslation: false,
+      quranTranslationId: "saheeh" as const,
 
       quranStreak: 0,
       quranLastReadDate: null,

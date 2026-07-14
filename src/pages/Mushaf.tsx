@@ -542,10 +542,30 @@ export function MushafPage() {
   }>({ active: false, loop: false, loopRemaining: 0, advance: false, speed: 1, items: [], currentIdx: 0, useRange: false, rangeStartIdx: 0, rangeEndIdx: 0 });
   const playItemCoreRef = React.useRef<((surahId: number, originalAyah: number, displayAyah: number) => void) | null>(null);
 
-  // Q3: Translation
-  const [showTranslation, setShowTranslation] = React.useState(true);
+  // Q3: Translation — initialized from prefs so the Settings picker drives Mushaf.
+  const [showTranslation, setShowTranslation] = React.useState(() => prefs.mushafShowTranslation ?? true);
+  // Wrap the setter to mirror into prefs so the Settings picker stays in sync
+  // with the in-Mushaf toggle ("t" key, action bar, etc.).
+  const setShowTranslationPref = React.useCallback((v: boolean | ((prev: boolean) => boolean)) => {
+    setShowTranslation((prev) => {
+      const next = typeof v === "function" ? v(prev) : v;
+      setPrefs({ mushafShowTranslation: next });
+      return next;
+    });
+  }, [setPrefs]);
   const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
-  const [translationSource, setTranslationSource] = React.useState<string>("bundled-en-sahih");
+  const quranTranslationId = prefs.quranTranslationId ?? "saheeh";
+  const translationSource = React.useMemo(() => {
+    switch (quranTranslationId) {
+      case "yusuf_ali": return "eng_abdullahyusufal";
+      case "jalandhry": return "urd_fatehmuhammadja";
+      case "saheeh":
+      default: return "bundled-en-sahih";
+    }
+  }, [quranTranslationId]);
+  const setTranslationSource = React.useCallback((_slug: string) => {
+    // The Settings picker owns this — local UI changes are ignored.
+  }, []);
   const prevTranslationSourceRef = React.useRef(translationSource);
 
   // Q11-B: Inline tafseer mode (قراءة mode)
@@ -1003,7 +1023,7 @@ export function MushafPage() {
       if (e.key === "ArrowLeft") { e.preventDefault(); goPage(currentPage + 1); }
       else if (e.key === "ArrowRight") { e.preventDefault(); goPage(currentPage - 1); }
       else if (e.key === "m") setMemorizationMode((v) => { if (v) setRevealedItems(new Set()); return !v; });
-      else if (e.key === "t") setShowTranslation((v) => !v);
+      else if (e.key === "t") setShowTranslationPref((v) => !v);
       else if (e.key === "/") { e.preventDefault(); setShowSearch((v) => !v); }
       else if (e.key === "s") setShowSettings((v) => !v);
       else if (e.key === "Escape") {
@@ -1019,7 +1039,7 @@ export function MushafPage() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [currentPage, goPage, handleBack, navigate, noteSheetOpen, selectedItem, showJump, showSettings, showSearch, tafsirItem]);
+  }, [currentPage, goPage, handleBack, navigate, noteSheetOpen, selectedItem, setShowTranslationPref, showJump, showSettings, showSearch, tafsirItem]);
 
   // Share selected ayah
   const doCopy = async () => {
@@ -1680,7 +1700,9 @@ export function MushafPage() {
                         {" "}
                         {/* Q3: Inline translation (only show if wbw mode is off) */}
                         {!wbwVerse && transText ? (
-                          <span className="mushaf-trans-inline" dir="ltr">{transText}</span>
+                          <p className="mushaf-trans-inline italic opacity-65 text-[0.72em] leading-6 mt-1 px-1" dir="ltr" lang="en">
+                            {transText}
+                          </p>
                         ) : null}
                       </span>
                     );
@@ -2312,7 +2334,7 @@ export function MushafPage() {
               <div className="flex items-center justify-between">
                 <span className="text-xs opacity-65">{getTranslationLabel(translationSource)}</span>
                 <button type="button"
-                  onClick={() => setShowTranslation((v) => !v)}
+                  onClick={() => setShowTranslationPref((v) => !v)}
                   className={`relative w-12 h-6 rounded-full transition-colors ${showTranslation ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
                   role="switch" aria-checked={showTranslation}
                 >
@@ -2629,7 +2651,7 @@ export function MushafPage() {
               { label: "بحث في الصفحة", sub: "ابحث داخل آيات الصفحة الحالية", icon: <Search size={16} aria-hidden="true" />, active: showSearch,
                 onPress: () => { setShowSearch((v) => !v); if (showSearch) setInPageSearch(""); setShowMoreSheet(false); } },
               { label: "الترجمة", sub: getTranslationLabel(translationSource), icon: <Languages size={16} aria-hidden="true" />, active: showTranslation,
-                onPress: () => { setShowTranslation((v) => !v); setShowMoreSheet(false); } },
+                onPress: () => { setShowTranslationPref((v) => !v); setShowMoreSheet(false); } },
               { label: memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ", sub: "اختبر حفظك آية بآية", icon: memorizationMode ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />, active: memorizationMode,
                 onPress: () => { setMemorizationMode((v) => { if (v) setRevealedItems(new Set()); return !v; }); flashChrome(); setShowMoreSheet(false); } },
             ] as Array<{ label: string; sub: string; icon: React.ReactNode; active: boolean; onPress: () => void }>).map(({ label, sub, icon, active, onPress }) => (
