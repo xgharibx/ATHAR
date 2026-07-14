@@ -416,6 +416,7 @@ type NoorState = {
   // Recently visited surahs (most recent first, max 10)
   recentSurahs: number[];
   recordRecentSurah: (surahId: number) => void;
+  removeRecentSurah: (surahId: number) => void;
 };
 
 export const DEFAULT_HOME_WIDGETS_ORDER: HomeWidgetKey[] = ["prayer", "hadith", "wisdom", "smart", "checklist", "dailyVerse", "dailyStep", "tasbeeh", "dailyWird", "quests"];
@@ -1371,6 +1372,8 @@ export const useNoorStore = create<NoorState>()(
         set((s) => ({
           recentSurahs: [surahId, ...s.recentSurahs.filter((x) => x !== surahId)].slice(0, 10),
         })),
+      removeRecentSurah: (surahId) =>
+        set((s) => ({ recentSurahs: s.recentSurahs.filter((x) => x !== surahId) })),
 
       localFriends: [],
       addLocalFriend: (f) =>

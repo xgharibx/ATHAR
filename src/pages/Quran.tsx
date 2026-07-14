@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, Filter } from "lucide-react";
+import {
+  Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, Filter, Plus } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
@@ -146,6 +147,7 @@ export function QuranPage() {
 
   const recentSurahs = useNoorStore((s) => s.recentSurahs);
   const recordRecentSurah = useNoorStore((s) => s.recordRecentSurah);
+  const removeRecentSurah = useNoorStore((s) => s.removeRecentSurah);
 
   const todayISO = React.useMemo(() => {
     const d = new Date();
@@ -551,25 +553,72 @@ export function QuranPage() {
         </div>
 
         {/* ── Continue reading strip ─────────────────────── */}
-        {lastRead ? (
-          <button type="button"
-            onClick={() => navigate(`/mushaf?surah=${lastRead.surahId}&ayah=${lastRead.ayahIndex}`)}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-right transition hover:brightness-110 active:scale-[0.99]"
-            style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 50%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, transparent)" }}
-          >
-            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 18%, transparent)" }}>
-              <BookOpen size={16} aria-hidden="true" style={{ color: "var(--accent)" }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-semibold" style={{ color: "var(--accent)" }}>متابعة القراءة</div>
-              <div className="text-sm arabic-text opacity-70 truncate mt-0.5">
-                {lastReadSurahName ?? `سورة ${lastRead.surahId}`}
-                {lastRead.ayahIndex > 0 ? ` · الآية ${toArabicNumeral(lastRead.ayahIndex)}` : ""}
+        {lastRead ? (() => {
+          // Compute "next unread ayah" for the user — look at the surah
+          // they were last reading and find the first ayah that hasn't been
+          // marked read in quranReadingHistory.
+          const nextUnread = React.useMemo(() => {
+            if (!data || !lastRead) return null;
+            const surah = data.find((s) => s.id === lastRead.surahId);
+            if (!surah) return null;
+            const read = readingHistory[String(surah.id)] ?? 0;
+            if (read >= surah.ayahs.length) {
+              // Look in the next surah in mushaf order
+              const idx = data.findIndex((s) => s.id === surah.id);
+              for (let i = 1; i < data.length; i++) {
+                const next = data[(idx + i) % data.length];
+                if (!next) continue;
+                const r = readingHistory[String(next.id)] ?? 0;
+                if (r < next.ayahs.length) return { surah: next, ayahIndex: r + 1 };
+              }
+              return null;
+            }
+            return { surah, ayahIndex: Math.max(1, read + 1) };
+          }, [data, lastRead, readingHistory]);
+          const continueAyahText = React.useMemo(() => {
+            if (!lastRead || !data) return null;
+            const surah = data.find((s) => s.id === lastRead.surahId);
+            const idx = (lastRead.ayahIndex ?? 1) - 1;
+            return surah?.ayahs[idx] ?? null;
+          }, [data, lastRead]);
+
+          return (
+            <div
+              className="w-full px-5 py-3.5 flex items-center gap-3 flex-wrap"
+              style={{ borderTop: "1px solid color-mix(in srgb, var(--stroke) 50%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, transparent)" }}
+            >
+              <div role="button" tabIndex={0}
+                onClick={() => navigate(`/mushaf?surah=${lastRead.surahId}&ayah=${lastRead.ayahIndex}`)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/mushaf?surah=${lastRead.surahId}&ayah=${lastRead.ayahIndex}`); } }}
+                aria-label="متابعة القراءة"
+                className="flex flex-1 min-w-0 items-center gap-3 text-right transition hover:brightness-110 cursor-pointer focus:outline-none">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 18%, transparent)" }}>
+                  <BookOpen size={16} aria-hidden="true" style={{ color: "var(--accent)" }} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-semibold" style={{ color: "var(--accent)" }}>متابعة القراءة</div>
+                  <div className="text-sm arabic-text opacity-70 truncate mt-0.5">
+                    {lastReadSurahName ?? `سورة ${lastRead.surahId}`}
+                    {lastRead.ayahIndex > 0 ? ` · الآية ${toArabicNumeral(lastRead.ayahIndex)}` : ""}
+                  </div>
+                  {continueAyahText ? (
+                    <p className="arabic-text text-[12.5px] opacity-55 leading-5 line-clamp-1 mt-0.5" dir="rtl">{continueAyahText}</p>
+                  ) : null}
+                </div>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-30 shrink-0" aria-hidden="true"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </div>
+              {nextUnread ? (
+                <button type="button"
+                  onClick={() => navigate(`/mushaf?surah=${nextUnread.surah.id}&ayah=${nextUnread.ayahIndex}`)}
+                  className="rounded-xl border border-accent-35 bg-accent-15 px-3 py-2 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-accent-15/80 active:scale-95"
+                  title="أوّل آية لم تُقرأ بعد">
+                  <span className="me-1">التالي</span>
+                  <span className="opacity-70">{toArabicNumeral(nextUnread.surah.id)}:{toArabicNumeral(nextUnread.ayahIndex)}</span>
+                </button>
+              ) : null}
             </div>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-30 shrink-0" aria-hidden="true"><path d="M10 8L6 4M10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          </button>
-        ) : null}
+          );
+        })() : null}
 
         {/* ── Stats row (compact, only when reading started) ── */}
         {quranStats.started > 0 && (
@@ -973,16 +1022,28 @@ export function QuranPage() {
                   if (!surah) return null;
                   const pct = surah.ayahs.length ? Math.min(100, Math.round(((readingHistory[String(sid)] ?? 0) / surah.ayahs.length) * 100)) : 0;
                   return (
-                    <button
-                      key={sid}
-                      type="button"
-                      onClick={() => { recordRecentSurah(sid); navigate(`/mushaf?surah=${sid}`); }}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs transition active:scale-95"
-                      style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)", color: "var(--accent)" }}
-                    >
-                      <span className="arabic-text font-semibold">{surah.name}</span>
-                      {pct > 0 && <span className="opacity-60 tabular-nums">{pct.toLocaleString("ar-EG")}٪</span>}
-                    </button>
+                    <div key={sid} className="group inline-flex items-center rounded-xl transition"
+                      style={{ background: "color-mix(in srgb, var(--accent) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }}>
+                      <button
+                        type="button"
+                        onClick={() => { recordRecentSurah(sid); navigate(`/mushaf?surah=${sid}`); }}
+                        onContextMenu={(e) => { e.preventDefault(); removeRecentSurah(sid); }}
+                        className="flex items-center gap-1.5 ps-2.5 pe-1 py-1.5 text-xs transition active:scale-95"
+                        style={{ color: "var(--accent)" }}
+                      >
+                        <span className="arabic-text font-semibold">{surah.name}</span>
+                        {pct > 0 && <span className="opacity-60 tabular-nums">{pct.toLocaleString("ar-EG")}٪</span>}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); removeRecentSurah(sid); }}
+                        aria-label={`إزالة ${surah.name} من التصفّح الأخير`}
+                        className="grid h-6 w-6 me-1 place-items-center rounded-md text-[var(--accent)] opacity-0 group-hover:opacity-100 transition"
+                        style={{ background: "color-mix(in srgb, var(--accent) 18%, transparent)" }}
+                      >
+                        <X size={11} aria-hidden="true" />
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -1116,9 +1177,12 @@ export function QuranPage() {
                   )}
                 <div role="listitem" ref={isCurrent ? currentSurahRef : undefined}
                   className="relative">
-                <button type="button"
+                <div role="button"
+                  tabIndex={0}
                   onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
-                  className="w-full flex items-center gap-4 ps-5 pe-2 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)]"
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); } }}
+                  aria-label={`سورة ${s.name} — ${s.ayahs.length} آية`}
+                  className="w-full flex items-center gap-4 ps-5 pe-2 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)] cursor-pointer focus:outline-none focus:bg-accent-8"
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >
                   {/* Number badge */}
@@ -1203,7 +1267,7 @@ export function QuranPage() {
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35">
                     <Info size={14} aria-hidden="true" />
                   </button>
-                </button>
+                </div>
                 </div>
                 </React.Fragment>
               );
