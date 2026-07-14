@@ -26,7 +26,8 @@ import {
   syncReminders
 } from "@/lib/reminders";
 import { downloadMushafCore, getMushafOfflineStatus, type MushafOfflineProgress, type MushafOfflineStatus } from "@/lib/mushafOffline";
-import { QURAN_RECITERS } from "@/lib/quranReciters";
+import { QURAN_RECITERS, getReciter } from "@/lib/quranReciters";
+import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 
 const THEME_ACCENTS: Record<NoorTheme, string> = {
@@ -101,6 +102,7 @@ export function SettingsPage() {
   const importState = useNoorStore((s) => s.importState);
   const sebhaTarget = useNoorStore((s) => s.sebhaTarget);
   const setSebhaTarget = useNoorStore((s) => s.setSebhaTarget);
+  const [showReciterPicker, setShowReciterPicker] = React.useState(false);
   const favorites = useNoorStore((s) => s.favorites);
   const quranBookmarks = useNoorStore((s) => s.quranBookmarks);
   const activity = useNoorStore((s) => s.activity);
@@ -762,30 +764,27 @@ export function SettingsPage() {
             </div>
           </div>
 
-          {/* ── Reciter selection ──── */}
+          {/* ── Reciter selection (unified picker, same as Quran + Mushaf) ──── */}
           <SettingRow
             title="القارئ"
-            desc="اختر صوت التلاوة للاستماع"
+            desc="اختر صوت التلاوة للاستماع. التصنيفات تسهّل الاختيار من بين 28 صوتًا."
             right={null}
           />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {QURAN_RECITERS.map((r) => (
-              <button type="button"
-                key={r.id}
-                onClick={() => setPrefs({ quranReciter: r.id })}
-                aria-pressed={(prefs.quranReciter ?? "Alafasy_128kbps") === r.id}
-                className={[
-                  "px-3 py-2.5 rounded-2xl border text-sm transition flex items-center gap-2 min-h-[44px] text-right",
-                  (prefs.quranReciter ?? "Alafasy_128kbps") === r.id
-                    ? "bg-accent-15 border-accent-35"
-                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
-                ].join(" ")}
-              >
-                <span className="text-base shrink-0" aria-hidden="true">🎙</span>
-                <span className="text-xs">{r.label}</span>
-              </button>
-            ))}
-          </div>
+          <button type="button"
+            onClick={() => setShowReciterPicker(true)}
+            aria-label="اختيار القارئ"
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3 text-start transition hover:border-accent-35 active:scale-[0.99]">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-15 border border-accent-35 text-base">🎙</span>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold">{getReciter(prefs.quranReciter ?? "Alafasy_128kbps")?.label ?? "القارئ"}</div>
+                <div className="truncate text-[10.5px] text-[var(--muted-2)]">
+                  اضغط للاختيار من {QURAN_RECITERS.length.toLocaleString("ar-EG")} قارئًا مع بحث
+                </div>
+              </div>
+            </div>
+            <span className="text-[var(--muted-2)] text-sm">←</span>
+          </button>
 
         </div>
       </Card>
@@ -1397,6 +1396,13 @@ export function SettingsPage() {
       <div className="text-[11px] opacity-40 text-center pb-2 leading-5">
         ATHAR • أثر · v{pkgJson.version} · بيانات محلية
       </div>
+
+      <ReciterPicker
+        open={showReciterPicker}
+        value={prefs.quranReciter ?? "Alafasy_128kbps"}
+        onChange={(id) => setPrefs({ quranReciter: id })}
+        onClose={() => setShowReciterPicker(false)}
+      />
     </div>
   );
 }
