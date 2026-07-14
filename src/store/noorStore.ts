@@ -101,7 +101,24 @@ export type Preferences = {
   homeStripOrder?: string[]; // ordered IDs of azkar strip cards
   mushafTextColor?: string; // custom Mushaf text colour hex
   bgVibrancyBoost?: boolean; // boost background vibrancy
+  tasbeehStreakEnabled?: boolean; // track daily tasbih streak
+  tasbeehDailyGoal?: number; // target per day (0 = off)
+  tasbeehLongPressEnabled?: boolean; // hold-to-increment
+  tasbeehVolumeKeysEnabled?: boolean; // volume up/down counts (Android)
+  tasbeehSoundProfile?: "chime_bell" | "soft_ping" | "rising_3" | "single_tap";
+  tasbeehMascotEnabled?: boolean; // show decorative per-dhikr icon
 };
+
+export type CustomDhikr = {
+  id: string;
+  phrase: string;
+  transliteration?: string;
+  target: number;
+  color: string; // accent hex
+  createdAt: string;
+};
+
+export type SoundProfile = "chime_bell" | "soft_ping" | "rising_3" | "single_tap";
 
 export type SebhaSession = {
   dhikrKey: string;
@@ -181,6 +198,13 @@ export type ExportBlobV1 = {
   sebhaCustom?: { phrase: string; target: number } | null;
   tasbeehLifetime?: Record<string, number>;
   tasbeehDailyLog?: Record<string, Record<string, number>>;
+  sebhaCustomList?: Array<{ id: string; phrase: string; transliteration?: string; target: number; color: string; createdAt: string }>;
+  tasbeehStreak?: number;
+  tasbeehStreakBest?: number;
+  tasbeehLastActiveDate?: string | null;
+  tasbeehDailyGoal?: number;
+  tasbeehGoalCelebratedDate?: string | null;
+  asmaHusnaCounts?: Record<number, number>;
   prayerLog?: Record<string, Record<string, boolean>>;
   favoriteCities?: Array<{ id: string; city: string; country: string; label: string }>;
   quranBookmarks?: Record<string, boolean>;
@@ -267,6 +291,29 @@ type NoorState = {
   // Sebha custom dhikr
   sebhaCustom: { phrase: string; target: number } | null;
   setSebhaCustom: (v: { phrase: string; target: number } | null) => void;
+
+  // Sebha multi-custom-dhikr list (CRUD + reorder)
+  sebhaCustomList: CustomDhikr[];
+  addSebhaCustomItem: (item: Omit<CustomDhikr, "id" | "createdAt">) => string;
+  updateSebhaCustomItem: (id: string, patch: Partial<Omit<CustomDhikr, "id" | "createdAt">>) => void;
+  deleteSebhaCustomItem: (id: string) => void;
+  reorderSebhaCustomList: (id: string, direction: "up" | "down") => void;
+
+  // Streak tracking
+  tasbeehStreak: number;
+  tasbeehStreakBest: number;
+  tasbeehLastActiveDate: string | null;
+  recordTasbeehActivity: (dateKey: string) => void;
+
+  // Daily goal
+  tasbeehDailyGoal: number; // 0 = off
+  setTasbeehDailyGoal: (n: number) => void;
+  tasbeehGoalCelebratedDate: string | null;
+  markTasbeehGoalCelebrated: (dateKey: string) => void;
+
+  // Per-name Asma Husna counts (1..99)
+  asmaHusnaCounts: Record<number, number>;
+  incAsmaHusnaCount: (id: number, target?: number) => number;
 
   // Prayer log (P9)
   prayerLog: Record<string, Record<string, boolean>>; // dateISO -> prayerName -> prayed
@@ -466,6 +513,12 @@ const DEFAULT_PREFS: Preferences = {
   autoAdvanceDhikr: true,
   prayerCalcMethod: 5,
   asrMadhab: 0,
+  tasbeehStreakEnabled: true,
+  tasbeehDailyGoal: 0,
+  tasbeehLongPressEnabled: true,
+  tasbeehVolumeKeysEnabled: false,
+  tasbeehSoundProfile: "rising_3",
+  tasbeehMascotEnabled: true,
   homeWidgets: {
     prayer: true,
     hadith: true,
@@ -776,6 +829,82 @@ export const useNoorStore = create<NoorState>()(
 
       sebhaCustom: null,
       setSebhaCustom: (v) => set({ sebhaCustom: v }),
+
+      sebhaCustomList: [],
+      addSebhaCustomItem: (item) => {
+        const id = `dc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const full: CustomDhikr = { ...item, id, createdAt: new Date().toISOString() };
+        set((s) => ({ sebhaCustomList: [...s.sebhaCustomList, full] }));
+        return id;
+      },
+      updateSebhaCustomItem: (id, patch) =>
+        set((s) => ({
+          sebhaCustomList: s.sebhaCustomList.map((c) => (c.id === id ? { ...c, ...patch } : c)),
+        })),
+      deleteSebhaCustomItem: (id) =>
+        set((s) => ({
+          sebhaCustomList: s.sebhaCustomList.filter((c) => c.id !== id),
+          quickTasbeeh: Object.fromEntries(
+            Object.entries(s.quickTasbeeh).filter(([k]) => k !== `custom:${id}`)
+          ),
+        })),
+      reorderSebhaCustomList: (id, direction) =>
+        set((s) => {
+          const idx = s.sebhaCustomList.findIndex((c) => c.id === id);
+          if (idx < 0) return {};
+          const swap = direction === "up" ? idx - 1 : idx + 1;
+          if (swap < 0 || swap >= s.sebhaCustomList.length) return {};
+          const next = s.sebhaCustomList.slice();
+          [next[idx], next[swap]] = [next[swap], next[idx]];
+          return { sebhaCustomList: next };
+        }),
+
+      tasbeehStreak: 0,
+      tasbeehStreakBest: 0,
+      tasbeehLastActiveDate: null,
+      recordTasbeehActivity: (dateKey) => {
+        set((s) => {
+          if (s.tasbeehLastActiveDate === dateKey) return {};
+          const prev = s.tasbeehLastActiveDate;
+          const yesterday = (() => {
+            const d = new Date(dateKey + "T00:00:00");
+            d.setDate(d.getDate() - 1);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          })();
+          let next = 1;
+          if (prev === yesterday) next = s.tasbeehStreak + 1;
+          else if (prev === dateKey) next = s.tasbeehStreak;
+          return {
+            tasbeehStreak: next,
+            tasbeehStreakBest: Math.max(s.tasbeehStreakBest, next),
+            tasbeehLastActiveDate: dateKey,
+          };
+        });
+      },
+
+      tasbeehDailyGoal: 0,
+      setTasbeehDailyGoal: (n) => set({ tasbeehDailyGoal: Math.max(0, Math.min(10000, n)) }),
+      tasbeehGoalCelebratedDate: null,
+      markTasbeehGoalCelebrated: (dateKey) => set({ tasbeehGoalCelebratedDate: dateKey }),
+
+      asmaHusnaCounts: {},
+      incAsmaHusnaCount: (id, target = 100) => {
+        const before = Number(get().asmaHusnaCounts[id] ?? 0);
+        if (before >= target) return before;
+        const next = before + 1;
+        const dateKey = todayISO();
+        set((s) => {
+          const lifetime = { ...s.tasbeehLifetime, [`asma:${id}`]: (s.tasbeehLifetime[`asma:${id}`] ?? 0) + 1 };
+          const day = { ...(s.tasbeehDailyLog[dateKey] ?? {}) };
+          day[`asma:${id}`] = (day[`asma:${id}`] ?? 0) + 1;
+          return {
+            asmaHusnaCounts: { ...s.asmaHusnaCounts, [id]: next },
+            tasbeehLifetime: lifetime,
+            tasbeehDailyLog: { ...s.tasbeehDailyLog, [dateKey]: day },
+          };
+        });
+        return next;
+      },
 
       sebhaSelected: "subhanallah",
       setSebhaSelected: (v) => set({ sebhaSelected: v }),
@@ -1161,6 +1290,13 @@ export const useNoorStore = create<NoorState>()(
           sebhaCustom: s.sebhaCustom,
           tasbeehLifetime: s.tasbeehLifetime,
           tasbeehDailyLog: s.tasbeehDailyLog,
+          sebhaCustomList: s.sebhaCustomList,
+          tasbeehStreak: s.tasbeehStreak,
+          tasbeehStreakBest: s.tasbeehStreakBest,
+          tasbeehLastActiveDate: s.tasbeehLastActiveDate,
+          tasbeehDailyGoal: s.tasbeehDailyGoal,
+          tasbeehGoalCelebratedDate: s.tasbeehGoalCelebratedDate,
+          asmaHusnaCounts: s.asmaHusnaCounts,
           prayerLog: s.prayerLog,
           favoriteCities: s.favoriteCities,
           sectionCompletions: s.sectionCompletions,
@@ -1220,6 +1356,13 @@ export const useNoorStore = create<NoorState>()(
           tasbeehDailyLog: (blob.tasbeehDailyLog && typeof blob.tasbeehDailyLog === 'object'
             ? blob.tasbeehDailyLog
             : {}) as Record<string, Record<string, number>>,
+          sebhaCustomList: Array.isArray(blob.sebhaCustomList) ? blob.sebhaCustomList : [],
+          tasbeehStreak: blob.tasbeehStreak ?? 0,
+          tasbeehStreakBest: blob.tasbeehStreakBest ?? 0,
+          tasbeehLastActiveDate: blob.tasbeehLastActiveDate ?? null,
+          tasbeehDailyGoal: blob.tasbeehDailyGoal ?? 0,
+          tasbeehGoalCelebratedDate: blob.tasbeehGoalCelebratedDate ?? null,
+          asmaHusnaCounts: blob.asmaHusnaCounts ? sanitizeNumberMap(blob.asmaHusnaCounts as Record<string, number>) : {},
           prayerLog: blob.prayerLog ?? {},
           favoriteCities: Array.isArray(blob.favoriteCities) ? blob.favoriteCities : [],
           sectionCompletions: (blob.sectionCompletions && typeof blob.sectionCompletions === 'object'
@@ -1300,6 +1443,13 @@ export const useNoorStore = create<NoorState>()(
         tasbeehDailyLog: {},
         sebhaSessions: [],
         sebhaCustom: null,
+        sebhaCustomList: [],
+        tasbeehStreak: 0,
+        tasbeehStreakBest: 0,
+        tasbeehLastActiveDate: null,
+        tasbeehDailyGoal: 0,
+        tasbeehGoalCelebratedDate: null,
+        asmaHusnaCounts: {},
         lastCivilResetISO: null,
         lastIbadahResetISO: null,
         lastKnownFajrTime: null,
@@ -1509,7 +1659,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 27,
+      version: 28,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -1571,6 +1721,15 @@ export const useNoorStore = create<NoorState>()(
           sebhaSessions: Array.isArray((state as Partial<NoorState>).sebhaSessions) ? (state as Partial<NoorState>).sebhaSessions! : [],
           sebhaCustom: (state as Partial<NoorState>).sebhaCustom ?? null,
           sebhaTarget: (state as Partial<NoorState>).sebhaTarget ?? 100,
+          sebhaCustomList: Array.isArray((state as Partial<NoorState>).sebhaCustomList) ? (state as Partial<NoorState>).sebhaCustomList! : [],
+          tasbeehStreak: (state as Partial<NoorState>).tasbeehStreak ?? 0,
+          tasbeehStreakBest: (state as Partial<NoorState>).tasbeehStreakBest ?? 0,
+          tasbeehLastActiveDate: (state as Partial<NoorState>).tasbeehLastActiveDate ?? null,
+          tasbeehDailyGoal: (state as Partial<NoorState>).tasbeehDailyGoal ?? 0,
+          tasbeehGoalCelebratedDate: (state as Partial<NoorState>).tasbeehGoalCelebratedDate ?? null,
+          asmaHusnaCounts: (state as Partial<NoorState>).asmaHusnaCounts
+            ? sanitizeNumberMap((state as Partial<NoorState>).asmaHusnaCounts as Record<string, number>)
+            : {},
           // hadith user-state fields are NOT in persist (see partialize above);
           // they'll be loaded from IDB by hydrateHadithState() in main.tsx
           hadithBookmarks: {},

@@ -175,7 +175,15 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
           <div className={cn("text-4xl font-bold tabular-nums", pulse && "count-pulse")} aria-live="polite" aria-atomic="true">
             {count}
           </div>
-          <div className="text-xs opacity-50 mt-1">من {target}</div>
+          <div className="text-xs opacity-50 mt-1">
+            {count} / {target}
+            {(() => {
+              const nextMilestone = count < 33 ? 33 : count < 100 ? 100 : count < 500 ? 500 : 1000;
+              const left = Math.max(0, nextMilestone - count);
+              if (left === 0) return null;
+              return <span className="block mt-0.5">{left} متبقية لـ {nextMilestone}</span>;
+            })()}
+          </div>
         </div>
 
         {/* Progress bar */}

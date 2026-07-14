@@ -46,3 +46,38 @@ export function doHaptic(
   }
   navigator.vibrate(hapticMs(strength, 10));
 }
+
+import type { SoundProfileDef } from "./dhikrCatalog";
+
+/**
+ * Play a soft chime when the user reaches the target. Uses Web Audio
+ * oscillators (no asset files) so it works offline. Respects enableSounds.
+ */
+export function playCompletionSound(
+  enabled: boolean,
+  profile: SoundProfileDef,
+): void {
+  if (!enabled) return;
+  if (typeof window === "undefined") return;
+  try {
+    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const now = ctx.currentTime;
+    for (const note of profile.notes) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = note.freq;
+      const start = now + note.startOffset;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.18, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + note.duration);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + note.duration + 0.05);
+    }
+    const totalMs = Math.max(...profile.notes.map((n) => (n.startOffset + n.duration) * 1000)) + 100;
+    setTimeout(() => ctx.close().catch(() => {}), totalMs);
+  } catch { /* audio unavailable */ }
+}

@@ -15,6 +15,12 @@ import {
   MicOff,
   BarChart2,
   Share2,
+  Flame,
+  BookHeart,
+  Activity as ActivityIcon,
+  MoveUp,
+  MoveDown,
+  Volume2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -24,12 +30,15 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import { useNoorStore } from "@/store/noorStore";
-import type { SebhaSession } from "@/store/noorStore";
+import type { SebhaSession, CustomDhikr } from "@/store/noorStore";
 import { cn, pct } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { getDailyTasbeeh } from "@/lib/leaderboardScores";
 import { getLocalDateKey } from "@/lib/dayBoundaries";
-import { doHaptic } from "@/lib/sebhaHaptics";
+import { doHaptic, playCompletionSound } from "@/lib/sebhaHaptics";
+import { DUAS, DUA_CATEGORIES, SOUND_PROFILES, mascotForPhrase } from "@/lib/dhikrCatalog";
+import type { MascotKey } from "@/lib/dhikrCatalog";
+import { CUSTOM_DHIKR_COLORS, suggestColorForPhrase, isValidHexColor } from "@/lib/dhikrCustom";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -85,6 +94,276 @@ const QUICK_PHRASES: Array<{ phrase: string; target: number }> = [
 // `doHaptic` is now imported from @/lib/sebhaHaptics so the Sebha page, the
 // QuickTasbeehFab, and unit tests share a single definition with light /
 // medium / strong / off strengths.
+
+// ─── Mascot (decorative animated icon per dhikr) ──────────────────────────
+
+function DhikrMascot({ mascot, accent }: { mascot: MascotKey; accent?: string }) {
+  const color = accent ?? "var(--accent)";
+  const common = "absolute inset-0 m-auto";
+  switch (mascot) {
+    case "wave":
+      return (
+        <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-anim"} aria-hidden="true">
+          <path d="M4 28 Q11 18 18 28 T32 28 T44 28" stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+          <path d="M4 22 Q11 12 18 22 T32 22 T44 22" stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.5" />
+        </svg>
+      );
+    case "sun":
+      return (
+        <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-spin-slow"} aria-hidden="true">
+          <circle cx="22" cy="22" r="7" fill={color} />
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+            <line key={deg} x1="22" y1="22" x2="22" y2="6" stroke={color} strokeWidth="2" strokeLinecap="round" transform={`rotate(${deg} 22 22)`} opacity="0.7" />
+          ))}
+        </svg>
+      );
+    case "star":
+      return (
+        <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-anim"} aria-hidden="true">
+          <polygon points="22,4 26,18 40,18 29,26 33,40 22,31 11,40 15,26 4,18 18,18" fill={color} />
+        </svg>
+      );
+    case "moon":
+      return (
+        <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-anim"} aria-hidden="true">
+          <path d="M30 6 a16 16 0 1 0 8 32 a12 12 0 1 1 -8 -32" fill={color} />
+        </svg>
+      );
+    case "drop":
+      return (
+        <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-anim"} aria-hidden="true">
+          <path d="M22 4 C12 18 8 26 8 32 a14 14 0 0 0 28 0 c0 -6 -4 -14 -14 -28 z" fill={color} />
+        </svg>
+      );
+    case "leaf":
+      return (
+        <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-anim"} aria-hidden="true">
+          <path d="M8 36 C8 16 20 4 40 4 C40 24 28 36 8 36 z" fill={color} opacity="0.85" />
+          <path d="M8 36 L36 8" stroke="white" strokeWidth="1.5" opacity="0.7" />
+        </svg>
+      );
+    case "flame":
+      return (
+        <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-anim"} aria-hidden="true">
+          <path d="M22 4 C18 14 12 18 14 28 C14 36 22 40 22 40 C22 40 30 36 30 28 C32 18 26 14 22 4 z" fill={color} />
+        </svg>
+      );
+    case "heart":
+      return (
+        <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-anim"} aria-hidden="true">
+          <path d="M22 38 C8 28 4 22 4 14 a8 8 0 0 1 18 -2 a8 8 0 0 1 18 2 c0 8 -4 14 -18 24 z" fill={color} />
+        </svg>
+      );
+    default:
+      return (
+        <svg width="44" height="44" viewBox="0 0 44 44" className={common} aria-hidden="true">
+          <circle cx="22" cy="22" r="10" fill={color} opacity="0.8" />
+        </svg>
+      );
+  }
+}
+
+// ─── 30-day history mini-chart ─────────────────────────────────────────────
+
+function HistoryChart({ log }: { log: Record<string, Record<string, number>> }) {
+  const data = React.useMemo(() => {
+    const today = new Date();
+    const cells: Array<{ key: string; total: number; date: Date }> = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const day = log[key] ?? {};
+      const total = Object.values(day).reduce((s, v) => s + (Number(v) || 0), 0);
+      cells.push({ key, total, date: d });
+    }
+    return cells;
+  }, [log]);
+  const max = Math.max(1, ...data.map((c) => c.total));
+  const total = data.reduce((s, c) => s + c.total, 0);
+  if (total === 0) return null;
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <ActivityIcon size={14} className="text-[var(--accent)]" />
+        <span className="text-sm font-semibold">آخر ٣٠ يوماً</span>
+        <span className="text-[11px] opacity-50 mr-auto tabular-nums">المجموع: {total.toLocaleString("ar-EG")}</span>
+      </div>
+      <div className="flex items-end gap-1 h-16" aria-label="رسم بياني للتسابيح اليومية">
+        {data.map((c) => {
+          const heightPct = Math.round((c.total / max) * 100);
+          const isToday = c.key === data[data.length - 1]?.key;
+          return (
+            <div
+              key={c.key}
+              title={`${c.key}: ${c.total}`}
+              className="flex-1 rounded-sm transition-all"
+              style={{
+                height: `${Math.max(4, heightPct)}%`,
+                background: isToday ? "var(--accent)" : c.total > 0 ? "var(--card-2)" : "transparent",
+                border: c.total === 0 ? "1px solid var(--stroke)" : undefined,
+                opacity: c.total > 0 ? 1 : 0.4,
+              }}
+            />
+          );
+        })}
+      </div>
+      <div className="mt-2 flex items-center justify-between text-[10px] opacity-50">
+        <span>قبل ٣٠ يوماً</span>
+        <span>اليوم</span>
+      </div>
+    </Card>
+  );
+}
+
+// ─── Streak card ──────────────────────────────────────────────────────────
+
+function StreakCard({ streak, best, lastActive }: { streak: number; best: number; lastActive: string | null }) {
+  const today = getLocalDateKey();
+  const active = lastActive === today;
+  const yest = (() => {
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  })();
+  const broken = !active && lastActive !== yest && streak > 0;
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Flame size={14} className={streak > 0 ? "text-orange-400" : "text-[var(--accent)]"} />
+        <span className="text-sm font-semibold">سلسلة التسبيح</span>
+        <span className="text-[10px] opacity-50 mr-auto">
+          {best > 0 ? `أفضل: ${best} يوم` : "ابدأ سلسلتك اليوم"}
+        </span>
+      </div>
+      <div className="flex items-baseline gap-2">
+        <span className="text-3xl font-black tabular-nums">{streak}</span>
+        <span className="text-xs opacity-60">يوم متواصل</span>
+        {streak >= 7 && <span className="text-xs">⚡</span>}
+        {streak >= 30 && <span className="text-xs">🔥</span>}
+      </div>
+      {broken && (
+        <div className="mt-2 text-[11px] opacity-70 leading-5">
+          ⚠️ انقطعت سلسلتك — اعمل ١ تسبيحة للحفاظ على سلسلتك
+        </div>
+      )}
+      {!active && streak === 0 && (
+        <div className="mt-2 text-[11px] opacity-60">اعمل ١ تسبيحة للحفاظ على سلسلتك</div>
+      )}
+      {active && (
+        <div className="mt-2 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>✓ اليوم مكتمل</div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Daily goal card ───────────────────────────────────────────────────────
+
+function DailyGoalCard({
+  goal,
+  today,
+  celebratedDate,
+  onChangeGoal,
+  onShare,
+}: {
+  goal: number;
+  today: number;
+  celebratedDate: string | null;
+  onChangeGoal: (n: number) => void;
+  onShare: () => void;
+}) {
+  const [editing, setEditing] = React.useState(false);
+  const [draft, setDraft] = React.useState(String(goal));
+  const todayKey = getLocalDateKey();
+  const pctDone = goal > 0 ? Math.min(100, Math.round((today / goal) * 100)) : 0;
+  const completed = goal > 0 && today >= goal;
+  React.useEffect(() => { setDraft(String(goal)); }, [goal]);
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Target size={14} className="text-[var(--accent)]" />
+        <span className="text-sm font-semibold">هدف اليوم</span>
+        <span className="text-[10px] opacity-50 mr-auto">{today.toLocaleString("ar-EG")} / {goal > 0 ? goal.toLocaleString("ar-EG") : "—"}</span>
+      </div>
+      {goal > 0 ? (
+        <>
+          <div className="h-2 rounded-full bg-[var(--card)] border border-[var(--stroke)] overflow-hidden">
+            <div
+              className="h-full rounded-full transition-[width] duration-500"
+              style={{ width: `${pctDone}%`, background: completed ? "var(--ok)" : "var(--accent)" }}
+            />
+          </div>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-[11px] opacity-60 tabular-nums">{pctDone}%</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setEditing((v) => !v)}
+                className="text-[10px] opacity-50 hover:opacity-80 transition"
+                aria-label="تعديل الهدف"
+              >
+                <Pencil size={11} />
+              </button>
+              {completed && celebratedDate !== todayKey && (
+                <button
+                  type="button"
+                  onClick={onShare}
+                  className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(125,211,252,0.15)", color: "var(--accent)" }}
+                >
+                  <Share2 size={11} />
+                  مشاركة الإنجاز
+                </button>
+              )}
+            </div>
+          </div>
+          {editing && (
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                max={10000}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                className="flex-1 rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-1 text-xs outline-none"
+                inputMode="numeric"
+              />
+              <Button size="sm" onClick={() => { onChangeGoal(Math.max(0, Number(draft) || 0)); setEditing(false); }}>حفظ</Button>
+              <Button size="sm" variant="secondary" onClick={() => { setDraft(String(goal)); setEditing(false); }}>إلغاء</Button>
+            </div>
+          )}
+          {completed && (
+            <div className="mt-2 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>
+              🎉 أتممت هدف اليوم
+            </div>
+          )}
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={() => { setEditing(true); }}
+          className="text-[11px] opacity-60 hover:opacity-90 transition"
+        >
+          + تعيين هدف يومي (مثال: ١٠٠ تسبيحة)
+        </button>
+      )}
+      {editing && goal === 0 && (
+        <div className="mt-2 flex items-center gap-2">
+          <input
+            type="number"
+            min={1}
+            max={10000}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            className="flex-1 rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-2 py-1 text-xs outline-none"
+            inputMode="numeric"
+            placeholder="100"
+          />
+          <Button size="sm" onClick={() => { onChangeGoal(Math.max(1, Number(draft) || 100)); setEditing(false); }}>حفظ</Button>
+        </div>
+      )}
+    </Card>
+  );
+}
 
 // ─── Circular progress ring (S4) — 6A drag-to-count ────────────────────────
 
@@ -539,22 +818,48 @@ export function SebhaPage() {
   const [showCustomForm, setShowCustomForm] = React.useState(false);
   const [customPhraseInput, setCustomPhraseInput] = React.useState("");
   const [customTargetInput, setCustomTargetInput] = React.useState("100");
+  const [customColorInput, setCustomColorInput] = React.useState(CUSTOM_DHIKR_COLORS[0]!.hex);
+  const [customTranslitInput, setCustomTranslitInput] = React.useState("");
+  const [editingCustomId, setEditingCustomId] = React.useState<string | null>(null);
 
   // S3 - Sessions panel toggle
   const [showHistory, setShowHistory] = React.useState(false);
+
+  // Tabs
+  const [activeTab, setActiveTab] = React.useState<"dhikr" | "dua" | "asma">("dhikr");
+
+  // Quick-set counter (long-press counter display)
+  const [quickSetOpen, setQuickSetOpen] = React.useState(false);
+  const [quickSetDraft, setQuickSetDraft] = React.useState("");
 
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
   const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
   const resetQuickTasbeeh = useNoorStore((s) => s.resetQuickTasbeeh);
   const resetAllQuickTasbeeh = useNoorStore((s) => s.resetAllQuickTasbeeh);
   const prefs = useNoorStore((s) => s.prefs);
+  const setPrefs = useNoorStore((s) => s.setPrefs);
   const sebhaSessions = useNoorStore((s) => s.sebhaSessions);
   const addSebhaSession = useNoorStore((s) => s.addSebhaSession);
   const clearSebhaSessions = useNoorStore((s) => s.clearSebhaSessions);
   const sebhaCustom = useNoorStore((s) => s.sebhaCustom);
   const setSebhaCustom = useNoorStore((s) => s.setSebhaCustom);
+  const sebhaCustomList = useNoorStore((s) => s.sebhaCustomList);
+  const addSebhaCustomItem = useNoorStore((s) => s.addSebhaCustomItem);
+  const updateSebhaCustomItem = useNoorStore((s) => s.updateSebhaCustomItem);
+  const deleteSebhaCustomItem = useNoorStore((s) => s.deleteSebhaCustomItem);
+  const reorderSebhaCustomList = useNoorStore((s) => s.reorderSebhaCustomList);
   const tasbeehDailyLog = useNoorStore((s) => s.tasbeehDailyLog);
   const tasbeehLifetime = useNoorStore((s) => s.tasbeehLifetime);
+  const tasbeehStreak = useNoorStore((s) => s.tasbeehStreak);
+  const tasbeehStreakBest = useNoorStore((s) => s.tasbeehStreakBest);
+  const tasbeehLastActiveDate = useNoorStore((s) => s.tasbeehLastActiveDate);
+  const recordTasbeehActivity = useNoorStore((s) => s.recordTasbeehActivity);
+  const tasbeehDailyGoal = useNoorStore((s) => s.tasbeehDailyGoal);
+  const setTasbeehDailyGoal = useNoorStore((s) => s.setTasbeehDailyGoal);
+  const tasbeehGoalCelebratedDate = useNoorStore((s) => s.tasbeehGoalCelebratedDate);
+  const markTasbeehGoalCelebrated = useNoorStore((s) => s.markTasbeehGoalCelebrated);
+  const incAsmaHusnaCount = useNoorStore((s) => s.incAsmaHusnaCount);
+  const asmaHusnaCounts = useNoorStore((s) => s.asmaHusnaCounts);
 
   // Today's leaderboard tasbeeh challenge
   const dailyChallenge = React.useMemo(() => getDailyTasbeeh(getLocalDateKey()), []);
@@ -607,34 +912,29 @@ export function SebhaPage() {
       }
       doHaptic(next, activeEffTarget, prefs.enableHaptics, prefs.hapticStrength);
       const reachedTarget = next === activeEffTarget;
+      // Streak + activity
+      recordTasbeehActivity(getLocalDateKey());
+      // Daily goal completion
+      const todayKey = getLocalDateKey();
+      const todayTotal = Object.values(useNoorStore.getState().tasbeehDailyLog[todayKey] ?? {}).reduce((s, v) => s + (Number(v) || 0), 0);
+      if (tasbeehDailyGoal > 0 && todayTotal >= tasbeehDailyGoal && tasbeehGoalCelebratedDate !== todayKey) {
+        markTasbeehGoalCelebrated(todayKey);
+        const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
+        getConfetti().then((c) => {
+          c({ particleCount: 120, spread: 100, startVelocity: 32, scalar: 1, origin: { y: 0.5 } });
+        });
+        const profile = SOUND_PROFILES.find((p) => p.id === prefs.tasbeehSoundProfile) ?? SOUND_PROFILES[0]!;
+        playCompletionSound(prefs.enableSounds, profile);
+        toast.success(`أتممت هدف اليوم (${tasbeehDailyGoal}) 🎉`, { duration: 3500 });
+      }
       if (reachedTarget) {
         const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
         getConfetti().then((c) => {
           c({ particleCount: 80, spread: 80, startVelocity: 28, scalar: 0.9, origin: { y: 0.6 } });
           setTimeout(() => c({ particleCount: 40, spread: 90, startVelocity: 18, scalar: 0.85, origin: { x: 0.2, y: 0.75 } }), 320);
         });
-        if (prefs.enableSounds && typeof window !== "undefined") {
-          try {
-            const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            if (AC) {
-              const ctx = new AC();
-              const now = ctx.currentTime;
-              [659.25, 880, 1318.5].forEach((freq, i) => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = "sine";
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.0001, now + i * 0.12);
-                gain.gain.exponentialRampToValueAtTime(0.18, now + i * 0.12 + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.12 + 0.35);
-                osc.connect(gain).connect(ctx.destination);
-                osc.start(now + i * 0.12);
-                osc.stop(now + i * 0.12 + 0.4);
-              });
-              setTimeout(() => ctx.close().catch(() => {}), 900);
-            }
-          } catch { /* audio unavailable */ }
-        }
+        const profile = SOUND_PROFILES.find((p) => p.id === prefs.tasbeehSoundProfile) ?? SOUND_PROFILES[0]!;
+        playCompletionSound(prefs.enableSounds, profile);
         addSebhaSession({
           dhikrKey: activeKey,
           dhikrLabel: activeLabel,
@@ -655,7 +955,7 @@ export function SebhaPage() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tallyMode, incQuickTasbeeh, prefs.enableHaptics, prefs.hapticStrength, prefs.enableSounds, prefs.autoAdvanceDhikr, selected, target, sebhaCustom, current.short, addSebhaSession, setSelected]);
+  }, [tallyMode, incQuickTasbeeh, prefs.enableHaptics, prefs.hapticStrength, prefs.enableSounds, prefs.autoAdvanceDhikr, prefs.tasbeehSoundProfile, selected, target, sebhaCustom, current.short, addSebhaSession, setSelected, recordTasbeehActivity, tasbeehDailyGoal, tasbeehGoalCelebratedDate, markTasbeehGoalCelebrated]);
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -669,6 +969,70 @@ export function SebhaPage() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [increment, showCustomForm, showHistory, confirmReset]);
+
+  // Long-press to bulk-increment (after 500ms hold, 1 tap per 100ms)
+  const longPressTimer = React.useRef<number | null>(null);
+  const longPressInterval = React.useRef<number | null>(null);
+  const longPressActive = React.useRef(false);
+  const startLongPress = React.useCallback(() => {
+    if (!prefs.tasbeehLongPressEnabled) return;
+    longPressActive.current = true;
+    longPressTimer.current = window.setTimeout(() => {
+      longPressInterval.current = window.setInterval(() => {
+        if (!longPressActive.current) return;
+        increment();
+      }, 100);
+    }, 500);
+  }, [prefs.tasbeehLongPressEnabled, increment]);
+  const stopLongPress = React.useCallback(() => {
+    longPressActive.current = false;
+    if (longPressTimer.current !== null) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+    if (longPressInterval.current !== null) { clearInterval(longPressInterval.current); longPressInterval.current = null; }
+  }, []);
+  React.useEffect(() => () => stopLongPress(), [stopLongPress]);
+
+  // Android-style physical volume-button increment (gated by enableHaptics)
+  React.useEffect(() => {
+    if (!prefs.tasbeehVolumeKeysEnabled) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "AudioVolumeUp" || e.key === "AudioVolumeDown") {
+        const t = e.target as HTMLElement | null;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
+        e.preventDefault();
+        if (e.key === "AudioVolumeUp") increment();
+        else {
+          // Decrement: manually rewind by 1 if count > 0
+          const k = selected;
+          const before = Number(useNoorStore.getState().quickTasbeeh[k] ?? 0);
+          if (before > 0) useNoorStore.setState((s) => ({ quickTasbeeh: { ...s.quickTasbeeh, [k]: before - 1 } }));
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [prefs.tasbeehVolumeKeysEnabled, increment, selected]);
+
+  // Share current stats
+  const shareStats = React.useCallback(async () => {
+    const todayKey = getLocalDateKey();
+    const todayTotal = Object.values(useNoorStore.getState().tasbeehDailyLog[todayKey] ?? {}).reduce((s, v) => s + (Number(v) || 0), 0);
+    const week = (() => {
+      let t = 0;
+      const now = new Date();
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(now); d.setDate(now.getDate() - i);
+        const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        t += Object.values(useNoorStore.getState().tasbeehDailyLog[k] ?? {}).reduce((s, v) => s + (Number(v) || 0), 0);
+      }
+      return t;
+    })();
+    const life = Object.values(useNoorStore.getState().tasbeehLifetime).reduce((s, v) => s + (Number(v) || 0), 0);
+    const text = `إحصائياتي في أثر:\n• اليوم: ${todayTotal.toLocaleString("ar-EG")} تسبيحة\n• هذا الأسبوع: ${week.toLocaleString("ar-EG")} تسبيحة\n• الإجمالي: ${life.toLocaleString("ar-EG")} تسبيحة\n🔥 سلسلة ${tasbeehStreak} يوم\n\n﴿ فَاذْكُرُونِي أَذْكُرْكُمْ ﴾\n— أثر`;
+    try {
+      if (navigator.share) await navigator.share({ text }).catch(() => {});
+      else { await navigator.clipboard.writeText(text); toast.success("تم نسخ الإحصائيات"); }
+    } catch { /* ignore */ }
+  }, [tasbeehStreak]);
 
   // 6B: Voice recognition — when a phrase matches, switch + count; null = count current.
   // Pass the matched key directly to increment() so the correct dhikr is counted
@@ -715,19 +1079,69 @@ export function SebhaPage() {
   function saveCustomDhikr() {
     const phrase = customPhraseInput.trim();
     const t = Math.max(1, Math.min(10000, Number(customTargetInput) || 100));
+    const color = isValidHexColor(customColorInput) ? customColorInput : CUSTOM_DHIKR_COLORS[0]!.hex;
+    const translit = customTranslitInput.trim() || undefined;
     if (!phrase) { toast.error("أدخل نص الذكر"); return; }
-    // Reset custom count when phrase changes to avoid key collision
-    if (sebhaCustom && sebhaCustom.phrase !== phrase) {
-      resetQuickTasbeeh("custom");
+    if (editingCustomId) {
+      updateSebhaCustomItem(editingCustomId, { phrase, target: t, color, transliteration: translit });
+      setSebhaCustom({ phrase, target: t });
+      toast.success("تم تحديث الذكر");
+    } else {
+      const id = addSebhaCustomItem({ phrase, target: t, color, transliteration: translit });
+      setSebhaCustom({ phrase, target: t });
+      setSelected("custom");
+      toast.success("تم حفظ الذكر المخصص");
+      void id;
     }
-    setSebhaCustom({ phrase, target: t });
-    setSelected("custom");
     setShowCustomForm(false);
-    toast.success("تم حفظ الذكر المخصص");
+    setEditingCustomId(null);
+  }
+
+  function openEditCustom(item: CustomDhikr) {
+    setCustomPhraseInput(item.phrase);
+    setCustomTargetInput(String(item.target));
+    setCustomColorInput(item.color);
+    setCustomTranslitInput(item.transliteration ?? "");
+    setEditingCustomId(item.id);
+    setShowCustomForm(true);
+  }
+
+  function openNewCustom() {
+    setCustomPhraseInput("");
+    setCustomTargetInput("100");
+    setCustomColorInput(suggestColorForPhrase(""));
+    setCustomTranslitInput("");
+    setEditingCustomId(null);
+    setShowCustomForm(true);
+  }
+
+  function pickCustomItem(item: CustomDhikr) {
+    setSebhaCustom({ phrase: item.phrase, target: item.target });
+    setSelected("custom");
+    toast.success(`تم اختيار: ${item.phrase}`);
   }
 
   return (
     <div className="space-y-3 page-enter">
+      {/* Tabs */}
+      <div className="flex items-center gap-1 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1" role="tablist" aria-label="أقسام السبحة">
+        {[
+          { id: "dhikr", label: "ذكر", icon: Sparkles },
+          { id: "dua", label: "دعاء", icon: BookHeart },
+          { id: "asma", label: "أسماء", icon: ActivityIcon },
+        ].map((t) => (
+          <button key={t.id} role="tab" aria-selected={activeTab === t.id}
+            onClick={() => setActiveTab(t.id as typeof activeTab)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition",
+              activeTab === t.id ? "bg-[var(--accent)] text-[var(--on-accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"
+            )}>
+            <t.icon size={13} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       {/* Header card */}
       <Card className="p-5 overflow-hidden relative">
         <div className="flex items-start justify-between gap-3">
@@ -936,16 +1350,33 @@ export function SebhaPage() {
         </div>
 
         {/* S4 - Circular ring counter */}
-        <CircularRing percent={percent} completed={completed} onClick={increment} showHint={count === 0} accent={selected === "custom" ? undefined : current.accent}>
-          <div className="text-center">
-            <div className="text-xs opacity-55 mb-2">{current.short}</div>
-            <CounterNumber value={count} />
-            {!tallyMode && <div className="mt-2 text-xs opacity-60">من {effectiveTarget}</div>}
-            {tallyMode && tallyLaps.length > 0 && (
-              <div className="mt-2 text-xs opacity-60">دورة {tallyLaps.length}</div>
-            )}
-          </div>
-        </CircularRing>
+        <div
+          data-sebha-counter
+          onPointerDown={startLongPress}
+          onPointerUp={stopLongPress}
+          onPointerLeave={stopLongPress}
+          onPointerCancel={stopLongPress}
+          onContextMenu={(e) => { e.preventDefault(); setQuickSetDraft(String(count)); setQuickSetOpen(true); }}
+        >
+          <CircularRing percent={percent} completed={completed} onClick={increment} showHint={count === 0} accent={selected === "custom" ? undefined : current.accent}>
+            <div className="text-center">
+              {prefs.tasbeehMascotEnabled !== false && (
+                <div className="relative w-11 h-11 mx-auto mb-1">
+                  <DhikrMascot mascot={mascotForPhrase(current.short)} accent={current.accent} />
+                </div>
+              )}
+              <div className="text-xs opacity-55 mb-2">{current.short}</div>
+              <CounterNumber value={count} />
+              {!tallyMode && <div className="mt-2 text-xs opacity-60">من {effectiveTarget}</div>}
+              {tallyMode && tallyLaps.length > 0 && (
+                <div className="mt-2 text-xs opacity-60">دورة {tallyLaps.length}</div>
+              )}
+              {prefs.tasbeehLongPressEnabled && count > 0 && (
+                <div className="mt-1 text-[9px] opacity-30">اضغط مطولاً للعدّ السريع · اضغط مرتين لفتح القائمة</div>
+              )}
+            </div>
+          </CircularRing>
+        </div>
 
         {/* Status line */}
         <div className="mt-4 flex items-center justify-center gap-2 text-sm opacity-75">
@@ -1091,8 +1522,8 @@ export function SebhaPage() {
                 <span
                   role="button"
                   tabIndex={0}
-                  onClick={(e) => { e.stopPropagation(); setShowCustomForm(true); }}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setShowCustomForm(true); } }}
+                  onClick={(e) => { e.stopPropagation(); openNewCustom(); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); openNewCustom(); } }}
                   className="opacity-40 hover:opacity-80 transition p-1 cursor-pointer"
                   aria-label="تعديل الذكر المخصص"
                 >
@@ -1122,7 +1553,7 @@ export function SebhaPage() {
           </div>
         ) : (
           <button type="button"
-            onClick={() => setShowCustomForm(true)}
+            onClick={openNewCustom}
             className="glass rounded-3xl p-4 text-center border border-dashed border-[var(--stroke)] hover:bg-[var(--card)] transition active:scale-[.98] flex flex-col items-center justify-center gap-2 min-h-[100px]"
           >
             <Plus size={20} aria-hidden="true" className="opacity-40" />
@@ -1131,12 +1562,54 @@ export function SebhaPage() {
         )}
       </div>
 
+      {/* NEW: custom dhikr library (CRUD + reorder) */}
+      {sebhaCustomList.length > 0 && (
+        <Card className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <BookHeart size={14} className="text-[var(--accent)]" />
+            <span className="text-sm font-semibold">أذكاري المخصصة</span>
+            <Badge>{sebhaCustomList.length}</Badge>
+          </div>
+          <div className="space-y-2">
+            {sebhaCustomList.map((item, idx) => (
+              <div key={item.id} className="flex items-center gap-2 rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2">
+                <div className="w-2 h-8 rounded-full shrink-0" style={{ background: item.color }} aria-hidden="true" />
+                <button type="button" onClick={() => pickCustomItem(item)} className="flex-1 text-right min-w-0">
+                  <div className="arabic-text text-sm font-semibold truncate">{item.phrase}</div>
+                  {item.transliteration && <div className="text-[10px] opacity-50 truncate">{item.transliteration}</div>}
+                  <div className="text-[10px] opacity-55">هدف {item.target}</div>
+                </button>
+                <button type="button" onClick={() => reorderSebhaCustomList(item.id, "up")} disabled={idx === 0}
+                  className="p-1 opacity-50 hover:opacity-90 disabled:opacity-20" aria-label="نقل للأعلى">
+                  <MoveUp size={12} />
+                </button>
+                <button type="button" onClick={() => reorderSebhaCustomList(item.id, "down")} disabled={idx === sebhaCustomList.length - 1}
+                  className="p-1 opacity-50 hover:opacity-90 disabled:opacity-20" aria-label="نقل للأسفل">
+                  <MoveDown size={12} />
+                </button>
+                <button type="button" onClick={() => openEditCustom(item)} className="p-1 opacity-50 hover:opacity-90" aria-label="تعديل">
+                  <Pencil size={12} />
+                </button>
+                <button type="button" onClick={() => { deleteSebhaCustomItem(item.id); toast.success("تم حذف الذكر"); }}
+                  className="p-1 opacity-50 hover:opacity-90 hover:text-red-400" aria-label="حذف">
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button type="button" onClick={openNewCustom}
+            className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-[var(--stroke)] px-3 py-2 text-[11px] opacity-60 hover:opacity-90 transition">
+            <Plus size={11} /> إضافة ذكر جديد
+          </button>
+        </Card>
+      )}
+
       {/* S2 - Custom dhikr form */}
       {showCustomForm && (
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-4">
             <Pencil size={15} aria-hidden="true" className="text-[var(--accent)]" />
-            <span className="text-sm font-semibold">ذكر مخصص</span>
+            <span className="text-sm font-semibold">{editingCustomId ? "تعديل ذكر" : "ذكر مخصص جديد"}</span>
           </div>
           <div className="space-y-3">
             <div>
@@ -1146,8 +1619,25 @@ export function SebhaPage() {
                 type="text"
                 dir="rtl"
                 value={customPhraseInput}
-                onChange={(e) => setCustomPhraseInput(e.target.value)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCustomPhraseInput(v);
+                  if (!editingCustomId && !customColorInput) setCustomColorInput(suggestColorForPhrase(v));
+                }}
                 placeholder="مثال: صلِّ على النبي"
+                spellCheck={false}
+                autoComplete="off"
+                className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
+              />
+            </div>
+            <div>
+              <label htmlFor="custom-translit" className="text-xs opacity-60 mb-1 block">نص لاتيني (اختياري)</label>
+              <input
+                id="custom-translit"
+                type="text"
+                value={customTranslitInput}
+                onChange={(e) => setCustomTranslitInput(e.target.value)}
+                placeholder="mثال: Subhan Allah"
                 spellCheck={false}
                 autoComplete="off"
                 className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
@@ -1166,17 +1656,34 @@ export function SebhaPage() {
                 className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
               />
             </div>
+            <div>
+              <span className="text-xs opacity-60 mb-1 block">لون التمييز</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                {CUSTOM_DHIKR_COLORS.map((c) => (
+                  <button key={c.hex} type="button"
+                    onClick={() => setCustomColorInput(c.hex)}
+                    aria-label={c.name}
+                    className={cn(
+                      "w-8 h-8 rounded-full border-2 transition",
+                      customColorInput === c.hex ? "border-white scale-110" : "border-transparent"
+                    )}
+                    style={{ background: c.hex }}
+                  />
+                ))}
+              </div>
+            </div>
             <div className="flex gap-2">
-              <Button onClick={saveCustomDhikr} className="flex-1">حفظ</Button>
-              <Button variant="secondary" onClick={() => setShowCustomForm(false)} className="flex-1">إلغاء</Button>
-              {sebhaCustom && (
+              <Button onClick={saveCustomDhikr} className="flex-1">{editingCustomId ? "تحديث" : "حفظ"}</Button>
+              <Button variant="secondary" onClick={() => { setShowCustomForm(false); setEditingCustomId(null); }} className="flex-1">إلغاء</Button>
+              {editingCustomId && (
                 <Button
                   variant="danger"
                   onClick={() => {
-                    setSebhaCustom(null);
+                    deleteSebhaCustomItem(editingCustomId);
                     if (selected === "custom") setSelected("subhanallah");
                     setShowCustomForm(false);
-                    toast.success("تم حذف الذكر المخصص");
+                    setEditingCustomId(null);
+                    toast.success("تم حذف الذكر");
                   }}
                 >
                   حذف
@@ -1189,6 +1696,195 @@ export function SebhaPage() {
 
       {/* 6C: Weekly stats */}
       <TasbeehStatsCard tasbeehDailyLog={tasbeehDailyLog} tasbeehLifetime={tasbeehLifetime} sebhaCustom={sebhaCustom} />
+
+      {/* NEW: Streak / Goal / History sidebar */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {prefs.tasbeehStreakEnabled !== false && (
+          <StreakCard streak={tasbeehStreak} best={tasbeehStreakBest} lastActive={tasbeehLastActiveDate} />
+        )}
+        <DailyGoalCard
+          goal={tasbeehDailyGoal}
+          today={Object.values(tasbeehDailyLog[getLocalDateKey()] ?? {}).reduce((s, v) => s + (Number(v) || 0), 0)}
+          celebratedDate={tasbeehGoalCelebratedDate}
+          onChangeGoal={(n) => setTasbeehDailyGoal(n)}
+          onShare={shareStats}
+        />
+        <HistoryChart log={tasbeehDailyLog} />
+        <Card className="p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Volume2 size={14} className="text-[var(--accent)]" />
+            <span className="text-sm font-semibold">صوت الاكتمال</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {SOUND_PROFILES.map((p) => (
+              <button key={p.id} type="button"
+                onClick={() => { setPrefs({ tasbeehSoundProfile: p.id }); playCompletionSound(true, p); }}
+                className={cn(
+                  "rounded-xl px-2 py-2 text-[11px] font-medium border transition",
+                  prefs.tasbeehSoundProfile === p.id
+                    ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
+                    : "border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)]"
+                )}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <label className="mt-3 flex items-center gap-2 text-[11px] opacity-80 cursor-pointer">
+            <input type="checkbox" checked={prefs.tasbeehLongPressEnabled}
+              onChange={(e) => setPrefs({ tasbeehLongPressEnabled: e.target.checked })} />
+            إمساك للعدّ السريع
+          </label>
+          <label className="mt-1 flex items-center gap-2 text-[11px] opacity-80 cursor-pointer">
+            <input type="checkbox" checked={prefs.tasbeehVolumeKeysEnabled}
+              onChange={(e) => setPrefs({ tasbeehVolumeKeysEnabled: e.target.checked })} />
+            مفاتيح الصوت للعدّ (أندرويد)
+          </label>
+          <button type="button" onClick={shareStats}
+            className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-[11px] font-semibold hover:bg-[var(--card-2)] transition">
+            <Share2 size={12} /> مشاركة الإحصائيات
+          </button>
+        </Card>
+      </div>
+
+      {/* Long-press enabled: wrap counter button */}
+      {prefs.tasbeehLongPressEnabled && (
+        <style>{`
+          [data-sebha-counter] { user-select: none; }
+          .mascot-anim { animation: sebha-mascot 3s ease-in-out infinite; transform-origin: 22px 22px; }
+          .mascot-spin-slow { animation: sebha-spin 12s linear infinite; transform-origin: 22px 22px; }
+          @keyframes sebha-mascot { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.08);opacity:1} }
+          @keyframes sebha-spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+        `}</style>
+      )}
+
+      {/* Quick-set counter (long-press counter display) */}
+      {quickSetOpen && (
+        <div className="fixed inset-0 z-[9995] bg-black/50 grid place-items-center p-4" role="dialog" aria-modal="true" aria-label="تعيين العداد">
+          <Card className="p-5 w-full max-w-sm">
+            <div className="text-sm font-semibold mb-2">تعيين العدّاد الحالي</div>
+            <p className="text-[11px] opacity-65 mb-3">حدد قيمة العدّاد الحالية (مثلاً إذا أكملت جزءاً في وقت سابق).</p>
+            <input type="number" min={0} max={99999} value={quickSetDraft}
+              onChange={(e) => setQuickSetDraft(e.target.value)}
+              className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
+              inputMode="numeric" autoFocus />
+            <div className="mt-3 flex gap-2">
+              <Button className="flex-1" onClick={() => {
+                const v = Math.max(0, Math.min(99999, Number(quickSetDraft) || 0));
+                const k = selected;
+                useNoorStore.setState((s) => ({ quickTasbeeh: { ...s.quickTasbeeh, [k]: v } }));
+                setQuickSetOpen(false);
+                toast.success("تم تعيين العدّاد");
+              }}>حفظ</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => setQuickSetOpen(false)}>إلغاء</Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* ─── Dua tab ─── */}
+      {activeTab === "dua" && (
+        <div className="space-y-3">
+          {DUA_CATEGORIES.map((cat) => {
+            const items = DUAS.filter((d) => d.category === cat.id);
+            if (items.length === 0) return null;
+            return (
+              <div key={cat.id}>
+                <div className="text-[10px] font-semibold opacity-40 mb-2 uppercase tracking-wider px-1">{cat.label}</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {items.map((d) => (
+                    <button key={d.id} type="button"
+                      onClick={() => {
+                        setSebhaCustom({ phrase: d.arabic, target: d.count ?? 33 });
+                        setSelected("custom");
+                        setActiveTab("dhikr");
+                        toast.success(`تم اختيار: ${d.name}`);
+                      }}
+                      className="glass rounded-2xl p-3 text-right border border-[var(--stroke)] hover:bg-[var(--card-2)] transition active:scale-[.98]">
+                      <div className="text-sm font-semibold">{d.name}</div>
+                      <div className="arabic-text mt-1 text-base leading-7">{d.arabic}</div>
+                      {d.transliteration && <div className="mt-1 text-[10px] opacity-50 italic">{d.transliteration}</div>}
+                      {d.count && <div className="mt-1 text-[10px] opacity-60">هدف: {d.count}</div>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ─── Asma Al-Husna tab ─── */}
+      {activeTab === "asma" && (
+        <AsmaHusnaCounter
+          counts={asmaHusnaCounts}
+          onCount={(id, target) => {
+            const next = incAsmaHusnaCount(id, target);
+            doHaptic(next, target, prefs.enableHaptics, prefs.hapticStrength);
+            recordTasbeehActivity(getLocalDateKey());
+            return next;
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+// ─── Asma Al-Husna grid (99 names counter) ──────────────────────────────────
+
+function AsmaHusnaCounter({
+  counts,
+  onCount,
+}: {
+  counts: Record<number, number>;
+  onCount: (id: number, target: number) => number;
+}) {
+  const [target] = React.useState(100);
+  const [query, setQuery] = React.useState("");
+  const names = React.useMemo(() => {
+    const items: Array<{ id: number; arabic: string; transliteration?: string; meaning?: string }> = [];
+    for (let i = 1; i <= 99; i++) items.push({ id: i, arabic: `الاسم ${i}` });
+    return items;
+  }, []);
+  const filtered = React.useMemo(() => {
+    if (!query.trim()) return names;
+    const q = query.trim();
+    return names.filter((n) => String(n.id).includes(q) || n.arabic.includes(q));
+  }, [names, query]);
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <ActivityIcon size={14} className="text-[var(--accent)]" />
+        <span className="text-sm font-semibold">أسماء الله الحسنى</span>
+        <span className="text-[10px] opacity-50 mr-auto">انقر للعدّ على كل اسم</span>
+      </div>
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="ابحث برقم أو نص…"
+        className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-xs outline-none mb-3"
+      />
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[60vh] overflow-y-auto" role="list">
+        {filtered.map((n) => {
+          const count = Number(counts[n.id] ?? 0);
+          const pctDone = Math.min(100, Math.round((count / target) * 100));
+          return (
+            <button key={n.id} type="button"
+              onClick={() => onCount(n.id, target)}
+              className="glass rounded-2xl p-3 text-right border border-[var(--stroke)] hover:bg-[var(--card-2)] transition active:scale-[.98]"
+              aria-label={`الاسم ${n.id}: ${count} من ${target}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold opacity-70">{n.id}</span>
+                <Badge>{count}/{target}</Badge>
+              </div>
+              <div className="arabic-text text-sm leading-6 mt-1 truncate">الاسم {n.id}</div>
+              <div className="mt-2 h-1 rounded-full bg-[var(--card-2)] overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${pctDone}%`, background: pctDone >= 100 ? "var(--ok)" : "var(--accent)" }} />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </Card>
   );
 }
