@@ -91,7 +91,7 @@ export function SurahInfoPopover(props: {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, pos?.placement]);
 
-  // Outside click + Escape
+  // Outside click + Escape + basic focus trap
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -104,15 +104,58 @@ export function SurahInfoPopover(props: {
       if (trigger && trigger.contains(target)) return;
       onClose();
     };
+    // Focus trap: keep Tab inside the popover. Walk focusable children and
+    // wrap from last → first / first → last. The close button gets initial
+    // focus (autoFocus on the button itself) so screen readers and keyboard
+    // users land somewhere sensible.
+    const onTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const root = popRef.current;
+      if (!root) return;
+      const focusable = Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => !el.hasAttribute("aria-hidden"));
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      } else if (!root.contains(active)) {
+        // Focus escaped the popover — bring it back.
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener("keydown", onKey);
+    document.addEventListener("keydown", onTab);
     // Use timeout so the click that opened us doesn't immediately close us
     const t = setTimeout(() => document.addEventListener("mousedown", onClick), 0);
     return () => {
       document.removeEventListener("keydown", onKey);
+      document.removeEventListener("keydown", onTab);
       clearTimeout(t);
       document.removeEventListener("mousedown", onClick);
     };
   }, [open, onClose]);
+
+  // Auto-focus the close button when the popover opens. Slightly delayed so
+  // the focus move happens after the click that opened the popover has fully
+  // settled (otherwise some browsers eat the focus).
+  React.useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => {
+      const closeBtn = popRef.current?.querySelector<HTMLButtonElement>('[aria-label="إغلاق"]');
+      closeBtn?.focus();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [open]);
 
   if (!open || !surah || !pos) return null;
 
@@ -120,7 +163,7 @@ export function SurahInfoPopover(props: {
     <div
       ref={popRef}
       role="dialog"
-      aria-modal="false"
+      aria-modal="true"
       dir="rtl"
       className="fixed z-[60] animate-athar-popover-in"
       style={{
@@ -238,6 +281,7 @@ function PopoverContent(props: {
           <div className="flex flex-wrap gap-1.5">
             {sajdas.map((s) => (
               <Link key={s.ayahIndex} to={`/mushaf?surah=${s.surahId}&ayah=${s.ayahIndex}`} onClick={onClose}
+                aria-disabled="false"
                 className="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-100 transition hover:bg-amber-500/20 active:scale-95">
                 آية {toArabicNumeral(s.ayahIndex)}
               </Link>
@@ -277,11 +321,13 @@ function PopoverContent(props: {
         {/* Action buttons */}
         <div className="grid grid-cols-3 gap-1.5 pt-1">
           <Link to={`/mushaf?surah=${surah.id}`} onClick={onClose}
+            aria-disabled="false"
             className="flex items-center justify-center gap-1 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-1.5 text-[11px] font-semibold text-emerald-100 transition hover:bg-emerald-500/20 active:scale-95">
             <BookOpen className="h-3 w-3" aria-hidden="true" />
             افتح
           </Link>
           <Link to={`/companion?ask=${encodeURIComponent(`حدّثني عن سورة «${surah.name}» — موضوعها، وقصتها، وفضلها، وكيف أعيشها اليوم.`)}`} onClick={onClose}
+            aria-disabled="false"
             className="flex items-center justify-center gap-1 rounded-lg border border-accent-35 bg-accent-15 px-2 py-1.5 text-[11px] font-semibold text-[var(--accent)] transition hover:bg-accent-15/80 active:scale-95">
             <Sparkles className="h-3 w-3" aria-hidden="true" />
             اسأل أثر

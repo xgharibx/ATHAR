@@ -11,9 +11,12 @@ import {
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
+import { useQuranPageIndex } from "@/data/useQuranPageIndex";
+import { buildPageIndexForCache } from "@/data/pageIndexBuilder";
 import { useNoorStore } from "@/store/noorStore";
 import { getHizbForAyah, getJuzForAyah, getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
+import type { TranslationId } from "@/lib/quranTranslations";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import {
   getRadioState,
@@ -37,14 +40,9 @@ import { TRANSLATION_EDITIONS, getTranslationLabel, loadTranslationEdition } fro
 import toast from "react-hot-toast";
 
 // ── Types ─────────────────────────────────────────────────────
-interface PageItem {
-  surahId: number;
-  surahName: string;
-  originalAyah: number;
-  displayAyah: number; // 0 = basmalah header (not numbered)
-  text: string;
-  isBasmalahHeader: boolean;
-}
+// PageItem is sourced from src/data/pageIndexBuilder.ts so Mushaf and the
+// IDB-cached builder in quranLoad share the exact same shape.
+import type { PageItem } from "@/data/pageIndexBuilder";
 
 interface SurahGroup {
   surahId: number;
@@ -129,59 +127,27 @@ function DialWheel({ current, total, onConfirm }: {
 }
 
 // ── Page index builder ────────────────────────────────────────
+
+/**
+ * Slice an Arabic verse at the last word boundary before `n` characters, so
+ * FloatingAthar's prefill / hint never lands mid-word (which used to produce
+ * torn text like "الزائر يقرأ حاليًا الآية «﴿الحمد لله رب العالم﴾»...").
+ * Falls back to `n` if no space or ﴿ is found.
+ */
+export function sliceAtWordBoundary(text: string, n: number): string {
+  if (text.length <= n) return text;
+  const slice = text.slice(0, n);
+  const lastSpace = slice.search(/[\s﴿﴾]+[^]*$/);
+  if (lastSpace <= 0) return slice.trimEnd();
+  return slice.slice(0, lastSpace).trimEnd();
+}
+
+/** Local convenience alias around the shared builder. */
 function buildPageIndex(
-  quranDB: { id: number; name: string; ayahs: string[] }[],
+  quranDB: Parameters<typeof buildPageIndexForCache>[0],
   pageMap: Record<string, number>,
 ): Map<number, PageItem[]> {
-  const result = new Map<number, PageItem[]>();
-  for (const surah of quranDB) {
-    // Normalize to NFC so combining diacritics are in canonical order before any comparison
-    const raw = surah.ayahs.map((a) => (a ?? "").replace(/^\uFEFF/, "").normalize("NFC").trim());
-    const firstText = raw[0] ?? "";
-
-    // Al-Fatiha (id=1): entire first ayah IS just the basmalah — skip as header placeholder
-    const firstIsBasmalah = firstText.length > 0 && (
-      surah.id === 1 || BASMALAH_NFC.some((v) => firstText === v)
-    );
-    // All other surahs (except 9): basmalah is prepended to the first ayah's text
-    const firstHasBasmalahPrefix = !firstIsBasmalah && firstText.length > 0 &&
-      BASMALAH_NFC.some((v) => firstText.startsWith(v));
-    for (let i = 0; i < raw.length; i++) {
-      const originalAyah = i + 1;
-      const pageNum = Number(pageMap[`${surah.id}:${originalAyah}`]);
-      if (!Number.isFinite(pageNum) || pageNum < 1) continue;
-
-      // Only Fatiha's first ayah is a pure basmalah placeholder (gets filtered out)
-      // For Fatiha (id=1): the basmalah IS ayah 1 — show it numbered, don't skip it
-      // For other surahs where first ayah == pure basmalah: skip it (show as header only)
-      const isBasmalahHeader = firstIsBasmalah && i === 0 && surah.id !== 1;
-      // Fatiha: keep original ayah numbering (1=basmalah, 2=الحمد..., 7=وَلَا الضَّالِّينَ)
-      // Other surahs with pure-basmalah first ayah: shift numbering (basmalah=0/filtered, rest -1)
-      const displayAyah = (firstIsBasmalah && surah.id !== 1) ? (isBasmalahHeader ? 0 : originalAyah - 1) : originalAyah;
-
-      // Strip basmalah prefix from the first ayah text of non-Fatiha surahs
-      let text = raw[i] ?? "";
-      if (i === 0 && firstHasBasmalahPrefix) {
-        for (const v of BASMALAH_NFC) {
-          if (text.startsWith(v)) { text = text.slice(v.length).trim(); break; }
-        }
-      }
-
-      if (!result.has(pageNum)) result.set(pageNum, []);
-      result.get(pageNum)!.push({
-        surahId: surah.id,
-        surahName: surah.name,
-        originalAyah,
-        displayAyah,
-        text,
-        isBasmalahHeader,
-      });
-    }
-  }
-  for (const [, items] of result) {
-    items.sort((a, b) => a.surahId - b.surahId || a.originalAyah - b.originalAyah);
-  }
-  return result;
+  return buildPageIndexForCache(quranDB, pageMap);
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -192,6 +158,7 @@ export function MushafPage() {
 
   const { data: quranDB, isLoading: dbLoading, isError: dbError, refetch: refetchQuranDB } = useQuranDB();
   const { data: pmData, isLoading: pmLoading, isError: pmError, refetch: refetchPageMap } = useQuranPageMap();
+  const { data: piData, isLoading: piLoading, isError: piError, refetch: refetchPageIndex } = useQuranPageIndex();
   // Keep a ref so audio callbacks can access latest DB without closure stale-ness
   const quranDBRef = React.useRef(quranDB);
   React.useEffect(() => { quranDBRef.current = quranDB; }, [quranDB]);
@@ -230,11 +197,21 @@ export function MushafPage() {
   const totalPages = pmData?.totalPages ?? 604;
   const pageMap = React.useMemo(() => pmData?.map ?? {}, [pmData]);
 
-  // Build page index (one-time, memoized)
+  // Build page index. Prefer the IDB-cached, async-loaded version
+  // (`useQuranPageIndex`) — on subsequent visits this is instant. On a cold
+  // start we fall back to a synchronous build once both quranDB + pageMap are
+  // ready, then keep the cache hot.
   const pageIndex = React.useMemo(() => {
+    if (piData && piData.entries.length > 0) {
+      const m = new Map<number, PageItem[]>();
+      for (const [page, items] of piData.entries) {
+        m.set(page, items as PageItem[]);
+      }
+      return m;
+    }
     if (!quranDB || Object.keys(pageMap).length === 0) return new Map<number, PageItem[]>();
     return buildPageIndex(quranDB, pageMap);
-  }, [quranDB, pageMap]);
+  }, [piData, quranDB, pageMap]);
 
   // Current page state
   const surahParam = Number(sp.get("surah"));
@@ -246,11 +223,13 @@ export function MushafPage() {
   );
   const pageScrollMemoryRef = React.useRef<Record<number, number>>({});
 
-  // Handle ?surah= param: jump to first page of that surah (or specific ayah)
-  const didJumpRef = React.useRef(false);
+  // Handle ?surah= param: jump to first page of that surah (or specific ayah).
+  // Keyed on the actual params + pageIndex so deep-links fire every time the
+  // URL changes (e.g. user navigates from a hadith ayah-link back into Mushaf
+  // for a different surah) — the previous one-shot ref blocked all subsequent
+  // jumps after the very first mount.
   React.useEffect(() => {
-    if (!surahParam || Object.keys(pageMap).length === 0 || didJumpRef.current) return;
-    didJumpRef.current = true;
+    if (!surahParam || Object.keys(pageMap).length === 0) return;
     let p: number;
     if (ayahParam > 0) {
       p = Number(pageMap[`${surahParam}:${ayahParam}`])
@@ -261,11 +240,13 @@ export function MushafPage() {
     } else {
       p = Number(pageMap[`${surahParam}:1`]) || Number(pageMap[`${surahParam}:2`]) || 1;
     }
+    if (p === currentPage) return; // already there, nothing to do
     setCurrentPage(p);
     // Keep quranMushafPage in sync so the Home 'تابع سورة' button returns to the correct page
     setPrefs({ quranMushafPage: p });
     navigate(`/mushaf/${p}`, { replace: true });
-  }, [surahParam, ayahParam, pageMap, navigate, setPrefs]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [surahParam, ayahParam, pageMap, pageIndex]);
 
   // Sync URL param when navigating via browser back/forward
   React.useEffect(() => {
@@ -374,11 +355,11 @@ export function MushafPage() {
   const chromeTimer = React.useRef<number | null>(null);
   const lastScrollYRef = React.useRef(0);
   const scrollIntentRef = React.useRef(0);
-  const flashChrome = React.useCallback(() => {
+  const flashChrome = React.useCallback((durationMs = 2200) => {
     scrollIntentRef.current = 0;
     setShowChrome(true);
     if (chromeTimer.current) clearTimeout(chromeTimer.current);
-    chromeTimer.current = window.setTimeout(() => setShowChrome(false), 2200);
+    chromeTimer.current = window.setTimeout(() => setShowChrome(false), durationMs);
   }, []);
   // Hide only on clear downward reading intent. Scroll bounce must not re-show chrome.
   const handleContentScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -416,19 +397,23 @@ export function MushafPage() {
 
   // Selected ayah
   const [selectedItem, setSelectedItem] = React.useState<PageItem | null>(null);
+  // Ref so handleAyahTap can check the *currently-selected* ayah without
+  // depending on selectedItem itself (which would re-create the callback and
+  // tear down its long-press timer every render).
+  const selectedItemRef = React.useRef<PageItem | null>(null);
+  React.useEffect(() => { selectedItemRef.current = selectedItem; }, [selectedItem]);
 
-  // Auto-select ayah when navigating from ?surah=X&ayah=Y deeplinks
-  const didSelectRef = React.useRef(false);
+  // Auto-select ayah when navigating from ?surah=X&ayah=Y deeplinks.
+  // Keyed on params + page so the selection fires every time the user lands on
+  // a new surah/ayah deep-link (the previous one-shot ref made subsequent
+  // deeplinks silently no-op).
   React.useEffect(() => {
-    if (!surahParam || !ayahParam || pageIndex.size === 0 || didSelectRef.current) return;
+    if (!surahParam || !ayahParam || pageIndex.size === 0) return;
     const items = pageIndex.get(currentPage) ?? [];
     const item = items.find(
       (i) => i.surahId === surahParam && (i.displayAyah === ayahParam || i.originalAyah === ayahParam)
     );
-    if (item) {
-      didSelectRef.current = true;
-      setSelectedItem(item);
-    }
+    if (item) setSelectedItem(item);
   }, [surahParam, ayahParam, currentPage, pageIndex]);
 
   // Q9: Per-ayah reveal in memorization mode (must be before handleAyahTap)
@@ -448,13 +433,18 @@ export function MushafPage() {
       });
       return;
     }
+    const isSame = selectedItemRef.current?.surahId === item.surahId && selectedItemRef.current?.originalAyah === item.originalAyah;
     setSelectedItem((prev) =>
       prev?.surahId === item.surahId && prev?.originalAyah === item.originalAyah ? null : item
     );
     setLastRead(item.surahId, item.originalAyah);
     sessionAyahCountRef.current += 1;
     recordQuranRead(1);
-    flashChrome();
+    // Only re-flash the chrome when the user lands on a different ayah —
+    // re-tapping the same ayah (or toggling selection off) shouldn't make the
+    // top/bottom bars pop back in every single tap. The chrome stays visible
+    // for 5s on a new selection so it doesn't blink away too fast either.
+    if (!isSame) flashChrome(5000);
   }, [flashChrome, memorizationMode, recordQuranRead, setLastRead]);
 
   // Note sheet
@@ -563,9 +553,17 @@ export function MushafPage() {
       default: return "bundled-en-sahih";
     }
   }, [quranTranslationId]);
-  const setTranslationSource = React.useCallback((_slug: string) => {
-    // The Settings picker owns this — local UI changes are ignored.
-  }, []);
+  const setTranslationSource = React.useCallback((slug: string) => {
+    // Forward to prefs so Settings.tsx and any other consumer sees the change.
+    // The Mushaf's translation pills speak in "source" names (matching
+    // loadEnglishTranslationCache / loadTranslationEdition); map those back
+    // to the canonical TranslationId the prefs store uses.
+    const id: TranslationId =
+      slug === "eng_abdullahyusufal" ? "yusuf_ali"
+        : slug === "urd_fatehmuhammadja" ? "jalandhry"
+          : "saheeh";
+    setPrefs({ quranTranslationId: id });
+  }, [setPrefs]);
   const prevTranslationSourceRef = React.useRef(translationSource);
 
   // Q11-B: Inline tafseer mode (قراءة mode)
@@ -661,6 +659,7 @@ export function MushafPage() {
 
   // M7: Long-press bookmark
   const longPressTimer = React.useRef<number | null>(null);
+  const longPressPointerId = React.useRef<number | null>(null);
   const longPressFired = React.useRef(false);
 
   // A2: Offline audio cache progress
@@ -846,6 +845,30 @@ export function MushafPage() {
     [showSearch, inPageSearch]
   );
 
+  // Q11-B: Shared cache ref so the inline + popup fetches don't double-load the
+  // same surah+source. Keyed on tafsirItem + inlineTafseerSource so source
+  // changes re-fetch and surface the new tafsir.
+  const tafsirCache = React.useRef<Map<string, string[]>>(new Map());
+  const tafsirInflight = React.useRef<Map<string, Promise<string[]>>>(new Map());
+  const tafsirCacheKey = (sid: number, src: string) => `${src}:${sid}`;
+  const loadTafsirCached = React.useCallback((src: string, sid: number): Promise<string[]> => {
+    const key = tafsirCacheKey(sid, src);
+    const cached = tafsirCache.current.get(key);
+    if (cached) return Promise.resolve(cached);
+    const inflight = tafsirInflight.current.get(key);
+    if (inflight) return inflight;
+    const p: Promise<string[]> =
+      src === "muyassar"
+        ? loadMuyassarCache().then((cache) => (cache[String(sid)] ?? []) as string[])
+        : loadTafsirSurah(src, sid);
+    tafsirInflight.current.set(key, p);
+    p.then((data) => {
+      tafsirCache.current.set(key, data);
+      tafsirInflight.current.delete(key);
+    }).catch(() => { tafsirInflight.current.delete(key); });
+    return p;
+  }, []);
+
   // Q11-B: Fetch tafseer for all surahs on current page when inline tafseer is on.
   // Source changes are tracked via a ref rather than a second "clear on change" effect —
   // two effects both keyed on inlineTafseerSource run with the SAME closure snapshot, so
@@ -862,16 +885,12 @@ export function MushafPage() {
     if (toFetch.length === 0) return;
     let mounted = true;
     setInlineTafseerLoading(true);
-    // Muyassar: load from bundled local JSON (offline, no network needed after SW precache)
-    // Everything else: fetch from the tafsir_api CDN, cached in IndexedDB after first load
-    const loadData: Promise<Array<{ sid: number; ayahs: string[] }>> =
-      inlineTafseerSource === "muyassar"
-        ? loadMuyassarCache().then((cache) =>
-            toFetch.map((sid) => ({ sid, ayahs: (cache[String(sid)] ?? []) as string[] }))
-          )
-        : Promise.all(toFetch.map((sid) =>
-            loadTafsirSurah(inlineTafseerSource, sid).then((ayahs) => ({ sid, ayahs }))
-          ));
+    // Use the shared tafsirCache so inline + popup fetches share results
+    const loadData = Promise.all(
+      toFetch.map((sid) =>
+        loadTafsirCached(inlineTafseerSource, sid).then((ayahs) => ({ sid, ayahs }))
+      ),
+    );
     loadData.then((results) => {
       if (!mounted) return;
       setInlineTafseerData((prev) => {
@@ -882,8 +901,7 @@ export function MushafPage() {
     }).catch(() => { if (mounted) toast.error("تعذر تحميل التفسير"); })
       .finally(() => { if (mounted) setInlineTafseerLoading(false); });
     return () => { mounted = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inlineTafseer, inlineTafseerSource, currentPage]);
+  }, [inlineTafseer, inlineTafseerSource, currentPage, inlineTafseerData, loadTafsirCached]);
 
   // Phase 2A/2B: Fetch word-by-word data for all surahs on current page
   // Triggered by either WBW mode or Tajweed mode (both need the same data)
@@ -917,18 +935,15 @@ export function MushafPage() {
     const sid = tafsirItem.surahId;
     let mounted = true;
     setInlineTafseerLoading(true);
-    const loadData: Promise<string[]> =
-      inlineTafseerSource === "muyassar"
-        ? loadMuyassarCache().then((cache) => (cache[String(sid)] ?? []) as string[])
-        : loadTafsirSurah(inlineTafseerSource, sid);
-    loadData.then((ayahs) => {
-      if (!mounted) return;
-      setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
-    }).catch(() => {})
+    loadTafsirCached(inlineTafseerSource, sid)
+      .then((ayahs) => {
+        if (!mounted) return;
+        setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
+      })
+      .catch(() => {})
       .finally(() => { if (mounted) setInlineTafseerLoading(false); });
     return () => { mounted = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tafsirItem, inlineTafseerSource]);
+  }, [tafsirItem, inlineTafseerSource, loadTafsirCached]);
 
   // Mutashabihat: look up similar-ayah matches for the open ayah once the Quran DB is loaded
   React.useEffect(() => {
@@ -1145,11 +1160,15 @@ export function MushafPage() {
     if (pageTransTimer.current) clearTimeout(pageTransTimer.current);
   }, []);
 
-  // M7: Long-press bookmark handlers
+  // M7: Long-press bookmark handlers.
+  // Multi-touch safe: only the pointer that started the long-press can cancel
+  // it, so a second finger landing during the 600ms window doesn't kill the
+  // first finger's pending timer (which used to silently swallow bookmarks
+  // when the user tapped quickly with two thumbs).
   const handlePointerDown = React.useCallback((e: React.PointerEvent, item: PageItem) => {
     if (item.isBasmalahHeader || item.displayAyah === 0) return;
     longPressFired.current = false;
-    // Clear any existing timer before starting a new one to prevent leaks
+    longPressPointerId.current = e.pointerId;
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
     longPressTimer.current = window.setTimeout(() => {
       longPressFired.current = true;
@@ -1159,8 +1178,10 @@ export function MushafPage() {
       toast.success(wasBookmarked ? "أُزيلت العلامة 🔖" : "✓ إشارة مرجعية محفوظة");
     }, 600);
   }, [bookmarks, toggleBookmark]);
-  const handlePointerUp = React.useCallback(() => {
+  const handlePointerUp = React.useCallback((e: React.PointerEvent) => {
+    if (longPressPointerId.current !== null && longPressPointerId.current !== e.pointerId) return;
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+    longPressPointerId.current = null;
   }, []);
 
   // A2: Download current page ayah audio for offline use
@@ -1439,7 +1460,7 @@ export function MushafPage() {
       {/* ── Top chrome bar ───────────────────────────────── */}
       <div
         className={`mushaf-chrome-top${showChrome || !!selectedItem ? "" : " chrome-hidden"}`}
-        onClick={flashChrome}
+        onClick={() => flashChrome()}
       >
         {/* Q19: Reading progress bar */}
         <div className="mushaf-progress-strip" aria-hidden="true">
@@ -1685,8 +1706,8 @@ export function MushafPage() {
                             </React.Fragment>
                           ))
                         ) : (
-                          item.text
-                        )}
+                            prefs.stripDiacritics ? stripDiacritics(item.text) : item.text
+                          )}
                         {tajweedMode && wbwLoading && !wbwVerse ? (
                           <span className="mushaf-wbw-loading">⋯</span>
                         ) : null}
@@ -2922,12 +2943,12 @@ export function MushafPage() {
             : `صفحة ${toArabicNumeral(currentPage)} من المصحف`,
           subtitle: selectedItem ? `${toArabicNumeral(selectedItem.surahId)}:${toArabicNumeral(selectedItem.displayAyah)}` : "",
           hint: selectedItem
-            ? `الزائر يقرأ حاليًا الآية «﴿${selectedItem.text.slice(0, 120)}﴾» ويريد شرحها مع فوائد عملية.`
+            ? `الزائر يقرأ حاليًا الآية «﴿${sliceAtWordBoundary(selectedItem.text, 120)}﴾» ويريد شرحها مع فوائد عملية.`
             : `الزائر يتصفح صفحة ${toArabicNumeral(currentPage)} من المصحف.`,
         }}
         prefill={
           selectedItem
-            ? `تدبَّر معي هذه الآية: اشرحها شرحًا ميسَّرًا مع فوائد عملية لحياتي اليومية:\n﴿${selectedItem.text.slice(0, 400)}﴾`
+            ? `تدبَّر معي هذه الآية: اشرحها شرحًا ميسَّرًا مع فوائد عملية لحياتي اليومية:\n﴿${sliceAtWordBoundary(selectedItem.text, 400)}﴾`
             : "ما الذي ينفعني في هذه الصفحة من المصحف الآن؟"
         }
       />

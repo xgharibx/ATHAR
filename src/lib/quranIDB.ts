@@ -21,6 +21,18 @@ interface PageMapCache {
   pinnedAt?: number;
 }
 
+interface PageIndexCache {
+  key: string; // primary key — always "page_index"
+  // The page index is a Map<number, PageItem[]>, but Dexie/IDB can only
+  // // round-trip plain JS values. We store entries as [page, items] pairs and
+  // // let the caller reassemble. `schemaVersion` lets us invalidate older
+  // // shapes if PageItem changes.
+  entries: Array<[number, unknown[]]>;
+  cachedAt: number;
+  pinnedAt?: number;
+  schemaVersion: number;
+}
+
 interface ExtrasCache {
   key: string;
   value: unknown;
@@ -36,6 +48,7 @@ export type QuranOfflineCacheMeta = {
 class NoorQuranDexie extends Dexie {
   quranCache!: Table<QuranCache, string>;
   pageMapCache!: Table<PageMapCache, string>;
+  pageIndexCache!: Table<PageIndexCache, string>;
   extrasCache!: Table<ExtrasCache, string>;
 
   constructor() {
@@ -50,6 +63,12 @@ class NoorQuranDexie extends Dexie {
     this.version(3).stores({
       quranCache: "key",
       pageMapCache: "key",
+      extrasCache: "key",
+    });
+    this.version(4).stores({
+      quranCache: "key",
+      pageMapCache: "key",
+      pageIndexCache: "key",
       extrasCache: "key",
     });
   }
@@ -165,6 +184,64 @@ export async function idbSetPageMapPinned(pinned: boolean): Promise<void> {
     await getDB().pageMapCache.put({ ...row, pinnedAt: pinned ? Date.now() : undefined });
   } catch {
     // ignore
+  }
+}
+
+/* ─── Page-index cache ──────────────────────────────────────────────────────
+ * The page index (Map<page, PageItem[]>) is built by walking every ayah in
+ * quranDB. For 6236 ayahs that's a big synchronous walk that blocks the main
+ * thread on Mushaf's first mount. We persist the finished index in IDB and
+ * rehydrate it on subsequent visits (30-day TTL, same as quran + page map).
+ * Pinned entries never expire.
+ *
+ * The shape of `entries` is a [page, PageItem[]] tuple list (Maps don't
+ * round-trip through IDB). `schemaVersion` is bumped if `PageItem` changes.
+ */
+const PAGE_INDEX_KEY = "page_index";
+export const PAGE_INDEX_SCHEMA_VERSION = 1;
+
+export async function idbGetPageIndex(): Promise<{ entries: Array<[number, unknown[]]> } | null> {
+  try {
+    const row = await getDB().pageIndexCache.get(PAGE_INDEX_KEY);
+    if (!row) return null;
+    if (row.schemaVersion !== PAGE_INDEX_SCHEMA_VERSION) return null;
+    if (!row.pinnedAt && Date.now() - row.cachedAt > MAX_AGE_MS) return null;
+    return { entries: row.entries };
+  } catch {
+    return null;
+  }
+}
+
+export async function idbSetPageIndex(
+  entries: Array<[number, unknown[]]>,
+  options?: { pinned?: boolean },
+): Promise<void> {
+  try {
+    const existing = await getDB().pageIndexCache.get(PAGE_INDEX_KEY).catch(() => undefined);
+    const now = Date.now();
+    await getDB().pageIndexCache.put({
+      key: PAGE_INDEX_KEY,
+      entries,
+      cachedAt: now,
+      pinnedAt: options?.pinned ? now : existing?.pinnedAt,
+      schemaVersion: PAGE_INDEX_SCHEMA_VERSION,
+    });
+  } catch {
+    /* best-effort */
+  }
+}
+
+export async function idbGetPageIndexMeta(): Promise<QuranOfflineCacheMeta | null> {
+  try {
+    const row = await getDB().pageIndexCache.get(PAGE_INDEX_KEY);
+    if (!row) return null;
+    return {
+      cachedAt: row.cachedAt,
+      pinnedAt: row.pinnedAt,
+      stale: !row.pinnedAt && Date.now() - row.cachedAt > MAX_AGE_MS,
+    };
+  } catch {
+    return null;
   }
 }
 

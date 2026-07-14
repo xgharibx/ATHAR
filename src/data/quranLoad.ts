@@ -1,5 +1,12 @@
 import { QuranFileSchema, QuranPageMapSchema, type QuranDB, type QuranPageMap } from "./quranTypes";
-import { idbGetQuran, idbSetQuran, idbGetPageMap, idbSetPageMap } from "@/lib/quranIDB";
+import {
+  idbGetQuran,
+  idbSetQuran,
+  idbGetPageMap,
+  idbSetPageMap,
+  idbGetPageIndex,
+  idbSetPageIndex,
+} from "@/lib/quranIDB";
 import { publicDataUrl } from "./publicAssetUrl";
 
 const REMOTE_QURAN_JSON = "https://xgharibx.github.io/ImamAhmed/data/quran.json";
@@ -59,4 +66,32 @@ export async function loadQuranPageMap(): Promise<QuranPageMap> {
   // Persist to IDB for next load (fire-and-forget)
   void idbSetPageMap(result);
   return result;
+}
+
+/**
+ * Cached, IDB-backed fetch of the pre-built page index. The caller passes in
+ * the *fresh* quranDB + pageMap so we can rebuild the index on cache miss and
+ * persist the result. The returned `entries` are [page, items] tuples ready
+ * to be reassembled into a Map<number, PageItem[]>.
+ */
+export async function loadQuranPageIndex(): Promise<{
+  entries: Array<[number, unknown[]]>;
+  fromCache: boolean;
+}> {
+  // 1. IDB cache
+  const cached = await idbGetPageIndex();
+  if (cached && cached.entries.length > 0) {
+    return { entries: cached.entries, fromCache: true };
+  }
+  // 2. Build from quranDB + pageMap (caller is expected to load these first).
+  const quran = await loadQuranDB();
+  const pm = await loadQuranPageMap();
+  // Re-import buildPageIndex dynamically to keep quranLoad pure (avoids a
+  // circular dep with the React pages folder where the builder lives).
+  const { buildPageIndexForCache } = await import("./pageIndexBuilder");
+  const idx = buildPageIndexForCache(quran, pm.map);
+  const entries = Array.from(idx.entries());
+  // Fire-and-forget persist
+  void idbSetPageIndex(entries);
+  return { entries, fromCache: false };
 }
