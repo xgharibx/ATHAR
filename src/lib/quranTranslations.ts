@@ -17,6 +17,8 @@
  */
 import { idbGetExtras, idbSetExtras } from "@/lib/quranIDB";
 import { getEnglishText as getSahihEnglishText, type QuranExtras } from "@/data/quranExtras";
+import { loadEnglishTranslationCache, type QuranEnglishTranslation } from "@/lib/quranTranslationLocal";
+import { getSurahAyahCount } from "@/data/quranSurahCounts";
 import { globalAyahNumber } from "@/data/quranSurahCounts";
 
 export type TranslationId = "saheeh" | "yusuf_ali" | "jalandhry";
@@ -39,6 +41,12 @@ export type TranslationSource = {
 };
 
 export const TRANSLATION_SOURCES: TranslationSource[] = [
+  /*
+   * NOTE: Arabic labels are intentional — they are place/writer
+   * transliterations (الأجرومية / الألبيرية / الأرضية) chosen by the user.
+   * Do NOT "correct" them to look like English-name transliterations
+   * (e.g. "ساهيه" or "يوسف علي") without explicit user approval.
+   */
   { id: "saheeh",     ar: "الأجرومية", en: "Saheeh International", lang: "en", apiId: null, bundled: true,  approxSizeKB: 880  },
   { id: "yusuf_ali",  ar: "الألبيرية", en: "Yusuf Ali",            lang: "en", apiId: 84,    bundled: false, approxSizeKB: 900  },
   { id: "jalandhry",  ar: "الأرضية",   en: "Jalandhry",            lang: "ur", apiId: 157,   bundled: false, approxSizeKB: 1200 },
@@ -203,4 +211,83 @@ export async function getTranslationSize(id: TranslationId): Promise<Translation
     /* fall through to approx */
   }
   return { source, sizeKB: source.approxSizeKB, cachedAt: null };
+}
+
+/** Static metadata for a translation source (no IDB / network). */
+export function getTranslationSourceMeta(id: TranslationId): TranslationSource {
+  const src = TRANSLATION_SOURCES.find((s) => s.id === id);
+  if (!src) throw new Error(`Unknown translation id: ${id}`);
+  return src;
+}
+
+/** Convenience: static approximated size in KB for a source. */
+export function getTranslationApproxSizeKB(id: TranslationId): number {
+  return getTranslationSourceMeta(id).approxSizeKB;
+}
+
+/**
+ * Per-surah loader used by the Mushaf page so the Settings picker and the
+ * Mushaf pill share ONE source of truth (`TRANSLATION_SOURCES`).
+ *
+ * - Bundled (Saheeh): reads from `data/quran-en-sahih.json` via the existing
+ *   `quranTranslationLocal` cache.
+ * - Remote (Yusuf Ali / Jalandhry): triggers a one-shot fetch of the full
+ *   translation index from quran.foundation (memoized + IDB-cached) and
+ *   slices the requested surahs out of the global-ayah index.
+ *
+ * Returned shape mirrors `quranTranslationLocal.QuranEnglishTranslation`:
+ *   Record<surahId, string[0..n]>  where index 0 is always "" and
+ *   index 1..n holds ayah text in surah order.
+ */
+export async function loadTranslationForSurahs(
+  id: TranslationId,
+  surahIds: ReadonlyArray<number>,
+): Promise<QuranEnglishTranslation> {
+  const source = TRANSLATION_SOURCES.find((s) => s.id === id);
+  if (!source) throw new Error(`Unknown translation id: ${id}`);
+
+  if (source.bundled) {
+    const cache = await loadEnglishTranslationCache();
+    const out: QuranEnglishTranslation = {};
+    for (const sid of surahIds) {
+      if (cache[sid]) out[sid] = cache[sid];
+    }
+    return out;
+  }
+
+  // Remote: prime the memo cache (one fetch, shared by every consumer).
+  if (!MEM_CACHE[id]) {
+    if (!INFLIGHT[id]) {
+      INFLIGHT[id] = fetchRemoteIndex(id, source.apiId!).finally(() => {
+        INFLIGHT[id] = undefined as unknown as Promise<TranslationIndex> | undefined;
+      });
+    }
+    try {
+      await INFLIGHT[id];
+    } catch {
+      // Fetch failed — fall back to Saheeh bundle if available, else return empty.
+      try {
+        const bundled = await loadEnglishTranslationCache();
+        const out: QuranEnglishTranslation = {};
+        for (const sid of surahIds) if (bundled[sid]) out[sid] = bundled[sid];
+        return out;
+      } catch {
+        return {};
+      }
+    }
+  }
+
+  const index = MEM_CACHE[id]!;
+  const out: QuranEnglishTranslation = {};
+  for (const sid of surahIds) {
+    const ayahCount = getSurahAyahCount(sid);
+    if (!ayahCount) continue;
+    const arr: string[] = [""];
+    for (let ayah = 1; ayah <= ayahCount; ayah++) {
+      const ga = globalAyahNumber(sid, ayah);
+      arr.push(index[ga] ?? "");
+    }
+    out[sid] = arr;
+  }
+  return out;
 }

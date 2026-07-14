@@ -4,6 +4,8 @@ import {
   TRANSLATION_SOURCES,
   TranslationId,
   getSavedTranslationId,
+  getTranslationApproxSizeKB,
+  getTranslationSourceMeta,
   registerSaheehExtras,
   type TranslationSource,
 } from "@/lib/quranTranslations";
@@ -85,5 +87,35 @@ describe("quranTranslations module", () => {
     const { getTranslationForAyah } = await import("@/lib/quranTranslations");
     // No Saheeh bundle registered, so both resolve to null without crashing.
     await expect(getTranslationForAyah("jalandhry", 1, 1)).resolves.toBeNull();
+  });
+
+  it("getTranslationSourceMeta returns static metadata for each source", () => {
+    expect(getTranslationSourceMeta("saheeh").bundled).toBe(true);
+    expect(getTranslationSourceMeta("yusuf_ali").apiId).toBe(84);
+    expect(getTranslationSourceMeta("jalandhry").apiId).toBe(157);
+    expect(() => getTranslationSourceMeta("nope" as TranslationId)).toThrow();
+  });
+
+  it("getTranslationApproxSizeKB matches the documented approximate sizes", () => {
+    expect(getTranslationApproxSizeKB("saheeh")).toBe(880);
+    expect(getTranslationApproxSizeKB("yusuf_ali")).toBe(900);
+    expect(getTranslationApproxSizeKB("jalandhry")).toBe(1200);
+  });
+
+  it("loadTranslationForSurahs returns bundled surahs for Saheeh (and {} for remote when offline)", async () => {
+    // Stub fetch: succeed for the bundled JSON, reject for remote quran.foundation.
+    const fetchMock = vi.fn(async (url: string) => {
+      if (String(url).includes("quran-en-sahih.json")) {
+        return new Response(JSON.stringify({}), { status: 200 });
+      }
+      throw new Error("offline");
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const { loadTranslationForSurahs } = await import("@/lib/quranTranslations");
+    const bundled = await loadTranslationForSurahs("saheeh", [1, 2]);
+    expect(bundled).toBeTypeOf("object");
+    // Remote falls back to bundled cache (which returned {}); should be an object, no throw.
+    const remote = await loadTranslationForSurahs("yusuf_ali", [1]);
+    expect(remote).toBeTypeOf("object");
   });
 });

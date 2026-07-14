@@ -17,6 +17,11 @@ import { useNoorStore } from "@/store/noorStore";
 import { getHizbForAyah, getJuzForAyah, getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import type { TranslationId } from "@/lib/quranTranslations";
+import {
+  TRANSLATION_SOURCES,
+  getTranslationForAyah,
+  loadTranslationForSurahs,
+} from "@/lib/quranTranslations";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import {
   getRadioState,
@@ -35,8 +40,7 @@ import { CompanionModal } from "@/components/companion/CompanionModal";
 import { TAFSIR_EDITIONS, getTafsirLabel, loadTafsirSurah } from "@/lib/tafsirEditions";
 import { getMutashabihatForAyah, type MutashabihMatch } from "@/lib/mutashabihat";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
-import { getEnglishAyahTranslation, loadEnglishTranslationCache } from "@/lib/quranTranslationLocal";
-import { TRANSLATION_EDITIONS, getTranslationLabel, loadTranslationEdition } from "@/lib/translationEditions";
+import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import toast from "react-hot-toast";
 
 // ── Types ─────────────────────────────────────────────────────
@@ -544,27 +548,8 @@ export function MushafPage() {
     });
   }, [setPrefs]);
   const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
-  const quranTranslationId = prefs.quranTranslationId ?? "saheeh";
-  const translationSource = React.useMemo(() => {
-    switch (quranTranslationId) {
-      case "yusuf_ali": return "eng_abdullahyusufal";
-      case "jalandhry": return "urd_fatehmuhammadja";
-      case "saheeh":
-      default: return "bundled-en-sahih";
-    }
-  }, [quranTranslationId]);
-  const setTranslationSource = React.useCallback((slug: string) => {
-    // Forward to prefs so Settings.tsx and any other consumer sees the change.
-    // The Mushaf's translation pills speak in "source" names (matching
-    // loadEnglishTranslationCache / loadTranslationEdition); map those back
-    // to the canonical TranslationId the prefs store uses.
-    const id: TranslationId =
-      slug === "eng_abdullahyusufal" ? "yusuf_ali"
-        : slug === "urd_fatehmuhammadja" ? "jalandhry"
-          : "saheeh";
-    setPrefs({ quranTranslationId: id });
-  }, [setPrefs]);
-  const prevTranslationSourceRef = React.useRef(translationSource);
+  const quranTranslationId: TranslationId = prefs.quranTranslationId ?? "saheeh";
+  const prevTranslationIdRef = React.useRef<TranslationId>(quranTranslationId);
 
   // Q11-B: Inline tafseer mode (قراءة mode)
   const [inlineTafseer, setInlineTafseerState] = React.useState(() => prefs.mushafInlineTafseer ?? false);
@@ -812,32 +797,22 @@ export function MushafPage() {
   // both keyed on the same "source" state race each other's closures otherwise.
   React.useEffect(() => {
     if (!showTranslation && tafsirItem === null) return;
-    const sourceChanged = prevTranslationSourceRef.current !== translationSource;
-    prevTranslationSourceRef.current = translationSource;
+    const sourceChanged = prevTranslationIdRef.current !== quranTranslationId;
+    prevTranslationIdRef.current = quranTranslationId;
     const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
     if (tafsirItem) surahIds.push(tafsirItem.surahId);
     const toFetch = sourceChanged ? surahIds : surahIds.filter((sid) => !translationData[sid]);
     if (toFetch.length === 0) return;
     let mounted = true;
-    const loadData: Promise<Record<number, string[]>> =
-      translationSource === "bundled-en-sahih"
-        ? loadEnglishTranslationCache().then((cache) => {
-            const upd: Record<number, string[]> = {};
-            for (const sid of toFetch) if (cache[sid]) upd[sid] = cache[sid];
-            return upd;
-          })
-        : loadTranslationEdition(translationSource).then((whole) => {
-            const upd: Record<number, string[]> = {};
-            for (const sid of toFetch) if (whole[sid]) upd[sid] = whole[sid];
-            return upd;
-          });
-    loadData.then((fetched) => {
-      if (!mounted) return;
-      setTranslationData((prev) => ({ ...(sourceChanged ? {} : prev), ...fetched }));
-    }).catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); });
+    loadTranslationForSurahs(quranTranslationId, toFetch)
+      .then((fetched) => {
+        if (!mounted) return;
+        setTranslationData((prev) => ({ ...(sourceChanged ? {} : prev), ...fetched }));
+      })
+      .catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); });
     return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTranslation, tafsirItem, currentPage, translationSource]);
+  }, [showTranslation, tafsirItem, currentPage, quranTranslationId]);
 
   // Q17: Normalized search for ayah matching
   const normalizedSearch = React.useMemo(
@@ -1068,16 +1043,24 @@ export function MushafPage() {
   };
 
   // ── Ayah share options (Ayah-style sheet) ──────────────
-  // Fetch the English (Sahih) translation for a single ayah, reusing cached data.
+  // Fetch the translation for a single ayah using the user's currently-selected
+  // source. Cache hit on `translationData` is fast; cache miss lazily triggers a
+  // full fetch via the unified `getTranslationForAyah` (memoized + IDB-cached).
   const getAyahTranslation = React.useCallback(async (surahId: number, originalAyah: number): Promise<string> => {
     const cached = translationData[surahId]?.[originalAyah];
     if (cached) return cached;
     try {
-      const arr = (await loadEnglishTranslationCache())[surahId] ?? [];
-      setTranslationData((prev) => ({ ...prev, [surahId]: arr }));
-      return arr[originalAyah] ?? await getEnglishAyahTranslation(surahId, originalAyah);
+      const text = await getTranslationForAyah(quranTranslationId, surahId, originalAyah);
+      if (text) {
+        setTranslationData((prev) => {
+          const arr = prev[surahId] ? [...prev[surahId]] : [""];
+          arr[originalAyah] = text;
+          return { ...prev, [surahId]: arr };
+        });
+      }
+      return text ?? "";
     } catch { return ""; }
-  }, [translationData]);
+  }, [translationData, quranTranslationId]);
 
   const shareAyahImage = async (withTranslation: boolean) => {
     if (!selectedItem) return;
@@ -2350,36 +2333,13 @@ export function MushafPage() {
               <span className="text-xs opacity-60 tabular-nums w-8 text-center">{Math.round(fontScale * 100)}%</span>
               <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} aria-hidden="true" /></button>
             </div>
-            {/* Q3: Translation */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs opacity-65">{getTranslationLabel(translationSource)}</span>
-                <button type="button"
-                  onClick={() => setShowTranslationPref((v) => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${showTranslation ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
-                  role="switch" aria-checked={showTranslation}
-                >
-                  <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${showTranslation ? "right-1" : "right-7"}`} />
-                </button>
-              </div>
-              {showTranslation && (
-                <div className="flex gap-1.5 p-1 mt-2 rounded-xl bg-black/20 border border-[var(--stroke)] overflow-x-auto no-scrollbar">
-                  {TRANSLATION_EDITIONS.map(({ slug, label }) => (
-                    <button type="button"
-                      key={slug}
-                      onClick={() => setTranslationSource(slug)}
-                      className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                        translationSource === slug
-                          ? "bg-accent-20 text-[var(--accent)] border border-accent-30"
-                          : "opacity-50 hover:opacity-80"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Q3: Translation — same picker + same prefs as Settings.tsx */}
+            <TranslationPicker
+              enabled={showTranslation}
+              value={quranTranslationId}
+              onEnabledChange={setShowTranslationPref}
+              onChange={(id) => setPrefs({ quranTranslationId: id })}
+            />
             {/* Q11-B: Inline Tafseer */}
             <div className="mb-3 p-3 rounded-2xl border"
               style={{
@@ -2671,7 +2631,7 @@ export function MushafPage() {
             {([
               { label: "بحث في الصفحة", sub: "ابحث داخل آيات الصفحة الحالية", icon: <Search size={16} aria-hidden="true" />, active: showSearch,
                 onPress: () => { setShowSearch((v) => !v); if (showSearch) setInPageSearch(""); setShowMoreSheet(false); } },
-              { label: "الترجمة", sub: getTranslationLabel(translationSource), icon: <Languages size={16} aria-hidden="true" />, active: showTranslation,
+              { label: "الترجمة", sub: (() => { const m = TRANSLATION_SOURCES.find((s) => s.id === quranTranslationId); return m ? `${m.ar} — ${m.en}` : ""; })(), icon: <Languages size={16} aria-hidden="true" />, active: showTranslation,
                 onPress: () => { setShowTranslationPref((v) => !v); setShowMoreSheet(false); } },
               { label: memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ", sub: "اختبر حفظك آية بآية", icon: memorizationMode ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />, active: memorizationMode,
                 onPress: () => { setMemorizationMode((v) => { if (v) setRevealedItems(new Set()); return !v; }); flashChrome(); setShowMoreSheet(false); } },
