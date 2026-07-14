@@ -1,6 +1,32 @@
 import { useEffect } from "react";
 import { useNoorStore, type NoorTheme } from "@/store/noorStore";
 
+/** Pure helpers exported for unit tests so they can be exercised without a
+ *  jsdom environment. Kept side-effect-free on import. */
+
+/** Returns the resolved `dir` for the document root given the user's
+ *  `textDir` pref and the current `<html lang>`. `auto` defers to language:
+ *  any Arabic-script lang ("ar", "fa", "ur", "ps", "he", "yi", …) → rtl,
+ *  everything else → ltr. The list is intentionally small but covers every
+ *  RTL language athar ships localized copy for. */
+export function resolveTextDir(
+  textDir: "auto" | "rtl" | "ltr" | undefined,
+  lang: string,
+): "rtl" | "ltr" {
+  if (textDir === "rtl") return "rtl";
+  if (textDir === "ltr") return "ltr";
+  const base = (lang ?? "").trim().toLowerCase().split(/[-_]/)[0] ?? "";
+  const rtlLangs = new Set(["ar", "fa", "ur", "ps", "he", "yi", "sd", "ku", "dv"]);
+  return rtlLangs.has(base) ? "rtl" : "ltr";
+}
+
+/** Resolves the effective `<html lang>` for `uiLanguage === "auto"`. We don't
+ *  use `navigator.language` in tests, so callers can pass it explicitly. */
+export function resolveUiLanguage(uiLanguage: "ar" | "en" | undefined, fallback: string = "ar"): string {
+  if (uiLanguage === "ar" || uiLanguage === "en") return uiLanguage;
+  return fallback;
+}
+
 // Theme-color map for PWA browser chrome tinting
 const THEME_META_COLORS: Record<NoorTheme, string> = {
   system:   "#07080b",
@@ -186,15 +212,13 @@ export function useApplyTheme() {
     document.documentElement.dataset.arabicFont = arabicFont ?? "noto_naskh";
   }, [arabicFont]);
 
-  // Se3 + Se4: UI language and text direction
+  // Se3 + Se4: UI language and text direction. The helper pair is exported
+  // above so this hook's behaviour is unit-testable without jsdom.
   useEffect(() => {
     const root = document.documentElement;
-    const lang = uiLanguage ?? "ar";
+    const lang = resolveUiLanguage(uiLanguage);
     root.lang = lang;
-    if ((textDir ?? "auto") === "ltr") {
-      root.dir = "ltr";
-    } else {
-      root.dir = "rtl";
-    }
+    const dir = resolveTextDir(textDir, lang);
+    root.dir = dir;
   }, [textDir, uiLanguage]);
 }

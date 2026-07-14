@@ -114,6 +114,139 @@ function daysBetween(a: Date, b: Date) {
  *  for unit testability and reuse. The page calls parseDirectAyahQuery(query, data)
  *  to detect direct references and jump straight into Mushaf. */
 
+/** Pass A: pure helper exported for unit testing. Returns the slice of ayahs
+ *  for the requested virtual page (0-indexed). Clamps pageIndex into
+ *  [0, totalPages-1] and returns an empty array when the surah has no ayahs. */
+export function getSurahPageSlice<T>(
+  ayahs: T[],
+  pageSize: number,
+  pageIndex: number,
+): { items: T[]; totalPages: number; pageIndex: number } {
+  const total = ayahs.length;
+  if (total === 0 || pageSize <= 0) {
+    return { items: [], totalPages: 0, pageIndex: 0 };
+  }
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safeIndex = Math.max(0, Math.min(totalPages - 1, pageIndex));
+  const start = safeIndex * pageSize;
+  const end = Math.min(total, start + pageSize);
+  return { items: ayahs.slice(start, end), totalPages, pageIndex: safeIndex };
+}
+
+type QuranSurahDetailProps = {
+  surah: { id: number; name: string; ayahs: string[] };
+  pageSize: number;
+  fontScale: number;
+  pageIndex: number;
+  onPageChange: (next: number) => void;
+  onCollapse: () => void;
+  onOpenInMushaf: (ayah?: number) => void;
+};
+
+function QuranSurahDetail(props: QuranSurahDetailProps) {
+  const { surah, pageSize, fontScale, pageIndex, onPageChange, onCollapse, onOpenInMushaf } = props;
+  const slice = getSurahPageSlice(surah.ayahs, pageSize, pageIndex);
+  const items = slice.items;
+  const totalPages = slice.totalPages;
+  const safeIndex = slice.pageIndex;
+  const ayahSize = Math.round(22 * fontScale);
+  const translSize = Math.round(13 * fontScale);
+  const totalAyahs = surah.ayahs.length;
+  const fromAyah = totalAyahs === 0 ? 0 : safeIndex * pageSize + 1;
+  const toAyah = totalAyahs === 0 ? 0 : Math.min(totalAyahs, fromAyah + items.length - 1);
+  return (
+    <div
+      id={`surah-detail-${surah.id}`}
+      className="px-5 pb-5 pt-1 border-t border-[var(--stroke)]/20 bg-[var(--card-2)]/40"
+      role="region"
+      aria-label={`سورة ${surah.name} — عرض مُصفّح`}
+    >
+      <div className="flex items-center justify-between gap-3 py-2 text-xs">
+        <span className="opacity-60 tabular-nums">
+          {totalAyahs === 0
+            ? "لا توجد آيات"
+            : `الآيات ${toArabicNumeral(fromAyah)}–${toArabicNumeral(toAyah)} من ${toArabicNumeral(totalAyahs)}`}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onCollapse}
+            className="rounded-lg border border-[var(--stroke)] px-2 py-1 text-[11px] opacity-70 hover:opacity-100 transition"
+            aria-label="إغلاق التفاصيل"
+          >
+            <X size={12} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onOpenInMushaf()}
+            className="rounded-lg border border-[var(--stroke)] px-2 py-1 text-[11px] hover:bg-[var(--card)] transition"
+            aria-label="افتح السورة في المصحف"
+          >
+            افتح في المصحف
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {items.map((text, offset) => {
+          const ayahIndex = fromAyah + offset;
+          return (
+            <button
+              key={`${surah.id}:${ayahIndex}`}
+              type="button"
+              onClick={() => onOpenInMushaf(ayahIndex)}
+              className="block w-full text-right rounded-2xl border border-[var(--stroke)]/40 bg-[var(--card)] px-4 py-3 hover:bg-[var(--card-2)] transition"
+              aria-label={`افتح الآية ${ayahIndex} في المصحف`}
+            >
+              <div className="arabic-text leading-loose" style={{ fontSize: `${ayahSize}px` }} dir="rtl">
+                ﴿{text}﴾
+                <span className="mx-2 text-[10px] tabular-nums opacity-50 align-middle">
+                  {toArabicNumeral(ayahIndex)}
+                </span>
+              </div>
+              <div className="mt-1 text-[10px] opacity-50 tabular-nums" style={{ fontSize: `${translSize}px` }}>
+                اضغط للمتابعة في المصحف
+              </div>
+            </button>
+          );
+        })}
+        {totalAyahs === 0 && (
+          <div className="py-6 text-center text-xs opacity-55">لا تتوفر نصوص لهذه السورة.</div>
+        )}
+      </div>
+
+      {totalPages > 1 && (
+        <nav
+          className="mt-4 flex items-center justify-between gap-3 text-xs"
+          aria-label={`تصفح صفحات سورة ${surah.name}`}
+        >
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.max(0, safeIndex - 1))}
+            disabled={safeIndex === 0}
+            className="rounded-lg border border-[var(--stroke)] px-3 py-1 disabled:opacity-30 hover:bg-[var(--card)] transition"
+            aria-label="الصفحة السابقة"
+          >
+            ← السابق
+          </button>
+          <span className="opacity-60 tabular-nums" aria-live="polite">
+            صفحة {toArabicNumeral(safeIndex + 1)} / {toArabicNumeral(totalPages)}
+          </span>
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.min(totalPages - 1, safeIndex + 1))}
+            disabled={safeIndex >= totalPages - 1}
+            className="rounded-lg border border-[var(--stroke)] px-3 py-1 disabled:opacity-30 hover:bg-[var(--card)] transition"
+            aria-label="الصفحة التالية"
+          >
+            التالي →
+          </button>
+        </nav>
+      )}
+    </div>
+  );
+}
+
 const LOADING_SURAH_KEYS = [
   "load-surah-1",
   "load-surah-2",
@@ -171,6 +304,10 @@ export function QuranPage() {
   const [extras, setExtras] = React.useState<QuranExtras | null>(null);
   const [pageMap, setPageMap] = React.useState<Record<string, number> | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+  // Pass A: inline surah detail with virtual pagination — `quranPageSize` ayahs
+  // per page. `expandedSurahId === null` means collapsed (default state).
+  const [expandedSurahId, setExpandedSurahId] = React.useState<number | null>(null);
+  const [expandedSurahPage, setExpandedSurahPage] = React.useState(0);
   const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent" | "unread" | "nearly">(
     (prefs.quranSortMode as "mushaf" | "progress" | "recent" | "unread" | "nearly" | undefined) ?? "mushaf",
   );
@@ -1218,9 +1355,20 @@ export function QuranPage() {
                   className="relative">
                 <div role="button"
                   tabIndex={0}
-                  onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); } }}
+                  onClick={() => {
+                    if (expandedSurahId === s.id) {
+                      setExpandedSurahId(null);
+                      setExpandedSurahPage(0);
+                      return;
+                    }
+                    setExpandedSurahId(s.id);
+                    setExpandedSurahPage(0);
+                    recordRecentSurah(s.id);
+                  }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (expandedSurahId === s.id) { setExpandedSurahId(null); setExpandedSurahPage(0); return; } setExpandedSurahId(s.id); setExpandedSurahPage(0); recordRecentSurah(s.id); } }}
+                  aria-expanded={expandedSurahId === s.id}
                   aria-label={`سورة ${s.name} — ${s.ayahs.length} آية`}
+                  aria-controls={`surah-detail-${s.id}`}
                   className="w-full flex items-center gap-4 ps-5 pe-2 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)] cursor-pointer focus:outline-none focus:bg-accent-8"
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >
@@ -1232,7 +1380,7 @@ export function QuranPage() {
                   {/* Name + meta */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-[17px] arabic-text font-semibold leading-snug">{s.name}</span>
+                      <span className="arabic-text font-semibold leading-snug" style={{ fontSize: `${17 * (prefs.quranFontScale ?? 1.0)}px` }}>{s.name}</span>
                       {isCurrent && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>جاري</span>}
                       {pct >= 100 && <span className="text-[10px] font-bold shrink-0" style={{ color: "var(--ok)" }}>✓</span>}
                       {bookmarkedSurahs.has(s.id) && <Bookmark size={10} aria-hidden="true" className="shrink-0 opacity-70" style={{ color: "var(--accent)" }} />}
@@ -1304,9 +1452,21 @@ export function QuranPage() {
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); } }}
                     aria-label={`معلومات سورة ${s.name}`}
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35">
-                    <Info size={14} aria-hidden="true" />
-                  </button>
+<Info size={14} aria-hidden="true" />
+                </button>
                 </div>
+                {/* Pass A: inline surah detail (virtual pagination by quranPageSize) */}
+                {expandedSurahId === s.id && (
+                  <QuranSurahDetail
+                    surah={s}
+                    pageSize={Math.max(5, Math.min(25, Math.round(prefs.quranPageSize ?? 12)))}
+                    fontScale={prefs.quranFontScale ?? 1.0}
+                    pageIndex={expandedSurahPage}
+                    onPageChange={setExpandedSurahPage}
+                    onCollapse={() => { setExpandedSurahId(null); setExpandedSurahPage(0); }}
+                    onOpenInMushaf={(ayah) => navigate(`/mushaf?surah=${s.id}${ayah ? `&ayah=${ayah}` : ""}`)}
+                  />
+                )}
                 </div>
                 </React.Fragment>
               );

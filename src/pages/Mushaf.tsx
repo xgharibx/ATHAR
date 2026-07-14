@@ -284,6 +284,28 @@ export function MushafPage() {
     () => pageItems.filter((item) => !item.isBasmalahHeader && item.displayAyah > 0),
     [pageItems]
   );
+
+  // Pass A: `prefs.quranScrollMode === "scroll"` — render the current page plus
+  // the next pages stacked into the same scroll container so the reader flows
+  // continuously across page boundaries. The user can still navigate using
+  // the page indicator and search/jump; arrows disable in scroll mode.
+  const scrollModeEnabled = prefs.quranScrollMode === "scroll";
+  const SCROLL_TRAILING_PAGES = 3; // safe upper bound — even long pages render under a few KB each
+  const scrollFlowItems = React.useMemo(() => {
+    if (!scrollModeEnabled) return null;
+    const seen = new Set<string>();
+    const collected: typeof pageItems = [];
+    for (let p = currentPage; p < currentPage + SCROLL_TRAILING_PAGES && p <= totalPages; p++) {
+      const items = pageIndex.get(p) ?? [];
+      for (const it of items) {
+        const k = `${it.surahId}:${it.originalAyah}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        collected.push(it);
+      }
+    }
+    return collected;
+  }, [scrollModeEnabled, currentPage, totalPages, pageIndex]);
   const firstPlayableItem = playableItems[0] ?? null;
 
   // Continuous "auto-advance" playback queue: every remaining ayah of the
@@ -317,7 +339,10 @@ export function MushafPage() {
   const surahGroups = React.useMemo((): SurahGroup[] => {
     const groups: SurahGroup[] = [];
     let cur: SurahGroup | null = null;
-    for (const item of pageItems) {
+    // Pass A: in scroll mode we group the multi-page flow instead of just the
+    // single page so `mushaf-page-main` can render continuously.
+    const flowItems = scrollModeEnabled && scrollFlowItems ? scrollFlowItems : pageItems;
+    for (const item of flowItems) {
       if (!cur || cur.surahId !== item.surahId) {
         cur = {
           surahId: item.surahId,
@@ -334,7 +359,7 @@ export function MushafPage() {
       }
     }
     return groups;
-  }, [pageItems]);
+  }, [pageItems, scrollFlowItems, scrollModeEnabled]);
 
   const firstItem = pageItems[0];
   const lastItem = pageItems[pageItems.length - 1];
@@ -1432,6 +1457,7 @@ export function MushafPage() {
       className="mushaf-reader page-enter"
       data-mushaf-theme={prefs.quranTheme}
       data-mushaf-clean={(prefs.mushafCleanMode ?? true) ? "1" : "0"}
+      data-mushaf-scroll={scrollModeEnabled ? "1" : "0"}
       {...(prefs.mushafTextColor ? {
         "data-mushaf-tc": "1",
         style: { "--mushaf-custom-tc": prefs.mushafTextColor } as React.CSSProperties,
@@ -1603,6 +1629,7 @@ export function MushafPage() {
           <div className="mushaf-page-info-strip">
             <span>{pageSurahName}</span>
             {memorizationMode ? <span>وضع الحفظ</span> : null}
+            {scrollModeEnabled ? <span>وضع التمرير</span> : null}
             <span>الجزء {toArabicNumeral(pageJuz)}</span>
           </div>
 
@@ -2550,6 +2577,23 @@ export function MushafPage() {
                   aria-pressed={!(prefs.mushafCleanMode ?? true)}
                   className={`flex-1 text-[11px] px-2.5 py-2 rounded-xl border transition ${!(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
                 >🌺 إطار زخرفي</button>
+              </div>
+            </div>
+
+            {/* Pass A: `prefs.quranScrollMode` — page-by-page vs continuous flow */}
+            <div className="mt-1 mb-3">
+              <div className="text-xs opacity-50 mb-1.5">نمط التمرير</div>
+              <div className="flex gap-1.5">
+                <button type="button"
+                  onClick={() => setPrefs({ quranScrollMode: "page" })}
+                  aria-pressed={(prefs.quranScrollMode ?? "page") === "page"}
+                  className={`flex-1 text-[11px] px-2.5 py-2 rounded-xl border transition ${(prefs.quranScrollMode ?? "page") === "page" ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                >📄 صفحة صفحة</button>
+                <button type="button"
+                  onClick={() => setPrefs({ quranScrollMode: "scroll" })}
+                  aria-pressed={prefs.quranScrollMode === "scroll"}
+                  className={`flex-1 text-[11px] px-2.5 py-2 rounded-xl border transition ${prefs.quranScrollMode === "scroll" ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
+                >📜 تمرير متصل</button>
               </div>
             </div>
 
