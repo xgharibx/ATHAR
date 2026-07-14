@@ -20,7 +20,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Sparkles, Send, History, Plus, Pencil, Check, Copy, X as XIcon,
   Mic, MicOff, Volume2, VolumeX, Search, Pin, Share2, Image as ImageIcon,
-  AlertCircle, Loader2, MessageSquareQuote, Download, Star,
+  AlertCircle, MessageSquareQuote, Download, Star, Trash2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
@@ -39,20 +39,18 @@ import {
   type CompanionMessage,
   type VerificationReport,
 } from "@/lib/companionAI";
-import { appLinksToMarkdown } from "@/lib/companionMarkdown";
 import {
   splitIntoSegments,
-  type Segment,
 } from "@/lib/companionBlocks";
 import {
   exportConversationText,
   groupConversationsByRecency,
   previewSnippet,
-  type HistoryGroup,
   type HistoryLayout,
 } from "@/lib/companionHistoryGroup";
 import {
   addPin,
+  clearAllConversations,
   deleteConversation,
   getConversation,
   listConversations,
@@ -614,6 +612,19 @@ export function CompanionPage() {
                 className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2.5 text-sm font-bold text-black/80 active:scale-[0.99] transition">
                 <Plus className="h-4 w-4" aria-hidden="true" /> محادثة جديدة
               </button>
+              {history.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== "undefined" && !window.confirm("هل تريد فعلًا مسح كل المحادثات؟ لا يمكن التراجع.")) return;
+                    void clearAllConversations().then(() => { startNewChat(); void refreshHistory(); });
+                  }}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[var(--stroke)] px-3 py-2 text-xs font-semibold text-[var(--muted)] hover:bg-red-500/10 hover:text-red-500 transition"
+                  aria-label="مسح كل المحادثات"
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> مسح كل المحادثات
+                </button>
+              ) : null}
             </div>
 
             <div className="flex-1 overflow-y-auto px-2 pb-4">
@@ -648,6 +659,32 @@ export function CompanionPage() {
                   onTogglePin={togglePinConversation}
                 />
               )}
+            </div>
+
+            {/* Companion status footer — local-only data summary */}
+            <div
+              data-testid="athar-companion-status-footer"
+              className="flex items-center justify-between gap-2 border-t border-[var(--stroke)] bg-[var(--card)]/60 px-4 py-2.5 text-[10.5px] text-[var(--muted)] backdrop-blur"
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+                <span className="font-semibold text-[var(--fg)]">حالة الرفيق</span>
+              </span>
+              <span className="flex items-center gap-3 tabular-nums">
+                <span>
+                  <span className="opacity-60">المحادثات:</span>{" "}
+                  <span data-testid="athar-status-conv-count" className="font-semibold text-[var(--fg)]">
+                    {history.length.toLocaleString("ar-EG")}
+                  </span>
+                </span>
+                <span className="opacity-30">·</span>
+                <span>
+                  <span className="opacity-60">المثبَّتة:</span>{" "}
+                  <span data-testid="athar-status-pinned-count" className="font-semibold text-amber-300">
+                    {history.filter((c) => c.pinned).length.toLocaleString("ar-EG")}
+                  </span>
+                </span>
+              </span>
             </div>
           </div>
         </div>
@@ -839,7 +876,7 @@ export function CompanionPage() {
         ))}
         {streamingText !== null ? (
           streamingText
-            ? <MessageBubble role="assistant" text={streamingText} streaming />
+            ? <MessageBubble role="assistant" text={streamingText} streaming tokens={countTokens(streamingText)} />
             : <ThinkingIndicator onStop={stop} isSpeaking={isSpeaking} />
         ) : null}
         {followUps.length > 0 && !isBusy ? (
@@ -1079,6 +1116,7 @@ function MessageBubble(props: {
   role: "user" | "assistant";
   text: string;
   streaming?: boolean;
+  tokens?: number;
   onStop?: () => void;
   onPin?: () => void;
   onShare?: () => void;
@@ -1103,7 +1141,7 @@ function MessageBubble(props: {
     <div className="flex justify-end gap-2">
       <div className="min-w-0 max-w-[88%]">
         <div className="rounded-2xl rounded-tl-md border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm leading-relaxed">
-          <BubbleContent text={props.text} streaming={!!props.streaming} />
+          <BubbleContent text={props.text} streaming={!!props.streaming} tokens={props.tokens} />
         </div>
         {!props.streaming && props.text.trim() ? (
           <div className="mt-1.5 flex items-center gap-1 px-1 text-[11px] text-[var(--muted-2)]">
@@ -1185,9 +1223,8 @@ function ActionButton({ route, children }: { route: string; children: React.Reac
   );
 }
 
-function BubbleContent({ text, streaming }: { text: string; streaming?: boolean }) {
+function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: boolean; tokens?: number }) {
   const segments = React.useMemo(() => splitIntoSegments(text), [text]);
-  const isLastIdx = segments.length - 1;
   return (
     <>
       {segments.map((seg, i) => {
@@ -1207,29 +1244,55 @@ function BubbleContent({ text, streaming }: { text: string; streaming?: boolean 
           </ReactMarkdown>
         );
       })}
-      {streaming ? <ShimmerCursor /> : null}
+      {streaming ? <ShimmerCursor tokens={typeof tokens === "number" ? tokens : undefined} /> : null}
     </>
   );
 }
 
-function ShimmerCursor() {
+function ShimmerCursor({ tokens }: { tokens?: number }) {
+  const formatted = typeof tokens === "number"
+    ? tokens.toLocaleString("ar-EG")
+    : null;
   return (
-    <span className="relative inline-block align-baseline" aria-hidden="true">
-      <span
-        className="absolute -start-1 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[var(--accent)]/30 blur-md"
-        style={{ animation: "athar-cursor-glow 1s ease-in-out infinite" }}
-      />
-      <span
-        className="relative inline-block h-[1.15em] w-[3px] -mb-[3px] ms-0.5 rounded-full"
-        style={{
-          background: "linear-gradient(180deg, color-mix(in srgb, var(--accent) 100%, transparent 0%) 0%, color-mix(in srgb, var(--accent) 35%, transparent 65%) 100%)",
-          boxShadow: "0 0 10px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 2px var(--accent)",
-          animation: "athar-cursor-blink 0.9s ease-in-out infinite",
-        }}
-      />
-      <style>{`@keyframes athar-cursor-blink { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } } @keyframes athar-cursor-glow { 0%, 100% { opacity: 0.4; transform: translateY(-50%) scale(1) } 50% { opacity: 0.85; transform: translateY(-50%) scale(1.4) } }`}</style>
+    <span className="relative inline-flex items-end align-baseline" aria-hidden="true">
+      <span className="relative inline-block">
+        <span
+          className="absolute -start-1 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-[var(--accent)]/30 blur-md"
+          style={{ animation: "athar-cursor-glow 1s ease-in-out infinite" }}
+        />
+        <span
+          className="relative inline-block h-[1.15em] w-[3px] -mb-[3px] ms-0.5 rounded-full"
+          style={{
+            background: "linear-gradient(180deg, color-mix(in srgb, var(--accent) 100%, transparent 0%) 0%, color-mix(in srgb, var(--accent) 35%, transparent 65%) 100%)",
+            boxShadow: "0 0 10px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 2px var(--accent)",
+            animation: "athar-cursor-blink 0.9s ease-in-out infinite",
+          }}
+        />
+      </span>
+      {formatted !== null ? (
+        <span
+          data-testid="athar-token-counter"
+          className="ms-1.5 -mb-1 text-[9.5px] font-medium text-[var(--muted-2)] tabular-nums tracking-wide"
+          aria-live="polite"
+        >
+          جاري توليد {formatted} رمز
+        </span>
+      ) : null}
+      <style>{`@keyframes athar-cursor-blink { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } } @keyframes athar-cursor-glow { 0%, 100% { opacity: 0.4; transform: translateY(-50%) scale(1) } 50% { opacity: 0.85; transform: translateY(-50%) scale(1.4) }`}</style>
     </span>
   );
+}
+
+/**
+ * Rough whitespace-aware word/segment count. Chat-model tokens vary but
+ * Arabic text averages ~1.5 tokens per word; this UI counter is a calm
+ * "this reply is still growing" affordance, not a billing meter.
+ */
+function countTokens(text: string): number {
+  if (!text) return 0;
+  const trimmed = text.trim();
+  if (!trimmed) return 0;
+  return trimmed.split(/\s+/).length;
 }
 
 const markdownComponents: Components = {
