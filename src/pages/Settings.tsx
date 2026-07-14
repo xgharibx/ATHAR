@@ -980,10 +980,37 @@ export function SettingsPage() {
             }
           />
           <SettingRow
+            title="قوة الاهتزاز"
+            desc="خفيف · متوسط · قوي · إيقاف"
+            right={
+              <div className="flex items-center gap-1 rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-1">
+                {(["off", "light", "medium", "strong"] as const).map((v) => (
+                  <button type="button"
+                    key={v}
+                    onClick={() => setPrefs({ hapticStrength: v })}
+                    aria-pressed={(prefs.hapticStrength ?? "medium") === v}
+                    className={[
+                      "px-2.5 py-1.5 text-xs font-semibold rounded-lg transition",
+                      (prefs.hapticStrength ?? "medium") === v
+                        ? "bg-[var(--accent)] text-[var(--on-accent)]"
+                        : "text-[var(--muted)] hover:bg-[var(--card-2)]",
+                    ].join(" ")}
+                  >
+                    {v === "off" ? "إيقاف" : v === "light" ? "خفيف" : v === "medium" ? "متوسط" : "قوي"}
+                  </button>
+                ))}
+              </div>
+            }
+          />
+          <SettingRow
             title="أصوات العدّ"
-            desc="صوت خفيف عند كل عدّة"
-            disabled
-            right={<Switch checked={false} />}
+            desc="نغمة لطيفة عند اكتمال الهدف"
+            right={
+              <Switch
+                checked={!!prefs.enableSounds}
+                onCheckedChange={(v) => setPrefs({ enableSounds: v })}
+              />
+            }
           />
           <SettingRow
             title="الانتقال التلقائي"

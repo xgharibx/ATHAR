@@ -84,6 +84,7 @@ export type Preferences = {
   stripDiacritics: boolean;
   enable3D: boolean;
   enableHaptics: boolean;
+  hapticStrength?: "off" | "light" | "medium" | "strong";
   enableSounds: boolean;
   reduceMotion: boolean;
   transparentMode: boolean;
@@ -514,9 +515,13 @@ function normalizeHomeWidgets(value: unknown): Record<HomeWidgetKey, boolean> {
 
 function normalizePrefs(value: unknown): Preferences {
   const source = value && typeof value === "object" ? value as Partial<Preferences> : {};
+  const hs = source.hapticStrength;
+  const validStrength: Preferences["hapticStrength"] =
+    hs === "off" || hs === "light" || hs === "medium" || hs === "strong" ? hs : "medium";
   return {
     ...DEFAULT_PREFS,
     ...source,
+    hapticStrength: validStrength,
     homeWidgets: normalizeHomeWidgets(source.homeWidgets),
     homeWidgetsOrder: normalizeHomeWidgetsOrder(source.homeWidgetsOrder),
   };

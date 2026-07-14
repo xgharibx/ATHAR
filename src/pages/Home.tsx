@@ -230,6 +230,7 @@ export function HomePage() {
   const resetAllQuickTasbeeh = useNoorStore((s) => s.resetAllQuickTasbeeh);
   const sebhaTarget = useNoorStore((s) => s.sebhaTarget);
   const setSebhaTarget = useNoorStore((s) => s.setSebhaTarget);
+  const tasbeehDailyLog = useNoorStore((s) => s.tasbeehDailyLog);
 
   const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
   const setDailyWirdDone = useNoorStore((s) => s.setDailyWirdDone);
@@ -1377,6 +1378,19 @@ export function HomePage() {
         }
         if (widgetKey === "tasbeeh") {
           if (!homeWidgets.tasbeeh) return null;
+          const todayTotal = React.useMemo(() => {
+            const day = tasbeehDailyLog[civilTodayKey] ?? {};
+            return Object.values(day).reduce((s, v) => s + (Number(v) || 0), 0);
+          }, [tasbeehDailyLog, civilTodayKey]);
+          const weekTotal = React.useMemo(() => {
+            let total = 0;
+            for (let i = 0; i < 7; i++) {
+              const k = shiftDateKey(civilTodayKey, -i);
+              const day = tasbeehDailyLog[k] ?? {};
+              total += Object.values(day).reduce((s, v) => s + (Number(v) || 0), 0);
+            }
+            return total;
+          }, [tasbeehDailyLog, civilTodayKey]);
           return (
             <Card key="tasbeeh" className="p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1385,8 +1399,24 @@ export function HomePage() {
                     مختارات اليوم ↗
                   </button>
                   <div className="mt-1 text-xs opacity-55">هدف التسبيح: {tasbeehTarget}</div>
+                  {(todayTotal > 0 || weekTotal > 0) && (
+                    <div className="mt-1 text-[11px] opacity-60 tabular-nums">
+                      اليوم: <span className="font-semibold opacity-90">{todayTotal.toLocaleString("ar-EG")}</span>
+                      <span aria-hidden="true"> · </span>
+                      الأسبوع: <span className="font-semibold opacity-90">{weekTotal.toLocaleString("ar-EG")}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2">
+                  <button type="button"
+                    onClick={() => {
+                      incQuickTasbeeh(QUICK_TASBEEH[0]!.key, tasbeehTarget);
+                    }}
+                    aria-label="تسبيحة سريعة +1"
+                    className="press-effect inline-flex items-center justify-center h-11 min-w-[64px] rounded-2xl bg-[var(--accent)] text-[var(--on-accent)] font-bold text-sm shadow-md active:scale-95 transition shrink-0"
+                  >
+                    +1
+                  </button>
                   <div className="flex rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1">
                     {[33, 100].map((target) => (
                       <button type="button"

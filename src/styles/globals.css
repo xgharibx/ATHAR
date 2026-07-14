@@ -2376,6 +2376,22 @@ body.quran-focus-mode .quran-surface {
 }
 
 /* -------------------------------------------------------
+   Sebha counter number — fade/slide on increment
+   ------------------------------------------------------- */
+@keyframes counterPop {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.92); }
+  60%  { opacity: 1; transform: translateY(-2px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.counter-pop {
+  animation: counterPop 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  display: inline-block;
+}
+@media (prefers-reduced-motion: reduce) {
+  .counter-pop { animation: none; }
+}
+
+/* -------------------------------------------------------
    Streak fire glow
    ------------------------------------------------------- */
 @keyframes streakGlow {

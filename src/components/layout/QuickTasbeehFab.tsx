@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNoorStore } from "@/store/noorStore";
 import { cn } from "@/lib/utils";
+import { doHaptic } from "@/lib/sebhaHaptics";
 
 const TASBEEHAT = [
   { key: "subhanallah" as const, label: "سُبْحَانَ الله", short: "سبحان الله" },
@@ -64,8 +65,11 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
   const current = TASBEEHAT.find((t) => t.key === selected)!;
 
   const onCount = () => {
-    incQuickTasbeeh(selected, target);
-    if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate(10);
+    const before = Number(quickTasbeeh[selected] ?? 0);
+    const next = incQuickTasbeeh(selected, target);
+    // No-op if already at target; skip haptic so users don't feel a buzz with no visible change
+    if (next === before) return;
+    doHaptic(next, next >= target ? target : null, !!prefs.enableHaptics, prefs.hapticStrength);
     setPulse(true);
     setTimeout(() => setPulse(false), 200);
   };

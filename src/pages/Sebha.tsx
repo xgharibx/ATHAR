@@ -29,6 +29,7 @@ import { cn, pct } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { getDailyTasbeeh } from "@/lib/leaderboardScores";
 import { getLocalDateKey } from "@/lib/dayBoundaries";
+import { doHaptic } from "@/lib/sebhaHaptics";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -38,24 +39,28 @@ const TASBEEHAT = [
     label: "سُبْحَانَ الله",
     short: "سبحان الله",
     hint: "تنزيه لله وتعظيم له",
+    accent: "#7dd3fc",
   },
   {
     key: "alhamdulillah",
     label: "الْحَمْدُ لِلَّه",
     short: "الحمد لله",
     hint: "شكر وثناء في كل حال",
+    accent: "#fbbf24",
   },
   {
     key: "la_ilaha_illallah",
     label: "لا إِلَهَ إِلَّا الله",
     short: "لا إله إلا الله",
     hint: "كلمة التوحيد وأصل الذكر",
+    accent: "#a78bfa",
   },
   {
     key: "allahu_akbar",
     label: "اللهُ أَكْبَر",
     short: "الله أكبر",
     hint: "تكبير يرفع القلب عن الشواغل",
+    accent: "#34d399",
   },
 ] as const;
 
@@ -77,19 +82,9 @@ const QUICK_PHRASES: Array<{ phrase: string; target: number }> = [
 
 // ─── Haptic helper (S1) ─────────────────────────────────────────────────────
 
-function doHaptic(count: number, target: number | null, enabled: boolean) {
-  if (!enabled || !navigator.vibrate) return;
-  const isCompletion = target !== null && count >= target;
-  const isHundred = count % 100 === 0 && count > 0;
-  const isThirtyThree = count % 33 === 0 && count > 0 && !isHundred;
-  if (isCompletion || isHundred) {
-    navigator.vibrate([30, 15, 30, 15, 30]); // triple buzz
-  } else if (isThirtyThree) {
-    navigator.vibrate([40, 20, 40]); // double pulse
-  } else {
-    navigator.vibrate(10);
-  }
-}
+// `doHaptic` is now imported from @/lib/sebhaHaptics so the Sebha page, the
+// QuickTasbeehFab, and unit tests share a single definition with light /
+// medium / strong / off strengths.
 
 // ─── Circular progress ring (S4) — 6A drag-to-count ────────────────────────
 
@@ -102,12 +97,14 @@ function CircularRing({
   children,
   onClick,
   showHint = true,
+  accent,
 }: {
   percent: number;
   completed: boolean;
   children: React.ReactNode;
   onClick: () => void;
   showHint?: boolean;
+  accent?: string;
 }) {
   const offset = RING_C * (1 - Math.min(percent, 100) / 100);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -207,7 +204,7 @@ function CircularRing({
           cy="112"
           r={RING_R}
           fill="none"
-          stroke={completed ? "var(--ok)" : "var(--accent)"}
+          stroke={completed ? "var(--ok)" : (accent ?? "var(--accent)")}
           strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={RING_C}
@@ -216,7 +213,7 @@ function CircularRing({
           style={{ transition: "stroke-dashoffset 0.3s ease, stroke 0.3s ease" }}
         />
         {/* 6A: drag handle bead */}
-        <circle cx={hx} cy={hy} r={8} fill={completed ? "var(--ok)" : "var(--accent)"} opacity={0.92}
+        <circle cx={hx} cy={hy} r={8} fill={completed ? "var(--ok)" : (accent ?? "var(--accent)")} opacity={0.92}
           style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.5))" }} />
         <circle cx={hx} cy={hy} r={3} fill="white" opacity={0.7} />
       </svg>
@@ -257,6 +254,61 @@ function fmtTime(iso: string) {
   } catch {
     return iso;
   }
+}
+
+// ─── Animated counter number (counter-pop CSS in globals.css) ────────────────
+
+function CounterNumber({ value }: { value: number }) {
+  const prevRef = React.useRef(value);
+  const [animKey, setAnimKey] = React.useState(0);
+  React.useEffect(() => {
+    if (value !== prevRef.current) {
+      prevRef.current = value;
+      setAnimKey((k) => k + 1);
+    }
+  }, [value]);
+  return (
+    <div
+      key={animKey}
+      className="text-6xl font-black tabular-nums leading-none counter-pop"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {value}
+    </div>
+  );
+}
+
+// ─── Today's count line ─────────────────────────────────────────────────────
+
+function TodayLine({ tasbeehDailyLog }: { tasbeehDailyLog: Record<string, Record<string, number>> }) {
+  const [now, setNow] = React.useState(() => new Date());
+  React.useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const totals = React.useMemo(() => {
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const day = tasbeehDailyLog[today] ?? {};
+    const todayTotal = Object.values(day).reduce((s, v) => s + (Number(v) || 0), 0);
+    let weekTotal = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const dk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const t = Object.values(tasbeehDailyLog[dk] ?? {}).reduce((s, v) => s + (Number(v) || 0), 0);
+      weekTotal += t;
+    }
+    return { todayTotal, weekTotal };
+  }, [tasbeehDailyLog, now]);
+  if (totals.todayTotal === 0 && totals.weekTotal === 0) return null;
+  return (
+    <div className="mt-3 flex items-center justify-center gap-3 text-[11px] opacity-60 tabular-nums">
+      <span>اليوم: <span className="font-semibold opacity-90">{totals.todayTotal.toLocaleString("ar-EG")}</span></span>
+      <span aria-hidden="true">·</span>
+      <span>هذا الأسبوع: <span className="font-semibold opacity-90">{totals.weekTotal.toLocaleString("ar-EG")}</span></span>
+    </div>
+  );
 }
 
 // Silence unused import warning — SebhaSession is used via the store
@@ -451,7 +503,7 @@ function TasbeehStatsCard({
           <span className="text-[10px] opacity-50">هذا الأسبوع</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-1.5 rounded-full bg-[var(--card)]0" />
+          <div className="w-3 h-1.5 rounded-full bg-[var(--card-2)]" />
           <span className="text-[10px] opacity-50">الأسبوع الماضي</span>
         </div>
       </div>
@@ -517,7 +569,7 @@ export function SebhaPage() {
 
   const current =
     selected === "custom"
-      ? { key: "custom" as const, label: sebhaCustom?.phrase ?? "ذكر مخصص", short: sebhaCustom?.phrase ?? "ذكر مخصص", hint: "" }
+      ? { key: "custom" as const, label: sebhaCustom?.phrase ?? "ذكر مخصص", short: sebhaCustom?.phrase ?? "ذكر مخصص", hint: "", accent: undefined as string | undefined }
       : TASBEEHAT.find((item) => item.key === selected) ?? TASBEEHAT[0];
 
   const effectiveTarget = selected === "custom" ? (sebhaCustom?.target ?? 100) : target;
@@ -536,7 +588,7 @@ export function SebhaPage() {
         if (next % 100 === 0 || (next % 33 === 0 && next % 100 !== 0)) {
           setTallyLaps((laps) => [...laps.slice(-9), next]);
         }
-        doHaptic(next, null, prefs.enableHaptics);
+        doHaptic(next, null, prefs.enableHaptics, prefs.hapticStrength);
         return next;
       });
     } else {
@@ -546,16 +598,43 @@ export function SebhaPage() {
       const activeLabel = keyOverride
         ? (TASBEEHAT.find((t) => t.key === keyOverride)?.short ?? keyOverride)
         : current.short;
+      // Read fresh value from the store to avoid stale-closure on rapid taps
+      const beforeCount = Number(useNoorStore.getState().quickTasbeeh[activeKey] ?? 0);
       const next = incQuickTasbeeh(activeKey, activeEffTarget);
-      // Detect silent block (count already at target)
-      const currentCount = Number(quickTasbeeh[activeKey] ?? 0);
-      if (next === currentCount && currentCount >= activeEffTarget) {
+      if (next === beforeCount && beforeCount >= activeEffTarget) {
         toast("اكتملت التسبيحة ✓ اضغط \"تصفير الحالي\" للبدء من جديد", { id: "tasbeeh-blocked" });
         return;
       }
-      doHaptic(next, activeEffTarget, prefs.enableHaptics);
-      if (next === activeEffTarget) {
-        toast.success("اكتمل هدف التسبيح 🎉");
+      doHaptic(next, activeEffTarget, prefs.enableHaptics, prefs.hapticStrength);
+      const reachedTarget = next === activeEffTarget;
+      if (reachedTarget) {
+        const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
+        getConfetti().then((c) => {
+          c({ particleCount: 80, spread: 80, startVelocity: 28, scalar: 0.9, origin: { y: 0.6 } });
+          setTimeout(() => c({ particleCount: 40, spread: 90, startVelocity: 18, scalar: 0.85, origin: { x: 0.2, y: 0.75 } }), 320);
+        });
+        if (prefs.enableSounds && typeof window !== "undefined") {
+          try {
+            const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+            if (AC) {
+              const ctx = new AC();
+              const now = ctx.currentTime;
+              [659.25, 880, 1318.5].forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = "sine";
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.0001, now + i * 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.18, now + i * 0.12 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.12 + 0.35);
+                osc.connect(gain).connect(ctx.destination);
+                osc.start(now + i * 0.12);
+                osc.stop(now + i * 0.12 + 0.4);
+              });
+              setTimeout(() => ctx.close().catch(() => {}), 900);
+            }
+          } catch { /* audio unavailable */ }
+        }
         addSebhaSession({
           dhikrKey: activeKey,
           dhikrLabel: activeLabel,
@@ -563,20 +642,33 @@ export function SebhaPage() {
           target: activeEffTarget,
           timestamp: new Date().toISOString(),
         });
+        toast.success("اكتمل هدف التسبيح 🎉", { duration: 2500 });
+        if (prefs.autoAdvanceDhikr) {
+          const idx = TASBEEHAT.findIndex((t) => t.key === activeKey);
+          if (idx >= 0 && idx < TASBEEHAT.length - 1) {
+            const nextKey = TASBEEHAT[idx + 1].key;
+            setTimeout(() => setSelected(nextKey), 700);
+          } else if (idx === TASBEEHAT.length - 1) {
+            setTimeout(() => setSelected(TASBEEHAT[0].key), 700);
+          }
+        }
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tallyMode, incQuickTasbeeh, prefs.enableHaptics, selected, target, sebhaCustom, current.short, addSebhaSession]);
+  }, [tallyMode, incQuickTasbeeh, prefs.enableHaptics, prefs.hapticStrength, prefs.enableSounds, prefs.autoAdvanceDhikr, selected, target, sebhaCustom, current.short, addSebhaSession, setSelected]);
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement | null)?.tagName;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (target?.closest?.('[role="dialog"],[role="alertdialog"],[data-state="open"][aria-modal="true"]')) return;
+      if (showCustomForm || showHistory || confirmReset) return;
       if (e.key === " " || e.key === "Enter") { e.preventDefault(); increment(); }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [increment]);
+  }, [increment, showCustomForm, showHistory, confirmReset]);
 
   // 6B: Voice recognition — when a phrase matches, switch + count; null = count current.
   // Pass the matched key directly to increment() so the correct dhikr is counted
@@ -844,10 +936,10 @@ export function SebhaPage() {
         </div>
 
         {/* S4 - Circular ring counter */}
-        <CircularRing percent={percent} completed={completed} onClick={increment} showHint={count === 0}>
+        <CircularRing percent={percent} completed={completed} onClick={increment} showHint={count === 0} accent={selected === "custom" ? undefined : current.accent}>
           <div className="text-center">
             <div className="text-xs opacity-55 mb-2">{current.short}</div>
-            <div className="text-6xl font-black tabular-nums leading-none" aria-live="polite" aria-atomic="true">{count}</div>
+            <CounterNumber value={count} />
             {!tallyMode && <div className="mt-2 text-xs opacity-60">من {effectiveTarget}</div>}
             {tallyMode && tallyLaps.length > 0 && (
               <div className="mt-2 text-xs opacity-60">دورة {tallyLaps.length}</div>
@@ -865,6 +957,28 @@ export function SebhaPage() {
             <><Target size={17} aria-hidden="true" className="text-[var(--accent)]" />{remaining} متبقي</>
           )}
         </div>
+
+        {/* Share-on-completion */}
+        {!tallyMode && completed && (
+          <button type="button"
+            onClick={async () => {
+              const label = current.short || "السبحة";
+              const text = `${label} × ${effectiveTarget}\n\n﴿ فَاذْكُرُونِي أَذْكُرْكُمْ ﴾\n\n— أثر`;
+              try {
+                if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
+                else { await navigator.clipboard.writeText(text); toast.success("تم نسخ الذكر"); }
+              } catch { /* ignore */ }
+            }}
+            className="mt-3 mx-auto flex items-center gap-1.5 rounded-2xl border border-accent-35 bg-accent-15 px-3 py-1.5 text-xs font-semibold text-[var(--accent)] transition active:scale-95"
+            aria-label="مشاركة اكتمال الذكر"
+          >
+            <Share2 size={13} aria-hidden="true" />
+            مشاركة الإنجاز
+          </button>
+        )}
+
+        {/* Today's count line */}
+        <TodayLine tasbeehDailyLog={tasbeehDailyLog} />
 
         {/* S5 - Tally lap markers */}
         {tallyMode && tallyLaps.length > 0 && (
@@ -945,7 +1059,7 @@ export function SebhaPage() {
               >
                 <div
                   className="h-full rounded-full"
-                  style={{ width: `${itemPercent}%`, background: itemPercent >= 100 ? "var(--ok)" : "var(--accent)" }}
+                  style={{ width: `${itemPercent}%`, background: itemPercent >= 100 ? "var(--ok)" : (item.accent ?? "var(--accent)") }}
                 />
               </div>
             </button>
