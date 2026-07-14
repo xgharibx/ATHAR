@@ -168,9 +168,29 @@ export function QuranPage() {
   const [extras, setExtras] = React.useState<QuranExtras | null>(null);
   const [pageMap, setPageMap] = React.useState<Record<string, number> | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
-  const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent" | "unread" | "nearly">("mushaf");
-  const [filterJuz, setFilterJuz] = React.useState<number | null>(() => parseJuzParam(searchParams.get("juz")));
-  const [filterRevelation, setFilterRevelation] = React.useState<"meccan" | "medinan" | null>(null);
+  const [sortMode, setSortMode] = React.useState<"mushaf" | "progress" | "recent" | "unread" | "nearly">(
+    (prefs.quranSortMode as "mushaf" | "progress" | "recent" | "unread" | "nearly" | undefined) ?? "mushaf",
+  );
+  const [filterJuz, setFilterJuz] = React.useState<number | null>(() => {
+    const fromUrl = parseJuzParam(searchParams.get("juz"));
+    if (fromUrl !== null) return fromUrl;
+    return (prefs.quranFilterJuz ?? null);
+  });
+  const [filterRevelation, setFilterRevelation] = React.useState<"meccan" | "medinan" | "all">(
+    (prefs.quranFilterRevelation as "meccan" | "medinan" | "all" | undefined) ?? "all",
+  );
+
+  // Persist user changes — so back-navigation or reload keeps their
+  // selected sort and filter.
+  React.useEffect(() => {
+    useNoorStore.setState((s) => ({ prefs: { ...s.prefs, quranSortMode: sortMode } }));
+  }, [sortMode]);
+  React.useEffect(() => {
+    useNoorStore.setState((s) => ({ prefs: { ...s.prefs, quranFilterJuz: filterJuz } }));
+  }, [filterJuz]);
+  React.useEffect(() => {
+    useNoorStore.setState((s) => ({ prefs: { ...s.prefs, quranFilterRevelation: filterRevelation } }));
+  }, [filterRevelation]);
 
   // Sync URL param changes (e.g. back-navigation)
   React.useEffect(() => {
@@ -908,7 +928,7 @@ export function QuranPage() {
             {/* Revelation filter */}
             <div className="flex rounded-xl overflow-hidden border border-[var(--stroke)] text-[10px] shrink-0">
               <button type="button"
-                onClick={() => setFilterRevelation(filterRevelation === "meccan" ? null : "meccan")}
+                onClick={() => setFilterRevelation(filterRevelation === "meccan" ? "all" : "meccan")}
                 aria-pressed={filterRevelation === "meccan"}
                 className="px-2.5 py-1.5 transition"
                 style={{ background: filterRevelation === "meccan" ? "color-mix(in srgb, var(--accent) 15%, transparent)" : "var(--card)", color: filterRevelation === "meccan" ? "var(--accent)" : undefined, fontWeight: filterRevelation === "meccan" ? 600 : undefined }}
@@ -917,7 +937,7 @@ export function QuranPage() {
               </button>
               <div className="w-px bg-[var(--stroke)]" />
               <button type="button"
-                onClick={() => setFilterRevelation(filterRevelation === "medinan" ? null : "medinan")}
+                onClick={() => setFilterRevelation(filterRevelation === "medinan" ? "all" : "medinan")}
                 aria-pressed={filterRevelation === "medinan"}
                 className="px-2.5 py-1.5 transition"
                 style={{ background: filterRevelation === "medinan" ? "color-mix(in srgb, var(--accent) 15%, transparent)" : "var(--card)", color: filterRevelation === "medinan" ? "var(--accent)" : undefined, fontWeight: filterRevelation === "medinan" ? 600 : undefined }}

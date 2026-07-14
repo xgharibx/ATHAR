@@ -66,11 +66,11 @@ const BASMALAH_VARIANTS = [
 const BASMALAH_NFC = BASMALAH_VARIANTS.map((v) => v.normalize("NFC"));
 
 const HL_COLORS = {
-  gold:  { swatch: "rgba(251,191,36,0.85)",  bg: "rgba(251,191,36,0.22)"  },
-  green: { swatch: "rgba(52,211,153,0.85)",  bg: "rgba(52,211,153,0.18)" },
-  blue:  { swatch: "rgba(96,165,250,0.85)",  bg: "rgba(96,165,250,0.18)" },
-  red:   { swatch: "rgba(248,113,113,0.85)", bg: "rgba(248,113,113,0.18)" },
-  pink:  { swatch: "rgba(249,168,212,0.85)", bg: "rgba(249,168,212,0.18)" },
+  gold:  { swatch: "rgba(251,191,36,0.85)",  bg: "rgba(251,191,36,0.22)",  dot: "rgba(251,191,36,0.85)"  },
+  green: { swatch: "rgba(52,211,153,0.85)",  bg: "rgba(52,211,153,0.18)",  dot: "rgba(52,211,153,0.85)"  },
+  blue:  { swatch: "rgba(96,165,250,0.85)",  bg: "rgba(96,165,250,0.18)",  dot: "rgba(96,165,250,0.85)"  },
+  red:   { swatch: "rgba(248,113,113,0.85)", bg: "rgba(248,113,113,0.18)", dot: "rgba(248,113,113,0.85)" },
+  pink:  { swatch: "rgba(249,168,212,0.85)", bg: "rgba(249,168,212,0.18)", dot: "rgba(249,168,212,0.85)" },
 } as const;
 type HlColor = keyof typeof HL_COLORS;
 
@@ -1625,7 +1625,10 @@ export function MushafPage() {
                           // Q16: Focus dimming
                           opacity: selectedItem && !isSel ? 0.3 : 1,
                           transition: "opacity 0.18s",
-                          ...(hl && !isSel ? { background: HL_COLORS[hl].bg } : {}),
+                          ...(hl && !isSel ? {
+                            background: HL_COLORS[hl].bg,
+                            boxShadow: `inset 0 -2px 0 ${HL_COLORS[hl].dot}`,
+                          } : {}),
                         }}
                         onPointerDown={(e) => handlePointerDown(e, item)}
                         onPointerUp={handlePointerUp}

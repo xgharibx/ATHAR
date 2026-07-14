@@ -75,6 +75,9 @@ export type Preferences = {
   mushafWbwMode?: boolean; // persist word-by-word translation toggle
   mushafTajweedMode?: boolean; // persist tajweed color coding toggle
   mushafCleanMode?: boolean; // premium minimal borderless reading layout (default on)
+  quranSortMode?: "mushaf" | "progress" | "recent" | "unread" | "nearly";
+  quranFilterJuz?: number | null;
+  quranFilterRevelation?: "all" | "meccan" | "medinan" | null;
   showBenefits: boolean;
   stripDiacritics: boolean;
   enable3D: boolean;
@@ -433,6 +436,9 @@ const DEFAULT_PREFS: Preferences = {
   quranPageSize: 12,
   quranHideMarkers: false,
   quranTheme: "default" as const,
+  quranSortMode: "mushaf" as const,
+  quranFilterJuz: null,
+  quranFilterRevelation: "all" as const,
   quranLetterSpacing: 0,
   quranWordSpacing: 0,
   quranScrollMode: "page" as const,
