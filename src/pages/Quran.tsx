@@ -206,6 +206,7 @@ export function QuranPage() {
 
   // Auto-scroll to currently reading surah on first load (only when not filtered/queried)
   const currentSurahRef = React.useRef<HTMLDivElement | null>(null);
+  const rowRefs = React.useRef<Record<number, HTMLDivElement | null>>({});
   React.useEffect(() => {
     if (!lastRead || filterJuz || query) return;
     const timer = setTimeout(() => {
@@ -1113,7 +1114,10 @@ export function QuranPage() {
                       جزء {toArabicNumeral(currJuz)}
                     </div>
                   )}
-                <div role="listitem" ref={isCurrent ? currentSurahRef : undefined}
+                <div role="listitem" ref={(el) => {
+                    rowRefs.current[s.id] = el;
+                    if (isCurrent) currentSurahRef.current = el;
+                  }}
                   className="relative">
                 <button type="button"
                   onClick={() => { recordRecentSurah(s.id); navigate(`/mushaf?surah=${s.id}`); }}
@@ -1191,7 +1195,13 @@ export function QuranPage() {
 
                   {/* Info button (Phase 1: opens SurahInfoModal) */}
                   <button type="button"
-                    onClick={(e) => { e.stopPropagation(); setInfoSurahId(s.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Make sure the row is visible behind the modal so the
+                      // user can see which surah they activated.
+                      rowRefs.current[s.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      setInfoSurahId(s.id);
+                    }}
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); } }}
                     aria-label={`معلومات سورة ${s.name}`}
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35">
