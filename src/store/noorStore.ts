@@ -185,6 +185,7 @@ export type ExportBlobV1 = {
   quranStreak?: number;
   quranLastReadDate?: string | null;
   quranDailyAyahs?: Record<string, number>;
+  quranReviewedPages?: Record<string, string[]>; // dateISO -> mushaf page numbers reviewed
   sectionItemOrder?: Record<string, number[]>;
   dailyWirdDone?: Record<string, boolean>;
   dailyWirdStartISO?: string | null;
@@ -295,6 +296,8 @@ type NoorState = {
   quranStreak: number;
   quranLastReadDate: string | null; // ISO date
   quranDailyAyahs: Record<string, number>; // dateISO -> ayahs read that day
+  reviewedPagesToday: string[]; // mushaf page numbers already reviewed today
+  markQuranPageReviewed: (page: number) => void;
   recordQuranRead: (count?: number) => void;
 
   // Daily Wird
@@ -807,6 +810,7 @@ export const useNoorStore = create<NoorState>()(
       quranHighlights: {},
 
       quranReadingHistory: {},
+      reviewedPagesToday: [] as string[],
 
       quranStreak: 0,
       quranLastReadDate: null,
@@ -845,6 +849,14 @@ export const useNoorStore = create<NoorState>()(
         const key = `${surahId}:${ayahIndex}`;
         const clean = (note ?? "").trim();
         set((s) => ({ quranNotes: { ...s.quranNotes, [key]: clean } }));
+      },
+
+      markQuranPageReviewed: (page) => {
+        const key = String(page);
+        set((s) => {
+          if (s.reviewedPagesToday.includes(key)) return {};
+          return { reviewedPagesToday: [...s.reviewedPagesToday, key] };
+        });
       },
       clearQuranNote: (surahId, ayahIndex) => {
         const key = `${surahId}:${ayahIndex}`;
@@ -1116,6 +1128,7 @@ export const useNoorStore = create<NoorState>()(
           quranStreak: s.quranStreak,
           quranLastReadDate: s.quranLastReadDate,
           quranDailyAyahs: s.quranDailyAyahs,
+          reviewedPagesToday: s.reviewedPagesToday,
           dailyWirdDone: s.dailyWirdDone,
           dailyWirdStartISO: s.dailyWirdStartISO,
           khatmaStartISO: s.khatmaStartISO,
@@ -1244,6 +1257,7 @@ export const useNoorStore = create<NoorState>()(
         quranNotes: {},
         quranHighlights: {},
         quranReadingHistory: {},
+        reviewedPagesToday: [] as string[],
         quranLastRead: null,
         quranDailyAyahs: {},
         quranStreak: 0,

@@ -216,12 +216,19 @@ export default function App() {
 
     const prepareMushaf = () => {
       if (isDataConstrained) return;
+      // Only warm the small Mushaf core on first launch. WBW (Tajweed
+      // colors) is heavier — defer it until the user actually opens
+      // Mushaf at least once, so fresh installs don't burn 30 MB before
+      // any user interaction.
+      const hasOpenedMushaf = localStorage.getItem("athar_mushaf_opened") === "1";
       void ensureMushafCoreOffline().catch(() => {
         // Settings and the reader expose a retry path if the first background attempt fails.
       });
-      void ensureAllWbwSurahsCached().catch(() => {
-        // Mushaf still exposes a manual retry inside the reader if background warming fails.
-      });
+      if (hasOpenedMushaf) {
+        void ensureAllWbwSurahsCached().catch(() => {
+          // Mushaf still exposes a manual retry inside the reader if background warming fails.
+        });
+      }
     };
 
     if (typeof w.requestIdleCallback === "function") {

@@ -74,9 +74,9 @@ const HL_COLORS = {
 } as const;
 type HlColor = keyof typeof HL_COLORS;
 
-// Q18: Sujood positions
+// Q18: Sujood positions — synced with src/data/quranExtras.ts (SAJDA_VERSES)
 const SAJDA_AYAHS = new Set([
-  "7:206","13:15","16:50","17:109","19:58","22:18","22:77","25:60",
+  "7:206","13:15","16:50","17:109","19:58","22:26","22:77","25:60",
   "27:26","32:15","38:24","41:38","53:62","84:21","96:19",
 ]);
 
@@ -195,6 +195,11 @@ export function MushafPage() {
   // Keep a ref so audio callbacks can access latest DB without closure stale-ness
   const quranDBRef = React.useRef(quranDB);
   React.useEffect(() => { quranDBRef.current = quranDB; }, [quranDB]);
+  // Mark Mushaf as "opened at least once" so App.tsx can warm the heavy
+  // Tajweed color data set on subsequent launches, but never on first install.
+  React.useEffect(() => {
+    try { localStorage.setItem("athar_mushaf_opened", "1"); } catch { /* ignore */ }
+  }, []);
   // Track which surahs we've already toasted a completion for this session
   const sessionSurahCompletedRef = React.useRef(new Set<number>());
   // Refs so the audio onended callback (set up in an effect keyed only on the
@@ -215,6 +220,8 @@ export function MushafPage() {
   const setQuranNote = useNoorStore((s) => s.setQuranNote);
   const clearQuranNote = useNoorStore((s) => s.clearQuranNote);
   const recordQuranRead = useNoorStore((s) => s.recordQuranRead);
+  const reviewedPagesToday = useNoorStore((s) => s.reviewedPagesToday);
+  const markQuranPageReviewed = useNoorStore((s) => s.markQuranPageReviewed);
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const setKhatmaDone = useNoorStore((s) => s.setKhatmaDone);
@@ -503,6 +510,15 @@ export function MushafPage() {
   const [loopEnabled, setLoopEnabled] = React.useState(false);
   const [loopCount, setLoopCount] = React.useState(3); // -1=∞
   const [playbackSpeed, setPlaybackSpeed] = React.useState(1);
+  const [audioVolume, setAudioVolume] = React.useState<number>(() => {
+    try { const raw = localStorage.getItem("noor_mushaf_volume"); return raw === null ? 1 : Math.max(0, Math.min(1, parseFloat(raw) || 1)); } catch { return 1; }
+  });
+  React.useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = audioVolume;
+  }, [audioVolume]);
+  React.useEffect(() => {
+    try { localStorage.setItem("noor_mushaf_volume", String(audioVolume)); } catch { /* ignore */ }
+  }, [audioVolume]);
   const [autoAdvance, setAutoAdvance] = React.useState(false);
 
   // Q5: Range audio loop
@@ -676,6 +692,7 @@ export function MushafPage() {
         } catch { /* already connected or unsupported */ }
       }
       audioRef.current = audio;
+      audio.volume = audioVolume;
       setPlayingKey(key);
       // Cross-page auto-advance: if the ayah now playing isn't on the page
       // the reader is looking at, turn the mushaf to follow it — otherwise
@@ -684,6 +701,7 @@ export function MushafPage() {
       if (Number.isFinite(targetPage) && targetPage >= 1 && targetPage !== currentPageRef.current) {
         goPageRef.current(targetPage);
       }
+      audio.volume = audioVolume;
       audio.play().catch(() => toast.error("تعذر تشغيل التلاوة"));
       audio.onended = () => {
         // Guard: if component unmounted or a newer audio took over, bail out
@@ -1066,11 +1084,16 @@ export function MushafPage() {
     const playableItems = pageItems.filter((item) => !item.isBasmalahHeader && item.displayAyah > 0);
     const lastPlayable = playableItems[playableItems.length - 1];
     if (!lastPlayable) return;
+    if (reviewedPagesToday.includes(String(currentPage))) {
+      toast("تمت مراجعة هذه الصفحة سابقًا اليوم", { icon: "✓" });
+      return;
+    }
     setLastRead(lastPlayable.surahId, lastPlayable.originalAyah);
     sessionAyahCountRef.current += playableItems.length;
     recordQuranRead(playableItems.length);
+    markQuranPageReviewed(currentPage);
     toast.success("تم حفظ مراجعة الصفحة");
-  }, [pageItems, recordQuranRead, setLastRead]);
+  }, [pageItems, recordQuranRead, setLastRead, reviewedPagesToday, currentPage, markQuranPageReviewed]);
 
   // M1: Auto-scroll to currently playing ayah
   React.useEffect(() => {
@@ -2223,6 +2246,8 @@ export function MushafPage() {
                     <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" aria-hidden="true" />
                     جارٍ البحث عن آيات متشابهة…
                   </span>
+                ) : mutashabihatMatches.length === 0 ? (
+                  <p className="opacity-50 text-xs py-1">لا توجد آيات متشابهة لهذه الآية.</p>
                 ) : (
                   <div className="space-y-1.5">
                     {mutashabihatMatches.map((m, i) => {
@@ -2361,6 +2386,24 @@ export function MushafPage() {
                   >{sp}×</button>
                 ))}
               </div>
+            </div>
+            {/* Audio volume control — persisted per-device so the user
+                doesn't have to adjust it on every session. */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs opacity-50">مستوى الصوت</span>
+                <span className="text-[10px] opacity-50 tabular-nums">{Math.round(audioVolume * 100).toLocaleString("ar-EG")}٪</span>
+              </div>
+              <input
+                type="range" min="0" max="1" step="0.05"
+                value={audioVolume}
+                onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
+                aria-label="مستوى الصوت"
+                className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to left, var(--accent) 0%, var(--accent) ${audioVolume * 100}%, color-mix(in srgb, var(--stroke) 80%, transparent) ${audioVolume * 100}%, color-mix(in srgb, var(--stroke) 80%, transparent) 100%)`,
+                }}
+              />
             </div>
             {/* Q4: Loop count */}
             <div className="mb-3">
