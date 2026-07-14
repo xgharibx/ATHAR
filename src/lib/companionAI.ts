@@ -668,7 +668,7 @@ export type StreamCallbacks = {
 /** Build the supplemental retrieval block for the user's last message.
  *  Pulled from local library index — no network round-trip. */
 function buildRetrievalBlock(lastUserText: string): string {
-  const passages = retrievePassages(lastUserText, 3);
+  const passages = retrievePassages(lastUserText, 5);
   if (passages.length === 0) return "";
   const lines = passages.map(
     (p, i) => `${i + 1}. [مصدر: ${p.sourceLabel}] ${p.text}`,
@@ -739,6 +739,28 @@ export async function streamCompanionReply(
       const msg = "\n\nأعتذر يا صديقي، لا يسعني المضيّ في هذا الطلب تحديدًا. اسألني بصيغةٍ أخرى أو في أمرٍ يقرِّبنا إلى الله، وأنا معك. 🤲";
       full += msg;
       cb.onText(msg);
+    }
+    // Detect tool_use blocks and append a structured action segment so the UI
+    // (markdown parser + rendering) can render them as clickable CTAs. The
+    // model rarely uses these today but the API will accept them when it does.
+    let toolAppend = "";
+    for (const block of finalMsg.content) {
+      if (block.type !== "tool_use") continue;
+      const name = (block as { name?: string }).name;
+      const input = (block as { input?: Record<string, unknown> }).input ?? {};
+      if (name === "next_step") {
+        const route = typeof input.route === "string" ? input.route : "";
+        const desc = typeof input.description === "string" ? input.description : "افتح";
+        if (route) toolAppend += `\n\n[action:${desc} →${route}]`;
+      } else if (name === "cite") {
+        const source = typeof input.source === "string" ? input.source : "";
+        const excerpt = typeof input.excerpt === "string" ? input.excerpt : "";
+        if (source) toolAppend += `\n\n:::cite(${source})\n${excerpt}\n:::`;
+      }
+    }
+    if (toolAppend) {
+      full += toolAppend;
+      cb.onText(toolAppend);
     }
     const verification = verifyAnswer(full);
     cb.onDone?.(full, verification);

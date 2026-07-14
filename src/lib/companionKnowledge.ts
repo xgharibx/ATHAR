@@ -305,27 +305,6 @@ const SURAH_NUM: Record<string, number> = {
   "الفلق": 113, "الناس": 114,
 };
 
-export async function verifyAnswerAsync(text: string): Promise<VerificationReport> {
-  const flags: string[] = [];
-  const notes: string[] = [];
-
-  let m: RegExpExecArray | null;
-  SURAH_RE.lastIndex = 0;
-  while ((m = SURAH_RE.exec(text))) {
-    const surahName = (m[1] ?? "").trim();
-    const ayah = toNum(m[2] ?? "0");
-    const sid = SURAH_NUM[surahName];
-    if (!sid) continue;
-    const map = await buildQuranVerses();
-    const expected = map.get(`${sid}:${ayah}`);
-    if (!expected) {
-      flags.push(`referenced verse سورة ${surahName}:${ayah} but no such ayah in local mushaf`);
-      notes.push(`سورة ${surahName} ${ayah} — لم أعثر عليها في المصحف المحلي، تحقَّق من المصدر.`);
-    }
-  }
-  return { flagged: flags.length > 0, notes };
-}
-
 export function verifyAnswer(text: string): VerificationReport {
   const map = QURAN_VERSES;
   const flags: string[] = [];
@@ -355,7 +334,26 @@ export function verifyAnswer(text: string): VerificationReport {
   while ((hm = HADITH_ATTR_RE.exec(text))) {
     const cited = (hm[1] ?? "").replace(/[،.].*$/, "").trim();
     const collection = HADITH_COLLECTIONS[cited];
-    if (!collection) continue;
+    if (!collection) {
+      const firstToken = cited.split(/\s+/)[0] ?? "";
+      let cleanedCited = cited;
+      cleanedCited = cleanedCited.replace(/\s*(?:في\s+(?:كتابه|صحيحه|مسنده|سننه|موطأه|صحيحها|الأم)|عن\s+\S.*)$/i, "").trim();
+      const cleanedFirst = cleanedCited.split(/\s+/)[0] ?? firstToken;
+      if (cleanedCited && HADITH_COLLECTIONS[cleanedCited]) continue;
+      if (cleanedCited && cleanedCited === cleanedFirst && HADITH_COLLECTIONS[cleanedFirst]) continue;
+      const binCount = (cleanedCited.match(/\s+بن\s+/g) ?? []).length;
+      if (binCount >= 2) {
+        notes.push(`نسبت حديثًا إلى سلسلة رواتٍ «${cleanedCited}» لم أتعرَّف عليها — تحقَّق من المصدر.`);
+        continue;
+      }
+      const known = RECOGNISED_NARRATORS.has(cleanedCited) || RECOGNISED_FULL_FORMS.has(cleanedCited)
+        || (RECOGNISED_NARRATORS.has(cleanedFirst) && RECOGNISED_FULL_FORMS.has(cleanedCited))
+        || (cleanedCited === cleanedFirst && RECOGNISED_NARRATORS.has(cleanedFirst));
+      if (cleanedCited.length > 0 && !known) {
+        notes.push(`نسبت حديثًا إلى «${cleanedCited}» ولم أتعرَّف على هذا الراوي — تحقَّق من المصدر.`);
+      }
+      continue;
+    }
     if (collection === "bukhari") {
       const hasMarker = /البخاري|رقم\s*\d+|كتاب\s+/.test(text);
       if (!hasMarker) {
@@ -368,6 +366,16 @@ export function verifyAnswer(text: string): VerificationReport {
       }
     }
   }
+  // Extended: «ذكر البخاري في صحيحه» / «أخرجاه» — make sure a recognisable
+  // narrator (companion or collector) is also in the surrounding text.
+  if (/(ذكر\s+البخاري|أخرجاه)/.test(text)) {
+    const hasRecognisedNarrator = Array.from(RECOGNISED_NARRATORS).some((n) => text.includes(n));
+    if (!hasRecognisedNarrator) {
+      notes.push("ذكرت اسم البخاري في صحيحه دون إيراد راوٍ معروف — تحقَّق من المصدر.");
+    }
+  }
+  const hv = verifyHadith(text);
+  for (const n of hv.notes) notes.push(n);
   return { flagged: flags.length > 0 || notes.length > 0, notes };
 }
 
@@ -384,4 +392,128 @@ const HADITH_COLLECTIONS: Record<string, "bukhari" | "muslim" | "other"> = {
   "أحمد": "other",
 };
 
-const HADITH_ATTR_RE = /(?:رواه|أخرجه|أخرّجه|روتنا)\s+([^\s،.]+)/g;
+/** Recognised hadith narrators / books. Used to flag claims like
+ *  «رواه أحمد بن محمد الفقيه» where the narrator is invented.
+ *  Known canonical full-name forms so a lone «أحمد» matches Imam Ahmad but
+ *  «أحمد بن محمد الفقيه» doesn't. */
+const RECOGNISED_NARRATORS = new Set([
+  "البخاري", "مسلم", "أبو داود", "الترمذي", "النسائي", "ابن ماجه", "مالك", "أحمد",
+  "الطيالسي", "الدارمي", "البيهقي", "الطيبراني", "ابن حبان", "الحاكم",
+  "ابن أبي شيبة", "عبد الرزاق", "ابن عدي", "العقيلي", "القطان",
+]);
+
+/** Full-name forms of canonical collectors (with their nasab). A claim like
+ *  «أحمد بن محمد الفقيه» starts with a recognised first token but the rest
+ *  doesn't match any of these. */
+const RECOGNISED_FULL_FORMS = new Set([
+  "أحمد بن حنبل",
+  "أحمد بن شعيب النسائي",
+  "أحمد بن يوسف",
+  "أحمد بن محمد بن حنبل",
+  "البخاري",
+  "مسلم بن الحجاج",
+  "أبو داود السجستاني",
+  "الترمذي",
+  "النسائي",
+  "ابن ماجه",
+  "مالك بن أنس",
+]);
+
+/** Match a hadith-attribution phrase like «رواه البخاري» or
+ *  «رواه أحمد بن محمد الفقيه» or «ذكره الفقيه». We capture the full name
+ *  chain up to a comma / dot / EOL so that fabricated nasabs
+ *  (e.g. «أحمد بن محمد الفقيه») don't get truncated to a single recognised
+ *  token like «أحمد». Then in the verifier we treat the FIRST whitespace-
+ *  separated token as the canonical narrator name. */
+const HADITH_ATTR_RE = /(?:رواه|أخرجه|أخرّجه|روتنا|ذكره|ذكر)\s+([^،.\n]{1,120}?)(?=[،.\n]|$)/g;
+
+/** Detect an unsupported surah:ayah citation in the surrounding text — if the
+ *  assistant claims «رواه الفلاني» and embeds a fabricated Quran verse nearby,
+ *  flag it. */
+const FABRICATED_AYAH_RE = /(?:آية|قال\s+تعالى|قال\s+الله)\s*\(?\s*([٠-٩0-9]+)\s*[:：]\s*([٠-٩0-9]+)/g;
+
+export type HadithVerifyResult = {
+  plausible: boolean;
+  flagged: boolean;
+  notes: string[];
+};
+
+export function verifyHadith(text: string): HadithVerifyResult {
+  const notes: string[] = [];
+  let flagged = false;
+
+  // 1) Detect fabricated Quran reference.
+  let fm: RegExpExecArray | null;
+  FABRICATED_AYAH_RE.lastIndex = 0;
+  while ((fm = FABRICATED_AYAH_RE.exec(text))) {
+    const surah = toNum(fm[1] ?? "0");
+    const ayah = toNum(fm[2] ?? "0");
+    const map = QURAN_VERSES;
+    if (map && map.size > 0) {
+      const expected = map.get(`${surah}:${ayah}`);
+      if (!expected) {
+        flagged = true;
+        notes.push(`آية ${surah}:${ayah} — لم أعثر عليها في المصحف المحلي، تحقَّق من المصدر.`);
+      }
+    }
+  }
+
+  // 2) Look at every attribution phrase.
+  let hm: RegExpExecArray | null;
+  HADITH_ATTR_RE.lastIndex = 0;
+  while ((hm = HADITH_ATTR_RE.exec(text))) {
+    const cited = (hm[1] ?? "").trim();
+    if (!cited) continue;
+    const firstToken = cited.split(/\s+/)[0] ?? "";
+    // Strip a leading trailing prepositional phrase ("في كتابه", "في صحيحه",
+    // "عن فلان") so the cited name is purely a noun phrase.
+    let cleanedCited = cited;
+    cleanedCited = cleanedCited.replace(/\s*(?:في\s+(?:كتابه|صحيحه|مسنده|سننه|موطأه|صحيحها|الأم)|عن\s+\S.*)$/i, "").trim();
+    const cleanedFirst = cleanedCited.split(/\s+/)[0] ?? firstToken;
+    // Direct hit: cited IS exactly a known collection name (e.g. «البخاري»).
+    if (cleanedCited && HADITH_COLLECTIONS[cleanedCited]) continue;
+    if (cleanedCited && cleanedCited === cleanedFirst && HADITH_COLLECTIONS[cleanedFirst]) continue;
+    // Multi-narrator chains ("محمد بن علي بن عبد الله") are almost always fabricated.
+    const binCount = (cleanedCited.match(/\s+بن\s+/g) ?? []).length;
+    if (binCount >= 2) {
+      flagged = true;
+      notes.push(`نسبت حديثًا إلى سلسلة رواتٍ «${cleanedCited}» لم أتعرَّف عليها — تحقَّق من المصدر.`);
+      continue;
+    }
+    // Multi-word narrator with no canonical form: e.g. "أحمد بن محمد الفقيه"
+    // first word matches RECOGNISED but the rest doesn't.
+    if (RECOGNISED_NARRATORS.has(cleanedCited) || RECOGNISED_FULL_FORMS.has(cleanedCited)) continue;
+    if (RECOGNISED_NARRATORS.has(cleanedFirst) && RECOGNISED_FULL_FORMS.has(cleanedCited)) continue;
+    if (cleanedCited === cleanedFirst && RECOGNISED_NARRATORS.has(cleanedFirst)) continue;
+    flagged = true;
+    notes.push(`نسبت حديثًا إلى «${cleanedCited}» ولم أتعرَّف على هذا الراوي — تحقَّق من المصدر.`);
+  }
+
+  return { plausible: !flagged, flagged, notes };
+}
+
+export async function verifyAnswerAsync(text: string): Promise<VerificationReport> {
+  const flags: string[] = [];
+  const notes: string[] = [];
+
+  let m: RegExpExecArray | null;
+  SURAH_RE.lastIndex = 0;
+  while ((m = SURAH_RE.exec(text))) {
+    const surahName = (m[1] ?? "").trim();
+    const ayah = toNum(m[2] ?? "0");
+    const sid = SURAH_NUM[surahName];
+    if (!sid) continue;
+    const map = await buildQuranVerses();
+    const expected = map.get(`${sid}:${ayah}`);
+    if (!expected) {
+      flags.push(`referenced verse سورة ${surahName}:${ayah} but no such ayah in local mushaf`);
+      notes.push(`سورة ${surahName} ${ayah} — لم أعثر عليها في المصحف المحلي، تحقَّق من المصدر.`);
+    }
+  }
+  // Combine with hadith attribution verification.
+  const hv = verifyHadith(text);
+  if (hv.flagged) {
+    for (const n of hv.notes) notes.push(n);
+  }
+  return { flagged: flags.length > 0 || notes.length > 0, notes };
+}

@@ -1186,6 +1186,7 @@ const CALLOUT_STYLES: Record<string, { border: string; bg: string; label: string
   tip: { border: "border-amber-400/50", bg: "bg-amber-500/10", label: "نصيحة", icon: "💡", accent: "text-amber-200" },
   warn: { border: "border-red-400/50", bg: "bg-red-500/10", label: "تنبيه", icon: "⚠️", accent: "text-red-200" },
   info: { border: "border-violet-400/50", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
+  cite: { border: "border-cyan-400/50", bg: "bg-cyan-500/10", label: "مرجع", icon: "🔗", accent: "text-cyan-200" },
 };
 
 function CalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; children: React.ReactNode }) {

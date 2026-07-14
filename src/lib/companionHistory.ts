@@ -81,6 +81,12 @@ export async function deleteConversation(id: string): Promise<void> {
   } catch { /* ignore */ }
 }
 
+export async function clearAllConversations(): Promise<void> {
+  try {
+    await getDB().conversations.clear();
+  } catch { /* ignore */ }
+}
+
 export function newConversationId(): string {
   return `c_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }

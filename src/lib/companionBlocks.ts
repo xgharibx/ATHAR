@@ -20,7 +20,7 @@
  */
 import { ROUTE_LABELS } from "@/lib/companionAI";
 
-export type CalloutKind = "verse" | "hadith" | "dua" | "tip" | "warn" | "info";
+export type CalloutKind = "verse" | "hadith" | "dua" | "tip" | "warn" | "info" | "cite";
 
 export type Segment =
   | { kind: "text"; text: string }
@@ -73,7 +73,7 @@ function promoteImperativeToActions(text: string): string {
 }
 
 /** Match either a callout block (multiline) or an action block (single line). */
-const CALLOUT_BLOCK = /^[ \t]*:{2,}(verse|hadith|dua|tip|warn|info)[ \t]*:?\s*\n([\s\S]*?)\n[ \t]*:{2,}[ \t]*$/im;
+const CALLOUT_BLOCK = /^[ \t]*:{2,}(verse|hadith|dua|tip|warn|info|cite)(?:\(([^)\n]*)\))?[ \t]*:?\s*\n([\s\S]*?)\n[ \t]*:{2,}[ \t]*$/im;
 const ACTION_BLOCK = /\[action:\s*([^\]\n→]+?)\s*→\s*(\/[a-z0-9/_-]+)\s*\]/gi;
 
 function stripArtefacts(text: string): string {
@@ -109,8 +109,9 @@ function legacyRouteLinks(text: string): string {
 
 function nextCallout(text: string): { index: number; match: RegExpExecArray | null } {
   // Find a callout block that starts at or after current position
-  // Re-use a fresh regex so lastIndex is reset
-  const re = /^[ \t]*:{2,}(verse|hadith|dua|tip|warn|info)[ \t]*:?\s*\n([\s\S]*?)\n[ \t]*:{2,}[ \t]*$/gim;
+  // Re-use a fresh regex so lastIndex is reset. We allow trailing text on the
+  // closing line so a model that writes "::: بعد" still parses the callout.
+  const re = /^[ \t]*:{2,}(verse|hadith|dua|tip|warn|info|cite)(?:\(([^)\n]*)\))?[ \t]*:?\s*\n([\s\S]*?)\n[ \t]*:{2,}[ \t]*/gim;
   const m = re.exec(text);
   return m ? { index: m.index, match: m } : { index: -1, match: null };
 }
@@ -151,9 +152,13 @@ export function splitIntoSegments(rawText: string): Segment[] {
     }
     if (pick === "callout") {
       const kind = String(pickMatch[1]).toLowerCase() as CalloutKind;
-      const body = String(pickMatch[2]).trim();
+      const meta = String(pickMatch[2] ?? "").trim();
+      const body = String(pickMatch[3] ?? "").trim();
       // Skip empty callout bodies so we don't render a visible empty box.
-      if (body.length > 0) segments.push({ kind: "callout", calloutKind: kind, text: body });
+      if (body.length > 0) {
+        const text = meta ? `${body} — ${meta}` : body;
+        segments.push({ kind: "callout", calloutKind: kind, text });
+      }
     } else {
       const label = String(pickMatch[1]).trim();
       const route = String(pickMatch[2]).toLowerCase();
