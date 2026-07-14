@@ -15,6 +15,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { FloatingAthar } from "@/components/companion/FloatingAthar";
 import { SurahInfoModal } from "@/components/quran/SurahInfoModal";
 import { sajdaInSurah } from "@/data/quranExtras";
+import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
 
 function normalize(s: string) {
   return normalizeArabicSearch((s ?? "").toLowerCase()).replaceAll(/\s+/g, " ").trim();
@@ -101,6 +102,10 @@ function daysBetween(a: Date, b: Date) {
   const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
   return Math.floor((utcB - utcA) / ms);
 }
+
+/** Phase 2 — Surah+ayah search parsing moved to src/data/quranDirectSearch.ts
+ *  for unit testability and reuse. The page calls parseDirectAyahQuery(query, data)
+ *  to detect direct references and jump straight into Mushaf. */
 
 const LOADING_SURAH_KEYS = [
   "load-surah-1",
@@ -302,16 +307,51 @@ export function QuranPage() {
     return out.sort((a, b) => b.surahId - a.surahId || b.ayahIndex - a.ayahIndex);
   }, [bookmarks, data, quranNotes, quranHighlights]);
 
+  // Phase 2 — Surah+ayah search parsing
+  // Detect patterns like "2:255", "2/255", "البقرة ٢٥٥", "البقرة:٢٥٥"
+  // and jump directly to that ayah (used to seed the surah list with a single
+  // match or switch the mode to "ayahs" automatically).
+  const directMatch = React.useMemo(() => {
+    if (!data) return null;
+    const q = query.trim();
+    if (!q) return null;
+    const direct = parseDirectAyahQuery(q, data);
+    return direct;
+  }, [query, data]);
+
   const filtered = React.useMemo(() => {
     if (!data) return [];
     const q = normalize(query);
     if (!q) return data;
 
+    // If user typed a direct surah+ayah reference, narrow to that surah.
+    if (directMatch) {
+      const match = data.find((s) => s.id === directMatch.surahId);
+      return match ? [match] : [];
+    }
+
     return data.filter((s) => {
       const hay = `${s.id} ${s.name} ${s.englishName ?? ""}`;
       return normalize(hay).includes(q);
     });
-  }, [data, query]);
+  }, [data, query, directMatch]);
+
+  // Auto-jump when a direct match is detected
+  React.useEffect(() => {
+    if (!directMatch) return;
+    if (mode === "surahs") {
+      const surah = data?.find((s) => s.id === directMatch.surahId);
+      const ayahCount = surah?.ayahs.length ?? 0;
+      if (
+        directMatch.ayahIndex &&
+        directMatch.ayahIndex >= 1 &&
+        directMatch.ayahIndex <= ayahCount
+      ) {
+        navigate(`/mushaf?surah=${directMatch.surahId}&ayah=${directMatch.ayahIndex}`);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [directMatch?.surahId, directMatch?.ayahIndex]);
 
   const sortedFiltered = React.useMemo(() => {
     let base: typeof filtered;
