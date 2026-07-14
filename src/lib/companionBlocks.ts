@@ -60,7 +60,7 @@ function promoteImperativeToActions(text: string): string {
   // Pattern: (verb) ... [/route]   → action block
   // First normalise bare routes to labelled ones for visibility
   const IMPERATIVE_ROUTE_RE = new RegExp(
-    `(${Object.keys(ARABIC_TO_LATIN_VERB).join("|")})[\\s\\S]{0,40}?\\[(\\/[a-z0-9\\/_-]+)(?:\\s+([^\\]]+))?\\]`,
+    `(${Object.keys(ARABIC_TO_LATIN_VERB).join("|")})[\\s\\S]{0,80}?\\[(\\/[a-z0-9\\/_-]+)(?:\\s+([^\\]]+))?\\]`,
     "gi",
   );
   return text.replace(IMPERATIVE_ROUTE_RE, (_m, verb, route, explicitLabel) => {
@@ -152,7 +152,8 @@ export function splitIntoSegments(rawText: string): Segment[] {
     if (pick === "callout") {
       const kind = String(pickMatch[1]).toLowerCase() as CalloutKind;
       const body = String(pickMatch[2]).trim();
-      segments.push({ kind: "callout", calloutKind: kind, text: body });
+      // Skip empty callout bodies so we don't render a visible empty box.
+      if (body.length > 0) segments.push({ kind: "callout", calloutKind: kind, text: body });
     } else {
       const label = String(pickMatch[1]).trim();
       const route = String(pickMatch[2]).toLowerCase();

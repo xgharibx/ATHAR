@@ -14,7 +14,7 @@ import * as React from "react";
 import {
   Sparkles, Send, X as XIcon, AlertCircle, Loader2, History, Plus, Mic, MicOff,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   ROUTE_LABELS,
@@ -23,6 +23,16 @@ import {
   type CompanionMessage,
   type VerificationReport,
 } from "@/lib/companionAI";
+import {
+  clearPartialStream,
+  loadPartialStream,
+  saveConversation,
+  newConversationId,
+  listConversations,
+  getConversation,
+  titleFromMessages,
+  type CompanionConversation,
+} from "@/lib/companionHistory";
 import { splitIntoSegments } from "@/lib/companionBlocks";
 import type { AtharContext } from "@/components/companion/FloatingAthar";
 
@@ -35,18 +45,8 @@ const CALLOUT_STYLES: Record<string, { border: string; bg: string; label: string
   info: { border: "border-violet-400/50", bg: "bg-violet-500/10", label: "معلومة", icon: "ℹ️", accent: "text-violet-200" },
 };
 
-function navigateRoute(route: string) {
+function dispatchNavigate(route: string) {
   try { window.dispatchEvent(new CustomEvent("athar-companion-navigate", { detail: { route } })); } catch { /* ignore */ }
-}
-
-const HISTORY_KEY = "noor_companion_modal_history_v1";
-type ModalConv = { id: string; title: string; messages: CompanionMessage[]; updatedAt: number };
-
-function loadModalHistory(): ModalConv[] {
-  try { const raw = localStorage.getItem(HISTORY_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; }
-}
-function saveModalHistory(arr: ModalConv[]) {
-  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0, 30))); } catch { /* ignore */ }
 }
 
 export function CompanionModal(props: {
@@ -55,23 +55,40 @@ export function CompanionModal(props: {
   prefill?: string;
   context?: AtharContext;
 }) {
+  const navigate = useNavigate();
+  const navigateRoute = React.useCallback((route: string) => {
+    navigate(route);
+    dispatchNavigate(route);
+  }, [navigate]);
   const [messages, setMessages] = React.useState<CompanionMessage[]>([]);
   const [input, setInput] = React.useState(props.prefill ?? "");
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
   const [verification, setVerification] = React.useState<VerificationReport | null>(null);
   const [showHistory, setShowHistory] = React.useState(false);
-  const [history, setHistory] = React.useState<ModalConv[]>([]);
+  const [history, setHistory] = React.useState<CompanionConversation[]>([]);
   const [convId, setConvId] = React.useState<string | null>(null);
+  const [partialStopped, setPartialStopped] = React.useState(false);
   const busyRef = React.useRef(false);
   const abortRef = React.useRef<AbortController | null>(null);
   const endRef = React.useRef<HTMLDivElement>(null);
+  const titleRef = React.useRef<string>("");
+
+  const refreshHistory = React.useCallback(async () => {
+    try { setHistory(await listConversations()); } catch { /* ignore */ }
+  }, []);
 
   React.useEffect(() => {
     if (props.open) {
       setInput(props.prefill ?? "");
-      setHistory(loadModalHistory());
+      void refreshHistory();
+      const partial = loadPartialStream();
+      if (partial && partial.text) {
+        setMessages(partial.messages);
+        setStreamingText(partial.text);
+        setConvId(partial.conversationId);
+      }
     }
-  }, [props.open, props.prefill]);
+  }, [props.open, props.prefill, refreshHistory]);
 
   React.useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -80,13 +97,16 @@ export function CompanionModal(props: {
   // Persist history whenever messages change
   React.useEffect(() => {
     if (messages.length === 0) return;
-    const id = convId ?? `mh_${Date.now()}`;
+    const id = convId ?? newConversationId();
     if (!convId) setConvId(id);
-    const title = messages[0]?.content.slice(0, 40) ?? "محادثة";
-    const next: ModalConv = { id, title, messages, updatedAt: Date.now() };
-    const arr = [next, ...history.filter((h) => h.id !== id)].slice(0, 30);
-    setHistory(arr);
-    saveModalHistory(arr);
+    if (!titleRef.current) titleRef.current = titleFromMessages(messages);
+    void saveConversation({
+      id,
+      title: titleRef.current,
+      messages,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }).then(refreshHistory);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages]);
 
@@ -100,6 +120,7 @@ export function CompanionModal(props: {
     if (!trimmed || busyRef.current) return;
     if (!isCompanionReady()) return;
     busyRef.current = true;
+    setPartialStopped(false);
     const controller = new AbortController();
     abortRef.current = controller;
     const augmented = buildPrefill(trimmed);
@@ -119,13 +140,21 @@ export function CompanionModal(props: {
           setMessages((m) => [...m, { role: "assistant", content: fullText }]);
           setVerification(ver);
           setStreamingText(null);
+          clearPartialStream();
         },
-        onError: () => { setStreamingText(null); },
+        onError: () => { setStreamingText(null); clearPartialStream(); },
       }, controller.signal);
     } finally {
       busyRef.current = false;
       abortRef.current = null;
-      if (!done) setStreamingText(null);
+      if (!done && acc.trim()) {
+        // Keep the partial reply so the user can resume / copy it.
+        setMessages((m) => [...m, { role: "assistant", content: acc }]);
+        setStreamingText(null);
+        setPartialStopped(true);
+      } else if (!done) {
+        setStreamingText(null);
+      }
     }
   };
 
@@ -134,6 +163,7 @@ export function CompanionModal(props: {
     abortRef.current = null;
     busyRef.current = false;
     setStreamingText(null);
+    clearPartialStream();
   };
 
   const startNew = () => {
@@ -143,13 +173,17 @@ export function CompanionModal(props: {
     setStreamingText(null);
     setVerification(null);
     setConvId(null);
+    titleRef.current = "";
     setShowHistory(false);
+    setPartialStopped(false);
   };
 
-  const loadHistoryConv = (c: ModalConv) => {
+  const loadHistoryConv = async (c: CompanionConversation) => {
     stop();
-    setMessages(c.messages);
-    setConvId(c.id);
+    const full = (await getConversation(c.id)) ?? c;
+    setMessages(full.messages);
+    setConvId(full.id);
+    titleRef.current = full.title;
     setStreamingText(null);
     setShowHistory(false);
   };
@@ -217,7 +251,7 @@ export function CompanionModal(props: {
               <p className="px-2 py-4 text-center text-[11px] text-emerald-200/60">لا توجد محادثات سابقة هنا</p>
             ) : (
               history.map((c) => (
-                <button key={c.id} type="button" onClick={() => loadHistoryConv(c)}
+                <button key={c.id} type="button" onClick={() => void loadHistoryConv(c)}
                   className="block w-full truncate rounded-lg px-2 py-1.5 text-start text-[12px] text-emerald-100 transition hover:bg-emerald-500/15">
                   <span className="opacity-60">{new Date(c.updatedAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}</span>
                   <span className="ms-2">{c.title}</span>
@@ -241,11 +275,11 @@ export function CompanionModal(props: {
             </div>
           ) : null}
           {messages.map((m, i) => (
-            <ModalBubble key={i} role={m.role} text={m.content} />
+            <ModalBubble key={i} role={m.role} text={m.content} onNavigate={navigateRoute} />
           ))}
           {streamingText !== null ? (
             streamingText
-              ? <ModalBubble role="assistant" text={streamingText} streaming />
+              ? <ModalBubble role="assistant" text={streamingText} streaming onNavigate={navigateRoute} />
               : (
                 <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-3.5 py-2.5 text-[11px] text-emerald-100">
                   <span className="relative grid h-6 w-6 place-items-center rounded-full">
@@ -265,6 +299,12 @@ export function CompanionModal(props: {
             <div className="flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
               <ul className="list-inside list-disc">{verification.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
+            </div>
+          ) : null}
+          {partialStopped ? (
+            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] text-emerald-200/80">
+              <XIcon className="h-3 w-3" aria-hidden="true" />
+              <span>اكتمل جزئيًا — أوقفت الرد قبل انتهائه.</span>
             </div>
           ) : null}
           <div ref={endRef} />
@@ -314,10 +354,10 @@ function ModalCalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYL
   );
 }
 
-function ModalActionButton({ route, children }: { route: string; children: React.ReactNode }) {
+function ModalActionButton({ route, children, onNavigate }: { route: string; children: React.ReactNode; onNavigate: (route: string) => void }) {
   const label = ROUTE_LABELS[route] ?? route;
   return (
-    <button type="button" onClick={() => navigateRoute(route)}
+    <button type="button" onClick={() => onNavigate(route)}
       className="group my-1.5 flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 px-3 py-2 text-start text-[12.5px] font-semibold text-emerald-50 transition hover:from-emerald-500/30 hover:to-teal-500/20 active:scale-[0.99]">
       <span className="flex items-center gap-2">
         <Sparkles className="h-3 w-3 text-emerald-200" aria-hidden="true" />
@@ -328,13 +368,13 @@ function ModalActionButton({ route, children }: { route: string; children: React
   );
 }
 
-function ModalBubbleContent({ text, streaming }: { text: string; streaming?: boolean }) {
+function ModalBubbleContent({ text, streaming, onNavigate }: { text: string; streaming?: boolean; onNavigate: (route: string) => void }) {
   const segs = React.useMemo(() => splitIntoSegments(text), [text]);
   return (
     <>
       {segs.map((s, i) => {
         if (s.kind === "callout") return <ModalCalloutBlock key={i} kind={s.calloutKind}>{s.text}</ModalCalloutBlock>;
-        if (s.kind === "action") return <ModalActionButton key={i} route={s.route}>{s.label}</ModalActionButton>;
+        if (s.kind === "action") return <ModalActionButton key={i} route={s.route} onNavigate={onNavigate}>{s.label}</ModalActionButton>;
         return (
           <div key={i} className="prose-invert-arabic text-[14px] leading-7 text-emerald-50/95">
             <span style={{ whiteSpace: "pre-wrap" }}>{s.text}</span>
@@ -346,7 +386,7 @@ function ModalBubbleContent({ text, streaming }: { text: string; streaming?: boo
   );
 }
 
-function ModalBubble(props: { role: "user" | "assistant"; text: string; streaming?: boolean }) {
+function ModalBubble(props: { role: "user" | "assistant"; text: string; streaming?: boolean; onNavigate: (route: string) => void }) {
   const isUser = props.role === "user";
   return (
     <div className={isUser ? "flex justify-end" : "flex justify-start"}>
@@ -358,7 +398,7 @@ function ModalBubble(props: { role: "user" | "assistant"; text: string; streamin
       ].join(" ")}>
         {isUser
           ? <span style={{ whiteSpace: "pre-wrap" }}>{props.text}</span>
-          : <ModalBubbleContent text={props.text} streaming={props.streaming} />}
+          : <ModalBubbleContent text={props.text} streaming={props.streaming} onNavigate={props.onNavigate} />}
       </div>
     </div>
   );

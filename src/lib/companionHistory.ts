@@ -89,7 +89,12 @@ export function titleFromMessages(messages: CompanionMessage[]): string {
   const firstUser = messages.find((m) => m.role === "user");
   const t = firstUser?.content.trim().replace(/\s+/g, " ") ?? "";
   if (!t) return "محادثة جديدة";
-  return t.length > 40 ? t.slice(0, 40) + "…" : t;
+  const max = 40;
+  if (t.length <= max) return t;
+  const slice = t.slice(0, max);
+  const lastSpace = slice.lastIndexOf(" ");
+  const trimmed = lastSpace > 8 ? slice.slice(0, lastSpace) : slice;
+  return trimmed + "…";
 }
 
 /* ─── Partial-stream survival ─────────────────────────────────────────── */

@@ -471,6 +471,67 @@ export const ROUTE_LABELS: Record<string, string> = {
   "/companion": "اسأل أثر",
 };
 
+function buildRouteLabelsBlock(): string {
+  const lines = Object.entries(ROUTE_LABELS).map(([route, label]) => `- ${route} → ${label}`);
+  return "المسارات الصالحة في التطبيق (استخدم هذه بالضبط في أداة next_step وفي بلوكات [action:label →/route]):\n" + lines.join("\n");
+}
+
+/* ─── Tool schema exposed to the model ─────────────────────────────────── */
+
+const COMPANION_TOOLS: Anthropic.Tool[] = [
+  {
+    name: "next_step",
+    description: "اقتراح خطوة عملية واحدة على المستخدم (مثلاً «افتح أذكار الصباح» أو «اقرأ وردي»). استخدم route من قائمة المسارات الصالحة فقط. اكتب description قصيرًا وواضحًا بالعربية.",
+    input_schema: {
+      type: "object",
+      properties: {
+        route: {
+          type: "string",
+          description: "المسار الداخلي للتطبيق، مثال: /c/morning",
+          enum: Object.keys(ROUTE_LABELS),
+        },
+        description: {
+          type: "string",
+          description: "وصف قصير بالعربية لِما سيفعله المستخدم، مثال: «افتح أذكار الصباح»",
+        },
+      },
+      required: ["route", "description"],
+    },
+  },
+  {
+    name: "cite",
+    description: "استشهد بآية أو حديث من مقتطفات الموسوعة الداخلية. استخدم هذا بدل كتابة «رواه البخاري» أو نسب الآيات دون التحقق.",
+    input_schema: {
+      type: "object",
+      properties: {
+        source: {
+          type: "string",
+          description: "مفتاح المصدر من كتلة السياق (مثال: sharh:1، أو searchidx:Bukhari:1:0).",
+        },
+        excerpt: {
+          type: "string",
+          description: "المقتطف المقصود من المصدر (انسخه حرفيًا من كتلة سياق الاسترجاع).",
+        },
+      },
+      required: ["source", "excerpt"],
+    },
+  },
+  {
+    name: "search_library",
+    description: "اطلب من المحرّك بحثًا في الموسوعة الداخلية حول موضوع معيّن (مثلاً «قيام الليل»، «آداب الجمعة»). سيُحقن لك مقتطفات موثوقة قبل أن تجيب.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "استعلام قصير بالعربية، مثال: «آداب يوم الجمعة».",
+        },
+      },
+      required: ["query"],
+    },
+  },
+];
+
 /* ─── Compact on-device memory ────────────────────────────────────────────── */
 
 const MEMORY_KEY = "noor_companion_memory_v1";
@@ -633,8 +694,11 @@ export async function streamCompanionReply(
     mood ? `حالة المستخدم الآن: ${mood} (اضبط نبرتك وفقًا لها — لا تبالغ).` : "",
     buildCompanionProfileContext(profile),
     buildMemoryBlock(),
+    buildRouteLabelsBlock(),
     retrieval,
   ].filter(Boolean).join("\n\n");
+
+  let onAbort: (() => void) | null = null;
 
   try {
     const stream = client.messages.stream({
@@ -644,13 +708,20 @@ export async function streamCompanionReply(
         { type: "text", text: SYSTEM_CORE, cache_control: { type: "ephemeral" } },
         { type: "text", text: dynamicContext },
       ],
+      tools: COMPANION_TOOLS,
       messages: history.map((m) => ({ role: m.role, content: m.content })),
     });
 
+    onAbort = () => {
+      try { stream.controller?.abort?.(); } catch { /* ignore */ }
+    };
+
     if (abortSignal) {
-      abortSignal.addEventListener("abort", () => {
-        try { stream.controller?.abort?.(); } catch { /* ignore */ }
-      });
+      if (abortSignal.aborted) {
+        onAbort();
+      } else {
+        abortSignal.addEventListener("abort", onAbort, { once: true });
+      }
     }
 
     let full = "";
@@ -673,5 +744,10 @@ export async function streamCompanionReply(
     cb.onDone?.(full, verification);
   } catch (err) {
     cb.onError?.(describeError(err));
+  } finally {
+    // Defensive: make sure the abort listener can't leak even if `for await`
+    // threw early. The { once: true } option above already covers the
+    // normal-path case.
+    if (abortSignal && onAbort) abortSignal.removeEventListener("abort", onAbort);
   }
 }

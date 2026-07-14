@@ -6,13 +6,22 @@
  * first access and kept in module memory (rebuilt on app start). The index is
  * plain JS — no embeddings, no network — so it's instant, private, and free.
  *
+ * The bundle is ~27 MB so we cache the parsed index to IndexedDB after the
+ * first build (mirrors mutashabihat.ts:55-68) — the next cold start skips the
+ * network/parse entirely.
+ *
  * Verification: scans an assistant answer for Quran refs (e.g. "سورة البقرة:٢٥٥")
  * and hadith attributions (e.g. "رواه البخاري") and checks whether the cited
  * source contains something compatible. Returns a VerificationReport the UI
  * can surface as a soft "تحقق من المصدر" chip — never blocks the reply.
  */
 
+import { idbGetExtras, idbSetExtras } from "@/lib/quranIDB";
+
 type Passage = { source: string; sourceLabel: string; text: string };
+
+const INDEX_IDB_KEY = "noor_companion_knowledge_index_v1";
+const INDEX_IDB_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 let INDEX: Passage[] | null = null;
 let INDEX_PROMISE: Promise<Passage[]> | null = null;
@@ -23,11 +32,21 @@ function normalize(s: string): string {
   return s.replace(ARABIC_DIACRITICS, "").replace(/\s+/g, " ").trim();
 }
 
+const STOPWORDS = new Set([
+  "في", "من", "على", "إلى", "عن", "ما", "لا", "إن", "أن", "أو", "ثم", "لم", "قد", "إنما",
+  "هذا", "هذه", "ذلك", "تلك", "التي", "الذي", "الذين", "اللتي", "كما", "كان", "كانت",
+  "هو", "هي", "هم", "هن", "أنا", "نحن", "أنت", "أنتم", "به", "بها", "به", "لهم", "لها",
+  "به", "بها", "بعد", "قبل", "حتى", "بين", "عند", "لدى", "حول", "أي", "كل", "بعض",
+]);
+
 function tokenize(s: string): string[] {
   return normalize(s)
     .split(/[^\p{L}\p{N}]+/u)
-    .filter((t) => t.length >= 3);
+    .filter((t) => t.length >= 3 && !STOPWORDS.has(t));
 }
+
+/** Exposed for tests only. */
+export const __test__ = { tokenize, STOPWORDS, normalize };
 
 async function fetchJSON<T>(path: string): Promise<T> {
   const res = await fetch(path);
@@ -175,6 +194,16 @@ async function getIndex(): Promise<Passage[]> {
   if (INDEX) return INDEX;
   if (!INDEX_PROMISE) {
     INDEX_PROMISE = (async () => {
+      // 1) Try IDB cache first — saves the 27 MB parse on cold start.
+      try {
+        const cached = await idbGetExtras<{ cachedAt: number; data: Passage[] }>(INDEX_IDB_KEY);
+        if (cached && Date.now() - cached.cachedAt < INDEX_IDB_TTL_MS && Array.isArray(cached.data)) {
+          INDEX = cached.data;
+          return INDEX;
+        }
+      } catch { /* IDB unavailable — fall through to network */ }
+
+      // 2) Build from network + persist.
       const [a, b, c, d] = await Promise.all([
         buildSharhIndex(),
         buildSearchIndex(),
@@ -183,20 +212,41 @@ async function getIndex(): Promise<Passage[]> {
       ]);
       const all = [...a, ...b, ...c, ...d];
       INDEX = all;
+      void idbSetExtras(INDEX_IDB_KEY, { cachedAt: Date.now(), data: all }).catch(() => {});
       return all;
-    })();
+    })().catch((err) => {
+      INDEX_PROMISE = null;
+      console.warn("[athar-knowledge] index build failed:", err);
+      return [];
+    });
   }
   return INDEX_PROMISE;
+}
+
+export async function retrievePassagesAsync(query: string, k = 3): Promise<Passage[]> {
+  const tokens = tokenize(query).slice(0, 12);
+  if (tokens.length === 0) return [];
+  const idx = await getIndex();
+  if (idx.length === 0) return [];
+  const scored: Array<{ p: Passage; s: number }> = [];
+  for (const p of idx) {
+    const s = scorePassage(tokens, p.text);
+    if (s > 0) scored.push({ p, s });
+  }
+  scored.sort((a, b) => b.s - a.s);
+  return scored.slice(0, k).map((x) => x.p);
 }
 
 export function retrievePassages(query: string, k = 3): Passage[] {
   const tokens = tokenize(query).slice(0, 12);
   if (tokens.length === 0) return [];
-  const idx = INDEX;
-  if (!idx) {
+  if (!INDEX) {
+    // Best-effort: kick off the build and return whatever we have now (likely
+    // nothing on first call, but cached on subsequent calls).
     void getIndex();
     return [];
   }
+  const idx = INDEX;
   const scored: Array<{ p: Passage; s: number }> = [];
   for (const p of idx) {
     const s = scorePassage(tokens, p.text);
@@ -280,7 +330,9 @@ export function verifyAnswer(text: string): VerificationReport {
   const map = QURAN_VERSES;
   const flags: string[] = [];
   const notes: string[] = [];
-  if (!map || map.size === 0) return { flagged: false, notes: [] };
+  if (!map || map.size === 0) {
+    // Skip Quran verification, but still attempt hadith attribution heuristic.
+  }
 
   let m: RegExpExecArray | null;
   SURAH_RE.lastIndex = 0;
@@ -289,13 +341,47 @@ export function verifyAnswer(text: string): VerificationReport {
     const ayah = toNum(m[2] ?? "0");
     const sid = SURAH_NUM[surahName];
     if (!sid) continue;
-    const expected = map.get(`${sid}:${ayah}`);
+    const expected = map?.get(`${sid}:${ayah}`);
     if (!expected) {
       flags.push(`referenced verse ${surahName}:${ayah}`);
       notes.push(`سورة ${surahName} ${ayah} — لم أعثر عليها في المصحف المحلي، تحقَّق من المصدر.`);
     }
   }
-  return { flagged: flags.length > 0, notes };
+  // Hadith attribution heuristic: look for "رواه X" / "أخرجه X" and flag if
+  // X is a known collection but the cited text doesn't contain a recognisable
+  // marker. This is best-effort — never blocks, just nudges verification.
+  let hm: RegExpExecArray | null;
+  HADITH_ATTR_RE.lastIndex = 0;
+  while ((hm = HADITH_ATTR_RE.exec(text))) {
+    const cited = (hm[1] ?? "").replace(/[،.].*$/, "").trim();
+    const collection = HADITH_COLLECTIONS[cited];
+    if (!collection) continue;
+    if (collection === "bukhari") {
+      const hasMarker = /البخاري|رقم\s*\d+|كتاب\s+/.test(text);
+      if (!hasMarker) {
+        notes.push(`ذكرت «رواه ${cited}» دون تحديد رقم أو كتاب — تحقَّق من المصدر.`);
+      }
+    } else if (collection === "muslim") {
+      const hasMarker = /مسلم|رقم\s*\d+|كتاب\s+/.test(text);
+      if (!hasMarker) {
+        notes.push(`ذكرت «أخرجه ${cited}» دون تحديد رقم أو كتاب — تحقَّق من المصدر.`);
+      }
+    }
+  }
+  return { flagged: flags.length > 0 || notes.length > 0, notes };
 }
 
 export type VerificationReport = { flagged: boolean; notes: string[] };
+
+const HADITH_COLLECTIONS: Record<string, "bukhari" | "muslim" | "other"> = {
+  "البخاري": "bukhari",
+  "مسلم": "muslim",
+  "أبو داود": "other",
+  "الترمذي": "other",
+  "النسائي": "other",
+  "ابن ماجه": "other",
+  "مالك": "other",
+  "أحمد": "other",
+};
+
+const HADITH_ATTR_RE = /(?:رواه|أخرجه|أخرّجه|روتنا)\s+([^\s،.]+)/g;

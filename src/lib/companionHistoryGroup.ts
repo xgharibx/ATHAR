@@ -22,7 +22,7 @@ function startOfDay(ts: number): number {
 export function groupConversationsByRecency(items: CompanionConversation[]): HistoryLayout {
   const todayStart = startOfDay(Date.now());
   const yesterdayStart = todayStart - 86_400_000;
-  const weekStart = todayStart - 6 * 86_400_000;
+  const weekStart = todayStart - 7 * 86_400_000;
   const monthStart = todayStart - 29 * 86_400_000;
 
   const pinned = items
@@ -54,7 +54,11 @@ export function groupConversationsByRecency(items: CompanionConversation[]): His
 export function previewSnippet(conv: CompanionConversation, max = 90): string {
   const lastAssistant = [...conv.messages].reverse().find((m) => m.role === "assistant");
   const text = (lastAssistant?.content ?? conv.messages[0]?.content ?? "").replace(/\s+/g, " ").trim();
-  return text.length > max ? `${text.slice(0, max)}…` : text;
+  if (text.length <= max) return text;
+  const slice = text.slice(0, max);
+  const lastSpace = slice.lastIndexOf(" ");
+  const trimmed = lastSpace > max * 0.5 ? slice.slice(0, lastSpace) : slice;
+  return `${trimmed}…`;
 }
 
 export function exportConversationText(conv: CompanionConversation): string {

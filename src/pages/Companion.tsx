@@ -59,12 +59,15 @@ import {
   newConversationId,
   pinConversation,
   renameConversation,
+  removePin,
   saveConversation,
   savePartialStream,
   loadPartialStream,
   clearPartialStream,
+  listPins,
   titleFromMessages,
   type CompanionConversation,
+  type PinnedReply,
 } from "@/lib/companionHistory";
 import {
   getVoiceEnabled, isVoiceSupported, setVoiceEnabled,
@@ -113,6 +116,8 @@ export function CompanionPage() {
   const navigate = useNavigate();
 
   const [showHistory, setShowHistory] = React.useState(false);
+  const [showPins, setShowPins] = React.useState(false);
+  const [pins, setPins] = React.useState<PinnedReply[]>(() => listPins());
   const [history, setHistory] = React.useState<CompanionConversation[]>([]);
   const [historyQuery, setHistoryQuery] = React.useState("");
   const [renamingId, setRenamingId] = React.useState<string | null>(null);
@@ -293,7 +298,26 @@ export function CompanionPage() {
   const speakFinal = React.useCallback((text: string) => {
     if (!voiceOn) return;
     setIsSpeaking(true);
-    speakArabic(text, true);
+    // Strip markdown syntax so the TTS engine doesn't read brackets, links,
+    // or backtick fences aloud. Only "text" segments are spoken; callouts
+    // and action blocks become short Arabic summaries.
+    const segments = splitIntoSegments(text);
+    const parts: string[] = [];
+    for (const seg of segments) {
+      if (seg.kind === "text") {
+        const cleaned = seg.text
+          .replace(/\[\/?route[^\]]*\]/gi, " ")
+          .replace(/\[[^\]]+\]\([^)]+\)/g, " ")
+          .replace(/```[\s\S]*?```/g, " ")
+          .replace(/`[^`]+`/g, " ")
+          .replace(/[#*_>~|]/g, " ")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+        if (cleaned) parts.push(cleaned);
+      }
+    }
+    const speakable = parts.join(" ").trim() || text.replace(/[#*_>`]/g, " ").trim();
+    speakArabic(speakable, true);
     const interval = window.setInterval(() => {
       if (!("speechSynthesis" in window) || !window.speechSynthesis.speaking) {
         window.clearInterval(interval);
@@ -342,6 +366,10 @@ export function CompanionPage() {
           },
           onError: (err) => {
             toast.error(err.message);
+            if (acc.trim()) {
+              setMessages((m) => [...m, { role: "assistant", content: acc }]);
+              setPartialStopped(true);
+            }
             setStreamingText(null);
             clearPartialStream();
           },
@@ -352,10 +380,18 @@ export function CompanionPage() {
       busyRef.current = false;
       abortRef.current = null;
       if (!done) {
+        if (acc.trim()) {
+          // User hit Stop — keep the partial reply so they can copy/resume.
+          setMessages((m) => [...m, { role: "assistant", content: acc }]);
+          setPartialStopped(true);
+        }
         setStreamingText(null);
+        clearPartialStream();
       }
     }
   }, [generateFollowUps, messages, persistPartial, speakFinal]);
+
+  const [partialStopped, setPartialStopped] = React.useState(false);
 
   const stop = React.useCallback(() => {
     abortRef.current?.abort();
@@ -364,6 +400,7 @@ export function CompanionPage() {
     setStreamingText(null);
     stopSpeaking();
     setIsSpeaking(false);
+    setPartialStopped(true);
   }, []);
 
   const startNewChat = React.useCallback(() => {
@@ -432,9 +469,19 @@ export function CompanionPage() {
   const pinReply = (text: string) => {
     try {
       addPin(text);
+      setPins(listPins());
       toast.success("حُفظ في الإجابات المثبَّتة");
     } catch {
       toast.error("تعذَّر الحفظ");
+    }
+  };
+
+  const deletePin = (id: string) => {
+    try {
+      removePin(id);
+      setPins(listPins());
+    } catch {
+      toast.error("تعذَّر الحذف");
     }
   };
 
@@ -464,8 +511,14 @@ export function CompanionPage() {
 
   const filteredHistory = React.useMemo(() => {
     if (!historyQuery.trim()) return history;
-    const f = new Fuse(history, { keys: ["title", "messages.content"], threshold: 0.4, ignoreLocation: true });
-    return f.search(historyQuery).map((r) => r.item);
+    // Normalise the query: strip diacritics + leading الـ so Arabic articles
+    // don't block matches. Fuse's threshold is loosened slightly for the
+    // morphology differences between common Arabic spellings.
+    const normalizedQuery = historyQuery
+      .replace(/[\u064B-\u0652\u0670\u0640]/g, "")
+      .replace(/^ال/, "");
+    const f = new Fuse(history, { keys: ["title", "messages.content"], threshold: 0.3, ignoreLocation: true });
+    return f.search(normalizedQuery || historyQuery).map((r) => r.item);
   }, [history, historyQuery]);
 
   const togglePinConversation = React.useCallback(async (conv: CompanionConversation) => {
@@ -499,6 +552,17 @@ export function CompanionPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button type="button"
+            onClick={() => setShowPins(true)}
+            aria-label="الإجابات المثبَّتة"
+            className="relative rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-2.5 hover:bg-[var(--card-2)] transition">
+            <Pin className="h-4 w-4" aria-hidden="true" />
+            {pins.length > 0 ? (
+              <span className="absolute -top-1 -end-1 grid h-4 min-w-4 place-items-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-black">
+                {pins.length.toLocaleString("ar-EG")}
+              </span>
+            ) : null}
+          </button>
           <button type="button"
             onClick={() => setShowHistory(true)}
             aria-label="المحادثات السابقة"
@@ -589,6 +653,48 @@ export function CompanionPage() {
         </div>
       ) : null}
 
+      {/* Pinned replies slide-over */}
+      {showPins ? (
+        <div className="fixed inset-0 z-50 flex justify-start" dir="rtl">
+          <button type="button" aria-label="إغلاق" onClick={() => setShowPins(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+          <div className="relative flex h-full w-[92%] max-w-md flex-col bg-[var(--bg)] shadow-2xl">
+            <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
+              <div>
+                <h2 className="flex items-center gap-1.5 text-sm font-bold">
+                  <Pin className="h-4 w-4 text-amber-300" aria-hidden="true" />
+                  الإجابات المثبَّتة
+                </h2>
+                <p className="text-[11px] text-[var(--muted-2)]">
+                  {pins.length === 0
+                    ? "لم تثبّت أي إجابة بعد"
+                    : `${pins.length.toLocaleString("ar-EG")} إجابة محفوظة على جهازك`}
+                </p>
+              </div>
+              <button type="button" onClick={() => setShowPins(false)} aria-label="إغلاق"
+                className="rounded-lg p-1.5 hover:bg-[var(--card-2)] transition">
+                <XIcon className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+              {pins.length === 0 ? (
+                <div className="px-4 py-10 text-center">
+                  <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-amber-500/15 border border-amber-300/30 mb-3">
+                    <Pin className="h-6 w-6 text-amber-300" aria-hidden="true" />
+                  </div>
+                  <p className="text-sm font-semibold">لا توجد إجابات مثبَّتة</p>
+                  <p className="mt-1 text-xs text-[var(--muted-2)]">اضغط «حفظ» تحت أي رد من «أثر» لتثبيته هنا ومراجعته لاحقًا.</p>
+                </div>
+              ) : (
+                pins.map((p) => (
+                  <PinnedReplyCard key={p.id} pin={p} onDelete={() => deletePin(p.id)} />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* Onboarding card (first run only) */}
       {showOnboarding && messages.length === 0 ? (
         <OnboardingCard
@@ -597,6 +703,13 @@ export function CompanionPage() {
             setProfile(next);
             setShowOnboarding(false);
             toast.success("تعريفنا عليك ساعد الرفيق يفهمك أكثر");
+          }}
+          onSkip={() => {
+            // Mark onboarded so we don't show the card again, but keep the
+            // default profile so the AI still has a baseline to work from.
+            const next = updateProfile({ onboarded: true });
+            setProfile(next);
+            setShowOnboarding(false);
           }}
           initial={profile}
         />
@@ -612,7 +725,7 @@ export function CompanionPage() {
               <Sparkles className="h-6 w-6 text-[var(--accent)]" aria-hidden="true" />
             </div>
             <h2 className="mt-2 text-base font-bold text-[var(--fg)]">
-              {greeting}{profile.greetingName ? ` ${profile.greetingName}` : ""}
+              {greeting}
             </h2>
             <p className="mx-auto mt-1 max-w-md text-[13px] leading-relaxed text-[var(--muted)]">
               أنا <span className="font-semibold text-[var(--accent)]">أثر</span>، رفيقك في الطريق إلى الله.
@@ -751,6 +864,13 @@ export function CompanionPage() {
             </div>
           </div>
         ) : null}
+        {partialStopped && !isBusy ? (
+          <div className="mt-2 flex items-center gap-2 rounded-2xl border border-white/10 bg-[var(--card)] px-3 py-1.5 text-[11px] text-[var(--muted)]">
+            <XIcon className="h-3 w-3" aria-hidden="true" />
+            <span>اكتمل جزئيًا — أوقفت الرد قبل انتهائه.</span>
+            <button type="button" onClick={() => setPartialStopped(false)} className="ms-auto text-[var(--accent)] hover:underline">إخفاء</button>
+          </div>
+        ) : null}
         <div ref={endRef} />
       </div>
 
@@ -822,7 +942,7 @@ export function CompanionPage() {
 
 /* ─── Onboarding ─────────────────────────────────────────────────────────── */
 
-function OnboardingCard({ onDone, initial }: { onDone: (p: Partial<CompanionProfile>) => void; initial: CompanionProfile }) {
+function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<CompanionProfile>) => void; onSkip: () => void; initial: CompanionProfile }) {
   const [level, setLevel] = React.useState<CompanionProfile["level"]>(initial.level);
   const [goals, setGoals] = React.useState<string[]>(initial.goals);
   const [name, setName] = React.useState(initial.greetingName);
@@ -887,6 +1007,11 @@ function OnboardingCard({ onDone, initial }: { onDone: (p: Partial<CompanionProf
         onClick={() => onDone({ level, goals: goals.length ? (goals as CompanionProfile["goals"]) : ["consistency"], greetingName: name.trim(), onboarded: true, createdAt: Date.now() })}
         className="w-full rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-black/80 active:scale-95 transition">
         ابدأ الرحلة
+      </button>
+      <button type="button"
+        onClick={onSkip}
+        className="w-full text-[11px] text-[var(--muted-2)] hover:text-[var(--accent)] transition">
+        أكمل لاحقًا
       </button>
     </div>
   );
@@ -1400,6 +1525,47 @@ function HistoryItem(props: {
           </button>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/* ─── Pinned reply card (per-reply, not per-conversation) ─────────────── */
+
+function PinnedReplyCard({ pin, onDelete }: { pin: PinnedReply; onDelete: () => void }) {
+  const [copied, setCopied] = React.useState(false);
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(pin.text); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* ignore */ }
+  };
+  const share = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ text: pin.text, title: "أثر" });
+      } else {
+        await navigator.clipboard.writeText(pin.text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      }
+    } catch { /* user cancelled */ }
+  };
+  return (
+    <div className="rounded-2xl border border-amber-300/30 bg-gradient-to-br from-amber-500/[0.08] via-[var(--card)] to-[var(--card)] p-3">
+      <p className="whitespace-pre-wrap text-[12.5px] leading-6 text-[var(--fg)] line-clamp-6">{pin.text}</p>
+      <div className="mt-2 flex items-center gap-1 text-[11px] text-[var(--muted-2)]">
+        <button type="button" onClick={copy} className="flex items-center gap-1 hover:text-[var(--fg)] transition" aria-label="نسخ">
+          {copied ? <Check className="h-3 w-3 text-[var(--ok)]" aria-hidden="true" /> : <Copy className="h-3 w-3" aria-hidden="true" />}
+          {copied ? "نُسخ" : "نسخ"}
+        </button>
+        <span className="opacity-30">·</span>
+        <button type="button" onClick={share} className="flex items-center gap-1 hover:text-[var(--fg)] transition" aria-label="مشاركة">
+          <Share2 className="h-3 w-3" aria-hidden="true" /> مشاركة
+        </button>
+        <span className="flex-1" />
+        <span className="text-[10px]">{relativeTime(pin.savedAt)}</span>
+        <span className="opacity-30">·</span>
+        <button type="button" onClick={onDelete} className="flex items-center gap-1 hover:text-[var(--danger)] transition" aria-label="حذف المثبَّت">
+          <XIcon className="h-3 w-3" aria-hidden="true" /> حذف
+        </button>
+      </div>
     </div>
   );
 }

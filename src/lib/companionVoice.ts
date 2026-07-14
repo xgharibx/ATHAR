@@ -72,17 +72,54 @@ export function stopListening(): void {
   }
 }
 
+let _voices: SpeechSynthesisVoice[] | null = null;
+let _voicesReady = false;
+
+function pickBestArabicVoice(): SpeechSynthesisVoice | null {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length === 0) return null;
+  const arabic = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith("ar-"));
+  if (arabic.length === 0) return null;
+  const quality = (v: SpeechSynthesisVoice): number => {
+    const name = (v.name ?? "").toLowerCase();
+    let score = 0;
+    if (v.localService) score += 100;
+    if (/premium|enhanced|neural|natural/.test(name)) score += 50;
+    if (/female|samantha|maged|tarik|mira|hoda/.test(name)) score += 10;
+    if (v.lang === "ar-SA") score += 5;
+    return score;
+  };
+  const sorted = [...arabic].sort((a, b) => quality(b) - quality(a));
+  return sorted[0] ?? null;
+}
+
+function ensureVoicesReady(): void {
+  if (_voicesReady) return;
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  const synth = window.speechSynthesis;
+  const populate = () => {
+    _voices = synth.getVoices();
+    _voicesReady = true;
+  };
+  populate();
+  // Some browsers (Chrome, Edge) populate voices asynchronously.
+  if ((_voices ?? []).length === 0 && typeof synth.addEventListener === "function") {
+    synth.addEventListener("voiceschanged", populate, { once: true });
+  }
+}
+
 export function speakArabic(text: string, voiceEnabled: boolean): void {
   if (!voiceEnabled) return;
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  ensureVoicesReady();
   try {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "ar-SA";
     u.rate = 0.96;
-    const voices = window.speechSynthesis.getVoices();
-    const ar = voices.find((v) => v.lang?.toLowerCase().startsWith("ar"));
-    if (ar) u.voice = ar;
+    const v = pickBestArabicVoice();
+    if (v) u.voice = v;
     window.speechSynthesis.speak(u);
   } catch { /* ignore */ }
 }
