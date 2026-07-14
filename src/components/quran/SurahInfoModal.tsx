@@ -75,7 +75,7 @@ export function SurahInfoModal(props: {
         </button>
       </div>
 
-      <div className="max-h-[75vh] overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Meta row */}
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge className={`surah-type-${isMedinan ? "madani" : "maki"}`}>

@@ -29,7 +29,7 @@ export function Modal(props: {
   if (!props.open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:items-center sm:p-4" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" dir="rtl">
       <div
         aria-hidden="true"
         onClick={props.onClose}
@@ -39,8 +39,8 @@ export function Modal(props: {
         role="dialog"
         aria-modal="true"
         className={[
-          "relative w-full max-w-xl overflow-hidden rounded-3xl border border-[var(--stroke)] bg-[var(--bg)] shadow-[0_24px_70px_-12px_rgba(0,0,0,0.45)]",
-          props.maxHeightClass ?? "max-h-[85vh]",
+          "relative flex w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-[var(--stroke)] bg-[var(--bg)] shadow-[0_24px_70px_-12px_rgba(0,0,0,0.45)]",
+          props.maxHeightClass ?? "max-h-[88vh]",
           props.className ?? "",
         ].join(" ")}
       >
