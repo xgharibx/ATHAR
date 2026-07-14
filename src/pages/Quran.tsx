@@ -18,6 +18,8 @@ import { FloatingAthar } from "@/components/companion/FloatingAthar";
 import { SurahInfoPopover } from "@/components/quran/SurahInfoPopover";
 import { sajdaInSurah, loadQuranExtras, getEnglishRowPreview, type QuranExtras } from "@/data/quranExtras";
 import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
+import { searchAyah, buildAyahIndex, type AyahHit } from "@/data/quranAyahIndex";
+type AyahHitLite = AyahHit;
 import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { getReciter } from "@/lib/quranReciters";
 import { loadQuranPageMap } from "@/data/quranLoad";
@@ -454,27 +456,10 @@ export function QuranPage() {
   }, [data, readingHistory]);
 
   const ayahSearch = React.useMemo(() => {
-    if (!data) return { results: [] as Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }>, totalFound: 0 };
+    if (!data) return { results: [] as AyahHitLite[], totalFound: 0 };
     const q = normalize(deferredQuery);
     if (!q || q.length < 2) return { results: [], totalFound: 0 };
-
-    const out: Array<{ surahId: number; surahName: string; ayahIndex: number; text: string }> = [];
-    const limit = 60;
-    let totalFound = 0;
-
-    for (const s of data) {
-      for (let i = 0; i < s.ayahs.length; i++) {
-        const text = s.ayahs[i] ?? "";
-        if (normalize(text).includes(q)) {
-          totalFound++;
-          if (out.length < limit) {
-            out.push({ surahId: s.id, surahName: s.name, ayahIndex: i + 1, text });
-          }
-        }
-      }
-    }
-
-    return { results: out, totalFound };
+    return searchAyah(data, q, 60);
   }, [data, deferredQuery]);
 
   const ayahResults = ayahSearch.results;
@@ -1010,7 +995,7 @@ export function QuranPage() {
               className="h-9 px-2.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] opacity-75 hover:opacity-100 transition shrink-0 inline-flex items-center gap-1.5 text-xs"
             >
               <Volume2 size={13} className="text-[var(--accent)]" />
-              <span className="max-w-[7rem] truncate">{getReciter(prefs.quranReciter)?.label ?? "القارئ"}</span>
+              <span className="max-w-[7rem] truncate" title={getReciter(prefs.quranReciter)?.label ?? "القارئ"}>{getReciter(prefs.quranReciter)?.label ?? "القارئ"}</span>
             </button>
 
             {/* Theme color dots */}

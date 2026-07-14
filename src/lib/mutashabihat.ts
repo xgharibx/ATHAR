@@ -11,7 +11,12 @@
  * grouping entirely and flattens everything into one global-ayah-number index.
  * Resolving a global number to a surah/ayah reference reuses the same cumulative-count
  * approach already used by src/pages/QuranPlans.tsx for khatma plan tracking.
+ *
+ * The flat index is cached to IndexedDB on first successful fetch (audit #18).
+ * Subsequent cold starts hit IDB instead of the 80 KB CDN request.
  */
+
+import { idbGetExtras, idbSetExtras } from "@/lib/quranIDB";
 
 export interface AyahRef {
   surahId: number;
@@ -32,6 +37,8 @@ interface RawEntry {
 type RawData = Record<string, RawEntry[]>;
 
 const DATA_URL = "https://cdn.jsdelivr.net/gh/Waqar144/Quran_Mutashabihat_Data@master/mutashabiha_data.json";
+const IDB_KEY = "noor_mutashabihat_index_v1";
+const IDB_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 function toRange(ayah: number | number[]): [number, number] {
   if (Array.isArray(ayah)) return [ayah[0], ayah[ayah.length - 1]];
@@ -45,32 +52,42 @@ let _loadingPromise: Promise<Map<number, RawEntry[]>> | null = null;
 async function loadIndex(): Promise<Map<number, RawEntry[]>> {
   if (_indexBySrcAyah) return _indexBySrcAyah;
   if (!_loadingPromise) {
-    _loadingPromise = fetch(DATA_URL)
-      .then((r) => {
-        if (!r.ok) throw new Error(`Mutashabihat fetch failed: ${r.status}`);
-        return r.json() as Promise<RawData>;
-      })
-      .then((data) => {
-        const index = new Map<number, RawEntry[]>();
-        for (const entries of Object.values(data)) {
-          for (const entry of entries) {
-            const [start, end] = toRange(entry.src.ayah);
-            for (let g = start; g <= end; g++) {
-              const bucket = index.get(g);
-              if (bucket) bucket.push(entry);
-              else index.set(g, [entry]);
-            }
-          }
+    _loadingPromise = (async () => {
+      // 1) Try IDB cache first (audit #18).
+      try {
+        const cached = await idbGetExtras<{ cachedAt: number; data: RawData }>(IDB_KEY);
+        if (cached && Date.now() - cached.cachedAt < IDB_TTL_MS) {
+          return buildFlatIndex(cached.data);
         }
-        _indexBySrcAyah = index;
-        return index;
-      })
-      .catch((err) => {
-        _loadingPromise = null;
-        throw err;
-      });
+      } catch { /* IDB unavailable — fall through to network */ }
+      // 2) Network fetch + persist.
+      const r = await fetch(DATA_URL);
+      if (!r.ok) throw new Error(`Mutashabihat fetch failed: ${r.status}`);
+      const data = (await r.json()) as RawData;
+      void idbSetExtras(IDB_KEY, { cachedAt: Date.now(), data }).catch(() => {});
+      return buildFlatIndex(data);
+    })().catch((err) => {
+      _loadingPromise = null;
+      throw err;
+    }) as Promise<Map<number, RawEntry[]>>;
   }
   return _loadingPromise;
+}
+
+function buildFlatIndex(data: RawData): Map<number, RawEntry[]> {
+  const index = new Map<number, RawEntry[]>();
+  for (const entries of Object.values(data)) {
+    for (const entry of entries) {
+      const [start, end] = toRange(entry.src.ayah);
+      for (let g = start; g <= end; g++) {
+        const bucket = index.get(g);
+        if (bucket) bucket.push(entry);
+        else index.set(g, [entry]);
+      }
+    }
+  }
+  _indexBySrcAyah = index;
+  return index;
 }
 
 /** Cumulative-count global-ayah → {surahId, ayahIndex}, same algorithm as QuranPlans.tsx. */
