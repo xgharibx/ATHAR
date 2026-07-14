@@ -25,7 +25,7 @@ import {
   stopSoundPreview,
   syncReminders
 } from "@/lib/reminders";
-import { downloadMushafCore, getMushafOfflineStatus, type MushafOfflineProgress, type MushafOfflineStatus } from "@/lib/mushafOffline";
+import { downloadMushafCore, getMushafOfflineStatus, clearMushafOfflineCore, type MushafOfflineProgress, type MushafOfflineStatus } from "@/lib/mushafOffline";
 import { QURAN_RECITERS, getReciter } from "@/lib/quranReciters";
 import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -274,6 +274,7 @@ export function SettingsPage() {
           { label: "🎨 المظهر",     id: "settings-appearance" },
           { label: "🏠 الرئيسية",   id: "settings-home-widgets" },
           { label: "📖 القراءة",    id: "settings-reading" },
+          { label: "📜 القرآن",     id: "settings-quran" },
           { label: "📿 التسبيح",   id: "settings-tasbeeh" },
           { label: "🔔 التذكيرات", id: "settings-reminders" },
           { label: "💾 النسخ",     id: "settings-backup" },
@@ -788,6 +789,8 @@ export function SettingsPage() {
 
         </div>
       </Card>
+
+      <QuranSettingsCard />
 
       <Card id="settings-tasbeeh" className="p-5">
         <div className="flex items-center gap-2">
@@ -1404,6 +1407,169 @@ export function SettingsPage() {
         onClose={() => setShowReciterPicker(false)}
       />
     </div>
+  );
+}
+
+function QuranSettingsCard() {
+  const prefs = useNoorStore((s) => s.prefs);
+  const setPrefs = useNoorStore((s) => s.setPrefs);
+  const [offline, setOffline] = React.useState<MushafOfflineStatus | null>(null);
+  const [progress, setProgress] = React.useState<MushafOfflineProgress | null>(null);
+  const [busy, setBusy] = React.useState(false);
+
+  React.useEffect(() => { void getMushafOfflineStatus().then(setOffline); }, []);
+
+  const startDownload = async () => {
+    setBusy(true);
+    try {
+      await downloadMushafCore((p) => setProgress(p));
+      setOffline(await getMushafOfflineStatus());
+      toast.success("تم تثبيت المصحف محليًا");
+    } catch {
+      toast.error("تعذّر تثبيت المصحف محليًا");
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  };
+  const clearDownload = async () => {
+    setBusy(true);
+    try {
+      setOffline(await clearMushafOfflineCore());
+      toast.success("تم رفع التثبيت المحلي");
+    } catch {
+      toast.error("تعذّر الرفع");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const QURAN_DAILY_GOAL_PRESETS = [
+    { value: 1, label: "آية واحدة" },
+    { value: 5, label: "٥ آيات" },
+    { value: 10, label: "١٠ آيات" },
+    { value: 20, label: "صفحة" },
+    { value: 60, label: "ربع حزب" },
+    { value: 120, label: "نصف حزب" },
+  ];
+
+  const FONT_OPTIONS: Array<{ id: "noto_naskh" | "amiri" | "hafs"; label: string; sample: string }> = [
+    { id: "noto_naskh", label: "نوتو نسخ", sample: "البقرة" },
+    { id: "amiri",      label: "أميري",      sample: "البقرة" },
+    { id: "hafs",       label: "حفص",        sample: "البقرة" },
+  ];
+
+  return (
+    <Card id="settings-quran" className="p-5">
+      <div className="flex items-center gap-2">
+        <BookOpen size={18} className="text-[var(--accent)]" aria-hidden="true" />
+        <div className="font-semibold">القرآن</div>
+      </div>
+
+      {/* Mushaf offline status */}
+      <div className="mt-5 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-3.5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">المصحف محليًا</div>
+            <div className="text-[11px] text-[var(--muted-2)]">
+              {offline?.indexedDBReady
+                ? `مثبَّت · ${offline.sizeLabel}`
+                : "غير مثبَّت — النسخة المضمّنة في التطبيق تعمل، التثبيت المحلي يجعلها فورية"}
+            </div>
+          </div>
+          {offline?.indexedDBReady ? (
+            <Button variant="outline" size="sm" onClick={clearDownload} disabled={busy}>
+              رفع التثبيت
+            </Button>
+          ) : (
+            <Button size="sm" onClick={startDownload} disabled={busy}>
+              {busy ? "جاري التثبيت…" : "تثبيت محليًا"}
+            </Button>
+          )}
+        </div>
+        {progress ? (
+          <div className="mt-2 h-1 overflow-hidden rounded-full bg-[var(--stroke)]/40">
+            <div
+              className="h-full rounded-full bg-[var(--accent)] transition-all duration-300"
+              style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }}
+            />
+          </div>
+        ) : null}
+        {progress ? (
+          <p className="mt-1 text-[10.5px] text-[var(--muted-2)]">{progress.label}</p>
+        ) : null}
+      </div>
+
+      {/* Daily goal presets */}
+      <div className="mt-5">
+        <div className="text-sm font-semibold">ورد اليوم</div>
+        <div className="mt-1 text-[11px] text-[var(--muted-2)]">عدد الآيات الذي تريد قراءتها كل يوم</div>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {QURAN_DAILY_GOAL_PRESETS.map((p) => (
+            <button key={p.value} type="button"
+              onClick={() => setPrefs({ quranDailyGoal: p.value })}
+              aria-pressed={(prefs.quranDailyGoal ?? 10) === p.value}
+              className={[
+                "rounded-xl border px-3 py-1.5 text-[12px] font-semibold transition active:scale-95",
+                (prefs.quranDailyGoal ?? 10) === p.value
+                  ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
+                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]",
+              ].join(" ")}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Arabic font picker */}
+      <div className="mt-5">
+        <div className="text-sm font-semibold">خط القرآن</div>
+        <div className="mt-1 text-[11px] text-[var(--muted-2)]">اختر الخط المفضّل لقراءة المصحف</div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {FONT_OPTIONS.map((f) => (
+            <button key={f.id} type="button"
+              onClick={() => setPrefs({ arabicFont: f.id })}
+              aria-pressed={(prefs.arabicFont ?? "noto_naskh") === f.id}
+              className={[
+                "rounded-2xl border p-3 text-center transition",
+                (prefs.arabicFont ?? "noto_naskh") === f.id
+                  ? "bg-accent-15 border-accent-35"
+                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]",
+              ].join(" ")}>
+              <div className={[
+                "text-2xl",
+                f.id === "noto_naskh" ? "arabic-text" : f.id === "amiri" ? "font-amiri" : "font-hafs",
+              ].join(" ")} style={{ lineHeight: 1 }}>{f.sample}</div>
+              <div className="mt-1.5 text-[11px] font-semibold">{f.label}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Background vibrancy */}
+      <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-3.5">
+        <div>
+          <div className="text-sm font-semibold">حيوية الخلفية في المصحف</div>
+          <div className="text-[11px] text-[var(--muted-2)]">يظهر لون زاهي خلف الصفحة بدل الرمادي الخافت</div>
+        </div>
+        <Switch
+          checked={!!prefs.bgVibrancyBoost}
+          onCheckedChange={(v) => setPrefs({ bgVibrancyBoost: v })}
+        />
+      </div>
+
+      {/* Theme coupling toggle (a soft coupling of Noor theme to Quran theme) */}
+      <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-3.5">
+        <div>
+          <div className="text-sm font-semibold">مواءمة ثيم القرآن مع ثيم التطبيق</div>
+          <div className="text-[11px] text-[var(--muted-2)]">يختار ثيم المصحف المناسب تلقائيًا عند تبديل ثيم التطبيق</div>
+        </div>
+        <Switch
+          checked={localStorage.getItem("athar_theme_couple") === "1"}
+          onCheckedChange={(v) => localStorage.setItem("athar_theme_couple", v ? "1" : "0")}
+        />
+      </div>
+    </Card>
   );
 }
 
