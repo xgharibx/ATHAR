@@ -33,12 +33,15 @@ export type TranslationSource = {
   apiId: number | null;
   /** True if the source is bundled in /public/data. */
   bundled: boolean;
+  /** Approximate on-disk size in KB (bundled = static asset, fetched =
+   *  expected IDB footprint after a successful fetch). */
+  approxSizeKB: number;
 };
 
 export const TRANSLATION_SOURCES: TranslationSource[] = [
-  { id: "saheeh",     ar: "الأجرومية", en: "Saheeh International", lang: "en", apiId: null, bundled: true  },
-  { id: "yusuf_ali",  ar: "الألبيرية", en: "Yusuf Ali",            lang: "en", apiId: 84,    bundled: false },
-  { id: "jalandhry",  ar: "الأرضية",   en: "Jalandhry",            lang: "ur", apiId: 157,   bundled: false },
+  { id: "saheeh",     ar: "الأجرومية", en: "Saheeh International", lang: "en", apiId: null, bundled: true,  approxSizeKB: 880  },
+  { id: "yusuf_ali",  ar: "الألبيرية", en: "Yusuf Ali",            lang: "en", apiId: 84,    bundled: false, approxSizeKB: 900  },
+  { id: "jalandhry",  ar: "الأرضية",   en: "Jalandhry",            lang: "ur", apiId: 157,   bundled: false, approxSizeKB: 1200 },
 ];
 
 const API_URL = "https://api.quran.foundation/api/v4/quran/translations/";
@@ -167,4 +170,37 @@ export function useTranslationForAyah(
     return () => { cancelled = true; };
   }, [id, surahId, ayahIndex, extras]);
   return text;
+}
+
+/**
+ * Per-translation metadata used to render the size badge in
+ * TranslationSettingsCard. Bundled sources report a static approx; fetched
+ * sources reflect the live IDB-cached payload when present, else the
+ * approximate network size.
+ */
+export type TranslationSizeInfo = {
+  source: TranslationSource;
+  sizeKB: number;
+  cachedAt: number | null;
+};
+
+export async function getTranslationSize(id: TranslationId): Promise<TranslationSizeInfo> {
+  const source = TRANSLATION_SOURCES.find((s) => s.id === id);
+  if (!source) throw new Error(`Unknown translation id: ${id}`);
+  if (source.bundled) {
+    return { source, sizeKB: source.approxSizeKB, cachedAt: null };
+  }
+  try {
+    const row = await idbGetExtras<{ cachedAt: number; index: TranslationIndex }>(
+      `${IDB_KEY}:${id}`,
+    );
+    if (row && row.index) {
+      // Approximate size: length of the JSON encoding in bytes ÷ 1024.
+      const sizeKB = Math.max(1, Math.round(JSON.stringify(row.index).length / 1024));
+      return { source, sizeKB, cachedAt: row.cachedAt };
+    }
+  } catch {
+    /* fall through to approx */
+  }
+  return { source, sizeKB: source.approxSizeKB, cachedAt: null };
 }

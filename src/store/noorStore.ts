@@ -1243,8 +1243,43 @@ export const useNoorStore = create<NoorState>()(
         }
       },
 
-      // Se6: Restore preference defaults without clearing progress data
-      resetPrefs: () => set({ prefs: { ...DEFAULT_PREFS } }),
+      // Se6: Restore only the truly resettable subset of preferences.
+      // We deliberately preserve widget order, home widget visibility,
+      // on-device schedules, prayer settings, theme accent, custom accent,
+      // Quran translation id, etc. so a "reset" doesn't trash the user's
+      // personalised setup. Progress / favorites / Quran data are also kept
+      // (those live on the store root, not inside `prefs`).
+      resetPrefs: () => set((s) => ({
+        prefs: {
+          ...s.prefs,
+          theme: DEFAULT_PREFS.theme,
+          fontScale: DEFAULT_PREFS.fontScale,
+          lineHeight: DEFAULT_PREFS.lineHeight,
+          quranFontScale: DEFAULT_PREFS.quranFontScale,
+          quranLineHeight: DEFAULT_PREFS.quranLineHeight,
+          quranPageSize: DEFAULT_PREFS.quranPageSize,
+          quranHideMarkers: DEFAULT_PREFS.quranHideMarkers,
+          quranTheme: DEFAULT_PREFS.quranTheme,
+          quranLetterSpacing: DEFAULT_PREFS.quranLetterSpacing,
+          quranWordSpacing: DEFAULT_PREFS.quranWordSpacing,
+          quranScrollMode: DEFAULT_PREFS.quranScrollMode,
+          quranDailyGoal: DEFAULT_PREFS.quranDailyGoal,
+          quranReciter: DEFAULT_PREFS.quranReciter,
+          mushafFontScale: DEFAULT_PREFS.mushafFontScale,
+          mushafTajweedMode: DEFAULT_PREFS.mushafTajweedMode,
+          mushafShowTranslation: DEFAULT_PREFS.mushafShowTranslation,
+          quranTranslationId: DEFAULT_PREFS.quranTranslationId,
+          quranSortMode: DEFAULT_PREFS.quranSortMode,
+          quranFilterJuz: DEFAULT_PREFS.quranFilterJuz,
+          quranFilterRevelation: DEFAULT_PREFS.quranFilterRevelation,
+          showBenefits: DEFAULT_PREFS.showBenefits,
+          stripDiacritics: DEFAULT_PREFS.stripDiacritics,
+          enableSounds: DEFAULT_PREFS.enableSounds,
+          reduceMotion: DEFAULT_PREFS.reduceMotion,
+          transparentMode: DEFAULT_PREFS.transparentMode,
+          bgVibrancyBoost: DEFAULT_PREFS.bgVibrancyBoost,
+        },
+      })),
 
       // Targeted resets (Phase 37)
       resetAdhkarProgress: () => set({

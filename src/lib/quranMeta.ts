@@ -118,3 +118,19 @@ export function toArabicNumeral(n: number): string {
   const map = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
   return String(Math.max(0, Math.floor(n))).replace(/\d/g, (d) => map[Number(d)] ?? d);
 }
+
+/**
+ * Strip Arabic diacritics (tashkeel) from a string when the user has
+ * enabled `prefs.stripDiacritics`. Covers:
+ *   - U+0610–U+061A  Qur'anic annotation signs
+ *   - U+064B–U+065F  standard tashkeel (fathah, kasrah, dammah, shadda, sukun, etc.)
+ *   - U+0670        superscript alef
+ *   - U+06D6–U+06ED  additional marks (sajdah, etc.)
+ * Pass `strip=false` to get the input back unchanged.
+ * Letters such as ٱ (U+0671 alef wasla) are intentionally kept because
+ * they carry pronunciation info that doesn't decompose into tashkeel alone.
+ */
+export function maybeStripDiacritics(text: string, strip: boolean): string {
+  if (!strip) return text;
+  return text.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, "");
+}

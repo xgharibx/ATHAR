@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, RotateCw, Type, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft, Search, X, Vibrate, Moon, Volume2, ChevronDown } from "lucide-react";
+import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, RotateCw, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft, Search, X, Vibrate, Moon, Volume2, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import pkgJson from "../../package.json";
@@ -572,6 +572,13 @@ export function SettingsPage() {
             }
           />
           <SettingRow
+            title="أصوات التطبيق"
+            desc="تشغيل الأصوات العامة للتنبيهات والإشعارات"
+            right={
+              <Switch checked={prefs.enableSounds} onCheckedChange={(v) => setPrefs({ enableSounds: v })} />
+            }
+          />
+          <SettingRow
             title="تقليل الحركة"
             desc="لأجهزة أبطأ أو لتقليل الدوخة"
             right={
@@ -621,36 +628,6 @@ export function SettingsPage() {
           </div>
         </div>
 
-        {/* Se1: Arabic font family selector */}
-        <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
-          <div className="flex items-center gap-2 mb-3">
-            <Type size={15} aria-hidden="true" className="text-[var(--accent)]" />
-            <div className="text-sm font-medium">خط القراءة</div>
-          </div>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="اختيار خط القراءة">
-            {([
-              { id: "noto_naskh", label: "نوتو نسخ", sample: "بسم الله" },
-              { id: "amiri", label: "أميري", sample: "بسم الله" },
-              { id: "hafs", label: "شهرزاد القرآني", sample: "بسم الله" },
-            ] as const).map((f) => (
-              <button type="button"
-                key={f.id}
-                onClick={() => setPrefs({ arabicFont: f.id })}
-                aria-pressed={(prefs.arabicFont ?? "noto_naskh") === f.id}
-                className={[
-                  "px-3 py-2.5 rounded-2xl border text-sm transition flex flex-col items-center gap-1 min-h-[60px] min-w-[90px]",
-                  (prefs.arabicFont ?? "noto_naskh") === f.id
-                    ? "bg-accent-15 border-accent-35"
-                    : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
-                ].join(" ")}
-              >
-                <span className="text-xs opacity-70">{f.label}</span>
-                <span className="arabic-text text-base leading-tight">{f.sample}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Se3: Language switcher */}
         <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
           <div className="flex items-center justify-between gap-3">
@@ -666,7 +643,7 @@ export function SettingsPage() {
                 <button type="button"
                   key={lang}
                   aria-pressed={(prefs.uiLanguage ?? "ar") === lang}
-                  onClick={() => lang === "ar" ? setPrefs({ uiLanguage: lang }) : toast("الترجمة الإنجليزية قريبًا")}
+                  onClick={() => setPrefs({ uiLanguage: lang })}
                   className={[
                     "px-4 py-2 rounded-xl border text-sm transition min-h-[40px] relative",
                     (prefs.uiLanguage ?? "ar") === lang
@@ -839,14 +816,14 @@ export function SettingsPage() {
               }
             />
             <SettingRow
-              title="إظهار الفضل / المصدر"
+              title="إظهار الفوائد والإحصائيات"
               desc="إظهار صندوق الفضل إن وُجد"
               right={
                 <Switch checked={prefs.showBenefits} onCheckedChange={(v) => setPrefs({ showBenefits: v })} />
               }
             />
             <SettingRow
-              title="إزالة التشكيل"
+              title="حذف الحركات من المصحف"
               desc="مفيد للبحث والحفظ (قد يغير القراءة)"
               right={
                 <Switch
@@ -1802,16 +1779,67 @@ function QuranSettingsCard() {
         />
       </div>
 
-      {/* Theme coupling toggle (a soft coupling of Noor theme to Quran theme) */}
-      <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-3.5">
-        <div>
-          <div className="text-sm font-semibold">مواءمة ثيم القرآن مع ثيم التطبيق</div>
-          <div className="text-[11px] text-[var(--muted-2)]">يختار ثيم المصحف المناسب تلقائيًا عند تبديل ثيم التطبيق</div>
+      {/* Quran font scale slider */}
+      <div className="mt-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm font-semibold">حجم خط قراءة القرآن</div>
+          <div className="text-xs opacity-70 tabular-nums">{Math.round((prefs.quranFontScale ?? 1.0) * 100).toLocaleString("ar-EG")}٪</div>
         </div>
-        <Switch
-          checked={localStorage.getItem("athar_theme_couple") === "1"}
-          onCheckedChange={(v) => localStorage.setItem("athar_theme_couple", v ? "1" : "0")}
-        />
+        <div className="mt-1 text-[11px] text-[var(--muted-2)]">يطبَّق على قائمة آيات القرآن، ليس المصحف نفسه</div>
+        <div className="mt-3">
+          <Slider
+            value={[prefs.quranFontScale ?? 1.0]}
+            min={0.9}
+            max={1.6}
+            step={0.01}
+            onValueChange={(v) => setPrefs({ quranFontScale: clamp(v[0] ?? 1.0, 0.9, 1.6) })}
+            aria-label="حجم خط القرآن"
+          />
+        </div>
+      </div>
+
+      {/* Quran page size (ayahs per virtual page in list view) */}
+      <div className="mt-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm font-semibold">عدد الآيات في الصفحة</div>
+          <div className="text-xs opacity-70 tabular-nums">{(prefs.quranPageSize ?? 12).toLocaleString("ar-EG")} آية</div>
+        </div>
+        <div className="mt-3">
+          <Slider
+            value={[prefs.quranPageSize ?? 12]}
+            min={5}
+            max={25}
+            step={1}
+            onValueChange={(v) => setPrefs({ quranPageSize: clamp(Math.round(v[0] ?? 12), 5, 25) })}
+            aria-label="عدد الآيات في الصفحة"
+          />
+        </div>
+      </div>
+
+      {/* Quran scroll mode (page mode = flip, scroll mode = continuous) */}
+      <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-3.5">
+        <div>
+          <div className="text-sm font-semibold">نمط التصفح</div>
+          <div className="text-[11px] text-[var(--muted-2)]">صفحة بصفحة أو تمرير مستمر</div>
+        </div>
+        <div className="flex gap-1.5" role="group" aria-label="نمط تصفح القرآن">
+          {([
+            { id: "page", label: "صفحات" },
+            { id: "scroll", label: "تمرير" },
+          ] as const).map((m) => (
+            <button key={m.id} type="button"
+              onClick={() => setPrefs({ quranScrollMode: m.id })}
+              aria-pressed={(prefs.quranScrollMode ?? "page") === m.id}
+              className={[
+                "rounded-xl border px-3 py-1.5 text-xs font-semibold transition min-h-[36px]",
+                (prefs.quranScrollMode ?? "page") === m.id
+                  ? "bg-accent-15 border-accent-35"
+                  : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]",
+              ].join(" ")}>
+              {m.label}
+            </button>
+          ))}
+        </div>
       </div>
     </Card>
   );
