@@ -2354,8 +2354,8 @@ body.quran-focus-mode .quran-surface {
    Smooth page transitions
    ------------------------------------------------------- */
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .page-enter {
@@ -3016,10 +3016,12 @@ header {
 
 /* Top chrome bar */
 .mushaf-chrome-top {
-  position: relative; /* needed for progress strip */
+  position: sticky; /* B3: stick the toolbar above the scrolling page-area
+                       so its buttons stay tappable while the user scrolls. */
   top: 0;
   inset-inline: 0;
-  z-index: 20;
+  z-index: 30; /* sits above the scrolling .mushaf-page-area (z 1) and
+                  below the floating .mushaf-bottom-bar (z 145) */
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -3028,10 +3030,15 @@ header {
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(201, 162, 39, 0.2);
-  max-height: 120px;
+  max-height: 140px;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
+  /* always above the page content even when the page paints decorative
+     ::before/::after vine borders that extend up to the very edge */
+  isolation: isolate;
+  touch-action: manipulation;
+  pointer-events: auto;
   transition: max-height 0.38s ease, padding 0.3s ease, opacity 0.25s ease;
 }
 
@@ -3445,6 +3452,17 @@ header {
   font-kerning: normal;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   font-variant-ligatures: contextual common-ligatures;
+}
+
+/* B4: Inline loader shown when the mushaf page index is hydrating — keeps
+     the parchment from appearing blank during deep-link jumps. */
+.mushaf-page-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  color: var(--fg, #1a1208);
 }
 
 /* Main text block — seamless parchment (bg lives on .mushaf-reader) */
@@ -4892,9 +4910,15 @@ header {
 
 /* ═══════════════════════════════════════════════════════════════
    De14 — Page transition animations via Framer Motion wrapper
+   NOTE: only opacity is animated by the parent <motion.div>, so we
+   deliberately avoid `will-change: transform` here — that would create
+   a new containing block for `position: fixed` descendants and push
+   FloatingAthar/QuranRadioFab/QuickTasbeehFab off the viewport (they
+   would be positioned relative to the route wrapper instead of the
+   viewport, sitting below the page on long-scroll screens like Home).
    ═══════════════════════════════════════════════════════════════ */
 .route-page-wrapper {
-  will-change: opacity, transform;
+  will-change: opacity;
 }
 
 /* ═══════════════════════════════════════════════════════════════

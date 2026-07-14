@@ -28,7 +28,7 @@ export function LogoMark(props: { className?: string; title?: string }) {
       <rect width="512" height="512" fill="var(--bg)" />
       <rect width="512" height="512" fill="url(#atharGlow)" />
 
-      <g transform="translate(256 228)" filter="url(#atharShadow)">
+      <g transform="translate(256 228)" filter="url(#atharShadow)" aria-hidden="true">
         <circle r="110" fill="var(--accent)" fillOpacity="0.10" />
         <g
           fill="none"
@@ -46,7 +46,7 @@ export function LogoMark(props: { className?: string; title?: string }) {
         </g>
       </g>
 
-      <g filter="url(#atharShadow)">
+      <g filter="url(#atharShadow)" aria-hidden="true">
         <text
           x="256"
           y="280"
@@ -71,6 +71,7 @@ export function LogoMark(props: { className?: string; title?: string }) {
         fill="var(--fg)"
         opacity="0.85"
         textRendering="optimizeLegibility"
+        aria-hidden="true"
       >
         همسة تطمئن قلبك، وتترك أثرًا.
       </text>

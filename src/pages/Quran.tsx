@@ -2,7 +2,7 @@ import * as React from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, Filter, Plus } from "lucide-react";
+  Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, Filter, Plus, ChevronDown } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
 
 import { useQuranDB } from "@/data/useQuranDB";
@@ -517,22 +517,34 @@ export function QuranPage() {
     });
   }, [data, query, directMatch]);
 
-  // Auto-jump when a direct match is detected
+  // Auto-jump when a direct match is detected.
+  // B6: Fire on direct match in BOTH search modes — previously the jump only
+  //     ran when mode === "surahs", so users searching via the "بحث بالآيات"
+  //     tab typed "2:255" and saw a blank result instead of being navigated
+  //     into Mushaf. Also wait until quran DB is loaded so we can bounds-check
+  //     against the actual surah length (otherwise a too-high ayah would
+  //     silently land on the surah opener at ayah 1, looking like the parser
+  //     "returned the wrong ayah").
+  const autoJumpedRef = React.useRef<string | null>(null);
   React.useEffect(() => {
-    if (!directMatch) return;
-    if (mode === "surahs") {
-      const surah = data?.find((s) => s.id === directMatch.surahId);
-      const ayahCount = surah?.ayahs.length ?? 0;
-      if (
-        directMatch.ayahIndex &&
-        directMatch.ayahIndex >= 1 &&
-        directMatch.ayahIndex <= ayahCount
-      ) {
-        navigate(`/mushaf?surah=${directMatch.surahId}&ayah=${directMatch.ayahIndex}`);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [directMatch?.surahId, directMatch?.ayahIndex]);
+    if (!directMatch || !data) return;
+    const surah = data.find((s) => s.id === directMatch.surahId);
+    if (!surah) return;
+    const ayahCount = surah.ayahs.length;
+    const requested = directMatch.ayahIndex;
+    const safeAyah =
+      requested && requested >= 1 && requested <= ayahCount ? requested : 1;
+    const targetKey = `${directMatch.surahId}:${requested ?? "x"}:${mode}`;
+    if (autoJumpedRef.current === targetKey) return;
+    autoJumpedRef.current = targetKey;
+    // Only auto-jump if the user explicitly typed something that looks like
+    // an ayah reference (not just a surah name in "ayahs" mode — that case
+    // falls through to the inline filtered list so the user can pick an ayah
+    // to view without being teleported away).
+    const looksLikeAyahRef = !!requested;
+    if (!looksLikeAyahRef) return;
+    navigate(`/mushaf?surah=${directMatch.surahId}&ayah=${safeAyah}`);
+  }, [directMatch?.surahId, directMatch?.ayahIndex, data, mode, navigate]);
 
   const sortedFiltered = React.useMemo(() => {
     let base: typeof filtered;
@@ -1355,20 +1367,23 @@ export function QuranPage() {
                   className="relative">
                 <div role="button"
                   tabIndex={0}
-                  onClick={() => {
-                    if (expandedSurahId === s.id) {
-                      setExpandedSurahId(null);
-                      setExpandedSurahPage(0);
-                      return;
-                    }
-                    setExpandedSurahId(s.id);
-                    setExpandedSurahPage(0);
+                  onClick={(e) => {
+                    // B7: Outer-row click navigates to Mushaf so the canonical
+                    //     "open the surah" behaviour is restored. Child
+                    //     interactive elements (info button, bookmark
+                    //     pill, inline-preview toggle) stop propagation so
+                    //     they don't double-fire.
                     recordRecentSurah(s.id);
+                    navigate(`/mushaf?surah=${s.id}`);
                   }}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (expandedSurahId === s.id) { setExpandedSurahId(null); setExpandedSurahPage(0); return; } setExpandedSurahId(s.id); setExpandedSurahPage(0); recordRecentSurah(s.id); } }}
-                  aria-expanded={expandedSurahId === s.id}
-                  aria-label={`سورة ${s.name} — ${s.ayahs.length} آية`}
-                  aria-controls={`surah-detail-${s.id}`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      recordRecentSurah(s.id);
+                      navigate(`/mushaf?surah=${s.id}`);
+                    }
+                  }}
+                  aria-label={`افتح سورة ${s.name} في المصحف — ${s.ayahs.length} آية`}
                   className="w-full flex items-center gap-4 ps-5 pe-2 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)] cursor-pointer focus:outline-none focus:bg-accent-8"
                   style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
                 >
@@ -1441,6 +1456,27 @@ export function QuranPage() {
                     <span className="text-[10px]">آية</span>
                   </div>
 
+                  {/* Inline preview toggle — keeps the original "expand
+                      preview without leaving /quran" affordance alive. */}
+                  <button type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedSurahPage(0);
+                      setExpandedSurahId((prev) => (prev === s.id ? null : s.id));
+                    }}
+                    aria-expanded={expandedSurahId === s.id}
+                    aria-controls={`surah-detail-${s.id}`}
+                    aria-label={expandedSurahId === s.id ? `إغلاق معاينة ${s.name}` : `معاينة آيات ${s.name}`}
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35"
+                  >
+                    <ChevronDown
+                      size={14}
+                      aria-hidden="true"
+                      className="opacity-70 transition-transform"
+                      style={{ transform: expandedSurahId === s.id ? "rotate(180deg)" : "rotate(0deg)" }}
+                    />
+                  </button>
+
                   {/* Info button — popover anchored at the button position */}
                   <button type="button"
                     data-surah-info-trigger="true"
@@ -1452,8 +1488,8 @@ export function QuranPage() {
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); } }}
                     aria-label={`معلومات سورة ${s.name}`}
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35">
-<Info size={14} aria-hidden="true" />
-                </button>
+                    <Info size={14} aria-hidden="true" />
+                  </button>
                 </div>
                 {/* Pass A: inline surah detail (virtual pagination by quranPageSize) */}
                 {expandedSurahId === s.id && (
