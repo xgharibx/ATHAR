@@ -13,7 +13,7 @@ import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { FloatingAthar } from "@/components/companion/FloatingAthar";
-import { SurahInfoModal } from "@/components/quran/SurahInfoModal";
+import { SurahInfoPopover } from "@/components/quran/SurahInfoPopover";
 import { sajdaInSurah, loadQuranExtras, getEnglishRowPreview, type QuranExtras } from "@/data/quranExtras";
 import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
 import { ReciterPicker } from "@/components/quran/ReciterPicker";
@@ -159,6 +159,7 @@ export function QuranPage() {
   const [showBookmarks, setShowBookmarks] = React.useState(false);
   const [showProgressGrid, setShowProgressGrid] = React.useState(false);
   const [infoSurahId, setInfoSurahId] = React.useState<number | null>(null);
+  const [infoAnchor, setInfoAnchor] = React.useState<DOMRect | null>(null);
   const [reciterOpen, setReciterOpen] = React.useState(false);
   const [reciterQuery, setReciterQuery] = React.useState("");
   const [showTranslation, setShowTranslation] = React.useState(false);
@@ -1189,9 +1190,14 @@ export function QuranPage() {
                     <span className="text-[10px]">آية</span>
                   </div>
 
-                  {/* Info button (Phase 1: opens SurahInfoModal as a bottom sheet) */}
+                  {/* Info button — popover anchored at the button position */}
                   <button type="button"
-                    onClick={(e) => { e.stopPropagation(); setInfoSurahId(s.id); }}
+                    data-surah-info-trigger="true"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setInfoAnchor((e.currentTarget as HTMLElement).getBoundingClientRect());
+                      setInfoSurahId(s.id);
+                    }}
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); } }}
                     aria-label={`معلومات سورة ${s.name}`}
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35">
@@ -1249,11 +1255,13 @@ export function QuranPage() {
         </Card>
       )}
 
-      {/* Phase 1 — Surah info modal (opens from the i-button on each row) */}
-      <SurahInfoModal
+      {/* Phase 1 — Surah info popover (anchored at the (i) button position) */}
+      <SurahInfoPopover
         open={infoSurahId !== null}
+        anchorRect={infoAnchor}
         surah={infoSurahId !== null ? (data?.find((s) => s.id === infoSurahId) ?? null) : null}
-        onClose={() => setInfoSurahId(null)}
+        extras={extras}
+        onClose={() => { setInfoSurahId(null); setInfoAnchor(null); }}
       />
 
       {/* Phase 4 — Reciter picker (search + grouped by Murattal/Mujawwad/Legacy) */}
