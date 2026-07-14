@@ -353,12 +353,19 @@ export function MushafPage() {
 
   const firstItem = pageItems[0];
   const lastItem = pageItems[pageItems.length - 1];
+  // On a page that spans two surahs, the chrome should announce the FIRST
+  // surah on the page (the primary one), not the last — that matches what
+  // the user sees at the top of the screen. The last is used for the audio
+  // bar title where it makes more sense.
+  const firstNonBasmalah = pageItems.find((i) => !i.isBasmalahHeader) ?? pageItems[0];
+  const primarySurahId = firstNonBasmalah?.surahId;
+  const primarySurahName = firstNonBasmalah?.surahName ?? "";
   const pageJuz = firstItem ? getSurahJuz(firstItem.surahId) : 1;
-  const pageSurahName = lastItem?.surahName ?? "";
+  const pageSurahName = primarySurahName;
   const pageSurahEnglish = React.useMemo(() => {
-    if (!quranDB || !lastItem) return "";
-    return quranDB.find((s) => s.id === lastItem.surahId)?.englishName ?? "";
-  }, [quranDB, lastItem]);
+    if (!quranDB || primarySurahId === undefined) return "";
+    return quranDB.find((s) => s.id === primarySurahId)?.englishName ?? "";
+  }, [quranDB, primarySurahId]);
 
   // Chrome auto-hide
   const [showChrome, setShowChrome] = React.useState(true);
