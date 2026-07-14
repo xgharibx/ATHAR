@@ -36,9 +36,46 @@ export default defineConfig(({ mode }) => {
     }
   },
   plugins: [
+    // B1: Force application/manifest+json on every .webmanifest response.
+    //     VitePWA generates manifest.webmanifest at build time but the dev
+    //     server's static middleware has been observed sending HTML on some
+    //     environments, which trips Chrome's "Manifest must be JSON" check
+    //     and stops the install prompt. We patch both preview and dev.
+    {
+      name: "noor-force-manifest-mime",
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url && req.url.split("?")[0]!.endsWith(".webmanifest")) {
+            res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
+            res.setHeader("Cache-Control", "no-cache");
+          }
+          next();
+        });
+      },
+      configurePreviewServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url && req.url.split("?")[0]!.endsWith(".webmanifest")) {
+            res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
+            res.setHeader("Cache-Control", "no-cache");
+          }
+          next();
+        });
+      },
+    },
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      // B1: Also serve the manifest during `vite dev` so the install
+      //     prompt + browser-cache flow can be exercised before
+      //     `npm run build && vite preview`. The default off-mode means
+      //     Chrome reports "Manifest is not a valid JSON" because the
+      //     dev server's HTML fallback returns index.html for the
+      //     /manifest.webmanifest path.
+      devOptions: {
+        enabled: true,
+        type: "module",
+        navigateFallback: "index.html"
+      },
       includeAssets: ["icons/*", "lottie/*", "data/*", "data/**/*"],
       manifest: {
         name: "Athar — Adhkar",

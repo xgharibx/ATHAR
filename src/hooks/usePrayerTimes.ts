@@ -247,6 +247,12 @@ export function usePrayerTimes() {
         return out;
       };
 
+      // B11: Wrap every network attempt in a CORS-aware try/catch so a
+      //      single blocked request is treated as "this source failed"
+      //      instead of bubbling up an unresolved Promise rejection that
+      //      freezes the widget. CORS blocks on api.aladhan.com have been
+      //      the most common source of "stuck on loading" on first launch.
+
       // 1) Live coordinates
       try {
         const pos = await getCurrentPosition();
@@ -261,7 +267,7 @@ export function usePrayerTimes() {
           if (cached) return cached;
         }
       } catch {
-        // continue
+        // permission denied / no geolocation support — fall through
       }
 
       // 2) Last known coordinates
@@ -280,7 +286,9 @@ export function usePrayerTimes() {
         }
       }
 
-      // 3) City fallback
+      // 3) City fallback — Aladhan's ByCity endpoint is CORS-friendly too,
+      //    but if it fails we transparently move to the local adhan-based
+      //    compute so the widget never lingers on a spinner.
       try {
         return await trySource("القاهرة", cityLocationKey, () => fetchPrayerTimes(city, country, method, school));
       } catch {

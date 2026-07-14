@@ -11,6 +11,7 @@ import { hydrateHadithState } from "@/store/noorStore";
 
 const APP_RUNTIME_VERSION = (import.meta.env.VITE_RUNTIME_VERSION as string | undefined) ?? "local-dev";
 const APP_RUNTIME_VERSION_KEY = "noor_app_runtime_version";
+const ROOT_INSTANCE_KEY = "noor_react_root_instance";
 
 type ErrorBoundaryState = { hasError: boolean; message: string };
 
@@ -22,6 +23,12 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
   }
 
   componentDidCatch(error: Error) {
+    // B9: Stable root — capture the offending error so we can log a single
+    //     diagnostic line. The duplicate-root symptom was caused by external
+    //     integrations re-running this module, which used to call
+    //     `createRoot` again on the same container — React then fires
+    //     "removeChild" while tearing down the previous root. Guarding the
+    //     singleton + module-level mount below eliminates that.
     console.error("App runtime error:", error);
   }
 
@@ -114,49 +121,79 @@ const routerBasename = isCapacitorRuntime
   ? "/"
   : (import.meta.env.BASE_URL as string);
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <AppErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter
-          basename={routerBasename}
-          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-        >
-          <App />
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: "color-mix(in srgb, var(--bg) 88%, var(--fg))",
-                color: "var(--fg)",
-                border: "1px solid var(--stroke)",
-                borderRadius: "16px",
-                direction: "rtl",
-                fontSize: "0.875rem",
-                padding: "12px 16px",
-                boxShadow: "0 8px 32px rgba(0,0,0,.3)",
-                backdropFilter: "blur(12px)",
-              },
-              success: {
-                iconTheme: {
-                  primary: "var(--ok)",
-                  secondary: "color-mix(in srgb, var(--bg) 88%, var(--fg))",
-                },
-              },
-              error: {
-                iconTheme: {
-                  primary: "var(--danger)",
-                  secondary: "color-mix(in srgb, var(--bg) 88%, var(--fg))",
-                },
-              },
-            }}
-          />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </AppErrorBoundary>
-  </React.StrictMode>
-);
+// B9: Singleton React root. Only create the root once per page — calling
+//     createRoot on the same container twice (HMR re-execution, embedded
+//     scripts, etc.) triggers `NotFoundError: Failed to execute 'removeChild'`
+//     and the "createRoot … Container already in use" warning. Cache the root
+//     instance on window and bail out if it's already mounted.
+const rootContainer = document.getElementById("root");
+if (rootContainer) {
+  const previouslyRenderedChild = rootContainer.firstElementChild;
+  // After a hard reload React clears the container; only guard against a
+  // re-entry while the previous React tree is still attached.
+  const rootAlreadyMounted =
+    !!previouslyRenderedChild &&
+    previouslyRenderedChild.hasAttribute("data-react-root");
+
+  const existingRoot = (window as unknown as Record<string, unknown>)[ROOT_INSTANCE_KEY] as
+    | ReactDOM.Root
+    | undefined;
+
+  if (!existingRoot && !rootAlreadyMounted) {
+    // Mark the container so a duplicate import can detect it and not
+    // re-mount a second tree on top of the live one.
+    const sentinel = document.createElement("div");
+    sentinel.setAttribute("data-react-root", "true");
+    sentinel.style.display = "contents";
+    rootContainer.appendChild(sentinel);
+
+    const root = ReactDOM.createRoot(sentinel);
+    (window as unknown as Record<string, unknown>)[ROOT_INSTANCE_KEY] = root;
+    root.render(
+      <React.StrictMode>
+        <AppErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter
+              basename={routerBasename}
+              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+            >
+              <App />
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  duration: 3000,
+                  style: {
+                    background: "color-mix(in srgb, var(--bg) 88%, var(--fg))",
+                    color: "var(--fg)",
+                    border: "1px solid var(--stroke)",
+                    borderRadius: "16px",
+                    direction: "rtl",
+                    fontSize: "0.875rem",
+                    padding: "12px 16px",
+                    boxShadow: "0 8px 32px rgba(0,0,0,.3)",
+                    backdropFilter: "blur(12px)",
+                  },
+                  success: {
+                    iconTheme: {
+                      primary: "var(--ok)",
+                      secondary: "color-mix(in srgb, var(--bg) 88%, var(--fg))",
+                    },
+                  },
+                  error: {
+                    iconTheme: {
+                      primary: "var(--danger)",
+                      secondary: "color-mix(in srgb, var(--bg) 88%, var(--fg))",
+                    },
+                  },
+                }}
+              />
+            </BrowserRouter>
+          </QueryClientProvider>
+        </AppErrorBoundary>
+      </React.StrictMode>
+    );
+  }
+}
 
 // 11A: Hydrate hadith user-state (bookmarks, progress, notes, memoCards) from IDB.
 // Fires after first render so the UI is already visible — data appears within ms.

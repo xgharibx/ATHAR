@@ -1406,6 +1406,25 @@ export function HomePage() {
                       الأسبوع: <span className="font-semibold opacity-90">{weekTotal.toLocaleString("ar-EG")}</span>
                     </div>
                   )}
+                  {(() => {
+                    const remaining = Math.max(0, tasbeehTarget - todayTotal);
+                    const nextMilestone = todayTotal < 33 ? 33 : todayTotal < 100 ? 100 : todayTotal < 500 ? 500 : 1000;
+                    const toMilestone = Math.max(0, nextMilestone - todayTotal);
+                    if (remaining === 0) {
+                      return (
+                        <div className="mt-1 text-[11px] font-semibold" style={{ color: "var(--ok)" }}>
+                          ✅ تم هدف اليوم — بارك الله فيك
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="mt-1 text-[11px] opacity-70 tabular-nums">
+                        التالي: <span className="font-semibold opacity-90">{nextMilestone}</span>
+                        <span aria-hidden="true"> · </span>
+                        متبقي <span className="font-semibold opacity-90">{toMilestone}</span> للوصول إلى {nextMilestone}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2">
                   <button type="button"
@@ -1733,7 +1752,16 @@ export function HomePage() {
         </div>
       </Card>
 
-      <FloatingAthar prefill="ما أفضل ما أبدأ به يومي من الذكر والقرآن الآن؟" />
+      <FloatingAthar
+        modalMode
+        context={{
+          icon: "🏠",
+          title: "الرئيسية",
+          subtitle: streak > 0 ? `سلسلة ${streak} يوم` : undefined,
+          hint: "الزائر في الصفحة الرئيسية. اقترح أفضل ما يبدأ به يومه بحسب الوقت الحالي وحالته العامة.",
+        }}
+        prefill="ما أفضل ما أبدأ به يومي من الذكر والقرآن الآن؟"
+      />
     </div>
   );
 }

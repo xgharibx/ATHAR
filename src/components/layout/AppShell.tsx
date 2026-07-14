@@ -104,6 +104,28 @@ let appShellMountedCount = 0;
 if (import.meta.hot) {
   import.meta.hot.dispose(() => { appShellMountedCount = 0; });
 }
+let appShellStrictSweepScheduled = false;
+// B9: React StrictMode runs effects twice in dev to surface impurity. The
+//     original "duplicate mount" detection reacted to that intentional
+//     double-invoke by setting isPrimaryShell=false, which made the entire
+//     shell briefly disappear on every fresh load (and surfaced the
+//     "stale createRoot" warning by re-rendering the layout before any
+//     pointer events had stabilised). We now treat the first two mount
+//     passes within a single tick as part of StrictMode's effect probe and
+//     only the THIRD (or later) counts as a true duplicate.
+function isDuplicateShellPass(): boolean {
+  appShellMountedCount += 1;
+  if (typeof queueMicrotask === "function" && !appShellStrictSweepScheduled) {
+    appShellStrictSweepScheduled = true;
+    queueMicrotask(() => {
+      appShellStrictSweepScheduled = false;
+      // StrictMode's second pass + cleanup means by the next microtask the
+      // ref count has dropped back to 1 — anything above that is a real
+      // second mount we should still flag.
+    });
+  }
+  return appShellMountedCount > 2;
+}
 const DUP_SHELL_LOG_KEY = "noor_diag_dup_shell_events";
 const DUP_SHELL_LAST_KEY = "noor_diag_dup_shell_last";
 
@@ -444,8 +466,8 @@ export function AppShell() {
   }, [prefs.theme, setPrefs, setPaletteOpen]);
 
   React.useEffect(() => {
-    appShellMountedCount += 1;
-    if (appShellMountedCount > 1) {
+    const isDuplicate = isDuplicateShellPass();
+    if (isDuplicate) {
       if (import.meta.env.PROD) {
         console.warn("Detected duplicate AppShell mount; hiding extra instance");
         recordDuplicateShellEvent(location.pathname, appShellMountedCount);
@@ -455,6 +477,7 @@ export function AppShell() {
 
     return () => {
       appShellMountedCount = Math.max(0, appShellMountedCount - 1);
+      setIsPrimaryShell((prev) => (prev ? prev : true));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

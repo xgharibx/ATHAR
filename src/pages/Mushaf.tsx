@@ -7,7 +7,7 @@ import {
   Eye, EyeOff, CheckCircle2, Languages, Search, WholeWord,
   ArrowUpRight, Settings, Info, Shuffle,
   Radio, Timer, Download, SlidersHorizontal,
-  Image as ImageIcon, Sparkles,
+  Image as ImageIcon, Sparkles, Loader2,
 } from "lucide-react";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -284,6 +284,14 @@ export function MushafPage() {
     () => pageItems.filter((item) => !item.isBasmalahHeader && item.displayAyah > 0),
     [pageItems]
   );
+
+  // B4: Page readiness — drives the loader shown when the index for the
+  //     current page hasn't been built yet (often right after a cold start
+  //     or after a deep-link jump to a page whose items haven't been seen).
+  //     Without this, navigating fast between pages sometimes landed on a
+  //     blank canvas until the async page index re-hydrated.
+  const pageIndexReady =
+    pageIndex.size > 0 || (quranDB && Object.keys(pageMap).length > 0);
 
   // Pass A: `prefs.quranScrollMode === "scroll"` — render the current page plus
   // the next pages stacked into the same scroll container so the reader flows
@@ -1632,6 +1640,21 @@ export function MushafPage() {
             {scrollModeEnabled ? <span>وضع التمرير</span> : null}
             <span>الجزء {toArabicNumeral(pageJuz)}</span>
           </div>
+
+          {/* B4: If the index isn't ready yet (e.g. right after a deep-link
+              jump to a page the async IDB cache hasn't materialised), show
+              a small loader so the user never lands on a blank mushaf. */}
+          {!pageIndexReady || pageItems.length === 0 ? (
+            <div
+              className="mushaf-page-loading"
+              role="status"
+              aria-live="polite"
+              aria-label="جارٍ تحميل الصفحة"
+            >
+              <Loader2 size={20} className="animate-spin opacity-60" aria-hidden="true" />
+              <span className="text-xs opacity-55 mt-2">جارٍ تجهيز الصفحة…</span>
+            </div>
+          ) : null}
 
           {/* Surah groups — fills available space and centers content */}
           <div className="mushaf-page-main">

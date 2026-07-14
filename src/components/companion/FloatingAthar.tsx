@@ -54,10 +54,10 @@ export function FloatingAthar(props: {
           "bg-gradient-to-br from-emerald-300 via-emerald-400 to-teal-500 text-emerald-950",
           "shadow-[0_8px_30px_-4px_rgba(16,185,129,0.55)] ring-[3px] ring-emerald-300/40",
           "active:scale-95 transition-all duration-300",
-          "end-5",
+          "end-4 bottom-[calc(var(--sab,env(safe-area-inset-bottom,0px))_+_5rem)]",
+          "sm:end-5 sm:bottom-[calc(var(--mobile-nav-height,0px)_+_5rem)]",
           props.className ?? "",
-        ].join(" ")}
-        style={{ bottom: "calc(var(--mobile-nav-height) + 7rem)" }}>
+        ].join(" ")}>
         {/* Pulsing halo */}
         <span
           aria-hidden="true"
