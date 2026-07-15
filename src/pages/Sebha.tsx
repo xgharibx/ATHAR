@@ -18,7 +18,6 @@ import {
   Activity as ActivityIcon,
   MoveUp,
   MoveDown,
-  Volume2,
 } from "lucide-react";
 import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 import { useNavigate } from "react-router-dom";
@@ -391,7 +390,7 @@ function CircularRing({
       className="relative mx-auto mt-6 flex items-center justify-center"
       style={{ width: 224, height: 224, maxWidth: "74vw", maxHeight: "74vw" }}
     >
-      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 224 224" aria-hidden="true">
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 224 224" aria-hidden="true" style={{ pointerEvents: "none" }}>
         <circle cx="112" cy="112" r={RING_R} fill="none" stroke="var(--stroke)" strokeWidth="6" />
         <circle
           cx="112"
@@ -781,12 +780,19 @@ export function SebhaPage() {
   // increment accepts an optional keyOverride so voice recognition can count
   // a matched phrase's key directly (avoids stale-closure bug when key differs
   // from the currently selected item).
-  const increment = React.useCallback((keyOverride?: TasbeehKey) => {
-    const activeKey = keyOverride ?? selected;
+  const increment = React.useCallback((keyOverride?: TasbeehKey | React.SyntheticEvent) => {
+    // Some call sites wire `onClick={increment}` directly. React passes the
+    // SyntheticEvent as the first argument, but we expect either no arg OR a
+    // TasbeehKey. Detect and ignore the SyntheticEvent case.
+    const isSyntheticEvent = keyOverride != null
+      && typeof keyOverride === "object"
+      && ("nativeEvent" in (keyOverride as object) || "persist" in (keyOverride as object) || "currentTarget" in (keyOverride as object));
+    const override: TasbeehKey | undefined = isSyntheticEvent ? undefined : (keyOverride as TasbeehKey | undefined);
+    const activeKey = (override ?? selected) as string;
     const activeEffTarget =
       activeKey === "custom" ? (sebhaCustom?.target ?? 100) : target;
-    const activeLabel = keyOverride
-      ? (TASBEEHAT.find((t) => t.key === keyOverride)?.short ?? keyOverride)
+    const activeLabel = override
+      ? (TASBEEHAT.find((t) => t.key === override)?.short ?? override)
       : current.short;
     // Read fresh value from the store to avoid stale-closure on rapid taps
     const beforeCount = Number(useNoorStore.getState().quickTasbeeh[activeKey] ?? 0);
@@ -1503,33 +1509,13 @@ export function SebhaPage() {
         />
         <HistoryChart log={tasbeehDailyLog} />
         <Card className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Volume2 size={14} className="text-[var(--accent)]" />
-            <span className="text-sm font-semibold">صوت الاكتمال</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-semibold">مشاركة إحصائياتك</span>
+            <button type="button" onClick={shareStats}
+              className="flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-[11px] font-semibold hover:bg-[var(--card-2)] transition">
+              <Share2 size={12} /> مشاركة الآن
+            </button>
           </div>
-          <div className="grid grid-cols-2 gap-1.5">
-            {SOUND_PROFILES.map((p) => (
-              <button key={p.id} type="button"
-                onClick={() => { setPrefs({ tasbeehSoundProfile: p.id }); playCompletionSound(true, p); }}
-                className={cn(
-                  "rounded-xl px-2 py-2 text-[11px] font-medium border transition",
-                  prefs.tasbeehSoundProfile === p.id
-                    ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                    : "border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)]"
-                )}>
-                {p.label}
-              </button>
-            ))}
-          </div>
-          <label className="mt-3 flex items-center gap-2 text-[11px] opacity-80 cursor-pointer">
-            <input type="checkbox" checked={prefs.tasbeehVolumeKeysEnabled}
-              onChange={(e) => setPrefs({ tasbeehVolumeKeysEnabled: e.target.checked })} />
-            مفاتيح الصوت للعدّ (أندرويد)
-          </label>
-          <button type="button" onClick={shareStats}
-            className="mt-3 w-full flex items-center justify-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2 text-[11px] font-semibold hover:bg-[var(--card-2)] transition">
-            <Share2 size={12} /> مشاركة الإحصائيات
-          </button>
         </Card>
       </div>
 
