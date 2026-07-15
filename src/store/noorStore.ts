@@ -2,6 +2,7 @@
 import { persist, createJSONStorage } from "zustand/middleware";
 import { isDailySection } from "@/lib/dailySections";
 import type { CustomAdhkarPack } from "@/data/types";
+import type { CustomReminder } from "@/data/reminderTypes";
 import { getIbadahDateKey, getLocalDateKey } from "@/lib/dayBoundaries";
 import {
   idbSetHadithBookmark,
@@ -237,6 +238,8 @@ export type ExportBlobV1 = {
   videoLibraryLastVideoId?: string | null;
   sectionCompletions?: Record<string, string[]>;
   customPacks?: CustomAdhkarPack[];
+  customReminders?: CustomReminder[];
+  customReminderTemplatesSeen?: Record<string, boolean>;
   onboardingDone?: boolean;
   weeklyReportSentISO?: string | null;
 };
@@ -454,6 +457,31 @@ type NoorState = {
   deleteCustomPack: (id: string) => void;
   removeCustomPackItem: (packId: string, itemIndex: number) => void;
   updateCustomPackItem: (packId: string, itemIndex: number, patch: { text: string; count: number }) => void;
+
+  // O-3: Custom reminders created by the AI companion (`create_reminder` tool).
+  // Persisted via Zustand's `persist` middleware (small, personal, must be
+  // available synchronously to the AI companion's retrieval layer).
+  customReminders: CustomReminder[];
+  addCustomReminder: (r: {
+    category: CustomReminder["category"];
+    title: string;
+    description?: string;
+    body?: string;
+    icon?: string;
+    repeat: CustomReminder["repeat"];
+    atTimeOfDay?: string;
+    dayOfWeek?: number;
+    dayOfMonth?: number;
+    anchorKey?: CustomReminder["anchorKey"];
+    anchorOffsetMinutes?: number;
+    startDate?: string;
+    endDate?: string;
+    deeplink?: CustomReminder["deeplink"];
+    suggestion?: string;
+    enabled?: boolean;
+  }) => string;
+  toggleCustomReminder: (id: string, enabled: boolean) => void;
+  deleteCustomReminder: (id: string) => void;
 
   // 3E: Section completion history (for weekly stats)
   sectionCompletions: Record<string, string[]>; // sectionId → ISO date array
@@ -1301,6 +1329,7 @@ export const useNoorStore = create<NoorState>()(
           favoriteCities: s.favoriteCities,
           sectionCompletions: s.sectionCompletions,
           customPacks: s.customPacks,
+          customReminders: s.customReminders,
           hadithBookmarks: s.hadithBookmarks,
           hadithProgress: s.hadithProgress,
           hadithNotes: s.hadithNotes,
@@ -1369,6 +1398,7 @@ export const useNoorStore = create<NoorState>()(
             ? blob.sectionCompletions
             : {}) as Record<string, string[]>,
           customPacks: Array.isArray(blob.customPacks) ? blob.customPacks : [],
+          customReminders: Array.isArray(blob.customReminders) ? blob.customReminders : [],
           onboardingDone: blob.onboardingDone ?? false,
           weeklyReportSentISO: blob.weeklyReportSentISO ?? null,
         });
@@ -1531,6 +1561,35 @@ export const useNoorStore = create<NoorState>()(
 
       // 3D: Custom Adhkar Packs
       customPacks: [],
+
+      // O-3: Custom reminders created by the AI companion (`create_reminder`
+      // tool). Kept in the localStorage snapshot via `persist` so the companion
+      // can read them synchronously for retrieval & revocation.
+      customReminders: [],
+      addCustomReminder: (r) => {
+        const id = `cr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const now = new Date().toISOString();
+        const full: CustomReminder = {
+          ...r,
+          id,
+          createdAt: now,
+          updatedAt: now,
+          enabled: r.enabled ?? true,
+        };
+        set((s) => ({ customReminders: [full, ...s.customReminders] }));
+        return id;
+      },
+      toggleCustomReminder: (id, enabled) =>
+        set((s) => ({
+          customReminders: s.customReminders.map((r) =>
+            r.id === id ? { ...r, enabled: !!enabled, updatedAt: new Date().toISOString() } : r,
+          ),
+        })),
+      deleteCustomReminder: (id) =>
+        set((s) => ({
+          customReminders: s.customReminders.filter((r) => r.id !== id),
+        })),
+
       addCustomPack: (pack) => {
         const id = `custom_${Date.now()}`;
         const full: CustomAdhkarPack = { ...pack, id, createdAt: new Date().toISOString() };
@@ -1650,10 +1709,19 @@ export const useNoorStore = create<NoorState>()(
       storage: createJSONStorage(() => localStorage),
       // 11A: Exclude hadith user-state fields from localStorage — they live in IDB now.
       //      This prevents 5 MB quota overflow with 36k hadiths worth of notes/cards.
+      //      Also exclude customReminders (IDB-backed — see reminderStorage).
       partialize: (state) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { hadithBookmarks, hadithProgress, hadithNotes, hadithMemoCards, ...rest } = state;
-        return rest;
+        const {
+          hadithBookmarks,
+          hadithProgress,
+          hadithNotes,
+          hadithMemoCards,
+          customReminders,
+          seenTemplateIds,
+          ...rest
+        } = state as Record<string, unknown>;
+        return rest as Partial<NoorState>;
       },
       // T10: MIGRATION GUARD — whenever new persisted state keys are added:
       //  1. Bump this version number
@@ -1717,6 +1785,7 @@ export const useNoorStore = create<NoorState>()(
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],
+          customReminders: Array.isArray((state as Partial<NoorState>).customReminders) ? (state as Partial<NoorState>).customReminders! : [],
           sectionCompletions: (state as Partial<NoorState>).sectionCompletions ?? {},
           sebhaSessions: Array.isArray((state as Partial<NoorState>).sebhaSessions) ? (state as Partial<NoorState>).sebhaSessions! : [],
           sebhaCustom: (state as Partial<NoorState>).sebhaCustom ?? null,
@@ -1758,4 +1827,27 @@ export async function hydrateHadithState(): Promise<void> {
     idbGetAllHadithMemoCards(),
   ]);
   useNoorStore.setState({ hadithBookmarks, hadithProgress, hadithNotes, hadithMemoCards });
+}
+
+/**
+ * Hydrate user-defined custom reminders.
+ *
+ * `customReminders` lives in localStorage via Zustand's `persist` middleware
+ * and is therefore already populated by the time React renders. This function
+ * exists primarily so the startup sequence (`main.tsx`) has a stable import
+ * surface. It still hot-loads from `reminderStorage.ts` as a last-resort when
+ * the persisted snapshot is empty (fresh install, cleared storage).
+ */
+export async function hydrateCustomReminders(): Promise<void> {
+  try {
+    const { customReminders } = useNoorStore.getState();
+    if (Array.isArray(customReminders) && customReminders.length > 0) return;
+    const { loadCustomReminders } = await import("@/lib/reminderStorage");
+    const loaded = await loadCustomReminders();
+    if (Array.isArray(loaded) && loaded.length > 0) {
+      useNoorStore.setState({ customReminders: loaded });
+    }
+  } catch {
+    /* non-fatal — store continues with its persisted snapshot */
+  }
 }

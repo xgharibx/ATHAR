@@ -65,6 +65,9 @@ export default defineConfig(({ mode }) => {
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       // B1: Also serve the manifest during `vite dev` so the install
       //     prompt + browser-cache flow can be exercised before
       //     `npm run build && vite preview`. The default off-mode means
@@ -74,7 +77,13 @@ export default defineConfig(({ mode }) => {
       devOptions: {
         enabled: true,
         type: "module",
-        navigateFallback: "index.html"
+        navigateFallback: "index.html",
+      },
+      injectManifest: {
+        injectionPoint: "self.__WB_MANIFEST",
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}", "data/*.json"],
+        globIgnores: ["**/data/hadith/**"],
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       },
       includeAssets: ["icons/*", "lottie/*", "data/*", "data/**/*"],
       manifest: {
@@ -132,103 +141,6 @@ export default defineConfig(({ mode }) => {
             type: "image/png",
             form_factor: "wide",
             label: "واجهة سطح المكتب لتطبيق أثر"
-          }
-        ]
-      },
-      workbox: {
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
-        skipWaiting: true,
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}", "data/*.json"],
-        globIgnores: ["**/data/hadith/**"],
-        navigateFallback: "index.html",
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "StaleWhileRevalidate",
-            options: { cacheName: "google-fonts-stylesheets" }
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-webfonts",
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 }
-            }
-          },
-          // T4: Cache Quran audio files from everyayah CDN (1 year, large quota for per-reciter downloads)
-          {
-            urlPattern: /^https:\/\/everyayah\.com\/data\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "quran-audio",
-              expiration: { maxEntries: 3000, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] }
-            }
-          },
-          // T4: Cache Quran audio from islamic.network CDN
-          {
-            urlPattern: /^https:\/\/cdn\.islamic\.network\/quran\/audio\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "quran-audio",
-              expiration: { maxEntries: 3000, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] }
-            }
-          },
-          // Tafsir library (spa5k/tafsir_api via jsDelivr) — CacheFirst, text never changes.
-          // Also cached per-surah in IndexedDB (src/lib/tafsirEditions.ts) for a real offline read.
-          {
-            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/gh\/spa5k\/tafsir_api.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "tafsir-api-v1",
-              expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] }
-            }
-          },
-          // Translation library (fawazahmed0/quran-api via jsDelivr) — CacheFirst, text never
-          // changes. Also cached whole-edition in IndexedDB (src/lib/translationEditions.ts).
-          {
-            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/gh\/fawazahmed0\/quran-api.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "translation-api-v1",
-              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] }
-            }
-          },
-          // Mutashabihat (similar-ayah) dataset — small, single file, CacheFirst
-          {
-            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/gh\/Waqar144\/Quran_Mutashabihat_Data.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "mutashabihat-v1",
-              expiration: { maxEntries: 5, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] }
-            }
-          },
-          // WBW/Tajweed API — CacheFirst (data doesn't change)
-          {
-            urlPattern: /^https:\/\/api\.quran\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "wbw-api-v1",
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] }
-            }
-          },
-          // 11B: Hadith pack JSON — downloaded on-demand, cached 90 days.
-          //      NetworkFirst so updated packs are reflected when online.
-          {
-            urlPattern: /\/data\/hadith\/.*\.json$/,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "athar-hadith-packs",
-              expiration: { maxEntries: 15, maxAgeSeconds: 60 * 60 * 24 * 90 },
-              cacheableResponse: { statuses: [0, 200] }
-            }
           }
         ]
       }

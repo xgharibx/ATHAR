@@ -11,6 +11,7 @@ import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels } from "@/lib/reminders";
+import { syncCustomReminders } from "@/lib/reminderSync";
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
@@ -74,6 +75,7 @@ const MushafPage = React.lazy(() => import("@/pages/Mushaf").then((m) => ({ defa
 const PrayerTimesPage = React.lazy(() => import("@/pages/PrayerTimes").then((m) => ({ default: m.PrayerTimesPage })));
 const SebhaPage = React.lazy(() => import("@/pages/Sebha").then((m) => ({ default: m.SebhaPage })));
 const CompanionPage = React.lazy(() => import("@/pages/Companion").then((m) => ({ default: m.CompanionPage })));
+const RemindersPage = React.lazy(() => import("@/pages/Reminders").then((m) => ({ default: m.RemindersPage })));
 const HadithSharhPage = React.lazy(() => import("@/pages/HadithSharh").then((m) => ({ default: m.HadithSharhPage })));
 const TasmeePage = React.lazy(() => import("@/pages/Tasmee").then((m) => ({ default: m.TasmeePage })));
 const QiblaPage = React.lazy(() => import("@/pages/Qibla").then((m) => ({ default: m.QiblaPage })));
@@ -118,6 +120,7 @@ export default function App() {
   const navigate = useNavigate();
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
   const reminders = useNoorStore((s) => s.reminders);
+  const customReminders = useNoorStore((s) => s.customReminders);
   const onboardingDone = useNoorStore((s) => s.onboardingDone);
   const sectionCompletions = useNoorStore((s) => s.sectionCompletions);
   const progress = useNoorStore((s) => s.progress);
@@ -303,6 +306,14 @@ export default function App() {
     reminderCompletion.eveningStarted,
   ]);
 
+  // Schedule the next-N firings of every user-defined reminder. Each
+  // re-render of `customReminders` (add / edit / toggle / delete)
+  // tears down the previous schedule and starts fresh.
+  React.useEffect(() => {
+    const cleanup = syncCustomReminders(customReminders);
+    return cleanup;
+  }, [customReminders]);
+
   // 11C: Pre-create default notification channels on native platforms
   React.useEffect(() => {
     void ensureDefaultNotificationChannels();
@@ -364,6 +375,7 @@ export default function App() {
           <Route path="sebha" element={<S><SebhaPage /></S>} />
           <Route path="tafsir" element={<S><TafsirPage /></S>} />
           <Route path="companion" element={<S><CompanionPage /></S>} />
+          <Route path="reminders" element={<S><RemindersPage /></S>} />
           <Route path="library/sharh" element={<S><HadithSharhPage /></S>} />
           <Route path="tasmee" element={<S><TasmeePage /></S>} />
           <Route path="qibla" element={<S><QiblaPage /></S>} />

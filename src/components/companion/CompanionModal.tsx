@@ -34,6 +34,7 @@ import {
   type CompanionConversation,
 } from "@/lib/companionHistory";
 import { splitIntoSegments } from "@/lib/companionBlocks";
+import { useNoorStore } from "@/store/noorStore";
 import type { AtharContext } from "@/components/companion/FloatingAthar";
 
 const CALLOUT_STYLES: Record<string, { border: string; bg: string; label: string; icon: string; accent: string }> = {
@@ -47,6 +48,105 @@ const CALLOUT_STYLES: Record<string, { border: string; bg: string; label: string
 
 function dispatchNavigate(route: string) {
   try { window.dispatchEvent(new CustomEvent("athar-companion-navigate", { detail: { route } })); } catch { /* ignore */ }
+}
+
+/* Parse a `:::reminder\n{json}\n:::` block (or several) from an assistant
+ *  message body. Used both during the streaming partial and after save. */
+type ParsedReminder = {
+  id: string;
+  category: "dhikr" | "quran" | "sunnah" | "fast" | "salat" | "dua" | "custom";
+  title: string;
+  description?: string;
+  body?: string;
+  icon?: string;
+  repeat:
+    | "once" | "daily" | "weekly" | "monthly"
+    | "sunnah_aligned" | "prayer_aligned" | "fasting_aligned";
+  atTimeOfDay?: string;
+  anchorKey?:
+    | "tahajjud" | "duha" | "witr" | "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" | "sunrise";
+  anchorOffsetMinutes?: number;
+  deeplink?: { route: string; hash?: string };
+  suggestion?: string;
+};
+
+const REMINDER_BLOCK_RE = /:::reminder\n([\s\S]*?)\n:::/g;
+
+const VALID_CATEGORIES: ParsedReminder["category"][] = [
+  "dhikr", "quran", "sunnah", "fast", "salat", "dua", "custom",
+];
+
+const VALID_REPEATS: ParsedReminder["repeat"][] = [
+  "once", "daily", "weekly", "monthly", "sunnah_aligned", "prayer_aligned", "fasting_aligned",
+];
+
+const VALID_ANCHORS: NonNullable<ParsedReminder["anchorKey"]>[] = [
+  "tahajjud", "duha", "witr", "fajr", "dhuhr", "asr", "maghrib", "isha", "sunrise",
+];
+
+export function parseReminderToolCalls(text: string): ParsedReminder[] {
+  const out: ParsedReminder[] = [];
+  const matches = text.matchAll(REMINDER_BLOCK_RE);
+  for (const m of matches) {
+    const raw = m[1] ?? "";
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof parsed.title !== "string") continue;
+      const repeat = String(parsed.repeat ?? "") as ParsedReminder["repeat"];
+      if (!VALID_REPEATS.includes(repeat)) continue;
+      const category = (VALID_CATEGORIES as string[]).includes(String(parsed.category))
+        ? (parsed.category as ParsedReminder["category"])
+        : "custom";
+      const anchorKey = (VALID_ANCHORS as string[]).includes(String(parsed.anchorKey ?? ""))
+        ? (parsed.anchorKey as NonNullable<ParsedReminder["anchorKey"]>)
+        : undefined;
+      let deeplink: ParsedReminder["deeplink"] = undefined;
+      if (parsed.deeplink && typeof parsed.deeplink === "object") {
+        const d = parsed.deeplink as { route?: unknown; hash?: unknown };
+        if (typeof d.route === "string") deeplink = { route: d.route, hash: typeof d.hash === "string" ? d.hash : undefined };
+      } else if (typeof parsed.deeplink === "string" && parsed.deeplink.startsWith("/")) {
+        deeplink = { route: parsed.deeplink };
+      }
+      out.push({
+        id: `pr_${out.length}_${Date.now()}`,
+        category,
+        title: parsed.title,
+        description: typeof parsed.description === "string" ? parsed.description : undefined,
+        body: typeof parsed.body === "string" ? parsed.body : undefined,
+        icon: typeof parsed.icon === "string" ? parsed.icon : undefined,
+        repeat,
+        atTimeOfDay: typeof parsed.atTimeOfDay === "string" ? parsed.atTimeOfDay : undefined,
+        anchorKey,
+        anchorOffsetMinutes: typeof parsed.anchorOffsetMinutes === "number" ? parsed.anchorOffsetMinutes : undefined,
+        deeplink,
+        suggestion: typeof parsed.suggestion === "string" ? parsed.suggestion : undefined,
+      });
+    } catch {
+      /* skip malformed block */
+    }
+  }
+  return out;
+}
+
+function dispatchCreateReminder(parsed: ParsedReminder): string | null {
+  try {
+    const store = useNoorStore.getState();
+    return store.addCustomReminder({
+      category: parsed.category,
+      title: parsed.title,
+      description: parsed.description,
+      body: parsed.body,
+      icon: parsed.icon,
+      repeat: parsed.repeat,
+      atTimeOfDay: parsed.atTimeOfDay,
+      anchorKey: parsed.anchorKey,
+      anchorOffsetMinutes: parsed.anchorOffsetMinutes,
+      deeplink: parsed.deeplink,
+      suggestion: parsed.suggestion,
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function CompanionModal(props: {
@@ -143,6 +243,43 @@ export function CompanionModal(props: {
           clearPartialStream();
         },
         onError: () => { setStreamingText(null); clearPartialStream(); },
+        onToolCalls: (calls) => {
+          for (const c of calls) {
+            if (c.name !== "create_reminder") continue;
+            const repeatRaw = typeof c.input.repeat === "string" ? c.input.repeat : "once";
+            const repeat = (VALID_REPEATS as string[]).includes(repeatRaw)
+              ? (repeatRaw as ParsedReminder["repeat"])
+              : "once";
+            const categoryRaw = typeof c.input.category === "string" ? c.input.category : "";
+            const category = (VALID_CATEGORIES as string[]).includes(categoryRaw)
+              ? (categoryRaw as ParsedReminder["category"])
+              : "custom";
+            const anchorRaw = typeof c.input.anchorKey === "string" ? c.input.anchorKey : "";
+            const anchorKey = (VALID_ANCHORS as string[]).includes(anchorRaw)
+              ? (anchorRaw as NonNullable<ParsedReminder["anchorKey"]>)
+              : undefined;
+            let deeplink: ParsedReminder["deeplink"] = undefined;
+            if (c.input.deeplink && typeof c.input.deeplink === "object") {
+              const d = c.input.deeplink as { route?: unknown; hash?: unknown };
+              if (typeof d.route === "string") deeplink = { route: d.route, hash: typeof d.hash === "string" ? d.hash : undefined };
+            } else if (typeof c.input.deeplink === "string" && c.input.deeplink.startsWith("/")) {
+              deeplink = { route: c.input.deeplink };
+            }
+            const parsed: ParsedReminder = {
+              id: `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+              category,
+              title: typeof c.input.title === "string" ? c.input.title : "",
+              description: typeof c.input.description === "string" ? c.input.description : undefined,
+              repeat,
+              atTimeOfDay: typeof c.input.atTimeOfDay === "string" ? c.input.atTimeOfDay : undefined,
+              anchorKey,
+              anchorOffsetMinutes: typeof c.input.anchorOffsetMinutes === "number" ? c.input.anchorOffsetMinutes : undefined,
+              deeplink,
+              suggestion: typeof c.input.suggestion === "string" ? c.input.suggestion : undefined,
+            };
+            dispatchCreateReminder(parsed);
+          }
+        },
       }, controller.signal);
     } finally {
       busyRef.current = false;
@@ -381,6 +518,8 @@ function ModalActionButton({ route, children, onNavigate }: { route: string; chi
 
 function ModalBubbleContent({ text, streaming, onNavigate }: { text: string; streaming?: boolean; onNavigate: (route: string) => void }) {
   const segs = React.useMemo(() => splitIntoSegments(text), [text]);
+  const reminders = React.useMemo(() => (streaming ? [] : parseReminderToolCalls(text)), [text, streaming]);
+  const deleteReminder = useNoorStore((s) => s.deleteCustomReminder);
   return (
     <>
       {segs.map((s, i) => {
@@ -392,8 +531,89 @@ function ModalBubbleContent({ text, streaming, onNavigate }: { text: string; str
           </div>
         );
       })}
+      {!streaming && reminders.length > 0 ? (
+        <ReminderChips
+          reminders={reminders}
+          onCancel={(parsedId) => {
+            const store = useNoorStore.getState();
+            const id = store.customReminders.find((r) => r.title === reminders.find((x) => x.id === parsedId)?.title)?.id;
+            if (id) deleteReminder(id);
+          }}
+          onOpen={(parsedId) => {
+            const r = reminders.find((x) => x.id === parsedId);
+            const store = useNoorStore.getState();
+            const actual = store.customReminders.find((x) => x.title === r?.title);
+            if (actual?.deeplink) onNavigate(actual.deeplink.route);
+            else onNavigate("/reminders");
+          }}
+        />
+      ) : null}
       {streaming ? <span className="ms-0.5 inline-block h-3.5 w-[2px] align-middle rounded-full bg-emerald-300 animate-pulse" /> : null}
     </>
+  );
+}
+
+function ReminderChips({
+  reminders,
+  onCancel,
+  onOpen,
+}: {
+  reminders: ParsedReminder[];
+  onCancel: (parsedId: string) => void;
+  onOpen: (parsedId: string) => void;
+}) {
+  return (
+    <div className="mt-2 flex flex-col gap-1.5">
+      {reminders.map((r) => {
+        const when = r.atTimeOfDay ?? "—";
+        return (
+          <button
+            key={r.id}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpen(r.id);
+            }}
+            className="flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-start text-[12px] text-emerald-50 transition hover:bg-emerald-500/20"
+          >
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span aria-hidden="true">✓</span>
+              <span className="font-semibold">{`أُضيفت التذكير: ${r.title} — ${when}`}</span>
+              {r.deeplink ? <span className="shrink-0 text-[10px] text-emerald-200/60">↗</span> : null}
+            </span>
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onCancel(r.id);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onCancel(r.id);
+                }
+              }}
+              className="shrink-0 rounded-md bg-white/5 px-2 py-0.5 text-[11px] text-emerald-200/80 hover:bg-red-500/20 hover:text-red-200"
+            >
+              إلغاء
+            </span>
+          </button>
+        );
+      })}
+      <a
+        href="/reminders"
+        onClick={(e) => {
+          e.preventDefault();
+          window.dispatchEvent(new CustomEvent("athar-companion-navigate", { detail: { route: "/reminders" } }));
+        }}
+        className="ms-auto text-[10.5px] text-emerald-200/70 underline-offset-2 hover:underline"
+      >
+        افتح صفحة التذكيرات ↗
+      </a>
+    </div>
   );
 }
 

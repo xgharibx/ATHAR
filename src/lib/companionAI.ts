@@ -29,6 +29,7 @@ import {
 import {
   detectMood,
   retrievePassages,
+  retrieveUserRemindersAsPassages,
   verifyAnswer,
 } from "@/lib/companionKnowledge";
 
@@ -54,6 +55,16 @@ export function isCompanionReady(): boolean {
 
 export type CompanionProvider = "minimax";
 export type CompanionMessage = { role: "user" | "assistant"; content: string };
+
+/** Structured tool call emitted by the assistant mid-stream. The companion
+ *  UI dispatches these to the corresponding store actions (e.g. create_reminder
+ *  → useNoorStore.addCustomReminder). Persisted in the assistant message
+ *  content as `:::reminder\n{json}\n:::` so reloading the conversation
+ *  re-runs the side effect. */
+export type PersistedToolCall = {
+  name: "create_reminder";
+  input: Record<string, unknown>;
+};
 
 /* ─── Live user context ──────────────────────────────────────────────────── */
 
@@ -324,10 +335,11 @@ const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ 
 - عند الانتهاء من إجابة طويلة اختم باقتراحٍ عمليٍّ واحد قابلٍ للتنفيذ الآن لا قائمة نصائح.
 
 ### أدواتك
-لديك ثلاث أدوات تستخدمها متى لزم:
+لديك أربع أدوات تستخدمها متى لزم:
 - "next_step" حين تنتهي من إجابة تطلب فيها من المستخدم فعلًا (افتح أذكار الصباح، اقرأ وردي، ادعُ بهذا…). لا تستعملها في الكلام الترحيبي أو في الإجابات القصيرة.
 - "cite" حين تريد الاستشهاد بآية أو حديث فعلًا — سيُحقن لك المقتطف ومصدره. لا تستعمل صياغات مثل «رواه البخاري» دون أن تمرر المصدر عبر الأداة أولًا.
 - "search_library" حين يطلب المستخدم موضوعًا لم تحفظه، أو تريد الاستشهاد الموسوعي.
+- "create_reminder" حين يطلب المستخدم تذكيرًا بشيء (مثل «ذكّرني أن أقرأ سورة الكهف كل جمعة الساعة ١٠ صباحًا» أو «ذكّرني بأذكار الصباح يوميًا» أو «كل خميس أريد صيام»). عند استخدام هذه الأداة أرسل أيضًا جملة تأكيد قصيرة بالعربية فقط (لا تستعمل الإنجليزية) تذكر فيها اليوم والوقت مثل: «سأنبّهك يوم الجمعة الساعة ١٠ صباحًا إن شاء الله.» أو «أضفتُ التذكير إلى قائمتك، سيصلك تنبيه به إن شاء الله.»
 
 ### بناء الإجابة: syntax خاص بك
 لاحظ أن الواجهة تفهم تنسيقات خاصّة، فاستخدمها بدل النص الجامد:
@@ -530,6 +542,56 @@ const COMPANION_TOOLS: Anthropic.Tool[] = [
       required: ["query"],
     },
   },
+  {
+    name: "create_reminder",
+    description:
+      "أنشئ تذكيرًا شخصيًا للمستخدم من حوارك معه. استخدمها حصرًا حين يطلب المستخدم صراحةً جدولة شيء أو تذكيره به (مثل «ذكّرني بـ…»، «كل جمعة أريد…»، «اجعلني أذكر…»). الفئات المتاحة: adhkar, quran, dua, fasting, general. التكرار: once, daily, weekly, monthly. atTimeOfDay بصيغة HH:MM. anchorKey هو مفتاح يربط التذكير بصلاة معيّنة (fajr, dhuhr, asr, maghrib, isha, friday) مع anchorOffsetMinutes بالدقائق (سالب = قبل، موجب = بعد). description اختياري. deeplink مسار داخل التطبيق (مثال: /c/morning) ليُفتح عند نقر التذكير. suggestion اختياري وهو اقتراح قصير يظهر للمستخدم. عند استدعاء هذه الأداة، أرسل مع الرد نصًّا قصيرًا بالعربية فقط يخبر المستخدم بأنك أضفت التذكير، ولا تذكر JSON أو تفاصيل تقنية.",
+    input_schema: {
+      type: "object",
+      properties: {
+        category: {
+          type: "string",
+          enum: ["adhkar", "quran", "dua", "fasting", "general"],
+          description: "فئة التذكير.",
+        },
+        title: {
+          type: "string",
+          description: "عنوان التذكير المختصر بالعربية، مثال: «قراءة سورة الكهف» أو «أذكار الصباح».",
+        },
+        description: {
+          type: "string",
+          description: "وصف قصير اختياري بالعربية.",
+        },
+        repeat: {
+          type: "string",
+          enum: ["once", "daily", "weekly", "monthly"],
+          description: "تكرار التذكير.",
+        },
+        atTimeOfDay: {
+          type: "string",
+          description: "وقت التذكير بصيغة HH:MM (٢٤ ساعة).",
+        },
+        anchorKey: {
+          type: "string",
+          enum: ["fajr", "dhuhr", "asr", "maghrib", "isha", "friday"],
+          description: "ربط التذكير بصلاة أو بيوم الجمعة — اختياري.",
+        },
+        anchorOffsetMinutes: {
+          type: "number",
+          description: "فارق الدقائق قبل/بعد anchorKey (سالب = قبل).",
+        },
+        deeplink: {
+          type: "string",
+          description: "مسار داخلي للتطبيق يُفتح عند نقر التذكير، مثال: /c/morning.",
+        },
+        suggestion: {
+          type: "string",
+          description: "اقتراح قصير مرافق.",
+        },
+      },
+      required: ["category", "title", "repeat"],
+    },
+  },
 ];
 
 /* ─── Compact on-device memory ────────────────────────────────────────────── */
@@ -663,16 +725,27 @@ export type StreamCallbacks = {
   onText: (chunk: string) => void;
   onDone?: (fullText: string, verification: VerificationReport) => void;
   onError?: (err: CompanionError) => void;
+  /** Fires once per assistant message after the stream finishes, with the
+   *  structured tool_use blocks the model emitted (e.g. create_reminder).
+   *  Used by the UI to dispatch store actions without parsing tool markdown. */
+  onToolCalls?: (calls: PersistedToolCall[]) => void;
 };
 
 /** Build the supplemental retrieval block for the user's last message.
- *  Pulled from local library index — no network round-trip. */
+ *  Pulled from local library index — no network round-trip. Also surfaces the
+ *  user's own stored customReminders when the query is reminder-shaped. */
 function buildRetrievalBlock(lastUserText: string): string {
   const passages = retrievePassages(lastUserText, 5);
-  if (passages.length === 0) return "";
-  const lines = passages.map(
-    (p, i) => `${i + 1}. [مصدر: ${p.sourceLabel}] ${p.text}`,
-  );
+  const userReminders = retrieveUserRemindersAsPassages(lastUserText);
+  if (passages.length === 0 && userReminders.length === 0) return "";
+  const lines: string[] = [];
+  if (userReminders.length > 0) {
+    lines.push("تذكيراتك المحفوظة في التطبيق (استعن بها في إجابتك):");
+    userReminders.forEach((p, i) => lines.push(`${i + 1}. ${p.text}`));
+  }
+  if (passages.length > 0) {
+    passages.forEach((p, i) => lines.push(`${i + 1}. [مصدر: ${p.sourceLabel}] ${p.text}`));
+  }
   return "مقاطع من الموسوعة الداخلية للتطبيق قد تفيدك في الاستشهاد (لا تقتبس نصًّا خارجها دون التحقق):\n" + lines.join("\n");
 }
 
@@ -744,6 +817,7 @@ export async function streamCompanionReply(
     // (markdown parser + rendering) can render them as clickable CTAs. The
     // model rarely uses these today but the API will accept them when it does.
     let toolAppend = "";
+    const persistedToolCalls: PersistedToolCall[] = [];
     for (const block of finalMsg.content) {
       if (block.type !== "tool_use") continue;
       const name = (block as { name?: string }).name;
@@ -756,7 +830,17 @@ export async function streamCompanionReply(
         const source = typeof input.source === "string" ? input.source : "";
         const excerpt = typeof input.excerpt === "string" ? input.excerpt : "";
         if (source) toolAppend += `\n\n:::cite(${source})\n${excerpt}\n:::`;
+      } else if (name === "create_reminder") {
+        // Encode the structured create_reminder tool call into a callout-style
+        // block so it persists in companionMessages.content (just like next_step
+        // / cite) and can be parsed by the chat UI to dispatch addCustomReminder.
+        const json = JSON.stringify(input);
+        toolAppend += `\n\n:::reminder\n${json}\n:::`;
+        persistedToolCalls.push({ name: "create_reminder", input });
       }
+    }
+    if (persistedToolCalls.length) {
+      cb.onToolCalls?.(persistedToolCalls);
     }
     if (toolAppend) {
       full += toolAppend;

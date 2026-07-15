@@ -17,6 +17,7 @@
  */
 
 import { idbGetExtras, idbSetExtras } from "@/lib/quranIDB";
+import { useNoorStore } from "@/store/noorStore";
 
 type Passage = { source: string; sourceLabel: string; text: string };
 
@@ -235,6 +236,37 @@ export async function retrievePassagesAsync(query: string, k = 3): Promise<Passa
   }
   scored.sort((a, b) => b.s - a.s);
   return scored.slice(0, k).map((x) => x.p);
+}
+
+/* ─── User reminders surface ───────────────────────────────────────────── */
+/** Heuristic AR/EN keywords that signal a user is asking about the list of
+ *  reminders they've already created. Stored as a Set for O(1) lookups. */
+const REMINDERS_QUERY_RE =
+  /(تذكير|تذكيرات|تذكّير|أذكاري|ورد يومي|مواعيدي|reminder|reminders|schedule|مواعيد|ما\s+الذي\s+أنبهك|ما\s+الذي\s+تذكرني|reminders\s+do\s+I\s+have|my\s+reminders|adhkar\s+schedule|جدولي)/i;
+
+/** When the user asks about their own reminders ("show my daily adhkar schedule",
+ *  "what reminders do I have", …), surface them from the store as ad-hoc
+ *  passages so the assistant can answer with the real list. We deliberately
+ *  reuse the same Passage shape so the existing context-builder picks them
+ *  up without any extra wiring. */
+export function retrieveUserRemindersAsPassages(query: string, k = 16): Passage[] {
+  if (!REMINDERS_QUERY_RE.test(query)) return [];
+  let reminders: ReturnType<typeof useNoorStore.getState>["customReminders"] = [];
+  try { reminders = useNoorStore.getState().customReminders ?? []; } catch { return []; }
+  if (!Array.isArray(reminders) || reminders.length === 0) return [];
+  const out: Passage[] = [];
+  for (const r of reminders.slice(0, k)) {
+    if (!r || typeof r !== "object" || typeof r.title !== "string") continue;
+    const when = r.atTimeOfDay ? ` الساعة ${r.atTimeOfDay}` : "";
+    const repeat = r.repeat === "daily" ? "يوميًا" : r.repeat === "weekly" ? "أسبوعيًا" : r.repeat === "monthly" ? "شهريًا" : "مرة واحدة";
+    const category = r.category ? ` [${r.category}]` : "";
+    out.push({
+      source: `customReminder:${r.id}`,
+      sourceLabel: `تذكير محفوظ${category}`,
+      text: `${r.title}${when} — ${repeat}${r.description ? ` — ${r.description}` : ""}`,
+    });
+  }
+  return out;
 }
 
 export function retrievePassages(query: string, k = 3): Passage[] {

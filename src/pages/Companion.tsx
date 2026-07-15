@@ -38,6 +38,7 @@ import {
   streamCompanionReply,
   type CompanionMessage,
   type VerificationReport,
+  type PersistedToolCall,
 } from "@/lib/companionAI";
 import {
   splitIntoSegments,
@@ -78,6 +79,7 @@ import {
   type CompanionProfile,
 } from "@/lib/companionProfile";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useNoorStore } from "@/store/noorStore";
 
 function relativeTime(ms: number): string {
   const diff = Date.now() - ms;
@@ -370,6 +372,43 @@ export function CompanionPage() {
             }
             setStreamingText(null);
             clearPartialStream();
+          },
+          onToolCalls: (calls: PersistedToolCall[]) => {
+            for (const c of calls) {
+              if (c.name !== "create_reminder") continue;
+              const repeatRaw = typeof c.input.repeat === "string" ? c.input.repeat : "once";
+              const repeat = (VALID_REPEATS_PAGE as string[]).includes(repeatRaw)
+                ? (repeatRaw as ParsedReminderView["repeat"])
+                : "once";
+              const categoryRaw = typeof c.input.category === "string" ? c.input.category : "";
+              const category = (VALID_CATEGORIES_PAGE as string[]).includes(categoryRaw)
+                ? (categoryRaw as ParsedReminderView["category"])
+                : "custom";
+              const anchorRaw = typeof c.input.anchorKey === "string" ? c.input.anchorKey : "";
+              const anchorKey = (VALID_ANCHORS_PAGE as string[]).includes(anchorRaw)
+                ? (anchorRaw as NonNullable<ParsedReminderView["anchorKey"]>)
+                : undefined;
+              let deeplink: ParsedReminderView["deeplink"] = undefined;
+              if (c.input.deeplink && typeof c.input.deeplink === "object") {
+                const d = c.input.deeplink as { route?: unknown; hash?: unknown };
+                if (typeof d.route === "string") deeplink = { route: d.route, hash: typeof d.hash === "string" ? d.hash : undefined };
+              } else if (typeof c.input.deeplink === "string" && c.input.deeplink.startsWith("/")) {
+                deeplink = { route: c.input.deeplink };
+              }
+              const parsed: ParsedReminderView = {
+                id: `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                category,
+                title: typeof c.input.title === "string" ? c.input.title : "",
+                description: typeof c.input.description === "string" ? c.input.description : undefined,
+                repeat,
+                atTimeOfDay: typeof c.input.atTimeOfDay === "string" ? c.input.atTimeOfDay : undefined,
+                anchorKey,
+                anchorOffsetMinutes: typeof c.input.anchorOffsetMinutes === "number" ? c.input.anchorOffsetMinutes : undefined,
+                deeplink,
+                suggestion: typeof c.input.suggestion === "string" ? c.input.suggestion : undefined,
+              };
+              dispatchCreateReminderPage(parsed);
+            }
           },
         },
         controller.signal,
@@ -1157,6 +1196,8 @@ function MessageBubble(props: {
             <button type="button" onClick={props.onShare} className="flex items-center gap-1 hover:text-[var(--fg)] transition" aria-label="مشاركة كصورة">
               <ImageIcon className="h-3 w-3" aria-hidden="true" /> صورة
             </button>
+            <span className="opacity-30">·</span>
+            <ReminderFooterLink />
           </div>
         ) : null}
       </div>
@@ -1202,6 +1243,150 @@ function CalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; c
   );
 }
 
+/* ─── AI-created custom reminder chip ──────────────────────────────────── */
+
+type ParsedReminderView = {
+  id: string;
+  category: "dhikr" | "quran" | "sunnah" | "fast" | "salat" | "dua" | "custom";
+  title: string;
+  description?: string;
+  body?: string;
+  icon?: string;
+  repeat:
+    | "once" | "daily" | "weekly" | "monthly"
+    | "sunnah_aligned" | "prayer_aligned" | "fasting_aligned";
+  atTimeOfDay?: string;
+  anchorKey?:
+    | "tahajjud" | "duha" | "witr" | "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" | "sunrise";
+  anchorOffsetMinutes?: number;
+  deeplink?: { route: string; hash?: string };
+  suggestion?: string;
+};
+
+const REMINDER_BLOCK_RE_PAGE = /:::reminder\n([\s\S]*?)\n:::/g;
+
+const VALID_CATEGORIES_PAGE: ParsedReminderView["category"][] = [
+  "dhikr", "quran", "sunnah", "fast", "salat", "dua", "custom",
+];
+
+const VALID_REPEATS_PAGE: ParsedReminderView["repeat"][] = [
+  "once", "daily", "weekly", "monthly", "sunnah_aligned", "prayer_aligned", "fasting_aligned",
+];
+
+const VALID_ANCHORS_PAGE: NonNullable<ParsedReminderView["anchorKey"]>[] = [
+  "tahajjud", "duha", "witr", "fajr", "dhuhr", "asr", "maghrib", "isha", "sunrise",
+];
+
+export function parseReminderToolCallsPage(text: string): ParsedReminderView[] {
+  const out: ParsedReminderView[] = [];
+  for (const m of text.matchAll(REMINDER_BLOCK_RE_PAGE)) {
+    const raw = m[1] ?? "";
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof parsed.title !== "string") continue;
+      const repeat = String(parsed.repeat ?? "") as ParsedReminderView["repeat"];
+      if (!VALID_REPEATS_PAGE.includes(repeat)) continue;
+      const category = (VALID_CATEGORIES_PAGE as string[]).includes(String(parsed.category))
+        ? (parsed.category as ParsedReminderView["category"])
+        : "custom";
+      const anchorKey = (VALID_ANCHORS_PAGE as string[]).includes(String(parsed.anchorKey ?? ""))
+        ? (parsed.anchorKey as NonNullable<ParsedReminderView["anchorKey"]>)
+        : undefined;
+      let deeplink: ParsedReminderView["deeplink"] = undefined;
+      if (parsed.deeplink && typeof parsed.deeplink === "object") {
+        const d = parsed.deeplink as { route?: unknown; hash?: unknown };
+        if (typeof d.route === "string") deeplink = { route: d.route, hash: typeof d.hash === "string" ? d.hash : undefined };
+      } else if (typeof parsed.deeplink === "string" && parsed.deeplink.startsWith("/")) {
+        deeplink = { route: parsed.deeplink };
+      }
+      out.push({
+        id: `pr_${out.length}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        category,
+        title: parsed.title,
+        description: typeof parsed.description === "string" ? parsed.description : undefined,
+        body: typeof parsed.body === "string" ? parsed.body : undefined,
+        icon: typeof parsed.icon === "string" ? parsed.icon : undefined,
+        repeat,
+        atTimeOfDay: typeof parsed.atTimeOfDay === "string" ? parsed.atTimeOfDay : undefined,
+        anchorKey,
+        anchorOffsetMinutes: typeof parsed.anchorOffsetMinutes === "number" ? parsed.anchorOffsetMinutes : undefined,
+        deeplink,
+        suggestion: typeof parsed.suggestion === "string" ? parsed.suggestion : undefined,
+      });
+    } catch { /* skip */ }
+  }
+  return out;
+}
+
+function dispatchCreateReminderPage(parsed: ParsedReminderView): string | null {
+  try {
+    const store = useNoorStore.getState();
+    return store.addCustomReminder({
+      category: parsed.category,
+      title: parsed.title,
+      description: parsed.description,
+      body: parsed.body,
+      icon: parsed.icon,
+      repeat: parsed.repeat,
+      atTimeOfDay: parsed.atTimeOfDay,
+      anchorKey: parsed.anchorKey,
+      anchorOffsetMinutes: parsed.anchorOffsetMinutes,
+      deeplink: parsed.deeplink,
+      suggestion: parsed.suggestion,
+    });
+  } catch { return null; }
+}
+
+function ReminderChip({
+  reminder,
+  onCancel,
+  onOpen,
+}: {
+  reminder: ParsedReminderView;
+  onCancel: () => void;
+  onOpen: () => void;
+}) {
+  const when = reminder.atTimeOfDay ?? "—";
+  return (
+    <div className="my-1.5 flex items-center justify-between gap-2 rounded-2xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-[12.5px] text-emerald-50">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="flex min-w-0 flex-1 items-center gap-1.5 text-start"
+        aria-label={`افتح ${reminder.title}`}
+      >
+        <span aria-hidden="true">✓</span>
+        <span className="truncate font-semibold">{`أُضيفت التذكير: ${reminder.title} — ${when}`}</span>
+        <span className="ms-1 shrink-0 text-[10px] text-emerald-200/70">↗</span>
+      </button>
+      <button
+        type="button"
+        onClick={onCancel}
+        className="shrink-0 rounded-md bg-white/5 px-2 py-0.5 text-[11px] text-emerald-200/80 hover:bg-red-500/20 hover:text-red-200"
+        aria-label={`إلغاء ${reminder.title}`}
+      >
+        إلغاء
+      </button>
+    </div>
+  );
+}
+
+function ReminderFooterLink() {
+  return (
+    <a
+      href="/reminders"
+      onClick={(e) => {
+        e.preventDefault();
+        navigateRoute("/reminders");
+      }}
+      className="ms-2 inline-flex items-center gap-1 text-[10.5px] text-emerald-200/70 underline-offset-2 hover:underline"
+      aria-label="افتح صفحة التذكيرات"
+    >
+      افتح صفحة التذكيرات ↗
+    </a>
+  );
+}
+
 function ActionButton({ route, children }: { route: string; children: React.ReactNode }) {
   const label = ROUTE_LABELS[route] ?? route;
   return (
@@ -1226,6 +1411,9 @@ function ActionButton({ route, children }: { route: string; children: React.Reac
 
 function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: boolean; tokens?: number }) {
   const segments = React.useMemo(() => splitIntoSegments(text), [text]);
+  const reminders = React.useMemo(() => (streaming ? [] : parseReminderToolCallsPage(text)), [text, streaming]);
+  const deleteReminder = useNoorStore((s) => s.deleteCustomReminder);
+  const navigate = useNavigate();
   return (
     <>
       {segments.map((seg, i) => {
@@ -1245,6 +1433,29 @@ function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: 
           </ReactMarkdown>
         );
       })}
+      {!streaming && reminders.length > 0 ? (
+        <div className="mt-2 space-y-1.5">
+          {reminders.map((r) => (
+            <ReminderChip
+              key={r.id}
+              reminder={r}
+              onCancel={() => {
+                const store = useNoorStore.getState();
+                const actual = store.customReminders.find((x) => x.title === r.title);
+                if (actual) deleteReminder(actual.id);
+              }}
+              onOpen={() => {
+                const store = useNoorStore.getState();
+                const actual = store.customReminders.find((x) => x.title === r.title);
+                navigate(actual?.deeplink?.route || "/reminders");
+              }}
+            />
+          ))}
+          <div className="flex justify-end">
+            <ReminderFooterLink />
+          </div>
+        </div>
+      ) : null}
       {streaming ? <ShimmerCursor tokens={typeof tokens === "number" ? tokens : undefined} /> : null}
     </>
   );
