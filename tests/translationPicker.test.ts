@@ -39,7 +39,7 @@ describe("TranslationPicker", () => {
     expect(radioCount).toBe(TRANSLATION_SOURCES.length);
   });
 
-  it("hides the source pills when the master toggle is off", () => {
+  it("keeps the source pills visible (dimmed) when the master toggle is off", () => {
     const html = renderToString(
       React.createElement(TranslationPicker, {
         enabled: false,
@@ -51,7 +51,9 @@ describe("TranslationPicker", () => {
 
     // Still shows the heading label.
     expect(html).toContain("الترجمة أسفل الآية");
-    // But no radiogroup items in the markup when disabled.
-    expect((html.match(/role="radio"/g) ?? []).length).toBe(0);
+    // Pills always visible, but radios are disabled when off.
+    const radioCount = (html.match(/role=\"radio\"/g) ?? []).length;
+    expect(radioCount).toBe(TRANSLATION_SOURCES.length);
+    expect(html).toContain("الترجمة مخفية");
   });
 });

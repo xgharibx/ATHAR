@@ -583,6 +583,7 @@ export function MushafPage() {
   const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
   const quranTranslationId: TranslationId = prefs.quranTranslationId ?? "saheeh";
   const prevTranslationIdRef = React.useRef<TranslationId>(quranTranslationId);
+  const prevShowTranslationRef = React.useRef<boolean>(showTranslation);
 
   // Q11-B: Inline tafseer mode (قراءة mode)
   const [inlineTafseer, setInlineTafseerState] = React.useState(() => prefs.mushafInlineTafseer ?? false);
@@ -828,20 +829,31 @@ export function MushafPage() {
   // Source-change detection uses a ref rather than a companion "clear cache" effect —
   // see the identical fix/explanation on the tafsir fetch effect above; two effects
   // both keyed on the same "source" state race each other's closures otherwise.
+  // On source change OR on toggle-on, the cache for the old source is cleared so
+  // the freshly-fetched translation actually appears instead of the stale one.
   React.useEffect(() => {
-    if (!showTranslation && tafsirItem === null) return;
     const sourceChanged = prevTranslationIdRef.current !== quranTranslationId;
+    const wasEnabled = prevShowTranslationRef.current;
     prevTranslationIdRef.current = quranTranslationId;
+    prevShowTranslationRef.current = showTranslation;
+    if (!showTranslation && tafsirItem === null) return;
     const surahIds = [...new Set(pageItems.map((i) => i.surahId))];
     if (tafsirItem) surahIds.push(tafsirItem.surahId);
-    const toFetch = sourceChanged ? surahIds : surahIds.filter((sid) => !translationData[sid]);
+    if (sourceChanged || (showTranslation && !wasEnabled)) {
+      setTranslationData({});
+      const toFetch = surahIds;
+      if (toFetch.length === 0) return;
+      let mounted = true;
+      loadTranslationForSurahs(quranTranslationId, toFetch)
+        .then((fetched) => { if (!mounted) return; setTranslationData(fetched); })
+        .catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); });
+      return () => { mounted = false; };
+    }
+    const toFetch = surahIds.filter((sid) => !translationData[sid]);
     if (toFetch.length === 0) return;
     let mounted = true;
     loadTranslationForSurahs(quranTranslationId, toFetch)
-      .then((fetched) => {
-        if (!mounted) return;
-        setTranslationData((prev) => ({ ...(sourceChanged ? {} : prev), ...fetched }));
-      })
+      .then((fetched) => { if (!mounted) return; setTranslationData((prev) => ({ ...prev, ...fetched })); })
       .catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); });
     return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2380,7 +2392,7 @@ export function MushafPage() {
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xs opacity-55 shrink-0">الخط</span>
               <button type="button" aria-label="تصغير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(-0.1)}><ZoomOut size={14} aria-hidden="true" /></button>
-              <span className="text-xs opacity-60 tabular-nums w-8 text-center">{Math.round(fontScale * 100)}%</span>
+              <span className="text-xs opacity-60 tabular-nums w-10 text-center">{toArabicNumeral(Math.round(fontScale * 100))}٪</span>
               <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} aria-hidden="true" /></button>
             </div>
             {/* Q3: Translation — same picker + same prefs as Settings.tsx */}
@@ -2559,9 +2571,9 @@ export function MushafPage() {
                     ["الجزء", String(getSurahJuz(lastItem.surahId))],
                     ["عدد الآيات", (quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0).toLocaleString("ar-EG")],
                     ["وقت القراءة", `~${Math.max(1, Math.ceil((quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0) / 8)).toLocaleString("ar-EG")} دقيقة`],
-                    ["رقم السورة", String(lastItem.surahId)],
-                    ["الصفحة", String(currentPage)],
-                    ["من أصل", String(totalPages)],
+                    ["رقم السورة", toArabicNumeral(lastItem.surahId)],
+                    ["الصفحة", toArabicNumeral(currentPage)],
+                    ["من أصل", toArabicNumeral(totalPages)],
                   ].map(([label, val]) => (
                     <div key={label}>
                       <div className="text-[11px] opacity-50 mb-1">{label}</div>
@@ -2586,37 +2598,35 @@ export function MushafPage() {
               </div>
             </div>
 
-            {/* ── M3b: Reading layout (clean vs classic frame) ── */}
-            <div className="mt-1 mb-3">
-              <div className="text-xs opacity-50 mb-1.5">نمط الصفحة</div>
-              <div className="flex gap-1.5">
+            {/* ── M3b: Reading layout + Scroll mode (combined into ONE row) ── */}
+            <div className="mt-1 mb-3 grid grid-cols-2 gap-2">
+              <div className="flex rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-0.5">
                 <button type="button"
                   onClick={() => setPrefs({ mushafCleanMode: true })}
                   aria-pressed={(prefs.mushafCleanMode ?? true)}
-                  className={`flex-1 text-[11px] px-2.5 py-2 rounded-xl border transition ${(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
-                >📖 قراءة مريحة</button>
+                  title="قراءة مريحة"
+                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"}`}
+                >📖 مريحة</button>
                 <button type="button"
                   onClick={() => setPrefs({ mushafCleanMode: false })}
                   aria-pressed={!(prefs.mushafCleanMode ?? true)}
-                  className={`flex-1 text-[11px] px-2.5 py-2 rounded-xl border transition ${!(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
-                >🌺 إطار زخرفي</button>
+                  title="إطار زخرفي"
+                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${!(prefs.mushafCleanMode ?? true) ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"}`}
+                >🌺 إطار</button>
               </div>
-            </div>
-
-            {/* Pass A: `prefs.quranScrollMode` — page-by-page vs continuous flow */}
-            <div className="mt-1 mb-3">
-              <div className="text-xs opacity-50 mb-1.5">نمط التمرير</div>
-              <div className="flex gap-1.5">
+              <div className="flex rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-0.5">
                 <button type="button"
                   onClick={() => setPrefs({ quranScrollMode: "page" })}
                   aria-pressed={(prefs.quranScrollMode ?? "page") === "page"}
-                  className={`flex-1 text-[11px] px-2.5 py-2 rounded-xl border transition ${(prefs.quranScrollMode ?? "page") === "page" ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
-                >📄 صفحة صفحة</button>
+                  title="صفحة صفحة"
+                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${(prefs.quranScrollMode ?? "page") === "page" ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"}`}
+                >📄 صفحة</button>
                 <button type="button"
                   onClick={() => setPrefs({ quranScrollMode: "scroll" })}
                   aria-pressed={prefs.quranScrollMode === "scroll"}
-                  className={`flex-1 text-[11px] px-2.5 py-2 rounded-xl border transition ${prefs.quranScrollMode === "scroll" ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
-                >📜 تمرير متصل</button>
+                  title="تمرير متصل"
+                  className={`flex-1 text-[10.5px] px-1.5 py-2 rounded-lg transition whitespace-nowrap ${prefs.quranScrollMode === "scroll" ? "bg-accent-15 border-accent-35 text-[var(--accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"}`}
+                >📜 تمرير</button>
               </div>
             </div>
 

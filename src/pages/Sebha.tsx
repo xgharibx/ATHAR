@@ -5,12 +5,10 @@ import {
   RotateCw,
   Sparkles,
   Target,
-  Timer,
   History,
   Trash2,
   Plus,
   Pencil,
-  Flag,
   Mic,
   MicOff,
   BarChart2,
@@ -22,6 +20,7 @@ import {
   MoveDown,
   Volume2,
 } from "lucide-react";
+import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -32,11 +31,12 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useNoorStore } from "@/store/noorStore";
 import type { SebhaSession, CustomDhikr } from "@/store/noorStore";
 import { cn, pct } from "@/lib/utils";
+import { toArabicNumeral } from "@/lib/quranMeta";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { getDailyTasbeeh } from "@/lib/leaderboardScores";
 import { getLocalDateKey } from "@/lib/dayBoundaries";
 import { doHaptic, playCompletionSound } from "@/lib/sebhaHaptics";
-import { DUAS, DUA_CATEGORIES, SOUND_PROFILES, mascotForPhrase } from "@/lib/dhikrCatalog";
+import { SOUND_PROFILES, mascotForPhrase } from "@/lib/dhikrCatalog";
 import type { MascotKey } from "@/lib/dhikrCatalog";
 import { CUSTOM_DHIKR_COLORS, suggestColorForPhrase, isValidHexColor } from "@/lib/dhikrCustom";
 
@@ -365,7 +365,7 @@ function DailyGoalCard({
   );
 }
 
-// ─── Circular progress ring (S4) — 6A drag-to-count ────────────────────────
+// ─── Circular progress ring (S4) — single tap only, no drag, no hint. ─────
 
 const RING_R = 106;
 const RING_C = 2 * Math.PI * RING_R;
@@ -375,7 +375,6 @@ function CircularRing({
   completed,
   children,
   onClick,
-  showHint = true,
   accent,
 }: {
   percent: number;
@@ -386,97 +385,13 @@ function CircularRing({
   accent?: string;
 }) {
   const offset = RING_C * (1 - Math.min(percent, 100) / 100);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const pointerRef = React.useRef<{
-    pointerId: number;
-    startX: number;
-    startY: number;
-    lastAngle: number;
-    hasMoved: boolean;
-    isDrag: boolean;
-  } | null>(null);
-  const [isDragging, setIsDragging] = React.useState(false);
-  const [dragAngleDeg, setDragAngleDeg] = React.useState(-90);
-  // Bead follows fill progress when idle; follows finger during drag.
-  const fillAngleDeg = -90 + (Math.min(percent, 100) / 100) * 360;
-  const handleAngleDeg = isDragging ? dragAngleDeg : fillAngleDeg;
-
-  function getAngleAndDist(clientX: number, clientY: number) {
-    const rect = containerRef.current!.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const angle = Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
-    const dist = Math.hypot(clientX - cx, clientY - cy);
-    const radius = rect.width / 2;
-    return { angle, dist, radius };
-  }
-
-  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (pointerRef.current) return;
-    const { angle, dist, radius } = getAngleAndDist(e.clientX, e.clientY);
-    // Only handle taps/drags within the circle; ignore corners of the square container
-    if (dist > radius) return;
-    const nearRing = dist > radius * 0.52;
-    // Always prevent native click synthesis — all counting goes through pointer handlers
-    e.preventDefault();
-    if (nearRing) {
-      containerRef.current!.setPointerCapture(e.pointerId);
-      setIsDragging(true);
-      setDragAngleDeg(angle);
-    }
-    pointerRef.current = {
-      pointerId: e.pointerId,
-      startX: e.clientX,
-      startY: e.clientY,
-      lastAngle: angle,
-      hasMoved: false,
-      isDrag: nearRing,
-    };
-  }
-
-  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    const ref = pointerRef.current;
-    if (!ref || ref.pointerId !== e.pointerId) return;
-    const dx = e.clientX - ref.startX;
-    const dy = e.clientY - ref.startY;
-    if (Math.hypot(dx, dy) > 6) ref.hasMoved = true;
-    if (!ref.isDrag) return;
-    const { angle } = getAngleAndDist(e.clientX, e.clientY);
-    let delta = angle - ref.lastAngle;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-    const NOTCH = 14; // degrees per count
-    if (delta >= NOTCH) {
-      onClick();
-      ref.lastAngle = angle;
-    }
-    setDragAngleDeg(angle);
-  }
-
-  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
-    const ref = pointerRef.current;
-    if (!ref || ref.pointerId !== e.pointerId) return;
-    // Count on any tap (center or ring area) as long as pointer didn't move enough to be a drag
-    if (!ref.hasMoved) onClick();
-    setIsDragging(false);
-    pointerRef.current = null;
-  }
-
-  // Handle bead position on ring
-  const hRad = (handleAngleDeg * Math.PI) / 180;
-  const hx = 112 + RING_R * Math.cos(hRad);
-  const hy = 112 + RING_R * Math.sin(hRad);
 
   return (
     <div
-      ref={containerRef}
-      className="relative mx-auto mt-6 flex items-center justify-center touch-none"
+      className="relative mx-auto mt-6 flex items-center justify-center"
       style={{ width: 224, height: 224, maxWidth: "74vw", maxHeight: "74vw" }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
     >
-      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 224 224" style={{ pointerEvents: "none" }} aria-hidden="true">
+      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 224 224" aria-hidden="true">
         <circle cx="112" cy="112" r={RING_R} fill="none" stroke="var(--stroke)" strokeWidth="6" />
         <circle
           cx="112"
@@ -491,10 +406,6 @@ function CircularRing({
           transform="rotate(-90 112 112)"
           style={{ transition: "stroke-dashoffset 0.3s ease, stroke 0.3s ease" }}
         />
-        {/* 6A: drag handle bead */}
-        <circle cx={hx} cy={hy} r={8} fill={completed ? "var(--ok)" : (accent ?? "var(--accent)")} opacity={0.92}
-          style={{ filter: "drop-shadow(0 0 4px rgba(0,0,0,0.5))" }} />
-        <circle cx={hx} cy={hy} r={3} fill="white" opacity={0.7} />
       </svg>
       <button type="button"
         onClick={onClick}
@@ -506,16 +417,9 @@ function CircularRing({
         )}
         aria-label="اضغط للعد"
         aria-keyshortcuts="Space"
-        style={{ pointerEvents: "auto" }}
       >
         {children}
       </button>
-      {/* 6A: drag hint — only shown before first count */}
-      {showHint && (
-        <div className="absolute -bottom-6 left-0 right-0 text-center text-[10px] opacity-30 pointer-events-none">
-          اسحب الحلقة للعدّ
-        </div>
-      )}
     </div>
   );
 }
@@ -809,11 +713,6 @@ export function SebhaPage() {
 
   const [confirmReset, setConfirmReset] = React.useState(false);
 
-  // S5 - Tally mode
-  const [tallyMode, setTallyMode] = React.useState(false);
-  const [tallyCount, setTallyCount] = React.useState(0);
-  const [tallyLaps, setTallyLaps] = React.useState<number[]>([]);
-
   // S2 - Custom dhikr form
   const [showCustomForm, setShowCustomForm] = React.useState(false);
   const [customPhraseInput, setCustomPhraseInput] = React.useState("");
@@ -825,12 +724,8 @@ export function SebhaPage() {
   // S3 - Sessions panel toggle
   const [showHistory, setShowHistory] = React.useState(false);
 
-  // Tabs
-  const [activeTab, setActiveTab] = React.useState<"dhikr" | "dua" | "asma">("dhikr");
-
-  // Quick-set counter (long-press counter display)
-  const [quickSetOpen, setQuickSetOpen] = React.useState(false);
-  const [quickSetDraft, setQuickSetDraft] = React.useState("");
+  // Tabs — "dua" removed per user request.
+  const [activeTab, setActiveTab] = React.useState<"dhikr" | "asma">("dhikr");
 
   const quickTasbeeh = useNoorStore((s) => s.quickTasbeeh);
   const incQuickTasbeeh = useNoorStore((s) => s.incQuickTasbeeh);
@@ -878,84 +773,73 @@ export function SebhaPage() {
       : TASBEEHAT.find((item) => item.key === selected) ?? TASBEEHAT[0];
 
   const effectiveTarget = selected === "custom" ? (sebhaCustom?.target ?? 100) : target;
-  const count = tallyMode ? tallyCount : Number(quickTasbeeh[selected] ?? 0);
-  const percent = tallyMode ? 0 : pct(Math.min(count, effectiveTarget), effectiveTarget);
-  const remaining = tallyMode ? null : Math.max(0, effectiveTarget - count);
-  const completed = !tallyMode && count >= effectiveTarget;
+  const count = Number(quickTasbeeh[selected] ?? 0);
+  const percent = pct(Math.min(count, effectiveTarget), effectiveTarget);
+  const remaining = Math.max(0, effectiveTarget - count);
+  const completed = count >= effectiveTarget;
 
   // increment accepts an optional keyOverride so voice recognition can count
   // a matched phrase's key directly (avoids stale-closure bug when key differs
   // from the currently selected item).
   const increment = React.useCallback((keyOverride?: TasbeehKey) => {
-    if (tallyMode) {
-      setTallyCount((prev) => {
-        const next = prev + 1;
-        if (next % 100 === 0 || (next % 33 === 0 && next % 100 !== 0)) {
-          setTallyLaps((laps) => [...laps.slice(-9), next]);
-        }
-        doHaptic(next, null, prefs.enableHaptics, prefs.hapticStrength);
-        return next;
+    const activeKey = keyOverride ?? selected;
+    const activeEffTarget =
+      activeKey === "custom" ? (sebhaCustom?.target ?? 100) : target;
+    const activeLabel = keyOverride
+      ? (TASBEEHAT.find((t) => t.key === keyOverride)?.short ?? keyOverride)
+      : current.short;
+    // Read fresh value from the store to avoid stale-closure on rapid taps
+    const beforeCount = Number(useNoorStore.getState().quickTasbeeh[activeKey] ?? 0);
+    const next = incQuickTasbeeh(activeKey, activeEffTarget);
+    if (next === beforeCount && beforeCount >= activeEffTarget) {
+      toast("اكتملت التسبيحة ✓ اضغط \"تصفير الحالي\" للبدء من جديد", { id: "tasbeeh-blocked" });
+      return;
+    }
+    doHaptic(next, activeEffTarget, prefs.enableHaptics, prefs.hapticStrength);
+    const reachedTarget = next === activeEffTarget;
+    // Streak + activity
+    recordTasbeehActivity(getLocalDateKey());
+    // Daily goal completion
+    const todayKey = getLocalDateKey();
+    const todayTotal = Object.values(useNoorStore.getState().tasbeehDailyLog[todayKey] ?? {}).reduce((s, v) => s + (Number(v) ?? 0), 0);
+    if (tasbeehDailyGoal > 0 && todayTotal >= tasbeehDailyGoal && tasbeehGoalCelebratedDate !== todayKey) {
+      markTasbeehGoalCelebrated(todayKey);
+      const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
+      getConfetti().then((c) => {
+        c({ particleCount: 120, spread: 100, startVelocity: 32, scalar: 1, origin: { y: 0.5 } });
       });
-    } else {
-      const activeKey = keyOverride ?? selected;
-      const activeEffTarget =
-        activeKey === "custom" ? (sebhaCustom?.target ?? 100) : target;
-      const activeLabel = keyOverride
-        ? (TASBEEHAT.find((t) => t.key === keyOverride)?.short ?? keyOverride)
-        : current.short;
-      // Read fresh value from the store to avoid stale-closure on rapid taps
-      const beforeCount = Number(useNoorStore.getState().quickTasbeeh[activeKey] ?? 0);
-      const next = incQuickTasbeeh(activeKey, activeEffTarget);
-      if (next === beforeCount && beforeCount >= activeEffTarget) {
-        toast("اكتملت التسبيحة ✓ اضغط \"تصفير الحالي\" للبدء من جديد", { id: "tasbeeh-blocked" });
-        return;
-      }
-      doHaptic(next, activeEffTarget, prefs.enableHaptics, prefs.hapticStrength);
-      const reachedTarget = next === activeEffTarget;
-      // Streak + activity
-      recordTasbeehActivity(getLocalDateKey());
-      // Daily goal completion
-      const todayKey = getLocalDateKey();
-      const todayTotal = Object.values(useNoorStore.getState().tasbeehDailyLog[todayKey] ?? {}).reduce((s, v) => s + (Number(v) || 0), 0);
-      if (tasbeehDailyGoal > 0 && todayTotal >= tasbeehDailyGoal && tasbeehGoalCelebratedDate !== todayKey) {
-        markTasbeehGoalCelebrated(todayKey);
-        const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
-        getConfetti().then((c) => {
-          c({ particleCount: 120, spread: 100, startVelocity: 32, scalar: 1, origin: { y: 0.5 } });
-        });
-        const profile = SOUND_PROFILES.find((p) => p.id === prefs.tasbeehSoundProfile) ?? SOUND_PROFILES[0]!;
-        playCompletionSound(prefs.enableSounds, profile);
-        toast.success(`أتممت هدف اليوم (${tasbeehDailyGoal}) 🎉`, { duration: 3500 });
-      }
-      if (reachedTarget) {
-        const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
-        getConfetti().then((c) => {
-          c({ particleCount: 80, spread: 80, startVelocity: 28, scalar: 0.9, origin: { y: 0.6 } });
-          setTimeout(() => c({ particleCount: 40, spread: 90, startVelocity: 18, scalar: 0.85, origin: { x: 0.2, y: 0.75 } }), 320);
-        });
-        const profile = SOUND_PROFILES.find((p) => p.id === prefs.tasbeehSoundProfile) ?? SOUND_PROFILES[0]!;
-        playCompletionSound(prefs.enableSounds, profile);
-        addSebhaSession({
-          dhikrKey: activeKey,
-          dhikrLabel: activeLabel,
-          count: next,
-          target: activeEffTarget,
-          timestamp: new Date().toISOString(),
-        });
-        toast.success("اكتمل هدف التسبيح 🎉", { duration: 2500 });
-        if (prefs.autoAdvanceDhikr) {
-          const idx = TASBEEHAT.findIndex((t) => t.key === activeKey);
-          if (idx >= 0 && idx < TASBEEHAT.length - 1) {
-            const nextKey = TASBEEHAT[idx + 1].key;
-            setTimeout(() => setSelected(nextKey), 700);
-          } else if (idx === TASBEEHAT.length - 1) {
-            setTimeout(() => setSelected(TASBEEHAT[0].key), 700);
-          }
+      const profile = SOUND_PROFILES.find((p) => p.id === prefs.tasbeehSoundProfile) ?? SOUND_PROFILES[0]!;
+      playCompletionSound(prefs.enableSounds, profile);
+      toast.success(`أتممت هدف اليوم (${tasbeehDailyGoal}) 🎉`, { duration: 3500 });
+    }
+    if (reachedTarget) {
+      const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
+      getConfetti().then((c) => {
+        c({ particleCount: 80, spread: 80, startVelocity: 28, scalar: 0.9, origin: { y: 0.6 } });
+        setTimeout(() => c({ particleCount: 40, spread: 90, startVelocity: 18, scalar: 0.85, origin: { x: 0.2, y: 0.75 } }), 320);
+      });
+      const profile = SOUND_PROFILES.find((p) => p.id === prefs.tasbeehSoundProfile) ?? SOUND_PROFILES[0]!;
+      playCompletionSound(prefs.enableSounds, profile);
+      addSebhaSession({
+        dhikrKey: activeKey,
+        dhikrLabel: activeLabel,
+        count: next,
+        target: activeEffTarget,
+        timestamp: new Date().toISOString(),
+      });
+      toast.success("اكتمل هدف التسبيح 🎉", { duration: 2500 });
+      if (prefs.autoAdvanceDhikr) {
+        const idx = TASBEEHAT.findIndex((t) => t.key === activeKey);
+        if (idx >= 0 && idx < TASBEEHAT.length - 1) {
+          const nextKey = TASBEEHAT[idx + 1].key;
+          setTimeout(() => setSelected(nextKey), 700);
+        } else if (idx === TASBEEHAT.length - 1) {
+          setTimeout(() => setSelected(TASBEEHAT[0].key), 700);
         }
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tallyMode, incQuickTasbeeh, prefs.enableHaptics, prefs.hapticStrength, prefs.enableSounds, prefs.autoAdvanceDhikr, prefs.tasbeehSoundProfile, selected, target, sebhaCustom, current.short, addSebhaSession, setSelected, recordTasbeehActivity, tasbeehDailyGoal, tasbeehGoalCelebratedDate, markTasbeehGoalCelebrated]);
+  }, [incQuickTasbeeh, prefs.enableHaptics, prefs.hapticStrength, prefs.enableSounds, prefs.autoAdvanceDhikr, prefs.tasbeehSoundProfile, selected, target, sebhaCustom, current.short, addSebhaSession, setSelected, recordTasbeehActivity, tasbeehDailyGoal, tasbeehGoalCelebratedDate, markTasbeehGoalCelebrated]);
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -970,26 +854,10 @@ export function SebhaPage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [increment, showCustomForm, showHistory, confirmReset]);
 
-  // Long-press to bulk-increment (after 500ms hold, 1 tap per 100ms)
-  const longPressTimer = React.useRef<number | null>(null);
-  const longPressInterval = React.useRef<number | null>(null);
-  const longPressActive = React.useRef(false);
-  const startLongPress = React.useCallback(() => {
-    if (!prefs.tasbeehLongPressEnabled) return;
-    longPressActive.current = true;
-    longPressTimer.current = window.setTimeout(() => {
-      longPressInterval.current = window.setInterval(() => {
-        if (!longPressActive.current) return;
-        increment();
-      }, 100);
-    }, 500);
-  }, [prefs.tasbeehLongPressEnabled, increment]);
-  const stopLongPress = React.useCallback(() => {
-    longPressActive.current = false;
-    if (longPressTimer.current !== null) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-    if (longPressInterval.current !== null) { clearInterval(longPressInterval.current); longPressInterval.current = null; }
-  }, []);
-  React.useEffect(() => () => stopLongPress(), [stopLongPress]);
+  // Intentionally not adding fast-tasbeeh here: per user request, only one
+  // single tap at a time should register — no long-press bulk, no double-click
+  // menu, no drag-to-count. The pointer handlers on CircularRing still
+  // support a single tap-as-click; everything else is dropped.
 
   // Android-style physical volume-button increment (gated by enableHaptics)
   React.useEffect(() => {
@@ -1057,23 +925,8 @@ export function SebhaPage() {
   const allPercent = pct(totalDone, totalTarget);
 
   function handleReset() {
-    if (tallyMode) {
-      if (tallyCount > 0) {
-        addSebhaSession({
-          dhikrKey: "tally",
-          dhikrLabel: current.short,
-          count: tallyCount,
-          target: null,
-          timestamp: new Date().toISOString(),
-        });
-      }
-      setTallyCount(0);
-      setTallyLaps([]);
-      toast.success("تم تصفير العداد الحر");
-    } else {
-      resetQuickTasbeeh(selected);
-      toast.success("تم تصفير الذكر الحالي");
-    }
+    resetQuickTasbeeh(selected);
+    toast.success("تم تصفير الذكر الحالي");
   }
 
   function saveCustomDhikr() {
@@ -1123,11 +976,10 @@ export function SebhaPage() {
 
   return (
     <div className="space-y-3 page-enter">
-      {/* Tabs */}
+      {/* Tabs — kept simple: only "ذكر" and "أسماء" per user request. */}
       <div className="flex items-center gap-1 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1" role="tablist" aria-label="أقسام السبحة">
         {[
           { id: "dhikr", label: "ذكر", icon: Sparkles },
-          { id: "dua", label: "دعاء", icon: BookHeart },
           { id: "asma", label: "أسماء", icon: ActivityIcon },
         ].map((t) => (
           <button key={t.id} role="tab" aria-selected={activeTab === t.id}
@@ -1153,7 +1005,7 @@ export function SebhaPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <Sparkles size={15} aria-hidden="true" className="text-[var(--accent)]" />
                 <span className="text-xs font-semibold opacity-60">سبحة ذكية</span>
-                {tallyMode ? <Badge>وضع حر</Badge> : <Badge>{totalDone}/{totalTarget}</Badge>}
+                {<Badge>{totalDone}/{totalTarget}</Badge>}
               </div>
               <h1 className="mt-2 text-xl md:text-2xl font-bold leading-tight">السبحة اليومية</h1>
               <div className="mt-1 text-sm opacity-65 leading-6">
@@ -1182,8 +1034,6 @@ export function SebhaPage() {
               <>
                 <Button size="sm" variant="danger" onClick={() => {
                   resetAllQuickTasbeeh();
-                  setTallyCount(0);
-                  setTallyLaps([]);
                   setConfirmReset(false);
                   toast.success("تم تصفير السبحة");
                 }}>تأكيد</Button>
@@ -1196,18 +1046,16 @@ export function SebhaPage() {
             )}
           </div>
         </div>
-        {!tallyMode && (
-          <div
-            className="mt-4 h-2 rounded-full bg-[var(--card)] border border-[var(--stroke)] overflow-hidden"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(allPercent)}
-            aria-label={`تقدم الجلسة: ${Math.round(allPercent)}%`}
-          >
-            <div className="h-full progress-accent transition-[width] duration-300" style={{ width: `${allPercent}%` }} />
-          </div>
-        )}
+        <div
+          className="mt-4 h-2 rounded-full bg-[var(--card)] border border-[var(--stroke)] overflow-hidden"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(allPercent)}
+          aria-label={`تقدم الجلسة: ${Math.round(allPercent)}%`}
+        >
+          <div className="h-full progress-accent transition-[width] duration-300" style={{ width: `${allPercent}%` }} />
+        </div>
       </Card>
 
       {/* S3 - Sessions history panel */}
@@ -1256,7 +1104,7 @@ export function SebhaPage() {
                 <div key={`${s.timestamp}-${s.dhikrKey}-${i}`} className="flex items-center justify-between gap-3 rounded-xl bg-[var(--card)] px-3 py-2 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
                     {s.target === null
-                      ? <Flag size={12} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
+                      ? <ActivityIcon size={12} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
                       : <CheckCircle2 size={12} className="text-[var(--ok)] shrink-0" />}
                     <span className="truncate opacity-85">{s.dhikrLabel}</span>
                     <Badge>{s.count}{s.target ? `/${s.target}` : ""}</Badge>
@@ -1274,8 +1122,8 @@ export function SebhaPage() {
         {/* Toolbar */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Target selector (hidden in tally / custom mode) */}
-            {!tallyMode && selected !== "custom" && (
+            {/* Target selector (hidden in custom mode) */}
+            {selected !== "custom" && (
               <div className="flex rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1">
                 {TARGETS.map((value) => (
                   <button type="button"
@@ -1291,35 +1139,6 @@ export function SebhaPage() {
                 ))}
               </div>
             )}
-            {/* S5 - Tally mode toggle */}
-            <button type="button"
-              aria-label="وضع العدّ الحر"
-              aria-pressed={tallyMode}
-              onClick={() => {
-              // Auto-save tally session before switching mode
-              if (tallyMode && tallyCount > 0) {
-                addSebhaSession({
-                  dhikrKey: "tally",
-                  dhikrLabel: current.short,
-                  count: tallyCount,
-                  target: null,
-                  timestamp: new Date().toISOString(),
-                });
-                toast("تم حفظ جلسة التسبيح الحر", { icon: "💾" });
-              }
-              setTallyMode((v) => !v); setTallyCount(0); setTallyLaps([]);
-            }}
-              className={cn(
-                "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition",
-                tallyMode
-                  ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
-                  : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-2)]"
-              )}
-            >
-              <Timer size={13} aria-hidden="true" />
-              <span>وضع حر</span>
-              {tallyMode && <CheckCircle2 size={11} aria-hidden="true" />}
-            </button>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Button variant="secondary" onClick={handleReset}>
@@ -1349,16 +1168,11 @@ export function SebhaPage() {
           </div>
         </div>
 
-        {/* S4 - Circular ring counter */}
+        {/* S4 - Circular ring counter (single tap only) */}
         <div
           data-sebha-counter
-          onPointerDown={startLongPress}
-          onPointerUp={stopLongPress}
-          onPointerLeave={stopLongPress}
-          onPointerCancel={stopLongPress}
-          onContextMenu={(e) => { e.preventDefault(); setQuickSetDraft(String(count)); setQuickSetOpen(true); }}
         >
-          <CircularRing percent={percent} completed={completed} onClick={increment} showHint={count === 0} accent={selected === "custom" ? undefined : current.accent}>
+          <CircularRing percent={percent} completed={completed} onClick={increment} accent={selected === "custom" ? undefined : current.accent}>
             <div className="text-center">
               {prefs.tasbeehMascotEnabled !== false && (
                 <div className="relative w-11 h-11 mx-auto mb-1">
@@ -1367,22 +1181,14 @@ export function SebhaPage() {
               )}
               <div className="text-xs opacity-55 mb-2">{current.short}</div>
               <CounterNumber value={count} />
-              {!tallyMode && <div className="mt-2 text-xs opacity-60">من {effectiveTarget}</div>}
-              {tallyMode && tallyLaps.length > 0 && (
-                <div className="mt-2 text-xs opacity-60">دورة {tallyLaps.length}</div>
-              )}
-              {prefs.tasbeehLongPressEnabled && count > 0 && (
-                <div className="mt-1 text-[9px] opacity-30">اضغط مطولاً للعدّ السريع · اضغط مرتين لفتح القائمة</div>
-              )}
+              <div className="mt-2 text-xs opacity-60">من {effectiveTarget}</div>
             </div>
           </CircularRing>
         </div>
 
         {/* Status line */}
         <div className="mt-4 flex items-center justify-center gap-2 text-sm opacity-75">
-          {tallyMode ? (
-            <><Timer size={17} aria-hidden="true" className="text-[var(--accent)]" /><span>عد حر — بدون هدف</span></>
-          ) : completed ? (
+          {completed ? (
             <><CheckCircle2 size={17} aria-hidden="true" className="text-[var(--ok)]" />تم الهدف</>
           ) : (
             <><Target size={17} aria-hidden="true" className="text-[var(--accent)]" />{remaining} متبقي</>
@@ -1390,7 +1196,7 @@ export function SebhaPage() {
         </div>
 
         {/* Share-on-completion */}
-        {!tallyMode && completed && (
+        {completed && (
           <button type="button"
             onClick={async () => {
               const label = current.short || "السبحة";
@@ -1410,20 +1216,6 @@ export function SebhaPage() {
 
         {/* Today's count line */}
         <TodayLine tasbeehDailyLog={tasbeehDailyLog} />
-
-        {/* S5 - Tally lap markers */}
-        {tallyMode && tallyLaps.length > 0 && (
-          <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
-            {tallyLaps.map((lap, i) => (
-              <span
-                key={i}
-                className="text-xs rounded-full bg-accent-15 border border-accent-25 px-2 py-0.5 text-[var(--accent)]"
-              >
-                {lap % 100 === 0 ? "💯" : "🔖"} {lap}
-              </span>
-            ))}
-          </div>
-        )}
       </Card>
 
       {/* Quick-select phrase shortcuts */}
@@ -1730,11 +1522,6 @@ export function SebhaPage() {
             ))}
           </div>
           <label className="mt-3 flex items-center gap-2 text-[11px] opacity-80 cursor-pointer">
-            <input type="checkbox" checked={prefs.tasbeehLongPressEnabled}
-              onChange={(e) => setPrefs({ tasbeehLongPressEnabled: e.target.checked })} />
-            إمساك للعدّ السريع
-          </label>
-          <label className="mt-1 flex items-center gap-2 text-[11px] opacity-80 cursor-pointer">
             <input type="checkbox" checked={prefs.tasbeehVolumeKeysEnabled}
               onChange={(e) => setPrefs({ tasbeehVolumeKeysEnabled: e.target.checked })} />
             مفاتيح الصوت للعدّ (أندرويد)
@@ -1746,72 +1533,18 @@ export function SebhaPage() {
         </Card>
       </div>
 
-      {/* Long-press enabled: wrap counter button */}
-      {prefs.tasbeehLongPressEnabled && (
-        <style>{`
-          [data-sebha-counter] { user-select: none; }
-          .mascot-anim { animation: sebha-mascot 3s ease-in-out infinite; transform-origin: 22px 22px; }
-          .mascot-spin-slow { animation: sebha-spin 12s linear infinite; transform-origin: 22px 22px; }
-          @keyframes sebha-mascot { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.08);opacity:1} }
-          @keyframes sebha-spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
-        `}</style>
-      )}
+      {/* Mascot animations — always on now that long-press is gone */}
+      <style>{`
+        [data-sebha-counter] { user-select: none; }
+        .mascot-anim { animation: sebha-mascot 3s ease-in-out infinite; transform-origin: 22px 22px; }
+        .mascot-spin-slow { animation: sebha-spin 12s linear infinite; transform-origin: 22px 22px; }
+        @keyframes sebha-mascot { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.08);opacity:1} }
+        @keyframes sebha-spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+      `}</style>
 
-      {/* Quick-set counter (long-press counter display) */}
-      {quickSetOpen && (
-        <div className="fixed inset-0 z-[9995] bg-black/50 grid place-items-center p-4" role="dialog" aria-modal="true" aria-label="تعيين العداد">
-          <Card className="p-5 w-full max-w-sm">
-            <div className="text-sm font-semibold mb-2">تعيين العدّاد الحالي</div>
-            <p className="text-[11px] opacity-65 mb-3">حدد قيمة العدّاد الحالية (مثلاً إذا أكملت جزءاً في وقت سابق).</p>
-            <input type="number" min={0} max={99999} value={quickSetDraft}
-              onChange={(e) => setQuickSetDraft(e.target.value)}
-              className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm outline-none focus:border-accent-50 transition"
-              inputMode="numeric" autoFocus />
-            <div className="mt-3 flex gap-2">
-              <Button className="flex-1" onClick={() => {
-                const v = Math.max(0, Math.min(99999, Number(quickSetDraft) || 0));
-                const k = selected;
-                useNoorStore.setState((s) => ({ quickTasbeeh: { ...s.quickTasbeeh, [k]: v } }));
-                setQuickSetOpen(false);
-                toast.success("تم تعيين العدّاد");
-              }}>حفظ</Button>
-              <Button variant="secondary" className="flex-1" onClick={() => setQuickSetOpen(false)}>إلغاء</Button>
-            </div>
-          </Card>
-        </div>
-      )}
+      {/* Quick-set counter removed — single tap only, no double-click menu. */}
 
-      {/* ─── Dua tab ─── */}
-      {activeTab === "dua" && (
-        <div className="space-y-3">
-          {DUA_CATEGORIES.map((cat) => {
-            const items = DUAS.filter((d) => d.category === cat.id);
-            if (items.length === 0) return null;
-            return (
-              <div key={cat.id}>
-                <div className="text-[10px] font-semibold opacity-40 mb-2 uppercase tracking-wider px-1">{cat.label}</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {items.map((d) => (
-                    <button key={d.id} type="button"
-                      onClick={() => {
-                        setSebhaCustom({ phrase: d.arabic, target: d.count ?? 33 });
-                        setSelected("custom");
-                        setActiveTab("dhikr");
-                        toast.success(`تم اختيار: ${d.name}`);
-                      }}
-                      className="glass rounded-2xl p-3 text-right border border-[var(--stroke)] hover:bg-[var(--card-2)] transition active:scale-[.98]">
-                      <div className="text-sm font-semibold">{d.name}</div>
-                      <div className="arabic-text mt-1 text-base leading-7">{d.arabic}</div>
-                      {d.transliteration && <div className="mt-1 text-[10px] opacity-50 italic">{d.transliteration}</div>}
-                      {d.count && <div className="mt-1 text-[10px] opacity-60">هدف: {d.count}</div>}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* ─── Dua tab removed per user — only "ذكر" + "أسماء" tabs remain. ─── */}
 
       {/* ─── Asma Al-Husna tab ─── */}
       {activeTab === "asma" && (
@@ -1838,48 +1571,72 @@ function AsmaHusnaCounter({
   counts: Record<number, number>;
   onCount: (id: number, target: number) => number;
 }) {
-  const [target] = React.useState(100);
+  const [target, setTarget] = React.useState(100);
   const [query, setQuery] = React.useState("");
-  const names = React.useMemo(() => {
-    const items: Array<{ id: number; arabic: string; transliteration?: string; meaning?: string }> = [];
-    for (let i = 1; i <= 99; i++) items.push({ id: i, arabic: `الاسم ${i}` });
-    return items;
-  }, []);
+  // Real Asma ul Husna data is sourced from /data/asmaAlHusna.ts. The Sebha
+  // version uses the same canonical 99 names — not numeric placeholders.
+  const names = React.useMemo(
+    () => ASMA_AL_HUSNA.map((n) => ({ id: n.id, arabic: n.arabic, transliteration: n.transliteration, meaning: n.meaning })),
+    []
+  );
   const filtered = React.useMemo(() => {
     if (!query.trim()) return names;
-    const q = query.trim();
-    return names.filter((n) => String(n.id).includes(q) || n.arabic.includes(q));
+    const q = query.trim().toLowerCase();
+    return names.filter(
+      (n) =>
+        String(n.id).includes(q) ||
+        n.arabic.includes(q) ||
+        (n.transliteration ?? "").toLowerCase().includes(q) ||
+        (n.meaning ?? "").toLowerCase().includes(q)
+    );
   }, [names, query]);
   return (
     <Card className="p-4">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         <ActivityIcon size={14} className="text-[var(--accent)]" />
         <span className="text-sm font-semibold">أسماء الله الحسنى</span>
-        <span className="text-[10px] opacity-50 mr-auto">انقر للعدّ على كل اسم</span>
+        <span className="text-[10px] opacity-50">انقر للعدّ على كل اسم</span>
+        <div className="ms-auto flex items-center gap-1 rounded-xl border border-[var(--stroke)] bg-[var(--card)] p-0.5">
+          {[33, 100, 1000].map((t) => (
+            <button key={t} type="button"
+              onClick={() => setTarget(t)}
+              className={cn(
+                "rounded-lg px-2 py-1 text-[10px] font-semibold transition",
+                target === t ? "bg-[var(--accent)] text-[var(--on-accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"
+              )}>
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="ابحث برقم أو نص…"
+        placeholder="ابحث باسم أو معنى…"
         className="w-full rounded-xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-xs outline-none mb-3"
       />
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[60vh] overflow-y-auto" role="list">
         {filtered.map((n) => {
           const count = Number(counts[n.id] ?? 0);
           const pctDone = Math.min(100, Math.round((count / target) * 100));
+          const done = count >= target;
           return (
             <button key={n.id} type="button"
               onClick={() => onCount(n.id, target)}
-              className="glass rounded-2xl p-3 text-right border border-[var(--stroke)] hover:bg-[var(--card-2)] transition active:scale-[.98]"
-              aria-label={`الاسم ${n.id}: ${count} من ${target}`}>
+              className={cn(
+                "glass rounded-2xl p-3 text-right border transition active:scale-[.98]",
+                done ? "border-[var(--ok)]" : "border-[var(--stroke)] hover:bg-[var(--card-2)]"
+              )}
+              aria-label={`${n.arabic} — ${n.meaning ?? ""} (${count} من ${target})`}>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold opacity-70">{n.id}</span>
+                <span className="text-[10px] font-semibold opacity-60 tabular-nums">{toArabicNumeral(n.id)}</span>
                 <Badge>{count}/{target}</Badge>
               </div>
-              <div className="arabic-text text-sm leading-6 mt-1 truncate">الاسم {n.id}</div>
+              <div className="arabic-text text-base font-bold leading-7 mt-1 truncate" title={n.meaning}>{n.arabic}</div>
+              <div className="text-[10px] opacity-55 truncate" title={n.meaning}>{n.meaning}</div>
               <div className="mt-2 h-1 rounded-full bg-[var(--card-2)] overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${pctDone}%`, background: pctDone >= 100 ? "var(--ok)" : "var(--accent)" }} />
+                <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${pctDone}%`, background: pctDone >= 100 ? "var(--ok)" : "var(--accent)" }} />
               </div>
             </button>
           );

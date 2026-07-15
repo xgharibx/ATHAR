@@ -193,18 +193,29 @@ export function CompanionModal(props: {
   const isBusy = streamingText !== null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:p-4" dir="rtl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-2 sm:p-4 pb-[max(env(safe-area-inset-bottom,0px),0px)]" dir="rtl">
       <div
         aria-hidden="true"
         onClick={props.onClose}
-        className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 via-black/55 to-emerald-950/30 backdrop-blur-md"
+        className="absolute inset-0 bg-black/35 backdrop-blur-md"
       />
       <div
-        className="relative flex h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-emerald-400/30 bg-gradient-to-br from-emerald-950/95 via-[var(--bg)] to-[var(--bg)] shadow-[0_20px_60px_-12px_rgba(16,185,129,0.5)] backdrop-blur-xl"
+        className="relative flex h-[88vh] mt-[3vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-emerald-400/25 shadow-[0_20px_60px_-12px_rgba(16,185,129,0.45)] backdrop-blur-2xl"
+        style={{
+          // Match the app's atmospheric starry background but slightly translucent
+          backgroundColor: "color-mix(in srgb, var(--bg) 70%, transparent)",
+          backgroundImage:
+            "radial-gradient(2px 2px at 12% 18%, rgba(255,255,255,0.5) 50%, transparent 51%)," +
+            "radial-gradient(1.5px 1.5px at 78% 32%, rgba(255,255,255,0.45) 50%, transparent 51%)," +
+            "radial-gradient(2.5px 2.5px at 42% 62%, rgba(255,255,255,0.4) 50%, transparent 51%)," +
+            "radial-gradient(1.5px 1.5px at 88% 78%, rgba(255,255,255,0.35) 50%, transparent 51%)," +
+            "radial-gradient(2px 2px at 22% 88%, rgba(255,255,255,0.35) 50%, transparent 51%)," +
+            "linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, transparent), color-mix(in srgb, var(--accent) 4%, transparent))",
+        }}
       >
         {/* Decorative glow */}
-        <div aria-hidden="true" className="pointer-events-none absolute -top-24 -start-24 h-64 w-64 rounded-full bg-emerald-500/15 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -end-24 h-64 w-64 rounded-full bg-teal-500/10 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -top-24 -start-24 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -end-24 h-64 w-64 rounded-full bg-teal-500/8 blur-3xl" />
 
         {/* Header */}
         <div className="relative flex items-center justify-between gap-2 border-b border-emerald-400/15 px-4 py-3">
