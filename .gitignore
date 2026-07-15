@@ -46,4 +46,5 @@ tools/data-sources/
 # Local QA artifacts
 .playwright-mcp/
 qa-screenshots/
+qa-final/
 
