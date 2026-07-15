@@ -41,3 +41,9 @@ supabase/.temp/
 
 # Raw third-party data sources not yet parsed/integrated into the app
 tools/data-sources/
+
+
+# Local QA artifacts
+.playwright-mcp/
+qa-screenshots/
+
