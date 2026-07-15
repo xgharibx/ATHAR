@@ -9,6 +9,8 @@
 import * as React from "react";
 import { Search, X as XIcon, Volume2, Check } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
+import { arNum } from "@/lib/formatNumber";
+
 import {
   groupReciters,
   RECITER_CATEGORY_LABELS,
@@ -90,7 +92,7 @@ function ReciterGroup(props: {
       <header className="sticky top-[68px] z-[1] -mx-0 bg-[var(--bg)]/90 px-4 py-1.5 backdrop-blur-md border-b border-[var(--stroke)]/40">
         <div className="flex items-center justify-between text-[10.5px] font-bold uppercase tracking-wider text-[var(--accent)]">
           <span>{RECITER_CATEGORY_LABELS[props.category]}</span>
-          <span className="opacity-50">{props.items.length.toLocaleString("ar-EG")}</span>
+          <span className="opacity-50">{arNum(props.items.length)}</span>
         </div>
       </header>
       <ul>

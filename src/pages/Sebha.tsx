@@ -18,6 +18,7 @@ import {
   Activity as ActivityIcon,
   MoveUp,
   MoveDown,
+  Timer,
 } from "lucide-react";
 import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +39,8 @@ import { doHaptic, playCompletionSound } from "@/lib/sebhaHaptics";
 import { SOUND_PROFILES, mascotForPhrase } from "@/lib/dhikrCatalog";
 import type { MascotKey } from "@/lib/dhikrCatalog";
 import { CUSTOM_DHIKR_COLORS, suggestColorForPhrase, isValidHexColor } from "@/lib/dhikrCustom";
+import { arNum } from "@/lib/formatNumber";
+
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -186,7 +189,7 @@ function HistoryChart({ log }: { log: Record<string, Record<string, number>> }) 
       <div className="flex items-center gap-2 mb-3">
         <ActivityIcon size={14} className="text-[var(--accent)]" />
         <span className="text-sm font-semibold">آخر ٣٠ يوماً</span>
-        <span className="text-[11px] opacity-50 mr-auto tabular-nums">المجموع: {total.toLocaleString("ar-EG")}</span>
+        <span className="text-[11px] opacity-50 mr-auto tabular-nums">المجموع: {arNum(total)}</span>
       </div>
       <div className="flex items-end gap-1 h-16" aria-label="رسم بياني للتسابيح اليومية">
         {data.map((c) => {
@@ -281,7 +284,7 @@ function DailyGoalCard({
       <div className="flex items-center gap-2 mb-2">
         <Target size={14} className="text-[var(--accent)]" />
         <span className="text-sm font-semibold">هدف اليوم</span>
-        <span className="text-[10px] opacity-50 mr-auto">{today.toLocaleString("ar-EG")} / {goal > 0 ? goal.toLocaleString("ar-EG") : "—"}</span>
+        <span className="text-[10px] opacity-50 mr-auto">{arNum(today)} / {goal > 0 ? arNum(goal) : "—"}</span>
       </div>
       {goal > 0 ? (
         <>
@@ -486,9 +489,9 @@ function TodayLine({ tasbeehDailyLog }: { tasbeehDailyLog: Record<string, Record
   if (totals.todayTotal === 0 && totals.weekTotal === 0) return null;
   return (
     <div className="mt-3 flex items-center justify-center gap-3 text-[11px] opacity-60 tabular-nums">
-      <span>اليوم: <span className="font-semibold opacity-90">{totals.todayTotal.toLocaleString("ar-EG")}</span></span>
+      <span>اليوم: <span className="font-semibold opacity-90">{arNum(totals.todayTotal)}</span></span>
       <span aria-hidden="true">·</span>
-      <span>هذا الأسبوع: <span className="font-semibold opacity-90">{totals.weekTotal.toLocaleString("ar-EG")}</span></span>
+      <span>هذا الأسبوع: <span className="font-semibold opacity-90">{arNum(totals.weekTotal)}</span></span>
     </div>
   );
 }
@@ -712,6 +715,10 @@ export function SebhaPage() {
 
   const [confirmReset, setConfirmReset] = React.useState(false);
 
+  // وضع حر — free counting, no target. Toggled from the small chip in the header.
+  const [tallyMode, setTallyMode] = React.useState(false);
+  const [tallyCount, setTallyCount] = React.useState(0);
+
   // S2 - Custom dhikr form
   const [showCustomForm, setShowCustomForm] = React.useState(false);
   const [customPhraseInput, setCustomPhraseInput] = React.useState("");
@@ -772,10 +779,10 @@ export function SebhaPage() {
       : TASBEEHAT.find((item) => item.key === selected) ?? TASBEEHAT[0];
 
   const effectiveTarget = selected === "custom" ? (sebhaCustom?.target ?? 100) : target;
-  const count = Number(quickTasbeeh[selected] ?? 0);
-  const percent = pct(Math.min(count, effectiveTarget), effectiveTarget);
-  const remaining = Math.max(0, effectiveTarget - count);
-  const completed = count >= effectiveTarget;
+  const count = tallyMode ? tallyCount : Number(quickTasbeeh[selected] ?? 0);
+  const percent = tallyMode ? 0 : pct(Math.min(count, effectiveTarget), effectiveTarget);
+  const remaining = tallyMode ? null : Math.max(0, effectiveTarget - count);
+  const completed = !tallyMode && count >= effectiveTarget;
 
   // increment accepts an optional keyOverride so voice recognition can count
   // a matched phrase's key directly (avoids stale-closure bug when key differs
@@ -788,6 +795,11 @@ export function SebhaPage() {
       && typeof keyOverride === "object"
       && ("nativeEvent" in (keyOverride as object) || "persist" in (keyOverride as object) || "currentTarget" in (keyOverride as object));
     const override: TasbeehKey | undefined = isSyntheticEvent ? undefined : (keyOverride as TasbeehKey | undefined);
+    if (tallyMode) {
+      // وضع حر: just count locally with no target. No haptics on every count to keep it calm.
+      setTallyCount((c) => c + 1);
+      return;
+    }
     const activeKey = (override ?? selected) as string;
     const activeEffTarget =
       activeKey === "custom" ? (sebhaCustom?.target ?? 100) : target;
@@ -901,7 +913,7 @@ export function SebhaPage() {
       return t;
     })();
     const life = Object.values(useNoorStore.getState().tasbeehLifetime).reduce((s, v) => s + (Number(v) || 0), 0);
-    const text = `إحصائياتي في أثر:\n• اليوم: ${todayTotal.toLocaleString("ar-EG")} تسبيحة\n• هذا الأسبوع: ${week.toLocaleString("ar-EG")} تسبيحة\n• الإجمالي: ${life.toLocaleString("ar-EG")} تسبيحة\n🔥 سلسلة ${tasbeehStreak} يوم\n\n﴿ فَاذْكُرُونِي أَذْكُرْكُمْ ﴾\n— أثر`;
+    const text = `إحصائياتي في أثر:\n• اليوم: ${arNum(todayTotal)} تسبيحة\n• هذا الأسبوع: ${arNum(week)} تسبيحة\n• الإجمالي: ${arNum(life)} تسبيحة\n🔥 سلسلة ${tasbeehStreak} يوم\n\n﴿ فَاذْكُرُونِي أَذْكُرْكُمْ ﴾\n— أثر`;
     try {
       if (navigator.share) await navigator.share({ text }).catch(() => {});
       else { await navigator.clipboard.writeText(text); toast.success("تم نسخ الإحصائيات"); }
@@ -931,6 +943,11 @@ export function SebhaPage() {
   const allPercent = pct(totalDone, totalTarget);
 
   function handleReset() {
+    if (tallyMode) {
+      setTallyCount(0);
+      toast.success("تم تصفير العداد الحر");
+      return;
+    }
     resetQuickTasbeeh(selected);
     toast.success("تم تصفير الذكر الحالي");
   }
@@ -1025,8 +1042,23 @@ export function SebhaPage() {
               </div>
             </div>
           </div>
-          <div className="shrink-0 flex items-center gap-2">
-            {/* S3 - Sessions history toggle */}
+          <div className="shrink-0 flex flex-col items-end gap-2">
+            {/* وضع حر — free counting chip. Toggles to "no target" counting mode. */}
+            <button type="button"
+              aria-label="تفعيل وضع العدّ الحر"
+              aria-pressed={tallyMode}
+              onClick={() => setTallyMode((v) => !v)}
+              className={cn(
+                "flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10.5px] font-bold transition",
+                tallyMode
+                  ? "bg-accent-20 border-accent-50 text-[var(--accent)] shadow-[0_0_18px_-2px_rgba(125,211,252,0.45)]"
+                  : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-2)]"
+              )}>
+              <Timer size={11} aria-hidden="true" />
+              {tallyMode ? "وضع حر مُفعّل" : "وضع حر"}
+            </button>
+            {/* S3 - Sessions history toggle + global reset */}
+            <div className="flex items-center gap-2">
             <IconButton
               aria-label="سجل الجلسات"
               aria-expanded={showHistory}
@@ -1050,6 +1082,7 @@ export function SebhaPage() {
                 <RotateCw size={17} aria-hidden="true" />
               </IconButton>
             )}
+            </div>
           </div>
         </div>
         <div
@@ -1187,14 +1220,20 @@ export function SebhaPage() {
               )}
               <div className="text-xs opacity-55 mb-2">{current.short}</div>
               <CounterNumber value={count} />
-              <div className="mt-2 text-xs opacity-60">من {effectiveTarget}</div>
+              {tallyMode ? (
+                <div className="mt-2 text-xs opacity-60">وضع حر — بلا هدف</div>
+              ) : (
+                <div className="mt-2 text-xs opacity-60">من {effectiveTarget}</div>
+              )}
             </div>
           </CircularRing>
         </div>
 
         {/* Status line */}
         <div className="mt-4 flex items-center justify-center gap-2 text-sm opacity-75">
-          {completed ? (
+          {tallyMode ? (
+            <><Timer size={17} aria-hidden="true" className="text-[var(--accent)]" />عدّ حر — بدون هدف</>
+          ) : completed ? (
             <><CheckCircle2 size={17} aria-hidden="true" className="text-[var(--ok)]" />تم الهدف</>
           ) : (
             <><Target size={17} aria-hidden="true" className="text-[var(--accent)]" />{remaining} متبقي</>

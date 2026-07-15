@@ -15,6 +15,8 @@ import { useNoorStore } from "@/store/noorStore";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useTakhrij } from "@/lib/useTakhrij";
 import { TakhrijCard } from "@/components/hadith/TakhrijCard";
+import { arNum } from "@/lib/formatNumber";
+
 
 const GRADE_LABELS: Record<string, string> = {
   agreed: "متفق عليه",
@@ -165,8 +167,8 @@ export function LibraryItemPage() {
               <div className="text-sm font-semibold" style={{ color: "var(--accent)" }}>افتح القراءة الكاملة بالإسناد</div>
               <div className="text-[11px] opacity-60 mt-0.5">
                 {HADITH_BOOKS_STATIC.find((b) => b.key === hadithLinks[0]!.bookKey)?.title ?? hadithLinks[0]!.bookKey}
-                {" · ح"}{hadithLinks[0]!.n.toLocaleString("ar-EG")}
-                {hadithLinks.length > 1 ? ` (+${(hadithLinks.length - 1).toLocaleString("ar-EG")} مصادر أخرى)` : ""}
+                {" · ح"}{arNum(hadithLinks[0]!.n)}
+                {hadithLinks.length > 1 ? ` (+${arNum((hadithLinks.length - 1))} مصادر أخرى)` : ""}
               </div>
             </div>
           </button>
@@ -190,7 +192,7 @@ export function LibraryItemPage() {
           <div className="space-y-2">
             {entry.benefits.map((benefit, index) => (
               <div key={benefit} className="flex items-start gap-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] p-3">
-                <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: entry.collectionAccent, color: "black" }}>{(index + 1).toLocaleString("ar-EG")}</span>
+                <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: entry.collectionAccent, color: "black" }}>{arNum((index + 1))}</span>
                 <div className="text-sm opacity-75 leading-7">{benefit}</div>
               </div>
             ))}

@@ -35,6 +35,8 @@ import {
   type LeaderboardAdminUserModeration
 } from "@/lib/leaderboard";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { arNum, arFullDate } from "@/lib/formatNumber";
+
 
 const COOLDOWN_MS = 45_000;
 const LAST_SUBMIT_KEY = "noor_lb_last_submit_at";
@@ -310,7 +312,7 @@ export function LeaderboardPage() {
         </div>
 
         <div className="mt-3 text-xs opacity-75">
-          تحدي تسبيح اليوم: <span className="font-semibold">{myStats.tasbeehDailyLabel}</span> • الهدف {myStats.tasbeehDailyTarget.toLocaleString("ar-EG")}
+          تحدي تسبيح اليوم: <span className="font-semibold">{myStats.tasbeehDailyLabel}</span> • الهدف {arNum(myStats.tasbeehDailyTarget)}
         </div>
         <div className="mt-1 text-[11px] opacity-45">
           الصيغة: ذكر + قرآن×٣ + مهام×٤٠ + تسبيح
@@ -373,7 +375,7 @@ export function LeaderboardPage() {
               ? <Loader2 size={16} aria-hidden="true" className="animate-spin" />
               : <Send size={16} aria-hidden="true" />}
             {cooldownLeft > 0
-              ? `انتظر ${Math.ceil(cooldownLeft / 1000).toLocaleString("ar-EG")}ث`
+              ? `انتظر ${arNum(Math.ceil(cooldownLeft / 1000))}ث`
               : "مزامنة ترتيبي"}
           </Button>
           <Button
@@ -384,7 +386,7 @@ export function LeaderboardPage() {
             <RotateCw size={16} aria-hidden="true" className={boardLoadState === "loading" ? "animate-spin" : ""} />
             تحديث
           </Button>
-          <Badge>{myRank != null ? `رتبتي: #${myRank.toLocaleString("ar-EG")}` : "رتبتي: خارج أعلى ٣٠"}</Badge>
+          <Badge>{myRank != null ? `رتبتي: #${arNum(myRank)}` : "رتبتي: خارج أعلى ٣٠"}</Badge>
           <span aria-live="polite" aria-atomic="true" className={cn(
             "inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border",
             syncState === "ok"
@@ -460,7 +462,7 @@ export function LeaderboardPage() {
                 )}>
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center text-xs tabular-nums">
-                      {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1).toLocaleString("ar-EG")}
+                      {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : arNum((idx + 1))}
                     </div>
                     <div className="min-w-0">
                       <div className="text-sm font-semibold truncate">{r.name}</div>
@@ -473,7 +475,7 @@ export function LeaderboardPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-sm font-semibold tabular-nums">{r.score.toLocaleString("ar-EG")}</div>
+                  <div className="text-sm font-semibold tabular-nums">{arNum(r.score)}</div>
                 </div>
               );
             })
@@ -506,7 +508,7 @@ function Stat(props: { title: string; value: number }) {
   return (
     <div className="glass rounded-2xl p-3 border border-[var(--stroke)]">
       <div className="text-[11px] opacity-60">{props.title}</div>
-      <div className="mt-1 text-lg font-semibold tabular-nums" style={{ color: "var(--accent)" }}>{props.value.toLocaleString("ar-EG")}</div>
+      <div className="mt-1 text-lg font-semibold tabular-nums" style={{ color: "var(--accent)" }}>{arNum(props.value)}</div>
     </div>
   );
 }
@@ -979,7 +981,7 @@ function LeaderboardAdminCard(props: {
                   />
 
                   {userModeration?.updatedAt ? (
-                    <div className="text-[11px] opacity-50">آخر تحديث: {new Date(userModeration.updatedAt).toLocaleString("ar-EG")}</div>
+                    <div className="text-[11px] opacity-50">آخر تحديث: {arFullDate(new Date(userModeration.updatedAt))}</div>
                   ) : null}
 
                   <div className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-3">
@@ -1103,7 +1105,7 @@ function LocalFriendsCard(props: {
           <Users size={16} aria-hidden="true" className="text-[var(--accent)]" />
           <div className="text-sm font-semibold">لوحة الأصدقاء</div>
           {localFriends.length > 0 && (
-            <span className="text-[10px] opacity-50 tabular-nums">{localFriends.length.toLocaleString("ar-EG")} صديق</span>
+            <span className="text-[10px] opacity-50 tabular-nums">{arNum(localFriends.length)} صديق</span>
           )}
         </div>
         <Button variant="secondary" aria-expanded={expanded} aria-controls="lb-friends-import" onClick={() => setExpanded((v) => !v)}>
@@ -1127,15 +1129,15 @@ function LocalFriendsCard(props: {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center text-xs">
-                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : (idx + 1).toLocaleString("ar-EG")}
+                  {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : arNum((idx + 1))}
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-semibold truncate">{f.alias}</div>
-                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {f.dhikr.toLocaleString("ar-EG")} · قرآن {f.quran.toLocaleString("ar-EG")} · مهام {f.prayers.toLocaleString("ar-EG")}</div>
+                  <div className="text-[10px] opacity-50 tabular-nums">ذكر {arNum(f.dhikr)} · قرآن {arNum(f.quran)} · مهام {arNum(f.prayers)}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="text-sm font-semibold tabular-nums">{f.score.toLocaleString("ar-EG")}</div>
+                <div className="text-sm font-semibold tabular-nums">{arNum(f.score)}</div>
                 {f.id !== props.myStats.id && (
                   <button type="button"
                     onClick={() => removeLocalFriend(f.id)}
@@ -1349,7 +1351,7 @@ function GroupKhatmaCard() {
               />
             </div>
             <span className="text-xs font-semibold tabular-nums" style={{ color: completionPct >= 100 ? "var(--ok)" : undefined }}>
-              {totalJuz.toLocaleString("ar-EG")}/٣٠
+              {arNum(totalJuz)}/٣٠
             </span>
           </div>
 
@@ -1359,7 +1361,7 @@ function GroupKhatmaCard() {
               <div key={m.memberId} className="flex items-center gap-1.5 text-xs">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ background: MEMBER_COLORS[mi % MEMBER_COLORS.length] }} />
                 <span className="opacity-75">{m.name}</span>
-                <span className="opacity-45 tabular-nums">({m.completedJuz.length.toLocaleString("ar-EG")}/{m.assignedJuz.length.toLocaleString("ar-EG")})</span>
+                <span className="opacity-45 tabular-nums">({arNum(m.completedJuz.length)}/{arNum(m.assignedJuz.length)})</span>
               </div>
             ))}
           </div>
@@ -1382,9 +1384,9 @@ function GroupKhatmaCard() {
                     borderColor: done ? color : "var(--stroke)",
                     color: done ? color : "var(--muted-2)",
                   }}
-                  title={owner ? `${owner.name} — جزء ${juz.toLocaleString("ar-EG")}` : `جزء ${juz.toLocaleString("ar-EG")}`}
+                  title={owner ? `${owner.name} — جزء ${arNum(juz)}` : `جزء ${arNum(juz)}`}
                 >
-                  {done ? <Check size={10} aria-hidden="true" strokeWidth={3} style={{ color }} /> : juz.toLocaleString("ar-EG")}
+                  {done ? <Check size={10} aria-hidden="true" strokeWidth={3} style={{ color }} /> : arNum(juz)}
                 </button>
               );
             })}
@@ -1505,7 +1507,7 @@ function WeeklyChallengeCard() {
             }}
           />
         </div>
-        <span className="text-[11px] opacity-60 tabular-nums">{daysChecked.toLocaleString("ar-EG")}/{targetDays.toLocaleString("ar-EG")}</span>
+        <span className="text-[11px] opacity-60 tabular-nums">{arNum(daysChecked)}/{arNum(targetDays)}</span>
       </div>
 
       {/* Day toggles */}

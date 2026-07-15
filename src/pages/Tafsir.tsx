@@ -17,6 +17,8 @@ import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { toArabicNumeral } from "@/lib/quranMeta";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { arNum } from "@/lib/formatNumber";
+
 
 function parseAyahParam(raw: string | null) {
   if (!raw) return null;
@@ -202,7 +204,7 @@ export function TafsirPage() {
             <span className="text-[11px] opacity-55">
               {loading
                 ? "جارٍ التحميل…"
-                : `${ayahs.length.toLocaleString("ar-EG")} آية`}
+                : `${arNum(ayahs.length)} آية`}
             </span>
           </div>
 

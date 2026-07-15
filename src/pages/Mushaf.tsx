@@ -47,6 +47,8 @@ import toast from "react-hot-toast";
 // PageItem is sourced from src/data/pageIndexBuilder.ts so Mushaf and the
 // IDB-cached builder in quranLoad share the exact same shape.
 import type { PageItem } from "@/data/pageIndexBuilder";
+import { arNum } from "@/lib/formatNumber";
+
 
 interface SurahGroup {
   surahId: number;
@@ -2467,7 +2469,7 @@ export function MushafPage() {
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs opacity-50">مستوى الصوت</span>
-                <span className="text-[10px] opacity-50 tabular-nums">{Math.round(audioVolume * 100).toLocaleString("ar-EG")}٪</span>
+                <span className="text-[10px] opacity-50 tabular-nums">{arNum(Math.round(audioVolume * 100))}٪</span>
               </div>
               <input
                 type="range" min="0" max="1" step="0.05"
@@ -2569,8 +2571,8 @@ export function MushafPage() {
                     ["الاسم بالإنجليزية", pageSurahEnglish || ""],
                     ["النوع", getSurahRevelationLabel(lastItem.surahId)],
                     ["الجزء", String(getSurahJuz(lastItem.surahId))],
-                    ["عدد الآيات", (quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0).toLocaleString("ar-EG")],
-                    ["وقت القراءة", `~${Math.max(1, Math.ceil((quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0) / 8)).toLocaleString("ar-EG")} دقيقة`],
+                    ["عدد الآيات", arNum((quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0))],
+                    ["وقت القراءة", `~${arNum(Math.max(1, Math.ceil((quranDB?.find((s) => s.id === lastItem.surahId)?.ayahs.length ?? 0) / 8)))} دقيقة`],
                     ["رقم السورة", toArabicNumeral(lastItem.surahId)],
                     ["الصفحة", toArabicNumeral(currentPage)],
                     ["من أصل", toArabicNumeral(totalPages)],

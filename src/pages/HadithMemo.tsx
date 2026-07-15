@@ -14,6 +14,8 @@ import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { arNum } from "@/lib/formatNumber";
+
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                               */
@@ -326,7 +328,7 @@ export function HadithMemoPage() {
             front={
               <div dir="rtl">
                 <p className="text-[10px] text-[var(--muted)] mb-2 font-arabic">
-                  {bookTitle(current.bookKey)} · حديث {current.item.a.toLocaleString("ar-EG")} — اضغط للكشف
+                  {bookTitle(current.bookKey)} · حديث {arNum(current.item.a)} — اضغط للكشف
                 </p>
                 {isnad ? (
                   <p className="text-sm font-arabic text-[var(--fg)] opacity-60 leading-loose">{isnad}</p>
@@ -392,7 +394,7 @@ export function HadithMemoPage() {
             </button>
             <div className="flex items-center gap-3">
               <span className="text-xs text-[var(--muted)] font-arabic">
-                {current.item.a.toLocaleString("ar-EG")}
+                {arNum(current.item.a)}
               </span>
               <button
                 type="button"

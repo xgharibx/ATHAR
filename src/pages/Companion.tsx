@@ -80,16 +80,18 @@ import {
 } from "@/lib/companionProfile";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useNoorStore } from "@/store/noorStore";
+import { arNum } from "@/lib/formatNumber";
+
 
 function relativeTime(ms: number): string {
   const diff = Date.now() - ms;
   const min = Math.floor(diff / 60_000);
   if (min < 1) return "الآن";
-  if (min < 60) return `قبل ${min.toLocaleString("ar-EG")} د`;
+  if (min < 60) return `قبل ${arNum(min)} د`;
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `قبل ${hr.toLocaleString("ar-EG")} س`;
+  if (hr < 24) return `قبل ${arNum(hr)} س`;
   const day = Math.floor(hr / 24);
-  return `قبل ${day.toLocaleString("ar-EG")} يوم`;
+  return `قبل ${arNum(day)} يوم`;
 }
 
 const QUICK_PROMPTS = [
@@ -596,7 +598,7 @@ export function CompanionPage() {
             <Pin className="h-4 w-4" aria-hidden="true" />
             {pins.length > 0 ? (
               <span className="absolute -top-1 -end-1 grid h-4 min-w-4 place-items-center rounded-full bg-[var(--accent)] px-1 text-[9px] font-bold text-black">
-                {pins.length.toLocaleString("ar-EG")}
+                {arNum(pins.length)}
               </span>
             ) : null}
           </button>
@@ -627,7 +629,7 @@ export function CompanionPage() {
                 <p className="text-[11px] text-[var(--muted-2)]">
                   {history.length === 0
                     ? "تبدأ رحلتك من هنا"
-                    : `${history.length.toLocaleString("ar-EG")} محادثة محفوظة على جهازك`}
+                    : `${arNum(history.length)} محادثة محفوظة على جهازك`}
                 </p>
               </div>
               <button type="button" onClick={() => setShowHistory(false)} aria-label="إغلاق"
@@ -713,14 +715,14 @@ export function CompanionPage() {
                 <span>
                   <span className="opacity-60">المحادثات:</span>{" "}
                   <span data-testid="athar-status-conv-count" className="font-semibold text-[var(--fg)]">
-                    {history.length.toLocaleString("ar-EG")}
+                    {arNum(history.length)}
                   </span>
                 </span>
                 <span className="opacity-30">·</span>
                 <span>
                   <span className="opacity-60">المثبَّتة:</span>{" "}
                   <span data-testid="athar-status-pinned-count" className="font-semibold text-amber-300">
-                    {history.filter((c) => c.pinned).length.toLocaleString("ar-EG")}
+                    {arNum(history.filter((c) => c.pinned).length)}
                   </span>
                 </span>
               </span>
@@ -744,7 +746,7 @@ export function CompanionPage() {
                 <p className="text-[11px] text-[var(--muted-2)]">
                   {pins.length === 0
                     ? "لم تثبّت أي إجابة بعد"
-                    : `${pins.length.toLocaleString("ar-EG")} إجابة محفوظة على جهازك`}
+                    : `${arNum(pins.length)} إجابة محفوظة على جهازك`}
                 </p>
               </div>
               <button type="button" onClick={() => setShowPins(false)} aria-label="إغلاق"
@@ -805,7 +807,7 @@ export function CompanionPage() {
             </h2>
             <p className="mx-auto mt-1 max-w-md text-[13px] leading-relaxed text-[var(--muted)]">
               أنا <span className="font-semibold text-[var(--accent)]">أثر</span>، رفيقك في الطريق إلى الله.
-              {ctx.streakDays > 1 ? ` سلسلتك ${ctx.streakDays.toLocaleString("ar-EG")} يوم 🔥 — ` : " "}
+              {ctx.streakDays > 1 ? ` سلسلتك ${arNum(ctx.streakDays)} يوم 🔥 — ` : " "}
               بمَ أُعينك اليوم؟
             </p>
             {profile.onboarded ? (
@@ -1463,7 +1465,7 @@ function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: 
 
 function ShimmerCursor({ tokens }: { tokens?: number }) {
   const formatted = typeof tokens === "number"
-    ? tokens.toLocaleString("ar-EG")
+    ? arNum(tokens)
     : null;
   return (
     <span className="relative inline-flex items-end align-baseline" aria-hidden="true">
@@ -1583,7 +1585,7 @@ function HistoryGroups(props: {
               <Star className="h-3 w-3 fill-amber-300 text-amber-300" aria-hidden="true" />
               <span>المثبَّتة</span>
               <span className="text-amber-300/50">·</span>
-              <span>{pinned.length.toLocaleString("ar-EG")}</span>
+              <span>{arNum(pinned.length)}</span>
             </div>
           </header>
           <div className="space-y-1.5">
@@ -1615,7 +1617,7 @@ function HistoryGroups(props: {
             <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-[var(--muted-2)]">
               <span>{g.label}</span>
               <span className="text-[var(--muted-2)]/60">·</span>
-              <span>{g.items.length.toLocaleString("ar-EG")}</span>
+              <span>{arNum(g.items.length)}</span>
             </div>
           </header>
           <div className="space-y-1.5">
@@ -1759,7 +1761,7 @@ function HistoryItem(props: {
               ].join(" ")}>
                 <span>{relativeTime(props.conv.updatedAt)}</span>
                 <span className="opacity-40">·</span>
-                <span>{props.conv.messages.length.toLocaleString("ar-EG")} رسالة</span>
+                <span>{arNum(props.conv.messages.length)} رسالة</span>
               </div>
             </div>
           </div>

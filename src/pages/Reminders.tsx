@@ -15,7 +15,8 @@
  *    vibration)
  *  - An expanded action row per reminder (done / snooze / open deeplink)
  *  - A stats mini-card (today's firings, completion rate, streak)
- *  - All dates/times rendered via `toLocaleString("ar-EG")` for locale-friendliness
+ *  - All dates/times rendered via `arNum` / `arTime` / `arFullDate` for
+ *    locale-friendly Arabic-Indic output (no Western-digit fallback).
  */
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -66,6 +67,7 @@ import type {
 import { REMINDER_TEMPLATES } from "@/data/reminderTemplates";
 import { nextOccurrences } from "@/lib/reminderRecurrence";
 import { REMINDER_SOUND_OPTIONS } from "@/lib/reminders";
+import { arNum, arTime, arFullDate } from "@/lib/formatNumber";
 import { Modal, ModalCloseButton } from "@/components/ui/Modal";
 import { Card } from "@/components/ui/Card";
 import { Switch } from "@/components/ui/Switch";
@@ -141,19 +143,9 @@ const ANCHOR_LABELS: Record<NonNullable<CustomReminder["anchorKey"]>, string> = 
   friday: "الجمعة",
 };
 
-const DAY_LABELS: Record<number, string> = {
-  0: "الأحد",
-  1: "الإثنين",
-  2: "الثلاثاء",
-  3: "الأربعاء",
-  4: "الخميس",
-  5: "الجمعة",
-  6: "السبت",
-};
-
 function weekdayLabel(value: number | undefined): string {
   if (typeof value !== "number") return "";
-  return DAY_LABELS[value] ?? "";
+  return `يوم ${arNum((value % 7) + 1)}`;
 }
 
 function repeatText(r: CustomReminder): string {
@@ -179,10 +171,10 @@ function nextFireLabel(reminder: CustomReminder): string {
   const isToday = date.toDateString() === now.toDateString();
   const isTomorrow =
     date.toDateString() === new Date(now.getTime() + 86400000).toDateString();
-  const time = date.toLocaleString("ar-EG", { hour: "2-digit", minute: "2-digit" });
+  const time = arTime(date);
   if (isToday) return `التالي: اليوم ${time}`;
   if (isTomorrow) return `التالي: غداً ${time}`;
-  const day = date.toLocaleString("ar-EG", { weekday: "short", day: "numeric", month: "short" });
+  const day = arFullDate(date);
   return `التالي: ${day} ${time}`;
 }
 
@@ -190,7 +182,7 @@ function timeLabel(value: string | undefined): string {
   if (!value) return "";
   const m = /^(\d{1,2}):(\d{2})$/.exec(value);
   if (!m) return value;
-  return `${m[1].padStart(2, "0")}:${m[2]}`;
+  return arNum(`${m[1].padStart(2, "0")}:${m[2]}`);
 }
 
 /* ───────────────────── template helpers ───────────────────── */
@@ -591,8 +583,8 @@ function ReminderFormDrawer(props: {
               onChange={(e) => update("dayOfWeek", Number(e.target.value))}
               className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
             >
-              {Object.entries(DAY_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
+              {Array.from({ length: 7 }, (_, idx) => (
+                <option key={idx} value={idx}>{`يوم ${arNum(idx + 1)}`}</option>
               ))}
             </select>
           </Field>

@@ -41,6 +41,8 @@ import { DailyCarousel } from "@/components/ui/DailyCarousel";
 import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
 import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
 import { toArabicNumeral } from "@/lib/quranMeta";
+import { arNum } from "@/lib/formatNumber";
+
 
 function useRadioState() {
   const [state, setState] = React.useState(getRadioState);
@@ -1401,9 +1403,9 @@ export function HomePage() {
                   <div className="mt-1 text-xs opacity-55">هدف التسبيح: {tasbeehTarget}</div>
                   {(todayTotal > 0 || weekTotal > 0) && (
                     <div className="mt-1 text-[11px] opacity-60 tabular-nums">
-                      اليوم: <span className="font-semibold opacity-90">{todayTotal.toLocaleString("ar-EG")}</span>
+                      اليوم: <span className="font-semibold opacity-90">{arNum(todayTotal)}</span>
                       <span aria-hidden="true"> · </span>
-                      الأسبوع: <span className="font-semibold opacity-90">{weekTotal.toLocaleString("ar-EG")}</span>
+                      الأسبوع: <span className="font-semibold opacity-90">{arNum(weekTotal)}</span>
                     </div>
                   )}
                   {(() => {
@@ -1675,7 +1677,7 @@ export function HomePage() {
                 {ayah}
               </div>
               <div className="text-[10px] opacity-45 flex items-center justify-between">
-                <span>{surah.name} — آية {ref.a.toLocaleString("ar-EG")}</span>
+                <span>{surah.name} — آية {arNum(ref.a)}</span>
                 <span className="opacity-50">❮</span>
               </div>
             </button>
@@ -1707,7 +1709,7 @@ export function HomePage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs font-semibold" style={{ color: "var(--accent)" }}>ختمة القرآن</span>
-                <span className="text-xs tabular-nums opacity-70">تبقى {daysLeft.toLocaleString("ar-EG")} يوم · {doneCount.toLocaleString("ar-EG")}س/{khatmaDays.toLocaleString("ar-EG")}</span>
+                <span className="text-xs tabular-nums opacity-70">تبقى {arNum(daysLeft)} يوم · {arNum(doneCount)}س/{arNum(khatmaDays)}</span>
               </div>
               <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "color-mix(in srgb, var(--stroke) 60%, transparent)" }}>
                 <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: "var(--accent)" }} />

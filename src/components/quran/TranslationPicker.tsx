@@ -14,6 +14,8 @@
  */
 import * as React from "react";
 import { Check, Globe2, Loader2, WifiOff } from "lucide-react";
+import { arNum } from "@/lib/formatNumber";
+
 import {
   TRANSLATION_SOURCES,
   getTranslationSize,
@@ -55,7 +57,7 @@ export function TranslationPicker(props: {
   const formatSize = (s: TranslationSizeInfo): string => {
     const mb = s.sizeKB / 1024;
     if (mb >= 1) return `${mb.toFixed(1)} م.ب`;
-    return `${s.sizeKB.toLocaleString("ar-EG")} ك.ب`;
+    return `${arNum(s.sizeKB)} ك.ب`;
   };
 
   const formatCached = (s: TranslationSizeInfo): string | null => {
@@ -64,9 +66,9 @@ export function TranslationPicker(props: {
     const ageMs = Date.now() - s.cachedAt;
     const hours = Math.max(1, Math.round(ageMs / (60 * 60 * 1000)));
     if (hours < 1) return "منذ أقل من ساعة";
-    if (hours < 24) return `منذ ${hours.toLocaleString("ar-EG")} ساعة`;
+    if (hours < 24) return `منذ ${arNum(hours)} ساعة`;
     const days = Math.round(hours / 24);
-    return `منذ ${days.toLocaleString("ar-EG")} يوم`;
+    return `منذ ${arNum(days)} يوم`;
   };
 
   return (

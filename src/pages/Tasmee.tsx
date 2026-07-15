@@ -17,6 +17,8 @@ import { toast } from "react-hot-toast";
 import { loadQuranDB } from "@/data/quranLoad";
 import type { QuranDB } from "@/data/quranTypes";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { arNum } from "@/lib/formatNumber";
+
 
 /** Strip tashkeel + normalize letters so voice matching ignores vocalisation. */
 function normalizeArabic(s: string): string {
@@ -168,7 +170,7 @@ export function TasmeePage() {
           >
             {(db ?? []).map((s) => (
               <option key={s.id} value={s.id}>
-                {s.id}. {s.name} — {s.ayahs.length.toLocaleString("ar-EG")} آية
+                {s.id}. {s.name} — {arNum(s.ayahs.length)} آية
               </option>
             ))}
           </select>
@@ -189,7 +191,7 @@ export function TasmeePage() {
         <div className="mt-5 space-y-4">
           <div className="flex items-center justify-between text-xs text-[var(--muted)]">
             <span>سورة {surah.name}</span>
-            <span>الآية {(ayahIdx + 1).toLocaleString("ar-EG")} من {surah.ayahs.length.toLocaleString("ar-EG")}</span>
+            <span>الآية {arNum((ayahIdx + 1))} من {arNum(surah.ayahs.length)}</span>
           </div>
 
           {/* The hidden ayah */}
@@ -253,9 +255,9 @@ export function TasmeePage() {
           ) : null}
 
           <div className="flex justify-between text-[11px] text-[var(--muted-2)]">
-            <span>✓ {perfect.toLocaleString("ar-EG")} إتقان</span>
-            <span>👁 {hinted.toLocaleString("ar-EG")} بمساعدة</span>
-            <span>✗ {missed.toLocaleString("ar-EG")} تحتاج مراجعة</span>
+            <span>✓ {arNum(perfect)} إتقان</span>
+            <span>👁 {arNum(hinted)} بمساعدة</span>
+            <span>✗ {arNum(missed)} تحتاج مراجعة</span>
           </div>
         </div>
       ) : null}
@@ -267,15 +269,15 @@ export function TasmeePage() {
           <h2 className="text-lg font-bold">أتممت تسميع سورة {surah?.name}</h2>
           <div className="grid grid-cols-3 gap-2 text-sm">
             <div className="rounded-xl bg-[var(--card-2)] px-2 py-3">
-              <div className="text-xl font-bold" style={{ color: "var(--ok)" }}>{perfect.toLocaleString("ar-EG")}</div>
+              <div className="text-xl font-bold" style={{ color: "var(--ok)" }}>{arNum(perfect)}</div>
               <div className="text-[11px] text-[var(--muted)]">إتقان</div>
             </div>
             <div className="rounded-xl bg-[var(--card-2)] px-2 py-3">
-              <div className="text-xl font-bold text-[var(--accent)]">{hinted.toLocaleString("ar-EG")}</div>
+              <div className="text-xl font-bold text-[var(--accent)]">{arNum(hinted)}</div>
               <div className="text-[11px] text-[var(--muted)]">بمساعدة</div>
             </div>
             <div className="rounded-xl bg-[var(--card-2)] px-2 py-3">
-              <div className="text-xl font-bold" style={{ color: "var(--danger)" }}>{missed.toLocaleString("ar-EG")}</div>
+              <div className="text-xl font-bold" style={{ color: "var(--danger)" }}>{arNum(missed)}</div>
               <div className="text-[11px] text-[var(--muted)]">للمراجعة</div>
             </div>
           </div>

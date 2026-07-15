@@ -22,6 +22,8 @@ import Anthropic from "@anthropic-ai/sdk";
 
 import { useNoorStore } from "@/store/noorStore";
 import { DAILY_HADITH_FAJR_PHRASES } from "@/lib/reminders";
+import { arNum } from "@/lib/formatNumber";
+
 import {
   buildCompanionProfileContext,
   loadProfile,
@@ -141,7 +143,7 @@ function parseHijriParts(): { day: number; month: number; year: number } {
 function hijriToday(): string {
   const p = parseHijriParts();
   if (!p.month) return "";
-  return `${p.day.toLocaleString("ar-EG")} ${HIJRI_MONTHS_AR[p.month]} ${p.year.toLocaleString("ar-EG")} هـ`;
+  return `${arNum(p.day)} ${HIJRI_MONTHS_AR[p.month]} ${arNum(p.year)} هـ`;
 }
 
 function computeTimePhase(hour: number): TimePhase {

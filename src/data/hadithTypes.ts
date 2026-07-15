@@ -1,3 +1,5 @@
+import { arNum } from "@/lib/formatNumber";
+
 /**
  * Hadith Types — Phase 2 + 11A
  * Data model for the full hadith corpus (Kutub al-Sittah + extras)
@@ -102,7 +104,7 @@ export function hadithPreview(text: string, maxLen = 140): string {
 
 /** Hadith reference string for display (e.g., "صحيح البخاري • ح١") */
 export function hadithRef(bookTitle: string, hadithNumber: number): string {
-  return `${bookTitle} • ح${hadithNumber.toLocaleString("ar-EG")}`;
+  return `${bookTitle} • ح${arNum(hadithNumber)}`;
 }
 
 /** All supported books with static metadata (used before index.json loads) */

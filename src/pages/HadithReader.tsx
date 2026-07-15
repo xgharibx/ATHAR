@@ -41,6 +41,8 @@ import { IconButton } from "@/components/ui/IconButton";
 import { cn } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import toast from "react-hot-toast";
+import { arNum } from "@/lib/formatNumber";
+
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                               */
@@ -308,7 +310,7 @@ export function HadithReaderPage() {
                 <BookOpenText size={15} aria-hidden="true" style={{ color: accentColor }} />
                 <span className="text-[11px] font-semibold opacity-55">قراءة حديثية</span>
                 <span className="rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor }}>
-                  ح {Number.isFinite(n) ? n.toLocaleString("ar-EG") : "—"}
+                  ح {Number.isFinite(n) ? arNum(n) : "—"}
                 </span>
               </div>
               <h1 className="font-bold text-base text-[var(--fg)] font-arabic truncate">
@@ -574,7 +576,7 @@ export function HadithReaderPage() {
                 السابق
               </button>
               <div className="min-w-12 text-xs text-[var(--muted)] text-center tabular-nums" aria-live="polite" aria-atomic="true">
-                {n.toLocaleString("ar-EG")}
+                {arNum(n)}
               </div>
               <button type="button"
                 disabled={!nextN}

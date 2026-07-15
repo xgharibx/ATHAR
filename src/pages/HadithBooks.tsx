@@ -22,6 +22,8 @@ import { GradeChip } from "@/components/hadith/GradeChip";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { cn } from "@/lib/utils";
 import { stripDiacritics } from "@/lib/arabic";
+import { arNum } from "@/lib/formatNumber";
+
 
 /* ------------------------------------------------------------------ */
 /* الأربعينيات hero card (7E)                                           */
@@ -127,7 +129,7 @@ function BookCard({ book }: { book: HadithBookMeta }) {
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1 text-[10px] text-[var(--muted)]">
               <BookOpen size={10} aria-hidden="true" />
-              {book.count.toLocaleString("ar-EG")}
+              {arNum(book.count)}
             </span>
             {bookmarkCount > 0 && (
               <span className="flex items-center gap-1 text-[10px]" style={{ color: book.color }}>
@@ -265,7 +267,7 @@ function CuratedCollectionCard({ collection, active, onClick }: { collection: Li
         </div>
       </div>
       <div className="text-xs opacity-60 leading-5 line-clamp-2">{collection.description}</div>
-      <div className="mt-3 text-[11px] opacity-45 tabular-nums">{collection.entries.length.toLocaleString("ar-EG")} مادة</div>
+      <div className="mt-3 text-[11px] opacity-45 tabular-nums">{arNum(collection.entries.length)} مادة</div>
     </button>
   );
 }
@@ -370,14 +372,14 @@ function CuratedTab() {
             onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
             className={cn("shrink-0 rounded-full px-3 py-1.5 border text-xs", tagFilter === tag ? "bg-[var(--accent)] text-[var(--on-accent)] border-transparent" : "bg-[var(--card)] border-[var(--stroke)]")}
           >
-            {tag} <span className="opacity-60 tabular-nums">{count.toLocaleString("ar-EG")}</span>
+            {tag} <span className="opacity-60 tabular-nums">{arNum(count)}</span>
           </button>
         ))}
       </div>
 
       <div className="flex items-center justify-between gap-2 px-1">
         <div className="text-sm font-semibold">المواد المختارة</div>
-        <div className="text-xs opacity-50 tabular-nums" aria-live="polite" aria-atomic="true">{entries.length.toLocaleString("ar-EG")}</div>
+        <div className="text-xs opacity-50 tabular-nums" aria-live="polite" aria-atomic="true">{arNum(entries.length)}</div>
       </div>
 
       <div className="space-y-3 pb-4" role="list" aria-label="المواد المختارة">
@@ -600,7 +602,7 @@ export function HadithBooksPage() {
         </div>
         <div className="relative flex-1 text-center">
           <p className="text-xl font-bold text-[var(--fg)] font-arabic">
-            {totalHadiths >= 1000 ? `${Math.round(totalHadiths / 1000)}k` : totalHadiths.toLocaleString("ar-EG")}
+            {totalHadiths >= 1000 ? `${Math.round(totalHadiths / 1000)}k` : arNum(totalHadiths)}
           </p>
           <p className="text-[10px] text-[var(--muted)]">حديث نبوي</p>
         </div>

@@ -5,6 +5,8 @@ import { QURAN_VOCAB, type VocabWord } from "@/data/quranVocab";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { arNum } from "@/lib/formatNumber";
+
 
 const LEARNED_KEY = "noor_vocab_learned";
 function loadLearned(): Set<number> {
@@ -318,12 +320,12 @@ export function QuranVocabPage() {
                   مفردات القرآن
                   {vocabStreak > 0 && (
                     <span className="text-base font-bold tabular-nums" style={{ color: "var(--accent)" }} title="سلسلة المراجعة اليومية">
-                        🔥{vocabStreak.toLocaleString("ar-EG")}
+                        🔥{arNum(vocabStreak)}
                     </span>
                   )}
                 </h1>
                 <div className="text-sm opacity-70 mt-1 tabular-nums" aria-live="polite" aria-atomic="true">
-                  {reviewMode ? "مراجعة • " : ""}{(cardIndex + 1).toLocaleString("ar-EG")} / {deck.length.toLocaleString("ar-EG")} • {learned.size.toLocaleString("ar-EG")}/{QURAN_VOCAB.length} محفوظة ({Math.round((learned.size / QURAN_VOCAB.length) * 100)}٪)
+                  {reviewMode ? "مراجعة • " : ""}{arNum((cardIndex + 1))} / {arNum(deck.length)} • {arNum(learned.size)}/{QURAN_VOCAB.length} محفوظة ({Math.round((learned.size / QURAN_VOCAB.length) * 100)}٪)
                 </div>
               </div>
             </div>
@@ -465,10 +467,10 @@ export function QuranVocabPage() {
               <XIcon size={13} /> إغلاق
             </button>
             <div className="text-xs font-semibold" style={{ color: "#a78bfa" }}>
-              {!quizDone ? `${(quizIdx + 1).toLocaleString("ar-EG")} / ${quizQueue.length.toLocaleString("ar-EG")}` : "انتهيت!"}
+              {!quizDone ? `${arNum((quizIdx + 1))} / ${arNum(quizQueue.length)}` : "انتهيت!"}
             </div>
             <div className="text-xs opacity-50 tabular-nums">
-              {quizCorrect.toLocaleString("ar-EG")}/{quizTotal.toLocaleString("ar-EG")} صحيح
+              {arNum(quizCorrect)}/{arNum(quizTotal)} صحيح
             </div>
           </div>
 
@@ -485,7 +487,7 @@ export function QuranVocabPage() {
               <div className="text-5xl">{quizCorrect / quizTotal >= 0.8 ? "🏆" : quizCorrect / quizTotal >= 0.5 ? "⭐" : "💪"}</div>
               <div className="text-lg font-bold">أتممت الاختبار</div>
               <div className="text-2xl font-bold tabular-nums" style={{ color: "#a78bfa" }}>
-                {quizCorrect.toLocaleString("ar-EG")} / {quizTotal.toLocaleString("ar-EG")}
+                {arNum(quizCorrect)} / {arNum(quizTotal)}
               </div>
               <div className="text-sm opacity-60">
                 {quizCorrect / quizTotal >= 0.8
@@ -500,7 +502,7 @@ export function QuranVocabPage() {
                 </button>
                 {learned.size < QURAN_VOCAB.length && (
                   <button type="button" onClick={() => startQuiz(QURAN_VOCAB.filter((w) => !learned.has(w.id)).map((w) => w.id))} className="px-4 py-2 rounded-2xl text-sm font-semibold transition-all active:scale-95" style={{ background: "color-mix(in srgb, #a78bfa 20%, var(--card))", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.35)" }}>
-                    غير المحفوظة ({(QURAN_VOCAB.length - learned.size).toLocaleString("ar-EG")})
+                    غير المحفوظة ({arNum((QURAN_VOCAB.length - learned.size))})
                   </button>
                 )}
                 <button type="button" onClick={() => setQuizMode(false)} className="px-4 py-2 rounded-2xl text-sm transition-all active:scale-95" style={{ background: "var(--card)", border: "1px solid var(--stroke)" }}>
@@ -608,7 +610,7 @@ export function QuranVocabPage() {
                 </div>
                 <p className="text-xs opacity-60 line-clamp-1 text-right">{word.meaning.split('—').slice(-1)[0]?.trim() ?? word.meaning}</p>
               </div>
-              <span className="text-[10px] opacity-35 tabular-nums shrink-0">{word.frequency.toLocaleString("ar-EG")}×</span>
+              <span className="text-[10px] opacity-35 tabular-nums shrink-0">{arNum(word.frequency)}×</span>
             </button>
           ))}
           </div>
@@ -670,7 +672,7 @@ export function QuranVocabPage() {
                   const color = rankPct <= 10 ? "#22c55e" : rankPct <= 30 ? "#ffd780" : undefined;
                   return (
                     <div className="flex items-center justify-center gap-1.5 text-xs">
-                      <span className="opacity-50">تكرّر: {card.frequency.toLocaleString("ar-EG")} مرة</span>
+                      <span className="opacity-50">تكرّر: {arNum(card.frequency)} مرة</span>
                       <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style={{ background: color ? `color-mix(in srgb, ${color} 18%, transparent)` : "rgba(255,255,255,0.08)", color: color ?? "rgba(255,255,255,0.55)" }}>{label}</span>
                     </div>
                   );
@@ -751,7 +753,7 @@ export function QuranVocabPage() {
               {reviewMode ? "أتممت مراجعة المحفوظات!" : "أتممت الاستعراض!"}
             </p>
             <p className="text-[11px] opacity-60 mt-0.5">
-              {learned.size > 0 ? `حفظت ${learned.size.toLocaleString("ar-EG")} كلمة` : "اضغط ✓ لإضافة كلمات لمحفوظاتك"}
+              {learned.size > 0 ? `حفظت ${arNum(learned.size)} كلمة` : "اضغط ✓ لإضافة كلمات لمحفوظاتك"}
             </p>
             <button
               type="button"
@@ -840,15 +842,15 @@ export function QuranVocabPage() {
         >
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div>
-              <p className="text-lg font-bold" style={{ color: "var(--accent)" }}>{seen.size.toLocaleString("ar-EG")}</p>
+              <p className="text-lg font-bold" style={{ color: "var(--accent)" }}>{arNum(seen.size)}</p>
               <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>شاهدت</p>
             </div>
             <div>
-              <p className="text-lg font-bold" style={{ color: "var(--ok, #3ddc97)" }}>{learned.size.toLocaleString("ar-EG")}</p>
+              <p className="text-lg font-bold" style={{ color: "var(--ok, #3ddc97)" }}>{arNum(learned.size)}</p>
               <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>محفوظة</p>
             </div>
             <div>
-              <p className="text-lg font-bold" style={{ color: "var(--fg)" }}>{QURAN_VOCAB.length.toLocaleString("ar-EG")}</p>
+              <p className="text-lg font-bold" style={{ color: "var(--fg)" }}>{arNum(QURAN_VOCAB.length)}</p>
               <p className="text-[11px] opacity-55" style={{ color: "var(--fg)" }}>الإجمالي</p>
             </div>
           </div>
@@ -875,7 +877,7 @@ export function QuranVocabPage() {
                 </p>
                 {vocabStreak > 0 && (
                   <span className="text-[10px] flex items-center gap-0.5 tabular-nums" style={{ color: "#fb923c" }}>
-                    🔥 {vocabStreak.toLocaleString("ar-EG")} يوم
+                    🔥 {arNum(vocabStreak)} يوم
                   </span>
                 )}
               </div>
@@ -915,8 +917,8 @@ export function QuranVocabPage() {
               onClick={async () => {
                 const sorted = QURAN_VOCAB.filter((w) => learned.has(w.id))
                   .sort((a, b) => a.id - b.id);
-                const lines = sorted.map((w, i) => `${(i + 1).toLocaleString("ar-EG")}. ${w.arabic} — ${w.meaning}`);
-                const text = `مفرداتي المحفوظة من القرآن الكريم (${learned.size.toLocaleString("ar-EG")}/${QURAN_VOCAB.length}):\n${lines.join("\n")}`;
+                const lines = sorted.map((w, i) => `${arNum((i + 1))}. ${w.arabic} — ${w.meaning}`);
+                const text = `مفرداتي المحفوظة من القرآن الكريم (${arNum(learned.size)}/${QURAN_VOCAB.length}):\n${lines.join("\n")}`;
                 if (navigator.share) {
                   await navigator.share({ text }).catch(() => {});
                 } else {
@@ -926,7 +928,7 @@ export function QuranVocabPage() {
               aria-label="نسخ قائمة المحفوظات"
             >
               <Copy size={11} aria-hidden="true" />
-              نسخ قائمة المحفوظات ({learned.size.toLocaleString("ar-EG")} كلمة)
+              نسخ قائمة المحفوظات ({arNum(learned.size)} كلمة)
             </button>
           )}
         </div>

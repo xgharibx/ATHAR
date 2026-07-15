@@ -16,6 +16,8 @@ import { toast } from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { toArabicNumeral, getSurahJuz, SURAH_REVELATION } from "@/lib/quranMeta";
+import { arNum } from "@/lib/formatNumber";
+
 import {
   getEnglishText, getSurahInfo, getTafsirForAyah, sajdaInSurah,
   globalAyahNumber, type QuranExtras,
@@ -254,9 +256,9 @@ function PopoverContent(props: {
           <Badge className={`surah-type-${isMedinan ? "madani" : "maki"}`}>
             {isMedinan ? "مدنية" : "مكية"}
           </Badge>
-          <Badge>{surah.ayahs.length.toLocaleString("ar-EG")} آية</Badge>
+          <Badge>{arNum(surah.ayahs.length)} آية</Badge>
           <Badge>جزء {toArabicNumeral(juzStart)}</Badge>
-          {info ? <Badge>{info.rukus.toLocaleString("ar-EG")} {info.rukus === 1 ? "ركوع" : "أروقة"}</Badge> : null}
+          {info ? <Badge>{arNum(info.rukus)} {info.rukus === 1 ? "ركوع" : "أروقة"}</Badge> : null}
           {sajdas.length > 0 ? (
             <Badge className="bg-amber-500/15 text-amber-200 border-amber-500/40">
               <MapPin className="ms-1 h-3 w-3" aria-hidden="true" />

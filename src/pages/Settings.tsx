@@ -31,6 +31,8 @@ import { ReciterPicker } from "@/components/quran/ReciterPicker";
 import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import { TRANSLATION_SOURCES, getTranslation as getTranslationAny, type TranslationId } from "@/lib/quranTranslations";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { arNum } from "@/lib/formatNumber";
+
 import {
   SECTIONS,
   SETTINGS_CATEGORIES,
@@ -502,24 +504,7 @@ export function SettingsPage() {
           <Sparkles size={16} className="text-[var(--accent)]" aria-hidden="true" />
           <div className="text-sm font-semibold">ملخص بياناتك</div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-center">
-            <div className="text-[11px] opacity-55">المفضلة</div>
-            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.favoriteCount.toLocaleString("ar-EG")}</div>
-          </div>
-          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-center">
-            <div className="text-[11px] opacity-55">علامات القرآن</div>
-            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.bookmarkCount.toLocaleString("ar-EG")}</div>
-          </div>
-          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-center">
-            <div className="text-[11px] opacity-55">أيام النشاط</div>
-            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.activeDays.toLocaleString("ar-EG")}</div>
-          </div>
-          <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-3 py-2.5 text-center">
-            <div className="text-[11px] opacity-55">عناصر متقدمة</div>
-            <div className="mt-1 text-sm font-bold tabular-nums">{dataSummary.touchedItems.toLocaleString("ar-EG")}</div>
-          </div>
-        </div>
+        <p className="text-xs opacity-55 leading-5">إحصائياتك محفوظة على جهازك فقط — لا نرسل أي بيانات لأي خادم. افتح صفحة &quot;رحلتي&quot; لمعرفة التفاصيل الكاملة.</p>
       </Card>
 
       <Card id="settings-appearance" className="p-5">
@@ -720,7 +705,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">حجم الخط</div>
-              <div className="text-xs opacity-70 tabular-nums">{Math.round(prefs.fontScale * 100).toLocaleString("ar-EG")}٪</div>
+              <div className="text-xs opacity-70 tabular-nums">{arNum(Math.round(prefs.fontScale * 100))}٪</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -737,7 +722,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد السطور</div>
-              <div className="text-xs opacity-70 tabular-nums">{parseFloat(prefs.lineHeight.toFixed(1)).toLocaleString("ar-EG", { minimumFractionDigits: 1 })}×</div>
+              <div className="text-xs opacity-70 tabular-nums">{arNum(parseFloat(prefs.lineHeight.toFixed(1)))}×</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -754,7 +739,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">حجم خط القرآن</div>
-              <div className="text-xs opacity-70 tabular-nums">{Math.round((prefs.mushafFontScale ?? 1) * 100).toLocaleString("ar-EG")}٪</div>
+              <div className="text-xs opacity-70 tabular-nums">{arNum(Math.round((prefs.mushafFontScale ?? 1) * 100))}٪</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -771,7 +756,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد سطور القرآن</div>
-              <div className="text-xs opacity-70 tabular-nums">{parseFloat(prefs.quranLineHeight.toFixed(1)).toLocaleString("ar-EG", { minimumFractionDigits: 1 })}×</div>
+              <div className="text-xs opacity-70 tabular-nums">{arNum(parseFloat(prefs.quranLineHeight.toFixed(1)))}×</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -863,7 +848,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد الحروف</div>
-              <div className="text-xs opacity-70 tabular-nums">{parseInt(((prefs.quranLetterSpacing ?? 0) * 100).toFixed(0)).toLocaleString("ar-EG")}٪</div>
+              <div className="text-xs opacity-70 tabular-nums">{arNum(parseInt(((prefs.quranLetterSpacing ?? 0) * 100).toFixed(0)))}٪</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -881,7 +866,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center justify-between gap-3">
               <div className="text-sm font-medium">تباعد الكلمات</div>
-              <div className="text-xs opacity-70 tabular-nums">{parseInt(((prefs.quranWordSpacing ?? 0) * 100).toFixed(0)).toLocaleString("ar-EG")}٪</div>
+              <div className="text-xs opacity-70 tabular-nums">{arNum(parseInt(((prefs.quranWordSpacing ?? 0) * 100).toFixed(0)))}٪</div>
             </div>
             <div className="mt-3">
               <Slider
@@ -927,7 +912,7 @@ export function SettingsPage() {
                   onClick={() => setPrefs({ quranDailyGoal: Math.max(1, (prefs.quranDailyGoal ?? 10) - 5) })}
                   aria-label="تقليل الهدف"
                 >−</button>
-                <span className="w-12 text-center text-sm tabular-nums font-semibold">{(prefs.quranDailyGoal ?? 10).toLocaleString("ar-EG")}</span>
+                <span className="w-12 text-center text-sm tabular-nums font-semibold">{arNum((prefs.quranDailyGoal ?? 10))}</span>
                 <button type="button"
                   className="w-8 h-8 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
                   onClick={() => setPrefs({ quranDailyGoal: Math.min(604, (prefs.quranDailyGoal ?? 10) + 5) })}
@@ -952,7 +937,7 @@ export function SettingsPage() {
               <div className="min-w-0">
                 <div className="truncate text-sm font-semibold">{getReciter(prefs.quranReciter ?? "Alafasy_128kbps")?.label ?? "القارئ"}</div>
                 <div className="truncate text-[10.5px] text-[var(--muted-2)]">
-                  اضغط للاختيار من {QURAN_RECITERS.length.toLocaleString("ar-EG")} قارئًا مع بحث
+                  اضغط للاختيار من {arNum(QURAN_RECITERS.length)} قارئًا مع بحث
                 </div>
               </div>
             </div>
@@ -1038,7 +1023,7 @@ export function SettingsPage() {
                     : "bg-[var(--card)] border-[var(--stroke)] hover:bg-[var(--card-2)]"
                 ].join(" ")}
               >
-                {v.toLocaleString("ar-EG")}
+                {arNum(v)}
               </button>
             ))}
             <div className="flex items-center gap-2 mr-auto">
@@ -1048,7 +1033,7 @@ export function SettingsPage() {
                 aria-label="تقليل الهدف"
               >−</button>
               <span className="w-14 text-center text-sm tabular-nums font-semibold">
-                {sebhaTarget.toLocaleString("ar-EG")}
+                {arNum(sebhaTarget)}
               </span>
               <button type="button"
                 className="w-9 h-9 rounded-xl bg-[var(--card)] border border-[var(--stroke)] flex items-center justify-center hover:bg-[var(--card-2)] transition text-base"
@@ -1810,7 +1795,7 @@ function QuranSettingsCard() {
       <div className="mt-5">
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-semibold">حجم خط قراءة القرآن</div>
-          <div className="text-xs opacity-70 tabular-nums">{Math.round((prefs.quranFontScale ?? 1.0) * 100).toLocaleString("ar-EG")}٪</div>
+          <div className="text-xs opacity-70 tabular-nums">{arNum(Math.round((prefs.quranFontScale ?? 1.0) * 100))}٪</div>
         </div>
         <div className="mt-1 text-[11px] text-[var(--muted-2)]">يطبَّق على قائمة آيات القرآن، ليس المصحف نفسه</div>
         <div className="mt-3">
@@ -1829,7 +1814,7 @@ function QuranSettingsCard() {
       <div className="mt-5">
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-semibold">عدد الآيات في الصفحة</div>
-          <div className="text-xs opacity-70 tabular-nums">{(prefs.quranPageSize ?? 12).toLocaleString("ar-EG")} آية</div>
+          <div className="text-xs opacity-70 tabular-nums">{arNum((prefs.quranPageSize ?? 12))} آية</div>
         </div>
         <div className="mt-3">
           <Slider

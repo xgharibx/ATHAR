@@ -8,6 +8,8 @@
  */
 import * as React from "react";
 import { useNoorStore } from "@/store/noorStore";
+import { arNum } from "@/lib/formatNumber";
+
 
 function activeDaysLast7(activity: Record<string, number>): number {
   let n = 0;
@@ -94,7 +96,7 @@ export function GrowthTree() {
         <div className="text-sm font-semibold">شجرة أثرك</div>
         <div className="mt-0.5 text-xs text-[var(--muted)]">{STAGE_LABELS[days] ?? STAGE_LABELS[0]}</div>
         <div className="mt-1 text-[11px] text-[var(--muted-2)]">
-          {days.toLocaleString("ar-EG")} من ٧ أيام نشطة هذا الأسبوع — كل ذكرٍ يسقيها 🌱
+          {arNum(days)} من ٧ أيام نشطة هذا الأسبوع — كل ذكرٍ يسقيها 🌱
         </div>
       </div>
     </div>

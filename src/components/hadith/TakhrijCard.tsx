@@ -8,6 +8,8 @@ import { ScrollText, Loader2, Info, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { verdictColor, type DorarTakhrij } from "@/lib/dorarTakhrij";
 import { GradeChip } from "@/components/hadith/GradeChip";
+import { arNum } from "@/lib/formatNumber";
+
 
 export function TakhrijCard({
   takhrij,
@@ -90,7 +92,7 @@ export function TakhrijCard({
               className="w-full flex items-center justify-between gap-2 text-xs font-semibold py-2 opacity-75 hover:opacity-100 transition"
               style={{ color: accentColor }}
             >
-              <span>آراء علماء آخرين ({takhrij.others.length.toLocaleString("ar-EG")})</span>
+              <span>آراء علماء آخرين ({arNum(takhrij.others.length)})</span>
               <ChevronDown size={15} aria-hidden="true" style={{ transform: showOtherOpinions ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
             </button>
             {showOtherOpinions && (

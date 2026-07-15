@@ -22,6 +22,8 @@ import {
 } from "@/lib/hadithSharhAPI";
 import { verdictColor } from "@/lib/dorarTakhrij";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { arNum } from "@/lib/formatNumber";
+
 
 type View =
   | { kind: "roots" }
@@ -155,7 +157,7 @@ export function HadithSharhPage() {
               <div>
                 <div className="text-sm font-semibold">{c.title}</div>
                 <div className="mt-0.5 text-[11px] text-[var(--muted-2)]">
-                  {Number(c.hadeeths_count).toLocaleString("ar-EG")} حديث مشروح
+                  {arNum(Number(c.hadeeths_count))} حديث مشروح
                 </div>
               </div>
               <ChevronLeft className="h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
@@ -180,7 +182,7 @@ export function HadithSharhPage() {
               <div>
                 <div className="text-sm">{c.title}</div>
                 <div className="mt-0.5 text-[11px] text-[var(--muted-2)]">
-                  {Number(c.hadeeths_count).toLocaleString("ar-EG")} حديث
+                  {arNum(Number(c.hadeeths_count))} حديث
                 </div>
               </div>
               <ChevronLeft className="h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />

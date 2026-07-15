@@ -8,6 +8,8 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { arNum } from "@/lib/formatNumber";
+
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -106,7 +108,7 @@ function ProgressRing({ pct, size = 72 }: { pct: number; size?: number }) {
         style={{ transition: "stroke-dasharray 0.6s cubic-bezier(0.4,0,0.2,1)" }} />
       <text x={size / 2} y={size / 2 + 1} textAnchor="middle" dominantBaseline="middle"
         className="rotate-90" style={{ transformOrigin: `${size / 2}px ${size / 2}px`, fontSize: 13, fontWeight: 700, fill: "var(--fg)" }}>
-        {pct.toLocaleString("ar-EG")}٪
+        {arNum(pct)}٪
       </text>
     </svg>
   );
@@ -324,7 +326,7 @@ export function QuranPlansPage() {
           {/* Today start position */}
           {todayStartRef && !activePlan.doneToday && (
             <div className="text-[11px] opacity-55 text-center -mt-1">
-              ابدأ من: <span className="font-semibold arabic-text">{todayStartRef.surahName}</span> آية {todayStartRef.ayahIndex.toLocaleString("ar-EG")}
+              ابدأ من: <span className="font-semibold arabic-text">{todayStartRef.surahName}</span> آية {arNum(todayStartRef.ayahIndex)}
             </div>
           )}
 
@@ -370,7 +372,7 @@ export function QuranPlansPage() {
               className="text-sm px-4"
               onClick={async () => {
                 const remaining = Math.max(0, activePlan.days - activePlan.elapsed);
-                const text = `📖 خطة ختمة القرآن الكريم\n${activePlan.name}\n\nالتقدم: ${activePlan.pct.toLocaleString("ar-EG")}٪ (${activePlan.doneCount.toLocaleString("ar-EG")} يوم مكتمل)\nالمتبقي: ${remaining.toLocaleString("ar-EG")} يوم\nالورد اليومي: ${activePlan.dailyAyahs.toLocaleString("ar-EG")} آية\n\nاترك أثراً طيباً 🌟`;
+                const text = `📖 خطة ختمة القرآن الكريم\n${activePlan.name}\n\nالتقدم: ${arNum(activePlan.pct)}٪ (${arNum(activePlan.doneCount)} يوم مكتمل)\nالمتبقي: ${arNum(remaining)} يوم\nالورد اليومي: ${arNum(activePlan.dailyAyahs)} آية\n\nاترك أثراً طيباً 🌟`;
                 if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
                 else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
               }}

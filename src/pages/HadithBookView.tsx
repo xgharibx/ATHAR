@@ -15,6 +15,8 @@ import { Card } from "@/components/ui/Card";
 import { GradeChip } from "@/components/hadith/GradeChip";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { arNum } from "@/lib/formatNumber";
+
 
 /* ------------------------------------------------------------------ */
 
@@ -56,7 +58,7 @@ function HadithRow({
         dir="rtl"
         role="button"
         tabIndex={0}
-        aria-label={`الحديث رقم ${item.n.toLocaleString("ar-EG")} — اضغط للقراءة`}
+        aria-label={`الحديث رقم ${arNum(item.n)} — اضغط للقراءة`}
         onClick={() => navigate(`/hadith/${bookKey}/${item.n}`)}
         onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && navigate(`/hadith/${bookKey}/${item.n}`)}
         className="group relative w-full overflow-hidden rounded-3xl border border-[var(--stroke)] p-4 text-right transition cursor-pointer glass-strong glass-hover press-effect"
@@ -67,7 +69,7 @@ function HadithRow({
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex items-center gap-2 flex-wrap">
               <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[11px] font-bold tabular-nums" style={{ background: "color-mix(in srgb, var(--accent) 16%, transparent)", color: accentColor }}>
-                {item.a.toLocaleString("ar-EG")}
+                {arNum(item.a)}
               </span>
               {sectionTitle && <Badge className="max-w-[180px] truncate px-2 py-0.5 text-[10px]">{sectionTitle}</Badge>}
               {item.g[0] && <GradeChip grade={item.g[0]} size="sm" />}
@@ -76,7 +78,7 @@ function HadithRow({
               {hadithPreview(item.t, 190)}
             </p>
             <div className="mt-3 border-t border-[var(--stroke)] pt-3 flex items-center justify-between gap-3 text-xs opacity-65">
-              <span className="font-arabic">حديث {item.n.toLocaleString("ar-EG")}</span>
+              <span className="font-arabic">حديث {arNum(item.n)}</span>
               <span className="font-semibold" style={{ color: accentColor }}>اقرأ النص الكامل</span>
             </div>
           </div>
@@ -228,8 +230,8 @@ export function HadithBookViewPage() {
                 {meta?.title ?? bookKey}
               </h1>
               <div className="mt-1 flex items-center gap-2 text-xs opacity-60 tabular-nums">
-                <span>{(pack?.count ?? meta?.count ?? 0).toLocaleString("ar-EG")} حديث</span>
-                {pack && pack.sections.length > 0 && <span>• {pack.sections.length.toLocaleString("ar-EG")} باب</span>}
+                <span>{arNum((pack?.count ?? meta?.count ?? 0))} حديث</span>
+                {pack && pack.sections.length > 0 && <span>• {arNum(pack.sections.length)} باب</span>}
               </div>
             </div>
             {isLoading && <Loader2 size={18} aria-hidden="true" className="animate-spin text-[var(--muted)] shrink-0" />}
@@ -240,7 +242,7 @@ export function HadithBookViewPage() {
               className="relative mt-3 w-full rounded-2xl border px-4 py-3 text-sm font-semibold font-arabic press-effect"
               style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)", color: accentColor, borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)" }}
             >
-              أكمل من حيث توقفت • ح{lastN?.toLocaleString("ar-EG")}
+              أكمل من حيث توقفت • ح{lastN != null ? arNum(lastN) : ""}
             </button>
           )}
         </Card>
@@ -272,7 +274,7 @@ export function HadithBookViewPage() {
             className={cn("shrink-0 rounded-full border px-3 py-1.5 text-xs transition font-arabic press-effect", activeSectionId === null ? "font-bold" : "glass border-[var(--stroke)]")}
             style={activeSectionId === null ? { background: accentColor, borderColor: "transparent" } : undefined}
           >
-            الكل · {pack.count.toLocaleString("ar-EG")}
+            الكل · {arNum(pack.count)}
           </button>
           {pack.sections.map((s) => (
             <button type="button"

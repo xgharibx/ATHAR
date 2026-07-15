@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { fetchDailyHadith, fetchRandomHadith, fetchSharhHadith, prewarmSharhBundle, type SharhHadith } from "@/lib/hadithSharhAPI";
 import { syncSunnahWidget } from "@/lib/widgetDataBridge";
 import toast from "react-hot-toast";
+import { arNum } from "@/lib/formatNumber";
+
 
 function dateIndex(dateKey: string, length: number, offset = 0): number {
   if (length === 0) return -1;
@@ -482,7 +484,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                       className="text-[10px] px-2 py-0.5 rounded-full font-medium"
                       style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}
                     >
-                      صف {vocabWord.id} • تردد {vocabWord.frequency.toLocaleString("ar-EG")}×
+                      صف {vocabWord.id} • تردد {arNum(vocabWord.frequency)}×
                     </span>
                     <span className="text-[10px] opacity-40">اضغط للتعلم ❬</span>
                   </div>

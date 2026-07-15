@@ -5,6 +5,8 @@
  * pure & unit-testable.
  */
 import type { CompanionConversation } from "@/lib/companionHistory";
+import { arFullDate } from "@/lib/formatNumber";
+
 
 export type HistoryGroup = { label: string; key: string; items: CompanionConversation[] };
 
@@ -62,7 +64,7 @@ export function previewSnippet(conv: CompanionConversation, max = 90): string {
 }
 
 export function exportConversationText(conv: CompanionConversation): string {
-  const header = `محادثة أثر — ${conv.title}\nالتاريخ: ${new Date(conv.createdAt).toLocaleString("ar-EG")}\n\n`;
+  const header = `محادثة أثر — ${conv.title}\nالتاريخ: ${arFullDate(new Date(conv.createdAt))}\n\n`;
   const body = conv.messages
     .map((m) => `${m.role === "user" ? "👤 أنت" : "✨ أثر"}:\n${m.content}\n`)
     .join("\n");
