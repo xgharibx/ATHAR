@@ -457,7 +457,11 @@ const RECOGNISED_FULL_FORMS = new Set([
  *  (e.g. «أحمد بن محمد الفقيه») don't get truncated to a single recognised
  *  token like «أحمد». Then in the verifier we treat the FIRST whitespace-
  *  separated token as the canonical narrator name. */
-const HADITH_ATTR_RE = /(?:رواه|أخرجه|أخرّجه|روتنا|ذكره|ذكر)\s+([^،.\n]{1,120}?)(?=[،.\n]|$)/g;
+// Negative lookbehind blocks a false match on "اذكر" (imperative "remember!")
+// — without it, "ذكر" as a bare substring inside "اذكر" was misread as the
+// hadith-citation verb "ذكر" (he mentioned), flagging ordinary sentences like
+// "ثم اذكر الله معي بدعاء..." as a fabricated attribution to a fake narrator.
+const HADITH_ATTR_RE = /(?<![ء-ي])(?:رواه|أخرجه|أخرّجه|روتنا|ذكره|ذكر)\s+([^،.\n]{1,120}?)(?=[،.\n]|$)/g;
 
 /** Detect an unsupported surah:ayah citation in the surrounding text — if the
  *  assistant claims «رواه الفلاني» and embeds a fabricated Quran verse nearby,

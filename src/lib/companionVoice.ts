@@ -81,13 +81,15 @@ function pickBestArabicVoice(): SpeechSynthesisVoice | null {
   if (voices.length === 0) return null;
   const arabic = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith("ar-"));
   if (arabic.length === 0) return null;
+  // Quality signals only — no locale (e.g. ar-SA) or per-voice-name bonus.
+  // A specific country code or named voice ("Maged", …) bakes in a specific
+  // regional accent (often Gulf/Khaleeji), which the assistant must never
+  // sound like regardless of what happens to be installed on the device.
   const quality = (v: SpeechSynthesisVoice): number => {
     const name = (v.name ?? "").toLowerCase();
     let score = 0;
     if (v.localService) score += 100;
     if (/premium|enhanced|neural|natural/.test(name)) score += 50;
-    if (/female|samantha|maged|tarik|mira|hoda/.test(name)) score += 10;
-    if (v.lang === "ar-SA") score += 5;
     return score;
   };
   const sorted = [...arabic].sort((a, b) => quality(b) - quality(a));
@@ -116,9 +118,12 @@ export function speakArabic(text: string, voiceEnabled: boolean): void {
   try {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "ar-SA";
-    u.rate = 0.96;
     const v = pickBestArabicVoice();
+    // Generic "ar" (not a country code like "ar-SA") so that when no specific
+    // voice matched, the OS picks its own neutral Arabic default instead of
+    // being nudged toward a Gulf/Khaleeji locale.
+    u.lang = v?.lang || "ar";
+    u.rate = 0.96;
     if (v) u.voice = v;
     window.speechSynthesis.speak(u);
   } catch { /* ignore */ }

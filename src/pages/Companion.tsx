@@ -20,7 +20,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Sparkles, Send, History, Plus, Pencil, Check, Copy, X as XIcon,
   Mic, MicOff, Volume2, VolumeX, Search, Pin, Share2, Image as ImageIcon,
-  AlertCircle, MessageSquareQuote, Download, Star, Trash2,
+  MessageSquareQuote, Download, Star, Trash2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
@@ -37,7 +37,6 @@ import {
   isCompanionReady,
   streamCompanionReply,
   type CompanionMessage,
-  type VerificationReport,
   type PersistedToolCall,
 } from "@/lib/companionAI";
 import {
@@ -200,7 +199,6 @@ export function CompanionPage() {
   const [input, setInput] = React.useState("");
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
   const [followUps, setFollowUps] = React.useState<string[]>([]);
-  const [verification, setVerification] = React.useState<VerificationReport | null>(null);
   const [voiceOn, setVoiceOn] = React.useState(getVoiceEnabled);
   const [voiceLive, setVoiceLive] = React.useState({ supported: isVoiceSupported(), listening: false, transcript: "", error: null as string | null });
   const [isSpeaking, setIsSpeaking] = React.useState(false);
@@ -410,7 +408,6 @@ export function CompanionPage() {
     setMessages(history);
     setInput("");
     setStreamingText("");
-    setVerification(null);
     setFollowUps([]);
 
     let acc = "";
@@ -424,10 +421,9 @@ export function CompanionPage() {
             setStreamingText(acc);
             persistPartial(acc);
           },
-          onDone: (fullText, ver) => {
+          onDone: (fullText) => {
             done = true;
             setMessages((m) => [...m, { role: "assistant", content: fullText }]);
-            setVerification(ver);
             setStreamingText(null);
             clearPartialStream();
             setFollowUps(generateFollowUps(trimmed, fullText));
@@ -524,7 +520,6 @@ export function CompanionPage() {
     setMessages([]);
     setStreamingText(null);
     setInput("");
-    setVerification(null);
     setFollowUps([]);
     clearPartialStream();
     setShowHistory(false);
@@ -537,7 +532,6 @@ export function CompanionPage() {
     setMessages(conv.messages);
     setStreamingText(null);
     setInput("");
-    setVerification(null);
     setFollowUps([]);
     setShowHistory(false);
   }, []);
@@ -1007,17 +1001,6 @@ export function CompanionPage() {
                 {s}
               </button>
             ))}
-          </div>
-        ) : null}
-        {verification?.flagged && !isBusy ? (
-          <div className="mt-2 flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              <p className="font-semibold">تحقَّق من المصدر</p>
-              <ul className="mt-1 list-inside list-disc">
-                {verification.notes.map((n, i) => <li key={i}>{n}</li>)}
-              </ul>
-            </div>
           </div>
         ) : null}
         {partialStopped && !isBusy ? (
