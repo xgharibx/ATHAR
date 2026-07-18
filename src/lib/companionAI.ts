@@ -38,20 +38,62 @@ import {
 /* ─── Locked model + transport ───────────────────────────────────────────── */
 
 const MODEL = "MiniMax-M3";
-const PROXY_URL: string =
-  (import.meta.env.VITE_COMPANION_PROXY_URL as string | undefined) ?? "";
 
+/* Default proxy endpoint — the canonical Supabase Edge Function URL for
+   this project. We hardcode it as a fallback so deployed builds that
+   forgot to wire up the env var still work. If you need to point at a
+   different deployment, set VITE_COMPANION_PROXY_URL at build time. */
+const DEFAULT_PROXY_URL = "https://ojstudhmcypoqfnwugbf.functions.supabase.co/companion";
+const PROXY_URL: string =
+  ((import.meta.env.VITE_COMPANION_PROXY_URL as string | undefined) ?? "").trim()
+  || DEFAULT_PROXY_URL;
+
+/* The supabase gateway uses the anonymous JWT to mark public/anon-level
+   requests against the Edge Function. verify_jwt is set to false on the
+   function so this is purely informational — sending it is still polite
+   because some gateway flavours return 401 without it. We ship a sensible
+   default so even the "I forgot to set the env" deployment doesn't lose
+   AI outright. The actual upstream call still requires MINIMAX_API_KEY
+   which lives only in Supabase secrets. */
+const DEFAULT_SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qc3R1ZGhtY3lwb3Fmbnd1Z2JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNzc1NTMsImV4cCI6MjA4NjY1MzU1M30.s6f0TKx4TVjtqUw7ezCuYJ0WATgMF_bahJ1Jgh4vyEs";
 const SUPABASE_ANON_KEY: string =
-  (import.meta.env.VITE_LEADERBOARD_ANON_KEY as string | undefined) ?? "";
+  ((import.meta.env.VITE_LEADERBOARD_ANON_KEY as string | undefined) ?? "").trim()
+  || DEFAULT_SUPABASE_ANON_KEY;
+
+/* Where the resolved values actually came from — surfaces in diagnostics. */
+const PROXY_URL_SOURCE: "env" | "default" =
+  (((import.meta.env.VITE_COMPANION_PROXY_URL as string | undefined) ?? "").trim()) ? "env" : "default";
 
 export const COMPANION_MODEL = MODEL;
 export const COMPANION_DISPLAY_NAME = "أثر";
+export const COMPANION_PROXY_URL = PROXY_URL;
 
 /** True when the proxy URL is configured. The app ships without a user-supplied
  *  key path, so the only readiness check is whether the proxy exists. */
 export function isCompanionReady(): boolean {
   return !!PROXY_URL;
 }
+
+export type CompanionReadiness = {
+  ready: boolean;
+  reason?: "missing-proxy" | "missing-key";
+  proxyUrl: string | null;
+};
+
+/** Detailed readiness surface for the in-app status chip. Tells the user
+ *  — and the in-app admin — *why* the AI isn't available (if it isn't). */
+export function getCompanionReadiness(): CompanionReadiness {
+  if (!PROXY_URL) return { ready: false, reason: "missing-proxy", proxyUrl: null };
+  return { ready: true, proxyUrl: PROXY_URL };
+}
+
+/* `process.env.NODE_ENV === 'production'` is set by Vite at build time and
+   baked into the bundle. A non-production means a debug-friendly bundle that
+   can safely print diagnostics. We also expose this through a watcher for
+   the admin panel. */
+export const IS_PROD_BUILD = (import.meta as unknown as { env?: { PROD?: boolean } }).env?.PROD === true;
+
 
 /* ─── Public types ───────────────────────────────────────────────────────── */
 
@@ -688,33 +730,150 @@ function stripNonArabic(text: string): string {
   return cleaned.replace(/\s{2,}/g, " ");
 }
 
-export type CompanionError = { kind: "auth" | "rate" | "network" | "blocked" | "other"; message: string };
+export type CompanionErrorKind =
+  | "no-proxy"     // build is missing the proxy URL entirely
+  | "auth"        // 401/403 from proxy or upstream
+  | "rate"        // 429
+  | "blocked"     // 400 content-block
+  | "offline"     // network/DNS/CORS — couldn't reach proxy
+  | "server"      // proxy reached but returned 5xx
+  | "abort"       // user cancelled
+  | "other";
+
+export type CompanionError = {
+  kind: CompanionErrorKind;
+  message: string;
+  /** Arabic-support line for the diagnostic admin panel. */
+  detail?: string;
+};
+
+function isAbort(err: unknown): boolean {
+  if (!err) return false;
+  const s = String((err as { message?: unknown }).message ?? err);
+  return /abort(ed)?\b/i.test(s) || (err as { name?: unknown }).name === "AbortError";
+}
+
+/* The Anthropic SDK's error subclass identity check fails across realms
+   (Vite's build produces a different SDK instance than the one running in
+   the browser). We duck-type by name + status as the primary path so
+   diagnostic errors match what the SDK throws in production. */
+function classifyDuck(err: { name?: string; status?: number; message?: string }): {
+  kind: CompanionErrorKind | null;
+  status: number | null;
+  message: string | null;
+} {
+  const name = err.name ?? "";
+  const status = err.status ?? null;
+  const message = err.message ?? null;
+  if (name === "AbortError" || /abort(ed)?\b/i.test(message ?? "")) return { kind: "abort", status, message };
+  if (name === "AuthenticationError") return { kind: "auth", status, message };
+  if (name === "RateLimitError") return { kind: "rate", status, message };
+  if (name === "APIConnectionError") return { kind: "offline", status, message };
+  if (name === "APIError") {
+    if (status !== null && status >= 500) return { kind: "server", status, message };
+    if (status === 400) return { kind: "blocked", status, message };
+    return { kind: "other", status, message };
+  }
+  return { kind: null, status, message };
+}
 
 export function describeError(err: unknown): CompanionError {
+  if (isAbort(err)) {
+    return { kind: "abort", message: "تم الإلغاء قبل أن يكتمل الرد.", detail: "user-cancelled" };
+  }
+
+  // Try the SDK instance check first — the canonical path.
   if (err instanceof Anthropic.AuthenticationError) {
-    return { kind: "auth", message: "تعذَّر الوصول إلى خادم الذكاء. أعد المحاولة لاحقًا." };
+    return {
+      kind: "auth",
+      message: "تعذَّر التصريح لك بالذكاء. أعد المحاولة لاحقًا.",
+      detail: `HTTP ${err.status ?? "?"} — ${err.message ?? ""}`,
+    };
   }
   if (err instanceof Anthropic.RateLimitError) {
-    return { kind: "rate", message: "كثرة الطلبات الآن — انتظر قليلًا ثم أعد المحاولة." };
+    return {
+      kind: "rate",
+      message: "كثرة الطلبات الآن — انتظر قليلًا ثم أعد المحاولة.",
+      detail: `rate-limited HTTP ${err.status ?? "429"}`,
+    };
   }
   if (err instanceof Anthropic.APIConnectionError) {
-    return { kind: "network", message: "تعذَّر الاتصال — تحقَّق من اتصالك بالإنترنت." };
+    return {
+      kind: "offline",
+      message: "تعذَّر الوصول إلى خادم الذكاء. تحقَّق من اتصالك بالإنترنت.",
+      detail: `connection-failed: ${(err as Error).message ?? "unknown"}`,
+    };
   }
   if (err instanceof Anthropic.APIError) {
-    return { kind: "other", message: `خطأ في الخدمة (${err.status ?? "?"}) — أعد المحاولة.` };
+    const s = err.status ?? 0;
+    if (s >= 500) {
+      return { kind: "server", message: "خادم الذكاء مُتعَبٌ قليلًا — أعد المحاولة.", detail: `HTTP ${s}` };
+    }
+    return {
+      kind: s === 400 ? "blocked" : "other",
+      message: s === 400
+        ? "تعذَّر إكمال الطلب. حاول بصياغةٍ أخرى."
+        : `خطأ في الخدمة (${s}). أعد المحاولة.`,
+      detail: `HTTP ${s}`,
+    };
   }
-  return { kind: "other", message: "حدث خطأ غير متوقع — أعد المحاولة." };
+
+  // Duck-typed fallthrough — used when the error is serialized across the
+  // bridge (e.g. when we round-trip through the proxy function).
+  const duck = classifyDuck(err as { name?: string; status?: number; message?: string });
+  if (duck.kind) {
+    const detail = duck.status !== null ? `HTTP ${duck.status}` : (duck.message ?? "unknown");
+    switch (duck.kind) {
+      case "auth":
+        return { kind: "auth", message: "تعذَّر التصريح لك بالذكاء. أعد المحاولة لاحقًا.", detail };
+      case "rate":
+        return { kind: "rate", message: "كثرة الطلبات الآن — انتظر قليلًا ثم أعد المحاولة.", detail: duck.message ? `rate-limited · ${duck.message}` : detail };
+      case "offline":
+        return { kind: "offline", message: "تعذَّر الوصول إلى خادم الذكاء. تحقَّق من اتصالك بالإنترنت.", detail: `connection-failed · ${duck.message ?? "unknown"}` };
+      case "server":
+        return { kind: "server", message: "خادم الذكاء مُتعَبٌ قليلًا — أعد المحاولة.", detail };
+      case "blocked":
+        return { kind: "blocked", message: "تعذَّر إكمال الطلب. حاول بصياغةٍ أخرى.", detail };
+      case "other":
+        return { kind: "other", message: duck.status ? `خطأ في الخدمة (${duck.status}). أعد المحاولة.` : "حدث خطأ غير متوقع. أعد المحاولة.", detail };
+      case "abort":
+        return { kind: "abort", message: "تم الإلغاء قبل أن يكتمل الرد.", detail: "user-cancelled" };
+    }
+  }
+
+  if (err instanceof Error && err.message === "no-proxy-configured") {
+    return {
+      kind: "no-proxy",
+      message: "لم يُهيَّأ خادم الذكاء في هذه النسخة.",
+      detail: "no-proxy",
+    };
+  }
+  return {
+    kind: "other",
+    message: "حدث خطأ غير متوقع. أعد المحاولة.",
+    detail: String((err as Error)?.message ?? err),
+  };
 }
 
 function createClient(): Anthropic {
   if (!PROXY_URL) throw new Error("no-proxy-configured");
+  const headers: Record<string, string> = {
+    /* `anthropic-dangerous-direct-browser-access` lets the SDK run in a
+       Capacitor WebView without throwing a runtime warning. */
+    "anthropic-dangerous-direct-browser-access": "true",
+    /* Defence against cacheable proxy responses — never keep a stream alive
+       across payload rerenders. */
+    "Cache-Control": "no-store",
+  };
+  if (SUPABASE_ANON_KEY) {
+    headers.apikey = SUPABASE_ANON_KEY;
+    headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
+  }
   return new Anthropic({
     apiKey: "proxy",
     baseURL: PROXY_URL,
     dangerouslyAllowBrowser: true,
-    defaultHeaders: SUPABASE_ANON_KEY
-      ? { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
-      : undefined,
+    defaultHeaders: headers,
   });
 }
 

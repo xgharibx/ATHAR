@@ -81,6 +81,12 @@ import {
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useNoorStore } from "@/store/noorStore";
 import { arNum } from "@/lib/formatNumber";
+import {
+  checkCompanionHealth,
+  peekCompanionHealth,
+  type CompanionHealthState,
+} from "@/lib/companionHealth";
+import { COMPANION_PROXY_URL } from "@/lib/companionAI";
 
 
 function relativeTime(ms: number): string {
@@ -113,6 +119,53 @@ const MOOD_PROMPTS: Array<[string, string]> = [
 const FRIDAY = "خاطرة الجمعة";
 const ASK_PARAM = "ask";
 
+/* ─── Tiny status chip shown on the Companion header. Tells users whether
+   AI is reachable BEFORE they type anything. Live-updates via the memo
+   cache so reopens are instant. ─────────────────────────────────────── */
+function CompanionStatusChip({ state, onRefresh }: {
+  state: CompanionHealthState;
+  onRefresh: () => void;
+}) {
+  if (state.status === "idle" || state.status === "checking") {
+    return (
+      <button
+        type="button"
+        onClick={onRefresh}
+        className="flex items-center gap-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] px-2.5 py-1 text-[10.5px] opacity-80 hover:opacity-100 transition"
+        title="تحقّق من خادم الذكاء"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-[var(--muted)] animate-pulse" />
+        <span>جاري التحقّق…</span>
+      </button>
+    );
+  }
+  if (state.status === "ready") {
+    return (
+      <button
+        type="button"
+        onClick={onRefresh}
+        className="flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2.5 py-1 text-[10.5px] font-semibold text-emerald-300 hover:opacity-100 transition"
+        title={`مفعَّل · ${arNum(state.latencyMs)} مللي ثانية`}
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+        <span>الذكاء مفعَّل</span>
+      </button>
+    );
+  }
+  // unreachable
+  return (
+    <button
+      type="button"
+      onClick={onRefresh}
+      className="flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[10.5px] font-semibold text-amber-300 hover:opacity-100 transition"
+      title={state.reason}
+    >
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+      <span>الذكاء غير متاح</span>
+    </button>
+  );
+}
+
 export function CompanionPage() {
   useScrollRestoration();
   const navigate = useNavigate();
@@ -121,6 +174,20 @@ export function CompanionPage() {
   const [showPins, setShowPins] = React.useState(false);
   const [pins, setPins] = React.useState<PinnedReply[]>(() => listPins());
   const [history, setHistory] = React.useState<CompanionConversation[]>([]);
+  /* Live AI endpoint reachability — surfaces a chip on the header so users
+     see "الذكاء مفعَّل" / "غير متاح" before they type anything. */
+  const [aiHealth, setAiHealth] = React.useState<CompanionHealthState>(
+    () => peekCompanionHealth() ?? { status: "idle" },
+  );
+  const refreshAiHealth = React.useCallback(() => {
+    setAiHealth({ status: "checking" });
+    void checkCompanionHealth(true).then(setAiHealth).catch(() => {
+      setAiHealth({ status: "unreachable", at: Date.now(), reason: "client-error", latencyMs: 0 });
+    });
+  }, []);
+  React.useEffect(() => {
+    if (aiHealth.status === "idle") refreshAiHealth();
+  }, [aiHealth.status, refreshAiHealth]);
   const [historyQuery, setHistoryQuery] = React.useState("");
   const [renamingId, setRenamingId] = React.useState<string | null>(null);
   const [renameDraft, setRenameDraft] = React.useState("");
@@ -367,7 +434,15 @@ export function CompanionPage() {
             speakFinal(fullText);
           },
           onError: (err) => {
-            toast.error(err.message);
+            // Show a diagnostic toast + update the health chip so the user
+            // can see that AI is offline + retry when ready.
+            const msg = err?.message ?? "حدث خطأ غير متوقع";
+            toast.error(msg, { duration: 4500 });
+            if (err?.kind === "offline" || err?.kind === "no-proxy") {
+              setAiHealth({ status: "unreachable", at: Date.now(), reason: err.detail ?? err.kind, latencyMs: 0 });
+            } else if (err?.kind === "server") {
+              setAiHealth({ status: "unreachable", at: Date.now(), reason: err.detail ?? err.kind, latencyMs: 0 });
+            }
             if (acc.trim()) {
               setMessages((m) => [...m, { role: "assistant", content: acc }]);
               setPartialStopped(true);
@@ -582,9 +657,12 @@ export function CompanionPage() {
             <Sparkles className="h-5 w-5 text-[var(--accent)]" aria-hidden="true" />
           </span>
           <div>
-            <h1 className="flex items-center gap-2 text-lg font-bold text-[var(--fg)]">
-              أثر
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="flex items-center gap-2 text-lg font-bold text-[var(--fg)]">
+                أثر
+              </h1>
+              <CompanionStatusChip state={aiHealth} onRefresh={refreshAiHealth} />
+            </div>
             <p className="text-xs text-[var(--muted-2)]">
               رفيقك في الطريق إلى الله — يعرف رحلتك ويمشي معك خطوة خطوة
             </p>
