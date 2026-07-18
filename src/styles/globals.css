@@ -2389,7 +2389,7 @@ body.quran-focus-mode .quran-surface {
   100% { transform: scale(1);     filter: brightness(1)    saturate(1);   box-shadow: 0 4px 18px color-mix(in srgb, var(--accent) 22%, transparent), inset 0 0 0 0  rgba(255,255,255,0); }
 }
 .btn-count-press-wrap {
-  animation: btnCountPress 380ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: btnCountPress 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
   .btn-count-press-wrap { animation: none; }
