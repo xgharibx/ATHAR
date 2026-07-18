@@ -59,6 +59,7 @@ export function DhikrCard(props: {
   const [posterOpen, setPosterOpen] = React.useState(false);
 
   const cardRef = React.useRef<HTMLDivElement>(null);
+  const countBtnRef = React.useRef<HTMLButtonElement>(null);
   const ringRef = React.useRef<SVGCircleElement>(null);
   const swipeRef = React.useRef({ x: 0, y: 0, active: false });
   // Throttle per-tap theme confetti (only every Nth tap on mobile)
@@ -218,19 +219,21 @@ export function DhikrCard(props: {
   const onCount = () => {
     const next = increment({ sectionId, index, target });
     tapCountRef.current++;
-    
+
     // Haptic feedback
     if (prefs.enableHaptics && navigator.vibrate) {
       navigator.vibrate(12);
     }
-    
-    // Micro ripple — pure CSS, zero JS overhead
-    if (cardRef.current) {
-      const el = cardRef.current;
-      el.classList.remove('dhikr-tap-pulse');
+
+    // Per-tap button press animation — fires on EVERY tap from the very
+    // first one through the last. The class is removed-then-readded to
+    // force a reflow so the CSS animation restarts even on rapid-fire taps.
+    if (countBtnRef.current) {
+      const el = countBtnRef.current;
+      el.classList.remove("btn-count-press");
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       void el.offsetWidth; // force reflow to restart animation
-      el.classList.add('dhikr-tap-pulse');
+      el.classList.add("btn-count-press");
     }
     
     // Theme-Specific Particles — throttled to every 6th tap to stay smooth on mobile
@@ -539,6 +542,7 @@ export function DhikrCard(props: {
         {/* Counter Button — placed before benefit so it's visible without scrolling */}
         <div className="mt-4 flex items-center justify-between gap-3">
           <button type="button"
+            ref={countBtnRef}
             className={cn(
               "flex-1 rounded-3xl px-4 py-5 text-base font-bold border transition select-none btn-count press-effect active:scale-[.96]",
               done

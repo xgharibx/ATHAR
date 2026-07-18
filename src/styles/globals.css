@@ -2376,38 +2376,37 @@ body.quran-focus-mode .quran-surface {
 }
 
 /* -------------------------------------------------------
-   DhikrCard tap pulse — invoked on every tap. Restores the
-   soft, satisfying click feel the card used to have. Same
-   animation runs on every tap (the JS removes/re-adds the
-   class so it restarts every time).
+   Dhikr count button — per-tap press animation. Fires once
+   per tap on the BUTTON ITSELF (no card-wide effect). The
+   JS removes/re-adds the class to force a reflow so rapid
+   consecutive taps re-trigger cleanly. Lightweight on
+   purpose: just a tiny scale dip + spring back via GPU
+   transform — no box-shadow expansion, no filter blur.
    ------------------------------------------------------- */
-@keyframes dhikrTapPulse {
-  0%   { transform: scale(1);           box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.0); }
-  35%  { transform: scale(1.022);       box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.12); }
-  70%  { transform: scale(0.998);       box-shadow: 0 0 0 14px rgba(16, 185, 129, 0.05); }
-  100% { transform: scale(1);           box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.0); }
+@keyframes btnCountPress {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(0.952); }
+  100% { transform: scale(1); }
 }
-.dhikr-tap-pulse {
-  /* ~320ms total — slow enough that the eye registers the press
-     without feeling sluggish. Same curve on every tap. */
-  animation: dhikrTapPulse 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  will-change: transform, box-shadow;
+.btn-count-press {
+  animation: btnCountPress 220ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform;
 }
 @media (prefers-reduced-motion: reduce) {
-  .dhikr-tap-pulse { animation: none; }
+  .btn-count-press { animation: none; }
 }
 
 /* -------------------------------------------------------
    Sebha counter number — fade/slide on increment.
-   Slowed to 320ms so the digit pop reads as a tactile click.
+   Kept light so it stays cheap on low-end devices.
    ------------------------------------------------------- */
 @keyframes counterPop {
-  0%   { opacity: 0; transform: translateY(10px) scale(0.9); }
-  55%  { opacity: 1; transform: translateY(-3px) scale(1.06); }
+  0%   { opacity: 0; transform: translateY(8px) scale(0.92); }
+  60%  { opacity: 1; transform: translateY(-2px) scale(1.04); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 .counter-pop {
-  animation: counterPop 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: counterPop 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
   display: inline-block;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2512,11 +2511,10 @@ body.quran-focus-mode .quran-surface {
    Improved interactive card press effect
    ------------------------------------------------------- */
 .press-effect {
-  /* Slower spring feedback for tactile click feel. The transition kicks
-     back when the pointer releases, so the small bounce-up is visible
-     on every tap — not just rapid-fire ones. */
-  transition: transform 220ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              filter 220ms ease;
+  /* Snappy press/release. The visible per-tap bounce is handled by the
+     .btn-count-press class added/removed in JS so this only governs
+     the brief moment the button is held. */
+  transition: transform 90ms ease, filter 90ms ease;
   will-change: transform;
 }
 
