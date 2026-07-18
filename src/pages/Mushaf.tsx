@@ -33,6 +33,7 @@ import {
   toggleRadio as toggleSharedRadio,
 } from "@/lib/radioPlayer";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
+import { ShareAyahModal } from "@/components/quran/ShareAyahModal";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { FloatingAthar } from "@/components/companion/FloatingAthar";
@@ -493,6 +494,8 @@ export function MushafPage() {
   // Share-options sheet (Ayah-style)
   const [shareSheetOpen, setShareSheetOpen] = React.useState(false);
   const [shareBusy, setShareBusy] = React.useState(false);
+  // Ultimate share composer — full customization modal
+  const [composerOpen, setComposerOpen] = React.useState(false);
 
   // Phase 2F: Reading timer
   const sessionStartRef = React.useRef(Date.now());
@@ -1886,6 +1889,10 @@ export function MushafPage() {
             <Pencil size={18} aria-hidden="true" />
             <span>تدبّر</span>
           </button>
+          <button type="button" className="mushaf-action-btn" onClick={() => setComposerOpen(true)} aria-label="مشاركة فنية">
+            <Sparkles size={18} />
+            <span>صورة فنية</span>
+          </button>
           <button type="button" className="mushaf-action-btn" onClick={() => setShareSheetOpen(true)} aria-label="مشاركة">
             <Share2 size={18} />
             <span>إرسال</span>
@@ -2087,9 +2094,13 @@ export function MushafPage() {
             </div>
             <div className="mushaf-tadabbur-quote" dir="rtl">{selectedItem.text}</div>
             <div className="mushaf-share-grid" aria-busy={shareBusy}>
+              <button type="button" className="mushaf-share-opt mushaf-share-primary" disabled={shareBusy} onClick={() => { setShareSheetOpen(false); setComposerOpen(true); }}>
+                <ImageIcon size={20} aria-hidden="true" />
+                <span>صورة مميّزة</span>
+              </button>
               <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahImage(false)}>
                 <ImageIcon size={20} aria-hidden="true" />
-                <span>صورة</span>
+                <span>صورة سريعة</span>
               </button>
               <button type="button" className="mushaf-share-opt" disabled={shareBusy} onClick={() => shareAyahImage(true)}>
                 <ImageIcon size={20} aria-hidden="true" />
@@ -2991,6 +3002,17 @@ export function MushafPage() {
             : "ما الذي ينفعني في هذه الصفحة من المصحف الآن؟"
         }
       />
+      {composerOpen && selectedItem && (
+        <ShareAyahModal
+          open={composerOpen}
+          onClose={() => setComposerOpen(false)}
+          text={selectedItem.text}
+          ayahNumber={selectedItem.displayAyah}
+          surahName={selectedItem.surahName}
+          surahNumber={selectedItem.surahId}
+          transliteration={undefined}
+        />
+      )}
     </div>
   );
 }

@@ -4116,6 +4116,22 @@ header {
 .mushaf-share-opt:disabled { opacity: 0.45; cursor: wait; }
 .mushaf-share-opt svg { color: var(--accent); }
 
+/* "صورة مميّزة" entry — the ultimate composer opener */
+.mushaf-share-primary {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent), color-mix(in srgb, var(--accent-2) 12%, transparent));
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 22px -6px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+.mushaf-share-primary span {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.mushaf-share-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 30%, transparent), color-mix(in srgb, var(--accent-2) 22%, transparent));
+}
+
 /* ── Bottom bar: wraps prev/next nav + page strip ─── */
 .mushaf-bottom-bar {
   position: fixed;
