@@ -117,12 +117,6 @@ function DhikrMascot({ mascot, accent }: { mascot: MascotKey; accent?: string })
           ))}
         </svg>
       );
-    case "star":
-      return (
-        <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-anim"} aria-hidden="true">
-          <polygon points="22,4 26,18 40,18 29,26 33,40 22,31 11,40 15,26 4,18 18,18" fill={color} />
-        </svg>
-      );
     case "moon":
       return (
         <svg width="44" height="44" viewBox="0 0 44 44" className={common + " mascot-anim"} aria-hidden="true">

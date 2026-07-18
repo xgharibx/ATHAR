@@ -133,14 +133,16 @@ export const DUAS: Dua[] = [
  * Sebha page renders one of these next to the counter to give a little
  * visual variety when switching dhikr.
  */
-export type MascotKey = "wave" | "sun" | "star" | "moon" | "drop" | "leaf" | "flame" | "heart" | "default";
+export type MascotKey = "wave" | "sun" | "moon" | "drop" | "leaf" | "flame" | "heart" | "default";
 
 export function mascotForPhrase(phrase: string): MascotKey {
   const p = phrase ?? "";
   if (/(سبحان|تنزيه)/.test(p)) return "wave";
   if (/(صلاة على|نبي)/.test(p)) return "leaf";
   if (/(حمد|شكر)/.test(p)) return "sun";
-  if (/(إله إلا|توحيد|لا إله)/.test(p)) return "star";
+  // Moon (هلال) — used for the لا إله إلا الله / توحيد cluster. Was a
+  // star previously; user feedback preferred no stars anywhere.
+  if (/(إله إلا|توحيد|لا إله)/.test(p)) return "moon";
   if (/(أكبر|تكبير)/.test(p)) return "moon";
   if (/(استغفر|مغفرة)/.test(p)) return "drop";
   if (/(حسبنا|قوة|حول)/.test(p)) return "flame";

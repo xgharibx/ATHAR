@@ -220,7 +220,7 @@ describe("Dhikr catalog", () => {
     }
   });
 
-  it("mascotForPhrase returns known keys", async () => {
+  it("mascotForPhrase returns known keys (no star)", async () => {
     const { mascotForPhrase } = await import("../src/lib/dhikrCatalog");
     expect(mascotForPhrase("سبحان الله")).toBe("wave");
     expect(mascotForPhrase("الحمد لله")).toBe("sun");
@@ -229,7 +229,9 @@ describe("Dhikr catalog", () => {
     expect(mascotForPhrase("الصلاة على نبي")).toBe("leaf");
     expect(mascotForPhrase("حسبنا الله")).toBe("flame");
     expect(mascotForPhrase("يا حي يا قيوم")).toBe("heart");
-    expect(mascotForPhrase("لا إله إلا الله")).toBe("star");
+    // توحيد cluster now resolves to 'moon' (هلال) — was 'star' before
+    // the user-asked-for star purge.
+    expect(mascotForPhrase("لا إله إلا الله")).toBe("moon");
     expect(mascotForPhrase("")).toBe("default");
   });
 });
