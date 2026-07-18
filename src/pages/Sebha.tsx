@@ -9,8 +9,6 @@ import {
   Trash2,
   Plus,
   Pencil,
-  Mic,
-  MicOff,
   BarChart2,
   Share2,
   Flame,
@@ -1158,53 +1156,67 @@ export function SebhaPage() {
 
       {/* Counter card */}
       <Card className="p-5 text-center">
-        {/* Toolbar */}
+        {/*
+          Unified mode row. The user picks between a fixed number
+          (1000 / 100 / 33) and the unbounded "وضع حر" free-count mode.
+          - Always visible — picking a quick azkar chip below must not
+            hide this row (the user explicitly asked for this).
+          - Active state shows a small accent dot inside the chip.
+        */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Target selector (hidden in custom mode) */}
-            {selected !== "custom" && (
-              <div className="flex rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1">
-                {TARGETS.map((value) => (
-                  <button type="button"
-                    key={value}
-                    onClick={() => setTarget(value)}
-                    className={cn(
-                      "min-w-10 rounded-xl px-3 py-2 text-xs font-semibold transition",
-                      target === value ? "bg-[var(--accent)] text-[var(--on-accent)]" : "text-[var(--muted)] hover:bg-[var(--card-2)]"
-                    )}
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button variant="secondary" onClick={handleReset}>
-              <RotateCw size={16} aria-hidden="true" />
-              تصفير الحالي
-            </Button>
-            {/* 6B: Voice mic button */}
-            {voiceSupported && (
-              <button type="button"
-                onClick={toggleVoice}
-                title={listening ? "إيقاف الاستماع" : "عدّ بالصوت"}
-                aria-label={listening ? "إيقاف الاستماع بالصوت" : "تفعيل العدّ بالصوت"}
-                aria-pressed={listening}
-                disabled={voiceStarting}
+          <div
+            role="radiogroup"
+            aria-label="وضع العدّ"
+            className="flex items-center gap-1 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1"
+          >
+            {TARGETS.map((value) => (
+              <button
+                type="button"
+                role="radio"
+                key={value}
+                aria-checked={!tallyMode && target === value}
+                onClick={() => {
+                  setTallyMode(false);
+                  setTarget(value);
+                }}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-semibold transition shrink-0",
-                  listening
-                    ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
-                    : "border-[var(--stroke)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--card-2)]",
-                  voiceStarting && "opacity-60"
+                  "min-w-12 rounded-xl px-3 py-2 text-xs font-bold transition",
+                  !tallyMode && target === value
+                    ? "bg-[var(--accent)] text-[var(--on-accent)] shadow-[0_0_18px_-4px_var(--accent)]"
+                    : "text-[var(--muted)] hover:bg-[var(--card-2)]"
                 )}
               >
-                {listening ? <MicOff size={13} aria-hidden="true" /> : <Mic size={13} aria-hidden="true" />}
-                {voiceStarting ? "طلب الإذن" : listening ? "جارٍ الاستماع" : "صوت"}
+                {toArabicNumeral(value)}
               </button>
-            )}
+            ))}
+            {/* وضع حر — free count, no target. Sits in the same row as
+                the number chips so the user can swap modes in one tap. */}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={tallyMode}
+              onClick={() => {
+                setTallyMode((v) => !v);
+                if (!tallyMode) {
+                  toast.success("تم تفعيل وضع العدّ الحر");
+                }
+              }}
+              className={cn(
+                "min-w-12 rounded-xl px-3 py-2 text-xs font-bold transition flex items-center justify-center gap-1.5",
+                tallyMode
+                  ? "bg-accent-15 border border-accent-50 text-[var(--accent)] shadow-[0_0_18px_-4px_var(--accent)]"
+                  : "text-[var(--muted)] hover:bg-[var(--card-2)] border border-transparent",
+              )}
+              title="بدون هدف — عدّ حر"
+            >
+              <Timer size={11} aria-hidden="true" />
+              حر
+            </button>
           </div>
+          <Button variant="secondary" onClick={handleReset}>
+            <RotateCw size={16} aria-hidden="true" />
+            تصفير الحالي
+          </Button>
         </div>
 
         {/* S4 - Circular ring counter (single tap only) */}
