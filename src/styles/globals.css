@@ -2376,24 +2376,21 @@ body.quran-focus-mode .quran-surface {
 }
 
 /* -------------------------------------------------------
-   Dhikr count button — per-tap press animation. Fires once
-   per tap on the BUTTON ITSELF (no card-wide effect). The
-   JS removes/re-adds the class to force a reflow so rapid
-   consecutive taps re-trigger cleanly. We use a brightness
-   flash + a soft inset ring instead of a scale-down so it
-   doesn't feel like a double-tap (scale-down on :active
-   plus scale-down via the keyframe would dip twice).
+   Dhikr count button — per-tap press animation. One fluid
+   press-and-release motion: snap down to 0.96, flash bright,
+   overshoot slightly past 1, settle to 1. Total 240ms — fast
+   enough that it reads as a single crisp tap, never as two dips.
+   The scale dip + brightness flash share a single keyframe so
+   they move together.
    ------------------------------------------------------- */
 @keyframes btnCountPress {
-  0%   { filter: brightness(1) saturate(1);     box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 25%, transparent), inset 0 0 0 0 rgba(255,255,255,0); }
-  25%  { filter: brightness(1.22) saturate(1.2); box-shadow: 0 6px 26px color-mix(in srgb, var(--accent) 45%, transparent), inset 0 0 0 2px rgba(255,255,255,0.35); }
-  60%  { filter: brightness(1.08) saturate(1.1); box-shadow: 0 5px 22px color-mix(in srgb, var(--accent) 32%, transparent), inset 0 0 0 1px rgba(255,255,255,0.15); }
-  100% { filter: brightness(1) saturate(1);     box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 25%, transparent), inset 0 0 0 0 rgba(255,255,255,0); }
+  0%   { transform: scale(1);     filter: brightness(1)    saturate(1);   box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 25%, transparent), inset 0 0 0 0  rgba(255,255,255,0); }
+  18%  { transform: scale(0.96);  filter: brightness(1.22) saturate(1.18); box-shadow: 0 6px 26px color-mix(in srgb, var(--accent) 50%, transparent), inset 0 0 0 2px rgba(255,255,255,0.4); }
+  55%  { transform: scale(1.012); filter: brightness(1.06) saturate(1.08); box-shadow: 0 5px 22px color-mix(in srgb, var(--accent) 30%, transparent), inset 0 0 0 1px rgba(255,255,255,0.18); }
+  100% { transform: scale(1);     filter: brightness(1)    saturate(1);   box-shadow: 0 4px 20px color-mix(in srgb, var(--accent) 25%, transparent), inset 0 0 0 0  rgba(255,255,255,0); }
 }
 .btn-count-press-wrap {
-  /* Reusing the same class name on the wrapper keeps the JS-side class
-     dance the same; the animation name is what changed. */
-  animation: btnCountPress 320ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: btnCountPress 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
   .btn-count-press-wrap { animation: none; }
