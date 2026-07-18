@@ -230,10 +230,10 @@ export function DhikrCard(props: {
     // force a reflow so the CSS animation restarts even on rapid-fire taps.
     if (countBtnRef.current) {
       const el = countBtnRef.current;
-      el.classList.remove("btn-count-press");
+      el.classList.remove("btn-count-press-wrap");
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       void el.offsetWidth; // force reflow to restart animation
-      el.classList.add("btn-count-press");
+      el.classList.add("btn-count-press-wrap");
     }
     
     // Theme-Specific Particles — throttled to every 6th tap to stay smooth on mobile
@@ -544,7 +544,7 @@ export function DhikrCard(props: {
           <button type="button"
             ref={countBtnRef}
             className={cn(
-              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border transition select-none btn-count press-effect active:scale-[.96]",
+              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border select-none btn-count-press-wrap",
               done
                 ? "bg-[var(--ok)] text-[var(--on-accent)] border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
                 : "bg-[var(--accent)] text-[var(--on-accent)] border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",
