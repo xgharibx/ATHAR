@@ -57,7 +57,6 @@ function parseRgb(color: string): { r: number; g: number; b: number } | null {
   const c = color.trim();
   const rgb = c.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
   if (rgb) return { r: Number(rgb[1]), g: Number(rgb[2]), b: Number(rgb[3]) };
-
   const hex = c.match(/^#([0-9a-f]{6})$/i);
   if (hex) {
     const v = hex[1];
@@ -87,7 +86,7 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-/* ─── Arabic-aware text wrap (respects RTL joining) ─────────────────────── */
+/* ─── Arabic-aware text wrap ────────────────────────────────────────────── */
 
 function wrapRtlText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
   const words = (text ?? "").split(/\s+/).filter(Boolean);
@@ -115,161 +114,135 @@ function fontSizeByLength(len: number) {
   return 70;
 }
 
-/* ─── Decorative ornaments (programmatic arabesque) ────────────────────── */
+/* ─── Subtle ornaments: dots + crescents, no stars ──────────────────────── */
 
 /**
- * Draw an 8-point star (the khatim / "seal" used in Islamic ornament).
+ * A single tiny dot. The only background ornament allowed in the design.
  */
-function draw8Star(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+function drawDot(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, fill: string) {
+  ctx.save();
+  ctx.fillStyle = fill;
   ctx.beginPath();
-  for (let i = 0; i < 16; i++) {
-    const ang = (i * Math.PI) / 8 - Math.PI / 2;
-    const rad = i % 2 === 0 ? r : r * 0.44;
-    const x = cx + Math.cos(ang) * rad;
-    const y = cy + Math.sin(ang) * rad;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 /**
- * Draw a 6-petal rosette used inside medallions.
+ * Crescent moon (هلال). Drawn as two overlapping circles — outer
+ * filled, inner cut out — facing right. Used sparingly as the only
+ * "shape" ornament in the design.
  */
-function drawRosette(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+function drawCrescent(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  fill: string,
+  stroke?: string,
+) {
+  ctx.save();
+  ctx.fillStyle = fill;
   ctx.beginPath();
-  for (let i = 0; i < 12; i++) {
-    const ang = (i * Math.PI) / 6 - Math.PI / 2;
-    const rad = i % 2 === 0 ? r : r * 0.55;
-    const x = cx + Math.cos(ang) * rad;
-    const y = cy + Math.sin(ang) * rad;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
+  ctx.arc(cx, cy, r, Math.PI / 2, (3 * Math.PI) / 2);
+  ctx.arc(cx + r * 0.5, cy, r * 0.92, (3 * Math.PI) / 2, Math.PI / 2);
   ctx.closePath();
+  ctx.fill();
+  if (stroke) {
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = Math.max(1, r * 0.08);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 /**
- * Programmatic arabesque corner flourish — interlacing arcs radiating
- * from the corner. Used at each corner of the ornate frame.
+ * A small cluster of dots used as a divider centre — replaces the
+ * previous "diamond + side diamonds" / "8-star + 4 satellites" motif.
+ * Pattern:  · · · ☾ · · ·
  */
-function drawCornerFlourish(
+function drawDotDivider(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  fill: string,
+) {
+  ctx.save();
+  ctx.fillStyle = fill;
+  ctx.globalAlpha = 0.7;
+  // flanking tiny dots
+  for (const dx of [-38, 14, -14, 38]) {
+    ctx.beginPath();
+    ctx.arc(cx + dx, cy, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+  // centre crescent
+  drawCrescent(ctx, cx, cy, 9, fill);
+}
+
+/**
+ * A subtle corner curve — replaces the 4-arc-with-star flourish.
+ * Just a single curved accent line + 3 small dots. No stars.
+ */
+function drawCornerCurve(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   side: "tl" | "tr" | "br" | "bl",
   size: number,
   stroke: string,
-  fill: string,
 ) {
   ctx.save();
   ctx.translate(x, y);
-  // orientation: 0 = top-left corner pointing down-right
   const rot = { tl: 0, tr: -Math.PI / 2, br: -Math.PI, bl: (-3 * Math.PI) / 2 }[side];
   ctx.rotate(rot);
 
   ctx.strokeStyle = stroke;
-  ctx.fillStyle = fill;
-  ctx.lineWidth = Math.max(2, size * 0.045);
-
-  // outer curved arc - like a quarter of a circle ornament
+  ctx.lineWidth = Math.max(2, size * 0.05);
   ctx.beginPath();
   ctx.arc(0, 0, size, 0, Math.PI / 2);
   ctx.stroke();
 
-  // inner secondary arc
-  ctx.beginPath();
-  ctx.arc(size * 0.18, size * 0.18, size * 0.82, 0, Math.PI / 2);
-  ctx.stroke();
-
-  // 8-point star at the inner pivot
-  draw8Star(ctx, size * 0.32, size * 0.32, size * 0.22);
-  ctx.fill();
-  ctx.lineWidth = Math.max(1.5, size * 0.025);
-  ctx.stroke();
-
-  // 3 little dots radiating from the inner pivot to outer arc
+  // 3 small radial dots — no star at the pivot
+  ctx.fillStyle = stroke;
   for (let i = 0; i < 3; i++) {
-    const t = 0.25 + i * 0.25;
+    const t = 0.32 + i * 0.22;
     const px = size * t;
     ctx.beginPath();
-    ctx.arc(px, px, Math.max(2, size * 0.035), 0, Math.PI * 2);
+    ctx.arc(px, px, Math.max(2, size * 0.04), 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
 }
 
-/**
- * Ornate diamond cluster — used as divider flourish on either side of
- * the title pill.
- */
-function drawDiamondDivider(
+/* ─── Tiny dot starfield (Athar-style: subtle far-background dots only) ── */
+
+function drawDotField(
   ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  size: number,
-  stroke: string,
-  fill: string,
+  rng: () => number,
+  w: number,
+  h: number,
+  accent: string,
+  fg: string,
 ) {
   ctx.save();
-  ctx.translate(cx, cy);
-  ctx.strokeStyle = stroke;
-  ctx.fillStyle = fill;
-  // center large diamond
-  draw8Star(ctx, 0, 0, size * 0.45);
-  ctx.fill();
-  ctx.lineWidth = Math.max(1.5, size * 0.04);
-  ctx.stroke();
-
-  // two side diamonds
-  for (const dir of [-1, 1]) {
-    ctx.beginPath();
-    const x = dir * size * 1.1;
-    ctx.moveTo(x, -size * 0.32);
-    ctx.lineTo(x + size * 0.28, 0);
-    ctx.lineTo(x, size * 0.32);
-    ctx.lineTo(x - size * 0.28, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
-  // connecting lines between
-  ctx.lineWidth = Math.max(1, size * 0.025);
-  ctx.beginPath();
-  ctx.moveTo(-size * 0.6, 0);
-  ctx.lineTo(-size * 0.32, 0);
-  ctx.moveTo(size * 0.32, 0);
-  ctx.lineTo(size * 0.6, 0);
-  ctx.stroke();
-  ctx.restore();
-}
-
-/* ─── Starfield + atmosphere ────────────────────────────────────────────── */
-
-function drawStarfield(ctx: CanvasRenderingContext2D, rng: () => number, w: number, h: number, accent: string, fg: string) {
-  ctx.save();
-  for (let i = 0; i < 220; i++) {
+  for (let i = 0; i < 280; i++) {
     const x = rng() * w;
     const y = rng() * h;
-    const size = rng() * 1.7 + 0.4;
-    const alpha = 0.18 + rng() * 0.55;
+    const size = rng() * 1.1 + 0.3;
+    const alpha = 0.10 + rng() * 0.35;
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = i % 7 === 0 ? accent : fg;
+    ctx.fillStyle = i % 9 === 0 ? accent : fg;
     ctx.beginPath();
     ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
-    // tiny cross-flare on rare bright stars
-    if (rng() < 0.05) {
-      const flare = size * 3.2;
-      ctx.globalAlpha = alpha * 0.35;
-      ctx.fillRect(x - flare * 0.06, y - flare * 0.5, flare * 0.12, flare);
-      ctx.fillRect(x - flare * 0.5, y - flare * 0.06, flare, flare * 0.12);
-    }
   }
+  ctx.globalAlpha = 1;
   ctx.restore();
 }
 
-function drawBokeh(
+function drawSoftBokeh(
   ctx: CanvasRenderingContext2D,
   rng: () => number,
   w: number,
@@ -278,13 +251,13 @@ function drawBokeh(
   accent2: string,
 ) {
   ctx.save();
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 18; i++) {
     const bx = rng() * w;
     const by = rng() * h;
-    const br = 60 + rng() * 240;
+    const br = 80 + rng() * 220;
     const color = i % 2 ? accent : accent2;
     const grad = ctx.createRadialGradient(bx, by, 0, bx, by, br);
-    grad.addColorStop(0, rgba(color, 0.18));
+    grad.addColorStop(0, rgba(color, 0.14));
     grad.addColorStop(1, rgba(color, 0));
     ctx.fillStyle = grad;
     ctx.beginPath();
@@ -294,7 +267,7 @@ function drawBokeh(
   ctx.restore();
 }
 
-/* ─── Image loader (same as before) ─────────────────────────────────────── */
+/* ─── Image loader ──────────────────────────────────────────────────────── */
 
 async function loadImage(url: string): Promise<HTMLImageElement> {
   return await new Promise((resolve, reject) => {
@@ -318,36 +291,6 @@ function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: numb
   const sx = (iw - sw) / 2;
   const sy = (ih - sh) / 2;
   ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-}
-
-/* ─── Programmatic arabesque layer (faint background tessellation) ─────── */
-
-function drawArabesqueLayer(
-  ctx: CanvasRenderingContext2D,
-  rng: () => number,
-  w: number,
-  h: number,
-  accent: string,
-  stroke: string,
-) {
-  ctx.save();
-  ctx.strokeStyle = stroke;
-  ctx.lineWidth = 1;
-  const step = 124;
-  for (let y = step / 2; y < h + step; y += step) {
-    for (let x = step / 2; x < w + step; x += step) {
-      // 8-point star outline
-      ctx.globalAlpha = 0.07 + rng() * 0.04;
-      draw8Star(ctx, x, y, step * 0.42);
-      ctx.stroke();
-      // rosette inside
-      ctx.globalAlpha = 0.05 + rng() * 0.03;
-      drawRosette(ctx, x, y, step * 0.28);
-      ctx.stroke();
-    }
-  }
-  ctx.globalAlpha = 1;
-  ctx.restore();
 }
 
 /* ─── Main poster entry ─────────────────────────────────────────────────── */
@@ -375,7 +318,6 @@ export async function renderDhikrPosterBlob(opts: {
   const rng = mulberry32(seedFromString(`${theme.themeName}|${opts.text.slice(0, 40)}`));
 
   /* ────── 1. DEEP BACKGROUND ─────── */
-  // dark base gradient (corner-cool → corner-warm)
   const bg = ctx.createLinearGradient(0, 0, W * 0.5, H);
   bg.addColorStop(0, "#0a0d14");
   bg.addColorStop(0.5, "rgba(0,0,0,0.96)");
@@ -383,14 +325,14 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  // four-corner atmospheric glows
+  // four-corner atmospheric glows (soft, not stars)
   ctx.save();
-  const corners = [
-    [W * 0.1, H * 0.08, theme.accent, 0.32, W * 0.7],
-    [W * 0.95, H * 0.2, theme.accent2, 0.22, W * 0.65],
-    [W * 0.05, H * 0.95, theme.accent2, 0.20, W * 0.6],
-    [W * 0.9, H * 0.95, theme.accent, 0.28, W * 0.7],
-  ] as const;
+  const corners: ReadonlyArray<readonly [number, number, string, number, number]> = [
+    [W * 0.1, H * 0.08, theme.accent, 0.30, W * 0.7],
+    [W * 0.95, H * 0.2, theme.accent2, 0.20, W * 0.65],
+    [W * 0.05, H * 0.95, theme.accent2, 0.18, W * 0.6],
+    [W * 0.9, H * 0.95, theme.accent, 0.26, W * 0.7],
+  ];
   for (const [cx, cy, c, alpha, r] of corners) {
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     g.addColorStop(0, rgba(c, alpha));
@@ -400,18 +342,15 @@ export async function renderDhikrPosterBlob(opts: {
   }
   ctx.restore();
 
-  // faint arabesque layer (background tessellation)
-  drawArabesqueLayer(ctx, rng, W, H, theme.accent, rgba(theme.accent, 1));
+  // subtle bokeh (no big orbs)
+  drawSoftBokeh(ctx, rng, W, H, theme.accent, theme.accent2);
 
-  // bokeh
-  drawBokeh(ctx, rng, W, H, theme.accent, theme.accent2);
+  // tiny dot starfield (Athar-style far-background dots — only thing allowed)
+  drawDotField(ctx, rng, W, H, theme.accent, theme.fg);
 
-  // starfield
-  drawStarfield(ctx, rng, W, H, theme.accent, theme.fg);
-
-  // diagonal parchment-like wash from upper-left
+  // diagonal parchment wash
   ctx.save();
-  ctx.globalAlpha = 0.10;
+  ctx.globalAlpha = 0.08;
   ctx.fillStyle = rgba(theme.accent, 1);
   ctx.beginPath();
   ctx.moveTo(0, 0);
@@ -421,7 +360,7 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.fill();
   ctx.restore();
 
-  // bottom vignette — darkens footer
+  // bottom vignette
   ctx.save();
   const vg = ctx.createLinearGradient(0, H - 240, 0, H);
   vg.addColorStop(0, "rgba(0,0,0,0)");
@@ -430,15 +369,14 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.fillRect(0, H - 240, W, 240);
   ctx.restore();
 
-  /* ────── 2. ORNATE OUTER FRAME ─────── */
-  // the frame is built up in layers, from outside in
+  /* ────── 2. ORNATE FRAME (no corner flourishes) ─────── */
   const framePad = 64;
   const fx = framePad;
   const fy = framePad;
   const fw = W - framePad * 2;
   const fh = H - framePad * 2;
 
-  // outermost dust-glow ring
+  // outer dust-glow ring
   ctx.save();
   roundRect(ctx, fx, fy, fw, fh, 60);
   ctx.shadowColor = rgba(theme.accent, 1);
@@ -448,7 +386,7 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.stroke();
   ctx.restore();
 
-  // gold/parchment frame (gradient stroke)
+  // gold/parchment frame
   ctx.save();
   const frameGrad = ctx.createLinearGradient(fx, fy, fx + fw, fy + fh);
   frameGrad.addColorStop(0, rgba(theme.accent, 1));
@@ -460,7 +398,7 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.stroke();
   ctx.restore();
 
-  // inner thin frame, just inside the gold one
+  // inner thin frame
   ctx.save();
   roundRect(ctx, fx + 24, fy + 24, fw - 48, fh - 48, 48);
   const innerGrad = ctx.createLinearGradient(fx, fy, fx + fw, fy + fh);
@@ -472,26 +410,23 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.stroke();
   ctx.restore();
 
-  // corner flourishes
-  const cornerSize = 96;
-  const cornersArray = ["tl", "tr", "br", "bl"] as const;
-  for (const side of cornersArray) {
-    const cx = { tl: fx + 8, tr: fx + fw - 8, br: fx + fw - 8, bl: fx + 8 }[side];
-    const cy = { tl: fy + 8, tr: fy + 8, br: fy + fh - 8, bl: fy + fh - 8 }[side];
-    drawCornerFlourish(ctx, cx, cy, side, cornerSize, rgba(theme.accent, 0.95), rgba(theme.accent, 0.18));
+  // VERY subtle corner curves (just a quarter-arc + dots — no flourish, no star)
+  const cornerSize = 88;
+  for (const side of ["tl", "tr", "br", "bl"] as const) {
+    const cx = { tl: fx + 12, tr: fx + fw - 12, br: fx + fw - 12, bl: fx + 12 }[side];
+    const cy = { tl: fy + 12, tr: fy + 12, br: fy + fh - 12, bl: fy + fh - 12 }[side];
+    drawCornerCurve(ctx, cx, cy, side, cornerSize, rgba(theme.accent, 0.85));
   }
 
-  // top + bottom center crescent flourishes
-  const topCx = W / 2;
-  const topCy = fy + 18;
-  drawDiamondDivider(ctx, topCx, topCy, 18, rgba(theme.accent, 0.85), rgba(theme.accent, 0.30));
-  const botCy = fy + fh - 18;
-  drawDiamondDivider(ctx, topCx, botCy, 18, rgba(theme.accent, 0.85), rgba(theme.accent, 0.30));
+  // top + bottom center crescents (replaces the 8-star diamond dividers)
+  drawCrescent(ctx, W / 2, fy + 18, 12, rgba(theme.accent, 0.85));
+  drawCrescent(ctx, W / 2, fy + fh - 18, 12, rgba(theme.accent, 0.85));
 
   /* ────── 3. APP NAME PLATE (centered top) ─────── */
   const plateY = fy + 78;
-  ctx.save();
+
   // soft elliptical halo behind the title
+  ctx.save();
   const haloGrad = ctx.createRadialGradient(W / 2, plateY + 32, 0, W / 2, plateY + 32, 360);
   haloGrad.addColorStop(0, rgba(theme.accent, 0.32));
   haloGrad.addColorStop(1, rgba(theme.accent, 0));
@@ -499,55 +434,51 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.fillRect(W / 2 - 360, plateY - 60, 720, 220);
   ctx.restore();
 
-  // decorative side ribbons flanking the title
+  // subtle side ribbons — replaced the diamond clusters with small dot rows
   ctx.save();
-  ctx.strokeStyle = rgba(theme.accent, 0.65);
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = rgba(theme.accent, 0.55);
+  ctx.lineWidth = 1.2;
   ctx.beginPath();
   ctx.moveTo(W / 2 - 360, plateY + 32);
   ctx.lineTo(W / 2 - 200, plateY + 32);
   ctx.moveTo(W / 2 + 200, plateY + 32);
   ctx.lineTo(W / 2 + 360, plateY + 32);
   ctx.stroke();
-  // small diamonds on each ribbon
-  for (let i = 0; i < 4; i++) {
-    const px = W / 2 - 280 + i * 30;
-    drawDiamondDivider(ctx, px, plateY + 32, 6, rgba(theme.accent, 0.85), rgba(theme.accent, 0.5));
-    drawDiamondDivider(ctx, W - px, plateY + 32, 6, rgba(theme.accent, 0.85), rgba(theme.accent, 0.5));
-  }
   ctx.restore();
+  // tiny dots on each ribbon
+  for (const xOff of [-280, -250, -220, 220, 250, 280]) {
+    drawDot(ctx, W / 2 + xOff, plateY + 32, 1.8, rgba(theme.accent, 0.7));
+  }
 
-  // app name "أثر" with glow
+  // app name "أثر" with glow (no star ornament)
   ctx.save();
   ctx.direction = "rtl";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `800 68px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
-  // soft outer halo
   ctx.shadowColor = rgba(theme.accent, 1);
   ctx.shadowBlur = 22;
   ctx.fillStyle = rgba(theme.accent, 1);
   ctx.fillText("أثر", W / 2, plateY + 30);
   ctx.shadowBlur = 0;
-  // sharp inner highlight
   const appGrad = ctx.createLinearGradient(0, plateY, 0, plateY + 80);
   appGrad.addColorStop(0, rgba(theme.accent, 1));
   appGrad.addColorStop(1, rgba(theme.accent2, 0.9));
   ctx.fillStyle = appGrad;
   ctx.fillText("أثر", W / 2, plateY + 30);
-  // bilingual subtitle right below
+  // bilingual subtitle
   ctx.font = `400 16px 'Segoe UI',Tahoma,Arial,sans-serif`;
   ctx.fillStyle = rgba(theme.fg, 0.7);
   ctx.fillText("ATHAR", W / 2, plateY + 86);
   ctx.restore();
 
-  // ornamental separator under the app name
+  // ornamental separator under the app name — just dots + crescent
   const sep1Y = plateY + 130;
   ctx.save();
-  drawDiamondDivider(ctx, W / 2, sep1Y, 22, rgba(theme.accent, 0.9), rgba(theme.accent, 0.4));
+  drawDotDivider(ctx, W / 2, sep1Y, rgba(theme.accent, 0.85));
   ctx.restore();
 
-  /* ────── 4. SECTION TITLE MEDALLION ─────── */
+  /* ────── 4. SECTION TITLE PILL — minimal, no rosettes ─────── */
   const sectionTitle = (opts.sectionTitle ?? "ذكر").trim();
   const titleMeasure = (() => {
     const c = canvas.getContext("2d")!;
@@ -555,65 +486,57 @@ export async function renderDhikrPosterBlob(opts: {
     return c.measureText(sectionTitle);
   })();
 
-  const medW = Math.min(titleMeasure.width + 200, fw - 220);
-  const medH = 96;
+  const medW = Math.min(titleMeasure.width + 140, fw - 220);
+  const medH = 92;
   const medX = (W - medW) / 2;
   const medY = sep1Y + 76;
 
   // halo behind the medallion
   ctx.save();
   const medHalo = ctx.createRadialGradient(W / 2, medY + medH / 2, 0, W / 2, medY + medH / 2, medW * 0.7);
-  medHalo.addColorStop(0, rgba(theme.accent, 0.32));
+  medHalo.addColorStop(0, rgba(theme.accent, 0.30));
   medHalo.addColorStop(1, rgba(theme.accent, 0));
   ctx.fillStyle = medHalo;
   ctx.fillRect(W / 2 - medW * 0.7, medY - 60, medW * 1.4, medH + 120);
   ctx.restore();
 
-  // medallion pill with gold gradient
+  // pill — simple double-bordered pill, no end ornaments
   ctx.save();
   roundRect(ctx, medX, medY, medW, medH, medH / 2);
   const medGrad = ctx.createLinearGradient(medX, medY, medX + medW, medY);
-  medGrad.addColorStop(0, rgba(theme.accent, 0.30));
-  medGrad.addColorStop(0.5, rgba(theme.accent, 0.45));
-  medGrad.addColorStop(1, rgba(theme.accent, 0.30));
+  medGrad.addColorStop(0, rgba(theme.accent, 0.28));
+  medGrad.addColorStop(0.5, rgba(theme.accent, 0.42));
+  medGrad.addColorStop(1, rgba(theme.accent, 0.28));
   ctx.fillStyle = medGrad;
   ctx.fill();
-  // double border
-  ctx.strokeStyle = rgba(theme.accent, 0.75);
-  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = rgba(theme.accent, 0.7);
+  // NOTE: tiny crescent + dots on either side of the title for life
+  // (no 6-petal rosettes as before)
+  ctx.lineWidth = 2;
   ctx.stroke();
   roundRect(ctx, medX + 6, medY + 6, medW - 12, medH - 12, medH / 2 - 6);
-  ctx.strokeStyle = rgba(theme.accent, 0.40);
+  ctx.strokeStyle = rgba(theme.accent, 0.32);
   ctx.lineWidth = 1;
   ctx.stroke();
-  // 6-point rosettes on the two ends
-  const rosetteR = medH * 0.42;
-  drawRosette(ctx, medX + 24, medY + medH / 2, rosetteR);
-  ctx.fillStyle = rgba(theme.accent, 0.85);
-  ctx.fill();
-  ctx.strokeStyle = rgba(theme.accent, 0.95);
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  drawRosette(ctx, medX + medW - 24, medY + medH / 2, rosetteR);
-  ctx.fill();
-  ctx.stroke();
 
-  // title text
+  // tiny dot accents at each end of the pill
+  drawDot(ctx, medX + 26, medY + medH / 2, 2.2, rgba(theme.accent, 0.85));
+  drawDot(ctx, medX + medW - 26, medY + medH / 2, 2.2, rgba(theme.accent, 0.85));
+
   ctx.direction = "rtl";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.font = `700 36px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
   ctx.fillStyle = rgba(theme.accent, 1);
-  ctx.shadowColor = rgba(theme.accent, 0.65);
-  ctx.shadowBlur = 14;
+  ctx.shadowColor = rgba(theme.accent, 0.55);
+  ctx.shadowBlur = 12;
   ctx.fillText(sectionTitle, medX + medW / 2, medY + medH / 2 + 2);
   ctx.shadowBlur = 0;
   ctx.restore();
 
-  /* ────── 5. ORNAMENTAL DIVIDER 2 ─────── */
+  /* ────── 5. DIVIDER 2 — fading line + small crescent only ─────── */
   const sep2Y = medY + medH + 64;
   ctx.save();
-  // long fading line + center star ornament
   const lg = ctx.createLinearGradient(fx + 80, 0, fx + fw - 80, 0);
   lg.addColorStop(0, rgba(theme.fg, 0));
   lg.addColorStop(0.2, rgba(theme.fg, 0.18));
@@ -625,27 +548,10 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.moveTo(fx + 80, sep2Y);
   ctx.lineTo(fx + fw - 80, sep2Y);
   ctx.stroke();
-  // center 8-point star with halo
-  const starHalo = ctx.createRadialGradient(W / 2, sep2Y, 0, W / 2, sep2Y, 64);
-  starHalo.addColorStop(0, rgba(theme.accent, 0.35));
-  starHalo.addColorStop(1, rgba(theme.accent, 0));
-  ctx.fillStyle = starHalo;
-  ctx.fillRect(W / 2 - 64, sep2Y - 64, 128, 128);
-  draw8Star(ctx, W / 2, sep2Y, 30);
-  ctx.fillStyle = rgba(theme.accent, 1);
-  ctx.fill();
-  ctx.strokeStyle = rgba(theme.accent, 0.95);
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  // 4 tiny stars around it
-  for (let i = 0; i < 4; i++) {
-    const ang = (i * Math.PI) / 2 - Math.PI / 4;
-    const dx = W / 2 + Math.cos(ang) * 96;
-    const dy = sep2Y + Math.sin(ang) * 96;
-    draw8Star(ctx, dx, dy, 8);
-    ctx.fillStyle = rgba(theme.accent, 0.7);
-    ctx.fill();
-    ctx.stroke();
+  // single crescent centered, with 4 small dots flanking
+  drawCrescent(ctx, W / 2, sep2Y, 18, rgba(theme.accent, 0.85));
+  for (const dx of [-46, -28, 28, 46]) {
+    drawDot(ctx, W / 2 + dx, sep2Y, 1.8, rgba(theme.accent, 0.55));
   }
   ctx.restore();
 
@@ -656,7 +562,7 @@ export async function renderDhikrPosterBlob(opts: {
   const arabicFont = `700 ${fontSize}px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
 
   const textAreaTop = sep2Y + 84;
-  const textAreaBottom = fy + fh - 280; // leave room for the seal + footer
+  const textAreaBottom = fy + fh - 280;
   const maxWidth = fw - 96;
   const centerX = W / 2;
 
@@ -675,7 +581,6 @@ export async function renderDhikrPosterBlob(opts: {
     allLines.push(...wrapped);
   }
 
-  // Optional translation block (LTR), drawn below the Arabic
   const translation = (opts.translation ?? "").trim();
   const transFontSize = 30;
   const transLineHeight = Math.round(transFontSize * 1.45);
@@ -688,10 +593,9 @@ export async function renderDhikrPosterBlob(opts: {
     ctx.restore();
   }
   const transBlockH = transLines.length
-    ? transLines.length * transLineHeight + 36 /* gap above */
+    ? transLines.length * transLineHeight + 36
     : 0;
 
-  // Vertically center the combined (Arabic + translation) block
   const totalTextH = allLines.length * lineHeight - (lineHeight - fontSize) + transBlockH;
   const availH = textAreaBottom - textAreaTop;
   let ty = textAreaTop + Math.max(0, (availH - totalTextH) / 2) + fontSize;
@@ -699,13 +603,12 @@ export async function renderDhikrPosterBlob(opts: {
   for (const line of allLines) {
     if (ty > textAreaBottom) break;
     if (!line) { ty += Math.round(lineHeight * 0.55); continue; }
-    // Soft + sharp dual-layer text shadow for carved/embossed feel
-    ctx.shadowColor = "rgba(0,0,0,0.65)";
-    ctx.shadowBlur = 14;
-    ctx.shadowOffsetY = 3;
-    ctx.fillText(line, centerX, ty);
-    ctx.shadowColor = rgba(theme.accent, 0.18);
+    ctx.shadowColor = "rgba(0,0,0,0.55)";
     ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 2;
+    ctx.fillText(line, centerX, ty);
+    ctx.shadowColor = rgba(theme.accent, 0.12);
+    ctx.shadowBlur = 8;
     ctx.shadowOffsetY = 0;
     ctx.fillText(line, centerX, ty);
     ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
@@ -713,7 +616,6 @@ export async function renderDhikrPosterBlob(opts: {
   }
   ctx.restore();
 
-  // Draw translation lines (LTR, dimmed) under the Arabic
   if (transLines.length) {
     ctx.save();
     ctx.direction = "ltr";
@@ -730,12 +632,12 @@ export async function renderDhikrPosterBlob(opts: {
     ctx.restore();
   }
 
-  /* ────── 7. ORNAMENTAL DIVIDER 3 ─────── */
+  /* ────── 7. DIVIDER 3 ─────── */
   const sep3Y = fy + fh - 252;
   ctx.save();
   const sep3Grad = ctx.createLinearGradient(fx + 120, 0, fx + fw - 120, 0);
   sep3Grad.addColorStop(0, rgba(theme.fg, 0));
-  sep3Grad.addColorStop(0.5, rgba(theme.fg, 0.35));
+  sep3Grad.addColorStop(0.5, rgba(theme.fg, 0.30));
   sep3Grad.addColorStop(1, rgba(theme.fg, 0));
   ctx.strokeStyle = sep3Grad;
   ctx.lineWidth = 1;
@@ -743,29 +645,28 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.moveTo(fx + 120, sep3Y);
   ctx.lineTo(fx + fw - 120, sep3Y);
   ctx.stroke();
-  drawDiamondDivider(ctx, W / 2, sep3Y, 14, rgba(theme.accent, 0.85), rgba(theme.accent, 0.4));
+  drawDotDivider(ctx, W / 2, sep3Y, rgba(theme.accent, 0.85));
   ctx.restore();
 
-  /* ────── 8. COUNT SEAL (wax-stamp style) ─────── */
+  /* ────── 8. COUNT SEAL — simple circle + crescent, no star ring ─────── */
   if (opts.count && opts.count > 1) {
     const sealCx = W / 2;
     const sealCy = sep3Y + 96;
-    const sealR = 60;
+    const sealR = 58;
 
     ctx.save();
     // outer halo
     const sealHalo = ctx.createRadialGradient(sealCx, sealCy, sealR * 0.4, sealCx, sealCy, sealR * 2);
-    sealHalo.addColorStop(0, rgba(theme.accent, 0.32));
+    sealHalo.addColorStop(0, rgba(theme.accent, 0.28));
     sealHalo.addColorStop(1, rgba(theme.accent, 0));
     ctx.fillStyle = sealHalo;
     ctx.fillRect(sealCx - sealR * 2, sealCy - sealR * 2, sealR * 4, sealR * 4);
 
-    // 8-point outer star ring
-    draw8Star(ctx, sealCx, sealCy, sealR * 1.18);
-    ctx.fillStyle = rgba(theme.accent, 0.18);
-    ctx.fill();
-    ctx.strokeStyle = rgba(theme.accent, 0.85);
-    ctx.lineWidth = 2.5;
+    // plain outer ring (no star rays)
+    ctx.beginPath();
+    ctx.arc(sealCx, sealCy, sealR, 0, Math.PI * 2);
+    ctx.strokeStyle = rgba(theme.accent, 0.6);
+    ctx.lineWidth = 1.8;
     ctx.stroke();
 
     // inner gold disc
@@ -778,23 +679,23 @@ export async function renderDhikrPosterBlob(opts: {
     ctx.fillStyle = sealGrad;
     ctx.fill();
 
-    // soft engraving shadow on the disc
+    // engraving shadow on the disc
     ctx.beginPath();
     ctx.arc(sealCx, sealCy, sealR * 0.72, 0, Math.PI * 2);
     ctx.strokeStyle = "rgba(0,0,0,0.35)";
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // count text on the seal
+    // tiny crescent on the seal — replaces the star ring
+    drawCrescent(ctx, sealCx, sealCy - sealR * 0.55, 10, "rgba(0,0,0,0.7)");
+
+    // count text
     ctx.direction = "ltr";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `800 38px 'Segoe UI','Tahoma',Arial,sans-serif`;
+    ctx.font = `800 34px 'Segoe UI','Tahoma',Arial,sans-serif`;
     ctx.fillStyle = "rgba(0,0,0,0.78)";
-    ctx.fillText(`${opts.count}`, sealCx, sealCy + 4);
-    // "تكرار" label above the number
-    ctx.font = `700 12px 'Noto Naskh Arabic','Amiri',Tahoma,Arial,sans-serif`;
-    ctx.fillText("تكرار", sealCx, sealCy - 24);
+    ctx.fillText(`${opts.count}`, sealCx, sealCy + 8);
     ctx.restore();
   }
 
@@ -806,7 +707,6 @@ export async function renderDhikrPosterBlob(opts: {
   const footerW = fw - 128;
 
   ctx.save();
-  // ribbon body
   roundRect(ctx, footerX, footerY, footerW, footerH, footerH / 2);
   const ribbonGrad = ctx.createLinearGradient(footerX, footerY, footerX + footerW, footerY);
   ribbonGrad.addColorStop(0, "rgba(0,0,0,0.55)");
@@ -817,7 +717,7 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // ribbon end notches (V-cut on both ends)
+  // ribbon end notches
   ctx.beginPath();
   ctx.moveTo(footerX + 18, footerY);
   ctx.lineTo(footerX, footerY + footerH / 2);
@@ -852,25 +752,18 @@ export async function renderDhikrPosterBlob(opts: {
   ctx.shadowBlur = 10;
   ctx.fillText("أثر  •  ATHAR", W / 2, footerY + footerH / 2 - 2);
   ctx.shadowBlur = 0;
-  // tiny URL under brand
   ctx.font = `400 14px 'Segoe UI',Tahoma,Arial,sans-serif`;
   ctx.fillStyle = rgba(theme.fg, 0.55);
   ctx.fillText(footerUrl, W / 2, footerY + footerH - 16);
 
-  // left/right decorative dots flanking the brand
+  // small flanking dots instead of decorative ornaments
   for (const sign of [-1, 1]) {
     const dx = W / 2 + sign * 140;
-    ctx.fillStyle = rgba(theme.accent, 0.55);
-    ctx.beginPath();
-    ctx.arc(dx, footerY + footerH / 2 - 2, 3, 0, Math.PI * 2);
-    ctx.fill();
+    drawDot(ctx, dx, footerY + footerH / 2 - 2, 3, rgba(theme.accent, 0.55));
   }
   ctx.restore();
 
-  /* ────── 10. OPTIONAL PHOTO OVERLAY (themeless) ─────── */
-  // The user said the previous photo overlay was OK; we keep the candidates
-  // lookup so photo themes still get the cover shot if available, but we
-  // dial back its dominance so the programmatic ornate layer is the hero.
+  /* ────── 10. OPTIONAL FADED PHOTO OVERLAY ─────── */
   let bgImage: HTMLImageElement | null = null;
   const base = import.meta.env.BASE_URL;
   const t = (theme.themeName || "").split(/\s+/).filter(Boolean)[0] || "system";
@@ -883,9 +776,8 @@ export async function renderDhikrPosterBlob(opts: {
     try { bgImage = await loadImage(c); break; } catch { bgImage = null; }
   }
   if (bgImage) {
-    // very faint overlay on top so the photographic texture hints through
     ctx.save();
-    ctx.globalAlpha = 0.08;
+    ctx.globalAlpha = 0.06;
     drawCover(ctx, bgImage, 0, 0, W, H);
     ctx.restore();
   }
