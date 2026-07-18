@@ -156,7 +156,7 @@ export function DhikrList(props: Readonly<{
   // controller keeps every existing scrollToIndex call site working.
   const itemElsRef = React.useRef<(HTMLDivElement | null)[]>([]);
   const virtuosoRef = React.useRef({
-    scrollToIndex(opts: { index: number; align?: "start" | "center" | "end"; behavior?: ScrollBehavior }) {
+    scrollToIndex(opts: { index: number; align?: "start" | "center" | "end"; behavior?: ScrollBehavior; slowMs?: number }) {
       // Computed window scroll instead of el.scrollIntoView: a layout
       // wrapper with overflow-x hidden silently becomes scrollIntoView's
       // scroll target (per spec overflow-y computes to auto there), so
@@ -185,9 +185,16 @@ export function DhikrList(props: Readonly<{
       const start = window.scrollY;
       const delta = top - start;
       if (Math.abs(delta) < 2) return;
-      const duration = Math.min(650, Math.max(250, Math.abs(delta) * 0.35));
+      // Auto-advance callers pass `slowMs` to opt into a noticeably slower
+      // glide (1100ms+) so the eye can follow the sweep. Default fast
+      // callers keep the snappy 250-650ms ramp — same behavior as before.
+      const duration = opts.slowMs
+        ?? Math.min(650, Math.max(250, Math.abs(delta) * 0.35));
       const t0 = performance.now();
-      const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+      // Cubic ease-in-out for the slow ramp; ease-out-cubic stays for fast.
+      const ease = opts.slowMs
+        ? (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+        : (t: number) => 1 - Math.pow(1 - t, 3);
       const step = (now: number) => {
         const p = Math.min(1, (now - t0) / duration);
         window.scrollTo(0, start + delta * ease(p));
@@ -890,7 +897,10 @@ export function DhikrList(props: Readonly<{
                   onComplete={() => {
                     const nextIdx = displayIndex + 1;
                     if (nextIdx < orderedEntries.length) {
-                      virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "center", behavior: "smooth" });
+                      // slowMs opts into a noticeably slower glide for the
+                      // auto-advance transition (default scrollToIndex stays
+                      // fast so taps-to-jump feel snappy).
+                      virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "center", behavior: "smooth", slowMs: 1100 });
                     }
                   }}
                 />

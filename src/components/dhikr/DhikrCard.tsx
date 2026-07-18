@@ -262,20 +262,10 @@ export function DhikrCard(props: {
 
     // Completion confetti
     if (next === target) {
-      // Haptic + auto-advance signal after a longer delay so the completion
-      // animation has time to settle and the user can register the moment.
+      // Haptic + auto-advance signal after a short delay
       if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
       if (prefs.autoAdvanceDhikr && props.onComplete) {
-        // Fade the card out gently, then call onComplete (which scrolls to the
-        // next dhikr). The 1100ms fade + 400ms grace = 1500ms total — slow
-        // enough for the eye, fast enough to keep flow.
-        const cardEl = cardRef.current;
-        if (cardEl) {
-          cardEl.classList.remove("dhikr-completion-fade");
-          void cardEl.offsetWidth;
-          cardEl.classList.add("dhikr-completion-fade");
-        }
-        setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 1500);
+        setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 480);
       }
     }
   };

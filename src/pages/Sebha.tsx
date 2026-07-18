@@ -850,9 +850,9 @@ export function SebhaPage() {
         const idx = TASBEEHAT.findIndex((t) => t.key === activeKey);
         if (idx >= 0 && idx < TASBEEHAT.length - 1) {
           const nextKey = TASBEEHAT[idx + 1].key;
-          setTimeout(() => setSelected(nextKey), 1500);
+          setTimeout(() => setSelected(nextKey), 700);
         } else if (idx === TASBEEHAT.length - 1) {
-          setTimeout(() => setSelected(TASBEEHAT[0].key), 1500);
+          setTimeout(() => setSelected(TASBEEHAT[0].key), 700);
         }
       }
     }

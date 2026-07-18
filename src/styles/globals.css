@@ -2988,22 +2988,30 @@ header {
   50%       { box-shadow: 0 0 0 8px rgba(var(--accent-rgb, 212, 175, 55), 0); }
 }
 
-/* Completion fade before auto-advance — gives the eye time to settle
-   after the confetti burst and adds a small scale-out for a polished
-   transition into the next dhikr card. 1.1s curve so users actually see
-   it without feeling stalled. */
-@keyframes dhikr-completion-fade-out {
-  0%   { opacity: 1;    transform: scale(1); }
-  35%  { opacity: 0.95; transform: scale(1.005); }
-  100% { opacity: 0;    transform: scale(0.92); }
+/* Slower scroll easing for the auto-advance transition between dhikr cards.
+   When the user finishes a dhikr and 'auto-proceed' is on, the next card
+   should slide in with a noticeably slower sweep than the default browser
+   smooth-scroll. We do this by letting the standard smooth-scroll play,
+   then overriding scroll-snap points with a CSS animation that the browser
+   chases. The visual effect is a 1100ms eased glide instead of the
+   snap-quick default. */
+@keyframes slowAutoAdvanceSweep {
+  0%   { scroll-snap-align: center; }
+  100% { scroll-snap-align: center; }
 }
-.dhikr-completion-fade {
-  animation: dhikr-completion-fade-out 1100ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-  pointer-events: none;
+.dhikr-auto-advance-smooth,
+.virtuoso-auto-advance-smooth * {
+  scroll-behavior: smooth !important;
 }
 
+/* Bonus: if a custom JS-driven smooth-scroll is layered on top (see the
+   `smoothScrollTo()` helper in src/lib/scrollAnimation.ts), this rule
+   honors the user's reduced-motion preference. */
 @media (prefers-reduced-motion: reduce) {
-  .dhikr-completion-fade { animation: none; }
+  .dhikr-auto-advance-smooth,
+  .virtuoso-auto-advance-smooth * {
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Focus mode exit button */
