@@ -15,6 +15,15 @@
    ------------------------------------------------------- */
 
 :root {
+  /* UI-safe Arabic font stack — has full Arabic-Indic digit glyph coverage,
+     unlike the Quranic Uthmani script fonts (UthmanicHafs etc.) which the
+     Mushaf reader uses for the actual verse text. Any numeral/UI text that
+     lives inside .mushaf-reader must opt back into this stack explicitly,
+     or it silently inherits the Quranic font and every digit renders as a
+     tofu/placeholder glyph (the Quranic fonts were never built with digit
+     coverage — they only need script letters, diacritics, and marks). */
+  --font-arabic: "Noto Naskh Arabic", "Noto Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
   --bg: #07080b;
   --fg: #f5f7ff;
   --muted: rgba(245, 247, 255, 0.72);
@@ -3159,6 +3168,8 @@ header {
   font-size: 0.65rem;
   opacity: 0.5;
   direction: rtl;
+  /* Page/juz numbers — must not inherit the Quranic script font (no digit glyphs). */
+  font-family: var(--font-arabic);
 }
 
 @media (max-width: 420px) {
@@ -3992,6 +4003,9 @@ header {
   padding: 0.75rem 1.25rem calc(env(safe-area-inset-bottom, 0px) + 1.25rem);
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.18);
   direction: rtl;
+  /* Settings sheet — page/zoom/volume percentages must not inherit the
+     Quranic script font, which has no Arabic-Indic digit glyphs. */
+  font-family: var(--font-arabic);
 }
 
 .mushaf-sheet-handle {
@@ -4220,6 +4234,8 @@ header {
   justify-content: center;
   gap: 5px;
   background: transparent;
+  /* Page numbers — must not inherit the Quranic script font (no digit glyphs). */
+  font-family: var(--font-arabic);
   border: none;
   cursor: pointer;
   font-variant-numeric: tabular-nums;
@@ -4259,6 +4275,9 @@ header {
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
   min-width: 240px;
   direction: rtl;
+  /* Session stats (minutes/pages/ayahs) — must not inherit the Quranic
+     script font, which has no Arabic-Indic digit glyphs. */
+  font-family: var(--font-arabic);
 }
 
 .mushaf-icon-close {

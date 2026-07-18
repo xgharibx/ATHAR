@@ -87,6 +87,25 @@ import {
 } from "@/lib/companionHealth";
 import { COMPANION_PROXY_URL } from "@/lib/companionAI";
 
+const NoorStarfield = React.lazy(() => import("@/components/background/NoorStarfield"));
+
+/** Same moving-stars "athar theme" as the app's global background, embedded
+ *  inside a slide-over panel so its translucent surface shows real motion
+ *  instead of sitting flat over the dark overlay behind it. Respects the
+ *  same 3D/reduced-motion prefs as NoorBackground — skips the WebGL canvas
+ *  entirely rather than fighting a user's accessibility choice. */
+function StarrySlideOverBg() {
+  const enable3D = useNoorStore((s) => s.prefs.enable3D);
+  const reduceMotion = useNoorStore((s) => s.prefs.reduceMotion);
+  if (!enable3D || reduceMotion) return null;
+  return (
+    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden opacity-70" aria-hidden="true">
+      <React.Suspense fallback={null}>
+        <NoorStarfield mobile />
+      </React.Suspense>
+    </div>
+  );
+}
 
 function relativeTime(ms: number): string {
   const diff = Date.now() - ms;
@@ -231,7 +250,7 @@ export function CompanionPage() {
       case "fajr": return `${salam}${name}، صباحٌ مبارك — أذكار الصباح تُفتحِك على يومٍ طيّب ☀️`;
       case "duha": return `${salam}${name}، الضحى حلو، لو تسبّح قبل أن تنشغل يكون يومك أنور 🌿`;
       case "dhuhr": return `${salam}${name} — وقتٌ مبارك، احفظ سورة قصيرة الآن وتأملها قبل المغرب 🌤️`;
-      case "asr": return `${salam}${name}، العصر يكاد يدخل — ختمها قبل أن تُفوتك 🌇`;
+      case "asr": return `${salam}${name}، بقي وقتٌ من يومك — اغتنمه بذكرٍ أو آية قبل أن يدخل المغرب 🌇`;
       case "maghrib": return `${salam}${name}، أُفطرت تقبّل الله، لو تقرأ آية الكرسي قبل النوم فعلاً 🌆`;
       case "isha": return `${salam}${name}، ليلةٌ طيبة، أذكار النوم الآن قبل أن يسبقك النعاس 🌙`;
       case "late-night": return `${salam}${name} — تأخّرت الليلة، ولو «سبحان الله» ثلاثين مرة فقد جبرتها ✨`;
@@ -694,7 +713,11 @@ export function CompanionPage() {
         <div className="fixed inset-0 z-50 flex justify-start" dir="rtl">
           <button type="button" aria-label="إغلاق" onClick={() => setShowHistory(false)}
             className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-          <div className="relative flex h-full w-[92%] max-w-md flex-col bg-[var(--bg)] shadow-2xl">
+          <div
+            className="relative flex h-full w-[92%] max-w-md flex-col shadow-2xl backdrop-blur-xl"
+            style={{ backgroundColor: "color-mix(in srgb, var(--bg) 80%, transparent)" }}
+          >
+            <StarrySlideOverBg />
             <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
               <div>
                 <h2 className="text-sm font-bold">المحادثات السابقة</h2>
@@ -808,7 +831,11 @@ export function CompanionPage() {
         <div className="fixed inset-0 z-50 flex justify-start" dir="rtl">
           <button type="button" aria-label="إغلاق" onClick={() => setShowPins(false)}
             className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-          <div className="relative flex h-full w-[92%] max-w-md flex-col bg-[var(--bg)] shadow-2xl">
+          <div
+            className="relative flex h-full w-[92%] max-w-md flex-col shadow-2xl backdrop-blur-xl"
+            style={{ backgroundColor: "color-mix(in srgb, var(--bg) 80%, transparent)" }}
+          >
+            <StarrySlideOverBg />
             <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
               <div>
                 <h2 className="flex items-center gap-1.5 text-sm font-bold">

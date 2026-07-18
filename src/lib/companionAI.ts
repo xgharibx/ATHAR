@@ -188,7 +188,34 @@ function hijriToday(): string {
   return `${arNum(p.day)} ${HIJRI_MONTHS_AR[p.month]} ${arNum(p.year)} هـ`;
 }
 
-function computeTimePhase(hour: number): TimePhase {
+/**
+ * Fixed clock-hour boundaries can't track when Maghrib/Isha actually happen
+ * (they shift with season and location), so a wall-clock-only phase can
+ * mislabel "before Maghrib" as "isha" and greet the user with sleep-adhkar
+ * copy hours too early. When we know the real next prayer, derive the phase
+ * from it instead — it's already location-correct — and only fall back to
+ * the fixed-hour heuristic when no prayer-time data is available yet.
+ */
+function computeTimePhase(hour: number, nextPrayerNameAr?: string | null, hoursToNext?: number | null): TimePhase {
+  if (nextPrayerNameAr) {
+    switch (nextPrayerNameAr) {
+      case "الفجر":
+        // Spans Isha through pre-Fajr — sub-distinguish by the clock since
+        // prayer data alone can't tell "just had Isha" from "middle of the night".
+        if (hour >= 19 || hour < 1) return "isha";
+        if (hour < 4) return "qiyam";
+        return "fajr-pre";
+      case "الظهر":
+        return hour < 9 ? "fajr" : "duha";
+      case "العصر":
+        return hoursToNext != null && hoursToNext < 1.5 ? "asr" : "dhuhr";
+      case "المغرب":
+        // Still daytime — Maghrib hasn't happened, so never the sleep phase.
+        return "asr";
+      case "العشاء":
+        return "maghrib";
+    }
+  }
   if (hour < 4) return "qiyam";
   if (hour < 6) return "fajr-pre";
   if (hour < 9) return "fajr";
@@ -199,6 +226,9 @@ function computeTimePhase(hour: number): TimePhase {
   if (hour < 22) return "isha";
   return "late-night";
 }
+
+/** Exposed for tests only. */
+export const __test__ = { computeTimePhase };
 
 function hoursUntilTodayAt(hhmm: string): number | null {
   const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
@@ -251,6 +281,7 @@ export function buildCompanionContext(): CompanionContext {
       }
     }
   } catch { /* no prayer cache */ }
+  const hoursToNextPrayer = nextPrayer ? hoursUntilTodayAt(nextPrayer.time) : null;
 
   let khatma: CompanionContext["khatma"] = null;
   try {
@@ -344,8 +375,8 @@ export function buildCompanionContext(): CompanionContext {
     isLastTenNights,
     daysToRamadan,
     daysToFriday,
-    timePhase: computeTimePhase(hour),
-    hoursToNextPrayer: nextPrayer ? hoursUntilTodayAt(nextPrayer.time) : null,
+    timePhase: computeTimePhase(hour, nextPrayer?.nameAr ?? null, hoursToNextPrayer),
+    hoursToNextPrayer,
     adherenceWeek,
     khatma,
     remainingTodayHints,

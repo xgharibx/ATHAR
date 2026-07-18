@@ -101,7 +101,15 @@ function guessCalloutKind(text: string): CalloutKind {
   const t = text.trim();
   if (/^(اللهم|ربِّ|ربّ|رب\s|ربنا)/.test(t)) return "dua";
   if (/(رواه|أخرجه|أخرّجه|صحيح|حسن|ضعيف|متفق عليه)/.test(t)) return "hadith";
-  if (/(سورة\s+\S+|آية\s*[:\d])/.test(t) || /[﴿﴾]/.test(t)) return "verse";
+  // "سورة" followed by a real surah-name-shaped word (almost all take the
+  // definite article "ال" — البقرة، الكهف… a few don't: يس، طه، ق) or an
+  // explicit ayah reference. Requiring this avoids false-triggering on
+  // ordinary phrases like "سورة قصيرة" ("a short surah" — an adjective, not
+  // a name), which used to get mislabelled as a verse callout.
+  // Note: no trailing \b — JS's default \w is ASCII-only, so \b is not
+  // reliable right after Arabic letters; a lookahead for whitespace/
+  // punctuation/end-of-string is used instead.
+  if (/سورة\s+(ال\S+|يس|طه|ق)(?=[\s.,،؛:]|$)/.test(t) || /آية\s*[:\d]/.test(t) || /[﴿﴾]/.test(t)) return "verse";
   return "tip";
 }
 
@@ -128,12 +136,20 @@ function resolveActionRoute(routeCandidate: string, label: string): string | nul
  *  token of a callout's body instead of using the documented
  *  ":::action(/route)" meta syntax — e.g. it writes ":::tip\n(/sebha) افتح
  *  السبحة\n:::" (or picks the wrong kind entirely, or the route comes out
- *  as a garbled "(/ )"). Detected on ANY callout body regardless of its
- *  labelled kind; only reinterprets the block as an action when a route can
- *  actually be resolved, so ordinary tip/info text starting with an
- *  unrelated parenthetical is never misread. */
+ *  garbled — "(/ )", or even doubled like "(/ / )"). Detected on ANY
+ *  callout body regardless of its labelled kind; only reinterprets the
+ *  block as an action when a route can actually be resolved, so ordinary
+ *  tip/info text starting with an unrelated parenthetical is never misread.
+ *
+ *  The parenthetical's content is captured verbatim, however garbled
+ *  ("/ /", "/", "" …) — resolveActionRoute() below doesn't need it to be
+ *  structurally valid, since it always falls back to matching the *label*
+ *  text against known route labels. Requiring a clean "/route" shape here
+ *  was the bug: "(/ / )" doesn't match a single-slash pattern, so the whole
+ *  block silently failed to recover even though the label ("افتح أذكار
+ *  المساء") made the intended route completely unambiguous. */
 function extractEmbeddedAction(body: string): { route: string; label: string } | null {
-  const m = /^\(\s*(\/[a-z0-9/_-]*)\s*\)[ \t]*\n?[ \t]*([\s\S]+)$/i.exec(body.trim());
+  const m = /^\(([^)]*)\)[ \t]*\n?[ \t]*([\s\S]+)$/.exec(body.trim());
   if (!m) return null;
   const label = m[2].trim();
   if (!label) return null;
