@@ -39,7 +39,7 @@ describe("TranslationPicker", () => {
     expect(radioCount).toBe(TRANSLATION_SOURCES.length);
   });
 
-  it("keeps the source pills visible (dimmed) when the master toggle is off", () => {
+  it("always shows the three source pills (master switch removed)", () => {
     const html = renderToString(
       React.createElement(TranslationPicker, {
         enabled: false,
@@ -49,11 +49,14 @@ describe("TranslationPicker", () => {
       }),
     );
 
-    // Still shows the heading label.
-    expect(html).toContain("الترجمة أسفل الآية");
-    // Pills always visible, but radios are disabled when off.
+    // Heading label — user said remove the master switch, so the new
+    // copy starts with 'مصدر الترجمة أسفل الآية' (drop 'إظهار الترجمة').
+    expect(html).toContain("مصدر الترجمة أسفل الآية");
+    // Pills always visible, no master toggle. The user has a separate
+    // global preference for showing/hiding translations under each verse.
     const radioCount = (html.match(/role=\"radio\"/g) ?? []).length;
     expect(radioCount).toBe(TRANSLATION_SOURCES.length);
-    expect(html).toContain("الترجمة مخفية");
+    // Confirm the master switch has actually been deleted — no role="switch"
+    expect(html).not.toContain("role=\"switch\"");
   });
 });

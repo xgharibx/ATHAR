@@ -2767,7 +2767,7 @@ export function MushafPage() {
               <span className="opacity-55"><MoreVertical size={16} aria-hidden="true" /></span>
               <div>
                 <div className="text-sm">الانتقال إلى صفحة</div>
-                <div className="text-[10px] opacity-40">الصفحة {currentPage} من {totalPages}</div>
+                <div className="text-[10px] opacity-40">الصفحة {toArabicNumeral(currentPage)} من {toArabicNumeral(totalPages)}</div>
               </div>
             </button>
 
