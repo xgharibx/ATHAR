@@ -8,18 +8,16 @@
  *  - Streaming chat with animated thinking state
  *  - In-line citation chips for Quran/hadith refs the user message can deep-link
  *  - Three suggested follow-up chips beneath every reply
- *  - Voice overlay: STT input + Arabic TTS playback
  *  - Pin any reply to Favorites, share reply as image, copy
  *  - Conversation history with fuzzy search (Fuse.js — already a dep)
  *  - Persisted partial streams to IndexedDB so a closed tab doesn't lose long replies
  *  - Onboarding micro-question after the first welcome so the AI adapts fast
- *  - Verification banner when cited verses can't be matched locally
  */
 import * as React from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Sparkles, Send, History, Plus, Pencil, Check, Copy, X as XIcon,
-  Mic, MicOff, Volume2, VolumeX, Search, Pin, Share2, Image as ImageIcon,
+  Search, Pin, Share2, Image as ImageIcon,
   MessageSquareQuote, Download, Star, Trash2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -67,10 +65,6 @@ import {
   type CompanionConversation,
   type PinnedReply,
 } from "@/lib/companionHistory";
-import {
-  getVoiceEnabled, isVoiceSupported, setVoiceEnabled,
-  speakArabic, startListening, stopListening, stopSpeaking,
-} from "@/lib/companionVoice";
 import {
   LEVEL_LABEL,
   loadProfile,
@@ -228,9 +222,6 @@ export function CompanionPage() {
   const [input, setInput] = React.useState("");
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
   const [followUps, setFollowUps] = React.useState<string[]>([]);
-  const [voiceOn, setVoiceOn] = React.useState(getVoiceEnabled);
-  const [voiceLive, setVoiceLive] = React.useState({ supported: isVoiceSupported(), listening: false, transcript: "", error: null as string | null });
-  const [isSpeaking, setIsSpeaking] = React.useState(false);
 
   const [profile, setProfile] = React.useState<CompanionProfile>(() => loadProfile());
   const [showOnboarding, setShowOnboarding] = React.useState(false);
@@ -261,7 +252,7 @@ export function CompanionPage() {
       case "duha": return `${salam}${name}، الضحى حلو، لو تسبّح قبل أن تنشغل يكون يومك أنور 🌿`;
       case "dhuhr": return `${salam}${name} — وقتٌ مبارك، احفظ سورة قصيرة الآن وتأملها قبل المغرب 🌤️`;
       case "asr": return `${salam}${name}، بقي وقتٌ من يومك — اغتنمه بذكرٍ أو آية قبل أن يدخل المغرب 🌇`;
-      case "maghrib": return `${salam}${name}، أُفطرت تقبّل الله، لو تقرأ آية الكرسي قبل النوم فعلاً 🌆`;
+      case "maghrib": return `${salam}${name}، دخل المغرب — هذا وقتٌ طيب لتكمل أذكار المساء إن بقي منها شيء 🌆`;
       case "isha": return `${salam}${name}، ليلةٌ طيبة، أذكار النوم الآن قبل أن يسبقك النعاس 🌙`;
       case "late-night": return `${salam}${name} — تأخّرت الليلة، ولو «سبحان الله» ثلاثين مرة فقد جبرتها ✨`;
       default: return `${salam}${name}، ${weekdayName} مبارك ✨`;
@@ -336,9 +327,13 @@ export function CompanionPage() {
     }
   }, []);
 
-  // Auto-scroll
+  // Auto-scroll — instant ("auto") while actively streaming, since a fresh
+  // "smooth" animation queued on every token can't keep up with itself and
+  // visibly lags behind, forcing the user to scroll manually. Smooth is
+  // kept for discrete message additions (sending a new question, opening a
+  // saved conversation), where a single animation reads nicely.
   React.useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    endRef.current?.scrollIntoView({ behavior: streamingText !== null ? "auto" : "smooth", block: "end" });
   }, [messages, streamingText]);
 
   // Save full conversation on every change
@@ -391,37 +386,6 @@ export function CompanionPage() {
     return out;
   }, []);
 
-  const speakFinal = React.useCallback((text: string) => {
-    if (!voiceOn) return;
-    setIsSpeaking(true);
-    // Strip markdown syntax so the TTS engine doesn't read brackets, links,
-    // or backtick fences aloud. Only "text" segments are spoken; callouts
-    // and action blocks become short Arabic summaries.
-    const segments = splitIntoSegments(text);
-    const parts: string[] = [];
-    for (const seg of segments) {
-      if (seg.kind === "text") {
-        const cleaned = seg.text
-          .replace(/\[\/?route[^\]]*\]/gi, " ")
-          .replace(/\[[^\]]+\]\([^)]+\)/g, " ")
-          .replace(/```[\s\S]*?```/g, " ")
-          .replace(/`[^`]+`/g, " ")
-          .replace(/[#*_>~|]/g, " ")
-          .replace(/\s{2,}/g, " ")
-          .trim();
-        if (cleaned) parts.push(cleaned);
-      }
-    }
-    const speakable = parts.join(" ").trim() || text.replace(/[#*_>`]/g, " ").trim();
-    speakArabic(speakable, true);
-    const interval = window.setInterval(() => {
-      if (!("speechSynthesis" in window) || !window.speechSynthesis.speaking) {
-        window.clearInterval(interval);
-        setIsSpeaking(false);
-      }
-    }, 250);
-  }, [voiceOn]);
-
   const send = React.useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || busyRef.current) return;
@@ -456,7 +420,6 @@ export function CompanionPage() {
             setStreamingText(null);
             clearPartialStream();
             setFollowUps(generateFollowUps(trimmed, fullText));
-            speakFinal(fullText);
           },
           onError: (err) => {
             // Show a diagnostic toast + update the health chip so the user
@@ -528,7 +491,7 @@ export function CompanionPage() {
         clearPartialStream();
       }
     }
-  }, [generateFollowUps, messages, persistPartial, speakFinal]);
+  }, [generateFollowUps, messages, persistPartial]);
 
   const [partialStopped, setPartialStopped] = React.useState(false);
 
@@ -537,8 +500,6 @@ export function CompanionPage() {
     abortRef.current = null;
     busyRef.current = false;
     setStreamingText(null);
-    stopSpeaking();
-    setIsSpeaking(false);
     setPartialStopped(true);
   }, []);
 
@@ -583,24 +544,6 @@ export function CompanionPage() {
     if (id === currentIdRef.current) startNewChat();
     void deleteConversation(id).then(refreshHistory);
   }, [confirmDeleteId, refreshHistory, startNewChat]);
-
-  // Voice control
-  const onVoiceClick = () => {
-    if (!voiceLive.supported) {
-      toast("المتصفح لا يدعم التعرف على الصوت", { icon: "🎙️" });
-      return;
-    }
-    if (voiceLive.listening) {
-      stopListening();
-      return;
-    }
-    startListening(setVoiceLive);
-  };
-  React.useEffect(() => {
-    if (!voiceLive.listening && voiceLive.transcript && !busyRef.current) {
-      setInput(voiceLive.transcript);
-    }
-  }, [voiceLive.listening, voiceLive.transcript]);
 
   // Pin reply (stored locally only)
   const pinReply = (text: string) => {
@@ -1027,7 +970,7 @@ export function CompanionPage() {
         {streamingText !== null ? (
           streamingText
             ? <MessageBubble role="assistant" text={streamingText} streaming tokens={countTokens(streamingText)} />
-            : <ThinkingIndicator onStop={stop} isSpeaking={isSpeaking} />
+            : <ThinkingIndicator onStop={stop} />
         ) : null}
         {followUps.length > 0 && !isBusy ? (
           <div className="mt-2 flex flex-wrap gap-2">
@@ -1054,28 +997,6 @@ export function CompanionPage() {
       <div className="fixed inset-x-0 z-40" style={{ bottom: "calc(var(--mobile-nav-height) + var(--sab) + 16px)" }}>
         <div className="mx-auto w-full max-w-3xl px-4">
           <div className="flex items-end gap-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--bg)]/95 p-2 shadow-2xl backdrop-blur-xl">
-            <button type="button"
-              onClick={onVoiceClick}
-              aria-label={voiceLive.listening ? "إيقاف التسجيل" : "تسجيل صوتي"}
-              className={[
-                "grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition",
-                voiceLive.listening
-                  ? "border-red-500/40 bg-red-500/15 text-red-400"
-                  : "border-[var(--stroke)] bg-[var(--card)]",
-              ].join(" ")}>
-              {voiceLive.listening ? <MicOff className="h-4 w-4" aria-hidden="true" /> : <Mic className="h-4 w-4" aria-hidden="true" />}
-            </button>
-            <button type="button"
-              onClick={() => { const nv = !voiceOn; setVoiceOn(nv); setVoiceEnabled(nv); if (!nv) stopSpeaking(); }}
-              aria-label={voiceOn ? "إيقاف القراءة الصوتية" : "تشغيل القراءة الصوتية"}
-              className={[
-                "grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition",
-                voiceOn
-                  ? "border-accent-35 bg-accent-15 text-[var(--accent)]"
-                  : "border-[var(--stroke)] bg-[var(--card)] opacity-70",
-              ].join(" ")}>
-              {voiceOn ? <Volume2 className="h-4 w-4" aria-hidden="true" /> : <VolumeX className="h-4 w-4" aria-hidden="true" />}
-            </button>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -1086,7 +1007,7 @@ export function CompanionPage() {
                 }
               }}
               rows={1}
-              placeholder={voiceLive.listening ? "أستمع إليك…" : "اكتب سؤالك لرفيق أثر…"}
+              placeholder="اكتب سؤالك لرفيق أثر…"
               aria-label="رسالتك"
               className="form-field-readable max-h-32 flex-1 resize-none rounded-xl border border-transparent bg-transparent px-3 py-2 text-sm focus:outline-none"
             />
@@ -1195,7 +1116,7 @@ function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<Compa
 
 /* ─── Thinking indicator with stop button + speaking state ──────────────── */
 
-function ThinkingIndicator({ onStop, isSpeaking }: { onStop: () => void; isSpeaking: boolean }) {
+function ThinkingIndicator({ onStop }: { onStop: () => void }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-accent-35 bg-gradient-to-br from-accent-15 via-[var(--card)] to-[var(--card)] px-4 py-3.5 shadow-[0_0_24px_-6px_var(--accent)]">
       {/* Sweeping gradient stripe */}
@@ -1221,7 +1142,7 @@ function ThinkingIndicator({ onStop, isSpeaking }: { onStop: () => void; isSpeak
           </span>
           <div className="flex flex-col">
             <span className="text-[11px] font-bold text-[var(--fg)]">
-              {isSpeaking ? "يلقيها عليك صوتيًا" : "يفكّر معك الآن"}
+              يفكّر معك الآن
             </span>
             <span className="text-[10px] text-[var(--muted-2)] flex items-center gap-1">
               <span

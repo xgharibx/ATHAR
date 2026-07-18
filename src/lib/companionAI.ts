@@ -346,7 +346,12 @@ export function buildCompanionContext(): CompanionContext {
   const hour = now.getHours();
   if (!morningDone && hour < 11) remainingTodayHints.push("أذكار الصباح لم تُنجز بعد");
   if (!eveningDone && hour >= 15) remainingTodayHints.push("أذكار المساء بانتظارك");
-  if (!sleepDone && hour >= 21) remainingTodayHints.push("أذكار النوم لم تُقرأ بعد");
+  // Prefer the real next-prayer signal over a fixed hour — "الفجر" as the
+  // next prayer means Isha has actually passed, which is what "bedtime"
+  // really means; hour>=21 alone can fire before Isha on long-Isha days
+  // (same class of bug as the old computeTimePhase heuristic).
+  const ishaHasPassed = nextPrayer ? nextPrayer.nameAr === "الفجر" : hour >= 21;
+  if (!sleepDone && ishaHasPassed) remainingTodayHints.push("أذكار النوم لم تُقرأ بعد");
   if (ayahsToday < dailyGoal) remainingTodayHints.push(`ورد القرآن: ${ayahsToday}/${dailyGoal} آية`);
   if (tasbeehToday === 0 && hour >= 6) remainingTodayHints.push("لم تسبّح اليوم");
 
@@ -542,9 +547,9 @@ function timePhaseLabel(p: TimePhase): string {
     case "fajr": return "وقت الفجر";
     case "duha": return "وقت الضحى";
     case "dhuhr": return "وقت الظهر";
-    case "asr": return "وقت العصر";
-    case "maghrib": return "وقت المغرب";
-    case "isha": return "وقت العشاء";
+    case "asr": return "بعد العصر، قبل المغرب";
+    case "maghrib": return "بعد المغرب، قبل العشاء (ليس وقت نوم بعد)";
+    case "isha": return "بعد العشاء — وقت أذكار النوم";
     case "late-night": return "آخر الليل";
   }
 }
