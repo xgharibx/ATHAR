@@ -1,78 +1,67 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Athar · Dhikr Share Poster
+   ─────────────────────────────────────────────────────────────────────────
+   A typography-first, restraint-led canvas poster for sharing a dhikr,
+   verse, or reflection. Output is a 1080×1350 PNG (4:5 social ratio).
+
+   Design rationale (expert notes):
+   • Hierarchy: dhikr text is the hero. Everything else yields.
+   • Restraint: zero stars, zero rosettes. Only crescents + thin gold
+     rules + small dots — the ornament vocabulary of the Athar app itself.
+   • Material: deep anthracite → warm umber gradient, plus a single
+     radial light well above the text, evoking parchment lit by candle.
+   • Typography: Amiri (Arabic serif) for the dhikr — generous size,
+     proper alphabetic baseline, dual text shadow for embossed feel.
+   • Asymmetric balance: centered hero with right-aligned label, left
+     + right crescent accents that mirror but do not symmetrize.
+
+   Public API:
+   - renderDhikrPosterBlob(opts): Promise<Blob>           — main entry
+   ────────────────────────────────────────────────────────────────────── */
+
 import { formatLeadingIstiadhahBasmalah } from "@/lib/arabic";
 
-type PosterTheme = {
-  bg: string;
-  fg: string;
-  accent: string;
-  accent2: string;
-  themeName: string;
-};
+/* ─── Theme + helpers ──────────────────────────────────────────────────── */
 
-/* ─── Font & theme plumbing ─────────────────────────────────────────────── */
+type Theme = { bg: string; fg: string; accent: string; accent2: string };
 
-async function preloadFonts() {
-  const weights = ["400", "500", "700", "800"];
-  const families = ['"Noto Naskh Arabic"', '"Amiri"'];
-  const loads: Promise<FontFace[]>[] = [];
-  for (const fam of families) {
-    for (const w of weights) {
-      loads.push(document.fonts.load(`${w} 48px ${fam}`));
-    }
-  }
-  await Promise.allSettled(loads);
+const FONT_SERIF = `"Amiri","Noto Naskh Arabic","Segoe UI",Tahoma,Arial,sans-serif`;
+const FONT_NAKSH = `"Noto Naskh Arabic","Amiri","Segoe UI",Tahoma,Arial,sans-serif`;
+const FONT_SANS = `"Segoe UI","Noto Sans Arabic",Tahoma,Arial,sans-serif`;
+
+function readCssVar(name: string, fallback: string): string {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
 }
 
-function readCssVar(name: string) {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-
-function getThemeFromCss(): PosterTheme {
-  const bg = readCssVar("--bg") || "#07080b";
-  const fg = readCssVar("--fg") || "#f5f7ff";
-  const accent = readCssVar("--accent") || "#ffd780";
-  const accent2 = readCssVar("--accent-2") || accent;
-  const themeName = document.documentElement.className || "system";
-  return { bg, fg, accent, accent2, themeName };
-}
-
-function mulberry32(seed: number) {
-  return function () {
-    let t = (seed += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+function getThemeFromCss(): Theme {
+  return {
+    bg: readCssVar("--bg", "#0a0a0e"),
+    fg: readCssVar("--fg", "#f5efe2"),
+    accent: readCssVar("--accent", "#d8a657"),
+    accent2: readCssVar("--accent-2", "#caa065"),
   };
 }
 
-function seedFromString(input: string) {
-  let h = 2166136261;
-  for (let i = 0; i < input.length; i++) {
-    h ^= input.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function parseRgb(color: string): { r: number; g: number; b: number } | null {
+function rgba(color: string, a: number): string {
+  // Accept #rrggbb / rgb(r,g,b) / rgba(r,g,b,x). Produce rgba(r,g,b,a).
   const c = color.trim();
-  const rgb = c.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-  if (rgb) return { r: Number(rgb[1]), g: Number(rgb[2]), b: Number(rgb[3]) };
-  const hex = c.match(/^#([0-9a-f]{6})$/i);
-  if (hex) {
-    const v = hex[1];
-    return {
-      r: parseInt(v.slice(0, 2), 16),
-      g: parseInt(v.slice(2, 4), 16),
-      b: parseInt(v.slice(4, 6), 16),
-    };
+  let rgb: [number, number, number] | null = null;
+  if (c.startsWith("#")) {
+    const h = c.slice(1);
+    if (h.length === 6) rgb = [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  } else {
+    const m = c.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+    if (m) rgb = [Number(m[1]), Number(m[2]), Number(m[3])];
   }
-  return null;
+  if (!rgb) return `rgba(255,255,255,${a})`;
+  return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
 }
 
-function rgba(base: string, a: number) {
-  const rgb = parseRgb(base);
-  if (!rgb) return `rgba(255,255,255,${a})`;
-  return `rgba(${rgb.r},${rgb.g},${rgb.b},${a})`;
+const ARABIC_INDIC = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+function toArabicIndic(n: number | undefined | null): string {
+  if (n == null || !Number.isFinite(n)) return "";
+  return String(Math.max(0, Math.floor(n))).replace(/\d/g, (d) => ARABIC_INDIC[Number(d)] ?? d);
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -86,703 +75,495 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-/* ─── Arabic-aware text wrap ────────────────────────────────────────────── */
-
-function wrapRtlText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
-  const words = (text ?? "").split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let line = "";
-  for (const w of words) {
-    const next = line ? `${line} ${w}` : w;
-    const width = ctx.measureText(next).width;
-    if (width <= maxWidth || !line) {
-      line = next;
-    } else {
-      lines.push(line);
-      line = w;
+/* ─── Font preloader ──────────────────────────────────────────────────── */
+/**
+ * Wait for every font weight + size we plan to render. The previous code
+ * only preloaded 48px so large numbers like 138px fell back to the system
+ * serif and looked wrong. We preload every weight + target size we use.
+ */
+async function ensureFontsReady(): Promise<void> {
+  if (typeof document === "undefined" || !document.fonts) return;
+  try {
+    const families = [FONT_NAKSH, FONT_SERIF, FONT_SANS];
+    const weights = ["400", "500", "600", "700", "800"];
+    const sizes = ["18px", "24px", "32px", "48px", "78px", "112px", "132px"];
+    const tasks: Promise<FontFace[]>[] = [];
+    for (const fam of families) {
+      for (const w of weights) {
+        for (const s of sizes) {
+          tasks.push(document.fonts.load(`${w} ${s} ${fam}`));
+        }
+      }
     }
+    await Promise.allSettled(tasks);
+    // Belt & suspenders: wait the next frame so layout settles.
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+  } catch {
+    /* ignored — fall back to whatever the browser gives us */
   }
-  if (line) lines.push(line);
-  return lines;
 }
 
-function fontSizeByLength(len: number) {
-  if (len > 900) return 38;
-  if (len > 520) return 46;
-  if (len > 260) return 54;
-  if (len > 120) return 62;
-  return 70;
-}
+/* ─── Atmospheric primitives ──────────────────────────────────────────── */
 
-/* ─── Subtle ornaments: dots + crescents, no stars ──────────────────────── */
-
-/**
- * A single tiny dot. The only background ornament allowed in the design.
- */
-function drawDot(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, fill: string) {
-  ctx.save();
-  ctx.fillStyle = fill;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
-/**
- * Crescent moon (هلال). Drawn as two overlapping circles — outer
- * filled, inner cut out — facing right. Used sparingly as the only
- * "shape" ornament in the design.
- */
-function drawCrescent(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  r: number,
-  fill: string,
-  stroke?: string,
-) {
-  ctx.save();
-  ctx.fillStyle = fill;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, Math.PI / 2, (3 * Math.PI) / 2);
-  ctx.arc(cx + r * 0.5, cy, r * 0.92, (3 * Math.PI) / 2, Math.PI / 2);
-  ctx.closePath();
-  ctx.fill();
-  if (stroke) {
-    ctx.strokeStyle = stroke;
-    ctx.lineWidth = Math.max(1, r * 0.08);
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-/**
- * A small cluster of dots used as a divider centre — replaces the
- * previous "diamond + side diamonds" / "8-star + 4 satellites" motif.
- * Pattern:  · · · ☾ · · ·
- */
-function drawDotDivider(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  fill: string,
-) {
-  ctx.save();
-  ctx.fillStyle = fill;
-  ctx.globalAlpha = 0.7;
-  // flanking tiny dots
-  for (const dx of [-38, 14, -14, 38]) {
-    ctx.beginPath();
-    ctx.arc(cx + dx, cy, 1.6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-  // centre crescent
-  drawCrescent(ctx, cx, cy, 9, fill);
-}
-
-/**
- * A subtle corner curve — replaces the 4-arc-with-star flourish.
- * Just a single curved accent line + 3 small dots. No stars.
- */
-function drawCornerCurve(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  side: "tl" | "tr" | "br" | "bl",
-  size: number,
-  stroke: string,
-) {
-  ctx.save();
-  ctx.translate(x, y);
-  const rot = { tl: 0, tr: -Math.PI / 2, br: -Math.PI, bl: (-3 * Math.PI) / 2 }[side];
-  ctx.rotate(rot);
-
-  ctx.strokeStyle = stroke;
-  ctx.lineWidth = Math.max(2, size * 0.05);
-  ctx.beginPath();
-  ctx.arc(0, 0, size, 0, Math.PI / 2);
-  ctx.stroke();
-
-  // 3 small radial dots — no star at the pivot
-  ctx.fillStyle = stroke;
-  for (let i = 0; i < 3; i++) {
-    const t = 0.32 + i * 0.22;
-    const px = size * t;
-    ctx.beginPath();
-    ctx.arc(px, px, Math.max(2, size * 0.04), 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-/* ─── Tiny dot starfield (Athar-style: subtle far-background dots only) ── */
-
-function drawDotField(
+/** Subtle starfield: only tiny dots, kept dim. Never competing with text. */
+function drawStarfield(
   ctx: CanvasRenderingContext2D,
   rng: () => number,
   w: number,
   h: number,
-  accent: string,
   fg: string,
 ) {
   ctx.save();
-  for (let i = 0; i < 280; i++) {
+  for (let i = 0; i < 180; i++) {
     const x = rng() * w;
     const y = rng() * h;
-    const size = rng() * 1.1 + 0.3;
-    const alpha = 0.10 + rng() * 0.35;
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = i % 9 === 0 ? accent : fg;
+    const r = rng() * 0.9 + 0.3;
+    ctx.fillStyle = rgba(fg, 0.06 + rng() * 0.28);
     ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.globalAlpha = 1;
   ctx.restore();
 }
 
-function drawSoftBokeh(
+/** Crescent moon (هلال). dir = 1 opens right; dir = -1 mirrors. */
+function drawCrescent(
   ctx: CanvasRenderingContext2D,
-  rng: () => number,
-  w: number,
-  h: number,
-  accent: string,
-  accent2: string,
+  cx: number, cy: number, r: number, fill: string,
+  dir: 1 | -1 = 1,
 ) {
   ctx.save();
-  for (let i = 0; i < 18; i++) {
-    const bx = rng() * w;
-    const by = rng() * h;
-    const br = 80 + rng() * 220;
-    const color = i % 2 ? accent : accent2;
-    const grad = ctx.createRadialGradient(bx, by, 0, bx, by, br);
-    grad.addColorStop(0, rgba(color, 0.14));
-    grad.addColorStop(1, rgba(color, 0));
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(bx, by, br, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  ctx.fillStyle = fill;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI / 2, (3 * Math.PI) / 2);
+  ctx.arc(cx + dir * r * 0.5, cy, r * 0.9, (3 * Math.PI) / 2, Math.PI / 2);
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }
 
-/* ─── Image loader ──────────────────────────────────────────────────────── */
+/* ─── Measurer for the dhikr text ─────────────────────────────────────── */
 
-async function loadImage(url: string): Promise<HTMLImageElement> {
-  return await new Promise((resolve, reject) => {
-    const img = new Image();
-    img.decoding = "async";
-    img.loading = "eager";
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-    img.src = url;
-  });
+interface BlockMeasure {
+  lines: string[];
+  lineHeight: number;
+  blockHeight: number;
+  totalWidth: number;
 }
 
-function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
-  const iw = img.naturalWidth || img.width;
-  const ih = img.naturalHeight || img.height;
-  if (!iw || !ih) return;
-  const scale = Math.max(w / iw, h / ih);
-  const sw = w / scale;
-  const sh = h / scale;
-  const sx = (iw - sw) / 2;
-  const sy = (ih - sh) / 2;
-  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+/** Word-wrap Arabic (RTL) by measuring each paragraph as one block. */
+function measureArabicBlock(
+  ctx: CanvasRenderingContext2D, text: string, maxWidth: number,
+  lineHeight: number,
+): BlockMeasure {
+  const paragraphs = text.split("\n");
+  const lines: string[] = [];
+  for (const p of paragraphs) {
+    if (!p.trim()) { lines.push(""); continue; }
+    const words = p.split(/\s+/).filter(Boolean);
+    let cur = "";
+    for (const w of words) {
+      const next = cur ? `${cur} ${w}` : w;
+      if (ctx.measureText(next).width <= maxWidth || !cur) cur = next;
+      else { lines.push(cur); cur = w; }
+    }
+    if (cur) lines.push(cur);
+  }
+  // Average line height approximation: use measured lineHeight × line count
+  // then drop the last line's trailing ascent.
+  const totalWidth = lines.reduce(
+    (m, l) => Math.max(m, ctx.measureText(l || " ").width), 0,
+  );
+  return {
+    lines,
+    lineHeight,
+    blockHeight: lines.length * lineHeight - lineHeight * 0.3,
+    totalWidth,
+  };
 }
 
-/* ─── Main poster entry ─────────────────────────────────────────────────── */
+/* ─── Main export ─────────────────────────────────────────────────────── */
 
-export async function renderDhikrPosterBlob(opts: {
+export interface RenderDhikrPosterOpts {
   text: string;
   sectionTitle?: string;
   count?: number;
-  footerUrl?: string;
   translation?: string;
-}) {
-  await preloadFonts();
+  footerUrl?: string;
+}
+
+const POSTER_W = 1080;
+const POSTER_H = 1350;
+
+export async function renderDhikrPosterBlob(
+  opts: RenderDhikrPosterOpts,
+): Promise<Blob> {
+  await ensureFontsReady();
 
   const theme = getThemeFromCss();
-  const W = 1080;
-  const H = 1350;
+  const W = POSTER_W;
+  const H = POSTER_H;
 
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
+  const ctxOrNull = canvas.getContext("2d");
+  if (!ctxOrNull) throw new Error("canvas 2d context not available");
+  const ctx: CanvasRenderingContext2D = ctxOrNull;
 
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("canvas not supported");
+  /* Deterministic RNG seeded so the same text produces the same poster
+     (helpful for caching / consistency across renders). */
+  let seed = 2166136261;
+  for (let i = 0; i < opts.text.length; i++) {
+    seed ^= opts.text.charCodeAt(i);
+    seed = Math.imul(seed, 16777619);
+  }
+  const rng = () => {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 
-  const rng = mulberry32(seedFromString(`${theme.themeName}|${opts.text.slice(0, 40)}`));
-
-  /* ────── 1. DEEP BACKGROUND ─────── */
-  const bg = ctx.createLinearGradient(0, 0, W * 0.5, H);
-  bg.addColorStop(0, "#0a0d14");
-  bg.addColorStop(0.5, "rgba(0,0,0,0.96)");
-  bg.addColorStop(1, "rgba(20,15,8,0.98)");
-  ctx.fillStyle = bg;
+  // ────────────────────────────────────────────────────────────────────────
+  //  1. BACKGROUND  ·  deep midnight → umber gradient + a single light well
+  // ────────────────────────────────────────────────────────────────────────
+  const baseGrad = ctx.createLinearGradient(0, 0, 0, H);
+  baseGrad.addColorStop(0, "#070612");
+  baseGrad.addColorStop(0.55, "#0c0810");
+  baseGrad.addColorStop(1, "#160e0a");
+  ctx.fillStyle = baseGrad;
   ctx.fillRect(0, 0, W, H);
 
-  // four-corner atmospheric glows (soft, not stars)
+  // Single warm "candle light" well centered above the dhikr.
+  const wellY = H * 0.42;
+  const wellGrad = ctx.createRadialGradient(W / 2, wellY, 0, W / 2, wellY, W * 0.7);
+  wellGrad.addColorStop(0, rgba(theme.accent, 0.18));
+  wellGrad.addColorStop(0.6, rgba(theme.accent, 0.06));
+  wellGrad.addColorStop(1, rgba(theme.accent, 0));
+  ctx.fillStyle = wellGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle paper-warmth grain (very low alpha) — diagonal wash only.
   ctx.save();
-  const corners: ReadonlyArray<readonly [number, number, string, number, number]> = [
-    [W * 0.1, H * 0.08, theme.accent, 0.30, W * 0.7],
-    [W * 0.95, H * 0.2, theme.accent2, 0.20, W * 0.65],
-    [W * 0.05, H * 0.95, theme.accent2, 0.18, W * 0.6],
-    [W * 0.9, H * 0.95, theme.accent, 0.26, W * 0.7],
-  ];
-  for (const [cx, cy, c, alpha, r] of corners) {
-    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    g.addColorStop(0, rgba(c, alpha));
-    g.addColorStop(1, rgba(c, 0));
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-  }
-  ctx.restore();
-
-  // subtle bokeh (no big orbs)
-  drawSoftBokeh(ctx, rng, W, H, theme.accent, theme.accent2);
-
-  // tiny dot starfield (Athar-style far-background dots — only thing allowed)
-  drawDotField(ctx, rng, W, H, theme.accent, theme.fg);
-
-  // diagonal parchment wash
-  ctx.save();
-  ctx.globalAlpha = 0.08;
+  ctx.globalAlpha = 0.05;
   ctx.fillStyle = rgba(theme.accent, 1);
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.lineTo(W * 0.7, 0);
-  ctx.lineTo(0, H * 0.7);
+  ctx.lineTo(W * 0.55, 0);
+  ctx.lineTo(0, H * 0.55);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
 
-  // bottom vignette
-  ctx.save();
-  const vg = ctx.createLinearGradient(0, H - 240, 0, H);
-  vg.addColorStop(0, "rgba(0,0,0,0)");
-  vg.addColorStop(1, "rgba(0,0,0,0.5)");
-  ctx.fillStyle = vg;
-  ctx.fillRect(0, H - 240, W, 240);
-  ctx.restore();
+  // Distant starfield (tiny dots only — no flares, no crosses)
+  drawStarfield(ctx, rng, W, H, theme.fg);
 
-  /* ────── 2. ORNATE FRAME (no corner flourishes) ─────── */
-  const framePad = 64;
-  const fx = framePad;
-  const fy = framePad;
-  const fw = W - framePad * 2;
-  const fh = H - framePad * 2;
+  // ────────────────────────────────────────────────────────────────────────
+  //  2. FRAME  ·  double thin gold rule + corner accent lines (no stars)
+  // ────────────────────────────────────────────────────────────────────────
+  const PAD = 56;
+  const fx = PAD, fy = PAD, fw = W - PAD * 2, fh = H - PAD * 2;
 
-  // outer dust-glow ring
+  // Outer thin gold rule
   ctx.save();
-  roundRect(ctx, fx, fy, fw, fh, 60);
-  ctx.shadowColor = rgba(theme.accent, 1);
-  ctx.shadowBlur = 60;
-  ctx.strokeStyle = rgba(theme.accent, 0.14);
-  ctx.lineWidth = 4;
+  const outerGrad = ctx.createLinearGradient(fx, fy, fx + fw, fy + fh);
+  outerGrad.addColorStop(0, rgba(theme.accent, 0.90));
+  outerGrad.addColorStop(0.5, rgba(theme.accent2, 0.70));
+  outerGrad.addColorStop(1, rgba(theme.accent, 0.90));
+  roundRect(ctx, fx, fy, fw, fh, 32);
+  ctx.strokeStyle = outerGrad;
+  ctx.lineWidth = 1.6;
   ctx.stroke();
   ctx.restore();
 
-  // gold/parchment frame
+  // Inner thinner gold rule
   ctx.save();
-  const frameGrad = ctx.createLinearGradient(fx, fy, fx + fw, fy + fh);
-  frameGrad.addColorStop(0, rgba(theme.accent, 1));
-  frameGrad.addColorStop(0.5, rgba(theme.accent2, 1));
-  frameGrad.addColorStop(1, rgba(theme.accent, 1));
-  roundRect(ctx, fx, fy, fw, fh, 60);
-  ctx.strokeStyle = frameGrad;
-  ctx.lineWidth = 3.5;
-  ctx.stroke();
-  ctx.restore();
-
-  // inner thin frame
-  ctx.save();
-  roundRect(ctx, fx + 24, fy + 24, fw - 48, fh - 48, 48);
-  const innerGrad = ctx.createLinearGradient(fx, fy, fx + fw, fy + fh);
-  innerGrad.addColorStop(0, rgba(theme.accent, 0.7));
-  innerGrad.addColorStop(0.5, rgba(theme.accent2, 0.4));
-  innerGrad.addColorStop(1, rgba(theme.accent, 0.7));
-  ctx.strokeStyle = innerGrad;
+  roundRect(ctx, fx + 18, fy + 18, fw - 36, fh - 36, 24);
+  ctx.strokeStyle = rgba(theme.accent, 0.40);
   ctx.lineWidth = 1;
   ctx.stroke();
   ctx.restore();
 
-  // VERY subtle corner curves (just a quarter-arc + dots — no flourish, no star)
-  const cornerSize = 88;
-  for (const side of ["tl", "tr", "br", "bl"] as const) {
-    const cx = { tl: fx + 12, tr: fx + fw - 12, br: fx + fw - 12, bl: fx + 12 }[side];
-    const cy = { tl: fy + 12, tr: fy + 12, br: fy + fh - 12, bl: fy + fh - 12 }[side];
-    drawCornerCurve(ctx, cx, cy, side, cornerSize, rgba(theme.accent, 0.85));
-  }
-
-  // top + bottom center crescents (replaces the 8-star diamond dividers)
-  drawCrescent(ctx, W / 2, fy + 18, 12, rgba(theme.accent, 0.85));
-  drawCrescent(ctx, W / 2, fy + fh - 18, 12, rgba(theme.accent, 0.85));
-
-  /* ────── 3. APP NAME PLATE (centered top) ─────── */
-  const plateY = fy + 78;
-
-  // soft elliptical halo behind the title
+  // ─── Corner accent crescents + tiny inner lines ───────────────────────
+  const cornerR = 22;
   ctx.save();
-  const haloGrad = ctx.createRadialGradient(W / 2, plateY + 32, 0, W / 2, plateY + 32, 360);
-  haloGrad.addColorStop(0, rgba(theme.accent, 0.32));
-  haloGrad.addColorStop(1, rgba(theme.accent, 0));
-  ctx.fillStyle = haloGrad;
-  ctx.fillRect(W / 2 - 360, plateY - 60, 720, 220);
+  ctx.strokeStyle = rgba(theme.accent, 0.85);
+  ctx.lineWidth = 1.5;
+  for (const [cx, cy, sx, sy] of [
+    [fx + 22, fy + 22, 1, 1],
+    [fx + fw - 22, fy + 22, -1, 1],
+    [fx + fw - 22, fy + fh - 22, -1, -1],
+    [fx + 22, fy + fh - 22, 1, -1],
+  ] as const) {
+    const [px, py, dx, dy] = [cx, cy, sx, sy];
+    // crescent at the corner — facing inward
+    ctx.save();
+    const ang = Math.atan2(dy, dx);
+    ctx.translate(px + dx * cornerR * 0.3, py + dy * cornerR * 0.3);
+    ctx.rotate(ang + Math.PI / 2);
+    drawCrescent(ctx, 0, 0, 9, rgba(theme.accent, 0.75), dx > 0 ? -1 : 1);
+    ctx.restore();
+    // small accent line flanking the corner
+    ctx.beginPath();
+    ctx.moveTo(px - dx * 4, py);
+    ctx.lineTo(px + dx * 28, py);
+    ctx.moveTo(px, py - dy * 4);
+    ctx.lineTo(px, py + dy * 28);
+    ctx.stroke();
+  }
   ctx.restore();
 
-  // subtle side ribbons — replaced the diamond clusters with small dot rows
+  // Tiny crescent centered on top + bottom of frame
+  drawCrescent(ctx, W / 2, fy, 10, rgba(theme.accent, 0.80));
+  drawCrescent(ctx, W / 2, fy + fh, 10, rgba(theme.accent, 0.80), -1);
+
+  // ────────────────────────────────────────────────────────────────────────
+  //  3. HEADER ROW  ·  بسم الله الرحمن الرحيم
+  // ────────────────────────────────────────────────────────────────────────
   ctx.save();
-  ctx.strokeStyle = rgba(theme.accent, 0.55);
-  ctx.lineWidth = 1.2;
+  ctx.direction = "rtl";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+  // small subtle line below the basmala
+  ctx.font = `400 22px ${FONT_NAKSH}`;
+  ctx.fillStyle = rgba(theme.fg, 0.55);
+  ctx.fillText("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", W / 2, fy + 60);
+
+  // underline-rule
+  ctx.strokeStyle = rgba(theme.accent, 0.50);
+  ctx.lineWidth = 0.8;
   ctx.beginPath();
-  ctx.moveTo(W / 2 - 360, plateY + 32);
-  ctx.lineTo(W / 2 - 200, plateY + 32);
-  ctx.moveTo(W / 2 + 200, plateY + 32);
-  ctx.lineTo(W / 2 + 360, plateY + 32);
-  ctx.stroke();
-  ctx.restore();
-  // tiny dots on each ribbon
-  for (const xOff of [-280, -250, -220, 220, 250, 280]) {
-    drawDot(ctx, W / 2 + xOff, plateY + 32, 1.8, rgba(theme.accent, 0.7));
-  }
-
-  // app name "أثر" with glow (no star ornament)
-  ctx.save();
-  ctx.direction = "rtl";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `800 68px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
-  ctx.shadowColor = rgba(theme.accent, 1);
-  ctx.shadowBlur = 22;
-  ctx.fillStyle = rgba(theme.accent, 1);
-  ctx.fillText("أثر", W / 2, plateY + 30);
-  ctx.shadowBlur = 0;
-  const appGrad = ctx.createLinearGradient(0, plateY, 0, plateY + 80);
-  appGrad.addColorStop(0, rgba(theme.accent, 1));
-  appGrad.addColorStop(1, rgba(theme.accent2, 0.9));
-  ctx.fillStyle = appGrad;
-  ctx.fillText("أثر", W / 2, plateY + 30);
-  // bilingual subtitle
-  ctx.font = `400 16px 'Segoe UI',Tahoma,Arial,sans-serif`;
-  ctx.fillStyle = rgba(theme.fg, 0.7);
-  ctx.fillText("ATHAR", W / 2, plateY + 86);
-  ctx.restore();
-
-  // ornamental separator under the app name — just dots + crescent
-  const sep1Y = plateY + 130;
-  ctx.save();
-  drawDotDivider(ctx, W / 2, sep1Y, rgba(theme.accent, 0.85));
-  ctx.restore();
-
-  /* ────── 4. SECTION TITLE PILL — minimal, no rosettes ─────── */
-  const sectionTitle = (opts.sectionTitle ?? "ذكر").trim();
-  const titleMeasure = (() => {
-    const c = canvas.getContext("2d")!;
-    c.font = `700 36px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
-    return c.measureText(sectionTitle);
-  })();
-
-  const medW = Math.min(titleMeasure.width + 140, fw - 220);
-  const medH = 92;
-  const medX = (W - medW) / 2;
-  const medY = sep1Y + 76;
-
-  // halo behind the medallion
-  ctx.save();
-  const medHalo = ctx.createRadialGradient(W / 2, medY + medH / 2, 0, W / 2, medY + medH / 2, medW * 0.7);
-  medHalo.addColorStop(0, rgba(theme.accent, 0.30));
-  medHalo.addColorStop(1, rgba(theme.accent, 0));
-  ctx.fillStyle = medHalo;
-  ctx.fillRect(W / 2 - medW * 0.7, medY - 60, medW * 1.4, medH + 120);
-  ctx.restore();
-
-  // pill — simple double-bordered pill, no end ornaments
-  ctx.save();
-  roundRect(ctx, medX, medY, medW, medH, medH / 2);
-  const medGrad = ctx.createLinearGradient(medX, medY, medX + medW, medY);
-  medGrad.addColorStop(0, rgba(theme.accent, 0.28));
-  medGrad.addColorStop(0.5, rgba(theme.accent, 0.42));
-  medGrad.addColorStop(1, rgba(theme.accent, 0.28));
-  ctx.fillStyle = medGrad;
-  ctx.fill();
-  ctx.strokeStyle = rgba(theme.accent, 0.7);
-  // NOTE: tiny crescent + dots on either side of the title for life
-  // (no 6-petal rosettes as before)
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  roundRect(ctx, medX + 6, medY + 6, medW - 12, medH - 12, medH / 2 - 6);
-  ctx.strokeStyle = rgba(theme.accent, 0.32);
-  ctx.lineWidth = 1;
+  ctx.moveTo(W / 2 - 60, fy + 76);
+  ctx.lineTo(W / 2 + 60, fy + 76);
   ctx.stroke();
 
-  // tiny dot accents at each end of the pill
-  drawDot(ctx, medX + 26, medY + medH / 2, 2.2, rgba(theme.accent, 0.85));
-  drawDot(ctx, medX + medW - 26, medY + medH / 2, 2.2, rgba(theme.accent, 0.85));
-
-  ctx.direction = "rtl";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `700 36px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
-  ctx.fillStyle = rgba(theme.accent, 1);
+  // App name "أثر" with subtle warm halo
+  ctx.font = `800 56px ${FONT_SERIF}`;
   ctx.shadowColor = rgba(theme.accent, 0.55);
-  ctx.shadowBlur = 12;
-  ctx.fillText(sectionTitle, medX + medW / 2, medY + medH / 2 + 2);
+  ctx.shadowBlur = 22;
+  ctx.fillStyle = rgba(theme.accent, 0.95);
+  ctx.fillText("أَثَر", W / 2, fy + 138);
   ctx.shadowBlur = 0;
-  ctx.restore();
-
-  /* ────── 5. DIVIDER 2 — fading line + small crescent only ─────── */
-  const sep2Y = medY + medH + 64;
-  ctx.save();
-  const lg = ctx.createLinearGradient(fx + 80, 0, fx + fw - 80, 0);
-  lg.addColorStop(0, rgba(theme.fg, 0));
-  lg.addColorStop(0.2, rgba(theme.fg, 0.18));
-  lg.addColorStop(0.8, rgba(theme.fg, 0.18));
-  lg.addColorStop(1, rgba(theme.fg, 0));
-  ctx.strokeStyle = lg;
+  // two thin gold rules + crescent under the app name
+  ctx.strokeStyle = rgba(theme.accent, 0.55);
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(fx + 80, sep2Y);
-  ctx.lineTo(fx + fw - 80, sep2Y);
+  ctx.moveTo(W / 2 - 110, fy + 165);
+  ctx.lineTo(W / 2 - 22, fy + 165);
+  ctx.moveTo(W / 2 + 22, fy + 165);
+  ctx.lineTo(W / 2 + 110, fy + 165);
   ctx.stroke();
-  // single crescent centered, with 4 small dots flanking
-  drawCrescent(ctx, W / 2, sep2Y, 18, rgba(theme.accent, 0.85));
-  for (const dx of [-46, -28, 28, 46]) {
-    drawDot(ctx, W / 2 + dx, sep2Y, 1.8, rgba(theme.accent, 0.55));
-  }
+  drawCrescent(ctx, W / 2 - 12, fy + 165, 3, rgba(theme.accent, 0.55), -1);
+  drawCrescent(ctx, W / 2 + 12, fy + 165, 3, rgba(theme.accent, 0.55), 1);
   ctx.restore();
 
-  /* ────── 6. DHIKR TEXT ─────── */
-  const text = formatLeadingIstiadhahBasmalah((opts.text ?? "").trim());
-  const fontSize = fontSizeByLength(text.length);
-  const lineHeight = Math.round(fontSize * 1.7);
-  const arabicFont = `700 ${fontSize}px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
+  // ────────────────────────────────────────────────────────────────────────
+  //  4. SECTION LABEL  ·  small right-aligned chip with crescent
+  // ────────────────────────────────────────────────────────────────────────
+  const headerBottom = fy + 175;
+  ctx.save();
+  const sectionTitle = (opts.sectionTitle ?? "ذكر").trim();
+  ctx.font = `600 28px ${FONT_NAKSH}`;
+  const labelW = ctx.measureText(sectionTitle).width + 50;
+  const labelH = 48;
+  const labelX = W - PAD - 30 - labelW;
+  const labelY = headerBottom + 22;
 
-  const textAreaTop = sep2Y + 84;
-  const textAreaBottom = fy + fh - 280;
-  const maxWidth = fw - 96;
-  const centerX = W / 2;
+  // Chip bg
+  roundRect(ctx, labelX, labelY, labelW, labelH, labelH / 2);
+  const chipGrad = ctx.createLinearGradient(labelX, labelY, labelX + labelW, labelY);
+  chipGrad.addColorStop(0, rgba(theme.accent, 0.08));
+  chipGrad.addColorStop(1, rgba(theme.accent, 0.20));
+  ctx.fillStyle = chipGrad;
+  ctx.fill();
+  ctx.strokeStyle = rgba(theme.accent, 0.55);
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Crescent + title text
+  ctx.direction = "rtl";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `600 26px ${FONT_NAKSH}`;
+  ctx.fillStyle = rgba(theme.accent, 1);
+  ctx.fillText(sectionTitle, labelX + labelW / 2 + 14, labelY + labelH / 2 + 2);
+  drawCrescent(ctx, labelX + 18, labelY + labelH / 2, 6, rgba(theme.accent, 0.85), -1);
+  ctx.restore();
+
+  // Divider rule below the label
+  ctx.save();
+  ctx.strokeStyle = rgba(theme.accent, 0.45);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(fx + 60, labelY + labelH + 22);
+  ctx.lineTo(fx + fw - 60, labelY + labelH + 22);
+  ctx.stroke();
+  drawCrescent(ctx, W / 2, labelY + labelH + 22, 5, rgba(theme.accent, 0.65), -1);
+  ctx.restore();
+
+  // ────────────────────────────────────────────────────────────────────────
+  //  5. DHIKR TEXT  ·  THE HERO  ·  auto-fit font size based on length
+  // ────────────────────────────────────────────────────────────────────────
+  const text = formatLeadingIstiadhahBasmalah((opts.text ?? "").trim());
+
+  const footerH = 110;
+  const footerY = fy + fh - footerH - 24;
+  const textAreaTop = labelY + labelH + 56; // below divider
+  const textAreaBottom = footerY - 36;       // above footer
+  const textAreaMid = (textAreaTop + textAreaBottom) / 2;
+  const maxWidth = fw - 100;
+
+  /** Iteratively pick the largest font size that still fits. */
+  function pickFontSize(): { size: number; lineHeight: number; block: BlockMeasure } {
+    const test = (size: number) => {
+      ctx.font = `700 ${size}px ${FONT_SERIF}`;
+      ctx.direction = "rtl";
+      ctx.textAlign = "center";
+      return measureArabicBlock(ctx, text, maxWidth, Math.round(size * 1.62));
+    };
+    const MAX = 96;
+    const MIN = 34;
+    const availableH = textAreaBottom - textAreaTop - 80; // leave translation space
+    let lo = MIN, hi = MAX, chosen = MIN;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      const m = test(mid);
+      if (m.blockHeight <= availableH && m.totalWidth <= maxWidth) {
+        chosen = mid; lo = mid + 1;
+      } else hi = mid - 1;
+    }
+    const block = test(chosen);
+    return { size: chosen, lineHeight: block.lineHeight, block };
+  }
+
+  const { size: fontSize, lineHeight, block } = pickFontSize();
 
   ctx.save();
   ctx.direction = "rtl";
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = theme.fg;
-  ctx.font = arabicFont;
+  ctx.font = `700 ${fontSize}px ${FONT_SERIF}`;
 
-  const paragraphs = text.split("\n");
-  const allLines: string[] = [];
-  for (const p of paragraphs) {
-    const wrapped = wrapRtlText(ctx, p, maxWidth);
-    if (allLines.length) allLines.push("");
-    allLines.push(...wrapped);
-  }
+  const blockStartY = textAreaMid - block.blockHeight / 2 + fontSize * 0.85;
+  let ty = blockStartY;
 
-  const translation = (opts.translation ?? "").trim();
-  const transFontSize = 30;
-  const transLineHeight = Math.round(transFontSize * 1.45);
-  let transLines: string[] = [];
-  if (translation) {
-    ctx.save();
-    ctx.direction = "ltr";
-    ctx.font = `400 ${transFontSize}px 'Segoe UI',Tahoma,Arial,sans-serif`;
-    transLines = wrapRtlText(ctx, translation, maxWidth);
-    ctx.restore();
-  }
-  const transBlockH = transLines.length
-    ? transLines.length * transLineHeight + 36
-    : 0;
-
-  const totalTextH = allLines.length * lineHeight - (lineHeight - fontSize) + transBlockH;
-  const availH = textAreaBottom - textAreaTop;
-  let ty = textAreaTop + Math.max(0, (availH - totalTextH) / 2) + fontSize;
-
-  for (const line of allLines) {
-    if (ty > textAreaBottom) break;
-    if (!line) { ty += Math.round(lineHeight * 0.55); continue; }
+  for (const line of block.lines) {
+    if (!line) { ty += lineHeight * 0.55; continue; }
+    // Dual shadow: dark drop + soft warm halo (parchment-glow feel)
     ctx.shadowColor = "rgba(0,0,0,0.55)";
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetY = 2;
-    ctx.fillText(line, centerX, ty);
-    ctx.shadowColor = rgba(theme.accent, 0.12);
-    ctx.shadowBlur = 8;
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetY = 3;
+    ctx.fillStyle = rgba(theme.fg, 0.98);
+    ctx.fillText(line, W / 2, ty);
+    ctx.shadowColor = rgba(theme.accent, 0.18);
+    ctx.shadowBlur = 10;
     ctx.shadowOffsetY = 0;
-    ctx.fillText(line, centerX, ty);
-    ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    ctx.fillText(line, W / 2, ty);
     ty += lineHeight;
   }
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
   ctx.restore();
 
-  if (transLines.length) {
+  // Optional translation block (Latin, smaller, dimmed)
+  const translation = (opts.translation ?? "").trim();
+  if (translation) {
     ctx.save();
     ctx.direction = "ltr";
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
-    ctx.font = `400 ${transFontSize}px 'Segoe UI',Tahoma,Arial,sans-serif`;
-    ctx.fillStyle = rgba(theme.fg, 0.78);
-    let ty2 = ty + 36;
-    for (const line of transLines) {
-      if (ty2 > textAreaBottom) break;
-      ctx.fillText(line, centerX, ty2);
-      ty2 += transLineHeight;
+    ctx.font = `italic 300 ${Math.max(18, fontSize * 0.42)}px ${FONT_SANS}`;
+    ctx.fillStyle = rgba(theme.fg, 0.65);
+    const transLines = measureArabicBlock(ctx, translation, maxWidth, 30).lines; // re-wrap w/ LTR ok
+    let ty2 = ty + 16;
+    for (const ln of transLines) {
+      if (ty2 > textAreaBottom - 10) break;
+      ctx.fillText(ln, W / 2, ty2);
+      ty2 += 30;
     }
     ctx.restore();
   }
 
-  /* ────── 7. DIVIDER 3 ─────── */
-  const sep3Y = fy + fh - 252;
+  // ────────────────────────────────────────────────────────────────────────
+  //  6. BOTTOM SECTION  ·  a single elegant horizontal divider + count
+  // ────────────────────────────────────────────────────────────────────────
+
+  // Decorative double-rule with crescent center
+  const ruleY = footerY - 78;
   ctx.save();
-  const sep3Grad = ctx.createLinearGradient(fx + 120, 0, fx + fw - 120, 0);
-  sep3Grad.addColorStop(0, rgba(theme.fg, 0));
-  sep3Grad.addColorStop(0.5, rgba(theme.fg, 0.30));
-  sep3Grad.addColorStop(1, rgba(theme.fg, 0));
-  ctx.strokeStyle = sep3Grad;
+  ctx.strokeStyle = rgba(theme.accent, 0.50);
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(fx + 120, sep3Y);
-  ctx.lineTo(fx + fw - 120, sep3Y);
+  ctx.moveTo(fx + 100, ruleY);
+  ctx.lineTo(W / 2 - 22, ruleY);
+  ctx.moveTo(W / 2 + 22, ruleY);
+  ctx.lineTo(fx + fw - 100, ruleY);
   ctx.stroke();
-  drawDotDivider(ctx, W / 2, sep3Y, rgba(theme.accent, 0.85));
+  drawCrescent(ctx, W / 2, ruleY, 6, rgba(theme.accent, 0.75), -1);
+  // second thinner rule
+  ctx.strokeStyle = rgba(theme.accent, 0.25);
+  ctx.beginPath();
+  ctx.moveTo(fx + 100, ruleY + 6);
+  ctx.lineTo(fx + fw - 100, ruleY + 6);
+  ctx.stroke();
   ctx.restore();
 
-  /* ────── 8. COUNT SEAL — simple circle + crescent, no star ring ─────── */
+  // Count (in Arabic-Indic) — two flanking crescents, big bold number
   if (opts.count && opts.count > 1) {
-    const sealCx = W / 2;
-    const sealCy = sep3Y + 96;
-    const sealR = 58;
-
+    const countCY = ruleY + 56;
+    const arNum = toArabicIndic(opts.count);
     ctx.save();
-    // outer halo
-    const sealHalo = ctx.createRadialGradient(sealCx, sealCy, sealR * 0.4, sealCx, sealCy, sealR * 2);
-    sealHalo.addColorStop(0, rgba(theme.accent, 0.28));
-    sealHalo.addColorStop(1, rgba(theme.accent, 0));
-    ctx.fillStyle = sealHalo;
-    ctx.fillRect(sealCx - sealR * 2, sealCy - sealR * 2, sealR * 4, sealR * 4);
-
-    // plain outer ring (no star rays)
-    ctx.beginPath();
-    ctx.arc(sealCx, sealCy, sealR, 0, Math.PI * 2);
-    ctx.strokeStyle = rgba(theme.accent, 0.6);
-    ctx.lineWidth = 1.8;
-    ctx.stroke();
-
-    // inner gold disc
-    const sealGrad = ctx.createLinearGradient(sealCx - sealR, sealCy - sealR, sealCx + sealR, sealCy + sealR);
-    sealGrad.addColorStop(0, rgba(theme.accent, 1));
-    sealGrad.addColorStop(0.5, rgba(theme.accent2, 1));
-    sealGrad.addColorStop(1, rgba(theme.accent, 1));
-    ctx.beginPath();
-    ctx.arc(sealCx, sealCy, sealR * 0.85, 0, Math.PI * 2);
-    ctx.fillStyle = sealGrad;
-    ctx.fill();
-
-    // engraving shadow on the disc
-    ctx.beginPath();
-    ctx.arc(sealCx, sealCy, sealR * 0.72, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // tiny crescent on the seal — replaces the star ring
-    drawCrescent(ctx, sealCx, sealCy - sealR * 0.55, 10, "rgba(0,0,0,0.7)");
-
-    // count text
-    ctx.direction = "ltr";
+    // Two accent crescents
+    drawCrescent(ctx, W / 2 - 184, countCY, 14, rgba(theme.accent, 0.90), -1);
+    drawCrescent(ctx, W / 2 + 184, countCY, 14, rgba(theme.accent, 0.90), 1);
+    // "تكرار" mini label above the number
+    ctx.direction = "rtl";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `600 18px ${FONT_NAKSH}`;
+    ctx.fillStyle = rgba(theme.fg, 0.62);
+    ctx.fillText("تَكْرَار", W / 2, countCY - 38);
+    // Big Arabic-Indic number with warm halo
+    ctx.font = `800 78px ${FONT_NAKSH}`;
+    ctx.shadowColor = rgba(theme.accent, 0.55);
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = rgba(theme.accent, 1);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `800 34px 'Segoe UI','Tahoma',Arial,sans-serif`;
-    ctx.fillStyle = "rgba(0,0,0,0.78)";
-    ctx.fillText(`${opts.count}`, sealCx, sealCy + 8);
+    ctx.fillText(arNum, W / 2, countCY + 8);
+    ctx.shadowBlur = 0;
     ctx.restore();
   }
 
-  /* ────── 9. FOOTER RIBBON ─────── */
-  const footerY = fy + fh - 122;
-  const footerH = 88;
-  const footerUrl = (opts.footerUrl ?? "www.athark.org").trim();
-  const footerX = fx + 64;
-  const footerW = fw - 128;
-
+  // ────────────────────────────────────────────────────────────────────────
+  //  7. FOOTER  ·  minimal: brand left, URL right, no ribbon
+  // ────────────────────────────────────────────────────────────────────────
+  const footerUrl = (opts.footerUrl ?? "athark.org").trim();
   ctx.save();
-  roundRect(ctx, footerX, footerY, footerW, footerH, footerH / 2);
-  const ribbonGrad = ctx.createLinearGradient(footerX, footerY, footerX + footerW, footerY);
-  ribbonGrad.addColorStop(0, "rgba(0,0,0,0.55)");
-  ribbonGrad.addColorStop(1, rgba(theme.accent, 0.20));
-  ctx.fillStyle = ribbonGrad;
-  ctx.fill();
-  ctx.strokeStyle = rgba(theme.accent, 0.65);
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // ribbon end notches
-  ctx.beginPath();
-  ctx.moveTo(footerX + 18, footerY);
-  ctx.lineTo(footerX, footerY + footerH / 2);
-  ctx.lineTo(footerX + 18, footerY + footerH);
-  ctx.lineTo(footerX + 36, footerY + footerH);
-  ctx.lineTo(footerX + 54, footerY + footerH / 2);
-  ctx.lineTo(footerX + 36, footerY);
-  ctx.closePath();
-  ctx.fillStyle = ribbonGrad;
-  ctx.fill();
-  ctx.strokeStyle = rgba(theme.accent, 0.65);
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(footerX + footerW - 18, footerY);
-  ctx.lineTo(footerX + footerW, footerY + footerH / 2);
-  ctx.lineTo(footerX + footerW - 18, footerY + footerH);
-  ctx.lineTo(footerX + footerW - 36, footerY + footerH);
-  ctx.lineTo(footerX + footerW - 54, footerY + footerH / 2);
-  ctx.lineTo(footerX + footerW - 36, footerY);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // brand centered
+  ctx.font = `400 22px ${FONT_SANS}`;
+  // left: brand
   ctx.direction = "rtl";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = `700 26px 'Noto Naskh Arabic','Amiri','Segoe UI',Tahoma,Arial,sans-serif`;
-  ctx.fillStyle = rgba(theme.accent, 0.95);
-  ctx.shadowColor = rgba(theme.accent, 0.55);
-  ctx.shadowBlur = 10;
-  ctx.fillText("أثر  •  ATHAR", W / 2, footerY + footerH / 2 - 2);
-  ctx.shadowBlur = 0;
-  ctx.font = `400 14px 'Segoe UI',Tahoma,Arial,sans-serif`;
-  ctx.fillStyle = rgba(theme.fg, 0.55);
-  ctx.fillText(footerUrl, W / 2, footerY + footerH - 16);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = rgba(theme.accent, 0.90);
+  ctx.font = `700 22px ${FONT_SERIF}`;
+  ctx.fillText("أَثَر  ·  ATHAR", fx + 30, footerY + footerH / 2);
 
-  // small flanking dots instead of decorative ornaments
-  for (const sign of [-1, 1]) {
-    const dx = W / 2 + sign * 140;
-    drawDot(ctx, dx, footerY + footerH / 2 - 2, 3, rgba(theme.accent, 0.55));
-  }
+  // right: URL
+  ctx.direction = "ltr";
+  ctx.textAlign = "right";
+  ctx.font = `500 20px ${FONT_SANS}`;
+  ctx.fillStyle = rgba(theme.fg, 0.65);
+  ctx.fillText(footerUrl, fx + fw - 30, footerY + footerH / 2);
   ctx.restore();
 
-  /* ────── 10. OPTIONAL FADED PHOTO OVERLAY ─────── */
-  let bgImage: HTMLImageElement | null = null;
-  const base = import.meta.env.BASE_URL;
-  const t = (theme.themeName || "").split(/\s+/).filter(Boolean)[0] || "system";
-  const candidates = [
-    `${base}posters/${t}/01.jpg`,
-    `${base}posters/${t}/02.jpg`,
-    `${base}posters/system/01.jpg`,
-  ];
-  for (const c of candidates) {
-    try { bgImage = await loadImage(c); break; } catch { bgImage = null; }
-  }
-  if (bgImage) {
-    ctx.save();
-    ctx.globalAlpha = 0.06;
-    drawCover(ctx, bgImage, 0, 0, W, H);
-    ctx.restore();
-  }
-
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
+  // → output
+  return await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("canvas.toBlob returned null"))),
+      "image/png",
+    );
   });
 }
