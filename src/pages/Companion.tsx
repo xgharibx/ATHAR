@@ -90,19 +90,29 @@ import { COMPANION_PROXY_URL } from "@/lib/companionAI";
 const NoorStarfield = React.lazy(() => import("@/components/background/NoorStarfield"));
 
 /** Same moving-stars "athar theme" as the app's global background, embedded
- *  inside a slide-over panel so its translucent surface shows real motion
- *  instead of sitting flat over the dark overlay behind it. Respects the
+ *  inside a slide-over panel — the same warm accent glow + starfield canvas
+ *  NoorBackground paints app-wide, not a flat tinted panel. Respects the
  *  same 3D/reduced-motion prefs as NoorBackground — skips the WebGL canvas
- *  entirely rather than fighting a user's accessibility choice. */
+ *  entirely rather than fighting a user's accessibility choice, but the
+ *  gradient glow still shows either way so the panel never looks flat. */
 function StarrySlideOverBg() {
   const enable3D = useNoorStore((s) => s.prefs.enable3D);
   const reduceMotion = useNoorStore((s) => s.prefs.reduceMotion);
-  if (!enable3D || reduceMotion) return null;
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden opacity-70" aria-hidden="true">
-      <React.Suspense fallback={null}>
-        <NoorStarfield mobile />
-      </React.Suspense>
+    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(120% 60% at 15% 0%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 62%), " +
+            "radial-gradient(120% 60% at 95% 100%, color-mix(in srgb, var(--accent-2) 20%, transparent), transparent 62%)",
+        }}
+      />
+      {enable3D && !reduceMotion ? (
+        <React.Suspense fallback={null}>
+          <NoorStarfield mobile />
+        </React.Suspense>
+      ) : null}
     </div>
   );
 }
@@ -712,10 +722,10 @@ export function CompanionPage() {
       {showHistory ? (
         <div className="fixed inset-0 z-50 flex justify-start" dir="rtl">
           <button type="button" aria-label="إغلاق" onClick={() => setShowHistory(false)}
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+            className="absolute inset-0 bg-black/55 backdrop-blur-md" />
           <div
             className="relative flex h-full w-[92%] max-w-md flex-col shadow-2xl backdrop-blur-xl"
-            style={{ backgroundColor: "color-mix(in srgb, var(--bg) 80%, transparent)" }}
+            style={{ backgroundColor: "color-mix(in srgb, var(--bg) 42%, transparent)" }}
           >
             <StarrySlideOverBg />
             <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
@@ -830,10 +840,10 @@ export function CompanionPage() {
       {showPins ? (
         <div className="fixed inset-0 z-50 flex justify-start" dir="rtl">
           <button type="button" aria-label="إغلاق" onClick={() => setShowPins(false)}
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+            className="absolute inset-0 bg-black/55 backdrop-blur-md" />
           <div
             className="relative flex h-full w-[92%] max-w-md flex-col shadow-2xl backdrop-blur-xl"
-            style={{ backgroundColor: "color-mix(in srgb, var(--bg) 80%, transparent)" }}
+            style={{ backgroundColor: "color-mix(in srgb, var(--bg) 42%, transparent)" }}
           >
             <StarrySlideOverBg />
             <div className="flex items-center justify-between gap-2 border-b border-[var(--stroke)] p-4">
@@ -1764,10 +1774,10 @@ function HistoryItem(props: {
   ].join(" ");
 
   const containerBg = variant === "pinned"
-    ? "bg-gradient-to-br from-amber-500/[0.12] via-[var(--card)]/95 to-emerald-500/[0.06] backdrop-blur-xl"
+    ? "bg-gradient-to-br from-amber-500/[0.14] via-[var(--card)]/40 to-emerald-500/[0.08] backdrop-blur-xl"
     : props.isCurrent
-      ? "bg-gradient-to-br from-accent-15 via-[var(--card)]/95 to-[var(--card)]/95 backdrop-blur-xl"
-      : "bg-[var(--card)]/75 backdrop-blur-xl hover:bg-[var(--card)]/95 hover:border-accent-35/50";
+      ? "bg-gradient-to-br from-accent-15 via-[var(--card)]/40 to-[var(--card)]/40 backdrop-blur-xl"
+      : "bg-[var(--card)]/28 backdrop-blur-xl hover:bg-[var(--card)]/45 hover:border-accent-35/50";
 
   const iconCls = [
     "mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl border shadow-inner",
@@ -1913,7 +1923,7 @@ function PinnedReplyCard({ pin, onDelete }: { pin: PinnedReply; onDelete: () => 
     } catch { /* user cancelled */ }
   };
   return (
-    <div className="rounded-2xl border border-amber-300/30 bg-gradient-to-br from-amber-500/[0.08] via-[var(--card)] to-[var(--card)] p-3">
+    <div className="rounded-2xl border border-amber-300/30 bg-gradient-to-br from-amber-500/[0.1] via-[var(--card)]/40 to-[var(--card)]/40 backdrop-blur-xl p-3">
       <p className="whitespace-pre-wrap text-[12.5px] leading-6 text-[var(--fg)] line-clamp-6">{pin.text}</p>
       <div className="mt-2 flex items-center gap-1 text-[11px] text-[var(--muted-2)]">
         <button type="button" onClick={copy} className="flex items-center gap-1 hover:text-[var(--fg)] transition" aria-label="نسخ">
