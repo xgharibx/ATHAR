@@ -788,8 +788,19 @@ export function SebhaPage() {
       && ("nativeEvent" in (keyOverride as object) || "persist" in (keyOverride as object) || "currentTarget" in (keyOverride as object));
     const override: TasbeehKey | undefined = isSyntheticEvent ? undefined : (keyOverride as TasbeehKey | undefined);
     if (tallyMode) {
-      // وضع حر: just count locally with no target. No haptics on every count to keep it calm.
-      setTallyCount((c) => c + 1);
+      // وضع حر: count locally + fire the same per-tap haptic every other
+      // mode uses. Target argument is null so doHaptic emits the regular
+      // small pulse (not the long completion / 100 / 33 special patterns,
+      // which only make sense with a target).
+      const nextCount = tallyCount + 1;
+      setTallyCount(nextCount);
+      doHaptic(nextCount, null, prefs.enableHaptics, prefs.hapticStrength);
+      if (prefs.enableHaptics && typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+        // Tiny extra buzz every 33 in free mode since the user is
+        // explicitly counting without a target — feels rewarding
+        // without being noisy.
+        if (nextCount % 33 === 0) navigator.vibrate(15);
+      }
       return;
     }
     const activeKey = (override ?? selected) as string;

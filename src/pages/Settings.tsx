@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, RotateCw, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft, Search, X, Vibrate, Moon, Volume2, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import pkgJson from "../../package.json";
 
 import { Card } from "@/components/ui/Card";
@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { Slider } from "@/components/ui/Slider";
 import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
 import { useNoorStore, DEFAULT_HOME_WIDGETS_ORDER, type NoorTheme, type ExportBlobV1, type HomeWidgetKey } from "@/store/noorStore";
 import { downloadJson } from "@/lib/download";
 import { clamp } from "@/lib/utils";
+import { toArabicNumeral } from "@/lib/quranMeta";
 import {
   cancelAllReminders,
   ensureExactAlarmPermission,
@@ -195,6 +197,10 @@ export function SettingsPage() {
   const resetPrefs = useNoorStore((s) => s.resetPrefs);
   const reminders = useNoorStore((s) => s.reminders);
   const setReminders = useNoorStore((s) => s.setReminders);
+  /* New — surfaced per user request: the on-device custom-reminders that the
+     Companion AI creates via the create_reminder tool call. They live in
+     IDB through noorStore and were invisible in Settings before. */
+  const customReminders = useNoorStore((s) => s.customReminders) ?? [];
   const exportState = useNoorStore((s) => s.exportState);
   const importState = useNoorStore((s) => s.importState);
   const sebhaTarget = useNoorStore((s) => s.sebhaTarget);
@@ -434,58 +440,7 @@ export function SettingsPage() {
 
         {/* ── Quick toggles — 4 most-used prefs always one tap away ── */}
         <QuickTogglesStrip prefs={prefs} setPrefs={setPrefs} reminders={reminders} setReminders={setReminders} />
-
-        {/* ── Smart sticky section nav (auto-highlights currently visible section) ── */}
-        <nav
-          className="mt-2 flex gap-1.5 overflow-x-auto no-scrollbar"
-          aria-label="انتقال سريع لأقسام الإعدادات"
-        >
-          {SECTIONS
-            .filter((s) => visibleSet.has(s.id))
-            .map((s) => {
-              const isActive = activeSection === s.id;
-              return (
-                <button
-                  type="button"
-                  key={s.id}
-                  onClick={() => document.getElementById(`settings-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                  aria-current={isActive ? "true" : undefined}
-                  className={[
-                    "shrink-0 text-[11.5px] px-2.5 py-1.5 rounded-full border transition whitespace-nowrap",
-                    isActive
-                      ? "bg-accent-20 border-accent-40 text-[var(--accent)] font-semibold"
-                      : "border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)]",
-                  ].join(" ")}
-                >
-                  {s.icon} {s.title}
-                </button>
-              );
-            })}
-          {visibleIds.length === 0 ? (
-            <span className="text-[11.5px] opacity-55 px-2 py-1.5">لا توجد نتائج لـ «{search}»</span>
-          ) : null}
-        </nav>
       </div>
-
-      {/* Render category dividers as visual breaks between grouped cards. */}
-      {SETTINGS_CATEGORIES.map((cat) => {
-        const grouped = visibleIds.filter((id) => {
-          const sec = SECTIONS.find((s) => s.id === id);
-          return sec?.category === cat.id;
-        });
-        if (grouped.length === 0) return null;
-        return (
-          <div
-            key={cat.id}
-            className="flex items-center gap-3 px-1 pt-2"
-            aria-hidden="true"
-          >
-            <div className="text-[11px] font-semibold opacity-65 tracking-wide">{cat.title}</div>
-            <div className="text-[10px] opacity-45">{cat.description}</div>
-            <div className="flex-1 h-px bg-[var(--stroke)]" />
-          </div>
-        );
-      })}
 
       {/* Quick backup strip */}
       <div className="flex items-center justify-between gap-3 px-1">
@@ -498,14 +453,6 @@ export function SettingsPage() {
           نسخ احتياطي
         </button>
       </div>
-
-      <Card id="settings-summary" className="p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={16} className="text-[var(--accent)]" aria-hidden="true" />
-          <div className="text-sm font-semibold">ملخص بياناتك</div>
-        </div>
-        <p className="text-xs opacity-55 leading-5">إحصائياتك محفوظة على جهازك فقط — لا نرسل أي بيانات لأي خادم. افتح صفحة &quot;رحلتي&quot; لمعرفة التفاصيل الكاملة.</p>
-      </Card>
 
       <Card id="settings-appearance" className="p-5">
         <div className="flex items-center gap-2">
@@ -1178,6 +1125,60 @@ export function SettingsPage() {
             حالة الإذن: {notifPerm === "denied" ? "مرفوض" : "غير مفعّل"}. فعّل التذكيرات لطلب الإذن.
           </div>
         ) : null}
+
+        {/* New — surfaced per user request: the on-device custom-reminders
+           that the Companion AI creates via the create_reminder tool call.
+           They live in IDB through noorStore and were invisible in Settings
+           before. This card links straight into the reminders page where they
+           can be created, edited, deleted, and AI-created ones are tagged. */}
+        <div
+          className="mt-4 rounded-3xl border border-accent-35 bg-gradient-to-br from-accent-12 to-accent-5 p-4"
+          data-testid="settings-custom-reminders-card"
+        >
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3 min-w-0">
+              <span
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-accent-35 bg-accent-20"
+                aria-hidden="true"
+              >
+                <Sparkles size={16} className="text-[var(--accent)]" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold flex items-center gap-2">
+                  تذكيراتي المخصّصة
+                  {customReminders.length > 0 ? (
+                    <Badge>
+                      {toArabicNumeral(customReminders.length)}
+                    </Badge>
+                  ) : null}
+                </div>
+                <div className="text-xs opacity-70 mt-0.5 leading-6">
+                  تذكيرات قابلة للبرمجة — يمكنك إنشاؤها يدويًا أو إن يضيفها «أثر» بالذكاء الاصطناعي.
+                </div>
+              </div>
+            </div>
+            <Link
+              to="/reminders"
+              className="text-xs px-3 py-1.5 rounded-xl border border-[var(--accent)]/55 bg-[var(--accent)]/12 text-[var(--accent)] hover:bg-[var(--accent)]/20 transition flex items-center gap-1.5 min-h-[36px] font-semibold"
+            >
+              <BookOpen size={12} aria-hidden="true" />
+              فتح صفحة التذكيرات
+            </Link>
+          </div>
+          {customReminders.length > 0 ? (
+            <div className="mt-3 text-[11px] opacity-65 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 px-2 py-0.5">
+                <Sparkles size={9} aria-hidden="true" />
+                أُنشئ من «أثر»
+              </span>
+              وسيُرسلك إشعار به في الوقت المحدد.
+            </div>
+          ) : (
+            <div className="mt-3 text-[11px] opacity-55">
+              لم تُنشأ أي تذكيرات بعد. جرّب أن تقول ل«أثر»: «ذكّرني بأذكار الصباح كل يوم».
+            </div>
+          )}
+        </div>
 
         <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">

@@ -11,8 +11,10 @@ import {
 
 describe("settingsLayout section catalog + filter", () => {
   it("SECTIONS contains every anchor id used in Settings.tsx", () => {
+    // ملخص بياناتك (summary) was removed by user request — it is NOT in
+    // SECTIONS any more. Every other section anchor in Settings.tsx must
+    // still be registered.
     const required = [
-      "summary",
       "appearance",
       "home-widgets",
       "reading",
@@ -29,6 +31,13 @@ describe("settingsLayout section catalog + filter", () => {
     for (const id of required) {
       expect(SECTIONS.some((s) => s.id === id)).toBe(true);
     }
+  });
+
+  it("'summary' is intentionally absent", () => {
+    // Sanity-check: the user's explicit ask was to remove ملخص بياناتك
+    // entirely. If someone adds it back to SECTIONS on a future commit,
+    // this test fails so the change is explicit.
+    expect(SECTIONS.some((s) => s.id === "summary")).toBe(false);
   });
 
   it("empty query returns everything in canonical order", () => {

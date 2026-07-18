@@ -14,7 +14,6 @@
  */
 
 export type SettingsSectionId =
-  | "summary"
   | "appearance"
   | "home-widgets"
   | "reading"
@@ -70,14 +69,6 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
 
 /** The canonical order shown on the page. */
 export const SECTIONS: SettingsSection[] = [
-  {
-    id: "summary",
-    title: "ملخص بياناتك",
-    description: "إحصائيات المفضلة والعلامات وأيام النشاط",
-    icon: "✨",
-    category: "data",
-    keywords: ["ملخص", "بيانات", "إحصائيات", "summary", "stats"],
-  },
   {
     id: "appearance",
     title: "المظهر",

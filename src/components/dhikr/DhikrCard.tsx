@@ -9,6 +9,7 @@ import { coerceCount, type DhikrItem } from "@/data/types";
 import { IconButton } from "@/components/ui/IconButton";
 import { isDailySection } from "@/lib/dailySections";
 import { SharePosterModal } from "@/components/dhikr/SharePosterModal";
+import { doHaptic } from "@/lib/sebhaHaptics";
 
 // Lazy-load heavy libraries — only imported when actually needed
 // Note: GSAP removed from hot path — ring + ripple now use CSS transitions
@@ -220,9 +221,15 @@ export function DhikrCard(props: {
     const next = increment({ sectionId, index, target });
     tapCountRef.current++;
 
-    // Haptic feedback
-    if (prefs.enableHaptics && navigator.vibrate) {
-      navigator.vibrate(12);
+    // Haptic feedback — same helper as Sebha so behaviour is identical
+    // across all counting surfaces (small per-tap, big on completion).
+    // Target arg passed so doHaptic fires the long completion pattern
+    // when the user reaches the goal.
+    doHaptic(next, target, prefs.enableHaptics, prefs.hapticStrength);
+    // Tap-target hit? Extra celebratory pulse with the user's strength
+    // so the milestone feels proportional.
+    if (next === target && prefs.enableHaptics && typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+      navigator.vibrate([18, 8, 18]);
     }
 
     // Per-tap button press animation — fires on EVERY tap from the very
