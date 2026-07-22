@@ -83,19 +83,6 @@
                 android:resource="@xml/widget_dashboard_info" />
         </receiver>
 
-        <!-- General Daily Widget (3×2) -->
-        <receiver
-            android:name=".NoorWidgetProvider"
-            android:exported="true"
-            android:label="@string/widget_daily_label">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/noor_widget_info" />
-        </receiver>
-
         <!-- Compact Daily Widget (2×1) -->
         <receiver
             android:name=".NoorCompactWidgetProvider"

@@ -16,7 +16,6 @@ import android.content.Intent;
 public final class WidgetUpdater {
 
     private static final Class<?>[] PROVIDERS = {
-        NoorWidgetProvider.class,
         NoorCompactWidgetProvider.class,
         NoorPrayerWidgetProvider.class,
         NoorPrayerFullWidgetProvider.class,
