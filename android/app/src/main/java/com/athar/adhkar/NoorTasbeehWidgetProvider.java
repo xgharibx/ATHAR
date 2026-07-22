@@ -34,9 +34,14 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
     public static final String ACTION_NEXT      = "com.athar.adhkar.TASBEEH_NEXT";
 
     static final String PREFS_FILE = "AtharTasbeeh";
-    static final String KEY_INDEX  = "dhikr_index";
-    static final String KEY_COUNT  = "dhikr_count";
-    static final String KEY_DATE   = "dhikr_date";
+
+    // Keyed per appWidgetId — two Tasbeeh widgets placed side by side on the
+    // same home screen used to share one global "dhikr_index"/"dhikr_count",
+    // so tapping one silently incremented the other's counter too and the
+    // two visually desynced. Each widget instance now owns its own count.
+    private static String keyIndex(int id) { return "dhikr_index_" + id; }
+    private static String keyCount(int id) { return "dhikr_count_" + id; }
+    private static String keyDate(int id)  { return "dhikr_date_" + id; }
 
     /**
      * Daily totals mirrored into the app-readable "CapacitorStorage" prefs so
@@ -76,9 +81,9 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
         try {
             SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
-            checkDayReset(prefs);
             for (int id : appWidgetIds) {
                 try {
+                    checkDayReset(prefs, id);
                     updateSingle(context, manager, id, prefs);
                 } catch (Throwable t) {
                     // Never surface "couldn't load widget"; skip this id safely.
@@ -96,7 +101,17 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
+        try {
+            handleAction(context, intent);
+        } catch (Throwable t) {
+            // Same "never surface couldn't load widget" contract as
+            // onUpdate — this is the most frequently invoked path (every
+            // tap), so it needs the same crash guard, not just the passive
+            // update path.
+        }
+    }
 
+    private void handleAction(Context context, Intent intent) {
         final String action = intent.getAction();
         if (!ACTION_INCREMENT.equals(action)
                 && !ACTION_RESET.equals(action)
@@ -111,10 +126,10 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) return;
 
         SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
-        checkDayReset(prefs);
+        checkDayReset(prefs, widgetId);
 
-        int index = prefs.getInt(KEY_INDEX, 0);
-        int count = prefs.getInt(KEY_COUNT, 0);
+        int index = prefs.getInt(keyIndex(widgetId), 0);
+        int count = prefs.getInt(keyCount(widgetId), 0);
 
         if (ACTION_INCREMENT.equals(action)) {
             count++;
@@ -123,19 +138,19 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
             if (count >= DHIKR_TARGET[index]) {
                 // Auto-advance to next dhikr
                 index = (index + 1) % DHIKR_AR.length;
-                ed.putInt(KEY_INDEX, index).putInt(KEY_COUNT, 0);
+                ed.putInt(keyIndex(widgetId), index).putInt(keyCount(widgetId), 0);
             } else {
-                ed.putInt(KEY_COUNT, count);
+                ed.putInt(keyCount(widgetId), count);
             }
             ed.apply();
 
         } else if (ACTION_RESET.equals(action)) {
-            prefs.edit().putInt(KEY_COUNT, 0).apply();
+            prefs.edit().putInt(keyCount(widgetId), 0).apply();
 
         } else { // ACTION_NEXT
             prefs.edit()
-                .putInt(KEY_INDEX, (index + 1) % DHIKR_AR.length)
-                .putInt(KEY_COUNT, 0)
+                .putInt(keyIndex(widgetId), (index + 1) % DHIKR_AR.length)
+                .putInt(keyCount(widgetId), 0)
                 .apply();
         }
 
@@ -155,8 +170,8 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
             int appWidgetId,
             SharedPreferences prefs) {
 
-        final int index   = prefs.getInt(KEY_INDEX, 0);
-        final int count   = prefs.getInt(KEY_COUNT, 0);
+        final int index   = prefs.getInt(keyIndex(appWidgetId), 0);
+        final int count   = prefs.getInt(keyCount(appWidgetId), 0);
         final int target  = DHIKR_TARGET[index];
         final String dhikrAr = DHIKR_AR[index];
 
@@ -251,14 +266,14 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         }
     }
 
-    /** Reset counters and index if the stored date differs from today. */
-    private static void checkDayReset(SharedPreferences prefs) {
+    /** Reset this widget instance's counter and index if its stored date differs from today. */
+    private static void checkDayReset(SharedPreferences prefs, int widgetId) {
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
-        if (!today.equals(prefs.getString(KEY_DATE, ""))) {
+        if (!today.equals(prefs.getString(keyDate(widgetId), ""))) {
             prefs.edit()
-                .putString(KEY_DATE, today)
-                .putInt(KEY_COUNT, 0)
-                .putInt(KEY_INDEX, 0)
+                .putString(keyDate(widgetId), today)
+                .putInt(keyCount(widgetId), 0)
+                .putInt(keyIndex(widgetId), 0)
                 .apply();
         }
     }

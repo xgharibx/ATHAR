@@ -147,35 +147,38 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             JSONObject payload = new JSONObject(json);
             JSONArray prayers  = payload.optJSONArray("prayers");
 
-            String nextNameAr = null;
-            String countdown  = "";
-            if (!payload.isNull("nextPrayer")) {
-                JSONObject next = payload.getJSONObject("nextPrayer");
-                nextNameAr = next.optString("nameAr", null);
-                countdown  = next.optString("countdownLabel", "");
-            }
-            views.setTextViewText(R.id.dash_next_countdown,
-                countdown.isEmpty() ? "" : nextNameAr + " خلال " + countdown);
-
             // Map prayer names to dot indices: فجر=0, ظهر=1, عصر=2, مغرب=3, عشاء=4
             boolean[] passed = new boolean[5];
             boolean[] isNext = new boolean[5];
             int prevMin = 0, nextMin = -1, nextIdx = WidgetCanvas.PHASE_ISHA;
+            String nextNameAr = null;
 
             if (prayers != null) {
+                // Recomputed live from device time, NOT from the stale
+                // payload.nextPrayer/p.passed snapshot (see
+                // NoorPrayerWidgetProvider) — also, payload.nextPrayer never
+                // actually carries a "countdownLabel" field (nothing on the
+                // JS side writes one), so reading it here always produced an
+                // empty countdown string; recomputing live fixes both at once.
+                int nowMin = nowMinutes();
                 for (int i = 0; i < prayers.length() && i < 5; i++) {
                     JSONObject p = prayers.getJSONObject(i);
-                    passed[i] = p.optBoolean("passed", false);
                     int timeMin = toMinutesOfDay(p.optString("time", "0:0"));
+                    passed[i] = timeMin <= nowMin;
                     if (passed[i]) prevMin = Math.max(prevMin, timeMin);
                     String nameAr = p.optString("nameAr", "");
-                    if (nextNameAr != null && nextNameAr.equals(nameAr)) {
+                    if (nextNameAr == null && timeMin > nowMin) {
+                        nextNameAr = nameAr;
                         isNext[i] = true;
                         nextMin = timeMin;
                         nextIdx = i;
                     }
                 }
             }
+
+            String countdown = nextMin >= 0 ? buildCountdown(nextMin) : "";
+            views.setTextViewText(R.id.dash_next_countdown,
+                countdown.isEmpty() || nextNameAr == null ? "" : nextNameAr + " خلال " + countdown);
 
             for (int i = 0; i < DOT_IDS.length; i++) {
                 if (passed[i]) {
@@ -215,6 +218,20 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    private static int nowMinutes() {
+        Calendar cal = Calendar.getInstance();
+        return cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
+    }
+
+    /** "خلال ٤٥ دقيقة" / "خلال ٢س ١٠د" style label for the header countdown. */
+    private static String buildCountdown(int nextMin) {
+        int diff = nextMin - nowMinutes();
+        if (diff <= 0) return "";
+        if (diff < 60) return diff + " دقيقة";
+        int h = diff / 60, m = diff % 60;
+        return m == 0 ? h + " ساعة" : h + "س " + m + "د";
     }
 
     private static float intervalProgressFor(int prevMin, int nextMin) {

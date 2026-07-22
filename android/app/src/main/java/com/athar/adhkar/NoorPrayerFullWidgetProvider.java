@@ -105,10 +105,23 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
             if (json != null) {
                 JSONObject payload  = new JSONObject(json);
                 JSONArray  prayers  = payload.optJSONArray("prayers");
-                String nextNameAr   = null;
 
-                if (!payload.isNull("nextPrayer")) {
-                    nextNameAr = payload.getJSONObject("nextPrayer").optString("nameAr");
+                // Recomputed live from the device's current time, NOT from
+                // payload.nextPrayer / p.passed — those are a snapshot from
+                // whenever the JS side last synced (at most once/day).
+                // Trusting that snapshot directly made this widget keep
+                // highlighting an already-passed prayer as "next" for hours.
+                // See NoorPrayerWidgetProvider for the original fix.
+                String nextNameAr = null;
+                if (prayers != null) {
+                    int nowMin = nowMinutes();
+                    for (int i = 0; i < prayers.length(); i++) {
+                        JSONObject p = prayers.getJSONObject(i);
+                        if (toMinutesOfDay(p.optString("time", "0:0")) > nowMin) {
+                            nextNameAr = p.optString("nameAr", null);
+                            break;
+                        }
+                    }
                 }
 
                 // Ramadan rows
@@ -132,11 +145,13 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
                 // Populate 5 prayer rows
                 int count = prayers != null ? Math.min(prayers.length(), ROW_IDS.length) : 0;
                 int passedCount = 0;
+                int nowMinForRows = nowMinutes();
                 for (int i = 0; i < count; i++) {
                     JSONObject p     = prayers.getJSONObject(i);
                     String nameAr    = p.optString("nameAr", FALLBACK_NAMES[i]);
                     String time24    = p.optString("time", "--:--");
-                    boolean passed   = p.optBoolean("passed", false);
+                    // Live, not the stale p.optBoolean("passed", false) snapshot.
+                    boolean passed   = toMinutesOfDay(time24) <= nowMinForRows;
                     boolean isNext   = nameAr.equals(nextNameAr);
                     if (passed) { passedCount++; prevMin = Math.max(prevMin, toMinutesOfDay(time24)); }
                     if (isNext) nextMin = toMinutesOfDay(time24);
@@ -289,6 +304,11 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    private static int nowMinutes() {
+        Calendar cal = Calendar.getInstance();
+        return cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE);
     }
 
     /** Elapsed fraction (0..1) of the way from prevMin to nextMin — the same

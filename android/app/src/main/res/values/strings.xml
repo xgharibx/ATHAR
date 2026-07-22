@@ -19,6 +19,7 @@
     <string name="widget_sunnah_label">Athar Sunnah Widget</string>
     <string name="widget_asma_label">Athar Asma al-Husna Widget</string>
     <string name="widget_qibla_label">Athar Qibla Widget</string>
+    <string name="widget_dashboard_description">الصلاة والأذكار والورد اليومي في نظرة واحدة</string>
     <!-- 11C: Notification channel names shown in Android Settings > App Notifications -->
     <string name="channel_prayer_name">&#x62A;&#x646;&#x628;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
     <string name="channel_prayer_desc">&#x623;&#x630;&#x627;&#x646; &#x627;&#x644;&#x635;&#x644;&#x648;&#x627;&#x62A; &#x627;&#x644;&#x62E;&#x645;&#x633; &#x648;&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
