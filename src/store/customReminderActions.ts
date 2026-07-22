@@ -81,8 +81,7 @@ export interface AddCustomReminderInput {
 }
 
 function readSeenTemplateIds(): Record<string, boolean> {
-  const s = useNoorStore.getState() as unknown as { seenTemplateIds?: Record<string, boolean> };
-  return s.seenTemplateIds ?? {};
+  return useNoorStore.getState().seenTemplateIds ?? {};
 }
 
 export function getSeenTemplateIds(): Record<string, boolean> {
@@ -115,13 +114,7 @@ export function addCustomReminder(r: AddCustomReminderInput): string {
     notification: r.notification,
     suggestion: r.suggestion,
   };
-  // Cast to any so the call site doesn't depend on `customReminders` being
-  // declared on `NoorState` — the store keeps the slice as plain state.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const setState = useNoorStore.setState as unknown as (
-    updater: (s: any) => any,
-  ) => void;
-  setState((s: { customReminders: CustomReminder[] }) => {
+  useNoorStore.setState((s) => {
     const next = [full, ...(s.customReminders ?? [])];
     scheduleRemindersSave(next);
     return { customReminders: next };
@@ -130,11 +123,7 @@ export function addCustomReminder(r: AddCustomReminderInput): string {
 }
 
 export function updateCustomReminder(id: string, patch: Partial<CustomReminder>): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const setState = useNoorStore.setState as unknown as (
-    updater: (s: any) => any,
-  ) => void;
-  setState((s: { customReminders: CustomReminder[] }) => {
+  useNoorStore.setState((s) => {
     let changed = false;
     const list = s.customReminders ?? [];
     const next = list.map((r) => {
@@ -155,11 +144,7 @@ export function updateCustomReminder(id: string, patch: Partial<CustomReminder>)
 }
 
 export function toggleCustomReminder(id: string, enabled: boolean): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const setState = useNoorStore.setState as unknown as (
-    updater: (s: any) => any,
-  ) => void;
-  setState((s: { customReminders: CustomReminder[] }) => {
+  useNoorStore.setState((s) => {
     let changed = false;
     const list = s.customReminders ?? [];
     const next = list.map((r) => {
@@ -174,11 +159,7 @@ export function toggleCustomReminder(id: string, enabled: boolean): void {
 }
 
 export function deleteCustomReminder(id: string): void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const setState = useNoorStore.setState as unknown as (
-    updater: (s: any) => any,
-  ) => void;
-  setState((s: { customReminders: CustomReminder[] }) => {
+  useNoorStore.setState((s) => {
     const list = s.customReminders ?? [];
     const next = list.filter((r) => r.id !== id);
     if (next.length === list.length) return {};
@@ -193,8 +174,6 @@ export function dismissTemplateFlag(templateId: string): void {
   if (current[templateId]) return;
   const next = { ...current, [templateId]: true };
   scheduleTemplatesSave(next);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const setState = useNoorStore.setState as unknown as (slice: any) => void;
-  setState({ seenTemplateIds: next });
+  useNoorStore.setState({ seenTemplateIds: next });
   void idbDismissTemplate(templateId);
 }

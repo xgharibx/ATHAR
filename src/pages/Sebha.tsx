@@ -830,7 +830,7 @@ export function SebhaPage() {
         c({ particleCount: 120, spread: 100, startVelocity: 32, scalar: 1, origin: { y: 0.5 } });
       });
       const profile = SOUND_PROFILES.find((p) => p.id === prefs.tasbeehSoundProfile) ?? SOUND_PROFILES[0]!;
-      playCompletionSound(prefs.enableSounds, profile);
+      playCompletionSound(prefs.tasbeehSoundEnabled, profile);
       toast.success(`أتممت هدف اليوم (${tasbeehDailyGoal}) 🎉`, { duration: 3500 });
     }
     if (reachedTarget) {
@@ -840,7 +840,7 @@ export function SebhaPage() {
         setTimeout(() => c({ particleCount: 40, spread: 90, startVelocity: 18, scalar: 0.85, origin: { x: 0.2, y: 0.75 } }), 320);
       });
       const profile = SOUND_PROFILES.find((p) => p.id === prefs.tasbeehSoundProfile) ?? SOUND_PROFILES[0]!;
-      playCompletionSound(prefs.enableSounds, profile);
+      playCompletionSound(prefs.tasbeehSoundEnabled, profile);
       addSebhaSession({
         dhikrKey: activeKey,
         dhikrLabel: activeLabel,
@@ -860,7 +860,7 @@ export function SebhaPage() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [incQuickTasbeeh, prefs.enableHaptics, prefs.hapticStrength, prefs.enableSounds, prefs.autoAdvanceDhikr, prefs.tasbeehSoundProfile, selected, target, sebhaCustom, current.short, addSebhaSession, setSelected, recordTasbeehActivity, tasbeehDailyGoal, tasbeehGoalCelebratedDate, markTasbeehGoalCelebrated]);
+  }, [incQuickTasbeeh, prefs.enableHaptics, prefs.hapticStrength, prefs.tasbeehSoundEnabled, prefs.autoAdvanceDhikr, prefs.tasbeehSoundProfile, selected, target, sebhaCustom, current.short, addSebhaSession, setSelected, recordTasbeehActivity, tasbeehDailyGoal, tasbeehGoalCelebratedDate, markTasbeehGoalCelebrated]);
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {

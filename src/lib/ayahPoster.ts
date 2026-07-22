@@ -596,7 +596,7 @@ function buildReferenceLine(cfg: AyahPosterConfig): string {
   switch (style) {
     case "numbered":           return `${aNum}`;                                                 // ٢٥٥
     case "surahAyah":          return `${sName}  ·  ${sNum}:${aNum}`;                            // سورة البقرة · 2:255
-    case "numberedSurahName":  return `${sNum}:${aNum}  ·  ${aNum}`;                            // 2:255 · 255
+    case "numberedSurahName":  return `${sNum}:${aNum}  ·  ${sName}`;                          // 2:255 · البقرة
     default:                   return `${sName}`;
   }
 }

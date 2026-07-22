@@ -61,32 +61,35 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
                 JSONObject payload = new JSONObject(json);
                 JSONArray prayers  = payload.optJSONArray("prayers");
 
-                if (!payload.isNull("nextPrayer")) {
-                    JSONObject next = payload.getJSONObject("nextPrayer");
-                    nextName = next.optString("nameAr", null);
-                    nextTime = next.optString("time", null);
-                }
-
-                // Interval progress: elapsed fraction between the previous
-                // prayer (or midnight) and the next prayer.
-                if (nextTime != null && prayers != null) {
-                    int nowMin  = nowMinutes();
-                    int nextMin = toMinutes(nextTime);
+                // Recomputed live from the device's current time on every
+                // onUpdate — NOT read from payload.nextPrayer / p.passed,
+                // which are a snapshot from whenever the JS side last synced
+                // (at most once/day). Trusting that snapshot directly made
+                // the widget keep showing an already-passed prayer for hours,
+                // rolling straight to tomorrow instead of the next real
+                // prayer of the day.
+                if (prayers != null && prayers.length() > 0) {
+                    int nowMin = nowMinutes();
                     int prevMin = 0;
                     for (int i = 0; i < prayers.length(); i++) {
                         JSONObject p = prayers.getJSONObject(i);
-                        if (p.optBoolean("passed", false)) {
-                            prevMin = Math.max(prevMin, toMinutes(p.optString("time", "0:0")));
+                        int pMin = toMinutes(p.optString("time", "0:0"));
+                        if (pMin > nowMin) {
+                            nextName = p.optString("nameAr", null);
+                            nextTime = p.optString("time", null);
+                            int span = Math.max(1, pMin - prevMin);
+                            intervalProgress = Math.max(0f, Math.min(1f, (nowMin - prevMin) / (float) span));
+                            break;
                         }
+                        prevMin = pMin;
                     }
-                    int span = Math.max(1, nextMin - prevMin);
-                    intervalProgress = Math.max(0f, Math.min(1f, (nowMin - prevMin) / (float) span));
-                } else if (nextTime == null && prayers != null && prayers.length() > 0) {
-                    // All prayers passed — show tomorrow's Fajr, ring full.
-                    JSONObject fajr = prayers.getJSONObject(0);
-                    nextName = fajr.optString("nameAr", "الفجر") + " غدًا";
-                    nextTime = fajr.optString("time", null);
-                    intervalProgress = 1f;
+                    if (nextTime == null) {
+                        // All of today's prayers have passed — show tomorrow's Fajr, ring full.
+                        JSONObject fajr = prayers.getJSONObject(0);
+                        nextName = fajr.optString("nameAr", "الفجر") + " غدًا";
+                        nextTime = fajr.optString("time", null);
+                        intervalProgress = 1f;
+                    }
                 }
             }
         } catch (Exception ignored) {

@@ -9,7 +9,7 @@
  * mutates.
  */
 import type { CustomReminder } from "@/data/reminderTypes";
-import { nextOccurrences } from "@/lib/reminderRecurrence";
+import { nextOccurrences, type PrayerTimesSource } from "@/lib/reminderRecurrence";
 
 export interface CustomReminderSyncContext {
   /**
@@ -27,6 +27,15 @@ export interface CustomReminderSyncContext {
   canNotify?: () => boolean;
   /** Override the actual notification factory — used by tests. */
   showNotification?: (title: string, options: NotificationOptions) => void;
+  /**
+   * Today's prayer timings (Fajr/Sunrise/Dhuhr/Asr/Maghrib/Isha), passed
+   * straight through to `nextOccurrences`. Without this, `prayer_aligned` /
+   * `sunnah_aligned` reminders can only ever fall back to their (usually
+   * unset) `atTimeOfDay` and never actually fire — see App.tsx, which wires
+   * in the same `notificationPrayerTimings` it already computes for the
+   * built-in adhkar reminders.
+   */
+  prayerTimes?: PrayerTimesSource;
 }
 
 const DEFAULT_MAX_FIRINGS = 10;
@@ -50,10 +59,12 @@ function defaultShowNotification(title: string, options?: NotificationOptions): 
  * Schedule the next N firings for every enabled custom reminder.
  * Returns a cleanup function the caller must invoke before re-scheduling.
  *
- * The schedule only handles the four direct-repeat shapes. For
- * `*_aligned` repeats, callers should start the long-running delivery
- * helper in `@/lib/customReminderDelivery` (which has access to
- * prayer times).
+ * `nextOccurrences` (reminderRecurrence.ts) already handles all seven repeat
+ * shapes, including `prayer_aligned` / `sunnah_aligned` / `fasting_aligned` —
+ * so this schedules every reminder, not just the four direct-repeat ones.
+ * The one thing the caller must supply for anchored reminders to resolve to
+ * a real time (instead of falling back to their usually-unset `atTimeOfDay`)
+ * is `ctx.prayerTimes`; see App.tsx for the wiring.
  */
 export function syncCustomReminders(
   reminders: CustomReminder[],
@@ -78,7 +89,7 @@ export function syncCustomReminders(
   for (const reminder of reminders) {
     if (!reminder || !reminder.enabled) continue;
 
-    const dates = nextOccurrences(reminder, { count: maxFirings });
+    const dates = nextOccurrences(reminder, { count: maxFirings, prayerTimes: ctx.prayerTimes });
     const route = reminder.deeplink?.route;
 
     for (const date of dates) {

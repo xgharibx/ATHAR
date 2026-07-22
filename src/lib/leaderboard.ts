@@ -480,7 +480,7 @@ export function resetLeaderboardAlias() {
 
 export function loadLeaderboardAdminToken() {
   try {
-    return localStorage.getItem(ADMIN_TOKEN_KEY) ?? "";
+    return sessionStorage.getItem(ADMIN_TOKEN_KEY) ?? "";
   } catch {
     return "";
   }
@@ -490,10 +490,10 @@ export function saveLeaderboardAdminToken(token: string) {
   try {
     const value = String(token ?? "").trim();
     if (!value) {
-      localStorage.removeItem(ADMIN_TOKEN_KEY);
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
       return "";
     }
-    localStorage.setItem(ADMIN_TOKEN_KEY, value);
+    sessionStorage.setItem(ADMIN_TOKEN_KEY, value);
     return value;
   } catch {
     return String(token ?? "").trim();
@@ -502,7 +502,7 @@ export function saveLeaderboardAdminToken(token: string) {
 
 export function clearLeaderboardAdminToken() {
   try {
-    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
   } catch {
     // ignore storage write failures
   }

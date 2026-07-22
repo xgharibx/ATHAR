@@ -34,6 +34,7 @@ import { useNoorStore } from "@/store/noorStore";
 
 import {
   parseReminderToolCalls as parseModalReminders,
+  injectReminderStoreIds,
 } from "@/components/companion/CompanionModal";
 import { parseReminderToolCallsPage } from "@/pages/Companion";
 import { retrieveUserRemindersAsPassages } from "@/lib/companionKnowledge";
@@ -119,6 +120,62 @@ describe("CompanionModal — parseReminderToolCalls", () => {
     const reminders = parseModalReminders(text);
     expect(reminders.length).toBe(1);
     expect(reminders[0].title).toBe("تذكير صالح");
+  });
+});
+
+describe("parseReminderToolCalls — dayOfWeek / dayOfMonth (the AI tool-schema fix)", () => {
+  it("parses a numeric dayOfWeek", () => {
+    const text = `:::reminder\n${JSON.stringify({ category: "quran", title: "ورد الجمعة", repeat: "weekly", dayOfWeek: 5, atTimeOfDay: "09:00" })}\n:::`;
+    expect(parseModalReminders(text)[0].dayOfWeek).toBe(5);
+  });
+
+  it("parses a weekday NAME (as the AI tool schema now sends, e.g. 'friday')", () => {
+    const text = `:::reminder\n${JSON.stringify({ category: "quran", title: "ورد الجمعة", repeat: "weekly", dayOfWeek: "friday", atTimeOfDay: "09:00" })}\n:::`;
+    expect(parseModalReminders(text)[0].dayOfWeek).toBe(5);
+  });
+
+  it("parses dayOfMonth for monthly reminders", () => {
+    const text = `:::reminder\n${JSON.stringify({ category: "general", title: "مراجعة شهرية", repeat: "monthly", dayOfMonth: 1, atTimeOfDay: "08:00" })}\n:::`;
+    expect(parseModalReminders(text)[0].dayOfMonth).toBe(1);
+  });
+
+  it("drops an out-of-range dayOfMonth instead of accepting garbage", () => {
+    const text = `:::reminder\n${JSON.stringify({ category: "general", title: "x", repeat: "monthly", dayOfMonth: 40, atTimeOfDay: "08:00" })}\n:::`;
+    expect(parseModalReminders(text)[0].dayOfMonth).toBeUndefined();
+  });
+});
+
+describe("injectReminderStoreIds — id round-trip that makes duplicate-title chips resolve correctly", () => {
+  it("splices the real store id into a single reminder block", () => {
+    const raw = { category: "quran", title: "قراءة سورة الكهف", repeat: "weekly", atTimeOfDay: "09:00" };
+    const text = `تم!\n\n:::reminder\n${JSON.stringify(raw)}\n:::`;
+    const withId = injectReminderStoreIds(text, ["cr_abc123"]);
+    expect(parseModalReminders(withId)[0].storeId).toBe("cr_abc123");
+  });
+
+  it("assigns ids to multiple blocks IN DISPATCH ORDER — this is what lets two same-titled reminders resolve to the right one", () => {
+    const r1 = { category: "quran", title: "قراءة سورة الكهف", repeat: "weekly", atTimeOfDay: "09:00" };
+    const r2 = { category: "quran", title: "قراءة سورة الكهف", repeat: "daily", atTimeOfDay: "17:00" };
+    const text = [
+      ":::reminder", JSON.stringify(r1), ":::",
+      "", ":::reminder", JSON.stringify(r2), ":::",
+    ].join("\n");
+    const withIds = injectReminderStoreIds(text, ["cr_first", "cr_second"]);
+    const parsed = parseModalReminders(withIds);
+    expect(parsed[0].storeId).toBe("cr_first");
+    expect(parsed[0].repeat).toBe("weekly");
+    expect(parsed[1].storeId).toBe("cr_second");
+    expect(parsed[1].repeat).toBe("daily");
+  });
+
+  it("is a no-op passthrough when no ids were minted (e.g. dispatchCreateReminder failed)", () => {
+    const text = `:::reminder\n${JSON.stringify({ category: "quran", title: "x", repeat: "once" })}\n:::`;
+    expect(injectReminderStoreIds(text, [])).toBe(text);
+  });
+
+  it("leaves the block's storeId absent if malformed JSON prevents injection, without throwing", () => {
+    const text = ":::reminder\n{not valid json}\n:::";
+    expect(() => injectReminderStoreIds(text, ["cr_x"])).not.toThrow();
   });
 });
 

@@ -48,6 +48,16 @@ describe("verifyAnswer (improved narrator check)", () => {
     expect(out.flagged).toBe(true);
     expect(out.notes.length).toBeGreaterThan(0);
   });
+
+  it("does not duplicate a note when both the inline attribution loop and verifyHadith() flag the same citation (regression)", () => {
+    // verifyAnswer runs its own HADITH_ATTR_RE loop AND calls verifyHadith(),
+    // which re-scans the same pattern — an unrecognized joint attribution
+    // like "أبو داود والنسائي" used to produce the identical note twice.
+    const out = verifyAnswer('قال النبي ﷺ: "أقم الصلاة" — رواه أبو داود والنسائي');
+    const dupNotes = out.notes.filter((n) => /أبو داود والنسائي/.test(n));
+    expect(dupNotes.length).toBe(1);
+    expect(new Set(out.notes).size).toBe(out.notes.length);
+  });
 });
 
 describe("verifyAnswerAsync", () => {

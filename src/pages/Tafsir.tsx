@@ -167,7 +167,7 @@ export function TafsirPage() {
           المفسر
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="اختر المفسر">
-          {TAFSIR_EDITIONS.slice(0, 9).map((ed) => (
+          {TAFSIR_EDITIONS.map((ed) => (
             <button
               key={ed.slug}
               type="button"

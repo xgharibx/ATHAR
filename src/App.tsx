@@ -133,6 +133,7 @@ export default function App() {
 
     return {
       Fajr: timings.Fajr,
+      Sunrise: timings.Sunrise,
       Dhuhr: timings.Dhuhr,
       Asr: timings.Asr,
       Maghrib: timings.Maghrib,
@@ -145,6 +146,7 @@ export default function App() {
     prayerTimes.data?.data?.timings?.Fajr,
     prayerTimes.data?.data?.timings?.Isha,
     prayerTimes.data?.data?.timings?.Maghrib,
+    prayerTimes.data?.data?.timings?.Sunrise,
   ]);
 
   // N6: Smart-reminder completion snapshot — lets reminders skip already-done azkar
@@ -308,11 +310,14 @@ export default function App() {
 
   // Schedule the next-N firings of every user-defined reminder. Each
   // re-render of `customReminders` (add / edit / toggle / delete)
-  // tears down the previous schedule and starts fresh.
+  // tears down the previous schedule and starts fresh. Prayer-time data is
+  // threaded through so prayer_aligned/sunnah_aligned reminders resolve to
+  // a real time instead of silently never firing (they'd otherwise fall
+  // back to their usually-unset `atTimeOfDay`).
   React.useEffect(() => {
-    const cleanup = syncCustomReminders(customReminders);
+    const cleanup = syncCustomReminders(customReminders, { prayerTimes: notificationPrayerTimings ?? undefined });
     return cleanup;
-  }, [customReminders]);
+  }, [customReminders, notificationPrayerTimings]);
 
   // 11C: Pre-create default notification channels on native platforms
   React.useEffect(() => {

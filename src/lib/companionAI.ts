@@ -33,6 +33,7 @@ import {
   retrievePassages,
   retrieveUserRemindersAsPassages,
   verifyAnswer,
+  warmQuranVerses,
 } from "@/lib/companionKnowledge";
 
 /* ─── Locked model + transport ───────────────────────────────────────────── */
@@ -421,7 +422,7 @@ const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ 
 - "next_step" حين تنتهي من إجابة تطلب فيها من المستخدم فعلًا (افتح أذكار الصباح، اقرأ وردي، ادعُ بهذا…). لا تستعملها في الكلام الترحيبي أو في الإجابات القصيرة.
 - "cite" حين تريد الاستشهاد بآية أو حديث فعلًا — سيُحقن لك المقتطف ومصدره. لا تستعمل صياغات مثل «رواه البخاري» دون أن تمرر المصدر عبر الأداة أولًا.
 - "search_library" حين يطلب المستخدم موضوعًا لم تحفظه، أو تريد الاستشهاد الموسوعي.
-- "create_reminder" حين يطلب المستخدم تذكيرًا بشيء (مثل «ذكّرني أن أقرأ سورة الكهف كل جمعة الساعة ١٠ صباحًا» أو «ذكّرني بأذكار الصباح يوميًا» أو «كل خميس أريد صيام»). عند استخدام هذه الأداة أرسل أيضًا جملة تأكيد قصيرة بالعربية فقط (لا تستعمل الإنجليزية) تذكر فيها اليوم والوقت مثل: «سأنبّهك يوم الجمعة الساعة ١٠ صباحًا إن شاء الله.» أو «أضفتُ التذكير إلى قائمتك، سيصلك تنبيه به إن شاء الله.»
+- "create_reminder" حين يطلب المستخدم تذكيرًا بشيء في المستقبل (مثل «ذكّرني أن أقرأ سورة الكهف كل جمعة الساعة ١٠ صباحًا» أو «ذكّرني بأذكار الصباح يوميًا» أو «كل خميس أريد صيام» أو «بعد صلاة المغرب ذكّرني بكذا»). **هذا خط أحمر: يجب عليك استدعاء هذه الأداة فعليًا (tool call حقيقي) في نفس الرد قبل كتابة أي تأكيد نصّي — ممنوع منعًا باتًا أن تكتب أنك «أضفتَ» تذكيرًا أو «ستنبّه» المستخدم دون استدعاء الأداة فعلًا في نفس الرسالة؛ فعل ذلك يخدع المستخدم لأنه سيظن أن تذكيرًا حُفظ فعلًا بينما لم يحدث شيء.** لا تخلط بينها وبين "next_step": أي طلبٍ فيه معنى «ذكّرني لاحقًا / بشكل متكرر» هو create_reminder دومًا، حتى لو كان الشيء المطلوب (كأذكار الصباح) يبدو وكأنه يناسب next_step أيضًا. إن كان التذكير مرتبطًا بوقت صلاة (بعد/قبل الفجر، الظهر، العصر، المغرب، العشاء) فاستخدم repeat="prayer_aligned" مع anchorKey المناسب بدل "daily" حتى يُحسب الوقت الفعلي للصلاة لا وقتًا ثابتًا. فور استدعاء الأداة أرسل أيضًا جملة تأكيد قصيرة بالعربية فقط (لا تستعمل الإنجليزية) تذكر فيها اليوم والوقت مثل: «سأنبّهك يوم الجمعة الساعة ١٠ صباحًا إن شاء الله.» أو «أضفتُ التذكير إلى قائمتك، سيصلك تنبيه به إن شاء الله.»
 
 ### بناء الإجابة: syntax خاص بك
 لاحظ أن الواجهة تفهم تنسيقات خاصّة، فاستخدمها بدل النص الجامد:
@@ -561,6 +562,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   "/c/evening": "أذكار المساء",
   "/quran": "القرآن",
   "/quran/plans": "خطة الختمة",
+  "/mushaf": "المصحف",
   "/sebha": "السبحة",
   "/prayer-times": "مواقيت الصلاة",
   "/duas": "الأدعية",
@@ -633,7 +635,7 @@ const COMPANION_TOOLS: Anthropic.Tool[] = [
   {
     name: "create_reminder",
     description:
-      "أنشئ تذكيرًا شخصيًا للمستخدم من حوارك معه. استخدمها حصرًا حين يطلب المستخدم صراحةً جدولة شيء أو تذكيره به (مثل «ذكّرني بـ…»، «كل جمعة أريد…»، «اجعلني أذكر…»). الفئات المتاحة: adhkar, quran, dua, fasting, general. التكرار: once, daily, weekly, monthly. atTimeOfDay بصيغة HH:MM. anchorKey هو مفتاح يربط التذكير بصلاة معيّنة (fajr, dhuhr, asr, maghrib, isha, friday) مع anchorOffsetMinutes بالدقائق (سالب = قبل، موجب = بعد). description اختياري. deeplink مسار داخل التطبيق (مثال: /c/morning) ليُفتح عند نقر التذكير. suggestion اختياري وهو اقتراح قصير يظهر للمستخدم. عند استدعاء هذه الأداة، أرسل مع الرد نصًّا قصيرًا بالعربية فقط يخبر المستخدم بأنك أضفت التذكير، ولا تذكر JSON أو تفاصيل تقنية.",
+      "أنشئ تذكيرًا شخصيًا للمستخدم من حوارك معه. استخدمها حصرًا حين يطلب المستخدم صراحةً جدولة شيء أو تذكيره به (مثل «ذكّرني بـ…»، «كل جمعة أريد…»، «اجعلني أذكر…»). استدعِ هذه الأداة فعليًا — لا يكفي وصف ما ستفعله. الفئات المتاحة: adhkar, quran, dua, fasting, general. التكرار: once, daily, weekly, monthly (تكرار ثابت بوقتٍ محدد)، أو prayer_aligned/sunnah_aligned (مرتبط بوقت صلاة أو عبادة سنّية عبر anchorKey، يُعاد حسابه يوميًا فعليًا لا بوقتٍ ثابت). atTimeOfDay بصيغة HH:MM (٢٤ ساعة) — مطلوب لـ once/daily/weekly/monthly، اختياري كوقتٍ احتياطي مع anchorKey. لتكرار weekly حدِّد dayOfWeek (اسم اليوم بالإنجليزية)، ولتكرار monthly حدِّد dayOfMonth (١-٣١) — بدونهما لن يُحسب أي موعد فعلي للتذكير. anchorKey يربط التذكير بصلاة أو عبادة سنّية (fajr, dhuhr, asr, maghrib, isha, sunrise, tahajjud, duha, witr) مع anchorOffsetMinutes بالدقائق (سالب = قبل، موجب = بعد) — استخدمه فقط مع repeat=prayer_aligned أو sunnah_aligned، ولا تستخدمه أبدًا لـ«يوم الجمعة» (استخدم weekly + dayOfWeek=friday بدلًا من ذلك، فلا وجود لمفهوم «anchor على الجمعة»). description اختياري. deeplink مسار داخل التطبيق (مثال: /c/morning) ليُفتح عند نقر التذكير. suggestion اختياري وهو اقتراح قصير يظهر للمستخدم. عند استدعاء هذه الأداة، أرسل مع الرد نصًّا قصيرًا بالعربية فقط يخبر المستخدم بأنك أضفت التذكير، ولا تذكر JSON أو تفاصيل تقنية.",
     input_schema: {
       type: "object",
       properties: {
@@ -652,17 +654,26 @@ const COMPANION_TOOLS: Anthropic.Tool[] = [
         },
         repeat: {
           type: "string",
-          enum: ["once", "daily", "weekly", "monthly"],
-          description: "تكرار التذكير.",
+          enum: ["once", "daily", "weekly", "monthly", "prayer_aligned", "sunnah_aligned"],
+          description: "تكرار التذكير. استخدم prayer_aligned/sunnah_aligned فقط مع anchorKey.",
         },
         atTimeOfDay: {
           type: "string",
-          description: "وقت التذكير بصيغة HH:MM (٢٤ ساعة).",
+          description: "وقت التذكير بصيغة HH:MM (٢٤ ساعة). مطلوب لـ once/daily/weekly/monthly.",
+        },
+        dayOfWeek: {
+          type: "string",
+          enum: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+          description: "يوم الأسبوع — مطلوب فقط حين repeat=weekly (مثال: الجمعة → friday).",
+        },
+        dayOfMonth: {
+          type: "number",
+          description: "يوم الشهر من ١ إلى ٣١ — مطلوب فقط حين repeat=monthly.",
         },
         anchorKey: {
           type: "string",
-          enum: ["fajr", "dhuhr", "asr", "maghrib", "isha", "friday"],
-          description: "ربط التذكير بصلاة أو بيوم الجمعة — اختياري.",
+          enum: ["fajr", "dhuhr", "asr", "maghrib", "isha", "sunrise", "tahajjud", "duha", "witr"],
+          description: "ربط التذكير بصلاة أو عبادة سنّية — استخدم فقط مع repeat=prayer_aligned أو sunnah_aligned.",
         },
         anchorOffsetMinutes: {
           type: "number",
@@ -960,6 +971,7 @@ export async function streamCompanionReply(
   abortSignal?: AbortSignal,
 ): Promise<void> {
   const client = createClient();
+  warmQuranVerses(); // populate the verse map early so verifyAnswer() has it by the time streaming finishes
   const ctx = buildCompanionContext();
   const mood = detectMood(history[history.length - 1]?.content ?? "");
   const profile = loadProfile();

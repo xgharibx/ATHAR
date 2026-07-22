@@ -87,6 +87,7 @@ export type Preferences = {
   enableHaptics: boolean;
   hapticStrength?: "off" | "light" | "medium" | "strong";
   enableSounds: boolean;
+  tasbeehSoundEnabled: boolean;
   reduceMotion: boolean;
   transparentMode: boolean;
   customAccent?: string; // override --accent, e.g. "#ff5555"
@@ -104,7 +105,6 @@ export type Preferences = {
   bgVibrancyBoost?: boolean; // boost background vibrancy
   tasbeehStreakEnabled?: boolean; // track daily tasbih streak
   tasbeehDailyGoal?: number; // target per day (0 = off)
-  tasbeehLongPressEnabled?: boolean; // hold-to-increment
   tasbeehVolumeKeysEnabled?: boolean; // volume up/down counts (Android)
   tasbeehSoundProfile?: "chime_bell" | "soft_ping" | "rising_3" | "single_tap";
   tasbeehMascotEnabled?: boolean; // show decorative per-dhikr icon
@@ -462,6 +462,9 @@ type NoorState = {
   // Persisted via Zustand's `persist` middleware (small, personal, must be
   // available synchronously to the AI companion's retrieval layer).
   customReminders: CustomReminder[];
+  // Dismissed-template flags for custom-reminder suggestion chips (IDB-backed
+  // via reminderStorage, excluded from the localStorage partialize below).
+  seenTemplateIds?: Record<string, boolean>;
   addCustomReminder: (r: {
     category: CustomReminder["category"];
     title: string;
@@ -530,6 +533,7 @@ const DEFAULT_PREFS: Preferences = {
   enable3D: true,
   enableHaptics: true,
   enableSounds: false,
+  tasbeehSoundEnabled: true,
   reduceMotion: false,
   transparentMode: true,
   customAccent: undefined,
@@ -543,7 +547,6 @@ const DEFAULT_PREFS: Preferences = {
   asrMadhab: 0,
   tasbeehStreakEnabled: true,
   tasbeehDailyGoal: 0,
-  tasbeehLongPressEnabled: true,
   tasbeehVolumeKeysEnabled: false,
   tasbeehSoundProfile: "rising_3",
   tasbeehMascotEnabled: true,
@@ -1134,6 +1137,7 @@ export const useNoorStore = create<NoorState>()(
       },
 
       setItemCount: ({ sectionId, index, count }) => {
+        get().ensureDailyResets();
         const key = `${sectionId}:${index}`;
         set((s) => ({ progress: { ...s.progress, [key]: Math.max(0, count) } }));
       },
@@ -1453,6 +1457,7 @@ export const useNoorStore = create<NoorState>()(
           showBenefits: DEFAULT_PREFS.showBenefits,
           stripDiacritics: DEFAULT_PREFS.stripDiacritics,
           enableSounds: DEFAULT_PREFS.enableSounds,
+          tasbeehSoundEnabled: DEFAULT_PREFS.tasbeehSoundEnabled,
           reduceMotion: DEFAULT_PREFS.reduceMotion,
           transparentMode: DEFAULT_PREFS.transparentMode,
           bgVibrancyBoost: DEFAULT_PREFS.bgVibrancyBoost,
@@ -1566,6 +1571,7 @@ export const useNoorStore = create<NoorState>()(
       // tool). Kept in the localStorage snapshot via `persist` so the companion
       // can read them synchronously for retrieval & revocation.
       customReminders: [],
+      seenTemplateIds: {},
       addCustomReminder: (r) => {
         const id = `cr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         const now = new Date().toISOString();

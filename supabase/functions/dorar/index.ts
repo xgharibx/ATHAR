@@ -100,6 +100,7 @@ denoRuntime.serve(async (req) => {
     cacheSet(query, result);
     return json({ ok: true, cached: false, result });
   } catch (e) {
-    return json({ ok: false, error: "fetch-failed", detail: String(e?.message ?? e) }, 502);
+    console.error("dorar fetch failed:", e);
+    return json({ ok: false, error: "fetch-failed" }, 502);
   }
 });

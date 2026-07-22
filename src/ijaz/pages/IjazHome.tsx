@@ -1235,7 +1235,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
             {categories.map((cat, i) => (
               <ScrollReveal key={cat.id} variant="fade-up" delay={i * 0.08}>
-                <Link to={'/ijaz/miracles'} className="block group">
+                <Link to={`/ijaz/categories/${cat.id}`} className="block group">
                   <div
                     className="glass-premium rounded-2xl p-6 text-center hover:scale-[1.05] transition-all duration-500 holographic-card h-full"
                     style={{ borderColor: cat.color + '20' }}

@@ -337,25 +337,35 @@ const SURAH_NUM: Record<string, number> = {
   "الفلق": 113, "الناس": 114,
 };
 
+/** Fire-and-forget warm-up for the Quran verse lookup map used by
+ *  `verifyAnswer` (sync). `verifyAnswer` reads the module-level QURAN_VERSES
+ *  cache directly rather than awaiting it — call this as early as possible
+ *  in a reply cycle (well before the synchronous check runs at stream end)
+ *  so the map is populated by the time it's needed. */
+export function warmQuranVerses(): void {
+  void buildQuranVerses();
+}
+
 export function verifyAnswer(text: string): VerificationReport {
   const map = QURAN_VERSES;
   const flags: string[] = [];
   const notes: string[] = [];
-  if (!map || map.size === 0) {
-    // Skip Quran verification, but still attempt hadith attribution heuristic.
-  }
 
-  let m: RegExpExecArray | null;
-  SURAH_RE.lastIndex = 0;
-  while ((m = SURAH_RE.exec(text))) {
-    const surahName = (m[1] ?? "").trim();
-    const ayah = toNum(m[2] ?? "0");
-    const sid = SURAH_NUM[surahName];
-    if (!sid) continue;
-    const expected = map?.get(`${sid}:${ayah}`);
-    if (!expected) {
-      flags.push(`referenced verse ${surahName}:${ayah}`);
-      notes.push(`سورة ${surahName} ${ayah} — لم أعثر عليها في المصحف المحلي، تحقَّق من المصدر.`);
+  // Only check citations if the verse map has actually loaded — otherwise
+  // every citation would look "unfound" and get falsely flagged.
+  if (map && map.size > 0) {
+    let m: RegExpExecArray | null;
+    SURAH_RE.lastIndex = 0;
+    while ((m = SURAH_RE.exec(text))) {
+      const surahName = (m[1] ?? "").trim();
+      const ayah = toNum(m[2] ?? "0");
+      const sid = SURAH_NUM[surahName];
+      if (!sid) continue;
+      const expected = map.get(`${sid}:${ayah}`);
+      if (!expected) {
+        flags.push(`referenced verse ${surahName}:${ayah}`);
+        notes.push(`سورة ${surahName} ${ayah} — لم أعثر عليها في المصحف المحلي، تحقَّق من المصدر.`);
+      }
     }
   }
   // Hadith attribution heuristic: look for "رواه X" / "أخرجه X" and flag if
@@ -408,7 +418,11 @@ export function verifyAnswer(text: string): VerificationReport {
   }
   const hv = verifyHadith(text);
   for (const n of hv.notes) notes.push(n);
-  return { flagged: flags.length > 0 || notes.length > 0, notes };
+  // verifyHadith() re-scans the same HADITH_ATTR_RE matches as the loop
+  // above, so an unrecognized narrator produces the identical note twice —
+  // dedupe before returning.
+  const uniqueNotes = Array.from(new Set(notes));
+  return { flagged: flags.length > 0 || uniqueNotes.length > 0, notes: uniqueNotes };
 }
 
 export type VerificationReport = { flagged: boolean; notes: string[] };

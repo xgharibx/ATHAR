@@ -8,11 +8,31 @@
  * sends none), and stream SSE straight through.
  */
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "*",
-  "Access-Control-Allow-Methods": "POST,OPTIONS",
-};
+// The app's real origins: the web PWA (custom domain, via CNAME) and the two
+// native WebView origins Capacitor uses with this project's config (no
+// server.url override, androidScheme: "https"). Anything else doesn't get a
+// CORS grant, so a browser can't read the response cross-origin.
+const ALLOWED_ORIGINS = new Set([
+  "https://www.athark.org",
+  "https://athark.org",
+  "capacitor://localhost",
+  "https://localhost",
+]);
+
+function corsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Methods": "POST,OPTIONS",
+    "Vary": "Origin",
+  };
+  if (ALLOWED_ORIGINS.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return headers;
+}
+
+const COMPANION_TOOL_NAMES = new Set(["next_step", "cite", "search_library", "create_reminder"]);
+const MAX_SYSTEM_CHARS = 20_000;
+const MAX_MESSAGES = 60;
 
 const MINIMAX_MODEL = "MiniMax-M3";
 const MINIMAX_UPSTREAM = "https://api.minimax.io/anthropic/v1/messages";
@@ -45,10 +65,10 @@ function rateLimit(req: Request): boolean {
   return true;
 }
 
-function jsonError(message: string, status: number): Response {
+function jsonError(req: Request, message: string, status: number): Response {
   return new Response(
     JSON.stringify({ type: "error", error: { type: "invalid_request_error", message } }),
-    { status, headers: { "Content-Type": "application/json", ...CORS_HEADERS } },
+    { status, headers: { "Content-Type": "application/json", ...corsHeaders(req) } },
   );
 }
 
@@ -58,22 +78,46 @@ if (!denoRuntime?.serve || !denoRuntime?.env?.get) {
 }
 
 denoRuntime.serve(async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
-  if (req.method !== "POST") return jsonError("method-not-allowed", 405);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
+  if (req.method !== "POST") return jsonError(req, "method-not-allowed", 405);
 
   const url = new URL(req.url);
-  if (!url.pathname.endsWith("/v1/messages")) return jsonError("not-found", 404);
+  if (!url.pathname.endsWith("/v1/messages")) return jsonError(req, "not-found", 404);
 
-  if (!rateLimit(req)) return jsonError("rate-limited — try again in a minute", 429);
+  if (!rateLimit(req)) return jsonError(req, "rate-limited — try again in a minute", 429);
 
   const raw = await req.text();
-  if (raw.length > MAX_BODY_BYTES) return jsonError("request too large", 413);
+  if (raw.length > MAX_BODY_BYTES) return jsonError(req, "request too large", 413);
 
-  let body: { model?: string; max_tokens?: number; stream?: boolean };
+  let body: { model?: string; max_tokens?: number; stream?: boolean; system?: unknown; messages?: unknown; tools?: unknown };
   try {
     body = JSON.parse(raw);
   } catch {
-    return jsonError("invalid JSON", 400);
+    return jsonError(req, "invalid JSON", 400);
+  }
+
+  // Athar's own client always sends a system prompt and a non-empty message
+  // history. Requests missing either aren't coming from the real app.
+  const systemText = Array.isArray(body.system)
+    ? body.system.map((b) => (b && typeof b === "object" && "text" in b ? String((b as { text?: unknown }).text ?? "") : "")).join("")
+    : typeof body.system === "string" ? body.system : "";
+  if (!systemText) return jsonError(req, "missing system prompt", 400);
+  if (systemText.length > MAX_SYSTEM_CHARS) return jsonError(req, "system prompt too large", 413);
+
+  if (!Array.isArray(body.messages) || body.messages.length === 0) {
+    return jsonError(req, "missing messages", 400);
+  }
+  if (body.messages.length > MAX_MESSAGES) return jsonError(req, "too many messages", 413);
+
+  // Only the tool names Athar itself defines are allowed through — blocks
+  // arbitrary tool-schema injection from a direct caller.
+  if (body.tools !== undefined) {
+    if (!Array.isArray(body.tools) || body.tools.some((t) => {
+      const name = t && typeof t === "object" ? (t as { name?: unknown }).name : undefined;
+      return typeof name !== "string" || !COMPANION_TOOL_NAMES.has(name);
+    })) {
+      return jsonError(req, "unrecognized tool definition", 400);
+    }
   }
 
   // The app ships only one model. Anything else is treated as the locked model
@@ -87,7 +131,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   }
 
   const apiKey = denoRuntime.env.get("MINIMAX_API_KEY");
-  if (!apiKey) return jsonError("no server key configured", 503);
+  if (!apiKey) return jsonError(req, "no server key configured", 503);
 
   const upstream = await fetch(MINIMAX_UPSTREAM, {
     method: "POST",
@@ -99,7 +143,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     body: JSON.stringify(body),
   });
 
-  const headers = new Headers(CORS_HEADERS);
+  const headers = new Headers(corsHeaders(req));
   const contentType = upstream.headers.get("content-type");
   if (contentType) headers.set("Content-Type", contentType);
   headers.set("Cache-Control", "no-store");

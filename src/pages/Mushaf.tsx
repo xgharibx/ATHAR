@@ -2304,7 +2304,7 @@ export function MushafPage() {
               }}
             >
               {tafsirItem.text}
-              <span className="opacity-45 mr-1">﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾</span>
+              <span className="numeral-safe opacity-45 mr-1">﴿{toArabicNumeral(tafsirItem.displayAyah)}﴾</span>
             </div>
 
             {/* Source tabs — 10 tafsirs, horizontally scrollable */}

@@ -939,8 +939,8 @@ export function SettingsPage() {
             desc="نغمة لطيفة عند اكتمال الهدف"
             right={
               <Switch
-                checked={!!prefs.enableSounds}
-                onCheckedChange={(v) => setPrefs({ enableSounds: v })}
+                checked={prefs.tasbeehSoundEnabled ?? true}
+                onCheckedChange={(v) => setPrefs({ tasbeehSoundEnabled: v })}
               />
             }
           />

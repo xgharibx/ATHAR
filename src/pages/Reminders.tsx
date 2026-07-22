@@ -65,8 +65,9 @@ import type {
   ReminderTemplateAnchor,
 } from "@/data/reminderTemplates";
 import { REMINDER_TEMPLATES } from "@/data/reminderTemplates";
-import { nextOccurrences } from "@/lib/reminderRecurrence";
+import { nextOccurrences, type PrayerTimesSource } from "@/lib/reminderRecurrence";
 import { REMINDER_SOUND_OPTIONS } from "@/lib/reminders";
+import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { arNum, arTime, arFullDate } from "@/lib/formatNumber";
 import { Modal, ModalCloseButton } from "@/components/ui/Modal";
 import { Card } from "@/components/ui/Card";
@@ -143,9 +144,11 @@ const ANCHOR_LABELS: Record<NonNullable<CustomReminder["anchorKey"]>, string> = 
   friday: "الجمعة",
 };
 
+const WEEKDAY_NAMES_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
 function weekdayLabel(value: number | undefined): string {
-  if (typeof value !== "number") return "";
-  return `يوم ${arNum((value % 7) + 1)}`;
+  if (typeof value !== "number" || value < 0 || value > 6) return "";
+  return WEEKDAY_NAMES_AR[value]!;
 }
 
 function repeatText(r: CustomReminder): string {
@@ -162,9 +165,9 @@ function repeatText(r: CustomReminder): string {
   return base;
 }
 
-function nextFireLabel(reminder: CustomReminder): string {
+function nextFireLabel(reminder: CustomReminder, prayerTimes?: PrayerTimesSource): string {
   if (!reminder.enabled) return "موقوف";
-  const next = nextOccurrences(reminder, { now: new Date(), count: 1 });
+  const next = nextOccurrences(reminder, { now: new Date(), count: 1, prayerTimes });
   if (!next[0]) return "—";
   const date = next[0];
   const now = new Date();
@@ -306,13 +309,13 @@ interface Stats {
   streak: number;
 }
 
-function computeStats(reminders: CustomReminder[]): Stats {
+function computeStats(reminders: CustomReminder[], prayerTimes?: PrayerTimesSource): Stats {
   const now = new Date();
   let todayFirings = 0;
   let totalFuture = 0;
   for (const r of reminders) {
     if (!r.enabled) continue;
-    const fires = nextOccurrences(r, { now, count: 14 });
+    const fires = nextOccurrences(r, { now, count: 14, prayerTimes });
     const today = fires.filter((d) => d.toDateString() === now.toDateString()).length;
     todayFirings += today;
     totalFuture += fires.length;
@@ -363,6 +366,7 @@ function ReminderRow(props: {
   onMarkDone: (r: CustomReminder) => void;
   onSnooze: (r: CustomReminder) => void;
   onOpenDeeplink: (r: CustomReminder) => void;
+  prayerTimes?: PrayerTimesSource;
 }) {
   const [expanded, setExpanded] = React.useState(false);
   const r = props.r;
@@ -373,10 +377,17 @@ function ReminderRow(props: {
         !r.enabled && "opacity-70",
       )}
     >
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-start justify-between gap-3 px-3.5 py-3 text-start"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded((v) => !v);
+          }
+        }}
+        className="flex w-full items-start justify-between gap-3 px-3.5 py-3 text-start cursor-pointer"
         aria-expanded={expanded}
       >
         <div className="min-w-0 flex-1">
@@ -398,7 +409,7 @@ function ReminderRow(props: {
             {r.atTimeOfDay ? ` • ${timeLabel(r.atTimeOfDay)}` : ""}
           </p>
           <p className="mt-0.5 text-[10.5px] font-semibold text-[var(--accent)]">
-            {nextFireLabel(r)}
+            {nextFireLabel(r, props.prayerTimes)}
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
@@ -440,7 +451,7 @@ function ReminderRow(props: {
             )}
           </div>
         </div>
-      </button>
+      </div>
 
       {expanded ? (
         <div className="border-t border-[var(--stroke)] bg-[var(--card-2)]/50 px-3.5 py-3">
@@ -856,6 +867,16 @@ export function RemindersPage() {
   const [settingsReminder, setSettingsReminder] = React.useState<CustomReminder | null>(null);
   const seenTemplates = React.useMemo(() => getSeenTemplateIds(), [reminders.length]);
 
+  // Real prayer times so prayer_aligned/sunnah_aligned reminders (anchored to
+  // fajr/maghrib/etc.) show an actual next-fire time instead of "—" forever —
+  // nextOccurrences() falls back to the reminder's (usually unset) atTimeOfDay
+  // without this. Shares the same react-query cache App.tsx already primed.
+  const prayerTimesQuery = usePrayerTimes();
+  const prayerTimesForRecurrence = React.useMemo<PrayerTimesSource | undefined>(() => {
+    const timings = prayerTimesQuery.data?.data?.timings;
+    return timings ?? undefined;
+  }, [prayerTimesQuery.data]);
+
   const filtered = React.useMemo(() => {
     if (category === "all") return reminders;
     return reminders.filter((r) => {
@@ -879,16 +900,19 @@ export function RemindersPage() {
     return result;
   }, [reminders, seenTemplates]);
 
-  const stats = React.useMemo(() => computeStats(reminders), [reminders]);
+  const stats = React.useMemo(
+    () => computeStats(reminders, prayerTimesForRecurrence),
+    [reminders, prayerTimesForRecurrence],
+  );
   const activeCount = reminders.filter((r) => r.enabled).length;
   const weekFirings = React.useMemo(() => {
     let total = 0;
     for (const r of reminders) {
       if (!r.enabled) continue;
-      total += nextOccurrences(r, { now: new Date(), count: 7 }).length;
+      total += nextOccurrences(r, { now: new Date(), count: 7, prayerTimes: prayerTimesForRecurrence }).length;
     }
     return total;
-  }, [reminders]);
+  }, [reminders, prayerTimesForRecurrence]);
 
   const handleAddTemplate = (t: ReminderTemplate) => {
     const payload = buildReminderFromTemplate(t);
@@ -1140,6 +1164,7 @@ export function RemindersPage() {
               onMarkDone={handleMarkDone}
               onSnooze={handleSnooze}
               onOpenDeeplink={handleOpenDeeplink}
+              prayerTimes={prayerTimesForRecurrence}
             />
           ))
         )}

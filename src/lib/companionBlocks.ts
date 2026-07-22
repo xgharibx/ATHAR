@@ -35,8 +35,13 @@ export type Segment =
   | { kind: "action"; label: string; route: string };
 
 /** Every keyword the block parser recognises inside "::: … :::". "action" is
- *  a valid callout keyword too — see resolveActionBlock() below. */
-const CALLOUT_KEYWORDS = "verse|hadith|dua|tip|warn|info|cite|action";
+ *  a valid callout keyword too — see resolveActionBlock() below. "reminder"
+ *  is pure data for the dedicated reminder-chip parsers
+ *  (parseReminderToolCalls / parseReminderToolCallsPage) — it must be
+ *  recognised here too so it isn't mistaken for an unrecognised bare quote
+ *  and re-rendered as a guessed verse/tip callout showing the raw JSON (see
+ *  the `kind === "reminder"` no-op branch in splitIntoSegments below). */
+const CALLOUT_KEYWORDS = "verse|hadith|dua|tip|warn|info|cite|action|reminder";
 
 const ARTEFACTS: Array<[RegExp, string]> = [
   // "[//]", "[ // ]", "[//-]", "→[ // ]" … the model sometimes leaves these
@@ -207,7 +212,7 @@ function stripArtefacts(text: string): string {
 /** Escape backslash-escaped markdown punctuation so the markdown pipeline sees
  *  **bold** etc. inline. Called on `text` segments. */
 export function unescapeMarkdown(text: string): string {
-  return text.replace(/\\([*_`#>~+\-.!(){}\[\]])/g, "$1");
+  return text.replace(/\\([*_`#>~+\-.!(){}[\]])/g, "$1");
 }
 
 /** Convert the legacy `[/route label]` shorthand into a real markdown link.
@@ -216,9 +221,9 @@ export function unescapeMarkdown(text: string): string {
 function legacyRouteLinks(text: string): string {
   let out = text;
   // [/route label] → [label](/route)
-  out = out.replace(/\[(\/[A-Z0-9\/_\-]+)\s+([^\]]+)\]/gi, (_m, route, label) => `[${label}](${route.toLowerCase()})`);
+  out = out.replace(/\[(\/[A-Z0-9/_-]+)\s+([^\]]+)\]/gi, (_m, route, label) => `[${label}](${route.toLowerCase()})`);
   // Bare [/route] → [LABEL](/route)
-  out = out.replace(/\[(\/[a-z0-9\/_\-]+)\]/gi, (_m, route) => {
+  out = out.replace(/\[(\/[a-z0-9/_-]+)\]/gi, (_m, route) => {
     const r = route.toLowerCase();
     return `[${ROUTE_LABELS[r] ?? route}](${r})`;
   });
@@ -289,6 +294,12 @@ export function splitIntoSegments(rawText: string): Segment[] {
           if (route) segments.push({ kind: "action", label: body, route });
           else segments.push({ kind: "text", text: body });
         }
+      } else if (kind === "reminder") {
+        // ":::reminder\n{json}\n:::" is pure data for the dedicated
+        // reminder-chip parsers in CompanionModal.tsx / Companion.tsx, which
+        // read it straight from the raw message text independently of this
+        // segment list. Render nothing here — otherwise the raw JSON leaks
+        // into the chat bubble as a mis-guessed verse/tip callout.
       } else if (body.length > 0) {
         const embedded = extractEmbeddedAction(body);
         if (embedded) {

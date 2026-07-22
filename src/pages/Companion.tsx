@@ -73,6 +73,10 @@ import {
 } from "@/lib/companionProfile";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useNoorStore } from "@/store/noorStore";
+import {
+  addCustomReminder as addCustomReminderAction,
+  deleteCustomReminder as deleteCustomReminderAction,
+} from "@/store/customReminderActions";
 import { arNum } from "@/lib/formatNumber";
 import {
   checkCompanionHealth,
@@ -229,6 +233,10 @@ export function CompanionPage() {
   const busyRef = React.useRef(false);
   const abortRef = React.useRef<AbortController | null>(null);
   const endRef = React.useRef<HTMLDivElement>(null);
+  /** ids minted by dispatchCreateReminderPage during this turn's onToolCalls,
+   *  in call order — spliced into the persisted `:::reminder\n{...}\n:::`
+   *  blocks once the full reply text is known (see onDone below). */
+  const createdReminderIdsRef = React.useRef<string[]>([]);
   const ctx = React.useMemo(buildCompanionContext, []);
 
   // Bridge action buttons (rendered from markdown) → react-router navigation
@@ -353,11 +361,6 @@ export function CompanionPage() {
     }).then(refreshHistory);
   }, [messages, refreshHistory]);
 
-  const persistPartial = React.useCallback((text: string) => {
-    if (!currentIdRef.current) return;
-    savePartialStream(currentIdRef.current, messages, text);
-  }, [messages]);
-
   const generateFollowUps = React.useCallback((lastUser: string, reply: string): string[] => {
     const text = `${lastUser} ${reply}`;
     const lower = text.toLowerCase();
@@ -398,6 +401,14 @@ export function CompanionPage() {
     const controller = new AbortController();
     abortRef.current = controller;
     const history: CompanionMessage[] = [...messages, { role: "user", content: trimmed }];
+    // Ensure the conversation id exists synchronously (not only via the
+    // debounced "save full conversation" effect below) so the very first
+    // streamed chunk can already be checkpointed for partial-stream recovery.
+    if (!currentIdRef.current) {
+      currentIdRef.current = newConversationId();
+      createdAtRef.current = Date.now();
+    }
+    createdReminderIdsRef.current = [];
     setMessages(history);
     setInput("");
     setStreamingText("");
@@ -412,11 +423,17 @@ export function CompanionPage() {
           onText: (chunk) => {
             acc += chunk;
             setStreamingText(acc);
-            persistPartial(acc);
+            // Use this turn's local `history` (includes the user's just-sent
+            // message), not the component's `messages` state — a callback
+            // captured before this render's setMessages(history) takes effect
+            // would still see the pre-turn value, so a restored partial
+            // stream would silently drop the question that prompted it.
+            if (currentIdRef.current) savePartialStream(currentIdRef.current, history, acc);
           },
           onDone: (fullText) => {
             done = true;
-            setMessages((m) => [...m, { role: "assistant", content: fullText }]);
+            const withIds = injectReminderStoreIdsPage(fullText, createdReminderIdsRef.current);
+            setMessages((m) => [...m, { role: "assistant", content: withIds }]);
             setStreamingText(null);
             clearPartialStream();
             setFollowUps(generateFollowUps(trimmed, fullText));
@@ -467,12 +484,15 @@ export function CompanionPage() {
                 description: typeof c.input.description === "string" ? c.input.description : undefined,
                 repeat,
                 atTimeOfDay: typeof c.input.atTimeOfDay === "string" ? c.input.atTimeOfDay : undefined,
+                dayOfWeek: parseDayOfWeekPage(c.input.dayOfWeek),
+                dayOfMonth: parseDayOfMonthPage(c.input.dayOfMonth),
                 anchorKey,
                 anchorOffsetMinutes: typeof c.input.anchorOffsetMinutes === "number" ? c.input.anchorOffsetMinutes : undefined,
                 deeplink,
                 suggestion: typeof c.input.suggestion === "string" ? c.input.suggestion : undefined,
               };
-              dispatchCreateReminderPage(parsed);
+              const createdId = dispatchCreateReminderPage(parsed);
+              if (createdId) createdReminderIdsRef.current.push(createdId);
             }
           },
         },
@@ -491,7 +511,7 @@ export function CompanionPage() {
         clearPartialStream();
       }
     }
-  }, [generateFollowUps, messages, persistPartial]);
+  }, [generateFollowUps, messages]);
 
   const [partialStopped, setPartialStopped] = React.useState(false);
 
@@ -1268,6 +1288,10 @@ function CalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; c
 
 type ParsedReminderView = {
   id: string;
+  /** Real store id, round-tripped from the tool-call dispatch that actually
+   *  created it (see injectReminderStoreIdsPage). Falls back to title
+   *  matching when absent (conversations saved before this field existed). */
+  storeId?: string;
   category: "dhikr" | "quran" | "sunnah" | "fast" | "salat" | "dua" | "custom";
   title: string;
   description?: string;
@@ -1277,6 +1301,8 @@ type ParsedReminderView = {
     | "once" | "daily" | "weekly" | "monthly"
     | "sunnah_aligned" | "prayer_aligned" | "fasting_aligned";
   atTimeOfDay?: string;
+  dayOfWeek?: number;
+  dayOfMonth?: number;
   anchorKey?:
     | "tahajjud" | "duha" | "witr" | "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" | "sunrise";
   anchorOffsetMinutes?: number;
@@ -1297,6 +1323,24 @@ const VALID_REPEATS_PAGE: ParsedReminderView["repeat"][] = [
 const VALID_ANCHORS_PAGE: NonNullable<ParsedReminderView["anchorKey"]>[] = [
   "tahajjud", "duha", "witr", "fajr", "dhuhr", "asr", "maghrib", "isha", "sunrise",
 ];
+
+const WEEKDAY_NAME_TO_NUMBER_PAGE: Record<string, number> = {
+  sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+};
+
+function parseDayOfWeekPage(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 6) return value;
+  if (typeof value === "string") {
+    const n = WEEKDAY_NAME_TO_NUMBER_PAGE[value.trim().toLowerCase()];
+    if (typeof n === "number") return n;
+  }
+  return undefined;
+}
+
+function parseDayOfMonthPage(value: unknown): number | undefined {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 1 && n <= 31 ? n : undefined;
+}
 
 export function parseReminderToolCallsPage(text: string): ParsedReminderView[] {
   const out: ParsedReminderView[] = [];
@@ -1322,6 +1366,7 @@ export function parseReminderToolCallsPage(text: string): ParsedReminderView[] {
       }
       out.push({
         id: `pr_${out.length}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        storeId: typeof parsed.id === "string" ? parsed.id : undefined,
         category,
         title: parsed.title,
         description: typeof parsed.description === "string" ? parsed.description : undefined,
@@ -1329,6 +1374,8 @@ export function parseReminderToolCallsPage(text: string): ParsedReminderView[] {
         icon: typeof parsed.icon === "string" ? parsed.icon : undefined,
         repeat,
         atTimeOfDay: typeof parsed.atTimeOfDay === "string" ? parsed.atTimeOfDay : undefined,
+        dayOfWeek: parseDayOfWeekPage(parsed.dayOfWeek),
+        dayOfMonth: parseDayOfMonthPage(parsed.dayOfMonth),
         anchorKey,
         anchorOffsetMinutes: typeof parsed.anchorOffsetMinutes === "number" ? parsed.anchorOffsetMinutes : undefined,
         deeplink,
@@ -1339,10 +1386,38 @@ export function parseReminderToolCallsPage(text: string): ParsedReminderView[] {
   return out;
 }
 
+/** Mirrors CompanionModal.tsx's injectReminderStoreIds — splices the real
+ *  store id (minted by dispatchCreateReminderPage at tool-call time) into
+ *  each `:::reminder\n{...}\n:::` block, in dispatch order, so the chip's
+ *  cancel/open actions can match by id instead of by title (two reminders
+ *  can share a title and resolve to the wrong one otherwise). */
+function injectReminderStoreIdsPage(text: string, ids: string[]): string {
+  if (ids.length === 0 || !text.includes(":::reminder")) return text;
+  let i = 0;
+  return text.replace(REMINDER_BLOCK_RE_PAGE, (full, raw: string) => {
+    const id = ids[i];
+    i += 1;
+    if (!id) return full;
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      parsed.id = id;
+      return `:::reminder\n${JSON.stringify(parsed)}\n:::`;
+    } catch {
+      return full;
+    }
+  });
+}
+
+/** Creates the reminder via the IDB-persisting store helper (see
+ *  `@/store/customReminderActions`) — NOT the bare Zustand `addCustomReminder`
+ *  action, which only mutates in-memory state and is never written to
+ *  IndexedDB or localStorage (customReminders is excluded from the persisted
+ *  snapshot; see noorStore.ts's `partialize`). Using the bare store action
+ *  here used to mean every companion-created reminder vanished on the next
+ *  reload/app restart. */
 function dispatchCreateReminderPage(parsed: ParsedReminderView): string | null {
   try {
-    const store = useNoorStore.getState();
-    return store.addCustomReminder({
+    return addCustomReminderAction({
       category: parsed.category,
       title: parsed.title,
       description: parsed.description,
@@ -1350,6 +1425,8 @@ function dispatchCreateReminderPage(parsed: ParsedReminderView): string | null {
       icon: parsed.icon,
       repeat: parsed.repeat,
       atTimeOfDay: parsed.atTimeOfDay,
+      dayOfWeek: parsed.dayOfWeek,
+      dayOfMonth: parsed.dayOfMonth,
       anchorKey: parsed.anchorKey,
       anchorOffsetMinutes: parsed.anchorOffsetMinutes,
       deeplink: parsed.deeplink,
@@ -1430,10 +1507,24 @@ function ActionButton({ route, children }: { route: string; children: React.Reac
   );
 }
 
+/** Resolves a parsed reminder chip back to its live store entry. Prefers the
+ *  real store id (round-tripped via injectReminderStoreIdsPage) so two
+ *  reminders sharing a title can never resolve to the wrong one; falls back
+ *  to a title match only for conversations saved before that round-trip
+ *  existed. */
+function resolveActualReminderPage(r: ParsedReminderView | undefined) {
+  if (!r) return undefined;
+  const store = useNoorStore.getState();
+  if (r.storeId) {
+    const byId = store.customReminders.find((x) => x.id === r.storeId);
+    if (byId) return byId;
+  }
+  return store.customReminders.find((x) => x.title === r.title);
+}
+
 function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: boolean; tokens?: number }) {
   const segments = React.useMemo(() => splitIntoSegments(text), [text]);
   const reminders = React.useMemo(() => (streaming ? [] : parseReminderToolCallsPage(text)), [text, streaming]);
-  const deleteReminder = useNoorStore((s) => s.deleteCustomReminder);
   const navigate = useNavigate();
   return (
     <>
@@ -1461,13 +1552,11 @@ function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: 
               key={r.id}
               reminder={r}
               onCancel={() => {
-                const store = useNoorStore.getState();
-                const actual = store.customReminders.find((x) => x.title === r.title);
-                if (actual) deleteReminder(actual.id);
+                const actual = resolveActualReminderPage(r);
+                if (actual) deleteCustomReminderAction(actual.id);
               }}
               onOpen={() => {
-                const store = useNoorStore.getState();
-                const actual = store.customReminders.find((x) => x.title === r.title);
+                const actual = resolveActualReminderPage(r);
                 navigate(actual?.deeplink?.route || "/reminders");
               }}
             />

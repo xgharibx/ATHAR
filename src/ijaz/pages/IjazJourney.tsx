@@ -29,7 +29,7 @@ interface JourneyStep {
   particleVariant: 'stars' | 'gold-dust' | 'divine-light' | 'nebula' | 'geometric';
 }
 
-const journeySteps: JourneyStep[] = [
+export const journeySteps: JourneyStep[] = [
   {
     id: 1,
     titleAr: '\u0627\u0644\u0633\u0624\u0627\u0644 \u0627\u0644\u0623\u0648\u0644',
@@ -94,7 +94,7 @@ const journeySteps: JourneyStep[] = [
       'احتمال تشكّل بروتين واحد عشوائيًا: 1/10^164 — أصغر من حدود الاحتمال الكوني',
       'الانفجار الكمبري: 50 شعبة حيوانية ظهرت فجأة دون أسلاف تطورية معروفة',
     ],
-    linkSlug: 'origin-of-life',
+    linkSlug: 'origin-of-life-argument',
     linkLabel: 'اقرأ عن أصل الحياة',
     bgVariant: 'deep',
     particleVariant: 'nebula',
@@ -115,7 +115,7 @@ const journeySteps: JourneyStep[] = [
       '\u0627\u0644\u0642\u0631\u0622\u0646 \u062A\u062D\u062F\u0649 \u062A\u062F\u0631\u064A\u062C\u064A\u064B\u0627: \u0645\u062B\u0644\u0647 \u2192 10 \u0633\u0648\u0631 \u2192 \u0633\u0648\u0631\u0629 \u0648\u0627\u062D\u062F\u0629',
       '\u0639\u062C\u0632 \u0623\u0628\u0644\u063A \u0639\u0631\u0628 \u0627\u0644\u0641\u0635\u0627\u062D\u0629 \u0627\u0644\u0630\u064A\u0646 \u062D\u0627\u0631\u0628\u0648\u0627 \u0644\u0643\u0646\u0647\u0645 \u0644\u0645 \u064A\u0633\u062A\u0637\u064A\u0639\u0648\u0627 \u0627\u0644\u062A\u0642\u0644\u064A\u062F',
     ],
-    linkSlug: 'quran-challenge',
+    linkSlug: 'quran-inimitability-challenge',
     linkLabel: 'اقرأ عن تحدي القرآن',
     bgVariant: 'divine',
     particleVariant: 'divine-light',
@@ -157,7 +157,7 @@ const journeySteps: JourneyStep[] = [
       '\u062C\u0633\u062F \u0641\u0631\u0639\u0648\u0646 \u0645\u062D\u0641\u0648\u0638 \u0641\u064A \u0627\u0644\u0645\u062A\u062D\u0641 \u0627\u0644\u0645\u0635\u0631\u064A \u0643\u0645\u0627 \u0623\u062E\u0628\u0631 \u0627\u0644\u0642\u0631\u0622\u0646',
       '\u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u0633\u0627\u0639\u0629 \u062A\u062A\u062D\u0642\u0642 \u0648\u0627\u062D\u062F\u0629 \u062A\u0644\u0648 \u0627\u0644\u0623\u062E\u0631\u0649',
     ],
-    linkSlug: 'romans-prophecy',
+    linkSlug: 'romans-victory-prophecy',
     linkLabel: '\u0627\u0642\u0631\u0623 \u0639\u0646 \u0627\u0644\u0646\u0628\u0648\u0621\u0627\u062A',
     bgVariant: 'cosmic',
     particleVariant: 'geometric',
@@ -183,7 +183,7 @@ const journeySteps: JourneyStep[] = [
       'نشيد الأناشيد 5:16 — كلمة "محمداً" موجودة حرفيًا في النص العبري الأصلي',
       'يوحنا 16:7 — "الباراكليت" لا ينطبق على الروح القدس بل على نبي بشري',
     ],
-    linkSlug: 'prophecy-torah',
+    linkSlug: 'prophecy-in-torah',
     linkLabel: 'اقرأ عن البشارات في الكتب السماوية',
     bgVariant: 'divine',
     particleVariant: 'divine-light',

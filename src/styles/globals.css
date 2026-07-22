@@ -1007,6 +1007,14 @@ html.midnight body.transparent-mode .glass-strong {
   font-family: "UthmanicHafs", "KFGQPC Uthmanic Script HAFS", "Amiri Quran", "Scheherazade New", "Amiri", "Noto Naskh Arabic", serif !important;
 }
 
+/* Quranic script fonts (Hafs/Amiri) have no Arabic-Indic digit glyphs and
+   render them as tofu. Apply to any numeral span nested inside
+   .arabic-text/.quran-text/.quran-title so it opts back into a numeral-safe
+   font regardless of the user's chosen Arabic font. */
+.numeral-safe {
+  font-family: var(--font-arabic) !important;
+}
+
 .dhikr-flow {
   white-space: pre-line;
   text-align: justify;
