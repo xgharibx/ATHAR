@@ -483,6 +483,10 @@
     <!-- ══════════════════════════════════════════
          ROW 5: Open button
          ══════════════════════════════════════════ -->
+    <!-- widget_btn_ghost is a fixed dark-green brand button with no night
+         variant (same as the Adhkar widget's gold pill) — its text must stay
+         a fixed light color, NOT a @color/widget_text_* token, or it goes
+         near-invisible in light mode against the still-dark background. -->
     <Button
         android:id="@+id/dash_open_btn"
         android:layout_width="match_parent"
@@ -490,7 +494,7 @@
         android:layout_marginTop="6dp"
         android:background="@drawable/widget_btn_ghost"
         android:text="افتح أثر"
-        android:textColor="@color/widget_text_primary"
+        android:textColor="#EAFFEE"
         android:textSize="13sp"
         android:textStyle="bold" />
 
