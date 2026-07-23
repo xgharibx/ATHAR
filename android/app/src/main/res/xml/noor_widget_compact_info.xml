@@ -11,4 +11,5 @@
     android:targetCellHeight="1"
     android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen"
+    android:configure="com.athar.adhkar.WidgetConfigActivity"
     android:description="@string/widget_compact_description" />

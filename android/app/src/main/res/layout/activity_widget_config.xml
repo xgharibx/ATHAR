@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget theme picker — shown when an Athar widget is placed
+  (android:configure). Two live-rendered preview cards; tapping one applies
+  that theme to the just-placed widget and finishes. See WidgetConfigActivity.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#070A12"
+    android:fillViewport="true"
+    android:layoutDirection="rtl">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingHorizontal="22dp"
+        android:paddingTop="40dp"
+        android:paddingBottom="28dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="مظهر الودجت"
+            android:textColor="#F5F7FF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="اختر خلفية الودجت — يمكنك تغييرها لاحقًا"
+            android:textColor="#9AA2B8"
+            android:textSize="13sp"
+            android:gravity="center" />
+
+        <!-- COSMIC card -->
+        <FrameLayout
+            android:id="@+id/config_card_cosmic"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginTop="26dp"
+            android:background="@drawable/config_card_frame">
+
+            <ImageView
+                android:id="@+id/config_preview_cosmic"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:importantForAccessibility="no" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="bottom|start"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="الفضاء ✦"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:shadowColor="#000000"
+                    android:shadowRadius="8"
+                    android:fontFamily="sans-serif-medium" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="نجوم على سماء داكنة عميقة"
+                    android:textColor="#D8DEF0"
+                    android:textSize="12sp"
+                    android:shadowColor="#000000"
+                    android:shadowRadius="8" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- EMERALD card -->
+        <FrameLayout
+            android:id="@+id/config_card_emerald"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/config_card_frame">
+
+            <ImageView
+                android:id="@+id/config_preview_emerald"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:importantForAccessibility="no" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="bottom|start"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="الحديقة 🌿"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:shadowColor="#000000"
+                    android:shadowRadius="8"
+                    android:fontFamily="sans-serif-medium" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="أخضر عميق كحديقة في الليل"
+                    android:textColor="#D8DEF0"
+                    android:textSize="12sp"
+                    android:shadowColor="#000000"
+                    android:shadowRadius="8" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="اضغط لاختيار المظهر"
+            android:textColor="#6B7286"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</ScrollView>
