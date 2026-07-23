@@ -57,7 +57,7 @@ public class WidgetConfigActivity extends Activity {
 
     /** Composite a sky + starfield preview bitmap for one theme. */
     private Bitmap preview(WidgetCanvas.ClockSky sky, int theme) {
-        Bitmap bg = WidgetCanvas.sky(this, 340, 150, sky.fromPhase, sky.toPhase, sky.blend, 20f, true, theme);
+        Bitmap bg = WidgetCanvas.sky(this, 340, 150, sky.fromPhase, sky.toPhase, sky.blend, 20f, theme);
         Bitmap stars = WidgetCanvas.starfield(this, 340, 150, System.currentTimeMillis() / 60000 + theme);
         Bitmap out = Bitmap.createBitmap(bg.getWidth(), bg.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(out);

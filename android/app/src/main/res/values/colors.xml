@@ -9,39 +9,55 @@
     <color name="colorSplashBg">#2F4F37</color>
 
     <!--
-      Widget text-color tokens — LIGHT theme (this file, unqualified, is the
-      default Android falls back to outside night mode; see values-night/
-      colors.xml for the dark-mode override).
+      Widget text-color tokens — light-on-dark, the default for BOTH system
+      modes.
 
-      Android resolves the -night qualifier automatically when inflating
-      RemoteViews for a widget, same as any other resource, so referencing
-      these via @color/... from widget layout XML is enough for every widget
-      to follow the system's light/dark setting with no Java code needed for
-      text. (The sky background itself is a Canvas bitmap, not a resource, so
-      that half of the theming is chosen in code — see WidgetCanvas.isDarkTheme().)
-
-      Values match the in-app light theme's ink tones (src/styles/globals.css,
-      the fg and fg-dim custom properties) so widgets read as the same
-      product, not a re-skin.
+      The widget's look is now driven by the user's per-widget THEME choice
+      (COSMIC / EMERALD / LIGHT — see WidgetCanvas), NOT the system's
+      light/dark setting: a user who picks COSMIC gets the deep-space widget
+      whether their phone is in light or dark mode. Since COSMIC and EMERALD
+      are both dark backgrounds and are the default, these text tokens are
+      light-on-dark and identical in values/ and (implicitly) night mode, so
+      those two themes stay readable in either system mode with no Java. The
+      opt-in LIGHT theme needs dark ink instead, which its provider path sets
+      programmatically (it can't be a system-mode resource qualifier, because
+      the theme is independent of system mode). Tones mirror the in-app dark
+      theme so widgets read as the same product.
     -->
-    <color name="widget_text_primary">#1A1D29</color>
-    <color name="widget_text_secondary">#5B5F70</color>
-    <color name="widget_text_accent">#9A7326</color>
+    <color name="widget_text_primary">#FFFFFF</color>
+    <color name="widget_text_secondary">#C9DCC9</color>
+    <color name="widget_text_accent">#FFE8B0</color>
 
     <!--
       Row-state tokens — the "next / passed / future" language used by the
-      prayer-list and dashboard-dot rows. Several near-duplicate greens/golds
-      that had organically drifted apart across widgets and past redesign
-      passes are consolidated to these shared roles; the difference was
-      imperceptible and this keeps the theming maintainable.
+      prayer-list and dashboard-dot rows.
     -->
-    <color name="widget_row_active">#9A7326</color>
-    <color name="widget_row_active_time">#1A1D29</color>
-    <color name="widget_row_passed">#7C9A82</color>
-    <color name="widget_row_passed_time">#9BAE9E</color>
-    <color name="widget_row_future">#8A8F80</color>
-    <color name="widget_row_future_time">#A8AC9E</color>
-    <color name="widget_accent_blue">#3E6FB0</color>
-    <color name="widget_accent_dusk">#5D6BC0</color>
-    <color name="widget_hairline">#22000000</color>
+    <color name="widget_row_active">#FFE8B0</color>
+    <color name="widget_row_active_time">#FFFFFF</color>
+    <color name="widget_row_passed">#7AAB80</color>
+    <color name="widget_row_passed_time">#4A6B50</color>
+    <color name="widget_row_future">#C8DBC0</color>
+    <color name="widget_row_future_time">#A8C4A8</color>
+    <color name="widget_accent_blue">#88BBEE</color>
+    <color name="widget_accent_dusk">#C8CCFF</color>
+    <color name="widget_hairline">#22FFFFFF</color>
+
+    <!--
+      LIGHT-theme ink — used programmatically (not a resource qualifier) when
+      a widget's chosen theme is THEME_LIGHT, since that choice is independent
+      of the system's light/dark mode. Mirrors the in-app light theme's ink
+      (globals.css fg / fg-dim custom properties) and the old row-state tones.
+    -->
+    <color name="widget_l_text_primary">#1A1D29</color>
+    <color name="widget_l_text_secondary">#5B5F70</color>
+    <color name="widget_l_text_accent">#9A7326</color>
+    <color name="widget_l_row_active">#9A7326</color>
+    <color name="widget_l_row_active_time">#1A1D29</color>
+    <color name="widget_l_row_passed">#7C9A82</color>
+    <color name="widget_l_row_passed_time">#9BAE9E</color>
+    <color name="widget_l_row_future">#8A8F80</color>
+    <color name="widget_l_row_future_time">#A8AC9E</color>
+    <color name="widget_l_accent_blue">#3E6FB0</color>
+    <color name="widget_l_accent_dusk">#5D6BC0</color>
+    <color name="widget_l_hairline">#22000000</color>
 </resources>

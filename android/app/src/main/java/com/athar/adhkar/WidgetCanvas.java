@@ -61,15 +61,23 @@ public final class WidgetCanvas {
     public static final int PHASE_FAJR = 0, PHASE_DHUHR = 1, PHASE_ASR = 2, PHASE_MAGHRIB = 3, PHASE_ISHA = 4;
 
     // ── User-selectable widget theme (picked in the config screen when the
-    // widget is placed; stored per-widget-id). Two deliberately distinct
-    // dark identities, both keeping the living-sky + colored starfield:
+    // widget is placed; stored per-widget-id). The theme is AUTHORITATIVE
+    // over the system's light/dark setting — a user who picks COSMIC gets the
+    // deep-space widget whether their phone is in light or dark mode.
     //   COSMIC  — deep near-black "far stars" space, the app's own default
     //             dark identity (globals.css --bg #07080b, the الإعجاز
     //             العلمي section's #080b12). The night sky the stars were
     //             always meant to sit on; phase shows only as a faint glow.
     //   EMERALD — deep-green dominant (colorPrimary #2F4F37 / .forest
     //             #022c22), the richer "garden at night" identity.
-    public static final int THEME_COSMIC = 0, THEME_EMERALD = 1;
+    //   LIGHT   — bright paper-toned day sky (opt-in), for users who want a
+    //             light widget; uses dark ink set programmatically.
+    public static final int THEME_COSMIC = 0, THEME_EMERALD = 1, THEME_LIGHT = 2;
+
+    /** Whether a theme paints a dark background (COSMIC/EMERALD) vs the light
+     *  one — drives text ink, starfield visibility, and the dark-only sky
+     *  effects (nebula/edge-glow), all independent of the system mode. */
+    public static boolean isThemeDark(int theme) { return theme != THEME_LIGHT; }
 
     private static final String THEME_PREFS = "AtharWidgetTheme";
     private static String themeKey(int appWidgetId) { return "theme_" + appWidgetId; }
@@ -433,19 +441,14 @@ public final class WidgetCanvas {
      * @param blend     0..1, how far through the interval (same as the ring's progress)
      */
     public static Bitmap sky(Context ctx, int widthDp, int heightDp, int fromPhase, int toPhase, float blend, float cornerRadiusDp) {
-        return sky(ctx, widthDp, heightDp, fromPhase, toPhase, blend, cornerRadiusDp, isDarkTheme(ctx), THEME_COSMIC);
+        return sky(ctx, widthDp, heightDp, fromPhase, toPhase, blend, cornerRadiusDp, THEME_COSMIC);
     }
 
-    /** Explicit light/dark (e.g. when the caller already resolved
-     *  isDarkTheme() once this update pass); defaults to the COSMIC theme. */
-    public static Bitmap sky(Context ctx, int widthDp, int heightDp, int fromPhase, int toPhase, float blend, float cornerRadiusDp, boolean dark) {
-        return sky(ctx, widthDp, heightDp, fromPhase, toPhase, blend, cornerRadiusDp, dark, THEME_COSMIC);
-    }
-
-    /** Full form: explicit light/dark AND the user-selected widget THEME_*
-     *  (COSMIC deep-space vs EMERALD deep-green — light mode ignores it and
-     *  uses the single pastel day palette). */
-    public static Bitmap sky(Context ctx, int widthDp, int heightDp, int fromPhase, int toPhase, float blend, float cornerRadiusDp, boolean dark, int theme) {
+    /** Theme-authoritative sky: the widget's chosen THEME_* selects the
+     *  palette (COSMIC/EMERALD dark, or LIGHT day) and every dark-only effect,
+     *  fully independent of the system light/dark mode — so a COSMIC widget
+     *  stays deep-space even on a light-mode phone. */
+    public static Bitmap sky(Context ctx, int widthDp, int heightDp, int fromPhase, int toPhase, float blend, float cornerRadiusDp, int theme) {
         int w = Math.max(48, (int) dp(ctx, widthDp));
         int h = Math.max(48, (int) dp(ctx, heightDp));
         Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
@@ -453,7 +456,8 @@ public final class WidgetCanvas {
         float r = dp(ctx, cornerRadiusDp);
         RectF rect = new RectF(0.5f, 0.5f, w - 0.5f, h - 0.5f);
 
-        int[][] palette = !dark ? PHASE_COLORS_LIGHT
+        boolean themeDark = isThemeDark(theme);
+        int[][] palette = theme == THEME_LIGHT ? PHASE_COLORS_LIGHT
             : (theme == THEME_EMERALD ? PHASE_COLORS_EMERALD : PHASE_COLORS_COSMIC);
         int[] from = palette[fromPhase];
         int[] to = palette[toPhase];
@@ -474,10 +478,10 @@ public final class WidgetCanvas {
         c.drawRoundRect(rect, r, r, glowPaint);
 
         // Nebula bloom — a soft, off-center colored cloud behind the stars,
-        // dark mode only (a light "daytime" sky shouldn't look like deep
+        // dark themes only (a light "daytime" sky shouldn't look like deep
         // space). Clipped to the rounded frame so it never bleeds past the
         // widget's own edge.
-        if (dark) {
+        if (themeDark) {
             c.save();
             android.graphics.Path clip = new android.graphics.Path();
             clip.addRoundRect(rect, r, r, android.graphics.Path.Direction.CW);
@@ -507,11 +511,11 @@ public final class WidgetCanvas {
             c.drawCircle(x, y, dp(ctx, 0.5f), grain);
         }
 
-        // Edge glow (dark mode only) — a wider, blurred pass under the crisp
+        // Edge glow (dark themes only) — a wider, blurred pass under the crisp
         // hairline so the frame reads as gently luminous rather than a flat
         // cutout, echoing the soft glow ring around the app's own glass
         // cards instead of a bare stroke.
-        if (dark) {
+        if (themeDark) {
             Paint edgeGlow = new Paint(Paint.ANTI_ALIAS_FLAG);
             edgeGlow.setStyle(Paint.Style.STROKE);
             edgeGlow.setStrokeWidth(dp(ctx, 2.5f));

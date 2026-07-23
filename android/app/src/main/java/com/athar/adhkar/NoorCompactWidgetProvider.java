@@ -105,14 +105,14 @@ public class NoorCompactWidgetProvider extends AtharWidgetProvider {
 
         // Living sky + starfield + selectable theme, same as every other
         // widget — this 2×1 is small but still part of the same night sky.
-        boolean dark = WidgetCanvas.isDarkTheme(context);
         int theme = WidgetCanvas.widgetTheme(context, appWidgetId);
+        boolean widgetDark = WidgetCanvas.isThemeDark(theme);
         int[] sz = WidgetCanvas.sizeDp(context, manager, appWidgetId, 150, 56);
         WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
         views.setImageViewBitmap(R.id.compact_sky,
             WidgetCanvas.sky(context, sz[0], sz[1], sky.fromPhase, sky.toPhase, sky.blend,
-                WidgetCanvas.outerCornerRadiusDp(context), dark, theme));
-        if (dark && sky.isNight()) {
+                WidgetCanvas.outerCornerRadiusDp(context), theme));
+        if (widgetDark && sky.isNight()) {
             views.setViewVisibility(R.id.compact_stars, android.view.View.VISIBLE);
             views.setImageViewBitmap(R.id.compact_stars,
                 WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));

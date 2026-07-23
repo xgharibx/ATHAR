@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Light theme (dark override in drawable-night/) — warm cream highlight
-     instead of the dark set's olive-green, so the gold text/stroke still
-     reads as "highlighted" rather than muddy against a bright sky. -->
+<!-- Active (next-prayer) row highlight — dark-green, the default used by the
+     COSMIC and EMERALD themes (both dark). The LIGHT theme swaps in
+     widget_prayer_row_active_light programmatically. Theme is independent of
+     system light/dark mode, so this can't be a -night resource qualifier. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <corners android:radius="16dp" />
     <gradient
         android:angle="135"
-        android:startColor="#FFF3D6"
-        android:endColor="#FFE7B8" />
+        android:startColor="#3D5E40"
+        android:endColor="#2A4530" />
     <stroke
         android:width="1dp"
-        android:color="#669A7326" />
+        android:color="#66EAD58D" />
 </shape>
