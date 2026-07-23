@@ -103,6 +103,23 @@ public class NoorCompactWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.noor_widget_phrase, todaysPhrase());
         views.setTextViewText(R.id.compact_count, String.valueOf(prefs.getInt(keyCount(appWidgetId), 0)));
 
+        // Living sky + starfield + selectable theme, same as every other
+        // widget — this 2×1 is small but still part of the same night sky.
+        boolean dark = WidgetCanvas.isDarkTheme(context);
+        int theme = WidgetCanvas.widgetTheme(context, appWidgetId);
+        int[] sz = WidgetCanvas.sizeDp(context, manager, appWidgetId, 150, 56);
+        WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
+        views.setImageViewBitmap(R.id.compact_sky,
+            WidgetCanvas.sky(context, sz[0], sz[1], sky.fromPhase, sky.toPhase, sky.blend,
+                WidgetCanvas.outerCornerRadiusDp(context), dark, theme));
+        if (dark && sky.isNight()) {
+            views.setViewVisibility(R.id.compact_stars, android.view.View.VISIBLE);
+            views.setImageViewBitmap(R.id.compact_stars,
+                WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));
+        } else {
+            views.setViewVisibility(R.id.compact_stars, android.view.View.GONE);
+        }
+
         Intent incIntent = new Intent(context, NoorCompactWidgetProvider.class)
             .setAction(ACTION_INCREMENT)
             .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
