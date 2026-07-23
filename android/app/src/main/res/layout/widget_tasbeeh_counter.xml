@@ -36,7 +36,7 @@
             android:id="@+id/tasbeeh_tap_zone"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="30dp">
+            android:layout_marginBottom="50dp">
 
             <ImageView
                 android:id="@+id/tasbeeh_ring"
@@ -90,28 +90,39 @@
             </LinearLayout>
         </FrameLayout>
 
-        <!-- Bottom actions -->
+        <!-- Bottom actions — each pill sits in its own 48dp tap zone (WL-4.2
+             touch-target minimum) while staying visually compact; reset and
+             next are distinct actions from the root's "open app" tap, so
+             unlike the pill buttons on other widgets (which share their
+             root's action and don't need a separate hit-target fix), a
+             near-miss here would otherwise trigger the wrong thing. -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="26dp"
+            android:layout_height="48dp"
             android:layout_gravity="bottom"
-            android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- widget_btn_ghost is a fixed dark-green brand button with no
-                 night variant — text must stay a fixed light color, not a
-                 @color/widget_text_* token (see widget_dashboard.xml's ghost
-                 button for what goes wrong otherwise). -->
-            <TextView
-                android:id="@+id/tasbeeh_btn_reset"
+            <FrameLayout
+                android:id="@+id/tasbeeh_reset_zone"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:background="@drawable/widget_btn_ghost"
-                android:gravity="center"
-                android:paddingHorizontal="10dp"
-                android:text="إعادة"
-                android:textColor="#A9CBB0"
-                android:textSize="10sp" />
+                android:gravity="center">
+                <!-- widget_btn_ghost is a fixed dark-green brand button with
+                     no night variant — text must stay a fixed light color,
+                     not a @color/widget_text_* token (see
+                     widget_dashboard.xml's ghost button for what goes wrong
+                     otherwise). -->
+                <TextView
+                    android:id="@+id/tasbeeh_btn_reset"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp"
+                    android:background="@drawable/widget_btn_ghost"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:text="إعادة"
+                    android:textColor="#A9CBB0"
+                    android:textSize="10sp" />
+            </FrameLayout>
 
             <ImageView
                 android:layout_width="0dp"
@@ -119,20 +130,27 @@
                 android:layout_weight="1"
                 android:importantForAccessibility="no" />
 
-            <!-- noor_widget_pill is a fixed gold-gradient brand button with no
-                 night variant — text must stay a fixed dark color. -->
-            <TextView
-                android:id="@+id/tasbeeh_btn_next"
+            <FrameLayout
+                android:id="@+id/tasbeeh_next_zone"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:background="@drawable/noor_widget_pill"
-                android:gravity="center"
-                android:paddingHorizontal="10dp"
-                android:text="التالي ›"
-                android:textColor="#26301B"
-                android:textSize="10sp"
-                android:fontFamily="sans-serif-medium"
-                android:textStyle="bold" />
+                android:gravity="center">
+                <!-- noor_widget_pill is a fixed gold-gradient brand button
+                     with no night variant — text must stay a fixed dark
+                     color. -->
+                <TextView
+                    android:id="@+id/tasbeeh_btn_next"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp"
+                    android:background="@drawable/noor_widget_pill"
+                    android:gravity="center"
+                    android:paddingHorizontal="10dp"
+                    android:text="التالي ›"
+                    android:textColor="#26301B"
+                    android:textSize="10sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+            </FrameLayout>
         </LinearLayout>
 
     </FrameLayout>

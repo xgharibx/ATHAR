@@ -219,7 +219,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         PendingIntent resetPi = PendingIntent.getBroadcast(
             context, appWidgetId * 10 + 1,
             resetIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        views.setOnClickPendingIntent(R.id.tasbeeh_btn_reset, resetPi);
+        views.setOnClickPendingIntent(R.id.tasbeeh_reset_zone, resetPi);
 
         // Next dhikr button
         Intent nextIntent = new Intent(context, NoorTasbeehWidgetProvider.class)
@@ -228,7 +228,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         PendingIntent nextPi = PendingIntent.getBroadcast(
             context, appWidgetId * 10 + 2,
             nextIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        views.setOnClickPendingIntent(R.id.tasbeeh_btn_next, nextPi);
+        views.setOnClickPendingIntent(R.id.tasbeeh_next_zone, nextPi);
 
         // Root tap → open the Sebha screen directly
         PendingIntent openPi = openApp(context, appWidgetId * 10 + 3, "/sebha");
