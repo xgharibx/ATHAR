@@ -31,6 +31,18 @@ public final class WidgetCanvas {
     private static final int TRACK_LIGHT = 0x22000000;
     private static final int GLOW_GOLD  = 0x55E9C36A;
 
+    // Cosmic accents — same secondary hues the in-app dark theme and the
+    // الإعجاز العلمي (Ijaz) section already use (--accent-2: #9ae6ff cyan;
+    // the .forest theme's #34d399 emerald), mixed into the starfield/nebula
+    // so the widget sky reads as a real multi-star night sky instead of a
+    // single flat gold tint — the same "wow" depth Ijaz gets from its own
+    // starfield + colored glow, kept in Athar's own gold/green family
+    // rather than borrowing Ijaz's indigo/magenta (which is that section's
+    // own identity, not the app-wide brand).
+    private static final int CYAN_STAR    = 0xFF9AE6FF;
+    private static final int EMERALD_STAR = 0xFF6EE7B7;
+    private static final int GLOW_CYAN    = 0x409AE6FF;
+
     /** The unfilled "track" portion of a ring/bar/dial is a low-alpha tint
      *  of the background it sits on — white-based reads as a dim highlight
      *  on the dark palette, but the same white would nearly vanish (or read
@@ -45,12 +57,27 @@ public final class WidgetCanvas {
     // them instead of jumping between 5 fixed images. {start, center, end,
     // glow (ARGB, alpha baked in), stroke (ARGB, alpha baked in)}
     public static final int PHASE_FAJR = 0, PHASE_DHUHR = 1, PHASE_ASR = 2, PHASE_MAGHRIB = 3, PHASE_ISHA = 4;
+    // Every phase's base gradient (start/center/end — the ~90% of the sky
+    // that isn't the thin horizon-glow band) now anchors on the same deep
+    // emerald-black family the app's own dark identity uses (colorPrimary
+    // #2F4F37, the .forest theme's #022c22) instead of drifting into
+    // unrelated hue families per phase (navy for Fajr/Isha, brown for
+    // Asr/Maghrib, as it did before) — "dark green" should be the widget's
+    // recognizable identity at every hour, not just at Dhuhr. The glow/
+    // glow (horizon band) column stays phase-distinct so the day still
+    // visibly moves (cool pre-dawn teal → vivid midday emerald → warm
+    // afternoon olive → muted sunset → cool night teal). The stroke column
+    // is now uniformly warm gold across every phase instead of following
+    // the glow — a stroke that shifted to Isha's blue-ish tone read as an
+    // off-brand seam right at the widget's own edge, exactly where a
+    // "dark and dark green" identity needs to be least ambiguous; gold is
+    // already the one accent used everywhere else (buttons, active rows).
     private static final int[][] PHASE_COLORS = {
-        { 0xFF2A2C55, 0xFF1B2E3E, 0xFF081611, 0x1EC2A8FF, 0x3DAFB4FF }, // Fajr
-        { 0xFF1B5A3C, 0xFF0F3A26, 0xFF081B12, 0x26FFF2C0, 0x42F0D68A }, // Dhuhr
-        { 0xFF4A3D1E, 0xFF2A2E18, 0xFF0B160E, 0x2EF6DFA4, 0x47EAC98A }, // Asr
-        { 0xFF5C2A1A, 0xFF33201E, 0xFF0B1014, 0x33FFB27A, 0x47FFB27A }, // Maghrib
-        { 0xFF1A2140, 0xFF101830, 0xFF070B18, 0x1FAFB8FF, 0x3D9BA8E8 }, // Isha
+        { 0xFF1F2E37, 0xFF192F30, 0xFF081611, 0x1EC2A8FF, 0x30EAC98A }, // Fajr — deep teal-green pre-dawn
+        { 0xFF1B5A3C, 0xFF0F3A26, 0xFF081B12, 0x26FFF2C0, 0x52EAC98A }, // Dhuhr — vivid emerald
+        { 0xFF2D361F, 0xFF212F1B, 0xFF0B160E, 0x2EF6DFA4, 0x47EAC98A }, // Asr — warm olive-green afternoon
+        { 0xFF362D1D, 0xFF26271E, 0xFF0B1014, 0x33FFB27A, 0x47EAC98A }, // Maghrib — muted green-brown sunset
+        { 0xFF18292E, 0xFF132328, 0xFF070B18, 0x1FAFB8FF, 0x30EAC98A }, // Isha — deep teal-green night
     };
 
     // ── Light-theme sky — same 5-phase story (dawn/midday/afternoon/
@@ -347,6 +374,24 @@ public final class WidgetCanvas {
         glowPaint.setShader(new LinearGradient(0, 0, 0, h * 0.62f, glow, glow & 0x00FFFFFF, Shader.TileMode.CLAMP));
         c.drawRoundRect(rect, r, r, glowPaint);
 
+        // Nebula bloom — a soft, off-center colored cloud behind the stars,
+        // dark mode only (a light "daytime" sky shouldn't look like deep
+        // space). Clipped to the rounded frame so it never bleeds past the
+        // widget's own edge.
+        if (dark) {
+            c.save();
+            android.graphics.Path clip = new android.graphics.Path();
+            clip.addRoundRect(rect, r, r, android.graphics.Path.Direction.CW);
+            c.clipPath(clip);
+            Paint nebula = new Paint(Paint.ANTI_ALIAS_FLAG);
+            nebula.setMaskFilter(new BlurMaskFilter(Math.min(w, h) * 0.35f, BlurMaskFilter.Blur.NORMAL));
+            nebula.setColor((strokeCol & 0x00FFFFFF) | 0x2A000000);
+            c.drawCircle(w * 0.82f, h * 0.18f, Math.min(w, h) * 0.42f, nebula);
+            nebula.setColor((CYAN_STAR & 0x00FFFFFF) | 0x1A000000);
+            c.drawCircle(w * 0.12f, h * 0.85f, Math.min(w, h) * 0.34f, nebula);
+            c.restore();
+        }
+
         // Fine grain — a flat gradient fill reads as digital/plastic; a
         // scatter of near-invisible light/dark specks reads as atmosphere.
         // Fixed seed: only the sky's colors should change between updates,
@@ -363,6 +408,19 @@ public final class WidgetCanvas {
             c.drawCircle(x, y, dp(ctx, 0.5f), grain);
         }
 
+        // Edge glow (dark mode only) — a wider, blurred pass under the crisp
+        // hairline so the frame reads as gently luminous rather than a flat
+        // cutout, echoing the soft glow ring around the app's own glass
+        // cards instead of a bare stroke.
+        if (dark) {
+            Paint edgeGlow = new Paint(Paint.ANTI_ALIAS_FLAG);
+            edgeGlow.setStyle(Paint.Style.STROKE);
+            edgeGlow.setStrokeWidth(dp(ctx, 2.5f));
+            edgeGlow.setColor(strokeCol);
+            edgeGlow.setMaskFilter(new BlurMaskFilter(dp(ctx, 3f), BlurMaskFilter.Blur.NORMAL));
+            c.drawRoundRect(rect, r, r, edgeGlow);
+        }
+
         // Hairline border, same hue family as the glow.
         Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
         stroke.setStyle(Paint.Style.STROKE);
@@ -375,12 +433,15 @@ public final class WidgetCanvas {
 
     /**
      * Procedural starfield, matching the in-app NoorStarfield's warm-gold
-     * palette (#ffd780). RemoteViews can't run a real-time animation loop —
-     * there's no requestAnimationFrame equivalent, and a continuously
-     * redrawing widget would drain battery, which the platform actively
-     * discourages. Instead: each widget refresh reseeds the star positions
-     * (same technique classic screensavers used), so the sky visibly shifts
-     * from update to update rather than sitting static forever.
+     * palette (#ffd780) with a minority of cooler stars mixed in — a real
+     * night sky isn't monochrome, and a single flat tint is what made the
+     * old starfield read as decoration rather than depth. RemoteViews can't
+     * run a real-time animation loop — there's no requestAnimationFrame
+     * equivalent, and a continuously redrawing widget would drain battery,
+     * which the platform actively discourages. Instead: each widget refresh
+     * reseeds the star positions (same technique classic screensavers
+     * used), so the sky visibly shifts from update to update rather than
+     * sitting static forever.
      *
      * @param seed vary per-refresh (e.g. System.currentTimeMillis() / update
      *             interval) so the pattern changes on each real update but
@@ -406,10 +467,17 @@ public final class WidgetCanvas {
             boolean hero = rnd.nextFloat() < 0.12f;
             float r = hero ? dp(ctx, 1.4f + rnd.nextFloat() * 1.0f) : dp(ctx, 0.5f + rnd.nextFloat() * 0.6f);
             int alpha = hero ? (140 + rnd.nextInt(90)) : (40 + rnd.nextInt(90));
-            int color = (GOLD_LIGHT & 0x00FFFFFF) | (alpha << 24);
+
+            // ~78% warm gold (the dominant brand tone), ~15% cool cyan,
+            // ~7% emerald spark — same rarity curve as the hero-star split,
+            // so the sky still reads as gold-led, just no longer flat.
+            float tone = rnd.nextFloat();
+            int hue = tone < 0.78f ? GOLD_LIGHT : (tone < 0.93f ? CYAN_STAR : EMERALD_STAR);
+            int glowHue = tone < 0.78f ? GOLD : (tone < 0.93f ? CYAN_STAR : EMERALD_STAR);
+            int color = (hue & 0x00FFFFFF) | (alpha << 24);
 
             if (hero) {
-                glow.setColor((GOLD & 0x00FFFFFF) | ((alpha / 3) << 24));
+                glow.setColor((glowHue & 0x00FFFFFF) | ((alpha / 3) << 24));
                 c.drawCircle(x, y, r * 2.2f, glow);
             }
             star.setColor(color);

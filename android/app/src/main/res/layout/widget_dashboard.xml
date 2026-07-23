@@ -87,6 +87,18 @@
         android:layout_marginBottom="6dp"
         android:background="@color/widget_hairline" />
 
+    <!-- Rows 2-4 as a group get whatever extra vertical space the widget's
+         current size leaves over and center within it, instead of all of
+         it collapsing into one dead gap right above the button (the old
+         "Spacer" approach) — the card should feel evenly composed at every
+         resize size, not top-heavy with a void at the bottom. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
     <!-- ══════════════════════════════════════════
          ROW 2: Prayer status dots + next countdown
          ══════════════════════════════════════════ -->
@@ -474,11 +486,7 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Spacer -->
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+    </LinearLayout>
 
     <!-- ══════════════════════════════════════════
          ROW 5: Open button
