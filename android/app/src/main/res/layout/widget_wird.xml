@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="start"
-            android:textColor="#8FBC9C"
+            android:textColor="@color/widget_text_secondary"
             android:textSize="10sp" />
 
         <TextView
@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:gravity="end"
             android:text="ورد القرآن"
-            android:textColor="#FFE8B0"
+            android:textColor="@color/widget_text_accent"
             android:textSize="14sp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
@@ -77,7 +77,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0 آية"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/widget_text_primary"
                 android:textSize="26sp"
                 android:fontFamily="sans-serif-medium"
                 android:textStyle="bold" />
@@ -87,7 +87,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="اليوم"
-                android:textColor="#8FBC9C"
+                android:textColor="@color/widget_text_secondary"
                 android:textSize="10sp" />
         </LinearLayout>
 
@@ -104,7 +104,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:text="سورة الفاتحة"
-                android:textColor="#F6DFA4"
+                android:textColor="@color/widget_text_accent"
                 android:textSize="15sp"
                 android:fontFamily="sans-serif-medium"
                 android:textStyle="bold" />
@@ -115,7 +115,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:text="الآية ١"
-                android:textColor="#9BB89D"
+                android:textColor="@color/widget_text_secondary"
                 android:textSize="10sp" />
         </LinearLayout>
     </LinearLayout>
@@ -142,9 +142,13 @@
             android:layout_weight="1"
             android:gravity="start"
             android:text="0% من الهدف"
-            android:textColor="#8FBC9C"
+            android:textColor="@color/widget_text_secondary"
             android:textSize="10sp" />
 
+        <!-- noor_widget_pill is a fixed gold-gradient brand button with no
+             night variant — text must stay a fixed dark color, not a
+             @color/widget_text_* token (see widget_dashboard.xml's ghost
+             button for what goes wrong otherwise). -->
         <TextView
             android:id="@+id/wird_open_btn"
             android:layout_width="wrap_content"

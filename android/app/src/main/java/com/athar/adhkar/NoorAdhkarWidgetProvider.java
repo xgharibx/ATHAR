@@ -77,10 +77,13 @@ public class NoorAdhkarWidgetProvider extends AtharWidgetProvider {
 
         // Living sky: no prayer-schedule data here, so the mood is derived
         // purely from wall-clock time instead of the actual next prayer.
+        boolean dark = WidgetCanvas.isDarkTheme(context);
         WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
         views.setImageViewBitmap(R.id.adhkar_sky,
-            WidgetCanvas.sky(context, 250, 110, sky.fromPhase, sky.toPhase, sky.blend, 26f));
-        if (sky.isNight()) {
+            WidgetCanvas.sky(context, 250, 110, sky.fromPhase, sky.toPhase, sky.blend, 26f, dark));
+        // Starfield only against the dark palette's actual night phases — the
+        // light palette's night phases are soft twilight tones, not black.
+        if (dark && sky.isNight()) {
             views.setViewVisibility(R.id.adhkar_stars, android.view.View.VISIBLE);
             views.setImageViewBitmap(R.id.adhkar_stars,
                 WidgetCanvas.starfield(context, 250, 110, 26, System.currentTimeMillis() / 60000));

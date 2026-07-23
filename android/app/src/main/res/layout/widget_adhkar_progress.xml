@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="start"
-            android:textColor="#8FBCC8"
+            android:textColor="@color/widget_text_secondary"
             android:textSize="10sp" />
 
         <TextView
@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:gravity="end"
             android:text="أذكاري اليوم"
-            android:textColor="#EAF6FA"
+            android:textColor="@color/widget_text_primary"
             android:textSize="14sp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
@@ -78,7 +78,7 @@
                 android:layout_weight="1"
                 android:gravity="end"
                 android:text="أذكار الصباح ☀️"
-                android:textColor="#FFE8B0"
+                android:textColor="@color/widget_text_accent"
                 android:textSize="12sp"
                 android:fontFamily="sans-serif-medium" />
 
@@ -89,7 +89,7 @@
                 android:layout_marginStart="8dp"
                 android:gravity="start"
                 android:text="--/--"
-                android:textColor="#F6DFA4"
+                android:textColor="@color/widget_text_accent"
                 android:textSize="12sp"
                 android:fontFamily="sans-serif-medium"
                 android:textStyle="bold" />
@@ -123,7 +123,7 @@
                 android:layout_weight="1"
                 android:gravity="end"
                 android:text="أذكار المساء 🌙"
-                android:textColor="#C8CCFF"
+                android:textColor="@color/widget_accent_dusk"
                 android:textSize="12sp"
                 android:fontFamily="sans-serif-medium" />
 
@@ -134,7 +134,7 @@
                 android:layout_marginStart="8dp"
                 android:gravity="start"
                 android:text="--/--"
-                android:textColor="#B8BEFF"
+                android:textColor="@color/widget_accent_dusk"
                 android:textSize="12sp"
                 android:fontFamily="sans-serif-medium"
                 android:textStyle="bold" />
@@ -156,6 +156,10 @@
         android:gravity="start"
         android:orientation="horizontal">
 
+        <!-- noor_widget_pill is a fixed gold-gradient brand button with no
+             night variant — text must stay a fixed dark color, not a
+             @color/widget_text_* token (see widget_dashboard.xml's ghost
+             button for what goes wrong otherwise). -->
         <TextView
             android:id="@+id/adhkar_open_btn"
             android:layout_width="wrap_content"

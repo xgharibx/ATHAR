@@ -42,5 +42,6 @@
     <color name="widget_row_future">#8A8F80</color>
     <color name="widget_row_future_time">#A8AC9E</color>
     <color name="widget_accent_blue">#3E6FB0</color>
+    <color name="widget_accent_dusk">#5D6BC0</color>
     <color name="widget_hairline">#22000000</color>
 </resources>
