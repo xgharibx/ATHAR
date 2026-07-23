@@ -108,8 +108,9 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             // the sky and the ring always agree on "how far through" we are.
             int toPhase = phaseFor(nextName);
             int fromPhase = prevPhase(toPhase);
+            int[] sz = WidgetCanvas.sizeDp(context, manager, appWidgetId, 250, 110);
             views.setImageViewBitmap(R.id.prayer_sky,
-                WidgetCanvas.sky(context, 250, 110, fromPhase, toPhase, intervalProgress,
+                WidgetCanvas.sky(context, sz[0], sz[1], fromPhase, toPhase, intervalProgress,
                     WidgetCanvas.outerCornerRadiusDp(context), dark));
             boolean nightPhase = toPhase == WidgetCanvas.PHASE_FAJR || toPhase == WidgetCanvas.PHASE_ISHA
                 || fromPhase == WidgetCanvas.PHASE_FAJR || fromPhase == WidgetCanvas.PHASE_ISHA;
@@ -119,7 +120,7 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             if (dark && nightPhase) {
                 views.setViewVisibility(R.id.prayer_stars, android.view.View.VISIBLE);
                 views.setImageViewBitmap(R.id.prayer_stars,
-                    WidgetCanvas.starfield(context, 250, 110, 26, System.currentTimeMillis() / 60000));
+                    WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));
             } else {
                 views.setViewVisibility(R.id.prayer_stars, android.view.View.GONE);
             }

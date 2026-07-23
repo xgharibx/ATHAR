@@ -1,5 +1,6 @@
 package com.athar.adhkar;
 
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
@@ -9,6 +10,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.SweepGradient;
+import android.os.Bundle;
 
 import java.util.Calendar;
 import java.util.Random;
@@ -111,6 +113,49 @@ public final class WidgetCanvas {
     public static float outerCornerRadiusDp(Context ctx) {
         float px = ctx.getResources().getDimension(R.dimen.widget_corner_radius);
         return px / ctx.getResources().getDisplayMetrics().density;
+    }
+
+    /**
+     * The widget instance's ACTUAL rendered size in dp, from the launcher's
+     * reported options — so the Canvas sky/starfield bitmaps can be painted
+     * at the real on-screen resolution instead of a fixed small size that
+     * then gets upscaled by the ImageView's fitXY (the root cause of the
+     * "blurry / pixelated" look: a 250dp bitmap stretched across a 340dp
+     * widget is a 1.4× blur, and fitXY also distorts the aspect ratio).
+     *
+     * Falls back to the given defaults before the launcher has reported a
+     * size (e.g. the very first bind). Capped so a full-width bitmap can't
+     * blow RemoteViews' per-update bitmap-memory budget — beyond the cap the
+     * smooth gradient/starfield upscales imperceptibly, unlike the tiny
+     * fixed bitmap it replaces.
+     *
+     * @return { widthDp, heightDp } to hand straight to sky()/starfield().
+     */
+    public static int[] sizeDp(Context ctx, AppWidgetManager mgr, int appWidgetId,
+                               int fallbackWDp, int fallbackHDp) {
+        int wDp = fallbackWDp, hDp = fallbackHDp;
+        try {
+            Bundle opts = mgr.getAppWidgetOptions(appWidgetId);
+            if (opts != null) {
+                // Portrait (the dominant case): width ≈ MIN_WIDTH, height ≈
+                // MAX_HEIGHT. (MAX_WIDTH / MIN_HEIGHT describe the landscape
+                // box.) A launcher that hasn't measured yet reports 0.
+                int pw = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
+                int ph = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0);
+                if (pw > 0) wDp = pw;
+                if (ph > 0) hDp = ph;
+            }
+        } catch (Throwable ignored) {
+            // keep fallbacks
+        }
+        // Keep the longest side under ~1100px so two bitmaps (sky + stars)
+        // stay comfortably inside the RemoteViews bitmap budget on high-
+        // density screens.
+        float density = ctx.getResources().getDisplayMetrics().density;
+        int maxDp = (int) (1100f / Math.max(1f, density));
+        wDp = Math.max(48, Math.min(wDp, maxDp));
+        hDp = Math.max(48, Math.min(hDp, maxDp));
+        return new int[]{ wDp, hDp };
     }
 
     /** LERP two ARGB colors (alpha included) by t ∈ [0,1]. */
@@ -443,11 +488,17 @@ public final class WidgetCanvas {
      * used), so the sky visibly shifts from update to update rather than
      * sitting static forever.
      *
+     * The star COUNT is derived from the widget's actual dp area (a constant
+     * ~0.0009 stars/dp² — the density every widget had independently
+     * converged on), so density stays constant now that the bitmap renders
+     * at the widget's true size rather than a fixed small one. A fixed count
+     * would look sparse on a large widget and crowded on a small one.
+     *
      * @param seed vary per-refresh (e.g. System.currentTimeMillis() / update
      *             interval) so the pattern changes on each real update but
      *             stays stable within a single render.
      */
-    public static Bitmap starfield(Context ctx, int widthDp, int heightDp, int starCount, long seed) {
+    public static Bitmap starfield(Context ctx, int widthDp, int heightDp, long seed) {
         int w = Math.max(48, (int) dp(ctx, widthDp));
         int h = Math.max(48, (int) dp(ctx, heightDp));
         Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
@@ -458,6 +509,7 @@ public final class WidgetCanvas {
         Paint glow = new Paint(Paint.ANTI_ALIAS_FLAG);
         glow.setMaskFilter(new BlurMaskFilter(dp(ctx, 2.5f), BlurMaskFilter.Blur.NORMAL));
 
+        int starCount = Math.max(12, Math.min(240, Math.round(widthDp * heightDp * 0.00092f)));
         for (int i = 0; i < starCount; i++) {
             float x = rnd.nextFloat() * w;
             float y = rnd.nextFloat() * h;

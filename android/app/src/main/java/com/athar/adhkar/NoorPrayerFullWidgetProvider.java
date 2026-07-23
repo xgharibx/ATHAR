@@ -228,11 +228,12 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         // being counted down to, same fraction the header countdown uses,
         // instead of jumping between 5 fixed images.
         boolean dark = WidgetCanvas.isDarkTheme(context);
+        int[] sz = WidgetCanvas.sizeDp(context, manager, appWidgetId, 250, 220);
         int toPhase = NoorPrayerWidgetProvider.phaseFor(skyName);
         int fromPhase = NoorPrayerWidgetProvider.prevPhase(toPhase);
         float skyBlend = intervalProgressFor(prevMin, nextMin);
         views.setImageViewBitmap(R.id.prayer_full_sky,
-            WidgetCanvas.sky(context, 250, 220, fromPhase, toPhase, skyBlend,
+            WidgetCanvas.sky(context, sz[0], sz[1], fromPhase, toPhase, skyBlend,
                 WidgetCanvas.outerCornerRadiusDp(context), dark));
 
         // Starfield only against the dark palette's actual night phases —
@@ -245,7 +246,7 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         if (dark && nightPhase) {
             views.setViewVisibility(R.id.prayer_full_stars, android.view.View.VISIBLE);
             views.setImageViewBitmap(R.id.prayer_full_stars,
-                WidgetCanvas.starfield(context, 250, 220, 46, System.currentTimeMillis() / 60000));
+                WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));
         } else {
             views.setViewVisibility(R.id.prayer_full_stars, android.view.View.GONE);
         }

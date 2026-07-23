@@ -99,10 +99,14 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.dash_greeting, resolveGreeting());
         views.setTextViewText(R.id.dash_date, dateLine());
 
+        // Render the sky/stars at the widget's true on-screen size (not a
+        // fixed 280dp then upscaled by fitXY — the source of the blur).
+        int[] sz = WidgetCanvas.sizeDp(context, manager, appWidgetId, 280, 280);
+
         // ── 2. Prayer dots & countdown (+ continuous sky, since this is
         //      the one section that actually knows what phase of the day
         //      it is) ──────────────────────────────────────────────────
-        int nightPhase = applyPrayerSection(context, views, prefs);
+        int nightPhase = applyPrayerSection(context, views, prefs, sz);
 
         // ── 3. Adhkar progress bars ───────────────────────────────
         applyAdhkarSection(context, views, prefs);
@@ -120,7 +124,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         if (nightPhase == 1 && WidgetCanvas.isDarkTheme(context)) {
             views.setViewVisibility(R.id.dashboard_stars, View.VISIBLE);
             views.setImageViewBitmap(R.id.dashboard_stars,
-                WidgetCanvas.starfield(context, 280, 280, 70, System.currentTimeMillis() / 60000));
+                WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));
         } else {
             views.setViewVisibility(R.id.dashboard_stars, View.GONE);
         }
@@ -137,14 +141,14 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
 
     /** @return 1 if the current/next phase pair includes fajr or isha (the
      *  starfield should show), 0 otherwise. */
-    private int applyPrayerSection(Context context, RemoteViews views, SharedPreferences prefs) {
+    private int applyPrayerSection(Context context, RemoteViews views, SharedPreferences prefs, int[] sz) {
         try {
             String json = readJson(prefs, KEY_PRAYER);
             if (json == null) {
                 setAllDotsFuture(context, views);
                 views.setTextViewText(R.id.dash_next_countdown, "افتح التطبيق");
                 views.setImageViewBitmap(R.id.dashboard_sky,
-                    WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f,
+                    WidgetCanvas.sky(context, sz[0], sz[1], WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f,
                         WidgetCanvas.outerCornerRadiusDp(context)));
                 return 1;
             }
@@ -203,7 +207,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             int fromIdx = NoorPrayerWidgetProvider.prevPhase(nextIdx);
             float blend = intervalProgressFor(prevMin, nextMin);
             views.setImageViewBitmap(R.id.dashboard_sky,
-                WidgetCanvas.sky(context, 280, 280, fromIdx, nextIdx, blend,
+                WidgetCanvas.sky(context, sz[0], sz[1], fromIdx, nextIdx, blend,
                     WidgetCanvas.outerCornerRadiusDp(context)));
             return (nextIdx == WidgetCanvas.PHASE_FAJR || nextIdx == WidgetCanvas.PHASE_ISHA
                 || fromIdx == WidgetCanvas.PHASE_FAJR || fromIdx == WidgetCanvas.PHASE_ISHA) ? 1 : 0;
@@ -212,7 +216,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             setAllDotsFuture(context, views);
             views.setTextViewText(R.id.dash_next_countdown, "");
             views.setImageViewBitmap(R.id.dashboard_sky,
-                WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f,
+                WidgetCanvas.sky(context, sz[0], sz[1], WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f,
                     WidgetCanvas.outerCornerRadiusDp(context)));
             return 1;
         }
