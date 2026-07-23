@@ -8,6 +8,8 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.widget.RemoteViews;
 
+import androidx.core.content.ContextCompat;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -162,26 +164,26 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
                     if (isNext) {
                         views.setInt(ROW_IDS[i], "setBackgroundResource",
                             R.drawable.widget_prayer_row_active);
-                        views.setTextColor(NAME_IDS[i], Color.parseColor("#FFE8B0"));
-                        views.setTextColor(TIME_IDS[i], Color.parseColor("#FFFFFF"));
+                        views.setTextColor(NAME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_active));
+                        views.setTextColor(TIME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_active_time));
                         String cd = buildCountdown(time24);
                         views.setTextViewText(STATUS_IDS[i], cd.isEmpty() ? "▶" : "");
-                        views.setTextColor(STATUS_IDS[i], Color.parseColor("#FFE8B0"));
+                        views.setTextColor(STATUS_IDS[i], ContextCompat.getColor(context, R.color.widget_row_active));
                         // Show countdown in header
                         views.setTextViewText(R.id.prayer_full_countdown,
                             cd.isEmpty() ? "حان وقت " + nameAr : cd);
 
                     } else if (passed) {
                         views.setInt(ROW_IDS[i], "setBackgroundColor", Color.TRANSPARENT);
-                        views.setTextColor(NAME_IDS[i], Color.parseColor("#4A6B50"));
-                        views.setTextColor(TIME_IDS[i], Color.parseColor("#3D5A42"));
+                        views.setTextColor(NAME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_passed));
+                        views.setTextColor(TIME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_passed_time));
                         views.setTextViewText(STATUS_IDS[i], "✓");
-                        views.setTextColor(STATUS_IDS[i], Color.parseColor("#4A8050"));
+                        views.setTextColor(STATUS_IDS[i], ContextCompat.getColor(context, R.color.widget_row_passed));
 
                     } else {
                         views.setInt(ROW_IDS[i], "setBackgroundColor", Color.TRANSPARENT);
-                        views.setTextColor(NAME_IDS[i], Color.parseColor("#C8DBC0"));
-                        views.setTextColor(TIME_IDS[i], Color.parseColor("#A8C4A8"));
+                        views.setTextColor(NAME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_future));
+                        views.setTextColor(TIME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_future_time));
                         views.setTextViewText(STATUS_IDS[i], "");
                     }
                 }
@@ -225,17 +227,27 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         // Continuous sky — LERPs from the phase just passed toward the one
         // being counted down to, same fraction the header countdown uses,
         // instead of jumping between 5 fixed images.
+        boolean dark = WidgetCanvas.isDarkTheme(context);
         int toPhase = NoorPrayerWidgetProvider.phaseFor(skyName);
         int fromPhase = NoorPrayerWidgetProvider.prevPhase(toPhase);
         float skyBlend = intervalProgressFor(prevMin, nextMin);
         views.setImageViewBitmap(R.id.prayer_full_sky,
-            WidgetCanvas.sky(context, 250, 220, fromPhase, toPhase, skyBlend, 26f));
+            WidgetCanvas.sky(context, 250, 220, fromPhase, toPhase, skyBlend, 26f, dark));
 
-        // Starfield reseeds each real update (~once per minute at most, per
-        // AtharWidgetProvider's update cadence) so the sky visibly shifts
-        // over the day instead of being one static frame forever.
-        views.setImageViewBitmap(R.id.prayer_full_stars,
-            WidgetCanvas.starfield(context, 250, 220, 46, System.currentTimeMillis() / 60000));
+        // Starfield only against the dark palette's actual night phases —
+        // the light palette's Isha is a soft twilight grey, not black, so
+        // gold star specks would look like stray debris on it. (Previously
+        // this rendered unconditionally, including during bright daytime
+        // phases in dark mode too — also fixed here.)
+        boolean nightPhase = toPhase == WidgetCanvas.PHASE_FAJR || toPhase == WidgetCanvas.PHASE_ISHA
+            || fromPhase == WidgetCanvas.PHASE_FAJR || fromPhase == WidgetCanvas.PHASE_ISHA;
+        if (dark && nightPhase) {
+            views.setViewVisibility(R.id.prayer_full_stars, android.view.View.VISIBLE);
+            views.setImageViewBitmap(R.id.prayer_full_stars,
+                WidgetCanvas.starfield(context, 250, 220, 46, System.currentTimeMillis() / 60000));
+        } else {
+            views.setViewVisibility(R.id.prayer_full_stars, android.view.View.GONE);
+        }
 
         // Tap → open prayer times directly
         PendingIntent pi = openApp(context, appWidgetId * 23, "/prayer-times");

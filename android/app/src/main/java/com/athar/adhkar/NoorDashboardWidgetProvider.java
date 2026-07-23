@@ -8,6 +8,8 @@ import android.content.SharedPreferences;
 import android.view.View;
 import android.widget.RemoteViews;
 
+import androidx.core.content.ContextCompat;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -111,9 +113,11 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         // ── 5. Streak + level ─────────────────────────────────────
         applyStreakSection(views, prefs);
 
-        // ── 6. Starfield — only during the fajr/isha sky, matching the
-        //      other widgets; reseeds each real update. ─────────────
-        if (nightPhase == 1) {
+        // ── 6. Starfield — only during the fajr/isha sky AND dark theme
+        //      (the light palette's Isha is a soft twilight grey, not
+        //      black, so gold star specks would look like stray debris on
+        //      it); reseeds each real update. ─────────────
+        if (nightPhase == 1 && WidgetCanvas.isDarkTheme(context)) {
             views.setViewVisibility(R.id.dashboard_stars, View.VISIBLE);
             views.setImageViewBitmap(R.id.dashboard_stars,
                 WidgetCanvas.starfield(context, 280, 280, 70, System.currentTimeMillis() / 60000));
@@ -137,7 +141,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         try {
             String json = readJson(prefs, KEY_PRAYER);
             if (json == null) {
-                setAllDotsFuture(views);
+                setAllDotsFuture(context, views);
                 views.setTextViewText(R.id.dash_next_countdown, "افتح التطبيق");
                 views.setImageViewBitmap(R.id.dashboard_sky,
                     WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f, 26f));
@@ -183,13 +187,13 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             for (int i = 0; i < DOT_IDS.length; i++) {
                 if (passed[i]) {
                     views.setTextViewText(DOT_IDS[i], DOT_DONE);
-                    views.setTextColor(DOT_IDS[i], 0xFF3EBB70); // green
+                    views.setTextColor(DOT_IDS[i], ContextCompat.getColor(context, R.color.widget_row_passed));
                 } else if (isNext[i]) {
                     views.setTextViewText(DOT_IDS[i], DOT_NEXT);
-                    views.setTextColor(DOT_IDS[i], 0xFFEAD58D); // gold
+                    views.setTextColor(DOT_IDS[i], ContextCompat.getColor(context, R.color.widget_row_active));
                 } else {
                     views.setTextViewText(DOT_IDS[i], DOT_FUTURE);
-                    views.setTextColor(DOT_IDS[i], 0xFFAAAAAA); // grey
+                    views.setTextColor(DOT_IDS[i], ContextCompat.getColor(context, R.color.widget_row_future));
                 }
             }
 
@@ -203,7 +207,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
                 || fromIdx == WidgetCanvas.PHASE_FAJR || fromIdx == WidgetCanvas.PHASE_ISHA) ? 1 : 0;
 
         } catch (Exception e) {
-            setAllDotsFuture(views);
+            setAllDotsFuture(context, views);
             views.setTextViewText(R.id.dash_next_countdown, "");
             views.setImageViewBitmap(R.id.dashboard_sky,
                 WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f, 26f));
@@ -242,10 +246,11 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         return Math.max(0f, Math.min(1f, (nowMin - prevMin) / (float) span));
     }
 
-    private void setAllDotsFuture(RemoteViews views) {
+    private void setAllDotsFuture(Context context, RemoteViews views) {
+        int color = ContextCompat.getColor(context, R.color.widget_row_future);
         for (int dotId : DOT_IDS) {
             views.setTextViewText(dotId, DOT_FUTURE);
-            views.setTextColor(dotId, 0xFFAAAAAA);
+            views.setTextColor(dotId, color);
         }
     }
 

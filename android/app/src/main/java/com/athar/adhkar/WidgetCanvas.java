@@ -27,8 +27,18 @@ public final class WidgetCanvas {
     private static final int GOLD_LIGHT = 0xFFF6DFA4;
     private static final int GOLD       = 0xFFE9C36A;
     private static final int GOLD_DEEP  = 0xFFC9973C;
-    private static final int TRACK      = 0x22FFFFFF;
+    private static final int TRACK_DARK  = 0x22FFFFFF;
+    private static final int TRACK_LIGHT = 0x22000000;
     private static final int GLOW_GOLD  = 0x55E9C36A;
+
+    /** The unfilled "track" portion of a ring/bar/dial is a low-alpha tint
+     *  of the background it sits on — white-based reads as a dim highlight
+     *  on the dark palette, but the same white would nearly vanish (or read
+     *  as a stray glow) against a light sky, so it needs a dark-based tint
+     *  there instead. */
+    private static int trackColor(Context ctx) {
+        return isDarkTheme(ctx) ? TRACK_DARK : TRACK_LIGHT;
+    }
 
     // ── Sky phases — same anchor colors as the original static
     // widget_bg_sky_*.xml drawables, kept here so sky() can LERP between
@@ -42,6 +52,28 @@ public final class WidgetCanvas {
         { 0xFF5C2A1A, 0xFF33201E, 0xFF0B1014, 0x33FFB27A, 0x47FFB27A }, // Maghrib
         { 0xFF1A2140, 0xFF101830, 0xFF070B18, 0x1FAFB8FF, 0x3D9BA8E8 }, // Isha
     };
+
+    // ── Light-theme sky — same 5-phase story (dawn/midday/afternoon/
+    // sunset/twilight), reworked into bright, paper-toned colors instead of
+    // just dimming the dark set. Widgets must follow the system's day/night
+    // setting (Android widget quality guideline WC-2), not the local time of
+    // day — a user in light mode at night still gets a light widget, so Isha
+    // here is a soft dusk-grey rather than the dark set's near-black.
+    private static final int[][] PHASE_COLORS_LIGHT = {
+        { 0xFFFFF1E6, 0xFFFFE0D0, 0xFFFAC9B8, 0x2EFFFFFF, 0x40E8A98C }, // Fajr — dawn peach
+        { 0xFFEAF6FF, 0xFFD8EEFF, 0xFFC3E4FA, 0x30FFFFFF, 0x4098C4E0 }, // Dhuhr — bright sky blue
+        { 0xFFFFF6DE, 0xFFFFEAB8, 0xFFFAD98A, 0x2EFFFFFF, 0x40D9A94A }, // Asr — golden afternoon
+        { 0xFFFFE7D6, 0xFFFFCFAE, 0xFFF7AE85, 0x2EFFFFFF, 0x40E08A5C }, // Maghrib — sunset coral
+        { 0xFFE7EBF5, 0xFFD4DAEC, 0xFFBFC7E0, 0x1EFFFFFF, 0x40A6AECE }, // Isha — twilight grey-blue
+    };
+
+    /** True when the device is currently in system dark mode. Widgets must
+     *  track this, not local time of day — see PHASE_COLORS_LIGHT. */
+    public static boolean isDarkTheme(Context ctx) {
+        int mode = ctx.getResources().getConfiguration().uiMode
+            & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        return mode == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+    }
 
     /** LERP two ARGB colors (alpha included) by t ∈ [0,1]. */
     private static int lerpColor(int a, int b, float t) {
@@ -122,7 +154,7 @@ public final class WidgetCanvas {
         Paint track = new Paint(Paint.ANTI_ALIAS_FLAG);
         track.setStyle(Paint.Style.STROKE);
         track.setStrokeWidth(stroke);
-        track.setColor(TRACK);
+        track.setColor(trackColor(ctx));
         c.drawArc(box, 0, 360, false, track);
 
         if (clamped <= 0f) return bmp;
@@ -167,12 +199,12 @@ public final class WidgetCanvas {
         Paint dial = new Paint(Paint.ANTI_ALIAS_FLAG);
         dial.setStyle(Paint.Style.STROKE);
         dial.setStrokeWidth(dp(ctx, 1.5f));
-        dial.setColor(TRACK);
+        dial.setColor(trackColor(ctx));
         c.drawCircle(cx, cy, radius, dial);
 
         // Tick marks every 30°
         Paint tick = new Paint(Paint.ANTI_ALIAS_FLAG);
-        tick.setColor(TRACK);
+        tick.setColor(trackColor(ctx));
         tick.setStrokeWidth(dp(ctx, 1.5f));
         for (int deg = 0; deg < 360; deg += 30) {
             double rad = Math.toRadians(deg - 90);
@@ -231,7 +263,7 @@ public final class WidgetCanvas {
         float clamped = Math.max(0f, Math.min(1f, progress));
 
         Paint track = new Paint(Paint.ANTI_ALIAS_FLAG);
-        track.setColor(TRACK);
+        track.setColor(trackColor(ctx));
         c.drawRoundRect(new RectF(0, 0, w, h), r, r, track);
 
         if (clamped <= 0f) return bmp;
@@ -270,6 +302,14 @@ public final class WidgetCanvas {
      * @param blend     0..1, how far through the interval (same as the ring's progress)
      */
     public static Bitmap sky(Context ctx, int widthDp, int heightDp, int fromPhase, int toPhase, float blend, float cornerRadiusDp) {
+        return sky(ctx, widthDp, heightDp, fromPhase, toPhase, blend, cornerRadiusDp, isDarkTheme(ctx));
+    }
+
+    /** Same as {@link #sky(Context, int, int, int, int, float, float)} but lets
+     *  the caller pass the theme explicitly (e.g. when it's already resolved
+     *  isDarkTheme() once for the same update pass, to avoid reading
+     *  Configuration twice). */
+    public static Bitmap sky(Context ctx, int widthDp, int heightDp, int fromPhase, int toPhase, float blend, float cornerRadiusDp, boolean dark) {
         int w = Math.max(48, (int) dp(ctx, widthDp));
         int h = Math.max(48, (int) dp(ctx, heightDp));
         Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
@@ -277,8 +317,9 @@ public final class WidgetCanvas {
         float r = dp(ctx, cornerRadiusDp);
         RectF rect = new RectF(0.5f, 0.5f, w - 0.5f, h - 0.5f);
 
-        int[] from = PHASE_COLORS[fromPhase];
-        int[] to = PHASE_COLORS[toPhase];
+        int[][] palette = dark ? PHASE_COLORS : PHASE_COLORS_LIGHT;
+        int[] from = palette[fromPhase];
+        int[] to = palette[toPhase];
         int start = lerpColor(from[0], to[0], blend);
         int center = lerpColor(from[1], to[1], blend);
         int end = lerpColor(from[2], to[2], blend);

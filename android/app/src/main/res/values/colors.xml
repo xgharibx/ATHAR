@@ -7,4 +7,40 @@
     <color name="colorBackground">#0a0c12</color>
     <!-- Splash screen background — matches the real brand logo background -->
     <color name="colorSplashBg">#2F4F37</color>
+
+    <!--
+      Widget text-color tokens — LIGHT theme (this file, unqualified, is the
+      default Android falls back to outside night mode; see values-night/
+      colors.xml for the dark-mode override).
+
+      Android resolves the -night qualifier automatically when inflating
+      RemoteViews for a widget, same as any other resource, so referencing
+      these via @color/... from widget layout XML is enough for every widget
+      to follow the system's light/dark setting with no Java code needed for
+      text. (The sky background itself is a Canvas bitmap, not a resource, so
+      that half of the theming is chosen in code — see WidgetCanvas.isDarkTheme().)
+
+      Values match the in-app light theme's ink tones (src/styles/globals.css,
+      the fg and fg-dim custom properties) so widgets read as the same
+      product, not a re-skin.
+    -->
+    <color name="widget_text_primary">#1A1D29</color>
+    <color name="widget_text_secondary">#5B5F70</color>
+    <color name="widget_text_accent">#9A7326</color>
+
+    <!--
+      Row-state tokens — the "next / passed / future" language used by the
+      prayer-list and dashboard-dot rows. Several near-duplicate greens/golds
+      that had organically drifted apart across widgets and past redesign
+      passes are consolidated to these shared roles; the difference was
+      imperceptible and this keeps the theming maintainable.
+    -->
+    <color name="widget_row_active">#9A7326</color>
+    <color name="widget_row_active_time">#1A1D29</color>
+    <color name="widget_row_passed">#7C9A82</color>
+    <color name="widget_row_passed_time">#9BAE9E</color>
+    <color name="widget_row_future">#8A8F80</color>
+    <color name="widget_row_future_time">#A8AC9E</color>
+    <color name="widget_accent_blue">#3E6FB0</color>
+    <color name="widget_hairline">#22000000</color>
 </resources>

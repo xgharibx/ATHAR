@@ -64,7 +64,7 @@
             android:layout_weight="1"
             android:gravity="start"
             android:text="يوم طيب"
-            android:textColor="#E8F8E8"
+            android:textColor="@color/widget_text_primary"
             android:textSize="14sp"
             android:textStyle="bold" />
 
@@ -74,7 +74,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="end"
-            android:textColor="#88BFA8"
+            android:textColor="@color/widget_text_secondary"
             android:textSize="10sp" />
 
     </LinearLayout>
@@ -85,7 +85,7 @@
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="6dp"
-        android:background="#22FFFFFF" />
+        android:background="@color/widget_hairline" />
 
     <!-- ══════════════════════════════════════════
          ROW 2: Prayer status dots + next countdown
@@ -108,7 +108,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:text="الصلوات"
-                android:textColor="#A8D8B8"
+                android:textColor="@color/widget_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
@@ -118,7 +118,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="end"
-                android:textColor="#EAD58D"
+                android:textColor="@color/widget_text_accent"
                 android:textSize="11sp" />
 
         </LinearLayout>
@@ -144,12 +144,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="12sp"
-                    android:text="○" android:textColor="#AAAAAA"/>
+                    android:text="○" android:textColor="@color/widget_row_future"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="فجر"
-                    android:textColor="#88BBAA"
+                    android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
             </LinearLayout>
 
@@ -165,12 +165,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="12sp"
-                    android:text="○" android:textColor="#AAAAAA"/>
+                    android:text="○" android:textColor="@color/widget_row_future"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ظهر"
-                    android:textColor="#88BBAA"
+                    android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
             </LinearLayout>
 
@@ -186,12 +186,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="12sp"
-                    android:text="○" android:textColor="#AAAAAA"/>
+                    android:text="○" android:textColor="@color/widget_row_future"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="عصر"
-                    android:textColor="#88BBAA"
+                    android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
             </LinearLayout>
 
@@ -207,12 +207,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="12sp"
-                    android:text="○" android:textColor="#AAAAAA"/>
+                    android:text="○" android:textColor="@color/widget_row_future"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="مغرب"
-                    android:textColor="#88BBAA"
+                    android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
             </LinearLayout>
 
@@ -228,12 +228,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="12sp"
-                    android:text="○" android:textColor="#AAAAAA"/>
+                    android:text="○" android:textColor="@color/widget_row_future"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="عشاء"
-                    android:textColor="#88BBAA"
+                    android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
             </LinearLayout>
 
@@ -246,7 +246,7 @@
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="6dp"
-        android:background="#22FFFFFF" />
+        android:background="@color/widget_hairline" />
 
     <!-- ══════════════════════════════════════════
          ROW 3: Adhkar progress
@@ -261,7 +261,7 @@
             android:layout_height="wrap_content"
             android:gravity="start"
             android:text="أذكار اليوم"
-            android:textColor="#A8D8B8"
+            android:textColor="@color/widget_text_secondary"
             android:textSize="11sp"
             android:textStyle="bold" />
 
@@ -277,12 +277,12 @@
                 android:layout_height="wrap_content"
                 android:text="☀ "
                 android:textSize="11sp"
-                android:textColor="#EAD58D" />
+                android:textColor="@color/widget_text_accent" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="صباح  "
-                android:textColor="#CCDDBB"
+                android:textColor="@color/widget_text_secondary"
                 android:textSize="10sp" />
             <!-- Progress bar track -->
             <LinearLayout
@@ -305,7 +305,7 @@
                 android:layout_marginStart="6dp"
                 android:gravity="end"
                 android:minWidth="36dp"
-                android:textColor="#EAD58D"
+                android:textColor="@color/widget_text_accent"
                 android:textSize="10sp"
                 android:text="0/0" />
         </LinearLayout>
@@ -322,12 +322,12 @@
                 android:layout_height="wrap_content"
                 android:text="🌙 "
                 android:textSize="11sp"
-                android:textColor="#88BBEE" />
+                android:textColor="@color/widget_accent_blue" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="مساء  "
-                android:textColor="#CCDDBB"
+                android:textColor="@color/widget_text_secondary"
                 android:textSize="10sp" />
             <LinearLayout
             android:layout_width="0dp"
@@ -349,7 +349,7 @@
                 android:layout_marginStart="6dp"
                 android:gravity="end"
                 android:minWidth="36dp"
-                android:textColor="#88BBEE"
+                android:textColor="@color/widget_accent_blue"
                 android:textSize="10sp"
                 android:text="0/0" />
         </LinearLayout>
@@ -361,7 +361,7 @@
         android:layout_height="1dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="6dp"
-        android:background="#22FFFFFF" />
+        android:background="@color/widget_hairline" />
 
     <!-- ══════════════════════════════════════════
          ROW 4: Quran wird + streak
@@ -383,7 +383,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="📖 ورد القرآن"
-                android:textColor="#A8D8B8"
+                android:textColor="@color/widget_text_secondary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
@@ -413,7 +413,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
-                    android:textColor="#EAD58D"
+                    android:textColor="@color/widget_text_accent"
                     android:textSize="10sp"
                     android:text="0/0" />
             </LinearLayout>
@@ -423,7 +423,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="#77AABB"
+                android:textColor="@color/widget_accent_blue"
                 android:textSize="9sp"
                 android:text="ابدأ المصحف" />
 
@@ -435,7 +435,7 @@
             android:layout_height="48dp"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
-            android:background="#22FFFFFF" />
+            android:background="@color/widget_hairline" />
 
         <!-- Right: Streak + level -->
         <LinearLayout
@@ -457,7 +457,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textColor="#EAD58D"
+                android:textColor="@color/widget_text_accent"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:text="١ يوم" />
@@ -467,7 +467,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textColor="#88BBA0"
+                android:textColor="@color/widget_text_secondary"
                 android:textSize="9sp"
                 android:text="مبتدئ" />
 
@@ -490,7 +490,7 @@
         android:layout_marginTop="6dp"
         android:background="@drawable/widget_btn_ghost"
         android:text="افتح أثر"
-        android:textColor="#EAFFEE"
+        android:textColor="@color/widget_text_primary"
         android:textSize="13sp"
         android:textStyle="bold" />
 

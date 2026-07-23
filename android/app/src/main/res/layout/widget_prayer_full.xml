@@ -62,7 +62,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:textColor="#FFE8B0"
+                android:textColor="@color/widget_row_active"
                 android:textSize="10sp"
                 android:textStyle="bold" />
         </FrameLayout>
@@ -85,7 +85,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="start"
-                    android:textColor="#7AAB80"
+                    android:textColor="@color/widget_text_secondary"
                     android:textSize="10sp" />
 
                 <TextView
@@ -93,7 +93,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="end"
                     android:text="مواقيت الصلاة"
-                    android:textColor="#FFE8B0"
+                    android:textColor="@color/widget_row_active"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
@@ -107,7 +107,7 @@
                 android:layout_marginTop="2dp"
                 android:gravity="end"
                 android:text="جارٍ التحميل..."
-                android:textColor="#C8DBC0"
+                android:textColor="@color/widget_row_future"
                 android:textSize="11sp" />
 
         </LinearLayout>
@@ -119,7 +119,7 @@
         android:layout_height="1dp"
         android:layout_marginTop="6dp"
         android:layout_marginBottom="4dp"
-        android:background="#22FFFFFF" />
+        android:background="@color/widget_hairline" />
 
     <!-- ===== PRAYER ROWS ===== -->
 
@@ -140,7 +140,7 @@
             android:layout_height="wrap_content"
             android:gravity="start"
             android:textSize="10sp"
-            android:textColor="#7AAB80" />
+            android:textColor="@color/widget_row_passed" />
 
         <TextView
             android:id="@+id/name_fajr"
@@ -149,7 +149,7 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="الفجر"
-            android:textColor="#C8DBC0"
+            android:textColor="@color/widget_row_future"
             android:textSize="13sp" />
 
         <TextView
@@ -159,7 +159,7 @@
             android:gravity="start"
             android:paddingStart="8dp"
             android:text="--:--"
-            android:textColor="#A8C4A8"
+            android:textColor="@color/widget_row_future_time"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -182,7 +182,7 @@
             android:layout_height="wrap_content"
             android:gravity="start"
             android:textSize="10sp"
-            android:textColor="#7AAB80" />
+            android:textColor="@color/widget_row_passed" />
 
         <TextView
             android:id="@+id/name_dhuhr"
@@ -191,7 +191,7 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="الظهر"
-            android:textColor="#C8DBC0"
+            android:textColor="@color/widget_row_future"
             android:textSize="13sp" />
 
         <TextView
@@ -201,7 +201,7 @@
             android:gravity="start"
             android:paddingStart="8dp"
             android:text="--:--"
-            android:textColor="#A8C4A8"
+            android:textColor="@color/widget_row_future_time"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -224,7 +224,7 @@
             android:layout_height="wrap_content"
             android:gravity="start"
             android:textSize="10sp"
-            android:textColor="#7AAB80" />
+            android:textColor="@color/widget_row_passed" />
 
         <TextView
             android:id="@+id/name_asr"
@@ -233,7 +233,7 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="العصر"
-            android:textColor="#C8DBC0"
+            android:textColor="@color/widget_row_future"
             android:textSize="13sp" />
 
         <TextView
@@ -243,7 +243,7 @@
             android:gravity="start"
             android:paddingStart="8dp"
             android:text="--:--"
-            android:textColor="#A8C4A8"
+            android:textColor="@color/widget_row_future_time"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -266,7 +266,7 @@
             android:layout_height="wrap_content"
             android:gravity="start"
             android:textSize="10sp"
-            android:textColor="#7AAB80" />
+            android:textColor="@color/widget_row_passed" />
 
         <TextView
             android:id="@+id/name_maghrib"
@@ -275,7 +275,7 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="المغرب"
-            android:textColor="#C8DBC0"
+            android:textColor="@color/widget_row_future"
             android:textSize="13sp" />
 
         <TextView
@@ -285,7 +285,7 @@
             android:gravity="start"
             android:paddingStart="8dp"
             android:text="--:--"
-            android:textColor="#A8C4A8"
+            android:textColor="@color/widget_row_future_time"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -308,7 +308,7 @@
             android:layout_height="wrap_content"
             android:gravity="start"
             android:textSize="10sp"
-            android:textColor="#7AAB80" />
+            android:textColor="@color/widget_row_passed" />
 
         <TextView
             android:id="@+id/name_isha"
@@ -317,7 +317,7 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="العشاء"
-            android:textColor="#C8DBC0"
+            android:textColor="@color/widget_row_future"
             android:textSize="13sp" />
 
         <TextView
@@ -327,7 +327,7 @@
             android:gravity="start"
             android:paddingStart="8dp"
             android:text="--:--"
-            android:textColor="#A8C4A8"
+            android:textColor="@color/widget_row_future_time"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -357,7 +357,7 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="السحور"
-            android:textColor="#B8CCFF"
+            android:textColor="@color/widget_accent_blue"
             android:textSize="12sp" />
 
         <TextView
@@ -367,7 +367,7 @@
             android:gravity="start"
             android:paddingStart="8dp"
             android:text="--:--"
-            android:textColor="#9AABDF"
+            android:textColor="@color/widget_accent_blue"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -397,7 +397,7 @@
             android:layout_weight="1"
             android:gravity="end"
             android:text="الإفطار"
-            android:textColor="#FFD580"
+            android:textColor="@color/widget_text_accent"
             android:textSize="12sp" />
 
         <TextView
@@ -407,7 +407,7 @@
             android:gravity="start"
             android:paddingStart="8dp"
             android:text="--:--"
-            android:textColor="#E8C060"
+            android:textColor="@color/widget_text_accent"
             android:textSize="12sp"
             android:textStyle="bold" />
 

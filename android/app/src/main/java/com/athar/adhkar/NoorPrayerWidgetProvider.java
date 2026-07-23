@@ -50,6 +50,7 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
     private void updateLive(Context context, AppWidgetManager manager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.noor_widget_prayer);
         views.setTextViewText(R.id.noor_widget_date, dateLine());
+        boolean dark = WidgetCanvas.isDarkTheme(context);
 
         String nextName = null;
         String nextTime = null;
@@ -108,10 +109,13 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             int toPhase = phaseFor(nextName);
             int fromPhase = prevPhase(toPhase);
             views.setImageViewBitmap(R.id.prayer_sky,
-                WidgetCanvas.sky(context, 250, 110, fromPhase, toPhase, intervalProgress, 26f));
+                WidgetCanvas.sky(context, 250, 110, fromPhase, toPhase, intervalProgress, 26f, dark));
             boolean nightPhase = toPhase == WidgetCanvas.PHASE_FAJR || toPhase == WidgetCanvas.PHASE_ISHA
                 || fromPhase == WidgetCanvas.PHASE_FAJR || fromPhase == WidgetCanvas.PHASE_ISHA;
-            if (nightPhase) {
+            // Stars only make sense against the dark palette's night sky —
+            // the light palette's Isha is a soft twilight grey, not black,
+            // so gold star specks would look like stray debris on it.
+            if (dark && nightPhase) {
                 views.setViewVisibility(R.id.prayer_stars, android.view.View.VISIBLE);
                 views.setImageViewBitmap(R.id.prayer_stars,
                     WidgetCanvas.starfield(context, 250, 110, 26, System.currentTimeMillis() / 60000));
