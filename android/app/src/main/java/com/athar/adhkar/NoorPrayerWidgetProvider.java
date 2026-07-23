@@ -109,7 +109,8 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             int toPhase = phaseFor(nextName);
             int fromPhase = prevPhase(toPhase);
             views.setImageViewBitmap(R.id.prayer_sky,
-                WidgetCanvas.sky(context, 250, 110, fromPhase, toPhase, intervalProgress, 26f, dark));
+                WidgetCanvas.sky(context, 250, 110, fromPhase, toPhase, intervalProgress,
+                    WidgetCanvas.outerCornerRadiusDp(context), dark));
             boolean nightPhase = toPhase == WidgetCanvas.PHASE_FAJR || toPhase == WidgetCanvas.PHASE_ISHA
                 || fromPhase == WidgetCanvas.PHASE_FAJR || fromPhase == WidgetCanvas.PHASE_ISHA;
             // Stars only make sense against the dark palette's night sky —

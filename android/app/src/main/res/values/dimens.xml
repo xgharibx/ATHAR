@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Outer widget corner radius (quality guideline WS-2: use the
+      system/OEM radius, not a custom hardcoded one, so widgets match
+      whatever corner rounding the user's launcher actually uses).
+
+      This default (pre-API 31, where no system radius resource exists)
+      keeps the original hand-picked 26dp; values-v31/dimens.xml
+      overrides it with the real system value on devices that expose one.
+    -->
+    <dimen name="widget_corner_radius">26dp</dimen>
+</resources>

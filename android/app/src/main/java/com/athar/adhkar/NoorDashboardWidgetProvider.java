@@ -144,7 +144,8 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
                 setAllDotsFuture(context, views);
                 views.setTextViewText(R.id.dash_next_countdown, "افتح التطبيق");
                 views.setImageViewBitmap(R.id.dashboard_sky,
-                    WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f, 26f));
+                    WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f,
+                        WidgetCanvas.outerCornerRadiusDp(context)));
                 return 1;
             }
 
@@ -202,7 +203,8 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             int fromIdx = NoorPrayerWidgetProvider.prevPhase(nextIdx);
             float blend = intervalProgressFor(prevMin, nextMin);
             views.setImageViewBitmap(R.id.dashboard_sky,
-                WidgetCanvas.sky(context, 280, 280, fromIdx, nextIdx, blend, 26f));
+                WidgetCanvas.sky(context, 280, 280, fromIdx, nextIdx, blend,
+                    WidgetCanvas.outerCornerRadiusDp(context)));
             return (nextIdx == WidgetCanvas.PHASE_FAJR || nextIdx == WidgetCanvas.PHASE_ISHA
                 || fromIdx == WidgetCanvas.PHASE_FAJR || fromIdx == WidgetCanvas.PHASE_ISHA) ? 1 : 0;
 
@@ -210,7 +212,8 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             setAllDotsFuture(context, views);
             views.setTextViewText(R.id.dash_next_countdown, "");
             views.setImageViewBitmap(R.id.dashboard_sky,
-                WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f, 26f));
+                WidgetCanvas.sky(context, 280, 280, WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f,
+                    WidgetCanvas.outerCornerRadiusDp(context)));
             return 1;
         }
     }

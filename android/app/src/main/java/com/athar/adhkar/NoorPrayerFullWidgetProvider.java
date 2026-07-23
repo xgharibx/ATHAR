@@ -232,7 +232,8 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         int fromPhase = NoorPrayerWidgetProvider.prevPhase(toPhase);
         float skyBlend = intervalProgressFor(prevMin, nextMin);
         views.setImageViewBitmap(R.id.prayer_full_sky,
-            WidgetCanvas.sky(context, 250, 220, fromPhase, toPhase, skyBlend, 26f, dark));
+            WidgetCanvas.sky(context, 250, 220, fromPhase, toPhase, skyBlend,
+                WidgetCanvas.outerCornerRadiusDp(context), dark));
 
         // Starfield only against the dark palette's actual night phases —
         // the light palette's Isha is a soft twilight grey, not black, so

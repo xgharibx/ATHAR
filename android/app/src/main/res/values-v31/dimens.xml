@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  API 31+ override: Android 12 introduced a system-provided widget corner
+  radius so widgets can match the launcher's own rounding instead of every
+  app guessing its own (quality guideline WS-2). Below API 31 this
+  resource doesn't exist, so values/dimens.xml's 26dp fallback applies.
+-->
+<resources>
+    <item name="widget_corner_radius" type="dimen">@android:dimen/system_app_widget_background_radius</item>
+</resources>

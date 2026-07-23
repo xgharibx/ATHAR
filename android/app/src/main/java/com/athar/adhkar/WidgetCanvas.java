@@ -75,6 +75,17 @@ public final class WidgetCanvas {
         return mode == android.content.res.Configuration.UI_MODE_NIGHT_YES;
     }
 
+    /** Outer widget corner radius, in dp — resolves to the system/OEM
+     *  radius on API 31+ (quality guideline WS-2: match the launcher's own
+     *  rounding instead of a hardcoded guess) via values-v31/dimens.xml,
+     *  falling back to the original 26dp on older devices where that
+     *  system resource doesn't exist. Callers pass this to sky() instead
+     *  of a literal corner radius. */
+    public static float outerCornerRadiusDp(Context ctx) {
+        float px = ctx.getResources().getDimension(R.dimen.widget_corner_radius);
+        return px / ctx.getResources().getDisplayMetrics().density;
+    }
+
     /** LERP two ARGB colors (alpha included) by t ∈ [0,1]. */
     private static int lerpColor(int a, int b, float t) {
         t = Math.max(0f, Math.min(1f, t));

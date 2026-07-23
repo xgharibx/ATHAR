@@ -3,7 +3,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <corners android:radius="26dp" />
+            <corners android:radius="@dimen/widget_corner_radius" />
             <gradient
                 android:angle="270"
                 android:startColor="#153A44"
@@ -13,7 +13,7 @@
     </item>
     <item>
         <shape android:shape="rectangle">
-            <corners android:radius="26dp" />
+            <corners android:radius="@dimen/widget_corner_radius" />
             <gradient
                 android:angle="270"
                 android:startColor="#16FFE8B0"
@@ -23,7 +23,7 @@
     </item>
     <item>
         <shape android:shape="rectangle">
-            <corners android:radius="26dp" />
+            <corners android:radius="@dimen/widget_corner_radius" />
             <stroke android:width="1dp" android:color="#3D8FD4E8" />
         </shape>
     </item>

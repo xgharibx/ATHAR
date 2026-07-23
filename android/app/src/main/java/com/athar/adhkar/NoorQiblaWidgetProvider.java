@@ -85,7 +85,8 @@ public class NoorQiblaWidgetProvider extends AtharWidgetProvider {
         boolean dark = WidgetCanvas.isDarkTheme(context);
         WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
         views.setImageViewBitmap(R.id.qibla_sky,
-            WidgetCanvas.sky(context, 150, 150, sky.fromPhase, sky.toPhase, sky.blend, 26f, dark));
+            WidgetCanvas.sky(context, 150, 150, sky.fromPhase, sky.toPhase, sky.blend,
+                WidgetCanvas.outerCornerRadiusDp(context), dark));
         // Starfield only against the dark palette's actual night phases — the
         // light palette's night phases are soft twilight tones, not black.
         if (dark && sky.isNight()) {
