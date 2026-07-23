@@ -15,6 +15,15 @@
     <string name="widget_asma_label">Athar Asma al-Husna Widget</string>
     <string name="widget_qibla_label">Athar Qibla Widget</string>
     <string name="widget_dashboard_description">الصلاة والأذكار والورد اليومي في نظرة واحدة</string>
+    <string name="widget_compact_description">اضغط لعدّ الأذكار مباشرة من الشاشة الرئيسية</string>
+    <string name="widget_prayer_description">عداد تنازلي حي للصلاة القادمة</string>
+    <string name="widget_prayer_full_description">كل مواقيت الصلاة اليوم مع تنبيه الصلاة القادمة</string>
+    <string name="widget_adhkar_description">تابع تقدّمك في أذكار الصباح والمساء</string>
+    <string name="widget_wird_description">تابع وردك اليومي من القرآن ومكانك الحالي</string>
+    <string name="widget_tasbeeh_description">سبحة تفاعلية، اضغط للعدّ مباشرة من الشاشة الرئيسية</string>
+    <string name="widget_sunnah_description">حديث اليوم الحقيقي من موسوعة الحديث</string>
+    <string name="widget_asma_description">اسم من أسماء الله الحسنى كل يوم مع معناه</string>
+    <string name="widget_qibla_description">اتجاه القبلة والمسافة إلى الكعبة بمجرد نظرة</string>
     <!-- 11C: Notification channel names shown in Android Settings > App Notifications -->
     <string name="channel_prayer_name">&#x62A;&#x646;&#x628;&#x64A;&#x647;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
     <string name="channel_prayer_desc">&#x623;&#x630;&#x627;&#x646; &#x627;&#x644;&#x635;&#x644;&#x648;&#x627;&#x62A; &#x627;&#x644;&#x62E;&#x645;&#x633; &#x648;&#x62A;&#x630;&#x643;&#x64A;&#x631;&#x627;&#x62A; &#x627;&#x644;&#x635;&#x644;&#x627;&#x629;</string>
