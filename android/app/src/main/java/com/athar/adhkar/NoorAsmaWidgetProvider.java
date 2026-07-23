@@ -102,11 +102,12 @@ public class NoorAsmaWidgetProvider extends AtharWidgetProvider {
         views.setTextViewText(R.id.asma_counter, (idx + 1) + " / " + ARABIC.length);
 
         boolean dark = WidgetCanvas.isDarkTheme(context);
+        int theme = WidgetCanvas.widgetTheme(context, appWidgetId);
         int[] sz = WidgetCanvas.sizeDp(context, manager, appWidgetId, 250, 110);
         WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
         views.setImageViewBitmap(R.id.asma_sky,
             WidgetCanvas.sky(context, sz[0], sz[1], sky.fromPhase, sky.toPhase, sky.blend,
-                WidgetCanvas.outerCornerRadiusDp(context), dark));
+                WidgetCanvas.outerCornerRadiusDp(context), dark, theme));
         // Starfield only against the dark palette's actual night phases — the
         // light palette's night phases are soft twilight tones, not black.
         if (dark && sky.isNight()) {

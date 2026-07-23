@@ -59,27 +59,75 @@ public final class WidgetCanvas {
     // them instead of jumping between 5 fixed images. {start, center, end,
     // glow (ARGB, alpha baked in), stroke (ARGB, alpha baked in)}
     public static final int PHASE_FAJR = 0, PHASE_DHUHR = 1, PHASE_ASR = 2, PHASE_MAGHRIB = 3, PHASE_ISHA = 4;
-    // Every phase's base gradient (start/center/end — the ~90% of the sky
-    // that isn't the thin horizon-glow band) now anchors on the same deep
-    // emerald-black family the app's own dark identity uses (colorPrimary
-    // #2F4F37, the .forest theme's #022c22) instead of drifting into
-    // unrelated hue families per phase (navy for Fajr/Isha, brown for
-    // Asr/Maghrib, as it did before) — "dark green" should be the widget's
-    // recognizable identity at every hour, not just at Dhuhr. The glow/
-    // glow (horizon band) column stays phase-distinct so the day still
-    // visibly moves (cool pre-dawn teal → vivid midday emerald → warm
-    // afternoon olive → muted sunset → cool night teal). The stroke column
-    // is now uniformly warm gold across every phase instead of following
-    // the glow — a stroke that shifted to Isha's blue-ish tone read as an
-    // off-brand seam right at the widget's own edge, exactly where a
-    // "dark and dark green" identity needs to be least ambiguous; gold is
+
+    // ── User-selectable widget theme (picked in the config screen when the
+    // widget is placed; stored per-widget-id). Two deliberately distinct
+    // dark identities, both keeping the living-sky + colored starfield:
+    //   COSMIC  — deep near-black "far stars" space, the app's own default
+    //             dark identity (globals.css --bg #07080b, the الإعجاز
+    //             العلمي section's #080b12). The night sky the stars were
+    //             always meant to sit on; phase shows only as a faint glow.
+    //   EMERALD — deep-green dominant (colorPrimary #2F4F37 / .forest
+    //             #022c22), the richer "garden at night" identity.
+    public static final int THEME_COSMIC = 0, THEME_EMERALD = 1;
+
+    private static final String THEME_PREFS = "AtharWidgetTheme";
+    private static String themeKey(int appWidgetId) { return "theme_" + appWidgetId; }
+
+    /** The theme chosen for this widget instance (default COSMIC — the deep
+     *  near-black "far stars" look the owner asked to lead with). */
+    public static int widgetTheme(Context ctx, int appWidgetId) {
+        try {
+            return ctx.getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE)
+                .getInt(themeKey(appWidgetId), THEME_COSMIC);
+        } catch (Throwable t) {
+            return THEME_COSMIC;
+        }
+    }
+
+    /** Persist the theme choice for a widget instance (config screen). */
+    public static void setWidgetTheme(Context ctx, int appWidgetId, int theme) {
+        ctx.getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(themeKey(appWidgetId), theme).apply();
+    }
+
+    /** Drop a widget's stored theme when its instance is deleted. */
+    public static void clearWidgetTheme(Context ctx, int appWidgetId) {
+        ctx.getSharedPreferences(THEME_PREFS, Context.MODE_PRIVATE)
+            .edit().remove(themeKey(appWidgetId)).apply();
+    }
+
+    // EMERALD palette. Every phase's base gradient (start/center/end — the
+    // ~90% of the sky that isn't the thin horizon-glow band) anchors on the
+    // same deep emerald-black family the app's own green identity uses
+    // (colorPrimary #2F4F37, the .forest theme's #022c22). The glow (horizon
+    // band) column stays phase-distinct so the day still visibly moves (cool
+    // pre-dawn teal → vivid midday emerald → warm afternoon olive → muted
+    // sunset → cool night teal). The stroke column is uniformly warm gold
+    // across every phase — a stroke that shifted to Isha's blue-ish tone
+    // read as an off-brand seam right at the widget's own edge; gold is
     // already the one accent used everywhere else (buttons, active rows).
-    private static final int[][] PHASE_COLORS = {
+    // {start, center, end, glow (ARGB), stroke (ARGB)}
+    private static final int[][] PHASE_COLORS_EMERALD = {
         { 0xFF1F2E37, 0xFF192F30, 0xFF081611, 0x1EC2A8FF, 0x30EAC98A }, // Fajr — deep teal-green pre-dawn
         { 0xFF1B5A3C, 0xFF0F3A26, 0xFF081B12, 0x26FFF2C0, 0x52EAC98A }, // Dhuhr — vivid emerald
         { 0xFF2D361F, 0xFF212F1B, 0xFF0B160E, 0x2EF6DFA4, 0x47EAC98A }, // Asr — warm olive-green afternoon
         { 0xFF362D1D, 0xFF26271E, 0xFF0B1014, 0x33FFB27A, 0x47EAC98A }, // Maghrib — muted green-brown sunset
         { 0xFF18292E, 0xFF132328, 0xFF070B18, 0x1FAFB8FF, 0x30EAC98A }, // Isha — deep teal-green night
+    };
+
+    // COSMIC palette — deep near-black space (the app's own --bg #07080b /
+    // Ijaz #080b12), so the multi-hue starfield reads as a real night sky
+    // rather than sitting on a lit background. The phase shows only through
+    // a soft colored horizon glow (dawn violet → warm midday → gold
+    // afternoon → coral sunset → cool deep-space night), never lifting the
+    // base out of near-black. Stroke stays warm gold, same as EMERALD.
+    private static final int[][] PHASE_COLORS_COSMIC = {
+        { 0xFF0E1526, 0xFF0A0F1E, 0xFF05070E, 0x24A9B4FF, 0x33C9B98D }, // Fajr — deep indigo-black pre-dawn
+        { 0xFF0D1420, 0xFF090E18, 0xFF04060C, 0x22FFE8B0, 0x40EAC98A }, // Dhuhr — near-black, warm high glow
+        { 0xFF14101A, 0xFF0D0A13, 0xFF05040A, 0x26F6DFA4, 0x40EAC98A }, // Asr — near-black, gold glow
+        { 0xFF17101A, 0xFF110A13, 0xFF06040A, 0x2AFFB27A, 0x40E0A060 }, // Maghrib — near-black, coral glow
+        { 0xFF0A0D1C, 0xFF070A15, 0xFF03050C, 0x20AFB8FF, 0x33A0B0E8 }, // Isha — deepest space-black, cool glow
     };
 
     // ── Light-theme sky — same 5-phase story (dawn/midday/afternoon/
@@ -385,14 +433,19 @@ public final class WidgetCanvas {
      * @param blend     0..1, how far through the interval (same as the ring's progress)
      */
     public static Bitmap sky(Context ctx, int widthDp, int heightDp, int fromPhase, int toPhase, float blend, float cornerRadiusDp) {
-        return sky(ctx, widthDp, heightDp, fromPhase, toPhase, blend, cornerRadiusDp, isDarkTheme(ctx));
+        return sky(ctx, widthDp, heightDp, fromPhase, toPhase, blend, cornerRadiusDp, isDarkTheme(ctx), THEME_COSMIC);
     }
 
-    /** Same as {@link #sky(Context, int, int, int, int, float, float)} but lets
-     *  the caller pass the theme explicitly (e.g. when it's already resolved
-     *  isDarkTheme() once for the same update pass, to avoid reading
-     *  Configuration twice). */
+    /** Explicit light/dark (e.g. when the caller already resolved
+     *  isDarkTheme() once this update pass); defaults to the COSMIC theme. */
     public static Bitmap sky(Context ctx, int widthDp, int heightDp, int fromPhase, int toPhase, float blend, float cornerRadiusDp, boolean dark) {
+        return sky(ctx, widthDp, heightDp, fromPhase, toPhase, blend, cornerRadiusDp, dark, THEME_COSMIC);
+    }
+
+    /** Full form: explicit light/dark AND the user-selected widget THEME_*
+     *  (COSMIC deep-space vs EMERALD deep-green — light mode ignores it and
+     *  uses the single pastel day palette). */
+    public static Bitmap sky(Context ctx, int widthDp, int heightDp, int fromPhase, int toPhase, float blend, float cornerRadiusDp, boolean dark, int theme) {
         int w = Math.max(48, (int) dp(ctx, widthDp));
         int h = Math.max(48, (int) dp(ctx, heightDp));
         Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
@@ -400,7 +453,8 @@ public final class WidgetCanvas {
         float r = dp(ctx, cornerRadiusDp);
         RectF rect = new RectF(0.5f, 0.5f, w - 0.5f, h - 0.5f);
 
-        int[][] palette = dark ? PHASE_COLORS : PHASE_COLORS_LIGHT;
+        int[][] palette = !dark ? PHASE_COLORS_LIGHT
+            : (theme == THEME_EMERALD ? PHASE_COLORS_EMERALD : PHASE_COLORS_COSMIC);
         int[] from = palette[fromPhase];
         int[] to = palette[toPhase];
         int start = lerpColor(from[0], to[0], blend);

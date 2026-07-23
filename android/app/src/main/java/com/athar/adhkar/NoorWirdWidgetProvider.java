@@ -81,11 +81,12 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
         // Living sky: no prayer-schedule data here, so the mood is derived
         // purely from wall-clock time instead of the actual next prayer.
         boolean dark = WidgetCanvas.isDarkTheme(context);
+        int theme = WidgetCanvas.widgetTheme(context, appWidgetId);
         int[] sz = WidgetCanvas.sizeDp(context, manager, appWidgetId, 250, 110);
         WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
         views.setImageViewBitmap(R.id.wird_sky,
             WidgetCanvas.sky(context, sz[0], sz[1], sky.fromPhase, sky.toPhase, sky.blend,
-                WidgetCanvas.outerCornerRadiusDp(context), dark));
+                WidgetCanvas.outerCornerRadiusDp(context), dark, theme));
         // Starfield only against the dark palette's actual night phases — the
         // light palette's night phases are soft twilight tones, not black.
         if (dark && sky.isNight()) {
