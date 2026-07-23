@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Quick Dhikr Tally Widget (2×1) — the slim, single-row sibling of the
+  full Tasbeeh counter (2×2). No target/reset/next controls, no ring —
+  the whole tile is one tap-to-increment zone showing today's rotating
+  dhikr phrase and a live tally. See NoorCompactWidgetProvider.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/noor_widget_root"
     android:layout_width="match_parent"
@@ -22,7 +28,7 @@
             android:ellipsize="end"
             android:gravity="end"
             android:maxLines="1"
-            android:textColor="#FFE8B0"
+            android:textColor="@color/widget_text_accent"
             android:textSize="11sp"
             android:textStyle="bold" />
 
@@ -33,26 +39,25 @@
             android:ellipsize="end"
             android:gravity="end"
             android:maxLines="1"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/widget_text_primary"
             android:textSize="17sp"
             android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- Live tally badge — noor_widget_pill is a fixed gold-gradient brand
+         background with no night variant, so its text stays fixed dark. -->
     <TextView
-        android:id="@+id/noor_widget_action"
+        android:id="@+id/compact_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:background="@drawable/noor_widget_pill"
+        android:minWidth="28dp"
+        android:gravity="center"
         android:paddingHorizontal="9dp"
         android:paddingVertical="5dp"
+        android:text="0"
         android:textColor="#2F4F37"
-        android:textSize="10sp"
+        android:textSize="14sp"
         android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/noor_widget_date"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
 </LinearLayout>

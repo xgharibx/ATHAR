@@ -246,7 +246,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
      * Stored in the "CapacitorStorage" prefs file so the web app can merge it
      * into the user's stats via @capacitor/preferences.
      */
-    private static void bumpDailyTotal(Context context, String phrase) {
+    static void bumpDailyTotal(Context context, String phrase) {
         try {
             SharedPreferences appPrefs = WidgetData.prefs(context);
             String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
