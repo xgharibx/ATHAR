@@ -188,10 +188,13 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
 
         // Living sky: no prayer-schedule data here, so the mood is derived
         // purely from wall-clock time instead of the actual next prayer.
+        boolean dark = WidgetCanvas.isDarkTheme(context);
         WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
         views.setImageViewBitmap(R.id.tasbeeh_sky,
-            WidgetCanvas.sky(context, 150, 150, sky.fromPhase, sky.toPhase, sky.blend, 26f));
-        if (sky.isNight()) {
+            WidgetCanvas.sky(context, 150, 150, sky.fromPhase, sky.toPhase, sky.blend, 26f, dark));
+        // Starfield only against the dark palette's actual night phases — the
+        // light palette's night phases are soft twilight tones, not black.
+        if (dark && sky.isNight()) {
             views.setViewVisibility(R.id.tasbeeh_stars, android.view.View.VISIBLE);
             views.setImageViewBitmap(R.id.tasbeeh_stars,
                 WidgetCanvas.starfield(context, 150, 150, 20, System.currentTimeMillis() / 60000));
