@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="القبلة"
-            android:textColor="#FFE8B0"
+            android:textColor="@color/widget_text_accent"
             android:textSize="12sp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
@@ -53,7 +53,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="--°"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/widget_text_primary"
             android:textSize="18sp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
@@ -63,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="افتح التطبيق"
-            android:textColor="#D8E8DC"
+            android:textColor="@color/widget_text_secondary"
             android:textSize="10sp" />
 
         <TextView
@@ -72,7 +72,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="1dp"
             android:text=""
-            android:textColor="#9BB89D"
+            android:textColor="@color/widget_text_secondary"
             android:textSize="9sp" />
 
     </LinearLayout>

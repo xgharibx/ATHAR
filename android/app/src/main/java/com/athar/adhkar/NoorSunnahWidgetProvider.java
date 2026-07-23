@@ -96,10 +96,13 @@ public class NoorSunnahWidgetProvider extends AtharWidgetProvider {
             route = "/library/hadith";
         }
 
+        boolean dark = WidgetCanvas.isDarkTheme(context);
         WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
         views.setImageViewBitmap(R.id.sunnah_sky,
-            WidgetCanvas.sky(context, 250, 110, sky.fromPhase, sky.toPhase, sky.blend, 26f));
-        if (sky.isNight()) {
+            WidgetCanvas.sky(context, 250, 110, sky.fromPhase, sky.toPhase, sky.blend, 26f, dark));
+        // Starfield only against the dark palette's actual night phases — the
+        // light palette's night phases are soft twilight tones, not black.
+        if (dark && sky.isNight()) {
             views.setViewVisibility(R.id.sunnah_stars, android.view.View.VISIBLE);
             views.setImageViewBitmap(R.id.sunnah_stars,
                 WidgetCanvas.starfield(context, 250, 110, 26, System.currentTimeMillis() / 60000));

@@ -82,10 +82,13 @@ public class NoorQiblaWidgetProvider extends AtharWidgetProvider {
             views.setImageViewBitmap(R.id.qibla_arrow, WidgetCanvas.compassArrow(context, 90, 0f));
         }
 
+        boolean dark = WidgetCanvas.isDarkTheme(context);
         WidgetCanvas.ClockSky sky = WidgetCanvas.clockPhase();
         views.setImageViewBitmap(R.id.qibla_sky,
-            WidgetCanvas.sky(context, 150, 150, sky.fromPhase, sky.toPhase, sky.blend, 26f));
-        if (sky.isNight()) {
+            WidgetCanvas.sky(context, 150, 150, sky.fromPhase, sky.toPhase, sky.blend, 26f, dark));
+        // Starfield only against the dark palette's actual night phases — the
+        // light palette's night phases are soft twilight tones, not black.
+        if (dark && sky.isNight()) {
             views.setViewVisibility(R.id.qibla_stars, android.view.View.VISIBLE);
             views.setImageViewBitmap(R.id.qibla_stars,
                 WidgetCanvas.starfield(context, 150, 150, 20, System.currentTimeMillis() / 60000));

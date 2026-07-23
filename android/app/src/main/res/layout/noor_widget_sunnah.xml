@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="end"
-            android:textColor="#FFE8B0"
+            android:textColor="@color/widget_text_accent"
             android:textSize="12sp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
@@ -52,7 +52,7 @@
             android:ellipsize="end"
             android:gravity="center_vertical|end"
             android:maxLines="3"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/widget_text_primary"
             android:textSize="15sp"
             android:fontFamily="sans-serif-medium"
             android:textStyle="bold" />
@@ -65,7 +65,7 @@
             android:gravity="end"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="#D8E8DC"
+            android:textColor="@color/widget_text_secondary"
             android:textSize="10sp"
             android:visibility="gone" />
 
@@ -76,6 +76,8 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
+            <!-- noor_widget_pill is a fixed gold-gradient brand button with no
+                 night variant — text must stay a fixed dark color. -->
             <TextView
                 android:id="@+id/noor_widget_action"
                 android:layout_width="wrap_content"
@@ -94,7 +96,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:textColor="#D6E9C6"
+                android:textColor="@color/widget_text_secondary"
                 android:textSize="10sp" />
         </LinearLayout>
     </LinearLayout>
