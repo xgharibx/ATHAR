@@ -232,15 +232,26 @@ export function DhikrCard(props: {
       navigator.vibrate([18, 8, 18]);
     }
 
-    // Per-tap button press animation — fires on EVERY tap from the very
-    // first one through the last. The class is removed-then-readded to
-    // force a reflow so the CSS animation restarts even on rapid-fire taps.
-    if (countBtnRef.current) {
-      const el = countBtnRef.current;
-      el.classList.remove("btn-count-press-wrap");
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      void el.offsetWidth; // force reflow to restart animation
-      el.classList.add("btn-count-press-wrap");
+    // Per-tap press feedback via the Web Animations API instead of toggling
+    // a CSS class. The old class-toggle approach had two real glitches: the
+    // class lived in the button's static className, so it fired once on mount
+    // (the button "pulsed" as the card appeared) AND a re-render mid-tap could
+    // reset className and cut the restart short. WAAPI runs imperatively,
+    // independent of React's className, so it only ever fires on an actual
+    // tap, restarts cleanly on rapid-fire taps, and is snappier (~240ms — the
+    // old 520ms felt laggy). Compositor-friendly transform + a soft brightness
+    // pulse keeps it premium without shouting over the dhikr text.
+    const el = countBtnRef.current;
+    if (el && !prefs.reduceMotion && typeof el.animate === "function") {
+      el.animate(
+        [
+          { transform: "scale(1)",     filter: "brightness(1)" },
+          { transform: "scale(0.955)", filter: "brightness(1.10)", offset: 0.2 },
+          { transform: "scale(1.012)", filter: "brightness(1.03)", offset: 0.55 },
+          { transform: "scale(1)",     filter: "brightness(1)" },
+        ],
+        { duration: 240, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
+      );
     }
     
     // Theme-Specific Particles — throttled to every 6th tap to stay smooth on mobile
@@ -275,7 +286,10 @@ export function DhikrCard(props: {
       // Haptic + auto-advance signal after a short delay
       if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
       if (prefs.autoAdvanceDhikr && props.onComplete) {
-        setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 480);
+        // Snappier hand-off to the next dhikr — the old 480ms felt like a lag
+        // between finishing and moving on; ~160ms still lets the completion
+        // haptic/checkmark register without making the user wait.
+        setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 160);
       }
     }
   };
@@ -551,7 +565,7 @@ export function DhikrCard(props: {
           <button type="button"
             ref={countBtnRef}
             className={cn(
-              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border select-none btn-count-press-wrap",
+              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border select-none",
               done
                 ? "bg-[var(--ok)] text-[var(--on-accent)] border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
                 : "bg-[var(--accent)] text-[var(--on-accent)] border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",

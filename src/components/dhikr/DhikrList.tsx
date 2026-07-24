@@ -185,9 +185,9 @@ export function DhikrList(props: Readonly<{
       const start = window.scrollY;
       const delta = top - start;
       if (Math.abs(delta) < 2) return;
-      // Auto-advance callers pass `slowMs` to opt into a noticeably slower
-      // glide (1100ms+) so the eye can follow the sweep. Default fast
-      // callers keep the snappy 250-650ms ramp — same behavior as before.
+      // Auto-advance callers pass `slowMs` to opt into a gentle fixed-duration
+      // glide (~380ms) so the eye can follow the sweep. Default fast callers
+      // keep the snappy 250-650ms distance-based ramp.
       const duration = opts.slowMs
         ?? Math.min(650, Math.max(250, Math.abs(delta) * 0.35));
       const t0 = performance.now();
@@ -897,10 +897,12 @@ export function DhikrList(props: Readonly<{
                   onComplete={() => {
                     const nextIdx = displayIndex + 1;
                     if (nextIdx < orderedEntries.length) {
-                      // slowMs opts into a noticeably slower glide for the
-                      // auto-advance transition (default scrollToIndex stays
-                      // fast so taps-to-jump feel snappy).
-                      virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "center", behavior: "smooth", slowMs: 1100 });
+                      // A gentle glide for the auto-advance (default
+                      // scrollToIndex stays instant for taps-to-jump), but cut
+                      // to ~a third of the old 1100ms — that long a glide made
+                      // finishing a dhikr feel like waiting for the app to
+                      // catch up rather than a brisk hand-off to the next.
+                      virtuosoRef.current?.scrollToIndex({ index: nextIdx, align: "center", behavior: "smooth", slowMs: 380 });
                     }
                   }}
                 />

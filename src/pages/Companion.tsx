@@ -72,6 +72,7 @@ import {
   type CompanionProfile,
 } from "@/lib/companionProfile";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useStickToBottom } from "@/lib/useStickToBottom";
 import { useNoorStore } from "@/store/noorStore";
 import {
   addCustomReminder as addCustomReminderAction,
@@ -232,7 +233,9 @@ export function CompanionPage() {
 
   const busyRef = React.useRef(false);
   const abortRef = React.useRef<AbortController | null>(null);
-  const endRef = React.useRef<HTMLDivElement>(null);
+  // Claude-style follow-the-stream scrolling: sticks to the bottom only while
+  // the reader is already there, and lets go the moment they scroll up.
+  const { endRef, atBottom, scrollToBottom, stickToBottom } = useStickToBottom();
   /** ids minted by dispatchCreateReminderPage during this turn's onToolCalls,
    *  in call order — spliced into the persisted `:::reminder\n{...}\n:::`
    *  blocks once the full reply text is known (see onDone below). */
@@ -335,14 +338,30 @@ export function CompanionPage() {
     }
   }, []);
 
-  // Auto-scroll — instant ("auto") while actively streaming, since a fresh
-  // "smooth" animation queued on every token can't keep up with itself and
-  // visibly lags behind, forcing the user to scroll manually. Smooth is
-  // kept for discrete message additions (sending a new question, opening a
-  // saved conversation), where a single animation reads nicely.
+  // A new turn: a question the user just sent always jumps to the bottom
+  // (they expect to see it land); a finished assistant reply only follows if
+  // the reader hadn't scrolled away to re-read something.
   React.useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: streamingText !== null ? "auto" : "smooth", block: "end" });
-  }, [messages, streamingText]);
+    const last = messages[messages.length - 1];
+    if (last?.role === "user") scrollToBottom("smooth");
+    else stickToBottom("smooth");
+  }, [messages.length, messages, scrollToBottom, stickToBottom]);
+
+  // Streaming tokens: follow the growing reply only while at the bottom, with
+  // an instant ("auto") scroll — a queued "smooth" animation per token can't
+  // keep up with itself and visibly lags behind.
+  React.useEffect(() => {
+    if (streamingText) stickToBottom("auto");
+  }, [streamingText, stickToBottom]);
+
+  // Focused-chat mode: on this route the composer owns the bottom of the
+  // screen (like Claude), so the global floating tab-bar + FABs are hidden to
+  // stop the old "two stacked bars fighting over the bottom" clutter. The top
+  // bar's menu still provides navigation away.
+  React.useEffect(() => {
+    document.body.classList.add("companion-focus");
+    return () => document.body.classList.remove("companion-focus");
+  }, []);
 
   // Save full conversation on every change
   React.useEffect(() => {
@@ -635,7 +654,7 @@ export function CompanionPage() {
   const isBusy = streamingText !== null;
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 pb-44 pt-4" dir="rtl">
+    <div className="mx-auto w-full max-w-3xl px-4 pb-36 pt-4" dir="rtl">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -1013,8 +1032,22 @@ export function CompanionPage() {
         <div ref={endRef} />
       </div>
 
-      {/* Composer */}
-      <div className="fixed inset-x-0 z-40" style={{ bottom: "calc(var(--mobile-nav-height) + var(--sab) + 16px)" }}>
+      {/* Jump-to-latest — appears only when the reader has scrolled up and a
+          reply is streaming below, so following along is one tap away without
+          the stream yanking their scroll position. */}
+      {!atBottom ? (
+        <button type="button"
+          onClick={() => scrollToBottom("smooth")}
+          aria-label="انتقل لأحدث رسالة"
+          className="fixed inset-x-0 z-40 mx-auto grid h-9 w-9 place-items-center rounded-full border border-[var(--stroke)] bg-[var(--card-2)] text-[var(--fg)] shadow-lg backdrop-blur-xl transition active:scale-90"
+          style={{ bottom: "calc(var(--sab) + 104px)", left: 0, right: 0, width: "36px" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7" /></svg>
+        </button>
+      ) : null}
+
+      {/* Composer — docks at the very bottom of the screen (the floating tab-bar
+          is hidden on this route), so the chat reads as one focused surface. */}
+      <div className="fixed inset-x-0 z-40" style={{ bottom: "calc(var(--sab) + 12px)" }}>
         <div className="mx-auto w-full max-w-3xl px-4">
           <div className="flex items-end gap-1.5 rounded-2xl border border-[var(--stroke)] bg-[var(--bg)]/95 p-2 shadow-2xl backdrop-blur-xl">
             <textarea

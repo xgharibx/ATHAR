@@ -58,7 +58,8 @@ export function CommandPalette(props: Props) {
       sakina: "سكينة",
       shafaq: "شفق",
       mushaf: "مصحف",
-      diwan: "الديوان"
+      diwan: "الديوان",
+      faham: "فحم"
     };
     return map[t] ?? "تلقائي";
   };

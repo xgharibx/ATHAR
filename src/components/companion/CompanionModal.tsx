@@ -35,6 +35,7 @@ import {
   type CompanionConversation,
 } from "@/lib/companionHistory";
 import { splitIntoSegments } from "@/lib/companionBlocks";
+import { useStickToBottom } from "@/lib/useStickToBottom";
 import { useNoorStore } from "@/store/noorStore";
 import {
   addCustomReminder as addCustomReminderAction,
@@ -235,7 +236,8 @@ export function CompanionModal(props: {
   const [partialStopped, setPartialStopped] = React.useState(false);
   const busyRef = React.useRef(false);
   const abortRef = React.useRef<AbortController | null>(null);
-  const endRef = React.useRef<HTMLDivElement>(null);
+  // Claude-style follow-the-stream scrolling within the modal's own scroller.
+  const { scrollerRef, endRef, atBottom, scrollToBottom, stickToBottom } = useStickToBottom();
   const titleRef = React.useRef<string>("");
   /** ids minted by dispatchCreateReminder during this turn's onToolCalls, in
    *  call order — spliced into the persisted `:::reminder\n{...}\n:::` blocks
@@ -259,14 +261,18 @@ export function CompanionModal(props: {
     }
   }, [props.open, props.prefill, refreshHistory]);
 
-  // Auto-scroll — instant ("auto") while actively streaming, since a fresh
-  // "smooth" animation queued on every token can't keep up with itself and
-  // visibly lags behind, forcing the user to scroll manually. Smooth is
-  // kept for discrete message additions (sending a new question, opening a
-  // saved conversation), where a single animation reads nicely.
+  // A new turn: the question the user just sent always jumps to the bottom; a
+  // finished reply only follows if they hadn't scrolled up to re-read.
   React.useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: streamingText !== null ? "auto" : "smooth", block: "end" });
-  }, [messages, streamingText]);
+    const last = messages[messages.length - 1];
+    if (last?.role === "user") scrollToBottom("smooth");
+    else stickToBottom("smooth");
+  }, [messages.length, messages, scrollToBottom, stickToBottom]);
+
+  // Streaming tokens follow the reply only while the reader is at the bottom.
+  React.useEffect(() => {
+    if (streamingText) stickToBottom("auto");
+  }, [streamingText, stickToBottom]);
 
   // Persist history whenever messages change
   React.useEffect(() => {
@@ -424,7 +430,7 @@ export function CompanionModal(props: {
   const isBusy = streamingText !== null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-2 sm:p-4 pb-[max(env(safe-area-inset-bottom,0px),0px)]" dir="rtl">
+    <div className="fixed inset-0 z-[10000] flex items-end justify-center p-2 sm:p-4 pb-[max(env(safe-area-inset-bottom,0px),0px)]" dir="rtl">
       <div
         aria-hidden="true"
         onClick={props.onClose}
@@ -504,7 +510,11 @@ export function CompanionModal(props: {
         ) : null}
 
         {/* Conversation */}
-        <div className="relative flex-1 overflow-y-auto px-3 py-3 space-y-3" aria-live="polite">
+        <div
+          ref={(el) => { scrollerRef.current = el; }}
+          className="relative flex-1 overflow-y-auto px-3 py-3 space-y-3"
+          aria-live="polite"
+        >
           {messages.length === 0 && !streamingText ? (
             <div className="grid h-full place-items-center text-center">
               <div>
@@ -551,6 +561,18 @@ export function CompanionModal(props: {
           ) : null}
           <div ref={endRef} />
         </div>
+
+        {/* Jump-to-latest — only while scrolled up, so following the stream is
+            one tap away without it yanking the reader's position. */}
+        {!atBottom ? (
+          <button type="button"
+            onClick={() => scrollToBottom("smooth")}
+            aria-label="انتقل لأحدث رسالة"
+            className="absolute inset-x-0 bottom-[76px] z-[1] mx-auto grid h-9 w-9 place-items-center rounded-full border border-emerald-400/30 bg-emerald-900/70 text-emerald-100 shadow-lg backdrop-blur-md transition active:scale-90"
+            style={{ width: "36px" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7" /></svg>
+          </button>
+        ) : null}
 
         {/* Composer */}
         <div className="relative border-t border-emerald-400/15 p-2 bg-emerald-950/40 backdrop-blur-sm">

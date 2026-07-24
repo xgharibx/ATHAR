@@ -25,6 +25,11 @@
   --font-arabic: "Noto Naskh Arabic", "Noto Sans Arabic", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --bg: #07080b;
+  /* The colour the atmospheric background fades toward at the BOTTOM of the
+     screen. Defaults to the theme's own --bg (no change), but a theme can set
+     it darker to get a "starts normal up top, sinks into the dark" vertical
+     depth — see NoorBackground and the .forest override. */
+  --bg-deep: var(--bg);
   --fg: #f5f7ff;
   --muted: rgba(245, 247, 255, 0.72);
   --muted-2: rgba(245, 247, 255, 0.56);
@@ -98,6 +103,9 @@
 
 .forest {
   --bg: #022c22;
+  /* Forest sinks toward near-black at the foot of the screen (like the dark
+     theme) instead of staying an even mid-green top-to-bottom. */
+  --bg-deep: #010f0b;
   --fg: #ecfdf5;
   --muted: rgba(236, 253, 245, 0.7);
   --muted-2: rgba(236, 253, 245, 0.5);
@@ -445,6 +453,23 @@
 }
 .reduce-motion .layl body::after,
 .layl.reduce-motion body::after { animation: none; opacity: 0.6; }
+
+.faham {
+  /* فحم — extreme pure-black (AMOLED) using the app's own signature gold
+     starfield + atmospheric glow (unlike .layl's self-contained blue star
+     CSS). Same palette as the default dark theme, just pushed to true black,
+     so the 3D NoorStarfield reads exactly like it does on every other theme. */
+  --bg: #000000;
+  --bg-deep: #000000;
+  --fg: #f5f7ff;
+  --muted: rgba(245, 247, 255, 0.72);
+  --muted-2: rgba(245, 247, 255, 0.56);
+  --card: rgba(255, 255, 255, 0.05);
+  --card-2: rgba(255, 255, 255, 0.085);
+  --stroke: rgba(255, 255, 255, 0.10);
+  --accent: #ffd780;
+  --accent-2: #9ae6ff;
+}
 
 .teen {
   /* طين — claymorphism: molded, puffy surfaces that squish when pressed */
@@ -2947,6 +2972,18 @@ body.focus-mode .floating-nav {
   opacity: 0;
   pointer-events: none;
   transform: translateY(100%);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+/* Companion (أثر) chat is a focused surface: the composer owns the bottom of
+   the screen like a real chat app, so the global tab-bar and floating FABs
+   step aside to stop the "two stacked bars fighting over the bottom" clutter.
+   The top bar's menu still covers navigation away. */
+body.companion-focus .floating-nav,
+body.companion-focus .fab {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(120%) !important;
   transition: opacity 300ms ease, transform 300ms ease;
 }
 
