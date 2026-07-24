@@ -190,12 +190,20 @@ export function DhikrCard(props: {
     if (now - lastCelebrationAt < 2500) return;
     setLastCelebrationAt(now);
 
+    // Lighter, faster-clearing burst so it can't stall mid-screen on slow
+    // phones: fewer particles + higher gravity + fewer ticks means it falls
+    // and fades quickly instead of hanging around competing with the
+    // auto-advance scroll for the main thread. (Looked fine in a desktop
+    // browser; the freeze the owner saw was Android main-thread jank.)
     getConfetti().then((c) => c({
-      particleCount: 70,
-      spread: 70,
-      startVelocity: 24,
-      scalar: 0.9,
-      origin: { y: 0.9 }
+      particleCount: 42,
+      spread: 68,
+      startVelocity: 28,
+      scalar: 0.85,
+      gravity: 1.35,
+      ticks: 130,
+      origin: { y: 0.9 },
+      disableForReducedMotion: true,
     }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);

@@ -247,10 +247,12 @@ export function DhikrList(props: Readonly<{
   React.useEffect(() => {
     if (stats.percent >= 100 && prevPercentRef.current < 100 && props.items.length > 0) {
       recordSectionCompletion(props.sectionId);
-      // Reduced particle counts for smooth 60fps on mobile
+      // Lighter + faster-clearing (higher gravity, fewer ticks) so it can't
+      // freeze mid-screen on slow phones — this fires together with the last
+      // dhikr's own completion burst, so keeping each light matters.
       getConfetti().then((c) => {
-        c({ particleCount: 55, spread: 75, startVelocity: 28, scalar: 0.9, origin: { y: 0.6 } });
-        setTimeout(() => c({ particleCount: 30, spread: 90, startVelocity: 18, scalar: 0.85, origin: { x: 0.2, y: 0.75 } }), 350);
+        c({ particleCount: 40, spread: 75, startVelocity: 30, scalar: 0.85, gravity: 1.3, ticks: 140, origin: { y: 0.6 }, disableForReducedMotion: true });
+        setTimeout(() => c({ particleCount: 22, spread: 90, startVelocity: 20, scalar: 0.8, gravity: 1.3, ticks: 130, origin: { x: 0.2, y: 0.75 }, disableForReducedMotion: true }), 300);
       });
     }
     prevPercentRef.current = stats.percent;

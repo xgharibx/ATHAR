@@ -70,7 +70,7 @@ const THEME_ACCENTS: Record<NoorTheme, string> = {
   mushaf:   "#e9c36a",
   sama:     "#ffe8a0",
   diwan:    "#1f6b4a",
-  faham:    "#ffd780",
+  faham:    "#e9e9ee",
 };
 
 const PRAYER_ALERT_OPTIONS = [

@@ -3,11 +3,12 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
-function Starfield(props: { count?: number; size?: number; opacity?: number }) {
+function Starfield(props: { count?: number; size?: number; opacity?: number; color?: string }) {
   const ref = React.useRef<THREE.Points>(null!);
   const count = props.count ?? 1800;
   const size = props.size ?? 0.006;
   const opacity = props.opacity ?? 0.85;
+  const color = props.color ?? "#ffd780";
 
   const positions = React.useMemo(() => {
     const arr = new Float32Array(count * 3);
@@ -36,7 +37,7 @@ function Starfield(props: { count?: number; size?: number; opacity?: number }) {
       <Points ref={ref} positions={positions} stride={3}>
         <PointMaterial
           transparent
-          color="#ffd780"
+          color={color}
           size={size}
           sizeAttenuation
           depthWrite={false}
@@ -47,7 +48,7 @@ function Starfield(props: { count?: number; size?: number; opacity?: number }) {
   );
 }
 
-export default function NoorStarfield(props: { mobile?: boolean }) {
+export default function NoorStarfield(props: { mobile?: boolean; color?: string }) {
   const [enabled, setEnabled] = React.useState(true);
   const mobile = props.mobile === true;
 
@@ -66,7 +67,7 @@ export default function NoorStarfield(props: { mobile?: boolean }) {
       }}
     >
       <ambientLight intensity={0.7} />
-      <Starfield count={mobile ? 900 : 1800} size={mobile ? 0.009 : 0.006} opacity={mobile ? 0.95 : 0.85} />
+      <Starfield count={mobile ? 900 : 1800} size={mobile ? 0.009 : 0.006} opacity={mobile ? 0.95 : 0.85} color={props.color} />
     </Canvas>
   );
 }

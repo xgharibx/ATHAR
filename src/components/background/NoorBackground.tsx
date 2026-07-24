@@ -73,7 +73,7 @@ export function NoorBackground() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(900px 600px at 18% 10%, var(--accent), transparent 62%), radial-gradient(900px 650px at 82% 28%, var(--accent-2), transparent 60%), radial-gradient(900px 700px at 50% 120%, var(--accent), transparent 62%)",
+              "radial-gradient(900px 600px at 18% 10%, var(--bg-glow, var(--accent)), transparent 62%), radial-gradient(900px 650px at 82% 28%, var(--bg-glow-2, var(--accent-2)), transparent 60%), radial-gradient(900px 700px at 50% 120%, var(--bg-glow, var(--accent)), transparent 62%)",
             opacity: bgVibrancyBoost ? (transparent ? 0.35 : 0.22) : (transparent ? 0.22 : 0.14)
           }}
         />
@@ -87,7 +87,7 @@ export function NoorBackground() {
               height: isMobile ? 320 : 520,
               left: "-10%",
               top: "-12%",
-              background: "var(--accent)",
+              background: "var(--bg-glow, var(--accent))",
               animation: reduceMotion ? undefined : "atharFloatA 14s ease-in-out infinite",
               contain: "layout style",
             }}
@@ -99,7 +99,7 @@ export function NoorBackground() {
               height: isMobile ? 380 : 620,
               right: "-18%",
               top: "8%",
-              background: "var(--accent-2)",
+              background: "var(--bg-glow-2, var(--accent-2))",
               animation: reduceMotion ? undefined : "atharFloatB 18s ease-in-out infinite",
               contain: "layout style",
             }}
@@ -112,7 +112,7 @@ export function NoorBackground() {
                 height: 680,
                 left: "15%",
                 bottom: "-28%",
-                background: "var(--accent)",
+                background: "var(--bg-glow, var(--accent))",
                 animation: reduceMotion ? undefined : "atharFloatA 22s ease-in-out infinite",
                 contain: "layout style",
               }}
@@ -161,7 +161,7 @@ export function NoorBackground() {
       {/* Optional 3D layer — deferred until browser is idle (T5) */}
       {enable3D && !reduceMotion && webglOk && starfieldDeferred ? (
         <React.Suspense fallback={null}>
-          <NoorStarfield mobile={isMobile} />
+          <NoorStarfield mobile={isMobile} color={theme === "faham" ? "#dfe6f5" : undefined} />
         </React.Suspense>
       ) : null}
     </div>

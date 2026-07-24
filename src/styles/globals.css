@@ -455,20 +455,25 @@
 .layl.reduce-motion body::after { animation: none; opacity: 0.6; }
 
 .faham {
-  /* فحم — extreme pure-black (AMOLED) using the app's own signature gold
-     starfield + atmospheric glow (unlike .layl's self-contained blue star
-     CSS). Same palette as the default dark theme, just pushed to true black,
-     so the 3D NoorStarfield reads exactly like it does on every other theme. */
+  /* فحم — extreme pure-black (AMOLED), truly black top-to-bottom: NO warm/gold
+     tint anywhere. The atmospheric accent glow is killed (--bg-glow
+     transparent) so the background stays pure #000, and the accent is a soft
+     neutral white — so buttons read as soft-white with black text, not gold.
+     Stars stay (neutral white, set in NoorBackground) so it's still a night
+     sky, just monochrome. */
   --bg: #000000;
   --bg-deep: #000000;
-  --fg: #f5f7ff;
-  --muted: rgba(245, 247, 255, 0.72);
-  --muted-2: rgba(245, 247, 255, 0.56);
-  --card: rgba(255, 255, 255, 0.05);
-  --card-2: rgba(255, 255, 255, 0.085);
-  --stroke: rgba(255, 255, 255, 0.10);
-  --accent: #ffd780;
-  --accent-2: #9ae6ff;
+  --bg-glow: transparent;
+  --bg-glow-2: transparent;
+  --fg: #f4f5f7;
+  --muted: rgba(244, 245, 247, 0.70);
+  --muted-2: rgba(244, 245, 247, 0.52);
+  --card: rgba(255, 255, 255, 0.045);
+  --card-2: rgba(255, 255, 255, 0.08);
+  --stroke: rgba(255, 255, 255, 0.12);
+  --accent: #e9e9ee;      /* soft white — buttons/highlights */
+  --accent-2: #9a9aa4;    /* dim neutral grey */
+  --on-accent: #0a0a0c;   /* black text on the soft-white accent */
 }
 
 .teen {
