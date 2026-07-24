@@ -89,9 +89,10 @@ public class NoorQiblaWidgetProvider extends AtharWidgetProvider {
         views.setImageViewBitmap(R.id.qibla_sky,
             WidgetCanvas.sky(context, sz[0], sz[1], sky.fromPhase, sky.toPhase, sky.blend,
                 WidgetCanvas.outerCornerRadiusDp(context), theme));
-        // Starfield only against the dark palette's actual night phases — the
-        // light palette's night phases are soft twilight tones, not black.
-        if (widgetDark && sky.isNight()) {
+        // Stars in every phase: both dark themes are near-black at every
+        // hour now, so gating stars to night left daytime widgets as a flat
+        // color with no stars at all (owner-reported). Light theme only opts out.
+        if (widgetDark) {
             views.setViewVisibility(R.id.qibla_stars, android.view.View.VISIBLE);
             views.setImageViewBitmap(R.id.qibla_stars,
                 WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));

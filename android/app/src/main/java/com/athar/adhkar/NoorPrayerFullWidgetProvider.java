@@ -242,14 +242,10 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
             WidgetCanvas.sky(context, sz[0], sz[1], fromPhase, toPhase, skyBlend,
                 WidgetCanvas.outerCornerRadiusDp(context), theme));
 
-        // Starfield only against the dark palette's actual night phases —
-        // the light palette's Isha is a soft twilight grey, not black, so
-        // gold star specks would look like stray debris on it. (Previously
-        // this rendered unconditionally, including during bright daytime
-        // phases in dark mode too — also fixed here.)
-        boolean nightPhase = toPhase == WidgetCanvas.PHASE_FAJR || toPhase == WidgetCanvas.PHASE_ISHA
-            || fromPhase == WidgetCanvas.PHASE_FAJR || fromPhase == WidgetCanvas.PHASE_ISHA;
-        if (widgetDark && nightPhase) {
+        // Stars in every phase: both dark themes are near-black at every hour
+        // now, so gating stars to night left daytime widgets as a flat color
+        // with no stars at all (owner-reported). Light theme opts out.
+        if (widgetDark) {
             views.setViewVisibility(R.id.prayer_full_stars, android.view.View.VISIBLE);
             views.setImageViewBitmap(R.id.prayer_full_stars,
                 WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));

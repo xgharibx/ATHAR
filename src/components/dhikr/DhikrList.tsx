@@ -247,12 +247,14 @@ export function DhikrList(props: Readonly<{
   React.useEffect(() => {
     if (stats.percent >= 100 && prevPercentRef.current < 100 && props.items.length > 0) {
       recordSectionCompletion(props.sectionId);
-      // Lighter + faster-clearing (higher gravity, fewer ticks) so it can't
-      // freeze mid-screen on slow phones — this fires together with the last
-      // dhikr's own completion burst, so keeping each light matters.
+      // Finishing a whole section is the biggest moment in the app, so this is
+      // the fullest burst — but still bought with brevity (high gravity, short
+      // tick budget) and staggered across three beats, since it fires on top of
+      // the last dhikr's own celebration and must not stall on slow phones.
       getConfetti().then((c) => {
-        c({ particleCount: 40, spread: 75, startVelocity: 30, scalar: 0.85, gravity: 1.3, ticks: 140, origin: { y: 0.6 }, disableForReducedMotion: true });
-        setTimeout(() => c({ particleCount: 22, spread: 90, startVelocity: 20, scalar: 0.8, gravity: 1.3, ticks: 130, origin: { x: 0.2, y: 0.75 }, disableForReducedMotion: true }), 300);
+        c({ particleCount: 70, spread: 90, startVelocity: 34, scalar: 0.9, gravity: 1.2, ticks: 160, origin: { y: 0.62 }, disableForReducedMotion: true });
+        setTimeout(() => c({ particleCount: 45, spread: 110, startVelocity: 26, scalar: 0.85, gravity: 1.25, ticks: 150, origin: { x: 0.22, y: 0.7 }, disableForReducedMotion: true }), 220);
+        setTimeout(() => c({ particleCount: 45, spread: 110, startVelocity: 26, scalar: 0.85, gravity: 1.25, ticks: 150, origin: { x: 0.78, y: 0.7 }, disableForReducedMotion: true }), 400);
       });
     }
     prevPercentRef.current = stats.percent;

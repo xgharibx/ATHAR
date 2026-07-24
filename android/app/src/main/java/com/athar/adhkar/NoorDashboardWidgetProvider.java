@@ -108,7 +108,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         // ── 2. Prayer dots & countdown (+ continuous sky, since this is
         //      the one section that actually knows what phase of the day
         //      it is) ──────────────────────────────────────────────────
-        int nightPhase = applyPrayerSection(context, views, prefs, sz, theme);
+        applyPrayerSection(context, views, prefs, sz, theme);
 
         // ── 3. Adhkar progress bars ───────────────────────────────
         applyAdhkarSection(context, views, prefs);
@@ -126,11 +126,11 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         // ── 5. Streak + level ─────────────────────────────────────
         applyStreakSection(views, prefs);
 
-        // ── 6. Starfield — only during the fajr/isha sky AND dark theme
-        //      (the light palette's Isha is a soft twilight grey, not
-        //      black, so gold star specks would look like stray debris on
-        //      it); reseeds each real update. ─────────────
-        if (nightPhase == 1 && widgetDark) {
+        // ── 6. Starfield — every phase, since both dark themes are near-black
+        //      at every hour now; gating to night left daytime widgets as a
+        //      flat color with no stars (owner-reported). Light theme opts
+        //      out. Reseeds each real update. ─────────────
+        if (widgetDark) {
             views.setViewVisibility(R.id.dashboard_stars, View.VISIBLE);
             views.setImageViewBitmap(R.id.dashboard_stars,
                 WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));

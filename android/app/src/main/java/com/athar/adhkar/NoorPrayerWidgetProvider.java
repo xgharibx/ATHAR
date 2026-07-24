@@ -114,12 +114,10 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             views.setImageViewBitmap(R.id.prayer_sky,
                 WidgetCanvas.sky(context, sz[0], sz[1], fromPhase, toPhase, intervalProgress,
                     WidgetCanvas.outerCornerRadiusDp(context), theme));
-            boolean nightPhase = toPhase == WidgetCanvas.PHASE_FAJR || toPhase == WidgetCanvas.PHASE_ISHA
-                || fromPhase == WidgetCanvas.PHASE_FAJR || fromPhase == WidgetCanvas.PHASE_ISHA;
-            // Stars only make sense against a dark theme's night sky — the
-            // light theme's Isha is a soft twilight grey, not black, so gold
-            // star specks would look like stray debris on it.
-            if (widgetDark && nightPhase) {
+            // Stars in every phase: both dark themes are near-black at every
+            // hour now, so gating stars to night left daytime widgets as a flat
+            // color with no stars at all (owner-reported). Light theme opts out.
+            if (widgetDark) {
                 views.setViewVisibility(R.id.prayer_stars, android.view.View.VISIBLE);
                 views.setImageViewBitmap(R.id.prayer_stars,
                     WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));

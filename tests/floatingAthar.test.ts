@@ -75,9 +75,11 @@ describe("FloatingAthar (B8): modalMode + positioning", () => {
     act(() => {
       fab!.click();
     });
-    // Modal renders inline; no /companion navigation should occur. We just
-    // check the in-page modal mounted something next to the FAB.
-    expect(container.querySelector("[role='dialog'], [data-companion-modal], textarea, input[type='text']")).not.toBeNull();
+    // The sheet opens in place of navigating — but it is PORTALED to <body>,
+    // not rendered next to the FAB, so it must be queried from the document.
+    // (Rendered inline it sat inside the page's stacking context and the
+    // floating tab-bar drew on top of it; see CompanionModal.)
+    expect(document.body.querySelector("[role='dialog'], [data-companion-modal], textarea, input[type='text']")).not.toBeNull();
     cleanup(root, container);
   });
 });

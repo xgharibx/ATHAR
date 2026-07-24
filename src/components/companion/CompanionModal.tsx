@@ -11,6 +11,7 @@
  * is in view.
  */
 import * as React from "react";
+import { createPortal } from "react-dom";
 import {
   Sparkles, Send, X as XIcon, AlertCircle, Loader2, History, Plus, Mic, MicOff,
 } from "lucide-react";
@@ -274,6 +275,46 @@ export function CompanionModal(props: {
     if (streamingText) stickToBottom("auto");
   }, [streamingText, stickToBottom]);
 
+  // Lock the page behind the sheet while it's open. Without this, a scroll
+  // gesture that starts inside the chat chains through to the page underneath
+  // once the chat hits its end — which scrolled the home page and dragged the
+  // sheet out of view. `position: fixed` also stops iOS/Android rubber-banding
+  // the body; the scroll offset is captured and restored on close so the user
+  // lands exactly where they left off.
+  React.useEffect(() => {
+    if (!props.open) return;
+    const y = window.scrollY;
+    const body = document.body;
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    body.style.position = "fixed";
+    body.style.top = `-${y}px`;
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+    body.classList.add("companion-sheet-open");
+    return () => {
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      body.style.overflow = prev.overflow;
+      body.classList.remove("companion-sheet-open");
+      window.scrollTo(0, y);
+    };
+  }, [props.open]);
+
+  // Escape closes the sheet — expected of any modal, and the only keyboard
+  // affordance on a hardware-keyboard Android/tablet.
+  React.useEffect(() => {
+    if (!props.open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") props.onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [props.open, props.onClose]);
+
   // Persist history whenever messages change
   React.useEffect(() => {
     if (messages.length === 0) return;
@@ -429,7 +470,11 @@ export function CompanionModal(props: {
 
   const isBusy = streamingText !== null;
 
-  return (
+  // Portaled to <body>: rendered in place it sat inside the page's stacking
+  // context (an ancestor with a transform/backdrop-filter creates one), so no
+  // z-index could lift it above the floating tab-bar — the nav visibly covered
+  // the sheet. From <body> it is a true top-level overlay.
+  return createPortal(
     <div className="fixed inset-0 z-[10000] flex items-end justify-center p-2 sm:p-4 pb-[max(env(safe-area-inset-bottom,0px),0px)]" dir="rtl">
       <div
         aria-hidden="true"
@@ -512,7 +557,8 @@ export function CompanionModal(props: {
         {/* Conversation */}
         <div
           ref={(el) => { scrollerRef.current = el; }}
-          className="relative flex-1 overflow-y-auto px-3 py-3 space-y-3"
+          className="relative flex-1 overflow-y-auto overscroll-contain px-3 py-3 space-y-3"
+          style={{ WebkitOverflowScrolling: "touch" }}
           aria-live="polite"
         >
           {messages.length === 0 && !streamingText ? (
@@ -603,7 +649,8 @@ export function CompanionModal(props: {
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

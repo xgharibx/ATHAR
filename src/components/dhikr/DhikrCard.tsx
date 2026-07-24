@@ -190,21 +190,29 @@ export function DhikrCard(props: {
     if (now - lastCelebrationAt < 2500) return;
     setLastCelebrationAt(now);
 
-    // Lighter, faster-clearing burst so it can't stall mid-screen on slow
-    // phones: fewer particles + higher gravity + fewer ticks means it falls
-    // and fades quickly instead of hanging around competing with the
-    // auto-advance scroll for the main thread. (Looked fine in a desktop
-    // browser; the freeze the owner saw was Android main-thread jank.)
-    getConfetti().then((c) => c({
-      particleCount: 42,
-      spread: 68,
-      startVelocity: 28,
-      scalar: 0.85,
-      gravity: 1.35,
-      ticks: 130,
-      origin: { y: 0.9 },
-      disableForReducedMotion: true,
-    }));
+    // A fuller, more rewarding burst — denser and wider than before, plus two
+    // angled side-jets so it reads as a real celebration rather than a puff.
+    // Density is bought with *brevity*, not longevity: high gravity + a short
+    // tick budget mean the particles fall and clear fast, so they never hang
+    // mid-screen competing with the auto-advance scroll for the main thread
+    // (the freeze the owner saw on Android — desktop browsers never showed it).
+    getConfetti().then((c) => {
+      c({
+        particleCount: 85,
+        spread: 100,
+        startVelocity: 34,
+        scalar: 0.95,
+        gravity: 1.25,
+        ticks: 150,
+        origin: { y: 0.9 },
+        disableForReducedMotion: true,
+      });
+      // Side jets, staggered so the peak particle load never lands in one frame.
+      setTimeout(() => {
+        c({ particleCount: 26, angle: 60, spread: 60, startVelocity: 38, scalar: 0.9, gravity: 1.3, ticks: 140, origin: { x: 0, y: 0.95 }, disableForReducedMotion: true });
+        c({ particleCount: 26, angle: 120, spread: 60, startVelocity: 38, scalar: 0.9, gravity: 1.3, ticks: 140, origin: { x: 1, y: 0.95 }, disableForReducedMotion: true });
+      }, 110);
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done]);
 
@@ -246,8 +254,9 @@ export function DhikrCard(props: {
     // (the button "pulsed" as the card appeared) AND a re-render mid-tap could
     // reset className and cut the restart short. WAAPI runs imperatively,
     // independent of React's className, so it only ever fires on an actual
-    // tap, restarts cleanly on rapid-fire taps, and is snappier (~240ms — the
-    // old 520ms felt laggy). Compositor-friendly transform + a soft brightness
+    // tap, restarts cleanly on rapid-fire taps, and is snappy (~276ms — the
+    // old 520ms felt laggy, but 240ms overshot into "too fast", so this sits
+    // 15% above that). Compositor-friendly transform + a soft brightness
     // pulse keeps it premium without shouting over the dhikr text.
     const el = countBtnRef.current;
     if (el && !prefs.reduceMotion && typeof el.animate === "function") {
@@ -258,7 +267,7 @@ export function DhikrCard(props: {
           { transform: "scale(1.012)", filter: "brightness(1.03)", offset: 0.55 },
           { transform: "scale(1)",     filter: "brightness(1)" },
         ],
-        { duration: 240, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
+        { duration: 276, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
       );
     }
     
@@ -294,10 +303,11 @@ export function DhikrCard(props: {
       // Haptic + auto-advance signal after a short delay
       if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
       if (prefs.autoAdvanceDhikr && props.onComplete) {
-        // Snappier hand-off to the next dhikr — the old 480ms felt like a lag
-        // between finishing and moving on; ~160ms still lets the completion
-        // haptic/checkmark register without making the user wait.
-        setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 160);
+        // Hand-off to the next dhikr: the old 480ms felt like a lag, but
+        // 160ms overshot into "too fast to register" — 184ms (15% slower)
+        // lets the completion haptic/checkmark land without making the user
+        // wait, and gives the celebration a beat to start before the scroll.
+        setTimeout(() => { if (mountedRef.current) props.onComplete?.(); }, 184);
       }
     }
   };
@@ -489,7 +499,7 @@ export function DhikrCard(props: {
                       strokeDasharray: circumference,
                       strokeDashoffset: circumference - (current / target) * circumference,
                       stroke: done ? "var(--ok)" : "var(--accent)",
-                      transition: "stroke-dashoffset 0.22s cubic-bezier(0.2,0,0,1), stroke 0.3s ease",
+                      transition: "stroke-dashoffset 0.25s cubic-bezier(0.2,0,0,1), stroke 0.3s ease",
                     }}
                     className="progress-ring-circle"
                   />
