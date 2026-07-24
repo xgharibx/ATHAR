@@ -562,9 +562,10 @@ export function CompanionModal(props: {
           <div ref={endRef} />
         </div>
 
-        {/* Jump-to-latest — only while scrolled up, so following the stream is
-            one tap away without it yanking the reader's position. */}
-        {!atBottom ? (
+        {/* Jump-to-latest — only within a conversation and while scrolled up,
+            so following the stream is one tap away without it yanking the
+            reader's position. */}
+        {(messages.length > 0 || streamingText !== null) && !atBottom ? (
           <button type="button"
             onClick={() => scrollToBottom("smooth")}
             aria-label="انتقل لأحدث رسالة"

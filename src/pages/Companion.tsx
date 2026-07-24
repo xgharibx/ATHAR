@@ -1032,10 +1032,10 @@ export function CompanionPage() {
         <div ref={endRef} />
       </div>
 
-      {/* Jump-to-latest — appears only when the reader has scrolled up and a
-          reply is streaming below, so following along is one tap away without
+      {/* Jump-to-latest — only within an actual conversation and when the
+          reader has scrolled up, so following along is one tap away without
           the stream yanking their scroll position. */}
-      {!atBottom ? (
+      {(messages.length > 0 || streamingText !== null) && !atBottom ? (
         <button type="button"
           onClick={() => scrollToBottom("smooth")}
           aria-label="انتقل لأحدث رسالة"
