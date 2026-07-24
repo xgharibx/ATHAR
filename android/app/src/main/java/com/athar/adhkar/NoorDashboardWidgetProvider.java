@@ -114,7 +114,14 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         applyAdhkarSection(context, views, prefs);
 
         // ── 4. Quran wird progress ────────────────────────────────
-        applyWirdSection(context, views, prefs);
+        // Responsive: this is the lowest section, so on a widget too short to
+        // fit everything it is dropped whole rather than being sliced in half
+        // behind the button (the 4×4's own 250dp minimum can't fit it). Now
+        // that we read the real size, the card degrades instead of clipping.
+        boolean fitsWird = sz[1] >= 285;
+        views.setViewVisibility(R.id.dash_wird_row, fitsWird ? View.VISIBLE : View.GONE);
+        views.setViewVisibility(R.id.dash_sep_wird, fitsWird ? View.VISIBLE : View.GONE);
+        if (fitsWird) applyWirdSection(context, views, prefs);
 
         // ── 5. Streak + level ─────────────────────────────────────
         applyStreakSection(views, prefs);
@@ -136,6 +143,23 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         views.setOnClickPendingIntent(R.id.dashboard_root, pi);
         views.setOnClickPendingIntent(R.id.dash_open_btn, pi);
 
+        // LIGHT theme needs dark ink (the prayer dots pick their own colour
+        // by theme above; dash_open_btn keeps fixed light text on its fixed
+        // dark-green ghost background).
+        WidgetInk.applyLight(context, views, theme,
+            new int[]{ R.id.dash_greeting },
+            new int[]{ R.id.dash_date, R.id.dash_prayers_label, R.id.dash_adhkar_label,
+                       R.id.dash_wird_label, R.id.dash_level, R.id.dash_morning_word,
+                       R.id.dash_evening_word, R.id.dash_dot_label_fajr,
+                       R.id.dash_dot_label_dhuhr, R.id.dash_dot_label_asr,
+                       R.id.dash_dot_label_maghrib, R.id.dash_dot_label_isha },
+            new int[]{ R.id.dash_next_countdown, R.id.dash_morning_icon,
+                       R.id.dash_morning_count, R.id.dash_wird_count,
+                       R.id.dash_streak_days });
+        WidgetInk.applyLightAccents(context, views, theme,
+            new int[]{ R.id.dash_evening_icon, R.id.dash_evening_count, R.id.dash_wird_surah },
+            null);
+
         manager.updateAppWidget(appWidgetId, views);
     }
 
@@ -148,7 +172,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         try {
             String json = readJson(prefs, KEY_PRAYER);
             if (json == null) {
-                setAllDotsFuture(context, views);
+                setAllDotsFuture(context, views, theme);
                 views.setTextViewText(R.id.dash_next_countdown, "افتح التطبيق");
                 views.setImageViewBitmap(R.id.dashboard_sky,
                     WidgetCanvas.sky(context, sz[0], sz[1], WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f,
@@ -195,13 +219,13 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             for (int i = 0; i < DOT_IDS.length; i++) {
                 if (passed[i]) {
                     views.setTextViewText(DOT_IDS[i], DOT_DONE);
-                    views.setTextColor(DOT_IDS[i], ContextCompat.getColor(context, R.color.widget_row_passed));
+                    views.setTextColor(DOT_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_passed, R.color.widget_l_row_passed));
                 } else if (isNext[i]) {
                     views.setTextViewText(DOT_IDS[i], DOT_NEXT);
-                    views.setTextColor(DOT_IDS[i], ContextCompat.getColor(context, R.color.widget_row_active));
+                    views.setTextColor(DOT_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_active, R.color.widget_l_row_active));
                 } else {
                     views.setTextViewText(DOT_IDS[i], DOT_FUTURE);
-                    views.setTextColor(DOT_IDS[i], ContextCompat.getColor(context, R.color.widget_row_future));
+                    views.setTextColor(DOT_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_future, R.color.widget_l_row_future));
                 }
             }
 
@@ -216,7 +240,7 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
                 || fromIdx == WidgetCanvas.PHASE_FAJR || fromIdx == WidgetCanvas.PHASE_ISHA) ? 1 : 0;
 
         } catch (Exception e) {
-            setAllDotsFuture(context, views);
+            setAllDotsFuture(context, views, theme);
             views.setTextViewText(R.id.dash_next_countdown, "");
             views.setImageViewBitmap(R.id.dashboard_sky,
                 WidgetCanvas.sky(context, sz[0], sz[1], WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f,
@@ -256,8 +280,8 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         return Math.max(0f, Math.min(1f, (nowMin - prevMin) / (float) span));
     }
 
-    private void setAllDotsFuture(Context context, RemoteViews views) {
-        int color = ContextCompat.getColor(context, R.color.widget_row_future);
+    private void setAllDotsFuture(Context context, RemoteViews views, int theme) {
+        int color = WidgetInk.pick(context, theme, R.color.widget_row_future, R.color.widget_l_row_future);
         for (int dotId : DOT_IDS) {
             views.setTextViewText(dotId, DOT_FUTURE);
             views.setTextColor(dotId, color);

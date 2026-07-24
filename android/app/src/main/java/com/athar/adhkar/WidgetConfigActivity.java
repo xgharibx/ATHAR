@@ -50,19 +50,25 @@ public class WidgetConfigActivity extends Activity {
             .setImageBitmap(preview(sky, WidgetCanvas.THEME_COSMIC));
         ((ImageView) findViewById(R.id.config_preview_emerald))
             .setImageBitmap(preview(sky, WidgetCanvas.THEME_EMERALD));
+        ((ImageView) findViewById(R.id.config_preview_light))
+            .setImageBitmap(preview(sky, WidgetCanvas.THEME_LIGHT));
 
         findViewById(R.id.config_card_cosmic).setOnClickListener(v -> choose(WidgetCanvas.THEME_COSMIC));
         findViewById(R.id.config_card_emerald).setOnClickListener(v -> choose(WidgetCanvas.THEME_EMERALD));
+        findViewById(R.id.config_card_light).setOnClickListener(v -> choose(WidgetCanvas.THEME_LIGHT));
     }
 
-    /** Composite a sky + starfield preview bitmap for one theme. */
+    /** Composite a sky (+ starfield, dark themes only) preview for one theme. */
     private Bitmap preview(WidgetCanvas.ClockSky sky, int theme) {
         Bitmap bg = WidgetCanvas.sky(this, 340, 150, sky.fromPhase, sky.toPhase, sky.blend, 20f, theme);
-        Bitmap stars = WidgetCanvas.starfield(this, 340, 150, System.currentTimeMillis() / 60000 + theme);
         Bitmap out = Bitmap.createBitmap(bg.getWidth(), bg.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(out);
         c.drawBitmap(bg, 0, 0, null);
-        c.drawBitmap(stars, 0, 0, null);
+        // Stars belong to the dark themes only — same rule the widgets use.
+        if (WidgetCanvas.isThemeDark(theme)) {
+            Bitmap stars = WidgetCanvas.starfield(this, 340, 150, System.currentTimeMillis() / 60000 + theme);
+            c.drawBitmap(stars, 0, 0, null);
+        }
         return out;
     }
 

@@ -99,6 +99,10 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         // Arabic date header — Gregorian + Hijri (umalqura)
         views.setTextViewText(R.id.prayer_full_date, dateLine());
 
+        // Resolved up-front: the per-row colours below need it too, not just
+        // the sky further down.
+        int theme = WidgetCanvas.widgetTheme(context, appWidgetId);
+
         String skyName = null;
         int prevMin = 0, nextMin = -1;
         try {
@@ -163,27 +167,29 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
 
                     if (isNext) {
                         views.setInt(ROW_IDS[i], "setBackgroundResource",
-                            R.drawable.widget_prayer_row_active);
-                        views.setTextColor(NAME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_active));
-                        views.setTextColor(TIME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_active_time));
+                            theme == WidgetCanvas.THEME_LIGHT
+                                ? R.drawable.widget_prayer_row_active_light
+                                : R.drawable.widget_prayer_row_active);
+                        views.setTextColor(NAME_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_active, R.color.widget_l_row_active));
+                        views.setTextColor(TIME_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_active_time, R.color.widget_l_row_active_time));
                         String cd = buildCountdown(time24);
                         views.setTextViewText(STATUS_IDS[i], cd.isEmpty() ? "▶" : "");
-                        views.setTextColor(STATUS_IDS[i], ContextCompat.getColor(context, R.color.widget_row_active));
+                        views.setTextColor(STATUS_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_active, R.color.widget_l_row_active));
                         // Show countdown in header
                         views.setTextViewText(R.id.prayer_full_countdown,
                             cd.isEmpty() ? "حان وقت " + nameAr : cd);
 
                     } else if (passed) {
                         views.setInt(ROW_IDS[i], "setBackgroundColor", Color.TRANSPARENT);
-                        views.setTextColor(NAME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_passed));
-                        views.setTextColor(TIME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_passed_time));
+                        views.setTextColor(NAME_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_passed, R.color.widget_l_row_passed));
+                        views.setTextColor(TIME_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_passed_time, R.color.widget_l_row_passed_time));
                         views.setTextViewText(STATUS_IDS[i], "✓");
-                        views.setTextColor(STATUS_IDS[i], ContextCompat.getColor(context, R.color.widget_row_passed));
+                        views.setTextColor(STATUS_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_passed, R.color.widget_l_row_passed));
 
                     } else {
                         views.setInt(ROW_IDS[i], "setBackgroundColor", Color.TRANSPARENT);
-                        views.setTextColor(NAME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_future));
-                        views.setTextColor(TIME_IDS[i], ContextCompat.getColor(context, R.color.widget_row_future_time));
+                        views.setTextColor(NAME_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_future, R.color.widget_l_row_future));
+                        views.setTextColor(TIME_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_future_time, R.color.widget_l_row_future_time));
                         views.setTextViewText(STATUS_IDS[i], "");
                     }
                 }
@@ -227,7 +233,6 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         // Continuous sky — LERPs from the phase just passed toward the one
         // being counted down to, same fraction the header countdown uses,
         // instead of jumping between 5 fixed images.
-        int theme = WidgetCanvas.widgetTheme(context, appWidgetId);
         boolean widgetDark = WidgetCanvas.isThemeDark(theme);
         int[] sz = WidgetCanvas.sizeDp(context, manager, appWidgetId, 250, 220);
         int toPhase = NoorPrayerWidgetProvider.phaseFor(skyName);
@@ -255,6 +260,15 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         // Tap → open prayer times directly
         PendingIntent pi = openApp(context, appWidgetId * 23, "/prayer-times");
         views.setOnClickPendingIntent(R.id.prayer_full_root, pi);
+
+        // LIGHT theme needs dark ink for the header/Ramadan text (the five
+        // prayer rows already pick their own colours by theme above).
+        WidgetInk.applyLight(context, views, theme, null,
+            new int[]{ R.id.prayer_full_date, R.id.prayer_full_countdown },
+            new int[]{ R.id.prayer_full_title, R.id.prayer_full_ring_label,
+                       R.id.label_iftar, R.id.time_iftar });
+        WidgetInk.applyLightAccents(context, views, theme,
+            new int[]{ R.id.label_suhoor, R.id.time_suhoor }, null);
 
         manager.updateAppWidget(appWidgetId, views);
     }

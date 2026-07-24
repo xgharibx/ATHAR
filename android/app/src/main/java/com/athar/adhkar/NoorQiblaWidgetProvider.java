@@ -102,6 +102,12 @@ public class NoorQiblaWidgetProvider extends AtharWidgetProvider {
         PendingIntent pi = openApp(context, appWidgetId * 25, "/qibla");
         views.setOnClickPendingIntent(R.id.qibla_root, pi);
 
+        // LIGHT theme needs dark ink (dark themes keep the light XML tokens).
+        WidgetInk.applyLight(context, views, theme,
+            new int[]{ R.id.qibla_bearing },
+            new int[]{ R.id.qibla_direction, R.id.qibla_distance },
+            new int[]{ R.id.qibla_title });
+
         manager.updateAppWidget(appWidgetId, views);
     }
 

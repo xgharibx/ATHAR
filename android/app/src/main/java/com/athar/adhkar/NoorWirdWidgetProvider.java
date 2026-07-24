@@ -101,6 +101,12 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
         views.setOnClickPendingIntent(R.id.wird_root, pi);
         views.setOnClickPendingIntent(R.id.wird_open_btn, pi);
 
+        // LIGHT theme needs dark ink (dark themes keep the light XML tokens).
+        WidgetInk.applyLight(context, views, theme,
+            new int[]{ R.id.wird_ayahs_read },
+            new int[]{ R.id.wird_date, R.id.wird_goal_label, R.id.wird_ayah_ref, R.id.wird_progress_label },
+            new int[]{ R.id.wird_title, R.id.wird_surah_name });
+
         manager.updateAppWidget(appWidgetId, views);
     }
 }

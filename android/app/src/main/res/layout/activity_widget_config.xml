@@ -122,6 +122,48 @@
             </LinearLayout>
         </FrameLayout>
 
+        <!-- LIGHT card -->
+        <FrameLayout
+            android:id="@+id/config_card_light"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/config_card_frame">
+
+            <ImageView
+                android:id="@+id/config_preview_light"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:importantForAccessibility="no" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="bottom|start"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="النهار ☀"
+                    android:textColor="#1A1D29"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:shadowColor="#80FFFFFF"
+                    android:shadowRadius="8"
+                    android:fontFamily="sans-serif-medium" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="سماء نهار فاتحة ومشرقة"
+                    android:textColor="#3E4256"
+                    android:textSize="12sp"
+                    android:shadowColor="#80FFFFFF"
+                    android:shadowRadius="8" />
+            </LinearLayout>
+        </FrameLayout>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

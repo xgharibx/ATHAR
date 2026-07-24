@@ -138,18 +138,18 @@ public final class WidgetCanvas {
         { 0xFF0A0D1C, 0xFF070A15, 0xFF03050C, 0x20AFB8FF, 0x33A0B0E8 }, // Isha — deepest space-black, cool glow
     };
 
-    // ── Light-theme sky — same 5-phase story (dawn/midday/afternoon/
-    // sunset/twilight), reworked into bright, paper-toned colors instead of
-    // just dimming the dark set. Widgets must follow the system's day/night
-    // setting (Android widget quality guideline WC-2), not the local time of
-    // day — a user in light mode at night still gets a light widget, so Isha
-    // here is a soft dusk-grey rather than the dark set's near-black.
+    // ── LIGHT theme sky — the opt-in bright "Day" look, chosen explicitly
+    // (independent of system mode). The 5-phase story stays (dawn/midday/
+    // afternoon/sunset/twilight) but reworked richer and with more top-to-
+    // bottom depth than the old washed-out pastels, plus a warmer horizon
+    // glow, so it reads as a crafted day sky rather than a flat tint. Paired
+    // with dark ink (widget_l_* tokens) set programmatically by each provider.
     private static final int[][] PHASE_COLORS_LIGHT = {
-        { 0xFFFFF1E6, 0xFFFFE0D0, 0xFFFAC9B8, 0x2EFFFFFF, 0x40E8A98C }, // Fajr — dawn peach
-        { 0xFFEAF6FF, 0xFFD8EEFF, 0xFFC3E4FA, 0x30FFFFFF, 0x4098C4E0 }, // Dhuhr — bright sky blue
-        { 0xFFFFF6DE, 0xFFFFEAB8, 0xFFFAD98A, 0x2EFFFFFF, 0x40D9A94A }, // Asr — golden afternoon
-        { 0xFFFFE7D6, 0xFFFFCFAE, 0xFFF7AE85, 0x2EFFFFFF, 0x40E08A5C }, // Maghrib — sunset coral
-        { 0xFFE7EBF5, 0xFFD4DAEC, 0xFFBFC7E0, 0x1EFFFFFF, 0x40A6AECE }, // Isha — twilight grey-blue
+        { 0xFFFFF4EA, 0xFFFFDCC6, 0xFFF9BFA8, 0x3AFFF0E0, 0x45E39B7C }, // Fajr — soft dawn peach→rose
+        { 0xFFEAF7FF, 0xFFCDE8FB, 0xFFAAD6F4, 0x38FFFFFF, 0x4573B6DC }, // Dhuhr — clear bright day-blue
+        { 0xFFFFF7DC, 0xFFFFE6A4, 0xFFF7CE72, 0x3AFFF6DC, 0x45D3A23E }, // Asr — golden afternoon
+        { 0xFFFFEAD6, 0xFFFFC79A, 0xFFF3A06E, 0x3EFFE0C0, 0x45DE7F52 }, // Maghrib — warm sunset
+        { 0xFFEEF1FB, 0xFFD3DAF0, 0xFFB6C1E4, 0x2CFFFFFF, 0x459BA6CC }, // Isha — soft twilight lilac-grey
     };
 
     /** True when the device is currently in system dark mode. Widgets must

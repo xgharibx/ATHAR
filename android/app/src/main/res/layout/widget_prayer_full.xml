@@ -89,6 +89,7 @@
                     android:textSize="10sp" />
 
                 <TextView
+                    android:id="@+id/prayer_full_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="end"
@@ -355,6 +356,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:id="@+id/label_suhoor"
             android:gravity="end"
             android:text="السحور"
             android:textColor="@color/widget_accent_blue"
@@ -395,6 +397,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:id="@+id/label_iftar"
             android:gravity="end"
             android:text="الإفطار"
             android:textColor="@color/widget_text_accent"

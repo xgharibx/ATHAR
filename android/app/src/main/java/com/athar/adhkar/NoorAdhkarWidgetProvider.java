@@ -98,6 +98,14 @@ public class NoorAdhkarWidgetProvider extends AtharWidgetProvider {
         views.setOnClickPendingIntent(R.id.adhkar_root, morningPi);
         views.setOnClickPendingIntent(R.id.adhkar_open_btn, morningPi);
 
+        // LIGHT theme needs dark ink (dark themes keep the light XML tokens).
+        WidgetInk.applyLight(context, views, theme,
+            new int[]{ R.id.adhkar_title },
+            new int[]{ R.id.adhkar_date },
+            new int[]{ R.id.adhkar_morning_label, R.id.adhkar_morning_count });
+        WidgetInk.applyLightAccents(context, views, theme,
+            null, new int[]{ R.id.adhkar_evening_label, R.id.adhkar_evening_count });
+
         manager.updateAppWidget(appWidgetId, views);
     }
 }

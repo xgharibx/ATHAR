@@ -128,6 +128,11 @@ public class NoorCompactWidgetProvider extends AtharWidgetProvider {
             incIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.noor_widget_root, incPi);
 
+        // LIGHT theme needs dark ink (dark themes keep the light XML tokens).
+        WidgetInk.applyLight(context, views, theme,
+            new int[]{ R.id.noor_widget_phrase }, null,
+            new int[]{ R.id.noor_widget_title });
+
         manager.updateAppWidget(appWidgetId, views);
     }
 

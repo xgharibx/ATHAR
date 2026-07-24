@@ -51,6 +51,8 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.noor_widget_prayer);
         views.setTextViewText(R.id.noor_widget_date, dateLine());
 
+        int theme = WidgetCanvas.widgetTheme(context, appWidgetId);
+
         String nextName = null;
         String nextTime = null;
         float intervalProgress = 0f;
@@ -108,7 +110,6 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             int toPhase = phaseFor(nextName);
             int fromPhase = prevPhase(toPhase);
             int[] sz = WidgetCanvas.sizeDp(context, manager, appWidgetId, 250, 110);
-            int theme = WidgetCanvas.widgetTheme(context, appWidgetId);
             boolean widgetDark = WidgetCanvas.isThemeDark(theme);
             views.setImageViewBitmap(R.id.prayer_sky,
                 WidgetCanvas.sky(context, sz[0], sz[1], fromPhase, toPhase, intervalProgress,
@@ -162,6 +163,12 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
 
         PendingIntent pi = openApp(context, appWidgetId * 22, "/prayer-times");
         views.setOnClickPendingIntent(R.id.noor_widget_root, pi);
+
+        // LIGHT theme needs dark ink (dark themes keep the light XML tokens).
+        WidgetInk.applyLight(context, views, theme,
+            new int[]{ R.id.prayer_ring_time, R.id.noor_widget_phrase },
+            new int[]{ R.id.prayer_ring_ampm, R.id.noor_widget_title, R.id.noor_widget_date },
+            new int[]{ R.id.prayer_countdown, R.id.prayer_countdown_static });
 
         manager.updateAppWidget(appWidgetId, views);
     }

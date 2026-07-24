@@ -48,6 +48,7 @@
             android:textSize="10sp" />
 
         <TextView
+            android:id="@+id/adhkar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="end"
@@ -76,6 +77,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:id="@+id/adhkar_morning_label"
                 android:gravity="end"
                 android:text="أذكار الصباح ☀️"
                 android:textColor="@color/widget_text_accent"
@@ -121,6 +123,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:id="@+id/adhkar_evening_label"
                 android:gravity="end"
                 android:text="أذكار المساء 🌙"
                 android:textColor="@color/widget_accent_dusk"

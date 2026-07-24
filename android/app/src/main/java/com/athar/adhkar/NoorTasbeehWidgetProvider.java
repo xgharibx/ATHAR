@@ -236,6 +236,12 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         PendingIntent openPi = openApp(context, appWidgetId * 10 + 3, "/sebha");
         views.setOnClickPendingIntent(R.id.tasbeeh_root, openPi);
 
+        // LIGHT theme needs dark ink (dark themes keep the light XML tokens).
+        WidgetInk.applyLight(context, views, theme,
+            new int[]{ R.id.tasbeeh_count },
+            new int[]{ R.id.tasbeeh_progress_text },
+            new int[]{ R.id.tasbeeh_dhikr_text });
+
         manager.updateAppWidget(appWidgetId, views);
     }
 

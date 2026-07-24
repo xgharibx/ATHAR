@@ -117,6 +117,12 @@ public class NoorSunnahWidgetProvider extends AtharWidgetProvider {
         views.setOnClickPendingIntent(R.id.noor_widget_root, pi);
         views.setOnClickPendingIntent(R.id.noor_widget_action, pi);
 
+        // LIGHT theme needs dark ink (dark themes keep the light XML tokens).
+        WidgetInk.applyLight(context, views, theme,
+            new int[]{ R.id.noor_widget_phrase },
+            new int[]{ R.id.sunnah_attribution, R.id.noor_widget_date },
+            new int[]{ R.id.noor_widget_title });
+
         manager.updateAppWidget(appWidgetId, views);
     }
 }

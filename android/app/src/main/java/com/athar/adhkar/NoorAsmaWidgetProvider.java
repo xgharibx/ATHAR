@@ -121,6 +121,12 @@ public class NoorAsmaWidgetProvider extends AtharWidgetProvider {
         PendingIntent pi = openApp(context, appWidgetId * 24, "/asma");
         views.setOnClickPendingIntent(R.id.asma_root, pi);
 
+        // LIGHT theme needs dark ink (dark themes keep the light XML tokens).
+        WidgetInk.applyLight(context, views, theme,
+            new int[]{ R.id.asma_name },
+            new int[]{ R.id.asma_counter, R.id.asma_meaning },
+            new int[]{ R.id.asma_title });
+
         manager.updateAppWidget(appWidgetId, views);
     }
 }

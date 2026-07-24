@@ -44,7 +44,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="14dp"
+    android:padding="12dp"
     android:layoutDirection="rtl">
 
     <!-- ══════════════════════════════════════════
@@ -83,8 +83,8 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="6dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="3dp"
         android:background="@color/widget_hairline" />
 
     <!-- Rows 2-4 as a group get whatever extra vertical space the widget's
@@ -119,6 +119,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="start"
+                android:id="@+id/dash_prayers_label"
                 android:text="الصلوات"
                 android:textColor="@color/widget_text_secondary"
                 android:textSize="11sp"
@@ -160,6 +161,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/dash_dot_label_fajr"
                     android:text="فجر"
                     android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
@@ -181,6 +183,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/dash_dot_label_dhuhr"
                     android:text="ظهر"
                     android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
@@ -202,6 +205,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/dash_dot_label_asr"
                     android:text="عصر"
                     android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
@@ -223,6 +227,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/dash_dot_label_maghrib"
                     android:text="مغرب"
                     android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
@@ -244,6 +249,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/dash_dot_label_isha"
                     android:text="عشاء"
                     android:textColor="@color/widget_text_secondary"
                     android:textSize="9sp" />
@@ -256,8 +262,8 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="6dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="3dp"
         android:background="@color/widget_hairline" />
 
     <!-- ══════════════════════════════════════════
@@ -272,6 +278,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="start"
+            android:id="@+id/dash_adhkar_label"
             android:text="أذكار اليوم"
             android:textColor="@color/widget_text_secondary"
             android:textSize="11sp"
@@ -287,12 +294,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/dash_morning_icon"
                 android:text="☀ "
                 android:textSize="11sp"
                 android:textColor="@color/widget_text_accent" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/dash_morning_word"
                 android:text="صباح  "
                 android:textColor="@color/widget_text_secondary"
                 android:textSize="10sp" />
@@ -332,12 +341,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/dash_evening_icon"
                 android:text="🌙 "
                 android:textSize="11sp"
                 android:textColor="@color/widget_accent_blue" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/dash_evening_word"
                 android:text="مساء  "
                 android:textColor="@color/widget_text_secondary"
                 android:textSize="10sp" />
@@ -367,18 +378,23 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Thin separator -->
+    <!-- Thin separator (hidden with ROW 4 on short widgets) -->
     <ImageView
+        android:id="@+id/dash_sep_wird"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="6dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="3dp"
         android:background="@color/widget_hairline" />
 
     <!-- ══════════════════════════════════════════
          ROW 4: Quran wird + streak
+         Dropped entirely when the widget is too short to fit it (see
+         NoorDashboardWidgetProvider) — degrading gracefully beats
+         rendering a half-cut row behind the button.
          ══════════════════════════════════════════ -->
     <LinearLayout
+        android:id="@+id/dash_wird_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -394,6 +410,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/dash_wird_label"
                 android:text="📖 ورد القرآن"
                 android:textColor="@color/widget_text_secondary"
                 android:textSize="11sp"
@@ -432,6 +449,8 @@
 
             <TextView
                 android:id="@+id/dash_wird_surah"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
@@ -498,8 +517,8 @@
     <Button
         android:id="@+id/dash_open_btn"
         android:layout_width="match_parent"
-        android:layout_height="36dp"
-        android:layout_marginTop="6dp"
+        android:layout_height="34dp"
+        android:layout_marginTop="4dp"
         android:background="@drawable/widget_btn_ghost"
         android:text="افتح أثر"
         android:textColor="#EAFFEE"
