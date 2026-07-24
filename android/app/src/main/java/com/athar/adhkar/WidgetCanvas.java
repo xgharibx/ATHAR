@@ -557,15 +557,76 @@ public final class WidgetCanvas {
      *             stays stable within a single render.
      */
     public static Bitmap starfield(Context ctx, int widthDp, int heightDp, long seed) {
-        int w = Math.max(48, (int) dp(ctx, widthDp));
-        int h = Math.max(48, (int) dp(ctx, heightDp));
+        return starfield(ctx, widthDp, heightDp, seed, 1f);
+    }
+
+    /** Number of frames the animated starfield cycles through. Three is the
+     *  sweet spot: enough that the cross-fade never looks like an A/B blink,
+     *  few enough to stay well inside the RemoteViews bitmap budget. */
+    public static final int STAR_FRAMES = 3;
+
+    /**
+     * The frames for the animated starfield, cycled by a ViewFlipper in the
+     * launcher (see res/anim/widget_star_in.xml for why that is the only way
+     * a widget can animate).
+     *
+     * Each frame is an independent star field, so cross-fading them makes
+     * stars gently appear and vanish (twinkle) while the flipper's translate
+     * animation slides the whole layer (drift).
+     *
+     * Resolution is capped against the real device budget: a RemoteViews
+     * update may use at most ~one screenful of bitmap memory, and blowing it
+     * throws IllegalArgumentException in the launcher — which we could not
+     * catch, so it must be prevented rather than handled. The star layer is
+     * sparse soft dots on transparency, which tolerates downscaling far
+     * better than the gradient sky does, so it is the right layer to shrink.
+     */
+    public static Bitmap[] starfieldFrames(Context ctx, int widthDp, int heightDp, long seed) {
+        float scale = starFrameScale(ctx, widthDp, heightDp, STAR_FRAMES);
+        Bitmap[] frames = new Bitmap[STAR_FRAMES];
+        for (int i = 0; i < STAR_FRAMES; i++) {
+            // Distinct seeds → distinct star placements → real twinkle.
+            frames[i] = starfield(ctx, widthDp, heightDp, seed * 31L + i * 7919L, scale);
+        }
+        return frames;
+    }
+
+    /**
+     * How far to shrink each animated star frame so that all of them together
+     * stay inside a safe slice of the per-update bitmap budget (~one
+     * screenful). Returns 1f when the frames already fit at full resolution.
+     */
+    private static float starFrameScale(Context ctx, int widthDp, int heightDp, int frames) {
+        android.util.DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+        // The framework's ceiling is roughly one screenful of ARGB_8888. The
+        // sky bitmap and the launcher's own overhead share that ceiling, so the
+        // animated layer only claims a third of it.
+        double budget = (double) dm.widthPixels * dm.heightPixels * 4d * 0.33d;
+        double fullFrame = dp(ctx, widthDp) * dp(ctx, heightDp) * 4d;
+        double needed = fullFrame * frames;
+        if (needed <= budget) return 1f;
+        // Area scales with the square of the linear factor.
+        float scale = (float) Math.sqrt(budget / needed);
+        // Never go so low that stars turn to mush; 0.45 keeps soft dots soft.
+        return Math.max(0.45f, scale);
+    }
+
+    /** @param scale 1f = the widget's true pixel size; lower renders smaller
+     *               and lets the ImageView's fitXY scale it back up. */
+    private static Bitmap starfield(Context ctx, int widthDp, int heightDp, long seed, float scale) {
+        int w = Math.max(48, (int) (dp(ctx, widthDp) * scale));
+        int h = Math.max(48, (int) (dp(ctx, heightDp) * scale));
         Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(bmp);
         Random rnd = new Random(seed);
 
         Paint star = new Paint(Paint.ANTI_ALIAS_FLAG);
         Paint glow = new Paint(Paint.ANTI_ALIAS_FLAG);
-        glow.setMaskFilter(new BlurMaskFilter(dp(ctx, 2.5f), BlurMaskFilter.Blur.NORMAL));
+        // Every size below is multiplied by `scale`, because a frame rendered
+        // at scale<1 gets stretched back to full size by the ImageView's
+        // fitXY — without this the stars would come out proportionally fatter
+        // on the animated (downscaled) frames than on a full-size render.
+        glow.setMaskFilter(new BlurMaskFilter(dp(ctx, 2.5f) * scale, BlurMaskFilter.Blur.NORMAL));
 
         int starCount = Math.max(12, Math.min(240, Math.round(widthDp * heightDp * 0.00092f)));
         for (int i = 0; i < starCount; i++) {
@@ -575,7 +636,7 @@ public final class WidgetCanvas {
             // a soft glow — same distribution the CSS starfield uses so the
             // widget reads as part of the same sky, not a different asset.
             boolean hero = rnd.nextFloat() < 0.12f;
-            float r = hero ? dp(ctx, 1.4f + rnd.nextFloat() * 1.0f) : dp(ctx, 0.5f + rnd.nextFloat() * 0.6f);
+            float r = (hero ? dp(ctx, 1.4f + rnd.nextFloat() * 1.0f) : dp(ctx, 0.5f + rnd.nextFloat() * 0.6f)) * scale;
             int alpha = hero ? (140 + rnd.nextInt(90)) : (40 + rnd.nextInt(90));
 
             // ~78% warm gold (the dominant brand tone), ~15% cool cyan,

@@ -129,14 +129,10 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
         // ── 6. Starfield — every phase, since both dark themes are near-black
         //      at every hour now; gating to night left daytime widgets as a
         //      flat color with no stars (owner-reported). Light theme opts
-        //      out. Reseeds each real update. ─────────────
-        if (widgetDark) {
-            views.setViewVisibility(R.id.dashboard_stars, View.VISIBLE);
-            views.setImageViewBitmap(R.id.dashboard_stars,
-                WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));
-        } else {
-            views.setViewVisibility(R.id.dashboard_stars, View.GONE);
-        }
+        //      out. Animated by the launcher; see WidgetStars. ─────────────
+        WidgetStars.apply(context, views, R.id.dashboard_stars_flipper,
+            new int[]{ R.id.dashboard_stars, R.id.dashboard_stars_2, R.id.dashboard_stars_3 },
+            widgetDark, sz[0], sz[1], System.currentTimeMillis() / 60000);
 
         // ── 7. Tap → open app ─────────────────────────────────────
         PendingIntent pi = openApp(context, appWidgetId * 24, null);

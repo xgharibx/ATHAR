@@ -245,13 +245,10 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         // Stars in every phase: both dark themes are near-black at every hour
         // now, so gating stars to night left daytime widgets as a flat color
         // with no stars at all (owner-reported). Light theme opts out.
-        if (widgetDark) {
-            views.setViewVisibility(R.id.prayer_full_stars, android.view.View.VISIBLE);
-            views.setImageViewBitmap(R.id.prayer_full_stars,
-                WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));
-        } else {
-            views.setViewVisibility(R.id.prayer_full_stars, android.view.View.GONE);
-        }
+        // Animated — the launcher cross-fades the frames; see WidgetStars.
+        WidgetStars.apply(context, views, R.id.prayer_full_stars_flipper,
+            new int[]{ R.id.prayer_full_stars, R.id.prayer_full_stars_2, R.id.prayer_full_stars_3 },
+            widgetDark, sz[0], sz[1], System.currentTimeMillis() / 60000);
 
         // Tap → open prayer times directly
         PendingIntent pi = openApp(context, appWidgetId * 23, "/prayer-times");

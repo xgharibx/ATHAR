@@ -16,12 +16,38 @@
         android:scaleType="fitXY"
         android:importantForAccessibility="no" />
 
-    <ImageView
-        android:id="@+id/asma_stars"
+    <!-- Animated starfield: a ViewFlipper animates in the LAUNCHER's process
+         (a widget has no animation loop of its own), cross-fading these
+         frames forever and stopping itself when the home screen is hidden.
+         See res/anim/widget_star_in.xml and WidgetStars.java. -->
+    <ViewFlipper
+        android:id="@+id/asma_stars_flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:importantForAccessibility="no" />
+        android:autoStart="true"
+        android:flipInterval="2600"
+        android:inAnimation="@anim/widget_star_in"
+        android:outAnimation="@anim/widget_star_out"
+        android:importantForAccessibility="no">
+        <ImageView
+            android:id="@+id/asma_stars"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:importantForAccessibility="no" />
+        <ImageView
+            android:id="@+id/asma_stars_2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:importantForAccessibility="no" />
+        <ImageView
+            android:id="@+id/asma_stars_3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:importantForAccessibility="no" />
+    </ViewFlipper>
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -19,12 +19,40 @@
         android:scaleType="fitXY"
         android:importantForAccessibility="no" />
 
-    <ImageView
-        android:id="@+id/prayer_stars"
+    <!-- Animated starfield. A widget cannot run its own animation loop, but a
+         ViewFlipper animates inside the LAUNCHER's process — the same reason
+         the countdown Chronometer below ticks live. autoStart cycles these
+         frames forever, and ViewFlipper stops itself when the home screen
+         isn't visible, so it's free when nobody's looking.
+         See res/anim/widget_star_in.xml. -->
+    <ViewFlipper
+        android:id="@+id/prayer_stars_flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:importantForAccessibility="no" />
+        android:autoStart="true"
+        android:flipInterval="2600"
+        android:inAnimation="@anim/widget_star_in"
+        android:outAnimation="@anim/widget_star_out"
+        android:importantForAccessibility="no">
+        <ImageView
+            android:id="@+id/prayer_stars"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:importantForAccessibility="no" />
+        <ImageView
+            android:id="@+id/prayer_stars_2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:importantForAccessibility="no" />
+        <ImageView
+            android:id="@+id/prayer_stars_3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:importantForAccessibility="no" />
+    </ViewFlipper>
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -112,13 +112,9 @@ public class NoorCompactWidgetProvider extends AtharWidgetProvider {
         views.setImageViewBitmap(R.id.compact_sky,
             WidgetCanvas.sky(context, sz[0], sz[1], sky.fromPhase, sky.toPhase, sky.blend,
                 WidgetCanvas.outerCornerRadiusDp(context), theme));
-        if (widgetDark) {
-            views.setViewVisibility(R.id.compact_stars, android.view.View.VISIBLE);
-            views.setImageViewBitmap(R.id.compact_stars,
-                WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));
-        } else {
-            views.setViewVisibility(R.id.compact_stars, android.view.View.GONE);
-        }
+        WidgetStars.apply(context, views, R.id.compact_stars_flipper,
+            new int[]{ R.id.compact_stars, R.id.compact_stars_2, R.id.compact_stars_3 },
+            widgetDark, sz[0], sz[1], System.currentTimeMillis() / 60000);
 
         Intent incIntent = new Intent(context, NoorCompactWidgetProvider.class)
             .setAction(ACTION_INCREMENT)

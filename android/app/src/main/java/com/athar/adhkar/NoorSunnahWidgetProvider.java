@@ -106,13 +106,9 @@ public class NoorSunnahWidgetProvider extends AtharWidgetProvider {
         // Stars in every phase: both dark themes are near-black at every
         // hour now, so gating stars to night left daytime widgets as a flat
         // color with no stars at all (owner-reported). Light theme only opts out.
-        if (widgetDark) {
-            views.setViewVisibility(R.id.sunnah_stars, android.view.View.VISIBLE);
-            views.setImageViewBitmap(R.id.sunnah_stars,
-                WidgetCanvas.starfield(context, sz[0], sz[1], System.currentTimeMillis() / 60000));
-        } else {
-            views.setViewVisibility(R.id.sunnah_stars, android.view.View.GONE);
-        }
+        WidgetStars.apply(context, views, R.id.sunnah_stars_flipper,
+            new int[]{ R.id.sunnah_stars, R.id.sunnah_stars_2, R.id.sunnah_stars_3 },
+            widgetDark, sz[0], sz[1], System.currentTimeMillis() / 60000);
 
         PendingIntent pi = openApp(context, appWidgetId * 26, route);
         views.setOnClickPendingIntent(R.id.noor_widget_root, pi);

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Outgoing starfield frame — see widget_star_in.xml for why the launcher, not
+  the app, drives this. The outgoing frame keeps drifting in the SAME
+  direction as the incoming one so the two cross-fade into one continuous
+  slow wheel rather than visibly swapping places.
+
+  Fades out slower than the incoming frame fades in, so the sky never dips
+  toward empty mid-transition (both frames are partly visible at the crossover,
+  which is what sells it as one moving field instead of two slides).
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shareInterpolator="false">
+
+    <alpha
+        android:fromAlpha="1.0"
+        android:toAlpha="0.0"
+        android:duration="2100"
+        android:interpolator="@android:anim/accelerate_decelerate_interpolator" />
+
+    <translate
+        android:fromYDelta="-0.6%"
+        android:toYDelta="-2.6%"
+        android:fromXDelta="-0.3%"
+        android:toXDelta="-1.4%"
+        android:duration="2600"
+        android:interpolator="@android:anim/linear_interpolator" />
+</set>

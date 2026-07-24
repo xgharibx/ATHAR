@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Incoming starfield frame — the "alive sky" half of the widget starfield.
+
+  Why this exists: a home-screen widget has no animation loop of its own (no
+  requestAnimationFrame, and the OS caps widget updates at 30 min), so the app
+  process can never drive motion. But the launcher DOES animate views it owns
+  — the same reason the prayer Chronometer ticks live. A ViewFlipper set to
+  autoStart cycles these frames entirely inside the launcher, for free, and
+  stops on its own when the home screen isn't visible (ViewFlipper detaches
+  its ticker with the window), so it costs nothing while the phone is idle.
+
+  The drift is deliberately tiny and very slow: real stars wheel almost
+  imperceptibly, and a big/fast move would read as a glitch on a home screen.
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shareInterpolator="false">
+
+    <alpha
+        android:fromAlpha="0.0"
+        android:toAlpha="1.0"
+        android:duration="1700"
+        android:interpolator="@android:anim/accelerate_decelerate_interpolator" />
+
+    <translate
+        android:fromYDelta="1.6%"
+        android:toYDelta="-0.6%"
+        android:fromXDelta="0.9%"
+        android:toXDelta="-0.3%"
+        android:duration="2600"
+        android:interpolator="@android:anim/linear_interpolator" />
+</set>
