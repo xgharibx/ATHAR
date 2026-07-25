@@ -195,6 +195,36 @@ if (rootContainer) {
   }
 }
 
+/**
+ * Catch notification taps that land during cold start.
+ *
+ * Tapping a notification (or one of its action buttons) launches the app, and
+ * the plugin emits `localNotificationActionPerformed` while the WebView is
+ * still booting — well before App.tsx mounts its listener. Those events are not
+ * queued, so the very tap that opened the app used to be dropped and the user
+ * just landed on the home screen instead of the thing being reminded about.
+ *
+ * This registers as early as possible and only *buffers* the payload; the real
+ * listener drains it once the router exists (consumePendingNotificationAction).
+ */
+void (async () => {
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    if (!Capacitor.isNativePlatform()) return;
+    const [{ LocalNotifications }, { setPendingNotificationAction }] = await Promise.all([
+      import("@capacitor/local-notifications"),
+      import("@/lib/reminders"),
+    ]);
+    await LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+      const extra = action.notification.extra as Record<string, unknown> | undefined;
+      const route = typeof extra?.route === "string" ? (extra.route as string) : undefined;
+      setPendingNotificationAction({ actionId: action.actionId, route });
+    });
+  } catch {
+    // Non-fatal: the in-app listener still covers warm taps.
+  }
+})();
+
 // 11A: Hydrate hadith user-state (bookmarks, progress, notes, memoCards) from IDB.
 // Fires after first render so the UI is already visible — data appears within ms.
 void hydrateHadithState();

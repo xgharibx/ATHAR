@@ -1,10 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Notification small icon — the Athar fingerprint mark.
+
+  This used to be a generic five-pointed star with nothing to do with the brand,
+  which is what showed in the notification shade. These are the actual arcs from
+  public/logo.svg (the "أثر" = trace/imprint fingerprint motif), re-drawn as a
+  24dp status-bar glyph.
+
+  Android notification small icons must be a WHITE silhouette on transparency —
+  the system re-tints them, so any colour here is discarded. Stroke widths are
+  scaled up relative to the source (drawn at 512px) because hairlines disappear
+  at status-bar size, and the source's outermost arc is dropped for the same
+  reason: six nested curves turn to mush at 24dp, five read cleanly.
+
+  Source arcs span x -92..92, y -66..102. The group centres that box on the
+  24x24 canvas and scales it into a ~20dp safe area.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M12,2.4L14.25,8.15L20.35,5.95L17.15,11.55L22.45,15.25L15.95,15.85L16.55,22.35L12,17.55L7.45,22.35L8.05,15.85L1.55,15.25L6.85,11.55L3.65,5.95L9.75,8.15Z" />
+
+    <group
+        android:translateX="12"
+        android:translateY="10.05"
+        android:scaleX="0.1087"
+        android:scaleY="0.1087">
+
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="13"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M -92 18 C -60 -56, 60 -56, 92 18" />
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="13"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M -86 42 C -54 -38, 54 -38, 86 42" />
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="13"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M -72 66 C -42 -22, 42 -22, 72 66" />
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="13"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M -52 86 C -28 -8, 28 -8, 52 86" />
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="13"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M -28 102 C -14 18, 14 18, 28 102" />
+    </group>
 </vector>

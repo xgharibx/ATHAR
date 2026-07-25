@@ -65,9 +65,12 @@ async function registerCustomActionTypes(): Promise<void> {
       types: [
         {
           id: CUSTOM_REMINDER_ACTION_TYPE_ID,
+          // Wording matches the built-in reminders' buttons (reminders.ts) so
+          // the shade reads consistently. "غفوت" ("I dozed off") was the old
+          // snooze label and described the user, not the action.
           actions: [
-            { id: "done", title: "تم" },
-            { id: "snooze", title: "غفوت" },
+            { id: "done", title: "تم ✓" },
+            { id: "snooze", title: "ذكرني بعد ساعة" },
             { id: "open", title: "افتح" },
           ],
         },

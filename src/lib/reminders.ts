@@ -931,11 +931,71 @@ export async function registerNotificationDeepLinkListener(
         return;
       }
 
+      // Custom (user- and AI-created) reminders carry their own action set —
+      // see CUSTOM_REMINDER_ACTION_TYPE_ID in customReminderNotifications.ts.
+      // These ids were previously unhandled entirely, so tapping "snooze" or
+      // "done" on an AI-created reminder just opened the app and did nothing.
+      if (action.actionId === "snooze" || action.actionId === "done") {
+        const reminderId = extra?.reminderId;
+        const title = action.notification.title ?? "أثر";
+        const body = action.notification.body ?? "";
+        if (action.actionId === "snooze" && typeof reminderId === "string") {
+          // Re-arm one extra firing an hour out. A fresh scheduleId keeps this
+          // separate from the recurring series, so the daily schedule is
+          // untouched (same guarantee the built-in snooze above relies on).
+          const at = new Date(Date.now() + SNOOZE_MINUTES * 60_000);
+          void import("@/lib/customReminderNotifications").then(
+            ({ scheduleCustomNotification }) =>
+              scheduleCustomNotification(
+                {
+                  id: reminderId,
+                  title,
+                  description: body,
+                  deeplink: typeof extra?.route === "string" ? { route: extra.route as string } : undefined,
+                } as unknown as Parameters<typeof scheduleCustomNotification>[0],
+                at,
+                body,
+              ).catch(() => {}),
+          );
+        }
+        // "done" needs no write: there is no completion ledger for custom
+        // reminders (the Reminders page derives its stats from upcoming
+        // occurrences, not history). Tapping an action dismisses the
+        // notification, which is the whole intent of "تم".
+        return;
+      }
+
+      // "open" and a plain body tap both land here.
       const route = extra?.route;
       if (typeof route === "string" && route.startsWith("/")) {
         navigate(route);
       }
     },
   );
+
+  // Drain anything that fired before this listener existed — on a cold start
+  // the tap launches the app, and the plugin emits while the WebView is still
+  // booting, so without this the very taps that opened the app were dropped
+  // and the user just landed on the home screen. See consumePendingAction.
+  const pending = consumePendingNotificationAction();
+  if (pending?.route && pending.route.startsWith("/")) navigate(pending.route);
+
   return () => { handle.remove(); };
+}
+
+/**
+ * Buffer for a notification action that arrives before the React listener is
+ * mounted. Set by the early bootstrap in main.tsx, drained above.
+ */
+type PendingAction = { actionId?: string; route?: string };
+let pendingNotificationAction: PendingAction | null = null;
+
+export function setPendingNotificationAction(a: PendingAction): void {
+  pendingNotificationAction = a;
+}
+
+export function consumePendingNotificationAction(): PendingAction | null {
+  const a = pendingNotificationAction;
+  pendingNotificationAction = null;
+  return a;
 }

@@ -482,27 +482,60 @@ export function CompanionModal(props: {
         className="absolute inset-0 bg-black/35 backdrop-blur-md"
       />
       <div
-        className="relative flex h-[88vh] mt-[3vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-emerald-400/25 shadow-[0_20px_60px_-12px_rgba(16,185,129,0.45)] backdrop-blur-2xl"
+        className="relative flex h-[88vh] mt-[3vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl backdrop-blur-2xl"
         style={{
-          // Match the app's atmospheric starry background but slightly translucent
-          backgroundColor: "color-mix(in srgb, var(--bg) 70%, transparent)",
+          // Theme-aware, not emerald-hardcoded: the sheet used to be tinted
+          // emerald/teal regardless of the active theme, which read as a
+          // foreign surface on فحم (pure black) and زهور (burgundy).
+          border: "1px solid color-mix(in srgb, var(--accent) 26%, transparent)",
+          boxShadow:
+            "0 24px 70px -14px color-mix(in srgb, var(--accent) 34%, transparent)," +
+            "inset 0 1px 0 color-mix(in srgb, #ffffff 8%, transparent)",
+          backgroundColor: "color-mix(in srgb, var(--bg) 74%, transparent)",
           backgroundImage:
-            "radial-gradient(2px 2px at 12% 18%, rgba(255,255,255,0.5) 50%, transparent 51%)," +
-            "radial-gradient(1.5px 1.5px at 78% 32%, rgba(255,255,255,0.45) 50%, transparent 51%)," +
-            "radial-gradient(2.5px 2.5px at 42% 62%, rgba(255,255,255,0.4) 50%, transparent 51%)," +
-            "radial-gradient(1.5px 1.5px at 88% 78%, rgba(255,255,255,0.35) 50%, transparent 51%)," +
-            "radial-gradient(2px 2px at 22% 88%, rgba(255,255,255,0.35) 50%, transparent 51%)," +
-            "linear-gradient(160deg, color-mix(in srgb, var(--accent) 12%, transparent), color-mix(in srgb, var(--accent) 4%, transparent))",
+            // A real scatter of stars rather than the previous five fixed dots —
+            // varied size and brightness so it reads as depth, matching the
+            // app's own starfield instead of looking like specks.
+            "radial-gradient(1.6px 1.6px at 12% 14%, rgba(255,255,255,0.60) 50%, transparent 51%)," +
+            "radial-gradient(1px 1px at 27% 31%, rgba(255,255,255,0.34) 50%, transparent 51%)," +
+            "radial-gradient(2px 2px at 41% 9%, rgba(255,255,255,0.50) 50%, transparent 51%)," +
+            "radial-gradient(1.1px 1.1px at 58% 24%, rgba(255,255,255,0.30) 50%, transparent 51%)," +
+            "radial-gradient(1.7px 1.7px at 76% 16%, rgba(255,255,255,0.52) 50%, transparent 51%)," +
+            "radial-gradient(1px 1px at 88% 33%, rgba(255,255,255,0.30) 50%, transparent 51%)," +
+            "radial-gradient(1.4px 1.4px at 8% 47%, rgba(255,255,255,0.38) 50%, transparent 51%)," +
+            "radial-gradient(2.1px 2.1px at 34% 57%, rgba(255,255,255,0.44) 50%, transparent 51%)," +
+            "radial-gradient(1px 1px at 52% 44%, rgba(255,255,255,0.26) 50%, transparent 51%)," +
+            "radial-gradient(1.5px 1.5px at 69% 61%, rgba(255,255,255,0.36) 50%, transparent 51%)," +
+            "radial-gradient(1.2px 1.2px at 91% 54%, rgba(255,255,255,0.30) 50%, transparent 51%)," +
+            "radial-gradient(1.8px 1.8px at 18% 73%, rgba(255,255,255,0.34) 50%, transparent 51%)," +
+            "radial-gradient(1px 1px at 44% 82%, rgba(255,255,255,0.24) 50%, transparent 51%)," +
+            "radial-gradient(1.6px 1.6px at 63% 90%, rgba(255,255,255,0.30) 50%, transparent 51%)," +
+            "radial-gradient(1.2px 1.2px at 84% 78%, rgba(255,255,255,0.26) 50%, transparent 51%)," +
+            // Two faint accent sparks tie the field to the active theme.
+            "radial-gradient(2px 2px at 30% 22%, color-mix(in srgb, var(--accent) 55%, transparent) 50%, transparent 51%)," +
+            "radial-gradient(1.6px 1.6px at 72% 68%, color-mix(in srgb, var(--accent-2, var(--accent)) 45%, transparent) 50%, transparent 51%)," +
+            // Soft accent bloom near the top, then the app's signature sink to
+            // black toward the bottom — the same depth the pages now have.
+            "radial-gradient(120% 65% at 50% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%)," +
+            "linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--bg-deep, var(--bg)) 30%, transparent) 55%, color-mix(in srgb, var(--bg-deep, var(--bg)) 72%, transparent) 100%)",
         }}
       >
-        {/* Decorative glow */}
-        <div aria-hidden="true" className="pointer-events-none absolute -top-24 -start-24 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -end-24 h-64 w-64 rounded-full bg-teal-500/8 blur-3xl" />
+        {/* Decorative glow — accent-derived so it follows the theme. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-24 -start-24 h-64 w-64 rounded-full blur-3xl"
+          style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)" }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 -end-24 h-64 w-64 rounded-full blur-3xl"
+          style={{ background: "color-mix(in srgb, var(--accent-2, var(--accent)) 10%, transparent)" }}
+        />
 
         {/* Header */}
-        <div className="relative flex items-center justify-between gap-2 border-b border-emerald-400/15 px-4 py-3">
+        <div className="relative flex items-center justify-between gap-2 border-b border-[color-mix(in_srgb,var(--accent)_16%,transparent)] px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md shadow-emerald-500/30">
+            <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-2,var(--accent))] shadow-md">
               <Sparkles className="h-4 w-4 text-emerald-950" aria-hidden="true" />
             </span>
             <div>
@@ -528,7 +561,7 @@ export function CompanionModal(props: {
 
         {/* Context chip */}
         {props.context?.title ? (
-          <div className="relative border-b border-emerald-400/10 bg-emerald-500/5 px-4 py-2">
+          <div className="relative border-b border-[color-mix(in_srgb,var(--accent)_10%,transparent)] bg-emerald-500/5 px-4 py-2">
             <div className="flex items-center gap-2 text-[11px]">
               <span aria-hidden="true">{props.context.icon ?? "📍"}</span>
               <span className="font-semibold text-emerald-100">{props.context.title}</span>
@@ -539,7 +572,7 @@ export function CompanionModal(props: {
 
         {/* History panel */}
         {showHistory ? (
-          <div className="relative border-b border-emerald-400/10 bg-emerald-950/40 px-3 py-2 max-h-56 overflow-y-auto">
+          <div className="relative border-b border-[color-mix(in_srgb,var(--accent)_10%,transparent)] bg-emerald-950/40 px-3 py-2 max-h-56 overflow-y-auto">
             {history.length === 0 ? (
               <p className="px-2 py-4 text-center text-[11px] text-emerald-200/60">لا توجد محادثات سابقة هنا</p>
             ) : (
@@ -622,7 +655,7 @@ export function CompanionModal(props: {
         ) : null}
 
         {/* Composer */}
-        <div className="relative border-t border-emerald-400/15 p-2 bg-emerald-950/40 backdrop-blur-sm">
+        <div className="relative border-t border-[color-mix(in_srgb,var(--accent)_16%,transparent)] p-2 bg-[color-mix(in_srgb,var(--bg-deep,var(--bg))_55%,transparent)] backdrop-blur-sm">
           <div className="flex items-end gap-1.5">
             <textarea
               value={input}
