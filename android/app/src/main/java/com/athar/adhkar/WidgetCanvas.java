@@ -43,6 +43,10 @@ public final class WidgetCanvas {
     // own identity, not the app-wide brand).
     private static final int CYAN_STAR    = 0xFF9AE6FF;
     private static final int EMERALD_STAR = 0xFF6EE7B7;
+    /** The bright "hero" stars — a barely-cool white, same family as the
+     *  app's own background starfield. Gold at that size read as amber dots
+     *  instead of stars. */
+    private static final int WHITE_STAR   = 0xFFF2F6FF;
     private static final int GLOW_CYAN    = 0x409AE6FF;
 
     /** The unfilled "track" portion of a ring/bar/dial is a low-alpha tint
@@ -635,20 +639,25 @@ public final class WidgetCanvas {
             // Most stars are tiny and dim; a few are bigger "hero" stars with
             // a soft glow — same distribution the CSS starfield uses so the
             // widget reads as part of the same sky, not a different asset.
+            // Sizes trimmed ~25% (hero) / ~15% (dust) from the first pass:
+            // the big ones read as blobs rather than stars at the old radii.
             boolean hero = rnd.nextFloat() < 0.12f;
-            float r = (hero ? dp(ctx, 1.4f + rnd.nextFloat() * 1.0f) : dp(ctx, 0.5f + rnd.nextFloat() * 0.6f)) * scale;
+            float r = (hero ? dp(ctx, 1.05f + rnd.nextFloat() * 0.75f) : dp(ctx, 0.45f + rnd.nextFloat() * 0.5f)) * scale;
             int alpha = hero ? (140 + rnd.nextInt(90)) : (40 + rnd.nextInt(90));
 
-            // ~78% warm gold (the dominant brand tone), ~15% cool cyan,
-            // ~7% emerald spark — same rarity curve as the hero-star split,
-            // so the sky still reads as gold-led, just no longer flat.
+            // The bright hero stars are WHITE, matching the app's own
+            // background starfield — gold at that size read as amber dots
+            // rather than stars. The faint dust keeps the subtle warm/cool
+            // mix (~78% gold, ~15% cyan, ~7% emerald); at a pixel or two
+            // across it registers as tint, not colour, and is what stops the
+            // field from looking like flat white noise.
             float tone = rnd.nextFloat();
-            int hue = tone < 0.78f ? GOLD_LIGHT : (tone < 0.93f ? CYAN_STAR : EMERALD_STAR);
-            int glowHue = tone < 0.78f ? GOLD : (tone < 0.93f ? CYAN_STAR : EMERALD_STAR);
+            int dustHue = tone < 0.78f ? GOLD_LIGHT : (tone < 0.93f ? CYAN_STAR : EMERALD_STAR);
+            int hue = hero ? WHITE_STAR : dustHue;
             int color = (hue & 0x00FFFFFF) | (alpha << 24);
 
             if (hero) {
-                glow.setColor((glowHue & 0x00FFFFFF) | ((alpha / 3) << 24));
+                glow.setColor((WHITE_STAR & 0x00FFFFFF) | ((alpha / 3) << 24));
                 c.drawCircle(x, y, r * 2.2f, glow);
             }
             star.setColor(color);
