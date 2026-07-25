@@ -30,7 +30,16 @@ const SYNC_INTERVAL_MS = MS_PER_MIN;
  * today, push to tomorrow.
  */
 export function defaultDailyResolver(reminder: CustomReminder, now: Date): Date | null {
-  const atTimeOfDay = String(reminder.atTimeOfDay ?? "").trim();
+  // Arabic-Indic / Persian digits → ASCII before matching: reminder times are
+  // authored in Arabic numerals ("٠٦:٣٠") and `\d` is ASCII-only, so without
+  // this the parse fails and the reminder never resolves a fire time. Same
+  // normalisation as parseClock in reminderRecurrence.ts.
+  const atTimeOfDay = String(reminder.atTimeOfDay ?? "")
+    .trim()
+    .replace(/[٠-٩۰-۹]/g, (ch) => {
+      const code = ch.charCodeAt(0);
+      return String(code - (code >= 0x06f0 ? 0x06f0 : 0x0660));
+    });
   const m = /^(\d{1,2}):(\d{2})$/.exec(atTimeOfDay);
   if (!m) return null;
   const hour = Number(m[1]);

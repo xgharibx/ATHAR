@@ -1,15 +1,35 @@
 /**
  * Schedule the next-N local-clock firings of every enabled user-defined
- * reminder. On the web, this uses `setTimeout` + the Web Notifications
- * API. Per-reminder scheduling is delegated to the delivery helpers in
- * `@/lib/customReminderDelivery` on native platforms (Capacitor).
+ * reminder — including every reminder Athar's AI creates.
  *
- * Returns a cleanup function that cancels all pending `setTimeout`s, so
- * the caller can tear down the previous schedule when `customReminders`
- * mutates.
+ *  - Native (Capacitor Android/iOS) → `@capacitor/local-notifications`, i.e.
+ *    the OS alarm scheduler, so a reminder still fires with the app closed.
+ *  - Web (PWA) → `setTimeout` + the Web Notifications API, which only holds
+ *    while the page is alive.
+ *
+ * The native branch is not an optimisation, it is the difference between
+ * working and not working: this module used to take the web path on every
+ * platform. On Android that meant (a) `Notification.permission` is not
+ * something the Capacitor WebView grants — the app holds the *LocalNotifications*
+ * permission — so the guard below bailed out and scheduled nothing at all, and
+ * (b) even had it passed, a `setTimeout` dies the moment Android freezes the
+ * WebView. So AI-created reminders persisted and appeared in the UI but could
+ * never actually notify. The native delivery helpers existed but nothing ever
+ * called them.
+ *
+ * Both branches share one recurrence engine (`nextOccurrences`), so all seven
+ * repeat shapes behave identically across platforms.
+ *
+ * Returns a cleanup function that tears down the previous schedule, so the
+ * caller can re-sync whenever `customReminders` mutates.
  */
+import { Capacitor } from "@capacitor/core";
 import type { CustomReminder } from "@/data/reminderTypes";
 import { nextOccurrences, type PrayerTimesSource } from "@/lib/reminderRecurrence";
+import {
+  cancelCustomNotification,
+  scheduleCustomNotification,
+} from "@/lib/customReminderNotifications";
 
 export interface CustomReminderSyncContext {
   /**
@@ -70,6 +90,14 @@ export function syncCustomReminders(
   reminders: CustomReminder[],
   ctx: CustomReminderSyncContext = {},
 ): () => void {
+  // Native gets real OS-scheduled alarms. Tests that inject `canNotify` /
+  // `showNotification` are exercising the web path deliberately, so honour
+  // those overrides rather than hijacking them.
+  const overridden = ctx.canNotify !== undefined || ctx.showNotification !== undefined;
+  if (!overridden && Capacitor.isNativePlatform()) {
+    return syncCustomRemindersNative(reminders, ctx);
+  }
+
   const maxFirings = Math.max(1, ctx.maxFirings ?? DEFAULT_MAX_FIRINGS);
   const canNotify = ctx.canNotify ?? defaultCanNotify;
   const showNotification =
@@ -118,4 +146,79 @@ export function syncCustomReminders(
 function clearTimers(timers: ReturnType<typeof setTimeout>[]) {
   for (const id of timers) clearTimeout(id);
   timers.length = 0;
+}
+
+/**
+ * Native scheduling — hands every upcoming occurrence to the OS via
+ * `@capacitor/local-notifications`, so reminders fire whether or not the app
+ * is running.
+ *
+ * Scheduling is async while the caller (a React effect) needs a synchronous
+ * cleanup, so the work runs detached and the returned teardown both flips a
+ * cancelled flag (stopping any not-yet-issued schedules) and cancels whatever
+ * was already handed to the OS.
+ *
+ * Re-arming the same occurrence is harmless: `scheduleIdFor` is deterministic,
+ * so the derived notification id is stable and the OS replaces the existing
+ * alarm instead of duplicating it.
+ */
+function syncCustomRemindersNative(
+  reminders: CustomReminder[],
+  ctx: CustomReminderSyncContext,
+): () => void {
+  const maxFirings = Math.max(1, ctx.maxFirings ?? DEFAULT_MAX_FIRINGS);
+  const scheduled: string[] = [];
+  let cancelled = false;
+
+  void (async () => {
+    // Without the OS permission nothing can fire, so ask rather than silently
+    // no-op. Already-granted returns immediately; permanently-denied resolves
+    // denied without a prompt.
+    let granted = false;
+    try {
+      const { LocalNotifications } = await import("@capacitor/local-notifications");
+      const current = await LocalNotifications.checkPermissions();
+      granted = current.display === "granted";
+      if (!granted && current.display === "prompt") {
+        const asked = await LocalNotifications.requestPermissions();
+        granted = asked.display === "granted";
+      }
+    } catch {
+      granted = false;
+    }
+    if (!granted || cancelled) return;
+
+    const now = Date.now();
+    const horizon = now + MAX_SCHEDULE_HORIZON_MS;
+
+    for (const reminder of reminders) {
+      if (cancelled) return;
+      if (!reminder || !reminder.enabled) continue;
+
+      const dates = nextOccurrences(reminder, {
+        count: maxFirings,
+        prayerTimes: ctx.prayerTimes,
+      });
+
+      for (const date of dates) {
+        if (cancelled) return;
+        const at = date.getTime();
+        if (at <= now || at > horizon) continue;
+        try {
+          const scheduleId = await scheduleCustomNotification(reminder, date, "");
+          scheduled.push(scheduleId);
+        } catch {
+          // One bad reminder must not stop the rest from being scheduled.
+        }
+      }
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+    for (const scheduleId of scheduled) {
+      void cancelCustomNotification(scheduleId).catch(() => {});
+    }
+    scheduled.length = 0;
+  };
 }

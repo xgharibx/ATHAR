@@ -59,8 +59,26 @@ function addDays(date: Date, amount: number): Date {
   return day;
 }
 
+/**
+ * Map Arabic-Indic (٠-٩) and Extended/Persian (۰-۹) digits onto ASCII.
+ *
+ * This is not cosmetic: reminder times are authored and displayed in Arabic
+ * numerals ("٠٦:٣٠"), but `\d` in JavaScript matches ASCII 0-9 only. Without
+ * this, parseClock returned null for every such reminder, nextOccurrences
+ * produced zero occurrences, and the reminder silently never fired — on web
+ * and native alike. Normalising here fixes every repeat shape at once, since
+ * they all resolve their time through parseClock.
+ */
+function toAsciiDigits(input: string): string {
+  return input.replace(/[٠-٩۰-۹]/g, (ch) => {
+    const code = ch.charCodeAt(0);
+    const base = code >= 0x06f0 ? 0x06f0 : 0x0660;
+    return String(code - base);
+  });
+}
+
 function parseClock(value: unknown): { hour: number; minute: number } | null {
-  const match = /^(\d{1,2}):(\d{2})/.exec(String(value ?? "").trim());
+  const match = /^(\d{1,2}):(\d{2})/.exec(toAsciiDigits(String(value ?? "").trim()));
   if (!match) return null;
   const hour = Number(match[1]);
   const minute = Number(match[2]);

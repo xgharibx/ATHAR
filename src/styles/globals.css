@@ -92,7 +92,7 @@
 
 .midnight {
   --bg: #0f172a;
-  --bg-deep: #01040a;
+  --bg-deep: #000000;
   --fg: #e2e8f0;
   --muted: rgba(226, 232, 240, 0.72);
   --muted-2: rgba(226, 232, 240, 0.56);
@@ -107,7 +107,7 @@
   --bg: #022c22;
   /* Forest sinks toward near-black at the foot of the screen (like the dark
      theme) instead of staying an even mid-green top-to-bottom. */
-  --bg-deep: #010f0b;
+  --bg-deep: #000000;
   --fg: #ecfdf5;
   --muted: rgba(236, 253, 245, 0.7);
   --muted-2: rgba(236, 253, 245, 0.5);
@@ -121,7 +121,7 @@
 .bees {
   /* Royal Gold Theme */
   --bg: #1a120b; /* Deep brown/black */
-  --bg-deep: #0a0603;
+  --bg-deep: #000000;
   --fg: #fffbeb;
   --muted: rgba(255, 251, 235, 0.75);
   --muted-2: rgba(255, 251, 235, 0.55);
@@ -135,7 +135,7 @@
 .roses {
   /* Elegant Rose Theme */
   --bg: #280a14; /* Deep Burgundy */
-  --bg-deep: #0d0206;
+  --bg-deep: #000000;
   --fg: #ffe4e6; /* Rose 100 */
   --muted: rgba(255, 228, 230, 0.8);
   --muted-2: rgba(255, 228, 230, 0.6);
@@ -149,7 +149,7 @@
 .sapphire {
   /* Deep ocean blue */
   --bg: #070a1a;
-  --bg-deep: #01020a;
+  --bg-deep: #000000;
   --fg: #eaf2ff;
   --muted: rgba(234, 242, 255, 0.75);
   --muted-2: rgba(234, 242, 255, 0.55);
@@ -163,7 +163,7 @@
 .violet {
   /* Calm violet */
   --bg: #12051f;
-  --bg-deep: #06010c;
+  --bg-deep: #000000;
   --fg: #f5edff;
   --muted: rgba(245, 237, 255, 0.76);
   --muted-2: rgba(245, 237, 255, 0.56);
@@ -177,7 +177,7 @@
 .sunset {
   /* Warm sunset */
   --bg: #160a06;
-  --bg-deep: #080302;
+  --bg-deep: #000000;
   --fg: #fff7ed;
   --muted: rgba(255, 247, 237, 0.76);
   --muted-2: rgba(255, 247, 237, 0.56);
@@ -191,7 +191,7 @@
 .mist {
   /* Minimal silver */
   --bg: #0b0d12;
-  --bg-deep: #030407;
+  --bg-deep: #000000;
   --fg: #f3f4f6;
   --muted: rgba(243, 244, 246, 0.72);
   --muted-2: rgba(243, 244, 246, 0.52);
@@ -282,7 +282,7 @@
 .fanous {
   /* فانوس — Ramadan lantern: warm darkness lit by a breathing amber glow */
   --bg: #140e06;
-  --bg-deep: #070402;
+  --bg-deep: #000000;
   --fg: #fdf3e3;
   --muted: rgba(253, 243, 227, 0.74);
   --muted-2: rgba(253, 243, 227, 0.54);
@@ -320,7 +320,7 @@
 .sajjada {
   /* سجادة — prayer rug: deep burgundy wool with a woven kilim motif */
   --bg: #200a10;
-  --bg-deep: #0a0205;
+  --bg-deep: #000000;
   --fg: #f8ecdf;
   --muted: rgba(248, 236, 223, 0.75);
   --muted-2: rgba(248, 236, 223, 0.55);
@@ -351,7 +351,7 @@
 .mihrab {
   /* محراب — zellige mosaic: lapis night, turquoise tile, a lit prayer niche */
   --bg: #071b33;
-  --bg-deep: #020810;
+  --bg-deep: #000000;
   --fg: #eaf6ff;
   --muted: rgba(234, 246, 255, 0.75);
   --muted-2: rgba(234, 246, 255, 0.55);
@@ -380,7 +380,7 @@
 .midad {
   /* مداد — phosphor terminal: CRT green, scanlines, monospace ink */
   --bg: #020b04;
-  --bg-deep: #000401;
+  --bg-deep: #000000;
   --fg: #c2ffd6;
   --muted: rgba(194, 255, 214, 0.72);
   --muted-2: rgba(194, 255, 214, 0.5);
@@ -596,7 +596,7 @@
 .shafaq {
   /* شفق — nordic aurora: icy glass under a slow-drifting polar ribbon */
   --bg: #0b1220;
-  --bg-deep: #02050c;
+  --bg-deep: #000000;
   --fg: #eaf4ff;
   --muted: rgba(234, 244, 255, 0.74);
   --muted-2: rgba(234, 244, 255, 0.54);
@@ -637,7 +637,7 @@
 .mushaf {
   /* مصحف — bound leather: maroon hide, gilded frame, stitched spine */
   --bg: #2a1114;
-  --bg-deep: #0d0406;
+  --bg-deep: #000000;
   --fg: #f6ead8;
   --muted: rgba(246, 234, 216, 0.76);
   --muted-2: rgba(246, 234, 216, 0.56);

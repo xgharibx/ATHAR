@@ -120,17 +120,22 @@ export function NoorBackground() {
           )}
         </div>
 
-        {/* Fades toward --bg-deep (defaults to the theme's own --bg, so light
-            themes keep a light bottom) — a hardcoded near-black fade here
-            washed every light theme (فاتح، بستان، ورق، طين، جرة، الأندلس،
-            سكينة) with a dark bottom half. Themes that want a "sinks into the
-            dark toward the bottom" depth (غابة/forest) set --bg-deep darker
-            than --bg; see globals.css. */}
+        {/* Fades toward --bg-deep, which every dark theme sets to true black
+            while light themes leave it unset (it then defaults to their own
+            --bg, so they keep a light bottom — a hardcoded near-black fade
+            here used to wash فاتح/بستان/ورق/طين/جرة/الأندلس/سكينة dark).
+
+            The curve is deliberately steep: the owner's reference is غابة
+            reading "green → very dark → black" down the screen. A gentler
+            ramp left the middle still clearly green and only the last few
+            pixels dark, which is what made it feel washed out compared to
+            how it used to look. Full opacity at the bottom, so it lands on
+            real black rather than 98% of a tinted near-black. */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, color-mix(in srgb, var(--bg-deep, var(--bg)) 0%, transparent) 0%, color-mix(in srgb, var(--bg-deep, var(--bg)) 35%, transparent) 35%, color-mix(in srgb, var(--bg-deep, var(--bg)) 78%, transparent) 72%, color-mix(in srgb, var(--bg-deep, var(--bg)) 98%, transparent) 100%)"
+              "linear-gradient(180deg, color-mix(in srgb, var(--bg-deep, var(--bg)) 0%, transparent) 0%, color-mix(in srgb, var(--bg-deep, var(--bg)) 22%, transparent) 24%, color-mix(in srgb, var(--bg-deep, var(--bg)) 62%, transparent) 52%, color-mix(in srgb, var(--bg-deep, var(--bg)) 90%, transparent) 78%, color-mix(in srgb, var(--bg-deep, var(--bg)) 100%, transparent) 100%)"
           }}
         />
       </div>
