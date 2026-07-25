@@ -26,7 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:autoStart="true"
-        android:flipInterval="2600"
+        android:flipInterval="1400"
         android:inAnimation="@anim/widget_star_in"
         android:outAnimation="@anim/widget_star_out"
         android:importantForAccessibility="no">

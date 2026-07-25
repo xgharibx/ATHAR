@@ -2,8 +2,9 @@
 <!--
   Outgoing starfield frame — see widget_star_in.xml for why the launcher, not
   the app, drives this. The outgoing frame keeps drifting in the SAME
-  direction as the incoming one so the two cross-fade into one continuous
-  slow wheel rather than visibly swapping places.
+  direction as the incoming one, and starts exactly where the incoming frame
+  ended, so the two cross-fade into one continuous sweep rather than visibly
+  swapping places.
 
   Fades out slower than the incoming frame fades in, so the sky never dips
   toward empty mid-transition (both frames are partly visible at the crossover,
@@ -15,14 +16,14 @@
     <alpha
         android:fromAlpha="1.0"
         android:toAlpha="0.0"
-        android:duration="2100"
+        android:duration="1150"
         android:interpolator="@android:anim/accelerate_decelerate_interpolator" />
 
     <translate
-        android:fromYDelta="-0.6%"
-        android:toYDelta="-2.6%"
-        android:fromXDelta="-0.3%"
-        android:toXDelta="-1.4%"
-        android:duration="2600"
+        android:fromYDelta="-2.5%"
+        android:toYDelta="-11.5%"
+        android:fromXDelta="-1.2%"
+        android:toXDelta="-5.9%"
+        android:duration="1400"
         android:interpolator="@android:anim/linear_interpolator" />
 </set>
