@@ -41,6 +41,7 @@ import {
   type SettingsSectionId,
   filterSettingsSections,
 } from "@/lib/settingsLayout";
+import { AccountPanel } from "@/components/account/AccountPanel";
 
 const THEME_ACCENTS: Record<NoorTheme, string> = {
   system:   "#ffd780",
@@ -454,6 +455,10 @@ export function SettingsPage() {
           نسخ احتياطي
         </button>
       </div>
+
+      {/* Account + cloud sync. Renders nothing until Supabase auth is
+          configured, so it can ship dark and light up once credentials land. */}
+      <AccountPanel />
 
       <Card id="settings-appearance" className="p-5">
         <div className="flex items-center gap-2">

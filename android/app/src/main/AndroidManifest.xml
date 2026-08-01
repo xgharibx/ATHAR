@@ -22,6 +22,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- OAuth return leg. Google will not render its consent screen
+                 inside a WebView, so sign-in opens the system browser; this
+                 custom scheme is how the browser hands the session back to the
+                 app. Must stay in sync with NATIVE_AUTH_REDIRECT in
+                 src/lib/authClient.ts and the Supabase redirect allow-list. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="app.athar" android:host="auth" />
+            </intent-filter>
+
         </activity>
 
         <!-- Widget theme picker — shown when any Athar widget is placed

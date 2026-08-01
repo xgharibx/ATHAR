@@ -14,15 +14,21 @@ public class MainActivity extends BridgeActivity {
     /** Route requested by a widget tap, injected once the web app is ready. */
     private String pendingRoute;
 
+    /** OAuth callback URL (app.athar://auth?...) captured from the intent that
+     *  brought us back from the system browser, handed to JS once it's ready. */
+    private String pendingAuthUrl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // 11C: Install AndroidX SplashScreen compat — required for Android 12+ splash
         //      to transition correctly (prevents black flash and respects postSplashScreenTheme)
         SplashScreen.installSplashScreen(this);
         registerPlugin(WidgetRefreshPlugin.class);
+        registerPlugin(AuthBridgePlugin.class);
         super.onCreate(savedInstanceState);
 
         pendingRoute = readRoute(getIntent());
+        pendingAuthUrl = readAuthUrl(getIntent());
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -37,12 +43,67 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         pendingRoute = readRoute(intent);
+        String authUrl = readAuthUrl(intent);
+        if (authUrl != null) {
+            pendingAuthUrl = authUrl;
+            // Warm start: the WebView already exists, so hand it over now.
+            deliverPendingAuthUrl();
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
         injectPendingRoute();
+        deliverPendingAuthUrl();
+    }
+
+    /** The OAuth callback, or null for any other intent. */
+    private static String readAuthUrl(Intent intent) {
+        if (intent == null) return null;
+        android.net.Uri data = intent.getData();
+        if (data == null) return null;
+        String url = data.toString();
+        return url.startsWith("app.athar://auth") ? url : null;
+    }
+
+    /**
+     * Hand the OAuth callback to the web layer as a DOM event. Retries briefly
+     * because on a cold start the browser can return before React has mounted;
+     * without that the user would sign in successfully and land back signed out.
+     */
+    private void deliverPendingAuthUrl() {
+        final String url = pendingAuthUrl;
+        if (url == null) return;
+        pendingAuthUrl = null;
+
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final int[] attempts = {0};
+        final String escaped = url.replace("\\", "\\\\").replace("'", "\\'");
+
+        Runnable attempt = new Runnable() {
+            @Override
+            public void run() {
+                WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+                if (webView == null) {
+                    if (attempts[0]++ < 25) handler.postDelayed(this, 400);
+                    return;
+                }
+                webView.evaluateJavascript(
+                    "(function(){" +
+                        "if(!document.body){return 'wait';}" +
+                        "window.dispatchEvent(new CustomEvent('athar-auth-callback',{detail:{url:'" + escaped + "'}}));" +
+                        "return 'ok';" +
+                    "})()",
+                    value -> {
+                        if (!"\"ok\"".equals(value) && attempts[0]++ < 25) {
+                            handler.postDelayed(this, 400);
+                        }
+                    }
+                );
+            }
+        };
+        handler.post(attempt);
     }
 
     @Override
