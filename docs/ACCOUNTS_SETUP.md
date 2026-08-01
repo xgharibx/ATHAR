@@ -1,5 +1,28 @@
 # Athar accounts — setup checklist
 
+> **Status (done for you, verified against the live ATHAR project):**
+> - [x] **1. Keys** — `VITE_SUPABASE_URL` + publishable key written to `.env.local`
+> - [x] **2. Tables** — migration applied; `athar_sync` + `athar_profiles` exist with RLS.
+>       Verified externally: anonymous SELECT returns `[]`, anonymous INSERT is
+>       refused with `42501`, so a user can only ever reach their own rows.
+> - [x] **5. Email provider** — already enabled; **magic-link sign-in works today**
+> - [x] **6. delete-account function** — deployed
+>
+> **Still needs you (browser only — see steps 3 and 4):**
+> - [ ] **3.** Create the Google OAuth client, then paste ID + secret into Supabase
+> - [ ] **4.** Add the redirect URLs, **including `app.athar://auth`**
+>
+> Why I could not do 3 and 4: creating a Google OAuth client and consent screen
+> is a Console-only operation (no CLI covers it, and `gcloud` isn't installed
+> here). For 4, the CLI's `config push` has no dry-run and would send CLI
+> *defaults* for every auth setting I didn't specify to your production project
+> — it could silently reset things you've configured. A one-minute dashboard
+> edit is the safer trade.
+>
+> Your project ref is **`ojstudhmcypoqfnwugbf`**, so the redirect URI for
+> step 3 is:
+> `https://ojstudhmcypoqfnwugbf.supabase.co/auth/v1/callback`
+
 Everything in the app is built and shipped. The account UI stays **completely
 hidden** until the two environment variables below exist, so this is safe to
 release before you finish these steps.
