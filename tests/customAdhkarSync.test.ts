@@ -65,3 +65,54 @@ describe("custom adhkar reach a second device", () => {
     expect(mergeDoc(local, { dataPacks: "corrupt" }, noBase)).toEqual(local);
   });
 });
+
+describe("deleting a custom dhikr sticks", () => {
+  const withItems = (...t: string[]) => ({ dataPacks: [pack("my_adhkar_pack", [sec("my_adhkar", t)])] });
+
+  it("does not resurrect a dhikr deleted on this device", () => {
+    // The reported bug: union-always meant the other device still had it, so
+    // every sync restored it and the user could never get rid of it.
+    const base = withItems("أ", "ب");
+    const local = withItems("أ");            // user deleted "ب" here
+    const remote = withItems("أ", "ب");      // other device hasn't heard yet
+    expect(texts(mergeDoc(local, remote, { remoteNewer: true, base }))).toEqual(["أ"]);
+  });
+
+  it("accepts a deletion made on the other device", () => {
+    const base = withItems("أ", "ب");
+    expect(texts(mergeDoc(withItems("أ", "ب"), withItems("أ"), { remoteNewer: true, base }))).toEqual(["أ"]);
+  });
+
+  it("still adds a dhikr that was never in base", () => {
+    const base = withItems("أ");
+    const merged = mergeDoc(withItems("أ"), withItems("أ", "جديد"), { remoteNewer: true, base });
+    expect(texts(merged).sort()).toEqual(["أ", "جديد"].sort());
+  });
+
+  it("handles a delete and an add at the same time", () => {
+    const base = withItems("أ", "ب");
+    const local = withItems("أ", "من الهاتف");   // deleted ب, added one
+    const remote = withItems("أ", "ب");
+    expect(texts(mergeDoc(local, remote, { remoteNewer: true, base })).sort())
+      .toEqual(["أ", "من الهاتف"].sort());
+  });
+
+  it("deletes a whole custom category", () => {
+    const base = { dataPacks: [pack("p1", [sec("s", ["أ"])]), pack("p2", [sec("s2", ["ب"])])] };
+    const local = { dataPacks: [pack("p1", [sec("s", ["أ"])])] };
+    const remote = base;
+    const merged = mergeDoc(local, remote, { remoteNewer: true, base }) as Record<string, unknown>;
+    expect((merged.dataPacks as never[]).map((p) => p["packId"])).toEqual(["p1"]);
+  });
+
+  it("deletes a section without touching its siblings", () => {
+    const base = { dataPacks: [pack("p", [sec("s1", ["أ"]), sec("s2", ["ب"])])] };
+    const local = { dataPacks: [pack("p", [sec("s1", ["أ"])])] };
+    const merged = mergeDoc(local, base, { remoteNewer: true, base }) as Record<string, unknown>;
+    expect(((merged.dataPacks as never[])[0]["sections"] as never[]).map((s) => s["id"])).toEqual(["s1"]);
+  });
+
+  it("with no base it still unions, so a first sign-in never deletes", () => {
+    expect(texts(mergeDoc(withItems("أ"), withItems("ب"), noBase)).sort()).toEqual(["أ", "ب"].sort());
+  });
+});

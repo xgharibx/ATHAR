@@ -447,11 +447,10 @@ function asList(v: unknown): unknown[] {
  * a section are UNIONED by their text. Adding a dhikr on either phone can then
  * only ever add.
  */
-function mergePacks(local: unknown, remote: unknown): unknown {
+function mergePacks(local: unknown, remote: unknown, base: unknown): unknown {
   const L = asList(local);
   const R = asList(remote);
-  if (L.length === 0) return R.length === 0 ? L : R;
-  if (R.length === 0) return L;
+  if (L.length === 0 && R.length === 0) return L;
 
   const packId = (p: unknown) => (isRecord(p) && typeof p.packId === "string" ? p.packId : stable(p));
   const index = (arr: unknown[]) => {
@@ -461,23 +460,33 @@ function mergePacks(local: unknown, remote: unknown): unknown {
   };
   const lm = index(L);
   const rm = index(R);
+  const bm = base === undefined || base === null ? null : index(asList(base));
 
   const out: unknown[] = [];
   for (const id of [...lm.keys(), ...rm.keys()]) {
     if (out.some((p) => packId(p) === id)) continue;
     const a = lm.get(id);
     const b = rm.get(id);
+    // Present in base but gone from one side = the user deleted it there.
+    if (bm?.has(id) && !(a && b)) continue;
     if (!a) { out.push(b); continue; }
     if (!b) { out.push(a); continue; }
-    out.push({ ...b, ...a, sections: mergeSections(asList(a.sections), asList(b.sections)) });
+    out.push({
+      ...b,
+      ...a,
+      sections: mergeSections(asList(a.sections), asList(b.sections), bm?.get(id)?.sections),
+    });
   }
   return out;
 }
 
-function mergeSections(local: unknown[], remote: unknown[]): unknown[] {
+function mergeSections(local: unknown[], remote: unknown[], base: unknown): unknown[] {
   const secId = (s: unknown) => (isRecord(s) && typeof s.id === "string" ? s.id : stable(s));
   const rm = new Map<string, Record<string, unknown>>();
   for (const s of remote) if (isRecord(s)) rm.set(secId(s), s);
+  const bm = base === undefined || base === null ? null : new Map<string, Record<string, unknown>>(
+    asList(base).filter(isRecord).map((s) => [secId(s), s] as [string, Record<string, unknown>]),
+  );
 
   const out: unknown[] = [];
   const seen = new Set<string>();
@@ -486,24 +495,52 @@ function mergeSections(local: unknown[], remote: unknown[]): unknown[] {
     const id = secId(s);
     seen.add(id);
     const other = rm.get(id);
-    if (!other) { out.push(s); continue; }
-    out.push({ ...other, ...s, content: unionByText(asList(s.content), asList(other.content)) });
+    if (!other) {
+      if (bm?.has(id)) continue; // deleted on the other device
+      out.push(s);
+      continue;
+    }
+    out.push({
+      ...other,
+      ...s,
+      content: mergeItems(asList(s.content), asList(other.content), bm?.get(id)?.content),
+    });
   }
   for (const s of remote) {
-    if (isRecord(s) && !seen.has(secId(s))) out.push(s);
+    if (!isRecord(s)) continue;
+    const id = secId(s);
+    if (seen.has(id)) continue;
+    if (bm?.has(id)) continue; // deleted locally
+    out.push(s);
   }
   return out;
 }
 
-/** Union adhkar by their text — the only stable identity a written dhikr has. */
-function unionByText(local: unknown[], remote: unknown[]): unknown[] {
+/**
+ * Merge the adhkar inside one section, keyed by text — the only stable identity
+ * a hand-written dhikr has.
+ *
+ * Three-way, not a plain union. An earlier version unioned unconditionally on
+ * the theory that a dhikr the user wrote must never be removed by a merge. That
+ * was wrong in the one direction that matters: deleting a dhikr on one phone
+ * left it present on the other, so every sync faithfully restored it and the
+ * user could never get rid of it. `base` is what distinguishes "the other
+ * device has not heard about this yet" from "the user deleted it".
+ */
+function mergeItems(local: unknown[], remote: unknown[], base: unknown): unknown[] {
   const keyOf = (i: unknown) =>
     isRecord(i) && typeof i.text === "string" ? i.text.trim() : stable(i);
+  const inL = new Set(local.map(keyOf));
+  const inR = new Set(remote.map(keyOf));
+  const inB = base === undefined || base === null ? null : new Set(asList(base).map(keyOf));
+
   const out: unknown[] = [];
   const seen = new Set<string>();
   for (const item of [...local, ...remote]) {
     const k = keyOf(item);
     if (seen.has(k)) continue;
+    // Was in the last agreed snapshot and is now missing on one side: a delete.
+    if (inB?.has(k) && !(inL.has(k) && inR.has(k))) { seen.add(k); continue; }
     seen.add(k);
     out.push(item);
   }
@@ -664,9 +701,10 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
         out[field] = threeWay(toNum(l), toNum(r), toNum(b), hasBase, (a, c) => Math.max(a, c));
         break;
       case "packs":
-        // Deliberately ignores `base`: unioning is the whole point, and a
-        // dhikr the user wrote must never be removed by a merge.
-        out[field] = mergePacks(l, r);
+        // Three-way, so deleting a dhikr on one device actually sticks — see
+        // mergeItems. With no base it degrades to a union, which is right for a
+        // first sign-in.
+        out[field] = mergePacks(l, r, hasBase ? b : null);
         break;
       case "identity":
         // Deliberately ignores `base`: an identity is never "edited", it is
