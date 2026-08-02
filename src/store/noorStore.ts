@@ -1246,9 +1246,25 @@ export const useNoorStore = create<NoorState>()(
 
       ensureDailyResets: (fajrTime) => {
         const civilToday = todayISO();
-        const ibadahToday = fajrTime ? getIbadahDateKey(new Date(), fajrTime) : null;
         const lastCivilResetISO = get().lastCivilResetISO;
         const lastIbadahResetISO = get().lastIbadahResetISO;
+
+        // Fall back to the last Fajr clock this device saw, then to the civil
+        // day. Most callers invoke this with no argument (see the get()
+        // .ensureDailyResets() calls above), and a device that is offline or
+        // has no location permission never gets a live one — so gating the
+        // reset on a live Fajr time meant the reset simply never ran for those
+        // users. Every counter then accumulated forever: adhkar progress, the
+        // quick tasbeeh, and with them the daily leaderboard score, which is
+        // supposed to start from zero each day.
+        //
+        // A boundary that is a few hours off is vastly better than one that
+        // never arrives, so the civil day is the last resort rather than
+        // skipping the reset entirely.
+        const effectiveFajr = fajrTime ?? get().lastKnownFajrTime ?? null;
+        const ibadahToday = effectiveFajr
+          ? getIbadahDateKey(new Date(), effectiveFajr)
+          : civilToday;
 
         const nextState: Partial<NoorState> = {};
 
@@ -1262,7 +1278,7 @@ export const useNoorStore = create<NoorState>()(
           nextState.lastCivilResetISO = civilToday;
         }
 
-        if (ibadahToday && lastIbadahResetISO !== ibadahToday) {
+        if (lastIbadahResetISO !== ibadahToday) {
           const currentProgress = get().progress;
           const nextProgress = { ...currentProgress };
 

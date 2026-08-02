@@ -50,14 +50,24 @@ export function LeaderboardSyncBridge() {
     const onVisible = () => {
       if (document.visibilityState === "visible") triggerRetry();
     };
+    // Cloud sync can hand this device a different leaderboard identity (rank
+    // follows the account now). Today's scores were posted under the old id, so
+    // clear the "already sent this" guard or they would never be posted under
+    // the new one and the day would look empty.
+    const onIdentityChanged = () => {
+      lastSyncedKeyRef.current = "";
+      triggerRetry();
+    };
 
     window.addEventListener("focus", triggerRetry);
     window.addEventListener("online", triggerRetry);
+    window.addEventListener("athar-leaderboard-identity-changed", onIdentityChanged);
     document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       window.removeEventListener("focus", triggerRetry);
       window.removeEventListener("online", triggerRetry);
+      window.removeEventListener("athar-leaderboard-identity-changed", onIdentityChanged);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);

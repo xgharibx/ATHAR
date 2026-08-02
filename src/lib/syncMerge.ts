@@ -121,6 +121,7 @@ const FIELD_KIND: Record<string, SyncKind> = {
   onboardingDone: "settings",
   sectionItemOrder: "settings",
   customPacks: "settings",
+  leaderboardIdentity: "settings",
 };
 
 /**
@@ -147,6 +148,7 @@ type Rule =
   | "listById"
   | "strList"
   | "maxNum"
+  | "identity"
   | "scalar";
 
 const FIELD_RULE: Record<string, Rule> = {
@@ -190,6 +192,8 @@ const FIELD_RULE: Record<string, Rule> = {
   quranStreak: "maxNum",
   tasbeehStreak: "maxNum",
   tasbeehStreakBest: "maxNum",
+
+  leaderboardIdentity: "identity",
 };
 
 /** Which bucket a field belongs to (exported for tests and diagnostics). */
@@ -428,6 +432,38 @@ function asList(v: unknown): unknown[] {
   return Array.isArray(v) ? v : [];
 }
 
+/**
+ * Pick which leaderboard identity an account keeps when two devices each
+ * brought their own.
+ *
+ * Whichever joined earlier wins. Cloud-always-wins would be simpler, but it
+ * would hand the account to whichever device happened to sign in first and
+ * throw away the longer-standing rank — the exact thing the user notices. The
+ * oldest identity is the one most likely to carry real history, and picking by
+ * `joinedAt` is symmetric, so both devices independently reach the same answer
+ * and converge on the next sync instead of fighting.
+ */
+function mergeIdentity(local: unknown, remote: unknown): unknown {
+  const usable = (v: unknown) =>
+    isRecord(v) && typeof v.id === "string" && v.id && typeof v.secret === "string" && v.secret;
+  if (!usable(local)) return usable(remote) ? remote : local;
+  if (!usable(remote)) return local;
+
+  const joined = (v: unknown) => {
+    const raw = (v as Record<string, unknown>).joinedAt;
+    const t = typeof raw === "string" ? Date.parse(raw) : NaN;
+    return Number.isNaN(t) ? Infinity : t;
+  };
+  const lt = joined(local);
+  const rt = joined(remote);
+  if (lt !== rt) return lt < rt ? local : remote;
+  // Same join date (or neither has one): break the tie on the id so both
+  // devices agree rather than each keeping its own forever.
+  const li = String((local as Record<string, unknown>).id);
+  const ri = String((remote as Record<string, unknown>).id);
+  return li <= ri ? local : remote;
+}
+
 function mergeListById(
   local: unknown,
   remote: unknown,
@@ -548,6 +584,11 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
         break;
       case "maxNum":
         out[field] = threeWay(toNum(l), toNum(r), toNum(b), hasBase, (a, c) => Math.max(a, c));
+        break;
+      case "identity":
+        // Deliberately ignores `base`: an identity is never "edited", it is
+        // only ever adopted, so the three-way question doesn't apply.
+        out[field] = mergeIdentity(l, r);
         break;
       default:
         out[field] = threeWay(l, r, b, hasBase, (a, c) => (remoteNewer ? c : a));

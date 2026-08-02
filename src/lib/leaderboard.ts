@@ -447,6 +447,69 @@ export function getLeaderboardIdentity(): LeaderboardIdentity {
   }
 }
 
+/**
+ * The identity triple, for the account sync to carry between devices.
+ *
+ * Leaderboard identity has always lived only in localStorage, which means a
+ * reinstall, a cleared browser, or simply a second device produced a brand new
+ * anonymous user and silently orphaned the old rank. Signing in should make the
+ * rank follow the person, and syncing this triple achieves that with no server
+ * change at all — the leaderboard function still sees the same id and secret,
+ * it just now reaches more than one device.
+ *
+ * `secret` is a credential, so this only ever travels inside the user's own
+ * row-level-security-protected sync document, never anywhere public.
+ */
+export function exportLeaderboardIdentity(): LeaderboardIdentity & { userIndex?: number } {
+  const identity = getLeaderboardIdentity();
+  let userIndex: number | undefined;
+  try {
+    const raw = Number(localStorage.getItem(USER_INDEX_KEY) ?? "0");
+    if (Number.isFinite(raw) && raw > 0) userIndex = raw;
+  } catch {
+    // ignore
+  }
+  return { ...identity, userIndex };
+}
+
+/**
+ * Take on an identity that arrived from another device.
+ *
+ * Returns true when something actually changed, so the caller can refresh any
+ * leaderboard view that is showing "you" — otherwise the user would keep seeing
+ * their old row highlighted until the next reload.
+ */
+export function adoptLeaderboardIdentity(next: unknown): boolean {
+  if (!next || typeof next !== "object") return false;
+  const incoming = next as Partial<LeaderboardIdentity> & { userIndex?: unknown };
+  if (typeof incoming.id !== "string" || !incoming.id) return false;
+  if (typeof incoming.secret !== "string" || !incoming.secret) return false;
+
+  try {
+    ensureMigration();
+    if (localStorage.getItem(ID_KEY) === incoming.id) return false;
+
+    localStorage.setItem(ID_KEY, incoming.id);
+    localStorage.setItem(SECRET_KEY, incoming.secret);
+    if (typeof incoming.alias === "string" && incoming.alias) {
+      localStorage.setItem(ALIAS_KEY, incoming.alias);
+    }
+    if (typeof incoming.joinedAt === "string" && incoming.joinedAt) {
+      localStorage.setItem(JOINED_KEY, incoming.joinedAt);
+    }
+    if (typeof incoming.userIndex === "number" && incoming.userIndex > 0) {
+      localStorage.setItem(USER_INDEX_KEY, String(incoming.userIndex));
+    }
+    // The queue and history belong to the identity we just left behind, so
+    // replaying them would post this device's old scores under the new id.
+    localStorage.removeItem(QUEUE_KEY);
+    localStorage.removeItem(HISTORY_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function setLeaderboardAlias(_alias: string) {
   const identity = getLeaderboardIdentity();
   const canonical = canonicalAliasFromId(identity.id);

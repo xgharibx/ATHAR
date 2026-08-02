@@ -126,21 +126,27 @@ export function AccountPanel() {
                 {sync.phase === "syncing"
                   ? "جارٍ المزامنة…"
                   : sync.phase === "offline"
-                    ? "بدون اتصال — ستُزامن تلقائيًا"
+                    ? "بدون اتصال — ستُزامن تلقائيًا عند عودة الشبكة"
                     : sync.phase === "error"
-                      ? "تعذّرت المزامنة — سنعيد المحاولة"
-                      : `آخر مزامنة ${relativeTime(sync.lastSyncedAt)}`}
+                      ? "تعذّرت المزامنة — نعيد المحاولة تلقائيًا"
+                      : sync.pending
+                        ? "سنحفظ تغييراتك خلال لحظات…"
+                        : `المزامنة تلقائية · آخر مزامنة ${relativeTime(sync.lastSyncedAt)}`}
               </span>
             </div>
+            {/* Deliberately quiet: sync is automatic on edit, on focus, on
+                reconnect and on a timer, and retries itself after a failure.
+                This is an escape hatch for the impatient, not a step anyone
+                has to remember — so it must not look like a required action. */}
             <button
               type="button"
               onClick={() => void syncNow()}
               disabled={sync.phase === "syncing"}
               aria-label="زامن الآن"
-              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[var(--stroke)] px-2 py-1 text-[11px] font-semibold transition active:scale-95 disabled:opacity-40"
+              title="المزامنة تتم تلقائيًا — هذا للتحديث الفوري فقط"
+              className="inline-flex shrink-0 items-center rounded-lg p-1.5 text-[var(--muted-2)] transition hover:text-[var(--accent)] active:scale-95 disabled:opacity-40"
             >
-              <RefreshCw className="h-3 w-3" aria-hidden="true" />
-              زامن الآن
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
           </div>
 

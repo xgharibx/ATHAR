@@ -19,6 +19,7 @@
 import Dexie, { type Table } from "dexie";
 import { useNoorStore } from "@/store/noorStore";
 import { getSupabase, getSession } from "@/lib/authClient";
+import { adoptLeaderboardIdentity, exportLeaderboardIdentity } from "@/lib/leaderboard";
 import {
   SYNC_KINDS,
   bucketize,
@@ -194,7 +195,14 @@ async function runSync(): Promise<boolean> {
     const base = (await kvGet<Partial<SyncBuckets>>(BASE_KEY)) ?? null;
     const lastSyncedAt = meta?.lastSyncedAt ?? 0;
 
-    const localBlob = useNoorStore.getState().exportState() as unknown as SyncBlob;
+    // The leaderboard identity is not part of the store — it lives in
+    // localStorage — but it must travel with the account so rank survives a
+    // reinstall or a second device. Attach it here rather than teaching the
+    // store about the leaderboard.
+    const localBlob = {
+      ...(useNoorStore.getState().exportState() as unknown as SyncBlob),
+      leaderboardIdentity: exportLeaderboardIdentity(),
+    };
     const localBuckets = bucketize(localBlob);
 
     const { data, error } = await supabase
@@ -244,7 +252,10 @@ async function runSync(): Promise<boolean> {
     // Apply back to the app only when the merge actually changed something,
     // so a no-op sync never churns React or re-triggers the dirty flag.
     const mergedBlob = debucketize(mergedBuckets);
-    if (!sameDoc(mergedBlob, localBlob)) {
+    const { leaderboardIdentity: mergedIdentity, ...mergedStoreBlob } = mergedBlob;
+    const { leaderboardIdentity: _localIdentity, ...localStoreBlob } = localBlob;
+
+    if (!sameDoc(mergedStoreBlob, localStoreBlob)) {
       applyingRemote = true;
       try {
         useNoorStore.getState().importState({
@@ -253,11 +264,22 @@ async function runSync(): Promise<boolean> {
           // Whole-field removal is never a user action (the user deletes
           // items, not entire collections), so fall back to local for any
           // field the merge dropped. Per-key deletions still apply.
-          ...localBlob,
-          ...mergedBlob,
+          ...localStoreBlob,
+          ...mergedStoreBlob,
         } as never);
       } finally {
         applyingRemote = false;
+      }
+    }
+
+    // Adopting an identity rewrites localStorage under the leaderboard, so tell
+    // anything showing "you" to re-read rather than keep highlighting the row
+    // of the identity we just left behind.
+    if (mergedIdentity && adoptLeaderboardIdentity(mergedIdentity)) {
+      try {
+        window.dispatchEvent(new CustomEvent("athar-leaderboard-identity-changed"));
+      } catch {
+        /* non-DOM environment */
       }
     }
 
@@ -265,6 +287,7 @@ async function runSync(): Promise<boolean> {
     const now = Date.now();
     await kvSet(META_KEY, { userId, lastSyncedAt: now, dirty: false } satisfies Meta);
 
+    failures = 0;
     setStatus({ phase: "idle", lastSyncedAt: now, error: null, pending: false });
     return true;
   } catch (e) {
@@ -274,8 +297,29 @@ async function runSync(): Promise<boolean> {
       error: offline ? null : e instanceof Error ? e.message : "تعذّرت المزامنة",
       pending: true,
     });
+    // Retry on our own rather than waiting for the user to press anything. The
+    // other triggers (focus, online, poll) can be a long way off — a phone left
+    // on the adhkar screen may not fire any of them for hours.
+    scheduleRetry();
     return false;
   }
+}
+
+/** Consecutive failures, for the retry backoff. Reset by a successful run. */
+let failures = 0;
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleRetry(): void {
+  if (typeof window === "undefined") return;
+  if (retryTimer) return;
+  failures = Math.min(failures + 1, 6);
+  // 5s, 10s, 20s… capped at ~5 min, so a brief blip recovers almost at once
+  // while a sustained outage doesn't hammer the server or the battery.
+  const delay = Math.min(5000 * 2 ** (failures - 1), 5 * 60 * 1000);
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    void syncNow();
+  }, delay);
 }
 
 function sameDoc(a: unknown, b: unknown): boolean {
@@ -347,6 +391,19 @@ export function startCloudSync(): void {
   document.addEventListener("visibilitychange", onVisibility);
   stopFns.push(() => document.removeEventListener("visibilitychange", onVisibility));
 
+  // iOS Safari and the Android WebView can kill a backgrounded page without
+  // ever firing visibilitychange, so pagehide is the last reliable moment to
+  // push. Without it, closing the app right after a session of dhikr loses it.
+  const onPageHide = () => {
+    if (pushTimer) {
+      clearTimeout(pushTimer);
+      pushTimer = null;
+      void syncNow();
+    }
+  };
+  window.addEventListener("pagehide", onPageHide);
+  stopFns.push(() => window.removeEventListener("pagehide", onPageHide));
+
   pollTimer = setInterval(() => {
     if (document.visibilityState === "visible") void syncNow();
   }, POLL_MS);
@@ -363,6 +420,11 @@ export function stopCloudSync(opts?: { forget?: boolean }): void {
     clearInterval(pollTimer);
     pollTimer = null;
   }
+  if (retryTimer) {
+    clearTimeout(retryTimer);
+    retryTimer = null;
+  }
+  failures = 0;
   for (const fn of stopFns) {
     try {
       fn();

@@ -37,12 +37,16 @@ export function buildLeaderboardScoreStats(input: {
   todayISO: string;
 }) {
   const sectionScores: Record<string, number> = {};
+  // Keys we were able to score against a known target, so the dhikr total below
+  // can reuse the clamped value instead of trusting the raw counter.
+  const clampedByKey: Record<string, number> = {};
   for (const section of input.sections) {
     let score = 0;
     section.content.forEach((item, index) => {
       const target = coerceCount(item.count);
       const key = `${section.id}:${index}`;
       const current = Math.min(target, Math.max(0, Number(input.progress[key]) || 0));
+      clampedByKey[key] = current;
       score += current;
     });
     sectionScores[section.id] = score;
@@ -51,7 +55,18 @@ export function buildLeaderboardScoreStats(input: {
   const dailyTasbeeh = getDailyTasbeeh(input.todayISO);
   const rawTasbeeh = Number(input.quickTasbeeh[dailyTasbeeh.key] ?? 0) || 0;
   const tasbeehDailyScore = Math.max(0, Math.min(rawTasbeeh, dailyTasbeeh.target));
-  const dhikr = Object.values(input.progress).reduce((total, value) => total + (Number(value) || 0), 0);
+
+  // Use the same clamped values the per-section boards use. Summing the raw
+  // counters let the global score drift above the sum of its own sections —
+  // a stored count can exceed its target when a dhikr's `count` is lowered in
+  // a data update, or when state arrives from an import. Keys with no matching
+  // section (custom packs) have no target to clamp against, so they pass
+  // through, still floored at zero.
+  const dhikr = Object.entries(input.progress).reduce((total, [key, value]) => {
+    const clamped = clampedByKey[key];
+    if (clamped !== undefined) return total + clamped;
+    return total + Math.max(0, Number(value) || 0);
+  }, 0);
   const quran = Math.max(0, input.quranAyahsToday || 0);
   const prayers = Object.keys(input.prayersDone).filter((key) => input.prayersDone[key]).length;
   const global = dhikr + quran * 3 + prayers * 40 + tasbeehDailyScore;

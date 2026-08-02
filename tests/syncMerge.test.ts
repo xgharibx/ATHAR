@@ -256,3 +256,42 @@ describe("robustness against bad server payloads", () => {
     });
   });
 });
+
+describe("leaderboard identity", () => {
+  const A = { id: "anon_a", secret: "sec_a", alias: "مستخدم ١", joinedAt: "2026-01-05" };
+  const B = { id: "anon_b", secret: "sec_b", alias: "مستخدم ٢", joinedAt: "2026-06-20" };
+
+  it("adopts the cloud identity when this device has none", () => {
+    expect(mergeDoc({}, { leaderboardIdentity: A }, noBase).leaderboardIdentity).toEqual(A);
+  });
+
+  it("uploads the local identity when the cloud has none", () => {
+    expect(mergeDoc({ leaderboardIdentity: A }, {}, noBase).leaderboardIdentity).toEqual(A);
+  });
+
+  it("keeps the older identity, not whichever synced first", () => {
+    // The long-standing rank is the one the user would notice losing.
+    expect(mergeDoc({ leaderboardIdentity: B }, { leaderboardIdentity: A }, noBase).leaderboardIdentity).toEqual(A);
+    expect(mergeDoc({ leaderboardIdentity: A }, { leaderboardIdentity: B }, noBase).leaderboardIdentity).toEqual(A);
+  });
+
+  it("is symmetric, so both devices converge instead of fighting", () => {
+    const fromA = mergeDoc({ leaderboardIdentity: A }, { leaderboardIdentity: B }, noBase);
+    const fromB = mergeDoc({ leaderboardIdentity: B }, { leaderboardIdentity: A }, noBase);
+    expect(fromA.leaderboardIdentity).toEqual(fromB.leaderboardIdentity);
+  });
+
+  it("breaks a tie on id so undated identities still converge", () => {
+    const x = { id: "anon_x", secret: "s" };
+    const y = { id: "anon_y", secret: "s" };
+    expect(mergeDoc({ leaderboardIdentity: y }, { leaderboardIdentity: x }, noBase).leaderboardIdentity).toEqual(x);
+    expect(mergeDoc({ leaderboardIdentity: x }, { leaderboardIdentity: y }, noBase).leaderboardIdentity).toEqual(x);
+  });
+
+  it("ignores a malformed identity rather than adopting a broken one", () => {
+    expect(
+      mergeDoc({ leaderboardIdentity: A }, { leaderboardIdentity: { id: "no_secret" } }, noBase)
+        .leaderboardIdentity,
+    ).toEqual(A);
+  });
+});
