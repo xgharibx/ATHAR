@@ -771,13 +771,24 @@ export const useNoorStore = create<NoorState>()(
       incQuickTasbeeh: (key, target = 100) => {
         get().ensureDailyResets();
         const current = toSafeInt(get().quickTasbeeh[key]);
-        if (current >= target) return current;
-        const next = current + 1;
+        // Past the target the *visible* counter deliberately stops — the sebha
+        // freezes once you reach your goal, and callers detect that by getting
+        // back the same number they had (they use it to suppress the haptic,
+        // see QuickTasbeehFab / Sebha).
+        //
+        // What must NOT stop is the record of the dhikr itself. This early
+        // return used to sit above everything, so the lifetime total, the daily
+        // log and the activity feed that drives streaks and Insights all
+        // stopped with it: set a target of 33, tap 300 times, and 267 taps were
+        // recorded nowhere at all. Only the goal is capped now; every tap is
+        // still counted.
+        const atTarget = current >= target;
+        const next = atTarget ? current : current + 1;
         const dateKey = todayISO();
         // Single set() call: update quickTasbeeh + lifetime + daily log + activity
         // all at once to avoid 4 separate re-renders per tap.
         set((s) => {
-          const quickTasbeeh = { ...s.quickTasbeeh, [key]: next };
+          const quickTasbeeh = atTarget ? s.quickTasbeeh : { ...s.quickTasbeeh, [key]: next };
           const tasbeehLifetime = {
             ...s.tasbeehLifetime,
             [key]: (s.tasbeehLifetime[key] ?? 0) + 1,
@@ -921,18 +932,31 @@ export const useNoorStore = create<NoorState>()(
 
       asmaHusnaCounts: {},
       incAsmaHusnaCount: (id, target = 100) => {
+        get().ensureDailyResets();
         const before = Number(get().asmaHusnaCounts[id] ?? 0);
-        if (before >= target) return before;
-        const next = before + 1;
+        // Same rule as incQuickTasbeeh: the visible per-name counter stops at
+        // the target (callers read the unchanged return value to suppress the
+        // haptic), but the dhikr itself is always recorded.
+        //
+        // This mattered even more here than for the sebha, because
+        // asmaHusnaCounts is never cleared by the daily reset. Once a name
+        // reached 100 it was maxed *permanently*, and with the lifetime and
+        // daily-log writes sitting below the early return, every later tap on
+        // that name disappeared completely — no lifetime, no log, no activity.
+        const atTarget = before >= target;
+        const next = atTarget ? before : before + 1;
         const dateKey = todayISO();
         set((s) => {
           const lifetime = { ...s.tasbeehLifetime, [`asma:${id}`]: (s.tasbeehLifetime[`asma:${id}`] ?? 0) + 1 };
           const day = { ...(s.tasbeehDailyLog[dateKey] ?? {}) };
           day[`asma:${id}`] = (day[`asma:${id}`] ?? 0) + 1;
           return {
-            asmaHusnaCounts: { ...s.asmaHusnaCounts, [id]: next },
+            asmaHusnaCounts: atTarget ? s.asmaHusnaCounts : { ...s.asmaHusnaCounts, [id]: next },
             tasbeehLifetime: lifetime,
             tasbeehDailyLog: { ...s.tasbeehDailyLog, [dateKey]: day },
+            // Was missing entirely, unlike incQuickTasbeeh — so counting the
+            // names of Allah contributed nothing to streaks or Insights.
+            activity: { ...s.activity, [dateKey]: (s.activity[dateKey] ?? 0) + 1 },
           };
         });
         return next;
