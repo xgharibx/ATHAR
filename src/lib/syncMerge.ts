@@ -122,6 +122,7 @@ const FIELD_KIND: Record<string, SyncKind> = {
   sectionItemOrder: "settings",
   customPacks: "settings",
   leaderboardIdentity: "settings",
+  dataPacks: "settings",
 };
 
 /**
@@ -149,6 +150,7 @@ type Rule =
   | "strList"
   | "maxNum"
   | "identity"
+  | "packs"
   | "scalar";
 
 const FIELD_RULE: Record<string, Rule> = {
@@ -194,6 +196,7 @@ const FIELD_RULE: Record<string, Rule> = {
   tasbeehStreakBest: "maxNum",
 
   leaderboardIdentity: "identity",
+  dataPacks: "packs",
 };
 
 /** Which bucket a field belongs to (exported for tests and diagnostics). */
@@ -433,6 +436,81 @@ function asList(v: unknown): unknown[] {
 }
 
 /**
+ * Merge the user's custom adhkar packs.
+ *
+ * A plain list-by-id merge is not enough here. Both phones almost always have a
+ * pack with the SAME id — `my_adhkar_pack` — because that's where every dhikr
+ * the user writes goes. Picking one side would silently delete whatever the
+ * other phone's أذكاري contained, which is the worst outcome in this app.
+ *
+ * So packs merge by packId, sections merge by section id, and the adhkar inside
+ * a section are UNIONED by their text. Adding a dhikr on either phone can then
+ * only ever add.
+ */
+function mergePacks(local: unknown, remote: unknown): unknown {
+  const L = asList(local);
+  const R = asList(remote);
+  if (L.length === 0) return R.length === 0 ? L : R;
+  if (R.length === 0) return L;
+
+  const packId = (p: unknown) => (isRecord(p) && typeof p.packId === "string" ? p.packId : stable(p));
+  const index = (arr: unknown[]) => {
+    const m = new Map<string, Record<string, unknown>>();
+    for (const p of arr) if (isRecord(p)) m.set(packId(p), p);
+    return m;
+  };
+  const lm = index(L);
+  const rm = index(R);
+
+  const out: unknown[] = [];
+  for (const id of [...lm.keys(), ...rm.keys()]) {
+    if (out.some((p) => packId(p) === id)) continue;
+    const a = lm.get(id);
+    const b = rm.get(id);
+    if (!a) { out.push(b); continue; }
+    if (!b) { out.push(a); continue; }
+    out.push({ ...b, ...a, sections: mergeSections(asList(a.sections), asList(b.sections)) });
+  }
+  return out;
+}
+
+function mergeSections(local: unknown[], remote: unknown[]): unknown[] {
+  const secId = (s: unknown) => (isRecord(s) && typeof s.id === "string" ? s.id : stable(s));
+  const rm = new Map<string, Record<string, unknown>>();
+  for (const s of remote) if (isRecord(s)) rm.set(secId(s), s);
+
+  const out: unknown[] = [];
+  const seen = new Set<string>();
+  for (const s of local) {
+    if (!isRecord(s)) continue;
+    const id = secId(s);
+    seen.add(id);
+    const other = rm.get(id);
+    if (!other) { out.push(s); continue; }
+    out.push({ ...other, ...s, content: unionByText(asList(s.content), asList(other.content)) });
+  }
+  for (const s of remote) {
+    if (isRecord(s) && !seen.has(secId(s))) out.push(s);
+  }
+  return out;
+}
+
+/** Union adhkar by their text — the only stable identity a written dhikr has. */
+function unionByText(local: unknown[], remote: unknown[]): unknown[] {
+  const keyOf = (i: unknown) =>
+    isRecord(i) && typeof i.text === "string" ? i.text.trim() : stable(i);
+  const out: unknown[] = [];
+  const seen = new Set<string>();
+  for (const item of [...local, ...remote]) {
+    const k = keyOf(item);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(item);
+  }
+  return out;
+}
+
+/**
  * Pick which leaderboard identity an account keeps when two devices each
  * brought their own.
  *
@@ -584,6 +662,11 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
         break;
       case "maxNum":
         out[field] = threeWay(toNum(l), toNum(r), toNum(b), hasBase, (a, c) => Math.max(a, c));
+        break;
+      case "packs":
+        // Deliberately ignores `base`: unioning is the whole point, and a
+        // dhikr the user wrote must never be removed by a merge.
+        out[field] = mergePacks(l, r);
         break;
       case "identity":
         // Deliberately ignores `base`: an identity is never "edited", it is

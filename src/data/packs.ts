@@ -246,3 +246,40 @@ export function mergeWithPacks(base: AdhkarDB): AdhkarDB {
 
   return { sections: mergedSections };
 }
+
+/**
+ * Sync bridge for custom adhkar.
+ *
+ * Custom adhkar — whole imported categories, and every dhikr the user adds to
+ * "أذكاري" or to an existing category — live here in localStorage, NOT in the
+ * zustand store. `customPacks` in the store is a different, smaller thing. So
+ * none of this was in `exportState()` and none of it ever reached the cloud:
+ * sign in on a second phone and your own adhkar simply weren't there.
+ *
+ * Rather than move the whole pack system into the store (a migration with real
+ * risk of dropping people's adhkar), the sync engine carries it the same way it
+ * carries the leaderboard identity — see syncClient.
+ */
+export function exportDataPacks(): NoorPack[] {
+  return loadPacks();
+}
+
+/** Replace the local packs with the merged set. Returns true if anything changed. */
+export function adoptDataPacks(next: unknown): boolean {
+  if (!Array.isArray(next)) return false;
+  try {
+    const before = localStorage.getItem(KEY);
+    const cleaned = next.filter(
+      (p): p is NoorPack =>
+        !!p && typeof p === "object" &&
+        typeof (p as NoorPack).packId === "string" && !!(p as NoorPack).packId &&
+        Array.isArray((p as NoorPack).sections),
+    );
+    const after = JSON.stringify(cleaned);
+    if (before === after) return false;
+    localStorage.setItem(KEY, after);
+    return true;
+  } catch {
+    return false;
+  }
+}

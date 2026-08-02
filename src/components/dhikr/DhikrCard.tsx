@@ -234,6 +234,12 @@ export function DhikrCard(props: {
   const sourceLabel = (item.source_label || item.source || (sourceUrl ? "فتح المصدر" : "")).trim();
 
   const onCount = () => {
+    // Capture the value BEFORE incrementing: increment() caps at the target and
+    // returns the unchanged number once you are there, so `next === target`
+    // alone is true on every extra tap of an already-finished dhikr. That made
+    // auto-advance re-fire and skip ahead repeatedly. Completion has to mean
+    // the transition into the target, not merely sitting at it.
+    const before = progress;
     const next = increment({ sectionId, index, target });
     tapCountRef.current++;
 
@@ -299,7 +305,7 @@ export function DhikrCard(props: {
     }
 
     // Completion confetti
-    if (next === target) {
+    if (next === target && before < target) {
       // Haptic + auto-advance signal after a short delay
       if (prefs.enableHaptics && navigator.vibrate) navigator.vibrate([15, 8, 15]);
       if (prefs.autoAdvanceDhikr && props.onComplete) {

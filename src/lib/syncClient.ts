@@ -20,6 +20,7 @@ import Dexie, { type Table } from "dexie";
 import { useNoorStore } from "@/store/noorStore";
 import { getSupabase, getSession } from "@/lib/authClient";
 import { adoptLeaderboardIdentity, exportLeaderboardIdentity } from "@/lib/leaderboard";
+import { adoptDataPacks, exportDataPacks } from "@/data/packs";
 import {
   SYNC_KINDS,
   bucketize,
@@ -202,6 +203,11 @@ async function runSync(): Promise<boolean> {
     const localBlob = {
       ...(useNoorStore.getState().exportState() as unknown as SyncBlob),
       leaderboardIdentity: exportLeaderboardIdentity(),
+      // Custom adhkar (whole categories, and every dhikr added to أذكاري) live
+      // in localStorage rather than the store, so they were never in
+      // exportState() and never synced — sign in on a second phone and your own
+      // adhkar were simply missing. See exportDataPacks().
+      dataPacks: exportDataPacks(),
     };
     const localBuckets = bucketize(localBlob);
 
@@ -252,8 +258,8 @@ async function runSync(): Promise<boolean> {
     // Apply back to the app only when the merge actually changed something,
     // so a no-op sync never churns React or re-triggers the dirty flag.
     const mergedBlob = debucketize(mergedBuckets);
-    const { leaderboardIdentity: mergedIdentity, ...mergedStoreBlob } = mergedBlob;
-    const { leaderboardIdentity: _localIdentity, ...localStoreBlob } = localBlob;
+    const { leaderboardIdentity: mergedIdentity, dataPacks: mergedPacks, ...mergedStoreBlob } = mergedBlob;
+    const { leaderboardIdentity: _localIdentity, dataPacks: _localPacks, ...localStoreBlob } = localBlob;
 
     if (!sameDoc(mergedStoreBlob, localStoreBlob)) {
       applyingRemote = true;
@@ -275,6 +281,16 @@ async function runSync(): Promise<boolean> {
     // Adopting an identity rewrites localStorage under the leaderboard, so tell
     // anything showing "you" to re-read rather than keep highlighting the row
     // of the identity we just left behind.
+    // Adopting packs rewrites the adhkar the app renders from, so anything
+    // showing sections has to rebuild rather than keep the old list on screen.
+    if (mergedPacks && adoptDataPacks(mergedPacks)) {
+      try {
+        window.dispatchEvent(new CustomEvent("athar-data-packs-changed"));
+      } catch {
+        /* non-DOM environment */
+      }
+    }
+
     if (mergedIdentity && adoptLeaderboardIdentity(mergedIdentity)) {
       try {
         window.dispatchEvent(new CustomEvent("athar-leaderboard-identity-changed"));

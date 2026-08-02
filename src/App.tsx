@@ -15,6 +15,7 @@ import { syncCustomReminders } from "@/lib/reminderSync";
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { useCloudSync } from "@/hooks/useCloudSync";
+import { useQueryClient } from "@tanstack/react-query";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { ensureAllWbwSurahsCached } from "@/lib/quranWBW";
 import { ANGELS_SECTION } from "@/data/angels";
@@ -349,6 +350,16 @@ export default function App() {
     registerNotificationDeepLinkListener(navigate).then((fn) => { cleanup = fn; });
     return () => { cleanup?.(); };
   }, [navigate]);
+
+  // Custom adhkar arriving from another device change what the adhkar DB
+  // should render, and that DB is a cached query — without invalidating it the
+  // user's own adhkar would sit in localStorage unseen until a full reload.
+  const queryClient = useQueryClient();
+  React.useEffect(() => {
+    const onPacks = () => { void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] }); };
+    window.addEventListener("athar-data-packs-changed", onPacks);
+    return () => window.removeEventListener("athar-data-packs-changed", onPacks);
+  }, [queryClient]);
 
   // Cloud sync runs app-wide (no-op unless signed in) — it has to survive the
   // settings screen unmounting, since that's when the user is actually
