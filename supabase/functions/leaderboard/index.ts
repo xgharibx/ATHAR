@@ -7,7 +7,15 @@ const CORS_HEADERS = {
 };
 
 const WINDOW_MS = 60_000;
-const MAX_REQ_PER_WINDOW = 60;
+// Flood ceiling per IP. Deliberately far above anything a real client does,
+// because one carrier NAT can front thousands of legitimate users — see the
+// comment on rateLimit(). This is a circuit breaker, not a quota.
+const MAX_REQ_PER_WINDOW = 3000;
+// The real quota, applied per leaderboard identity on writes. The client
+// debounces submissions by 2.5s, so a genuinely active user lands well under
+// this; anything above it is a loop or an attack.
+const MAX_WRITES_PER_IDENTITY_PER_WINDOW = 30;
+const LIMITER_MAX_ENTRIES = 20_000;
 const MAX_SCORE = 1_000_000;
 const MAX_SECTION_ITEMS = 64;
 const MAX_DAY_SKEW = 3;
@@ -608,15 +616,38 @@ function readClientKey(req) {
   return ip || cf || real || "unknown";
 }
 
-function rateLimit(req) {
-  const key = readClientKey(req);
+/**
+ * Rate limit.
+ *
+ * This used to key on IP alone at 60 requests/minute, which quietly broke the
+ * app for a large share of real users: mobile carriers across the region put
+ * thousands of subscribers behind one public IP (CGNAT), so a single shared
+ * address burned through the budget within seconds. Everyone behind it then
+ * got "الخادم قيّد الطلبات مؤقتًا" and — because the client backs off for five
+ * minutes on a 429 — simply stopped being counted.
+ *
+ * An IP is therefore the wrong unit. The right unit for writes is the
+ * leaderboard identity, which is what abuse would actually have to scale.
+ * The IP ceiling stays only as a crude flood guard, set high enough that a
+ * shared carrier NAT cannot realistically reach it.
+ */
+function rateLimit(key, max, windowMs = WINDOW_MS) {
   const now = Date.now();
+
+  // The map previously grew forever inside a long-lived isolate. Sweep when it
+  // gets large rather than on every call.
+  if (limiter.size > LIMITER_MAX_ENTRIES) {
+    for (const [k, v] of limiter) {
+      if (now - v.startAt > windowMs) limiter.delete(k);
+    }
+  }
+
   const prev = limiter.get(key);
-  if (!prev || now - prev.startAt > WINDOW_MS) {
+  if (!prev || now - prev.startAt > windowMs) {
     limiter.set(key, { count: 1, startAt: now });
     return true;
   }
-  if (prev.count >= MAX_REQ_PER_WINDOW) return false;
+  if (prev.count >= max) return false;
   prev.count += 1;
   limiter.set(key, prev);
   return true;
@@ -752,7 +783,9 @@ if (!denoRuntime?.serve || !denoRuntime?.env?.get) {
 
 denoRuntime.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
-  if (!rateLimit(req)) return json({ ok: false, error: "rate-limited" }, 429);
+  if (!rateLimit(`ip:${readClientKey(req)}`, MAX_REQ_PER_WINDOW)) {
+    return json({ ok: false, error: "rate-limited" }, 429);
+  }
 
   const supabaseUrl = denoRuntime.env.get("SUPABASE_URL") ?? "";
   const serviceRoleKey = denoRuntime.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -775,6 +808,11 @@ denoRuntime.serve(async (req) => {
     const payload = sanitizePayload(body);
     const validation = validatePayload(payload);
     if (!validation.ok) return json({ ok: false, error: validation.reason }, 400);
+
+    // The real write quota, per identity rather than per IP (see rateLimit).
+    if (!rateLimit(`w:${payload.identity.id}`, MAX_WRITES_PER_IDENTITY_PER_WINDOW)) {
+      return json({ ok: false, error: "rate-limited" }, 429);
+    }
 
     const aliasDecision = await resolveAliasDecision(db, payload.identity.id, payload.identity.alias);
     await auditAliasDecision(db, {
@@ -829,63 +867,72 @@ denoRuntime.serve(async (req) => {
       .eq("day", payload.day)
       .eq("user_id", payload.identity.id);
 
-    if (!dayCountRes.error && (dayCountRes.count ?? 0) > MAX_EVENTS_PER_USER_PER_DAY) {
-      return json({ ok: false, error: "daily-limit" }, 429);
+    const rows = eventRows(payload, aliasDecision.alias);
+
+    // The per-day event cap used to reject the whole submission with a 429,
+    // which meant a heavy user's score silently stopped counting for the rest
+    // of the day. The events table is an audit log; the rollups table is what
+    // ranks people. So past the cap we stop appending history but still record
+    // the score — the user keeps counting, which is the point.
+    const overEventCap =
+      !dayCountRes.error && (dayCountRes.count ?? 0) > MAX_EVENTS_PER_USER_PER_DAY;
+
+    if (!overEventCap) {
+      const insertEvents = await db.from("leaderboard_score_events").insert(rows);
+      if (insertEvents.error) return json({ ok: false, error: "event-insert-failed" }, 500);
     }
 
-    const rows = eventRows(payload, aliasDecision.alias);
-    const insertEvents = await db.from("leaderboard_score_events").insert(rows);
-    if (insertEvents.error) return json({ ok: false, error: "event-insert-failed" }, 500);
+    // Update ONLY this user's rollup rows.
+    //
+    // This previously rebuilt the entire day for every board on every single
+    // submission: select all users' events, delete all rollups for the day,
+    // re-insert them. That is O(all users) work for one person's tap, it got
+    // slower as the app grew, and between the delete and the insert the board
+    // was actually empty for anyone reading it. Two concurrent submissions
+    // could also interleave and drop each other's rows.
+    //
+    // A rollup has always been "this user's best score for this day", so it can
+    // be computed from the incoming payload plus whatever is already stored,
+    // with no reference to anyone else.
+    const publicAlias = publicAliasOrCanonical(payload.identity.id, aliasDecision.alias, null, []);
 
-    const boardSet = new Set(["global", "dhikr", "quran", "prayers", "tasbeeh_daily", "section"]);
+    const existingRes = await db
+      .from("leaderboard_rollups")
+      .select("board,section_id,score")
+      .eq("day", payload.day)
+      .eq("period", "daily")
+      .eq("user_id", payload.identity.id);
 
-    for (const board of boardSet) {
-      const query = db
-        .from("leaderboard_score_events")
-        .select("user_id,alias,score,section_id")
-        .eq("day", payload.day)
-        .eq("board", board);
+    const existing = new Map();
+    for (const row of existingRes.data ?? []) {
+      existing.set(`${row.board}::${row.section_id ?? ""}`, clampInt(row.score));
+    }
 
-      const selected = board === "section" ? query : query.is("section_id", null);
-      const eventsRes = await selected;
-      if (eventsRes.error) continue;
-
-      const grouped = aggregateRows(eventsRes.data ?? [], "max");
-      const rollupRows = grouped.map((g) => ({
+    const now = new Date().toISOString();
+    const rollupRows = rows.map((r) => {
+      const prior = existing.get(`${r.board}::${r.section_id ?? ""}`) ?? 0;
+      return {
         day: payload.day,
         period: "daily",
-        board,
-        section_id: board === "section" ? g.sectionId : null,
-        user_id: g.userId,
-        alias: publicAliasOrCanonical(g.userId, g.alias, null, []),
-        score: g.score,
-        updated_at: new Date().toISOString()
-      }));
+        board: r.board,
+        section_id: r.section_id,
+        user_id: payload.identity.id,
+        alias: publicAlias,
+        // Max, matching the previous aggregate strategy: a late or stale
+        // submission must never drag a day's score back down.
+        score: Math.max(prior, clampInt(r.score)),
+        updated_at: now
+      };
+    });
 
-      const rollupDelete = board === "section"
-        ? await db
-            .from("leaderboard_rollups")
-            .delete()
-            .eq("day", payload.day)
-            .eq("period", "daily")
-            .eq("board", board)
-            .not("section_id", "is", null)
-        : await db
-            .from("leaderboard_rollups")
-            .delete()
-            .eq("day", payload.day)
-            .eq("period", "daily")
-            .eq("board", board)
-            .is("section_id", null);
-
-      if (rollupDelete.error) return json({ ok: false, error: "rollup-delete-failed" }, 500);
-      if (rollupRows.length === 0) continue;
-
-      const rollupInsert = await db.from("leaderboard_rollups").insert(rollupRows);
-      if (rollupInsert.error) return json({ ok: false, error: "rollup-insert-failed" }, 500);
+    if (rollupRows.length > 0) {
+      const rollupUpsert = await db
+        .from("leaderboard_rollups")
+        .upsert(rollupRows, { onConflict: "day,period,board,section_id,user_id" });
+      if (rollupUpsert.error) return json({ ok: false, error: "rollup-upsert-failed" }, 500);
     }
 
-    return json({ ok: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt });
+    return json({ ok: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt, capped: overEventCap });
   }
 
   if (req.method === "GET") {

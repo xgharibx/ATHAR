@@ -116,7 +116,14 @@ const QUEUE_KEY = "noor_lb_queue_v2";
 const HISTORY_KEY = "noor_lb_history_v2";
 const ADMIN_TOKEN_KEY = "noor_lb_admin_token_v1";
 const RATE_LIMIT_UNTIL_KEY = "noor_lb_rate_limit_until";
-const RATE_LIMIT_DEFAULT_BACKOFF_MS = 5 * 60 * 1000; // 5 minutes
+// A 429 used to lock the client out for five full minutes. That was built for
+// a server whose limit was 60 requests/minute *per IP* — which carrier NAT
+// exhausted on behalf of thousands of innocent users, so the long backoff was
+// papering over a server bug rather than protecting anything. The quota is now
+// per identity, so a 429 means this device really is looping; 45 seconds is
+// enough to break the loop without the user's dhikr going uncounted for the
+// rest of the session. A Retry-After header still wins over this.
+const RATE_LIMIT_DEFAULT_BACKOFF_MS = 45 * 1000;
 
 const INVISIBLE_ALIAS_CHARS_RE = /[\u200B-\u200F\u2060\uFEFF]/g;
 const MULTI_SPACE_RE = /\s+/g;
