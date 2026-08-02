@@ -447,7 +447,7 @@ function asList(v: unknown): unknown[] {
  * a section are UNIONED by their text. Adding a dhikr on either phone can then
  * only ever add.
  */
-function mergePacks(local: unknown, remote: unknown, base: unknown): unknown {
+function mergePacks(local: unknown, remote: unknown, base: unknown, remoteNewer: boolean): unknown {
   const L = asList(local);
   const R = asList(remote);
   if (L.length === 0 && R.length === 0) return L;
@@ -474,13 +474,13 @@ function mergePacks(local: unknown, remote: unknown, base: unknown): unknown {
     out.push({
       ...b,
       ...a,
-      sections: mergeSections(asList(a.sections), asList(b.sections), bm?.get(id)?.sections),
+      sections: mergeSections(asList(a.sections), asList(b.sections), bm?.get(id)?.sections, remoteNewer),
     });
   }
   return out;
 }
 
-function mergeSections(local: unknown[], remote: unknown[], base: unknown): unknown[] {
+function mergeSections(local: unknown[], remote: unknown[], base: unknown, remoteNewer: boolean): unknown[] {
   const secId = (s: unknown) => (isRecord(s) && typeof s.id === "string" ? s.id : stable(s));
   const rm = new Map<string, Record<string, unknown>>();
   for (const s of remote) if (isRecord(s)) rm.set(secId(s), s);
@@ -503,7 +503,7 @@ function mergeSections(local: unknown[], remote: unknown[], base: unknown): unkn
     out.push({
       ...other,
       ...s,
-      content: mergeItems(asList(s.content), asList(other.content), bm?.get(id)?.content),
+      content: mergeItems(asList(s.content), asList(other.content), bm?.get(id)?.content, remoteNewer),
     });
   }
   for (const s of remote) {
@@ -527,22 +527,44 @@ function mergeSections(local: unknown[], remote: unknown[], base: unknown): unkn
  * user could never get rid of it. `base` is what distinguishes "the other
  * device has not heard about this yet" from "the user deleted it".
  */
-function mergeItems(local: unknown[], remote: unknown[], base: unknown): unknown[] {
+function mergeItems(
+  local: unknown[],
+  remote: unknown[],
+  base: unknown,
+  remoteNewer: boolean,
+): unknown[] {
   const keyOf = (i: unknown) =>
     isRecord(i) && typeof i.text === "string" ? i.text.trim() : stable(i);
-  const inL = new Set(local.map(keyOf));
-  const inR = new Set(remote.map(keyOf));
-  const inB = base === undefined || base === null ? null : new Set(asList(base).map(keyOf));
+  const index = (arr: unknown[]) => {
+    const m = new Map<string, unknown>();
+    for (const i of arr) m.set(keyOf(i), i);
+    return m;
+  };
+  const lm = index(local);
+  const rm = index(remote);
+  const bm = base === undefined || base === null ? null : index(asList(base));
 
   const out: unknown[] = [];
   const seen = new Set<string>();
   for (const item of [...local, ...remote]) {
     const k = keyOf(item);
     if (seen.has(k)) continue;
-    // Was in the last agreed snapshot and is now missing on one side: a delete.
-    if (inB?.has(k) && !(inL.has(k) && inR.has(k))) { seen.add(k); continue; }
     seen.add(k);
-    out.push(item);
+
+    const inL = lm.has(k);
+    const inR = rm.has(k);
+    // Was in the last agreed snapshot and is now missing on one side: a delete.
+    if (bm?.has(k) && !(inL && inR)) continue;
+    if (!inL) { out.push(rm.get(k)); continue; }
+    if (!inR) { out.push(lm.get(k)); continue; }
+
+    // Same dhikr on both sides. The text matches by definition here, so any
+    // difference is an edit to the count or the benefit — and those must
+    // propagate too. Keeping the first occurrence (always local) silently
+    // reverted the other device's edit.
+    const a = lm.get(k);
+    const c = rm.get(k);
+    out.push(threeWay(a, c, bm?.get(k), Boolean(bm?.has(k)), (x, y) => (remoteNewer ? y : x)));
   }
   return out;
 }
@@ -704,7 +726,7 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
         // Three-way, so deleting a dhikr on one device actually sticks — see
         // mergeItems. With no base it degrades to a union, which is right for a
         // first sign-in.
-        out[field] = mergePacks(l, r, hasBase ? b : null);
+        out[field] = mergePacks(l, r, hasBase ? b : null, remoteNewer);
         break;
       case "identity":
         // Deliberately ignores `base`: an identity is never "edited", it is

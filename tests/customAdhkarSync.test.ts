@@ -116,3 +116,48 @@ describe("deleting a custom dhikr sticks", () => {
     expect(texts(mergeDoc(withItems("أ"), withItems("ب"), noBase)).sort()).toEqual(["أ", "ب"].sort());
   });
 });
+
+describe("editing a custom dhikr", () => {
+  const P = (items: unknown[]) => ({
+    dataPacks: [{ packId: "my_adhkar_pack", name: "n", importedAt: "x",
+      sections: [{ id: "my_adhkar", title: "t", content: items }] }],
+  });
+  const items = (o: unknown) => (o as never)["dataPacks"][0]["sections"][0]["content"];
+
+  it("propagates an edit to the text", () => {
+    const base = P([{ text: "قديم", count: 3 }]);
+    const local = P([{ text: "جديد", count: 3 }]);
+    expect(items(mergeDoc(local, base, { remoteNewer: true, base })))
+      .toEqual([{ text: "جديد", count: 3 }]);
+  });
+
+  it("propagates an edit to the count", () => {
+    // Text is the merge key, so a count-only edit leaves the key unchanged.
+    // Keeping the first occurrence (always local) silently reverted it.
+    const base = P([{ text: "ذكر", count: 3 }]);
+    const merged = mergeDoc(P([{ text: "ذكر", count: 3 }]), P([{ text: "ذكر", count: 99 }]),
+      { remoteNewer: true, base });
+    expect(items(merged)).toEqual([{ text: "ذكر", count: 99 }]);
+  });
+
+  it("propagates an edit to the benefit text", () => {
+    const base = P([{ text: "ذكر", count: 3, benefit: "قديم" }]);
+    const merged = mergeDoc(P([{ text: "ذكر", count: 3, benefit: "قديم" }]),
+      P([{ text: "ذكر", count: 3, benefit: "محدّث" }]), { remoteNewer: true, base });
+    expect(items(merged)[0].benefit).toBe("محدّث");
+  });
+
+  it("keeps this device's edit when the other device did not change it", () => {
+    const base = P([{ text: "ذكر", count: 3 }]);
+    const merged = mergeDoc(P([{ text: "ذكر", count: 50 }]), P([{ text: "ذكر", count: 3 }]),
+      { remoteNewer: true, base });
+    expect(items(merged)).toEqual([{ text: "ذكر", count: 50 }]);
+  });
+
+  it("does not duplicate the dhikr when only the count differs", () => {
+    const base = P([{ text: "ذكر", count: 3 }]);
+    const merged = mergeDoc(P([{ text: "ذكر", count: 7 }]), P([{ text: "ذكر", count: 9 }]),
+      { remoteNewer: true, base });
+    expect(items(merged)).toHaveLength(1);
+  });
+});
