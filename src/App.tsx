@@ -14,6 +14,7 @@ import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotif
 import { syncCustomReminders } from "@/lib/reminderSync";
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
+import { useCloudSync } from "@/hooks/useCloudSync";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { ensureAllWbwSurahsCached } from "@/lib/quranWBW";
 import { ANGELS_SECTION } from "@/data/angels";
@@ -348,6 +349,11 @@ export default function App() {
     registerNotificationDeepLinkListener(navigate).then((fn) => { cleanup = fn; });
     return () => { cleanup?.(); };
   }, [navigate]);
+
+  // Cloud sync runs app-wide (no-op unless signed in) — it has to survive the
+  // settings screen unmounting, since that's when the user is actually
+  // generating the progress worth syncing.
+  useCloudSync();
 
   return (
     <>

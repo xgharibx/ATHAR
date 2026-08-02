@@ -1,34 +1,30 @@
 # Athar accounts — setup checklist
 
-> **Status (done for you, verified against the live ATHAR project):**
-> - [x] **1. Keys** — `VITE_SUPABASE_URL` + publishable key written to `.env.local`
-> - [x] **2. Tables** — migration applied; `athar_sync` + `athar_profiles` exist with RLS.
+> ## ✅ Setup is complete — all six steps verified against the live project
+>
+> - [x] **1. Keys** — `VITE_SUPABASE_URL` + publishable key in `.env.local`
+> - [x] **2. Tables** — `athar_sync` + `athar_profiles` exist with RLS.
 >       Verified externally: anonymous SELECT returns `[]`, anonymous INSERT is
 >       refused with `42501`, so a user can only ever reach their own rows.
-> - [x] **5. Email provider** — already enabled; **magic-link sign-in works today**
+> - [x] **3. Google** — provider enabled, OAuth client resolving. `/auth/v1/authorize`
+>       302s to `accounts.google.com` with `redirect_uri=…/auth/v1/callback`.
+> - [x] **4. Redirect URLs** — `app.athar://auth` **is** allow-listed. Verified by
+>       probe: an unlisted URL is rewritten to the Site URL, `app.athar://auth`
+>       is preserved. (Note the authorize endpoint echoes *any* `redirect_to`;
+>       the allow-list is only enforced at `/verify` and `/callback`, so that is
+>       the endpoint to test against.)
+> - [x] **5. Email provider** — enabled; magic-link sign-in works
 > - [x] **6. delete-account function** — deployed
 >
-> **Still needs you (browser only — see steps 3 and 4):**
-> - [ ] **3.** Create the Google OAuth client, then paste ID + secret into Supabase
-> - [ ] **4.** Add the redirect URLs, **including `app.athar://auth`**
+> **The only thing left before production web:** add `VITE_SUPABASE_URL` and
+> `VITE_SUPABASE_ANON_KEY` to your hosting provider's environment variables.
+> Without them the account card stays hidden on athark.org (by design — see
+> `isAuthConfigured()`), even though it works locally and in the Android build.
 >
-> Why I could not do 3 and 4: creating a Google OAuth client and consent screen
-> is a Console-only operation (no CLI covers it, and `gcloud` isn't installed
-> here). For 4, the CLI's `config push` has no dry-run and would send CLI
-> *defaults* for every auth setting I didn't specify to your production project
-> — it could silently reset things you've configured. A one-minute dashboard
-> edit is the safer trade.
->
-> Your project ref is **`ojstudhmcypoqfnwugbf`**, so the redirect URI for
-> step 3 is:
-> `https://ojstudhmcypoqfnwugbf.supabase.co/auth/v1/callback`
+> Project ref: **`ojstudhmcypoqfnwugbf`**
 
-Everything in the app is built and shipped. The account UI stays **completely
-hidden** until the two environment variables below exist, so this is safe to
-release before you finish these steps.
-
-These are the parts I can't do for you — they need your Google and Supabase
-logins.
+The steps below are kept as a reference for re-doing any of this, or for setting
+up a second environment.
 
 ---
 
@@ -154,3 +150,48 @@ Once accounts ship you are collecting personal data, so:
 2. Sign in with Google → you should land back signed in.
 3. Supabase → **Authentication → Users** → your account is listed.
 4. Sign out, sign back in — you stay you.
+5. Supabase → **Table Editor → athar_sync** → six rows for your user, one per
+   `kind`. That's sync working.
+
+---
+
+## How sync behaves
+
+`src/lib/syncMerge.ts` (rules) and `src/lib/syncClient.ts` (I/O).
+
+Sync is **full-state reconciliation**, not a queue of operations: each run reads
+all local state, reads your six server documents, three-way merges, and writes
+back only what changed. That is what makes it safe offline — however many
+changes pile up in flight mode, the next successful run reconciles all of them,
+and a run that dies half-way just retries.
+
+The rule that drove the design: **sync must never lose data the user can see.**
+Plain last-write-wins would break that — read ten ayahs on the phone, open the
+tablet, and the tablet's older snapshot wins. So every field is merged against
+`base`, the snapshot this device last agreed with the server:
+
+- both sides agree → nothing to decide
+- only the other device moved → take theirs
+- only this device moved → keep ours
+- **both** moved → resolve by type: larger wins for counters and streaks, union
+  for favourites and lists, later writer for plain settings
+
+`base` is also what makes deletion work. Without it, "un-favourite on the phone"
+is indistinguishable from "the tablet hasn't heard about this favourite yet",
+and a union merge resurrects it forever.
+
+On a device with no base — the first sign-in — the rules degrade to pure
+union/max. **An empty or partial cloud can never blank existing local data.**
+
+Two consequences worth knowing:
+
+- **Signing out keeps everything on the device.** Only account *deletion*
+  removes cloud data.
+- **Signing into a different account on the same device discards the old base**
+  first. Skipping that would make every local key look like a deletion against
+  a stranger's snapshot and wipe the device — `tests/syncClient.test.ts` pins
+  this case specifically.
+
+New fields added to `exportState()` sync automatically: anything not listed in
+`FIELD_KIND` falls into the `settings` document rather than silently not
+syncing.

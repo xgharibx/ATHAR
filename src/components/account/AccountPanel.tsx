@@ -12,7 +12,7 @@
  */
 import * as React from "react";
 import { toast } from "react-hot-toast";
-import { LogIn, LogOut, Mail, ShieldCheck, Trash2, Loader2, Check } from "lucide-react";
+import { LogIn, LogOut, Mail, ShieldCheck, Trash2, Loader2, Check, RefreshCw, CloudOff, AlertTriangle } from "lucide-react";
 
 import {
   deleteAccount,
@@ -23,9 +23,25 @@ import {
   signOut,
 } from "@/lib/authClient";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { useSyncStatus } from "@/hooks/useCloudSync";
+import { flushCloudSync, syncNow } from "@/lib/syncClient";
+
+/** "منذ 3 دقائق" — relative, because an absolute timestamp tells the user
+ *  nothing about whether sync is actually keeping up. */
+function relativeTime(ms: number | null): string {
+  if (!ms) return "لم تتم بعد";
+  const secs = Math.max(0, Math.round((Date.now() - ms) / 1000));
+  if (secs < 60) return "الآن";
+  const mins = Math.round(secs / 60);
+  if (mins < 60) return `منذ ${mins} دقيقة`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `منذ ${hours} ساعة`;
+  return `منذ ${Math.round(hours / 24)} يوم`;
+}
 
 export function AccountPanel() {
   const { session, loading, configured } = useAuthSession();
+  const sync = useSyncStatus();
   const [email, setEmail] = React.useState("");
   const [busy, setBusy] = React.useState<null | "google" | "email" | "out" | "delete">(null);
   const [linkSent, setLinkSent] = React.useState(false);
@@ -56,6 +72,9 @@ export function AccountPanel() {
 
   const doSignOut = async () => {
     setBusy("out");
+    // Push anything still sitting in the debounce window first, or the last few
+    // minutes of dhikr would only exist on this device.
+    await flushCloudSync();
     const res = await signOut();
     setBusy(null);
     if (res.ok) toast("تم تسجيل الخروج — بياناتك على هذا الجهاز كما هي", { icon: "👋" });
@@ -91,6 +110,39 @@ export function AccountPanel() {
           <p className="mt-1 text-xs text-[var(--muted)]">
             تُحفظ أذكارك وسلسلتك ومفضلتك وتذكيراتك في حسابك، وتعود معك على أي جهاز.
           </p>
+
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2">
+            <div className="flex min-w-0 items-center gap-2">
+              {sync.phase === "syncing" ? (
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-[var(--accent)]" aria-hidden="true" />
+              ) : sync.phase === "offline" ? (
+                <CloudOff className="h-3.5 w-3.5 shrink-0 text-[var(--muted)]" aria-hidden="true" />
+              ) : sync.phase === "error" ? (
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-[var(--danger)]" aria-hidden="true" />
+              ) : (
+                <Check className="h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+              )}
+              <span className="truncate text-xs text-[var(--muted)]">
+                {sync.phase === "syncing"
+                  ? "جارٍ المزامنة…"
+                  : sync.phase === "offline"
+                    ? "بدون اتصال — ستُزامن تلقائيًا"
+                    : sync.phase === "error"
+                      ? "تعذّرت المزامنة — سنعيد المحاولة"
+                      : `آخر مزامنة ${relativeTime(sync.lastSyncedAt)}`}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => void syncNow()}
+              disabled={sync.phase === "syncing"}
+              aria-label="زامن الآن"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[var(--stroke)] px-2 py-1 text-[11px] font-semibold transition active:scale-95 disabled:opacity-40"
+            >
+              <RefreshCw className="h-3 w-3" aria-hidden="true" />
+              زامن الآن
+            </button>
+          </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
             <button
