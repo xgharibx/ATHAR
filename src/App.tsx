@@ -105,6 +105,7 @@ const QuranPlansPage = React.lazy(() => import("@/pages/QuranPlans").then((m) =>
 const CustomAdhkarPage = React.lazy(() => import("@/pages/CustomAdhkar").then((m) => ({ default: m.CustomAdhkarPage })));
 const NearbyMosquesPage = React.lazy(() => import("@/pages/NearbyMosques").then((m) => ({ default: m.NearbyMosquesPage })));
 const TafsirPage = React.lazy(() => import("@/pages/Tafsir").then((m) => ({ default: m.TafsirPage })));
+const ShortsPage = React.lazy(() => import("@/pages/Shorts").then((m) => ({ default: m.ShortsPage })));
 
 // ── الإعجاز العلمي (MIRC) section ──
 import { IjazShell } from "@/components/layout/IjazShell";
@@ -396,6 +397,7 @@ export default function App() {
           <Route path="c/:id" element={<S><CategoryPage /></S>} />
           <Route path="search" element={<S><SearchPage /></S>} />
           <Route path="favorites" element={<S><FavoritesPage /></S>} />
+          <Route path="shorts" element={<S><ShortsPage /></S>} />
           <Route path="quran" element={<S><QuranPage /></S>} />
           <Route path="quran/plans" element={<S><QuranPlansPage /></S>} />
           <Route path="adhkar/custom" element={<S><CustomAdhkarPage /></S>} />

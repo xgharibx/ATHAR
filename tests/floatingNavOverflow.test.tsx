@@ -49,12 +49,12 @@ describe("overflow button", () => {
     expect(menu()).toBeNull();
   });
 
-  it("opens a menu with the three destinations, in order", () => {
+  it("opens a menu with its destinations, in order", () => {
     mount();
     click(moreBtn());
     expect(menu()).not.toBeNull();
     // Icons only — the labels live in aria-label, not visible text.
-    expect(items().map((b) => b.getAttribute("aria-label"))).toEqual(["الدورات", "الإحصائيات", "المفضلة"]);
+    expect(items().map((b) => b.getAttribute("aria-label"))).toEqual(["مقاطع قصيرة", "الدورات", "الإحصائيات", "المفضلة"]);
     expect(items().every((b) => b.textContent?.trim() === "")).toBe(true);
   });
 

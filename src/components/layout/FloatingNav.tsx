@@ -1,6 +1,6 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { House, BookOpenText, Sparkles, BookMarked, Atom, Trophy, MoreVertical, Clapperboard, BarChart3, Heart } from "lucide-react";
+import { House, BookOpenText, Sparkles, BookMarked, Atom, Trophy, MoreVertical, Clapperboard, BarChart3, Heart, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
 
@@ -28,6 +28,7 @@ const NAV_ITEMS = [
  * every-session ones, so they belong one tap deeper.
  */
 const MORE_ITEMS = [
+  { path: "/shorts", label: "مقاطع قصيرة", icon: Zap },
   { path: "/video-library", label: "الدورات", icon: Clapperboard },
   { path: "/insights", label: "الإحصائيات", icon: BarChart3 },
   { path: "/favorites", label: "المفضلة", icon: Heart },
