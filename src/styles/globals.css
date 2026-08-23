@@ -6343,3 +6343,83 @@ a:focus-visible,
     touch-action: pan-x pan-y;
   }
 }
+
+/* ── Bottom-nav overflow ("المزيد") ──────────────────────────────────────
+   Six tabs is the practical ceiling at Arabic label widths. The overflow
+   holds the three destinations that are real but not every-session, so the
+   bar keeps full-size tap targets instead of scrolling tabs off-screen.
+   ──────────────────────────────────────────────────────────────────────── */
+.floating-nav {
+  /* The menu is positioned against the bar, so the bar is the containing
+     block. It must not clip the popover that rises out of it. */
+  overflow: visible;
+}
+
+.floating-nav-more-menu {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  inset-inline-end: 6px;      /* hugs the overflow button in RTL and LTR */
+  z-index: 1;
+  min-width: 168px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 20px;
+  background: rgba(10, 12, 18, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transform-origin: bottom var(--more-origin, left);
+  animation: floating-nav-more-in 180ms cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Grow from the button it belongs to rather than from nowhere. */
+[dir="rtl"] .floating-nav-more-menu { --more-origin: left; }
+[dir="ltr"] .floating-nav-more-menu { --more-origin: right; }
+
+@keyframes floating-nav-more-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-nav-more-menu { animation: none; }
+}
+
+.floating-nav-more-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+  color: rgba(255, 255, 255, 0.72);
+  transition: color 180ms ease, background 180ms ease, transform 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.floating-nav-more-item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.floating-nav-more-item:active { transform: scale(0.97); }
+
+.floating-nav-more-item.active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.floating-nav-more-item svg { flex-shrink: 0; }
+
+/* The dots read as "open/closed", so no active dot underneath them. */
+.floating-nav-more.active::after { display: none; }

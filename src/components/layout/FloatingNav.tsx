@@ -1,6 +1,7 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { House, BookOpenText, Sparkles, BookMarked, Atom, Trophy } from "lucide-react";
+import { House, BookOpenText, Sparkles, BookMarked, Atom, Trophy, MoreVertical, Clapperboard, BarChart3, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
 
 function todayISO() {
@@ -17,9 +18,28 @@ const NAV_ITEMS = [
   { path: "/leaderboard", label: "الترتيب", icon: Trophy },
 ] as const;
 
+/**
+ * Destinations that live behind the overflow button rather than in the bar.
+ *
+ * Six tabs is already the practical ceiling for a bottom bar at Arabic label
+ * widths; a seventh, eighth and ninth would either shrink every tap target or
+ * push the row into horizontal scrolling, where tabs hide off-screen and stop
+ * looking tappable at all. These three are real destinations but not
+ * every-session ones, so they belong one tap deeper.
+ */
+const MORE_ITEMS = [
+  { path: "/video-library", label: "الدورات", icon: Clapperboard },
+  { path: "/insights", label: "الإحصائيات", icon: BarChart3 },
+  { path: "/favorites", label: "المفضلة", icon: Heart },
+] as const;
+
 export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [hidden, setHidden] = React.useState(false);
+  const [moreOpen, setMoreOpen] = React.useState(false);
+  const moreRef = React.useRef<HTMLDivElement | null>(null);
+  const moreBtnRef = React.useRef<HTMLButtonElement | null>(null);
   const lastScrollY = React.useRef(0);
   const ticking = React.useRef(false);
   const prevPath = React.useRef(location.pathname);
@@ -62,6 +82,39 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
     };
   }, []);
 
+  // Dismiss the overflow menu the way a native one behaves: tap anywhere else,
+  // press Escape, or navigate. Focus returns to the button so keyboard users
+  // are not dropped back at the top of the document.
+  React.useEffect(() => {
+    if (!moreOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (moreRef.current?.contains(t) || moreBtnRef.current?.contains(t)) return;
+      setMoreOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMoreOpen(false);
+        moreBtnRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [moreOpen]);
+
+  // A hidden nav must not leave an orphaned popover floating on screen.
+  React.useEffect(() => {
+    if (hidden || drawerOpen) setMoreOpen(false);
+  }, [hidden, drawerOpen]);
+
+  React.useEffect(() => {
+    setMoreOpen(false);
+  }, [location.pathname]);
+
   // Haptic feedback on tab switch
   React.useEffect(() => {
     if (prevPath.current !== location.pathname) {
@@ -81,6 +134,9 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   };
 
   const isAdhkarPage = location.pathname.startsWith("/c/");
+  // The bar must still show WHERE you are even when the destination lives
+  // behind the overflow, otherwise those three pages look like nowhere.
+  const moreActive = MORE_ITEMS.some((m) => location.pathname.startsWith(m.path));
 
   return (
     <nav
@@ -127,7 +183,57 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
             </NavLink>
           );
         })}
+
+        {/* Overflow — the three destinations that do not fit the bar. */}
+        <button
+          type="button"
+          ref={moreBtnRef}
+          onClick={() => {
+            setMoreOpen((v) => !v);
+            if (navigator.vibrate) navigator.vibrate(8);
+          }}
+          className={`floating-nav-item floating-nav-more ${moreActive || moreOpen ? "active" : ""}`}
+          aria-label="المزيد"
+          aria-haspopup="menu"
+          aria-expanded={moreOpen}
+          aria-controls="floating-nav-more-menu"
+        >
+          <div className="relative" aria-hidden="true">
+            <MoreVertical size={18} strokeWidth={moreActive || moreOpen ? 2.2 : 1.8} />
+          </div>
+          <span aria-hidden="true">المزيد</span>
+        </button>
       </div>
+
+      {moreOpen && (
+        <div
+          id="floating-nav-more-menu"
+          ref={moreRef}
+          role="menu"
+          aria-label="المزيد"
+          className="floating-nav-more-menu"
+        >
+          {MORE_ITEMS.map((item, i) => {
+            const active = location.pathname.startsWith(item.path);
+            return (
+              <button
+                type="button"
+                key={item.path}
+                role="menuitem"
+                autoFocus={i === 0}
+                onClick={() => {
+                  setMoreOpen(false);
+                  navigate(item.path);
+                }}
+                className={`floating-nav-more-item ${active ? "active" : ""}`}
+              >
+                <item.icon size={17} strokeWidth={active ? 2.2 : 1.8} aria-hidden="true" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </nav>
   );
 }
