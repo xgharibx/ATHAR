@@ -13,10 +13,12 @@ export function LeaderboardSyncBridge() {
   const endpoint = (import.meta.env.VITE_LEADERBOARD_ENDPOINT as string | undefined) ?? "";
   const { data } = useAdhkarDB();
   const prayerTimes = usePrayerTimes();
-  const todayKey = useTodayKey({
-    mode: "ibadah",
-    fajrTime: prayerTimes.data?.data?.timings?.Fajr,
-  });
+  // Must use the SAME Fajr value ensureDailyResets falls back to, or the two
+  // day keys disagree between midnight and Fajr on a device whose prayer times
+  // have not loaded — and the guard below would then stall submissions.
+  const lastKnownFajrTime = useNoorStore((state) => state.lastKnownFajrTime);
+  const effectiveFajr = prayerTimes.data?.data?.timings?.Fajr ?? lastKnownFajrTime ?? undefined;
+  const todayKey = useTodayKey({ mode: "ibadah", fajrTime: effectiveFajr });
   const progress = useNoorStore((state) => state.progress);
   const quranAyahsToday = useNoorStore((state) => state.quranDailyAyahs[todayKey] ?? 0);
   const prayersDone = useNoorStore((state) => state.dailyChecklist[todayKey] ?? {});
@@ -89,8 +91,22 @@ export function LeaderboardSyncBridge() {
     // So: never submit while the reset for this day is still outstanding.
     // Nudge it along and wait — lastIbadahResetISO is in the dep list, so the
     // effect re-runs the moment the reset lands.
-    if (!lastIbadahResetISO || lastIbadahResetISO < todayKey) {
-      ensureDailyResets(prayerTimes.data?.data?.timings?.Fajr ?? null);
+    if (lastIbadahResetISO !== todayKey) {
+      // Two mirror-image races, and only exact agreement rules out both:
+      //
+      //   marker BEHIND the day key — the day rolled over but the reset has not
+      //   run, so `progress` still holds yesterday's totals. Submitting posts
+      //   them under today: the inflated scores we saw.
+      //
+      //   marker AHEAD of the day key — the reset ran first and zeroed
+      //   `progress` while the key still points at yesterday. Submitting posts
+      //   a zero under a day the user actually worked, and now that rollups
+      //   accept a newer lower value, that zero WINS and erases the day.
+      //
+      // Both keys derive from the same Fajr value above, so they converge
+      // within a tick; lastIbadahResetISO is in the dep list, so this re-runs
+      // the moment they agree.
+      ensureDailyResets(effectiveFajr ?? null);
       return;
     }
 
@@ -130,7 +146,7 @@ export function LeaderboardSyncBridge() {
     todayKey,
     lastIbadahResetISO,
     ensureDailyResets,
-    prayerTimes.data?.data?.timings?.Fajr,
+    effectiveFajr,
   ]);
 
   return null;

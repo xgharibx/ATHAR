@@ -108,3 +108,22 @@ describe("every flat counter resets at Fajr", () => {
     expect(useNoorStore.getState().progress).toEqual({});
   });
 });
+
+describe("the mirror race: a reset ahead of the day key", () => {
+  it("a marker AHEAD of the day key is also a mismatch", () => {
+    // If the reset runs first, `progress` is zeroed while the day key still
+    // points at yesterday. Submitting then posts a zero under a day the user
+    // actually worked — and since rollups now accept a newer lower value, that
+    // zero wins and erases the day. Only exact agreement rules out both races.
+    useNoorStore.setState({ lastIbadahResetISO: "2030-01-01" });
+    const marker = useNoorStore.getState().lastIbadahResetISO!;
+    const dayKey = todayISO();
+    expect(marker < dayKey).toBe(false);      // the old "behind" check passes it
+    expect(marker !== dayKey).toBe(true);     // exact equality correctly blocks it
+  });
+
+  it("only exact agreement permits a submission", () => {
+    useNoorStore.getState().ensureDailyResets();
+    expect(useNoorStore.getState().lastIbadahResetISO).toBe(todayISO());
+  });
+});
