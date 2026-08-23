@@ -201,6 +201,7 @@ export type ExportBlobV1 = {
   tasbeehLifetime?: Record<string, number>;
   tasbeehDailyLog?: Record<string, Record<string, number>>;
   tasbeehDayTotals?: Record<string, number>;
+  shortsSeen?: Record<string, number>;
   sebhaCustomList?: Array<{ id: string; phrase: string; transliteration?: string; target: number; color: string; createdAt: string }>;
   tasbeehStreak?: number;
   tasbeehStreakBest?: number;
@@ -286,6 +287,15 @@ type NoorState = {
    * is why only the first 33 ever reached the board.
    */
   tasbeehDayTotals: Record<string, number>;
+  /**
+   * Shorts already watched: videoId → epoch ms.
+   *
+   * The feed refuses to replay anything in here while unwatched clips remain,
+   * so reopening never lands on the same video. Pruned to the most recent
+   * 4,000 so it cannot grow without bound.
+   */
+  shortsSeen: Record<string, number>;
+  markShortSeen: (videoId: string) => void;
   incTasbeehDailyLog: (dateKey: string, key: string) => void;
   // Widget bridge: bulk-merge home-screen widget tasbeeh counts into stats
   mergeWidgetTasbeeh: (dateKey: string, counts: Record<string, number>) => void;
@@ -857,6 +867,19 @@ export const useNoorStore = create<NoorState>()(
       },
 
       tasbeehDayTotals: {},
+      shortsSeen: {},
+      markShortSeen: (videoId) =>
+        set((st) => {
+          if (st.shortsSeen[videoId]) return {};
+          const next = { ...st.shortsSeen, [videoId]: Date.now() };
+          const keys = Object.keys(next);
+          if (keys.length > 4000) {
+            // Drop the oldest so a heavy viewer's history stays bounded.
+            keys.sort((a, b) => (next[a] ?? 0) - (next[b] ?? 0));
+            for (const k of keys.slice(0, keys.length - 4000)) delete next[k];
+          }
+          return { shortsSeen: next };
+        }),
       tasbeehDailyLog: {},
       incTasbeehDailyLog: (dateKey, key) => {
         set((s) => {
@@ -1442,6 +1465,7 @@ export const useNoorStore = create<NoorState>()(
           tasbeehLifetime: s.tasbeehLifetime,
           tasbeehDailyLog: s.tasbeehDailyLog,
           tasbeehDayTotals: s.tasbeehDayTotals,
+          shortsSeen: s.shortsSeen,
           sebhaCustomList: s.sebhaCustomList,
           tasbeehStreak: s.tasbeehStreak,
           tasbeehStreakBest: s.tasbeehStreakBest,
@@ -1510,6 +1534,7 @@ export const useNoorStore = create<NoorState>()(
             ? blob.tasbeehDailyLog
             : {}) as Record<string, Record<string, number>>,
           tasbeehDayTotals: sanitizeNumberMap(blob.tasbeehDayTotals as Record<string, number> | undefined),
+          shortsSeen: sanitizeNumberMap(blob.shortsSeen as Record<string, number> | undefined),
           sebhaCustomList: Array.isArray(blob.sebhaCustomList) ? blob.sebhaCustomList : [],
           tasbeehStreak: blob.tasbeehStreak ?? 0,
           tasbeehStreakBest: blob.tasbeehStreakBest ?? 0,
@@ -1598,6 +1623,7 @@ export const useNoorStore = create<NoorState>()(
         tasbeehLifetime: {},
         tasbeehDailyLog: {},
         tasbeehDayTotals: {},
+        shortsSeen: {},
         sebhaSessions: [],
         sebhaCustom: null,
         sebhaCustomList: [],
@@ -1855,7 +1881,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 29,
+      version: 30,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -1911,6 +1937,7 @@ export const useNoorStore = create<NoorState>()(
           tasbeehLifetime: sanitizeNumberMap((state as Partial<NoorState>).tasbeehLifetime),
           tasbeehDailyLog: ((state as Partial<NoorState>).tasbeehDailyLog && typeof (state as Partial<NoorState>).tasbeehDailyLog === 'object' ? (state as Partial<NoorState>).tasbeehDailyLog : {}) as Record<string, Record<string, number>>,
           tasbeehDayTotals: sanitizeNumberMap((state as Partial<NoorState>).tasbeehDayTotals),
+          shortsSeen: sanitizeNumberMap((state as Partial<NoorState>).shortsSeen),
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],

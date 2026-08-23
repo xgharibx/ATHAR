@@ -25,7 +25,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, Volume2, VolumeX, X, Play } from "lucide-react";
 
-import { useVideoLibraryDB } from "@/data/useVideoLibraryDB";
+import { useShortsDB } from "@/data/useShortsDB";
 import { useNoorStore } from "@/store/noorStore";
 import { buildShortsFeed, posterFor, type Short } from "@/lib/shortsFeed";
 
@@ -158,17 +158,32 @@ function ShortCard({
 
 export function ShortsPage() {
   const navigate = useNavigate();
-  const { data } = useVideoLibraryDB();
+  const { data } = useShortsDB();
   const bookmarks = useNoorStore((s) => s.videoLibraryBookmarks);
   const toggleBookmark = useNoorStore((s) => s.toggleVideoBookmark);
+  const markSeen = useNoorStore((s) => s.markShortSeen);
 
-  // Seeded once per visit: a stable order while scrolling, a different one next
-  // time. Re-shuffling on render would teleport the viewer mid-swipe.
+  // Read ONCE. Watch history updates as you scroll, and re-ranking on every
+  // change would rebuild the feed under the viewer's thumb — the current clip
+  // would jump elsewhere the moment it was marked as seen.
+  const seenAtMountRef = React.useRef<Record<string, number> | null>(null);
+  if (seenAtMountRef.current === null) {
+    seenAtMountRef.current = useNoorStore.getState().shortsSeen ?? {};
+  }
   const seedRef = React.useRef(Date.now());
-  const feed = React.useMemo(() => {
-    if (!data) return [];
-    return buildShortsFeed(data.db.videos ?? [], data.db.channels ?? [], seedRef.current);
-  }, [data]);
+
+  const feed = React.useMemo(
+    () =>
+      buildShortsFeed(data ?? null, {
+        seen: seenAtMountRef.current ?? {},
+        liked: bookmarks,
+        seed: seedRef.current,
+      }),
+    // `bookmarks` deliberately omitted: liking a video must not re-rank the
+    // feed you are currently scrolling.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data],
+  );
 
   const [index, setIndex] = React.useState(0);
   const [muted, setMuted] = React.useState(true); // browsers block unmuted autoplay
@@ -190,6 +205,16 @@ export function ShortsPage() {
     for (const el of root.querySelectorAll("[data-index]")) io.observe(el);
     return () => io.disconnect();
   }, [feed.length]);
+
+  // A card counts as watched only after it has held the screen for a moment.
+  // Marking on arrival would burn through the library during a fast scroll and
+  // leave nothing new for the next visit.
+  React.useEffect(() => {
+    const current = feed[index];
+    if (!current) return;
+    const t = window.setTimeout(() => markSeen(current.id), 2500);
+    return () => window.clearTimeout(t);
+  }, [index, feed, markSeen]);
 
   // Desktop: arrows move a card at a time, Escape leaves.
   React.useEffect(() => {

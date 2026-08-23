@@ -1,19 +1,30 @@
 /**
- * Which videos make a shorts feed, and in what order.
+ * What plays next, and why.
  *
- * Pure and data-only so the ordering can be reasoned about (and tested)
- * without mounting a player.
+ * Pure and data-only, so the ranking can be reasoned about and tested without
+ * mounting a player.
+ *
+ * Three rules, in order of how much they matter:
+ *
+ * 1. **Never replay what has been watched** while anything unwatched remains.
+ *    A feed that reopens on the same clip is a feed nobody reopens twice.
+ * 2. **Never run one voice back to back.** With 7,551 shorts across six
+ *    channels, one channel holds 88% of them — a naive shuffle is that channel
+ *    almost exclusively, and a plain round-robin is fair for forty cards and
+ *    then becomes a six-thousand-long tail of the same speaker.
+ * 3. **Lean towards what is new and what the viewer already likes**, without
+ *    ever becoming predictable.
  */
-import type { VideoLibraryChannel, VideoLibraryVideo } from "@/data/videoLibraryTypes";
 
-/**
- * A "short" is under three minutes.
- *
- * YouTube's API exposes no shorts flag and no aspect ratio, so duration is the
- * only signal available. Three minutes is YouTube's own current shorts ceiling;
- * anything longer is a lecture and would break the swipe rhythm.
- */
+/** A "short" is under three minutes — YouTube's own current ceiling. The API
+ *  exposes no shorts flag and no aspect ratio, so duration is the only signal. */
 export const SHORT_MAX_SECONDS = 180;
+
+/** Compact wire format from shorts.json — six fields, not the whole library. */
+export type ShortsIndex = {
+  channels: Array<{ id: string; name: string; avatar?: string; accent?: string }>;
+  items: Array<{ i: string; c: string; t: string; d: number; p?: string }>;
+};
 
 export type Short = {
   id: string;
@@ -24,72 +35,159 @@ export type Short = {
   channelAvatar?: string;
   accent?: string;
   durationSeconds: number;
-  thumbnail?: string;
+  publishedAt?: string;
 };
 
-function seededShuffle<T>(items: T[], seed: number): T[] {
-  // Deterministic per seed, so the order is stable within a session and a
-  // reload does not drop the viewer back into the identical sequence.
-  const out = items.slice();
-  let s = seed || 1;
-  for (let i = out.length - 1; i > 0; i -= 1) {
-    s = (s * 1103515245 + 12345) & 0x7fffffff;
-    const j = s % (i + 1);
-    [out[i], out[j]] = [out[j]!, out[i]!];
+export type RankInput = {
+  /** videoId → epoch ms when it was watched. */
+  seen?: Record<string, number>;
+  /** videoId → true, the likes that already sync with the account. */
+  liked?: Record<string, boolean>;
+  seed?: number;
+  /** Cap the built feed; the UI never needs thousands of slots at once. */
+  limit?: number;
+};
+
+function hash(str: string, seed: number): number {
+  let h = seed >>> 0;
+  for (let i = 0; i < str.length; i += 1) {
+    h = (Math.imul(h ^ str.charCodeAt(i), 2654435761) >>> 0);
   }
-  return out;
+  return h / 0xffffffff;
 }
+
+const DAY_MS = 86_400_000;
 
 /**
- * Interleave by channel so the feed never plays six clips from one voice in a
- * row. Round-robin across channels, each channel internally shuffled — the
- * single biggest difference between a feed that feels alive and a playlist.
+ * Freshness, decaying over roughly a season.
+ *
+ * Undated videos score mid — never pushed to the bottom for a missing field.
  */
-export function buildShortsFeed(
-  videos: VideoLibraryVideo[],
-  channels: VideoLibraryChannel[],
-  seed = Date.now(),
-): Short[] {
-  const channelById = new Map(channels.map((c) => [c.id, c]));
+function recencyScore(publishedAt: string | undefined, now: number): number {
+  if (!publishedAt) return 0.5;
+  const t = Date.parse(publishedAt);
+  if (Number.isNaN(t)) return 0.5;
+  const ageDays = Math.max(0, (now - t) / DAY_MS);
+  return 1 / (1 + ageDays / 90);
+}
 
-  const byChannel = new Map<string, Short[]>();
-  for (const v of videos) {
-    const secs = v.durationSeconds ?? 0;
-    if (secs <= 0 || secs > SHORT_MAX_SECONDS) continue;
-    const yt = v.youtubeId ?? v.id;
-    if (!yt) continue;
-    const ch = channelById.get(v.channelId);
-    const short: Short = {
-      id: v.id,
-      youtubeId: yt,
-      title: v.title ?? "",
-      channelId: v.channelId,
-      channelName: ch?.displayName ?? ch?.title ?? "",
-      channelAvatar: ch?.avatarUrl ?? ch?.avatar,
-      accent: ch?.accent,
-      durationSeconds: secs,
-      thumbnail: v.thumbnail,
-    };
-    const list = byChannel.get(v.channelId) ?? [];
-    list.push(short);
-    byChannel.set(v.channelId, list);
+export function buildShortsFeed(index: ShortsIndex | null, opts: RankInput = {}): Short[] {
+  if (!index?.items?.length) return [];
+  const { seen = {}, liked = {}, seed = 1, limit = 400 } = opts;
+  const now = Date.now();
+
+  const channelById = new Map(index.channels.map((c) => [c.id, c]));
+
+  // Channels the viewer has actually liked from — a real signal, and the only
+  // personalisation available without tracking anything invasive.
+  const likedChannels = new Set<string>();
+  for (const [id, on] of Object.entries(liked)) {
+    if (!on) continue;
+    const item = index.items.find((x) => x.i === id);
+    if (item) likedChannels.add(item.c);
   }
 
+  const toShort = (x: ShortsIndex["items"][number]): Short => {
+    const ch = channelById.get(x.c);
+    return {
+      id: x.i,
+      youtubeId: x.i,
+      title: x.t,
+      channelId: x.c,
+      channelName: ch?.name ?? "",
+      channelAvatar: ch?.avatar,
+      accent: ch?.accent,
+      durationSeconds: x.d,
+      publishedAt: x.p,
+    };
+  };
+
+  const unseen: typeof index.items = [];
+  const watched: typeof index.items = [];
+  for (const x of index.items) {
+    if (x.d <= 0 || x.d > SHORT_MAX_SECONDS) continue;
+    (seen[x.i] ? watched : unseen).push(x);
+  }
+
+  // Score, then bucket by channel. The jitter is hashed from the id and the
+  // seed rather than Math.random, so a given seed always yields the same feed —
+  // re-ranking mid-scroll would teleport the viewer.
+  const byChannel = new Map<string, Array<{ x: (typeof index.items)[number]; s: number }>>();
+  for (const x of unseen) {
+    // Per-ITEM only. A per-channel constant would shift every item in that
+    // channel by the same amount and change nothing at all — the liked signal
+    // belongs on the channel's weight below, where it actually alters how often
+    // the channel comes up.
+    const score = recencyScore(x.p, now) * 1.0 + hash(x.i, seed) * 0.8;
+    const list = byChannel.get(x.c) ?? [];
+    list.push({ x, s: score });
+    byChannel.set(x.c, list);
+  }
+  for (const list of byChannel.values()) list.sort((a, b) => b.s - a.s);
+
+  /**
+   * Weighted round-robin, weight = sqrt(size).
+   *
+   * Straight round-robin exhausts the small channels and leaves a vast tail of
+   * the largest. Weighting by size directly gives that channel 88% of the feed.
+   * The square root sits between the two: bigger libraries appear more often,
+   * with diminishing returns, so no voice ever owns the feed and none vanishes.
+   */
   const queues = [...byChannel.entries()]
     .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([, list], i) => seededShuffle(list, seed + i * 7919));
+    .map(([id, list]) => ({
+      id,
+      list,
+      // Liked channels come up more often — the one piece of personalisation
+      // available without tracking anything the viewer did not volunteer.
+      weight: Math.sqrt(list.length) * (likedChannels.has(id) ? 1.6 : 1),
+      credit: 0,
+      at: 0,
+    }));
 
   const out: Short[] = [];
-  for (let i = 0; queues.some((q) => i < q.length); i += 1) {
+  const cap = Math.min(limit, unseen.length);
+  let lastChannel = "";
+
+  while (out.length < cap) {
+    let pick: (typeof queues)[number] | null = null;
+    let best = -Infinity;
     for (const q of queues) {
-      const item = q[i];
-      if (item) out.push(item);
+      if (q.at >= q.list.length) continue;
+      // Never twice running while any other channel still has something.
+      if (q.id === lastChannel && queues.some((o) => o.id !== q.id && o.at < o.list.length)) continue;
+      const credit = q.credit + q.weight;
+      if (credit > best) {
+        best = credit;
+        pick = q;
+      }
     }
+    if (!pick) break;
+
+    for (const q of queues) q.credit += q.weight;
+    pick.credit -= queues.reduce((sum, q) => sum + q.weight, 0);
+
+    out.push(toShort(pick.list[pick.at]!.x));
+    pick.at += 1;
+    lastChannel = pick.id;
   }
+
+  // Last resort only: every unwatched clip is already in the feed and there is
+  // still room. Bring back the least recently watched rather than dead-end on
+  // an empty screen — but never mix repeats in while new material remains.
+  if (out.length >= unseen.length && out.length < limit && watched.length) {
+    const recycled = watched
+      .slice()
+      .sort((a, b) => (seen[a.i] ?? 0) - (seen[b.i] ?? 0))
+      .slice(0, limit - out.length)
+      .map(toShort);
+    out.push(...recycled);
+  }
+
   return out;
 }
 
-/** Thumbnail at the largest size YouTube reliably serves for every video. */
+/** Thumbnail at the size YouTube serves reliably for every video. */
 export function posterFor(short: Short): string {
-  return short.thumbnail || `https://i.ytimg.com/vi/${short.youtubeId}/hqdefault.jpg`;
+  return `https://i.ytimg.com/vi/${short.youtubeId}/hqdefault.jpg`;
 }

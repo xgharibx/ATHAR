@@ -64,6 +64,7 @@ const FIELD_KIND: Record<string, SyncKind> = {
   tasbeehLifetime: "progress",
   tasbeehDailyLog: "progress",
   tasbeehDayTotals: "progress",
+  shortsSeen: "progress",
   tasbeehStreak: "progress",
   tasbeehStreakBest: "progress",
   tasbeehLastActiveDate: "progress",
@@ -165,6 +166,8 @@ const FIELD_RULE: Record<string, Rule> = {
   hadithProgress: "counter",
   tasbeehDailyLog: "counter2",
   tasbeehDayTotals: "counter",
+  // Watched-at timestamps: the later one wins, so history merges across devices.
+  shortsSeen: "counter",
 
   favorites: "flags",
   libraryFavorites: "flags",
