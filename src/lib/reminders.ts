@@ -893,13 +893,7 @@ export async function registerNotificationDeepLinkListener(
       // N9: "تمت الصلاة" action button — log the prayer directly from the
       // notification shade without opening/navigating the app.
       if (action.actionId === MARK_PRAYED_ACTION_ID) {
-        const prayerName = extra?.prayerName;
-        const dateISO = extra?.dateISO;
-        if (typeof prayerName === "string" && typeof dateISO === "string") {
-          import("@/store/noorStore").then(({ useNoorStore }) => {
-            useNoorStore.getState().setPrayerLogged(dateISO, prayerName, true);
-          });
-        }
+        void applyNotificationAction({ actionId: action.actionId, extra });
         return;
       }
 
@@ -958,10 +952,11 @@ export async function registerNotificationDeepLinkListener(
               ).catch(() => {}),
           );
         }
-        // "done" needs no write: there is no completion ledger for custom
-        // reminders (the Reminders page derives its stats from upcoming
-        // occurrences, not history). Tapping an action dismisses the
-        // notification, which is the whole intent of "تم".
+        if (action.actionId === "done") {
+          // Actually record it. Previously this returned without writing, so
+          // "تم" was decoration — it dismissed the shade and nothing else.
+          void applyNotificationAction({ actionId: "done", extra });
+        }
         return;
       }
 
@@ -978,16 +973,62 @@ export async function registerNotificationDeepLinkListener(
   // booting, so without this the very taps that opened the app were dropped
   // and the user just landed on the home screen. See consumePendingAction.
   const pending = consumePendingNotificationAction();
-  if (pending?.route && pending.route.startsWith("/")) navigate(pending.route);
+  if (pending) {
+    // Apply BEFORE navigating: this is the cold-start path, and it used to
+    // read only the route — the whole reason tapping "اتممت الصلاة" on a
+    // closed app recorded nothing.
+    void applyNotificationAction(pending);
+    if (pending.route && pending.route.startsWith("/")) navigate(pending.route);
+  }
 
   return () => { handle.remove(); };
+}
+
+/**
+ * Record what a notification action actually claims happened.
+ *
+ * This is the difference between the buttons looking right and them working.
+ * Both live taps and cold-start taps funnel through here, because a prayer
+ * notification is almost always tapped with the app CLOSED — and the cold-start
+ * path used to read only `route` from the buffered action and throw the
+ * actionId away, so "اتممت الصلاة" opened the app and recorded nothing.
+ *
+ * Safe to call before React mounts: the store persists to localStorage, which
+ * zustand rehydrates synchronously as the module loads, so this cannot be
+ * clobbered by a later hydration.
+ */
+export async function applyNotificationAction(pending: PendingAction): Promise<void> {
+  const { actionId, extra, route } = pending;
+  if (!actionId) return;
+
+  const { useNoorStore } = await import("@/store/noorStore");
+
+  if (actionId === MARK_PRAYED_ACTION_ID) {
+    const prayerName = extra?.prayerName;
+    const dateISO = extra?.dateISO;
+    if (typeof prayerName === "string" && typeof dateISO === "string") {
+      useNoorStore.getState().setPrayerLogged(dateISO, prayerName, true);
+    }
+    return;
+  }
+
+  if (actionId === "done") {
+    // "تم" on an adhkar reminder now writes to the completion ledger that
+    // Insights and the streak read, instead of only dismissing the shade.
+    // The reminder's own deep link tells us WHICH adhkar section it was.
+    const target = typeof route === "string" ? route : typeof extra?.route === "string" ? extra.route : "";
+    const match = /^\/c\/([A-Za-z0-9_-]+)/.exec(target);
+    if (match?.[1]) {
+      useNoorStore.getState().recordSectionCompletion(match[1]);
+    }
+  }
 }
 
 /**
  * Buffer for a notification action that arrives before the React listener is
  * mounted. Set by the early bootstrap in main.tsx, drained above.
  */
-type PendingAction = { actionId?: string; route?: string };
+type PendingAction = { actionId?: string; route?: string; extra?: Record<string, unknown> };
 let pendingNotificationAction: PendingAction | null = null;
 
 export function setPendingNotificationAction(a: PendingAction): void {

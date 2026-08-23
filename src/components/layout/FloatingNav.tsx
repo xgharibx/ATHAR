@@ -138,7 +138,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   // behind the overflow, otherwise those three pages look like nowhere.
   const moreActive = MORE_ITEMS.some((m) => location.pathname.startsWith(m.path));
 
-  return (
+  const bar = (
     <nav
       className={`floating-nav xl:hidden ${hidden || drawerOpen ? "nav-hidden" : ""}`}
       aria-label="التنقل الرئيسي"
@@ -183,28 +183,21 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
             </NavLink>
           );
         })}
-
-        {/* Overflow — the three destinations that do not fit the bar. */}
-        <button
-          type="button"
-          ref={moreBtnRef}
-          onClick={() => {
-            setMoreOpen((v) => !v);
-            if (navigator.vibrate) navigator.vibrate(8);
-          }}
-          className={`floating-nav-item floating-nav-more ${moreActive || moreOpen ? "active" : ""}`}
-          aria-label="المزيد"
-          aria-haspopup="menu"
-          aria-expanded={moreOpen}
-          aria-controls="floating-nav-more-menu"
-        >
-          <div className="relative" aria-hidden="true">
-            <MoreVertical size={18} strokeWidth={moreActive || moreOpen ? 2.2 : 1.8} />
-          </div>
-          <span aria-hidden="true">المزيد</span>
-        </button>
       </div>
+    </nav>
+  );
 
+  // The overflow lives OUTSIDE the bar: its own floating dot-button, with no
+  // label under it. It cannot sit horizontally beside the bar — six tabs come
+  // to ~318px inside a 359px cap on a 375px screen, leaving no room for a
+  // 44px button — so it floats just above the bar's leading edge, where the
+  // thumb already is after tapping الترتيب.
+  const overflow = (
+    <div
+      className={`floating-nav-dock ${hidden || drawerOpen ? "nav-hidden" : ""}`}
+      style={drawerOpen ? { pointerEvents: "none" } : undefined}
+      aria-hidden={drawerOpen ? "true" : undefined}
+    >
       {moreOpen && (
         <div
           id="floating-nav-more-menu"
@@ -227,13 +220,36 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
                 }}
                 className={`floating-nav-more-item ${active ? "active" : ""}`}
               >
-                <item.icon size={17} strokeWidth={active ? 2.2 : 1.8} aria-hidden="true" />
+                <item.icon size={18} strokeWidth={active ? 2.2 : 1.8} aria-hidden="true" />
                 <span>{item.label}</span>
               </button>
             );
           })}
         </div>
       )}
-    </nav>
+
+      <button
+        type="button"
+        ref={moreBtnRef}
+        onClick={() => {
+          setMoreOpen((v) => !v);
+          if (navigator.vibrate) navigator.vibrate(8);
+        }}
+        className={`floating-nav-dots ${moreActive || moreOpen ? "active" : ""}`}
+        aria-label="المزيد"
+        aria-haspopup="menu"
+        aria-expanded={moreOpen}
+        aria-controls="floating-nav-more-menu"
+      >
+        <MoreVertical size={20} strokeWidth={moreActive || moreOpen ? 2.4 : 2} aria-hidden="true" />
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      {bar}
+      {overflow}
+    </>
   );
 }

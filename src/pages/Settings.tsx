@@ -902,7 +902,9 @@ export function SettingsPage() {
       </Card>
 
       <QuranSettingsCard />
-      <TranslationSettingsCard />
+      {/* Translation-source card hidden on request (2026-08-24). The
+          component and its prefs are untouched — restore by re-adding
+          <TranslationSettingsCard />. */}
 
       <Card id="settings-tasbeeh" className="p-5">
         <div className="flex items-center gap-2">

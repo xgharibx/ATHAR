@@ -2414,13 +2414,7 @@ export function MushafPage() {
               <span className="text-xs opacity-60 tabular-nums w-10 text-center">{toArabicNumeral(Math.round(fontScale * 100))}٪</span>
               <button type="button" aria-label="تكبير الخط" className="mushaf-btn-secondary" onClick={() => bumpFont(0.1)}><ZoomIn size={14} aria-hidden="true" /></button>
             </div>
-            {/* Q3: Translation — same picker + same prefs as Settings.tsx */}
-            <TranslationPicker
-              enabled={showTranslation}
-              value={quranTranslationId}
-              onEnabledChange={setShowTranslationPref}
-              onChange={(id) => setPrefs({ quranTranslationId: id })}
-            />
+            {/* Translation picker hidden on request (2026-08-24). */}
             {/* Q11-B: Inline Tafseer */}
             <div className="mb-3 p-3 rounded-2xl border"
               style={{
@@ -2468,37 +2462,9 @@ export function MushafPage() {
               <Mic2 size={14} aria-hidden="true" />
               {QURAN_RECITERS.find((r) => r.id === (prefs.quranReciter ?? "Alafasy_128kbps"))?.label ?? "مشاري العفاسي"}
             </button>
-            {/* Q7: Playback speed */}
-            <div className="mb-3">
-              <div className="text-xs opacity-50 mb-1.5">سرعة التلاوة</div>
-              <div className="flex gap-1 flex-wrap">
-                {([0.75, 1, 1.25, 1.5, 2] as number[]).map((sp) => (
-                  <button type="button"
-                    key={sp}
-                    onClick={() => setPlaybackSpeed(sp)}
-                    className={`px-2.5 py-1 rounded-xl text-xs border transition ${playbackSpeed === sp ? "bg-accent-20 border-accent-30 text-[var(--accent)]" : "bg-[var(--card)] border-[var(--stroke)] opacity-65"}`}
-                  >{sp}×</button>
-                ))}
-              </div>
-            </div>
-            {/* Audio volume control — persisted per-device so the user
-                doesn't have to adjust it on every session. */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs opacity-50">مستوى الصوت</span>
-                <span className="text-[10px] opacity-50 tabular-nums">{arNum(Math.round(audioVolume * 100))}٪</span>
-              </div>
-              <input
-                type="range" min="0" max="1" step="0.05"
-                value={audioVolume}
-                onChange={(e) => setAudioVolume(parseFloat(e.target.value))}
-                aria-label="مستوى الصوت"
-                className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to left, var(--accent) 0%, var(--accent) ${audioVolume * 100}%, color-mix(in srgb, var(--stroke) 80%, transparent) ${audioVolume * 100}%, color-mix(in srgb, var(--stroke) 80%, transparent) 100%)`,
-                }}
-              />
-            </div>
+            {/* Playback speed and volume controls hidden on request
+                (2026-08-24). Playback still honours the stored values —
+                only the UI is gone, so nothing regresses for existing users. */}
             {/* Q4: Loop count */}
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1.5">
@@ -2897,38 +2863,8 @@ export function MushafPage() {
                 </div>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs opacity-50 flex items-center gap-1"><SlidersHorizontal size={12} aria-hidden="true" />المعادل الصوتي</span>
-                  <button type="button"
-                    onClick={() => setEqEnabled((v) => !v)}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${eqEnabled ? "bg-green-500" : "bg-red-500/25 ring-1 ring-red-500/30"}`}
-                    role="switch" aria-checked={eqEnabled}
-                  >
-                    <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-md transition-all ${eqEnabled ? "right-1" : "right-7"}`} />
-                  </button>
-                </div>
-                {eqEnabled && (
-                  <div className="space-y-2 p-3 rounded-2xl bg-[var(--card)] border border-[var(--stroke)]">
-                    <div className="flex items-center gap-3">
-                      <span className="text-[11px] opacity-50 w-10 shrink-0">باس</span>
-                      <input type="range" min={-12} max={12} step={1} value={bassGain}
-                        aria-label="درجة الباس"
-                        onChange={(e) => setBassGain(Number(e.target.value))}
-                        className="flex-1 h-1 accent-[var(--accent)]" />
-                      <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{bassGain > 0 ? "+" : ""}{bassGain}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[11px] opacity-50 w-10 shrink-0">تريبل</span>
-                      <input type="range" min={-12} max={12} step={1} value={trebleGain}
-                        aria-label="درجة التريبل"
-                        onChange={(e) => setTrebleGain(Number(e.target.value))}
-                        className="flex-1 h-1 accent-[var(--accent)]" />
-                      <span className="text-[11px] opacity-50 w-8 text-left tabular-nums">{trebleGain > 0 ? "+" : ""}{trebleGain}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Audio equalizer hidden on request (2026-08-24). The eq
+                  chain still applies whatever is stored. */}
             </div>
 
             {/* ── Reading plans ── */}

@@ -223,7 +223,10 @@ void (async () => {
     await LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
       const extra = action.notification.extra as Record<string, unknown> | undefined;
       const route = typeof extra?.route === "string" ? (extra.route as string) : undefined;
-      setPendingNotificationAction({ actionId: action.actionId, route });
+      // Carry the whole `extra` through, not just the route: the prayer log
+      // needs prayerName + dateISO, and without them a cold-start tap on
+      // "اتممت الصلاة" had nothing to write even once the actionId was honoured.
+      setPendingNotificationAction({ actionId: action.actionId, route, extra });
     });
   } catch {
     // Non-fatal: the in-app listener still covers warm taps.

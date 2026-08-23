@@ -114,8 +114,17 @@ describe("the six main tabs are untouched", () => {
     }
   });
 
-  it("adds exactly one control to the bar", () => {
+  it("leaves the bar itself at exactly six tabs", () => {
+    // The overflow is NOT a tab — it floats on its own, outside the bar.
     mount();
-    expect(qa(".floating-nav-item").length).toBe(7);
+    expect(qa(".floating-nav .floating-nav-item").length).toBe(6);
+  });
+
+  it("renders the overflow outside the bar, with no label", () => {
+    mount();
+    const dots = q(".floating-nav-dots")!;
+    expect(dots).not.toBeNull();
+    expect(dots.closest(".floating-nav")).toBeNull();
+    expect(dots.textContent?.trim()).toBe("");
   });
 });
