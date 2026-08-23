@@ -210,9 +210,10 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
                   navigate(item.path);
                 }}
                 className={`floating-nav-more-item ${active ? "active" : ""}`}
+                aria-label={item.label}
+                title={item.label}
               >
-                <item.icon size={18} strokeWidth={active ? 2.2 : 1.8} aria-hidden="true" />
-                <span>{item.label}</span>
+                <item.icon size={20} strokeWidth={active ? 2.3 : 1.9} aria-hidden="true" />
               </button>
             );
           })}

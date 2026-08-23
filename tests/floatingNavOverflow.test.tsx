@@ -53,7 +53,9 @@ describe("overflow button", () => {
     mount();
     click(moreBtn());
     expect(menu()).not.toBeNull();
-    expect(items().map((b) => b.textContent)).toEqual(["الدورات", "الإحصائيات", "المفضلة"]);
+    // Icons only — the labels live in aria-label, not visible text.
+    expect(items().map((b) => b.getAttribute("aria-label"))).toEqual(["الدورات", "الإحصائيات", "المفضلة"]);
+    expect(items().every((b) => b.textContent?.trim() === "")).toBe(true);
   });
 
   it("announces itself to screen readers", () => {
@@ -101,7 +103,7 @@ describe("showing where you are", () => {
   it("marks the open page inside the menu", () => {
     mount("/favorites");
     click(moreBtn());
-    const fav = items().find((b) => b.textContent === "المفضلة")!;
+    const fav = items().find((b) => b.getAttribute("aria-label") === "المفضلة")!;
     expect(fav.className).toContain("active");
   });
 });
