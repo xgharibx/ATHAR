@@ -1,0 +1,135 @@
+/**
+ * One way to share, everywhere.
+ *
+ * The web path (`navigator.share`) is not available in the Capacitor Android
+ * WebView at all, so "share as photo" fell through to an <a download> click
+ * that a WebView has nowhere to put — a button that produced no sheet and no
+ * file. Native goes through ShareBridge (see ShareBridgePlugin.java, written
+ * by hand because @capacitor/share's build.gradle breaks current AGP).
+ *
+ * Order matters: native bridge → Web Share with files → Web Share text-only →
+ * download. Each step is a genuine fallback, not a guess.
+ */
+import { Capacitor } from "@capacitor/core";
+
+/** Where the app can be installed. Appended to anything shared. */
+export const STORE_LINKS = {
+  android: "https://play.google.com/store/apps/details?id=com.athar.adhkar",
+  web: "https://www.athark.org",
+} as const;
+
+/**
+ * The invitation appended to shared content.
+ *
+ * Kept to three short lines on purpose. The point of sharing a dhikr is the
+ * dhikr; a long advert underneath it makes the whole message read as promotion
+ * and people stop sending them. This is the pattern the well-behaved Arabic
+ * Islamic apps use — one line of identity, one link, nothing else.
+ */
+export function appInvite(): string {
+  return `\n\n— تطبيق أثر · أذكار وقرآن\n${STORE_LINKS.android}`;
+}
+
+/** Append the invitation unless the text already carries it. */
+export function withInvite(text: string): string {
+  if (text.includes(STORE_LINKS.android)) return text;
+  return `${text}${appInvite()}`;
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onloadend = () => resolve(String(r.result ?? ""));
+    r.onerror = () => reject(new Error("could not read blob"));
+    r.readAsDataURL(blob);
+  });
+}
+
+async function nativeBridge() {
+  if (!Capacitor.isNativePlatform()) return null;
+  try {
+    const { registerPlugin } = await import("@capacitor/core");
+    return registerPlugin<{
+      shareImage(o: { base64: string; filename?: string; text?: string; title?: string }): Promise<void>;
+      shareText(o: { text: string; title?: string }): Promise<void>;
+    }>("ShareBridge");
+  } catch {
+    return null;
+  }
+}
+
+export type ShareResult = "shared" | "downloaded" | "failed";
+
+/** Share an image, with the text (and app invitation) alongside it. */
+export async function shareImageBlob(
+  blob: Blob,
+  opts: { filename?: string; text?: string; title?: string } = {},
+): Promise<ShareResult> {
+  const filename = opts.filename ?? "athar.png";
+  const text = withInvite(opts.text ?? "");
+  const title = opts.title ?? "أثر";
+
+  const bridge = await nativeBridge();
+  if (bridge) {
+    try {
+      await bridge.shareImage({ base64: await blobToBase64(blob), filename, text, title });
+      return "shared";
+    } catch {
+      // fall through — a cancelled sheet and a broken bridge look the same, so
+      // the web paths below are still worth trying.
+    }
+  }
+
+  const file = new File([blob], filename, { type: blob.type || "image/png" });
+  if (typeof navigator !== "undefined" && navigator.share && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title, text });
+      return "shared";
+    } catch {
+      return "failed"; // user dismissed, or the sheet refused
+    }
+  }
+
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    return "downloaded";
+  } catch {
+    return "failed";
+  }
+}
+
+/** Share plain text, with the app invitation appended. */
+export async function shareText(raw: string, title = "أثر"): Promise<ShareResult> {
+  const text = withInvite(raw);
+
+  const bridge = await nativeBridge();
+  if (bridge) {
+    try {
+      await bridge.shareText({ text, title });
+      return "shared";
+    } catch {
+      /* fall through */
+    }
+  }
+
+  if (typeof navigator !== "undefined" && navigator.share) {
+    try {
+      await navigator.share({ text, title });
+      return "shared";
+    } catch {
+      return "failed";
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    return "downloaded"; // copied — the caller words it
+  } catch {
+    return "failed";
+  }
+}

@@ -1,11 +1,19 @@
 import * as React from "react";
+import { shareText } from "@/lib/shareTargets";
+import { celebrate } from "@/lib/celebrate";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { RotateCcw, Lock, Copy, List, ChevronsDown, ArrowUp, Focus, ChevronRight, ChevronLeft, CheckCheck, Plus, X, ArrowUpDown, MoveUp, MoveDown, Timer, Square, MoreHorizontal, Trash2, Share2, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
 
-const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
+/**
+ * Every burst goes through the managed celebration canvas (see lib/celebrate),
+ * which clears itself when the page is hidden. Reaching for canvas-confetti's
+ * global instance directly is what left frozen particles on screen until the
+ * app was relaunched.
+ */
+const getConfetti = async () => (opts: Record<string, unknown>) => { void celebrate([opts]); };
 
 import { DhikrCard } from "@/components/dhikr/DhikrCard";
 import { Button } from "@/components/ui/Button";
@@ -667,8 +675,11 @@ export function DhikrList(props: Readonly<{
                       lines.push("");
                     });
                     const text = lines.join("\n").trim() + "\n\n• أثر";
-                    if (navigator.share) { await navigator.share({ text }).catch(() => {}); }
-                    else { try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); } }
+                    // shareText already falls back to the clipboard when no
+                    // share sheet is available, so the old else-branch is gone.
+                    const r = await shareText(text);
+                    if (r === "downloaded") toast.success("تم النسخ");
+                    else if (r === "failed") toast.error("تعذّرت المشاركة");
                   }}
                 >
                   <Share2 size={16} />

@@ -25,6 +25,7 @@ public class MainActivity extends BridgeActivity {
         SplashScreen.installSplashScreen(this);
         registerPlugin(WidgetRefreshPlugin.class);
         registerPlugin(AuthBridgePlugin.class);
+        registerPlugin(ShareBridgePlugin.class);
         super.onCreate(savedInstanceState);
 
         pendingRoute = readRoute(getIntent());

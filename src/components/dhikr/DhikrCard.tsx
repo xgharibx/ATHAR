@@ -1,4 +1,6 @@
 import * as React from "react";
+import { shareText } from "@/lib/shareTargets";
+import { celebrate } from "@/lib/celebrate";
 import { BookOpen, CheckCircle2, Copy, ExternalLink, Heart, ImageDown, Minus, MoreHorizontal, RotateCcw, Share2, ZoomIn, ZoomOut } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -13,7 +15,13 @@ import { doHaptic } from "@/lib/sebhaHaptics";
 
 // Lazy-load heavy libraries — only imported when actually needed
 // Note: GSAP removed from hot path — ring + ripple now use CSS transitions
-const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
+/**
+ * Every burst goes through the managed celebration canvas (see lib/celebrate),
+ * which clears itself when the page is hidden. Reaching for canvas-confetti's
+ * global instance directly is what left frozen particles on screen until the
+ * app was relaunched.
+ */
+const getConfetti = async () => (opts: Record<string, unknown>) => { void celebrate([opts]); };
 const getToPng = () => import("html-to-image").then((m) => m.toPng);
 import toast from "react-hot-toast";
 
@@ -329,11 +337,11 @@ export function DhikrCard(props: {
   };
 
   const doShareText = async () => {
-    if (navigator.share) {
-      await navigator.share({ text: displayText }).catch(() => {});
-    } else {
-      await doCopy(true);
-    }
+    // shareText handles the native sheet, the web sheet, and a clipboard
+    // fallback, so the old if/else around navigator.share is gone.
+    const r = await shareText(displayText);
+    if (r === "downloaded") toast.success("تم النسخ");
+    else if (r === "failed") await doCopy(true);
   };
 
   const doShareImage = () => {
@@ -370,6 +378,13 @@ export function DhikrCard(props: {
               <MoreHorizontal size={15} aria-hidden="true" className="opacity-70" />
             </IconButton>
 
+            {/* Share as photo sits OUTSIDE the panel, beside the dots — it is
+                used as often as share-as-text and should not cost an extra
+                tap to reach. */}
+            <IconButton aria-label="مشاركة كصورة" onClick={doShareImage}>
+              <ImageDown size={15} aria-hidden="true" className="opacity-70" />
+            </IconButton>
+
             {/* Sliding actions panel */}
             <div
               style={{
@@ -387,10 +402,6 @@ export function DhikrCard(props: {
 
                 <IconButton aria-label="مشاركة النص" onClick={doShareText} tabIndex={actionsOpen ? 0 : -1}>
                   <Share2 size={16} aria-hidden="true" className="opacity-80" />
-                </IconButton>
-
-                <IconButton aria-label="مشاركة كصورة" onClick={doShareImage} tabIndex={actionsOpen ? 0 : -1}>
-                  <ImageDown size={16} aria-hidden="true" className="opacity-80" />
                 </IconButton>
 
                 {/* D5: per-card font scale */}

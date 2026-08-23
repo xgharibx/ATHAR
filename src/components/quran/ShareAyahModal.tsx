@@ -8,6 +8,7 @@
  * already established by SharePosterModal.
  */
 import * as React from "react";
+import { shareImageBlob } from "@/lib/shareTargets";
 import { createPortal } from "react-dom";
 import {
   Share2, Download, X, Sparkles, Wand2, ImageDown, Copy,
@@ -238,10 +239,14 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
       const filename = props.surahName
         ? `athar-${props.surahNumber ?? ""}-${props.ayahNumber ?? ""}.png`
         : "athar-ayah.png";
-      const file = new File([blob], filename, { type: "image/png" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: `${props.surahName ?? "Quran"} ${props.ayahNumber ?? ""}` }).catch(() => {});
-      } else { handleDownload(); }
+      // Native bridge first: navigator.share is absent in the Capacitor
+      // WebView, so this used to fall through to a download it could not do.
+      const result = await shareImageBlob(blob, {
+        filename,
+        title: `${props.surahName ?? "Quran"} ${props.ayahNumber ?? ""}`,
+      });
+      if (result === "downloaded") toast.success("تم تنزيل الصورة");
+      else if (result === "failed") toast.error("تعذّرت المشاركة");
     } catch { toast.error("تعذّر توليد الصورة"); }
   };
 

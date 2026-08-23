@@ -1,4 +1,5 @@
 import * as React from "react";
+import { shareImageBlob } from "@/lib/shareTargets";
 import { createPortal } from "react-dom";
 import { Download, Share2, X, Sparkles, Wand2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -43,12 +44,15 @@ export function SharePosterModal({ text, sectionTitle, count, onClose }: SharePo
   const handleShare = async () => {
     const blob = blobRef.current;
     if (!blob) return;
-    const file = new File([blob], "athar-dhikr.png", { type: "image/png" });
-    if (navigator.share && navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: "أثر" }).catch(() => {});
-    } else {
-      handleDownload();
-    }
+    // Goes through the native bridge on Android/iOS — navigator.share is not
+    // available in the Capacitor WebView, which is why this used to silently
+    // fall through to a download the WebView could not perform.
+    const result = await shareImageBlob(blob, {
+      filename: "athar-dhikr.png",
+      text,
+    });
+    if (result === "downloaded") toast.success("تم تنزيل الصورة");
+    else if (result === "failed") toast.error("تعذّرت المشاركة");
   };
 
   const handleDownload = () => {

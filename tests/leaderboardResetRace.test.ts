@@ -12,16 +12,23 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useNoorStore } from "@/store/noorStore";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
+import { getIbadahDateKey } from "@/lib/dayBoundaries";
 import type { Section } from "@/data/types";
 
 const sections = [
   { id: "morning", title: "الصباح", content: [{ text: "أ", count: 100 }, { text: "ب", count: 100 }] },
 ] as unknown as Section[];
 
+/**
+ * THE ibaadah day — not the civil one.
+ *
+ * These assertions originally compared against the civil date and passed all
+ * day, then failed when the suite happened to run between midnight and Fajr:
+ * with Fajr at 04:30 the ibaadah day is still yesterday, which is exactly the
+ * behaviour under test. The fixture must speak the same calendar the code does.
+ */
 function todayISO() {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return getIbadahDateKey(new Date(), "04:30");
 }
 const YESTERDAY = "2020-01-01";
 

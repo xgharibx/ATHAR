@@ -413,7 +413,11 @@ export async function renderDhikrPosterBlob(
   const textAreaTop = labelY + labelH + 56; // below divider
   const textAreaBottom = footerY - 36;       // above footer
   const textAreaMid = (textAreaTop + textAreaBottom) / 2;
-  const maxWidth = fw - 100;
+  // Optical margins. fw-100 let long lines run almost edge to edge, which
+  // reads as cramped once the frame border is there too. Arabic also needs the
+  // extra side air more than Latin because the baseline carries descenders and
+  // the tashkeel sits above it.
+  const maxWidth = fw - 150;
 
   /** Iteratively pick the largest font size that still fits. */
   function pickFontSize(): { size: number; lineHeight: number; block: BlockMeasure } {
@@ -421,10 +425,15 @@ export async function renderDhikrPosterBlob(
       ctx.font = `700 ${size}px ${FONT_SERIF}`;
       ctx.direction = "rtl";
       ctx.textAlign = "center";
-      return measureArabicBlock(ctx, text, maxWidth, Math.round(size * 1.62));
+      // 1.62 crowded the tashkeel of one line into the letters of the next.
+      // 1.85 gives the marks room without the block drifting apart.
+      return measureArabicBlock(ctx, text, maxWidth, Math.round(size * 1.85));
     };
-    const MAX = 96;
-    const MIN = 34;
+    const MAX = 104;
+    // 34px on a poster this size was genuinely hard to read once shared and
+    // recompressed. Long adhkar now wrap to more lines instead of shrinking
+    // past legibility.
+    const MIN = 42;
     const availableH = textAreaBottom - textAreaTop - 80; // leave translation space
     let lo = MIN, hi = MAX, chosen = MIN;
     while (lo <= hi) {
@@ -551,12 +560,18 @@ export async function renderDhikrPosterBlob(
   ctx.font = `700 22px ${FONT_SERIF}`;
   ctx.fillText("أَثَر  ·  ATHAR", fx + 30, footerY + footerH / 2);
 
-  // right: URL
+  // right: where to get it. Two quiet lines rather than one — the site alone
+  // told nobody this was an app they could install. Kept small and dimmed on
+  // purpose: the dhikr is the point, this is a footnote.
   ctx.direction = "ltr";
   ctx.textAlign = "right";
   ctx.font = `500 20px ${FONT_SANS}`;
   ctx.fillStyle = rgba(theme.fg, 0.65);
-  ctx.fillText(footerUrl, fx + fw - 30, footerY + footerH / 2);
+  ctx.fillText(footerUrl, fx + fw - 30, footerY + footerH / 2 - 10);
+  ctx.direction = "rtl";
+  ctx.font = `500 17px ${FONT_NAKSH}`;
+  ctx.fillStyle = rgba(theme.fg, 0.42);
+  ctx.fillText("حمِّل التطبيق مجانًا", fx + fw - 30, footerY + footerH / 2 + 20);
   ctx.restore();
 
   // → output

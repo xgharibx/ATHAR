@@ -1,4 +1,5 @@
 import * as React from "react";
+import { celebrate } from "@/lib/celebrate";
 import {
   ArrowRight,
   CheckCircle2,
@@ -825,7 +826,7 @@ export function SebhaPage() {
     const todayTotal = Object.values(useNoorStore.getState().tasbeehDailyLog[todayKey] ?? {}).reduce((s, v) => s + (Number(v) ?? 0), 0);
     if (tasbeehDailyGoal > 0 && todayTotal >= tasbeehDailyGoal && tasbeehGoalCelebratedDate !== todayKey) {
       markTasbeehGoalCelebrated(todayKey);
-      const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
+      const getConfetti = async () => (opts: Record<string, unknown>) => { void celebrate([opts]); };
       getConfetti().then((c) => {
         c({ particleCount: 120, spread: 100, startVelocity: 32, scalar: 1, origin: { y: 0.5 } });
       });
@@ -834,7 +835,7 @@ export function SebhaPage() {
       toast.success(`أتممت هدف اليوم (${tasbeehDailyGoal}) 🎉`, { duration: 3500 });
     }
     if (reachedTarget) {
-      const getConfetti = () => import("canvas-confetti").then((m) => m.default ?? m);
+      const getConfetti = async () => (opts: Record<string, unknown>) => { void celebrate([opts]); };
       getConfetti().then((c) => {
         c({ particleCount: 80, spread: 80, startVelocity: 28, scalar: 0.9, origin: { y: 0.6 } });
         setTimeout(() => c({ particleCount: 40, spread: 90, startVelocity: 18, scalar: 0.85, origin: { x: 0.2, y: 0.75 } }), 320);

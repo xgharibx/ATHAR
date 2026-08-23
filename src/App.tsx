@@ -15,6 +15,7 @@ import { syncCustomReminders } from "@/lib/reminderSync";
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { useCloudSync } from "@/hooks/useCloudSync";
+import { resetCelebration } from "@/lib/celebrate";
 import { useQueryClient } from "@tanstack/react-query";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { ensureAllWbwSurahsCached } from "@/lib/quranWBW";
@@ -360,6 +361,10 @@ export default function App() {
     window.addEventListener("athar-data-packs-changed", onPacks);
     return () => window.removeEventListener("athar-data-packs-changed", onPacks);
   }, [queryClient]);
+
+  // Leaving the page mid-celebration is the other way particles get stranded:
+  // the burst belongs to the screen that fired it.
+  React.useEffect(() => { resetCelebration(); }, [location.pathname]);
 
   // Cloud sync runs app-wide (no-op unless signed in) — it has to survive the
   // settings screen unmounting, since that's when the user is actually
