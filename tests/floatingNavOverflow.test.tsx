@@ -127,4 +127,14 @@ describe("the six main tabs are untouched", () => {
     expect(dots.closest(".floating-nav")).toBeNull();
     expect(dots.textContent?.trim()).toBe("");
   });
+
+  it("sits beside the bar in one shared row", () => {
+    // The row owns position and hide state for both, so every body.*-mode rule
+    // that hides the bar takes the dots with it instead of stranding them.
+    mount();
+    const row = q(".floating-nav-row")!;
+    expect(row).not.toBeNull();
+    expect(row.querySelector(".floating-nav")).not.toBeNull();
+    expect(row.querySelector(".floating-nav-dots")).not.toBeNull();
+  });
 });

@@ -139,12 +139,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   const moreActive = MORE_ITEMS.some((m) => location.pathname.startsWith(m.path));
 
   const bar = (
-    <nav
-      className={`floating-nav xl:hidden ${hidden || drawerOpen ? "nav-hidden" : ""}`}
-      aria-label="التنقل الرئيسي"
-      aria-hidden={drawerOpen ? "true" : undefined}
-      style={drawerOpen ? { pointerEvents: "none" } : undefined}
-    >
+    <nav className="floating-nav" aria-label="التنقل الرئيسي">
       <div className="flex items-center gap-0.5">
         {NAV_ITEMS.map((item) => {
           const active = isActive(item.path) || (item.path === "/" && isAdhkarPage);
@@ -193,11 +188,7 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   // 44px button — so it floats just above the bar's leading edge, where the
   // thumb already is after tapping الترتيب.
   const overflow = (
-    <div
-      className={`floating-nav-dock ${hidden || drawerOpen ? "nav-hidden" : ""}`}
-      style={drawerOpen ? { pointerEvents: "none" } : undefined}
-      aria-hidden={drawerOpen ? "true" : undefined}
-    >
+    <div className="floating-nav-dock">
       {moreOpen && (
         <div
           id="floating-nav-more-menu"
@@ -247,9 +238,13 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   );
 
   return (
-    <>
+    <div
+      className={`floating-nav-row xl:hidden ${hidden || drawerOpen ? "nav-hidden" : ""}`}
+      aria-hidden={drawerOpen ? "true" : undefined}
+      style={drawerOpen ? { pointerEvents: "none" } : undefined}
+    >
       {bar}
       {overflow}
-    </>
+    </div>
   );
 }
