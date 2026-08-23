@@ -1315,6 +1315,14 @@ export const useNoorStore = create<NoorState>()(
 
           nextState.progress = nextProgress;
           nextState.quickTasbeeh = {};
+          // Asma al-Husna was the one counter with no reset at all. Each name
+          // caps at its target, so once you had counted a name to 100 it was
+          // finished permanently and could never be counted again — the whole
+          // feature quietly died for anyone who completed it. Every other
+          // counter here starts fresh each Fajr; this one now does too.
+          // (The lifetime totals in tasbeehLifetime are untouched, so nothing
+          // the user has earned is lost.)
+          nextState.asmaHusnaCounts = {};
           nextState.lastIbadahResetISO = ibadahToday;
         }
 

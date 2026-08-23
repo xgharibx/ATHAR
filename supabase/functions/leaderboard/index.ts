@@ -898,19 +898,47 @@ denoRuntime.serve(async (req) => {
 
     const existingRes = await db
       .from("leaderboard_rollups")
-      .select("board,section_id,score")
+      .select("board,section_id,score,generated_at")
       .eq("day", payload.day)
       .eq("period", "daily")
       .eq("user_id", payload.identity.id);
 
     const existing = new Map();
     for (const row of existingRes.data ?? []) {
-      existing.set(`${row.board}::${row.section_id ?? ""}`, clampInt(row.score));
+      existing.set(`${row.board}::${row.section_id ?? ""}`, {
+        score: clampInt(row.score),
+        generatedAt: row.generated_at ? Date.parse(row.generated_at) : NaN
+      });
     }
 
     const now = new Date().toISOString();
+    const incomingGeneratedAt = Date.parse(payload.generatedAt);
+
     const rollupRows = rows.map((r) => {
-      const prior = existing.get(`${r.board}::${r.section_id ?? ""}`) ?? 0;
+      const prior = existing.get(`${r.board}::${r.section_id ?? ""}`);
+      const incoming = clampInt(r.score);
+
+      // A rollup is "this user's total for this day". max() alone was a
+      // defence against out-of-order delivery — a stale submission arriving
+      // late must not drag the day back down — but it also made any wrong-high
+      // value permanent, which is what let the Fajr carry-over bug stick for a
+      // whole day. Ordering by the CLIENT's generatedAt answers the question
+      // properly: a genuinely newer snapshot is the current total and wins
+      // outright, higher OR lower. Anything we cannot order still falls back
+      // to max(), so late arrivals stay harmless.
+      let score;
+      if (!prior) {
+        score = incoming;
+      } else if (
+        Number.isFinite(incomingGeneratedAt) &&
+        Number.isFinite(prior.generatedAt) &&
+        incomingGeneratedAt > prior.generatedAt
+      ) {
+        score = incoming;
+      } else {
+        score = Math.max(prior.score, incoming);
+      }
+
       return {
         day: payload.day,
         period: "daily",
@@ -918,9 +946,8 @@ denoRuntime.serve(async (req) => {
         section_id: r.section_id,
         user_id: payload.identity.id,
         alias: publicAlias,
-        // Max, matching the previous aggregate strategy: a late or stale
-        // submission must never drag a day's score back down.
-        score: Math.max(prior, clampInt(r.score)),
+        score,
+        generated_at: payload.generatedAt,
         updated_at: now
       };
     });

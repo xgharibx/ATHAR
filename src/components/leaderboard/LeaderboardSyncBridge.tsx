@@ -21,6 +21,8 @@ export function LeaderboardSyncBridge() {
   const quranAyahsToday = useNoorStore((state) => state.quranDailyAyahs[todayKey] ?? 0);
   const prayersDone = useNoorStore((state) => state.dailyChecklist[todayKey] ?? {});
   const quickTasbeeh = useNoorStore((state) => state.quickTasbeeh);
+  const lastIbadahResetISO = useNoorStore((state) => state.lastIbadahResetISO);
+  const ensureDailyResets = useNoorStore((state) => state.ensureDailyResets);
   const [retryTick, setRetryTick] = React.useState(0);
   const lastSyncedKeyRef = React.useRef("");
   const syncingRef = React.useRef(false);
@@ -74,6 +76,22 @@ export function LeaderboardSyncBridge() {
 
   React.useEffect(() => {
     if (!endpoint || sections.length === 0) return;
+
+    // The day key flips at Fajr on its own timer; `progress` only clears when
+    // ensureDailyResets runs. Nothing used to couple the two, so in the window
+    // between them this bridge would post YESTERDAY's totals under TODAY's
+    // date — and because the server rolls scores up with max(), that inflated
+    // number then stuck for the whole day and the later zero could never pull
+    // it back down. That is the "it didn't reset at Fajr" symptom.
+    //
+    // So: never submit while the reset for this day is still outstanding.
+    // Nudge it along and wait — lastIbadahResetISO is in the dep list, so the
+    // effect re-runs the moment the reset lands.
+    if (!lastIbadahResetISO || lastIbadahResetISO < todayKey) {
+      ensureDailyResets(prayerTimes.data?.data?.timings?.Fajr ?? null);
+      return;
+    }
+
     if (snapshotKey === lastSyncedKeyRef.current) return;
     if (isRateLimited()) return;
 
@@ -101,7 +119,17 @@ export function LeaderboardSyncBridge() {
     }, AUTO_SYNC_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [endpoint, retryTick, sections.length, snapshotKey, stats.scores, todayKey]);
+  }, [
+    endpoint,
+    retryTick,
+    sections.length,
+    snapshotKey,
+    stats.scores,
+    todayKey,
+    lastIbadahResetISO,
+    ensureDailyResets,
+    prayerTimes.data?.data?.timings?.Fajr,
+  ]);
 
   return null;
 }
