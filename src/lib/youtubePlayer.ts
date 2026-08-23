@@ -86,6 +86,10 @@ export type CreatePlayerOptions = {
   onEnded?: () => void;
   onStateChange?: (state: number) => void;
   onReady?: (player: YTPlayer) => void;
+  /** The video cannot play here at all — deleted, private, region-locked, or
+   *  embedding disabled by its owner. The feed must move on rather than sit on
+   *  YouTube's error screen. */
+  onUnplayable?: (code: number) => void;
 };
 
 /** Create a player inside `host`. Returns null if the API is unavailable. */
@@ -102,9 +106,17 @@ export async function createPlayer(
 
   return new Promise<YTPlayer | null>((resolve) => {
     const player = new YT.Player(host, {
+      // The privacy-preserving host, matching what the plain embed used.
+      host: "https://www.youtube-nocookie.com",
       videoId: opts.videoId,
       playerVars: {
         autoplay: 1,
+        // YouTube decides embed permission partly from the requesting origin.
+        // Without an explicit one it can refuse with error 152 on some origins
+        // and browsers — which is exactly what localhost was hitting while the
+        // deployed site played the same clip fine.
+        origin: typeof window !== "undefined" ? window.location.origin : undefined,
+        enablejsapi: 1,
         mute: opts.muted ? 1 : 0,
         playsinline: 1,
         controls: 0,
@@ -119,7 +131,12 @@ export async function createPlayer(
           opts.onReady?.(player);
           resolve(player);
         },
-        onError: () => resolve(null),
+        onError: (e: { data: number }) => {
+          // Swallowing this left the card frozen on "This video is
+          // unavailable" with no way forward. Tell the caller so it can skip.
+          opts.onUnplayable?.(e?.data ?? 0);
+          resolve(null);
+        },
         onStateChange: (e: { data: number }) => {
           opts.onStateChange?.(e.data);
           if (e.data === YT_STATE.ENDED) opts.onEnded?.();

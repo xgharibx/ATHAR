@@ -115,6 +115,11 @@ describe("ayahPoster — composition contract", () => {
     expect(h).toBe(1350);
   });
 
+  // 6 backgrounds x 3 fonts x 5 colours = 90 full 1080x1350 renders. The default
+  // 5s budget leaves no headroom, and when this test times out its loop keeps
+  // rendering in the background and overwrites the `lastCtx` the NEXT test reads
+  // — which is how one slow run produced two unrelated-looking failures. The
+  // point here is that no combination throws, not that it is quick.
   it("renders without error for every background / font / color combo", async () => {
     for (const bg of AYAH_BACKGROUND_OPTIONS) {
       for (const fnt of AYAH_FONT_OPTIONS) {
@@ -135,7 +140,7 @@ describe("ayahPoster — composition contract", () => {
         }
       }
     }
-  });
+  }, 60_000);
 
   it("honours showTranslation — extra fillText when on", async () => {
     const base: AyahPosterConfig = {

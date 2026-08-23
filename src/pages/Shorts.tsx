@@ -57,6 +57,8 @@ function ShortCard({
   onToggleLike,
   onToggleMute,
   onEnded,
+  unplayable,
+  onUnplayable,
 }: {
   short: Short;
   active: boolean;
@@ -66,30 +68,44 @@ function ShortCard({
   onToggleLike: () => void;
   onToggleMute: () => void;
   onEnded: () => void;
+  unplayable: boolean;
+  onUnplayable: () => void;
 }) {
   const [burst, setBurst] = React.useState(false);
   const [paused, setPaused] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
+  // Set when the IFrame API itself could not be loaded — offline, or blocked by
+  // an extension. Distinct from `unplayable`, which is one bad video.
+  const [apiFailed, setApiFailed] = React.useState(false);
   const hostRef = React.useRef<HTMLDivElement | null>(null);
   const playerRef = React.useRef<YTPlayer | null>(null);
   const lastTap = React.useRef(0);
   // Latest callback without re-creating the player on every render.
   const endedRef = React.useRef(onEnded);
   endedRef.current = onEnded;
+  const unplayableRef = React.useRef(onUnplayable);
+  unplayableRef.current = onUnplayable;
 
   // Build a player only for the ACTIVE card and tear it down on the way out.
   // Players left alive off-screen are what turn a feed into a memory leak.
   React.useEffect(() => {
-    if (!mounted || !active || !hostRef.current) return;
+    if (!mounted || !active || unplayable || !hostRef.current) return;
     let cancelled = false;
     const host = hostRef.current;
     const mountPoint = document.createElement("div");
     host.appendChild(mountPoint);
 
+    // Distinguishes "this one video is refused" from "the API never loaded".
+    let refused = false;
+
     void createPlayer(mountPoint, {
       videoId: short.youtubeId,
       muted,
       onEnded: () => endedRef.current(),
+      onUnplayable: () => {
+        refused = true;
+        if (!cancelled) unplayableRef.current();
+      },
       onStateChange: (st) => {
         if (cancelled) return;
         if (st === YT_STATE.PLAYING) setPaused(false);
@@ -101,6 +117,11 @@ function ShortCard({
         return;
       }
       playerRef.current = pl;
+      // No player and no refusal means the API never loaded. Skipping would be
+      // wrong — every clip would fail and the feed would race through the whole
+      // library. Show a plain embed instead: no progress bar or auto-advance,
+      // but it plays, which beats a poster that does nothing forever.
+      if (!pl && !refused) setApiFailed(true);
     });
 
     return () => {
@@ -114,11 +135,12 @@ function ShortCard({
       host.replaceChildren();
       setProgress(0);
       setPaused(false);
+      setApiFailed(false);
     };
     // `muted` deliberately omitted: handled below without a rebuild, because
     // re-creating the player would restart the clip from zero.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, active, short.youtubeId]);
+  }, [mounted, active, unplayable, short.youtubeId]);
 
   // Changing mute must never restart the video.
   React.useEffect(() => {
@@ -186,13 +208,30 @@ function ShortCard({
 
       <div ref={hostRef} className="shorts-frame" />
 
-      {!active && (
+      {apiFailed && !unplayable && (
+        <iframe
+          className="shorts-frame"
+          src={embedUrl(short.youtubeId, muted)}
+          title={short.title}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+        />
+      )}
+
+      {unplayable && (
+        <div className="shorts-gone" dir="rtl" role="status">
+          <p>هذا المقطع لم يعد متاحًا</p>
+          <span>ننتقل إلى التالي…</span>
+        </div>
+      )}
+
+      {!active && !unplayable && (
         <div className="shorts-idle" aria-hidden="true">
           <Play size={40} strokeWidth={1.5} />
         </div>
       )}
 
-      {active && paused && (
+      {active && paused && !unplayable && (
         <div className="shorts-idle" aria-hidden="true">
           <Pause size={44} strokeWidth={1.5} />
         </div>
@@ -284,6 +323,7 @@ export function ShortsPage() {
   );
 
   const [index, setIndex] = React.useState(0);
+  const [gone, setGone] = React.useState<ReadonlySet<string>>(() => new Set());
   const [muted, setMuted] = React.useState(true); // browsers block unmuted autoplay
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -324,6 +364,21 @@ export function ShortsPage() {
       root.scrollTo({ top: (from + 1) * root.clientHeight, behavior: "smooth" });
     },
     [index],
+  );
+
+  // Across 7,551 clips some will always be gone — deleted, made private,
+  // region-locked, or embedding turned off by the owner. YouTube paints its own
+  // "unavailable" frame and then simply stops, stranding the viewer with no way
+  // forward. Mark it watched so the ranking stops offering it, and move on. The
+  // card stays in the list rather than being spliced out, so the indices the
+  // scroll container is built on never shift underneath a gesture.
+  const skipUnplayable = React.useCallback(
+    (id: string, from: number) => {
+      setGone((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
+      markSeen(id);
+      advance(from);
+    },
+    [advance, markSeen],
   );
 
   // Desktop: arrows move a card at a time, Escape leaves.
@@ -372,6 +427,8 @@ export function ShortsPage() {
               onToggleLike={() => toggleBookmark(short.id)}
               onToggleMute={() => setMuted((m) => !m)}
               onEnded={() => advance(i)}
+              unplayable={gone.has(short.id)}
+              onUnplayable={() => skipUnplayable(short.id, i)}
             />
           </div>
         ))}
