@@ -761,6 +761,24 @@ function normalizeQuranBookmarks(input: unknown): Record<string, boolean> {
   return out;
 }
 
+/**
+ * THE ibaadah day key — one source of truth.
+ *
+ * `ensureDailyResets` decides when a new ibaadah day has started and records it
+ * in `lastIbadahResetISO`. Anything that buckets a counter by day must use that
+ * same marker, or the writer and the reader can disagree.
+ *
+ * They did. The store bucketed by `getIbadahDateKey(now, lastKnownFajrTime)`
+ * while the leaderboard bridge read by `getIbadahDateKey(now, livePrayerTimes)`.
+ * Between midnight and Fajr on a device whose cached Fajr was missing or stale
+ * those are DIFFERENT days, so every tasbeeh tap and every ayah read in that
+ * window was written under one key and looked up under another — and scored as
+ * zero. The fallback only applies before the first reset has ever run.
+ */
+function ibadahDayKeyOf(state: { lastIbadahResetISO: string | null; lastKnownFajrTime: string | null }) {
+  return state.lastIbadahResetISO ?? getIbadahDateKey(new Date(), state.lastKnownFajrTime);
+}
+
 export const useNoorStore = create<NoorState>()(
   persist(
     (set, get) => ({
@@ -819,8 +837,9 @@ export const useNoorStore = create<NoorState>()(
             [dateKey]: (s.activity[dateKey] ?? 0) + 1,
           };
           // Uncapped, Fajr-aligned running total — the leaderboard's source.
-          // Bucketed like every other daily counter so it clears on its own.
-          const ibadahKey = getIbadahDateKey(new Date(), s.lastKnownFajrTime);
+          // Bucketed by THE ibaadah day marker (see ibadahDayKeyOf) so the
+          // bridge reads back exactly what was written here.
+          const ibadahKey = ibadahDayKeyOf(s);
           const dayTotals: Record<string, number> = {};
           for (const [dk, v] of Object.entries(s.tasbeehDayTotals ?? {})) {
             if (dk >= cutoffStr) dayTotals[dk] = v;
@@ -1039,6 +1058,9 @@ export const useNoorStore = create<NoorState>()(
       quranLastReadDate: null,
       quranDailyAyahs: {},
       recordQuranRead: (count = 1) => {
+        // Same as every other counter action: refresh the day marker first, so
+        // the bucket below is written under the current ibaadah day.
+        get().ensureDailyResets();
         const today = todayISO();
         set((s) => {
           const prevDate = s.quranLastReadDate;
@@ -1058,7 +1080,7 @@ export const useNoorStore = create<NoorState>()(
           // it lines up with the leaderboard, checklist, and adhkar resets —
           // pre-Fajr reading counts toward the day that is ending, not the next
           // one. Streak keeps the simpler civil-day semantics it always used.
-          const ibadahKey = getIbadahDateKey(new Date(), s.lastKnownFajrTime);
+          const ibadahKey = ibadahDayKeyOf(s);
           const todayCount = (s.quranDailyAyahs[ibadahKey] ?? 0) + count;
           return {
             quranLastReadDate: today,
@@ -1321,6 +1343,33 @@ export const useNoorStore = create<NoorState>()(
 
         if (lastCivilResetISO !== civilToday) {
           nextState.lastCivilResetISO = civilToday;
+        }
+
+        // Moving BACKWARDS is not a new day — it is the same day being
+        // relabelled. That happens when counters were bucketed before the Fajr
+        // time was known: with no cached Fajr the key falls back to the civil
+        // day, and once prayer times arrive the true ibaadah day turns out to
+        // be the previous one. Resetting there would delete work the user just
+        // did, and leaving the buckets behind would strand it under a key
+        // nothing reads. So relabel and keep going.
+        if (lastIbadahResetISO && ibadahToday < lastIbadahResetISO) {
+          const moveKey = <T,>(map: Record<string, T>, from: string, to: string) => {
+            if (!(from in map)) return map;
+            const next = { ...map };
+            const carried = next[from]!;
+            delete next[from];
+            const existing = next[to];
+            next[to] = typeof carried === "number" && typeof existing === "number"
+              ? ((existing + carried) as unknown as T)
+              : (existing ?? carried);
+            return next;
+          };
+          const st = get();
+          nextState.tasbeehDayTotals = moveKey(st.tasbeehDayTotals ?? {}, lastIbadahResetISO, ibadahToday);
+          nextState.quranDailyAyahs = moveKey(st.quranDailyAyahs ?? {}, lastIbadahResetISO, ibadahToday);
+          nextState.lastIbadahResetISO = ibadahToday;
+          set(nextState);
+          return;
         }
 
         if (lastIbadahResetISO !== ibadahToday) {
