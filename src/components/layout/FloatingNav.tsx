@@ -244,6 +244,12 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
       aria-hidden={drawerOpen ? "true" : undefined}
       style={drawerOpen ? { pointerEvents: "none" } : undefined}
     >
+      {/* Invisible twin of the dots on the opposite side. It is what keeps the
+          bar dead centre while the dots sit beside it: laying them out as a row
+          without it pushed the bar 27px off-centre, and pinning the dots to the
+          screen edge instead made the gap grow with the screen — 10px on a
+          small phone, nearly 40px on a large one. */}
+      <div className="floating-nav-balance" aria-hidden="true" />
       {bar}
       {overflow}
     </div>

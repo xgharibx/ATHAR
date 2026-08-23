@@ -2244,6 +2244,8 @@ body.quran-focus-mode .quran-surface {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Constant distance between bar and dots on every screen size. */
+  gap: 10px;
   transition: transform 320ms cubic-bezier(.4,0,.2,1), opacity 320ms cubic-bezier(.4,0,.2,1);
 }
 
@@ -6392,13 +6394,16 @@ a:focus-visible,
    359px cap on a 375px screen, which leaves no room for a 44px button.
    ──────────────────────────────────────────────────────────────────────── */
 .floating-nav-dock {
-  /* Out of the flow entirely: the bar's centring must not know it exists. */
-  position: absolute;
-  inset-inline-end: 8px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: relative;   /* anchors the menu that opens above it */
+  flex-shrink: 0;
   display: flex;
   align-items: center;
+}
+
+/* Same width as the dots, no ink. Balances the row so the bar lands centred. */
+.floating-nav-balance {
+  width: 36px;
+  flex-shrink: 0;
 }
 
 .floating-nav-dots {
@@ -6502,6 +6507,7 @@ a:focus-visible,
    This block must come AFTER the base .floating-nav-dots rule: same
    specificity, so source order decides, and an earlier copy silently lost. */
 @media (max-width: 340px) {
-  .floating-nav-dock { inset-inline-end: 4px; }
-  .floating-nav-dots { width: 32px; height: 32px; }
+  .floating-nav-row { gap: 6px; }
+  .floating-nav-dots { width: 30px; height: 30px; }
+  .floating-nav-balance { width: 30px; }
 }
