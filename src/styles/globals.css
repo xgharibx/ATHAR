@@ -4072,6 +4072,14 @@ header {
   bottom: 0;
   inset-inline: 0;
   z-index: 220;
+  /* Cap the sheet and let its body scroll instead of growing past the top of
+     the screen. A long tafsir used to push the source tabs off-screen, so the
+     other tafsir names became unreachable — you could not switch away from the
+     long one that caused it. */
+  max-height: 88dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: #fffbf0;
   color: #1a1208;
   border-radius: 22px 22px 0 0;
@@ -6285,4 +6293,53 @@ a:focus-visible,
   syntax: '<angle>';
   initial-value: 0deg;
   inherits: false;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   App shell — stop the browser behaving like a browser on touch devices.
+
+   Deliberately behind `pointer: coarse`. On a desktop browser athark.org is
+   still a website, and removing text selection or ctrl+scroll zoom there would
+   be hostile. Phones and tablets — the Android app, the iOS home-screen app,
+   and mobile web — get app behaviour.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+  html {
+    /* Kill the rubber-band scroll past the end of a page, which instantly
+       reads as "this is a web page in a browser". */
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;   /* no reflow on orientation change */
+    text-size-adjust: 100%;
+  }
+
+  body {
+    overscroll-behavior: none;
+    /* `manipulation` removes the 300ms double-tap-to-zoom delay AND the zoom. */
+    touch-action: manipulation;
+    /* No grey flash on every tap. */
+    -webkit-tap-highlight-color: transparent;
+    /* No "Copy / Look Up / Share" bubble on long-press. Adhkar and ayat all
+       have explicit copy and share buttons, so nothing is lost. */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Anywhere the user genuinely types or needs to select, give it back. */
+  input,
+  textarea,
+  select,
+  [contenteditable="true"],
+  .selectable,
+  .selectable * {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+
+  /* Surfaces that run their own pinch gesture (the Mushaf font zoom) must not
+     also let the browser pan-zoom underneath them. */
+  [data-pinch-zoom] {
+    touch-action: pan-x pan-y;
+  }
 }

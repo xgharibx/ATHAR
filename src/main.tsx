@@ -8,6 +8,7 @@ import App from "./App";
 import "./styles/globals.css";
 import "./pwa";
 import { hydrateHadithState, hydrateCustomReminders } from "@/store/noorStore";
+import { installAppShellBehaviour } from "@/lib/appShellBehaviour";
 
 const APP_RUNTIME_VERSION = (import.meta.env.VITE_RUNTIME_VERSION as string | undefined) ?? "local-dev";
 const APP_RUNTIME_VERSION_KEY = "noor_app_runtime_version";
@@ -146,6 +147,10 @@ if (rootContainer) {
     sentinel.setAttribute("data-react-root", "true");
     sentinel.style.display = "contents";
     rootContainer.appendChild(sentinel);
+
+    // Suppress browser-only affordances (page pinch-zoom, double-tap zoom) on
+    // touch devices, so the app does not behave like a web page inside itself.
+    installAppShellBehaviour();
 
     const root = ReactDOM.createRoot(sentinel);
     (window as unknown as Record<string, unknown>)[ROOT_INSTANCE_KEY] = root;

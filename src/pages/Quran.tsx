@@ -14,7 +14,6 @@ import { useNoorStore } from "@/store/noorStore";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
-import { FloatingAthar } from "@/components/companion/FloatingAthar";
 import { SurahInfoPopover } from "@/components/quran/SurahInfoPopover";
 import { sajdaInSurah, loadQuranExtras, getEnglishRowPreview, type QuranExtras } from "@/data/quranExtras";
 import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
@@ -1575,32 +1574,9 @@ export function QuranPage() {
 
       {/* Phase 1 — Context-aware Athar (knows which surah the user is browsing,
           sort/filter state, recent surahs, khatma target) */}
-      <FloatingAthar
-        modalMode
-        context={{
-          icon: "📖",
-          title: lastRead
-            ? `تتصفّح القرآن — آخر قراءة: ${lastReadSurahName ?? `سورة ${lastRead.surahId}`}`
-            : "تتصفّح فهرس القرآن",
-          subtitle: [
-            filterJuz !== null ? `الجزء ${filterJuz}` : null,
-            filterRevelation ? (filterRevelation === "meccan" ? "مكية" : "مدنية") : null,
-            sortMode !== "mushaf" ? `الترتيب: ${sortMode}` : null,
-          ].filter(Boolean).join(" · "),
-          hint: `الزائر يتصفّح قائمة سور القرآن. الفلتر النشط: ${[
-            filterJuz !== null ? `الجزء ${filterJuz}` : "كل الأجزاء",
-            filterRevelation ? (filterRevelation === "meccan" ? "مكية" : "مدنية") : "كل أنواع النزول",
-            sortMode !== "mushaf" ? `الترتيب: ${sortMode}` : null,
-          ].filter(Boolean).join("، ")}. آخر قراءة: ${lastReadSurahName ?? "لم يبدأ بعد"}. السور الحديثة: ${recentSurahs.slice(0, 5).map((id) => data?.find((s) => s.id === id)?.name ?? "").filter(Boolean).join("، ")}. إذا سأل عن سورة معينة فحدّثه بمعلوماتها الأساسية واقترح الافتتاح بها.`,
-        }}
-        prefill={
-          query
-            ? `ما رأيك في سور القرآن بحسب ما أبحث عنه: «${query}»؟ اقترح ٣ سور تناسب قصدي وافتح لي أيها تريد.`
-            : lastRead
-              ? `اقترح عليَّ ختمةً أو ترتيب قراءة يناسب وضعي الحالي. آخر قراءة لي: ${lastReadSurahName ?? `سورة ${lastRead.surahId}`} (الآية ${lastRead.ayahIndex}).${khatma ? ` ختمتي: ${khatma.meta.percent}٪ مكتملة.` : ""}`
-              : "ما أحسن خطة لبدء قراءة القرآن؟ راعِ أنني مبتدئ (أو: منتظم/متقدم حسب ما تعرفه)."
-        }
-      />
+      {/* Floating Athar entry point removed on request (2026-08-24).
+          The component and the Companion page are untouched — only the
+          floating button is gone. Restore by re-adding <FloatingAthar/>. */}
     </div>
   );
 }

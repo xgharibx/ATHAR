@@ -21,7 +21,6 @@ import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem, loadPacks, removeCustomDhikrI
 import { Input } from "@/components/ui/Input";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
-import { FloatingAthar } from "@/components/companion/FloatingAthar";
 
 export function DhikrList(props: Readonly<{
   sectionId: string;
@@ -1076,7 +1075,9 @@ export function DhikrList(props: Readonly<{
           )}
       </div>
 
-      <FloatingAthar modalMode prefill={`علِّمني لماذا «${props.title}» مهم في حياة المسلم، وكيف أعيشه عمليًا اليوم؟`} />
+      {/* Floating Athar entry point removed on request (2026-08-24).
+          The component and the Companion page are untouched — only the
+          floating button is gone. Restore by re-adding <FloatingAthar/>. */}
     </div>
   );
 }

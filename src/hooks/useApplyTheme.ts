@@ -109,14 +109,42 @@ function samaPhase(): "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" {
   return "isha";
 }
 
+/**
+ * Point the browser's own chrome at the ACTIVE Athar theme.
+ *
+ * index.html ships two theme-color metas guarded by
+ * `media="(prefers-color-scheme: …)"`. This used to update only the first of
+ * them — and both kept their media guards — so the browser went on choosing by
+ * SYSTEM mode instead of by the theme the user actually picked. On an iPhone in
+ * system dark mode running a light theme, Safari tinted its toolbar near-black
+ * above a cream page: the "black menu" in the Quran.
+ *
+ * The chosen theme wins over the system setting (the same rule the widgets
+ * follow), so the media-scoped copies are dropped and a single unconditional
+ * meta is managed instead.
+ */
 function setMetaThemeColor(color: string) {
-  let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  const metas = Array.from(
+    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'),
+  );
+
+  // Anything still keyed to prefers-color-scheme would override us.
+  for (const m of metas) {
+    if (m.hasAttribute("media")) m.remove();
+  }
+
+  let meta = metas.find((m) => !m.hasAttribute("media") && m.isConnected) ?? null;
   if (!meta) {
     meta = document.createElement("meta");
     meta.name = "theme-color";
     document.head.appendChild(meta);
   }
   meta.content = color;
+}
+
+/** Exported for tests: applying a theme must also retint the browser chrome. */
+export function applyThemeForTest(theme: NoorTheme) {
+  apply(theme);
 }
 
 function apply(theme: NoorTheme) {

@@ -36,7 +36,6 @@ import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { ShareAyahModal } from "@/components/quran/ShareAyahModal";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
-import { FloatingAthar } from "@/components/companion/FloatingAthar";
 import { CompanionModal } from "@/components/companion/CompanionModal";
 import { TAFSIR_EDITIONS, getTafsirLabel, loadTafsirSurah } from "@/lib/tafsirEditions";
 import { getMutashabihatForAyah, type MutashabihMatch } from "@/lib/mutashabihat";
@@ -1008,7 +1007,13 @@ export function MushafPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fontScale]);
 
-  // Touch swipe (horizontal only) + M4 pinch-to-zoom
+  // Touch swipe (horizontal only) + M4 pinch-to-zoom.
+  //
+  // The root element carries `data-pinch-zoom`, which marks this surface as
+  // owning its pinch gesture: the global handler in appShellBehaviour leaves
+  // it alone, and the CSS stops the browser pan-zooming underneath it. Without
+  // that the Quran zoomed TWICE at once — our font scale AND the browser's own
+  // page zoom.
   const touchStartX = React.useRef<number | null>(null);
   const touchStartY = React.useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
@@ -1487,6 +1492,7 @@ export function MushafPage() {
         "data-mushaf-tc": "1",
         style: { "--mushaf-custom-tc": prefs.mushafTextColor } as React.CSSProperties,
       } : {})}
+      data-pinch-zoom=""
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       onTouchMove={onTouchMove}
@@ -2308,7 +2314,7 @@ export function MushafPage() {
             </div>
 
             {/* Source tabs — 10 tafsirs, horizontally scrollable */}
-            <div className="flex gap-1.5 p-1 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] mb-3 overflow-x-auto no-scrollbar">
+            <div className="shrink-0 flex gap-1.5 p-1 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] mb-3 overflow-x-auto no-scrollbar">
               {TAFSIR_EDITIONS.map(({ slug, label }) => (
                 <button type="button"
                   key={slug}
@@ -2326,7 +2332,7 @@ export function MushafPage() {
 
             {/* Tafseer body */}
             <div
-              className="text-sm leading-8 arabic-text p-4 rounded-2xl border mb-4 flex-1"
+              className="text-sm leading-8 arabic-text p-4 rounded-2xl border mb-4 flex-1 min-h-0 overflow-y-auto overscroll-contain"
               dir="rtl"
               style={{
                 background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent) 0%, color-mix(in srgb, var(--accent) 2%, transparent) 100%)",
@@ -2984,24 +2990,9 @@ export function MushafPage() {
         </>
       )}
 
-      <FloatingAthar
-        modalMode
-        context={{
-          icon: "📖",
-          title: selectedItem
-            ? `${selectedItem.surahName} • ${toArabicNumeral(selectedItem.surahId)}:${toArabicNumeral(selectedItem.displayAyah)}`
-            : `صفحة ${toArabicNumeral(currentPage)} من المصحف`,
-          subtitle: selectedItem ? `${toArabicNumeral(selectedItem.surahId)}:${toArabicNumeral(selectedItem.displayAyah)}` : "",
-          hint: selectedItem
-            ? `الزائر يقرأ حاليًا الآية «﴿${sliceAtWordBoundary(selectedItem.text, 120)}﴾» ويريد شرحها مع فوائد عملية.`
-            : `الزائر يتصفح صفحة ${toArabicNumeral(currentPage)} من المصحف.`,
-        }}
-        prefill={
-          selectedItem
-            ? `تدبَّر معي هذه الآية: اشرحها شرحًا ميسَّرًا مع فوائد عملية لحياتي اليومية:\n﴿${sliceAtWordBoundary(selectedItem.text, 400)}﴾`
-            : "ما الذي ينفعني في هذه الصفحة من المصحف الآن؟"
-        }
-      />
+      {/* Floating Athar entry point removed on request (2026-08-24).
+          The component and the Companion page are untouched — only the
+          floating button is gone. Restore by re-adding <FloatingAthar/>. */}
       {composerOpen && selectedItem && (
         <ShareAyahModal
           open={composerOpen}
