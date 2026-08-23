@@ -21,6 +21,7 @@ export function LeaderboardSyncBridge() {
   const quranAyahsToday = useNoorStore((state) => state.quranDailyAyahs[todayKey] ?? 0);
   const prayersDone = useNoorStore((state) => state.dailyChecklist[todayKey] ?? {});
   const quickTasbeeh = useNoorStore((state) => state.quickTasbeeh);
+  const tasbeehTodayTotal = useNoorStore((state) => state.tasbeehDayTotals?.[todayKey] ?? 0);
   const lastIbadahResetISO = useNoorStore((state) => state.lastIbadahResetISO);
   const ensureDailyResets = useNoorStore((state) => state.ensureDailyResets);
   const [retryTick, setRetryTick] = React.useState(0);
@@ -37,9 +38,10 @@ export function LeaderboardSyncBridge() {
         quranAyahsToday,
         prayersDone,
         quickTasbeeh,
+        tasbeehTodayTotal,
         todayISO: todayKey
       }),
-    [prayersDone, progress, quranAyahsToday, quickTasbeeh, sections, todayKey]
+    [prayersDone, progress, quranAyahsToday, quickTasbeeh, tasbeehTodayTotal, sections, todayKey]
   );
 
   const snapshotKey = React.useMemo(

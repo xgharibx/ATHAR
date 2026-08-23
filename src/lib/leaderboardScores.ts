@@ -7,6 +7,16 @@ const DAILY_TASBEEH_POOL: Array<{ key: string; label: string }> = [
   { key: "allahu_akbar", label: "اللهُ أَكْبَر" }
 ];
 
+/**
+ * How much tasbeeh can count toward one day's score.
+ *
+ * Was effectively the sebha target (33 by default) because the score read a
+ * counter that stops there. A day of real dhikr is worth far more than that,
+ * but it still needs a ceiling so the tasbeeh board cannot be farmed past
+ * every other activity.
+ */
+export const TASBEEH_DAILY_CAP = 1000;
+
 function hashString(input: string) {
   let hash = 0;
   for (let index = 0; index < input.length; index += 1) {
@@ -34,6 +44,16 @@ export function buildLeaderboardScoreStats(input: {
   quranAyahsToday: number;
   prayersDone: Record<string, boolean>;
   quickTasbeeh: Record<string, number>;
+  /**
+   * Every tasbeeh tap made today, across ALL phrases, uncapped
+   * (`tasbeehDayTotals[todayKey]`).
+   *
+   * The score used to read `quickTasbeeh[<the day's chosen phrase>]`, which was
+   * wrong twice over: that counter stops at the user's sebha target, so only
+   * the first 33 taps ever counted, and it looked at one of the four phrases
+   * instead of all of them.
+   */
+  tasbeehTodayTotal?: number;
   todayISO: string;
 }) {
   const sectionScores: Record<string, number> = {};
@@ -53,8 +73,12 @@ export function buildLeaderboardScoreStats(input: {
   }
 
   const dailyTasbeeh = getDailyTasbeeh(input.todayISO);
-  const rawTasbeeh = Number(input.quickTasbeeh[dailyTasbeeh.key] ?? 0) || 0;
-  const tasbeehDailyScore = Math.max(0, Math.min(rawTasbeeh, dailyTasbeeh.target));
+  // Fall back to the old single-phrase reading only when the caller has not
+  // supplied a real total, so this stays correct for existing callers/tests.
+  const rawTasbeeh = typeof input.tasbeehTodayTotal === "number"
+    ? input.tasbeehTodayTotal
+    : Number(input.quickTasbeeh[dailyTasbeeh.key] ?? 0) || 0;
+  const tasbeehDailyScore = Math.max(0, Math.min(rawTasbeeh, TASBEEH_DAILY_CAP));
 
   // Use the same clamped values the per-section boards use. Summing the raw
   // counters let the global score drift above the sum of its own sections —
@@ -77,7 +101,7 @@ export function buildLeaderboardScoreStats(input: {
     quran,
     prayers,
     tasbeehDailyLabel: dailyTasbeeh.label,
-    tasbeehDailyTarget: dailyTasbeeh.target,
+    tasbeehDailyTarget: TASBEEH_DAILY_CAP,
     tasbeehDailyScore,
     sectionScores,
     scores: {

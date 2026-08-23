@@ -200,6 +200,7 @@ export type ExportBlobV1 = {
   sebhaCustom?: { phrase: string; target: number } | null;
   tasbeehLifetime?: Record<string, number>;
   tasbeehDailyLog?: Record<string, Record<string, number>>;
+  tasbeehDayTotals?: Record<string, number>;
   sebhaCustomList?: Array<{ id: string; phrase: string; transliteration?: string; target: number; color: string; createdAt: string }>;
   tasbeehStreak?: number;
   tasbeehStreakBest?: number;
@@ -275,6 +276,16 @@ type NoorState = {
 
   // 6C: Daily tasbeeh log for weekly stats
   tasbeehDailyLog: Record<string, Record<string, number>>; // dateKey → {phraseKey → count}
+  /**
+   * Total tasbeeh taps per IBAADAH day (Fajr boundary), uncapped.
+   *
+   * The leaderboard needs a source that is both uncapped and aligned to the
+   * same day boundary it scores. `quickTasbeeh` is Fajr-aligned but stops at
+   * the user's sebha target, and `tasbeehDailyLog` is uncapped but keyed by the
+   * civil day. Neither could answer "how much tasbeeh today" correctly, which
+   * is why only the first 33 ever reached the board.
+   */
+  tasbeehDayTotals: Record<string, number>;
   incTasbeehDailyLog: (dateKey: string, key: string) => void;
   // Widget bridge: bulk-merge home-screen widget tasbeeh counts into stats
   mergeWidgetTasbeeh: (dateKey: string, counts: Record<string, number>) => void;
@@ -807,7 +818,16 @@ export const useNoorStore = create<NoorState>()(
             ...s.activity,
             [dateKey]: (s.activity[dateKey] ?? 0) + 1,
           };
-          return { quickTasbeeh, tasbeehLifetime, tasbeehDailyLog: pruned, activity };
+          // Uncapped, Fajr-aligned running total — the leaderboard's source.
+          // Bucketed like every other daily counter so it clears on its own.
+          const ibadahKey = getIbadahDateKey(new Date(), s.lastKnownFajrTime);
+          const dayTotals: Record<string, number> = {};
+          for (const [dk, v] of Object.entries(s.tasbeehDayTotals ?? {})) {
+            if (dk >= cutoffStr) dayTotals[dk] = v;
+          }
+          dayTotals[ibadahKey] = (dayTotals[ibadahKey] ?? 0) + 1;
+
+          return { quickTasbeeh, tasbeehLifetime, tasbeehDailyLog: pruned, activity, tasbeehDayTotals: dayTotals };
         });
         return next;
       },
@@ -817,6 +837,7 @@ export const useNoorStore = create<NoorState>()(
         set((s) => ({ tasbeehLifetime: { ...s.tasbeehLifetime, [key]: (s.tasbeehLifetime[key] ?? 0) + 1 } }));
       },
 
+      tasbeehDayTotals: {},
       tasbeehDailyLog: {},
       incTasbeehDailyLog: (dateKey, key) => {
         set((s) => {
@@ -1371,6 +1392,7 @@ export const useNoorStore = create<NoorState>()(
           sebhaCustom: s.sebhaCustom,
           tasbeehLifetime: s.tasbeehLifetime,
           tasbeehDailyLog: s.tasbeehDailyLog,
+          tasbeehDayTotals: s.tasbeehDayTotals,
           sebhaCustomList: s.sebhaCustomList,
           tasbeehStreak: s.tasbeehStreak,
           tasbeehStreakBest: s.tasbeehStreakBest,
@@ -1438,6 +1460,7 @@ export const useNoorStore = create<NoorState>()(
           tasbeehDailyLog: (blob.tasbeehDailyLog && typeof blob.tasbeehDailyLog === 'object'
             ? blob.tasbeehDailyLog
             : {}) as Record<string, Record<string, number>>,
+          tasbeehDayTotals: sanitizeNumberMap(blob.tasbeehDayTotals as Record<string, number> | undefined),
           sebhaCustomList: Array.isArray(blob.sebhaCustomList) ? blob.sebhaCustomList : [],
           tasbeehStreak: blob.tasbeehStreak ?? 0,
           tasbeehStreakBest: blob.tasbeehStreakBest ?? 0,
@@ -1525,6 +1548,7 @@ export const useNoorStore = create<NoorState>()(
         dailyBetterStepDone: {},
         tasbeehLifetime: {},
         tasbeehDailyLog: {},
+        tasbeehDayTotals: {},
         sebhaSessions: [],
         sebhaCustom: null,
         sebhaCustomList: [],
@@ -1782,7 +1806,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 28,
+      version: 29,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -1837,6 +1861,7 @@ export const useNoorStore = create<NoorState>()(
           onboardingDone: (state as Partial<NoorState>).onboardingDone ?? false,
           tasbeehLifetime: sanitizeNumberMap((state as Partial<NoorState>).tasbeehLifetime),
           tasbeehDailyLog: ((state as Partial<NoorState>).tasbeehDailyLog && typeof (state as Partial<NoorState>).tasbeehDailyLog === 'object' ? (state as Partial<NoorState>).tasbeehDailyLog : {}) as Record<string, Record<string, number>>,
+          tasbeehDayTotals: sanitizeNumberMap((state as Partial<NoorState>).tasbeehDayTotals),
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],

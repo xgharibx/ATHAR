@@ -63,6 +63,7 @@ const FIELD_KIND: Record<string, SyncKind> = {
   quickTasbeeh: "progress",
   tasbeehLifetime: "progress",
   tasbeehDailyLog: "progress",
+  tasbeehDayTotals: "progress",
   tasbeehStreak: "progress",
   tasbeehStreakBest: "progress",
   tasbeehLastActiveDate: "progress",
@@ -163,6 +164,7 @@ const FIELD_RULE: Record<string, Rule> = {
   quranReadingHistory: "counter",
   hadithProgress: "counter",
   tasbeehDailyLog: "counter2",
+  tasbeehDayTotals: "counter",
 
   favorites: "flags",
   libraryFavorites: "flags",

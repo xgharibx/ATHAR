@@ -312,7 +312,9 @@ export function LeaderboardPage() {
         </div>
 
         <div className="mt-3 text-xs opacity-75">
-          تحدي تسبيح اليوم: <span className="font-semibold">{myStats.tasbeehDailyLabel}</span> • الهدف {arNum(myStats.tasbeehDailyTarget)}
+          {/* Every phrase counts now, not just one chosen for the day, so the
+              copy names the ceiling rather than a single dhikr. */}
+          تسبيح اليوم: <span className="font-semibold">{arNum(myStats.tasbeehDailyScore)}</span> من {arNum(myStats.tasbeehDailyTarget)} — كل التسبيح يُحتسب
         </div>
         <div className="mt-1 text-[11px] opacity-45">
           الصيغة: ذكر + قرآن×٣ + مهام×٤٠ + تسبيح
