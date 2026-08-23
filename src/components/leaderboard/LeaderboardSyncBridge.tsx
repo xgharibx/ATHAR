@@ -6,8 +6,14 @@ import { useTodayKey } from "@/hooks/useTodayKey";
 import { isRateLimited, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot } from "@/lib/leaderboard";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { useNoorStore } from "@/store/noorStore";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { useSyncStatus } from "@/hooks/useCloudSync";
 
 const AUTO_SYNC_DEBOUNCE_MS = 2500;
+
+/** How long to wait for a first cloud reconcile before posting anyway. Keeps a
+ *  signed-in user who is offline from silently vanishing from the board. */
+const SYNC_GRACE_MS = 45_000;
 
 export function LeaderboardSyncBridge() {
   const endpoint = (import.meta.env.VITE_LEADERBOARD_ENDPOINT as string | undefined) ?? "";
@@ -26,6 +32,25 @@ export function LeaderboardSyncBridge() {
   const tasbeehTodayTotal = useNoorStore((state) => state.tasbeehDayTotals?.[todayKey] ?? 0);
   const lastIbadahResetISO = useNoorStore((state) => state.lastIbadahResetISO);
   const ensureDailyResets = useNoorStore((state) => state.ensureDailyResets);
+  // Two devices on one account must report the SAME score. They already share
+  // one leaderboard identity (it travels in the account's sync document), so
+  // there are never duplicate rows — but each device scores its own local
+  // `progress`. A device that has just been opened holds a stale snapshot, and
+  // since the server now takes the newest submission, that stale value would
+  // overwrite the other device's newer one until sync caught up.
+  //
+  // So when signed in, wait for one cloud reconcile before posting: by then
+  // `progress` is the merged state both devices agree on. The grace period
+  // stops a signed-in user with no connectivity from dropping off the board.
+  const { session, configured } = useAuthSession();
+  const syncStatus = useSyncStatus();
+  const mountedAtRef = React.useRef(Date.now());
+  const awaitingFirstSync =
+    configured &&
+    Boolean(session?.user?.id) &&
+    syncStatus.lastSyncedAt === null &&
+    Date.now() - mountedAtRef.current < SYNC_GRACE_MS;
+
   const [retryTick, setRetryTick] = React.useState(0);
   const lastSyncedKeyRef = React.useRef("");
   const syncingRef = React.useRef(false);
@@ -91,6 +116,8 @@ export function LeaderboardSyncBridge() {
     // So: never submit while the reset for this day is still outstanding.
     // Nudge it along and wait — lastIbadahResetISO is in the dep list, so the
     // effect re-runs the moment the reset lands.
+    if (awaitingFirstSync) return;
+
     if (lastIbadahResetISO !== todayKey) {
       // Two mirror-image races, and only exact agreement rules out both:
       //
@@ -147,6 +174,7 @@ export function LeaderboardSyncBridge() {
     lastIbadahResetISO,
     ensureDailyResets,
     effectiveFajr,
+    awaitingFirstSync,
   ]);
 
   return null;
