@@ -861,11 +861,18 @@ denoRuntime.serve(async (req) => {
       return json({ ok: true, deduped: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt });
     }
 
+    // Count SUBMISSIONS, not rows. Each submission writes one row per board
+    // plus one per section — about 37 — so counting rows made a cap meant as
+    // "2000 submissions a day" fire after roughly 55. Past it the audit log
+    // silently stopped recording an active user's day while their rollups kept
+    // updating, which left the events table unable to explain their own score.
     const dayCountRes = await db
       .from("leaderboard_score_events")
       .select("id", { count: "exact", head: true })
       .eq("day", payload.day)
-      .eq("user_id", payload.identity.id);
+      .eq("user_id", payload.identity.id)
+      .eq("board", "global")
+      .is("section_id", null);
 
     const rows = eventRows(payload, aliasDecision.alias);
 
