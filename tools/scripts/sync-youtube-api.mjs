@@ -24,6 +24,62 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_FILE = path.resolve(__dirname, "../../public/data/video-library.json");
 const API = "https://www.googleapis.com/youtube/v3";
 
+// ─── Topic taxonomy ───────────────────────────────────────────────────────────
+
+const TOPICS = [
+  { id: "aqeedah",              title: "العقيدة",       icon: "◇", accent: "#a78bfa", description: "الإيمان، التوحيد، وأصول الاعتقاد." },
+  { id: "anti-shubuhat",        title: "الشبهات",       icon: "⚑", accent: "#fb7185", description: "الردود الفكرية والمنهجية على الشبهات." },
+  { id: "fiqh",                 title: "الفقه",         icon: "§", accent: "#34d399", description: "أحكام العبادات والمعاملات." },
+  { id: "quran",                title: "القرآن",        icon: "▣", accent: "#fbbf24", description: "علوم القرآن والتلاوة والتدبر." },
+  { id: "tafseer",              title: "التفسير",       icon: "☼", accent: "#f59e0b", description: "شرح الآيات والسور." },
+  { id: "hadith",               title: "الحديث",        icon: "◈", accent: "#38bdf8", description: "شرح الأحاديث والسنن." },
+  { id: "seerah",               title: "السيرة",        icon: "✦", accent: "#c084fc", description: "السيرة النبوية والتاريخ الإسلامي." },
+  { id: "daawah",               title: "الدعوة",        icon: "↗", accent: "#60a5fa", description: "مهارات الدعوة والتربية." },
+  { id: "tazkiyah",             title: "التزكية",       icon: "✧", accent: "#2dd4bf", description: "تزكية النفس والسلوك الروحي." },
+  { id: "youth",                title: "الشباب",        icon: "★", accent: "#a3e635", description: "موضوعات الشباب والبناء النفسي." },
+  { id: "family",               title: "الأسرة",        icon: "♡", accent: "#f472b6", description: "البيت والتربية والعلاقات." },
+  { id: "comparative-religion", title: "مقارنة أديان",  icon: "⌁", accent: "#818cf8", description: "حوارات وردود ومقارنات منهجية." },
+  { id: "atheism",              title: "الإلحاد",       icon: "?", accent: "#f87171", description: "نقد الإلحاد والمادية والشبهات المعاصرة." },
+  { id: "biography",            title: "تراجم",         icon: "※", accent: "#eab308", description: "سير العلماء والدعاة والشخصيات." },
+  { id: "general",              title: "عام",           icon: "•", accent: "#94a3b8", description: "مواد متنوعة." },
+];
+
+// ─── Keyword classifier (returns topic IDs) ───────────────────────────────────
+
+const KEYWORD_MAP = [
+  ["anti-shubuhat",       ["شبهة", "شبهات", "رد على", "يرد على", "ردود", "مناظرة", "نقد", "دحض", "إشكال", "تفنيد", "فرية", "افتراء", "مغالطة"]],
+  ["atheism",             ["إلحاد", "ملحد", "الملاحدة", "داروين", "تطور", "نشوء", "مادية", "لا أدرية", "اللادين", "الإلحاد", "جيمس", "ريتشارد دوكنز", "لا يؤمن"]],
+  ["comparative-religion",["نصرانية", "مسيحية", "كتاب مقدس", "إنجيل", "إنجيله", "يهود", "توراة", "أديان", "مقارنة الأديان", "أديان العالم", "الكنيسة", "بولس"]],
+  ["aqeedah",             ["عقيدة", "توحيد", "إيمان", "أسماء الله", "صفات الله", "القدر", "الصحابة", "الصفات", "التوحيد", "أصول", "كلام", "اعتقاد", "الإيمان"]],
+  ["fiqh",                ["فقه", "حكم", "أحكام", "صلاة", "الصلاة", "صيام", "زكاة", "حج", "وضوء", "فتوى", "طهارة", "مسألة", "مسائل", "عبادة", "معاملات", "نكاح", "طلاق", "بيع", "ربا"]],
+  ["tafseer",             ["تفسير", "تدبر", "سورة", "آية", "الآية", "تأمل", "تأملات", "شرح سورة", "معنى", "تفسير القرآن", "التفسير", "تدبر القرآن"]],
+  ["quran",               ["قرآن", "القرآن", "تلاوة", "تجويد", "مصحف", "حفظ القرآن", "قرآني", "قراءة", "قراءات", "علوم القرآن", "أحكام التجويد"]],
+  ["hadith",              ["حديث", "الحديث", "صحيح", "البخاري", "مسلم", "السنة", "أربعون", "الأربعين", "رياض الصالحين", "شرح حديث", "مصطلح الحديث", "سنن"]],
+  ["seerah",              ["سيرة", "النبي ﷺ", "الرسول", "غزوة", "صحابي", "المغازي", "الهجرة", "بدر", "أحد", "الخندق", "الخلفاء", "عمر", "أبو بكر", "علي", "عثمان", "صحابة"]],
+  ["tazkiyah",            ["تزكية", "زكاة النفس", "روحي", "التوبة", "الزهد", "الورع", "التقوى", "الإخلاص", "المراقبة", "قلبك", "القلب", "النفس", "الخشوع", "سوبر مسلم", "خريطة التزكية", "نقاء"]],
+  ["family",              ["زوج", "زوجة", "أبناء", "أسرة", "تربية الأولاد", "الزواج", "البيت", "المرأة", "الأمومة", "الأبوة", "علاقة", "الطفل", "الأم"]],
+  ["youth",               ["شباب", "الشباب", "مراهق", "جامعة", "عادة", "هوية", "الشاب", "التحديات", "الضياع", "فتاة", "فتيان", "أزمة"]],
+  ["daawah",              ["دعوة", "الدعوة", "داعية", "محاضرة", "خطبة", "نصيحة", "التبليغ", "أسلم", "الإسلام", "مسلم جديد"]],
+  ["biography",           ["قصة", "ترجمة", "سيرة العالم", "حياة", "تراجم", "العلماء", "الإمام", "الشيخ", "أعلام"]],
+];
+
+function classify(text) {
+  const lower = String(text || "").toLowerCase();
+  const scores = {};
+  for (const [topic, words] of KEYWORD_MAP) {
+    let score = 0;
+    for (const w of words) {
+      if (lower.includes(w)) score += w.length > 5 ? 3 : 1;
+    }
+    if (score > 0) scores[topic] = score;
+  }
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  if (sorted.length === 0) return ["general"];
+  // Return up to 3 top topics
+  return sorted.slice(0, 3).map(([t]) => t);
+}
+
+
 const KEY = process.env.YT_API_KEY;
 if (!KEY) {
   console.error("Set YT_API_KEY. The key must never be committed or bundled — it is a build-time input only.");
@@ -32,6 +88,12 @@ if (!KEY) {
 
 /** Stop pulling a single channel after this many uploads. */
 const MAX_PER_CHANNEL = Number(process.env.MAX_PER_CHANNEL ?? 3000);
+/** Playlists to pull per channel. */
+const MAX_PLAYLISTS = Number(process.env.MAX_PLAYLISTS ?? 200);
+/** A playlist below this is a stray, not a course. */
+const MIN_PLAYLIST_VIDEOS = 3;
+/** A topic needs this many of a channel's videos to earn a virtual course. */
+const MIN_VIDEOS_FOR_VIRTUAL = 8;
 /** A sync returning less than this share of what we hold is a failure, not news. */
 const MIN_KEEP_RATIO = 0.9;
 
@@ -104,6 +166,30 @@ async function allVideoIds(playlistId) {
   return ids.slice(0, MAX_PER_CHANNEL);
 }
 
+/** Every playlist a channel publishes — these are the real dawrat. */
+async function playlistsFor(channelId) {
+  const out = [];
+  let pageToken = "";
+  do {
+    const j = await api("playlists", {
+      part: "snippet,contentDetails",
+      channelId,
+      maxResults: 50,
+      ...(pageToken ? { pageToken } : {}),
+    });
+    for (const p of j.items ?? []) {
+      out.push({
+        playlistId: p.id,
+        title: p.snippet?.title ?? "",
+        description: p.snippet?.description ?? "",
+        count: p.contentDetails?.itemCount ?? 0,
+      });
+    }
+    pageToken = j.nextPageToken ?? "";
+  } while (pageToken && out.length < MAX_PLAYLISTS);
+  return out.slice(0, MAX_PLAYLISTS);
+}
+
 async function hydrate(ids) {
   const out = [];
   for (let i = 0; i < ids.length; i += 50) {
@@ -126,6 +212,8 @@ async function main() {
   const priorById = new Map((db.videos ?? []).map((v) => [v.id, v]));
 
   const videos = [];
+  const courses = [];
+
   for (const ch of channels) {
     const ytId = ch.youtubeChannelId;
     if (!ytId) {
@@ -138,34 +226,138 @@ async function main() {
         console.warn(`  ⚠ ${ch.displayName}: no uploads playlist`);
         continue;
       }
+
+      // ── every upload ──
       const ids = await allVideoIds(uploads);
       const items = await hydrate(ids);
 
+      // ── the channel's playlists: these are the real dawrat ──
+      const playlists = await playlistsFor(ytId);
+      const memberOf = new Map(); // videoId → [courseId]
+      let courseCount = 0;
+
+      for (const pl of playlists) {
+        if (pl.count < MIN_PLAYLIST_VIDEOS) continue;
+        const plIds = await allVideoIds(pl.playlistId);
+        if (plIds.length < MIN_PLAYLIST_VIDEOS) continue;
+        const courseId = `${ch.id}-${pl.playlistId}`;
+        courses.push({
+          id: courseId,
+          channelId: ch.id,
+          title: pl.title,
+          description: pl.description?.slice(0, 400) ?? "",
+          topicIds: classify(`${pl.title} ${pl.description ?? ""}`),
+          videoIds: plIds,
+        });
+        courseCount += 1;
+        plIds.forEach((vid, i) => {
+          const list = memberOf.get(vid) ?? [];
+          list.push({ courseId, position: i });
+          memberOf.set(vid, list);
+        });
+      }
+
+      // ── videos, classified and placed ──
+      const channelVideos = [];
       let shorts = 0;
       for (const it of items) {
         const secs = isoDurationToSeconds(it.contentDetails?.duration);
         if (secs > 0 && secs <= 180) shorts += 1;
-        const prior = priorById.get(it.id);
-        videos.push({
+        const title = it.snippet?.title ?? "";
+        const memberships = memberOf.get(it.id) ?? [];
+        const v = {
           id: it.id,
           youtubeId: it.id,
           channelId: ch.id,
-          courseIds: prior?.courseIds ?? [`${ch.id}-uploads`],
-          topicIds: prior?.topicIds ?? [],
-          title: it.snippet?.title ?? "",
+          courseIds: [`${ch.id}-uploads`, ...memberships.map((m) => m.courseId)],
+          topicIds: classify(title),
+          title,
           description: "",
           durationSeconds: secs,
           thumbnail: bestThumb(it.snippet?.thumbnails),
-          publishedAt: it.snippet?.publishedAt ?? prior?.publishedAt,
-          position: prior?.position,
-        });
+          publishedAt: it.snippet?.publishedAt,
+          position: memberships[0]?.position,
+        };
+        channelVideos.push(v);
+        videos.push(v);
       }
-      console.log(`  ✅ ${ch.displayName}: ${items.length} videos (${shorts} short)`);
+
+      // ── the uploads course ──
+      courses.push({
+        id: `${ch.id}-uploads`,
+        channelId: ch.id,
+        title: `آخر فيديوهات ${ch.displayName}`,
+        description: `أحدث فيديوهات قناة ${ch.displayName}`,
+        topicIds: ["general"],
+        videoIds: channelVideos.map((v) => v.id),
+      });
+
+      // ── virtual courses, one per topic that has enough material ──
+      const byTopic = new Map();
+      for (const v of channelVideos) {
+        for (const t of v.topicIds) {
+          if (t === "general") continue;
+          const list = byTopic.get(t) ?? [];
+          list.push(v.id);
+          byTopic.set(t, list);
+        }
+      }
+      let virtual = 0;
+      for (const [topicId, vidIds] of byTopic) {
+        if (vidIds.length < MIN_VIDEOS_FOR_VIRTUAL) continue;
+        const topic = TOPICS.find((t) => t.id === topicId);
+        const courseId = `${ch.id}-topic-${topicId}`;
+        courses.push({
+          id: courseId,
+          channelId: ch.id,
+          title: `${topic?.title ?? topicId} — ${ch.displayName}`,
+          description: topic?.description ?? "",
+          topicIds: [topicId],
+          videoIds: vidIds,
+        });
+        virtual += 1;
+        for (const vid of vidIds) {
+          const v = channelVideos.find((x) => x.id === vid);
+          if (v && !v.courseIds.includes(courseId)) v.courseIds.push(courseId);
+        }
+      }
+
+      console.log(
+        `  ✅ ${ch.displayName}: ${items.length} videos (${shorts} short) · ${courseCount} دورة · ${virtual} موضوعية`,
+      );
     } catch (err) {
       console.error(`  ❌ ${ch.displayName}: ${err.message}`);
       if (String(err.message).includes("QUOTA")) throw err;
     }
   }
+
+  // ── Drop courses we cannot actually play ──
+  //
+  // A playlist can reference videos beyond the per-channel cap, or clips from
+  // another channel entirely. Those courses would render as an empty dawra —
+  // worse than not listing them. Trim each course to the videos we hold, then
+  // drop whatever is left too thin to be a course.
+  const haveIds = new Set(videos.map((v) => v.id));
+  const keptCourses = [];
+  let pruned = 0;
+  for (const c of courses) {
+    const resolvable = c.videoIds.filter((id) => haveIds.has(id));
+    if (c.id.endsWith("-uploads") || resolvable.length >= MIN_PLAYLIST_VIDEOS) {
+      keptCourses.push({ ...c, videoIds: resolvable });
+    } else {
+      pruned += 1;
+    }
+  }
+  if (pruned) console.log(`
+  pruned ${pruned} course(s) with too few playable videos`);
+
+  // A video must not advertise membership of a course that no longer exists.
+  const keptCourseIds = new Set(keptCourses.map((c) => c.id));
+  for (const v of videos) {
+    v.courseIds = v.courseIds.filter((id) => keptCourseIds.has(id));
+  }
+  courses.length = 0;
+  courses.push(...keptCourses);
 
   const before = (db.videos ?? []).length;
   const after = videos.length;
@@ -188,11 +380,15 @@ async function main() {
   const output = {
     ...db,
     source: "youtube-api",
+    topics: TOPICS,
+    courses,
     videos,
     generatedAt: new Date().toISOString(),
     syncedAt: new Date().toISOString(),
   };
-  fs.writeFileSync(OUT_FILE, JSON.stringify(output, null, 2), "utf8");
+  // Compact: pretty-printing puts every one of ~12,000 video ids on its own
+  // line and costs megabytes the client has to download.
+  fs.writeFileSync(OUT_FILE, JSON.stringify(output), "utf8");
   console.log(`\n✅  wrote ${OUT_FILE}`);
   console.log(`    +${after - before} videos, ${shortsAfter} shorts available to the feed\n`);
 }

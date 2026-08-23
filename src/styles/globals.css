@@ -6733,3 +6733,35 @@ body.shorts-open .fab {
   pointer-events: none !important;
   transform: translateY(140%) !important;
 }
+
+/* The shorts feed is a full-screen surface: the صدقة جارية footer belongs to a
+   scrolling page and floats over the video here, in the wrong place entirely. */
+body.shorts-open .app-footer {
+  display: none !important;
+}
+
+/* Per-video progress. A plain <iframe> embed cannot report position at all —
+   this needs the IFrame Player API, which is why the card owns a real player. */
+.shorts-playbar {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.16);
+  pointer-events: none;
+}
+.shorts-playbar > div {
+  height: 100%;
+  background: #fff;
+  transition: width 240ms linear;
+}
+
+/* The player is created inside this host, so it must fill the card. */
+.shorts-frame > div,
+.shorts-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}

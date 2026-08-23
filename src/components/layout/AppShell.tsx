@@ -672,7 +672,7 @@ export function AppShell() {
           </main>
         </div>
 
-        <footer className="mt-6" dir="rtl">
+        <footer className="mt-6 app-footer" dir="rtl">
           <div className="glass rounded-3xl border border-[var(--stroke)]">
             <button type="button"
               onClick={() => setFooterExpanded((v) => !v)}

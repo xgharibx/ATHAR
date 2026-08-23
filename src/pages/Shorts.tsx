@@ -23,11 +23,12 @@
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Volume2, VolumeX, X, Play } from "lucide-react";
+import { Heart, Volume2, VolumeX, X, Play, Pause } from "lucide-react";
 
 import { useShortsDB } from "@/data/useShortsDB";
 import { useNoorStore } from "@/store/noorStore";
 import { buildShortsFeed, posterFor, type Short } from "@/lib/shortsFeed";
+import { createPlayer, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
 
 /** How many neighbours around the active card get a real player. */
 const WINDOW = 1;
@@ -55,6 +56,7 @@ function ShortCard({
   liked,
   onToggleLike,
   onToggleMute,
+  onEnded,
 }: {
   short: Short;
   active: boolean;
@@ -63,12 +65,102 @@ function ShortCard({
   liked: boolean;
   onToggleLike: () => void;
   onToggleMute: () => void;
+  onEnded: () => void;
 }) {
   const [burst, setBurst] = React.useState(false);
+  const [paused, setPaused] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const hostRef = React.useRef<HTMLDivElement | null>(null);
+  const playerRef = React.useRef<YTPlayer | null>(null);
   const lastTap = React.useRef(0);
+  // Latest callback without re-creating the player on every render.
+  const endedRef = React.useRef(onEnded);
+  endedRef.current = onEnded;
 
-  // Double-tap to like — the gesture everyone already knows. A single tap must
-  // still reach the player, so only the second tap is claimed.
+  // Build a player only for the ACTIVE card and tear it down on the way out.
+  // Players left alive off-screen are what turn a feed into a memory leak.
+  React.useEffect(() => {
+    if (!mounted || !active || !hostRef.current) return;
+    let cancelled = false;
+    const host = hostRef.current;
+    const mountPoint = document.createElement("div");
+    host.appendChild(mountPoint);
+
+    void createPlayer(mountPoint, {
+      videoId: short.youtubeId,
+      muted,
+      onEnded: () => endedRef.current(),
+      onStateChange: (st) => {
+        if (cancelled) return;
+        if (st === YT_STATE.PLAYING) setPaused(false);
+        if (st === YT_STATE.PAUSED) setPaused(true);
+      },
+    }).then((pl) => {
+      if (cancelled) {
+        pl?.destroy();
+        return;
+      }
+      playerRef.current = pl;
+    });
+
+    return () => {
+      cancelled = true;
+      try {
+        playerRef.current?.destroy();
+      } catch {
+        /* already gone */
+      }
+      playerRef.current = null;
+      host.replaceChildren();
+      setProgress(0);
+      setPaused(false);
+    };
+    // `muted` deliberately omitted: handled below without a rebuild, because
+    // re-creating the player would restart the clip from zero.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, active, short.youtubeId]);
+
+  // Changing mute must never restart the video.
+  React.useEffect(() => {
+    const pl = playerRef.current;
+    if (!pl) return;
+    try {
+      if (muted) pl.mute();
+      else pl.unMute();
+    } catch {
+      /* not ready yet; it was created with the right value anyway */
+    }
+  }, [muted]);
+
+  // A real progress bar — impossible with a plain embed.
+  React.useEffect(() => {
+    if (!active) return;
+    const id = window.setInterval(() => {
+      const pl = playerRef.current;
+      if (!pl) return;
+      try {
+        const d = pl.getDuration();
+        if (d > 0) setProgress(Math.min(1, pl.getCurrentTime() / d));
+      } catch {
+        /* mid-teardown */
+      }
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [active]);
+
+  const togglePlay = () => {
+    const pl = playerRef.current;
+    if (!pl) return;
+    try {
+      if (pl.getPlayerState() === YT_STATE.PLAYING) pl.pauseVideo();
+      else pl.playVideo();
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // Double-tap likes, single tap plays/pauses. The single tap waits out the
+  // double-tap window so one gesture never fires both.
   const onTap = () => {
     const now = Date.now();
     if (now - lastTap.current < 300) {
@@ -80,6 +172,9 @@ function ShortCard({
       return;
     }
     lastTap.current = now;
+    window.setTimeout(() => {
+      if (lastTap.current === now) togglePlay();
+    }, 300);
   };
 
   return (
@@ -89,20 +184,17 @@ function ShortCard({
       <img className="shorts-poster" src={posterFor(short)} alt="" aria-hidden="true" loading="lazy" />
       <div className="shorts-scrim" aria-hidden="true" />
 
-      {mounted && active ? (
-        <iframe
-          className="shorts-frame"
-          src={embedUrl(short.youtubeId, muted)}
-          title={short.title}
-          allow="autoplay; encrypted-media; picture-in-picture"
-          allowFullScreen
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
-      ) : null}
+      <div ref={hostRef} className="shorts-frame" />
 
       {!active && (
         <div className="shorts-idle" aria-hidden="true">
           <Play size={40} strokeWidth={1.5} />
+        </div>
+      )}
+
+      {active && paused && (
+        <div className="shorts-idle" aria-hidden="true">
+          <Pause size={44} strokeWidth={1.5} />
         </div>
       )}
 
@@ -152,6 +244,12 @@ function ShortCard({
           {muted ? <VolumeX size={24} /> : <Volume2 size={24} />}
         </button>
       </div>
+
+      {active && (
+        <div className="shorts-playbar" aria-hidden="true">
+          <div style={{ width: `${progress * 100}%` }} />
+        </div>
+      )}
     </section>
   );
 }
@@ -216,6 +314,18 @@ export function ShortsPage() {
     return () => window.clearTimeout(t);
   }, [index, feed, markSeen]);
 
+  // When a clip finishes, move on by itself — the thing that makes a feed feel
+  // like a feed rather than a page with a video on it. Guarded by index so a
+  // stale player ending after a swipe cannot yank the viewer forward.
+  const advance = React.useCallback(
+    (from: number) => {
+      const root = containerRef.current;
+      if (!root || from !== index) return;
+      root.scrollTo({ top: (from + 1) * root.clientHeight, behavior: "smooth" });
+    },
+    [index],
+  );
+
   // Desktop: arrows move a card at a time, Escape leaves.
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -261,6 +371,7 @@ export function ShortsPage() {
               liked={!!bookmarks[short.id]}
               onToggleLike={() => toggleBookmark(short.id)}
               onToggleMute={() => setMuted((m) => !m)}
+              onEnded={() => advance(i)}
             />
           </div>
         ))}
