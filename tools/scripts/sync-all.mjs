@@ -812,6 +812,41 @@ async function main() {
     videos: allVideos,
   };
 
+  // ── Refuse to publish a worse library than the one already on disk ──
+  //
+  // YouTube's Innertube API is undocumented and changes without notice. When it
+  // does, every channel quietly returns 0 and this script wrote that empty
+  // result straight over the real file — 4,691 videos replaced by nothing,
+  // under a cheerful success message. That happened on 2026-08-24: the pinned
+  // clientVersion (2.20240417) is now rejected outright with HTTP 400.
+  //
+  // A sync that finds far less than what we already have is a FAILED sync, not
+  // a smaller library.
+  const MIN_KEEP_RATIO = 0.9;
+  let previousDb = null;
+  try {
+    previousDb = JSON.parse(fs.readFileSync(OUT_FILE, "utf8"));
+  } catch {
+    previousDb = null; // first run — nothing to protect
+  }
+
+  if (previousDb) {
+    const before = (previousDb.videos ?? []).length;
+    const after = (output.videos ?? []).length;
+    if (after < before * MIN_KEEP_RATIO) {
+      const rejected = OUT_FILE.replace(/\.json$/, ".rejected.json");
+      fs.writeFileSync(rejected, JSON.stringify(output, null, 2), "utf8");
+      console.error("");
+      console.error("⛔  REFUSED to write: " + after + " videos vs " + before + " already on disk.");
+      console.error("    That is almost certainly a broken fetch, not a smaller library.");
+      console.error("    The existing file is untouched. Rejected result saved to:");
+      console.error("    " + rejected);
+      console.error("");
+      process.exitCode = 1;
+      return;
+    }
+  }
+
   fs.writeFileSync(OUT_FILE, JSON.stringify(output, null, 2), "utf8");
   console.log(`\n✅  كُتب: ${OUT_FILE}\n`);
 }

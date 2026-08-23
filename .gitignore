@@ -48,3 +48,6 @@ tools/data-sources/
 qa-screenshots/
 qa-final/
 
+
+# Rejected sync output — never commit a failed video-library fetch
+public/data/video-library.rejected.json
