@@ -2293,7 +2293,9 @@ body.quran-focus-mode .quran-surface {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 6px 5px;
+  /* Taller as well as wider: the bar cannot grow sideways past the space left
+     beside the floating dots, so vertical room is what gives it more presence. */
+  padding: 9px 5px;
   border-radius: 22px;
   font-size: 11px;
   font-weight: 500;
@@ -2302,7 +2304,14 @@ body.quran-focus-mode .quran-surface {
   position: relative;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  min-width: 40px;
+  /* A little more room per tab than the old 40px, which widens the bar as a
+     whole. Not more than this: the bar's width is capped by the space left
+     beside the floating dots (measured 283px at a 375px viewport), and six
+     tabs wider than this push the inner row into horizontal scrolling — which
+     hides a tab off the edge rather than making anything look better. The
+     usable inner width measured 269px and the row adds ~2px between tabs, so
+     six tabs get 43px each — wider than the old 40, and still all visible. */
+  min-width: 43px;
   flex-shrink: 0;
 }
 
@@ -6645,7 +6654,9 @@ a:focus-visible,
 .shorts-meta {
   position: absolute;
   inset-inline: 0;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+  /* Clear of the band YouTube reserves for its own footer, so the two can
+     never overlap even in the moment before it auto-hides. */
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 58px);
   padding-inline: 16px;
   padding-inline-end: 86px;   /* clear of the action rail */
   color: #fff;
@@ -6698,47 +6709,67 @@ a:focus-visible,
 .shorts-actions {
   position: absolute;
   inset-inline-end: 12px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 30px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   align-items: center;
 }
 
 .shorts-action {
-  width: 48px;
-  height: 48px;
-  border-radius: 9999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: transform 140ms ease, color 180ms ease;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.shorts-action:active { transform: scale(0.9); }
-.shorts-action.liked { color: #ff4d6d; }
-
-.shorts-close {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 14px);
-  inset-inline-start: 14px;
-  z-index: 2;
   width: 40px;
   height: 40px;
   border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255, 255, 255, 0.94);
+  background: rgba(18, 22, 20, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  transition: transform 140ms ease, color 180ms ease, background 180ms ease;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.shorts-action:active { transform: scale(0.9); }
+.shorts-action.liked { color: #ff4d6d; }
+
+/* A labelled way back, rather than a bare X that never said what it closed to.
+   Reads as one piece with the action rail: same glass, same border, same ink. */
+.shorts-back {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  inset-inline-start: 14px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding-inline: 12px 14px;
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.94);
+  background: rgba(18, 22, 20, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 140ms ease, background 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shorts-back:active {
+  transform: scale(0.94);
+  background: rgba(18, 22, 20, 0.6);
+}
+
+/* The chevron points the way out, which in RTL is towards the right. */
+[dir="rtl"] .shorts-back svg {
+  transform: scaleX(-1);
 }
 
 /* There was a feed-position bar here, showing (index + 1) / feed.length.
@@ -6848,3 +6879,186 @@ body.shorts-open header.sticky {
   height: 100%;
   border: 0;
 }
+
+/* YouTube summons its own chrome — the title bar, and the "More videos" grid —
+   whenever the player is hovered or tapped, and it draws that chrome across the
+   bottom of the iframe, which is exactly where the clip's title sits. The feed
+   handles every gesture itself at the card level, so the player never needs to
+   see a pointer: without one, the chrome is never triggered in the first place. */
+.shorts-frame iframe {
+  pointer-events: none;
+}
+
+/* ── Shorts library: liked clips, watch history, hidden channels ────────── */
+
+.shorts-library-open {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  inset-inline-end: 14px;
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.94);
+  background: rgba(18, 22, 20, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.shorts-library-open:active { transform: scale(0.94); }
+
+.shorts-lib {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  background: rgba(8, 11, 10, 0.94);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  color: #fff;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.shorts-lib-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 10px;
+}
+.shorts-lib-head h2 { margin: 0; font-size: 17px; font-weight: 700; }
+
+.shorts-lib-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+}
+
+.shorts-lib-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 18px 12px;
+}
+.shorts-lib-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 9999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease;
+}
+.shorts-lib-tab.is-on {
+  color: #fff;
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.shorts-lib-body { flex: 1; overflow-y: auto; padding: 0 12px 24px; }
+
+.shorts-lib-empty {
+  margin: 40px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.shorts-lib-list { list-style: none; margin: 0; padding: 0; }
+
+.shorts-lib-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 14px;
+}
+.shorts-lib-row + .shorts-lib-row { margin-top: 2px; }
+
+.shorts-lib-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  border-radius: 12px;
+}
+.shorts-lib-open.as-static { cursor: default; }
+.shorts-lib-open:active { background: rgba(255, 255, 255, 0.06); }
+
+.shorts-lib-thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 62px;
+  height: 44px;
+  border-radius: 9px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.92);
+}
+.shorts-lib-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.shorts-lib-thumb svg {
+  position: relative;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.7));
+}
+
+.shorts-lib-text { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.shorts-lib-title {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.shorts-lib-channel { font-size: 11.5px; color: rgba(255, 255, 255, 0.55); }
+
+.shorts-lib-action {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 11px;
+  border-radius: 9999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+}
+.shorts-lib-action:active { transform: scale(0.94); }

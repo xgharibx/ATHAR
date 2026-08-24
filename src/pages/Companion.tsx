@@ -85,6 +85,7 @@ import {
   type CompanionHealthState,
 } from "@/lib/companionHealth";
 import { COMPANION_PROXY_URL } from "@/lib/companionAI";
+import { shareImageBlob } from "@/lib/shareTargets";
 
 const NoorStarfield = React.lazy(() => import("@/components/background/NoorStarfield"));
 
@@ -614,15 +615,7 @@ export function CompanionPage() {
       const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2 });
       document.body.removeChild(node);
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `athar-${Date.now()}.png`, { type: "image/png" });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "أثر" });
-      } else {
-        const a = document.createElement("a");
-        a.href = dataUrl;
-        a.download = `athar-${Date.now()}.png`;
-        a.click();
-      }
+      await shareImageBlob(blob, { filename: `athar-${Date.now()}.png`, title: "أثر" });
     } catch {
       toast.error("تعذَّر إنشاء الصورة");
     }

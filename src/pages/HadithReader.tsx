@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import toast from "react-hot-toast";
 import { arNum } from "@/lib/formatNumber";
+import { shareImageBlob } from "@/lib/shareTargets";
 
 
 /* ------------------------------------------------------------------ */
@@ -138,17 +139,9 @@ async function shareHadithPoster(opts: {
   // Share or download
   const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
   if (!blob) return;
-  const url = URL.createObjectURL(blob);
-  if (navigator.share && navigator.canShare?.({ files: [new File([blob], "hadith.png", { type: "image/png" })] })) {
-    const file = new File([blob], "hadith.png", { type: "image/png" });
-    await navigator.share({ files: [file] }).catch(() => {});
-  } else {
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "hadith.png";
-    a.click();
-  }
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  // navigator.share does not exist in the app's WebView, so this used to fall
+  // through to an <a download> that had nowhere to put the file.
+  await shareImageBlob(blob, { filename: "hadith.png" });
 }
 
 /* ------------------------------------------------------------------ */

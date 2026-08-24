@@ -245,3 +245,47 @@ export function buildShortsFeed(index: ShortsIndex | null, opts: RankInput = {})
 export function posterFor(short: Short): string {
   return `https://i.ytimg.com/vi/${short.youtubeId}/hqdefault.jpg`;
 }
+
+/** Look one clip up by id, with its channel filled in. */
+export function shortById(index: ShortsIndex | null, id: string): Short | null {
+  if (!index?.items) return null;
+  const item = index.items.find((x) => x.i === id);
+  if (!item) return null;
+  const ch = index.channels.find((c) => c.id === item.c);
+  return {
+    id: item.i,
+    youtubeId: item.i,
+    title: item.t,
+    channelId: item.c,
+    channelName: ch?.name ?? "",
+    channelAvatar: ch?.avatar,
+    accent: ch?.accent,
+    durationSeconds: item.d,
+    publishedAt: item.p,
+  };
+}
+
+/** Resolve many ids at once, dropping any that are no longer in the library. */
+export function shortsByIds(index: ShortsIndex | null, ids: readonly string[]): Short[] {
+  if (!index?.items?.length || !ids.length) return [];
+  const wanted = new Set(ids);
+  const channelById = new Map(index.channels.map((c) => [c.id, c]));
+  const found = new Map<string, Short>();
+  for (const x of index.items) {
+    if (!wanted.has(x.i)) continue;
+    const ch = channelById.get(x.c);
+    found.set(x.i, {
+      id: x.i,
+      youtubeId: x.i,
+      title: x.t,
+      channelId: x.c,
+      channelName: ch?.name ?? "",
+      channelAvatar: ch?.avatar,
+      accent: ch?.accent,
+      durationSeconds: x.d,
+      publishedAt: x.p,
+    });
+  }
+  // Caller's order is meaningful (newest first, say), so preserve it.
+  return ids.map((id) => found.get(id)).filter((s): s is Short => !!s);
+}

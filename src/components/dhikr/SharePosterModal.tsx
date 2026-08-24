@@ -1,5 +1,5 @@
 import * as React from "react";
-import { shareImageBlob } from "@/lib/shareTargets";
+import { saveImageBlob, saveResultMessage, shareImageBlob } from "@/lib/shareTargets";
 import { createPortal } from "react-dom";
 import { Download, Share2, X, Sparkles, Wand2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -55,13 +55,16 @@ export function SharePosterModal({ text, sectionTitle, count, onClose }: SharePo
     else if (result === "failed") toast.error("تعذّرت المشاركة");
   };
 
-  const handleDownload = () => {
-    if (!blobUrl) return;
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = "athar-dhikr.png";
-    a.click();
-    toast.success("تم تنزيل الصورة");
+  const handleDownload = async () => {
+    const blob = blobRef.current;
+    if (!blob) return;
+    // Was an <a download> click plus an unconditional success toast — which in
+    // the app's WebView saved nothing and said it had.
+    const outcome = saveResultMessage(
+      await saveImageBlob(blob, { filename: "athar-dhikr.png", text }),
+    );
+    if (outcome.ok) toast.success(outcome.text);
+    else toast.error(outcome.text);
   };
 
   const handleCopyImage = async () => {

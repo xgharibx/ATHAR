@@ -29,13 +29,25 @@ export type Burst = Record<string, unknown> & {
 const CANVAS_ID = "athar-celebration";
 /** canvas-confetti's own default when `ticks` is not given. */
 const DEFAULT_TICKS = 200;
-/** Frames are ~60/s; leave room for the burst to land before clearing. */
-const WATCHDOG_BUFFER_MS = 1500;
+/**
+ * The watchdog's frame-rate assumption.
+ *
+ * `ticks` is a count of FRAMES, not milliseconds, so turning it into a duration
+ * means guessing a frame rate. Assuming 60 was the bug: a phone painting at 30
+ * takes twice as long, so the canvas was wiped while the confetti was still
+ * mid-air and the burst vanished rather than landing. The watchdog exists only
+ * for the case where the animation never finishes at all, so it should assume
+ * the worst plausible rate and be late rather than early.
+ */
+const WATCHDOG_ASSUMED_FPS = 15;
+const WATCHDOG_BUFFER_MS = 2000;
 
 let instance: ConfettiInstance | null = null;
 let canvas: HTMLCanvasElement | null = null;
 let watchdog: ReturnType<typeof setTimeout> | null = null;
 let listenersBound = false;
+/** Bumped per celebration so a finished burst never clears a newer one. */
+let celebrationGeneration = 0;
 
 function bindLifecycle() {
   if (listenersBound || typeof document === "undefined") return;
@@ -103,20 +115,40 @@ export async function celebrate(bursts: Burst[]): Promise<void> {
   if (!c) return;
 
   let longest = 0;
+  // Each burst resolves when ITS OWN animation has actually finished, which is
+  // the only honest signal that the confetti has landed. Waiting on these
+  // rather than on a computed duration is what lets a burst finish falling on
+  // a slow device instead of being wiped out of the air.
+  const landed: Array<Promise<unknown>> = [];
+
   for (const { delay = 0, ...opts } of bursts) {
     const ticks = typeof opts.ticks === "number" ? opts.ticks : DEFAULT_TICKS;
-    longest = Math.max(longest, delay + (ticks / 60) * 1000);
+    longest = Math.max(longest, delay + (ticks / WATCHDOG_ASSUMED_FPS) * 1000);
     if (delay > 0) {
-      setTimeout(() => {
-        try { void c(opts); } catch { /* ignore */ }
-      }, delay);
+      landed.push(
+        new Promise((resolve) => {
+          setTimeout(() => {
+            try { resolve(c(opts)); } catch { resolve(undefined); }
+          }, delay);
+        }),
+      );
     } else {
-      try { void c(opts); } catch { /* ignore */ }
+      try { landed.push(Promise.resolve(c(opts))); } catch { /* ignore */ }
     }
   }
 
-  // Belt and braces: even if a frame is dropped and the loop stalls, the canvas
-  // is guaranteed to be cleared shortly after the last burst should have ended.
+  const generation = ++celebrationGeneration;
+  void Promise.all(landed)
+    .catch(() => undefined)
+    .then(() => {
+      // A later celebration may have started while this one was in the air;
+      // clearing then would wipe ITS confetti instead of ours.
+      if (generation === celebrationGeneration) resetCelebration();
+    });
+
+  // Belt and braces, for the case where the loop stalls and those promises
+  // never settle at all — deliberately generous, so it can only ever fire
+  // after the animation should long since have ended.
   if (watchdog) clearTimeout(watchdog);
   watchdog = setTimeout(resetCelebration, longest + WATCHDOG_BUFFER_MS);
 }

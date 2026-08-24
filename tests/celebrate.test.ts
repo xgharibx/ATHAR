@@ -81,24 +81,53 @@ describe("clearing — the actual bug", () => {
     expect(reset).toHaveBeenCalled();
   });
 
-  it("clears itself after the longest burst, even if a frame is dropped", async () => {
-    await mod.celebrate([{ particleCount: 50, ticks: 60 }]); // ~1s of animation
+  it("clears as soon as the confetti itself reports it has landed", async () => {
+    // The normal path, and the reason the burst is no longer cut off mid-air:
+    // canvas-confetti resolves when ITS animation has genuinely finished, so
+    // nothing here has to guess a duration.
+    let land: () => void = () => {};
+    fire.mockImplementationOnce(() => new Promise<void>((r) => { land = r; }));
+
+    await mod.celebrate([{ particleCount: 50, ticks: 60 }]);
     reset.mockClear();
+
     vi.advanceTimersByTime(600);
-    expect(reset).not.toHaveBeenCalled();   // still legitimately animating
-    vi.advanceTimersByTime(3000);
+    expect(reset).not.toHaveBeenCalled();   // still legitimately in the air
+
+    land();
+    // Promise.all -> .catch -> .then is several microtask hops deep.
+    for (let i = 0; i < 10; i += 1) await Promise.resolve();
+    expect(reset).toHaveBeenCalled();
+  });
+
+  it("still clears eventually if the animation never reports back", async () => {
+    // The fallback. It is deliberately generous — clearing early is what wiped
+    // confetti out of the air on a phone painting below 60fps — so it is only
+    // ever meant to catch a loop that has genuinely stalled.
+    fire.mockImplementationOnce(() => new Promise<void>(() => {}));
+
+    await mod.celebrate([{ particleCount: 50, ticks: 60 }]);
+    reset.mockClear();
+
+    vi.advanceTimersByTime(4000);
+    expect(reset).not.toHaveBeenCalled();   // a slow device is still animating
+    vi.advanceTimersByTime(30_000);
     expect(reset).toHaveBeenCalled();
   });
 
   it("extends the watchdog for a later burst rather than cutting it short", async () => {
+    fire.mockImplementation(() => new Promise<void>(() => {}));
+
     await mod.celebrate([{ particleCount: 10, ticks: 60 }]);
     vi.advanceTimersByTime(500);
     await mod.celebrate([{ particleCount: 10, ticks: 300 }]);
     reset.mockClear();
-    vi.advanceTimersByTime(2000);
-    expect(reset).not.toHaveBeenCalled();
+
     vi.advanceTimersByTime(6000);
+    expect(reset).not.toHaveBeenCalled();   // the longer burst is still owed time
+    vi.advanceTimersByTime(30_000);
     expect(reset).toHaveBeenCalled();
+    fire.mockReset();
   });
 
   it("can be cleared on demand, for navigating away", async () => {

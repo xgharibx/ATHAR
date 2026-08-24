@@ -8,7 +8,7 @@
  * already established by SharePosterModal.
  */
 import * as React from "react";
-import { shareImageBlob } from "@/lib/shareTargets";
+import { saveImageBlob, saveResultMessage, shareImageBlob } from "@/lib/shareTargets";
 import { createPortal } from "react-dom";
 import {
   Share2, Download, X, Sparkles, Wand2, ImageDown, Copy,
@@ -256,11 +256,11 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
       const filename = props.surahName
         ? `athar-${props.surahNumber ?? ""}-${props.ayahNumber ?? ""}.png`
         : "athar-ayah.png";
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = filename; a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      toast.success("تم تنزيل الصورة");
+      // An <a download> click reaches no download manager inside the app's
+      // WebView, so this reported a save it had not performed.
+      const outcome = saveResultMessage(await saveImageBlob(blob, { filename }));
+      if (outcome.ok) toast.success(outcome.text);
+      else toast.error(outcome.text);
     } catch { toast.error("تعذّر تنزيل الصورة"); }
   };
 

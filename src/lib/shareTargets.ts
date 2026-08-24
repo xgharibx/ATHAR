@@ -51,6 +51,7 @@ async function nativeBridge() {
     const { registerPlugin } = await import("@capacitor/core");
     return registerPlugin<{
       shareImage(o: { base64: string; filename?: string; text?: string; title?: string }): Promise<void>;
+      saveImage(o: { base64: string; filename?: string }): Promise<void>;
       shareText(o: { text: string; title?: string }): Promise<void>;
     }>("ShareBridge");
   } catch {
@@ -59,6 +60,7 @@ async function nativeBridge() {
 }
 
 export type ShareResult = "shared" | "downloaded" | "failed";
+export type SaveResult = "saved" | "shared" | "downloaded" | "failed";
 
 /** Share an image, with the text (and app invitation) alongside it. */
 export async function shareImageBlob(
@@ -131,5 +133,69 @@ export async function shareText(raw: string, title = "أثر"): Promise<ShareRes
     return "downloaded"; // copied — the caller words it
   } catch {
     return "failed";
+  }
+}
+
+/**
+ * Put an image where the user can find it again.
+ *
+ * Every caller used to do this with an <a download> click and then report
+ * success unconditionally. In the Capacitor WebView there is no download
+ * manager for that click to reach, so on Android and iOS the button produced
+ * no file and a message saying it had — the single most misleading thing the
+ * app did.
+ *
+ * Three honest outcomes, in order of preference:
+ *   - Android: written straight into Pictures/Athar via MediaStore.
+ *   - iOS: no bridge implementation exists, so the share sheet is offered
+ *     instead; "Save Image" there is one tap and genuinely saves.
+ *   - Web: the <a download> that does work in a real browser.
+ *
+ * The result says which of those actually happened, so callers can stop
+ * claiming a download that never occurred.
+ */
+export async function saveImageBlob(
+  blob: Blob,
+  opts: { filename?: string; text?: string; title?: string } = {},
+): Promise<SaveResult> {
+  const filename = opts.filename ?? "athar.png";
+
+  const bridge = await nativeBridge();
+  if (bridge) {
+    try {
+      await bridge.saveImage({ base64: await blobToBase64(blob), filename });
+      return "saved";
+    } catch {
+      // No saveImage on this platform (iOS has no bridge at all). Offering the
+      // share sheet is the nearest real thing — it can save to Photos/Files.
+      const shared = await shareImageBlob(blob, opts);
+      return shared === "failed" ? "failed" : shared;
+    }
+  }
+
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    return "downloaded";
+  } catch {
+    return "failed";
+  }
+}
+
+/** The message that matches what actually happened. */
+export function saveResultMessage(r: SaveResult): { ok: boolean; text: string } {
+  switch (r) {
+    case "saved":
+      return { ok: true, text: "تم حفظ الصورة في المعرض" };
+    case "downloaded":
+      return { ok: true, text: "تم تنزيل الصورة" };
+    case "shared":
+      return { ok: true, text: "تمت المشاركة" };
+    default:
+      return { ok: false, text: "تعذّر حفظ الصورة" };
   }
 }

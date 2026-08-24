@@ -23,13 +23,14 @@
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Volume2, VolumeX, X, Play, Pause, Share2, EyeOff } from "lucide-react";
+import { Heart, Volume2, VolumeX, ChevronLeft, Play, Pause, Share2, EyeOff, Bookmark } from "lucide-react";
 
 import { useShortsDB } from "@/data/useShortsDB";
 import { useNoorStore, type ShortsChannelStat } from "@/store/noorStore";
 import { buildShortsFeed, posterFor, type Short } from "@/lib/shortsFeed";
-import { createPlayer, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
+import { createPlayer, loadYouTubeApi, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
 import { shareText } from "@/lib/shareTargets";
+import { ShortsLibrary } from "@/components/shorts/ShortsLibrary";
 
 /** How many neighbours around the active card get a real player. */
 /** How far either side of the viewer a card still paints its poster. */
@@ -119,6 +120,10 @@ function ShortCard({
 }) {
   const [burst, setBurst] = React.useState(false);
   const [paused, setPaused] = React.useState(false);
+  // togglePlay is called from a timeout, so it needs the live value rather than
+  // the one captured when the tap happened.
+  const pausedRef = React.useRef(false);
+  pausedRef.current = paused;
   const [progress, setProgress] = React.useState(0);
   // Set when the IFrame API itself could not be loaded — offline, or blocked by
   // an extension. Distinct from `unplayable`, which is one bad video.
@@ -320,16 +325,26 @@ function ShortCard({
     const pl = playerRef.current;
     if (!pl) return;
     try {
-      if (pl.getPlayerState() === YT_STATE.PLAYING) pl.pauseVideo();
-      else pl.playVideo();
+      // Driven by the state we already observe through onStateChange, not by
+      // asking the player. `getPlayerState()` was not reporting PLAYING while
+      // the clip was plainly playing, so every tap took the `else` branch and
+      // called playVideo() on an already-playing video — tap-to-pause simply
+      // did nothing, while tap-to-resume worked and hid the problem.
+      if (pausedRef.current) pl.playVideo();
+      else pl.pauseVideo();
     } catch {
-      /* ignore */
+      /* mid-teardown */
     }
   };
 
   // Double-tap likes, single tap plays/pauses. The single tap waits out the
   // double-tap window so one gesture never fires both.
-  const onTap = () => {
+  const onTap = (e: React.PointerEvent<HTMLElement>) => {
+    // `pointerup` fires BEFORE `click`, and it bubbles — so a stopPropagation
+    // in a button's onClick comes far too late to stop this. Pressing mute was
+    // therefore also pausing the video. Anything inside a control is not a tap
+    // on the video, full stop.
+    if ((e.target as HTMLElement).closest("button")) return;
     const now = Date.now();
     if (now - lastTap.current < 300) {
       if (!liked) onToggleLike();
@@ -390,7 +405,7 @@ function ShortCard({
 
       {!active && !unplayable && !hidden && (
         <div className="shorts-idle" aria-hidden="true">
-          <Play size={40} strokeWidth={1.5} />
+          <Play size={38} strokeWidth={1.5} />
         </div>
       )}
 
@@ -448,7 +463,7 @@ function ShortCard({
           aria-label={liked ? "إزالة من المفضلة" : "أضف إلى المفضلة"}
           aria-pressed={liked}
         >
-          <Heart size={26} fill={liked ? "currentColor" : "none"} />
+          <Heart size={21} strokeWidth={2} fill={liked ? "currentColor" : "none"} />
         </button>
         <button
           type="button"
@@ -463,7 +478,7 @@ https://www.youtube.com/watch?v=${short.youtubeId}`,
           }}
           aria-label="مشاركة"
         >
-          <Share2 size={24} />
+          <Share2 size={20} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -474,7 +489,7 @@ https://www.youtube.com/watch?v=${short.youtubeId}`,
           }}
           aria-label={`عدم عرض مقاطع ${short.channelName}`}
         >
-          <EyeOff size={23} />
+          <EyeOff size={20} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -485,7 +500,7 @@ https://www.youtube.com/watch?v=${short.youtubeId}`,
           }}
           aria-label={muted ? "تشغيل الصوت" : "كتم الصوت"}
         >
-          {muted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+          {muted ? <VolumeX size={20} strokeWidth={2} /> : <Volume2 size={20} strokeWidth={2} />}
         </button>
       </div>
 
@@ -560,7 +575,13 @@ export function ShortsPage() {
   // plus more on the end — the viewer's position never moves underneath them.
   const [pages, setPages] = React.useState(1);
 
-  const feed = React.useMemo(
+  // A clip opened from the library plays first, then the ranked feed continues
+  // behind it. Deliberate navigation, so rebuilding here is what the viewer
+  // asked for — unlike the mid-scroll re-ranks the feed carefully avoids.
+  const [lead, setLead] = React.useState<Short | null>(null);
+  const [libraryOpen, setLibraryOpen] = React.useState(false);
+
+  const ranked = React.useMemo(
     () =>
       buildShortsFeed(data ?? null, {
         seen: seenAtMountRef.current ?? {},
@@ -577,12 +598,25 @@ export function ShortsPage() {
     [data, pages],
   );
 
+  const feed = React.useMemo(
+    () => (lead ? [lead, ...ranked.filter((s) => s.id !== lead.id)] : ranked),
+    [lead, ranked],
+  );
+
   // Passed down so the recorder can keep the channels' own names out of the
   // topic vocabulary — they sign nearly every title.
   const channelNames = React.useMemo(
     () => (data?.channels ?? []).map((c) => c.name),
     [data],
   );
+
+  const openFromLibrary = React.useCallback((short: Short) => {
+    setLead(short);
+    setLibraryOpen(false);
+    setIndex(0);
+    // The list is rebuilt with this clip at the top, so go there.
+    requestAnimationFrame(() => containerRef.current?.scrollTo({ top: 0 }));
+  }, []);
 
   const [index, setIndex] = React.useState(0);
   const [gone, setGone] = React.useState<ReadonlySet<string>>(() => new Set());
@@ -685,6 +719,14 @@ export function ShortsPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [index, navigate]);
 
+  // Start fetching YouTube's API the moment the feed opens, rather than waiting
+  // for the index to arrive and the first card to render before asking for it.
+  // It measured ~900ms on its own, and nothing about it depends on our data —
+  // so it may as well be in flight the whole time.
+  React.useEffect(() => {
+    void loadYouTubeApi().catch(() => undefined);
+  }, []);
+
   // The tab bar and its dots would sit on top of a full-screen feed.
   React.useEffect(() => {
     document.body.classList.add("shorts-open");
@@ -710,9 +752,33 @@ export function ShortsPage() {
 
   return (
     <div className="shorts-root" dir="rtl">
-      <button type="button" className="shorts-close" onClick={() => navigate(-1)} aria-label="إغلاق">
-        <X size={22} />
+      {/* An X in a corner does not say what closing leads back TO. This does. */}
+      <button
+        type="button"
+        className="shorts-back"
+        onClick={() => navigate(-1)}
+        aria-label="العودة إلى أثر"
+      >
+        <ChevronLeft size={18} strokeWidth={2.5} />
+        <span>أثر</span>
       </button>
+
+      <button
+        type="button"
+        className="shorts-library-open"
+        onClick={() => setLibraryOpen(true)}
+        aria-label="مكتبة المقاطع"
+      >
+        <Bookmark size={18} />
+      </button>
+
+      {libraryOpen && (
+        <ShortsLibrary
+          index={data ?? null}
+          onPlay={openFromLibrary}
+          onClose={() => setLibraryOpen(false)}
+        />
+      )}
 
       <div className="shorts-scroller" ref={containerRef} tabIndex={-1}>
         {feed.map((short, i) => (

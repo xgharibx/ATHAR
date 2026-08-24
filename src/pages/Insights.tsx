@@ -18,6 +18,7 @@ import { TOTAL_QURAN_AYAHS, SURAH_JUZ, SURAH_REVELATION } from "@/lib/quranMeta"
 import { DAILY_CHECKLIST_ITEMS } from "@/data/dailyGrowth";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
+import { shareImageBlob } from "@/lib/shareTargets";
 
 
 function computeStreak(activity: Record<string, number>) {
@@ -659,16 +660,15 @@ export function InsightsPage() {
     try {
       const dataUrl = await toPng(ibadatCardRef.current, { pixelRatio: 2, cacheBust: true });
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "ATHAR-ibadat.png", { type: "image/png" });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "بطاقة العبادة", text: "بطاقة العبادة اليوم من تطبيق ATHAR ✨" });
-      } else {
-        const a = document.createElement("a");
-        a.href = dataUrl;
-        a.download = "ATHAR-ibadat.png";
-        a.click();
-        toast.success("تم تحميل بطاقة العبادة");
-      }
+      // Goes through the native bridge first: navigator.canShare is undefined
+      // in the app's WebView, so the old fallback silently did nothing.
+      const r = await shareImageBlob(blob, {
+        filename: "ATHAR-ibadat.png",
+        title: "بطاقة العبادة",
+        text: "بطاقة العبادة اليوم من تطبيق ATHAR ✨",
+      });
+      if (r === "downloaded") toast.success("تم تحميل بطاقة العبادة");
+      else if (r === "failed") toast.error("تعذّرت المشاركة");
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== "AbortError") toast.error("تعذر مشاركة البطاقة");
     } finally {
@@ -714,16 +714,13 @@ export function InsightsPage() {
     try {
       const dataUrl = await toPng(quranShareCardRef.current, { pixelRatio: 2, cacheBust: true });
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "ATHAR-quran-progress.png", { type: "image/png" });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "تقدمي في القرآن", text: `${arNum(quranStats.completed)} سورة مكتملة • ${arNum(overallQuranProgress)}٪ ✨` });
-      } else {
-        const a = document.createElement("a");
-        a.href = dataUrl;
-        a.download = "ATHAR-quran-progress.png";
-        a.click();
-        toast.success("تم تحميل بطاقة التقدم");
-      }
+      const r = await shareImageBlob(blob, {
+        filename: "ATHAR-quran-progress.png",
+        title: "تقدمي في القرآن",
+        text: `${arNum(quranStats.completed)} سورة مكتملة • ${arNum(overallQuranProgress)}٪ ✨`,
+      });
+      if (r === "downloaded") toast.success("تم تحميل بطاقة التقدم");
+      else if (r === "failed") toast.error("تعذّرت المشاركة");
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== "AbortError") toast.error("تعذر مشاركة البطاقة");
     } finally {
@@ -769,18 +766,14 @@ export function InsightsPage() {
     try {
       const dataUrl = await toPng(shareCardRef.current, { pixelRatio: 2, cacheBust: true });
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "ATHAR-progress.png", { type: "image/png" });
 
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "تقدمي في ATHAR", text: `سلسلة ${arNum(streak)} يوم • ${arNum(total)} ذكر ✨` });
-      } else {
-        // Fallback: download
-        const a = document.createElement("a");
-        a.href = dataUrl;
-        a.download = "ATHAR-progress.png";
-        a.click();
-        toast.success("تم تحميل بطاقة التقدم");
-      }
+      const r = await shareImageBlob(blob, {
+        filename: "ATHAR-progress.png",
+        title: "تقدمي في ATHAR",
+        text: `سلسلة ${arNum(streak)} يوم • ${arNum(total)} ذكر ✨`,
+      });
+      if (r === "downloaded") toast.success("تم تحميل بطاقة التقدم");
+      else if (r === "failed") toast.error("تعذّرت المشاركة");
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== "AbortError") {
         toast.error("تعذر مشاركة البطاقة");
