@@ -23,12 +23,13 @@
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Volume2, VolumeX, X, Play, Pause } from "lucide-react";
+import { Heart, Volume2, VolumeX, X, Play, Pause, Share2, EyeOff } from "lucide-react";
 
 import { useShortsDB } from "@/data/useShortsDB";
 import { useNoorStore } from "@/store/noorStore";
 import { buildShortsFeed, posterFor, type Short } from "@/lib/shortsFeed";
 import { createPlayer, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
+import { shareText } from "@/lib/shareTargets";
 
 /** How many neighbours around the active card get a real player. */
 /** How far either side of the viewer a card still paints its poster. */
@@ -46,6 +47,8 @@ const EXTEND_WITHIN = 12;
  * than one that starts quiet.
  */
 const MUTE_KEY = "noor_shorts_muted_v1";
+
+const NO_HIDDEN: Record<string, boolean> = {};
 
 function readMutePreference(): boolean {
   try {
@@ -82,6 +85,8 @@ function ShortCard({
   onEnded,
   unplayable,
   onUnplayable,
+  hidden,
+  onHideChannel,
 }: {
   short: Short;
   active: boolean;
@@ -95,6 +100,8 @@ function ShortCard({
   onEnded: () => void;
   unplayable: boolean;
   onUnplayable: () => void;
+  hidden: boolean;
+  onHideChannel: () => void;
 }) {
   const [burst, setBurst] = React.useState(false);
   const [paused, setPaused] = React.useState(false);
@@ -115,7 +122,7 @@ function ShortCard({
   // Whether this card should own a player at all: the one being watched, and
   // the one about to be. Everything else is torn down — players left alive
   // off-screen are what turn a feed into a memory leak.
-  const wantsPlayer = mounted && !unplayable && (active || preload);
+  const wantsPlayer = mounted && !unplayable && !hidden && (active || preload);
 
   // Deliberately NOT keyed on `active`. A preloaded card becoming the active
   // one must keep the player it already warmed up; rebuilding it there would
@@ -219,6 +226,7 @@ function ShortCard({
       const pl = playerRef.current;
       if (!pl) return;
       try {
+        if (scrubbingRef.current !== null) return; // the thumb wins while held
         const d = pl.getDuration();
         if (d > 0) setProgress(Math.min(1, pl.getCurrentTime() / d));
       } catch {
@@ -227,6 +235,51 @@ function ShortCard({
     }, 250);
     return () => window.clearInterval(id);
   }, [active]);
+
+  // Dragging the bar seeks. The fill grows from the right in RTL, so the
+  // fraction is measured from whichever edge the text direction starts at —
+  // reading it off `clientX` alone would run the scrub backwards in Arabic.
+  const [scrubbing, setScrubbing] = React.useState<number | null>(null);
+  // The progress ticker runs on an interval and closes over its own snapshot,
+  // so it needs the live value rather than the one captured when it started.
+  const scrubbingRef = React.useRef<number | null>(null);
+  scrubbingRef.current = scrubbing;
+
+  const fractionAt = (el: HTMLElement, clientX: number) => {
+    const r = el.getBoundingClientRect();
+    const rtl = getComputedStyle(el).direction === "rtl";
+    const raw = rtl ? (r.right - clientX) / r.width : (clientX - r.left) / r.width;
+    return Math.min(1, Math.max(0, raw));
+  };
+
+  const beginScrub = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setScrubbing(fractionAt(e.currentTarget, e.clientX));
+  };
+
+  const continueScrub = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (scrubbing === null) return;
+    e.stopPropagation();
+    setScrubbing(fractionAt(e.currentTarget, e.clientX));
+  };
+
+  const endScrub = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    const at = scrubbing;
+    setScrubbing(null);
+    const pl = playerRef.current;
+    if (at === null || !pl) return;
+    try {
+      const d = pl.getDuration();
+      if (d > 0) {
+        pl.seekTo(d * at, true);
+        setProgress(at);
+      }
+    } catch {
+      /* mid-teardown */
+    }
+  };
 
   const togglePlay = () => {
     const pl = playerRef.current;
@@ -286,20 +339,27 @@ function ShortCard({
         />
       )}
 
-      {unplayable && (
+      {unplayable && !hidden && (
         <div className="shorts-gone" dir="rtl" role="status">
           <p>هذا المقطع لم يعد متاحًا</p>
           <span>ننتقل إلى التالي…</span>
         </div>
       )}
 
-      {!active && !unplayable && (
+      {hidden && (
+        <div className="shorts-gone" dir="rtl" role="status">
+          <p>لن تظهر مقاطع {short.channelName}</p>
+          <span>يمكنك التراجع من الإعدادات</span>
+        </div>
+      )}
+
+      {!active && !unplayable && !hidden && (
         <div className="shorts-idle" aria-hidden="true">
           <Play size={40} strokeWidth={1.5} />
         </div>
       )}
 
-      {active && paused && !unplayable && (
+      {active && paused && !unplayable && !hidden && (
         <div className="shorts-idle" aria-hidden="true">
           <Pause size={44} strokeWidth={1.5} />
         </div>
@@ -344,6 +404,32 @@ function ShortCard({
           className="shorts-action"
           onClick={(e) => {
             e.stopPropagation();
+            void shareText(
+              `${short.title}
+https://www.youtube.com/watch?v=${short.youtubeId}`,
+              short.title,
+            );
+          }}
+          aria-label="مشاركة"
+        >
+          <Share2 size={24} />
+        </button>
+        <button
+          type="button"
+          className="shorts-action"
+          onClick={(e) => {
+            e.stopPropagation();
+            onHideChannel();
+          }}
+          aria-label={`عدم عرض مقاطع ${short.channelName}`}
+        >
+          <EyeOff size={23} />
+        </button>
+        <button
+          type="button"
+          className="shorts-action"
+          onClick={(e) => {
+            e.stopPropagation();
             onToggleMute();
           }}
           aria-label={muted ? "تشغيل الصوت" : "كتم الصوت"}
@@ -352,9 +438,22 @@ function ShortCard({
         </button>
       </div>
 
-      {active && (
-        <div className="shorts-playbar" aria-hidden="true">
-          <div style={{ width: `${progress * 100}%` }} />
+      {active && !unplayable && !hidden && (
+        <div
+          className="shorts-playbar"
+          data-scrubbing={scrubbing !== null ? "1" : undefined}
+          role="slider"
+          tabIndex={-1}
+          aria-label="موضع التشغيل"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress * 100)}
+          onPointerDown={beginScrub}
+          onPointerMove={continueScrub}
+          onPointerUp={endScrub}
+          onPointerCancel={endScrub}
+        >
+          <div style={{ width: `${(scrubbing ?? progress) * 100}%` }} />
         </div>
       )}
     </section>
@@ -367,6 +466,10 @@ export function ShortsPage() {
   const bookmarks = useNoorStore((s) => s.videoLibraryBookmarks);
   const toggleBookmark = useNoorStore((s) => s.toggleVideoBookmark);
   const markSeen = useNoorStore((s) => s.markShortSeen);
+  // A stable empty object: returning a fresh `{}` from the selector would give
+  // a new reference every render and spin the store's change detection.
+  const hiddenChannels = useNoorStore((s) => s.shortsHiddenChannels) ?? NO_HIDDEN;
+  const hideChannel = useNoorStore((s) => s.toggleShortsChannelHidden);
 
   // Read ONCE. Watch history updates as you scroll, and re-ranking on every
   // change would rebuild the feed under the viewer's thumb — the current clip
@@ -376,6 +479,14 @@ export function ShortsPage() {
     seenAtMountRef.current = useNoorStore.getState().shortsSeen ?? {};
   }
   const seedRef = React.useRef(Date.now());
+
+  // Read once, like watch history: hiding a channel must not re-rank the feed
+  // under the viewer's thumb. Clips already in the list are skipped instead
+  // (see below), and the next visit is built without that channel at all.
+  const hiddenChannelsAtMountRef = React.useRef<Record<string, boolean> | null>(null);
+  if (hiddenChannelsAtMountRef.current === null) {
+    hiddenChannelsAtMountRef.current = useNoorStore.getState().shortsHiddenChannels ?? {};
+  }
 
   // The feed grows instead of ending. The ranking is deterministic for a given
   // seed, so asking for a larger limit returns the SAME clips in the same order
@@ -387,6 +498,7 @@ export function ShortsPage() {
       buildShortsFeed(data ?? null, {
         seen: seenAtMountRef.current ?? {},
         liked: bookmarks,
+        hiddenChannels: hiddenChannelsAtMountRef.current ?? {},
         seed: seedRef.current,
         limit: PAGE_SIZE * pages,
       }),
@@ -463,6 +575,15 @@ export function ShortsPage() {
     [advance, markSeen],
   );
 
+  // A channel hidden mid-scroll still has clips in the list that was built
+  // before the viewer asked. Skip past them rather than rebuilding, which
+  // would move everything under an in-flight gesture.
+  React.useEffect(() => {
+    const current = feed[index];
+    if (!current) return;
+    if (hiddenChannels[current.channelId]) advance(index);
+  }, [index, feed, hiddenChannels, advance]);
+
   // Extend well before the viewer arrives, so there is never a visible stall.
   // A build that came back short means the library is exhausted, and asking for
   // more would spin forever.
@@ -532,6 +653,8 @@ export function ShortsPage() {
               onEnded={() => advance(i)}
               unplayable={gone.has(short.id)}
               onUnplayable={() => skipUnplayable(short.id, i)}
+              hidden={!!hiddenChannels[short.channelId]}
+              onHideChannel={() => hideChannel(short.channelId)}
             />
           </div>
         ))}

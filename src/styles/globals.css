@@ -6787,20 +6787,54 @@ body.shorts-open .app-footer {
   display: none !important;
 }
 
+/* Same for the app header. It is `sticky`, which puts it in the page's own
+   stacking context rather than behind the feed's z-index, so it sat across the
+   top of the video and buried the close button underneath it. */
+body.shorts-open header.sticky {
+  display: none !important;
+}
+
 /* Per-video progress. A plain <iframe> embed cannot report position at all —
    this needs the IFrame Player API, which is why the card owns a real player. */
+/* A 3px line is a readout, not a control. The bar keeps its hairline look but
+   claims a real touch target above it, so the clip can actually be scrubbed. */
 .shorts-playbar {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 20px;
+  display: flex;
+  align-items: flex-end;
+  background: transparent;
+  pointer-events: auto;
+  /* A drag here scrubs; without this the feed scroll-snaps away instead. */
+  touch-action: none;
+  cursor: pointer;
+}
+.shorts-playbar::before {
+  content: "";
   position: absolute;
   inset-inline: 0;
   bottom: 0;
   height: 3px;
   background: rgba(255, 255, 255, 0.16);
-  pointer-events: none;
 }
 .shorts-playbar > div {
-  height: 100%;
+  position: relative;
+  height: 3px;
   background: #fff;
   transition: width 240ms linear;
+}
+/* While the thumb is down the fill must track the finger, not glide after it. */
+.shorts-playbar[data-scrubbing="1"] > div {
+  transition: none;
+}
+.shorts-playbar[data-scrubbing="1"] {
+  height: 28px;
+}
+.shorts-playbar[data-scrubbing="1"]::before,
+.shorts-playbar[data-scrubbing="1"] > div {
+  height: 5px;
 }
 
 /* The player is created inside this host, so it must fill the card. */

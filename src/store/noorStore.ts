@@ -212,6 +212,7 @@ export type ExportBlobV1 = {
   tasbeehDailyLog?: Record<string, Record<string, number>>;
   tasbeehDayTotals?: Record<string, number>;
   shortsSeen?: Record<string, number>;
+  shortsHiddenChannels?: Record<string, boolean>;
   sebhaCustomList?: Array<{ id: string; phrase: string; transliteration?: string; target: number; color: string; createdAt: string }>;
   tasbeehStreak?: number;
   tasbeehStreakBest?: number;
@@ -306,6 +307,9 @@ type NoorState = {
    */
   shortsSeen: Record<string, number>;
   markShortSeen: (videoId: string) => void;
+  /** Channels the viewer asked not to see in the shorts feed. */
+  shortsHiddenChannels: Record<string, boolean>;
+  toggleShortsChannelHidden: (channelId: string) => void;
   incTasbeehDailyLog: (dateKey: string, key: string) => void;
   // Widget bridge: bulk-merge home-screen widget tasbeeh counts into stats
   mergeWidgetTasbeeh: (dateKey: string, counts: Record<string, number>) => void;
@@ -877,6 +881,15 @@ export const useNoorStore = create<NoorState>()(
       },
 
       tasbeehDayTotals: {},
+      shortsHiddenChannels: {},
+      toggleShortsChannelHidden: (channelId) =>
+        set((s) => ({
+          shortsHiddenChannels: {
+            ...s.shortsHiddenChannels,
+            [channelId]: !s.shortsHiddenChannels[channelId],
+          },
+        })),
+
       shortsSeen: {},
       markShortSeen: (videoId) =>
         set((st) => {
@@ -1446,6 +1459,7 @@ export const useNoorStore = create<NoorState>()(
           libraryFavorites: s.libraryFavorites,
           videoLibraryProgress: s.videoLibraryProgress,
           videoLibraryBookmarks: s.videoLibraryBookmarks,
+          shortsHiddenChannels: s.shortsHiddenChannels,
           videoLibraryLastVideoId: s.videoLibraryLastVideoId,
           activity: s.activity,
           sectionItemOrder: s.sectionItemOrder,
@@ -1545,6 +1559,10 @@ export const useNoorStore = create<NoorState>()(
             : {}) as Record<string, Record<string, number>>,
           tasbeehDayTotals: sanitizeNumberMap(blob.tasbeehDayTotals as Record<string, number> | undefined),
           shortsSeen: sanitizeNumberMap(blob.shortsSeen as Record<string, number> | undefined),
+          shortsHiddenChannels:
+            blob.shortsHiddenChannels && typeof blob.shortsHiddenChannels === "object"
+              ? (blob.shortsHiddenChannels as Record<string, boolean>)
+              : {},
           sebhaCustomList: Array.isArray(blob.sebhaCustomList) ? blob.sebhaCustomList : [],
           tasbeehStreak: blob.tasbeehStreak ?? 0,
           tasbeehStreakBest: blob.tasbeehStreakBest ?? 0,
@@ -1891,7 +1909,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 30,
+      version: 31,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -1948,6 +1966,9 @@ export const useNoorStore = create<NoorState>()(
           tasbeehDailyLog: ((state as Partial<NoorState>).tasbeehDailyLog && typeof (state as Partial<NoorState>).tasbeehDailyLog === 'object' ? (state as Partial<NoorState>).tasbeehDailyLog : {}) as Record<string, Record<string, number>>,
           tasbeehDayTotals: sanitizeNumberMap((state as Partial<NoorState>).tasbeehDayTotals),
           shortsSeen: sanitizeNumberMap((state as Partial<NoorState>).shortsSeen),
+          // New in v31. Without this default an upgrading user hydrates with
+          // `undefined` here, and the feed reads it on every card.
+          shortsHiddenChannels: (state as Partial<NoorState>).shortsHiddenChannels ?? {},
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],

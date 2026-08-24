@@ -162,6 +162,40 @@ describe("what the viewer likes", () => {
   });
 });
 
+describe("not interested", () => {
+  it("drops a hidden channel entirely", () => {
+    const feed = buildShortsFeed(idx([...many("a", 50), ...many("b", 50)]), {
+      hiddenChannels: { b: true },
+      limit: 60,
+    });
+    expect(feed.length).toBeGreaterThan(0);
+    expect(feed.some((s) => s.channelId === "b")).toBe(false);
+  });
+
+  it("keeps it hidden in the recycled tail too", () => {
+    // The tail is where a half-hearted implementation leaks: everything has
+    // been watched, the feed recycles, and the channel the viewer asked never
+    // to see comes back — which reads as the setting being ignored.
+    const seen = { a0: 1, a1: 2, b0: 3, b1: 4 };
+    const feed = buildShortsFeed(idx([...many("a", 2), ...many("b", 2)]), {
+      hiddenChannels: { b: true },
+      seen,
+      limit: 40,
+    });
+    expect(feed.some((s) => s.channelId === "b")).toBe(false);
+  });
+
+  it("hiding every channel yields an empty feed rather than throwing", () => {
+    const feed = buildShortsFeed(idx([...many("a", 5)]), { hiddenChannels: { a: true } });
+    expect(feed).toEqual([]);
+  });
+
+  it("an unhidden channel comes straight back", () => {
+    const i = idx([...many("a", 20), ...many("b", 20)]);
+    expect(buildShortsFeed(i, { hiddenChannels: { b: false }, limit: 30 }).some((s) => s.channelId === "b")).toBe(true);
+  });
+});
+
 describe("presentation", () => {
   it("carries the channel name so the card can credit it", () => {
     expect(buildShortsFeed(idx([["v1", "a", 30]]))[0]!.channelName).toBe("A");

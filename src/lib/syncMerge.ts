@@ -65,6 +65,7 @@ const FIELD_KIND: Record<string, SyncKind> = {
   tasbeehDailyLog: "progress",
   tasbeehDayTotals: "progress",
   shortsSeen: "progress",
+  shortsHiddenChannels: "progress",
   tasbeehStreak: "progress",
   tasbeehStreakBest: "progress",
   tasbeehLastActiveDate: "progress",
@@ -168,6 +169,9 @@ const FIELD_RULE: Record<string, Rule> = {
   tasbeehDayTotals: "counter",
   // Watched-at timestamps: the later one wins, so history merges across devices.
   shortsSeen: "counter",
+  // Hiding a channel is a deliberate act; unhiding it is too, so this needs the
+  // three-way merge that can express a removal rather than a union that cannot.
+  shortsHiddenChannels: "flags",
 
   favorites: "flags",
   libraryFavorites: "flags",

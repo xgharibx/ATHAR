@@ -43,6 +43,8 @@ export type RankInput = {
   seen?: Record<string, number>;
   /** videoId → true, the likes that already sync with the account. */
   liked?: Record<string, boolean>;
+  /** channelId → true for channels the viewer asked not to see again. */
+  hiddenChannels?: Record<string, boolean>;
   seed?: number;
   /** Cap the built feed; the UI never needs thousands of slots at once. */
   limit?: number;
@@ -73,7 +75,7 @@ function recencyScore(publishedAt: string | undefined, now: number): number {
 
 export function buildShortsFeed(index: ShortsIndex | null, opts: RankInput = {}): Short[] {
   if (!index?.items?.length) return [];
-  const { seen = {}, liked = {}, seed = 1, limit = 400 } = opts;
+  const { seen = {}, liked = {}, hiddenChannels = {}, seed = 1, limit = 400 } = opts;
   const now = Date.now();
 
   const channelById = new Map(index.channels.map((c) => [c.id, c]));
@@ -112,6 +114,10 @@ export function buildShortsFeed(index: ShortsIndex | null, opts: RankInput = {})
   const watched: typeof index.items = [];
   for (const x of index.items) {
     if (x.d <= 0 || x.d > SHORT_MAX_SECONDS) continue;
+    // "Not interested" has to mean it, including in the recycled tail — a
+    // hidden channel reappearing once the library runs low would read as the
+    // setting being ignored.
+    if (hiddenChannels[x.c]) continue;
     (seen[x.i] ? watched : unseen).push(x);
   }
 
