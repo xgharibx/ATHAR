@@ -15,10 +15,13 @@
  * 3. **Lean towards what is new and what the viewer already likes**, without
  *    ever becoming predictable.
  */
+import { channelNameStopwords, topicAffinity } from "@/lib/shortsTopics";
 
 /** A "short" is under three minutes — YouTube's own current ceiling. The API
  *  exposes no shorts flag and no aspect ratio, so duration is the only signal. */
 export const SHORT_MAX_SECONDS = 180;
+
+export type ChannelEngagement = { plays: number; finishes: number; skips: number };
 
 /** Compact wire format from shorts.json — six fields, not the whole library. */
 export type ShortsIndex = {
@@ -45,6 +48,10 @@ export type RankInput = {
   liked?: Record<string, boolean>;
   /** channelId → true for channels the viewer asked not to see again. */
   hiddenChannels?: Record<string, boolean>;
+  /** channelId → how often clips from it are finished or bailed out of. */
+  channelStats?: Record<string, ChannelEngagement>;
+  /** Normalised title word → how much this viewer engages with that subject. */
+  topicAffinity?: Record<string, number>;
   seed?: number;
   /** Cap the built feed; the UI never needs thousands of slots at once. */
   limit?: number;
@@ -73,12 +80,39 @@ function recencyScore(publishedAt: string | undefined, now: number): number {
   return 1 / (1 + ageDays / 90);
 }
 
+/**
+ * How much a channel's own record should move how often it comes up.
+ *
+ * Bounded to roughly half-to-double so it nudges rather than decides: a viewer
+ * who happens to bail on two clips early should not lose the channel, and a
+ * good run should not turn the feed into one voice. Below a handful of plays
+ * the sample says nothing and this stays neutral.
+ */
+export function engagementWeight(stat: ChannelEngagement | undefined): number {
+  if (!stat || stat.plays < 5) return 1;
+  const finishRate = stat.finishes / stat.plays;
+  const skipRate = stat.skips / stat.plays;
+  return Math.max(0.5, Math.min(2, 1 + finishRate * 1.2 - skipRate * 0.9));
+}
+
 export function buildShortsFeed(index: ShortsIndex | null, opts: RankInput = {}): Short[] {
   if (!index?.items?.length) return [];
-  const { seen = {}, liked = {}, hiddenChannels = {}, seed = 1, limit = 400 } = opts;
+  const {
+    seen = {},
+    liked = {},
+    hiddenChannels = {},
+    channelStats = {},
+    topicAffinity: topics = {},
+    seed = 1,
+    limit = 400,
+  } = opts;
   const now = Date.now();
 
   const channelById = new Map(index.channels.map((c) => [c.id, c]));
+
+  // The channels sign their own titles, so their names would otherwise be the
+  // strongest "topics" in the library and just restate the channel weighting.
+  const nameStop = channelNameStopwords(index.channels.map((c) => c.name));
 
   // Channels the viewer has actually liked from — a real signal, and the only
   // personalisation available without tracking anything invasive.
@@ -130,7 +164,14 @@ export function buildShortsFeed(index: ShortsIndex | null, opts: RankInput = {})
     // channel by the same amount and change nothing at all — the liked signal
     // belongs on the channel's weight below, where it actually alters how often
     // the channel comes up.
-    const score = recencyScore(x.p, now) * 1.0 + hash(x.i, seed) * 0.8;
+    // Subject is the sharpest signal available. With six channels and one of
+    // them holding 88% of the library, knowing which channel someone likes
+    // barely narrows anything — but "watches الرقية clips to the end" does,
+    // and it cuts across channels.
+    const score =
+      recencyScore(x.p, now) * 1.0 +
+      hash(x.i, seed) * 0.8 +
+      topicAffinity(topics, x.t, nameStop) * 1.4;
     const list = byChannel.get(x.c) ?? [];
     list.push({ x, s: score });
     byChannel.set(x.c, list);
@@ -152,7 +193,8 @@ export function buildShortsFeed(index: ShortsIndex | null, opts: RankInput = {})
       list,
       // Liked channels come up more often — the one piece of personalisation
       // available without tracking anything the viewer did not volunteer.
-      weight: Math.sqrt(list.length) * (likedChannels.has(id) ? 1.6 : 1),
+      weight:
+        Math.sqrt(list.length) * (likedChannels.has(id) ? 1.6 : 1) * engagementWeight(channelStats[id]),
       credit: 0,
       at: 0,
     }));

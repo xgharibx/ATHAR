@@ -66,6 +66,8 @@ const FIELD_KIND: Record<string, SyncKind> = {
   tasbeehDayTotals: "progress",
   shortsSeen: "progress",
   shortsHiddenChannels: "progress",
+  shortsChannelStats: "progress",
+  shortsTopicAffinity: "progress",
   tasbeehStreak: "progress",
   tasbeehStreakBest: "progress",
   tasbeehLastActiveDate: "progress",
@@ -172,6 +174,15 @@ const FIELD_RULE: Record<string, Rule> = {
   // Hiding a channel is a deliberate act; unhiding it is too, so this needs the
   // three-way merge that can express a removal rather than a union that cannot.
   shortsHiddenChannels: "flags",
+  // Per-channel play/finish/skip totals, nested one level deep. On a genuine
+  // two-device conflict this keeps the larger of each total rather than summing
+  // them, so counts can lag reality slightly — which is fine here and nowhere
+  // else in this file: these numbers are only ever read as a ratio to nudge
+  // ranking, never shown to anyone or scored against.
+  shortsChannelStats: "counter2",
+  // Topic weights are signed and clamped, and "later wins" is the honest rule:
+  // summing them across devices would double-count the same taste.
+  shortsTopicAffinity: "map",
 
   favorites: "flags",
   libraryFavorites: "flags",

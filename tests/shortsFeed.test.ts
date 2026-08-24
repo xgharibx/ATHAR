@@ -6,7 +6,14 @@
  * that again" is the thing people notice first.
  */
 import { describe, expect, it } from "vitest";
-import { buildShortsFeed, posterFor, SHORT_MAX_SECONDS, type ShortsIndex } from "@/lib/shortsFeed";
+import {
+  buildShortsFeed,
+  engagementWeight,
+  posterFor,
+  SHORT_MAX_SECONDS,
+  type ShortsIndex,
+} from "@/lib/shortsFeed";
+import { foldTopics } from "@/lib/shortsTopics";
 
 const channels = ["a", "b", "c"].map((id) => ({ id, name: id.toUpperCase(), accent: "#fff" }));
 
@@ -193,6 +200,105 @@ describe("not interested", () => {
   it("an unhidden channel comes straight back", () => {
     const i = idx([...many("a", 20), ...many("b", 20)]);
     expect(buildShortsFeed(i, { hiddenChannels: { b: false }, limit: 30 }).some((s) => s.channelId === "b")).toBe(true);
+  });
+});
+
+describe("what the viewer actually watches", () => {
+  it("treats too small a sample as no evidence", () => {
+    expect(engagementWeight(undefined)).toBe(1);
+    expect(engagementWeight({ plays: 3, finishes: 3, skips: 0 })).toBe(1);
+  });
+
+  it("favours a channel whose clips get watched to the end", () => {
+    expect(engagementWeight({ plays: 20, finishes: 18, skips: 1 })).toBeGreaterThan(1);
+  });
+
+  it("backs off a channel whose clips get skipped", () => {
+    expect(engagementWeight({ plays: 20, finishes: 1, skips: 17 })).toBeLessThan(1);
+  });
+
+  it("nudges rather than decides, in both directions", () => {
+    // A couple of early exits must not cost a viewer a whole channel, and a
+    // good run must not turn the feed into one voice.
+    const best = engagementWeight({ plays: 100, finishes: 100, skips: 0 });
+    const worst = engagementWeight({ plays: 100, finishes: 0, skips: 100 });
+    expect(best).toBeLessThanOrEqual(2);
+    expect(worst).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it("surfaces a channel that holds attention more than one that does not", () => {
+    const i = idx([...many("a", 200), ...many("b", 200), ...many("c", 200)]);
+    const neutral = buildShortsFeed(i, { seed: 4, limit: 60 });
+    const engaged = buildShortsFeed(i, {
+      seed: 4,
+      limit: 60,
+      channelStats: {
+        b: { plays: 40, finishes: 36, skips: 1 },
+        c: { plays: 40, finishes: 1, skips: 34 },
+      },
+    });
+    const share = (f: typeof neutral, id: string) => f.filter((s) => s.channelId === id).length;
+    expect(share(engaged, "b")).toBeGreaterThan(share(neutral, "b"));
+    expect(share(engaged, "c")).toBeLessThan(share(neutral, "c"));
+  });
+});
+
+describe("subject matter", () => {
+  /** Titles that mean something, so topic scoring has real words to chew on. */
+  function titled(entries: Array<[string, string, string]>): ShortsIndex {
+    return {
+      channels,
+      items: entries.map(([i, c, t]) => ({ i, c, t, d: 30 })),
+    };
+  }
+
+  it("puts a subject the viewer engages with ahead of one they ignore", () => {
+    const index = titled([
+      ["v1", "a", "أحكام البيع والشراء"],
+      ["v2", "a", "الرقية الشرعية من الحسد"],
+      ["v3", "a", "مسائل في الميراث"],
+    ]);
+    const affinity = foldTopics({}, "الرقية الشرعية", 3);
+    const feed = buildShortsFeed(index, { seed: 1, topicAffinity: affinity });
+    expect(feed[0]!.id).toBe("v2");
+  });
+
+  it("pushes down a subject the viewer keeps skipping", () => {
+    const index = titled([
+      ["v1", "a", "أحكام البيع والشراء"],
+      ["v2", "a", "مسائل في الميراث"],
+    ]);
+    const affinity = foldTopics({}, "أحكام البيع والشراء", -3);
+    const feed = buildShortsFeed(index, { seed: 1, topicAffinity: affinity });
+    expect(feed[feed.length - 1]!.id).toBe("v1");
+  });
+
+  it("ignores the channel's own name as a subject", () => {
+    // Every one of these titles is signed by the channel, so if the signature
+    // counted as a topic every clip would score identically and the signal
+    // would be worthless.
+    const index: ShortsIndex = {
+      channels: [{ id: "a", name: "عثمان الخميس" }],
+      items: [
+        { i: "v1", c: "a", t: "حكم صيام عرفة - عثمان الخميس", d: 30 },
+        { i: "v2", c: "a", t: "الرقية الشرعية - عثمان الخميس", d: 30 },
+      ],
+    };
+    const affinity = foldTopics({}, "عثمان الخميس", 5);
+    const feed = buildShortsFeed(index, { seed: 1, topicAffinity: affinity });
+    // Neither is preferred: the only thing the affinity knows about is the
+    // signature, which is excluded, so ordering falls back to the usual jitter.
+    expect(feed).toHaveLength(2);
+  });
+
+  it("changes nothing when the viewer has shown no preference yet", () => {
+    const index = titled([
+      ["v1", "a", "أحكام البيع"],
+      ["v2", "a", "الرقية الشرعية"],
+    ]);
+    const withEmpty = buildShortsFeed(index, { seed: 8, topicAffinity: {} }).map((s) => s.id);
+    const without = buildShortsFeed(index, { seed: 8 }).map((s) => s.id);
+    expect(withEmpty).toEqual(without);
   });
 });
 

@@ -18,6 +18,7 @@ import {
 } from "@/lib/hadithIDB";
 import type { HadithMemoCard } from "@/data/hadithTypes";
 import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
+import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
 
 /**
  * How many watched shorts to remember.
@@ -28,6 +29,12 @@ import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
  * library is ~7,551 clips, so this leaves real headroom for it to grow.
  */
 const SHORTS_HISTORY_MAX = 20_000;
+
+/** Watched this far through counts as finished; bailed before this, as a skip. */
+const FINISH_FRACTION = 0.8;
+const SKIP_FRACTION = 0.15;
+
+export type ShortsChannelStat = { plays: number; finishes: number; skips: number };
 
 export type NoorTheme =
   | "system"
@@ -213,6 +220,8 @@ export type ExportBlobV1 = {
   tasbeehDayTotals?: Record<string, number>;
   shortsSeen?: Record<string, number>;
   shortsHiddenChannels?: Record<string, boolean>;
+  shortsChannelStats?: Record<string, ShortsChannelStat>;
+  shortsTopicAffinity?: Record<string, number>;
   sebhaCustomList?: Array<{ id: string; phrase: string; transliteration?: string; target: number; color: string; createdAt: string }>;
   tasbeehStreak?: number;
   tasbeehStreakBest?: number;
@@ -310,6 +319,16 @@ type NoorState = {
   /** Channels the viewer asked not to see in the shorts feed. */
   shortsHiddenChannels: Record<string, boolean>;
   toggleShortsChannelHidden: (channelId: string) => void;
+  /** channelId → "plays|finishes|skips", the engagement the ranker learns from. */
+  shortsChannelStats: Record<string, ShortsChannelStat>;
+  /** Normalised title word → how much this viewer engages with it. */
+  shortsTopicAffinity: Record<string, number>;
+  recordShortWatch: (w: {
+    channelId: string;
+    title: string;
+    fraction: number;
+    channelNames?: readonly string[];
+  }) => void;
   incTasbeehDailyLog: (dateKey: string, key: string) => void;
   // Widget bridge: bulk-merge home-screen widget tasbeeh counts into stats
   mergeWidgetTasbeeh: (dateKey: string, counts: Record<string, number>) => void;
@@ -881,6 +900,41 @@ export const useNoorStore = create<NoorState>()(
       },
 
       tasbeehDayTotals: {},
+      shortsChannelStats: {},
+      shortsTopicAffinity: {},
+      /**
+       * What actually happened on a clip, folded into the two things the
+       * ranker can learn from: whether this channel holds attention, and which
+       * subjects do.
+       *
+       * Stored as per-channel totals and per-word weights rather than a row
+       * per video — six channels and a few hundred words, instead of a history
+       * that grows without bound and has to sync.
+       */
+      recordShortWatch: ({ channelId, title, fraction, channelNames }) =>
+        set((st) => {
+          const prev = st.shortsChannelStats[channelId] ?? { plays: 0, finishes: 0, skips: 0 };
+          const finished = fraction >= FINISH_FRACTION;
+          const skipped = fraction < SKIP_FRACTION;
+          const stat: ShortsChannelStat = {
+            plays: prev.plays + 1,
+            finishes: prev.finishes + (finished ? 1 : 0),
+            skips: prev.skips + (skipped ? 1 : 0),
+          };
+          // Watching to the end is the strongest implicit signal short-form
+          // video has; bailing in the first couple of seconds is the clearest
+          // negative one. Everything between them says very little, so it
+          // moves nothing rather than adding noise.
+          const delta = finished ? 1 : skipped ? -1 : 0;
+          const stop = channelNames ? channelNameStopwords(channelNames) : undefined;
+          return {
+            shortsChannelStats: { ...st.shortsChannelStats, [channelId]: stat },
+            shortsTopicAffinity: delta
+              ? foldTopics(st.shortsTopicAffinity, title, delta, stop)
+              : st.shortsTopicAffinity,
+          };
+        }),
+
       shortsHiddenChannels: {},
       toggleShortsChannelHidden: (channelId) =>
         set((s) => ({
@@ -1460,6 +1514,8 @@ export const useNoorStore = create<NoorState>()(
           videoLibraryProgress: s.videoLibraryProgress,
           videoLibraryBookmarks: s.videoLibraryBookmarks,
           shortsHiddenChannels: s.shortsHiddenChannels,
+          shortsChannelStats: s.shortsChannelStats,
+          shortsTopicAffinity: s.shortsTopicAffinity,
           videoLibraryLastVideoId: s.videoLibraryLastVideoId,
           activity: s.activity,
           sectionItemOrder: s.sectionItemOrder,
@@ -1563,6 +1619,13 @@ export const useNoorStore = create<NoorState>()(
             blob.shortsHiddenChannels && typeof blob.shortsHiddenChannels === "object"
               ? (blob.shortsHiddenChannels as Record<string, boolean>)
               : {},
+          shortsChannelStats:
+            blob.shortsChannelStats && typeof blob.shortsChannelStats === "object"
+              ? (blob.shortsChannelStats as Record<string, ShortsChannelStat>)
+              : {},
+          shortsTopicAffinity: sanitizeNumberMap(
+            blob.shortsTopicAffinity as Record<string, number> | undefined,
+          ),
           sebhaCustomList: Array.isArray(blob.sebhaCustomList) ? blob.sebhaCustomList : [],
           tasbeehStreak: blob.tasbeehStreak ?? 0,
           tasbeehStreakBest: blob.tasbeehStreakBest ?? 0,
@@ -1909,7 +1972,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 31,
+      version: 32,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -1969,6 +2032,8 @@ export const useNoorStore = create<NoorState>()(
           // New in v31. Without this default an upgrading user hydrates with
           // `undefined` here, and the feed reads it on every card.
           shortsHiddenChannels: (state as Partial<NoorState>).shortsHiddenChannels ?? {},
+          shortsChannelStats: (state as Partial<NoorState>).shortsChannelStats ?? {},
+          shortsTopicAffinity: sanitizeNumberMap((state as Partial<NoorState>).shortsTopicAffinity),
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],

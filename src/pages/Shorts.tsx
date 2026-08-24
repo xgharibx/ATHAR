@@ -26,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { Heart, Volume2, VolumeX, X, Play, Pause, Share2, EyeOff } from "lucide-react";
 
 import { useShortsDB } from "@/data/useShortsDB";
-import { useNoorStore } from "@/store/noorStore";
+import { useNoorStore, type ShortsChannelStat } from "@/store/noorStore";
 import { buildShortsFeed, posterFor, type Short } from "@/lib/shortsFeed";
 import { createPlayer, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
 import { shareText } from "@/lib/shareTargets";
@@ -87,6 +87,7 @@ function ShortCard({
   onUnplayable,
   hidden,
   onHideChannel,
+  onWatched,
 }: {
   short: Short;
   active: boolean;
@@ -102,6 +103,7 @@ function ShortCard({
   onUnplayable: () => void;
   hidden: boolean;
   onHideChannel: () => void;
+  onWatched: (fraction: number) => void;
 }) {
   const [burst, setBurst] = React.useState(false);
   const [paused, setPaused] = React.useState(false);
@@ -118,6 +120,11 @@ function ShortCard({
   endedRef.current = onEnded;
   const unplayableRef = React.useRef(onUnplayable);
   unplayableRef.current = onUnplayable;
+  // The furthest point reached, not the position at the moment of leaving:
+  // a viewer who watches to the end and then scrubs back has still watched it.
+  const watchedRef = React.useRef(0);
+  const reportRef = React.useRef(onWatched);
+  reportRef.current = onWatched;
 
   // Whether this card should own a player at all: the one being watched, and
   // the one about to be. Everything else is torn down — players left alive
@@ -192,6 +199,18 @@ function ShortCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wantsPlayer, short.youtubeId]);
 
+  // Report how much of it was watched on the way out. Doing this when the card
+  // stops being active rather than on unmount catches the ordinary case — a
+  // swipe — while the card is still mounted and its numbers still exist.
+  React.useEffect(() => {
+    if (!active) return;
+    return () => {
+      const f = watchedRef.current;
+      watchedRef.current = 0;
+      if (f > 0) reportRef.current(f);
+    };
+  }, [active]);
+
   // Play/pause follows which card is on screen, using the player that already
   // exists rather than building a new one.
   React.useEffect(() => {
@@ -228,7 +247,11 @@ function ShortCard({
       try {
         if (scrubbingRef.current !== null) return; // the thumb wins while held
         const d = pl.getDuration();
-        if (d > 0) setProgress(Math.min(1, pl.getCurrentTime() / d));
+        if (d > 0) {
+          const at = Math.min(1, pl.getCurrentTime() / d);
+          setProgress(at);
+          if (at > watchedRef.current) watchedRef.current = at;
+        }
       } catch {
         /* mid-teardown */
       }
@@ -470,6 +493,7 @@ export function ShortsPage() {
   // a new reference every render and spin the store's change detection.
   const hiddenChannels = useNoorStore((s) => s.shortsHiddenChannels) ?? NO_HIDDEN;
   const hideChannel = useNoorStore((s) => s.toggleShortsChannelHidden);
+  const recordWatch = useNoorStore((s) => s.recordShortWatch);
 
   // Read ONCE. Watch history updates as you scroll, and re-ranking on every
   // change would rebuild the feed under the viewer's thumb — the current clip
@@ -488,6 +512,21 @@ export function ShortsPage() {
     hiddenChannelsAtMountRef.current = useNoorStore.getState().shortsHiddenChannels ?? {};
   }
 
+  // Learned taste, also read once. It updates continuously as you watch, and
+  // re-ranking on every clip would reshuffle the feed under the viewer — the
+  // next visit is where what was learned shows up.
+  const signalsAtMountRef = React.useRef<{
+    stats: Record<string, ShortsChannelStat>;
+    topics: Record<string, number>;
+  } | null>(null);
+  if (signalsAtMountRef.current === null) {
+    const st = useNoorStore.getState();
+    signalsAtMountRef.current = {
+      stats: st.shortsChannelStats ?? {},
+      topics: st.shortsTopicAffinity ?? {},
+    };
+  }
+
   // The feed grows instead of ending. The ranking is deterministic for a given
   // seed, so asking for a larger limit returns the SAME clips in the same order
   // plus more on the end — the viewer's position never moves underneath them.
@@ -499,6 +538,8 @@ export function ShortsPage() {
         seen: seenAtMountRef.current ?? {},
         liked: bookmarks,
         hiddenChannels: hiddenChannelsAtMountRef.current ?? {},
+        channelStats: signalsAtMountRef.current?.stats ?? {},
+        topicAffinity: signalsAtMountRef.current?.topics ?? {},
         seed: seedRef.current,
         limit: PAGE_SIZE * pages,
       }),
@@ -506,6 +547,13 @@ export function ShortsPage() {
     // feed you are currently scrolling.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, pages],
+  );
+
+  // Passed down so the recorder can keep the channels' own names out of the
+  // topic vocabulary — they sign nearly every title.
+  const channelNames = React.useMemo(
+    () => (data?.channels ?? []).map((c) => c.name),
+    [data],
   );
 
   const [index, setIndex] = React.useState(0);
@@ -655,6 +703,14 @@ export function ShortsPage() {
               onUnplayable={() => skipUnplayable(short.id, i)}
               hidden={!!hiddenChannels[short.channelId]}
               onHideChannel={() => hideChannel(short.channelId)}
+              onWatched={(fraction) =>
+                recordWatch({
+                  channelId: short.channelId,
+                  title: short.title,
+                  fraction,
+                  channelNames,
+                })
+              }
             />
           </div>
         ))}
