@@ -19,6 +19,16 @@ import {
 import type { HadithMemoCard } from "@/data/hadithTypes";
 import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
 
+/**
+ * How many watched shorts to remember.
+ *
+ * This must exceed the size of the library, or a committed viewer starts
+ * seeing repeats while thousands of clips are still unwatched: pruning drops
+ * the oldest ids, and a dropped id silently reads as "never seen" again. The
+ * library is ~7,551 clips, so this leaves real headroom for it to grow.
+ */
+const SHORTS_HISTORY_MAX = 20_000;
+
 export type NoorTheme =
   | "system"
   | "dark"
@@ -873,10 +883,10 @@ export const useNoorStore = create<NoorState>()(
           if (st.shortsSeen[videoId]) return {};
           const next = { ...st.shortsSeen, [videoId]: Date.now() };
           const keys = Object.keys(next);
-          if (keys.length > 4000) {
+          if (keys.length > SHORTS_HISTORY_MAX) {
             // Drop the oldest so a heavy viewer's history stays bounded.
             keys.sort((a, b) => (next[a] ?? 0) - (next[b] ?? 0));
-            for (const k of keys.slice(0, keys.length - 4000)) delete next[k];
+            for (const k of keys.slice(0, keys.length - SHORTS_HISTORY_MAX)) delete next[k];
           }
           return { shortsSeen: next };
         }),

@@ -33,6 +33,10 @@ import { createPlayer, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
 /** How many neighbours around the active card get a real player. */
 const WINDOW = 1;
 
+/** How many clips to rank at a time, and how close to the end to extend. */
+const PAGE_SIZE = 300;
+const EXTEND_WITHIN = 12;
+
 function embedUrl(id: string, muted: boolean) {
   const p = new URLSearchParams({
     autoplay: "1",
@@ -295,7 +299,7 @@ function ShortCard({
 
 export function ShortsPage() {
   const navigate = useNavigate();
-  const { data } = useShortsDB();
+  const { data, isError, refetch } = useShortsDB();
   const bookmarks = useNoorStore((s) => s.videoLibraryBookmarks);
   const toggleBookmark = useNoorStore((s) => s.toggleVideoBookmark);
   const markSeen = useNoorStore((s) => s.markShortSeen);
@@ -309,17 +313,23 @@ export function ShortsPage() {
   }
   const seedRef = React.useRef(Date.now());
 
+  // The feed grows instead of ending. The ranking is deterministic for a given
+  // seed, so asking for a larger limit returns the SAME clips in the same order
+  // plus more on the end — the viewer's position never moves underneath them.
+  const [pages, setPages] = React.useState(1);
+
   const feed = React.useMemo(
     () =>
       buildShortsFeed(data ?? null, {
         seen: seenAtMountRef.current ?? {},
         liked: bookmarks,
         seed: seedRef.current,
+        limit: PAGE_SIZE * pages,
       }),
     // `bookmarks` deliberately omitted: liking a video must not re-rank the
     // feed you are currently scrolling.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data],
+    [data, pages],
   );
 
   const [index, setIndex] = React.useState(0);
@@ -381,6 +391,14 @@ export function ShortsPage() {
     [advance, markSeen],
   );
 
+  // Extend well before the viewer arrives, so there is never a visible stall.
+  // A build that came back short means the library is exhausted, and asking for
+  // more would spin forever.
+  React.useEffect(() => {
+    if (feed.length < PAGE_SIZE * pages) return;
+    if (index >= feed.length - EXTEND_WITHIN) setPages((p) => p + 1);
+  }, [index, feed.length, pages]);
+
   // Desktop: arrows move a card at a time, Escape leaves.
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -404,6 +422,18 @@ export function ShortsPage() {
     return () => document.body.classList.remove("shorts-open");
   }, []);
 
+  // Without this the page sits on "loading" forever whenever the index fails to
+  // fetch — offline, a bad deploy, a blocked request. Say so, and offer a retry.
+  if (isError) {
+    return (
+      <div className="shorts-loading" dir="rtl">
+        <p>تعذّر تحميل المقاطع القصيرة.</p>
+        <button type="button" className="shorts-retry" onClick={() => void refetch()}>
+          إعادة المحاولة
+        </button>
+      </div>
+    );
+  }
   if (!data) return <div className="shorts-loading" dir="rtl">جارٍ التحميل…</div>;
   if (feed.length === 0) {
     return <div className="shorts-loading" dir="rtl">لا توجد مقاطع قصيرة متاحة الآن.</div>;

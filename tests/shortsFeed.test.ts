@@ -118,6 +118,35 @@ describe("stability", () => {
   });
 });
 
+describe("the feed extends instead of ending", () => {
+  it("returns the same clips in the same order when asked for more", () => {
+    // This is what makes an endless feed safe. The page grows by rebuilding
+    // with a larger limit, so if a bigger ask reordered anything, the clip
+    // under the viewer's thumb would jump somewhere else mid-scroll.
+    const i = idx([...many("a", 500), ...many("b", 400), ...many("c", 300)]);
+    const first = buildShortsFeed(i, { seed: 3, limit: 300 }).map((s) => s.id);
+    const grown = buildShortsFeed(i, { seed: 3, limit: 600 }).map((s) => s.id);
+    expect(grown).toHaveLength(600);
+    expect(grown.slice(0, 300)).toEqual(first);
+  });
+
+  it("keeps extending across several pages", () => {
+    const i = idx([...many("a", 500), ...many("b", 400)]);
+    let prev = buildShortsFeed(i, { seed: 9, limit: 300 }).map((s) => s.id);
+    for (const limit of [600, 900]) {
+      const next = buildShortsFeed(i, { seed: 9, limit }).map((s) => s.id);
+      expect(next.slice(0, prev.length)).toEqual(prev);
+      prev = next;
+    }
+    expect(prev).toHaveLength(900);
+  });
+
+  it("comes back short once the library is exhausted, so the caller can stop", () => {
+    const i = idx([...many("a", 40)]);
+    expect(buildShortsFeed(i, { limit: 300 }).length).toBeLessThan(300);
+  });
+});
+
 describe("what the viewer likes", () => {
   it("surfaces a liked channel more often", () => {
     // The signal has to move how OFTEN the channel comes up. An earlier version

@@ -6749,10 +6749,28 @@ a:focus-visible,
 .shorts-loading {
   min-height: 60vh;
   display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
   align-items: center;
   justify-content: center;
   opacity: 0.6;
   font-size: 14px;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.shorts-loading p {
+  margin: 0;
+}
+
+.shorts-retry {
+  border: 1px solid var(--border, rgba(128, 128, 128, 0.35));
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.5rem 1.25rem;
+  font: inherit;
+  cursor: pointer;
 }
 
 /* A full-screen feed owns the screen: the tab bar and its dots step aside. */

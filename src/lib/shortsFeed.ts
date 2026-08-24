@@ -80,11 +80,17 @@ export function buildShortsFeed(index: ShortsIndex | null, opts: RankInput = {})
 
   // Channels the viewer has actually liked from — a real signal, and the only
   // personalisation available without tracking anything invasive.
+  //
+  // Indexed rather than searched: `items.find()` per liked id is O(likes x items),
+  // which on a 7,551-clip library with a few hundred likes is millions of string
+  // compares every time the feed grows.
+  const channelOfItem = new Map<string, string>();
+  for (const x of index.items) channelOfItem.set(x.i, x.c);
   const likedChannels = new Set<string>();
   for (const [id, on] of Object.entries(liked)) {
     if (!on) continue;
-    const item = index.items.find((x) => x.i === id);
-    if (item) likedChannels.add(item.c);
+    const c = channelOfItem.get(id);
+    if (c) likedChannels.add(c);
   }
 
   const toShort = (x: ShortsIndex["items"][number]): Short => {
