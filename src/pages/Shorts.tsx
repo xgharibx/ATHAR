@@ -35,6 +35,18 @@ import { shareText } from "@/lib/shareTargets";
 /** How far either side of the viewer a card still paints its poster. */
 const WINDOW = 2;
 
+/**
+ * How far either side of the viewer a card is rendered at all.
+ *
+ * The slot itself always exists — it is what gives the scroller its height and
+ * its snap points, and it is a single empty div. The card inside it is about
+ * thirty nodes, which at 1,500 slots measured 53,000 nodes and a 96 MB heap on
+ * a desktop, and would keep climbing for as long as someone kept scrolling.
+ * Four either side is comfortably more than a snap-scroll can cross before
+ * React catches up.
+ */
+const RENDER_WINDOW = 4;
+
 /** How many clips to rank at a time, and how close to the end to extend. */
 const PAGE_SIZE = 300;
 const EXTEND_WITHIN = 12;
@@ -395,7 +407,23 @@ function ShortCard({
       )}
 
       <div className="shorts-meta" dir="rtl">
-        <div className="shorts-channel">
+        {/* Tapping the channel opens the clip on YouTube — where it can be
+            saved, or the speaker followed. A button rather than another icon in
+            the rail: the rail is already four deep, and this is the one action
+            that already has an obvious thing to press. */}
+        <button
+          type="button"
+          className="shorts-channel"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(
+              `https://www.youtube.com/watch?v=${short.youtubeId}`,
+              "_blank",
+              "noopener,noreferrer",
+            );
+          }}
+          aria-label={`فتح المقطع في يوتيوب — ${short.channelName}`}
+        >
           {short.channelAvatar ? (
             <img src={short.channelAvatar} alt="" className="shorts-avatar" loading="lazy" />
           ) : (
@@ -405,7 +433,7 @@ function ShortCard({
             />
           )}
           <span className="shorts-channel-name">{short.channelName}</span>
-        </div>
+        </button>
         <p className="shorts-title">{short.title}</p>
       </div>
 
@@ -689,6 +717,7 @@ export function ShortsPage() {
       <div className="shorts-scroller" ref={containerRef} tabIndex={-1}>
         {feed.map((short, i) => (
           <div className="shorts-slot" data-index={i} key={short.id}>
+            {Math.abs(i - index) > RENDER_WINDOW ? null : (
             <ShortCard
               short={short}
               active={i === index}
@@ -712,13 +741,11 @@ export function ShortsPage() {
                 })
               }
             />
+            )}
           </div>
         ))}
       </div>
 
-      <div className="shorts-progress" aria-hidden="true">
-        <div style={{ width: `${((index + 1) / feed.length) * 100}%` }} />
-      </div>
     </div>
   );
 }

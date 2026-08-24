@@ -295,3 +295,64 @@ describe("leaderboard identity", () => {
     ).toEqual(A);
   });
 });
+
+describe("shorts signals across devices", () => {
+  it("keeps a hidden channel hidden when the other device has never heard of it", () => {
+    const local = { shortsHiddenChannels: { "othman-alkamees": true } };
+    expect(mergeDoc(local, {}, noBase)).toEqual(local);
+  });
+
+  it("lets un-hiding a channel actually propagate", () => {
+    // The reason this is a flag and not a union: a union cannot express a
+    // removal, so a channel could be hidden but never brought back — the same
+    // class of bug that made deleted custom adhkar reappear on every sync.
+    const base = { shortsHiddenChannels: { a: true } };
+    const local = { shortsHiddenChannels: { a: false } };
+    const remote = { shortsHiddenChannels: { a: true } };
+    const merged = mergeDoc(local, remote, { remoteNewer: false, base }) as {
+      shortsHiddenChannels: Record<string, boolean>;
+    };
+    expect(merged.shortsHiddenChannels.a).toBe(false);
+  });
+
+  it("unions watch history across two devices, keeping the later view", () => {
+    const local = { shortsSeen: { v1: 500, v2: 100 } };
+    const remote = { shortsSeen: { v1: 900, v3: 300 } };
+    expect(mergeDoc(local, remote, noBase)).toEqual({
+      shortsSeen: { v1: 900, v2: 100, v3: 300 },
+    });
+  });
+
+  it("merges per-channel engagement without losing a device's totals", () => {
+    const local = { shortsChannelStats: { a: { plays: 10, finishes: 8, skips: 1 } } };
+    const remote = { shortsChannelStats: { b: { plays: 4, finishes: 1, skips: 2 } } };
+    expect(mergeDoc(local, remote, noBase)).toEqual({
+      shortsChannelStats: {
+        a: { plays: 10, finishes: 8, skips: 1 },
+        b: { plays: 4, finishes: 1, skips: 2 },
+      },
+    });
+  });
+
+  it("keeps learned topic weights from both devices", () => {
+    const local = { shortsTopicAffinity: { رقيه: 3 } };
+    const remote = { shortsTopicAffinity: { حسد: 2 } };
+    expect(mergeDoc(local, remote, noBase)).toEqual({
+      shortsTopicAffinity: { رقيه: 3, حسد: 2 },
+    });
+  });
+
+  it("never blanks learned taste from an empty cloud document", () => {
+    const local = {
+      shortsTopicAffinity: { رقيه: 4 },
+      shortsChannelStats: { a: { plays: 9, finishes: 7, skips: 0 } },
+      shortsSeen: { v1: 1 },
+    };
+    const merged = mergeDoc(
+      local,
+      { shortsTopicAffinity: {}, shortsChannelStats: {}, shortsSeen: {} },
+      noBase,
+    );
+    expect(merged).toEqual(local);
+  });
+});

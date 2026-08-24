@@ -6652,11 +6652,20 @@ a:focus-visible,
   pointer-events: none;
 }
 
+/* Now a button, so it has to shed the browser's button chrome and keep the
+   text alignment it had as a div. */
 .shorts-channel {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
 }
 
 .shorts-avatar {
@@ -6732,19 +6741,12 @@ a:focus-visible,
   -webkit-tap-highlight-color: transparent;
 }
 
-.shorts-progress {
-  position: absolute;
-  inset-inline: 0;
-  top: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.14);
-  pointer-events: none;
-}
-.shorts-progress > div {
-  height: 100%;
-  background: var(--accent);
-  transition: width 260ms ease;
-}
+/* There was a feed-position bar here, showing (index + 1) / feed.length.
+   Once the feed started extending instead of ending, it measured a fraction of
+   a denominator that keeps moving: the same clip read 99% at 300 loaded and
+   49% at 600, so the bar visibly ran backwards every time more clips arrived.
+   Position is not a meaningful quantity in a feed with no end, so it is gone.
+   The per-clip bar at the bottom of each card is the one that means something. */
 
 .shorts-loading {
   min-height: 60vh;
