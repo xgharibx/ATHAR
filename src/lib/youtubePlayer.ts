@@ -83,6 +83,10 @@ export function loadYouTubeApi(): Promise<YTNamespace> {
 export type CreatePlayerOptions = {
   videoId: string;
   muted: boolean;
+  /** Start playing immediately. False builds the player and cues the video
+   *  without playing it — how the next clip is warmed up before it is reached,
+   *  so arriving at it is instant instead of a cold ~400 ms start. */
+  autoplay?: boolean;
   onEnded?: () => void;
   onStateChange?: (state: number) => void;
   onReady?: (player: YTPlayer) => void;
@@ -110,7 +114,7 @@ export async function createPlayer(
       host: "https://www.youtube-nocookie.com",
       videoId: opts.videoId,
       playerVars: {
-        autoplay: 1,
+        autoplay: opts.autoplay === false ? 0 : 1,
         // YouTube decides embed permission partly from the requesting origin.
         // Without an explicit one it can refuse with error 152 on some origins
         // and browsers — which is exactly what localhost was hitting while the

@@ -31,11 +31,29 @@ import { buildShortsFeed, posterFor, type Short } from "@/lib/shortsFeed";
 import { createPlayer, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
 
 /** How many neighbours around the active card get a real player. */
-const WINDOW = 1;
+/** How far either side of the viewer a card still paints its poster. */
+const WINDOW = 2;
 
 /** How many clips to rank at a time, and how close to the end to extend. */
 const PAGE_SIZE = 300;
 const EXTEND_WITHIN = 12;
+
+/**
+ * Sound is a per-device choice — headphones on the phone, silent on the
+ * tablet — so it lives in localStorage rather than syncing with the account.
+ * It still has to open muted the very first time: browsers refuse to autoplay
+ * with sound, and a feed whose first clip silently fails to start is worse
+ * than one that starts quiet.
+ */
+const MUTE_KEY = "noor_shorts_muted_v1";
+
+function readMutePreference(): boolean {
+  try {
+    return localStorage.getItem(MUTE_KEY) !== "0";
+  } catch {
+    return true;
+  }
+}
 
 function embedUrl(id: string, muted: boolean) {
   const p = new URLSearchParams({
@@ -55,6 +73,7 @@ function embedUrl(id: string, muted: boolean) {
 function ShortCard({
   short,
   active,
+  preload,
   mounted,
   muted,
   liked,
@@ -66,6 +85,8 @@ function ShortCard({
 }: {
   short: Short;
   active: boolean;
+  /** Build the player ahead of time, without playing it. */
+  preload: boolean;
   mounted: boolean;
   muted: boolean;
   liked: boolean;
@@ -81,6 +102,7 @@ function ShortCard({
   // Set when the IFrame API itself could not be loaded — offline, or blocked by
   // an extension. Distinct from `unplayable`, which is one bad video.
   const [apiFailed, setApiFailed] = React.useState(false);
+  const [ready, setReady] = React.useState(false);
   const hostRef = React.useRef<HTMLDivElement | null>(null);
   const playerRef = React.useRef<YTPlayer | null>(null);
   const lastTap = React.useRef(0);
@@ -90,10 +112,19 @@ function ShortCard({
   const unplayableRef = React.useRef(onUnplayable);
   unplayableRef.current = onUnplayable;
 
-  // Build a player only for the ACTIVE card and tear it down on the way out.
-  // Players left alive off-screen are what turn a feed into a memory leak.
+  // Whether this card should own a player at all: the one being watched, and
+  // the one about to be. Everything else is torn down — players left alive
+  // off-screen are what turn a feed into a memory leak.
+  const wantsPlayer = mounted && !unplayable && (active || preload);
+
+  // Deliberately NOT keyed on `active`. A preloaded card becoming the active
+  // one must keep the player it already warmed up; rebuilding it there would
+  // throw away the entire point and put the cold start back.
+  const activeAtBuild = React.useRef(active);
+  activeAtBuild.current = active;
+
   React.useEffect(() => {
-    if (!mounted || !active || unplayable || !hostRef.current) return;
+    if (!wantsPlayer || !hostRef.current) return;
     let cancelled = false;
     const host = hostRef.current;
     const mountPoint = document.createElement("div");
@@ -104,7 +135,13 @@ function ShortCard({
 
     void createPlayer(mountPoint, {
       videoId: short.youtubeId,
-      muted,
+      // ALWAYS built muted, whatever the viewer's preference. Browsers refuse
+      // to autoplay with sound, so a player created unmuted may simply never
+      // start. The preference is applied by the effect below, once it is
+      // running — a moment of silence, rather than a clip that never plays.
+      muted: true,
+      // Warmed-up cards build the player and cue the video without playing it.
+      autoplay: activeAtBuild.current,
       onEnded: () => endedRef.current(),
       onUnplayable: () => {
         refused = true;
@@ -121,6 +158,7 @@ function ShortCard({
         return;
       }
       playerRef.current = pl;
+      setReady(!!pl);
       // No player and no refusal means the API never loaded. Skipping would be
       // wrong — every clip would fail and the feed would race through the whole
       // library. Show a plain embed instead: no progress bar or auto-advance,
@@ -137,6 +175,7 @@ function ShortCard({
       }
       playerRef.current = null;
       host.replaceChildren();
+      setReady(false);
       setProgress(0);
       setPaused(false);
       setApiFailed(false);
@@ -144,19 +183,34 @@ function ShortCard({
     // `muted` deliberately omitted: handled below without a rebuild, because
     // re-creating the player would restart the clip from zero.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, active, unplayable, short.youtubeId]);
+  }, [wantsPlayer, short.youtubeId]);
 
-  // Changing mute must never restart the video.
+  // Play/pause follows which card is on screen, using the player that already
+  // exists rather than building a new one.
   React.useEffect(() => {
     const pl = playerRef.current;
-    if (!pl) return;
+    if (!pl || !ready) return;
+    try {
+      if (active) pl.playVideo();
+      else pl.pauseVideo();
+    } catch {
+      /* mid-teardown */
+    }
+  }, [active, ready]);
+
+  // Changing mute must never restart the video. Also runs when the player
+  // becomes ready, which is what applies a remembered "sound on" preference to
+  // a player that was necessarily created muted.
+  React.useEffect(() => {
+    const pl = playerRef.current;
+    if (!pl || !ready) return;
     try {
       if (muted) pl.mute();
       else pl.unMute();
     } catch {
-      /* not ready yet; it was created with the right value anyway */
+      /* mid-teardown */
     }
-  }, [muted]);
+  }, [muted, ready]);
 
   // A real progress bar — impossible with a plain embed.
   React.useEffect(() => {
@@ -207,7 +261,17 @@ function ShortCard({
     <section className="shorts-card" onPointerUp={onTap} aria-label={short.title}>
       {/* Painted underneath always, so a slow player never shows a black
           rectangle — the frame is on screen before the video is. */}
-      <img className="shorts-poster" src={posterFor(short)} alt="" aria-hidden="true" loading="lazy" />
+      <img
+        className="shorts-poster"
+        src={posterFor(short)}
+        alt=""
+        aria-hidden="true"
+        // The cards around the viewer fetch their frame ahead of time; a lazy
+        // poster only starts loading once it is already on screen, which is
+        // exactly when it is too late and the swipe shows black.
+        loading={mounted ? "eager" : "lazy"}
+        fetchPriority={active ? "high" : mounted ? "auto" : "low"}
+      />
       <div className="shorts-scrim" aria-hidden="true" />
 
       <div ref={hostRef} className="shorts-frame" />
@@ -334,7 +398,15 @@ export function ShortsPage() {
 
   const [index, setIndex] = React.useState(0);
   const [gone, setGone] = React.useState<ReadonlySet<string>>(() => new Set());
-  const [muted, setMuted] = React.useState(true); // browsers block unmuted autoplay
+  const [muted, setMuted] = React.useState(readMutePreference);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
+    } catch {
+      /* private mode; the session still honours the choice */
+    }
+  }, [muted]);
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
@@ -451,6 +523,7 @@ export function ShortsPage() {
             <ShortCard
               short={short}
               active={i === index}
+              preload={i === index + 1}
               mounted={Math.abs(i - index) <= WINDOW}
               muted={muted}
               liked={!!bookmarks[short.id]}
