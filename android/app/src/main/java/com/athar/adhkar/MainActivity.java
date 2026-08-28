@@ -26,6 +26,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(WidgetRefreshPlugin.class);
         registerPlugin(AuthBridgePlugin.class);
         registerPlugin(ShareBridgePlugin.class);
+        registerPlugin(QuietChannelPlugin.class);
         super.onCreate(savedInstanceState);
 
         pendingRoute = readRoute(getIntent());

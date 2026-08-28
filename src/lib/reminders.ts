@@ -801,25 +801,38 @@ async function ensurePrayerChannel(soundProfile: PrayerSoundProfile) {
  * Importance is DEFAULT rather than HIGH: these are nudges, so they should
  * arrive without a heads-up banner interrupting whatever is on screen.
  */
-export const SILENT_CHANNEL_ID = "athar-quiet-v1";
+/**
+ * v2 because channels are immutable once created: v1 was made through
+ * @capacitor/local-notifications, which leaves a soundless channel on the
+ * SYSTEM DEFAULT sound rather than on silence. Editing it would have done
+ * nothing on any device that already had it.
+ */
+export const SILENT_CHANNEL_ID = "athar-quiet-v2";
 
 async function ensureSilentChannel(): Promise<NotificationAudioConfig> {
   // iOS has no channels; an empty sound string is how it is told to stay quiet.
-  if (Capacitor.getPlatform() === "ios") {
+  if (Capacitor.getPlatform() !== "android") {
     return { channelId: SILENT_CHANNEL_ID, soundFile: "" };
   }
 
-  const { LocalNotifications } = await import("@capacitor/local-notifications");
-  await LocalNotifications.createChannel({
-    id: SILENT_CHANNEL_ID,
-    name: "Athar — تذكيرات صامتة",
-    description: "تذكيرات بالاهتزاز فقط، بدون صوت — للمتابعة بعد الصلاة والأذكار",
-    importance: 3,
-    visibility: 1,
-    vibration: true,
-    lights: true,
-    lightColor: REMINDER_ICON_COLOR,
-  });
+  // Deliberately NOT LocalNotifications.createChannel — see QuietChannelPlugin.
+  // It only calls setSound() when a sound was named, so "no sound" comes out as
+  // the default notification ping. Genuine silence needs setSound(null, null),
+  // and vibration needs importance >= DEFAULT, which only native code can set
+  // together.
+  try {
+    const { registerPlugin } = await import("@capacitor/core");
+    const QuietChannel = registerPlugin<{
+      create(o: { id: string; name: string; description: string }): Promise<void>;
+    }>("QuietChannel");
+    await QuietChannel.create({
+      id: SILENT_CHANNEL_ID,
+      name: "Athar — تذكيرات صامتة",
+      description: "تذكيرات بالاهتزاز فقط، بدون صوت — للمتابعة بعد الصلاة والأذكار",
+    });
+  } catch {
+    /* An older build without the plugin: the notification still arrives. */
+  }
 
   return { channelId: SILENT_CHANNEL_ID, soundFile: "" };
 }
