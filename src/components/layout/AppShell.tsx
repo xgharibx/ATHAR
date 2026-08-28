@@ -16,6 +16,17 @@ import { LogoMark } from "@/components/brand/LogoMark";
 import { GardenOrnaments } from "@/components/brand/GardenOrnaments";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
+import { UpdatePill } from "@/components/layout/UpdatePill";
+
+/**
+ * The header's hamburger drawer, hidden at the owner's request.
+ *
+ * Everything it opened is still reachable — the bottom bar, the dots menu, the
+ * home screen's section grid, and search — so the space is better spent on
+ * something that only appears when it has something to say. The drawer itself
+ * is untouched below; flip this to bring the button back.
+ */
+const SHOW_HEADER_MENU = false;
 
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette }))
@@ -573,7 +584,7 @@ export function AppShell() {
             {/* Logo + mobile menu — allowed to shrink at high zoom */}
             <div className="flex items-center gap-2 min-w-0 shrink">
               {/* Mobile menu */}
-              <div className="xl:hidden shrink-0">
+              <div className="xl:hidden shrink-0" hidden={!SHOW_HEADER_MENU}>
                 <Dialog.Root open={drawerOpen} onOpenChange={(open) => {
                   setDrawerOpen(open);
                   if (open && navigator.vibrate) navigator.vibrate(10);
@@ -591,6 +602,8 @@ export function AppShell() {
                   </Dialog.Portal>
                 </Dialog.Root>
               </div>
+
+              <UpdatePill />
 
               <NavLink to="/" className="flex items-center gap-2 min-w-0">
                 <LogoMark

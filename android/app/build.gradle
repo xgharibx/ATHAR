@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
     namespace "com.athar.adhkar"
-    compileSdk 35
+    compileSdk 36
     defaultConfig {
         applicationId "com.athar.adhkar"
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion 35
-        versionCode 64
-        versionName "1.2.52"
+        targetSdkVersion 36
+        versionCode 65
+        versionName "1.2.53"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

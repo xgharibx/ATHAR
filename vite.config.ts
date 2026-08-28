@@ -2,10 +2,42 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+/** package.json is the single source of truth for the app's version. */
+const pkg = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "package.json"), "utf-8"),
+) as { version: string };
+
+/**
+ * Publish the version the site is serving, so an installed app can tell whether
+ * it is behind.
+ *
+ * There is no public API for "what version is live on Google Play", and asking
+ * the user to keep a number in sync by hand is a number that goes stale. This
+ * is written from package.json at build time, and the web deploy goes out with
+ * the same release as the store build — so an older APK fetching this sees the
+ * newer version and can say so.
+ */
+function emitVersionManifest() {
+  return {
+    name: "athar-version-manifest",
+    apply: "build" as const,
+    generateBundle(this: {
+      emitFile: (f: { type: "asset"; fileName: string; source: string }) => void;
+    }) {
+      this.emitFile({
+        type: "asset",
+        fileName: "version.json",
+        source: JSON.stringify({ version: pkg.version, builtAt: new Date().toISOString() }),
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, "", "");
@@ -15,6 +47,11 @@ export default defineConfig(({ mode }) => {
   // Custom domain, Vite preview, and Capacitor's local Android server all serve from root.
   // Absolute asset URLs prevent deep links like /c/morning from looking for /c/assets/*.
   base: "/",
+  define: {
+    // The version this bundle was built as, for comparison against the live
+    // version.json at runtime.
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   build: {
     chunkSizeWarningLimit: 900,
     rollupOptions: {
@@ -36,6 +73,7 @@ export default defineConfig(({ mode }) => {
     }
   },
   plugins: [
+    emitVersionManifest(),
     // B1: Force application/manifest+json on every .webmanifest response.
     //     VitePWA generates manifest.webmanifest at build time but the dev
     //     server's static middleware has been observed sending HTML on some

@@ -2260,7 +2260,7 @@ body.quran-focus-mode .quran-surface {
 .floating-nav {
   position: relative;
   min-width: 0;
-  padding: 6px;
+  padding: 4px;
   border-radius: 28px;
   background: rgba(10, 12, 18, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.10);
@@ -2292,9 +2292,12 @@ body.quran-focus-mode .quran-surface {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 6px 5px;
-  border-radius: 22px;
+  gap: 1px;
+  /* Vertical padding kept tight: the bar's height is icon + label + this, and
+     it read as heavy at 6px a side. The horizontal value is unchanged — width
+     is constrained by the floating dots, not by this. */
+  padding: 4px 5px;
+  border-radius: 20px;
   font-size: 11px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.50);
@@ -7060,3 +7063,66 @@ body.shorts-open header.sticky {
   cursor: pointer;
 }
 .shorts-lib-action:active { transform: scale(0.94); }
+
+/* ── "A new version is out" — header pill ──────────────────────────────────
+   Only ever on screen when there is genuinely something newer, so it can
+   afford to be noticed: the app's own accent, and one slow breath of a halo
+   rather than a badge or a red dot. */
+.update-pill-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.update-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  padding-inline: 11px 13px;
+  border-radius: 9999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 140ms ease, background 200ms ease;
+  animation: update-pill-breathe 3.6s ease-in-out infinite;
+}
+
+.update-pill:active {
+  transform: scale(0.95);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+@keyframes update-pill-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 30%, transparent); }
+  50%      { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+
+/* A halo that pulses forever is a distraction, not an invitation. */
+@media (prefers-reduced-motion: reduce) {
+  .update-pill { animation: none; }
+}
+
+.update-pill-dismiss {
+  position: absolute;
+  inset-block-start: -5px;
+  inset-inline-end: -5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  display: grid;
+  place-items: center;
+  color: var(--muted, rgba(255, 255, 255, 0.6));
+  background: var(--card, rgba(20, 24, 22, 0.95));
+  border: 1px solid var(--stroke, rgba(255, 255, 255, 0.14));
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.update-pill-dismiss:active { transform: scale(0.9); }

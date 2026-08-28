@@ -17,6 +17,20 @@ const DAILY_TASBEEH_POOL: Array<{ key: string; label: string }> = [
  */
 export const TASBEEH_DAILY_CAP = 1000;
 
+/** The five fard prayers — the ceiling for the prayers score. */
+export const FARD_PRAYERS_PER_DAY = 5;
+
+/**
+ * What a prayer and a checklist tick are each worth.
+ *
+ * 40 was chosen when "prayers" meant the five fard prayers, so a full day of
+ * them is 200. The daily-growth checklist has 25 items and is a different kind
+ * of thing — worth encouraging, not worth more than the prayers themselves —
+ * so a full sweep of it is 200 as well, at 8 apiece.
+ */
+export const PRAYER_POINTS = 40;
+export const TASK_POINTS = 8;
+
 function hashString(input: string) {
   let hash = 0;
   for (let index = 0; index < input.length; index += 1) {
@@ -42,7 +56,19 @@ export function buildLeaderboardScoreStats(input: {
    * surah — so it now reflects genuine daily reading activity instead.
    */
   quranAyahsToday: number;
+  /**
+   * The daily-growth checklist for today. 25 items, only a handful of which
+   * are prayers — which is why this no longer drives the "prayers" figure.
+   */
   prayersDone: Record<string, boolean>;
+  /**
+   * Prayers actually logged today, from `prayerLog[todayKey]` — the five
+   * fard prayers, marked from the notification or the prayer screen.
+   *
+   * This is the real signal and it fed nothing at all: the prayers score was
+   * counting checklist ticks instead.
+   */
+  prayersLoggedToday?: Record<string, boolean>;
   quickTasbeeh: Record<string, number>;
   /**
    * Every tasbeeh tap made today, across ALL phrases, uncapped
@@ -92,14 +118,37 @@ export function buildLeaderboardScoreStats(input: {
     return total + Math.max(0, Number(value) || 0);
   }, 0);
   const quran = Math.max(0, input.quranAyahsToday || 0);
-  const prayers = Object.keys(input.prayersDone).filter((key) => input.prayersDone[key]).length;
-  const global = dhikr + quran * 3 + prayers * 40 + tasbeehDailyScore;
+  /**
+   * Prayers = prayers.
+   *
+   * This counted completed CHECKLIST items, which grew from a handful to 25 as
+   * the daily-growth list was extended — so at 40 points each it silently
+   * became worth up to 1,000, dwarfing everything else, and a day of ticking
+   * boxes outscored a day of actual worship. It now counts the five fard
+   * prayers that were genuinely logged, capped there, which is what the ×40
+   * weight was designed around (5 x 40 = 200).
+   *
+   * The checklist keeps its own board and its own weight below; it was never
+   * worthless, it was just being counted as something it is not.
+   */
+  const logged = input.prayersLoggedToday ?? {};
+  const prayers = Math.min(
+    FARD_PRAYERS_PER_DAY,
+    Object.keys(logged).filter((key) => logged[key]).length,
+  );
+
+  /** Checklist items ticked today, scored in their own right. */
+  const tasks = Object.keys(input.prayersDone).filter((key) => input.prayersDone[key]).length;
+
+  const global =
+    dhikr + quran * 3 + prayers * PRAYER_POINTS + tasks * TASK_POINTS + tasbeehDailyScore;
 
   return {
     global,
     dhikr,
     quran,
     prayers,
+    tasks,
     tasbeehDailyLabel: dailyTasbeeh.label,
     tasbeehDailyTarget: TASBEEH_DAILY_CAP,
     tasbeehDailyScore,
@@ -109,6 +158,7 @@ export function buildLeaderboardScoreStats(input: {
       dhikr,
       quran,
       prayers,
+      tasks,
       tasbeehDaily: tasbeehDailyScore,
       sections: sectionScores
     }

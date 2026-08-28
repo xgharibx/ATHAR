@@ -29,6 +29,7 @@ function submitted() {
     progress: s.progress,
     quranAyahsToday: s.quranDailyAyahs[k] ?? 0,
     prayersDone: s.dailyChecklist[k] ?? {},
+    prayersLoggedToday: s.prayerLog?.[k] ?? {},
     quickTasbeeh: s.quickTasbeeh,
     tasbeehTodayTotal: s.tasbeehDayTotals?.[k] ?? 0,
     todayISO: k,
@@ -40,7 +41,7 @@ beforeEach(() => {
   vi.setSystemTime(new Date(2026, 7, 23, 10, 0, 0)); // mid-morning, after Fajr
   useNoorStore.setState({
     progress: {}, quickTasbeeh: {}, tasbeehDayTotals: {}, tasbeehLifetime: {},
-    tasbeehDailyLog: {}, quranDailyAyahs: {}, dailyChecklist: {}, activity: {},
+    tasbeehDailyLog: {}, quranDailyAyahs: {}, dailyChecklist: {}, prayerLog: {}, activity: {},
     asmaHusnaCounts: {}, quranStreak: 0, quranLastReadDate: null,
     lastKnownFajrTime: FAJR, lastIbadahResetISO: dayKey(), lastCivilResetISO: dayKey(),
   });
@@ -69,12 +70,31 @@ describe("every input reaches the score", () => {
     expect(s.global).toBe(27);
   });
 
-  it("daily tasks count, weighted x40", () => {
-    useNoorStore.getState().toggleDailyChecklist(dayKey(), "fajr_on_time", true);
-    useNoorStore.getState().toggleDailyChecklist(dayKey(), "quran_reading", true);
+  it("a logged prayer is what the prayers score counts, at x40", () => {
+    useNoorStore.getState().setPrayerLogged(dayKey(), "Fajr", true);
+    useNoorStore.getState().setPrayerLogged(dayKey(), "Dhuhr", true);
     const s = submitted();
     expect(s.prayers).toBe(2);
     expect(s.global).toBe(80);
+  });
+
+  it("never counts more than the five fard prayers", () => {
+    for (const p of ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Tahajjud", "Duha"]) {
+      useNoorStore.getState().setPrayerLogged(dayKey(), p, true);
+    }
+    expect(submitted().prayers).toBe(5);
+  });
+
+  it("checklist ticks score as tasks, not as prayers", () => {
+    // This is the fix: the daily-growth list grew to 25 items, and every one of
+    // them was being counted as a prayer at 40 points — up to 1,000 for ticking
+    // boxes, which dwarfed the actual worship it was supposed to sit beside.
+    useNoorStore.getState().toggleDailyChecklist(dayKey(), "fajr_on_time", true);
+    useNoorStore.getState().toggleDailyChecklist(dayKey(), "quran_reading", true);
+    const s = submitted();
+    expect(s.prayers).toBe(0);
+    expect(s.scores.tasks).toBe(2);
+    expect(s.global).toBe(16);
   });
 
   it("tasbeeh counts every tap past the sebha target, up to 1000", () => {
@@ -90,10 +110,13 @@ describe("every input reaches the score", () => {
     for (let i = 0; i < 20; i += 1) st.increment({ sectionId: "morning", index: 0, target: 100 });
     st.recordQuranRead(5);
     st.toggleDailyChecklist(dayKey(), "fajr_on_time", true);
+    st.setPrayerLogged(dayKey(), "Fajr", true);
     for (let i = 0; i < 60; i += 1) st.incQuickTasbeeh("subhanallah", 33);
     const s = submitted();
-    expect(s.global).toBe(s.dhikr + s.quran * 3 + s.prayers * 40 + s.scores.tasbeehDaily);
-    expect(s.global).toBe(20 + 15 + 40 + 60);
+    expect(s.global).toBe(
+      s.dhikr + s.quran * 3 + s.prayers * 40 + (s.scores.tasks ?? 0) * 8 + s.scores.tasbeehDaily,
+    );
+    expect(s.global).toBe(20 + 15 + 40 + 8 + 60);
   });
 
   it("per-section boards match the sum of their own items", () => {

@@ -9,6 +9,9 @@ import { useNoorStore } from "@/store/noorStore";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSyncStatus } from "@/hooks/useCloudSync";
 
+/** Stable empty object: a fresh {} from a selector re-renders on every store tick. */
+const EMPTY_PRAYER_LOG: Record<string, boolean> = {};
+
 const AUTO_SYNC_DEBOUNCE_MS = 2500;
 
 /** How long to wait for a first cloud reconcile before posting anyway. Keeps a
@@ -28,6 +31,9 @@ export function LeaderboardSyncBridge() {
   const progress = useNoorStore((state) => state.progress);
   const quranAyahsToday = useNoorStore((state) => state.quranDailyAyahs[todayKey] ?? 0);
   const prayersDone = useNoorStore((state) => state.dailyChecklist[todayKey] ?? {});
+  // The five fard prayers actually logged today. Recorded since the actionable
+  // prayer notifications shipped, and until now scored against nothing.
+  const prayersLoggedToday = useNoorStore((state) => state.prayerLog?.[todayKey] ?? EMPTY_PRAYER_LOG);
   const quickTasbeeh = useNoorStore((state) => state.quickTasbeeh);
   const tasbeehTodayTotal = useNoorStore((state) => state.tasbeehDayTotals?.[todayKey] ?? 0);
   const lastIbadahResetISO = useNoorStore((state) => state.lastIbadahResetISO);
@@ -64,11 +70,12 @@ export function LeaderboardSyncBridge() {
         progress,
         quranAyahsToday,
         prayersDone,
+        prayersLoggedToday,
         quickTasbeeh,
         tasbeehTodayTotal,
         todayISO: todayKey
       }),
-    [prayersDone, progress, quranAyahsToday, quickTasbeeh, tasbeehTodayTotal, sections, todayKey]
+    [prayersDone, prayersLoggedToday, progress, quranAyahsToday, quickTasbeeh, tasbeehTodayTotal, sections, todayKey]
   );
 
   const snapshotKey = React.useMemo(

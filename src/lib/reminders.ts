@@ -606,6 +606,7 @@ function buildPrayerNotifications(
   prayerTimings: PrayerNotificationTimings,
   audio: NotificationAudioConfig,
   enabledPrayers: PrayerAlertPreferences,
+  quiet: NotificationAudioConfig,
 ) {
   return (Object.keys(PRAYER_NOTIFICATION_IDS) as PrayerTimingName[]).flatMap((prayerName) => {
     if (!enabledPrayers[prayerName]) return [];
@@ -636,12 +637,14 @@ function buildPrayerNotifications(
     const followUpAt = new Date(at.getTime() + 30 * 60_000);
     if (followUpAt.getTime() <= Date.now()) return [main];
 
+    // Vibration only. The adhan belongs to the adhan; hearing it again half an
+    // hour later, as a nudge, is startling rather than helpful.
     const followUp = {
       id: PRAYER_FOLLOWUP_IDS[prayerName],
       title: "أثر — تذكير لطيف",
       body: PRAYER_FOLLOWUP_PHRASES[prayerName],
-      channelId: audio.channelId,
-      sound: "default",
+      channelId: quiet.channelId,
+      sound: quiet.soundFile,
       smallIcon: REMINDER_NOTIFICATION_ICON,
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
@@ -788,6 +791,40 @@ async function ensurePrayerChannel(soundProfile: PrayerSoundProfile) {
 }
 
 /**
+ * The quiet channel: vibrates, never makes a sound.
+ *
+ * On Android 8+ the CHANNEL owns the sound, not the notification — setting
+ * `sound: "default"` on an individual notification does nothing if its channel
+ * carries the adhan. That is why the gentle "did you pray?" follow-up, half an
+ * hour after the prayer, was playing the full adhan a second time.
+ *
+ * Importance is DEFAULT rather than HIGH: these are nudges, so they should
+ * arrive without a heads-up banner interrupting whatever is on screen.
+ */
+export const SILENT_CHANNEL_ID = "athar-quiet-v1";
+
+async function ensureSilentChannel(): Promise<NotificationAudioConfig> {
+  // iOS has no channels; an empty sound string is how it is told to stay quiet.
+  if (Capacitor.getPlatform() === "ios") {
+    return { channelId: SILENT_CHANNEL_ID, soundFile: "" };
+  }
+
+  const { LocalNotifications } = await import("@capacitor/local-notifications");
+  await LocalNotifications.createChannel({
+    id: SILENT_CHANNEL_ID,
+    name: "Athar — تذكيرات صامتة",
+    description: "تذكيرات بالاهتزاز فقط، بدون صوت — للمتابعة بعد الصلاة والأذكار",
+    importance: 3,
+    visibility: 1,
+    vibration: true,
+    lights: true,
+    lightColor: REMINDER_ICON_COLOR,
+  });
+
+  return { channelId: SILENT_CHANNEL_ID, soundFile: "" };
+}
+
+/**
  * 11C: Pre-create the default notification channels at app startup so they
  * appear in Android Settings → Notifications before any reminder is scheduled.
  * Safe to call multiple times — Capacitor/Android is idempotent for channels.
@@ -799,6 +836,7 @@ export async function ensureDefaultNotificationChannels(): Promise<void> {
     await Promise.all([
       ensureReminderChannel("rain_calm"),
       ensurePrayerChannel("adhan_haram"),
+      ensureSilentChannel(),
       LocalNotifications.registerActionTypes({
         types: [
           {
@@ -849,9 +887,18 @@ export async function syncReminders(
     return;
   }
 
-  const notificationAudio = await ensureReminderChannel(reminders.soundProfile);
+  // The adhan is the one thing in this app that is allowed to make a sound.
+  // Everything else — the "did you pray?" nudge, and every azkar reminder —
+  // vibrates instead. Hearing an adhan-length alert for a dhikr reminder, and
+  // then again half an hour after each prayer, is what made notifications feel
+  // like an interruption rather than a reminder.
+  //
+  // NOTE: this leaves the reminder-sound picker in Settings with nothing to do.
+  // The channel is still created (see ensureDefaultNotificationChannels), so
+  // restoring per-reminder sound means passing it here instead of `quiet`.
+  const quiet = await ensureSilentChannel();
 
-  const notifications: LocalNotification[] = buildReminderNotifications(reminders, notificationAudio, completion);
+  const notifications: LocalNotification[] = buildReminderNotifications(reminders, quiet, completion);
 
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
@@ -859,6 +906,7 @@ export async function syncReminders(
       prayerTimings,
       prayerNotificationAudio,
       { ...DEFAULT_PRAYER_ALERTS, ...reminders.prayerAlerts },
+      quiet,
     ));
 
     // N4: Ramadan suhoor & iftar
@@ -868,7 +916,7 @@ export async function syncReminders(
 
     // N5: Daily hadith at Fajr (Phase 10)
     if (reminders.dailyHadithNotif) {
-      const n = buildDailyHadithNotification(prayerTimings, notificationAudio);
+      const n = buildDailyHadithNotification(prayerTimings, quiet);
       if (n) notifications.push(n);
     }
   }
