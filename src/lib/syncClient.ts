@@ -261,6 +261,31 @@ async function runSync(): Promise<boolean> {
     const { leaderboardIdentity: mergedIdentity, dataPacks: mergedPacks, ...mergedStoreBlob } = mergedBlob;
     const { leaderboardIdentity: _localIdentity, dataPacks: _localPacks, ...localStoreBlob } = localBlob;
 
+    // The user keeps using the app while we talk to the server. `localBlob` was
+    // read BEFORE that round-trip, so a tap made during it is in neither the
+    // snapshot nor the merge — and applying the merge would write the pre-tap
+    // value straight back over it. That is a count going 6 -> 5 on its own,
+    // seconds after being tapped.
+    //
+    // If anything moved underneath us, this pass is stale: don't apply it,
+    // don't advance the base (the next merge has to run from the same
+    // ancestor), and go again. The upsert above already happened, and counters
+    // merge by max, so nothing is lost by re-running.
+    const freshBlob = {
+      ...(useNoorStore.getState().exportState() as unknown as SyncBlob),
+      leaderboardIdentity: exportLeaderboardIdentity(),
+      dataPacks: exportDataPacks(),
+    };
+    const { leaderboardIdentity: _freshIdentity, dataPacks: _freshPacks, ...freshStoreBlob } = freshBlob;
+    const localMovedMidFlight = !sameDoc(freshStoreBlob, localStoreBlob);
+
+    if (localMovedMidFlight) {
+      await kvSet(META_KEY, { userId, lastSyncedAt, dirty: true } satisfies Meta);
+      setStatus({ phase: "idle", lastSyncedAt, error: null, pending: true });
+      scheduleFollowUp();
+      return false;
+    }
+
     if (!sameDoc(mergedStoreBlob, localStoreBlob)) {
       applyingRemote = true;
       try {
@@ -319,6 +344,23 @@ async function runSync(): Promise<boolean> {
     scheduleRetry();
     return false;
   }
+}
+
+/**
+ * A re-run because local state moved mid-flight — not a failure.
+ *
+ * Kept apart from the retry backoff on purpose: nothing went wrong, the pass
+ * was simply overtaken by the user, and backing off would leave their change
+ * unsynced for minutes.
+ */
+let followUpTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleFollowUp(): void {
+  if (typeof window === "undefined" || followUpTimer) return;
+  followUpTimer = setTimeout(() => {
+    followUpTimer = null;
+    void syncNow();
+  }, 1200);
 }
 
 /** Consecutive failures, for the retry backoff. Reset by a successful run. */

@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 type Row = { user_id: string; kind: string; payload: unknown; updated_at: string; device_id?: string };
 
 /** Minimal stand-in for the PostgREST calls syncClient makes. */
-function makeSupabase(rows: Row[]) {
+function makeSupabase(rows: Row[], onSelect?: () => void) {
   const store = [...rows];
   const upserts: Row[][] = [];
   const client = {
@@ -24,6 +24,8 @@ function makeSupabase(rows: Row[]) {
         select(_cols: string) {
           return {
             eq(_col: string, userId: string) {
+              // Where the user gets to act while the request is in flight.
+              onSelect?.();
               return Promise.resolve({
                 data: store.filter((r) => r.user_id === userId),
                 error: null,
@@ -62,7 +64,15 @@ function makeStore(initial: Record<string, unknown>) {
     }),
     subscribe: () => () => {},
   };
-  return { store, imported, current: () => state };
+  return {
+    store,
+    imported,
+    current: () => state,
+    /** Simulate the user doing something while a sync is mid-flight. */
+    mutate: (fn: (s: Record<string, unknown>) => Record<string, unknown>) => {
+      state = fn(state);
+    },
+  };
 }
 
 async function load(opts: {
@@ -70,10 +80,11 @@ async function load(opts: {
   local: Record<string, unknown>;
   userId?: string;
   online?: boolean;
+  onSelect?: (st: { mutate: (fn: (s: Record<string, unknown>) => Record<string, unknown>) => void }) => void;
 }) {
   vi.resetModules();
-  const sb = makeSupabase(opts.rows ?? []);
   const st = makeStore(opts.local);
+  const sb = makeSupabase(opts.rows ?? [], opts.onSelect ? () => opts.onSelect!(st) : undefined);
   const userId = opts.userId ?? "user-a";
 
   vi.doMock("@/lib/authClient", () => ({
@@ -237,5 +248,79 @@ describe("concurrency", () => {
     expect(a).toBe(true);
     expect(b).toBe(true);
     expect(upserts).toHaveLength(1); // one reconcile, not two
+  });
+});
+
+describe("a tap during the round-trip", () => {
+  it("never writes the pre-tap value back over it", async () => {
+    // The reconcile reads local state, talks to the server, then applies the
+    // merge. Anything counted in between is in neither — so applying that
+    // merge put the old number back, and a count that had just gone 5 -> 6
+    // dropped to 5 on its own a moment later.
+    // The remote carries something the local copy lacks, so the merge really
+    // does differ from the snapshot and the apply genuinely runs. With
+    // identical sides the apply is skipped and the race never shows.
+    let tapped = false;
+    const { mod, current } = await load({
+      local: { progress: { "morning:0": 5 } },
+      rows: [
+        {
+          user_id: "user-a",
+          kind: "progress",
+          payload: { progress: { "morning:0": 5, "evening:2": 9 } },
+          updated_at: new Date().toISOString(),
+        },
+      ],
+      onSelect: (st) => {
+        if (tapped) return;
+        tapped = true;
+        st.mutate((s) => ({ ...s, progress: { "morning:0": 6 } }));
+      },
+    });
+
+    await mod.syncNow();
+
+    expect(tapped).toBe(true);
+    expect(current().progress).toEqual({ "morning:0": 6 });
+  });
+
+  it("reports itself unfinished, so the tap still reaches the server", async () => {
+    let tapped = false;
+    const { mod } = await load({
+      local: { progress: { a: 1 } },
+      rows: [
+        {
+          user_id: "user-a",
+          kind: "progress",
+          payload: { progress: { a: 1 } },
+          updated_at: new Date(Date.now() - 60_000).toISOString(),
+        },
+      ],
+      onSelect: (st) => {
+        if (tapped) return;
+        tapped = true;
+        st.mutate((s) => ({ ...s, progress: { a: 2 } }));
+      },
+    });
+
+    // Not a success: this pass was overtaken, and another has to follow.
+    expect(await mod.syncNow()).toBe(false);
+  });
+
+  it("still applies the merge when nothing moved", async () => {
+    const { mod, current } = await load({
+      local: { progress: { a: 1 } },
+      rows: [
+        {
+          user_id: "user-a",
+          kind: "progress",
+          payload: { progress: { a: 1, b: 9 } },
+          updated_at: new Date().toISOString(),
+        },
+      ],
+    });
+
+    expect(await mod.syncNow()).toBe(true);
+    expect(current().progress).toEqual({ a: 1, b: 9 });
   });
 });

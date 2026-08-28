@@ -13,7 +13,7 @@
  * strand an animation:
  *   - the page being hidden (the actual cause),
  *   - navigating away,
- *   - a watchdog sized to the longest burst, in case a frame is simply dropped.
+ *   - and nothing else: no timer may cut a burst short before it lands.
  *
  * Clearing while hidden costs nothing: nobody is looking at it.
  */
@@ -27,24 +27,22 @@ export type Burst = Record<string, unknown> & {
 };
 
 const CANVAS_ID = "athar-celebration";
-/** canvas-confetti's own default when `ticks` is not given. */
-const DEFAULT_TICKS = 200;
 /**
- * The watchdog's frame-rate assumption.
+ * There is deliberately no timer that clears the canvas.
  *
- * `ticks` is a count of FRAMES, not milliseconds, so turning it into a duration
- * means guessing a frame rate. Assuming 60 was the bug: a phone painting at 30
- * takes twice as long, so the canvas was wiped while the confetti was still
- * mid-air and the burst vanished rather than landing. The watchdog exists only
- * for the case where the animation never finishes at all, so it should assume
- * the worst plausible rate and be late rather than early.
+ * Any duration computed from `ticks` is a guess at a frame rate, and every
+ * guess that came in under the real one wiped confetti out of the air. The
+ * burst is meant to fall until the last particle lands, so the only thing that
+ * ends it is the animation reporting that it has — canvas-confetti resolves
+ * its promise when that genuinely happens.
+ *
+ * The one exception stays in `bindLifecycle`: backgrounding the app freezes
+ * requestAnimationFrame, so a burst caught mid-flight can never land by itself
+ * and would still be sitting there on return.
  */
-const WATCHDOG_ASSUMED_FPS = 15;
-const WATCHDOG_BUFFER_MS = 2000;
 
 let instance: ConfettiInstance | null = null;
 let canvas: HTMLCanvasElement | null = null;
-let watchdog: ReturnType<typeof setTimeout> | null = null;
 let listenersBound = false;
 /** Bumped per celebration so a finished burst never clears a newer one. */
 let celebrationGeneration = 0;
@@ -89,10 +87,6 @@ async function getInstance(): Promise<ConfettiInstance | null> {
 
 /** Clear anything on screen right now. Safe to call at any time. */
 export function resetCelebration(): void {
-  if (watchdog) {
-    clearTimeout(watchdog);
-    watchdog = null;
-  }
   try {
     instance?.reset();
   } catch {
@@ -114,7 +108,6 @@ export async function celebrate(bursts: Burst[]): Promise<void> {
   const c = await getInstance();
   if (!c) return;
 
-  let longest = 0;
   // Each burst resolves when ITS OWN animation has actually finished, which is
   // the only honest signal that the confetti has landed. Waiting on these
   // rather than on a computed duration is what lets a burst finish falling on
@@ -122,8 +115,6 @@ export async function celebrate(bursts: Burst[]): Promise<void> {
   const landed: Array<Promise<unknown>> = [];
 
   for (const { delay = 0, ...opts } of bursts) {
-    const ticks = typeof opts.ticks === "number" ? opts.ticks : DEFAULT_TICKS;
-    longest = Math.max(longest, delay + (ticks / WATCHDOG_ASSUMED_FPS) * 1000);
     if (delay > 0) {
       landed.push(
         new Promise((resolve) => {
@@ -145,12 +136,6 @@ export async function celebrate(bursts: Burst[]): Promise<void> {
       // clearing then would wipe ITS confetti instead of ours.
       if (generation === celebrationGeneration) resetCelebration();
     });
-
-  // Belt and braces, for the case where the loop stalls and those promises
-  // never settle at all — deliberately generous, so it can only ever fire
-  // after the animation should long since have ended.
-  if (watchdog) clearTimeout(watchdog);
-  watchdog = setTimeout(resetCelebration, longest + WATCHDOG_BUFFER_MS);
 }
 
 /** Warm the module so the first celebration is not delayed by the import. */

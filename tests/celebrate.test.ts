@@ -100,32 +100,43 @@ describe("clearing — the actual bug", () => {
     expect(reset).toHaveBeenCalled();
   });
 
-  it("still clears eventually if the animation never reports back", async () => {
-    // The fallback. It is deliberately generous — clearing early is what wiped
-    // confetti out of the air on a phone painting below 60fps — so it is only
-    // ever meant to catch a loop that has genuinely stalled.
+  it("no timer ever cuts a burst short", async () => {
+    // The whole point. Any duration derived from `ticks` is a guess at a frame
+    // rate, and every guess that came in under the real one wiped confetti out
+    // of the air. While the animation has not reported back, nothing clears it
+    // — however long that takes.
     fire.mockImplementationOnce(() => new Promise<void>(() => {}));
 
     await mod.celebrate([{ particleCount: 50, ticks: 60 }]);
     reset.mockClear();
 
-    vi.advanceTimersByTime(4000);
-    expect(reset).not.toHaveBeenCalled();   // a slow device is still animating
-    vi.advanceTimersByTime(30_000);
-    expect(reset).toHaveBeenCalled();
+    vi.advanceTimersByTime(120_000);
+    expect(reset).not.toHaveBeenCalled();
+    fire.mockReset();
   });
 
-  it("extends the watchdog for a later burst rather than cutting it short", async () => {
-    fire.mockImplementation(() => new Promise<void>(() => {}));
+  it("a finished burst never clears a newer one still in the air", async () => {
+    let landFirst: () => void = () => {};
+    fire.mockImplementationOnce(() => new Promise<void>((r) => { landFirst = r; }));
+    fire.mockImplementationOnce(() => new Promise<void>(() => {}));
 
-    await mod.celebrate([{ particleCount: 10, ticks: 60 }]);
-    vi.advanceTimersByTime(500);
-    await mod.celebrate([{ particleCount: 10, ticks: 300 }]);
+    await mod.celebrate([{ particleCount: 10 }]);
+    await mod.celebrate([{ particleCount: 10 }]);   // the newer one
     reset.mockClear();
 
-    vi.advanceTimersByTime(6000);
-    expect(reset).not.toHaveBeenCalled();   // the longer burst is still owed time
-    vi.advanceTimersByTime(30_000);
+    landFirst();                                    // the older one lands
+    for (let i = 0; i < 10; i += 1) await Promise.resolve();
+    expect(reset).not.toHaveBeenCalled();           // the newer burst survives
+    fire.mockReset();
+  });
+
+  it("backgrounding still clears, since a frozen burst can never land", async () => {
+    fire.mockImplementationOnce(() => new Promise<void>(() => {}));
+    await mod.celebrate([{ particleCount: 50 }]);
+    reset.mockClear();
+
+    Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+    document.dispatchEvent(new Event("visibilitychange"));
     expect(reset).toHaveBeenCalled();
     fire.mockReset();
   });

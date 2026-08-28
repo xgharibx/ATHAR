@@ -30,6 +30,18 @@ import { Input } from "@/components/ui/Input";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 
+/**
+ * Toolbar controls hidden for now at the owner's request.
+ *
+ * Hidden, not deleted: every handler, state and keyboard path behind these is
+ * still wired up, so bringing one back is flipping its flag here rather than
+ * rebuilding it. Auto-read also owns a running banner and an interval, which
+ * is why the whole feature is gated on one flag rather than just its button.
+ */
+const SHOW_MARK_ALL_DONE = false;
+const SHOW_REORDER = false;
+const SHOW_AUTO_READ = false;
+
 export function DhikrList(props: Readonly<{
   sectionId: string;
   title: string;
@@ -630,7 +642,7 @@ export function DhikrList(props: Readonly<{
                     تصفير
                   </Button>
                 )}
-                {confirmDone ? (
+                {SHOW_MARK_ALL_DONE && (confirmDone ? (
                   <>
                     <Button
                       variant="outline"
@@ -655,7 +667,7 @@ export function DhikrList(props: Readonly<{
                     <CheckCheck size={16} aria-hidden="true" />
                     إكمال
                   </Button>
-                )}
+                ))}
                 <Button variant="secondary" className="shrink-0" onClick={copyAllText} disabled={!hasItems}>
                   <Copy size={16} aria-hidden="true" />
                   {copiedAll ? "تم ✓" : "نسخ الكل"}
@@ -692,23 +704,25 @@ export function DhikrList(props: Readonly<{
                 >
                   <List size={16} aria-hidden="true" />
                 </Button>
-                <Button
-                  variant={reorderMode ? "primary" : "secondary"}
-                  className="shrink-0"
-                  onClick={() => setReorderMode((prev) => !prev)}
-                  disabled={!hasItems}
-                  aria-label="ترتيب الأذكار"
-                >
-                  <ArrowUpDown size={16} aria-hidden="true" />
-                  ترتيب
-                </Button>
+                {SHOW_REORDER && (
+                  <Button
+                    variant={reorderMode ? "primary" : "secondary"}
+                    className="shrink-0"
+                    onClick={() => setReorderMode((prev) => !prev)}
+                    disabled={!hasItems}
+                    aria-label="ترتيب الأذكار"
+                  >
+                    <ArrowUpDown size={16} aria-hidden="true" />
+                    ترتيب
+                  </Button>
+                )}
                 {reorderMode && savedItemOrder?.length ? (
                   <Button variant="ghost" className="shrink-0" onClick={() => resetSectionItemOrder(props.sectionId)} aria-label="إعادة الترتيب">
                     <RotateCcw size={16} aria-hidden="true" />
                   </Button>
                 ) : null}
                 {/* D12: auto-read mode */}
-                {!autoReadActive && (
+                {SHOW_AUTO_READ && !autoReadActive && (
                   <>
                     <select
                       value={autoReadSpeed}

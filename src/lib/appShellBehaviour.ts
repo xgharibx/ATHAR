@@ -40,10 +40,18 @@ export function installAppShellBehaviour(): () => void {
 
   // 2. Double-tap to zoom. `touch-action: manipulation` covers most engines,
   //    but older iOS still zooms, so swallow the second tap directly.
+  //
+  //    NEVER over a control. Calling preventDefault() on `touchend` also
+  //    cancels the synthetic click that follows it, so this was eating every
+  //    second tap inside 300ms anywhere in the app — counting a dhikr quickly
+  //    registered roughly half the taps. Zoom only needs suppressing over
+  //    content; buttons carry `touch-action: manipulation` and never zoom.
+  const INTERACTIVE = "button, a, input, textarea, select, label, [role='button'], [role='tab'], [role='slider'], [contenteditable]";
   let lastTouchEnd = 0;
   const onTouchEnd = (e: TouchEvent) => {
     const now = Date.now();
-    if (now - lastTouchEnd <= 300 && e.cancelable) e.preventDefault();
+    const onControl = (e.target as Element | null)?.closest?.(INTERACTIVE);
+    if (!onControl && now - lastTouchEnd <= 300 && e.cancelable) e.preventDefault();
     lastTouchEnd = now;
   };
   document.addEventListener("touchend", onTouchEnd, { passive: false });

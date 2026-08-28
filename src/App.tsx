@@ -15,7 +15,6 @@ import { syncCustomReminders } from "@/lib/reminderSync";
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { useCloudSync } from "@/hooks/useCloudSync";
-import { resetCelebration } from "@/lib/celebrate";
 import { useQueryClient } from "@tanstack/react-query";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { ensureAllWbwSurahsCached } from "@/lib/quranWBW";
@@ -363,9 +362,13 @@ export default function App() {
     return () => window.removeEventListener("athar-data-packs-changed", onPacks);
   }, [queryClient]);
 
-  // Leaving the page mid-celebration is the other way particles get stranded:
-  // the burst belongs to the screen that fired it.
-  React.useEffect(() => { resetCelebration(); }, [location.pathname]);
+  // Deliberately NOT cleared on navigation. The confetti is a reward for
+  // finishing a dhikr, and cutting it off the instant the screen changes is
+  // exactly what made it vanish mid-air — finishing an item often navigates.
+  // It is drawn on its own top-level canvas that belongs to no screen, so it
+  // is free to finish falling wherever the user goes. Backgrounding the app
+  // still clears it (see celebrate.ts): rAF freezes there, so a burst caught
+  // mid-flight could never land on its own.
 
   // Cloud sync runs app-wide (no-op unless signed in) — it has to survive the
   // settings screen unmounting, since that's when the user is actually

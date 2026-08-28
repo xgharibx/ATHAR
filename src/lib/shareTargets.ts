@@ -10,7 +10,7 @@
  * Order matters: native bridge → Web Share with files → Web Share text-only →
  * download. Each step is a genuine fallback, not a guess.
  */
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 
 /** Where the app can be installed. Appended to anything shared. */
 export const STORE_LINKS = {
@@ -45,18 +45,43 @@ function blobToBase64(blob: Blob): Promise<string> {
   });
 }
 
-async function nativeBridge() {
-  if (!Capacitor.isNativePlatform()) return null;
-  try {
-    const { registerPlugin } = await import("@capacitor/core");
-    return registerPlugin<{
-      shareImage(o: { base64: string; filename?: string; text?: string; title?: string }): Promise<void>;
-      saveImage(o: { base64: string; filename?: string }): Promise<void>;
-      shareText(o: { text: string; title?: string }): Promise<void>;
-    }>("ShareBridge");
-  } catch {
+type ShareBridge = {
+  shareImage(o: { base64: string; filename?: string; text?: string; title?: string }): Promise<void>;
+  saveImage(o: { base64: string; filename?: string }): Promise<void>;
+  shareText(o: { text: string; title?: string }): Promise<void>;
+};
+
+let cachedBridge: ShareBridge | null | undefined;
+
+/**
+ * The native bridge, or null off-device.
+ *
+ * **Deliberately not async.** `registerPlugin()` returns a Proxy that answers
+ * ANY property access with a native method call — including `.then`. Returning
+ * it from an async function therefore made JavaScript treat it as a thenable:
+ * it read `.then`, got back something callable, and invoked it as a promise,
+ * which asked Android for a plugin method literally named `then`. That
+ * rejected with `"ShareBridge.then()" is not implemented on android`, and
+ * because the unwrapping happens outside the function body, the try/catch
+ * never saw it. `await nativeBridge()` thus threw instead of yielding a bridge,
+ * and EVERY share and save on Android failed silently — the button did nothing
+ * at all, which is exactly what it looked like.
+ *
+ * Cached as well, so repeat calls stop tripping Capacitor's "already
+ * registered" warning.
+ */
+function nativeBridge(): ShareBridge | null {
+  if (cachedBridge !== undefined) return cachedBridge;
+  if (!Capacitor.isNativePlatform()) {
+    cachedBridge = null;
     return null;
   }
+  try {
+    cachedBridge = registerPlugin<ShareBridge>("ShareBridge");
+  } catch {
+    cachedBridge = null;
+  }
+  return cachedBridge;
 }
 
 export type ShareResult = "shared" | "downloaded" | "failed";
@@ -71,7 +96,7 @@ export async function shareImageBlob(
   const text = withInvite(opts.text ?? "");
   const title = opts.title ?? "أثر";
 
-  const bridge = await nativeBridge();
+  const bridge = nativeBridge();
   if (bridge) {
     try {
       await bridge.shareImage({ base64: await blobToBase64(blob), filename, text, title });
@@ -109,7 +134,7 @@ export async function shareImageBlob(
 export async function shareText(raw: string, title = "أثر"): Promise<ShareResult> {
   const text = withInvite(raw);
 
-  const bridge = await nativeBridge();
+  const bridge = nativeBridge();
   if (bridge) {
     try {
       await bridge.shareText({ text, title });
@@ -160,7 +185,7 @@ export async function saveImageBlob(
 ): Promise<SaveResult> {
   const filename = opts.filename ?? "athar.png";
 
-  const bridge = await nativeBridge();
+  const bridge = nativeBridge();
   if (bridge) {
     try {
       await bridge.saveImage({ base64: await blobToBase64(blob), filename });
