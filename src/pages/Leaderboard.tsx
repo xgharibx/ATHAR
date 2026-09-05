@@ -126,7 +126,10 @@ export function LeaderboardPage() {
       tasbeehDailyTarget: stats.tasbeehDailyTarget,
       tasbeehDailyScore: stats.tasbeehDailyScore,
       sectionScore: selectedSection ? stats.sectionScores[selectedSection] ?? 0 : 0,
-      scores: stats.scores
+      scores: stats.scores,
+      // The raw components, so a manual submission is scored by the server on
+      // the same terms as an automatic one.
+      metrics: stats.metrics
     };
   }, [identity.alias, identity.id, selectedSection, stats]);
 
@@ -276,14 +279,14 @@ export function LeaderboardPage() {
     }
 
     if (!endpoint) {
-      await syncLeaderboardSnapshot("", todayKey, myStats.scores);
+      await syncLeaderboardSnapshot("", todayKey, myStats.scores, myStats.metrics);
       setSyncState("error");
       setSyncHint("المزامنة السحابية غير مفعّلة");
       return;
     }
 
     setSyncState("syncing");
-    const flush = await syncLeaderboardSnapshot(endpoint, todayKey, myStats.scores);
+    const flush = await syncLeaderboardSnapshot(endpoint, todayKey, myStats.scores, myStats.metrics);
     if (!flush.ok) {
       setSyncState("error");
       setSyncHint(
@@ -313,7 +316,7 @@ export function LeaderboardPage() {
     clearRateLimitBackoff();
     setSyncHint(flush.sent > 0 ? "تم تحديث نقاطك على الخادم" : "لا توجد تغييرات معلقة");
     if (pullAfter) await pullBoard();
-  }, [endpoint, lastSubmitAt, myStats.scores, persistLastSubmitAt, pullBoard, todayKey]);
+  }, [endpoint, lastSubmitAt, myStats.scores, myStats.metrics, persistLastSubmitAt, pullBoard, todayKey]);
 
   return (
     <div className="space-y-4 page-enter">

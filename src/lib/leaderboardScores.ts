@@ -132,10 +132,8 @@ export function buildLeaderboardScoreStats(input: {
    * worthless, it was just being counted as something it is not.
    */
   const logged = input.prayersLoggedToday ?? {};
-  const prayers = Math.min(
-    FARD_PRAYERS_PER_DAY,
-    Object.keys(logged).filter((key) => logged[key]).length,
-  );
+  const prayersLogged = Object.keys(logged).filter((key) => logged[key]).length;
+  const prayers = Math.min(FARD_PRAYERS_PER_DAY, prayersLogged);
 
   /** Checklist items ticked today, scored in their own right. */
   const tasks = Object.keys(input.prayersDone).filter((key) => input.prayersDone[key]).length;
@@ -143,12 +141,35 @@ export function buildLeaderboardScoreStats(input: {
   const global =
     dhikr + quran * 3 + prayers * PRAYER_POINTS + tasks * TASK_POINTS + tasbeehDailyScore;
 
+  /**
+   * The same day, as raw components for the server to score.
+   *
+   * Sent alongside the scores above so the ranking is decided in one place:
+   * change a weight in the edge function and every submission is re-weighted
+   * that day, instead of waiting for people to update. Caps are deliberately
+   * NOT applied here — `prayersLogged` and `tasbeehTaps` go up as counted and
+   * the server bounds them, so a client cannot argue about its own limits.
+   *
+   * `dhikr` and `sections` are already clamped per item, because that needs
+   * each dhikr's own target from the bundled adhkar data, which only the app
+   * has.
+   */
+  const metrics = {
+    dhikr,
+    quranAyahs: quran,
+    prayersLogged,
+    tasksDone: tasks,
+    tasbeehTaps: rawTasbeeh,
+    sections: sectionScores,
+  };
+
   return {
     global,
     dhikr,
     quran,
     prayers,
     tasks,
+    metrics,
     tasbeehDailyLabel: dailyTasbeeh.label,
     tasbeehDailyTarget: TASBEEH_DAILY_CAP,
     tasbeehDailyScore,

@@ -155,7 +155,7 @@ export function LeaderboardSyncBridge() {
       if (isRateLimited()) return;
       syncingRef.current = true;
       try {
-        const flush = await syncLeaderboardSnapshot(endpoint, todayKey, stats.scores);
+        const flush = await syncLeaderboardSnapshot(endpoint, todayKey, stats.scores, stats.metrics);
         if (!flush.ok) return;
         lastSyncedKeyRef.current = snapshotKey;
         // Say so, so a leaderboard already on screen re-reads the standings
@@ -184,6 +184,7 @@ export function LeaderboardSyncBridge() {
     sections.length,
     snapshotKey,
     stats.scores,
+    stats.metrics,
     todayKey,
     lastIbadahResetISO,
     ensureDailyResets,

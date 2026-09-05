@@ -39,6 +39,25 @@ export type LeaderboardScoreBundle = {
   prayers: number;
   tasbeehDaily: number;
   sections: Record<string, number>;
+  /** Present on builds that let the server do the scoring. */
+  tasks?: number;
+};
+
+/**
+ * The day's raw components, for the server to score.
+ *
+ * Sent alongside `scores` rather than instead of them: an older server that
+ * does not know about this field ignores it and uses the scores, so a client
+ * update cannot get ahead of a function deploy. Caps are the server's to
+ * apply — these go up as counted.
+ */
+export type LeaderboardMetricsPayload = {
+  dhikr: number;
+  quranAyahs: number;
+  prayersLogged: number;
+  tasksDone: number;
+  tasbeehTaps: number;
+  sections: Record<string, number>;
 };
 
 export type LeaderboardSubmitPayload = {
@@ -52,6 +71,7 @@ export type LeaderboardSubmitPayload = {
     joinedAt?: string;
   };
   scores: LeaderboardScoreBundle;
+  metrics?: LeaderboardMetricsPayload;
   checksum: string;
 };
 
@@ -601,7 +621,11 @@ async function sha256(input: string) {
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function buildSubmitPayload(day: string, scores: LeaderboardScoreBundle) {
+export async function buildSubmitPayload(
+  day: string,
+  scores: LeaderboardScoreBundle,
+  metrics?: LeaderboardMetricsPayload,
+) {
   const identity = getLeaderboardIdentity();
   const alias = normalizeAlias(identity.alias, identity.id);
   const cleanScores = sanitizeScores({
@@ -615,9 +639,26 @@ export async function buildSubmitPayload(day: string, scores: LeaderboardScoreBu
     )
   });
 
+  const cleanMetrics = metrics
+    ? {
+        dhikr: normalizeScore(metrics.dhikr),
+        quranAyahs: normalizeScore(metrics.quranAyahs),
+        prayersLogged: normalizeScore(metrics.prayersLogged),
+        tasksDone: normalizeScore(metrics.tasksDone),
+        tasbeehTaps: normalizeScore(metrics.tasbeehTaps),
+        sections: Object.fromEntries(
+          Object.entries(metrics.sections ?? {}).map(([k, v]) => [k, normalizeScore(v)])
+        )
+      }
+    : undefined;
+
   const generatedAt = new Date().toISOString();
   const fingerprint = await sha256(`${identity.id}|${identity.secret}`);
   const payloadIdentity = { id: identity.id, alias, fingerprint, joinedAt: identity.joinedAt };
+  // The checksum deliberately covers the same fields it always has. It is a
+  // client-side integrity marker keyed to a secret the server does not hold, so
+  // the server only checks its SHAPE — widening it would change nothing there
+  // and would break every older client's payload for no gain.
   const preChecksum = JSON.stringify({
     v: 1,
     generatedAt,
@@ -633,6 +674,7 @@ export async function buildSubmitPayload(day: string, scores: LeaderboardScoreBu
     day,
     identity: payloadIdentity,
     scores: cleanScores,
+    ...(cleanMetrics ? { metrics: cleanMetrics } : {}),
     checksum
   } satisfies LeaderboardSubmitPayload;
 }
@@ -640,9 +682,10 @@ export async function buildSubmitPayload(day: string, scores: LeaderboardScoreBu
 export async function syncLeaderboardSnapshot(
   endpoint: string,
   day: string,
-  scores: LeaderboardScoreBundle
+  scores: LeaderboardScoreBundle,
+  metrics?: LeaderboardMetricsPayload
 ) {
-  const payload = await buildSubmitPayload(day, scores);
+  const payload = await buildSubmitPayload(day, scores, metrics);
   enqueuePayload(payload);
 
   if (!endpoint) {

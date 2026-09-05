@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { computeScores, hasMetrics, FARD_PRAYERS_PER_DAY } from "./scoring.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -570,7 +571,32 @@ async function upsertUserProfile(db, payload, resolvedAlias) {
   return { ok: true, joinedAt };
 }
 
+/**
+ * Decide the scores this submission counts for.
+ *
+ * A client that sends `metrics` is scored HERE, from its raw components, so a
+ * weighting change takes effect for it the moment this function is deployed.
+ * A client that sends only `scores` is one built before that existed; its own
+ * numbers are taken as given, because the alternative is dropping real users
+ * off the board until they happen to update.
+ *
+ * One rule is applied to everyone either way: prayers cannot exceed the five
+ * fard prayers. Older builds counted daily-checklist ticks there and could
+ * report 25, which is the single largest distortion in the existing data, and
+ * capping it is safe — it can only ever move a score towards the truth.
+ */
 function sanitizePayload(payload) {
+  const identity = {
+    ...payload.identity,
+    alias: normalizeAliasInput(payload?.identity?.alias),
+    joinedAt: normalizeJoinedAt(payload?.identity?.joinedAt, payload?.day)
+  };
+
+  if (hasMetrics(payload)) {
+    const scored = computeScores(payload.metrics, MAX_SECTION_ITEMS);
+    return { ...payload, identity, scores: scored, scoredBy: "server" };
+  }
+
   const rawScores = payload?.scores ?? {};
   const sectionEntries = Object.entries(rawScores.sections ?? {})
     .slice(0, MAX_SECTION_ITEMS)
@@ -578,19 +604,16 @@ function sanitizePayload(payload) {
 
   return {
     ...payload,
-    identity: {
-      ...payload.identity,
-      alias: normalizeAliasInput(payload?.identity?.alias),
-      joinedAt: normalizeJoinedAt(payload?.identity?.joinedAt, payload?.day)
-    },
+    identity,
     scores: {
       global: clampInt(rawScores.global),
       dhikr: clampInt(rawScores.dhikr),
       quran: clampInt(rawScores.quran),
-      prayers: clampInt(rawScores.prayers),
+      prayers: Math.min(clampInt(rawScores.prayers), FARD_PRAYERS_PER_DAY),
       tasbeehDaily: clampInt(rawScores.tasbeehDaily),
       sections: Object.fromEntries(sectionEntries)
-    }
+    },
+    scoredBy: "client"
   };
 }
 
