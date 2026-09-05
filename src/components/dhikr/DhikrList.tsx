@@ -29,6 +29,7 @@ import { MY_ADHKAR_SECTION_ID, addCustomDhikrItem, loadPacks, removeCustomDhikrI
 import { Input } from "@/components/ui/Input";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
+import { useTodayKey } from "@/hooks/useTodayKey";
 
 /**
  * Toolbar controls hidden for now at the owner's request.
@@ -155,6 +156,44 @@ export function DhikrList(props: Readonly<{
       return current < target;
     });
   }, [orderedEntries, progressMap, props.sectionId]);
+
+  /**
+   * Pick up where the reader left off.
+   *
+   * Someone who got to the tenth dhikr, put the phone down and came back was
+   * dropped at the top again with no sign of where they had been. The position
+   * is stamped with the ibaadah day it belongs to, so it only survives until
+   * the daily reset — resuming into the middle of a section whose counters have
+   * just been zeroed would be worse than starting from the beginning.
+   *
+   * Restored once, on the way in. After that the reader is in charge of where
+   * they are, and re-scrolling under them would be an interruption.
+   */
+  const resumeDayKey = useTodayKey({ mode: "ibadah" });
+  const sectionResume = useNoorStore((s) => s.sectionResume?.[props.sectionId]);
+  const setSectionResume = useNoorStore((s) => s.setSectionResume);
+  const restoredRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (restoredRef.current) return;
+    if (!orderedEntries.length) return;
+    restoredRef.current = true;
+
+    const saved = sectionResume;
+    if (!saved || saved.dayKey !== resumeDayKey) return; // a new day starts at the top
+    // If what they were on is already finished, put them on the next thing
+    // that is not — "where to carry on from", rather than a bookmark.
+    const target =
+      firstIncompleteIdx > saved.index ? firstIncompleteIdx : Math.min(saved.index, orderedEntries.length - 1);
+    if (target <= 0) return;
+    // After first paint, so the list has heights to scroll against.
+    const id = window.setTimeout(() => {
+      virtuosoRef.current?.scrollToIndex({ index: target, align: "start" });
+    }, 120);
+    return () => window.clearTimeout(id);
+    // Deliberately runs once: `sectionResume` is read at entry, not followed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderedEntries.length]);
 
   const [copiedAll, setCopiedAll] = React.useState(false);
   const [compact, setCompact] = React.useState(false);
@@ -922,7 +961,9 @@ export function DhikrList(props: Readonly<{
                   autoFocus={props.focusIndex === entry.originalIndex}
                   totalItems={props.items.length}
                   focusMode={focusMode}
+                  onCounted={() => setSectionResume(props.sectionId, displayIndex, resumeDayKey)}
                   onComplete={() => {
+                    setSectionResume(props.sectionId, Math.min(displayIndex + 1, orderedEntries.length - 1), resumeDayKey);
                     const nextIdx = displayIndex + 1;
                     if (nextIdx < orderedEntries.length) {
                       // A gentle glide for the auto-advance (default

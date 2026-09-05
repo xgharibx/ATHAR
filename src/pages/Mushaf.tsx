@@ -49,6 +49,15 @@ import toast from "react-hot-toast";
 import type { PageItem } from "@/data/pageIndexBuilder";
 import { arNum } from "@/lib/formatNumber";
 
+/**
+ * The reader's "more" sheet, parked at the owner's request.
+ *
+ * Hidden, not removed: the sheet and everything it opens are still here and
+ * still work, and the state behind them is untouched. Flip this to bring the
+ * button back.
+ */
+const SHOW_MUSHAF_MORE = false;
+
 
 interface SurahGroup {
   surahId: number;
@@ -1550,13 +1559,15 @@ export function MushafPage() {
           <Settings size={16} aria-hidden="true" />
         </button>
         {/* More actions */}
-        <button type="button"
-          className={`mushaf-chrome-icon-btn${showMoreSheet ? " active" : ""}`}
-          aria-label="المزيد"
-          onClick={(e) => { e.stopPropagation(); setShowMoreSheet((v) => !v); }}
-        >
-          <MoreVertical size={17} aria-hidden="true" />
-        </button>
+        {SHOW_MUSHAF_MORE && (
+          <button type="button"
+            className={`mushaf-chrome-icon-btn${showMoreSheet ? " active" : ""}`}
+            aria-label="المزيد"
+            onClick={(e) => { e.stopPropagation(); setShowMoreSheet((v) => !v); }}
+          >
+            <MoreVertical size={17} aria-hidden="true" />
+          </button>
+        )}
       </div>
 
       {/* ── Q17: In-page search bar ───────────────────────── */}
@@ -2657,7 +2668,7 @@ export function MushafPage() {
       )}
 
       {/* ── More actions sheet ──────────────────────────── */}
-      {showMoreSheet && (
+      {SHOW_MUSHAF_MORE && showMoreSheet && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowMoreSheet(false)} />
           <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="الإجراءات السريعة" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShowMoreSheet(false); } }} style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">

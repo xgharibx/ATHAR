@@ -150,3 +150,15 @@ export async function createPlayer(
     });
   });
 }
+
+/**
+ * Start fetching the API before anyone asks for a player.
+ *
+ * `loadYouTubeApi` is already a shared singleton, so calling this early simply
+ * means the promise is further along by the time a card needs it. Swallows its
+ * own failure: a head start that fails must behave exactly like never having
+ * been attempted, and the real call site retries on its own.
+ */
+export function warmYouTubeApi(): void {
+  void loadYouTubeApi().catch(() => undefined);
+}

@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { House, BookOpenText, Sparkles, BookMarked, Atom, Trophy, MoreVertical, Clapperboard, BarChart3, Heart, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
+import { warmYouTubeApi } from "@/lib/youtubePlayer";
 
 function todayISO() {
   const d = new Date();
@@ -225,8 +226,16 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
         type="button"
         ref={moreBtnRef}
         onClick={() => {
+          const opening = !moreOpen;
           setMoreOpen((v) => !v);
           if (navigator.vibrate) navigator.vibrate(8);
+          // Shorts lives in this menu, and its slowest step is fetching
+          // YouTube's IFrame API — measured at ~900ms, and it only started once
+          // the feed was already open. Opening this menu is the earliest honest
+          // signal that someone might go there, so the fetch starts now and is
+          // usually finished before the tap. Failure is ignored: this is a
+          // head start, not a dependency.
+          if (opening) void warmYouTubeApi();
         }}
         className={`floating-nav-dots ${moreActive || moreOpen ? "active" : ""}`}
         aria-label="المزيد"

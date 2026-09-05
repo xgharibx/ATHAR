@@ -18,6 +18,8 @@ import {
   MoveUp,
   MoveDown,
   Timer,
+  Focus,
+  X,
 } from "lucide-react";
 import { ASMA_AL_HUSNA } from "@/data/asmaAlHusna";
 import { useNavigate } from "react-router-dom";
@@ -75,6 +77,23 @@ const TASBEEHAT = [
 ] as const;
 
 type TasbeehKey = typeof TASBEEHAT[number]["key"] | "custom";
+
+/**
+ * The counter key for a chosen phrase.
+ *
+ * Every custom dhikr and every quick phrase used to count into the single key
+ * "custom", so they all shared one number: pick a different one and it showed
+ * the previous one's count, and tapping any of them moved the same total. The
+ * phrase IS the identity here — both the quick list and the saved list carry
+ * nothing else that survives an edit — so the key is derived from it.
+ *
+ * Whitespace is collapsed so the same phrase typed with a stray space is the
+ * same counter, not a second one.
+ */
+export function customCounterKey(phrase: string | undefined | null): string {
+  const clean = String(phrase ?? "").replace(/\s+/g, " ").trim();
+  return clean ? `custom:${clean}` : "custom";
+}
 
 const TARGETS = [33, 100, 1000] as const;
 
@@ -601,7 +620,8 @@ function TasbeehStatsCard({
 }) {
   const stats = React.useMemo(() => {
     const today = new Date();
-    const customKey = "custom";
+    // The selected phrase's own counter, not the old shared "custom" bucket.
+    const customKey = customCounterKey(sebhaCustom?.phrase);
     const allItems: Array<{ key: string; short: string }> = [
       ...TASBEEHAT,
       ...(sebhaCustom && (tasbeehLifetime[customKey] ?? 0) > 0
@@ -714,6 +734,17 @@ export function SebhaPage() {
 
   // S2 - Custom dhikr form
   const [showCustomForm, setShowCustomForm] = React.useState(false);
+  /**
+   * Counting with the screen out of the way.
+   *
+   * The ring is a small target, and someone doing a long tasbeeh is looking at
+   * the dhikr, not aiming at a button. In focus mode the whole screen counts:
+   * everything behind it is dimmed and blurred so there is nothing to read and
+   * nothing to hit by accident, and the only two controls are the count itself
+   * and the way out.
+   */
+  const [focusMode, setFocusMode] = React.useState(false);
+
   const [customPhraseInput, setCustomPhraseInput] = React.useState("");
   const [customTargetInput, setCustomTargetInput] = React.useState("100");
   const [customColorInput, setCustomColorInput] = React.useState(CUSTOM_DHIKR_COLORS[0]!.hex);
@@ -772,7 +803,9 @@ export function SebhaPage() {
       : TASBEEHAT.find((item) => item.key === selected) ?? TASBEEHAT[0];
 
   const effectiveTarget = selected === "custom" ? (sebhaCustom?.target ?? 100) : target;
-  const count = tallyMode ? tallyCount : Number(quickTasbeeh[selected] ?? 0);
+  /** Which counter the screen is actually reading and writing right now. */
+  const counterKey = selected === "custom" ? customCounterKey(sebhaCustom?.phrase) : selected;
+  const count = tallyMode ? tallyCount : Number(quickTasbeeh[counterKey] ?? 0);
   const percent = tallyMode ? 0 : pct(Math.min(count, effectiveTarget), effectiveTarget);
   const remaining = tallyMode ? null : Math.max(0, effectiveTarget - count);
   const completed = !tallyMode && count >= effectiveTarget;
@@ -804,9 +837,10 @@ export function SebhaPage() {
       }
       return;
     }
-    const activeKey = (override ?? selected) as string;
+    const picked = (override ?? selected) as string;
+    const activeKey = picked === "custom" ? customCounterKey(sebhaCustom?.phrase) : picked;
     const activeEffTarget =
-      activeKey === "custom" ? (sebhaCustom?.target ?? 100) : target;
+      picked === "custom" ? (sebhaCustom?.target ?? 100) : target;
     const activeLabel = override
       ? (TASBEEHAT.find((t) => t.key === override)?.short ?? override)
       : current.short;
@@ -952,7 +986,7 @@ export function SebhaPage() {
       toast.success("تم تصفير العداد الحر");
       return;
     }
-    resetQuickTasbeeh(selected);
+    resetQuickTasbeeh(selected === "custom" ? customCounterKey(sebhaCustom?.phrase) : selected);
     toast.success("تم تصفير الذكر الحالي");
   }
 
@@ -1003,6 +1037,43 @@ export function SebhaPage() {
 
   return (
     <div className="space-y-3 page-enter">
+      {focusMode && (
+        <div
+          className="sebha-focus"
+          role="button"
+          tabIndex={0}
+          aria-label={`عدّ ${current.short}`}
+          onPointerDown={(e) => {
+            // Counting on pointerdown, not click: it is the press people feel,
+            // and it survives the finger moving a little on a long session.
+            if ((e.target as HTMLElement).closest("[data-focus-exit]")) return;
+            increment();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") { setFocusMode(false); return; }
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); increment(); }
+          }}
+        >
+          <button
+            type="button"
+            data-focus-exit
+            className="sebha-focus-exit"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => setFocusMode(false)}
+            aria-label="إنهاء وضع التركيز"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+
+          <div className="sebha-focus-body" aria-live="polite">
+            <div className="sebha-focus-count">{arNum(count)}</div>
+            {!tallyMode && <div className="sebha-focus-target">من {arNum(effectiveTarget)}</div>}
+            <div className="sebha-focus-phrase arabic-text">{current.short}</div>
+          </div>
+
+          <div className="sebha-focus-hint">اضغط في أي مكان للعدّ</div>
+        </div>
+      )}
       {/* Tabs — kept simple: only "ذكر" and "أسماء" per user request. */}
       <div className="flex items-center gap-1 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-1" role="tablist" aria-label="أقسام السبحة">
         {[
@@ -1218,6 +1289,15 @@ export function SebhaPage() {
               <Timer size={11} aria-hidden="true" />
               حر
             </button>
+            <button
+              type="button"
+              onClick={() => setFocusMode(true)}
+              className="min-w-12 rounded-xl px-3 py-2 text-xs font-bold transition flex items-center justify-center gap-1.5 text-[var(--muted)] hover:bg-[var(--card-2)] border border-transparent"
+              title="عدّ بالضغط في أي مكان"
+            >
+              <Focus size={11} aria-hidden="true" />
+              تركيز
+            </button>
           </div>
           <Button variant="secondary" onClick={handleReset}>
             <RotateCw size={16} aria-hidden="true" />
@@ -1373,7 +1453,7 @@ export function SebhaPage() {
                 <div className="mt-1 text-xs opacity-55">ذكر مخصص · هدف {sebhaCustom.target}</div>
               </div>
               <div className="flex items-center gap-1">
-                <Badge>{Math.min(Number(quickTasbeeh["custom"] ?? 0), sebhaCustom.target)}/{sebhaCustom.target}</Badge>
+                <Badge>{Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target)}/{sebhaCustom.target}</Badge>
                 <span
                   role="button"
                   tabIndex={0}
@@ -1391,15 +1471,15 @@ export function SebhaPage() {
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-valuenow={Math.min(Math.round(pct(Math.min(Number(quickTasbeeh["custom"] ?? 0), sebhaCustom.target), sebhaCustom.target)), 100)}
-              aria-label={`${sebhaCustom.phrase}: ${Math.min(Number(quickTasbeeh["custom"] ?? 0), sebhaCustom.target)} من ${sebhaCustom.target}`}
+              aria-valuenow={Math.min(Math.round(pct(Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target), sebhaCustom.target)), 100)}
+              aria-label={`${sebhaCustom.phrase}: ${Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target)} من ${sebhaCustom.target}`}
             >
               <div
                 className="h-full rounded-full"
                 style={{
-                  width: `${pct(Math.min(Number(quickTasbeeh["custom"] ?? 0), sebhaCustom.target), sebhaCustom.target)}%`,
+                  width: `${pct(Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target), sebhaCustom.target)}%`,
                   background:
-                    pct(Math.min(Number(quickTasbeeh["custom"] ?? 0), sebhaCustom.target), sebhaCustom.target) >= 100
+                    pct(Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target), sebhaCustom.target) >= 100
                       ? "var(--ok)"
                       : "var(--accent)",
                 }}

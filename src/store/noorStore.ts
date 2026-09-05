@@ -30,6 +30,56 @@ import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
  */
 const SHORTS_HISTORY_MAX = 20_000;
 
+/**
+ * v33: custom adhkar used to share one counter.
+ *
+ * Every custom dhikr and every quick phrase counted into the single key
+ * "custom", so they all showed and moved the same number. They now key off the
+ * phrase — but that would make an existing user's count look like it had been
+ * wiped, because their total is sitting under the old shared key.
+ *
+ * So the old bucket is handed to the phrase that was selected when they left,
+ * which is the one the number actually belonged to. If nothing was selected
+ * there is no phrase to credit, and the value is left where it is rather than
+ * guessed at.
+ */
+function migrateSharedCustomTasbeehCounter(state: Partial<NoorState>): Partial<NoorState> {
+  const phrase = state.sebhaCustom?.phrase?.replace(/\s+/g, " ").trim();
+  if (!phrase) return {};
+
+  const key = `custom:${phrase}`;
+  const out: Partial<NoorState> = {};
+
+  const move = <T extends Record<string, number>>(map: T | undefined): T | undefined => {
+    if (!map || typeof map !== "object") return undefined;
+    const legacy = Number(map.custom ?? 0);
+    if (!legacy || map[key] !== undefined) return undefined; // nothing to move, or already moved
+    const next = { ...map, [key]: legacy } as T;
+    delete (next as Record<string, number>).custom;
+    return next;
+  };
+
+  const quick = move(state.quickTasbeeh);
+  if (quick) out.quickTasbeeh = quick;
+  const lifetime = move(state.tasbeehLifetime);
+  if (lifetime) out.tasbeehLifetime = lifetime;
+
+  // The per-day log is one level deeper: dateKey -> key -> count.
+  const log = state.tasbeehDailyLog;
+  if (log && typeof log === "object") {
+    let touched = false;
+    const nextLog: Record<string, Record<string, number>> = {};
+    for (const [day, counts] of Object.entries(log)) {
+      const moved = move(counts as Record<string, number>);
+      nextLog[day] = moved ?? (counts as Record<string, number>);
+      if (moved) touched = true;
+    }
+    if (touched) out.tasbeehDailyLog = nextLog;
+  }
+
+  return out;
+}
+
 /** Watched this far through counts as finished; bailed before this, as a skip. */
 const FINISH_FRACTION = 0.8;
 const SKIP_FRACTION = 0.15;
@@ -490,6 +540,14 @@ type NoorState = {
   setLastCelebrationAt: (ts: number) => void;
 
   lastVisitedSectionId: string | null;
+  /**
+   * Where the reader had got to in each section, so re-opening resumes rather
+   * than restarting. Stamped with the ibaadah day it belongs to: once the day
+   * turns over the counters are cleared, and resuming into the middle of a
+   * section that now reads zero would be worse than starting at the top.
+   */
+  sectionResume: Record<string, { index: number; dayKey: string }>;
+  setSectionResume: (sectionId: string, index: number, dayKey: string) => void;
   setLastVisitedSectionId: (sectionId: string | null) => void;
 
   // Hadith bookmarks + reading progress + notes
@@ -1751,6 +1809,14 @@ export const useNoorStore = create<NoorState>()(
       lastVisitedSectionId: null,
       setLastVisitedSectionId: (sectionId) => set({ lastVisitedSectionId: sectionId }),
 
+      sectionResume: {},
+      setSectionResume: (sectionId, index, dayKey) =>
+        set((s) => {
+          const prev = s.sectionResume[sectionId];
+          if (prev && prev.index === index && prev.dayKey === dayKey) return {};
+          return { sectionResume: { ...s.sectionResume, [sectionId]: { index, dayKey } } };
+        }),
+
       hadithBookmarks: {},
       toggleHadithBookmark: (bookKey, n) => {
         const key = `${bookKey}:${n}`;
@@ -1972,7 +2038,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 32,
+      version: 33,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
@@ -2032,6 +2098,7 @@ export const useNoorStore = create<NoorState>()(
           // New in v31. Without this default an upgrading user hydrates with
           // `undefined` here, and the feed reads it on every card.
           shortsHiddenChannels: (state as Partial<NoorState>).shortsHiddenChannels ?? {},
+          ...migrateSharedCustomTasbeehCounter(state as Partial<NoorState>),
           shortsChannelStats: (state as Partial<NoorState>).shortsChannelStats ?? {},
           shortsTopicAffinity: sanitizeNumberMap((state as Partial<NoorState>).shortsTopicAffinity),
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
@@ -2060,6 +2127,7 @@ export const useNoorStore = create<NoorState>()(
           // UX fields — default if not present in older persisted versions
           lastCelebrationAt: (state as Partial<NoorState>).lastCelebrationAt ?? 0,
           lastVisitedSectionId: (state as Partial<NoorState>).lastVisitedSectionId ?? null,
+          sectionResume: (state as Partial<NoorState>).sectionResume ?? {},
         } as NoorState;
       }
     }

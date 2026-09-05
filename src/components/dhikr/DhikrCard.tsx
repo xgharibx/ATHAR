@@ -43,6 +43,8 @@ export function DhikrCard(props: {
   autoFocus?: boolean;
   totalItems?: number;
   onComplete?: () => void;
+  /** Every tap, so the list can remember where the reader had got to. */
+  onCounted?: () => void;
   focusMode?: boolean;
 }) {
   const { sectionId, index, item, focusMode, sectionTitle } = props;
@@ -250,6 +252,7 @@ export function DhikrCard(props: {
     const before = progress;
     const next = increment({ sectionId, index, target });
     tapCountRef.current++;
+    props.onCounted?.();
 
     // Haptic feedback — same helper as Sebha so behaviour is identical
     // across all counting surfaces (small per-tap, big on completion).
