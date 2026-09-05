@@ -423,8 +423,18 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                           hadith.hadeeth,
                           `— ${hadith.attribution} • ${hadith.grade}`,
                           // The hadith without its شرح is the half that is easy
-                          // to misread; whoever receives it should get both.
-                          hadith.explanation ? `\nالشرح:\n${hadith.explanation}` : "",
+                          // to misread; whoever receives it should get both — and
+                          // once both are in one message they have to be told apart,
+                          // or the explanation reads as if it were part of the hadith
+                          // itself. A ruled heading does that in plain text, which is
+                          // all a share sheet can carry.
+                          hadith.explanation
+                            ? [
+                                "",
+                                "━━━━━ شرح الحديث ━━━━━",
+                                hadith.explanation,
+                              ].join("\n")
+                            : "",
                         ]
                           .filter(Boolean)
                           .join("\n"),
