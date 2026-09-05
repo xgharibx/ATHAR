@@ -11,17 +11,21 @@ const __dirname = path.dirname(__filename);
 /** package.json is the single source of truth for the app's version. */
 const pkg = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "package.json"), "utf-8"),
-) as { version: string };
+) as { version: string; released?: { android?: string | null; ios?: string | null } };
 
 /**
- * Publish the version the site is serving, so an installed app can tell whether
- * it is behind.
+ * Publish what is actually available, per platform.
  *
- * There is no public API for "what version is live on Google Play", and asking
- * the user to keep a number in sync by hand is a number that goes stale. This
- * is written from package.json at build time, and the web deploy goes out with
- * the same release as the store build — so an older APK fetching this sees the
- * newer version and can say so.
+ * `version` is this build, which for the web IS the release — deploying the
+ * site is how a browser gets the new code.
+ *
+ * `android` and `ios` are something else entirely: what the STORES are serving.
+ * Those move when a release is published and reviewed, not when a commit is
+ * pushed, and the gap between the two is days. Telling an Android user that
+ * 1.2.57 is out because it was pushed to git sends them to a Play listing that
+ * still has 1.2.54 — and a prompt that is wrong once is a prompt nobody
+ * believes again. A missing value means "do not prompt", so the failure mode is
+ * silence rather than a wrong claim.
  */
 function emitVersionManifest() {
   return {
@@ -33,7 +37,12 @@ function emitVersionManifest() {
       this.emitFile({
         type: "asset",
         fileName: "version.json",
-        source: JSON.stringify({ version: pkg.version, builtAt: new Date().toISOString() }),
+        source: JSON.stringify({
+          version: pkg.version,
+          builtAt: new Date().toISOString(),
+          android: pkg.released?.android ?? null,
+          ios: pkg.released?.ios ?? null,
+        }),
       });
     },
   };

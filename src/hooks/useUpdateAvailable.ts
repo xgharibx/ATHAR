@@ -78,6 +78,36 @@ export function currentAppVersion(): string {
 
 type UpdateState = { available: boolean; latest: string | null };
 
+type VersionManifest = {
+  version?: unknown;
+  android?: unknown;
+  ios?: unknown;
+};
+
+/**
+ * The version this platform can actually install right now.
+ *
+ * On the web that is the deployed build: refreshing gets it. On a phone it is
+ * whatever the store is serving, which moves on review time, not on git pushes
+ * — so `version` is the wrong number to compare against there, and using it
+ * would send people to a store listing that does not yet have what they were
+ * promised.
+ *
+ * No value for this platform means no answer, which means no prompt. Silence is
+ * the only safe failure here.
+ */
+export function availableVersionFor(
+  manifest: VersionManifest | null | undefined,
+  platform: string,
+): string | null {
+  if (!manifest || typeof manifest !== "object") return null;
+  const pick =
+    platform === "android" ? manifest.android
+    : platform === "ios" ? manifest.ios
+    : manifest.version;
+  return typeof pick === "string" && pick.trim() ? pick.trim() : null;
+}
+
 export function useUpdateAvailable(): UpdateState & { dismiss: () => void } {
   const [state, setState] = React.useState<UpdateState>({ available: false, latest: null });
   const [dismissed, setDismissed] = React.useState<string | null>(() => {
@@ -98,11 +128,8 @@ export function useUpdateAvailable(): UpdateState & { dismiss: () => void } {
         // copy of this file is a copy of the answer we already had.
         const res = await fetch(`${manifestUrl()}?t=${Date.now()}`, { cache: "no-store" });
         if (!res.ok) return;
-        const json: unknown = await res.json();
-        const latest =
-          json && typeof json === "object" && typeof (json as { version?: unknown }).version === "string"
-            ? (json as { version: string }).version
-            : null;
+        const json = (await res.json()) as VersionManifest;
+        const latest = availableVersionFor(json, Capacitor.getPlatform());
         if (cancelled || !latest) return;
         setState({ available: isNewer(latest, currentAppVersion()), latest });
       } catch {

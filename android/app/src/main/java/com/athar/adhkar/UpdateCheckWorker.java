@@ -153,7 +153,11 @@ public class UpdateCheckWorker extends Worker {
                 String line;
                 while ((line = reader.readLine()) != null) body.append(line);
             }
-            String version = new JSONObject(body.toString()).optString("version", "");
+            // "android" is what the Play listing is serving, which is what
+            // this notification is about. "version" is the web build and moves
+            // on every push — using it would send people to a listing that
+            // does not have the release yet. No value means no notification.
+            String version = new JSONObject(body.toString()).optString("android", "");
             return version.isEmpty() ? null : version;
         } catch (Throwable t) {
             return null;
