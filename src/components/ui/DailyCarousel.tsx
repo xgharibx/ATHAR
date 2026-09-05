@@ -10,6 +10,7 @@ import { fetchDailyHadith, fetchRandomHadith, fetchSharhHadith, prewarmSharhBund
 import { syncSunnahWidget } from "@/lib/widgetDataBridge";
 import toast from "react-hot-toast";
 import { arNum } from "@/lib/formatNumber";
+import { shareText } from "@/lib/shareTargets";
 
 
 function dateIndex(dateKey: string, length: number, offset = 0): number {

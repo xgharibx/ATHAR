@@ -1387,7 +1387,11 @@ export const useNoorStore = create<NoorState>()(
           for (const k of Object.keys(next)) {
             if (k.startsWith(sectionId + ":")) delete next[k];
           }
-          return { progress: next };
+          // Starting the section over means starting it at the top; the saved
+          // reading position no longer refers to anything.
+          const resume = { ...s.sectionResume };
+          delete resume[sectionId];
+          return { progress: next, sectionResume: resume };
         });
       },
 
@@ -1761,6 +1765,7 @@ export const useNoorStore = create<NoorState>()(
 
       // Targeted resets (Phase 37)
       resetAdhkarProgress: () => set({
+        sectionResume: {},
         progress: {},
         favorites: {},
         activity: {},

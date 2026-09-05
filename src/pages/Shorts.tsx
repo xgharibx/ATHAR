@@ -48,6 +48,19 @@ const WINDOW = 2;
  */
 const RENDER_WINDOW = 4;
 
+/**
+ * How many clips ahead are built and cued before they are reached.
+ *
+ * One was enough to make the NEXT swipe instant, and then the one after it paid
+ * the full cost again — which is what a fast scroller actually feels. Two keeps
+ * a clip in hand while the warmed one is being watched.
+ *
+ * Not more than two: each is a live YouTube player holding a video decoder, and
+ * a feed that leaves a queue of them alive is the memory leak this file was
+ * careful to avoid in the first place. Only the active one ever plays.
+ */
+const PRELOAD_AHEAD = 2;
+
 /** How many clips to rank at a time, and how close to the end to extend. */
 const PAGE_SIZE = 300;
 const EXTEND_WITHIN = 12;
@@ -787,7 +800,7 @@ export function ShortsPage() {
             <ShortCard
               short={short}
               active={i === index}
-              preload={i === index + 1}
+              preload={i > index && i <= index + PRELOAD_AHEAD}
               mounted={Math.abs(i - index) <= WINDOW}
               muted={muted}
               liked={!!bookmarks[short.id]}

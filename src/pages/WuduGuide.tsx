@@ -156,7 +156,6 @@ export function WuduGuidePage() {
                   <span className="font-bold text-sm" style={{ color: "var(--fg)" }}>
                     {step.title}
                   </span>
-                  <span className="text-xl">{step.icon}</span>
                   <span
                     className="text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold flex-shrink-0"
                     style={{ background: "var(--accent)", color: "var(--on-accent)" }}

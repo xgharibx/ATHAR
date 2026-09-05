@@ -1930,6 +1930,15 @@ function HomeWidgetsCard(props: {
 }) {
   const { prefs, setPrefs } = props;
   const order: HomeWidgetKey[] = prefs.homeWidgetsOrder ?? [...DEFAULT_HOME_WIDGETS_ORDER];
+  /**
+   * Folded away by default.
+   *
+   * This is a row per home-screen card with two arrows and a switch on each —
+   * easily the tallest thing on the settings page, and something most people
+   * set once and never touch. Collapsed it is a single line; the list is only
+   * built when it is actually opened.
+   */
+  const [open, setOpen] = React.useState(false);
 
   const moveUp = (i: number) => {
     if (i === 0) return;
@@ -1947,14 +1956,29 @@ function HomeWidgetsCard(props: {
 
   return (
     <Card className="p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Layers size={18} aria-hidden="true" className="text-[var(--accent)]" />
-        <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls="home-widgets-list"
+        className="w-full flex items-center gap-2 text-right"
+      >
+        <Layers size={18} aria-hidden="true" className="text-[var(--accent)] shrink-0" />
+        <div className="flex-1 min-w-0">
           <div className="font-semibold">عناصر الصفحة الرئيسية</div>
-          <div className="text-xs opacity-60 mt-0.5">تفعيل وترتيب البطاقات</div>
+          <div className="text-xs opacity-60 mt-0.5">
+            {open ? "تفعيل وترتيب البطاقات" : `${arNum(order.length)} بطاقات · اضغط للتعديل`}
+          </div>
         </div>
-      </div>
-      <div role="list" aria-label="ترتيب عناصر الصفحة الرئيسية" className="space-y-2">
+        <ChevronDown
+          size={18}
+          aria-hidden="true"
+          className={`shrink-0 opacity-55 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+      <div id="home-widgets-list" role="list" aria-label="ترتيب عناصر الصفحة الرئيسية" className="mt-4 space-y-2">
         {order.map((key, i) => (
           <div
             key={key}
@@ -2002,6 +2026,7 @@ function HomeWidgetsCard(props: {
           </div>
         ))}
       </div>
+      )}
     </Card>
   );
 }

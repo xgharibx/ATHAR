@@ -4,7 +4,13 @@ export type WuduStep = {
   description: string;
   times: number; // recommended repetitions
   animClass: string; // CSS animation hint class
-  icon: string; // emoji
+  /**
+   * Kept on the type, and kept in the data, but no longer shown: the numbered
+   * step and its title carry the meaning, and a cartoon hand beside a du'a
+   * reads as decoration on something that is not decorative. Restoring it is
+   * one line back in WuduGuide.tsx.
+   */
+  icon: string;
 };
 
 export const WUDU_STEPS: WuduStep[] = [

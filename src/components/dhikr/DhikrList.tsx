@@ -181,6 +181,20 @@ export function DhikrList(props: Readonly<{
 
     const saved = sectionResume;
     if (!saved || saved.dayKey !== resumeDayKey) return; // a new day starts at the top
+
+    // …and so does a section with nothing counted in it.
+    //
+    // The day key alone only catches the Fajr reset. It does not catch تصفير,
+    // the danger-zone wipe, or a reset arriving from another device — and being
+    // returned to the fifth dhikr when every counter reads zero is exactly as
+    // wrong as being returned there the morning after. Rather than teach each
+    // of those paths to clear the bookmark, the bookmark is simply ignored when
+    // there is no progress to resume: whatever cleared it, the answer is the
+    // same.
+    const hasProgress = orderedEntries.some(
+      ({ originalIndex }) => (Number(progressMap[`${props.sectionId}:${originalIndex}`]) || 0) > 0,
+    );
+    if (!hasProgress) return;
     // If what they were on is already finished, put them on the next thing
     // that is not — "where to carry on from", rather than a bookmark.
     const target =
