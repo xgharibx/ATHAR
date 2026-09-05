@@ -15,12 +15,19 @@ name: Sync store version
 
 on:
   schedule:
-    # 04:20 UTC daily — off the hour, to avoid the top-of-hour Actions crush.
-    - cron: "20 4 * * *"
+    # Every six hours, off the hour to avoid the top-of-hour Actions crush.
+    # A release reaches people within hours of going live on Play rather than
+    # up to a day; the job is one HTTPS request, so the cost is nil.
+    - cron: "20 */6 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+  # Needed to start the pages deploy below. A push made with GITHUB_TOKEN does
+  # NOT trigger other workflows, so deploy-pages would never see this commit and
+  # the site would keep serving the old version.json — the update prompt would
+  # sit there doing nothing, with no error anywhere to say why.
+  actions: write
 
 concurrency:
   group: sync-store-version
@@ -40,9 +47,11 @@ jobs:
         run: node tools/scripts/sync-store-version.mjs --write
 
       - name: Commit if it moved
+        id: commit
         run: |
           if git diff --quiet -- package.json; then
             echo "no change"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "github-actions[bot]"
@@ -50,3 +59,13 @@ jobs:
           git add package.json
           git commit -m "Play is now serving $(node -p "require('./package.json').released.android")"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # The commit above cannot trigger the deploy on its own, so ask for it.
+      # Only when something actually changed — a redeploy of identical content
+      # every six hours is noise.
+      - name: Publish the new version to the site
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run deploy-pages.yml --ref main
