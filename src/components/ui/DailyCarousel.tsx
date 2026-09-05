@@ -196,17 +196,19 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     pauseUntilRef.current = Date.now() + 15000;
   }, [shuffleIdx, dailyIdxs, hadith]);
 
+  /**
+   * Share from the daily cards.
+   *
+   * Was `navigator.share`, which does not exist in the app's WebView at all —
+   * so on a phone every one of these quietly became a clipboard copy, and a
+   * hand-written "ATHAR" line did the job of an invitation without a link to
+   * install anything. `shareText` reaches the real sheet through the native
+   * bridge, and appends the store link itself.
+   */
   const copyShare = React.useCallback(async (text: string) => {
-    try {
-      if (navigator.share) {
-        await navigator.share({ text: text + "\n\n• ATHAR أثر" });
-      } else {
-        await navigator.clipboard.writeText(text);
-        toast.success("تم النسخ");
-      }
-    } catch {
-      try { await navigator.clipboard.writeText(text); toast.success("تم النسخ"); } catch { toast.error("تعذّر النسخ"); }
-    }
+    const result = await shareText(text);
+    if (result === "downloaded") toast.success("تم النسخ");
+    else if (result === "failed") toast.error("تعذّرت المشاركة");
   }, []);
 
   const goTo = React.useCallback((idx: number) => {
@@ -415,7 +417,19 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     </Button>
                   </div>
                   <button type="button"
-                    onClick={() => copyShare(`${hadith.hadeeth}\n— ${hadith.attribution} • ${hadith.grade}`)}
+                    onClick={() =>
+                      copyShare(
+                        [
+                          hadith.hadeeth,
+                          `— ${hadith.attribution} • ${hadith.grade}`,
+                          // The hadith without its شرح is the half that is easy
+                          // to misread; whoever receives it should get both.
+                          hadith.explanation ? `\nالشرح:\n${hadith.explanation}` : "",
+                        ]
+                          .filter(Boolean)
+                          .join("\n"),
+                      )
+                    }
                     className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition"
                     aria-label="مشاركة الحديث"
                   >
