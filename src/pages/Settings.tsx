@@ -43,6 +43,27 @@ import {
 } from "@/lib/settingsLayout";
 import { AccountPanel } from "@/components/account/AccountPanel";
 
+/**
+ * Settings parked at the owner's request.
+ *
+ * Hidden, not removed. Every preference behind these keeps its current value
+ * and every screen that reads one behaves exactly as it did — only the control
+ * is gone from this page. Flip a flag to bring one back.
+ */
+const SHOW_UI_LANGUAGE = false;
+const SHOW_TEXT_DIRECTION = false;
+const SHOW_HIDE_AYAH_MARKERS = false;
+const SHOW_STRIP_DIACRITICS = false;
+const SHOW_QURAN_BACKGROUND = false;
+const SHOW_LETTER_WORD_SPACING = false;
+const SHOW_QURAN_DAILY_GOAL = false;
+const SHOW_RECITER_PICKER = false;
+const SHOW_COUNT_SOUNDS = false;
+const SHOW_OFFLINE_CONTENT = false;
+const SHOW_CONTENT_GUIDES = false;
+const SHOW_DANGER_ZONE = false;
+const SHOW_QURAN_PIN = false;
+
 const THEME_ACCENTS: Record<NoorTheme, string> = {
   system:   "#ffd780",
   dark:     "#ffd780",
@@ -568,6 +589,7 @@ export function SettingsPage() {
         </div>
 
         {/* Se3: Language switcher */}
+        {SHOW_UI_LANGUAGE && (
         <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -596,8 +618,10 @@ export function SettingsPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Se4: Text direction */}
+        {SHOW_TEXT_DIRECTION && (
         <div className="mt-5 pt-4 border-t border-[var(--stroke)]">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -627,6 +651,7 @@ export function SettingsPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Se6: Restore defaults */}
         <div className="mt-5 pt-4 border-t border-[var(--stroke)] flex items-center justify-between gap-3">
@@ -748,7 +773,8 @@ export function SettingsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SettingRow
-              title="إخفاء أرقام الآيات"
+              hidden={!SHOW_HIDE_AYAH_MARKERS}
+            title="إخفاء أرقام الآيات"
               desc="وضع تركيز للقراءة بدون علامات"
               right={
                 <Switch checked={prefs.quranHideMarkers} onCheckedChange={(v) => setPrefs({ quranHideMarkers: v })} />
@@ -762,7 +788,8 @@ export function SettingsPage() {
               }
             />
             <SettingRow
-              title="حذف الحركات من المصحف"
+              hidden={!SHOW_STRIP_DIACRITICS}
+            title="حذف الحركات من المصحف"
               desc="مفيد للبحث والحفظ (قد يغير القراءة)"
               right={
                 <Switch
@@ -775,6 +802,7 @@ export function SettingsPage() {
 
           {/* ── Quran paper theme control ──── */}
           <SettingRow
+            hidden={!SHOW_QURAN_BACKGROUND}
             title="خلفية المصحف"
             desc="لون خلفية صفحة القراءة"
             right={
@@ -799,42 +827,47 @@ export function SettingsPage() {
           />
 
           {/* ── Letter spacing slider ──── */}
-          <div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-medium">تباعد الحروف</div>
-              <div className="text-xs opacity-70 tabular-nums">{arNum(parseInt(((prefs.quranLetterSpacing ?? 0) * 100).toFixed(0)))}٪</div>
+          {SHOW_LETTER_WORD_SPACING && (
+            <>
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-medium">تباعد الحروف</div>
+                <div className="text-xs opacity-70 tabular-nums">{arNum(parseInt(((prefs.quranLetterSpacing ?? 0) * 100).toFixed(0)))}٪</div>
+              </div>
+              <div className="mt-3">
+                <Slider
+                  value={[prefs.quranLetterSpacing ?? 0]}
+                  min={0}
+                  max={0.12}
+                  step={0.005}
+                  onValueChange={(v) => setPrefs({ quranLetterSpacing: clamp(v[0] ?? 0, 0, 0.12) })}
+                  aria-label="تباعد الحروف"
+                />
+              </div>
             </div>
-            <div className="mt-3">
-              <Slider
-                value={[prefs.quranLetterSpacing ?? 0]}
-                min={0}
-                max={0.12}
-                step={0.005}
-                onValueChange={(v) => setPrefs({ quranLetterSpacing: clamp(v[0] ?? 0, 0, 0.12) })}
-                aria-label="تباعد الحروف"
-              />
-            </div>
-          </div>
 
-          {/* ── Word spacing slider ──── */}
-          <div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-medium">تباعد الكلمات</div>
-              <div className="text-xs opacity-70 tabular-nums">{arNum(parseInt(((prefs.quranWordSpacing ?? 0) * 100).toFixed(0)))}٪</div>
+            {/* ── Word spacing slider ──── */}
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-sm font-medium">تباعد الكلمات</div>
+                <div className="text-xs opacity-70 tabular-nums">{arNum(parseInt(((prefs.quranWordSpacing ?? 0) * 100).toFixed(0)))}٪</div>
+              </div>
+              <div className="mt-3">
+                <Slider
+                  value={[prefs.quranWordSpacing ?? 0]}
+                  min={0}
+                  max={0.25}
+                  step={0.01}
+                  onValueChange={(v) => setPrefs({ quranWordSpacing: clamp(v[0] ?? 0, 0, 0.25) })}
+                  aria-label="تباعد الكلمات"
+                />
+              </div>
             </div>
-            <div className="mt-3">
-              <Slider
-                value={[prefs.quranWordSpacing ?? 0]}
-                min={0}
-                max={0.25}
-                step={0.01}
-                onValueChange={(v) => setPrefs({ quranWordSpacing: clamp(v[0] ?? 0, 0, 0.25) })}
-                aria-label="تباعد الكلمات"
-              />
-            </div>
-          </div>
+            </>
+          )}
 
           {/* ── Se10: Daily goal stepper + preset buttons ──── */}
+          {SHOW_QURAN_DAILY_GOAL && (
           <div className="glass rounded-3xl p-4 border border-[var(--stroke)]">
             <div className="text-sm font-semibold mb-1">الهدف اليومي للقرآن</div>
             <div className="text-xs opacity-65 mb-3">عدد الآيات المستهدف يومياً</div>
@@ -875,9 +908,11 @@ export function SettingsPage() {
               </div>
             </div>
           </div>
+          )}
 
           {/* ── Reciter selection (unified picker, same as Quran + Mushaf) ──── */}
           <SettingRow
+            hidden={!SHOW_RECITER_PICKER}
             title="القارئ"
             desc="اختر صوت التلاوة للاستماع. التصنيفات تسهّل الاختيار من بين 28 صوتًا."
             right={null}
@@ -901,7 +936,9 @@ export function SettingsPage() {
         </div>
       </Card>
 
+      {SHOW_QURAN_PIN && (
       <QuranSettingsCard />
+      )}
       {/* Translation-source card hidden on request (2026-08-24). The
           component and its prefs are untouched — restore by re-adding
           <TranslationSettingsCard />. */}
@@ -944,6 +981,7 @@ export function SettingsPage() {
             }
           />
           <SettingRow
+            hidden={!SHOW_COUNT_SOUNDS}
             title="أصوات العدّ"
             desc="نغمة لطيفة عند اكتمال الهدف"
             right={
@@ -1001,6 +1039,7 @@ export function SettingsPage() {
         </div>
       </Card>
 
+      {SHOW_OFFLINE_CONTENT && (
       <Card id="settings-offline-content" className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-2 min-w-0">
@@ -1061,6 +1100,7 @@ export function SettingsPage() {
           )}
         </div>
       </Card>
+      )}
 
       <Card id="settings-reminders" className="p-5">
         <div className="flex items-center justify-between gap-4">
@@ -1558,6 +1598,7 @@ export function SettingsPage() {
       </Card>
 
       {/* محتوى وأدلة */}
+      {SHOW_CONTENT_GUIDES && (
       <Card id="settings-content" className="p-5">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-base" aria-hidden="true">📚</span>
@@ -1588,8 +1629,11 @@ export function SettingsPage() {
           ))}
         </div>
       </Card>
+      )}
 
+      {SHOW_DANGER_ZONE && (
       <DangerZone />
+      )}
 
       <div className="text-[11px] opacity-40 text-center pb-2 leading-5">
         ATHAR • أثر · v{pkgJson.version} · بيانات محلية
@@ -1962,7 +2006,23 @@ function HomeWidgetsCard(props: {
   );
 }
 
-function SettingRow(props: { title: string; desc: string; right: React.ReactNode; disabled?: boolean }) {
+function SettingRow(props: {
+  title: string;
+  desc: string;
+  right: React.ReactNode;
+  disabled?: boolean;
+  /**
+   * Take the row off the screen without touching what it controls.
+   *
+   * Distinct from `disabled`, which greys a row out and says "not now". This
+   * says nothing at all: the preference keeps whatever value it has and every
+   * screen that reads it behaves exactly as before — the row simply is not
+   * offered. Used for settings the owner has parked, so bringing one back is
+   * flipping a flag rather than rebuilding it.
+   */
+  hidden?: boolean;
+}) {
+  if (props.hidden) return null;
   // Inject aria-label on the right element so screen readers can name the control
   const labeledRight = React.isValidElement(props.right)
     ? React.cloneElement(props.right as React.ReactElement<Record<string, unknown>>, { "aria-label": props.title })
