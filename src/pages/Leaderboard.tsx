@@ -32,8 +32,7 @@ import {
   validateLeaderboardAlias,
   type LeaderboardAdminAliasAuditRow,
   type LeaderboardAdminBlocklistRow,
-  type LeaderboardAdminUserModeration
-} from "@/lib/leaderboard";
+  type LeaderboardAdminUserModeration, LEADERBOARD_SUBMITTED_EVENT, BOARD_REFRESH_MS } from "@/lib/leaderboard";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum, arFullDate } from "@/lib/formatNumber";
 
@@ -218,6 +217,43 @@ export function LeaderboardPage() {
   React.useEffect(() => {
     void pullBoard();
   }, [pullBoard]);
+
+  /**
+   * Keep the standings live while someone is looking at them.
+   *
+   * The board used to load once, on mount, and then sit there. Scores were
+   * already being posted automatically in the background — but the ranking on
+   * screen never moved, so the only way to see any change was to press تحديث,
+   * which made the whole thing feel manual when only the *view* was.
+   *
+   * Refreshes on returning to the app, and on a slow tick while visible. The
+   * tick is deliberately unhurried and stops dead when the page is hidden: a
+   * leaderboard left open in a background tab must not sit polling a server all
+   * day on someone's mobile data.
+   */
+  React.useEffect(() => {
+    if (!endpoint) return;
+
+    const refreshIfVisible = () => {
+      if (document.visibilityState === "hidden") return;
+      void pullBoard();
+    };
+
+    // The bridge posts on its own; this is how the board hears that it did.
+    const onSubmitted = () => refreshIfVisible();
+
+    window.addEventListener("focus", refreshIfVisible);
+    document.addEventListener("visibilitychange", refreshIfVisible);
+    window.addEventListener(LEADERBOARD_SUBMITTED_EVENT, onSubmitted);
+    const tick = window.setInterval(refreshIfVisible, BOARD_REFRESH_MS);
+
+    return () => {
+      window.removeEventListener("focus", refreshIfVisible);
+      document.removeEventListener("visibilitychange", refreshIfVisible);
+      window.removeEventListener(LEADERBOARD_SUBMITTED_EVENT, onSubmitted);
+      window.clearInterval(tick);
+    };
+  }, [endpoint, pullBoard]);
 
   const submitScore = React.useCallback(async (options?: { bypassCooldown?: boolean; pullAfter?: boolean }) => {
     const bypassCooldown = options?.bypassCooldown === true;

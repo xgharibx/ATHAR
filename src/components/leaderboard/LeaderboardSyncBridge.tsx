@@ -3,7 +3,7 @@ import * as React from "react";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useTodayKey } from "@/hooks/useTodayKey";
-import { isRateLimited, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot } from "@/lib/leaderboard";
+import { isRateLimited, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot, LEADERBOARD_SUBMITTED_EVENT } from "@/lib/leaderboard";
 import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
 import { useNoorStore } from "@/store/noorStore";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -158,6 +158,13 @@ export function LeaderboardSyncBridge() {
         const flush = await syncLeaderboardSnapshot(endpoint, todayKey, stats.scores);
         if (!flush.ok) return;
         lastSyncedKeyRef.current = snapshotKey;
+        // Say so, so a leaderboard already on screen re-reads the standings
+        // rather than showing a rank that predates the score just sent.
+        try {
+          window.dispatchEvent(new CustomEvent(LEADERBOARD_SUBMITTED_EVENT));
+        } catch {
+          /* non-DOM environment */
+        }
         if (flush.alias) {
           syncLeaderboardAliasFromServer(flush.alias);
         }

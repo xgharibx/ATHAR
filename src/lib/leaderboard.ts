@@ -965,3 +965,12 @@ export function resetLeaderboardData() {
     // ignore
   }
 }
+
+/**
+ * Fired after a score reaches the server, so an open leaderboard can show the
+ * new standing instead of waiting for its next tick.
+ */
+export const LEADERBOARD_SUBMITTED_EVENT = "athar-leaderboard-submitted";
+
+/** How often an open, visible board re-reads the standings. */
+export const BOARD_REFRESH_MS = 60_000;

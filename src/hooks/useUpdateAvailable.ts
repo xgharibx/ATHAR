@@ -14,6 +14,8 @@
  */
 import React from "react";
 
+import { Capacitor } from "@capacitor/core";
+
 import { publicDataUrl } from "@/data/publicAssetUrl";
 
 declare const __APP_VERSION__: string;
@@ -26,6 +28,24 @@ export const STORE_URL = {
 
 const CHECK_INTERVAL_MS = 60 * 60 * 1000;
 const DISMISS_KEY = "noor_update_dismissed_v1";
+
+/**
+ * Where to ask what the current version is.
+ *
+ * This has to be the LIVE site, not `/version.json`. Inside the app that path
+ * resolves to `https://localhost/version.json` — the copy bundled in the APK,
+ * which ships alongside the very build asking the question, so it always
+ * matched and the prompt could never appear on a phone at all.
+ *
+ * On the web a relative path is right and better: the running bundle may be an
+ * old one held by the service worker while the deployed manifest has moved on,
+ * which is exactly the mismatch worth reporting — and it avoids CORS entirely.
+ */
+export const VERSION_MANIFEST_URL = "https://www.athark.org/version.json";
+
+function manifestUrl(): string {
+  return Capacitor.isNativePlatform() ? VERSION_MANIFEST_URL : publicDataUrl("version.json");
+}
 
 /** `1.2.53` → [1, 2, 53]; anything unparseable sorts lowest. */
 function parseVersion(v: string): number[] {
@@ -76,9 +96,7 @@ export function useUpdateAvailable(): UpdateState & { dismiss: () => void } {
       try {
         // Cache-busted: the whole point is to notice a change, and a cached
         // copy of this file is a copy of the answer we already had.
-        const res = await fetch(`${publicDataUrl("version.json")}?t=${Date.now()}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(`${manifestUrl()}?t=${Date.now()}`, { cache: "no-store" });
         if (!res.ok) return;
         const json: unknown = await res.json();
         const latest =

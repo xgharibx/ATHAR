@@ -29,6 +29,11 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(QuietChannelPlugin.class);
         super.onCreate(savedInstanceState);
 
+        // Ask once a day, in the background, whether a newer version has been
+        // published — the people who need telling are the ones not opening the
+        // app, so an in-app check alone never reaches them.
+        UpdateCheckWorker.schedule(this);
+
         pendingRoute = readRoute(getIntent());
         pendingAuthUrl = readAuthUrl(getIntent());
 
