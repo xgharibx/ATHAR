@@ -4,8 +4,17 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 
-const query = vi.hoisted(() => ({ run: undefined as undefined | (() => Promise<{ data: { timings: Record<string, string> }; __sourceLabel?: string }>) }));
-vi.mock("@tanstack/react-query", () => ({ useQuery: (options: { queryFn: typeof query.run }) => { query.run = options.queryFn; return { data: undefined, refetch: () => Promise.resolve() }; } }));
+const query = vi.hoisted(() => ({
+  run: undefined as undefined | (() => Promise<{ data: { timings: Record<string, string> }; __sourceLabel?: string }>),
+  tomorrowRun: undefined as undefined | (() => Promise<{ data: { timings: Record<string, string> }; __sourceLabel?: string }>),
+}));
+vi.mock("@tanstack/react-query", () => ({
+  useQuery: (options: { queryFn: typeof query.run; queryKey?: readonly unknown[] }) => {
+    if (options.queryKey?.[1] === "tomorrow-v1") query.tomorrowRun = options.queryFn;
+    else query.run = options.queryFn;
+    return { data: undefined, isPlaceholderData: false, refetch: () => Promise.resolve() };
+  },
+}));
 
 let root: Root;
 let container: HTMLDivElement;
@@ -62,5 +71,18 @@ describe("offline prayer fallback", () => {
     void query.run!().then((data) => { result = data; });
     await vi.advanceTimersByTimeAsync(40_000);
     expect(result?.data.timings.Dhuhr).toBe("09:11");
+  });
+
+  it("fetches tomorrow's timings for the same saved coordinates and falls back locally offline", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    mountAtMecca();
+
+    await query.run!();
+    const tomorrow = await query.tomorrowRun!();
+    const requestUrls = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
+
+    expect(requestUrls.some((url) => url.includes("/timings/03-10-2026?latitude=21.4225&longitude=39.8262"))).toBe(true);
+    expect(tomorrow.data.timings.Fajr).toBeTruthy();
+    expect(tomorrow.__sourceLabel).toContain("بلا إنترنت");
   });
 });

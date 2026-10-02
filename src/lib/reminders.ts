@@ -2,7 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import type { LocalNotification } from "@capacitor/local-notifications";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 import { useNoorStore } from "@/store/noorStore";
-import { getLocalDateKey } from "@/lib/dayBoundaries";
+import { getLocalDateKey, parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 
 /** Pass A: gate every preview sound in this module on `prefs.enableSounds`.
  * Returning early keeps audio playback out of the audio graph entirely when
@@ -72,6 +72,7 @@ const RAMADAN_IDS = {
 
 // N5: Daily hadith at Fajr (Phase 10)
 const DAILY_HADITH_ID = 9501;
+const NOTIFICATION_DATE_SLOT_OFFSET = 10;
 
 // 40 brief excerpts from Nawawi's 40 Hadiths (rotate daily). Exported so
 // other real-source callers (e.g. the companion's weekly reflection) can
@@ -130,6 +131,28 @@ const PRAYER_LABELS: Record<keyof typeof PRAYER_NOTIFICATION_IDS, string> = {
 type PrayerTimingName = keyof typeof PRAYER_NOTIFICATION_IDS;
 
 type PrayerNotificationTimings = Partial<Record<PrayerTimingName, string>>;
+
+function notificationDateSlot(dateISO: string): number {
+  const date = parseDateKey(dateISO);
+  if (!date || getLocalDateKey(date) !== dateISO) return 0;
+  const dayOrdinal = Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000);
+  return dayOrdinal % 2;
+}
+
+function notificationIdForDate(baseId: number, dateISO: string): number {
+  return baseId + notificationDateSlot(dateISO) * NOTIFICATION_DATE_SLOT_OFFSET;
+}
+
+function notificationIdsForBothDateSlots(ids: readonly number[]): number[] {
+  return [0, 1].flatMap((slot) => ids.map((id) => id + slot * NOTIFICATION_DATE_SLOT_OFFSET));
+}
+
+function dateSlotIdForAction(baseId: number, dateISO?: string): number | null {
+  const today = getLocalDateKey();
+  const targetDate = dateISO ?? today;
+  if (targetDate !== today && targetDate !== shiftDateKey(today, 1)) return null;
+  return notificationIdForDate(baseId, targetDate);
+}
 
 // ── N1: Rotating motivational Arabic phrases ─────────────────────────────────
 
@@ -235,11 +258,11 @@ function dailyPhrase(phrases: string[]): string {
 
 // ── N4: Ramadan detection ────────────────────────────────────────────────────
 
-/** Returns true when the current Gregorian date falls in Ramadan (Hijri month 9). */
-export function isRamadan(): boolean {
+/** Returns true when the Gregorian date falls in Ramadan (Hijri month 9). */
+export function isRamadan(date = new Date()): boolean {
   try {
     const fmt = new Intl.DateTimeFormat("en-u-ca-islamic", { month: "numeric" });
-    const parts = fmt.formatToParts(new Date());
+    const parts = fmt.formatToParts(date);
     const monthPart = parts.find((p) => p.type === "month");
     return monthPart?.value === "9";
   } catch {
@@ -367,22 +390,16 @@ function nextAtLocalTime(hhmm: string): Date | null {
   const now = new Date();
   const at = new Date(now);
   at.setHours(hm.hour, hm.minute, 0, 0);
-
-  // If time already passed today, schedule for tomorrow.
-  if (at.getTime() <= now.getTime() + 30_000) {
-    at.setDate(at.getDate() + 1);
-  }
+  if (at.getTime() <= now.getTime() + 30_000) at.setDate(at.getDate() + 1);
   return at;
 }
 
-function todayAtLocalTime(hhmm: string): Date | null {
+function dateAtLocalTime(dateISO: string, hhmm: string): Date | null {
   const hm = parseHHMM(hhmm);
-  if (!hm) return null;
-
-  const at = new Date();
+  const at = parseDateKey(dateISO);
+  if (!hm || !at || getLocalDateKey(at) !== dateISO) return null;
   at.setHours(hm.hour, hm.minute, 0, 0);
-  if (at.getTime() <= Date.now() + 30_000) return null;
-  return at;
+  return getLocalDateKey(at) === dateISO ? at : null;
 }
 
 export async function playReminderSoundPreview(soundProfile: ReminderSoundProfile, onDone?: () => void) {
@@ -448,29 +465,20 @@ export async function cancelAllReminders() {
       { id: REMINDER_SNOOZE_IDS.dailyWird },
       { id: REMINDER_SNOOZE_IDS.khatma },
       { id: REMINDER_SNOOZE_IDS.tasbeeh },
-      { id: PRAYER_NOTIFICATION_IDS.Fajr },
-      { id: PRAYER_NOTIFICATION_IDS.Dhuhr },
-      { id: PRAYER_NOTIFICATION_IDS.Asr },
-      { id: PRAYER_NOTIFICATION_IDS.Maghrib },
-      { id: PRAYER_NOTIFICATION_IDS.Isha },
-      // N2: follow-ups
-      { id: PRAYER_FOLLOWUP_IDS.Fajr },
-      { id: PRAYER_FOLLOWUP_IDS.Dhuhr },
-      { id: PRAYER_FOLLOWUP_IDS.Asr },
-      { id: PRAYER_FOLLOWUP_IDS.Maghrib },
-      { id: PRAYER_FOLLOWUP_IDS.Isha },
-      // N4: Ramadan
-      { id: RAMADAN_IDS.suhoor },
-      { id: RAMADAN_IDS.iftar },
+      ...notificationRefs(notificationIdsForBothDateSlots(Object.values(PRAYER_NOTIFICATION_IDS))),
+      ...notificationRefs(notificationIdsForBothDateSlots(Object.values(PRAYER_FOLLOWUP_IDS))),
+      ...notificationRefs(notificationIdsForBothDateSlots(Object.values(RAMADAN_IDS))),
+      ...notificationRefs(notificationIdsForBothDateSlots([DAILY_HADITH_ID])),
     ]
   });
 }
 
 /** N2: Cancel the gentle follow-up for a specific prayer (call when user logs the prayer). */
-export async function cancelPrayerFollowUp(prayerName: string) {
+export async function cancelPrayerFollowUp(prayerName: string, dateISO?: string) {
   if (!Capacitor.isNativePlatform()) return;
-  const id = PRAYER_FOLLOWUP_IDS[prayerName as PrayerTimingName];
-  if (!id) return;
+  const baseId = PRAYER_FOLLOWUP_IDS[prayerName as PrayerTimingName];
+  const id = baseId ? dateSlotIdForAction(baseId, dateISO) : null;
+  if (id === null) return;
   try {
     const { LocalNotifications } = await import("@capacitor/local-notifications");
     await LocalNotifications.cancel({ notifications: [{ id }] });
@@ -602,73 +610,83 @@ function buildReminderNotifications(
   });
 }
 
-function buildPrayerNotifications(
-  prayerTimings: PrayerNotificationTimings,
+type PrayerNotificationDay = { dateISO: string; timings: PrayerNotificationTimings };
+
+export function buildPrayerNotificationsForDays(
+  days: PrayerNotificationDay[],
   audio: NotificationAudioConfig,
   enabledPrayers: PrayerAlertPreferences,
   quiet: NotificationAudioConfig,
-) {
-  return (Object.keys(PRAYER_NOTIFICATION_IDS) as PrayerTimingName[]).flatMap((prayerName) => {
-    if (!enabledPrayers[prayerName]) return [];
+  options: { includeDailyHadith?: boolean; now?: Date } = {},
+): LocalNotification[] {
+  const now = options.now ?? new Date();
+  return days.slice(0, 2).flatMap((day) => {
+    const dayStart = parseDateKey(day.dateISO);
+    if (!dayStart || getLocalDateKey(dayStart) !== day.dateISO) return [];
 
-    const at = todayAtLocalTime(prayerTimings[prayerName] ?? "");
-    if (!at) return [];
+    const notifications: LocalNotification[] = (Object.keys(PRAYER_NOTIFICATION_IDS) as PrayerTimingName[]).flatMap((prayerName) => {
+      if (!enabledPrayers[prayerName]) return [];
 
-    // Same-day key at schedule-build time — the notification always fires the same
-    // calendar day it's scheduled for (prayer times never cross midnight for "today").
-    const extra = { prayerName, dateISO: getLocalDateKey(at) };
+      const at = dateAtLocalTime(day.dateISO, day.timings[prayerName] ?? "");
+      if (!at || at.getTime() <= now.getTime() + 30_000) return [];
 
-    // Main adhan notification
-    const main = {
-      id: PRAYER_NOTIFICATION_IDS[prayerName],
-      title: "أثر — الأذان",
-      body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
-      channelId: audio.channelId,
-      sound: audio.soundFile,
-      smallIcon: REMINDER_NOTIFICATION_ICON,
-      largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-      iconColor: REMINDER_ICON_COLOR,
-      schedule: { at },
-      actionTypeId: PRAYER_ACTION_TYPE_ID,
-      extra,
-    };
+      const extra = { prayerName, dateISO: day.dateISO };
+      const main = {
+        id: notificationIdForDate(PRAYER_NOTIFICATION_IDS[prayerName], day.dateISO),
+        title: "أثر — الأذان",
+        body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
+        channelId: audio.channelId,
+        sound: audio.soundFile,
+        smallIcon: REMINDER_NOTIFICATION_ICON,
+        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+        iconColor: REMINDER_ICON_COLOR,
+        schedule: { at },
+        actionTypeId: PRAYER_ACTION_TYPE_ID,
+        extra,
+      };
 
-    // N2: Gentle follow-up 30 min later — cancelled by setPrayerLogged when user logs the prayer
-    const followUpAt = new Date(at.getTime() + 30 * 60_000);
-    if (followUpAt.getTime() <= Date.now()) return [main];
+      // Vibration only. The adhan belongs to the adhan; hearing it again half an
+      // hour later, as a nudge, is startling rather than helpful.
+      const followUpAt = new Date(at.getTime() + 30 * 60_000);
+      const followUp = {
+        id: notificationIdForDate(PRAYER_FOLLOWUP_IDS[prayerName], day.dateISO),
+        title: "أثر — تذكير لطيف",
+        body: PRAYER_FOLLOWUP_PHRASES[prayerName],
+        channelId: quiet.channelId,
+        sound: quiet.soundFile,
+        smallIcon: REMINDER_NOTIFICATION_ICON,
+        largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
+        iconColor: REMINDER_ICON_COLOR,
+        schedule: { at: followUpAt },
+        actionTypeId: PRAYER_ACTION_TYPE_ID,
+        extra,
+      };
 
-    // Vibration only. The adhan belongs to the adhan; hearing it again half an
-    // hour later, as a nudge, is startling rather than helpful.
-    const followUp = {
-      id: PRAYER_FOLLOWUP_IDS[prayerName],
-      title: "أثر — تذكير لطيف",
-      body: PRAYER_FOLLOWUP_PHRASES[prayerName],
-      channelId: quiet.channelId,
-      sound: quiet.soundFile,
-      smallIcon: REMINDER_NOTIFICATION_ICON,
-      largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
-      iconColor: REMINDER_ICON_COLOR,
-      schedule: { at: followUpAt },
-      actionTypeId: PRAYER_ACTION_TYPE_ID,
-      extra,
-    };
+      return [main, followUp];
+    });
 
-    return [main, followUp];
+    if (isRamadan(dayStart)) notifications.push(...buildRamadanNotifications(day, audio, now));
+    if (options.includeDailyHadith) {
+      const hadith = buildDailyHadithNotification(day, quiet, now);
+      if (hadith) notifications.push(hadith);
+    }
+    return notifications;
   });
 }
 
-// N4: Build Ramadan suhoor & iftar notifications from prayer timings
+// N4: Build Ramadan suhoor & iftar notifications from date-specific timings.
 function buildRamadanNotifications(
-  prayerTimings: PrayerNotificationTimings,
+  day: PrayerNotificationDay,
   audio: NotificationAudioConfig,
+  now: Date,
 ) {
   const notifications: LocalNotification[] = [];
-  const fajrAt = todayAtLocalTime(prayerTimings.Fajr ?? "");
+  const fajrAt = dateAtLocalTime(day.dateISO, day.timings.Fajr ?? "");
   if (fajrAt) {
     const suhoorAt = new Date(fajrAt.getTime() - 30 * 60_000);
-    if (suhoorAt.getTime() > Date.now()) {
+    if (suhoorAt.getTime() > now.getTime() + 30_000) {
       notifications.push({
-        id: RAMADAN_IDS.suhoor,
+        id: notificationIdForDate(RAMADAN_IDS.suhoor, day.dateISO),
         title: "أثر — السحور",
         body: dailyPhrase(SUHOOR_PHRASES),
         channelId: audio.channelId,
@@ -677,15 +695,15 @@ function buildRamadanNotifications(
         largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
         iconColor: REMINDER_ICON_COLOR,
         schedule: { at: suhoorAt },
+        extra: { dateISO: day.dateISO },
       });
     }
   }
 
-  // Iftar = Maghrib time
-  const iftarAt = todayAtLocalTime(prayerTimings.Maghrib ?? "");
-  if (iftarAt) {
+  const iftarAt = dateAtLocalTime(day.dateISO, day.timings.Maghrib ?? "");
+  if (iftarAt && iftarAt.getTime() > now.getTime() + 30_000) {
     notifications.push({
-      id: RAMADAN_IDS.iftar,
+      id: notificationIdForDate(RAMADAN_IDS.iftar, day.dateISO),
       title: "أثر — الإفطار",
       body: dailyPhrase(IFTAR_PHRASES),
       channelId: audio.channelId,
@@ -694,6 +712,7 @@ function buildRamadanNotifications(
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
       schedule: { at: iftarAt },
+      extra: { dateISO: day.dateISO },
     });
   }
 
@@ -706,13 +725,14 @@ function notificationRefs(ids: readonly number[]) {
 
 /** Phase 10 — Build a daily hadith notification scheduled at Fajr time */
 function buildDailyHadithNotification(
-  prayerTimings: PrayerNotificationTimings,
+  day: PrayerNotificationDay,
   audio: NotificationAudioConfig,
+  now: Date,
 ): LocalNotification | null {
-  const fajrAt = nextAtLocalTime(prayerTimings.Fajr ?? "");
-  if (!fajrAt) return null;
+  const fajrAt = dateAtLocalTime(day.dateISO, day.timings.Fajr ?? "");
+  if (!fajrAt || fajrAt.getTime() <= now.getTime() + 30_000) return null;
   return {
-    id: DAILY_HADITH_ID,
+    id: notificationIdForDate(DAILY_HADITH_ID, day.dateISO),
     title: "أثر — حديث اليوم ﷺ",
     body: dailyPhrase(DAILY_HADITH_FAJR_PHRASES),
     channelId: audio.channelId,
@@ -720,7 +740,8 @@ function buildDailyHadithNotification(
     smallIcon: REMINDER_NOTIFICATION_ICON,
     largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
     iconColor: REMINDER_ICON_COLOR,
-    schedule: { at: fajrAt, repeats: true, every: "day" as const },
+    schedule: { at: fajrAt },
+    extra: { dateISO: day.dateISO },
   };
 }
 
@@ -870,6 +891,7 @@ export async function syncReminders(
   reminders: Reminders,
   prayerTimings?: PrayerNotificationTimings | null,
   completion?: ReminderCompletionInfo,
+  tomorrowPrayerTimings?: PrayerNotificationTimings | null,
 ) {
   if (!Capacitor.isNativePlatform()) return;
 
@@ -881,15 +903,15 @@ export async function syncReminders(
   }
 
   const reminderIds = Object.values(REMINDER_IDS);
-  const prayerIds = Object.values(PRAYER_NOTIFICATION_IDS);
-  const followUpIds = Object.values(PRAYER_FOLLOWUP_IDS);
-  const ramadanIds = Object.values(RAMADAN_IDS);
+  const prayerIds = notificationIdsForBothDateSlots(Object.values(PRAYER_NOTIFICATION_IDS));
+  const followUpIds = notificationIdsForBothDateSlots(Object.values(PRAYER_FOLLOWUP_IDS));
+  const ramadanIds = notificationIdsForBothDateSlots(Object.values(RAMADAN_IDS));
   const shouldRefreshPrayerNotifications = !reminders.prayerAlertsEnabled || !!prayerTimings;
 
   await LocalNotifications.cancel({
     notifications: notificationRefs([
       ...reminderIds,
-      DAILY_HADITH_ID,
+      ...notificationIdsForBothDateSlots([DAILY_HADITH_ID]),
       ...(shouldRefreshPrayerNotifications ? [...prayerIds, ...followUpIds, ...ramadanIds] : []),
     ]),
   });
@@ -915,23 +937,18 @@ export async function syncReminders(
 
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
-    notifications.push(...buildPrayerNotifications(
-      prayerTimings,
+    const todayISO = getLocalDateKey();
+    const scheduleDays: PrayerNotificationDay[] = [
+      { dateISO: todayISO, timings: prayerTimings },
+      ...(tomorrowPrayerTimings ? [{ dateISO: shiftDateKey(todayISO, 1), timings: tomorrowPrayerTimings }] : []),
+    ];
+    notifications.push(...buildPrayerNotificationsForDays(
+      scheduleDays,
       prayerNotificationAudio,
       { ...DEFAULT_PRAYER_ALERTS, ...reminders.prayerAlerts },
       quiet,
+      { includeDailyHadith: reminders.dailyHadithNotif },
     ));
-
-    // N4: Ramadan suhoor & iftar
-    if (isRamadan()) {
-      notifications.push(...buildRamadanNotifications(prayerTimings, prayerNotificationAudio));
-    }
-
-    // N5: Daily hadith at Fajr (Phase 10)
-    if (reminders.dailyHadithNotif) {
-      const n = buildDailyHadithNotification(prayerTimings, quiet);
-      if (n) notifications.push(n);
-    }
   }
 
   if (!notifications.length) return;

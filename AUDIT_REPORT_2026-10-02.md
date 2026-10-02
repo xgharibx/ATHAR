@@ -14,10 +14,11 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 
 ## What was examined and verified
 
-- Ran `npm run verify`: lint completed with **0 errors and 100 warnings**, all **818 tests in 94 files passed**, TypeScript build and Vite production/PWA build succeeded.
+- Ran `npm run verify`: lint completed with **0 errors and 100 warnings**, all **822 tests in 95 files passed**, TypeScript build and Vite production/PWA build succeeded.
 - Parsed the actual bundled Quran and page map: **114 surahs, 6,236 ayahs, and all 604 Mushaf pages** are represented by valid JSON and page references.
 - Loaded **52 valid app routes** plus one deliberate unknown route in a production preview at **390 × 844**. Routes rendered, the unknown route showed the not-found view, and targeted Home and Quran state transitions did not produce React hook-order errors. This was route and focused-interaction coverage, not a full usability pass over every control.
-- Rebuilt the Android debug APK after the Companion changes with `npx cap sync android` and Gradle. An earlier API 36.1 emulator test showed that sending an increment broadcast with a nonexistent widget ID did not create widget totals or preference state. No release-signed artifact was produced.
+- Rebuilt and launched the Android debug APK on the API 36.1 emulator without a runtime crash. An earlier emulator test showed that sending an increment broadcast with a nonexistent widget ID did not create widget totals or preference state. Prayer notification scheduling is covered by tests, but the default reminder setting is off, so pending alarms were not exercised end-to-end on the emulator. No release-signed artifact was produced.
+- Verified Aladhan's date-specific `timingsByCity` endpoint with a read-only Cairo request; the app now uses its date path for next-day timings and falls back to local calculation offline.
 - Issued only safe `HEAD`/`GET`/`OPTIONS` checks to 10 configured Supabase endpoints. They returned HTTP **402 `exceed_db_size_quota` / project restricted**. No production database, account, or function writes were made.
 - Audited the dependency tree with `npm audit`: **31 advisories overall** (1 critical, 17 high, 11 moderate, 2 low); the production dependency graph alone has **5** (1 high, 4 moderate). No automated dependency upgrades were applied.
 - Could not produce an iOS/Xcode build in this Windows workspace or verify App Store Connect / Play Console configuration. No physical iPhone test was performed.
@@ -30,6 +31,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 | Quran data and navigation | Removed the invalid leading byte from the shipped page map; corrected conditional hook ordering in Home and Quran. | Bundled data regression test; route/state browser checks |
 | Backup and restore | Include custom data packs, restore IndexedDB-backed reminders and Hadith state, and wait for persistence work to finish. | Backup persistence tests |
 | Prayer times | Bound network requests with a timeout and use newly acquired GPS coordinates for offline calculation if the API request fails. | Offline/GPS fallback tests |
+| Prayer notification horizon | Fetch next-day times for the same saved location, queue date-specific prayer/follow-up/Ramadan/Hadith notifications for today and tomorrow, and cancel the matching dated follow-up when logging a prayer. | Offline location fallback and date/ID scheduling tests; Android debug launch |
 | Auth and sync | Deliver native OAuth callbacks until JS is ready, validate the callback URL, share one callback listener, deduplicate code exchange, invalidate stale sync work after sign-out/account changes, and catch edits made during import. | Auth callback and sync lifecycle tests; Java compilation |
 | Companion spend guard | Require and verify a signed-in Supabase user, reserve an atomic 30/day and 5/rolling-minute account quota, cap request bodies in UTF-8 bytes while streaming, allow only explicit browser request headers, and bound upstream requests to 60 seconds. The branch includes a database migration; it is not deployed. | Eleven synthetic Edge Function security tests, including CORS preflight; migration still requires a live staging run |
 | Reminder notifications | Cancel only the app's custom reminder notification IDs; select the Android monochrome status icon. | Notification ownership tests; Android build |
@@ -69,9 +71,9 @@ Static review found no complete iOS URL-scheme callback path for the `app.athar:
 
 If Google or another third-party provider is used for primary account login, App Review Guideline 4.8 requires an equivalent login option meeting Apple's privacy criteria; Sign in with Apple is the usual fit. Account-creating apps also need an in-app account-deletion path that removes associated user data. Verify actual login providers, implement the compliant alternative and URL handling, audit every data/permission disclosure, add the app and required SDK privacy manifests, and exercise sign-in, sign-out, deletion, restore, links, notifications, and voice input on physical iOS hardware. Apple explains [login requirements](https://developer.apple.com/app-store/review/guidelines/uk/), [account deletion](https://developer.apple.com/support/offering-account-deletion-in-your-app/), and [privacy manifests](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files).
 
-### P1 — Schedule prayer reminders across day boundaries
+### P1 — Verify prayer reminder lifecycle on device
 
-The Android prayer notification scheduling path is based on today's schedule. If the app remains closed across midnight, the next day's prayer reminders can be missing or stale. Schedule a rolling horizon (at least today plus tomorrow), refresh after time-zone/date/location changes and reboot, respect Android exact-alarm and notification permissions, and test Doze, DST, manual clock changes, and disabled permissions on devices.
+The branch now queues today's and tomorrow's date-specific prayer alerts, follow-ups, Ramadan alerts, and daily Hadith using the selected location and method; it falls back to local calculation if the date-specific API request fails. The two-day horizon refreshes when app prayer data changes, but the app needs to reopen and refresh to extend the horizon beyond tomorrow. The source was built and launched on the API 36.1 emulator, while the default reminders are off, so actual pending alarms were not verified there. Test exact-alarm and notification permissions, Doze, DST, manual clock and time-zone changes, location changes, reboot restoration, and a multi-day closed-app interval on device.
 
 ### P1 — Correct privacy disclosures for location and network services
 
@@ -107,7 +109,7 @@ The Quran page map and selected bundled integrity checks are verified, but the a
 |---|---|---|
 | Supabase Auth / `athar_sync` | Sign-in, account-scoped cloud sync, leaderboard edge functions | Safe probes restricted by HTTP 402; no live schema/RLS mutation tests possible |
 | Supabase Companion function → MiniMax | AI answers and related tools | Paid upstream is reachable without sufficient durable authorization/quota; release blocker |
-| Aladhan | City/GPS prayer-time lookup | Client call reviewed; timeout and recent-GPS offline fallback fixed. Verify privacy wording and live provider behavior |
+| Aladhan | City/GPS prayer-time lookup | Client call reviewed; timeout, recent-GPS offline fallback, and date-specific next-day lookup added. Verify privacy wording and live provider behavior |
 | Quran Foundation | Optional hosted translations/content | Endpoint/auth/response assumptions need rework; keep credentials server-side |
 | EveryAyah | Recitation audio | Unified browser cache and honest partial-download messaging fixed; offline playback needs airplane-mode verification and source/rights review |
 | Overpass / mosque search | Nearby mosque lookup | Static integration inventory only; offline cache, provider reliability, and privacy behavior need dedicated checks |

@@ -1179,7 +1179,7 @@ export const useNoorStore = create<NoorState>()(
         // N2: Cancel the gentle follow-up when user marks the prayer as done
         if (done) {
           import("@/lib/reminders").then(({ cancelPrayerFollowUp }) => {
-            cancelPrayerFollowUp(prayer).catch(() => {});
+            cancelPrayerFollowUp(prayer, dateISO).catch(() => {});
           });
         }
       },

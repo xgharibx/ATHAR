@@ -4,6 +4,8 @@ import { CalculationMethod, Coordinates, Madhab, PrayerTimes as AdhanPrayerTimes
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { useNoorStore } from "@/store/noorStore";
 import { syncPrayerWidget } from "@/lib/prayerWidget";
+import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
+import { Capacitor } from "@capacitor/core";
 
 export const PRAYER_COORDS_KEY_EXPORT = "noor_prayer_coords_v1";
 
@@ -105,13 +107,21 @@ async function fetchPrayerTimesResponse(url: string): Promise<PrayerTimesRespons
   }
 }
 
-async function fetchPrayerTimes(city: string, country: string, method: number, school: number) {
-  const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`;
+function toAladhanDate(dateKey: string): string {
+  const date = parseDateKey(dateKey);
+  if (!date) throw new Error("invalid prayer date");
+  return `${two(date.getDate())}-${two(date.getMonth() + 1)}-${date.getFullYear()}`;
+}
+
+async function fetchPrayerTimes(city: string, country: string, method: number, school: number, dateKey?: string) {
+  const datePath = dateKey ? `/${toAladhanDate(dateKey)}` : "";
+  const url = `https://api.aladhan.com/v1/timingsByCity${datePath}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`;
   return fetchPrayerTimesResponse(url);
 }
 
-async function fetchPrayerTimesByCoords(latitude: number, longitude: number, method: number, school: number) {
-  const url = `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}&school=${school}`;
+async function fetchPrayerTimesByCoords(latitude: number, longitude: number, method: number, school: number, dateKey?: string) {
+  const datePath = dateKey ? `/${toAladhanDate(dateKey)}` : "";
+  const url = `https://api.aladhan.com/v1/timings${datePath}?latitude=${latitude}&longitude=${longitude}&method=${method}&school=${school}`;
   return fetchPrayerTimesResponse(url);
 }
 
@@ -233,6 +243,11 @@ export function usePrayerTimes() {
   const city = "Cairo";
   const country = "Egypt";
   const cityLocationKey = `city:${city}:${country}:${method}:${school}`;
+  const tomorrowKey = shiftDateKey(dayKey, 1);
+  const cachedCoordsForTomorrow = readCachedCoords();
+  const tomorrowLocationKey = cachedCoordsForTomorrow
+    ? `coords:${cachedCoordsForTomorrow.lat.toFixed(3)}:${cachedCoordsForTomorrow.lng.toFixed(3)}:${method}:${school}`
+    : cityLocationKey;
   const initialCachedData = React.useMemo(() => {
     const cachedCoords = readCachedCoords();
     if (cachedCoords) {
@@ -324,6 +339,39 @@ export function usePrayerTimes() {
     retry: 2,
   });
 
+  // Native alarms need tomorrow's location-specific times already queued in
+  // the OS, because the app may stay closed across midnight. Fetch only after
+  // today's location lookup has settled so this uses the same cached GPS source.
+  const tomorrowQuery = useQuery<PrayerTimesData>({
+    queryKey: ["prayer-times", "tomorrow-v1", tomorrowKey, method, school, tomorrowLocationKey],
+    enabled: Capacitor.isNativePlatform() && query.data !== undefined && !query.isPlaceholderData,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+    queryFn: async () => {
+      const locationKey = tomorrowLocationKey;
+      const cached = readCached(tomorrowKey, locationKey);
+      if (cached) return cached;
+
+      const coords = readCachedCoords();
+      const date = parseDateKey(tomorrowKey) ?? new Date(Date.now() + 24 * 60 * 60 * 1000);
+      try {
+        const fresh = coords
+          ? await fetchPrayerTimesByCoords(coords.lat, coords.lng, method, school, tomorrowKey)
+          : await fetchPrayerTimes(city, country, method, school, tomorrowKey);
+        writeCached(tomorrowKey, locationKey, fresh);
+        return { ...fresh, __sourceLabel: coords ? "الموقع الحالي" : "القاهرة" };
+      } catch {
+        const fallbackCoords = coords ?? { lat: 30.0444, lng: 31.2357 };
+        return {
+          ...computeLocalPrayerTimes(fallbackCoords.lat, fallbackCoords.lng, date, method, school),
+          __sourceLabel: coords ? "حساب محلي (بلا إنترنت)" : "حساب محلي — القاهرة (بلا إنترنت)",
+        };
+      }
+    },
+  });
+
   React.useEffect(() => {
     if (query.data?.data?.timings) {
       syncPrayerWidget(query.data.data.timings).catch(() => {});
@@ -354,5 +402,5 @@ export function usePrayerTimes() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dayKey, query.refetch]);
 
-  return query;
+  return { ...query, tomorrow: tomorrowQuery.data };
 }

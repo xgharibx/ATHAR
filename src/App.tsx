@@ -152,6 +152,28 @@ export default function App() {
     prayerTimes.data?.data?.timings?.Sunrise,
   ]);
 
+  const tomorrowNotificationPrayerTimings = React.useMemo(() => {
+    const timings = prayerTimes.tomorrow?.data?.timings;
+    if (!timings) return null;
+
+    return {
+      Fajr: timings.Fajr,
+      Sunrise: timings.Sunrise,
+      Dhuhr: timings.Dhuhr,
+      Asr: timings.Asr,
+      Maghrib: timings.Maghrib,
+      Isha: timings.Isha,
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    prayerTimes.tomorrow?.data?.timings?.Asr,
+    prayerTimes.tomorrow?.data?.timings?.Dhuhr,
+    prayerTimes.tomorrow?.data?.timings?.Fajr,
+    prayerTimes.tomorrow?.data?.timings?.Isha,
+    prayerTimes.tomorrow?.data?.timings?.Maghrib,
+    prayerTimes.tomorrow?.data?.timings?.Sunrise,
+  ]);
+
   // N6: Smart-reminder completion snapshot — lets reminders skip already-done azkar
   // and switch to a "finish what you started" nudge when partially complete.
   const reminderCompletion = React.useMemo(() => {
@@ -300,10 +322,11 @@ export default function App() {
   }, [ensureDailyResets, fajrTime]);
 
   React.useEffect(() => {
-    void syncReminders(reminders, notificationPrayerTimings, reminderCompletion);
+    void syncReminders(reminders, notificationPrayerTimings, reminderCompletion, tomorrowNotificationPrayerTimings);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     notificationPrayerTimings,
+    tomorrowNotificationPrayerTimings,
     reminders,
     reminderCompletion.morningDone,
     reminderCompletion.morningStarted,
