@@ -4,12 +4,14 @@
  * Powered by MiniMax M3 exclusively. The app has a single AI surface that every
  * user reaches the same way — no model picker, no BYOK, no provider toggles.
  *
- * Privacy:
+ * Data handling:
  *  - No user API keys are accepted or stored.
- *  - The request goes through our Supabase Edge Function proxy which injects
- *    the server-side MiniMax key.
- *  - Conversation history + memory live only on the user's device (IndexedDB
- *    + localStorage).
+ *  - Prompts go through our Supabase Edge Function proxy to MiniMax; the
+ *    request includes the conversation history plus generated progress,
+ *    profile, mood, memory, and relevant local-library context.
+ *  - Conversation history + memory are stored on the user's device (IndexedDB
+ *    + localStorage); storing them locally does not mean they stay local when
+ *    the user requests an AI reply.
  *
  * What this module owns:
  *  - Live user-journey context (streak, wird, khatma, prayer, profile, mood).
@@ -19,6 +21,7 @@
  *  - Post-stream verifier that flags unverifiable Quran/hadith claims.
  */
 import Anthropic from "@anthropic-ai/sdk";
+import { getSession } from "@/lib/authClient";
 
 import { useNoorStore } from "@/store/noorStore";
 import { DAILY_HADITH_FAJR_PHRASES } from "@/lib/reminders";
@@ -49,17 +52,14 @@ const PROXY_URL: string =
   ((import.meta.env.VITE_COMPANION_PROXY_URL as string | undefined) ?? "").trim()
   || DEFAULT_PROXY_URL;
 
-/* The supabase gateway uses the anonymous JWT to mark public/anon-level
-   requests against the Edge Function. verify_jwt is set to false on the
-   function so this is purely informational — sending it is still polite
-   because some gateway flavours return 401 without it. We ship a sensible
-   default so even the "I forgot to set the env" deployment doesn't lose
-   AI outright. The actual upstream call still requires MINIMAX_API_KEY
-   which lives only in Supabase secrets. */
+/* The public project key identifies this Supabase project at the gateway;
+   authenticated AI requests also carry the user's session JWT in Authorization.
+   The fallback must match the project used by the proxy and account config. */
 const DEFAULT_SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qc3R1ZGhtY3lwb3Fmbnd1Z2JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNzc1NTMsImV4cCI6MjA4NjY1MzU1M30.s6f0TKx4TVjtqUw7ezCuYJ0WATgMF_bahJ1Jgh4vyEs";
 const SUPABASE_ANON_KEY: string =
-  ((import.meta.env.VITE_LEADERBOARD_ANON_KEY as string | undefined) ?? "").trim()
+  ((import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ??
+    (import.meta.env.VITE_LEADERBOARD_ANON_KEY as string | undefined) ?? "").trim()
   || DEFAULT_SUPABASE_ANON_KEY;
 
 /* Where the resolved values actually came from — surfaces in diagnostics. */
@@ -74,6 +74,15 @@ export const COMPANION_PROXY_URL = PROXY_URL;
  *  key path, so the only readiness check is whether the proxy exists. */
 export function isCompanionReady(): boolean {
   return !!PROXY_URL;
+}
+
+/** Check sign-in before the composer clears or stores a guest's attempted message. */
+export async function hasCompanionSession(): Promise<boolean> {
+  try {
+    return Boolean((await getSession())?.access_token);
+  } catch {
+    return false;
+  }
 }
 
 export type CompanionReadiness = {
@@ -842,7 +851,7 @@ export function describeError(err: unknown): CompanionError {
   if (err instanceof Anthropic.AuthenticationError) {
     return {
       kind: "auth",
-      message: "تعذَّر التصريح لك بالذكاء. أعد المحاولة لاحقًا.",
+      message: "تسجيل الدخول مطلوب لاستخدام رفيق أثر. سجّل الدخول من الإعدادات ثم أعد المحاولة.",
       detail: `HTTP ${err.status ?? "?"} — ${err.message ?? ""}`,
     };
   }
@@ -881,7 +890,7 @@ export function describeError(err: unknown): CompanionError {
     const detail = duck.status !== null ? `HTTP ${duck.status}` : (duck.message ?? "unknown");
     switch (duck.kind) {
       case "auth":
-        return { kind: "auth", message: "تعذَّر التصريح لك بالذكاء. أعد المحاولة لاحقًا.", detail };
+        return { kind: "auth", message: "تسجيل الدخول مطلوب لاستخدام رفيق أثر. سجّل الدخول من الإعدادات ثم أعد المحاولة.", detail };
       case "rate":
         return { kind: "rate", message: "كثرة الطلبات الآن — انتظر قليلًا ثم أعد المحاولة.", detail: duck.message ? `rate-limited · ${duck.message}` : detail };
       case "offline":
@@ -911,8 +920,15 @@ export function describeError(err: unknown): CompanionError {
   };
 }
 
-function createClient(): Anthropic {
+async function createClient(): Promise<Anthropic> {
   if (!PROXY_URL) throw new Error("no-proxy-configured");
+  const session = await getSession();
+  if (!session?.access_token) {
+    const error = new Error("sign-in-required") as Error & { status: number };
+    error.name = "AuthenticationError";
+    error.status = 401;
+    throw error;
+  }
   const headers: Record<string, string> = {
     /* `anthropic-dangerous-direct-browser-access` lets the SDK run in a
        Capacitor WebView without throwing a runtime warning. */
@@ -923,8 +939,8 @@ function createClient(): Anthropic {
   };
   if (SUPABASE_ANON_KEY) {
     headers.apikey = SUPABASE_ANON_KEY;
-    headers.Authorization = `Bearer ${SUPABASE_ANON_KEY}`;
   }
+  headers.Authorization = `Bearer ${session.access_token}`;
   return new Anthropic({
     apiKey: "proxy",
     baseURL: PROXY_URL,
@@ -971,27 +987,27 @@ export async function streamCompanionReply(
   cb: StreamCallbacks,
   abortSignal?: AbortSignal,
 ): Promise<void> {
-  const client = createClient();
-  warmQuranVerses(); // populate the verse map early so verifyAnswer() has it by the time streaming finishes
-  const ctx = buildCompanionContext();
-  const mood = detectMood(history[history.length - 1]?.content ?? "");
-  const profile = loadProfile();
-  const lastUser = [...history].reverse().find((m) => m.role === "user");
-  if (lastUser) recordMemory(lastUser.content);
-  const retrieval = buildRetrievalBlock(lastUser?.content ?? "");
-
-  const dynamicContext = [
-    buildContextBlock(ctx),
-    mood ? `حالة المستخدم الآن: ${mood} (اضبط نبرتك وفقًا لها — لا تبالغ).` : "",
-    buildCompanionProfileContext(profile),
-    buildMemoryBlock(),
-    buildRouteLabelsBlock(),
-    retrieval,
-  ].filter(Boolean).join("\n\n");
-
   let onAbort: (() => void) | null = null;
 
   try {
+    const client = await createClient();
+    warmQuranVerses(); // populate the verse map early so verifyAnswer() has it by the time streaming finishes
+    const ctx = buildCompanionContext();
+    const mood = detectMood(history[history.length - 1]?.content ?? "");
+    const profile = loadProfile();
+    const lastUser = [...history].reverse().find((m) => m.role === "user");
+    if (lastUser) recordMemory(lastUser.content);
+    const retrieval = buildRetrievalBlock(lastUser?.content ?? "");
+
+    const dynamicContext = [
+      buildContextBlock(ctx),
+      mood ? `حالة المستخدم الآن: ${mood} (اضبط نبرتك وفقًا لها — لا تبالغ).` : "",
+      buildCompanionProfileContext(profile),
+      buildMemoryBlock(),
+      buildRouteLabelsBlock(),
+      retrieval,
+    ].filter(Boolean).join("\n\n");
+
     const stream = client.messages.stream({
       model: MODEL,
       max_tokens: 3072,

@@ -12,6 +12,7 @@
  */
 import * as React from "react";
 import { createPortal } from "react-dom";
+import { toast } from "react-hot-toast";
 import {
   Sparkles, Send, X as XIcon, AlertCircle, Loader2, History, Plus, Mic, MicOff,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import {
   ROUTE_LABELS,
+  hasCompanionSession,
   isCompanionReady,
   streamCompanionReply,
   type CompanionMessage,
@@ -340,6 +342,10 @@ export function CompanionModal(props: {
     const trimmed = text.trim();
     if (!trimmed || busyRef.current) return;
     if (!isCompanionReady()) return;
+    if (!(await hasCompanionSession())) {
+      toast.error("تسجيل الدخول مطلوب لاستخدام رفيق أثر. سجّل الدخول من الإعدادات ثم أعد المحاولة.");
+      return;
+    }
     busyRef.current = true;
     setPartialStopped(false);
     const controller = new AbortController();
@@ -678,7 +684,7 @@ export function CompanionModal(props: {
             )}
           </div>
           <p className="mt-1.5 text-center text-[10px] text-emerald-200/50">
-            للدردشة الكاملة: <Link to="/companion" onClick={props.onClose} className="font-semibold text-emerald-200 underline-offset-2 hover:underline">/companion</Link>
+            تُحفَظ المحادثات محليًا، وتُرسل مع سياق التقدّم إلى MiniMax عند الرد. للدردشة الكاملة: <Link to="/companion" onClick={props.onClose} className="font-semibold text-emerald-200 underline-offset-2 hover:underline">/companion</Link>
           </p>
         </div>
       </div>

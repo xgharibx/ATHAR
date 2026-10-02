@@ -1,27 +1,20 @@
 # Athar accounts — setup checklist
 
-> ## ✅ Setup is complete — all six steps verified against the live project
+> ## Current verification status — 2026-10-02
 >
-> - [x] **1. Keys** — `VITE_SUPABASE_URL` + publishable key in `.env.local`
-> - [x] **2. Tables** — `athar_sync` + `athar_profiles` exist with RLS.
->       Verified externally: anonymous SELECT returns `[]`, anonymous INSERT is
->       refused with `42501`, so a user can only ever reach their own rows.
-> - [x] **3. Google** — provider enabled, OAuth client resolving. `/auth/v1/authorize`
->       302s to `accounts.google.com` with `redirect_uri=…/auth/v1/callback`.
-> - [x] **4. Redirect URLs** — `app.athar://auth` **is** allow-listed. Verified by
->       probe: an unlisted URL is rewritten to the Site URL, `app.athar://auth`
->       is preserved. (Note the authorize endpoint echoes *any* `redirect_to`;
->       the allow-list is only enforced at `/verify` and `/callback`, so that is
->       the endpoint to test against.)
-> - [x] **5. Email provider** — enabled; magic-link sign-in works
-> - [x] **6. delete-account function** — deployed
+> Older setup checks recorded below describe a previous live verification and
+> must not be treated as current. This audit made only safe `HEAD`/`GET`/`OPTIONS`
+> requests to 10 configured Supabase endpoints; all returned HTTP 402
+> `exceed_db_size_quota` / project restricted. No database writes, account
+> creation, OAuth exchange, or function deployment was attempted.
 >
-> **The only thing left before production web:** add `VITE_SUPABASE_URL` and
-> `VITE_SUPABASE_ANON_KEY` to your hosting provider's environment variables.
-> Without them the account card stays hidden on athark.org (by design — see
-> `isAuthConfigured()`), even though it works locally and in the Android build.
+> **Before relying on cloud accounts in production:** restore the project, then
+> recheck Auth providers and redirects, `athar_sync`/`athar_profiles` RLS,
+> account deletion, sync, and each deployed Edge Function against staging and
+> production. Treat their live status as unverified until those checks pass.
 >
-> Project ref: **`ojstudhmcypoqfnwugbf`**
+> Historical project ref: **`ojstudhmcypoqfnwugbf`**. Verify the active project
+> before changing its settings.
 
 The steps below are kept as a reference for re-doing any of this, or for setting
 up a second environment.
@@ -51,7 +44,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOi…
 ## 2. Supabase: create the tables
 
 Dashboard → **SQL Editor** → paste the contents of
-`supabase/migrations/0001_accounts_sync.sql` → **Run**.
+`supabase/migrations/20260725000001_accounts_sync.sql` → **Run**.
 
 This creates `athar_sync` and `athar_profiles` with row-level security so a
 signed-in user can only ever read and write **their own** rows.
@@ -127,14 +120,41 @@ put that key in `.env.local` or anywhere client-side.
 
 ---
 
-## 7. Play Console / App Store disclosure
+## 7. Protect the paid Companion endpoint
+
+The Companion now requires a signed-in account for AI replies. Quran, adhkar,
+and locally stored data remain available to guests. Its Edge Function validates
+the Supabase session and reserves a maximum of 30 requests per UTC day and 5 per
+rolling minute in a service-only table; it does not store prompt or response
+content in that table.
+
+Before deploying:
+
+1. Run `supabase/migrations/20261002110000_companion_usage_quota.sql` in the
+   project's SQL editor, then verify `companion_usage_counters` has RLS enabled
+   and no `anon` or `authenticated` table grants.
+2. Set `MINIMAX_API_KEY` as an Edge Function secret only. Never use a `VITE_`
+   variable for the provider key.
+3. Deploy with `supabase functions deploy companion`.
+4. Test missing/invalid sessions, concurrent quota reservations, per-minute
+   and per-day limits, and oversized request rejection against staging.
+
+The current branch has not been deployed. The audit's safe Supabase checks
+returned HTTP 402, so restore the project before running this checklist.
+
+## 8. Play Console / App Store disclosure
 
 Once accounts ship you are collecting personal data, so:
 
-- **Play Console → App content → Data safety**: declare email address +
-  user-generated content, and link the account-deletion path.
-- Update the privacy policy to say what's stored (adhkar progress, favorites,
-  bookmarks, reminders, settings) and how to delete it.
+- **Play Console → App content → Data safety**: declare account identifiers,
+  user content, synced progress, and each network data flow; link the account
+  deletion path.
+- Publish a user-facing privacy policy before store release. Companion sends
+  conversation history and selected progress/profile context through Supabase
+  to MiniMax. The current MiniMax API terms permit inputs and outputs to be
+  used to improve services; confirm the terms and retention applicable to the
+  project account before enabling this for users. Location coordinates are also
+  sent to Aladhan when online prayer-time calculation is used.
 
 > **iOS note:** offering Google/email sign-in means the App Store build will
 > need **Sign in with Apple** (App Store rule 4.8) before it can be approved.

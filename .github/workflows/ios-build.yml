@@ -34,12 +34,19 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Check account-backed Companion config
+        run: |
+          if [ -z "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
+            echo "::warning title=Companion sign-in unavailable::VITE_SUPABASE_ANON_KEY is missing; signed-in AI replies and cloud accounts will not work in this build."
+          fi
+
       - name: Build web app
         env:
           VITE_LEADERBOARD_ENDPOINT: ${{ secrets.VITE_LEADERBOARD_ENDPOINT }}
           VITE_LEADERBOARD_ANON_KEY: ${{ secrets.VITE_LEADERBOARD_ANON_KEY }}
-          VITE_COMPANION_API_KEY: ${{ secrets.VITE_COMPANION_API_KEY }}
           VITE_COMPANION_PROXY_URL: ${{ secrets.VITE_COMPANION_PROXY_URL }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://ojstudhmcypoqfnwugbf.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_ICON_REV: ${{ github.sha }}
           VITE_RUNTIME_VERSION: ${{ github.sha }}
         run: npm run build

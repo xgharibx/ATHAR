@@ -65,10 +65,10 @@ describe("Companion AI — describeError maps each error kind to Arabic", () => 
     expectDetailContains?: string;
   }> = [
     {
-      label: "401 → auth",
+      label: "401 → auth with a Settings sign-in instruction",
       err: duck("AuthenticationError", 401, "missing key"),
       expectKind: "auth",
-      expectMsgMatch: /[ا-ي]/,
+      expectMsgMatch: /تسجيل الدخول.*الإعدادات/,
       expectDetailContains: "401",
     },
     {

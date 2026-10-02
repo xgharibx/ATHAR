@@ -32,6 +32,7 @@ import {
   buildCompanionContext,
   buildWeeklyReflectionPrompt,
   clearMemory,
+  hasCompanionSession,
   isCompanionReady,
   streamCompanionReply,
   type CompanionMessage,
@@ -416,6 +417,10 @@ export function CompanionPage() {
       toast("جاري تهيئة الرفيق…", { icon: "✨" });
       return;
     }
+    if (!(await hasCompanionSession())) {
+      toast.error("تسجيل الدخول مطلوب لاستخدام رفيق أثر. سجّل الدخول من الإعدادات ثم أعد المحاولة.");
+      return;
+    }
 
     busyRef.current = true;
     const controller = new AbortController();
@@ -662,7 +667,7 @@ export function CompanionPage() {
               <CompanionStatusChip state={aiHealth} onRefresh={refreshAiHealth} />
             </div>
             <p className="text-xs text-[var(--muted-2)]">
-              رفيقك في الطريق إلى الله — يعرف رحلتك ويمشي معك خطوة خطوة
+              تُحفَظ المحادثات محليًا، وتُرسل مع سياق تقدّمك إلى MiniMax عند الرد.
             </p>
           </div>
         </div>
@@ -1097,7 +1102,7 @@ function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<Compa
     <div className="mt-6 rounded-3xl border border-accent-35 bg-accent-8 p-5 space-y-4">
       <div>
         <h3 className="text-sm font-bold">عرّفني على نفسك بجملتين</h3>
-        <p className="mt-1 text-xs text-[var(--muted)]">سيكون ردّي مُلائمًا أكثر إذا عرفتك قليلًا — لا أطلب اسمك الكامل ولا أي شيء حساس.</p>
+        <p className="mt-1 text-xs text-[var(--muted)]">ملفك اختياري ومحلي؛ تُرسل قيمه إلى MiniMax عند استخدام الرفيق. لا نطلب موقعك أو اسمك الكامل.</p>
       </div>
 
       <div>

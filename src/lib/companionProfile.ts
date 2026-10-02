@@ -1,9 +1,10 @@
 /**
- * Companion user profile — lightweight, on-device only.
+ * Companion user profile — lightweight and stored on device.
  *
  * Stored in localStorage. Drives prompt-level personalization and the warm
- * greeting. We never ask for anything sensitive (no name, no location) — the
- * "level" + "goals" framing lets the system adapt without ever feeling profiled.
+ * greeting. A short greeting name is optional and no location is requested;
+ * profile values are included in cloud prompts when the user asks Companion
+ * for a reply, so local storage is not a promise that the values stay local.
  */
 
 export type CompanionProfile = {

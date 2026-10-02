@@ -1,1 +1,4 @@
+# The handler validates the session with Supabase Auth itself. Keep the gateway
+# check disabled for asymmetric/new signing-key compatibility; never remove the
+# in-handler getUser + durable quota checks.
 verify_jwt = false

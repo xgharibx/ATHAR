@@ -7,6 +7,7 @@
  * the upstream key server-side, solve browser CORS for the upstream (which
  * sends none), and stream SSE straight through.
  */
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 // The app's real origins: the web PWA (custom domain, via CNAME) and the two
 // native WebView origins Capacitor uses with this project's config (no
@@ -39,17 +40,19 @@ const MINIMAX_UPSTREAM = "https://api.minimax.io/anthropic/v1/messages";
 
 const MAX_TOKENS_CAP = 4096;
 const MAX_BODY_BYTES = 256 * 1024;
+const UPSTREAM_TIMEOUT_MS = 60_000;
 const WINDOW_MS = 60_000;
 const MAX_REQ_PER_WINDOW = 24;
+const MAX_TRACKED_CLIENTS = 4096;
 const limiter = new Map<string, { count: number; startAt: number }>();
 
 function clientKey(req: Request): string {
   return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     req.headers.get("cf-connecting-ip")?.trim() ||
     req.headers.get("x-real-ip")?.trim() ||
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown"
-  );
+  ).slice(0, 64);
 }
 
 function rateLimit(req: Request): boolean {
@@ -57,6 +60,15 @@ function rateLimit(req: Request): boolean {
   const now = Date.now();
   const prev = limiter.get(key);
   if (!prev || now - prev.startAt > WINDOW_MS) {
+    if (!prev && limiter.size >= MAX_TRACKED_CLIENTS) {
+      for (const [trackedKey, tracked] of limiter) {
+        if (now - tracked.startAt > WINDOW_MS) limiter.delete(trackedKey);
+      }
+      if (limiter.size >= MAX_TRACKED_CLIENTS) {
+        const oldestKey = limiter.keys().next().value;
+        if (oldestKey !== undefined) limiter.delete(oldestKey);
+      }
+    }
     limiter.set(key, { count: 1, startAt: now });
     return true;
   }
@@ -70,6 +82,48 @@ function jsonError(req: Request, message: string, status: number): Response {
     JSON.stringify({ type: "error", error: { type: "invalid_request_error", message } }),
     { status, headers: { "Content-Type": "application/json", ...corsHeaders(req) } },
   );
+}
+
+type BoundedBody = { ok: true; text: string } | { ok: false; reason: "too-large" | "invalid-utf8" };
+
+async function readBoundedBody(req: Request, maxBytes: number): Promise<BoundedBody> {
+  const declaredLength = Number(req.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) return { ok: false, reason: "too-large" };
+
+  if (!req.body) return { ok: true, text: "" };
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  let reading = true;
+  try {
+    while (reading) {
+      const { done, value } = await reader.read();
+      if (done) {
+        reading = false;
+        continue;
+      }
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel().catch(() => undefined);
+        return { ok: false, reason: "too-large" };
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return { ok: true, text: new TextDecoder("utf-8", { fatal: true }).decode(bytes) };
+  } catch {
+    return { ok: false, reason: "invalid-utf8" };
+  }
 }
 
 const denoRuntime = (globalThis as { Deno?: { serve: (h: (req: Request) => Promise<Response> | Response) => void; env: { get(k: string): string | undefined } } }).Deno;
@@ -86,8 +140,18 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
 
   if (!rateLimit(req)) return jsonError(req, "rate-limited — try again in a minute", 429);
 
-  const raw = await req.text();
-  if (raw.length > MAX_BODY_BYTES) return jsonError(req, "request too large", 413);
+  let boundedBody: BoundedBody;
+  try {
+    boundedBody = await readBoundedBody(req, MAX_BODY_BYTES);
+  } catch {
+    return jsonError(req, "could not read request body", 400);
+  }
+  if (!boundedBody.ok) {
+    return boundedBody.reason === "too-large"
+      ? jsonError(req, "request too large", 413)
+      : jsonError(req, "invalid UTF-8", 400);
+  }
+  const raw = boundedBody.text;
 
   let body: { model?: string; max_tokens?: number; stream?: boolean; system?: unknown; messages?: unknown; tools?: unknown };
   try {
@@ -133,15 +197,51 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   const apiKey = denoRuntime.env.get("MINIMAX_API_KEY");
   if (!apiKey) return jsonError(req, "no server key configured", 503);
 
-  const upstream = await fetch(MINIMAX_UPSTREAM, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": req.headers.get("anthropic-version") ?? "2023-06-01",
-    },
-    body: JSON.stringify(body),
+  const authorization = req.headers.get("authorization") ?? "";
+  const bearer = /^Bearer\s+(\S+)$/i.exec(authorization);
+  if (!bearer) return jsonError(req, "sign-in-required", 401);
+
+  const supabaseUrl = denoRuntime.env.get("SUPABASE_URL");
+  const serviceRoleKey = denoRuntime.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) return jsonError(req, "authorization service unavailable", 503);
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
   });
+  let userId: string;
+  try {
+    const { data, error } = await supabase.auth.getUser(bearer[1]);
+    if (error || !data.user?.id) return jsonError(req, "sign-in-required", 401);
+    userId = data.user.id;
+  } catch {
+    return jsonError(req, "authorization service unavailable", 503);
+  }
+
+  let reservation: { data: unknown; error: unknown };
+  try {
+    reservation = await supabase.rpc("reserve_companion_request", { p_user_id: userId });
+  } catch {
+    return jsonError(req, "usage quota unavailable", 503);
+  }
+  if (reservation.error) return jsonError(req, "usage quota unavailable", 503);
+  if (reservation.data !== true) return jsonError(req, "usage limit reached — try again later", 429);
+
+  const upstreamSignal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
+  let upstream: Response;
+  try {
+    upstream = await fetch(MINIMAX_UPSTREAM, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": req.headers.get("anthropic-version") ?? "2023-06-01",
+      },
+      body: JSON.stringify(body),
+      signal: upstreamSignal,
+    });
+  } catch {
+    return jsonError(req, upstreamSignal.aborted ? "model request timed out" : "model service unavailable", upstreamSignal.aborted ? 504 : 502);
+  }
 
   const headers = new Headers(corsHeaders(req));
   const contentType = upstream.headers.get("content-type");
