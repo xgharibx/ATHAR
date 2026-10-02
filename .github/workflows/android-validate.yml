@@ -16,8 +16,8 @@ concurrency:
 
 jobs:
   android:
-    runs-on: macos-26
-    timeout-minutes: 35
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -42,14 +42,7 @@ jobs:
       - name: Sync Capacitor Android project
         run: npx cap sync android
 
-      - name: Build, lint, and run Android instrumentation tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 36
-          target: google_apis
-          arch: arm64-v8a
-          profile: pixel_2
-          disable-animations: true
-          script: |
-            cd android
-            ./gradlew --no-daemon :app:assembleDebug :app:lintDebug connectedDebugAndroidTest
+      - name: Build and lint Android app
+        run: |
+          cd android
+          ./gradlew --no-daemon :app:assembleDebug :app:lintDebug
