@@ -971,35 +971,14 @@ export async function registerNotificationDeepLinkListener(
       // N9: "تمت الصلاة" action button — log the prayer directly from the
       // notification shade without opening/navigating the app.
       if (action.actionId === MARK_PRAYED_ACTION_ID) {
-        void applyNotificationAction({ actionId: action.actionId, extra });
+        void applyNotificationAction({ actionId: action.actionId, extra, notification: action.notification });
         return;
       }
 
       // N10: "ذكرني بعد ساعة" — reschedule a one-off copy under this reminder's
       // dedicated snooze ID, without touching the recurring daily schedule.
       if (action.actionId === SNOOZE_ACTION_ID) {
-        const reminderKey = extra?.reminderKey;
-        if (typeof reminderKey === "string" && reminderKey in REMINDER_SNOOZE_IDS) {
-          const snoozeId = REMINDER_SNOOZE_IDS[reminderKey as ReminderKey];
-          const at = new Date(Date.now() + SNOOZE_MINUTES * 60_000);
-          import("@capacitor/local-notifications").then(({ LocalNotifications }) => {
-            LocalNotifications.schedule({
-              notifications: [{
-                id: snoozeId,
-                title: action.notification.title ?? "أثر",
-                body: action.notification.body ?? "",
-                channelId: action.notification.channelId,
-                sound: action.notification.sound,
-                smallIcon: action.notification.smallIcon,
-                largeIcon: action.notification.largeIcon,
-                iconColor: action.notification.iconColor,
-                actionTypeId: REMINDER_ACTION_TYPE_ID,
-                extra,
-                schedule: { at },
-              }],
-            }).catch(() => {});
-          });
-        }
+        void applyNotificationAction({ actionId: action.actionId, extra, notification: action.notification });
         return;
       }
 
@@ -1008,33 +987,9 @@ export async function registerNotificationDeepLinkListener(
       // These ids were previously unhandled entirely, so tapping "snooze" or
       // "done" on an AI-created reminder just opened the app and did nothing.
       if (action.actionId === "snooze" || action.actionId === "done") {
-        const reminderId = extra?.reminderId;
-        const title = action.notification.title ?? "أثر";
-        const body = action.notification.body ?? "";
-        if (action.actionId === "snooze" && typeof reminderId === "string") {
-          // Re-arm one extra firing an hour out. A fresh scheduleId keeps this
-          // separate from the recurring series, so the daily schedule is
-          // untouched (same guarantee the built-in snooze above relies on).
-          const at = new Date(Date.now() + SNOOZE_MINUTES * 60_000);
-          void import("@/lib/customReminderNotifications").then(
-            ({ scheduleCustomNotification }) =>
-              scheduleCustomNotification(
-                {
-                  id: reminderId,
-                  title,
-                  description: body,
-                  deeplink: typeof extra?.route === "string" ? { route: extra.route as string } : undefined,
-                } as unknown as Parameters<typeof scheduleCustomNotification>[0],
-                at,
-                body,
-              ).catch(() => {}),
-          );
-        }
-        if (action.actionId === "done") {
-          // Actually record it. Previously this returned without writing, so
-          // "تم" was decoration — it dismissed the shade and nothing else.
-          void applyNotificationAction({ actionId: "done", extra });
-        }
+        // Snooze and completion share the same handler with buffered cold-start
+        // actions, so neither path can silently lose its side effect.
+        void applyNotificationAction({ actionId: action.actionId, extra, notification: action.notification });
         return;
       }
 
@@ -1055,15 +1010,17 @@ export async function registerNotificationDeepLinkListener(
     // Apply BEFORE navigating: this is the cold-start path, and it used to
     // read only the route — the whole reason tapping "اتممت الصلاة" on a
     // closed app recorded nothing.
-    void applyNotificationAction(pending);
-    if (pending.route && pending.route.startsWith("/")) navigate(pending.route);
+    await applyNotificationAction(pending);
+    const actionHandledWithoutNavigation = [MARK_PRAYED_ACTION_ID, SNOOZE_ACTION_ID, "snooze", "done"]
+      .includes(pending.actionId ?? "");
+    if (!actionHandledWithoutNavigation && pending.route && pending.route.startsWith("/")) navigate(pending.route);
   }
 
   return () => { handle.remove(); };
 }
 
 /**
- * Record what a notification action actually claims happened.
+ * Apply the side effect requested by a notification action.
  *
  * This is the difference between the buttons looking right and them working.
  * Both live taps and cold-start taps funnel through here, because a prayer
@@ -1078,6 +1035,63 @@ export async function registerNotificationDeepLinkListener(
 export async function applyNotificationAction(pending: PendingAction): Promise<void> {
   const { actionId, extra, route } = pending;
   if (!actionId) return;
+
+  if (actionId === SNOOZE_ACTION_ID) {
+    const reminderKey = extra?.reminderKey;
+    if (
+      typeof reminderKey !== "string" ||
+      !Object.prototype.hasOwnProperty.call(REMINDER_SNOOZE_IDS, reminderKey)
+    ) return;
+
+    const notification = pending.notification;
+    const extraText = (key: "title" | "body") => typeof extra?.[key] === "string" ? extra[key] as string : undefined;
+    try {
+      const { LocalNotifications } = await import("@capacitor/local-notifications");
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: REMINDER_SNOOZE_IDS[reminderKey as ReminderKey],
+          title: notification?.title ?? extraText("title") ?? "أثر",
+          body: notification?.body ?? extraText("body") ?? "",
+          channelId: notification?.channelId,
+          sound: notification?.sound,
+          smallIcon: notification?.smallIcon,
+          largeIcon: notification?.largeIcon,
+          iconColor: notification?.iconColor,
+          actionTypeId: REMINDER_ACTION_TYPE_ID,
+          extra,
+          schedule: { at: new Date(Date.now() + SNOOZE_MINUTES * 60_000) },
+        }],
+      });
+    } catch {
+      // Notification scheduling is best-effort on devices without permission.
+    }
+    return;
+  }
+
+  if (actionId === "snooze") {
+    const reminderId = extra?.reminderId;
+    if (typeof reminderId !== "string") return;
+    const title = pending.notification?.title ?? (typeof extra?.title === "string" ? extra.title : "أثر");
+    const body = pending.notification?.body ?? (typeof extra?.body === "string" ? extra.body : "");
+    const reminder = {
+      id: reminderId,
+      category: "custom",
+      title,
+      description: body,
+      deeplink: typeof extra?.route === "string" ? { route: extra.route } : undefined,
+    };
+    try {
+      const { scheduleCustomNotification } = await import("@/lib/customReminderNotifications");
+      await scheduleCustomNotification(
+        reminder as unknown as Parameters<typeof scheduleCustomNotification>[0],
+        new Date(Date.now() + SNOOZE_MINUTES * 60_000),
+        body,
+      );
+    } catch {
+      // Notification scheduling is best-effort on devices without permission.
+    }
+    return;
+  }
 
   const { useNoorStore } = await import("@/store/noorStore");
 
@@ -1106,7 +1120,12 @@ export async function applyNotificationAction(pending: PendingAction): Promise<v
  * Buffer for a notification action that arrives before the React listener is
  * mounted. Set by the early bootstrap in main.tsx, drained above.
  */
-type PendingAction = { actionId?: string; route?: string; extra?: Record<string, unknown> };
+type PendingAction = {
+  actionId?: string;
+  route?: string;
+  extra?: Record<string, unknown>;
+  notification?: Partial<LocalNotification>;
+};
 let pendingNotificationAction: PendingAction | null = null;
 
 export function setPendingNotificationAction(a: PendingAction): void {

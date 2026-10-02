@@ -223,10 +223,9 @@ void (async () => {
     await LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
       const extra = action.notification.extra as Record<string, unknown> | undefined;
       const route = typeof extra?.route === "string" ? (extra.route as string) : undefined;
-      // Carry the whole `extra` through, not just the route: the prayer log
-      // needs prayerName + dateISO, and without them a cold-start tap on
-      // "اتممت الصلاة" had nothing to write even once the actionId was honoured.
-      setPendingNotificationAction({ actionId: action.actionId, route, extra });
+      // Keep the action extras and original notification so cold-start prayer
+      // logging and snooze scheduling have the same data as the warm listener.
+      setPendingNotificationAction({ actionId: action.actionId, route, extra, notification: action.notification });
     });
   } catch {
     // Non-fatal: the in-app listener still covers warm taps.

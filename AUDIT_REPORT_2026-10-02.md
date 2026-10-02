@@ -14,7 +14,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 
 ## What was examined and verified
 
-- Ran `npm run verify` after the current changes: lint completed with **0 errors and 100 warnings**, all **876 tests in 109 files passed**, and the TypeScript plus Vite production/PWA build succeeded. Android web assets were synced and `assembleDebug lintDebug` passed locally. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
+- Ran `npm run verify` after the current changes: lint completed with **0 errors and 100 warnings**, all **878 tests in 110 files passed**, and the TypeScript plus Vite production/PWA build succeeded. Android web assets were synced and `assembleDebug lintDebug` passed locally. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
 - Parsed the actual bundled Quran and page map: **114 surahs, 6,236 ayahs, and all 604 Mushaf pages** are represented by valid JSON and page references.
 - Loaded **52 valid app routes** plus one deliberate unknown route in a production preview at **390 × 844**. Routes rendered, the unknown route showed the not-found view, and targeted Home and Quran state transitions did not produce React hook-order errors. This was route and focused-interaction coverage, not a full usability pass over every control.
 - Rechecked the production preview with Playwright CLI at **390 × 844**: onboarding rendered, Skip exposed Home, and Settings navigation loaded the expected page without a framework overlay. A fresh browser profile kept geolocation permission at `prompt` through startup; tapping the onboarding location action granted it, saved coordinates, and advanced onboarding. Tapping the Prayer Times opt-in button updated the saved location and its label. A desktop-to-mobile resize reproduced 132 Three.js buffer errors before the starfield fix; the same transition emitted zero buffer errors after the rebuild. The browser console still shows CORS/HTTP 402 failures from the hosted Supabase leaderboard endpoint, so live leaderboard behavior remains blocked by the project restriction. Screenshots were captured outside the repository.
@@ -128,7 +128,7 @@ The branch now queues today's and tomorrow's date-specific prayer alerts, follow
 
 Add deterministic coverage for the in-flight cancellation race and DST boundaries, then reconcile schedules on foreground/resume and relevant time changes. The API 36.1 emulator run now verifies that denying location leaves the app usable with its Cairo fallback, and denying `POST_NOTIFICATIONS` leaves reminders off without a crash; no alarms were pending. Verify exact-alarm behavior, Doze, clock and timezone changes, location changes, reboot restoration, and a multi-day closed-app interval on physical Android and iOS devices. Alarm delivery remains unverified on-device.
 
-Cold-start notification taps still lose snooze actions: the early bootstrap buffers the action ID, but the drained cold-start path calls `applyNotificationAction`, which records prayer/completion actions only; built-in and custom snooze scheduling exists only in the already-running listener. In-memory execution of the current module produced zero snooze schedules on cold start and one on the warm path for both kinds. Route warm and buffered taps through the same tested action handler and preserve the needed notification details in the buffered record.
+Resolved locally: the early bootstrap now retains the full notification payload, and both the warm listener and cold-start drain call the same action handler for built-in and custom snoozes. Regression tests verify a one-hour reschedule with the original content, route metadata, and built-in channel, without navigating away as the warm path does. The full web quality gate and Android debug assembly/lint pass; real notification-action behavior still needs device verification.
 
 ### P1 — Complete privacy disclosures for location and network services
 
@@ -221,7 +221,7 @@ No production database dump was available because the hosted project was restric
 ## Working checklist
 
 - [x] Inspect app routes, data assets, local persistence, provider/API calls, Supabase client/functions, Android and iOS source, and store/build configuration.
-- [x] Run the full web quality gate; 876 tests across 109 files pass, with lint at 0 errors and 100 warnings.
+- [x] Run the full web quality gate; 878 tests across 110 files pass, with lint at 0 errors and 100 warnings.
 - [x] Build, lint, and run Android API 36 instrumentation tests; verify the forged-widget-broadcast protections.
 - [x] Reduce PWA first-install precache from 94.4 MB/276 files to 17.0 MB/248 unique files and verify Quran access after an offline reload.
 - [x] Add source-level hardening and synthetic tests for Dorar abuse controls; keep its database migration unapplied pending a working staging project.
@@ -241,7 +241,8 @@ No production database dump was available because the hosted project was restric
 - [x] Gate prayer-time location requests behind the onboarding choice or a Prayer Times opt-in; preserve fallback behavior after denial.
 - [ ] Verify location permission timing and later opt-in on fresh Android/iOS installs and returning users on physical devices.
 - [ ] Exercise reminders and notifications through denial, Doze, reboot, time changes, and app closure; test audio and cache upgrades on devices.
-- [ ] Fix cold-start snooze handling, mobile-web reminder delivery, and web onboarding's native-only alert promise.
+- [x] Route cold-start built-in/custom snoozes through the same scheduling handler as warm taps; physical-device action behavior remains to verify.
+- [ ] Fix mobile-web reminder delivery and web onboarding's native-only alert promise.
 - [ ] Preserve unmerged Tasbeeh widget totals across midnight and stop prayer widgets presenting stale schedules as current.
 - [ ] Address remaining dependency advisories, 100 lint warnings, large chunks, accessibility coverage, and religious-content review.
 - [x] Confirm the app already has selectable visual themes and `Forest` remains its default; keep that visual design as the default.
