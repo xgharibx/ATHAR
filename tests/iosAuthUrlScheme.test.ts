@@ -22,4 +22,16 @@ describe("iOS native authentication URL registration", () => {
     expect(new URL(NATIVE_AUTH_REDIRECT).protocol).toBe("app.athar:");
     expect(registeredSchemes).toContain("app.athar");
   });
+
+  it("discloses the prayer and mosque services that can receive location coordinates", () => {
+    const plist = readFileSync(resolve(process.cwd(), "ios/App/App/Info.plist"), "utf8");
+    const { document } = new JSDOM(plist, { contentType: "text/xml" }).window;
+    const locationKey = Array.from(document.querySelectorAll("key"))
+      .find((key) => key.textContent === "NSLocationWhenInUseUsageDescription");
+    const description = locationKey?.nextElementSibling?.textContent ?? "";
+
+    expect(description).toContain("Aladhan");
+    expect(description).toContain("Overpass");
+    expect(description).not.toMatch(/never leaves your device/i);
+  });
 });

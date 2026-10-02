@@ -61,7 +61,7 @@
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Athar uses your location to calculate accurate prayer times and Qibla direction for your area. Your location never leaves your device.</string>
+	<string>Athar uses your location to calculate prayer times and Qibla direction. For online prayer-time requests, coordinates are sent to Aladhan; when you search for nearby mosques, coordinates are sent to Overpass. Qibla direction is calculated on your device.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Athar uses the microphone for voice-counted tasbeeh (Sebha) sessions.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
