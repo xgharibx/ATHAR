@@ -28,6 +28,7 @@ import type { CustomReminder } from "@/data/reminderTypes";
 import { nextOccurrences, type PrayerTimesSource } from "@/lib/reminderRecurrence";
 import {
   cancelCustomNotification,
+  scheduleIdFor,
   scheduleCustomNotification,
 } from "@/lib/customReminderNotifications";
 
@@ -60,6 +61,23 @@ export interface CustomReminderSyncContext {
 
 const DEFAULT_MAX_FIRINGS = 10;
 const MAX_SCHEDULE_HORIZON_MS = 14 * 24 * 60 * 60 * 1000; // 14d
+const nativeScheduleQueues = new Map<string, Promise<void>>();
+
+/**
+ * Serialize schedule/cancel operations for one deterministic OS notification
+ * ID. A stale React-effect cleanup must run before a replacement schedule, or
+ * its late cancellation could remove the new reminder for the same occurrence.
+ */
+function enqueueNativeScheduleOperation<T>(scheduleId: string, operation: () => Promise<T>): Promise<T> {
+  const previous = nativeScheduleQueues.get(scheduleId) ?? Promise.resolve();
+  const result = previous.then(operation);
+  const settled = result.then(() => undefined, () => undefined);
+  nativeScheduleQueues.set(scheduleId, settled);
+  void settled.then(() => {
+    if (nativeScheduleQueues.get(scheduleId) === settled) nativeScheduleQueues.delete(scheduleId);
+  });
+  return result;
+}
 
 function defaultCanNotify(): boolean {
   if (typeof window === "undefined") return false;
@@ -167,7 +185,7 @@ function syncCustomRemindersNative(
   ctx: CustomReminderSyncContext,
 ): () => void {
   const maxFirings = Math.max(1, ctx.maxFirings ?? DEFAULT_MAX_FIRINGS);
-  const scheduled: string[] = [];
+  const scheduled = new Set<string>();
   let cancelled = false;
 
   void (async () => {
@@ -204,9 +222,10 @@ function syncCustomRemindersNative(
         if (cancelled) return;
         const at = date.getTime();
         if (at <= now || at > horizon) continue;
+        const scheduleId = scheduleIdFor(reminder.id, at);
+        scheduled.add(scheduleId);
         try {
-          const scheduleId = await scheduleCustomNotification(reminder, date, "");
-          scheduled.push(scheduleId);
+          await enqueueNativeScheduleOperation(scheduleId, () => scheduleCustomNotification(reminder, date, ""));
         } catch {
           // One bad reminder must not stop the rest from being scheduled.
         }
@@ -217,8 +236,8 @@ function syncCustomRemindersNative(
   return () => {
     cancelled = true;
     for (const scheduleId of scheduled) {
-      void cancelCustomNotification(scheduleId).catch(() => {});
+      void enqueueNativeScheduleOperation(scheduleId, () => cancelCustomNotification(scheduleId)).catch(() => {});
     }
-    scheduled.length = 0;
+    scheduled.clear();
   };
 }
