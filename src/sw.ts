@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
-import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
-import { registerRoute, NavigationRoute } from "workbox-routing";
+import { precacheAndRoute, cleanupOutdatedCaches, matchPrecache } from "workbox-precaching";
+import { registerRoute, NavigationRoute, setCatchHandler } from "workbox-routing";
 import {
   NetworkFirst,
   NetworkOnly,
@@ -36,6 +36,13 @@ const navigationRoute = new NavigationRoute(navigationHandler, {
   denylist: [/^\/api\//, /^\/__/],
 });
 registerRoute(navigationRoute);
+setCatchHandler(async ({ request }) => {
+  if (request.mode === "navigate") {
+    const appShell = await matchPrecache("/index.html");
+    if (appShell) return appShell;
+  }
+  return Response.error();
+});
 
 // Runtime caches (mirror the previous generateSW workbox.runtimeCaching rules).
 registerRoute(
@@ -61,7 +68,7 @@ registerRoute(
 registerRoute(
   ({ url }) => url.origin === "https://everyayah.com",
   new CacheFirst({
-    cacheName: "quran-audio",
+    cacheName: "mushaf-audio-v1",
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({
@@ -155,6 +162,9 @@ registerRoute(
   }),
 );
 
+// Audio played by the Mushaf uses direct cross-origin <audio> requests. Keep
+// successful opaque responses too, so previously downloaded recitations can
+// still play without a connection.
 // Network-only for /api to avoid stale auth responses.
 registerRoute(
   ({ url }) => url.pathname.startsWith("/api/"),

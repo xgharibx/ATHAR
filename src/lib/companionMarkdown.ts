@@ -23,7 +23,7 @@
 import { ROUTE_LABELS } from "@/lib/companionAI";
 
 /** Pre-existing route pattern used by the system prompt: [/route label]. */
-const APP_LINK = /\[(\/[A-Z0-9\/_\-]+)\s+([^\]]+)\]/gi;
+const APP_LINK = /\[(\/[A-Z0-9/_-]+)\s+([^\]]+)\]/gi;
 
 /** Malformed bare-bracket pattern (e.g. "/quran" without label) some model
  *  outputs actually emit. Tolerated so chat doesn't render raw bracket syntax. */
@@ -31,7 +31,7 @@ const BARE_BRACKET = /\[\/?(quran\/plans|quran|c\/morning|c\/evening|sebha|praye
 
 /** Escape patterns some models insert defensively. Removing the backslash
  *  restores the markdown meaning — ** becomes bold, _ becomes emphasis, etc. */
-const ESCAPED_PUNCTUATION = /\\([*_`#>~+\-.!(){}\[\]])/g;
+const ESCAPED_PUNCTUATION = /\\([*_`#>~+\-.!(){}[\]])/g;
 
 const ESCAPED_HASH_AT_LINE_START = /(?:^|\n)(\\#+\s)/g;
 

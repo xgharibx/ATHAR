@@ -7,8 +7,8 @@
  *
  * Where the platform supports speech recognition (Chrome / Android browser),
  * a live voice mode (تجريبي) follows your recitation and reveals each word
- * as you say it — tashkeel-insensitive matching, fully on-device via the
- * browser's own engine. No audio ever touches our servers.
+ * as you say it. Recognition is provided by the browser or operating system
+ * and may process audio outside this device; Athar does not save recordings.
  */
 import * as React from "react";
 import { Check, Eye, Mic, MicOff, RotateCcw, X } from "lucide-react";
@@ -23,7 +23,7 @@ import { arNum } from "@/lib/formatNumber";
 /** Strip tashkeel + normalize letters so voice matching ignores vocalisation. */
 function normalizeArabic(s: string): string {
   return s
-    .replace(/[ً-ْٰـۖ-ۭ﻿]/g, "")
+    .replace(/[\p{M}\u0640\uFEFF]/gu, "")
     .replace(/[أإآٱ]/g, "ا")
     .replace(/ة/g, "ه")
     .replace(/ى/g, "ي")
@@ -180,7 +180,7 @@ export function TasmeePage() {
           </button>
           <p className="text-[11px] leading-6 text-[var(--muted-2)]">
             {voiceSupported
-              ? "🎙️ جهازك يدعم المتابعة الصوتية الحية (تجريبي): فعِّل الميكروفون أثناء الجلسة وستنكشف الكلمات كلما تلوتَها — المطابقة تتجاهل التشكيل، والصوت لا يغادر محرك جهازك."
+              ? "🎙️ جهازك يدعم المتابعة الصوتية الحية (تجريبي): فعِّل الميكروفون أثناء الجلسة وستنكشف الكلمات كلما تلوتَها. يعتمد التعرف على خدمة المتصفح أو النظام وقد تُعالَج الأصوات خارج الجهاز؛ أثر لا يحفظ تسجيلات صوتية."
               : "المتابعة الصوتية غير متاحة على هذا الجهاز — وضع الكشف اليدوي يعمل بشكل كامل."}
           </p>
         </div>

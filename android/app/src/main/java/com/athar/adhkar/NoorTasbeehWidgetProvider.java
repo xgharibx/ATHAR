@@ -125,6 +125,19 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         );
         if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) return;
 
+        AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+        boolean installedWidget = false;
+        for (int installedId : mgr.getAppWidgetIds(
+                new android.content.ComponentName(context, NoorTasbeehWidgetProvider.class))) {
+            if (installedId == widgetId) {
+                installedWidget = true;
+                break;
+            }
+        }
+        // This receiver is exported so the launcher can deliver widget taps.
+        // Do not let arbitrary broadcasts manufacture leaderboard activity.
+        if (!installedWidget) return;
+
         SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
         checkDayReset(prefs, widgetId);
 
@@ -156,7 +169,6 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
 
         // Re-read after changes and push RemoteViews update
         prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
-        AppWidgetManager mgr = AppWidgetManager.getInstance(context);
         updateSingle(context, mgr, widgetId, prefs);
     }
 

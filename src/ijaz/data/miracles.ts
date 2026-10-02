@@ -283,9 +283,9 @@ No pre-20th-century human text — Greek philosophy, Arabic astronomy, Roman or 
 ١ — حركة مستمرة بلا احتكاك: الفضاء فراغ شبه تام. الأجرام تواصل حركتها المدارية إلى الأبد بلا قوة دافعة (قانون نيوتن الأول).
 ٢ — حركة في "وسط" محيط: النسبية العامة تصف الجاذبية كانحناء في نسيج الزمكان — الأجرام تسبح حرفياً في هذا النسيج المنحني.
 ٣ — حركة ذاتية لا تحتاج دفعاً خارجياً مستمراً: الجسم يحافظ على مداره بذاته.`,
-    deepDive: `\"Yasbahoona\" — The Physics of a Single Word
+    deepDive: `"Yasbahoona" — The Physics of a Single Word
 ===
-\"يَسْبَحُونَ\" (yasbahoona) = \"they are swimming\" — chosen with extraordinary precision:
+"يَسْبَحُونَ" (yasbahoona) = "they are swimming" — chosen with extraordinary precision:
 • Swimming implies CONTINUOUS, SELF-SUSTAINING motion (no ongoing force needed — Newton's First Law: an object in motion stays in motion in frictionless space)
 • Swimming implies motion WITHIN a surrounding medium (General Relativity: celestial bodies literally swim through curved spacetime geometry — Einstein's medium)
 • The present tense means this is happening NOW and always
@@ -302,7 +302,7 @@ The Sun travels at 828,000 km/h in its orbit around the galactic center. One ful
 Tier 3 — Galaxies move within galaxy clusters:
 The Milky Way moves with the Local Group toward the Virgo Supercluster at ~600 km/s. Discovered in the 20th century.
 
-\"Kullun\" (كُلٌّ) covers all three tiers simultaneously.
+"Kullun" (كُلٌّ) covers all three tiers simultaneously.
 
 The Ptolemaic World vs. The Quranic Statement
 ===
@@ -315,9 +315,9 @@ Copernicus challenged this in 1543 — 930 years AFTER the Quranic verse. Galile
 
 The Quran stated plainly in the 7th century that ALL heavenly bodies are swimming in their own orbits — directly contradicting unquestioned scientific orthodoxy.
 
-Why \"Swimming\" Is the Physically Perfect Metaphor
+Why "Swimming" Is the Physically Perfect Metaphor
 ===
-Why not \"flying,\" \"moving,\" or \"rotating\"? Swimming carries three physical properties at once:
+Why not "flying," "moving," or "rotating"? Swimming carries three physical properties at once:
 1 — Zero friction: Space is a near-perfect vacuum. Objects sustain orbital motion indefinitely without any continued push.
 2 — A surrounding medium: In General Relativity, gravity is curvature in the spacetime fabric — bodies literally swim through this curved medium.
 3 — Self-propelled continuity: No external force is needed once orbital motion is established.

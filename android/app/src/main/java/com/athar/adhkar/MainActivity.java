@@ -17,6 +17,7 @@ public class MainActivity extends BridgeActivity {
     /** OAuth callback URL (app.athar://auth?...) captured from the intent that
      *  brought us back from the system browser, handed to JS once it's ready. */
     private String pendingAuthUrl;
+    private boolean authDeliveryInProgress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,8 +71,11 @@ public class MainActivity extends BridgeActivity {
         if (intent == null) return null;
         android.net.Uri data = intent.getData();
         if (data == null) return null;
-        String url = data.toString();
-        return url.startsWith("app.athar://auth") ? url : null;
+        String path = data.getPath();
+        if (!"app.athar".equals(data.getScheme()) || !"auth".equals(data.getHost())
+                || data.getPort() != -1 || data.getUserInfo() != null
+                || (path != null && !path.isEmpty() && !"/".equals(path))) return null;
+        return data.toString();
     }
 
     /**
@@ -81,31 +85,43 @@ public class MainActivity extends BridgeActivity {
      */
     private void deliverPendingAuthUrl() {
         final String url = pendingAuthUrl;
-        if (url == null) return;
-        pendingAuthUrl = null;
+        if (url == null || authDeliveryInProgress) return;
+        authDeliveryInProgress = true;
 
         final Handler handler = new Handler(Looper.getMainLooper());
         final int[] attempts = {0};
-        final String escaped = url.replace("\\", "\\\\").replace("'", "\\'");
+        final String quotedUrl = org.json.JSONObject.quote(url);
 
         Runnable attempt = new Runnable() {
             @Override
             public void run() {
+                if (!url.equals(pendingAuthUrl)) {
+                    authDeliveryInProgress = false;
+                    deliverPendingAuthUrl();
+                    return;
+                }
                 WebView webView = getBridge() != null ? getBridge().getWebView() : null;
                 if (webView == null) {
                     if (attempts[0]++ < 25) handler.postDelayed(this, 400);
+                    else authDeliveryInProgress = false;
                     return;
                 }
                 webView.evaluateJavascript(
                     "(function(){" +
-                        "if(!document.body){return 'wait';}" +
-                        "window.dispatchEvent(new CustomEvent('athar-auth-callback',{detail:{url:'" + escaped + "'}}));" +
+                        "if(!window.__atharAuthCallbackReady){" +
+                            "window.__atharPendingAuthUrl=" + quotedUrl + ";return 'wait';}" +
+                        "delete window.__atharPendingAuthUrl;" +
+                        "window.dispatchEvent(new CustomEvent('athar-auth-callback',{detail:{url:" + quotedUrl + "}}));" +
                         "return 'ok';" +
                     "})()",
                     value -> {
-                        if (!"\"ok\"".equals(value) && attempts[0]++ < 25) {
+                        if ("\"ok\"".equals(value)) {
+                            if (url.equals(pendingAuthUrl)) pendingAuthUrl = null;
+                            authDeliveryInProgress = false;
+                            deliverPendingAuthUrl();
+                        } else if (attempts[0]++ < 25) {
                             handler.postDelayed(this, 400);
-                        }
+                        } else authDeliveryInProgress = false;
                     }
                 );
             }

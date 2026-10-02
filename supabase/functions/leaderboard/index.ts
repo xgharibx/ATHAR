@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { computeScores, hasMetrics, FARD_PRAYERS_PER_DAY } from "./scoring.ts";
+import { authorizeLeaderboardIdentity } from "./ownership.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -836,6 +837,9 @@ denoRuntime.serve(async (req) => {
     if (!rateLimit(`w:${payload.identity.id}`, MAX_WRITES_PER_IDENTITY_PER_WINDOW)) {
       return json({ ok: false, error: "rate-limited" }, 429);
     }
+
+    const ownership = await authorizeLeaderboardIdentity(db, payload.identity);
+    if (!ownership.ok) return json({ ok: false, error: ownership.error }, ownership.status);
 
     const aliasDecision = await resolveAliasDecision(db, payload.identity.id, payload.identity.alias);
     await auditAliasDecision(db, {

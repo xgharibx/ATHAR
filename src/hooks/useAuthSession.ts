@@ -8,9 +8,7 @@
  */
 import * as React from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Capacitor } from "@capacitor/core";
 import {
-  completeNativeSignIn,
   getSession,
   isAuthConfigured,
   onAuthChange,
@@ -41,26 +39,9 @@ export function useAuthSession(): AuthState {
 
     const unsub = onAuthChange((s) => { if (alive) setSession(s); });
 
-    // Native OAuth return leg: MainActivity dispatches this DOM event when the
-    // system browser hands back app.athar://auth (see AuthBridgePlugin /
-    // MainActivity.deliverPendingAuthUrl). A DOM event rather than
-    // @capacitor/app because that plugin's build.gradle breaks current AGP.
-    let removeUrlListener: (() => void) | undefined;
-    if (Capacitor.isNativePlatform()) {
-      const onCallback = (e: Event) => {
-        const url = (e as CustomEvent<{ url?: string }>).detail?.url;
-        if (typeof url === "string" && url.startsWith("app.athar://auth")) {
-          void completeNativeSignIn(url);
-        }
-      };
-      window.addEventListener("athar-auth-callback", onCallback as EventListener);
-      removeUrlListener = () => window.removeEventListener("athar-auth-callback", onCallback as EventListener);
-    }
-
     return () => {
       alive = false;
       unsub();
-      removeUrlListener?.();
     };
   }, [configured]);
 

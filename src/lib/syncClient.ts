@@ -152,6 +152,22 @@ function setStatus(patch: Partial<SyncStatus>): void {
 type ServerRow = { kind: string; payload: unknown; updated_at: string };
 
 let inFlight: Promise<boolean> | null = null;
+let syncGeneration = 0;
+let flightGeneration = -1;
+
+/** Export envelopes describe the act of exporting, not an edit to user data. */
+function withoutExportMetadata(blob: SyncBlob): SyncBlob {
+  const { version: _version, exportedAt: _exportedAt, ...state } = blob;
+  return state;
+}
+
+function localSnapshot(): SyncBlob {
+  return {
+    ...withoutExportMetadata(useNoorStore.getState().exportState() as unknown as SyncBlob),
+    leaderboardIdentity: exportLeaderboardIdentity(),
+    dataPacks: exportDataPacks(),
+  };
+}
 
 /**
  * Reconcile local state with the server exactly once.
@@ -162,18 +178,24 @@ let inFlight: Promise<boolean> | null = null;
  * omits the other's changes.
  */
 export function syncNow(): Promise<boolean> {
-  if (inFlight) return inFlight;
-  inFlight = runSync().finally(() => {
-    inFlight = null;
+  const generation = syncGeneration;
+  if (inFlight && flightGeneration === generation) return inFlight;
+  const run = runSync(generation).finally(() => {
+    // A stopped account may finish after its replacement already started.
+    if (inFlight === run) inFlight = null;
   });
-  return inFlight;
+  flightGeneration = generation;
+  inFlight = run;
+  return run;
 }
 
-async function runSync(): Promise<boolean> {
+async function runSync(generation: number): Promise<boolean> {
+  const isCurrent = () => generation === syncGeneration;
   const supabase = getSupabase();
   if (!supabase) return false;
 
   const session = await getSession();
+  if (!isCurrent()) return false;
   const userId = session?.user?.id;
   if (!userId) return false;
 
@@ -186,35 +208,31 @@ async function runSync(): Promise<boolean> {
 
   try {
     let meta = await kvGet<Meta>(META_KEY);
+    if (!isCurrent()) return false;
     // A different account on this device: the previous base describes someone
     // else's data and must not be used to compute deletions against it.
     if (meta && meta.userId !== userId) {
       await kvDel(BASE_KEY);
+      if (!isCurrent()) return false;
       meta = null;
     }
 
     const base = (await kvGet<Partial<SyncBuckets>>(BASE_KEY)) ?? null;
+    if (!isCurrent()) return false;
     const lastSyncedAt = meta?.lastSyncedAt ?? 0;
 
     // The leaderboard identity is not part of the store — it lives in
     // localStorage — but it must travel with the account so rank survives a
     // reinstall or a second device. Attach it here rather than teaching the
     // store about the leaderboard.
-    const localBlob = {
-      ...(useNoorStore.getState().exportState() as unknown as SyncBlob),
-      leaderboardIdentity: exportLeaderboardIdentity(),
-      // Custom adhkar (whole categories, and every dhikr added to أذكاري) live
-      // in localStorage rather than the store, so they were never in
-      // exportState() and never synced — sign in on a second phone and your own
-      // adhkar were simply missing. See exportDataPacks().
-      dataPacks: exportDataPacks(),
-    };
+    const localBlob = localSnapshot();
     const localBuckets = bucketize(localBlob);
 
     const { data, error } = await supabase
       .from("athar_sync")
       .select("kind, payload, updated_at")
       .eq("user_id", userId);
+    if (!isCurrent()) return false;
     if (error) throw new Error(error.message);
 
     const rows = new Map<string, ServerRow>();
@@ -226,9 +244,9 @@ async function runSync(): Promise<boolean> {
     for (const kind of SYNC_KINDS) {
       const localDoc = localBuckets[kind];
       const row = rows.get(kind);
-      const remoteDoc = (row && typeof row.payload === "object" && row.payload !== null
+      const remoteDoc = withoutExportMetadata((row && typeof row.payload === "object" && row.payload !== null
         ? (row.payload as SyncBlob)
-        : {}) as SyncBlob;
+        : {}) as SyncBlob);
 
       const remoteStamp = row ? Date.parse(row.updated_at) : 0;
       // Only relevant for opaque settings-style values; counters and sets
@@ -252,6 +270,7 @@ async function runSync(): Promise<boolean> {
       const { error: upsertError } = await supabase
         .from("athar_sync")
         .upsert(toWrite, { onConflict: "user_id,kind" });
+      if (!isCurrent()) return false;
       if (upsertError) throw new Error(upsertError.message);
     }
 
@@ -271,16 +290,11 @@ async function runSync(): Promise<boolean> {
     // don't advance the base (the next merge has to run from the same
     // ancestor), and go again. The upsert above already happened, and counters
     // merge by max, so nothing is lost by re-running.
-    const freshBlob = {
-      ...(useNoorStore.getState().exportState() as unknown as SyncBlob),
-      leaderboardIdentity: exportLeaderboardIdentity(),
-      dataPacks: exportDataPacks(),
-    };
-    const { leaderboardIdentity: _freshIdentity, dataPacks: _freshPacks, ...freshStoreBlob } = freshBlob;
-    const localMovedMidFlight = !sameDoc(freshStoreBlob, localStoreBlob);
+    const localMovedMidFlight = !sameDoc(localSnapshot(), localBlob);
 
     if (localMovedMidFlight) {
       await kvSet(META_KEY, { userId, lastSyncedAt, dirty: true } satisfies Meta);
+      if (!isCurrent()) return false;
       setStatus({ phase: "idle", lastSyncedAt, error: null, pending: true });
       scheduleFollowUp();
       return false;
@@ -289,7 +303,7 @@ async function runSync(): Promise<boolean> {
     if (!sameDoc(mergedStoreBlob, localStoreBlob)) {
       applyingRemote = true;
       try {
-        useNoorStore.getState().importState({
+        const importResult = useNoorStore.getState().importState({
           version: 1,
           exportedAt: new Date().toISOString(),
           // Whole-field removal is never a user action (the user deletes
@@ -298,6 +312,16 @@ async function runSync(): Promise<boolean> {
           ...localStoreBlob,
           ...mergedStoreBlob,
         } as never);
+        const immediatelyImported = localSnapshot();
+        await importResult;
+        if (!isCurrent()) return false;
+        // IDB persistence can take time. A user edit during it needs another
+        // pass even though this import itself must not schedule an upload.
+        if (!sameDoc(localSnapshot(), immediatelyImported)) {
+          setStatus({ phase: "idle", lastSyncedAt, pending: true });
+          scheduleFollowUp();
+          return false;
+        }
       } finally {
         applyingRemote = false;
       }
@@ -325,13 +349,16 @@ async function runSync(): Promise<boolean> {
     }
 
     await kvSet(BASE_KEY, mergedBuckets);
+    if (!isCurrent()) return false;
     const now = Date.now();
     await kvSet(META_KEY, { userId, lastSyncedAt: now, dirty: false } satisfies Meta);
+    if (!isCurrent()) return false;
 
     failures = 0;
     setStatus({ phase: "idle", lastSyncedAt: now, error: null, pending: false });
     return true;
   } catch (e) {
+    if (!isCurrent()) return false;
     const offline = typeof navigator !== "undefined" && navigator.onLine === false;
     setStatus({
       phase: offline ? "offline" : "error",
@@ -469,6 +496,8 @@ export function startCloudSync(): void {
 
 /** Stop syncing (sign-out). Optionally forget this device's cloud footprint. */
 export function stopCloudSync(opts?: { forget?: boolean }): void {
+  // Invalidate every pending await before another account can start syncing.
+  syncGeneration += 1;
   started = false;
   if (pushTimer) {
     clearTimeout(pushTimer);
@@ -481,6 +510,10 @@ export function stopCloudSync(opts?: { forget?: boolean }): void {
   if (retryTimer) {
     clearTimeout(retryTimer);
     retryTimer = null;
+  }
+  if (followUpTimer) {
+    clearTimeout(followUpTimer);
+    followUpTimer = null;
   }
   failures = 0;
   for (const fn of stopFns) {

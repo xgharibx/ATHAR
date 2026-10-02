@@ -385,6 +385,29 @@ export function QuranPage() {
     return data.find((s) => s.id === lastRead.surahId)?.name ?? null;
   }, [data, lastRead]);
 
+  const nextUnread = React.useMemo(() => {
+    if (!data || !lastRead) return null;
+    const surah = data.find((s) => s.id === lastRead.surahId);
+    if (!surah) return null;
+    const read = readingHistory[String(surah.id)] ?? 0;
+    if (read >= surah.ayahs.length) {
+      const index = data.findIndex((s) => s.id === surah.id);
+      for (let i = 1; i < data.length; i++) {
+        const next = data[(index + i) % data.length];
+        if (!next) continue;
+        const reached = readingHistory[String(next.id)] ?? 0;
+        if (reached < next.ayahs.length) return { surah: next, ayahIndex: reached + 1 };
+      }
+      return null;
+    }
+    return { surah, ayahIndex: Math.max(1, read + 1) };
+  }, [data, lastRead, readingHistory]);
+  const continueAyahText = React.useMemo(() => {
+    if (!lastRead || !data) return null;
+    const surah = data.find((s) => s.id === lastRead.surahId);
+    return surah?.ayahs[(lastRead.ayahIndex ?? 1) - 1] ?? null;
+  }, [data, lastRead]);
+
   const quranStats = React.useMemo(() => {
     if (!data) return { started: 0, completed: 0, totalAyahs: 0 };
     let started = 0;
@@ -710,34 +733,6 @@ export function QuranPage() {
 
         {/* ── Continue reading strip ─────────────────────── */}
         {lastRead ? (() => {
-          // Compute "next unread ayah" for the user — look at the surah
-          // they were last reading and find the first ayah that hasn't been
-          // marked read in quranReadingHistory.
-          const nextUnread = React.useMemo(() => {
-            if (!data || !lastRead) return null;
-            const surah = data.find((s) => s.id === lastRead.surahId);
-            if (!surah) return null;
-            const read = readingHistory[String(surah.id)] ?? 0;
-            if (read >= surah.ayahs.length) {
-              // Look in the next surah in mushaf order
-              const idx = data.findIndex((s) => s.id === surah.id);
-              for (let i = 1; i < data.length; i++) {
-                const next = data[(idx + i) % data.length];
-                if (!next) continue;
-                const r = readingHistory[String(next.id)] ?? 0;
-                if (r < next.ayahs.length) return { surah: next, ayahIndex: r + 1 };
-              }
-              return null;
-            }
-            return { surah, ayahIndex: Math.max(1, read + 1) };
-          }, [data, lastRead, readingHistory]);
-          const continueAyahText = React.useMemo(() => {
-            if (!lastRead || !data) return null;
-            const surah = data.find((s) => s.id === lastRead.surahId);
-            const idx = (lastRead.ayahIndex ?? 1) - 1;
-            return surah?.ayahs[idx] ?? null;
-          }, [data, lastRead]);
-
           return (
             <div
               className="w-full px-5 py-3.5 flex items-center gap-3 flex-wrap"

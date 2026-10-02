@@ -15,7 +15,10 @@ import {
   idbGetAllHadithNotes,
   idbGetAllHadithMemoCards,
   migrateHadithStateToIDB,
+  idbReplaceHadithState,
 } from "@/lib/hadithIDB";
+import { adoptDataPacks, exportDataPacks, type NoorPack } from "@/data/packs";
+import { saveCustomReminders } from "@/lib/reminderStorage";
 import type { HadithMemoCard } from "@/data/hadithTypes";
 import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
 import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
@@ -290,6 +293,7 @@ export type ExportBlobV1 = {
   quranLastReadDate?: string | null;
   quranDailyAyahs?: Record<string, number>;
   quranReviewedPages?: Record<string, string[]>; // dateISO -> mushaf page numbers reviewed
+  reviewedPagesToday?: string[];
   sectionItemOrder?: Record<string, number[]>;
   dailyWirdDone?: Record<string, boolean>;
   dailyWirdStartISO?: string | null;
@@ -311,6 +315,7 @@ export type ExportBlobV1 = {
   videoLibraryLastVideoId?: string | null;
   sectionCompletions?: Record<string, string[]>;
   customPacks?: CustomAdhkarPack[];
+  dataPacks?: NoorPack[];
   customReminders?: CustomReminder[];
   customReminderTemplatesSeen?: Record<string, boolean>;
   onboardingDone?: boolean;
@@ -505,7 +510,7 @@ type NoorState = {
   ensureDailyResets: (fajrTime?: string | null) => void;
 
   exportState: () => ExportBlobV1;
-  importState: (blob: ExportBlobV1) => void;
+  importState: (blob: ExportBlobV1) => Promise<void>;
 
   // Targeted resets (Phase 37)
   resetAdhkarProgress: () => void;
@@ -1619,6 +1624,7 @@ export const useNoorStore = create<NoorState>()(
           favoriteCities: s.favoriteCities,
           sectionCompletions: s.sectionCompletions,
           customPacks: s.customPacks,
+          dataPacks: exportDataPacks(),
           customReminders: s.customReminders,
           hadithBookmarks: s.hadithBookmarks,
           hadithProgress: s.hadithProgress,
@@ -1629,7 +1635,7 @@ export const useNoorStore = create<NoorState>()(
         };
       },
 
-      importState: (blob) => {
+      importState: async (blob) => {
         if (blob?.version !== 1) return;
         const importedReminders = blob.reminders
           ? { ...DEFAULT_REMINDERS, ...blob.reminders }
@@ -1659,6 +1665,7 @@ export const useNoorStore = create<NoorState>()(
           quranStreak: blob.quranStreak ?? 0,
           quranLastReadDate: blob.quranLastReadDate ?? null,
           quranDailyAyahs: sanitizeNumberMap(blob.quranDailyAyahs),
+          reviewedPagesToday: Array.isArray(blob.reviewedPagesToday) ? blob.reviewedPagesToday : [],
           dailyWirdDone: blob.dailyWirdDone ?? {},
           dailyWirdStartISO: blob.dailyWirdStartISO ?? null,
           khatmaStartISO: blob.khatmaStartISO ?? null,
@@ -1702,26 +1709,21 @@ export const useNoorStore = create<NoorState>()(
             : {}) as Record<string, string[]>,
           customPacks: Array.isArray(blob.customPacks) ? blob.customPacks : [],
           customReminders: Array.isArray(blob.customReminders) ? blob.customReminders : [],
+          hadithBookmarks: blob.hadithBookmarks ?? {},
+          hadithProgress: blob.hadithProgress ?? {},
+          hadithNotes: blob.hadithNotes ?? {},
+          hadithMemoCards: blob.hadithMemoCards ?? {},
           onboardingDone: blob.onboardingDone ?? false,
           weeklyReportSentISO: blob.weeklyReportSentISO ?? null,
         });
-        // Restore IDB-backed hadith state (fire-and-forget)
-        if (blob.hadithBookmarks && typeof blob.hadithBookmarks === 'object') {
-          const bm = blob.hadithBookmarks as Record<string, boolean>;
-          void Promise.all(Object.entries(bm).map(([k, v]) => idbSetHadithBookmark(k, !!v)));
+        if (blob.dataPacks && adoptDataPacks(blob.dataPacks)) {
+          window.dispatchEvent(new CustomEvent("athar-data-packs-changed"));
         }
-        if (blob.hadithProgress && typeof blob.hadithProgress === 'object') {
-          const pr = blob.hadithProgress as Record<string, number>;
-          void Promise.all(Object.entries(pr).map(([k, v]) => idbSetHadithProgress(k, Number(v))));
-        }
-        if (blob.hadithNotes && typeof blob.hadithNotes === 'object') {
-          const nt = blob.hadithNotes as Record<string, string>;
-          void Promise.all(Object.entries(nt).map(([k, v]) => idbSetHadithNote(k, String(v))));
-        }
-        if (blob.hadithMemoCards && typeof blob.hadithMemoCards === 'object') {
-          const mc = blob.hadithMemoCards as Record<string, HadithMemoCard>;
-          void Promise.all(Object.entries(mc).map(([k, v]) => idbSetHadithMemoCard(k, v)));
-        }
+        const restored = get();
+        await Promise.all([
+          saveCustomReminders(restored.customReminders),
+          idbReplaceHadithState({ bookmarks: restored.hadithBookmarks, progress: restored.hadithProgress, notes: restored.hadithNotes, memoCards: restored.hadithMemoCards }),
+        ]);
       },
 
       // Se6: Restore only the truly resettable subset of preferences.
@@ -1878,8 +1880,7 @@ export const useNoorStore = create<NoorState>()(
       customPacks: [],
 
       // O-3: Custom reminders created by the AI companion (`create_reminder`
-      // tool). Kept in the localStorage snapshot via `persist` so the companion
-      // can read them synchronously for retrieval & revocation.
+      // tool). Written through to IndexedDB so they survive startup hydration.
       customReminders: [],
       seenTemplateIds: {},
       addCustomReminder: (r) => {
@@ -1892,19 +1893,27 @@ export const useNoorStore = create<NoorState>()(
           updatedAt: now,
           enabled: r.enabled ?? true,
         };
-        set((s) => ({ customReminders: [full, ...s.customReminders] }));
+        set((s) => {
+          const next = [full, ...s.customReminders];
+          void saveCustomReminders(next);
+          return { customReminders: next };
+        });
         return id;
       },
       toggleCustomReminder: (id, enabled) =>
-        set((s) => ({
-          customReminders: s.customReminders.map((r) =>
+        set((s) => {
+          const next = s.customReminders.map((r) =>
             r.id === id ? { ...r, enabled: !!enabled, updatedAt: new Date().toISOString() } : r,
-          ),
-        })),
+          );
+          void saveCustomReminders(next);
+          return { customReminders: next };
+        }),
       deleteCustomReminder: (id) =>
-        set((s) => ({
-          customReminders: s.customReminders.filter((r) => r.id !== id),
-        })),
+        set((s) => {
+          const next = s.customReminders.filter((r) => r.id !== id);
+          void saveCustomReminders(next);
+          return { customReminders: next };
+        }),
 
       addCustomPack: (pack) => {
         const id = `custom_${Date.now()}`;

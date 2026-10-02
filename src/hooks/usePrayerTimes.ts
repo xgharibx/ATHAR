@@ -93,18 +93,26 @@ export function formatPrayerHijriDate(hijri?: PrayerHijriDate): string {
   }
 }
 
+async function fetchPrayerTimesResponse(url: string): Promise<PrayerTimesResponse> {
+  const controller = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), 8000);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error("تعذر جلب مواقيت الصلاة");
+    return await res.json() as PrayerTimesResponse;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
+}
+
 async function fetchPrayerTimes(city: string, country: string, method: number, school: number) {
   const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("تعذر جلب مواقيت الصلاة");
-  return res.json() as Promise<PrayerTimesResponse>;
+  return fetchPrayerTimesResponse(url);
 }
 
 async function fetchPrayerTimesByCoords(latitude: number, longitude: number, method: number, school: number) {
   const url = `https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=${method}&school=${school}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("تعذر جلب مواقيت الصلاة بالموقع");
-  return res.json() as Promise<PrayerTimesResponse>;
+  return fetchPrayerTimesResponse(url);
 }
 
 type CachedCoords = { lat: number; lng: number; savedAt: string };
@@ -239,6 +247,7 @@ export function usePrayerTimes() {
     queryKey: ["prayer-times", "v3", dayKey, method, school],
     queryFn: async () => {
       const cachedCoords = readCachedCoords();
+      let bestCoords: { lat: number; lng: number } | null = cachedCoords;
 
       const trySource = async (label: string, locationKey: string, fn: () => Promise<PrayerTimesResponse>) => {
         const fresh = await fn();
@@ -258,6 +267,7 @@ export function usePrayerTimes() {
         const pos = await getCurrentPosition();
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
+        bestCoords = { lat, lng };
         const locationKey = `coords:${lat.toFixed(3)}:${lng.toFixed(3)}:${method}:${school}`;
         writeCachedCoords(lat, lng);
         try {
@@ -299,10 +309,10 @@ export function usePrayerTimes() {
       // 4) Fully offline last resort: compute locally (Jean Meeus formulas via `adhan`)
       // from the best coordinates we have, so a no-connectivity first launch never
       // shows a bare error instead of today's prayer times.
-      const fallbackCoords = cachedCoords ?? { lat: 30.0444, lng: 31.2357 }; // Cairo, matches the city fallback above
+      const fallbackCoords = bestCoords ?? { lat: 30.0444, lng: 31.2357 }; // Cairo, matches the city fallback above
       const computed: PrayerTimesData = {
         ...computeLocalPrayerTimes(fallbackCoords.lat, fallbackCoords.lng, new Date(), method, school),
-        __sourceLabel: cachedCoords ? "حساب محلي (بلا إنترنت)" : "حساب محلي — القاهرة (بلا إنترنت)",
+        __sourceLabel: bestCoords ? "حساب محلي (بلا إنترنت)" : "حساب محلي — القاهرة (بلا إنترنت)",
       };
       return computed;
     },

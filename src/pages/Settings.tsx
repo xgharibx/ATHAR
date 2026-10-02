@@ -379,7 +379,7 @@ export function SettingsPage() {
         return;
       }
       const json = raw as ExportBlobV1;
-      importState(json);
+      await importState(json);
       toast.success("تم الاستيراد بنجاح");
       // Soft reload: replace history state then reload to re-init store
       setTimeout(() => window.location.reload(), 400);

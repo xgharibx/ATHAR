@@ -120,7 +120,7 @@ export default function NumberNineteenVisual({ className }: MiracleVisualProps) 
         style={{ background: 'linear-gradient(to bottom, rgba(2,0,8,0.9) 0%, rgba(2,0,8,0) 100%)' }}>
         <p className="font-amiri text-sm md:text-base leading-snug text-center"
           style={{ color: 'rgba(200,190,255,0.92)', textShadow: '0 0 18px rgba(140,120,255,0.4)' }}>
-          وَمَا جَعَلْنَا أَصْحَابَ النَّارِ إِلَّا مَلَائِكَةً · 
+          وَمَا جَعَلْنَا أَصْحَابَ النَّارِ إِلَّا مَلَائِكَةً ·
           <span style={{ color: '#bbaaff', textShadow: '0 0 14px rgba(160,140,255,0.7)' }}>وَمَا جَعَلْنَا عِدَّتَهُمْ إِلَّا فِتْنَةً لَّلَّذِينَ كَفَرُوا</span>
         </p>
         <p className="text-[9px] font-tajawal mt-0.5 tracking-[0.2em]" style={{ color: 'rgba(80,70,140,0.45)' }}>

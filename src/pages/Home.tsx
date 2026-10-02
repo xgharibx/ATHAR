@@ -471,6 +471,18 @@ export function HomePage() {
   const [activePhraseKey, setActivePhraseKey] = React.useState<QuickTasbeehKey | null>(null);
   const prayerTimes = usePrayerTimes();
   const civilTodayKey = useTodayKey();
+  const todayTotal = React.useMemo(() => {
+    const day = tasbeehDailyLog[civilTodayKey] ?? {};
+    return Object.values(day).reduce((sum, value) => sum + (Number(value) || 0), 0);
+  }, [tasbeehDailyLog, civilTodayKey]);
+  const weekTotal = React.useMemo(() => {
+    let total = 0;
+    for (let i = 0; i < 7; i++) {
+      const day = tasbeehDailyLog[shiftDateKey(civilTodayKey, -i)] ?? {};
+      total += Object.values(day).reduce((sum, value) => sum + (Number(value) || 0), 0);
+    }
+    return total;
+  }, [tasbeehDailyLog, civilTodayKey]);
   const worshipDayKey = useTodayKey({
     mode: "ibadah",
     fajrTime: prayerTimes.data?.data?.timings?.Fajr,
@@ -1379,19 +1391,6 @@ export function HomePage() {
         }
         if (widgetKey === "tasbeeh") {
           if (!homeWidgets.tasbeeh) return null;
-          const todayTotal = React.useMemo(() => {
-            const day = tasbeehDailyLog[civilTodayKey] ?? {};
-            return Object.values(day).reduce((s, v) => s + (Number(v) || 0), 0);
-          }, [tasbeehDailyLog, civilTodayKey]);
-          const weekTotal = React.useMemo(() => {
-            let total = 0;
-            for (let i = 0; i < 7; i++) {
-              const k = shiftDateKey(civilTodayKey, -i);
-              const day = tasbeehDailyLog[k] ?? {};
-              total += Object.values(day).reduce((s, v) => s + (Number(v) || 0), 0);
-            }
-            return total;
-          }, [tasbeehDailyLog, civilTodayKey]);
           return (
             <Card key="tasbeeh" className="p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

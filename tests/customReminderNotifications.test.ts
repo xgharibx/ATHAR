@@ -219,16 +219,30 @@ describe("cancelCustomNotification / cancelAllCustomNotifications", () => {
     });
   });
 
-  it("cancelAllCustomNotifications drains pending native schedules", async () => {
+  it("cancelAllCustomNotifications preserves prayer and built-in reminders", async () => {
     mockCapacitor.isNativePlatform.mockReturnValue(true);
     mockLocalNotifications.getPending.mockResolvedValueOnce({
-      notifications: [{ id: 1 }, { id: 2 }],
+      notifications: [
+        { id: 1, title: "Fajr", body: "Prayer", extra: { prayerName: "Fajr" } },
+        { id: 2, title: "Morning", body: "Adhkar", extra: { reminderKey: "morning" } },
+        { id: 3, title: "Custom", body: "Read", extra: { scheduleId: "cr:r1:1700", reminderId: "r1" } },
+        { id: 4, title: "Unknown", body: "", extra: null },
+      ],
     });
     await cancelAllCustomNotifications();
     expect(mockLocalNotifications.getPending).toHaveBeenCalled();
     expect(mockLocalNotifications.cancel).toHaveBeenCalledWith({
-      notifications: [{ id: 1 }, { id: 2 }],
+      notifications: [{ id: 3 }],
     });
+  });
+
+  it("does not cancel anything when native pending schedules have no custom reminders", async () => {
+    mockCapacitor.isNativePlatform.mockReturnValue(true);
+    mockLocalNotifications.getPending.mockResolvedValueOnce({
+      notifications: [{ id: 1, title: "Fajr", body: "Prayer", extra: { prayerName: "Fajr" } }],
+    });
+    await cancelAllCustomNotifications();
+    expect(mockLocalNotifications.cancel).not.toHaveBeenCalled();
   });
 });
 

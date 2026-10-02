@@ -37,6 +37,28 @@ export function isAuthConfigured(): boolean {
 }
 
 let _client: SupabaseClient | null = null;
+let nativeCallbackInstalled = false;
+const nativeExchanges = new Map<string, Promise<AuthResult>>();
+
+type NativeAuthWindow = Window & {
+  __atharPendingAuthUrl?: string;
+  __atharAuthCallbackReady?: boolean;
+};
+
+/** One app-wide consumer. Native retains a callback until this listener is ready. */
+function installNativeAuthCallback(): void {
+  if (nativeCallbackInstalled || !Capacitor.isNativePlatform() || typeof window === "undefined") return;
+  nativeCallbackInstalled = true;
+  const authWindow = window as NativeAuthWindow;
+  authWindow.addEventListener("athar-auth-callback", (event: Event) => {
+    const url = (event as CustomEvent<{ url?: unknown }>).detail?.url;
+    if (typeof url === "string") void completeNativeSignIn(url);
+  });
+  authWindow.__atharAuthCallbackReady = true;
+  const queued = authWindow.__atharPendingAuthUrl;
+  delete authWindow.__atharPendingAuthUrl;
+  if (typeof queued === "string") void completeNativeSignIn(queued);
+}
 
 /** Lazily-created singleton. Returns null when unconfigured. */
 export function getSupabase(): SupabaseClient | null {
@@ -53,6 +75,7 @@ export function getSupabase(): SupabaseClient | null {
       flowType: "pkce",
     },
   });
+  installNativeAuthCallback();
   return _client;
 }
 
@@ -117,11 +140,37 @@ export async function signInWithEmail(email: string): Promise<AuthResult> {
  * Handles both PKCE (`?code=`) and implicit (`#access_token=`) shapes, since
  * which one arrives depends on the provider and Supabase settings.
  */
-export async function completeNativeSignIn(url: string): Promise<AuthResult> {
+export function completeNativeSignIn(url: string): Promise<AuthResult> {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+    if (parsed.protocol !== "app.athar:" || parsed.hostname !== "auth" ||
+        parsed.port || parsed.username || parsed.password ||
+        (parsed.pathname !== "" && parsed.pathname !== "/")) {
+      return Promise.resolve({ ok: false, error: "رابط الدخول غير صالح" });
+    }
+  } catch {
+    return Promise.resolve({ ok: false, error: "رابط الدخول غير صالح" });
+  }
+
+  const existing = nativeExchanges.get(url);
+  if (existing) return existing;
+  // Defer the exchange until the map owns it: creating the client also drains
+  // an early native callback and must share this same one-time-code exchange.
+  const exchange = Promise.resolve().then(() => exchangeNativeSignIn(parsed));
+  nativeExchanges.set(url, exchange);
+  void exchange.then((result) => {
+    if (!result.ok) nativeExchanges.delete(url);
+    // Bound successful callback retention; tokens are kept only in memory.
+    while (nativeExchanges.size > 32) nativeExchanges.delete(nativeExchanges.keys().next().value!);
+  });
+  return exchange;
+}
+
+async function exchangeNativeSignIn(parsed: URL): Promise<AuthResult> {
   const supabase = getSupabase();
   if (!supabase) return { ok: false, error: "الحسابات غير مُهيّأة بعد" };
   try {
-    const parsed = new URL(url);
     const code = parsed.searchParams.get("code");
     if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);

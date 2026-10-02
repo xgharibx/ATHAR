@@ -299,9 +299,13 @@ export async function cancelAllCustomNotifications(): Promise<void> {
     try {
       const { LocalNotifications } = await import("@capacitor/local-notifications");
       const pending = await LocalNotifications.getPending();
-      if (pending.notifications.length) {
+      const custom = pending.notifications.filter((notification) => {
+        const scheduleId: unknown = notification.extra?.scheduleId;
+        return typeof scheduleId === "string" && scheduleId.startsWith("cr:");
+      });
+      if (custom.length) {
         await LocalNotifications.cancel({
-          notifications: pending.notifications.map((n) => ({ id: n.id })),
+          notifications: custom.map((n) => ({ id: n.id })),
         });
       }
     } catch {

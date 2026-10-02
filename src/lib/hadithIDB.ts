@@ -147,6 +147,25 @@ export async function idbGetAllHadithMemoCards(): Promise<Record<string, HadithM
   } catch { return {}; }
 }
 
+/** Restore a snapshot, including deletions, before a backup reload or sync completes. */
+export async function idbReplaceHadithState(data: {
+  bookmarks: Record<string, boolean>;
+  progress: Record<string, number>;
+  notes: Record<string, string>;
+  memoCards: Record<string, HadithMemoCard>;
+}): Promise<void> {
+  const db = getDB();
+  await db.transaction("rw", [db.bookmarks, db.progress, db.notes, db.memoCards], async () => {
+    await Promise.all([db.bookmarks.clear(), db.progress.clear(), db.notes.clear(), db.memoCards.clear()]);
+    await Promise.all([
+      db.bookmarks.bulkPut(Object.keys(data.bookmarks).filter((key) => data.bookmarks[key]).map((key) => ({ key, val: 1 as const }))),
+      db.progress.bulkPut(Object.entries(data.progress).map(([bookKey, n]) => ({ bookKey, n }))),
+      db.notes.bulkPut(Object.entries(data.notes).map(([key, text]) => ({ key, text, updatedAt: Date.now() }))),
+      db.memoCards.bulkPut(Object.entries(data.memoCards).map(([key, card]) => ({ key, card, updatedAt: Date.now() }))),
+    ]);
+  });
+}
+
 // Full-corpus search index cache (kept 30 days, same as book packs)
 export async function idbGetSearchIndex(): Promise<FullSearchIndexEntry[] | null> {
   try {

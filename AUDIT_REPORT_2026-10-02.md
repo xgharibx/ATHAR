@@ -1,0 +1,128 @@
+# ATHAR / Noor Adhkar — Quality, Security, and Store-Readiness Audit
+
+**Audit date:** 2026-10-02
+**Source version:** `1.2.62`
+**Scope:** Web/PWA, Android Capacitor shell, iOS wrapper and iOS web use, Quran and supporting content, local persistence and backup, API integrations, Supabase functions/database integration, auth/sync, notifications/widgets, build/release configuration, dependency health, and store-readiness constraints.
+
+This report records verified fixes in the current audit branch separately from unresolved release risks. It does not certify every device, every interactive flow, the accuracy of every religious text, or a production deployment.
+
+## Executive assessment
+
+The app has a substantial offline-capable feature set, and its existing visual design remains intact. This audit fixed high-impact regressions in Quran navigation, storage restore, prayer-time fallback, auth callback delivery, sync lifecycle, audio caching, and notification/widget handling. The release-verification command now completes successfully, and all tested routes render at a narrow mobile viewport.
+
+The app is **not ready for a public store release**. The main gates are a publicly callable paid AI proxy without durable abuse limits, a currently restricted Supabase project that prevents live cloud verification, an unapplied leaderboard ownership migration, a broken hosted translation integration, and incomplete iOS native/auth/privacy preparation. Android source builds successfully, but release metadata is inconsistent and a release-signed artifact was not produced or uploaded.
+
+## What was examined and verified
+
+- Ran `npm run verify`: lint completed with **0 errors and 100 warnings**, all **805 tests in 92 files passed**, TypeScript build and Vite production build succeeded.
+- Parsed the actual bundled Quran and page map: **114 surahs, 6,236 ayahs, and all 604 Mushaf pages** are represented by valid JSON and page references.
+- Loaded **52 valid app routes** plus one deliberate unknown route in a production preview at **390 × 844**. Routes rendered, the unknown route showed the not-found view, and targeted Home and Quran state transitions did not produce React hook-order errors. This was route and focused-interaction coverage, not a full usability pass over every control.
+- Built the Android debug APK with Gradle and installed it in an Android API 36.1 emulator. Sending an increment broadcast with a nonexistent widget ID did not create widget totals or preference state.
+- Issued only safe `HEAD`/`GET`/`OPTIONS` checks to 10 configured Supabase endpoints. They returned HTTP **402 `exceed_db_size_quota` / project restricted**. No production database, account, or function writes were made.
+- Audited the dependency tree with `npm audit`: **31 advisories overall** (1 critical, 17 high, 11 moderate, 2 low); the production dependency graph alone has **5** (1 high, 4 moderate). No automated dependency upgrades were applied.
+- Could not produce an iOS/Xcode build in this Windows workspace or verify App Store Connect / Play Console configuration. No physical iPhone test was performed.
+
+## Repairs in this phase
+
+| Area | Repair | Verification |
+|---|---|---|
+| Quality gate | Scoped lint to maintained application and function sources; CI now runs the full verify command before Pages deployment. Fixed surfaced lint errors without disabling React hook checks. | `npm run verify` |
+| Quran data and navigation | Removed the invalid leading byte from the shipped page map; corrected conditional hook ordering in Home and Quran. | Bundled data regression test; route/state browser checks |
+| Backup and restore | Include custom data packs, restore IndexedDB-backed reminders and Hadith state, and wait for persistence work to finish. | Backup persistence tests |
+| Prayer times | Bound network requests with a timeout and use newly acquired GPS coordinates for offline calculation if the API request fails. | Offline/GPS fallback tests |
+| Auth and sync | Deliver native OAuth callbacks until JS is ready, validate the callback URL, share one callback listener, deduplicate code exchange, invalidate stale sync work after sign-out/account changes, and catch edits made during import. | Auth callback and sync lifecycle tests; Java compilation |
+| Reminder notifications | Cancel only the app's custom reminder notification IDs; select the Android monochrome status icon. | Notification ownership tests; Android build |
+| Tasbeeh widget | Reject taps for widget IDs not registered with Android before changing counts. | API 36.1 emulator invalid-ID broadcast; no state created |
+| Leaderboard identity | Add an ownership RPC check before identity mutation and include the database migration. | Edge handler ownership tests; migration remains unapplied |
+| Companion readiness | Treat only successful 2xx responses as ready and time out health probes. | Health tests |
+| Offline reader/audio | Add an app-shell fallback for failed navigation requests; make Mushaf downloads and the service worker use one audio cache and report partial/failed downloads honestly. | Build and tests; true airplane-mode replay still needs device verification |
+| Privacy wording | Remove the false claim that Tasmee audio never leaves the device; improve Arabic diacritic/tatweel normalization. | Source/UI review and regression tests |
+
+## Open findings, ordered by release impact
+
+### P0 — Protect paid AI access before exposing the endpoint
+
+`supabase/functions/companion` is configured for unauthenticated invocation (`verify_jwt=false`) and permissive CORS, and accepts requests that can reach the paid MiniMax service. There is no durable per-user quota or effective request/body/output limit at the service boundary. CORS does not prevent scripts, command-line clients, or direct HTTP calls. A synthetic unauthenticated request reached the upstream path during the audit.
+
+**Risk:** anyone who discovers the endpoint can consume the app's paid API allowance and submit oversized or abusive requests. Treat this as a release blocker. Require verified app/user authorization or a server-issued short-lived token, enforce server-side quotas and size/token/time limits, add spend alerts, and test unauthorized, over-limit, replayed, and oversized requests. Do not place provider secrets in browser build variables.
+
+### P1 — Restore hosted backend and verify the actual database before cloud release
+
+Supabase safe endpoint checks returned 402 project-restriction responses, so sign-in, sync, leaderboard, and deployed edge-function behavior could not be exercised. This may be a billing/quota state rather than an application defect, but it makes the cloud product unavailable in the observed environment.
+
+The new leaderboard ownership migration is local only. Until it is applied and verified against a staging database, the edge-function change cannot be considered production-ready. Legacy identities with missing ownership records need an explicit, reviewed backfill or recovery policy; the new check otherwise correctly fails closed.
+
+**Next:** restore the project through its owner, run the schema/RLS/function test suite against a disposable staging project, apply the migration there, verify existing leaderboard rows and ownership recovery, then deploy in a controlled release. No production write was attempted in this audit.
+
+### P1 — Repair the hosted Quran translation integration
+
+The app's hosted translation code targets an obsolete/wrong URL and assumes a response shape that does not match Quran Foundation's current Content API. The UI can silently fall back to English while the selected translation label suggests another language, and Settings may report readiness when required configuration is absent.
+
+The current Quran Foundation Content API uses authenticated `/content/api/v4/quran/translations/{translation_id}` requests and requires `x-auth-token` plus `x-client-id`; its client secret belongs on a backend, not in browser or mobile code. Rework the integration around the official auth flow, validate language/resource IDs, surface the actual active translation, and test success, missing credentials, unavailable service, and offline behavior. The official [translation endpoint](https://api-docs.quran.com/docs/content_apis_versioned/4.0.0/translation/) and [Content API quickstart](https://api-docs.quran.com/docs/quickstart/) document the current contract.
+
+### P1 — Finish iOS native sign-in, privacy, and account lifecycle
+
+Static review found no complete iOS URL-scheme callback path for the `app.athar://auth` callback used by the shared native auth flow. The current iOS project also needs a complete Xcode-target review for native share wiring and a bundled, accurate `PrivacyInfo.xcprivacy` manifest. A physical iPhone build and auth round trip have not been verified.
+
+If Google or another third-party provider is used for primary account login, App Review Guideline 4.8 requires an equivalent login option meeting Apple's privacy criteria; Sign in with Apple is the usual fit. Account-creating apps also need an in-app account-deletion path that removes associated user data. Verify actual login providers, implement the compliant alternative and URL handling, audit every data/permission disclosure, add the app and required SDK privacy manifests, and exercise sign-in, sign-out, deletion, restore, links, notifications, and voice input on physical iOS hardware. Apple explains [login requirements](https://developer.apple.com/app-store/review/guidelines/uk/), [account deletion](https://developer.apple.com/support/offering-account-deletion-in-your-app/), and [privacy manifests](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files).
+
+### P1 — Schedule prayer reminders across day boundaries
+
+The Android prayer notification scheduling path is based on today's schedule. If the app remains closed across midnight, the next day's prayer reminders can be missing or stale. Schedule a rolling horizon (at least today plus tomorrow), refresh after time-zone/date/location changes and reboot, respect Android exact-alarm and notification permissions, and test Doze, DST, manual clock changes, and disabled permissions on devices.
+
+### P1 — Correct privacy disclosures for location and network services
+
+Prayer calculations send coordinates to Aladhan when the online service is used. The app's location disclosure must say that clearly and identify the purpose, destination, and offline option. Review data flows for auth, Supabase sync, Companion prompts/audio, speech recognition, mosque lookup, and analytics/build reporting, and make the privacy policy and store declarations match observed behavior. The Tasmee audio disclosure was corrected locally; the remaining app-wide privacy inventory is still open.
+
+### P1 — Reconcile Android/iOS release identity and version metadata
+
+The checked-in package/source version is `1.2.62`, while `released.android` says `1.2.54`; an older Android output-metadata file reports version code 19 / version name 1.2.7 while current Gradle sources use version code 74 / version name 1.2.62. Confirm the intended package/bundle identifiers, signing ownership, monotonic version codes, release channel, and metadata, then generate and inspect a release-signed AAB/IPA from clean sources. The audit APK is a debug-only build and is not a store artifact.
+
+### P1 — Complete the release account and testing path
+
+No store account or listing was inspected. Google currently documents a one-time US$25 Play Console registration fee and identity verification. Personal Play accounts created after 2023-11-13 must complete a closed test with at least 12 continuously opted-in testers for 14 days before applying for production access. Apple's Developer Program is US$99 per membership year (local currency may apply). See [Play Console setup](https://support.google.com/googleplay/android-developer/answer/6112435?hl=en-en), [Play testing requirements](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en), and [Apple membership](https://developer.apple.com/support/compare-memberships/). Account identity, payments, and acceptance of developer agreements must be completed by the account owner.
+
+### P2 — Reduce bundle and offline-cache cost
+
+The production build warns that key chunks are large: `miracles` is about **972 kB** uncompressed, React vendor about **857 kB**, and Three vendor about **671 kB**. The PWA precache is about **27.8 MB across 284 entries**. Measure cold-start and memory on lower-end phones; lazy-load the Three/miracle path and other route-only code, split vendor chunks based on measured use, set an explicit offline storage budget, and validate cache eviction and upgrade behavior. Keep the current visual design while improving loading and memory behavior.
+
+### P2 — Address dependency advisories deliberately
+
+`npm audit` reports **31 total advisories**, including a critical development-tree `tar` advisory and high-severity transitive tooling issues; the production tree reports 5 advisories (1 high, 4 moderate). Some fixes may require major framework/build-tool changes. Identify reachability and affected build/runtime surfaces, upgrade in a dedicated tested dependency phase, then rerun build, tests, Android, and iOS validation. Do not equate a development-only advisory with production exploitability, but do not leave the critical advisory without a documented disposition.
+
+### P2 — Improve quality-gate signal and browser coverage
+
+Lint has no errors but still emits 100 warnings. The route smoke pass verified rendering and targeted state transitions, not screen-reader navigation, keyboard-only operation, contrast, all RTL layouts, permission-denial recovery, or every workflow. Add focused accessibility and interaction tests for sign-in/restore, prayer settings, onboarding, reader/audio, reminders, and deletion; exercise representative small/large screens and offline cold starts. The offline navigation and cached-audio changes still need true airplane-mode device verification.
+
+### P2 — Review religious-source accuracy and attribution
+
+The Quran page map and selected bundled integrity checks are verified, but the audit did not validate every Quran translation, Hadith grade, adhkar attribution, or Ijaz/scientific claim against primary sources and qualified scholarship. In particular, scientific-miracle claims should cite their source and be reviewed by a qualified subject-matter editor before being presented as established fact. Preserve Arabic text and existing app design while correcting any verified content errors.
+
+## API, database, and data inventory
+
+| Surface | Current role | Audit status |
+|---|---|---|
+| Supabase Auth / `athar_sync` | Sign-in, account-scoped cloud sync, leaderboard edge functions | Safe probes restricted by HTTP 402; no live schema/RLS mutation tests possible |
+| Supabase Companion function → MiniMax | AI answers and related tools | Paid upstream is reachable without sufficient durable authorization/quota; release blocker |
+| Aladhan | City/GPS prayer-time lookup | Client call reviewed; timeout and recent-GPS offline fallback fixed. Verify privacy wording and live provider behavior |
+| Quran Foundation | Optional hosted translations/content | Endpoint/auth/response assumptions need rework; keep credentials server-side |
+| EveryAyah | Recitation audio | Unified browser cache and honest partial-download messaging fixed; offline playback needs airplane-mode verification and source/rights review |
+| Overpass / mosque search | Nearby mosque lookup | Static integration inventory only; offline cache, provider reliability, and privacy behavior need dedicated checks |
+| Browser storage / IndexedDB | Progress, Hadith notes, custom reminders/packs, offline content | Backup/restore fixes covered by tests; cross-browser quota eviction and private-mode recovery remain unverified |
+| Service worker / GitHub Pages | PWA navigation, precache, runtime caching, deployment | Build succeeds; new offline app-shell fallback is not yet verified in airplane mode or across an upgrade from an old cache |
+
+No production database dump was available because the hosted project was restricted. Table-level RLS claims, existing user-row ownership, deployed function versions, backup/restore, quotas, and observability therefore remain **unverified against production**.
+
+## Recommended next phases
+
+1. Close the Companion abuse path with server-side authentication, quotas, payload limits, and spend controls; deploy only after abuse tests pass.
+2. Restore Supabase availability; test schema, RLS, sync, identity ownership, existing-row recovery, and edge functions in staging; then schedule the reviewed migration/deploy.
+3. Replace the broken hosted translation integration with the current authenticated server-side API contract and accurate UI state.
+4. Finish iOS URL routing, required login alternative, privacy manifests, account deletion, native share configuration, and physical-device testing.
+5. Correct prayer notification horizon and Android permission/reboot/time-change cases; verify PWA and audio offline behavior on real devices.
+6. Reconcile store metadata and signing/version identity; prepare listing/privacy assets, tester recruitment, and signed release bundles.
+7. Upgrade vulnerable dependencies, reduce startup/cache weight, eliminate lint warnings, and expand accessibility and content-source review.
+
+## Audit limits
+
+This pass makes no claim that the app is already top-ranked or that any store will approve it. No account was created, no credential or personal identifier was read, no payment or legal agreement was accepted, and no production schema/function deployment or user-data write was performed. Release account enrollment, identity verification, payment, signing custody, legal terms, and final store submission require the owner's account and decision. The old `AUDIT_REPORT_2026-07-19.md` remains a historical report for an earlier version; its findings need revalidation before being treated as current.

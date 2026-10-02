@@ -13,7 +13,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
-    "lint": "eslint .",
+    "lint": "eslint src supabase/functions vite.config.ts capacitor.config.ts --ext .ts,.tsx",
     "test": "vitest run",
     "verify": "npm run lint && npm run test && npm run build",
     "release:web": "npm run verify",
