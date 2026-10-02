@@ -128,11 +128,17 @@ export default defineConfig(({ mode }) => {
       },
       injectManifest: {
         injectionPoint: "self.__WB_MANIFEST",
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}", "data/*.json"],
-        globIgnores: ["**/data/hadith/**"],
+        globPatterns: [
+          "**/*.{js,css,html,ico,png,svg,woff2}",
+          "data/adhkar.json",
+          "data/quran.json",
+          "data/quran_page_map.json",
+          "data/quran-en-sahih.json",
+          "data/hadith/index.json",
+        ],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       },
-      includeAssets: ["icons/*", "lottie/*", "data/*", "data/**/*"],
+      includeAssets: ["icons/*", "lottie/*"],
       manifest: {
         name: "Athar — Adhkar",
         short_name: "Athar",

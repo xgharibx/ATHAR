@@ -11,6 +11,10 @@ name: iOS Build
 #   APPSTORE_ISSUER_ID       — App Store Connect API issuer ID
 #   APPSTORE_PRIVATE_KEY     — contents of the App Store Connect API .p8 key
 on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       upload:
@@ -20,7 +24,7 @@ on:
 
 jobs:
   ios:
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +37,9 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      - name: Check Xcode version
+        run: xcodebuild -version
 
       - name: Check account-backed Companion config
         run: |

@@ -28,7 +28,7 @@ import java.util.Locale;
  */
 public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
 
-    // Broadcast actions — also declared as intent-filter actions in AndroidManifest
+    // Private actions handled by WidgetActionReceiver; providers expose lifecycle only.
     public static final String ACTION_INCREMENT = "com.athar.adhkar.TASBEEH_INCREMENT";
     public static final String ACTION_RESET     = "com.athar.adhkar.TASBEEH_RESET";
     public static final String ACTION_NEXT      = "com.athar.adhkar.TASBEEH_NEXT";
@@ -100,18 +100,13 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        // Counter mutations arrive through WidgetActionReceiver, which is not exported.
+        // This exported AppWidgetProvider only handles launcher/system lifecycle events.
         super.onReceive(context, intent);
-        try {
-            handleAction(context, intent);
-        } catch (Throwable t) {
-            // Same "never surface couldn't load widget" contract as
-            // onUpdate — this is the most frequently invoked path (every
-            // tap), so it needs the same crash guard, not just the passive
-            // update path.
-        }
     }
 
-    private void handleAction(Context context, Intent intent) {
+    static void handleWidgetAction(Context context, Intent intent) {
+        if (intent == null) return;
         final String action = intent.getAction();
         if (!ACTION_INCREMENT.equals(action)
                 && !ACTION_RESET.equals(action)
@@ -134,8 +129,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
                 break;
             }
         }
-        // This receiver is exported so the launcher can deliver widget taps.
-        // Do not let arbitrary broadcasts manufacture leaderboard activity.
+        // Defense in depth: only installed widget IDs may update local counters.
         if (!installedWidget) return;
 
         SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
@@ -215,7 +209,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
             widgetDark, sz[0], sz[1], System.currentTimeMillis() / 60000);
 
         // Central tap zone → increment
-        Intent incIntent = new Intent(context, NoorTasbeehWidgetProvider.class)
+        Intent incIntent = new Intent(context, WidgetActionReceiver.class)
             .setAction(ACTION_INCREMENT)
             .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
         PendingIntent incPi = PendingIntent.getBroadcast(
@@ -224,7 +218,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         views.setOnClickPendingIntent(R.id.tasbeeh_tap_zone, incPi);
 
         // Reset button
-        Intent resetIntent = new Intent(context, NoorTasbeehWidgetProvider.class)
+        Intent resetIntent = new Intent(context, WidgetActionReceiver.class)
             .setAction(ACTION_RESET)
             .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
         PendingIntent resetPi = PendingIntent.getBroadcast(
@@ -233,7 +227,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
         views.setOnClickPendingIntent(R.id.tasbeeh_reset_zone, resetPi);
 
         // Next dhikr button
-        Intent nextIntent = new Intent(context, NoorTasbeehWidgetProvider.class)
+        Intent nextIntent = new Intent(context, WidgetActionReceiver.class)
             .setAction(ACTION_NEXT)
             .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
         PendingIntent nextPi = PendingIntent.getBroadcast(

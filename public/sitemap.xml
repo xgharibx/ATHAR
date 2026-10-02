@@ -66,7 +66,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.athark.org/hadith-memo</loc>
+    <loc>https://www.athark.org/hadith/memo</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -76,7 +76,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.athark.org/quran-plans</loc>
+    <loc>https://www.athark.org/quran/plans</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -86,7 +86,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.athark.org/wudu-guide</loc>
+    <loc>https://www.athark.org/wudu</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -96,12 +96,12 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.athark.org/videos</loc>
+    <loc>https://www.athark.org/video-library</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.athark.org/nearby-mosques</loc>
+    <loc>https://www.athark.org/mosques</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

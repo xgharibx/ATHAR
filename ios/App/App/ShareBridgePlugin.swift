@@ -100,22 +100,39 @@ public class ShareBridgePlugin: CAPPlugin, CAPBridgedPlugin {
             }
         }
 
-        let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
-        switch status {
-        case .authorized, .limited:
-            save()
-        case .notDetermined:
-            PHPhotoLibrary.requestAuthorization(for: .addOnly) { granted in
-                if granted == .authorized || granted == .limited {
-                    save()
-                } else {
-                    // Rejecting lets the JS fall back to the share sheet, where
-                    // "Save Image" needs no library permission at all.
-                    call.reject("photo library permission denied")
+        if #available(iOS 14.0, *) {
+            let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+            switch status {
+            case .authorized, .limited:
+                save()
+            case .notDetermined:
+                PHPhotoLibrary.requestAuthorization(for: .addOnly) { granted in
+                    if granted == .authorized || granted == .limited {
+                        save()
+                    } else {
+                        call.reject("photo library permission denied")
+                    }
                 }
+            default:
+                call.reject("photo library permission denied")
             }
-        default:
-            call.reject("photo library permission denied")
+        } else {
+            // iOS 13 has only the read/write Photos authorization API. Keep this
+            // legacy branch narrowly scoped to the user's explicit save action.
+            switch PHPhotoLibrary.authorizationStatus() {
+            case .authorized:
+                save()
+            case .notDetermined:
+                PHPhotoLibrary.requestAuthorization { granted in
+                    if granted == .authorized {
+                        save()
+                    } else {
+                        call.reject("photo library permission denied")
+                    }
+                }
+            default:
+                call.reject("photo library permission denied")
+            }
         }
     }
 }

@@ -11,8 +11,8 @@ const config: CapacitorConfig = {
     },
   },
   android: {
-    // Allow the Capacitor server to handle all paths for React Router
-    allowMixedContent: true,
+    // Keep insecure HTTP resources blocked inside the secure Capacitor WebView.
+    allowMixedContent: false,
     // Ensure the WebView's background matches our dark theme while bootstrapping
     backgroundColor: "#0a0c12",
   },

@@ -4,6 +4,8 @@
 <dict>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>لحفظ صور الأذكار والآيات التي تختار مشاركتها في معرض الصور.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>لحفظ صور الأذكار والآيات التي تختارها في مكتبة الصور على إصدارات iOS الأقدم.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>

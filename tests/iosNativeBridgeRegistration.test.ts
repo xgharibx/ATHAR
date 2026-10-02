@@ -18,4 +18,14 @@ describe("iOS native bridge registration", () => {
     expect(controller).toContain("registerPluginInstance(AuthBridgePlugin())");
     expect(controller).toContain("registerPluginInstance(ShareBridgePlugin())");
   });
+
+  it("keeps photo saving available on iOS 13 while using add-only access on iOS 14+", () => {
+    const plugin = readFileSync(resolve(process.cwd(), "ios/App/App/ShareBridgePlugin.swift"), "utf8");
+    const info = readFileSync(resolve(process.cwd(), "ios/App/App/Info.plist"), "utf8");
+
+    expect(plugin).toContain("if #available(iOS 14.0, *)");
+    expect(plugin).toContain("PHPhotoLibrary.authorizationStatus()");
+    expect(plugin).toContain("PHPhotoLibrary.requestAuthorization {");
+    expect(info).toContain("<key>NSPhotoLibraryUsageDescription</key>");
+  });
 });

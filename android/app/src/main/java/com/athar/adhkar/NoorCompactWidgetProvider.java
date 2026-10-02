@@ -70,20 +70,28 @@ public class NoorCompactWidgetProvider extends AtharWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        // Counter mutations arrive through WidgetActionReceiver, which is not exported.
+        // This exported AppWidgetProvider only handles launcher/system lifecycle events.
         super.onReceive(context, intent);
-        try {
-            handleAction(context, intent);
-        } catch (Throwable t) {
-            // Same crash guard as onUpdate — this fires on every tap.
-        }
     }
 
-    private void handleAction(Context context, Intent intent) {
-        if (!ACTION_INCREMENT.equals(intent.getAction())) return;
+    static void handleWidgetAction(Context context, Intent intent) {
+        if (intent == null || !ACTION_INCREMENT.equals(intent.getAction())) return;
 
         int widgetId = intent.getIntExtra(
             AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
         if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) return;
+
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        boolean installedWidget = false;
+        for (int installedId : manager.getAppWidgetIds(
+                new android.content.ComponentName(context, NoorCompactWidgetProvider.class))) {
+            if (installedId == widgetId) {
+                installedWidget = true;
+                break;
+            }
+        }
+        if (!installedWidget) return;
 
         SharedPreferences prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
         checkDayReset(prefs, widgetId);
@@ -92,10 +100,10 @@ public class NoorCompactWidgetProvider extends AtharWidgetProvider {
         prefs.edit().putInt(keyCount(widgetId), count).apply();
         NoorTasbeehWidgetProvider.bumpDailyTotal(context, todaysPhrase());
 
-        updateSingle(context, AppWidgetManager.getInstance(context), widgetId, prefs);
+        updateSingle(context, manager, widgetId, prefs);
     }
 
-    private void updateSingle(
+    private static void updateSingle(
             Context context, AppWidgetManager manager, int appWidgetId, SharedPreferences prefs) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.noor_widget_compact);
 
@@ -116,7 +124,7 @@ public class NoorCompactWidgetProvider extends AtharWidgetProvider {
             new int[]{ R.id.compact_stars, R.id.compact_stars_2, R.id.compact_stars_3 },
             widgetDark, sz[0], sz[1], System.currentTimeMillis() / 60000);
 
-        Intent incIntent = new Intent(context, NoorCompactWidgetProvider.class)
+        Intent incIntent = new Intent(context, WidgetActionReceiver.class)
             .setAction(ACTION_INCREMENT)
             .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
         PendingIntent incPi = PendingIntent.getBroadcast(

@@ -149,13 +149,28 @@ registerRoute(
   }),
 );
 registerRoute(
-  ({ url }) => /\/data\/hadith\/.*\.json$/.test(url.pathname),
+  ({ url }) => url.origin === self.location.origin && /\/data\/hadith\/.*\.json$/.test(url.pathname),
   new NetworkFirst({
     cacheName: "athar-hadith-packs",
+    networkTimeoutSeconds: 3,
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({
-        maxEntries: 15,
+        maxEntries: 4,
+        maxAgeSeconds: 60 * 60 * 24 * 90,
+      }),
+    ],
+  }),
+);
+registerRoute(
+  ({ url }) => url.origin === self.location.origin && /\/data\/(?!hadith\/).*\.json$/.test(url.pathname),
+  new NetworkFirst({
+    cacheName: "athar-content-packs",
+    networkTimeoutSeconds: 3,
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({
+        maxEntries: 4,
         maxAgeSeconds: 60 * 60 * 24 * 90,
       }),
     ],

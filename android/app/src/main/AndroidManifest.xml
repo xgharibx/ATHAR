@@ -107,6 +107,11 @@
                 android:resource="@xml/widget_dashboard_info" />
         </receiver>
 
+        <!-- Internal endpoint for taps on the interactive widget controls -->
+        <receiver
+            android:name=".WidgetActionReceiver"
+            android:exported="false" />
+
         <!-- Compact Daily Widget (2×1) -->
         <receiver
             android:name=".NoorCompactWidgetProvider"
@@ -114,7 +119,6 @@
             android:label="@string/widget_compact_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.athar.adhkar.COMPACT_INCREMENT" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -154,9 +158,6 @@
             android:label="@string/widget_tasbeeh_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.athar.adhkar.TASBEEH_INCREMENT" />
-                <action android:name="com.athar.adhkar.TASBEEH_RESET" />
-                <action android:name="com.athar.adhkar.TASBEEH_NEXT" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -201,7 +202,6 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <!-- Sebha voice counting -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />

@@ -24,16 +24,26 @@ beforeEach(() => {
 });
 
 describe("touch devices", () => {
-  it("refuses iOS Safari's pinch-zoom gestures", async () => {
+  it("allows Safari's pinch-zoom gesture so the page stays readable", async () => {
     setPointer(true);
     const { installAppShellBehaviour } = await import("@/lib/appShellBehaviour");
     const stop = installAppShellBehaviour();
 
-    // Safari's non-standard gesture events are the ONLY way to block pinch on
-    // iOS — it has ignored user-scalable=no since iOS 10.
     const e = new Event("gesturestart", { cancelable: true, bubbles: true });
     document.dispatchEvent(e);
-    expect(e.defaultPrevented).toBe(true);
+    expect(e.defaultPrevented).toBe(false);
+    stop();
+  });
+
+  it("allows multi-touch zoom outside app-managed surfaces", async () => {
+    setPointer(true);
+    const { installAppShellBehaviour } = await import("@/lib/appShellBehaviour");
+    const stop = installAppShellBehaviour();
+
+    const e = new Event("touchmove", { cancelable: true, bubbles: true }) as TouchEvent;
+    Object.defineProperty(e, "touches", { value: [{}, {}] });
+    document.dispatchEvent(e);
+    expect(e.defaultPrevented).toBe(false);
     stop();
   });
 
