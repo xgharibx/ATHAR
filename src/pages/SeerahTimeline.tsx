@@ -11,18 +11,19 @@ import {
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 const SEERAH_BOOKMARKS_KEY = "noor_seerah_bookmarks";
 
 function loadBookmarks(): Set<string> {
   try {
-    const v = localStorage.getItem(SEERAH_BOOKMARKS_KEY);
+    const v = accountScopedLocalStorage.getItem(SEERAH_BOOKMARKS_KEY);
     return v ? new Set(JSON.parse(v) as string[]) : new Set();
   } catch { return new Set(); }
 }
 
 function saveBookmarks(s: Set<string>) {
-  localStorage.setItem(SEERAH_BOOKMARKS_KEY, JSON.stringify([...s]));
+  accountScopedLocalStorage.setItem(SEERAH_BOOKMARKS_KEY, JSON.stringify([...s]));
 }
 
 function BookCard({

@@ -18,11 +18,12 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { DUAS_CATEGORIES } from "@/data/duas";
 import { PROPHET_STORIES } from "@/data/prophetStories";
 import { COMPANIONS } from "@/data/companions";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 function useLocalBookmarkSet(key: string): [Set<string>, (id: string) => void] {
   const [ids, setIds] = React.useState<Set<string>>(() => {
     try {
-      const v = localStorage.getItem(key);
+      const v = accountScopedLocalStorage.getItem(key);
       return v ? new Set(JSON.parse(v) as string[]) : new Set();
     } catch { return new Set(); }
   });
@@ -30,7 +31,7 @@ function useLocalBookmarkSet(key: string): [Set<string>, (id: string) => void] {
     setIds((prev) => {
       const next = new Set(prev);
       next.delete(id);
-      localStorage.setItem(key, JSON.stringify([...next]));
+      accountScopedLocalStorage.setItem(key, JSON.stringify([...next]));
       return next;
     });
   }, [key]);

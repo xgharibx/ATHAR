@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, ChevronUp, Search, X, Bookmark, BookmarkCheck,
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 /** Shared shape for every knowledge-library entry (mirrors ProphetStory). */
 export type KnowledgeEntry = {
@@ -30,13 +31,13 @@ export type KnowledgeSectionConfig = {
 
 function loadBookmarks(key: string): Set<string> {
   try {
-    const v = localStorage.getItem(key);
+    const v = accountScopedLocalStorage.getItem(key);
     return v ? new Set(JSON.parse(v) as string[]) : new Set();
   } catch { return new Set(); }
 }
 
 function saveBookmarks(key: string, s: Set<string>) {
-  localStorage.setItem(key, JSON.stringify([...s]));
+  accountScopedLocalStorage.setItem(key, JSON.stringify([...s]));
 }
 
 function EntryCard({

@@ -9,6 +9,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useNoorStore } from "@/store/noorStore";
+import { setAccountStorageOwner } from "@/lib/accountStorageScope";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -27,10 +28,10 @@ import { mergeTasbeehFromWidget } from "@/lib/tasbeehWidgetSync";
 const TOTALS_KEY = "noor_widget_tasbeeh_totals_v1";
 const TODAY = "2026-07-19";
 
-function setWidgetTotals(counts: Record<string, number>, date = TODAY) {
+function setWidgetTotals(counts: Record<string, number>, date = TODAY, owner = "local") {
   mocks.mockPreferencesGet.mockImplementation(async ({ key }: { key: string }) => {
     if (key === TOTALS_KEY) {
-      return { value: JSON.stringify({ date, counts, total: Object.values(counts).reduce((a, b) => a + b, 0) }) };
+      return { value: JSON.stringify({ date, owner, counts, total: Object.values(counts).reduce((a, b) => a + b, 0) }) };
     }
     return { value: null };
   });
@@ -39,6 +40,7 @@ function setWidgetTotals(counts: Record<string, number>, date = TODAY) {
 describe("mergeTasbeehFromWidget", () => {
   beforeEach(() => {
     localStorage.clear();
+    setAccountStorageOwner("local");
     mocks.mockCapacitor.getPlatform.mockReturnValue("android");
     mocks.mockPreferencesGet.mockReset();
     mocks.mockPreferencesGet.mockResolvedValue({ value: null });
@@ -103,5 +105,16 @@ describe("mergeTasbeehFromWidget", () => {
     await mergeTasbeehFromWidget();
     expect(useNoorStore.getState().tasbeehLifetime.subhanallah).toBe(10);
     expect(useNoorStore.getState().tasbeehLifetime.alhamdulillah).toBe(20);
+  });
+
+  it("rebases installation-wide widget totals when the account owner changes", async () => {
+    setAccountStorageOwner("user:account-b");
+    setWidgetTotals({ subhanallah: 33 }, TODAY, "user:account-a");
+    await mergeTasbeehFromWidget();
+    expect(useNoorStore.getState().tasbeehLifetime).toEqual({});
+
+    setWidgetTotals({ subhanallah: 40 }, TODAY, "user:account-b");
+    await mergeTasbeehFromWidget();
+    expect(useNoorStore.getState().tasbeehLifetime.subhanallah).toBe(7);
   });
 });

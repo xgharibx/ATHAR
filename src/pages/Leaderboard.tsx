@@ -35,6 +35,7 @@ import {
   type LeaderboardAdminUserModeration, LEADERBOARD_SUBMITTED_EVENT, BOARD_REFRESH_MS } from "@/lib/leaderboard";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum, arFullDate } from "@/lib/formatNumber";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 
 const COOLDOWN_MS = 45_000;
@@ -68,11 +69,11 @@ export function LeaderboardPage() {
   const [syncState, setSyncState] = React.useState<"idle" | "syncing" | "ok" | "error" | "cooldown">("idle");
   const [syncHint, setSyncHint] = React.useState("");
   const [lastSubmitAt, setLastSubmitAt] = React.useState(() => {
-    try { return Number(localStorage.getItem(LAST_SUBMIT_KEY) ?? "0"); } catch { return 0; }
+    try { return Number(accountScopedLocalStorage.getItem(LAST_SUBMIT_KEY) ?? "0"); } catch { return 0; }
   });
   const persistLastSubmitAt = React.useCallback((ts: number) => {
     setLastSubmitAt(ts);
-    try { localStorage.setItem(LAST_SUBMIT_KEY, String(ts)); } catch { /* ignore */ }
+    try { accountScopedLocalStorage.setItem(LAST_SUBMIT_KEY, String(ts)); } catch { /* ignore */ }
   }, []);
   const [cooldownLeft, setCooldownLeft] = React.useState(0);
   const [serverHidden, setServerHidden] = React.useState(false);

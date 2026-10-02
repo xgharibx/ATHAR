@@ -46,6 +46,9 @@ export function AccountPanel() {
   const [busy, setBusy] = React.useState<null | "google" | "email" | "out" | "delete">(null);
   const [linkSent, setLinkSent] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [showSignOutAnyway, setShowSignOutAnyway] = React.useState(false);
+
+  React.useEffect(() => setShowSignOutAnyway(false), [session?.user?.id]);
 
   if (!configured || !isAuthConfigured()) return null;
 
@@ -70,14 +73,25 @@ export function AccountPanel() {
     }
   };
 
-  const doSignOut = async () => {
+  const doSignOut = async (keepLocalOnly = false) => {
     setBusy("out");
     // Push anything still sitting in the debounce window first, or the last few
     // minutes of dhikr would only exist on this device.
-    await flushCloudSync();
+    const flushed = keepLocalOnly ? false : await flushCloudSync();
+    if (!flushed && !keepLocalOnly) {
+      setBusy(null);
+      setShowSignOutAnyway(true);
+      toast.error("لم تكتمل المزامنة بعد. ابقَ مسجّل الدخول وأعد المحاولة عند توفر الاتصال.");
+      return;
+    }
     const res = await signOut();
     setBusy(null);
-    if (res.ok) toast("تم تسجيل الخروج — بياناتك على هذا الجهاز كما هي", { icon: "👋" });
+    if (res.ok) {
+      setShowSignOutAnyway(false);
+      toast(keepLocalOnly
+        ? "تم تسجيل الخروج — بقيت تغييراتك على هذا الجهاز وستُزامن عند دخولك مجددًا"
+        : "تم تسجيل الخروج — بياناتك على هذا الجهاز كما هي", { icon: "👋" });
+    }
     else toast.error(res.error ?? "تعذّر تسجيل الخروج");
   };
 
@@ -108,7 +122,8 @@ export function AccountPanel() {
             مسجَّل الدخول باسم <span className="font-semibold text-[var(--accent)]">{displayNameOf(user)}</span>
           </p>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            تُحفظ أذكارك وسلسلتك ومفضلتك وتذكيراتك في حسابك، وتعود معك على أي جهاز.
+            تُزامن أنشطتك وإعداداتك بين أجهزتك: تقدم الأذكار والقرآن والحديث، المفضلة والملاحظات، سجلات الصلاة، المدن المفضلة، التذكيرات والحزم المخصصة.
+            محادثات الرفيق لا تدخل في المزامنة؛ يمكنك اختيار نقلها لهذا الجهاز والحساب فقط. وعند استخدام الرفيق، تُرسل الرسائل اللازمة إلى خدمته لإعداد الرد.
           </p>
 
           <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2">
@@ -153,7 +168,16 @@ export function AccountPanel() {
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={doSignOut}
+              onClick={() => window.dispatchEvent(new Event("athar-request-data-import"))}
+              disabled={busy !== null}
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2 text-xs font-semibold transition active:scale-95 disabled:opacity-50"
+            >
+              نسخ بيانات الجهاز إلى الحساب
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void doSignOut()}
               disabled={busy !== null}
               className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2 text-xs font-semibold transition active:scale-95 disabled:opacity-50"
             >
@@ -171,6 +195,22 @@ export function AccountPanel() {
               حذف الحساب
             </button>
           </div>
+
+          {showSignOutAnyway && (
+            <div className="mt-3 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] p-3" role="status">
+              <p className="text-xs leading-relaxed text-[var(--muted)]">
+                لم تُرفع أحدث التغييرات بعد. يمكنك إعادة المحاولة أو تسجيل الخروج مع إبقائها على هذا الجهاز.
+              </p>
+              <button
+                type="button"
+                onClick={() => void doSignOut(true)}
+                disabled={busy !== null}
+                className="mt-2 min-h-[44px] rounded-xl border border-[var(--stroke)] px-3 py-2 text-xs font-semibold disabled:opacity-50"
+              >
+                تسجيل الخروج مع الاحتفاظ بالتغييرات هنا
+              </button>
+            </div>
+          )}
 
           {confirmDelete ? (
             <div className="mt-3 rounded-xl border border-danger-30 bg-danger-15 p-3">

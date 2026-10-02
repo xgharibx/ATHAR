@@ -11,6 +11,7 @@ import { syncSunnahWidget } from "@/lib/widgetDataBridge";
 import toast from "react-hot-toast";
 import { arNum } from "@/lib/formatNumber";
 import { shareText } from "@/lib/shareTargets";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 
 function dateIndex(dateKey: string, length: number, offset = 0): number {
@@ -47,7 +48,7 @@ type PersistedShuffle = {
 
 function readPersistedShuffle(dateKey: string): PersistedShuffle | null {
   try {
-    const raw = localStorage.getItem(SHUFFLE_PERSIST_KEY);
+    const raw = accountScopedLocalStorage.getItem(SHUFFLE_PERSIST_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedShuffle;
     if (!parsed || parsed.dateKey !== dateKey) return null;
@@ -59,7 +60,7 @@ function readPersistedShuffle(dateKey: string): PersistedShuffle | null {
 
 function writePersistedShuffle(state: PersistedShuffle): void {
   try {
-    localStorage.setItem(SHUFFLE_PERSIST_KEY, JSON.stringify(state));
+    accountScopedLocalStorage.setItem(SHUFFLE_PERSIST_KEY, JSON.stringify(state));
   } catch {
     // non-fatal — worst case a restart loses the shuffle position
   }

@@ -1,3 +1,5 @@
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+
 type UxMetricsStore = {
   events: Record<string, number>;
   variant?: "A" | "B";
@@ -8,7 +10,7 @@ const UX_METRICS_KEY = "noor_ux_metrics_v1";
 function readStore(): UxMetricsStore {
   if (typeof window === "undefined") return { events: {} };
   try {
-    const raw = localStorage.getItem(UX_METRICS_KEY);
+    const raw = accountScopedLocalStorage.getItem(UX_METRICS_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
     if (!parsed || typeof parsed !== "object") return { events: {} };
     return {
@@ -23,7 +25,7 @@ function readStore(): UxMetricsStore {
 function writeStore(store: UxMetricsStore) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(UX_METRICS_KEY, JSON.stringify(store));
+    accountScopedLocalStorage.setItem(UX_METRICS_KEY, JSON.stringify(store));
   } catch {
     // ignore storage errors
   }

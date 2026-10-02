@@ -14,6 +14,7 @@ import { useQuranPageMap } from "@/data/useQuranPageMap";
 import { useQuranPageIndex } from "@/data/useQuranPageIndex";
 import { buildPageIndexForCache } from "@/data/pageIndexBuilder";
 import { useNoorStore } from "@/store/noorStore";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { getHizbForAyah, getJuzForAyah, getSurahJuz, getSurahRevelationLabel, toArabicNumeral } from "@/lib/quranMeta";
 import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import type { TranslationId } from "@/lib/quranTranslations";
@@ -561,13 +562,13 @@ export function MushafPage() {
   const [loopCount, setLoopCount] = React.useState(3); // -1=∞
   const [playbackSpeed, setPlaybackSpeed] = React.useState(1);
   const [audioVolume, setAudioVolume] = React.useState<number>(() => {
-    try { const raw = localStorage.getItem("noor_mushaf_volume"); return raw === null ? 1 : Math.max(0, Math.min(1, parseFloat(raw) || 1)); } catch { return 1; }
+    try { const raw = accountScopedLocalStorage.getItem("noor_mushaf_volume"); return raw === null ? 1 : Math.max(0, Math.min(1, parseFloat(raw) || 1)); } catch { return 1; }
   });
   React.useEffect(() => {
     if (audioRef.current) audioRef.current.volume = audioVolume;
   }, [audioVolume]);
   React.useEffect(() => {
-    try { localStorage.setItem("noor_mushaf_volume", String(audioVolume)); } catch { /* ignore */ }
+    try { accountScopedLocalStorage.setItem("noor_mushaf_volume", String(audioVolume)); } catch { /* ignore */ }
   }, [audioVolume]);
   const [autoAdvance, setAutoAdvance] = React.useState(false);
 

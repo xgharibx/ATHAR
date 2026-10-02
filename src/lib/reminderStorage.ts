@@ -12,6 +12,7 @@
  */
 import Dexie, { type Table } from "dexie";
 import type { CustomReminder, ReminderCategory, ReminderRepeat, ReminderWeekday } from "@/data/reminderTypes";
+import { accountScopedDatabaseName, getAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
 
 interface ReminderKeyValueRow {
   key: string;
@@ -25,16 +26,35 @@ const REMINDERS_TEMPLATES_KEY = "noor_custom_reminders_v1:templates_seen";
 
 class NoorRemindersDexie extends Dexie {
   kv!: Table<ReminderKeyValueRow, string>;
-  constructor() {
-    super(REMINDERS_DB_NAME);
+  constructor(name: string) {
+    super(name);
     this.version(1).stores({ kv: "key" });
   }
 }
 
-let _db: NoorRemindersDexie | null = null;
-function getDB(): NoorRemindersDexie {
-  if (!_db) _db = new NoorRemindersDexie();
-  return _db;
+const _dbs = new Map<string, NoorRemindersDexie>();
+function getDB(owner: AccountStorageOwner = getAccountStorageOwner()): NoorRemindersDexie {
+  const name = accountScopedDatabaseName(REMINDERS_DB_NAME, owner);
+  let db = _dbs.get(name);
+  if (!db) {
+    db = new NoorRemindersDexie(name);
+    _dbs.set(name, db);
+  }
+  return db;
+}
+
+/** Copy legacy reminder records into an account while preserving both copies. */
+export async function copyReminderDataBetweenOwners(
+  sourceOwner: AccountStorageOwner,
+  targetOwner: AccountStorageOwner,
+): Promise<void> {
+  if (sourceOwner === targetOwner) return;
+  const source = getDB(sourceOwner);
+  const target = getDB(targetOwner);
+  const [sourceRows, targetRows] = await Promise.all([source.kv.toArray(), target.kv.toArray()]);
+  const existingKeys = new Set(targetRows.map((row) => row.key));
+  const missing = sourceRows.filter((row) => !existingKeys.has(row.key));
+  if (missing.length > 0) await target.kv.bulkPut(missing);
 }
 
 async function kvGet<T>(key: string): Promise<T | null> {

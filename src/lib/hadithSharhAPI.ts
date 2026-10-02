@@ -13,6 +13,7 @@
  * first view without any network — see the bundle loader below. Anything not
  * in the bundle still falls back to a live hadeethenc fetch.
  */
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { publicDataUrl } from "@/data/publicAssetUrl";
 
 const BASE = "https://hadeethenc.com/api/v1";
@@ -205,7 +206,7 @@ const RECENT_MAX = 80;
 
 function getRecentIds(): string[] {
   try {
-    const raw = localStorage.getItem(RECENT_KEY);
+    const raw = accountScopedLocalStorage.getItem(RECENT_KEY);
     const arr = raw ? (JSON.parse(raw) as unknown) : [];
     return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === "string") : [];
   } catch {
@@ -218,7 +219,7 @@ function pushRecentId(id: string): void {
     const recent = getRecentIds().filter((x) => x !== id);
     recent.push(id);
     while (recent.length > RECENT_MAX) recent.shift();
-    localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+    accountScopedLocalStorage.setItem(RECENT_KEY, JSON.stringify(recent));
   } catch {
     // non-fatal — worst case a shuffle repeats sooner than intended
   }

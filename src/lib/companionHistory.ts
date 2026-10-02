@@ -8,6 +8,7 @@
  */
 import Dexie, { type Table } from "dexie";
 import type { CompanionMessage } from "@/lib/companionAI";
+import { accountScopedDatabaseName, accountScopedLocalStorage, accountScopedStorageKey, getAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
 
 export interface CompanionConversation {
   id: string;
@@ -23,22 +24,45 @@ export interface CompanionConversation {
 class CompanionDexie extends Dexie {
   conversations!: Table<CompanionConversation, string>;
 
-  constructor() {
-    super("athar-companion-v1");
+  constructor(name: string) {
+    super(name);
     this.version(1).stores({ conversations: "id, updatedAt" });
     this.version(2).stores({ conversations: "id, updatedAt, pinned, pinnedAt" });
   }
 }
 
-let _db: CompanionDexie | null = null;
-function getDB(): CompanionDexie {
-  if (!_db) _db = new CompanionDexie();
-  return _db;
+const _dbs = new Map<string, CompanionDexie>();
+function getDB(owner: AccountStorageOwner = getAccountStorageOwner()): CompanionDexie {
+  const name = accountScopedDatabaseName("athar-companion-v1", owner);
+  let db = _dbs.get(name);
+  if (!db) {
+    db = new CompanionDexie(name);
+    _dbs.set(name, db);
+  }
+  return db;
 }
 
-export async function listConversations(): Promise<CompanionConversation[]> {
+/** Copy local-first conversation history into an account without deleting the source. */
+export async function copyConversationsBetweenOwners(
+  sourceOwner: AccountStorageOwner,
+  targetOwner: AccountStorageOwner,
+): Promise<void> {
+  if (sourceOwner === targetOwner) return;
+  const [source, target] = await Promise.all([
+    getDB(sourceOwner).conversations.toArray(),
+    getDB(targetOwner).conversations.toArray(),
+  ]);
+  const merged = new Map(source.map((conversation) => [conversation.id, conversation]));
+  for (const conversation of target) {
+    const current = merged.get(conversation.id);
+    if (!current || conversation.updatedAt >= current.updatedAt) merged.set(conversation.id, conversation);
+  }
+  await getDB(targetOwner).conversations.bulkPut([...merged.values()]);
+}
+
+export async function listConversations(owner: AccountStorageOwner = getAccountStorageOwner()): Promise<CompanionConversation[]> {
   try {
-    return await getDB().conversations.orderBy("updatedAt").reverse().toArray();
+    return await getDB(owner).conversations.orderBy("updatedAt").reverse().toArray();
   } catch {
     return [];
   }
@@ -117,13 +141,13 @@ export type PartialStream = {
 export function savePartialStream(conversationId: string, messages: CompanionMessage[], text: string): void {
   try {
     const payload: PartialStream = { conversationId, messages, text, updatedAt: Date.now() };
-    localStorage.setItem(PARTIAL_KEY, JSON.stringify(payload));
+    accountScopedLocalStorage.setItem(PARTIAL_KEY, JSON.stringify(payload));
   } catch { /* best-effort */ }
 }
 
 export function loadPartialStream(): PartialStream | null {
   try {
-    const raw = localStorage.getItem(PARTIAL_KEY);
+    const raw = accountScopedLocalStorage.getItem(PARTIAL_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PartialStream;
     if (!parsed?.conversationId || !Array.isArray(parsed.messages)) return null;
@@ -135,7 +159,7 @@ export function loadPartialStream(): PartialStream | null {
 }
 
 export function clearPartialStream(): void {
-  try { localStorage.removeItem(PARTIAL_KEY); } catch { /* ignore */ }
+  try { accountScopedLocalStorage.removeItem(PARTIAL_KEY); } catch { /* ignore */ }
 }
 
 /* ─── Local "pins" — saved assistant replies, separate from Favorites ─ */
@@ -149,14 +173,14 @@ export function addPin(text: string): PinnedReply {
   try {
     const arr = listPins();
     arr.unshift(entry);
-    localStorage.setItem(PIN_KEY, JSON.stringify(arr.slice(0, 100)));
+    accountScopedLocalStorage.setItem(PIN_KEY, JSON.stringify(arr.slice(0, 100)));
   } catch { /* ignore */ }
   return entry;
 }
 
-export function listPins(): PinnedReply[] {
+export function listPins(owner: AccountStorageOwner = getAccountStorageOwner()): PinnedReply[] {
   try {
-    const raw = localStorage.getItem(PIN_KEY);
+    const raw = localStorage.getItem(accountScopedStorageKey(PIN_KEY, owner));
     const arr = raw ? (JSON.parse(raw) as PinnedReply[]) : [];
     return Array.isArray(arr) ? arr : [];
   } catch {
@@ -167,6 +191,6 @@ export function listPins(): PinnedReply[] {
 export function removePin(id: string): void {
   try {
     const arr = listPins().filter((p) => p.id !== id);
-    localStorage.setItem(PIN_KEY, JSON.stringify(arr));
+    accountScopedLocalStorage.setItem(PIN_KEY, JSON.stringify(arr));
   } catch { /* ignore */ }
 }

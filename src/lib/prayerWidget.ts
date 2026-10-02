@@ -15,6 +15,7 @@
  */
 
 import { Capacitor } from "@capacitor/core";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 const WIDGET_KEY = "noor_widget_prayer_v2";
 
@@ -128,7 +129,7 @@ export async function syncPrayerWidget(timings: Record<string, string>): Promise
 
   // Always write to localStorage (PWA / web fallback)
   try {
-    localStorage.setItem(WIDGET_KEY, value);
+    accountScopedLocalStorage.setItem(WIDGET_KEY, value);
   } catch {
     // ignore storage errors
   }
@@ -156,7 +157,7 @@ export async function syncPrayerWidget(timings: Record<string, string>): Promise
 /** Read the last written widget payload (useful for debugging). */
 export function readWidgetPayload(): PrayerWidgetPayload | null {
   try {
-    const raw = localStorage.getItem(WIDGET_KEY);
+    const raw = accountScopedLocalStorage.getItem(WIDGET_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as PrayerWidgetPayload;
   } catch {

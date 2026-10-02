@@ -13,11 +13,13 @@
  */
 import { Capacitor } from "@capacitor/core";
 import { useNoorStore } from "@/store/noorStore";
+import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
 
 const TOTALS_KEY = "noor_widget_tasbeeh_totals_v1";
 const MERGED_KEY = "noor_widget_tasbeeh_merged_v1";
 
 type WidgetTotals = {
+  owner?: string;
   date?: string;
   counts?: Record<string, number>;
   total?: number;
@@ -33,9 +35,21 @@ export async function mergeTasbeehFromWidget(): Promise<void> {
     const payload = JSON.parse(value) as WidgetTotals;
     if (!payload?.date || !payload.counts) return;
 
+    const activeOwner = getAccountStorageOwner();
+    const widgetOwner = payload.owner ?? "local";
+    if (widgetOwner !== activeOwner) {
+      // Widget preferences are installation-wide. Rebase after an account
+      // switch so taps made under the previous owner cannot be credited here.
+      accountScopedLocalStorage.setItem(
+        MERGED_KEY,
+        JSON.stringify({ date: payload.date, counts: payload.counts }),
+      );
+      return;
+    }
+
     let merged: WidgetTotals = {};
     try {
-      merged = JSON.parse(localStorage.getItem(MERGED_KEY) ?? "{}") as WidgetTotals;
+      merged = JSON.parse(accountScopedLocalStorage.getItem(MERGED_KEY) ?? "{}") as WidgetTotals;
     } catch {
       // corrupt marker — treat as never merged
     }
@@ -54,7 +68,7 @@ export async function mergeTasbeehFromWidget(): Promise<void> {
 
     useNoorStore.getState().mergeWidgetTasbeeh(payload.date, delta);
     try {
-      localStorage.setItem(
+      accountScopedLocalStorage.setItem(
         MERGED_KEY,
         JSON.stringify({ date: payload.date, counts: payload.counts }),
       );

@@ -6,18 +6,19 @@ import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 
 const LEARNED_KEY = "noor_vocab_learned";
 function loadLearned(): Set<number> {
   try {
-    const v = localStorage.getItem(LEARNED_KEY);
+    const v = accountScopedLocalStorage.getItem(LEARNED_KEY);
     return v ? new Set(JSON.parse(v) as number[]) : new Set();
   } catch { return new Set(); }
 }
 
 function saveLearned(s: Set<number>) {
-  localStorage.setItem(LEARNED_KEY, JSON.stringify([...s]));
+  accountScopedLocalStorage.setItem(LEARNED_KEY, JSON.stringify([...s]));
 }
 
 const STREAK_KEY = "noor_vocab_review_dates";
@@ -29,7 +30,7 @@ function getTodayKey(): string {
 
 function loadReviewDates(): Set<string> {
   try {
-    const v = localStorage.getItem(STREAK_KEY);
+    const v = accountScopedLocalStorage.getItem(STREAK_KEY);
     return v ? new Set(JSON.parse(v) as string[]) : new Set();
   } catch { return new Set(); }
 }
@@ -37,7 +38,7 @@ function loadReviewDates(): Set<string> {
 function recordTodayReview() {
   const dates = loadReviewDates();
   dates.add(getTodayKey());
-  localStorage.setItem(STREAK_KEY, JSON.stringify([...dates]));
+  accountScopedLocalStorage.setItem(STREAK_KEY, JSON.stringify([...dates]));
 }
 
 function computeVocabStreak(): number {

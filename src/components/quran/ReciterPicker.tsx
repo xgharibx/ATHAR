@@ -35,7 +35,7 @@ export function ReciterPicker(props: {
   const current = props.value;
 
   return (
-    <Modal open={props.open} onClose={props.onClose}>
+    <Modal open={props.open} onClose={props.onClose} ariaLabel="اختر القارئ">
       <div className="flex items-center justify-between gap-3 border-b border-[var(--stroke)] p-4">
         <div className="flex items-center gap-2">
           <Volume2 className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
@@ -51,7 +51,6 @@ export function ReciterPicker(props: {
         <div className="relative">
           <Search size={16} aria-hidden="true" className="absolute end-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
           <input
-            autoFocus
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}

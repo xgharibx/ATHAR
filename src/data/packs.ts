@@ -1,5 +1,6 @@
 import { AdhkarDBSchema, SectionSchema, type AdhkarDB, type Section, coerceCount } from "./types";
 import type { z } from "zod";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 const KEY = "noor_data_packs_v1";
 const MY_ADHKAR_PACK_ID = "my_adhkar_pack";
@@ -16,7 +17,7 @@ export type NoorPack = {
 
 export function loadPacks(): NoorPack[] {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = accountScopedLocalStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw); // Avoid direct cast until we validate
     if (!Array.isArray(parsed)) return [];
@@ -47,7 +48,7 @@ export function loadPacks(): NoorPack[] {
 }
 
 export function savePacks(packs: NoorPack[]) {
-  localStorage.setItem(KEY, JSON.stringify(packs));
+  accountScopedLocalStorage.setItem(KEY, JSON.stringify(packs));
 }
 
 export function addCustomDhikrItem(item: { text: string; count: number; benefit?: string; sectionId?: string; sectionTitle?: string }) {
@@ -268,7 +269,7 @@ export function exportDataPacks(): NoorPack[] {
 export function adoptDataPacks(next: unknown): boolean {
   if (!Array.isArray(next)) return false;
   try {
-    const before = localStorage.getItem(KEY);
+    const before = accountScopedLocalStorage.getItem(KEY);
     const cleaned = next.filter(
       (p): p is NoorPack =>
         !!p && typeof p === "object" &&
@@ -277,7 +278,7 @@ export function adoptDataPacks(next: unknown): boolean {
     );
     const after = JSON.stringify(cleaned);
     if (before === after) return false;
-    localStorage.setItem(KEY, after);
+    accountScopedLocalStorage.setItem(KEY, after);
     return true;
   } catch {
     return false;

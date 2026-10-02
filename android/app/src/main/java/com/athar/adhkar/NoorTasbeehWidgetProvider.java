@@ -49,6 +49,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
      * weekly charts, lifetime counters). Read by src/lib/tasbeehWidgetSync.ts.
      */
     static final String TOTALS_KEY = "noor_widget_tasbeeh_totals_v1";
+    static final String OWNER_KEY = "noor_widget_tasbeeh_owner_v1";
 
     // Dhikr names (Arabic) and per-phrase target counts
     private static final String[] DHIKR_AR = {
@@ -268,6 +269,7 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
                 payload = new JSONObject();
                 payload.put("date", today);
             }
+            payload.put("owner", appPrefs.getString(OWNER_KEY, "local"));
             JSONObject counts = payload.optJSONObject("counts");
             if (counts == null) {
                 counts = new JSONObject();

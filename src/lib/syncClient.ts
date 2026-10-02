@@ -18,6 +18,7 @@
  */
 import Dexie, { type Table } from "dexie";
 import { useNoorStore } from "@/store/noorStore";
+import { accountScopedDatabaseName } from "@/lib/accountStorageScope";
 import { getSupabase, getSession } from "@/lib/authClient";
 import { adoptLeaderboardIdentity, exportLeaderboardIdentity } from "@/lib/leaderboard";
 import { adoptDataPacks, exportDataPacks } from "@/data/packs";
@@ -58,16 +59,21 @@ interface Row {
 
 class SyncDexie extends Dexie {
   kv!: Table<Row, string>;
-  constructor() {
-    super(DB_NAME);
+  constructor(name: string) {
+    super(name);
     this.version(1).stores({ kv: "key" });
   }
 }
 
-let _db: SyncDexie | null = null;
+const _dbs = new Map<string, SyncDexie>();
 function db(): SyncDexie {
-  if (!_db) _db = new SyncDexie();
-  return _db;
+  const name = accountScopedDatabaseName(DB_NAME);
+  let instance = _dbs.get(name);
+  if (!instance) {
+    instance = new SyncDexie(name);
+    _dbs.set(name, instance);
+  }
+  return instance;
 }
 
 async function kvGet<T>(key: string): Promise<T | null> {
@@ -536,10 +542,10 @@ export function stopCloudSync(opts?: { forget?: boolean }): void {
 }
 
 /** Push any outstanding edits right now (used before sign-out). */
-export async function flushCloudSync(): Promise<void> {
+export async function flushCloudSync(): Promise<boolean> {
   if (pushTimer) {
     clearTimeout(pushTimer);
     pushTimer = null;
   }
-  await syncNow();
+  return syncNow();
 }

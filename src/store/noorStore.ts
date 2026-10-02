@@ -22,6 +22,13 @@ import { saveCustomReminders } from "@/lib/reminderStorage";
 import type { HadithMemoCard } from "@/data/hadithTypes";
 import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
 import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
+import {
+  accountScopedLocalStorage,
+  getAccountStorageOwner,
+  setAccountStorageOwner,
+  withAccountStorageWritesPaused,
+  type AccountStorageOwner,
+} from "@/lib/accountStorageScope";
 
 /**
  * How many watched shorts to remember.
@@ -2031,7 +2038,11 @@ export const useNoorStore = create<NoorState>()(
     }),
     {
       name: "noor_store_v1",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => accountScopedLocalStorage),
+      skipHydration: true,
+      onRehydrateStorage: () => (_state, error) => {
+        persistHydrationError = error ?? null;
+      },
       // 11A: Exclude hadith user-state fields from localStorage — they live in IDB now.
       //      This prevents 5 MB quota overflow with 36k hadiths worth of notes/cards.
       //      Also exclude customReminders (IDB-backed — see reminderStorage).
@@ -2147,6 +2158,47 @@ export const useNoorStore = create<NoorState>()(
     }
   )
 );
+
+let scopeTransitionQueue: Promise<void> = Promise.resolve();
+let latestScopeRequest = 0;
+let persistHydrationError: unknown = null;
+
+/**
+ * Switches the persisted app snapshot only after the target owner is known.
+ * Writes are paused while old in-memory state is replaced so none of it can
+ * be saved into the destination account's partition.
+ */
+export function hydrateAccountStorageOwner(owner: AccountStorageOwner): Promise<void> {
+  const request = ++latestScopeRequest;
+  const transition = scopeTransitionQueue.then(async () => {
+    if (request !== latestScopeRequest) return;
+
+    const previousOwner = getAccountStorageOwner();
+    const previousState = useNoorStore.getState();
+    await withAccountStorageWritesPaused(() => {
+      setAccountStorageOwner(owner);
+      useNoorStore.setState(useNoorStore.getInitialState(), true);
+    });
+
+    try {
+      persistHydrationError = null;
+      await useNoorStore.persist.rehydrate();
+      if (persistHydrationError) throw persistHydrationError;
+      if (request !== latestScopeRequest) return;
+      await Promise.all([hydrateHadithState(), hydrateCustomReminders()]);
+      if (request !== latestScopeRequest) return;
+    } catch (error) {
+      await withAccountStorageWritesPaused(() => {
+        setAccountStorageOwner(previousOwner);
+        useNoorStore.setState(previousState, true);
+      });
+      throw error;
+    }
+  });
+
+  scopeTransitionQueue = transition.catch(() => undefined);
+  return transition;
+}
 
 /**
  * 11A: Hydrate hadith user-state from IDB into the store.

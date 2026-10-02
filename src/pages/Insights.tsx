@@ -19,6 +19,7 @@ import { DAILY_CHECKLIST_ITEMS } from "@/data/dailyGrowth";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
 import { shareImageBlob } from "@/lib/shareTargets";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 
 function computeStreak(activity: Record<string, number>) {
@@ -199,7 +200,7 @@ export function InsightsPage() {
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const learnedVocabCount = React.useMemo(() => {
     try {
-      const v = localStorage.getItem("noor_vocab_learned");
+      const v = accountScopedLocalStorage.getItem("noor_vocab_learned");
       if (!v) return 0;
       return (JSON.parse(v) as number[]).length;
     } catch { return 0; }

@@ -6,6 +6,7 @@
  * profile values are included in cloud prompts when the user asks Companion
  * for a reply, so local storage is not a promise that the values stay local.
  */
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 export type CompanionProfile = {
   level: "new" | "regular" | "advanced";
@@ -29,7 +30,7 @@ const DEFAULT_PROFILE: CompanionProfile = {
 
 export function loadProfile(): CompanionProfile {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = accountScopedLocalStorage.getItem(KEY);
     if (!raw) return { ...DEFAULT_PROFILE };
     const parsed = JSON.parse(raw) as Partial<CompanionProfile>;
     return { ...DEFAULT_PROFILE, ...parsed };
@@ -40,7 +41,7 @@ export function loadProfile(): CompanionProfile {
 
 export function saveProfile(profile: CompanionProfile): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify(profile));
+    accountScopedLocalStorage.setItem(KEY, JSON.stringify(profile));
   } catch { /* ignore */ }
 }
 

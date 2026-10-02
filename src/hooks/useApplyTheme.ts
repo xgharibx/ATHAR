@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNoorStore, type NoorTheme } from "@/store/noorStore";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 /** Pure helpers exported for unit tests so they can be exercised without a
  *  jsdom environment. Kept side-effect-free on import. */
@@ -88,7 +89,7 @@ const SAMA_META: Record<string, string> = {
  */
 function samaPhase(): "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" {
   try {
-    const raw = localStorage.getItem("noor_widget_prayer_v2");
+    const raw = accountScopedLocalStorage.getItem("noor_widget_prayer_v2");
     if (raw) {
       const p = JSON.parse(raw) as { nextPrayer?: { nameAr?: string } | null };
       const name = p?.nextPrayer?.nameAr ?? "";

@@ -120,6 +120,80 @@ const IjazVerseExplorer = React.lazy(() => import("@/ijaz/pages/IjazVerseExplore
 const IjazSearch        = React.lazy(() => import("@/ijaz/pages/IjazSearch"));
 
 export default function App() {
+  const accountScope = useCloudSync();
+
+  if (accountScope.needsImportChoice) {
+    return (
+      <main className="min-h-screen-safe flex items-center justify-center p-6" dir="rtl">
+        <section className="w-full max-w-lg rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-6">
+          <h1 className="text-xl font-bold">بيانات هذا الجهاز وحسابك</h1>
+          <p className="mt-3 text-sm leading-7 text-[var(--muted)]">
+            وجدنا بيانات محفوظة على هذا الجهاز. اختر إن كنت تريد نسخها إلى حسابك أو إبقاءها على الجهاز فقط.
+            ستبقى النسخة الأصلية محفوظة على هذا الجهاز في الحالتين.
+          </p>
+          <div className="mt-5 grid gap-3">
+            <button
+              type="button"
+              disabled={accountScope.importing || accountScope.checkingImport}
+              onClick={() => void accountScope.chooseImport("copy", accountScope.includeCompanionData)}
+              className="min-h-[48px] rounded-2xl bg-[var(--accent)] px-4 py-3 font-semibold text-[var(--on-accent)] disabled:opacity-50"
+            >
+              {accountScope.checkingImport ? "جارٍ فحص البيانات المحلية…" : accountScope.importing ? "جارٍ نسخ البيانات بأمان…" : "نسخ بيانات هذا الجهاز إلى الحساب"}
+            </button>
+            {accountScope.hasLocalCompanionData && (
+              <label className="flex items-start gap-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] p-3 text-sm leading-6">
+                <input
+                  type="checkbox"
+                  checked={accountScope.includeCompanionData}
+                  disabled={accountScope.importing || accountScope.checkingImport}
+                  onChange={(event) => accountScope.setIncludeCompanionData(event.currentTarget.checked)}
+                  className="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]"
+                />
+                <span>
+                  <span className="block font-medium">أضم سجل الرفيق وملفه وذاكرته إلى هذا الحساب على هذا الجهاز</span>
+                  <span className="block text-xs text-[var(--muted)]">
+                    اختياري وغير محدد مسبقًا. لا تدخل في المزامنة السحابية؛ وقد تُرسل البيانات اللازمة إلى خدمة الرفيق عند طلب رد.
+                  </span>
+                </span>
+              </label>
+            )}
+            <button
+              type="button"
+              disabled={accountScope.importing || accountScope.checkingImport}
+              onClick={() => void accountScope.chooseImport("keep")}
+              className="min-h-[48px] rounded-2xl border border-[var(--stroke)] bg-[var(--card-2)] px-4 py-3 font-semibold disabled:opacity-50"
+            >
+              إبقاؤها على هذا الجهاز فقط
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (!accountScope.ready) {
+    return (
+      <div className="min-h-screen-safe flex items-center justify-center p-6" dir="rtl">
+        <div className="w-full max-w-sm rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-6 text-center">
+          {accountScope.error ? (
+            <>
+              <p role="alert" className="text-sm leading-7">تعذّر تحميل بيانات الحساب بأمان.</p>
+              <button type="button" className="mt-4 min-h-[44px] rounded-2xl px-5" onClick={accountScope.retry}>
+                إعادة المحاولة
+              </button>
+            </>
+          ) : (
+            <div role="status" aria-live="polite" className="text-sm leading-7">جارٍ تجهيز بياناتك…</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return <AppContent />;
+}
+
+function AppContent() {
   useApplyTheme();
   const navigate = useNavigate();
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
@@ -402,11 +476,6 @@ export default function App() {
   // is free to finish falling wherever the user goes. Backgrounding the app
   // still clears it (see celebrate.ts): rAF freezes there, so a burst caught
   // mid-flight could never land on its own.
-
-  // Cloud sync runs app-wide (no-op unless signed in) — it has to survive the
-  // settings screen unmounting, since that's when the user is actually
-  // generating the progress worth syncing.
-  useCloudSync();
 
   return (
     <>

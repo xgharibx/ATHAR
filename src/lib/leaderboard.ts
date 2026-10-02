@@ -122,6 +122,7 @@ import {
   sanitizeScores,
   validateSubmitPayload
 } from "@/lib/leaderboardPolicy";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 const LB_SCHEMA_VERSION = "2";
 const LB_SCHEMA_KEY = "noor_lb_schema_version";
@@ -310,7 +311,7 @@ function normalizeAlias(_alias: unknown, id: string) {
 
 function ensureMigration() {
   try {
-    const seen = localStorage.getItem(LB_SCHEMA_KEY);
+    const seen = accountScopedLocalStorage.getItem(LB_SCHEMA_KEY);
     if (seen === LB_SCHEMA_VERSION) return;
 
     const keysToClear = [
@@ -327,8 +328,8 @@ function ensureMigration() {
       QUEUE_KEY,
       HISTORY_KEY
     ];
-    keysToClear.forEach((k) => localStorage.removeItem(k));
-    localStorage.setItem(LB_SCHEMA_KEY, LB_SCHEMA_VERSION);
+    keysToClear.forEach((k) => accountScopedLocalStorage.removeItem(k));
+    accountScopedLocalStorage.setItem(LB_SCHEMA_KEY, LB_SCHEMA_VERSION);
   } catch {
     // ignore storage migration failures
   }
@@ -337,7 +338,7 @@ function ensureMigration() {
 function readHistory() {
   ensureMigration();
   try {
-    const raw = localStorage.getItem(HISTORY_KEY);
+    const raw = accountScopedLocalStorage.getItem(HISTORY_KEY);
     const parsed = raw ? (JSON.parse(raw) as LocalHistoryRow[]) : [];
     return Array.isArray(parsed) ? parsed.slice(-400) : [];
   } catch {
@@ -347,7 +348,7 @@ function readHistory() {
 
 function writeHistory(rows: LocalHistoryRow[]) {
   try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(rows.slice(-400)));
+    accountScopedLocalStorage.setItem(HISTORY_KEY, JSON.stringify(rows.slice(-400)));
   } catch {
     // ignore
   }
@@ -431,36 +432,36 @@ export function getLocalRowsFromHistory(opts: {
 export function getLeaderboardIdentity(): LeaderboardIdentity {
   ensureMigration();
   try {
-    let id = localStorage.getItem(ID_KEY);
+    let id = accountScopedLocalStorage.getItem(ID_KEY);
     const isNew = !id;
     if (!id) {
       id = randomId("anon");
-      localStorage.setItem(ID_KEY, id);
+      accountScopedLocalStorage.setItem(ID_KEY, id);
     }
 
-    let joinedAt = localStorage.getItem(JOINED_KEY);
+    let joinedAt = accountScopedLocalStorage.getItem(JOINED_KEY);
     if (!joinedAt || isNew) {
       joinedAt = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-      localStorage.setItem(JOINED_KEY, joinedAt);
+      accountScopedLocalStorage.setItem(JOINED_KEY, joinedAt);
     }
 
-    let alias = localStorage.getItem(ALIAS_KEY);
-    let userIndex = Number(localStorage.getItem(USER_INDEX_KEY) ?? "0");
+    let alias = accountScopedLocalStorage.getItem(ALIAS_KEY);
+    let userIndex = Number(accountScopedLocalStorage.getItem(USER_INDEX_KEY) ?? "0");
 
     if (!Number.isFinite(userIndex) || userIndex <= 0) {
-      const counter = Number(localStorage.getItem(USER_COUNTER_KEY) ?? "0");
+      const counter = Number(accountScopedLocalStorage.getItem(USER_COUNTER_KEY) ?? "0");
       userIndex = Math.max(1, counter + 1);
-      localStorage.setItem(USER_COUNTER_KEY, String(userIndex));
-      localStorage.setItem(USER_INDEX_KEY, String(userIndex));
+      accountScopedLocalStorage.setItem(USER_COUNTER_KEY, String(userIndex));
+      accountScopedLocalStorage.setItem(USER_INDEX_KEY, String(userIndex));
     }
 
     alias = normalizeAlias(alias, id);
-    localStorage.setItem(ALIAS_KEY, alias);
+    accountScopedLocalStorage.setItem(ALIAS_KEY, alias);
 
-    let secret = localStorage.getItem(SECRET_KEY);
+    let secret = accountScopedLocalStorage.getItem(SECRET_KEY);
     if (!secret) {
       secret = randomId("sec");
-      localStorage.setItem(SECRET_KEY, secret);
+      accountScopedLocalStorage.setItem(SECRET_KEY, secret);
     }
 
     return { id, alias, secret, joinedAt };
@@ -491,12 +492,34 @@ export function exportLeaderboardIdentity(): LeaderboardIdentity & { userIndex?:
   const identity = getLeaderboardIdentity();
   let userIndex: number | undefined;
   try {
-    const raw = Number(localStorage.getItem(USER_INDEX_KEY) ?? "0");
+    const raw = Number(accountScopedLocalStorage.getItem(USER_INDEX_KEY) ?? "0");
     if (Number.isFinite(raw) && raw > 0) userIndex = raw;
   } catch {
     // ignore
   }
   return { ...identity, userIndex };
+}
+
+/** Read an existing identity without creating a new anonymous identity. */
+export function peekLeaderboardIdentity(): (LeaderboardIdentity & { userIndex?: number }) | null {
+  try {
+    ensureMigration();
+    const id = accountScopedLocalStorage.getItem(ID_KEY);
+    const secret = accountScopedLocalStorage.getItem(SECRET_KEY);
+    if (!id || !secret) return null;
+    const alias = accountScopedLocalStorage.getItem(ALIAS_KEY) ?? "";
+    const joinedAt = accountScopedLocalStorage.getItem(JOINED_KEY) ?? "";
+    const userIndexValue = Number(accountScopedLocalStorage.getItem(USER_INDEX_KEY) ?? "0");
+    return {
+      id,
+      secret,
+      alias,
+      joinedAt,
+      ...(Number.isFinite(userIndexValue) && userIndexValue > 0 ? { userIndex: userIndexValue } : {}),
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -514,23 +537,23 @@ export function adoptLeaderboardIdentity(next: unknown): boolean {
 
   try {
     ensureMigration();
-    if (localStorage.getItem(ID_KEY) === incoming.id) return false;
+    if (accountScopedLocalStorage.getItem(ID_KEY) === incoming.id) return false;
 
-    localStorage.setItem(ID_KEY, incoming.id);
-    localStorage.setItem(SECRET_KEY, incoming.secret);
+    accountScopedLocalStorage.setItem(ID_KEY, incoming.id);
+    accountScopedLocalStorage.setItem(SECRET_KEY, incoming.secret);
     if (typeof incoming.alias === "string" && incoming.alias) {
-      localStorage.setItem(ALIAS_KEY, incoming.alias);
+      accountScopedLocalStorage.setItem(ALIAS_KEY, incoming.alias);
     }
     if (typeof incoming.joinedAt === "string" && incoming.joinedAt) {
-      localStorage.setItem(JOINED_KEY, incoming.joinedAt);
+      accountScopedLocalStorage.setItem(JOINED_KEY, incoming.joinedAt);
     }
     if (typeof incoming.userIndex === "number" && incoming.userIndex > 0) {
-      localStorage.setItem(USER_INDEX_KEY, String(incoming.userIndex));
+      accountScopedLocalStorage.setItem(USER_INDEX_KEY, String(incoming.userIndex));
     }
     // The queue and history belong to the identity we just left behind, so
     // replaying them would post this device's old scores under the new id.
-    localStorage.removeItem(QUEUE_KEY);
-    localStorage.removeItem(HISTORY_KEY);
+    accountScopedLocalStorage.removeItem(QUEUE_KEY);
+    accountScopedLocalStorage.removeItem(HISTORY_KEY);
     return true;
   } catch {
     return false;
@@ -542,7 +565,7 @@ export function setLeaderboardAlias(_alias: string) {
   const canonical = canonicalAliasFromId(identity.id);
 
   try {
-    localStorage.setItem(ALIAS_KEY, canonical);
+    accountScopedLocalStorage.setItem(ALIAS_KEY, canonical);
   } catch {
     // ignore storage write failures
   }
@@ -560,7 +583,7 @@ export function resetLeaderboardAlias() {
   const alias = canonicalAliasFromId(identity.id);
 
   try {
-    localStorage.setItem(ALIAS_KEY, alias);
+    accountScopedLocalStorage.setItem(ALIAS_KEY, alias);
   } catch {
     // ignore storage write failures
   }
@@ -607,7 +630,7 @@ export function syncLeaderboardAliasFromServer(alias: string) {
   const nextAlias = normalizeAlias(alias, identity.id);
 
   try {
-    localStorage.setItem(ALIAS_KEY, nextAlias);
+    accountScopedLocalStorage.setItem(ALIAS_KEY, nextAlias);
   } catch {
     // ignore storage write failures
   }
@@ -702,7 +725,7 @@ export async function syncLeaderboardSnapshot(
 function readQueue() {
   ensureMigration();
   try {
-    const raw = localStorage.getItem(QUEUE_KEY);
+    const raw = accountScopedLocalStorage.getItem(QUEUE_KEY);
     const parsed = raw ? (JSON.parse(raw) as LeaderboardSubmitPayload[]) : [];
     if (!Array.isArray(parsed)) return [];
 
@@ -722,7 +745,7 @@ function readQueue() {
 
 function writeQueue(queue: LeaderboardSubmitPayload[]) {
   try {
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue.slice(-LEADERBOARD_POLICY.MAX_QUEUE_SIZE)));
+    accountScopedLocalStorage.setItem(QUEUE_KEY, JSON.stringify(queue.slice(-LEADERBOARD_POLICY.MAX_QUEUE_SIZE)));
   } catch {
     // ignore
   }
@@ -746,7 +769,7 @@ export function enqueuePayload(payload: LeaderboardSubmitPayload) {
 
 export function isRateLimited(): boolean {
   try {
-    const until = Number(localStorage.getItem(RATE_LIMIT_UNTIL_KEY) ?? "0");
+    const until = Number(accountScopedLocalStorage.getItem(RATE_LIMIT_UNTIL_KEY) ?? "0");
     return Date.now() < until;
   } catch {
     return false;
@@ -759,7 +782,7 @@ function setRateLimitBackoff(retryAfterHeader: string | null) {
     const backoffMs = Number.isFinite(seconds) && seconds > 0
       ? seconds * 1000
       : RATE_LIMIT_DEFAULT_BACKOFF_MS;
-    localStorage.setItem(RATE_LIMIT_UNTIL_KEY, String(Date.now() + backoffMs));
+    accountScopedLocalStorage.setItem(RATE_LIMIT_UNTIL_KEY, String(Date.now() + backoffMs));
   } catch {
     // ignore
   }
@@ -767,7 +790,7 @@ function setRateLimitBackoff(retryAfterHeader: string | null) {
 
 export function clearRateLimitBackoff() {
   try {
-    localStorage.removeItem(RATE_LIMIT_UNTIL_KEY);
+    accountScopedLocalStorage.removeItem(RATE_LIMIT_UNTIL_KEY);
   } catch {
     // ignore
   }
@@ -1002,7 +1025,7 @@ export function resetLeaderboardData() {
   ensureMigration();
   try {
     [ID_KEY, ALIAS_KEY, SECRET_KEY, USER_INDEX_KEY, QUEUE_KEY, HISTORY_KEY].forEach((k) =>
-      localStorage.removeItem(k)
+      accountScopedLocalStorage.removeItem(k)
     );
   } catch {
     // ignore

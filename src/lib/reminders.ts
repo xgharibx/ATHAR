@@ -4,6 +4,11 @@ import type { LocalNotification } from "@capacitor/local-notifications";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 import { useNoorStore } from "@/store/noorStore";
 import { getLocalDateKey, parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
+import {
+  PRAYER_ACTION_TYPE_ID,
+  REMINDER_ACTION_TYPE_ID,
+  registerNotificationActionTypes,
+} from "@/lib/notificationActionTypes";
 
 /** Pass A: gate every preview sound in this module on `prefs.enableSounds`.
  * Returning early keeps audio playback out of the audio graph entirely when
@@ -19,13 +24,11 @@ function isAudioEnabled(): boolean {
 
 // N9: Actionable prayer notifications — "تمت الصلاة" lets the user log a prayer
 // (and cancel its gentle follow-up) directly from the notification shade.
-const PRAYER_ACTION_TYPE_ID = "PRAYER_ACTIONS";
 const MARK_PRAYED_ACTION_ID = "mark_prayed";
 
 // N10: "ذكرني بعد ساعة" on the daily habit reminders (morning/evening adhkar, daily
 // wird, khatma, tasbeeh) — reschedules a one-off copy 60 minutes later without
 // touching the recurring daily schedule those IDs already own.
-const REMINDER_ACTION_TYPE_ID = "REMINDER_ACTIONS";
 const SNOOZE_ACTION_ID = "snooze_60";
 const SNOOZE_MINUTES = 60;
 
@@ -490,8 +493,12 @@ export async function cancelPrayerFollowUp(prayerName: string, dateISO?: string)
 
 type NotificationAudioConfig = {
   channelId: string;
-  soundFile: string;
+  soundFile?: string;
 };
+
+function notificationSound(soundFile: string | undefined): { sound?: string } {
+  return soundFile === undefined ? {} : { sound: soundFile };
+}
 
 /** N6: Smart completion snapshot for today's daily azkar (computed by caller). */
 export type ReminderCompletionInfo = {
@@ -600,7 +607,7 @@ function buildReminderNotifications(
       title: plan.title,
       body: plan.body,
       channelId: audio.channelId,
-      sound: audio.soundFile,
+      ...notificationSound(audio.soundFile),
       actionTypeId: REMINDER_ACTION_TYPE_ID,
       extra: { ...plan.extra, reminderKey: plan.key, title: plan.title, body: plan.body },
       smallIcon: REMINDER_NOTIFICATION_ICON,
@@ -637,7 +644,7 @@ export function buildPrayerNotificationsForDays(
         title: "أثر — الأذان",
         body: `حان وقت صلاة ${PRAYER_LABELS[prayerName]}`,
         channelId: audio.channelId,
-        sound: audio.soundFile,
+        ...notificationSound(audio.soundFile),
         smallIcon: REMINDER_NOTIFICATION_ICON,
         largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
         iconColor: REMINDER_ICON_COLOR,
@@ -654,7 +661,7 @@ export function buildPrayerNotificationsForDays(
         title: "أثر — تذكير لطيف",
         body: PRAYER_FOLLOWUP_PHRASES[prayerName],
         channelId: quiet.channelId,
-        sound: quiet.soundFile,
+        ...notificationSound(quiet.soundFile),
         smallIcon: REMINDER_NOTIFICATION_ICON,
         largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
         iconColor: REMINDER_ICON_COLOR,
@@ -691,7 +698,7 @@ function buildRamadanNotifications(
         title: "أثر — السحور",
         body: dailyPhrase(SUHOOR_PHRASES),
         channelId: audio.channelId,
-        sound: audio.soundFile,
+        ...notificationSound(audio.soundFile),
         smallIcon: REMINDER_NOTIFICATION_ICON,
         largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
         iconColor: REMINDER_ICON_COLOR,
@@ -708,7 +715,7 @@ function buildRamadanNotifications(
       title: "أثر — الإفطار",
       body: dailyPhrase(IFTAR_PHRASES),
       channelId: audio.channelId,
-      sound: audio.soundFile,
+      ...notificationSound(audio.soundFile),
       smallIcon: REMINDER_NOTIFICATION_ICON,
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
@@ -737,7 +744,7 @@ function buildDailyHadithNotification(
     title: "أثر — حديث اليوم ﷺ",
     body: dailyPhrase(DAILY_HADITH_FAJR_PHRASES),
     channelId: audio.channelId,
-    sound: audio.soundFile,
+    ...notificationSound(audio.soundFile),
     smallIcon: REMINDER_NOTIFICATION_ICON,
     largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
     iconColor: REMINDER_ICON_COLOR,
@@ -832,9 +839,9 @@ async function ensurePrayerChannel(soundProfile: PrayerSoundProfile) {
 export const SILENT_CHANNEL_ID = "athar-quiet-v2";
 
 async function ensureSilentChannel(): Promise<NotificationAudioConfig> {
-  // iOS has no channels; an empty sound string is how it is told to stay quiet.
+  // iOS has no channels; omitting the sound field keeps these notifications silent.
   if (Capacitor.getPlatform() !== "android") {
-    return { channelId: SILENT_CHANNEL_ID, soundFile: "" };
+    return { channelId: SILENT_CHANNEL_ID };
   }
 
   // Deliberately NOT LocalNotifications.createChannel — see QuietChannelPlugin.
@@ -867,23 +874,11 @@ async function ensureSilentChannel(): Promise<NotificationAudioConfig> {
 export async function ensureDefaultNotificationChannels(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
-    const { LocalNotifications } = await import("@capacitor/local-notifications");
     await Promise.all([
       ensureReminderChannel("rain_calm"),
       ensurePrayerChannel("adhan_haram"),
       ensureSilentChannel(),
-      LocalNotifications.registerActionTypes({
-        types: [
-          {
-            id: PRAYER_ACTION_TYPE_ID,
-            actions: [{ id: MARK_PRAYED_ACTION_ID, title: "تمت الصلاة ✓" }],
-          },
-          {
-            id: REMINDER_ACTION_TYPE_ID,
-            actions: [{ id: SNOOZE_ACTION_ID, title: `ذكرني بعد ساعة` }],
-          },
-        ],
-      }),
+      registerNotificationActionTypes(),
     ]);
   } catch { /* non-fatal */ }
 }

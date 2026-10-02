@@ -178,7 +178,11 @@ describe("scheduleCustomNotification (native bridge)", () => {
     expect(id.startsWith("cr:rem-1:")).toBe(true);
     expect(mockLocalNotifications.registerActionTypes).toHaveBeenCalledTimes(1);
     expect(mockLocalNotifications.registerActionTypes.mock.calls[0]![0]).toMatchObject({
-      types: [{ id: CUSTOM_REMINDER_ACTION_TYPE_ID }],
+      types: [
+        { id: "PRAYER_ACTIONS" },
+        { id: "REMINDER_ACTIONS" },
+        { id: CUSTOM_REMINDER_ACTION_TYPE_ID },
+      ],
     });
     expect(mockLocalNotifications.createChannel).toHaveBeenCalledTimes(1);
     expect(mockLocalNotifications.schedule).toHaveBeenCalledTimes(1);

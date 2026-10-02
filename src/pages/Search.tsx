@@ -20,18 +20,19 @@ import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview } from "@/data/hadithTypes";
 import { useHadithPack } from "@/data/useHadithBook";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 // --- Recent searches helpers ---
 const RECENT_KEY = "noor_recent_searches";
 const MAX_RECENT = 6;
 function loadRecent(): string[] {
   try {
-    const v = localStorage.getItem(RECENT_KEY);
+    const v = accountScopedLocalStorage.getItem(RECENT_KEY);
     return v ? (JSON.parse(v) as unknown[]).filter((s): s is string => typeof s === "string") : [];
   } catch { return []; }
 }
 function saveRecent(list: string[]) {
-  localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, MAX_RECENT)));
+  accountScopedLocalStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, MAX_RECENT)));
 }
 function pushRecent(term: string, prev: string[]): string[] {
   const t = term.trim();

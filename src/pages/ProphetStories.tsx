@@ -5,18 +5,19 @@ import { PROPHET_STORIES, type ProphetStory } from "@/data/prophetStories";
 import { Card } from "@/components/ui/Card";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 const STORY_BOOKMARKS_KEY = "noor_story_bookmarks";
 
 function loadStoryBookmarks(): Set<string> {
   try {
-    const v = localStorage.getItem(STORY_BOOKMARKS_KEY);
+    const v = accountScopedLocalStorage.getItem(STORY_BOOKMARKS_KEY);
     return v ? new Set(JSON.parse(v) as string[]) : new Set();
   } catch { return new Set(); }
 }
 
 function saveStoryBookmarks(s: Set<string>) {
-  localStorage.setItem(STORY_BOOKMARKS_KEY, JSON.stringify([...s]));
+  accountScopedLocalStorage.setItem(STORY_BOOKMARKS_KEY, JSON.stringify([...s]));
 }
 
 function StoryCard({

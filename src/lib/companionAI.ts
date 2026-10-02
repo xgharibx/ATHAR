@@ -22,6 +22,7 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { getSession } from "@/lib/authClient";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 import { useNoorStore } from "@/store/noorStore";
 import { DAILY_HADITH_FAJR_PHRASES } from "@/lib/reminders";
@@ -283,7 +284,7 @@ export function buildCompanionContext(): CompanionContext {
 
   let nextPrayer: CompanionContext["nextPrayer"] = null;
   try {
-    const raw = localStorage.getItem("noor_widget_prayer_v2");
+    const raw = accountScopedLocalStorage.getItem("noor_widget_prayer_v2");
     if (raw) {
       const p = JSON.parse(raw) as { nextPrayer?: { nameAr?: string; time?: string } | null };
       if (p?.nextPrayer?.nameAr && p.nextPrayer.time) {
@@ -712,7 +713,7 @@ type MemoryEntry = { q: string; d: string };
 
 export function getMemory(): MemoryEntry[] {
   try {
-    const raw = localStorage.getItem(MEMORY_KEY);
+    const raw = accountScopedLocalStorage.getItem(MEMORY_KEY);
     const arr = raw ? (JSON.parse(raw) as MemoryEntry[]) : [];
     return Array.isArray(arr) ? arr : [];
   } catch {
@@ -724,12 +725,12 @@ export function recordMemory(question: string): void {
   try {
     const entry: MemoryEntry = { q: question.replace(/\s+/g, " ").trim().slice(0, 140), d: todayISO() };
     const next = [...getMemory(), entry].slice(-MEMORY_MAX);
-    localStorage.setItem(MEMORY_KEY, JSON.stringify(next));
+    accountScopedLocalStorage.setItem(MEMORY_KEY, JSON.stringify(next));
   } catch { /* best-effort */ }
 }
 
 export function clearMemory(): void {
-  try { localStorage.removeItem(MEMORY_KEY); } catch { /* ignore */ }
+  try { accountScopedLocalStorage.removeItem(MEMORY_KEY); } catch { /* ignore */ }
 }
 
 function buildMemoryBlock(): string {

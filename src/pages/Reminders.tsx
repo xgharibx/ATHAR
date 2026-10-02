@@ -525,7 +525,12 @@ function ReminderFormDrawer(props: {
   };
 
   return (
-    <Modal open={props.open} onClose={props.onClose} className="max-h-[92vh]">
+    <Modal
+      open={props.open}
+      onClose={props.onClose}
+      ariaLabel={props.mode === "create" ? "تذكير جديد" : "تعديل التذكير"}
+      className="max-h-[92vh]"
+    >
       <div className="flex items-center justify-between gap-3 border-b border-[var(--stroke)] p-4">
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
@@ -737,11 +742,11 @@ function ReminderSettingsSheet(props: {
 }) {
   const r = props.reminder;
   if (!r) {
-    return <Modal open={props.open} onClose={props.onClose}><div /></Modal>;
+    return <Modal open={props.open} onClose={props.onClose} ariaLabel="إعدادات التذكير"><div /></Modal>;
   }
   const snooze = r.notification?.snoozeMinutes ?? 10;
   return (
-    <Modal open={props.open} onClose={props.onClose}>
+    <Modal open={props.open} onClose={props.onClose} ariaLabel="إعدادات التذكير">
       <div className="flex items-center justify-between gap-3 border-b border-[var(--stroke)] p-4">
         <div className="flex items-center gap-2">
           <SettingsIcon className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />

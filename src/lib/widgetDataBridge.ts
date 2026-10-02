@@ -14,6 +14,7 @@
 
 import { Capacitor } from "@capacitor/core";
 import { useNoorStore, type Preferences } from "@/store/noorStore";
+import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
 
 function todayISO(): string {
   const d = new Date();
@@ -130,7 +131,7 @@ export async function syncAdhkarWidget(): Promise<void> {
   const value = JSON.stringify(payload);
 
   // Always write to localStorage for PWA / debug
-  try { localStorage.setItem(KEY, value); } catch { /* ignore */ }
+  try { accountScopedLocalStorage.setItem(KEY, value); } catch { /* ignore */ }
 
   await nativeSet(KEY, value);
 }
@@ -162,7 +163,7 @@ export async function syncWirdWidget(): Promise<void> {
   const value = JSON.stringify(payload);
 
   // Always write to localStorage for PWA / debug
-  try { localStorage.setItem(KEY, value); } catch { /* ignore */ }
+  try { accountScopedLocalStorage.setItem(KEY, value); } catch { /* ignore */ }
 
   await nativeSet(KEY, value);
 }
@@ -207,7 +208,7 @@ export async function syncDashboardWidget(): Promise<void> {
   };
 
   const value = JSON.stringify(payload);
-  try { localStorage.setItem(KEY, value); } catch { /* ignore */ }
+  try { accountScopedLocalStorage.setItem(KEY, value); } catch { /* ignore */ }
   await nativeSet(KEY, value);
 }
 
@@ -239,7 +240,7 @@ export async function syncSunnahWidget(hadith: { id: string; hadeeth: string; at
     updatedAt: new Date().toISOString(),
   };
   const value = JSON.stringify(payload);
-  try { localStorage.setItem(KEY, value); } catch { /* ignore */ }
+  try { accountScopedLocalStorage.setItem(KEY, value); } catch { /* ignore */ }
   await nativeSet(KEY, value);
   const { refreshHomeWidgets } = await import("@/lib/widgetRefresh");
   await refreshHomeWidgets();
@@ -256,7 +257,7 @@ export type QiblaWidgetPayload = { lat: number; lng: number; updatedAt: string }
 export async function syncQiblaWidget(): Promise<void> {
   const KEY = "noor_widget_qibla_v1";
   try {
-    const raw = localStorage.getItem("noor_prayer_coords_v1");
+    const raw = accountScopedLocalStorage.getItem("noor_prayer_coords_v1");
     if (!raw) return;
     const cached = JSON.parse(raw) as { lat?: number; lng?: number };
     if (!Number.isFinite(cached.lat) || !Number.isFinite(cached.lng)) return;
@@ -266,7 +267,7 @@ export async function syncQiblaWidget(): Promise<void> {
       updatedAt: new Date().toISOString(),
     };
     const value = JSON.stringify(payload);
-    try { localStorage.setItem(KEY, value); } catch { /* ignore */ }
+    try { accountScopedLocalStorage.setItem(KEY, value); } catch { /* ignore */ }
     await nativeSet(KEY, value);
   } catch {
     // No cached location yet — the widget falls back to its own empty state.
@@ -278,6 +279,7 @@ export async function syncQiblaWidget(): Promise<void> {
  * Call this on app foreground and after significant state changes.
  */
 export async function syncAllWidgets(): Promise<void> {
+  await nativeSet("noor_widget_tasbeeh_owner_v1", getAccountStorageOwner());
   await Promise.allSettled([
     syncAdhkarWidget(),
     syncWirdWidget(),

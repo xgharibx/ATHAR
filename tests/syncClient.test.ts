@@ -93,6 +93,9 @@ async function load(opts: {
   }));
   vi.doMock("@/store/noorStore", () => ({ useNoorStore: st.store }));
 
+  const { setAccountStorageOwner } = await import("@/lib/accountStorageScope");
+  setAccountStorageOwner(`user:${userId}`);
+
   Object.defineProperty(navigator, "onLine", {
     configurable: true,
     get: () => opts.online ?? true,
@@ -104,6 +107,8 @@ async function load(opts: {
 
 beforeEach(() => {
   indexedDB.deleteDatabase("athar-sync-v1");
+  indexedDB.deleteDatabase("athar-sync-v1::user-a");
+  indexedDB.deleteDatabase("athar-sync-v1::user-b");
   localStorage.clear();
 });
 
@@ -198,20 +203,17 @@ describe("steady state", () => {
 });
 
 describe("account switching", () => {
-  it("discards the previous account's base instead of treating local data as deleted", async () => {
-    // This is the bug that would wipe a device: user A's base lists every key,
-    // user B's cloud is empty, so a reused base makes every local key look like
-    // a deletion.
-    const first = await load({ local: { favorites: { x: true, y: true } }, userId: "user-a" });
+  it("keeps the previous account's base and local snapshot out of the next account", async () => {
+    const first = await load({ local: { favorites: { aOnly: true } }, userId: "user-a" });
     await first.mod.syncNow();
 
-    // Same device, same IndexedDB, different account and an empty cloud.
-    const second = await load({ local: { favorites: { x: true, y: true } }, userId: "user-b" });
+    // Same installation, different owner and independently hydrated local state.
+    const second = await load({ local: { favorites: { bOnly: true } }, userId: "user-b" });
     expect(await second.mod.syncNow()).toBe(true);
 
-    expect(second.current().favorites).toEqual({ x: true, y: true });
+    expect(second.current().favorites).toEqual({ bOnly: true });
     const sent = second.upserts.flat().find((r) => r.kind === "favorites");
-    expect(sent?.payload).toEqual({ favorites: { x: true, y: true } });
+    expect(sent?.payload).toEqual({ favorites: { bOnly: true } });
     expect(sent?.user_id).toBe("user-b");
   });
 });
@@ -224,6 +226,7 @@ describe("offline", () => {
     });
 
     expect(await mod.syncNow()).toBe(false);
+    expect(await mod.flushCloudSync()).toBe(false);
     expect(mod.getSyncStatus().phase).toBe("offline");
     expect(upserts).toHaveLength(0);
     expect(current().progress).toEqual({ a: 3 });

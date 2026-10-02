@@ -1,5 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import type { CustomReminder } from "./customReminderTypes";
+import { CUSTOM_REMINDER_ACTION_TYPE_ID, registerNotificationActionTypes } from "./notificationActionTypes";
 
 /**
  * Custom-reminder delivery layer.
@@ -31,7 +32,7 @@ export type AtharReminderClickDetail = {
   action?: CustomReminderActionId;
 };
 
-export const CUSTOM_REMINDER_ACTION_TYPE_ID = "CUSTOM_REMINDER_ACTIONS";
+export { CUSTOM_REMINDER_ACTION_TYPE_ID } from "./notificationActionTypes";
 export const CUSTOM_REMINDER_CHANNEL_ID = "athar-custom-reminders";
 export const WEB_ATHAR_TAG_PREFIX = "athar-reminder:";
 
@@ -55,30 +56,6 @@ const webTimers = new Map<string, number>();
 function resolveBody(reminder: CustomReminder, override?: string): string {
   if (override && override.trim()) return override;
   return reminder.description || reminder.body || reminder.title;
-}
-
-async function registerCustomActionTypes(): Promise<void> {
-  if (!Capacitor.isNativePlatform()) return;
-  try {
-    const { LocalNotifications } = await import("@capacitor/local-notifications");
-    await LocalNotifications.registerActionTypes({
-      types: [
-        {
-          id: CUSTOM_REMINDER_ACTION_TYPE_ID,
-          // Wording matches the built-in reminders' buttons (reminders.ts) so
-          // the shade reads consistently. "غفوت" ("I dozed off") was the old
-          // snooze label and described the user, not the action.
-          actions: [
-            { id: "done", title: "تم ✓" },
-            { id: "snooze", title: "ذكرني بعد ساعة" },
-            { id: "open", title: "افتح" },
-          ],
-        },
-      ],
-    });
-  } catch {
-    // non-fatal — older WebViews may not support category actions
-  }
 }
 
 async function ensureCustomChannel(): Promise<void> {
@@ -143,7 +120,7 @@ export async function scheduleCustomNotification(
 
   if (Capacitor.isNativePlatform()) {
     const { LocalNotifications } = await import("@capacitor/local-notifications");
-    await registerCustomActionTypes();
+    await registerNotificationActionTypes();
     await ensureCustomChannel();
     await LocalNotifications.schedule({
       notifications: [

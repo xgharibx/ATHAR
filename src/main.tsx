@@ -7,7 +7,6 @@ import { Toaster } from "react-hot-toast";
 import App from "./App";
 import "./styles/globals.css";
 import "./pwa";
-import { hydrateHadithState, hydrateCustomReminders } from "@/store/noorStore";
 import { installAppShellBehaviour } from "@/lib/appShellBehaviour";
 
 const APP_RUNTIME_VERSION = (import.meta.env.VITE_RUNTIME_VERSION as string | undefined) ?? "local-dev";
@@ -228,10 +227,3 @@ void (async () => {
     // Non-fatal: the in-app listener still covers warm taps.
   }
 })();
-
-// 11A: Hydrate hadith user-state (bookmarks, progress, notes, memoCards) from IDB.
-// Fires after first render so the UI is already visible — data appears within ms.
-void hydrateHadithState();
-
-// Custom (user-defined) reminders — IDB-backed like hadith.
-void hydrateCustomReminders();

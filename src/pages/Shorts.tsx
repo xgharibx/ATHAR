@@ -23,6 +23,7 @@
  */
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { Heart, Volume2, VolumeX, ChevronLeft, Play, Pause, Share2, EyeOff, Bookmark } from "lucide-react";
 
 import { useShortsDB } from "@/data/useShortsDB";
@@ -78,7 +79,7 @@ const NO_HIDDEN: Record<string, boolean> = {};
 
 function readMutePreference(): boolean {
   try {
-    return localStorage.getItem(MUTE_KEY) !== "0";
+    return accountScopedLocalStorage.getItem(MUTE_KEY) !== "0";
   } catch {
     return true;
   }
@@ -637,7 +638,7 @@ export function ShortsPage() {
 
   React.useEffect(() => {
     try {
-      localStorage.setItem(MUTE_KEY, muted ? "1" : "0");
+      accountScopedLocalStorage.setItem(MUTE_KEY, muted ? "1" : "0");
     } catch {
       /* private mode; the session still honours the choice */
     }

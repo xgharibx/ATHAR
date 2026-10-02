@@ -16,6 +16,7 @@ import {
   _internal,
 } from "@/lib/reminderStorage";
 import type { CustomReminder } from "@/data/reminderTypes";
+import { setAccountStorageOwner } from "@/lib/accountStorageScope";
 
 function makeReminder(overrides: Partial<CustomReminder> = {}): CustomReminder {
   const now = new Date().toISOString();
@@ -67,6 +68,23 @@ describe("reminderStorage", () => {
     expect(out[1]?.enabled).toBe(false);
     expect(out[1]?.atTimeOfDay).toBe("23:00");
     expect(out[1]?.repeat).toBe("once");
+  });
+
+  it("keeps custom reminders in the active account partition", async () => {
+    const ownerA = `user:reminder-test-a-${crypto.randomUUID()}`;
+    const ownerB = `user:reminder-test-b-${crypto.randomUUID()}`;
+
+    setAccountStorageOwner(ownerA);
+    await saveCustomReminders([makeReminder({ id: "private-a" })]);
+    setAccountStorageOwner(ownerB);
+    expect(await loadCustomReminders()).toEqual([]);
+    await saveCustomReminders([makeReminder({ id: "private-b" })]);
+
+    setAccountStorageOwner(ownerA);
+    expect((await loadCustomReminders()).map((item) => item.id)).toEqual(["private-a"]);
+    setAccountStorageOwner(ownerB);
+    expect((await loadCustomReminders()).map((item) => item.id)).toEqual(["private-b"]);
+    setAccountStorageOwner("local");
   });
 
   it("drops rows missing required fields when reading malformed IDB entries", async () => {

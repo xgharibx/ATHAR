@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -201,7 +202,7 @@ export function QuranPlansPage() {
   React.useEffect(() => {
     if (!activePlan || !khatmaStartISO) return;
     const storageKey = `khatma_milestones_${khatmaStartISO}`;
-    const shown: number[] = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
+    const shown: number[] = JSON.parse(accountScopedLocalStorage.getItem(storageKey) ?? "[]");
     const milestones = [25, 50, 75, 100];
     let changed = false;
     for (const m of milestones) {
@@ -217,7 +218,7 @@ export function QuranPlansPage() {
         toast.success(labels[m] ?? `${m}٪`, { duration: 4000, icon: m === 100 ? "🎉" : "✨" });
       }
     }
-    if (changed) localStorage.setItem(storageKey, JSON.stringify(shown));
+    if (changed) accountScopedLocalStorage.setItem(storageKey, JSON.stringify(shown));
   }, [activePlan, khatmaStartISO]);
 
   // ── Start a plan ─────────────────────────────────────────────────────────────

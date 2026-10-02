@@ -23,6 +23,7 @@ import { toArabicIndic } from "@/lib/arabic";
 import { PTRIndicator, usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useNoorStore } from "@/store/noorStore";
 import type { PrayerAlertPrayer } from "@/store/noorStore";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -157,7 +158,7 @@ function usePrayerCalendar(year: number, month: number) {
   return useQuery<CalendarDayEntry[]>({
     queryKey: ["prayer-calendar", year, month, method, school, city, country],
     queryFn: async () => {
-      const coordsRaw = localStorage.getItem("noor_prayer_coords_v1");
+      const coordsRaw = accountScopedLocalStorage.getItem("noor_prayer_coords_v1");
       if (coordsRaw) {
         try {
           const { lat, lng } = JSON.parse(coordsRaw) as { lat: number; lng: number };

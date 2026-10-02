@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { Command } from "cmdk";
 import { Search, Moon, Sun, Sparkles, Download, BookOpen, LibraryBig } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -66,6 +67,8 @@ export function CommandPalette(props: Props) {
 
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<FlatDhikr[]>([]);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const restoreFocusRef = React.useRef<HTMLElement | null>(null);
 
   // Normalize Arabic: strip diacritics + unify alef/ta/ya variants for matching
   /* eslint-disable no-misleading-character-class */
@@ -168,15 +171,6 @@ export function CommandPalette(props: Props) {
     }
   }, [fuse, query, normalizeArabic]);
 
-  React.useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") props.setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.setOpen]);
-
   const go = (path: string) => {
     navigate(path);
     props.setOpen(false);
@@ -191,34 +185,42 @@ export function CommandPalette(props: Props) {
   };
 
   return (
-    <div
-      className={cn(
-        "fixed inset-0 z-[60] transition pointer-events-none",
-        props.open && "pointer-events-auto"
-      )}
-    >
-      {/* Overlay */}
-      <div
-        aria-hidden="true"
-        className={cn("absolute inset-0 bg-[var(--card)]0 backdrop-blur-sm opacity-0", props.open && "opacity-100")}
-        onClick={() => props.setOpen(false)}
-      />
+    <Dialog.Root open={props.open} onOpenChange={props.setOpen}>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          aria-hidden="true"
+          className={cn("fixed inset-0 z-[60] bg-[var(--card)]0 backdrop-blur-sm opacity-0 transition", props.open && "opacity-100")}
+          onClick={() => props.setOpen(false)}
+        />
 
-      {/* Panel */}
-      <div
-        className={cn("absolute left-1/2 top-14 -translate-x-1/2 w-[92vw] max-w-2xl opacity-0 scale-[.98] transition", props.open && "opacity-100 scale-100")}
-        role="dialog"
-        aria-modal="true"
-        aria-label="البحث السريع"
-      >
+        <Dialog.Content
+          tabIndex={-1}
+          aria-describedby={undefined}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            restoreFocusRef.current = document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : null;
+            inputRef.current?.focus();
+          }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            const restoreTarget = restoreFocusRef.current;
+            if (restoreTarget?.isConnected) restoreTarget.focus({ preventScroll: true });
+          }}
+          className={cn("fixed left-1/2 top-14 z-[61] -translate-x-1/2 w-[92vw] max-w-2xl opacity-0 scale-[.98] transition", props.open && "opacity-100 scale-100")}
+        >
+          <Dialog.Title className="sr-only">البحث السريع</Dialog.Title>
         <div className="glass-strong rounded-3xl overflow-hidden border border-[var(--stroke)]">
           <Command className="w-full" shouldFilter={false}>
             <div className="flex items-center gap-3 px-4 py-4 border-b border-[var(--stroke)]">
               <Search size={18} aria-hidden="true" className="opacity-70" />
               <Command.Input
+                ref={inputRef}
                 value={query}
                 onValueChange={setQuery}
                 placeholder="ابحث عن ذكر أو سورة أو آية…"
+                aria-label="ابحث عن ذكر أو سورة أو آية"
                 autoComplete="off"
                 autoCapitalize="none"
                 spellCheck={false}
@@ -384,8 +386,9 @@ export function CommandPalette(props: Props) {
             </Command.List>
           </Command>
         </div>
-      </div>
-    </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 

@@ -6,18 +6,19 @@ import { Card } from "@/components/ui/Card";
 import { IconButton } from "@/components/ui/IconButton";
 import toast from "react-hot-toast";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 const COMPANION_BOOKMARKS_KEY = "noor_companion_bookmarks";
 
 function loadCompanionBookmarks(): Set<string> {
   try {
-    const v = localStorage.getItem(COMPANION_BOOKMARKS_KEY);
+    const v = accountScopedLocalStorage.getItem(COMPANION_BOOKMARKS_KEY);
     return v ? new Set(JSON.parse(v) as string[]) : new Set();
   } catch { return new Set(); }
 }
 
 function saveCompanionBookmarks(s: Set<string>) {
-  localStorage.setItem(COMPANION_BOOKMARKS_KEY, JSON.stringify([...s]));
+  accountScopedLocalStorage.setItem(COMPANION_BOOKMARKS_KEY, JSON.stringify([...s]));
 }
 
 export default function Companions() {

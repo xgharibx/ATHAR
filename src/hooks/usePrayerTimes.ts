@@ -6,6 +6,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { syncPrayerWidget } from "@/lib/prayerWidget";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { Capacitor } from "@capacitor/core";
+import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
 export const PRAYER_COORDS_KEY_EXPORT = "noor_prayer_coords_v1";
 
@@ -53,7 +54,7 @@ function cacheKey(dayKey: string, locationKey: string) {
 
 function readCached(dayKey: string, locationKey: string): PrayerTimesData | null {
   try {
-    const raw = localStorage.getItem(cacheKey(dayKey, locationKey));
+    const raw = accountScopedLocalStorage.getItem(cacheKey(dayKey, locationKey));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PrayerTimesData & { cachedAt?: string };
     if (!parsed?.data?.timings) return null;
@@ -71,7 +72,7 @@ function readCached(dayKey: string, locationKey: string): PrayerTimesData | null
 function writeCached(dayKey: string, locationKey: string, payload: PrayerTimesResponse) {
   try {
     const out = { ...payload, cachedAt: new Date().toISOString() };
-    localStorage.setItem(cacheKey(dayKey, locationKey), JSON.stringify(out));
+    accountScopedLocalStorage.setItem(cacheKey(dayKey, locationKey), JSON.stringify(out));
   } catch {
     // ignore storage failures
   }
@@ -129,7 +130,7 @@ type CachedCoords = { lat: number; lng: number; savedAt: string };
 
 function readCachedCoords(): CachedCoords | null {
   try {
-    const raw = localStorage.getItem(PRAYER_COORDS_KEY);
+    const raw = accountScopedLocalStorage.getItem(PRAYER_COORDS_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as CachedCoords;
     if (!Number.isFinite(parsed?.lat) || !Number.isFinite(parsed?.lng)) return null;
@@ -141,7 +142,7 @@ function readCachedCoords(): CachedCoords | null {
 
 function writeCachedCoords(lat: number, lng: number) {
   try {
-    localStorage.setItem(
+    accountScopedLocalStorage.setItem(
       PRAYER_COORDS_KEY,
       JSON.stringify({ lat, lng, savedAt: new Date().toISOString() } satisfies CachedCoords)
     );
