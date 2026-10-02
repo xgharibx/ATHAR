@@ -211,6 +211,10 @@ The app declares Android API 22+ support, but `ShareBridgePlugin.java` writes di
 
 The Quran page map and selected bundled integrity checks are verified, but the audit did not validate every Quran translation, Hadith grade, adhkar attribution, or Ijaz/scientific claim against primary sources and qualified scholarship. In particular, scientific-miracle claims should cite their source and be reviewed by a qualified subject-matter editor before being presented as established fact. Preserve Arabic text and existing app design while correcting any verified content errors.
 
+### P2 — Bound and validate word-by-word Quran API responses
+
+`loadWbwSurah()` uses a direct Quran.com API request without an abort deadline, and casts the returned JSON to the expected shape before mapping `verses`, `words`, and translation fields. A stalled response can leave a chapter request pending, while a changed or malformed payload can throw during mapping. Add a bounded timeout and runtime validation, preserve valid IndexedDB cache fallback, and cover timeout/malformed responses before increasing reliance on this network-only data.
+
 ## API, database, and data inventory
 
 | Surface | Current role | Audit status |
@@ -219,8 +223,14 @@ The Quran page map and selected bundled integrity checks are verified, but the a
 | Supabase Companion function → MiniMax | AI answers and related tools | Paid upstream is reachable without sufficient durable authorization/quota; release blocker |
 | Aladhan | City/GPS prayer-time lookup | Client call reviewed; timeout, recent-GPS offline fallback, and date-specific next-day lookup added. Online GPS requests send coordinates to Aladhan; live provider behavior remains unverified |
 | Quran Foundation | Optional hosted translations/content | Server-side OAuth proxy, seven-day cache, and shared database quota migration implemented locally; migration, API/deployment, and full catalog access unverified while Supabase is restricted |
+| Quran.com API v4 | Word-by-word Arabic, translation, transliteration, and Tajweed | Requests only the selected surah; caches parsed data in IndexedDB for one year and the service worker also runtime-caches API responses. No account identifier or personal profile is sent. Requests have no explicit timeout, and API response fields are trusted before mapping; malformed or stalled responses need hardening |
+| HadeethEnc API v1 | Arabic hadith, grading, explanation, and categories | Requests category/page or hadith IDs rather than user-authored text; bundles common explanations offline, caches lists for seven days and hadith records for one year, and serves stale cache after HTTP errors. Provider availability and content licensing/attribution terms still need review |
+| GitHub Pages / `ahmedelfashny.com` / jsDelivr | Quran JSON, page-map fallback, and selected tafsir editions | Used only after bundled assets or local IndexedDB miss; requests identify a static data file/surah, not the user. Runtime fallback data is schema-checked for Quran/page-map shape, then cached locally; remote source pinning and content-integrity checks should be reviewed |
 | EveryAyah | Recitation audio | Unified browser cache and honest partial-download messaging fixed; offline playback needs airplane-mode verification and source/rights review |
+| Qurango / RadioJar | Live Quran radio streams | Direct audio streaming after the user starts playback, with automatic station fallback; stream hosts receive the normal connection metadata (including IP), and playback cannot be cached for offline use |
+| YouTube / youtube-nocookie | Video embeds and player API | The app loads YouTube's iframe API and embeds videos on demand; YouTube receives ordinary connection metadata and playback events. Provider privacy/consent behavior and embedded-content rights need review |
 | Overpass / mosque search | Nearby mosque lookup | Search sends a coordinate-based query to Overpass; offline cache, provider reliability, and full privacy behavior need dedicated checks |
+| Wikimedia Arabic API | Narrator-name lookup | Sends the normalized name/query to Wikimedia; no app account or profile fields are included. Query privacy and API availability need to be included in the published provider inventory |
 | Dorar | Hadith takhrij/search | Client sends up to 90 normalized characters of Hadith text through a public Supabase Edge Function; source hardening and local abuse tests are complete, but the durable-quota migration and provider/log retention remain unverified because Supabase is restricted |
 | Browser storage / IndexedDB | Progress, Hadith notes, custom reminders/packs, offline content | Backup/restore fixes covered by tests; cross-browser quota eviction and private-mode recovery remain unverified |
 | Service worker / GitHub Pages | PWA navigation, precache, runtime caching, deployment | Build and browser offline reload pass; device airplane mode, upgrade from an old cache, and hosted Pages run remain unverified |
@@ -235,7 +245,8 @@ No production database dump was available because the hosted project was restric
 4. Prepare Android release readiness: bump `versionCode` above 74 when a release artifact is scheduled, confirm upload-key/Play App Signing ownership, decide explicit backup rules, and produce a signed AAB. The hosted CI workflow covers unsigned debug build and lint. API 36.1 instrumentation, including forged widget-broadcast checks, passed locally; GitHub-hosted emulator boot is unavailable in the attempted Ubuntu and macOS ARM64 runner configurations.
 5. Measure cold-start and memory on lower-end devices; verify cache upgrades and the largest optional content flows after the first-install precache reduction.
 6. Validate prayer alarms across permission denial, Doze, DST, timezone/clock changes, reboot and long closed-app periods; verify audio and old-cache upgrades in physical-device airplane mode.
-7. Upgrade major-version dependency advisories in dedicated migrations, address the remaining lint warnings and bundle-size warnings, and expand screen-reader/keyboard/contrast and qualified religious-content review.
+7. Add a timeout and response validation for Quran.com word-by-word downloads; pin or integrity-check remote Quran/tafsir fallbacks; confirm content rights and privacy disclosures for HadeethEnc, radio, Wikimedia, and video providers.
+8. Upgrade major-version dependency advisories in dedicated migrations, address the remaining lint warnings and bundle-size warnings, and expand screen-reader/keyboard/contrast and qualified religious-content review.
 
 ## Working checklist
 
