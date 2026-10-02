@@ -25,7 +25,9 @@ supabase link --project-ref ojstudhmcypoqfnwugbf
 
 1. `tools/backend/leaderboard_supabase_schema.sql`
 2. `tools/backend/leaderboard_supabase_moderation.sql`
-3. `tools/backend/leaderboard_supabase_hardening.sql` فقط إذا كان عندك نشر قديم سبق اشتغل قبل التعديلات الأمنية
+3. `tools/backend/leaderboard_v3_profiles.sql` إذا كان النشر يستخدم ملفات المستخدمين وترتيب V3.
+4. `tools/backend/leaderboard_supabase_hardening.sql` فقط إذا كان عندك نشر قديم سبق اشتغل قبل التعديلات الأمنية.
+5. `tools/backend/leaderboard_public_reads_lockdown.sql` لإلغاء منح القراءة المباشرة القديمة من Data API بعد تثبيت الجداول والملفات.
 
 ## 5) أنشئ سر الإدارة للخادم فقط
 اختر قيمة طويلة وعشوائية. هذا السر لا يوضع داخل `.env.local` ولا داخل التطبيق.

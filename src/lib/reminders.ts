@@ -1,4 +1,5 @@
 import { Capacitor } from "@capacitor/core";
+import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import type { LocalNotification } from "@capacitor/local-notifications";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 import { useNoorStore } from "@/store/noorStore";
@@ -994,8 +995,8 @@ export async function registerNotificationDeepLinkListener(
       }
 
       // "open" and a plain body tap both land here.
-      const route = extra?.route;
-      if (typeof route === "string" && route.startsWith("/")) {
+      const route = getInternalAppRoute(extra?.route);
+      if (route) {
         navigate(route);
       }
     },
@@ -1013,7 +1014,8 @@ export async function registerNotificationDeepLinkListener(
     await applyNotificationAction(pending);
     const actionHandledWithoutNavigation = [MARK_PRAYED_ACTION_ID, SNOOZE_ACTION_ID, "snooze", "done"]
       .includes(pending.actionId ?? "");
-    if (!actionHandledWithoutNavigation && pending.route && pending.route.startsWith("/")) navigate(pending.route);
+    const route = getInternalAppRoute(pending.route);
+    if (!actionHandledWithoutNavigation && route) navigate(route);
   }
 
   return () => { handle.remove(); };

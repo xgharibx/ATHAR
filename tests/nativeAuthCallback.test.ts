@@ -78,6 +78,18 @@ describe("native authentication callback delivery", () => {
     expect(sessionTokens).toEqual([]);
   });
 
+  it("rejects unsolicited token-fragment callbacks because native auth uses PKCE", async () => {
+    const { completeNativeSignIn } = await import("@/lib/authClient");
+
+    const result = await completeNativeSignIn(
+      "app.athar://auth#access_token=attacker-token&refresh_token=attacker-refresh",
+    );
+
+    expect(result.ok).toBe(false);
+    expect(exchanges).toEqual([]);
+    expect(sessionTokens).toEqual([]);
+  });
+
   it("reports an OAuth denial instead of treating it as a malformed callback", async () => {
     const { completeNativeSignIn } = await import("@/lib/authClient");
 

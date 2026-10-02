@@ -6,6 +6,7 @@
 - `leaderboard_supabase_schema.sql`: مخطط قاعدة البيانات الأساسي (events + rollups + indexes + RLS baseline).
 - `leaderboard_supabase_hardening.sql`: ترقيع أمني/منطقي للمشاريع التي نفذت السكيمة قبل إضافة checksum/idempotency.
 - `leaderboard_supabase_moderation.sql`: جداول إدارة الأسماء والحظر والإخفاء وتدقيق قرارات التصفية.
+- `leaderboard_public_reads_lockdown.sql`: إلغاء القراءة المباشرة القديمة من Data API؛ قراءة المتصدرين تمر عبر Edge Function لتطبيق الإخفاء والحدود.
 - `leaderboard_deploy_steps.md`: أوامر PowerShell وخطوات النشر الفعلية للمشروع الحالي.
 - `check-leaderboard-endpoint.mjs`: سكربت فحص endpoint بعد النشر.
 
@@ -13,7 +14,10 @@
 1. افتح SQL Editor في مشروع Supabase.
 2. نفّذ محتوى `leaderboard_supabase_schema.sql`.
 3. نفّذ محتوى `leaderboard_supabase_moderation.sql` إذا كنت تريد أسماء مخصّصة + أدوات إدارة وحظر.
-4. أنشئ Edge Function (أو API وسيط) يستقبل:
+4. نفّذ `leaderboard_v3_profiles.sql` إذا كان النشر يستخدم ملفات المستخدمين وترتيب V3.
+5. نفّذ `leaderboard_supabase_hardening.sql` فقط إذا كان عندك نشر قديم سبق اشتغل قبل التعديلات الأمنية.
+6. نفّذ `leaderboard_public_reads_lockdown.sql` لإلغاء أي منح قراءة مباشرة قديمة بعد تثبيت الجداول والملفات.
+7. أنشئ Edge Function (أو API وسيط) يستقبل:
    - `POST` لتسجيل score events + تحديث rollups.
    - `GET` لإرجاع top rows حسب `board`, `period`, `day`, `sectionId`.
    - القالب المعتمد موجود ضمن `supabase/functions/leaderboard` في جذر المشروع.

@@ -57,6 +57,8 @@ create index if not exists idx_lb_profiles_alias_display
   on public.leaderboard_user_profiles (lower(alias_display));
 
 alter table public.leaderboard_user_profiles enable row level security;
+revoke all privileges on table public.leaderboard_user_profiles
+  from public, anon, authenticated;
 
 drop policy if exists "lb_profiles_no_public_write" on public.leaderboard_user_profiles;
 
@@ -152,7 +154,10 @@ select
 from public.leaderboard_rollups r
 left join public.leaderboard_user_profiles p on p.user_id = r.user_id;
 
-grant select on public.leaderboard_ranked_v3 to anon, authenticated;
+-- This view contains historical scores and profile activity timestamps. The
+-- app reads through the moderation-filtered, limited Edge Function instead.
+revoke all privileges on table public.leaderboard_ranked_v3
+  from public, anon, authenticated;
 
 select
   'leaderboard_v3_profiles_ready' as status,

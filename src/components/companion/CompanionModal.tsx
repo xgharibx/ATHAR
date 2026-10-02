@@ -17,6 +17,7 @@ import {
   Sparkles, Send, X as XIcon, AlertCircle, Loader2, History, Plus, Mic, MicOff,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { getInternalAppRoute } from "@/lib/internalAppRoute";
 
 import {
   ROUTE_LABELS,
@@ -226,8 +227,10 @@ export function CompanionModal(props: {
 }) {
   const navigate = useNavigate();
   const navigateRoute = React.useCallback((route: string) => {
-    navigate(route);
-    dispatchNavigate(route);
+    const safeRoute = getInternalAppRoute(route);
+    if (!safeRoute) return;
+    navigate(safeRoute);
+    dispatchNavigate(safeRoute);
   }, [navigate]);
   const [messages, setMessages] = React.useState<CompanionMessage[]>([]);
   const [input, setInput] = React.useState(props.prefill ?? "");

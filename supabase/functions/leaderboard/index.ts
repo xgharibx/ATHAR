@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { computeScores, hasMetrics, FARD_PRAYERS_PER_DAY } from "./scoring.ts";
 import { authorizeLeaderboardIdentity } from "./ownership.ts";
+import { readTrustedClientIp } from "./clientIp.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -704,13 +705,6 @@ function validatePayload(payload) {
   return { ok: true };
 }
 
-function readClientKey(req) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const cf = req.headers.get("cf-connecting-ip")?.trim();
-  const real = req.headers.get("x-real-ip")?.trim();
-  return ip || cf || real || "unknown";
-}
-
 /**
  * Rate limit.
  *
@@ -878,7 +872,7 @@ if (!denoRuntime?.serve || !denoRuntime?.env?.get) {
 
 denoRuntime.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
-  if (!rateLimit(`ip:${readClientKey(req)}`, MAX_REQ_PER_WINDOW)) {
+  if (!rateLimit(`ip:${readTrustedClientIp(req.headers)}`, MAX_REQ_PER_WINDOW)) {
     return json({ ok: false, error: "rate-limited" }, 429);
   }
 

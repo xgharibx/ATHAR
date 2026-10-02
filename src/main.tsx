@@ -158,10 +158,7 @@ if (rootContainer) {
       <React.StrictMode>
         <AppErrorBoundary>
           <QueryClientProvider client={queryClient}>
-            <BrowserRouter
-              basename={routerBasename}
-              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-            >
+            <BrowserRouter basename={routerBasename}>
               <App />
               <Toaster
                 position="top-center"

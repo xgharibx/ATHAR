@@ -63,12 +63,15 @@ from public.leaderboard_rollups;
 alter table public.leaderboard_score_events enable row level security;
 alter table public.leaderboard_rollups enable row level security;
 
--- Public read policy for top leaderboard rows
+-- Public reads go through the Edge Function, which applies moderation filters
+-- and response limits. Keep the raw score history and helper view private.
 drop policy if exists "lb_rollups_read" on public.leaderboard_rollups;
 
-create policy "lb_rollups_read"
-  on public.leaderboard_rollups
-  for select
-  using (true);
+revoke all privileges on table public.leaderboard_score_events
+  from public, anon, authenticated;
+revoke all privileges on table public.leaderboard_rollups
+  from public, anon, authenticated;
+revoke all privileges on table public.leaderboard_top
+  from public, anon, authenticated;
 
 -- Service role should handle inserts/updates for events/rollups.

@@ -94,11 +94,17 @@ function server(
     }).outputText;
     vm.runInNewContext(js, { exports: ownership.exports });
   }
+  const clientIpPath = path.join(edgeDir, "clientIp.ts");
+  const clientIp: { exports: Record<string, unknown> } = { exports: {} };
+  const clientIpJs = ts.transpileModule(fs.readFileSync(clientIpPath, "utf8"), {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
+  }).outputText;
+  vm.runInNewContext(clientIpJs, { exports: clientIp.exports });
   const source = fs.readFileSync(path.join(edgeDir, "index.ts"), "utf8").replace(/^import .*;\r?\n/gm, "");
   const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(js, {
     console, createClient: () => db, computeScores, hasMetrics, FARD_PRAYERS_PER_DAY,
-    ...ownership.exports, Request, Response, Headers, URL, TextDecoder,
+    ...ownership.exports, ...clientIp.exports, Request, Response, Headers, URL, TextDecoder,
     Deno: { serve: (fn: typeof handler) => { handler = fn; }, env: { get: () => "synthetic-only" } },
   });
   const validSubmission = (fingerprint = "a".repeat(64)) => ({

@@ -26,6 +26,7 @@ import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import Fuse from "fuse.js";
 import { toPng } from "html-to-image";
+import { getInternalAppRoute } from "@/lib/internalAppRoute";
 
 import {
   ROUTE_LABELS,
@@ -248,7 +249,8 @@ export function CompanionPage() {
   React.useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<{ route: string }>).detail;
-      if (detail?.route) navigate(detail.route);
+      const safeRoute = getInternalAppRoute(detail?.route);
+      if (safeRoute) navigate(safeRoute);
     };
     window.addEventListener("athar-companion-navigate", handler);
     return () => window.removeEventListener("athar-companion-navigate", handler);
@@ -1588,7 +1590,7 @@ function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: 
               }}
               onOpen={() => {
                 const actual = resolveActualReminderPage(r);
-                navigate(actual?.deeplink?.route || "/reminders");
+                navigate(getInternalAppRoute(actual?.deeplink?.route) ?? "/reminders");
               }}
             />
           ))}
@@ -1651,13 +1653,15 @@ function countTokens(text: string): number {
 const markdownComponents: Components = {
   a: ({ href, children }) => {
     const to = href ?? "";
-    if (to.startsWith("/")) {
+    const safeRoute = getInternalAppRoute(to);
+    if (safeRoute) {
       return (
-        <Link to={to} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
+        <Link to={safeRoute} className="mx-0.5 inline-block rounded-lg bg-accent-15 px-2 py-0.5 text-xs font-semibold text-[var(--accent)] underline-offset-2 hover:underline">
           {children}
         </Link>
       );
     }
+    if (!/^https?:\/\//i.test(to) && !/^mailto:/i.test(to)) return <span>{children}</span>;
     return (
       <a href={to} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline underline-offset-2">
         {children}

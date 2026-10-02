@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import { useNoorStore } from "@/store/noorStore";
 import {
   addCustomReminder as storeAddCustomReminder,
@@ -975,7 +976,8 @@ export function RemindersPage() {
   };
 
   const handleOpenDeeplink = (r: CustomReminder) => {
-    if (r.deeplink?.route) navigate(r.deeplink.route);
+    const route = getInternalAppRoute(r.deeplink?.route);
+    if (route) navigate(route);
   };
 
   const openCreate = () => {

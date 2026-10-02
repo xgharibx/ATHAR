@@ -18,13 +18,19 @@ const CORS = {
 };
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), {
       status,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
+
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  if (req.method !== "POST") {
+    return new Response(null, {
+      status: 405,
+      headers: { ...CORS, Allow: "POST, OPTIONS" },
+    });
+  }
 
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
@@ -44,13 +50,10 @@ Deno.serve(async (req: Request) => {
     const user = userData?.user;
     if (userErr || !user) return json({ error: "invalid session" }, 401);
 
-    // Synced rows are ON DELETE CASCADE from auth.users, but delete them
-    // explicitly first so a failure surfaces as an error instead of leaving
-    // the user deleted and their data orphaned.
-    const { error: dataErr } = await admin.from("athar_sync").delete().eq("user_id", user.id);
-    if (dataErr) return json({ error: dataErr.message }, 500);
-    await admin.from("athar_profiles").delete().eq("user_id", user.id);
-
+    // Both athar_sync and athar_profiles reference auth.users with ON DELETE
+    // CASCADE. Delete the auth row once so its dependent rows are removed in
+    // the same database transaction; separate REST deletes can otherwise
+    // erase data and then fail while leaving the account active.
     const { error: delErr } = await admin.auth.admin.deleteUser(user.id);
     if (delErr) return json({ error: delErr.message }, 500);
 

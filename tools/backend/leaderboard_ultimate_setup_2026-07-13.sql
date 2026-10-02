@@ -122,10 +122,15 @@ alter table public.leaderboard_user_moderation enable row level security;
 alter table public.leaderboard_alias_registry  enable row level security;
 alter table public.leaderboard_alias_audit     enable row level security;
 
--- Public may read the rollups (the leaderboard itself). Everything else is
--- service-role only (the Edge Function uses the service key and bypasses RLS).
+-- Public leaderboard reads go through the Edge Function, which applies
+-- moderation filters and response limits. Keep raw rollups service-role only.
 drop policy if exists "lb_rollups_read" on public.leaderboard_rollups;
-create policy "lb_rollups_read" on public.leaderboard_rollups for select using (true);
+revoke all privileges on table public.leaderboard_score_events
+  from public, anon, authenticated;
+revoke all privileges on table public.leaderboard_rollups
+  from public, anon, authenticated;
+revoke all privileges on table public.leaderboard_user_profiles
+  from public, anon, authenticated;
 
 -- 6) Profile upsert RPC (called by the Edge Function on every submit) ────────
 create or replace function public.leaderboard_upsert_user_profile(

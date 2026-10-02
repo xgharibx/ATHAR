@@ -136,8 +136,9 @@ export async function signInWithEmail(email: string): Promise<AuthResult> {
 
 /**
  * Finish a native sign-in from the deep link the system browser returns to.
- * Handles both PKCE (`?code=`) and implicit (`#access_token=`) shapes, since
- * which one arrives depends on the provider and Supabase settings.
+ * Accept only a PKCE authorization code. This client is explicitly configured
+ * for PKCE, so accepting bearer tokens from a custom-scheme URL would let any
+ * app or webpage open this app as a different Supabase user.
  */
 export function completeNativeSignIn(url: string): Promise<AuthResult> {
   let parsed: URL;
@@ -178,13 +179,6 @@ async function exchangeNativeSignIn(parsed: URL): Promise<AuthResult> {
     const code = parsed.searchParams.get("code");
     if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (error) return { ok: false, error: error.message };
-      return { ok: true };
-    }
-    const access_token = hash.get("access_token");
-    const refresh_token = hash.get("refresh_token");
-    if (access_token && refresh_token) {
-      const { error } = await supabase.auth.setSession({ access_token, refresh_token });
       if (error) return { ok: false, error: error.message };
       return { ok: true };
     }
