@@ -8,7 +8,7 @@ This report records verified fixes in the current audit branch separately from u
 
 ## Executive assessment
 
-The app has a substantial offline-capable feature set, and its existing visual design remains intact. This audit fixed high-impact regressions in Quran navigation, storage restore, prayer-time fallback, auth callback delivery, sync lifecycle, audio caching, and notification/widget handling. The release-verification command now completes successfully, and all tested routes render at a narrow mobile viewport.
+The app has a substantial offline-capable feature set, and its existing visual design remains intact. This audit fixed high-impact regressions in Quran navigation, storage restore, prayer-time fallback, auth callback delivery, sync lifecycle, audio caching, and notification/widget handling. Follow-on read-only reviews found a cross-account data-transfer risk, finite/stale native reminder schedules, and backend migration-chain hazards that still need remediation. The release-verification command completes successfully, and all tested routes render at a narrow mobile viewport.
 
 The app is **not ready for a public store release**. The main gates are paid AI protection that has been improved in this branch but is not deployed or live-verified, a currently restricted Supabase project, unapplied leaderboard, AI, Quran translation, and Dorar quota migrations, a hosted translation integration that is still unverified against its provider, and incomplete iOS store preparation. The iOS Google OAuth bridge and native share registration are wired into the Xcode project; the unsigned macOS 26/Xcode build passed on `c24faa3`, but device round-trips remain open. Android debug build/lint CI passed on Ubuntu, and API 36.1 instrumentation is verified locally because GitHub-hosted nested virtualization could not boot the emulator. The current package version matches the live Play release; the next upload still needs a higher version code and a signed artifact.
 
@@ -64,7 +64,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 
 ### P0 — Protect paid AI access before exposing the endpoint
 
-The initially audited `supabase/functions/companion` accepted unauthenticated calls (`verify_jwt=false`), and a synthetic request reached MiniMax in the local source harness. The current branch now requires a bearer session, validates it with Supabase Auth, atomically reserves up to 30 requests per UTC day and 5 per rolling minute through a service-only RPC, reads request bodies with a 256 KiB UTF-8 byte cap, and bounds upstream requests to 60 seconds. Existing system/message/token caps and the per-isolate 24-requests/minute IP limiter remain. The new quota migration and function have not been deployed; live Supabase checks still return HTTP 402, so production protection is unverified and must remain a release blocker. The per-account quota also needs a provider-level/global spend cap and alerts to address account farming and total exposure.
+The initially audited `supabase/functions/companion` accepted unauthenticated calls (`verify_jwt=false`), and a synthetic request reached MiniMax in the local source harness. The current branch now requires a bearer session, validates it with Supabase Auth, atomically reserves up to 30 requests per UTC day and 5 per rolling minute through a service-only RPC, reads request bodies with a 256 KiB UTF-8 byte cap, and bounds upstream requests to 60 seconds. Existing system/message/token caps and the per-isolate 24-requests/minute IP limiter remain. The new quota migration and function have not been deployed; live Supabase checks still return HTTP 402, so production protection is unverified and must remain a release blocker. The per-account quota also needs a provider-level/global spend cap, a durable hashed-IP limit, and alerts to address account farming, isolate churn, and total exposure.
 
 **Release gate:** restore the Supabase project, apply the quota migration to staging, deploy the function, and verify missing/public-key-only/invalid tokens, per-minute and per-day boundaries, concurrent reservations, body caps, and provider spend alerts against the deployed endpoint. Keep paid AI disabled for public release until those checks pass. Never place provider secrets in browser build variables.
 
@@ -77,6 +77,18 @@ Supabase safe endpoint checks returned 402 project-restriction responses, so sig
 The leaderboard ownership migration and Companion quota migration are local only. Until they are applied and verified against a staging database, the edge-function changes cannot be considered production-ready. Legacy leaderboard identities with missing ownership records need an explicit, reviewed backfill or recovery policy; the new check otherwise correctly fails closed. The iOS build workflow now passes the Supabase URL and public key needed for account-backed Companion access, but the hosted secret values still need verification.
 
 **Next:** restore the project through its owner, run the schema/RLS/function test suite against a disposable staging project, apply the migration there, verify existing leaderboard rows and ownership recovery, then deploy in a controlled release. No production write was attempted in this audit.
+
+### P1 — Make the Supabase migration chain complete and safe to apply
+
+The checked-in migration chain does not create the base `leaderboard_rollups` or `leaderboard_score_events` tables; their creation lives in manual setup SQL under `tools/backend/`. Later versioned migrations assume those tables exist, so a fresh project cannot be built from the migration chain alone. One later migration also truncates all score events and rollups after removing synthetic verification rows. That reset may be intentional, but it is destructive to real leaderboard history. The restricted project's migration ledger cannot be checked while Supabase returns HTTP 402.
+
+Before cloud release, make a disposable-project bootstrap test pass from an empty database and from a manually provisioned database with existing scores. Add an explicit baseline or versioned base-schema migration, and require a reviewed backup/owner decision before any migration that resets published data is applied.
+
+### P1 — Prevent silent cross-account data transfer on a shared device
+
+When a different user signs in, `src/lib/syncClient.ts` discards the previous account's merge base but immediately builds a new snapshot from the same device-wide store and uploads it to the newly signed-in account. The account-switch test currently expects this transfer. The same installation-wide scope is used for Companion conversations in `athar-companion-v1` and the Companion profile in localStorage; the profile includes personal concerns such as worry, guilt, and loneliness. The account panel's sign-out text says local data remain, but does not explain that a later account can see that data or have synced app state uploaded into its cloud account.
+
+Preserve the local data and prevent automatic transfer: either partition local sync/Companion data by account with an explicit first-sign-in migration choice, or require an explicit merge decision before a new account can read or receive the prior device state. Add same-device A-to-B and B-to-A tests proving no silent upload or Companion-history crossover. This behavior is source-verified; no production account was created.
 
 ### P1 — Configure and live-verify the Quran translation service
 
@@ -94,7 +106,9 @@ Apple requires an equivalent login option in cases covered by Guideline 4.8 and 
 
 ### P1 — Verify prayer reminder lifecycle on device
 
-The branch now queues today's and tomorrow's date-specific prayer alerts, follow-ups, Ramadan alerts, and daily Hadith using the selected location and method; it falls back to local calculation if the date-specific API request fails. The two-day horizon refreshes when app prayer data changes, but the app needs to reopen and refresh to extend the horizon beyond tomorrow. The source was built and launched on the API 36.1 emulator, while the default reminders are off, so actual pending alarms were not verified there. Test exact-alarm and notification permissions, Doze, DST, manual clock and time-zone changes, location changes, reboot restoration, and a multi-day closed-app interval on device.
+The branch now queues today's and tomorrow's date-specific prayer alerts, follow-ups, Ramadan alerts, and daily Hadith using the selected location and method; it falls back to local calculation if the date-specific API request fails. Recurring custom reminders queue only the next ten firings. Without a reliable app-resume/time-zone reconciliation path, alarms can stop after the finite queue expires or use stale local times after a clock or time-zone change. Android alarms use non-wakeup types unless `allowWhileIdle` is enabled, and the plugin's reboot receiver can replay expired one-shot notifications close together. Custom reminder cancellation has a race: cleanup can finish while `scheduleCustomNotification` is pending, after which the new schedule ID is never canceled.
+
+Add deterministic coverage for the in-flight cancellation race and DST boundaries, then reconcile schedules on foreground/resume and relevant time changes. Verify exact-alarm and notification permissions, Doze, clock and timezone changes, location changes, reboot restoration, and a multi-day closed-app interval on physical Android and iOS devices. The API 36.1 instrumentation run did not exercise pending alarm delivery.
 
 ### P1 — Complete privacy disclosures for location and network services
 
@@ -110,7 +124,15 @@ The Play Console account and Athar listing were inspected read-only: version cod
 
 ### P2 — Reduce bundle and offline-cache cost
 
-The production build warns that key chunks are large: `miracles` is about **972 kB** uncompressed, React vendor about **857 kB**, and Three vendor about **671 kB**. The installed PWA precache is now **17.0 MB across 248 unique files** (down from 94.4 MB across 276 files in the previous build); large content packs cache on demand with bounded entry counts. Measure cold-start and memory on lower-end phones, lazy-load route-only code, and validate cache eviction and upgrades. Keep the current visual design while improving loading and memory behavior.
+The production build warns that key chunks are large: `miracles` is about **972 kB** uncompressed, React vendor about **857 kB**, and Three vendor about **671 kB**. The installed PWA precache is now **17.0 MB across 248 unique files** (down from 94.4 MB across 276 files in the previous build). The 76.4 MiB public data inventory is not precached, but runtime caches are bounded only by entry count and age, not bytes: opening the 17.3 MiB Hadith search index can consume that much CacheStorage, while audio caches admit up to 3,000 files per provider for a year. Some content is also copied into IndexedDB, duplicating storage. Add an explicit byte-aware budget or avoid service-worker caching for packs already persisted in IndexedDB; measure cache usage and eviction on devices. Keep the current visual design while improving loading and memory behavior.
+
+### P2 — Bound cloud-sync document sizes
+
+The `athar_sync.payload` JSONB and `device_id` columns have no explicit serialized-size bound or per-account write/storage quota in the migration, while the app can upload notes, prayer history, and custom content. Add a server-side byte/shape limit and a clear client error before user-controlled payloads can consume unbounded project storage. Test below/at/above the limit and against repeated updates in staging; live storage behavior is unverified while the Supabase project is restricted.
+
+### P2 — Define leaderboard data deletion and disclose all synced categories
+
+Account deletion removes auth, sync, and profile rows, but leaderboard records use a separate pseudonymous identity with no auth-user linkage or deletion mapping. The function therefore cannot delete that identity, alias/audit records, rollups, or retained score events. Decide whether leaderboard participation/history is in account-deletion scope and implement a deletable linkage if required. Separately, the account panel describes only adhkar, streaks, favorites, and reminders, while the sync export also includes Quran notes/highlights/reading, hadith notes/cards, prayer logs, favorite cities, and custom packs. Update the disclosure or link a complete data inventory before asking users to enable sync.
 
 ### P2 — Address dependency advisories deliberately
 
@@ -165,14 +187,18 @@ No production database dump was available because the hosted project was restric
 ## Working checklist
 
 - [x] Inspect app routes, data assets, local persistence, provider/API calls, Supabase client/functions, Android and iOS source, and store/build configuration.
-- [x] Run the full web quality gate; 866 tests across 107 files pass, with lint at 0 errors and 100 warnings.
+- [x] Run the full web quality gate; 869 tests across 109 files pass, with lint at 0 errors and 100 warnings.
 - [x] Build, lint, and run Android API 36 instrumentation tests; verify the forged-widget-broadcast protections.
 - [x] Reduce PWA first-install precache from 94.4 MB/276 files to 17.0 MB/248 unique files and verify Quran access after an offline reload.
 - [x] Add source-level hardening and synthetic tests for Dorar abuse controls; keep its database migration unapplied pending a working staging project.
 - [x] Correct iOS 13 photo permission compatibility, add the UserDefaults privacy reason manifest, and configure current macOS/Xcode CI.
 - [ ] Restore Supabase service and validate migrations, RLS, account deletion, sync ownership, and durable quotas against staging before deployment.
+- [ ] Prevent silent cross-account sync and Companion-history transfer; test account switching on one installation.
+- [ ] Bootstrap the Supabase migration chain from empty and existing-schema fixtures; review the leaderboard reset before any live apply.
+- [ ] Add durable/global Companion spend controls, a cloud-sync payload limit, and clear leaderboard-deletion scope.
+- [ ] Add byte-aware runtime cache limits or remove duplicate service-worker caching for large data/audio packs.
 - [ ] Publish and link the privacy policy; reconcile data-safety disclosures, AI/location disclosures, deletion scope, and provider retention.
-- [ ] Complete iOS App Store work: test native flows on device, verify Sign in with Apple applicability and account deletion, finish data/SDK disclosures, and integrate a widget extension if widgets remain advertised. Hosted unsigned Xcode validation, including the privacy manifest, passed on `7f194fa`.
+- [ ] Complete iOS App Store work: test native flows on device, verify Sign in with Apple applicability and account deletion, finish data/SDK disclosures, and integrate a widget extension if widgets remain advertised. Hosted unsigned Xcode validation, including the privacy manifest, passed on `c24faa3`.
 - [ ] Complete Android release preparation: explicit backup rules, signing custody, and a release-signed AAB with version code greater than 74.
 - [ ] Exercise reminders and notifications through denial, Doze, reboot, time changes, and app closure; test audio and cache upgrades on devices.
 - [ ] Address remaining dependency advisories, 100 lint warnings, large chunks, accessibility coverage, and religious-content review.
