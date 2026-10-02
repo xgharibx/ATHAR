@@ -6,10 +6,15 @@ import { describe, expect, it } from "vitest";
 import { computeScores, hasMetrics, FARD_PRAYERS_PER_DAY } from "../supabase/functions/leaderboard/scoring";
 
 /** Execute the deployed handler source with only external database I/O replaced. */
-function server(claim: { data: boolean | null; error: { message: string } | null }) {
+function server(
+  claim: { data: boolean | null; error: { message: string } | null },
+  options: { failFirstRollupUpsert?: boolean } = {},
+) {
   let handler: (req: Request) => Promise<Response>;
   const mutations: string[] = [];
   const writes: Array<{ table: string; operation: string; value: unknown }> = [];
+  const storedEvents: Array<Record<string, unknown>> = [];
+  let rollupUpserts = 0;
   const db = {
     rpc: async (name: string) => {
       if (name === "leaderboard_claim_identity") return claim;
@@ -18,15 +23,63 @@ function server(claim: { data: boolean | null; error: { message: string } | null
     },
     from(table: string) {
       let operation = "select";
+      let selectedColumn = "";
+      let selectOptions: Record<string, unknown> = {};
+      let single = false;
+      let filters: Record<string, unknown> = {};
+      let operationError: { message: string } | null = null;
       const query = {
-        select() { return this; }, eq() { return this; }, is() { return this; }, in() { return this; },
-        order() { return this; }, limit() { return this; }, maybeSingle() { return this; },
-        insert(value: unknown) { operation = "insert"; writes.push({ table, operation, value }); return this; },
-        upsert(value: unknown) { operation = "upsert"; writes.push({ table, operation, value }); return this; },
+        select(column = "", selectOptionsArg: Record<string, unknown> = {}) {
+          selectedColumn = column;
+          selectOptions = selectOptionsArg;
+          return this;
+        },
+        eq(column: string, value: unknown) { filters[column] = value; return this; },
+        is(column: string, value: unknown) { filters[column] = value; return this; },
+        in(column: string, value: unknown[]) { filters[column] = value; return this; },
+        order() { return this; },
+        limit() { return this; },
+        maybeSingle() { single = true; return this; },
+        insert(value: unknown) {
+          operation = "insert";
+          writes.push({ table, operation, value });
+          if (table === "leaderboard_score_events") {
+            const rows = Array.isArray(value) ? value : [value];
+            storedEvents.push(...rows as Array<Record<string, unknown>>);
+          }
+          return this;
+        },
+        upsert(value: unknown) {
+          operation = "upsert";
+          writes.push({ table, operation, value });
+          if (table === "leaderboard_rollups") {
+            rollupUpserts += 1;
+            if (options.failFirstRollupUpsert && rollupUpserts === 1) {
+              operationError = { message: "synthetic rollup failure" };
+            }
+          }
+          return this;
+        },
         delete() { operation = "delete"; return this; },
         then(resolve: (value: unknown) => unknown) {
           if (operation !== "select") mutations.push(`${table}:${operation}`);
-          return Promise.resolve({ data: null, error: null, count: 0 }).then(resolve);
+          let data: unknown = null;
+          let count = 0;
+          if (operation === "select" && table === "leaderboard_score_events") {
+            const rows = storedEvents.filter((row) => Object.entries(filters).every(([key, value]) => {
+              const actual = row[key];
+              return Array.isArray(value) ? value.includes(actual) : actual === value;
+            }));
+            count = rows.length;
+            if (selectOptions.count === "exact") {
+              data = null;
+            } else if (selectedColumn === "payload") {
+              data = single ? rows.at(-1) ?? null : rows;
+            } else {
+              data = single ? rows[0] ?? null : rows;
+            }
+          }
+          return Promise.resolve({ data, error: operationError, count }).then(resolve);
         },
       };
       return query;
@@ -59,7 +112,7 @@ function server(claim: { data: boolean | null; error: { message: string } | null
   }));
   const submit = async (fingerprint = "a".repeat(64), overrides: Record<string, unknown> = {}) =>
     submitRaw(JSON.stringify({ ...validSubmission(fingerprint), ...overrides }));
-  return { validSubmission, submit, submitRaw, sendRequest, mutations, writes };
+  return { validSubmission, submit, submitRaw, sendRequest, mutations, writes, rollupUpserts: () => rollupUpserts };
 }
 
 describe("leaderboard identity ownership", () => {
@@ -152,5 +205,19 @@ describe("leaderboard identity ownership", () => {
     expect(inserted?.[0]?.payload.scores).not.toHaveProperty("unexpected");
     expect(inserted?.[0]?.payload.scores.sections).not.toHaveProperty("x".repeat(81));
     expect(inserted?.[0]?.payload.metrics).not.toHaveProperty("unexpected");
+  });
+
+  it("repairs a rollup after the event was saved but its first upsert failed", async () => {
+    const edge = server({ data: true, error: null }, { failFirstRollupUpsert: true });
+
+    expect((await edge.submit()).status).toBe(500);
+    expect(edge.rollupUpserts()).toBe(1);
+
+    const retry = await edge.submit();
+
+    expect(retry.status).toBe(200);
+    expect(await retry.json()).toMatchObject({ deduped: true });
+    expect(edge.rollupUpserts()).toBe(2);
+    expect(edge.writes.filter((write) => write.table === "leaderboard_score_events" && write.operation === "insert")).toHaveLength(1);
   });
 });

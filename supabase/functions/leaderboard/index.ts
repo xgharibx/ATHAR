@@ -937,6 +937,7 @@ denoRuntime.serve(async (req) => {
     }
 
     const incomingScoreSignature = scoreSignature(payload.scores);
+    let deduped = false;
 
     const lastSnapshotRes = await db
       .from("leaderboard_score_events")
@@ -951,20 +952,22 @@ denoRuntime.serve(async (req) => {
     if (!lastSnapshotRes.error && lastSnapshotRes.data?.payload?.scores) {
       const previousScoreSignature = scoreSignature(lastSnapshotRes.data.payload.scores);
       if (previousScoreSignature === incomingScoreSignature) {
-        return json({ ok: true, deduped: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt });
+        deduped = true;
       }
     }
 
-    const duplicateRes = await db
-      .from("leaderboard_score_events")
-      .select("id")
-      .eq("day", payload.day)
-      .eq("user_id", payload.identity.id)
-      .eq("checksum", payload.checksum)
-      .limit(1);
+    if (!deduped) {
+      const duplicateRes = await db
+        .from("leaderboard_score_events")
+        .select("id")
+        .eq("day", payload.day)
+        .eq("user_id", payload.identity.id)
+        .eq("checksum", payload.checksum)
+        .limit(1);
 
-    if (!duplicateRes.error && (duplicateRes.data?.length ?? 0) > 0) {
-      return json({ ok: true, deduped: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt });
+      if (!duplicateRes.error && (duplicateRes.data?.length ?? 0) > 0) {
+        deduped = true;
+      }
     }
 
     // Count SUBMISSIONS, not rows. Each submission writes one row per board
@@ -990,7 +993,7 @@ denoRuntime.serve(async (req) => {
     const overEventCap =
       !dayCountRes.error && (dayCountRes.count ?? 0) > MAX_EVENTS_PER_USER_PER_DAY;
 
-    if (!overEventCap) {
+    if (!deduped && !overEventCap) {
       const insertEvents = await db.from("leaderboard_score_events").insert(rows);
       if (insertEvents.error) return json({ ok: false, error: "event-insert-failed" }, 500);
     }
@@ -1072,7 +1075,7 @@ denoRuntime.serve(async (req) => {
       if (rollupUpsert.error) return json({ ok: false, error: "rollup-upsert-failed" }, 500);
     }
 
-    return json({ ok: true, alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt, capped: overEventCap });
+    return json({ ok: true, ...(deduped ? { deduped: true } : {}), alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt, capped: overEventCap });
   }
 
   if (req.method === "GET") {

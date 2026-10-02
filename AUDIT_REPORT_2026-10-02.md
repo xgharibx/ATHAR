@@ -14,7 +14,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 
 ## What was examined and verified
 
-- Ran `npm run verify` after the current changes: lint completed with **0 errors and 100 warnings**, all **881 tests in 110 files passed**, and the TypeScript plus Vite production/PWA build succeeded. Android web assets were synced and `assembleDebug lintDebug` passed locally. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
+- Ran `npm run verify` after the current changes: lint completed with **0 errors and 100 warnings**, all **882 tests in 110 files passed**, and the TypeScript plus Vite production/PWA build succeeded. Android web assets were synced and `assembleDebug lintDebug` passed locally. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
 - Parsed the actual bundled Quran and page map: **114 surahs, 6,236 ayahs, and all 604 Mushaf pages** are represented by valid JSON and page references.
 - Loaded **52 valid app routes** plus one deliberate unknown route in a production preview at **390 × 844**. Routes rendered, the unknown route showed the not-found view, and targeted Home and Quran state transitions did not produce React hook-order errors. This was route and focused-interaction coverage, not a full usability pass over every control.
 - Rechecked the production preview with Playwright CLI at **390 × 844**: onboarding rendered, Skip exposed Home, and Settings navigation loaded the expected page without a framework overlay. A fresh browser profile kept geolocation permission at `prompt` through startup; tapping the onboarding location action granted it, saved coordinates, and advanced onboarding. Tapping the Prayer Times opt-in button updated the saved location and its label. A desktop-to-mobile resize reproduced 132 Three.js buffer errors before the starfield fix; the same transition emitted zero buffer errors after the rebuild. The browser console still shows CORS/HTTP 402 failures from the hosted Supabase leaderboard endpoint, so live leaderboard behavior remains blocked by the project restriction. Screenshots were captured outside the repository.
@@ -50,6 +50,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 | Reminder notifications | Cancel only the app's custom reminder notification IDs; select the Android monochrome status icon. | Notification ownership tests; Android build |
 | Tasbeeh widget | Reject taps for widget IDs not registered with Android before changing counts. | API 36.1 emulator invalid-ID broadcast; no state created |
 | Leaderboard identity | Add an ownership RPC check before identity mutation and include the database migration. | Edge handler ownership tests; migration remains unapplied |
+| Leaderboard retry recovery | Let duplicate submissions retry user-rollup upserts while keeping score-event insertion idempotent. | Synthetic handler regression reproduces a failed first upsert and verifies the retry repairs it without inserting duplicate event rows; staging remains unavailable |
 | Companion readiness | Treat only successful 2xx responses as ready and time out health probes. | Health tests |
 | Offline reader/audio | Add an app-shell fallback for failed navigation requests; make Mushaf downloads and the service worker use one audio cache and report partial/failed downloads honestly. | Production PWA offline reload and Quran-data cache fetch passed in a real browser; physical-device airplane-mode, audio, and cache-upgrade checks remain |
 | Privacy wording | Remove the false claim that Tasmee audio never leaves the device; improve Arabic diacritic/tatweel normalization. | Source/UI review and regression tests |
@@ -92,9 +93,9 @@ Before cloud release, make a disposable-project bootstrap test pass from an empt
 
 The public `leaderboard` function has `verify_jwt=false`. POST bodies are now read with a 64 KiB streaming byte limit and oversized requests return 413 before any database write. Null/non-object JSON returns 400. The sanitizer now builds an explicit allowlisted payload, normalizes score/metric fields, caps section identifiers, and strips unknown top-level, identity, score, and metrics properties before persistence. Synthetic Edge Function tests cover streamed oversize bodies, null JSON, and unknown-field stripping. Supabase remains restricted, so this change is source-tested but not deployed or live-verified.
 
-### P1 — Repair failed leaderboard rollup retries
+### Resolved locally — Repair failed leaderboard rollup retries
 
-The handler inserts events before upserting rollups; if the rollup write fails, an identical retry hits event deduplication and returns success before attempting the failed rollup again. A source harness reproduced `500 rollup-upsert-failed` followed by `200 deduped`, leaving the score absent from ranking data while the client discards its retry. Make event and rollup writes transactional or make the deduplication path repair the rollup before acknowledging success. Add failed-rollup retry and concurrent-submission tests, then verify on staging.
+The handler inserts events before upserting rollups; if the rollup write failed, an identical retry previously returned `200 deduped` before repairing ranking data. Duplicate submissions now skip only the event insert, recompute and upsert the user's rollups, and return success only after that write succeeds. A regression test reproduced the prior failure, then verified a retry performs a second upsert without duplicating score-event rows. The repair is local and source-tested; live retry/concurrency verification remains blocked until the restricted Supabase project is restored.
 
 ### P1 — Prevent silent cross-account data transfer on a shared device
 
@@ -223,7 +224,7 @@ No production database dump was available because the hosted project was restric
 ## Working checklist
 
 - [x] Inspect app routes, data assets, local persistence, provider/API calls, Supabase client/functions, Android and iOS source, and store/build configuration.
-- [x] Run the full web quality gate; 881 tests across 110 files pass, with lint at 0 errors and 100 warnings.
+- [x] Run the full web quality gate; 882 tests across 110 files pass, with lint at 0 errors and 100 warnings.
 - [x] Build, lint, and run Android API 36 instrumentation tests; verify the forged-widget-broadcast protections.
 - [x] Reduce PWA first-install precache from 94.4 MB/276 files to 17.0 MB/248 unique files and verify Quran access after an offline reload.
 - [x] Add source-level hardening and synthetic tests for Dorar abuse controls; keep its database migration unapplied pending a working staging project.
@@ -233,7 +234,8 @@ No production database dump was available because the hosted project was restric
 - [ ] Prevent concurrent cross-device sync writes from converting lost updates into permanent deletions.
 - [ ] Bootstrap the Supabase migration chain from empty and existing-schema fixtures; review the leaderboard reset before any live apply.
 - [x] Bound public leaderboard request bytes and persist only normalized allowlisted fields; deploy and verify after Supabase access is restored.
-- [ ] Make score-event deduplication repair failed rollup writes and verify retry/concurrency behavior on staging.
+- [x] Make score-event deduplication repair failed rollup writes locally and cover retry behavior with a regression test.
+- [ ] Verify failed-rollup retry and concurrent-submission behavior against staging after Supabase access is restored.
 - [ ] Make account deletion POST-only and failure-safe; validate associated-row cleanup on staging.
 - [x] Return HTTP 400 for malformed/non-object Companion JSON before field access; deploy and verify after Supabase access is restored.
 - [ ] Add durable/global Companion spend controls, a cloud-sync payload limit, and clear leaderboard-deletion scope.
