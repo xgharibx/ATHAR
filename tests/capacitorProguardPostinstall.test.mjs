@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 describe("Capacitor ProGuard compatibility postinstall", () => {
-  it("rewrites the core Android module's legacy ProGuard file for AGP 9", () => {
+  it("rewrites legacy ProGuard files across installed Capacitor Android modules", () => {
     const repoRoot = fileURLToPath(new URL("../", import.meta.url));
     const scriptPath = path.join(
       repoRoot,
@@ -30,29 +30,28 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       "scripts",
       "patch-capacitor-plugins.mjs",
     );
-    const capacitorAndroidBuild = path.join(
-      fixtureRoot,
-      "node_modules",
-      "@capacitor",
-      "android",
-      "capacitor",
-      "build.gradle",
-    );
+    const legacyGradle = "proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'\n";
+    const moduleBuildFiles = [
+      ["android", "capacitor", "build.gradle"],
+      ["local-notifications", "android", "build.gradle"],
+      ["preferences", "android", "build.gradle"],
+    ].map((parts) => path.join(fixtureRoot, "node_modules", "@capacitor", ...parts));
 
     try {
       mkdirSync(path.dirname(fixtureScript), { recursive: true });
-      mkdirSync(path.dirname(capacitorAndroidBuild), { recursive: true });
       copyFileSync(scriptPath, fixtureScript);
-      writeFileSync(
-        capacitorAndroidBuild,
-        "proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'\n",
-      );
+      for (const buildFile of moduleBuildFiles) {
+        mkdirSync(path.dirname(buildFile), { recursive: true });
+        writeFileSync(buildFile, legacyGradle);
+      }
 
       execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
 
-      const patched = readFileSync(capacitorAndroidBuild, "utf8");
-      expect(patched).toContain("getDefaultProguardFile('proguard-android-optimize.txt')");
-      expect(patched).not.toContain("getDefaultProguardFile('proguard-android.txt')");
+      for (const buildFile of moduleBuildFiles) {
+        const patched = readFileSync(buildFile, "utf8");
+        expect(patched).toContain("getDefaultProguardFile('proguard-android-optimize.txt')");
+        expect(patched).not.toContain("getDefaultProguardFile('proguard-android.txt')");
+      }
     } finally {
       const resolvedFixtureRoot = path.resolve(fixtureRoot);
       if (path.dirname(resolvedFixtureRoot) !== path.resolve(tmpdir())) {

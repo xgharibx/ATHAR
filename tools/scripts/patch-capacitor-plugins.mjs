@@ -7,37 +7,42 @@
  *
  * Runs automatically via the package.json "postinstall" hook; safe to re-run.
  */
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const modules = [
-  {
-    name: "@capacitor/android",
-    buildFile: new URL("../../node_modules/@capacitor/android/capacitor/build.gradle", import.meta.url),
-  },
-  {
-    name: "@capacitor/preferences",
-    buildFile: new URL("../../node_modules/@capacitor/preferences/android/build.gradle", import.meta.url),
-  },
-];
+const capacitorPackages = fileURLToPath(
+  new URL("../../node_modules/@capacitor/", import.meta.url),
+);
 
-for (const module of modules) {
-  const target = fileURLToPath(module.buildFile);
-  if (!existsSync(target)) {
-    console.log(`[patch-capacitor-plugins] ${module.name} not installed — skipping`);
-    continue;
-  }
+if (!existsSync(capacitorPackages)) {
+  console.log("[patch-capacitor-plugins] Capacitor packages not installed — nothing to do");
+  process.exit(0);
+}
 
-  const before = readFileSync(target, "utf8");
-  const after = before.replace(
-    "getDefaultProguardFile('proguard-android.txt')",
-    "getDefaultProguardFile('proguard-android-optimize.txt')",
-  );
+for (const entry of readdirSync(capacitorPackages, { withFileTypes: true })) {
+  if (!entry.isDirectory()) continue;
 
-  if (after !== before) {
-    writeFileSync(target, after);
-    console.log(`[patch-capacitor-plugins] patched ${module.name} proguard config for AGP 9+`);
-  } else {
-    console.log(`[patch-capacitor-plugins] ${module.name} already patched`);
+  const packageRoot = path.join(capacitorPackages, entry.name);
+  const buildFiles = [
+    path.join(packageRoot, "capacitor", "build.gradle"),
+    path.join(packageRoot, "android", "build.gradle"),
+  ];
+
+  for (const target of buildFiles) {
+    if (!existsSync(target)) continue;
+
+    const before = readFileSync(target, "utf8");
+    const after = before.replace(
+      "getDefaultProguardFile('proguard-android.txt')",
+      "getDefaultProguardFile('proguard-android-optimize.txt')",
+    );
+
+    if (after !== before) {
+      writeFileSync(target, after);
+      console.log(`[patch-capacitor-plugins] patched ${path.relative(capacitorPackages, target)} for AGP 9+`);
+    } else {
+      console.log(`[patch-capacitor-plugins] ${path.relative(capacitorPackages, target)} already patched`);
+    }
   }
 }
