@@ -21,6 +21,7 @@ import {
   TRANSLATION_SOURCES,
   getTranslationForAyah,
   loadTranslationForSurahs,
+  pruneExpiredTranslationCache,
 } from "@/lib/quranTranslations";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import {
@@ -40,6 +41,7 @@ import { CompanionModal } from "@/components/companion/CompanionModal";
 import { TAFSIR_EDITIONS, getTafsirLabel, loadTafsirSurah } from "@/lib/tafsirEditions";
 import { getMutashabihatForAyah, type MutashabihMatch } from "@/lib/mutashabihat";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
+import { QURAN_TRANSLATION_CACHE_EXPIRED_EVENT } from "@/lib/quranIDB";
 import { TranslationPicker } from "@/components/quran/TranslationPicker";
 import toast from "react-hot-toast";
 
@@ -594,7 +596,12 @@ export function MushafPage() {
     });
   }, [setPrefs]);
   const [translationData, setTranslationData] = React.useState<Record<number, string[]>>({});
+  const [translationCacheRevision, setTranslationCacheRevision] = React.useState(0);
   const quranTranslationId: TranslationId = prefs.quranTranslationId ?? "saheeh";
+  const translationSource = TRANSLATION_SOURCES.find((source) => source.id === quranTranslationId);
+  const translationAttribution = quranTranslationId === "saheeh"
+    ? ""
+    : `Quran data provided by Quran Foundation · ${translationSource?.en ?? quranTranslationId}`;
   const prevTranslationIdRef = React.useRef<TranslationId>(quranTranslationId);
   const prevShowTranslationRef = React.useRef<boolean>(showTranslation);
 
@@ -870,7 +877,24 @@ export function MushafPage() {
       .catch(() => { if (mounted) toast.error("تعذر تحميل الترجمة"); });
     return () => { mounted = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTranslation, tafsirItem, currentPage, quranTranslationId]);
+  }, [showTranslation, tafsirItem, currentPage, quranTranslationId, translationCacheRevision]);
+
+  React.useEffect(() => {
+    const clearExpiredTranslation = () => {
+      if (quranTranslationId === "saheeh") return;
+      setTranslationData({});
+      setTranslationCacheRevision((revision) => revision + 1);
+    };
+    const pruneOnReturn = () => {
+      if (document.visibilityState === "visible") void pruneExpiredTranslationCache();
+    };
+    window.addEventListener(QURAN_TRANSLATION_CACHE_EXPIRED_EVENT, clearExpiredTranslation);
+    document.addEventListener("visibilitychange", pruneOnReturn);
+    return () => {
+      window.removeEventListener(QURAN_TRANSLATION_CACHE_EXPIRED_EVENT, clearExpiredTranslation);
+      document.removeEventListener("visibilitychange", pruneOnReturn);
+    };
+  }, [quranTranslationId]);
 
   // Q17: Normalized search for ayah matching
   const normalizedSearch = React.useMemo(
@@ -1139,6 +1163,7 @@ export function MushafPage() {
         sectionTitle: `${selectedItem.surahName} • ${selectedItem.surahId}:${selectedItem.displayAyah}`,
         footerUrl: "www.athark.org",
         translation: translation || undefined,
+        translationAttribution: translation ? (translationAttribution || undefined) : undefined,
       });
       const file = new File([blob], `athar-${selectedItem.surahId}-${selectedItem.displayAyah}.png`, { type: "image/png" });
       if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); }
@@ -1160,7 +1185,7 @@ export function MushafPage() {
       let body = `${selectedItem.text} ﴿${toArabicNumeral(selectedItem.displayAyah)}﴾\n${ref}`;
       if (withTranslation) {
         const tr = await getAyahTranslation(selectedItem.surahId, selectedItem.originalAyah);
-        if (tr) body += `\n\n${tr}`;
+        if (tr) body += `\n\n${tr}${translationAttribution ? `\n\n${translationAttribution}` : ""}`;
       }
       if (navigator.share) { await navigator.share({ text: body }); }
       else { await navigator.clipboard.writeText(body); toast.success("تم النسخ"); }
@@ -1667,6 +1692,7 @@ export function MushafPage() {
           ref={pageContentRef}
           className={`mushaf-page-content${pageTransDir ? " page-sliding" : ""}`}
           dir="rtl"
+          translate="no"
           style={{
             "--mushaf-font-scale": fontScale,
             "--mushaf-line-height": prefs.quranLineHeight,
@@ -1683,6 +1709,13 @@ export function MushafPage() {
             {scrollModeEnabled ? <span>وضع التمرير</span> : null}
             <span>الجزء {toArabicNumeral(pageJuz)}</span>
           </div>
+
+          {showTranslation && quranTranslationId !== "saheeh" &&
+            Object.values(translationData).some((chapter) => chapter.length > 1) ? (
+              <p className="px-3 pt-1 text-[10px] opacity-45 text-center" dir="ltr" lang={translationSource?.lang ?? "en"} translate="no">
+                {translationAttribution}
+              </p>
+            ) : null}
 
           {/* B4: If the index isn't ready yet (e.g. right after a deep-link
               jump to a page the async IDB cache hasn't materialised), show
@@ -1745,6 +1778,7 @@ export function MushafPage() {
                         key={k}
                         ref={isPlaying ? (el: HTMLSpanElement | null) => { playingSpanRef.current = el; } : undefined}
                         className={`mushaf-ayah-span${isSel ? " selected" : ""}${hl ? ` hl-${hl}` : ""}${memorizationMode && !isRevealed ? " mem-hidden" : ""}${isSearchMatch ? " search-match" : ""}${isPlaying ? " playing" : ""}`}
+                        translate="no"
                         style={{
                           // Q16: Focus dimming
                           opacity: selectedItem && !isSel ? 0.3 : 1,
@@ -1797,7 +1831,7 @@ export function MushafPage() {
                         {" "}
                         {/* Q3: Inline translation (only show if wbw mode is off) */}
                         {!wbwVerse && transText ? (
-                          <p className="mushaf-trans-inline italic opacity-65 text-[0.72em] leading-6 mt-1 px-1" dir="ltr" lang="en">
+                          <p className="mushaf-trans-inline italic opacity-65 text-[0.72em] leading-6 mt-1 px-1" dir="ltr" lang={translationSource?.lang ?? "en"} translate="no">
                             {transText}
                           </p>
                         ) : null}

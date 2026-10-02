@@ -247,6 +247,37 @@ export async function idbGetPageIndexMeta(): Promise<QuranOfflineCacheMeta | nul
 
 /* ─── Generic key/value cache for translation / tafsir bundles ─────── */
 
+export const QURAN_TRANSLATION_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+export const QURAN_TRANSLATION_CACHE_EXPIRED_EVENT = "quran-translation-cache-expired";
+
+const QURAN_TRANSLATION_CACHE_PREFIX = "noor_quran_translations_v2:";
+const LEGACY_QURAN_TRANSLATION_CACHE_PREFIX = "noor_quran_translations_v1:";
+let quranTranslationPruneTimer: ReturnType<typeof setTimeout> | null = null;
+let quranTranslationPruneAt = Number.POSITIVE_INFINITY;
+
+function scheduleQuranTranslationPrune(at: number): void {
+  if (at >= quranTranslationPruneAt) return;
+  if (quranTranslationPruneTimer) clearTimeout(quranTranslationPruneTimer);
+  quranTranslationPruneAt = at;
+  quranTranslationPruneTimer = setTimeout(() => {
+    quranTranslationPruneTimer = null;
+    quranTranslationPruneAt = Number.POSITIVE_INFINITY;
+    void idbPruneQuranTranslationCache(Date.now(), true);
+  }, Math.max(0, at - Date.now()));
+}
+
+export function scheduleQuranTranslationCacheExpiry(cachedAt: number): void {
+  if (Number.isFinite(cachedAt)) {
+    scheduleQuranTranslationPrune(cachedAt + QURAN_TRANSLATION_CACHE_TTL_MS);
+  }
+}
+
+function announceExpiredQuranTranslation(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(QURAN_TRANSLATION_CACHE_EXPIRED_EVENT));
+  }
+}
+
 export async function idbGetExtras<T>(key: string): Promise<T | null> {
   try {
     const row = await getDB().extrasCache.get(key);
@@ -256,9 +287,63 @@ export async function idbGetExtras<T>(key: string): Promise<T | null> {
   }
 }
 
-export async function idbSetExtras<T>(key: string, value: T): Promise<void> {
+export type QuranExtrasCacheRow = { key: string; value: unknown; cachedAt: number };
+
+export async function idbGetExtrasByPrefix(prefix: string): Promise<QuranExtrasCacheRow[]> {
   try {
-    await getDB().extrasCache.put({ key, value: value as unknown, cachedAt: Date.now() });
+    return await getDB().extrasCache.where("key").startsWith(prefix).toArray();
+  } catch {
+    return [];
+  }
+}
+
+export async function idbDeleteExtras(keys: string | ReadonlyArray<string>): Promise<void> {
+  try {
+    await getDB().extrasCache.bulkDelete(typeof keys === "string" ? [keys] : [...keys]);
+  } catch {
+    /* best-effort */
+  }
+}
+
+/** Remove old provider text and schedule exact expiry for the remaining cache. */
+export async function idbPruneQuranTranslationCache(now = Date.now(), notifyOnExpiry = false): Promise<number> {
+  const rows = await idbGetExtrasByPrefix("noor_quran_translations_");
+  const expiredKeys: string[] = [];
+  let expiredCurrentTranslation = false;
+  let nextExpiry = Number.POSITIVE_INFINITY;
+
+  for (const row of rows) {
+    if (row.key.startsWith(LEGACY_QURAN_TRANSLATION_CACHE_PREFIX)) {
+      // The previous whole-book cache is not used by the chapter loader.
+      expiredKeys.push(row.key);
+      continue;
+    }
+    if (!row.key.startsWith(QURAN_TRANSLATION_CACHE_PREFIX)) continue;
+    const age = now - row.cachedAt;
+    if (!Number.isFinite(row.cachedAt) || age < 0 || age >= QURAN_TRANSLATION_CACHE_TTL_MS) {
+      expiredKeys.push(row.key);
+      expiredCurrentTranslation = true;
+      continue;
+    }
+    nextExpiry = Math.min(nextExpiry, row.cachedAt + QURAN_TRANSLATION_CACHE_TTL_MS);
+  }
+
+  if (quranTranslationPruneTimer) clearTimeout(quranTranslationPruneTimer);
+  quranTranslationPruneTimer = null;
+  quranTranslationPruneAt = Number.POSITIVE_INFINITY;
+  if (expiredKeys.length) await idbDeleteExtras(expiredKeys);
+  if (Number.isFinite(nextExpiry)) scheduleQuranTranslationPrune(nextExpiry);
+  if (expiredCurrentTranslation || notifyOnExpiry) announceExpiredQuranTranslation();
+  return expiredKeys.length;
+}
+
+export async function idbSetExtras<T>(key: string, value: T, cachedAt = Date.now()): Promise<void> {
+  try {
+    await getDB().extrasCache.put({ key, value: value as unknown, cachedAt });
+    const age = Date.now() - cachedAt;
+    if (key.startsWith(QURAN_TRANSLATION_CACHE_PREFIX) && age >= 0 && age < QURAN_TRANSLATION_CACHE_TTL_MS) {
+      scheduleQuranTranslationCacheExpiry(cachedAt);
+    }
   } catch {
     /* best-effort */
   }

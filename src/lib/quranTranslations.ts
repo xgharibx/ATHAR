@@ -1,25 +1,22 @@
 /**
- * Quran translations — multiple sources the user can switch between.
- *
- * Three sources are shipped:
- *  1. "Saheeh International" (English) — bundled at /data/quran-en-sahih.json
- *     because it's the most common English translation and the existing
- *     preview rows already use it.
- *  2. "Yusuf Ali" (English) — fetched on demand from the quran.foundation
- *     API and cached in IndexedDB for offline use.
- *  3. "Jalandhry" (Urdu) — also fetched and cached in IDB.
- *
- * Each source is keyed by the same global ayah number (1..6236) used by
- * the bundled Sahih bundle, so lookup is identical to the existing helper
- * `getEnglishText` in quranExtras. The runtime falls back to the bundled
- * Saheeh text if a remote fetch fails, so the picker never leaves the user
- * without translation.
+ * Quran translations — Saheeh is bundled, while Yusuf Ali and Jalandhry are
+ * loaded a surah at a time through the server-side Quran Foundation proxy.
+ * Selected translations are cached in IndexedDB for offline reading.
  */
-import { idbGetExtras, idbSetExtras } from "@/lib/quranIDB";
+import * as React from "react";
+import { getSupabase } from "@/lib/authClient";
+import {
+  QURAN_TRANSLATION_CACHE_EXPIRED_EVENT,
+  QURAN_TRANSLATION_CACHE_TTL_MS,
+  idbDeleteExtras,
+  idbGetExtras,
+  idbPruneQuranTranslationCache,
+  scheduleQuranTranslationCacheExpiry,
+  idbSetExtras,
+} from "@/lib/quranIDB";
 import { getEnglishText as getSahihEnglishText, type QuranExtras } from "@/data/quranExtras";
 import { loadEnglishTranslationCache, type QuranEnglishTranslation } from "@/lib/quranTranslationLocal";
-import { getSurahAyahCount } from "@/data/quranSurahCounts";
-import { globalAyahNumber } from "@/data/quranSurahCounts";
+import { getSurahAyahCount, globalAyahNumber, locateGlobalAyah } from "@/data/quranSurahCounts";
 
 export type TranslationId = "saheeh" | "yusuf_ali" | "jalandhry";
 
@@ -31,12 +28,11 @@ export type TranslationSource = {
   en: string;
   /** Two-letter language code used by the API. */
   lang: "en" | "ur";
-  /** quran.foundation translation ID. Saheeh is bundled so it has no id. */
+  /** Quran Foundation translation ID. Saheeh is bundled so it has no ID. */
   apiId: number | null;
   /** True if the source is bundled in /public/data. */
   bundled: boolean;
-  /** Approximate on-disk size in KB (bundled = static asset, fetched =
-   *  expected IDB footprint after a successful fetch). */
+  /** Approximate size for the bundled source or an uncached remote source. */
   approxSizeKB: number;
 };
 
@@ -47,90 +43,199 @@ export const TRANSLATION_SOURCES: TranslationSource[] = [
    * Do NOT "correct" them to look like English-name transliterations
    * (e.g. "ساهيه" or "يوسف علي") without explicit user approval.
    */
-  { id: "saheeh",     ar: "الأجرومية", en: "Saheeh International", lang: "en", apiId: null, bundled: true,  approxSizeKB: 880  },
-  { id: "yusuf_ali",  ar: "الألبيرية", en: "Yusuf Ali",            lang: "en", apiId: 84,    bundled: false, approxSizeKB: 900  },
-  { id: "jalandhry",  ar: "الأرضية",   en: "Jalandhry",            lang: "ur", apiId: 157,   bundled: false, approxSizeKB: 1200 },
+  { id: "saheeh", ar: "الأجرومية", en: "Saheeh International", lang: "en", apiId: null, bundled: true, approxSizeKB: 880 },
+  { id: "yusuf_ali", ar: "الألبيرية", en: "Yusuf Ali", lang: "en", apiId: 22, bundled: false, approxSizeKB: 900 },
+  { id: "jalandhry", ar: "الأرضية", en: "Jalandhry", lang: "ur", apiId: 234, bundled: false, approxSizeKB: 1200 },
 ];
 
-const API_URL = "https://api.quran.foundation/api/v4/quran/translations/";
-const IDB_KEY = "noor_quran_translations_v1";
-const IDB_TTL_MS = 60 * 24 * 60 * 60 * 1000; // 60 days
+const IDB_KEY = "noor_quran_translations_v2";
+const IDB_TTL_MS = QURAN_TRANSLATION_CACHE_TTL_MS;
 
 /** A flat translation index: global ayah number → translated text. */
 export type TranslationIndex = Record<number, string>;
+type CachedTranslationChapter = { cachedAt: number; index: TranslationIndex };
+type MemoryTranslationChapter = CachedTranslationChapter;
+type RemoteTranslationPayload = { translations?: Array<{ verse_key?: unknown; text?: unknown }> };
 
-/** In-memory cache so we don't refetch on every navigation. */
-const MEM_CACHE: Partial<Record<TranslationId, TranslationIndex>> = {};
+/** One in-memory cache and one in-flight request per source and surah. */
+const MEM_CACHE: Partial<Record<TranslationId, Map<number, MemoryTranslationChapter>>> = {};
+const INFLIGHT: Partial<Record<TranslationId, Map<number, Promise<TranslationIndex>>>> = {};
 
-/** One persistent fetch promise per id so we never parallel-fetch. */
-const INFLIGHT: Partial<Record<TranslationId, Promise<TranslationIndex>>> = {};
+function chapterCacheKey(id: TranslationId, surahId: number) {
+  return `${IDB_KEY}:${id}:${surahId}`;
+}
 
-/** Convert the API ayah-array response to a global-ayah number index. */
-function apiResponseToIndex(raw: { ayahs: Array<{ number: number; text: string }> }): TranslationIndex {
-  const out: TranslationIndex = {};
-  for (const a of raw.ayahs) {
-    if (a.number >= 1 && a.number <= 6236) out[a.number] = a.text;
+function isCompleteChapterIndex(surahId: number, index: TranslationIndex): boolean {
+  const count = getSurahAyahCount(surahId);
+  if (!count) return false;
+  for (let ayah = 1; ayah <= count; ayah += 1) {
+    const text = index[globalAyahNumber(surahId, ayah)];
+    if (typeof text !== "string" || !text.trim()) return false;
   }
+  return true;
+}
+
+function isCachedTranslation(value: unknown, surahId: number): value is CachedTranslationChapter {
+  if (!value || typeof value !== "object") return false;
+  const row = value as Partial<CachedTranslationChapter>;
+  return Number.isFinite(row.cachedAt) && !!row.index && typeof row.index === "object" &&
+    isCompleteChapterIndex(surahId, row.index);
+}
+
+function isFresh(cachedAt: number, now = Date.now()): boolean {
+  const age = now - cachedAt;
+  return Number.isFinite(cachedAt) && age >= 0 && age < IDB_TTL_MS;
+}
+
+function announceExpiredTranslationCache(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(QURAN_TRANSLATION_CACHE_EXPIRED_EVENT));
+  }
+}
+
+function cacheInMemory(id: TranslationId, surahId: number, chapter: CachedTranslationChapter): void {
+  getMemoryChapters(id).set(surahId, chapter);
+  scheduleQuranTranslationCacheExpiry(chapter.cachedAt);
+}
+
+function getMemoryChapters(id: TranslationId): Map<number, MemoryTranslationChapter> {
+  return (MEM_CACHE[id] ??= new Map<number, MemoryTranslationChapter>());
+}
+
+function getFreshMemoryIndex(id: TranslationId, surahId: number): TranslationIndex | null {
+  const cached = MEM_CACHE[id]?.get(surahId);
+  if (!cached) return null;
+  if (isFresh(cached.cachedAt)) return cached.index;
+  MEM_CACHE[id]?.delete(surahId);
+  return null;
+}
+
+function getInFlightMap(id: TranslationId): Map<number, Promise<TranslationIndex>> {
+  return (INFLIGHT[id] ??= new Map<number, Promise<TranslationIndex>>());
+}
+
+function buildChapterIndex(surahId: number, raw: RemoteTranslationPayload): TranslationIndex {
+  const count = getSurahAyahCount(surahId);
+  if (!count || !Array.isArray(raw?.translations)) throw new Error("invalid translation chapter response");
+
+  const out: TranslationIndex = {};
+  const seen = new Set<number>();
+  for (const row of raw.translations) {
+    if (typeof row?.verse_key !== "string" || typeof row.text !== "string") continue;
+    const match = /^(\d+):(\d+)$/.exec(row.verse_key);
+    if (!match || Number(match[1]) !== surahId) continue;
+    const ayah = Number(match[2]);
+    const text = row.text.trim();
+    if (!Number.isInteger(ayah) || ayah < 1 || ayah > count || !text || seen.has(ayah)) {
+      throw new Error("invalid translation chapter response");
+    }
+    seen.add(ayah);
+    out[globalAyahNumber(surahId, ayah)] = text;
+  }
+
+  if (seen.size !== count) throw new Error("incomplete translation chapter");
   return out;
 }
 
-async function fetchRemoteIndex(id: TranslationId, apiId: number): Promise<TranslationIndex> {
-  // 1) Try IDB cache first.
-  try {
-    const cached = await idbGetExtras<{ cachedAt: number; index: TranslationIndex }>(`${IDB_KEY}:${id}`);
-    if (cached && Date.now() - cached.cachedAt < IDB_TTL_MS) {
-      MEM_CACHE[id] = cached.index;
-      return cached.index;
-    }
-  } catch { /* IDB unavailable — fall through to network */ }
+async function requestRemoteChapter(apiId: number, surahId: number): Promise<TranslationIndex> {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("translation service is not configured");
+  const { data, error } = await supabase.functions.invoke("quran-translations", {
+    body: { translationId: apiId, chapterNumber: surahId },
+  });
+  if (error) throw new Error(error.message || "translation service unavailable");
+  return buildChapterIndex(surahId, data as RemoteTranslationPayload);
+}
 
-  // 2) Network fetch.
-  const r = await fetch(`${API_URL}${apiId}?format=json`);
-  if (!r.ok) throw new Error(`Translation fetch ${id} failed: ${r.status}`);
-  const raw = (await r.json()) as { ayahs: Array<{ number: number; text: string }> };
-  const index = apiResponseToIndex(raw);
-  // 3) Persist + memo.
-  MEM_CACHE[id] = index;
-  void idbSetExtras(`${IDB_KEY}:${id}`, { cachedAt: Date.now(), index }).catch(() => {});
+async function fetchRemoteSurah(id: TranslationId, apiId: number, surahId: number): Promise<TranslationIndex> {
+  const inMemory = getFreshMemoryIndex(id, surahId);
+  if (inMemory) return inMemory;
+
+  const cacheKey = chapterCacheKey(id, surahId);
+  try {
+    const cached = await idbGetExtras<unknown>(cacheKey);
+    if (isCachedTranslation(cached, surahId)) {
+      if (isFresh(cached.cachedAt)) {
+        cacheInMemory(id, surahId, cached);
+        return cached.index;
+      }
+      void idbDeleteExtras(cacheKey);
+    } else if (cached !== null) {
+      void idbDeleteExtras(cacheKey);
+    }
+  } catch {
+    // Continue to the network; cache failures must not disable online reading.
+  }
+
+  const index = await requestRemoteChapter(apiId, surahId);
+  const cached = { cachedAt: Date.now(), index };
+  cacheInMemory(id, surahId, cached);
+  void idbSetExtras(cacheKey, cached, cached.cachedAt);
   return index;
 }
 
-export async function getTranslation(
-  id: TranslationId,
-  globalAyah: number,
-): Promise<string | null> {
+function getRemoteSurah(id: TranslationId, apiId: number, surahId: number): Promise<TranslationIndex> {
+  const inflight = getInFlightMap(id);
+  const existing = inflight.get(surahId);
+  if (existing) return existing;
+  const request = fetchRemoteSurah(id, apiId, surahId).finally(() => inflight.delete(surahId));
+  inflight.set(surahId, request);
+  return request;
+}
+
+export async function getTranslation(id: TranslationId, globalAyah: number): Promise<string | null> {
   if (id === "saheeh") {
     return MEMORY_SAHEEH ? getSahihEnglishText(MEMORY_SAHEEH, globalAyah) : null;
   }
-  const src = TRANSLATION_SOURCES.find((s) => s.id === id);
-  if (!src || src.apiId === null) return null;
-  if (MEM_CACHE[id]) return MEM_CACHE[id]![globalAyah] ?? null;
-  if (!INFLIGHT[id]) {
-    INFLIGHT[id] = fetchRemoteIndex(id, src.apiId).finally(() => {
-      INFLIGHT[id] = undefined as unknown as Promise<TranslationIndex> | undefined;
-    });
-  }
+  const source = TRANSLATION_SOURCES.find((item) => item.id === id);
+  const location = locateGlobalAyah(globalAyah);
+  if (!source?.apiId || !location) return null;
   try {
-    const idx = await INFLIGHT[id]!;
-    return idx[globalAyah] ?? null;
+    const index = await getRemoteSurah(id, source.apiId, location.surahId);
+    return index[globalAyah] ?? null;
   } catch {
-    // Network failed — fall back to Saheeh (bundled, always works).
-    if (MEMORY_SAHEEH) return getSahihEnglishText(MEMORY_SAHEEH, globalAyah);
+    // A remote source never masquerades as the bundled Saheeh translation.
     return null;
   }
 }
 
-/** Lookup using the *surah* & *ayah* local indices (preferred helper). */
-export async function getTranslationForAyah(
-  id: TranslationId,
-  surahId: number,
-  ayahIndex: number,
-): Promise<string | null> {
+/** Prune persisted and in-memory provider text that reached the one-week limit. */
+export async function pruneExpiredTranslationCache(now = Date.now()): Promise<number> {
+  const removedPersisted = await idbPruneQuranTranslationCache(now);
+  let removed = removedPersisted;
+  let removedMemory = 0;
+  for (const id of ["yusuf_ali", "jalandhry"] as const) {
+    const chapters = MEM_CACHE[id];
+    if (!chapters) continue;
+    for (const [surahId, cached] of chapters) {
+      if (isFresh(cached.cachedAt, now)) continue;
+      chapters.delete(surahId);
+      removed += 1;
+      removedMemory += 1;
+    }
+  }
+  if (removedMemory > 0 && removedPersisted === 0) announceExpiredTranslationCache();
+  return removed;
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener(QURAN_TRANSLATION_CACHE_EXPIRED_EVENT, () => {
+    const now = Date.now();
+    for (const id of ["yusuf_ali", "jalandhry"] as const) {
+      for (const [surahId, cached] of MEM_CACHE[id] ?? []) {
+        if (isFresh(cached.cachedAt, now)) continue;
+        MEM_CACHE[id]?.delete(surahId);
+      }
+    }
+  });
+}
+
+export async function getTranslationForAyah(id: TranslationId, surahId: number, ayahIndex: number): Promise<string | null> {
+  const count = getSurahAyahCount(surahId);
+  if (!count || !Number.isInteger(ayahIndex) || ayahIndex < 1 || ayahIndex > count) return null;
   return getTranslation(id, globalAyahNumber(surahId, ayahIndex));
 }
 
-/** Translation text keyed by the user's chosen source, read once from prefs
- *  plus a per-page override (Mushaf can pass an override). */
 export function getSavedTranslationId(
   prefs: { quranTranslationId?: TranslationId | null },
   override: TranslationId | null = null,
@@ -140,52 +245,36 @@ export function getSavedTranslationId(
   return "saheeh";
 }
 
-/* ─── Saheeh bridge: the bundled translation lives in quranExtras. We accept
- * a setter so the rest of the app can hand us the lazily-loaded bundle
- * after the user opts into translation. ──────────────────────────────────── */
+/* Saheeh is lazily loaded by quranExtras after the user opens translation UI. */
 let MEMORY_SAHEEH: QuranExtras | null = null;
 export function registerSaheehExtras(extras: QuranExtras | null): void {
   MEMORY_SAHEEH = extras;
 }
 
-/* ─── Reactive hook for React components ─────────────────────────────────── */
-import * as React from "react";
-
 export function useTranslationForAyah(
   id: TranslationId,
   surahId: number,
   ayahIndex: number,
-  /** Optional pre-loaded Saheeh extras to avoid a 880 KB fetch. */
   extras: QuranExtras | null,
 ): string | null {
   const [text, setText] = React.useState<string | null>(null);
-  // Keep the in-memory Saheeh handle in sync so direct (non-hook) lookups
-  // stay correct if any other module needs them.
   React.useEffect(() => { registerSaheehExtras(extras); }, [extras]);
   React.useEffect(() => {
     let cancelled = false;
     setText(null);
     if (id === "saheeh") {
-      // Synchronous via the bundled cache.
-      const t = getSahihEnglishText(extras, globalAyahNumber(surahId, ayahIndex));
-      if (!cancelled) setText(t);
+      const result = getSahihEnglishText(extras, globalAyahNumber(surahId, ayahIndex));
+      if (!cancelled) setText(result);
       return () => { cancelled = true; };
     }
-    void (async () => {
-      const t = await getTranslationForAyah(id, surahId, ayahIndex);
-      if (!cancelled) setText(t);
-    })();
+    void getTranslationForAyah(id, surahId, ayahIndex)
+      .then((result) => { if (!cancelled) setText(result); })
+      .catch(() => { if (!cancelled) setText(null); });
     return () => { cancelled = true; };
   }, [id, surahId, ayahIndex, extras]);
   return text;
 }
 
-/**
- * Per-translation metadata used to render the size badge in
- * TranslationSettingsCard. Bundled sources report a static approx; fetched
- * sources reflect the live IDB-cached payload when present, else the
- * approximate network size.
- */
 export type TranslationSizeInfo = {
   source: TranslationSource;
   sizeKB: number;
@@ -193,101 +282,56 @@ export type TranslationSizeInfo = {
 };
 
 export async function getTranslationSize(id: TranslationId): Promise<TranslationSizeInfo> {
-  const source = TRANSLATION_SOURCES.find((s) => s.id === id);
+  const source = TRANSLATION_SOURCES.find((item) => item.id === id);
   if (!source) throw new Error(`Unknown translation id: ${id}`);
-  if (source.bundled) {
-    return { source, sizeKB: source.approxSizeKB, cachedAt: null };
-  }
-  try {
-    const row = await idbGetExtras<{ cachedAt: number; index: TranslationIndex }>(
-      `${IDB_KEY}:${id}`,
-    );
-    if (row && row.index) {
-      // Approximate size: length of the JSON encoding in bytes ÷ 1024.
-      const sizeKB = Math.max(1, Math.round(JSON.stringify(row.index).length / 1024));
-      return { source, sizeKB, cachedAt: row.cachedAt };
-    }
-  } catch {
-    /* fall through to approx */
-  }
-  return { source, sizeKB: source.approxSizeKB, cachedAt: null };
+  if (source.bundled) return { source, sizeKB: source.approxSizeKB, cachedAt: null };
+
+  const rows = await Promise.all(Array.from({ length: 114 }, (_, index) =>
+    idbGetExtras<unknown>(chapterCacheKey(id, index + 1))));
+  const validRows = rows.filter((row, index): row is CachedTranslationChapter =>
+    isCachedTranslation(row, index + 1) && isFresh(row.cachedAt));
+  if (validRows.length === 0) return { source, sizeKB: source.approxSizeKB, cachedAt: null };
+  const sizeBytes = validRows.reduce((total, row) => total + JSON.stringify(row.index).length, 0);
+  const cachedAt = Math.max(...validRows.map((row) => row.cachedAt));
+  return { source, sizeKB: Math.max(1, Math.round(sizeBytes / 1024)), cachedAt };
 }
 
-/** Static metadata for a translation source (no IDB / network). */
 export function getTranslationSourceMeta(id: TranslationId): TranslationSource {
-  const src = TRANSLATION_SOURCES.find((s) => s.id === id);
-  if (!src) throw new Error(`Unknown translation id: ${id}`);
-  return src;
+  const source = TRANSLATION_SOURCES.find((item) => item.id === id);
+  if (!source) throw new Error(`Unknown translation id: ${id}`);
+  return source;
 }
 
-/** Convenience: static approximated size in KB for a source. */
 export function getTranslationApproxSizeKB(id: TranslationId): number {
   return getTranslationSourceMeta(id).approxSizeKB;
 }
 
-/**
- * Per-surah loader used by the Mushaf page so the Settings picker and the
- * Mushaf pill share ONE source of truth (`TRANSLATION_SOURCES`).
- *
- * - Bundled (Saheeh): reads from `data/quran-en-sahih.json` via the existing
- *   `quranTranslationLocal` cache.
- * - Remote (Yusuf Ali / Jalandhry): triggers a one-shot fetch of the full
- *   translation index from quran.foundation (memoized + IDB-cached) and
- *   slices the requested surahs out of the global-ayah index.
- *
- * Returned shape mirrors `quranTranslationLocal.QuranEnglishTranslation`:
- *   Record<surahId, string[0..n]>  where index 0 is always "" and
- *   index 1..n holds ayah text in surah order.
- */
+/** Load exactly the requested chapters; remote sources are fetched by chapter and cached. */
 export async function loadTranslationForSurahs(
   id: TranslationId,
   surahIds: ReadonlyArray<number>,
 ): Promise<QuranEnglishTranslation> {
-  const source = TRANSLATION_SOURCES.find((s) => s.id === id);
+  const source = TRANSLATION_SOURCES.find((item) => item.id === id);
   if (!source) throw new Error(`Unknown translation id: ${id}`);
+  const requested = [...new Set(surahIds)].filter((surahId) => Number.isInteger(surahId) && getSurahAyahCount(surahId) > 0);
 
   if (source.bundled) {
-    const cache = await loadEnglishTranslationCache();
+    const cached = await loadEnglishTranslationCache();
     const out: QuranEnglishTranslation = {};
-    for (const sid of surahIds) {
-      if (cache[sid]) out[sid] = cache[sid];
-    }
+    for (const surahId of requested) if (cached[surahId]) out[surahId] = cached[surahId];
     return out;
   }
 
-  // Remote: prime the memo cache (one fetch, shared by every consumer).
-  if (!MEM_CACHE[id]) {
-    if (!INFLIGHT[id]) {
-      INFLIGHT[id] = fetchRemoteIndex(id, source.apiId!).finally(() => {
-        INFLIGHT[id] = undefined as unknown as Promise<TranslationIndex> | undefined;
-      });
-    }
-    try {
-      await INFLIGHT[id];
-    } catch {
-      // Fetch failed — fall back to Saheeh bundle if available, else return empty.
-      try {
-        const bundled = await loadEnglishTranslationCache();
-        const out: QuranEnglishTranslation = {};
-        for (const sid of surahIds) if (bundled[sid]) out[sid] = bundled[sid];
-        return out;
-      } catch {
-        return {};
-      }
-    }
-  }
-
-  const index = MEM_CACHE[id]!;
+  const chapters = await Promise.all(requested.map((surahId) =>
+    getRemoteSurah(id, source.apiId!, surahId)));
   const out: QuranEnglishTranslation = {};
-  for (const sid of surahIds) {
-    const ayahCount = getSurahAyahCount(sid);
-    if (!ayahCount) continue;
-    const arr: string[] = [""];
-    for (let ayah = 1; ayah <= ayahCount; ayah++) {
-      const ga = globalAyahNumber(sid, ayah);
-      arr.push(index[ga] ?? "");
+  requested.forEach((surahId, index) => {
+    const count = getSurahAyahCount(surahId);
+    const chapter: string[] = [""];
+    for (let ayah = 1; ayah <= count; ayah += 1) {
+      chapter.push(chapters[index]![globalAyahNumber(surahId, ayah)]!);
     }
-    out[sid] = arr;
-  }
+    out[surahId] = chapter;
+  });
   return out;
 }

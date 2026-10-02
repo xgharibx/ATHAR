@@ -18,6 +18,7 @@ import { useCloudSync } from "@/hooks/useCloudSync";
 import { useQueryClient } from "@tanstack/react-query";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { ensureAllWbwSurahsCached } from "@/lib/quranWBW";
+import { idbPruneQuranTranslationCache } from "@/lib/quranIDB";
 import { ANGELS_SECTION } from "@/data/angels";
 import { DIVINE_BOOKS_SECTION } from "@/data/divineBooks";
 import { ISLAM_PILLARS_SECTION } from "@/data/islamPillars";
@@ -229,6 +230,15 @@ export default function App() {
 
     const timeoutId = setTimeout(runPrefetch, 1200);
     return () => clearTimeout(timeoutId);
+  }, []);
+
+  // Quran Foundation translation text may remain in local storage for at most
+  // one week. Prune at startup and when the app returns from the background.
+  React.useEffect(() => {
+    const prune = () => { void idbPruneQuranTranslationCache(); };
+    prune();
+    document.addEventListener("visibilitychange", prune);
+    return () => document.removeEventListener("visibilitychange", prune);
   }, []);
 
   React.useEffect(() => {

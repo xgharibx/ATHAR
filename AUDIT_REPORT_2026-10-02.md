@@ -59,11 +59,11 @@ The leaderboard ownership migration and Companion quota migration are local only
 
 **Next:** restore the project through its owner, run the schema/RLS/function test suite against a disposable staging project, apply the migration there, verify existing leaderboard rows and ownership recovery, then deploy in a controlled release. No production write was attempted in this audit.
 
-### P1 — Repair the hosted Quran translation integration
+### P1 — Configure and live-verify the Quran translation service
 
-The app's hosted translation code targets an obsolete/wrong URL and assumes a response shape that does not match Quran Foundation's current Content API. The UI can silently fall back to English while the selected translation label suggests another language, and Settings may report readiness when required configuration is absent.
+The client now calls a server-side `quran-translations` Edge Function using Quran Foundation's OAuth client-credentials flow and current Content API endpoint. The incorrect catalog IDs were corrected to Yusuf Ali `22` and Jalandhry `234`; invalid, incomplete, and cross-surah responses are rejected. Credentials remain server-only, and the proxy bounds requests, allowlists origins/resources, and rate-limits callers. Memory and IndexedDB caches expire and are purged at seven days, the obsolete whole-book cache is removed, and offline failures no longer display Saheeh under another translation's label. The reader and shared verses credit Quran Foundation and name the edition; browser auto-translation is disabled for Quran text.
 
-The current Quran Foundation Content API uses authenticated `/content/api/v4/quran/translations/{translation_id}` requests and requires `x-auth-token` plus `x-client-id`; its client secret belongs on a backend, not in browser or mobile code. Rework the integration around the official auth flow, validate language/resource IDs, surface the actual active translation, and test success, missing credentials, unavailable service, and offline behavior. The official [translation endpoint](https://api-docs.quran.com/docs/content_apis_versioned/4.0.0/translation/) and [Content API quickstart](https://api-docs.quran.com/docs/quickstart/) document the current contract.
+The implementation is covered by synthetic Edge Function and client tests, including OAuth refresh, CORS, allowlisting, response validation, source IDs, failure transparency, and in-memory expiry. The hosted Supabase project remains restricted (HTTP 402), and no Quran Foundation credentials were inspected or configured. Set up an approved backend app, deploy to staging, verify access to all 114 chapters and both resources, and only then enable production. See [Quran Foundation's translation endpoint](https://api-docs.quran.com/docs/content_apis_versioned/4.0.0/translation/), [OAuth quickstart](https://api-docs.quran.com/docs/quickstart/), and [developer terms](https://api-docs.quran.foundation/legal/developer-terms/).
 
 ### P1 — Finish iOS native sign-in, privacy, and account lifecycle
 
@@ -110,7 +110,7 @@ The Quran page map and selected bundled integrity checks are verified, but the a
 | Supabase Auth / `athar_sync` | Sign-in, account-scoped cloud sync, leaderboard edge functions | Safe probes restricted by HTTP 402; no live schema/RLS mutation tests possible |
 | Supabase Companion function → MiniMax | AI answers and related tools | Paid upstream is reachable without sufficient durable authorization/quota; release blocker |
 | Aladhan | City/GPS prayer-time lookup | Client call reviewed; timeout, recent-GPS offline fallback, and date-specific next-day lookup added. Verify privacy wording and live provider behavior |
-| Quran Foundation | Optional hosted translations/content | Endpoint/auth/response assumptions need rework; keep credentials server-side |
+| Quran Foundation | Optional hosted translations/content | Server-side OAuth proxy and seven-day cache implemented; API/deployment and full catalog access unverified while Supabase is restricted |
 | EveryAyah | Recitation audio | Unified browser cache and honest partial-download messaging fixed; offline playback needs airplane-mode verification and source/rights review |
 | Overpass / mosque search | Nearby mosque lookup | Static integration inventory only; offline cache, provider reliability, and privacy behavior need dedicated checks |
 | Browser storage / IndexedDB | Progress, Hadith notes, custom reminders/packs, offline content | Backup/restore fixes covered by tests; cross-browser quota eviction and private-mode recovery remain unverified |
@@ -122,7 +122,7 @@ No production database dump was available because the hosted project was restric
 
 1. Close the Companion abuse path with server-side authentication, quotas, payload limits, and spend controls; deploy only after abuse tests pass.
 2. Restore Supabase availability; test schema, RLS, sync, identity ownership, existing-row recovery, and edge functions in staging; then schedule the reviewed migration/deploy.
-3. Replace the broken hosted translation integration with the current authenticated server-side API contract and accurate UI state.
+3. Configure the Quran Foundation backend credentials, deploy the translation proxy to staging, and verify every enabled translation/chapter before production.
 4. Finish iOS URL routing, required login alternative, privacy manifests, account deletion, native share configuration, and physical-device testing.
 5. Correct prayer notification horizon and Android permission/reboot/time-change cases; verify PWA and audio offline behavior on real devices.
 6. Reconcile store metadata and signing/version identity; prepare listing/privacy assets, tester recruitment, and signed release bundles.

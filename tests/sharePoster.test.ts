@@ -31,6 +31,7 @@ class ShimCtx {
   shadowOffsetY = 0;
   fills = 0;
   texts = 0;
+  drawnText: string[] = [];
   fillRects = 0;
   arcs = 0;
   saves = 0;
@@ -47,7 +48,7 @@ class ShimCtx {
   fill() { this.fills++; }
   stroke() {}
   fillRect() { this.fillRects++; }
-  fillText(_t: string, _x: number, _y: number) { this.texts++; }
+  fillText(t: string, _x: number, _y: number) { this.texts++; this.drawnText.push(t); }
   measureText(s: string) { return { width: s.length * 6 }; }
   createLinearGradient() { return { addColorStop() {} } as any; }
   createRadialGradient() { return { addColorStop() {} } as any; }
@@ -141,6 +142,16 @@ describe("renderDhikrPosterBlob — output contract", () => {
     expect(long.size).toBeGreaterThan(0);
     expect(short.type).toBe("image/png");
     expect(long.type).toBe("image/png");
+  });
+
+  it("keeps Quran Foundation attribution visible as a separate poster line", async () => {
+    lastCtx = null;
+    await renderDhikrPosterBlob({
+      text: "Verse",
+      translation: "Translated verse",
+      translationAttribution: "Quran data provided by Quran Foundation · Yusuf Ali",
+    });
+    expect(lastCtx!.drawnText).toContain("Quran data provided by Quran Foundation · Yusuf Ali");
   });
 
   it("actually drew the dhikr + brand + footer (fillText was called)", async () => {

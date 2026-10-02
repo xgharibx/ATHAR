@@ -49,8 +49,8 @@ describe("quranTranslations module", () => {
   });
 
   it("non-bundled sources carry the quran.foundation API ids the picker claims", () => {
-    expect(YUSUF.apiId).toBe(84);
-    expect(JALANDHRY.apiId).toBe(157);
+    expect(YUSUF.apiId).toBe(22);
+    expect(JALANDHRY.apiId).toBe(234);
     expect(YUSUF.lang).toBe("en");
     expect(JALANDHRY.lang).toBe("ur");
   });
@@ -69,14 +69,14 @@ describe("quranTranslations module", () => {
     ).toBe("yusuf_ali");
   });
 
-  it("getTranslation falls back to Saheeh when remote fetch rejects", async () => {
-    // Mock fetch to reject; ensure the call doesn't crash and resolves.
+  it("getTranslation returns null when the selected remote source is unavailable", async () => {
+    // Mock the Supabase function transport to fail; ensure the call degrades cleanly.
     const fetchMock = vi.fn().mockRejectedValue(new Error("offline"));
     vi.stubGlobal("fetch", fetchMock);
     const { getTranslation } = await import("@/lib/quranTranslations");
     // Saheeh with null bundle yields null cleanly.
     await expect(getTranslation("saheeh", 1)).resolves.toBeNull();
-    // Remote source falls back to Saheeh (also null here since MEMORY_SAHEEH is null).
+    // A remote selection never masquerades as bundled Saheeh when it fails.
     await expect(getTranslation("yusuf_ali", 1)).resolves.toBeNull();
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -91,8 +91,8 @@ describe("quranTranslations module", () => {
 
   it("getTranslationSourceMeta returns static metadata for each source", () => {
     expect(getTranslationSourceMeta("saheeh").bundled).toBe(true);
-    expect(getTranslationSourceMeta("yusuf_ali").apiId).toBe(84);
-    expect(getTranslationSourceMeta("jalandhry").apiId).toBe(157);
+    expect(getTranslationSourceMeta("yusuf_ali").apiId).toBe(22);
+    expect(getTranslationSourceMeta("jalandhry").apiId).toBe(234);
     expect(() => getTranslationSourceMeta("nope" as TranslationId)).toThrow();
   });
 
@@ -102,8 +102,8 @@ describe("quranTranslations module", () => {
     expect(getTranslationApproxSizeKB("jalandhry")).toBe(1200);
   });
 
-  it("loadTranslationForSurahs returns bundled surahs for Saheeh (and {} for remote when offline)", async () => {
-    // Stub fetch: succeed for the bundled JSON, reject for remote quran.foundation.
+  it("loads the bundled source offline and surfaces remote-source failures", async () => {
+    // Stub fetch: succeed for the bundled JSON, reject the remote function transport.
     const fetchMock = vi.fn(async (url: string) => {
       if (String(url).includes("quran-en-sahih.json")) {
         return new Response(JSON.stringify({}), { status: 200 });
@@ -114,8 +114,6 @@ describe("quranTranslations module", () => {
     const { loadTranslationForSurahs } = await import("@/lib/quranTranslations");
     const bundled = await loadTranslationForSurahs("saheeh", [1, 2]);
     expect(bundled).toBeTypeOf("object");
-    // Remote falls back to bundled cache (which returned {}); should be an object, no throw.
-    const remote = await loadTranslationForSurahs("yusuf_ali", [1]);
-    expect(remote).toBeTypeOf("object");
+    await expect(loadTranslationForSurahs("yusuf_ali", [1])).rejects.toThrow();
   });
 });

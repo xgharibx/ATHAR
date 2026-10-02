@@ -49,6 +49,19 @@ export function globalAyahNumber(surahId: number, ayahIndex: number): number {
   return (GLOBAL_AYAH_OFFSET[surahId] ?? 1) + (ayahIndex - 1);
 }
 
+/** Global ayah number (1..6236) → its 1-based surah and ayah, or null. */
+export function locateGlobalAyah(globalAyah: number): { surahId: number; ayahIndex: number } | null {
+  if (!Number.isInteger(globalAyah) || globalAyah < 1 || globalAyah > TOTAL_AYAHS) return null;
+  for (let surahId = 1; surahId <= 114; surahId += 1) {
+    const first = GLOBAL_AYAH_OFFSET[surahId]!;
+    const count = SURAH_AYAH_COUNTS[surahId]!;
+    if (globalAyah >= first && globalAyah < first + count) {
+      return { surahId, ayahIndex: globalAyah - first + 1 };
+    }
+  }
+  return null;
+}
+
 /** global ayah number → {surahId, ayahIndex} (1-based) or null. */
 export function refToGlobalAyah(surahId: number, ayahIndex: number): { surahId: number; ayahIndex: number } {
   return { surahId, ayahIndex };

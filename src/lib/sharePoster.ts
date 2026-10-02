@@ -190,6 +190,8 @@ export interface RenderDhikrPosterOpts {
   sectionTitle?: string;
   count?: number;
   translation?: string;
+  /** Provider and edition credit for a displayed translation. */
+  translationAttribution?: string;
   footerUrl?: string;
 }
 
@@ -492,6 +494,18 @@ export async function renderDhikrPosterBlob(
       ctx.fillText(ln, W / 2, ty2);
       ty2 += 30;
     }
+    ctx.restore();
+  }
+
+  const translationAttribution = (opts.translationAttribution ?? "").trim();
+  if (translation && translationAttribution) {
+    ctx.save();
+    ctx.direction = "ltr";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `500 16px ${FONT_SANS}`;
+    ctx.fillStyle = rgba(theme.fg, 0.52);
+    ctx.fillText(translationAttribution, W / 2, footerY - 12);
     ctx.restore();
   }
 
