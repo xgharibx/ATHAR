@@ -667,7 +667,7 @@ export function CompanionPage() {
               <CompanionStatusChip state={aiHealth} onRefresh={refreshAiHealth} />
             </div>
             <p className="text-xs text-[var(--muted-2)]">
-              تُحفَظ المحادثات محليًا، وتُرسل مع سياق تقدّمك إلى MiniMax عند الرد.
+              تُحفَظ المحادثات محليًا؛ وتُرسل رسائلك وبعض سياقك المحلي، مثل التقدّم والتفضيلات والمحتوى ذي الصلة، إلى MiniMax عند الرد.
             </p>
           </div>
         </div>

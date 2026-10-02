@@ -5,8 +5,8 @@ create table if not exists public.companion_usage_counters (
   user_id uuid primary key references auth.users (id) on delete cascade,
   utc_day date not null,
   daily_count integer not null default 0 check (daily_count >= 0),
-  minute_window_started_at timestamptz not null,
-  minute_count integer not null default 0 check (minute_count >= 0),
+  minute_requests timestamptz[] not null default '{}'::timestamptz[]
+    check (cardinality(minute_requests) <= 5),
   updated_at timestamptz not null default now()
 );
 
@@ -28,21 +28,19 @@ declare
   v_now timestamptz;
   v_utc_day date;
   v_daily_count integer;
-  v_minute_started_at timestamptz;
-  v_minute_count integer;
+  v_recent_requests timestamptz[];
 begin
   if p_user_id is null then
     return false;
   end if;
 
   insert into public.companion_usage_counters (
-    user_id, utc_day, daily_count, minute_window_started_at, minute_count
+    user_id, utc_day, daily_count, minute_requests
   ) values (
     p_user_id,
     (pg_catalog.clock_timestamp() at time zone 'UTC')::date,
     0,
-    pg_catalog.clock_timestamp(),
-    0
+    '{}'::timestamptz[]
   ) on conflict (user_id) do nothing;
 
   -- Serialize reservations for the same account so parallel calls cannot
@@ -55,20 +53,18 @@ begin
   v_now := pg_catalog.clock_timestamp();
   v_utc_day := (v_now at time zone 'UTC')::date;
   v_daily_count := case when v_usage.utc_day = v_utc_day then v_usage.daily_count else 0 end;
-  v_minute_started_at := v_usage.minute_window_started_at;
-  v_minute_count := v_usage.minute_count;
+  select coalesce(
+    array_agg(recent.requested_at order by recent.requested_at),
+    '{}'::timestamptz[]
+  ) into v_recent_requests
+  from unnest(v_usage.minute_requests) as recent(requested_at)
+  where recent.requested_at > v_now - interval '1 minute';
 
-  if v_now - v_minute_started_at >= interval '1 minute' then
-    v_minute_started_at := v_now;
-    v_minute_count := 0;
-  end if;
-
-  if v_daily_count >= 30 or v_minute_count >= 5 then
+  if v_daily_count >= 30 or cardinality(v_recent_requests) >= 5 then
     update public.companion_usage_counters
     set utc_day = v_utc_day,
         daily_count = v_daily_count,
-        minute_window_started_at = v_minute_started_at,
-        minute_count = v_minute_count,
+        minute_requests = v_recent_requests,
         updated_at = v_now
     where user_id = p_user_id;
     return false;
@@ -77,8 +73,7 @@ begin
   update public.companion_usage_counters
   set utc_day = v_utc_day,
       daily_count = v_daily_count + 1,
-      minute_window_started_at = v_minute_started_at,
-      minute_count = v_minute_count + 1,
+      minute_requests = array_append(v_recent_requests, v_now),
       updated_at = v_now
   where user_id = p_user_id;
 

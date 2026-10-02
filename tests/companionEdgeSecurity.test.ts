@@ -89,6 +89,33 @@ function edge(options: Options = {}) {
 }
 
 describe("paid Companion Edge Function access controls", () => {
+  it("allows the authenticated SDK headers through browser preflight", async () => {
+    const app = edge();
+    const sdkRequestHeaders = [
+      "authorization", "apikey", "cache-control", "content-type", "x-api-key", "x-client-info",
+      "anthropic-version", "anthropic-dangerous-direct-browser-access", "x-stainless-retry-count",
+      "x-stainless-timeout", "x-stainless-lang", "x-stainless-package-version", "x-stainless-os",
+      "x-stainless-arch", "x-stainless-runtime", "x-stainless-runtime-version", "x-stainless-helper",
+    ];
+    const response = await app.sendRequest(new Request("https://synthetic.invalid/companion/v1/messages", {
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://athark.org",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": sdkRequestHeaders.join(", "),
+      },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://athark.org");
+    const allowedHeaders = response.headers.get("Access-Control-Allow-Headers")?.toLowerCase() ?? "";
+    const allowedHeaderNames = allowedHeaders.split(",").map((header) => header.trim());
+    for (const name of sdkRequestHeaders) {
+      expect(allowedHeaderNames).toContain(name);
+    }
+    expect(app.calls).toEqual([]);
+  });
+
   it.each([undefined, "Bearer synthetic-publishable-key"])(
     "rejects missing or public-key-only bearer credentials before MiniMax",
     async (authorization) => {

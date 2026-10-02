@@ -1,10 +1,9 @@
 /**
  * Athar accounts — Supabase Auth wrapper.
  *
- * Sign-in is entirely OPTIONAL: the app must keep working exactly as before
- * for anyone who never signs in, so every export here degrades to a no-op when
- * auth isn't configured (missing env vars) rather than throwing and taking the
- * app down with it.
+ * Core app features remain available without sign-in. Accounts enable cloud
+ * sync and Companion replies. Every export degrades to a no-op when auth isn't
+ * configured (missing env vars) rather than taking local features down.
  *
  * Two providers, per the owner's choice:
  *   - Google OAuth

@@ -14,7 +14,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 
 ## What was examined and verified
 
-- Ran `npm run verify`: lint completed with **0 errors and 100 warnings**, all **817 tests in 94 files passed**, TypeScript build and Vite production/PWA build succeeded.
+- Ran `npm run verify`: lint completed with **0 errors and 100 warnings**, all **818 tests in 94 files passed**, TypeScript build and Vite production/PWA build succeeded.
 - Parsed the actual bundled Quran and page map: **114 surahs, 6,236 ayahs, and all 604 Mushaf pages** are represented by valid JSON and page references.
 - Loaded **52 valid app routes** plus one deliberate unknown route in a production preview at **390 × 844**. Routes rendered, the unknown route showed the not-found view, and targeted Home and Quran state transitions did not produce React hook-order errors. This was route and focused-interaction coverage, not a full usability pass over every control.
 - Rebuilt the Android debug APK after the Companion changes with `npx cap sync android` and Gradle. An earlier API 36.1 emulator test showed that sending an increment broadcast with a nonexistent widget ID did not create widget totals or preference state. No release-signed artifact was produced.
@@ -31,7 +31,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 | Backup and restore | Include custom data packs, restore IndexedDB-backed reminders and Hadith state, and wait for persistence work to finish. | Backup persistence tests |
 | Prayer times | Bound network requests with a timeout and use newly acquired GPS coordinates for offline calculation if the API request fails. | Offline/GPS fallback tests |
 | Auth and sync | Deliver native OAuth callbacks until JS is ready, validate the callback URL, share one callback listener, deduplicate code exchange, invalidate stale sync work after sign-out/account changes, and catch edits made during import. | Auth callback and sync lifecycle tests; Java compilation |
-| Companion spend guard | Require and verify a signed-in Supabase user, reserve an atomic 30/day and 5/minute account quota, cap request bodies in UTF-8 bytes while streaming, and bound upstream requests to 60 seconds. The branch includes a database migration; it is not deployed. | Ten synthetic Edge Function security tests; migration still requires a live staging run |
+| Companion spend guard | Require and verify a signed-in Supabase user, reserve an atomic 30/day and 5/rolling-minute account quota, cap request bodies in UTF-8 bytes while streaming, allow only explicit browser request headers, and bound upstream requests to 60 seconds. The branch includes a database migration; it is not deployed. | Eleven synthetic Edge Function security tests, including CORS preflight; migration still requires a live staging run |
 | Reminder notifications | Cancel only the app's custom reminder notification IDs; select the Android monochrome status icon. | Notification ownership tests; Android build |
 | Tasbeeh widget | Reject taps for widget IDs not registered with Android before changing counts. | API 36.1 emulator invalid-ID broadcast; no state created |
 | Leaderboard identity | Add an ownership RPC check before identity mutation and include the database migration. | Edge handler ownership tests; migration remains unapplied |

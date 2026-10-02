@@ -23,7 +23,9 @@ const ALLOWED_ORIGINS = new Set([
 function corsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
   const headers: Record<string, string> = {
-    "Access-Control-Allow-Headers": "*",
+    // Authorization is not covered by the CORS wildcard and must be named
+    // explicitly. Include the Anthropic SDK headers sent to this proxy too.
+    "Access-Control-Allow-Headers": "authorization, apikey, cache-control, content-type, x-api-key, x-client-info, anthropic-version, anthropic-dangerous-direct-browser-access, x-stainless-retry-count, x-stainless-timeout, x-stainless-lang, x-stainless-package-version, x-stainless-os, x-stainless-arch, x-stainless-runtime, x-stainless-runtime-version, x-stainless-helper",
     "Access-Control-Allow-Methods": "POST,OPTIONS",
     "Vary": "Origin",
   };

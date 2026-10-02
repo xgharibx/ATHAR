@@ -608,6 +608,7 @@ export function CompanionModal(props: {
                 </div>
                 <p className="text-sm font-semibold text-emerald-100">اسأل «أثر» عن هذه الصفحة</p>
                 <p className="mt-1 text-[11.5px] text-emerald-200/70 max-w-xs">جاوبك هنا دون أن تغادرها. استفسر عن آية، فائدة حديث، أو دعاء.</p>
+                <p className="mt-2 text-[10px] text-emerald-200/55">تُرسل رسائلك وبعض سياقك المحلي، مثل الصفحة والتقدّم والتفضيلات، إلى MiniMax.</p>
               </div>
             </div>
           ) : null}
@@ -684,7 +685,7 @@ export function CompanionModal(props: {
             )}
           </div>
           <p className="mt-1.5 text-center text-[10px] text-emerald-200/50">
-            تُحفَظ المحادثات محليًا، وتُرسل مع سياق التقدّم إلى MiniMax عند الرد. للدردشة الكاملة: <Link to="/companion" onClick={props.onClose} className="font-semibold text-emerald-200 underline-offset-2 hover:underline">/companion</Link>
+            تُحفَظ المحادثات محليًا؛ وتُرسل رسائلك وبعض سياقك المحلي، مثل الصفحة والتقدّم والتفضيلات، إلى MiniMax عند الرد. للدردشة الكاملة: <Link to="/companion" onClick={props.onClose} className="font-semibold text-emerald-200 underline-offset-2 hover:underline">/companion</Link>
           </p>
         </div>
       </div>

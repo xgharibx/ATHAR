@@ -1,9 +1,9 @@
 /**
  * Account panel — sign in / out, and account deletion.
  *
- * Sign-in is optional everywhere in Athar, so this renders as a calm, opt-in
- * card rather than a gate. When Supabase credentials are absent the whole thing
- * hides itself instead of showing a button that cannot work.
+ * Core reading and local features remain available without sign-in; accounts
+ * enable cloud sync and Companion replies. When Supabase credentials are absent
+ * the whole thing hides itself instead of showing a button that cannot work.
  *
  * The delete flow is deliberately two-step and spells out what is lost: Google
  * Play requires an in-app account-deletion path for any app offering accounts,
@@ -204,7 +204,7 @@ export function AccountPanel() {
         <>
           <p className="text-xs leading-relaxed text-[var(--muted)]">
             سجّل الدخول لتُحفظ أذكارك وسلسلتك ومفضلتك وتذكيراتك، وتعود معك على أي جهاز.
-            التطبيق يعمل كاملًا بدون حساب — هذا اختياري تمامًا.
+            يمكنك استخدام القرآن والأذكار وبياناتك المحلية بدون حساب؛ يلزم تسجيل الدخول لمزامنة بياناتك واستخدام إجابات رفيق أثر.
           </p>
 
           <button
