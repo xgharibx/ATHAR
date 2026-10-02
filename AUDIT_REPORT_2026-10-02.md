@@ -17,6 +17,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 - Ran `npm run verify` after the current changes: lint completed with **0 errors and 100 warnings**, all **869 tests in 109 files passed**, and the TypeScript plus Vite production/PWA build succeeded. Android debug build and lint plus API 36.1 instrumentation tests also passed locally. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
 - Parsed the actual bundled Quran and page map: **114 surahs, 6,236 ayahs, and all 604 Mushaf pages** are represented by valid JSON and page references.
 - Loaded **52 valid app routes** plus one deliberate unknown route in a production preview at **390 × 844**. Routes rendered, the unknown route showed the not-found view, and targeted Home and Quran state transitions did not produce React hook-order errors. This was route and focused-interaction coverage, not a full usability pass over every control.
+- Rechecked the production preview with Playwright CLI at **390 × 844**: onboarding rendered, Skip exposed Home, and Settings navigation loaded the expected page without a framework overlay. The browser console repeatedly showed CORS/HTTP 402 failures from the hosted Supabase leaderboard endpoint; local route rendering worked, but live leaderboard behavior remains blocked by the project restriction. Screenshots were captured outside the repository.
 - Rebuilt and launched the Android debug APK on the API 36.1 emulator without a runtime crash. Three instrumentation tests passed, including forged widget-action broadcasts from a separate test package. Prayer notification scheduling is covered by tests, but the default reminder setting is off, so pending alarms were not exercised end-to-end on the emulator. No release-signed artifact was produced.
 - On the installed version `1.2.62` / code 74, denied the location prompt shown on cold launch and denied Android notifications after opting into reminders. The app stayed usable with Cairo fallback prayer times, and reminder settings returned to the off state; package permission state confirms location and `POST_NOTIFICATIONS` remain denied. No app alarms were registered, and no fatal/runtime markers appeared in the last 500 logcat lines. This checks permission-denial recovery only; it does not verify alarm delivery, Doze, reboot, or time changes.
 - Inspected the iOS plist, delegate, CocoaPods setup, Xcode project, and widget source. Corrected the iOS location permission prompt, which previously claimed coordinates never leave the device despite direct Aladhan and Overpass requests. Added an `ASWebAuthenticationSession` Google OAuth bridge, queued deep-link delivery, and native share/auth plugin registration to the App target. Added a bundled `PrivacyInfo.xcprivacy` declaration for app-only UserDefaults access. The Xcode project still has only an App target; the checked-in WidgetKit source is not integrated, and no App Groups entitlement is present.
@@ -85,11 +86,23 @@ The checked-in migration chain does not create the base `leaderboard_rollups` or
 
 Before cloud release, make a disposable-project bootstrap test pass from an empty database and from a manually provisioned database with existing scores. Add an explicit baseline or versioned base-schema migration, and require a reviewed backup/owner decision before any migration that resets published data is applied.
 
+### P1 — Bound public leaderboard ingestion and repair failed rollup retries
+
+The public `leaderboard` function has `verify_jwt=false`; its POST handler parses an unbounded JSON body, `sanitizePayload` spreads unknown caller fields, and `eventRows` stores the full payload in every board row. A source-level synthetic request with a 1 MiB unknown `padding` field was accepted and duplicated that field across five event rows. The same handler inserts events before upserting rollups; if the rollup write fails, an identical retry hits event deduplication and returns success before attempting the failed rollup again. A source harness reproduced `500 rollup-upsert-failed` followed by `200 deduped`, leaving the score absent from ranking data while the client discards its retry.
+
+Read and reject oversized bodies before parsing, build an allowlisted compact normalized payload, and avoid copying caller-controlled data into every board row. Make event and rollup writes transactional or make the deduplication path repair the rollup before acknowledging success. Add byte-boundary, unknown-field, failed-rollup retry, and concurrent-submission tests; verify storage and quotas on staging.
+
 ### P1 — Prevent silent cross-account data transfer on a shared device
 
 When a different user signs in, `src/lib/syncClient.ts` discards the previous account's merge base but immediately builds a new snapshot from the same device-wide store and uploads it to the newly signed-in account. The account-switch test currently expects this transfer. The same installation-wide scope is used for Companion conversations in `athar-companion-v1` and the Companion profile in localStorage; the profile includes personal concerns such as worry, guilt, and loneliness. The account panel's sign-out text says local data remain, but does not explain that a later account can see that data or have synced app state uploaded into its cloud account.
 
 Preserve the local data and prevent automatic transfer: either partition local sync/Companion data by account with an explicit first-sign-in migration choice, or require an explicit merge decision before a new account can read or receive the prior device state. Add same-device A-to-B and B-to-A tests proving no silent upload or Companion-history crossover. This behavior is source-verified; no production account was created.
+
+### P1 — Preserve concurrent sync edits from independent devices
+
+The per-device generation guard prevents stale writes within one running client, but server rows are still replaced as whole documents without a revision check or atomic merge. Two devices can read the same base, add different favorites, and race their upserts; the last write removes the other's new key. Each client then saves its own document as the merge base, so the next pull interprets the missing key as an intentional deletion and permanently drops it. A two-client source harness reproduced the loss; existing sync tests do not cover two independent clients sharing one server row.
+
+Add shared-server race tests, then use an atomic merge or compare-and-swap/retry revision while preserving real deletions. Verify parallel writes and retry recovery on staging; the hosted project is currently unavailable.
 
 ### P1 — Configure and live-verify the Quran translation service
 
@@ -105,11 +118,15 @@ The Xcode project currently contains only the App target. `ios/WidgetExtension/A
 
 Apple requires an equivalent login option in cases covered by Guideline 4.8 and an in-app account-deletion path for apps that support account creation. The deletion UI and server function are present in source, but their end-to-end behavior and associated-row cleanup must be verified on a working staging backend. Audit every data/permission disclosure, add the app and any required SDK privacy manifests, and exercise sign-in, sign-out, deletion, restore, links, notifications, and voice input on physical iOS hardware. Apple explains [login requirements](https://developer.apple.com/app-store/review/guidelines/uk/), [account deletion](https://developer.apple.com/support/offering-account-deletion-in-your-app/), and [privacy manifests](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files).
 
+The account-deletion function also deletes sync/profile data before deleting the auth user, ignores the profile-delete error, and does not restrict authenticated requests to POST. A mocked handler run confirmed that an auth-delete failure returns 500 after the sync/profile deletes succeeded, leaving the account alive after its cloud state was erased. Require POST, make failure behavior preserve a usable account or complete deletion safely, and test both failed and successful deletion against a working staging project.
+
 ### P1 — Verify prayer reminder lifecycle on device
 
 The branch now queues today's and tomorrow's date-specific prayer alerts, follow-ups, Ramadan alerts, and daily Hadith using the selected location and method; it falls back to local calculation if the date-specific API request fails. Recurring custom reminders queue only the next ten firings. Without a reliable app-resume/time-zone reconciliation path, alarms can stop after the finite queue expires or use stale local times after a clock or time-zone change. Android alarms use non-wakeup types unless `allowWhileIdle` is enabled, and the plugin's reboot receiver can replay expired one-shot notifications close together. Custom reminder cancellation has a race: cleanup can finish while `scheduleCustomNotification` is pending, after which the new schedule ID is never canceled.
 
 Add deterministic coverage for the in-flight cancellation race and DST boundaries, then reconcile schedules on foreground/resume and relevant time changes. The API 36.1 emulator run now verifies that denying location leaves the app usable with its Cairo fallback, and denying `POST_NOTIFICATIONS` leaves reminders off without a crash; no alarms were pending. Verify exact-alarm behavior, Doze, clock and timezone changes, location changes, reboot restoration, and a multi-day closed-app interval on physical Android and iOS devices. Alarm delivery remains unverified on-device.
+
+Cold-start notification taps still lose snooze actions: the early bootstrap buffers the action ID, but the drained cold-start path calls `applyNotificationAction`, which records prayer/completion actions only; built-in and custom snooze scheduling exists only in the already-running listener. In-memory execution of the current module produced zero snooze schedules on cold start and one on the warm path for both kinds. Route warm and buffered taps through the same tested action handler and preserve the needed notification details in the buffered record.
 
 ### P1 — Complete privacy disclosures for location and network services
 
@@ -147,9 +164,19 @@ On a fresh Android launch, the system location prompt appeared before the onboar
 
 Lint has no errors but still emits 100 warnings. The route smoke pass verified rendering and targeted state transitions, not screen-reader navigation, keyboard-only operation, contrast, all RTL layouts, all permission-denial paths across platforms, or every workflow. Add focused accessibility and interaction tests for sign-in/restore, prayer settings, onboarding, reader/audio, reminders, and deletion; exercise representative small/large screens and offline cold starts. The offline navigation and cached-audio changes still need true airplane-mode device verification.
 
-### P2 — Set accurate expectations for web custom reminders
+### P1 — Make web reminder delivery work on mobile and match the UI promise
 
-On the web/PWA path, custom reminders are scheduled with page `setTimeout` calls. The service-worker timer handler is not used by that path, and a service worker is not a durable scheduler; closing or suspending the PWA can drop a pending reminder. Until a reliable server-push scheduler exists, make foreground-only delivery explicit and test close/suspend behavior. Do not promise background delivery based on worker timers.
+On the active custom-reminder path, `reminderSync.ts` calls `new Notification()` and silently catches constructor failures instead of using the existing service-worker delivery helper. An in-memory run of the active scheduler confirmed that a mobile-style constructor failure produces no visible notification and no service-worker attempt; reminders also schedule zero timers while permission is `default`, and the create flow does not request permission. MDN warns that this constructor throws in nearly all mobile browsers and recommends `ServiceWorkerRegistration.showNotification()` for mobile ([constructor guidance](https://developer.mozilla.org/en-US/docs/Web/API/Notification/Notification), [service-worker API](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification)). The current page timers are foreground-only and can be lost when the PWA closes or is suspended.
+
+On web, onboarding can set built-in prayer alerts to enabled after permission succeeds, but `syncReminders()` returns immediately outside Capacitor native; those alerts are never scheduled. Use service-worker display for foreground web notifications, request permission only from an explicit user action, connect notification clicks to the intended route, and make onboarding/settings promise only capabilities that exist. Until a durable push scheduler is available, disclose that page timers require the PWA to remain active.
+
+### P2 — Preserve Android widget history and freshness
+
+On the first Tasbeeh widget tap after midnight, `bumpDailyTotal` replaces the single stored yesterday payload before JavaScript has merged it; if the app was not opened the prior day, those widget-only dhikr counts are permanently lost. Existing rollover tests merge yesterday's count before advancing the date and miss this case. Separately, both prayer widgets label cached times with today's date without checking the payload date or freshness, so after several closed-app days, travel, or DST they can show stale times as current. Keep unmerged totals in a dated ledger until acknowledged, validate prayer-time dates before displaying them, and test unmerged midnight rollover plus stale-widget refresh.
+
+### P2 — Return a controlled error for malformed Companion JSON
+
+The Companion handler catches JSON syntax errors but accepts valid scalar JSON such as `null`, then reads `body.system` and throws a `TypeError` instead of returning a validation response. The local source harness reproduced the exception; deployed behavior remains unverified. Reject null, arrays, and other non-object bodies with HTTP 400 before accessing fields.
 
 ### P2 — Decide Android backup scope for private activity data
 
@@ -199,13 +226,19 @@ No production database dump was available because the hosted project was restric
 - [x] Correct iOS 13 photo permission compatibility, add the UserDefaults privacy reason manifest, and configure current macOS/Xcode CI.
 - [ ] Restore Supabase service and validate migrations, RLS, account deletion, sync ownership, and durable quotas against staging before deployment.
 - [ ] Prevent silent cross-account sync and Companion-history transfer; test account switching on one installation.
+- [ ] Prevent concurrent cross-device sync writes from converting lost updates into permanent deletions.
 - [ ] Bootstrap the Supabase migration chain from empty and existing-schema fixtures; review the leaderboard reset before any live apply.
+- [ ] Bound and normalize public leaderboard submissions; make score-event retries repair rollups atomically.
+- [ ] Make account deletion POST-only and failure-safe; validate associated-row cleanup on staging.
+- [ ] Reject malformed Companion payloads before field access.
 - [ ] Add durable/global Companion spend controls, a cloud-sync payload limit, and clear leaderboard-deletion scope.
 - [ ] Add byte-aware runtime cache limits or remove duplicate service-worker caching for large data/audio packs.
 - [ ] Publish and link the privacy policy; reconcile data-safety disclosures, AI/location disclosures, deletion scope, and provider retention.
 - [ ] Complete iOS App Store work: test native flows on device, verify Sign in with Apple applicability and account deletion, finish data/SDK disclosures, and integrate a widget extension if widgets remain advertised. Hosted unsigned Xcode validation, including the privacy manifest, passed on `c24faa3`.
 - [ ] Complete Android release preparation: explicit backup rules, signing custody, and a release-signed AAB with version code greater than 74.
 - [ ] Exercise reminders and notifications through denial, Doze, reboot, time changes, and app closure; test audio and cache upgrades on devices.
+- [ ] Fix cold-start snooze handling, mobile-web reminder delivery, and web onboarding's native-only alert promise.
+- [ ] Preserve unmerged Tasbeeh widget totals across midnight and stop prayer widgets presenting stale schedules as current.
 - [ ] Address remaining dependency advisories, 100 lint warnings, large chunks, accessibility coverage, and religious-content review.
 - [x] Confirm the app already has selectable visual themes and `Forest` remains its default; keep that visual design as the default.
 - [ ] Verify contrast and readability across each existing theme before adding further visual treatments.
