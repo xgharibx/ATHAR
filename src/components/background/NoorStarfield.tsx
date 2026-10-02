@@ -34,7 +34,7 @@ function Starfield(props: { count?: number; size?: number; opacity?: number; col
 
   return (
     <group>
-      <Points ref={ref} positions={positions} stride={3}>
+      <Points key={count} ref={ref} positions={positions} stride={3}>
         <PointMaterial
           transparent
           color={color}

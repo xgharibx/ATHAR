@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { PrayerCountdown } from "@/components/layout/PrayerCountdown";
 import { PrayerTimesPageSkeleton } from "@/components/ui/Skeleton";
-import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { requestPrayerLocation, usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders } from "@/lib/reminders";
 import { buildPrayerSchedule, format12h, type PrayerDetailRow, PRAYER_LABELS, parseClockToMinutes, formatMinutes12h } from "@/lib/prayerSchedule";
 import { cn } from "@/lib/utils";
@@ -1005,6 +1005,7 @@ export function PrayerTimesPage() {
   const reminders      = useNoorStore((s) => s.reminders);
   const [now, setNow]  = React.useState(() => new Date());
   const [manualRefreshing, setManualRefreshing] = React.useState(false);
+  const [locating, setLocating] = React.useState(false);
   const [activeTab,    setActiveTab]    = React.useState<TabKey>("today");
   const [showSettings, setShowSettings] = React.useState(false);
   const [isOnline, setIsOnline] = React.useState(() => navigator.onLine);
@@ -1025,6 +1026,25 @@ export function PrayerTimesPage() {
       toast.success("تم تحديث مواقيت الصلاة");
     } catch { toast.error("تعذر تحديث المواقيت الآن"); }
     finally { setManualRefreshing(false); }
+  }
+
+  async function handleUseCurrentLocation() {
+    setLocating(true);
+    try {
+      if (!(await requestPrayerLocation())) {
+        toast.error("تعذر الوصول للموقع، يمكنك اختيار مدينة من تبويب المدن");
+        return;
+      }
+      const result = await prayerTimes.refetch();
+      if (result.error || !result.data?.data?.timings) throw result.error ?? new Error("location refresh failed");
+      const rt = result.data.data.timings;
+      await syncReminders(reminders, { Fajr: rt.Fajr, Dhuhr: rt.Dhuhr, Asr: rt.Asr, Maghrib: rt.Maghrib, Isha: rt.Isha });
+      toast.success("تم تحديث المواقيت حسب موقعك");
+    } catch {
+      toast.error("تعذر تحديث المواقيت الآن");
+    } finally {
+      setLocating(false);
+    }
   }
 
   // De2: Pull-to-refresh
@@ -1165,6 +1185,10 @@ export function PrayerTimesPage() {
             </Badge>
             <Badge className="text-[11px]">{date.hijri.date} {date.hijri.month.ar}</Badge>
             {data.__sourceLabel && <Badge className="text-[11px] opacity-60">{data.__sourceLabel}</Badge>}
+            <Button variant="secondary" size="sm" onClick={() => void handleUseCurrentLocation()} disabled={locating || prayerTimes.isFetching} aria-label="استخدام موقعي لمواقيت الصلاة">
+              <MapPin size={13} aria-hidden="true" />
+              {locating ? "جارٍ تحديد الموقع…" : "استخدام موقعي"}
+            </Button>
           </div>
           <div className="rounded-[28px] border border-[var(--stroke)] bg-[var(--card)] p-4 md:p-5">
             <PrayerCountdown timings={timings} />

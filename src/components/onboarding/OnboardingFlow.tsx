@@ -1,8 +1,10 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useNoorStore } from "@/store/noorStore";
 import { isNativePlatform, requestNotificationPermission } from "@/lib/reminders";
+import { requestPrayerLocation } from "@/hooks/usePrayerTimes";
 
 type ReminderPermission = "granted" | "denied" | "prompt";
 
@@ -33,19 +35,8 @@ const STEPS = [
   {
     emoji: "🕌",
     title: "مواقيت الصلاة",
-    description: "للحصول على مواقيت الصلاة الدقيقة في مدينتك، يحتاج التطبيق إلى الوصول لموقعك.",
+    description: "للحصول على مواقيت الصلاة في موقعك، يمكنك السماح بالوصول للموقع. يمكنك التخطي واستخدام مواقيت القاهرة.",
     action: "السماح",
-    onAction: async () => {
-      if ("geolocation" in navigator) {
-        await new Promise<void>((resolve) => {
-          navigator.geolocation.getCurrentPosition(
-            () => resolve(),
-            () => resolve(),
-            { timeout: 8000 }
-          );
-        });
-      }
-    },
   },
   {
     emoji: "🔔",
@@ -66,6 +57,7 @@ const STEPS = [
 ] as const;
 
 export function OnboardingFlow() {
+  const queryClient = useQueryClient();
   const setOnboardingDone = useNoorStore((s) => s.setOnboardingDone);
   const setReminders = useNoorStore((s) => s.setReminders);
   const [step, setStep] = React.useState(0);
@@ -81,6 +73,12 @@ export function OnboardingFlow() {
     setLoading(true);
     let remindersAllowed = true;
     try {
+      if (step === 1) {
+        const locationSaved = await requestPrayerLocation();
+        if (locationSaved) {
+          void queryClient.invalidateQueries({ queryKey: ["prayer-times", "v3"] });
+        }
+      }
       if ("onAction" in current && current.onAction) {
         await current.onAction();
       }

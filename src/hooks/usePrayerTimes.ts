@@ -221,9 +221,9 @@ function computeLocalPrayerTimes(lat: number, lng: number, date: Date, method: n
   };
 }
 
-function getCurrentPosition(timeoutMs = 2500): Promise<GeolocationPosition> {
+function getCurrentPosition(timeoutMs = 8000): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
       reject(new Error("geolocation not supported"));
       return;
     }
@@ -233,6 +233,22 @@ function getCurrentPosition(timeoutMs = 2500): Promise<GeolocationPosition> {
       maximumAge: 30 * 60 * 1000
     });
   });
+}
+
+/** Request and persist device coordinates only after an explicit user action. */
+export async function requestPrayerLocation(): Promise<boolean> {
+  try {
+    const position = await getCurrentPosition();
+    const { latitude: lat, longitude: lng } = position.coords;
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng) || lng < -180 || lng > 180) {
+      return false;
+    }
+    writeCachedCoords(lat, lng);
+    return true;
+  } catch {
+    // Permission denied, timed out, or unavailable: keep the current city/saved-location fallback.
+    return false;
+  }
 }
 
 export function usePrayerTimes() {
@@ -277,25 +293,7 @@ export function usePrayerTimes() {
       //      freezes the widget. CORS blocks on api.aladhan.com have been
       //      the most common source of "stuck on loading" on first launch.
 
-      // 1) Live coordinates
-      try {
-        const pos = await getCurrentPosition();
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        bestCoords = { lat, lng };
-        const locationKey = `coords:${lat.toFixed(3)}:${lng.toFixed(3)}:${method}:${school}`;
-        writeCachedCoords(lat, lng);
-        try {
-          return await trySource("الموقع الحالي", locationKey, () => fetchPrayerTimesByCoords(lat, lng, method, school));
-        } catch {
-          const cached = readCached(dayKey, locationKey);
-          if (cached) return cached;
-        }
-      } catch {
-        // permission denied / no geolocation support — fall through
-      }
-
-      // 2) Last known coordinates
+      // 1) Last known coordinates. Never prompt for GPS as a side effect of app startup.
       if (cachedCoords) {
         const locationKey = `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}`;
         try {
@@ -311,7 +309,7 @@ export function usePrayerTimes() {
         }
       }
 
-      // 3) City fallback — Aladhan's ByCity endpoint is CORS-friendly too,
+      // 2) City fallback — Aladhan's ByCity endpoint is CORS-friendly too,
       //    but if it fails we transparently move to the local adhan-based
       //    compute so the widget never lingers on a spinner.
       try {
@@ -321,7 +319,7 @@ export function usePrayerTimes() {
         if (cached) return cached;
       }
 
-      // 4) Fully offline last resort: compute locally (Jean Meeus formulas via `adhan`)
+      // 3) Fully offline last resort: compute locally (Jean Meeus formulas via `adhan`)
       // from the best coordinates we have, so a no-connectivity first launch never
       // shows a bare error instead of today's prayer times.
       const fallbackCoords = bestCoords ?? { lat: 30.0444, lng: 31.2357 }; // Cairo, matches the city fallback above
