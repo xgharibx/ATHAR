@@ -16,7 +16,7 @@
  *     normal web redirect would strand the user in a browser tab that can never
  *     hand the session back. It instead redirects to our custom scheme
  *     (`app.athar://auth`), which Android's intent filter and iOS's registered
- *     URL type route back into the app, where `appUrlOpen` completes the exchange.
+ *     URL type route back into the app for the shared native callback handler.
  */
 import { Capacitor } from "@capacitor/core";
 import { createClient, type Session, type SupabaseClient, type User } from "@supabase/supabase-js";
@@ -108,8 +108,9 @@ export async function signInWithGoogle(): Promise<AuthResult> {
   if (error) return { ok: false, error: error.message };
 
   if (native && data?.url) {
-    // Native bridge rather than @capacitor/browser — that plugin ships a
-    // build.gradle current AGP rejects outright. See AuthBridgePlugin.java.
+    // The local AuthBridge uses ASWebAuthenticationSession on iOS and the
+    // system URL handler on Android. We avoid @capacitor/browser because its
+    // Android Gradle config is rejected by the project's current AGP.
     const { registerPlugin } = await import("@capacitor/core");
     const AuthBridge = registerPlugin<{ openExternal(o: { url: string }): Promise<void> }>("AuthBridge");
     await AuthBridge.openExternal({ url: data.url });
@@ -169,13 +170,17 @@ async function exchangeNativeSignIn(parsed: URL): Promise<AuthResult> {
   const supabase = getSupabase();
   if (!supabase) return { ok: false, error: "الحسابات غير مُهيّأة بعد" };
   try {
+    const hash = new URLSearchParams(parsed.hash.replace(/^#/, ""));
+    if (parsed.searchParams.has("error") || parsed.searchParams.has("error_description") ||
+        hash.has("error") || hash.has("error_description")) {
+      return { ok: false, error: "تعذّر تسجيل الدخول" };
+    }
     const code = parsed.searchParams.get("code");
     if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (error) return { ok: false, error: error.message };
       return { ok: true };
     }
-    const hash = new URLSearchParams(parsed.hash.replace(/^#/, ""));
     const access_token = hash.get("access_token");
     const refresh_token = hash.get("refresh_token");
     if (access_token && refresh_token) {

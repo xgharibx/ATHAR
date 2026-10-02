@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import WebKit
 #if canImport(WidgetKit)
 import WidgetKit
 #endif
@@ -22,6 +23,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         "noor_widget_wird_v1",
         "noor_widget_dashboard_v1",
     ]
+
+    private var pendingNativeAuthURL: URL?
+    private var nativeAuthDeliveryInProgress = false
+    private var nativeAuthDeliveryAttempts = 0
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -61,6 +66,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        Self.flushPendingNativeAuthURL()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
@@ -70,7 +76,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
-        return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
+        let handled = ApplicationDelegateProxy.shared.application(app, open: url, options: options)
+        guard Self.isNativeAuthCallbackURL(url) else { return handled }
+        Self.deliverNativeAuthCallback(url)
+        return true
     }
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
@@ -78,6 +87,73 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Feel free to add additional processing here, but if you want the App API to support
         // tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
+    }
+
+    static func deliverNativeAuthCallback(_ url: URL) {
+        guard isNativeAuthCallbackURL(url) else { return }
+        DispatchQueue.main.async {
+            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+            appDelegate.pendingNativeAuthURL = url
+            appDelegate.nativeAuthDeliveryAttempts = 0
+            appDelegate.deliverPendingNativeAuthURLIfReady()
+        }
+    }
+
+    static func flushPendingNativeAuthURL() {
+        DispatchQueue.main.async {
+            (UIApplication.shared.delegate as? AppDelegate)?.deliverPendingNativeAuthURLIfReady()
+        }
+    }
+
+    private static func isNativeAuthCallbackURL(_ url: URL) -> Bool {
+        guard let parts = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return false }
+        return parts.scheme?.lowercased() == "app.athar"
+            && parts.host == "auth"
+            && parts.port == nil
+            && parts.user == nil
+            && parts.password == nil
+            && (parts.path.isEmpty || parts.path == "/")
+    }
+
+    private func deliverPendingNativeAuthURLIfReady() {
+        guard !nativeAuthDeliveryInProgress, let url = pendingNativeAuthURL else { return }
+        guard let controller = window?.rootViewController as? CAPBridgeViewController,
+              let bridge = controller.bridge,
+              let webView = bridge.webView,
+              webView.url != nil,
+              let jsonData = try? JSONSerialization.data(withJSONObject: url.absoluteString, options: [.fragmentsAllowed]),
+              let jsonURL = String(data: jsonData, encoding: .utf8) else {
+            scheduleNativeAuthDeliveryRetry()
+            return
+        }
+
+        nativeAuthDeliveryInProgress = true
+        let script = "(function(){if(document.readyState==='loading')return 'wait';var u=\(jsonURL);if(window.__atharAuthCallbackReady){window.dispatchEvent(new CustomEvent('athar-auth-callback',{detail:{url:u}}));}else{window.__atharPendingAuthUrl=u;}return 'delivered';})()"
+        webView.evaluateJavaScript(script) { [weak self] result, error in
+            guard let self else { return }
+            self.nativeAuthDeliveryInProgress = false
+            guard self.pendingNativeAuthURL == url else {
+                self.deliverPendingNativeAuthURLIfReady()
+                return
+            }
+            if error == nil, result as? String == "delivered" {
+                self.pendingNativeAuthURL = nil
+                self.nativeAuthDeliveryAttempts = 0
+                return
+            }
+            self.scheduleNativeAuthDeliveryRetry()
+        }
+    }
+
+    private func scheduleNativeAuthDeliveryRetry() {
+        guard pendingNativeAuthURL != nil, nativeAuthDeliveryAttempts < 25 else {
+            nativeAuthDeliveryAttempts = 0
+            return
+        }
+        nativeAuthDeliveryAttempts += 1
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            self?.deliverPendingNativeAuthURLIfReady()
+        }
     }
 
 }

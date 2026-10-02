@@ -77,4 +77,12 @@ describe("native authentication callback delivery", () => {
     expect(exchanges).toEqual([]);
     expect(sessionTokens).toEqual([]);
   });
+
+  it("reports an OAuth denial instead of treating it as a malformed callback", async () => {
+    const { completeNativeSignIn } = await import("@/lib/authClient");
+
+    await expect(completeNativeSignIn("app.athar://auth?error=access_denied"))
+      .resolves.toEqual({ ok: false, error: "تعذّر تسجيل الدخول" });
+    expect(exchanges).toEqual([]);
+  });
 });

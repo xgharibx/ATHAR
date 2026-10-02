@@ -10,19 +10,20 @@ This report records verified fixes in the current audit branch separately from u
 
 The app has a substantial offline-capable feature set, and its existing visual design remains intact. This audit fixed high-impact regressions in Quran navigation, storage restore, prayer-time fallback, auth callback delivery, sync lifecycle, audio caching, and notification/widget handling. The release-verification command now completes successfully, and all tested routes render at a narrow mobile viewport.
 
-The app is **not ready for a public store release**. The main gates are paid AI protection that has been improved in this branch but is not deployed or live-verified, a currently restricted Supabase project, unapplied leaderboard, AI, and Quran translation quota migrations, a hosted translation integration that is still unverified against its provider, and incomplete iOS native/auth/privacy preparation. Android source builds successfully, but release metadata is inconsistent and a release-signed artifact was not produced or uploaded.
+The app is **not ready for a public store release**. The main gates are paid AI protection that has been improved in this branch but is not deployed or live-verified, a currently restricted Supabase project, unapplied leaderboard, AI, and Quran translation quota migrations, a hosted translation integration that is still unverified against its provider, and incomplete iOS store preparation. The iOS Google OAuth bridge and native share registration are now wired into the Xcode project, but cannot be called verified until an Xcode build and device round-trip pass. Android source builds successfully, but release metadata is inconsistent and a release-signed artifact was not produced or uploaded.
 
 ## What was examined and verified
 
-- Ran `npm run verify` on a clean isolated install after the latest changes: lint completed with **0 errors and 100 warnings**, all **847 tests in 99 files passed**, and the TypeScript plus Vite production/PWA build succeeded. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
+- Ran `npm run verify` on a clean isolated install after the latest changes: lint completed with **0 errors and 100 warnings**, all **849 tests in 100 files passed**, and the TypeScript plus Vite production/PWA build succeeded. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
 - Parsed the actual bundled Quran and page map: **114 surahs, 6,236 ayahs, and all 604 Mushaf pages** are represented by valid JSON and page references.
 - Loaded **52 valid app routes** plus one deliberate unknown route in a production preview at **390 × 844**. Routes rendered, the unknown route showed the not-found view, and targeted Home and Quran state transitions did not produce React hook-order errors. This was route and focused-interaction coverage, not a full usability pass over every control.
 - Rebuilt and launched the Android debug APK on the API 36.1 emulator without a runtime crash. An earlier emulator test showed that sending an increment broadcast with a nonexistent widget ID did not create widget totals or preference state. Prayer notification scheduling is covered by tests, but the default reminder setting is off, so pending alarms were not exercised end-to-end on the emulator. No release-signed artifact was produced.
-- Inspected the iOS plist, delegate, CocoaPods setup, Xcode project, and widget source. Corrected the iOS location permission prompt, which previously claimed coordinates never leave the device despite direct Aladhan and Overpass requests. The Xcode project has only an App target; the checked-in WidgetKit source is not integrated, and no `PrivacyInfo.xcprivacy` or App Groups entitlement is present.
+- Inspected the iOS plist, delegate, CocoaPods setup, Xcode project, and widget source. Corrected the iOS location permission prompt, which previously claimed coordinates never leave the device despite direct Aladhan and Overpass requests. Added an `ASWebAuthenticationSession` Google OAuth bridge, queued deep-link delivery, and native share/auth plugin registration to the App target. The Xcode project still has only an App target; the checked-in WidgetKit source is not integrated, and no `PrivacyInfo.xcprivacy` or App Groups entitlement is present.
 - Verified Aladhan's date-specific `timingsByCity` endpoint with a read-only Cairo request; the app now uses its date path for next-day timings and falls back to local calculation offline.
 - Issued only safe `HEAD`/`GET`/`OPTIONS` checks to 10 configured Supabase endpoints. They returned HTTP **402 `exceed_db_size_quota` / project restricted**. No production database, account, or function writes were made.
 - Audited the dependency tree with `npm audit`: after applying available non-breaking fixes in an isolated clone, **6 npm audit findings remain** (1 critical, 2 high, 3 moderate). The production dependency graph has **2 moderate npm audit findings** and no high or critical advisories. The lockfile root version is aligned with package version `1.2.62`.
-- Could not produce an iOS/Xcode build in this Windows workspace or verify App Store Connect / Play Console configuration. No physical iPhone test was performed.
+- Opened the owner's Google Play Console account read-only. Athar is in production at 100% rollout on version code 74 / version `1.2.62`, with no unpublished changes; Console suggests pausing a closed-testing track whose releases were superseded over 90 days ago. The track was left unchanged because it may still have testers.
+- Could not produce an iOS/Xcode build in this Windows workspace or verify App Store Connect configuration. No physical iPhone test was performed.
 
 ## Repairs in this phase
 
@@ -37,7 +38,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 | Companion spend guard | Require and verify a signed-in Supabase user, reserve an atomic 30/day and 5/rolling-minute account quota, cap request bodies in UTF-8 bytes while streaming, allow only explicit browser request headers, and bound upstream requests to 60 seconds. The branch includes a database migration; it is not deployed. | Eleven synthetic Edge Function security tests, including CORS preflight; migration still requires a live staging run |
 | Quran Foundation translations | Route both approved translation IDs through server-side OAuth; add durable atomic per-client/global token buckets and daily quotas, fail closed when the shared quota service is unavailable, bound cache life to seven days, credit the provider and edition, and render Urdu right-to-left. | Edge Function/client tests and `npm run verify`; quota migration and provider access remain unverified on live Supabase |
 | Dependency hygiene | Move test-only `jsdom` to development dependencies, apply non-breaking audit fixes, align the lockfile root version, and make Quran translation tests configure a synthetic Supabase client before module import. | `npm run verify` on the isolated updated install; audit reduced from 31 to 6 overall and from 4 to 2 production advisories |
-| iOS OAuth callback | Register `app.athar` in the iOS URL types so the existing AppDelegate-to-Capacitor callback can receive the redirect used by native sign-in. | XML configuration regression test; an Xcode build and physical sign-in round trip remain unavailable here |
+| iOS native auth and share bridges | Implement Google OAuth with `ASWebAuthenticationSession`, validate and queue `app.athar://auth` delivery until JavaScript is ready, surface OAuth denials cleanly, and register both auth and share plugins in the App target. | Native registration, URL-scheme, and auth callback tests; storyboard/XML and PBX source registration inspected. Xcode build and physical sign-in/share round-trips remain unavailable here |
 | iOS location disclosure | Replace the false device-only claim with the actual Aladhan and Overpass location uses. | Plist regression test checks both services and rejects the device-only claim; full verify |
 | Reminder notifications | Cancel only the app's custom reminder notification IDs; select the Android monochrome status icon. | Notification ownership tests; Android build |
 | Tasbeeh widget | Reject taps for widget IDs not registered with Android before changing counts. | API 36.1 emulator invalid-ID broadcast; no state created |
@@ -72,11 +73,23 @@ The implementation is covered by synthetic Edge Function and client tests, inclu
 
 ### P1 — Finish iOS native sign-in, privacy, widgets, and account lifecycle
 
-The auth client offers Google and email magic links with the `app.athar://auth` callback, and URL registration is now present and covered by an XML configuration regression test. However, native Google sign-in is currently broken on iOS: the iOS code calls `AuthBridge.openExternal`, but `AuthBridgePlugin` exists and is registered only in Android; no iOS implementation is present. Email-link handling is implemented in the client but has not been exercised on an iPhone. There is no Sign in with Apple implementation. Because Google is offered for primary sign-in, verify Apple's guideline 4.8 applicability and add/configure an equivalent compliant sign-in option if required. Account settings expose deletion and call a server function, but its live behavior and complete data cleanup are unverified while Supabase is restricted.
+The auth client offers Google and email magic links with the `app.athar://auth` callback. iOS now has an `ASWebAuthenticationSession` bridge, strict callback URL validation, queued delivery into the web auth client, and App-target registration for both auth and native share plugins. Source-level regression tests cover registration, callback validation, and OAuth denial handling. An Xcode build, a Google sign-in round-trip, and email-link handling have not been exercised on an iPhone, so the native path remains unverified. There is no Sign in with Apple implementation. Because Google is offered for primary sign-in, verify Apple's guideline 4.8 applicability and add/configure an equivalent compliant sign-in option if required. Account settings expose deletion and call a server function, but its live behavior and complete data cleanup are unverified while Supabase is restricted.
 
-The Xcode project currently contains only the App target. `ios/WidgetExtension/AtharWidgets.swift` is not in the project, there is no widget target, and no App Groups entitlement is configured; the README's manual Xcode steps are still required before iOS widgets can ship. `ShareBridgePlugin.swift` exists on disk, but it is not listed in the App target's Xcode sources, so native image saving/sharing also needs a real Xcode-target build check. No `PrivacyInfo.xcprivacy` exists in the checked-in iOS project. Since `AppDelegate.swift` directly accesses `UserDefaults`, add and validate the app's required-reason declaration, and inspect manifests for each packaged SDK. A physical iPhone build and sign-in round trip have not been verified.
+The Xcode project currently contains only the App target. `ios/WidgetExtension/AtharWidgets.swift` is not in the project, there is no widget target, and no App Groups entitlement is configured; the README's manual Xcode steps are still required before iOS widgets can ship. The existing `ShareBridgePlugin.swift` is now listed in the App target and registered, but native sharing and photo-library save behavior still need a real Xcode/device check. No `PrivacyInfo.xcprivacy` exists in the checked-in iOS project. Since `AppDelegate.swift` directly accesses `UserDefaults`, add and validate the app's required-reason declaration, and inspect manifests for each packaged SDK. A physical iPhone build and auth round-trip have not been verified.
 
 Apple requires an equivalent login option in cases covered by Guideline 4.8 and an in-app account-deletion path for apps that support account creation. The deletion UI and server function are present in source, but their end-to-end behavior and associated-row cleanup must be verified on a working staging backend. Audit every data/permission disclosure, add the app and any required SDK privacy manifests, and exercise sign-in, sign-out, deletion, restore, links, notifications, and voice input on physical iOS hardware. Apple explains [login requirements](https://developer.apple.com/app-store/review/guidelines/uk/), [account deletion](https://developer.apple.com/support/offering-account-deletion-in-your-app/), and [privacy manifests](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files).
+
+### P1 — Restore browser zoom and touch accessibility
+
+The global viewport in `index.html` sets `maximum-scale=1.0` and `user-scalable=no`, and `src/lib/appShellBehaviour.ts` cancels Safari gesture events and multi-touch gestures on coarse-pointer devices. This blocks browser pinch-zoom, including on screens without an app-specific text-size control, and creates a low-vision accessibility barrier. Remove the global zoom restriction and prevent only app-specific gestures that are necessary; preserve the default visual layout. Verify pinch zoom and 200% text scaling in iOS Safari and Android browsers.
+
+### P1 — Remove insecure Android mixed-content allowance
+
+`capacitor.config.ts` sets `android.allowMixedContent` to true for the production WebView. Android recommends against `MIXED_CONTENT_ALWAYS_ALLOW`; an insecure HTTP resource embedded in the trusted app origin could be intercepted and interact with the WebView's native bridges. The current source inventory did not find HTTP endpoints, so exploitability depends on future or runtime content, but the permissive setting is unnecessary for the observed HTTPS integrations. Remove it or explicitly disable it, then verify required media and API flows. See [Android's local-content security guidance](https://developer.android.com/develop/ui/views/layout/webapps/load-local-content) and [WebSettings mixed-content modes](https://developer.android.com/reference/android/webkit/WebSettings).
+
+### P1 — Review restricted exact-alarm permission before the next Play release
+
+`android/app/src/main/AndroidManifest.xml` declares `USE_EXACT_ALARM` for prayer reminders. Play restricts this automatically granted permission to apps whose core user-facing function is an alarm/timer or calendar with event notifications, and recommends `SCHEDULE_EXACT_ALARM` for other use cases. Athar's core purpose is broader than a clock/alarm app, so confirm the submitted Console declaration and eligibility before uploading another bundle; if it does not qualify, remove `USE_EXACT_ALARM` and use the user-granted schedule permission path. See [Google Play's exact-alarm permission policy](https://support.google.com/googleplay/android-developer/answer/16558241) and [permission declaration process](https://support.google.com/googleplay/android-developer/answer/9214102).
 
 ### P1 — Verify prayer reminder lifecycle on device
 
@@ -92,7 +105,7 @@ The checked-in package/source version is `1.2.62`, while `released.android` says
 
 ### P1 — Complete the release account and testing path
 
-No store account or listing was inspected. Google currently documents a one-time US$25 Play Console registration fee and identity verification. Personal Play accounts created after 2023-11-13 must complete a closed test with at least 12 continuously opted-in testers for 14 days before applying for production access. Apple's Developer Program is US$99 per membership year (local currency may apply). See [Play Console setup](https://support.google.com/googleplay/android-developer/answer/6112435?hl=en-en), [Play testing requirements](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en), and [Apple membership](https://developer.apple.com/support/compare-memberships/). Account identity, payments, and acceptance of developer agreements must be completed by the account owner.
+The Play Console account and Athar listing were inspected read-only: version code 74 / `1.2.62` is live at 100% production rollout and there are no unpublished changes. Console recommends pausing the old `alpha` closed-testing track because its releases were superseded over 90 days ago; review whether it is still needed before changing it. App Store Connect and Apple Developer enrollment were not inspected. Google currently documents a one-time US$25 Play Console registration fee and identity verification. Personal Play accounts created after 2023-11-13 must complete a closed test with at least 12 continuously opted-in testers for 14 days before applying for production access. Apple's Developer Program is US$99 per membership year (local currency may apply). See [Play Console setup](https://support.google.com/googleplay/android-developer/answer/6112435?hl=en-en), [Play testing requirements](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en), and [Apple membership](https://developer.apple.com/support/compare-memberships/). Account identity, payments, and acceptance of developer agreements must be completed by the account owner.
 
 ### P2 — Reduce bundle and offline-cache cost
 
@@ -105,6 +118,34 @@ The latest `npm audit` reports **6 npm audit findings** (1 critical, 2 high, 3 m
 ### P2 — Improve quality-gate signal and browser coverage
 
 Lint has no errors but still emits 100 warnings. The route smoke pass verified rendering and targeted state transitions, not screen-reader navigation, keyboard-only operation, contrast, all RTL layouts, permission-denial recovery, or every workflow. Add focused accessibility and interaction tests for sign-in/restore, prayer settings, onboarding, reader/audio, reminders, and deletion; exercise representative small/large screens and offline cold starts. The offline navigation and cached-audio changes still need true airplane-mode device verification.
+
+### P2 — Secure exported Android widget actions
+
+The compact widget receiver is exported and accepts an unauthenticated increment action. Unlike the Tasbeeh receiver, `NoorCompactWidgetProvider` does not validate that the supplied widget ID belongs to an installed widget before updating shared daily totals. Another app installed on the device can send an explicit broadcast with a fabricated ID and inflate the user's local activity totals. Restrict the receiver/action to trusted launcher delivery while preserving legitimate widget taps; add a native regression test and validate with a second test app that forged broadcasts do not change imported stats.
+
+### P2 — Bound and harden the public Dorar hadith-search proxy
+
+`supabase/functions/dorar` disables JWT verification, has wildcard CORS, trusts caller-provided `x-forwarded-for` before the edge-derived address, and keeps a 60/minute isolate-local counter in a map that is never pruned or capped. It accepts arbitrary 200-character queries, forwards cache misses to Dorar, and has no upstream timeout. A direct caller may be able to rotate forwarded addresses to evade throttling while growing the map and generating upstream requests; this is a source-level risk until the hosted gateway's header behavior is verified. Use a trusted edge identity, bound/prune limiter state, cap query and upstream concurrency, add a timeout, and test abuse controls in staging only. The client sends up to 90 normalized characters of Hadith text as the query, so the privacy disclosure and provider inventory must name Dorar and this data flow.
+
+### P2 — Set accurate expectations for web custom reminders
+
+On the web/PWA path, custom reminders are scheduled with page `setTimeout` calls. The service-worker timer handler is not used by that path, and a service worker is not a durable scheduler; closing or suspending the PWA can drop a pending reminder. Until a reliable server-push scheduler exists, make foreground-only delivery explicit and test close/suspend behavior. Do not promise background delivery based on worker timers.
+
+### P2 — Correct sitemap paths and verify every published route
+
+`public/sitemap.xml` lists `/hadith-memo`, `/quran-plans`, `/wudu-guide`, `/videos`, and `/nearby-mosques`, while the app routes are `/hadith/memo`, `/quran/plans`, `/wudu`, `/video-library`, and `/mosques`. `robots.txt` advertises this sitemap, so crawlers can index dead links. Generate sitemap entries from the route table or add a test that every listed path resolves to a shipped route.
+
+### P2 — Decide Android backup scope for private activity data
+
+Android Auto Backup is enabled in `AndroidManifest.xml`, but the app has no legacy backup rules or Android 12+ data-extraction rules. By default, app preferences such as Capacitor storage may be carried into cloud backup and device transfer. Decide which progress/reminder/widget data should follow the user's Google backup, disclose that behavior, and add explicit backup rules; verify backup and restore on a device.
+
+### P2 — Keep gallery saving compatible with the declared Android floor
+
+The app declares Android API 22+ support, but `ShareBridgePlugin.java` writes directly to shared media storage on Android 9 and earlier without requesting the legacy write permission. Direct save can fail there; the JavaScript fallback to the system share sheet is available. Either add a narrowly scoped API 28 save path or drop unsupported OS versions after checking active-user impact, then verify API 28 and API 29 behavior.
+
+### P2 — Add native Android validation to CI
+
+The GitHub workflows run web lint, tests, and build plus the iOS workflow, but none runs a Gradle Android build or manifest validation. Native widget, OAuth, notification, and plugin changes can therefore pass CI without compiling or merging the final Android manifest. Add an unsigned debug assemble and an appropriate lint/manifest check to CI; keep signing credentials out of pull-request validation.
 
 ### P2 — Review religious-source accuracy and attribution
 
@@ -120,6 +161,7 @@ The Quran page map and selected bundled integrity checks are verified, but the a
 | Quran Foundation | Optional hosted translations/content | Server-side OAuth proxy, seven-day cache, and shared database quota migration implemented locally; migration, API/deployment, and full catalog access unverified while Supabase is restricted |
 | EveryAyah | Recitation audio | Unified browser cache and honest partial-download messaging fixed; offline playback needs airplane-mode verification and source/rights review |
 | Overpass / mosque search | Nearby mosque lookup | Search sends a coordinate-based query to Overpass; offline cache, provider reliability, and full privacy behavior need dedicated checks |
+| Dorar | Hadith takhrij/search | Client sends up to 90 normalized characters of Hadith text through a public Supabase Edge Function; query retention/terms, trusted client identity, durable abuse limits, and upstream timeout remain unverified |
 | Browser storage / IndexedDB | Progress, Hadith notes, custom reminders/packs, offline content | Backup/restore fixes covered by tests; cross-browser quota eviction and private-mode recovery remain unverified |
 | Service worker / GitHub Pages | PWA navigation, precache, runtime caching, deployment | Build succeeds; new offline app-shell fallback is not yet verified in airplane mode or across an upgrade from an old cache |
 
@@ -127,13 +169,14 @@ No production database dump was available because the hosted project was restric
 
 ## Recommended next phases
 
-1. Restore Supabase, deploy the coded Companion authentication/quota/body-limit guard to staging, add provider-level spend caps and alerts, and verify abuse boundaries before enabling paid AI.
-2. Restore Supabase availability; test schema, RLS, sync, identity ownership, existing-row recovery, and edge functions in staging; then schedule the reviewed migration/deploy.
-3. Restore Supabase availability, apply and verify the Quran translation quota migration in staging, configure Quran Foundation backend credentials, deploy the translation proxy, and verify each enabled translation/chapter before production.
-4. Add the missing iOS AuthBridge, native share registration, and WidgetKit target/App Groups; complete Sign in with Apple or document a valid Guideline 4.8 exception, add privacy manifests, and verify deletion and sign-in on physical hardware.
-5. Correct prayer notification horizon and Android permission/reboot/time-change cases; verify PWA and audio offline behavior on real devices.
-6. Reconcile store metadata and signing/version identity; prepare listing/privacy assets, tester recruitment, and signed release bundles.
-7. Upgrade vulnerable dependencies, reduce startup/cache weight, eliminate lint warnings, and expand accessibility and content-source review.
+1. Remove Android mixed-content allowance and secure the exported compact-widget actions; confirm Play exact-alarm eligibility before the next Android upload.
+2. Harden Dorar identity/rate limiting, bound upstream work, document the hadith-text data flow, then verify the deployed function against staging after Supabase is restored.
+3. Restore Supabase, deploy the coded Companion authentication/quota/body-limit guard to staging, add provider-level spend caps and alerts, and verify abuse boundaries before enabling paid AI.
+4. Restore Supabase availability; test schema, RLS, sync, identity ownership, existing-row recovery, and edge functions in staging; then schedule the reviewed migration/deploy. Apply and verify the Quran translation quota migration, configure Quran Foundation credentials, and verify each enabled translation/chapter before production.
+5. Build and test the newly wired iOS auth/share bridges in Xcode and on a device; add the missing WidgetKit target/App Groups, complete Sign in with Apple or document a valid Guideline 4.8 exception, add privacy manifests, and verify deletion and sign-in on physical hardware.
+6. Restore browser zoom, correct sitemap routes, clarify the web reminder delivery limit, and validate PWA/audio behavior offline and across cache upgrades.
+7. Add Android debug-build and manifest checks to CI; decide Android backup scope and API 28 gallery behavior, then reconcile release metadata and signing identity and prepare signed bundles.
+8. Upgrade vulnerable dependencies, reduce startup/cache weight, eliminate lint warnings, and expand accessibility and content-source review.
 
 ## Audit limits
 

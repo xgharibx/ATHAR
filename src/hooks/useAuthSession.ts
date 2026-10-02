@@ -1,10 +1,9 @@
 /**
  * Live Supabase session for the UI.
  *
- * Also owns the native deep-link handshake: after Google sign-in the system
- * browser returns to `app.athar://auth`, Capacitor raises `appUrlOpen`, and we
- * exchange that URL for a session. Without this the user would sign in
- * successfully and then land back in the app still signed out.
+ * The auth client also owns the native deep-link handshake: after Google
+ * sign-in the system browser returns to `app.athar://auth`, and the native
+ * bridge forwards that callback to the auth client to exchange for a session.
  */
 import * as React from "react";
 import type { Session } from "@supabase/supabase-js";
