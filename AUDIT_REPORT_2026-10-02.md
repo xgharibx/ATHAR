@@ -139,9 +139,13 @@ Account deletion removes auth, sync, and profile rows, but leaderboard records u
 
 The latest `npm audit` reports **6 npm audit findings** (1 critical, 2 high, 3 moderate). The production graph has **2 moderate npm audit findings**, both in React Router; no high or critical production advisories remain. The critical `tar` finding and high Vite/Capacitor CLI findings are in development/build tooling. npm's available fixes for the remaining `@capacitor/cli`/`tar`, Vite, and React Router findings require major upgrades to Capacitor CLI 8, Vite 8, and React Router 7. Identify reachability and affected build/runtime surfaces, perform those migrations in a dedicated tested phase, then rerun build, tests, Android, and iOS validation. Do not equate a development-only advisory with production exploitability, but do not leave the critical advisory without a documented disposition.
 
+### P2 — Request location after a clear in-app choice
+
+On a fresh Android launch, the system location prompt appeared before the onboarding explanation. Source tracing identifies the cause: `App` calls `usePrayerTimes()` unconditionally, and the query requests geolocation while the splash is still shown; onboarding only appears afterward. Denial safely falls back to Cairo, but users are asked for sensitive access before they reach the contextual explanation or choose whether they want personalized prayer times. Gate geolocation behind an explicit, contextual action, retain the city/offline fallback, and test fresh install, denial, later opt-in, and returning users on Android, iOS, and web.
+
 ### P2 — Improve quality-gate signal and browser coverage
 
-Lint has no errors but still emits 100 warnings. The route smoke pass verified rendering and targeted state transitions, not screen-reader navigation, keyboard-only operation, contrast, all RTL layouts, permission-denial recovery, or every workflow. Add focused accessibility and interaction tests for sign-in/restore, prayer settings, onboarding, reader/audio, reminders, and deletion; exercise representative small/large screens and offline cold starts. The offline navigation and cached-audio changes still need true airplane-mode device verification.
+Lint has no errors but still emits 100 warnings. The route smoke pass verified rendering and targeted state transitions, not screen-reader navigation, keyboard-only operation, contrast, all RTL layouts, all permission-denial paths across platforms, or every workflow. Add focused accessibility and interaction tests for sign-in/restore, prayer settings, onboarding, reader/audio, reminders, and deletion; exercise representative small/large screens and offline cold starts. The offline navigation and cached-audio changes still need true airplane-mode device verification.
 
 ### P2 — Set accurate expectations for web custom reminders
 
