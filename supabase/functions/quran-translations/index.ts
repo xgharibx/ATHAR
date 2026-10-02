@@ -59,6 +59,36 @@ function clientKey(request: Request): string {
   ).slice(0, 64);
 }
 
+async function reserveSharedRequest(request: Request): Promise<boolean> {
+  const supabaseUrl = runtime!.env.get("SUPABASE_URL")?.trim().replace(/\/$/, "");
+  const serviceRoleKey = runtime!.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
+  if (!supabaseUrl || !serviceRoleKey) throw new Error("translation-rate-limit-unavailable");
+
+  const hmacKey = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(serviceRoleKey),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const digest = await crypto.subtle.sign("HMAC", hmacKey, new TextEncoder().encode(clientKey(request)));
+  const clientHash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/reserve_quran_translation_request`, {
+    method: "POST",
+    headers: {
+      apikey: serviceRoleKey,
+      Authorization: `Bearer ${serviceRoleKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ p_client_hash: clientHash }),
+    signal: AbortSignal.timeout(5_000),
+  });
+  if (!response.ok) throw new Error("translation-rate-limit-unavailable");
+  const allowed: unknown = await response.json();
+  if (typeof allowed !== "boolean") throw new Error("translation-rate-limit-invalid-response");
+  return allowed;
+}
+
 function allowRequest(request: Request): boolean {
   const key = clientKey(request);
   const now = Date.now();
@@ -144,7 +174,7 @@ function plainText(value: string): string {
 }
 
 function apiBases(): { oauth: string; api: string } | null {
-  const environment = runtime!.env.get("QF_ENV")?.trim();
+  const environment = runtime!.env.get("QF_ENV")?.trim() || "production";
   if (environment === "production") {
     return { oauth: "https://oauth2.quran.foundation", api: "https://apis.quran.foundation" };
   }
@@ -271,6 +301,14 @@ runtime.serve(async (request: Request): Promise<Response> => {
       !Number.isInteger(input.chapterNumber) || (input.chapterNumber as number) < 1 || (input.chapterNumber as number) > 114) {
     return json(request, { error: "invalid-translation-request" }, 400);
   }
+
+  let quotaReserved: boolean;
+  try {
+    quotaReserved = await reserveSharedRequest(request);
+  } catch {
+    return json(request, { error: "translation-rate-limit-unavailable" }, 503);
+  }
+  if (!quotaReserved) return json(request, { error: "translation-rate-limited" }, 429);
 
   try {
     const translations = await fetchTranslationChapter(input.translationId as number, input.chapterNumber as number);

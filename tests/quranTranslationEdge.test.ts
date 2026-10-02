@@ -9,6 +9,8 @@ type EdgeOptions = {
   clientSecret?: string;
   env?: string;
   apiUnauthorizedResponses?: number;
+  rateLimitAllowed?: boolean;
+  rateLimitStatus?: number;
 };
 
 function createEdge(options: EdgeOptions = {}) {
@@ -30,12 +32,17 @@ function createEdge(options: EdgeOptions = {}) {
     TextEncoder,
     TextDecoder,
     btoa,
+    crypto: globalThis.crypto,
     AbortSignal: { timeout: (ms: number) => AbortSignal.timeout(ms) },
     fetch: async (input: string | URL, init?: RequestInit) => {
       const url = String(input);
       calls.push({ url, init });
       if (url.includes("/oauth2/token")) {
         return Response.json({ access_token: "synthetic-access-token", expires_in: 3600, token_type: "Bearer" });
+      }
+      if (url.endsWith("/rest/v1/rpc/reserve_quran_translation_request")) {
+        if (options.rateLimitStatus) return new Response("rate limit unavailable", { status: options.rateLimitStatus });
+        return Response.json(options.rateLimitAllowed ?? true);
       }
       if (apiUnauthorizedResponses > 0) {
         apiUnauthorizedResponses -= 1;
@@ -57,6 +64,8 @@ function createEdge(options: EdgeOptions = {}) {
           QF_CLIENT_ID: options.clientId ?? "synthetic-client-id",
           QF_CLIENT_SECRET: options.clientSecret ?? "synthetic-client-secret",
           QF_ENV: options.env ?? "production",
+          SUPABASE_URL: "https://synthetic.supabase.co",
+          SUPABASE_SERVICE_ROLE_KEY: "synthetic-service-role-key",
         } as Record<string, string | undefined>)[name],
       },
     },
@@ -84,11 +93,12 @@ describe("Quran Foundation translation Edge Function", () => {
       ],
       meta: { translation_name: "Synthetic", author_name: "Synthetic author", filters: { chapter_number: 1 } },
     });
-    expect(edge.calls).toHaveLength(2);
-    expect(edge.calls[0]?.url).toBe("https://oauth2.quran.foundation/oauth2/token");
-    expect(edge.calls[1]?.url).toBe("https://apis.quran.foundation/content/api/v4/quran/translations/22?chapter_number=1&fields=verse_key");
-    expect(new Headers(edge.calls[1]?.init?.headers).get("x-auth-token")).toBe("synthetic-access-token");
-    expect(new Headers(edge.calls[1]?.init?.headers).get("x-client-id")).toBe("synthetic-client-id");
+    expect(edge.calls).toHaveLength(3);
+    expect(edge.calls[0]?.url).toBe("https://synthetic.supabase.co/rest/v1/rpc/reserve_quran_translation_request");
+    expect(edge.calls[1]?.url).toBe("https://oauth2.quran.foundation/oauth2/token");
+    expect(edge.calls[2]?.url).toBe("https://apis.quran.foundation/content/api/v4/quran/translations/22?chapter_number=1&fields=verse_key");
+    expect(new Headers(edge.calls[2]?.init?.headers).get("x-auth-token")).toBe("synthetic-access-token");
+    expect(new Headers(edge.calls[2]?.init?.headers).get("x-client-id")).toBe("synthetic-client-id");
   });
 
   it("rejects unknown translation IDs and chapter numbers before contacting Quran Foundation", async () => {
@@ -129,13 +139,34 @@ describe("Quran Foundation translation Edge Function", () => {
     expect(edge.calls.filter((call) => call.url.includes("/quran/translations/22?"))).toHaveLength(2);
   });
 
+  it("reserves shared quota before provider access and stops when the durable limit is reached", async () => {
+    const edge = createEdge({ rateLimitAllowed: false });
+    const response = await edge.request({ translationId: 22, chapterNumber: 1 });
+
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({ error: "translation-rate-limited" });
+    expect(edge.calls).toHaveLength(1);
+    expect(edge.calls[0]?.url).toBe("https://synthetic.supabase.co/rest/v1/rpc/reserve_quran_translation_request");
+    expect(JSON.parse(String(edge.calls[0]?.init?.body)).p_client_hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it("fails closed when durable rate-limit storage is unavailable", async () => {
+    const edge = createEdge({ rateLimitStatus: 503 });
+    const response = await edge.request({ translationId: 22, chapterNumber: 1 });
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "translation-rate-limit-unavailable" });
+    expect(edge.calls).toHaveLength(1);
+  });
+
   it("does not call Quran Foundation if server credentials or environment are missing", async () => {
     const edge = createEdge({ clientId: "" });
     const response = await edge.request({ translationId: 22, chapterNumber: 1 });
 
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "translation-service-unavailable" });
-    expect(edge.calls).toEqual([]);
+    expect(edge.calls).toHaveLength(1);
+    expect(edge.calls[0]?.url).toContain("reserve_quran_translation_request");
   });
 
   it("uses the matching pre-live OAuth and API hosts when configured", async () => {
@@ -143,8 +174,16 @@ describe("Quran Foundation translation Edge Function", () => {
     const response = await edge.request({ translationId: 22, chapterNumber: 2 });
 
     expect(response.status).toBe(200);
-    expect(edge.calls[0]?.url).toBe("https://prelive-oauth2.quran.foundation/oauth2/token");
-    expect(edge.calls[1]?.url).toBe("https://apis-prelive.quran.foundation/content/api/v4/quran/translations/22?chapter_number=2&fields=verse_key");
+    expect(edge.calls[1]?.url).toBe("https://prelive-oauth2.quran.foundation/oauth2/token");
+    expect(edge.calls[2]?.url).toBe("https://apis-prelive.quran.foundation/content/api/v4/quran/translations/22?chapter_number=2&fields=verse_key");
+  });
+
+  it("defaults an unset environment to production", async () => {
+    const edge = createEdge({ env: "" });
+    const response = await edge.request({ translationId: 22, chapterNumber: 1 });
+
+    expect(response.status).toBe(200);
+    expect(edge.calls.some((call) => call.url.startsWith("https://oauth2.quran.foundation/"))).toBe(true);
   });
 
   it("grants browser CORS only to the app origin and exposes no provider credentials", async () => {

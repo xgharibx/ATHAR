@@ -192,6 +192,8 @@ export interface RenderDhikrPosterOpts {
   translation?: string;
   /** Provider and edition credit for a displayed translation. */
   translationAttribution?: string;
+  /** Text direction of the selected translation. */
+  translationDirection?: "ltr" | "rtl";
   footerUrl?: string;
 }
 
@@ -478,11 +480,11 @@ export async function renderDhikrPosterBlob(
   ctx.shadowOffsetY = 0;
   ctx.restore();
 
-  // Optional translation block (Latin, smaller, dimmed)
+  // Optional translation block (smaller, dimmed)
   const translation = (opts.translation ?? "").trim();
   if (translation) {
     ctx.save();
-    ctx.direction = "ltr";
+    ctx.direction = opts.translationDirection ?? "ltr";
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
     ctx.font = `italic 300 ${Math.max(18, fontSize * 0.42)}px ${FONT_SANS}`;

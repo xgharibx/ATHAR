@@ -1164,6 +1164,7 @@ export function MushafPage() {
         footerUrl: "www.athark.org",
         translation: translation || undefined,
         translationAttribution: translation ? (translationAttribution || undefined) : undefined,
+        translationDirection: translationSource?.lang === "ur" ? "rtl" : "ltr",
       });
       const file = new File([blob], `athar-${selectedItem.surahId}-${selectedItem.displayAyah}.png`, { type: "image/png" });
       if (navigator.share && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file] }); }
@@ -1831,7 +1832,7 @@ export function MushafPage() {
                         {" "}
                         {/* Q3: Inline translation (only show if wbw mode is off) */}
                         {!wbwVerse && transText ? (
-                          <p className="mushaf-trans-inline italic opacity-65 text-[0.72em] leading-6 mt-1 px-1" dir="ltr" lang={translationSource?.lang ?? "en"} translate="no">
+                          <p className="mushaf-trans-inline italic opacity-65 text-[0.72em] leading-6 mt-1 px-1" dir={translationSource?.lang === "ur" ? "rtl" : "ltr"} lang={translationSource?.lang ?? "en"} translate="no">
                             {transText}
                           </p>
                         ) : null}
