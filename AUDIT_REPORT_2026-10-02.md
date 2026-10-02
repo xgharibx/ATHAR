@@ -14,7 +14,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 
 ## What was examined and verified
 
-- Ran `npm run verify` after the current changes: lint completed with **0 errors and 100 warnings**, all **878 tests in 110 files passed**, and the TypeScript plus Vite production/PWA build succeeded. Android web assets were synced and `assembleDebug lintDebug` passed locally. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
+- Ran `npm run verify` after the current changes: lint completed with **0 errors and 100 warnings**, all **881 tests in 110 files passed**, and the TypeScript plus Vite production/PWA build succeeded. Android web assets were synced and `assembleDebug lintDebug` passed locally. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
 - Parsed the actual bundled Quran and page map: **114 surahs, 6,236 ayahs, and all 604 Mushaf pages** are represented by valid JSON and page references.
 - Loaded **52 valid app routes** plus one deliberate unknown route in a production preview at **390 × 844**. Routes rendered, the unknown route showed the not-found view, and targeted Home and Quran state transitions did not produce React hook-order errors. This was route and focused-interaction coverage, not a full usability pass over every control.
 - Rechecked the production preview with Playwright CLI at **390 × 844**: onboarding rendered, Skip exposed Home, and Settings navigation loaded the expected page without a framework overlay. A fresh browser profile kept geolocation permission at `prompt` through startup; tapping the onboarding location action granted it, saved coordinates, and advanced onboarding. Tapping the Prayer Times opt-in button updated the saved location and its label. A desktop-to-mobile resize reproduced 132 Three.js buffer errors before the starfield fix; the same transition emitted zero buffer errors after the rebuild. The browser console still shows CORS/HTTP 402 failures from the hosted Supabase leaderboard endpoint, so live leaderboard behavior remains blocked by the project restriction. Screenshots were captured outside the repository.
@@ -88,11 +88,13 @@ The checked-in migration chain does not create the base `leaderboard_rollups` or
 
 Before cloud release, make a disposable-project bootstrap test pass from an empty database and from a manually provisioned database with existing scores. Add an explicit baseline or versioned base-schema migration, and require a reviewed backup/owner decision before any migration that resets published data is applied.
 
-### P1 — Bound public leaderboard ingestion and repair failed rollup retries
+### Resolved locally — Bound and normalize public leaderboard submissions
 
-The public `leaderboard` function has `verify_jwt=false`; its POST handler parses an unbounded JSON body, `sanitizePayload` spreads unknown caller fields, and `eventRows` stores the full payload in every board row. A source-level synthetic request with a 1 MiB unknown `padding` field was accepted and duplicated that field across five event rows. The same handler inserts events before upserting rollups; if the rollup write fails, an identical retry hits event deduplication and returns success before attempting the failed rollup again. A source harness reproduced `500 rollup-upsert-failed` followed by `200 deduped`, leaving the score absent from ranking data while the client discards its retry.
+The public `leaderboard` function has `verify_jwt=false`. POST bodies are now read with a 64 KiB streaming byte limit and oversized requests return 413 before any database write. Null/non-object JSON returns 400. The sanitizer now builds an explicit allowlisted payload, normalizes score/metric fields, caps section identifiers, and strips unknown top-level, identity, score, and metrics properties before persistence. Synthetic Edge Function tests cover streamed oversize bodies, null JSON, and unknown-field stripping. Supabase remains restricted, so this change is source-tested but not deployed or live-verified.
 
-Read and reject oversized bodies before parsing, build an allowlisted compact normalized payload, and avoid copying caller-controlled data into every board row. Make event and rollup writes transactional or make the deduplication path repair the rollup before acknowledging success. Add byte-boundary, unknown-field, failed-rollup retry, and concurrent-submission tests; verify storage and quotas on staging.
+### P1 — Repair failed leaderboard rollup retries
+
+The handler inserts events before upserting rollups; if the rollup write fails, an identical retry hits event deduplication and returns success before attempting the failed rollup again. A source harness reproduced `500 rollup-upsert-failed` followed by `200 deduped`, leaving the score absent from ranking data while the client discards its retry. Make event and rollup writes transactional or make the deduplication path repair the rollup before acknowledging success. Add failed-rollup retry and concurrent-submission tests, then verify on staging.
 
 ### P1 — Prevent silent cross-account data transfer on a shared device
 
@@ -221,7 +223,7 @@ No production database dump was available because the hosted project was restric
 ## Working checklist
 
 - [x] Inspect app routes, data assets, local persistence, provider/API calls, Supabase client/functions, Android and iOS source, and store/build configuration.
-- [x] Run the full web quality gate; 878 tests across 110 files pass, with lint at 0 errors and 100 warnings.
+- [x] Run the full web quality gate; 881 tests across 110 files pass, with lint at 0 errors and 100 warnings.
 - [x] Build, lint, and run Android API 36 instrumentation tests; verify the forged-widget-broadcast protections.
 - [x] Reduce PWA first-install precache from 94.4 MB/276 files to 17.0 MB/248 unique files and verify Quran access after an offline reload.
 - [x] Add source-level hardening and synthetic tests for Dorar abuse controls; keep its database migration unapplied pending a working staging project.
@@ -230,7 +232,8 @@ No production database dump was available because the hosted project was restric
 - [ ] Prevent silent cross-account sync and Companion-history transfer; test account switching on one installation.
 - [ ] Prevent concurrent cross-device sync writes from converting lost updates into permanent deletions.
 - [ ] Bootstrap the Supabase migration chain from empty and existing-schema fixtures; review the leaderboard reset before any live apply.
-- [ ] Bound and normalize public leaderboard submissions; make score-event retries repair rollups atomically.
+- [x] Bound public leaderboard request bytes and persist only normalized allowlisted fields; deploy and verify after Supabase access is restored.
+- [ ] Make score-event deduplication repair failed rollup writes and verify retry/concurrency behavior on staging.
 - [ ] Make account deletion POST-only and failure-safe; validate associated-row cleanup on staging.
 - [x] Return HTTP 400 for malformed/non-object Companion JSON before field access; deploy and verify after Supabase access is restored.
 - [ ] Add durable/global Companion spend controls, a cloud-sync payload limit, and clear leaderboard-deletion scope.

@@ -20,6 +20,8 @@ const MAX_WRITES_PER_IDENTITY_PER_WINDOW = 30;
 const LIMITER_MAX_ENTRIES = 20_000;
 const MAX_SCORE = 1_000_000;
 const MAX_SECTION_ITEMS = 64;
+const MAX_SECTION_ID_LENGTH = 80;
+const MAX_REQUEST_BODY_BYTES = 64 * 1024;
 const MAX_DAY_SKEW = 3;
 const MAX_GENERATED_AT_SKEW_MS = 36 * 60 * 60 * 1000;
 const MAX_EVENTS_PER_USER_PER_DAY = 2000;
@@ -517,6 +519,54 @@ function json(data, status = 200) {
   });
 }
 
+async function readBoundedBody(req, maxBytes = MAX_REQUEST_BODY_BYTES) {
+  const declaredLength = Number(req.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    return { ok: false, reason: "too-large" };
+  }
+  if (!req.body) return { ok: true, text: "" };
+
+  const reader = req.body.getReader();
+  const chunks = [];
+  let totalBytes = 0;
+  let reading = true;
+  try {
+    while (reading) {
+      const { done, value } = await reader.read();
+      if (done) {
+        reading = false;
+        continue;
+      }
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel().catch(() => undefined);
+        return { ok: false, reason: "too-large" };
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return { ok: false, reason: "read-failed" };
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return { ok: true, text: new TextDecoder("utf-8", { fatal: true }).decode(bytes) };
+  } catch {
+    return { ok: false, reason: "invalid-utf8" };
+  }
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 function clampInt(n, max = MAX_SCORE) {
   const v = Number(n);
   if (!Number.isFinite(v)) return 0;
@@ -587,35 +637,56 @@ async function upsertUserProfile(db, payload, resolvedAlias) {
  * capping it is safe — it can only ever move a score towards the truth.
  */
 function sanitizePayload(payload) {
+  const sourceIdentity = isRecord(payload?.identity) ? payload.identity : {};
   const identity = {
-    ...payload.identity,
-    alias: normalizeAliasInput(payload?.identity?.alias),
-    joinedAt: normalizeJoinedAt(payload?.identity?.joinedAt, payload?.day)
+    id: sourceIdentity.id,
+    fingerprint: sourceIdentity.fingerprint,
+    alias: normalizeAliasInput(sourceIdentity.alias),
+    joinedAt: normalizeJoinedAt(sourceIdentity.joinedAt, payload?.day)
+  };
+  const base = {
+    v: payload.v,
+    generatedAt: payload.generatedAt,
+    day: payload.day,
+    identity,
+    checksum: payload.checksum,
   };
 
   if (hasMetrics(payload)) {
-    const scored = computeScores(payload.metrics, MAX_SECTION_ITEMS);
-    return { ...payload, identity, scores: scored, scoredBy: "server" };
+    const rawMetrics = payload.metrics;
+    const metrics = {
+      dhikr: clampInt(rawMetrics.dhikr),
+      quranAyahs: clampInt(rawMetrics.quranAyahs),
+      prayersLogged: clampInt(rawMetrics.prayersLogged),
+      tasksDone: clampInt(rawMetrics.tasksDone),
+      tasbeehTaps: clampInt(rawMetrics.tasbeehTaps),
+      sections: sanitizeSectionMap(rawMetrics.sections),
+    };
+    const scored = computeScores(metrics, MAX_SECTION_ITEMS);
+    return { ...base, metrics, scores: scored, scoredBy: "server" };
   }
 
-  const rawScores = payload?.scores ?? {};
-  const sectionEntries = Object.entries(rawScores.sections ?? {})
-    .slice(0, MAX_SECTION_ITEMS)
-    .map(([k, v]) => [k, clampInt(v)]);
-
-  return {
-    ...payload,
-    identity,
-    scores: {
-      global: clampInt(rawScores.global),
-      dhikr: clampInt(rawScores.dhikr),
-      quran: clampInt(rawScores.quran),
-      prayers: Math.min(clampInt(rawScores.prayers), FARD_PRAYERS_PER_DAY),
-      tasbeehDaily: clampInt(rawScores.tasbeehDaily),
-      sections: Object.fromEntries(sectionEntries)
-    },
-    scoredBy: "client"
+  const rawScores = isRecord(payload?.scores) ? payload.scores : {};
+  const scores = {
+    global: clampInt(rawScores.global),
+    dhikr: clampInt(rawScores.dhikr),
+    quran: clampInt(rawScores.quran),
+    prayers: Math.min(clampInt(rawScores.prayers), FARD_PRAYERS_PER_DAY),
+    tasbeehDaily: clampInt(rawScores.tasbeehDaily),
+    sections: sanitizeSectionMap(rawScores.sections),
+    ...(rawScores.tasks === undefined ? {} : { tasks: clampInt(rawScores.tasks) }),
   };
+
+  return { ...base, scores, scoredBy: "client" };
+}
+
+function sanitizeSectionMap(input) {
+  if (!isRecord(input)) return {};
+  const entries = Object.entries(input)
+    .filter(([sectionId]) => sectionId.length > 0 && sectionId.length <= MAX_SECTION_ID_LENGTH)
+    .slice(0, MAX_SECTION_ITEMS)
+    .map(([sectionId, score]) => [sectionId, clampInt(score)]);
+  return Object.fromEntries(entries);
 }
 
 function validatePayload(payload) {
@@ -818,12 +889,20 @@ denoRuntime.serve(async (req) => {
   const db = createClient(supabaseUrl, serviceRoleKey);
 
   if (req.method === "POST") {
+    const bounded = await readBoundedBody(req);
+    if (!bounded.ok) {
+      return bounded.reason === "too-large"
+        ? json({ ok: false, error: "payload-too-large" }, 413)
+        : json({ ok: false, error: bounded.reason }, 400);
+    }
+
     let body;
     try {
-      body = await req.json();
+      body = JSON.parse(bounded.text);
     } catch {
       return json({ ok: false, error: "invalid-json" }, 400);
     }
+    if (!isRecord(body)) return json({ ok: false, error: "invalid-body" }, 400);
 
     if (body?.adminAction) {
       return await handleAdminPost(req, db, denoRuntime.env, body);
