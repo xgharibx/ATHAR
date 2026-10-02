@@ -178,6 +178,20 @@ describe("paid Companion Edge Function access controls", () => {
     expect(app.calls.map((call) => call.type)).toEqual(["auth", "rpc", "upstream"]);
   });
 
+  it.each(["null", "[]", "\"text\"", "42"])(
+    "returns a client error for valid JSON that is not an object (%s)",
+    async (body) => {
+      const app = edge();
+      const response = await app.sendRaw(body);
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({
+        error: { type: "invalid_request_error" },
+      });
+      expect(app.calls).toEqual([]);
+    },
+  );
+
   it("returns a gateway timeout when the upstream deadline expires", async () => {
     const app = edge({ upstreamTimeout: true });
     const response = await app.send("Bearer synthetic-user-token");

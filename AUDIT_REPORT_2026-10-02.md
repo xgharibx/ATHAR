@@ -14,7 +14,7 @@ The app is **not ready for a public store release**. The main gates are paid AI 
 
 ## What was examined and verified
 
-- Ran `npm run verify` after the current changes: lint completed with **0 errors and 100 warnings**, all **872 tests in 109 files passed**, and the TypeScript plus Vite production/PWA build succeeded. Android web assets were synced and `assembleDebug lintDebug` passed locally. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
+- Ran `npm run verify` after the current changes: lint completed with **0 errors and 100 warnings**, all **876 tests in 109 files passed**, and the TypeScript plus Vite production/PWA build succeeded. Android web assets were synced and `assembleDebug lintDebug` passed locally. The build still reports browser-externalized Anthropic SDK modules and oversized chunks.
 - Parsed the actual bundled Quran and page map: **114 surahs, 6,236 ayahs, and all 604 Mushaf pages** are represented by valid JSON and page references.
 - Loaded **52 valid app routes** plus one deliberate unknown route in a production preview at **390 × 844**. Routes rendered, the unknown route showed the not-found view, and targeted Home and Quran state transitions did not produce React hook-order errors. This was route and focused-interaction coverage, not a full usability pass over every control.
 - Rechecked the production preview with Playwright CLI at **390 × 844**: onboarding rendered, Skip exposed Home, and Settings navigation loaded the expected page without a framework overlay. A fresh browser profile kept geolocation permission at `prompt` through startup; tapping the onboarding location action granted it, saved coordinates, and advanced onboarding. Tapping the Prayer Times opt-in button updated the saved location and its label. A desktop-to-mobile resize reproduced 132 Three.js buffer errors before the starfield fix; the same transition emitted zero buffer errors after the rebuild. The browser console still shows CORS/HTTP 402 failures from the hosted Supabase leaderboard endpoint, so live leaderboard behavior remains blocked by the project restriction. Screenshots were captured outside the repository.
@@ -178,7 +178,7 @@ On the first Tasbeeh widget tap after midnight, `bumpDailyTotal` replaces the si
 
 ### P2 — Return a controlled error for malformed Companion JSON
 
-The Companion handler catches JSON syntax errors but accepts valid scalar JSON such as `null`, then reads `body.system` and throws a `TypeError` instead of returning a validation response. The local source harness reproduced the exception; deployed behavior remains unverified. Reject null, arrays, and other non-object bodies with HTTP 400 before accessing fields.
+Resolved locally: after parsing JSON, the handler now rejects `null`, arrays, and other non-object values with a structured HTTP 400 before reading fields or reaching auth, quota, and provider services. Regression tests reproduce all four classes (`null`, array, string, and number); the focused Companion security suite passes. The Edge Function is not deployed or live-verified because the Supabase project remains restricted.
 
 ### P2 — Decide Android backup scope for private activity data
 
@@ -221,7 +221,7 @@ No production database dump was available because the hosted project was restric
 ## Working checklist
 
 - [x] Inspect app routes, data assets, local persistence, provider/API calls, Supabase client/functions, Android and iOS source, and store/build configuration.
-- [x] Run the full web quality gate; 872 tests across 109 files pass, with lint at 0 errors and 100 warnings.
+- [x] Run the full web quality gate; 876 tests across 109 files pass, with lint at 0 errors and 100 warnings.
 - [x] Build, lint, and run Android API 36 instrumentation tests; verify the forged-widget-broadcast protections.
 - [x] Reduce PWA first-install precache from 94.4 MB/276 files to 17.0 MB/248 unique files and verify Quran access after an offline reload.
 - [x] Add source-level hardening and synthetic tests for Dorar abuse controls; keep its database migration unapplied pending a working staging project.
@@ -232,7 +232,7 @@ No production database dump was available because the hosted project was restric
 - [ ] Bootstrap the Supabase migration chain from empty and existing-schema fixtures; review the leaderboard reset before any live apply.
 - [ ] Bound and normalize public leaderboard submissions; make score-event retries repair rollups atomically.
 - [ ] Make account deletion POST-only and failure-safe; validate associated-row cleanup on staging.
-- [ ] Reject malformed Companion payloads before field access.
+- [x] Return HTTP 400 for malformed/non-object Companion JSON before field access; deploy and verify after Supabase access is restored.
 - [ ] Add durable/global Companion spend controls, a cloud-sync payload limit, and clear leaderboard-deletion scope.
 - [ ] Add byte-aware runtime cache limits or remove duplicate service-worker caching for large data/audio packs.
 - [ ] Publish and link the privacy policy; reconcile data-safety disclosures, AI/location disclosures, deletion scope, and provider retention.

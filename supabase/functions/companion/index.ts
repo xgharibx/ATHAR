@@ -161,6 +161,9 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   } catch {
     return jsonError(req, "invalid JSON", 400);
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return jsonError(req, "request body must be an object", 400);
+  }
 
   // Athar's own client always sends a system prompt and a non-empty message
   // history. Requests missing either aren't coming from the real app.
