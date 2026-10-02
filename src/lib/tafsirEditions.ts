@@ -44,6 +44,43 @@ interface TafsirApiAyah {
   surah: number;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** Accepts the bare-array API shape and Tanwir al-Miqbas' `{ ayahs }` envelope. */
+export function parseTafsirApiResponse(payload: unknown, expectedSurah: number): TafsirApiAyah[] {
+  const entries = Array.isArray(payload)
+    ? payload
+    : isRecord(payload) && Array.isArray(payload.ayahs)
+      ? payload.ayahs
+      : null;
+  if (!entries || entries.length === 0 || !Number.isInteger(expectedSurah) || expectedSurah < 1 || expectedSurah > 114) {
+    throw new Error("Invalid tafsir response");
+  }
+
+  const seenAyahs = new Set<number>();
+  return entries.map((entry): TafsirApiAyah => {
+    if (!isRecord(entry)) throw new Error("Invalid tafsir response");
+    const ayah = entry.ayah;
+    const surah = entry.surah ?? expectedSurah;
+    const text = entry.text;
+    if (
+      !Number.isInteger(ayah) || Number(ayah) < 1 || Number(ayah) > 286 ||
+      !Number.isInteger(surah) || Number(surah) !== expectedSurah ||
+      (typeof text !== "string" && text !== null) || seenAyahs.has(Number(ayah))
+    ) {
+      throw new Error("Invalid tafsir response");
+    }
+    seenAyahs.add(Number(ayah));
+    return { ayah: Number(ayah), surah: Number(surah), text: typeof text === "string" ? text : "" };
+  });
+}
+
+export function getTafsirEditionSlug(value: string | null | undefined): string | null {
+  return TAFSIR_EDITIONS.find((edition) => edition.slug === value)?.slug ?? null;
+}
+
 /** ayahs[0] unused (1-based, matching the rest of the codebase's WbwSurah convention) */
 type SurahTafsir = string[];
 
@@ -100,7 +137,7 @@ export async function loadTafsirSurah(slug: string, surahId: number): Promise<Su
   const url = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${slug}/${surahId}.json`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Tafsir fetch failed: ${resp.status}`);
-  const data: TafsirApiAyah[] = await resp.json();
+  const data = parseTafsirApiResponse(await resp.json(), surahId);
 
   const ayahs: SurahTafsir = [""];
   for (const item of data) {

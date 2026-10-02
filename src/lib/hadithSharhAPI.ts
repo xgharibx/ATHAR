@@ -69,16 +69,19 @@ function cacheSet<T>(key: string, data: T): void {
 async function getJson<T>(path: string, cacheKey: string, cacheMaxAge = CACHE_TTL_MS): Promise<T> {
   const cached = cacheGet<T>(cacheKey, cacheMaxAge);
   if (cached) return cached;
-  const res = await fetch(`${BASE}${path}`, { headers: { Accept: "application/json" } });
-  if (!res.ok) {
-    // Serve stale cache (any age) before failing — offline friendliness.
-    const stale = cacheGet<T>(cacheKey, Number.POSITIVE_INFINITY);
+  const stale = cacheGet<T>(cacheKey, Number.POSITIVE_INFINITY);
+  try {
+    const res = await fetch(`${BASE}${path}`, { headers: { Accept: "application/json" } });
+    if (!res.ok) throw new Error(`sharh-api ${res.status}`);
+    const data = (await res.json()) as T;
+    cacheSet(cacheKey, data);
+    return data;
+  } catch (error) {
+    // Expired content is still more useful than an offline error. Cover both
+    // HTTP failures and rejected fetch/body parsing, not just non-2xx status.
     if (stale) return stale;
-    throw new Error(`sharh-api ${res.status}`);
+    throw error;
   }
-  const data = (await res.json()) as T;
-  cacheSet(cacheKey, data);
-  return data;
 }
 
 /** Top-level categories (العقيدة، الفضائل والآداب، …). */

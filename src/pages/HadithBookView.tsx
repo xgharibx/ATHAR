@@ -116,7 +116,7 @@ function HadithRow({
 export function HadithBookViewPage() {
   const { bookKey } = useParams<{ bookKey: string }>();
   const navigate = useNavigate();
-  const { data: pack, isLoading, isError, progress, isFromCache } = useHadithPackProgress(bookKey);
+  const { data: pack, isLoading, isError, progress, isFromCache, refetch } = useHadithPackProgress(bookKey);
   const hadithProgress = useNoorStore((s) => s.hadithProgress);
   const virtuoso = useRef<VirtuosoHandle>(null);
 
@@ -344,6 +344,13 @@ export function HadithBookViewPage() {
           <p className="text-xs text-[var(--muted)]">
             يرجى التحقق من اتصالك بالإنترنت وإعادة المحاولة
           </p>
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="mt-2 rounded-xl border border-[var(--stroke)] px-4 py-2 text-sm font-arabic text-[var(--accent)] transition hover:bg-[var(--card)]"
+          >
+            إعادة المحاولة
+          </button>
         </div>
       )}
 

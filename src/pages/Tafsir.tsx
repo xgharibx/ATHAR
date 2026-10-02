@@ -18,6 +18,7 @@ import { toArabicNumeral } from "@/lib/quranMeta";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { arNum } from "@/lib/formatNumber";
+import { buildTafsirAyahEntries } from "@/lib/tafsirDisplay";
 
 
 function parseAyahParam(raw: string | null) {
@@ -48,6 +49,7 @@ export function TafsirPage() {
     requestedSource ?? "muyassar"
   );
   const [ayahs, setAyahs] = React.useState<string[]>([]);
+  const tafsirEntries = React.useMemo(() => buildTafsirAyahEntries(ayahs), [ayahs]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -204,7 +206,7 @@ export function TafsirPage() {
             <span className="text-[11px] opacity-55">
               {loading
                 ? "جارٍ التحميل…"
-                : `${arNum(ayahs.length)} آية`}
+                : `${arNum(tafsirEntries.length)} آية`}
             </span>
           </div>
 
@@ -217,7 +219,12 @@ export function TafsirPage() {
               <Button
                 className="mt-3 w-full justify-center"
                 onClick={() => {
-                  navigate(`/mushaf?surah=${selectedSurah}${requestedAyah ? `&ayah=${requestedAyah}` : ""}`);
+                  const params = new URLSearchParams({
+                    surah: String(selectedSurah),
+                    source: selectedSource,
+                  });
+                  if (requestedAyah) params.set("ayah", String(requestedAyah));
+                  navigate(`/mushaf?${params.toString()}`);
                 }}
               >
                 افتح في المصحف
@@ -237,20 +244,20 @@ export function TafsirPage() {
             <div className="text-sm opacity-70 py-2">{error}</div>
           ) : null}
 
-          {!loading && !error && ayahs.length > 0 ? (
+          {!loading && !error && tafsirEntries.length > 0 ? (
             <ol className="space-y-3 mt-2" aria-label={`تفسير ${currentSurah.name}`}>
-              {ayahs.map((text, idx) => (
+              {tafsirEntries.map(({ ayahNumber, text }) => (
                 <li
-                  key={idx}
+                  key={ayahNumber}
                   className="rounded-2xl border border-[var(--stroke)] p-3"
-                  id={`tafsir-ayah-${idx + 1}`}
+                  id={`tafsir-ayah-${ayahNumber}`}
                 >
                   <div className="text-[11px] font-bold opacity-60 mb-1.5 tabular-nums">
-                    ﴿{toArabicNumeral(idx + 1)}﴾
+                    ﴿{toArabicNumeral(ayahNumber)}﴾
                   </div>
                   <p
                     className={`arabic-text leading-7 ${
-                      requestedAyah === idx + 1 ? "text-[var(--accent)]" : ""
+                      requestedAyah === ayahNumber ? "text-[var(--accent)]" : ""
                     }`}
                   >
                     {text}

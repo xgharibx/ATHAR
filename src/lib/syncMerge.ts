@@ -147,6 +147,8 @@ const FIELD_KIND: Record<string, SyncKind> = {
 type Rule =
   | "counter"
   | "counter2"
+  | "additiveCounter"
+  | "additiveCounter2"
   | "flags"
   | "flags2"
   | "map"
@@ -159,16 +161,19 @@ type Rule =
   | "scalar";
 
 const FIELD_RULE: Record<string, Rule> = {
-  progress: "counter",
-  activity: "counter",
-  quickTasbeeh: "counter",
-  tasbeehLifetime: "counter",
-  asmaHusnaCounts: "counter",
-  quranDailyAyahs: "counter",
+  // These values count independent user actions, so concurrent increases from
+  // a shared base must add their deltas instead of silently keeping only max.
+  progress: "additiveCounter",
+  activity: "additiveCounter",
+  quickTasbeeh: "additiveCounter",
+  tasbeehLifetime: "additiveCounter",
+  asmaHusnaCounts: "additiveCounter",
+  quranDailyAyahs: "additiveCounter",
+  tasbeehDailyLog: "additiveCounter2",
+  tasbeehDayTotals: "additiveCounter",
+  // Positions and timestamps are absolute values; the furthest/latest wins.
   quranReadingHistory: "counter",
   hadithProgress: "counter",
-  tasbeehDailyLog: "counter2",
-  tasbeehDayTotals: "counter",
   // Watched-at timestamps: the later one wins, so history merges across devices.
   shortsSeen: "counter",
   // Hiding a channel is a deliberate act; unhiding it is too, so this needs the
@@ -332,11 +337,26 @@ function toNum(v: unknown): number {
   return typeof v === "number" && Number.isFinite(v) ? v : 0;
 }
 
+function mergeIndependentCounter(local: number, remote: number, base: number | undefined): number {
+  if (base === undefined) return Math.max(local, remote);
+  if (local === base) return remote;
+  if (remote === base) return local;
+
+  // Only sum monotonic increments. A reset or correction below the base uses
+  // max-wins so a stale count cannot turn a reset into a negative delta.
+  if (local >= base && remote >= base) {
+    const merged = local + remote - base;
+    if (Number.isFinite(merged)) return merged;
+  }
+  return Math.max(local, remote);
+}
+
 function mergeCounters(
   local: unknown,
   remote: unknown,
   base: unknown,
   hasBase: boolean,
+  additive = false,
 ): Record<string, number> {
   const L = rec(local);
   const R = rec(remote);
@@ -345,7 +365,11 @@ function mergeCounters(
   for (const k of unionKeys(L, R)) {
     if (keyDecision(k, L, R, B) === "drop") continue;
     const bv = B && k in B ? toNum(B[k]) : undefined;
-    out[k] = threeWay(toNum(L[k]), toNum(R[k]), bv, bv !== undefined, (a, b) => Math.max(a, b));
+    const localValue = toNum(L[k]);
+    const remoteValue = toNum(R[k]);
+    out[k] = additive
+      ? mergeIndependentCounter(localValue, remoteValue, bv)
+      : threeWay(localValue, remoteValue, bv, bv !== undefined, (a, b) => Math.max(a, b));
   }
   return out;
 }
@@ -717,6 +741,14 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
       case "counter2":
         out[field] = mergeNested(l, r, b, hasBase, (li, ri, bi, hb) =>
           mergeCounters(li, ri, bi, hb),
+        );
+        break;
+      case "additiveCounter":
+        out[field] = mergeCounters(l, r, b, hasBase, true);
+        break;
+      case "additiveCounter2":
+        out[field] = mergeNested(l, r, b, hasBase, (li, ri, bi, hb) =>
+          mergeCounters(li, ri, bi, hb, true),
         );
         break;
       case "flags":

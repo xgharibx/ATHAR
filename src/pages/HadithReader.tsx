@@ -43,6 +43,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import toast from "react-hot-toast";
 import { arNum } from "@/lib/formatNumber";
 import { shareImageBlob } from "@/lib/shareTargets";
+import { wrapHadithPosterText } from "@/lib/hadithPosterText";
 
 
 /* ------------------------------------------------------------------ */
@@ -108,21 +109,17 @@ async function shareHadithPoster(opts: {
   ctx.textAlign = "right";
   ctx.direction = "rtl";
   const maxWidth = W - 130;
-  const words = opts.matn.split(" ");
-  let line = "";
+  const lines = wrapHadithPosterText(opts.matn, maxWidth, (text) => ctx.measureText(text).width);
   let y = 130;
   const lineH = 38;
-  for (const word of words) {
-    const test = word + " " + line;
-    const m = ctx.measureText(test);
-    if (m.width > maxWidth && line !== "") {
-      ctx.fillText(line, W - 64, y);
-      line = word;
-      y += lineH;
-      if (y > H - 120) { ctx.fillText(line + "…", W - 64, y); line = ""; break; }
-    } else { line = test; }
+  for (const line of lines) {
+    if (y > H - 120) {
+      ctx.fillText(line + "…", W - 64, y);
+      break;
+    }
+    ctx.fillText(line, W - 64, y);
+    y += lineH;
   }
-  if (line) ctx.fillText(line, W - 64, y);
 
   // Footer: book + number
   ctx.fillStyle = fg + "99";
@@ -154,7 +151,7 @@ export function HadithReaderPage() {
   useScrollRestoration();
 
   const n = parseInt(hadithNumber ?? "1", 10);
-  const { data: pack, isLoading } = useHadithPack(bookKey);
+  const { data: pack, isLoading, isError, refetch } = useHadithPack(bookKey);
 
   const { hadithBookmarks, toggleHadithBookmark, setHadithProgress, hadithNotes, setHadithNote, addHadithMemoCard, hadithMemoCards } = useNoorStore(
     (s) => ({
@@ -352,7 +349,18 @@ export function HadithReaderPage() {
         {/* Not found */}
         {!isLoading && !hadith && (
           <Card className="p-6 text-center">
-            <p className="text-[var(--muted)] font-arabic py-10">الحديث غير موجود</p>
+            <p className="text-[var(--muted)] font-arabic py-6">
+              {isError ? "تعذّر تحميل كتاب الأحاديث" : "الحديث غير موجود"}
+            </p>
+            {isError && (
+              <button
+                type="button"
+                onClick={() => void refetch()}
+                className="rounded-xl border border-[var(--stroke)] px-4 py-2 text-sm font-arabic text-[var(--accent)] transition hover:bg-[var(--card)]"
+              >
+                إعادة المحاولة
+              </button>
+            )}
           </Card>
         )}
 

@@ -38,7 +38,7 @@ import { ShareAyahModal } from "@/components/quran/ShareAyahModal";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { CompanionModal } from "@/components/companion/CompanionModal";
-import { TAFSIR_EDITIONS, getTafsirLabel, loadTafsirSurah } from "@/lib/tafsirEditions";
+import { TAFSIR_EDITIONS, getTafsirEditionSlug, getTafsirLabel, loadTafsirSurah } from "@/lib/tafsirEditions";
 import { getMutashabihatForAyah, type MutashabihMatch } from "@/lib/mutashabihat";
 import { ensureMushafCoreOffline } from "@/lib/mushafOffline";
 import { QURAN_TRANSLATION_CACHE_EXPIRED_EVENT } from "@/lib/quranIDB";
@@ -233,6 +233,7 @@ export function MushafPage() {
   // Current page state
   const surahParam = Number(sp.get("surah"));
   const ayahParam = Number(sp.get("ayah"));
+  const requestedTafsirSource = getTafsirEditionSlug(sp.get("source"));
   const rawPage = Number(pageParam) || 0;
 
   const [currentPage, setCurrentPage] = React.useState<number>(() =>
@@ -606,7 +607,9 @@ export function MushafPage() {
   const prevShowTranslationRef = React.useRef<boolean>(showTranslation);
 
   // Q11-B: Inline tafseer mode (قراءة mode)
-  const [inlineTafseer, setInlineTafseerState] = React.useState(() => prefs.mushafInlineTafseer ?? false);
+  const [inlineTafseer, setInlineTafseerState] = React.useState(() =>
+    requestedTafsirSource ? true : (prefs.mushafInlineTafseer ?? false)
+  );
   const setInlineTafseer = React.useCallback((v: boolean | ((prev: boolean) => boolean)) => {
     setInlineTafseerState(v);
   }, []);
@@ -615,7 +618,14 @@ export function MushafPage() {
     setPrefs({ mushafInlineTafseer: inlineTafseer });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inlineTafseer]);
-  const [inlineTafseerSource, setInlineTafseerSource] = React.useState<string>("muyassar");
+  const [inlineTafseerSource, setInlineTafseerSource] = React.useState<string>(
+    requestedTafsirSource ?? "muyassar"
+  );
+  React.useEffect(() => {
+    if (!requestedTafsirSource) return;
+    setInlineTafseerSource(requestedTafsirSource);
+    setInlineTafseer(true);
+  }, [requestedTafsirSource, setInlineTafseer]);
   const [inlineTafseerData, setInlineTafseerData] = React.useState<Record<number, string[]>>({});
   const [inlineTafseerLoading, setInlineTafseerLoading] = React.useState(false);
 
@@ -958,7 +968,7 @@ export function MushafPage() {
     }).catch(() => { if (mounted) toast.error("تعذر تحميل التفسير"); })
       .finally(() => { if (mounted) setInlineTafseerLoading(false); });
     return () => { mounted = false; };
-  }, [inlineTafseer, inlineTafseerSource, currentPage, inlineTafseerData, loadTafsirCached]);
+  }, [inlineTafseer, inlineTafseerSource, currentPage, pageItems, inlineTafseerData, loadTafsirCached]);
 
   // Phase 2A/2B: Fetch word-by-word data for all surahs on current page
   // Triggered by either WBW mode or Tajweed mode (both need the same data)

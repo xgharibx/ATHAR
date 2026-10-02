@@ -82,16 +82,81 @@ interface QuranComResponse {
   verses: QuranComVerse[];
 }
 
+const WBW_REQUEST_TIMEOUT_MS = 15_000;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseQuranComResponse(payload: unknown): QuranComResponse {
+  if (!isRecord(payload) || !Array.isArray(payload.verses) || payload.verses.length === 0) {
+    throw new Error("Invalid Quran.com word-by-word response");
+  }
+
+  const seenVerseNumbers = new Set<number>();
+  for (const verse of payload.verses) {
+    if (
+      !isRecord(verse) ||
+      !Number.isInteger(verse.verse_number) ||
+      Number(verse.verse_number) < 1 ||
+      Number(verse.verse_number) > 286 ||
+      seenVerseNumbers.has(Number(verse.verse_number)) ||
+      !Array.isArray(verse.words) ||
+      verse.words.length === 0
+    ) {
+      throw new Error("Invalid Quran.com word-by-word response");
+    }
+
+    seenVerseNumbers.add(Number(verse.verse_number));
+    for (const word of verse.words) {
+      if (!isRecord(word) || (word.char_type_name !== "word" && word.char_type_name !== "end")) {
+        throw new Error("Invalid Quran.com word-by-word response");
+      }
+      if (word.char_type_name !== "word") continue;
+
+      const translation = word.translation;
+      const transliteration = word.transliteration;
+      if (
+        typeof word.text_uthmani !== "string" ||
+        word.text_uthmani.length === 0 ||
+        (word.text_uthmani_tajweed !== undefined && typeof word.text_uthmani_tajweed !== "string") ||
+        !isRecord(translation) ||
+        typeof translation.text !== "string" ||
+        !isRecord(transliteration) ||
+        (typeof transliteration.text !== "string" && transliteration.text !== null)
+      ) {
+        throw new Error("Invalid Quran.com word-by-word response");
+      }
+    }
+  }
+
+  return payload as unknown as QuranComResponse;
+}
+
 export async function loadWbwSurah(surahId: number): Promise<WbwSurah> {
   const cached = await idbGet(surahId);
   if (cached) return cached;
 
   // per_page=300 covers the longest surah (Al-Baqarah: 286 ayahs)
   const url = `https://api.quran.com/api/v4/verses/by_chapter/${surahId}?language=en&words=true&word_fields=text_uthmani%2Ctext_uthmani_tajweed%2Ctranslation%2Ctransliteration&per_page=300`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`WBW fetch failed: ${resp.status}`);
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeoutId = globalThis.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, WBW_REQUEST_TIMEOUT_MS);
 
-  const json: QuranComResponse = await resp.json();
+  let json: QuranComResponse;
+  try {
+    const resp = await fetch(url, { signal: controller.signal });
+    if (!resp.ok) throw new Error(`WBW fetch failed: ${resp.status}`);
+    json = parseQuranComResponse(await resp.json());
+  } catch (error) {
+    if (timedOut) throw new Error("Quran.com word-by-word request timed out");
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
 
   // Build 1-indexed array: result[0] unused, result[ayahNum] = words[]
   const result: WbwSurah = [[]]; // index 0 placeholder

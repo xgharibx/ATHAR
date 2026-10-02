@@ -34,31 +34,28 @@ export async function loadHadithIndex(): Promise<HadithBookMeta[]> {
 }
 
 /** Load a full hadith pack for a given book key. Tries IDB first, then fetch. */
-export async function loadHadithPack(bookKey: string): Promise<HadithPack | null> {
+export async function loadHadithPack(bookKey: string): Promise<HadithPack> {
   // 1. Try IDB cache
   const cached = await idbGetHadithPack(bookKey);
   if (cached) return cached;
 
   // 2. Fetch from static files
-  try {
-    const res = await fetch(publicDataUrl(`data/hadith/${bookKey}.json`));
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const pack = (await res.json()) as HadithPack;
+  const res = await fetch(publicDataUrl(`data/hadith/${bookKey}.json`));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const pack = (await res.json()) as HadithPack;
 
-    // 3. Write to IDB for future offline use
-    void idbSetHadithPack(pack);
+  // 3. Write to IDB for future offline use
+  void idbSetHadithPack(pack);
 
-    return pack;
-  } catch {
-    return null;
-  }
+  return pack;
 }
 
 /**
  * Load a hadith pack with streaming progress.
- * Calls onProgress(0-100) as bytes arrive. Returns null on error.
+ * Calls onProgress(0-100) as bytes arrive. Rejects on error so the query can
+ * expose an error state and be retried.
  */
-async function loadHadithPackWithProgress(
+export async function loadHadithPackWithProgress(
   bookKey: string,
   onProgress: (pct: number) => void,
   setIsFromCache: (v: boolean) => void,
@@ -109,8 +106,9 @@ async function loadHadithPackWithProgress(
     void idbSetHadithPack(pack);
     onProgress(100);
     return pack;
-  } catch {
-    return null;
+  } catch (error) {
+    onProgress(0);
+    throw error;
   }
 }
 
@@ -127,7 +125,10 @@ export function useHadithIndex() {
 export function useHadithPack(bookKey: string | undefined) {
   return useQuery({
     queryKey: ["hadith-pack", bookKey],
-    queryFn: () => (bookKey ? loadHadithPack(bookKey) : null),
+    queryFn: () => {
+      if (!bookKey) throw new Error("A Hadith book must be selected before loading it.");
+      return loadHadithPack(bookKey);
+    },
     enabled: !!bookKey,
     staleTime: Infinity,
   });
@@ -152,7 +153,7 @@ export function useHadithPackProgress(bookKey: string | undefined) {
     queryFn: () =>
       bookKey
         ? loadHadithPackWithProgress(bookKey, setProgress, setIsFromCache)
-        : null,
+        : Promise.reject(new Error("A Hadith book must be selected before loading it.")),
     enabled: !!bookKey,
     staleTime: Infinity,
   });

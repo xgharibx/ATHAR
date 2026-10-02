@@ -97,10 +97,43 @@ describe("three-way merge propagates real changes", () => {
     expect(merged.progress).toEqual({ a: 9 });
   });
 
-  it("takes the max when both sides advanced from the same base", () => {
+  it("adds independent progress increments when both sides advanced from the same base", () => {
     const base = { progress: { a: 5 } };
     const merged = mergeDoc({ progress: { a: 7 } }, { progress: { a: 12 } }, { remoteNewer: false, base });
-    expect(merged.progress).toEqual({ a: 12 });
+    expect(merged.progress).toEqual({ a: 14 });
+  });
+
+  it("adds independent nested tasbeeh increments from the same base", () => {
+    const base = { tasbeehDailyLog: { "2026-10-03": { subhanAllah: 5 } } };
+    const merged = mergeDoc(
+      { tasbeehDailyLog: { "2026-10-03": { subhanAllah: 7 } } },
+      { tasbeehDailyLog: { "2026-10-03": { subhanAllah: 12 } } },
+      { remoteNewer: false, base },
+    );
+    expect(merged.tasbeehDailyLog).toEqual({ "2026-10-03": { subhanAllah: 14 } });
+  });
+
+  it("adds equal-sized increments made independently on both devices", () => {
+    const base = { progress: { a: 5 } };
+    const merged = mergeDoc(
+      { progress: { a: 7 } },
+      { progress: { a: 7 } },
+      { remoteNewer: false, base },
+    );
+    expect(merged.progress).toEqual({ a: 9 });
+  });
+
+  it("keeps max-wins semantics for last-read positions and timestamps", () => {
+    const merged = mergeDoc(
+      { quranReadingHistory: { "1": 7 }, shortsSeen: { "channel-a": 200 } },
+      { quranReadingHistory: { "1": 12 }, shortsSeen: { "channel-a": 300 } },
+      {
+        remoteNewer: false,
+        base: { quranReadingHistory: { "1": 5 }, shortsSeen: { "channel-a": 100 } },
+      },
+    );
+    expect(merged.quranReadingHistory).toEqual({ "1": 12 });
+    expect(merged.shortsSeen).toEqual({ "channel-a": 300 });
   });
 });
 
