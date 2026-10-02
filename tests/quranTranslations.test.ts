@@ -1,30 +1,31 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  TRANSLATION_SOURCES,
-  TranslationId,
-  getSavedTranslationId,
-  getTranslationApproxSizeKB,
-  getTranslationSourceMeta,
-  registerSaheehExtras,
-  type TranslationSource,
-} from "@/lib/quranTranslations";
+import type { TranslationId, TranslationSource } from "@/lib/quranTranslations";
 
-const SAHEEH: TranslationSource = TRANSLATION_SOURCES.find((s) => s.id === "saheeh")!;
-const YUSUF: TranslationSource = TRANSLATION_SOURCES.find((s) => s.id === "yusuf_ali")!;
-const JALANDHRY: TranslationSource = TRANSLATION_SOURCES.find((s) => s.id === "jalandhry")!;
+let quranTranslations: typeof import("@/lib/quranTranslations");
+let SAHEEH: TranslationSource;
+let YUSUF: TranslationSource;
+let JALANDHRY: TranslationSource;
 
 describe("quranTranslations module", () => {
-  beforeEach(() => {
-    registerSaheehExtras(null);
+  beforeEach(async () => {
     vi.restoreAllMocks();
+    vi.resetModules();
+    vi.stubEnv("VITE_SUPABASE_URL", "https://synthetic.supabase.co");
+    vi.stubEnv("VITE_SUPABASE_ANON_KEY", "synthetic-anon-key");
+    quranTranslations = await import("@/lib/quranTranslations");
+    SAHEEH = quranTranslations.TRANSLATION_SOURCES.find((s) => s.id === "saheeh")!;
+    YUSUF = quranTranslations.TRANSLATION_SOURCES.find((s) => s.id === "yusuf_ali")!;
+    JALANDHRY = quranTranslations.TRANSLATION_SOURCES.find((s) => s.id === "jalandhry")!;
+    quranTranslations.registerSaheehExtras(null);
   });
   afterEach(() => {
-    registerSaheehExtras(null);
+    quranTranslations.registerSaheehExtras(null);
+    vi.unstubAllEnvs();
   });
 
   it("exports exactly the three sources in the expected order", () => {
-    expect(TRANSLATION_SOURCES.map((s) => s.id)).toEqual([
+    expect(quranTranslations.TRANSLATION_SOURCES.map((s) => s.id)).toEqual([
       "saheeh",
       "yusuf_ali",
       "jalandhry",
@@ -32,7 +33,7 @@ describe("quranTranslations module", () => {
   });
 
   it("every source has matching arabic + english label and a valid lang code", () => {
-    for (const s of TRANSLATION_SOURCES) {
+    for (const s of quranTranslations.TRANSLATION_SOURCES) {
       expect(s.ar.length).toBeGreaterThan(0);
       expect(s.en.length).toBeGreaterThan(0);
       expect(["en", "ur"]).toContain(s.lang);
@@ -42,7 +43,7 @@ describe("quranTranslations module", () => {
   it("Saheeh is the only bundled source and has no API id", () => {
     expect(SAHEEH.bundled).toBe(true);
     expect(SAHEEH.apiId).toBeNull();
-    for (const s of TRANSLATION_SOURCES.filter((x) => x.id !== "saheeh")) {
+    for (const s of quranTranslations.TRANSLATION_SOURCES.filter((x) => x.id !== "saheeh")) {
       expect(s.bundled).toBe(false);
       expect(typeof s.apiId).toBe("number");
     }
@@ -56,13 +57,13 @@ describe("quranTranslations module", () => {
   });
 
   it("preferences round-trip: override beats pref, pref beats default", () => {
-    expect(getSavedTranslationId({}, null)).toBe("saheeh");
-    expect(getSavedTranslationId({}, "yusuf_ali" as TranslationId)).toBe("yusuf_ali");
+    expect(quranTranslations.getSavedTranslationId({}, null)).toBe("saheeh");
+    expect(quranTranslations.getSavedTranslationId({}, "yusuf_ali" as TranslationId)).toBe("yusuf_ali");
     expect(
-      getSavedTranslationId({ quranTranslationId: "jalandhry" }, null),
+      quranTranslations.getSavedTranslationId({ quranTranslationId: "jalandhry" }, null),
     ).toBe("jalandhry");
     expect(
-      getSavedTranslationId(
+      quranTranslations.getSavedTranslationId(
         { quranTranslationId: "saheeh" },
         "yusuf_ali" as TranslationId,
       ),
@@ -90,16 +91,16 @@ describe("quranTranslations module", () => {
   });
 
   it("getTranslationSourceMeta returns static metadata for each source", () => {
-    expect(getTranslationSourceMeta("saheeh").bundled).toBe(true);
-    expect(getTranslationSourceMeta("yusuf_ali").apiId).toBe(22);
-    expect(getTranslationSourceMeta("jalandhry").apiId).toBe(234);
-    expect(() => getTranslationSourceMeta("nope" as TranslationId)).toThrow();
+    expect(quranTranslations.getTranslationSourceMeta("saheeh").bundled).toBe(true);
+    expect(quranTranslations.getTranslationSourceMeta("yusuf_ali").apiId).toBe(22);
+    expect(quranTranslations.getTranslationSourceMeta("jalandhry").apiId).toBe(234);
+    expect(() => quranTranslations.getTranslationSourceMeta("nope" as TranslationId)).toThrow();
   });
 
   it("getTranslationApproxSizeKB matches the documented approximate sizes", () => {
-    expect(getTranslationApproxSizeKB("saheeh")).toBe(880);
-    expect(getTranslationApproxSizeKB("yusuf_ali")).toBe(900);
-    expect(getTranslationApproxSizeKB("jalandhry")).toBe(1200);
+    expect(quranTranslations.getTranslationApproxSizeKB("saheeh")).toBe(880);
+    expect(quranTranslations.getTranslationApproxSizeKB("yusuf_ali")).toBe(900);
+    expect(quranTranslations.getTranslationApproxSizeKB("jalandhry")).toBe(1200);
   });
 
   it("loads the bundled source offline and surfaces remote-source failures", async () => {
