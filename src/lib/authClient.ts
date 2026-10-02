@@ -15,15 +15,14 @@
  *   - Android (Capacitor): the app is a WebView on `https://localhost`, so a
  *     normal web redirect would strand the user in a browser tab that can never
  *     hand the session back. It instead redirects to our custom scheme
- *     (`app.athar://auth`), which the manifest's intent-filter routes back into
- *     the app, where `appUrlOpen` completes the session exchange.
+ *     (`app.athar://auth`), which Android's intent filter and iOS's registered
+ *     URL type route back into the app, where `appUrlOpen` completes the exchange.
  */
 import { Capacitor } from "@capacitor/core";
 import { createClient, type Session, type SupabaseClient, type User } from "@supabase/supabase-js";
 
-/** Custom scheme used for the Android OAuth round-trip. Must match the
- *  intent-filter in AndroidManifest.xml and the redirect allow-list in the
- *  Supabase dashboard. */
+/** Custom scheme used for native OAuth round-trips. It must match the
+ *  Android intent filter, iOS URL type, and Supabase redirect allow-list. */
 export const NATIVE_AUTH_REDIRECT = "app.athar://auth";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
