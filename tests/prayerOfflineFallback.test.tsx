@@ -76,6 +76,21 @@ describe("offline prayer fallback", () => {
     expect(JSON.parse(localStorage.getItem("noor_prayer_coords_v1") ?? "null")).toMatchObject({ lat: 21.4225, lng: 39.8262 });
   });
 
+  it("calculates for saved coordinates instead of returning another location's cached city times", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    localStorage.setItem("noor_prayer_times_v1:2026-10-02:city:Cairo:Egypt:5:0", JSON.stringify({
+      data: { timings: { Dhuhr: "10:00" } },
+      __sourceLabel: "القاهرة",
+    }));
+    mountAtMecca();
+    expect(await requestPrayerLocation()).toBe(true);
+
+    const result = await query.run!();
+
+    expect(result.data.timings.Dhuhr).toBe("09:11");
+    expect(result.__sourceLabel).toContain("حساب محلي");
+  });
+
   it("keeps the last saved coordinates when location access is denied", async () => {
     const saved = { lat: 30.0444, lng: 31.2357, savedAt: "2026-09-01" };
     localStorage.setItem("noor_prayer_coords_v1", JSON.stringify(saved));

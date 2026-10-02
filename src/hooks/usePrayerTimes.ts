@@ -278,7 +278,6 @@ export function usePrayerTimes() {
     queryKey: ["prayer-times", "v3", dayKey, method, school],
     queryFn: async () => {
       const cachedCoords = readCachedCoords();
-      let bestCoords: { lat: number; lng: number } | null = cachedCoords;
 
       const trySource = async (label: string, locationKey: string, fn: () => Promise<PrayerTimesResponse>) => {
         const fresh = await fn();
@@ -307,6 +306,13 @@ export function usePrayerTimes() {
           const cached = readCached(dayKey, locationKey);
           if (cached) return cached;
         }
+
+        // The user explicitly chose this location. If its request and cache both
+        // miss, calculate locally here rather than showing unrelated city times.
+        return {
+          ...computeLocalPrayerTimes(cachedCoords.lat, cachedCoords.lng, new Date(), method, school),
+          __sourceLabel: "حساب محلي (بلا إنترنت)",
+        };
       }
 
       // 2) City fallback — Aladhan's ByCity endpoint is CORS-friendly too,
@@ -319,13 +325,12 @@ export function usePrayerTimes() {
         if (cached) return cached;
       }
 
-      // 3) Fully offline last resort: compute locally (Jean Meeus formulas via `adhan`)
-      // from the best coordinates we have, so a no-connectivity first launch never
-      // shows a bare error instead of today's prayer times.
-      const fallbackCoords = bestCoords ?? { lat: 30.0444, lng: 31.2357 }; // Cairo, matches the city fallback above
+      // 3) Fully offline last resort for first launch: compute Cairo locally
+      // (Jean Meeus formulas via `adhan`) so no-connectivity never leaves a spinner.
+      const fallbackCoords = { lat: 30.0444, lng: 31.2357 }; // Cairo, matches the city fallback above
       const computed: PrayerTimesData = {
         ...computeLocalPrayerTimes(fallbackCoords.lat, fallbackCoords.lng, new Date(), method, school),
-        __sourceLabel: bestCoords ? "حساب محلي (بلا إنترنت)" : "حساب محلي — القاهرة (بلا إنترنت)",
+        __sourceLabel: "حساب محلي — القاهرة (بلا إنترنت)",
       };
       return computed;
     },
