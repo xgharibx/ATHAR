@@ -8,9 +8,11 @@ export function getInternalAppRoute(value: unknown): string | null {
   if (value.startsWith("//") || value.includes("\\") || hasControlChars(value)) return null;
 
   try {
-    const origin = typeof window === "undefined" ? "https://athar.invalid" : window.location.origin;
-    const destination = new URL(value, origin);
-    if (destination.origin !== origin) return null;
+    // Use a stable HTTP base for normalization. Capacitor iOS uses a custom
+    // scheme with an opaque origin, which cannot be compared to URL.origin.
+    const validationOrigin = "https://athar.invalid";
+    const destination = new URL(value, validationOrigin);
+    if (destination.origin !== validationOrigin) return null;
     return `${destination.pathname}${destination.search}${destination.hash}`;
   } catch {
     return null;

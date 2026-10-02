@@ -21,7 +21,7 @@
    - `POST` لتسجيل score events + تحديث rollups.
    - `GET` لإرجاع top rows حسب `board`, `period`, `day`, `sectionId`.
    - القالب المعتمد موجود ضمن `supabase/functions/leaderboard` في جذر المشروع.
-5. اضبط متغير البيئة في التطبيق:
+8. اضبط متغير البيئة في التطبيق:
    - `VITE_LEADERBOARD_ENDPOINT=https://<your-function-url>`
 
 ## إدارة الأسماء والمراجعة
