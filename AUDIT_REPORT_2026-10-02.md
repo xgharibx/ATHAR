@@ -295,7 +295,7 @@ Companion checks existing notification permission without prompting, saves a new
 
 ### P2 — Keep GitHub Actions runtimes current
 
-GitHub removed Node 20 from hosted Actions runners on September 23, 2026. The workflows now select Node 24 and use current major releases of checkout, setup-node, Pages, and artifact actions. Local `npm run verify` passes on Node 24; the post-upgrade hosted Pages, Android, and iOS runs still need to pass before this is closed. [GitHub's Node 20 retirement notice](https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/).
+GitHub removed Node 20 from hosted Actions runners on September 23, 2026. The workflows now select Node 24 and use current major releases of checkout, setup-node, Pages, and artifact actions. Local `npm run verify` passes on Node 24, and the post-upgrade [Pages](https://github.com/xgharibx/ATHAR/actions/runs/37123472885), [Android](https://github.com/xgharibx/ATHAR/actions/runs/37123472788), and [iOS](https://github.com/xgharibx/ATHAR/actions/runs/37123472745) workflows all passed on commit `58d502c`. The live site returned HTTP 200 and served the expected `version.json`. [GitHub's Node 20 retirement notice](https://github.blog/changelog/2026-09-23-node-20-is-no-longer-available-in-github-actions/).
 
 ### P1 — Keep Android reminder times reliable across sleep and system-setting changes
 
@@ -378,7 +378,7 @@ No production database dump or customer row contents were accessed. Aggregate sc
 - [ ] Publish and link the privacy policy; reconcile data-safety disclosures, AI/location disclosures, deletion scope, and provider retention.
 - [ ] Complete iOS App Store work: implement/configure Sign in with Apple, test native flows on device and account deletion, finish data/SDK disclosures, and integrate a widget extension if widgets remain advertised. Hosted unsigned Xcode validation, including the privacy manifest, passed on `c24faa3`.
 - [x] Add Android release-bundle packaging and native version parity checks to CI; local AAB build passed and was confirmed unsigned. The signed artifact and next monotonic version bump remain open.
-- [ ] Move GitHub Actions jobs and JavaScript actions to supported Node 24 runtimes; local verification passes, hosted workflow runs pending.
+- [x] Move GitHub Actions jobs and JavaScript actions to supported Node 24 runtimes; Pages, Android, and iOS workflows pass and the deployed version manifest is live.
 - [ ] Complete Android release preparation: explicit backup rules, signing custody, and a release-signed AAB with version code greater than 74.
 - [x] Gate prayer-time location requests behind the onboarding choice or a Prayer Times opt-in; preserve fallback behavior after denial.
 - [ ] Verify location permission timing and later opt-in on fresh Android/iOS installs and returning users on physical devices.
