@@ -22,7 +22,8 @@ type GeoState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "ok"; lat: number; lng: number }
-  | { status: "error"; msg: string };
+  | { status: "error"; code: number; msg: string }
+  | { status: "unsupported" };
 
 type Mosque = {
   id: number;
@@ -84,7 +85,7 @@ export function NearbyMosquesPage() {
 
   const requestGeo = React.useCallback(() => {
     if (!navigator.geolocation) {
-      setGeo({ status: "error", msg: "تحديد الموقع غير مدعوم في هذا المتصفح" });
+      setGeo({ status: "unsupported" });
       return;
     }
     setGeo({ status: "loading" });
@@ -95,14 +96,10 @@ export function NearbyMosquesPage() {
         setGeo({ status: "ok", lat, lng });
         void fetchMosques(lat, lng);
       },
-      (err) => setGeo({ status: "error", msg: err.message }),
+      (err) => setGeo({ status: "error", code: err.code, msg: err.message }),
       { enableHighAccuracy: true, timeout: 10000 },
     );
   }, [fetchMosques]);
-
-  React.useEffect(() => {
-    requestGeo();
-  }, [requestGeo]);
 
   return (
     <div className="p-4 md:p-5 space-y-4 max-w-2xl mx-auto" dir="rtl">
@@ -119,7 +116,18 @@ export function NearbyMosquesPage() {
       </div>
 
       {/* Geo loading */}
-      {(geo.status === "idle" || geo.status === "loading") && (
+      {geo.status === "idle" && (
+        <Card className="p-5 space-y-3">
+          <div className="text-sm opacity-70 leading-relaxed">
+            سنستخدم موقعك الحالي للبحث عن المساجد القريبة عبر OpenStreetMap. لن نطلب الوصول إليه إلا بعد اختيارك.
+          </div>
+          <Button variant="secondary" size="sm" onClick={requestGeo}>
+            <MapPin size={14} aria-hidden="true" /> تحديد موقعي
+          </Button>
+        </Card>
+      )}
+
+      {geo.status === "loading" && (
         <Card className="p-4 flex items-center gap-3 text-sm opacity-60" role="status" aria-live="polite" aria-atomic="true">
           <RefreshCw size={16} className="animate-spin shrink-0" aria-hidden="true" />
           <span>جارٍ تحديد موقعك...</span>
@@ -130,17 +138,23 @@ export function NearbyMosquesPage() {
       {geo.status === "error" && (
         <Card className="p-4 space-y-3">
           <div className="text-sm opacity-70">
-            {geo.msg.includes("denied") || geo.msg.includes("User denied")
+            {geo.code === 1
               ? "رفضت الإذن بالوصول للموقع. يرجى السماح للتطبيق بتحديد موقعك من الإعدادات."
-              : geo.msg.includes("unavailable")
+              : geo.code === 2
               ? "تعذّر تحديد موقعك. تأكد من تفعيل خدمات الموقع الجغرافي."
-              : geo.msg.includes("timeout")
+              : geo.code === 3
               ? "انتهت مهلة طلب الموقع. حاول مرة أخرى."
               : "تعذّر تحديد موقعك الجغرافي."}
           </div>
           <Button variant="secondary" size="sm" onClick={requestGeo}>
             <RefreshCw size={14} aria-hidden="true" /> إعادة المحاولة
           </Button>
+        </Card>
+      )}
+
+      {geo.status === "unsupported" && (
+        <Card className="p-4 text-sm opacity-70">
+          تحديد الموقع غير مدعوم في هذا المتصفح
         </Card>
       )}
 

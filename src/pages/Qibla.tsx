@@ -49,7 +49,7 @@ type GeoState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "ok"; lat: number; lng: number; accuracy: number }
-  | { status: "error"; msg: string }
+  | { status: "error"; code: number; msg: string }
   | { status: "unsupported" };
 
 type OrientationState = {
@@ -89,16 +89,11 @@ export function QiblaPage() {
         });
       },
       (err) => {
-        setGeo({ status: "error", msg: err.message });
+        setGeo({ status: "error", code: err.code, msg: err.message });
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }, []);
-
-  // Auto-request geo on mount
-  React.useEffect(() => {
-    requestGeo();
-  }, [requestGeo]);
 
   // On Android / non-iOS, deviceorientation fires without any permission prompt.
   // Pre-grant permissionGranted so the button never shows and the listener works immediately.
@@ -350,7 +345,17 @@ export function QiblaPage() {
           <span className="text-sm font-semibold">الموقع الجغرافي</span>
         </div>
 
-        {geo.status === "idle" || geo.status === "loading" ? (
+        {geo.status === "idle" ? (
+          <div className="space-y-3">
+            <div className="text-sm opacity-60 leading-relaxed">
+              يُحسب اتجاه القبلة على جهازك باستخدام موقعك الحالي. لن نطلب الوصول إليه إلا بعد اختيارك.
+            </div>
+            <Button variant="secondary" size="sm" onClick={requestGeo}>
+              <MapPin size={14} aria-hidden="true" />
+              تحديد موقعي
+            </Button>
+          </div>
+        ) : geo.status === "loading" ? (
           <div className="flex items-center gap-2 text-sm opacity-60" role="status" aria-label="جارٍ تحديد موقعك">
             <RefreshCw size={14} aria-hidden="true" className="animate-spin" />
             جارٍ تحديد موقعك...
@@ -358,11 +363,11 @@ export function QiblaPage() {
         ) : geo.status === "error" ? (
           <div className="space-y-3">
             <div className="text-sm opacity-60">
-              {geo.msg.includes("denied") || geo.msg.includes("User denied")
+              {geo.code === 1
                 ? "رفضت الإذن بالوصول للموقع. يرجى السماح للتطبيق بتحديد موقعك من الإعدادات."
-                : geo.msg.includes("unavailable")
+                : geo.code === 2
                 ? "تعذر تحديد موقعك. تأكد من تفعيل خدمة الموقع."
-                : geo.msg.includes("timeout")
+                : geo.code === 3
                 ? "انتهت مهلة تحديد الموقع. يرجى المحاولة مجدداً."
                 : "تعذر تحديد موقعك الجغرافي."}
             </div>
