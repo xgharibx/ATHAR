@@ -22,8 +22,10 @@ import {
   type WebReminderActionDetail,
 } from "./lib/webReminderActions";
 import {
+  CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES,
   createMaxResponseSizePlugin,
   HADITH_RUNTIME_CACHE_MAX_BYTES,
+  pruneOversizedCacheEntries,
 } from "./lib/offlineCacheBudget";
 
 declare const self: ServiceWorkerGlobalScope & typeof globalThis & {
@@ -35,8 +37,15 @@ cleanupOutdatedCaches();
 
 precacheAndRoute(self.__WB_MANIFEST);
 
-self.addEventListener("activate", () => {
-  void self.clients.claim();
+self.addEventListener("activate", (event: ExtendableEvent) => {
+  event.waitUntil(Promise.all([
+    self.clients.claim(),
+    caches.open("athar-content-packs")
+      .then((cache) => pruneOversizedCacheEntries(cache, CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES))
+      .catch((error: unknown) => {
+        console.warn("[athar] Could not prune oversized cached content packs.", error);
+      }),
+  ]));
 });
 
 // SPA fallback: any non-asset navigation goes to /index.html (cached by precache).
@@ -185,6 +194,7 @@ registerRoute(
     networkTimeoutSeconds: 3,
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
+      createMaxResponseSizePlugin(CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES),
       new ExpirationPlugin({
         maxEntries: 4,
         maxAgeSeconds: 60 * 60 * 24 * 90,

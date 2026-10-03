@@ -17,11 +17,23 @@ describe("PWA offline asset policy", () => {
 
   it("keeps larger first-use data packs in a bounded runtime cache", () => {
     const worker = readFileSync(resolve(process.cwd(), "src/sw.ts"), "utf8");
+    const contentPacksRoute = worker.split('cacheName: "athar-content-packs"')[1]?.split("registerRoute(")[0] ?? "";
 
     expect(worker).toContain("athar-content-packs");
-    expect(worker).toMatch(/maxEntries:\s*4/);
+    expect(contentPacksRoute).toMatch(/maxEntries:\s*4/);
     expect(worker).toContain("url.origin === self.location.origin");
     expect(worker).toContain("(?!hadith");
+    expect(contentPacksRoute).toContain("createMaxResponseSizePlugin(CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES)");
+    expect(contentPacksRoute).toContain("maxAgeSeconds: 60 * 60 * 24 * 90");
+  });
+
+  it("prunes legacy oversized content packs during worker activation", () => {
+    const worker = readFileSync(resolve(process.cwd(), "src/sw.ts"), "utf8");
+    const activationHandler = worker.split('self.addEventListener("activate"')[1]?.split("// SPA fallback")[0] ?? "";
+
+    expect(activationHandler).toContain('caches.open("athar-content-packs")');
+    expect(activationHandler).toContain("pruneOversizedCacheEntries(cache, CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES)");
+    expect(activationHandler).toContain("event.waitUntil");
   });
 
   it("keeps the Hadith runtime cache to one response within the 10 MiB entry budget", () => {

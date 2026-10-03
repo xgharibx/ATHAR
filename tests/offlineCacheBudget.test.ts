@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createMaxResponseSizePlugin } from "@/lib/offlineCacheBudget";
+import {
+  CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES,
+  createMaxResponseSizePlugin,
+  pruneOversizedCacheEntries,
+} from "@/lib/offlineCacheBudget";
 
 describe("service-worker response cache budget", () => {
   it("rejects an oversized response from caching without consuming the caller's response", async () => {
@@ -23,5 +27,68 @@ describe("service-worker response cache budget", () => {
 
     await expect(plugin.cacheWillUpdate({ response })).resolves.toBeNull();
     await expect(response.text()).resolves.toBe("small");
+  });
+
+  it("measures the body when Content-Length is within budget", async () => {
+    const response = new Response("12345", { headers: { "content-length": "4" } });
+    const plugin = createMaxResponseSizePlugin(4);
+
+    await expect(plugin.cacheWillUpdate({ response })).resolves.toBeNull();
+    await expect(response.text()).resolves.toBe("12345");
+  });
+
+  it("caps optional content packs at 10 MiB while leaving an oversized response readable", async () => {
+    expect(CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES).toBe(10 * 1024 * 1024);
+    const response = new Response("still readable", {
+      headers: { "content-length": String(CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES + 1) },
+    });
+    const plugin = createMaxResponseSizePlugin(CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES);
+
+    await expect(plugin.cacheWillUpdate({ response })).resolves.toBeNull();
+    await expect(response.text()).resolves.toBe("still readable");
+  });
+
+  it("removes previously cached responses above the content-pack budget and preserves smaller entries", async () => {
+    const entries = new Map<string, Response>([
+      ["https://athar.example/data/large.json", new Response("too large", {
+        headers: { "content-length": String(CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES + 1) },
+      })],
+      ["https://athar.example/data/small.json", new Response("small")],
+    ]);
+    const cache = {
+      async keys() {
+        return [...entries.keys()].map((url) => new Request(url));
+      },
+      async match(request: Request) {
+        return entries.get(request.url)?.clone();
+      },
+      async delete(request: Request) {
+        return entries.delete(request.url);
+      },
+    } as unknown as Cache;
+
+    await expect(pruneOversizedCacheEntries(cache, CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES)).resolves.toBe(1);
+    expect([...entries.keys()]).toEqual(["https://athar.example/data/small.json"]);
+  });
+
+  it("measures cached responses without a Content-Length header", async () => {
+    const entries = new Map<string, Response>([
+      ["https://athar.example/data/unknown-size.json", new Response("12345")],
+      ["https://athar.example/data/within-budget.json", new Response("1234")],
+    ]);
+    const cache = {
+      async keys() {
+        return [...entries.keys()].map((url) => new Request(url));
+      },
+      async match(request: Request) {
+        return entries.get(request.url)?.clone();
+      },
+      async delete(request: Request) {
+        return entries.delete(request.url);
+      },
+    } as unknown as Cache;
+
+    await expect(pruneOversizedCacheEntries(cache, 4)).resolves.toBe(1);
+    expect([...entries.keys()]).toEqual(["https://athar.example/data/within-budget.json"]);
   });
 });
