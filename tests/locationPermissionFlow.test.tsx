@@ -14,6 +14,7 @@ let root: Root | undefined;
 let container: HTMLDivElement | undefined;
 let geoDescriptor: PropertyDescriptor | undefined;
 let getCurrentPosition: ReturnType<typeof vi.fn>;
+let rejectGeolocation: PositionErrorCallback | undefined;
 
 function mount(component: React.ReactNode) {
   container = document.createElement("div");
@@ -32,7 +33,10 @@ function buttonNamed(name: string) {
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   geoDescriptor = Object.getOwnPropertyDescriptor(navigator, "geolocation");
-  getCurrentPosition = vi.fn();
+  rejectGeolocation = undefined;
+  getCurrentPosition = vi.fn((_success: PositionCallback, error: PositionErrorCallback) => {
+    rejectGeolocation = error;
+  });
   Object.defineProperty(navigator, "geolocation", {
     configurable: true,
     value: { getCurrentPosition },
@@ -51,6 +55,7 @@ afterEach(() => {
   if (geoDescriptor) Object.defineProperty(navigator, "geolocation", geoDescriptor);
   else Reflect.deleteProperty(navigator, "geolocation");
   geoDescriptor = undefined;
+  rejectGeolocation = undefined;
   vi.unstubAllGlobals();
 });
 
@@ -76,4 +81,47 @@ describe("explicit location permission flows", () => {
     await act(async () => { buttonNamed("تحديد موقعي").click(); });
     expect(getCurrentPosition).toHaveBeenCalledOnce();
   });
+
+  const errorCases = [
+    {
+      code: 1,
+      nearby: "رفضت الإذن بالوصول للموقع. يرجى السماح للتطبيق بتحديد موقعك من الإعدادات.",
+      qibla: "رفضت الإذن بالوصول للموقع. يرجى السماح للتطبيق بتحديد موقعك من الإعدادات.",
+    },
+    {
+      code: 2,
+      nearby: "تعذّر تحديد موقعك. تأكد من تفعيل خدمات الموقع الجغرافي.",
+      qibla: "تعذر تحديد موقعك. تأكد من تفعيل خدمة الموقع.",
+    },
+    {
+      code: 3,
+      nearby: "انتهت مهلة طلب الموقع. حاول مرة أخرى.",
+      qibla: "انتهت مهلة تحديد الموقع. يرجى المحاولة مجدداً.",
+    },
+  ];
+
+  const screens = [
+    { name: "Nearby Mosques", render: () => createElement(NearbyMosquesPage), messageKey: "nearby" as const },
+    { name: "Qibla", render: () => createElement(QiblaPage), messageKey: "qibla" as const },
+  ];
+
+  for (const screen of screens) {
+    it.each(errorCases)(`${screen.name} code $code gives accurate error guidance`, async ({ code, [screen.messageKey]: expectedMessage }) => {
+      mount(screen.render());
+
+      await act(async () => { buttonNamed("تحديد موقعي").click(); });
+      await act(async () => {
+        rejectGeolocation?.({
+          code,
+          message: "browser-specific error text",
+          PERMISSION_DENIED: 1,
+          POSITION_UNAVAILABLE: 2,
+          TIMEOUT: 3,
+        } as GeolocationPositionError);
+      });
+
+      expect(container?.textContent).toContain(expectedMessage);
+      expect(container?.textContent).toContain("إعادة المحاولة");
+    });
+  }
 });

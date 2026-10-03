@@ -401,7 +401,7 @@ export function QiblaPage() {
       </Card>
 
       {/* Info card */}
-      <Card className="p-4 text-sm opacity-70 space-y-1">
+      <Card className="p-4 pr-24 md:pr-4 text-sm opacity-70 space-y-1">
         <div className="font-semibold opacity-100 mb-2">كيفية الاستخدام</div>
         <p>١. امسك الجهاز أفقياً (موازياً للأرض) للحصول على أدق النتائج</p>
         <p>٢. اضغط "تفعيل البوصلة" إن ظهر الزر (iOS يحتاج إذن صريح)</p>
