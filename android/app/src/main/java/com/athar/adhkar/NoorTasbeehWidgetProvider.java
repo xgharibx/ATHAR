@@ -254,29 +254,61 @@ public class NoorTasbeehWidgetProvider extends AtharWidgetProvider {
     // ─────────────────────────────────────────────────────
 
     /**
-     * Mirror each home-screen tap into an app-readable daily-totals JSON:
-     *   { "date": "YYYY-MM-DD", "counts": { "<phrase>": n, ... }, "total": N }
+     * Mirror each home-screen tap into an app-readable owner/date ledger:
+     *   { "owners": { "<owner>": { "YYYY-MM-DD": { "counts": { ... } } } } }
      * Stored in the "CapacitorStorage" prefs file so the web app can merge it
      * into the user's stats via @capacitor/preferences.
      */
     static void bumpDailyTotal(Context context, String phrase) {
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        bumpDailyTotal(context, phrase, today);
+    }
+
+    /** Date-injected overload keeps ledger rollover deterministic in instrumentation tests. */
+    static void bumpDailyTotal(Context context, String phrase, String today) {
         try {
             SharedPreferences appPrefs = WidgetData.prefs(context);
-            String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
             String existing = appPrefs.getString(TOTALS_KEY, null);
             JSONObject payload = existing != null ? new JSONObject(existing) : new JSONObject();
-            if (!today.equals(payload.optString("date"))) {
-                payload = new JSONObject();
-                payload.put("date", today);
+            JSONObject owners = payload.optJSONObject("owners");
+            if (owners == null) {
+                owners = new JSONObject();
+                // Preserve pending totals from older app versions during the
+                // first widget tap after upgrade.
+                String legacyDate = payload.optString("date", "");
+                JSONObject legacyCounts = payload.optJSONObject("counts");
+                if (!legacyDate.isEmpty() && legacyCounts != null) {
+                    String legacyOwner = payload.optString("owner", "local");
+                    JSONObject legacyDays = new JSONObject();
+                    JSONObject legacyDay = new JSONObject();
+                    legacyDay.put("counts", legacyCounts);
+                    legacyDays.put(legacyDate, legacyDay);
+                    owners.put(legacyOwner, legacyDays);
+                }
             }
-            payload.put("owner", appPrefs.getString(OWNER_KEY, "local"));
-            JSONObject counts = payload.optJSONObject("counts");
+
+            String owner = appPrefs.getString(OWNER_KEY, "local");
+            if (owner == null || owner.isEmpty()) owner = "local";
+            JSONObject ownerDays = owners.optJSONObject(owner);
+            if (ownerDays == null) {
+                ownerDays = new JSONObject();
+                owners.put(owner, ownerDays);
+            }
+
+            JSONObject day = ownerDays.optJSONObject(today);
+            if (day == null) {
+                day = new JSONObject();
+                ownerDays.put(today, day);
+            }
+            JSONObject counts = day.optJSONObject("counts");
             if (counts == null) {
                 counts = new JSONObject();
-                payload.put("counts", counts);
+                day.put("counts", counts);
             }
             counts.put(phrase, counts.optInt(phrase, 0) + 1);
-            payload.put("total", payload.optInt("total", 0) + 1);
+            day.put("total", day.optInt("total", 0) + 1);
+            payload.put("version", 2);
+            payload.put("owners", owners);
             appPrefs.edit().putString(TOTALS_KEY, payload.toString()).apply();
         } catch (Throwable ignored) {
             // Totals mirroring is best-effort; the widget counter itself is source of truth.

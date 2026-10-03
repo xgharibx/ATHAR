@@ -37,6 +37,13 @@ function setWidgetTotals(counts: Record<string, number>, date = TODAY, owner = "
   });
 }
 
+function setWidgetLedger(owners: Record<string, Record<string, Record<string, number>>>) {
+  mocks.mockPreferencesGet.mockImplementation(async ({ key }: { key: string }) => {
+    if (key === TOTALS_KEY) return { value: JSON.stringify({ owners }) };
+    return { value: null };
+  });
+}
+
 describe("mergeTasbeehFromWidget", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -116,5 +123,34 @@ describe("mergeTasbeehFromWidget", () => {
     setWidgetTotals({ subhanallah: 40 }, TODAY, "user:account-b");
     await mergeTasbeehFromWidget();
     expect(useNoorStore.getState().tasbeehLifetime.subhanallah).toBe(7);
+  });
+
+  it("merges unprocessed taps from yesterday and today when the app opens after midnight", async () => {
+    setWidgetLedger({
+      local: {
+        "2026-07-19": { subhanallah: 33 },
+        "2026-07-20": { subhanallah: 5 },
+      },
+    });
+
+    await mergeTasbeehFromWidget();
+    await mergeTasbeehFromWidget();
+
+    expect(useNoorStore.getState().tasbeehDailyLog["2026-07-19"]?.subhanallah).toBe(33);
+    expect(useNoorStore.getState().tasbeehDailyLog["2026-07-20"]?.subhanallah).toBe(5);
+    expect(useNoorStore.getState().tasbeehLifetime.subhanallah).toBe(38);
+  });
+
+  it("keeps unprocessed totals isolated by account and merges only the active account", async () => {
+    setAccountStorageOwner("user:account-b");
+    setWidgetLedger({
+      "user:account-a": { [TODAY]: { subhanallah: 33 } },
+      "user:account-b": { [TODAY]: { subhanallah: 5 } },
+    });
+
+    await mergeTasbeehFromWidget();
+    await mergeTasbeehFromWidget();
+
+    expect(useNoorStore.getState().tasbeehLifetime.subhanallah).toBe(5);
   });
 });
