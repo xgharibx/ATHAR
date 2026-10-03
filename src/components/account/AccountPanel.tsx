@@ -143,7 +143,7 @@ export function AccountPanel() {
                   : sync.phase === "offline"
                     ? "بدون اتصال — ستُزامن تلقائيًا عند عودة الشبكة"
                     : sync.phase === "error"
-                      ? "تعذّرت المزامنة — نعيد المحاولة تلقائيًا"
+                      ? sync.error ?? "تعذّرت المزامنة — نعيد المحاولة تلقائيًا"
                       : sync.pending
                         ? "سنحفظ تغييراتك خلال لحظات…"
                         : `المزامنة تلقائية · آخر مزامنة ${relativeTime(sync.lastSyncedAt)}`}

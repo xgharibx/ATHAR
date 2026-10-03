@@ -11,6 +11,7 @@
  */
 import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import Dexie from "dexie";
 
 type Row = { user_id: string; kind: string; payload: unknown; updated_at: string; device_id?: string; revision?: number };
 type RpcWrite = { kind: string; expected_revision: number | null; payload: unknown };
@@ -19,6 +20,7 @@ type ServerHooks = {
   onSelect?: () => void;
   beforeUpsert?: (batch: Row[]) => Promise<void>;
   beforeRpc?: (name: string, args: Record<string, unknown>) => Promise<void>;
+  rpcError?: (name: string, args: Record<string, unknown>) => { code: string; message: string } | null;
 };
 
 /** Shared stand-in for PostgREST, revisions, the batch RPC, and receipts. */
@@ -69,6 +71,8 @@ function makeSharedServer(rows: Row[]) {
     async rpc(name: string, args: Record<string, unknown>) {
       rpcCalls.push({ name, args: structuredClone(args) });
       await hooks.beforeRpc?.(name, args);
+      const forcedError = hooks.rpcError?.(name, args);
+      if (forcedError) return { data: null, error: forcedError };
       if (name === "athar_sync_ack_batch") {
         const deviceId = String(args.p_device_id);
         const receipt = receipts.get(deviceId);
@@ -135,6 +139,7 @@ function makeSharedServer(rows: Row[]) {
 function makeStore(initial: Record<string, unknown>) {
   let state = { ...initial };
   const imported: Array<Record<string, unknown>> = [];
+  const subscribers = new Set<() => void>();
   const store = {
     getState: () => ({
       exportState: () => ({ ...state }),
@@ -144,7 +149,10 @@ function makeStore(initial: Record<string, unknown>) {
         state = rest;
       },
     }),
-    subscribe: () => () => {},
+    subscribe: (listener: () => void) => {
+      subscribers.add(listener);
+      return () => subscribers.delete(listener);
+    },
   };
   return {
     store,
@@ -153,6 +161,7 @@ function makeStore(initial: Record<string, unknown>) {
     /** Simulate the user doing something while a sync is mid-flight. */
     mutate: (fn: (s: Record<string, unknown>) => Record<string, unknown>) => {
       state = fn(state);
+      for (const listener of subscribers) listener();
     },
   };
 }
@@ -166,6 +175,7 @@ async function load(opts: {
   databaseNamespace?: string;
   beforeUpsert?: (batch: Row[]) => Promise<void>;
   beforeRpc?: ServerHooks["beforeRpc"];
+  rpcError?: ServerHooks["rpcError"];
   onSelect?: (st: { mutate: (fn: (s: Record<string, unknown>) => Record<string, unknown>) => void }) => void;
 }) {
   vi.resetModules();
@@ -180,6 +190,7 @@ async function load(opts: {
       onSelect: opts.onSelect ? () => opts.onSelect!(st) : undefined,
       beforeUpsert: opts.beforeUpsert,
       beforeRpc: opts.beforeRpc,
+      rpcError: opts.rpcError,
     }),
   };
 
@@ -225,6 +236,80 @@ afterEach(() => {
 });
 
 describe("first sign-in", () => {
+  it("keeps oversized local notes and refuses to send an oversized sync document", async () => {
+    const note = "x".repeat(4 * 1024 * 1024);
+    const { mod, rpcCalls, current } = await load({
+      local: { quranNotes: { "1:1": note } },
+    });
+
+    expect(await mod.syncNow()).toBe(false);
+
+    expect(mod.getSyncStatus()).toMatchObject({
+      phase: "error",
+      pending: true,
+      error: expect.stringContaining("المزامنة"),
+    });
+    expect(rpcCalls.filter((call) => call.name === "athar_sync_commit_batch")).toHaveLength(0);
+    expect((current().quranNotes as Record<string, string>)["1:1"]).toBe(note);
+  });
+
+  it("recovers from an oversized prepared request left by an older client after local data is trimmed", async () => {
+    const namespace = "legacy-oversize-pending";
+    const note = "x".repeat(4 * 1024 * 1024);
+    const { mod, rpcCalls, mutate } = await load({
+      local: { quranNotes: { "1:1": note }, progress: { "morning:0": 2 } },
+      databaseNamespace: namespace,
+    });
+    const legacyDb = new Dexie(`athar-sync-v1::${namespace}`);
+    legacyDb.version(1).stores({ kv: "key" });
+    await legacyDb.open();
+    await legacyDb.table("kv").put({
+      key: "pending",
+      value: {
+        userId: "user-a",
+        requestId: "old-oversized-request",
+        deviceId: "old-device",
+        mode: "rpc",
+        state: "prepared",
+        writes: [{ kind: "quran", expected_revision: null, payload: { quranNotes: { "1:1": note } } }],
+        sourceBuckets: {},
+      },
+    });
+    legacyDb.close();
+
+    expect(await mod.syncNow()).toBe(false);
+    expect(mod.getSyncStatus()).toMatchObject({ phase: "error", pending: true });
+    expect(rpcCalls.filter((call) => call.name === "athar_sync_commit_batch")).toHaveLength(0);
+
+    mod.startCloudSync();
+    try {
+      mutate(() => ({ progress: { "morning:0": 2 } }));
+      expect(await mod.syncNow()).toBe(true);
+      expect(rpcCalls.filter((call) => call.name === "athar_sync_commit_batch")).toHaveLength(1);
+    } finally {
+      mod.stopCloudSync();
+    }
+  });
+
+  it("surfaces a server payload rejection without scheduling an automatic retry", async () => {
+    const { mod, rpcCalls } = await load({
+      local: { progress: { "morning:0": 2 } },
+      rpcError: (name) => name === "athar_sync_commit_batch"
+        ? { code: "22023", message: "SYNC_PAYLOAD_TOO_LARGE: request exceeds 5 MiB" }
+        : null,
+    });
+
+    expect(await mod.syncNow()).toBe(false);
+    expect(mod.getSyncStatus()).toMatchObject({
+      phase: "error",
+      pending: true,
+      error: expect.stringContaining("بقيت محفوظة"),
+    });
+    expect(rpcCalls.filter((call) => call.name === "athar_sync_commit_batch")).toHaveLength(1);
+    await new Promise((resolve) => setTimeout(resolve, 1300));
+    expect(rpcCalls.filter((call) => call.name === "athar_sync_commit_batch")).toHaveLength(1);
+  });
+
   it("uploads local state when the cloud is empty", async () => {
     const { mod, upserts, serverRows, current } = await load({
       local: { progress: { "morning:0": 5 }, favorites: { x: true }, prefs: { theme: "layl" } },

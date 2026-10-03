@@ -39,6 +39,9 @@ const META_KEY = "meta";
 const PENDING_KEY = "pending";
 const DEVICE_KEY = "athar_device_id_v1";
 const MAX_CONFLICT_ATTEMPTS = 4;
+const MAX_SYNC_DOCUMENT_BYTES = 4 * 1024 * 1024;
+const MAX_SYNC_BATCH_BYTES = 5 * 1024 * 1024;
+const SYNC_PAYLOAD_TOO_LARGE_MESSAGE = "بياناتك أكبر من حد المزامنة؛ بقيت محفوظة على هذا الجهاز.";
 
 /** Debounce between a local edit and the push it triggers. Long enough that
  *  counting a 33-bead tasbeeh is one upload rather than 33. */
@@ -59,6 +62,27 @@ type SyncWrite = {
   expected_revision: number | null;
   payload: SyncBlob;
 };
+
+class SyncPayloadTooLargeError extends Error {
+  constructor() {
+    super(SYNC_PAYLOAD_TOO_LARGE_MESSAGE);
+    this.name = "SyncPayloadTooLargeError";
+  }
+}
+
+function assertSyncPayloadWithinLimits(writes: SyncWrite[]): void {
+  const encoder = new TextEncoder();
+  const serializedWrites = JSON.stringify(writes);
+  if (!serializedWrites || encoder.encode(serializedWrites).byteLength > MAX_SYNC_BATCH_BYTES) {
+    throw new SyncPayloadTooLargeError();
+  }
+  if (writes.some((write) => {
+    const serializedPayload = JSON.stringify(write.payload);
+    return !serializedPayload || encoder.encode(serializedPayload).byteLength > MAX_SYNC_DOCUMENT_BYTES;
+  })) {
+    throw new SyncPayloadTooLargeError();
+  }
+}
 
 type PendingCommit = {
   userId: string;
@@ -263,6 +287,7 @@ export type SyncStatus = {
 };
 
 let current: SyncStatus = { phase: "idle", lastSyncedAt: null, error: null, pending: false };
+let payloadTooLargeBlocked = false;
 const listeners = new Set<(s: SyncStatus) => void>();
 
 export function getSyncStatus(): SyncStatus {
@@ -631,6 +656,37 @@ async function finishCommitted(
   if (dirty) scheduleFollowUp();
   return !dirty;
 }
+
+async function recoverFromOversizedPreparedRequest(
+  pending: PendingCommit,
+  supabase: NonNullable<ReturnType<typeof getSupabase>>,
+  isCurrent: () => boolean,
+): Promise<"done" | "again" | "stale"> {
+  const stillPending = await readPending();
+  if (!isCurrent()) return "stale";
+  if (!stillPending || stillPending.requestId !== pending.requestId) return "again";
+
+  // Reconcile against the server before acknowledging the old request. It may
+  // already have committed on an older client and be waiting on its receipt;
+  // finishing it also safely handles the case where it never reached the RPC.
+  const completed = await finishCommitted(stillPending, supabase, isCurrent);
+  if (!isCurrent()) return "stale";
+  if (!completed && getSyncStatus().pending) {
+    if (followUpTimer) {
+      clearTimeout(followUpTimer);
+      followUpTimer = null;
+    }
+    payloadTooLargeBlocked = true;
+    setStatus({
+      phase: "error",
+      error: SYNC_PAYLOAD_TOO_LARGE_MESSAGE,
+      pending: true,
+    });
+    return "done";
+  }
+  return completed ? "done" : "again";
+}
+
 async function processPending(
   pending: PendingCommit,
   supabase: NonNullable<ReturnType<typeof getSupabase>>,
@@ -643,13 +699,27 @@ async function processPending(
   }
 
   if (pending.mode !== "rpc") throw new Error("عملية المزامنة المحفوظة غير صالحة");
+  try {
+    assertSyncPayloadWithinLimits(pending.writes);
+  } catch (error) {
+    if (!(error instanceof SyncPayloadTooLargeError)) throw error;
+    return recoverFromOversizedPreparedRequest(pending, supabase, isCurrent);
+  }
   const { data, error } = await supabase.rpc("athar_sync_commit_batch", {
     p_request_id: pending.requestId,
     p_device_id: pending.deviceId,
     p_writes: pending.writes,
   });
   if (!isCurrent()) return "stale";
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (
+      (error.code === "22023" && error.message.includes("SYNC_PAYLOAD_TOO_LARGE")) ||
+      (error.code === "23514" && error.message.includes("athar_sync_payload_max_4mib"))
+    ) {
+      return recoverFromOversizedPreparedRequest(pending, supabase, isCurrent);
+    }
+    throw new Error(error.message);
+  }
 
   const reply = data as CommitReply | null;
   if (reply?.status === "conflict") {
@@ -700,6 +770,7 @@ async function runSync(generation: number): Promise<boolean> {
   if (!isCurrent()) return false;
   const userId = session?.user?.id;
   if (!userId) return false;
+  if (payloadTooLargeBlocked) return false;
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     setStatus({ phase: "offline" });
     return false;
@@ -745,6 +816,7 @@ async function runSync(generation: number): Promise<boolean> {
       const dirty = bucketsDiffer(merged, server.buckets);
 
       if (writes.length > 0) {
+        assertSyncPayloadWithinLimits(writes);
         const pending: PendingCommit = {
           userId,
           requestId: newRequestId(),
@@ -821,12 +893,14 @@ async function runSync(generation: number): Promise<boolean> {
   } catch (e) {
     if (!isCurrent()) return false;
     const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+    const payloadTooLarge = e instanceof SyncPayloadTooLargeError;
+    payloadTooLargeBlocked = payloadTooLarge;
     setStatus({
       phase: offline ? "offline" : "error",
       error: offline ? null : e instanceof Error ? e.message : "تعذّرت المزامنة",
       pending: true,
     });
-    scheduleRetry();
+    if (!payloadTooLarge) scheduleRetry();
     return false;
   }
 }
@@ -884,7 +958,8 @@ let started = false;
 
 function schedulePush(): void {
   if (pushTimer) clearTimeout(pushTimer);
-  setStatus({ pending: true });
+  payloadTooLargeBlocked = false;
+  setStatus({ phase: "idle", error: null, pending: true });
   pushTimer = setTimeout(() => {
     pushTimer = null;
     void syncNow();
@@ -967,6 +1042,7 @@ export function stopCloudSync(opts?: { forget?: boolean }): void {
     followUpTimer = null;
   }
   failures = 0;
+  payloadTooLargeBlocked = false;
   for (const fn of stopFns) {
     try {
       fn();
