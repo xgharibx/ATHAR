@@ -4447,6 +4447,9 @@ header {
 .mushaf-page-content.page-sliding {
   animation: mushaf-slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+.reduce-motion .mushaf-page-content.page-sliding {
+  animation: none;
+}
 @keyframes mushaf-slide-in {
   from {
     transform: translateX(calc(var(--mushaf-slide-dir, -1) * 28px)) scale(0.986);

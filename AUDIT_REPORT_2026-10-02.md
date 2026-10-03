@@ -251,7 +251,11 @@ The missing foreground token previously left primary-action text below WCAG 2.2 
 
 ### P2 — Make Mushaf and Shorts controls fully keyboard accessible
 
-Several Mushaf sheets declare modal dialogs but do not move, contain, or restore keyboard focus, allowing focus to continue into the reader behind the open overlay. Shorts playback and seeking use pointer-only handlers, and its slider is removed from the tab order; a keyboard user cannot pause, resume, or seek. The Shorts library overlay also lacks modal focus handling, and Escape bubbles to the page handler, which navigates away instead of closing the library first. Existing accessibility tests cover shared Radix dialogs and palette controls but not these reader/player overlays. Add focused keyboard tests for initial focus, Tab containment, Escape closure, focus restoration, playback, and slider operations. The in-app Reduce Motion setting also leaves the Mushaf page-slide transition running despite its dizziness-reduction description; ensure that the app setting disables that transition independently of the OS motion setting.
+Several Mushaf sheets declare modal dialogs but do not move, contain, or restore keyboard focus, allowing focus to continue into the reader behind the open overlay. Shorts playback and seeking use pointer-only handlers, and its slider is removed from the tab order; a keyboard user cannot pause, resume, or seek. The Shorts library overlay also lacks modal focus handling, and Escape bubbles to the page handler, which navigates away instead of closing the library first. Existing accessibility tests cover shared Radix dialogs and palette controls but not these reader/player overlays. Add focused keyboard tests for initial focus, Tab containment, Escape closure, focus restoration, playback, and slider operations.
+
+### Resolved locally — Honor the in-app Reduce Motion setting in Mushaf
+
+When the user enables **تقليل الحركة** in Settings, the app now suppresses the Mushaf page-slide animation independently of the operating system preference. A browser check used the actual Settings switch, navigated from Mushaf page 2 to page 3, and confirmed the reader retained its page transition state while computed `animation-name` was `none` and `animation-duration` was `0s`; with the setting off, the existing slide animation remains available. The remaining Mushaf/Shorts dialog and keyboard-accessibility gaps are still open.
 
 ### Resolved locally — Keep the Qibla floating control clear of instructions on mobile
 
@@ -471,7 +475,8 @@ No production database dump or customer row contents were accessed. Aggregate sc
 - [x] Confirm the app already has selectable visual themes and `Forest` remains its default; keep that visual design as the default.
 - [x] Verify contrast across all 30 existing theme/day-phase accents and a user-selected accent; each computed foreground meets WCAG AA without changing backgrounds.
 - [x] Restore accessible text contrast for shared primary actions across all existing and user-selected accent colors; give success-state controls a foreground matched to their green background.
-- [ ] Verify Mushaf/Shorts dialog focus, Escape behavior, keyboard playback/seeking, and the in-app Reduce Motion setting across reader transitions.
+- [ ] Verify Mushaf/Shorts dialog focus, Escape behavior, and keyboard playback/seeking across reader transitions.
+- [x] Verify the in-app Reduce Motion setting disables Mushaf page slides while preserving the normal transition when the setting is off.
 
 ## Audit limits
 
