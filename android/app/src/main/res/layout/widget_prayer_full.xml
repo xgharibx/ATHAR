@@ -126,16 +126,30 @@
 
             </LinearLayout>
 
-            <!-- Live countdown to next prayer -->
-            <TextView
+            <!-- OS-updated countdown, with a static fallback before API 24. -->
+            <Chronometer
                 android:id="@+id/prayer_full_countdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:gravity="end"
+                android:textColor="@color/widget_row_future"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/prayer_full_countdown_static"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:gravity="end"
                 android:text="جارٍ التحميل..."
                 android:textColor="@color/widget_row_future"
-                android:textSize="11sp" />
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold" />
 
         </LinearLayout>
     </LinearLayout>

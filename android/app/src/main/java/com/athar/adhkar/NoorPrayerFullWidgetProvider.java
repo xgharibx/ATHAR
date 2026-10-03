@@ -5,7 +5,10 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.annotation.TargetApi;
 import android.graphics.Color;
+import android.os.Build;
+import android.os.SystemClock;
 import android.widget.RemoteViews;
 
 import androidx.core.content.ContextCompat;
@@ -176,8 +179,10 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
                         views.setTextViewText(STATUS_IDS[i], cd.isEmpty() ? "▶" : "");
                         views.setTextColor(STATUS_IDS[i], WidgetInk.pick(context, theme, R.color.widget_row_active, R.color.widget_l_row_active));
                         // Show countdown in header
-                        views.setTextViewText(R.id.prayer_full_countdown,
-                            cd.isEmpty() ? "حان وقت " + nameAr : cd);
+                        applyCountdown(views, time24,
+                            cd.isEmpty() ? "حان وقت " + nameAr : cd,
+                            System.currentTimeMillis(), SystemClock.elapsedRealtime(),
+                            Build.VERSION.SDK_INT);
 
                     } else if (passed) {
                         views.setInt(ROW_IDS[i], "setBackgroundColor", Color.TRANSPARENT);
@@ -203,7 +208,12 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
                 }
 
                 if (nextNameAr == null) {
-                    views.setTextViewText(R.id.prayer_full_countdown, "اكتملت صلوات اليوم ✓");
+                    views.setViewVisibility(R.id.prayer_full_countdown,
+                        android.view.View.GONE);
+                    views.setViewVisibility(R.id.prayer_full_countdown_static,
+                        android.view.View.VISIBLE);
+                    views.setTextViewText(R.id.prayer_full_countdown_static,
+                        "اكتملت صلوات اليوم ✓");
                 }
                 skyName = nextNameAr;
 
@@ -221,7 +231,11 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
             } else {
                 // No current schedule is available for this local date/timezone.
                 showPlaceholders(views);
-                views.setTextViewText(R.id.prayer_full_countdown,
+                views.setViewVisibility(R.id.prayer_full_countdown,
+                    android.view.View.GONE);
+                views.setViewVisibility(R.id.prayer_full_countdown_static,
+                    android.view.View.VISIBLE);
+                views.setTextViewText(R.id.prayer_full_countdown_static,
                     payload == null
                         ? "افتح التطبيق لتحميل المواقيت"
                         : "افتح التطبيق لتحديث المواقيت");
@@ -229,7 +243,12 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
 
         } catch (Exception e) {
             showPlaceholders(views);
-            views.setTextViewText(R.id.prayer_full_countdown, "تعذّر تحميل المواقيت");
+            views.setViewVisibility(R.id.prayer_full_countdown,
+                android.view.View.GONE);
+            views.setViewVisibility(R.id.prayer_full_countdown_static,
+                android.view.View.VISIBLE);
+            views.setTextViewText(R.id.prayer_full_countdown_static,
+                "تعذّر تحميل المواقيت");
         }
 
         // Continuous sky — LERPs from the phase just passed toward the one
@@ -259,7 +278,8 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         // LIGHT theme needs dark ink for the header/Ramadan text (the five
         // prayer rows already pick their own colours by theme above).
         WidgetInk.applyLight(context, views, theme, null,
-            new int[]{ R.id.prayer_full_date, R.id.prayer_full_countdown },
+            new int[]{ R.id.prayer_full_date, R.id.prayer_full_countdown,
+                       R.id.prayer_full_countdown_static },
             new int[]{ R.id.prayer_full_title, R.id.prayer_full_ring_label,
                        R.id.label_iftar, R.id.time_iftar });
         WidgetInk.applyLightAccents(context, views, theme,
@@ -272,7 +292,30 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
     // Helpers
     // ─────────────────────────────────────────────────────
 
+    static void applyCountdown(RemoteViews views, String time24, String fallbackText,
+            long nowMillis, long elapsedRealtime, int sdkInt) {
+        long untilMs = PrayerWidgetCountdown.millisUntilToday(time24, nowMillis);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                && sdkInt >= Build.VERSION_CODES.N && untilMs > 0) {
+            applyLiveCountdown(views, elapsedRealtime + untilMs);
+        } else {
+            views.setViewVisibility(R.id.prayer_full_countdown, android.view.View.GONE);
+            views.setViewVisibility(R.id.prayer_full_countdown_static, android.view.View.VISIBLE);
+            views.setTextViewText(R.id.prayer_full_countdown_static, fallbackText);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.N)
+    private static void applyLiveCountdown(RemoteViews views, long base) {
+        views.setViewVisibility(R.id.prayer_full_countdown, android.view.View.VISIBLE);
+        views.setViewVisibility(R.id.prayer_full_countdown_static, android.view.View.GONE);
+        views.setChronometerCountDown(R.id.prayer_full_countdown, true);
+        views.setChronometer(R.id.prayer_full_countdown, base, "بعد %s", true);
+    }
+
     private void showPlaceholders(RemoteViews views) {
+        views.setViewVisibility(R.id.prayer_full_countdown, android.view.View.GONE);
+        views.setViewVisibility(R.id.prayer_full_countdown_static, android.view.View.VISIBLE);
         views.setViewVisibility(R.id.row_suhoor, android.view.View.GONE);
         views.setViewVisibility(R.id.row_iftar, android.view.View.GONE);
         views.setTextViewText(R.id.prayer_full_ring_label, "");
