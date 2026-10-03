@@ -72,16 +72,16 @@
 ### Task 3: Prepare a separate legacy-write cutoff and update operator documentation
 
 **Files:**
-- Create: `supabase/migrations/20261003061100_athar_sync_write_cutoff.sql`
+- Create: `supabase/release-gates/20261003061100_athar_sync_write_cutoff.sql`
 - Modify: `docs/ACCOUNTS_SETUP.md`
 - Modify: `AUDIT_REPORT_2026-10-02.md`
 
 **Interfaces:**
 - Consumes: Task 1's RPC and Task 2's RPC-only client.
-- Produces: an explicit, separate migration that revokes direct `anon`/`authenticated` DML while retaining authenticated SELECT and RLS.
+- Produces: a release-gated SQL migration outside `supabase/migrations`, so routine `supabase db push` cannot apply it before the client rollout. It revokes direct `anon`/`authenticated` DML while retaining authenticated SELECT and RLS.
 
 - [x] **Step 1: Add SQL assertions** proving direct anon/authenticated writes fail, own-row SELECT still succeeds, cross-account reads fail, and RPC writes succeed.
-- [x] **Step 2: Create the cutoff migration** with an explicit release-gate comment and least-privilege grants; do not apply it during initial protocol deployment.
+- [x] **Step 2: Stage the cutoff SQL outside `supabase/migrations`** with an explicit release-gate comment and least-privilege grants. Supabase `db push` applies every pending migration file, so a comment or separate timestamp alone does not defer it.
 - [x] **Step 3: Update account setup documentation** to replace the old one-file SQL instruction with the migration order, client rollout bridge, and delayed cutoff requirements.
 - [x] **Step 4: Update the audit report/checklist** with implementation state, release evidence, and any remaining store/cutover checks.
 - [x] **Step 5: Review migration, docs, and report together** and commit as `docs: stage sync protocol rollout safely`.
@@ -103,6 +103,6 @@
 - [ ] **Step 3: Run the iOS CI build** and confirm an App Store/TestFlight upload path is available before treating iOS as released.
 - [ ] **Step 4: Apply only the additive protocol migration** to a staging project and test two authenticated synthetic users, two-device races, retries, receipt recovery, and RLS. Do not use a customer account or invoke unrelated paid providers.
 - [ ] **Step 5: Publish the web and store builds** through the already configured release paths; verify GitHub checks and the served app/version metadata.
-- [ ] **Step 6: Leave the cutoff unapplied** until all supported client builds are available and the bridge rollout has been checked. If the iOS store path is unavailable, document the blocker and retain legacy direct writes.
-- [ ] **Step 7: When the cutoff gate is met, apply its migration as a separate operation** and verify RPC success plus denied direct writes on staging before production.
+- [ ] **Step 6: Leave the cutoff in `supabase/release-gates/`** until all supported client builds are available and the bridge rollout has been checked. If the iOS store path is unavailable, document the blocker and retain legacy direct writes.
+- [ ] **Step 7: When the cutoff gate is met, promote the SQL into `supabase/migrations` with a fresh timestamp after other pending migrations**, inspect `supabase db push --dry-run`, and apply it as a separate operation. Verify RPC success plus denied direct writes on staging before production.
 - [ ] **Step 8: Re-run advisor, sync, and release verification** and record the production commit/migration/version evidence in the audit report.

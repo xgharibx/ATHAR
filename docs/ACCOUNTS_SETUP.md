@@ -4,17 +4,21 @@
 >
 > The production Supabase project is reachable and the migration ledger is
 > current through `20261003051933_companion_global_budget`. Read-only checks
-> confirm that `athar_sync` still has no revision column or batch RPC. The new
-> revision protocol and the later write-cutoff migration are prepared in this
-> branch but have not been applied. There is no Supabase development branch or
-> local PostgreSQL runtime available for staging tests yet.
+> confirm that `athar_sync` still has no revision column or batch RPC. The
+> revision protocol is prepared in the active migration directory but has not
+> been applied. The later write-cutoff SQL is staged under
+> `supabase/release-gates/`, outside the directory consumed by routine
+> `supabase db push`. There is no Supabase development branch or local
+> PostgreSQL runtime available for staging tests yet.
 >
 > **Before applying the sync protocol:** run both pgTAP files against a
-> disposable staging branch, verify two synthetic accounts and competing
-> devices, then apply only `20261003061000_athar_sync_revision_protocol.sql`.
-> Keep direct table writes enabled until the replacement web, Android, and iOS
-> clients are available and the rollout is checked. The write-cutoff migration
-> is a separate operation and is not part of the initial protocol rollout.
+> disposable staging branch and verify two synthetic accounts and competing
+> devices. Run `supabase db push --dry-run` and confirm that it lists only
+> `20261003061000_athar_sync_revision_protocol.sql` before pushing. Supabase
+> `db push` applies every pending file under `supabase/migrations`; see the
+> [official CLI reference](https://supabase.com/docs/reference/cli/v1/supabase-db-push).
+> Keep the cutoff outside that directory until the replacement web, Android, and iOS
+> clients are available and the rollout is checked.
 >
 > Historical project ref: **`ojstudhmcypoqfnwugbf`**. Verify the active project
 > before changing its settings.
@@ -52,16 +56,21 @@ check its migration ledger first and apply only versions that are absent; do not
 re-run the initial accounts migration over a live project.
 
 The current production account schema includes `athar_sync` and
-`athar_profiles` with owner-scoped RLS. This branch adds two later sync
-migrations:
+`athar_profiles` with owner-scoped RLS. This branch prepares the revision
+protocol and a later write cutoff:
 
 - `20261003061000_athar_sync_revision_protocol.sql` adds revisions, a private
   idempotency table and SECURITY DEFINER implementations behind authenticated
   SECURITY INVOKER RPC wrappers. It retains the
   existing direct-write grants for the bridge rollout.
-- `20261003061100_athar_sync_write_cutoff.sql` revokes direct table writes and
-  retains owner-scoped authenticated reads. **Do not apply it** until updated
-  web, Android, and iOS clients are available and the rollout has been checked.
+- `supabase/release-gates/20261003061100_athar_sync_write_cutoff.sql` revokes
+  direct table writes and retains owner-scoped authenticated reads. It is
+  intentionally outside `supabase/migrations`, because routine `supabase db
+  push` applies all pending migration files. **Do not move it into the active
+  migration directory** until updated web, Android, and iOS clients are
+  available and the rollout has been checked. At that point, give it a new
+  migration timestamp after all already-pending migrations and review
+  `supabase db push --dry-run` before applying it as a separate release gate.
 
 Verify: Dashboard → **Table Editor** → both tables exist and each shows
 "RLS enabled". Also inspect the migration ledger and the RPC/table grants; a
@@ -235,7 +244,9 @@ New fields added to `exportState()` sync automatically: anything not listed in
 `FIELD_KIND` falls into the `settings` document rather than silently not
 syncing.
 
-The legacy direct-write cutoff remains a separate release gate. Old store builds
-cannot render UI added later; after cutoff their cloud writes fail, while local
-data remains available. Do not apply the cutoff until all supported replacement
-builds are available and the rollout has been checked.
+The legacy direct-write cutoff remains a separate release gate in
+`supabase/release-gates/`, outside the files applied by routine `supabase db
+push`. Old store builds cannot render UI added later; after cutoff their cloud
+writes fail, while local data remains available. Do not promote the cutoff into
+the active migration directory until all supported replacement builds are
+available and the rollout has been checked.
