@@ -610,6 +610,9 @@ function buildReminderNotifications(
     if (!plan.enabled) return [];
     const at = reminderAnchor(plan.hhmm, plan.skipToday);
     if (!at) return [];
+    const reminderTime = parseHHMM(plan.hhmm);
+    if (!reminderTime) return [];
+    const configuredReminderTime = `${String(reminderTime.hour).padStart(2, "0")}:${String(reminderTime.minute).padStart(2, "0")}`;
     return [{
       id: plan.id,
       title: plan.title,
@@ -617,7 +620,13 @@ function buildReminderNotifications(
       channelId: audio.channelId,
       ...notificationSound(audio.soundFile),
       actionTypeId: REMINDER_ACTION_TYPE_ID,
-      extra: { ...plan.extra, reminderKey: plan.key, title: plan.title, body: plan.body },
+      extra: {
+        ...plan.extra,
+        reminderKey: plan.key,
+        reminderTime: configuredReminderTime,
+        title: plan.title,
+        body: plan.body,
+      },
       smallIcon: REMINDER_NOTIFICATION_ICON,
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
@@ -626,7 +635,7 @@ function buildReminderNotifications(
       // time interval from scheduling to the first delivery, not a daily clock.
       schedule: plan.skipToday
         ? { at, repeats: true, every: "day" as const }
-        : { on: { hour: at.getHours(), minute: at.getMinutes(), second: 0 } },
+        : { on: { ...reminderTime, second: 0 } },
     }];
   });
 }

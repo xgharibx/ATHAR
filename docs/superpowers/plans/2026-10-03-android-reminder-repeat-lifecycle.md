@@ -4,7 +4,7 @@
 
 **Goal:** Keep Android recurring reminders at their intended local time, preserve them after delivery and reboot, and discard missed one-shot alerts without replay bursts.
 
-**Architecture:** Keep app-owned daily reminders on local calendar triggers. For completed-today daily `at + repeats` reminders, Android schedules the first occurrence at its existing deferred time and carries a local calendar match into subsequent delivery; persisted repeat records survive delivery. Boot recovery converts expired daily records to local calendar matches and advances other supported repeat intervals into the future. The iOS API's current single repeating time-interval trigger cannot defer only the first occurrence and then switch to a local calendar repeat; retain the existing completion skip behavior and track its time-drift edge separately.
+**Architecture:** Keep app-owned daily reminders on local calendar triggers using the configured, canonical `HH:mm` so a Date normalized through a daylight-saving gap cannot alter later deliveries. Patch Capacitor's matcher to reapply explicit clock fields after it advances a date, so a nonexistent spring-gap time cannot carry its normalized hour into the next day. For completed-today daily `at + repeats` reminders, Android schedules the first occurrence at its existing deferred time and carries the configured local clock into subsequent delivery; persisted repeat records survive delivery. Boot recovery converts expired daily records using the configured local clock and advances other supported repeat intervals into the future. The iOS API's current single repeating time-interval trigger cannot defer only the first occurrence and then switch to a local calendar repeat; retain the existing completion skip behavior and track its time-drift edge separately.
 
 **Tech Stack:** Capacitor Local Notifications 6.1.3, Android Java, TypeScript, Vitest, npm postinstall source patch.
 
@@ -19,6 +19,8 @@
 ## Review Focus
 
 - Daily reminder fires for the first time after completion, then survives delivery and reboot at local wall-clock time.
+- Configured reminder `HH:mm` survives a daylight-saving gap, including Android's deferred first delivery and boot conversion.
+- Execute the installed `DateMatch` class against Cairo's 2026 spring-forward gap and verify it returns the next day at the requested clock.
 - A device booted after a daily trigger converts to the next local daily occurrence without an immediate catch-up burst.
 - Expired weekly/hourly repeat triggers advance by whole repeat intervals and are not deleted.
 - Expired one-shot reminders are removed without being replayed.

@@ -108,6 +108,20 @@ patchJavaSource(path.join(localNotificationsRoot, "LocalNotificationManager.java
                     dateMatch.setHour(dailyTime.get(Calendar.HOUR_OF_DAY));
                     dateMatch.setMinute(dailyTime.get(Calendar.MINUTE));
                     dateMatch.setSecond(dailyTime.get(Calendar.SECOND));
+                    JSObject extra = request.getExtra();
+                    String configuredTime = extra == null ? null : extra.getString("reminderTime");
+                    if (configuredTime != null && configuredTime.matches("[0-9]{2}:[0-9]{2}")) {
+                        try {
+                            String[] configuredParts = configuredTime.split(":");
+                            int configuredHour = Integer.parseInt(configuredParts[0]);
+                            int configuredMinute = Integer.parseInt(configuredParts[1]);
+                            if (configuredHour >= 0 && configuredHour <= 23 && configuredMinute >= 0 && configuredMinute <= 59) {
+                                dateMatch.setHour(configuredHour);
+                                dateMatch.setMinute(configuredMinute);
+                                dateMatch.setSecond(0);
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    }
                     dateMatch.nextTrigger(new Date());
                     notificationIntent.putExtra(TimedNotificationPublisher.CRON_KEY, dateMatch.toMatchString());
                     pendingIntent = PendingIntent.getBroadcast(context, request.getId(), notificationIntent, flags);
@@ -119,6 +133,23 @@ patchJavaSource(path.join(localNotificationsRoot, "LocalNotificationManager.java
                         : at.getTime() - new Date().getTime();
                     alarmManager.setRepeating(AlarmManager.RTC, at.getTime(), interval, pendingIntent);
                 }`,
+  },
+]);
+
+patchJavaSource(path.join(localNotificationsRoot, "DateMatch.java"), [
+  {
+    label: "restore configured clock fields after advancing past a DST gap",
+    from: `            if (incrementUnit != -1) {
+                next.set(incrementUnit, next.get(incrementUnit) + 1);
+            }`,
+    to: `            if (incrementUnit != -1) {
+                next.set(incrementUnit, next.get(incrementUnit) + 1);
+                // Calendar may normalize a nonexistent DST-gap time (for example 00:30 to 01:30).
+                // Reapply the requested clock after advancing the date so later days keep 00:30.
+                if (hour != null) next.set(Calendar.HOUR_OF_DAY, hour);
+                if (minute != null) next.set(Calendar.MINUTE, minute);
+                if (second != null) next.set(Calendar.SECOND, second);
+            }`,
   },
 ]);
 
@@ -158,6 +189,20 @@ patchJavaSource(path.join(localNotificationsRoot, "LocalNotificationRestoreRecei
                         dateMatch.setHour(dailyTime.get(Calendar.HOUR_OF_DAY));
                         dateMatch.setMinute(dailyTime.get(Calendar.MINUTE));
                         dateMatch.setSecond(dailyTime.get(Calendar.SECOND));
+                        JSObject extra = notification.getExtra();
+                        String configuredTime = extra == null ? null : extra.getString("reminderTime");
+                        if (configuredTime != null && configuredTime.matches("[0-9]{2}:[0-9]{2}")) {
+                            try {
+                                String[] configuredParts = configuredTime.split(":");
+                                int configuredHour = Integer.parseInt(configuredParts[0]);
+                                int configuredMinute = Integer.parseInt(configuredParts[1]);
+                                if (configuredHour >= 0 && configuredHour <= 23 && configuredMinute >= 0 && configuredMinute <= 59) {
+                                    dateMatch.setHour(configuredHour);
+                                    dateMatch.setMinute(configuredMinute);
+                                    dateMatch.setSecond(0);
+                                }
+                            } catch (NumberFormatException ignored) {}
+                        }
                         schedule.setAt(null);
                         schedule.setEvery(null);
                         schedule.setOn(dateMatch);

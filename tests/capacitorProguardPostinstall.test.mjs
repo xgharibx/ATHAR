@@ -37,6 +37,7 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       ["preferences", "android", "build.gradle"],
     ].map((parts) => path.join(fixtureRoot, "node_modules", "@capacitor", ...parts));
     const notificationJavaFiles = [
+      "DateMatch.java",
       "LocalNotificationManager.java",
       "LocalNotificationRestoreReceiver.java",
       "TimedNotificationPublisher.java",
@@ -145,6 +146,7 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       "localnotifications",
     );
     const javaFiles = [
+      "DateMatch.java",
       "LocalNotificationManager.java",
       "LocalNotificationRestoreReceiver.java",
       "TimedNotificationPublisher.java",
@@ -176,13 +178,18 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
 
       execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
 
-      const manager = readFileSync(path.join(patchedPluginRoot, javaFiles[0]), "utf8");
-      const receiver = readFileSync(path.join(patchedPluginRoot, javaFiles[1]), "utf8");
-      const publisher = readFileSync(path.join(patchedPluginRoot, javaFiles[2]), "utf8");
+      const dateMatch = readFileSync(path.join(patchedPluginRoot, javaFiles[0]), "utf8");
+      const manager = readFileSync(path.join(patchedPluginRoot, javaFiles[1]), "utf8");
+      const receiver = readFileSync(path.join(patchedPluginRoot, javaFiles[2]), "utf8");
+      const publisher = readFileSync(path.join(patchedPluginRoot, javaFiles[3]), "utf8");
       expect(manager).toContain("schedule.getEveryInterval()");
       expect(manager).toContain("schedule.getEvery() == null ? null : schedule.getEveryInterval()");
       expect(manager).toContain('"day".equals(schedule.getEvery())');
       expect(manager).toContain('"day".equals(schedule.getEvery()) && schedule.getCount() == 1');
+      expect(manager).toContain("JSObject extra = request.getExtra();");
+      expect(manager).toContain('extra.getString("reminderTime")');
+      expect(manager).toContain('configuredTime.matches("[0-9]{2}:[0-9]{2}")');
+      expect(manager).toContain("dateMatch.setHour(configuredHour)");
       expect(manager).toContain("notificationIntent.putExtra(TimedNotificationPublisher.CRON_KEY, dateMatch.toMatchString())");
       expect(manager).toMatch(/notificationIntent\.putExtra\(TimedNotificationPublisher\.CRON_KEY, dateMatch\.toMatchString\(\)\);\s*pendingIntent = PendingIntent\.getBroadcast/);
       expect(manager).toContain("setExactIfPossible(alarmManager, schedule, at.getTime(), pendingIntent)");
@@ -190,6 +197,8 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       expect(receiver).toContain("schedule.setOn(dateMatch);");
       expect(receiver).toContain("schedule.isRepeating() && schedule.getEvery() != null");
       expect(receiver).toContain('schedule.isRepeating() && "day".equals(schedule.getEvery()) && schedule.getCount() == 1');
+      expect(receiver).toContain('extra.getString("reminderTime")');
+      expect(receiver).toContain("dateMatch.setMinute(configuredMinute)");
       expect(receiver).toContain("long missedIntervals = (now.getTime() - at.getTime()) / interval + 1");
       expect(receiver).toContain('!schedule.isRepeating()');
       expect(receiver).toContain("if (!schedule.isRepeating()) {\n                            // Do not replay missed one-shot notifications after a long shutdown.\n                            storage.deleteNotification(id);\n                        }");
@@ -198,6 +207,51 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       expect(publisher).toContain("hasRepeatingSchedule(storage, id)");
       expect(publisher).toContain("!hasRepeatingSchedule(storage, id)");
       expect(publisher).toContain('schedule.getString("every") != null');
+
+      let javacAvailable = true;
+      try {
+        execFileSync("javac", ["-version"], { stdio: "ignore" });
+      } catch {
+        javacAvailable = false;
+      }
+
+      if (javacAvailable) {
+        const probePath = path.join(patchedPluginRoot, "DateMatchDstProbe.java");
+        writeFileSync(probePath, `package com.capacitorjs.plugins.localnotifications;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
+public final class DateMatchDstProbe {
+    public static void main(String[] args) throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("Africa/Cairo"));
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
+        Date now = formatter.parse("2026-04-24 02:00");
+        DateMatch match = new DateMatch();
+        match.setHour(0);
+        match.setMinute(30);
+        match.setSecond(0);
+        System.out.print(formatter.format(new Date(match.nextTrigger(now))));
+    }
+}
+`);
+        execFileSync("javac", [
+          "-d",
+          fixtureRoot,
+          path.join(patchedPluginRoot, "DateMatch.java"),
+          probePath,
+        ], { cwd: fixtureRoot });
+        const nextTrigger = execFileSync("java", [
+          "-cp",
+          fixtureRoot,
+          "com.capacitorjs.plugins.localnotifications.DateMatchDstProbe",
+        ], { cwd: fixtureRoot, encoding: "utf8" }).trim();
+        expect(nextTrigger).toBe("2026-04-25 00:30");
+      }
+      expect(dateMatch).toContain("next.set(Calendar.HOUR_OF_DAY, hour)");
+      expect(dateMatch).toContain("next.set(Calendar.MINUTE, minute)");
 
       execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
     } finally {

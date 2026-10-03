@@ -138,6 +138,24 @@ describe("silent native notification sound payloads", () => {
     expect(morning?.schedule).toEqual({ on: { hour: 8, minute: 0, second: 0 } });
   });
 
+  it("preserves the configured clock through a Cairo DST gap", async () => {
+    const previousTimeZone = process.env.TZ;
+    process.env.TZ = "Africa/Cairo";
+    try {
+      vi.setSystemTime(new Date("2026-04-23T13:00:00.000Z"));
+      await syncReminders({ ...adhkarReminders(), morningTime: "0:30" });
+
+      const morning = scheduledNotifications().find((notification) =>
+        (notification.extra as { reminderKey?: string } | undefined)?.reminderKey === "morning",
+      );
+      expect(morning?.extra).toMatchObject({ reminderTime: "00:30" });
+      expect(morning?.schedule).toEqual({ on: { hour: 0, minute: 30, second: 0 } });
+    } finally {
+      if (previousTimeZone === undefined) delete process.env.TZ;
+      else process.env.TZ = previousTimeZone;
+    }
+  });
+
   it("defers a completed morning reminder to tomorrow", async () => {
     await syncReminders(adhkarReminders(), undefined, { morningDone: true });
 
