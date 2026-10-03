@@ -206,6 +206,8 @@ export function CompanionModal(props: {
   prefill?: string;
   context?: AtharContext;
 }) {
+  const sheetOpen = props.open;
+  const closeSheet = props.onClose;
   const navigate = useNavigate();
   const navigateRoute = React.useCallback((route: string) => {
     const safeRoute = getInternalAppRoute(route);
@@ -295,11 +297,11 @@ export function CompanionModal(props: {
   // Escape closes the sheet — expected of any modal, and the only keyboard
   // affordance on a hardware-keyboard Android/tablet.
   React.useEffect(() => {
-    if (!props.open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") props.onClose(); };
+    if (!sheetOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeSheet(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [props.open, props.onClose]);
+  }, [sheetOpen, closeSheet]);
 
   // Persist history whenever messages change
   React.useEffect(() => {

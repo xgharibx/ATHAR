@@ -550,15 +550,17 @@ export function QuranPage() {
   //     silently land on the surah opener at ayah 1, looking like the parser
   //     "returned the wrong ayah").
   const autoJumpedRef = React.useRef<string | null>(null);
+  const directMatchSurahId = directMatch?.surahId;
+  const directMatchAyahIndex = directMatch?.ayahIndex;
   React.useEffect(() => {
-    if (!directMatch || !data) return;
-    const surah = data.find((s) => s.id === directMatch.surahId);
+    if (!directMatchSurahId || !data) return;
+    const surah = data.find((s) => s.id === directMatchSurahId);
     if (!surah) return;
     const ayahCount = surah.ayahs.length;
-    const requested = directMatch.ayahIndex;
+    const requested = directMatchAyahIndex;
     const safeAyah =
       requested && requested >= 1 && requested <= ayahCount ? requested : 1;
-    const targetKey = `${directMatch.surahId}:${requested ?? "x"}:${mode}`;
+    const targetKey = `${directMatchSurahId}:${requested ?? "x"}:${mode}`;
     if (autoJumpedRef.current === targetKey) return;
     autoJumpedRef.current = targetKey;
     // Only auto-jump if the user explicitly typed something that looks like
@@ -567,8 +569,8 @@ export function QuranPage() {
     // to view without being teleported away).
     const looksLikeAyahRef = !!requested;
     if (!looksLikeAyahRef) return;
-    navigate(`/mushaf?surah=${directMatch.surahId}&ayah=${safeAyah}`);
-  }, [directMatch?.surahId, directMatch?.ayahIndex, data, mode, navigate]);
+    navigate(`/mushaf?surah=${directMatchSurahId}&ayah=${safeAyah}`);
+  }, [directMatchSurahId, directMatchAyahIndex, data, mode, navigate]);
 
   const sortedFiltered = React.useMemo(() => {
     let base: typeof filtered;

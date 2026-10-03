@@ -1128,7 +1128,7 @@ export function MushafPage() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [currentPage, goPage, handleBack, navigate, noteSheetOpen, selectedItem, setShowTranslationPref, showJump, showSettings, showSearch, tafsirItem]);
+  }, [currentPage, goPage, handleBack, navigate, noteSheetOpen, selectedItem, setShowTranslationPref, showJump, showSettings, showSearch, shareSheetOpen, tafsirItem]);
 
   // Share selected ayah
   const doCopy = async () => {

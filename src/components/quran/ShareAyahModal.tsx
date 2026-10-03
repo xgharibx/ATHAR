@@ -153,6 +153,8 @@ function useDebouncedCallback<A extends unknown[]>(
 /* ─── Main modal ──────────────────────────────────────────────────────── */
 
 export function ShareAyahModal(props: ShareAyahModalProps) {
+  const modalOpen = props.open;
+  const closeModal = props.onClose;
   // Local state — defaults that lean "Ayah-beautiful"
   const [background, setBackground] = React.useState<AyahBackground>("celestial");
   const [font, setFont] = React.useState<AyahFont>("amiri");
@@ -279,14 +281,14 @@ export function ShareAyahModal(props: ShareAyahModalProps) {
 
   // ─── Backdrop + key handling ───────────────────────────────────────
   const onBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) props.onClose();
+    if (e.target === e.currentTarget) closeModal();
   };
   React.useEffect(() => {
-    if (!props.open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") props.onClose(); };
+    if (!modalOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeModal(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [props.open, props.onClose]);
+  }, [modalOpen, closeModal]);
 
   if (!props.open) return null;
 

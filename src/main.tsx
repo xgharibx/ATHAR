@@ -8,10 +8,13 @@ import App from "./App";
 import "./styles/globals.css";
 import "./pwa";
 import { installAppShellBehaviour } from "@/lib/appShellBehaviour";
+import { setPendingNotificationAction } from "@/lib/reminders";
+import { parseWebReminderActionFragment } from "@/lib/webReminderActions";
 
 const APP_RUNTIME_VERSION = (import.meta.env.VITE_RUNTIME_VERSION as string | undefined) ?? "local-dev";
 const APP_RUNTIME_VERSION_KEY = "noor_app_runtime_version";
 const ROOT_INSTANCE_KEY = "noor_react_root_instance";
+let runtimeReloadRequested = false;
 
 type ErrorBoundaryState = { hasError: boolean; message: string };
 
@@ -74,6 +77,7 @@ try {
     if (seenVersion !== APP_RUNTIME_VERSION) {
       localStorage.setItem(APP_RUNTIME_VERSION_KEY, APP_RUNTIME_VERSION);
       sessionStorage.removeItem("noor_preload_recover_once");
+      runtimeReloadRequested = true;
       globalThis.location.reload();
     }
   } else {
@@ -90,6 +94,30 @@ try {
   }
 } catch {
   // ignore
+}
+
+// A service-worker notification can open the app from a cold start. Buffer its
+// validated action before React mounts, then remove the one-use payload from
+// the visible URL so a refresh cannot replay it.
+try {
+  // Leave the fragment intact if a runtime-version reload was just requested;
+  // the replacement document will consume it exactly once.
+  const action = runtimeReloadRequested
+    ? null
+    : parseWebReminderActionFragment(globalThis.location.hash);
+  if (action) {
+    const url = new URL(globalThis.location.href);
+    url.hash = "";
+    globalThis.history.replaceState(globalThis.history.state, "", url.toString());
+    setPendingNotificationAction({
+      actionId: action.action,
+      route: action.route,
+      extra: action,
+      notification: { title: action.title, body: action.body },
+    });
+  }
+} catch {
+  // Invalid or unavailable browser state must not prevent app startup.
 }
 
 globalThis.addEventListener("vite:preloadError", () => {

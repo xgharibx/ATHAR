@@ -462,9 +462,16 @@ function AppContent() {
 
   // 3C: Register notification deep-link listener on native platforms
   React.useEffect(() => {
+    let cancelled = false;
     let cleanup: (() => void) | undefined;
-    registerNotificationDeepLinkListener(navigate).then((fn) => { cleanup = fn; });
-    return () => { cleanup?.(); };
+    registerNotificationDeepLinkListener(navigate).then((fn) => {
+      if (cancelled) fn();
+      else cleanup = fn;
+    });
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
   }, [navigate]);
 
   // Custom adhkar arriving from another device change what the adhkar DB

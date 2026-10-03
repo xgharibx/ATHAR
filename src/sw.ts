@@ -16,6 +16,11 @@ import {
   ReminderWorkerOwnerGate,
 } from "./lib/reminderWorkerOwner";
 import { getCustomReminderSnoozeMinutes } from "./lib/customReminderTypes";
+import {
+  buildWebReminderActionUrl,
+  selectReminderActionClient,
+  type WebReminderActionDetail,
+} from "./lib/webReminderActions";
 
 declare const self: ServiceWorkerGlobalScope & typeof globalThis & {
   __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
@@ -526,11 +531,23 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
     reminderId?: string;
     accountOwner?: string;
     route?: string;
+    snoozeMinutes?: number;
   };
   const scheduleId = typeof data.scheduleId === "string" ? data.scheduleId : "";
   const reminderId = typeof data.reminderId === "string" ? data.reminderId : "";
   const accountOwner = typeof data.accountOwner === "string" ? data.accountOwner : "local";
   const route = typeof data.route === "string" && data.route ? data.route : "/";
+  const snoozeMinutes = getCustomReminderSnoozeMinutes(data.snoozeMinutes);
+  const detail: WebReminderActionDetail = {
+    action: action === "snooze" || action === "done" ? action : "open",
+    scheduleId,
+    reminderId,
+    accountOwner,
+    route,
+    snoozeMinutes,
+    title: event.notification.title,
+    body: typeof event.notification.body === "string" ? event.notification.body : "",
+  };
 
   event.waitUntil(
     (async () => {
@@ -539,16 +556,12 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
         includeUncontrolled: true,
       });
 
-      // Tell every visible tab about the click so React can navigate/route there.
-      for (const c of clientsArr) {
-        c.postMessage({
-          type: "athar-reminder-click",
-          detail: { scheduleId, reminderId, accountOwner, route, action },
-        });
-      }
-
-      if (clientsArr.length > 0) {
-        const w = clientsArr[0];
+      // A notification click is one action. Sending it to every tab could
+      // complete the same reminder or schedule multiple snoozes.
+      const client = selectReminderActionClient(clientsArr);
+      if (client) {
+        client.postMessage({ type: "athar-reminder-click", detail });
+        const w = client;
         if ("focus" in w) {
           try {
             await w.focus();
@@ -558,8 +571,9 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
         }
         return;
       }
-      if (action === "done") return; // no need to open for a "done" ack
-      await self.clients.openWindow(route);
+      // Preserve the action when no app window is open. The page bootstrap
+      // consumes and strips this one-use fragment before React renders.
+      await self.clients.openWindow(buildWebReminderActionUrl(self.registration.scope, detail));
     })(),
   );
 });

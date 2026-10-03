@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import type { LocalNotification } from "@capacitor/local-notifications";
 import { getCustomReminderSnoozeMinutes } from "@/lib/customReminderTypes";
+import { parseWebReminderClickDetail } from "@/lib/webReminderActions";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 import { useNoorStore } from "@/store/noorStore";
 import { getLocalDateKey, parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
@@ -1099,45 +1100,68 @@ async function syncRemindersForOwner(
 export async function registerNotificationDeepLinkListener(
   navigate: (path: string) => void,
 ): Promise<() => void> {
-  if (!Capacitor.isNativePlatform()) return () => {};
-  const { LocalNotifications } = await import("@capacitor/local-notifications");
-  const handle = await LocalNotifications.addListener(
-    "localNotificationActionPerformed",
-    (action) => {
-      const extra = action.notification.extra as Record<string, unknown> | undefined;
+  let cleanup: () => void = () => {};
+  if (Capacitor.isNativePlatform()) {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    const handle = await LocalNotifications.addListener(
+      "localNotificationActionPerformed",
+      (action) => {
+        const extra = action.notification.extra as Record<string, unknown> | undefined;
 
-      // N9: "تمت الصلاة" action button — log the prayer directly from the
-      // notification shade without opening/navigating the app.
-      if (action.actionId === MARK_PRAYED_ACTION_ID) {
-        void applyNotificationAction({ actionId: action.actionId, extra, notification: action.notification });
-        return;
-      }
+        // N9: "تمت الصلاة" action button — log the prayer directly from the
+        // notification shade without opening/navigating the app.
+        if (action.actionId === MARK_PRAYED_ACTION_ID) {
+          void applyNotificationAction({ actionId: action.actionId, extra, notification: action.notification });
+          return;
+        }
 
-      // N10: "ذكرني بعد ساعة" — reschedule a one-off copy under this reminder's
-      // dedicated snooze ID, without touching the recurring daily schedule.
-      if (action.actionId === SNOOZE_ACTION_ID) {
-        void applyNotificationAction({ actionId: action.actionId, extra, notification: action.notification });
-        return;
-      }
+        // N10: "ذكرني بعد ساعة" — reschedule a one-off copy under this reminder's
+        // dedicated snooze ID, without touching the recurring daily schedule.
+        if (action.actionId === SNOOZE_ACTION_ID) {
+          void applyNotificationAction({ actionId: action.actionId, extra, notification: action.notification });
+          return;
+        }
 
-      // Custom (user- and AI-created) reminders carry their own action set —
-      // see CUSTOM_REMINDER_ACTION_TYPE_ID in customReminderNotifications.ts.
-      // These ids were previously unhandled entirely, so tapping "snooze" or
-      // "done" on an AI-created reminder just opened the app and did nothing.
-      if (action.actionId === "snooze" || action.actionId === "done") {
-        // Snooze and completion share the same handler with buffered cold-start
-        // actions, so neither path can silently lose its side effect.
-        void applyNotificationAction({ actionId: action.actionId, extra, notification: action.notification });
-        return;
-      }
+        // Custom (user- and AI-created) reminders carry their own action set —
+        // see CUSTOM_REMINDER_ACTION_TYPE_ID in customReminderNotifications.ts.
+        // These ids were previously unhandled entirely, so tapping "snooze" or
+        // "done" on an AI-created reminder just opened the app and did nothing.
+        if (action.actionId === "snooze" || action.actionId === "done") {
+          // Snooze and completion share the same handler with buffered cold-start
+          // actions, so neither path can silently lose its side effect.
+          void applyNotificationAction({ actionId: action.actionId, extra, notification: action.notification });
+          return;
+        }
 
-      // "open" and a plain body tap both land here.
-      const route = getAccountScopedNotificationRoute(extra);
-      if (route) {
-        navigate(route);
+        // "open" and a plain body tap both land here.
+        const route = getAccountScopedNotificationRoute(extra);
+        if (route) {
+          navigate(route);
+        }
+      },
+    );
+    cleanup = () => { void handle.remove(); };
+  } else if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+    const onMessage = (event: MessageEvent) => {
+      if (!event.data || event.data.type !== "athar-reminder-click") return;
+      const detail = parseWebReminderClickDetail(event.data.detail);
+      if (!detail) return;
+      const pending: PendingAction = {
+        actionId: detail.action,
+        route: detail.route,
+        extra: detail,
+        notification: { title: detail.title, body: detail.body },
+      };
+      if (detail.action === "open") {
+        const route = getAccountScopedNotificationRoute(detail, detail.route);
+        if (route) navigate(route);
+      } else {
+        void applyNotificationAction(pending);
       }
-    },
-  );
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    cleanup = () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }
 
   // Drain anything that fired before this listener existed — on a cold start
   // the tap launches the app, and the plugin emits while the WebView is still
@@ -1155,7 +1179,7 @@ export async function registerNotificationDeepLinkListener(
     if (!actionHandledWithoutNavigation && route) navigate(route);
   }
 
-  return () => { handle.remove(); };
+  return cleanup;
 }
 
 /**

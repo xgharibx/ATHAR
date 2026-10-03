@@ -58,7 +58,6 @@ import {
   toggleCustomReminder as storeToggleCustomReminder,
   deleteCustomReminder as storeDeleteCustomReminder,
   dismissTemplateFlag,
-  getSeenTemplateIds,
 } from "@/store/customReminderActions";
 import type {
   CustomReminder,
@@ -152,6 +151,11 @@ const ANCHOR_LABELS: Record<NonNullable<CustomReminder["anchorKey"]>, string> = 
 };
 
 const WEEKDAY_NAMES_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+const EMPTY_SEEN_TEMPLATE_IDS: Record<string, boolean> = {};
+
+function selectSeenTemplateIds(state: { seenTemplateIds?: Record<string, boolean> }): Record<string, boolean> {
+  return state.seenTemplateIds ?? EMPTY_SEEN_TEMPLATE_IDS;
+}
 
 function weekdayLabel(value: number | undefined): string {
   if (typeof value !== "number" || value < 0 || value > 6) return "";
@@ -874,14 +878,14 @@ function ReminderSettingsSheet(props: {
 
 export function RemindersPage() {
   const navigate = useNavigate();
-  const reminders = useNoorStore((s) => s.customReminders) ?? [];
+  const storedReminders = useNoorStore((s) => s.customReminders);
+  const reminders = React.useMemo(() => storedReminders ?? [], [storedReminders]);
+  const seenTemplates = useNoorStore(selectSeenTemplateIds);
   const [reminderPermission, setReminderPermission] = React.useState(getCustomReminderPermissionState);
   const [category, setCategory] = React.useState<"all" | ReminderCategory>("all");
   const [drawerMode, setDrawerMode] = React.useState<"create" | "edit" | null>(null);
   const [editingReminder, setEditingReminder] = React.useState<CustomReminder | null>(null);
   const [settingsReminder, setSettingsReminder] = React.useState<CustomReminder | null>(null);
-  const seenTemplates = React.useMemo(() => getSeenTemplateIds(), [reminders.length]);
-
   const ensureReminderPermission = async () => {
     const granted = await requestCustomReminderPermission();
     const state = getCustomReminderPermissionState();
