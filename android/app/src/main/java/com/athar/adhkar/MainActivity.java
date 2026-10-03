@@ -17,6 +17,9 @@ public class MainActivity extends BridgeActivity {
     /** OAuth callback URL (app.athar://auth?...) captured from the intent that
      *  brought us back from the system browser, handed to JS once it's ready. */
     private String pendingAuthUrl;
+
+    /** Skip the cold-start onResume; React's initial effects already sync schedules. */
+    private boolean hasResumed;
     private boolean authDeliveryInProgress;
 
     @Override
@@ -64,6 +67,22 @@ public class MainActivity extends BridgeActivity {
         super.onResume();
         injectPendingRoute();
         deliverPendingAuthUrl();
+        if (hasResumed) dispatchReminderScheduleResume();
+        hasResumed = true;
+    }
+
+    /**
+     * Android does not include Capacitor's App plugin in this build. Notify the
+     * web layer on each warm resume so it can re-check OS permissions and rebuild
+     * enabled reminder schedules without requesting permission in the background.
+     */
+    private void dispatchReminderScheduleResume() {
+        WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+        if (webView == null) return;
+        webView.evaluateJavascript(
+            "window.dispatchEvent(new Event('athar-app-resume'))",
+            null
+        );
     }
 
     /** The OAuth callback, or null for any other intent. */

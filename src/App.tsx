@@ -13,6 +13,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels } from "@/lib/reminders";
 import { syncCustomReminders } from "@/lib/reminderSync";
 import { CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT } from "@/lib/customReminderNotifications";
+import { listenForAppResume } from "@/lib/reminderAppResume";
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { useCloudSync } from "@/hooks/useCloudSync";
@@ -197,7 +198,7 @@ export default function App() {
 function AppContent() {
   useApplyTheme();
   const navigate = useNavigate();
-  const [reminderPermissionRevision, setReminderPermissionRevision] = React.useState(0);
+  const [reminderScheduleRevision, setReminderScheduleRevision] = React.useState(0);
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
   const reminders = useNoorStore((s) => s.reminders);
   const customReminders = useNoorStore((s) => s.customReminders);
@@ -208,9 +209,13 @@ function AppContent() {
   const prayerTimes = usePrayerTimes();
 
   React.useEffect(() => {
-    const onPermissionChange = () => setReminderPermissionRevision((revision) => revision + 1);
-    window.addEventListener(CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT, onPermissionChange);
-    return () => window.removeEventListener(CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT, onPermissionChange);
+    const reconcile = () => setReminderScheduleRevision((revision) => revision + 1);
+    window.addEventListener(CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT, reconcile);
+    const stopListeningForResume = listenForAppResume(reconcile);
+    return () => {
+      window.removeEventListener(CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT, reconcile);
+      stopListeningForResume();
+    };
   }, []);
   const fajrTime = prayerTimes.data?.data?.timings?.Fajr ?? null;
   const notificationPrayerTimings = React.useMemo(() => {
@@ -424,6 +429,7 @@ function AppContent() {
     reminderCompletion.morningStarted,
     reminderCompletion.eveningDone,
     reminderCompletion.eveningStarted,
+    reminderScheduleRevision,
   ]);
 
   // Schedule the next-N firings of every user-defined reminder. Each
@@ -435,7 +441,7 @@ function AppContent() {
   React.useEffect(() => {
     const cleanup = syncCustomReminders(customReminders, { prayerTimes: notificationPrayerTimings ?? undefined });
     return cleanup;
-  }, [customReminders, notificationPrayerTimings, reminderPermissionRevision]);
+  }, [customReminders, notificationPrayerTimings, reminderScheduleRevision]);
 
   // 11C: Pre-create default notification channels on native platforms
   React.useEffect(() => {

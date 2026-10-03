@@ -2,23 +2,25 @@
 
 > ## Current verification status — 2026-10-03
 >
-> The production Supabase project is reachable and the migration ledger is
-> current through `20261003051933_companion_global_budget`. Read-only checks
-> confirm that `athar_sync` still has no revision column or batch RPC. The
-> revision protocol is prepared in the active migration directory but has not
-> been applied. The later write-cutoff SQL is staged under
-> `supabase/release-gates/`, outside the directory consumed by routine
-> `supabase db push`. There is no Supabase development branch or local
-> PostgreSQL runtime available for staging tests yet.
+> The production Supabase project is reachable and its migration ledger records
+> `20261003132940_athar_sync_revision_protocol`. Read-only catalog checks
+> confirm the `athar_sync.revision` column, both batch RPCs, their private
+> implementations, and the receipt table. The RPC grants and receipt-table
+> isolation were checked. Staging pgTAP and signed-in account round-trips are
+> still unverified: Supabase branching is unavailable on the current plan, and
+> this machine has no local PostgreSQL runtime. The later write-cutoff SQL is
+> staged under `supabase/release-gates/`, outside the directory consumed by
+> routine `supabase db push`; legacy direct writes remain enabled.
 >
-> **Before applying the sync protocol:** run both pgTAP files against a
-> disposable staging branch and verify two synthetic accounts and competing
-> devices. Run `supabase db push --dry-run` and confirm that it lists only
-> `20261003061000_athar_sync_revision_protocol.sql` before pushing. Supabase
-> `db push` applies every pending file under `supabase/migrations`; see the
-> [official CLI reference](https://supabase.com/docs/reference/cli/v1/supabase-db-push).
-> Keep the cutoff outside that directory until the replacement web, Android, and iOS
-> clients are available and the rollout is checked.
+> **For a new environment or staging verification:** apply
+> `20261003132940_athar_sync_revision_protocol.sql` after its prerequisite
+> migrations, then run both pgTAP files and verify two synthetic accounts and
+> competing devices before relying on the protocol. In production this
+> migration is already recorded as applied. Run `supabase db push --dry-run`
+> before applying any pending migrations; `db push` applies every pending file
+> under `supabase/migrations` (see the [official CLI reference](https://supabase.com/docs/reference/cli/v1/supabase-db-push)).
+> Keep the cutoff outside that directory until the replacement web, Android,
+> and iOS clients are available and the rollout is checked.
 >
 > Historical project ref: **`ojstudhmcypoqfnwugbf`**. Verify the active project
 > before changing its settings.
@@ -56,10 +58,10 @@ check its migration ledger first and apply only versions that are absent; do not
 re-run the initial accounts migration over a live project.
 
 The current production account schema includes `athar_sync` and
-`athar_profiles` with owner-scoped RLS. This branch prepares the revision
-protocol and a later write cutoff:
+`athar_profiles` with owner-scoped RLS. This branch contains the deployed
+revision protocol and a later write cutoff:
 
-- `20261003061000_athar_sync_revision_protocol.sql` adds revisions, a private
+- `20261003132940_athar_sync_revision_protocol.sql` adds revisions, a private
   idempotency table and SECURITY DEFINER implementations behind authenticated
   SECURITY INVOKER RPC wrappers. It retains the
   existing direct-write grants for the bridge rollout.

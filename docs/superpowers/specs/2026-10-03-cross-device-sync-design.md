@@ -14,11 +14,11 @@ Prevent concurrent devices and retrying clients from silently overwriting anothe
 - Replaying a request after an uncertain network outcome or process restart must not apply it twice.
 - Do not disable legacy direct writes until updated web, Android, and iOS clients are available and the cutover is deliberately applied.
 
-## Current failure
+## Original failure and current deployment status
 
-`src/lib/syncClient.ts` reads all six `athar_sync` JSON documents, merges against a local IndexedDB base, then upserts changed rows unconditionally. Two installations can read the same revision and then replace one another's whole JSON payloads. A later three-way merge can interpret the missing key as a deliberate deletion. The production table currently has no revision column or sync RPC, and the `authenticated` role has direct INSERT, UPDATE, and DELETE privileges.
+At discovery, `src/lib/syncClient.ts` wrote changed rows unconditionally, so two installations could replace one another's whole JSON payloads after reading the same state. The client now uses a revision-checked atomic batch RPC, durable pending records, idempotent receipts, and a rebase for edits made during a request.
 
-There is a second retry hazard in the current client: after a successful server write, an edit during the request causes the client to return before advancing its local base. Since concurrent counter increases are additive, merging that already-committed change again can count it twice. Any server-write protocol must make ambiguous commits idempotent and rebase mid-flight local edits before advancing the base.
+The additive database migration is applied in production as `20261003132940_athar_sync_revision_protocol`. Catalog and grant checks confirm the revision column, RPCs, receipt table, and their intended access controls. Direct `authenticated` INSERT, UPDATE, and DELETE grants remain enabled for the compatibility rollout. Staging pgTAP and signed-in multi-device round-trips have not been verified because database branching is unavailable on the current Supabase plan and no local PostgreSQL runtime is installed.
 
 ## Architecture
 

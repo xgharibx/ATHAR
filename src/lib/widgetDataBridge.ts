@@ -78,6 +78,30 @@ async function nativeSet(key: string, value: string): Promise<void> {
   }
 }
 
+async function clearQiblaWidget(key: string): Promise<void> {
+  try {
+    accountScopedLocalStorage.removeItem(key);
+  } catch {
+    // Continue clearing the shared native widget even if browser storage is unavailable.
+  }
+
+  if (!Capacitor.isNativePlatform()) return;
+
+  try {
+    const { Preferences } = await import("@capacitor/preferences");
+    await Preferences.remove({ key });
+  } catch {
+    // The widget refresh below still restores the placeholder when storage is available.
+  }
+
+  try {
+    const { refreshHomeWidgets } = await import("@/lib/widgetRefresh");
+    await refreshHomeWidgets();
+  } catch {
+    // An older binary may not include the native refresh bridge.
+  }
+}
+
 /**
  * Count how many adhkar items have been started in a section.
  * Key format in noorStore.progress: "${sectionId}:${originalIndex}"
@@ -253,14 +277,33 @@ export type QiblaWidgetPayload = { lat: number; lng: number; updatedAt: string }
  * cached location (noor_prayer_coords_v1) prayer-time calculation already
  * relies on, so this adds no new location capture, just reuses it. The
  * widget computes bearing + distance to the Kaaba natively from these.
+ *
+ * Serialize operations because the native Preferences key is shared across
+ * accounts. If an account switch queues a clear while an earlier write is in
+ * flight, the new account's state must reach native storage last.
  */
-export async function syncQiblaWidget(): Promise<void> {
+let qiblaWidgetSyncQueue: Promise<void> = Promise.resolve();
+
+export function syncQiblaWidget(): Promise<void> {
+  const operation = qiblaWidgetSyncQueue.then(syncQiblaWidgetNow, syncQiblaWidgetNow);
+  qiblaWidgetSyncQueue = operation.catch(() => undefined);
+  return operation;
+}
+
+async function syncQiblaWidgetNow(): Promise<void> {
   const KEY = "noor_widget_qibla_v1";
   try {
     const raw = accountScopedLocalStorage.getItem("noor_prayer_coords_v1");
-    if (!raw) return;
+    if (!raw) {
+      await clearQiblaWidget(KEY);
+      return;
+    }
     const cached = JSON.parse(raw) as { lat?: number; lng?: number };
-    if (!Number.isFinite(cached.lat) || !Number.isFinite(cached.lng)) return;
+    if (!Number.isFinite(cached?.lat) || !Number.isFinite(cached?.lng) ||
+        Math.abs(cached.lat as number) > 90 || Math.abs(cached.lng as number) > 180) {
+      await clearQiblaWidget(KEY);
+      return;
+    }
     const payload: QiblaWidgetPayload = {
       lat: cached.lat as number,
       lng: cached.lng as number,
@@ -270,7 +313,7 @@ export async function syncQiblaWidget(): Promise<void> {
     try { accountScopedLocalStorage.setItem(KEY, value); } catch { /* ignore */ }
     await nativeSet(KEY, value);
   } catch {
-    // No cached location yet — the widget falls back to its own empty state.
+    await clearQiblaWidget(KEY);
   }
 }
 

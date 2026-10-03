@@ -33,7 +33,7 @@
 ### Task 1: Add the revisioned atomic Supabase protocol
 
 **Files:**
-- Create: `supabase/migrations/20261003061000_athar_sync_revision_protocol.sql`
+- Create: `supabase/migrations/20261003132940_athar_sync_revision_protocol.sql`
 - Create: `supabase/tests/athar_sync_revision_protocol.sql`
 
 **Interfaces:**
@@ -45,7 +45,7 @@
 - [x] **Step 3: Add the RLS-protected receipt table** keyed by account/device, storing only request ID, SHA-256 hash, and revision result metadata; grant no direct `anon` or `authenticated` table access.
 - [x] **Step 4: Implement the private SECURITY DEFINER batch function and public invoker wrapper** with empty search path, fully qualified objects, `auth.uid()` ownership, strict kind/payload/batch validation, per-user transaction lock, whole-batch revision check, conflict return, atomic insert/update, and receipt creation.
 - [x] **Step 5: Implement idempotent receipt acknowledgement** restricted to the authenticated account, device, and request ID.
-- [ ] **Step 6: Re-run pgTAP** and inspect `pg_policies`, table grants, function owners, `proconfig`, and execute grants; expect public wrappers to be invoker-only, private implementations to be SECURITY DEFINER with a pinned empty search path, authenticated-only execute, no public/anon execute, and no direct receipt-table grants.
+- [ ] **Step 6: Re-run pgTAP** and inspect `pg_policies`, table grants, function owners, `proconfig`, and execute grants; expect public wrappers to be invoker-only, private implementations to be SECURITY DEFINER with a pinned empty search path, authenticated-only execute, no public/anon execute, and no direct receipt-table grants. Production catalog/grant checks passed after deployment, but pgTAP remains unverified because this Supabase plan does not support branching and no local PostgreSQL runtime is installed.
 - [x] **Step 7: Commit** as `feat: add atomic revisioned sync RPC`.
 
 ### Task 2: Route client writes through durable compare-and-swap commits and rebase in-flight edits
