@@ -35,6 +35,9 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Verify native version parity
+        run: node tools/scripts/check-native-version-parity.mjs
+
       - name: Install
         run: npm ci
 

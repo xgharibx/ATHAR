@@ -28,6 +28,9 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Verify native version parity
+        run: node tools/scripts/check-native-version-parity.mjs
+
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
@@ -45,4 +48,12 @@ jobs:
       - name: Build and lint Android app
         run: |
           cd android
-          ./gradlew --no-daemon :app:assembleDebug :app:lintDebug
+          ./gradlew --no-daemon :app:assembleDebug :app:lintDebug :app:bundleRelease
+
+      - name: Upload unsigned release bundle for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-aab-unsigned
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
