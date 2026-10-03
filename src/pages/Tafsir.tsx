@@ -12,7 +12,7 @@ import { BookOpen, ChevronLeft, Loader2, Sparkles } from "lucide-react";
 
 import { useQuranDB } from "@/data/useQuranDB";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
-import { TAFSIR_EDITIONS } from "@/lib/tafsirEditions";
+import { getTafsirEditionSlug, TAFSIR_EDITIONS } from "@/lib/tafsirEditions";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { toArabicNumeral } from "@/lib/quranMeta";
 import { Card } from "@/components/ui/Card";
@@ -42,7 +42,7 @@ export function TafsirPage() {
     return Number.isFinite(n) && n >= 1 && n <= 114 ? n : null;
   }, [sp]);
   const requestedAyah = parseAyahParam(sp.get("ayah"));
-  const requestedSource = sp.get("source");
+  const requestedSource = getTafsirEditionSlug(sp.get("source")) ?? "muyassar";
 
   const [selectedSurah, setSelectedSurah] = React.useState<number | null>(requestedSurah);
   const [selectedSource, setSelectedSource] = React.useState<string>(

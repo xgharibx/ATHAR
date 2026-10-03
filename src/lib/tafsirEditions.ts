@@ -131,10 +131,13 @@ async function writeCache(slug: string, surahId: number, ayahs: SurahTafsir): Pr
  * for the jalalayn/WBW fetches elsewhere in the app.
  */
 export async function loadTafsirSurah(slug: string, surahId: number): Promise<SurahTafsir> {
-  const cached = await readCache(slug, surahId);
+  const editionSlug = getTafsirEditionSlug(slug);
+  if (!editionSlug) throw new Error("Unknown tafsir edition");
+
+  const cached = await readCache(editionSlug, surahId);
   if (cached) return cached;
 
-  const url = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${slug}/${surahId}.json`;
+  const url = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${editionSlug}/${surahId}.json`;
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Tafsir fetch failed: ${resp.status}`);
   const data = parseTafsirApiResponse(await resp.json(), surahId);
@@ -144,6 +147,6 @@ export async function loadTafsirSurah(slug: string, surahId: number): Promise<Su
     ayahs[item.ayah] = item.text ?? "";
   }
 
-  await writeCache(slug, surahId, ayahs);
+  await writeCache(editionSlug, surahId, ayahs);
   return ayahs;
 }
