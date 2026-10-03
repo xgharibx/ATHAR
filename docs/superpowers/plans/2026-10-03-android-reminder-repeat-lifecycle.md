@@ -47,4 +47,4 @@
 - [x] **Step 3: Extend the postinstall patch** to carry a local calendar match after the first daily `at` delivery, keep repeat records in notification storage, advance supported expired interval schedules to their next future occurrence, and delete only expired one-shots.
 - [x] **Step 4: Run the focused tests** and verify both fresh patching and idempotent re-runs pass.
 - [x] **Step 5: Run** `npm run verify`, `npm run android:sync`, and `android/gradlew.bat :app:assembleDebug :app:lintDebug`; restore only generated changes identified by the Android sync. (Local Gradle build used the existing unpatched node_modules junction; the fresh CI job must compile the patched sources.)
-- [ ] **Step 6: Update the audit report** after fresh CI validates the patched Capacitor source.
+- [x] **Step 6: Update the audit report** after fresh CI validates the patched Capacitor source. Android, iOS, and Pages workflows passed on `09ca247`; Android CI compiled and linted the postinstall-patched plugin.
