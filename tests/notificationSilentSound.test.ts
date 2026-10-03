@@ -129,6 +129,28 @@ describe("silent native notification sound payloads", () => {
     expect(morning).toHaveProperty("sound", "");
   });
 
+  it("uses a local calendar time for recurring adhkar reminders", async () => {
+    await syncReminders(adhkarReminders());
+
+    const morning = scheduledNotifications().find((notification) =>
+      (notification.extra as { reminderKey?: string } | undefined)?.reminderKey === "morning",
+    );
+    expect(morning?.schedule).toEqual({ on: { hour: 8, minute: 0, second: 0 } });
+  });
+
+  it("defers a completed morning reminder to tomorrow", async () => {
+    await syncReminders(adhkarReminders(), undefined, { morningDone: true });
+
+    const morning = scheduledNotifications().find((notification) =>
+      (notification.extra as { reminderKey?: string } | undefined)?.reminderKey === "morning",
+    );
+    expect(morning?.schedule).toEqual({
+      at: new Date(2026, 9, 3, 8, 0, 0),
+      repeats: true,
+      every: "day",
+    });
+  });
+
   it("binds built-in notification actions to the account that scheduled them", async () => {
     setAccountStorageOwner("user:notification-owner");
 

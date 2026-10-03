@@ -621,7 +621,12 @@ function buildReminderNotifications(
       smallIcon: REMINDER_NOTIFICATION_ICON,
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
-      schedule: { at, repeats: true, every: "day" as const },
+      // Calendar triggers keep the reminder at the same local wall-clock time
+      // across boots and daylight-saving changes. `at + repeats` on iOS is a
+      // time interval from scheduling to the first delivery, not a daily clock.
+      schedule: plan.skipToday
+        ? { at, repeats: true, every: "day" as const }
+        : { on: { hour: at.getHours(), minute: at.getMinutes(), second: 0 } },
     }];
   });
 }
