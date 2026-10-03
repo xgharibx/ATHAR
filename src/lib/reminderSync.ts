@@ -118,6 +118,7 @@ export function syncCustomReminders(
   // those overrides rather than hijacking them.
   const overridden = ctx.canNotify !== undefined || ctx.showNotification !== undefined;
   if (!overridden && Capacitor.isNativePlatform()) {
+    if (!reminders.some((reminder) => reminder?.enabled)) return () => {};
     return syncCustomRemindersNative(reminders, ctx, owner);
   }
 
@@ -197,18 +198,14 @@ function syncCustomRemindersNative(
   let cancelled = false;
 
   void (async () => {
-    // Without the OS permission nothing can fire, so ask rather than silently
-    // no-op. Already-granted returns immediately; permanently-denied resolves
-    // denied without a prompt.
+    // Background sync must never open a permission prompt. Reminder activation
+    // is an explicit user action on the Reminders screen; Companion-created
+    // reminders are saved inactive until permission is already granted.
     let granted = false;
     try {
       const { LocalNotifications } = await import("@capacitor/local-notifications");
       const current = await LocalNotifications.checkPermissions();
       granted = current.display === "granted";
-      if (!granted && current.display === "prompt") {
-        const asked = await LocalNotifications.requestPermissions();
-        granted = asked.display === "granted";
-      }
     } catch {
       granted = false;
     }

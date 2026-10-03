@@ -23,4 +23,13 @@ describe("PWA offline asset policy", () => {
     expect(worker).toContain("url.origin === self.location.origin");
     expect(worker).toContain("(?!hadith");
   });
+
+  it("keeps the Hadith runtime cache to one response within the 10 MiB entry budget", () => {
+    const worker = readFileSync(resolve(process.cwd(), "src/sw.ts"), "utf8");
+    const hadithRoute = worker.split('cacheName: "athar-hadith-packs"')[1]?.split("registerRoute(")[0] ?? "";
+
+    expect(hadithRoute).toContain("createMaxResponseSizePlugin(HADITH_RUNTIME_CACHE_MAX_BYTES)");
+    expect(hadithRoute).toMatch(/maxEntries:\s*1/);
+    expect(hadithRoute).toContain("maxAgeSeconds: 60 * 60 * 24 * 30");
+  });
 });

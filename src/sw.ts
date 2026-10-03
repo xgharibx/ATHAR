@@ -21,6 +21,10 @@ import {
   selectReminderActionClient,
   type WebReminderActionDetail,
 } from "./lib/webReminderActions";
+import {
+  createMaxResponseSizePlugin,
+  HADITH_RUNTIME_CACHE_MAX_BYTES,
+} from "./lib/offlineCacheBudget";
 
 declare const self: ServiceWorkerGlobalScope & typeof globalThis & {
   __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
@@ -166,9 +170,10 @@ registerRoute(
     networkTimeoutSeconds: 3,
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
+      createMaxResponseSizePlugin(HADITH_RUNTIME_CACHE_MAX_BYTES),
       new ExpirationPlugin({
-        maxEntries: 4,
-        maxAgeSeconds: 60 * 60 * 24 * 90,
+        maxEntries: 1,
+        maxAgeSeconds: 60 * 60 * 24 * 30,
       }),
     ],
   }),

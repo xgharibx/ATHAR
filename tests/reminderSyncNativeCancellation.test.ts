@@ -46,6 +46,7 @@ describe("native custom reminder cancellation", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 0, 1, 7, 0, 0));
     mocks.localNotifications.checkPermissions.mockResolvedValue({ display: "granted" });
+    mocks.localNotifications.requestPermissions.mockReset().mockResolvedValue({ display: "granted" });
     mocks.schedule.mockReset();
     mocks.cancel.mockReset().mockResolvedValue(undefined);
   });
@@ -64,6 +65,17 @@ describe("native custom reminder cancellation", () => {
     expect(mocks.localNotifications.checkPermissions).not.toHaveBeenCalled();
     expect(mocks.localNotifications.requestPermissions).not.toHaveBeenCalled();
     expect(mocks.schedule).not.toHaveBeenCalled();
+  });
+
+  it("never prompts for notification permission during background sync", async () => {
+    mocks.localNotifications.checkPermissions.mockResolvedValue({ display: "prompt" });
+
+    const cleanup = syncCustomReminders([makeReminder()], { maxFirings: 1 });
+    await vi.waitFor(() => expect(mocks.localNotifications.checkPermissions).toHaveBeenCalledOnce());
+
+    expect(mocks.localNotifications.requestPermissions).not.toHaveBeenCalled();
+    expect(mocks.schedule).not.toHaveBeenCalled();
+    cleanup();
   });
 
   it("cancels an OS alarm when scheduling finishes after its reminder was disabled", async () => {
