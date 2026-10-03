@@ -119,7 +119,7 @@ The per-account and shared daily Companion quota migrations are applied and func
 
 ### P1 — Make Edge Function settings reproducible from the repository
 
-There is no root `supabase/config.toml`. JWT-verification settings appear only in per-function TOML files, while Supabase documents `[functions.<slug>]` configuration in the root config and defaults JWT verification to on. Production currently has the intended flags, but future CLI deployments from this checkout may not preserve them. Add the canonical config and validate function deploy settings before relying on CLI redeploys. See [Supabase function configuration](https://supabase.com/docs/guides/functions/function-configuration).
+Added the canonical root `supabase/config.toml` with gateway JWT verification disabled for `companion`, `dorar`, and `leaderboard`, preserving their existing behavior; `delete-account` and `quran-translations` retain Supabase's secure default. Removed the three nested config copies so future edits have one source of truth. A regression test checks the configured exceptions and secure defaults, and full `npm run verify` passed (1,111 tests across 149 files; production web/PWA build succeeded). Supabase documents `[functions.<slug>]` configuration in the root file and JWT verification as enabled by default. This validates the repository configuration and build, not a remote deployment. See [Supabase function configuration](https://supabase.com/docs/guides/functions/function-configuration).
 
 ### P2 — Keep the home reorder hint off the quick-action labels
 
@@ -415,7 +415,7 @@ No production database dump or customer row contents were accessed. Aggregate sc
 - [ ] Replace the leaderboard read-compute-upsert with a conditional transactional winner; test concurrent old/new snapshot completion ordering.
 - [x] Clear Android Qibla widget coordinates and refresh the placeholder when switching to an account with no saved location; cover account A → account B.
 - [ ] Move or conditionally show the home reorder hint so it does not cross the quick-action labels; verify desktop and 390 × 844 mobile screenshots.
-- [ ] Add a root `supabase/config.toml` that reproduces the current Edge Function JWT-verification settings.
+- [x] Add a root `supabase/config.toml` that reproduces the current Edge Function JWT-verification settings; preserve the three intended gateway exceptions, retain secure defaults, and verify with focused regression coverage plus full `npm run verify`.
 - [x] Make account deletion POST-only and failure-safe; live foreign-key cascades verified and function v2 deployed. Validate the full signed-in lifecycle without using a real customer account.
 - [x] Require PKCE authorization codes for native OAuth callbacks; reject bearer tokens delivered in deep-link fragments.
 - [x] Remove direct leaderboard raw-data access; migration 20261003042222 is live, Data API probes return 401, and the Edge endpoint returns 200 with rows.

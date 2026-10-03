@@ -1,0 +1,11 @@
+# Supabase CLI reads Edge Function overrides from this root configuration.
+# Keep gateway JWT checks disabled only for functions that authenticate requests
+# in their handlers or intentionally serve public data.
+[functions.companion]
+verify_jwt = false
+
+[functions.dorar]
+verify_jwt = false
+
+[functions.leaderboard]
+verify_jwt = false
