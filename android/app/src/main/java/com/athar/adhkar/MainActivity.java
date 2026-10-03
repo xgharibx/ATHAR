@@ -13,6 +13,8 @@ public class MainActivity extends BridgeActivity {
 
     /** Route requested by a widget tap, injected once the web app is ready. */
     private String pendingRoute;
+    /** Invalidates retries queued for an older widget tap. */
+    private long routeDeliveryGeneration;
 
     /** OAuth callback URL (app.athar://auth?...) captured from the intent that
      *  brought us back from the system browser, handed to JS once it's ready. */
@@ -53,7 +55,7 @@ public class MainActivity extends BridgeActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        pendingRoute = readRoute(intent);
+        handleWidgetRoute(intent);
         String authUrl = readAuthUrl(intent);
         if (authUrl != null) {
             pendingAuthUrl = authUrl;
@@ -165,6 +167,13 @@ public class MainActivity extends BridgeActivity {
         return null;
     }
 
+    /** Capture and deliver a widget route immediately when a warm intent arrives. */
+    void handleWidgetRoute(Intent intent) {
+        routeDeliveryGeneration++;
+        pendingRoute = readRoute(intent);
+        injectPendingRoute();
+    }
+
     /**
      * Navigate the SPA to the widget-requested route once React has mounted.
      * Retries briefly on cold start until the app shell is on screen.
@@ -173,6 +182,7 @@ public class MainActivity extends BridgeActivity {
         final String route = pendingRoute;
         if (route == null) return;
         pendingRoute = null;
+        final long generation = routeDeliveryGeneration;
 
         final Handler handler = new Handler(Looper.getMainLooper());
         final int[] attempts = {0};
@@ -180,6 +190,7 @@ public class MainActivity extends BridgeActivity {
         Runnable attempt = new Runnable() {
             @Override
             public void run() {
+                if (generation != routeDeliveryGeneration) return;
                 WebView webView = getBridge() != null ? getBridge().getWebView() : null;
                 if (webView == null) {
                     if (attempts[0]++ < 20) handler.postDelayed(this, 400);
@@ -195,6 +206,7 @@ public class MainActivity extends BridgeActivity {
                         "return 'ok';" +
                     "})()",
                     value -> {
+                        if (generation != routeDeliveryGeneration) return;
                         if (!"\"ok\"".equals(value) && attempts[0]++ < 20) {
                             handler.postDelayed(this, 400);
                         }
