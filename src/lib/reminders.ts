@@ -1,6 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import type { LocalNotification } from "@capacitor/local-notifications";
+import { getCustomReminderSnoozeMinutes } from "@/lib/customReminderTypes";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 import { useNoorStore } from "@/store/noorStore";
 import { getLocalDateKey, parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
@@ -1170,10 +1171,10 @@ export async function registerNotificationDeepLinkListener(
  * zustand rehydrates synchronously as the module loads, so this cannot be
  * clobbered by a later hydration.
  */
-export async function applyNotificationAction(pending: PendingAction): Promise<void> {
+export async function applyNotificationAction(pending: PendingAction): Promise<boolean> {
   const { actionId, extra, route } = pending;
-  if (!actionId) return;
-  if (!notificationActionMatchesActiveAccount(extra)) return;
+  if (!actionId) return false;
+  if (!notificationActionMatchesActiveAccount(extra)) return false;
   const activeOwner = getAccountStorageOwner();
   const actionScopeVersion = notificationActionScopeVersion;
   const actionIsCurrent = () =>
@@ -1186,13 +1187,14 @@ export async function applyNotificationAction(pending: PendingAction): Promise<v
     if (
       typeof reminderKey !== "string" ||
       !Object.prototype.hasOwnProperty.call(REMINDER_SNOOZE_IDS, reminderKey)
-    ) return;
+    ) return false;
 
     const notification = pending.notification;
     const extraText = (key: "title" | "body") => typeof extra?.[key] === "string" ? extra[key] as string : undefined;
+    let scheduled = false;
     try {
       const { LocalNotifications } = await import("@capacitor/local-notifications");
-      if (!actionIsCurrent()) return;
+      if (!actionIsCurrent()) return false;
       const snoozeId = REMINDER_SNOOZE_IDS[reminderKey as ReminderKey];
       await enqueueReminderOperation(async () => {
         if (!actionIsCurrent()) return;
@@ -1213,17 +1215,21 @@ export async function applyNotificationAction(pending: PendingAction): Promise<v
         });
         if (!actionIsCurrent()) {
           await LocalNotifications.cancel({ notifications: [{ id: snoozeId }] });
+        } else {
+          scheduled = true;
         }
       });
     } catch {
       // Notification scheduling is best-effort on devices without permission.
+      return false;
     }
-    return;
+    return scheduled && actionIsCurrent();
   }
 
   if (actionId === "snooze") {
     const reminderId = extra?.reminderId;
-    if (typeof reminderId !== "string") return;
+    if (typeof reminderId !== "string") return false;
+    const snoozeMinutes = getCustomReminderSnoozeMinutes(extra?.snoozeMinutes);
     const title = pending.notification?.title ?? (typeof extra?.title === "string" ? extra.title : "أثر");
     const body = pending.notification?.body ?? (typeof extra?.body === "string" ? extra.body : "");
     const reminder = {
@@ -1231,36 +1237,43 @@ export async function applyNotificationAction(pending: PendingAction): Promise<v
       category: "custom",
       title,
       description: body,
+      notification: { snoozeMinutes },
       deeplink: typeof extra?.route === "string" ? { route: extra.route } : undefined,
     };
     try {
       const { scheduleCustomNotification, cancelCustomNotification, scheduleIdFor } = await import("@/lib/customReminderNotifications");
-      if (!actionIsCurrent()) return;
-      const fireAt = new Date(Date.now() + SNOOZE_MINUTES * 60_000);
+      if (!actionIsCurrent()) return false;
+      const fireAt = new Date(Date.now() + snoozeMinutes * 60_000);
       const scheduleId = scheduleIdFor(reminder.id, fireAt.getTime(), activeOwner);
       await scheduleCustomNotification(
         reminder as unknown as Parameters<typeof scheduleCustomNotification>[0],
         fireAt,
         body,
         activeOwner,
+        { requireDelivery: true },
       );
-      if (!actionIsCurrent()) await cancelCustomNotification(scheduleId);
+      if (!actionIsCurrent()) {
+        await cancelCustomNotification(scheduleId);
+        return false;
+      }
+      return true;
     } catch {
       // Notification scheduling is best-effort on devices without permission.
+      return false;
     }
-    return;
   }
 
   const { useNoorStore } = await import("@/store/noorStore");
-  if (!actionIsCurrent()) return;
+  if (!actionIsCurrent()) return false;
 
   if (actionId === MARK_PRAYED_ACTION_ID) {
     const prayerName = extra?.prayerName;
     const dateISO = extra?.dateISO;
     if (typeof prayerName === "string" && typeof dateISO === "string") {
       useNoorStore.getState().setPrayerLogged(dateISO, prayerName, true);
+      return true;
     }
-    return;
+    return false;
   }
 
   if (actionId === "done") {
@@ -1271,8 +1284,12 @@ export async function applyNotificationAction(pending: PendingAction): Promise<v
     const match = /^\/c\/([A-Za-z0-9_-]+)/.exec(target);
     if (match?.[1]) {
       useNoorStore.getState().recordSectionCompletion(match[1]);
+      return true;
     }
+    return false;
   }
+
+  return false;
 }
 
 /**

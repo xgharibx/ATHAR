@@ -1,5 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import type { CustomReminder } from "./customReminderTypes";
+import { getCustomReminderSnoozeMinutes, type CustomReminder } from "./customReminderTypes";
 import { CUSTOM_REMINDER_ACTION_TYPE_ID, registerNotificationActionTypes } from "./notificationActionTypes";
 import {
   getAccountStorageOwner,
@@ -28,6 +28,7 @@ import {
  */
 
 export type CustomReminderActionId = "done" | "snooze" | "open";
+export type ScheduleCustomNotificationOptions = { requireDelivery?: boolean };
 
 export type AtharReminderClickDetail = {
   scheduleId: string;
@@ -237,6 +238,7 @@ export async function scheduleCustomNotification(
   fireAt: Date,
   body: string,
   owner: AccountStorageOwner = getAccountStorageOwner(),
+  options: ScheduleCustomNotificationOptions = {},
 ): Promise<string> {
   const scheduleId = scheduleIdFor(reminder.id, fireAt.getTime(), owner);
   const finalBody = resolveBody(reminder, body);
@@ -269,6 +271,7 @@ export async function scheduleCustomNotification(
               route,
               title: reminder.title,
               body: finalBody,
+              snoozeMinutes: getCustomReminderSnoozeMinutes(reminder.notification?.snoozeMinutes),
             },
           },
         ],
@@ -294,6 +297,7 @@ export async function scheduleCustomNotification(
   // if the browser suspends the worker's timer. Both use one tag, and the
   // worker's later replacement is silent so the user sees a single alert.
   if (typeof window === "undefined" || typeof navigator === "undefined" || !navigator.serviceWorker) {
+    if (options.requireDelivery) throw new Error("Custom reminder delivery is unavailable");
     return scheduleId;
   }
   if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return scheduleId;
@@ -308,7 +312,13 @@ export async function scheduleCustomNotification(
       tag,
       icon: "/logo.svg",
       badge: "/pwa-192x192.png",
-      data: { scheduleId, reminderId: reminder.id, accountOwner: owner, route },
+      data: {
+        scheduleId,
+        reminderId: reminder.id,
+        accountOwner: owner,
+        route,
+        snoozeMinutes: getCustomReminderSnoozeMinutes(reminder.notification?.snoozeMinutes),
+      },
       actions: [
         { action: "done", title: "تم" },
         { action: "snooze", title: "غفوت" },
@@ -317,7 +327,7 @@ export async function scheduleCustomNotification(
     } as NotificationOptions);
   }, Math.max(0, fireTime - Date.now()));
   webTimers.set(scheduleId, timer);
-  await notifySW({
+  const workerAccepted = await notifySW({
     type: "athar-reminder-schedule",
     scheduleId,
     reminderId: reminder.id,
@@ -326,8 +336,14 @@ export async function scheduleCustomNotification(
     title: reminder.title,
     body: finalBody,
     route,
+    snoozeMinutes: getCustomReminderSnoozeMinutes(reminder.notification?.snoozeMinutes),
     tag,
   }, owner);
+  if (options.requireDelivery && !workerAccepted) {
+    window.clearTimeout(timer);
+    if (webTimers.get(scheduleId) === timer) webTimers.delete(scheduleId);
+    throw new Error("Custom reminder delivery is unavailable");
+  }
   return scheduleId;
 }
 

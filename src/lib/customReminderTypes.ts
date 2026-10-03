@@ -16,3 +16,13 @@ export type CustomReminderOccurrence = {
   fireAt: number;
   scheduleId: string;
 };
+
+export const CUSTOM_REMINDER_SNOOZE_MINUTES = [5, 10, 15, 30, 60] as const;
+
+/** Keep saved and notification-carried snooze durations within Settings' choices. */
+export function getCustomReminderSnoozeMinutes(value: unknown): number {
+  return typeof value === "number" &&
+    CUSTOM_REMINDER_SNOOZE_MINUTES.includes(value as (typeof CUSTOM_REMINDER_SNOOZE_MINUTES)[number])
+    ? value
+    : 10;
+}

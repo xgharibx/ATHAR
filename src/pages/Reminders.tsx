@@ -27,7 +27,6 @@ import {
   ArrowRight,
   Pencil,
   Trash2,
-  Check,
   Pause,
   Play,
   Settings as SettingsIcon,
@@ -45,6 +44,9 @@ import {
 import toast from "react-hot-toast";
 
 import { getInternalAppRoute } from "@/lib/internalAppRoute";
+import { getAccountStorageOwner } from "@/lib/accountStorageScope";
+import { requestCustomReminderPermission } from "@/lib/customReminderNotifications";
+import { getCustomReminderSnoozeMinutes } from "@/lib/customReminderTypes";
 import { useNoorStore } from "@/store/noorStore";
 import {
   addCustomReminder as storeAddCustomReminder,
@@ -67,7 +69,7 @@ import type {
 } from "@/data/reminderTemplates";
 import { REMINDER_TEMPLATES } from "@/data/reminderTemplates";
 import { nextOccurrences, type PrayerTimesSource } from "@/lib/reminderRecurrence";
-import { REMINDER_SOUND_OPTIONS } from "@/lib/reminders";
+import { applyNotificationAction, REMINDER_SOUND_OPTIONS } from "@/lib/reminders";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { arNum, arTime, arFullDate } from "@/lib/formatNumber";
 import { Modal, ModalCloseButton } from "@/components/ui/Modal";
@@ -364,13 +366,14 @@ function ReminderRow(props: {
   onEdit: (r: CustomReminder) => void;
   onDelete: (id: string) => void;
   onOpenSettings: (r: CustomReminder) => void;
-  onMarkDone: (r: CustomReminder) => void;
-  onSnooze: (r: CustomReminder) => void;
+  onDisable: (r: CustomReminder) => void;
+  onSnooze: (r: CustomReminder) => void | Promise<void>;
   onOpenDeeplink: (r: CustomReminder) => void;
   prayerTimes?: PrayerTimesSource;
 }) {
   const [expanded, setExpanded] = React.useState(false);
   const r = props.r;
+  const snoozeMinutes = getCustomReminderSnoozeMinutes(r.notification?.snoozeMinutes);
   return (
     <div
       className={cn(
@@ -459,17 +462,18 @@ function ReminderRow(props: {
           <div className="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
-              onClick={() => props.onMarkDone(r)}
-              className="inline-flex items-center gap-1 rounded-xl bg-[var(--ok)]/15 border border-[var(--ok)]/40 px-2.5 py-1.5 text-[11px] font-semibold text-[var(--ok)] hover:bg-[var(--ok)]/25 transition"
+              onClick={() => props.onDisable(r)}
+              className="inline-flex items-center gap-1 rounded-xl bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 text-[11px] font-semibold text-amber-300 hover:bg-amber-500/20 transition"
             >
-              <Check className="h-3 w-3" aria-hidden="true" /> تمّ
+              <Pause className="h-3 w-3" aria-hidden="true" /> إيقاف التذكير
             </button>
             <button
               type="button"
-              onClick={() => props.onSnooze(r)}
+              onClick={() => void props.onSnooze(r)}
               className="inline-flex items-center gap-1 rounded-xl bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5 text-[11px] font-semibold text-amber-300 hover:bg-amber-500/20 transition"
+              aria-label={`غفوة ${arNum(String(snoozeMinutes))} دقيقة`}
             >
-              <Timer className="h-3 w-3" aria-hidden="true" /> غفوة ١٠ د
+              <Timer className="h-3 w-3" aria-hidden="true" /> غفوة {arNum(String(snoozeMinutes))} د
             </button>
             {r.deeplink?.route ? (
               <button
@@ -970,14 +974,35 @@ export function RemindersPage() {
     toast.success("حُذف التذكير");
   };
 
-  const handleMarkDone = (r: CustomReminder) => {
+  const handleDisable = (r: CustomReminder) => {
     storeToggleCustomReminder(r.id, false);
-    toast.success("أحسنت! تم إيقاف التذكير لليوم");
+    toast.success("تم إيقاف التذكير. يمكنك تفعيله مجددًا من المفتاح.");
   };
 
-  const handleSnooze = (r: CustomReminder) => {
-    const minutes = r.notification?.snoozeMinutes ?? 10;
-    toast.success(`تم تأجيل التذكير ${minutes} دقيقة`);
+  const handleSnooze = async (r: CustomReminder) => {
+    const minutes = getCustomReminderSnoozeMinutes(r.notification?.snoozeMinutes);
+    const permissionGranted = await requestCustomReminderPermission();
+    if (!permissionGranted) {
+      toast.error("اسمح بإشعارات التذكيرات لتأجيل هذا التذكير.");
+      return;
+    }
+
+    const scheduled = await applyNotificationAction({
+      actionId: "snooze",
+      extra: {
+        accountOwner: getAccountStorageOwner(),
+        reminderId: r.id,
+        route: r.deeplink?.route,
+        title: r.title,
+        body: r.body ?? r.description ?? "",
+        snoozeMinutes: minutes,
+      },
+    });
+    if (!scheduled) {
+      toast.error("تعذرت جدولة الغفوة. تحقق من إذن الإشعارات.");
+      return;
+    }
+    toast.success(`تمت جدولة الغفوة لمدة ${arNum(String(minutes))} دقيقة`);
   };
 
   const handleOpenDeeplink = (r: CustomReminder) => {
@@ -1168,7 +1193,7 @@ export function RemindersPage() {
               onEdit={openEdit}
               onDelete={handleDelete}
               onOpenSettings={(rem) => setSettingsReminder(rem)}
-              onMarkDone={handleMarkDone}
+              onDisable={handleDisable}
               onSnooze={handleSnooze}
               onOpenDeeplink={handleOpenDeeplink}
               prayerTimes={prayerTimesForRecurrence}

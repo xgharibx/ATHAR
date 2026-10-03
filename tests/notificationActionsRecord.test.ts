@@ -53,6 +53,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   completeAccountReminderTransition();
   setAccountStorageOwner("local");
 });
@@ -127,6 +128,26 @@ describe("اتممت الصلاة", () => {
     });
 
     expect(customNotificationImport.schedule.mock.calls.at(-1)?.[3]).toBe("user:account-a");
+  });
+
+  it("uses the custom reminder's configured snooze duration", async () => {
+    setAccountStorageOwner("user:account-a");
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-24T08:00:00.000Z"));
+    const expectedFireAt = new Date(Date.now() + 30 * 60_000);
+
+    await applyNotificationAction({
+      actionId: "snooze",
+      extra: {
+        accountOwner: "user:account-a",
+        reminderId: "reminder-a",
+        snoozeMinutes: 30,
+        route: "/c/morning",
+        body: "Morning adhkar",
+      },
+    });
+
+    expect(customNotificationImport.schedule.mock.calls.at(-1)?.[1]).toEqual(expectedFireAt);
   });
 
   it("does not navigate from an outgoing account's reminder", () => {

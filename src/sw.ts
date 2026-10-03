@@ -15,6 +15,7 @@ import {
   isOwnerTransitionFresh,
   ReminderWorkerOwnerGate,
 } from "./lib/reminderWorkerOwner";
+import { getCustomReminderSnoozeMinutes } from "./lib/customReminderTypes";
 
 declare const self: ServiceWorkerGlobalScope & typeof globalThis & {
   __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
@@ -200,6 +201,7 @@ type ScheduleEntry = {
   title: string;
   body: string;
   route: string;
+  snoozeMinutes: number;
   tag: string;
 };
 
@@ -334,7 +336,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
       responsePort?.postMessage({ ok: false });
     }));
   } else if (data.type === "athar-reminder-schedule") {
-    const { scheduleId, fireAtMs, reminderId, accountOwner, title, body, route, tag } = data;
+    const { scheduleId, fireAtMs, reminderId, accountOwner, title, body, route, snoozeMinutes, tag } = data;
     if (typeof scheduleId !== "string" || !Number.isFinite(fireAtMs)) return;
     event.waitUntil((async () => {
       await reminderOwnerReady;
@@ -347,6 +349,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
       const bodyStr: string = typeof body === "string" ? body : "";
       const routeStr: string = typeof route === "string" ? route : "";
       const reminderIdStr: string = typeof reminderId === "string" ? reminderId : "";
+      const snoozeMinutesValue = getCustomReminderSnoozeMinutes(snoozeMinutes);
       const accountOwnerStr = accountOwner as string;
 
       const timer = setTimeout(() => {
@@ -358,7 +361,13 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
           renotify: false,
           icon: "/logo.svg",
           badge: "/pwa-192x192.png",
-          data: { scheduleId, reminderId: reminderIdStr, accountOwner: accountOwnerStr, route: routeStr },
+          data: {
+            scheduleId,
+            reminderId: reminderIdStr,
+            accountOwner: accountOwnerStr,
+            route: routeStr,
+            snoozeMinutes: snoozeMinutesValue,
+          },
           actions: [
             { action: "done", title: "تم" },
             { action: "snooze", title: "غفوت" },
@@ -374,6 +383,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
         title: titleStr,
         body: bodyStr,
         route: routeStr,
+        snoozeMinutes: snoozeMinutesValue,
         tag: tagStr,
       });
     })());

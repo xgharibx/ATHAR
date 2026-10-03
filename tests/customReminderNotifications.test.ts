@@ -186,6 +186,17 @@ describe("scheduleCustomNotification (web fallback)", () => {
     expect(mockLocalNotifications.schedule).not.toHaveBeenCalled();
   });
 
+  it("rejects explicit snooze scheduling when no service worker can deliver it", async () => {
+    setServiceWorker(undefined);
+    await expect(scheduleCustomNotification(
+      makeReminder(),
+      new Date(Date.now() + 60_000),
+      "",
+      "local",
+      { requireDelivery: true },
+    )).rejects.toThrow("Custom reminder delivery is unavailable");
+  });
+
   it("defaults body to description || body || title when override is empty", async () => {
     const r1 = makeReminder({ description: undefined });
     const r2 = makeReminder({ description: "from-desc" });
@@ -220,6 +231,22 @@ describe("scheduleCustomNotification (web fallback)", () => {
     await showServiceWorkerNotification("Reminder", { tag: "athar-reminder:cr:r1:1" });
 
     expect(constructor).not.toHaveBeenCalled();
+  });
+
+  it("carries the configured snooze delay into the service worker schedule", async () => {
+    const postMessage = vi.fn();
+    setServiceWorker({ controller: { postMessage }, getRegistrations: vi.fn(async () => []) });
+
+    await scheduleCustomNotification(
+      makeReminder({ notification: { snoozeMinutes: 30 } }),
+      new Date(Date.now() + 60_000),
+      "",
+    );
+
+    expect(postMessage).toHaveBeenCalledWith(expect.objectContaining({
+      type: "athar-reminder-schedule",
+      snoozeMinutes: 30,
+    }));
   });
 
   it("does not create an untrackable page notification when service workers are unavailable", async () => {
@@ -279,7 +306,7 @@ describe("scheduleCustomNotification (native bridge)", () => {
 
   it("registers action types and creates a channel then schedules", async () => {
     setAccountStorageOwner("user:custom-notification-owner");
-    const reminder = makeReminder();
+    const reminder = makeReminder({ notification: { snoozeMinutes: 30 } });
     const fireAt = new Date(Date.now() + 60_000);
     const id = await scheduleCustomNotification(reminder, fireAt, "explicit body");
     expect(id).toContain(":rem-1:");
@@ -303,6 +330,7 @@ describe("scheduleCustomNotification (native bridge)", () => {
     expect(notif.extra.reminderId).toBe(reminder.id);
     expect(notif.extra.route).toBe("/c/morning");
     expect(notif.extra.accountOwner).toBe("user:custom-notification-owner");
+    expect(notif.extra.snoozeMinutes).toBe(30);
     expect(notif.id).toBe(numericIdFor(id));
   });
 

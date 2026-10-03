@@ -42,6 +42,7 @@ describe("cold-start snooze actions", () => {
       actionId: "snooze_60",
       route: "/c/morning",
       extra: { reminderKey: "morning", route: "/c/morning" },
+      snoozeMinutes: 60,
       expected: { id: 9111, actionTypeId: "REMINDER_ACTIONS" },
     },
     {
@@ -49,6 +50,7 @@ describe("cold-start snooze actions", () => {
       actionId: "snooze",
       route: "/c/morning",
       extra: { reminderId: "custom-1", route: "/c/morning" },
+      snoozeMinutes: 10,
       expected: { actionTypeId: "CUSTOM_REMINDER_ACTIONS" },
     },
   ])("schedules the $name snooze after the app listener mounts", async (testCase) => {
@@ -82,7 +84,7 @@ describe("cold-start snooze actions", () => {
       extra: testCase.extra,
     });
     const schedule = request.notifications[0]?.schedule as { at: Date };
-    expect(schedule.at.getTime()).toBeGreaterThanOrEqual(now + 60 * 60_000 - 1_000);
-    expect(schedule.at.getTime()).toBeLessThanOrEqual(now + 60 * 60_000 + 1_000);
+    expect(schedule.at.getTime()).toBeGreaterThanOrEqual(now + testCase.snoozeMinutes * 60_000 - 1_000);
+    expect(schedule.at.getTime()).toBeLessThanOrEqual(now + testCase.snoozeMinutes * 60_000 + 1_000);
   });
 });
