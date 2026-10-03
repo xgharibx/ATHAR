@@ -233,14 +233,14 @@ if (rootContainer) {
  * queued, so the very tap that opened the app used to be dropped and the user
  * just landed on the home screen instead of the thing being reminded about.
  *
- * This registers as early as possible and only *buffers* the payload; the real
- * listener drains it once the router exists (consumePendingNotificationAction).
+ * This registers as early as possible and dispatches to the router-aware
+ * handler when it is ready, buffering only while the app shell is mounting.
  */
 void (async () => {
   try {
     const { Capacitor } = await import("@capacitor/core");
     if (!Capacitor.isNativePlatform()) return;
-    const [{ LocalNotifications }, { setPendingNotificationAction }] = await Promise.all([
+    const [{ LocalNotifications }, { dispatchNativeNotificationAction }] = await Promise.all([
       import("@capacitor/local-notifications"),
       import("@/lib/reminders"),
     ]);
@@ -249,7 +249,7 @@ void (async () => {
       const route = typeof extra?.route === "string" ? (extra.route as string) : undefined;
       // Keep the action extras and original notification so cold-start prayer
       // logging and snooze scheduling have the same data as the warm listener.
-      setPendingNotificationAction({ actionId: action.actionId, route, extra, notification: action.notification });
+      dispatchNativeNotificationAction({ actionId: action.actionId, route, extra, notification: action.notification });
     });
   } catch {
     // Non-fatal: the in-app listener still covers warm taps.

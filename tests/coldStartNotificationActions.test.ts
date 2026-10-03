@@ -19,8 +19,8 @@ vi.mock("@capacitor/local-notifications", () => ({ LocalNotifications: mocks.loc
 
 import {
   consumePendingNotificationAction,
+  dispatchNativeNotificationAction,
   registerNotificationDeepLinkListener,
-  setPendingNotificationAction,
 } from "@/lib/reminders";
 
 const { localNotifications } = mocks;
@@ -55,7 +55,7 @@ describe("cold-start snooze actions", () => {
     },
   ])("schedules the $name snooze after the app listener mounts", async (testCase) => {
     const now = Date.now();
-    setPendingNotificationAction({
+    dispatchNativeNotificationAction({
       actionId: testCase.actionId,
       route: testCase.route,
       extra: testCase.extra,
@@ -68,7 +68,7 @@ describe("cold-start snooze actions", () => {
     });
 
     const navigate = vi.fn();
-    await registerNotificationDeepLinkListener(navigate);
+    const cleanup = await registerNotificationDeepLinkListener(navigate);
     expect(localNotifications.schedule).toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
 
@@ -86,5 +86,41 @@ describe("cold-start snooze actions", () => {
     const schedule = request.notifications[0]?.schedule as { at: Date };
     expect(schedule.at.getTime()).toBeGreaterThanOrEqual(now + testCase.snoozeMinutes * 60_000 - 1_000);
     expect(schedule.at.getTime()).toBeLessThanOrEqual(now + testCase.snoozeMinutes * 60_000 + 1_000);
+    cleanup();
+  });
+
+  it("does not replay a warm custom snooze when navigation re-registers the listener", async () => {
+    const notification = {
+      id: 9102,
+      title: "تذكير أثر",
+      body: "حان وقت وردك",
+      extra: {
+        accountOwner: "local",
+        reminderId: "custom-1",
+        route: "/c/morning",
+        snoozeMinutes: 10,
+      },
+    };
+    const firstCleanup = await registerNotificationDeepLinkListener(vi.fn());
+
+    // main.tsx has one persistent native listener; when the router handler is
+    // ready, it dispatches the tap directly instead of also buffering it.
+    dispatchNativeNotificationAction({
+      actionId: "snooze",
+      route: "/c/morning",
+      extra: notification.extra,
+      notification,
+    });
+    await vi.waitFor(() => expect(localNotifications.schedule).toHaveBeenCalledTimes(1));
+
+    // useNavigate changes with the current route, so App registers the listener
+    // again; that must not apply the already-handled action from the queue.
+    firstCleanup();
+    const secondCleanup = await registerNotificationDeepLinkListener(vi.fn());
+    await Promise.resolve();
+
+    expect(localNotifications.schedule).toHaveBeenCalledTimes(1);
+    expect(localNotifications.addListener).not.toHaveBeenCalled();
+    secondCleanup();
   });
 });
