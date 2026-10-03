@@ -31,6 +31,7 @@ import { useNoorStore, type ShortsChannelStat } from "@/store/noorStore";
 import { buildShortsFeed, posterFor, type Short } from "@/lib/shortsFeed";
 import { createPlayer, loadYouTubeApi, YT_STATE, type YTPlayer } from "@/lib/youtubePlayer";
 import { shareText } from "@/lib/shareTargets";
+import { getShortsSeekTarget } from "@/lib/shortsKeyboardControls";
 import { ShortsLibrary } from "@/components/shorts/ShortsLibrary";
 
 /** How many neighbours around the active card get a real player. */
@@ -90,7 +91,7 @@ function embedUrl(id: string, muted: boolean) {
     autoplay: "1",
     mute: muted ? "1" : "0",
     playsinline: "1",
-    controls: "0",
+    controls: "1",
     rel: "0",
     modestbranding: "1",
     loop: "1",
@@ -322,17 +323,29 @@ function ShortCard({
     e.stopPropagation();
     const at = scrubbing;
     setScrubbing(null);
+    if (at !== null) seekToFraction(at);
+  };
+
+  const seekToFraction = (position: number) => {
     const pl = playerRef.current;
-    if (at === null || !pl) return;
+    if (!pl) return;
     try {
-      const d = pl.getDuration();
-      if (d > 0) {
-        pl.seekTo(d * at, true);
-        setProgress(at);
-      }
+      const duration = pl.getDuration();
+      if (duration <= 0) return;
+      pl.seekTo(duration * position, true);
+      setProgress(position);
+      watchedRef.current = Math.max(watchedRef.current, position);
     } catch {
       /* mid-teardown */
     }
+  };
+
+  const onPlaybarKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const target = getShortsSeekTarget(e.key, progress);
+    if (target === null) return;
+    e.preventDefault();
+    e.stopPropagation();
+    seekToFraction(target);
   };
 
   const togglePlay = () => {
@@ -374,6 +387,8 @@ function ShortCard({
     }, 300);
   };
 
+  const posterPriority = active ? "high" : mounted ? "auto" : "low";
+
   return (
     <section className="shorts-card" onPointerUp={onTap} aria-label={short.title}>
       {/* Painted underneath always, so a slow player never shows a black
@@ -387,7 +402,11 @@ function ShortCard({
         // poster only starts loading once it is already on screen, which is
         // exactly when it is too late and the swipe shows black.
         loading={mounted ? "eager" : "lazy"}
-        fetchPriority={active ? "high" : mounted ? "auto" : "low"}
+        // React 18 doesn't recognize the camel-case prop yet; use the native
+        // attribute name while keeping the browser's fetch-priority hint.
+        {...({ fetchpriority: posterPriority } as React.HTMLAttributes<HTMLImageElement> & {
+          fetchpriority: "high" | "auto" | "low";
+        })}
       />
       <div className="shorts-scrim" aria-hidden="true" />
 
@@ -425,8 +444,24 @@ function ShortCard({
 
       {active && paused && !unplayable && !hidden && (
         <div className="shorts-idle" aria-hidden="true">
-          <Pause size={44} strokeWidth={1.5} />
+          <Play size={44} strokeWidth={1.5} fill="currentColor" />
         </div>
+      )}
+
+      {active && !unplayable && !hidden && (
+        <button
+          type="button"
+          className="shorts-play-toggle"
+          aria-label={paused ? "تشغيل المقطع" : "إيقاف المقطع"}
+          aria-pressed={!paused}
+          disabled={!ready}
+          onClick={(e) => {
+            e.stopPropagation();
+            togglePlay();
+          }}
+        >
+          {paused ? <Play size={24} fill="currentColor" /> : <Pause size={24} />}
+        </button>
       )}
 
       {burst && (
@@ -523,11 +558,14 @@ https://www.youtube.com/watch?v=${short.youtubeId}`,
           className="shorts-playbar"
           data-scrubbing={scrubbing !== null ? "1" : undefined}
           role="slider"
-          tabIndex={-1}
+          tabIndex={ready ? 0 : -1}
+          aria-disabled={!ready}
+          aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End PageUp PageDown"
           aria-label="موضع التشغيل"
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-valuenow={Math.round(progress * 100)}
+          aria-valuenow={Math.round((scrubbing ?? progress) * 100)}
+          onKeyDown={onPlaybarKeyDown}
           onPointerDown={beginScrub}
           onPointerMove={continueScrub}
           onPointerUp={endScrub}
@@ -719,8 +757,11 @@ export function ShortsPage() {
   // Desktop: arrows move a card at a time, Escape leaves.
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (libraryOpen) return;
       const root = containerRef.current;
       if (!root) return;
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      if (e.key !== "Escape" && target?.closest("button, a[href], input, select, textarea, [role=slider], [contenteditable=true]")) return;
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
         const dir = e.key === "ArrowDown" ? 1 : -1;
@@ -731,7 +772,7 @@ export function ShortsPage() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [index, navigate]);
+  }, [index, libraryOpen, navigate]);
 
   // Start fetching YouTube's API the moment the feed opens, rather than waiting
   // for the index to arrive and the first card to render before asking for it.

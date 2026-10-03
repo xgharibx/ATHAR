@@ -60,6 +60,49 @@ export function ShortsLibrary({
   onClose: () => void;
 }) {
   const [tab, setTab] = React.useState<Tab>("liked");
+  const dialogRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const dialog = dialogRef.current;
+    const initialFocus = dialog?.querySelector<HTMLElement>("[data-shortcuts-initial-focus]");
+    (initialFocus ?? dialog)?.focus();
+
+    return () => {
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, []);
+
+  const onDialogKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+      return;
+    }
+    if (event.key !== "Tab") return;
+
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ));
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!first || !last) {
+      event.preventDefault();
+      dialog.focus();
+    } else if (!dialog.contains(document.activeElement)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+    } else if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog)) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   const bookmarks = useNoorStore((s) => s.videoLibraryBookmarks);
   const toggleBookmark = useNoorStore((s) => s.toggleVideoBookmark);
@@ -101,10 +144,25 @@ export function ShortsLibrary({
   const count = tab === "liked" ? liked.length : tab === "history" ? history.length : hiddenChannels.length;
 
   return (
-    <div className="shorts-lib" dir="rtl" role="dialog" aria-label="مكتبة المقاطع">
+    <div
+      ref={dialogRef}
+      className="shorts-lib"
+      dir="rtl"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="shorts-library-title"
+      tabIndex={-1}
+      onKeyDown={onDialogKeyDown}
+    >
       <header className="shorts-lib-head">
-        <h2>مكتبة المقاطع</h2>
-        <button type="button" onClick={onClose} aria-label="إغلاق" className="shorts-lib-close">
+        <h2 id="shorts-library-title">مكتبة المقاطع</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="إغلاق"
+          className="shorts-lib-close"
+          data-shortcuts-initial-focus
+        >
           <X size={18} />
         </button>
       </header>

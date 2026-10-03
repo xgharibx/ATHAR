@@ -6753,6 +6753,31 @@ a:focus-visible,
 .shorts-action:active { transform: scale(0.9); }
 .shorts-action.liked { color: #ff4d6d; }
 
+.shorts-play-toggle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #fff;
+  background: rgba(18, 22, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+.shorts-play-toggle:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+
 /* A labelled way back, rather than a bare X that never said what it closed to.
    Reads as one piece with the action rail: same glass, same border, same ink. */
 .shorts-back {
@@ -6861,6 +6886,13 @@ body.shorts-open header.sticky {
   /* A drag here scrubs; without this the feed scroll-snaps away instead. */
   touch-action: none;
   cursor: pointer;
+}
+.shorts-playbar:focus-visible {
+  height: 28px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  outline: 2px solid #fff;
+  outline-offset: -2px;
 }
 .shorts-playbar::before {
   content: "";
