@@ -25,6 +25,8 @@ const mocks = vi.hoisted(() => {
       removeAllDeliveredNotifications: vi.fn(async () => undefined),
       registerActionTypes: vi.fn(async () => undefined),
       createChannel: vi.fn(async () => undefined),
+      checkExactNotificationSetting: vi.fn(async () => ({ exact_alarm: "granted" })),
+      changeExactNotificationSetting: vi.fn(async () => ({ exact_alarm: "granted" })),
     },
   };
 });
@@ -40,9 +42,11 @@ import {
   CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT,
   CUSTOM_REMINDER_ACTION_TYPE_ID,
   getCustomReminderPermissionState,
+  getExactAlarmPermissionState,
   hasCustomReminderPermission,
   numericIdFor,
   requestCustomReminderPermission,
+  requestExactAlarmPermission,
   scheduleCustomNotification,
   scheduleIdFor,
   showServiceWorkerNotification,
@@ -355,6 +359,46 @@ describe("hasCustomReminderPermission", () => {
     await expect(hasCustomReminderPermission()).resolves.toBe(false);
     expect(mockLocalNotifications.checkPermissions).toHaveBeenCalledOnce();
     expect(mockLocalNotifications.requestPermissions).not.toHaveBeenCalled();
+  });
+});
+
+describe("exact-alarm access", () => {
+  beforeEach(() => {
+    mockLocalNotifications.checkExactNotificationSetting.mockResolvedValue({ exact_alarm: "granted" } as never);
+    mockLocalNotifications.changeExactNotificationSetting.mockResolvedValue({ exact_alarm: "granted" } as never);
+  });
+
+  it("checks Android access without opening system settings", async () => {
+    mockCapacitor.isNativePlatform.mockReturnValue(true);
+    mockCapacitor.getPlatform.mockReturnValue("android");
+    mockLocalNotifications.checkExactNotificationSetting.mockResolvedValue({ exact_alarm: "denied" } as never);
+    mockLocalNotifications.changeExactNotificationSetting.mockClear();
+
+    await expect(getExactAlarmPermissionState()).resolves.toBe("denied");
+    expect(mockLocalNotifications.checkExactNotificationSetting).toHaveBeenCalledOnce();
+    expect(mockLocalNotifications.changeExactNotificationSetting).not.toHaveBeenCalled();
+  });
+
+  it("opens Android alarm settings only after the explicit action and returns the resulting state", async () => {
+    mockCapacitor.isNativePlatform.mockReturnValue(true);
+    mockCapacitor.getPlatform.mockReturnValue("android");
+    mockLocalNotifications.changeExactNotificationSetting.mockResolvedValue({ exact_alarm: "granted" } as never);
+
+    await expect(requestExactAlarmPermission()).resolves.toBe("granted");
+    expect(mockLocalNotifications.changeExactNotificationSetting).toHaveBeenCalledOnce();
+  });
+
+  it("does not open an Android alarm screen on web or iOS", async () => {
+    mockCapacitor.isNativePlatform.mockReturnValue(false);
+    mockCapacitor.getPlatform.mockReturnValue("web");
+    mockLocalNotifications.changeExactNotificationSetting.mockClear();
+
+    await expect(requestExactAlarmPermission()).resolves.toBe("not-applicable");
+    expect(mockLocalNotifications.changeExactNotificationSetting).not.toHaveBeenCalled();
+
+    mockCapacitor.isNativePlatform.mockReturnValue(true);
+    mockCapacitor.getPlatform.mockReturnValue("ios");
+    await expect(getExactAlarmPermissionState()).resolves.toBe("not-applicable");
   });
 });
 

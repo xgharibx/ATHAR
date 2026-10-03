@@ -10,6 +10,12 @@ import { dismissTemplateFlag, flushCustomReminderWrites } from "@/store/customRe
 import { REMINDER_TEMPLATES } from "@/data/reminderTemplates";
 import { RemindersPage } from "@/pages/Reminders";
 
+const mocks = vi.hoisted(() => ({
+  getExactAlarmPermissionState: vi.fn(),
+  requestExactAlarmPermission: vi.fn(),
+  toastError: vi.fn(),
+}));
+
 vi.mock("@/hooks/usePrayerTimes", () => ({ usePrayerTimes: () => ({ data: undefined }) }));
 vi.mock("@/components/ui/Modal", () => ({
   Modal: ({ open, children }: { open: boolean; children: React.ReactNode }) => open ? <div>{children}</div> : null,
@@ -18,9 +24,14 @@ vi.mock("@/components/ui/Modal", () => ({
 vi.mock("@/components/ui/Switch", () => ({
   Switch: ({ checked }: { checked: boolean }) => <input type="checkbox" checked={checked} readOnly />,
 }));
+vi.mock("react-hot-toast", () => ({
+  default: { error: mocks.toastError, success: vi.fn() },
+}));
 vi.mock("@/lib/customReminderNotifications", () => ({
+  getExactAlarmPermissionState: mocks.getExactAlarmPermissionState,
   getCustomReminderPermissionState: () => "unsupported",
   notifyCustomReminderPermissionChange: vi.fn(),
+  requestExactAlarmPermission: mocks.requestExactAlarmPermission,
   requestCustomReminderPermission: vi.fn(),
 }));
 vi.mock("@/lib/reminders", () => ({
@@ -40,6 +51,8 @@ beforeEach(() => {
     customReminders: undefined,
     seenTemplateIds: {},
   } as unknown as Partial<ReturnType<typeof useNoorStore.getState>>);
+  mocks.getExactAlarmPermissionState.mockResolvedValue("not-applicable");
+  mocks.requestExactAlarmPermission.mockResolvedValue("granted");
 });
 
 afterEach(async () => {
@@ -91,5 +104,99 @@ describe("RemindersPage missing-list fallback", () => {
 
     expect(useNoorStore.getState().customReminders).toHaveLength(0);
     expect(container.querySelector("section article h3")?.textContent).toBe(REMINDER_TEMPLATES[1]!.title.ar);
+  });
+});
+
+describe("RemindersPage Android exact-alarm access", () => {
+  it("keeps active reminders enabled and offers an optional timing-settings action", async () => {
+    useNoorStore.setState({ customReminders: [] });
+    useNoorStore.getState().addCustomReminder({
+      category: "custom",
+      title: "ورد الصباح",
+      repeat: "daily",
+      atTimeOfDay: "09:00",
+    });
+    mocks.getExactAlarmPermissionState.mockResolvedValue("denied");
+
+    await act(async () => {
+      root.render(<MemoryRouter><RemindersPage /></MemoryRouter>);
+      await Promise.resolve();
+    });
+
+    expect(useNoorStore.getState().customReminders[0]?.enabled).toBe(true);
+    expect(container.textContent).toContain("قد تتأخر إشعارات التذكير على أندرويد");
+    const enableExactButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="ضبط دقة أوقات التذكير"]',
+    );
+    expect(enableExactButton).not.toBeNull();
+    expect(enableExactButton?.className).toContain("min-h-11");
+    expect(mocks.requestExactAlarmPermission).not.toHaveBeenCalled();
+
+    await act(async () => {
+      enableExactButton!.click();
+      await Promise.resolve();
+    });
+
+    expect(mocks.requestExactAlarmPermission).toHaveBeenCalledOnce();
+    expect(useNoorStore.getState().customReminders[0]?.enabled).toBe(true);
+    expect(container.textContent).not.toContain("قد تتأخر إشعارات التذكير على أندرويد");
+  });
+
+  it("keeps a truthful warning when Android exact-alarm settings are unavailable", async () => {
+    useNoorStore.setState({ customReminders: [] });
+    useNoorStore.getState().addCustomReminder({
+      category: "custom",
+      title: "قراءة القرآن",
+      repeat: "daily",
+      atTimeOfDay: "20:00",
+    });
+    mocks.getExactAlarmPermissionState.mockResolvedValue("denied");
+    mocks.requestExactAlarmPermission.mockResolvedValue("unsupported");
+
+    await act(async () => {
+      root.render(<MemoryRouter><RemindersPage /></MemoryRouter>);
+      await Promise.resolve();
+    });
+    const enableExactButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="ضبط دقة أوقات التذكير"]',
+    );
+    expect(enableExactButton).not.toBeNull();
+
+    await act(async () => {
+      enableExactButton!.click();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("تعذّر التحقق من دقة التنبيهات على هذا الجهاز");
+    expect(container.textContent).not.toContain("قد تتأخر إشعارات التذكير على أندرويد");
+    expect(container.querySelector('button[aria-label="ضبط دقة أوقات التذكير"]')).toBeNull();
+    expect(useNoorStore.getState().customReminders[0]?.enabled).toBe(true);
+    expect(mocks.toastError).toHaveBeenCalledWith("تعذّر التحقق من دقة التنبيهات على هذا الجهاز.");
+  });
+
+  it("refreshes the timing notice when returning from Android settings", async () => {
+    useNoorStore.setState({ customReminders: [] });
+    useNoorStore.getState().addCustomReminder({
+      category: "custom",
+      title: "ورد المساء",
+      repeat: "daily",
+      atTimeOfDay: "18:00",
+    });
+    mocks.getExactAlarmPermissionState.mockResolvedValue("denied");
+
+    await act(async () => {
+      root.render(<MemoryRouter><RemindersPage /></MemoryRouter>);
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain("قد تتأخر إشعارات التذكير على أندرويد");
+
+    mocks.getExactAlarmPermissionState.mockResolvedValue("granted");
+    await act(async () => {
+      window.dispatchEvent(new Event("athar-app-resume"));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(container.textContent).not.toContain("قد تتأخر إشعارات التذكير على أندرويد");
+    expect(useNoorStore.getState().customReminders[0]?.enabled).toBe(true);
   });
 });

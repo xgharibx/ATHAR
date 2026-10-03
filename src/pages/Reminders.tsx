@@ -47,9 +47,13 @@ import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import { getAccountStorageOwner } from "@/lib/accountStorageScope";
 import {
   getCustomReminderPermissionState,
+  getExactAlarmPermissionState,
   notifyCustomReminderPermissionChange,
+  requestExactAlarmPermission,
   requestCustomReminderPermission,
+  type ExactAlarmPermissionState,
 } from "@/lib/customReminderNotifications";
+import { listenForAppResume } from "@/lib/reminderAppResume";
 import { getCustomReminderSnoozeMinutes } from "@/lib/customReminderTypes";
 import { useNoorStore } from "@/store/noorStore";
 import {
@@ -882,6 +886,7 @@ export function RemindersPage() {
   const reminders = React.useMemo(() => storedReminders ?? [], [storedReminders]);
   const seenTemplates = useNoorStore(selectSeenTemplateIds);
   const [reminderPermission, setReminderPermission] = React.useState(getCustomReminderPermissionState);
+  const [exactAlarmPermission, setExactAlarmPermission] = React.useState<ExactAlarmPermissionState>("not-applicable");
   const [category, setCategory] = React.useState<"all" | ReminderCategory>("all");
   const [drawerMode, setDrawerMode] = React.useState<"create" | "edit" | null>(null);
   const [editingReminder, setEditingReminder] = React.useState<CustomReminder | null>(null);
@@ -892,6 +897,21 @@ export function RemindersPage() {
     setReminderPermission(state);
     return granted && (state === "native" || state === "granted");
   };
+
+  React.useEffect(() => {
+    let mounted = true;
+    const refreshExactAlarmPermission = () => {
+      void getExactAlarmPermissionState().then((state) => {
+        if (mounted) setExactAlarmPermission(state);
+      });
+    };
+    refreshExactAlarmPermission();
+    const stopListening = listenForAppResume(refreshExactAlarmPermission);
+    return () => {
+      mounted = false;
+      stopListening();
+    };
+  }, []);
 
   // Real prayer times so prayer_aligned/sunnah_aligned reminders (anchored to
   // fajr/maghrib/etc.) show an actual next-fire time instead of "—" forever —
@@ -1017,6 +1037,18 @@ export function RemindersPage() {
     }
     if (permissionBeforeRequest === "granted") notifyCustomReminderPermissionChange();
     toast.success("تم تفعيل الإشعارات وإعادة جدولة التذكيرات المفعّلة.");
+  };
+
+  const handleEnableExactAlarmPermission = async () => {
+    const state = await requestExactAlarmPermission();
+    setExactAlarmPermission(state);
+    if (state === "granted") {
+      toast.success("تم السماح بالتنبيهات في أوقاتها المحددة.");
+    } else if (state === "denied") {
+      toast.error("قد تتأخر بعض التنبيهات ما دام إذن المنبهات غير مفعّل.");
+    } else if (state === "unsupported") {
+      toast.error("تعذّر التحقق من دقة التنبيهات على هذا الجهاز.");
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -1185,6 +1217,36 @@ export function RemindersPage() {
                   className="mt-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/20 transition"
                 >
                   {reminderPermission === "denied" ? "تحقق من إذن الإشعارات" : "تفعيل إشعارات التذكيرات"}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </Card>
+      ) : null}
+
+      {activeCount > 0 && (exactAlarmPermission === "denied" || exactAlarmPermission === "unsupported") ? (
+        <Card className="mt-3 border border-amber-500/30 p-4">
+          <div role="status" aria-live="polite" className="flex items-start gap-3">
+            <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-[var(--fg)]">
+                {exactAlarmPermission === "denied"
+                  ? "قد تتأخر إشعارات التذكير على أندرويد"
+                  : "تعذّر التحقق من دقة التنبيهات على هذا الجهاز"}
+              </p>
+              <p className="mt-1 text-[11px] leading-5 text-[var(--muted-2)]">
+                {exactAlarmPermission === "denied"
+                  ? "التذكيرات مفعّلة، لكن السماح للمنبهات والتذكيرات يساعد على وصولها أقرب إلى وقتها. قد يؤخر وضع توفير الطاقة التنبيه حتى بعد السماح."
+                  : "التذكيرات ما زالت مفعّلة، لكن تعذّر التحقق من إعدادات دقة التنبيه على هذا الجهاز."}
+              </p>
+              {exactAlarmPermission === "denied" ? (
+                <button
+                  type="button"
+                  aria-label="ضبط دقة أوقات التذكير"
+                  onClick={() => void handleEnableExactAlarmPermission()}
+                  className="mt-2 inline-flex min-h-11 items-center rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[12px] font-semibold text-amber-200 hover:bg-amber-500/20 transition"
+                >
+                  ضبط دقة أوقات التذكير
                 </button>
               ) : null}
             </div>

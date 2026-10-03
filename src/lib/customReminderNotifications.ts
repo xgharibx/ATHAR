@@ -31,6 +31,7 @@ export type CustomReminderActionId = "done" | "snooze" | "open";
 export type ScheduleCustomNotificationOptions = { requireDelivery?: boolean };
 export const CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT = "athar-reminder-permission-change";
 export type CustomReminderPermissionState = "native" | "granted" | "default" | "denied" | "unsupported";
+export type ExactAlarmPermissionState = "granted" | "denied" | "not-applicable" | "unsupported";
 
 export type AtharReminderClickDetail = {
   scheduleId: string;
@@ -255,6 +256,30 @@ export async function hasCustomReminderPermission(): Promise<boolean> {
     typeof navigator !== "undefined" &&
     Boolean(navigator.serviceWorker) &&
     Notification.permission === "granted";
+}
+
+/** Read Android's exact-alarm special access without opening system settings. */
+export async function getExactAlarmPermissionState(): Promise<ExactAlarmPermissionState> {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== "android") return "not-applicable";
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    const current = await LocalNotifications.checkExactNotificationSetting();
+    return current.exact_alarm === "granted" ? "granted" : "denied";
+  } catch {
+    return "unsupported";
+  }
+}
+
+/** Open Android's exact-alarm settings only from an explicit user action. */
+export async function requestExactAlarmPermission(): Promise<ExactAlarmPermissionState> {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== "android") return "not-applicable";
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    await LocalNotifications.changeExactNotificationSetting();
+    return await getExactAlarmPermissionState();
+  } catch {
+    return "unsupported";
+  }
 }
 
 export function getCustomReminderPermissionState(): CustomReminderPermissionState {
