@@ -271,21 +271,26 @@ export async function migrateHadithStateToIDB(data: {
   notes:     Record<string, string>;
   memoCards: Record<string, HadithMemoCard>;
 }): Promise<void> {
-  try {
-    const db = getUserDB();
-    await Promise.all([
-      db.bookmarks.bulkPut(
-        Object.keys(data.bookmarks).filter((k) => data.bookmarks[k]).map((k) => ({ key: k, val: 1 as const }))
-      ),
-      db.progress.bulkPut(
-        Object.entries(data.progress).map(([bookKey, n]) => ({ bookKey, n }))
-      ),
-      db.notes.bulkPut(
-        Object.entries(data.notes).map(([key, text]) => ({ key, text, updatedAt: Date.now() }))
-      ),
-      db.memoCards.bulkPut(
-        Object.entries(data.memoCards).map(([key, card]) => ({ key, card, updatedAt: Date.now() }))
-      ),
-    ]);
-  } catch { /* non-fatal: data still in localStorage until next migration attempt */ }
+  const writeTo = (db: HadithDexie | HadithUserDexie) => Promise.all([
+    db.bookmarks.bulkPut(
+      Object.keys(data.bookmarks).filter((k) => data.bookmarks[k]).map((k) => ({ key: k, val: 1 as const }))
+    ),
+    db.progress.bulkPut(
+      Object.entries(data.progress).map(([bookKey, n]) => ({ bookKey, n }))
+    ),
+    db.notes.bulkPut(
+      Object.entries(data.notes).map(([key, text]) => ({ key, text, updatedAt: Date.now() }))
+    ),
+    db.memoCards.bulkPut(
+      Object.entries(data.memoCards).map(([key, card]) => ({ key, card, updatedAt: Date.now() }))
+    ),
+  ]);
+
+  if (getAccountStorageOwner() === "local") {
+    const db = getDB();
+    await db.transaction("rw", db.bookmarks, db.progress, db.notes, db.memoCards, () => writeTo(db));
+  } else {
+    const db = getScopedUserDB();
+    await db.transaction("rw", db.bookmarks, db.progress, db.notes, db.memoCards, () => writeTo(db));
+  }
 }

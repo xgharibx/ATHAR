@@ -2038,7 +2038,47 @@ export const useNoorStore = create<NoorState>()(
     }),
     {
       name: "noor_store_v1",
-      storage: createJSONStorage(() => accountScopedLocalStorage),
+      storage: createJSONStorage(() => ({
+        ...accountScopedLocalStorage,
+        // Zustand's persist migration result is merged before an async migration
+        // promise is awaited in the installed version. Import legacy Hadith data
+        // while reading the snapshot so it cannot be stripped before IDB commits.
+        getItem: async (name) => {
+          const serialized = accountScopedLocalStorage.getItem(name);
+          if (serialized === null) return null;
+
+          let envelope: { state?: unknown; version?: unknown };
+          try {
+            envelope = JSON.parse(serialized) as { state?: unknown; version?: unknown };
+          } catch {
+            return serialized;
+          }
+
+          const state = envelope.state;
+          if (
+            typeof envelope.version === "number" &&
+            envelope.version !== 33 &&
+            state !== null &&
+            typeof state === "object"
+          ) {
+            const legacy = state as Record<string, unknown>;
+            const oldBM = legacy.hadithBookmarks;
+            const oldPR = legacy.hadithProgress;
+            const oldNT = legacy.hadithNotes;
+            const oldMC = legacy.hadithMemoCards;
+            if (oldBM || oldPR || oldNT || oldMC) {
+              await migrateHadithStateToIDB({
+                bookmarks: (oldBM as Record<string, boolean>) ?? {},
+                progress: (oldPR as Record<string, number>) ?? {},
+                notes: (oldNT as Record<string, string>) ?? {},
+                memoCards: (oldMC as Record<string, HadithMemoCard>) ?? {},
+              });
+            }
+          }
+
+          return serialized;
+        },
+      })),
       skipHydration: true,
       onRehydrateStorage: () => (_state, error) => {
         persistHydrationError = error ?? null;
@@ -2066,20 +2106,6 @@ export const useNoorStore = create<NoorState>()(
       version: 33,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
-        // 11A: One-time migration — if this user has v24 data with hadith fields in localStorage,
-        //      write it to IDB now so it's preserved. Fire-and-forget (safe to retry on next app start).
-        const oldBM  = (state as Record<string, unknown>).hadithBookmarks;
-        const oldPR  = (state as Record<string, unknown>).hadithProgress;
-        const oldNT  = (state as Record<string, unknown>).hadithNotes;
-        const oldMC  = (state as Record<string, unknown>).hadithMemoCards;
-        if (oldBM || oldPR || oldNT || oldMC) {
-          void migrateHadithStateToIDB({
-            bookmarks:  (oldBM  as Record<string, boolean>)   ?? {},
-            progress:   (oldPR  as Record<string, number>)    ?? {},
-            notes:      (oldNT  as Record<string, string>)    ?? {},
-            memoCards:  (oldMC  as Record<string, HadithMemoCard>) ?? {},
-          });
-        }
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
         const persistedReminders =
           state.reminders && typeof state.reminders === "object" ? state.reminders : undefined;
