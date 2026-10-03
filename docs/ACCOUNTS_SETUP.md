@@ -1,17 +1,20 @@
 # Athar accounts — setup checklist
 
-> ## Current verification status — 2026-10-02
+> ## Current verification status — 2026-10-03
 >
-> Older setup checks recorded below describe a previous live verification and
-> must not be treated as current. This audit made only safe `HEAD`/`GET`/`OPTIONS`
-> requests to 10 configured Supabase endpoints; all returned HTTP 402
-> `exceed_db_size_quota` / project restricted. No database writes, account
-> creation, OAuth exchange, or function deployment was attempted.
+> The production Supabase project is reachable and the migration ledger is
+> current through `20261003051933_companion_global_budget`. Read-only checks
+> confirm that `athar_sync` still has no revision column or batch RPC. The new
+> revision protocol and the later write-cutoff migration are prepared in this
+> branch but have not been applied. There is no Supabase development branch or
+> local PostgreSQL runtime available for staging tests yet.
 >
-> **Before relying on cloud accounts in production:** restore the project, then
-> recheck Auth providers and redirects, `athar_sync`/`athar_profiles` RLS,
-> account deletion, sync, and each deployed Edge Function against staging and
-> production. Treat their live status as unverified until those checks pass.
+> **Before applying the sync protocol:** run both pgTAP files against a
+> disposable staging branch, verify two synthetic accounts and competing
+> devices, then apply only `20261003061000_athar_sync_revision_protocol.sql`.
+> Keep direct table writes enabled until the replacement web, Android, and iOS
+> clients are available and the rollout is checked. The write-cutoff migration
+> is a separate operation and is not part of the initial protocol rollout.
 >
 > Historical project ref: **`ojstudhmcypoqfnwugbf`**. Verify the active project
 > before changing its settings.
@@ -41,16 +44,28 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOi…
 
 ---
 
-## 2. Supabase: create the tables
+## 2. Supabase: apply database migrations
 
-Dashboard → **SQL Editor** → paste the contents of
-`supabase/migrations/20260725000001_accounts_sync.sql` → **Run**.
+For a new project, apply the tracked migrations in version order so the schema,
+functions, grants, and RLS policies stay together. For an existing project,
+check its migration ledger first and apply only versions that are absent; do not
+re-run the initial accounts migration over a live project.
 
-This creates `athar_sync` and `athar_profiles` with row-level security so a
-signed-in user can only ever read and write **their own** rows.
+The current production account schema includes `athar_sync` and
+`athar_profiles` with owner-scoped RLS. This branch adds two later sync
+migrations:
+
+- `20261003061000_athar_sync_revision_protocol.sql` adds revisions, a private
+  idempotency table and SECURITY DEFINER implementations behind authenticated
+  SECURITY INVOKER RPC wrappers. It retains the
+  existing direct-write grants for the bridge rollout.
+- `20261003061100_athar_sync_write_cutoff.sql` revokes direct table writes and
+  retains owner-scoped authenticated reads. **Do not apply it** until updated
+  web, Android, and iOS clients are available and the rollout has been checked.
 
 Verify: Dashboard → **Table Editor** → both tables exist and each shows
-"RLS enabled".
+"RLS enabled". Also inspect the migration ledger and the RPC/table grants; a
+successful SQL response alone does not prove the grants are correct.
 
 ---
 
@@ -130,8 +145,10 @@ content in that table.
 
 Before deploying:
 
-1. Run `supabase/migrations/20261002110000_companion_usage_quota.sql` in the
-   project's SQL editor, then verify `companion_usage_counters` has RLS enabled
+1. Apply `supabase/migrations/20261003042909_companion_usage_quota.sql` and
+   `supabase/migrations/20261003051933_companion_global_budget.sql` in version
+   order, if the project's migration ledger does not already include them. Then
+   verify `companion_usage_counters` has RLS enabled
    and no `anon` or `authenticated` table grants.
 2. Set `MINIMAX_API_KEY` as an Edge Function secret only. Never use a `VITE_`
    variable for the provider key.
@@ -139,8 +156,9 @@ Before deploying:
 4. Test missing/invalid sessions, concurrent quota reservations, per-minute
    and per-day limits, and oversized request rejection against staging.
 
-The current branch has not been deployed. The audit's safe Supabase checks
-returned HTTP 402, so restore the project before running this checklist.
+The production project already has the Companion quota and shared budget
+migrations and deployed function updates. Use the project migration ledger and
+current release evidence rather than re-running these steps blindly.
 
 ## 8. Play Console / App Store disclosure
 
@@ -180,10 +198,11 @@ Once accounts ship you are collecting personal data, so:
 `src/lib/syncMerge.ts` (rules) and `src/lib/syncClient.ts` (I/O).
 
 Sync is **full-state reconciliation**, not a queue of operations: each run reads
-all local state, reads your six server documents, three-way merges, and writes
-back only what changed. That is what makes it safe offline — however many
-changes pile up in flight mode, the next successful run reconciles all of them,
-and a run that dies half-way just retries.
+all local state, reads your six server documents, three-way merges, and sends
+changed documents through a revision-checked batch RPC. A durable IndexedDB
+request record makes uncertain commits replayable, and a conflict forces a
+fresh read and merge. That is what makes it safe offline — however many changes
+pile up in flight mode, the next successful run reconciles all of them.
 
 The rule that drove the design: **sync must never lose data the user can see.**
 Plain last-write-wins would break that — read ten ayahs on the phone, open the
@@ -215,3 +234,8 @@ Two consequences worth knowing:
 New fields added to `exportState()` sync automatically: anything not listed in
 `FIELD_KIND` falls into the `settings` document rather than silently not
 syncing.
+
+The legacy direct-write cutoff remains a separate release gate. Old store builds
+cannot render UI added later; after cutoff their cloud writes fail, while local
+data remains available. Do not apply the cutoff until all supported replacement
+builds are available and the rollout has been checked.

@@ -36,7 +36,9 @@ import {
 const DB_NAME = "athar-sync-v1";
 const BASE_KEY = "base";
 const META_KEY = "meta";
+const PENDING_KEY = "pending";
 const DEVICE_KEY = "athar_device_id_v1";
+const MAX_CONFLICT_ATTEMPTS = 4;
 
 /** Debounce between a local edit and the push it triggers. Long enough that
  *  counting a 33-bead tasbeeh is one upload rather than 33. */
@@ -50,6 +52,33 @@ type Meta = {
   lastSyncedAt: number;
   /** Local edits exist that the server has not accepted yet. */
   dirty: boolean;
+};
+
+type SyncWrite = {
+  kind: SyncKind;
+  expected_revision: number | null;
+  payload: SyncBlob;
+};
+
+type PendingCommit = {
+  userId: string;
+  requestId: string;
+  deviceId: string;
+  mode: "rpc" | "local";
+  state: "prepared" | "committed" | "applying" | "applied";
+  writes: SyncWrite[];
+  /** Local snapshot used as the common ancestor for this attempt. */
+  sourceBuckets: SyncBuckets;
+  /** Set after the server has accepted the request (or for local-only reconcile). */
+  serverBuckets?: SyncBuckets;
+  targetBlob?: SyncBlob;
+  preApplyBlob?: SyncBlob;
+  lastSyncedAt?: number;
+};
+
+type CommitReply = {
+  status: "committed" | "conflict" | "replayed" | "pending_ack";
+  revisions?: Record<string, number>;
 };
 
 interface Row {
@@ -77,19 +106,7 @@ function db(): SyncDexie {
 }
 
 async function kvGet<T>(key: string): Promise<T | null> {
-  try {
-    return ((await db().kv.get(key))?.value as T) ?? null;
-  } catch {
-    return null; // storage unavailable (private mode, quota) — sync degrades, app doesn't
-  }
-}
-
-async function kvSet(key: string, value: unknown): Promise<void> {
-  try {
-    await db().kv.put({ key, value });
-  } catch {
-    /* non-fatal: we just re-merge from scratch next time */
-  }
+  return ((await db().kv.get(key))?.value as T) ?? null;
 }
 
 async function kvDel(key: string): Promise<void> {
@@ -98,6 +115,123 @@ async function kvDel(key: string): Promise<void> {
   } catch {
     /* non-fatal */
   }
+}
+
+async function inKvTransaction<T>(work: (table: Table<Row, string>) => Promise<T>): Promise<T> {
+  const database = db();
+  return database.transaction("rw", database.kv, () => work(database.kv));
+}
+
+async function readPending(): Promise<PendingCommit | null> {
+  return kvGet<PendingCommit>(PENDING_KEY);
+}
+
+/** IndexedDB serializes this read+add across tabs sharing an account database. */
+async function claimPending(pending: PendingCommit): Promise<{ claimed: boolean; pending: PendingCommit }> {
+  return inKvTransaction(async (table) => {
+    const current = (await table.get(PENDING_KEY))?.value as PendingCommit | undefined;
+    if (current) return { claimed: false, pending: current };
+    await table.add({ key: PENDING_KEY, value: pending });
+    return { claimed: true, pending };
+  });
+}
+
+async function persistNoPending(
+  base: SyncBuckets,
+  meta: Meta,
+): Promise<{ saved: boolean; pending: PendingCommit | null }> {
+  return inKvTransaction(async (table) => {
+    const current = (await table.get(PENDING_KEY))?.value as PendingCommit | undefined;
+    if (current) return { saved: false, pending: current };
+    await table.put({ key: BASE_KEY, value: base });
+    await table.put({ key: META_KEY, value: meta });
+    return { saved: true, pending: null };
+  });
+}
+
+async function claimLocalReconcile(
+  pending: PendingCommit,
+  base: SyncBuckets,
+  meta: Meta,
+): Promise<{ claimed: boolean; pending: PendingCommit }> {
+  return inKvTransaction(async (table) => {
+    const current = (await table.get(PENDING_KEY))?.value as PendingCommit | undefined;
+    if (current) return { claimed: false, pending: current };
+    await table.add({ key: PENDING_KEY, value: pending });
+    await table.put({ key: BASE_KEY, value: base });
+    await table.put({ key: META_KEY, value: meta });
+    return { claimed: true, pending };
+  });
+}
+
+async function markCommitted(
+  pending: PendingCommit,
+  targetBlob: SyncBlob,
+  serverBuckets: SyncBuckets,
+  meta: Meta,
+): Promise<PendingCommit | null> {
+  return inKvTransaction(async (table) => {
+    const stored = (await table.get(PENDING_KEY))?.value as PendingCommit | undefined;
+    if (!stored || stored.requestId !== pending.requestId) return stored ?? null;
+    // Another tab may already have completed this exact receipt. Its durable
+    // target wins; the caller will merge any newer local edits into it below.
+    if (stored.state !== "prepared") return stored;
+    const committed: PendingCommit = {
+      ...stored,
+      state: "committed",
+      targetBlob,
+      serverBuckets,
+      lastSyncedAt: meta.lastSyncedAt,
+    };
+    await table.put({ key: BASE_KEY, value: serverBuckets });
+    await table.put({ key: META_KEY, value: meta });
+    await table.put({ key: PENDING_KEY, value: committed });
+    return committed;
+  });
+}
+
+async function updateCommittedTarget(
+  pending: PendingCommit,
+  targetBlob: SyncBlob,
+  meta: Meta,
+): Promise<PendingCommit | null> {
+  return inKvTransaction(async (table) => {
+    const stored = (await table.get(PENDING_KEY))?.value as PendingCommit | undefined;
+    if (!stored || stored.requestId !== pending.requestId) {
+      return stored ?? null;
+    }
+    if (stored.state === "applied" && pending.state !== "applied") return stored;
+    const updated: PendingCommit = {
+      ...stored,
+      state: pending.state,
+      targetBlob,
+      preApplyBlob: pending.state === "applying" ? pending.preApplyBlob : undefined,
+      lastSyncedAt: meta.lastSyncedAt,
+    };
+    await table.put({ key: META_KEY, value: meta });
+    await table.put({ key: PENDING_KEY, value: updated });
+    return updated;
+  });
+}
+
+async function clearPreparedIfMatching(requestId: string): Promise<PendingCommit | null> {
+  return inKvTransaction(async (table) => {
+    const stored = (await table.get(PENDING_KEY))?.value as PendingCommit | undefined;
+    if (!stored) return null;
+    if (stored.requestId !== requestId || stored.state !== "prepared") return stored;
+    await table.delete(PENDING_KEY);
+    return null;
+  });
+}
+
+async function clearPendingIfMatching(requestId: string): Promise<boolean> {
+  return inKvTransaction(async (table) => {
+    const stored = (await table.get(PENDING_KEY))?.value as PendingCommit | undefined;
+    if (!stored) return true; // a concurrent tab already finalized it
+    if (stored.requestId !== requestId) return false;
+    await table.delete(PENDING_KEY);
+    return true;
+  });
 }
 
 /** Stable per-install id, so the server row can say which device wrote last. */
@@ -155,7 +289,8 @@ function setStatus(patch: Partial<SyncStatus>): void {
 // the reconcile
 // ————————————————————————————————————————————————————————————————
 
-type ServerRow = { kind: string; payload: unknown; updated_at: string };
+type ServerRow = { kind: SyncKind; payload: unknown; updated_at: string; revision: number };
+type ServerSnapshot = { rows: Map<SyncKind, ServerRow>; buckets: SyncBuckets };
 
 let inFlight: Promise<boolean> | null = null;
 let syncGeneration = 0;
@@ -175,19 +310,380 @@ function localSnapshot(): SyncBlob {
   };
 }
 
+async function readServerSnapshot(
+  supabase: NonNullable<ReturnType<typeof getSupabase>>,
+  userId: string,
+  isCurrent: () => boolean,
+): Promise<ServerSnapshot | null> {
+  const { data, error } = await supabase
+    .from("athar_sync")
+    .select("kind, payload, updated_at, revision")
+    .eq("user_id", userId);
+  if (!isCurrent()) return null;
+  if (error) throw new Error(error.message);
+
+  const rows = new Map<SyncKind, ServerRow>();
+  const buckets = emptyBuckets();
+  for (const candidate of (data ?? []) as Array<{
+    kind: string;
+    payload: unknown;
+    updated_at: string;
+    revision: number;
+  }>) {
+    if (!SYNC_KINDS.includes(candidate.kind as SyncKind)) continue;
+    const kind = candidate.kind as SyncKind;
+    const row: ServerRow = { ...candidate, kind };
+    rows.set(kind, row);
+    buckets[kind] = withoutExportMetadata(
+      typeof candidate.payload === "object" && candidate.payload !== null && !Array.isArray(candidate.payload)
+        ? candidate.payload as SyncBlob
+        : {},
+    );
+  }
+  return { rows, buckets };
+}
+
+function mergeBuckets(
+  local: SyncBuckets,
+  remote: SyncBuckets,
+  base: Partial<SyncBuckets> | null,
+  rows: Map<SyncKind, ServerRow> | null,
+  lastSyncedAt: number,
+  preferLocalScalars = false,
+): SyncBuckets {
+  const merged = emptyBuckets();
+  for (const kind of SYNC_KINDS) {
+    const stamp = rows?.get(kind)?.updated_at;
+    const parsedStamp = stamp ? Date.parse(stamp) : 0;
+    merged[kind] = mergeDoc(local[kind], remote[kind], {
+      remoteNewer: !preferLocalScalars && Number.isFinite(parsedStamp) && parsedStamp > lastSyncedAt,
+      base: base?.[kind] ?? null,
+    });
+  }
+  return merged;
+}
+
+function bucketsDiffer(a: SyncBuckets, b: SyncBuckets): boolean {
+  return SYNC_KINDS.some((kind) => !sameDoc(a[kind], b[kind]));
+}
+
+function makeWrites(merged: SyncBuckets, server: ServerSnapshot): SyncWrite[] {
+  const writes: SyncWrite[] = [];
+  for (const kind of SYNC_KINDS) {
+    if (!server.rows.has(kind) || !sameDoc(merged[kind], server.buckets[kind])) {
+      writes.push({
+        kind,
+        expected_revision: server.rows.get(kind)?.revision ?? null,
+        payload: merged[kind],
+      });
+    }
+  }
+  return writes;
+}
+
+function newRequestId(): string {
+  const cryptoApi = globalThis.crypto;
+  if (typeof cryptoApi?.randomUUID === "function") return cryptoApi.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = Math.floor(Math.random() * 16);
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
+function dispatchDataChange(eventName: string): void {
+  try {
+    window.dispatchEvent(new CustomEvent(eventName));
+  } catch {
+    /* non-DOM environment */
+  }
+}
+
+async function applyBlob(blob: SyncBlob, isCurrent: () => boolean): Promise<boolean> {
+  const { leaderboardIdentity, dataPacks, ...targetStoreBlob } = blob;
+  const currentBlob = localSnapshot();
+  const { leaderboardIdentity: _identity, dataPacks: _packs, ...currentStoreBlob } = currentBlob;
+
+  applyingRemote = true;
+  try {
+    let importResult: unknown;
+    if (!sameDoc(targetStoreBlob, currentStoreBlob)) {
+      importResult = useNoorStore.getState().importState({
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        // Whole-field removal is not a user action; per-key deletions still apply.
+        ...currentStoreBlob,
+        ...targetStoreBlob,
+      } as never);
+    }
+
+    if (dataPacks && adoptDataPacks(dataPacks)) dispatchDataChange("athar-data-packs-changed");
+    if (leaderboardIdentity && adoptLeaderboardIdentity(leaderboardIdentity)) {
+      dispatchDataChange("athar-leaderboard-identity-changed");
+    }
+
+    const appliedImmediately = localSnapshot();
+    await importResult;
+    if (!isCurrent()) return false;
+    return sameDoc(localSnapshot(), appliedImmediately);
+  } finally {
+    applyingRemote = false;
+  }
+}
+
+async function storeCommittedTarget(
+  pending: PendingCommit,
+  targetBlob: SyncBlob,
+  serverBuckets: SyncBuckets,
+  lastSyncedAt: number,
+): Promise<PendingCommit | null> {
+  const dirty = bucketsDiffer(bucketize(targetBlob), serverBuckets);
+  return markCommitted(
+    pending,
+    targetBlob,
+    serverBuckets,
+    { userId: pending.userId, lastSyncedAt, dirty },
+  );
+}
+
+async function finishCommitted(
+  pendingRecord: PendingCommit,
+  supabase: NonNullable<ReturnType<typeof getSupabase>>,
+  isCurrent: () => boolean,
+): Promise<boolean> {
+  let pending = pendingRecord;
+
+  if (pending.state === "prepared") {
+    if (pending.mode !== "rpc") throw new Error("حالة المزامنة المحلية غير صحيحة");
+    const server = await readServerSnapshot(supabase, pending.userId, isCurrent);
+    if (!server || !isCurrent()) return false;
+    const latestBuckets = bucketize(localSnapshot());
+    const target = mergeBuckets(latestBuckets, server.buckets, pending.sourceBuckets, null, 0, true);
+    const stored = await storeCommittedTarget(pending, debucketize(target), server.buckets, Date.now());
+    if (!isCurrent()) return false;
+    if (!stored) return true; // another tab already acknowledged and cleared it
+    if (stored.requestId !== pending.requestId) return false;
+    pending = stored;
+  }
+
+  if (pending.state === "prepared" || !pending.targetBlob! || !pending.serverBuckets!) {
+    throw new Error("تعذّر استعادة عملية المزامنة المحفوظة");
+  }
+
+  const lastSyncedAt = pending.lastSyncedAt ?? Date.now();
+  let stable = false;
+  for (let attempt = 0; attempt < 7 && isCurrent(); attempt += 1) {
+    const currentBlob = localSnapshot();
+    const targetBuckets = bucketize(pending.targetBlob!);
+
+    if (pending.state === "committed") {
+      // The local import has not started yet. Rebase the latest app state on
+      // the exact server snapshot using the attempt snapshot as its ancestor.
+      const rebased = mergeBuckets(
+        bucketize(currentBlob),
+        pending.serverBuckets!,
+        pending.sourceBuckets,
+        null,
+        0,
+        true,
+      );
+      const targetBlob = debucketize(rebased);
+      const updated = await updateCommittedTarget(
+        { ...pending, state: "applying", preApplyBlob: currentBlob },
+        targetBlob,
+        { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(rebased, pending.serverBuckets!) },
+      );
+      if (!isCurrent()) return false;
+      if (!updated || updated.requestId !== pending.requestId) return false;
+      pending = updated;
+      continue;
+    }
+
+    if (pending.state === "applying") {
+      if (pending.preApplyBlob && sameDoc(currentBlob, pending.preApplyBlob)) {
+        // Durable intent is written before import. If the process died before
+        // touching app storage, restore the exact target without re-merging it.
+        if (!sameDoc(currentBlob, pending.targetBlob!)) {
+          await applyBlob(pending.targetBlob!, isCurrent);
+          if (!isCurrent()) return false;
+        }
+        const afterImport = localSnapshot();
+        const adjusted = mergeBuckets(
+          bucketize(afterImport),
+          targetBuckets,
+          targetBuckets,
+          null,
+          0,
+          true,
+        );
+        const updated = await updateCommittedTarget(
+          { ...pending, state: "applied", preApplyBlob: undefined },
+          debucketize(adjusted),
+          { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(adjusted, pending.serverBuckets!) },
+        );
+        if (!isCurrent()) return false;
+        if (!updated || updated.requestId !== pending.requestId) return false;
+        pending = updated;
+        continue;
+      }
+
+      // A changed local snapshot means the import had started before a crash or
+      // a user edited after it. Treat the durable target as the common ancestor.
+      const adjusted = mergeBuckets(
+        bucketize(currentBlob),
+        targetBuckets,
+        targetBuckets,
+        null,
+        0,
+        true,
+      );
+      const updated = await updateCommittedTarget(
+        { ...pending, state: "applied", preApplyBlob: undefined },
+        debucketize(adjusted),
+        { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(adjusted, pending.serverBuckets!) },
+      );
+      if (!isCurrent()) return false;
+      if (!updated || updated.requestId !== pending.requestId) return false;
+      pending = updated;
+      continue;
+    }
+
+    // Once applied, edits made afterward are rebased against the exact target
+    // that was persisted, so replaying a receipt cannot add its deltas again.
+    const adjusted = mergeBuckets(
+      bucketize(currentBlob),
+      targetBuckets,
+      targetBuckets,
+      null,
+      0,
+      true,
+    );
+    const adjustedBlob = debucketize(adjusted);
+    if (!sameDoc(adjustedBlob, pending.targetBlob!)) {
+      const updated = await updateCommittedTarget(
+        { ...pending, state: "applied", preApplyBlob: undefined },
+        adjustedBlob,
+        { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(adjusted, pending.serverBuckets!) },
+      );
+      if (!isCurrent()) return false;
+      if (!updated || updated.requestId !== pending.requestId) return false;
+      pending = updated;
+      continue;
+    }
+
+    if (!sameDoc(currentBlob, pending.targetBlob!)) {
+      await applyBlob(pending.targetBlob!, isCurrent);
+      if (!isCurrent()) return false;
+      const afterImport = localSnapshot();
+      if (!sameDoc(afterImport, pending.targetBlob!)) {
+        const postImport = mergeBuckets(
+          bucketize(afterImport),
+          targetBuckets,
+          targetBuckets,
+          null,
+          0,
+          true,
+        );
+        const updated = await updateCommittedTarget(
+          { ...pending, state: "applied", preApplyBlob: undefined },
+          debucketize(postImport),
+          { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(postImport, pending.serverBuckets!) },
+        );
+        if (!isCurrent()) return false;
+        if (!updated || updated.requestId !== pending.requestId) return false;
+        pending = updated;
+        continue;
+      }
+    }
+
+    stable = true;
+    break;
+  }
+
+  if (!stable || !isCurrent()) {
+    setStatus({ phase: "idle", lastSyncedAt, pending: true });
+    scheduleFollowUp();
+    return false;
+  }
+
+  if (pending.mode === "rpc") {
+    const { data, error } = await supabase.rpc("athar_sync_ack_batch", {
+      p_request_id: pending.requestId,
+      p_device_id: pending.deviceId,
+    });
+    if (!isCurrent()) return false;
+    if (error) throw new Error(error.message);
+    if ((data as { acknowledged?: unknown } | null)?.acknowledged !== true) {
+      throw new Error("تعذّر تأكيد اكتمال المزامنة");
+    }
+  }
+
+  const cleared = await clearPendingIfMatching(pending.requestId);
+  if (!isCurrent()) return false;
+  if (!cleared) {
+    setStatus({ phase: "idle", lastSyncedAt, pending: true });
+    scheduleFollowUp();
+    return false;
+  }
+
+  const dirty = bucketsDiffer(bucketize(pending.targetBlob!), pending.serverBuckets!);
+  failures = 0;
+  setStatus({ phase: "idle", lastSyncedAt, error: null, pending: dirty });
+  if (dirty) scheduleFollowUp();
+  return !dirty;
+}
+async function processPending(
+  pending: PendingCommit,
+  supabase: NonNullable<ReturnType<typeof getSupabase>>,
+  isCurrent: () => boolean,
+): Promise<"done" | "conflict" | "again" | "stale"> {
+  if (pending.state !== "prepared") {
+    const completed = await finishCommitted(pending, supabase, isCurrent);
+    if (!isCurrent()) return "stale";
+    return !completed && !getSyncStatus().pending ? "again" : "done";
+  }
+
+  if (pending.mode !== "rpc") throw new Error("عملية المزامنة المحفوظة غير صالحة");
+  const { data, error } = await supabase.rpc("athar_sync_commit_batch", {
+    p_request_id: pending.requestId,
+    p_device_id: pending.deviceId,
+    p_writes: pending.writes,
+  });
+  if (!isCurrent()) return "stale";
+  if (error) throw new Error(error.message);
+
+  const reply = data as CommitReply | null;
+  if (reply?.status === "conflict") {
+    const stillPending = await clearPreparedIfMatching(pending.requestId);
+    if (!isCurrent()) return "stale";
+    if (stillPending?.state === "committed") {
+      const completed = await finishCommitted(stillPending, supabase, isCurrent);
+      if (!isCurrent()) return "stale";
+      return !completed && !getSyncStatus().pending ? "again" : "done";
+    }
+    return stillPending ? "again" : "conflict";
+  }
+  if (reply?.status === "pending_ack") {
+    throw new Error("توجد مزامنة سابقة تنتظر التأكيد؛ سنحاول استعادتها تلقائيًا");
+  }
+  if (reply?.status !== "committed" && reply?.status !== "replayed") {
+    throw new Error("استجابة المزامنة غير مفهومة");
+  }
+
+  const completed = await finishCommitted(pending, supabase, isCurrent);
+  if (!isCurrent()) return "stale";
+  return !completed && !getSyncStatus().pending ? "again" : "done";
+}
+
 /**
- * Reconcile local state with the server exactly once.
- *
- * Returns true when the round-trip completed. Safe to call concurrently — the
- * second caller joins the run already in progress rather than racing it, which
- * matters because two overlapping reconciles could each write a merge that
- * omits the other's changes.
+ * Reconcile local state with revision-checked, idempotent server commits.
+ * IndexedDB owns one durable pending request per account across tabs. A
+ * prepared request is replayed exactly; only a server conflict permits a
+ * fresh merge.
  */
 export function syncNow(): Promise<boolean> {
   const generation = syncGeneration;
   if (inFlight && flightGeneration === generation) return inFlight;
   const run = runSync(generation).finally(() => {
-    // A stopped account may finish after its replacement already started.
     if (inFlight === run) inFlight = null;
   });
   flightGeneration = generation;
@@ -204,165 +700,124 @@ async function runSync(generation: number): Promise<boolean> {
   if (!isCurrent()) return false;
   const userId = session?.user?.id;
   if (!userId) return false;
-
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     setStatus({ phase: "offline" });
     return false;
   }
 
   setStatus({ phase: "syncing", error: null });
-
   try {
-    let meta = await kvGet<Meta>(META_KEY);
-    if (!isCurrent()) return false;
-    // A different account on this device: the previous base describes someone
-    // else's data and must not be used to compute deletions against it.
-    if (meta && meta.userId !== userId) {
-      await kvDel(BASE_KEY);
+    let conflicts = 0;
+    let passes = 0;
+    while (conflicts < MAX_CONFLICT_ATTEMPTS && passes < MAX_CONFLICT_ATTEMPTS + 8) {
+      passes += 1;
       if (!isCurrent()) return false;
-      meta = null;
-    }
 
-    const base = (await kvGet<Partial<SyncBuckets>>(BASE_KEY)) ?? null;
-    if (!isCurrent()) return false;
-    const lastSyncedAt = meta?.lastSyncedAt ?? 0;
-
-    // The leaderboard identity is not part of the store — it lives in
-    // localStorage — but it must travel with the account so rank survives a
-    // reinstall or a second device. Attach it here rather than teaching the
-    // store about the leaderboard.
-    const localBlob = localSnapshot();
-    const localBuckets = bucketize(localBlob);
-
-    const { data, error } = await supabase
-      .from("athar_sync")
-      .select("kind, payload, updated_at")
-      .eq("user_id", userId);
-    if (!isCurrent()) return false;
-    if (error) throw new Error(error.message);
-
-    const rows = new Map<string, ServerRow>();
-    for (const r of (data ?? []) as ServerRow[]) rows.set(r.kind, r);
-
-    const mergedBuckets = emptyBuckets();
-    const toWrite: Array<{ user_id: string; kind: SyncKind; payload: SyncBlob; device_id: string }> = [];
-
-    for (const kind of SYNC_KINDS) {
-      const localDoc = localBuckets[kind];
-      const row = rows.get(kind);
-      const remoteDoc = withoutExportMetadata((row && typeof row.payload === "object" && row.payload !== null
-        ? (row.payload as SyncBlob)
-        : {}) as SyncBlob);
-
-      const remoteStamp = row ? Date.parse(row.updated_at) : 0;
-      // Only relevant for opaque settings-style values; counters and sets
-      // resolve without needing to know who wrote last.
-      const remoteNewer = Number.isFinite(remoteStamp) && remoteStamp > lastSyncedAt;
-
-      const merged = mergeDoc(localDoc, remoteDoc, {
-        remoteNewer,
-        base: base?.[kind] ?? null,
-      });
-      mergedBuckets[kind] = merged;
-
-      // Skip the write when the server already holds exactly this — most runs
-      // change one document, not six.
-      if (!row || !sameDoc(merged, remoteDoc)) {
-        toWrite.push({ user_id: userId, kind, payload: merged, device_id: deviceId() });
-      }
-    }
-
-    if (toWrite.length > 0) {
-      const { error: upsertError } = await supabase
-        .from("athar_sync")
-        .upsert(toWrite, { onConflict: "user_id,kind" });
+      const storedPending = await readPending();
       if (!isCurrent()) return false;
-      if (upsertError) throw new Error(upsertError.message);
-    }
-
-    // Apply back to the app only when the merge actually changed something,
-    // so a no-op sync never churns React or re-triggers the dirty flag.
-    const mergedBlob = debucketize(mergedBuckets);
-    const { leaderboardIdentity: mergedIdentity, dataPacks: mergedPacks, ...mergedStoreBlob } = mergedBlob;
-    const { leaderboardIdentity: _localIdentity, dataPacks: _localPacks, ...localStoreBlob } = localBlob;
-
-    // The user keeps using the app while we talk to the server. `localBlob` was
-    // read BEFORE that round-trip, so a tap made during it is in neither the
-    // snapshot nor the merge — and applying the merge would write the pre-tap
-    // value straight back over it. That is a count going 6 -> 5 on its own,
-    // seconds after being tapped.
-    //
-    // If anything moved underneath us, this pass is stale: don't apply it,
-    // don't advance the base (the next merge has to run from the same
-    // ancestor), and go again. The upsert above already happened, and counters
-    // merge by max, so nothing is lost by re-running.
-    const localMovedMidFlight = !sameDoc(localSnapshot(), localBlob);
-
-    if (localMovedMidFlight) {
-      await kvSet(META_KEY, { userId, lastSyncedAt, dirty: true } satisfies Meta);
-      if (!isCurrent()) return false;
-      setStatus({ phase: "idle", lastSyncedAt, error: null, pending: true });
-      scheduleFollowUp();
-      return false;
-    }
-
-    if (!sameDoc(mergedStoreBlob, localStoreBlob)) {
-      applyingRemote = true;
-      try {
-        const importResult = useNoorStore.getState().importState({
-          version: 1,
-          exportedAt: new Date().toISOString(),
-          // Whole-field removal is never a user action (the user deletes
-          // items, not entire collections), so fall back to local for any
-          // field the merge dropped. Per-key deletions still apply.
-          ...localStoreBlob,
-          ...mergedStoreBlob,
-        } as never);
-        const immediatelyImported = localSnapshot();
-        await importResult;
-        if (!isCurrent()) return false;
-        // IDB persistence can take time. A user edit during it needs another
-        // pass even though this import itself must not schedule an upload.
-        if (!sameDoc(localSnapshot(), immediatelyImported)) {
-          setStatus({ phase: "idle", lastSyncedAt, pending: true });
-          scheduleFollowUp();
-          return false;
+      if (storedPending) {
+        if (storedPending.userId !== userId) throw new Error("بيانات المزامنة تخص حسابًا آخر");
+        const result = await processPending(storedPending, supabase, isCurrent);
+        if (!isCurrent() || result === "stale") return false;
+        if (result === "again") continue;
+        if (result === "conflict") {
+          conflicts += 1;
+          if (conflicts >= MAX_CONFLICT_ATTEMPTS) break;
+          continue;
         }
-      } finally {
-        applyingRemote = false;
+        if (getSyncStatus().pending) return false;
+        return true;
       }
+
+      const storedMeta = await kvGet<Meta>(META_KEY);
+      const meta = storedMeta?.userId === userId ? storedMeta : null;
+      const base = meta ? await kvGet<Partial<SyncBuckets>>(BASE_KEY) : null;
+      if (!isCurrent()) return false;
+      const lastSyncedAt = meta?.lastSyncedAt ?? 0;
+      const localBlob = localSnapshot();
+      const localBuckets = bucketize(localBlob);
+      const server = await readServerSnapshot(supabase, userId, isCurrent);
+      if (!server || !isCurrent()) return false;
+
+      const merged = mergeBuckets(localBuckets, server.buckets, base, server.rows, lastSyncedAt);
+      const writes = makeWrites(merged, server);
+      const now = Date.now();
+      const dirty = bucketsDiffer(merged, server.buckets);
+
+      if (writes.length > 0) {
+        const pending: PendingCommit = {
+          userId,
+          requestId: newRequestId(),
+          deviceId: deviceId(),
+          mode: "rpc",
+          state: "prepared",
+          writes,
+          sourceBuckets: localBuckets,
+        };
+        const claim = await claimPending(pending);
+        if (!isCurrent()) return false;
+        if (!claim.claimed) continue;
+        const result = await processPending(claim.pending, supabase, isCurrent);
+        if (!isCurrent() || result === "stale") return false;
+        if (result === "again") continue;
+        if (result === "conflict") {
+          conflicts += 1;
+          continue;
+        }
+        if (getSyncStatus().pending) return false;
+        return true;
+      }
+
+      // A user edit during the read makes this snapshot stale. Re-read before
+      // applying remote data or advancing the common merge base.
+      if (!sameDoc(localSnapshot(), localBlob)) {
+        setStatus({ phase: "idle", lastSyncedAt, pending: true });
+        scheduleFollowUp();
+        return false;
+      }
+
+      const targetBlob = debucketize(merged);
+      if (!sameDoc(targetBlob, localBlob)) {
+        const pending: PendingCommit = {
+          userId,
+          requestId: newRequestId(),
+          deviceId: deviceId(),
+          mode: "local",
+          state: "committed",
+          writes: [],
+          sourceBuckets: localBuckets,
+          serverBuckets: server.buckets,
+          targetBlob,
+          lastSyncedAt: now,
+        };
+        const claim = await claimLocalReconcile(
+          pending,
+          server.buckets,
+          { userId, lastSyncedAt: now, dirty },
+        );
+        if (!isCurrent()) return false;
+        if (!claim.claimed) continue;
+        return finishCommitted(claim.pending, supabase, isCurrent);
+      }
+
+      const saved = await persistNoPending(
+        server.buckets,
+        { userId, lastSyncedAt: now, dirty: false },
+      );
+      if (!isCurrent()) return false;
+      if (!saved.saved) continue;
+      if (!sameDoc(localSnapshot(), localBlob)) {
+        setStatus({ phase: "idle", lastSyncedAt: now, pending: true });
+        scheduleFollowUp();
+        return false;
+      }
+
+      failures = 0;
+      setStatus({ phase: "idle", lastSyncedAt: now, error: null, pending: false });
+      return true;
     }
 
-    // Adopting an identity rewrites localStorage under the leaderboard, so tell
-    // anything showing "you" to re-read rather than keep highlighting the row
-    // of the identity we just left behind.
-    // Adopting packs rewrites the adhkar the app renders from, so anything
-    // showing sections has to rebuild rather than keep the old list on screen.
-    if (mergedPacks && adoptDataPacks(mergedPacks)) {
-      try {
-        window.dispatchEvent(new CustomEvent("athar-data-packs-changed"));
-      } catch {
-        /* non-DOM environment */
-      }
-    }
-
-    if (mergedIdentity && adoptLeaderboardIdentity(mergedIdentity)) {
-      try {
-        window.dispatchEvent(new CustomEvent("athar-leaderboard-identity-changed"));
-      } catch {
-        /* non-DOM environment */
-      }
-    }
-
-    await kvSet(BASE_KEY, mergedBuckets);
-    if (!isCurrent()) return false;
-    const now = Date.now();
-    await kvSet(META_KEY, { userId, lastSyncedAt: now, dirty: false } satisfies Meta);
-    if (!isCurrent()) return false;
-
-    failures = 0;
-    setStatus({ phase: "idle", lastSyncedAt: now, error: null, pending: false });
-    return true;
+    throw new Error("تغيّرت البيانات على جهاز آخر؛ سنعيد المحاولة تلقائيًا");
   } catch (e) {
     if (!isCurrent()) return false;
     const offline = typeof navigator !== "undefined" && navigator.onLine === false;
@@ -371,21 +826,11 @@ async function runSync(generation: number): Promise<boolean> {
       error: offline ? null : e instanceof Error ? e.message : "تعذّرت المزامنة",
       pending: true,
     });
-    // Retry on our own rather than waiting for the user to press anything. The
-    // other triggers (focus, online, poll) can be a long way off — a phone left
-    // on the adhkar screen may not fire any of them for hours.
     scheduleRetry();
     return false;
   }
 }
 
-/**
- * A re-run because local state moved mid-flight — not a failure.
- *
- * Kept apart from the retry backoff on purpose: nothing went wrong, the pass
- * was simply overtaken by the user, and backing off would leave their change
- * unsynced for minutes.
- */
 let followUpTimer: ReturnType<typeof setTimeout> | null = null;
 
 function scheduleFollowUp(): void {
