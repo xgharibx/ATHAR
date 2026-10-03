@@ -107,9 +107,9 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
         int prevMin = 0, nextMin = -1;
         try {
             String json = WidgetData.readJson(context, WIDGET_KEY);
+            JSONObject payload = json != null ? new JSONObject(json) : null;
 
-            if (json != null) {
-                JSONObject payload  = new JSONObject(json);
+            if (PrayerWidgetFreshness.isCurrent(payload)) {
                 JSONArray  prayers  = payload.optJSONArray("prayers");
 
                 // Recomputed live from the device's current time, NOT from
@@ -219,10 +219,12 @@ public class NoorPrayerFullWidgetProvider extends AtharWidgetProvider {
                 }
 
             } else {
-                // Data not synced yet
+                // No current schedule is available for this local date/timezone.
                 showPlaceholders(views);
                 views.setTextViewText(R.id.prayer_full_countdown,
-                    "افتح التطبيق لتحميل المواقيت");
+                    payload == null
+                        ? "افتح التطبيق لتحميل المواقيت"
+                        : "افتح التطبيق لتحديث المواقيت");
             }
 
         } catch (Exception e) {

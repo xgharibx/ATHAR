@@ -22,6 +22,11 @@ const WIDGET_KEY = "noor_widget_prayer_v2";
 export type PrayerWidgetPayload = {
   /** ISO timestamp when this payload was written */
   updatedAt: string;
+  /** Local calendar date the supplied timings belong to. */
+  dateKey: string;
+  /** Device timezone context used by the native widget's live countdown. */
+  timeZoneId: string;
+  utcOffsetMinutes: number;
   /** The prayer coming up next (or the last of the day if all passed) */
   nextPrayer: {
     name: string;
@@ -53,6 +58,18 @@ const PRAYER_NAMES_AR: Record<string, string> = {
 
 const ORDERED_PRAYERS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
+export type PrayerWidgetClockContext = {
+  timeZoneId: string;
+  utcOffsetMinutes: number;
+};
+
+export function getPrayerWidgetClockContext(): PrayerWidgetClockContext {
+  return {
+    timeZoneId: Intl.DateTimeFormat().resolvedOptions().timeZone ?? "",
+    utcOffsetMinutes: -new Date().getTimezoneOffset(),
+  };
+}
+
 function hhmmToMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
   return (h ?? 0) * 60 + (m ?? 0);
@@ -78,6 +95,8 @@ function detectRamadan(): boolean {
 /** Build the widget payload from the raw timings object returned by the prayer-times API. */
 export function buildWidgetPayload(
   timings: Record<string, string>,
+  dateKey: string,
+  clockContext: PrayerWidgetClockContext = getPrayerWidgetClockContext(),
 ): PrayerWidgetPayload {
   const nowMin = nowMinutes();
   const ramadan = detectRamadan();
@@ -110,6 +129,8 @@ export function buildWidgetPayload(
 
   return {
     updatedAt: new Date().toISOString(),
+    dateKey,
+    ...clockContext,
     nextPrayer: nextPrayer ? { name: nextPrayer.name, nameAr: nextPrayer.nameAr, time: nextPrayer.time } : null,
     prayers,
     isRamadan: ramadan,
@@ -123,8 +144,8 @@ export function buildWidgetPayload(
  * - On native Capacitor: uses @capacitor/preferences (bridges to SharedPreferences / UserDefaults)
  * - Everywhere: also writes to localStorage for PWA / debug access
  */
-export async function syncPrayerWidget(timings: Record<string, string>): Promise<void> {
-  const payload = buildWidgetPayload(timings);
+export async function syncPrayerWidget(timings: Record<string, string>, dateKey: string): Promise<void> {
+  const payload = buildWidgetPayload(timings, dateKey);
   const value = JSON.stringify(payload);
 
   // Always write to localStorage (PWA / web fallback)

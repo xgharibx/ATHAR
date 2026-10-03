@@ -8,11 +8,15 @@ import { accountScopedStorageKey, setAccountStorageOwner } from "@/lib/accountSt
 const query = vi.hoisted(() => ({
   run: undefined as undefined | (() => Promise<{ data: { timings: Record<string, string> }; __sourceLabel?: string }>),
   tomorrowRun: undefined as undefined | (() => Promise<{ data: { timings: Record<string, string> }; __sourceLabel?: string }>),
+  todayKey: undefined as readonly unknown[] | undefined,
 }));
 vi.mock("@tanstack/react-query", () => ({
   useQuery: (options: { queryFn: typeof query.run; queryKey?: readonly unknown[] }) => {
     if (options.queryKey?.[1] === "tomorrow-v1") query.tomorrowRun = options.queryFn;
-    else query.run = options.queryFn;
+    else {
+      query.run = options.queryFn;
+      query.todayKey = options.queryKey;
+    }
     return { data: undefined, isPlaceholderData: false, refetch: () => Promise.resolve() };
   },
 }));
@@ -67,6 +71,18 @@ describe("offline prayer fallback", () => {
     const result = await query.run!();
     expect(getCurrentPosition).not.toHaveBeenCalled();
     expect(result.__sourceLabel).toContain("القاهرة");
+  });
+
+  it("refreshes the prayer schedule context after the device timezone changes", () => {
+    mountAtMecca();
+    const originalKey = query.todayKey;
+
+    process.env.TZ = "America/New_York";
+    act(() => document.dispatchEvent(new Event("visibilitychange")));
+
+    expect(query.todayKey).not.toEqual(originalKey);
+    expect(query.todayKey).toContain("America/New_York");
+    expect(query.todayKey).toContain(-240);
   });
 
   it("uses coordinates only after the user requests their location", async () => {

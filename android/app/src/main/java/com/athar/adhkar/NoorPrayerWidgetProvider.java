@@ -61,7 +61,9 @@ public class NoorPrayerWidgetProvider extends AtharWidgetProvider {
             String json = WidgetData.readJson(context, WIDGET_KEY);
             if (json != null) {
                 JSONObject payload = new JSONObject(json);
-                JSONArray prayers  = payload.optJSONArray("prayers");
+                JSONArray prayers = PrayerWidgetFreshness.isCurrent(payload)
+                    ? payload.optJSONArray("prayers")
+                    : null;
 
                 // Recomputed live from the device's current time on every
                 // onUpdate — NOT read from payload.nextPrayer / p.passed,

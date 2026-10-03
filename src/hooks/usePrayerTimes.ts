@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CalculationMethod, Coordinates, Madhab, PrayerTimes as AdhanPrayerTimes, type CalculationParameters } from "adhan";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { useNoorStore } from "@/store/noorStore";
-import { syncPrayerWidget } from "@/lib/prayerWidget";
+import { getPrayerWidgetClockContext, syncPrayerWidget } from "@/lib/prayerWidget";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { Capacitor } from "@capacitor/core";
 import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
@@ -256,8 +256,27 @@ export async function requestPrayerLocation(): Promise<boolean> {
 
 export function usePrayerTimes() {
   const dayKey = useTodayKey();
+  const [clockContext, setClockContext] = React.useState(getPrayerWidgetClockContext);
   const method = useNoorStore((s) => s.prefs.prayerCalcMethod ?? 5);
   const school = useNoorStore((s) => s.prefs.asrMadhab ?? 0);
+
+  React.useEffect(() => {
+    const refreshClockContext = () => {
+      const next = getPrayerWidgetClockContext();
+      setClockContext((current) =>
+        current.timeZoneId === next.timeZoneId && current.utcOffsetMinutes === next.utcOffsetMinutes
+          ? current
+          : next,
+      );
+    };
+    window.addEventListener("focus", refreshClockContext);
+    document.addEventListener("visibilitychange", refreshClockContext);
+    return () => {
+      window.removeEventListener("focus", refreshClockContext);
+      document.removeEventListener("visibilitychange", refreshClockContext);
+    };
+  }, []);
+
   // Fallback defaults
   const city = "Cairo";
   const country = "Egypt";
@@ -278,7 +297,7 @@ export function usePrayerTimes() {
   }, [cityLocationKey, dayKey, method, school]);
 
   const query = useQuery<PrayerTimesData>({
-    queryKey: ["prayer-times", "v3", dayKey, method, school],
+    queryKey: ["prayer-times", "v3", dayKey, method, school, clockContext.timeZoneId, clockContext.utcOffsetMinutes],
     queryFn: async () => {
       const cachedCoords = readCachedCoords();
 
@@ -380,9 +399,9 @@ export function usePrayerTimes() {
 
   React.useEffect(() => {
     if (query.data?.data?.timings) {
-      syncPrayerWidget(query.data.data.timings).catch(() => {});
+      syncPrayerWidget(query.data.data.timings, dayKey).catch(() => {});
     }
-  }, [query.data]);
+  }, [clockContext, dayKey, query.data]);
 
   React.useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;

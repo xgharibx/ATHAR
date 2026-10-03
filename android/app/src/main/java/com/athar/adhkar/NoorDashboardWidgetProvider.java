@@ -177,6 +177,15 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             }
 
             JSONObject payload = new JSONObject(json);
+            if (!PrayerWidgetFreshness.isCurrent(payload)) {
+                setAllDotsFuture(context, views, theme);
+                views.setTextViewText(R.id.dash_next_countdown,
+                    "افتح التطبيق لتحديث المواقيت");
+                views.setImageViewBitmap(R.id.dashboard_sky,
+                    WidgetCanvas.sky(context, sz[0], sz[1], WidgetCanvas.PHASE_ISHA, WidgetCanvas.PHASE_ISHA, 0f,
+                        WidgetCanvas.outerCornerRadiusDp(context), theme));
+                return 1;
+            }
             JSONArray prayers  = payload.optJSONArray("prayers");
 
             // Map prayer names to dot indices: فجر=0, ظهر=1, عصر=2, مغرب=3, عشاء=4
