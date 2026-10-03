@@ -40,6 +40,7 @@ import {
   CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT,
   CUSTOM_REMINDER_ACTION_TYPE_ID,
   getCustomReminderPermissionState,
+  hasCustomReminderPermission,
   numericIdFor,
   requestCustomReminderPermission,
   scheduleCustomNotification,
@@ -313,6 +314,47 @@ describe("scheduleCustomNotification (web fallback)", () => {
 
     setServiceWorker(undefined);
     expect(getCustomReminderPermissionState()).toBe("unsupported");
+  });
+});
+
+describe("hasCustomReminderPermission", () => {
+  it("checks existing web permission without prompting", async () => {
+    mockCapacitor.isNativePlatform.mockReturnValue(false);
+    mockLocalNotifications.requestPermissions.mockClear();
+    setServiceWorker({});
+    const requestPermission = vi.fn();
+    Object.defineProperty(globalThis, "Notification", {
+      configurable: true,
+      value: { permission: "granted", requestPermission },
+    });
+
+    await expect(hasCustomReminderPermission()).resolves.toBe(true);
+    expect(requestPermission).not.toHaveBeenCalled();
+    expect(mockLocalNotifications.requestPermissions).not.toHaveBeenCalled();
+  });
+
+  it("returns false when web notifications are not already granted", async () => {
+    mockCapacitor.isNativePlatform.mockReturnValue(false);
+    setServiceWorker({});
+    const requestPermission = vi.fn();
+    Object.defineProperty(globalThis, "Notification", {
+      configurable: true,
+      value: { permission: "default", requestPermission },
+    });
+
+    await expect(hasCustomReminderPermission()).resolves.toBe(false);
+    expect(requestPermission).not.toHaveBeenCalled();
+  });
+
+  it("checks native notification permission without requesting it", async () => {
+    mockCapacitor.isNativePlatform.mockReturnValue(true);
+    mockLocalNotifications.checkPermissions.mockResolvedValue({ display: "denied" } as never);
+    mockLocalNotifications.checkPermissions.mockClear();
+    mockLocalNotifications.requestPermissions.mockClear();
+
+    await expect(hasCustomReminderPermission()).resolves.toBe(false);
+    expect(mockLocalNotifications.checkPermissions).toHaveBeenCalledOnce();
+    expect(mockLocalNotifications.requestPermissions).not.toHaveBeenCalled();
   });
 });
 

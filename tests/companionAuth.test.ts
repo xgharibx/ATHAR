@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   getSession: vi.fn(),
   clientOptions: undefined as Record<string, unknown> | undefined,
   stream: vi.fn(),
+  finalMessage: { stop_reason: "end_turn", content: [] as Array<Record<string, unknown>> },
 }));
 
 vi.mock("@/lib/authClient", () => ({ getSession: mocks.getSession }));
@@ -27,7 +28,7 @@ vi.mock("@anthropic-ai/sdk", () => {
         return {
           controller: { abort: vi.fn() },
           async *[Symbol.asyncIterator]() {},
-          finalMessage: async () => ({ stop_reason: "end_turn", content: [] }),
+          finalMessage: async () => mocks.finalMessage,
         };
       },
     };
@@ -43,6 +44,7 @@ describe("Companion signed-in access", () => {
     mocks.getSession.mockReset();
     mocks.clientOptions = undefined;
     mocks.stream.mockReset();
+    mocks.finalMessage = { stop_reason: "end_turn", content: [] };
     clearMemory();
   });
 
@@ -67,6 +69,31 @@ describe("Companion signed-in access", () => {
     expect(options.defaultHeaders?.apikey).toBeTruthy();
     expect(options.defaultHeaders?.Authorization).not.toBe(`Bearer ${options.defaultHeaders?.apikey}`);
     expect(mocks.stream).toHaveBeenCalledOnce();
+    clearMemory();
+  });
+
+  it("waits for reminder dispatch to finish before completing the assistant turn", async () => {
+    mocks.getSession.mockResolvedValue({ access_token: "synthetic-user-token" });
+    mocks.finalMessage = {
+      stop_reason: "end_turn",
+      content: [{
+        type: "tool_use",
+        name: "create_reminder",
+        input: { category: "dhikr", title: "أذكار الصباح", repeat: "daily" },
+      }],
+    };
+    const order: string[] = [];
+
+    await streamCompanionReply([{ role: "user", content: "ذكّرني بأذكار الصباح" }], {
+      onText: vi.fn(),
+      onToolCalls: async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        order.push("reminder-dispatched");
+      },
+      onDone: () => order.push("assistant-completed"),
+    });
+
+    expect(order).toEqual(["reminder-dispatched", "assistant-completed"]);
     clearMemory();
   });
 });

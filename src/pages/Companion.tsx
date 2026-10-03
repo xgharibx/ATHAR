@@ -75,7 +75,9 @@ import {
 } from "@/lib/companionProfile";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useStickToBottom } from "@/lib/useStickToBottom";
+import { injectReminderStoreIds } from "@/lib/companionReminderBlocks";
 import { useNoorStore } from "@/store/noorStore";
+import { hasCustomReminderPermission } from "@/lib/customReminderNotifications";
 import {
   addCustomReminder as addCustomReminderAction,
   deleteCustomReminder as deleteCustomReminderAction,
@@ -239,10 +241,10 @@ export function CompanionPage() {
   // Claude-style follow-the-stream scrolling: sticks to the bottom only while
   // the reader is already there, and lets go the moment they scroll up.
   const { endRef, atBottom, scrollToBottom, stickToBottom } = useStickToBottom();
-  /** ids minted by dispatchCreateReminderPage during this turn's onToolCalls,
+  /** Store references minted by dispatchCreateReminderPage during this turn's onToolCalls,
    *  in call order — spliced into the persisted `:::reminder\n{...}\n:::`
    *  blocks once the full reply text is known (see onDone below). */
-  const createdReminderIdsRef = React.useRef<string[]>([]);
+  const createdReminderIdsRef = React.useRef<Array<{ id: string; enabled: boolean }>>([]);
   const ctx = React.useMemo(buildCompanionContext, []);
 
   // Bridge action buttons (rendered from markdown) → react-router navigation
@@ -459,7 +461,7 @@ export function CompanionPage() {
           },
           onDone: (fullText) => {
             done = true;
-            const withIds = injectReminderStoreIdsPage(fullText, createdReminderIdsRef.current);
+            const withIds = injectReminderStoreIds(fullText, createdReminderIdsRef.current);
             setMessages((m) => [...m, { role: "assistant", content: withIds }]);
             setStreamingText(null);
             clearPartialStream();
@@ -482,7 +484,8 @@ export function CompanionPage() {
             setStreamingText(null);
             clearPartialStream();
           },
-          onToolCalls: (calls: PersistedToolCall[]) => {
+          onToolCalls: async (calls: PersistedToolCall[]) => {
+            const notificationsAllowed = await hasCustomReminderPermission();
             for (const c of calls) {
               if (c.name !== "create_reminder") continue;
               const repeatRaw = typeof c.input.repeat === "string" ? c.input.repeat : "once";
@@ -506,6 +509,7 @@ export function CompanionPage() {
               }
               const parsed: ParsedReminderView = {
                 id: `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                enabled: notificationsAllowed,
                 category,
                 title: typeof c.input.title === "string" ? c.input.title : "",
                 description: typeof c.input.description === "string" ? c.input.description : undefined,
@@ -519,7 +523,7 @@ export function CompanionPage() {
                 suggestion: typeof c.input.suggestion === "string" ? c.input.suggestion : undefined,
               };
               const createdId = dispatchCreateReminderPage(parsed);
-              if (createdId) createdReminderIdsRef.current.push(createdId);
+              if (createdId) createdReminderIdsRef.current.push({ id: createdId, enabled: notificationsAllowed });
             }
           },
         },
@@ -1322,9 +1326,10 @@ function CalloutBlock({ kind, children }: { kind: keyof typeof CALLOUT_STYLES; c
 type ParsedReminderView = {
   id: string;
   /** Real store id, round-tripped from the tool-call dispatch that actually
-   *  created it (see injectReminderStoreIdsPage). Falls back to title
+   *  created it (see companionReminderBlocks.ts). Falls back to title
    *  matching when absent (conversations saved before this field existed). */
   storeId?: string;
+  enabled: boolean;
   category: "dhikr" | "quran" | "sunnah" | "fast" | "salat" | "dua" | "custom";
   title: string;
   description?: string;
@@ -1400,6 +1405,7 @@ export function parseReminderToolCallsPage(text: string): ParsedReminderView[] {
       out.push({
         id: `pr_${out.length}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         storeId: typeof parsed.id === "string" ? parsed.id : undefined,
+        enabled: parsed.enabled !== false,
         category,
         title: parsed.title,
         description: typeof parsed.description === "string" ? parsed.description : undefined,
@@ -1419,28 +1425,6 @@ export function parseReminderToolCallsPage(text: string): ParsedReminderView[] {
   return out;
 }
 
-/** Mirrors CompanionModal.tsx's injectReminderStoreIds — splices the real
- *  store id (minted by dispatchCreateReminderPage at tool-call time) into
- *  each `:::reminder\n{...}\n:::` block, in dispatch order, so the chip's
- *  cancel/open actions can match by id instead of by title (two reminders
- *  can share a title and resolve to the wrong one otherwise). */
-function injectReminderStoreIdsPage(text: string, ids: string[]): string {
-  if (ids.length === 0 || !text.includes(":::reminder")) return text;
-  let i = 0;
-  return text.replace(REMINDER_BLOCK_RE_PAGE, (full, raw: string) => {
-    const id = ids[i];
-    i += 1;
-    if (!id) return full;
-    try {
-      const parsed = JSON.parse(raw) as Record<string, unknown>;
-      parsed.id = id;
-      return `:::reminder\n${JSON.stringify(parsed)}\n:::`;
-    } catch {
-      return full;
-    }
-  });
-}
-
 /** Creates the reminder via the IDB-persisting store helper (see
  *  `@/store/customReminderActions`) — NOT the bare Zustand `addCustomReminder`
  *  action, which only mutates in-memory state and is never written to
@@ -1453,6 +1437,7 @@ function dispatchCreateReminderPage(parsed: ParsedReminderView): string | null {
     return addCustomReminderAction({
       category: parsed.category,
       title: parsed.title,
+      enabled: parsed.enabled,
       description: parsed.description,
       body: parsed.body,
       icon: parsed.icon,
@@ -1478,17 +1463,20 @@ function ReminderChip({
   onOpen: () => void;
 }) {
   const when = reminder.atTimeOfDay ?? "—";
+  const inactive = reminder.enabled === false;
   return (
-    <div className="my-1.5 flex items-center justify-between gap-2 rounded-2xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-[12.5px] text-emerald-50">
+    <div className={`my-1.5 flex items-center justify-between gap-2 rounded-2xl border px-3 py-2 text-[12.5px] ${inactive ? "border-amber-400/40 bg-amber-500/10 text-amber-50" : "border-emerald-400/35 bg-emerald-500/10 text-emerald-50"}`}>
       <button
         type="button"
         onClick={onOpen}
         className="flex min-w-0 flex-1 items-center gap-1.5 text-start"
-        aria-label={`افتح ${reminder.title}`}
+        aria-label={inactive ? `افتح التذكيرات لتفعيل ${reminder.title}` : `افتح ${reminder.title}`}
       >
-        <span aria-hidden="true">✓</span>
-        <span className="truncate font-semibold">{`أُضيفت التذكير: ${reminder.title} — ${when}`}</span>
-        <span className="ms-1 shrink-0 text-[10px] text-emerald-200/70">↗</span>
+        <span aria-hidden="true">{inactive ? "!" : "✓"}</span>
+        <span className="min-w-0 whitespace-normal break-words font-semibold">{inactive
+          ? `حُفظ التذكير، لكنه غير مفعّل: ${reminder.title} — افتح التذكيرات لتفعيله`
+          : `أُضيفت التذكير: ${reminder.title} — ${when}`}</span>
+        <span className={`ms-1 shrink-0 text-[10px] ${inactive ? "text-amber-200/70" : "text-emerald-200/70"}`}>↗</span>
       </button>
       <button
         type="button"
@@ -1541,7 +1529,7 @@ function ActionButton({ route, children }: { route: string; children: React.Reac
 }
 
 /** Resolves a parsed reminder chip back to its live store entry. Prefers the
- *  real store id (round-tripped via injectReminderStoreIdsPage) so two
+ *  real store id (round-tripped via companionReminderBlocks.ts) so two
  *  reminders sharing a title can never resolve to the wrong one; falls back
  *  to a title match only for conversations saved before that round-trip
  *  existed. */
@@ -1590,7 +1578,8 @@ function BubbleContent({ text, streaming, tokens }: { text: string; streaming?: 
               }}
               onOpen={() => {
                 const actual = resolveActualReminderPage(r);
-                navigate(getInternalAppRoute(actual?.deeplink?.route) ?? "/reminders");
+                if (r.enabled === false || actual?.enabled === false) navigate("/reminders");
+                else navigate(getInternalAppRoute(actual?.deeplink?.route) ?? "/reminders");
               }}
             />
           ))}

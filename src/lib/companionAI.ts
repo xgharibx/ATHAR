@@ -962,7 +962,7 @@ export type StreamCallbacks = {
   /** Fires once per assistant message after the stream finishes, with the
    *  structured tool_use blocks the model emitted (e.g. create_reminder).
    *  Used by the UI to dispatch store actions without parsing tool markdown. */
-  onToolCalls?: (calls: PersistedToolCall[]) => void;
+  onToolCalls?: (calls: PersistedToolCall[]) => void | Promise<void>;
 };
 
 /** Build the supplemental retrieval block for the user's last message.
@@ -1078,7 +1078,7 @@ export async function streamCompanionReply(
       }
     }
     if (persistedToolCalls.length) {
-      cb.onToolCalls?.(persistedToolCalls);
+      await cb.onToolCalls?.(persistedToolCalls);
     }
     if (toolAppend) {
       full += toolAppend;

@@ -34,9 +34,9 @@ import { useNoorStore } from "@/store/noorStore";
 
 import {
   parseReminderToolCalls as parseModalReminders,
-  injectReminderStoreIds,
 } from "@/components/companion/CompanionModal";
 import { parseReminderToolCallsPage } from "@/pages/Companion";
+import { injectReminderStoreIds } from "@/lib/companionReminderBlocks";
 import { retrieveUserRemindersAsPassages } from "@/lib/companionKnowledge";
 
 beforeEach(() => {
@@ -149,8 +149,16 @@ describe("injectReminderStoreIds — id round-trip that makes duplicate-title ch
   it("splices the real store id into a single reminder block", () => {
     const raw = { category: "quran", title: "قراءة سورة الكهف", repeat: "weekly", atTimeOfDay: "09:00" };
     const text = `تم!\n\n:::reminder\n${JSON.stringify(raw)}\n:::`;
-    const withId = injectReminderStoreIds(text, ["cr_abc123"]);
+    const withId = injectReminderStoreIds(text, [{ id: "cr_abc123", enabled: true }]);
     expect(parseModalReminders(withId)[0].storeId).toBe("cr_abc123");
+  });
+
+  it("round-trips an inactive state so the chip cannot claim a reminder is enabled", () => {
+    const text = `:::reminder\n${JSON.stringify({ category: "dhikr", title: "أذكار الصباح", repeat: "daily" })}\n:::`;
+    const withStatus = injectReminderStoreIds(text, [{ id: "cr_inactive", enabled: false }]);
+
+    expect(parseModalReminders(withStatus)[0].storeId).toBe("cr_inactive");
+    expect(parseModalReminders(withStatus)[0].enabled).toBe(false);
   });
 
   it("assigns ids to multiple blocks IN DISPATCH ORDER — this is what lets two same-titled reminders resolve to the right one", () => {
@@ -160,7 +168,10 @@ describe("injectReminderStoreIds — id round-trip that makes duplicate-title ch
       ":::reminder", JSON.stringify(r1), ":::",
       "", ":::reminder", JSON.stringify(r2), ":::",
     ].join("\n");
-    const withIds = injectReminderStoreIds(text, ["cr_first", "cr_second"]);
+    const withIds = injectReminderStoreIds(text, [
+      { id: "cr_first", enabled: true },
+      { id: "cr_second", enabled: true },
+    ]);
     const parsed = parseModalReminders(withIds);
     expect(parsed[0].storeId).toBe("cr_first");
     expect(parsed[0].repeat).toBe("weekly");
@@ -175,7 +186,7 @@ describe("injectReminderStoreIds — id round-trip that makes duplicate-title ch
 
   it("leaves the block's storeId absent if malformed JSON prevents injection, without throwing", () => {
     const text = ":::reminder\n{not valid json}\n:::";
-    expect(() => injectReminderStoreIds(text, ["cr_x"])).not.toThrow();
+    expect(() => injectReminderStoreIds(text, [{ id: "cr_x", enabled: true }])).not.toThrow();
   });
 });
 
@@ -183,6 +194,17 @@ describe("Companion.tsx — parseReminderToolCallsPage (alias)", () => {
   it("parses the same block format as the modal", () => {
     const text = `:::reminder\n${JSON.stringify({ category: "dua", title: "دعاء السفر", repeat: "once" })}\n:::`;
     expect(parseReminderToolCallsPage(text)[0].title).toBe("دعاء السفر");
+  });
+
+  it("round-trips inactive reminder state through both Companion chip parsers", () => {
+    const text = `:::reminder\n${JSON.stringify({ category: "dhikr", title: "أذكار المساء", repeat: "daily" })}\n:::`;
+    const withStatus = injectReminderStoreIds(text, [{ id: "cr_page_inactive", enabled: false }]);
+    const pageReminder = parseReminderToolCallsPage(withStatus)[0];
+    expect(pageReminder.storeId).toBe("cr_page_inactive");
+    expect(pageReminder.enabled).toBe(false);
+    const modalReminder = parseModalReminders(withStatus)[0];
+    expect(modalReminder.storeId).toBe("cr_page_inactive");
+    expect(modalReminder.enabled).toBe(false);
   });
 });
 

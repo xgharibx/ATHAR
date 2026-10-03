@@ -241,6 +241,22 @@ export async function requestCustomReminderPermission(): Promise<boolean> {
   }
 }
 
+/** Check whether reminders can be delivered without opening a permission prompt. */
+export async function hasCustomReminderPermission(): Promise<boolean> {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { LocalNotifications } = await import("@capacitor/local-notifications");
+      return (await LocalNotifications.checkPermissions()).display === "granted";
+    } catch {
+      return false;
+    }
+  }
+  return typeof Notification !== "undefined" &&
+    typeof navigator !== "undefined" &&
+    Boolean(navigator.serviceWorker) &&
+    Notification.permission === "granted";
+}
+
 export function getCustomReminderPermissionState(): CustomReminderPermissionState {
   if (Capacitor.isNativePlatform()) return "native";
   if (typeof Notification === "undefined" || typeof navigator === "undefined" || !navigator.serviceWorker) {

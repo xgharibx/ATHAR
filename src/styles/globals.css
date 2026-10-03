@@ -6347,7 +6347,7 @@ a:focus-visible,
 
   body {
     overscroll-behavior: none;
-    /* `manipulation` removes the 300ms double-tap-to-zoom delay AND the zoom. */
+    /* `manipulation` removes the 300ms tap delay without disabling pinch zoom. */
     touch-action: manipulation;
     /* No grey flash on every tap. */
     -webkit-tap-highlight-color: transparent;

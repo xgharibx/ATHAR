@@ -268,6 +268,10 @@ The app now registers the union of built-in, prayer, and custom-reminder action 
 
 When a custom reminder is removed while native scheduling is in flight, cleanup now queues cancellation behind the pending schedule by deterministic notification ID. Re-arming the same occurrence queues the new schedule after that cancellation, so an older generation cannot remove the replacement alarm. Regression tests cover both disable-during-schedule and same-occurrence re-arm ordering. The code-level race is resolved; delivery and action behavior still need physical Android/iOS verification.
 
+### Resolved locally — Keep Companion reminder state honest
+
+Companion checks existing notification permission without prompting, saves a newly created reminder as enabled only when delivery is already permitted, and awaits the tool-call handler before finishing the assistant turn. Saved reminder callouts retain their real store ID and enabled state. Without permission, the reminder is saved off and its amber callout opens Reminders with clear activation guidance. The rendered-browser smoke check covered 390 px and 1280 px layouts and navigation; the current full web gate passes 1,026 tests across 137 files, with 97 lint warnings and a successful TypeScript/PWA build. Native delivery and OS settings changes still need device verification.
+
 ### Resolved locally — Label controls and contain dialog focus
 
 Arabic labels now reach the focusable Radix slider thumbs. The command palette and shared modal name their dialogs, move focus into the active dialog, keep keyboard focus contained, and restore focus to the opener when closed. Component regression tests cover slider names, initial focus, tab containment, and restoration. This is focused component coverage rather than a screen-reader/device audit; contrast across all existing themes and full keyboard/screen-reader workflows remain open.
@@ -343,6 +347,7 @@ No production database dump or customer row contents were accessed. Aggregate sc
 - [x] Gate prayer-time location requests behind the onboarding choice or a Prayer Times opt-in; preserve fallback behavior after denial.
 - [ ] Verify location permission timing and later opt-in on fresh Android/iOS installs and returning users on physical devices.
 - [ ] Exercise reminders and notifications through denial, Doze, reboot, time changes, and app closure; test audio and cache upgrades on devices.
+- [x] Keep Companion-created reminder state honest: do not prompt unexpectedly, persist reminders enabled only when permission is already granted, and direct disabled callouts to Reminders; verify desktop/mobile layout, navigation, and the full web gate (1,026 tests, 137 files; build succeeds).
 - [x] Route cold-start built-in/custom snoozes through the same handler as warm taps; honor the saved custom delay and avoid success feedback when the web worker cannot accept delivery. Physical-device action behavior and durable closed-app PWA delivery remain to verify.
 - [ ] Fix mobile-web reminder delivery and web onboarding's native-only alert promise.
 - [x] Preserve unmerged Tasbeeh widget totals across midnight with an account-scoped multi-date ledger and legacy-payload migration.

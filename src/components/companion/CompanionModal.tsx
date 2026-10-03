@@ -39,8 +39,10 @@ import {
   type CompanionConversation,
 } from "@/lib/companionHistory";
 import { splitIntoSegments } from "@/lib/companionBlocks";
+import { injectReminderStoreIds } from "@/lib/companionReminderBlocks";
 import { useStickToBottom } from "@/lib/useStickToBottom";
 import { useNoorStore } from "@/store/noorStore";
+import { hasCustomReminderPermission } from "@/lib/customReminderNotifications";
 import {
   addCustomReminder as addCustomReminderAction,
   deleteCustomReminder as deleteCustomReminderAction,
@@ -65,10 +67,11 @@ function dispatchNavigate(route: string) {
 type ParsedReminder = {
   id: string;
   /** The reminder's real id in the store (round-tripped from the tool-call
-   *  dispatch that actually created it — see injectReminderStoreIds in
+ *  dispatch that actually created it — see companionReminderBlocks.ts in
    *  companionAI.ts). Falls back to title-matching when absent (e.g. a
    *  conversation saved before this field existed). */
   storeId?: string;
+  enabled: boolean;
   category: "dhikr" | "quran" | "sunnah" | "fast" | "salat" | "dua" | "custom";
   title: string;
   description?: string;
@@ -145,6 +148,7 @@ export function parseReminderToolCalls(text: string): ParsedReminder[] {
       out.push({
         id: `pr_${out.length}_${Date.now()}`,
         storeId: typeof parsed.id === "string" ? parsed.id : undefined,
+        enabled: parsed.enabled !== false,
         category,
         title: parsed.title,
         description: typeof parsed.description === "string" ? parsed.description : undefined,
@@ -166,30 +170,6 @@ export function parseReminderToolCalls(text: string): ParsedReminder[] {
   return out;
 }
 
-/** Injects the real store id (minted by dispatchCreateReminder at tool-call
- *  time) into each `:::reminder\n{...}\n:::` block in a finished assistant
- *  message, in the same order the tool calls were dispatched. This lets the
- *  chip's cancel/open actions match the exact reminder by id instead of by
- *  title (two reminders can share a title, e.g. "أذكار الصباح" created twice —
- *  matching by title alone can resolve to the wrong one). Safe to call with
- *  an empty `ids` array (no-op passthrough). */
-export function injectReminderStoreIds(text: string, ids: string[]): string {
-  if (ids.length === 0 || !text.includes(":::reminder")) return text;
-  let i = 0;
-  return text.replace(REMINDER_BLOCK_RE, (full, raw: string) => {
-    const id = ids[i];
-    i += 1;
-    if (!id) return full;
-    try {
-      const parsed = JSON.parse(raw) as Record<string, unknown>;
-      parsed.id = id;
-      return `:::reminder\n${JSON.stringify(parsed)}\n:::`;
-    } catch {
-      return full;
-    }
-  });
-}
-
 /** Creates the reminder via the IDB-persisting store helper (see
  *  `@/store/customReminderActions`) — NOT the bare Zustand `addCustomReminder`
  *  action, which only mutates in-memory state and is never written to
@@ -202,6 +182,7 @@ function dispatchCreateReminder(parsed: ParsedReminder): string | null {
     return addCustomReminderAction({
       category: parsed.category,
       title: parsed.title,
+      enabled: parsed.enabled,
       description: parsed.description,
       body: parsed.body,
       icon: parsed.icon,
@@ -245,10 +226,10 @@ export function CompanionModal(props: {
   // Claude-style follow-the-stream scrolling within the modal's own scroller.
   const { scrollerRef, endRef, atBottom, scrollToBottom, stickToBottom } = useStickToBottom();
   const titleRef = React.useRef<string>("");
-  /** ids minted by dispatchCreateReminder during this turn's onToolCalls, in
+  /** Store references minted by dispatchCreateReminder during this turn's onToolCalls, in
    *  call order — spliced into the persisted `:::reminder\n{...}\n:::` blocks
    *  once the full reply text is known (see onDone below). */
-  const createdReminderIdsRef = React.useRef<string[]>([]);
+  const createdReminderIdsRef = React.useRef<Array<{ id: string; enabled: boolean }>>([]);
 
   const refreshHistory = React.useCallback(async () => {
     try { setHistory(await listConversations()); } catch { /* ignore */ }
@@ -390,7 +371,8 @@ export function CompanionModal(props: {
           clearPartialStream();
         },
         onError: () => { setStreamingText(null); clearPartialStream(); },
-        onToolCalls: (calls) => {
+        onToolCalls: async (calls) => {
+          const notificationsAllowed = await hasCustomReminderPermission();
           for (const c of calls) {
             if (c.name !== "create_reminder") continue;
             const repeatRaw = typeof c.input.repeat === "string" ? c.input.repeat : "once";
@@ -414,6 +396,7 @@ export function CompanionModal(props: {
             }
             const parsed: ParsedReminder = {
               id: `tool_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+              enabled: notificationsAllowed,
               category,
               title: typeof c.input.title === "string" ? c.input.title : "",
               description: typeof c.input.description === "string" ? c.input.description : undefined,
@@ -427,7 +410,7 @@ export function CompanionModal(props: {
               suggestion: typeof c.input.suggestion === "string" ? c.input.suggestion : undefined,
             };
             const createdId = dispatchCreateReminder(parsed);
-            if (createdId) createdReminderIdsRef.current.push(createdId);
+            if (createdId) createdReminderIdsRef.current.push({ id: createdId, enabled: notificationsAllowed });
           }
         },
       }, controller.signal);
@@ -759,8 +742,10 @@ function ModalBubbleContent({ text, streaming, onNavigate }: { text: string; str
             if (actual) deleteCustomReminderAction(actual.id);
           }}
           onOpen={(parsedId) => {
-            const actual = resolveActualReminder(reminders.find((x) => x.id === parsedId));
-            if (actual?.deeplink) onNavigate(actual.deeplink.route);
+            const reminder = reminders.find((x) => x.id === parsedId);
+            const actual = resolveActualReminder(reminder);
+            if (reminder?.enabled === false || actual?.enabled === false) onNavigate("/reminders");
+            else if (actual?.deeplink) onNavigate(actual.deeplink.route);
             else onNavigate("/reminders");
           }}
         />
@@ -783,6 +768,7 @@ function ReminderChips({
     <div className="mt-2 flex flex-col gap-1.5">
       {reminders.map((r) => {
         const when = r.atTimeOfDay ?? "—";
+        const inactive = r.enabled === false;
         return (
           <button
             key={r.id}
@@ -791,11 +777,13 @@ function ReminderChips({
               e.stopPropagation();
               onOpen(r.id);
             }}
-            className="flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-start text-[12px] text-emerald-50 transition hover:bg-emerald-500/20"
+            className={`flex w-full items-center justify-between gap-2 rounded-xl border px-3 py-2 text-start text-[12px] transition ${inactive ? "border-amber-400/40 bg-amber-500/10 text-amber-50 hover:bg-amber-500/20" : "border-emerald-400/30 bg-emerald-500/10 text-emerald-50 hover:bg-emerald-500/20"}`}
           >
             <span className="flex min-w-0 items-center gap-1.5">
-              <span aria-hidden="true">✓</span>
-              <span className="font-semibold">{`أُضيفت التذكير: ${r.title} — ${when}`}</span>
+              <span aria-hidden="true">{inactive ? "!" : "✓"}</span>
+              <span className="min-w-0 whitespace-normal break-words font-semibold">{inactive
+                ? `حُفظ التذكير، لكنه غير مفعّل: ${r.title} — افتح التذكيرات لتفعيله`
+                : `أُضيفت التذكير: ${r.title} — ${when}`}</span>
               {r.deeplink ? <span className="shrink-0 text-[10px] text-emerald-200/60">↗</span> : null}
             </span>
             <span
