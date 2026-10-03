@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Capacitor } from "@capacitor/core";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -60,14 +61,25 @@ export function OnboardingFlow() {
   const queryClient = useQueryClient();
   const setOnboardingDone = useNoorStore((s) => s.setOnboardingDone);
   const setReminders = useNoorStore((s) => s.setReminders);
+  // Browser delivery cannot provide the reliable prayer-alert behavior promised
+  // here. Keep notification setup in the native app, where local alerts persist.
+  const steps = Capacitor.isNativePlatform() ? STEPS : STEPS.slice(0, 2);
   const [step, setStep] = React.useState(0);
   const [loading, setLoading] = React.useState(false);
-  const current = STEPS[step];
+  const current = steps[step];
   const mountedRef = React.useRef(true);
   React.useEffect(() => {
     mountedRef.current = true;
     return () => { mountedRef.current = false; };
   }, []);
+
+  const advanceOrFinish = () => {
+    if (step < steps.length - 1) {
+      setStep((s) => s + 1);
+    } else {
+      setOnboardingDone(true);
+    }
+  };
 
   const handleAction = async () => {
     if (step === 1) {
@@ -80,7 +92,7 @@ export function OnboardingFlow() {
           }
         })
         .catch(() => undefined);
-      setStep((s) => s + 1);
+      advanceOrFinish();
       return;
     }
 
@@ -109,11 +121,7 @@ export function OnboardingFlow() {
       if (mountedRef.current) setLoading(false);
     }
     if (!mountedRef.current) return;
-    if (step < STEPS.length - 1) {
-      setStep((s) => s + 1);
-    } else {
-      setOnboardingDone(true);
-    }
+    advanceOrFinish();
   };
 
   const handleSkip = () => {
@@ -121,11 +129,7 @@ export function OnboardingFlow() {
   };
 
   const handleLater = () => {
-    if (step < STEPS.length - 1) {
-      setStep((s) => s + 1);
-    } else {
-      setOnboardingDone(true);
-    }
+    advanceOrFinish();
   };
 
   const actionLabel = loading ? "جارٍ…" : current.action;
@@ -148,8 +152,8 @@ export function OnboardingFlow() {
 
           {/* Step dots */}
           <div className="onboarding-step-dots" role="tablist" aria-orientation="horizontal" aria-label="خطوات التهيئة">
-            {STEPS.map((_, i) => (
-              <span key={i} className={`onboarding-dot${i === step ? " active" : ""}`} role="tab" aria-selected={i === step} aria-label={`خطوة ${i + 1} من ${STEPS.length}`} />
+            {steps.map((_, i) => (
+              <span key={i} className={`onboarding-dot${i === step ? " active" : ""}`} role="tab" aria-selected={i === step} aria-label={`خطوة ${i + 1} من ${steps.length}`} />
             ))}
           </div>
 
@@ -162,7 +166,7 @@ export function OnboardingFlow() {
             {actionLabel}
           </button>
 
-          {step < STEPS.length - 1 && !showLaterButton && (
+          {step < steps.length - 1 && !showLaterButton && (
             <button type="button"
               className="w-full mt-2 py-2.5 text-sm opacity-45 hover:opacity-70 transition arabic-text"
               onClick={handleSkip}

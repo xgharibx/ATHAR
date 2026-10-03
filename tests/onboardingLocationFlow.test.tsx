@@ -6,9 +6,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   invalidateQueries: vi.fn(),
+  nativePlatform: true,
   requestPrayerLocation: vi.fn<() => Promise<boolean>>(),
+  requestNotificationPermission: vi.fn(),
   setOnboardingDone: vi.fn(),
   setReminders: vi.fn(),
+}));
+
+vi.mock("@capacitor/core", () => ({
+  Capacitor: { isNativePlatform: () => mocks.nativePlatform },
 }));
 
 vi.mock("@tanstack/react-query", () => ({
@@ -18,7 +24,7 @@ vi.mock("@/store/noorStore", () => ({
   useNoorStore: (selector: (state: { setOnboardingDone: typeof mocks.setOnboardingDone; setReminders: typeof mocks.setReminders }) => unknown) =>
     selector({ setOnboardingDone: mocks.setOnboardingDone, setReminders: mocks.setReminders }),
 }));
-vi.mock("@/lib/reminders", () => ({ isNativePlatform: vi.fn(), requestNotificationPermission: vi.fn() }));
+vi.mock("@/lib/reminders", () => ({ isNativePlatform: vi.fn(), requestNotificationPermission: mocks.requestNotificationPermission }));
 vi.mock("@/hooks/usePrayerTimes", () => ({ requestPrayerLocation: mocks.requestPrayerLocation }));
 vi.mock("react-hot-toast", () => ({ default: { error: vi.fn() } }));
 vi.mock("framer-motion", () => ({
@@ -46,6 +52,7 @@ function buttonNamed(name: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.nativePlatform = true;
   mocks.requestPrayerLocation.mockResolvedValue(true);
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
 });
@@ -88,5 +95,34 @@ describe("onboarding location choice", () => {
 
     await act(async () => { resolveLocation(true); await pendingLocation; });
     expect(mocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["prayer-times", "v3"] });
+  });
+
+  it("finishes web onboarding without asking for notification permission or promising prayer alerts", async () => {
+    mocks.nativePlatform = false;
+    const requestPermission = vi.fn().mockResolvedValue("granted");
+    vi.stubGlobal("Notification", { permission: "default", requestPermission });
+    mount();
+
+    await act(async () => { buttonNamed("التالي").click(); });
+    expect(container?.textContent).toContain("مواقيت الصلاة");
+    await act(async () => { buttonNamed("ليس الآن").click(); });
+
+    expect(mocks.setOnboardingDone).toHaveBeenCalledWith(true);
+    expect(container?.textContent).not.toContain("تذكير بأوقات الصلاة");
+    expect(container?.textContent).not.toContain("التنبيهات");
+    expect(requestPermission).not.toHaveBeenCalled();
+    expect(mocks.requestNotificationPermission).not.toHaveBeenCalled();
+    expect(mocks.setReminders).not.toHaveBeenCalled();
+  });
+
+  it("completes web onboarding after the optional location request", async () => {
+    mocks.nativePlatform = false;
+    mount();
+    await act(async () => { buttonNamed("التالي").click(); });
+    await act(async () => { buttonNamed("استخدام موقعي").click(); });
+
+    expect(mocks.requestPrayerLocation).toHaveBeenCalledOnce();
+    expect(mocks.setOnboardingDone).toHaveBeenCalledWith(true);
+    expect(container?.textContent).not.toContain("التنبيهات");
   });
 });
