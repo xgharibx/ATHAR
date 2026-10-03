@@ -17,6 +17,7 @@ import Photos
  *   shareImage({ base64, filename, text, title })
  *   saveImage({ base64, filename })
  *   shareText({ text, title })
+ *   shareFile({ base64, filename, mimeType, title })
  */
 @objc(ShareBridgePlugin)
 public class ShareBridgePlugin: CAPPlugin, CAPBridgedPlugin {
@@ -26,6 +27,7 @@ public class ShareBridgePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "shareImage", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "saveImage", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "shareText", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "shareFile", returnType: CAPPluginReturnPromise),
     ]
 
     /// Strip a `data:` URL prefix if one came through, then decode.
@@ -38,13 +40,19 @@ public class ShareBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     /// Present a share sheet, anchored for iPad where a popover is required.
-    private func present(_ items: [Any], _ call: CAPPluginCall) {
+    private func present(_ items: [Any], _ call: CAPPluginCall, cleanupDirectory: URL? = nil) {
         DispatchQueue.main.async {
             guard let vc = self.bridge?.viewController else {
+                if let cleanupDirectory { try? FileManager.default.removeItem(at: cleanupDirectory) }
                 call.reject("no view controller")
                 return
             }
             let sheet = UIActivityViewController(activityItems: items, applicationActivities: nil)
+            if let cleanupDirectory {
+                sheet.completionWithItemsHandler = { _, _, _, _ in
+                    try? FileManager.default.removeItem(at: cleanupDirectory)
+                }
+            }
             // Without this an iPad crashes outright rather than showing a sheet.
             if let popover = sheet.popoverPresentationController {
                 popover.sourceView = vc.view
@@ -76,6 +84,33 @@ public class ShareBridgePlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         present([text], call)
+    }
+
+    @objc func shareFile(_ call: CAPPluginCall) {
+        guard let base64 = call.getString("base64"), !base64.isEmpty,
+              let data = decode(base64) else {
+            call.reject("missing or unreadable base64")
+            return
+        }
+
+        let rawFilename = call.getString("filename") ?? "athar-file"
+        let filename = URL(fileURLWithPath: rawFilename).lastPathComponent
+        guard !filename.isEmpty, filename != ".", filename != "/" else {
+            call.reject("invalid filename")
+            return
+        }
+        let title = call.getString("title") ?? "أثر"
+
+        do {
+            let directory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("athar-share-\(UUID().uuidString)", isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let fileURL = directory.appendingPathComponent(filename, isDirectory: false)
+            try data.write(to: fileURL, options: .atomic)
+            present([fileURL], call, cleanupDirectory: directory)
+        } catch {
+            call.reject("could not prepare file: \(error.localizedDescription)")
+        }
     }
 
     @objc func saveImage(_ call: CAPPluginCall) {

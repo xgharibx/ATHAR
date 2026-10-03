@@ -11,6 +11,7 @@
  * download. Each step is a genuine fallback, not a guess.
  */
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import { downloadBlob } from "@/lib/download";
 
 /** Where the app can be installed. Appended to anything shared. */
 export const STORE_LINKS = {
@@ -49,6 +50,7 @@ type ShareBridge = {
   shareImage(o: { base64: string; filename?: string; text?: string; title?: string }): Promise<void>;
   saveImage(o: { base64: string; filename?: string }): Promise<void>;
   shareText(o: { text: string; title?: string }): Promise<void>;
+  shareFile(o: { base64: string; filename: string; mimeType: string; title?: string }): Promise<void>;
 };
 
 let cachedBridge: ShareBridge | null | undefined;
@@ -85,7 +87,71 @@ function nativeBridge(): ShareBridge | null {
 }
 
 export type ShareResult = "shared" | "downloaded" | "failed";
+export type FileShareResult = ShareResult | "cancelled";
 export type SaveResult = "saved" | "shared" | "downloaded" | "failed";
+
+/** Share a file on native/web, or download it in a desktop browser. */
+export async function shareFileBlob(
+  blob: Blob,
+  opts: { filename?: string; title?: string } = {},
+): Promise<FileShareResult> {
+  const filename = opts.filename ?? "athar-file";
+  const mimeType = blob.type || "application/octet-stream";
+  const title = opts.title ?? "أثر";
+
+  const bridge = nativeBridge();
+  if (bridge) {
+    try {
+      await bridge.shareFile({ base64: await blobToBase64(blob), filename, mimeType, title });
+      return "shared";
+    } catch {
+      // A native WebView has no download manager, so never claim success by
+      // falling back to an <a download> click that cannot save the file.
+      return "failed";
+    }
+  }
+  // nativeBridge() intentionally caches registration errors as null, but an
+  // Android/iOS WebView still cannot save through <a download>.
+  if (Capacitor.isNativePlatform()) return "failed";
+
+  let file: File | undefined;
+  try {
+    if (typeof File === "function") file = new File([blob], filename, { type: mimeType });
+  } catch {
+    // If this browser cannot construct File objects, use its download path.
+  }
+  const webNavigator = typeof navigator === "undefined"
+    ? undefined
+    : navigator as unknown as {
+        share?: (data: ShareData) => Promise<void>;
+        canShare?: (data: ShareData) => boolean;
+      };
+  let webShare: ((data: ShareData) => Promise<void>) | undefined;
+  let canShareFile = false;
+  try {
+    webShare = webNavigator?.share;
+    canShareFile = Boolean(
+      file && typeof webShare === "function" && webNavigator?.canShare?.({ files: [file] }),
+    );
+  } catch {
+    // Older browsers may expose canShare but reject file capability checks.
+  }
+  if (canShareFile) {
+    try {
+      await webShare!({ files: [file!], title });
+      return "shared";
+    } catch (error) {
+      return error instanceof Error && error.name === "AbortError" ? "cancelled" : "failed";
+    }
+  }
+
+  try {
+    downloadBlob(filename, blob);
+    return "downloaded";
+  } catch {
+    return "failed";
+  }
+}
 
 /** Share an image, with the text (and app invitation) alongside it. */
 export async function shareImageBlob(

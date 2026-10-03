@@ -10,18 +10,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const shareImage = vi.fn().mockResolvedValue(undefined);
 const shareTextNative = vi.fn().mockResolvedValue(undefined);
+const shareFileNative = vi.fn().mockResolvedValue(undefined);
+const registerPlugin = vi.fn(() => ({ shareImage, shareText: shareTextNative, shareFile: shareFileNative }));
 let isNative = false;
 
 vi.mock("@capacitor/core", () => ({
   Capacitor: { isNativePlatform: () => isNative },
-  registerPlugin: () => ({ shareImage, shareText: shareTextNative }),
+  registerPlugin,
 }));
 
 let mod: typeof import("@/lib/shareTargets");
 
 beforeEach(async () => {
   vi.resetModules();
-  shareImage.mockClear(); shareTextNative.mockClear();
+  shareImage.mockReset().mockResolvedValue(undefined);
+  shareTextNative.mockReset().mockResolvedValue(undefined);
+  shareFileNative.mockReset().mockResolvedValue(undefined);
+  registerPlugin.mockReset().mockImplementation(() => ({ shareImage, shareText: shareTextNative, shareFile: shareFileNative }));
   isNative = false;
   // @ts-expect-error - resetting the web share API between cases
   delete navigator.share;
@@ -29,7 +34,11 @@ beforeEach(async () => {
   delete navigator.canShare;
   mod = await import("@/lib/shareTargets");
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
 
 const blob = () => new Blob(["x"], { type: "image/png" });
 
@@ -54,6 +63,39 @@ describe("native apps", () => {
     expect(shareTextNative).toHaveBeenCalled();
   });
 
+  it("shares backup files through the native bridge with their type and filename", async () => {
+    isNative = true;
+    const backup = new Blob(["{\"version\":1}"], { type: "application/json" });
+
+    expect(await mod.shareFileBlob(backup, { filename: "backup.athar", title: "ATHAR backup" })).toBe("shared");
+
+    expect(shareFileNative).toHaveBeenCalledTimes(1);
+    expect(shareFileNative.mock.calls[0]![0]).toMatchObject({
+      filename: "backup.athar",
+      mimeType: "application/json",
+      title: "ATHAR backup",
+    });
+    expect(shareFileNative.mock.calls[0]![0].base64).toContain("base64,");
+  });
+
+  it("reports native file bridge failures without falling back to a WebView download", async () => {
+    isNative = true;
+    shareFileNative.mockRejectedValueOnce(new Error("share bridge unavailable"));
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+
+    expect(await mod.shareFileBlob(new Blob(["backup"]), { filename: "backup.athar" })).toBe("failed");
+    expect(click).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when native file bridge registration fails", async () => {
+    isNative = true;
+    registerPlugin.mockImplementationOnce(() => { throw new Error("registration failed"); });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+
+    expect(await mod.shareFileBlob(new Blob(["backup"]), { filename: "backup.athar" })).toBe("failed");
+    expect(click).not.toHaveBeenCalled();
+  });
+
   it("does not touch the bridge on the web", async () => {
     await mod.shareImageBlob(blob());
     expect(shareImage).not.toHaveBeenCalled();
@@ -68,8 +110,43 @@ describe("web fallbacks", () => {
     expect(share).toHaveBeenCalled();
   });
 
+  it("shares backup files with Web Share when the browser accepts files", async () => {
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { share, canShare: () => true });
+
+    expect(await mod.shareFileBlob(new Blob(["backup"], { type: "application/json" }), { filename: "backup.athar", title: "ATHAR نسخة احتياطية" })).toBe("shared");
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({ title: "ATHAR نسخة احتياطية" }));
+  });
+
   it("downloads when the browser cannot share files", async () => {
     expect(await mod.shareImageBlob(blob())).toBe("downloaded");
+  });
+
+  it("downloads a backup in the browser and keeps its object URL alive for the download", async () => {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const createObjectURL = vi.fn(() => "blob:backup");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
+    vi.useFakeTimers();
+
+    expect(await mod.shareFileBlob(new Blob(["backup"], { type: "application/json" }), { filename: "backup.athar" })).toBe("downloaded");
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:backup");
+  });
+
+  it("releases a backup object URL after a browser download click fails", async () => {
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => { throw new Error("download blocked"); });
+    const createObjectURL = vi.fn(() => "blob:backup");
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
+    vi.useFakeTimers();
+
+    expect(await mod.shareFileBlob(new Blob(["backup"], { type: "application/json" }), { filename: "backup.athar" })).toBe("failed");
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:backup");
   });
 });
 

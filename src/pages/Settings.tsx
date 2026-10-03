@@ -11,7 +11,7 @@ import { Slider } from "@/components/ui/Slider";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { useNoorStore, DEFAULT_HOME_WIDGETS_ORDER, type NoorTheme, type ExportBlobV1, type HomeWidgetKey } from "@/store/noorStore";
-import { downloadJson } from "@/lib/download";
+import { shareFileBlob } from "@/lib/shareTargets";
 import { clamp } from "@/lib/utils";
 import { toArabicNumeral } from "@/lib/quranMeta";
 import {
@@ -336,32 +336,27 @@ export function SettingsPage() {
     }
   };
 
-  const onBackup = () => {
+  const onBackup = async () => {
     try {
-      const blob = exportState();
-      downloadJson(`ATHAR-نسخة-احتياطية-${blob.exportedAt.slice(0, 10)}.athar`, blob);
-      toast.success("تم تنزيل النسخة الاحتياطية");
+      const backup = exportState();
+      const result = await shareFileBlob(
+        new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }),
+        {
+          filename: `ATHAR-نسخة-احتياطية-${backup.exportedAt.slice(0, 10)}.athar`,
+          title: "ATHAR نسخة احتياطية",
+        },
+      );
+      if (result === "shared") toast.success("تم فتح خيارات حفظ النسخة الاحتياطية");
+      else if (result === "downloaded") toast.success("تم تنزيل النسخة الاحتياطية");
+      else if (result === "failed") toast.error("تعذر تصدير النسخة الاحتياطية");
     } catch {
-      toast.error("فشل تنزيل النسخة الاحتياطية");
+      toast.error("تعذر تصدير النسخة الاحتياطية");
     }
   };
 
-  // Se7: Share backup via native share sheet (for cloud save to Google Drive / iCloud)
-  const onShareBackup = async () => {
-    try {
-      const blob = exportState();
-      const json = JSON.stringify(blob, null, 2);
-      const file = new File([json], `ATHAR-${blob.exportedAt.slice(0, 10)}.athar`, { type: "application/json" });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "ATHAR نسخة احتياطية" });
-      } else {
-        onBackup();
-      }
-    } catch (e) {
-      if (e instanceof Error && e.name === "AbortError") return;
-      onBackup();
-    }
-  };
+  // Both actions use the platform's real file-sharing path; the result itself
+  // decides whether the browser downloaded the file or the native sheet opened.
+  const onShareBackup = onBackup;
 
   const onRestore = async (file: File) => {
     try {

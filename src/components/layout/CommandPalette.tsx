@@ -13,7 +13,7 @@ import { useNoorStore } from "@/store/noorStore";
 import type { NoorTheme } from "@/store/noorStore";
 import type { FlatDhikr } from "@/data/types";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
-import { downloadJson } from "@/lib/download";
+import { shareFileBlob } from "@/lib/shareTargets";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -30,6 +30,26 @@ export function CommandPalette(props: Props) {
   const setPrefs = useNoorStore((s) => s.setPrefs);
   const exportState = useNoorStore((s) => s.exportState);
   const quranLastRead = useNoorStore((s) => s.quranLastRead);
+
+  const onQuickBackup = async () => {
+    try {
+      const backup = exportState();
+      const result = await shareFileBlob(
+        new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }),
+        {
+          filename: `ATHAR-نسخة-احتياطية-${backup.exportedAt.slice(0, 10)}.athar`,
+          title: "ATHAR نسخة احتياطية",
+        },
+      );
+      if (result === "shared") toast.success("تم فتح خيارات حفظ النسخة الاحتياطية");
+      else if (result === "downloaded") toast.success("تم تنزيل النسخة الاحتياطية");
+      else if (result === "failed") toast.error("تعذر تصدير النسخة الاحتياطية");
+    } catch {
+      toast.error("تعذر تصدير النسخة الاحتياطية");
+    } finally {
+      props.setOpen(false);
+    }
+  };
 
   const themeLabel = (t: NoorTheme) => {
     const map: Record<NoorTheme, string> = {
@@ -283,10 +303,7 @@ export function CommandPalette(props: Props) {
                     </Item>
                     <Item
                       onSelect={() => {
-                        const blob = exportState();
-                        downloadJson(`ATHAR-نسخة-احتياطية-${blob.exportedAt.slice(0, 10)}.athar`, blob);
-                        toast.success("تم تنزيل النسخة الاحتياطية");
-                        props.setOpen(false);
+                        void onQuickBackup();
                       }}
                       icon={<Download size={16} aria-hidden="true" />}
                     >

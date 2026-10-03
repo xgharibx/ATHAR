@@ -2,6 +2,7 @@ package com.athar.adhkar;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -19,6 +20,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.UUID;
 
 /**
  * Native share sheet for images and text.
@@ -37,9 +39,11 @@ import java.io.OutputStream;
  *
  * JS side: registerPlugin("ShareBridge").shareImage({ base64, filename, text })
  *          registerPlugin("ShareBridge").saveImage({ base64, filename })
+ *          registerPlugin("ShareBridge").shareFile({ base64, filename, mimeType, title })
  */
 @CapacitorPlugin(name = "ShareBridge")
 public class ShareBridgePlugin extends Plugin {
+    private static final long SHARE_FILE_RETENTION_MILLIS = 7L * 24L * 60L * 60L * 1000L;
 
     @PluginMethod
     public void shareImage(PluginCall call) {
@@ -92,6 +96,89 @@ public class ShareBridgePlugin extends Plugin {
         } catch (Throwable t) {
             call.reject("share failed: " + t.getMessage());
         }
+    }
+
+    /** Share an arbitrary file, such as a user-requested app backup. */
+    @PluginMethod
+    public void shareFile(PluginCall call) {
+        String base64 = call.getString("base64");
+        if (base64 == null || base64.trim().isEmpty()) {
+            call.reject("missing base64");
+            return;
+        }
+        String filename = call.getString("filename", "athar-file").replace('\\', '_').replace('/', '_');
+        if (filename.trim().isEmpty() || filename.equals(".") || filename.equals("..")) filename = "athar-file";
+        String mimeType = call.getString("mimeType", "application/octet-stream");
+        if (mimeType == null || !mimeType.matches("[A-Za-z0-9.+-]+/[A-Za-z0-9.+-]+")) {
+            mimeType = "application/octet-stream";
+        }
+        String title = call.getString("title", "أثر");
+
+        try {
+            int comma = base64.indexOf(',');
+            if (base64.startsWith("data:") && comma > -1) {
+                base64 = base64.substring(comma + 1);
+            }
+            byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
+
+            File sharedDir = new File(getContext().getCacheDir(), "shared");
+            if (!sharedDir.exists() && !sharedDir.mkdirs()) {
+                call.reject("could not create share dir");
+                return;
+            }
+            pruneExpiredSharedFiles(sharedDir);
+            // A unique directory prevents a same-day second export from
+            // replacing bytes that a previous share target has not read yet.
+            File stagedDir = new File(sharedDir, "backup-" + UUID.randomUUID());
+            if (!stagedDir.mkdirs()) {
+                call.reject("could not create staged share dir");
+                return;
+            }
+            File out = new File(stagedDir, filename);
+            try (FileOutputStream fos = new FileOutputStream(out)) {
+                fos.write(bytes);
+                fos.flush();
+            }
+
+            Uri uri = FileProvider.getUriForFile(
+                getContext(),
+                getContext().getPackageName() + ".fileprovider",
+                out
+            );
+
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType(mimeType);
+            send.putExtra(Intent.EXTRA_STREAM, uri);
+            send.setClipData(ClipData.newUri(getContext().getContentResolver(), filename, uri));
+            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            Intent chooser = Intent.createChooser(send, title);
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(chooser);
+            call.resolve();
+        } catch (Throwable t) {
+            call.reject("share failed: " + t.getMessage());
+        }
+    }
+
+    /** Remove old cache-only share files after receivers have had time to read them. */
+    private void pruneExpiredSharedFiles(File sharedDir) {
+        File[] entries = sharedDir.listFiles();
+        if (entries == null) return;
+        long cutoff = System.currentTimeMillis() - SHARE_FILE_RETENTION_MILLIS;
+        for (File entry : entries) {
+            if (entry.lastModified() < cutoff) deleteRecursively(entry);
+        }
+    }
+
+    private void deleteRecursively(File entry) {
+        if (entry.isDirectory()) {
+            File[] children = entry.listFiles();
+            if (children != null) {
+                for (File child : children) deleteRecursively(child);
+            }
+        }
+        entry.delete(); // Best effort; this is private app cache and the OS may clear it too.
     }
 
     /**
