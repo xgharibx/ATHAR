@@ -306,6 +306,10 @@ The Quran page map and selected bundled integrity checks are verified, but the a
 
 `loadTafsirSurah()` now normalizes both the bare-array shape and Tanwir al-Miqbas' `{ ayahs: [...] }` envelope. It validates each ayah number, optional surah number, text, and duplicate entry before building the existing 1-indexed cache array. Tests cover both accepted shapes and malformed/cross-surah data; the public CDN and app rendered seven verses on the browser smoke flow.
 
+### Resolved locally — Load the bundled Muyassar tafsir shape
+
+The Surah-info preview expected a `surahs[].verses[]` object, but the shipped asset is keyed by numeric surah IDs with 1-indexed ayah arrays. The loader now reads that format and bumps its IndexedDB version so earlier installs discard the cached empty index and rebuild it. A regression test uses the actual bundle and simulates the stale cache; all 1,112 tests across 150 files, lint, and the production web/PWA build pass.
+
 ### Resolved locally — Open the selected tafsir edition and ayah in Mushaf
 
 The Tafsir page now forwards its selected `source` and existing deep-linked `ayah` through validated query parameters. Mushaf opens inline tafsir for a valid source, keeps the Quran ayah jump, and retries its lazy fetch when the page's ayah index arrives. A mobile browser flow opened Tanwir al-Miqbas at Fātiḥah ayah 1 and rendered its commentary directly beneath the ayah. The chosen edition is also synced into the existing inline-tafsir preference.
@@ -416,6 +420,7 @@ No production database dump or customer row contents were accessed. Aggregate sc
 - [x] Clear Android Qibla widget coordinates and refresh the placeholder when switching to an account with no saved location; cover account A → account B.
 - [ ] Move or conditionally show the home reorder hint so it does not cross the quick-action labels; verify desktop and 390 × 844 mobile screenshots.
 - [x] Add a root `supabase/config.toml` that reproduces the current Edge Function JWT-verification settings; preserve the three intended gateway exceptions, retain secure defaults, and verify with focused regression coverage plus full `npm run verify`.
+- [x] Load the bundled Muyassar tafsir from its 1-indexed surah arrays and invalidate the previously cached empty index; actual-asset regression test plus full `npm run verify` (1,112 tests / 150 files).
 - [x] Make account deletion POST-only and failure-safe; live foreign-key cascades verified and function v2 deployed. Validate the full signed-in lifecycle without using a real customer account.
 - [x] Require PKCE authorization codes for native OAuth callbacks; reject bearer tokens delivered in deep-link fragments.
 - [x] Remove direct leaderboard raw-data access; migration 20261003042222 is live, Data API probes return 401, and the Edge endpoint returns 200 with rows.

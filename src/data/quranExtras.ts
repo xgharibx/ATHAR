@@ -21,7 +21,7 @@ export type QuranExtras = {
   tafsir: TafsirDB | null;
 };
 
-const CACHE_VERSION = 2; // bump to invalidate when bundles change
+const CACHE_VERSION = 3; // bump to invalidate when bundles or their parsed shape change
 const EXTRAS_KEY = `noor_quran_extras_v${CACHE_VERSION}`;
 
 let _cache: QuranExtras | null = null;
@@ -58,17 +58,17 @@ export async function loadQuranExtras(): Promise<QuranExtras> {
     }
     const [englishSahih, tafsirRaw] = await Promise.all([
       fetchJson<EnglishSahihDB>("/data/quran-en-sahih.json").catch(() => null),
-      fetchJson<{ surahs?: Array<{ id: number; name: string; verses?: Array<{ number: number; text: string }> }> }>(
-        "/data/tafseer-muyassar.json",
-      ).catch(() => null),
+      fetchJson<Record<string, unknown>>("/data/tafseer-muyassar.json").catch(() => null),
     ]);
     const tafsir: TafsirDB = [];
-    if (tafsirRaw?.surahs) {
-      for (const s of tafsirRaw.surahs) {
-        for (const v of s.verses ?? []) {
-          const text = String(v.text ?? "").trim();
+    if (tafsirRaw) {
+      for (const [surahKey, verses] of Object.entries(tafsirRaw)) {
+        const surahId = Number(surahKey);
+        if (!Number.isInteger(surahId) || surahId < 1 || surahId > 114 || !Array.isArray(verses)) continue;
+        for (let ayahIndex = 1; ayahIndex < verses.length; ayahIndex++) {
+          const text = typeof verses[ayahIndex] === "string" ? verses[ayahIndex].trim() : "";
           if (text.length < 20) continue;
-          tafsir.push({ surahId: s.id, ayahIndex: v.number, text });
+          tafsir.push({ surahId, ayahIndex, text });
         }
       }
     }
