@@ -1,0 +1,81 @@
+# Cross-Device Sync Integrity Design
+
+## Goal
+
+Prevent concurrent devices and retrying clients from silently overwriting another device's changes, while retaining intentional per-key deletions, additive activity counters, account isolation, and offline-first local use.
+
+## Constraints and invariants
+
+- Keep the existing visual design. The account panel may add a clear sync-update state; this is a reliability message, not a redesign.
+- Local data remains usable and is never cleared when cloud sync is unavailable or a client version is retired from cloud writes.
+- Only an authenticated user may write that user's `athar_sync` documents. The server derives the owner from `auth.uid()`; clients never choose a target user ID.
+- All documents in one sync commit succeed together or none do. A conflict must cause a fresh read and re-merge, not a partial write.
+- Keep the current merge semantics for intentional deletions, concurrent counter increments, positions, and settings.
+- Replaying a request after an uncertain network outcome or process restart must not apply it twice.
+- Do not disable legacy direct writes until updated web, Android, and iOS clients are available and the cutover is deliberately applied.
+
+## Current failure
+
+`src/lib/syncClient.ts` reads all six `athar_sync` JSON documents, merges against a local IndexedDB base, then upserts changed rows unconditionally. Two installations can read the same revision and then replace one another's whole JSON payloads. A later three-way merge can interpret the missing key as a deliberate deletion. The production table currently has no revision column or sync RPC, and the `authenticated` role has direct INSERT, UPDATE, and DELETE privileges.
+
+There is a second retry hazard in the current client: after a successful server write, an edit during the request causes the client to return before advancing its local base. Since concurrent counter increases are additive, merging that already-committed change again can count it twice. Any server-write protocol must make ambiguous commits idempotent and rebase mid-flight local edits before advancing the base.
+
+## Architecture
+
+### Revision-checked batch RPC
+
+Add a `revision bigint not null default 1` column to `public.athar_sync`. The existing touch trigger also sets `revision = old.revision + 1` for every UPDATE, including updates from legacy clients during the transition period. Inserts start at revision 1.
+
+Add an authenticated `SECURITY DEFINER` function named `public.athar_sync_commit_batch(p_request_id uuid, p_device_id text, p_writes jsonb)`. It derives the owner from `auth.uid()`, uses a fixed `search_path`, fully qualifies database objects, validates the allowed document kinds and JSON shapes, and serializes writes for that account with a transaction-scoped advisory lock. It accepts only expected revisions and document payloads; an expected revision of JSON null means the row must not exist.
+
+The function locks and checks every requested row before changing any row. If one expected revision differs, it returns a conflict and the latest revisions without writing any document. If all revisions match, it inserts or updates the complete batch in one transaction and returns the resulting revisions. An insert race with a legacy writer also aborts the entire batch and is reported as a conflict. The function accepts no `user_id` parameter and is executable by `authenticated` only; `anon` and `PUBLIC` execution are revoked.
+
+### Idempotent commit receipts
+
+Create a server-private `public.athar_sync_commit_receipts` table with one outstanding receipt per `(user_id, device_id)`. It stores the request UUID, SHA-256 request hash, and small commit-result metadata; it does not copy synced payloads. The commit RPC returns the stored result when the same request and hash are replayed, rejects a different request while the prior receipt remains unacknowledged, and records a new receipt atomically with a successful batch.
+
+Add `public.athar_sync_ack_batch(p_request_id uuid, p_device_id text)`. It verifies `auth.uid()` and removes only the matching receipt. A repeated acknowledgement is harmless. The receipt table has RLS enabled and no direct `anon` or `authenticated` table grants; access is through the narrowly scoped functions. Auth-user deletion cascades the receipt row.
+
+### Client reconciliation and recovery
+
+`syncClient.ts` reads `revision` with each server document. Before sending a batch it stores one account-scoped pending record in the existing sync IndexedDB database. The record contains the request UUID, device ID, changed documents with expected revisions, and the local snapshot used to construct the batch. The pending write must fail closed: if IndexedDB cannot persist it, the client sends no cloud write.
+
+An IndexedDB `add` on the single pending key arbitrates concurrent tabs sharing one account database. A losing tab resumes the existing pending request instead of creating a competing request. Every pending-record update or deletion checks that the request UUID still matches inside the same IndexedDB transaction, so a late tab cannot clear a newer request. The server receipt serializes requests across installations and makes retries safe.
+
+- On a revision conflict, the RPC made no changes. The client discards that prepared record only after receiving the conflict, re-reads server documents, and re-runs the existing three-way merge. Retry a bounded number of times; after that, keep local changes dirty and use the existing backoff.
+- On a timeout or other ambiguous outcome, retain and replay the exact same pending request. Never generate a new request UUID until the previous receipt has been acknowledged.
+- After confirmed commit, read the current server snapshot and rebase the latest local state onto it using the in-flight local snapshot as the common base. This preserves post-snapshot edits without double-counting and incorporates remote-only updates. Import the rebased state, persist the server snapshot as the merge base and `dirty` metadata together with a `committed` pending marker, then acknowledge and remove the server receipt and local pending record.
+- On restart, a `prepared` record is replayed; a `committed` record is acknowledged and cleared. The normal sync then handles any changes made after the saved server base.
+- A failed commit, merge, import, or local persistence leaves local data intact and does not advance the base. Account switches continue to use the existing per-account database partition.
+
+The bounded conflict retry limit is 4 attempts. Exhaustion leaves the latest local state dirty, reports a retryable sync error, and schedules the existing exponential backoff. The app must not silently claim that data reached the cloud.
+
+### Legacy-client rollout
+
+Use two separate database migrations:
+
+1. Add revision tracking, receipt storage, and the authenticated RPCs while retaining current table grants. Ship the new client on the web, Android, and iOS. During this bridge period, new clients protect new-client races, but a legacy direct write can still bypass the protocol; do not describe the bridge as full protection.
+2. Only after the replacement builds are available and the rollout has been checked, revoke direct INSERT, UPDATE, and DELETE from `anon` and `authenticated` on `athar_sync`; retain authenticated SELECT under the existing RLS policy. New clients write only through the RPC. This cutoff is a separate, deliberate production operation and is not automatically bundled into the initial app release.
+
+The updated client recognizes the permission response after cutoff and offers a clear update-to-sync message. Old builds cannot render new UI; they continue to work locally, while their existing update notice remains available and cloud writes fail without deleting device data. Web delivery can update automatically; store clients must have their builds available before cutoff. If an iOS store build cannot be released, postpone the cutoff rather than strand its users from cloud sync.
+
+## Security
+
+- RLS stays enabled on `athar_sync`; authenticated SELECT remains owner-scoped.
+- The SECURITY DEFINER functions use the fixed `pg_catalog` search path, fully qualified objects, explicit `auth.uid()` checks, and exact grants. They reject unauthenticated calls, unsupported kinds, duplicate kinds, more than six writes in a batch, invalid revisions, and non-object payloads. This protocol change does not introduce a document byte limit.
+- Commit receipts cannot be read or written through PostgREST table access. The RPC stores an `extensions.digest(..., 'sha256')` hash of canonical JSONB request content to reject request-ID reuse with different data.
+- Staging verifies same-user success, cross-user denial, anonymous denial, direct-write denial after cutoff, and retained authenticated SELECT.
+
+## Verification
+
+Automated source tests use two independent sync clients over a barrier-controlled shared server. They cover concurrent additions to separate documents, the same-document conflict/retry, intentional deletion during a race, additive counters, an ambiguous success replayed after a simulated timeout/restart, no partial batch on conflict, local edits during the round-trip, same-origin concurrent tabs, bounded retry exhaustion, account switching, and offline/local-storage failure.
+
+Database verification runs the migration chain on a disposable Supabase/Postgres test database, inspects function/table grants and RLS, and tests concurrent RPC calls. Staging checks use dedicated synthetic accounts only; no customer account is created or modified for validation. Web/PWA, Android, and iOS builds must pass before the legacy-write cutoff. After cutover, verify that the new RPC syncs and direct authenticated writes are denied. Do not submit a store release or apply the destructive-looking privilege cutoff unless all three replacement clients have been published or the affected platform is confirmed unused.
+
+## Non-goals
+
+- Redesigning the current interface or removing its current theme.
+- Changing what data synchronizes or adding a server-side merge that guesses whether a missing JSON key was intentional.
+- Deleting app data, auth accounts, or user sync rows.
+- Applying the direct-write cutoff during the initial compatibility migration.
+- Solving the separate migration-chain bootstrap, cloud payload-limit, or provider-cost-monitoring findings from the broader audit.
