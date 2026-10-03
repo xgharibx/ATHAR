@@ -17,6 +17,15 @@
 -- ─────────────────────────────  PART A — SCHEMA  ─────────────────────────
 create extension if not exists pgcrypto;
 
+-- New application objects are private by default. Add explicit grants only
+-- where the public Data API is intentionally part of the access model.
+alter default privileges for role postgres in schema public
+  revoke all on tables from public, anon, authenticated;
+alter default privileges for role postgres in schema public
+  revoke all on sequences from public, anon, authenticated;
+alter default privileges for role postgres in schema public
+  revoke all on functions from public, anon, authenticated;
+
 -- 1) Raw score events (append-only; one row per board per submission) ───────
 create table if not exists public.leaderboard_score_events (
   id uuid primary key default gen_random_uuid(),
@@ -125,12 +134,15 @@ alter table public.leaderboard_alias_audit     enable row level security;
 -- Public leaderboard reads go through the Edge Function, which applies
 -- moderation filters and response limits. Keep raw rollups service-role only.
 drop policy if exists "lb_rollups_read" on public.leaderboard_rollups;
-revoke all privileges on table public.leaderboard_score_events
-  from public, anon, authenticated;
-revoke all privileges on table public.leaderboard_rollups
-  from public, anon, authenticated;
-revoke all privileges on table public.leaderboard_user_profiles
-  from public, anon, authenticated;
+revoke all privileges on table
+  public.leaderboard_score_events,
+  public.leaderboard_rollups,
+  public.leaderboard_user_profiles,
+  public.leaderboard_name_blocklist,
+  public.leaderboard_user_moderation,
+  public.leaderboard_alias_registry,
+  public.leaderboard_alias_audit
+from public, anon, authenticated;
 
 -- 6) Profile upsert RPC (called by the Edge Function on every submit) ────────
 create or replace function public.leaderboard_upsert_user_profile(
@@ -180,7 +192,8 @@ begin
 end;
 $$;
 
-revoke all on function public.leaderboard_upsert_user_profile(text, date, text, text, date, integer) from public;
+revoke all on function public.leaderboard_upsert_user_profile(text, date, text, text, date, integer)
+  from public, anon, authenticated;
 grant execute on function public.leaderboard_upsert_user_profile(text, date, text, text, date, integer) to service_role;
 
 -- ───────────────────────  PART B — RESET SCORES ONLY  ────────────────────

@@ -132,10 +132,13 @@ begin
 end;
 $$;
 
-revoke all on function public.leaderboard_upsert_user_profile(text, date, text, text, date, integer) from public;
+revoke all on function public.leaderboard_upsert_user_profile(text, date, text, text, date, integer)
+  from public, anon, authenticated;
 grant execute on function public.leaderboard_upsert_user_profile(text, date, text, text, date, integer) to service_role;
 
-create or replace view public.leaderboard_ranked_v3 as
+create or replace view public.leaderboard_ranked_v3
+with (security_invoker = true)
+as
 select
   r.day,
   r.period,

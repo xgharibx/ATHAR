@@ -6,7 +6,11 @@
 - `leaderboard_supabase_schema.sql`: مخطط قاعدة البيانات الأساسي (events + rollups + indexes + RLS baseline).
 - `leaderboard_supabase_hardening.sql`: ترقيع أمني/منطقي للمشاريع التي نفذت السكيمة قبل إضافة checksum/idempotency.
 - `leaderboard_supabase_moderation.sql`: جداول إدارة الأسماء والحظر والإخفاء وتدقيق قرارات التصفية.
-- `leaderboard_public_reads_lockdown.sql`: إلغاء القراءة المباشرة القديمة من Data API؛ قراءة المتصدرين تمر عبر Edge Function لتطبيق الإخفاء والحدود.
+- `leaderboard_public_reads_lockdown.sql`: قفل جداول وواجهات وRPC المتصدرين أمام أدوار Data API، مع إبقاء Edge Function عبر `service_role`.
+- `supabase/migrations/20261003042909_companion_usage_quota.sql`: حدود ذرية دائمة لطلبات Companion لكل حساب دون حفظ نصوص المحادثات.
+- `supabase/migrations/20261003043343_dorar_rate_limits.sql`: حدود مخفية الهوية للعميل وحد إجمالي لطلبات Dorar.
+- `supabase/migrations/20261003045053_optimize_auth_rls_initplans.sql`: ثبّت search_path لدالة التحديث وحسّن تقييم سياسات ملكية بيانات الحساب.
+- `supabase/migrations/20261003042222_secure_leaderboard_data_api.sql`: النسخة المرقّمة من إصلاح صلاحيات الوصول الافتراضية والحالية.
 - `leaderboard_deploy_steps.md`: أوامر PowerShell وخطوات النشر الفعلية للمشروع الحالي.
 - `check-leaderboard-endpoint.mjs`: سكربت فحص endpoint بعد النشر.
 
@@ -16,7 +20,7 @@
 3. نفّذ محتوى `leaderboard_supabase_moderation.sql` إذا كنت تريد أسماء مخصّصة + أدوات إدارة وحظر.
 4. نفّذ `leaderboard_v3_profiles.sql` إذا كان النشر يستخدم ملفات المستخدمين وترتيب V3.
 5. نفّذ `leaderboard_supabase_hardening.sql` فقط إذا كان عندك نشر قديم سبق اشتغل قبل التعديلات الأمنية.
-6. نفّذ `leaderboard_public_reads_lockdown.sql` لإلغاء أي منح قراءة مباشرة قديمة بعد تثبيت الجداول والملفات.
+6. بعد إنشاء الجداول والملفات، طبّق migration `secure_leaderboard_data_api` من `supabase/migrations`، أو شغّل `leaderboard_public_reads_lockdown.sql` عند إصلاح إعداد يدوي قديم. يفحص الملف عدم بقاء صلاحيات القراءة والكتابة المباشرة.
 7. أنشئ Edge Function (أو API وسيط) يستقبل:
    - `POST` لتسجيل score events + تحديث rollups.
    - `GET` لإرجاع top rows حسب `board`, `period`, `day`, `sectionId`.
@@ -43,7 +47,11 @@
 
 ## ملاحظات أمان
 - لا تسمح بالكتابة المباشرة من العميل إلى جداول rollups.
+- اجعل جميع جداول المتصدرين الخاصة واسمح بالوصول عبر Edge Function فقط؛ لا تمنح أدوار Data API `TRUNCATE` أو تنفيذ RPC إداري.
+- أعطِ صلاحيات API الجديدة صراحةً عند الحاجة؛ الصلاحيات الافتراضية للمخطط العام خاصة.
 - طبّق rate limiting على endpoint.
 - تحقّق من payload checksum/day-skew/score caps قبل الإدخال.
 - لا تعتمد على فحص العميل للأسماء وحده؛ راجع الأسماء في الخادم دائمًا.
 - نفّذ reconciliation job دوري لإعادة حساب rollups من events.
+
+> تنبيه: الملف `leaderboard_ultimate_setup_2026-07-13.sql` يحتوي قسمًا يعيد ضبط بيانات النقاط. لا تشغّل هذا القسم على مشروع إنتاجي؛ استخدم migrations الأمنية وحدها ما لم يكن حذف النتائج مقصودًا ومراجعًا صراحةً.

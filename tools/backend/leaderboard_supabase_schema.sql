@@ -44,7 +44,9 @@ create unique index if not exists uq_lb_rollups_day_period_board_user
   on public.leaderboard_rollups (day, period, board, coalesce(section_id, ''), user_id);
 
 -- Optional helper view: top rows for reads
-create or replace view public.leaderboard_top as
+create or replace view public.leaderboard_top
+with (security_invoker = true)
+as
 select
   day,
   period,

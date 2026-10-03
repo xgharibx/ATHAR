@@ -38,8 +38,11 @@ describe("leaderboard SQL access stays behind the filtered Edge Function", () =>
   it("provides an idempotent lockdown script for already-installed manual SQL", () => {
     const lockdown = read("leaderboard_public_reads_lockdown.sql");
 
-    expect(lockdown).toMatch(/revoke\s+all\s+privileges\s+on\s+table\s+public\.leaderboard_rollups\s+from\s+public,\s*anon,\s*authenticated/i);
+    expect(lockdown).toMatch(/revoke\s+all\s+privileges\s+on\s+table\s+public\.%I\s+from\s+public,\s*anon,\s*authenticated/i);
     expect(lockdown).toMatch(/leaderboard_ranked_v3/i);
-    expect(lockdown).toMatch(/drop\s+policy\s+if\s+exists\s+["']lb_rollups_read["']/i);
+    expect(lockdown).toMatch(/drop\s+policy\s+%I\s+on\s+public\.leaderboard_rollups/i);
+    expect(lockdown).toMatch(/alter\s+default\s+privileges\s+for\s+role\s+postgres[\s\S]*revoke\s+all\s+on\s+tables[\s\S]*revoke\s+all\s+on\s+sequences[\s\S]*revoke\s+all\s+on\s+functions/i);
+    expect(lockdown).toMatch(/alter\s+view\s+public\.%I\s+set\s+\(security_invoker\s*=\s*true\)/i);
+    expect(lockdown).toMatch(/has_table_privilege/);
   });
 });
