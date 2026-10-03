@@ -37,7 +37,9 @@ vi.mock("@capacitor/local-notifications", () => ({
 import {
   cancelAllCustomNotifications,
   cancelCustomNotification,
+  CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT,
   CUSTOM_REMINDER_ACTION_TYPE_ID,
+  getCustomReminderPermissionState,
   numericIdFor,
   requestCustomReminderPermission,
   scheduleCustomNotification,
@@ -133,6 +135,8 @@ describe("requestCustomReminderPermission (web)", () => {
   });
 
   it("requests permission and resolves to true when granted", async () => {
+    const permissionChanged = vi.fn();
+    window.addEventListener(CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT, permissionChanged);
     Object.defineProperty(globalThis, "Notification", {
       configurable: true,
       value: {
@@ -140,8 +144,13 @@ describe("requestCustomReminderPermission (web)", () => {
         requestPermission: vi.fn(async () => "granted"),
       },
     });
-    const ok = await requestCustomReminderPermission();
-    expect(ok).toBe(true);
+    try {
+      const ok = await requestCustomReminderPermission();
+      expect(ok).toBe(true);
+      expect(permissionChanged).toHaveBeenCalledOnce();
+    } finally {
+      window.removeEventListener(CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT, permissionChanged);
+    }
   });
 
   it("resolves to false when denied", async () => {
@@ -292,6 +301,18 @@ describe("scheduleCustomNotification (web fallback)", () => {
 
     expect(shown).toBe(false);
     expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  it("requires service-worker support before reporting web reminder delivery as available", () => {
+    Object.defineProperty(globalThis, "Notification", {
+      configurable: true,
+      value: { permission: "granted", requestPermission: vi.fn() },
+    });
+    setServiceWorker({});
+    expect(getCustomReminderPermissionState()).toBe("granted");
+
+    setServiceWorker(undefined);
+    expect(getCustomReminderPermissionState()).toBe("unsupported");
   });
 });
 

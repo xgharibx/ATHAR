@@ -29,6 +29,8 @@ import {
 
 export type CustomReminderActionId = "done" | "snooze" | "open";
 export type ScheduleCustomNotificationOptions = { requireDelivery?: boolean };
+export const CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT = "athar-reminder-permission-change";
+export type CustomReminderPermissionState = "native" | "granted" | "default" | "denied" | "unsupported";
 
 export type AtharReminderClickDetail = {
   scheduleId: string;
@@ -216,8 +218,12 @@ export async function requestCustomReminderPermission(): Promise<boolean> {
   if (Capacitor.isNativePlatform()) {
     try {
       const { LocalNotifications } = await import("@capacitor/local-notifications");
+      const current = await LocalNotifications.checkPermissions();
+      if (current.display === "granted") return true;
       const res = await LocalNotifications.requestPermissions();
-      return res.display === "granted";
+      const granted = res.display === "granted";
+      if (granted) notifyCustomReminderPermissionChange();
+      return granted;
     } catch {
       return false;
     }
@@ -227,9 +233,25 @@ export async function requestCustomReminderPermission(): Promise<boolean> {
   if (Notification.permission === "denied") return false;
   try {
     const res = await Notification.requestPermission();
-    return res === "granted";
+    const granted = res === "granted";
+    if (granted) notifyCustomReminderPermissionChange();
+    return granted;
   } catch {
     return false;
+  }
+}
+
+export function getCustomReminderPermissionState(): CustomReminderPermissionState {
+  if (Capacitor.isNativePlatform()) return "native";
+  if (typeof Notification === "undefined" || typeof navigator === "undefined" || !navigator.serviceWorker) {
+    return "unsupported";
+  }
+  return Notification.permission;
+}
+
+export function notifyCustomReminderPermissionChange(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT));
   }
 }
 

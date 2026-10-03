@@ -45,7 +45,11 @@ import toast from "react-hot-toast";
 
 import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import { getAccountStorageOwner } from "@/lib/accountStorageScope";
-import { requestCustomReminderPermission } from "@/lib/customReminderNotifications";
+import {
+  getCustomReminderPermissionState,
+  notifyCustomReminderPermissionChange,
+  requestCustomReminderPermission,
+} from "@/lib/customReminderNotifications";
 import { getCustomReminderSnoozeMinutes } from "@/lib/customReminderTypes";
 import { useNoorStore } from "@/store/noorStore";
 import {
@@ -871,11 +875,19 @@ function ReminderSettingsSheet(props: {
 export function RemindersPage() {
   const navigate = useNavigate();
   const reminders = useNoorStore((s) => s.customReminders) ?? [];
+  const [reminderPermission, setReminderPermission] = React.useState(getCustomReminderPermissionState);
   const [category, setCategory] = React.useState<"all" | ReminderCategory>("all");
   const [drawerMode, setDrawerMode] = React.useState<"create" | "edit" | null>(null);
   const [editingReminder, setEditingReminder] = React.useState<CustomReminder | null>(null);
   const [settingsReminder, setSettingsReminder] = React.useState<CustomReminder | null>(null);
   const seenTemplates = React.useMemo(() => getSeenTemplateIds(), [reminders.length]);
+
+  const ensureReminderPermission = async () => {
+    const granted = await requestCustomReminderPermission();
+    const state = getCustomReminderPermissionState();
+    setReminderPermission(state);
+    return granted && (state === "native" || state === "granted");
+  };
 
   // Real prayer times so prayer_aligned/sunnah_aligned reminders (anchored to
   // fajr/maghrib/etc.) show an actual next-fire time instead of "—" forever —
@@ -924,18 +936,23 @@ export function RemindersPage() {
     return total;
   }, [reminders, prayerTimesForRecurrence]);
 
-  const handleAddTemplate = (t: ReminderTemplate) => {
-    const payload = buildReminderFromTemplate(t);
+  const handleAddTemplate = async (t: ReminderTemplate) => {
+    const enabled = await ensureReminderPermission();
+    const payload = { ...buildReminderFromTemplate(t), enabled };
     const id = storeAddCustomReminder(payload);
     dismissTemplateFlag(t.id);
-    toast.success(`تمت إضافة «${t.title.ar}»`);
+    toast.success(enabled
+      ? `تمت إضافة «${t.title.ar}»`
+      : `تمت إضافة «${t.title.ar}» موقوفًا؛ فعّل إذن الإشعارات ثم شغّله.`);
     void id;
   };
 
-  const handleCreate = (form: FormState) => {
+  const handleCreate = async (form: FormState) => {
+    const enabled = await ensureReminderPermission();
     const patch = reminderFromForm(form);
     storeAddCustomReminder({
       ...(patch as Parameters<typeof storeAddCustomReminder>[0]),
+      enabled,
       title: form.title,
       category: form.category,
       repeat: form.repeat,
@@ -952,21 +969,50 @@ export function RemindersPage() {
       },
     });
     setDrawerMode(null);
-    toast.success("تمت إضافة التذكير");
+    toast.success(enabled
+      ? "تمت إضافة التذكير"
+      : "تمت إضافة التذكير موقوفًا؛ فعّل إذن الإشعارات ثم شغّله.");
   };
 
-  const handleSaveEdit = (form: FormState) => {
+  const handleSaveEdit = async (form: FormState) => {
     if (!editingReminder) return;
+    const enabled = editingReminder.enabled ? await ensureReminderPermission() : false;
     const patch = reminderFromForm(form, editingReminder);
-    storeUpdateCustomReminder(editingReminder.id, patch);
+    storeUpdateCustomReminder(editingReminder.id, { ...patch, enabled });
     setEditingReminder(null);
     setDrawerMode(null);
-    toast.success("تم تحديث التذكير");
+    toast.success(enabled || !editingReminder.enabled
+      ? "تم تحديث التذكير"
+      : "تم تحديث التذكير وحُفظ موقوفًا لأن إذن الإشعارات غير متاح.");
   };
 
-  const handleToggle = (id: string, next: boolean) => {
+  const handleToggle = async (id: string, next: boolean) => {
+    if (next && !await ensureReminderPermission()) {
+      const state = getCustomReminderPermissionState();
+      toast.error(state === "unsupported"
+        ? "هذا المتصفح لا يدعم إشعارات التذكيرات."
+        : state === "denied"
+          ? "إذن الإشعارات مرفوض. فعّله من إعدادات الموقع ثم أعد المحاولة."
+          : "اسمح بإشعارات التذكيرات لتفعيلها.");
+      return;
+    }
     storeToggleCustomReminder(id, next);
     toast.success(next ? "تم التفعيل" : "تم الإيقاف");
+  };
+
+  const handleEnableWebReminderNotifications = async () => {
+    const permissionBeforeRequest = getCustomReminderPermissionState();
+    if (!await ensureReminderPermission()) {
+      const state = getCustomReminderPermissionState();
+      toast.error(state === "unsupported"
+        ? "هذا المتصفح لا يدعم إشعارات التطبيق."
+        : state === "denied"
+          ? "إذن الإشعارات مرفوض. فعّله من إعدادات الموقع ثم أعد المحاولة."
+          : "تعذر تفعيل إشعارات التذكيرات.");
+      return;
+    }
+    if (permissionBeforeRequest === "granted") notifyCustomReminderPermissionChange();
+    toast.success("تم تفعيل الإشعارات وإعادة جدولة التذكيرات المفعّلة.");
   };
 
   const handleDelete = (id: string) => {
@@ -981,9 +1027,12 @@ export function RemindersPage() {
 
   const handleSnooze = async (r: CustomReminder) => {
     const minutes = getCustomReminderSnoozeMinutes(r.notification?.snoozeMinutes);
-    const permissionGranted = await requestCustomReminderPermission();
+    const permissionGranted = await ensureReminderPermission();
     if (!permissionGranted) {
-      toast.error("اسمح بإشعارات التذكيرات لتأجيل هذا التذكير.");
+      const state = getCustomReminderPermissionState();
+      toast.error(state === "denied"
+        ? "إذن الإشعارات مرفوض. فعّله من إعدادات الموقع لتأجيل التذكير."
+        : "اسمح بإشعارات التذكيرات لتأجيل هذا التذكير.");
       return;
     }
 
@@ -1110,6 +1159,35 @@ export function RemindersPage() {
         </Card>
       )}
 
+      {activeCount > 0 && reminderPermission !== "native" && reminderPermission !== "granted" ? (
+        <Card className="mt-3 border border-amber-500/30 p-4">
+          <div role="status" aria-live="polite" className="flex items-start gap-3">
+            <Bell className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-[var(--fg)]">
+                {reminderPermission === "unsupported"
+                  ? "هذا المتصفح لا يوفّر إشعارات التطبيق."
+                  : reminderPermission === "denied"
+                    ? "إذن إشعارات التذكيرات مرفوض في المتصفح."
+                    : "التذكيرات مفعّلة، لكن إشعارات المتصفح غير مفعّلة."}
+              </p>
+              <p className="mt-1 text-[11px] leading-5 text-[var(--muted-2)]">
+                فعّل الإشعارات لتعمل التذكيرات في المتصفح. وعلى الويب قد لا يصل التنبيه بعد إغلاق التطبيق أو إيقافه.
+              </p>
+              {reminderPermission !== "unsupported" ? (
+                <button
+                  type="button"
+                  onClick={() => void handleEnableWebReminderNotifications()}
+                  className="mt-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/20 transition"
+                >
+                  {reminderPermission === "denied" ? "تحقق من إذن الإشعارات" : "تفعيل إشعارات التذكيرات"}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </Card>
+      ) : null}
+
       {/* ─── Recommended Templates ──────────────────────── */}
       {recommendedTemplates.length > 0 ? (
         <section className="mt-6">
@@ -1136,7 +1214,7 @@ export function RemindersPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleAddTemplate(t)}
+                  onClick={() => void handleAddTemplate(t)}
                   className="mt-3 inline-flex items-center justify-center gap-1 rounded-xl bg-[var(--accent)] px-2.5 py-1.5 text-[11px] font-bold text-black/85 transition active:scale-95"
                   aria-label={`أضف تذكير ${t.title.ar}`}
                 >

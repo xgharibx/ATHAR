@@ -35,9 +35,13 @@ function seedLocalFavorites(favorites: Record<string, boolean>) {
   localStorage.setItem("noor_store_v1", JSON.stringify({ state: { favorites }, version: 33 }));
 }
 
-async function renderAndSettle() {
+async function renderAndSettle(isSettled: () => boolean) {
   await act(async () => { root?.render(<Harness />); });
-  await act(async () => { await new Promise((resolve) => setTimeout(resolve, 200)); });
+  const deadline = Date.now() + 5_000;
+  while (!isSettled() && Date.now() < deadline) {
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 25)); });
+  }
+  expect(isSettled()).toBe(true);
 }
 
 describe("auth gate and account storage ownership", () => {
@@ -65,7 +69,7 @@ describe("auth gate and account storage ownership", () => {
   });
 
   it("requires an import decision and keeps A's data out of B while retaining local recovery", async () => {
-    await renderAndSettle();
+    await renderAndSettle(() => Boolean(scope?.error || (scope?.needsImportChoice && !scope.checkingImport)));
     expect(scope?.needsImportChoice).toBe(true);
     expect(mocks.startCloudSync).not.toHaveBeenCalled();
     expect(useNoorStore.getState().favorites).toEqual({});
@@ -77,7 +81,7 @@ describe("auth gate and account storage ownership", () => {
     expect(localStorage.getItem("noor_store_v1")).not.toBeNull();
 
     mocks.auth = { session: { user: { id: "synthetic-b" } }, configured: true, loading: false };
-    await renderAndSettle();
+    await renderAndSettle(() => Boolean(scope?.error || (scope?.needsImportChoice && !scope.checkingImport)));
     expect(scope?.needsImportChoice).toBe(true);
     expect(useNoorStore.getState().favorites).toEqual({});
     expect(mocks.startCloudSync).toHaveBeenCalledTimes(1);
@@ -87,7 +91,7 @@ describe("auth gate and account storage ownership", () => {
     expect(mocks.startCloudSync).toHaveBeenCalledTimes(2);
 
     mocks.auth = { session: { user: { id: "synthetic-a" } }, configured: true, loading: false };
-    await renderAndSettle();
+    await renderAndSettle(() => Boolean(scope?.error || scope?.ready));
     expect(scope?.ready).toBe(true);
     expect(useNoorStore.getState().favorites).toEqual({ "local:1": true });
   });

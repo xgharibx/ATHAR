@@ -12,6 +12,7 @@ import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { syncReminders, registerNotificationDeepLinkListener, ensureDefaultNotificationChannels } from "@/lib/reminders";
 import { syncCustomReminders } from "@/lib/reminderSync";
+import { CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT } from "@/lib/customReminderNotifications";
 import { syncAllWidgets } from "@/lib/widgetDataBridge";
 import { PwaInstallBanner } from "@/components/brand/PwaInstallBanner";
 import { useCloudSync } from "@/hooks/useCloudSync";
@@ -196,6 +197,7 @@ export default function App() {
 function AppContent() {
   useApplyTheme();
   const navigate = useNavigate();
+  const [reminderPermissionRevision, setReminderPermissionRevision] = React.useState(0);
   const ensureDailyResets = useNoorStore((s) => s.ensureDailyResets);
   const reminders = useNoorStore((s) => s.reminders);
   const customReminders = useNoorStore((s) => s.customReminders);
@@ -204,6 +206,12 @@ function AppContent() {
   const progress = useNoorStore((s) => s.progress);
   const location = useLocation();
   const prayerTimes = usePrayerTimes();
+
+  React.useEffect(() => {
+    const onPermissionChange = () => setReminderPermissionRevision((revision) => revision + 1);
+    window.addEventListener(CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT, onPermissionChange);
+    return () => window.removeEventListener(CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT, onPermissionChange);
+  }, []);
   const fajrTime = prayerTimes.data?.data?.timings?.Fajr ?? null;
   const notificationPrayerTimings = React.useMemo(() => {
     const timings = prayerTimes.data?.data?.timings;
@@ -427,7 +435,7 @@ function AppContent() {
   React.useEffect(() => {
     const cleanup = syncCustomReminders(customReminders, { prayerTimes: notificationPrayerTimings ?? undefined });
     return cleanup;
-  }, [customReminders, notificationPrayerTimings]);
+  }, [customReminders, notificationPrayerTimings, reminderPermissionRevision]);
 
   // 11C: Pre-create default notification channels on native platforms
   React.useEffect(() => {
