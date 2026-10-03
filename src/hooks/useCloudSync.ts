@@ -19,9 +19,11 @@ import {
   type SyncStatus,
 } from "@/lib/syncClient";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { normalizeAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
+import { getSession } from "@/lib/authClient";
+import { getAccountStorageOwner, normalizeAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
 import { hydrateAccountStorageOwner } from "@/store/noorStore";
 import { copyLocalDataIntoAccount, getAccountImportChoice, hasLocalCompanionData as inspectLocalCompanionData, hasLocalDataToImport, setAccountImportChoice } from "@/lib/accountDataImport";
+import { beginAccountReminderTransition, cancelRemindersForAccountSwitch, completeAccountReminderTransition } from "@/lib/reminders";
 
 export type AccountScopeState = {
   ready: boolean;
@@ -50,6 +52,7 @@ export function useCloudSync(): AccountScopeState {
   const [hasLocalCompanionData, setHasLocalCompanionData] = React.useState(false);
   const [includeCompanionData, setIncludeCompanionData] = React.useState(false);
   const [retryToken, setRetryToken] = React.useState(0);
+  const needsInitialReminderCleanup = React.useRef(true);
 
   React.useEffect(() => {
     const requestImport = () => {
@@ -81,7 +84,41 @@ export function useCloudSync(): AccountScopeState {
     setNeedsImportChoice(false);
     setHasLocalCompanionData(false);
     setIncludeCompanionData(false);
-    void hydrateAccountStorageOwner(targetOwner).then(async () => {
+    void (async () => {
+      const stillCurrent = async () => {
+        if (!alive || targetOwnerRef.current !== targetOwner) return false;
+        if (!configured) return targetOwner === "local";
+        try {
+          const currentSession = await getSession();
+          return alive && targetOwnerRef.current === targetOwner &&
+            normalizeAccountStorageOwner(currentSession?.user?.id ?? null) === targetOwner;
+        } catch {
+          return false;
+        }
+      };
+      if (!await stillCurrent()) {
+        if (!alive || targetOwnerRef.current !== targetOwner) return;
+        throw new Error("تعذّر التحقق من جلسة الحساب الحالية");
+      }
+      if (needsInitialReminderCleanup.current || getAccountStorageOwner() !== targetOwner) {
+        // Clear persisted OS/browser reminders before exposing even the local
+        // scope. The in-memory owner resets to "local" after process restart,
+        // so an owner comparison alone cannot identify alarms from a prior run.
+        beginAccountReminderTransition();
+        // Do not hydrate the new account if cancellation fails. The existing
+        // retry/error screen lets the user retry without exposing stale alarms.
+        await cancelRemindersForAccountSwitch(
+          targetOwner,
+          stillCurrent,
+        );
+        if (!alive) return;
+        if (!await stillCurrent()) {
+          if (!alive || targetOwnerRef.current !== targetOwner) return;
+          throw new Error("تغيّرت جلسة الحساب قبل اكتمال تبديل التذكيرات");
+        }
+        needsInitialReminderCleanup.current = false;
+      }
+      await hydrateAccountStorageOwner(targetOwner);
       if (!alive) return;
       if (configured && userId && !getAccountImportChoice()) {
         await hydrateAccountStorageOwner("local");
@@ -93,15 +130,17 @@ export function useCloudSync(): AccountScopeState {
         if (!alive) return;
         setHasLocalCompanionData(hasCompanionData);
         if (hasLocalData) {
+          completeAccountReminderTransition(targetOwner);
           setNeedsImportChoice(true);
           setHydratedOwner(targetOwner);
           return;
         }
         setAccountImportChoice("keep");
       }
+      completeAccountReminderTransition(targetOwner);
       setHydratedOwner(targetOwner);
       if (configured && userId) startCloudSync();
-    }).catch((cause: unknown) => {
+    })().catch((cause: unknown) => {
       if (!alive) return;
       setError(cause instanceof Error ? cause.message : "تعذّر تحميل بيانات الحساب بأمان");
     });

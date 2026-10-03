@@ -22,11 +22,17 @@ const mocks = vi.hoisted(() => ({
     registerActionTypes: vi.fn(async () => undefined),
     createChannel: vi.fn(async () => undefined),
   },
+  scheduleCustomNotification: vi.fn(async () => "cr:test:1700000000000"),
+  cancelCustomNotification: vi.fn(async () => undefined),
 }));
 
 vi.mock("@capacitor/core", () => ({ Capacitor: mocks.mockCapacitor }));
 vi.mock("@capacitor/local-notifications", () => ({
   LocalNotifications: mocks.mockLocalNotifications,
+}));
+vi.mock("@/lib/customReminderNotifications", () => ({
+  scheduleCustomNotification: mocks.scheduleCustomNotification,
+  cancelCustomNotification: mocks.cancelCustomNotification,
 }));
 
 import {
@@ -80,6 +86,8 @@ describe("startCustomReminderDelivery", () => {
     mockCapacitor.isNativePlatform.mockReturnValue(false);
     mockLocalNotifications.schedule.mockClear();
     mockLocalNotifications.cancel.mockClear();
+    mocks.scheduleCustomNotification.mockClear();
+    mocks.cancelCustomNotification.mockClear();
   });
 
   it("schedules every enabled reminder on first sync", async () => {
@@ -121,6 +129,33 @@ describe("startCustomReminderDelivery", () => {
     handle.stop();
     handle.syncNow().catch(() => {});
     await Promise.resolve();
+    await vi.waitFor(() => expect(mocks.cancelCustomNotification).toHaveBeenCalledWith("cr:test:1700000000000"));
+    expect(onFire).not.toHaveBeenCalled();
+    expect(handle.isRunning()).toBe(false);
+  });
+
+  it("cancels a notification whose async schedule finishes after stop", async () => {
+    let signalStarted!: () => void;
+    let releaseSchedule!: () => void;
+    const started = new Promise<void>((resolve) => { signalStarted = resolve; });
+    const scheduleGate = new Promise<void>((resolve) => { releaseSchedule = resolve; });
+    mocks.scheduleCustomNotification.mockImplementationOnce(async () => {
+      signalStarted();
+      await scheduleGate;
+      return "cr:late:1700000000000";
+    });
+    const onFire = vi.fn();
+    const handle = startCustomReminderDelivery({
+      getReminders: () => [makeReminder("a", "08:00")],
+      onFire,
+      syncIntervalMs: 0,
+    });
+    await started;
+
+    handle.stop();
+    releaseSchedule();
+
+    await vi.waitFor(() => expect(mocks.cancelCustomNotification).toHaveBeenCalledWith("cr:late:1700000000000"));
     expect(onFire).not.toHaveBeenCalled();
     expect(handle.isRunning()).toBe(false);
   });

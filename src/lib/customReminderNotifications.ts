@@ -1,6 +1,11 @@
 import { Capacitor } from "@capacitor/core";
 import type { CustomReminder } from "./customReminderTypes";
 import { CUSTOM_REMINDER_ACTION_TYPE_ID, registerNotificationActionTypes } from "./notificationActionTypes";
+import {
+  getAccountStorageOwner,
+  isAccountStorageOwnerTransitionInProgress,
+  type AccountStorageOwner,
+} from "./accountStorageScope";
 
 /**
  * Custom-reminder delivery layer.
@@ -11,10 +16,9 @@ import { CUSTOM_REMINDER_ACTION_TYPE_ID, registerNotificationActionTypes } from 
  *
  *  - Native (Capacitor Android/iOS) → `@capacitor/local-notifications` (OS-level
  *    scheduling, survives app close; uses the existing bridge in reminders.ts).
- *  - Web (PWA) → `Notification` API fired from a `setTimeout`. Works while the
- *    page is open. Background-tab/closed-app support is provided by the
- *    Service Worker (see /sw.ts) which dispatches `athar-reminder-click` on
- *    notification action/click.
+ *  - Web (PWA) → the Service Worker (see /sw.ts) schedules and displays
+ *    notifications, so delivered notifications remain enumerable and can be
+ *    cleared when the account changes.
  *
  * All action-button wiring (done / snooze / open) routes to
  * `window.dispatchEvent(new CustomEvent('athar-reminder-click', { detail }))`
@@ -28,6 +32,7 @@ export type CustomReminderActionId = "done" | "snooze" | "open";
 export type AtharReminderClickDetail = {
   scheduleId: string;
   reminderId: string;
+  accountOwner: AccountStorageOwner;
   route?: string;
   action?: CustomReminderActionId;
 };
@@ -35,10 +40,16 @@ export type AtharReminderClickDetail = {
 export { CUSTOM_REMINDER_ACTION_TYPE_ID } from "./notificationActionTypes";
 export const CUSTOM_REMINDER_CHANNEL_ID = "athar-custom-reminders";
 export const WEB_ATHAR_TAG_PREFIX = "athar-reminder:";
+export const WEB_ATHAR_NOTIFICATION_TAG_PREFIX = "athar-notification:";
 
-/** Stable, deterministic id from (reminderId, fireAtMs). */
-export function scheduleIdFor(reminderId: string, fireAtMs: number): string {
-  return `cr:${reminderId}:${fireAtMs}`;
+/** Stable, owner-scoped deterministic id from (account, reminderId, fireAtMs). */
+export function scheduleIdFor(
+  reminderId: string,
+  fireAtMs: number,
+  owner: AccountStorageOwner = getAccountStorageOwner(),
+): string {
+  const ownerPart = owner === "local" ? "" : `${encodeURIComponent(owner)}:`;
+  return `cr:${ownerPart}${reminderId}:${fireAtMs}`;
 }
 
 /** Capacitor LocalNotifications needs a numeric id → FNV-1a hash, 31-bit. */
@@ -51,7 +62,21 @@ export function numericIdFor(scheduleId: string): number {
   return (h >>> 0) % 0x7fffffff;
 }
 
+const nativeScheduleOperations = new Set<Promise<unknown>>();
 const webTimers = new Map<string, number>();
+const webNotificationOperations = new Set<Promise<boolean>>();
+
+async function waitForNativeScheduleOperations(): Promise<void> {
+  while (nativeScheduleOperations.size > 0) {
+    await Promise.allSettled([...nativeScheduleOperations]);
+  }
+}
+
+async function waitForWebNotificationOperations(): Promise<void> {
+  while (webNotificationOperations.size > 0) {
+    await Promise.allSettled([...webNotificationOperations]);
+  }
+}
 
 function resolveBody(reminder: CustomReminder, override?: string): string {
   if (override && override.trim()) return override;
@@ -78,14 +103,112 @@ async function ensureCustomChannel(): Promise<void> {
   }
 }
 
-async function notifySW(message: unknown): Promise<void> {
-  if (typeof navigator === "undefined") return;
-  if (!navigator.serviceWorker?.controller) return;
+async function notifySW(
+  message: unknown,
+  expectedOwner?: AccountStorageOwner,
+  waitForResponse = false,
+  stillCurrent: () => boolean | Promise<boolean> = () => true,
+): Promise<boolean> {
+  if (typeof navigator === "undefined" || !navigator.serviceWorker) return false;
   try {
-    navigator.serviceWorker.controller.postMessage(message);
+    const worker = navigator.serviceWorker.controller ??
+      (await navigator.serviceWorker.getRegistrations()).find((registration) => registration.active)?.active;
+    if (!await stillCurrent()) return false;
+    if (expectedOwner &&
+      (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== expectedOwner)) return false;
+    if (!worker) return false;
+    if (!waitForResponse) {
+      worker.postMessage(message);
+      return true;
+    }
+    const response = await requestSWResponse(worker, message);
+    return (response as { ok?: unknown } | null)?.ok === true;
   } catch {
     // controller might be in flux (initial load); ignore
+    return false;
   }
+}
+
+async function requestSWResponse(worker: ServiceWorker, message: unknown): Promise<unknown | null> {
+  if (typeof MessageChannel === "undefined") return null;
+  return await new Promise<unknown | null>((resolve) => {
+    const channel = new MessageChannel();
+    const timeout = setTimeout(() => {
+      channel.port1.close();
+      channel.port2.close();
+      resolve(null);
+    }, 5000);
+    channel.port1.onmessage = (event) => {
+      clearTimeout(timeout);
+      channel.port1.close();
+      channel.port2.close();
+      resolve(event.data ?? null);
+    };
+    channel.port1.onmessageerror = () => {
+      clearTimeout(timeout);
+      channel.port1.close();
+      channel.port2.close();
+      resolve(null);
+    };
+    try {
+      worker.postMessage(message, [channel.port2]);
+    } catch {
+      clearTimeout(timeout);
+      channel.port1.close();
+      channel.port2.close();
+      resolve(null);
+    }
+  });
+}
+
+async function queryReminderOwner(worker: ServiceWorker): Promise<{
+  owner: AccountStorageOwner | null;
+  transitioning: boolean;
+  sourceOwner?: AccountStorageOwner;
+  requestAtMs: number;
+} | null> {
+  const response = await requestSWResponse(worker, { type: "athar-reminder-owner-query" }) as {
+    ok?: unknown;
+    owner?: unknown;
+    transitioning?: unknown;
+    sourceOwner?: unknown;
+    requestAtMs?: unknown;
+  } | null;
+  if (!response || response.ok !== true ||
+    (response.owner !== null && typeof response.owner !== "string")) return null;
+  return {
+    owner: response.owner as AccountStorageOwner | null,
+    transitioning: response.transitioning === true,
+    sourceOwner: typeof response.sourceOwner === "string"
+      ? response.sourceOwner as AccountStorageOwner
+      : undefined,
+    requestAtMs: Number.isFinite(response.requestAtMs) ? response.requestAtMs as number : 0,
+  };
+}
+
+/** Show a web notification through the Service Worker so account cleanup can enumerate it. */
+export async function showServiceWorkerNotification(
+  title: string,
+  options: NotificationOptions = {},
+  expectedOwner: AccountStorageOwner = getAccountStorageOwner(),
+): Promise<boolean> {
+  if (typeof navigator === "undefined" || !navigator.serviceWorker) return Promise.resolve(false);
+  if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== expectedOwner) {
+    return Promise.resolve(false);
+  }
+
+  const operation = notifySW({
+    type: "athar-notification-show",
+    accountOwner: expectedOwner,
+    title,
+    options,
+  }, expectedOwner, true).then((shown) =>
+    shown && !isAccountStorageOwnerTransitionInProgress() && getAccountStorageOwner() === expectedOwner,
+  );
+  let trackedOperation: Promise<boolean>;
+  trackedOperation = operation.finally(() => webNotificationOperations.delete(trackedOperation));
+  webNotificationOperations.add(trackedOperation);
+  return trackedOperation;
 }
 
 export async function requestCustomReminderPermission(): Promise<boolean> {
@@ -113,129 +236,99 @@ export async function scheduleCustomNotification(
   reminder: CustomReminder,
   fireAt: Date,
   body: string,
+  owner: AccountStorageOwner = getAccountStorageOwner(),
 ): Promise<string> {
-  const scheduleId = scheduleIdFor(reminder.id, fireAt.getTime());
+  const scheduleId = scheduleIdFor(reminder.id, fireAt.getTime(), owner);
   const finalBody = resolveBody(reminder, body);
   const route = reminder.deeplink?.route ?? "";
+
+  if (isAccountStorageOwnerTransitionInProgress()) return scheduleId;
 
   if (Capacitor.isNativePlatform()) {
     const { LocalNotifications } = await import("@capacitor/local-notifications");
     await registerNotificationActionTypes();
     await ensureCustomChannel();
-    await LocalNotifications.schedule({
-      notifications: [
-        {
-          id: numericIdFor(scheduleId),
-          title: reminder.title,
-          body: finalBody,
-          schedule: { at: fireAt },
-          channelId: CUSTOM_REMINDER_CHANNEL_ID,
-          actionTypeId: CUSTOM_REMINDER_ACTION_TYPE_ID,
-          smallIcon: "ic_stat_athar_notification",
-          largeIcon: "logo_notification_large",
-          iconColor: "#2F4F37",
-          extra: {
-            scheduleId,
-            reminderId: reminder.id,
-            route,
+    if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return scheduleId;
+    const operation = (async () => {
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: numericIdFor(scheduleId),
             title: reminder.title,
             body: finalBody,
+            schedule: { at: fireAt },
+            channelId: CUSTOM_REMINDER_CHANNEL_ID,
+            actionTypeId: CUSTOM_REMINDER_ACTION_TYPE_ID,
+            smallIcon: "ic_stat_athar_notification",
+            largeIcon: "logo_notification_large",
+            iconColor: "#2F4F37",
+            extra: {
+              scheduleId,
+              reminderId: reminder.id,
+              accountOwner: owner,
+              route,
+              title: reminder.title,
+              body: finalBody,
+            },
           },
-        },
-      ],
-    });
+        ],
+      });
+      if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) {
+        try {
+          await LocalNotifications.cancel({ notifications: [{ id: numericIdFor(scheduleId) }] });
+        } catch {
+          // A late schedule is checked again by the account transition's pending sweep.
+        }
+      }
+    })();
+    nativeScheduleOperations.add(operation);
+    try {
+      await operation;
+    } finally {
+      nativeScheduleOperations.delete(operation);
+    }
     return scheduleId;
   }
 
-  // Web fallback
-  if (typeof window === "undefined") return scheduleId;
+  // The worker covers background delivery; the page timer covers an open tab
+  // if the browser suspends the worker's timer. Both use one tag, and the
+  // worker's later replacement is silent so the user sees a single alert.
+  if (typeof window === "undefined" || typeof navigator === "undefined" || !navigator.serviceWorker) {
+    return scheduleId;
+  }
+  if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return scheduleId;
   const tag = `${WEB_ATHAR_TAG_PREFIX}${scheduleId}`;
   const fireTime = fireAt.getTime();
-  const delay = Math.max(0, fireTime - Date.now());
-
   const prior = webTimers.get(scheduleId);
-  if (prior !== undefined) clearTimeout(prior);
-
+  if (prior !== undefined) window.clearTimeout(prior);
   const timer = window.setTimeout(() => {
-    void showWebCustomNotification(reminder, finalBody, tag, scheduleId);
-  }, delay);
+    if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return;
+    void showServiceWorkerNotification(reminder.title, {
+      body: finalBody,
+      tag,
+      icon: "/logo.svg",
+      badge: "/pwa-192x192.png",
+      data: { scheduleId, reminderId: reminder.id, accountOwner: owner, route },
+      actions: [
+        { action: "done", title: "تم" },
+        { action: "snooze", title: "غفوت" },
+        { action: "open", title: "افتح" },
+      ],
+    } as NotificationOptions);
+  }, Math.max(0, fireTime - Date.now()));
   webTimers.set(scheduleId, timer);
-
   await notifySW({
     type: "athar-reminder-schedule",
     scheduleId,
     reminderId: reminder.id,
+    accountOwner: owner,
     fireAtMs: fireTime,
     title: reminder.title,
     body: finalBody,
     route,
     tag,
-  });
+  }, owner);
   return scheduleId;
-}
-
-async function showWebCustomNotification(
-  reminder: CustomReminder,
-  body: string,
-  tag: string,
-  scheduleId: string,
-): Promise<void> {
-  if (typeof Notification === "undefined") return;
-  if (Notification.permission !== "granted") return;
-  const route = reminder.deeplink?.route ?? "";
-  const opts: NotificationOptions = {
-    body,
-    tag,
-    icon: "/logo.svg",
-    badge: "/pwa-192x192.png",
-    data: {
-      scheduleId,
-      reminderId: reminder.id,
-      route,
-    },
-  };
-
-  // Attach action buttons + renotify when supported (ServiceWorker showNotification accepts
-  // these; browser Notification constructor ignores them silently).
-  type ExtOptions = NotificationOptions & {
-    actions?: Array<{ action: string; title: string }>;
-    renotify?: boolean;
-  };
-  const extOpts = opts as ExtOptions;
-  extOpts.actions = [
-    { action: "done", title: "تم" },
-    { action: "snooze", title: "غفوت" },
-    { action: "open", title: "افتح" },
-  ];
-  extOpts.renotify = true;
-
-  let reg: ServiceWorkerRegistration | null = null;
-  try {
-    if (navigator.serviceWorker?.ready) {
-      reg = (await navigator.serviceWorker.ready) ?? null;
-    }
-  } catch {
-    reg = null;
-  }
-
-  if (reg) {
-    await reg.showNotification(reminder.title, extOpts as NotificationOptions);
-    return;
-  }
-  const n = new Notification(reminder.title, opts);
-  n.onclick = () => {
-    try {
-      window.focus();
-    } catch {
-      // ignore
-    }
-    window.dispatchEvent(
-      new CustomEvent<AtharReminderClickDetail>("athar-reminder-click", {
-        detail: { scheduleId, reminderId: reminder.id, route, action: "open" },
-      }),
-    );
-    n.close();
-  };
 }
 
 export async function cancelCustomNotification(scheduleId: string): Promise<void> {
@@ -250,9 +343,9 @@ export async function cancelCustomNotification(scheduleId: string): Promise<void
     }
   }
 
-  const t = webTimers.get(scheduleId);
-  if (t !== undefined) {
-    clearTimeout(t);
+  const timer = webTimers.get(scheduleId);
+  if (timer !== undefined) {
+    clearTimeout(timer);
     webTimers.delete(scheduleId);
   }
 
@@ -271,41 +364,111 @@ export async function cancelCustomNotification(scheduleId: string): Promise<void
   }
 }
 
-export async function cancelAllCustomNotifications(): Promise<void> {
+export async function cancelAllCustomNotifications(
+  options: {
+    clearDelivered?: boolean;
+    targetOwner?: AccountStorageOwner;
+    sourceOwner?: AccountStorageOwner;
+    requestedAtMs?: number;
+    stillCurrent?: () => boolean | Promise<boolean>;
+  } = {},
+): Promise<void> {
+  const stillCurrent = options.stillCurrent ?? (() => true);
+  if (!await stillCurrent()) return;
+  const clearDelivered = options.clearDelivered ?? true;
   if (Capacitor.isNativePlatform()) {
-    try {
-      const { LocalNotifications } = await import("@capacitor/local-notifications");
-      const pending = await LocalNotifications.getPending();
-      const custom = pending.notifications.filter((notification) => {
-        const scheduleId: unknown = notification.extra?.scheduleId;
+    await waitForNativeScheduleOperations();
+    if (!await stillCurrent()) return;
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    const pending = await LocalNotifications.getPending();
+    const custom = pending.notifications.filter((notification) => {
+      const scheduleId: unknown = notification.extra?.scheduleId;
+      return typeof scheduleId === "string" && scheduleId.startsWith("cr:");
+    });
+    if (custom.length) {
+      await LocalNotifications.cancel({
+        notifications: custom.map((n) => ({ id: n.id })),
+      });
+    }
+    if (clearDelivered) {
+      const delivered = await LocalNotifications.getDeliveredNotifications();
+      const customDelivered = delivered.notifications.filter((notification) => {
+        const payload = notification.extra ?? notification.data;
+        if (!payload || typeof payload !== "object") return false;
+        const scheduleId = (payload as Record<string, unknown>).scheduleId;
         return typeof scheduleId === "string" && scheduleId.startsWith("cr:");
       });
-      if (custom.length) {
-        await LocalNotifications.cancel({
-          notifications: custom.map((n) => ({ id: n.id })),
-        });
+      if (customDelivered.length) {
+        await LocalNotifications.removeDeliveredNotifications({ notifications: customDelivered });
       }
-    } catch {
-      // ignore
     }
   }
 
-  for (const t of webTimers.values()) clearTimeout(t);
+  for (const timer of webTimers.values()) clearTimeout(timer);
   webTimers.clear();
+  if (!await stillCurrent()) return;
 
-  if (typeof navigator !== "undefined" && navigator.serviceWorker) {
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const r of regs) {
-        const all = await r.getNotifications();
-        all
-          .filter((n) => (n.tag ?? "").startsWith(WEB_ATHAR_TAG_PREFIX))
-          .forEach((n) => n.close());
+  if (
+    !Capacitor.isNativePlatform() &&
+    typeof navigator !== "undefined" &&
+    navigator.serviceWorker &&
+    (clearDelivered || options.targetOwner)
+  ) {
+    await waitForWebNotificationOperations();
+    const regs = await navigator.serviceWorker.getRegistrations();
+    const worker = navigator.serviceWorker.controller ??
+      regs.find((registration) => registration.active !== null)?.active;
+    const hasActiveWorker = Boolean(worker);
+    let workerCleanupComplete = true;
+    if (hasActiveWorker) {
+      let ownerSnapshot = await queryReminderOwner(worker!);
+      if (!await stillCurrent()) return;
+      if (!ownerSnapshot) {
+        throw new Error("Service worker could not confirm the current reminder owner");
       }
-    } catch {
-      // ignore
+      const baseRequestedAtMs = options.requestedAtMs ?? Date.now();
+      let requestedAtMs = Math.max(baseRequestedAtMs, ownerSnapshot.requestAtMs + 1);
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        if (!await stillCurrent()) return;
+        const snapshotSource = ownerSnapshot.transitioning
+          ? ownerSnapshot.sourceOwner ?? ownerSnapshot.owner
+          : ownerSnapshot.owner;
+        const sourceOwner = snapshotSource ?? options.sourceOwner ?? getAccountStorageOwner();
+        workerCleanupComplete = await notifySW(
+          {
+            type: clearDelivered ? "athar-reminder-cancel-all" : "athar-reminder-cancel-pending",
+            accountOwner: options.targetOwner,
+            sourceOwner,
+            requestedAtMs,
+          },
+          undefined,
+          true,
+          stillCurrent,
+        );
+        if (workerCleanupComplete || attempt > 0 || !await stillCurrent()) break;
+        ownerSnapshot = await queryReminderOwner(worker!);
+        if (!await stillCurrent()) return;
+        if (!ownerSnapshot) break;
+        requestedAtMs = Math.max(baseRequestedAtMs, requestedAtMs + 1, ownerSnapshot.requestAtMs + 1);
+      }
     }
-    await notifySW({ type: "athar-reminder-cancel-all" });
+    if (!await stillCurrent()) return;
+    if (clearDelivered) {
+      for (const registration of regs) {
+        const all = await registration.getNotifications();
+        all
+          .filter((notification) => {
+            const tag = notification.tag ?? "";
+            return tag.startsWith(WEB_ATHAR_TAG_PREFIX) ||
+              tag.startsWith(WEB_ATHAR_NOTIFICATION_TAG_PREFIX) ||
+              tag.startsWith("customReminder:");
+          })
+          .forEach((notification) => notification.close());
+      }
+    }
+    if (!workerCleanupComplete) {
+      throw new Error("Service worker did not confirm reminder notification cleanup");
+    }
   }
 }
 

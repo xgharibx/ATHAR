@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { requestPrayerLocation, usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { accountScopedStorageKey, setAccountStorageOwner } from "@/lib/accountStorageScope";
 
 const query = vi.hoisted(() => ({
   run: undefined as undefined | (() => Promise<{ data: { timings: Record<string, string> }; __sourceLabel?: string }>),
@@ -34,6 +35,7 @@ function mountAtMecca() {
 }
 
 beforeEach(() => {
+  setAccountStorageOwner("local");
   process.env.TZ = "UTC";
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-10-02T12:00:00Z"));
@@ -46,6 +48,7 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
   process.env.TZ = oldTimezone;
+  setAccountStorageOwner("local");
 });
 
 describe("offline prayer fallback", () => {
@@ -100,6 +103,25 @@ describe("offline prayer fallback", () => {
 
     expect(await requestPrayerLocation()).toBe(false);
     expect(JSON.parse(localStorage.getItem("noor_prayer_coords_v1") ?? "null")).toEqual(saved);
+  });
+
+  it("does not save coordinates into a different account after a slow location request", async () => {
+    let resolvePosition!: PositionCallback;
+    Object.defineProperty(navigator, "geolocation", { configurable: true, value: {
+      getCurrentPosition: (success: PositionCallback) => { resolvePosition = success; },
+    } });
+    setAccountStorageOwner("user:account-a");
+    const request = requestPrayerLocation();
+    const accountBSavedLocation = { lat: 35.6762, lng: 139.6503, savedAt: "2026-10-02T00:00:00.000Z" };
+    const accountBKey = accountScopedStorageKey("noor_prayer_coords_v1", "user:account-b");
+    localStorage.setItem(accountBKey, JSON.stringify(accountBSavedLocation));
+
+    setAccountStorageOwner("user:account-b");
+    resolvePosition({ coords: { latitude: 21.4225, longitude: 39.8262 } } as GeolocationPosition);
+
+    expect(await request).toBe(false);
+    expect(localStorage.getItem(accountScopedStorageKey("noor_prayer_coords_v1", "user:account-a"))).toBeNull();
+    expect(JSON.parse(localStorage.getItem(accountBKey) ?? "null")).toEqual(accountBSavedLocation);
   });
 
   it("reaches local calculation when network requests remain pending until aborted", async () => {

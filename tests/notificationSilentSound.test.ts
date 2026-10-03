@@ -6,10 +6,16 @@ const mocks = vi.hoisted(() => ({
     getPlatform: vi.fn(() => "ios"),
   },
   quietChannelCreate: vi.fn(async (_options: unknown) => undefined),
+  cancelAllCustomNotifications: vi.fn(async (_options: {
+    clearDelivered?: boolean;
+    requestedAtMs?: number;
+    stillCurrent?: () => boolean;
+  }) => undefined),
   localNotifications: {
     cancel: vi.fn(async (_options: unknown) => undefined),
     checkPermissions: vi.fn(async () => ({ display: "granted" })),
     schedule: vi.fn(async (_options: unknown) => ({ notifications: [] })),
+    removeAllDeliveredNotifications: vi.fn(async () => undefined),
   },
 }));
 
@@ -18,9 +24,20 @@ vi.mock("@capacitor/core", () => ({
   registerPlugin: vi.fn(() => ({ create: mocks.quietChannelCreate })),
 }));
 vi.mock("@capacitor/local-notifications", () => ({ LocalNotifications: mocks.localNotifications }));
+vi.mock("@/lib/customReminderNotifications", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/customReminderNotifications")>()),
+  cancelAllCustomNotifications: mocks.cancelAllCustomNotifications,
+}));
 
-import { buildPrayerNotificationsForDays, syncReminders } from "@/lib/reminders";
+import {
+  beginAccountReminderTransition,
+  buildPrayerNotificationsForDays,
+  cancelRemindersForAccountSwitch,
+  completeAccountReminderTransition,
+  syncReminders,
+} from "@/lib/reminders";
 import type { Reminders } from "@/store/noorStore";
+import { setAccountStorageOwner } from "@/lib/accountStorageScope";
 
 const PRAYER_ALERTS = { Fajr: true, Dhuhr: false, Asr: false, Maghrib: false, Isha: false };
 
@@ -53,17 +70,25 @@ function adhkarReminders(): Reminders {
 }
 
 beforeEach(() => {
+  completeAccountReminderTransition();
   vi.useFakeTimers();
   vi.setSystemTime(new Date(2026, 9, 2, 7, 0, 0));
   mocks.capacitor.isNativePlatform.mockReturnValue(true);
   mocks.capacitor.getPlatform.mockReturnValue("ios");
   mocks.quietChannelCreate.mockClear();
+  mocks.cancelAllCustomNotifications.mockClear();
   mocks.localNotifications.cancel.mockClear();
+  mocks.localNotifications.removeAllDeliveredNotifications.mockClear();
   mocks.localNotifications.checkPermissions.mockResolvedValue({ display: "granted" });
   mocks.localNotifications.schedule.mockClear();
 });
 
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  completeAccountReminderTransition();
+  setAccountStorageOwner("local");
+  vi.unstubAllGlobals();
+});
 
 describe("silent native notification sound payloads", () => {
   it("omits sound from iOS prayer follow-up and daily Hadith notifications", () => {
@@ -102,5 +127,154 @@ describe("silent native notification sound payloads", () => {
     );
     expect(mocks.quietChannelCreate).toHaveBeenCalledOnce();
     expect(morning).toHaveProperty("sound", "");
+  });
+
+  it("binds built-in notification actions to the account that scheduled them", async () => {
+    setAccountStorageOwner("user:notification-owner");
+
+    await syncReminders(adhkarReminders());
+
+    const morning = scheduledNotifications().find((notification) =>
+      (notification.extra as { reminderKey?: string } | undefined)?.reminderKey === "morning",
+    );
+    expect(morning?.extra).toMatchObject({ accountOwner: "user:notification-owner" });
+  });
+
+  it("finishes an older in-flight schedule before cancelling it for the next account", async () => {
+    const events: string[] = [];
+    let signalScheduleStarted!: () => void;
+    let releaseSchedule!: () => void;
+    const scheduleStarted = new Promise<void>((resolve) => { signalScheduleStarted = resolve; });
+    const scheduleGate = new Promise<void>((resolve) => { releaseSchedule = resolve; });
+    mocks.localNotifications.schedule.mockImplementationOnce(async () => {
+      signalScheduleStarted();
+      await scheduleGate;
+      events.push("previous schedule finished");
+      return { notifications: [] };
+    });
+
+    setAccountStorageOwner("user:previous");
+    const previousSync = syncReminders(adhkarReminders());
+    await scheduleStarted;
+    mocks.localNotifications.cancel.mockImplementation(async () => {
+      events.push("next account cancel");
+      return { notifications: [] };
+    });
+
+    setAccountStorageOwner("user:next");
+    const nextSync = syncReminders({ ...adhkarReminders(), enabled: false });
+    vi.useRealTimers();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(events).toEqual([]);
+
+    releaseSchedule();
+    await Promise.all([previousSync, nextSync]);
+    expect(events).toEqual(["previous schedule finished", "next account cancel"]);
+  });
+
+  it("cancels outgoing built-in reminders before the next account can hydrate", async () => {
+    const events: string[] = [];
+    let signalScheduleStarted!: () => void;
+    let releaseSchedule!: () => void;
+    const scheduleStarted = new Promise<void>((resolve) => { signalScheduleStarted = resolve; });
+    const scheduleGate = new Promise<void>((resolve) => { releaseSchedule = resolve; });
+    mocks.localNotifications.cancel.mockImplementation(async (options: unknown) => {
+      const notifications = (options as { notifications: Array<{ id: number }> }).notifications;
+      events.push(notifications.some(({ id }) => id === 9111) ? "cancel-all-reminders" : "cancel-current-schedule");
+      return { notifications: [] };
+    });
+    mocks.localNotifications.removeAllDeliveredNotifications.mockImplementation(async () => {
+      events.push("remove-delivered-reminders");
+    });
+    mocks.cancelAllCustomNotifications.mockImplementation(async ({ clearDelivered }) => {
+      events.push(`cancel-custom-reminders:${String(clearDelivered)}`);
+    });
+    mocks.localNotifications.schedule.mockImplementationOnce(async () => {
+      signalScheduleStarted();
+      await scheduleGate;
+      events.push("previous schedule finished");
+      return { notifications: [] };
+    });
+
+    setAccountStorageOwner("user:previous");
+    const previousSync = syncReminders(adhkarReminders());
+    await scheduleStarted;
+
+    beginAccountReminderTransition();
+    const cancelForSwitch = cancelRemindersForAccountSwitch("user:next");
+    expect(events).toEqual(["cancel-current-schedule"]);
+
+    releaseSchedule();
+    await Promise.all([previousSync, cancelForSwitch]);
+
+    expect(events).toEqual([
+      "cancel-current-schedule",
+      "previous schedule finished",
+      "cancel-all-reminders",
+      "remove-delivered-reminders",
+      "cancel-custom-reminders:false",
+    ]);
+    expect(mocks.localNotifications.cancel.mock.calls.at(-1)?.[0]).toMatchObject({
+      notifications: expect.arrayContaining([{ id: 9111 }]),
+    });
+  });
+
+  it("preserves delivered reminders when the persisted notification owner matches", async () => {
+    const stored = new Map<string, string>([["athar:reminder-owner", "user:previous"]]);
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem: (key: string, value: string) => stored.set(key, value),
+      removeItem: (key: string) => stored.delete(key),
+    });
+
+    await cancelRemindersForAccountSwitch("user:previous");
+
+    expect(mocks.localNotifications.removeAllDeliveredNotifications).not.toHaveBeenCalled();
+    expect(mocks.cancelAllCustomNotifications).toHaveBeenCalledWith(expect.objectContaining({
+      clearDelivered: false,
+      sourceOwner: "user:previous",
+      targetOwner: "user:previous",
+      requestedAtMs: expect.any(Number),
+      stillCurrent: expect.any(Function),
+    }));
+  });
+
+  it("records the settled reminder owner before a later account transition starts", async () => {
+    const stored = new Map<string, string>([["athar:reminder-owner", "user:a"]]);
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem: (key: string, value: string) => stored.set(key, value),
+      removeItem: (key: string) => stored.delete(key),
+    });
+
+    await cancelRemindersForAccountSwitch("user:b");
+    await cancelRemindersForAccountSwitch("user:c");
+
+    expect(mocks.cancelAllCustomNotifications.mock.calls).toEqual([
+      [expect.objectContaining({
+        clearDelivered: false,
+        sourceOwner: "user:a",
+        targetOwner: "user:b",
+        requestedAtMs: expect.any(Number),
+        stillCurrent: expect.any(Function),
+      })],
+      [expect.objectContaining({
+        clearDelivered: false,
+        sourceOwner: "user:b",
+        targetOwner: "user:c",
+        requestedAtMs: expect.any(Number),
+        stillCurrent: expect.any(Function),
+      })],
+    ]);
+    expect(mocks.cancelAllCustomNotifications.mock.calls[1][0].requestedAtMs)
+      .toBeGreaterThan(mocks.cancelAllCustomNotifications.mock.calls[0][0].requestedAtMs);
+    expect(stored.get("athar:reminder-owner")).toBe("user:c");
+  });
+
+  it("keeps account hydration blocked when delivered-reminder cleanup fails", async () => {
+    mocks.localNotifications.removeAllDeliveredNotifications.mockRejectedValueOnce(new Error("delivered cleanup failed"));
+
+    await expect(cancelRemindersForAccountSwitch("user:next")).rejects.toThrow("delivered cleanup failed");
+    expect(mocks.cancelAllCustomNotifications).not.toHaveBeenCalled();
   });
 });

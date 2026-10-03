@@ -10,6 +10,11 @@ import {
 } from "workbox-strategies";
 import { ExpirationPlugin } from "workbox-expiration";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
+import {
+  canContinueOwnerTransition,
+  isOwnerTransitionFresh,
+  ReminderWorkerOwnerGate,
+} from "./lib/reminderWorkerOwner";
 
 declare const self: ServiceWorkerGlobalScope & typeof globalThis & {
   __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
@@ -191,6 +196,7 @@ registerRoute(
 type ScheduleEntry = {
   timer: ReturnType<typeof setTimeout>;
   reminderId: string;
+  accountOwner: string;
   title: string;
   body: string;
   route: string;
@@ -198,70 +204,307 @@ type ScheduleEntry = {
 };
 
 const swSchedules: Map<string, ScheduleEntry> = new Map();
+const swNotificationOperations = new Set<Promise<boolean>>();
+const reminderOwnerGate = new ReminderWorkerOwnerGate();
+let ownerTransitionQueue: Promise<void> = Promise.resolve();
+let pendingOwnerTransitions = 0;
+let ownerTransitionNeedsRecovery = false;
+let ownerTransitionSourceOwner: string | undefined;
+let ownerTransitionRequestAtMs = 0;
+let ownerTransitionRequestTargetOwner: string | undefined;
+const pendingOwnerTransitionAcks: Array<{
+  port?: MessagePort;
+  targetOwner?: string;
+  ok: boolean;
+}> = [];
+const REMINDER_OWNER_CACHE = "athar-reminder-owner-v1";
+const REMINDER_OWNER_CACHE_KEY = new URL("/__athar_reminder_owner__", self.location.origin).toString();
+
+type ReminderOwnerState = {
+  owner: string | null;
+  transitioning: boolean;
+  sourceOwner?: string;
+  targetOwner?: string;
+  requestAtMs: number;
+  requestTargetOwner?: string;
+};
+
+async function readReminderOwner(): Promise<ReminderOwnerState> {
+  const cache = await caches.open(REMINDER_OWNER_CACHE);
+  const response = await cache.match(REMINDER_OWNER_CACHE_KEY);
+  if (!response) return { owner: null, transitioning: false, requestAtMs: 0 };
+  const value = await response.json() as {
+    owner?: unknown;
+    transitioning?: unknown;
+    sourceOwner?: unknown;
+    targetOwner?: unknown;
+    requestAtMs?: unknown;
+    requestTargetOwner?: unknown;
+  };
+  return {
+    owner: typeof value.owner === "string" ? value.owner : null,
+    transitioning: value.transitioning === true,
+    sourceOwner: typeof value.sourceOwner === "string" ? value.sourceOwner : undefined,
+    targetOwner: typeof value.targetOwner === "string" ? value.targetOwner : undefined,
+    requestAtMs: Number.isFinite(value.requestAtMs) ? value.requestAtMs as number : 0,
+    requestTargetOwner: typeof value.requestTargetOwner === "string"
+      ? value.requestTargetOwner
+      : undefined,
+  };
+}
+
+async function persistReminderOwner(
+  owner: string | null,
+  transitioning: boolean,
+  sourceOwner?: string,
+  targetOwner?: string,
+  requestAtMs = ownerTransitionRequestAtMs,
+  requestTargetOwner = ownerTransitionRequestTargetOwner,
+): Promise<void> {
+  const cache = await caches.open(REMINDER_OWNER_CACHE);
+  await cache.put(
+    REMINDER_OWNER_CACHE_KEY,
+    new Response(JSON.stringify({
+      owner,
+      transitioning,
+      sourceOwner,
+      targetOwner,
+      requestAtMs,
+      requestTargetOwner,
+    }), {
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+}
+
+const reminderOwnerReady = readReminderOwner()
+  .then((state) => {
+    reminderOwnerGate.hydrate(state.owner);
+    ownerTransitionSourceOwner = state.sourceOwner;
+    ownerTransitionRequestAtMs = state.requestAtMs;
+    ownerTransitionRequestTargetOwner = state.requestTargetOwner;
+    if (state.transitioning) {
+      reminderOwnerGate.beginTransition(state.targetOwner);
+      ownerTransitionNeedsRecovery = true;
+      ownerTransitionSourceOwner ??= state.owner ?? undefined;
+    }
+  })
+  .catch(() => {
+    // Unknown storage state must fail closed; a later cleanup request can
+    // re-establish and persist the active owner before notifications resume.
+    ownerTransitionNeedsRecovery = true;
+    reminderOwnerGate.tryBeginTransition();
+  });
+
+function startSwNotificationDelivery(title: string, options: NotificationOptions): Promise<boolean> {
+  let delivery: Promise<boolean>;
+  delivery = Promise.resolve()
+    .then(async () => {
+      await self.registration.showNotification(title, options);
+      return true;
+    })
+    .catch(() => false)
+    .finally(() => swNotificationOperations.delete(delivery));
+  swNotificationOperations.add(delivery);
+  return delivery;
+}
+
+async function waitForSwNotificationOperations(): Promise<void> {
+  while (swNotificationOperations.size > 0) {
+    await Promise.allSettled([...swNotificationOperations]);
+  }
+}
 
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
   const data = event.data;
   if (!data || typeof data !== "object") return;
-  if (data.type === "athar-reminder-schedule") {
-    const { scheduleId, fireAtMs, reminderId, title, body, route, tag } = data;
+  if (data.type === "athar-reminder-owner-query") {
+    const responsePort = event.ports[0];
+    event.waitUntil((async () => {
+      await reminderOwnerReady;
+      responsePort?.postMessage({
+        ok: true,
+        owner: reminderOwnerGate.currentOwner,
+        transitioning: reminderOwnerGate.isTransitioning,
+        sourceOwner: ownerTransitionSourceOwner,
+        targetOwner: ownerTransitionRequestTargetOwner,
+        requestAtMs: ownerTransitionRequestAtMs,
+      });
+    })().catch(() => {
+      responsePort?.postMessage({ ok: false });
+    }));
+  } else if (data.type === "athar-reminder-schedule") {
+    const { scheduleId, fireAtMs, reminderId, accountOwner, title, body, route, tag } = data;
     if (typeof scheduleId !== "string" || !Number.isFinite(fireAtMs)) return;
-    const existing = swSchedules.get(scheduleId);
-    if (existing) clearTimeout(existing.timer);
-    const delay = Math.max(0, (fireAtMs as number) - Date.now());
-    const tagStr: string =
-      typeof tag === "string" ? tag : `athar-reminder:${scheduleId}`;
-    const titleStr: string = typeof title === "string" ? title : "أثر";
-    const bodyStr: string = typeof body === "string" ? body : "";
-    const routeStr: string = typeof route === "string" ? route : "";
-    const reminderIdStr: string = typeof reminderId === "string" ? reminderId : "";
+    event.waitUntil((async () => {
+      await reminderOwnerReady;
+      if (!reminderOwnerGate.canDeliver(accountOwner)) return;
+      const existing = swSchedules.get(scheduleId);
+      if (existing) clearTimeout(existing.timer);
+      const delay = Math.max(0, (fireAtMs as number) - Date.now());
+      const tagStr: string = typeof tag === "string" ? tag : `athar-reminder:${scheduleId}`;
+      const titleStr: string = typeof title === "string" ? title : "أثر";
+      const bodyStr: string = typeof body === "string" ? body : "";
+      const routeStr: string = typeof route === "string" ? route : "";
+      const reminderIdStr: string = typeof reminderId === "string" ? reminderId : "";
+      const accountOwnerStr = accountOwner as string;
 
-    const timer = setTimeout(() => {
-      self.registration
-        .showNotification(titleStr, {
+      const timer = setTimeout(() => {
+        swSchedules.delete(scheduleId);
+        if (!reminderOwnerGate.canDeliver(accountOwnerStr)) return;
+        void startSwNotificationDelivery(titleStr, {
           body: bodyStr,
           tag: tagStr,
-          renotify: true,
+          renotify: false,
           icon: "/logo.svg",
           badge: "/pwa-192x192.png",
-          data: { scheduleId, reminderId: reminderIdStr, route: routeStr },
+          data: { scheduleId, reminderId: reminderIdStr, accountOwner: accountOwnerStr, route: routeStr },
           actions: [
             { action: "done", title: "تم" },
             { action: "snooze", title: "غفوت" },
             { action: "open", title: "افتح" },
           ],
-        } as NotificationOptions)
-        .catch(() => {
-          // permission revoked → silently drop
-        });
-      swSchedules.delete(scheduleId);
-      void timer;
-    }, delay);
+        } as NotificationOptions);
+      }, delay);
 
-    swSchedules.set(scheduleId, {
-      timer,
-      reminderId: reminderIdStr,
-      title: titleStr,
-      body: bodyStr,
-      route: routeStr,
-      tag: tagStr,
-    });
+      swSchedules.set(scheduleId, {
+        timer,
+        reminderId: reminderIdStr,
+        accountOwner: accountOwnerStr,
+        title: titleStr,
+        body: bodyStr,
+        route: routeStr,
+        tag: tagStr,
+      });
+    })());
+  } else if (data.type === "athar-notification-show") {
+    const responsePort = event.ports[0];
+    event.waitUntil((async () => {
+      await reminderOwnerReady;
+      if (!reminderOwnerGate.canDeliver(data.accountOwner) || typeof data.title !== "string") {
+        responsePort?.postMessage({ ok: false });
+        return;
+      }
+      const options = data.options && typeof data.options === "object"
+        ? data.options as NotificationOptions
+        : {};
+      const shown = await startSwNotificationDelivery(data.title, options);
+      responsePort?.postMessage({ ok: shown });
+    })().catch(() => {
+      responsePort?.postMessage({ ok: false });
+    }));
   } else if (data.type === "athar-reminder-cancel") {
     const existing = swSchedules.get(data.scheduleId);
     if (existing) {
       clearTimeout(existing.timer);
       swSchedules.delete(data.scheduleId);
     }
-  } else if (data.type === "athar-reminder-cancel-all") {
-    for (const v of swSchedules.values()) clearTimeout(v.timer);
-    swSchedules.clear();
-    self.registration
-      .getNotifications()
-      .then((list) =>
-        list
-          .filter((n) => (n.tag ?? "").startsWith("athar-reminder:"))
-          .forEach((n) => n.close()),
-      )
-      .catch(() => {});
+  } else if (data.type === "athar-reminder-cancel-all" || data.type === "athar-reminder-cancel-pending") {
+    const responsePort = event.ports[0];
+    const targetOwner = typeof data.accountOwner === "string" ? data.accountOwner : undefined;
+    const sourceOwner = typeof data.sourceOwner === "string" ? data.sourceOwner : undefined;
+    const requestAtMs = Number.isFinite(data.requestedAtMs) ? data.requestedAtMs as number : 0;
+    const clearDelivered = data.type === "athar-reminder-cancel-all";
+    const requestedTargetOwner = targetOwner ?? sourceOwner ?? reminderOwnerGate.currentOwner ?? undefined;
+    const requestArrivedDuringTransition = pendingOwnerTransitions > 0 || reminderOwnerGate.isTransitioning;
+    if (!reminderOwnerGate.isTransitioning) reminderOwnerGate.tryBeginTransition();
+    pendingOwnerTransitions += 1;
+    const transitionAck = { port: responsePort, targetOwner, ok: false };
+    pendingOwnerTransitionAcks.push(transitionAck);
+    const transition = ownerTransitionQueue.then(async () => {
+      await reminderOwnerReady;
+      // The worker is shared by every tab. Ignore an outgoing account's stale
+      // cleanup request once another tab has already selected a new owner. A
+      // queued/recovered request may use its original source while retargeting
+      // to the latest account selected by that tab.
+      if (!isOwnerTransitionFresh(
+        requestAtMs,
+        ownerTransitionRequestAtMs,
+        requestedTargetOwner,
+        ownerTransitionRequestTargetOwner,
+      )) return false;
+      const canRetargetPendingTransition = canContinueOwnerTransition(
+        sourceOwner,
+        targetOwner,
+        ownerTransitionSourceOwner,
+        ownerTransitionNeedsRecovery || requestArrivedDuringTransition,
+      );
+      if (!reminderOwnerGate.canBeginTransition(sourceOwner, targetOwner) && !canRetargetPendingTransition) {
+        return false;
+      }
+      if (!requestArrivedDuringTransition && !ownerTransitionNeedsRecovery) {
+        ownerTransitionSourceOwner = sourceOwner;
+      } else {
+        ownerTransitionSourceOwner ??= sourceOwner;
+      }
+      ownerTransitionRequestAtMs = requestAtMs;
+      ownerTransitionRequestTargetOwner = requestedTargetOwner;
+
+      // Save a fail-closed marker before touching timers or delivered alerts.
+      // If the worker is terminated during cleanup, its next instance will
+      // remain gated and let a tab safely retry this transition.
+      ownerTransitionNeedsRecovery = true;
+      const currentOwner = reminderOwnerGate.currentOwner;
+      await persistReminderOwner(
+        currentOwner,
+        true,
+        ownerTransitionSourceOwner,
+        targetOwner,
+        ownerTransitionRequestAtMs,
+        ownerTransitionRequestTargetOwner,
+      );
+      for (const schedule of swSchedules.values()) clearTimeout(schedule.timer);
+      swSchedules.clear();
+      await waitForSwNotificationOperations();
+      if (clearDelivered) {
+        const notifications = await self.registration.getNotifications();
+        notifications
+          .filter((notification) => {
+            const tag = notification.tag ?? "";
+            return tag.startsWith("athar-reminder:") ||
+              tag.startsWith("athar-notification:") ||
+              tag.startsWith("customReminder:");
+          })
+          .forEach((notification) => notification.close());
+      }
+      const settledOwner = targetOwner ?? currentOwner ?? sourceOwner ?? null;
+      await persistReminderOwner(
+        settledOwner,
+        false,
+        ownerTransitionSourceOwner,
+        undefined,
+        ownerTransitionRequestAtMs,
+        ownerTransitionRequestTargetOwner,
+      );
+      if (settledOwner) reminderOwnerGate.setTargetOwner(settledOwner);
+      ownerTransitionNeedsRecovery = false;
+      return true;
+    });
+    ownerTransitionQueue = transition.then(() => undefined, () => undefined);
+    event.waitUntil((async () => {
+      let ok = false;
+      try {
+        ok = await transition;
+      } catch {
+        // Report failure to the page and leave the current owner unchanged.
+      }
+      transitionAck.ok = ok;
+      pendingOwnerTransitions -= 1;
+      if (pendingOwnerTransitions === 0) {
+        const canResumeDelivery = !ownerTransitionNeedsRecovery;
+        if (canResumeDelivery) reminderOwnerGate.completeTransition();
+        const settledOwner = reminderOwnerGate.currentOwner;
+        for (const ack of pendingOwnerTransitionAcks.splice(0)) {
+          const ackSucceeded = canResumeDelivery && ack.ok &&
+            (ack.targetOwner === undefined || ack.targetOwner === settledOwner);
+          try {
+            ack.port?.postMessage({ ok: ackSucceeded });
+          } catch {
+            // A client may have navigated away before the whole transition queue settled.
+          }
+        }
+      }
+    })());
   }
 });
 
@@ -271,10 +514,12 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
   const data = (event.notification.data ?? {}) as {
     scheduleId?: string;
     reminderId?: string;
+    accountOwner?: string;
     route?: string;
   };
   const scheduleId = typeof data.scheduleId === "string" ? data.scheduleId : "";
   const reminderId = typeof data.reminderId === "string" ? data.reminderId : "";
+  const accountOwner = typeof data.accountOwner === "string" ? data.accountOwner : "local";
   const route = typeof data.route === "string" && data.route ? data.route : "/";
 
   event.waitUntil(
@@ -288,7 +533,7 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
       for (const c of clientsArr) {
         c.postMessage({
           type: "athar-reminder-click",
-          detail: { scheduleId, reminderId, route, action },
+          detail: { scheduleId, reminderId, accountOwner, route, action },
         });
       }
 

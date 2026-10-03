@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "fake-indexeddb/auto";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { accountScopedStorageKey, getAccountStorageOwner, setAccountStorageOwner } from "@/lib/accountStorageScope";
 import { copyLocalDataIntoAccount, hasLocalCompanionData, hasLocalDataToImport } from "@/lib/accountDataImport";
@@ -8,6 +8,7 @@ import { hydrateAccountStorageOwner, useNoorStore } from "@/store/noorStore";
 import { idbGetAllHadithBookmarks, idbSetHadithBookmark } from "@/lib/hadithIDB";
 import { loadCustomReminders, saveCustomReminders } from "@/lib/reminderStorage";
 import { listConversations, listPins, newConversationId, saveConversation } from "@/lib/companionHistory";
+import { getLeaderboardIdentity, peekLeaderboardIdentity } from "@/lib/leaderboard";
 
 function seedStore(key: string, state: Record<string, unknown>) {
   localStorage.setItem(key, JSON.stringify({ state, version: 33 }));
@@ -20,7 +21,10 @@ describe("explicit local-data import", () => {
     await hydrateAccountStorageOwner("local");
   });
 
-  afterEach(() => setAccountStorageOwner("local"));
+  afterEach(() => {
+    vi.restoreAllMocks();
+    setAccountStorageOwner("local");
+  });
 
   it("keeps the source intact, merges progress/favorites, and never copies auth tokens", async () => {
     const owner = `user:import-test-${crypto.randomUUID()}`;
@@ -135,5 +139,48 @@ describe("explicit local-data import", () => {
     expect(localStorage.getItem(accountScopedStorageKey("noor_example_v1", owner))).toBeNull();
     expect(localStorage.getItem("noor_example_v1")).toBe("local-only-value");
     expect(getAccountStorageOwner()).toBe("local");
+  });
+
+  it("does not restore the imported owner or identity after a slower account switch", async () => {
+    const importingOwner = `user:slow-import-${crypto.randomUUID()}`;
+    const activeOwner = `user:active-during-import-${crypto.randomUUID()}`;
+    seedStore("noor_store_v1", { favorites: { "local:1": true } });
+    await hydrateAccountStorageOwner("local");
+    const sourceIdentity = getLeaderboardIdentity();
+
+    await hydrateAccountStorageOwner(activeOwner);
+    const activeIdentity = getLeaderboardIdentity();
+    await hydrateAccountStorageOwner("local");
+
+    const realImportState = useNoorStore.getState().importState;
+    const realGetState = useNoorStore.getState.bind(useNoorStore);
+    let signalImportFinished!: () => void;
+    let releaseImport!: () => void;
+    const importFinished = new Promise<void>((resolve) => { signalImportFinished = resolve; });
+    const importGate = new Promise<void>((resolve) => { releaseImport = resolve; });
+    vi.spyOn(useNoorStore, "getState").mockImplementation(() => {
+      const state = realGetState();
+      if (getAccountStorageOwner() !== importingOwner) return state;
+      return {
+        ...state,
+        importState: async (blob) => {
+          await realImportState(blob);
+          signalImportFinished();
+          await importGate;
+        },
+      };
+    });
+
+    let requestedOwner = importingOwner;
+    const importPromise = copyLocalDataIntoAccount(importingOwner, () => requestedOwner === importingOwner);
+    await importFinished;
+    requestedOwner = activeOwner;
+    await hydrateAccountStorageOwner(activeOwner);
+    releaseImport();
+    await importPromise;
+
+    expect(getAccountStorageOwner()).toBe(activeOwner);
+    expect(peekLeaderboardIdentity()?.id).toBe(activeIdentity.id);
+    expect(peekLeaderboardIdentity()?.id).not.toBe(sourceIdentity.id);
   });
 });

@@ -28,9 +28,16 @@ import type { CustomReminder } from "@/data/reminderTypes";
 import { nextOccurrences, type PrayerTimesSource } from "@/lib/reminderRecurrence";
 import {
   cancelCustomNotification,
+  showServiceWorkerNotification,
   scheduleIdFor,
   scheduleCustomNotification,
+  WEB_ATHAR_TAG_PREFIX,
 } from "@/lib/customReminderNotifications";
+import {
+  getAccountStorageOwner,
+  isAccountStorageOwnerTransitionInProgress,
+  type AccountStorageOwner,
+} from "@/lib/accountStorageScope";
 
 export interface CustomReminderSyncContext {
   /**
@@ -86,11 +93,7 @@ function defaultCanNotify(): boolean {
 }
 
 function defaultShowNotification(title: string, options?: NotificationOptions): void {
-  try {
-    new Notification(title, options);
-  } catch {
-    /* ignore — older browsers may throw even with permission granted */
-  }
+  void showServiceWorkerNotification(title, options);
 }
 
 /**
@@ -108,12 +111,14 @@ export function syncCustomReminders(
   reminders: CustomReminder[],
   ctx: CustomReminderSyncContext = {},
 ): () => void {
+  if (isAccountStorageOwnerTransitionInProgress()) return () => {};
+  const owner = getAccountStorageOwner();
   // Native gets real OS-scheduled alarms. Tests that inject `canNotify` /
   // `showNotification` are exercising the web path deliberately, so honour
   // those overrides rather than hijacking them.
   const overridden = ctx.canNotify !== undefined || ctx.showNotification !== undefined;
   if (!overridden && Capacitor.isNativePlatform()) {
-    return syncCustomRemindersNative(reminders, ctx);
+    return syncCustomRemindersNative(reminders, ctx, owner);
   }
 
   const maxFirings = Math.max(1, ctx.maxFirings ?? DEFAULT_MAX_FIRINGS);
@@ -141,13 +146,15 @@ export function syncCustomReminders(
     for (const date of dates) {
       const delay = date.getTime() - now;
       if (delay <= 0 || date.getTime() > horizon) continue;
-      const tag = `customReminder:${reminder.id}:${date.getTime()}`;
+      const scheduleId = scheduleIdFor(reminder.id, date.getTime(), owner);
+      const tag = `${WEB_ATHAR_TAG_PREFIX}${scheduleId}`;
       const id = setTimeout(() => {
+        if (getAccountStorageOwner() !== owner) return;
         const opts: NotificationOptions = {
           body: reminder.body ?? reminder.description ?? undefined,
           tag,
           icon: reminder.icon ?? "/pwa-192x192.png",
-          data: { route, reminderId: reminder.id },
+          data: { route, reminderId: reminder.id, accountOwner: owner, scheduleId },
         };
         showNotification(reminder.title, opts);
         if (ctx.onTap && route) {
@@ -183,6 +190,7 @@ function clearTimers(timers: ReturnType<typeof setTimeout>[]) {
 function syncCustomRemindersNative(
   reminders: CustomReminder[],
   ctx: CustomReminderSyncContext,
+  owner: AccountStorageOwner,
 ): () => void {
   const maxFirings = Math.max(1, ctx.maxFirings ?? DEFAULT_MAX_FIRINGS);
   const scheduled = new Set<string>();
@@ -204,13 +212,13 @@ function syncCustomRemindersNative(
     } catch {
       granted = false;
     }
-    if (!granted || cancelled) return;
+    if (!granted || cancelled || isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return;
 
     const now = Date.now();
     const horizon = now + MAX_SCHEDULE_HORIZON_MS;
 
     for (const reminder of reminders) {
-      if (cancelled) return;
+      if (cancelled || isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return;
       if (!reminder || !reminder.enabled) continue;
 
       const dates = nextOccurrences(reminder, {
@@ -219,13 +227,13 @@ function syncCustomRemindersNative(
       });
 
       for (const date of dates) {
-        if (cancelled) return;
+        if (cancelled || isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return;
         const at = date.getTime();
         if (at <= now || at > horizon) continue;
-        const scheduleId = scheduleIdFor(reminder.id, at);
+        const scheduleId = scheduleIdFor(reminder.id, at, owner);
         scheduled.add(scheduleId);
         try {
-          await enqueueNativeScheduleOperation(scheduleId, () => scheduleCustomNotification(reminder, date, ""));
+          await enqueueNativeScheduleOperation(scheduleId, () => scheduleCustomNotification(reminder, date, "", owner));
         } catch {
           // One bad reminder must not stop the rest from being scheduled.
         }

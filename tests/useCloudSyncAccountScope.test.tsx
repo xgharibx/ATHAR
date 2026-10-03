@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/hooks/useAuthSession", () => ({ useAuthSession: () => mocks.auth }));
+vi.mock("@/lib/authClient", () => ({ getSession: async () => mocks.auth.session }));
 vi.mock("@/lib/syncClient", () => ({
   getSyncStatus: () => ({ phase: "idle", pending: false, lastSyncedAt: null }),
   startCloudSync: mocks.startCloudSync,

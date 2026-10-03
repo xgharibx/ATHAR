@@ -20,6 +20,7 @@ vi.mock("@/lib/customReminderNotifications", () => ({
 
 import { syncCustomReminders } from "@/lib/reminderSync";
 import type { CustomReminder } from "@/data/reminderTypes";
+import { beginAccountReminderTransition, completeAccountReminderTransition } from "@/lib/reminders";
 
 function makeReminder(): CustomReminder {
   return {
@@ -49,7 +50,21 @@ describe("native custom reminder cancellation", () => {
     mocks.cancel.mockReset().mockResolvedValue(undefined);
   });
 
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    completeAccountReminderTransition();
+    vi.useRealTimers();
+  });
+
+  it("does not prompt or schedule while account reminder cleanup is in progress", () => {
+    beginAccountReminderTransition();
+
+    const cleanup = syncCustomReminders([makeReminder()], { maxFirings: 1 });
+    cleanup();
+
+    expect(mocks.localNotifications.checkPermissions).not.toHaveBeenCalled();
+    expect(mocks.localNotifications.requestPermissions).not.toHaveBeenCalled();
+    expect(mocks.schedule).not.toHaveBeenCalled();
+  });
 
   it("cancels an OS alarm when scheduling finishes after its reminder was disabled", async () => {
     const pendingSchedule = deferred<string>();

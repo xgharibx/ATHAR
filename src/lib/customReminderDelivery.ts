@@ -84,11 +84,16 @@ export function startCustomReminderDelivery(
     const now = new Date();
     const seen = new Set<string>();
     for (const r of reminders) {
+      if (!active) return;
       if (!r.enabled) continue;
       const fireAt = resolver(r, now);
       if (!fireAt) continue;
       seen.add(r.id);
       const scheduleId = await scheduleCustomNotification(r, fireAt, "");
+      if (!active) {
+        await cancelCustomNotification(scheduleId).catch(() => {});
+        return;
+      }
       knownScheduleIds.set(r.id, scheduleId);
       opts.onFire?.(r.id, fireAt.getTime());
     }
@@ -104,6 +109,7 @@ export function startCustomReminderDelivery(
     if (active) return;
     active = true;
     await syncOnce();
+    if (!active) return;
     if (intervalMs > 0) {
       intervalId = setInterval(() => {
         void syncOnce();

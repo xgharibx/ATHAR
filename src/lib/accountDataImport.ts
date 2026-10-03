@@ -191,6 +191,10 @@ export async function copyLocalDataIntoAccount(
     exportedAt: new Date().toISOString(),
     ...merged,
   } as never);
+  // importState awaits IndexedDB writes. The auth scope may have changed
+  // during that work, so stale imports must not adopt identities or restore
+  // their owner after a newer account has hydrated.
+  if (!shouldContinue() || getAccountStorageOwner() !== targetOwner) return;
   if (merged.leaderboardIdentity) adoptLeaderboardIdentity(merged.leaderboardIdentity);
 
   setAccountStorageOwner(targetOwner);

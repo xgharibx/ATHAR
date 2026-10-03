@@ -4,6 +4,7 @@ type SyncStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 let activeOwner: AccountStorageOwner = "local";
 let suspendedWrites = 0;
+let accountOwnerTransitionInProgress = false;
 
 export function normalizeAccountStorageOwner(
   userId: string | null | undefined,
@@ -14,6 +15,18 @@ export function normalizeAccountStorageOwner(
 
 export function getAccountStorageOwner(): AccountStorageOwner {
   return activeOwner;
+}
+
+export function beginAccountStorageOwnerTransition(): void {
+  accountOwnerTransitionInProgress = true;
+}
+
+export function completeAccountStorageOwnerTransition(): void {
+  accountOwnerTransitionInProgress = false;
+}
+
+export function isAccountStorageOwnerTransitionInProgress(): boolean {
+  return accountOwnerTransitionInProgress;
 }
 
 export function setAccountStorageOwner(owner: AccountStorageOwner): void {

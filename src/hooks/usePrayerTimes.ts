@@ -6,7 +6,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { syncPrayerWidget } from "@/lib/prayerWidget";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { Capacitor } from "@capacitor/core";
-import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
 
 export const PRAYER_COORDS_KEY_EXPORT = "noor_prayer_coords_v1";
 
@@ -238,12 +238,14 @@ function getCurrentPosition(timeoutMs = 8000): Promise<GeolocationPosition> {
 
 /** Request and persist device coordinates only after an explicit user action. */
 export async function requestPrayerLocation(): Promise<boolean> {
+  const requestOwner = getAccountStorageOwner();
   try {
     const position = await getCurrentPosition();
     const { latitude: lat, longitude: lng } = position.coords;
     if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng) || lng < -180 || lng > 180) {
       return false;
     }
+    if (getAccountStorageOwner() !== requestOwner) return false;
     writeCachedCoords(lat, lng);
     return true;
   } catch {

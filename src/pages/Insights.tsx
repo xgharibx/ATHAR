@@ -19,7 +19,8 @@ import { DAILY_CHECKLIST_ITEMS } from "@/data/dailyGrowth";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { arNum } from "@/lib/formatNumber";
 import { shareImageBlob } from "@/lib/shareTargets";
-import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { accountScopedLocalStorage, getAccountStorageOwner, isAccountStorageOwnerTransitionInProgress } from "@/lib/accountStorageScope";
+import { showServiceWorkerNotification, WEB_ATHAR_NOTIFICATION_TAG_PREFIX } from "@/lib/customReminderNotifications";
 
 
 function computeStreak(activity: Record<string, number>) {
@@ -633,18 +634,27 @@ export function InsightsPage() {
     const thisWeekISO = dateKey(today);
     if (weeklyReportSentISO === thisWeekISO) return;
     if (!("Notification" in globalThis)) return;
+    if (isAccountStorageOwnerTransitionInProgress()) return;
+    const owner = getAccountStorageOwner();
 
     const sendReport = () => {
       const msg = `أحسنت! هذا الأسبوع: ${arNum(weekTotal)} ذكر، ${arNum(quranWeekTotal)} آية، ${arNum(prayerLogWeekTotal)} صلاة ✨`;
+      const deliver = () => {
+        if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return;
+        void showServiceWorkerNotification("تقريرك الأسبوعي — ATHAR", {
+          body: msg,
+          icon: "/icons/icon-192.png",
+          tag: `${WEB_ATHAR_NOTIFICATION_TAG_PREFIX}weekly-report:${encodeURIComponent(owner)}:${thisWeekISO}`,
+          data: { accountOwner: owner },
+        }, owner).then((shown) => {
+          if (shown && getAccountStorageOwner() === owner) setWeeklyReportSentISO(thisWeekISO);
+        });
+      };
       if (Notification.permission === "granted") {
-        new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
-        setWeeklyReportSentISO(thisWeekISO);
+        deliver();
       } else if (Notification.permission !== "denied") {
         void Notification.requestPermission().then((perm) => {
-          if (perm === "granted") {
-            new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
-            setWeeklyReportSentISO(thisWeekISO);
-          }
+          if (perm === "granted") deliver();
         });
       }
     };
@@ -807,9 +817,21 @@ export function InsightsPage() {
       const today = new Date();
       const thisWeekISO = dateKey(today);
       const msg = `أحسنت! هذا الأسبوع: ${arNum(weekTotal)} ذكر، ${arNum(quranWeekTotal)} آية، ${arNum(prayerLogWeekTotal)} صلاة ✨`;
-      new Notification("تقريرك الأسبوعي — ATHAR", { body: msg, icon: "/icons/icon-192.png" });
-      setWeeklyReportSentISO(thisWeekISO);
-      toast.success("تم إرسال التقرير الأسبوعي");
+      const owner = getAccountStorageOwner();
+      if (isAccountStorageOwnerTransitionInProgress()) return;
+      void showServiceWorkerNotification("تقريرك الأسبوعي — ATHAR", {
+        body: msg,
+        icon: "/icons/icon-192.png",
+        tag: `${WEB_ATHAR_NOTIFICATION_TAG_PREFIX}weekly-report:${encodeURIComponent(owner)}:${thisWeekISO}`,
+        data: { accountOwner: owner },
+      }, owner).then((shown) => {
+        if (shown && getAccountStorageOwner() === owner) {
+          setWeeklyReportSentISO(thisWeekISO);
+          toast.success("تم إرسال التقرير الأسبوعي");
+        } else {
+          toast.error("تعذر إرسال التقرير الأسبوعي");
+        }
+      });
     } else {
       const perm = await Notification.requestPermission();
       setNotifPermission(perm);

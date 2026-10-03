@@ -35,8 +35,8 @@ const STEPS = [
   {
     emoji: "🕌",
     title: "مواقيت الصلاة",
-    description: "للحصول على مواقيت الصلاة في موقعك، يمكنك السماح بالوصول للموقع. يمكنك التخطي واستخدام مواقيت القاهرة.",
-    action: "السماح",
+    description: "للحصول على مواقيت الصلاة في موقعك، يمكنك السماح بالوصول للموقع. يمكنك المتابعة بدون موقع واستخدام مواقيت القاهرة.",
+    action: "استخدام موقعي",
   },
   {
     emoji: "🔔",
@@ -70,15 +70,23 @@ export function OnboardingFlow() {
   }, []);
 
   const handleAction = async () => {
+    if (step === 1) {
+      // Start geolocation directly from the user's tap, but don't make onboarding
+      // wait for a permission prompt or the browser's location timeout.
+      void requestPrayerLocation()
+        .then((locationSaved) => {
+          if (locationSaved) {
+            void queryClient.invalidateQueries({ queryKey: ["prayer-times", "v3"] }).catch(() => undefined);
+          }
+        })
+        .catch(() => undefined);
+      setStep((s) => s + 1);
+      return;
+    }
+
     setLoading(true);
     let remindersAllowed = true;
     try {
-      if (step === 1) {
-        const locationSaved = await requestPrayerLocation();
-        if (locationSaved) {
-          void queryClient.invalidateQueries({ queryKey: ["prayer-times", "v3"] });
-        }
-      }
       if ("onAction" in current && current.onAction) {
         await current.onAction();
       }
@@ -121,7 +129,7 @@ export function OnboardingFlow() {
   };
 
   const actionLabel = loading ? "جارٍ…" : current.action;
-  const showLaterButton = "prayerReminders" in current && current.prayerReminders;
+  const showLaterButton = step === 1 || ("prayerReminders" in current && current.prayerReminders);
 
   return (
     <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" onClick={(e) => e.stopPropagation()} dir="rtl">
@@ -169,7 +177,7 @@ export function OnboardingFlow() {
               onClick={handleLater}
               disabled={loading}
             >
-              لاحقاً
+              {step === 1 ? "ليس الآن" : "لاحقاً"}
             </button>
           )}
         </motion.div>

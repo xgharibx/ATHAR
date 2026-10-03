@@ -9,6 +9,12 @@ import {
   REMINDER_ACTION_TYPE_ID,
   registerNotificationActionTypes,
 } from "@/lib/notificationActionTypes";
+import {
+  beginAccountStorageOwnerTransition,
+  completeAccountStorageOwnerTransition,
+  getAccountStorageOwner,
+  type AccountStorageOwner,
+} from "@/lib/accountStorageScope";
 
 /** Pass A: gate every preview sound in this module on `prefs.enableSounds`.
  * Returning early keeps audio playback out of the audio graph entirely when
@@ -883,15 +889,140 @@ export async function ensureDefaultNotificationChannels(): Promise<void> {
   } catch { /* non-fatal */ }
 }
 
-export async function syncReminders(
+let reminderSyncQueue: Promise<void> = Promise.resolve();
+let accountReminderTransitionInProgress = false;
+let notificationActionScopeVersion = 0;
+let lastReminderOwnerRequestAtMs = 0;
+
+function nextReminderOwnerRequestAtMs(): number {
+  lastReminderOwnerRequestAtMs = Math.max(Date.now(), lastReminderOwnerRequestAtMs + 1);
+  return lastReminderOwnerRequestAtMs;
+}
+const LAST_REMINDER_OWNER_STORAGE_KEY = "athar:reminder-owner";
+
+function getLastReminderOwner(): AccountStorageOwner | null {
+  try {
+    if (typeof globalThis.localStorage === "undefined") return null;
+    const owner = globalThis.localStorage.getItem(LAST_REMINDER_OWNER_STORAGE_KEY);
+    if (owner === "local" || (owner?.startsWith("user:") && owner.length > "user:".length)) {
+      return owner as AccountStorageOwner;
+    }
+  } catch {
+    // Unknown ownership is handled conservatively by clearing delivered alerts.
+  }
+  return null;
+}
+
+function rememberReminderOwner(owner: AccountStorageOwner): void {
+  try {
+    if (typeof globalThis.localStorage !== "undefined") {
+      globalThis.localStorage.setItem(LAST_REMINDER_OWNER_STORAGE_KEY, owner);
+    }
+  } catch {
+    // If unavailable, the next launch will perform the conservative cleanup again.
+  }
+}
+
+function enqueueReminderOperation<T>(operation: () => Promise<T>): Promise<T> {
+  const result = reminderSyncQueue.then(operation);
+  reminderSyncQueue = result.then(() => undefined, () => undefined);
+  return result;
+}
+
+/** Invalidate actions from the outgoing account before its alarms are removed. */
+export function beginAccountReminderTransition(): void {
+  beginAccountStorageOwnerTransition();
+  accountReminderTransitionInProgress = true;
+  notificationActionScopeVersion += 1;
+}
+
+/** Cancel built-in OS alarms after earlier schedule operations have settled. */
+export function cancelRemindersForAccountSwitch(
+  targetOwner: AccountStorageOwner = getAccountStorageOwner(),
+  stillCurrent: () => boolean | Promise<boolean> = () => true,
+  requestedAtMs = nextReminderOwnerRequestAtMs(),
+): Promise<void> {
+  return enqueueReminderOperation(async () => {
+    if (!await stillCurrent()) return;
+    const clearDelivered = getLastReminderOwner() !== targetOwner;
+    if (Capacitor.isNativePlatform()) {
+      await cancelAllReminders();
+      if (clearDelivered) {
+        const { LocalNotifications } = await import("@capacitor/local-notifications");
+        await LocalNotifications.removeAllDeliveredNotifications();
+      }
+    }
+    const { cancelAllCustomNotifications } = await import("@/lib/customReminderNotifications");
+    await cancelAllCustomNotifications({
+      clearDelivered: clearDelivered && !Capacitor.isNativePlatform(),
+      targetOwner,
+      sourceOwner: getLastReminderOwner() ?? getAccountStorageOwner(),
+      requestedAtMs,
+      stillCurrent,
+    });
+    if (!await stillCurrent()) return;
+    // The worker has now committed this owner. Record it before account
+    // hydration so a second account change can start from the settled owner
+    // even if this React effect is interrupted between cleanup and hydration.
+    rememberReminderOwner(targetOwner);
+  });
+}
+
+/** Allow the hydrated account's AppContent to schedule its own reminders. */
+export function completeAccountReminderTransition(owner?: AccountStorageOwner): void {
+  if (owner) rememberReminderOwner(owner);
+  completeAccountStorageOwnerTransition();
+  accountReminderTransitionInProgress = false;
+}
+
+export function syncReminders(
   reminders: Reminders,
   prayerTimings?: PrayerNotificationTimings | null,
   completion?: ReminderCompletionInfo,
   tomorrowPrayerTimings?: PrayerNotificationTimings | null,
-) {
+): Promise<void> {
+  const owner = getAccountStorageOwner();
+  return enqueueReminderOperation(async () => {
+    if (accountReminderTransitionInProgress) return;
+    await syncRemindersForOwner(
+      owner,
+      reminders,
+      prayerTimings,
+      completion,
+      tomorrowPrayerTimings,
+    );
+  });
+}
+
+/** Whether a notification belongs to the active scope and may affect its UI. */
+export function notificationActionMatchesActiveAccount(extra?: Record<string, unknown>): boolean {
+  if (accountReminderTransitionInProgress) return false;
+  const activeOwner = getAccountStorageOwner();
+  const notificationOwner = extra?.accountOwner;
+  if (typeof notificationOwner === "string") return notificationOwner === activeOwner;
+  return activeOwner === "local";
+}
+
+/** Validate an alert's deep link and account before it can navigate. */
+export function getAccountScopedNotificationRoute(
+  extra?: Record<string, unknown>,
+  route?: unknown,
+): string | null {
+  if (!notificationActionMatchesActiveAccount(extra)) return null;
+  return getInternalAppRoute(typeof route === "string" ? route : extra?.route);
+}
+
+async function syncRemindersForOwner(
+  owner: ReturnType<typeof getAccountStorageOwner>,
+  reminders: Reminders,
+  prayerTimings?: PrayerNotificationTimings | null,
+  completion?: ReminderCompletionInfo,
+  tomorrowPrayerTimings?: PrayerNotificationTimings | null,
+): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
 
   const { LocalNotifications } = await import("@capacitor/local-notifications");
+  if (getAccountStorageOwner() !== owner) return;
 
   if (!reminders.enabled) {
     await cancelAllReminders();
@@ -911,8 +1042,10 @@ export async function syncReminders(
       ...(shouldRefreshPrayerNotifications ? [...prayerIds, ...followUpIds, ...ramadanIds] : []),
     ]),
   });
+  if (getAccountStorageOwner() !== owner) return;
 
   const perm = await LocalNotifications.checkPermissions();
+  if (getAccountStorageOwner() !== owner) return;
   if (perm.display !== "granted") {
     // Do not prompt here; caller controls prompting.
     return;
@@ -928,11 +1061,13 @@ export async function syncReminders(
   // The channel is still created (see ensureDefaultNotificationChannels), so
   // restoring per-reminder sound means passing it here instead of `quiet`.
   const quiet = await ensureSilentChannel();
+  if (getAccountStorageOwner() !== owner) return;
 
   const notifications: LocalNotification[] = buildReminderNotifications(reminders, quiet, completion);
 
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
+    if (getAccountStorageOwner() !== owner) return;
     const todayISO = getLocalDateKey();
     const scheduleDays: PrayerNotificationDay[] = [
       { dateISO: todayISO, timings: prayerTimings },
@@ -948,8 +1083,14 @@ export async function syncReminders(
   }
 
   if (!notifications.length) return;
+  if (getAccountStorageOwner() !== owner) return;
 
-  await LocalNotifications.schedule({ notifications });
+  await LocalNotifications.schedule({
+    notifications: notifications.map((notification) => ({
+      ...notification,
+      extra: { ...notification.extra, accountOwner: owner },
+    })),
+  });
 }
 
 /** 3C: Register a listener that navigates to the route embedded in a notification's extra.
@@ -990,7 +1131,7 @@ export async function registerNotificationDeepLinkListener(
       }
 
       // "open" and a plain body tap both land here.
-      const route = getInternalAppRoute(extra?.route);
+      const route = getAccountScopedNotificationRoute(extra);
       if (route) {
         navigate(route);
       }
@@ -1009,7 +1150,7 @@ export async function registerNotificationDeepLinkListener(
     await applyNotificationAction(pending);
     const actionHandledWithoutNavigation = [MARK_PRAYED_ACTION_ID, SNOOZE_ACTION_ID, "snooze", "done"]
       .includes(pending.actionId ?? "");
-    const route = getInternalAppRoute(pending.route);
+    const route = getAccountScopedNotificationRoute(pending.extra, pending.route);
     if (!actionHandledWithoutNavigation && route) navigate(route);
   }
 
@@ -1032,6 +1173,13 @@ export async function registerNotificationDeepLinkListener(
 export async function applyNotificationAction(pending: PendingAction): Promise<void> {
   const { actionId, extra, route } = pending;
   if (!actionId) return;
+  if (!notificationActionMatchesActiveAccount(extra)) return;
+  const activeOwner = getAccountStorageOwner();
+  const actionScopeVersion = notificationActionScopeVersion;
+  const actionIsCurrent = () =>
+    notificationActionScopeVersion === actionScopeVersion &&
+    getAccountStorageOwner() === activeOwner &&
+    notificationActionMatchesActiveAccount(extra);
 
   if (actionId === SNOOZE_ACTION_ID) {
     const reminderKey = extra?.reminderKey;
@@ -1044,20 +1192,28 @@ export async function applyNotificationAction(pending: PendingAction): Promise<v
     const extraText = (key: "title" | "body") => typeof extra?.[key] === "string" ? extra[key] as string : undefined;
     try {
       const { LocalNotifications } = await import("@capacitor/local-notifications");
-      await LocalNotifications.schedule({
-        notifications: [{
-          id: REMINDER_SNOOZE_IDS[reminderKey as ReminderKey],
-          title: notification?.title ?? extraText("title") ?? "أثر",
-          body: notification?.body ?? extraText("body") ?? "",
-          channelId: notification?.channelId,
-          sound: notification?.sound,
-          smallIcon: notification?.smallIcon,
-          largeIcon: notification?.largeIcon,
-          iconColor: notification?.iconColor,
-          actionTypeId: REMINDER_ACTION_TYPE_ID,
-          extra,
-          schedule: { at: new Date(Date.now() + SNOOZE_MINUTES * 60_000) },
-        }],
+      if (!actionIsCurrent()) return;
+      const snoozeId = REMINDER_SNOOZE_IDS[reminderKey as ReminderKey];
+      await enqueueReminderOperation(async () => {
+        if (!actionIsCurrent()) return;
+        await LocalNotifications.schedule({
+          notifications: [{
+            id: snoozeId,
+            title: notification?.title ?? extraText("title") ?? "أثر",
+            body: notification?.body ?? extraText("body") ?? "",
+            channelId: notification?.channelId,
+            sound: notification?.sound,
+            smallIcon: notification?.smallIcon,
+            largeIcon: notification?.largeIcon,
+            iconColor: notification?.iconColor,
+            actionTypeId: REMINDER_ACTION_TYPE_ID,
+            extra: { ...extra, accountOwner: activeOwner },
+            schedule: { at: new Date(Date.now() + SNOOZE_MINUTES * 60_000) },
+          }],
+        });
+        if (!actionIsCurrent()) {
+          await LocalNotifications.cancel({ notifications: [{ id: snoozeId }] });
+        }
       });
     } catch {
       // Notification scheduling is best-effort on devices without permission.
@@ -1078,12 +1234,17 @@ export async function applyNotificationAction(pending: PendingAction): Promise<v
       deeplink: typeof extra?.route === "string" ? { route: extra.route } : undefined,
     };
     try {
-      const { scheduleCustomNotification } = await import("@/lib/customReminderNotifications");
+      const { scheduleCustomNotification, cancelCustomNotification, scheduleIdFor } = await import("@/lib/customReminderNotifications");
+      if (!actionIsCurrent()) return;
+      const fireAt = new Date(Date.now() + SNOOZE_MINUTES * 60_000);
+      const scheduleId = scheduleIdFor(reminder.id, fireAt.getTime(), activeOwner);
       await scheduleCustomNotification(
         reminder as unknown as Parameters<typeof scheduleCustomNotification>[0],
-        new Date(Date.now() + SNOOZE_MINUTES * 60_000),
+        fireAt,
         body,
+        activeOwner,
       );
+      if (!actionIsCurrent()) await cancelCustomNotification(scheduleId);
     } catch {
       // Notification scheduling is best-effort on devices without permission.
     }
@@ -1091,6 +1252,7 @@ export async function applyNotificationAction(pending: PendingAction): Promise<v
   }
 
   const { useNoorStore } = await import("@/store/noorStore");
+  if (!actionIsCurrent()) return;
 
   if (actionId === MARK_PRAYED_ACTION_ID) {
     const prayerName = extra?.prayerName;
