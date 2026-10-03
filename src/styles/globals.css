@@ -40,6 +40,8 @@
 
   --accent: #ffd780;
   --accent-2: #9ae6ff;
+  --on-accent: #000000;
+  --on-ok: #000000;
   --danger: #ff6b6b;
   --ok: #3ddc97;
 
@@ -57,6 +59,14 @@
   --mobile-fab-gap: 12px;
   /* Fixed position buttons sit above the floating nav on mobile */
   --dhikr-fixed-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+:root[data-accent-foreground="black"] {
+  --on-accent: #000000;
+}
+
+:root[data-accent-foreground="white"] {
+  --on-accent: #ffffff;
 }
 
 .light {
@@ -5587,6 +5597,10 @@ a:focus-visible,
     --muted: #555555;
     --muted-2: #777777;
     --accent: #000000;
+  }
+
+  :root[data-accent-foreground] {
+    --on-accent: #ffffff;
   }
 
   body {

@@ -207,7 +207,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
           className={cn(
             "w-full rounded-2xl py-4 text-base font-semibold border transition btn-count press-effect",
             count >= target
-              ? "bg-[var(--ok)] text-[var(--on-accent)] border-transparent"
+              ? "bg-[var(--ok)] text-[var(--on-ok)] border-transparent"
               : "bg-[var(--accent)] text-[var(--on-accent)] border-transparent"
           )}
         >

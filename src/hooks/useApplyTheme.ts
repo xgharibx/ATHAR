@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNoorStore, type NoorTheme } from "@/store/noorStore";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { getAccessibleAccentForeground, isSupportedOpaqueAccentColor } from "@/lib/accentContrast";
 
 /** Pure helpers exported for unit tests so they can be exercised without a
  *  jsdom environment. Kept side-effect-free on import. */
@@ -143,6 +144,11 @@ function setMetaThemeColor(color: string) {
   meta.content = color;
 }
 
+function applyAccentForeground(root: HTMLElement) {
+  const accent = window.getComputedStyle(root).getPropertyValue("--accent").trim();
+  root.dataset.accentForeground = getAccessibleAccentForeground(accent) === "#ffffff" ? "white" : "black";
+}
+
 /** Exported for tests: applying a theme must also retint the browser chrome. */
 export function applyThemeForTest(theme: NoorTheme) {
   apply(theme);
@@ -156,6 +162,7 @@ function apply(theme: NoorTheme) {
   if (theme === "system") {
     const isDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
     root.classList.add(isDark ? "dark" : "light");
+    applyAccentForeground(root);
     setMetaThemeColor(isDark ? "#07080b" : "#f7f8ff");
     return;
   }
@@ -163,17 +170,20 @@ function apply(theme: NoorTheme) {
   if (theme === "sama") {
     const phase = samaPhase();
     root.classList.add("sama", `sama-${phase}`);
+    applyAccentForeground(root);
     setMetaThemeColor(SAMA_META[phase] ?? THEME_META_COLORS.sama);
     return;
   }
 
   if (LIGHT_COMPOUND.has(theme)) {
     root.classList.add("light", theme);
+    applyAccentForeground(root);
     setMetaThemeColor(THEME_META_COLORS[theme]);
     return;
   }
 
   root.classList.add(theme);
+  applyAccentForeground(root);
   setMetaThemeColor(THEME_META_COLORS[theme] ?? "#07080b");
 }
 
@@ -224,11 +234,12 @@ export function useApplyTheme() {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (customAccent) {
+    if (customAccent && isSupportedOpaqueAccentColor(customAccent)) {
       root.style.setProperty("--accent", customAccent);
     } else {
       root.style.removeProperty("--accent");
     }
+    applyAccentForeground(root);
   }, [customAccent, theme]);
 
   useEffect(() => {
