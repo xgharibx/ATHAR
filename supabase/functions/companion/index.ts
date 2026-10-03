@@ -86,13 +86,13 @@ function jsonError(req: Request, message: string, status: number): Response {
   );
 }
 
-type BoundedBody = { ok: true; text: string } | { ok: false; reason: "too-large" | "invalid-utf8" };
+type BoundedBody = { ok: true; text: string; byteLength: number } | { ok: false; reason: "too-large" | "invalid-utf8" };
 
 async function readBoundedBody(req: Request, maxBytes: number): Promise<BoundedBody> {
   const declaredLength = Number(req.headers.get("content-length"));
   if (Number.isFinite(declaredLength) && declaredLength > maxBytes) return { ok: false, reason: "too-large" };
 
-  if (!req.body) return { ok: true, text: "" };
+  if (!req.body) return { ok: true, text: "", byteLength: 0 };
   const reader = req.body.getReader();
   const chunks: Uint8Array[] = [];
   let totalBytes = 0;
@@ -122,7 +122,7 @@ async function readBoundedBody(req: Request, maxBytes: number): Promise<BoundedB
     offset += chunk.byteLength;
   }
   try {
-    return { ok: true, text: new TextDecoder("utf-8", { fatal: true }).decode(bytes) };
+    return { ok: true, text: new TextDecoder("utf-8", { fatal: true }).decode(bytes), byteLength: totalBytes };
   } catch {
     return { ok: false, reason: "invalid-utf8" };
   }
@@ -155,7 +155,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   }
   const raw = boundedBody.text;
 
-  let body: { model?: string; max_tokens?: number; stream?: boolean; system?: unknown; messages?: unknown; tools?: unknown };
+  let body: { model?: unknown; max_tokens?: unknown; stream?: boolean; system?: unknown; messages?: unknown; tools?: unknown };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -195,9 +195,13 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   if (requested && requested !== MINIMAX_MODEL) {
     body = { ...body, model: MINIMAX_MODEL };
   }
-  if (typeof body.max_tokens === "number" && body.max_tokens > MAX_TOKENS_CAP) {
-    body.max_tokens = MAX_TOKENS_CAP;
-  }
+  if (body.max_tokens !== undefined && (
+    typeof body.max_tokens !== "number" || !Number.isSafeInteger(body.max_tokens) || body.max_tokens < 1
+  )) return jsonError(req, "invalid max_tokens", 400);
+  const maxOutputTokens = typeof body.max_tokens === "number"
+    ? Math.min(body.max_tokens, MAX_TOKENS_CAP)
+    : MAX_TOKENS_CAP;
+  body = { ...body, max_tokens: maxOutputTokens };
 
   const apiKey = denoRuntime.env.get("MINIMAX_API_KEY");
   if (!apiKey) return jsonError(req, "no server key configured", 503);
@@ -224,7 +228,11 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
 
   let reservation: { data: unknown; error: unknown };
   try {
-    reservation = await supabase.rpc("reserve_companion_request", { p_user_id: userId });
+    reservation = await supabase.rpc("reserve_companion_request", {
+      p_user_id: userId,
+      p_request_bytes: boundedBody.byteLength,
+      p_max_output_tokens: maxOutputTokens,
+    });
   } catch {
     return jsonError(req, "usage quota unavailable", 503);
   }

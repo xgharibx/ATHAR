@@ -146,6 +146,83 @@ describe("paid Companion Edge Function access controls", () => {
     expect((upstreamCall?.detail as RequestInit).signal).toBeInstanceOf(AbortSignal);
   });
 
+  it("reserves the UTF-8 request size and effective output-token cap before spending", async () => {
+    const app = edge();
+    const payload = {
+      model: "MiniMax-M3",
+      max_tokens: 512,
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: "السؤال" }],
+    };
+    const raw = JSON.stringify(payload);
+    const response = await app.sendRaw(raw, "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    expect(app.calls[1]?.detail).toMatchObject({
+      name: "reserve_companion_request",
+      args: {
+        p_user_id: "synthetic-user-id",
+        p_request_bytes: new TextEncoder().encode(raw).byteLength,
+        p_max_output_tokens: 512,
+      },
+    });
+  });
+
+  it("sets and reserves an output cap when a caller omits max_tokens", async () => {
+    const app = edge();
+    const payload = {
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: "synthetic question" }],
+    };
+    const response = await app.sendRaw(JSON.stringify(payload), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    expect(app.calls[1]?.detail).toMatchObject({
+      name: "reserve_companion_request",
+      args: { p_max_output_tokens: 4096 },
+    });
+    const upstreamCall = app.calls.find((call) => call.type === "upstream");
+    expect(JSON.parse(String((upstreamCall?.detail as RequestInit).body))).toMatchObject({
+      max_tokens: 4096,
+    });
+  });
+
+  it("reserves and forwards only the server output cap when a caller requests more", async () => {
+    const app = edge();
+    const payload = {
+      max_tokens: 9000,
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: "synthetic question" }],
+    };
+    const response = await app.sendRaw(JSON.stringify(payload), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    expect(app.calls[1]?.detail).toMatchObject({
+      name: "reserve_companion_request",
+      args: { p_max_output_tokens: 4096 },
+    });
+    const upstreamCall = app.calls.find((call) => call.type === "upstream");
+    expect(JSON.parse(String((upstreamCall?.detail as RequestInit).body))).toMatchObject({
+      max_tokens: 4096,
+    });
+  });
+
+  it.each([
+    ["zero", 0],
+    ["fractional", 1.5],
+    ["string", "512"],
+  ])("rejects an invalid output-token budget (%s) before auth or quota", async (_label, max_tokens) => {
+    const app = edge();
+    const response = await app.sendRaw(JSON.stringify({
+      max_tokens,
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: "synthetic question" }],
+    }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(400);
+    expect(app.calls).toEqual([]);
+  });
+
   it("fails closed when the durable quota store is unavailable", async () => {
     const app = edge({ quotaError: true });
     const response = await app.send("Bearer synthetic-user-token");
