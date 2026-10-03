@@ -121,9 +121,9 @@ The per-account and shared daily Companion quota migrations are applied and func
 
 Added the canonical root `supabase/config.toml` with gateway JWT verification disabled for `companion`, `dorar`, and `leaderboard`, preserving their existing behavior; `delete-account` and `quran-translations` retain Supabase's secure default. Removed the three nested config copies so future edits have one source of truth. A regression test checks the configured exceptions and secure defaults, and full `npm run verify` passed (1,111 tests across 149 files; production web/PWA build succeeded). Supabase documents `[functions.<slug>]` configuration in the root file and JWT verification as enabled by default. This validates the repository configuration and build, not a remote deployment. See [Supabase function configuration](https://supabase.com/docs/guides/functions/function-configuration).
 
-### P2 — Keep the home reorder hint off the quick-action labels
+### Resolved — Verify home reorder hint clearance
 
-The deployed home page was smoke-tested in a fresh public browser at desktop and 390 × 844 mobile sizes. It loaded the home view, navigated to the Quran route, and reported no console errors after reload. At both sizes, the reorder hint is drawn across the quick-action tiles and reduces label readability. Reposition or conditionally show the hint without changing the existing visual theme; recheck those viewports after the fix.
+The current home layout keeps the reorder hint in a reserved row above the quick-access tiles. Playwright checks at 1440 × 900 and 390 × 844 measured a 4 px gap between the hint and the first tile at both sizes; the text does not cross the tile labels, so no layout change is needed. The app loaded and the onboarding skip interaction reached Home. The browser reported zero errors and two React Router future-flag warnings.
 
 ### P1 — Make the Supabase migration chain complete and safe to apply
 
@@ -422,7 +422,7 @@ No production database dump or customer row contents were accessed. Aggregate sc
 - [ ] Deploy and verify leaderboard failed-rollup retry and concurrent-submission handling after resolving legacy identity compatibility.
 - [ ] Replace the leaderboard read-compute-upsert with a conditional transactional winner; test concurrent old/new snapshot completion ordering.
 - [x] Clear Android Qibla widget coordinates and refresh the placeholder when switching to an account with no saved location; cover account A → account B.
-- [ ] Move or conditionally show the home reorder hint so it does not cross the quick-action labels; verify desktop and 390 × 844 mobile screenshots.
+- [x] Verify home reorder hint clearance at 1440 × 900 and 390 × 844; its reserved row leaves 4 px before the first tile at both sizes, with no label overlap, so the existing design is retained.
 - [x] Add a root `supabase/config.toml` that reproduces the current Edge Function JWT-verification settings; preserve the three intended gateway exceptions, retain secure defaults, and verify with focused regression coverage plus full `npm run verify`.
 - [x] Load the bundled Muyassar tafsir from its 1-indexed surah arrays and invalidate the previously cached empty index; actual-asset regression test plus full `npm run verify` (1,112 tests / 150 files).
 - [x] Validate tafsir edition query values and enforce the known-slug allowlist before CDN requests; invalid values fall back to bundled Muyassar and the regression test confirms no fetch.
