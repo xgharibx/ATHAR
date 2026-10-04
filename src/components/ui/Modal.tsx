@@ -65,7 +65,7 @@ export function Modal(props: {
             className={[
               "absolute inset-x-0 bottom-0 flex w-full max-w-none flex-col overflow-hidden rounded-t-3xl border border-[var(--stroke)] bg-[var(--bg)] shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.45)]",
               "max-h-[88vh] animate-athar-modal-sheet",
-              "sm:static sm:inset-auto sm:mx-auto sm:my-auto sm:max-h-[85vh] sm:w-full sm:max-w-xl sm:rounded-3xl sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.45)]",
+              "sm:relative sm:inset-auto sm:mx-auto sm:my-auto sm:max-h-[85vh] sm:w-full sm:max-w-xl sm:rounded-3xl sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.45)]",
               props.className ?? "",
             ].join(" ")}
             style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)" }}

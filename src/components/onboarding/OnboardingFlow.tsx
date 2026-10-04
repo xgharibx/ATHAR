@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { useNoorStore } from "@/store/noorStore";
 import { isNativePlatform, requestNotificationPermission } from "@/lib/reminders";
 import { requestPrayerLocation } from "@/hooks/usePrayerTimes";
+import { arNum } from "@/lib/formatNumber";
 
 type ReminderPermission = "granted" | "denied" | "prompt";
 
@@ -151,9 +152,17 @@ export function OnboardingFlow() {
           <p className="text-sm opacity-70 text-center leading-relaxed mb-8 arabic-text">{current.description}</p>
 
           {/* Step dots */}
-          <div className="onboarding-step-dots" role="tablist" aria-orientation="horizontal" aria-label="خطوات التهيئة">
+          <div
+            className="onboarding-step-dots"
+            role="progressbar"
+            aria-label="خطوات التهيئة"
+            aria-valuemin={1}
+            aria-valuemax={steps.length}
+            aria-valuenow={step + 1}
+            aria-valuetext={`الخطوة ${arNum(step + 1)} من ${arNum(steps.length)}`}
+          >
             {steps.map((_, i) => (
-              <span key={i} className={`onboarding-dot${i === step ? " active" : ""}`} role="tab" aria-selected={i === step} aria-label={`خطوة ${i + 1} من ${steps.length}`} />
+              <span key={i} className={`onboarding-dot${i === step ? " active" : ""}`} aria-hidden="true" />
             ))}
           </div>
 

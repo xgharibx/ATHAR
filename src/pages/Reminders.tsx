@@ -366,78 +366,72 @@ function ReminderRow(props: {
         !r.enabled && "opacity-70",
       )}
     >
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={() => setExpanded((v) => !v)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            setExpanded((v) => !v);
-          }
-        }}
-        className="flex w-full items-start justify-between gap-3 px-3.5 py-3 text-start cursor-pointer"
-        aria-expanded={expanded}
-      >
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-base" aria-hidden="true">{r.icon ?? "🔔"}</span>
-            <span className="truncate text-[13.5px] font-semibold text-[var(--fg)]">{r.title}</span>
-            <CategoryDot category={r.category} />
-            {!r.enabled ? (
-              <span className="shrink-0 rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
-                موقوف
-              </span>
+      <div className="flex items-start justify-between gap-3 px-3.5 py-3">
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="flex min-w-0 flex-1 items-start gap-3 rounded text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          aria-expanded={expanded}
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-base" aria-hidden="true">{r.icon ?? "🔔"}</span>
+              <span className="truncate text-[13.5px] font-semibold text-[var(--fg)]">{r.title}</span>
+              <CategoryDot category={r.category} />
+              {!r.enabled ? (
+                <span className="shrink-0 rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
+                  موقوف
+                </span>
+              ) : null}
+            </div>
+            {r.description ? (
+              <p className="mt-0.5 truncate text-[11.5px] text-[var(--muted-2)]">{r.description}</p>
             ) : null}
+            <p className="mt-1 text-[10.5px] text-[var(--muted-2)]">
+              {repeatText(r)}
+              {r.atTimeOfDay ? ` • ${timeLabel(r.atTimeOfDay)}` : ""}
+            </p>
+            <p className="mt-0.5 text-[10.5px] font-semibold text-[var(--accent)]">
+              {nextFireLabel(r, props.prayerTimes)}
+            </p>
           </div>
-          {r.description ? (
-            <p className="mt-0.5 truncate text-[11.5px] text-[var(--muted-2)]">{r.description}</p>
-          ) : null}
-          <p className="mt-1 text-[10.5px] text-[var(--muted-2)]">
-            {repeatText(r)}
-            {r.atTimeOfDay ? ` • ${timeLabel(r.atTimeOfDay)}` : ""}
-          </p>
-          <p className="mt-0.5 text-[10.5px] font-semibold text-[var(--accent)]">
-            {nextFireLabel(r, props.prayerTimes)}
-          </p>
-        </div>
+          {expanded ? (
+            <ChevronUp className="h-4 w-4 shrink-0 self-center text-[var(--muted-2)]" aria-hidden="true" />
+          ) : (
+            <ChevronDown className="h-4 w-4 shrink-0 self-center text-[var(--muted-2)]" aria-hidden="true" />
+          )}
+        </button>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <Switch
             checked={r.enabled}
             onCheckedChange={(v) => props.onToggle(r.id, v)}
-            onClick={(e) => e.stopPropagation()}
-            aria-label={r.enabled ? "إيقاف" : "تفعيل"}
+            aria-label={`${r.enabled ? "إيقاف التذكير" : "تفعيل التذكير"}: ${r.title}`}
           />
           <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); props.onEdit(r); }}
+              onClick={() => props.onEdit(r)}
               className="grid h-7 w-7 place-items-center rounded-md border border-[var(--stroke)] bg-[var(--card-2)] text-[var(--muted-2)] hover:text-[var(--fg)] transition"
-              aria-label="تعديل التذكير"
+              aria-label={`تعديل التذكير: ${r.title}`}
             >
               <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); props.onDelete(r.id); }}
+              onClick={() => props.onDelete(r.id)}
               className="grid h-7 w-7 place-items-center rounded-md border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
-              aria-label="حذف التذكير"
+              aria-label={`حذف التذكير: ${r.title}`}
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); props.onOpenSettings(r); }}
+              onClick={() => props.onOpenSettings(r)}
               className="grid h-7 w-7 place-items-center rounded-md border border-[var(--stroke)] bg-[var(--card-2)] text-[var(--muted-2)] hover:text-[var(--fg)] transition"
-              aria-label="إعدادات التذكير"
+              aria-label={`إعدادات التذكير: ${r.title}`}
             >
               <SettingsIcon className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
-            {expanded ? (
-              <ChevronUp className="h-4 w-4 text-[var(--muted-2)]" aria-hidden="true" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-[var(--muted-2)]" aria-hidden="true" />
-            )}
           </div>
         </div>
       </div>

@@ -66,6 +66,20 @@ afterEach(() => {
 });
 
 describe("onboarding location choice", () => {
+  it("announces onboarding progress without exposing inert tabs", async () => {
+    mount();
+
+    const progress = container?.querySelector<HTMLElement>('[role="progressbar"]');
+    expect(progress?.getAttribute("aria-valuenow")).toBe("1");
+    expect(progress?.getAttribute("aria-valuetext")).toBe("الخطوة ١ من ٤");
+    expect(container?.querySelector('[role="tablist"]')).toBeNull();
+
+    await act(async () => { buttonNamed("التالي").click(); });
+
+    expect(container?.querySelector('[role="progressbar"]')?.getAttribute("aria-valuenow")).toBe("2");
+    expect(container?.querySelector('[role="progressbar"]')?.getAttribute("aria-valuetext")).toBe("الخطوة ٢ من ٤");
+  });
+
   it("discloses the prayer-times location recipient before asking for permission", async () => {
     mount();
     await act(async () => { buttonNamed("التالي").click(); });

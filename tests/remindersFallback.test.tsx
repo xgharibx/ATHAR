@@ -23,7 +23,9 @@ vi.mock("@/components/ui/Modal", () => ({
   ModalCloseButton: () => null,
 }));
 vi.mock("@/components/ui/Switch", () => ({
-  Switch: ({ checked }: { checked: boolean }) => <input type="checkbox" checked={checked} readOnly />,
+  Switch: ({ checked, "aria-label": ariaLabel }: { checked: boolean; "aria-label"?: string }) => (
+    <input type="checkbox" checked={checked} readOnly aria-label={ariaLabel} />
+  ),
 }));
 vi.mock("react-hot-toast", () => ({
   default: { error: mocks.toastError, success: vi.fn() },
@@ -117,6 +119,49 @@ describe("RemindersPage missing-list fallback", () => {
     const summaryValues = Array.from(container.querySelectorAll("p.text-base"), (node) => node.textContent ?? "");
     expect(summaryValues).toHaveLength(3);
     expect(summaryValues.every((value) => /[٠-٩]/.test(value))).toBe(true);
+  });
+
+  it("keeps reminder expansion separate from its switch and action buttons", async () => {
+    useNoorStore.setState({ customReminders: [] });
+    useNoorStore.getState().addCustomReminder({
+      category: "custom",
+      title: "ورد الصباح",
+      repeat: "daily",
+      atTimeOfDay: "08:00",
+    });
+
+    await act(async () => {
+      root.render(<MemoryRouter><RemindersPage /></MemoryRouter>);
+      await Promise.resolve();
+    });
+
+    const expandButton = container.querySelector<HTMLButtonElement>('button[aria-expanded="false"]');
+    const reminderSwitch = container.querySelector<HTMLInputElement>('input[aria-label="إيقاف التذكير: ورد الصباح"]');
+    const editButton = container.querySelector<HTMLButtonElement>('button[aria-label="تعديل التذكير: ورد الصباح"]');
+    const deleteButton = container.querySelector<HTMLButtonElement>('button[aria-label="حذف التذكير: ورد الصباح"]');
+    const settingsButton = container.querySelector<HTMLButtonElement>('button[aria-label="إعدادات التذكير: ورد الصباح"]');
+
+    expect(expandButton).not.toBeNull();
+    expect(expandButton?.textContent).toContain("ورد الصباح");
+    expect(expandButton?.querySelector("input, button")).toBeNull();
+    expect(reminderSwitch).not.toBeNull();
+    expect(editButton).not.toBeNull();
+    expect(deleteButton).not.toBeNull();
+    expect(settingsButton).not.toBeNull();
+    expect(expandButton?.parentElement?.contains(reminderSwitch)).toBe(true);
+    expect(expandButton?.parentElement?.contains(editButton)).toBe(true);
+
+    await act(async () => {
+      editButton!.click();
+    });
+    expect(container.querySelector('button[aria-expanded="false"]')).not.toBeNull();
+
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')!.click();
+    });
+
+    expect(container.querySelector('button[aria-expanded="true"]')).not.toBeNull();
+    expect(container.textContent).toContain("إيقاف التذكير");
   });
 
   it("explains platform limits beside sound and vibration preferences", async () => {

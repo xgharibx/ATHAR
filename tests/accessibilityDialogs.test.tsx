@@ -100,6 +100,15 @@ describe("shared modal focus behavior", () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  it("keeps desktop dialog content above its backdrop for pointer interaction", async () => {
+    const container = render(<ModalFixture />);
+    act(() => container.querySelector("button")!.click());
+    await act(async () => { await Promise.resolve(); });
+
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog?.className.split(/\s+/)).toContain("sm:relative");
+  });
+
   it("keeps focus inside while the modal is open", async () => {
     const container = render(<ModalFixture />);
     (container.querySelector("button") as HTMLButtonElement).focus();
