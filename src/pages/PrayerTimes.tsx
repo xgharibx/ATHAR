@@ -23,7 +23,7 @@ import { toArabicIndic } from "@/lib/arabic";
 import { PTRIndicator, usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useNoorStore } from "@/store/noorStore";
 import type { PrayerAlertPrayer } from "@/store/noorStore";
-import { DEFAULT_PRAYER_CITY, getPrayerLocationIdentity, readCachedPrayerCoordinates } from "@/lib/prayerLocation";
+import { clearCachedPrayerCoordinates, DEFAULT_PRAYER_CITY, getPrayerLocationIdentity, readCachedPrayerCoordinates } from "@/lib/prayerLocation";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -999,6 +999,12 @@ function DayArcTab({ timings }: { timings: Record<string, string> }) {
 
 // ─── PrayerTimesPage ──────────────────────────────────────────────────────────
 
+type PendingLocationRefresh = {
+  identity: string;
+  successMessage: string;
+  errorMessage: string;
+};
+
 export function PrayerTimesPage() {
   const navigate       = useNavigate();
   const prayerTimes    = usePrayerTimes();
@@ -1006,7 +1012,7 @@ export function PrayerTimesPage() {
   const [now, setNow]  = React.useState(() => new Date());
   const [manualRefreshing, setManualRefreshing] = React.useState(false);
   const [locating, setLocating] = React.useState(false);
-  const [pendingLocationRefresh, setPendingLocationRefresh] = React.useState<string | null>(null);
+  const [pendingLocationRefresh, setPendingLocationRefresh] = React.useState<PendingLocationRefresh | null>(null);
   const [activeTab,    setActiveTab]    = React.useState<TabKey>("today");
   const [showSettings, setShowSettings] = React.useState(false);
   const [isOnline, setIsOnline] = React.useState(() => navigator.onLine);
@@ -1018,14 +1024,15 @@ export function PrayerTimesPage() {
   }, []);
 
   const prayerLocationIdentity = getPrayerLocationIdentity(readCachedPrayerCoordinates());
+  const hasSavedPrayerLocation = readCachedPrayerCoordinates() !== null;
 
   React.useEffect(() => {
-    if (!pendingLocationRefresh || pendingLocationRefresh !== prayerLocationIdentity || prayerTimes.isFetching) return;
+    if (!pendingLocationRefresh || pendingLocationRefresh.identity !== prayerLocationIdentity || prayerTimes.isFetching) return;
 
     const timings = prayerTimes.data?.data?.timings;
     if (!timings) {
       if (prayerTimes.error) {
-        toast.error("تعذر تحديث المواقيت الآن");
+        toast.error(pendingLocationRefresh.errorMessage);
         setPendingLocationRefresh(null);
         setLocating(false);
       }
@@ -1041,12 +1048,12 @@ export function PrayerTimesPage() {
       Isha: timings.Isha,
     }).then(() => {
       if (cancelled) return;
-      toast.success("تم تحديث المواقيت حسب موقعك");
+      toast.success(pendingLocationRefresh.successMessage);
       setPendingLocationRefresh(null);
       setLocating(false);
     }).catch(() => {
       if (cancelled) return;
-      toast.error("تعذر تحديث المواقيت الآن");
+      toast.error(pendingLocationRefresh.errorMessage);
       setPendingLocationRefresh(null);
       setLocating(false);
     });
@@ -1075,12 +1082,29 @@ export function PrayerTimesPage() {
         return;
       }
       waitingForLocationTimes = true;
-      setPendingLocationRefresh(getPrayerLocationIdentity(readCachedPrayerCoordinates()));
+      setPendingLocationRefresh({
+        identity: getPrayerLocationIdentity(readCachedPrayerCoordinates()),
+        successMessage: "تم تحديث المواقيت حسب موقعك",
+        errorMessage: "تعذر تحديث المواقيت ومزامنة التذكيرات الآن",
+      });
     } catch {
       toast.error("تعذر تحديث المواقيت الآن");
     } finally {
       if (!waitingForLocationTimes) setLocating(false);
     }
+  }
+
+  function handleStopUsingCurrentLocation() {
+    if (!clearCachedPrayerCoordinates()) {
+      toast.error("تعذر إيقاف استخدام الموقع المحفوظ");
+      return;
+    }
+    setLocating(true);
+    setPendingLocationRefresh({
+      identity: getPrayerLocationIdentity(null),
+      successMessage: "تم إيقاف استخدام الموقع والعودة إلى القاهرة",
+      errorMessage: "تم إيقاف استخدام الموقع، لكن تعذر تحديث المواقيت والتذكيرات",
+    });
   }
 
   // De2: Pull-to-refresh
@@ -1222,12 +1246,25 @@ export function PrayerTimesPage() {
             <Badge className="text-[11px]">{date.hijri.date} {date.hijri.month.ar}</Badge>
             {data.__sourceLabel && <Badge className="text-[11px] opacity-60">{data.__sourceLabel}</Badge>}
             <p className="basis-full text-[10.5px] leading-relaxed text-[var(--muted-2)]">
-              عند استخدام موقعك، تُرسل إحداثياتك إلى AlAdhan عبر الإنترنت لحساب مواقيت الصلاة.
+              {hasSavedPrayerLocation
+                ? "تُرسل إحداثيات موقعك المحفوظ إلى AlAdhan عبر الإنترنت لحساب مواقيت الصلاة. يمكنك إيقاف استخدامها والعودة إلى القاهرة."
+                : "عند استخدام موقعك، تُرسل إحداثياتك إلى AlAdhan عبر الإنترنت لحساب مواقيت الصلاة."}
             </p>
             <Button variant="secondary" size="sm" onClick={() => void handleUseCurrentLocation()} disabled={locating || prayerTimes.isFetching} aria-label="استخدام موقعي لمواقيت الصلاة">
               <MapPin size={13} aria-hidden="true" />
               {locating ? "جارٍ تحديد الموقع…" : "استخدام موقعي"}
             </Button>
+            {hasSavedPrayerLocation && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleStopUsingCurrentLocation}
+                disabled={locating || prayerTimes.isFetching}
+                aria-label="إيقاف استخدام موقعي لمواقيت الصلاة"
+              >
+                إيقاف استخدام موقعي
+              </Button>
+            )}
           </div>
           <div className="rounded-[28px] border border-[var(--stroke)] bg-[var(--card)] p-4 md:p-5">
             <PrayerCountdown timings={timings} />

@@ -28,6 +28,17 @@ export function readCachedPrayerCoordinates(): PrayerCoordinates | null {
   }
 }
 
+/** Remove this account's saved GPS choice and notify prayer views to use the city fallback. */
+export function clearCachedPrayerCoordinates(): boolean {
+  try {
+    accountScopedLocalStorage.removeItem(PRAYER_COORDS_KEY);
+  } catch {
+    return false;
+  }
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(PRAYER_LOCATION_CHANGED_EVENT));
+  return true;
+}
+
 export function getPrayerLocationIdentity(coords: PrayerCoordinates | null): string {
   return coords
     ? `coords:${coords.lat}:${coords.lng}`

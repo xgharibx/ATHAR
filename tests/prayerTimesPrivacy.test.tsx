@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   timings: { Fajr: "05:00", Sunrise: "06:20", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30" },
   prayerFetching: false,
   syncReminders: vi.fn().mockResolvedValue(undefined),
+  toast: { error: vi.fn(), success: vi.fn() },
   favoriteCities: [{ id: "tokyo", city: "Tokyo", country: "Japan", label: "طوكيو" }],
   queries: [] as Array<{ queryKey?: readonly unknown[]; queryFn?: () => unknown }>,
 }));
@@ -49,7 +50,7 @@ vi.mock("@/hooks/usePullToRefresh", () => ({
 }));
 vi.mock("@/components/layout/PrayerCountdown", () => ({ PrayerCountdown: () => React.createElement("div", null, "Prayer countdown") }));
 vi.mock("@/lib/reminders", () => ({ syncReminders: mocks.syncReminders }));
-vi.mock("react-hot-toast", () => ({ default: { error: vi.fn(), success: vi.fn() } }));
+vi.mock("react-hot-toast", () => ({ default: mocks.toast }));
 
 let root: Root | undefined;
 let container: HTMLDivElement | undefined;
@@ -111,6 +112,40 @@ describe("Prayer Times location privacy disclosure", () => {
     expect(disclosure).not.toBeUndefined();
     expect(locationButton).not.toBeNull();
     expect(disclosure!.compareDocumentPosition(locationButton!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("lets the user stop using saved coordinates and returns to Cairo timings", async () => {
+    localStorage.clear();
+    localStorage.setItem("noor_prayer_coords_v1", JSON.stringify({ lat: 21.4225, lng: 39.8262 }));
+    mocks.syncReminders.mockClear();
+    mocks.toast.success.mockClear();
+    const dispatchSpy = vi.spyOn(window, "dispatchEvent");
+    const { PrayerTimesPage } = await import("@/pages/PrayerTimes");
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    await act(async () => {
+      root!.render(createElement(MemoryRouter, { future: { v7_startTransition: true, v7_relativeSplatPath: true } }, createElement(PrayerTimesPage)));
+    });
+
+    const stopUsingLocation = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="إيقاف استخدام موقعي لمواقيت الصلاة"]',
+    );
+    expect(stopUsingLocation).not.toBeNull();
+
+    await act(async () => {
+      stopUsingLocation!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(localStorage.getItem("noor_prayer_coords_v1")).toBeNull();
+    expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({ type: "athar:prayer-location-changed" }));
+    expect(mocks.syncReminders).toHaveBeenCalledWith([], {
+      Fajr: "05:00", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30",
+    });
+    expect(mocks.toast.success).toHaveBeenCalledWith("تم إيقاف استخدام الموقع والعودة إلى القاهرة");
   });
 
   it("keeps comparison cities from changing the calendar's Cairo fallback", async () => {
