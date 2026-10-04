@@ -2,16 +2,18 @@
 -- Synthetic users and documents are contained in this transaction and rolled back.
 begin;
 
-select plan(24);
+select plan(26);
 
 select ok(not has_table_privilege('anon', 'public.athar_sync', 'select'), 'anon cannot read sync rows');
 select ok(not has_table_privilege('anon', 'public.athar_sync', 'insert'), 'anon cannot insert sync rows');
 select ok(not has_table_privilege('anon', 'public.athar_sync', 'update'), 'anon cannot update sync rows');
 select ok(not has_table_privilege('anon', 'public.athar_sync', 'delete'), 'anon cannot delete sync rows');
+select ok(not has_table_privilege('anon', 'public.athar_sync', 'truncate'), 'anon cannot truncate sync rows');
 select ok(has_table_privilege('authenticated', 'public.athar_sync', 'select'), 'authenticated retains SELECT');
 select ok(not has_table_privilege('authenticated', 'public.athar_sync', 'insert'), 'authenticated cannot insert directly');
 select ok(not has_table_privilege('authenticated', 'public.athar_sync', 'update'), 'authenticated cannot update directly');
 select ok(not has_table_privilege('authenticated', 'public.athar_sync', 'delete'), 'authenticated cannot delete directly');
+select ok(not has_table_privilege('authenticated', 'public.athar_sync', 'truncate'), 'authenticated cannot truncate sync rows');
 select ok((select relrowsecurity from pg_catalog.pg_class where oid = 'public.athar_sync'::regclass), 'sync row-level security remains enabled');
 select ok(not exists (
   select 1 from pg_catalog.pg_policies

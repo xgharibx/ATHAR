@@ -48,7 +48,7 @@ jobs:
       - name: Build and lint Android app
         run: |
           cd android
-          ./gradlew --no-daemon :app:assembleDebug :app:lintDebug :app:bundleRelease
+          ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug :app:bundleRelease
 
       - name: Upload unsigned release bundle for review
         uses: actions/upload-artifact@v7
