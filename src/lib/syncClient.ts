@@ -55,6 +55,8 @@ type Meta = {
   lastSyncedAt: number;
   /** Local edits exist that the server has not accepted yet. */
   dirty: boolean;
+  /** Per-document server versions at the common base. Older clients lack this. */
+  serverRevisions?: Partial<Record<SyncKind, number>>;
 };
 
 type SyncWrite = {
@@ -95,6 +97,8 @@ type PendingCommit = {
   sourceBuckets: SyncBuckets;
   /** Set after the server has accepted the request (or for local-only reconcile). */
   serverBuckets?: SyncBuckets;
+  /** Per-document server versions used as this commit's merge base. */
+  serverRevisions?: Partial<Record<SyncKind, number>>;
   targetBlob?: SyncBlob;
   preApplyBlob?: SyncBlob;
   lastSyncedAt?: number;
@@ -205,6 +209,7 @@ async function markCommitted(
       state: "committed",
       targetBlob,
       serverBuckets,
+      serverRevisions: meta.serverRevisions,
       lastSyncedAt: meta.lastSyncedAt,
     };
     await table.put({ key: BASE_KEY, value: serverBuckets });
@@ -317,6 +322,12 @@ function setStatus(patch: Partial<SyncStatus>): void {
 type ServerRow = { kind: SyncKind; payload: unknown; updated_at: string; revision: number };
 type ServerSnapshot = { rows: Map<SyncKind, ServerRow>; buckets: SyncBuckets };
 
+function revisionsFromRows(rows: Map<SyncKind, ServerRow>): Partial<Record<SyncKind, number>> {
+  const revisions: Partial<Record<SyncKind, number>> = {};
+  for (const [kind, row] of rows) revisions[kind] = row.revision;
+  return revisions;
+}
+
 let inFlight: Promise<boolean> | null = null;
 let syncGeneration = 0;
 let flightGeneration = -1;
@@ -375,13 +386,18 @@ function mergeBuckets(
   rows: Map<SyncKind, ServerRow> | null,
   lastSyncedAt: number,
   preferLocalScalars = false,
+  baseRevisions?: Partial<Record<SyncKind, number>>,
 ): SyncBuckets {
   const merged = emptyBuckets();
   for (const kind of SYNC_KINDS) {
-    const stamp = rows?.get(kind)?.updated_at;
+    const row = rows?.get(kind);
+    const stamp = row?.updated_at;
     const parsedStamp = stamp ? Date.parse(stamp) : 0;
+    const remoteChangedSinceBase = baseRevisions
+      ? (row?.revision ?? 0) > (baseRevisions[kind] ?? 0)
+      : Number.isFinite(parsedStamp) && parsedStamp > lastSyncedAt;
     merged[kind] = mergeDoc(local[kind], remote[kind], {
-      remoteNewer: !preferLocalScalars && Number.isFinite(parsedStamp) && parsedStamp > lastSyncedAt,
+      remoteNewer: !preferLocalScalars && remoteChangedSinceBase,
       base: base?.[kind] ?? null,
     });
   }
@@ -460,13 +476,14 @@ async function storeCommittedTarget(
   targetBlob: SyncBlob,
   serverBuckets: SyncBuckets,
   lastSyncedAt: number,
+  serverRevisions: Partial<Record<SyncKind, number>>,
 ): Promise<PendingCommit | null> {
   const dirty = bucketsDiffer(bucketize(targetBlob), serverBuckets);
   return markCommitted(
     pending,
     targetBlob,
     serverBuckets,
-    { userId: pending.userId, lastSyncedAt, dirty },
+    { userId: pending.userId, lastSyncedAt, dirty, serverRevisions },
   );
 }
 
@@ -483,7 +500,13 @@ async function finishCommitted(
     if (!server || !isCurrent()) return false;
     const latestBuckets = bucketize(localSnapshot());
     const target = mergeBuckets(latestBuckets, server.buckets, pending.sourceBuckets, null, 0, true);
-    const stored = await storeCommittedTarget(pending, debucketize(target), server.buckets, Date.now());
+    const stored = await storeCommittedTarget(
+      pending,
+      debucketize(target),
+      server.buckets,
+      Date.now(),
+      revisionsFromRows(server.rows),
+    );
     if (!isCurrent()) return false;
     if (!stored) return true; // another tab already acknowledged and cleared it
     if (stored.requestId !== pending.requestId) return false;
@@ -515,7 +538,12 @@ async function finishCommitted(
       const updated = await updateCommittedTarget(
         { ...pending, state: "applying", preApplyBlob: currentBlob },
         targetBlob,
-        { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(rebased, pending.serverBuckets!) },
+        {
+          userId: pending.userId,
+          lastSyncedAt,
+          dirty: bucketsDiffer(rebased, pending.serverBuckets!),
+          serverRevisions: pending.serverRevisions,
+        },
       );
       if (!isCurrent()) return false;
       if (!updated || updated.requestId !== pending.requestId) return false;
@@ -543,7 +571,12 @@ async function finishCommitted(
         const updated = await updateCommittedTarget(
           { ...pending, state: "applied", preApplyBlob: undefined },
           debucketize(adjusted),
-          { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(adjusted, pending.serverBuckets!) },
+          {
+            userId: pending.userId,
+            lastSyncedAt,
+            dirty: bucketsDiffer(adjusted, pending.serverBuckets!),
+            serverRevisions: pending.serverRevisions,
+          },
         );
         if (!isCurrent()) return false;
         if (!updated || updated.requestId !== pending.requestId) return false;
@@ -564,7 +597,12 @@ async function finishCommitted(
       const updated = await updateCommittedTarget(
         { ...pending, state: "applied", preApplyBlob: undefined },
         debucketize(adjusted),
-        { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(adjusted, pending.serverBuckets!) },
+        {
+          userId: pending.userId,
+          lastSyncedAt,
+          dirty: bucketsDiffer(adjusted, pending.serverBuckets!),
+          serverRevisions: pending.serverRevisions,
+        },
       );
       if (!isCurrent()) return false;
       if (!updated || updated.requestId !== pending.requestId) return false;
@@ -587,7 +625,12 @@ async function finishCommitted(
       const updated = await updateCommittedTarget(
         { ...pending, state: "applied", preApplyBlob: undefined },
         adjustedBlob,
-        { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(adjusted, pending.serverBuckets!) },
+        {
+          userId: pending.userId,
+          lastSyncedAt,
+          dirty: bucketsDiffer(adjusted, pending.serverBuckets!),
+          serverRevisions: pending.serverRevisions,
+        },
       );
       if (!isCurrent()) return false;
       if (!updated || updated.requestId !== pending.requestId) return false;
@@ -611,7 +654,12 @@ async function finishCommitted(
         const updated = await updateCommittedTarget(
           { ...pending, state: "applied", preApplyBlob: undefined },
           debucketize(postImport),
-          { userId: pending.userId, lastSyncedAt, dirty: bucketsDiffer(postImport, pending.serverBuckets!) },
+          {
+            userId: pending.userId,
+            lastSyncedAt,
+            dirty: bucketsDiffer(postImport, pending.serverBuckets!),
+            serverRevisions: pending.serverRevisions,
+          },
         );
         if (!isCurrent()) return false;
         if (!updated || updated.requestId !== pending.requestId) return false;
@@ -810,7 +858,15 @@ async function runSync(generation: number): Promise<boolean> {
       const server = await readServerSnapshot(supabase, userId, isCurrent);
       if (!server || !isCurrent()) return false;
 
-      const merged = mergeBuckets(localBuckets, server.buckets, base, server.rows, lastSyncedAt);
+      const merged = mergeBuckets(
+        localBuckets,
+        server.buckets,
+        base,
+        server.rows,
+        lastSyncedAt,
+        false,
+        meta?.serverRevisions,
+      );
       const writes = makeWrites(merged, server);
       const now = Date.now();
       const dirty = bucketsDiffer(merged, server.buckets);
@@ -859,13 +915,14 @@ async function runSync(generation: number): Promise<boolean> {
           writes: [],
           sourceBuckets: localBuckets,
           serverBuckets: server.buckets,
+          serverRevisions: revisionsFromRows(server.rows),
           targetBlob,
           lastSyncedAt: now,
         };
         const claim = await claimLocalReconcile(
           pending,
           server.buckets,
-          { userId, lastSyncedAt: now, dirty },
+          { userId, lastSyncedAt: now, dirty, serverRevisions: pending.serverRevisions },
         );
         if (!isCurrent()) return false;
         if (!claim.claimed) continue;
@@ -874,7 +931,7 @@ async function runSync(generation: number): Promise<boolean> {
 
       const saved = await persistNoPending(
         server.buckets,
-        { userId, lastSyncedAt: now, dirty: false },
+        { userId, lastSyncedAt: now, dirty: false, serverRevisions: revisionsFromRows(server.rows) },
       );
       if (!isCurrent()) return false;
       if (!saved.saved) continue;

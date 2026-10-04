@@ -696,8 +696,8 @@ function mergeListById(
 // ————————————————————————————————————————————————————————————————
 
 export type MergeOptions = {
-  /** Server row is newer than this device's last local edit. Only consulted
-   *  for genuine two-sided conflicts on plain settings-style values. */
+  /** Server row changed since this device's common base. Only consulted for
+   *  genuine two-sided conflicts on plain settings-style values. */
   remoteNewer: boolean;
   /** The snapshot last exchanged with the server, or null on first sign-in.
    *  Without it the merge falls back to union/max and can never delete. */

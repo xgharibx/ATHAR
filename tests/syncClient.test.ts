@@ -626,6 +626,43 @@ describe("concurrency", () => {
   });
 });
 
+describe("revision-aware conflict ordering", () => {
+  it("honors a server edit made after the common base when its clock trails the device clock", async () => {
+    const baseStamp = new Date(Date.now() - 120_000).toISOString();
+    const server = makeSharedServer([
+      {
+        user_id: "user-a",
+        kind: "settings",
+        payload: { prefs: { theme: "base" } },
+        updated_at: baseStamp,
+        revision: 3,
+      },
+    ]);
+    const { mod, current, mutate, serverRows } = await load({
+      local: { prefs: { theme: "base" } },
+      server,
+    });
+
+    expect(await mod.syncNow()).toBe(true);
+    mutate((state) => ({ ...state, prefs: { theme: "local" } }));
+
+    const remote = serverRows.find((row) => row.kind === "settings")!;
+    remote.payload = {
+      ...(remote.payload as Record<string, unknown>),
+      prefs: { theme: "remote" },
+    };
+    remote.revision = (remote.revision ?? 1) + 1;
+    remote.updated_at = new Date(Date.now() - 60_000).toISOString();
+
+    const synced = await mod.syncNow();
+    expect(synced).toBe(true);
+    expect(mod.getSyncStatus().pending).toBe(false);
+    expect(current().prefs).toEqual({ theme: "remote" });
+    expect((serverRows.find((row) => row.kind === "settings")?.payload as Record<string, unknown>).prefs)
+      .toEqual({ theme: "remote" });
+  });
+});
+
 describe("a tap during the round-trip", () => {
   it("does not double-count the first local increment after a concurrent remote increment", async () => {
     let pauseNextCommit = false;
