@@ -66,6 +66,15 @@ afterEach(() => {
 });
 
 describe("onboarding location choice", () => {
+  it("discloses the prayer-times location recipient before asking for permission", async () => {
+    mount();
+    await act(async () => { buttonNamed("التالي").click(); });
+
+    expect(container?.textContent).toContain("AlAdhan");
+    expect(container?.textContent).toContain("القاهرة");
+    expect(mocks.requestPrayerLocation).not.toHaveBeenCalled();
+  });
+
   it("continues to notification setup when the user chooses not now", async () => {
     mount();
     await act(async () => { buttonNamed("التالي").click(); });
