@@ -631,10 +631,13 @@ function buildReminderNotifications(
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
       // Calendar triggers keep the reminder at the same local wall-clock time
-      // across boots and daylight-saving changes. `at + repeats` on iOS is a
-      // time interval from scheduling to the first delivery, not a daily clock.
+      // across boots and daylight-saving changes. iOS interprets `at + repeats`
+      // as an interval, so a completed-today deferral is one-shot there; the
+      // next foreground sync restores its calendar-based daily recurrence.
       schedule: plan.skipToday
-        ? { at, repeats: true, every: "day" as const }
+        ? Capacitor.getPlatform() === "ios"
+          ? { at }
+          : { at, repeats: true, every: "day" as const }
         : { on: { ...reminderTime, second: 0 } },
     }];
   });

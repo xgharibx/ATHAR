@@ -156,7 +156,17 @@ describe("silent native notification sound payloads", () => {
     }
   });
 
-  it("defers a completed morning reminder to tomorrow", async () => {
+  it("defers a completed morning reminder to tomorrow without an iOS interval repeat", async () => {
+    await syncReminders(adhkarReminders(), undefined, { morningDone: true });
+
+    const morning = scheduledNotifications().find((notification) =>
+      (notification.extra as { reminderKey?: string } | undefined)?.reminderKey === "morning",
+    );
+    expect(morning?.schedule).toEqual({ at: new Date(2026, 9, 3, 8, 0, 0) });
+  });
+
+  it("keeps Android completed-reminder recurrence on its daily interval", async () => {
+    mocks.capacitor.getPlatform.mockReturnValue("android");
     await syncReminders(adhkarReminders(), undefined, { morningDone: true });
 
     const morning = scheduledNotifications().find((notification) =>
