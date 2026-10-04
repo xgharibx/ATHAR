@@ -480,6 +480,38 @@ function asList(v: unknown): unknown[] {
   return Array.isArray(v) ? v : [];
 }
 
+function mergePackAfterDeletion(
+  retained: Record<string, unknown>,
+  basePack: Record<string, unknown>,
+  retainedIsLocal: boolean,
+  remoteNewer: boolean,
+): Record<string, unknown> {
+  if (!("sections" in retained) && !("sections" in basePack)) return retained;
+  const sections = asList(retained.sections);
+  return {
+    ...retained,
+    sections: retainedIsLocal
+      ? mergeSections(sections, [], basePack.sections, remoteNewer)
+      : mergeSections([], sections, basePack.sections, remoteNewer),
+  };
+}
+
+function mergeSectionAfterDeletion(
+  retained: Record<string, unknown>,
+  baseSection: Record<string, unknown>,
+  retainedIsLocal: boolean,
+  remoteNewer: boolean,
+): Record<string, unknown> {
+  if (!("content" in retained) && !("content" in baseSection)) return retained;
+  const content = asList(retained.content);
+  return {
+    ...retained,
+    content: retainedIsLocal
+      ? mergeItems(content, [], baseSection.content, remoteNewer)
+      : mergeItems([], content, baseSection.content, remoteNewer),
+  };
+}
+
 /**
  * Merge the user's custom adhkar packs.
  *
@@ -512,13 +544,21 @@ function mergePacks(local: unknown, remote: unknown, base: unknown, remoteNewer:
     if (out.some((p) => packId(p) === id)) continue;
     const a = lm.get(id);
     const b = rm.get(id);
-    // Deletion wins only when the retained pack is unchanged from the base.
-    if (bm?.has(id) && !(a && b)) {
-      const retained = a ?? b;
-      if (sameJson(retained, bm.get(id))) continue;
+    if (!a) {
+      if (!b) continue;
+      const basePack = bm?.get(id);
+      if (!basePack) { out.push(b); continue; }
+      if (sameJson(b, basePack)) continue;
+      out.push(mergePackAfterDeletion(b, basePack, false, remoteNewer));
+      continue;
     }
-    if (!a) { out.push(b); continue; }
-    if (!b) { out.push(a); continue; }
+    if (!b) {
+      const basePack = bm?.get(id);
+      if (!basePack) { out.push(a); continue; }
+      if (sameJson(a, basePack)) continue;
+      out.push(mergePackAfterDeletion(a, basePack, true, remoteNewer));
+      continue;
+    }
     out.push({
       ...b,
       ...a,
@@ -544,8 +584,10 @@ function mergeSections(local: unknown[], remote: unknown[], base: unknown, remot
     seen.add(id);
     const other = rm.get(id);
     if (!other) {
-      if (bm?.has(id) && sameJson(s, bm.get(id))) continue; // unchanged copy; deleted on the other device
-      out.push(s);
+      const baseSection = bm?.get(id);
+      if (!baseSection) { out.push(s); continue; }
+      if (sameJson(s, baseSection)) continue; // unchanged copy; deleted on the other device
+      out.push(mergeSectionAfterDeletion(s, baseSection, true, remoteNewer));
       continue;
     }
     out.push({
@@ -558,8 +600,10 @@ function mergeSections(local: unknown[], remote: unknown[], base: unknown, remot
     if (!isRecord(s)) continue;
     const id = secId(s);
     if (seen.has(id)) continue;
-    if (bm?.has(id) && sameJson(s, bm.get(id))) continue; // unchanged copy; deleted locally
-    out.push(s);
+    const baseSection = bm?.get(id);
+    if (!baseSection) { out.push(s); continue; }
+    if (sameJson(s, baseSection)) continue; // unchanged copy; deleted locally
+    out.push(mergeSectionAfterDeletion(s, baseSection, false, remoteNewer));
   }
   return out;
 }
@@ -719,6 +763,45 @@ export type MergeOptions = {
   base: SyncBlob | null;
 };
 
+function mergeFieldValue(
+  field: string,
+  local: unknown,
+  remote: unknown,
+  base: unknown,
+  hasBase: boolean,
+  remoteNewer: boolean,
+): unknown {
+  const rule: Rule = FIELD_RULE[field] ?? "scalar";
+  switch (rule) {
+    case "counter": return mergeCounters(local, remote, base, hasBase);
+    case "counter2": return mergeNested(local, remote, base, hasBase, (li, ri, bi, hb) =>
+      mergeCounters(li, ri, bi, hb));
+    case "additiveCounter": return mergeCounters(local, remote, base, hasBase, true);
+    case "additiveCounter2": return mergeNested(local, remote, base, hasBase, (li, ri, bi, hb) =>
+      mergeCounters(li, ri, bi, hb, true));
+    case "flags": return mergeFlags(local, remote, base, hasBase);
+    case "flags2": return mergeNested(local, remote, base, hasBase, (li, ri, bi, hb) =>
+      mergeFlags(li, ri, bi, hb));
+    case "map": return mergeMap(local, remote, base, hasBase, remoteNewer);
+    case "strListMap": return mergeNested(local, remote, base, hasBase, (li, ri, bi, hb) =>
+      mergeStrList(li, ri, bi, hb));
+    case "listById": return mergeListById(local, remote, base, hasBase, remoteNewer);
+    case "strList": return mergeStrList(local, remote, base, hasBase);
+    case "maxNum": return threeWay(toNum(local), toNum(remote), toNum(base), hasBase,
+      (a, c) => Math.max(a, c));
+    case "packs":
+      // With no base this degrades to a union, which is right for a first sign-in.
+      return mergePacks(local, remote, hasBase ? base : null, remoteNewer);
+    case "identity": return mergeIdentity(local, remote);
+    default: return threeWay(local, remote, base, hasBase,
+      (a, c) => (remoteNewer ? c : a));
+  }
+}
+
+function emptyForRule(rule: Rule): unknown {
+  return rule === "listById" || rule === "strList" || rule === "packs" ? [] : {};
+}
+
 /**
  * Merge one document. `local` always wins ties, and any field the remote has
  * never heard of survives untouched — so signing in on a device that already
@@ -731,80 +814,31 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
   for (const field of unionKeys(local, remote)) {
     const l = local[field];
     const r = remote[field];
+    const hasBase = Boolean(base && field in base);
+    const b = base?.[field];
+    const rule: Rule = FIELD_RULE[field] ?? "scalar";
 
     // A field only one side knows about needs no merge — but if base had it and
     // one side dropped it, a deletion wins only when the remaining copy is
     // unchanged. A changed surviving field is a concurrent edit.
     if (!(field in local)) {
-      if (base && field in base && sameJson(r, base[field])) continue;
-      out[field] = r;
+      if (hasBase && sameJson(r, b)) continue;
+      // Reconcile structural descendants against the base instead of copying
+      // unchanged children from the retained side back over the deletion.
+      out[field] = hasBase && rule !== "scalar" && rule !== "maxNum" && rule !== "identity"
+        ? mergeFieldValue(field, emptyForRule(rule), r, b, true, remoteNewer)
+        : r;
       continue;
     }
     if (!(field in remote)) {
-      if (base && field in base && sameJson(l, base[field])) continue;
-      out[field] = l;
+      if (hasBase && sameJson(l, b)) continue;
+      out[field] = hasBase && rule !== "scalar" && rule !== "maxNum" && rule !== "identity"
+        ? mergeFieldValue(field, l, emptyForRule(rule), b, true, remoteNewer)
+        : l;
       continue;
     }
 
-    const hasBase = Boolean(base && field in base);
-    const b = base?.[field];
-    const rule: Rule = FIELD_RULE[field] ?? "scalar";
-
-    switch (rule) {
-      case "counter":
-        out[field] = mergeCounters(l, r, b, hasBase);
-        break;
-      case "counter2":
-        out[field] = mergeNested(l, r, b, hasBase, (li, ri, bi, hb) =>
-          mergeCounters(li, ri, bi, hb),
-        );
-        break;
-      case "additiveCounter":
-        out[field] = mergeCounters(l, r, b, hasBase, true);
-        break;
-      case "additiveCounter2":
-        out[field] = mergeNested(l, r, b, hasBase, (li, ri, bi, hb) =>
-          mergeCounters(li, ri, bi, hb, true),
-        );
-        break;
-      case "flags":
-        out[field] = mergeFlags(l, r, b, hasBase);
-        break;
-      case "flags2":
-        out[field] = mergeNested(l, r, b, hasBase, (li, ri, bi, hb) => mergeFlags(li, ri, bi, hb));
-        break;
-      case "map":
-        out[field] = mergeMap(l, r, b, hasBase, remoteNewer);
-        break;
-      case "strListMap":
-        out[field] = mergeNested(l, r, b, hasBase, (li, ri, bi, hb) =>
-          mergeStrList(li, ri, bi, hb),
-        );
-        break;
-      case "listById":
-        out[field] = mergeListById(l, r, b, hasBase, remoteNewer);
-        break;
-      case "strList":
-        out[field] = mergeStrList(l, r, b, hasBase);
-        break;
-      case "maxNum":
-        out[field] = threeWay(toNum(l), toNum(r), toNum(b), hasBase, (a, c) => Math.max(a, c));
-        break;
-      case "packs":
-        // Three-way, so deleting a dhikr on one device actually sticks — see
-        // mergeItems. With no base it degrades to a union, which is right for a
-        // first sign-in.
-        out[field] = mergePacks(l, r, hasBase ? b : null, remoteNewer);
-        break;
-      case "identity":
-        // Deliberately ignores `base`: an identity is never "edited", it is
-        // only ever adopted, so the three-way question doesn't apply.
-        out[field] = mergeIdentity(l, r);
-        break;
-      default:
-        out[field] = threeWay(l, r, b, hasBase, (a, c) => (remoteNewer ? c : a));
-        break;
-    }
+    out[field] = mergeFieldValue(field, l, r, b, hasBase, remoteNewer);
   }
 
   return out;

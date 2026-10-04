@@ -210,6 +210,22 @@ describe("deletion", () => {
     expect(merged.quranNotes).toEqual({ "1:1": "Edited note" });
   });
 
+  it("reconciles a changed whole map field without restoring unchanged deleted keys", () => {
+    const base = { quranNotes: { a: "old", b: "unchanged" } };
+    const retained = { quranNotes: { a: "edited", b: "unchanged" } };
+    const expected = { quranNotes: { a: "edited" } };
+    expect(mergeDoc({}, retained, { remoteNewer: true, base })).toEqual(expected);
+    expect(mergeDoc(retained, {}, { remoteNewer: false, base })).toEqual(expected);
+  });
+
+  it("reconciles a changed whole string-list field against the common base", () => {
+    const base = { reviewedPagesToday: ["old"] };
+    const retained = { reviewedPagesToday: ["old", "new"] };
+    const expected = { reviewedPagesToday: ["new"] };
+    expect(mergeDoc({}, retained, { remoteNewer: true, base })).toEqual(expected);
+    expect(mergeDoc(retained, {}, { remoteNewer: false, base })).toEqual(expected);
+  });
+
   it("preserves a changed flag and counter when the other side removes the key", () => {
     const merged = mergeDoc(
       { favorites: { x: false }, activity: { count: 0 } },
@@ -388,6 +404,54 @@ describe("custom pack deletion conflicts", () => {
       { dataPacks: [{ packId: "p", sections: [{ id: "s", content: [edited] }] }] },
       { remoteNewer: false, base },
     ).dataPacks).toEqual(expected);
+  });
+
+  it("recursively reconciles changed pack content against a whole-pack deletion", () => {
+    const original = { text: "سبحان الله", count: 1 };
+    const edited = { text: "سبحان الله", count: 2 };
+    const sibling = { text: "الحمد لله", count: 1 };
+    const untouchedSection = { id: "untouched", content: [{ text: "لا إله إلا الله", count: 1 }] };
+    const base = {
+      dataPacks: [{
+        packId: "p",
+        title: "Old",
+        sections: [{ id: "s", content: [original, sibling] }, untouchedSection],
+      }],
+    };
+    const retained = {
+      dataPacks: [{
+        packId: "p",
+        title: "Edited",
+        sections: [{ id: "s", content: [edited, sibling] }, untouchedSection],
+      }],
+    };
+    const expected = {
+      dataPacks: [{ packId: "p", title: "Edited", sections: [{ id: "s", content: [edited] }] }],
+    };
+    expect(mergeDoc({}, retained, { remoteNewer: true, base })).toEqual(expected);
+    expect(mergeDoc(retained, {}, { remoteNewer: false, base })).toEqual(expected);
+  });
+
+  it("recursively reconciles changed section content against a section deletion", () => {
+    const original = { text: "سبحان الله", count: 1 };
+    const edited = { text: "سبحان الله", count: 2 };
+    const sibling = { text: "الحمد لله", count: 1 };
+    const untouchedSection = { id: "untouched", content: [{ text: "لا إله إلا الله", count: 1 }] };
+    const base = {
+      dataPacks: [{
+        packId: "p",
+        sections: [{ id: "s", content: [original, sibling] }, untouchedSection],
+      }],
+    };
+    const retained = {
+      dataPacks: [{ packId: "p", sections: [{ id: "s", content: [edited, sibling] }] }],
+    };
+    const deleted = { dataPacks: [{ packId: "p", sections: [] }] };
+    const expected = {
+      dataPacks: [{ packId: "p", sections: [{ id: "s", content: [edited] }] }],
+    };
+    expect(mergeDoc(retained, deleted, { remoteNewer: true, base })).toEqual(expected);
+    expect(mergeDoc(deleted, retained, { remoteNewer: false, base })).toEqual(expected);
   });
 
   it("still deletes unchanged packs and sections", () => {

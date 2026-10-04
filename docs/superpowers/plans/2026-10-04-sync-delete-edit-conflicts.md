@@ -20,6 +20,8 @@
 ## Review Focus
 
 - A top-level scalar changed from base while absent on the other side remains available — test `keeps a changed whole field when the other device deletes it`.
+- A changed whole map/list reconciles against the shared base so an unchanged child/member is not restored — tests `reconciles a changed whole map field without restoring unchanged deleted keys` and `reconciles a changed whole string-list field against the common base`.
+- A changed pack or section keeps its edits while unchanged nested sections/adhkar removed by the other side stay deleted — tests `recursively reconciles changed pack content against a whole-pack deletion` and `recursively reconciles changed section content against a section deletion`.
 - A false flag or a counter reset is a real change rather than an unchanged copy — test `preserves a changed flag and counter when the other side removes the key`.
 - A nested value changed under an otherwise deleted container survives while unchanged children still follow deletion rules — test `preserves a changed nested counter when the other device removes its parent key`.
 - Identity-only string-list membership has no editable payload and must keep delete-wins semantics — test `does not restore an identity-only string when another device deletes it`.
@@ -96,7 +98,7 @@ it("does not restore an identity-only string when another device deletes it", ()
 });
 ```
 
-Also cover the custom-pack path at each identity level: an edited pack and an edited section must survive deletion when their retained versions differ from base; inside a pack and section that remain on both sides, an edited same-text adhkar item must survive deletion while an unchanged sibling that was deleted on one side remains deleted.
+Also cover the custom-pack path at each identity level: an edited pack and an edited section must survive deletion when their retained versions differ from base; inside a pack and section that remain on both sides, an edited same-text adhkar item must survive deletion while an unchanged sibling that was deleted on one side remains deleted. For a changed retained container, recursively merge its children against the base so unchanged nested values do not return.
 
 - [x] **Step 2: Write a deterministic two-device retry regression**
 
@@ -110,7 +112,7 @@ Expected: the new changed-field, changed-value, edited-list, nested-container, a
 
 - [x] **Step 4: Implement base-aware delete decisions**
 
-In `src/lib/syncMerge.ts`, make keyed deletion decisions compare the retained value to its corresponding base value. Drop a base key only when the surviving value is structurally equal to base; keep it when changed. Apply the same rule to whole-field removal and ID-keyed lists. In pack, section, and adhkar-item paths, preserve a changed surviving entry but keep deleting an unchanged surviving entry. Do not change identity-only string-list deletion, no-base behavior, merge interfaces, or revision retries.
+In `src/lib/syncMerge.ts`, make keyed deletion decisions compare the retained value to its corresponding base value. Drop a base key only when the surviving value is structurally equal to base; keep it when changed. Apply the same rule to whole-field removal and ID-keyed lists. For a changed retained structural field, merge it against an empty value of the correct type and the shared base. In pack and section deletion branches, preserve changed container metadata and recursively merge their children against the base. Preserve identity-only string-list deletion, no-base behavior, merge interfaces, and revision retries.
 
 - [x] **Step 5: Run focused tests and observe GREEN**
 
@@ -132,3 +134,7 @@ Update the unresolved sync checklist entry in `AUDIT_REPORT_2026-10-02.md` with 
 git add docs/superpowers/specs/2026-10-04-sync-delete-edit-conflicts.md docs/superpowers/plans/2026-10-04-sync-delete-edit-conflicts.md src/lib/syncMerge.ts tests/syncMerge.test.ts tests/syncClient.test.ts AUDIT_REPORT_2026-10-02.md
 git commit -m "fix: preserve concurrent sync edits during deletes"
 ```
+
+## Final review correction
+
+An independent review of `2374233..18c2cd5` found that the original changed-container branches copied the retained container wholesale. This contradicted the spec's recursive-container requirement: an edited child survived, but unchanged siblings deleted on the other side could reappear. The final review pass adds whole-field map/list, whole-pack, and section regressions, then applies the normal three-way merge recursively at those deletion boundaries. The existing completion record above describes the first implementation pass; the correction and its verification are recorded in the SDD ledger and follow-up commit.
