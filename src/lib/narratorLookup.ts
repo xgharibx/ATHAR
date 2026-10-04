@@ -15,6 +15,7 @@
  * ترجمة" rather than fabricating anything.
  */
 import Dexie, { type Table } from "dexie";
+import { pruneLookupCacheRows } from "@/lib/lookupCacheRetention";
 import { COMPANIONS, type Companion } from "@/data/companions";
 import { normalizeArabicSearch } from "@/lib/arabic";
 
@@ -48,8 +49,10 @@ function findCompanion(name: string): Companion | null {
   return best;
 }
 
+type NarratorCacheRow = { key: string; bio: NarratorBio | null; cachedAt: number };
+
 class NarratorCacheDexie extends Dexie {
-  cache!: Table<{ key: string; bio: NarratorBio | null; cachedAt: number }, string>;
+  cache!: Table<NarratorCacheRow, string>;
   constructor() {
     // v2: added the scholar-relevance filter to fromWikipedia() — a v1 cache
     // could hold a wrong match from before that filter existed (e.g. a bare
@@ -57,6 +60,7 @@ class NarratorCacheDexie extends Dexie {
     // store name to start clean rather than ever serving a stale wrong answer.
     super("noor-narrator-cache-v2");
     this.version(1).stores({ cache: "key" });
+    this.version(2).stores({ cache: "key,cachedAt" });
   }
 }
 let _db: NarratorCacheDexie | null = null;
@@ -66,6 +70,14 @@ function getDB(): NarratorCacheDexie {
 }
 
 const MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
+const MAX_CACHE_ENTRIES = 500;
+
+function maintainCache(): void {
+  void pruneLookupCacheRows(getDB().cache, {
+    maxAgeMs: MAX_AGE_MS,
+    maxEntries: MAX_CACHE_ENTRIES,
+  }).catch(() => {});
+}
 
 // Wikipedia's opensearch ranks by general popularity, not by fit — a bare
 // first name like "سفيان" resolves to a modern footballer before the hadith
@@ -83,29 +95,50 @@ function looksLikeScholar(text: string): boolean {
   return SCHOLAR_KEYWORDS.some((k) => text.includes(k));
 }
 
-async function fromWikipedia(name: string): Promise<NarratorBio | null> {
+type WikipediaLookup =
+  | { status: "found"; bio: NarratorBio }
+  | { status: "not-found" }
+  | { status: "unavailable" };
+
+async function fromWikipedia(name: string): Promise<WikipediaLookup> {
   const cleaned = stripHonorific(name);
   try {
     const searchRes = await fetch(
       `https://ar.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(cleaned)}&limit=6&namespace=0&format=json&origin=*`,
     );
-    if (!searchRes.ok) return null;
-    const [, titles, , urls] = (await searchRes.json()) as [string, string[], string[], string[]];
-    if (!titles?.length) return null;
+    if (!searchRes.ok) return { status: "unavailable" };
+    const searchPayload = await searchRes.json() as unknown;
+    if (!Array.isArray(searchPayload)) return { status: "unavailable" };
+    const titles = searchPayload[1];
+    const urls = searchPayload[3];
+    if (!Array.isArray(titles) || !Array.isArray(urls)) return { status: "unavailable" };
+    if (!titles.length) return { status: "not-found" };
 
+    let summaryUnavailable = false;
     for (let i = 0; i < titles.length; i++) {
-      const title = titles[i]!;
-      const url = urls[i];
-      const summaryRes = await fetch(`https://ar.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
-      if (!summaryRes.ok) continue;
-      const summary = (await summaryRes.json()) as { extract?: string; description?: string; type?: string };
+      const title = titles[i];
+      if (typeof title !== "string") continue;
+      const url = typeof urls[i] === "string" ? urls[i] as string : undefined;
+      let summaryRes: Response;
+      let summary: { extract?: string; description?: string; type?: string };
+      try {
+        summaryRes = await fetch(`https://ar.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+        if (!summaryRes.ok) {
+          summaryUnavailable = true;
+          continue;
+        }
+        summary = await summaryRes.json() as { extract?: string; description?: string; type?: string };
+      } catch {
+        summaryUnavailable = true;
+        continue;
+      }
       if (!summary.extract || summary.type === "disambiguation") continue;
       if (!looksLikeScholar(`${summary.description ?? ""} ${summary.extract}`)) continue;
-      return { name: title, source: "wikipedia", extract: summary.extract, url };
+      return { status: "found", bio: { name: title, source: "wikipedia", extract: summary.extract, url } };
     }
-    return null;
+    return summaryUnavailable ? { status: "unavailable" } : { status: "not-found" };
   } catch {
-    return null;
+    return { status: "unavailable" };
   }
 }
 
@@ -124,16 +157,29 @@ export async function lookupNarratorBio(name: string): Promise<NarratorBio | nul
   const key = normalizeArabicSearch(stripHonorific(name));
   if (key.length < 3) return null;
 
+  let stale: NarratorCacheRow | null = null;
   try {
     const cached = await getDB().cache.get(key);
-    if (cached && Date.now() - cached.cachedAt < MAX_AGE_MS) return cached.bio;
+    if (
+      cached && Number.isFinite(cached.cachedAt) &&
+      (cached.bio === null || (typeof cached.bio === "object" && typeof cached.bio.name === "string"))
+    ) {
+      stale = cached;
+      const age = Date.now() - cached.cachedAt;
+      if (age >= 0 && age < MAX_AGE_MS) {
+        return cached.bio;
+      }
+    }
   } catch {
     // IDB unavailable — fall through to a live fetch
   }
 
-  const bio = await fromWikipedia(name);
+  const result = await fromWikipedia(name);
+  if (result.status === "unavailable") return stale?.bio ?? null;
+  const bio = result.status === "found" ? result.bio : null;
   try {
     await getDB().cache.put({ key, bio, cachedAt: Date.now() });
+    maintainCache();
   } catch {
     // non-fatal
   }

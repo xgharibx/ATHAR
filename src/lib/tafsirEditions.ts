@@ -9,6 +9,7 @@
  * changes — so every edition works fully offline after the first read.
  */
 import Dexie, { type Table } from "dexie";
+import { pruneLookupCacheRows } from "@/lib/lookupCacheRetention";
 
 export interface TafsirEdition {
   slug: string;
@@ -95,6 +96,7 @@ class TafsirDexie extends Dexie {
   constructor() {
     super("noor-tafsir-cache-v1");
     this.version(1).stores({ cache: "key" });
+    this.version(2).stores({ cache: "key,cachedAt" });
   }
 }
 
@@ -105,20 +107,29 @@ function getDB(): TafsirDexie {
 }
 
 const MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
+const MAX_CACHE_ENTRIES = 1_500;
 
-async function readCache(slug: string, surahId: number): Promise<SurahTafsir | null> {
+async function readCache(slug: string, surahId: number): Promise<CacheRow | null> {
   try {
     const row = await getDB().cache.get(`${slug}:${surahId}`);
-    if (!row || Date.now() - row.cachedAt > MAX_AGE_MS) return null;
-    return row.ayahs;
+    if (!row || !Number.isFinite(row.cachedAt) || !Array.isArray(row.ayahs)) return null;
+    return row;
   } catch {
     return null;
   }
 }
 
+function maintainCache(): void {
+  void pruneLookupCacheRows(getDB().cache, {
+    maxAgeMs: MAX_AGE_MS,
+    maxEntries: MAX_CACHE_ENTRIES,
+  }).catch(() => {});
+}
+
 async function writeCache(slug: string, surahId: number, ayahs: SurahTafsir): Promise<void> {
   try {
     await getDB().cache.put({ key: `${slug}:${surahId}`, ayahs, cachedAt: Date.now() });
+    maintainCache();
   } catch {
     // non-fatal
   }
@@ -135,18 +146,26 @@ export async function loadTafsirSurah(slug: string, surahId: number): Promise<Su
   if (!editionSlug) throw new Error("Unknown tafsir edition");
 
   const cached = await readCache(editionSlug, surahId);
-  if (cached) return cached;
-
-  const url = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${editionSlug}/${surahId}.json`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`Tafsir fetch failed: ${resp.status}`);
-  const data = parseTafsirApiResponse(await resp.json(), surahId);
-
-  const ayahs: SurahTafsir = [""];
-  for (const item of data) {
-    ayahs[item.ayah] = item.text ?? "";
+  const cacheAge = cached ? Date.now() - cached.cachedAt : null;
+  if (cached && cacheAge !== null && cacheAge >= 0 && cacheAge < MAX_AGE_MS) {
+    return cached.ayahs;
   }
 
-  await writeCache(editionSlug, surahId, ayahs);
-  return ayahs;
+  try {
+    const url = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${editionSlug}/${surahId}.json`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`Tafsir fetch failed: ${resp.status}`);
+    const data = parseTafsirApiResponse(await resp.json(), surahId);
+
+    const ayahs: SurahTafsir = [""];
+    for (const item of data) {
+      ayahs[item.ayah] = item.text ?? "";
+    }
+
+    await writeCache(editionSlug, surahId, ayahs);
+    return ayahs;
+  } catch (error) {
+    if (cached) return cached.ayahs;
+    throw error;
+  }
 }

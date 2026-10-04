@@ -20,6 +20,7 @@
  * kept too — genuine multi-scholar transparency beats a single flat tag.
  */
 import Dexie, { type Table } from "dexie";
+import { pruneLookupCacheRows } from "@/lib/lookupCacheRetention";
 import { normalizeArabicSearch } from "@/lib/arabic";
 
 export type DorarGrading = {
@@ -75,6 +76,7 @@ class DorarCacheDexie extends Dexie {
     // real response — see getTakhrijFor.
     super("noor-dorar-cache-v2");
     this.version(1).stores({ cache: "key" });
+    this.version(2).stores({ cache: "key,cachedAt" });
   }
 }
 let _db: DorarCacheDexie | null = null;
@@ -84,6 +86,14 @@ function getDB(): DorarCacheDexie {
 }
 
 const MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // grading opinions don't change
+const MAX_CACHE_ENTRIES = 4_000;
+
+function maintainCache(): void {
+  void pruneLookupCacheRows(getDB().cache, {
+    maxAgeMs: MAX_AGE_MS,
+    maxEntries: MAX_CACHE_ENTRIES,
+  }).catch(() => {});
+}
 
 function stripTags(html: string): string {
   return html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
@@ -234,9 +244,18 @@ async function fetchTakhrij(bookKey: string, n: number, matnText: string): Promi
  *  if nothing reliable was found. Never invents a verdict. */
 export async function getTakhrijFor(bookKey: string, n: number, matnText: string): Promise<DorarTakhrij> {
   const key = `${bookKey}:${n}`;
+  let stale: { key: string; data: DorarTakhrij; cachedAt: number } | null = null;
   try {
     const cached = await getDB().cache.get(key);
-    if (cached && Date.now() - cached.cachedAt < MAX_AGE_MS) return cached.data;
+    if (
+      cached && Number.isFinite(cached.cachedAt) && cached.data && Array.isArray(cached.data.others)
+    ) {
+      stale = cached;
+      const age = Date.now() - cached.cachedAt;
+      if (age >= 0 && age < MAX_AGE_MS) {
+        return cached.data;
+      }
+    }
   } catch {
     // IDB unavailable — fall through to a live fetch
   }
@@ -249,10 +268,11 @@ export async function getTakhrijFor(bookKey: string, n: number, matnText: string
     // empty for now but DON'T cache it — a retry on the next visit can still
     // find the real grading. Caching here is what used to pin famous hadiths
     // to a permanent "not found".
-    return { exact: null, others: [] };
+    return stale?.data ?? { exact: null, others: [] };
   }
   try {
     await getDB().cache.put({ key, data, cachedAt: Date.now() });
+    maintainCache();
   } catch {
     // non-fatal
   }
