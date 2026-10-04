@@ -32,7 +32,15 @@ import {
  */
 
 export type CustomReminderActionId = "done" | "snooze" | "open";
-export type ScheduleCustomNotificationOptions = { requireDelivery?: boolean };
+export type NativeCalendarRepeat = {
+  on: { day?: number; weekday?: number; hour: number; minute: number; second: number };
+};
+
+export type ScheduleCustomNotificationOptions = {
+  requireDelivery?: boolean;
+  /** Use a repeating local-calendar trigger instead of a single absolute date. */
+  nativeRepeat?: NativeCalendarRepeat;
+};
 export const CUSTOM_REMINDER_PERMISSION_CHANGE_EVENT = "athar-reminder-permission-change";
 export type CustomReminderPermissionState = "native" | "granted" | "default" | "denied" | "unsupported";
 export type ExactAlarmPermissionState = "granted" | "denied" | "not-applicable" | "unsupported";
@@ -350,7 +358,7 @@ export async function scheduleCustomNotification(
             id: numericIdFor(scheduleId),
             title: reminder.title,
             body: finalBody,
-            schedule: { at: fireAt },
+            schedule: options.nativeRepeat ?? { at: fireAt },
             ...(channelId ? { channelId } : {}),
             ...(sound ? { sound } : {}),
             actionTypeId: CUSTOM_REMINDER_ACTION_TYPE_ID,

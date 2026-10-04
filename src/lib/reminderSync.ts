@@ -33,6 +33,7 @@ import {
   scheduleIdFor,
   scheduleCustomNotification,
   WEB_ATHAR_TAG_PREFIX,
+  type NativeCalendarRepeat,
 } from "@/lib/customReminderNotifications";
 import {
   getAccountStorageOwner,
@@ -177,6 +178,38 @@ function clearTimers(timers: ReturnType<typeof setTimeout>[]) {
 }
 
 /**
+ * Fixed local-clock recurrences do not need a finite queue on native platforms.
+ * Capacitor's calendar trigger survives process death and re-arms after each
+ * delivery. Date-bounded and solar/lunar schedules stay occurrence-based so
+ * their start/end rules and changing prayer/fasting times remain accurate.
+ */
+export function getNativeCalendarRepeat(
+  reminder: CustomReminder,
+  firstOccurrence: Date,
+): NativeCalendarRepeat | undefined {
+  if (reminder.startDate || reminder.endDate) return undefined;
+
+  const localTime = {
+    hour: firstOccurrence.getHours(),
+    minute: firstOccurrence.getMinutes(),
+    second: 0,
+  };
+
+  if (reminder.repeat === "daily") return { on: localTime };
+  if (reminder.repeat === "weekly") {
+    return { on: { ...localTime, weekday: firstOccurrence.getDay() + 1 } };
+  }
+  if (reminder.repeat === "monthly") {
+    const day = reminder.dayOfMonth;
+    // Calendar day 29–31 does not clamp to the final day of shorter months,
+    // while the app recurrence engine does. Keep those dates occurrence-based.
+    if (typeof day !== "number" || !Number.isInteger(day) || day < 1 || day > 28) return undefined;
+    return { on: { ...localTime, day } };
+  }
+  return undefined;
+}
+
+/**
  * Native scheduling — hands every upcoming occurrence to the OS via
  * `@capacitor/local-notifications`, so reminders fire whether or not the app
  * is running.
@@ -224,6 +257,21 @@ function syncCustomRemindersNative(
         count: maxFirings,
         prayerTimes: ctx.prayerTimes,
       });
+
+      const firstOccurrence = dates.find((date) => date.getTime() > now);
+      const nativeRepeat = firstOccurrence && getNativeCalendarRepeat(reminder, firstOccurrence);
+      if (firstOccurrence && nativeRepeat) {
+        const scheduleId = scheduleIdFor(reminder.id, firstOccurrence.getTime(), owner);
+        scheduled.add(scheduleId);
+        try {
+          await enqueueNativeScheduleOperation(scheduleId, () =>
+            scheduleCustomNotification(reminder, firstOccurrence, "", owner, { nativeRepeat }),
+          );
+        } catch {
+          // One bad reminder must not stop the rest from being scheduled.
+        }
+        continue;
+      }
 
       for (const date of dates) {
         if (cancelled || isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return;

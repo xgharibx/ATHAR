@@ -6,7 +6,11 @@ const mocks = vi.hoisted(() => ({
     checkPermissions: vi.fn(async () => ({ display: "granted" })),
     requestPermissions: vi.fn(async () => ({ display: "granted" })),
   },
-  schedule: vi.fn<(reminderId: string, fireAt: Date) => Promise<string>>(),
+  schedule: vi.fn<(
+    reminderId: string,
+    fireAt: Date,
+    options?: { nativeRepeat?: { on: { day?: number; weekday?: number; hour: number; minute: number; second: number } } },
+  ) => Promise<string>>(),
   cancel: vi.fn<(scheduleId: string) => Promise<void>>(),
 }));
 
@@ -14,11 +18,17 @@ vi.mock("@capacitor/core", () => ({ Capacitor: mocks.capacitor }));
 vi.mock("@capacitor/local-notifications", () => ({ LocalNotifications: mocks.localNotifications }));
 vi.mock("@/lib/customReminderNotifications", () => ({
   scheduleIdFor: (reminderId: string, fireAtMs: number) => `cr:${reminderId}:${fireAtMs}`,
-  scheduleCustomNotification: (reminder: { id: string }, fireAt: Date) => mocks.schedule(reminder.id, fireAt),
+  scheduleCustomNotification: (
+    reminder: { id: string },
+    fireAt: Date,
+    _body: string,
+    _owner: string,
+    options?: { nativeRepeat?: { on: { day?: number; weekday?: number; hour: number; minute: number; second: number } } },
+  ) => mocks.schedule(reminder.id, fireAt, options),
   cancelCustomNotification: (scheduleId: string) => mocks.cancel(scheduleId),
 }));
 
-import { syncCustomReminders } from "@/lib/reminderSync";
+import { getNativeCalendarRepeat, syncCustomReminders } from "@/lib/reminderSync";
 import type { CustomReminder } from "@/data/reminderTypes";
 import { beginAccountReminderTransition, completeAccountReminderTransition } from "@/lib/reminders";
 
@@ -75,6 +85,54 @@ describe("native custom reminder cancellation", () => {
 
     expect(mocks.localNotifications.requestPermissions).not.toHaveBeenCalled();
     expect(mocks.schedule).not.toHaveBeenCalled();
+    cleanup();
+  });
+
+  it("uses one repeating local-calendar alarm for an unbounded daily reminder", async () => {
+    const cleanup = syncCustomReminders([makeReminder()], { maxFirings: 10 });
+    await vi.waitFor(() => expect(mocks.schedule).toHaveBeenCalledOnce());
+
+    expect(mocks.schedule.mock.calls[0]?.[2]).toEqual({
+      nativeRepeat: { on: { hour: 8, minute: 0, second: 0 } },
+    });
+    cleanup();
+  });
+
+  it("maps weekly calendar repeats to Capacitor's Sunday-based weekday numbers", () => {
+    const reminder = { ...makeReminder(), repeat: "weekly" as const, dayOfWeek: 5 };
+    expect(getNativeCalendarRepeat(reminder, new Date(2026, 0, 2, 8, 0, 0))).toEqual({
+      on: { hour: 8, minute: 0, second: 0, weekday: 6 },
+    });
+  });
+
+  it("uses monthly calendar repeats only when the day exists in every month", () => {
+    const commonDay = { ...makeReminder(), repeat: "monthly" as const, dayOfMonth: 28 };
+    const shortMonthEdge = { ...makeReminder(), repeat: "monthly" as const, dayOfMonth: 31 };
+    const firstOccurrence = new Date(2026, 0, 28, 8, 0, 0);
+
+    expect(getNativeCalendarRepeat(commonDay, firstOccurrence)).toEqual({
+      on: { hour: 8, minute: 0, second: 0, day: 28 },
+    });
+    expect(getNativeCalendarRepeat(shortMonthEdge, firstOccurrence)).toBeUndefined();
+  });
+
+  it("keeps a valid monthly calendar repeat even when its next occurrence is beyond the finite queue horizon", async () => {
+    const reminder = { ...makeReminder(), repeat: "monthly" as const, dayOfMonth: 28 };
+    const cleanup = syncCustomReminders([reminder], { maxFirings: 10 });
+    await vi.waitFor(() => expect(mocks.schedule).toHaveBeenCalledOnce());
+
+    expect(mocks.schedule.mock.calls[0]?.[2]).toEqual({
+      nativeRepeat: { on: { hour: 8, minute: 0, second: 0, day: 28 } },
+    });
+    cleanup();
+  });
+
+  it("keeps date-bounded recurrences as individual scheduled occurrences", async () => {
+    const reminder = { ...makeReminder(), endDate: "2026-01-03" };
+    const cleanup = syncCustomReminders([reminder], { maxFirings: 3 });
+    await vi.waitFor(() => expect(mocks.schedule).toHaveBeenCalledTimes(3));
+
+    expect(mocks.schedule.mock.calls.every((call) => call[2] === undefined)).toBe(true);
     cleanup();
   });
 

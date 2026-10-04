@@ -468,6 +468,19 @@ describe("scheduleCustomNotification (native bridge)", () => {
     expect(notif.id).toBe(numericIdFor(id));
   });
 
+  it("uses a native calendar recurrence when one is supplied", async () => {
+    const nativeRepeat = { on: { hour: 8, minute: 0, second: 0 } };
+    await scheduleCustomNotification(
+      makeReminder(),
+      new Date(2026, 0, 2, 8, 0, 0),
+      "",
+      "local",
+      { nativeRepeat },
+    );
+
+    expect(mockLocalNotifications.schedule.mock.calls[0]?.[0].notifications[0]?.schedule).toEqual(nativeRepeat);
+  });
+
   it("applies the selected sound and vibration to an Android channel", async () => {
     const reminder = makeReminder({ notification: { soundId: "rain_calm", vibration: false } });
 
