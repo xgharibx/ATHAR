@@ -30,6 +30,15 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       "scripts",
       "patch-capacitor-plugins.mjs",
     );
+    const cliTemplate = path.join(
+      fixtureRoot,
+      "node_modules",
+      "@capacitor",
+      "cli",
+      "dist",
+      "util",
+      "template.js",
+    );
     const legacyGradle = "proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'\n";
     const moduleBuildFiles = [
       ["android", "capacitor", "build.gradle"],
@@ -60,6 +69,11 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
     try {
       mkdirSync(path.dirname(fixtureScript), { recursive: true });
       copyFileSync(scriptPath, fixtureScript);
+      mkdirSync(path.dirname(cliTemplate), { recursive: true });
+      writeFileSync(
+        cliTemplate,
+        `const tslib_1 = require("tslib");\nconst tar_1 = tslib_1.__importDefault(require("tar"));\nasync function extractTemplate(src, dir) {\n  await tar_1.default.extract({ file: src, cwd: dir });\n}\n`,
+      );
       for (const buildFile of moduleBuildFiles) {
         mkdirSync(path.dirname(buildFile), { recursive: true });
         writeFileSync(buildFile, legacyGradle);
@@ -91,6 +105,7 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
         expect(patched).toContain("getDefaultProguardFile('proguard-android-optimize.txt')");
         expect(patched).not.toContain("getDefaultProguardFile('proguard-android.txt')");
       }
+      expect(readFileSync(cliTemplate, "utf8")).toContain("tar_1.x(");
     } finally {
       const resolvedFixtureRoot = path.resolve(fixtureRoot);
       if (path.dirname(resolvedFixtureRoot) !== path.resolve(tmpdir())) {

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const migrationPath = path.resolve("supabase/migrations/20261003051933_companion_global_budget.sql");
 
 describe("Companion global-budget migration", () => {
-  const sql = fs.readFileSync(migrationPath, "utf8").toLowerCase();
+  const sql = fs.readFileSync(migrationPath, "utf8").replace(/\r\n/g, "\n").toLowerCase();
 
   it("keeps aggregate usage private and bounds the estimated daily provider spend", () => {
     expect(sql).toMatch(/create table(?: if not exists)? public\.companion_global_usage_counters/);

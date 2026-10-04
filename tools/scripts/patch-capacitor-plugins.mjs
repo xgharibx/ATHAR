@@ -51,6 +51,25 @@ if (!existsSync(capacitorPackages)) {
   process.exit(0);
 }
 
+const capacitorCliTemplate = path.join(
+  capacitorPackages,
+  "cli",
+  "dist",
+  "util",
+  "template.js",
+);
+if (existsSync(capacitorCliTemplate)) {
+  const before = readFileSync(capacitorCliTemplate, "utf8");
+  const after = before.replace("tar_1.default.extract(", "tar_1.x(");
+  if (after === before && !before.includes("tar_1.x(")) {
+    throw new Error("[patch-capacitor-plugins] cannot adapt the installed Capacitor CLI tar API");
+  }
+  if (after !== before) {
+    writeFileSync(capacitorCliTemplate, after);
+    console.log("[patch-capacitor-plugins] updated Capacitor CLI for the patched tar API");
+  }
+}
+
 for (const entry of readdirSync(capacitorPackages, { withFileTypes: true })) {
   if (!entry.isDirectory()) continue;
 
