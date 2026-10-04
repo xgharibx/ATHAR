@@ -539,6 +539,61 @@ describe("concurrency", () => {
     expect(b.current().favorites).toEqual({ shared: true, fromA: true, fromB: true });
   });
 
+  it("retries a stale deletion without erasing a concurrent reminder edit", async () => {
+    let pauseA = false;
+    let enteredA!: () => void;
+    let releaseA!: () => void;
+    const atAWrite = new Promise<void>((resolve) => { enteredA = resolve; });
+    const holdA = new Promise<void>((resolve) => { releaseA = resolve; });
+    const server = makeSharedServer([]);
+    const original = { id: "r1", title: "Old", updatedAt: 100 };
+    const edited = { id: "r1", title: "Edited", updatedAt: 200 };
+
+    localStorage.setItem("athar_device_id_v1", "device-a");
+    const a = await load({
+      local: { customReminders: [original] },
+      databaseNamespace: "sync-device-a",
+      server,
+      beforeRpc: async (name) => {
+        if (pauseA && name === "athar_sync_commit_batch") {
+          pauseA = false;
+          enteredA();
+          await holdA;
+        }
+      },
+    });
+    expect(await a.mod.syncNow()).toBe(true);
+
+    localStorage.setItem("athar_device_id_v1", "device-b");
+    const b = await load({
+      local: { customReminders: [original] },
+      databaseNamespace: "sync-device-b",
+      server,
+    });
+    expect(await b.mod.syncNow()).toBe(true);
+
+    a.mutate((state) => ({ ...state, customReminders: [] }));
+    b.mutate((state) => ({ ...state, customReminders: [edited] }));
+
+    pauseA = true;
+    localStorage.setItem("athar_device_id_v1", "device-a");
+    const aRun = a.mod.syncNow();
+    const reachedAWrite = await Promise.race([atAWrite.then(() => true), aRun.then(() => false)]);
+    expect(reachedAWrite).toBe(true);
+
+    localStorage.setItem("athar_device_id_v1", "device-b");
+    expect(await b.mod.syncNow()).toBe(true);
+    releaseA();
+    expect(await aRun).toBe(true);
+    expect(await b.mod.syncNow()).toBe(true);
+
+    expect(server.serverRows.find((row) => row.kind === "reminders")?.payload)
+      .toEqual({ customReminders: [edited] });
+    expect(a.current().customReminders).toEqual([edited]);
+    expect(b.current().customReminders).toEqual([edited]);
+    expect(server.rpcCalls.filter((call) => call.name === "athar_sync_commit_batch")).toHaveLength(3);
+  });
+
   it("retries a stale multi-document batch without partially applying it", async () => {
     const server = makeSharedServer([]);
     let injectRemoteChange = false;

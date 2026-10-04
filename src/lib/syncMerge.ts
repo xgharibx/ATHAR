@@ -295,10 +295,9 @@ function rec(v: unknown): Record<string, unknown> {
 /**
  * Walk the union of keys across the three sides, honouring deletions.
  *
- * Returns null for a key that should be dropped: present in `base` and removed
- * on exactly one side means a real delete (an un-favourite, or a daily log the
- * app pruned), and re-adding it from the other side would undo the user's
- * action and grow storage without bound.
+ * Returns "drop" when a base key is absent on one side and the retained value
+ * is unchanged from the base. If the retained value changed, that edit is
+ * independent user data and survives the concurrent deletion.
  */
 function keyDecision(
   key: string,
@@ -310,7 +309,9 @@ function keyDecision(
   const inL = key in local;
   const inR = key in remote;
   if (inL && inR) return "keep";
-  return "drop"; // removed on at least one side, and base proves it once existed
+  if (!inL && !inR) return "drop";
+  const retained = inL ? local[key] : remote[key];
+  return sameJson(retained, base[key]) ? "drop" : "keep";
 }
 
 function unionKeys(...objs: Array<Record<string, unknown>>): string[] {
@@ -511,8 +512,11 @@ function mergePacks(local: unknown, remote: unknown, base: unknown, remoteNewer:
     if (out.some((p) => packId(p) === id)) continue;
     const a = lm.get(id);
     const b = rm.get(id);
-    // Present in base but gone from one side = the user deleted it there.
-    if (bm?.has(id) && !(a && b)) continue;
+    // Deletion wins only when the retained pack is unchanged from the base.
+    if (bm?.has(id) && !(a && b)) {
+      const retained = a ?? b;
+      if (sameJson(retained, bm.get(id))) continue;
+    }
     if (!a) { out.push(b); continue; }
     if (!b) { out.push(a); continue; }
     out.push({
@@ -540,7 +544,7 @@ function mergeSections(local: unknown[], remote: unknown[], base: unknown, remot
     seen.add(id);
     const other = rm.get(id);
     if (!other) {
-      if (bm?.has(id)) continue; // deleted on the other device
+      if (bm?.has(id) && sameJson(s, bm.get(id))) continue; // unchanged copy; deleted on the other device
       out.push(s);
       continue;
     }
@@ -554,7 +558,7 @@ function mergeSections(local: unknown[], remote: unknown[], base: unknown, remot
     if (!isRecord(s)) continue;
     const id = secId(s);
     if (seen.has(id)) continue;
-    if (bm?.has(id)) continue; // deleted locally
+    if (bm?.has(id) && sameJson(s, bm.get(id))) continue; // unchanged copy; deleted locally
     out.push(s);
   }
   return out;
@@ -597,8 +601,13 @@ function mergeItems(
 
     const inL = lm.has(k);
     const inR = rm.has(k);
-    // Was in the last agreed snapshot and is now missing on one side: a delete.
-    if (bm?.has(k) && !(inL && inR)) continue;
+    // A missing base item is deleted only if its retained copy is unchanged.
+    if (bm?.has(k) && !(inL && inR)) {
+      const retained = inL ? lm.get(k) : rm.get(k);
+      if (sameJson(retained, bm.get(k))) continue;
+      out.push(retained);
+      continue;
+    }
     if (!inL) { out.push(rm.get(k)); continue; }
     if (!inR) { out.push(lm.get(k)); continue; }
 
@@ -672,7 +681,13 @@ function mergeListById(
     if (emitted.has(id)) continue;
     const inL = lm.has(id);
     const inR = rm.has(id);
-    if (bm?.has(id) && !(inL && inR)) continue; // deleted on one side
+    if (bm?.has(id) && !(inL && inR)) {
+      const retained = inL ? lm.get(id) : rm.get(id);
+      if (sameJson(retained, bm.get(id))) continue; // unchanged copy; deleted on one side
+      emitted.add(id);
+      out.push(retained);
+      continue;
+    }
     emitted.add(id);
     if (inL && inR) {
       const a = lm.get(id);
@@ -718,14 +733,15 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
     const r = remote[field];
 
     // A field only one side knows about needs no merge — but if base had it and
-    // one side dropped it, that's a deliberate removal.
+    // one side dropped it, a deletion wins only when the remaining copy is
+    // unchanged. A changed surviving field is a concurrent edit.
     if (!(field in local)) {
-      if (base && field in base) continue;
+      if (base && field in base && sameJson(r, base[field])) continue;
       out[field] = r;
       continue;
     }
     if (!(field in remote)) {
-      if (base && field in base) continue;
+      if (base && field in base && sameJson(l, base[field])) continue;
       out[field] = l;
       continue;
     }

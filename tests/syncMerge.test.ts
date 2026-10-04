@@ -181,6 +181,71 @@ describe("deletion", () => {
     const merged = mergeDoc({}, { quranStreak: 4 }, { remoteNewer: true, base: {} });
     expect(merged.quranStreak).toBe(4);
   });
+
+  it("keeps a changed whole field when the other device deletes it", () => {
+    const merged = mergeDoc({}, { quranStreak: 5 }, {
+      remoteNewer: true,
+      base: { quranStreak: 4 },
+    });
+    expect(merged.quranStreak).toBe(5);
+    expect(mergeDoc({ quranStreak: 5 }, {}, {
+      remoteNewer: false,
+      base: { quranStreak: 4 },
+    }).quranStreak).toBe(5);
+  });
+
+  it("deletes an unchanged whole field when the other device removes it", () => {
+    expect(mergeDoc({}, { quranStreak: 4 }, {
+      remoteNewer: true,
+      base: { quranStreak: 4 },
+    })).toEqual({});
+  });
+
+  it("preserves a changed map value when the other side removes its key", () => {
+    const merged = mergeDoc(
+      { quranNotes: { "1:1": "Edited note" } },
+      { quranNotes: {} },
+      { remoteNewer: true, base: { quranNotes: { "1:1": "Original note" } } },
+    );
+    expect(merged.quranNotes).toEqual({ "1:1": "Edited note" });
+  });
+
+  it("preserves a changed flag and counter when the other side removes the key", () => {
+    const merged = mergeDoc(
+      { favorites: { x: false }, activity: { count: 0 } },
+      { favorites: {}, activity: {} },
+      { remoteNewer: true, base: { favorites: { x: true }, activity: { count: 2 } } },
+    );
+    expect(merged.favorites).toEqual({ x: false });
+    expect(merged.activity).toEqual({ count: 0 });
+  });
+
+  it("preserves a changed nested counter when the other device removes its parent key", () => {
+    const merged = mergeDoc(
+      { tasbeehDailyLog: { day: { subhanallah: 4 } } },
+      { tasbeehDailyLog: {} },
+      { remoteNewer: true, base: { tasbeehDailyLog: { day: { subhanallah: 3 } } } },
+    );
+    expect(merged.tasbeehDailyLog).toEqual({ day: { subhanallah: 4 } });
+  });
+
+  it("preserves a changed prayer value inside a day removed on the other device", () => {
+    const merged = mergeDoc(
+      { prayerLog: { day: { fajr: false } } },
+      { prayerLog: {} },
+      { remoteNewer: true, base: { prayerLog: { day: { fajr: true, dhuhr: true } } } },
+    );
+    expect(merged.prayerLog).toEqual({ day: { fajr: false } });
+  });
+
+  it("does not restore an identity-only string when another device deletes it", () => {
+    const merged = mergeDoc(
+      { reviewedPagesToday: [] },
+      { reviewedPagesToday: ["page-1"] },
+      { remoteNewer: true, base: { reviewedPagesToday: ["page-1"] } },
+    );
+    expect(merged.reviewedPagesToday).toEqual([]);
+  });
 });
 
 describe("lists keyed by id", () => {
@@ -210,6 +275,21 @@ describe("lists keyed by id", () => {
       { remoteNewer: true, base },
     );
     expect(merged.customReminders).toEqual([{ id: "b" }]);
+  });
+
+  it("keeps an edited ID-keyed reminder when the other device deletes it", () => {
+    const base = { customReminders: [{ id: "r1", title: "Old", updatedAt: 100 }] };
+    const merged = mergeDoc(
+      { customReminders: [{ id: "r1", title: "Edited", updatedAt: 200 }] },
+      { customReminders: [] },
+      { remoteNewer: true, base },
+    );
+    expect(merged.customReminders).toEqual([{ id: "r1", title: "Edited", updatedAt: 200 }]);
+    expect(mergeDoc(
+      { customReminders: [] },
+      { customReminders: [{ id: "r1", title: "Edited", updatedAt: 200 }] },
+      { remoteNewer: false, base },
+    ).customReminders).toEqual([{ id: "r1", title: "Edited", updatedAt: 200 }]);
   });
 
   it("dedupes id-less items by content", () => {
@@ -250,6 +330,81 @@ describe("nested maps", () => {
       noBase,
     );
     expect(merged.sectionCompletions).toEqual({ morning: ["2026-08-01", "2026-08-02"] });
+  });
+});
+
+describe("custom pack deletion conflicts", () => {
+  it("keeps an edited pack when the other device deletes it", () => {
+    const base = { dataPacks: [{ packId: "p", title: "Old", sections: [] }] };
+    const edited = [{ packId: "p", title: "Edited", sections: [] }];
+    expect(mergeDoc(
+      { dataPacks: edited },
+      { dataPacks: [] },
+      { remoteNewer: true, base },
+    ).dataPacks).toEqual(edited);
+    expect(mergeDoc(
+      { dataPacks: [] },
+      { dataPacks: edited },
+      { remoteNewer: false, base },
+    ).dataPacks).toEqual(edited);
+  });
+
+  it("keeps an edited section when the other device removes it", () => {
+    const base = {
+      dataPacks: [{ packId: "p", sections: [{ id: "s", title: "Old", content: [] }] }],
+    };
+    const edited = [{ packId: "p", sections: [{ id: "s", title: "Edited", content: [] }] }];
+    expect(mergeDoc(
+      { dataPacks: edited },
+      { dataPacks: [{ packId: "p", sections: [] }] },
+      { remoteNewer: true, base },
+    ).dataPacks).toEqual(edited);
+    const remoteEdited = [{ packId: "p", sections: [{ id: "s", title: "Edited", content: [] }] }];
+    expect(mergeDoc(
+      { dataPacks: [{ packId: "p", sections: [] }] },
+      { dataPacks: remoteEdited },
+      { remoteNewer: false, base },
+    ).dataPacks).toEqual(remoteEdited);
+  });
+
+  it("keeps a changed adhkar item but still deletes an unchanged sibling", () => {
+    const original = { text: "سبحان الله", count: 1, benefit: "old" };
+    const edited = { text: "سبحان الله", count: 2, benefit: "new" };
+    const sibling = { text: "الحمد لله", count: 1 };
+    const base = {
+      dataPacks: [{ packId: "p", sections: [{ id: "s", content: [original, sibling] }] }],
+    };
+    const merged = mergeDoc(
+      { dataPacks: [{ packId: "p", sections: [{ id: "s", content: [edited] }] }] },
+      { dataPacks: [{ packId: "p", sections: [{ id: "s", content: [sibling] }] }] },
+      { remoteNewer: true, base },
+    );
+    const expected = [
+      { packId: "p", sections: [{ id: "s", content: [edited] }] },
+    ];
+    expect(merged.dataPacks).toEqual(expected);
+    expect(mergeDoc(
+      { dataPacks: [{ packId: "p", sections: [{ id: "s", content: [sibling] }] }] },
+      { dataPacks: [{ packId: "p", sections: [{ id: "s", content: [edited] }] }] },
+      { remoteNewer: false, base },
+    ).dataPacks).toEqual(expected);
+  });
+
+  it("still deletes unchanged packs and sections", () => {
+    const pack = { packId: "p", sections: [{ id: "s", title: "Same", content: [] }] };
+    const base = { dataPacks: [pack] };
+    expect(mergeDoc(
+      { dataPacks: [] },
+      { dataPacks: [pack] },
+      { remoteNewer: true, base },
+    ).dataPacks).toEqual([]);
+
+    const sectionBase = { dataPacks: [{ packId: "p", sections: [pack.sections[0]] }] };
+    expect(mergeDoc(
+      { dataPacks: [{ packId: "p", sections: [] }] },
+      { dataPacks: [{ packId: "p", sections: [pack.sections[0]] }] },
+      { remoteNewer: true, base: sectionBase },
+    ).dataPacks).toEqual([{ packId: "p", sections: [] }]);
   });
 });
 
