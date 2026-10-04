@@ -23,6 +23,7 @@ type Passage = { source: string; sourceLabel: string; text: string };
 
 const INDEX_IDB_KEY = "noor_companion_knowledge_index_v1";
 const INDEX_IDB_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const INDEX_BUILD_VERSION = 2;
 
 let INDEX: Passage[] | null = null;
 let INDEX_PROMISE: Promise<Passage[]> | null = null;
@@ -56,104 +57,88 @@ async function fetchJSON<T>(path: string): Promise<T> {
 }
 
 async function buildSharhIndex(): Promise<Passage[]> {
-  try {
-    const raw = await fetchJSON<Record<string, {
-      id: string;
-      title: string;
-      hadeeth: string;
-      attribution: string;
-      grade?: string;
-      explanation: string;
-      hints?: string[];
-    }>>("/data/hadith/sharh-bundled.json");
-    const out: Passage[] = [];
-    for (const id of Object.keys(raw)) {
-      const h = raw[id];
-      if (!h) continue;
-      const text = [
-        `الحديث: ${h.hadeeth ?? ""}`,
-        `الشرح: ${h.explanation ?? ""}`,
-        h.hints?.length ? `فوائد: ${h.hints.join(" • ")}` : "",
-      ].filter(Boolean).join("\n");
-      out.push({
-        source: `sharh:${h.id}`,
-        sourceLabel: `${h.attribution ?? ""} — ${h.title ?? ""}`.trim(),
-        text,
-      });
-    }
-    return out;
-  } catch (err) {
-    console.warn("[athar-knowledge] sharh index skipped:", err);
-    return [];
+  const raw = await fetchJSON<Record<string, {
+    id: string;
+    title: string;
+    hadeeth: string;
+    attribution: string;
+    grade?: string;
+    explanation: string;
+    hints?: string[];
+  }>>("/data/hadith/sharh-bundled.json");
+  const out: Passage[] = [];
+  for (const id of Object.keys(raw)) {
+    const h = raw[id];
+    if (!h) continue;
+    const text = [
+      `الحديث: ${h.hadeeth ?? ""}`,
+      `الشرح: ${h.explanation ?? ""}`,
+      h.hints?.length ? `فوائد: ${h.hints.join(" • ")}` : "",
+    ].filter(Boolean).join("\n");
+    out.push({
+      source: `sharh:${h.id}`,
+      sourceLabel: `${h.attribution ?? ""} — ${h.title ?? ""}`.trim(),
+      text,
+    });
   }
+  if (out.length === 0) throw new Error("Hadith commentary source was empty.");
+  return out;
 }
 
 async function buildSearchIndex(): Promise<Passage[]> {
-  try {
-    const raw = await fetchJSON<Array<[string, string, string, string]>>(
-      "/data/hadith/search-index.json",
-    );
-    return raw
-      .filter((row) => row && row[2] && row[2].length > 30)
-      .slice(0, 8000)
-      .map((row, i) => ({
-        source: `searchidx:${row[0]}:${row[1]}:${i}`,
-        sourceLabel: `${row[0]} — حديث رقم ${row[1]}`,
-        text: row[2],
-      }));
-  } catch (err) {
-    console.warn("[athar-knowledge] search-index skipped:", err);
-    return [];
-  }
+  const raw = await fetchJSON<Array<[string, string, string, string]>>(
+    "/data/hadith/search-index.json",
+  );
+  const out = raw
+    .filter((row) => row && row[2] && row[2].length > 30)
+    .slice(0, 8000)
+    .map((row, i) => ({
+      source: `searchidx:${row[0]}:${row[1]}:${i}`,
+      sourceLabel: `${row[0]} — حديث رقم ${row[1]}`,
+      text: row[2],
+    }));
+  if (out.length === 0) throw new Error("Hadith search index source was empty.");
+  return out;
 }
 
 async function buildTafsirIndex(): Promise<Passage[]> {
-  try {
-    // tafseer-muyassar.json — Spanish tafsir, but rich Arabic text is interleaved.
-    // We grab the Arabic intro/summary if present.
-    const raw = await fetchJSON<{ surahs?: Array<{ id: number; name: string; verses?: Array<{ number: number; text: string }> }> }>(
-      "/data/tafseer-muyassar.json",
-    );
-    const out: Passage[] = [];
-    for (const s of raw.surahs ?? []) {
-      for (const v of s.verses ?? []) {
-        const text = String(v.text ?? "").trim();
-        if (text.length < 40) continue;
-        out.push({
-          source: `tafsir:${s.id}:${v.number}`,
-          sourceLabel: `تفسير الميسر — سورة ${s.name} (${v.number})`,
-          text,
-        });
-      }
+  // tafseer-muyassar.json — Spanish tafsir, but rich Arabic text is interleaved.
+  // We grab the Arabic intro/summary if present.
+  const raw = await fetchJSON<{ surahs?: Array<{ id: number; name: string; verses?: Array<{ number: number; text: string }> }> }>(
+    "/data/tafseer-muyassar.json",
+  );
+  const out: Passage[] = [];
+  for (const s of raw.surahs ?? []) {
+    for (const v of s.verses ?? []) {
+      const text = String(v.text ?? "").trim();
+      if (text.length < 40) continue;
+      out.push({
+        source: `tafsir:${s.id}:${v.number}`,
+        sourceLabel: `تفسير الميسر — سورة ${s.name} (${v.number})`,
+        text,
+      });
     }
-    return out;
-  } catch (err) {
-    console.warn("[athar-knowledge] tafsir index skipped:", err);
-    return [];
   }
+  if (out.length === 0) throw new Error("Tafsir source was empty.");
+  return out;
 }
 
 async function buildProphetStoriesIndex(): Promise<Passage[]> {
-  try {
-    const mod = await import("@/data/prophetStories" as string);
-    const stories: Array<{ id?: string; name?: string; title?: string; summary?: string; text?: string; lessons?: string[] }> =
-      (mod as { PROPHET_STORIES?: unknown }).PROPHET_STORIES as Array<{ id?: string; name?: string; title?: string; summary?: string; text?: string; lessons?: string[] }> ??
-      (mod as unknown as Array<{ id?: string; name?: string; title?: string; summary?: string; text?: string; lessons?: string[] }>);
-    if (!Array.isArray(stories)) return [];
-    return stories.map((s, i) => ({
-      source: `prophet:${s.id ?? i}`,
-      sourceLabel: `قصة ${s.name ?? s.title ?? ""}`,
-      text: [
-        s.title ? `العنوان: ${s.title}` : "",
-        s.summary ?? "",
-        s.text ?? "",
-        s.lessons?.length ? `الدروس: ${s.lessons.join(" • ")}` : "",
-      ].filter(Boolean).join("\n"),
-    }));
-  } catch (err) {
-    console.warn("[athar-knowledge] prophet stories skipped:", err);
-    return [];
-  }
+  const mod = await import("@/data/prophetStories" as string);
+  const stories: Array<{ id?: string; name?: string; title?: string; summary?: string; text?: string; lessons?: string[] }> =
+    (mod as { PROPHET_STORIES?: unknown }).PROPHET_STORIES as Array<{ id?: string; name?: string; title?: string; summary?: string; text?: string; lessons?: string[] }> ??
+    (mod as unknown as Array<{ id?: string; name?: string; title?: string; summary?: string; text?: string; lessons?: string[] }>);
+  if (!Array.isArray(stories) || stories.length === 0) throw new Error("Prophet stories source was empty.");
+  return stories.map((s, i) => ({
+    source: `prophet:${s.id ?? i}`,
+    sourceLabel: `قصة ${s.name ?? s.title ?? ""}`,
+    text: [
+      s.title ? `العنوان: ${s.title}` : "",
+      s.summary ?? "",
+      s.text ?? "",
+      s.lessons?.length ? `الدروس: ${s.lessons.join(" • ")}` : "",
+    ].filter(Boolean).join("\n"),
+  }));
 }
 
 async function buildQuranVerses(): Promise<Map<string, string>> {
@@ -196,25 +181,51 @@ async function getIndex(): Promise<Passage[]> {
   if (!INDEX_PROMISE) {
     INDEX_PROMISE = (async () => {
       // 1) Try IDB cache first — saves the 27 MB parse on cold start.
+      let stale: Passage[] | null = null;
       try {
-        const cached = await idbGetExtras<{ cachedAt: number; data: Passage[] }>(INDEX_IDB_KEY);
-        if (cached && Date.now() - cached.cachedAt < INDEX_IDB_TTL_MS && Array.isArray(cached.data)) {
+        const cached = await idbGetExtras<{ cachedAt: number; data: Passage[]; buildVersion?: number }>(INDEX_IDB_KEY);
+        if (
+          cached && Number.isFinite(cached.cachedAt) && Array.isArray(cached.data) && cached.data.length > 0
+        ) {
+          stale = cached.data;
+        }
+        if (
+          stale && cached?.buildVersion === INDEX_BUILD_VERSION &&
+          Date.now() - cached.cachedAt < INDEX_IDB_TTL_MS
+        ) {
           INDEX = cached.data;
           return INDEX;
         }
       } catch { /* IDB unavailable — fall through to network */ }
 
+      if (stale && typeof navigator !== "undefined" && navigator.onLine === false) {
+        INDEX = stale;
+        return stale;
+      }
+
       // 2) Build from network + persist.
-      const [a, b, c, d] = await Promise.all([
-        buildSharhIndex(),
-        buildSearchIndex(),
-        buildTafsirIndex(),
-        buildProphetStoriesIndex(),
-      ]);
-      const all = [...a, ...b, ...c, ...d];
-      INDEX = all;
-      void idbSetExtras(INDEX_IDB_KEY, { cachedAt: Date.now(), data: all }).catch(() => {});
-      return all;
+      try {
+        const [a, b, c, d] = await Promise.all([
+          buildSharhIndex(),
+          buildSearchIndex(),
+          buildTafsirIndex(),
+          buildProphetStoriesIndex(),
+        ]);
+        const all = [...a, ...b, ...c, ...d];
+        INDEX = all;
+        void idbSetExtras(INDEX_IDB_KEY, {
+          cachedAt: Date.now(),
+          buildVersion: INDEX_BUILD_VERSION,
+          data: all,
+        }).catch(() => {});
+        return all;
+      } catch (error) {
+        if (stale) {
+          INDEX = stale;
+          return stale;
+        }
+        throw error;
+      }
     })().catch((err) => {
       INDEX_PROMISE = null;
       console.warn("[athar-knowledge] index build failed:", err);
