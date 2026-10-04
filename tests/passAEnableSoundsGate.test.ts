@@ -20,7 +20,7 @@ describe("prefs.enableSounds audio gate (Pass A)", () => {
   it("does NOT construct an HTMLAudioElement when enableSounds is false", async () => {
     const ctorSpy = vi.spyOn(globalThis, "Audio");
     const { playReminderSoundPreview } = await import("@/lib/reminders");
-    await playReminderSoundPreview("rain_calm");
+    await playReminderSoundPreview("birds");
     expect(ctorSpy).not.toHaveBeenCalled();
     ctorSpy.mockRestore();
   });
@@ -28,7 +28,7 @@ describe("prefs.enableSounds audio gate (Pass A)", () => {
   it("does NOT construct an HTMLAudioElement when enableSounds is false for prayer sound", async () => {
     const ctorSpy = vi.spyOn(globalThis, "Audio");
     const { playPrayerSoundPreview } = await import("@/lib/reminders");
-    await playPrayerSoundPreview("adhan_haram");
+    await playPrayerSoundPreview("adhan_ahmad_al_nafees");
     expect(ctorSpy).not.toHaveBeenCalled();
     ctorSpy.mockRestore();
   });
@@ -36,7 +36,7 @@ describe("prefs.enableSounds audio gate (Pass A)", () => {
   it("invokes the onDone callback even when audio is muted (so UI can stop its spinner)", async () => {
     const { playReminderSoundPreview } = await import("@/lib/reminders");
     const onDone = vi.fn();
-    await playReminderSoundPreview("rain_calm", onDone);
+    await playReminderSoundPreview("birds", onDone);
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 
@@ -44,7 +44,7 @@ describe("prefs.enableSounds audio gate (Pass A)", () => {
     useNoorStore.setState((s) => ({ prefs: { ...s.prefs, enableSounds: true } }));
     const ctorSpy = vi.spyOn(globalThis, "Audio");
     const { playReminderSoundPreview } = await import("@/lib/reminders");
-    await playReminderSoundPreview("rain_calm");
+    await playReminderSoundPreview("birds");
     expect(ctorSpy).toHaveBeenCalledTimes(1);
     ctorSpy.mockRestore();
   });
@@ -52,7 +52,7 @@ describe("prefs.enableSounds audio gate (Pass A)", () => {
   it("also blocks the prayer-sound preview when enableSounds is off", async () => {
     const ctorSpy = vi.spyOn(globalThis, "Audio");
     const { playPrayerSoundPreview } = await import("@/lib/reminders");
-    await playPrayerSoundPreview("adhan_haram");
+    await playPrayerSoundPreview("adhan_ahmad_al_nafees");
     expect(ctorSpy).not.toHaveBeenCalled();
     ctorSpy.mockRestore();
   });
@@ -62,12 +62,12 @@ describe("prefs.enableSounds audio gate (Pass A)", () => {
     // First play (enabled) — store starts the audio element
     useNoorStore.setState((s) => ({ prefs: { ...s.prefs, enableSounds: true } }));
     const ctorSpy = vi.spyOn(globalThis, "Audio");
-    await playReminderSoundPreview("rain_calm");
+    await playReminderSoundPreview("birds");
     expect(ctorSpy).toHaveBeenCalled();
     // Then disable — next call must short-circuit without creating new audio
     useNoorStore.setState((s) => ({ prefs: { ...s.prefs, enableSounds: false } }));
     const before = ctorSpy.mock.calls.length;
-    await playReminderSoundPreview("rain_calm");
+    await playReminderSoundPreview("birds");
     expect(ctorSpy.mock.calls.length).toBe(before);
     stopSoundPreview();
     ctorSpy.mockRestore();

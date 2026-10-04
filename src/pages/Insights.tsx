@@ -1927,11 +1927,6 @@ export function InsightsPage() {
         </div>
       </Card>
 
-      {/* Note */}
-      <div className="text-xs opacity-50 leading-6 px-1">
-        ملاحظة: الإحصائيات محلية على جهازك. إذا حذفت بيانات المتصفح/التطبيق سيتم فقدها.
-      </div>
-
       {/* إجمالي التسبيح مدى الحياة */}
       {Object.keys(tasbeehLifetime).length > 0 && (
         <Card className="p-5">

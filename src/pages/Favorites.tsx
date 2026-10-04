@@ -238,10 +238,6 @@ export function FavoritesPage() {
             </div>
           </div>
         </div>
-        <div className="mt-2 text-xs opacity-65 leading-6">
-          المفضلة محفوظة محليًا على جهازك. يمكنك تصدير النسخة الاحتياطية من صفحة الإعدادات.
-        </div>
-
         {/* Tab switcher */}
         <div
           className="mt-4 flex gap-2 overflow-x-auto pb-1 no-scrollbar"

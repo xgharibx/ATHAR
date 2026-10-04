@@ -9,6 +9,7 @@ export type WebReminderActionDetail = {
   snoozeMinutes: number;
   title: string;
   body: string;
+  vibration?: boolean;
 };
 
 const ACTION_FRAGMENT_KEY = "athar-reminder-action";
@@ -31,7 +32,8 @@ export function parseWebReminderClickDetail(value: unknown): WebReminderActionDe
     route: detail.route,
     snoozeMinutes: detail.snoozeMinutes as number,
     title: typeof detail.title === "string" ? detail.title : "أثر",
-    body: typeof detail.body === "string" ? detail.body : ""
+    body: typeof detail.body === "string" ? detail.body : "",
+    ...(typeof detail.vibration === "boolean" ? { vibration: detail.vibration } : {}),
   };
 }
 

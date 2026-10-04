@@ -15,6 +15,8 @@ const mocks = vi.hoisted(() => ({
     cancel: vi.fn(async (_options: unknown) => undefined),
     checkPermissions: vi.fn(async () => ({ display: "granted" })),
     schedule: vi.fn(async (_options: unknown) => ({ notifications: [] })),
+    createChannel: vi.fn(async (_options: unknown) => undefined),
+    registerActionTypes: vi.fn(async (_options: unknown) => undefined),
     removeAllDeliveredNotifications: vi.fn(async () => undefined),
   },
 }));
@@ -32,6 +34,7 @@ vi.mock("@/lib/customReminderNotifications", async (importOriginal) => ({
 import {
   beginAccountReminderTransition,
   buildPrayerNotificationsForDays,
+  applyNotificationAction,
   cancelRemindersForAccountSwitch,
   completeAccountReminderTransition,
   syncReminders,
@@ -65,8 +68,8 @@ function adhkarReminders(): Reminders {
     prayerAlertsEnabled: false,
     prayerAlerts: PRAYER_ALERTS,
     dailyHadithNotif: false,
-    soundProfile: "rain_calm",
-    prayerSoundProfile: "adhan_haram",
+    soundProfile: "birds",
+    prayerSoundProfile: "adhan_ahmad_al_nafees",
   } as Reminders;
 }
 
@@ -117,17 +120,17 @@ describe("silent native notification sound payloads", () => {
     expect(quietNotifications.every((notification) => !Object.hasOwn(notification, "sound"))).toBe(true);
   });
 
-  it("omits sound from iOS adhkar notifications", async () => {
+  it("uses the replacement bird sound for the first iOS adhkar delivery", async () => {
     await syncReminders(adhkarReminders());
 
     const morning = scheduledNotifications().find((notification) =>
       (notification.extra as { reminderKey?: string } | undefined)?.reminderKey === "morning",
     );
     expect(morning).toBeDefined();
-    expect(morning).not.toHaveProperty("sound");
+    expect(morning).toHaveProperty("sound", "birds.caf");
   });
 
-  it("keeps the empty sound field used by Android's explicitly silent channel", async () => {
+  it("sounds the recurring reminder again but keeps its snooze silent", async () => {
     mocks.capacitor.getPlatform.mockReturnValue("android");
 
     await syncReminders(adhkarReminders());
@@ -135,8 +138,29 @@ describe("silent native notification sound payloads", () => {
     const morning = scheduledNotifications().find((notification) =>
       (notification.extra as { reminderKey?: string } | undefined)?.reminderKey === "morning",
     );
-    expect(mocks.quietChannelCreate).toHaveBeenCalledOnce();
-    expect(morning).toHaveProperty("sound", "");
+    expect(morning).toMatchObject({ channelId: "athar-reminders-birds", sound: "birds.mp3" });
+    expect(await applyNotificationAction({
+      actionId: "snooze_60",
+      extra: morning?.extra as Record<string, unknown>,
+      notification: morning,
+    })).toBe(true);
+    expect(scheduledNotifications()[0]).toMatchObject({ channelId: "athar-quiet-v2", sound: "" });
+    await syncReminders(adhkarReminders());
+    expect(scheduledNotifications()[0]).toMatchObject({ channelId: "athar-reminders-birds", sound: "birds.mp3" });
+  });
+
+  it("keeps Ramadan iftar silent when the simultaneous Maghrib Adhan sounds", () => {
+    const notifications = buildPrayerNotificationsForDays(
+      [{ dateISO: "2026-03-05", timings: { Maghrib: "18:00" } }],
+      { channelId: "adhan", soundFile: "adhan_ahmad_al_nafees.mp3" },
+      { ...PRAYER_ALERTS, Fajr: false, Maghrib: true },
+      { channelId: "quiet", soundFile: "" },
+      { now: new Date(2026, 2, 5, 12, 0, 0) },
+    );
+    expect(notifications.find((item) => item.title === "أثر — الأذان"))
+      .toMatchObject({ channelId: "adhan", sound: "adhan_ahmad_al_nafees.mp3" });
+    expect(notifications.find((item) => item.title === "أثر — الإفطار"))
+      .toMatchObject({ channelId: "quiet", sound: "" });
   });
 
   it("allows Android adhkar reminders to fire during Doze", async () => {

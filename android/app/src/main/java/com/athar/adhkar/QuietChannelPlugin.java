@@ -55,7 +55,7 @@ public class QuietChannelPlugin extends Plugin {
             channel.setDescription(description);
             // The whole point: no sound, and no audio attributes to fall back to.
             channel.setSound(null, null);
-            channel.enableVibration(true);
+            channel.enableVibration(call.getBoolean("vibration", true));
             channel.enableLights(true);
             channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 

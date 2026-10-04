@@ -124,7 +124,7 @@ function calendarDays(year: number, month: number) {
   });
 }
 
-describe("Prayer Times location privacy disclosure", () => {
+describe("Prayer Times location controls and calendar", () => {
   it("shows one actionable error when the Hijri calendar request fails", async () => {
     mocks.calendarError = true;
     await renderMonthlyPrayerCalendar();
@@ -136,7 +136,7 @@ describe("Prayer Times location privacy disclosure", () => {
     expect(container!.querySelector('[role="alert"] button')?.textContent).toBe("إعادة المحاولة");
   });
 
-  it("names AlAdhan and explains coordinate sharing before the location action", async () => {
+  it("keeps location access user initiated without service explanations", async () => {
     const { PrayerTimesPage } = await import("@/pages/PrayerTimes");
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -146,13 +146,16 @@ describe("Prayer Times location privacy disclosure", () => {
       root!.render(createElement(MemoryRouter, { future: { v7_startTransition: true, v7_relativeSplatPath: true } }, createElement(PrayerTimesPage)));
     });
 
-    const disclosure = Array.from(container.querySelectorAll("p,div,span"))
-      .find((element) => element.textContent?.includes("AlAdhan") && element.textContent.includes("إحداثياتك"));
     const locationButton = container.querySelector<HTMLButtonElement>('button[aria-label="استخدام موقعي لمواقيت الصلاة"]');
 
-    expect(disclosure).not.toBeUndefined();
+    expect(container.textContent).not.toContain("AlAdhan");
+    expect(container.textContent).not.toContain("إحداثياتك");
     expect(locationButton).not.toBeNull();
-    expect(disclosure!.compareDocumentPosition(locationButton!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(mocks.requestPrayerLocation).not.toHaveBeenCalled();
+
+    await act(async () => { locationButton!.click(); });
+
+    expect(mocks.requestPrayerLocation).toHaveBeenCalledOnce();
   });
 
   it("lets the user stop using saved coordinates and returns to Cairo timings", async () => {

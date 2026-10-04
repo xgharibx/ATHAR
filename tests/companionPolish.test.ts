@@ -56,7 +56,7 @@ describe("Companion page — integration smoke", () => {
     expect(html).toContain("اكتب سؤالك لرفيق أثر");
   });
 
-  it("discloses MiniMax as the chat recipient and summarizes its US storage and retention policy", () => {
+  it("keeps personal-context opt-in without verbose service explanations", () => {
     const html = renderToString(
       React.createElement(
         MemoryRouter,
@@ -65,11 +65,11 @@ describe("Companion page — integration smoke", () => {
       ),
     );
 
-    expect(html).toContain("إلى MiniMax لمعالجتها");
-    expect(html).toContain("مركز بيانات بالولايات المتحدة");
-    expect(html).toContain("للمدة اللازمة للغرض أو المسموح بها قانونًا");
+    expect(html).not.toContain("MiniMax");
+    expect(html).not.toContain("٤٨ ألف حرف");
     expect(html).toContain("تخصيص الردود بسياقي الشخصي");
-    expect(html).toContain("https://platform.minimax.io/protocol/privacy-policy");
+    expect(html).toContain('role="switch"');
+    expect(html).toContain('aria-checked="false"');
   });
 
   it("ships the Companion status footer markup in the source", () => {

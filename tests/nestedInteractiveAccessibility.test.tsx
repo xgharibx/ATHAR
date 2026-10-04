@@ -138,9 +138,9 @@ describe("interactive controls inside content rows", () => {
   it("renders reminder open and cancel actions as separate peer buttons", async () => {
     mount(<MemoryRouter><CompanionModal open prefill="أضف تذكيرًا" onClose={() => {}} /><LocationMarker /></MemoryRouter>);
 
-    expect(document.body.textContent).toContain("إلى MiniMax");
-    expect(document.body.textContent).toContain("مركز بيانات بالولايات المتحدة");
-    expect(document.body.querySelector('a[href="https://platform.minimax.io/protocol/privacy-policy"]')).not.toBeNull();
+    expect(document.body.textContent).not.toContain("MiniMax");
+    expect(document.body.textContent).not.toContain("٤٨ ألف حرف");
+    expect(document.body.querySelector('a[href="/companion"]')?.textContent).toBe("فتح الدردشة الكاملة");
 
     await act(async () => { document.body.querySelector<HTMLButtonElement>('button[aria-label="إرسال"]')!.click(); });
 

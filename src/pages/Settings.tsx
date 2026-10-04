@@ -1234,10 +1234,7 @@ export function SettingsPage() {
         <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div className="text-sm font-semibold">معاينة صوت التذكير</div>
-              <p className="mt-1 text-xs leading-5 text-[var(--muted-2)]">
-                هذه المعاينة لا تغيّر تنبيهات الأذكار المعتادة؛ تصل بهدوء. يُختار صوت الأذان في القسم التالي.
-              </p>
+              <div className="text-sm font-semibold">صوت التذكير</div>
             </div>
           </div>
 
@@ -1653,7 +1650,15 @@ export function SettingsPage() {
       )}
 
       <div className="text-[11px] opacity-40 text-center pb-2 leading-5">
-        ATHAR • أثر · v{pkgJson.version} · بيانات محلية
+        <a
+          href="https://www.athark.org/privacy.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block min-h-[44px] py-3 underline underline-offset-4"
+        >
+          سياسة الخصوصية
+        </a>
+        <div>ATHAR • أثر · v{pkgJson.version}</div>
       </div>
 
       <ReciterPicker

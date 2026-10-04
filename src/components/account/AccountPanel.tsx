@@ -131,10 +131,6 @@ export function AccountPanel() {
           <p className="text-sm text-[var(--fg)]">
             مسجَّل الدخول باسم <span className="font-semibold text-[var(--accent)]">{displayNameOf(user)}</span>
           </p>
-          <p className="mt-1 text-xs text-[var(--muted)]">
-            تُزامن أنشطتك وإعداداتك بين أجهزتك: تقدم الأذكار والقرآن والحديث، المفضلة والملاحظات، سجلات الصلاة، المدن المفضلة، التذكيرات والحزم المخصصة.
-            محادثات الرفيق لا تدخل في المزامنة؛ يمكنك اختيار نقلها لهذا الجهاز والحساب فقط. وعند استخدام الرفيق، تُرسل الرسائل اللازمة إلى خدمته لإعداد الرد.
-          </p>
 
           <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)] px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">

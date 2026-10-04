@@ -137,7 +137,7 @@ function sanitizeReminder(input: unknown): CustomReminder | null {
     endDate: typeof r.endDate === "string" ? r.endDate : undefined,
     notification:
       r.notification && typeof r.notification === "object"
-        ? (r.notification as CustomReminder["notification"])
+        ? { ...r.notification, soundId: "birds" }
         : undefined,
     deeplink:
       r.deeplink && typeof r.deeplink === "object" && typeof (r.deeplink as { route?: unknown }).route === "string"

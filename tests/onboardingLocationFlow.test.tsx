@@ -112,12 +112,15 @@ describe("onboarding location choice", () => {
     expect(container?.querySelector('[role="progressbar"]')?.getAttribute("aria-valuetext")).toBe("الخطوة ٢ من ٤");
   });
 
-  it("discloses the prayer-times location recipient before asking for permission", async () => {
+  it("shows the location purpose and fallback before asking for permission", async () => {
     mount();
     await act(async () => { buttonNamed("التالي").click(); });
 
-    expect(container?.textContent).toContain("AlAdhan");
+    expect(container?.textContent).toContain("استخدم موقعك لحساب مواقيت الصلاة");
     expect(container?.textContent).toContain("القاهرة");
+    expect(container?.textContent).not.toContain("AlAdhan");
+    expect(buttonNamed("استخدام موقعي")).toBeTruthy();
+    expect(buttonNamed("ليس الآن")).toBeTruthy();
     expect(mocks.requestPrayerLocation).not.toHaveBeenCalled();
   });
 

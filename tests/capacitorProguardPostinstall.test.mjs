@@ -46,6 +46,7 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       ["preferences", "android", "build.gradle"],
     ].map((parts) => path.join(fixtureRoot, "node_modules", "@capacitor", ...parts));
     const notificationJavaFiles = [
+      "LocalNotification.java",
       "DateMatch.java",
       "LocalNotificationManager.java",
       "LocalNotificationRestoreReceiver.java",
@@ -207,6 +208,7 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       "LocalNotificationManager.java",
       "LocalNotificationRestoreReceiver.java",
       "TimedNotificationPublisher.java",
+      "LocalNotification.java",
     ];
 
     try {

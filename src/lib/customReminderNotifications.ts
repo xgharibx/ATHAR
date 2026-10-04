@@ -39,6 +39,8 @@ export type NativeCalendarRepeat = {
 
 export type ScheduleCustomNotificationOptions = {
   requireDelivery?: boolean;
+  /** A snooze continues the same occurrence and must not sound again. */
+  silent?: boolean;
   /** Use a repeating local-calendar trigger instead of a single absolute date. */
   nativeRepeat?: NativeCalendarRepeat;
 };
@@ -55,10 +57,10 @@ export type AtharReminderClickDetail = {
 };
 
 export { CUSTOM_REMINDER_ACTION_TYPE_ID } from "./notificationActionTypes";
-export const CUSTOM_REMINDER_CHANNEL_ID = "athar-custom-reminders-v2";
+export const CUSTOM_REMINDER_CHANNEL_ID = "athar-custom-reminders-v3";
 export const WEB_ATHAR_TAG_PREFIX = "athar-reminder:";
 export const WEB_ATHAR_NOTIFICATION_TAG_PREFIX = "athar-notification:";
-const CUSTOM_REMINDER_SOUND_FILES = { rain_calm: "rain_calm.ogg" } as const;
+const CUSTOM_REMINDER_SOUND_FILES = { birds: "birds.mp3" } as const;
 
 /** Stable, owner-scoped deterministic id from (account, reminderId, fireAtMs). */
 export function scheduleIdFor(
@@ -104,7 +106,7 @@ function resolveBody(reminder: CustomReminder, override?: string): string {
 function getCustomReminderSoundId(soundId: unknown): keyof typeof CUSTOM_REMINDER_SOUND_FILES {
   return typeof soundId === "string" && soundId in CUSTOM_REMINDER_SOUND_FILES
     ? soundId as keyof typeof CUSTOM_REMINDER_SOUND_FILES
-    : "rain_calm";
+    : "birds";
 }
 
 function getCustomReminderSoundFile(soundId: unknown): string {
@@ -126,7 +128,7 @@ async function ensureCustomChannel(reminder: CustomReminder): Promise<string | u
     const id = getCustomReminderChannelId(reminder);
     await LocalNotifications.createChannel({
       id,
-      name: `أثر — مطر هادئ — ${vibration ? "اهتزاز" : "بلا اهتزاز"}`,
+      name: `أثر — أصوات الطيور — ${vibration ? "اهتزاز" : "بلا اهتزاز"}`,
       description: "تذكيرات المستخدم المخصصة في تطبيق أثر",
       importance: 4,
       visibility: 1,
@@ -347,8 +349,11 @@ export async function scheduleCustomNotification(
   if (Capacitor.isNativePlatform()) {
     const { LocalNotifications } = await import("@capacitor/local-notifications");
     await registerNotificationActionTypes();
-    const channelId = await ensureCustomChannel(reminder);
-    const sound = Capacitor.getPlatform() === "android"
+    const quiet = options.silent
+      ? await (await import("./reminders")).ensureSilentChannel(reminder.notification?.vibration !== false)
+      : undefined;
+    const channelId = quiet?.channelId ?? await ensureCustomChannel(reminder);
+    const sound = options.silent ? quiet?.soundFile : Capacitor.getPlatform() === "android"
       ? getCustomReminderSoundFile(reminder.notification?.soundId)
       : undefined;
     if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return scheduleId;
@@ -361,7 +366,7 @@ export async function scheduleCustomNotification(
             body: finalBody,
             schedule: withAndroidDozeDelivery(options.nativeRepeat ?? { at: fireAt }),
             ...(channelId ? { channelId } : {}),
-            ...(sound ? { sound } : {}),
+            ...(sound !== undefined ? { sound } : {}),
             actionTypeId: CUSTOM_REMINDER_ACTION_TYPE_ID,
             smallIcon: "ic_stat_athar_notification",
             largeIcon: "logo_notification_large",
@@ -374,6 +379,7 @@ export async function scheduleCustomNotification(
               title: reminder.title,
               body: finalBody,
               snoozeMinutes: getCustomReminderSnoozeMinutes(reminder.notification?.snoozeMinutes),
+              vibration: reminder.notification?.vibration !== false,
             },
           },
         ],
@@ -413,7 +419,7 @@ export async function scheduleCustomNotification(
     void showServiceWorkerNotification(reminder.title, {
       body: finalBody,
       tag,
-      vibrate,
+      ...(options.silent ? { silent: true } : { vibrate }),
       icon: "/logo.svg",
       badge: "/pwa-192x192.png",
       data: {
@@ -422,13 +428,14 @@ export async function scheduleCustomNotification(
         accountOwner: owner,
         route,
         snoozeMinutes: getCustomReminderSnoozeMinutes(reminder.notification?.snoozeMinutes),
+        vibration: reminder.notification?.vibration !== false,
       },
       actions: [
         { action: "done", title: "تم" },
         { action: "snooze", title: "غفوت" },
         { action: "open", title: "افتح" },
       ],
-    } as NotificationOptions);
+    } as NotificationOptions & { actions: Array<{ action: string; title: string }> });
   }, Math.max(0, fireTime - Date.now()));
   webTimers.set(scheduleId, timer);
   const workerAccepted = await notifySW({
@@ -442,6 +449,7 @@ export async function scheduleCustomNotification(
     route,
     snoozeMinutes: getCustomReminderSnoozeMinutes(reminder.notification?.snoozeMinutes),
     vibration: reminder.notification?.vibration !== false,
+    silent: options.silent === true,
     tag,
   }, owner);
   if (options.requireDelivery && !workerAccepted) {

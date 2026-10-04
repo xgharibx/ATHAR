@@ -86,7 +86,7 @@ export function NearbyMosquesPage() {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           signal: controller.signal,
         });
-        if (!res.ok) throw new Error("فشل الاتصال بـ Overpass API");
+        if (!res.ok) throw new Error("تعذر جلب بيانات المساجد. تحقق من اتصالك وحاول مرة أخرى.");
         return await res.json() as OverpassResponse;
       })();
       const data = await Promise.race([request, timeout]);
@@ -150,7 +150,7 @@ export function NearbyMosquesPage() {
       {geo.status === "idle" && (
         <Card className="p-5 space-y-3">
           <div className="text-sm opacity-70 leading-relaxed">
-            سنستخدم موقعك الحالي للبحث عن المساجد القريبة عبر OpenStreetMap. لن نطلب الوصول إليه إلا بعد اختيارك.
+            استخدم موقعك للبحث عن المساجد القريبة.
           </div>
           <Button variant="secondary" size="sm" onClick={requestGeo}>
             <MapPin size={14} aria-hidden="true" /> تحديد موقعي
@@ -289,9 +289,9 @@ export function NearbyMosquesPage() {
         </div>
       )}
 
-      {/* Source disclaimer */}
+      {/* Data attribution */}
       <Card className="p-3 text-[11px] opacity-40 text-center">
-        البيانات من OpenStreetMap عبر Overpass API — قد لا تشمل جميع المساجد
+        بيانات المساجد: OpenStreetMap
       </Card>
     </div>
   );

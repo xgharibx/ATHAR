@@ -150,6 +150,16 @@ describe("اتممت الصلاة", () => {
     expect(customNotificationImport.schedule.mock.calls.at(-1)?.[1]).toEqual(expectedFireAt);
   });
 
+  it("marks a custom snooze as silent and preserves disabled vibration", async () => {
+    await applyNotificationAction({
+      actionId: "snooze",
+      extra: { reminderId: "reminder-a", vibration: false, route: "/c/morning" },
+    });
+    const args = customNotificationImport.schedule.mock.calls.at(-1);
+    expect(args?.[0]).toMatchObject({ notification: { vibration: false } });
+    expect(args?.[4]).toMatchObject({ requireDelivery: true, silent: true });
+  });
+
   it("does not navigate from an outgoing account's reminder", () => {
     setAccountStorageOwner("user:account-b");
 

@@ -56,6 +56,10 @@ afterEach(() => {
 });
 
 describe("web reminder action handoff", () => {
+  it("preserves disabled vibration through the closed-page action URL", () => {
+    const url = buildWebReminderActionUrl("https://example.com/", { ...clickDetail, vibration: false });
+    expect(parseWebReminderActionFragment(new URL(url).hash)).toMatchObject({ vibration: false });
+  });
   it("routes an open action from the service worker through the active app", async () => {
     const serviceWorker = new EventTarget();
     Object.defineProperty(navigator, "serviceWorker", { configurable: true, value: serviceWorker });

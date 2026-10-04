@@ -61,13 +61,13 @@ describe("Noor store account scope", () => {
     expect(useNoorStore.getState().prefs.clearReading).toBe(false);
     expect(useNoorStore.getState().prefs.theme).toBe("midnight");
     expect(useNoorStore.getState().favorites).toEqual({ "account-a:1": true });
-    expect(JSON.parse(localStorage.getItem("noor_store_v1::user-a") ?? "{}").version).toBe(34);
+    expect(JSON.parse(localStorage.getItem("noor_store_v1::user-a") ?? "{}").version).toBe(35);
   });
 
   it("refreshes the pre-paint theme hint from the active account snapshot", async () => {
     localStorage.setItem("noor_store_v1::user-a", JSON.stringify({
       state: { prefs: { theme: "diwan" } },
-      version: 34,
+      version: 35,
     }));
 
     await hydrateAccountStorageOwner("user:user-a");
@@ -78,11 +78,11 @@ describe("Noor store account scope", () => {
   it("publishes only the settled account theme after account-to-local inspection", async () => {
     localStorage.setItem("noor_store_v1::user-a", JSON.stringify({
       state: { prefs: { theme: "diwan" } },
-      version: 34,
+      version: 35,
     }));
     localStorage.setItem("noor_store_v1", JSON.stringify({
       state: { prefs: { theme: "forest" } },
-      version: 34,
+      version: 35,
     }));
     localStorage.setItem(THEME_BOOTSTRAP_STORAGE_KEY, "light");
 
@@ -99,7 +99,7 @@ describe("Noor store account scope", () => {
   it("saves the active sama phase color from the account-scoped prayer snapshot", async () => {
     localStorage.setItem("noor_store_v1::user-a", JSON.stringify({
       state: { prefs: { theme: "sama" } },
-      version: 34,
+      version: 35,
     }));
     localStorage.setItem(accountScopedStorageKey("noor_widget_prayer_v2", "user:user-a"), JSON.stringify({
       nextPrayer: { nameAr: "الفجر" },

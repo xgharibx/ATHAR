@@ -42,7 +42,7 @@ vi.mock("@/lib/customReminderNotifications", () => ({
 }));
 vi.mock("@/lib/reminders", () => ({
   applyNotificationAction: vi.fn(),
-  REMINDER_SOUND_OPTIONS: [{ id: "rain_calm", label: "هادئ" }],
+  REMINDER_SOUND_OPTIONS: [{ id: "birds", label: "هادئ" }],
 }));
 
 let root: Root;

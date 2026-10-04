@@ -245,7 +245,7 @@ const EMPTY_FORM: FormState = {
   anchorKey: undefined,
   anchorOffsetMinutes: 0,
   deeplinkRoute: "",
-  soundId: REMINDER_SOUND_OPTIONS[0]?.id ?? "rain_calm",
+  soundId: REMINDER_SOUND_OPTIONS[0]?.id ?? "birds",
   vibration: true,
 };
 
@@ -265,7 +265,7 @@ function formFromReminder(r: CustomReminder): FormState {
     anchorKey: r.anchorKey,
     anchorOffsetMinutes: r.anchorOffsetMinutes ?? 0,
     deeplinkRoute: r.deeplink?.route ?? "",
-    soundId: r.notification?.soundId ?? REMINDER_SOUND_OPTIONS[0]?.id ?? "rain_calm",
+    soundId: REMINDER_SOUND_OPTIONS.find((option) => option.id === r.notification?.soundId)?.id ?? "birds",
     vibration: r.notification?.vibration ?? true,
   };
 }
@@ -1047,6 +1047,7 @@ export function RemindersPage() {
         title: r.title,
         body: r.body ?? r.description ?? "",
         snoozeMinutes: minutes,
+        vibration: r.notification?.vibration !== false,
       },
     });
     if (!scheduled) {

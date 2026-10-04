@@ -69,7 +69,8 @@ describe("explicit location permission flows", () => {
 
     expect(getCurrentPosition).not.toHaveBeenCalled();
     expect(container?.textContent).toContain("تحديد موقعي");
-    expect(container?.textContent).toContain("OpenStreetMap");
+    expect(container?.textContent).toContain("استخدم موقعك للبحث عن المساجد القريبة");
+    expect(container?.textContent).not.toContain("Overpass API");
 
     await act(async () => { buttonNamed("تحديد موقعي").click(); });
     expect(getCurrentPosition).toHaveBeenCalledOnce();
@@ -115,7 +116,7 @@ describe("explicit location permission flows", () => {
 
     expect(getCurrentPosition).not.toHaveBeenCalled();
     expect(container?.textContent).toContain("تحديد موقعي");
-    expect(container?.textContent).toContain("على جهازك");
+    expect(container?.textContent).toContain("استخدم موقعك الحالي لتحديد اتجاه القبلة");
 
     await act(async () => { buttonNamed("تحديد موقعي").click(); });
     expect(getCurrentPosition).toHaveBeenCalledOnce();

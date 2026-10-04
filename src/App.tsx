@@ -127,9 +127,6 @@ export default function App() {
                 />
                 <span>
                   <span className="block font-medium">أضم سجل الرفيق وملفه وذاكرته إلى هذا الحساب على هذا الجهاز</span>
-                  <span className="block text-xs text-[var(--muted)]">
-                    اختياري وغير محدد مسبقًا. لا تدخل في المزامنة السحابية؛ وقد تُرسل البيانات اللازمة إلى خدمة الرفيق عند طلب رد.
-                  </span>
                 </span>
               </label>
             )}
@@ -148,19 +145,17 @@ export default function App() {
   }
 
   if (!accountScope.ready) {
+    if (!accountScope.error) {
+      return <div className="min-h-screen-safe p-4" dir="rtl"><PageSkeleton /></div>;
+    }
+
     return (
       <div className="min-h-screen-safe flex items-center justify-center p-6" dir="rtl">
         <div className="w-full max-w-sm rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-6 text-center">
-          {accountScope.error ? (
-            <>
-              <p role="alert" className="text-sm leading-7">تعذّر تحميل بيانات الحساب بأمان.</p>
-              <button type="button" className="mt-4 min-h-[44px] rounded-2xl px-5" onClick={accountScope.retry}>
-                إعادة المحاولة
-              </button>
-            </>
-          ) : (
-            <div role="status" aria-live="polite" className="text-sm leading-7">جارٍ تجهيز بياناتك…</div>
-          )}
+          <p role="alert" className="text-sm leading-7">تعذّر تحميل بيانات الحساب بأمان.</p>
+          <button type="button" className="mt-4 min-h-[44px] rounded-2xl px-5" onClick={accountScope.retry}>
+            إعادة المحاولة
+          </button>
         </div>
       </div>
     );

@@ -596,10 +596,6 @@ export function CompanionModal(props: {
                 </div>
                 <p className="text-sm font-semibold text-emerald-100">اسأل «أثر» عن هذه الصفحة</p>
                 <p className="mt-1 text-[11.5px] text-emerald-200/70 max-w-xs">جاوبك هنا دون أن تغادرها. استفسر عن آية، فائدة حديث، أو دعاء.</p>
-                <div className="mt-2 text-[10px] leading-relaxed text-emerald-200/55">
-                  <p>عند الرد، تُرسل رسالتك وسياق الصفحة وأحدث ١٦ رسالة (حتى ٤٨ ألف حرف) ومقتطفات مرتبطة بالسؤال إلى MiniMax. تذكر سياسة MiniMax API أن البيانات الشخصية تُخزَّن في مركز بيانات بالولايات المتحدة للمدة اللازمة للغرض أو المسموح بها قانونًا، ثم تُحذف أو تُجهَّل. لا تُرسل التذكيرات المحفوظة إلا عند السؤال عنها؛ حد الرسالة الواحدة ٨ آلاف حرف، والتقدّم والملف وذاكرة الأسئلة لا تُرسل إلا عند تفعيل التخصيص في صفحة «اسأل أثر».</p>
-                  <a href="https://platform.minimax.io/protocol/privacy-policy" target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-emerald-200 underline underline-offset-2">سياسة MiniMax API</a>
-                </div>
               </div>
             </div>
           ) : null}
@@ -676,7 +672,7 @@ export function CompanionModal(props: {
             )}
           </div>
           <p className="mt-1.5 text-center text-[10px] text-emerald-200/50">
-            تُحفَظ المحادثات محليًا؛ وعند الرد تُرسل رسالتك وسياق الصفحة وأحدث ١٦ رسالة (حتى ٤٨ ألف حرف) ومقتطفات مرتبطة بالسؤال إلى MiniMax. تذكر سياستها أن البيانات الشخصية تُخزَّن في مركز بيانات بالولايات المتحدة للمدة اللازمة للغرض أو المسموح بها قانونًا ثم تُحذف أو تُجهَّل. لا تُرسل التذكيرات المحفوظة إلا عند السؤال عنها، وحد الرسالة الواحدة ٨ آلاف حرف؛ التقدّم والملف وذاكرة الأسئلة اختيارية من صفحة «اسأل أثر». <a href="https://platform.minimax.io/protocol/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-emerald-200 underline underline-offset-2">سياسة MiniMax</a>. للدردشة الكاملة: <Link to="/companion" onClick={props.onClose} className="font-semibold text-emerald-200 underline-offset-2 hover:underline">/companion</Link>
+            <Link to="/companion" onClick={props.onClose} className="font-semibold text-emerald-200 underline-offset-2 hover:underline">فتح الدردشة الكاملة</Link>
           </p>
         </div>
       </div>

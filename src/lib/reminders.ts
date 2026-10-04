@@ -303,10 +303,10 @@ export const REMINDER_SOUND_OPTIONS: Array<{
   fileName: string;
 }> = [
   {
-    id: "rain_calm",
-    label: "مطر هادئ",
+    id: "birds",
+    label: "أصوات الطيور",
     description: "",
-    fileName: "rain_calm.ogg",
+    fileName: "birds.mp3",
   },
 ];
 
@@ -317,10 +317,10 @@ export const PRAYER_SOUND_OPTIONS: Array<{
   fileName: string;
 }> = [
   {
-    id: "adhan_haram",
-    label: "أذان الحرم",
+    id: "adhan_ahmad_al_nafees",
+    label: "أحمد النفيس",
     description: "",
-    fileName: "adhan_haram.mp3",
+    fileName: "adhan_ahmad_al_nafees.mp3",
   },
 ];
 
@@ -701,7 +701,9 @@ export function buildPrayerNotificationsForDays(
       return [main, followUp];
     });
 
-    if (isRamadan(dayStart)) notifications.push(...buildRamadanNotifications(day, audio, now));
+    if (isRamadan(dayStart)) notifications.push(...buildRamadanNotifications(
+      day, audio, now, enabledPrayers.Maghrib ? quiet : audio,
+    ));
     if (options.includeDailyHadith) {
       const hadith = buildDailyHadithNotification(day, quiet, now);
       if (hadith) notifications.push(hadith);
@@ -715,6 +717,7 @@ function buildRamadanNotifications(
   day: PrayerNotificationDay,
   audio: NotificationAudioConfig,
   now: Date,
+  iftarAudio: NotificationAudioConfig,
 ) {
   const notifications: LocalNotification[] = [];
   const fajrAt = dateAtLocalTime(day.dateISO, day.timings.Fajr ?? "");
@@ -742,8 +745,8 @@ function buildRamadanNotifications(
       id: notificationIdForDate(RAMADAN_IDS.iftar, day.dateISO),
       title: "أثر — الإفطار",
       body: dailyPhrase(IFTAR_PHRASES),
-      channelId: audio.channelId,
-      ...notificationSound(audio.soundFile),
+      channelId: iftarAudio.channelId,
+      ...notificationSound(iftarAudio.soundFile),
       smallIcon: REMINDER_NOTIFICATION_ICON,
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
@@ -866,10 +869,11 @@ async function ensurePrayerChannel(soundProfile: PrayerSoundProfile) {
  */
 export const SILENT_CHANNEL_ID = "athar-quiet-v2";
 
-async function ensureSilentChannel(): Promise<NotificationAudioConfig> {
+export async function ensureSilentChannel(vibration = true): Promise<NotificationAudioConfig> {
+  const channelId = vibration ? SILENT_CHANNEL_ID : "athar-quiet-no-vibration-v1";
   // iOS has no channels; omitting the sound field keeps these notifications silent.
   if (Capacitor.getPlatform() !== "android") {
-    return { channelId: SILENT_CHANNEL_ID };
+    return { channelId };
   }
 
   // Deliberately NOT LocalNotifications.createChannel — see QuietChannelPlugin.
@@ -880,18 +884,19 @@ async function ensureSilentChannel(): Promise<NotificationAudioConfig> {
   try {
     const { registerPlugin } = await import("@capacitor/core");
     const QuietChannel = registerPlugin<{
-      create(o: { id: string; name: string; description: string }): Promise<void>;
+      create(o: { id: string; name: string; description: string; vibration: boolean }): Promise<void>;
     }>("QuietChannel");
     await QuietChannel.create({
-      id: SILENT_CHANNEL_ID,
+      id: channelId,
       name: "Athar — تذكيرات صامتة",
       description: "تذكيرات بالاهتزاز فقط، بدون صوت — للمتابعة بعد الصلاة والأذكار",
+      vibration,
     });
   } catch {
     /* An older build without the plugin: the notification still arrives. */
   }
 
-  return { channelId: SILENT_CHANNEL_ID, soundFile: "" };
+  return { channelId, soundFile: "" };
 }
 
 /**
@@ -903,8 +908,8 @@ export async function ensureDefaultNotificationChannels(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
     await Promise.all([
-      ensureReminderChannel("rain_calm"),
-      ensurePrayerChannel("adhan_haram"),
+      ensureReminderChannel("birds"),
+      ensurePrayerChannel("adhan_ahmad_al_nafees"),
       ensureSilentChannel(),
       registerNotificationActionTypes(),
     ]);
@@ -1074,19 +1079,13 @@ async function syncRemindersForOwner(
     return;
   }
 
-  // The adhan is the one thing in this app that is allowed to make a sound.
-  // Everything else — the "did you pray?" nudge, and every azkar reminder —
-  // vibrates instead. Hearing an adhan-length alert for a dhikr reminder, and
-  // then again half an hour after each prayer, is what made notifications feel
-  // like an interruption rather than a reminder.
-  //
-  // NOTE: this leaves the reminder-sound picker in Settings with nothing to do.
-  // The channel is still created (see ensureDefaultNotificationChannels), so
-  // restoring per-reminder sound means passing it here instead of `quiet`.
+  // Each daily occurrence starts with birds; prayer alerts start with the Adhan.
+  // Follow-ups and snoozes use a separate silent channel.
   const quiet = await ensureSilentChannel();
   if (getAccountStorageOwner() !== owner) return;
-
-  const notifications: LocalNotification[] = buildReminderNotifications(reminders, quiet, completion);
+  const reminderAudio = await ensureReminderChannel(reminders.soundProfile);
+  if (getAccountStorageOwner() !== owner) return;
+  const notifications: LocalNotification[] = buildReminderNotifications(reminders, reminderAudio, completion);
 
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
@@ -1237,6 +1236,8 @@ export async function applyNotificationAction(pending: PendingAction): Promise<b
     try {
       const { LocalNotifications } = await import("@capacitor/local-notifications");
       if (!actionIsCurrent()) return false;
+      const quiet = await ensureSilentChannel();
+      if (!actionIsCurrent()) return false;
       const snoozeId = REMINDER_SNOOZE_IDS[reminderKey as ReminderKey];
       await enqueueReminderOperation(async () => {
         if (!actionIsCurrent()) return;
@@ -1245,8 +1246,8 @@ export async function applyNotificationAction(pending: PendingAction): Promise<b
             id: snoozeId,
             title: notification?.title ?? extraText("title") ?? "أثر",
             body: notification?.body ?? extraText("body") ?? "",
-            channelId: notification?.channelId,
-            sound: notification?.sound,
+            channelId: quiet.channelId,
+            ...notificationSound(quiet.soundFile),
             smallIcon: notification?.smallIcon,
             largeIcon: notification?.largeIcon,
             iconColor: notification?.iconColor,
@@ -1279,7 +1280,7 @@ export async function applyNotificationAction(pending: PendingAction): Promise<b
       category: "custom",
       title,
       description: body,
-      notification: { snoozeMinutes },
+      notification: { snoozeMinutes, vibration: extra?.vibration !== false },
       deeplink: typeof extra?.route === "string" ? { route: extra.route } : undefined,
     };
     try {
@@ -1292,7 +1293,7 @@ export async function applyNotificationAction(pending: PendingAction): Promise<b
         fireAt,
         body,
         activeOwner,
-        { requireDelivery: true },
+        { requireDelivery: true, silent: true },
       );
       if (!actionIsCurrent()) {
         await cancelCustomNotification(scheduleId);

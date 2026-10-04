@@ -708,27 +708,12 @@ export function CompanionPage() {
       </div>
 
       <div className="mt-2 space-y-2 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3">
-        <p className="text-[11px] leading-relaxed text-[var(--muted-2)]">
-          تُحفَظ المحادثات على جهازك؛ وعند الرد تُرسل أحدث ١٦ رسالة (بحد إجمالي ٤٨ ألف حرف) ومقتطفات مرتبطة بالسؤال إلى MiniMax لمعالجتها. وتذكر سياسة MiniMax API أن البيانات الشخصية تُخزَّن في مركز بيانات بالولايات المتحدة، وتُحتفَظ بها للمدة اللازمة للغرض أو المسموح بها قانونًا، ثم تُحذف أو تُجهَّل. لا تُرسل تذكيراتك المحفوظة إلا عند السؤال عنها، وحد الرسالة الواحدة ٨ آلاف حرف. لا يُرسل تقدّمك وملفك وذاكرة أسئلتك السابقة إلا عند تفعيل التخصيص أدناه.
-        </p>
-        <a
-          href="https://platform.minimax.io/protocol/privacy-policy"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block text-[10px] text-[var(--accent)] underline-offset-2 hover:underline"
-        >
-          سياسة الخصوصية لدى MiniMax
-        </a>
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-semibold text-[var(--fg)]">تخصيص الردود بسياقي الشخصي</p>
-            <p id="companion-personal-context-help" className="mt-0.5 text-[10px] leading-relaxed text-[var(--muted-2)]">
-              عند التفعيل، يرافق رسالتك تقدّمك وملفك وحالتك المستنتجة وملخصات أسئلتك السابقة.
-            </p>
           </div>
           <Switch
             aria-label="تخصيص الردود بسياقي الشخصي"
-            aria-describedby="companion-personal-context-help"
             checked={profile.includePersonalContext}
             onCheckedChange={(checked) => setProfile(updateProfile({ includePersonalContext: checked }))}
           />
@@ -1145,7 +1130,6 @@ function OnboardingCard({ onDone, onSkip, initial }: { onDone: (p: Partial<Compa
     <div className="mt-6 rounded-3xl border border-accent-35 bg-accent-8 p-5 space-y-4">
       <div>
         <h3 className="text-sm font-bold">عرّفني على نفسك بجملتين</h3>
-        <p className="mt-1 text-xs text-[var(--muted)]">ملفك محفوظ على جهازك؛ لا تُرسل قيمه إلى MiniMax إلا عند تفعيل تخصيص الردود بسياقك الشخصي أعلى الصفحة. لا نطلب موقعك أو اسمك الكامل.</p>
       </div>
 
       <div>

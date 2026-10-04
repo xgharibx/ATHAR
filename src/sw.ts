@@ -376,7 +376,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
       responsePort?.postMessage({ ok: false });
     }));
   } else if (data.type === "athar-reminder-schedule") {
-    const { scheduleId, fireAtMs, reminderId, accountOwner, title, body, route, snoozeMinutes, tag, vibration } = data;
+    const { scheduleId, fireAtMs, reminderId, accountOwner, title, body, route, snoozeMinutes, tag, vibration, silent } = data;
     if (typeof scheduleId !== "string" || !Number.isFinite(fireAtMs)) return;
     event.waitUntil((async () => {
       await reminderOwnerReady;
@@ -399,7 +399,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
         void startSwNotificationDelivery(titleStr, {
           body: bodyStr,
           tag: tagStr,
-          vibrate,
+          ...(silent === true ? { silent: true } : { vibrate }),
           renotify: false,
           icon: "/logo.svg",
           badge: "/pwa-192x192.png",
@@ -409,13 +409,14 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
             accountOwner: accountOwnerStr,
             route: routeStr,
             snoozeMinutes: snoozeMinutesValue,
+            vibration: vibration !== false,
           },
           actions: [
             { action: "done", title: "تم" },
             { action: "snooze", title: "غفوت" },
             { action: "open", title: "افتح" },
           ],
-        } as NotificationOptions);
+        } as NotificationOptions & { renotify: boolean; actions: Array<{ action: string; title: string }> });
       }, delay);
 
       swSchedules.set(scheduleId, {
@@ -569,6 +570,7 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
     accountOwner?: string;
     route?: string;
     snoozeMinutes?: number;
+    vibration?: boolean;
   };
   const scheduleId = typeof data.scheduleId === "string" ? data.scheduleId : "";
   const reminderId = typeof data.reminderId === "string" ? data.reminderId : "";
@@ -584,6 +586,7 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
     snoozeMinutes,
     title: event.notification.title,
     body: typeof event.notification.body === "string" ? event.notification.body : "",
+    ...(typeof data.vibration === "boolean" ? { vibration: data.vibration } : {}),
   };
 
   event.waitUntil(

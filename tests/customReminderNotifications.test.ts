@@ -28,10 +28,14 @@ const mocks = vi.hoisted(() => {
       checkExactNotificationSetting: vi.fn(async () => ({ exact_alarm: "granted" })),
       changeExactNotificationSetting: vi.fn(async () => ({ exact_alarm: "granted" })),
     },
+    quietChannelCreate: vi.fn(async (_options: unknown) => undefined),
   };
 });
 
-vi.mock("@capacitor/core", () => ({ Capacitor: mocks.mockCapacitor }));
+vi.mock("@capacitor/core", () => ({
+  Capacitor: mocks.mockCapacitor,
+  registerPlugin: vi.fn(() => ({ create: mocks.quietChannelCreate })),
+}));
 vi.mock("@capacitor/local-notifications", () => ({
   LocalNotifications: mocks.mockLocalNotifications,
 }));
@@ -263,6 +267,25 @@ describe("scheduleCustomNotification (web fallback)", () => {
     }));
   });
 
+  it("makes web snoozes silent in both the worker schedule and foreground fallback", async () => {
+    vi.useFakeTimers();
+    const messages: Array<{ type?: string; silent?: boolean; options?: NotificationOptions }> = [];
+    setServiceWorker({ controller: { postMessage: vi.fn((message, ports?: MessagePort[]) => {
+      messages.push(message);
+      respondToWorkerMessage(message, ports);
+    }) }, getRegistrations: vi.fn(async () => []) });
+    try {
+      await scheduleCustomNotification(makeReminder(), new Date(Date.now() + 60_000), "", "local", { silent: true });
+      expect(messages.find((message) => message.type === "athar-reminder-schedule")).toMatchObject({ silent: true });
+      await vi.advanceTimersByTimeAsync(60_000);
+      const shown = messages.find((message) => message.type === "athar-notification-show");
+      expect(shown?.options).toMatchObject({ silent: true });
+      expect(shown?.options).not.toHaveProperty("vibrate");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("passes the reminder vibration preference to the service worker schedule", async () => {
     const messages: Array<{ type?: string; vibration?: boolean }> = [];
     setServiceWorker({
@@ -449,8 +472,8 @@ describe("scheduleCustomNotification (native bridge)", () => {
     });
     expect(mockLocalNotifications.createChannel).toHaveBeenCalledTimes(1);
     expect(mockLocalNotifications.createChannel).toHaveBeenCalledWith(expect.objectContaining({
-      id: "athar-custom-reminders-v2-rain-calm-vibration",
-      sound: "rain_calm.ogg",
+      id: "athar-custom-reminders-v3-birds-vibration",
+      sound: "birds.mp3",
       vibration: true,
     }));
     expect(mockLocalNotifications.schedule).toHaveBeenCalledTimes(1);
@@ -485,18 +508,32 @@ describe("scheduleCustomNotification (native bridge)", () => {
   });
 
   it("applies the selected sound and vibration to an Android channel", async () => {
-    const reminder = makeReminder({ notification: { soundId: "rain_calm", vibration: false } });
+    const reminder = makeReminder({ notification: { soundId: "birds", vibration: false } });
 
     await scheduleCustomNotification(reminder, new Date(Date.now() + 60_000), "");
 
-    const channelId = "athar-custom-reminders-v2-rain-calm-no-vibration";
+    const channelId = "athar-custom-reminders-v3-birds-no-vibration";
     expect(mockLocalNotifications.createChannel).toHaveBeenCalledWith(expect.objectContaining({
       id: channelId,
-      sound: "rain_calm.ogg",
+      sound: "birds.mp3",
       vibration: false,
     }));
     expect(mockLocalNotifications.schedule.mock.calls[0]?.[0].notifications[0])
-      .toMatchObject({ channelId, sound: "rain_calm.ogg" });
+      .toMatchObject({ channelId, sound: "birds.mp3" });
+  });
+
+  it("keeps custom snoozes silent with the saved vibration preference then sounds the next occurrence", async () => {
+    const reminder = makeReminder({ notification: { vibration: false } });
+    await scheduleCustomNotification(reminder, new Date(Date.now() + 60_000), "");
+    expect(mockLocalNotifications.schedule.mock.calls.at(-1)?.[0].notifications[0])
+      .toMatchObject({ sound: "birds.mp3", extra: { vibration: false } });
+    await scheduleCustomNotification(reminder, new Date(Date.now() + 120_000), "", "local", { silent: true });
+    expect(mockLocalNotifications.schedule.mock.calls.at(-1)?.[0].notifications[0])
+      .toMatchObject({ sound: "", channelId: "athar-quiet-no-vibration-v1", extra: { vibration: false } });
+    expect(mocks.quietChannelCreate).toHaveBeenCalledWith(expect.objectContaining({ vibration: false }));
+    await scheduleCustomNotification(reminder, new Date(Date.now() + 24 * 60 * 60_000), "");
+    expect(mockLocalNotifications.schedule.mock.calls.at(-1)?.[0].notifications[0])
+      .toMatchObject({ sound: "birds.mp3", channelId: "athar-custom-reminders-v3-birds-no-vibration" });
   });
 
   it("keeps scheduling through the system default if channel setup fails", async () => {

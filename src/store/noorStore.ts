@@ -128,8 +128,8 @@ export type NoorTheme =
   | "diwan"
   | "faham";
 
-export type ReminderSoundProfile = "rain_calm";
-export type PrayerSoundProfile = "adhan_haram";
+export type ReminderSoundProfile = "birds";
+export type PrayerSoundProfile = "adhan_ahmad_al_nafees";
 export type PrayerAlertPrayer = "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha";
 export type PrayerAlertPreferences = Record<PrayerAlertPrayer, boolean>;
 export type HomeWidgetKey = "prayer" | "hadith" | "wisdom" | "smart" | "checklist" | "dailyStep" | "tasbeeh" | "dailyWird" | "dailyVerse" | "quests";
@@ -744,8 +744,8 @@ function normalizePrefs(value: unknown): Preferences {
 
 const DEFAULT_REMINDERS: Reminders = {
   enabled: false,
-  soundProfile: "rain_calm",
-  prayerSoundProfile: "adhan_haram",
+  soundProfile: "birds",
+  prayerSoundProfile: "adhan_ahmad_al_nafees",
   prayerAlertsEnabled: true,
   prayerAlerts: {
     Fajr: true,
@@ -775,7 +775,8 @@ function normalizeReminderSoundProfile(value: unknown): ReminderSoundProfile {
 
   switch (value.trim()) {
     case "rain_calm":
-      return "rain_calm";
+    case "birds":
+      return "birds";
     default:
       return DEFAULT_REMINDERS.soundProfile;
   }
@@ -821,7 +822,8 @@ function normalizePrayerSoundProfile(value: unknown): PrayerSoundProfile {
 
   switch (value.trim()) {
     case "adhan_haram":
-      return "adhan_haram";
+    case "adhan_ahmad_al_nafees":
+      return "adhan_ahmad_al_nafees";
     default:
       return DEFAULT_REMINDERS.prayerSoundProfile;
   }
@@ -2064,7 +2066,7 @@ export const useNoorStore = create<NoorState>()(
           const state = envelope.state;
           if (
             typeof envelope.version === "number" &&
-            envelope.version !== 34 &&
+            envelope.version !== 35 &&
             state !== null &&
             typeof state === "object"
           ) {
@@ -2110,16 +2112,16 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 34,
-      migrate: (persisted: unknown) => {
+      version: 35,
+      migrate: (persisted: unknown, previousVersion: number) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
         const persistedReminders =
           state.reminders && typeof state.reminders === "object" ? state.reminders : undefined;
         const mergedReminders = { ...DEFAULT_REMINDERS, ...persistedReminders };
         const normalizedPrefs = normalizePrefs(persistedPrefs);
-        // Force Tajweed ON for all existing users when upgrading to v27.
-        normalizedPrefs.mushafTajweedMode = true;
+        // Apply the historic v27 default only once; preserve later user choices.
+        if (previousVersion < 27) normalizedPrefs.mushafTajweedMode = true;
 
         return {
           ...state,

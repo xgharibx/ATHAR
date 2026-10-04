@@ -348,7 +348,7 @@ export function QiblaPage() {
         {geo.status === "idle" ? (
           <div className="space-y-3">
             <div className="text-sm opacity-60 leading-relaxed">
-              يُحسب اتجاه القبلة على جهازك باستخدام موقعك الحالي. لن نطلب الوصول إليه إلا بعد اختيارك.
+              استخدم موقعك الحالي لتحديد اتجاه القبلة.
             </div>
             <Button variant="secondary" size="sm" onClick={requestGeo}>
               <MapPin size={14} aria-hidden="true" />

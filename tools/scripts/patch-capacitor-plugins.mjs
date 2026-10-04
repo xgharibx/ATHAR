@@ -111,7 +111,52 @@ const localNotificationsRoot = path.join(
   "localnotifications",
 );
 
+patchSourceFile(path.join(localNotificationsRoot, "LocalNotification.java"), [
+  {
+    label: "preserve an explicit silent sound instead of resolving the default resource",
+    from: `    public String getSound(Context context, int defaultSound) {
+        String soundPath = null;`,
+    to: `    public String getSound(Context context, int defaultSound) {
+        if ("".equals(sound)) return "";
+        String soundPath = null;`,
+  },
+]);
+
 patchSourceFile(path.join(localNotificationsRoot, "LocalNotificationManager.java"), [
+  {
+    label: "allow a new recurring occurrence to alert even if the previous notification remains visible",
+    from: `        mBuilder.setOnlyAlertOnce(true);`,
+    to: `        mBuilder.setOnlyAlertOnce("".equals(sound));`,
+  },
+  {
+    label: "honor silence and vibration preferences before Android notification channels",
+    from: `        String sound = localNotification.getSound(context, getDefaultSound(context));
+        if (sound != null) {
+            Uri soundUri = Uri.parse(sound);
+            // Grant permission to use sound
+            context.grantUriPermission("com.android.systemui", soundUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            mBuilder.setSound(soundUri);
+            mBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
+        } else {
+            mBuilder.setDefaults(Notification.DEFAULT_ALL);
+        }`,
+    to: `        String sound = localNotification.getSound(context, getDefaultSound(context));
+        JSObject audioExtra = localNotification.getExtra();
+        boolean vibrationEnabled = audioExtra == null || !Boolean.FALSE.equals(audioExtra.getBool("vibration"));
+        int silentDefaults = Notification.DEFAULT_LIGHTS | (vibrationEnabled ? Notification.DEFAULT_VIBRATE : 0);
+        if ("".equals(sound)) {
+            mBuilder.setSound(null);
+            mBuilder.setDefaults(silentDefaults);
+        } else if (sound != null) {
+            Uri soundUri = Uri.parse(sound);
+            // Grant permission to use sound
+            context.grantUriPermission("com.android.systemui", soundUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            mBuilder.setSound(soundUri);
+            mBuilder.setDefaults(silentDefaults);
+        } else {
+            mBuilder.setDefaults(Notification.DEFAULT_SOUND | silentDefaults);
+        }`,
+  },
   {
     label: "import the calendar used to preserve repeating local times",
     from: "import java.text.SimpleDateFormat;\nimport java.util.Date;",

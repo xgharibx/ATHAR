@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   capacitor: {
     isNativePlatform: vi.fn(() => true),
     getPlatform: vi.fn(() => "android"),
   },
+  quietChannelCreate: vi.fn(async (_options: unknown) => undefined),
   localNotifications: {
     addListener: vi.fn(async () => ({ remove: vi.fn() })),
     schedule: vi.fn(async (_options: unknown) => ({ notifications: [] })),
@@ -14,7 +15,10 @@ const mocks = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@capacitor/core", () => ({ Capacitor: mocks.capacitor }));
+vi.mock("@capacitor/core", () => ({
+  Capacitor: mocks.capacitor,
+  registerPlugin: vi.fn(() => ({ create: mocks.quietChannelCreate })),
+}));
 vi.mock("@capacitor/local-notifications", () => ({ LocalNotifications: mocks.localNotifications }));
 
 import {
@@ -24,6 +28,7 @@ import {
 } from "@/lib/reminders";
 
 const { localNotifications } = mocks;
+let cleanupListener: (() => void) | undefined;
 
 beforeEach(() => {
   mocks.capacitor.isNativePlatform.mockReturnValue(true);
@@ -32,7 +37,13 @@ beforeEach(() => {
   localNotifications.schedule.mockClear();
   localNotifications.registerActionTypes.mockClear();
   localNotifications.createChannel.mockClear();
+  mocks.quietChannelCreate.mockClear();
   consumePendingNotificationAction();
+});
+
+afterEach(() => {
+  cleanupListener?.();
+  cleanupListener = undefined;
 });
 
 describe("cold-start snooze actions", () => {
@@ -68,7 +79,7 @@ describe("cold-start snooze actions", () => {
     });
 
     const navigate = vi.fn();
-    const cleanup = await registerNotificationDeepLinkListener(navigate);
+    cleanupListener = await registerNotificationDeepLinkListener(navigate);
     expect(localNotifications.schedule).toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
 
@@ -80,13 +91,13 @@ describe("cold-start snooze actions", () => {
       ...testCase.expected,
       title: "تذكير أثر",
       body: "حان وقت وردك",
-      ...(testCase.actionId === "snooze_60" ? { channelId: "athar-reminders-quiet" } : {}),
+      channelId: "athar-quiet-v2",
+      sound: "",
       extra: testCase.extra,
     });
     const schedule = request.notifications[0]?.schedule as { at: Date };
     expect(schedule.at.getTime()).toBeGreaterThanOrEqual(now + testCase.snoozeMinutes * 60_000 - 1_000);
     expect(schedule.at.getTime()).toBeLessThanOrEqual(now + testCase.snoozeMinutes * 60_000 + 1_000);
-    cleanup();
   });
 
   it("does not replay a warm custom snooze when navigation re-registers the listener", async () => {
@@ -101,7 +112,7 @@ describe("cold-start snooze actions", () => {
         snoozeMinutes: 10,
       },
     };
-    const firstCleanup = await registerNotificationDeepLinkListener(vi.fn());
+    cleanupListener = await registerNotificationDeepLinkListener(vi.fn());
 
     // main.tsx has one persistent native listener; when the router handler is
     // ready, it dispatches the tap directly instead of also buffering it.
@@ -115,12 +126,11 @@ describe("cold-start snooze actions", () => {
 
     // useNavigate changes with the current route, so App registers the listener
     // again; that must not apply the already-handled action from the queue.
-    firstCleanup();
-    const secondCleanup = await registerNotificationDeepLinkListener(vi.fn());
+    cleanupListener();
+    cleanupListener = await registerNotificationDeepLinkListener(vi.fn());
     await Promise.resolve();
 
     expect(localNotifications.schedule).toHaveBeenCalledTimes(1);
     expect(localNotifications.addListener).not.toHaveBeenCalled();
-    secondCleanup();
   });
 });
