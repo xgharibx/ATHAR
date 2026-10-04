@@ -341,6 +341,18 @@ function normalizeQuranQuote(value: string): string {
 }
 
 const HADITH_BLOCK_RE = /^[ \t]*:{3,}hadith[ \t]*\r?\n([\s\S]*?)^[ \t]*:{3,}[ \t]*$/gim;
+function hasUnclosedHadithBlock(text: string): boolean {
+  let insideHadith = false;
+  for (const line of text.split(/\r?\n/)) {
+    if (/^[ \t]*:{3,}hadith[ \t]*$/i.test(line)) {
+      if (insideHadith) return true;
+      insideHadith = true;
+    } else if (insideHadith && /^[ \t]*:{3,}[ \t]*$/.test(line)) {
+      insideHadith = false;
+    }
+  }
+  return insideHadith;
+}
 const HADITH_BOOK_REFERENCE_RE = /(?:(?:صحيح|سنن|جامع|موطأ)\s+)?(البخاري|مسلم|أبو\s+داود|أبي\s+داود|الترمذي|النسائي|ابن\s+ماجه|مالك)\s*(?:(?:حديث|رقم|ح)\s*)?([٠-٩0-9]+(?:[.٫][٠-٩0-9]+)?)/g;
 const HADITH_SOURCE_NAME_RE = /(البخاري|مسلم|أبو\s+داود|أبي\s+داود|الترمذي|النسائي|ابن\s+ماجه|مالك|أحمد|الطبراني|الطيبراني|الدارمي|البيهقي|ابن\s+حبان|الحاكم|الطيالسي|ابن\s+أبي\s+شيبة|عبد\s+الرزاق|الدارقطني)/g;
 const HADITH_BOOK_KEYS: Record<string, string> = {
@@ -415,12 +427,27 @@ function parseHadithBlock(body: string): {
       break;
     }
   }
+  // Structured hadith blocks contain citation text after the quote. After
+  // removing every recognized book reference/name and standard attribution
+  // wording, any remaining Arabic or numeric text is an unsupported or
+  // malformed source. Fail closed so a new collector cannot be silently
+  // ignored just because another cited collection matched locally.
+  HADITH_BOOK_REFERENCE_RE.lastIndex = 0;
+  HADITH_SOURCE_NAME_RE.lastIndex = 0;
+  const residualCitation = citationText
+    .replace(HADITH_BOOK_REFERENCE_RE, " ")
+    .replace(HADITH_SOURCE_NAME_RE, " ")
+    .replace(/(?<![\p{L}])(?:متفق\s+عليه|رواه|أخرجه|أخرّجه|خرجه|في|صحيح|سنن|جامع|موطأ|حديث|رقم|ح)(?![\p{L}])/gu, " ");
+  if (/[\p{L}\p{N}]/u.test(residualCitation)) hasUnparsedSource = true;
   return { quote: quoted, citations, hasUnparsedSource };
 }
 
 async function verifyMarkedHadithBlocks(text: string): Promise<string[]> {
   const notes = new Set<string>();
   const packs = new Map<string, ReturnType<typeof readFreshHadithPack>>();
+  if (hasUnclosedHadithBlock(text)) {
+    notes.add("يتضمن الرد حديثًا موسومًا لكن الاقتباس أو المرجع غير مكتمل؛ لم أتمكن من التحقق منه.");
+  }
   HADITH_BLOCK_RE.lastIndex = 0;
   const blocks = Array.from(text.matchAll(HADITH_BLOCK_RE));
   for (const block of blocks) {
@@ -436,7 +463,7 @@ async function verifyMarkedHadithBlocks(text: string): Promise<string[]> {
         const pack = await packs.get(citation.bookKey)!;
         if (!pack) return { status: "unavailable" as const, citation };
         const matches = pack.hadiths.filter((item) => {
-          const displayRaw = String(item.a ?? "").trim() || String(item.n ?? "");
+          const displayRaw = String(item.a ?? "").trim();
           const displayNumber = normalizeHadithReference(displayRaw);
           return displayNumber === citation.number || (
             !citation.number.includes(".") && displayNumber.startsWith(`${citation.number}.`)

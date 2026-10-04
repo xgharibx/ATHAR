@@ -196,6 +196,54 @@ describe("verifyAnswerAsync", () => {
     expect(out.notes.join(" ")).toMatch(/الاقتباس أو المرجع غير مكتمل/);
   });
 
+  it("does not silently ignore an unrecognized collector with a numbered citation", async () => {
+    setCachedHadith("bukhari", 1, bukhariOneQuote);
+
+    const out = await verifyAnswerAsync(hadithBlock(`«${bukhariOneQuote}» — البخاري ١، ابن خزيمة ٣`));
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/الاقتباس أو المرجع غير مكتمل/);
+  });
+
+  it("does not silently ignore an unrecognized collector without a number", async () => {
+    setCachedHadith("bukhari", 1, bukhariOneQuote);
+
+    const out = await verifyAnswerAsync(hadithBlock(`«${bukhariOneQuote}» — البخاري ١، ابن خزيمة`));
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/الاقتباس أو المرجع غير مكتمل/);
+  });
+
+  it("warns when a hadith block is left unterminated", async () => {
+    const out = await verifyAnswerAsync(`:::hadith\n«${bukhariOneQuote}» — البخاري ١`);
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/الاقتباس أو المرجع غير مكتمل/);
+  });
+
+  it("does not fall back to an internal row number when the display number is missing", async () => {
+    vi.mocked(idbGetHadithPackEntry).mockResolvedValue({
+      isFresh: true,
+      data: {
+        key: "bukhari",
+        title: "",
+        titleEn: "",
+        color: "",
+        order: 1,
+        grade: "sahih",
+        description: "",
+        count: 1,
+        sections: [],
+        hadiths: [{ n: 1, a: undefined as unknown as number, s: 1, t: bukhariOneQuote, g: [] }],
+      },
+    });
+
+    const out = await verifyAnswerAsync(hadithBlock(`«${bukhariOneQuote}» — البخاري ١`));
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/لم أعثر على الحديث رقم ١/);
+  });
+
   it("flags altered wording when the cited local hadith record is available", async () => {
     setCachedHadith("bukhari", 1, `قال رسول الله صلى الله عليه وسلم: «${bukhariOneQuote}»`);
 

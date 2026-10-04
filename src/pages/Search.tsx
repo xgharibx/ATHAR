@@ -21,6 +21,7 @@ import { HADITH_BOOKS_STATIC, hadithGradeLabel, hadithPreview } from "@/data/had
 import { useHadithPack } from "@/data/useHadithBook";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { arNum } from "@/lib/formatNumber";
 
 // --- Recent searches helpers ---
 const RECENT_KEY = "noor_recent_searches";
@@ -687,7 +688,7 @@ export function SearchPage() {
                         {hadithGradeLabel(g)}
                       </span>
                       <span className="text-xs opacity-45 font-arabic shrink-0">{book?.title}</span>
-                      <span className="text-xs opacity-45">ح{h.a}</span>
+                      <span className="text-xs opacity-45">ح{arNum(h.a)}</span>
                     </div>
                     <ArrowUpRight size={16} className="opacity-55 shrink-0" aria-hidden="true" />
                   </div>
