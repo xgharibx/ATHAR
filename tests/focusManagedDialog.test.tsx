@@ -61,15 +61,16 @@ describe("FocusManagedDialog", () => {
 
     const dialog = document.querySelector('[role="dialog"]') as HTMLElement;
     const [first, last] = Array.from(dialog.querySelectorAll("button")) as HTMLButtonElement[];
+    const outside = container.querySelector("[data-outside]") as HTMLButtonElement;
     expect(dialog.getAttribute("aria-modal")).toBe("true");
     expect(document.activeElement).toBe(first);
+    expect(outside.hasAttribute("inert")).toBe(true);
 
     press(first, "Tab", true);
     expect(document.activeElement).toBe(last);
     press(last, "Tab");
     expect(document.activeElement).toBe(first);
 
-    const outside = container.querySelector("[data-outside]") as HTMLButtonElement;
     act(() => outside.focus());
     expect(dialog.contains(document.activeElement)).toBe(true);
 
@@ -84,6 +85,7 @@ describe("FocusManagedDialog", () => {
 
     expect(escapedToWindow).toBe(false);
     expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(outside.hasAttribute("inert")).toBe(false);
     expect(document.activeElement).toBe(opener);
   });
 });

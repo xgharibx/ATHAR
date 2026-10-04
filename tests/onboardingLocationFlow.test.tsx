@@ -50,6 +50,15 @@ function buttonNamed(name: string) {
   return button;
 }
 
+function pressKey(target: HTMLElement, key: string, shiftKey = false) {
+  act(() => target.dispatchEvent(new KeyboardEvent("keydown", {
+    key,
+    shiftKey,
+    bubbles: true,
+    cancelable: true,
+  })));
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.nativePlatform = true;
@@ -66,6 +75,29 @@ afterEach(() => {
 });
 
 describe("onboarding location choice", () => {
+  it("keeps keyboard focus inside the onboarding modal and lets Escape skip", () => {
+    mount();
+    const dialog = container!.querySelector<HTMLElement>('[role="dialog"]');
+    const first = buttonNamed("التالي");
+    const last = buttonNamed("تخطي");
+    expect(dialog?.getAttribute("aria-modal")).toBe("true");
+    expect(document.activeElement).toBe(first);
+
+    pressKey(last, "Tab");
+    expect(document.activeElement).toBe(first);
+    pressKey(first, "Tab", true);
+    expect(document.activeElement).toBe(last);
+
+    const outside = document.createElement("button");
+    document.body.appendChild(outside);
+    act(() => outside.focus());
+    expect(dialog?.contains(document.activeElement)).toBe(true);
+    outside.remove();
+
+    pressKey(first, "Escape");
+    expect(mocks.setOnboardingDone).toHaveBeenCalledWith(true);
+  });
+
   it("announces onboarding progress without exposing inert tabs", async () => {
     mount();
 

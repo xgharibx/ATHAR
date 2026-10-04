@@ -38,6 +38,20 @@ export function FocusManagedDialog({ onClose, children, ...props }: FocusManaged
     const focusTarget = initialFocus && focusables.includes(initialFocus)
       ? initialFocus
       : focusables[0] ?? dialog;
+    const inertedElements: Array<{ element: HTMLElement; wasInert: boolean }> = [];
+
+    let current: HTMLElement | null = dialog;
+    while (current?.parentElement) {
+      const parentElement: HTMLElement = current.parentElement;
+      for (const sibling of Array.from(parentElement.children)) {
+        if (!(sibling instanceof HTMLElement) || sibling === current || sibling.contains(dialog)) continue;
+        const wasInert = sibling.hasAttribute("inert") || sibling.inert;
+        inertedElements.push({ element: sibling, wasInert });
+        sibling.setAttribute("inert", "");
+      }
+      if (parentElement === document.body) break;
+      current = parentElement;
+    }
 
     const keepFocusInside = (event: FocusEvent) => {
       if (event.target instanceof Node && !dialog.contains(event.target)) focusTarget.focus();
@@ -48,6 +62,10 @@ export function FocusManagedDialog({ onClose, children, ...props }: FocusManaged
 
     return () => {
       document.removeEventListener("focusin", keepFocusInside);
+      for (const { element, wasInert } of inertedElements) {
+        if (wasInert) element.setAttribute("inert", "");
+        else element.removeAttribute("inert");
+      }
       if (previousFocus?.isConnected) previousFocus.focus();
     };
   }, []);

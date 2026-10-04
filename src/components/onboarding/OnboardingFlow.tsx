@@ -7,6 +7,7 @@ import { useNoorStore } from "@/store/noorStore";
 import { isNativePlatform, requestNotificationPermission } from "@/lib/reminders";
 import { requestPrayerLocation } from "@/hooks/usePrayerTimes";
 import { arNum } from "@/lib/formatNumber";
+import { FocusManagedDialog } from "@/components/ui/FocusManagedDialog";
 
 type ReminderPermission = "granted" | "denied" | "prompt";
 
@@ -137,7 +138,7 @@ export function OnboardingFlow() {
   const showLaterButton = step === 1 || ("prayerReminders" in current && current.prayerReminders);
 
   return (
-    <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" onClick={(e) => e.stopPropagation()} dir="rtl">
+    <FocusManagedDialog className="onboarding-overlay" aria-labelledby="onboarding-title" onClose={handleSkip} onClick={(e) => e.stopPropagation()} dir="rtl">
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
@@ -195,6 +196,6 @@ export function OnboardingFlow() {
           )}
         </motion.div>
       </AnimatePresence>
-    </div>
+    </FocusManagedDialog>
   );
 }
