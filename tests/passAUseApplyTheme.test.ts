@@ -7,6 +7,7 @@
  */
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import React from "react";
+import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { useNoorStore } from "@/store/noorStore";
@@ -39,9 +40,11 @@ describe("useApplyTheme (Pass A — DOM sync)", () => {
   let root: Root | null = null;
 
   beforeEach(() => {
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
     try { localStorage.clear(); } catch { /* ignore */ }
     document.documentElement.lang = "";
     document.documentElement.dir = "";
+    document.documentElement.classList.remove("clear-reading");
     container = document.createElement("div");
     document.body.appendChild(container);
   });
@@ -57,6 +60,7 @@ describe("useApplyTheme (Pass A — DOM sync)", () => {
     }
     document.documentElement.lang = "";
     document.documentElement.dir = "";
+    document.documentElement.classList.remove("clear-reading");
   });
 
   function mount() {
@@ -101,5 +105,31 @@ describe("useApplyTheme (Pass A — DOM sync)", () => {
     useNoorStore.setState((s) => ({ prefs: { ...s.prefs, uiLanguage: "en", textDir: "auto" } }));
     mount();
     expect(await waitForAttr("dir", "ltr")).toBe("ltr");
+  });
+
+  it("layers clear reading over the selected palette and removes only its own class", async () => {
+    useNoorStore.setState((s) => ({
+      prefs: { ...s.prefs, theme: "midnight", clearReading: true, reduceMotion: true, transparentMode: true },
+    }));
+
+    await act(async () => {
+      mount();
+      await Promise.resolve();
+    });
+
+    expect(document.documentElement.classList.contains("midnight")).toBe(true);
+    expect(document.documentElement.classList.contains("clear-reading")).toBe(true);
+    expect(document.documentElement.classList.contains("reduce-motion")).toBe(true);
+    expect(document.body.classList.contains("transparent-mode")).toBe(true);
+
+    await act(async () => {
+      useNoorStore.setState((s) => ({ prefs: { ...s.prefs, clearReading: false } }));
+      await Promise.resolve();
+    });
+
+    expect(document.documentElement.classList.contains("clear-reading")).toBe(false);
+    expect(document.documentElement.classList.contains("midnight")).toBe(true);
+    expect(document.documentElement.classList.contains("reduce-motion")).toBe(true);
+    expect(document.body.classList.contains("transparent-mode")).toBe(true);
   });
 });

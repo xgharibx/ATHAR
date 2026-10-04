@@ -46,6 +46,20 @@ describe("Noor store account scope", () => {
     expect(useNoorStore.getState().favorites).toEqual({ "legacy:1": true });
   });
 
+  it("migrates an existing version-33 account to the default-off reading preference", async () => {
+    localStorage.setItem("noor_store_v1::user-a", JSON.stringify({
+      state: { prefs: { theme: "midnight" }, favorites: { "account-a:1": true } },
+      version: 33,
+    }));
+
+    await hydrateAccountStorageOwner("user:user-a");
+
+    expect(useNoorStore.getState().prefs.clearReading).toBe(false);
+    expect(useNoorStore.getState().prefs.theme).toBe("midnight");
+    expect(useNoorStore.getState().favorites).toEqual({ "account-a:1": true });
+    expect(JSON.parse(localStorage.getItem("noor_store_v1::user-a") ?? "{}").version).toBe(34);
+  });
+
   it("restores the previous in-memory owner when the destination snapshot is corrupt", async () => {
     seedStore("noor_store_v1::user-a", { "account-a:1": true });
     await hydrateAccountStorageOwner("user:user-a");

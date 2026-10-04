@@ -168,6 +168,7 @@ export type Preferences = {
   tasbeehSoundEnabled: boolean;
   reduceMotion: boolean;
   transparentMode: boolean;
+  clearReading: boolean;
   customAccent?: string; // override --accent, e.g. "#ff5555"
   arabicFont?: "noto_naskh" | "amiri" | "hafs"; // Se1
   uiLanguage?: "ar" | "en"; // Se3
@@ -661,6 +662,7 @@ const DEFAULT_PREFS: Preferences = {
   tasbeehSoundEnabled: true,
   reduceMotion: false,
   transparentMode: true,
+  clearReading: false,
   customAccent: undefined,
   arabicFont: "noto_naskh",
   uiLanguage: "ar",
@@ -730,6 +732,7 @@ function normalizePrefs(value: unknown): Preferences {
   return {
     ...DEFAULT_PREFS,
     ...source,
+    clearReading: typeof source.clearReading === "boolean" ? source.clearReading : DEFAULT_PREFS.clearReading,
     hapticStrength: validStrength,
     homeWidgets: normalizeHomeWidgets(source.homeWidgets),
     homeWidgetsOrder: normalizeHomeWidgetsOrder(source.homeWidgetsOrder),
@@ -1768,6 +1771,7 @@ export const useNoorStore = create<NoorState>()(
           tasbeehSoundEnabled: DEFAULT_PREFS.tasbeehSoundEnabled,
           reduceMotion: DEFAULT_PREFS.reduceMotion,
           transparentMode: DEFAULT_PREFS.transparentMode,
+          clearReading: DEFAULT_PREFS.clearReading,
           bgVibrancyBoost: DEFAULT_PREFS.bgVibrancyBoost,
         },
       })),
@@ -2057,7 +2061,7 @@ export const useNoorStore = create<NoorState>()(
           const state = envelope.state;
           if (
             typeof envelope.version === "number" &&
-            envelope.version !== 33 &&
+            envelope.version !== 34 &&
             state !== null &&
             typeof state === "object"
           ) {
@@ -2103,7 +2107,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 33,
+      version: 34,
       migrate: (persisted: unknown) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;

@@ -43,6 +43,7 @@ describe("resetPrefs (narrowed scope)", () => {
         enableSounds: true,
         reduceMotion: true,
         transparentMode: false,
+        clearReading: true,
         // Non-resettable prefs — must survive resetPrefs:
         customAccent: "#ff0000",
         arabicFont: "hafs",
@@ -94,6 +95,7 @@ describe("resetPrefs (narrowed scope)", () => {
       enableSounds: false,
       reduceMotion: false,
       transparentMode: true,
+      clearReading: false,
       bgVibrancyBoost: undefined,
     } as const;
     for (const [k, v] of Object.entries(DEF)) {

@@ -198,6 +198,7 @@ export function useApplyTheme() {
   const textDir = useNoorStore((s) => s.prefs.textDir);
   const uiLanguage = useNoorStore((s) => s.prefs.uiLanguage);
   const transparentMode = useNoorStore((s) => s.prefs.transparentMode);
+  const clearReading = useNoorStore((s) => s.prefs.clearReading);
 
   useEffect(() => {
     apply(theme);
@@ -247,6 +248,10 @@ export function useApplyTheme() {
     if (reduceMotion) root.classList.add("reduce-motion");
     else root.classList.remove("reduce-motion");
   }, [reduceMotion]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("clear-reading", clearReading);
+  }, [clearReading]);
 
   // Se1: Arabic font family
   useEffect(() => {

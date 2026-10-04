@@ -539,6 +539,13 @@ export function SettingsPage() {
             }
           />
           <SettingRow
+            title="وضع قراءة أوضح"
+            desc="تباين أقوى وبطاقات أكثر وضوحًا مع الحفاظ على لوحة الألوان"
+            right={
+              <Switch checked={prefs.clearReading} onCheckedChange={(v) => setPrefs({ clearReading: v })} />
+            }
+          />
+          <SettingRow
             title="الوضع الشفاف"
             desc="خلفية زجاجية مضيئة للبطاقات"
             right={
