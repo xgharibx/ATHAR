@@ -1,10 +1,9 @@
 /**
  * Companion user profile — lightweight and stored on device.
  *
- * Stored in localStorage. Drives prompt-level personalization and the warm
- * greeting. A short greeting name is optional and no location is requested;
- * profile values are included in cloud prompts when the user asks Companion
- * for a reply, so local storage is not a promise that the values stay local.
+ * Stored in localStorage. Drives the warm greeting and optional prompt-level
+ * personalization. Profile values stay out of cloud prompts until the user
+ * explicitly enables personal context.
  */
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 
@@ -15,6 +14,7 @@ export type CompanionProfile = {
   greetingName: string;
   onboarded: boolean;
   createdAt: number;
+  includePersonalContext: boolean;
 };
 
 const KEY = "noor_companion_profile_v1";
@@ -26,14 +26,21 @@ const DEFAULT_PROFILE: CompanionProfile = {
   greetingName: "",
   onboarded: false,
   createdAt: 0,
+  includePersonalContext: false,
 };
 
 export function loadProfile(): CompanionProfile {
   try {
     const raw = accountScopedLocalStorage.getItem(KEY);
     if (!raw) return { ...DEFAULT_PROFILE };
-    const parsed = JSON.parse(raw) as Partial<CompanionProfile>;
-    return { ...DEFAULT_PROFILE, ...parsed };
+    const parsed = JSON.parse(raw) as Partial<CompanionProfile> | null;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return { ...DEFAULT_PROFILE };
+    return {
+      ...DEFAULT_PROFILE,
+      ...parsed,
+      // This is an explicit privacy opt-in. Legacy and malformed values fail closed.
+      includePersonalContext: parsed.includePersonalContext === true,
+    };
   } catch {
     return { ...DEFAULT_PROFILE };
   }

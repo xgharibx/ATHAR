@@ -37,7 +37,9 @@ vi.mock("@anthropic-ai/sdk", () => {
   return { default: AnthropicMock };
 });
 
-import { clearMemory, streamCompanionReply } from "@/lib/companionAI";
+import { clearMemory, recordMemory, streamCompanionReply } from "@/lib/companionAI";
+import { updateProfile } from "@/lib/companionProfile";
+import { useNoorStore } from "@/store/noorStore";
 
 describe("Companion signed-in access", () => {
   beforeEach(() => {
@@ -46,6 +48,17 @@ describe("Companion signed-in access", () => {
     mocks.stream.mockReset();
     mocks.finalMessage = { stop_reason: "end_turn", content: [] };
     clearMemory();
+    updateProfile({ includePersonalContext: false, greetingName: "", goals: ["consistency"], concerns: ["none"], onboarded: false });
+    useNoorStore.setState({
+      activity: {},
+      sectionCompletions: {},
+      quranDailyAyahs: {},
+      quranLastRead: null,
+      tasbeehDailyLog: {},
+      khatmaStartISO: null,
+      khatmaDays: null,
+      khatmaDone: {},
+    } as unknown as Partial<ReturnType<typeof useNoorStore.getState>>);
   });
 
   it("does not create a model client or process context for a guest", async () => {
@@ -55,6 +68,17 @@ describe("Companion signed-in access", () => {
     await streamCompanionReply([{ role: "user", content: "سؤال تجريبي" }], { onText: vi.fn(), onError });
 
     expect(onError).toHaveBeenCalledWith(expect.objectContaining({ kind: "auth", message: expect.stringContaining("تسجيل الدخول") }));
+    expect(mocks.clientOptions).toBeUndefined();
+    expect(mocks.stream).not.toHaveBeenCalled();
+  });
+
+  it("does not create a model client or send an oversized user message", async () => {
+    const onError = vi.fn();
+
+    await streamCompanionReply([{ role: "user", content: "x".repeat(8_001) }], { onText: vi.fn(), onError });
+
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ detail: "message-too-long" }));
+    expect(mocks.getSession).not.toHaveBeenCalled();
     expect(mocks.clientOptions).toBeUndefined();
     expect(mocks.stream).not.toHaveBeenCalled();
   });
@@ -70,6 +94,52 @@ describe("Companion signed-in access", () => {
     expect(options.defaultHeaders?.Authorization).not.toBe(`Bearer ${options.defaultHeaders?.apikey}`);
     expect(mocks.stream).toHaveBeenCalledOnce();
     clearMemory();
+  });
+
+  it("omits saved profile, progress, mood, and memory unless personal context is enabled", async () => {
+    mocks.getSession.mockResolvedValue({ access_token: "synthetic-user-token" });
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    useNoorStore.setState({
+      activity: { [today]: 9 },
+      sectionCompletions: { morning: [today] },
+      quranLastRead: { surahId: 83 },
+    } as unknown as Partial<ReturnType<typeof useNoorStore.getState>>);
+    updateProfile({ greetingName: "اسم ملف سري", goals: ["quran"], concerns: ["loneliness"], onboarded: true });
+    recordMemory("سؤال سابق خاص لا ينبغي إرساله افتراضيًا");
+
+    await streamCompanionReply([{ role: "user", content: "أنا أشعر بقلق شديد، ما معنى الإخلاص؟" }], { onText: vi.fn() });
+
+    const request = mocks.stream.mock.calls[0]?.[0] as { system?: Array<{ text: string }> };
+    const systemText = request.system?.map((block) => block.text).join("\n") ?? "";
+    expect(systemText).not.toContain("اسم ملف سري");
+    expect(systemText).not.toContain("سؤال سابق خاص لا ينبغي إرساله افتراضيًا");
+    expect(systemText).not.toContain("سورة رقم 83");
+    expect(systemText).not.toContain("أذكار الصباح ✓");
+    expect(systemText).not.toContain("حزين أو مهموم");
+  });
+
+  it("includes profile, progress, and memory only after the user opts in", async () => {
+    mocks.getSession.mockResolvedValue({ access_token: "synthetic-user-token" });
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    useNoorStore.setState({
+      activity: { [today]: 9 },
+      sectionCompletions: { morning: [today] },
+      quranLastRead: { surahId: 83 },
+    } as unknown as Partial<ReturnType<typeof useNoorStore.getState>>);
+    updateProfile({ includePersonalContext: true, greetingName: "اسم ملف مختار", goals: ["quran"], concerns: ["loneliness"], onboarded: true });
+    recordMemory("سؤال سابق اخترت مشاركته");
+
+    await streamCompanionReply([{ role: "user", content: "أشعر بالقلق، كيف أستعيد سؤالنا السابق؟" }], { onText: vi.fn() });
+
+    const request = mocks.stream.mock.calls[0]?.[0] as { system?: Array<{ text: string }> };
+    const systemText = request.system?.map((block) => block.text).join("\n") ?? "";
+    expect(systemText).toContain("اسم ملف مختار");
+    expect(systemText).toContain("سؤال سابق اخترت مشاركته");
+    expect(systemText).toContain("سورة رقم 83");
+    expect(systemText).toContain("أذكار الصباح ✓");
+    expect(systemText).toContain("حزين أو مهموم");
   });
 
   it("waits for reminder dispatch to finish before completing the assistant turn", async () => {

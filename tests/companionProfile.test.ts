@@ -5,7 +5,9 @@ import {
   buildCompanionProfileContext,
   LEVEL_LABEL,
   loadProfile,
+  saveProfile,
   updateProfile,
+  type CompanionProfile,
 } from "@/lib/companionProfile";
 
 beforeEach(() => {
@@ -32,6 +34,7 @@ describe("companionProfile", () => {
     const p = loadProfile();
     expect(p.onboarded).toBe(false);
     expect(p.level).toBe("regular");
+    expect(p.includePersonalContext).toBe(false);
   });
 
   it("updateProfile merges and persists", () => {
@@ -41,6 +44,23 @@ describe("companionProfile", () => {
     const reloaded = loadProfile();
     expect(reloaded.greetingName).toBe("أبو عبدالله");
     expect(reloaded.onboarded).toBe(true);
+  });
+
+  it("persists the explicit personal-context choice", () => {
+    updateProfile({ includePersonalContext: true });
+    expect(loadProfile().includePersonalContext).toBe(true);
+
+    updateProfile({ includePersonalContext: false });
+    expect(loadProfile().includePersonalContext).toBe(false);
+  });
+
+  it("fails closed when a stored opt-in value is missing or malformed", () => {
+    saveProfile({ ...loadProfile(), includePersonalContext: "false" as unknown as boolean });
+    expect(loadProfile().includePersonalContext).toBe(false);
+
+    const { includePersonalContext: _legacyFlag, ...legacyProfile } = loadProfile();
+    saveProfile(legacyProfile as CompanionProfile);
+    expect(loadProfile().includePersonalContext).toBe(false);
   });
 
   it("LEVEL_LABEL covers all levels", () => {

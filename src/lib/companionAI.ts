@@ -6,9 +6,9 @@
  *
  * Data handling:
  *  - No user API keys are accepted or stored.
- *  - Prompts go through our Supabase Edge Function proxy to MiniMax; the
- *    request includes the conversation history plus generated progress,
- *    profile, mood, memory, and relevant local-library context.
+ *  - Prompts go through our Supabase Edge Function proxy to MiniMax; requests
+ *    include at most 16 recent messages and a 48,000-character history cap.
+ *    Progress, profile, inferred mood, and question memory are opt-in.
  *  - Conversation history + memory are stored on the user's device (IndexedDB
  *    + localStorage); storing them locally does not mean they stay local when
  *    the user requests an AI reply.
@@ -110,6 +110,39 @@ export const IS_PROD_BUILD = (import.meta as unknown as { env?: { PROD?: boolean
 
 export type CompanionProvider = "minimax";
 export type CompanionMessage = { role: "user" | "assistant"; content: string };
+
+const MAX_OUTBOUND_MESSAGES = 16;
+const MAX_OUTBOUND_HISTORY_CHARS = 48_000;
+const MAX_CURRENT_USER_MESSAGE_CHARS = 8_000;
+
+export type OutboundMessagesResult =
+  | { ok: true; messages: CompanionMessage[] }
+  | { ok: false; reason: "user-message-too-long" };
+
+/** Keep provider requests bounded while preserving the latest user message
+ *  and a valid user-first conversation suffix. The full history remains local. */
+export function buildOutboundMessages(history: CompanionMessage[]): OutboundMessagesResult {
+  let lastUserIndex = -1;
+  for (let index = history.length - 1; index >= 0; index -= 1) {
+    if (history[index]?.role === "user") {
+      lastUserIndex = index;
+      break;
+    }
+  }
+  const currentUserMessage = lastUserIndex >= 0 ? history[lastUserIndex] : undefined;
+  if (currentUserMessage && currentUserMessage.content.length > MAX_CURRENT_USER_MESSAGE_CHARS) {
+    return { ok: false, reason: "user-message-too-long" };
+  }
+
+  let messages = history.slice(-MAX_OUTBOUND_MESSAGES);
+  while (messages[0]?.role === "assistant") messages = messages.slice(1);
+  while (messages.reduce((total, message) => total + message.content.length, 0) > MAX_OUTBOUND_HISTORY_CHARS) {
+    messages = messages.slice(1);
+    while (messages[0]?.role === "assistant") messages = messages.slice(1);
+  }
+
+  return { ok: true, messages };
+}
 
 /** Structured tool call emitted by the assistant mid-stream. The companion
  *  UI dispatches these to the corresponding store actions (e.g. create_reminder
@@ -401,13 +434,14 @@ export function buildCompanionContext(): CompanionContext {
 
 /* ─── System prompt ──────────────────────────────────────────────────────── */
 
-const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ ودافئ داخل تطبيق أثر للأذكار والقرآن. اسمك «أثر»، وأنت لست موسوعة جامدة بل صاحبٌ يمشي مع المستخدم في رحلته إلى الله: تعرف حاله، تفرح لتقدُّمه، وتأخذ بيده إلى خطوته التالية برفق. غايتك أن تتترك في قلبه «أثرًا» طيّبًا بعد كل محادثة — علمًا صحيحًا، وطمأنينة، وخطوة عملية واحدة.
+const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ ودافئ داخل تطبيق أثر للأذكار والقرآن. اسمك «أثر»، وأنت لست موسوعة جامدة بل صاحبٌ يمشي مع المستخدم في رحلته إلى الله: تبني جوابك على ما يشاركه، وتفرح لتقدُّمه حين يُتاح لك سياقه، وتأخذ بيده إلى خطوته التالية برفق. غايتك أن تترك في قلبه «أثرًا» طيّبًا بعد كل محادثة — علمًا صحيحًا، وطمأنينة، وخطوة عملية واحدة.
 
 ### هويتك ونبرتك
 - تحدَّث كصديقٍ مؤمنٍ ناضج: قريبٌ صادقٌ غير متكلَّف. لا واعظ متعالٍ ولا آلة باردة.
 - كن مختصرًا: جملة أو ثلاث للأسئلة العابرة، وأطول قليلًا حين يُطلب الشرح. لا تُطِل لمجرد الإحاطة.
 - في الأسئلة الشخصية أو التي فيها هَمٌّ، ابدأ بلمسة إنسانية دافئة قبل العلم. وفي الأسئلة العلمية المباشرة، ابدأ بالجواب فورًا دون مقدمات.
 - شجِّع ولا تُشعِر بالذنب أبدًا: التيسير لا التعسير، والبُشرى لا التنفير.
+- لا تفترض معرفة تقدّم المستخدم أو ملفه الشخصي أو حالته أو محادثاته السابقة. لا تذكرها إلا إذا وصلتك فعلًا ضمن السياق، وإلا فأجب مما شاركه في رسالته.
 
 ### اللغة — لا استثناءات
 - كل حرفٍ تردُّه للمستخدم يجب أن يكون بالعربية. هذا ليس تفضيلًا، بل قاعدة لا تُكسر.
@@ -550,6 +584,14 @@ export function buildContextBlock(ctx: CompanionContext): string {
   // 7-day adherence (compact, oldest → newest)
   lines.push(`خريطة الأسبوع (الأقدم → الأحدث): ${ctx.adherenceWeek.map((d) => `${d.weekdayAr}:${d.score}`).join(" | ")}.`);
   return lines.join("\n");
+}
+
+function buildMinimalContextBlock(ctx: CompanionContext): string {
+  return [
+    `اليوم: ${ctx.weekdayAr} (${todayISO()})${ctx.hijriDate ? ` | ${ctx.hijriDate}` : ""}`,
+    `الغد: ${ctx.weekdayTomorrowAr}.`,
+    `الوقت التقريبي: ${timePhaseLabel(ctx.timePhase)}.`,
+  ].join("\n");
 }
 
 function timePhaseLabel(p: TimePhase): string {
@@ -991,6 +1033,16 @@ export async function streamCompanionReply(
   let onAbort: (() => void) | null = null;
 
   try {
+    const outbound = buildOutboundMessages(history);
+    if (!outbound.ok) {
+      cb.onError?.({
+        kind: "other",
+        message: "رسالتك طويلة جدًا. اختصرها قليلًا ثم أرسلها من جديد.",
+        detail: "message-too-long",
+      });
+      return;
+    }
+
     const client = await createClient();
     warmQuranVerses(); // populate the verse map early so verifyAnswer() has it by the time streaming finishes
     const ctx = buildCompanionContext();
@@ -1001,10 +1053,10 @@ export async function streamCompanionReply(
     const retrieval = buildRetrievalBlock(lastUser?.content ?? "");
 
     const dynamicContext = [
-      buildContextBlock(ctx),
-      mood ? `حالة المستخدم الآن: ${mood} (اضبط نبرتك وفقًا لها — لا تبالغ).` : "",
-      buildCompanionProfileContext(profile),
-      buildMemoryBlock(),
+      profile.includePersonalContext ? buildContextBlock(ctx) : buildMinimalContextBlock(ctx),
+      profile.includePersonalContext && mood ? `حالة المستخدم الآن: ${mood} (اضبط نبرتك وفقًا لها — لا تبالغ).` : "",
+      profile.includePersonalContext ? buildCompanionProfileContext(profile) : "",
+      profile.includePersonalContext ? buildMemoryBlock() : "",
       buildRouteLabelsBlock(),
       retrieval,
     ].filter(Boolean).join("\n\n");
@@ -1017,7 +1069,7 @@ export async function streamCompanionReply(
         { type: "text", text: dynamicContext },
       ],
       tools: COMPANION_TOOLS,
-      messages: history.map((m) => ({ role: m.role, content: m.content })),
+      messages: outbound.messages.map((m) => ({ role: m.role, content: m.content })),
     });
 
     onAbort = () => {
