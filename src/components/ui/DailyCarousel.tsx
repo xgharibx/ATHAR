@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, BookOpenText, ChevronDown, Share2, Shuffle, Sparkles } from "lucide-react";
+import { BookOpen, BookOpenText, ChevronDown, Pause, Play, Share2, Shuffle, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { DAILY_VERSES } from "@/data/dailyVerses";
 import { DAILY_WISDOMS } from "@/data/dailyWisdom";
@@ -69,13 +69,71 @@ function writePersistedShuffle(state: PersistedShuffle): void {
 export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const navigate = useNavigate();
 
+  const prefersReducedMotionByDefault = () => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+  };
+
   // Warm the offline explanation bundle as soon as the home screen mounts, so
   // the first sharh the user opens (here or in the reader) is instant.
   React.useEffect(() => { prewarmSharhBundle(); }, []);
 
   const [activeIdx, setActiveIdx] = React.useState(1);
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(prefersReducedMotionByDefault);
+  const [autoRotate, setAutoRotate] = React.useState(() => !prefersReducedMotionByDefault());
+  const [pointerInside, setPointerInside] = React.useState(false);
   const pauseUntilRef = React.useRef<number>(0);
   const touchStartX = React.useRef<number>(0);
+  const pointerActivatingRotationControl = React.useRef(false);
+  const pointerActivationResetTimer = React.useRef<number | null>(null);
+  const slidesRef = React.useRef<Array<HTMLDivElement | null>>([]);
+  const originalTabIndexes = React.useRef(new WeakMap<HTMLElement, string | null>());
+  const clearPointerActivation = React.useCallback(() => {
+    pointerActivatingRotationControl.current = false;
+    if (pointerActivationResetTimer.current !== null) {
+      window.clearTimeout(pointerActivationResetTimer.current);
+      pointerActivationResetTimer.current = null;
+    }
+  }, []);
+  const settlePointerActivation = React.useCallback(() => {
+    const pointerActivationWasPending = pointerActivatingRotationControl.current;
+    clearPointerActivation();
+    const rotationControl = document.querySelector<HTMLElement>("[data-rotation-toggle]");
+    if (pointerActivationWasPending && rotationControl?.contains(document.activeElement)) setAutoRotate(false);
+  }, [clearPointerActivation]);
+  const setSlideInert = React.useCallback((slide: HTMLDivElement | null, index: number) => {
+    if (!slide) return;
+    const inactive = activeIdx !== index;
+    if (inactive && slide.contains(document.activeElement)) {
+      slide.closest<HTMLElement>('[role="region"][aria-label="محتوى يومي"]')?.focus();
+    }
+    if (inactive) slide.setAttribute("inert", "");
+    else slide.removeAttribute("inert");
+
+    // The inert attribute is not supported by older iOS WebViews. Keep their
+    // keyboard focus order in sync while preserving each element's prior value.
+    const focusable = slide.querySelectorAll<HTMLElement>(
+      'a[href], area[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), iframe, object, embed, audio[controls], video[controls], summary, [contenteditable="true"], [tabindex]',
+    );
+    focusable.forEach((element) => {
+      if (inactive) {
+        if (!originalTabIndexes.current.has(element)) {
+          originalTabIndexes.current.set(element, element.getAttribute("tabindex"));
+        }
+        element.setAttribute("tabindex", "-1");
+        return;
+      }
+
+      if (!originalTabIndexes.current.has(element)) return;
+      const original = originalTabIndexes.current.get(element);
+      if (original === null || original === undefined) element.removeAttribute("tabindex");
+      else element.setAttribute("tabindex", original);
+      originalTabIndexes.current.delete(element);
+    });
+  }, [activeIdx]);
+  React.useLayoutEffect(() => {
+    slidesRef.current.forEach((slide, index) => setSlideInert(slide, index));
+  });
   // null = show daily item; number = user-shuffled index (resets on new
   // dateKey). Seeded from localStorage so a shuffle survives closing and
   // reopening the app instead of silently reverting to the day's pick.
@@ -226,12 +284,48 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
 
   // Auto-advance every 4 seconds
   React.useEffect(() => {
+    const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    if (!media) return;
+    const pauseForReducedMotion = () => {
+      setPrefersReducedMotion(media.matches);
+      if (media.matches) setAutoRotate(false);
+    };
+    if (media.addEventListener) media.addEventListener("change", pauseForReducedMotion);
+    else media.addListener?.(pauseForReducedMotion);
+    return () => {
+      if (media.removeEventListener) media.removeEventListener("change", pauseForReducedMotion);
+      else media.removeListener?.(pauseForReducedMotion);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const finishPointerActivation = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element) || !target.closest("[data-rotation-toggle]")) {
+        settlePointerActivation();
+        return;
+      }
+      if (pointerActivationResetTimer.current !== null) window.clearTimeout(pointerActivationResetTimer.current);
+      pointerActivationResetTimer.current = window.setTimeout(settlePointerActivation, 1000);
+    };
+    window.addEventListener("pointerup", finishPointerActivation);
+    window.addEventListener("pointercancel", settlePointerActivation);
+    return () => {
+      window.removeEventListener("pointerup", finishPointerActivation);
+      window.removeEventListener("pointercancel", settlePointerActivation);
+      clearPointerActivation();
+    };
+  }, [clearPointerActivation, settlePointerActivation]);
+
+  React.useEffect(() => {
+    if (!autoRotate || pointerInside) return;
     const timer = setInterval(() => {
+      if (document.visibilityState === "hidden") return;
       if (Date.now() < pauseUntilRef.current) return;
       goNext();
     }, 4000);
     return () => clearInterval(timer);
-  }, [goNext]);
+  }, [autoRotate, pointerInside, goNext]);
 
   const handleTouchStart = React.useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -251,6 +345,22 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     <>
     <style>{`@keyframes spin-once { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     <Card className="p-0 overflow-hidden" role="region" aria-label="محتوى يومي" aria-roledescription="عرض دوار" tabIndex={0}
+      onPointerDownCapture={(event) => {
+        const target = event.target;
+        if (event.button === 0 && target instanceof Element && target.closest("[data-rotation-toggle]")) {
+          clearPointerActivation();
+          pointerActivatingRotationControl.current = true;
+        }
+      }}
+      onFocusCapture={(event) => {
+        if (
+          (event.target as HTMLElement).hasAttribute("data-rotation-toggle") &&
+          pointerActivatingRotationControl.current
+        ) return;
+        setAutoRotate(false);
+      }}
+      onMouseEnter={() => setPointerInside(true)}
+      onMouseLeave={() => setPointerInside(false)}
       onKeyDown={(e: React.KeyboardEvent) => {
         if (e.key === 'ArrowLeft') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; goNext(); }
         else if (e.key === 'ArrowRight') { e.preventDefault(); pauseUntilRef.current = Date.now() + 8000; goPrev(); }
@@ -268,28 +378,44 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
             </span>
           )}
         </div>
-        <span className="text-xs opacity-40">{(activeIdx === 1 ? hadithOverride !== null : shuffleIdx[activeIdx] !== null) ? "اضغط ← للتجديد" : "يتجدد يومياً"}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs opacity-40">{(activeIdx === 1 ? hadithOverride !== null : shuffleIdx[activeIdx] !== null) ? "اضغط ← للتجديد" : "يتجدد يومياً"}</span>
+          <button
+            type="button"
+            className="p-1.5 rounded-lg opacity-65 hover:opacity-100 transition"
+            aria-label={autoRotate ? "إيقاف العرض التلقائي" : "تشغيل العرض التلقائي"}
+            title={autoRotate ? "إيقاف العرض التلقائي" : "تشغيل العرض التلقائي"}
+            data-rotation-toggle
+            onClick={() => {
+              clearPointerActivation();
+              setAutoRotate((enabled) => !enabled);
+            }}
+          >
+            {autoRotate ? <Pause size={14} aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
+          </button>
+        </div>
       </div>
 
       {/* Slides — transform-based so each slide is always 100% of the card */}
       <div
         style={{ overflow: "hidden", width: "100%" }}
-        aria-live="polite"
+        aria-live={autoRotate && !pointerInside ? "off" : "polite"}
         aria-atomic="true"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         <div
+          data-carousel-track
           style={{
             display: "flex",
             direction: "ltr",
             width: "100%",
             transform: `translateX(-${activeIdx * 100}%)`,
-            transition: "transform 0.35s ease",
+            transition: prefersReducedMotion ? "none" : "transform 0.35s ease",
           }}
         >
           {/* Slide 1: آية اليوم */}
-          <div id="carousel-slide-0" role="group" aria-roledescription="شريحة" aria-label="آية اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-0" ref={(slide) => { slidesRef.current[0] = slide; }} role="group" aria-roledescription="شريحة" aria-label="آية اليوم" aria-hidden={activeIdx !== 0} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {verse ? (
               <>
                 <div
@@ -325,7 +451,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                       title="آية جديدة"
                       style={{ color: shuffleIdx[0] !== null ? "var(--accent)" : undefined, opacity: shuffleIdx[0] !== null ? 1 : 0.55 }}
                     >
-                      <Shuffle size={14} aria-hidden="true" style={spinSlide === 0 ? { animation: "spin-once 0.4s ease" } : undefined} />
+                      <Shuffle size={14} aria-hidden="true" style={spinSlide === 0 && !prefersReducedMotion ? { animation: "spin-once 0.4s ease" } : undefined} />
                     </button>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -355,7 +481,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
 
           {/* Slide 2: حديث اليوم — text, grade, attribution, and explanation
               all come from the same hadeethenc.com record; no AI involved. */}
-          <div id="carousel-slide-1" role="group" aria-roledescription="شريحة" aria-label="حديث اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-1" ref={(slide) => { slidesRef.current[1] = slide; }} role="group" aria-roledescription="شريحة" aria-label="حديث اليوم" aria-hidden={activeIdx !== 1} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             {hadith ? (
               <>
                 <div
@@ -388,7 +514,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                       <BookOpenText size={13} aria-hidden="true" />
                       الشرح
                     </span>
-                    <ChevronDown size={14} aria-hidden="true" style={{ transform: showHadithExplanation ? "rotate(180deg)" : undefined, transition: "transform 0.2s" }} />
+                    <ChevronDown size={14} aria-hidden="true" style={{ transform: showHadithExplanation ? "rotate(180deg)" : undefined, transition: prefersReducedMotion ? "none" : "transform 0.2s" }} />
                   </button>
                 ) : null}
                 {showHadithExplanation && hadith.explanation ? (
@@ -406,7 +532,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                       title="حديث جديد"
                       style={{ color: hadithOverride !== null ? "var(--accent)" : undefined, opacity: hadithOverride !== null ? 1 : 0.55 }}
                     >
-                      <Shuffle size={14} aria-hidden="true" style={spinSlide === 1 ? { animation: "spin-once 0.4s ease" } : undefined} />
+                      <Shuffle size={14} aria-hidden="true" style={spinSlide === 1 && !prefersReducedMotion ? { animation: "spin-once 0.4s ease" } : undefined} />
                     </button>
                     <Button
                       className="press-effect text-xs h-7 px-3"
@@ -454,7 +580,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
           </div>
 
           {/* Slide 3: تدبر اليوم */}
-          <div id="carousel-slide-2" role="group" aria-roledescription="شريحة" aria-label="تدبر اليوم" style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-2" ref={(slide) => { slidesRef.current[2] = slide; }} role="group" aria-roledescription="شريحة" aria-label="تدبر اليوم" aria-hidden={activeIdx !== 2} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
             <div
               className="text-base leading-9 text-right font-medium arabic-text max-h-44 overflow-y-auto pr-1"
               style={{ color: "var(--fg)" }}
@@ -477,7 +603,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                   title="تدبر جديد"
                   style={{ color: shuffleIdx[2] !== null ? "var(--accent)" : undefined, opacity: shuffleIdx[2] !== null ? 1 : 0.55 }}
                 >
-                  <Shuffle size={14} aria-hidden="true" style={spinSlide === 2 ? { animation: "spin-once 0.4s ease" } : undefined} />
+                  <Shuffle size={14} aria-hidden="true" style={spinSlide === 2 && !prefersReducedMotion ? { animation: "spin-once 0.4s ease" } : undefined} />
                 </button>
               </div>
               <span className="text-xs opacity-55 arabic-text">{wisdom?.source}</span>
@@ -488,7 +614,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
               slides (a single word + meaning), but the carousel track sizes
               every slide to the tallest one, so center it instead of leaving
               it top-aligned with a large dead gap underneath. */}
-          <div id="carousel-slide-3" role="group" aria-roledescription="شريحة" aria-label="كلمة اليوم" className="flex flex-col justify-center" style={{ flex: "0 0 100%", width: "100%", minHeight: "100%", padding: "0.75rem 1rem 1rem" }}>
+          <div id="carousel-slide-3" ref={(slide) => { slidesRef.current[3] = slide; }} role="group" aria-roledescription="شريحة" aria-label="كلمة اليوم" aria-hidden={activeIdx !== 3} className="flex flex-col justify-center" style={{ flex: "0 0 100%", width: "100%", minHeight: "100%", padding: "0.75rem 1rem 1rem" }}>
             {vocabWord ? (
               <>
                 <button
@@ -523,7 +649,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     title="كلمة جديدة"
                     style={{ color: shuffleIdx[3] !== null ? "var(--accent)" : undefined, opacity: shuffleIdx[3] !== null ? 1 : 0.55 }}
                   >
-                    <Shuffle size={14} aria-hidden="true" style={spinSlide === 3 ? { animation: "spin-once 0.4s ease" } : undefined} />
+                    <Shuffle size={14} aria-hidden="true" style={spinSlide === 3 && !prefersReducedMotion ? { animation: "spin-once 0.4s ease" } : undefined} />
                   </button>
                 </div>
               </>
