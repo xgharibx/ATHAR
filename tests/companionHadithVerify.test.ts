@@ -1,6 +1,36 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { verifyHadith, verifyAnswer, verifyAnswerAsync } from "@/lib/companionKnowledge";
+import { idbGetHadithPackEntry } from "@/lib/hadithIDB";
+
+vi.mock("@/lib/hadithIDB", () => ({
+  idbGetHadithPackEntry: vi.fn().mockResolvedValue(null),
+}));
+
+beforeEach(() => {
+  vi.mocked(idbGetHadithPackEntry).mockResolvedValue(null);
+});
+
+function setCachedHadith(bookKey: string, number: number, text: string): void {
+  vi.mocked(idbGetHadithPackEntry).mockResolvedValue({
+    isFresh: true,
+    data: {
+      key: bookKey,
+      title: "",
+      titleEn: "",
+      color: "",
+      order: 1,
+      grade: "sahih",
+      description: "",
+      count: 1,
+      sections: [],
+      hadiths: [{ n: number, a: number, s: 1, t: text, g: [] }],
+    },
+  });
+}
+
+const bukhariOneQuote = "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى";
+const hadithBlock = (content: string) => `:::hadith\n${content}\n:::`;
 
 describe("verifyHadith", () => {
   it("accepts recognised narrators like «رواه البخاري»", () => {
@@ -87,5 +117,133 @@ describe("verifyAnswerAsync", () => {
 
     expect(out.flagged).toBe(true);
     expect(out.notes.join(" ")).toMatch(/لم أتحقق من لفظ الحديث/);
+  });
+
+  it("warns when a marked hadith block cites books and numbers but no local source pack is cached", async () => {
+    const out = await verifyAnswerAsync(`:::hadith
+«إنما الأعمال بالنيات» — متفق عليه (البخاري ١، مسلم ١٩٠٧)
+:::`);
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/لم أتمكن من مطابقة/);
+  });
+
+  it("accepts a sufficiently long quote that matches the cited local hadith record", async () => {
+    setCachedHadith("bukhari", 1, `قال رسول الله صلى الله عليه وسلم: «${bukhariOneQuote}»`);
+
+    const out = await verifyAnswerAsync(hadithBlock(`«إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى» — البخاري ١`));
+
+    expect(out).toEqual({ flagged: false, notes: [] });
+  });
+
+  it("uses the user-facing Arabic book number when it differs from the internal row number", async () => {
+    vi.mocked(idbGetHadithPackEntry).mockResolvedValue({
+      isFresh: true,
+      data: {
+        key: "muslim",
+        title: "",
+        titleEn: "",
+        color: "",
+        order: 2,
+        grade: "sahih",
+        description: "",
+        count: 1,
+        sections: [],
+        hadiths: [{ n: 4927, a: "1907.01", s: 1, t: "إِنَّمَا الْأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لِامْرِئٍ مَا نَوَى", g: [] }],
+      },
+    });
+
+    const out = await verifyAnswerAsync(hadithBlock("«إنما الأعمال بالنية وإنما لامرئ ما نوى» — مسلم ١٩٠٧"));
+
+    expect(out).toEqual({ flagged: false, notes: [] });
+  });
+
+  it("requires every collection in a joint attribution to contain the quoted wording", async () => {
+    vi.mocked(idbGetHadithPackEntry).mockImplementation(async (bookKey) => ({
+      isFresh: true,
+      data: {
+        key: bookKey,
+        title: "",
+        titleEn: "",
+        color: "",
+        order: 1,
+        grade: "sahih",
+        description: "",
+        count: 1,
+        sections: [],
+        hadiths: [{
+          n: bookKey === "bukhari" ? 1 : 4927,
+          a: bookKey === "bukhari" ? 1 : "1907.01",
+          s: 1,
+          t: bookKey === "bukhari" ? bukhariOneQuote : "نص آخر لا يطابق الاقتباس المنسوب",
+          g: [],
+        }],
+      },
+    }));
+
+    const out = await verifyAnswerAsync(hadithBlock(`«${bukhariOneQuote}» — متفق عليه (البخاري ١، مسلم ١٩٠٧)`));
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/لا يطابق السجل المحلي لـ «مسلم»/);
+  });
+
+  it("does not silently ignore a second citation from an unsupported collection", async () => {
+    setCachedHadith("bukhari", 1, bukhariOneQuote);
+
+    const out = await verifyAnswerAsync(hadithBlock(`«${bukhariOneQuote}» — البخاري ١، أحمد ٣`));
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/الاقتباس أو المرجع غير مكتمل/);
+  });
+
+  it("flags altered wording when the cited local hadith record is available", async () => {
+    setCachedHadith("bukhari", 1, `قال رسول الله صلى الله عليه وسلم: «${bukhariOneQuote}»`);
+
+    const out = await verifyAnswerAsync(hadithBlock("«إنما الأقوال بالنيات، وإنما لكل امرئ ما نوى» — البخاري ١"));
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/لا يطابق السجل المحلي/);
+  });
+
+  it("does not treat a short common phrase as verified even when it appears in the record", async () => {
+    setCachedHadith("bukhari", 1, `قال رسول الله صلى الله عليه وسلم: «${bukhariOneQuote}»`);
+
+    const out = await verifyAnswerAsync(hadithBlock("«خير» — البخاري ١"));
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/الاقتباس أو المرجع غير مكتمل/);
+  });
+
+  it("flags a cited number missing from an available local book pack", async () => {
+    setCachedHadith("bukhari", 1, `«${bukhariOneQuote}»`);
+
+    const out = await verifyAnswerAsync(hadithBlock("«إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى» — البخاري ٩٩٩٩"));
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/لم أعثر على الحديث رقم ٩٩٩٩/);
+  });
+
+  it("does not verify wording from a stale local pack", async () => {
+    const freshPack = vi.mocked(idbGetHadithPackEntry);
+    freshPack.mockResolvedValue({
+      isFresh: false,
+      data: {
+        key: "bukhari",
+        title: "",
+        titleEn: "",
+        color: "",
+        order: 1,
+        grade: "sahih",
+        description: "",
+        count: 1,
+        sections: [],
+        hadiths: [{ n: 1, a: 1, s: 1, t: bukhariOneQuote, g: [] }],
+      },
+    });
+
+    const out = await verifyAnswerAsync(hadithBlock(`«${bukhariOneQuote}» — البخاري ١`));
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/سجل محلي محمّل/);
   });
 });

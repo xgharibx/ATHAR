@@ -24,7 +24,7 @@ export interface HadithSection {
 /** Compact hadith item as stored in JSON packs */
 export interface HadithItem {
   n: number;    // hadithnumber
-  a: number;    // arabicnumber (display number)
+  a: number | string; // arabicnumber (display number; some editions use sub-number strings)
   s: number;    // section id
   t: string;    // full Arabic text (isnad + matn)
   g: string[];  // grade strings (sahih | hasan | daif | maudu | raw)
@@ -103,7 +103,7 @@ export function hadithPreview(text: string, maxLen = 140): string {
 }
 
 /** Hadith reference string for display (e.g., "صحيح البخاري • ح١") */
-export function hadithRef(bookTitle: string, hadithNumber: number): string {
+export function hadithRef(bookTitle: string, hadithNumber: number | string): string {
   return `${bookTitle} • ح${arNum(hadithNumber)}`;
 }
 

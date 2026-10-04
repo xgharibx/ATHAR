@@ -55,7 +55,7 @@ import { wrapHadithPosterText } from "@/lib/hadithPosterText";
 async function shareHadithPoster(opts: {
   matn: string;
   bookTitle: string;
-  hadithNum: number;
+  hadithNum: number | string;
   accentColor: string;
   grade: string;
 }) {
@@ -125,7 +125,7 @@ async function shareHadithPoster(opts: {
   ctx.fillStyle = fg + "99";
   ctx.font = "14px system-ui";
   ctx.textAlign = "right";
-  ctx.fillText(`${opts.bookTitle} — حديث ${opts.hadithNum}`, W - 64, H - 60);
+  ctx.fillText(`${opts.bookTitle} — حديث ${arNum(opts.hadithNum)}`, W - 64, H - 60);
 
   // App watermark
   ctx.fillStyle = opts.accentColor;

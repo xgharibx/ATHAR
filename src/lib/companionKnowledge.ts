@@ -17,6 +17,7 @@
  */
 
 import { idbGetExtras, idbSetExtras } from "@/lib/quranIDB";
+import { idbGetHadithPackEntry } from "@/lib/hadithIDB";
 import { useNoorStore } from "@/store/noorStore";
 
 type Passage = { source: string; sourceLabel: string; text: string };
@@ -339,6 +340,143 @@ function normalizeQuranQuote(value: string): string {
     .replace(/[^\p{L}\p{N}]/gu, "");
 }
 
+const HADITH_BLOCK_RE = /^[ \t]*:{3,}hadith[ \t]*\r?\n([\s\S]*?)^[ \t]*:{3,}[ \t]*$/gim;
+const HADITH_BOOK_REFERENCE_RE = /(?:(?:صحيح|سنن|جامع|موطأ)\s+)?(البخاري|مسلم|أبو\s+داود|أبي\s+داود|الترمذي|النسائي|ابن\s+ماجه|مالك)\s*(?:(?:حديث|رقم|ح)\s*)?([٠-٩0-9]+(?:[.٫][٠-٩0-9]+)?)/g;
+const HADITH_SOURCE_NAME_RE = /(البخاري|مسلم|أبو\s+داود|أبي\s+داود|الترمذي|النسائي|ابن\s+ماجه|مالك|أحمد|الطبراني|الطيبراني|الدارمي|البيهقي|ابن\s+حبان|الحاكم|الطيالسي|ابن\s+أبي\s+شيبة|عبد\s+الرزاق|الدارقطني)/g;
+const HADITH_BOOK_KEYS: Record<string, string> = {
+  "البخاري": "bukhari",
+  "مسلم": "muslim",
+  "أبو داود": "abudawud",
+  "أبي داود": "abudawud",
+  "الترمذي": "tirmidhi",
+  "النسائي": "nasai",
+  "ابن ماجه": "ibnmajah",
+  "مالك": "malik",
+};
+const ARABIC_HADITH_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+
+function normalizeHadithReference(value: string): string {
+  return value.trim()
+    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+    .replace(/[٫،]/g, ".");
+}
+
+function toArabicHadithNumber(value: string): string {
+  return value.replace(/\d/g, (digit) => ARABIC_HADITH_DIGITS[Number(digit)] ?? digit).replace(/\./g, "٫");
+}
+
+function normalizeHadithTokens(value: string): string[] {
+  return value
+    .normalize("NFKC")
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640\u200E\u200F]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
+}
+
+function containsWholeHadithQuote(record: string, quote: string): boolean {
+  const recordTokens = normalizeHadithTokens(record);
+  const quoteTokens = normalizeHadithTokens(quote);
+  const quoteLength = quoteTokens.join("").length;
+  if (quoteTokens.length < 3 || quoteLength < 10 || quoteTokens.length > recordTokens.length) return false;
+
+  for (let start = 0; start <= recordTokens.length - quoteTokens.length; start++) {
+    if (quoteTokens.every((token, offset) => recordTokens[start + offset] === token)) return true;
+  }
+  return false;
+}
+
+function parseHadithBlock(body: string): {
+  quote: string | null;
+  citations: Array<{ bookKey: string; bookName: string; number: string }>;
+  hasUnparsedSource: boolean;
+} {
+  const quoted = /[«“"]([^»”"]+)[»”"]/u.exec(body)?.[1]?.trim() ?? null;
+  const citationText = body.replace(/[«“"]([^»”"]+)[»”"]/u, "");
+  const citations: Array<{ bookKey: string; bookName: string; number: string }> = [];
+  HADITH_BOOK_REFERENCE_RE.lastIndex = 0;
+  for (const match of citationText.matchAll(HADITH_BOOK_REFERENCE_RE)) {
+    const bookName = (match[1] ?? "").replace(/\s+/g, " ").trim();
+    const number = normalizeHadithReference(match[2] ?? "");
+    const bookKey = HADITH_BOOK_KEYS[bookName];
+    if (bookKey && /^[0-9]+(?:\.[0-9]+)?$/.test(number) && Number(number) > 0) citations.push({ bookKey, bookName, number });
+  }
+  let hasUnparsedSource = false;
+  HADITH_SOURCE_NAME_RE.lastIndex = 0;
+  for (const match of citationText.matchAll(HADITH_SOURCE_NAME_RE)) {
+    const bookName = (match[1] ?? "").replace(/\s+/g, " ").trim();
+    const suffix = citationText.slice((match.index ?? 0) + match[0].length);
+    const numberMatch = /^\s*(?:(?:حديث|رقم|ح)\s*)?([٠-٩0-9]+(?:[.٫][٠-٩0-9]+)?)/u.exec(suffix);
+    const bookKey = HADITH_BOOK_KEYS[bookName];
+    const number = numberMatch ? normalizeHadithReference(numberMatch[1] ?? "") : "";
+    if (!bookKey || !number || !citations.some((citation) => citation.bookKey === bookKey && citation.number === number)) {
+      hasUnparsedSource = true;
+      break;
+    }
+  }
+  return { quote: quoted, citations, hasUnparsedSource };
+}
+
+async function verifyMarkedHadithBlocks(text: string): Promise<string[]> {
+  const notes = new Set<string>();
+  const packs = new Map<string, ReturnType<typeof readFreshHadithPack>>();
+  HADITH_BLOCK_RE.lastIndex = 0;
+  const blocks = Array.from(text.matchAll(HADITH_BLOCK_RE));
+  for (const block of blocks) {
+    const { quote, citations, hasUnparsedSource } = parseHadithBlock(block[1] ?? "");
+    if (!quote || normalizeHadithTokens(quote).join("").length < 10 || citations.length === 0 || citations.length > 8 || hasUnparsedSource) {
+      notes.add("يتضمن الرد حديثًا موسومًا لكن الاقتباس أو المرجع غير مكتمل؛ لم أتمكن من التحقق منه.");
+      continue;
+    }
+
+    const results = await Promise.all(citations.map(async (citation) => {
+      try {
+        if (!packs.has(citation.bookKey)) packs.set(citation.bookKey, readFreshHadithPack(citation.bookKey));
+        const pack = await packs.get(citation.bookKey)!;
+        if (!pack) return { status: "unavailable" as const, citation };
+        const matches = pack.hadiths.filter((item) => {
+          const displayRaw = String(item.a ?? "").trim() || String(item.n ?? "");
+          const displayNumber = normalizeHadithReference(displayRaw);
+          return displayNumber === citation.number || (
+            !citation.number.includes(".") && displayNumber.startsWith(`${citation.number}.`)
+          );
+        });
+        if (matches.length === 0) return { status: "missing" as const, citation };
+        const textRows = matches.filter((item) => typeof item.t === "string" && item.t.length > 0);
+        if (textRows.length === 0) return { status: "unavailable" as const, citation };
+        return { status: textRows.some((item) => containsWholeHadithQuote(item.t, quote)) ? "match" as const : "mismatch" as const, citation };
+      } catch {
+        return { status: "unavailable" as const, citation };
+      }
+    }));
+
+    for (const result of results) {
+      const { bookName, number } = result.citation;
+      if (result.status === "match") continue;
+      if (result.status === "mismatch") {
+        notes.add(`لفظ الحديث لا يطابق السجل المحلي لـ «${bookName}» (${toArabicHadithNumber(number)}) — تحقَّق من النص والمرجع.`);
+      } else if (result.status === "missing") {
+        notes.add(`لم أعثر على الحديث رقم ${toArabicHadithNumber(number)} في السجل المحلي لـ «${bookName}» — تحقَّق من المصدر.`);
+      } else {
+        notes.add(`لم أتمكن من مطابقة الحديث رقم ${toArabicHadithNumber(number)} من «${bookName}» مع سجل محلي محمّل — راجع المصدر الأصلي.`);
+      }
+    }
+  }
+  return Array.from(notes);
+}
+
+async function readFreshHadithPack(bookKey: string) {
+  try {
+    const cached = await idbGetHadithPackEntry(bookKey);
+    const pack = cached?.isFresh ? cached.data : null;
+    if (!pack || pack.key !== bookKey || !Array.isArray(pack.hadiths)) return null;
+    return pack;
+  } catch {
+    return null;
+  }
+}
+
 const SURAH_NUM: Record<string, number> = {
   "الفاتحة": 1, "البقرة": 2, "آل عمران": 3, "النساء": 4, "المائدة": 5, "الأنعام": 6, "الأعراف": 7,
   "الأنفال": 8, "التوبة": 9, "يونس": 10, "هود": 11, "يوسف": 12, "الرعد": 13, "إبراهيم": 14,
@@ -620,6 +758,8 @@ export async function verifyAnswerAsync(text: string): Promise<VerificationRepor
   if (hv.flagged) {
     for (const n of hv.notes) notes.push(n);
   }
-  notes.push(...unverifiedHadithAttributionNotes(text));
+  notes.push(...await verifyMarkedHadithBlocks(text));
+  HADITH_BLOCK_RE.lastIndex = 0;
+  notes.push(...unverifiedHadithAttributionNotes(text.replace(HADITH_BLOCK_RE, "")));
   return { flagged: flags.length > 0 || notes.length > 0, notes };
 }

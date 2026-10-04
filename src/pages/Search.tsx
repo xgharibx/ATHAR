@@ -183,7 +183,7 @@ export function SearchPage() {
   const hadithResults = React.useMemo(() => {
     if (!hadithPack || !q.trim()) return [];
     const term = normalizeArabicSearch(q.trim());
-    const hits: Array<{ n: number; a: number; t: string; g: string[] }> = [];
+    const hits: Array<{ n: number; a: number | string; t: string; g: string[] }> = [];
     for (const h of hadithPack.hadiths) {
       if (normalizeArabicSearch(h.t).includes(term)) {
         hits.push(h);
