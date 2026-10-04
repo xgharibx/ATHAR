@@ -1,5 +1,9 @@
 import { Capacitor } from "@capacitor/core";
-import { getCustomReminderSnoozeMinutes, type CustomReminder } from "./customReminderTypes";
+import {
+  getCustomReminderSnoozeMinutes,
+  getCustomReminderVibrationPattern,
+  type CustomReminder,
+} from "./customReminderTypes";
 import { CUSTOM_REMINDER_ACTION_TYPE_ID, registerNotificationActionTypes } from "./notificationActionTypes";
 import {
   getAccountStorageOwner,
@@ -42,9 +46,10 @@ export type AtharReminderClickDetail = {
 };
 
 export { CUSTOM_REMINDER_ACTION_TYPE_ID } from "./notificationActionTypes";
-export const CUSTOM_REMINDER_CHANNEL_ID = "athar-custom-reminders";
+export const CUSTOM_REMINDER_CHANNEL_ID = "athar-custom-reminders-v2";
 export const WEB_ATHAR_TAG_PREFIX = "athar-reminder:";
 export const WEB_ATHAR_NOTIFICATION_TAG_PREFIX = "athar-notification:";
+const CUSTOM_REMINDER_SOUND_FILES = { rain_calm: "rain_calm.ogg" } as const;
 
 /** Stable, owner-scoped deterministic id from (account, reminderId, fireAtMs). */
 export function scheduleIdFor(
@@ -87,23 +92,44 @@ function resolveBody(reminder: CustomReminder, override?: string): string {
   return reminder.description || reminder.body || reminder.title;
 }
 
-async function ensureCustomChannel(): Promise<void> {
-  if (!Capacitor.isNativePlatform()) return;
-  if (Capacitor.getPlatform() === "ios") return; // iOS has no channels
+function getCustomReminderSoundId(soundId: unknown): keyof typeof CUSTOM_REMINDER_SOUND_FILES {
+  return typeof soundId === "string" && soundId in CUSTOM_REMINDER_SOUND_FILES
+    ? soundId as keyof typeof CUSTOM_REMINDER_SOUND_FILES
+    : "rain_calm";
+}
+
+function getCustomReminderSoundFile(soundId: unknown): string {
+  return CUSTOM_REMINDER_SOUND_FILES[getCustomReminderSoundId(soundId)];
+}
+
+function getCustomReminderChannelId(reminder: CustomReminder): string {
+  const sound = getCustomReminderSoundId(reminder.notification?.soundId).replaceAll("_", "-");
+  const vibration = reminder.notification?.vibration === false ? "no-vibration" : "vibration";
+  return `${CUSTOM_REMINDER_CHANNEL_ID}-${sound}-${vibration}`;
+}
+
+async function ensureCustomChannel(reminder: CustomReminder): Promise<string | undefined> {
+  if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() === "ios") return undefined;
   try {
     const { LocalNotifications } = await import("@capacitor/local-notifications");
+    const sound = getCustomReminderSoundFile(reminder.notification?.soundId);
+    const vibration = reminder.notification?.vibration !== false;
+    const id = getCustomReminderChannelId(reminder);
     await LocalNotifications.createChannel({
-      id: CUSTOM_REMINDER_CHANNEL_ID,
-      name: "Athar — Custom Reminders",
+      id,
+      name: `أثر — مطر هادئ — ${vibration ? "اهتزاز" : "بلا اهتزاز"}`,
       description: "تذكيرات المستخدم المخصصة في تطبيق أثر",
       importance: 4,
       visibility: 1,
-      vibration: true,
+      ...(sound ? { sound } : {}),
+      vibration,
       lights: true,
       lightColor: "#2F4F37",
     });
+    return id;
   } catch {
-    // non-fatal
+    // Keep the notification deliverable through the system default channel.
+    return undefined;
   }
 }
 
@@ -312,7 +338,10 @@ export async function scheduleCustomNotification(
   if (Capacitor.isNativePlatform()) {
     const { LocalNotifications } = await import("@capacitor/local-notifications");
     await registerNotificationActionTypes();
-    await ensureCustomChannel();
+    const channelId = await ensureCustomChannel(reminder);
+    const sound = Capacitor.getPlatform() === "android"
+      ? getCustomReminderSoundFile(reminder.notification?.soundId)
+      : undefined;
     if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return scheduleId;
     const operation = (async () => {
       await LocalNotifications.schedule({
@@ -322,7 +351,8 @@ export async function scheduleCustomNotification(
             title: reminder.title,
             body: finalBody,
             schedule: { at: fireAt },
-            channelId: CUSTOM_REMINDER_CHANNEL_ID,
+            ...(channelId ? { channelId } : {}),
+            ...(sound ? { sound } : {}),
             actionTypeId: CUSTOM_REMINDER_ACTION_TYPE_ID,
             smallIcon: "ic_stat_athar_notification",
             largeIcon: "logo_notification_large",
@@ -366,6 +396,7 @@ export async function scheduleCustomNotification(
   if (isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return scheduleId;
   const tag = `${WEB_ATHAR_TAG_PREFIX}${scheduleId}`;
   const fireTime = fireAt.getTime();
+  const vibrate = getCustomReminderVibrationPattern(reminder.notification?.vibration);
   const prior = webTimers.get(scheduleId);
   if (prior !== undefined) window.clearTimeout(prior);
   const timer = window.setTimeout(() => {
@@ -373,6 +404,7 @@ export async function scheduleCustomNotification(
     void showServiceWorkerNotification(reminder.title, {
       body: finalBody,
       tag,
+      vibrate,
       icon: "/logo.svg",
       badge: "/pwa-192x192.png",
       data: {
@@ -400,6 +432,7 @@ export async function scheduleCustomNotification(
     body: finalBody,
     route,
     snoozeMinutes: getCustomReminderSnoozeMinutes(reminder.notification?.snoozeMinutes),
+    vibration: reminder.notification?.vibration !== false,
     tag,
   }, owner);
   if (options.requireDelivery && !workerAccepted) {

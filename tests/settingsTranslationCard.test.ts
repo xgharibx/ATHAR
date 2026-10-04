@@ -16,6 +16,17 @@ describe("Settings page exposes the new translation card", () => {
     expect(file).toContain("id=\"settings-translation\"");
   });
 
+  it("labels the reminder toggle by the behavior it controls", () => {
+    const file = fs.readFileSync(
+      path.resolve(process.cwd(), "src/pages/Settings.tsx"),
+      "utf8",
+    );
+    expect(file).toContain("aria-pressed={remindersOn}");
+    expect(file).toContain("title=\"التذكيرات\"");
+    expect(file).toContain("معاينة صوت التذكير");
+    expect(file).toContain("هذه المعاينة لا تغيّر تنبيهات الأذكار المعتادة");
+  });
+
   it("TranslationPicker renders the master switch and the three sources", async () => {
     const React = await import("react");
     const { renderToString } = await import("react-dom/server");

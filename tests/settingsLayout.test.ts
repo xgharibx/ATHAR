@@ -80,14 +80,15 @@ describe("settingsLayout section catalog + filter", () => {
     }
   });
 
-  it("quick-toggle helpers expose exactly four entries", () => {
+  it("quick-toggle helpers identify the reminder-wide toggle accurately", () => {
     expect(QUICK_TOGGLE_KEYS).toEqual([
       "enableHaptics",
-      "enableSound",
+      "enableReminders",
       "darkMode",
-      "soundProfile",
     ]);
     expect(isQuickToggleKey("enableHaptics")).toBe(true);
+    expect(isQuickToggleKey("enableReminders")).toBe(true);
+    expect(isQuickToggleKey("enableSound")).toBe(false);
     expect(isQuickToggleKey("nope")).toBe(false);
   });
 });

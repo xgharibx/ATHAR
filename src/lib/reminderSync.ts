@@ -26,6 +26,7 @@
 import { Capacitor } from "@capacitor/core";
 import type { CustomReminder } from "@/data/reminderTypes";
 import { nextOccurrences, type PrayerTimesSource } from "@/lib/reminderRecurrence";
+import { getCustomReminderVibrationPattern } from "@/lib/customReminderTypes";
 import {
   cancelCustomNotification,
   showServiceWorkerNotification,
@@ -151,10 +152,11 @@ export function syncCustomReminders(
       const tag = `${WEB_ATHAR_TAG_PREFIX}${scheduleId}`;
       const id = setTimeout(() => {
         if (getAccountStorageOwner() !== owner) return;
-        const opts: NotificationOptions = {
+        const opts: NotificationOptions & { vibrate?: number[] } = {
           body: reminder.body ?? reminder.description ?? undefined,
           tag,
           icon: reminder.icon ?? "/pwa-192x192.png",
+          vibrate: getCustomReminderVibrationPattern(reminder.notification?.vibration),
           data: { route, reminderId: reminder.id, accountOwner: owner, scheduleId },
         };
         showNotification(reminder.title, opts);

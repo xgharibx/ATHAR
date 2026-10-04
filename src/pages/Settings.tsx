@@ -141,10 +141,8 @@ function QuickTogglesStrip(props: {
   const toggleDark = (next: boolean) => {
     setPrefs({ theme: next ? "dark" : "light" });
   };
-  // Sound ≈ reminder.soundProfile being non-default + reminders.enabled — the most
-  // common reason users toggle "sound" is to silence reminders.
-  const soundOn = reminders.enabled;
-  const toggleSound = (next: boolean) => setReminders({ enabled: next });
+  const remindersOn = reminders.enabled;
+  const toggleReminders = (next: boolean) => setReminders({ enabled: next });
 
   const cycleSoundProfile = () => {
     const idx = REMINDER_SOUND_OPTIONS.findIndex((o) => o.id === reminders.soundProfile);
@@ -171,18 +169,18 @@ function QuickTogglesStrip(props: {
       </button>
       <button
         type="button"
-        aria-pressed={soundOn}
-        onClick={() => toggleSound(!soundOn)}
+        aria-pressed={remindersOn}
+        onClick={() => toggleReminders(!remindersOn)}
         className={[
           "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11.5px] transition",
-          soundOn
+          remindersOn
             ? "bg-accent-15 border-accent-35 text-[var(--accent)]"
             : "border-[var(--stroke)] bg-[var(--card)] opacity-80",
         ].join(" ")}
-        title="الأصوات"
+        title="التذكيرات"
       >
-        <Volume2 size={12} aria-hidden="true" />
-        الأصوات
+        <Bell size={12} aria-hidden="true" />
+        التذكيرات
       </button>
       <button
         type="button"
@@ -199,7 +197,7 @@ function QuickTogglesStrip(props: {
         <Moon size={12} aria-hidden="true" />
         ليلي
       </button>
-      <button
+      {REMINDER_SOUND_OPTIONS.length > 1 ? <button
         type="button"
         onClick={cycleSoundProfile}
         className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--stroke)] bg-[var(--card)] hover:bg-[var(--card-2)] text-[11.5px] transition"
@@ -207,7 +205,7 @@ function QuickTogglesStrip(props: {
       >
         <Bell size={12} aria-hidden="true" />
         {REMINDER_SOUND_OPTIONS.find((o) => o.id === reminders.soundProfile)?.label ?? "صوت"}
-      </button>
+      </button> : null}
     </div>
   );
 }
@@ -1229,7 +1227,10 @@ export function SettingsPage() {
         <div className="mt-4 rounded-3xl border border-[var(--stroke)] bg-[var(--card)] p-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div className="text-sm font-semibold">صوت التذكير</div>
+              <div className="text-sm font-semibold">معاينة صوت التذكير</div>
+              <p className="mt-1 text-xs leading-5 text-[var(--muted-2)]">
+                هذه المعاينة لا تغيّر تنبيهات الأذكار المعتادة؛ تصل بهدوء. يُختار صوت الأذان في القسم التالي.
+              </p>
             </div>
           </div>
 

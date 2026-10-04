@@ -15,7 +15,10 @@ import {
   isOwnerTransitionFresh,
   ReminderWorkerOwnerGate,
 } from "./lib/reminderWorkerOwner";
-import { getCustomReminderSnoozeMinutes } from "./lib/customReminderTypes";
+import {
+  getCustomReminderSnoozeMinutes,
+  getCustomReminderVibrationPattern,
+} from "./lib/customReminderTypes";
 import {
   buildWebReminderActionUrl,
   selectReminderActionClient,
@@ -366,7 +369,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
       responsePort?.postMessage({ ok: false });
     }));
   } else if (data.type === "athar-reminder-schedule") {
-    const { scheduleId, fireAtMs, reminderId, accountOwner, title, body, route, snoozeMinutes, tag } = data;
+    const { scheduleId, fireAtMs, reminderId, accountOwner, title, body, route, snoozeMinutes, tag, vibration } = data;
     if (typeof scheduleId !== "string" || !Number.isFinite(fireAtMs)) return;
     event.waitUntil((async () => {
       await reminderOwnerReady;
@@ -380,6 +383,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
       const routeStr: string = typeof route === "string" ? route : "";
       const reminderIdStr: string = typeof reminderId === "string" ? reminderId : "";
       const snoozeMinutesValue = getCustomReminderSnoozeMinutes(snoozeMinutes);
+      const vibrate = getCustomReminderVibrationPattern(vibration);
       const accountOwnerStr = accountOwner as string;
 
       const timer = setTimeout(() => {
@@ -388,6 +392,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
         void startSwNotificationDelivery(titleStr, {
           body: bodyStr,
           tag: tagStr,
+          vibrate,
           renotify: false,
           icon: "/logo.svg",
           badge: "/pwa-192x192.png",

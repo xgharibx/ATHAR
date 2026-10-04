@@ -210,14 +210,13 @@ export function groupVisibleSectionsByCategory(
   return out;
 }
 
-/** Four most-used toggles surfaced in the Quick-toggles panel at the top. */
-export type QuickToggleKey = "enableHaptics" | "enableSound" | "darkMode" | "soundProfile";
+/** Quick toggles surfaced at the top of Settings. */
+export type QuickToggleKey = "enableHaptics" | "enableReminders" | "darkMode";
 
 export const QUICK_TOGGLE_KEYS: QuickToggleKey[] = [
   "enableHaptics",
-  "enableSound",
+  "enableReminders",
   "darkMode",
-  "soundProfile",
 ];
 
 export function isQuickToggleKey(k: string): k is QuickToggleKey {

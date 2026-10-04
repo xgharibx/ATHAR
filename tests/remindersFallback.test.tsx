@@ -119,6 +119,21 @@ describe("RemindersPage missing-list fallback", () => {
     expect(summaryValues.every((value) => /[٠-٩]/.test(value))).toBe(true);
   });
 
+  it("explains platform limits beside sound and vibration preferences", async () => {
+    act(() => {
+      root.render(<MemoryRouter><RemindersPage /></MemoryRouter>);
+    });
+
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('button[aria-label="تذكير جديد"]')!.click();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("على Android يُطبّق الاختيار عبر قناة الإشعارات");
+    expect(container.textContent).toContain("في الويب يحدد المتصفح الصوت");
+    expect(container.textContent).toContain("وعلى iOS يحدد النظام سلوك الإشعار");
+  });
+
   it("updates recommendations when a template is dismissed without changing reminders", () => {
     const firstTemplate = REMINDER_TEMPLATES[0]!;
     useNoorStore.setState({ customReminders: [] });

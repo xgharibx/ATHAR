@@ -26,3 +26,8 @@ export function getCustomReminderSnoozeMinutes(value: unknown): number {
     ? value
     : 10;
 }
+
+/** Best-effort Web Notifications vibration; an empty pattern explicitly disables it. */
+export function getCustomReminderVibrationPattern(value: unknown): number[] {
+  return value === false ? [] : [200, 100, 200];
+}

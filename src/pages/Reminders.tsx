@@ -265,6 +265,9 @@ const EMPTY_FORM: FormState = {
   vibration: true,
 };
 
+const REMINDER_NOTIFICATION_PLATFORM_NOTE =
+  "على Android يُطبّق الاختيار عبر قناة الإشعارات، وقد تتقدّم إعدادات النظام. في الويب يحدد المتصفح الصوت، والاهتزاز يعمل على الأجهزة الداعمة؛ وعلى iOS يحدد النظام سلوك الإشعار.";
+
 function formFromReminder(r: CustomReminder): FormState {
   return {
     title: r.title,
@@ -684,6 +687,9 @@ function ReminderFormDrawer(props: {
             </span>
           </div>
         </Field>
+        <p className="text-[10.5px] leading-5 text-[var(--muted-2)]">
+          {REMINDER_NOTIFICATION_PLATFORM_NOTE}
+        </p>
       </div>
 
       <div className="flex items-center gap-2 border-t border-[var(--stroke)] p-3">
@@ -833,6 +839,9 @@ function ReminderSettingsSheet(props: {
             </span>
           </div>
         </Field>
+        <p className="text-[10.5px] leading-5 text-[var(--muted-2)]">
+          {REMINDER_NOTIFICATION_PLATFORM_NOTE}
+        </p>
       </div>
 
       <div className="border-t border-[var(--stroke)] p-3">

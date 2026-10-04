@@ -18,6 +18,10 @@ function makeReminder(): CustomReminder {
   };
 }
 
+function withVibration(reminder: CustomReminder, vibration: boolean): CustomReminder {
+  return { ...reminder, notification: { vibration } };
+}
+
 afterEach(() => {
   vi.useRealTimers();
   setAccountStorageOwner("local");
@@ -43,6 +47,22 @@ describe("syncCustomReminders web notifications", () => {
       tag: `${WEB_ATHAR_TAG_PREFIX}${scheduleId}`,
       data: { route: undefined, reminderId: "morning", accountOwner: owner, scheduleId },
     }));
+    cleanup();
+  });
+
+  it("passes disabled vibration through to scheduled web notifications", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 5, 7, 0, 0));
+    const showNotification = vi.fn();
+    const cleanup = syncCustomReminders([withVibration(makeReminder(), false)], {
+      canNotify: () => true,
+      showNotification,
+      maxFirings: 1,
+    });
+
+    await vi.advanceTimersByTimeAsync(60 * 60 * 1000);
+
+    expect(showNotification).toHaveBeenCalledWith("اذكار الصباح", expect.objectContaining({ vibrate: [] }));
     cleanup();
   });
 });

@@ -263,6 +263,28 @@ describe("scheduleCustomNotification (web fallback)", () => {
     }));
   });
 
+  it("passes the reminder vibration preference to the service worker schedule", async () => {
+    const messages: Array<{ type?: string; vibration?: boolean }> = [];
+    setServiceWorker({
+      controller: {
+        postMessage: vi.fn((message: { type?: string; vibration?: boolean }, ports?: MessagePort[]) => {
+          messages.push(message);
+          ports?.[0]?.postMessage({ ok: true });
+        }),
+      },
+      getRegistrations: vi.fn(async () => []),
+    });
+
+    await scheduleCustomNotification(
+      makeReminder({ notification: { vibration: false } }),
+      new Date(Date.now() + 60_000),
+      "",
+    );
+
+    expect(messages.find((message) => message.type === "athar-reminder-schedule"))
+      .toMatchObject({ vibration: false });
+  });
+
   it("does not create an untrackable page notification when service workers are unavailable", async () => {
     const constructor = vi.fn();
     Object.defineProperty(globalThis, "Notification", {
@@ -426,6 +448,11 @@ describe("scheduleCustomNotification (native bridge)", () => {
       ],
     });
     expect(mockLocalNotifications.createChannel).toHaveBeenCalledTimes(1);
+    expect(mockLocalNotifications.createChannel).toHaveBeenCalledWith(expect.objectContaining({
+      id: "athar-custom-reminders-v2-rain-calm-vibration",
+      sound: "rain_calm.ogg",
+      vibration: true,
+    }));
     expect(mockLocalNotifications.schedule).toHaveBeenCalledTimes(1);
     const arg = mockLocalNotifications.schedule.mock.calls[0]![0];
     expect(arg.notifications).toHaveLength(1);
@@ -439,6 +466,30 @@ describe("scheduleCustomNotification (native bridge)", () => {
     expect(notif.extra.accountOwner).toBe("user:custom-notification-owner");
     expect(notif.extra.snoozeMinutes).toBe(30);
     expect(notif.id).toBe(numericIdFor(id));
+  });
+
+  it("applies the selected sound and vibration to an Android channel", async () => {
+    const reminder = makeReminder({ notification: { soundId: "rain_calm", vibration: false } });
+
+    await scheduleCustomNotification(reminder, new Date(Date.now() + 60_000), "");
+
+    const channelId = "athar-custom-reminders-v2-rain-calm-no-vibration";
+    expect(mockLocalNotifications.createChannel).toHaveBeenCalledWith(expect.objectContaining({
+      id: channelId,
+      sound: "rain_calm.ogg",
+      vibration: false,
+    }));
+    expect(mockLocalNotifications.schedule.mock.calls[0]?.[0].notifications[0])
+      .toMatchObject({ channelId, sound: "rain_calm.ogg" });
+  });
+
+  it("keeps scheduling through the system default if channel setup fails", async () => {
+    mockLocalNotifications.createChannel.mockRejectedValueOnce(new Error("channel unavailable"));
+
+    await scheduleCustomNotification(makeReminder(), new Date(Date.now() + 60_000), "");
+
+    expect(mockLocalNotifications.schedule).toHaveBeenCalledOnce();
+    expect(mockLocalNotifications.schedule.mock.calls[0]?.[0].notifications[0]?.channelId).toBeUndefined();
   });
 
   it("cancels a notification if its account changes while native scheduling is in flight", async () => {
