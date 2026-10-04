@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const notificationMock = vi.hoisted(() => ({ cancel: vi.fn(async () => undefined) }));
-vi.mock("@capacitor/core", () => ({ Capacitor: { isNativePlatform: () => true } }));
+vi.mock("@capacitor/core", () => ({ Capacitor: { isNativePlatform: () => true, getPlatform: () => "ios" } }));
 vi.mock("@capacitor/local-notifications", () => ({ LocalNotifications: { cancel: notificationMock.cancel } }));
 
 import { buildPrayerNotificationsForDays, cancelPrayerFollowUp } from "@/lib/reminders";

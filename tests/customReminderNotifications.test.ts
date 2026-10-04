@@ -478,7 +478,10 @@ describe("scheduleCustomNotification (native bridge)", () => {
       { nativeRepeat },
     );
 
-    expect(mockLocalNotifications.schedule.mock.calls[0]?.[0].notifications[0]?.schedule).toEqual(nativeRepeat);
+    expect(mockLocalNotifications.schedule.mock.calls[0]?.[0].notifications[0]?.schedule).toEqual({
+      ...nativeRepeat,
+      allowWhileIdle: true,
+    });
   });
 
   it("applies the selected sound and vibration to an Android channel", async () => {

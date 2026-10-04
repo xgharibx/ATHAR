@@ -5,6 +5,7 @@ import {
   type CustomReminder,
 } from "./customReminderTypes";
 import { CUSTOM_REMINDER_ACTION_TYPE_ID, registerNotificationActionTypes } from "./notificationActionTypes";
+import { withAndroidDozeDelivery } from "./nativeNotificationSchedule";
 import {
   getAccountStorageOwner,
   isAccountStorageOwnerTransitionInProgress,
@@ -358,7 +359,7 @@ export async function scheduleCustomNotification(
             id: numericIdFor(scheduleId),
             title: reminder.title,
             body: finalBody,
-            schedule: options.nativeRepeat ?? { at: fireAt },
+            schedule: withAndroidDozeDelivery(options.nativeRepeat ?? { at: fireAt }),
             ...(channelId ? { channelId } : {}),
             ...(sound ? { sound } : {}),
             actionTypeId: CUSTOM_REMINDER_ACTION_TYPE_ID,

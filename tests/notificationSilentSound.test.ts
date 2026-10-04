@@ -139,6 +139,17 @@ describe("silent native notification sound payloads", () => {
     expect(morning).toHaveProperty("sound", "");
   });
 
+  it("allows Android adhkar reminders to fire during Doze", async () => {
+    mocks.capacitor.getPlatform.mockReturnValue("android");
+
+    await syncReminders(adhkarReminders());
+
+    const morning = scheduledNotifications().find((notification) =>
+      (notification.extra as { reminderKey?: string } | undefined)?.reminderKey === "morning",
+    );
+    expect(morning?.schedule).toMatchObject({ allowWhileIdle: true });
+  });
+
   it("uses a local calendar time for recurring adhkar reminders", async () => {
     await syncReminders(adhkarReminders());
 
@@ -186,6 +197,7 @@ describe("silent native notification sound payloads", () => {
       at: new Date(2026, 9, 3, 8, 0, 0),
       repeats: true,
       every: "day",
+      allowWhileIdle: true,
     });
   });
 

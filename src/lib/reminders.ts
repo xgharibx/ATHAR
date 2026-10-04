@@ -1,7 +1,8 @@
 import { Capacitor } from "@capacitor/core";
 import { getInternalAppRoute } from "@/lib/internalAppRoute";
-import type { LocalNotification } from "@capacitor/local-notifications";
+import type { LocalNotification, Schedule } from "@capacitor/local-notifications";
 import { getCustomReminderSnoozeMinutes } from "@/lib/customReminderTypes";
+import { withAndroidDozeDelivery } from "@/lib/nativeNotificationSchedule";
 import { parseWebReminderClickDetail } from "@/lib/webReminderActions";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 import { useNoorStore } from "@/store/noorStore";
@@ -613,6 +614,11 @@ function buildReminderNotifications(
     const reminderTime = parseHHMM(plan.hhmm);
     if (!reminderTime) return [];
     const configuredReminderTime = `${String(reminderTime.hour).padStart(2, "0")}:${String(reminderTime.minute).padStart(2, "0")}`;
+    const schedule: Schedule = plan.skipToday
+      ? Capacitor.getPlatform() === "ios"
+        ? { at }
+        : { at, repeats: true, every: "day" }
+      : { on: { ...reminderTime, second: 0 } };
     return [{
       id: plan.id,
       title: plan.title,
@@ -634,11 +640,7 @@ function buildReminderNotifications(
       // across boots and daylight-saving changes. iOS interprets `at + repeats`
       // as an interval, so a completed-today deferral is one-shot there; the
       // next foreground sync restores its calendar-based daily recurrence.
-      schedule: plan.skipToday
-        ? Capacitor.getPlatform() === "ios"
-          ? { at }
-          : { at, repeats: true, every: "day" as const }
-        : { on: { ...reminderTime, second: 0 } },
+      schedule: withAndroidDozeDelivery(schedule),
     }];
   });
 }
@@ -673,7 +675,7 @@ export function buildPrayerNotificationsForDays(
         smallIcon: REMINDER_NOTIFICATION_ICON,
         largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
         iconColor: REMINDER_ICON_COLOR,
-        schedule: { at },
+        schedule: withAndroidDozeDelivery({ at }),
         actionTypeId: PRAYER_ACTION_TYPE_ID,
         extra,
       };
@@ -690,7 +692,7 @@ export function buildPrayerNotificationsForDays(
         smallIcon: REMINDER_NOTIFICATION_ICON,
         largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
         iconColor: REMINDER_ICON_COLOR,
-        schedule: { at: followUpAt },
+        schedule: withAndroidDozeDelivery({ at: followUpAt }),
         actionTypeId: PRAYER_ACTION_TYPE_ID,
         extra,
       };
@@ -727,7 +729,7 @@ function buildRamadanNotifications(
         smallIcon: REMINDER_NOTIFICATION_ICON,
         largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
         iconColor: REMINDER_ICON_COLOR,
-        schedule: { at: suhoorAt },
+        schedule: withAndroidDozeDelivery({ at: suhoorAt }),
         extra: { dateISO: day.dateISO },
       });
     }
@@ -744,7 +746,7 @@ function buildRamadanNotifications(
       smallIcon: REMINDER_NOTIFICATION_ICON,
       largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
       iconColor: REMINDER_ICON_COLOR,
-      schedule: { at: iftarAt },
+      schedule: withAndroidDozeDelivery({ at: iftarAt }),
       extra: { dateISO: day.dateISO },
     });
   }
@@ -773,7 +775,7 @@ function buildDailyHadithNotification(
     smallIcon: REMINDER_NOTIFICATION_ICON,
     largeIcon: REMINDER_NOTIFICATION_LARGE_ICON,
     iconColor: REMINDER_ICON_COLOR,
-    schedule: { at: fajrAt },
+    schedule: withAndroidDozeDelivery({ at: fajrAt }),
     extra: { dateISO: day.dateISO },
   };
 }
@@ -1248,7 +1250,7 @@ export async function applyNotificationAction(pending: PendingAction): Promise<b
             iconColor: notification?.iconColor,
             actionTypeId: REMINDER_ACTION_TYPE_ID,
             extra: { ...extra, accountOwner: activeOwner },
-            schedule: { at: new Date(Date.now() + SNOOZE_MINUTES * 60_000) },
+            schedule: withAndroidDozeDelivery({ at: new Date(Date.now() + SNOOZE_MINUTES * 60_000) }),
           }],
         });
         if (!actionIsCurrent()) {
