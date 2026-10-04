@@ -44,4 +44,14 @@ describe("PWA offline asset policy", () => {
     expect(hadithRoute).toMatch(/maxEntries:\s*1/);
     expect(hadithRoute).toContain("maxAgeSeconds: 60 * 60 * 24 * 30");
   });
+
+  it("bounds cached navigation HTML while retaining the precached offline shell", () => {
+    const worker = readFileSync(resolve(process.cwd(), "src/sw.ts"), "utf8");
+    const navigationRoute = worker.split('cacheName: "athar-html"')[1]?.split("const navigationRoute")[0] ?? "";
+
+    expect(navigationRoute).toMatch(/maxEntries:\s*1/);
+    expect(navigationRoute).toContain("maxAgeSeconds: 60 * 60 * 24 * 30");
+    expect(worker).toContain('matchPrecache("/index.html")');
+    expect(worker).toContain('caches.delete("athar-html")');
+  });
 });

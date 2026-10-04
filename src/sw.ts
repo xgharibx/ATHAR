@@ -59,6 +59,9 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
     caches.delete("quran-audio").catch((error: unknown) => {
       console.warn("[athar] Could not remove the unused Quran audio cache.", error);
     }),
+    caches.delete("athar-html").catch((error: unknown) => {
+      console.warn("[athar] Could not remove legacy unbounded navigation cache.", error);
+    }),
   ]));
 });
 
@@ -68,6 +71,10 @@ const navigationHandler = new NetworkFirst({
   networkTimeoutSeconds: 3,
   plugins: [
     new CacheableResponsePlugin({ statuses: [0, 200] }),
+    new ExpirationPlugin({
+      maxEntries: 1,
+      maxAgeSeconds: 60 * 60 * 24 * 30,
+    }),
   ],
 });
 const navigationRoute = new NavigationRoute(navigationHandler, {
