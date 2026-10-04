@@ -8,6 +8,7 @@ import { pruneLookupCacheRows } from "@/lib/lookupCacheRetention";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const NOW = Date.UTC(2026, 5, 1);
 const STALE_AT = NOW - 366 * DAY_MS;
+const EXPIRED_AT = NOW - 396 * DAY_MS;
 
 async function seedVersionOneCache(databaseName: string, row: Record<string, unknown>) {
   const db = new Dexie(databaseName);
@@ -25,8 +26,14 @@ afterEach(() => {
 describe("expired lookup cache fallback", () => {
   it("serves cached Tafsir when refresh is unavailable and retains the saved row", async () => {
     const key = "ar-tafsir-al-jalalayn:1";
-    const cached = ["", "شرح محفوظ للعمل دون اتصال"];
-    await seedVersionOneCache("noor-tafsir-cache-v1", { key, ayahs: cached, cachedAt: STALE_AT });
+    const cached = Array.from({ length: 8 }, (_, ayah) => ayah === 0 ? "" : `شرح محفوظ ${ayah}`);
+    await seedVersionOneCache("noor-tafsir-cache-v1", {
+      key,
+      ayahs: cached,
+      emptyAyahs: [],
+      sourceVersion: "v1.2.2",
+      cachedAt: STALE_AT,
+    });
     vi.spyOn(Date, "now").mockReturnValue(NOW);
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
 
@@ -34,10 +41,41 @@ describe("expired lookup cache fallback", () => {
     await expect(loadTafsirSurah("ar-tafsir-al-jalalayn", 1)).resolves.toEqual(cached);
 
     const verify = new Dexie("noor-tafsir-cache-v1");
-    verify.version(2).stores({ cache: "key,cachedAt" });
+    verify.version(3).stores({ cache: "key,cachedAt" });
     await verify.open();
     await expect(verify.table("cache").get(key)).resolves.toMatchObject({ ayahs: cached, cachedAt: STALE_AT });
     verify.close();
+  });
+
+  it("does not serve Tafsir rows beyond the refresh grace period", async () => {
+    const key = "ar-tafsir-al-jalalayn:1";
+    const cached = Array.from({ length: 8 }, (_, ayah) => ayah === 0 ? "" : `شرح قديم ${ayah}`);
+    await seedVersionOneCache("noor-tafsir-cache-v1", {
+      key,
+      ayahs: cached,
+      emptyAyahs: [],
+      sourceVersion: "v1.2.2",
+      cachedAt: EXPIRED_AT,
+    });
+    vi.spyOn(Date, "now").mockReturnValue(NOW);
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
+
+    const { loadTafsirSurah } = await import("@/lib/tafsirEditions");
+    await expect(loadTafsirSurah("ar-tafsir-al-jalalayn", 1)).rejects.toThrow("Failed to fetch");
+  });
+
+  it("does not present a sparse legacy Tafsir cache row as a complete surah", async () => {
+    const key = "ar-tafsir-al-jalalayn:1";
+    await seedVersionOneCache("noor-tafsir-cache-v1", {
+      key,
+      ayahs: ["", "شرح محفوظ لآية واحدة فقط"],
+      cachedAt: NOW - DAY_MS,
+    });
+    vi.spyOn(Date, "now").mockReturnValue(NOW);
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
+
+    const { loadTafsirSurah } = await import("@/lib/tafsirEditions");
+    await expect(loadTafsirSurah("ar-tafsir-al-jalalayn", 1)).rejects.toThrow("Failed to fetch");
   });
 
   it("serves cached Dorar grading when refresh is unavailable and retains the saved row", async () => {
