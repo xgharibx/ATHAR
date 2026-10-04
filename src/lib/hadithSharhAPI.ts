@@ -19,6 +19,7 @@ import { publicDataUrl } from "@/data/publicAssetUrl";
 const BASE = "https://hadeethenc.com/api/v1";
 const CACHE_PREFIX = "noor_sharh_v1:";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // categories/lists refresh weekly; hadiths are stable
+const REQUEST_TIMEOUT_MS = 15_000;
 
 export type SharhCategory = {
   id: string;
@@ -46,13 +47,100 @@ export type SharhHadith = {
 
 type CacheEnvelope<T> = { at: number; data: T };
 
+type JsonParser<T> = (value: unknown) => T;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function invalidResponse(): never {
+  throw new Error("Invalid HadeethEnc response");
+}
+
+function parseId(value: unknown): string {
+  if (typeof value === "string" && value.trim()) return value;
+  if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) return String(value);
+  return invalidResponse();
+}
+
+function parseCategoryCount(value: unknown): string {
+  const count = typeof value === "number" ? value : typeof value === "string" && /^\d+$/.test(value) ? Number(value) : NaN;
+  if (!Number.isSafeInteger(count) || count < 0) return invalidResponse();
+  return String(count);
+}
+
+function parseCategories(value: unknown): SharhCategory[] {
+  if (!Array.isArray(value)) return invalidResponse();
+  return value.map((category): SharhCategory => {
+    if (!isRecord(category) || typeof category.title !== "string" || !category.title.trim()) return invalidResponse();
+    if (category.parent_id !== null && category.parent_id !== undefined &&
+      !(typeof category.parent_id === "string" && category.parent_id.trim()) &&
+      !(typeof category.parent_id === "number" && Number.isSafeInteger(category.parent_id) && category.parent_id >= 0)) {
+      return invalidResponse();
+    }
+    if (category.parent_id === undefined) return invalidResponse();
+    return {
+      id: parseId(category.id),
+      title: category.title,
+      hadeeths_count: parseCategoryCount(category.hadeeths_count),
+      parent_id: category.parent_id === null ? null : parseId(category.parent_id),
+    };
+  });
+}
+
+function parseHadithListResponse(value: unknown): { data: SharhListItem[]; meta?: { last_page?: number | string } } {
+  if (!isRecord(value) || !Array.isArray(value.data)) return invalidResponse();
+  const data = value.data.map((item): SharhListItem => {
+    if (!isRecord(item) || typeof item.title !== "string" || !item.title.trim()) return invalidResponse();
+    return { id: parseId(item.id), title: item.title };
+  });
+
+  if (value.meta === undefined || value.meta === null) return { data };
+  if (!isRecord(value.meta)) return invalidResponse();
+  const lastPage = value.meta.last_page;
+  if (lastPage === undefined || lastPage === null) return { data, meta: {} };
+  const parsedLastPage = typeof lastPage === "number" ? lastPage : typeof lastPage === "string" && /^\d+$/.test(lastPage) ? Number(lastPage) : NaN;
+  if (!Number.isSafeInteger(parsedLastPage) || parsedLastPage < 1) return invalidResponse();
+  return { data, meta: { last_page: parsedLastPage } };
+}
+
+function parseSharhHadith(value: unknown, expectedId: string): SharhHadith {
+  if (!isRecord(value)) return invalidResponse();
+  const id = parseId(value.id);
+  if (id !== expectedId ||
+    typeof value.title !== "string" || !value.title.trim() ||
+    typeof value.hadeeth !== "string" || !value.hadeeth.trim() ||
+    typeof value.attribution !== "string" ||
+    typeof value.grade !== "string" ||
+    typeof value.explanation !== "string") return invalidResponse();
+
+  const hints = value.hints == null ? undefined : value.hints;
+  if (hints !== undefined && (!Array.isArray(hints) || hints.some((hint) => typeof hint !== "string"))) return invalidResponse();
+  const wordsMeanings = value.words_meanings == null ? undefined : value.words_meanings;
+  if (wordsMeanings !== undefined && (!Array.isArray(wordsMeanings) || wordsMeanings.some((entry) =>
+    !isRecord(entry) || typeof entry.word !== "string" || typeof entry.meaning !== "string"))) return invalidResponse();
+  if (value.reference != null && typeof value.reference !== "string") return invalidResponse();
+
+  return {
+    id,
+    title: value.title,
+    hadeeth: value.hadeeth,
+    attribution: value.attribution,
+    grade: value.grade,
+    explanation: value.explanation,
+    ...(hints === undefined ? {} : { hints: hints as string[] }),
+    ...(wordsMeanings === undefined ? {} : { words_meanings: wordsMeanings as Array<{ word: string; meaning: string }> }),
+    ...(typeof value.reference === "string" ? { reference: value.reference } : {}),
+  };
+}
+
 function cacheGet<T>(key: string, maxAgeMs = CACHE_TTL_MS): T | null {
   try {
     const raw = localStorage.getItem(CACHE_PREFIX + key);
     if (!raw) return null;
     const env = JSON.parse(raw) as CacheEnvelope<T>;
-    if (!env || typeof env.at !== "number") return null;
-    if (Date.now() - env.at > maxAgeMs) return null;
+    if (!env || typeof env.at !== "number" || !Number.isFinite(env.at)) return null;
+    if (env.at > Date.now() || Date.now() - env.at > maxAgeMs) return null;
     return env.data;
   } catch {
     return null;
@@ -67,33 +155,56 @@ function cacheSet<T>(key: string, data: T): void {
   }
 }
 
-async function getJson<T>(path: string, cacheKey: string, cacheMaxAge = CACHE_TTL_MS): Promise<T> {
-  const cached = cacheGet<T>(cacheKey, cacheMaxAge);
-  if (cached) return cached;
-  const stale = cacheGet<T>(cacheKey, Number.POSITIVE_INFINITY);
+function cacheGetParsed<T>(key: string, maxAgeMs: number, parse: JsonParser<T>): T | null {
+  const cached = cacheGet<unknown>(key, maxAgeMs);
+  if (cached === null) return null;
   try {
-    const res = await fetch(`${BASE}${path}`, { headers: { Accept: "application/json" } });
+    return parse(cached);
+  } catch {
+    return null;
+  }
+}
+
+async function getJson<T>(path: string, cacheKey: string, parse: JsonParser<T>, cacheMaxAge = CACHE_TTL_MS): Promise<T> {
+  const cached = cacheGetParsed(cacheKey, cacheMaxAge, parse);
+  if (cached) return cached;
+  const stale = cacheGetParsed(cacheKey, Number.POSITIVE_INFINITY, parse);
+  const controller = new AbortController();
+  let timedOut = false;
+  const timeoutId = globalThis.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
     if (!res.ok) throw new Error(`sharh-api ${res.status}`);
-    const data = (await res.json()) as T;
+    const data = parse(await res.json());
     cacheSet(cacheKey, data);
     return data;
   } catch (error) {
     // Expired content is still more useful than an offline error. Cover both
     // HTTP failures and rejected fetch/body parsing, not just non-2xx status.
     if (stale) return stale;
+    if (timedOut) throw new Error("Hadith encyclopedia request timed out");
     throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
   }
 }
 
 /** Top-level categories (العقيدة، الفضائل والآداب، …). */
 export async function fetchSharhRoots(): Promise<SharhCategory[]> {
-  const roots = await getJson<SharhCategory[]>(`/categories/roots/?language=ar`, "roots");
+  const roots = await getJson(`/categories/roots/?language=ar`, "roots", parseCategories);
   return roots.filter((c) => Number(c.hadeeths_count) > 0);
 }
 
 /** All categories flat — used to show a root's sub-sections. */
 export async function fetchSharhChildren(parentId: string): Promise<SharhCategory[]> {
-  const all = await getJson<SharhCategory[]>(`/categories/list/?language=ar`, "all-categories");
+  const all = await getJson(`/categories/list/?language=ar`, "all-categories", parseCategories);
   return all.filter((c) => c.parent_id === parentId && Number(c.hadeeths_count) > 0);
 }
 
@@ -102,11 +213,12 @@ export type SharhListPage = { items: SharhListItem[]; hasMore: boolean };
 /** Paginated hadith titles inside a category. */
 export async function fetchSharhList(categoryId: string, page: number): Promise<SharhListPage> {
   const perPage = 20;
-  const res = await getJson<{ data: SharhListItem[]; meta?: { last_page?: number | string } }>(
+  const res = await getJson(
     `/hadeeths/list/?language=ar&category_id=${encodeURIComponent(categoryId)}&page=${page}&per_page=${perPage}`,
     `list:${categoryId}:${page}`,
+    parseHadithListResponse,
   );
-  const items = Array.isArray(res.data) ? res.data : [];
+  const items = res.data;
   const lastPage = Number(res.meta?.last_page ?? NaN);
   const hasMore = Number.isFinite(lastPage) ? page < lastPage : items.length === perPage;
   return { items, hasMore };
@@ -120,7 +232,10 @@ function loadSharhBundle(): Promise<Record<string, SharhHadith>> {
   if (!bundleLoading) {
     bundleLoading = fetch(publicDataUrl("data/hadith/sharh-bundled.json"))
       .then((res) => (res.ok ? res.json() : {}))
-      .then((data: Record<string, SharhHadith>) => { bundle = data; return data; })
+      .then((data: unknown) => {
+        bundle = isRecord(data) ? data as Record<string, SharhHadith> : {};
+        return bundle;
+      })
       .catch(() => ({}));
   }
   return bundleLoading;
@@ -136,10 +251,17 @@ export function prewarmSharhBundle(): void {
 export async function fetchSharhHadith(id: string): Promise<SharhHadith> {
   const b = await loadSharhBundle();
   const hit = b[String(id)];
-  if (hit) return hit;
-  return getJson<SharhHadith>(
+  if (hit) {
+    try {
+      return parseSharhHadith(hit, id);
+    } catch {
+      // A bad bundled record should not be shown; try the validated cache/API.
+    }
+  }
+  return getJson(
     `/hadeeths/one/?language=ar&id=${encodeURIComponent(id)}`,
     `h:${id}`,
+    (value) => parseSharhHadith(value, id),
     365 * 24 * 60 * 60 * 1000,
   );
 }
@@ -157,7 +279,7 @@ export async function fetchSharhHadith(id: string): Promise<SharhHadith> {
 
 /** Every category (root + nested), fetched once and cached. */
 async function fetchAllCategories(): Promise<SharhCategory[]> {
-  return getJson<SharhCategory[]>(`/categories/list/?language=ar`, "all-categories");
+  return getJson(`/categories/list/?language=ar`, "all-categories", parseCategories);
 }
 
 /** Leaf categories: nothing else lists them as a parent, and they actually
