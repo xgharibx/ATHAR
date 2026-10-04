@@ -10,7 +10,9 @@ import React from "react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { useApplyTheme } from "@/hooks/useApplyTheme";
-import { useNoorStore } from "@/store/noorStore";
+import { hydrateAccountStorageOwner, useNoorStore } from "@/store/noorStore";
+import { beginAccountStorageOwnerTransition, completeAccountStorageOwnerTransition } from "@/lib/accountStorageScope";
+import { THEME_BOOTSTRAP_STORAGE_KEY } from "@/lib/themeBootstrap";
 
 function Harness() {
   useApplyTheme();
@@ -50,6 +52,7 @@ describe("useApplyTheme (Pass A — DOM sync)", () => {
   });
 
   afterEach(() => {
+    completeAccountStorageOwnerTransition();
     if (root) {
       root.unmount();
       root = null;
@@ -131,5 +134,30 @@ describe("useApplyTheme (Pass A — DOM sync)", () => {
     expect(document.documentElement.classList.contains("midnight")).toBe(true);
     expect(document.documentElement.classList.contains("reduce-motion")).toBe(true);
     expect(document.body.classList.contains("transparent-mode")).toBe(true);
+  });
+
+  it("updates the startup theme hint when a hydrated user changes themes", async () => {
+    await hydrateAccountStorageOwner("local");
+    await act(async () => {
+      useNoorStore.setState((s) => ({ prefs: { ...s.prefs, theme: "diwan" } }));
+      mount();
+      await Promise.resolve();
+    });
+
+    expect(JSON.parse(localStorage.getItem(THEME_BOOTSTRAP_STORAGE_KEY) ?? "null").theme).toBe("diwan");
+  });
+
+  it("does not publish an interim theme while an account owner is transitioning", async () => {
+    await hydrateAccountStorageOwner("local");
+    localStorage.setItem(THEME_BOOTSTRAP_STORAGE_KEY, "forest");
+    beginAccountStorageOwnerTransition();
+
+    await act(async () => {
+      useNoorStore.setState((s) => ({ prefs: { ...s.prefs, theme: "dark" } }));
+      mount();
+      await Promise.resolve();
+    });
+
+    expect(localStorage.getItem(THEME_BOOTSTRAP_STORAGE_KEY)).toBe("forest");
   });
 });

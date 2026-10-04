@@ -19,12 +19,14 @@ import {
 } from "@/lib/hadithIDB";
 import { adoptDataPacks, exportDataPacks, type NoorPack } from "@/data/packs";
 import { saveCustomReminders } from "@/lib/reminderStorage";
+import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
 import type { HadithMemoCard } from "@/data/hadithTypes";
 import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
 import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
 import {
   accountScopedLocalStorage,
   getAccountStorageOwner,
+  isAccountStorageOwnerTransitionInProgress,
   setAccountStorageOwner,
   withAccountStorageWritesPaused,
   type AccountStorageOwner,
@@ -2218,6 +2220,9 @@ export function hydrateAccountStorageOwner(owner: AccountStorageOwner): Promise<
       if (request !== latestScopeRequest) return;
       await Promise.all([hydrateHadithState(), hydrateCustomReminders()]);
       if (request !== latestScopeRequest) return;
+      if (!isAccountStorageOwnerTransitionInProgress()) {
+        rememberThemeForFirstPaint(useNoorStore.getState().prefs.theme);
+      }
     } catch (error) {
       await withAccountStorageWritesPaused(() => {
         setAccountStorageOwner(previousOwner);

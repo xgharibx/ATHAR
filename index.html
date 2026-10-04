@@ -7,8 +7,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#07080b" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#f7f8ff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#022c22" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -105,7 +104,7 @@
     <!-- Loading screen: prevents black/white flash before React mounts (critical for Android WebView) -->
     <div id="app-loader" role="status" aria-label="جارٍ تحميل أثر…" style="
       position:fixed;inset:0;z-index:9999;
-      background:#0a0c12;
+      background:#022c22;
       display:flex;align-items:center;justify-content:center;
       flex-direction:column;gap:16px;
       transition:opacity 0.4s ease;
@@ -119,24 +118,91 @@
       </svg>
       <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
     </div>
-    <!-- Theme-aware loader: read persisted theme from localStorage before first paint -->
-    <script>
+    <!-- Kept in parity with THEME_META_COLORS in useApplyTheme.ts. -->
+    <script id="theme-bootstrap-colors" type="application/json">{"themes":{"system":"#07080b","dark":"#07080b","light":"#f7f8ff","noor":"#07080b","midnight":"#0f172a","forest":"#022c22","bees":"#1a120b","roses":"#280a14","sapphire":"#070a1a","violet":"#12051f","sunset":"#160a06","mist":"#0b0d12","bustan":"#f3ede2","waraq":"#efe7d5","fanous":"#140e06","sajjada":"#200a10","mihrab":"#071b33","midad":"#020b04","layl":"#000000","teen":"#eef0f6","jura":"#f5f2ea","andalus":"#f6f1e6","sakina":"#eceae6","shafaq":"#0b1220","mushaf":"#2a1114","sama":"#0a1f15","diwan":"#f5f1e6","faham":"#000000"},"samaPhases":{"fajr":"#1c2145","dhuhr":"#0d3a26","asr":"#3a2f14","maghrib":"#471f12","isha":"#0d1330"}}</script>
+    <!-- Theme-aware loader: use the active account's last hydrated theme before first paint. -->
+    <script id="theme-bootstrap">
     (function(){
-      var THEME_BG={system:"#07080b",dark:"#07080b",light:"#f7f8ff",noor:"#07080b",midnight:"#0f172a",forest:"#022c22",bees:"#1a120b",roses:"#280a14",sapphire:"#070a1a",violet:"#12051f",sunset:"#160a06",mist:"#0b0d12",bustan:"#f3ede2"};
       try {
-        var s = localStorage.getItem("noor_store_v1");
-        if (s) {
-          var d = JSON.parse(s);
-          var t = d && d.state && d.state.prefs && d.state.prefs.theme;
-          if (t === "system") {
-            t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        var mapElement = document.getElementById("theme-bootstrap-colors");
+        var catalog = JSON.parse((mapElement && mapElement.textContent) || "{}");
+        var THEME_BG = catalog.themes || {};
+        var SAMA_BG = catalog.samaPhases || {};
+        var isTheme = function(value) {
+          return Object.prototype.hasOwnProperty.call(THEME_BG, value);
+        };
+        var t = null;
+        var hintColor = null;
+        var rawHint = localStorage.getItem("athar_theme_bootstrap_v1");
+        if (rawHint) {
+          try {
+            var hint = JSON.parse(rawHint);
+            if (typeof hint === "string") t = hint;
+            else if (hint && typeof hint === "object") {
+              t = hint.theme;
+              hintColor = hint.color;
+            }
+          } catch (e) {
+            t = rawHint;
           }
-          if (t && THEME_BG[t]) {
-            var el = document.getElementById("app-loader");
-            if (el) el.style.background = THEME_BG[t];
-            var meta = document.querySelector('meta[name="theme-color"]');
-            if (meta) meta.setAttribute("content", THEME_BG[t]);
+        }
+        if (!isTheme(t)) {
+          t = null;
+          hintColor = null;
+          var s = localStorage.getItem("noor_store_v1");
+          if (s) {
+            var d = JSON.parse(s);
+            var legacyTheme = d && d.state && d.state.prefs && d.state.prefs.theme;
+            if (isTheme(legacyTheme)) t = legacyTheme;
           }
+        }
+        if (!isTheme(t)) t = "forest";
+        if (t === "system") {
+          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+        if (isTheme(t)) {
+          var color = THEME_BG[t];
+          if (t === "sama") {
+            var validSamaColor = false;
+            for (var phase in SAMA_BG) {
+              if (Object.prototype.hasOwnProperty.call(SAMA_BG, phase) && SAMA_BG[phase] === hintColor) {
+                validSamaColor = true;
+              }
+            }
+            if (!validSamaColor) {
+              var cachedPhase = null;
+              try {
+                var prayerRaw = localStorage.getItem("noor_widget_prayer_v2");
+                var prayerData = prayerRaw && JSON.parse(prayerRaw);
+                var nextPrayerName = prayerData && prayerData.nextPrayer && prayerData.nextPrayer.nameAr || "";
+                if (nextPrayerName.indexOf("الفجر") !== -1) cachedPhase = "fajr";
+                else if (nextPrayerName.indexOf("الظهر") !== -1) cachedPhase = "dhuhr";
+                else if (nextPrayerName.indexOf("العصر") !== -1) cachedPhase = "asr";
+                else if (nextPrayerName.indexOf("المغرب") !== -1) cachedPhase = "maghrib";
+                else if (nextPrayerName.indexOf("العشاء") !== -1) cachedPhase = "isha";
+              } catch (e) {}
+              if (!cachedPhase) {
+                var hour = new Date().getHours();
+                cachedPhase = hour < 5 ? "fajr" : hour < 13 ? "dhuhr" : hour < 17 ? "asr" : hour < 20 ? "maghrib" : "isha";
+              }
+              color = SAMA_BG[cachedPhase] || color;
+            } else {
+              color = hintColor;
+            }
+          }
+          var el = document.getElementById("app-loader");
+          if (el) el.style.background = color;
+          var metas = document.querySelectorAll('meta[name="theme-color"]');
+          for (var i = 0; i < metas.length; i += 1) {
+            if (metas[i].hasAttribute("media")) metas[i].remove();
+          }
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (!meta) {
+            meta = document.createElement("meta");
+            meta.setAttribute("name", "theme-color");
+            document.head.appendChild(meta);
+          }
+          meta.setAttribute("content", color);
         }
       } catch(e) {}
     })();

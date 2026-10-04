@@ -2,7 +2,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { hydrateAccountStorageOwner, useNoorStore } from "@/store/noorStore";
-import { getAccountStorageOwner, setAccountStorageOwner } from "@/lib/accountStorageScope";
+import { accountScopedStorageKey, getAccountStorageOwner, setAccountStorageOwner } from "@/lib/accountStorageScope";
+import { THEME_BOOTSTRAP_STORAGE_KEY } from "@/lib/themeBootstrap";
+import { beginAccountReminderTransition, completeAccountReminderTransition } from "@/lib/reminders";
 
 function seedStore(key: string, favorites: Record<string, boolean>) {
   localStorage.setItem(key, JSON.stringify({
@@ -13,11 +15,13 @@ function seedStore(key: string, favorites: Record<string, boolean>) {
 
 describe("Noor store account scope", () => {
   beforeEach(() => {
+    completeAccountReminderTransition();
     localStorage.clear();
     setAccountStorageOwner("local");
   });
 
   afterEach(async () => {
+    completeAccountReminderTransition();
     localStorage.clear();
     setAccountStorageOwner("local");
   });
@@ -58,6 +62,55 @@ describe("Noor store account scope", () => {
     expect(useNoorStore.getState().prefs.theme).toBe("midnight");
     expect(useNoorStore.getState().favorites).toEqual({ "account-a:1": true });
     expect(JSON.parse(localStorage.getItem("noor_store_v1::user-a") ?? "{}").version).toBe(34);
+  });
+
+  it("refreshes the pre-paint theme hint from the active account snapshot", async () => {
+    localStorage.setItem("noor_store_v1::user-a", JSON.stringify({
+      state: { prefs: { theme: "diwan" } },
+      version: 34,
+    }));
+
+    await hydrateAccountStorageOwner("user:user-a");
+
+    expect(JSON.parse(localStorage.getItem(THEME_BOOTSTRAP_STORAGE_KEY) ?? "null").theme).toBe("diwan");
+  });
+
+  it("publishes only the settled account theme after account-to-local inspection", async () => {
+    localStorage.setItem("noor_store_v1::user-a", JSON.stringify({
+      state: { prefs: { theme: "diwan" } },
+      version: 34,
+    }));
+    localStorage.setItem("noor_store_v1", JSON.stringify({
+      state: { prefs: { theme: "forest" } },
+      version: 34,
+    }));
+    localStorage.setItem(THEME_BOOTSTRAP_STORAGE_KEY, "light");
+
+    beginAccountReminderTransition();
+    await hydrateAccountStorageOwner("user:user-a");
+    await hydrateAccountStorageOwner("local");
+    await hydrateAccountStorageOwner("user:user-a");
+
+    expect(localStorage.getItem(THEME_BOOTSTRAP_STORAGE_KEY)).toBe("light");
+    completeAccountReminderTransition("user:user-a");
+    expect(JSON.parse(localStorage.getItem(THEME_BOOTSTRAP_STORAGE_KEY) ?? "null").theme).toBe("diwan");
+  });
+
+  it("saves the active sama phase color from the account-scoped prayer snapshot", async () => {
+    localStorage.setItem("noor_store_v1::user-a", JSON.stringify({
+      state: { prefs: { theme: "sama" } },
+      version: 34,
+    }));
+    localStorage.setItem(accountScopedStorageKey("noor_widget_prayer_v2", "user:user-a"), JSON.stringify({
+      nextPrayer: { nameAr: "الفجر" },
+    }));
+
+    await hydrateAccountStorageOwner("user:user-a");
+
+    expect(JSON.parse(localStorage.getItem(THEME_BOOTSTRAP_STORAGE_KEY) ?? "null")).toEqual({
+      theme: "sama",
+      color: "#1c2145",
+    });
   });
 
   it("restores the previous in-memory owner when the destination snapshot is corrupt", async () => {

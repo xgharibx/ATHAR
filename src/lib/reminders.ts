@@ -3,6 +3,7 @@ import { getInternalAppRoute } from "@/lib/internalAppRoute";
 import type { LocalNotification, Schedule } from "@capacitor/local-notifications";
 import { getCustomReminderSnoozeMinutes } from "@/lib/customReminderTypes";
 import { withAndroidDozeDelivery } from "@/lib/nativeNotificationSchedule";
+import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
 import { parseWebReminderClickDetail } from "@/lib/webReminderActions";
 import type { PrayerAlertPreferences, PrayerSoundProfile, ReminderSoundProfile, Reminders } from "@/store/noorStore";
 import { useNoorStore } from "@/store/noorStore";
@@ -994,6 +995,7 @@ export function completeAccountReminderTransition(owner?: AccountStorageOwner): 
   if (owner) rememberReminderOwner(owner);
   completeAccountStorageOwnerTransition();
   accountReminderTransitionInProgress = false;
+  if (owner) rememberThemeForFirstPaint(useNoorStore.getState().prefs.theme);
 }
 
 export function syncReminders(

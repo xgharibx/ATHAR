@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { useNoorStore, type NoorTheme } from "@/store/noorStore";
-import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { isAccountStorageOwnerTransitionInProgress } from "@/lib/accountStorageScope";
 import { getAccessibleAccentForeground, isSupportedOpaqueAccentColor } from "@/lib/accentContrast";
+import { getSamaPhase, SAMA_PHASE_COLORS } from "@/lib/samaTheme";
+import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
 
 /** Pure helpers exported for unit tests so they can be exercised without a
  *  jsdom environment. Kept side-effect-free on import. */
@@ -30,7 +32,7 @@ export function resolveUiLanguage(uiLanguage: "ar" | "en" | undefined, fallback:
 }
 
 // Theme-color map for PWA browser chrome tinting
-const THEME_META_COLORS: Record<NoorTheme, string> = {
+export const THEME_META_COLORS: Record<NoorTheme, string> = {
   system:   "#07080b",
   dark:     "#07080b",
   light:    "#f7f8ff",
@@ -75,42 +77,6 @@ const ALL_THEME_CLASSES = [
   "diwan", "faham",
 ];
 
-const SAMA_META: Record<string, string> = {
-  fajr: "#1c2145",
-  dhuhr: "#0d3a26",
-  asr: "#3a2f14",
-  maghrib: "#471f12",
-  isha: "#0d1330",
-};
-
-/**
- * سماء: the living theme — its palette follows the *upcoming prayer*, using
- * the same prayer payload the home-screen widgets read. Falls back to the
- * clock when timings haven't been fetched yet.
- */
-function samaPhase(): "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" {
-  try {
-    const raw = accountScopedLocalStorage.getItem("noor_widget_prayer_v2");
-    if (raw) {
-      const p = JSON.parse(raw) as { nextPrayer?: { nameAr?: string } | null };
-      const name = p?.nextPrayer?.nameAr ?? "";
-      if (name.includes("الفجر")) return "fajr";
-      if (name.includes("الظهر")) return "dhuhr";
-      if (name.includes("العصر")) return "asr";
-      if (name.includes("المغرب")) return "maghrib";
-      if (name.includes("العشاء")) return "isha";
-    }
-  } catch {
-    // fall through to clock-based phase
-  }
-  const h = new Date().getHours();
-  if (h < 5) return "fajr";
-  if (h < 13) return "dhuhr";
-  if (h < 17) return "asr";
-  if (h < 20) return "maghrib";
-  return "isha";
-}
-
 /**
  * Point the browser's own chrome at the ACTIVE Athar theme.
  *
@@ -154,7 +120,7 @@ export function applyThemeForTest(theme: NoorTheme) {
   apply(theme);
 }
 
-function apply(theme: NoorTheme) {
+function apply(theme: NoorTheme): string {
   const root = document.documentElement;
 
   root.classList.remove(...ALL_THEME_CLASSES);
@@ -163,28 +129,32 @@ function apply(theme: NoorTheme) {
     const isDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
     root.classList.add(isDark ? "dark" : "light");
     applyAccentForeground(root);
-    setMetaThemeColor(isDark ? "#07080b" : "#f7f8ff");
-    return;
+    const color = isDark ? "#07080b" : "#f7f8ff";
+    setMetaThemeColor(color);
+    return color;
   }
 
   if (theme === "sama") {
-    const phase = samaPhase();
+    const phase = getSamaPhase();
     root.classList.add("sama", `sama-${phase}`);
     applyAccentForeground(root);
-    setMetaThemeColor(SAMA_META[phase] ?? THEME_META_COLORS.sama);
-    return;
+    const color = SAMA_PHASE_COLORS[phase] ?? THEME_META_COLORS.sama;
+    setMetaThemeColor(color);
+    return color;
   }
 
   if (LIGHT_COMPOUND.has(theme)) {
     root.classList.add("light", theme);
     applyAccentForeground(root);
     setMetaThemeColor(THEME_META_COLORS[theme]);
-    return;
+    return THEME_META_COLORS[theme];
   }
 
   root.classList.add(theme);
   applyAccentForeground(root);
-  setMetaThemeColor(THEME_META_COLORS[theme] ?? "#07080b");
+  const color = THEME_META_COLORS[theme] ?? "#07080b";
+  setMetaThemeColor(color);
+  return color;
 }
 
 /**
@@ -201,7 +171,10 @@ export function useApplyTheme() {
   const clearReading = useNoorStore((s) => s.prefs.clearReading);
 
   useEffect(() => {
-    apply(theme);
+    const color = apply(theme);
+    if (useNoorStore.persist.hasHydrated() && !isAccountStorageOwnerTransitionInProgress()) {
+      rememberThemeForFirstPaint(theme, color);
+    }
 
     // Immersive transparent mode — respects the user preference
     if (transparentMode) {
@@ -221,11 +194,17 @@ export function useApplyTheme() {
     if (theme === "sama") {
       // The living sky re-evaluates when you come back to the app and on a
       // gentle interval, so the palette rolls through the day with you.
+      const refreshSama = () => {
+        const nextColor = apply("sama");
+        if (useNoorStore.persist.hasHydrated() && !isAccountStorageOwnerTransitionInProgress()) {
+          rememberThemeForFirstPaint("sama", nextColor);
+        }
+      };
       const onVisible = () => {
-        if (document.visibilityState === "visible") apply("sama");
+        if (document.visibilityState === "visible") refreshSama();
       };
       document.addEventListener("visibilitychange", onVisible);
-      const timer = window.setInterval(() => apply("sama"), 5 * 60 * 1000);
+      const timer = window.setInterval(refreshSama, 5 * 60 * 1000);
       return () => {
         document.removeEventListener("visibilitychange", onVisible);
         window.clearInterval(timer);
