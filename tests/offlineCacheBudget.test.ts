@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES,
   createMaxResponseSizePlugin,
+  pruneCacheToByteBudget,
   pruneOversizedCacheEntries,
 } from "@/lib/offlineCacheBudget";
 
@@ -90,5 +91,26 @@ describe("service-worker response cache budget", () => {
 
     await expect(pruneOversizedCacheEntries(cache, 4)).resolves.toBe(1);
     expect([...entries.keys()]).toEqual(["https://athar.example/data/within-budget.json"]);
+  });
+
+  it("removes oldest responses until the aggregate cache budget fits", async () => {
+    const entries = new Map<string, Response>([
+      ["https://audio.example/oldest.mp3", new Response("1234")],
+      ["https://audio.example/next.mp3", new Response("567")],
+      ["https://audio.example/newest.mp3", new Response("89")],
+    ]);
+    const cache = {
+      async keys() { return [...entries.keys()].map((url) => new Request(url)); },
+      async match(request: Request) { return entries.get(request.url)?.clone(); },
+      async delete(request: Request) { return entries.delete(request.url); },
+    } as unknown as Cache;
+
+    const result = await pruneCacheToByteBudget(cache, 5, 8);
+
+    expect(result).toMatchObject({ deletedCount: 1, totalBytes: 5 });
+    expect([...entries.keys()]).toEqual([
+      "https://audio.example/next.mp3",
+      "https://audio.example/newest.mp3",
+    ]);
   });
 });

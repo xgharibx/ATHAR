@@ -22,9 +22,15 @@ import {
   type WebReminderActionDetail,
 } from "./lib/webReminderActions";
 import {
+  MUSHAF_AUDIO_CACHE_MAX_BYTES,
+  MUSHAF_AUDIO_CACHE_NAME,
+  MUSHAF_AUDIO_MAX_RESPONSE_BYTES,
+} from "./lib/offlineAudioCache";
+import {
   CONTENT_PACK_RUNTIME_CACHE_MAX_BYTES,
   createMaxResponseSizePlugin,
   HADITH_RUNTIME_CACHE_MAX_BYTES,
+  pruneCacheToByteBudget,
   pruneOversizedCacheEntries,
 } from "./lib/offlineCacheBudget";
 
@@ -45,6 +51,14 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
       .catch((error: unknown) => {
         console.warn("[athar] Could not prune oversized cached content packs.", error);
       }),
+    caches.open(MUSHAF_AUDIO_CACHE_NAME)
+      .then((cache) => pruneCacheToByteBudget(cache, MUSHAF_AUDIO_CACHE_MAX_BYTES, MUSHAF_AUDIO_MAX_RESPONSE_BYTES))
+      .catch((error: unknown) => {
+        console.warn("[athar] Could not prune cached recitation audio.", error);
+      }),
+    caches.delete("quran-audio").catch((error: unknown) => {
+      console.warn("[athar] Could not remove the unused Quran audio cache.", error);
+    }),
   ]));
 });
 
@@ -89,30 +103,19 @@ registerRoute(
     ],
   }),
 );
+// Explicit offline downloads use cache:no-store to bypass this handler and are
+// written only after their response size and aggregate usage pass the app budget.
 registerRoute(
-  ({ url }) => url.origin === "https://everyayah.com",
-  new CacheFirst({
-    cacheName: "mushaf-audio-v1",
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({
-        maxEntries: 3000,
-        maxAgeSeconds: 60 * 60 * 24 * 365,
-      }),
-    ],
-  }),
+  ({ request, url }) => url.origin === "https://everyayah.com" && request.cache === "no-store",
+  new NetworkOnly(),
 );
+// Playback can read explicit downloads while offline, but ordinary streamed
+// playback never accumulates opaque audio in CacheStorage without user intent.
 registerRoute(
-  ({ url }) => url.origin === "https://cdn.islamic.network" && url.pathname.startsWith("/quran/audio/"),
+  ({ request, url }) => url.origin === "https://everyayah.com" && request.cache !== "no-store",
   new CacheFirst({
-    cacheName: "quran-audio",
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({
-        maxEntries: 3000,
-        maxAgeSeconds: 60 * 60 * 24 * 365,
-      }),
-    ],
+    cacheName: MUSHAF_AUDIO_CACHE_NAME,
+    plugins: [{ cacheWillUpdate: async () => null }],
   }),
 );
 registerRoute(

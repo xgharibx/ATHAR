@@ -37,6 +37,7 @@ import {
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { ShareAyahModal } from "@/components/quran/ShareAyahModal";
 import { FocusManagedDialog } from "@/components/ui/FocusManagedDialog";
+import { cacheAudioUrlsWithinBudget, MUSHAF_AUDIO_CACHE_NAME } from "@/lib/offlineAudioCache";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { CompanionModal } from "@/components/companion/CompanionModal";
@@ -1278,20 +1279,20 @@ export function MushafPage() {
     if (items.length === 0) return;
     setCacheProgress({ done: 0, total: items.length });
     try {
-      const cache = await caches.open("mushaf-audio-v1");
-      let done = 0;
-      let saved = 0;
-      for (const item of items) {
-        const s = String(item.surahId).padStart(3, "0");
-        const a = String(item.originalAyah).padStart(3, "0");
-        const url = `https://everyayah.com/data/${prefs.quranReciter ?? "Alafasy_128kbps"}/${s}${a}.mp3`;
-        try { await cache.add(url); saved++; } catch { /* network or CORS — skip */ }
-        done++;
-        setCacheProgress({ done, total: items.length });
-      }
-      if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال");
-      else if (saved === items.length) toast.success(`✓ تم تخزين ${saved} ملفًا صوتيًا للاستماع دون إنترنت`);
-      else toast(`تم تخزين ${saved} من ${items.length} ملفًا صوتيًا`, { icon: "⚠️" });
+      const cache = await caches.open(MUSHAF_AUDIO_CACHE_NAME);
+      const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
+      const urls = items.map((item) => {
+        const surah = String(item.surahId).padStart(3, "0");
+        const ayah = String(item.originalAyah).padStart(3, "0");
+        return "https://everyayah.com/data/" + reciter + "/" + surah + ayah + ".mp3";
+      });
+      const { saved, evicted } = await cacheAudioUrlsWithinBudget(cache, urls, {
+        onProgress: (done, total) => setCacheProgress({ done, total }),
+      });
+      const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
+      if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
+      else if (saved === items.length) toast.success("✓ تم تخزين " + saved + " ملفًا صوتيًا للاستماع دون إنترنت" + reclaimed);
+      else toast("تم تخزين " + saved + " من " + items.length + " ملفًا صوتيًا" + reclaimed, { icon: "⚠️" });
     } catch { toast.error("تعذر التحميل"); }
     finally { setCacheProgress(null); }
   }, [playableItems, prefs.quranReciter]);
@@ -1323,20 +1324,20 @@ export function MushafPage() {
       if (items.length === 0) return;
       setBulkDownloadProgress({ done: 0, total: items.length, label });
       try {
-        const cache = await caches.open("mushaf-audio-v1");
-        let done = 0;
-        let saved = 0;
-        for (const item of items) {
-          const s = String(item.surahId).padStart(3, "0");
-          const a = String(item.originalAyah).padStart(3, "0");
-          const url = `https://everyayah.com/data/${prefs.quranReciter ?? "Alafasy_128kbps"}/${s}${a}.mp3`;
-          try { await cache.add(url); saved++; } catch { /* network or CORS — skip */ }
-          done++;
-          setBulkDownloadProgress({ done, total: items.length, label });
-        }
-        if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال");
-        else if (saved === items.length) toast.success(`✓ تم تخزين ${successLabel} كاملة (${saved} آية) للاستماع دون إنترنت`);
-        else toast(`تم تخزين ${saved} من ${items.length} آية في ${label}`, { icon: "⚠️" });
+        const cache = await caches.open(MUSHAF_AUDIO_CACHE_NAME);
+        const reciter = prefs.quranReciter ?? "Alafasy_128kbps";
+        const urls = items.map((item) => {
+          const surah = String(item.surahId).padStart(3, "0");
+          const ayah = String(item.originalAyah).padStart(3, "0");
+          return "https://everyayah.com/data/" + reciter + "/" + surah + ayah + ".mp3";
+        });
+        const { saved, evicted } = await cacheAudioUrlsWithinBudget(cache, urls, {
+          onProgress: (done, total) => setBulkDownloadProgress({ done, total, label }),
+        });
+        const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
+        if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
+        else if (saved === items.length) toast.success("✓ تم تخزين " + successLabel + " كاملة (" + saved + " آية) للاستماع دون إنترنت" + reclaimed);
+        else toast("تم تخزين " + saved + " من " + items.length + " آية في " + label + reclaimed, { icon: "⚠️" });
       } catch { toast.error("تعذر التحميل"); }
       finally { setBulkDownloadProgress(null); }
     },
@@ -1380,22 +1381,21 @@ export function MushafPage() {
     if (items.length === 0) return;
     setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: { done: 0, total: items.length } }));
     try {
-      const cache = await caches.open("mushaf-audio-v1");
-      let done = 0;
-      let saved = 0;
-      for (const item of items) {
-        const s = String(item.surahId).padStart(3, "0");
-        const a = String(item.originalAyah).padStart(3, "0");
-        const url = `https://everyayah.com/data/${reciterId}/${s}${a}.mp3`;
-        try { await cache.add(url); saved++; } catch { /* skip */ }
-        done++;
-        setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: { done, total: items.length } }));
-      }
+      const cache = await caches.open(MUSHAF_AUDIO_CACHE_NAME);
+      const urls = items.map((item) => {
+        const surah = String(item.surahId).padStart(3, "0");
+        const ayah = String(item.originalAyah).padStart(3, "0");
+        return "https://everyayah.com/data/" + reciterId + "/" + surah + ayah + ".mp3";
+      });
+      const { saved, evicted } = await cacheAudioUrlsWithinBudget(cache, urls, {
+        onProgress: (done, total) => setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: { done, total } })),
+      });
       setReciterDownloadProgress((prev) => ({ ...prev, [reciterId]: saved === items.length ? "done" : "partial" }));
       const name = QURAN_RECITERS.find((r) => r.id === reciterId)?.label ?? reciterId;
-      if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال");
-      else if (saved === items.length) toast.success(`✓ تم تحميل الصفحة لـ ${name}`);
-      else toast(`تم تخزين ${saved} من ${items.length} آية للقارئ ${name}`, { icon: "⚠️" });
+      const reclaimed = evicted > 0 ? " · أُزيل " + evicted + " ملفًا صوتيًا أقدم لإفساح مساحة" : "";
+      if (saved === 0) toast.error("تعذّر تخزين ملفات الصوت — تحقّق من الاتصال" + reclaimed);
+      else if (saved === items.length) toast.success("✓ تم تحميل الصفحة لـ " + name + reclaimed);
+      else toast("تم تخزين " + saved + " من " + items.length + " آية للقارئ " + name + reclaimed, { icon: "⚠️" });
     } catch {
       setReciterDownloadProgress((prev) => { const upd = { ...prev }; delete upd[reciterId]; return upd; });
     }
