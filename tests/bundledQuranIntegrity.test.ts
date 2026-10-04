@@ -5,6 +5,12 @@ import { describe, expect, it } from "vitest";
 import { QuranFileSchema, QuranPageMapSchema } from "@/data/quranTypes";
 
 describe("bundled Quran offline assets", () => {
+  it("rejects empty, invalid-surah, and incomplete Quran datasets", () => {
+    expect(() => QuranFileSchema.parse({ surahs: [] })).toThrow();
+    expect(() => QuranFileSchema.parse({ surahs: [{ id: 999, name: "x", ayahs: ["x"] }] })).toThrow();
+    expect(() => QuranFileSchema.parse({ surahs: [{ id: 1, name: "الفاتحة", ayahs: ["آية واحدة"] }] })).toThrow();
+  });
+
   it("ships a valid page map covering every verse without a network fallback", () => {
     const quran = QuranFileSchema.parse(JSON.parse(readFileSync(resolve("public/data/quran.json"), "utf8")));
     const pages = QuranPageMapSchema.parse(JSON.parse(readFileSync(resolve("public/data/quran_page_map.json"), "utf8")));

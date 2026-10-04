@@ -38,9 +38,10 @@ describe("verifyHadith", () => {
 });
 
 describe("verifyAnswer (improved narrator check)", () => {
-  it("passes a clean attribution", () => {
+  it("distinguishes a recognized book attribution from verified hadith wording", () => {
     const out = verifyAnswer("رواه البخاري في صحيحه، حديث رقم ١");
-    expect(out.notes.some((n) => /البخاري/.test(n))).toBe(false);
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/لم أتحقق من لفظ الحديث/);
   });
 
   it("flags an invented narrator in attribution phrase", () => {
@@ -71,5 +72,13 @@ describe("verifyAnswerAsync", () => {
     const out = await verifyAnswerAsync("رواه محمد بن سعيد الكذّاب");
     expect(out.flagged).toBe(true);
     expect(out.notes.length).toBeGreaterThan(0);
+  });
+
+  it("does not treat a real collection name as proof of a quoted hadith", async () => {
+    const out = await verifyAnswerAsync('قال النبي ﷺ: «نص مختلق لا يطابق حديثًا معروفًا» رواه البخاري');
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/لم أتحقق من لفظ الحديث/);
+    expect(out.notes.join(" ")).not.toMatch(/حديث مكذوب/);
   });
 });

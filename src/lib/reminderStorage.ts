@@ -84,6 +84,9 @@ const VALID_REPEATS: ReminderRepeat[] = [
   "prayer_aligned",
   "fasting_aligned",
 ];
+const VALID_FASTING_PATTERNS: NonNullable<CustomReminder["fastingPattern"]>[] = [
+  "monday-thursday", "shawwal", "ayyam-al-beed", "arafah", "ashura", "dhul-hijjah", "muharram", "ramadan",
+];
 
 function isReminderWeekday(n: unknown): n is ReminderWeekday {
   return n === 0 || n === 1 || n === 2 || n === 3 || n === 4 || n === 5 || n === 6;
@@ -105,6 +108,12 @@ function sanitizeReminder(input: unknown): CustomReminder | null {
   const dow = isReminderWeekday(r.dayOfWeek) ? r.dayOfWeek : undefined;
   const domRaw = Number(r.dayOfMonth);
   const dayOfMonth = Number.isInteger(domRaw) && domRaw >= 1 && domRaw <= 31 ? domRaw : undefined;
+  const fastingPattern = VALID_FASTING_PATTERNS.includes(r.fastingPattern as NonNullable<CustomReminder["fastingPattern"]>)
+    ? r.fastingPattern as NonNullable<CustomReminder["fastingPattern"]>
+    : undefined;
+  const fastingDays = Array.isArray(r.fastingDays)
+    ? r.fastingDays.filter((day): day is number => typeof day === "number" && Number.isInteger(day) && day >= 0 && day <= 6)
+    : undefined;
 
   return {
     id: r.id,
@@ -118,6 +127,8 @@ function sanitizeReminder(input: unknown): CustomReminder | null {
     atTimeOfDay: typeof r.atTimeOfDay === "string" ? r.atTimeOfDay : undefined,
     dayOfWeek: dow,
     dayOfMonth,
+    fastingPattern,
+    fastingDays,
     anchorKey: typeof r.anchorKey === "string" ? r.anchorKey : undefined,
     anchorOffsetMinutes: Number.isFinite(Number(r.anchorOffsetMinutes))
       ? Number(r.anchorOffsetMinutes)

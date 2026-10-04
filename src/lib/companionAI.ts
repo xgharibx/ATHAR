@@ -36,8 +36,7 @@ import {
   detectMood,
   retrievePassagesAsync,
   retrieveUserRemindersAsPassages,
-  verifyAnswer,
-  warmQuranVerses,
+  verifyAnswerAsync,
 } from "@/lib/companionKnowledge";
 
 /* ─── Locked model + transport ───────────────────────────────────────────── */
@@ -463,10 +462,9 @@ const SYSTEM_CORE = `أنت «أثر»، رفيقٌ إيمانيٌّ ذكيٌّ 
 - عند الانتهاء من إجابة طويلة اختم باقتراحٍ عمليٍّ واحد قابلٍ للتنفيذ الآن لا قائمة نصائح.
 
 ### أدواتك
-لديك أربع أدوات تستخدمها متى لزم:
+لديك ثلاث أدوات تستخدمها متى لزم:
 - "next_step" حين تنتهي من إجابة تطلب فيها من المستخدم فعلًا (افتح أذكار الصباح، اقرأ وردي، ادعُ بهذا…). لا تستعملها في الكلام الترحيبي أو في الإجابات القصيرة.
 - "cite" حين تريد الاستشهاد بآية أو حديث فعلًا — سيُحقن لك المقتطف ومصدره. لا تستعمل صياغات مثل «رواه البخاري» دون أن تمرر المصدر عبر الأداة أولًا.
-- "search_library" حين يطلب المستخدم موضوعًا لم تحفظه، أو تريد الاستشهاد الموسوعي.
 - "create_reminder" حين يطلب المستخدم تذكيرًا بشيء في المستقبل (مثل «ذكّرني أن أقرأ سورة الكهف كل جمعة الساعة ١٠ صباحًا» أو «ذكّرني بأذكار الصباح يوميًا» أو «كل خميس أريد صيام» أو «بعد صلاة المغرب ذكّرني بكذا»). **هذا خط أحمر: يجب عليك استدعاء هذه الأداة فعليًا (tool call حقيقي) في نفس الرد قبل كتابة أي تأكيد نصّي — ممنوع منعًا باتًا أن تكتب أنك «أضفتَ» تذكيرًا أو «ستنبّه» المستخدم دون استدعاء الأداة فعلًا في نفس الرسالة؛ فعل ذلك يخدع المستخدم لأنه سيظن أن تذكيرًا حُفظ فعلًا بينما لم يحدث شيء.** لا تخلط بينها وبين "next_step": أي طلبٍ فيه معنى «ذكّرني لاحقًا / بشكل متكرر» هو create_reminder دومًا، حتى لو كان الشيء المطلوب (كأذكار الصباح) يبدو وكأنه يناسب next_step أيضًا. إن كان التذكير مرتبطًا بوقت صلاة (بعد/قبل الفجر، الظهر، العصر، المغرب، العشاء) فاستخدم repeat="prayer_aligned" مع anchorKey المناسب بدل "daily" حتى يُحسب الوقت الفعلي للصلاة لا وقتًا ثابتًا. فور استدعاء الأداة أرسل أيضًا جملة تأكيد قصيرة بالعربية فقط (لا تستعمل الإنجليزية) تذكر فيها اليوم والوقت مثل: «سأنبّهك يوم الجمعة الساعة ١٠ صباحًا إن شاء الله.» أو «أضفتُ التذكير إلى قائمتك، سيصلك تنبيه به إن شاء الله.»
 
 ### بناء الإجابة: syntax خاص بك
@@ -669,20 +667,6 @@ const COMPANION_TOOLS: Anthropic.Tool[] = [
         },
       },
       required: ["source", "excerpt"],
-    },
-  },
-  {
-    name: "search_library",
-    description: "اطلب من المحرّك بحثًا في الموسوعة الداخلية حول موضوع معيّن (مثلاً «قيام الليل»، «آداب الجمعة»). سيُحقن لك مقتطفات موثوقة قبل أن تجيب.",
-    input_schema: {
-      type: "object",
-      properties: {
-        query: {
-          type: "string",
-          description: "استعلام قصير بالعربية، مثال: «آداب يوم الجمعة».",
-        },
-      },
-      required: ["query"],
     },
   },
   {
@@ -1010,19 +994,35 @@ export type StreamCallbacks = {
 /** Build the supplemental retrieval block for the user's last message.
  *  Await the local index on a cold start so the first answer is grounded too.
  *  Also surfaces saved reminders only for an explicit personal-list request. */
-async function buildRetrievalBlock(lastUserText: string): Promise<string> {
+type RetrievedPassage = { source: string; sourceLabel: string; text: string };
+type RetrievalBlock = { text: string; passages: RetrievedPassage[] };
+
+async function buildRetrievalBlock(lastUserText: string): Promise<RetrievalBlock> {
   const passages = await retrievePassagesAsync(lastUserText, 5);
   const userReminders = retrieveUserRemindersAsPassages(lastUserText);
-  if (passages.length === 0 && userReminders.length === 0) return "";
+  if (passages.length === 0 && userReminders.length === 0) return { text: "", passages: [] };
   const lines: string[] = [];
   if (userReminders.length > 0) {
     lines.push("تذكيراتك المحفوظة في التطبيق (استعن بها في إجابتك):");
     userReminders.forEach((p, i) => lines.push(`${i + 1}. ${p.text}`));
   }
   if (passages.length > 0) {
-    passages.forEach((p, i) => lines.push(`${i + 1}. [مصدر: ${p.sourceLabel}] ${p.text}`));
+    passages.forEach((p, i) => lines.push(`${i + 1}. [معرّف المصدر: ${p.source}] [مصدر: ${p.sourceLabel}] ${p.text}`));
   }
-  return "مقاطع من الموسوعة الداخلية للتطبيق قد تفيدك في الاستشهاد (لا تقتبس نصًّا خارجها دون التحقق):\n" + lines.join("\n");
+  return {
+    text: "مقاطع من الموسوعة الداخلية للتطبيق قد تفيدك في الاستشهاد (لا تقتبس نصًّا خارجها دون التحقق):\n" + lines.join("\n"),
+    passages,
+  };
+}
+
+function normalizeCitationExcerpt(value: string): string {
+  return value
+    .normalize("NFKC")
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/[^\p{L}\p{N}]/gu, "")
+    .toLowerCase();
 }
 
 export async function streamCompanionReply(
@@ -1044,13 +1044,13 @@ export async function streamCompanionReply(
     }
 
     const client = await createClient();
-    warmQuranVerses(); // populate the verse map early so verifyAnswer() has it by the time streaming finishes
     const ctx = buildCompanionContext();
     const mood = detectMood(history[history.length - 1]?.content ?? "");
     const profile = loadProfile();
     const lastUser = [...history].reverse().find((m) => m.role === "user");
     if (lastUser) recordMemory(lastUser.content);
     const retrievalPromise = buildRetrievalBlock(lastUser?.content ?? "");
+    const retrieval = await retrievalPromise;
 
     const dynamicContext = [
       profile.includePersonalContext ? buildContextBlock(ctx) : buildMinimalContextBlock(ctx),
@@ -1058,7 +1058,7 @@ export async function streamCompanionReply(
       profile.includePersonalContext ? buildCompanionProfileContext(profile) : "",
       profile.includePersonalContext ? buildMemoryBlock() : "",
       buildRouteLabelsBlock(),
-      await retrievalPromise,
+      retrieval.text,
     ].filter(Boolean).join("\n\n");
 
     const stream = client.messages.stream({
@@ -1104,6 +1104,7 @@ export async function streamCompanionReply(
     // (markdown parser + rendering) can render them as clickable CTAs. The
     // model rarely uses these today but the API will accept them when it does.
     let toolAppend = "";
+    const unverifiedCitationNotes: string[] = [];
     const persistedToolCalls: PersistedToolCall[] = [];
     for (const block of finalMsg.content) {
       if (block.type !== "tool_use") continue;
@@ -1119,7 +1120,14 @@ export async function streamCompanionReply(
       } else if (name === "cite") {
         const source = typeof input.source === "string" ? input.source : "";
         const excerpt = typeof input.excerpt === "string" ? input.excerpt : "";
-        if (source) toolAppend += `\n\n:::cite(${source})\n${excerpt}\n:::`;
+        const passage = retrieval.passages.find((candidate) => candidate.source === source);
+        const normalizedExcerpt = normalizeCitationExcerpt(excerpt);
+        const normalizedSource = passage ? normalizeCitationExcerpt(passage.text) : "";
+        if (passage && normalizedExcerpt && normalizedSource.includes(normalizedExcerpt)) {
+          toolAppend += `\n\n:::cite(${source})\n${excerpt}\n:::`;
+        } else {
+          unverifiedCitationNotes.push("لم أتمكن من مطابقة المقتطف أو مصدره مع الموسوعة المحلية؛ لا أعرضه كاقتباس موثق.");
+        }
       } else if (name === "create_reminder") {
         // Encode the structured create_reminder tool call into a callout-style
         // block so it persists in companionMessages.content (just like next_step
@@ -1136,7 +1144,11 @@ export async function streamCompanionReply(
       full += toolAppend;
       cb.onText(toolAppend);
     }
-    const verification = verifyAnswer(full);
+    const verification = await verifyAnswerAsync(full);
+    if (unverifiedCitationNotes.length > 0) {
+      verification.flagged = true;
+      verification.notes = Array.from(new Set([...verification.notes, ...unverifiedCitationNotes]));
+    }
     cb.onDone?.(full, verification);
   } catch (err) {
     cb.onError?.(describeError(err));

@@ -117,7 +117,75 @@ type CalendarDayEntry = {
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
+const SECONDARY_PRAYER_REQUEST_TIMEOUT_MS = 10_000;
+const REQUIRED_PRAYER_TIMINGS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"] as const;
+
 function cleanTime(raw: string) { return (raw ?? "").split(" ")[0] ?? raw; }
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+async function requestPrayerJSON<T>(url: string, parse: (payload: unknown) => T, querySignal?: AbortSignal): Promise<T> {
+  const controller = new AbortController();
+  let timedOut = false;
+  const abortFromQuery = () => controller.abort();
+  if (querySignal?.aborted) controller.abort();
+  else querySignal?.addEventListener("abort", abortFromQuery, { once: true });
+  const timeoutId = globalThis.setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, SECONDARY_PRAYER_REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error(`تعذر جلب مواقيت الصلاة (${response.status})`);
+    return parse(await response.json());
+  } catch (error) {
+    if (timedOut) throw new Error("انتهت مهلة طلب مواقيت الصلاة؛ أعد المحاولة.");
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+    querySignal?.removeEventListener("abort", abortFromQuery);
+  }
+}
+
+function parsePrayerTimings(payload: unknown): Record<string, string> {
+  const data = isRecord(payload) ? payload.data : null;
+  const timings = isRecord(data) ? data.timings : null;
+  if (!isRecord(timings) || !REQUIRED_PRAYER_TIMINGS.every((prayer) =>
+    typeof timings[prayer] === "string" && parseClockToMinutes(cleanTime(timings[prayer] as string)) !== null)) {
+    throw new Error("استجابة مواقيت الصلاة غير صالحة");
+  }
+  return timings as Record<string, string>;
+}
+
+function parsePrayerCalendar(payload: unknown, year: number, month: number): CalendarDayEntry[] {
+  const data = isRecord(payload) ? payload.data : null;
+  const expectedDays = new Date(year, month, 0).getDate();
+  if (!Array.isArray(data) || data.length !== expectedDays) throw new Error("استجابة تقويم الصلاة غير صالحة");
+  const parsed = data as unknown[];
+  for (let index = 0; index < parsed.length; index += 1) {
+    const entry = parsed[index];
+    const date = isRecord(entry) && isRecord(entry.date) ? entry.date : null;
+    const gregorian = date && isRecord(date.gregorian) ? date.gregorian : null;
+    const hijri = date && isRecord(date.hijri) ? date.hijri : null;
+    const gregorianMonth = gregorian && isRecord(gregorian.month) ? gregorian.month : null;
+    const weekday = gregorian && isRecord(gregorian.weekday) ? gregorian.weekday : null;
+    const hijriMonth = hijri && isRecord(hijri.month) ? hijri.month : null;
+    const timings = isRecord(entry) ? entry.timings : null;
+    if (
+      !isRecord(entry) || !isRecord(timings) || !gregorian || !hijri || !gregorianMonth || !weekday || !hijriMonth ||
+      Number(gregorian.day) !== index + 1 || Number(gregorianMonth.number) !== month || Number(gregorian.year) !== year ||
+      typeof gregorian.date !== "string" || typeof weekday.en !== "string" ||
+      typeof hijri.day !== "string" || typeof hijri.date !== "string" || typeof hijriMonth.ar !== "string" ||
+      !Number.isInteger(hijriMonth.number) || !REQUIRED_PRAYER_TIMINGS.every((prayer) =>
+        typeof timings[prayer] === "string" && parseClockToMinutes(cleanTime(timings[prayer] as string)) !== null)
+    ) {
+      throw new Error("استجابة تقويم الصلاة غير صالحة");
+    }
+  }
+  return parsed as CalendarDayEntry[];
+}
 
 function rowIcon(row: PrayerDetailRow) {
   if (row.type === "forbidden") return AlertTriangle;
@@ -160,24 +228,15 @@ function usePrayerCalendar(year: number, month: number, enabled = true) {
   return useQuery<CalendarDayEntry[]>({
     queryKey: ["prayer-calendar", year, month, method, school, locationIdentity],
     enabled,
-    queryFn: async () => {
-      if (coords) {
-        const res = await fetch(
-          `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${coords.lat}&longitude=${coords.lng}&method=${method}&school=${school}`
-        );
-        if (!res.ok) throw new Error("تعذر جلب التقويم حسب موقعك");
-        const j = await res.json() as { data: CalendarDayEntry[] };
-        return j.data;
-      }
-      const res = await fetch(
-        `https://api.aladhan.com/v1/calendarByCity/${year}/${month}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`
-      );
-      if (!res.ok) throw new Error("تعذر جلب التقويم");
-      const j = await res.json() as { data: CalendarDayEntry[] };
-      return j.data;
+    queryFn: async (context?: { signal?: AbortSignal }) => {
+      const url = coords
+        ? `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${coords.lat}&longitude=${coords.lng}&method=${method}&school=${school}`
+        : `https://api.aladhan.com/v1/calendarByCity/${year}/${month}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`;
+      return requestPrayerJSON(url, (payload) => parsePrayerCalendar(payload, year, month), context?.signal);
     },
     staleTime: 24 * 60 * 60 * 1000,
-    retry: 2,
+    retry: 1,
+    retryDelay: 1_000,
   });
 }
 
@@ -189,16 +248,13 @@ function useCityTimes(city: string, country: string, dayKey: string) {
   const [year, month, day] = dayKey.split("-");
   return useQuery({
     queryKey: ["city-times", city, country, method, school, dayKey],
-    queryFn: async () => {
-      const res = await fetch(
-        `https://api.aladhan.com/v1/timingsByCity/${day}-${month}-${year}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`
-      );
-      if (!res.ok) throw new Error("failed");
-      const j = await res.json() as { data: { timings: Record<string, string> } };
-      return j.data.timings;
+    queryFn: async (context?: { signal?: AbortSignal }) => {
+      const url = `https://api.aladhan.com/v1/timingsByCity/${day}-${month}-${year}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`;
+      return requestPrayerJSON(url, parsePrayerTimings, context?.signal);
     },
     staleTime: 60 * 60 * 1000,
     retry: 1,
+    retryDelay: 1_000,
   });
 }
 
@@ -217,7 +273,7 @@ function IqamaTimeInline({ prayerTime, offset }: { prayerTime: string; offset: n
 function CityRow({ city, country, label, dayKey, onRemove }: {
   city: string; country: string; label: string; dayKey: string; onRemove: () => void;
 }) {
-  const { data, isLoading, error } = useCityTimes(city, country, dayKey);
+  const { data, isLoading, error, refetch } = useCityTimes(city, country, dayKey);
   return (
     <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3">
       <div className="flex items-center justify-between mb-2">
@@ -229,7 +285,10 @@ function CityRow({ city, country, label, dayKey, onRemove }: {
       {isLoading ? (
         <div className="text-xs opacity-40" role="status" aria-live="polite" aria-atomic="true">جارٍ التحميل...</div>
       ) : (error || !data) ? (
-        <div className="text-xs opacity-40">تعذر التحميل</div>
+        <div className="flex items-center justify-between gap-2 text-xs opacity-60">
+          <span>تعذر التحميل</span>
+          <button type="button" className="text-[var(--accent)] underline" onClick={() => void refetch()}>إعادة المحاولة</button>
+        </div>
       ) : (
         <div className="overflow-x-auto -mx-1 px-1">
           <div className="grid grid-cols-5 gap-1 text-center text-xs" style={{ minWidth: "13.75rem" }}>
@@ -385,7 +444,15 @@ function WeeklyTab() {
   const todayDay = now.getDate();
 
   if (isLoading) return <div className="text-sm opacity-50 p-2" role="status" aria-live="polite" aria-atomic="true">جارٍ التحميل...</div>;
-  if (error || !data) return <div className="text-sm opacity-50 p-2">تعذر تحميل الجدول الأسبوعي</div>;
+  if (error || !data) return (
+    <div role="alert" className="flex items-center justify-between gap-3 p-2 text-sm opacity-70">
+      <span>تعذر تحميل الجدول الأسبوعي</span>
+      <button type="button" className="text-[var(--accent)] underline" onClick={() => {
+        void currentMonth.refetch();
+        if (needsNextMonth) void nextMonth.refetch();
+      }}>إعادة المحاولة</button>
+    </div>
+  );
 
   const todayIdx = data.findIndex((d) => Number(d.date.gregorian.day) === todayDay);
   const start = Math.max(0, todayIdx === -1 ? 0 : todayIdx);
@@ -440,7 +507,7 @@ function MonthlyTab() {
   const now = new Date();
   const [viewYear,  setViewYear]  = React.useState(now.getFullYear());
   const [viewMonth, setViewMonth] = React.useState(now.getMonth() + 1);
-  const { data, isLoading, error } = usePrayerCalendar(viewYear, viewMonth);
+  const { data, isLoading, error, refetch } = usePrayerCalendar(viewYear, viewMonth);
   const todayDay       = now.getDate();
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
 
@@ -457,7 +524,12 @@ function MonthlyTab() {
         <button type="button" aria-label="الشهر التالي" onClick={next} className="p-2 rounded-full bg-[var(--card)] hover:bg-[var(--card-2)]"><ChevronLeft size={16} aria-hidden="true" /></button>
       </div>
       {isLoading && <div className="text-sm opacity-50" role="status" aria-live="polite" aria-atomic="true">جارٍ التحميل...</div>}
-      {(error || (!isLoading && !data)) && <div className="text-sm opacity-50">تعذر تحميل التقويم الشهري</div>}
+      {(error || (!isLoading && !data)) && (
+        <div role="alert" className="flex items-center justify-between gap-3 text-sm opacity-70">
+          <span>تعذر تحميل التقويم الشهري</span>
+          <button type="button" className="text-[var(--accent)] underline" onClick={() => void refetch()}>إعادة المحاولة</button>
+        </div>
+      )}
       {data && (
         <div className="overflow-x-auto -mx-1">
           <table className="w-full text-[11px]">
@@ -588,7 +660,7 @@ function HijriCalendarTab() {
   const now  = new Date();
   const [viewYear,  setViewYear]  = React.useState(now.getFullYear());
   const [viewMonth, setViewMonth] = React.useState(now.getMonth() + 1);
-  const { data, isLoading, error } = usePrayerCalendar(viewYear, viewMonth);
+  const { data, isLoading, error, refetch } = usePrayerCalendar(viewYear, viewMonth);
   const todayDay       = now.getDate();
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
 
@@ -621,7 +693,12 @@ function HijriCalendarTab() {
       </div>
 
       {isLoading && <div className="text-sm opacity-50" role="status" aria-live="polite" aria-atomic="true">جارٍ التحميل...</div>}
-      {(error || (!isLoading && !data)) && <div className="text-sm opacity-50">تعذر تحميل التقويم</div>}
+      {(error || (!isLoading && !data)) && (
+        <div role="alert" className="flex items-center justify-between gap-3 text-sm opacity-70">
+          <span>تعذر تحميل التقويم الهجري</span>
+          <button type="button" className="text-[var(--accent)] underline" onClick={() => void refetch()}>إعادة المحاولة</button>
+        </div>
+      )}
 
       {calendarGrid && (
         <>

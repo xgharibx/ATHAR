@@ -7,6 +7,7 @@
  */
 import * as React from "react";
 import Dexie, { type Table } from "dexie";
+import { getSurahAyahCount } from "@/data/quranSurahCounts";
 
 export interface WbwWord {
   ar: string;  // Arabic word text (Uthmani)
@@ -49,7 +50,8 @@ async function idbGet(surahId: number): Promise<WbwSurah | null> {
     const row = await db.wbwCache.get(key);
     if (!row) return null;
     const now = Date.now();
-    if (!Number.isFinite(row.cachedAt) || row.cachedAt > now || now - row.cachedAt > MAX_AGE_MS) {
+    if (!Number.isFinite(row.cachedAt) || row.cachedAt > now || now - row.cachedAt > MAX_AGE_MS ||
+      row.key !== key || !isValidWbwSurah(surahId, row.data)) {
       await db.wbwCache.delete(key);
       return null;
     }
@@ -95,8 +97,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function parseQuranComResponse(payload: unknown): QuranComResponse {
-  if (!isRecord(payload) || !Array.isArray(payload.verses) || payload.verses.length === 0) {
+function isValidWbwSurah(surahId: number, data: unknown): data is WbwSurah {
+  const count = getSurahAyahCount(surahId);
+  if (!count || !Array.isArray(data) || data.length !== count + 1 || !Array.isArray(data[0])) return false;
+  for (let ayah = 1; ayah <= count; ayah += 1) {
+    const words = data[ayah];
+    if (!Array.isArray(words) || words.length === 0 || words.some((word) =>
+      !isRecord(word) || typeof word.ar !== "string" || !word.ar ||
+      typeof word.tr !== "string" || typeof word.tl !== "string" || typeof word.tj !== "string")) return false;
+  }
+  return true;
+}
+
+function parseQuranComResponse(payload: unknown, surahId: number): QuranComResponse {
+  const expectedAyahCount = getSurahAyahCount(surahId);
+  if (!expectedAyahCount || !isRecord(payload) || !Array.isArray(payload.verses) || payload.verses.length !== expectedAyahCount) {
     throw new Error("Invalid Quran.com word-by-word response");
   }
 
@@ -106,7 +121,7 @@ function parseQuranComResponse(payload: unknown): QuranComResponse {
       !isRecord(verse) ||
       !Number.isInteger(verse.verse_number) ||
       Number(verse.verse_number) < 1 ||
-      Number(verse.verse_number) > 286 ||
+      Number(verse.verse_number) > expectedAyahCount ||
       seenVerseNumbers.has(Number(verse.verse_number)) ||
       !Array.isArray(verse.words) ||
       verse.words.length === 0
@@ -137,10 +152,13 @@ function parseQuranComResponse(payload: unknown): QuranComResponse {
     }
   }
 
+  if (seenVerseNumbers.size !== expectedAyahCount) throw new Error("Invalid Quran.com word-by-word response");
+
   return payload as unknown as QuranComResponse;
 }
 
 export async function loadWbwSurah(surahId: number): Promise<WbwSurah> {
+  if (!getSurahAyahCount(surahId)) throw new Error("Invalid Quran.com word-by-word surah");
   const cached = await idbGet(surahId);
   if (cached) return cached;
 
@@ -157,7 +175,7 @@ export async function loadWbwSurah(surahId: number): Promise<WbwSurah> {
   try {
     const resp = await fetch(url, { signal: controller.signal });
     if (!resp.ok) throw new Error(`WBW fetch failed: ${resp.status}`);
-    json = parseQuranComResponse(await resp.json());
+    json = parseQuranComResponse(await resp.json(), surahId);
   } catch (error) {
     if (timedOut) throw new Error("Quran.com word-by-word request timed out");
     throw error;
@@ -179,6 +197,7 @@ export async function loadWbwSurah(surahId: number): Promise<WbwSurah> {
     result[verse.verse_number] = words;
   }
 
+  if (!isValidWbwSurah(surahId, result)) throw new Error("Invalid Quran.com word-by-word response");
   await idbSet(surahId, result);
   return result;
 }

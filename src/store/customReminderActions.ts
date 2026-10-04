@@ -71,6 +71,7 @@ export interface AddCustomReminderInput {
   atTimeOfDay?: string;
   dayOfWeek?: ReminderWeekday | number;
   dayOfMonth?: number;
+  fastingPattern?: CustomReminder["fastingPattern"];
   anchorKey?: CustomReminder["anchorKey"];
   anchorOffsetMinutes?: number;
   startDate?: string;
@@ -106,6 +107,7 @@ export function addCustomReminder(r: AddCustomReminderInput): string {
     atTimeOfDay: r.atTimeOfDay,
     dayOfWeek: r.dayOfWeek as ReminderWeekday | undefined,
     dayOfMonth: r.dayOfMonth,
+    fastingPattern: r.fastingPattern,
     anchorKey: r.anchorKey,
     anchorOffsetMinutes: r.anchorOffsetMinutes,
     startDate: r.startDate,

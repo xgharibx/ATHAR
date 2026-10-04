@@ -22,6 +22,8 @@ describe("tafsir API response normalization", () => {
     expect(() => parseTafsirApiResponse({ data: [] }, 1)).toThrow("Invalid tafsir response");
     expect(() => parseTafsirApiResponse({ ayahs: [{ ayah: 1, surah: 2, text: "نص" }] }, 1))
       .toThrow("Invalid tafsir response");
+    expect(() => parseTafsirApiResponse([{ ayah: 286, surah: 1, text: "آية خارج سورة الفاتحة" }], 1))
+      .toThrow("Invalid tafsir response");
   });
 });
 

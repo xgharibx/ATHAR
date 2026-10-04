@@ -78,6 +78,20 @@ describe("Companion knowledge index cache", () => {
     await expect(verifyAnswerAsync("سورة البقرة:99999")).resolves.toMatchObject({ flagged: true });
   });
 
+  it("checks explicitly quoted Quran text against its cited local ayah", async () => {
+    idbGetExtras.mockResolvedValue(null);
+    const { verifyAnswerAsync } = await loadKnowledgeModule();
+
+    await expect(verifyAnswerAsync("قال الله تعالى: ﴿بسم الله الرحمن الرحيم﴾ سورة الفاتحة:1"))
+      .resolves.toMatchObject({ flagged: false, notes: [] });
+    await expect(verifyAnswerAsync("قال الله تعالى: ﴿بسم ﷲ الرحمن الرحيم﴾ سورة الفاتحة:1"))
+      .resolves.toMatchObject({ flagged: false, notes: [] });
+    await expect(verifyAnswerAsync("قال الله تعالى: ﴿الحمد لله رب العالمين﴾ سورة الفاتحة:1"))
+      .resolves.toMatchObject({ flagged: true, notes: [expect.stringContaining("الاقتباس القرآني")] });
+    await expect(verifyAnswerAsync("معنى الآية باختصار: كلامٌ عن رحمة الله، سورة الفاتحة:1"))
+      .resolves.toMatchObject({ flagged: false, notes: [] });
+  });
+
   it("keeps using the previous index when any source fails during an expired rebuild", async () => {
     vi.spyOn(Date, "now").mockReturnValue(cachedAt + 31 * DAY_MS);
     idbGetExtras.mockResolvedValue({ cachedAt, data: oldIndex, buildVersion: 1 });

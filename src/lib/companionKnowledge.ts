@@ -331,6 +331,15 @@ function toNum(s: string): number {
   return n;
 }
 
+function normalizeQuranQuote(value: string): string {
+  return value
+    .normalize("NFKC")
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/[^\p{L}\p{N}]/gu, "");
+}
+
 const SURAH_NUM: Record<string, number> = {
   "الفاتحة": 1, "البقرة": 2, "آل عمران": 3, "النساء": 4, "المائدة": 5, "الأنعام": 6, "الأعراف": 7,
   "الأنفال": 8, "التوبة": 9, "يونس": 10, "هود": 11, "يوسف": 12, "الرعد": 13, "إبراهيم": 14,
@@ -411,17 +420,7 @@ export function verifyAnswer(text: string): VerificationReport {
       }
       continue;
     }
-    if (collection === "bukhari") {
-      const hasMarker = /البخاري|رقم\s*\d+|كتاب\s+/.test(text);
-      if (!hasMarker) {
-        notes.push(`ذكرت «رواه ${cited}» دون تحديد رقم أو كتاب — تحقَّق من المصدر.`);
-      }
-    } else if (collection === "muslim") {
-      const hasMarker = /مسلم|رقم\s*\d+|كتاب\s+/.test(text);
-      if (!hasMarker) {
-        notes.push(`ذكرت «أخرجه ${cited}» دون تحديد رقم أو كتاب — تحقَّق من المصدر.`);
-      }
-    }
+    if (collection) continue;
   }
   // Extended: «ذكر البخاري في صحيحه» / «أخرجاه» — make sure a recognisable
   // narrator (companion or collector) is also in the surrounding text.
@@ -431,6 +430,7 @@ export function verifyAnswer(text: string): VerificationReport {
       notes.push("ذكرت اسم البخاري في صحيحه دون إيراد راوٍ معروف — تحقَّق من المصدر.");
     }
   }
+  notes.push(...unverifiedHadithAttributionNotes(text));
   const hv = verifyHadith(text);
   for (const n of hv.notes) notes.push(n);
   // verifyHadith() re-scans the same HADITH_ATTR_RE matches as the loop
@@ -452,6 +452,24 @@ const HADITH_COLLECTIONS: Record<string, "bukhari" | "muslim" | "other"> = {
   "مالك": "other",
   "أحمد": "other",
 };
+
+/** A recognized book name identifies a collection, but does not prove that
+ * the quoted wording or its reference number appears in that collection. */
+function unverifiedHadithAttributionNotes(text: string): string[] {
+  const notes = new Set<string>();
+  let match: RegExpExecArray | null;
+  HADITH_ATTR_RE.lastIndex = 0;
+  while ((match = HADITH_ATTR_RE.exec(text))) {
+    const cited = (match[1] ?? "").trim();
+    const collectionName = cited.replace(
+      /\s*(?:في\s+(?:كتابه|صحيحه|مسنده|سننه|موطأه|صحيحها|الأم)|عن\s+\S.*|رقم\s*[٠-٩0-9]+|كتاب\s+\S+).*$/i,
+      "",
+    ).trim();
+    if (!HADITH_COLLECTIONS[collectionName]) continue;
+    notes.add(`لم أتحقق من لفظ الحديث أو رقمه المنسوب إلى «${collectionName}» بمطابقته مع سجل موثوق داخل التطبيق — راجع المصدر الأصلي.`);
+  }
+  return Array.from(notes);
+}
 
 /** Recognised hadith narrators / books. Used to flag claims like
  *  «رواه أحمد بن محمد الفقيه» where the narrator is invented.
@@ -560,6 +578,7 @@ export function verifyHadith(text: string): HadithVerifyResult {
 export async function verifyAnswerAsync(text: string): Promise<VerificationReport> {
   const flags: string[] = [];
   const notes: string[] = [];
+  const citedAyahs: Array<{ key: string; expected: string }> = [];
 
   let m: RegExpExecArray | null;
   SURAH_RE.lastIndex = 0;
@@ -569,10 +588,24 @@ export async function verifyAnswerAsync(text: string): Promise<VerificationRepor
     const sid = SURAH_NUM[surahName];
     if (!sid) continue;
     const map = await buildQuranVerses();
-    const expected = map.get(`${sid}:${ayah}`);
+    const key = `${sid}:${ayah}`;
+    const expected = map.get(key);
+    if (expected) citedAyahs.push({ key, expected });
     if (!expected) {
       flags.push(`referenced verse سورة ${surahName}:${ayah} but no such ayah in local mushaf`);
       notes.push(`سورة ${surahName} ${ayah} — لم أعثر عليها في المصحف المحلي، تحقَّق من المصدر.`);
+    }
+  }
+  // Verify only a single explicitly marked Quran quote paired with a single
+  // recognized surah:ayah citation. Ambiguous/multiple references, prose,
+  // paraphrases, and translations are deliberately left untouched.
+  const quoteMatches = Array.from(text.matchAll(/﴿([^﴿﴾]+)﴾/g));
+  if (citedAyahs.length === 1 && quoteMatches.length === 1) {
+    const quote = normalizeQuranQuote(quoteMatches[0]?.[1] ?? "");
+    const verse = normalizeQuranQuote(citedAyahs[0]!.expected);
+    if (quote.length >= 10 && verse && !verse.includes(quote)) {
+      flags.push(`quoted Quran text does not match ${citedAyahs[0]!.key}`);
+      notes.push("الاقتباس القرآني لا يطابق نص الآية المحلية المشار إليها — تحقَّق من النص والمرجع.");
     }
   }
   // Combine with hadith attribution verification.
@@ -580,5 +613,6 @@ export async function verifyAnswerAsync(text: string): Promise<VerificationRepor
   if (hv.flagged) {
     for (const n of hv.notes) notes.push(n);
   }
+  notes.push(...unverifiedHadithAttributionNotes(text));
   return { flagged: flags.length > 0 || notes.length > 0, notes };
 }

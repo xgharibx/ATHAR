@@ -36,6 +36,7 @@ import {
   completeAccountReminderTransition,
   syncReminders,
 } from "@/lib/reminders";
+import { NOTIFICATION_ACTION_TYPES, REMINDER_ACTION_TYPE_ID, CUSTOM_REMINDER_ACTION_TYPE_ID } from "@/lib/notificationActionTypes";
 import type { Reminders } from "@/store/noorStore";
 import { setAccountStorageOwner } from "@/lib/accountStorageScope";
 
@@ -91,6 +92,15 @@ afterEach(() => {
 });
 
 describe("silent native notification sound payloads", () => {
+  it("uses a neutral snooze label when reminder snooze durations can vary", () => {
+    const reminderSnooze = NOTIFICATION_ACTION_TYPES.find((type) => type.id === REMINDER_ACTION_TYPE_ID)?.actions[0];
+    const customSnooze = NOTIFICATION_ACTION_TYPES.find((type) => type.id === CUSTOM_REMINDER_ACTION_TYPE_ID)
+      ?.actions.find((action) => action.id === "snooze");
+
+    expect(reminderSnooze?.title).toBe("تأجيل التذكير");
+    expect(customSnooze?.title).toBe("تأجيل التذكير");
+  });
+
   it("omits sound from iOS prayer follow-up and daily Hadith notifications", () => {
     const notifications = buildPrayerNotificationsForDays(
       [{ dateISO: "2026-10-03", timings: { Fajr: "05:01" } }],

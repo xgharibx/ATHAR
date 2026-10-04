@@ -38,6 +38,20 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("native authentication callback delivery", () => {
+  it("publishes OAuth callback failures so the app can show a recovery message", async () => {
+    let callbackResult: { ok: boolean; error?: string } | undefined;
+    callbackWindow.addEventListener("athar-auth-result", (event) => {
+      callbackResult = (event as CustomEvent<{ ok: boolean; error?: string }>).detail;
+    });
+    callbackWindow.__atharPendingAuthUrl = "app.athar://auth?error=access_denied";
+
+    const { getSupabase } = await import("@/lib/authClient");
+    getSupabase();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(callbackResult).toEqual({ ok: false, error: "تعذّر تسجيل الدخول" });
+  });
+
   it("consumes a callback queued before the session consumers mount", async () => {
     callbackWindow.__atharPendingAuthUrl = "app.athar://auth?code=cold-start";
     const { getSupabase } = await import("@/lib/authClient");

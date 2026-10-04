@@ -11,13 +11,13 @@ export const NOTIFICATION_ACTION_TYPES = [
   },
   {
     id: REMINDER_ACTION_TYPE_ID,
-    actions: [{ id: "snooze_60", title: "ذكرني بعد ساعة" }],
+    actions: [{ id: "snooze_60", title: "تأجيل التذكير" }],
   },
   {
     id: CUSTOM_REMINDER_ACTION_TYPE_ID,
     actions: [
       { id: "done", title: "تم ✓" },
-      { id: "snooze", title: "ذكرني بعد ساعة" },
+      { id: "snooze", title: "تأجيل التذكير" },
       { id: "open", title: "افتح" },
     ],
   },

@@ -64,16 +64,15 @@ import {
 } from "@/store/customReminderActions";
 import type {
   CustomReminder,
+  FastingPattern,
   ReminderCategory,
   ReminderRepeat,
-  ReminderWeekday,
 } from "@/data/reminderTypes";
 import type {
   ReminderTemplate,
-  ReminderTemplateRepeat,
-  ReminderTemplateAnchor,
 } from "@/data/reminderTemplates";
 import { REMINDER_TEMPLATES } from "@/data/reminderTemplates";
+import { buildReminderFromTemplate, getReminderTemplateRepeat } from "@/lib/reminderTemplateBuilder";
 import { nextOccurrences, type PrayerTimesSource } from "@/lib/reminderRecurrence";
 import { applyNotificationAction, REMINDER_SOUND_OPTIONS } from "@/lib/reminders";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
@@ -131,15 +130,6 @@ const REPEAT_LABELS: Record<ReminderRepeat, string> = {
   fasting_aligned: "مرتبط بالصيام",
 };
 
-const TEMPLATE_REPEAT_TO_REPEAT: Record<ReminderTemplateRepeat, ReminderRepeat> = {
-  once: "once",
-  daily: "daily",
-  weekly: "weekly",
-  monthly: "once",
-  "sunnah-aligned": "sunnah_aligned",
-  "prayer-aligned": "prayer_aligned",
-};
-
 const ANCHOR_LABELS: Record<NonNullable<CustomReminder["anchorKey"]>, string> = {
   fajr: "الفجر",
   sunrise: "الشروق",
@@ -154,6 +144,16 @@ const ANCHOR_LABELS: Record<NonNullable<CustomReminder["anchorKey"]>, string> = 
 };
 
 const WEEKDAY_NAMES_AR = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+const FASTING_PATTERN_LABELS: Record<FastingPattern, string> = {
+  "monday-thursday": "الاثنين والخميس",
+  shawwal: "ستة أيام من شوال",
+  "ayyam-al-beed": "الأيام البيض",
+  arafah: "يوم عرفة",
+  ashura: "يوم عاشوراء",
+  "dhul-hijjah": "العشر الأوائل من ذي الحجة",
+  muharram: "أيام من شهر المحرم",
+  ramadan: "أيام شهر رمضان",
+};
 const EMPTY_SEEN_TEMPLATE_IDS: Record<string, boolean> = {};
 
 function selectSeenTemplateIds(state: { seenTemplateIds?: Record<string, boolean> }): Record<string, boolean> {
@@ -215,24 +215,6 @@ function templateAlreadyAdded(t: ReminderTemplate, existing: CustomReminder[]): 
   });
 }
 
-function buildReminderFromTemplate(t: ReminderTemplate): Parameters<typeof storeAddCustomReminder>[0] {
-  const repeat = TEMPLATE_REPEAT_TO_REPEAT[t.defaultRepeat] ?? "once";
-  return {
-    category: t.category,
-    title: t.title.ar,
-    description: t.description,
-    icon: t.defaultIcon,
-    repeat,
-    atTimeOfDay: timeLabel(t.defaultTime) || undefined,
-    dayOfWeek: typeof t.defaultDayOfWeek === "number" ? (t.defaultDayOfWeek as ReminderWeekday) : undefined,
-    anchorKey: t.anchorKey as ReminderTemplateAnchor | undefined,
-    anchorOffsetMinutes: t.anchorOffsetMinutes,
-    deeplink: t.deeplink,
-    suggestion: t.suggestion,
-    enabled: true,
-  };
-}
-
 /* ───────────────────── form (create / edit) ───────────────────── */
 
 interface FormState {
@@ -243,6 +225,7 @@ interface FormState {
   atTimeOfDay: string;
   dayOfWeek: number;
   dayOfMonth: number;
+  fastingPattern: FastingPattern | "";
   anchorKey: CustomReminder["anchorKey"];
   anchorOffsetMinutes: number;
   deeplinkRoute: string;
@@ -258,6 +241,7 @@ const EMPTY_FORM: FormState = {
   atTimeOfDay: "09:00",
   dayOfWeek: 0,
   dayOfMonth: 1,
+  fastingPattern: "",
   anchorKey: undefined,
   anchorOffsetMinutes: 0,
   deeplinkRoute: "",
@@ -277,6 +261,7 @@ function formFromReminder(r: CustomReminder): FormState {
     atTimeOfDay: r.atTimeOfDay ?? "09:00",
     dayOfWeek: typeof r.dayOfWeek === "number" ? r.dayOfWeek : 0,
     dayOfMonth: typeof r.dayOfMonth === "number" ? r.dayOfMonth : 1,
+    fastingPattern: r.fastingPattern ?? "",
     anchorKey: r.anchorKey,
     anchorOffsetMinutes: r.anchorOffsetMinutes ?? 0,
     deeplinkRoute: r.deeplink?.route ?? "",
@@ -300,7 +285,8 @@ function reminderFromForm(state: FormState, base?: CustomReminder): Partial<Cust
       state.repeat === "sunnah_aligned" ||
       state.repeat === "fasting_aligned"
         ? state.anchorKey
-        : undefined,
+      : undefined,
+    fastingPattern: state.repeat === "fasting_aligned" ? state.fastingPattern || base?.fastingPattern : undefined,
     anchorOffsetMinutes:
       state.repeat === "prayer_aligned" ||
       state.repeat === "sunnah_aligned" ||
@@ -504,6 +490,10 @@ function ReminderFormDrawer(props: {
       toast.error("الرجاء إدخال عنوان للتذكير");
       return;
     }
+    if (form.repeat === "fasting_aligned" && !form.fastingPattern) {
+      toast.error("اختر نمط الصيام حتى نحدد أيام التذكير بشكل صحيح");
+      return;
+    }
     props.onSubmit(form);
   };
 
@@ -681,6 +671,21 @@ function ReminderFormDrawer(props: {
             </span>
           </div>
         </Field>
+
+        {form.repeat === "fasting_aligned" ? (
+          <Field label="نمط الصيام">
+            <select
+              value={form.fastingPattern}
+              onChange={(e) => update("fastingPattern", e.target.value as FastingPattern | "")}
+              className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
+            >
+              <option value="">اختر نمطًا</option>
+              {(Object.entries(FASTING_PATTERN_LABELS) as [FastingPattern, string][]).map(([pattern, label]) => (
+                <option key={pattern} value={pattern}>{label}</option>
+              ))}
+            </select>
+          </Field>
+        ) : null}
         <p className="text-[10.5px] leading-5 text-[var(--muted-2)]">
           {REMINDER_NOTIFICATION_PLATFORM_NOTE}
         </p>
@@ -889,12 +894,10 @@ export function RemindersPage() {
   // Real prayer times so prayer_aligned/sunnah_aligned reminders (anchored to
   // fajr/maghrib/etc.) show an actual next-fire time instead of "—" forever —
   // nextOccurrences() falls back to the reminder's (usually unset) atTimeOfDay
-  // without this. Shares the same react-query cache App.tsx already primed.
+  // without this. Resolve each occurrence against its own date so future prayer
+  // times reflect the calendar instead of reusing today's timings.
   const prayerTimesQuery = usePrayerTimes();
-  const prayerTimesForRecurrence = React.useMemo<PrayerTimesSource | undefined>(() => {
-    const timings = prayerTimesQuery.data?.data?.timings;
-    return timings ?? undefined;
-  }, [prayerTimesQuery.data]);
+  const prayerTimesForRecurrence: PrayerTimesSource = prayerTimesQuery.getPrayerTimingsForDate;
 
   const filtered = React.useMemo(() => {
     if (category === "all") return reminders;
@@ -945,6 +948,7 @@ export function RemindersPage() {
       atTimeOfDay: form.atTimeOfDay || undefined,
       dayOfWeek: form.repeat === "weekly" ? form.dayOfWeek : undefined,
       dayOfMonth: form.repeat === "monthly" ? form.dayOfMonth : undefined,
+      fastingPattern: form.repeat === "fasting_aligned" ? form.fastingPattern || undefined : undefined,
       anchorKey: form.anchorKey,
       anchorOffsetMinutes: form.anchorOffsetMinutes,
       deeplink: form.deeplinkRoute ? { route: form.deeplinkRoute } : undefined,
@@ -1245,7 +1249,7 @@ export function RemindersPage() {
                   <h3 className="mt-2 text-[12.5px] font-bold leading-tight">{t.title.ar}</h3>
                   <p className="mt-1 line-clamp-2 text-[10.5px] text-[var(--muted-2)]">{t.description}</p>
                   <p className="mt-1 text-[10px] text-[var(--muted-2)]">
-                    {timeLabel(t.defaultTime)} • {REPEAT_LABELS[TEMPLATE_REPEAT_TO_REPEAT[t.defaultRepeat]] ?? t.defaultRepeat}
+                    {timeLabel(t.defaultTime)} • {REPEAT_LABELS[getReminderTemplateRepeat(t)] ?? t.defaultRepeat}
                   </p>
                 </div>
                 <button

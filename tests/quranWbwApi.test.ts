@@ -2,26 +2,29 @@
 import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadWbwSurah } from "@/lib/quranWBW";
+import { getSurahAyahCount } from "@/data/quranSurahCounts";
 
 function response(body: unknown): Response {
   return { ok: true, json: async () => body } as Response;
 }
 
-const validPayload = {
-  verses: [{
-    verse_number: 1,
-    words: [
-      {
-        char_type_name: "word",
-        text_uthmani: "بِسْمِ",
-        text_uthmani_tajweed: "<rule class=ham_wasl>بِسْمِ</rule>",
-        translation: { text: "In (the) name" },
-        transliteration: { text: "Bismi" },
-      },
-      { char_type_name: "end", text_uthmani: "١" },
-    ],
-  }],
-};
+function validPayload(surahId = 1) {
+  return {
+    verses: Array.from({ length: getSurahAyahCount(surahId) }, (_, index) => ({
+      verse_number: index + 1,
+      words: [
+        {
+          char_type_name: "word",
+          text_uthmani: index === 0 ? "بِسْمِ" : "نَصٌّ",
+          text_uthmani_tajweed: index === 0 ? "<rule class=ham_wasl>بِسْمِ</rule>" : "نَصٌّ",
+          translation: { text: "In (the) name" },
+          transliteration: { text: "Bismi" },
+        },
+        { char_type_name: "end", text_uthmani: `${index + 1}` },
+      ],
+    })),
+  };
+}
 
 afterEach(() => {
   vi.useRealTimers();
@@ -30,8 +33,17 @@ afterEach(() => {
 });
 
 describe("Quran.com word-by-word API boundary", () => {
+  it("rejects verses outside the requested surah and incomplete chapter responses", async () => {
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce(response({ verses: [{ ...validPayload(114).verses[0], verse_number: 286 }] }))
+      .mockResolvedValueOnce(response({ verses: [validPayload(113).verses[0]] })));
+
+    await expect(loadWbwSurah(114)).rejects.toThrow(/invalid quran\.com.*response/i);
+    await expect(loadWbwSurah(113)).rejects.toThrow(/invalid quran\.com.*response/i);
+  });
+
   it("maps valid verse words and omits the verse-end marker", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response(validPayload)));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response(validPayload(1))));
 
     await expect(loadWbwSurah(1)).resolves.toEqual([
       [],
@@ -41,34 +53,27 @@ describe("Quran.com word-by-word API boundary", () => {
         tl: "Bismi",
         tj: "<rule class=ham_wasl>بِسْمِ</rule>",
       }],
+      ...Array.from({ length: 6 }, () => [{ ar: "نَصٌّ", tr: "In (the) name", tl: "Bismi", tj: "نَصٌّ" }]),
     ]);
   });
 
   it("rejects malformed word fields before caching them", async () => {
+    const malformedPayload = validPayload(2) as unknown as { verses: Array<{ words: Array<Record<string, unknown>> }> };
+    malformedPayload.verses[0]!.words[0]!.translation = null;
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce(response({
-        verses: [{
-          verse_number: 1,
-          words: [{
-            char_type_name: "word",
-            text_uthmani: "بِسْمِ",
-            translation: null,
-            transliteration: null,
-          }],
-        }],
-      }))
-      .mockResolvedValueOnce(response(validPayload));
+      .mockResolvedValueOnce(response(malformedPayload))
+      .mockResolvedValueOnce(response(validPayload(2)));
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(loadWbwSurah(2)).rejects.toThrow(/invalid quran\.com.*response/i);
-    await expect(loadWbwSurah(2)).resolves.toHaveLength(2);
+    await expect(loadWbwSurah(2)).resolves.toHaveLength(getSurahAyahCount(2) + 1);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("refreshes an IndexedDB response once it is older than seven days", async () => {
     const now = Date.UTC(2026, 0, 1);
     const clock = vi.spyOn(Date, "now").mockReturnValue(now);
-    const fetchMock = vi.fn().mockResolvedValue(response(validPayload));
+    const fetchMock = vi.fn().mockResolvedValue(response(validPayload(4)));
     vi.stubGlobal("fetch", fetchMock);
 
     await loadWbwSurah(4);
@@ -82,7 +87,7 @@ describe("Quran.com word-by-word API boundary", () => {
     const now = Date.UTC(2026, 0, 1);
     const clock = vi.spyOn(Date, "now").mockReturnValue(now);
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce(response(validPayload))
+      .mockResolvedValueOnce(response(validPayload(5)))
       .mockRejectedValueOnce(new TypeError("offline"));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -107,7 +112,7 @@ describe("Quran.com word-by-word API boundary", () => {
   it("aborts a Quran.com request that does not respond before the deadline", async () => {
     // Open the fake IndexedDB database before fake timers so its transaction
     // scheduling does not get suspended by this test's deadline clock.
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response(validPayload)));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response(validPayload(6))));
     await loadWbwSurah(6);
     vi.useFakeTimers();
     let markFetchStarted!: () => void;

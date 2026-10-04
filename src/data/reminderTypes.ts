@@ -11,6 +11,16 @@ export type ReminderRepeat =
 
 export type ReminderWeekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+export type FastingPattern =
+  | "monday-thursday"
+  | "shawwal"
+  | "ayyam-al-beed"
+  | "arafah"
+  | "ashura"
+  | "dhul-hijjah"
+  | "muharram"
+  | "ramadan";
+
 export interface CustomReminder {
   id: string;
   category: ReminderCategory;
@@ -23,6 +33,8 @@ export interface CustomReminder {
   atTimeOfDay?: string;
   dayOfWeek?: number;
   dayOfMonth?: number;
+  fastingPattern?: FastingPattern;
+  fastingDays?: number[];
   anchorKey?: "tahajjud" | "duha" | "witr" | "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" | "sunrise" | "friday";
   anchorOffsetMinutes?: number;
   startDate?: string;

@@ -601,6 +601,7 @@ type NoorState = {
     atTimeOfDay?: string;
     dayOfWeek?: number;
     dayOfMonth?: number;
+    fastingPattern?: CustomReminder["fastingPattern"];
     anchorKey?: CustomReminder["anchorKey"];
     anchorOffsetMinutes?: number;
     startDate?: string;

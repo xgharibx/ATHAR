@@ -43,6 +43,16 @@ type NativeAuthWindow = Window & {
   __atharAuthCallbackReady?: boolean;
 };
 
+function finishNativeAuthCallback(url: string): void {
+  const publish = (result: AuthResult) => {
+    window.dispatchEvent(new CustomEvent("athar-auth-result", { detail: result }));
+  };
+  void completeNativeSignIn(url).then(
+    publish,
+    () => publish({ ok: false, error: "تعذّر إكمال تسجيل الدخول" }),
+  );
+}
+
 /** One app-wide consumer. Native retains a callback until this listener is ready. */
 function installNativeAuthCallback(): void {
   if (nativeCallbackInstalled || !Capacitor.isNativePlatform() || typeof window === "undefined") return;
@@ -50,12 +60,12 @@ function installNativeAuthCallback(): void {
   const authWindow = window as NativeAuthWindow;
   authWindow.addEventListener("athar-auth-callback", (event: Event) => {
     const url = (event as CustomEvent<{ url?: unknown }>).detail?.url;
-    if (typeof url === "string") void completeNativeSignIn(url);
+    if (typeof url === "string") finishNativeAuthCallback(url);
   });
   authWindow.__atharAuthCallbackReady = true;
   const queued = authWindow.__atharPendingAuthUrl;
   delete authWindow.__atharPendingAuthUrl;
-  if (typeof queued === "string") void completeNativeSignIn(queued);
+  if (typeof queued === "string") finishNativeAuthCallback(queued);
 }
 
 /** Lazily-created singleton. Returns null when unconfigured. */
@@ -167,6 +177,8 @@ export function completeNativeSignIn(url: string): Promise<AuthResult> {
     if (!result.ok) nativeExchanges.delete(url);
     // Bound successful callback retention; tokens are kept only in memory.
     while (nativeExchanges.size > 32) nativeExchanges.delete(nativeExchanges.keys().next().value!);
+  }, () => {
+    nativeExchanges.delete(url);
   });
   return exchange;
 }

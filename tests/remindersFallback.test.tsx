@@ -14,10 +14,13 @@ const mocks = vi.hoisted(() => ({
   getExactAlarmPermissionState: vi.fn(),
   getCustomReminderPermissionState: vi.fn(),
   requestExactAlarmPermission: vi.fn(),
+  getPrayerTimingsForDate: vi.fn(() => ({ Fajr: "05:00", Maghrib: "18:00" })),
   toastError: vi.fn(),
 }));
 
-vi.mock("@/hooks/usePrayerTimes", () => ({ usePrayerTimes: () => ({ data: undefined }) }));
+vi.mock("@/hooks/usePrayerTimes", () => ({
+  usePrayerTimes: () => ({ data: undefined, getPrayerTimingsForDate: mocks.getPrayerTimingsForDate }),
+}));
 vi.mock("@/components/ui/Modal", () => ({
   Modal: ({ open, children }: { open: boolean; children: React.ReactNode }) => open ? <div>{children}</div> : null,
   ModalCloseButton: () => null,
@@ -57,6 +60,7 @@ beforeEach(() => {
   mocks.getExactAlarmPermissionState.mockResolvedValue("not-applicable");
   mocks.getCustomReminderPermissionState.mockReturnValue("unsupported");
   mocks.requestExactAlarmPermission.mockResolvedValue("granted");
+  mocks.getPrayerTimingsForDate.mockClear();
 });
 
 afterEach(async () => {
@@ -68,6 +72,24 @@ afterEach(async () => {
 });
 
 describe("RemindersPage missing-list fallback", () => {
+  it("uses date-aware prayer timings when calculating prayer-aligned occurrences", async () => {
+    useNoorStore.setState({ customReminders: [] });
+    useNoorStore.getState().addCustomReminder({
+      category: "salat",
+      title: "تذكير الفجر",
+      repeat: "prayer_aligned",
+      anchorKey: "fajr",
+      atTimeOfDay: "05:00",
+    });
+
+    await act(async () => {
+      root.render(<MemoryRouter><RemindersPage /></MemoryRouter>);
+      await Promise.resolve();
+    });
+
+    expect(mocks.getPrayerTimingsForDate).toHaveBeenCalled();
+  });
+
   it("does not rebuild template recommendations on an unrelated local rerender", () => {
     const originalSome = Array.prototype.some;
     let emptyListSomeCalls = 0;

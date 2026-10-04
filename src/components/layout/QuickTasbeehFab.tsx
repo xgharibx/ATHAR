@@ -11,6 +11,7 @@ const TASBEEHAT = [
 ] as const;
 
 type TasbeehKey = typeof TASBEEHAT[number]["key"];
+const QUICK_TASBEEH_BOTTOM = "calc(var(--mobile-nav-height) + var(--sab) - 6px)";
 
 export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
   // All hooks must be declared before any early return
@@ -80,7 +81,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
         ref={fabRef}
         className="fab xl:hidden"
         style={{
-          bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--sab))",
+          bottom: QUICK_TASBEEH_BOTTOM,
           right: "calc(16px + var(--sar))",
         }}
         onClick={() => setOpen(true)}
@@ -99,7 +100,7 @@ export function QuickTasbeehFab({ drawerOpen }: { drawerOpen?: boolean }) {
     <div
       className="fixed z-[9990] xl:hidden"
       style={{
-        bottom: "calc(var(--mobile-nav-height) + (var(--mobile-nav-gap) * 2) + var(--sab))",
+        bottom: QUICK_TASBEEH_BOTTOM,
         right: "calc(16px + var(--sar))",
       }}
       onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setOpen(false); } }}

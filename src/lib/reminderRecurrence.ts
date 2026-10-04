@@ -1,4 +1,4 @@
-import type { CustomReminder } from "@/data/reminderTypes";
+import type { CustomReminder, FastingPattern } from "@/data/reminderTypes";
 import { gregorianToHijri } from "@/lib/hijri";
 
 export type ReminderAnchor = NonNullable<CustomReminder["anchorKey"]>;
@@ -18,20 +18,8 @@ export interface ReminderRecurrenceOptions {
   getPrayerTimes?: (date: Date) => ReminderPrayerTimes | { timings: ReminderPrayerTimes } | { data: { timings: ReminderPrayerTimes } } | null | undefined;
 }
 
-type FastingPattern =
-  | "monday-thursday"
-  | "shawwal"
-  | "ayyam-al-beed"
-  | "arafah"
-  | "ashura"
-  | "dhul-hijjah"
-  | "muharram"
-  | "ramadan";
-
 type FastingReminder = CustomReminder & {
-  fastingPattern?: FastingPattern;
   fastingRule?: FastingPattern;
-  fastingDays?: number[];
 };
 type RecurrenceArgument = ReminderRecurrenceOptions | number | Date | undefined;
 

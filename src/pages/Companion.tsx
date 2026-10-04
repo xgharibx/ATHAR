@@ -39,6 +39,7 @@ import {
   streamCompanionReply,
   type CompanionMessage,
   type PersistedToolCall,
+  type VerificationReport,
 } from "@/lib/companionAI";
 import {
   splitIntoSegments,
@@ -233,6 +234,7 @@ export function CompanionPage() {
   const [input, setInput] = React.useState("");
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
   const [followUps, setFollowUps] = React.useState<string[]>([]);
+  const [verification, setVerification] = React.useState<VerificationReport | null>(null);
 
   const [profile, setProfile] = React.useState<CompanionProfile>(() => loadProfile());
   const [showOnboarding, setShowOnboarding] = React.useState(false);
@@ -443,6 +445,7 @@ export function CompanionPage() {
     setInput("");
     setStreamingText("");
     setFollowUps([]);
+    setVerification(null);
 
     let acc = "";
     let done = false;
@@ -460,10 +463,11 @@ export function CompanionPage() {
             // stream would silently drop the question that prompted it.
             if (currentIdRef.current) savePartialStream(currentIdRef.current, history, acc);
           },
-          onDone: (fullText) => {
+          onDone: (fullText, report) => {
             done = true;
             const withIds = injectReminderStoreIds(fullText, createdReminderIdsRef.current);
             setMessages((m) => [...m, { role: "assistant", content: withIds }]);
+            setVerification(report);
             setStreamingText(null);
             clearPartialStream();
             setFollowUps(generateFollowUps(trimmed, fullText));
@@ -560,6 +564,7 @@ export function CompanionPage() {
     currentTitleRef.current = "";
     createdAtRef.current = Date.now();
     setMessages([]);
+    setVerification(null);
     setStreamingText(null);
     setInput("");
     setFollowUps([]);
@@ -1040,6 +1045,12 @@ export function CompanionPage() {
           streamingText
             ? <MessageBubble role="assistant" text={streamingText} streaming tokens={countTokens(streamingText)} />
             : <ThinkingIndicator onStop={stop} />
+        ) : null}
+        {verification?.flagged && streamingText === null ? (
+          <div role="status" className="flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+            <span aria-hidden="true" className="mt-0.5">ⓘ</span>
+            <ul className="list-inside list-disc">{verification.notes.map((note, i) => <li key={i}>{note}</li>)}</ul>
+          </div>
         ) : null}
         {followUps.length > 0 && !isBusy ? (
           <div className="mt-2 flex flex-wrap gap-2">

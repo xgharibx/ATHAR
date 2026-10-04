@@ -1,4 +1,4 @@
-import type { ReminderCategory } from "@/data/reminderTypes";
+import type { FastingPattern, ReminderCategory } from "@/data/reminderTypes";
 
 export type ReminderTemplateRepeat =
   | "once"
@@ -31,7 +31,7 @@ export interface ReminderTemplate {
   suggestedActions: string[];
   anchorKey?: ReminderTemplateAnchor;
   anchorOffsetMinutes?: number;
-  fastingPattern?: "monday-thursday" | "shawwal" | "ayyam-al-beed" | "arafah" | "ashura" | "dhul-hijjah" | "muharram" | "ramadan";
+  fastingPattern?: FastingPattern;
   deeplink?: { route: string; hash?: string };
   suggestion?: string;
 }

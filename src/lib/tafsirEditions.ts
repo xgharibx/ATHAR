@@ -10,6 +10,7 @@
  */
 import Dexie, { type Table } from "dexie";
 import { pruneLookupCacheRows } from "@/lib/lookupCacheRetention";
+import { getSurahAyahCount } from "@/data/quranSurahCounts";
 
 export interface TafsirEdition {
   slug: string;
@@ -60,6 +61,7 @@ export function parseTafsirApiResponse(payload: unknown, expectedSurah: number):
     throw new Error("Invalid tafsir response");
   }
 
+  const ayahCount = getSurahAyahCount(expectedSurah);
   const seenAyahs = new Set<number>();
   return entries.map((entry): TafsirApiAyah => {
     if (!isRecord(entry)) throw new Error("Invalid tafsir response");
@@ -67,7 +69,7 @@ export function parseTafsirApiResponse(payload: unknown, expectedSurah: number):
     const surah = entry.surah ?? expectedSurah;
     const text = entry.text;
     if (
-      !Number.isInteger(ayah) || Number(ayah) < 1 || Number(ayah) > 286 ||
+      !Number.isInteger(ayah) || Number(ayah) < 1 || Number(ayah) > ayahCount ||
       !Number.isInteger(surah) || Number(surah) !== expectedSurah ||
       (typeof text !== "string" && text !== null) || seenAyahs.has(Number(ayah))
     ) {
@@ -112,7 +114,13 @@ const MAX_CACHE_ENTRIES = 1_500;
 async function readCache(slug: string, surahId: number): Promise<CacheRow | null> {
   try {
     const row = await getDB().cache.get(`${slug}:${surahId}`);
-    if (!row || !Number.isFinite(row.cachedAt) || !Array.isArray(row.ayahs)) return null;
+    const count = getSurahAyahCount(surahId);
+    const validAyahs = Array.isArray(row?.ayahs) && row.ayahs.length <= count + 1 &&
+      row.ayahs.every((text, index) => index === 0 || text === undefined || typeof text === "string");
+    if (!row || row.key !== `${slug}:${surahId}` || !Number.isFinite(row.cachedAt) || !validAyahs) {
+      if (row) await getDB().cache.delete(`${slug}:${surahId}`);
+      return null;
+    }
     return row;
   } catch {
     return null;

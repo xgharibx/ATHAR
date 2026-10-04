@@ -13,8 +13,9 @@ const mocks = vi.hoisted(() => ({
   syncReminders: vi.fn().mockResolvedValue(undefined),
   toast: { error: vi.fn(), success: vi.fn() },
   favoriteCities: [{ id: "tokyo", city: "Tokyo", country: "Japan", label: "طوكيو" }],
-  queries: [] as Array<{ queryKey?: readonly unknown[]; queryFn?: () => unknown }>,
+  queries: [] as Array<{ queryKey?: readonly unknown[]; queryFn?: (context?: { signal?: AbortSignal }) => unknown }>,
   calendarData: {} as Record<string, unknown[]>,
+  calendarError: false,
 }));
 
 vi.mock("@/hooks/usePrayerTimes", () => ({
@@ -40,11 +41,11 @@ vi.mock("@/store/noorStore", () => ({
   }),
 }));
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: (options: { queryKey?: readonly unknown[]; queryFn?: () => unknown }) => {
+  useQuery: (options: { queryKey?: readonly unknown[]; queryFn?: (context?: { signal?: AbortSignal }) => unknown }) => {
     mocks.queries.push(options);
     const [kind, year, month] = options.queryKey ?? [];
     const data = kind === "prayer-calendar" ? mocks.calendarData[`${year}-${month}`] : undefined;
-    return { data, isLoading: false, error: null };
+    return { data, isLoading: false, error: kind === "prayer-calendar" && mocks.calendarError ? new Error("offline") : null, refetch: vi.fn() };
   },
 }));
 vi.mock("@/hooks/usePullToRefresh", () => ({
@@ -64,6 +65,7 @@ beforeEach(() => {
   mocks.queries.length = 0;
   mocks.favoriteCities = [{ id: "tokyo", city: "Tokyo", country: "Japan", label: "طوكيو" }];
   mocks.calendarData = {};
+  mocks.calendarError = false;
   mocks.requestPrayerLocation.mockResolvedValue(true);
   mocks.prayerFetching = false;
   mocks.timings = { Fajr: "05:00", Sunrise: "06:20", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30" };
@@ -123,6 +125,17 @@ function calendarDays(year: number, month: number) {
 }
 
 describe("Prayer Times location privacy disclosure", () => {
+  it("shows one actionable error when the Hijri calendar request fails", async () => {
+    mocks.calendarError = true;
+    await renderMonthlyPrayerCalendar();
+
+    await act(async () => { container!.querySelector<HTMLButtonElement>("#pt-tab-hijri")?.click(); });
+
+    const messageCount = (container!.textContent?.match(/تعذر تحميل التقويم/g) ?? []).length;
+    expect(messageCount).toBe(1);
+    expect(container!.querySelector('[role="alert"] button')?.textContent).toBe("إعادة المحاولة");
+  });
+
   it("names AlAdhan and explains coordinate sharing before the location action", async () => {
     const { PrayerTimesPage } = await import("@/pages/PrayerTimes");
     container = document.createElement("div");
@@ -178,7 +191,7 @@ describe("Prayer Times location privacy disclosure", () => {
 
   it("keeps comparison cities from changing the calendar's Cairo fallback", async () => {
     localStorage.clear();
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: [] }) });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: calendarDays(new Date().getFullYear(), new Date().getMonth() + 1) }) });
     vi.stubGlobal("fetch", fetchMock);
     await renderMonthlyPrayerCalendar();
 
@@ -190,10 +203,38 @@ describe("Prayer Times location privacy disclosure", () => {
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("city=Cairo&country=Egypt");
   });
 
+  it("rejects malformed successful calendar envelopes before the UI reads them", async () => {
+    localStorage.clear();
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: {} }) });
+    vi.stubGlobal("fetch", fetchMock);
+    await renderMonthlyPrayerCalendar();
+    const query = mocks.queries.find((item) => item.queryKey?.[0] === "prayer-calendar");
+
+    await expect(query?.queryFn?.()).rejects.toThrow("استجابة تقويم الصلاة غير صالحة");
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("aborts a calendar request that stalls past its deadline", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 4, 12));
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    await renderMonthlyPrayerCalendar();
+    const query = mocks.queries.find((item) => item.queryKey?.[0] === "prayer-calendar");
+    const request = query?.queryFn?.() as Promise<unknown>;
+    const rejection = expect(request).rejects.toThrow("انتهت مهلة طلب مواقيت الصلاة؛ أعد المحاولة.");
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await rejection;
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
   it("uses a distinct calendar cache entry and request when saved coordinates change", async () => {
     localStorage.clear();
     localStorage.setItem("noor_prayer_coords_v1", JSON.stringify({ lat: 21.4225, lng: 39.8262 }));
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: [] }) });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: calendarDays(new Date().getFullYear(), new Date().getMonth() + 1) }) });
     vi.stubGlobal("fetch", fetchMock);
     const rerender = await renderMonthlyPrayerCalendar();
     const firstQuery = mocks.queries.find((query) => query.queryKey?.[0] === "prayer-calendar");
@@ -231,7 +272,7 @@ describe("Prayer Times location privacy disclosure", () => {
   it("requests saved-city prayer times for today's local date", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 9, 4, 12));
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: { timings: {} } }) });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: { timings: mocks.timings } }) });
     vi.stubGlobal("fetch", fetchMock);
     await renderMonthlyPrayerCalendar();
 

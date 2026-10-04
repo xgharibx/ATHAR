@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
     sourceLabel: "مصدر محلي موثوق",
     text: "نص مرجعي يجب أن يصل إلى أول إجابة للمستخدم.",
   }]),
+  finalContent: [] as Array<{ type: string; name?: string; input?: Record<string, unknown> }>,
   stream: vi.fn(),
   request: undefined as { system?: Array<{ text: string }> } | undefined,
 }));
@@ -19,8 +20,7 @@ vi.mock("@/lib/companionKnowledge", () => ({
   retrievePassages: mocks.retrievePassages,
   retrievePassagesAsync: mocks.retrievePassagesAsync,
   retrieveUserRemindersAsPassages: () => [],
-  verifyAnswer: () => ({ flagged: false, notes: [] }),
-  warmQuranVerses: vi.fn(),
+  verifyAnswerAsync: vi.fn(async () => ({ flagged: false, notes: [] })),
 }));
 vi.mock("@anthropic-ai/sdk", () => {
   class APIError extends Error { status?: number; }
@@ -39,7 +39,7 @@ vi.mock("@anthropic-ai/sdk", () => {
         return {
           controller: { abort: vi.fn() },
           async *[Symbol.asyncIterator]() {},
-          finalMessage: async () => ({ stop_reason: "end_turn", content: [] }),
+          finalMessage: async () => ({ stop_reason: "end_turn", content: mocks.finalContent }),
         };
       },
     };
@@ -60,6 +60,7 @@ describe("Companion first-turn retrieval", () => {
       text: "نص مرجعي يجب أن يصل إلى أول إجابة للمستخدم.",
     }]);
     mocks.stream.mockReset();
+    mocks.finalContent = [];
     mocks.request = undefined;
   });
 
@@ -69,5 +70,39 @@ describe("Companion first-turn retrieval", () => {
     expect(mocks.retrievePassagesAsync).toHaveBeenCalledWith("ما معنى آية الكرسي؟", 5);
     const systemText = mocks.request?.system?.map((block) => block.text).join("\n") ?? "";
     expect(systemText).toContain("نص مرجعي يجب أن يصل إلى أول إجابة للمستخدم");
+    expect(systemText).toContain("tafsir:2:255");
+    expect(systemText).toContain("لديك ثلاث أدوات تستخدمها متى لزم:");
+  });
+
+  it.each([
+    ["unknown IDs", "invented:1", "نص مرجعي يجب أن يصل"],
+    ["invented excerpts", "tafsir:2:255", "نص مختلق لا يظهر في أي مصدر داخلي"],
+  ])("does not render a citation for %s", async (_case, source, excerpt) => {
+    mocks.finalContent = [{ type: "tool_use", name: "cite", input: { source, excerpt } }];
+    const output: string[] = [];
+    let verification: { flagged: boolean; notes: string[] } | undefined;
+
+    await streamCompanionReply([{ role: "user", content: "ما معنى الآية؟" }], {
+      onText: (chunk) => output.push(chunk),
+      onDone: (_text, report) => { verification = report; },
+    });
+
+    expect(output.join(" ")).not.toContain(":::cite(");
+    expect(verification).toMatchObject({ flagged: true, notes: [expect.stringContaining("المقتطف")] });
+  });
+
+  it("renders an exact excerpt only under its retrieved source ID", async () => {
+    const excerpt = "يجب أن يصل إلى أول إجابة";
+    mocks.finalContent = [{ type: "tool_use", name: "cite", input: { source: "tafsir:2:255", excerpt } }];
+    const output: string[] = [];
+    let verification: { flagged: boolean; notes: string[] } | undefined;
+
+    await streamCompanionReply([{ role: "user", content: "ما معنى الآية؟" }], {
+      onText: (chunk) => output.push(chunk),
+      onDone: (_text, report) => { verification = report; },
+    });
+
+    expect(output.join(" ")).toContain(`:::cite(tafsir:2:255)\n${excerpt}\n:::`);
+    expect(verification).toMatchObject({ flagged: false, notes: [] });
   });
 });

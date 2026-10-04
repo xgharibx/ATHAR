@@ -137,6 +137,30 @@ describe("native custom reminder cancellation", () => {
     cleanup();
   });
 
+  it.each([
+    ["one-time reminders", { repeat: "once" as const, startDate: "2026-11-01" }],
+    ["daily reminders with a future start date", { repeat: "daily" as const, startDate: "2026-11-01" }],
+    ["date-bounded monthly reminders", { repeat: "monthly" as const, dayOfMonth: 29, endDate: "2026-12-31" }],
+  ])("schedules the next future occurrence beyond the 14-day queue for %s", async (_label, overrides) => {
+    vi.setSystemTime(new Date(2026, 9, 4, 7, 0, 0));
+    const reminder = { ...makeReminder(), ...overrides };
+    const cleanup = syncCustomReminders([reminder], { maxFirings: 3 });
+    await vi.waitFor(() => expect(mocks.schedule).toHaveBeenCalled());
+
+    expect(mocks.schedule.mock.calls[0]?.[1].getTime()).toBeGreaterThan(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    cleanup();
+  });
+
+  it("schedules the next Hijri fasting occurrence even when it is beyond the 14-day queue", async () => {
+    vi.setSystemTime(new Date(2026, 9, 4, 7, 0, 0));
+    const reminder = { ...makeReminder(), repeat: "fasting_aligned" as const, fastingPattern: "arafah" as const };
+    const cleanup = syncCustomReminders([reminder], { maxFirings: 1 });
+    await vi.waitFor(() => expect(mocks.schedule).toHaveBeenCalledOnce());
+
+    expect(mocks.schedule.mock.calls[0]?.[1].getTime()).toBeGreaterThan(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    cleanup();
+  });
+
   it("keeps date-bounded recurrences as individual scheduled occurrences", async () => {
     const reminder = { ...makeReminder(), endDate: "2026-01-03" };
     const cleanup = syncCustomReminders([reminder], { maxFirings: 3 });

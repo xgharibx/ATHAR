@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 
 import App from "./App";
 import "./styles/globals.css";
@@ -15,6 +15,17 @@ const APP_RUNTIME_VERSION = (import.meta.env.VITE_RUNTIME_VERSION as string | un
 const APP_RUNTIME_VERSION_KEY = "noor_app_runtime_version";
 const ROOT_INSTANCE_KEY = "noor_react_root_instance";
 let runtimeReloadRequested = false;
+
+type AuthNoticeWindow = Window & { __atharNativeAuthNoticeInstalled?: boolean };
+const authNoticeWindow = window as AuthNoticeWindow;
+if (!authNoticeWindow.__atharNativeAuthNoticeInstalled) {
+  authNoticeWindow.__atharNativeAuthNoticeInstalled = true;
+  authNoticeWindow.addEventListener("athar-auth-result", (event: Event) => {
+    const result = (event as CustomEvent<{ ok?: boolean; error?: string }>).detail;
+    if (result?.ok) toast.success("تم تسجيل الدخول بنجاح");
+    else toast.error(result?.error ?? "تعذّر تسجيل الدخول. يمكنك المحاولة مجددًا.");
+  });
+}
 
 type ErrorBoundaryState = { hasError: boolean; message: string };
 

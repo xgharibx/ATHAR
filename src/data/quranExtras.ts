@@ -8,7 +8,7 @@
  * bundle and out of the main Quran query means the Quran page stays fast.
  */
 import { idbGetExtras, idbSetExtras } from "@/lib/quranIDB";
-import { globalAyahNumber } from "@/data/quranSurahCounts";
+import { getSurahAyahCount, globalAyahNumber } from "@/data/quranSurahCounts";
 
 export type EnglishSahihAyah = [string, string]; // [arabic, english]
 export type EnglishSahihDB = Record<string, EnglishSahihAyah>; // key: ayah number 1..6236
@@ -21,7 +21,7 @@ export type QuranExtras = {
   tafsir: TafsirDB | null;
 };
 
-const CACHE_VERSION = 3; // bump to invalidate when bundles or their parsed shape change
+const CACHE_VERSION = 4; // bump to invalidate when bundles or their parsed shape change
 const EXTRAS_KEY = `noor_quran_extras_v${CACHE_VERSION}`;
 
 let _cache: QuranExtras | null = null;
@@ -56,10 +56,11 @@ export async function loadQuranExtras(): Promise<QuranExtras> {
       _cache = cached;
       return cached;
     }
-    const [englishSahih, tafsirRaw] = await Promise.all([
-      fetchJson<EnglishSahihDB>("/data/quran-en-sahih.json").catch(() => null),
+    const [englishSahihRaw, tafsirRaw] = await Promise.all([
+      fetchJson<unknown>("/data/quran-en-sahih.json").catch(() => null),
       fetchJson<Record<string, unknown>>("/data/tafseer-muyassar.json").catch(() => null),
     ]);
+    const englishSahih = normalizeEnglishSahih(englishSahihRaw);
     const tafsir: TafsirDB = [];
     if (tafsirRaw) {
       for (const [surahKey, verses] of Object.entries(tafsirRaw)) {
@@ -274,4 +275,24 @@ const SURAH_INFO: Record<number, SurahInfo> = {
 
 export function getSurahInfo(surahId: number): SurahInfo | null {
   return SURAH_INFO[surahId] ?? null;
+}
+
+/** Convert the shipped zero-based, surah-keyed English arrays into the
+ * global-ayah index used by translation callers. Reject partial/malformed
+ * bundles so a truncated asset never shifts later verse identities. */
+function normalizeEnglishSahih(raw: unknown): EnglishSahihDB | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const source = raw as Record<string, unknown>;
+  const out: EnglishSahihDB = {};
+  for (let surahId = 1; surahId <= 114; surahId += 1) {
+    const rows = source[String(surahId)];
+    const count = getSurahAyahCount(surahId);
+    if (!Array.isArray(rows) || rows.length !== count) return null;
+    for (let index = 0; index < count; index += 1) {
+      const text = rows[index];
+      if (typeof text !== "string" || !text.trim()) return null;
+      out[String(globalAyahNumber(surahId, index + 1))] = ["", text.trim()];
+    }
+  }
+  return out;
 }

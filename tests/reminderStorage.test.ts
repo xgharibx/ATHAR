@@ -70,6 +70,20 @@ describe("reminderStorage", () => {
     expect(out[1]?.repeat).toBe("once");
   });
 
+  it("preserves fasting pattern rules and validates explicit weekdays", async () => {
+    await saveCustomReminders([makeReminder({
+      repeat: "fasting_aligned",
+      fastingPattern: "ayyam-al-beed",
+      fastingDays: [1, 4, 8],
+    })]);
+
+    await expect(loadCustomReminders()).resolves.toMatchObject([{
+      repeat: "fasting_aligned",
+      fastingPattern: "ayyam-al-beed",
+      fastingDays: [1, 4],
+    }]);
+  });
+
   it("keeps custom reminders in the active account partition", async () => {
     const ownerA = `user:reminder-test-a-${crypto.randomUUID()}`;
     const ownerB = `user:reminder-test-b-${crypto.randomUUID()}`;
