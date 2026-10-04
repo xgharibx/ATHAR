@@ -13,7 +13,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-function patchJavaSource(target, patches) {
+function patchSourceFile(target, patches) {
   if (!existsSync(target)) {
     throw new Error(`[patch-capacitor-plugins] expected Capacitor source is missing: ${target}`);
   }
@@ -110,7 +110,7 @@ const localNotificationsRoot = path.join(
   "localnotifications",
 );
 
-patchJavaSource(path.join(localNotificationsRoot, "LocalNotificationManager.java"), [
+patchSourceFile(path.join(localNotificationsRoot, "LocalNotificationManager.java"), [
   {
     label: "import the calendar used to preserve repeating local times",
     from: "import java.text.SimpleDateFormat;\nimport java.util.Date;",
@@ -155,7 +155,7 @@ patchJavaSource(path.join(localNotificationsRoot, "LocalNotificationManager.java
   },
 ]);
 
-patchJavaSource(path.join(localNotificationsRoot, "DateMatch.java"), [
+patchSourceFile(path.join(localNotificationsRoot, "DateMatch.java"), [
   {
     label: "restore configured clock fields after advancing past a DST gap",
     from: `            if (incrementUnit != -1) {
@@ -172,7 +172,7 @@ patchJavaSource(path.join(localNotificationsRoot, "DateMatch.java"), [
   },
 ]);
 
-patchJavaSource(path.join(localNotificationsRoot, "LocalNotificationRestoreReceiver.java"), [
+patchSourceFile(path.join(localNotificationsRoot, "LocalNotificationRestoreReceiver.java"), [
   {
     label: "import mutable notification JSON for boot recovery",
     from: "import com.getcapacitor.CapConfig;",
@@ -276,7 +276,18 @@ patchJavaSource(path.join(localNotificationsRoot, "LocalNotificationRestoreRecei
   },
 ]);
 
-patchJavaSource(path.join(localNotificationsRoot, "TimedNotificationPublisher.java"), [
+patchSourceFile(path.join(capacitorPackages, "local-notifications", "android", "src", "main", "AndroidManifest.xml"), [
+  {
+    label: "restore calendar alarms after device time or timezone changes",
+    from: `                <action android:name="android.intent.action.QUICKBOOT_POWERON" />`,
+    to: `                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIMEZONE_OFFSET_CHANGED" />`,
+  },
+]);
+
+patchSourceFile(path.join(localNotificationsRoot, "TimedNotificationPublisher.java"), [
   {
     label: "retain persisted repeating notifications after delivery",
     from: `        if (!rescheduleNotificationIfNeeded(context, intent, id)) {

@@ -65,6 +65,16 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       "plugins",
       "localnotifications",
     );
+    const notificationManifestSource = path.join(
+      repoRoot,
+      "node_modules",
+      "@capacitor",
+      "local-notifications",
+      "android",
+      "src",
+      "main",
+      "AndroidManifest.xml",
+    );
 
     try {
       mkdirSync(path.dirname(fixtureScript), { recursive: true });
@@ -97,6 +107,18 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
         mkdirSync(path.dirname(target), { recursive: true });
         copyFileSync(path.join(notificationSourceRoot, javaFile), target);
       }
+      const manifestTarget = path.join(
+        fixtureRoot,
+        "node_modules",
+        "@capacitor",
+        "local-notifications",
+        "android",
+        "src",
+        "main",
+        "AndroidManifest.xml",
+      );
+      mkdirSync(path.dirname(manifestTarget), { recursive: true });
+      copyFileSync(notificationManifestSource, manifestTarget);
 
       execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
 
@@ -160,6 +182,26 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       "plugins",
       "localnotifications",
     );
+    const sourceManifest = path.join(
+      repoRoot,
+      "node_modules",
+      "@capacitor",
+      "local-notifications",
+      "android",
+      "src",
+      "main",
+      "AndroidManifest.xml",
+    );
+    const patchedManifest = path.join(
+      fixtureRoot,
+      "node_modules",
+      "@capacitor",
+      "local-notifications",
+      "android",
+      "src",
+      "main",
+      "AndroidManifest.xml",
+    );
     const javaFiles = [
       "DateMatch.java",
       "LocalNotificationManager.java",
@@ -190,6 +232,8 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
         mkdirSync(path.dirname(target), { recursive: true });
         copyFileSync(source, target);
       }
+      mkdirSync(path.dirname(patchedManifest), { recursive: true });
+      copyFileSync(sourceManifest, patchedManifest);
 
       execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
 
@@ -197,6 +241,10 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       const manager = readFileSync(path.join(patchedPluginRoot, javaFiles[1]), "utf8");
       const receiver = readFileSync(path.join(patchedPluginRoot, javaFiles[2]), "utf8");
       const publisher = readFileSync(path.join(patchedPluginRoot, javaFiles[3]), "utf8");
+      const manifest = readFileSync(patchedManifest, "utf8");
+      expect(manifest).toContain('android:name="android.intent.action.TIME_SET"');
+      expect(manifest).toContain('android:name="android.intent.action.TIMEZONE_CHANGED"');
+      expect(manifest).toContain('android:name="android.intent.action.TIMEZONE_OFFSET_CHANGED"');
       expect(manager).toContain("schedule.getEveryInterval()");
       expect(manager).toContain("schedule.getEvery() == null ? null : schedule.getEveryInterval()");
       expect(manager).toContain('"day".equals(schedule.getEvery())');
