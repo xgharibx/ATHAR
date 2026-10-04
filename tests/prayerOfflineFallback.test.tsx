@@ -89,10 +89,23 @@ describe("offline prayer fallback", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     mountAtMecca();
     expect(await requestPrayerLocation()).toBe(true);
+    act(() => root.render(createElement(Probe)));
 
     const result = await query.run!();
     expect(result.data.timings.Dhuhr).toBe("09:11");
     expect(JSON.parse(localStorage.getItem("noor_prayer_coords_v1") ?? "null")).toMatchObject({ lat: 21.4225, lng: 39.8262 });
+  });
+
+  it("uses a distinct query cache entry after the saved prayer location changes", async () => {
+    mountAtMecca();
+    const cityQueryKey = query.todayKey;
+
+    let locationSaved = false;
+    await act(async () => { locationSaved = await requestPrayerLocation(); });
+
+    expect(locationSaved).toBe(true);
+    expect(query.todayKey).not.toEqual(cityQueryKey);
+    expect(query.todayKey).toContain("coords:21.4225:39.8262");
   });
 
   it("calculates for saved coordinates instead of returning another location's cached city times", async () => {
@@ -103,6 +116,7 @@ describe("offline prayer fallback", () => {
     }));
     mountAtMecca();
     expect(await requestPrayerLocation()).toBe(true);
+    act(() => root.render(createElement(Probe)));
 
     const result = await query.run!();
 
@@ -156,6 +170,7 @@ describe("offline prayer fallback", () => {
     mountAtMecca();
 
     expect(await requestPrayerLocation()).toBe(true);
+    act(() => root.render(createElement(Probe)));
     await query.run!();
     const tomorrow = await query.tomorrowRun!();
     const requestUrls = vi.mocked(fetch).mock.calls.map(([url]) => String(url));

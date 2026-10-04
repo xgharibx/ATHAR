@@ -23,7 +23,7 @@ import { toArabicIndic } from "@/lib/arabic";
 import { PTRIndicator, usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useNoorStore } from "@/store/noorStore";
 import type { PrayerAlertPrayer } from "@/store/noorStore";
-import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { DEFAULT_PRAYER_CITY, getPrayerLocationIdentity, readCachedPrayerCoordinates } from "@/lib/prayerLocation";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -151,22 +151,21 @@ function getLocalDateKey() {
 function usePrayerCalendar(year: number, month: number) {
   const method  = useNoorStore((s) => s.prefs.prayerCalcMethod ?? 5);
   const school  = useNoorStore((s) => s.prefs.asrMadhab ?? 0);
-  const favCities = useNoorStore((s) => s.favoriteCities);
-  const city    = favCities[0]?.city    ?? "Cairo";
-  const country = favCities[0]?.country ?? "Egypt";
+  const coords = readCachedPrayerCoordinates();
+  const city = DEFAULT_PRAYER_CITY.city;
+  const country = DEFAULT_PRAYER_CITY.country;
+  const locationIdentity = getPrayerLocationIdentity(coords);
 
   return useQuery<CalendarDayEntry[]>({
-    queryKey: ["prayer-calendar", year, month, method, school, city, country],
+    queryKey: ["prayer-calendar", year, month, method, school, locationIdentity],
     queryFn: async () => {
-      const coordsRaw = accountScopedLocalStorage.getItem("noor_prayer_coords_v1");
-      if (coordsRaw) {
-        try {
-          const { lat, lng } = JSON.parse(coordsRaw) as { lat: number; lng: number };
-          const res = await fetch(
-            `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${lat}&longitude=${lng}&method=${method}&school=${school}`
-          );
-          if (res.ok) { const j = await res.json() as { data: CalendarDayEntry[] }; return j.data; }
-        } catch { /* fallthrough */ }
+      if (coords) {
+        const res = await fetch(
+          `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${coords.lat}&longitude=${coords.lng}&method=${method}&school=${school}`
+        );
+        if (!res.ok) throw new Error("تعذر جلب التقويم حسب موقعك");
+        const j = await res.json() as { data: CalendarDayEntry[] };
+        return j.data;
       }
       const res = await fetch(
         `https://api.aladhan.com/v1/calendarByCity/${year}/${month}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`
@@ -1007,6 +1006,7 @@ export function PrayerTimesPage() {
   const [now, setNow]  = React.useState(() => new Date());
   const [manualRefreshing, setManualRefreshing] = React.useState(false);
   const [locating, setLocating] = React.useState(false);
+  const [pendingLocationRefresh, setPendingLocationRefresh] = React.useState<string | null>(null);
   const [activeTab,    setActiveTab]    = React.useState<TabKey>("today");
   const [showSettings, setShowSettings] = React.useState(false);
   const [isOnline, setIsOnline] = React.useState(() => navigator.onLine);
@@ -1016,6 +1016,43 @@ export function PrayerTimesPage() {
     window.addEventListener("offline", update);
     return () => { window.removeEventListener("online", update); window.removeEventListener("offline", update); };
   }, []);
+
+  const prayerLocationIdentity = getPrayerLocationIdentity(readCachedPrayerCoordinates());
+
+  React.useEffect(() => {
+    if (!pendingLocationRefresh || pendingLocationRefresh !== prayerLocationIdentity || prayerTimes.isFetching) return;
+
+    const timings = prayerTimes.data?.data?.timings;
+    if (!timings) {
+      if (prayerTimes.error) {
+        toast.error("تعذر تحديث المواقيت الآن");
+        setPendingLocationRefresh(null);
+        setLocating(false);
+      }
+      return;
+    }
+
+    let cancelled = false;
+    void syncReminders(reminders, {
+      Fajr: timings.Fajr,
+      Dhuhr: timings.Dhuhr,
+      Asr: timings.Asr,
+      Maghrib: timings.Maghrib,
+      Isha: timings.Isha,
+    }).then(() => {
+      if (cancelled) return;
+      toast.success("تم تحديث المواقيت حسب موقعك");
+      setPendingLocationRefresh(null);
+      setLocating(false);
+    }).catch(() => {
+      if (cancelled) return;
+      toast.error("تعذر تحديث المواقيت الآن");
+      setPendingLocationRefresh(null);
+      setLocating(false);
+    });
+
+    return () => { cancelled = true; };
+  }, [pendingLocationRefresh, prayerLocationIdentity, prayerTimes.data, prayerTimes.error, prayerTimes.isFetching, reminders]);
 
   async function refreshPrayerTimes() {
     setManualRefreshing(true);
@@ -1031,20 +1068,18 @@ export function PrayerTimesPage() {
 
   async function handleUseCurrentLocation() {
     setLocating(true);
+    let waitingForLocationTimes = false;
     try {
       if (!(await requestPrayerLocation())) {
-        toast.error("تعذر الوصول للموقع، يمكنك اختيار مدينة من تبويب المدن");
+        toast.error("تعذر الوصول للموقع. تحقّق من إذن الموقع وحاول مرة أخرى.");
         return;
       }
-      const result = await prayerTimes.refetch();
-      if (result.error || !result.data?.data?.timings) throw result.error ?? new Error("location refresh failed");
-      const rt = result.data.data.timings;
-      await syncReminders(reminders, { Fajr: rt.Fajr, Dhuhr: rt.Dhuhr, Asr: rt.Asr, Maghrib: rt.Maghrib, Isha: rt.Isha });
-      toast.success("تم تحديث المواقيت حسب موقعك");
+      waitingForLocationTimes = true;
+      setPendingLocationRefresh(getPrayerLocationIdentity(readCachedPrayerCoordinates()));
     } catch {
       toast.error("تعذر تحديث المواقيت الآن");
     } finally {
-      setLocating(false);
+      if (!waitingForLocationTimes) setLocating(false);
     }
   }
 

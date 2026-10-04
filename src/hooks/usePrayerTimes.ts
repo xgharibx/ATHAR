@@ -7,8 +7,9 @@ import { getPrayerWidgetClockContext, syncPrayerWidget } from "@/lib/prayerWidge
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { Capacitor } from "@capacitor/core";
 import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
+import { DEFAULT_PRAYER_CITY, getPrayerLocationIdentity, PRAYER_COORDS_KEY, PRAYER_LOCATION_CHANGED_EVENT, readCachedPrayerCoordinates, type PrayerCoordinates } from "@/lib/prayerLocation";
 
-export const PRAYER_COORDS_KEY_EXPORT = "noor_prayer_coords_v1";
+export const PRAYER_COORDS_KEY_EXPORT = PRAYER_COORDS_KEY;
 
 type PrayerTimesResponse = {
   data: {
@@ -46,8 +47,6 @@ type PrayerTimesData = PrayerTimesResponse & {
 };
 
 const PRAYER_CACHE_PREFIX = "noor_prayer_times_v1";
-const PRAYER_COORDS_KEY = "noor_prayer_coords_v1";
-
 function cacheKey(dayKey: string, locationKey: string) {
   return `${PRAYER_CACHE_PREFIX}:${dayKey}:${locationKey}`;
 }
@@ -126,26 +125,13 @@ async function fetchPrayerTimesByCoords(latitude: number, longitude: number, met
   return fetchPrayerTimesResponse(url);
 }
 
-type CachedCoords = { lat: number; lng: number; savedAt: string };
-
-function readCachedCoords(): CachedCoords | null {
-  try {
-    const raw = accountScopedLocalStorage.getItem(PRAYER_COORDS_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as CachedCoords;
-    if (!Number.isFinite(parsed?.lat) || !Number.isFinite(parsed?.lng)) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
 function writeCachedCoords(lat: number, lng: number) {
   try {
     accountScopedLocalStorage.setItem(
       PRAYER_COORDS_KEY,
-      JSON.stringify({ lat, lng, savedAt: new Date().toISOString() } satisfies CachedCoords)
+      JSON.stringify({ lat, lng, savedAt: new Date().toISOString() } satisfies PrayerCoordinates & { savedAt: string })
     );
+    if (typeof window !== "undefined") window.dispatchEvent(new Event(PRAYER_LOCATION_CHANGED_EVENT));
   } catch {
     // ignore storage failures
   }
@@ -260,6 +246,13 @@ export function usePrayerTimes() {
   const method = useNoorStore((s) => s.prefs.prayerCalcMethod ?? 5);
   const school = useNoorStore((s) => s.prefs.asrMadhab ?? 0);
 
+  const [, setPrayerLocationRevision] = React.useState(0);
+  React.useEffect(() => {
+    const refreshLocation = () => setPrayerLocationRevision((revision) => revision + 1);
+    window.addEventListener(PRAYER_LOCATION_CHANGED_EVENT, refreshLocation);
+    return () => window.removeEventListener(PRAYER_LOCATION_CHANGED_EVENT, refreshLocation);
+  }, []);
+
   React.useEffect(() => {
     const refreshClockContext = () => {
       const next = getPrayerWidgetClockContext();
@@ -278,29 +271,29 @@ export function usePrayerTimes() {
   }, []);
 
   // Fallback defaults
-  const city = "Cairo";
-  const country = "Egypt";
+  const city = DEFAULT_PRAYER_CITY.city;
+  const country = DEFAULT_PRAYER_CITY.country;
   const cityLocationKey = `city:${city}:${country}:${method}:${school}`;
   const tomorrowKey = shiftDateKey(dayKey, 1);
-  const cachedCoordsForTomorrow = readCachedCoords();
-  const tomorrowLocationKey = cachedCoordsForTomorrow
-    ? `coords:${cachedCoordsForTomorrow.lat.toFixed(3)}:${cachedCoordsForTomorrow.lng.toFixed(3)}:${method}:${school}`
+  const cachedCoords = readCachedPrayerCoordinates();
+  const locationIdentity = getPrayerLocationIdentity(cachedCoords);
+  const tomorrowLocationKey = cachedCoords
+    ? `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}`
     : cityLocationKey;
+  const coordsLat = cachedCoords?.lat ?? null;
+  const coordsLng = cachedCoords?.lng ?? null;
   const initialCachedData = React.useMemo(() => {
-    const cachedCoords = readCachedCoords();
-    if (cachedCoords) {
-      const locationKey = `coords:${cachedCoords.lat.toFixed(3)}:${cachedCoords.lng.toFixed(3)}:${method}:${school}`;
+    if (coordsLat !== null && coordsLng !== null) {
+      const locationKey = `coords:${coordsLat.toFixed(3)}:${coordsLng.toFixed(3)}:${method}:${school}`;
       const cached = readCached(dayKey, locationKey);
-      if (cached) return cached;
+      return cached ?? undefined;
     }
     return readCached(dayKey, cityLocationKey) ?? undefined;
-  }, [cityLocationKey, dayKey, method, school]);
+  }, [cityLocationKey, coordsLat, coordsLng, dayKey, method, school]);
 
   const query = useQuery<PrayerTimesData>({
-    queryKey: ["prayer-times", "v3", dayKey, method, school, clockContext.timeZoneId, clockContext.utcOffsetMinutes],
+    queryKey: ["prayer-times", "v3", dayKey, method, school, clockContext.timeZoneId, clockContext.utcOffsetMinutes, locationIdentity],
     queryFn: async () => {
-      const cachedCoords = readCachedCoords();
-
       const trySource = async (label: string, locationKey: string, fn: () => Promise<PrayerTimesResponse>) => {
         const fresh = await fn();
         const out: PrayerTimesData = { ...fresh, __sourceLabel: label };
@@ -368,7 +361,7 @@ export function usePrayerTimes() {
   // the OS, because the app may stay closed across midnight. Fetch only after
   // today's location lookup has settled so this uses the same cached GPS source.
   const tomorrowQuery = useQuery<PrayerTimesData>({
-    queryKey: ["prayer-times", "tomorrow-v1", tomorrowKey, method, school, tomorrowLocationKey],
+    queryKey: ["prayer-times", "tomorrow-v1", tomorrowKey, method, school, locationIdentity, tomorrowLocationKey],
     enabled: Capacitor.isNativePlatform() && query.data !== undefined && !query.isPlaceholderData,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
@@ -379,7 +372,7 @@ export function usePrayerTimes() {
       const cached = readCached(tomorrowKey, locationKey);
       if (cached) return cached;
 
-      const coords = readCachedCoords();
+      const coords = cachedCoords;
       const date = parseDateKey(tomorrowKey) ?? new Date(Date.now() + 24 * 60 * 60 * 1000);
       try {
         const fresh = coords
