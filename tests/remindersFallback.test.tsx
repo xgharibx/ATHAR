@@ -93,6 +93,32 @@ describe("RemindersPage missing-list fallback", () => {
     expect(emptyListSomeCalls).toBe(callsAfterMount);
   });
 
+  it("shows schedule counts without claiming completion rates or streaks", async () => {
+    useNoorStore.setState({ customReminders: [] });
+    useNoorStore.getState().addCustomReminder({
+      category: "custom",
+      title: "ورد الصباح",
+      repeat: "daily",
+      atTimeOfDay: "18:00",
+    });
+
+    await act(async () => {
+      root.render(<MemoryRouter><RemindersPage /></MemoryRouter>);
+      await Promise.resolve();
+    });
+
+    const text = container.textContent ?? "";
+    expect(text).toContain("مفعّلة الآن");
+    expect(text).toContain("مواعيد اليوم");
+    expect(text).toContain("خلال ٧ أيام");
+    expect(text).toContain("وفق التكرار");
+    expect(text).not.toContain("نسبة الالتزام");
+    expect(text).not.toContain("أفضل تتابع");
+    const summaryValues = Array.from(container.querySelectorAll("p.text-base"), (node) => node.textContent ?? "");
+    expect(summaryValues).toHaveLength(3);
+    expect(summaryValues.every((value) => /[٠-٩]/.test(value))).toBe(true);
+  });
+
   it("updates recommendations when a template is dismissed without changing reminders", () => {
     const firstTemplate = REMINDER_TEMPLATES[0]!;
     useNoorStore.setState({ customReminders: [] });

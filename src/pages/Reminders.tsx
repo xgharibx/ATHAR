@@ -4,7 +4,7 @@
  * «افتح صفحة التذكيرات ↗», and direct URL `/reminders`.
  *
  * This is the ULTIMATE management surface for `customReminders`. It layers:
- *  - A header card summarising active reminders + weekly firings + empty CTA
+ *  - A header card summarising enabled reminders + upcoming schedule counts
  *  - A recommended-templates row (next 6 from `REMINDER_TEMPLATES`) with
  *    one-tap "أضف تذكيرًا" insertion
  *  - A horizontal category filter (الكل / أذكار / قرآن / سنة / صلاة / صيام / دعاء / عام)
@@ -14,7 +14,7 @@
  *  - A per-reminder settings sheet (snooze, enable/disable, sound profile,
  *    vibration)
  *  - An expanded action row per reminder (done / snooze / open deeplink)
- *  - A stats mini-card (today's firings, completion rate, streak)
+ *  - A stats card with enabled reminders and upcoming scheduled occurrences
  *  - All dates/times rendered via `arNum` / `arTime` / `arFullDate` for
  *    locale-friendly Arabic-Indic output (no Western-digit fallback).
  */
@@ -37,8 +37,6 @@ import {
   Clock,
   CalendarDays,
   ExternalLink,
-  Flame,
-  Target,
   Timer,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -55,6 +53,7 @@ import {
 } from "@/lib/customReminderNotifications";
 import { listenForAppResume } from "@/lib/reminderAppResume";
 import { getCustomReminderSnoozeMinutes } from "@/lib/customReminderTypes";
+import { getReminderScheduleStats } from "@/lib/reminderScheduleStats";
 import { useNoorStore } from "@/store/noorStore";
 import {
   addCustomReminder as storeAddCustomReminder,
@@ -314,35 +313,6 @@ function reminderFromForm(state: FormState, base?: CustomReminder): Partial<Cust
     updatedAt,
   };
   return patch;
-}
-
-/* ───────────────────── stats ───────────────────── */
-
-interface Stats {
-  todayFirings: number;
-  completionRate: number;
-  streak: number;
-}
-
-function computeStats(reminders: CustomReminder[], prayerTimes?: PrayerTimesSource): Stats {
-  const now = new Date();
-  let todayFirings = 0;
-  let totalFuture = 0;
-  for (const r of reminders) {
-    if (!r.enabled) continue;
-    const fires = nextOccurrences(r, { now, count: 14, prayerTimes });
-    const today = fires.filter((d) => d.toDateString() === now.toDateString()).length;
-    todayFirings += today;
-    totalFuture += fires.length;
-  }
-  const enabled = reminders.filter((r) => r.enabled).length;
-  const completionRate = enabled === 0 ? 0 : Math.round((todayFirings / Math.max(todayFirings, 1)) * 100);
-  const streak = Math.min(enabled, 7);
-  return {
-    todayFirings,
-    completionRate: enabled === 0 ? 0 : Math.min(100, 60 + enabled * 5),
-    streak,
-  };
 }
 
 /* ───────────────────── reminder row ───────────────────── */
@@ -946,19 +916,8 @@ export function RemindersPage() {
     return result;
   }, [reminders, seenTemplates]);
 
-  const stats = React.useMemo(
-    () => computeStats(reminders, prayerTimesForRecurrence),
-    [reminders, prayerTimesForRecurrence],
-  );
-  const activeCount = reminders.filter((r) => r.enabled).length;
-  const weekFirings = React.useMemo(() => {
-    let total = 0;
-    for (const r of reminders) {
-      if (!r.enabled) continue;
-      total += nextOccurrences(r, { now: new Date(), count: 7, prayerTimes: prayerTimesForRecurrence }).length;
-    }
-    return total;
-  }, [reminders, prayerTimesForRecurrence]);
+  const stats = getReminderScheduleStats(reminders, new Date(), prayerTimesForRecurrence);
+  const activeCount = stats.enabledCount;
 
   const handleAddTemplate = async (t: ReminderTemplate) => {
     const enabled = await ensureReminderPermission();
@@ -1177,20 +1136,20 @@ export function RemindersPage() {
           <Stat
             icon={<Bell className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />}
             label="مفعّلة الآن"
-            value={`${activeCount}`}
-            sub={`من ${reminders.length}`}
+            value={arNum(String(activeCount))}
+            sub={`من ${arNum(String(stats.totalCount))}`}
           />
           <Stat
             icon={<CalendarDays className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />}
-            label="مرات هذا الأسبوع"
-            value={`${weekFirings}`}
-            sub="إجمالي الإطلاقات"
+            label="مواعيد اليوم"
+            value={arNum(String(stats.todayOccurrences))}
+            sub="وفق التكرار"
           />
           <Stat
-            icon={<Flame className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />}
-            label="أفضل تتابع"
-            value={`${stats.streak}`}
-            sub="أيام متتالية"
+            icon={<CalendarDays className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />}
+            label="خلال ٧ أيام"
+            value={arNum(String(stats.nextSevenDaysOccurrences))}
+            sub="وفق التكرار"
           />
         </Card>
       )}
@@ -1365,27 +1324,6 @@ export function RemindersPage() {
         ) : null}
       </div>
 
-      {/* ─── Stats Mini Card ────────────────────────────── */}
-      {reminders.length > 0 ? (
-        <Card className="mt-6 grid grid-cols-3 gap-2 p-4">
-          <MiniStat
-            icon={<Clock className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />}
-            label="اليوم"
-            value={`${stats.todayFirings}`}
-          />
-          <MiniStat
-            icon={<Target className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />}
-            label="نسبة الالتزام"
-            value={`${stats.completionRate}٪`}
-          />
-          <MiniStat
-            icon={<Flame className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />}
-            label="تتابع"
-            value={`${stats.streak}ي`}
-          />
-        </Card>
-      ) : null}
-
       {/* ─── Create / Edit drawer ───────────────────────── */}
       <ReminderFormDrawer
         open={drawerMode !== null}
@@ -1426,18 +1364,6 @@ function Stat(props: {
       <p className="text-base font-bold leading-tight">{props.value}</p>
       <p className="text-[10.5px] text-[var(--muted-2)]">{props.label}</p>
       <p className="text-[9.5px] text-[var(--muted-2)] opacity-70">{props.sub}</p>
-    </div>
-  );
-}
-
-function MiniStat(props: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-2 rounded-xl border border-[var(--stroke)] bg-[var(--card-2)]/40 p-2">
-      {props.icon}
-      <div>
-        <p className="text-[10px] text-[var(--muted-2)]">{props.label}</p>
-        <p className="text-[13px] font-bold leading-tight">{props.value}</p>
-      </div>
     </div>
   );
 }
