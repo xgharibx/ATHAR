@@ -36,6 +36,7 @@ import {
 } from "@/lib/radioPlayer";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { ShareAyahModal } from "@/components/quran/ShareAyahModal";
+import { FocusManagedDialog } from "@/components/ui/FocusManagedDialog";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
 import { loadMuyassarCache } from "@/lib/tafseerLocal";
 import { CompanionModal } from "@/components/companion/CompanionModal";
@@ -1107,7 +1108,9 @@ export function MushafPage() {
   // Keyboard navigation
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      if (target?.closest('[role="dialog"][aria-modal="true"]')) return;
+      const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if (e.key === "ArrowLeft") { e.preventDefault(); goPage(currentPage + 1); }
       else if (e.key === "ArrowRight") { e.preventDefault(); goPage(currentPage - 1); }
@@ -2074,9 +2077,20 @@ export function MushafPage() {
       {showReciterSheet && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowReciterSheet(false)} />
-          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="اختر القارئ" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShowReciterSheet(false); } }} onClick={(e) => e.stopPropagation()} dir="rtl">
+          <FocusManagedDialog
+            className="mushaf-jump-sheet"
+            aria-label="اختر القارئ"
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+            onClose={() => setShowReciterSheet(false)}
+          >
             <div className="mushaf-sheet-handle" />
-            <div className="mushaf-sheet-title">اختر القارئ</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="mushaf-sheet-title">اختر القارئ</div>
+              <button type="button" className="mushaf-icon-close" onClick={() => setShowReciterSheet(false)} aria-label="إغلاق">
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
             <div className="mushaf-reciter-grid">
               {QURAN_RECITERS.map((r) => {
                 const dlState = reciterDownloadProgress[r.id];
@@ -2123,7 +2137,7 @@ export function MushafPage() {
                 );
               })}
             </div>
-          </div>
+          </FocusManagedDialog>
         </>
       )}
 
@@ -2142,7 +2156,13 @@ export function MushafPage() {
       {showJump && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowJump(false)} />
-          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="الانتقال إلى صفحة" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShowJump(false); } }} onClick={(e) => e.stopPropagation()} dir="rtl">
+          <FocusManagedDialog
+            className="mushaf-jump-sheet"
+            aria-label="الانتقال إلى صفحة"
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+            onClose={() => setShowJump(false)}
+          >
             <div className="mushaf-sheet-handle" />
             <div className="mushaf-sheet-title">الانتقال إلى صفحة</div>
             <DialWheel
@@ -2150,7 +2170,7 @@ export function MushafPage() {
               total={totalPages}
               onConfirm={(p) => { goPage(p); setShowJump(false); }}
             />
-          </div>
+          </FocusManagedDialog>
         </>
       )}
 
@@ -2158,7 +2178,13 @@ export function MushafPage() {
       {shareSheetOpen && selectedItem && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShareSheetOpen(false)} />
-          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="خيارات المشاركة" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShareSheetOpen(false); } }} onClick={(e) => e.stopPropagation()} dir="rtl">
+          <FocusManagedDialog
+            className="mushaf-jump-sheet"
+            aria-label="خيارات المشاركة"
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+            onClose={() => setShareSheetOpen(false)}
+          >
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-2">
               <span className="mushaf-sheet-title">
@@ -2196,7 +2222,7 @@ export function MushafPage() {
               </button>
             </div>
             {shareBusy && <div className="text-center text-[11px] opacity-50 mt-2">جارٍ التحضير…</div>}
-          </div>
+          </FocusManagedDialog>
         </>
       )}
 
@@ -2204,7 +2230,13 @@ export function MushafPage() {
       {noteSheetOpen && selectedItem && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setNoteSheetOpen(false)} />
-          <div className="mushaf-note-sheet" role="dialog" aria-modal="true" aria-label="تدبّر" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setNoteSheetOpen(false); } }} onClick={(e) => e.stopPropagation()} dir="rtl">
+          <FocusManagedDialog
+            className="mushaf-note-sheet"
+            aria-label="تدبّر"
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+            onClose={() => setNoteSheetOpen(false)}
+          >
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-3">
               <span className="mushaf-sheet-title">
@@ -2284,7 +2316,7 @@ export function MushafPage() {
                 </button>
               )}
             </div>
-          </div>
+          </FocusManagedDialog>
         </>
       )}
 
@@ -2300,13 +2332,13 @@ export function MushafPage() {
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setTafsirItem(null)} />
           {/* zIndex must be > overlay (210) — do NOT set lower */}
-          <div
+          <FocusManagedDialog
             className="mushaf-note-sheet"
-            role="dialog" aria-modal="true" aria-label="تفسير"
+            aria-label="تفسير"
             style={{ maxHeight: "78vh", overflowY: "auto", display: "flex", flexDirection: "column" }}
-            onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setTafsirItem(null); } }}
             onClick={(e) => e.stopPropagation()}
             dir="rtl"
+            onClose={() => setTafsirItem(null)}
           >
             {/* Drag-to-dismiss handle */}
             <div
@@ -2463,7 +2495,7 @@ export function MushafPage() {
               </div>
             )}
 
-          </div>
+          </FocusManagedDialog>
         </>
       )}
 
@@ -2471,7 +2503,14 @@ export function MushafPage() {
       {showSettings && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowSettings(false)} />
-          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="إعدادات القراءة" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShowSettings(false); } }} style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
+          <FocusManagedDialog
+            className="mushaf-jump-sheet"
+            aria-label="إعدادات القراءة"
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+            onClose={() => setShowSettings(false)}
+          >
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">
               <span className="mushaf-sheet-title">إعدادات القراءة</span>
@@ -2722,7 +2761,7 @@ export function MushafPage() {
               </div>
             </div>
 
-          </div>
+          </FocusManagedDialog>
         </>
       )}
 
@@ -2730,7 +2769,14 @@ export function MushafPage() {
       {SHOW_MUSHAF_MORE && showMoreSheet && (
         <>
           <div className="mushaf-overlay" aria-hidden="true" onClick={() => setShowMoreSheet(false)} />
-          <div className="mushaf-jump-sheet" role="dialog" aria-modal="true" aria-label="الإجراءات السريعة" onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); setShowMoreSheet(false); } }} style={{ maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} dir="rtl">
+          <FocusManagedDialog
+            className="mushaf-jump-sheet"
+            aria-label="الإجراءات السريعة"
+            style={{ maxHeight: "80vh", overflowY: "auto" }}
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+            onClose={() => setShowMoreSheet(false)}
+          >
             <div className="mushaf-sheet-handle" />
             <div className="flex items-center justify-between mb-4">
               <span className="mushaf-sheet-title">الإجراءات السريعة</span>
@@ -2948,7 +2994,7 @@ export function MushafPage() {
                 <div className="text-[10px] opacity-40">إدارة ورد الختمة والمراجعة اليومية</div>
               </div>
             </button>
-          </div>
+          </FocusManagedDialog>
         </>
       )}
 
@@ -2960,7 +3006,12 @@ export function MushafPage() {
             style={{ zIndex: 249 }}
             onClick={() => { setShowSessionSummary(false); navigate("/quran", { replace: true }); }}
           />
-          <div className="mushaf-session-card" role="dialog" aria-modal="true" aria-label="ملخص جلسة القراءة" dir="rtl">
+          <FocusManagedDialog
+            className="mushaf-session-card"
+            aria-label="ملخص جلسة القراءة"
+            dir="rtl"
+            onClose={() => { setShowSessionSummary(false); navigate("/quran", { replace: true }); }}
+          >
             <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }} aria-hidden="true">📖</div>
             <div style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.3rem" }}>جلسة قراءة</div>
             <div style={{ fontSize: "0.85rem", opacity: 0.65, marginBottom: sessionSurahCompletedRef.current.size > 0 ? "0.75rem" : "1.25rem" }}>
@@ -2992,7 +3043,7 @@ export function MushafPage() {
             >
               حسنًا
             </button>
-          </div>
+          </FocusManagedDialog>
         </>
       )}
 
