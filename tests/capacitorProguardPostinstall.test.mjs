@@ -260,6 +260,11 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       expect(receiver).toContain("schedule.setOn(dateMatch);");
       expect(receiver).toContain("schedule.isRepeating() && schedule.getEvery() != null");
       expect(receiver).toContain('schedule.isRepeating() && "day".equals(schedule.getEvery()) && schedule.getCount() == 1');
+      expect(receiver).toContain("boolean timeOrTimezoneChanged");
+      expect(receiver).toContain("Intent.ACTION_TIMEZONE_CHANGED.equals(intent.getAction())");
+      expect(receiver).toContain('timeOrTimezoneChanged && at != null && schedule.isRepeating() && "day".equals(schedule.getEvery())');
+      expect(receiver).toContain("DateMatch.nextConfiguredLocalTimeAfter(at, configuredHour, configuredMinute, now)");
+      expect(receiver).toContain('savedSchedule.put("at", dateFormat.format(at))');
       expect(receiver).toContain('extra.getString("reminderTime")');
       expect(receiver).toContain("dateMatch.setMinute(configuredMinute)");
       expect(receiver).toContain("long missedIntervals = (now.getTime() - at.getTime()) / interval + 1");
@@ -270,6 +275,9 @@ describe("Capacitor ProGuard compatibility postinstall", () => {
       expect(publisher).toContain("hasRepeatingSchedule(storage, id)");
       expect(publisher).toContain("!hasRepeatingSchedule(storage, id)");
       expect(publisher).toContain('schedule.getString("every") != null');
+      expect(publisher).toContain('savedSchedule.getBool("allowWhileIdle")');
+      expect(publisher).toContain("alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pendingIntent)");
+      expect(publisher).toContain("alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pendingIntent)");
 
       let javacAvailable = true;
       try {
@@ -296,7 +304,13 @@ public final class DateMatchDstProbe {
         match.setHour(0);
         match.setMinute(30);
         match.setSecond(0);
-        System.out.print(formatter.format(new Date(match.nextTrigger(now))));
+        Date rebased = DateMatch.nextConfiguredLocalTimeAfter(
+            formatter.parse("2026-04-25 09:00"),
+            8,
+            0,
+            formatter.parse("2026-04-24 12:00")
+        );
+        System.out.print(formatter.format(new Date(match.nextTrigger(now))) + "|" + formatter.format(rebased));
     }
 }
 `);
@@ -311,12 +325,36 @@ public final class DateMatchDstProbe {
           fixtureRoot,
           "com.capacitorjs.plugins.localnotifications.DateMatchDstProbe",
         ], { cwd: fixtureRoot, encoding: "utf8" }).trim();
-        expect(nextTrigger).toBe("2026-04-25 00:30");
+      expect(nextTrigger).toBe("2026-04-25 00:30|2026-04-25 08:00");
       }
       expect(dateMatch).toContain("next.set(Calendar.HOUR_OF_DAY, hour)");
       expect(dateMatch).toContain("next.set(Calendar.MINUTE, minute)");
+      expect(dateMatch).toContain("nextConfiguredLocalTimeAfter");
 
       execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
+
+      const receiverPath = path.join(patchedPluginRoot, javaFiles[2]);
+      const currentReceiver = readFileSync(receiverPath, "utf8");
+      const timezoneCondition = currentReceiver.indexOf("timeOrTimezoneChanged && at != null && schedule.isRepeating()");
+      const timezoneRebaseStart = currentReceiver.lastIndexOf("                if (", timezoneCondition);
+      const expiredScheduleStart = currentReceiver.indexOf(
+        "                if (at != null && !at.after(now)) {",
+        timezoneRebaseStart,
+      );
+      expect(timezoneRebaseStart).toBeGreaterThanOrEqual(0);
+      expect(expiredScheduleStart).toBeGreaterThan(timezoneRebaseStart);
+
+      // Recreate the previous postinstall patch: it already had Date at/now and
+      // expired-schedule recovery, but did not rebase after a timezone change.
+      writeFileSync(
+        receiverPath,
+        currentReceiver.slice(0, timezoneRebaseStart) + currentReceiver.slice(expiredScheduleStart),
+      );
+      execFileSync(process.execPath, [fixtureScript], { cwd: fixtureRoot });
+      const upgradedReceiver = readFileSync(receiverPath, "utf8");
+      expect(upgradedReceiver).toContain("boolean timeOrTimezoneChanged");
+      expect(upgradedReceiver).toContain("DateMatch.nextConfiguredLocalTimeAfter(at, configuredHour, configuredMinute, now)");
+      expect(upgradedReceiver).toContain('savedSchedule.put("at", dateFormat.format(at))');
     } finally {
       const resolvedFixtureRoot = path.resolve(fixtureRoot);
       if (path.dirname(resolvedFixtureRoot) !== path.resolve(tmpdir())) {

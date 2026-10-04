@@ -29,6 +29,7 @@ vi.mock("@/lib/customReminderNotifications", () => ({
 }));
 
 import { getNativeCalendarRepeat, syncCustomReminders } from "@/lib/reminderSync";
+import { nextOccurrences } from "@/lib/reminderRecurrence";
 import type { CustomReminder } from "@/data/reminderTypes";
 import { beginAccountReminderTransition, completeAccountReminderTransition } from "@/lib/reminders";
 
@@ -103,6 +104,28 @@ describe("native custom reminder cancellation", () => {
     expect(getNativeCalendarRepeat(reminder, new Date(2026, 0, 2, 8, 0, 0))).toEqual({
       on: { hour: 8, minute: 0, second: 0, weekday: 6 },
     });
+  });
+
+  it.each(["00:30", "٠٠:٣٠", "۰۰:۳۰"])("preserves daily clock %s when the first occurrence crosses Cairo's DST gap", (atTimeOfDay) => {
+    const previousTimeZone = process.env.TZ;
+    process.env.TZ = "Africa/Cairo";
+    try {
+      const reminder = { ...makeReminder(), atTimeOfDay };
+      const dates = nextOccurrences(reminder, { now: new Date("2026-04-23T10:00:00.000Z"), count: 2 });
+
+      expect(dates[0].getHours()).toBe(1);
+      expect(dates[1].getHours()).toBe(0);
+      expect(getNativeCalendarRepeat(reminder, dates[0])).toEqual({
+        on: { hour: 0, minute: 30, second: 0 },
+      });
+    } finally {
+      if (previousTimeZone === undefined) delete process.env.TZ;
+      else process.env.TZ = previousTimeZone;
+    }
+  });
+
+  it.each([undefined, "", "24:00", "08:60", "not-a-time"])("does not build a calendar repeat from invalid clock %s", (atTimeOfDay) => {
+    expect(getNativeCalendarRepeat({ ...makeReminder(), atTimeOfDay }, new Date(2026, 0, 1, 8))).toBeUndefined();
   });
 
   it("uses monthly calendar repeats only when the day exists in every month", () => {

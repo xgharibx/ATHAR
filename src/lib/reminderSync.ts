@@ -189,9 +189,21 @@ export function getNativeCalendarRepeat(
 ): NativeCalendarRepeat | undefined {
   if (reminder.startDate || reminder.endDate) return undefined;
 
+  // A DST gap can normalize an occurrence's clock; keep the configured time
+  // so that the OS repeat does not carry that shifted hour into later days.
+  const configuredTime = String(reminder.atTimeOfDay ?? "").trim().replace(/[٠-٩۰-۹]/g, (digit) => {
+    const code = digit.charCodeAt(0);
+    return String(code - (code >= 0x06f0 ? 0x06f0 : 0x0660));
+  });
+  const clock = /^(\d{1,2}):(\d{2})$/.exec(configuredTime);
+  if (!clock) return undefined;
+  const hour = Number(clock[1]);
+  const minute = Number(clock[2]);
+  if (hour > 23 || minute > 59) return undefined;
+
   const localTime = {
-    hour: firstOccurrence.getHours(),
-    minute: firstOccurrence.getMinutes(),
+    hour,
+    minute,
     second: 0,
   };
 

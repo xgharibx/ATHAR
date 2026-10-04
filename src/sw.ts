@@ -41,7 +41,10 @@ declare const self: ServiceWorkerGlobalScope & typeof globalThis & {
   __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
 };
 
-self.skipWaiting();
+// Keep an update waiting until a page explicitly accepts a refresh.
+self.addEventListener("message", (event: ExtendableMessageEvent) => {
+  if (event.data?.type === "SKIP_WAITING") event.waitUntil(self.skipWaiting());
+});
 cleanupOutdatedCaches();
 
 precacheAndRoute(self.__WB_MANIFEST);

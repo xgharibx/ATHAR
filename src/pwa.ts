@@ -1,5 +1,41 @@
-import { registerSW } from "virtual:pwa-register";
 import toast from "react-hot-toast";
+
+export type PwaUpdateSnapshot = { available: boolean; applying: boolean };
+let snapshot: PwaUpdateSnapshot = { available: false, applying: false };
+const listeners = new Set<() => void>();
+let waitingWorker: ServiceWorker | null = null;
+let refreshReady = false;
+let updateAccepted = false;
+
+function publish(next: PwaUpdateSnapshot) {
+  snapshot = next;
+  for (const listener of listeners) listener();
+}
+
+export function getPwaUpdateSnapshot() { return snapshot; }
+export function subscribePwaUpdate(listener: () => void) {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
+
+export function dismissPwaUpdate() {
+  publish({ ...snapshot, available: false });
+}
+
+/** Called only after this tab's user has accepted the refresh confirmation. */
+export function applyPwaUpdate() {
+  if (snapshot.applying || (!waitingWorker && !refreshReady)) return;
+  updateAccepted = true;
+  publish({ available: true, applying: true });
+  try {
+    if (refreshReady) globalThis.location.reload();
+    else waitingWorker?.postMessage({ type: "SKIP_WAITING" });
+  } catch {
+    updateAccepted = false;
+    publish({ available: true, applying: false });
+    toast.error("تعذّر تطبيق التحديث. يمكنك المحاولة مجددًا.");
+  }
+}
 
 const isLocalHost =
   typeof window !== "undefined" &&
@@ -20,74 +56,58 @@ if (isLocalHost && "serviceWorker" in navigator) {
   })();
 }
 
-/**
- * Vite PWA auto-update hook.
- * In Android WebView (Capacitor) the SW may be less relevant, but it's great for PWA installs.
- */
-let updateSW: ((reloadPage?: boolean) => Promise<void>) | null = null;
-let registeredSW: ServiceWorkerRegistration | null = null;
-const UPDATE_APPLY_GUARD_KEY = "noor_pwa_update_apply_once";
+if (!isLocalHost && typeof window !== "undefined" && "serviceWorker" in navigator) {
+  const workers = navigator.serviceWorker;
+  let registration: ServiceWorkerRegistration | null = null;
+  let controller = workers.controller;
 
-if (!isLocalHost) {
-  const applyUpdateSafely = () => {
-    try {
-      if (sessionStorage.getItem(UPDATE_APPLY_GUARD_KEY) === "1") return;
-      sessionStorage.setItem(UPDATE_APPLY_GUARD_KEY, "1");
-    } catch {
-      return; // guard cannot be set — skip update to avoid loops
-    }
+  // A worker accepted by another tab may start controlling this one. Keep its
+  // current document (and drafts) intact until its own user accepts a refresh.
+  workers.addEventListener("controllerchange", () => {
+    const previousController = controller;
+    controller = workers.controller;
+    if (previousController === controller || !controller) return;
+    if (!previousController && !updateAccepted && !waitingWorker) return;
+    waitingWorker = null;
+    refreshReady = true;
+    if (updateAccepted) globalThis.location.reload();
+    else publish({ available: true, applying: false });
+  });
 
-    try {
-      void updateSW?.(true);
-    } catch {
-      window.location.reload();
-    }
+  const offerWaitingWorker = (reg: ServiceWorkerRegistration) => {
+    if (!reg.waiting || !reg.active || waitingWorker === reg.waiting) return;
+    waitingWorker = reg.waiting;
+    refreshReady = false;
+    publish({ available: true, applying: false });
+  };
+
+  const observeInstallingWorker = (reg: ServiceWorkerRegistration) => {
+    const installing = reg.installing;
+    if (!installing) return;
+    installing.addEventListener("statechange", () => {
+      if (installing.state === "installed") offerWaitingWorker(reg);
+    });
   };
 
   const checkForUpdate = () => {
-    try {
-      void registeredSW?.update();
-    } catch {
-      // ignore transient registration update errors
-    }
-
-    try {
-      void updateSW?.(false);
-    } catch {
-      // ignore transient update check errors
-    }
+    // Checking for a new script must never activate a waiting worker.
+    void registration?.update().catch(() => { /* offline or transient failure */ });
   };
 
-  updateSW = registerSW({
-    immediate: true,
-    onOfflineReady() {
-      // لا نعرض تنبيهًا هنا للحفاظ على واجهة نظيفة.
-    },
-    onNeedRefresh() {
-      toast("يتم تطبيق تحديث جديد تلقائيًا…", { duration: 2500 });
-      applyUpdateSafely();
-    },
-    onRegisteredSW(_swUrl, registration) {
-      registeredSW = registration ?? null;
-      try {
-        sessionStorage.removeItem(UPDATE_APPLY_GUARD_KEY);
-      } catch {
-        // ignore session storage errors
-      }
+  const base = import.meta.env.BASE_URL;
+  void workers.register(`${base}sw.js`, { scope: base }).then((reg) => {
+    registration = reg;
+    reg.addEventListener("updatefound", () => observeInstallingWorker(reg));
+    observeInstallingWorker(reg);
+    offerWaitingWorker(reg);
+    window.setTimeout(checkForUpdate, 3000);
+  }).catch(() => { /* registration failures must not interrupt the app */ });
 
-      window.setTimeout(checkForUpdate, 3000);
-    }
+  window.setInterval(checkForUpdate, 60 * 1000);
+  window.addEventListener("online", checkForUpdate);
+  window.addEventListener("focus", checkForUpdate);
+  window.addEventListener("pageshow", checkForUpdate);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") checkForUpdate();
   });
-
-  if (typeof window !== "undefined") {
-    const periodicUpdateMs = 60 * 1000;
-    window.setInterval(checkForUpdate, periodicUpdateMs);
-
-    window.addEventListener("online", checkForUpdate);
-    window.addEventListener("focus", checkForUpdate);
-    window.addEventListener("pageshow", checkForUpdate);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") checkForUpdate();
-    });
-  }
 }

@@ -23,11 +23,12 @@ function patchSourceFile(target, patches) {
   let after = before.replace(/\r\n/g, "\n");
   let changed = false;
 
-  for (const { from, to, label } of patches) {
+  for (const { from, to, label, optional = false } of patches) {
     if (after.includes(to)) {
       continue;
     }
     if (!after.includes(from)) {
+      if (optional) continue;
       throw new Error(`[patch-capacitor-plugins] cannot apply ${label} to the installed Capacitor source`);
     }
     after = after.replace(from, to);
@@ -170,7 +171,55 @@ patchSourceFile(path.join(localNotificationsRoot, "DateMatch.java"), [
                 if (second != null) next.set(Calendar.SECOND, second);
             }`,
   },
+  {
+    label: "rebase an alarm to its configured local clock after a timezone change",
+    from: `    @Override
+    public String toString() {`,
+    to: `    public static Date nextConfiguredLocalTimeAfter(Date original, int hour, int minute, Date now) {
+        Calendar target = Calendar.getInstance();
+        target.setTime(original);
+        while (true) {
+            target.set(Calendar.HOUR_OF_DAY, hour);
+            target.set(Calendar.MINUTE, minute);
+            target.set(Calendar.SECOND, 0);
+            target.set(Calendar.MILLISECOND, 0);
+            if (target.getTime().after(now)) return target.getTime();
+            target.add(Calendar.DAY_OF_MONTH, 1);
+        }
+    }
+
+    @Override
+    public String toString() {`,
+  },
 ]);
+
+const deferredDailyTimeZoneRebase = `                if (timeOrTimezoneChanged && at != null && schedule.isRepeating() && "day".equals(schedule.getEvery()) && schedule.getCount() == 1) {
+                    JSObject extra = notification.getExtra();
+                    String configuredTime = extra == null ? null : extra.getString("reminderTime");
+                    if (configuredTime != null && configuredTime.matches("[0-9]{2}:[0-9]{2}")) {
+                        try {
+                            String[] configuredParts = configuredTime.split(":");
+                            int configuredHour = Integer.parseInt(configuredParts[0]);
+                            int configuredMinute = Integer.parseInt(configuredParts[1]);
+                            if (configuredHour >= 0 && configuredHour <= 23 && configuredMinute >= 0 && configuredMinute <= 59) {
+                                at = DateMatch.nextConfiguredLocalTimeAfter(at, configuredHour, configuredMinute, now);
+                                schedule.setAt(at);
+                                notification.setSchedule(schedule);
+
+                                JSObject saved = storage.getSavedNotificationAsJSObject(id);
+                                JSObject savedSchedule = saved == null ? null : saved.getJSObject("schedule");
+                                if (savedSchedule != null) {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat(LocalNotificationSchedule.JS_DATE_FORMAT, Locale.US);
+                                    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                                    savedSchedule.put("at", dateFormat.format(at));
+                                    saved.put("schedule", savedSchedule);
+                                    notification.setSource(saved.toString());
+                                    updatedNotifications.add(notification);
+                                }
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }`;
 
 patchSourceFile(path.join(localNotificationsRoot, "LocalNotificationRestoreReceiver.java"), [
   {
@@ -189,6 +238,23 @@ patchSourceFile(path.join(localNotificationsRoot, "LocalNotificationRestoreRecei
     to: "import java.util.Calendar;\nimport java.util.Date;\nimport java.util.List;\nimport java.text.SimpleDateFormat;\nimport java.util.Locale;\nimport java.util.TimeZone;",
   },
   {
+    label: "detect clock and timezone changes while restoring alarms",
+    from: `        List<String> ids = storage.getSavedNotificationIds();`,
+    to: `        List<String> ids = storage.getSavedNotificationIds();
+        boolean timeOrTimezoneChanged = Intent.ACTION_TIME_CHANGED.equals(intent.getAction())
+            || Intent.ACTION_TIMEZONE_CHANGED.equals(intent.getAction())
+            || "android.intent.action.TIMEZONE_OFFSET_CHANGED".equals(intent.getAction());`,
+  },
+  {
+    label: "upgrade previously patched alarms with timezone rebasing",
+    from: `                Date at = schedule.getAt();
+                Date now = new Date();`,
+    to: `                Date at = schedule.getAt();
+                Date now = new Date();
+${deferredDailyTimeZoneRebase}`,
+    optional: true,
+  },
+  {
     label: "drop expired one-shots and recover recurring schedules without catch-up bursts",
     from: `                Date at = schedule.getAt();
                 if (at != null && at.before(new Date())) {
@@ -200,6 +266,7 @@ patchSourceFile(path.join(localNotificationsRoot, "LocalNotificationRestoreRecei
                 }`,
     to: `                Date at = schedule.getAt();
                 Date now = new Date();
+${deferredDailyTimeZoneRebase}
                 if (at != null && !at.after(now)) {
                     if (schedule.isRepeating() && "day".equals(schedule.getEvery()) && schedule.getCount() == 1) {
                         Calendar dailyTime = Calendar.getInstance();
@@ -309,5 +376,38 @@ patchSourceFile(path.join(localNotificationsRoot, "TimedNotificationPublisher.ja
 
     @SuppressWarnings("deprecation")
     private Notification getParcelableExtraLegacy(Intent intent, String string) {`,
+  },
+  {
+    label: "preserve Doze-safe delivery when rescheduling calendar repeats",
+    from: `            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+                Logger.warn(
+                    "Capacitor/LocalNotification",
+                    "Exact alarms not allowed in user settings.  Notification scheduled with non-exact alarm."
+                );
+                alarmManager.set(AlarmManager.RTC, trigger, pendingIntent);
+            } else {
+                alarmManager.setExact(AlarmManager.RTC, trigger, pendingIntent);
+            }`,
+    to: `            JSObject saved = new NotificationStorage(context).getSavedNotificationAsJSObject(Integer.toString(id));
+            JSObject savedSchedule = saved == null ? null : saved.getJSObject("schedule");
+            boolean allowWhileIdle = savedSchedule != null && Boolean.TRUE.equals(savedSchedule.getBool("allowWhileIdle"));
+            boolean exactAlarmsAllowed = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms();
+            if (!exactAlarmsAllowed) {
+                Logger.warn(
+                    "Capacitor/LocalNotification",
+                    "Exact alarms not allowed in user settings.  Notification scheduled with non-exact alarm."
+                );
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && allowWhileIdle) {
+                if (exactAlarmsAllowed) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pendingIntent);
+                } else {
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pendingIntent);
+                }
+            } else if (exactAlarmsAllowed) {
+                alarmManager.setExact(AlarmManager.RTC, trigger, pendingIntent);
+            } else {
+                alarmManager.set(AlarmManager.RTC, trigger, pendingIntent);
+            }`,
   },
 ]);

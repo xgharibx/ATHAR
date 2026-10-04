@@ -111,7 +111,10 @@ export default defineConfig(({ mode }) => {
     },
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
+      // Registration and consent belong to src/pwa.ts. Do not inject a second
+      // registration helper that could reload a tab without its user's choice.
+      injectRegister: false,
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
