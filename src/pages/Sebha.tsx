@@ -1435,56 +1435,58 @@ export function SebhaPage() {
         {/* S2 - Custom dhikr card */}
         {sebhaCustom ? (
           <div
-            role="button"
-            tabIndex={0}
-            onClick={() => setSelected("custom")}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected("custom"); } }}
-            aria-pressed={selected === "custom"}
             className={cn(
-              "glass rounded-3xl p-4 text-right border transition active:scale-[.98] cursor-pointer",
+              "relative glass rounded-3xl p-4 text-right border transition",
               selected === "custom"
                 ? "border-accent-35 bg-accent-8"
                 : "border-[var(--stroke)] hover:bg-[var(--card)]"
             )}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="arabic-text text-base font-bold leading-7 truncate">{sebhaCustom.phrase}</div>
-                <div className="mt-1 text-xs opacity-55">ذكر مخصص · هدف {sebhaCustom.target}</div>
-              </div>
-              <div className="flex items-center gap-1">
-                <Badge>{Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target)}/{sebhaCustom.target}</Badge>
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => { e.stopPropagation(); openNewCustom(); }}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); openNewCustom(); } }}
-                  className="opacity-40 hover:opacity-80 transition p-1 cursor-pointer"
-                  aria-label="تعديل الذكر المخصص"
-                >
-                  <Pencil size={13} aria-hidden="true" />
-                </span>
-              </div>
-            </div>
-            <div
-              className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.min(Math.round(pct(Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target), sebhaCustom.target)), 100)}
-              aria-label={`${sebhaCustom.phrase}: ${Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target)} من ${sebhaCustom.target}`}
+            <button
+              type="button"
+              onClick={() => setSelected("custom")}
+              aria-pressed={selected === "custom"}
+              aria-label={`اختيار الذكر المخصص: ${sebhaCustom.phrase}`}
+              className="block w-full border-0 bg-transparent p-0 text-right text-inherit cursor-pointer active:scale-[.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-50"
             >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="arabic-text text-base font-bold leading-7 truncate">{sebhaCustom.phrase}</div>
+                  <div className="mt-1 text-xs opacity-55">ذكر مخصص · هدف {sebhaCustom.target}</div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Badge>{Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target)}/{sebhaCustom.target}</Badge>
+                  <span aria-hidden="true" className="block h-[21px] w-[21px] shrink-0" />
+                </div>
+              </div>
               <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${pct(Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target), sebhaCustom.target)}%`,
-                  background:
-                    pct(Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target), sebhaCustom.target) >= 100
-                      ? "var(--ok)"
-                      : "var(--accent)",
-                }}
-              />
-            </div>
+                className="mt-3 h-1.5 rounded-full bg-[var(--card)] overflow-hidden"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.min(Math.round(pct(Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target), sebhaCustom.target)), 100)}
+                aria-label={`${sebhaCustom.phrase}: ${Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target)} من ${sebhaCustom.target}`}
+              >
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${pct(Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target), sebhaCustom.target)}%`,
+                    background:
+                      pct(Math.min(Number(quickTasbeeh[customCounterKey(sebhaCustom.phrase)] ?? 0), sebhaCustom.target), sebhaCustom.target) >= 100
+                        ? "var(--ok)"
+                        : "var(--accent)",
+                  }}
+                />
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={openNewCustom}
+              className="absolute end-4 top-4 grid h-[21px] w-[21px] place-items-center rounded-md border-0 bg-transparent p-1 opacity-40 transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-50"
+              aria-label="تعديل الذكر المخصص"
+            >
+              <Pencil size={13} aria-hidden="true" />
+            </button>
           </div>
         ) : (
           <button type="button"

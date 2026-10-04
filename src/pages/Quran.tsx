@@ -1363,27 +1363,17 @@ export function QuranPage() {
                   )}
                 <div role="listitem" ref={isCurrent ? currentSurahRef : undefined}
                   className="relative">
-                <div role="button"
-                  tabIndex={0}
-                  onClick={(e) => {
-                    // B7: Outer-row click navigates to Mushaf so the canonical
-                    //     "open the surah" behaviour is restored. Child
-                    //     interactive elements (info button, bookmark
-                    //     pill, inline-preview toggle) stop propagation so
-                    //     they don't double-fire.
+                <div
+                  className="w-full flex items-center gap-4 ps-5 pe-2 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)]"
+                  style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
+                >
+                <button type="button"
+                  onClick={() => {
                     recordRecentSurah(s.id);
                     navigate(`/mushaf?surah=${s.id}`);
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      recordRecentSurah(s.id);
-                      navigate(`/mushaf?surah=${s.id}`);
-                    }
-                  }}
                   aria-label={`افتح سورة ${s.name} في المصحف — ${s.ayahs.length} آية`}
-                  className="w-full flex items-center gap-4 ps-5 pe-2 py-4 text-right transition hover:bg-[var(--card)] active:bg-[var(--card)] cursor-pointer focus:outline-none focus:bg-accent-8"
-                  style={idx > 0 ? { borderTop: "1px solid color-mix(in srgb, var(--stroke) 22%, transparent)" } : undefined}
+                  className="min-w-0 flex-1 flex items-center gap-4 border-0 bg-transparent p-0 text-right text-inherit cursor-pointer focus:outline-none focus:bg-accent-8"
                 >
                   {/* Number badge */}
                   <div className={`surah-num-badge shrink-0 ${isCurrent ? "ring-2 ring-accent-50" : ""}`}>
@@ -1454,11 +1444,12 @@ export function QuranPage() {
                     <span className="text-[10px]">آية</span>
                   </div>
 
+                </button>
+
                   {/* Inline preview toggle — keeps the original "expand
                       preview without leaving /quran" affordance alive. */}
                   <button type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={() => {
                       setExpandedSurahPage(0);
                       setExpandedSurahId((prev) => (prev === s.id ? null : s.id));
                     }}
@@ -1479,11 +1470,9 @@ export function QuranPage() {
                   <button type="button"
                     data-surah-info-trigger="true"
                     onClick={(e) => {
-                      e.stopPropagation();
                       setInfoAnchor((e.currentTarget as HTMLElement).getBoundingClientRect());
                       setInfoSurahId(s.id);
                     }}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); } }}
                     aria-label={`معلومات سورة ${s.name}`}
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-transparent text-[var(--muted-2)] transition hover:bg-[var(--card-2)] hover:text-[var(--accent)] hover:border-accent-35">
                     <Info size={14} aria-hidden="true" />

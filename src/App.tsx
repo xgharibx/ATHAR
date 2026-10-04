@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from "react
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { AppShell } from "@/components/layout/AppShell";
+import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncBridge";
 import { useNoorStore } from "@/store/noorStore";
 import { PageSkeleton } from "@/components/ui/Skeleton";
@@ -27,33 +28,6 @@ import { ISLAM_PILLARS_SECTION } from "@/data/islamPillars";
 import { FAITH_PILLARS_SECTION } from "@/data/faithPillars";
 import { FAITH_BRANCHES_SECTION } from "@/data/faithBranches";
 import { MAJOR_SINS_SECTION } from "@/data/majorSins";
-
-// T7: Per-route error boundary - prevents a single page crash from killing the whole app
-class RouteErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean }
-> {
-  state = { hasError: false };
-  static getDerivedStateFromError() { return { hasError: true }; }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div dir="rtl" role="alert" className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-6 text-center">
-          <div className="text-2xl" aria-hidden="true">!</div>
-          <div className="text-base font-semibold opacity-90">حدث خطأ في هذه الصفحة</div>
-          <button type="button"
-            className="px-4 py-2 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] text-sm"
-            onClick={() => this.setState({ hasError: false })}
-            aria-label="إعادة المحاولة لتحميل الصفحة"
-          >
-            إعادة المحاولة
-          </button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 /** Wraps a lazy route element with Suspense + per-route RouteErrorBoundary */
 function S({ children }: { children: React.ReactNode }) {

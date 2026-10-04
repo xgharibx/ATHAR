@@ -1186,6 +1186,9 @@ export function PrayerTimesPage() {
             </Badge>
             <Badge className="text-[11px]">{date.hijri.date} {date.hijri.month.ar}</Badge>
             {data.__sourceLabel && <Badge className="text-[11px] opacity-60">{data.__sourceLabel}</Badge>}
+            <p className="basis-full text-[10.5px] leading-relaxed text-[var(--muted-2)]">
+              عند استخدام موقعك، تُرسل إحداثياتك إلى AlAdhan عبر الإنترنت لحساب مواقيت الصلاة.
+            </p>
             <Button variant="secondary" size="sm" onClick={() => void handleUseCurrentLocation()} disabled={locating || prayerTimes.isFetching} aria-label="استخدام موقعي لمواقيت الصلاة">
               <MapPin size={13} aria-hidden="true" />
               {locating ? "جارٍ تحديد الموقع…" : "استخدام موقعي"}

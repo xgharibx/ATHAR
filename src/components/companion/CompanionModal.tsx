@@ -596,7 +596,10 @@ export function CompanionModal(props: {
                 </div>
                 <p className="text-sm font-semibold text-emerald-100">اسأل «أثر» عن هذه الصفحة</p>
                 <p className="mt-1 text-[11.5px] text-emerald-200/70 max-w-xs">جاوبك هنا دون أن تغادرها. استفسر عن آية، فائدة حديث، أو دعاء.</p>
-                <p className="mt-2 text-[10px] text-emerald-200/55">تُرسل رسالتك وسياق الصفحة وأحدث ١٦ رسالة (حتى ٤٨ ألف حرف) ومقتطفات مرتبطة بالسؤال؛ ولا تُرسل التذكيرات المحفوظة إلا عند السؤال عنها. حد الرسالة الواحدة ٨ آلاف حرف. لا يُرسل التقدّم والملف وذاكرة الأسئلة إلا عند تفعيل التخصيص في صفحة «اسأل أثر».</p>
+                <div className="mt-2 text-[10px] leading-relaxed text-emerald-200/55">
+                  <p>عند الرد، تُرسل رسالتك وسياق الصفحة وأحدث ١٦ رسالة (حتى ٤٨ ألف حرف) ومقتطفات مرتبطة بالسؤال إلى MiniMax. تذكر سياسة MiniMax API أن البيانات الشخصية تُخزَّن في مركز بيانات بالولايات المتحدة للمدة اللازمة للغرض أو المسموح بها قانونًا، ثم تُحذف أو تُجهَّل. لا تُرسل التذكيرات المحفوظة إلا عند السؤال عنها؛ حد الرسالة الواحدة ٨ آلاف حرف، والتقدّم والملف وذاكرة الأسئلة لا تُرسل إلا عند تفعيل التخصيص في صفحة «اسأل أثر».</p>
+                  <a href="https://platform.minimax.io/protocol/privacy-policy" target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-emerald-200 underline underline-offset-2">سياسة MiniMax API</a>
+                </div>
               </div>
             </div>
           ) : null}
@@ -673,7 +676,7 @@ export function CompanionModal(props: {
             )}
           </div>
           <p className="mt-1.5 text-center text-[10px] text-emerald-200/50">
-            تُحفَظ المحادثات محليًا؛ وتُرسل رسالتك وسياق الصفحة وأحدث ١٦ رسالة (حتى ٤٨ ألف حرف) ومقتطفات مرتبطة بالسؤال. لا تُرسل التذكيرات المحفوظة إلا عند السؤال عنها، وحد الرسالة الواحدة ٨ آلاف حرف؛ التقدّم والملف وذاكرة الأسئلة اختيارية من صفحة «اسأل أثر». للدردشة الكاملة: <Link to="/companion" onClick={props.onClose} className="font-semibold text-emerald-200 underline-offset-2 hover:underline">/companion</Link>
+            تُحفَظ المحادثات محليًا؛ وعند الرد تُرسل رسالتك وسياق الصفحة وأحدث ١٦ رسالة (حتى ٤٨ ألف حرف) ومقتطفات مرتبطة بالسؤال إلى MiniMax. تذكر سياستها أن البيانات الشخصية تُخزَّن في مركز بيانات بالولايات المتحدة للمدة اللازمة للغرض أو المسموح بها قانونًا ثم تُحذف أو تُجهَّل. لا تُرسل التذكيرات المحفوظة إلا عند السؤال عنها، وحد الرسالة الواحدة ٨ آلاف حرف؛ التقدّم والملف وذاكرة الأسئلة اختيارية من صفحة «اسأل أثر». <a href="https://platform.minimax.io/protocol/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-emerald-200 underline underline-offset-2">سياسة MiniMax</a>. للدردشة الكاملة: <Link to="/companion" onClick={props.onClose} className="font-semibold text-emerald-200 underline-offset-2 hover:underline">/companion</Link>
           </p>
         </div>
       </div>
@@ -772,42 +775,30 @@ function ReminderChips({
         const when = r.atTimeOfDay ?? "—";
         const inactive = r.enabled === false;
         return (
-          <button
+          <div
             key={r.id}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpen(r.id);
-            }}
             className={`flex w-full items-center justify-between gap-2 rounded-xl border px-3 py-2 text-start text-[12px] transition ${inactive ? "border-amber-400/40 bg-amber-500/10 text-amber-50 hover:bg-amber-500/20" : "border-emerald-400/30 bg-emerald-500/10 text-emerald-50 hover:bg-emerald-500/20"}`}
           >
-            <span className="flex min-w-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onOpen(r.id)}
+              className="flex min-w-0 flex-1 items-center gap-1.5 border-0 bg-transparent p-0 text-start text-inherit"
+            >
               <span aria-hidden="true">{inactive ? "!" : "✓"}</span>
               <span className="min-w-0 whitespace-normal break-words font-semibold">{inactive
                 ? `حُفظ التذكير، لكنه غير مفعّل: ${r.title} — افتح التذكيرات لتفعيله`
                 : `أُضيفت التذكير: ${r.title} — ${when}`}</span>
               {r.deeplink ? <span className="shrink-0 text-[10px] text-emerald-200/60">↗</span> : null}
-            </span>
-            <span
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onCancel(r.id);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onCancel(r.id);
-                }
-              }}
-              className="shrink-0 rounded-md bg-white/5 px-2 py-0.5 text-[11px] text-emerald-200/80 hover:bg-red-500/20 hover:text-red-200"
+            </button>
+            <button
+              type="button"
+              onClick={() => onCancel(r.id)}
+              aria-label={`إلغاء التذكير ${r.title}`}
+              className="shrink-0 rounded-md border-0 bg-white/5 px-2 py-0.5 text-[11px] text-emerald-200/80 hover:bg-red-500/20 hover:text-red-200"
             >
               إلغاء
-            </span>
-          </button>
+            </button>
+          </div>
         );
       })}
       <a
