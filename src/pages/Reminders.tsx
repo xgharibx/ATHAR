@@ -1195,22 +1195,30 @@ export function RemindersPage() {
         </Card>
       )}
 
-      {activeCount > 0 && reminderPermission !== "native" && reminderPermission !== "granted" ? (
+      {activeCount > 0 && reminderPermission !== "native" ? (
         <Card className="mt-3 border border-amber-500/30 p-4">
           <div role="status" aria-live="polite" className="flex items-start gap-3">
             <Bell className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" />
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-[var(--fg)]">
-                {reminderPermission === "unsupported"
+                {reminderPermission === "granted"
+                  ? "إشعارات المتصفح مفعّلة"
+                  : reminderPermission === "unsupported"
                   ? "هذا المتصفح لا يوفّر إشعارات التطبيق."
                   : reminderPermission === "denied"
                     ? "إذن إشعارات التذكيرات مرفوض في المتصفح."
                     : "التذكيرات مفعّلة، لكن إشعارات المتصفح غير مفعّلة."}
               </p>
               <p className="mt-1 text-[11px] leading-5 text-[var(--muted-2)]">
-                فعّل الإشعارات لتعمل التذكيرات في المتصفح. وعلى الويب قد لا يصل التنبيه بعد إغلاق التطبيق أو إيقافه.
+                {reminderPermission === "granted"
+                  ? "قد يفوت إشعار الويب إذا أُغلقت الصفحة أو أوقف المتصفح نشاطها في الخلفية."
+                  : reminderPermission === "unsupported"
+                    ? "لا يمكن إرسال إشعارات التذكيرات من هذا المتصفح."
+                    : reminderPermission === "denied"
+                      ? "اسمح بإشعارات الموقع من إعدادات المتصفح. وحتى مع السماح، قد يفوت التنبيه إذا أُغلقت الصفحة أو أوقف المتصفح نشاطها في الخلفية."
+                      : "فعّل الإشعارات لتعمل التذكيرات في المتصفح، مع احتمال فوات التنبيه إذا أُغلقت الصفحة أو أوقف المتصفح نشاطها في الخلفية."}
               </p>
-              {reminderPermission !== "unsupported" ? (
+              {reminderPermission !== "unsupported" && reminderPermission !== "granted" ? (
                 <button
                   type="button"
                   onClick={() => void handleEnableWebReminderNotifications()}

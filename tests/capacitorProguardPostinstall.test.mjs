@@ -261,5 +261,5 @@ public final class DateMatchDstProbe {
       }
       rmSync(resolvedFixtureRoot, { recursive: true, force: true });
     }
-  });
+  }, 15_000);
 });

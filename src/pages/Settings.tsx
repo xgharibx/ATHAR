@@ -1162,7 +1162,7 @@ export function SettingsPage() {
 
         {!isNative ? (
           <div className="mt-4 text-xs opacity-65 leading-6">
-            التذكيرات تعمل داخل تطبيق الهاتف.
+            إشعارات التذكيرات تعمل من تطبيق الهاتف. على الويب قد يفوت التنبيه بعد إغلاق الصفحة أو إيقاف المتصفح نشاطها في الخلفية.
           </div>
         ) : notifPerm !== "granted" ? (
           <div className="mt-4 text-xs opacity-65 leading-6">
@@ -1215,7 +1215,9 @@ export function SettingsPage() {
                 <Sparkles size={9} aria-hidden="true" />
                 أُنشئ من «أثر»
               </span>
-              وسيُرسلك إشعار به في الوقت المحدد.
+              {isNative
+                ? "تتولى نسخة الهاتف جدولة التنبيه عند تفعيل التذكيرات وإذن الإشعارات."
+                : "في المتصفح قد يفوت التنبيه بعد إغلاق الصفحة أو إيقاف المتصفح نشاطها في الخلفية."}
             </div>
           ) : (
             <div className="mt-3 text-[11px] opacity-55">
@@ -1282,6 +1284,12 @@ export function SettingsPage() {
                 disabled={!reminders.enabled}
               />
             </div>
+
+            {!isNative ? (
+              <p className="mt-2 text-xs opacity-65 leading-6">
+                يمكنك تعديل تفضيلات تنبيهات الصلاة على الويب، لكن إشعار الصلاة يصدر من تطبيق الهاتف فقط.
+              </p>
+            ) : null}
 
             <div className="mt-4 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-3">
               <div className="text-xs font-semibold">اختر الصلوات التي تريد الأذان لها</div>

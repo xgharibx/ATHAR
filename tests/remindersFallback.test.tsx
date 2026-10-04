@@ -12,6 +12,7 @@ import { RemindersPage } from "@/pages/Reminders";
 
 const mocks = vi.hoisted(() => ({
   getExactAlarmPermissionState: vi.fn(),
+  getCustomReminderPermissionState: vi.fn(),
   requestExactAlarmPermission: vi.fn(),
   toastError: vi.fn(),
 }));
@@ -29,7 +30,7 @@ vi.mock("react-hot-toast", () => ({
 }));
 vi.mock("@/lib/customReminderNotifications", () => ({
   getExactAlarmPermissionState: mocks.getExactAlarmPermissionState,
-  getCustomReminderPermissionState: () => "unsupported",
+  getCustomReminderPermissionState: mocks.getCustomReminderPermissionState,
   notifyCustomReminderPermissionChange: vi.fn(),
   requestExactAlarmPermission: mocks.requestExactAlarmPermission,
   requestCustomReminderPermission: vi.fn(),
@@ -52,6 +53,7 @@ beforeEach(() => {
     seenTemplateIds: {},
   } as unknown as Partial<ReturnType<typeof useNoorStore.getState>>);
   mocks.getExactAlarmPermissionState.mockResolvedValue("not-applicable");
+  mocks.getCustomReminderPermissionState.mockReturnValue("unsupported");
   mocks.requestExactAlarmPermission.mockResolvedValue("granted");
 });
 
@@ -198,5 +200,26 @@ describe("RemindersPage Android exact-alarm access", () => {
 
     expect(container.textContent).not.toContain("قد تتأخر إشعارات التذكير على أندرويد");
     expect(useNoorStore.getState().customReminders[0]?.enabled).toBe(true);
+  });
+});
+
+describe("RemindersPage web notification reliability", () => {
+  it("keeps a background-delivery caveat visible after browser permission is granted", async () => {
+    useNoorStore.setState({ customReminders: [] });
+    useNoorStore.getState().addCustomReminder({
+      category: "custom",
+      title: "ورد الصباح",
+      repeat: "daily",
+      atTimeOfDay: "09:00",
+    });
+    mocks.getCustomReminderPermissionState.mockReturnValue("granted");
+
+    await act(async () => {
+      root.render(<MemoryRouter><RemindersPage /></MemoryRouter>);
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toContain("قد يفوت إشعار الويب إذا أُغلقت الصفحة أو أوقف المتصفح نشاطها في الخلفية");
+    expect(container.querySelector('button[aria-label="تفعيل إشعارات التذكيرات"]')).toBeNull();
   });
 });
