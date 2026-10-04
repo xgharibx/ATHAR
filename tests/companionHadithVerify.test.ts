@@ -81,4 +81,11 @@ describe("verifyAnswerAsync", () => {
     expect(out.notes.join(" ")).toMatch(/لم أتحقق من لفظ الحديث/);
     expect(out.notes.join(" ")).not.toMatch(/حديث مكذوب/);
   });
+
+  it("warns when a recognised collector's wording has not been verified", async () => {
+    const out = await verifyAnswerAsync('قال النبي ﷺ: «نص مختلق غير متحقق» رواه البيهقي');
+
+    expect(out.flagged).toBe(true);
+    expect(out.notes.join(" ")).toMatch(/لم أتحقق من لفظ الحديث/);
+  });
 });

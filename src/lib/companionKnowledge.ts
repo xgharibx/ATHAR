@@ -144,7 +144,7 @@ async function buildProphetStoriesIndex(): Promise<Passage[]> {
   }));
 }
 
-async function buildQuranVerses(): Promise<Map<string, string>> {
+async function buildQuranVerses(): Promise<Map<string, string> | null> {
   if (QURAN_VERSES) return QURAN_VERSES;
   try {
     const q = await fetchJSON<{
@@ -164,8 +164,7 @@ async function buildQuranVerses(): Promise<Map<string, string>> {
     return m;
   } catch (err) {
     console.warn("[athar-knowledge] quran loading skipped:", err);
-    QURAN_VERSES = new Map();
-    return QURAN_VERSES;
+    return null;
   }
 }
 
@@ -465,7 +464,7 @@ function unverifiedHadithAttributionNotes(text: string): string[] {
       /\s*(?:في\s+(?:كتابه|صحيحه|مسنده|سننه|موطأه|صحيحها|الأم)|عن\s+\S.*|رقم\s*[٠-٩0-9]+|كتاب\s+\S+).*$/i,
       "",
     ).trim();
-    if (!HADITH_COLLECTIONS[collectionName]) continue;
+    if (!RECOGNISED_NARRATORS.has(collectionName) && !RECOGNISED_FULL_FORMS.has(collectionName)) continue;
     notes.add(`لم أتحقق من لفظ الحديث أو رقمه المنسوب إلى «${collectionName}» بمطابقته مع سجل موثوق داخل التطبيق — راجع المصدر الأصلي.`);
   }
   return Array.from(notes);
@@ -588,6 +587,7 @@ export async function verifyAnswerAsync(text: string): Promise<VerificationRepor
     const sid = SURAH_NUM[surahName];
     if (!sid) continue;
     const map = await buildQuranVerses();
+    if (!map) continue;
     const key = `${sid}:${ayah}`;
     const expected = map.get(key);
     if (expected) citedAyahs.push({ key, expected });

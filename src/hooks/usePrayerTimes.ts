@@ -137,9 +137,8 @@ function writeCachedCoords(lat: number, lng: number) {
   }
 }
 
-// Aladhan numeric method codes → the closest matching `adhan` calculation method.
-// Used only for the fully-offline fallback below, so a few rarer codes (e.g. Jafari,
-// France, Russia) map to their nearest documented equivalent rather than an exact match.
+// AlAdhan numeric method codes → local `adhan` parameters. The offline library
+// exposes the prayer angles but not every authority's minute-by-minute tuning.
 function methodToCalculationParameters(method: number): CalculationParameters {
   switch (method) {
     case 1: return CalculationMethod.Karachi();
@@ -152,11 +151,27 @@ function methodToCalculationParameters(method: number): CalculationParameters {
     case 9: return CalculationMethod.Kuwait();
     case 10: return CalculationMethod.Qatar();
     case 11: return CalculationMethod.Singapore();
+    case 12: return localAngleMethod(12, 12); // France
     case 13: return CalculationMethod.Turkey();
+    case 14: return localAngleMethod(16, 15); // Russia
     case 15: return CalculationMethod.MoonsightingCommittee();
     case 16: return CalculationMethod.Dubai();
+    case 17: return localAngleMethod(20, 18); // JAKIM
+    case 18: return localAngleMethod(18, 18); // Tunisia
+    case 19: return localAngleMethod(18, 17); // Algeria
+    case 20: return localAngleMethod(20, 18); // Indonesia
+    case 21: return localAngleMethod(19, 17); // Morocco
+    case 23: return localAngleMethod(18, 18, 5); // Jordan: Maghrib is 5 minutes after sunset
     default: return CalculationMethod.MuslimWorldLeague();
   }
+}
+
+function localAngleMethod(fajrAngle: number, ishaAngle: number, maghribOffset = 0): CalculationParameters {
+  const params = CalculationMethod.Other();
+  params.fajrAngle = fajrAngle;
+  params.ishaAngle = ishaAngle;
+  params.adjustments.maghrib = maghribOffset;
+  return params;
 }
 
 function two(n: number) {

@@ -78,6 +78,25 @@ describe("Companion knowledge index cache", () => {
     await expect(verifyAnswerAsync("سورة البقرة:99999")).resolves.toMatchObject({ flagged: true });
   });
 
+  it("retries Quran verification after a transient bundled-asset failure", async () => {
+    idbGetExtras.mockResolvedValue(null);
+    let quranRequests = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const path = String(input);
+      if (path.endsWith("/data/quran.json") && quranRequests++ === 0) {
+        throw new TypeError("Failed to fetch");
+      }
+      return sourceResponse(path);
+    }));
+    const { verifyAnswerAsync } = await loadKnowledgeModule();
+
+    await expect(verifyAnswerAsync("سورة البقرة:1"))
+      .resolves.toMatchObject({ flagged: false, notes: [] });
+    await expect(verifyAnswerAsync("سورة البقرة:1"))
+      .resolves.toMatchObject({ flagged: false, notes: [] });
+    expect(quranRequests).toBe(2);
+  });
+
   it("checks explicitly quoted Quran text against its cited local ayah", async () => {
     idbGetExtras.mockResolvedValue(null);
     const { verifyAnswerAsync } = await loadKnowledgeModule();

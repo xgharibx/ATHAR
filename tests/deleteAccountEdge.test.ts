@@ -60,7 +60,7 @@ function createDeleteAccountEdge(options: DeleteOptions = {}) {
 describe("delete-account Edge Function safeguards", () => {
   it("purges only the verified synced leaderboard identity in the Auth delete transaction", () => {
     const migration = fs.readFileSync(
-      path.resolve("supabase/migrations/20261004033630_leaderboard_delete_account_data.sql"),
+      path.resolve("supabase/migrations/20261004100429_leaderboard_delete_account_data.sql"),
       "utf8",
     );
 

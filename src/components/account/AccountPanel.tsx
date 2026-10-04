@@ -97,6 +97,16 @@ export function AccountPanel() {
 
   const doDelete = async () => {
     setBusy("delete");
+    // The leaderboard identity is local-first but account-owned after sync.
+    // Flush it before Auth deletion so the database trigger can verify and
+    // purge that identity atomically with the account.
+    const flushed = await flushCloudSync().catch(() => false);
+    if (!flushed) {
+      setBusy(null);
+      toast.error("لم تكتمل المزامنة بعد. ابقَ مسجّل الدخول وأعد المحاولة عند توفر الاتصال.");
+      return;
+    }
+
     const res = await deleteAccount();
     setBusy(null);
     setConfirmDelete(false);

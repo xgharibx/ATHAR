@@ -4,6 +4,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { requestPrayerLocation, usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { accountScopedStorageKey, setAccountStorageOwner } from "@/lib/accountStorageScope";
+import { useNoorStore } from "@/store/noorStore";
 
 const query = vi.hoisted(() => ({
   run: undefined as undefined | (() => Promise<{ data: { timings: Record<string, string> }; __sourceLabel?: string }>),
@@ -46,6 +47,9 @@ function mountAtMecca() {
 
 beforeEach(() => {
   setAccountStorageOwner("local");
+  useNoorStore.setState((state) => ({
+    prefs: { ...state.prefs, prayerCalcMethod: 5, asrMadhab: 0 },
+  }));
   process.env.TZ = "UTC";
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-10-02T12:00:00Z"));
@@ -77,6 +81,25 @@ describe("offline prayer fallback", () => {
     const result = await query.run!();
     expect(getCurrentPosition).not.toHaveBeenCalled();
     expect(result.__sourceLabel).toContain("القاهرة");
+  });
+
+  it("uses the selected France method in the offline calculation", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    useNoorStore.setState((state) => ({
+      prefs: { ...state.prefs, prayerCalcMethod: 3 },
+    }));
+    mountAtMecca();
+    const mwl = await query.run!();
+
+    await act(async () => {
+      useNoorStore.setState((state) => ({
+        prefs: { ...state.prefs, prayerCalcMethod: 12 },
+      }));
+      await Promise.resolve();
+    });
+    const france = await query.run!();
+
+    expect(france.data.timings.Fajr).not.toBe(mwl.data.timings.Fajr);
   });
 
   it("refreshes the prayer schedule context after the device timezone changes", () => {
