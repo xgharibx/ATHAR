@@ -30,7 +30,15 @@ function sourceResponse(path: string) {
   }
   if (path.includes("tafseer-muyassar.json")) {
     return { ok: true, json: async () => ({
-      surahs: [{ id: 1, name: "الفاتحة", verses: [{ number: 1, text: "تفسير مطول لهذه الآية يحتوي على أكثر من أربعين حرفاً لاجتياز التحقق" }] }],
+      "1": ["", "تفسير مطول كلمةفريدة لهذه الآية يحتوي على أكثر من أربعين حرفاً لاجتياز التحقق"],
+    }) };
+  }
+  if (path.endsWith("/data/quran.json")) {
+    return { ok: true, json: async () => ({
+      surahs: [
+        { id: 1, name: "الفاتحة", ayahs: ["بسم الله الرحمن الرحيم"] },
+        { id: 2, name: "البقرة", ayahs: ["الم", "ذلك الكتاب"] },
+      ],
     }) };
   }
   throw new Error(`Unexpected knowledge source: ${path}`);
@@ -53,6 +61,23 @@ afterEach(() => {
 });
 
 describe("Companion knowledge index cache", () => {
+  it("indexes the bundled tafsir's surah-keyed, one-based ayah arrays", async () => {
+    idbGetExtras.mockResolvedValue(null);
+    const { retrievePassagesAsync } = await loadKnowledgeModule();
+
+    const passages = await retrievePassagesAsync("كلمةفريدة", 3);
+
+    expect(passages).toContainEqual(expect.objectContaining({ source: "tafsir:1:1" }));
+  });
+
+  it("verifies Quran references from the bundled surahs[].ayahs arrays", async () => {
+    idbGetExtras.mockResolvedValue(null);
+    const { verifyAnswerAsync } = await loadKnowledgeModule();
+
+    await expect(verifyAnswerAsync("سورة الفاتحة:1")).resolves.toMatchObject({ flagged: false });
+    await expect(verifyAnswerAsync("سورة البقرة:99999")).resolves.toMatchObject({ flagged: true });
+  });
+
   it("keeps using the previous index when any source fails during an expired rebuild", async () => {
     vi.spyOn(Date, "now").mockReturnValue(cachedAt + 31 * DAY_MS);
     idbGetExtras.mockResolvedValue({ cachedAt, data: oldIndex, buildVersion: 1 });

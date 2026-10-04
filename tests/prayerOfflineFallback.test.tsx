@@ -24,8 +24,14 @@ vi.mock("@tanstack/react-query", () => ({
 let root: Root;
 let container: HTMLDivElement;
 const oldTimezone = process.env.TZ;
+let getPrayerTimingsForDate: (date: Date) => Record<string, string>;
 
-function Probe() { usePrayerTimes(); return null; }
+function Probe() {
+  getPrayerTimingsForDate = (usePrayerTimes() as ReturnType<typeof usePrayerTimes> & {
+    getPrayerTimingsForDate: (date: Date) => Record<string, string>;
+  }).getPrayerTimingsForDate;
+  return null;
+}
 function mountAtMecca() {
   const getCurrentPosition = vi.fn((success: PositionCallback) => success({
     coords: { latitude: 21.4225, longitude: 39.8262 },
@@ -106,6 +112,17 @@ describe("offline prayer fallback", () => {
     expect(locationSaved).toBe(true);
     expect(query.todayKey).not.toEqual(cityQueryKey);
     expect(query.todayKey).toContain("coords:21.4225:39.8262");
+  });
+
+  it("calculates prayer-aligned schedules from the requested future date", () => {
+    mountAtMecca();
+
+    const november = getPrayerTimingsForDate(new Date(2026, 10, 1));
+    const december = getPrayerTimingsForDate(new Date(2026, 11, 1));
+
+    expect(november.Fajr).toBeTruthy();
+    expect(december.Fajr).toBeTruthy();
+    expect(december.Fajr).not.toBe(november.Fajr);
   });
 
   it("calculates for saved coordinates instead of returning another location's cached city times", async () => {

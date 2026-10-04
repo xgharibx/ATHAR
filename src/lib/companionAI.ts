@@ -34,7 +34,7 @@ import {
 } from "@/lib/companionProfile";
 import {
   detectMood,
-  retrievePassages,
+  retrievePassagesAsync,
   retrieveUserRemindersAsPassages,
   verifyAnswer,
   warmQuranVerses,
@@ -1008,10 +1008,10 @@ export type StreamCallbacks = {
 };
 
 /** Build the supplemental retrieval block for the user's last message.
- *  Pulled from local library index — no network round-trip. Also surfaces the
- *  user's own stored customReminders when the query is reminder-shaped. */
-function buildRetrievalBlock(lastUserText: string): string {
-  const passages = retrievePassages(lastUserText, 5);
+ *  Await the local index on a cold start so the first answer is grounded too.
+ *  Also surfaces saved reminders only for an explicit personal-list request. */
+async function buildRetrievalBlock(lastUserText: string): Promise<string> {
+  const passages = await retrievePassagesAsync(lastUserText, 5);
   const userReminders = retrieveUserRemindersAsPassages(lastUserText);
   if (passages.length === 0 && userReminders.length === 0) return "";
   const lines: string[] = [];
@@ -1050,7 +1050,7 @@ export async function streamCompanionReply(
     const profile = loadProfile();
     const lastUser = [...history].reverse().find((m) => m.role === "user");
     if (lastUser) recordMemory(lastUser.content);
-    const retrieval = buildRetrievalBlock(lastUser?.content ?? "");
+    const retrievalPromise = buildRetrievalBlock(lastUser?.content ?? "");
 
     const dynamicContext = [
       profile.includePersonalContext ? buildContextBlock(ctx) : buildMinimalContextBlock(ctx),
@@ -1058,7 +1058,7 @@ export async function streamCompanionReply(
       profile.includePersonalContext ? buildCompanionProfileContext(profile) : "",
       profile.includePersonalContext ? buildMemoryBlock() : "",
       buildRouteLabelsBlock(),
-      retrieval,
+      await retrievalPromise,
     ].filter(Boolean).join("\n\n");
 
     const stream = client.messages.stream({

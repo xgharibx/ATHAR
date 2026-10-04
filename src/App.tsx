@@ -413,9 +413,9 @@ function AppContent() {
   // a real time instead of silently never firing (they'd otherwise fall
   // back to their usually-unset `atTimeOfDay`).
   React.useEffect(() => {
-    const cleanup = syncCustomReminders(customReminders, { prayerTimes: notificationPrayerTimings ?? undefined });
+    const cleanup = syncCustomReminders(customReminders, { prayerTimes: prayerTimes.getPrayerTimingsForDate });
     return cleanup;
-  }, [customReminders, notificationPrayerTimings, reminderScheduleRevision]);
+  }, [customReminders, prayerTimes.getPrayerTimingsForDate, reminderScheduleRevision]);
 
   // 11C: Pre-create default notification channels on native platforms
   React.useEffect(() => {

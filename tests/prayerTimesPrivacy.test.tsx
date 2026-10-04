@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   toast: { error: vi.fn(), success: vi.fn() },
   favoriteCities: [{ id: "tokyo", city: "Tokyo", country: "Japan", label: "طوكيو" }],
   queries: [] as Array<{ queryKey?: readonly unknown[]; queryFn?: () => unknown }>,
+  calendarData: {} as Record<string, unknown[]>,
 }));
 
 vi.mock("@/hooks/usePrayerTimes", () => ({
@@ -41,7 +42,9 @@ vi.mock("@/store/noorStore", () => ({
 vi.mock("@tanstack/react-query", () => ({
   useQuery: (options: { queryKey?: readonly unknown[]; queryFn?: () => unknown }) => {
     mocks.queries.push(options);
-    return { data: undefined, isLoading: false, error: null };
+    const [kind, year, month] = options.queryKey ?? [];
+    const data = kind === "prayer-calendar" ? mocks.calendarData[`${year}-${month}`] : undefined;
+    return { data, isLoading: false, error: null };
   },
 }));
 vi.mock("@/hooks/usePullToRefresh", () => ({
@@ -60,6 +63,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.queries.length = 0;
   mocks.favoriteCities = [{ id: "tokyo", city: "Tokyo", country: "Japan", label: "طوكيو" }];
+  mocks.calendarData = {};
   mocks.requestPrayerLocation.mockResolvedValue(true);
   mocks.prayerFetching = false;
   mocks.timings = { Fajr: "05:00", Sunrise: "06:20", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30" };
@@ -75,6 +79,7 @@ afterEach(() => {
   root = undefined;
   container = undefined;
   window.removeEventListener("error", suppressExpectedRenderError);
+  vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
@@ -92,6 +97,29 @@ async function renderMonthlyPrayerCalendar() {
   await act(async () => { root!.render(tree()); });
   await act(async () => { container!.querySelector<HTMLButtonElement>("#pt-tab-monthly")?.click(); });
   return async () => { await act(async () => { root!.render(tree()); }); };
+}
+
+function calendarDays(year: number, month: number) {
+  const count = new Date(year, month, 0).getDate();
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(year, month - 1, index + 1);
+    const day = String(index + 1).padStart(2, "0");
+    const monthText = String(month).padStart(2, "0");
+    return {
+      timings: { Fajr: "05:00", Dhuhr: "12:00", Asr: "15:00", Maghrib: "18:00", Isha: "19:00" },
+      date: {
+        readable: `${day} ${monthText} ${year}`,
+        gregorian: {
+          date: `${day}-${monthText}-${year}`,
+          day: String(index + 1),
+          month: { number: month, en: "Month" },
+          year: String(year),
+          weekday: { en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()] },
+        },
+        hijri: { date: "01-01-1448", day: "1", month: { number: 1, en: "Muharram", ar: "محرم" }, year: "1448" },
+      },
+    };
+  });
 }
 
 describe("Prayer Times location privacy disclosure", () => {
@@ -182,6 +210,44 @@ describe("Prayer Times location privacy disclosure", () => {
     const urls = fetchMock.mock.calls.map(([url]) => String(url));
     expect(urls.some((url) => url.includes("latitude=21.4225&longitude=39.8262"))).toBe(true);
     expect(urls.some((url) => url.includes("latitude=35.6762&longitude=139.6503"))).toBe(true);
+  });
+
+  it("shows seven days when the current week crosses into the next month", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 31, 12));
+    mocks.calendarData = {
+      "2026-10": calendarDays(2026, 10),
+      "2026-11": calendarDays(2026, 11),
+    };
+    await renderMonthlyPrayerCalendar();
+
+    await act(async () => { container!.querySelector<HTMLButtonElement>("#pt-tab-weekly")?.click(); });
+
+    const calendarQueries = mocks.queries.filter((query) => query.queryKey?.[0] === "prayer-calendar");
+    expect(calendarQueries.some((query) => query.queryKey?.[1] === 2026 && query.queryKey?.[2] === 11)).toBe(true);
+    expect(container!.querySelectorAll("#pt-panel-weekly tbody tr")).toHaveLength(7);
+  });
+
+  it("requests saved-city prayer times for today's local date", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 4, 12));
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: { timings: {} } }) });
+    vi.stubGlobal("fetch", fetchMock);
+    await renderMonthlyPrayerCalendar();
+
+    await act(async () => { container!.querySelector<HTMLButtonElement>("#pt-tab-cities")?.click(); });
+    const cityQuery = mocks.queries.find((query) => query.queryKey?.[0] === "city-times");
+    expect(cityQuery?.queryKey).toContain("2026-10-04");
+    await act(async () => { await cityQuery?.queryFn?.(); });
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/timingsByCity/04-10-2026?");
+
+    vi.setSystemTime(new Date(2026, 9, 5, 0, 1));
+    await act(async () => { window.dispatchEvent(new Event("focus")); });
+    const nextDayQuery = mocks.queries.filter((query) => query.queryKey?.[0] === "city-times").at(-1);
+    expect(nextDayQuery?.queryKey).toContain("2026-10-05");
+    await act(async () => { await nextDayQuery?.queryFn?.(); });
+    expect(String(fetchMock.mock.calls[1]?.[0])).toContain("/timingsByCity/05-10-2026?");
   });
 
   it("waits for prayer times at the new location before rescheduling reminders", async () => {

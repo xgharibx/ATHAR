@@ -127,6 +127,16 @@ describe("native custom reminder cancellation", () => {
     cleanup();
   });
 
+  it("schedules the next day-29 occurrence even when it is more than 14 days away", async () => {
+    vi.setSystemTime(new Date(2026, 9, 4, 7, 0, 0));
+    const reminder = { ...makeReminder(), repeat: "monthly" as const, dayOfMonth: 29 };
+    const cleanup = syncCustomReminders([reminder], { maxFirings: 10 });
+    await vi.waitFor(() => expect(mocks.schedule).toHaveBeenCalledOnce());
+
+    expect(mocks.schedule.mock.calls[0]?.[1]).toEqual(new Date(2026, 9, 29, 8, 0, 0));
+    cleanup();
+  });
+
   it("keeps date-bounded recurrences as individual scheduled occurrences", async () => {
     const reminder = { ...makeReminder(), endDate: "2026-01-03" };
     const cleanup = syncCustomReminders([reminder], { maxFirings: 3 });

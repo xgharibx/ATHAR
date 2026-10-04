@@ -62,6 +62,9 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
     caches.delete("quran-audio").catch((error: unknown) => {
       console.warn("[athar] Could not remove the unused Quran audio cache.", error);
     }),
+    caches.delete("wbw-api-v1").catch((error: unknown) => {
+      console.warn("[athar] Could not remove the legacy year-long word-by-word cache.", error);
+    }),
     caches.delete("athar-html").catch((error: unknown) => {
       console.warn("[athar] Could not remove legacy unbounded navigation cache.", error);
     }),
@@ -174,13 +177,14 @@ registerRoute(
 );
 registerRoute(
   ({ url }) => url.origin === "https://api.quran.com",
-  new CacheFirst({
-    cacheName: "wbw-api-v1",
+  new NetworkFirst({
+    cacheName: "wbw-api-v2-7d",
+    networkTimeoutSeconds: 5,
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({
         maxEntries: 200,
-        maxAgeSeconds: 60 * 60 * 24 * 365,
+        maxAgeSeconds: 60 * 60 * 24 * 7,
       }),
     ],
   }),

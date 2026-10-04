@@ -25,6 +25,7 @@ const validPayload = {
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
@@ -64,7 +65,50 @@ describe("Quran.com word-by-word API boundary", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("refreshes an IndexedDB response once it is older than seven days", async () => {
+    const now = Date.UTC(2026, 0, 1);
+    const clock = vi.spyOn(Date, "now").mockReturnValue(now);
+    const fetchMock = vi.fn().mockResolvedValue(response(validPayload));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await loadWbwSurah(4);
+    clock.mockReturnValue(now + 8 * 24 * 60 * 60 * 1000);
+    await loadWbwSurah(4);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("deletes an expired persisted row when the refresh cannot complete", async () => {
+    const now = Date.UTC(2026, 0, 1);
+    const clock = vi.spyOn(Date, "now").mockReturnValue(now);
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(validPayload))
+      .mockRejectedValueOnce(new TypeError("offline"));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await loadWbwSurah(5);
+    clock.mockReturnValue(now + 8 * 24 * 60 * 60 * 1000);
+    await expect(loadWbwSurah(5)).rejects.toThrow("offline");
+
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("noor-wbw-cache-v4");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const row = await new Promise<unknown>((resolve, reject) => {
+      const request = database.transaction("wbwCache").objectStore("wbwCache").get("wbw_5");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    database.close();
+    expect(row).toBeUndefined();
+  });
+
   it("aborts a Quran.com request that does not respond before the deadline", async () => {
+    // Open the fake IndexedDB database before fake timers so its transaction
+    // scheduling does not get suspended by this test's deadline clock.
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response(validPayload)));
+    await loadWbwSurah(6);
     vi.useFakeTimers();
     let markFetchStarted!: () => void;
     const fetchStarted = new Promise<void>((resolve) => { markFetchStarted = resolve; });

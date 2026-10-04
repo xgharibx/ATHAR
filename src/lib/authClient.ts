@@ -113,7 +113,11 @@ export async function signInWithGoogle(): Promise<AuthResult> {
     // Android Gradle config is rejected by the project's current AGP.
     const { registerPlugin } = await import("@capacitor/core");
     const AuthBridge = registerPlugin<{ openExternal(o: { url: string }): Promise<void> }>("AuthBridge");
-    await AuthBridge.openExternal({ url: data.url });
+    try {
+      await AuthBridge.openExternal({ url: data.url });
+    } catch {
+      return { ok: false, error: "تعذّر فتح المتصفح الآمن لتسجيل الدخول" };
+    }
   }
   return { ok: true };
 }

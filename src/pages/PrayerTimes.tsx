@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/Badge";
 import { PrayerCountdown } from "@/components/layout/PrayerCountdown";
 import { PrayerTimesPageSkeleton } from "@/components/ui/Skeleton";
 import { requestPrayerLocation, usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { useTodayKey } from "@/hooks/useTodayKey";
 import { syncReminders } from "@/lib/reminders";
 import { buildPrayerSchedule, format12h, type PrayerDetailRow, PRAYER_LABELS, parseClockToMinutes, formatMinutes12h } from "@/lib/prayerSchedule";
 import { cn } from "@/lib/utils";
@@ -148,7 +149,7 @@ function getLocalDateKey() {
 
 // ─── Calendar hook ────────────────────────────────────────────────────────────
 
-function usePrayerCalendar(year: number, month: number) {
+function usePrayerCalendar(year: number, month: number, enabled = true) {
   const method  = useNoorStore((s) => s.prefs.prayerCalcMethod ?? 5);
   const school  = useNoorStore((s) => s.prefs.asrMadhab ?? 0);
   const coords = readCachedPrayerCoordinates();
@@ -158,6 +159,7 @@ function usePrayerCalendar(year: number, month: number) {
 
   return useQuery<CalendarDayEntry[]>({
     queryKey: ["prayer-calendar", year, month, method, school, locationIdentity],
+    enabled,
     queryFn: async () => {
       if (coords) {
         const res = await fetch(
@@ -181,14 +183,15 @@ function usePrayerCalendar(year: number, month: number) {
 
 // ─── City prayer times hook ───────────────────────────────────────────────────
 
-function useCityTimes(city: string, country: string) {
+function useCityTimes(city: string, country: string, dayKey: string) {
   const method = useNoorStore((s) => s.prefs.prayerCalcMethod ?? 5);
   const school = useNoorStore((s) => s.prefs.asrMadhab ?? 0);
+  const [year, month, day] = dayKey.split("-");
   return useQuery({
-    queryKey: ["city-times", city, country, method, school],
+    queryKey: ["city-times", city, country, method, school, dayKey],
     queryFn: async () => {
       const res = await fetch(
-        `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`
+        `https://api.aladhan.com/v1/timingsByCity/${day}-${month}-${year}?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}&school=${school}`
       );
       if (!res.ok) throw new Error("failed");
       const j = await res.json() as { data: { timings: Record<string, string> } };
@@ -211,10 +214,10 @@ function IqamaTimeInline({ prayerTime, offset }: { prayerTime: string; offset: n
 
 // ─── CityRow ──────────────────────────────────────────────────────────────────
 
-function CityRow({ city, country, label, onRemove }: {
-  city: string; country: string; label: string; onRemove: () => void;
+function CityRow({ city, country, label, dayKey, onRemove }: {
+  city: string; country: string; label: string; dayKey: string; onRemove: () => void;
 }) {
-  const { data, isLoading, error } = useCityTimes(city, country);
+  const { data, isLoading, error } = useCityTimes(city, country, dayKey);
   return (
     <div className="rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3">
       <div className="flex items-center justify-between mb-2">
@@ -368,7 +371,17 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
 
 function WeeklyTab() {
   const now = new Date();
-  const { data, isLoading, error } = usePrayerCalendar(now.getFullYear(), now.getMonth() + 1);
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const currentMonth = usePrayerCalendar(year, month);
+  const needsNextMonth = now.getDate() + 6 > new Date(year, month, 0).getDate();
+  const nextMonthDate = new Date(year, month, 1);
+  const nextMonth = usePrayerCalendar(nextMonthDate.getFullYear(), nextMonthDate.getMonth() + 1, needsNextMonth);
+  const data = currentMonth.data && needsNextMonth
+    ? [...currentMonth.data, ...(nextMonth.data ?? [])]
+    : currentMonth.data;
+  const isLoading = currentMonth.isLoading || (needsNextMonth && nextMonth.isLoading);
+  const error = currentMonth.error || (needsNextMonth && nextMonth.error);
   const todayDay = now.getDate();
 
   if (isLoading) return <div className="text-sm opacity-50 p-2" role="status" aria-live="polite" aria-atomic="true">جارٍ التحميل...</div>;
@@ -690,6 +703,7 @@ function HijriCalendarTab() {
 
 function CitiesTab() {
   const favoriteCities    = useNoorStore((s) => s.favoriteCities);
+  const dayKey = useTodayKey();
   const addFavoriteCity   = useNoorStore((s) => s.addFavoriteCity);
   const removeFavoriteCity = useNoorStore((s) => s.removeFavoriteCity);
   const [showAdd, setShowAdd]         = React.useState(false);
@@ -765,7 +779,7 @@ function CitiesTab() {
 
       <div className="space-y-3">
         {favoriteCities.map((c) => (
-          <CityRow key={c.id} city={c.city} country={c.country} label={c.label} onRemove={() => removeFavoriteCity(c.id)} />
+          <CityRow key={c.id} city={c.city} country={c.country} label={c.label} dayKey={dayKey} onRemove={() => removeFavoriteCity(c.id)} />
         ))}
       </div>
     </div>

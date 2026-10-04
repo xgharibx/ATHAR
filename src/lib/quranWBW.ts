@@ -1,7 +1,7 @@
 /**
  * Word-by-word + Tajweed Quran data — Phase 2A/2B
  * Fetches per-word Arabic, translation, transliteration, and tajweed markup
- * from quran.com API v4. Caches in IndexedDB (Dexie) with 30-day TTL.
+ * from quran.com API v4. Caches in IndexedDB (Dexie) for at most seven days.
  *
  * API: https://api.quran.com/api/v4/verses/by_chapter/{id}?language=en&words=true&word_fields=text_uthmani,text_uthmani_tajweed,translation,transliteration&per_page=300
  */
@@ -40,12 +40,19 @@ function getDB(): NoorWbwDexie {
 
 let ensureAllWbwPromise: Promise<void> | null = null;
 
-const MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000; // 1 year — WBW data rarely changes
+const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 async function idbGet(surahId: number): Promise<WbwSurah | null> {
   try {
-    const row = await getDB().wbwCache.get(`wbw_${surahId}`);
-    if (!row || Date.now() - row.cachedAt > MAX_AGE_MS) return null;
+    const db = getDB();
+    const key = `wbw_${surahId}`;
+    const row = await db.wbwCache.get(key);
+    if (!row) return null;
+    const now = Date.now();
+    if (!Number.isFinite(row.cachedAt) || row.cachedAt > now || now - row.cachedAt > MAX_AGE_MS) {
+      await db.wbwCache.delete(key);
+      return null;
+    }
     return row.data;
   } catch {
     return null;

@@ -1386,6 +1386,7 @@ export function SettingsPage() {
             <div className="mt-3">
               <Input
                 type="time"
+                aria-label="وقت تذكير أذكار الصباح"
                 dir="ltr"
                 value={reminders.morningTime}
                 onChange={(e) => setReminders({ morningTime: e.target.value })}
@@ -1410,6 +1411,7 @@ export function SettingsPage() {
             <div className="mt-3">
               <Input
                 type="time"
+                aria-label="وقت تذكير أذكار المساء"
                 dir="ltr"
                 value={reminders.eveningTime}
                 onChange={(e) => setReminders({ eveningTime: e.target.value })}
@@ -1434,6 +1436,7 @@ export function SettingsPage() {
             <div className="mt-3">
               <Input
                 type="time"
+                aria-label="وقت تذكير ورد اليوم"
                 dir="ltr"
                 value={reminders.dailyWirdTime}
                 onChange={(e) => setReminders({ dailyWirdTime: e.target.value })}
@@ -1458,6 +1461,7 @@ export function SettingsPage() {
             <div className="mt-3">
               <Input
                 type="time"
+                aria-label="وقت تذكير خطة الختمة"
                 dir="ltr"
                 value={reminders.khatmaTime}
                 onChange={(e) => setReminders({ khatmaTime: e.target.value })}
@@ -1501,6 +1505,7 @@ export function SettingsPage() {
             <div className="mt-3">
               <Input
                 type="time"
+                aria-label="وقت تذكير التسبيح والاستغفار"
                 dir="ltr"
                 value={reminders.tasbeehTime}
                 onChange={(e) => setReminders({ tasbeehTime: e.target.value })}
@@ -1535,13 +1540,14 @@ export function SettingsPage() {
               <input
                 type="file"
                 accept=".athar,application/json"
-                className="hidden"
+                aria-label="استيراد نسخة احتياطية"
+                className="peer sr-only"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) void onRestore(file);
                 }}
               />
-              <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] cursor-pointer text-sm min-h-[44px]">
+              <span className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[var(--card)] hover:bg-[var(--card-2)] border border-[var(--stroke)] cursor-pointer text-sm min-h-[44px] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-50">
                 <Upload size={16} aria-hidden="true" />
                 استيراد
               </span>

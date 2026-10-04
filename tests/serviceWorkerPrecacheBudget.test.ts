@@ -45,6 +45,15 @@ describe("PWA offline asset policy", () => {
     expect(hadithRoute).toContain("maxAgeSeconds: 60 * 60 * 24 * 30");
   });
 
+  it("limits Quran.com word-by-word responses to seven days and removes the legacy year-long cache", () => {
+    const worker = readFileSync(resolve(process.cwd(), "src/sw.ts"), "utf8");
+    const wbwRoute = worker.split('cacheName: "wbw-api-v2-7d"')[1]?.split("registerRoute(")[0] ?? "";
+    const activationHandler = worker.split('self.addEventListener("activate"')[1]?.split("// SPA fallback")[0] ?? "";
+
+    expect(wbwRoute).toContain("maxAgeSeconds: 60 * 60 * 24 * 7");
+    expect(activationHandler).toContain('caches.delete("wbw-api-v1")');
+  });
+
   it("bounds cached navigation HTML while retaining the precached offline shell", () => {
     const worker = readFileSync(resolve(process.cwd(), "src/sw.ts"), "utf8");
     const navigationRoute = worker.split('cacheName: "athar-html"')[1]?.split("const navigationRoute")[0] ?? "";

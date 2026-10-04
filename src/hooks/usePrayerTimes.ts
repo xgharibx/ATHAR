@@ -163,6 +163,10 @@ function two(n: number) {
   return String(n).padStart(2, "0");
 }
 
+function localDateKey(date: Date): string {
+  return `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())}`;
+}
+
 /**
  * Fully offline prayer-time computation (Jean Meeus astronomical formulas via the
  * `adhan` package) — the last-resort fallback when there is no network AND no cached
@@ -390,6 +394,20 @@ export function usePrayerTimes() {
     },
   });
 
+  const getPrayerTimingsForDate = React.useCallback((date: Date) => {
+    const requestedDay = localDateKey(date);
+    if (requestedDay === dayKey && query.data?.data?.timings) return query.data.data.timings;
+    if (requestedDay === tomorrowKey && tomorrowQuery.data?.data?.timings) return tomorrowQuery.data.data.timings;
+
+    return computeLocalPrayerTimes(
+      coordsLat ?? 30.0444,
+      coordsLng ?? 31.2357,
+      date,
+      method,
+      school,
+    ).data.timings;
+  }, [coordsLat, coordsLng, dayKey, method, query.data?.data?.timings, school, tomorrowKey, tomorrowQuery.data?.data?.timings]);
+
   React.useEffect(() => {
     if (query.data?.data?.timings) {
       syncPrayerWidget(query.data.data.timings, dayKey).catch(() => {});
@@ -420,5 +438,5 @@ export function usePrayerTimes() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dayKey, query.refetch]);
 
-  return { ...query, tomorrow: tomorrowQuery.data };
+  return { ...query, tomorrow: tomorrowQuery.data, getPrayerTimingsForDate };
 }

@@ -1,15 +1,17 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const native = vi.hoisted(() => ({ enabled: true }));
+const native = vi.hoisted(() => ({ enabled: true, openExternal: vi.fn() }));
 const exchanges = vi.hoisted(() => [] as string[]);
 const sessionTokens = vi.hoisted(() => [] as Array<{ access_token: string; refresh_token: string }>);
 
 vi.mock("@capacitor/core", () => ({
   Capacitor: { isNativePlatform: () => native.enabled },
+  registerPlugin: () => ({ openExternal: native.openExternal }),
 }));
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({ auth: {
+    signInWithOAuth: async () => ({ data: { url: "https://accounts.example.test/oauth" }, error: null }),
     exchangeCodeForSession: async (code: string) => { exchanges.push(code); return { error: null }; },
     setSession: async (tokens: { access_token: string; refresh_token: string }) => {
       sessionTokens.push(tokens);
@@ -26,6 +28,7 @@ beforeEach(() => {
   vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
   vi.stubEnv("VITE_SUPABASE_ANON_KEY", "test-public-key");
   native.enabled = true;
+  native.openExternal.mockReset().mockResolvedValue(undefined);
   exchanges.length = 0;
   sessionTokens.length = 0;
   callbackWindow = new EventTarget();
@@ -96,5 +99,12 @@ describe("native authentication callback delivery", () => {
     await expect(completeNativeSignIn("app.athar://auth?error=access_denied"))
       .resolves.toEqual({ ok: false, error: "تعذّر تسجيل الدخول" });
     expect(exchanges).toEqual([]);
+  });
+
+  it("returns a recoverable error when the native system browser cannot open", async () => {
+    native.openExternal.mockRejectedValue(new Error("browser unavailable"));
+    const { signInWithGoogle } = await import("@/lib/authClient");
+
+    await expect(signInWithGoogle()).resolves.toMatchObject({ ok: false, error: expect.any(String) });
   });
 });

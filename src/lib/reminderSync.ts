@@ -260,6 +260,13 @@ function syncCustomRemindersNative(
 
       const firstOccurrence = dates.find((date) => date.getTime() > now);
       const nativeRepeat = firstOccurrence && getNativeCalendarRepeat(reminder, firstOccurrence);
+      const firstLongMonthDayOccurrence =
+        reminder.repeat === "monthly" &&
+        !reminder.startDate &&
+        !reminder.endDate &&
+        typeof reminder.dayOfMonth === "number" &&
+        reminder.dayOfMonth > 28 &&
+        firstOccurrence?.getTime();
       if (firstOccurrence && nativeRepeat) {
         const scheduleId = scheduleIdFor(reminder.id, firstOccurrence.getTime(), owner);
         scheduled.add(scheduleId);
@@ -276,7 +283,7 @@ function syncCustomRemindersNative(
       for (const date of dates) {
         if (cancelled || isAccountStorageOwnerTransitionInProgress() || getAccountStorageOwner() !== owner) return;
         const at = date.getTime();
-        if (at <= now || at > horizon) continue;
+        if (at <= now || (at > horizon && at !== firstLongMonthDayOccurrence)) continue;
         const scheduleId = scheduleIdFor(reminder.id, at, owner);
         scheduled.add(scheduleId);
         try {

@@ -370,7 +370,7 @@ export function DhikrCard(props: {
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-3">
           {!focusMode && (
-          <div className="flex items-center gap-1">
+          <div className="flex min-w-0 items-center gap-1">
             {/* Toggle button — always visible */}
             <IconButton
               aria-label={actionsOpen ? "إخفاء الأدوات" : "إظهار الأدوات"}
@@ -391,14 +391,15 @@ export function DhikrCard(props: {
             {/* Sliding actions panel */}
             <div
               style={{
-                maxWidth: actionsOpen ? "280px" : "0px",
+                maxWidth: actionsOpen ? "min(280px, calc(100vw - 168px))" : "0px",
                 overflow: "hidden",
                 transition: "max-width 300ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease",
                 opacity: actionsOpen ? 1 : 0,
+                flexShrink: 1,
               }}
               aria-hidden={!actionsOpen}
             >
-              <div className="flex items-center gap-1 pr-1">
+              <div className="flex flex-wrap items-center gap-1 pr-1">
                 <IconButton aria-label="نسخ الذكر" onClick={() => { void doCopy(); }} tabIndex={actionsOpen ? 0 : -1}>
                   <Copy size={16} aria-hidden="true" className="opacity-80" />
                 </IconButton>

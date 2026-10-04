@@ -102,19 +102,22 @@ async function buildSearchIndex(): Promise<Passage[]> {
 }
 
 async function buildTafsirIndex(): Promise<Passage[]> {
-  // tafseer-muyassar.json — Spanish tafsir, but rich Arabic text is interleaved.
-  // We grab the Arabic intro/summary if present.
-  const raw = await fetchJSON<{ surahs?: Array<{ id: number; name: string; verses?: Array<{ number: number; text: string }> }> }>(
+  // tafseer-muyassar.json stores each surah as a one-based array of ayah text.
+  // Index 0 is intentionally empty, matching the Quran's 1-based verse numbers.
+  const raw = await fetchJSON<Record<string, string[]>>(
     "/data/tafseer-muyassar.json",
   );
   const out: Passage[] = [];
-  for (const s of raw.surahs ?? []) {
-    for (const v of s.verses ?? []) {
-      const text = String(v.text ?? "").trim();
+  for (const [surahKey, verses] of Object.entries(raw)) {
+    const surahId = Number(surahKey);
+    if (!Number.isInteger(surahId) || surahId < 1 || surahId > 114 || !Array.isArray(verses)) continue;
+    const surahName = Object.keys(SURAH_NUM).find((name) => SURAH_NUM[name] === surahId) ?? surahKey;
+    for (let ayah = 1; ayah < verses.length; ayah++) {
+      const text = String(verses[ayah] ?? "").trim();
       if (text.length < 40) continue;
       out.push({
-        source: `tafsir:${s.id}:${v.number}`,
-        sourceLabel: `تفسير الميسر — سورة ${s.name} (${v.number})`,
+        source: `tafsir:${surahId}:${ayah}`,
+        sourceLabel: `تفسير الميسر — سورة ${surahName} (${ayah})`,
         text,
       });
     }
@@ -147,14 +150,14 @@ async function buildQuranVerses(): Promise<Map<string, string>> {
     const q = await fetchJSON<{
       surahs: Array<{
         id: number;
-        name: string;
-        verses: Array<{ number: number; text: string }>;
+        ayahs: string[];
       }>;
     }>("/data/quran.json");
     const m = new Map<string, string>();
     for (const s of q.surahs ?? []) {
-      for (const v of s.verses ?? []) {
-        m.set(`${s.id}:${v.number}`, v.text);
+      for (let index = 0; index < (s.ayahs ?? []).length; index++) {
+        const text = s.ayahs[index];
+        if (typeof text === "string" && text.trim()) m.set(`${s.id}:${index + 1}`, text);
       }
     }
     QURAN_VERSES = m;
@@ -250,10 +253,11 @@ export async function retrievePassagesAsync(query: string, k = 3): Promise<Passa
 }
 
 /* ─── User reminders surface ───────────────────────────────────────────── */
-/** Heuristic AR/EN keywords that signal a user is asking about the list of
- *  reminders they've already created. Stored as a Set for O(1) lookups. */
+/** Require a clearly personal/list intent before sending private reminders to
+ *  the provider; mentioning reminders generally or asking to create one is not
+ *  enough. */
 const REMINDERS_QUERY_RE =
-  /(تذكير|تذكيرات|تذكّير|أذكاري|ورد يومي|مواعيدي|reminder|reminders|schedule|مواعيد|ما\s+الذي\s+أنبهك|ما\s+الذي\s+تذكرني|reminders\s+do\s+I\s+have|my\s+reminders|adhkar\s+schedule|جدولي)/i;
+  /(?:تذكيراتي|مواعيدي|جدولي|(?:التذكيرات|المواعيد).{0,24}(?:عندي|لدي|المحفوظة|التي\s+(?:حفظتها|سجلتها|ضبطتها|أنشأتها))|(?:اعرض|أرني|اذكر\s+لي)\s+(?:قائمة\s+)?(?:تذكيراتي|مواعيدي)|\bmy\s+(?:(?:daily|adhkar)\s+)?(?:reminders?|schedule)\b|\bwhat\s+reminders?\s+do\s+i\s+have\b|\b(?:show|list)\s+(?:me\s+)?my\s+(?:reminders?|schedule)\b)/i;
 
 /** When the user asks about their own reminders ("show my daily adhkar schedule",
  *  "what reminders do I have", …), surface them from the store as ad-hoc
@@ -317,7 +321,7 @@ export function detectMood(text: string): string {
 
 /* ─── Verification ─────────────────────────────────────────────────── */
 
-const SURAH_RE = /(?:سورة|سورت)\s+([\u0621-\u063A\u0648\u064A]+(?:\s+[\u0621-\u063A\u0648\u064A]+)?)\s*[:\s]\s*([٠-٩0-9]+)/g;
+const SURAH_RE = /(?:سورة|سورت)\s+([\u0621-\u064A]+(?:\s+[\u0621-\u064A]+)?)\s*[:\s]\s*([٠-٩0-9]+)/g;
 const ARABIC_TO_NUM: Record<string, number> = { "٠":0,"١":1,"٢":2,"٣":3,"٤":4,"٥":5,"٦":6,"٧":7,"٨":8,"٩":9 };
 function toNum(s: string): number {
   s = s.trim();
