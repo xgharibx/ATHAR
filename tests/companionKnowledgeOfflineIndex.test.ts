@@ -111,6 +111,22 @@ describe("Companion knowledge index cache", () => {
       .resolves.toMatchObject({ flagged: false, notes: [] });
   });
 
+  it("warns when a Quran quote is too short for reliable local matching", async () => {
+    idbGetExtras.mockResolvedValue(null);
+    const { verifyAnswerAsync } = await loadKnowledgeModule();
+
+    await expect(verifyAnswerAsync("قال الله تعالى: ﴿بسم﴾ سورة الفاتحة:1"))
+      .resolves.toMatchObject({ flagged: true, notes: [expect.stringContaining("لم أتمكن من مطابقته بثقة")] });
+  });
+
+  it("warns when multiple Quran quotes and references cannot be paired unambiguously", async () => {
+    idbGetExtras.mockResolvedValue(null);
+    const { verifyAnswerAsync } = await loadKnowledgeModule();
+
+    await expect(verifyAnswerAsync("﴿بسم الله الرحمن الرحيم﴾ سورة الفاتحة:1، ﴿ذلك الكتاب﴾ سورة البقرة:2"))
+      .resolves.toMatchObject({ flagged: true, notes: [expect.stringContaining("لم أتمكن من مطابقته بثقة")] });
+  });
+
   it("keeps using the previous index when any source fails during an expired rebuild", async () => {
     vi.spyOn(Date, "now").mockReturnValue(cachedAt + 31 * DAY_MS);
     idbGetExtras.mockResolvedValue({ cachedAt, data: oldIndex, buildVersion: 1 });

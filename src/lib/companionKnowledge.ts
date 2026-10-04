@@ -597,15 +597,22 @@ export async function verifyAnswerAsync(text: string): Promise<VerificationRepor
     }
   }
   // Verify only a single explicitly marked Quran quote paired with a single
-  // recognized surah:ayah citation. Ambiguous/multiple references, prose,
-  // paraphrases, and translations are deliberately left untouched.
+  // recognized surah:ayah citation. When a marked quote cannot be paired or
+  // is too short for a confident comparison, surface that uncertainty instead
+  // of silently treating it as verified.
   const quoteMatches = Array.from(text.matchAll(/﴿([^﴿﴾]+)﴾/g));
-  if (citedAyahs.length === 1 && quoteMatches.length === 1) {
-    const quote = normalizeQuranQuote(quoteMatches[0]?.[1] ?? "");
-    const verse = normalizeQuranQuote(citedAyahs[0]!.expected);
-    if (quote.length >= 10 && verse && !verse.includes(quote)) {
-      flags.push(`quoted Quran text does not match ${citedAyahs[0]!.key}`);
-      notes.push("الاقتباس القرآني لا يطابق نص الآية المحلية المشار إليها — تحقَّق من النص والمرجع.");
+  if (quoteMatches.length > 0) {
+    if (citedAyahs.length === 1 && quoteMatches.length === 1) {
+      const quote = normalizeQuranQuote(quoteMatches[0]?.[1] ?? "");
+      const verse = normalizeQuranQuote(citedAyahs[0]!.expected);
+      if (quote.length >= 10 && verse && !verse.includes(quote)) {
+        flags.push(`quoted Quran text does not match ${citedAyahs[0]!.key}`);
+        notes.push("الاقتباس القرآني لا يطابق نص الآية المحلية المشار إليها — تحقَّق من النص والمرجع.");
+      } else if (quote.length < 10 || !verse) {
+        notes.push("يتضمن الرد اقتباسًا قرآنيًا لم أتمكن من مطابقته بثقة مع آية واحدة — تحقَّق من النص والمرجع.");
+      }
+    } else {
+      notes.push("يتضمن الرد اقتباسًا قرآنيًا لم أتمكن من مطابقته بثقة مع آية واحدة — تحقَّق من النص والمرجع.");
     }
   }
   // Combine with hadith attribution verification.
