@@ -58,6 +58,22 @@ function createDeleteAccountEdge(options: DeleteOptions = {}) {
 }
 
 describe("delete-account Edge Function safeguards", () => {
+  it("purges only the verified synced leaderboard identity in the Auth delete transaction", () => {
+    const migration = fs.readFileSync(
+      path.resolve("supabase/migrations/20261004033630_leaderboard_delete_account_data.sql"),
+      "utf8",
+    );
+
+    expect(migration).toMatch(/create\s+or\s+replace\s+function\s+private\.purge_leaderboard_for_auth_user_delete/i);
+    expect(migration).toMatch(/before\s+delete\s+on\s+auth\.users/i);
+    expect(migration).toMatch(/leaderboardIdentity/i);
+    expect(migration).toMatch(/extensions\.digest/i);
+    expect(migration).toMatch(/leaderboard_score_events/i);
+    expect(migration).toMatch(/leaderboard_rollups/i);
+    expect(migration).toMatch(/leaderboard_alias_audit/i);
+    expect(migration).toMatch(/fingerprint.*immutable|immutable.*fingerprint/is);
+  });
+
   it("keeps the dependent account rows tied to auth deletion by cascade", () => {
     const migration = fs.readFileSync(
       path.resolve("supabase/migrations/20260725000001_accounts_sync.sql"),
