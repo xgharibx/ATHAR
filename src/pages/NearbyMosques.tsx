@@ -33,6 +33,8 @@ type Mosque = {
   distanceKm: number;
 };
 
+const OVERPASS_REQUEST_TIMEOUT_MS = 20_000;
+
 // ─── Haversine distance ───────────────────────────────────────────────────────
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -53,19 +55,41 @@ export function NearbyMosquesPage() {
   const [mosques, setMosques] = React.useState<Mosque[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [fetchError, setFetchError] = React.useState<string | null>(null);
+  const requestController = React.useRef<AbortController | null>(null);
+
+  React.useEffect(() => () => {
+    requestController.current?.abort();
+    requestController.current = null;
+  }, []);
 
   const fetchMosques = React.useCallback(async (lat: number, lng: number) => {
+    requestController.current?.abort();
+    const controller = new AbortController();
+    requestController.current = controller;
+    let timedOut = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     setLoading(true);
     setFetchError(null);
     try {
       const query = `[out:json][timeout:15];(node(around:5000,${lat},${lng})[amenity=place_of_worship][religion=muslim];way(around:5000,${lat},${lng})[amenity=place_of_worship][religion=muslim];);out center 25;`;
-      const res = await fetch("https://overpass-api.de/api/interpreter", {
-        method: "POST",
-        body: `data=${encodeURIComponent(query)}`,
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      const timeout = new Promise<never>((_resolve, reject) => {
+        timeoutId = globalThis.setTimeout(() => {
+          timedOut = true;
+          controller.abort();
+          reject(new Error("انتهت مهلة البحث عن المساجد القريبة. تحقق من اتصالك وحاول مرة أخرى."));
+        }, OVERPASS_REQUEST_TIMEOUT_MS);
       });
-      if (!res.ok) throw new Error("فشل الاتصال بـ Overpass API");
-      const data = (await res.json()) as OverpassResponse;
+      const request = (async () => {
+        const res = await fetch("https://overpass-api.de/api/interpreter", {
+          method: "POST",
+          body: `data=${encodeURIComponent(query)}`,
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error("فشل الاتصال بـ Overpass API");
+        return await res.json() as OverpassResponse;
+      })();
+      const data = await Promise.race([request, timeout]);
       const items: Mosque[] = data.elements
         .map((el) => {
           const elLat = el.lat ?? el.center?.lat ?? 0;
@@ -77,9 +101,16 @@ export function NearbyMosquesPage() {
         .slice(0, 10);
       setMosques(items);
     } catch (e) {
-      setFetchError(e instanceof Error ? e.message : "تعذر جلب بيانات المساجد");
+      if (controller.signal.aborted && !timedOut) return;
+      setFetchError(timedOut
+        ? "انتهت مهلة البحث عن المساجد القريبة. تحقق من اتصالك وحاول مرة أخرى."
+        : e instanceof Error ? e.message : "تعذر جلب بيانات المساجد");
     } finally {
-      setLoading(false);
+      if (timeoutId !== undefined) globalThis.clearTimeout(timeoutId);
+      if (requestController.current === controller) {
+        requestController.current = null;
+        setLoading(false);
+      }
     }
   }, []);
 

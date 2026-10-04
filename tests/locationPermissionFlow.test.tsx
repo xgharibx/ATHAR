@@ -14,6 +14,7 @@ let root: Root | undefined;
 let container: HTMLDivElement | undefined;
 let geoDescriptor: PropertyDescriptor | undefined;
 let getCurrentPosition: ReturnType<typeof vi.fn>;
+let grantGeolocation: PositionCallback | undefined;
 let rejectGeolocation: PositionErrorCallback | undefined;
 
 function mount(component: React.ReactNode) {
@@ -33,8 +34,10 @@ function buttonNamed(name: string) {
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   geoDescriptor = Object.getOwnPropertyDescriptor(navigator, "geolocation");
+  grantGeolocation = undefined;
   rejectGeolocation = undefined;
-  getCurrentPosition = vi.fn((_success: PositionCallback, error: PositionErrorCallback) => {
+  getCurrentPosition = vi.fn((success: PositionCallback, error: PositionErrorCallback) => {
+    grantGeolocation = success;
     rejectGeolocation = error;
   });
   Object.defineProperty(navigator, "geolocation", {
@@ -49,6 +52,7 @@ beforeEach(() => {
 
 afterEach(() => {
   if (root) act(() => root!.unmount());
+  vi.useRealTimers();
   container?.remove();
   root = undefined;
   container = undefined;
@@ -69,6 +73,41 @@ describe("explicit location permission flows", () => {
 
     await act(async () => { buttonNamed("تحديد موقعي").click(); });
     expect(getCurrentPosition).toHaveBeenCalledOnce();
+  });
+
+  it("ends a stalled Overpass search with a retryable timeout error", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn((_url: string, init?: RequestInit) => new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+    })));
+    mount(createElement(NearbyMosquesPage));
+    await act(async () => { buttonNamed("تحديد موقعي").click(); });
+    await act(async () => {
+      grantGeolocation?.({ coords: { latitude: 30.0444, longitude: 31.2357 } } as GeolocationPosition);
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(20_000); });
+
+    expect(container?.textContent).toContain("انتهت مهلة البحث عن المساجد");
+    expect(container?.textContent).toContain("إعادة المحاولة");
+  });
+
+  it("aborts the active Overpass request when the page unmounts", async () => {
+    let requestSignal: AbortSignal | undefined;
+    vi.stubGlobal("fetch", vi.fn((_url: string, init?: RequestInit) => new Promise((_resolve, reject) => {
+      requestSignal = init?.signal ?? undefined;
+      requestSignal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")), { once: true });
+    })));
+    mount(createElement(NearbyMosquesPage));
+    await act(async () => { buttonNamed("تحديد موقعي").click(); });
+    await act(async () => {
+      grantGeolocation?.({ coords: { latitude: 30.0444, longitude: 31.2357 } } as GeolocationPosition);
+    });
+    expect(requestSignal?.aborted).toBe(false);
+
+    await act(async () => { root!.unmount(); await Promise.resolve(); });
+    root = undefined;
+
+    expect(requestSignal?.aborted).toBe(true);
   });
 
   it("waits for the visitor to request location before calculating Qibla", async () => {
