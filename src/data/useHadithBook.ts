@@ -5,7 +5,7 @@
  */
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { idbGetHadithPack, idbSetHadithPack } from "@/lib/hadithIDB";
+import { idbGetHadithPackEntry, idbSetHadithPack } from "@/lib/hadithIDB";
 import { HADITH_BOOKS_STATIC, type HadithBookMeta, type HadithItem, type HadithPack } from "@/data/hadithTypes";
 import { publicDataUrl } from "@/data/publicAssetUrl";
 
@@ -22,6 +22,10 @@ export const HADITH_PACK_SIZES_MB: Record<string, number> = {
   qudsi: 0.2,
 };
 
+function isKnownOffline(): boolean {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
+}
+
 /** Load the books index.json. Falls back to static metadata if fetch fails. */
 export async function loadHadithIndex(): Promise<HadithBookMeta[]> {
   try {
@@ -36,18 +40,24 @@ export async function loadHadithIndex(): Promise<HadithBookMeta[]> {
 /** Load a full hadith pack for a given book key. Tries IDB first, then fetch. */
 export async function loadHadithPack(bookKey: string): Promise<HadithPack> {
   // 1. Try IDB cache
-  const cached = await idbGetHadithPack(bookKey);
-  if (cached) return cached;
+  const cached = await idbGetHadithPackEntry(bookKey);
+  if (cached?.isFresh) return cached.data;
+  if (cached && isKnownOffline()) return cached.data;
 
-  // 2. Fetch from static files
-  const res = await fetch(publicDataUrl(`data/hadith/${bookKey}.json`));
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const pack = (await res.json()) as HadithPack;
+  try {
+    // 2. Fetch from static files
+    const res = await fetch(publicDataUrl(`data/hadith/${bookKey}.json`));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const pack = (await res.json()) as HadithPack;
 
-  // 3. Write to IDB for future offline use
-  void idbSetHadithPack(pack);
+    // 3. Replace the cached row only after a successful response.
+    void idbSetHadithPack(pack);
 
-  return pack;
+    return pack;
+  } catch (error) {
+    if (cached) return cached.data;
+    throw error;
+  }
 }
 
 /**
@@ -61,11 +71,16 @@ export async function loadHadithPackWithProgress(
   setIsFromCache: (v: boolean) => void,
 ): Promise<HadithPack | null> {
   // 1. Try IDB cache
-  const cached = await idbGetHadithPack(bookKey);
-  if (cached) {
+  const cached = await idbGetHadithPackEntry(bookKey);
+  if (cached?.isFresh) {
     setIsFromCache(true);
     onProgress(100);
-    return cached;
+    return cached.data;
+  }
+  if (cached && isKnownOffline()) {
+    setIsFromCache(true);
+    onProgress(100);
+    return cached.data;
   }
 
   setIsFromCache(false);
@@ -107,6 +122,11 @@ export async function loadHadithPackWithProgress(
     onProgress(100);
     return pack;
   } catch (error) {
+    if (cached) {
+      setIsFromCache(true);
+      onProgress(100);
+      return cached.data;
+    }
     onProgress(0);
     throw error;
   }

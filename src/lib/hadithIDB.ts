@@ -132,15 +132,21 @@ export async function copyHadithUserState(
 // Cache packs for 30 days (they change only when we re-import)
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
-export async function idbGetHadithPack(bookKey: string): Promise<HadithPack | null> {
+export type HadithCacheEntry<T> = { data: T; isFresh: boolean };
+
+export async function idbGetHadithPackEntry(bookKey: string): Promise<HadithCacheEntry<HadithPack> | null> {
   try {
     const row = await getDB().packs.get(bookKey);
     if (!row) return null;
-    if (Date.now() - row.cachedAt > MAX_AGE_MS) return null;
-    return row.data;
+    return { data: row.data, isFresh: Date.now() - row.cachedAt <= MAX_AGE_MS };
   } catch {
     return null;
   }
+}
+
+export async function idbGetHadithPack(bookKey: string): Promise<HadithPack | null> {
+  const entry = await idbGetHadithPackEntry(bookKey);
+  return entry?.isFresh ? entry.data : null;
 }
 
 export async function idbSetHadithPack(pack: HadithPack): Promise<void> {
@@ -245,15 +251,19 @@ export async function idbReplaceHadithState(data: {
 }
 
 // Full-corpus search index cache (kept 30 days, same as book packs)
-export async function idbGetSearchIndex(): Promise<FullSearchIndexEntry[] | null> {
+export async function idbGetSearchIndexEntry(): Promise<HadithCacheEntry<FullSearchIndexEntry[]> | null> {
   try {
     const row = await getDB().searchIndex.get("full");
     if (!row) return null;
-    if (Date.now() - row.cachedAt > MAX_AGE_MS) return null;
-    return row.data;
+    return { data: row.data, isFresh: Date.now() - row.cachedAt <= MAX_AGE_MS };
   } catch {
     return null;
   }
+}
+
+export async function idbGetSearchIndex(): Promise<FullSearchIndexEntry[] | null> {
+  const entry = await idbGetSearchIndexEntry();
+  return entry?.isFresh ? entry.data : null;
 }
 
 export async function idbSetSearchIndex(data: FullSearchIndexEntry[]): Promise<void> {

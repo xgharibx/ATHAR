@@ -9,7 +9,7 @@
  */
 import { publicDataUrl } from "@/data/publicAssetUrl";
 import { normalizeArabicSearch } from "@/lib/arabic";
-import { idbGetSearchIndex, idbSetSearchIndex, type FullSearchIndexEntry } from "@/lib/hadithIDB";
+import { idbGetSearchIndexEntry, idbSetSearchIndex, type FullSearchIndexEntry } from "@/lib/hadithIDB";
 
 export interface FullHadithSearchResult {
   bookKey: string;
@@ -25,20 +25,34 @@ async function loadIndex(): Promise<FullSearchIndexEntry[]> {
   if (cache) return cache;
   if (!loading) {
     loading = (async () => {
-      const cached = await idbGetSearchIndex();
-      if (cached) {
-        cache = cached;
-        return cached;
+      const cached = await idbGetSearchIndexEntry();
+      if (cached?.isFresh) {
+        cache = cached.data;
+        return cached.data;
       }
-      const res = await fetch(publicDataUrl("data/hadith/search-index.json"));
-      const data: FullSearchIndexEntry[] = res.ok ? await res.json() : [];
-      cache = data;
-      if (data.length > 0) void idbSetSearchIndex(data);
-      return data;
-    })().catch(() => {
-      const empty: FullSearchIndexEntry[] = [];
-      cache = empty;
-      return empty;
+      const stale = cached?.data.length ? cached.data : null;
+      if (stale && typeof navigator !== "undefined" && navigator.onLine === false) {
+        cache = stale;
+        return stale;
+      }
+
+      try {
+        const res = await fetch(publicDataUrl("data/hadith/search-index.json"));
+        if (!res.ok) throw new Error(`Hadith search index request failed (${res.status}).`);
+        const data: FullSearchIndexEntry[] = await res.json();
+        if (!Array.isArray(data) || data.length === 0) throw new Error("Hadith search index response was empty.");
+        cache = data;
+        void idbSetSearchIndex(data);
+        return data;
+      } catch (error) {
+        if (stale) {
+          cache = stale;
+          return stale;
+        }
+        throw error;
+      }
+    })().catch(() => []).finally(() => {
+      loading = null;
     });
   }
   return loading;

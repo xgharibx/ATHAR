@@ -1,19 +1,19 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { idbGetHadithPack, idbSetHadithPack } = vi.hoisted(() => ({
-  idbGetHadithPack: vi.fn(),
+const { idbGetHadithPackEntry, idbSetHadithPack } = vi.hoisted(() => ({
+  idbGetHadithPackEntry: vi.fn(),
   idbSetHadithPack: vi.fn(),
 }));
 
-vi.mock("@/lib/hadithIDB", () => ({ idbGetHadithPack, idbSetHadithPack }));
+vi.mock("@/lib/hadithIDB", () => ({ idbGetHadithPackEntry, idbSetHadithPack }));
 
 import { loadHadithPack, loadHadithPackWithProgress } from "@/data/useHadithBook";
 
 describe("Hadith pack loading errors", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    idbGetHadithPack.mockResolvedValue(null);
+    idbGetHadithPackEntry.mockResolvedValue(null);
     idbSetHadithPack.mockResolvedValue(undefined);
   });
 
