@@ -368,7 +368,7 @@ export function DhikrCard(props: {
       <div className="dhikr-card-stars absolute inset-0 pointer-events-none" />
       <div className="p-4 md:p-5">
         {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-nowrap items-start justify-between gap-3">
           {!focusMode && (
           <div className="flex min-w-0 items-center gap-1">
             {/* Toggle button — always visible */}
@@ -390,16 +390,19 @@ export function DhikrCard(props: {
 
             {/* Sliding actions panel */}
             <div
+              className="no-scrollbar"
               style={{
                 maxWidth: actionsOpen ? "min(280px, calc(100vw - 168px))" : "0px",
-                overflow: "hidden",
+                minWidth: 0,
+                overflowX: actionsOpen ? "auto" : "hidden",
+                overflowY: "hidden",
                 transition: "max-width 300ms cubic-bezier(0.4,0,0.2,1), opacity 200ms ease",
                 opacity: actionsOpen ? 1 : 0,
                 flexShrink: 1,
               }}
               aria-hidden={!actionsOpen}
             >
-              <div className={cn("flex items-center gap-1 pr-1", actionsOpen ? "flex-wrap" : "flex-nowrap")}>
+              <div className="flex flex-nowrap items-center gap-1 pr-1">
                 <IconButton aria-label="نسخ الذكر" onClick={() => { void doCopy(); }} tabIndex={actionsOpen ? 0 : -1}>
                   <Copy size={16} aria-hidden="true" className="opacity-80" />
                 </IconButton>
