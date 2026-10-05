@@ -147,6 +147,21 @@ describe("useApplyTheme (Pass A — DOM sync)", () => {
     expect(JSON.parse(localStorage.getItem(THEME_BOOTSTRAP_STORAGE_KEY) ?? "null").theme).toBe("diwan");
   });
 
+  it("moves existing users off the retired midad theme", async () => {
+    await hydrateAccountStorageOwner("local");
+
+    await act(async () => {
+      useNoorStore.setState((s) => ({ prefs: { ...s.prefs, theme: "midad" } }));
+      mount();
+      await Promise.resolve();
+    });
+
+    expect(useNoorStore.getState().prefs.theme).toBe("forest");
+    expect(document.documentElement.classList.contains("midad")).toBe(false);
+    expect(document.documentElement.classList.contains("forest")).toBe(true);
+    expect(JSON.parse(localStorage.getItem(THEME_BOOTSTRAP_STORAGE_KEY) ?? "null").theme).toBe("forest");
+  });
+
   it("does not publish an interim theme while an account owner is transitioning", async () => {
     await hydrateAccountStorageOwner("local");
     localStorage.setItem(THEME_BOOTSTRAP_STORAGE_KEY, "forest");

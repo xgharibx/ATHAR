@@ -182,7 +182,6 @@ function themeLabel(theme: string) {
     sajjada: "سجادة",
     mihrab: "محراب",
     sama: "سماء",
-    midad: "مداد",
     layl: "ليل",
     teen: "طين",
     jura: "جرأة",
@@ -196,7 +195,7 @@ function themeLabel(theme: string) {
 
 const ALL_THEMES_CYCLE: import("@/store/noorStore").NoorTheme[] = [
   "system", "dark", "light", "noor", "midnight", "forest", "bees", "roses", "sapphire", "violet", "sunset", "mist",
-  "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "midad", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf",
+  "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf",
 ];
 
 const MAIN_NAV_LINKS = [

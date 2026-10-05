@@ -52,7 +52,7 @@ export function CommandPalette(props: Props) {
   };
 
   const themeLabel = (t: NoorTheme) => {
-    const map: Record<NoorTheme, string> = {
+    const map: Partial<Record<NoorTheme, string>> = {
       system: "تلقائي",
       dark: "داكن",
       light: "فاتح",
@@ -71,7 +71,6 @@ export function CommandPalette(props: Props) {
       sajjada: "سجادة",
       mihrab: "محراب",
       sama: "سماء",
-      midad: "مداد",
       layl: "ليل",
       teen: "طين",
       jura: "جرأة",
@@ -196,7 +195,7 @@ export function CommandPalette(props: Props) {
     props.setOpen(false);
   };
 
-  const ALL_THEMES: NoorTheme[] = ["roses", "noor", "sapphire", "violet", "sunset", "forest", "midnight", "bees", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "midad", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf", "dark", "light", "system"];
+  const ALL_THEMES: NoorTheme[] = ["roses", "noor", "sapphire", "violet", "sunset", "forest", "midnight", "bees", "mist", "bustan", "waraq", "fanous", "sajjada", "mihrab", "sama", "layl", "teen", "jura", "andalus", "sakina", "shafaq", "mushaf", "dark", "light", "system"];
 
   const cycleTheme = () => {
     const idx = ALL_THEMES.indexOf(theme);

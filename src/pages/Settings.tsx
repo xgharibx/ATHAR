@@ -64,7 +64,7 @@ const SHOW_CONTENT_GUIDES = false;
 const SHOW_DANGER_ZONE = false;
 const SHOW_QURAN_PIN = false;
 
-const THEME_ACCENTS: Record<NoorTheme, string> = {
+const THEME_ACCENTS: Partial<Record<NoorTheme, string>> = {
   system:   "#ffd780",
   dark:     "#ffd780",
   light:    "#ffd780",
@@ -82,7 +82,6 @@ const THEME_ACCENTS: Record<NoorTheme, string> = {
   fanous:   "#ffb84d",
   sajjada:  "#e8b04b",
   mihrab:   "#2ec4b6",
-  midad:    "#4dff88",
   layl:     "#aab8ff",
   teen:     "#7b6cf6",
   jura:     "#ff4d2e",
@@ -504,7 +503,6 @@ export function SettingsPage() {
           <ThemeChip value="sajjada" label="سجادة 🧿" active={prefs.theme === "sajjada"} onClick={() => setPrefs({ theme: "sajjada" })} />
           <ThemeChip value="mihrab" label="محراب 🕌" active={prefs.theme === "mihrab"} onClick={() => setPrefs({ theme: "mihrab" })} />
           <ThemeChip value="sama" label="سماء 🌅" active={prefs.theme === "sama"} onClick={() => setPrefs({ theme: "sama" })} />
-          <ThemeChip value="midad" label="مداد 🖥️" active={prefs.theme === "midad"} onClick={() => setPrefs({ theme: "midad" })} />
           <ThemeChip value="layl" label="ليل 🌌" active={prefs.theme === "layl"} onClick={() => setPrefs({ theme: "layl" })} />
           <ThemeChip value="teen" label="طين 🏺" active={prefs.theme === "teen"} onClick={() => setPrefs({ theme: "teen" })} />
           <ThemeChip value="jura" label="جرأة ⬛" active={prefs.theme === "jura"} onClick={() => setPrefs({ theme: "jura" })} />

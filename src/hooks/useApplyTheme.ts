@@ -50,7 +50,7 @@ export const THEME_META_COLORS: Record<NoorTheme, string> = {
   fanous:   "#140e06",
   sajjada:  "#200a10",
   mihrab:   "#071b33",
-  midad:    "#020b04",
+  midad:    "#020b04", // Legacy color only; the retired theme is never applied.
   layl:     "#000000",
   teen:     "#eef0f6",
   jura:     "#f5f2ea",
@@ -115,17 +115,23 @@ function applyAccentForeground(root: HTMLElement) {
   root.dataset.accentForeground = getAccessibleAccentForeground(accent) === "#ffffff" ? "white" : "black";
 }
 
+/** Keep legacy installs safe while the retired theme remains in persisted state. */
+function resolveAvailableTheme(theme: NoorTheme): NoorTheme {
+  return theme === "midad" ? "forest" : theme;
+}
+
 /** Exported for tests: applying a theme must also retint the browser chrome. */
 export function applyThemeForTest(theme: NoorTheme) {
   apply(theme);
 }
 
 function apply(theme: NoorTheme): string {
+  const activeTheme = resolveAvailableTheme(theme);
   const root = document.documentElement;
 
   root.classList.remove(...ALL_THEME_CLASSES);
 
-  if (theme === "system") {
+  if (activeTheme === "system") {
     const isDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
     root.classList.add(isDark ? "dark" : "light");
     applyAccentForeground(root);
@@ -134,7 +140,7 @@ function apply(theme: NoorTheme): string {
     return color;
   }
 
-  if (theme === "sama") {
+  if (activeTheme === "sama") {
     const phase = getSamaPhase();
     root.classList.add("sama", `sama-${phase}`);
     applyAccentForeground(root);
@@ -143,16 +149,16 @@ function apply(theme: NoorTheme): string {
     return color;
   }
 
-  if (LIGHT_COMPOUND.has(theme)) {
-    root.classList.add("light", theme);
+  if (LIGHT_COMPOUND.has(activeTheme)) {
+    root.classList.add("light", activeTheme);
     applyAccentForeground(root);
-    setMetaThemeColor(THEME_META_COLORS[theme]);
-    return THEME_META_COLORS[theme];
+    setMetaThemeColor(THEME_META_COLORS[activeTheme]);
+    return THEME_META_COLORS[activeTheme];
   }
 
-  root.classList.add(theme);
+  root.classList.add(activeTheme);
   applyAccentForeground(root);
-  const color = THEME_META_COLORS[theme] ?? "#07080b";
+  const color = THEME_META_COLORS[activeTheme] ?? "#07080b";
   setMetaThemeColor(color);
   return color;
 }
@@ -162,6 +168,7 @@ function apply(theme: NoorTheme): string {
  */
 export function useApplyTheme() {
   const theme = useNoorStore((s) => s.prefs.theme);
+  const setPrefs = useNoorStore((s) => s.setPrefs);
   const reduceMotion = useNoorStore((s) => s.prefs.reduceMotion);
   const customAccent = useNoorStore((s) => s.prefs.customAccent);
   const arabicFont = useNoorStore((s) => s.prefs.arabicFont);
@@ -171,9 +178,13 @@ export function useApplyTheme() {
   const clearReading = useNoorStore((s) => s.prefs.clearReading);
 
   useEffect(() => {
-    const color = apply(theme);
+    const activeTheme = resolveAvailableTheme(theme);
+    const color = apply(activeTheme);
+    if (activeTheme !== theme && useNoorStore.persist.hasHydrated() && !isAccountStorageOwnerTransitionInProgress()) {
+      setPrefs({ theme: activeTheme });
+    }
     if (useNoorStore.persist.hasHydrated() && !isAccountStorageOwnerTransitionInProgress()) {
-      rememberThemeForFirstPaint(theme, color);
+      rememberThemeForFirstPaint(activeTheme, color);
     }
 
     // Immersive transparent mode — respects the user preference
@@ -183,7 +194,7 @@ export function useApplyTheme() {
       document.body.classList.remove("transparent-mode");
     }
 
-    if (theme === "system") {
+    if (activeTheme === "system") {
       const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
       if (!mq) return;
       const onChange = () => apply("system");
@@ -191,7 +202,7 @@ export function useApplyTheme() {
       return () => mq.removeEventListener?.("change", onChange);
     }
 
-    if (theme === "sama") {
+    if (activeTheme === "sama") {
       // The living sky re-evaluates when you come back to the app and on a
       // gentle interval, so the palette rolls through the day with you.
       const refreshSama = () => {
@@ -210,7 +221,7 @@ export function useApplyTheme() {
         window.clearInterval(timer);
       };
     }
-  }, [theme, transparentMode]);
+  }, [theme, setPrefs, transparentMode]);
 
   useEffect(() => {
     const root = document.documentElement;

@@ -118,6 +118,15 @@ describe("pre-paint theme bootstrap", () => {
     expect(result.metas).toHaveLength(1);
   });
 
+  it("uses the safe forest theme for existing installs that saved retired midad", () => {
+    const result = runThemeBootstrap({
+      noor_store_v1: JSON.stringify({ state: { prefs: { theme: "midad" } } }),
+    });
+
+    expect(result.loader.style.background).toBe(THEME_META_COLORS.forest);
+    expect(result.activeMeta?.content).toBe(THEME_META_COLORS.forest);
+  });
+
   it("falls back to a valid legacy theme when the first-paint hint is invalid", () => {
     const result = runThemeBootstrap({
       athar_theme_bootstrap_v1: "not-a-theme",

@@ -129,7 +129,7 @@
         var THEME_BG = catalog.themes || {};
         var SAMA_BG = catalog.samaPhases || {};
         var isTheme = function(value) {
-          return Object.prototype.hasOwnProperty.call(THEME_BG, value);
+          return value !== "midad" && Object.prototype.hasOwnProperty.call(THEME_BG, value);
         };
         var t = null;
         var hintColor = null;

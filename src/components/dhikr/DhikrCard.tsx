@@ -607,10 +607,10 @@ export function DhikrCard(props: {
           <button type="button"
             ref={countBtnRef}
             className={cn(
-              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border select-none",
+              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border select-none text-white",
               done
-                ? "bg-[var(--ok)] text-[var(--on-ok)] border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
-                : "bg-[var(--accent)] text-[var(--on-accent)] border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",
+                ? "bg-[var(--ok)] border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
+                : "bg-[var(--accent)] border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",
               isDailyLockedItem && "opacity-60 pointer-events-none"
             )}
             onClick={() => {

@@ -38,6 +38,25 @@ describe("DhikrCard virtue and source placement", () => {
     expect(html.indexOf("فضل الذكر من الحديث الصحيح")).toBeGreaterThan(html.indexOf("نص الذكر الطويل"));
   });
 
+  it("keeps the dhikr counter label white on the accent button", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DhikrCard, {
+        sectionId: "morning",
+        index: 0,
+        item: {
+          text: "نص الذكر",
+          benefit: "فضل الذكر",
+          count: 2,
+          count_description: "",
+          minimal: false,
+        },
+      }),
+    );
+
+    const countButton = html.match(/<button[^>]*aria-label="اضغط للعدّ[^>]*>/)?.[0];
+    expect(countButton).toContain("text-white");
+  });
+
   it("keeps the collapsed action menu from adding vertical space above the dhikr", () => {
     const html = renderToStaticMarkup(
       React.createElement(DhikrCard, {
