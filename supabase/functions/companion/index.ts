@@ -45,6 +45,7 @@ const MAX_BODY_BYTES = 256 * 1024;
 const UPSTREAM_TIMEOUT_MS = 60_000;
 const WINDOW_MS = 60_000;
 const MAX_REQ_PER_WINDOW = 24;
+const MAX_ANON_REQ_PER_WINDOW = 5;
 const MAX_TRACKED_CLIENTS = 4096;
 const limiter = new Map<string, { count: number; startAt: number }>();
 
@@ -57,7 +58,7 @@ function clientKey(req: Request): string {
   ).slice(0, 64);
 }
 
-function rateLimit(req: Request): boolean {
+function rateLimit(req: Request, maxRequests = MAX_REQ_PER_WINDOW): boolean {
   const key = clientKey(req);
   const now = Date.now();
   const prev = limiter.get(key);
@@ -74,7 +75,7 @@ function rateLimit(req: Request): boolean {
     limiter.set(key, { count: 1, startAt: now });
     return true;
   }
-  if (prev.count >= MAX_REQ_PER_WINDOW) return false;
+  if (prev.count >= maxRequests) return false;
   prev.count += 1;
   return true;
 }
@@ -140,7 +141,13 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
   if (!url.pathname.endsWith("/v1/messages")) return jsonError(req, "not-found", 404);
 
-  if (!rateLimit(req)) return jsonError(req, "rate-limited — try again in a minute", 429);
+  const authorization = req.headers.get("authorization") ?? "";
+  const bearer = /^Bearer\s+(\S+)$/i.exec(authorization);
+  const anonKey = denoRuntime.env.get("SUPABASE_ANON_KEY") ?? "";
+  const guestRequest = Boolean(anonKey && bearer?.[1] === anonKey);
+  if (!rateLimit(req, guestRequest ? MAX_ANON_REQ_PER_WINDOW : MAX_REQ_PER_WINDOW)) {
+    return jsonError(req, "rate-limited — try again in a minute", 429);
+  }
 
   let boundedBody: BoundedBody;
   try {
@@ -206,8 +213,6 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   const apiKey = denoRuntime.env.get("MINIMAX_API_KEY");
   if (!apiKey) return jsonError(req, "no server key configured", 503);
 
-  const authorization = req.headers.get("authorization") ?? "";
-  const bearer = /^Bearer\s+(\S+)$/i.exec(authorization);
   if (!bearer) return jsonError(req, "sign-in-required", 401);
 
   const supabaseUrl = denoRuntime.env.get("SUPABASE_URL");
@@ -217,22 +222,29 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  let userId: string;
-  try {
-    const { data, error } = await supabase.auth.getUser(bearer[1]);
-    if (error || !data.user?.id) return jsonError(req, "sign-in-required", 401);
-    userId = data.user.id;
-  } catch {
-    return jsonError(req, "authorization service unavailable", 503);
+  let userId: string | null = null;
+  if (!guestRequest) {
+    try {
+      const { data, error } = await supabase.auth.getUser(bearer[1]);
+      if (error || !data.user?.id) return jsonError(req, "invalid authorization", 401);
+      userId = data.user.id;
+    } catch {
+      return jsonError(req, "authorization service unavailable", 503);
+    }
   }
 
   let reservation: { data: unknown; error: unknown };
   try {
-    reservation = await supabase.rpc("reserve_companion_request", {
-      p_user_id: userId,
-      p_request_bytes: boundedBody.byteLength,
-      p_max_output_tokens: maxOutputTokens,
-    });
+    reservation = guestRequest
+      ? await supabase.rpc("reserve_companion_anonymous_request", {
+        p_request_bytes: boundedBody.byteLength,
+        p_max_output_tokens: maxOutputTokens,
+      })
+      : await supabase.rpc("reserve_companion_request", {
+        p_user_id: userId,
+        p_request_bytes: boundedBody.byteLength,
+        p_max_output_tokens: maxOutputTokens,
+      });
   } catch {
     return jsonError(req, "usage quota unavailable", 503);
   }

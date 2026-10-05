@@ -39,9 +39,25 @@ const META_KEY = "meta";
 const PENDING_KEY = "pending";
 const DEVICE_KEY = "athar_device_id_v1";
 const MAX_CONFLICT_ATTEMPTS = 4;
+const SYNC_REQUEST_TIMEOUT_MS = 15_000;
+const SYNC_REQUEST_TIMEOUT_MESSAGE = "انتهت مهلة المزامنة. تحقق من اتصالك ثم أعد المحاولة.";
 const MAX_SYNC_DOCUMENT_BYTES = 4 * 1024 * 1024;
 const MAX_SYNC_BATCH_BYTES = 5 * 1024 * 1024;
 const SYNC_PAYLOAD_TOO_LARGE_MESSAGE = "بياناتك أكبر من حد المزامنة؛ بقيت محفوظة على هذا الجهاز.";
+
+async function withSyncTimeout<T>(request: PromiseLike<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      Promise.resolve(request),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(SYNC_REQUEST_TIMEOUT_MESSAGE)), SYNC_REQUEST_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
 
 /** Debounce between a local edit and the push it triggers. Long enough that
  *  counting a 33-bead tasbeeh is one upload rather than 33. */
@@ -351,10 +367,10 @@ async function readServerSnapshot(
   userId: string,
   isCurrent: () => boolean,
 ): Promise<ServerSnapshot | null> {
-  const { data, error } = await supabase
+  const { data, error } = await withSyncTimeout(supabase
     .from("athar_sync")
     .select("kind, payload, updated_at, revision")
-    .eq("user_id", userId);
+    .eq("user_id", userId));
   if (!isCurrent()) return null;
   if (error) throw new Error(error.message);
 
@@ -679,10 +695,10 @@ async function finishCommitted(
   }
 
   if (pending.mode === "rpc") {
-    const { data, error } = await supabase.rpc("athar_sync_ack_batch", {
+    const { data, error } = await withSyncTimeout(supabase.rpc("athar_sync_ack_batch", {
       p_request_id: pending.requestId,
       p_device_id: pending.deviceId,
-    });
+    }));
     if (!isCurrent()) return false;
     if (error) throw new Error(error.message);
     if ((data as { acknowledged?: unknown } | null)?.acknowledged !== true) {
@@ -753,11 +769,11 @@ async function processPending(
     if (!(error instanceof SyncPayloadTooLargeError)) throw error;
     return recoverFromOversizedPreparedRequest(pending, supabase, isCurrent);
   }
-  const { data, error } = await supabase.rpc("athar_sync_commit_batch", {
+  const { data, error } = await withSyncTimeout(supabase.rpc("athar_sync_commit_batch", {
     p_request_id: pending.requestId,
     p_device_id: pending.deviceId,
     p_writes: pending.writes,
-  });
+  }));
   if (!isCurrent()) return "stale";
   if (error) {
     if (

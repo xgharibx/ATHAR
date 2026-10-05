@@ -12,7 +12,6 @@
  */
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { toast } from "react-hot-toast";
 import {
   Sparkles, Send, X as XIcon, AlertCircle, Loader2, History, Plus, Mic, MicOff,
 } from "lucide-react";
@@ -21,7 +20,6 @@ import { getInternalAppRoute } from "@/lib/internalAppRoute";
 
 import {
   ROUTE_LABELS,
-  hasCompanionSession,
   isCompanionReady,
   streamCompanionReply,
   type CompanionMessage,
@@ -328,10 +326,6 @@ export function CompanionModal(props: {
     const trimmed = text.trim();
     if (!trimmed || busyRef.current) return;
     if (!isCompanionReady()) return;
-    if (!(await hasCompanionSession())) {
-      toast.error("تسجيل الدخول مطلوب لاستخدام رفيق أثر. سجّل الدخول من الإعدادات ثم أعد المحاولة.");
-      return;
-    }
     busyRef.current = true;
     setPartialStopped(false);
     const controller = new AbortController();

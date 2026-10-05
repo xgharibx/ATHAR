@@ -20,18 +20,6 @@ import {
   type AccountStorageOwner,
 } from "@/lib/accountStorageScope";
 
-/** Pass A: gate every preview sound in this module on `prefs.enableSounds`.
- * Returning early keeps audio playback out of the audio graph entirely when
- * the user has explicitly muted athar. Used by the Settings page so toggling
- * off "تشغيل الأصوات التنبيهية" stops the previews without separate UI. */
-function isAudioEnabled(): boolean {
-  try {
-    return useNoorStore.getState().prefs.enableSounds === true;
-  } catch {
-    return false;
-  }
-}
-
 // N9: Actionable prayer notifications — "تمت الصلاة" lets the user log a prayer
 // (and cancel its gentle follow-up) directly from the notification shade.
 const MARK_PRAYED_ACTION_ID = "mark_prayed";
@@ -356,11 +344,6 @@ export function stopSoundPreview() {
 
 async function playSoundPreview(src: string, key: string, volume: number, onDone?: () => void) {
   stopSoundPreview();
-
-  if (!isAudioEnabled()) {
-    onDone?.();
-    return;
-  }
 
   const audio = new Audio(src);
   activePreviewAudio = audio;

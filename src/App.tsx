@@ -146,7 +146,10 @@ export default function App() {
 
   if (!accountScope.ready) {
     if (!accountScope.error) {
-      return <div className="min-h-screen-safe p-4" dir="rtl"><PageSkeleton /></div>;
+      // Keep the Android WebView background clear while account-owned data is
+      // being hydrated. The full-page skeleton flashed on every cold launch
+      // before the actual app shell could render.
+      return null;
     }
 
     return (

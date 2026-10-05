@@ -626,7 +626,7 @@ export function DhikrCard(props: {
           </button>
         </div>
 
-        {/* Benefit — D8: grade badge */}
+        {/* Benefit — D8: grade badge. Keep it under the dhikr and counter. */}
         {!focusMode && prefs.showBenefits && item.benefit && item.benefit.trim().length > 0 ? (
           <div className="mt-4 rounded-2xl bg-accent-8 border border-accent-15 p-3 text-sm leading-7">
             <div className="text-xs font-semibold opacity-55 mb-1.5 flex items-center gap-1.5 flex-wrap">

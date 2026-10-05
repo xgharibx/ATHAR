@@ -62,6 +62,7 @@ function edge(options: Options = {}) {
         get: (name: string) => ({
           MINIMAX_API_KEY: "synthetic-provider-key",
           SUPABASE_URL: "https://synthetic.supabase.co",
+          SUPABASE_ANON_KEY: "synthetic-publishable-key",
           SUPABASE_SERVICE_ROLE_KEY: "synthetic-service-key",
         } as Record<string, string>)[name],
       },
@@ -88,7 +89,7 @@ function edge(options: Options = {}) {
   return { send, sendRaw, sendRequest: (request: Request) => handler(request), calls, getClientConfig: () => clientConfig };
 }
 
-describe("paid Companion Edge Function access controls", () => {
+describe("Companion Edge Function access controls", () => {
   it("allows the authenticated SDK headers through browser preflight", async () => {
     const app = edge();
     const sdkRequestHeaders = [
@@ -116,16 +117,47 @@ describe("paid Companion Edge Function access controls", () => {
     expect(app.calls).toEqual([]);
   });
 
-  it.each([undefined, "Bearer synthetic-publishable-key"])(
-    "rejects missing or public-key-only bearer credentials before MiniMax",
-    async (authorization) => {
-      const app = edge();
-      const response = await app.send(authorization);
+  it("allows guest calls with the public key and reserves the shared anonymous budget", async () => {
+    const app = edge();
+    const response = await app.send("Bearer synthetic-publishable-key");
 
-      expect(response.status).toBe(401);
-      expect(app.calls.some((call) => call.type === "upstream")).toBe(false);
-    },
-  );
+    expect(response.status).toBe(200);
+    expect(app.calls.map((call) => call.type)).toEqual(["rpc", "upstream"]);
+    expect(app.calls[0]?.detail).toMatchObject({
+      name: "reserve_companion_anonymous_request",
+      args: { p_request_bytes: expect.any(Number), p_max_output_tokens: 512 },
+    });
+  });
+
+  it("rejects missing bearer credentials", async () => {
+    const app = edge();
+    const response = await app.send();
+
+    expect(response.status).toBe(401);
+    expect(app.calls.some((call) => call.type === "upstream")).toBe(false);
+  });
+
+  it("stops anonymous requests when the shared usage budget is exhausted", async () => {
+    const app = edge({ quotaAllowed: false });
+    const response = await app.send("Bearer synthetic-publishable-key");
+
+    expect(response.status).toBe(429);
+    expect(app.calls).toHaveLength(1);
+    expect(app.calls.some((call) => call.type === "upstream")).toBe(false);
+  });
+
+  it("limits guest requests to five per minute per client", async () => {
+    const app = edge();
+    const responses: Response[] = [];
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      responses.push(await app.send("Bearer synthetic-publishable-key"));
+    }
+
+    expect(responses.slice(0, 5).every((response) => response.status === 200)).toBe(true);
+    expect(responses[5]?.status).toBe(429);
+    expect(app.calls.filter((call) => call.type === "rpc")).toHaveLength(5);
+    expect(app.calls.filter((call) => call.type === "upstream")).toHaveLength(5);
+  });
 
   it("requires a valid Supabase user and a persistent quota reservation before spending", async () => {
     const app = edge();

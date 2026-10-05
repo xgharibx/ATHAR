@@ -1,15 +1,16 @@
 // @vitest-environment jsdom
 /**
- * Pass A — `prefs.enableSounds` gates every sound preview produced by the
- * reminders module. Settings already exposes the toggle, but no consumer
- * was reading it, so preview sounds would play even after the user muted
- * athar. These tests pin the new behaviour.
+ * A preview is a deliberate user action and must play even when notification
+ * sounds are disabled. Muting scheduled sounds must not make preview buttons
+ * silently do nothing.
  */
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { afterEach, describe, expect, it, beforeEach, vi } from "vitest";
 import { useNoorStore } from "@/store/noorStore";
 
-describe("prefs.enableSounds audio gate (Pass A)", () => {
+describe("sound previews are independent of notification sound settings", () => {
   beforeEach(() => {
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
     try { localStorage.clear(); } catch { /* ignore */ }
     // Default the user preference explicitly so the test is order-independent.
     useNoorStore.setState((s) => ({
@@ -17,26 +18,30 @@ describe("prefs.enableSounds audio gate (Pass A)", () => {
     }));
   });
 
-  it("does NOT construct an HTMLAudioElement when enableSounds is false", async () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("plays the requested reminder preview when enableSounds is false", async () => {
     const ctorSpy = vi.spyOn(globalThis, "Audio");
     const { playReminderSoundPreview } = await import("@/lib/reminders");
     await playReminderSoundPreview("birds");
-    expect(ctorSpy).not.toHaveBeenCalled();
+    expect(ctorSpy).toHaveBeenCalledTimes(1);
     ctorSpy.mockRestore();
   });
 
-  it("does NOT construct an HTMLAudioElement when enableSounds is false for prayer sound", async () => {
+  it("plays the requested prayer preview when enableSounds is false", async () => {
     const ctorSpy = vi.spyOn(globalThis, "Audio");
     const { playPrayerSoundPreview } = await import("@/lib/reminders");
     await playPrayerSoundPreview("adhan_ahmad_al_nafees");
-    expect(ctorSpy).not.toHaveBeenCalled();
+    expect(ctorSpy).toHaveBeenCalledTimes(1);
     ctorSpy.mockRestore();
   });
 
-  it("invokes the onDone callback even when audio is muted (so UI can stop its spinner)", async () => {
+  it("invokes the onDone callback when the preview ends", async () => {
+    const ctorSpy = vi.spyOn(globalThis, "Audio");
     const { playReminderSoundPreview } = await import("@/lib/reminders");
     const onDone = vi.fn();
     await playReminderSoundPreview("birds", onDone);
+    (ctorSpy.mock.results[0]?.value as HTMLAudioElement).dispatchEvent(new Event("ended"));
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 
@@ -49,26 +54,18 @@ describe("prefs.enableSounds audio gate (Pass A)", () => {
     ctorSpy.mockRestore();
   });
 
-  it("also blocks the prayer-sound preview when enableSounds is off", async () => {
-    const ctorSpy = vi.spyOn(globalThis, "Audio");
-    const { playPrayerSoundPreview } = await import("@/lib/reminders");
-    await playPrayerSoundPreview("adhan_ahmad_al_nafees");
-    expect(ctorSpy).not.toHaveBeenCalled();
-    ctorSpy.mockRestore();
-  });
-
-  it("stops a previously-playing preview if a muted preview is requested after", async () => {
+  it("stops the previous preview before playing another with sounds disabled", async () => {
     const { playReminderSoundPreview, stopSoundPreview } = await import("@/lib/reminders");
     // First play (enabled) — store starts the audio element
     useNoorStore.setState((s) => ({ prefs: { ...s.prefs, enableSounds: true } }));
     const ctorSpy = vi.spyOn(globalThis, "Audio");
     await playReminderSoundPreview("birds");
     expect(ctorSpy).toHaveBeenCalled();
-    // Then disable — next call must short-circuit without creating new audio
+    // Then disable — an explicit preview click still plays the new selection
     useNoorStore.setState((s) => ({ prefs: { ...s.prefs, enableSounds: false } }));
     const before = ctorSpy.mock.calls.length;
     await playReminderSoundPreview("birds");
-    expect(ctorSpy.mock.calls.length).toBe(before);
+    expect(ctorSpy.mock.calls.length).toBe(before + 1);
     stopSoundPreview();
     ctorSpy.mockRestore();
   });

@@ -41,7 +41,7 @@ import { clearMemory, recordMemory, streamCompanionReply } from "@/lib/companion
 import { updateProfile } from "@/lib/companionProfile";
 import { useNoorStore } from "@/store/noorStore";
 
-describe("Companion signed-in access", () => {
+describe("Companion guest and account access", () => {
   beforeEach(() => {
     mocks.getSession.mockReset();
     mocks.clientOptions = undefined;
@@ -61,15 +61,16 @@ describe("Companion signed-in access", () => {
     } as unknown as Partial<ReturnType<typeof useNoorStore.getState>>);
   });
 
-  it("does not create a model client or process context for a guest", async () => {
+  it("lets a guest use Companion through the public quota-limited proxy", async () => {
     mocks.getSession.mockResolvedValue(null);
     const onError = vi.fn();
 
     await streamCompanionReply([{ role: "user", content: "سؤال تجريبي" }], { onText: vi.fn(), onError });
 
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ kind: "auth", message: expect.stringContaining("تسجيل الدخول") }));
-    expect(mocks.clientOptions).toBeUndefined();
-    expect(mocks.stream).not.toHaveBeenCalled();
+    const options = mocks.clientOptions as { defaultHeaders?: Record<string, string> };
+    expect(onError).not.toHaveBeenCalled();
+    expect(options.defaultHeaders?.Authorization).toBe(`Bearer ${options.defaultHeaders?.apikey}`);
+    expect(mocks.stream).toHaveBeenCalledOnce();
   });
 
   it("does not create a model client or send an oversized user message", async () => {

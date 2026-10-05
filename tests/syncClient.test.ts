@@ -18,6 +18,7 @@ type RpcWrite = { kind: string; expected_revision: number | null; payload: unkno
 type ServerHooks = {
   userId?: string;
   onSelect?: () => void;
+  hangRead?: boolean;
   beforeUpsert?: (batch: Row[]) => Promise<void>;
   beforeRpc?: (name: string, args: Record<string, unknown>) => Promise<void>;
   rpcError?: (name: string, args: Record<string, unknown>) => { code: string; message: string } | null;
@@ -41,6 +42,7 @@ function makeSharedServer(rows: Row[]) {
               const snapshot = store
                 .filter((r) => r.user_id === userId)
                 .map((r) => ({ ...r, payload: structuredClone(r.payload) }));
+              if (hooks.hangRead) return new Promise(() => {});
               // Where the user gets to act while the request is in flight.
               hooks.onSelect?.();
               return Promise.resolve({
@@ -177,6 +179,7 @@ async function load(opts: {
   beforeRpc?: ServerHooks["beforeRpc"];
   rpcError?: ServerHooks["rpcError"];
   onSelect?: (st: { mutate: (fn: (s: Record<string, unknown>) => Record<string, unknown>) => void }) => void;
+  hangRead?: boolean;
 }) {
   vi.resetModules();
   const databaseNamespace = opts.databaseNamespace ?? `sync-test-${++databaseSerial}`;
@@ -187,6 +190,7 @@ async function load(opts: {
     ...server,
     client: server.createClient({
       userId,
+      hangRead: opts.hangRead,
       onSelect: opts.onSelect ? () => opts.onSelect!(st) : undefined,
       beforeUpsert: opts.beforeUpsert,
       beforeRpc: opts.beforeRpc,
@@ -368,6 +372,21 @@ describe("first sign-in", () => {
 });
 
 describe("steady state", () => {
+  it("reports a stalled server read instead of leaving the account panel spinning", async () => {
+    vi.useFakeTimers();
+    const { mod } = await load({ local: {}, hangRead: true });
+
+    void mod.syncNow();
+    await vi.advanceTimersByTimeAsync(16_000);
+
+    expect(mod.getSyncStatus()).toMatchObject({
+      phase: "error",
+      pending: true,
+      error: expect.stringMatching(/مهلة|الوقت/),
+    });
+    mod.stopCloudSync();
+  });
+
   it("writes nothing on a second run with no changes", async () => {
     const { mod, rpcCalls } = await load({ local: { progress: { a: 1 } } });
 

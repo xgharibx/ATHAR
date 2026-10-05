@@ -34,7 +34,6 @@ import {
   buildCompanionContext,
   buildWeeklyReflectionPrompt,
   clearMemory,
-  hasCompanionSession,
   isCompanionReady,
   streamCompanionReply,
   type CompanionMessage,
@@ -424,11 +423,6 @@ export function CompanionPage() {
       toast("جاري تهيئة الرفيق…", { icon: "✨" });
       return;
     }
-    if (!(await hasCompanionSession())) {
-      toast.error("تسجيل الدخول مطلوب لاستخدام رفيق أثر. سجّل الدخول من الإعدادات ثم أعد المحاولة.");
-      return;
-    }
-
     busyRef.current = true;
     const controller = new AbortController();
     abortRef.current = controller;

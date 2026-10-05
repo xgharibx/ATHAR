@@ -878,7 +878,7 @@ export function describeError(err: unknown): CompanionError {
   if (err instanceof Anthropic.AuthenticationError) {
     return {
       kind: "auth",
-      message: "تسجيل الدخول مطلوب لاستخدام رفيق أثر. سجّل الدخول من الإعدادات ثم أعد المحاولة.",
+      message: "تعذّر التحقق من الطلب لخدمة أثر الذكية. أعد المحاولة.",
       detail: `HTTP ${err.status ?? "?"} — ${err.message ?? ""}`,
     };
   }
@@ -917,7 +917,7 @@ export function describeError(err: unknown): CompanionError {
     const detail = duck.status !== null ? `HTTP ${duck.status}` : (duck.message ?? "unknown");
     switch (duck.kind) {
       case "auth":
-        return { kind: "auth", message: "تسجيل الدخول مطلوب لاستخدام رفيق أثر. سجّل الدخول من الإعدادات ثم أعد المحاولة.", detail };
+        return { kind: "auth", message: "تعذّر التحقق من الطلب لخدمة أثر الذكية. أعد المحاولة.", detail };
       case "rate":
         return { kind: "rate", message: "كثرة الطلبات الآن — انتظر قليلًا ثم أعد المحاولة.", detail: duck.message ? `rate-limited · ${duck.message}` : detail };
       case "offline":
@@ -949,13 +949,7 @@ export function describeError(err: unknown): CompanionError {
 
 async function createClient(): Promise<Anthropic> {
   if (!PROXY_URL) throw new Error("no-proxy-configured");
-  const session = await getSession();
-  if (!session?.access_token) {
-    const error = new Error("sign-in-required") as Error & { status: number };
-    error.name = "AuthenticationError";
-    error.status = 401;
-    throw error;
-  }
+  const session = await getSession().catch(() => null);
   const headers: Record<string, string> = {
     /* `anthropic-dangerous-direct-browser-access` lets the SDK run in a
        Capacitor WebView without throwing a runtime warning. */
@@ -967,7 +961,7 @@ async function createClient(): Promise<Anthropic> {
   if (SUPABASE_ANON_KEY) {
     headers.apikey = SUPABASE_ANON_KEY;
   }
-  headers.Authorization = `Bearer ${session.access_token}`;
+  headers.Authorization = `Bearer ${session?.access_token || SUPABASE_ANON_KEY}`;
   return new Anthropic({
     apiKey: "proxy",
     baseURL: PROXY_URL,
