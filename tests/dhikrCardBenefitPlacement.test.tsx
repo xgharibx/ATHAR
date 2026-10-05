@@ -34,4 +34,25 @@ describe("DhikrCard virtue and source placement", () => {
     expect(html.indexOf("فضل الذكر من الحديث الصحيح")).toBeGreaterThanOrEqual(0);
     expect(html.indexOf("فضل الذكر من الحديث الصحيح")).toBeGreaterThan(html.indexOf("نص الذكر الطويل"));
   });
+
+  it("keeps the collapsed action menu from adding vertical space above the dhikr", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(DhikrCard, {
+        sectionId: "morning",
+        index: 0,
+        item: {
+          text: "نص الذكر",
+          benefit: "فضل الذكر",
+          source: "رواه مسلم",
+          source_label: "",
+          source_url: "",
+          count: 1,
+          count_description: "",
+          minimal: false,
+        },
+      }),
+    );
+
+    expect(html).toContain('aria-hidden="true"><div class="flex items-center gap-1 pr-1 flex-nowrap">');
+  });
 });

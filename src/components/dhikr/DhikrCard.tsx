@@ -399,7 +399,7 @@ export function DhikrCard(props: {
               }}
               aria-hidden={!actionsOpen}
             >
-              <div className="flex flex-wrap items-center gap-1 pr-1">
+              <div className={cn("flex items-center gap-1 pr-1", actionsOpen ? "flex-wrap" : "flex-nowrap")}>
                 <IconButton aria-label="نسخ الذكر" onClick={() => { void doCopy(); }} tabIndex={actionsOpen ? 0 : -1}>
                   <Copy size={16} aria-hidden="true" className="opacity-80" />
                 </IconButton>
