@@ -55,6 +55,7 @@ describe("DhikrCard virtue and source placement", () => {
 
     const countButton = html.match(/<button[^>]*aria-label="اضغط للعدّ[^>]*>/)?.[0];
     expect(countButton).toContain("text-[var(--on-accent)]");
+    expect(countButton).toContain('style="color:var(--on-accent, #000000)"');
   });
 
   it("keeps the collapsed action menu from adding vertical space above the dhikr", () => {

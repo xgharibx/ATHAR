@@ -604,6 +604,7 @@ export function DhikrCard(props: {
                 : "bg-[var(--accent)] border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",
               isDailyLockedItem && "opacity-60 pointer-events-none"
             )}
+            style={{ color: "var(--on-accent, #000000)" }}
             onClick={() => {
               if (isDailyLockedItem) return;
               onCount();
