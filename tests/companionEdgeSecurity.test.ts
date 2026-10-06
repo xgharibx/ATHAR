@@ -38,7 +38,12 @@ function edge(options: Options = {}) {
   const js = ts.transpileModule(source, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
   }).outputText;
-  vm.runInNewContext(js, {
+  const corsPath = path.resolve("supabase/functions/companion/cors.ts");
+  const corsSource = fs.readFileSync(corsPath, "utf8").replace(/^export /gm, "");
+  const corsJs = ts.transpileModule(corsSource, {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
+  }).outputText;
+  const sandbox = {
     console,
     createClient: (...args: unknown[]) => { clientConfig = args; return client; },
     Request,
@@ -67,7 +72,10 @@ function edge(options: Options = {}) {
         } as Record<string, string>)[name],
       },
     },
-  });
+  };
+  const context = vm.createContext(sandbox);
+  vm.runInContext(corsJs, context);
+  vm.runInContext(js, context);
 
   const sendRaw = (body: string, authorization?: string) => handler(new Request("https://synthetic.invalid/companion/v1/messages", {
     method: "POST",

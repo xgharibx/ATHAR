@@ -7,7 +7,6 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncBridge";
 import { useNoorStore } from "@/store/noorStore";
 import { PageSkeleton } from "@/components/ui/Skeleton";
-import { SplashIntro, SPLASH_SESSION_KEY } from "@/components/brand/SplashIntro";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
@@ -250,17 +249,6 @@ function AppContent() {
     };
   }, [sectionCompletions, progress]);
 
-  // Show animated splash once per browser/app session
-  const [showSplash, setShowSplash] = React.useState<boolean>(() => {
-    try {
-      if (sessionStorage.getItem(SPLASH_SESSION_KEY)) return false;
-      sessionStorage.setItem(SPLASH_SESSION_KEY, "1");
-      return true;
-    } catch {
-      return false;
-    }
-  });
-
   // Scroll to top on page navigation (skip for hash-only changes)
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
@@ -472,8 +460,7 @@ function AppContent() {
 
   return (
     <>
-      {showSplash && <SplashIntro onDone={() => setShowSplash(false)} />}
-      {!showSplash && !onboardingDone && <OnboardingFlow />}
+      {!onboardingDone && <OnboardingFlow />}
       <LeaderboardSyncBridge />
       <PwaInstallBanner />
       <Routes>

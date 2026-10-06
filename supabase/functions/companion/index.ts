@@ -8,30 +8,7 @@
  * sends none), and stream SSE straight through.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
-// The app's real origins: the web PWA (custom domain, via CNAME) and the two
-// native WebView origins Capacitor uses with this project's config (no
-// server.url override, androidScheme: "https"). Anything else doesn't get a
-// CORS grant, so a browser can't read the response cross-origin.
-const ALLOWED_ORIGINS = new Set([
-  "https://www.athark.org",
-  "https://athark.org",
-  "capacitor://localhost",
-  "https://localhost",
-]);
-
-function corsHeaders(req: Request): Record<string, string> {
-  const origin = req.headers.get("origin") ?? "";
-  const headers: Record<string, string> = {
-    // Authorization is not covered by the CORS wildcard and must be named
-    // explicitly. Include the Anthropic SDK headers sent to this proxy too.
-    "Access-Control-Allow-Headers": "authorization, apikey, cache-control, content-type, x-api-key, x-client-info, anthropic-version, anthropic-dangerous-direct-browser-access, x-stainless-retry-count, x-stainless-timeout, x-stainless-lang, x-stainless-package-version, x-stainless-os, x-stainless-arch, x-stainless-runtime, x-stainless-runtime-version, x-stainless-helper",
-    "Access-Control-Allow-Methods": "POST,OPTIONS",
-    "Vary": "Origin",
-  };
-  if (ALLOWED_ORIGINS.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
-  return headers;
-}
+import { companionCorsHeaders } from "./cors.ts";
 
 const COMPANION_TOOL_NAMES = new Set(["next_step", "cite", "search_library", "create_reminder"]);
 const MAX_SYSTEM_CHARS = 20_000;
@@ -83,7 +60,7 @@ function rateLimit(req: Request, maxRequests = MAX_REQ_PER_WINDOW): boolean {
 function jsonError(req: Request, message: string, status: number): Response {
   return new Response(
     JSON.stringify({ type: "error", error: { type: "invalid_request_error", message } }),
-    { status, headers: { "Content-Type": "application/json", ...corsHeaders(req) } },
+    { status, headers: { "Content-Type": "application/json", ...companionCorsHeaders(req) } },
   );
 }
 
@@ -135,7 +112,7 @@ if (!denoRuntime?.serve || !denoRuntime?.env?.get) {
 }
 
 denoRuntime.serve(async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(req) });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: companionCorsHeaders(req) });
   if (req.method !== "POST") return jsonError(req, "method-not-allowed", 405);
 
   const url = new URL(req.url);
@@ -268,7 +245,7 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
     return jsonError(req, upstreamSignal.aborted ? "model request timed out" : "model service unavailable", upstreamSignal.aborted ? 504 : 502);
   }
 
-  const headers = new Headers(corsHeaders(req));
+  const headers = new Headers(companionCorsHeaders(req));
   const contentType = upstream.headers.get("content-type");
   if (contentType) headers.set("Content-Type", contentType);
   headers.set("Cache-Control", "no-store");

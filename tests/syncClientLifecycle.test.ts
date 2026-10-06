@@ -24,9 +24,9 @@ vi.mock("dexie", () => ({
   },
 }));
 
-async function setup(options?: { metadata?: boolean }) {
+async function setup(options?: { metadata?: boolean; initialState?: Record<string, unknown> }) {
   vi.resetModules();
-  let state: Record<string, unknown> = { progress: { a: 1 } };
+  let state: Record<string, unknown> = options?.initialState ?? { progress: { a: 1 } };
   let packs = [{ packId: "my_adhkar_pack", name: "Mine", sections: [{ id: "my_adhkar", content: [{ text: "original", count: 1 }] }] }];
   let identity = { id: "synthetic-a", secret: "synthetic-only", joinedAt: "2026-01-01" };
   let sessionUser = "synthetic-a";
@@ -72,8 +72,9 @@ async function setup(options?: { metadata?: boolean }) {
       for (const write of batch) {
         const row = rows.find((item) => item.user_id === sessionUser && item.kind === write.kind);
         const revision = row ? row.revision + 1 : 1;
-        if (row) Object.assign(row, { payload: structuredClone(write.payload), revision, updated_at: new Date().toISOString() });
-        else rows.push({ user_id: sessionUser, kind: write.kind, payload: structuredClone(write.payload), revision, updated_at: new Date().toISOString() });
+        const jsonPayload = JSON.parse(JSON.stringify(write.payload)) as Record<string, unknown>;
+        if (row) Object.assign(row, { payload: jsonPayload, revision, updated_at: new Date().toISOString() });
+        else rows.push({ user_id: sessionUser, kind: write.kind, payload: jsonPayload, revision, updated_at: new Date().toISOString() });
         revisions[write.kind] = revision;
       }
       writes.push(structuredClone(batch));
@@ -85,7 +86,17 @@ async function setup(options?: { metadata?: boolean }) {
   vi.doMock("@/store/noorStore", () => ({ useNoorStore: {
     getState: () => ({
       exportState: () => ({ ...structuredClone(state), ...(options?.metadata ? { version: 1, exportedAt: new Date(1700000000000 + exportNumber++).toISOString() } : {}) }),
-      importState: (blob: Record<string, unknown>) => { const { version: _version, exportedAt: _at, ...rest } = blob; state = rest; },
+      importState: (blob: Record<string, unknown>) => {
+        const { version: _version, exportedAt: _at, ...rest } = blob;
+        // Match the real preference normalizer, which restores optional defaults
+        // such as customAccent: undefined after every account-state import.
+        state = {
+          ...rest,
+          ...(rest.prefs && typeof rest.prefs === "object"
+            ? { prefs: { customAccent: undefined, ...(rest.prefs as Record<string, unknown>) } }
+            : {}),
+        };
+      },
     }),
     subscribe: () => () => {},
   } }));
@@ -120,6 +131,20 @@ describe("cloud sync snapshot and lifecycle", () => {
     const settings = s.writes.flat().find(row => row.kind === "settings")?.payload;
     expect(settings).not.toHaveProperty("version");
     expect(settings).not.toHaveProperty("exportedAt");
+  });
+
+  it("does not re-upload unchanged preferences omitted by JSON serialization", async () => {
+    const s = await setup({
+      initialState: {
+        progress: { a: 1, remote: 9 },
+        prefs: { customAccent: undefined },
+      },
+    });
+
+    expect(await s.mod.syncNow()).toBe(true);
+    expect(s.mod.getSyncStatus().pending).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(s.writes.flat().filter((write) => write.kind === "settings")).toHaveLength(1);
   });
 
   it("keeps custom adhkar added while the remote fetch is pending", async () => {

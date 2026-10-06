@@ -38,7 +38,7 @@ describe("DhikrCard virtue and source placement", () => {
     expect(html.indexOf("فضل الذكر من الحديث الصحيح")).toBeGreaterThan(html.indexOf("نص الذكر الطويل"));
   });
 
-  it("keeps the dhikr counter label white on the accent button", () => {
+  it("uses the theme's contrasting foreground on the accent button", () => {
     const html = renderToStaticMarkup(
       React.createElement(DhikrCard, {
         sectionId: "morning",
@@ -54,7 +54,7 @@ describe("DhikrCard virtue and source placement", () => {
     );
 
     const countButton = html.match(/<button[^>]*aria-label="اضغط للعدّ[^>]*>/)?.[0];
-    expect(countButton).toContain("text-white");
+    expect(countButton).toContain("text-[var(--on-accent)]");
   });
 
   it("keeps the collapsed action menu from adding vertical space above the dhikr", () => {

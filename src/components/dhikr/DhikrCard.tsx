@@ -12,6 +12,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { isDailySection } from "@/lib/dailySections";
 import { SharePosterModal } from "@/components/dhikr/SharePosterModal";
 import { doHaptic } from "@/lib/sebhaHaptics";
+import { animateDhikrCountPress } from "@/lib/dhikrPressFeedback";
 
 // Lazy-load heavy libraries — only imported when actually needed
 // Note: GSAP removed from hot path — ring + ripple now use CSS transitions
@@ -273,20 +274,10 @@ export function DhikrCard(props: {
     // independent of React's className, so it only ever fires on an actual
     // tap, restarts cleanly on rapid-fire taps, and is snappy (~276ms — the
     // old 520ms felt laggy, but 240ms overshot into "too fast", so this sits
-    // 15% above that). Compositor-friendly transform + a soft brightness
-    // pulse keeps it premium without shouting over the dhikr text.
+    // 15% above that). The transform-only motion stays smooth during the
+    // counter's React rerender and avoids a brief dark flash in Android WebView.
     const el = countBtnRef.current;
-    if (el && !prefs.reduceMotion && typeof el.animate === "function") {
-      el.animate(
-        [
-          { transform: "scale(1)",     filter: "brightness(1)" },
-          { transform: "scale(0.955)", filter: "brightness(1.10)", offset: 0.2 },
-          { transform: "scale(1.012)", filter: "brightness(1.03)", offset: 0.55 },
-          { transform: "scale(1)",     filter: "brightness(1)" },
-        ],
-        { duration: 276, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
-      );
-    }
+    animateDhikrCountPress(el, prefs.reduceMotion);
     
     // Theme-Specific Particles — throttled to every 6th tap to stay smooth on mobile
     if (tapCountRef.current % 6 === 0) {
@@ -607,7 +598,7 @@ export function DhikrCard(props: {
           <button type="button"
             ref={countBtnRef}
             className={cn(
-              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border select-none text-white",
+              "flex-1 rounded-3xl px-4 py-5 text-base font-bold border select-none text-[var(--on-accent)]",
               done
                 ? "bg-[var(--ok)] border-transparent shadow-[0_0_18px_color-mix(in_srgb,var(--ok)_30%,transparent)]"
                 : "bg-[var(--accent)] border-transparent hover:brightness-[1.04] shadow-[0_4px_20px_color-mix(in_srgb,var(--accent)_25%,transparent)]",

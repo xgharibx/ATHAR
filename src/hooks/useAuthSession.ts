@@ -21,6 +21,8 @@ export type AuthState = {
   configured: boolean;
 };
 
+const SESSION_READ_TIMEOUT_MS = 5_000;
+
 export function useAuthSession(): AuthState {
   const [session, setSession] = React.useState<Session | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -29,17 +31,29 @@ export function useAuthSession(): AuthState {
   React.useEffect(() => {
     if (!configured) { setLoading(false); return; }
     let alive = true;
+    const timeout = window.setTimeout(() => {
+      if (!alive) return;
+      // A slow storage/lock read must not keep the account UI loading forever.
+      // Auth change events can still deliver a session if this read recovers.
+      setSession(null);
+      setLoading(false);
+    }, SESSION_READ_TIMEOUT_MS);
 
     void getSession().then((s) => {
       if (!alive) return;
       setSession(s);
       setLoading(false);
-    });
+    }).catch(() => {
+      if (!alive) return;
+      setSession(null);
+      setLoading(false);
+    }).finally(() => window.clearTimeout(timeout));
 
     const unsub = onAuthChange((s) => { if (alive) setSession(s); });
 
     return () => {
       alive = false;
+      window.clearTimeout(timeout);
       unsub();
     };
   }, [configured]);

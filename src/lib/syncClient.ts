@@ -1012,7 +1012,12 @@ function sameDoc(a: unknown, b: unknown): boolean {
 function stableString(v: unknown): string {
   if (v === null || typeof v !== "object") return JSON.stringify(v) ?? "null";
   if (Array.isArray(v)) return `[${v.map(stableString).join(",")}]`;
-  const keys = Object.keys(v as object).sort();
+  // Match JSON/PostgREST persistence: undefined object properties are omitted
+  // by JSON.stringify. Keeping them here made default optional preferences
+  // look dirty forever after each cloud write, causing a rapid sync loop.
+  const keys = Object.keys(v as object)
+    .filter((key) => (v as Record<string, unknown>)[key] !== undefined)
+    .sort();
   return `{${keys.map((k) => `${JSON.stringify(k)}:${stableString((v as SyncBlob)[k])}`).join(",")}}`;
 }
 

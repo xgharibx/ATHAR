@@ -124,7 +124,7 @@
   --card: rgba(6, 78, 59, 0.35); /* Solid deep green tint */
   --card-2: rgba(6, 78, 59, 0.55);
   --stroke: rgba(52, 211, 153, 0.15);
-  --accent: #34d399; /* Emerald */
+  --accent: #ffffff; /* White controls over the deep green Forest surfaces */
   --accent-2: #10b981;
 }
 

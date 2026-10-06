@@ -70,7 +70,7 @@ const THEME_ACCENTS: Partial<Record<NoorTheme, string>> = {
   light:    "#ffd780",
   noor:     "#ffd780",
   midnight: "#38bdf8",
-  forest:   "#34d399",
+  forest:   "#ffffff",
   bees:     "#fbbf24",
   roses:    "#fda4af",
   sapphire: "#60a5fa",

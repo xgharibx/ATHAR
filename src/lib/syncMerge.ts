@@ -280,7 +280,10 @@ function sameJson(a: unknown, b: unknown): boolean {
 function stable(v: unknown): string {
   if (v === null || typeof v !== "object") return JSON.stringify(v) ?? "null";
   if (Array.isArray(v)) return `[${v.map(stable).join(",")}]`;
-  const keys = Object.keys(v as object).sort();
+  // Undefined object members do not survive the JSON round-trip to Supabase.
+  const keys = Object.keys(v as object)
+    .filter((key) => (v as Record<string, unknown>)[key] !== undefined)
+    .sort();
   return `{${keys.map((k) => `${JSON.stringify(k)}:${stable((v as SyncBlob)[k])}`).join(",")}}`;
 }
 

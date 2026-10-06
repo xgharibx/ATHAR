@@ -85,6 +85,14 @@ describe("accent foreground contrast", () => {
     expect(themeAccents).toHaveLength(accentDeclarationCount);
   });
 
+  it("keeps Forest green while using white for its control accent", () => {
+    const forest = themeCss.match(/\.forest\s*\{([^}]+)\}/)?.[1] ?? "";
+    expect(forest).toMatch(/--bg:\s*#022c22/i);
+    expect(forest).toMatch(/--accent:\s*#ffffff/i);
+    expect(readFileSync("src/pages/Settings.tsx", "utf8"))
+      .toMatch(/forest:\s*"#ffffff"/i);
+  });
+
   it("updates the foreground when the selected custom accent changes", async () => {
     await act(async () => {
       root.render(React.createElement(ThemeHarness));
