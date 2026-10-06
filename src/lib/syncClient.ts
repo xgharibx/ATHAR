@@ -830,8 +830,13 @@ async function runSync(generation: number): Promise<boolean> {
   const supabase = getSupabase();
   if (!supabase) return false;
 
-  const session = await getSession();
+  const sessionRead = await readSessionForSync();
   if (!isCurrent()) return false;
+  if (sessionRead.status !== "resolved") {
+    setStatus({ phase: "error", error: "تعذّر التحقق من جلسة الحساب", pending: false });
+    return false;
+  }
+  const session = sessionRead.session;
   const userId = session?.user?.id;
   if (!userId) return false;
   if (payloadTooLargeBlocked) return false;
@@ -975,6 +980,28 @@ async function runSync(generation: number): Promise<boolean> {
     });
     if (!payloadTooLarge) scheduleRetry();
     return false;
+  }
+}
+
+const SESSION_READ_TIMEOUT_MS = 5_000;
+
+async function readSessionForSync(): Promise<
+  | { status: "resolved"; session: Awaited<ReturnType<typeof getSession>> }
+  | { status: "timeout" | "error" }
+> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const session = await Promise.race([
+      getSession().then((value) => ({ status: "resolved" as const, session: value })),
+      new Promise<{ status: "timeout" }>((resolve) => {
+        timeoutId = setTimeout(() => resolve({ status: "timeout" }), SESSION_READ_TIMEOUT_MS);
+      }),
+    ]);
+    return session;
+  } catch {
+    return { status: "error" };
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
   }
 }
 

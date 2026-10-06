@@ -30,6 +30,7 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
   let packs = [{ packId: "my_adhkar_pack", name: "Mine", sections: [{ id: "my_adhkar", content: [{ text: "original", count: 1 }] }] }];
   let identity = { id: "synthetic-a", secret: "synthetic-only", joinedAt: "2026-01-01" };
   let sessionUser = "synthetic-a";
+  let sessionReadHangs = false;
   let exportNumber = 0;
   let onSelect: (() => void | Promise<void>) | undefined;
   const writes: Array<Array<{ kind: string; expected_revision: number | null; payload: Record<string, unknown> }>> = [];
@@ -37,7 +38,9 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
   const rows = [{ user_id: "synthetic-a", kind: "progress", payload: { progress: { a: 1, remote: 9 } }, updated_at: new Date().toISOString(), revision: 1 }];
   const receipts = new Map<string, { requestId: string; writes: string; revisions: Record<string, number> }>();
   vi.doMock("@/lib/authClient", () => ({
-    getSession: async () => ({ user: { id: sessionUser } }),
+    getSession: () => sessionReadHangs
+      ? new Promise<null>(() => {})
+      : Promise.resolve({ user: { id: sessionUser } }),
     getSupabase: () => ({ from: () => ({
       select: () => ({ eq: async (_key: string, userId: string) => {
         const snapshot = rows.filter((row) => row.user_id === userId).map((row) => structuredClone(row));
@@ -117,6 +120,7 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
     addPackItem: () => packs[0].sections[0].content.push({ text: "new while pending", count: 1 }),
     changeIdentity: () => { identity = { ...identity, id: "synthetic-older", joinedAt: "2025-01-01" }; },
     setSession: (id: string) => { sessionUser = id; },
+    hangSessionRead: () => { sessionReadHangs = true; },
   };
 }
 
@@ -145,6 +149,18 @@ describe("cloud sync snapshot and lifecycle", () => {
     expect(s.mod.getSyncStatus().pending).toBe(false);
     expect(vi.getTimerCount()).toBe(0);
     expect(s.writes.flat().filter((write) => write.kind === "settings")).toHaveLength(1);
+  });
+
+  it("ends a sync attempt when the saved-session read never settles", async () => {
+    const s = await setup();
+    s.hangSessionRead();
+
+    const sync = s.mod.syncNow();
+    await vi.advanceTimersByTimeAsync(5_000);
+    const result = await Promise.race([sync, Promise.resolve("still-running" as const)]);
+
+    expect(result).toBe(false);
+    expect(s.mod.getSyncStatus().phase).not.toBe("syncing");
   });
 
   it("keeps custom adhkar added while the remote fetch is pending", async () => {

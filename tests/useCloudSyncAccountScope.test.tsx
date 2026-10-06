@@ -6,12 +6,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   auth: { session: null as { user: { id: string } } | null, configured: false, loading: true },
+  sessionReadHangs: false,
   startCloudSync: vi.fn(),
   stopCloudSync: vi.fn(),
 }));
 
 vi.mock("@/hooks/useAuthSession", () => ({ useAuthSession: () => mocks.auth }));
-vi.mock("@/lib/authClient", () => ({ getSession: async () => mocks.auth.session }));
+vi.mock("@/lib/authClient", () => ({
+  getSession: async () => mocks.sessionReadHangs
+    ? new Promise<null>((_resolve, reject) => {
+      setTimeout(() => reject(new Error("تعذّر التحقق من جلسة الحساب")), 5_000);
+    })
+    : mocks.auth.session,
+}));
 vi.mock("@/lib/syncClient", () => ({
   getSyncStatus: () => ({ phase: "idle", pending: false, lastSyncedAt: null }),
   startCloudSync: mocks.startCloudSync,
@@ -52,6 +59,7 @@ describe("auth gate and account storage ownership", () => {
     seedLocalFavorites({ "local:1": true });
     await hydrateAccountStorageOwner("local");
     mocks.auth = { session: { user: { id: "synthetic-a" } }, configured: true, loading: false };
+    mocks.sessionReadHangs = false;
     mocks.startCloudSync.mockClear();
     mocks.stopCloudSync.mockClear();
     scope = null;
@@ -66,6 +74,7 @@ describe("auth gate and account storage ownership", () => {
     localStorage.clear();
     setAccountStorageOwner("local");
     mocks.auth = { session: null, configured: false, loading: true };
+    vi.useRealTimers();
   });
 
   it("requires an import decision and keeps A's data out of B while retaining local recovery", async () => {
@@ -94,5 +103,17 @@ describe("auth gate and account storage ownership", () => {
     await renderAndSettle(() => Boolean(scope?.error || scope?.ready));
     expect(scope?.ready).toBe(true);
     expect(useNoorStore.getState().favorites).toEqual({ "local:1": true });
+  });
+
+  it("releases the account gate when the persisted session cannot be confirmed", async () => {
+    vi.useFakeTimers();
+    mocks.sessionReadHangs = true;
+
+    await act(async () => { root?.render(<Harness />); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(5_000); });
+
+    expect(scope?.error).toBe("تعذّر التحقق من جلسة الحساب الحالية");
+    expect(scope?.needsImportChoice).toBe(false);
+    expect(mocks.startCloudSync).not.toHaveBeenCalled();
   });
 });

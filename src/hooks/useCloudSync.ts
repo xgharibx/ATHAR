@@ -89,6 +89,9 @@ export function useCloudSync(): AccountScopeState {
         if (!alive || targetOwnerRef.current !== targetOwner) return false;
         if (!configured) return targetOwner === "local";
         try {
+          // This verifies that no persisted account switch happened before
+          // the auth event reached React. getSession has a bounded read so a
+          // stuck storage lock cannot hold the account gate indefinitely.
           const currentSession = await getSession();
           return alive && targetOwnerRef.current === targetOwner &&
             normalizeAccountStorageOwner(currentSession?.user?.id ?? null) === targetOwner;

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const native = vi.hoisted(() => ({ enabled: true, openExternal: vi.fn() }));
 const exchanges = vi.hoisted(() => [] as string[]);
 const sessionTokens = vi.hoisted(() => [] as Array<{ access_token: string; refresh_token: string }>);
+const sessionRead = vi.hoisted(() => ({ hangs: false }));
 
 vi.mock("@capacitor/core", () => ({
   Capacitor: { isNativePlatform: () => native.enabled },
@@ -11,6 +12,9 @@ vi.mock("@capacitor/core", () => ({
 }));
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({ auth: {
+    getSession: () => sessionRead.hangs
+      ? new Promise<never>(() => {})
+      : Promise.resolve({ data: { session: null } }),
     signInWithOAuth: async () => ({ data: { url: "https://accounts.example.test/oauth" }, error: null }),
     exchangeCodeForSession: async (code: string) => { exchanges.push(code); return { error: null }; },
     setSession: async (tokens: { access_token: string; refresh_token: string }) => {
@@ -28,6 +32,7 @@ beforeEach(() => {
   vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
   vi.stubEnv("VITE_SUPABASE_ANON_KEY", "test-public-key");
   native.enabled = true;
+  sessionRead.hangs = false;
   native.openExternal.mockReset().mockResolvedValue(undefined);
   exchanges.length = 0;
   sessionTokens.length = 0;
@@ -35,9 +40,35 @@ beforeEach(() => {
   vi.stubGlobal("window", callbackWindow);
 });
 
-afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("native authentication callback delivery", () => {
+  it("bounds session reads when auth storage never releases its lock", async () => {
+    vi.useFakeTimers();
+    sessionRead.hangs = true;
+    const { getSession } = await import("@/lib/authClient");
+
+    const pending = getSession();
+    const settled = pending.then(() => "resolved" as const, () => "rejected" as const);
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    const outcome = await Promise.race([settled, Promise.resolve("still-running" as const)]);
+    expect(outcome).toBe("rejected");
+    await expect(pending).rejects.toThrow("تعذّر التحقق من جلسة الحساب");
+  });
+
+  it("returns a recoverable error when account deletion cannot read the saved session", async () => {
+    vi.useFakeTimers();
+    sessionRead.hangs = true;
+    const { deleteAccount } = await import("@/lib/authClient");
+
+    const pending = deleteAccount();
+    await vi.advanceTimersByTimeAsync(5_000);
+    const result = await Promise.race([pending, Promise.resolve("still-running" as const)]);
+
+    expect(result).toEqual({ ok: false, error: "تعذّر التحقق من جلسة الحساب" });
+  });
+
   it("publishes OAuth callback failures so the app can show a recovery message", async () => {
     let callbackResult: { ok: boolean; error?: string } | undefined;
     callbackWindow.addEventListener("athar-auth-result", (event) => {

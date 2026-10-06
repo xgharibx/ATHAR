@@ -6,7 +6,6 @@ import { AppShell } from "@/components/layout/AppShell";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncBridge";
 import { useNoorStore } from "@/store/noorStore";
-import { PageSkeleton } from "@/components/ui/Skeleton";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
@@ -32,7 +31,7 @@ import { MAJOR_SINS_SECTION } from "@/data/majorSins";
 function S({ children }: { children: React.ReactNode }) {
   return (
     <RouteErrorBoundary>
-      <React.Suspense fallback={<div className="p-4" dir="rtl"><PageSkeleton /></div>}>
+      <React.Suspense fallback={null}>
         {children}
       </React.Suspense>
     </RouteErrorBoundary>

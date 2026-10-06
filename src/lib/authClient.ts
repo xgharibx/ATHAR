@@ -212,11 +212,26 @@ export async function signOut(): Promise<AuthResult> {
   return { ok: true };
 }
 
+const SESSION_READ_TIMEOUT_MS = 5_000;
+
 export async function getSession(): Promise<Session | null> {
   const supabase = getSupabase();
   if (!supabase) return null;
-  const { data } = await supabase.auth.getSession();
-  return data.session ?? null;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const { data } = await Promise.race([
+      supabase.auth.getSession(),
+      new Promise<never>((_resolve, reject) => {
+        timeoutId = setTimeout(
+          () => reject(new Error("تعذّر التحقق من جلسة الحساب")),
+          SESSION_READ_TIMEOUT_MS,
+        );
+      }),
+    ]);
+    return data.session ?? null;
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
+  }
 }
 
 /** Subscribe to sign-in/sign-out. Returns an unsubscribe function. */
@@ -248,8 +263,16 @@ export function displayNameOf(user: User | null | undefined): string {
 export async function deleteAccount(): Promise<AuthResult> {
   const supabase = getSupabase();
   if (!supabase) return { ok: false, error: "الحسابات غير مُهيّأة بعد" };
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData.session?.access_token;
+  let session: Session | null;
+  try {
+    session = await getSession();
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "تعذّر التحقق من جلسة الحساب",
+    };
+  }
+  const token = session?.access_token;
   if (!token) return { ok: false, error: "لست مسجّل الدخول" };
 
   try {
