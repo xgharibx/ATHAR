@@ -3,8 +3,12 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Points, PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
-function Starfield(props: { count?: number; size?: number; opacity?: number; color?: string }) {
+function Starfield(props: { count?: number; size?: number; opacity?: number; color?: string; onReady?: (ready: boolean) => void }) {
   const ref = React.useRef<THREE.Points>(null!);
+  const firstFrame = React.useRef<number | null>(null);
+  React.useEffect(() => () => {
+    if (firstFrame.current !== null) cancelAnimationFrame(firstFrame.current);
+  }, []);
   const count = props.count ?? 1800;
   const size = props.size ?? 0.006;
   const opacity = props.opacity ?? 0.85;
@@ -30,6 +34,11 @@ function Starfield(props: { count?: number; size?: number; opacity?: number; col
     if (!ref.current) return;
     ref.current.rotation.y += delta * 0.03;
     ref.current.rotation.x += delta * 0.01;
+    if (firstFrame.current === null) {
+      // useFrame runs before drawing. Notify on the next frame so the seed
+      // cannot disappear while the new canvas is still empty.
+      firstFrame.current = requestAnimationFrame(() => props.onReady?.(true));
+    }
   });
 
   return (
@@ -48,7 +57,7 @@ function Starfield(props: { count?: number; size?: number; opacity?: number; col
   );
 }
 
-export default function NoorStarfield(props: { mobile?: boolean; color?: string }) {
+export default function NoorStarfield(props: { mobile?: boolean; color?: string; onReady?: (ready: boolean) => void }) {
   const [enabled, setEnabled] = React.useState(true);
   const mobile = props.mobile === true;
 
@@ -62,12 +71,12 @@ export default function NoorStarfield(props: { mobile?: boolean; color?: string 
       gl={{ antialias: false, alpha: true, powerPreference: mobile ? "low-power" : "high-performance" }}
       onCreated={({ gl }) => {
         const canvas = gl.domElement;
-        const onLost = () => setEnabled(false);
+        const onLost = () => { setEnabled(false); props.onReady?.(false); };
         canvas.addEventListener("webglcontextlost", onLost, { once: true });
       }}
     >
       <ambientLight intensity={0.7} />
-      <Starfield count={mobile ? 900 : 1800} size={mobile ? 0.009 : 0.006} opacity={mobile ? 0.95 : 0.85} color={props.color} />
+      <Starfield count={mobile ? 900 : 1800} size={mobile ? 0.009 : 0.006} opacity={mobile ? 0.95 : 0.85} color={props.color} onReady={props.onReady} />
     </Canvas>
   );
 }

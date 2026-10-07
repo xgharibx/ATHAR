@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Outlet, useLocation, useNavigate, NavLink } from "react-router-dom";
 import { ArrowRight, Home, Search, BookOpen, Sparkles, Clock, Zap } from "lucide-react";
+import { InstantStars } from "@/components/background/InstantStars";
+import { useNoorStore } from "@/store/noorStore";
 
 const NoorStarfield = React.lazy(() => import('@/components/background/NoorStarfield'));
 
@@ -27,6 +29,8 @@ export function IjazShell() {
     typeof window !== 'undefined' && window.innerWidth < 768
   );
   const [starfieldReady, setStarfieldReady] = React.useState(false);
+  const [starsPainted, setStarsPainted] = React.useState(false);
+  const reduceMotion = useNoorStore(s => s.prefs.reduceMotion);
 
   React.useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -36,6 +40,7 @@ export function IjazShell() {
   }, []);
 
   React.useEffect(() => {
+    if (reduceMotion) return;
     const w = globalThis as typeof globalThis & {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
       cancelIdleCallback?: (id: number) => void;
@@ -46,7 +51,7 @@ export function IjazShell() {
     }
     const id = setTimeout(() => setStarfieldReady(true), 2000);
     return () => clearTimeout(id);
-  }, []);
+  }, [reduceMotion]);
 
   const isActive = (path: string, exact = false) => {
     if (exact) return location.pathname === path;
@@ -60,9 +65,12 @@ export function IjazShell() {
         aria-hidden="true"
         style={{ position: 'fixed', inset: 0, zIndex: -1, background: '#080b12', pointerEvents: 'none' }}
       >
-        {starfieldReady && (
+        {!reduceMotion && <InstantStars hidden={starsPainted} />}
+        {starfieldReady && !reduceMotion && (
           <React.Suspense fallback={null}>
-            <NoorStarfield mobile={isMobile} />
+            <div style={{ position: "absolute", inset: 0, opacity: starsPainted ? 1 : 0, transition: "opacity 350ms ease-out" }}>
+              <NoorStarfield mobile={isMobile} onReady={setStarsPainted} />
+            </div>
           </React.Suspense>
         )}
       </div>

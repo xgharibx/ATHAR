@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useNoorStore } from "@/store/noorStore";
 import { afterStartupReady } from "@/lib/startup";
+import { InstantStars } from "./InstantStars";
 
 const NoorStarfield = React.lazy(() => import("@/components/background/NoorStarfield"));
 
@@ -25,6 +26,8 @@ export function NoorBackground() {
   const isMobile = useIsMobile();
   // T5: Defer 3D starfield until browser is idle to avoid blocking LCP
   const [starfieldDeferred, setStarfieldDeferred] = React.useState(false);
+  const [starsPainted, setStarsPainted] = React.useState(false);
+  React.useLayoutEffect(() => { setStarsPainted(false); }, [enable3D, reduceMotion]);
 
   // Keep GPU probing and starfield work behind usable initial content, then idle.
   React.useEffect(() => {
@@ -174,10 +177,17 @@ export function NoorBackground() {
         </div>
       ) : null}
 
-      {/* Optional 3D layer — deferred until browser is idle (T5) */}
+      {/* Stars are visible on the first render, without moving GPU work onto startup. */}
+      {enable3D && !reduceMotion ? (
+        <InstantStars hidden={starsPainted} color={theme === "faham" ? "#dfe6f5" : undefined} />
+      ) : null}
+
+      {/* Keep the original 3D scene; blend it in only after its first real frame. */}
       {enable3D && !reduceMotion && webglOk && starfieldDeferred ? (
         <React.Suspense fallback={null}>
-          <NoorStarfield mobile={isMobile} color={theme === "faham" ? "#dfe6f5" : undefined} />
+          <div className="absolute inset-0" style={{ opacity: starsPainted ? 1 : 0, transition: "opacity 350ms ease-out" }}>
+            <NoorStarfield mobile={isMobile} color={theme === "faham" ? "#dfe6f5" : undefined} onReady={setStarsPainted} />
+          </div>
         </React.Suspense>
       ) : null}
     </div>

@@ -6,8 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { markStartupReady } from "@/lib/startup";
 
 const state = vi.hoisted(() => ({ prefs: { enable3D: true, reduceMotion: false, theme: "forest", transparentMode: false } }));
+const scene = vi.hoisted(() => ({ onReady: undefined as ((ready: boolean) => void) | undefined }));
 vi.mock("@/store/noorStore", () => ({ useNoorStore: (selector: (value: typeof state) => unknown) => selector(state) }));
-vi.mock("@/components/background/NoorStarfield", () => ({ default: () => null }));
+vi.mock("@/components/background/NoorStarfield", () => ({ default: (props: { onReady?: (ready: boolean) => void }) => {
+  scene.onReady = props.onReady;
+  return createElement("div", { "data-webgl-stars": true });
+} }));
 import { NoorBackground } from "@/components/background/NoorBackground";
 
 let root: Root | undefined;
@@ -28,6 +32,7 @@ beforeEach(() => {
   getContext = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
   state.prefs.enable3D = true;
   state.prefs.reduceMotion = false;
+  scene.onReady = undefined;
   root = createRoot(document.getElementById("test-root")!);
 });
 afterEach(() => {
@@ -40,8 +45,21 @@ afterEach(() => {
 });
 
 describe("optional background startup work", () => {
+  it("keeps instant stars until the GPU scene paints, and restores them after context loss", async () => {
+    getContext.mockReturnValue({} as WebGLRenderingContext);
+    await act(async () => root!.render(createElement(NoorBackground)));
+    expect((document.querySelector('[data-instant-stars]') as HTMLElement).style.opacity).toBe("0.8");
+    await act(async () => { markStartupReady(); idleCallbacks[0](); });
+    expect(scene.onReady).toBeTypeOf("function");
+    expect((document.querySelector('[data-instant-stars]') as HTMLElement).style.opacity).toBe("0.8");
+    act(() => scene.onReady!(true));
+    expect((document.querySelector('[data-instant-stars]') as HTMLElement).style.opacity).toBe("0");
+    act(() => scene.onReady!(false));
+    expect((document.querySelector('[data-instant-stars]') as HTMLElement).style.opacity).toBe("0.8");
+  });
   it("waits for usable app content before scheduling idle WebGL work", () => {
     act(() => root!.render(createElement(NoorBackground)));
+    expect(document.querySelector('[data-instant-stars]')).not.toBeNull();
     expect(getContext).not.toHaveBeenCalled();
     expect(requestIdle).not.toHaveBeenCalled();
     act(() => markStartupReady());
@@ -77,6 +95,7 @@ describe("optional background startup work", () => {
     act(() => root!.render(createElement(NoorBackground)));
     expect(requestIdle).not.toHaveBeenCalled();
     expect(getContext).not.toHaveBeenCalled();
+    expect(document.querySelector('[data-instant-stars]')).toBeNull();
   });
 
   it("starts its existing timeout fallback only after readiness when idle callbacks are unavailable", () => {
