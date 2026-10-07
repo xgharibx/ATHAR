@@ -1592,6 +1592,20 @@ export function MushafPage() {
           <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1 }}>ت</span>
         </button>
         <button type="button"
+          className={`mushaf-chrome-icon-btn${memorizationMode ? " active" : ""}`}
+          aria-label={memorizationMode ? "إيقاف وضع الحفظ" : "تشغيل وضع الحفظ"}
+          aria-pressed={memorizationMode}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMemorizationMode(!memorizationMode);
+            if (memorizationMode) setRevealedItems(new Set());
+            flashChrome();
+          }}
+          title={memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ — اضغط على الآيات لكشفها"}
+        >
+          {memorizationMode ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+        </button>
+        <button type="button"
           className={`mushaf-chrome-icon-btn${wbwMode ? " active" : ""}`}
           aria-label={wbwMode ? "إيقاف الترجمة الفورية للكلمات" : "تشغيل الترجمة الفورية للكلمات"}
           onClick={(e) => { e.stopPropagation(); setWbwMode((v) => !v); setActiveWord(null); }}
@@ -2811,8 +2825,6 @@ export function MushafPage() {
                 onPress: () => { setShowSearch((v) => !v); if (showSearch) setInPageSearch(""); setShowMoreSheet(false); } },
               { label: "الترجمة", sub: (() => { const m = TRANSLATION_SOURCES.find((s) => s.id === quranTranslationId); return m ? `${m.ar} — ${m.en}` : ""; })(), icon: <Languages size={16} aria-hidden="true" />, active: showTranslation,
                 onPress: () => { setShowTranslationPref((v) => !v); setShowMoreSheet(false); } },
-              { label: memorizationMode ? "إيقاف وضع الحفظ" : "وضع الحفظ", sub: "اختبر حفظك آية بآية", icon: memorizationMode ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />, active: memorizationMode,
-                onPress: () => { setMemorizationMode((v) => { if (v) setRevealedItems(new Set()); return !v; }); flashChrome(); setShowMoreSheet(false); } },
             ] as Array<{ label: string; sub: string; icon: React.ReactNode; active: boolean; onPress: () => void }>).map(({ label, sub, icon, active, onPress }) => (
               <button type="button"
                 key={label}
