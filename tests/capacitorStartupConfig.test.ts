@@ -22,8 +22,8 @@ function themeColor(theme: string, attribute: string): string | undefined {
 }
 
 describe("Android startup background continuity", () => {
-  it("uses the forest intro background before the WebView paints", () => {
-    expect(config.android?.backgroundColor?.toLowerCase()).toBe("#022c22");
+  it("uses the original brand intro background before the WebView paints", () => {
+    expect(config.android?.backgroundColor?.toLowerCase()).toBe("#2f4f37");
   });
 
   it.each([
@@ -32,6 +32,6 @@ describe("Android startup background continuity", () => {
     ["AppTheme.NoActionBarLaunch", "windowSplashScreenBackground"],
     ["AppTheme.NoActionBarLaunch", "android:background"],
   ])("keeps %s %s continuous with the intro", (theme, attribute) => {
-    expect(themeColor(theme, attribute)).toBe("#022c22");
+    expect(themeColor(theme, attribute)).toBe("#2f4f37");
   });
 });

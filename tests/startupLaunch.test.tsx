@@ -48,10 +48,31 @@ describe("launch surface", () => {
     document.getElementById("app-loader")?.remove();
     expect(startup.isStartupPending()).toBe(false);
   });
-  it("shows the existing brand and tagline before JavaScript instead of a spinner", () => {
-    const loader = html.slice(html.indexOf('<div id="app-loader"'), html.indexOf('id="theme-bootstrap-colors"'));
-    expect(loader).toContain("همسة تطمئن قلبك، وتترك أثرًا.");
-    expect(loader).not.toMatch(/animation:spin|stroke-dasharray/);
+  it("restores the text-only golden intro before JavaScript", () => {
+    const page = new DOMParser().parseFromString(html, "text/html");
+    const loader = page.getElementById("app-loader")!;
+    expect(loader.style.background).toBe("rgb(47, 79, 55)");
+    expect(loader.querySelector("svg")).toBeNull();
+    expect(loader.querySelector(".athar-intro-name")?.textContent?.trim()).toBe("أثر");
+    expect(loader.querySelector(".athar-intro-tagline")?.textContent?.trim()).toBe("همسة تطمئن قلبك، وتترك أثرًا.");
+  });
+
+  it("releases the app immediately and fades the intro over the ready screen", async () => {
+    startup.markStartupReady();
+    const loader = document.getElementById("app-loader")!;
+    expect(startup.isStartupPending()).toBe(false);
+    expect(loader.style.pointerEvents).toBe("none");
+    expect(loader.style.opacity).toBe("0");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(loader.style.display).toBe("none");
+  });
+
+  it("skips the exit animation when reduced motion is requested", () => {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
+    startup.markStartupReady();
+    expect(document.getElementById("app-loader")?.style.display).toBe("none");
+    expect(startup.isStartupPending()).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("does not dismiss for an empty React sentinel or a slow account hydration", async () => {
@@ -71,7 +92,7 @@ describe("launch surface", () => {
       createElement(LazyRoute), createElement(StartupReady))));
     expect(document.getElementById("app-loader")?.style.display).not.toBe("none");
     await act(async () => { resolveRoute({ default: () => createElement("button", null, "Ready") }); });
-    expect(document.getElementById("app-loader")?.style.display).toBe("none");
+    expect(startup.isStartupPending()).toBe(false);
   });
 
   it("does not dismiss for Home loading, but allows data or error readiness", async () => {
@@ -79,7 +100,7 @@ describe("launch surface", () => {
     act(() => root!.render(createElement(StartupReady, { ready: false })));
     expect(document.getElementById("app-loader")?.style.display).not.toBe("none");
     act(() => root!.render(createElement(StartupReady, { ready: true })));
-    expect(document.getElementById("app-loader")?.style.display).toBe("none");
+    expect(startup.isStartupPending()).toBe(false);
   });
 
   it("reveals an actionable initial-route error instead of keeping it covered", () => {
@@ -91,7 +112,7 @@ describe("launch surface", () => {
     try {
       act(() => root!.render(createElement(RouteErrorBoundary, null, createElement(FailedRoute))));
       expect(document.querySelector('[role="alert"] button')?.textContent).toBe("إعادة المحاولة");
-      expect(document.getElementById("app-loader")?.style.display).toBe("none");
+      expect(startup.isStartupPending()).toBe(false);
     } finally {
       window.removeEventListener("error", suppressError);
       log.mockRestore();

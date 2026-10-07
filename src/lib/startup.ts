@@ -21,6 +21,14 @@ export function markStartupReady(): void {
   const loader = document.getElementById("app-loader");
   if (!loader || loader.getAttribute("data-hidden") === "true") return;
   loader.setAttribute("data-hidden", "true");
-  loader.style.display = "none";
+  loader.setAttribute("aria-hidden", "true");
+  loader.style.pointerEvents = "none";
+  loader.style.opacity = "0";
+  // The app is already usable underneath; the old fade never gates startup work.
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+    loader.style.display = "none";
+  } else {
+    window.setTimeout(() => { loader.style.display = "none"; }, 700);
+  }
   document.dispatchEvent(new Event(STARTUP_READY_EVENT));
 }

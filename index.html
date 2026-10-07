@@ -66,6 +66,59 @@
       <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Cairo:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&family=Noto+Naskh+Arabic:wght@400;500;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet" />
     </noscript>
     <title>أثر — أذكار وقرآن وصلاة</title>
+    <!-- A small, bundled subset keeps the original intro font available offline. -->
+    <link rel="preload" href="%BASE_URL%fonts/intro/noto-naskh-arabic-brand.woff2" as="font" type="font/woff2" crossorigin />
+    <style id="athar-intro-styles">
+      @font-face {
+        font-family: "Athar Intro";
+        font-style: normal;
+        font-weight: 400 700;
+        font-display: swap;
+        src: url("%BASE_URL%fonts/intro/noto-naskh-arabic-brand.woff2") format("woff2");
+      }
+      @keyframes _aFadeUp {
+        0% { opacity: 0; transform: translateY(24px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes _aTagline {
+        0% { opacity: 0; transform: translateY(14px); }
+        100% { opacity: 0.70; transform: translateY(0); }
+      }
+      @keyframes _aShimmer {
+        0% { background-position: -400px 0; }
+        100% { background-position: 400px 0; }
+      }
+      #app-loader { transition: opacity 0.7s ease-out; }
+      .athar-intro-name, .athar-intro-tagline {
+        font-family: "Athar Intro", "Noto Naskh Arabic", "Noto Sans Arabic", Tahoma, serif;
+      }
+      .athar-intro-name {
+        font-size: clamp(72px, 22vw, 120px);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.01em;
+        color: transparent;
+        background-image: linear-gradient(120deg, #c8a84b 0%, #f0d480 40%, #c8a84b 60%, #e8c55a 100%);
+        background-size: 400px 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        animation: _aFadeUp 0.8s cubic-bezier(.22,1,.36,1) 0.15s both, _aShimmer 3s linear 1s infinite;
+        text-rendering: optimizeLegibility;
+      }
+      .athar-intro-tagline {
+        font-size: clamp(15px, 4vw, 20px);
+        font-weight: 400;
+        color: #e8d5a0;
+        opacity: 0;
+        letter-spacing: 0.3px;
+        animation: _aTagline 0.8s ease-out 0.55s both;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #app-loader { transition: none; }
+        .athar-intro-name { animation: none; }
+        .athar-intro-tagline { animation: none; opacity: 0.70; }
+      }
+    </style>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -104,37 +157,17 @@
     <!-- Brand intro paints before JavaScript and stays until the initial route is usable. -->
     <div id="app-loader" role="status" aria-label="جارٍ تحميل أثر…" style="
       position:fixed;inset:0;z-index:9999;
-      background:#022c22;
+      background:#2F4F37;
       display:flex;align-items:center;justify-content:center;
-      flex-direction:column;gap:16px;
-      color:#ecfdf5;
+      flex-direction:column;gap:12px;
+      direction:rtl;overflow:hidden;
     ">
-      <svg viewBox="0 0 512 512" width="280" height="280" style="width:min(76vw,320px);height:auto" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <defs>
-          <radialGradient id="launch-glow" cx="50%" cy="42%" r="60%">
-            <stop offset="0" stop-color="#7EC8A4" stop-opacity=".3"/>
-            <stop offset="1" stop-color="#7EC8A4" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <rect width="512" height="512" fill="url(#launch-glow)"/>
-        <g transform="translate(256 228)" fill="none" stroke="#7EC8A4" stroke-opacity=".9" stroke-linecap="round">
-          <circle r="110" fill="#7EC8A4" fill-opacity=".1" stroke="none"/>
-          <path d="M -86 -4 C -56 -66, 56 -66, 86 -4" stroke-width="6"/>
-          <path d="M -92 18 C -60 -56, 60 -56, 92 18" stroke-width="5"/>
-          <path d="M -86 42 C -54 -38, 54 -38, 86 42" stroke-width="4.5"/>
-          <path d="M -72 66 C -42 -22, 42 -22, 72 66" stroke-width="4"/>
-          <path d="M -52 86 C -28 -8, 28 -8, 52 86" stroke-width="3.5"/>
-          <path d="M -28 102 C -14 18, 14 18, 28 102" stroke-width="3"/>
-        </g>
-        <g fill="currentColor" text-anchor="middle" font-family="'Noto Naskh Arabic','Segoe UI',Tahoma,Arial,sans-serif">
-          <text x="256" y="280" font-size="104" font-weight="700">أثر</text>
-          <text x="256" y="356" font-size="22" font-weight="500" opacity=".85">همسة تطمئن قلبك، وتترك أثرًا.</text>
-        </g>
-      </svg>
+      <div class="athar-intro-name" aria-hidden="true">أثر</div>
+      <div class="athar-intro-tagline" aria-hidden="true">همسة تطمئن قلبك، وتترك أثرًا.</div>
     </div>
     <!-- Kept in parity with THEME_META_COLORS in useApplyTheme.ts. -->
     <script id="theme-bootstrap-colors" type="application/json">{"themes":{"system":"#07080b","dark":"#07080b","light":"#f7f8ff","noor":"#07080b","midnight":"#0f172a","forest":"#022c22","bees":"#1a120b","roses":"#280a14","sapphire":"#070a1a","violet":"#12051f","sunset":"#160a06","mist":"#0b0d12","bustan":"#f3ede2","waraq":"#efe7d5","fanous":"#140e06","sajjada":"#200a10","mihrab":"#071b33","midad":"#020b04","layl":"#000000","teen":"#eef0f6","jura":"#f5f2ea","andalus":"#f6f1e6","sakina":"#eceae6","shafaq":"#0b1220","mushaf":"#2a1114","sama":"#0a1f15","diwan":"#f5f1e6","faham":"#000000"},"samaPhases":{"fajr":"#1c2145","dhuhr":"#0d3a26","asr":"#3a2f14","maghrib":"#471f12","isha":"#0d1330"}}</script>
-    <!-- Theme-aware loader: use the active account's last hydrated theme before first paint. -->
+    <!-- Apply saved browser chrome colors without changing the original branded intro. -->
     <script id="theme-bootstrap">
     (function(){
       try {
@@ -203,14 +236,6 @@
             } else {
               color = hintColor;
             }
-          }
-          var el = document.getElementById("app-loader");
-          if (el) {
-            el.style.background = color;
-            var red = parseInt(color.slice(1, 3), 16);
-            var green = parseInt(color.slice(3, 5), 16);
-            var blue = parseInt(color.slice(5, 7), 16);
-            el.style.color = (red * 299 + green * 587 + blue * 114) / 1000 > 150 ? "#102a21" : "#ecfdf5";
           }
           var metas = document.querySelectorAll('meta[name="theme-color"]');
           for (var i = 0; i < metas.length; i += 1) {

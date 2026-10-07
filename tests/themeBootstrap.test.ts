@@ -40,7 +40,7 @@ function runThemeBootstrap(
   includeOsScopedMetas = false,
   storageThrows = false,
 ) {
-  const loader = { style: { background: "#022c22" } };
+  const loader = { style: { background: "#2F4F37" } };
   const colors = html.match(/<script id="theme-bootstrap-colors" type="application\/json">([\s\S]*?)<\/script>/)?.[1] ?? "{}";
   const colorsElement = { textContent: colors };
   const metas = includeOsScopedMetas
@@ -83,9 +83,9 @@ describe("pre-paint theme bootstrap", () => {
   it("uses forest on a fresh install and when browser storage is unavailable", () => {
     const fresh = runThemeBootstrap({});
     const unavailable = runThemeBootstrap({}, false, false, true);
-    expect(fresh.loader.style.background).toBe(THEME_META_COLORS.forest);
+    expect(fresh.loader.style.background).toBe("#2F4F37");
     expect(fresh.activeMeta?.content).toBe(THEME_META_COLORS.forest);
-    expect(unavailable.loader.style.background).toBe(THEME_META_COLORS.forest);
+    expect(unavailable.loader.style.background).toBe("#2F4F37");
     expect(unavailable.activeMeta?.content).toBe(THEME_META_COLORS.forest);
   });
 
@@ -95,7 +95,7 @@ describe("pre-paint theme bootstrap", () => {
     expect(themeMetas).toHaveLength(1);
     expect(themeMetas[0]).toContain(THEME_META_COLORS.forest);
     expect(themeMetas[0]).not.toContain("media=");
-    expect(loader).toContain(`background:${THEME_META_COLORS.forest}`);
+    expect(loader).toContain("background:#2F4F37");
   });
 
   it("prefers the active-theme hint and removes OS-scoped browser chrome colors", () => {
@@ -103,7 +103,7 @@ describe("pre-paint theme bootstrap", () => {
       athar_theme_bootstrap_v1: JSON.stringify({ theme: "diwan" }),
       noor_store_v1: JSON.stringify({ state: { prefs: { theme: "forest" } } }),
     }, true, true);
-    expect(result.loader.style.background).toBe(THEME_META_COLORS.diwan);
+    expect(result.loader.style.background).toBe("#2F4F37");
     expect(result.activeMeta?.content).toBe(THEME_META_COLORS.diwan);
     expect(result.activeMeta?.hasAttribute("media")).toBe(false);
     expect(result.metas).toHaveLength(1);
@@ -113,7 +113,7 @@ describe("pre-paint theme bootstrap", () => {
     const result = runThemeBootstrap({
       noor_store_v1: JSON.stringify({ state: { prefs: { theme: "waraq" } } }),
     });
-    expect(result.loader.style.background).toBe(THEME_META_COLORS.waraq);
+    expect(result.loader.style.background).toBe("#2F4F37");
     expect(result.activeMeta?.content).toBe(THEME_META_COLORS.waraq);
     expect(result.metas).toHaveLength(1);
   });
@@ -123,7 +123,7 @@ describe("pre-paint theme bootstrap", () => {
       noor_store_v1: JSON.stringify({ state: { prefs: { theme: "midad" } } }),
     });
 
-    expect(result.loader.style.background).toBe(THEME_META_COLORS.forest);
+    expect(result.loader.style.background).toBe("#2F4F37");
     expect(result.activeMeta?.content).toBe(THEME_META_COLORS.forest);
   });
 
@@ -132,15 +132,16 @@ describe("pre-paint theme bootstrap", () => {
       athar_theme_bootstrap_v1: "not-a-theme",
       noor_store_v1: JSON.stringify({ state: { prefs: { theme: "midnight" } } }),
     });
-    expect(result.loader.style.background).toBe(THEME_META_COLORS.midnight);
+    expect(result.loader.style.background).toBe("#2F4F37");
+    expect(result.activeMeta?.content).toBe(THEME_META_COLORS.midnight);
   });
 
   it("resolves the system theme using the OS preference", () => {
     const light = runThemeBootstrap({ athar_theme_bootstrap_v1: JSON.stringify({ theme: "system" }) }, true);
     const dark = runThemeBootstrap({ athar_theme_bootstrap_v1: JSON.stringify({ theme: "system" }) }, false);
-    expect(light.loader.style.background).toBe(THEME_META_COLORS.light);
+    expect(light.loader.style.background).toBe("#2F4F37");
     expect(light.activeMeta?.content).toBe(THEME_META_COLORS.light);
-    expect(dark.loader.style.background).toBe(THEME_META_COLORS.dark);
+    expect(dark.loader.style.background).toBe("#2F4F37");
     expect(dark.activeMeta?.content).toBe(THEME_META_COLORS.dark);
   });
 
@@ -148,7 +149,7 @@ describe("pre-paint theme bootstrap", () => {
     const result = runThemeBootstrap({
       athar_theme_bootstrap_v1: JSON.stringify({ theme: "sama", color: SAMA_PHASE_COLORS.fajr }),
     });
-    expect(result.loader.style.background).toBe(SAMA_PHASE_COLORS.fajr);
+    expect(result.loader.style.background).toBe("#2F4F37");
     expect(result.activeMeta?.content).toBe(SAMA_PHASE_COLORS.fajr);
   });
 
@@ -157,7 +158,7 @@ describe("pre-paint theme bootstrap", () => {
       noor_store_v1: JSON.stringify({ state: { prefs: { theme: "sama" } } }),
       noor_widget_prayer_v2: JSON.stringify({ nextPrayer: { nameAr: "المغرب" } }),
     });
-    expect(result.loader.style.background).toBe(SAMA_PHASE_COLORS.maghrib);
+    expect(result.loader.style.background).toBe("#2F4F37");
     expect(result.activeMeta?.content).toBe(SAMA_PHASE_COLORS.maghrib);
   });
 });
