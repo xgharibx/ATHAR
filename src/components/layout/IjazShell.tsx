@@ -114,15 +114,7 @@ export function IjazShell() {
 
       {/* ── Page content ── */}
       <main className="ijaz-content">
-        <React.Suspense
-          fallback={
-            <div className="flex items-center justify-center min-h-[50vh]">
-              <div className="ijaz-spinner" aria-label="جاري التحميل" />
-            </div>
-          }
-        >
-          <Outlet />
-        </React.Suspense>
+        <Outlet />
       </main>
     </div>
   );

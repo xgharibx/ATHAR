@@ -13,7 +13,9 @@ describe("AccountScopeGate", () => {
   it("does not show a skeleton while a lazy route loads", () => {
     const app = fs.readFileSync(path.resolve("src/App.tsx"), "utf8");
     const routeBoundary = app.slice(app.indexOf("function S("), app.indexOf("const HomePage"));
-    expect(routeBoundary).toMatch(/fallback=\{null\}/);
+    expect(routeBoundary).toMatch(/<RouteScene>/);
+    const scene = fs.readFileSync(path.resolve("src/components/layout/RouteScene.tsx"), "utf8");
+    expect(scene).toMatch(/fallback=\{null\}/);
     expect(routeBoundary).not.toMatch(/PageSkeleton/);
   });
 });

@@ -90,6 +90,7 @@
       }
       #app-loader { transition: opacity 0.7s ease-out; }
       .athar-intro-name, .athar-intro-tagline {
+        position: relative;
         font-family: "Athar Intro", "Noto Naskh Arabic", "Noto Sans Arabic", Tahoma, serif;
       }
       .athar-intro-name {
@@ -117,7 +118,15 @@
         #app-loader { transition: none; }
         .athar-intro-name { animation: none; }
         .athar-intro-tagline { animation: none; opacity: 0.70; }
+        .athar-intro-stars { display: none; }
       }
+      @keyframes introStarsDrift {
+        to { transform: translate3d(12px, -48px, 0); }
+      }
+      .athar-intro-stars { color: #f0d480; opacity: 0.26; }
+      .athar-intro-stars::before { animation: introStarsDrift 12s ease-in-out infinite alternate; }
+      .athar-intro-stars::after { animation: introStarsDrift 16s ease-in-out infinite alternate-reverse; }
+      .reduce-motion .athar-intro-stars { display: none; }
     </style>
     <style id="athar-first-paint-stars">
       .athar-star-seed { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
@@ -301,6 +310,7 @@
       flex-direction:column;gap:12px;
       direction:rtl;overflow:hidden;
     ">
+      <div class="athar-star-seed athar-intro-stars" aria-hidden="true"></div>
       <div class="athar-intro-name" aria-hidden="true">أثر</div>
       <div class="athar-intro-tagline" aria-hidden="true">همسة تطمئن قلبك، وتترك أثرًا.</div>
     </div>

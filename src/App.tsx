@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, Outlet, useLocation, useNavigate } from "react
 
 import { useApplyTheme } from "@/hooks/useApplyTheme";
 import { AppShell } from "@/components/layout/AppShell";
-import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { RouteScene, RouteViewport } from "@/components/layout/RouteScene";
 import { LeaderboardSyncBridge } from "@/components/leaderboard/LeaderboardSyncBridge";
 import { useNoorStore } from "@/store/noorStore";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
@@ -26,23 +26,13 @@ import { ISLAM_PILLARS_SECTION } from "@/data/islamPillars";
 import { FAITH_PILLARS_SECTION } from "@/data/faithPillars";
 import { FAITH_BRANCHES_SECTION } from "@/data/faithBranches";
 import { MAJOR_SINS_SECTION } from "@/data/majorSins";
-import { StartupReady } from "@/components/StartupReady";
 import { useStartupReady } from "@/hooks/useStartupReady";
 import { warmBundledAdhkar } from "@/data/load";
 import { afterStartupReady } from "@/lib/startup";
 
 /** Wraps a lazy route element with Suspense + per-route RouteErrorBoundary */
 function S({ children }: { children: React.ReactNode }) {
-  const location = useLocation();
-  return (
-    <RouteErrorBoundary>
-      <React.Suspense fallback={null}>
-        {children}
-        {/* Home waits for its bundled adhkar data; other routes can render controls immediately. */}
-        <StartupReady ready={location.pathname !== "/"} />
-      </React.Suspense>
-    </RouteErrorBoundary>
-  );
+  return <RouteScene>{children}</RouteScene>;
 }
 
 const loadHomeRoute = () => import("@/pages/Home").then((m) => ({ default: m.HomePage }));
@@ -492,7 +482,7 @@ function AppContent() {
       {!onboardingDone && <OnboardingFlow />}
       <LeaderboardSyncBridge />
       <PwaInstallBanner />
-      <Routes>
+      <RouteViewport><Routes>
         <Route path="mushaf/:page?" element={<S><MushafPage /></S>} />
         {/* ── الإعجاز العلمي section (full-screen dark theme) ── */}
         <Route path="ijaz" element={<IjazShell />}>
@@ -564,7 +554,7 @@ function AppContent() {
           <Route path="seerah" element={<S><SeerahPage /></S>} />
           <Route path="*" element={<S><NotFoundPage /></S>} />
         </Route>
-      </Routes>
+      </Routes></RouteViewport>
     </>
   );
 }

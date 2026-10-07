@@ -5187,8 +5187,58 @@ header {
    viewport, sitting below the page on long-scroll screens like Home).
    ═══════════════════════════════════════════════════════════════ */
 .route-page-wrapper {
-  will-change: opacity;
+  /* No persistent compositor layer or transform around fixed page controls. */
+  min-width: 0;
 }
+
+@keyframes routeSceneIn {
+  from { opacity: 0.78; }
+  to { opacity: 1; }
+}
+@keyframes routeTitleIn {
+  from { transform: translateY(6px); }
+  to { transform: translateY(0); }
+}
+@keyframes routeStarPassage {
+  0% { opacity: 0; transform: translate(-36px, 36px); }
+  22% { opacity: 0.38; }
+  100% { opacity: 0; transform: translate(100px, -100px); }
+}
+.route-scene-enter { animation: routeSceneIn 240ms cubic-bezier(.22,1,.36,1) backwards; }
+.route-scene-enter > .page-enter { animation: none; }
+.route-scene-enter h1 { animation: routeTitleIn 280ms cubic-bezier(.22,1,.36,1) backwards; }
+.route-star-passage { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.route-star-passage i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  color: var(--accent);
+  background: currentColor;
+  box-shadow: 0 0 7px currentColor;
+  opacity: 0;
+  animation: routeStarPassage 460ms ease-out both;
+}
+.route-star-passage i::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 1px;
+  right: 1px;
+  top: 1px;
+  transform: rotate(-45deg);
+  transform-origin: right center;
+  background: linear-gradient(to left, currentColor, transparent);
+}
+.route-star-passage i:nth-child(1) { left: 18%; top: 24%; }
+.route-star-passage i:nth-child(2) { left: 68%; top: 47%; animation-delay: 35ms; }
+.route-star-passage i:nth-child(3) { left: 38%; top: 76%; animation-delay: 70ms; }
+@media (prefers-reduced-motion: reduce) {
+  .route-scene-enter, .route-scene-enter h1 { animation: none; }
+  .route-star-passage { display: none; }
+}
+.reduce-motion .route-scene-enter, .reduce-motion .route-scene-enter h1 { animation: none; }
+.reduce-motion .route-star-passage { display: none; }
 
 /* ═══════════════════════════════════════════════════════════════
    De13 — Enhanced focus-visible ring for accessibility

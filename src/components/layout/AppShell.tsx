@@ -3,7 +3,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Menu, Search, Settings2, House, BookOpenText, Heart, LineChart, X, ChevronLeft, CircleDot, Sun, Moon, Clock, BookMarked, Clapperboard, Trophy, Sparkles, Atom } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { AnimatePresence, motion } from "framer-motion";
 
 import { NoorBackground } from "@/components/background/NoorBackground";
 import { FloatingNav } from "@/components/layout/FloatingNav";
@@ -17,6 +16,7 @@ import { GardenOrnaments } from "@/components/brand/GardenOrnaments";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
 import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { UpdatePill } from "@/components/layout/UpdatePill";
+import { preloadAppRoute } from "@/lib/routePreload";
 
 /**
  * The header's hamburger drawer, hidden at the owner's request.
@@ -27,6 +27,12 @@ import { UpdatePill } from "@/components/layout/UpdatePill";
  * is untouched below; flip this to bring the button back.
  */
 const SHOW_HEADER_MENU = false;
+
+function warmDestination(event: React.SyntheticEvent) {
+  if (!(event.target instanceof Element)) return;
+  const link = event.target.closest<HTMLAnchorElement>("a[href]");
+  if (link) preloadAppRoute(link.href);
+}
 
 const CommandPalette = React.lazy(() =>
   import("@/components/layout/CommandPalette").then((m) => ({ default: m.CommandPalette }))
@@ -543,7 +549,7 @@ export function AppShell() {
   if (!isPrimaryShell) return null;
 
   return (
-    <div className="min-h-screen-safe">
+      <div className="min-h-screen-safe" onPointerOverCapture={warmDestination} onPointerDownCapture={warmDestination} onFocusCapture={warmDestination}>
       {/* Skip to main content — keyboard/screen reader a11y */}
       <a
         href="#main-content"
@@ -669,18 +675,9 @@ export function AppShell() {
 
           {/* Main */}
           <main id="main-content" tabIndex={-1} aria-label="المحتوى الرئيسي" className="col-span-12 xl:col-span-9 2xl:col-span-10 focus:outline-none">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                className="route-page-wrapper"
-              >
+              <div className="route-page-wrapper">
                 <Outlet />
-              </motion.div>
-            </AnimatePresence>
+              </div>
           </main>
         </div>
 
