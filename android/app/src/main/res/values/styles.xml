@@ -12,14 +12,14 @@
     <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <!-- Dark background prevents black flash while WebView bootstraps -->
+        <!-- Match the forest intro while the WebView bootstraps. -->
         <item name="android:background">@color/colorBackground</item>
         <item name="android:windowBackground">@color/colorBackground</item>
     </style>
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
+        <item name="android:background">@color/colorSplashBg</item>
         <item name="windowSplashScreenBackground">@color/colorSplashBg</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
         <!-- 11C: Required for Android 12+ — transitions from splash to app theme properly -->

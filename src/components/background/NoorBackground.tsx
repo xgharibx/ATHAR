@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useNoorStore } from "@/store/noorStore";
+import { afterStartupReady } from "@/lib/startup";
 
 const NoorStarfield = React.lazy(() => import("@/components/background/NoorStarfield"));
 
@@ -25,31 +26,41 @@ export function NoorBackground() {
   // T5: Defer 3D starfield until browser is idle to avoid blocking LCP
   const [starfieldDeferred, setStarfieldDeferred] = React.useState(false);
 
-  React.useEffect(() => {
-    if (reduceMotion || !enable3D) return;
-    try {
-      const canvas = document.createElement("canvas");
-      const gl2 = canvas.getContext("webgl2");
-      const gl1 = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-      setWebglOk(!!(gl2 || gl1));
-    } catch {
-      setWebglOk(false);
-    }
-  }, [enable3D, reduceMotion]);
-
-  // T5: Defer 3D starfield render until browser idle to avoid blocking LCP
+  // Keep GPU probing and starfield work behind usable initial content, then idle.
   React.useEffect(() => {
     if (!enable3D || reduceMotion) return;
     const w = globalThis as typeof globalThis & {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
       cancelIdleCallback?: (id: number) => void;
     };
-    if (typeof w.requestIdleCallback === "function") {
-      const id = w.requestIdleCallback(() => setStarfieldDeferred(true), { timeout: 1500 });
-      return () => w.cancelIdleCallback?.(id);
-    }
-    const id = setTimeout(() => setStarfieldDeferred(true), 1500);
-    return () => clearTimeout(id);
+    let active = true;
+    let cancelScheduled: (() => void) | undefined;
+    const prepareStarfield = () => {
+      if (!active) return;
+      try {
+        const canvas = document.createElement("canvas");
+        const gl2 = canvas.getContext("webgl2");
+        const gl1 = gl2 ? null : canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        setWebglOk(!!(gl2 || gl1));
+      } catch {
+        setWebglOk(false);
+      }
+      setStarfieldDeferred(true);
+    };
+    const cancelWaiting = afterStartupReady(() => {
+      if (typeof w.requestIdleCallback === "function") {
+        const id = w.requestIdleCallback(prepareStarfield, { timeout: 1500 });
+        cancelScheduled = () => w.cancelIdleCallback?.(id);
+      } else {
+        const id = setTimeout(prepareStarfield, 1500);
+        cancelScheduled = () => clearTimeout(id);
+      }
+    });
+    return () => {
+      active = false;
+      cancelWaiting();
+      cancelScheduled?.();
+    };
   }, [enable3D, reduceMotion]);
 
   const petals = React.useMemo(() => {

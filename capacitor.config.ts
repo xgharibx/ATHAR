@@ -13,11 +13,11 @@ const config: CapacitorConfig = {
   android: {
     // Keep insecure HTTP resources blocked inside the secure Capacitor WebView.
     allowMixedContent: false,
-    // Ensure the WebView's background matches our dark theme while bootstrapping
-    backgroundColor: "#0a0c12",
+    // Match the forest intro before web content paints; React applies the saved theme.
+    backgroundColor: "#022c22",
   },
   ios: {
-    // Match the dark theme while the WKWebView bootstraps (same as Android)
+    // Match the dark theme while the WKWebView bootstraps.
     backgroundColor: "#0a0c12",
     // The app draws its own safe-area padding (viewport-fit=cover + env() insets)
     contentInset: "never",

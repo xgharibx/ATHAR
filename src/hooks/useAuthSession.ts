@@ -9,14 +9,14 @@ import * as React from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   getSession,
+  getCachedSession,
   isAuthConfigured,
   onAuthChange,
 } from "@/lib/authClient";
 
 export type AuthState = {
   session: Session | null;
-  /** True until the first session read resolves — used to avoid flashing a
-   *  "sign in" button at someone who is already signed in. */
+  /** Local identity is available synchronously; network refresh runs separately. */
   loading: boolean;
   configured: boolean;
 };
@@ -24,32 +24,34 @@ export type AuthState = {
 const SESSION_READ_TIMEOUT_MS = 5_000;
 
 export function useAuthSession(): AuthState {
-  const [session, setSession] = React.useState<Session | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [session, setSession] = React.useState<Session | null>(getCachedSession);
+  const loading = false;
   const configured = isAuthConfigured();
 
   React.useEffect(() => {
-    if (!configured) { setLoading(false); return; }
+    if (!configured) return;
     let alive = true;
+    let revision = 0;
+    const readRevision = revision;
+    const restoreSavedIdentity = () => {
+      if (alive && revision === readRevision) setSession(getCachedSession());
+    };
     const timeout = window.setTimeout(() => {
-      if (!alive) return;
-      // A slow storage/lock read must not keep the account UI loading forever.
-      // Auth change events can still deliver a session if this read recovers.
-      setSession(null);
-      setLoading(false);
+      restoreSavedIdentity();
     }, SESSION_READ_TIMEOUT_MS);
 
-    void getSession().then((s) => {
+    const unsub = onAuthChange((s, event) => {
       if (!alive) return;
-      setSession(s);
-      setLoading(false);
-    }).catch(() => {
-      if (!alive) return;
-      setSession(null);
-      setLoading(false);
-    }).finally(() => window.clearTimeout(timeout));
+      revision += 1;
+      // INITIAL_SESSION may carry null after an offline refresh fails while
+      // the SDK still retains the saved session. SIGNED_OUT is authoritative.
+      setSession(event === "SIGNED_OUT" ? null : s ?? getCachedSession());
+    });
 
-    const unsub = onAuthChange((s) => { if (alive) setSession(s); });
+    void getSession().then((s) => {
+      if (!alive || revision !== readRevision) return;
+      setSession(s ?? getCachedSession());
+    }).catch(restoreSavedIdentity).finally(() => window.clearTimeout(timeout));
 
     return () => {
       alive = false;

@@ -3,10 +3,9 @@
     <color name="colorPrimary">#2F4F37</color>
     <color name="colorPrimaryDark">#1a2e1e</color>
     <color name="colorAccent">#7EC8A4</color>
-    <!-- App dark background — prevents white/black flash while WebView loads -->
-    <color name="colorBackground">#0a0c12</color>
-    <!-- Splash screen background — matches the real brand logo background -->
-    <color name="colorSplashBg">#2F4F37</color>
+    <!-- Startup surfaces match the forest intro until the web theme is applied. -->
+    <color name="colorBackground">#022c22</color>
+    <color name="colorSplashBg">#022c22</color>
 
     <!--
       Widget text-color tokens — light-on-dark, the default for BOTH system

@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/hooks/useAuthSession", () => ({ useAuthSession: () => mocks.auth }));
 vi.mock("@/lib/authClient", () => ({
+  getPersistedAccountStorageOwner: () => mocks.auth.session ? `user:${mocks.auth.session.user.id}` : "local",
   getSession: async () => mocks.sessionReadHangs
     ? new Promise<null>((_resolve, reject) => {
       setTimeout(() => reject(new Error("تعذّر التحقق من جلسة الحساب")), 5_000);
@@ -105,15 +106,11 @@ describe("auth gate and account storage ownership", () => {
     expect(useNoorStore.getState().favorites).toEqual({ "local:1": true });
   });
 
-  it("releases the account gate when the persisted session cannot be confirmed", async () => {
-    vi.useFakeTimers();
+  it("hydrates the saved owner's data without waiting for a network session read", async () => {
     mocks.sessionReadHangs = true;
-
-    await act(async () => { root?.render(<Harness />); });
-    await act(async () => { await vi.advanceTimersByTimeAsync(5_000); });
-
-    expect(scope?.error).toBe("تعذّر التحقق من جلسة الحساب الحالية");
-    expect(scope?.needsImportChoice).toBe(false);
+    await renderAndSettle(() => Boolean(scope?.needsImportChoice || scope?.ready));
+    expect(scope?.error).toBeNull();
+    expect(useNoorStore.getState().favorites).toEqual({});
     expect(mocks.startCloudSync).not.toHaveBeenCalled();
   });
 });

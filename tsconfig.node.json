@@ -9,6 +9,7 @@
   },
   "include": [
     "vite.config.ts",
-    "capacitor.config.ts"
+    "capacitor.config.ts",
+    "tools/build/vendorChunks.ts"
   ]
 }

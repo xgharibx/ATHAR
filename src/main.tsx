@@ -10,11 +10,11 @@ import "./pwa";
 import { installAppShellBehaviour } from "@/lib/appShellBehaviour";
 import { setPendingNotificationAction } from "@/lib/reminders";
 import { parseWebReminderActionFragment } from "@/lib/webReminderActions";
+import { markStartupReady } from "@/lib/startup";
 
 const APP_RUNTIME_VERSION = (import.meta.env.VITE_RUNTIME_VERSION as string | undefined) ?? "local-dev";
 const APP_RUNTIME_VERSION_KEY = "noor_app_runtime_version";
 const ROOT_INSTANCE_KEY = "noor_react_root_instance";
-let runtimeReloadRequested = false;
 
 type AuthNoticeWindow = Window & { __atharNativeAuthNoticeInstalled?: boolean };
 const authNoticeWindow = window as AuthNoticeWindow;
@@ -44,6 +44,7 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
     //     "removeChild" while tearing down the previous root. Guarding the
     //     singleton + module-level mount below eliminates that.
     console.error("App runtime error:", error);
+    markStartupReady();
   }
 
   render() {
@@ -80,20 +81,11 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
 // GitHub Pages SPA fallback support:
 // public/404.html redirects to /ATHAR/?p=<encoded_path>
 // This rewrites the URL back to the real route so React Router can render it.
-// NOTE: Skip reload on Capacitor/Android to prevent black screen on first install.
 try {
-  const isCapacitor = !!(globalThis as unknown as Record<string, unknown>).Capacitor;
-  if (!isCapacitor) {
-    const seenVersion = localStorage.getItem(APP_RUNTIME_VERSION_KEY);
-    if (seenVersion !== APP_RUNTIME_VERSION) {
-      localStorage.setItem(APP_RUNTIME_VERSION_KEY, APP_RUNTIME_VERSION);
-      sessionStorage.removeItem("noor_preload_recover_once");
-      runtimeReloadRequested = true;
-      globalThis.location.reload();
-    }
-  } else {
-    // On Capacitor, just persist the version without reloading
+  const seenVersion = localStorage.getItem(APP_RUNTIME_VERSION_KEY);
+  if (seenVersion !== APP_RUNTIME_VERSION) {
     localStorage.setItem(APP_RUNTIME_VERSION_KEY, APP_RUNTIME_VERSION);
+    sessionStorage.removeItem("noor_preload_recover_once");
   }
 
   const url = new URL(globalThis.location.href);
@@ -111,11 +103,7 @@ try {
 // validated action before React mounts, then remove the one-use payload from
 // the visible URL so a refresh cannot replay it.
 try {
-  // Leave the fragment intact if a runtime-version reload was just requested;
-  // the replacement document will consume it exactly once.
-  const action = runtimeReloadRequested
-    ? null
-    : parseWebReminderActionFragment(globalThis.location.hash);
+  const action = parseWebReminderActionFragment(globalThis.location.hash);
   if (action) {
     const url = new URL(globalThis.location.href);
     url.hash = "";

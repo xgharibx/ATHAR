@@ -19,7 +19,7 @@ import {
   type SyncStatus,
 } from "@/lib/syncClient";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { getSession } from "@/lib/authClient";
+import { getPersistedAccountStorageOwner } from "@/lib/authClient";
 import { getAccountStorageOwner, normalizeAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
 import { hydrateAccountStorageOwner } from "@/store/noorStore";
 import { copyLocalDataIntoAccount, getAccountImportChoice, hasLocalCompanionData as inspectLocalCompanionData, hasLocalDataToImport, setAccountImportChoice } from "@/lib/accountDataImport";
@@ -85,19 +85,12 @@ export function useCloudSync(): AccountScopeState {
     setHasLocalCompanionData(false);
     setIncludeCompanionData(false);
     void (async () => {
-      const stillCurrent = async () => {
+      const stillCurrent = () => {
         if (!alive || targetOwnerRef.current !== targetOwner) return false;
         if (!configured) return targetOwner === "local";
-        try {
-          // This verifies that no persisted account switch happened before
-          // the auth event reached React. getSession has a bounded read so a
-          // stuck storage lock cannot hold the account gate indefinitely.
-          const currentSession = await getSession();
-          return alive && targetOwnerRef.current === targetOwner &&
-            normalizeAccountStorageOwner(currentSession?.user?.id ?? null) === targetOwner;
-        } catch {
-          return false;
-        }
+        // Preserve the persisted-session race guard without refreshing a token
+        // or waiting for network/SDK locks before opening device-local data.
+        return getPersistedAccountStorageOwner() === targetOwner;
       };
       if (!await stillCurrent()) {
         if (!alive || targetOwnerRef.current !== targetOwner) return;

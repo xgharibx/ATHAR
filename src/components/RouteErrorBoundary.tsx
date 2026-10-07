@@ -1,4 +1,5 @@
 import * as React from "react";
+import { markStartupReady } from "@/lib/startup";
 
 type RouteErrorBoundaryProps = {
   children: React.ReactNode;
@@ -23,6 +24,10 @@ export class RouteErrorBoundary extends React.Component<RouteErrorBoundaryProps,
 
   static getDerivedStateFromError(error: unknown): RouteErrorBoundaryState {
     return { hasError: true, requiresReload: isLazyChunkLoadError(error) };
+  }
+
+  componentDidCatch() {
+    markStartupReady();
   }
 
   private handleRetry = () => {

@@ -18,8 +18,8 @@
  */
 import Dexie, { type Table } from "dexie";
 import { useNoorStore } from "@/store/noorStore";
-import { accountScopedDatabaseName } from "@/lib/accountStorageScope";
-import { getSupabase, getSession } from "@/lib/authClient";
+import { accountScopedDatabaseName, getAccountStorageOwner, normalizeAccountStorageOwner } from "@/lib/accountStorageScope";
+import { getSupabase, getSession, getPersistedAccountStorageOwner } from "@/lib/authClient";
 import { adoptLeaderboardIdentity, exportLeaderboardIdentity } from "@/lib/leaderboard";
 import { adoptDataPacks, exportDataPacks } from "@/data/packs";
 import {
@@ -365,12 +365,14 @@ function localSnapshot(): SyncBlob {
 async function readServerSnapshot(
   supabase: NonNullable<ReturnType<typeof getSupabase>>,
   userId: string,
+  accessToken: string,
   isCurrent: () => boolean,
 ): Promise<ServerSnapshot | null> {
   const { data, error } = await withSyncTimeout(supabase
     .from("athar_sync")
     .select("kind, payload, updated_at, revision")
-    .eq("user_id", userId));
+    .eq("user_id", userId)
+    .setHeader("Authorization", `Bearer ${accessToken}`));
   if (!isCurrent()) return null;
   if (error) throw new Error(error.message);
 
@@ -506,13 +508,14 @@ async function storeCommittedTarget(
 async function finishCommitted(
   pendingRecord: PendingCommit,
   supabase: NonNullable<ReturnType<typeof getSupabase>>,
+  accessToken: string,
   isCurrent: () => boolean,
 ): Promise<boolean> {
   let pending = pendingRecord;
 
   if (pending.state === "prepared") {
     if (pending.mode !== "rpc") throw new Error("حالة المزامنة المحلية غير صحيحة");
-    const server = await readServerSnapshot(supabase, pending.userId, isCurrent);
+    const server = await readServerSnapshot(supabase, pending.userId, accessToken, isCurrent);
     if (!server || !isCurrent()) return false;
     const latestBuckets = bucketize(localSnapshot());
     const target = mergeBuckets(latestBuckets, server.buckets, pending.sourceBuckets, null, 0, true);
@@ -698,7 +701,7 @@ async function finishCommitted(
     const { data, error } = await withSyncTimeout(supabase.rpc("athar_sync_ack_batch", {
       p_request_id: pending.requestId,
       p_device_id: pending.deviceId,
-    }));
+    }).setHeader("Authorization", `Bearer ${accessToken}`));
     if (!isCurrent()) return false;
     if (error) throw new Error(error.message);
     if ((data as { acknowledged?: unknown } | null)?.acknowledged !== true) {
@@ -724,6 +727,7 @@ async function finishCommitted(
 async function recoverFromOversizedPreparedRequest(
   pending: PendingCommit,
   supabase: NonNullable<ReturnType<typeof getSupabase>>,
+  accessToken: string,
   isCurrent: () => boolean,
 ): Promise<"done" | "again" | "stale"> {
   const stillPending = await readPending();
@@ -733,7 +737,7 @@ async function recoverFromOversizedPreparedRequest(
   // Reconcile against the server before acknowledging the old request. It may
   // already have committed on an older client and be waiting on its receipt;
   // finishing it also safely handles the case where it never reached the RPC.
-  const completed = await finishCommitted(stillPending, supabase, isCurrent);
+  const completed = await finishCommitted(stillPending, supabase, accessToken, isCurrent);
   if (!isCurrent()) return "stale";
   if (!completed && getSyncStatus().pending) {
     if (followUpTimer) {
@@ -754,10 +758,11 @@ async function recoverFromOversizedPreparedRequest(
 async function processPending(
   pending: PendingCommit,
   supabase: NonNullable<ReturnType<typeof getSupabase>>,
+  accessToken: string,
   isCurrent: () => boolean,
 ): Promise<"done" | "conflict" | "again" | "stale"> {
   if (pending.state !== "prepared") {
-    const completed = await finishCommitted(pending, supabase, isCurrent);
+    const completed = await finishCommitted(pending, supabase, accessToken, isCurrent);
     if (!isCurrent()) return "stale";
     return !completed && !getSyncStatus().pending ? "again" : "done";
   }
@@ -767,20 +772,20 @@ async function processPending(
     assertSyncPayloadWithinLimits(pending.writes);
   } catch (error) {
     if (!(error instanceof SyncPayloadTooLargeError)) throw error;
-    return recoverFromOversizedPreparedRequest(pending, supabase, isCurrent);
+    return recoverFromOversizedPreparedRequest(pending, supabase, accessToken, isCurrent);
   }
   const { data, error } = await withSyncTimeout(supabase.rpc("athar_sync_commit_batch", {
     p_request_id: pending.requestId,
     p_device_id: pending.deviceId,
     p_writes: pending.writes,
-  }));
+  }).setHeader("Authorization", `Bearer ${accessToken}`));
   if (!isCurrent()) return "stale";
   if (error) {
     if (
       (error.code === "22023" && error.message.includes("SYNC_PAYLOAD_TOO_LARGE")) ||
       (error.code === "23514" && error.message.includes("athar_sync_payload_max_4mib"))
     ) {
-      return recoverFromOversizedPreparedRequest(pending, supabase, isCurrent);
+      return recoverFromOversizedPreparedRequest(pending, supabase, accessToken, isCurrent);
     }
     throw new Error(error.message);
   }
@@ -790,7 +795,7 @@ async function processPending(
     const stillPending = await clearPreparedIfMatching(pending.requestId);
     if (!isCurrent()) return "stale";
     if (stillPending?.state === "committed") {
-      const completed = await finishCommitted(stillPending, supabase, isCurrent);
+      const completed = await finishCommitted(stillPending, supabase, accessToken, isCurrent);
       if (!isCurrent()) return "stale";
       return !completed && !getSyncStatus().pending ? "again" : "done";
     }
@@ -803,7 +808,7 @@ async function processPending(
     throw new Error("استجابة المزامنة غير مفهومة");
   }
 
-  const completed = await finishCommitted(pending, supabase, isCurrent);
+  const completed = await finishCommitted(pending, supabase, accessToken, isCurrent);
   if (!isCurrent()) return "stale";
   return !completed && !getSyncStatus().pending ? "again" : "done";
 }
@@ -826,7 +831,9 @@ export function syncNow(): Promise<boolean> {
 }
 
 async function runSync(generation: number): Promise<boolean> {
-  const isCurrent = () => generation === syncGeneration;
+  const owner = getAccountStorageOwner();
+  const isCurrent = () => generation === syncGeneration &&
+    getAccountStorageOwner() === owner && getPersistedAccountStorageOwner() === owner;
   const supabase = getSupabase();
   if (!supabase) return false;
 
@@ -838,7 +845,13 @@ async function runSync(generation: number): Promise<boolean> {
   }
   const session = sessionRead.session;
   const userId = session?.user?.id;
-  if (!userId) return false;
+  const accessToken = session?.access_token;
+  if (!userId || !accessToken) return false;
+  // Pin this run's token on every request. The shared SDK resolves its bearer
+  // asynchronously and could otherwise send A's payload with a newer B token.
+  // Background auth recovery can precede React's owner transition. Never
+  // export cached A's snapshot into B's authenticated server partition.
+  if (getAccountStorageOwner() !== normalizeAccountStorageOwner(userId)) return false;
   if (payloadTooLargeBlocked) return false;
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     setStatus({ phase: "offline" });
@@ -857,7 +870,7 @@ async function runSync(generation: number): Promise<boolean> {
       if (!isCurrent()) return false;
       if (storedPending) {
         if (storedPending.userId !== userId) throw new Error("بيانات المزامنة تخص حسابًا آخر");
-        const result = await processPending(storedPending, supabase, isCurrent);
+        const result = await processPending(storedPending, supabase, accessToken, isCurrent);
         if (!isCurrent() || result === "stale") return false;
         if (result === "again") continue;
         if (result === "conflict") {
@@ -876,7 +889,7 @@ async function runSync(generation: number): Promise<boolean> {
       const lastSyncedAt = meta?.lastSyncedAt ?? 0;
       const localBlob = localSnapshot();
       const localBuckets = bucketize(localBlob);
-      const server = await readServerSnapshot(supabase, userId, isCurrent);
+      const server = await readServerSnapshot(supabase, userId, accessToken, isCurrent);
       if (!server || !isCurrent()) return false;
 
       const merged = mergeBuckets(
@@ -906,7 +919,7 @@ async function runSync(generation: number): Promise<boolean> {
         const claim = await claimPending(pending);
         if (!isCurrent()) return false;
         if (!claim.claimed) continue;
-        const result = await processPending(claim.pending, supabase, isCurrent);
+        const result = await processPending(claim.pending, supabase, accessToken, isCurrent);
         if (!isCurrent() || result === "stale") return false;
         if (result === "again") continue;
         if (result === "conflict") {
@@ -947,7 +960,7 @@ async function runSync(generation: number): Promise<boolean> {
         );
         if (!isCurrent()) return false;
         if (!claim.claimed) continue;
-        return finishCommitted(claim.pending, supabase, isCurrent);
+        return finishCommitted(claim.pending, supabase, accessToken, isCurrent);
       }
 
       const saved = await persistNoPending(

@@ -19,7 +19,8 @@
  *     URL type route back into the app for the shared native callback handler.
  */
 import { Capacitor } from "@capacitor/core";
-import { createClient, type Session, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { createClient, type AuthChangeEvent, type Session, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { normalizeAccountStorageOwner, type AccountStorageOwner } from "@/lib/accountStorageScope";
 
 /** Custom scheme used for native OAuth round-trips. It must match the
  *  Android intent filter, iOS URL type, and Supabase redirect allow-list. */
@@ -32,6 +33,46 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | und
  *  whole accounts feature stays invisible instead of showing broken UI. */
 export function isAuthConfigured(): boolean {
   return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+}
+
+function sessionStorageKey(): string | null {
+  if (!isAuthConfigured()) return null;
+  try {
+    // Keep the SDK's existing project-specific key so upgrades preserve sessions.
+    return `sb-${new URL(SUPABASE_URL!).hostname.split(".")[0]}-auth-token`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Saved identity for device-local UI and storage routing only. Expiry does not
+ * change ownership of offline data. Cloud requests still use getSession(),
+ * which lets the SDK refresh/validate the access token.
+ */
+export function getCachedSession(): Session | null {
+  const key = sessionStorageKey();
+  if (!key) return null;
+  try {
+    if (typeof globalThis.localStorage === "undefined") return null;
+    const serialized = globalThis.localStorage.getItem(key);
+    if (!serialized) return null;
+    const saved = JSON.parse(serialized) as Partial<Session> | null;
+    if (!saved || typeof saved !== "object" ||
+        typeof saved.access_token !== "string" || !saved.access_token ||
+        typeof saved.refresh_token !== "string" || !saved.refresh_token ||
+        typeof saved.expires_at !== "number" || !Number.isFinite(saved.expires_at) ||
+        typeof saved.user?.id !== "string" || !saved.user.id.trim()) return null;
+    return saved as Session;
+  } catch {
+    // Invalid/unavailable auth storage cannot authorize an account partition.
+    return null;
+  }
+}
+
+/** Checks persisted ownership without waiting for SDK initialization/network. */
+export function getPersistedAccountStorageOwner(): AccountStorageOwner {
+  return normalizeAccountStorageOwner(getCachedSession()?.user.id);
 }
 
 let _client: SupabaseClient | null = null;
@@ -76,6 +117,7 @@ export function getSupabase(): SupabaseClient | null {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      storageKey: sessionStorageKey() ?? undefined,
       // On native the session arrives via our custom scheme, which Supabase's
       // URL detection can't see, so we complete the exchange by hand in
       // completeNativeSignIn() instead.
@@ -219,7 +261,7 @@ export async function getSession(): Promise<Session | null> {
   if (!supabase) return null;
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   try {
-    const { data } = await Promise.race([
+    const { data, error } = await Promise.race([
       supabase.auth.getSession(),
       new Promise<never>((_resolve, reject) => {
         timeoutId = setTimeout(
@@ -228,6 +270,7 @@ export async function getSession(): Promise<Session | null> {
         );
       }),
     ]);
+    if (error) throw error;
     return data.session ?? null;
   } finally {
     if (timeoutId !== undefined) clearTimeout(timeoutId);
@@ -235,10 +278,10 @@ export async function getSession(): Promise<Session | null> {
 }
 
 /** Subscribe to sign-in/sign-out. Returns an unsubscribe function. */
-export function onAuthChange(cb: (session: Session | null) => void): () => void {
+export function onAuthChange(cb: (session: Session | null, event?: AuthChangeEvent) => void): () => void {
   const supabase = getSupabase();
   if (!supabase) return () => {};
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => cb(session));
+  const { data } = supabase.auth.onAuthStateChange((event, session) => cb(session, event));
   return () => data.subscription.unsubscribe();
 }
 

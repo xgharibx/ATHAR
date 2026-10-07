@@ -26,19 +26,27 @@ import { ISLAM_PILLARS_SECTION } from "@/data/islamPillars";
 import { FAITH_PILLARS_SECTION } from "@/data/faithPillars";
 import { FAITH_BRANCHES_SECTION } from "@/data/faithBranches";
 import { MAJOR_SINS_SECTION } from "@/data/majorSins";
+import { StartupReady } from "@/components/StartupReady";
+import { useStartupReady } from "@/hooks/useStartupReady";
+import { warmBundledAdhkar } from "@/data/load";
+import { afterStartupReady } from "@/lib/startup";
 
 /** Wraps a lazy route element with Suspense + per-route RouteErrorBoundary */
 function S({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
   return (
     <RouteErrorBoundary>
       <React.Suspense fallback={null}>
         {children}
+        {/* Home waits for its bundled adhkar data; other routes can render controls immediately. */}
+        <StartupReady ready={location.pathname !== "/"} />
       </React.Suspense>
     </RouteErrorBoundary>
   );
 }
 
-const HomePage = React.lazy(() => import("@/pages/Home").then((m) => ({ default: m.HomePage })));
+const loadHomeRoute = () => import("@/pages/Home").then((m) => ({ default: m.HomePage }));
+const HomePage = React.lazy(loadHomeRoute);
 const CategoryPage = React.lazy(() => import("@/pages/Category").then((m) => ({ default: m.CategoryPage })));
 const SearchPage = React.lazy(() => import("@/pages/Search").then((m) => ({ default: m.SearchPage })));
 const FavoritesPage = React.lazy(() => import("@/pages/Favorites").then((m) => ({ default: m.FavoritesPage })));
@@ -95,6 +103,15 @@ const IjazSearch        = React.lazy(() => import("@/ijaz/pages/IjazSearch"));
 
 export default function App() {
   const accountScope = useCloudSync();
+  const location = useLocation();
+  useStartupReady(accountScope.needsImportChoice || Boolean(accountScope.error));
+  React.useEffect(() => {
+    if (location.pathname !== "/") return;
+    // Overlap public Home resources with session and account hydration without
+    // reading custom packs until their storage owner has been established.
+    void loadHomeRoute().catch(() => undefined);
+    void warmBundledAdhkar().catch(() => undefined);
+  }, [location.pathname]);
 
   if (accountScope.needsImportChoice) {
     return (
@@ -144,9 +161,8 @@ export default function App() {
 
   if (!accountScope.ready) {
     if (!accountScope.error) {
-      // Keep the Android WebView background clear while account-owned data is
-      // being hydrated. The full-page skeleton flashed on every cold launch
-      // before the actual app shell could render.
+      // The pre-JavaScript branded launch surface stays visible until the
+      // initial route is usable, including this account hydration period.
       return null;
     }
 
@@ -265,17 +281,23 @@ function AppContent() {
       void import("@/pages/VideoLibrary");
     };
 
-    if (typeof w.requestIdleCallback === "function") {
-      const id = w.requestIdleCallback(runPrefetch);
-      return () => {
-        if (typeof w.cancelIdleCallback === "function") {
-          w.cancelIdleCallback(id);
-        }
-      };
-    }
-
-    const timeoutId = setTimeout(runPrefetch, 1200);
-    return () => clearTimeout(timeoutId);
+    let active = true;
+    let cancelScheduled: (() => void) | undefined;
+    const cancelWaiting = afterStartupReady(() => {
+      const run = () => { if (active) runPrefetch(); };
+      if (typeof w.requestIdleCallback === "function") {
+        const id = w.requestIdleCallback(run);
+        cancelScheduled = () => w.cancelIdleCallback?.(id);
+      } else {
+        const id = setTimeout(run, 1200);
+        cancelScheduled = () => clearTimeout(id);
+      }
+    });
+    return () => {
+      active = false;
+      cancelWaiting();
+      cancelScheduled?.();
+    };
   }, []);
 
   // Quran Foundation translation text may remain in local storage for at most
@@ -318,15 +340,23 @@ function AppContent() {
       }
     };
 
-    if (typeof w.requestIdleCallback === "function") {
-      const id = w.requestIdleCallback(prepareMushaf);
-      return () => {
-        if (typeof w.cancelIdleCallback === "function") w.cancelIdleCallback(id);
-      };
-    }
-
-    const timeoutId = globalThis.setTimeout(prepareMushaf, 1200);
-    return () => globalThis.clearTimeout(timeoutId);
+    let active = true;
+    let cancelScheduled: (() => void) | undefined;
+    const cancelWaiting = afterStartupReady(() => {
+      const run = () => { if (active) prepareMushaf(); };
+      if (typeof w.requestIdleCallback === "function") {
+        const id = w.requestIdleCallback(run);
+        cancelScheduled = () => w.cancelIdleCallback?.(id);
+      } else {
+        const id = globalThis.setTimeout(run, 1200);
+        cancelScheduled = () => globalThis.clearTimeout(id);
+      }
+    });
+    return () => {
+      active = false;
+      cancelWaiting();
+      cancelScheduled?.();
+    };
   }, []);
 
   React.useEffect(() => {

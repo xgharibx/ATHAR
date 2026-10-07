@@ -28,6 +28,7 @@ type CallbackWindow = EventTarget & { __atharPendingAuthUrl?: string; __atharAut
 let callbackWindow: CallbackWindow;
 
 beforeEach(() => {
+  localStorage.clear();
   vi.resetModules();
   vi.stubEnv("VITE_SUPABASE_URL", "https://example.supabase.co");
   vi.stubEnv("VITE_SUPABASE_ANON_KEY", "test-public-key");
@@ -43,6 +44,25 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 describe("native authentication callback delivery", () => {
+  it("reads an expired saved account locally without creating an auth client", async () => {
+    const cached = {
+      access_token: "synthetic-expired-token", refresh_token: "synthetic-refresh",
+      expires_at: 1, user: { id: "account-a" },
+    };
+    localStorage.setItem("sb-example-auth-token", JSON.stringify(cached));
+    const auth = await import("@/lib/authClient");
+    expect(auth.getCachedSession?.()?.user.id).toBe("account-a");
+    expect(auth.getPersistedAccountStorageOwner?.()).toBe("user:account-a");
+    expect(callbackWindow.__atharAuthCallbackReady).not.toBe(true);
+  });
+
+  it.each(["{", "null", '{}', '{"user":{"id":"account-a"}}'])
+    ("keeps malformed saved sessions out of an account partition: %s", async (serialized) => {
+      localStorage.setItem("sb-example-auth-token", serialized);
+      const auth = await import("@/lib/authClient");
+      expect(auth.getCachedSession?.()).toBeNull();
+      expect(auth.getPersistedAccountStorageOwner?.()).toBe("local");
+    });
   it("bounds session reads when auth storage never releases its lock", async () => {
     vi.useFakeTimers();
     sessionRead.hangs = true;

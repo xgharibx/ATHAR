@@ -2,7 +2,6 @@ import * as React from "react";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import Lottie from "lottie-react";
 import {
   Sparkles,
   Shuffle,
@@ -16,7 +15,8 @@ import {
   Loader2,
 } from "lucide-react";
 
-import pulse from "@/assets/noor-pulse.json";
+import { useStartupReady } from "@/hooks/useStartupReady";
+import { isStartupPending } from "@/lib/startup";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -41,6 +41,8 @@ import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
 import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
 import { toArabicNumeral } from "@/lib/quranMeta";
 import { arNum } from "@/lib/formatNumber";
+
+const HomePulse = React.lazy(() => import("@/components/brand/HomePulse"));
 
 
 function useRadioState() {
@@ -218,7 +220,9 @@ function HomeRadioButton() {
 
 export function HomePage() {
   const navigate = useNavigate();
+  const [initialLaunch] = React.useState(isStartupPending);
   const { data, isLoading, error } = useAdhkarDB();
+  useStartupReady(!isLoading);
   const quran = useQuranDB();
   const activity = useNoorStore((s) => s.activity);
   const progressMap = useNoorStore((s) => s.progress);
@@ -927,15 +931,17 @@ export function HomePage() {
   }
 
   return (
-    <div className="space-y-3 page-enter">
+    <div className={initialLaunch ? "space-y-3" : "space-y-3 page-enter"}>
       <Card className="p-5 overflow-hidden relative">
         <div className="absolute -top-10 -left-8 opacity-80" aria-hidden="true">
           <div className="w-32 h-32">
-            <Lottie animationData={pulse} loop />
+            <React.Suspense fallback={null}>
+              <HomePulse />
+            </React.Suspense>
           </div>
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
+        <motion.div initial={initialLaunch ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
           <div>
             <div>
               <div className="mb-2 flex items-center gap-2 flex-wrap">

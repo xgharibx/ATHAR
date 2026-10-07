@@ -4,6 +4,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { vendorChunk } from "./tools/build/vendorChunks";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,19 +66,7 @@ export default defineConfig(({ mode }) => {
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (!id.includes("node_modules")) return;
-
-          if (id.includes("react") || id.includes("scheduler") || id.includes("framer-motion") || id.includes("lottie-react")) return "vendor-react";
-          if (id.includes("react-router-dom")) return "vendor-router";
-          if (id.includes("@tanstack/react-query")) return "vendor-query";
-          if (id.includes("zustand")) return "vendor-state";
-          if (id.includes("gsap") || id.includes("lottie-web")) return "vendor-motion";
-          if (id.includes("@react-three") || id.includes("three")) return "vendor-three";
-          if (id.includes("fuse.js") || id.includes("cmdk")) return "vendor-search";
-          if (id.includes("html-to-image") || id.includes("canvas-confetti")) return "vendor-share";
-          if (id.includes("lucide-react") || id.includes("@radix-ui")) return "vendor-ui";
-        }
+        manualChunks: vendorChunk,
       }
     }
   },

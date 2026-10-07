@@ -2,6 +2,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const io = vi.hoisted(() => ({ kv: new Map<string, unknown>(), failAddKey: null as string | null }));
+function queryWithHeaders<T>(request: Promise<T>) {
+  return Object.assign(request, {
+    setHeader(name: string, value: string) {
+      expect(name).toBe("Authorization");
+      expect(value).toMatch(/^Bearer synthetic-token-/);
+      return request;
+    },
+  });
+}
 vi.mock("dexie", () => ({
   default: class {
     transaction(_mode: string, _table: unknown, work: () => Promise<unknown>) {
@@ -38,16 +47,17 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
   const rows = [{ user_id: "synthetic-a", kind: "progress", payload: { progress: { a: 1, remote: 9 } }, updated_at: new Date().toISOString(), revision: 1 }];
   const receipts = new Map<string, { requestId: string; writes: string; revisions: Record<string, number> }>();
   vi.doMock("@/lib/authClient", () => ({
+    getPersistedAccountStorageOwner: () => `user:${sessionUser}`,
     getSession: () => sessionReadHangs
       ? new Promise<null>(() => {})
-      : Promise.resolve({ user: { id: sessionUser } }),
+      : Promise.resolve({ user: { id: sessionUser }, access_token: `synthetic-token-${sessionUser}` }),
     getSupabase: () => ({ from: () => ({
-      select: () => ({ eq: async (_key: string, userId: string) => {
+      select: () => ({ eq: (_key: string, userId: string) => queryWithHeaders((async () => {
         const snapshot = rows.filter((row) => row.user_id === userId).map((row) => structuredClone(row));
         await onSelect?.();
         return { data: snapshot, error: null };
-      } }),
-    }), rpc: async (name: string, args: Record<string, unknown>) => {
+      })()) }),
+    }), rpc: (name: string, args: Record<string, unknown>) => queryWithHeaders((async () => {
       if (name === "athar_sync_ack_batch") {
         const deviceId = String(args.p_device_id);
         const receipt = receipts.get(`${sessionUser}:${deviceId}`);
@@ -84,7 +94,7 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
       writeOwners.push(sessionUser);
       receipts.set(key, { requestId, writes: serialized, revisions });
       return { data: { status: "committed", revisions }, error: null };
-    } }),
+    })()) }),
   }));
   vi.doMock("@/store/noorStore", () => ({ useNoorStore: {
     getState: () => ({
@@ -112,6 +122,8 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
     adoptLeaderboardIdentity: (next: typeof identity) => { identity = next; return true; },
   }));
   Object.defineProperty(navigator, "onLine", { configurable: true, value: true });
+  const { setAccountStorageOwner } = await import("@/lib/accountStorageScope");
+  setAccountStorageOwner("user:synthetic-a");
   const mod = await import("@/lib/syncClient");
   return {
     mod, writes, writeOwners, state: () => state, packs: () => packs, identity: () => identity,
@@ -119,7 +131,10 @@ async function setup(options?: { metadata?: boolean; initialState?: Record<strin
     onSelect: (fn: () => void | Promise<void>) => { onSelect = fn; },
     addPackItem: () => packs[0].sections[0].content.push({ text: "new while pending", count: 1 }),
     changeIdentity: () => { identity = { ...identity, id: "synthetic-older", joinedAt: "2025-01-01" }; },
-    setSession: (id: string) => { sessionUser = id; },
+    setSession: (id: string, switchOwner = true) => {
+      sessionUser = id;
+      if (switchOwner) setAccountStorageOwner(`user:${id}`);
+    },
     hangSessionRead: () => { sessionReadHangs = true; },
   };
 }
@@ -128,6 +143,22 @@ beforeEach(() => { io.kv.clear(); io.failAddKey = null; vi.useFakeTimers(); });
 afterEach(() => { io.failAddKey = null; vi.clearAllTimers(); vi.useRealTimers(); });
 
 describe("cloud sync snapshot and lifecycle", () => {
+  it("stops an A reconcile when persisted auth changes to B before React changes owners", async () => {
+    const s = await setup();
+    s.onSelect(() => s.setSession("synthetic-b", false));
+    expect(await s.mod.syncNow()).toBe(false);
+    expect(s.writes).toEqual([]);
+    expect(s.state().progress).toEqual({ a: 1 });
+    expect(io.kv.has("base")).toBe(false);
+  });
+  it("never uploads cached A state when the refreshed session belongs to B", async () => {
+    const s = await setup();
+    s.setSession("synthetic-b", false);
+    expect(await s.mod.syncNow()).toBe(false);
+    expect(s.writes).toEqual([]);
+    expect(s.state().progress).toEqual({ a: 1 });
+    expect(io.kv.has("base")).toBe(false);
+  });
   it("finishes an unchanged round-trip despite export timestamp changes", async () => {
     const s = await setup({ metadata: true });
     expect(await s.mod.syncNow()).toBe(true);

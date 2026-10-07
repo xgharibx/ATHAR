@@ -12,6 +12,7 @@
 import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Dexie from "dexie";
+import { createClient } from "@supabase/supabase-js";
 
 type Row = { user_id: string; kind: string; payload: unknown; updated_at: string; device_id?: string; revision?: number };
 type RpcWrite = { kind: string; expected_revision: number | null; payload: unknown };
@@ -23,6 +24,16 @@ type ServerHooks = {
   beforeRpc?: (name: string, args: Record<string, unknown>) => Promise<void>;
   rpcError?: (name: string, args: Record<string, unknown>) => { code: string; message: string } | null;
 };
+
+function queryWithHeaders<T>(request: Promise<T>) {
+  return Object.assign(request, {
+    setHeader(name: string, value: string) {
+      expect(name).toBe("Authorization");
+      expect(value).toBe("Bearer synthetic-token-a");
+      return request;
+    },
+  });
+}
 
 /** Shared stand-in for PostgREST, revisions, the batch RPC, and receipts. */
 function makeSharedServer(rows: Row[]) {
@@ -42,13 +53,13 @@ function makeSharedServer(rows: Row[]) {
               const snapshot = store
                 .filter((r) => r.user_id === userId)
                 .map((r) => ({ ...r, payload: structuredClone(r.payload) }));
-              if (hooks.hangRead) return new Promise(() => {});
+              if (hooks.hangRead) return queryWithHeaders(new Promise(() => {}));
               // Where the user gets to act while the request is in flight.
               hooks.onSelect?.();
-              return Promise.resolve({
+              return queryWithHeaders(Promise.resolve({
                 data: snapshot,
                 error: null,
-              });
+              }));
             },
           };
         },
@@ -70,7 +81,8 @@ function makeSharedServer(rows: Row[]) {
         },
       };
     },
-    async rpc(name: string, args: Record<string, unknown>) {
+    rpc(name: string, args: Record<string, unknown>) {
+      return queryWithHeaders((async () => {
       rpcCalls.push({ name, args: structuredClone(args) });
       await hooks.beforeRpc?.(name, args);
       const forcedError = hooks.rpcError?.(name, args);
@@ -123,6 +135,7 @@ function makeSharedServer(rows: Row[]) {
         return { data: null, error: { message: "network response lost after commit" } };
       }
       return { data: { status: "committed", revisions }, error: null };
+      })());
     },
     };
     return client;
@@ -180,6 +193,7 @@ async function load(opts: {
   rpcError?: ServerHooks["rpcError"];
   onSelect?: (st: { mutate: (fn: (s: Record<string, unknown>) => Record<string, unknown>) => void }) => void;
   hangRead?: boolean;
+  transportRace?: "read" | "commit" | "ack";
 }) {
   vi.resetModules();
   const databaseNamespace = opts.databaseNamespace ?? `sync-test-${++databaseSerial}`;
@@ -197,14 +211,57 @@ async function load(opts: {
       rpcError: opts.rpcError,
     }),
   };
+  let persistedUser = userId;
+  let stage: "read" | "commit" | "ack" | null = null;
+  const transportRequests: Array<{ stage: typeof stage; authorization: string | null }> = [];
+  let transportClient: ReturnType<typeof createClient> | null = null;
+  if (opts.transportRace) {
+    transportClient = createClient("https://example.supabase.co", "test-public-key", {
+      accessToken: async () => {
+        // fetchWithAuth awaits token resolution after a builder was created.
+        // Simulate B becoming persisted during precisely that asynchronous gap.
+        await Promise.resolve();
+        if (stage === opts.transportRace) {
+          persistedUser = "user-b";
+          return "synthetic-token-b";
+        }
+        return "synthetic-token-a";
+      },
+      global: { fetch: async (input, init) => {
+        const url = new URL(String(input));
+        const authorization = new Headers(init?.headers).get("Authorization");
+        transportRequests.push({ stage, authorization });
+        const requestClient = server.createClient({
+          userId: authorization === "Bearer synthetic-token-b" ? "user-b" : userId,
+        });
+        const result = url.pathname.includes("/rpc/")
+          ? await requestClient.rpc(url.pathname.split("/").at(-1)!, JSON.parse(String(init?.body)))
+          : await requestClient.from("athar_sync").select("*").eq("user_id", url.searchParams.get("user_id")!.slice(3));
+        return new Response(JSON.stringify(result.data), { headers: { "Content-Type": "application/json" } });
+      } },
+    });
+    const originalFrom = transportClient.from.bind(transportClient);
+    vi.spyOn(transportClient, "from").mockImplementation((table: string) => {
+      stage = "read";
+      return originalFrom(table);
+    });
+    const originalRpc = transportClient.rpc.bind(transportClient);
+    vi.spyOn(transportClient, "rpc").mockImplementation((name, args) => {
+      stage = name === "athar_sync_ack_batch" ? "ack" : "commit";
+      return originalRpc(name, args);
+    });
+  }
 
   vi.doMock("@/lib/authClient", () => ({
-    getSupabase: () => sb.client,
-    getSession: () => Promise.resolve({ user: { id: userId } }),
+    getSupabase: () => transportClient ?? sb.client,
+    getSession: () => Promise.resolve({ user: { id: userId }, access_token: "synthetic-token-a" }),
+    getPersistedAccountStorageOwner: () => `user:${persistedUser}`,
   }));
   vi.doMock("@/store/noorStore", () => ({ useNoorStore: st.store }));
   vi.doMock("@/lib/accountStorageScope", () => ({
     accountScopedDatabaseName: (name: string) => `${name}::${databaseNamespace}`,
+    getAccountStorageOwner: () => `user:${userId}`,
+    normalizeAccountStorageOwner: (id: string | null) => id ? `user:${id}` : "local",
     setAccountStorageOwner: () => {},
   }));
 
@@ -217,7 +274,7 @@ async function load(opts: {
   });
 
   const mod = await import("@/lib/syncClient");
-  return { ...sb, ...st, mod, userId };
+  return { ...sb, ...st, mod, userId, transportRequests };
 }
 
 let databaseSerial = 0;
@@ -240,6 +297,14 @@ afterEach(() => {
 });
 
 describe("first sign-in", () => {
+  it.each(["read", "commit", "ack"] as const)
+    ("pins A's authorization when the shared SDK changes to B during %s transport", async (transportRace) => {
+      const s = await load({ local: { progress: { "private-a": 3 } }, transportRace });
+      expect(await s.mod.syncNow()).toBe(false);
+      const raced = s.transportRequests.find((request) => request.stage === transportRace);
+      expect(raced?.authorization).toBe("Bearer synthetic-token-a");
+      expect(s.serverRows.filter((row) => row.user_id === "user-b")).toEqual([]);
+    });
   it("keeps oversized local notes and refuses to send an oversized sync document", async () => {
     const note = "x".repeat(4 * 1024 * 1024);
     const { mod, rpcCalls, current } = await load({

@@ -50,13 +50,27 @@ function ensureMyAdhkarSection(sections: AdhkarDB["sections"]) {
   return [{ id: MY_ADHKAR_SECTION_ID, title: MY_ADHKAR_TITLE, content: [] }, ...sections];
 }
 
-/**
- * Loads `public/data/adhkar.json` (offline friendly via PWA caching).
- */
+let bundledAdhkar: Promise<unknown> | null = null;
+
+/** Fetch only public content; account-owned packs are read later by the loader. */
+export function warmBundledAdhkar(): Promise<unknown> {
+  if (!bundledAdhkar) {
+    bundledAdhkar = fetch(publicDataUrl("data/adhkar.json"))
+      .then(async (res) => {
+        if (!res.ok) throw new Error("تعذر تحميل قاعدة الأذكار");
+        return res.json();
+      })
+      .catch((error: unknown) => {
+        bundledAdhkar = null;
+        throw error;
+      });
+  }
+  return bundledAdhkar;
+}
+
+/** Loads public adhkar, then merges the currently hydrated account's packs. */
 export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] }> {
-  const res = await fetch(publicDataUrl("data/adhkar.json"));
-  if (!res.ok) throw new Error("تعذر تحميل قاعدة الأذكار");
-  const json = await res.json();
+  const json = await warmBundledAdhkar();
 
   const parsed: RawAdhkarDB = AdhkarDBSchema.parse(json);
 

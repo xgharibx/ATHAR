@@ -22,7 +22,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/hooks/useAuthSession", () => ({ useAuthSession: () => mocks.auth }));
-vi.mock("@/lib/authClient", () => ({ getSession: async () => mocks.auth.session }));
+vi.mock("@/lib/authClient", () => ({
+  getSession: async () => mocks.auth.session,
+  getPersistedAccountStorageOwner: () => mocks.auth.session ? `user:${mocks.auth.session.user.id}` : "local",
+}));
 vi.mock("@/store/noorStore", () => ({ hydrateAccountStorageOwner: mocks.hydrateAccountStorageOwner }));
 vi.mock("@/lib/reminders", () => ({
   beginAccountReminderTransition: mocks.beginAccountReminderTransition,
