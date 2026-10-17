@@ -197,6 +197,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     if (hadith) void syncSunnahWidget({ id: hadith.id, hadeeth: hadith.hadeeth, attribution: hadith.attribution, grade: hadith.grade });
   }, [hadith]);
 
+
   // Restore a shuffled-to hadith across app restarts: shuffleIdx itself
   // persists fine (it's just numbers), but the hadith override is a full
   // fetched record, so only its id is persisted and the record is re-fetched
@@ -263,6 +264,18 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const vocabWord = QURAN_VOCAB[activeIdxs[3]] ?? null;
   const dua       = duaPool[activeIdxs[4]] ?? null;
   const sunnah    = sunnahPool[activeIdxs[5]] ?? null;
+
+  // The sunnah slide (daily or shuffled) goes to the same widget while it is the
+  // slide on screen; moving back to the hadith slide restores the hadith.
+  const sunnahIdx = shuffleIdx[5] ?? dailyIdxs[5];
+  React.useEffect(() => {
+    if (activeIdx === 5) {
+      const item = sunnahPool[sunnahIdx];
+      if (item) void syncSunnahWidget({ id: `sunnah-${sunnahIdx}`, hadeeth: item.text, attribution: item.source_label || item.source, grade: "" });
+    } else if (activeIdx === 1 && hadith) {
+      void syncSunnahWidget({ id: hadith.id, hadeeth: hadith.hadeeth, attribution: hadith.attribution, grade: hadith.grade });
+    }
+  }, [activeIdx, sunnahIdx, sunnahPool]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A word's meaning is thin without the verses it appears in. Searched only when
   // the person opens the explanation, so the home screen never pays for it.
