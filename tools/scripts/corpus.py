@@ -17,13 +17,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "public" / "data"
-BOOKS = ["bukhari", "muslim", "abudawud", "nasai", "ibnmajah", "malik"]
+BOOKS = ["bukhari", "muslim", "abudawud", "nasai", "ibnmajah", "tirmidhi", "malik"]
 BOOK_LABEL = {
     "bukhari": "صحيح البخاري",
     "muslim": "صحيح مسلم",
     "abudawud": "سنن أبي داود",
     "nasai": "سنن النسائي",
     "ibnmajah": "سنن ابن ماجه",
+    "tirmidhi": "سنن الترمذي",
     "malik": "موطأ مالك",
     "nawawi": "الأربعون النووية",
     "qudsi": "الأحاديث القدسية",
@@ -76,7 +77,7 @@ CLEAN = re.compile(r"[\"“”«»]|‏\.‏|‏")
 def clean(text: str) -> str:
     text = CLEAN.sub("", text)
     text = re.sub(r"\s+", " ", text).strip()
-    return re.sub(r"[\s.,؛:\-–]+$", "", text)
+    return re.sub(r"[\s.,،؛:\-–]+$", "", text)
 
 
 def cut(text: str, start: str, end: str | None, max_tokens=70):

@@ -1101,6 +1101,45 @@ html.midnight body.transparent-mode .glass-strong {
   background-position: 0 0, 30px 44px, 88px 118px, 144px 72px;
 }
 
+/* Sheet sky: two star layers drifting at different speeds, so a glass sheet is
+   not a flat tint. Transform-only animation (compositor), no WebGL. */
+.sheet-stars {
+  overflow: hidden;
+}
+.sheet-stars::before,
+.sheet-stars::after {
+  content: "";
+  position: absolute;
+  inset: -40px;
+  background-repeat: repeat;
+  will-change: transform;
+}
+.sheet-stars::before {
+  opacity: 0.85;
+  background-image:
+    radial-gradient(circle at 12% 16%, rgba(255, 255, 255, 0.95) 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 68% 22%, rgba(212, 168, 83, 0.9) 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 42% 64%, rgba(255, 255, 255, 0.85) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 84% 74%, rgba(255, 255, 255, 0.75) 0 1.1px, transparent 1.7px);
+  background-size: 190px 170px, 240px 210px, 210px 190px, 270px 230px;
+  animation: sheet-stars-fly-a 46s linear infinite, sheet-stars-twinkle 5s ease-in-out infinite;
+}
+.sheet-stars::after {
+  opacity: 0.6;
+  background-image:
+    radial-gradient(circle at 30% 40%, rgba(176, 196, 255, 0.9) 0 0.9px, transparent 1.5px),
+    radial-gradient(circle at 76% 58%, rgba(255, 255, 255, 0.8) 0 0.9px, transparent 1.5px),
+    radial-gradient(circle at 54% 12%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.6px);
+  background-size: 150px 160px, 200px 180px, 170px 200px;
+  animation: sheet-stars-fly-b 29s linear infinite, sheet-stars-twinkle 7s ease-in-out -2s infinite;
+}
+@keyframes sheet-stars-fly-a { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-190px, -170px, 0); } }
+@keyframes sheet-stars-fly-b { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(150px, -160px, 0); } }
+@keyframes sheet-stars-twinkle { 0%, 100% { filter: brightness(0.75); } 50% { filter: brightness(1.25); } }
+@media (prefers-reduced-motion: reduce) {
+  .sheet-stars::before, .sheet-stars::after { animation: none; }
+}
+
 /* Lightweight CSS starfield for the Ijaz hero — mobile-safe (no WebGL) */
 .ijaz-stars {
   opacity: 0.5;

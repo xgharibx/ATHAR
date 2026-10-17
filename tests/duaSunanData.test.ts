@@ -24,7 +24,26 @@ describe("adhkar.json dua and sunnah sections", () => {
     expect(ids.indexOf("sunan")).toBeGreaterThan(-1);
     expect(ids.indexOf("sunan")).toBeLessThan(ids.indexOf("forgotten_sunnahs"));
     expect(section("sunan").content.length).toBeGreaterThanOrEqual(70);
-    expect(section("forgotten_sunnahs").content.length).toBeGreaterThanOrEqual(50);
+    expect(section("forgotten_sunnahs").content.length).toBeGreaterThanOrEqual(100);
+  });
+
+  it("carries some nine hundred sunan across the topical sections", () => {
+    const ids = db.sections.map((s) => s.id).filter((id) => id === "sunan" || id.startsWith("sunan_"));
+    expect(ids.length).toBeGreaterThanOrEqual(10);
+    const total = ids.reduce((n, id) => n + section(id).content.length, 0);
+    expect(total).toBeGreaterThanOrEqual(900);
+    for (const id of ids) {
+      for (const item of section(id).content) {
+        expect(item.source.length, `${id}: ${item.text.slice(0, 30)}`).toBeGreaterThan(4);
+        expect(item.text.length).toBeGreaterThan(5);
+      }
+    }
+  });
+
+  it("has the companions' duas and the themed dua collections", () => {
+    expect(section("sahaba_duas").content.length).toBeGreaterThanOrEqual(15);
+    for (const item of section("sahaba_duas").content) expect(item.source).toMatch(/^رواه .+ \([٠-٩]+\)$/);
+    for (const id of ["dua_istiadha", "dua_maghfira", "dua_huda"]) expect(section(id).content.length).toBeGreaterThanOrEqual(10);
   });
 
   it("gives every sunnah the hadith it comes from, with its number", () => {
@@ -48,7 +67,7 @@ describe("adhkar.json dua and sunnah sections", () => {
   });
 
   it("carries no corrupted characters or duplicate texts within a section", () => {
-    for (const id of ["quranic_duas", "prophets_duas", "prophetic_duas", "jawami_dua", "sunan", "forgotten_sunnahs"]) {
+    for (const id of db.sections.map((x) => x.id).filter((x) => /dua|sunan|sunnah|sahaba|jawami/.test(x))) {
       const texts = section(id).content.map((i) => i.text);
       for (const t of texts) expect(t.includes("�"), `${id}: ${t.slice(0, 30)}`).toBe(false);
       expect(new Set(texts).size, id).toBe(texts.length);

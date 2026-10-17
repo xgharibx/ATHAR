@@ -7,8 +7,8 @@ android {
         applicationId "com.athar.adhkar"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion 36
-        versionCode 92
-        versionName "1.2.79"
+        versionCode 93
+        versionName "1.2.80"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Which store this build is destined for: play (default) or huawei.
         //   ./gradlew bundleRelease -Pstore=huawei

@@ -1,5 +1,6 @@
 import { DAILY_VERSES } from "@/data/dailyVerses";
 import { IBN_QAYYIM_WISDOMS } from "@/data/ibnQayyimWisdom";
+import { CLASSICAL_WISDOMS } from "@/data/classicalWisdom";
 
 export type Wisdom = {
   text: string;
@@ -530,6 +531,7 @@ function uniqueWisdoms(items: Wisdom[]): Wisdom[] {
 export const DAILY_WISDOMS: Wisdom[] = uniqueWisdoms([
   ...BASE_DAILY_WISDOMS,
   ...IBN_QAYYIM_WISDOMS,
+  ...CLASSICAL_WISDOMS,
   ...VERSE_REFLECTION_WISDOMS,
 ]);
 

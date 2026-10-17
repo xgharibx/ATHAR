@@ -15,6 +15,7 @@
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X as XIcon } from "lucide-react";
+import { sheetEventProps } from "@/components/ui/FocusManagedDialog";
 
 export function Modal(props: {
   open: boolean;
@@ -31,10 +32,14 @@ export function Modal(props: {
 
   React.useEffect(() => {
     if (!props.open) return;
-    const prev = document.body.style.overflow;
+    // Both elements: on a phone WebView the page scrolls from <html> as often as <body>.
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
     };
   }, [props.open]);
 
@@ -47,6 +52,7 @@ export function Modal(props: {
           <Dialog.Overlay
             aria-hidden="true"
             onClick={props.onClose}
+            style={{ touchAction: "none" }}
             className="absolute inset-0 bg-black/20 animate-athar-modal-fade"
           />
           <Dialog.Content
@@ -68,10 +74,12 @@ export function Modal(props: {
               "sm:relative sm:inset-auto sm:mx-auto sm:my-auto sm:max-h-[85vh] sm:w-full sm:max-w-xl sm:rounded-3xl sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.45)]",
               props.className ?? "",
             ].join(" ")}
-            style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)" }}
+            style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)", overscrollBehavior: "contain" }}
+            data-no-swipe
+            {...sheetEventProps}
           >
             {/* The sheet is glass, but a blurred backdrop smears the sky into nothing, so it brings its own stars. */}
-            <div aria-hidden="true" className="ijaz-stars pointer-events-none absolute inset-0 -z-10" />
+            <div aria-hidden="true" className="sheet-stars pointer-events-none absolute inset-0 -z-10" />
             <Dialog.Title className="sr-only">{props.ariaLabel}</Dialog.Title>
             {/* Drag handle on mobile for affordance */}
             <div className="flex justify-center pt-2 pb-1 sm:hidden">

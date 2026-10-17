@@ -22,6 +22,21 @@ function getFocusableElements(dialog: HTMLElement): HTMLElement[] {
   );
 }
 
+/**
+ * React events bubble through the component tree, not the visual one, so a touch
+ * inside a sheet reaches handlers on the page that opened it — which is how
+ * swiping between tafsirs also turned the Quran page behind. Sheets end that here.
+ */
+export const stopSheetEvent = (e: { stopPropagation: () => void }) => e.stopPropagation();
+export const sheetEventProps = {
+  onTouchStart: stopSheetEvent,
+  onTouchMove: stopSheetEvent,
+  onTouchEnd: stopSheetEvent,
+  onTouchCancel: stopSheetEvent,
+  onPointerDown: stopSheetEvent,
+  onWheel: stopSheetEvent,
+};
+
 /** A lightweight non-portal dialog wrapper for existing overlay sheets. */
 export function FocusManagedDialog({ onClose, children, ...props }: FocusManagedDialogProps) {
   const dialogRef = React.useRef<HTMLDivElement | null>(null);
@@ -106,8 +121,10 @@ export function FocusManagedDialog({ onClose, children, ...props }: FocusManaged
       ref={dialogRef}
       role="dialog"
       aria-modal="true"
+      data-no-swipe
       tabIndex={-1}
       onKeyDown={onKeyDown}
+      {...sheetEventProps}
     >
       {children}
     </div>

@@ -40,7 +40,7 @@ type ShuffleState = Array<number | null>;
 const emptyShuffle = (): ShuffleState => Array.from({ length: SLIDE_COUNT }, () => null);
 
 /** Sections the daily dua is drawn from: every supplication the app carries. */
-const DUA_SECTIONS = ["jawami_dua", "prophetic_duas", "quranic_duas", "prophets_duas"];
+const DUA_SECTIONS = ["jawami_dua", "prophetic_duas", "quranic_duas", "prophets_duas", "sahaba_duas"];
 
 // Persists whatever the user last shuffled to, so closing and reopening the
 // app shows the same card instead of silently reverting to the day's
@@ -163,7 +163,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     return DUA_SECTIONS.flatMap((id) => secs.find((s) => s.id === id)?.content ?? []);
   }, [adhkarDb.data]);
   const sunnahPool = React.useMemo(
-    () => adhkarDb.data?.db.sections.find((s) => s.id === "sunan")?.content ?? [],
+    () => (adhkarDb.data?.db.sections ?? []).filter((s) => s.id === "sunan" || s.id.startsWith("sunan_")).flatMap((s) => s.content),
     [adhkarDb.data],
   );
   const poolLengths = [DAILY_VERSES.length, 1, DAILY_WISDOMS.length, QURAN_VOCAB.length, duaPool.length, sunnahPool.length];
@@ -795,9 +795,10 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                 <div className="text-base leading-9 text-right font-semibold max-h-44 overflow-y-auto pr-1" style={{ color: "var(--fg)" }}>
                   {sunnah.text}
                 </div>
-                {sunnah.source_label ? (
-                  <div className="mt-1 text-sm leading-7 rounded-xl p-2.5 arabic-text max-h-28 overflow-y-auto" style={{ color: "var(--muted)", background: "var(--card-2)" }}>
-                    {sunnah.source_label}
+                {sunnah.benefit || sunnah.source_label ? (
+                  <div className="mt-1 text-sm leading-7 rounded-xl p-2.5 arabic-text max-h-32 overflow-y-auto" style={{ color: "var(--muted)", background: "var(--card-2)" }}>
+                    {sunnah.benefit ? <p>{sunnah.benefit}</p> : null}
+                    {sunnah.source_label ? <p className="mt-1 text-xs opacity-80">{sunnah.source_label}</p> : null}
                   </div>
                 ) : null}
                 <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">

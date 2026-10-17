@@ -1062,7 +1062,17 @@ export function MushafPage() {
   // page zoom.
   const touchStartX = React.useRef<number | null>(null);
   const touchStartY = React.useRef<number | null>(null);
+  // A touch inside a sheet or dialog belongs to the sheet: swiping between
+  // tafsirs must not also turn the page behind it.
+  const inSheet = (t: EventTarget | null) =>
+    t instanceof Element && !!t.closest('[role="dialog"],[aria-modal="true"],[data-no-swipe]');
   const onTouchStart = (e: React.TouchEvent) => {
+    if (inSheet(e.target)) {
+      touchStartX.current = null;
+      touchStartY.current = null;
+      pinchStartDist.current = null;
+      return;
+    }
     if (e.touches.length >= 2) {
       // M4: Pinch start
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -1089,6 +1099,7 @@ export function MushafPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setPrefs]);
   const onTouchEnd = (e: React.TouchEvent) => {
+    if (inSheet(e.target)) return;
     if (pinchStartDist.current !== null) {
       // Save pinch result
       setPrefs({ mushafFontScale: fontScale });
