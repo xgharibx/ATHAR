@@ -30,6 +30,7 @@ import toast from "react-hot-toast";
 import { PrayerWidget } from "@/components/layout/PrayerWidget";
 import { pct, cn } from "@/lib/utils";
 import { getSectionIdentity } from "@/lib/sectionIdentity";
+import { NewMark, useIsNew, markNewSeen } from "@/components/ui/NewBadge";
 import { trackUxEvent } from "@/lib/uxMetrics";
 import { useQuranDB } from "@/data/useQuranDB";
 import { useQuranPageMap } from "@/data/useQuranPageMap";
@@ -237,6 +238,9 @@ function HomeRadioButton() {
 
 export function HomePage() {
   const navigate = useNavigate();
+  const newWird = useIsNew("wird");
+  const newMuhasaba = useIsNew("muhasaba");
+  const newQadaa = useIsNew("qadaa");
   const [initialLaunch] = React.useState(isStartupPending);
   const { data, isLoading, error } = useAdhkarDB();
   useStartupReady(!isLoading);
@@ -954,27 +958,27 @@ export function HomePage() {
         <div className="absolute top-3 left-3 z-10 grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => navigate("/wird")}
+            onClick={() => { markNewSeen("wird"); navigate("/wird"); }}
             aria-label="جدول الورد"
-            className="w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)]"
+            className={`relative w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)] ${newWird ? "new-glow" : ""}`}
           >
-            <CalendarCheck size={18} aria-hidden="true" />
+            <CalendarCheck size={18} aria-hidden="true" />{newWird && <NewMark />}
           </button>
           <button
             type="button"
-            onClick={() => navigate("/muhasaba")}
+            onClick={() => { markNewSeen("muhasaba"); navigate("/muhasaba"); }}
             aria-label="جدول المحاسبة"
-            className="w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)]"
+            className={`relative w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)] ${newMuhasaba ? "new-glow" : ""}`}
           >
-            <Scale size={18} aria-hidden="true" />
+            <Scale size={18} aria-hidden="true" />{newMuhasaba && <NewMark />}
           </button>
           <button
             type="button"
-            onClick={() => navigate("/qadaa")}
+            onClick={() => { markNewSeen("qadaa"); navigate("/qadaa"); }}
             aria-label="قضاء الفوائت"
-            className="w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)]"
+            className={`relative w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)] ${newQadaa ? "new-glow" : ""}`}
           >
-            <TimerReset size={18} aria-hidden="true" />
+            <TimerReset size={18} aria-hidden="true" />{newQadaa && <NewMark />}
           </button>
         </div>
         <div className="absolute -top-10 -left-8 opacity-80" aria-hidden="true">
