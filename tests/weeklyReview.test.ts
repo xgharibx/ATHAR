@@ -47,7 +47,7 @@ describe("buildReview", () => {
     const r = buildReview(input({ prayerLog: fullPrayers(0, 6), quranDailyAyahs: { [TODAY]: 2 } }));
     expect(r.strongest?.id).toBe("prayer");
     expect(r.weakest?.id).toBe("quran");
-    expect(r.lines.some((l) => l.includes("الأحوج"))).toBe(true);
+    expect(r.lines.some((l) => l.includes("يحتاج"))).toBe(true);
   });
 
   it("notices an improvement over the week before", () => {
@@ -58,7 +58,7 @@ describe("buildReview", () => {
 
   it("notices a decline and speaks gently", () => {
     const r = buildReview(input({ prayerLog: { ...fullPrayers(7, 13), [TODAY]: { Fajr: true }, [addDays(TODAY, -1)]: { Fajr: true } } }));
-    expect(r.lines[0]).toContain("أقلّ");
+    expect(r.lines[0]).toContain("أقل");
     expect(r.lines[0]).toContain("لا بأس");
   });
 

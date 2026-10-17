@@ -14,6 +14,7 @@ const SECTION_ORDER = [
   "tasabeeh",
   "al_mudhaaf",
   "multiplied_dhikr",
+  "sunan",
   "forgotten_sunnahs",
   "adhan",
   "sleep",

@@ -48,7 +48,7 @@ export function QadaaGuidance() {
     <Card className="p-5">
       <h2 className="text-base font-semibold mb-1">أحكام وإرشادات</h2>
       <p className="text-xs text-[var(--muted)] mb-3 leading-6">
-        ملخص عملي لما استندت إليه الأداة. إن كانت حالتك خاصة فاسأل مفتيًا أو دار الإفتاء.
+        ملخص لما اعتمدنا عليه. إن كانت حالتك خاصة فاسأل أهل العلم أو دار الإفتاء.
       </p>
       <div className="space-y-2">
         {ITEMS.map((it, i) => {

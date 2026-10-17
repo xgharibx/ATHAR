@@ -47,7 +47,7 @@ export function Modal(props: {
           <Dialog.Overlay
             aria-hidden="true"
             onClick={props.onClose}
-            className="absolute inset-0 bg-black/55 backdrop-blur-[2px] animate-athar-modal-fade"
+            className="absolute inset-0 bg-black/20 animate-athar-modal-fade"
           />
           <Dialog.Content
             tabIndex={-1}
@@ -63,13 +63,15 @@ export function Modal(props: {
               if (restoreTarget?.isConnected) restoreTarget.focus({ preventScroll: true });
             }}
             className={[
-              "absolute inset-x-0 bottom-0 flex w-full max-w-none flex-col overflow-hidden rounded-t-3xl border border-[var(--stroke)] bg-[var(--bg)] shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.45)]",
+              "absolute inset-x-0 bottom-0 flex w-full max-w-none flex-col overflow-hidden rounded-t-3xl border border-[var(--stroke)] isolate bg-[color-mix(in_srgb,var(--bg)_55%,transparent)] backdrop-blur-[10px] shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.45)]",
               "max-h-[88vh] animate-athar-modal-sheet",
               "sm:relative sm:inset-auto sm:mx-auto sm:my-auto sm:max-h-[85vh] sm:w-full sm:max-w-xl sm:rounded-3xl sm:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.45)]",
               props.className ?? "",
             ].join(" ")}
             style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)" }}
           >
+            {/* The sheet is glass, but a blurred backdrop smears the sky into nothing, so it brings its own stars. */}
+            <div aria-hidden="true" className="ijaz-stars pointer-events-none absolute inset-0 -z-10" />
             <Dialog.Title className="sr-only">{props.ariaLabel}</Dialog.Title>
             {/* Drag handle on mobile for affordance */}
             <div className="flex justify-center pt-2 pb-1 sm:hidden">

@@ -143,20 +143,20 @@ export function buildReview(i: ReviewInput): Review {
     if (previousConsistency !== null) {
       const d = consistency - previousConsistency;
       lines.push(
-        d >= MOVE ? `أسبوعك أفضل من الذي قبله بنحو ${AR(pct(d))}٪ — ثبّتْ على ما فعلتَ.`
-        : d <= -MOVE ? `أسبوعك أقلّ من الذي قبله بنحو ${AR(pct(-d))}٪ — لا بأس، ابدأ بأسهل عبادة وعُد.`
-        : "أسبوعك قريب من الذي قبله — الثبات نعمة.",
+        d >= MOVE ? `أسبوعك أفضل من الذي قبله بنحو ${AR(pct(d))}٪. استمر على ما فعلت.`
+        : d <= -MOVE ? `أسبوعك أقل من الذي قبله بنحو ${AR(pct(-d))}٪. لا بأس، ابدأ بأسهل عبادة وارجع.`
+        : "أسبوعك قريب من الذي قبله، والثبات نعمة.",
       );
     } else {
-      lines.push(`ثباتك هذا الأسبوع ${AR(pct(consistency))}٪ على ما تتابعه.`);
+      lines.push(`التزامك هذا الأسبوع ${AR(pct(consistency))}٪ فيما تتابعه.`);
     }
   }
-  if (strongest) lines.push(`أقوى ما عندك: ${strongest.label} (${AR(pct(strongest.score))}٪).`);
+  if (strongest) lines.push(`أكثر ما تلتزم به: ${strongest.label} (${AR(pct(strongest.score))}٪).`);
   if (weakest && strongest && weakest.id !== strongest.id && weakest.score < 0.6) {
-    lines.push(`الأحوج إلى عنايتك: ${weakest.label} (${AR(pct(weakest.score))}٪).`);
+    lines.push(`يحتاج اهتمامًا أكثر: ${weakest.label} (${AR(pct(weakest.score))}٪).`);
   }
   if (mover && mover.id !== strongest?.id && mover.delta !== null) {
-    lines.push(mover.delta > 0 ? `${mover.label} ارتفعت ${AR(pct(mover.delta))}٪ عن الأسبوع الماضي.` : `${mover.label} انخفضت ${AR(pct(-mover.delta))}٪ عن الأسبوع الماضي.`);
+    lines.push(mover.delta > 0 ? `${mover.label} تحسنت ${AR(pct(mover.delta))}٪ عن الأسبوع الماضي.` : `${mover.label} انخفضت ${AR(pct(-mover.delta))}٪ عن الأسبوع الماضي.`);
   }
   if (qadaaMadeUp > 0) lines.push(`قضيتَ هذا الأسبوع ${AR(qadaaMadeUp)} من الصلوات الفائتة.`);
 

@@ -164,7 +164,7 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
       <div>
         <h2 className="text-base font-semibold">ابدأ قضاءك</h2>
         <p className="text-xs text-[var(--muted)] mt-1 leading-6">
-          الأرقام تُحفظ على جهازك وتتزامن مع حسابك. يمكنك تعديلها في أي وقت.
+          تُحفظ الأرقام في جهازك وتتزامن مع حسابك، ويمكنك تعديلها متى شئت.
         </p>
       </div>
 
@@ -209,10 +209,10 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
           <Field label="متى بدأت المحافظة على الصلاة؟">
             <DateField max={today} value={started} onChange={(e) => setStarted(e.target.value)} className={inputCls} />
           </Field>
-          <Field label="كم نسبة ما صليته في تلك الفترة؟ (٪)">
+          <Field label="كم صليتَ تقريبًا من هذه الفترة؟ (٪)">
             <input type="number" inputMode="numeric" min={0} max={100} value={prayedPct} onChange={(e) => setPrayedPct(e.target.value)} className={inputCls} />
           </Field>
-          <Field label="مدى تأكدك من التواريخ">
+          <Field label="مدى تأكدك من هذه التواريخ">
             <div className="flex flex-wrap gap-2">
               {(Object.keys(CERTAINTY) as Certainty[]).map((c) => (
                 <Chip key={c} active={certainty === c} onClick={() => setCertainty(c)}>{CERTAINTY[c].label}</Chip>
@@ -242,7 +242,7 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
 
           {prayerEst && (
             <div className="rounded-2xl bg-[var(--card)] p-4 space-y-3" data-testid="qadaa-estimate">
-              <div className="text-xs text-[var(--muted)]">اختر الرقم الذي تعتمده</div>
+              <div className="text-xs text-[var(--muted)]">اختر العدد الذي تريد أن تبدأ به</div>
               <div className="grid grid-cols-3 gap-2">
                 {(Object.keys(SCENARIO_LABELS) as Scenario[]).map((s) => (
                   <button
@@ -262,9 +262,9 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
                 ))}
               </div>
               <p className="text-xs text-[var(--muted)] leading-6">
-                مدة التكليف نحو {arNum(prayerEst.periodDays[scenario])} يومًا
-                {gender === "female" ? `، بعد خصم ${arNum(prayerEst.exemptDays[scenario])} يوم حيض ونفاس` : ""}.
-                القضاء دَين، والأحوط أن تبرأ منه.
+                المدة من البلوغ إلى بدء المحافظة نحو {arNum(prayerEst.periodDays[scenario])} يومًا
+                {gender === "female" ? `، بعد خصم ${arNum(prayerEst.exemptDays[scenario])} يومًا للحيض والنفاس` : ""}.
+                والأحوط أن تبدأ بالعدد الأكبر لتطمئن.
               </p>
               {fastEst && fastEst.total[scenario] > 0 && (
                 <p className="text-xs leading-6">
@@ -274,7 +274,7 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
               {prayerEst.warnings.map((w) => (
                 <p key={w} className="text-xs text-[var(--danger)]">{w}</p>
               ))}
-              <Button className="w-full" onClick={applyCalc}>اعتمد هذا الرقم وابدأ</Button>
+              <Button className="w-full" onClick={applyCalc}>ابدأ بهذا العدد</Button>
             </div>
           )}
         </div>

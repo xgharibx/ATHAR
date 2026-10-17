@@ -100,12 +100,12 @@ export function MuhasabaPage() {
       <div dir="rtl" className="space-y-4 pb-24 page-enter px-1">
         {header}
         <Card className="p-5 space-y-4 text-center">
-          <div className="text-lg font-semibold">لكل مقامٍ مراتب</div>
+          <div className="text-lg font-semibold">لكل عبادة مراتب</div>
           <p className="text-sm text-[var(--muted)] leading-7">
-            لكل عبادة درجات من الأدنى إلى الأعلى. تسجّل كل يوم أعلى درجة بلغتها، فترى أين ترتقي وأين بدأتَ تتراجع.
-            ما تكتبه هنا بينك وبين ربك، ولا يُشارَك ولا يدخل في لوحة الترتيب.
+            كل عبادة لها درجات، من الأدنى إلى الأعلى. تسجّل كل يوم أعلى درجة وصلت إليها، وبعد أيام ترى أين تتقدم وأين بدأت تتراجع.
+            ما تسجّله هنا لك وحدك، لا يُشارك ولا يدخل في الترتيب.
           </p>
-          <p className="text-xs text-[var(--muted)]">اختر ليُعرض لك الجدول المناسب</p>
+          <p className="text-xs text-[var(--muted)]">اختر لنعرض لك الجدول المناسب</p>
           <div className="flex gap-2 justify-center">
             {(["male", "female"] as Gender[]).map((g) => (
               <Button key={g} variant="secondary" className="min-w-[110px]" onClick={() => setGender(g)}>
@@ -177,7 +177,7 @@ export function MuhasabaPage() {
             <div className="flex-1 space-y-1.5 text-sm">
               <div>سجّلتَ <b>{arNum(score.recorded)}</b> من {arNum(score.asked)}</div>
               <div className="text-[var(--muted)] text-xs">
-                {steady > 0 ? `${arNum(steady)} يومًا متتابعًا على الفرائض الخمس` : "ابدأ بتسجيل فرائضك لتبني سلسلتك"}
+                {steady > 0 ? `${arNum(steady)} أيام متتالية على الصلوات الخمس` : "سجّل صلواتك الخمس لتبدأ سلسلتك"}
               </div>
               <div className="text-[var(--muted)] text-xs">تغطية آخر ٧ أيام: {pct(cov)}</div>
             </div>
@@ -203,7 +203,7 @@ export function MuhasabaPage() {
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium">{d.title}</div>
                         <div className={cn("text-[11px] mt-0.5 truncate", lv === 0 ? "text-[var(--danger)]" : "text-[var(--muted)]")}>
-                          {lv === null ? (suggested ? "سجّلتَ هذه الصلاة في التطبيق — اختر مرتبتك" : "لم يُسجَّل") : lv === 0 ? "فاتتني" : d.levels[lv - 1]}
+                          {lv === null ? (suggested ? "سجّلتها في التطبيق، اختر درجتها" : "لم يُسجَّل") : lv === 0 ? "فاتتني" : d.levels[lv - 1]}
                         </div>
                       </div>
                       <div className="flex gap-0.5" aria-hidden>
@@ -222,7 +222,7 @@ export function MuhasabaPage() {
         <div className="space-y-4" data-testid="muhasaba-review">
           {!anyData && (
             <Card className="p-5 text-center text-sm text-[var(--muted)] leading-7">
-              سجّل بضعة أيام وستظهر هنا مراجعتك: أين ترتقي، وأين بدأتَ تتراجع، وما الدرجة التالية لك.
+              سجّل لعدة أيام وستظهر هنا مراجعتك: ما الذي يتحسن وما الذي يتراجع، وما الدرجة التالية.
             </Card>
           )}
 
@@ -236,19 +236,19 @@ export function MuhasabaPage() {
                 </div>
               ))}
             </div>
-            <p className="text-[11px] text-[var(--muted)]">الدرجة = متوسط ما سجّلتَه فقط؛ الأيام غير المسجّلة لا تُحسب تقصيرًا.</p>
+            <p className="text-[11px] text-[var(--muted)]">الدرجة متوسط ما سجّلته فقط. الأيام التي لم تسجّلها لا تُحسب تقصيرًا.</p>
           </Card>
 
           {slipping.length > 0 && (
             <Card className="p-5 space-y-3">
-              <h2 className="text-base font-semibold">تستحق التفقّد</h2>
-              <p className="text-[11px] text-[var(--muted)]">انخفض مستواك فيها هذا الأسبوع عمّا كنتَ عليه. لا لوم — تفقّد وعُد.</p>
+              <h2 className="text-base font-semibold">تحتاج انتباهك</h2>
+              <p className="text-[11px] text-[var(--muted)]">نزل مستواك فيها هذا الأسبوع عمّا كنت عليه. لا بأس، ارجع خطوة خطوة.</p>
               {slipping.slice(0, 6).map(({ deed, t }) => {
                 const back = nextRung(deed, Math.max(0, t.usual - 1));
                 return (
                   <div key={deed.id} className="rounded-2xl bg-[var(--card)] px-4 py-3">
                     <div className="flex justify-between text-sm"><span className="font-medium">{deed.title}</span><span className="text-[var(--danger)]">{pct(t.delta)}</span></div>
-                    {back && <div className="text-[11px] text-[var(--muted)] mt-1">ارجع إلى: {back.label}</div>}
+                    {back && <div className="text-[11px] text-[var(--muted)] mt-1">جرّب أن ترجع إلى: {back.label}</div>}
                   </div>
                 );
               })}
@@ -257,7 +257,7 @@ export function MuhasabaPage() {
 
           {missing.length > 0 && (
             <Card className="p-5 space-y-2">
-              <h2 className="text-base font-semibold">فاتتك متتاليًا</h2>
+              <h2 className="text-base font-semibold">فاتتك أكثر من يوم</h2>
               {missing.map(({ deed, t }) => (
                 <div key={deed.id} className="flex justify-between text-sm rounded-2xl bg-[var(--card)] px-4 py-2.5">
                   <span>{deed.title}</span><span className="text-[var(--muted)]">{arNum(t.missRun)} أيام</span>
@@ -268,7 +268,7 @@ export function MuhasabaPage() {
 
           {rising.length > 0 && (
             <Card className="p-5 space-y-3">
-              <h2 className="text-base font-semibold">ترتقي فيها</h2>
+              <h2 className="text-base font-semibold">تتحسن فيها</h2>
               {rising.slice(0, 6).map(({ deed, t }) => {
                 const nxt = nextRung(deed, t.usual);
                 return (
@@ -301,7 +301,7 @@ export function MuhasabaPage() {
         {sheetDeed && (
           <div className="px-4 pt-2 pb-5" data-testid="ladder-sheet">
             <div className="text-base font-semibold">{sheetDeed.title}</div>
-            <p className="text-[11px] text-[var(--muted)] mb-3">{dayLabel(day)} — اختر أعلى مرتبة بلغتَها، وكل مرتبة تشمل ما قبلها</p>
+            <p className="text-[11px] text-[var(--muted)] mb-3">{dayLabel(day)} — اختر أعلى درجة وصلت إليها، وكل درجة تشمل ما قبلها</p>
             <div className="flex flex-col-reverse gap-1.5 max-h-[60vh] overflow-y-auto">
               {sheetDeed.levels.map((label, i) => {
                 const n = i + 1;
@@ -341,7 +341,7 @@ export function MuhasabaPage() {
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-[var(--muted)]">أخفِ ما لا يعنيك. ما أخفيتَه لا يُحسب في درجتك، وتبقى سجلاته محفوظة.</p>
+          <p className="text-[11px] text-[var(--muted)]">أخفِ ما لا يخصك. ما تخفيه لا يدخل في درجتك، وتبقى سجلاته محفوظة.</p>
           <div className="max-h-[44vh] overflow-y-auto space-y-1.5">
             {allDeeds.map((d) => (
               <label key={d.id} className="flex items-center justify-between rounded-2xl bg-[var(--card)] px-4 py-2.5 text-sm">

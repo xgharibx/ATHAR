@@ -181,6 +181,8 @@ if (rootContainer) {
     // Learn which store this build is for before anyone can tap share or an
     // update prompt; both read it. Never blocks startup and never throws.
     void loadStoreIdentity();
+    // Copy must work the same in a phone WebView as in a browser.
+    void import("@/lib/clipboardFallback").then((m) => m.installClipboardFallback());
 
     // Head start for the shorts feed: fetching YouTube's IFrame API was measured at
     // ~900ms and only began once the feed opened. Doing it when the browser is idle,

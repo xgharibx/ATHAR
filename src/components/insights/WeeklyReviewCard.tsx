@@ -57,7 +57,7 @@ export function WeeklyReviewCard() {
       <Card className="p-5 space-y-2" data-testid="weekly-review">
         <h2 className="text-base font-semibold">أسبوعك</h2>
         <p className="text-sm text-[var(--muted)] leading-7">
-          تتبّع صلاتك أو قرآنك أو أذكارك بضعة أيام وسأكتب لك هنا مراجعة أسبوعك: أين أنت أقوى، وأين تحتاج عناية.
+          تابع صلاتك أو قرآنك أو أذكارك لعدة أيام، وسنكتب لك هنا ملخص أسبوعك: أين أنت أقوى وأين تحتاج اهتمامًا.
         </p>
         <div className="flex gap-2 text-sm">
           <Link to="/wird" className="underline text-[var(--accent)]">جدول الورد</Link>
@@ -74,7 +74,7 @@ export function WeeklyReviewCard() {
         <h2 className="text-base font-semibold">أسبوعك</h2>
         <div className="text-end">
           <div className="text-2xl font-bold leading-none">{pct(review.consistency)}</div>
-          <div className="text-[10px] text-[var(--muted)]">الثبات</div>
+          <div className="text-[10px] text-[var(--muted)]">الالتزام</div>
         </div>
       </div>
 

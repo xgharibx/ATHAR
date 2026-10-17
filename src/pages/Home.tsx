@@ -15,6 +15,7 @@ import {
   Loader2,
   CalendarCheck,
   Scale,
+  TimerReset,
 } from "lucide-react";
 
 import { useStartupReady } from "@/hooks/useStartupReady";
@@ -116,6 +117,7 @@ const PREFERRED_STRIP_ORDER = [
   "virtue",
   "misc",
   "salaah",
+  "sunan",
   "forgotten_sunnahs",
   "istikhara",
   "friday",
@@ -936,7 +938,7 @@ export function HomePage() {
     <div className={initialLaunch ? "space-y-3" : "space-y-3 page-enter"}>
       <Card className="p-5 overflow-hidden relative">
         {/* Two quiet doors to the tables, in the corner the decoration used to fill. */}
-        <div className="absolute top-3 left-3 z-10 flex gap-2">
+        <div className="absolute top-3 left-3 z-10 grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => navigate("/wird")}
@@ -952,6 +954,14 @@ export function HomePage() {
             className="w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)]"
           >
             <Scale size={18} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/qadaa")}
+            aria-label="قضاء الفوائت"
+            className="w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)]"
+          >
+            <TimerReset size={18} aria-hidden="true" />
           </button>
         </div>
         <div className="absolute -top-10 -left-8 opacity-80" aria-hidden="true">

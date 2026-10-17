@@ -5,6 +5,9 @@ import { Card } from "@/components/ui/Card";
 import { DAILY_VERSES } from "@/data/dailyVerses";
 import { DAILY_WISDOMS } from "@/data/dailyWisdom";
 import { QURAN_VOCAB } from "@/data/quranVocab";
+import { useAdhkarDB } from "@/data/useAdhkarDB";
+import { useQuranDB } from "@/data/useQuranDB";
+import { searchAyah } from "@/data/quranAyahIndex";
 import { Button } from "@/components/ui/Button";
 import { fetchDailyHadith, fetchRandomHadith, fetchSharhHadith, prewarmSharhBundle, type SharhHadith } from "@/lib/hadithSharhAPI";
 import { syncSunnahWidget } from "@/lib/widgetDataBridge";
@@ -31,8 +34,13 @@ function randomOtherIdx(current: number, length: number): number {
   return next;
 }
 
-const SLIDE_LABELS = ["آية اليوم", "حديث اليوم", "تدبر اليوم", "كلمة اليوم"] as const;
-const ARRAY_LENGTHS = [DAILY_VERSES.length, 1, DAILY_WISDOMS.length, QURAN_VOCAB.length] as const;
+const SLIDE_LABELS = ["آية اليوم", "حديث اليوم", "تدبر اليوم", "كلمة اليوم", "دعاء اليوم", "سنة اليوم"] as const;
+const SLIDE_COUNT = SLIDE_LABELS.length;
+type ShuffleState = Array<number | null>;
+const emptyShuffle = (): ShuffleState => Array.from({ length: SLIDE_COUNT }, () => null);
+
+/** Sections the daily dua is drawn from: every supplication the app carries. */
+const DUA_SECTIONS = ["jawami_dua", "prophetic_duas", "quranic_duas", "prophets_duas"];
 
 // Persists whatever the user last shuffled to, so closing and reopening the
 // app shows the same card instead of silently reverting to the day's
@@ -42,7 +50,7 @@ const SHUFFLE_PERSIST_KEY = "noor_daily_carousel_shuffle_v1";
 
 type PersistedShuffle = {
   dateKey: string;
-  shuffleIdx: [number | null, number | null, number | null, number | null];
+  shuffleIdx: ShuffleState;
   hadithOverrideId: string | null;
 };
 
@@ -52,6 +60,9 @@ function readPersistedShuffle(dateKey: string): PersistedShuffle | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedShuffle;
     if (!parsed || parsed.dateKey !== dateKey) return null;
+    // Saved before the dua and sunnah cards existed: pad rather than discard.
+    const saved = Array.isArray(parsed.shuffleIdx) ? parsed.shuffleIdx : [];
+    parsed.shuffleIdx = Array.from({ length: SLIDE_COUNT }, (_, i) => (typeof saved[i] === "number" ? saved[i] : null));
     return parsed;
   } catch {
     return null;
@@ -137,9 +148,25 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   // null = show daily item; number = user-shuffled index (resets on new
   // dateKey). Seeded from localStorage so a shuffle survives closing and
   // reopening the app instead of silently reverting to the day's pick.
-  const [shuffleIdx, setShuffleIdx] = React.useState<[number | null, number | null, number | null, number | null]>(
-    () => readPersistedShuffle(dateKey)?.shuffleIdx ?? [null, null, null, null],
+  const [shuffleIdx, setShuffleIdx] = React.useState<ShuffleState>(
+    () => readPersistedShuffle(dateKey)?.shuffleIdx ?? emptyShuffle(),
   );
+  const [showVocabExplain, setShowVocabExplain] = React.useState(false);
+  const [showDuaBenefit, setShowDuaBenefit] = React.useState(false);
+
+  // The daily dua and sunnah come from the adhkar database, which Home already
+  // loads, so this costs nothing extra.
+  const adhkarDb = useAdhkarDB();
+  const quranDb = useQuranDB();
+  const duaPool = React.useMemo(() => {
+    const secs = adhkarDb.data?.db.sections ?? [];
+    return DUA_SECTIONS.flatMap((id) => secs.find((s) => s.id === id)?.content ?? []);
+  }, [adhkarDb.data]);
+  const sunnahPool = React.useMemo(
+    () => adhkarDb.data?.db.sections.find((s) => s.id === "sunan")?.content ?? [],
+    [adhkarDb.data],
+  );
+  const poolLengths = [DAILY_VERSES.length, 1, DAILY_WISDOMS.length, QURAN_VOCAB.length, duaPool.length, sunnahPool.length];
   const [spinSlide, setSpinSlide] = React.useState<number | null>(null);
 
   // حديث اليوم — a real hadeethenc.com record (text + grade + attribution +
@@ -198,9 +225,11 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   const prevDateKey = React.useRef(dateKey);
   if (prevDateKey.current !== dateKey) {
     prevDateKey.current = dateKey;
-    setShuffleIdx([null, null, null, null]);
+    setShuffleIdx(emptyShuffle());
     setHadithOverride(null);
     setShowHadithExplanation(false);
+    setShowVocabExplain(false);
+    setShowDuaBenefit(false);
   }
 
   // Keep localStorage in sync with whatever's currently shown, so the next
@@ -212,7 +241,7 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   }, [dateKey, shuffleIdx, hadithOverride]);
 
   // Daily indices (deterministic per date)
-  const dailyIdxs = React.useMemo<[number, number, number, number]>(() => {
+  const dailyIdxs = React.useMemo<number[]>(() => {
     const v = dateIndex(dateKey, DAILY_VERSES.length, 77);
     const h = 0;
     let wHash = 0;
@@ -221,17 +250,33 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     let kHash = 0;
     for (let i = 0; i < dateKey.length; i++) kHash = (kHash * 31 + dateKey.charCodeAt(i)) >>> 0;
     const k = QURAN_VOCAB.length ? kHash % QURAN_VOCAB.length : 0;
-    return [v, h, w, k];
-  }, [dateKey]);
+    const d = duaPool.length ? dateIndex(dateKey, duaPool.length, 131) : 0;
+    const su = sunnahPool.length ? dateIndex(dateKey, sunnahPool.length, 197) : 0;
+    return [v, h, w, k, d, su];
+  }, [dateKey, duaPool.length, sunnahPool.length]);
 
   // Active indices: shuffled override OR daily
-  const activeIdxs = shuffleIdx.map((s, i) => s ?? dailyIdxs[i]) as [number, number, number, number];
+  const activeIdxs = shuffleIdx.map((s, i) => s ?? dailyIdxs[i]);
 
   const verse     = DAILY_VERSES[activeIdxs[0]] ?? null;
   const wisdom    = DAILY_WISDOMS[activeIdxs[2]] ?? null;
   const vocabWord = QURAN_VOCAB[activeIdxs[3]] ?? null;
+  const dua       = duaPool[activeIdxs[4]] ?? null;
+  const sunnah    = sunnahPool[activeIdxs[5]] ?? null;
 
-  const handleShuffle = React.useCallback((slideIdx: 0 | 1 | 2 | 3) => {
+  // A word's meaning is thin without the verses it appears in. Searched only when
+  // the person opens the explanation, so the home screen never pays for it.
+  const vocabAyahs = React.useMemo(() => {
+    if (!showVocabExplain || !quranDb.data || !vocabWord) return [];
+    const plain = vocabWord.arabic.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, "");
+    try {
+      return searchAyah(quranDb.data, plain, 2).results;
+    } catch {
+      return [];
+    }
+  }, [showVocabExplain, quranDb.data, vocabWord]);
+
+  const handleShuffle = React.useCallback((slideIdx: number) => {
     if (slideIdx === 1) {
       setSpinSlide(slideIdx);
       setTimeout(() => setSpinSlide(null), 400);
@@ -243,17 +288,20 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
     }
 
     const current = shuffleIdx[slideIdx] ?? dailyIdxs[slideIdx];
-    const next = randomOtherIdx(current, ARRAY_LENGTHS[slideIdx]);
+    const next = randomOtherIdx(current, poolLengths[slideIdx] ?? 0);
     setShuffleIdx((prev) => {
-      const copy = [...prev] as typeof shuffleIdx;
+      const copy = [...prev];
       copy[slideIdx] = next;
       return copy;
     });
+    if (slideIdx === 3) setShowVocabExplain(false);
+    if (slideIdx === 4) setShowDuaBenefit(false);
     setSpinSlide(slideIdx);
     setTimeout(() => setSpinSlide(null), 400);
     // Pause auto-advance for 15 s after shuffle
     pauseUntilRef.current = Date.now() + 15000;
-  }, [shuffleIdx, dailyIdxs, hadith]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shuffleIdx, dailyIdxs, hadith, duaPool.length, sunnahPool.length]);
 
   /**
    * Share from the daily cards.
@@ -275,11 +323,11 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
   }, []);
 
   const goNext = React.useCallback(() => {
-    setActiveIdx((prev) => (prev + 1) % 4);
+    setActiveIdx((prev) => (prev + 1) % SLIDE_COUNT);
   }, []);
 
   const goPrev = React.useCallback(() => {
-    setActiveIdx((prev) => (prev - 1 + 4) % 4);
+    setActiveIdx((prev) => (prev - 1 + SLIDE_COUNT) % SLIDE_COUNT);
   }, []);
 
   // Auto-advance every 4 seconds
@@ -641,6 +689,36 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
                     <span className="text-[10px] opacity-40">اضغط للتعلم ❬</span>
                   </div>
                 </button>
+                <button type="button"
+                  onClick={() => setShowVocabExplain((v) => !v)}
+                  aria-expanded={showVocabExplain}
+                  className="mt-2 flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-start transition press-effect"
+                  style={{ background: "var(--card-2)" }}
+                >
+                  <span className="flex items-center gap-1.5 text-xs font-semibold">
+                    <BookOpenText size={13} aria-hidden="true" />
+                    الشرح والأمثلة
+                  </span>
+                  <ChevronDown size={14} aria-hidden="true" style={{ transform: showVocabExplain ? "rotate(180deg)" : undefined, transition: prefersReducedMotion ? "none" : "transform 0.2s" }} />
+                </button>
+                {showVocabExplain && (
+                  <div className="mt-2 space-y-2 max-h-44 overflow-y-auto rounded-xl p-2.5 text-sm leading-7" style={{ background: "var(--card-2)", color: "var(--muted)" }}>
+                    {vocabWord.deepMeaning ? <p>{vocabWord.deepMeaning}</p> : null}
+                    {vocabWord.wrongMeaning ? (
+                      <p><b style={{ color: "var(--fg)" }}>يُفهم خطأً: </b>{vocabWord.wrongMeaning}</p>
+                    ) : null}
+                    {vocabWord.example ? <p className="arabic-text" style={{ color: "var(--fg)" }}>{vocabWord.example}</p> : null}
+                    {vocabAyahs.map((a) => (
+                      <p key={`${a.surahId}:${a.ayahIndex}`}>
+                        <span className="arabic-text" style={{ color: "var(--fg)" }}>﴿{a.text}﴾</span>
+                        <span className="text-xs opacity-70"> — {a.surahName} ({arNum(a.ayahIndex)})</span>
+                      </p>
+                    ))}
+                    {!vocabWord.deepMeaning && !vocabWord.example && vocabAyahs.length === 0 ? (
+                      <p>{quranDb.data ? "تكررت هذه الكلمة في القرآن نحو " + arNum(vocabWord.frequency) + " مرة. افتح «مفردات القرآن» لتتعلم معها." : "جارٍ تحميل الآيات…"}</p>
+                    ) : null}
+                  </div>
+                )}
                 <div className="pt-2 flex justify-start">
                   <button type="button"
                     onClick={() => handleShuffle(3)}
@@ -657,12 +735,113 @@ export function DailyCarousel({ dateKey }: { dateKey: string }) {
               <div className="text-sm opacity-50 py-4 text-center">لا توجد كلمة</div>
             )}
           </div>
+
+          {/* Slide 5: دعاء اليوم — one of the verified duas in the dua sections */}
+          <div id="carousel-slide-4" ref={(slide) => { slidesRef.current[4] = slide; }} role="group" aria-roledescription="شريحة" aria-label="دعاء اليوم" aria-hidden={activeIdx !== 4} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+            {dua ? (
+              <>
+                <div className="text-base leading-9 text-right font-medium arabic-text max-h-44 overflow-y-auto pr-1" style={{ color: "var(--fg)" }}>
+                  {dua.text}
+                </div>
+                <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <button type="button"
+                      onClick={() => handleShuffle(4)}
+                      className="p-1.5 rounded-lg transition press-effect"
+                      aria-label="دعاء عشوائي"
+                      title="دعاء جديد"
+                      style={{ color: shuffleIdx[4] !== null ? "var(--accent)" : undefined, opacity: shuffleIdx[4] !== null ? 1 : 0.55 }}
+                    >
+                      <Shuffle size={14} aria-hidden="true" style={spinSlide === 4 && !prefersReducedMotion ? { animation: "spin-once 0.4s ease" } : undefined} />
+                    </button>
+                    <Button className="press-effect text-xs h-7 px-3" variant="secondary" onClick={() => navigate("/c/jawami_dua")}>
+                      <BookOpen size={12} aria-hidden="true" />
+                      كل الأدعية
+                    </Button>
+                    {dua.benefit ? (
+                      <button type="button" onClick={() => setShowDuaBenefit((v) => !v)} aria-expanded={showDuaBenefit} className="p-1.5 rounded-lg opacity-65 hover:opacity-100 transition" aria-label="متى يُقال">
+                        <ChevronDown size={14} aria-hidden="true" style={{ transform: showDuaBenefit ? "rotate(180deg)" : undefined, transition: prefersReducedMotion ? "none" : "transform 0.2s" }} />
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button type="button"
+                      onClick={() => copyShare([dua.text, (dua.source || dua.benefit) ? `— ${dua.source || dua.benefit}` : ""].filter(Boolean).join("\n"))}
+                      className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition"
+                      aria-label="مشاركة الدعاء"
+                    >
+                      <Share2 size={14} />
+                    </button>
+                    {(dua.source || dua.benefit) ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>
+                        {dua.source || dua.benefit}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+                {showDuaBenefit && dua.benefit && dua.source ? (
+                  <div className="mt-2 text-sm leading-7 rounded-xl p-2.5" style={{ color: "var(--muted)", background: "var(--card-2)" }}>{dua.benefit}</div>
+                ) : null}
+              </>
+            ) : (
+              <div className="text-sm opacity-50 py-4 text-center">{adhkarDb.isLoading ? "جارٍ التحميل…" : "لا يوجد دعاء"}</div>
+            )}
+          </div>
+
+          {/* Slide 6: سنة اليوم — a sunnah with the hadith it comes from */}
+          <div id="carousel-slide-5" ref={(slide) => { slidesRef.current[5] = slide; }} role="group" aria-roledescription="شريحة" aria-label="سنة اليوم" aria-hidden={activeIdx !== 5} style={{ flex: "0 0 100%", width: "100%", padding: "0.75rem 1rem 1rem" }}>
+            {sunnah ? (
+              <>
+                <div className="text-base leading-9 text-right font-semibold max-h-44 overflow-y-auto pr-1" style={{ color: "var(--fg)" }}>
+                  {sunnah.text}
+                </div>
+                {sunnah.source_label ? (
+                  <div className="mt-1 text-sm leading-7 rounded-xl p-2.5 arabic-text max-h-28 overflow-y-auto" style={{ color: "var(--muted)", background: "var(--card-2)" }}>
+                    {sunnah.source_label}
+                  </div>
+                ) : null}
+                <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <button type="button"
+                      onClick={() => handleShuffle(5)}
+                      className="p-1.5 rounded-lg transition press-effect"
+                      aria-label="سنة عشوائية"
+                      title="سنة جديدة"
+                      style={{ color: shuffleIdx[5] !== null ? "var(--accent)" : undefined, opacity: shuffleIdx[5] !== null ? 1 : 0.55 }}
+                    >
+                      <Shuffle size={14} aria-hidden="true" style={spinSlide === 5 && !prefersReducedMotion ? { animation: "spin-once 0.4s ease" } : undefined} />
+                    </button>
+                    <Button className="press-effect text-xs h-7 px-3" variant="secondary" onClick={() => navigate("/c/forgotten_sunnahs")}>
+                      <BookOpen size={12} aria-hidden="true" />
+                      السنن المهجورة
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button type="button"
+                      onClick={() => copyShare([sunnah.text, sunnah.benefit, sunnah.source_label].filter(Boolean).join("\n"))}
+                      className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition"
+                      aria-label="مشاركة السنة"
+                    >
+                      <Share2 size={14} />
+                    </button>
+                    {sunnah.source ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "color-mix(in srgb, var(--accent) 15%, transparent)", color: "var(--accent)" }}>
+                        {sunnah.source}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="text-sm opacity-50 py-4 text-center">{adhkarDb.isLoading ? "جارٍ التحميل…" : "لا توجد سنة"}</div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Dot indicators */}
       <div className="flex items-center justify-center gap-2 pb-3" role="tablist" aria-orientation="horizontal" aria-label="تنقل بين الشرائح">
-        {[0, 1, 2, 3].map((i) => (
+        {Array.from({ length: SLIDE_COUNT }, (_, i) => i).map((i) => (
           <button type="button"
             key={i}
             role="tab"

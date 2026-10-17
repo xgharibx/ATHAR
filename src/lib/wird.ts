@@ -128,7 +128,7 @@ export const TEMPLATES: Template[] = [
   {
     id: "starter",
     title: "ورد المبتدئ",
-    blurb: "خفيف ويُدوَّم عليه: أذكار الصباح والمساء ووجه من القرآن",
+    blurb: "خفيف وسهل الاستمرار: أذكار الصباح والمساء ووجه من القرآن",
     items: [
       { title: "أذكار الصباح", kind: "dhikr", unit: "مرة", target: 1, slot: "morning", days: [], auto: "morningAdhkar" },
       { title: "أذكار المساء", kind: "dhikr", unit: "مرة", target: 1, slot: "evening", days: [], auto: "eveningAdhkar" },
@@ -144,7 +144,7 @@ export const TEMPLATES: Template[] = [
   {
     id: "steady",
     title: "ورد المثابرة",
-    blurb: "قرآن وأذكار وذكر مئة مرة واستغفار",
+    blurb: "قرآن وأذكار واستغفار وصلاة على النبي ﷺ",
     items: [
       { title: "ورد القرآن", kind: "quran", unit: "وجه", target: 5, slot: "fajr", days: [], auto: null },
       { title: "أذكار الصباح", kind: "dhikr", unit: "مرة", target: 1, slot: "morning", days: [], auto: "morningAdhkar" },

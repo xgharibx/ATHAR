@@ -115,7 +115,7 @@ export function WirdPage() {
       </button>
       <div className="flex-1">
         <h1 className="text-xl font-semibold">جدول الورد</h1>
-        <p className="text-[11px] text-[var(--muted)]">أورادك كلها وأسبوعك في نظرة</p>
+        <p className="text-[11px] text-[var(--muted)]">أورادك وأسبوعك في مكان واحد</p>
       </div>
       {list.length > 0 && (
         <Button size="sm" onClick={() => setDraft(blankDraft())}>إضافة ورد</Button>
@@ -128,9 +128,9 @@ export function WirdPage() {
       <div dir="rtl" className="space-y-4 pb-24 page-enter px-1">
         {header}
         <Card className="p-5 space-y-2 text-center">
-          <div className="text-lg font-semibold">اجعل لكل يومٍ وِردًا</div>
+          <div className="text-lg font-semibold">اجعل لك وردًا كل يوم</div>
           <p className="text-sm text-[var(--muted)] leading-7">
-            ما قلّ ودام خير مما كثر وانقطع. اختر ورًدا جاهزًا وعدِّله، أو ابنِ وردك بنفسك. ما قرأتَه وما أتممتَ من أذكار في التطبيق يُحتسب فيه تلقائيًا.
+            القليل الدائم خير من الكثير المنقطع. اختر وردًا جاهزًا وعدّله، أو ابنِ وردك بنفسك. وما تقرؤه من القرآن وتنهيه من الأذكار في التطبيق يُحسب تلقائيًا.
           </p>
         </Card>
         <div className="space-y-2">
@@ -144,7 +144,7 @@ export function WirdPage() {
             </Card>
           ))}
         </div>
-        <Button variant="outline" className="w-full" onClick={() => setDraft(blankDraft())}>أبني وردي بنفسي</Button>
+        <Button variant="outline" className="w-full" onClick={() => setDraft(blankDraft())}>أنشئ وردي بنفسي</Button>
         {sheet()}
       </div>
     );
@@ -257,7 +257,7 @@ export function WirdPage() {
       </Card>
 
       {due.length === 0 && (
-        <Card className="p-5 text-center text-sm text-[var(--muted)]">لا ورد مستحقّ في هذا اليوم.</Card>
+        <Card className="p-5 text-center text-sm text-[var(--muted)]">لا يوجد ورد في هذا اليوم.</Card>
       )}
 
       {groups.map((g) => (

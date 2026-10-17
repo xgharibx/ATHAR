@@ -16,6 +16,9 @@ vi.mock("@/lib/hadithSharhAPI", () => ({
 }));
 vi.mock("@/lib/widgetDataBridge", () => ({ syncSunnahWidget: vi.fn() }));
 vi.mock("@/lib/shareTargets", () => ({ shareText: vi.fn() }));
+// The dua and sunnah slides read the adhkar database and the Quran; with no data they show a placeholder.
+vi.mock("@/data/useAdhkarDB", () => ({ useAdhkarDB: () => ({ data: undefined, isLoading: false }) }));
+vi.mock("@/data/useQuranDB", () => ({ useQuranDB: () => ({ data: undefined }) }));
 vi.mock("react-hot-toast", () => ({ default: { success: vi.fn(), error: vi.fn() } }));
 
 let container: HTMLDivElement;
@@ -69,9 +72,9 @@ describe("DailyCarousel accessibility", () => {
     await mount();
 
     const slides = [...container.querySelectorAll<HTMLElement>('[role="group"]')];
-    expect(slides).toHaveLength(4);
-    expect(slides.filter((slide) => slide.getAttribute("aria-hidden") === "true")).toHaveLength(3);
-    expect(slides.filter((slide) => slide.hasAttribute("inert"))).toHaveLength(3);
+    expect(slides).toHaveLength(6);
+    expect(slides.filter((slide) => slide.getAttribute("aria-hidden") === "true")).toHaveLength(5);
+    expect(slides.filter((slide) => slide.hasAttribute("inert"))).toHaveLength(5);
     expect(slides[1]?.getAttribute("aria-hidden")).toBe("false");
     const inactiveButton = container.querySelector<HTMLButtonElement>("#carousel-slide-0 button");
     expect(inactiveButton?.closest("[inert]")).not.toBeNull();

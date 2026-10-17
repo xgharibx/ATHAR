@@ -137,9 +137,9 @@ export function QadaaPage() {
         {header}
         {!q.configured && (
           <Card className="p-5 text-center space-y-2">
-            <div className="text-lg font-semibold">لنُحصِ ما عليك ثم نقضيه بهدوء</div>
+            <div className="text-lg font-semibold">احسب ما فاتك وابدأ قضاءه</div>
             <p className="text-sm text-[var(--muted)] leading-7">
-              خطة تتكيف مع ما تصليه كل يوم، وتخبرك متى ستنتهي بإذن الله، وتتابع صيامك مع العدّ التنازلي لرمضان.
+              أدخل ما فاتك من صلوات وصيام، وسنوزّعه عليك على الأيام ونوضّح لك متى ستنتهي. ونتابع معك أيام الصيام وكم بقي على رمضان.
             </p>
           </Card>
         )}
@@ -193,7 +193,7 @@ export function QadaaPage() {
         <div className="grid grid-cols-3 gap-2 mt-4 text-center">
           <div className="rounded-2xl bg-[var(--card)] py-2.5">
             <div className="text-base font-semibold">{arNum(q.streak)}</div>
-            <div className="text-[10px] text-[var(--muted)]">يوم متتابع</div>
+            <div className="text-[10px] text-[var(--muted)]">أيام متتالية</div>
           </div>
           <div className="rounded-2xl bg-[var(--card)] py-2.5">
             <div className="text-base font-semibold">{arNum(Math.round(q.pace * 10) / 10)}</div>
@@ -201,13 +201,13 @@ export function QadaaPage() {
           </div>
           <div className="rounded-2xl bg-[var(--card)] py-2.5">
             <div className="text-base font-semibold">{q.planDays !== null && !finished ? arDuration(q.planDays) : "—"}</div>
-            <div className="text-[10px] text-[var(--muted)]">بخطتك</div>
+            <div className="text-[10px] text-[var(--muted)]">حسب خطتك</div>
           </div>
         </div>
         {!finished && q.planFinish && (
           <p className="text-xs text-[var(--muted)] leading-6 mt-3 text-center">
-            تنتهي بإذن الله نحو {arDate(q.planFinish)} إن التزمت بخطتك
-            {q.paceFinish && q.pace > 0 ? `، وبمعدلك الحالي نحو ${arDate(q.paceFinish)}` : ""}.
+            لو التزمت بالخطة ستنتهي تقريبًا في {arDate(q.planFinish)}
+            {q.paceFinish && q.pace > 0 ? `، وبمعدلك الحالي تقريبًا في ${arDate(q.paceFinish)}` : ""}.
           </p>
         )}
       </Card>
@@ -218,7 +218,7 @@ export function QadaaPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold">اليوم</h2>
             <span className="text-xs text-[var(--muted)]" data-testid="qadaa-today-status">
-              {q.todayComplete ? "أتممتَ ما عليك اليوم" : `بقي ${arNum(q.quotaLeftTotal)} من ${arNum(q.quotaTotal)}`}
+              {q.todayComplete ? "خلّصتَ حصة اليوم" : `بقي ${arNum(q.quotaLeftTotal)} من ${arNum(q.quotaTotal)}`}
             </span>
           </div>
           <div className="space-y-2">
@@ -237,7 +237,7 @@ export function QadaaPage() {
                     <div className="text-[11px] text-[var(--muted)]">
                       متبقٍ {arNum(q.remaining[k])}
                       {q.quota[k] > 0 ? ` · اليوم ${arNum(Math.min(doneToday, q.quota[k]))}/${arNum(q.quota[k])}` : ""}
-                      {prayedNow ? " · صليتَ حاضرته الآن" : ""}
+                      {prayedNow ? " · صلّيتَ هذه الصلاة اليوم" : ""}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -281,7 +281,7 @@ export function QadaaPage() {
           )}
           {q.order && (
             <p className="text-xs text-[var(--muted)] leading-6">
-              الأصل الترتيب عند قلة الفوائت: {q.order.map((k) => PRAYER_LABELS[k]).join(" ثم ")}.
+              الأفضل أن تقضيها مرتبة: {q.order.map((k) => PRAYER_LABELS[k]).join(" ثم ")}.
             </p>
           )}
         </Card>
@@ -311,7 +311,7 @@ export function QadaaPage() {
           </div>
           {q.plan.mode === "perFard" && (
             <p className="text-xs text-[var(--muted)] leading-6">
-              مع كل فرض حاضر تقضي فرضًا فائتًا مثله، وهي أيسر الطرق. ما زاد عن المطلوب يُحتسب نافلة.
+              مع كل صلاة تصليها في وقتها، صلِّ معها صلاة فائتة من نوعها. هذه أسهل طريقة، وما زاد عن المطلوب يكون نافلة.
             </p>
           )}
           {q.plan.mode === "daily" && (
@@ -374,22 +374,22 @@ export function QadaaPage() {
             {q.nextRamadan.inRamadan ? "أنت في رمضان الآن" : "رمضان القادم بعد نحو"}
           </div>
           <div className="text-2xl font-bold mt-1">{arDuration(q.nextRamadan.daysUntil)}</div>
-          <div className="text-[10px] text-[var(--muted)] mt-1">تقدير فلكي قد يختلف عن الرؤية بيوم أو أكثر</div>
+          <div className="text-[10px] text-[var(--muted)] mt-1">الموعد تقريبي وقد يختلف يومًا أو أكثر</div>
         </div>
         {q.fastOwedTotal > 0 ? (
           <>
             <p className="text-sm leading-7" data-testid="qadaa-fast-advice">
-              {q.fastAdvice.level === "comfortable" && `عليك ${arDays(q.fastRemaining)} والوقت واسع، يكفيك صيام يوم أو يومين أسبوعيًا.`}
-              {q.fastAdvice.level === "start" && `عليك ${arDays(q.fastRemaining)}. ابدأ الآن حتى لا يضيق عليك الوقت.`}
-              {q.fastAdvice.level === "urgent" && `عليك ${arDays(q.fastRemaining)} والوقت يضيق، فصُم ما استطعت من الآن.`}
+              {q.fastAdvice.level === "comfortable" && `عليك ${arDays(q.fastRemaining)} والوقت أمامك واسع، يكفيك صيام يوم أو يومين في الأسبوع.`}
+              {q.fastAdvice.level === "start" && `عليك ${arDays(q.fastRemaining)}. ابدأ من الآن حتى لا يضيق عليك الوقت.`}
+              {q.fastAdvice.level === "urgent" && `عليك ${arDays(q.fastRemaining)} والوقت قصير، فصم ما تقدر عليه من الآن.`}
               {q.fastAdvice.level === "cannot" &&
-                `عليك ${arDays(q.fastRemaining)} ولن تكفيك الأيام قبل رمضان؛ صُم ما تقدر عليه، وأتمم الباقي بعده.`}
+                `عليك ${arDays(q.fastRemaining)} ولن تكفيك الأيام قبل رمضان. صم ما تقدر عليه وأكمل الباقي بعده.`}
               {q.fastAdvice.level === "none" && "لا صيام عليك."}
             </p>
             {q.fastAdvice.level === "cannot" && q.fastAdvice.fidyaIfDelayed && (
               <p className="text-xs text-[var(--muted)] leading-6">
-                عند الجمهور (المالكية والشافعية والحنابلة) من أخّر القضاء حتى دخل رمضان بلا عذر يقضي ويُطعم مسكينًا عن كل يوم.
-                وعند الحنفية القضاء فقط.
+                من أخّر القضاء حتى دخل رمضان بلا عذر: يقضي ويُطعم مسكينًا عن كل يوم عند المالكية والشافعية والحنابلة،
+                وعند الحنفية يقضي فقط.
               </p>
             )}
             <div className="space-y-2">
@@ -443,7 +443,7 @@ export function QadaaPage() {
           </>
         ) : (
           <p className="text-xs text-[var(--muted)] leading-6">
-            لم تُسجَّل أيام صيام عليك. يمكنك إضافتها من زر «تعديل الأرقام» بالأسفل.
+            لم تسجّل أيام صيام عليك. يمكنك إضافتها من «تعديل الأرقام» في الأسفل.
           </p>
         )}
       </Card>
@@ -473,7 +473,7 @@ export function QadaaPage() {
       </div>
       {q.madhhab && (
         <p className="text-[11px] text-center text-[var(--muted)]">
-          المذهب: {MADHHAB_LABELS[q.madhhab as Madhhab]} · هذه الأداة للتنظيم وليست فتوى، فراجع مفتيك في حالتك.
+          المذهب: {MADHHAB_LABELS[q.madhhab as Madhhab]} · الأداة تنظّم لك الحساب فقط وليست فتوى. اسأل أهل العلم عن حالتك.
         </p>
       )}
     </div>

@@ -14,7 +14,7 @@ export const DAILY_SECTION_IDS = new Set([
   "adhan", "toilet", "mosque", "home", "wudu", "food", "hajj", "virtue",
   "misc", "tasabeeh", "quranic_duas", "prophets_duas", "prophetic_duas",
   "jawami_dua", "ruqyah", "khatm_quran", "salawat", "al_mudhaaf",
-  "istighfar_100", "multiplied_dhikr", "forgotten_sunnahs", "essentials",
+  "istighfar_100", "multiplied_dhikr", "forgotten_sunnahs", "sunan", "essentials",
   "istikhara", "friday", "ramadan", "waking", "my_adhkar",
 ]);
 
