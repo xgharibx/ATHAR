@@ -2,6 +2,7 @@ import * as React from "react";
 import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { DateField } from "@/components/ui/Pickers";
 import { arNum } from "@/lib/formatNumber";
 import { useNoorStore } from "@/store/noorStore";
 import {
@@ -199,14 +200,14 @@ export function QadaaSetup({ onDone }: { onDone?: () => void }) {
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="تاريخ الميلاد">
-              <input type="date" max={today} value={birth} onChange={(e) => setBirth(e.target.value)} className={inputCls} />
+              <DateField max={today} value={birth} onChange={(e) => setBirth(e.target.value)} className={inputCls} />
             </Field>
             <Field label="سن البلوغ">
               <input type="number" inputMode="numeric" min={8} max={20} value={bulughAge} onChange={(e) => setBulughAge(e.target.value)} className={inputCls} />
             </Field>
           </div>
           <Field label="متى بدأت المحافظة على الصلاة؟">
-            <input type="date" max={today} value={started} onChange={(e) => setStarted(e.target.value)} className={inputCls} />
+            <DateField max={today} value={started} onChange={(e) => setStarted(e.target.value)} className={inputCls} />
           </Field>
           <Field label="كم نسبة ما صليته في تلك الفترة؟ (٪)">
             <input type="number" inputMode="numeric" min={0} max={100} value={prayedPct} onChange={(e) => setPrayedPct(e.target.value)} className={inputCls} />

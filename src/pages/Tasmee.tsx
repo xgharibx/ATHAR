@@ -10,6 +10,7 @@
  * as you say it. Recognition is provided by the browser or operating system
  * and may process audio outside this device; Athar does not save recordings.
  */
+import { Select } from "@/components/ui/Pickers";
 import * as React from "react";
 import { Check, Eye, Mic, MicOff, RotateCcw, X } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -162,7 +163,7 @@ export function TasmeePage() {
       {!started ? (
         <div className="mt-5 space-y-3 rounded-2xl border border-[var(--stroke)] bg-[var(--card)] p-4">
           <label className="block text-sm font-semibold" htmlFor="tasmee-surah">اختر السورة</label>
-          <select
+          <Select
             id="tasmee-surah"
             value={surahId}
             onChange={(e) => setSurahId(Number(e.target.value))}
@@ -173,7 +174,7 @@ export function TasmeePage() {
                 {s.id}. {s.name} — {arNum(s.ayahs.length)} آية
               </option>
             ))}
-          </select>
+          </Select>
           <button type="button" onClick={startSession} disabled={!db}
             className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-bold text-black/80 transition active:scale-[0.99] disabled:opacity-50">
             {db ? "ابدأ التسميع" : "جارٍ تحميل المصحف…"}

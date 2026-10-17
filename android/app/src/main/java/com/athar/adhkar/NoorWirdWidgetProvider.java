@@ -60,8 +60,10 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
                 views.setTextViewText(R.id.wird_ayahs_read, ayahsRead + " آية");
                 views.setTextViewText(R.id.wird_goal_label, "الهدف: " + dailyGoal + " آية");
                 views.setTextViewText(R.id.wird_surah_name,
-                    currentSurah.isEmpty() ? "ابدأ القراءة" : "سورة " + currentSurah);
-                views.setTextViewText(R.id.wird_ayah_ref, "الآية " + currentAyah);
+                    currentSurah.isEmpty() ? "ابدأ القراءة" : "سورة " + currentSurah + " · " + currentAyah);
+                // One line, not two: the ayah reference used to take a row of its own
+                // and, at the default 4x2 size, pushed the progress bar out of the box.
+                views.setViewVisibility(R.id.wird_ayah_ref, android.view.View.GONE);
                 views.setTextViewText(R.id.wird_progress_label,
                     pct >= 100 ? "اكتمل وردك اليوم ✓" : pct + "% من الهدف");
             } else {

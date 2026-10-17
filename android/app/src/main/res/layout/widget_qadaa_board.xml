@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Qadaa board (4×3): one row per prayer owed, with remaining count, today's share
+  and plus / minus buttons that log from the home screen. Taps go to a native
+  ledger the app merges on its next foreground (see qadaaWidgetSync.ts).
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/qb_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/noor_widget_background">
+
+    <ImageView
+        android:id="@+id/qb_sky"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <ViewFlipper
+        android:id="@+id/qb_stars_flipper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:autoStart="true"
+        android:flipInterval="1400"
+        android:inAnimation="@anim/widget_star_in"
+        android:outAnimation="@anim/widget_star_out"
+        android:importantForAccessibility="no">
+        <ImageView android:id="@+id/qb_stars" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:importantForAccessibility="no" />
+        <ImageView android:id="@+id/qb_stars_2" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:importantForAccessibility="no" />
+        <ImageView android:id="@+id/qb_stars_3" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:importantForAccessibility="no" />
+    </ViewFlipper>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/qb_sub"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="@color/widget_text_secondary"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/qb_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="قضاء الفوائت"
+                android:textColor="@color/widget_text_accent"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-medium"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/qb_rows"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="4dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/qb_row_0"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/qb_name_0"
+                    android:layout_width="44dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:textColor="@color/widget_text_primary"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_info_0"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/widget_text_secondary"
+                    android:textSize="10sp" />
+
+                <!-- Fixed brand buttons (no night variant): text stays a fixed color. -->
+                <TextView
+                    android:id="@+id/qb_minus_0"
+                    android:layout_width="34dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/widget_btn_ghost"
+                    android:gravity="center"
+                    android:text="−"
+                    android:textColor="#EAFFEE"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_plus_0"
+                    android:layout_width="40dp"
+                    android:layout_height="26dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/noor_widget_pill"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="#26301B"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/qb_row_1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/qb_name_1"
+                    android:layout_width="44dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:textColor="@color/widget_text_primary"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_info_1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/widget_text_secondary"
+                    android:textSize="10sp" />
+
+                <!-- Fixed brand buttons (no night variant): text stays a fixed color. -->
+                <TextView
+                    android:id="@+id/qb_minus_1"
+                    android:layout_width="34dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/widget_btn_ghost"
+                    android:gravity="center"
+                    android:text="−"
+                    android:textColor="#EAFFEE"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_plus_1"
+                    android:layout_width="40dp"
+                    android:layout_height="26dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/noor_widget_pill"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="#26301B"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/qb_row_2"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/qb_name_2"
+                    android:layout_width="44dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:textColor="@color/widget_text_primary"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_info_2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/widget_text_secondary"
+                    android:textSize="10sp" />
+
+                <!-- Fixed brand buttons (no night variant): text stays a fixed color. -->
+                <TextView
+                    android:id="@+id/qb_minus_2"
+                    android:layout_width="34dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/widget_btn_ghost"
+                    android:gravity="center"
+                    android:text="−"
+                    android:textColor="#EAFFEE"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_plus_2"
+                    android:layout_width="40dp"
+                    android:layout_height="26dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/noor_widget_pill"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="#26301B"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/qb_row_3"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/qb_name_3"
+                    android:layout_width="44dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:textColor="@color/widget_text_primary"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_info_3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/widget_text_secondary"
+                    android:textSize="10sp" />
+
+                <!-- Fixed brand buttons (no night variant): text stays a fixed color. -->
+                <TextView
+                    android:id="@+id/qb_minus_3"
+                    android:layout_width="34dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/widget_btn_ghost"
+                    android:gravity="center"
+                    android:text="−"
+                    android:textColor="#EAFFEE"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_plus_3"
+                    android:layout_width="40dp"
+                    android:layout_height="26dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/noor_widget_pill"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="#26301B"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/qb_row_4"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/qb_name_4"
+                    android:layout_width="44dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:textColor="@color/widget_text_primary"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_info_4"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/widget_text_secondary"
+                    android:textSize="10sp" />
+
+                <!-- Fixed brand buttons (no night variant): text stays a fixed color. -->
+                <TextView
+                    android:id="@+id/qb_minus_4"
+                    android:layout_width="34dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/widget_btn_ghost"
+                    android:gravity="center"
+                    android:text="−"
+                    android:textColor="#EAFFEE"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_plus_4"
+                    android:layout_width="40dp"
+                    android:layout_height="26dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/noor_widget_pill"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="#26301B"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/qb_row_5"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/qb_name_5"
+                    android:layout_width="44dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:textColor="@color/widget_text_primary"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_info_5"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/widget_text_secondary"
+                    android:textSize="10sp" />
+
+                <!-- Fixed brand buttons (no night variant): text stays a fixed color. -->
+                <TextView
+                    android:id="@+id/qb_minus_5"
+                    android:layout_width="34dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/widget_btn_ghost"
+                    android:gravity="center"
+                    android:text="−"
+                    android:textColor="#EAFFEE"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/qb_plus_5"
+                    android:layout_width="40dp"
+                    android:layout_height="26dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/noor_widget_pill"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="#26301B"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+</FrameLayout>

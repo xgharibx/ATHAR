@@ -1,4 +1,5 @@
 
+import { Select } from "@/components/ui/Pickers";
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MiracleCard from '@/ijaz/components/ui/MiracleCard';
@@ -104,14 +105,14 @@ export default function MiraclesPage() {
               </div>
 
               {/* Sort */}
-              <select
+              <Select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'order' | 'category')}
                 className="bg-vanta/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-text-primary font-tajawal focus:outline-none focus:border-gold-primary/50 backdrop-blur-sm"
               >
                 <option value="order">{'\u062A\u0631\u062A\u064A\u0628 \u062D\u0633\u0628 \u0627\u0644\u0631\u0642\u0645'}</option>
                 <option value="category">{'\u062A\u0631\u062A\u064A\u0628 \u062D\u0633\u0628 \u0627\u0644\u0642\u0633\u0645'}</option>
-              </select>
+              </Select>
             </div>
           </motion.div>
 

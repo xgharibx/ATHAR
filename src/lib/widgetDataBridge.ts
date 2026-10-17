@@ -16,6 +16,8 @@
 import { Capacitor } from "@capacitor/core";
 import { useNoorStore, ibadahDayKeyOf, type Preferences } from "@/store/noorStore";
 import { buildQadaaSummary } from "@/lib/qadaaSummary";
+import { PRAYER_KEYS } from "@/lib/qadaa";
+import { readMarks } from "@/lib/qadaaWidgetSync";
 import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
 
 function todayISO(): string {
@@ -69,6 +71,11 @@ export type QadaaWidgetPayload = {
   streak: number;
   fastRemaining: number;
   day: string;
+  /** One row per prayer owed: remaining, made up in total, made up today, today's share. */
+  prayers: Array<{ k: string; rem: number; dn: number; td: number; qt: number }>;
+  /** Widget-ledger counters already folded into the numbers above, so taps made since are layered on top. */
+  owner: string;
+  seen: Record<string, { i: number; d: number }>;
   updatedAt: string;
 };
 
@@ -229,6 +236,15 @@ export async function syncQadaaWidget(): Promise<void> {
     streak: q.streak,
     fastRemaining: q.fastRemaining,
     day: q.today,
+    prayers: PRAYER_KEYS.filter((k) => q.owed[k] > 0 || q.remaining[k] > 0).map((k) => ({
+      k,
+      rem: q.remaining[k],
+      dn: Math.max(0, (state.qadaaDone ?? {})[`p:${k}`] ?? 0),
+      td: q.todayDone[k],
+      qt: q.quota[k],
+    })),
+    owner: getAccountStorageOwner(),
+    seen: readMarks(),
     updatedAt: new Date().toISOString(),
   };
   const value = JSON.stringify(payload);

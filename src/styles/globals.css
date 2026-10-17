@@ -1407,6 +1407,14 @@ html.midnight body.transparent-mode .glass-strong {
    Quran: Reading focus (immersive) mode
    ------------------------------------------------------- */
 body.quran-focus-mode header,
+/* A bottom sheet is the whole screen while it is open: the floating nav (z 9999)
+   and the quick-tasbeeh button would otherwise sit on top of its buttons. */
+body:has([role="dialog"][data-state="open"]) .floating-nav-row,
+body:has([role="dialog"][data-state="open"]) .fab {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.2s ease !important;
+}
 body.quran-focus-mode .floating-nav-row,
 body.quran-focus-mode [class*="QuickTasbeeh"] {
   opacity: 0 !important;

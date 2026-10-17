@@ -54,12 +54,24 @@ public class NoorSunnahWidgetProvider extends AtharWidgetProvider {
         }
     }
 
+    /** A widget has room for a few lines, not a whole hadith: cut at a word and say so. */
+    static String fitHadith(String text) {
+        String t = text.trim().replaceAll("\s+", " ");
+        final int max = 120;
+        if (t.length() <= max) return t;
+        int cut = t.lastIndexOf(' ', max);
+        return t.substring(0, cut > 60 ? cut : max) + "…";
+    }
+
     private void updateLive(Context context, AppWidgetManager manager, int appWidgetId) {
         AtharWidgetSpec spec = getSpec();
         RemoteViews views = new RemoteViews(context.getPackageName(), spec.layoutId);
 
         views.setTextViewText(R.id.noor_widget_title, spec.title);
-        views.setTextViewText(R.id.noor_widget_date, dateLine());
+        // Hijri only: the long Gregorian + Hijri line wrapped to two rows and took
+        // the hadith's room, leaving a single line of text.
+        String hijri = hijriDate();
+        views.setTextViewText(R.id.noor_widget_date, hijri.isEmpty() ? dateLine() : hijri);
 
         String route = spec.route;
         boolean hasRealHadith = false;
@@ -72,7 +84,10 @@ public class NoorSunnahWidgetProvider extends AtharWidgetProvider {
                 String grade = payload.optString("grade", "");
                 String id = payload.optString("id", "");
                 if (!hadeeth.isEmpty()) {
-                    views.setTextViewText(R.id.noor_widget_phrase, hadeeth);
+                    views.setTextViewText(R.id.noor_widget_phrase, fitHadith(hadeeth));
+                    // Autosize does not re-measure inside a launcher, so size by length.
+                    views.setTextViewTextSize(R.id.noor_widget_phrase,
+                        android.util.TypedValue.COMPLEX_UNIT_SP, hadeeth.length() <= 70 ? 15f : hadeeth.length() <= 100 ? 13f : 11f);
                     String attrLine = grade.isEmpty() ? attribution : attribution + " · " + grade;
                     if (!attrLine.isEmpty()) {
                         views.setTextViewText(R.id.sunnah_attribution, attrLine);

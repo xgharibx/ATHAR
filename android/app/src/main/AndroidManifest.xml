@@ -202,6 +202,18 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_qadaa_info" />
         </receiver>
+        <!-- Qadaa Board Widget (4×3, interactive) -->
+        <receiver
+            android:name=".NoorQadaaBoardWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_qadaa_board_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_qadaa_board_info" />
+        </receiver>
     </application>
 
     <!-- Permissions -->

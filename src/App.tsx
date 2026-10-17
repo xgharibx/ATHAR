@@ -446,6 +446,8 @@ function AppContent() {
     const syncWidgets = async () => {
       const { mergeTasbeehFromWidget } = await import("@/lib/tasbeehWidgetSync");
       await mergeTasbeehFromWidget();
+      const { mergeQadaaFromWidget } = await import("@/lib/qadaaWidgetSync");
+      await mergeQadaaFromWidget();
       await syncAllWidgets();
     };
     void syncWidgets();

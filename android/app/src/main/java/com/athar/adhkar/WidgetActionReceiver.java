@@ -17,6 +17,8 @@ public final class WidgetActionReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if (NoorCompactWidgetProvider.ACTION_INCREMENT.equals(action)) {
             NoorCompactWidgetProvider.handleWidgetAction(context, intent);
+        } else if (NoorQadaaBoardWidgetProvider.ACTION_ADJUST.equals(action)) {
+            NoorQadaaBoardWidgetProvider.handleWidgetAction(context, intent);
         } else if (NoorTasbeehWidgetProvider.ACTION_INCREMENT.equals(action)
                 || NoorTasbeehWidgetProvider.ACTION_RESET.equals(action)
                 || NoorTasbeehWidgetProvider.ACTION_NEXT.equals(action)) {

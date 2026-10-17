@@ -18,6 +18,7 @@
  *  - All dates/times rendered via `arNum` / `arTime` / `arFullDate` for
  *    locale-friendly Arabic-Indic output (no Western-digit fallback).
  */
+import { Select, TimeField } from "@/components/ui/Pickers";
 import * as React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -555,7 +556,7 @@ function ReminderFormDrawer(props: {
         </Field>
 
         <Field label="نوع التكرار">
-          <select
+          <Select
             value={form.repeat}
             onChange={(e) => update("repeat", e.target.value as ReminderRepeat)}
             className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
@@ -563,12 +564,12 @@ function ReminderFormDrawer(props: {
             {(Object.entries(REPEAT_LABELS) as [ReminderRepeat, string][]).map(([k, v]) => (
               <option key={k} value={k}>{v}</option>
             ))}
-          </select>
+          </Select>
         </Field>
 
         {showWeeklyField ? (
           <Field label="يوم الأسبوع">
-            <select
+            <Select
               value={form.dayOfWeek}
               onChange={(e) => update("dayOfWeek", Number(e.target.value))}
               className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
@@ -576,7 +577,7 @@ function ReminderFormDrawer(props: {
               {Array.from({ length: 7 }, (_, idx) => (
                 <option key={idx} value={idx}>{`يوم ${arNum(idx + 1)}`}</option>
               ))}
-            </select>
+            </Select>
           </Field>
         ) : null}
 
@@ -596,7 +597,7 @@ function ReminderFormDrawer(props: {
         {showAnchorField ? (
           <>
             <Field label="الارتباط">
-              <select
+              <Select
                 value={form.anchorKey ?? ""}
                 onChange={(e) => update("anchorKey", (e.target.value || undefined) as CustomReminder["anchorKey"])}
                 className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
@@ -605,7 +606,7 @@ function ReminderFormDrawer(props: {
                 {(Object.entries(ANCHOR_LABELS) as [NonNullable<CustomReminder["anchorKey"]>, string][]).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
                 ))}
-              </select>
+              </Select>
             </Field>
             <Field label="إزاحة بالدقائق (موجبة بعد / سالبة قبل)">
               <input
@@ -620,12 +621,10 @@ function ReminderFormDrawer(props: {
 
         {showTimeField ? (
           <Field label="وقت التذكير">
-            <input
-              type="time"
+            <TimeField
               value={form.atTimeOfDay}
               onChange={(e) => update("atTimeOfDay", e.target.value)}
-              className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
-            />
+              className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition" />
           </Field>
         ) : null}
 
@@ -674,7 +673,7 @@ function ReminderFormDrawer(props: {
 
         {form.repeat === "fasting_aligned" ? (
           <Field label="نمط الصيام">
-            <select
+            <Select
               value={form.fastingPattern}
               onChange={(e) => update("fastingPattern", e.target.value as FastingPattern | "")}
               className="form-field-readable w-full rounded-2xl border border-[var(--stroke)] bg-[var(--card)] px-4 py-3 text-sm outline-none focus:border-accent-40 transition"
@@ -683,7 +682,7 @@ function ReminderFormDrawer(props: {
               {(Object.entries(FASTING_PATTERN_LABELS) as [FastingPattern, string][]).map(([pattern, label]) => (
                 <option key={pattern} value={pattern}>{label}</option>
               ))}
-            </select>
+            </Select>
           </Field>
         ) : null}
         <p className="text-[10.5px] leading-5 text-[var(--muted-2)]">

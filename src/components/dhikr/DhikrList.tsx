@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/Pickers";
 import * as React from "react";
 import { shareText } from "@/lib/shareTargets";
 import { celebrate } from "@/lib/celebrate";
@@ -777,7 +778,7 @@ export function DhikrList(props: Readonly<{
                 {/* D12: auto-read mode */}
                 {SHOW_AUTO_READ && !autoReadActive && (
                   <>
-                    <select
+                    <Select
                       value={autoReadSpeed}
                       onChange={(e) => setAutoReadSpeed(Number(e.target.value))}
                       className="shrink-0 h-9 rounded-xl border border-[var(--stroke)] bg-[var(--card)] px-2 text-xs outline-none"
@@ -786,7 +787,7 @@ export function DhikrList(props: Readonly<{
                       <option value={3}>٣ ثانية</option>
                       <option value={5}>٥ ثواني</option>
                       <option value={10}>١٠ ثواني</option>
-                    </select>
+                    </Select>
                     <Button variant="secondary" className="shrink-0" onClick={startAutoRead} disabled={!hasItems} aria-label="بدء القراءة التلقائية">
                       <Timer size={14} aria-hidden="true" />
                       تلقائي

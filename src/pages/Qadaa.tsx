@@ -4,6 +4,7 @@ import { ChevronRight, Minus, Plus, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { DateField } from "@/components/ui/Pickers";
 import { arNum, westernToArabicDigits } from "@/lib/formatNumber";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useQadaa } from "@/hooks/useQadaa";
@@ -330,12 +331,11 @@ export function QadaaPage() {
           {q.plan.mode === "byDate" && (
             <div className="flex items-center gap-3">
               <span className="text-sm">أنتهي قبل</span>
-              <input
-                type="date"
+              <DateField
                 value={settings.planFinishBy ?? ""}
                 min={q.today}
                 onChange={(e) => setQadaaSettings({ planFinishBy: e.target.value || null })}
-                className="rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm"
+                className="flex-1 rounded-2xl bg-[var(--card)] border border-[var(--stroke)] px-3 py-2 text-sm"
               />
             </div>
           )}

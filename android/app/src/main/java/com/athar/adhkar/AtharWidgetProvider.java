@@ -67,11 +67,30 @@ public abstract class AtharWidgetProvider extends AppWidgetProvider {
         );
     }
 
-    /** "الجمعة، ٧ يوليو • ١٢ محرم ١٤٤٧" — Gregorian + Umm al-Qura Hijri. */
+    /**
+     * "السبت ٦ جمادى الأولى" — weekday + Hijri day and month, one short line.
+     * The old "weekday، day month • day month year" form was ~35 characters and
+     * wrapped to two rows in every widget that shares a row with a title, which
+     * squeezed the content below it (clipped adhkar counts, one-line hadith).
+     */
     public static String dateLine() {
-        String gregorian = new SimpleDateFormat("EEEE، d MMMM", new Locale("ar")).format(new Date());
-        String hijri = hijriDate();
-        return hijri.isEmpty() ? gregorian : gregorian + "  •  " + hijri;
+        String weekday = new SimpleDateFormat("EEEE", new Locale("ar")).format(new Date());
+        String hijri = hijriDayMonth();
+        if (hijri.isEmpty()) return new SimpleDateFormat("EEEE d MMMM", new Locale("ar")).format(new Date());
+        return weekday + " " + hijri;
+    }
+
+    private static String hijriDayMonth() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return "";
+        try {
+            android.icu.text.SimpleDateFormat fmt = new android.icu.text.SimpleDateFormat(
+                "d MMMM",
+                android.icu.util.ULocale.forLanguageTag("ar-SA-u-ca-islamic-umalqura")
+            );
+            return fmt.format(new Date());
+        } catch (Throwable t) {
+            return "";
+        }
     }
 
     /** Umm al-Qura Hijri date in Arabic, or "" below API 24. */

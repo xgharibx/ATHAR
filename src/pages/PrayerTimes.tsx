@@ -1,4 +1,5 @@
 // PrayerTimes page — P1-P12 complete implementation
+import { Select } from "@/components/ui/Pickers";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -348,7 +349,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
         {/* P5 */}
         <div>
           <div className="text-xs font-semibold opacity-60 mb-2 uppercase tracking-wide">طريقة الحساب</div>
-          <select
+          <Select
             value={prefs.prayerCalcMethod ?? 5}
             onChange={(e) => setPrefs({ prayerCalcMethod: Number(e.target.value) })}
             aria-label="طريقة الحساب"
@@ -357,7 +358,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
             {PRAYER_CALC_METHODS.map((m) => (
               <option key={m.value} value={m.value} className="bg-gray-900 text-white">{m.label}</option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* P6 */}
