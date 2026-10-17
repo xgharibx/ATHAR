@@ -189,6 +189,19 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_qibla_info" />
         </receiver>
+
+        <!-- Qadaa Widget (4×2) -->
+        <receiver
+            android:name=".NoorQadaaWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_qadaa_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_qadaa_info" />
+        </receiver>
     </application>
 
     <!-- Permissions -->

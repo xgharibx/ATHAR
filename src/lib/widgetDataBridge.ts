@@ -8,12 +8,14 @@
  *   noor_widget_adhkar_v1    — morning / evening adhkar progress
  *   noor_widget_wird_v1      — quran wird reading stats
  *   noor_widget_dashboard_v1 — streak days + score + level (for Dashboard widget)
+ *   noor_widget_qadaa_v1     — qadaa remaining / today's share (for Qadaa widget)
  *
  * (Prayer data is written separately by prayerWidget.ts)
  */
 
 import { Capacitor } from "@capacitor/core";
-import { useNoorStore, type Preferences } from "@/store/noorStore";
+import { useNoorStore, ibadahDayKeyOf, type Preferences } from "@/store/noorStore";
+import { buildQadaaSummary } from "@/lib/qadaaSummary";
 import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
 
 function todayISO(): string {
@@ -54,6 +56,19 @@ export type WirdWidgetPayload = {
   dailyGoal: number;
   currentSurah: string;
   currentAyah: number;
+  updatedAt: string;
+};
+
+export type QadaaWidgetPayload = {
+  configured: boolean;
+  owed: number;
+  remaining: number;
+  percent: number;
+  quotaTotal: number;
+  quotaLeft: number;
+  streak: number;
+  fastRemaining: number;
+  day: string;
   updatedAt: string;
 };
 
@@ -192,6 +207,35 @@ export async function syncWirdWidget(): Promise<void> {
   await nativeSet(KEY, value);
 }
 
+/** Qadaa remaining and today's share, for the native Qadaa widget. */
+export async function syncQadaaWidget(): Promise<void> {
+  const KEY = "noor_widget_qadaa_v1";
+  const state = useNoorStore.getState();
+  const q = buildQadaaSummary({
+    owed: state.qadaaOwed ?? {},
+    done: state.qadaaDone ?? {},
+    dayTotals: state.qadaaDayTotals ?? {},
+    dayKinds: state.qadaaDayKinds ?? {},
+    settings: state.qadaaSettings ?? {},
+    today: ibadahDayKeyOf(state),
+  });
+  const payload: QadaaWidgetPayload = {
+    configured: q.configured,
+    owed: q.owedTotal,
+    remaining: q.remainingTotal,
+    percent: q.percent,
+    quotaTotal: q.quotaTotal,
+    quotaLeft: q.quotaLeftTotal,
+    streak: q.streak,
+    fastRemaining: q.fastRemaining,
+    day: q.today,
+    updatedAt: new Date().toISOString(),
+  };
+  const value = JSON.stringify(payload);
+  try { accountScopedLocalStorage.setItem(KEY, value); } catch { /* ignore */ }
+  await nativeSet(KEY, value);
+}
+
 /**
  * Sync streak + score + level to the native Dashboard widget.
  * Call this alongside the other sync functions on app foreground.
@@ -326,6 +370,7 @@ export async function syncAllWidgets(): Promise<void> {
   await Promise.allSettled([
     syncAdhkarWidget(),
     syncWirdWidget(),
+    syncQadaaWidget(),
     syncDashboardWidget(),
     syncQiblaWidget(),
   ]);

@@ -84,6 +84,7 @@ const HadithMemoPage = React.lazy(() => import("@/pages/HadithMemo").then((m) =>
 const CompanionsPage = React.lazy(() => import("@/pages/Companions"));
 const SeerahPage = React.lazy(() => import("@/pages/SeerahTimeline"));
 const QuranPlansPage = React.lazy(() => import("@/pages/QuranPlans").then((m) => ({ default: m.QuranPlansPage })));
+const QadaaPage = React.lazy(() => import("@/pages/Qadaa").then((m) => ({ default: m.QadaaPage })));
 const CustomAdhkarPage = React.lazy(() => import("@/pages/CustomAdhkar").then((m) => ({ default: m.CustomAdhkarPage })));
 const NearbyMosquesPage = React.lazy(() => import("@/pages/NearbyMosques").then((m) => ({ default: m.NearbyMosquesPage })));
 const TafsirPage = React.lazy(() => import("@/pages/Tafsir").then((m) => ({ default: m.TafsirPage })));
@@ -514,6 +515,7 @@ function AppContent() {
           <Route path="shorts" element={<S><ShortsPage /></S>} />
           <Route path="quran" element={<S><QuranPage /></S>} />
           <Route path="quran/plans" element={<S><QuranPlansPage /></S>} />
+          <Route path="qadaa" element={<S><QadaaPage /></S>} />
           <Route path="adhkar/custom" element={<S><CustomAdhkarPage /></S>} />
           <Route path="sebha" element={<S><SebhaPage /></S>} />
           <Route path="tafsir" element={<S><TafsirPage /></S>} />

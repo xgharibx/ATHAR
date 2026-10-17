@@ -23,6 +23,7 @@ import { rememberThemeForFirstPaint } from "@/lib/themeBootstrap";
 import type { HadithMemoCard } from "@/data/hadithTypes";
 import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
 import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
+import { parsePrayerKey, parseFastKey, type Madhhab, type PlanMode } from "@/lib/qadaa";
 import {
   accountScopedLocalStorage,
   getAccountStorageOwner,
@@ -285,6 +286,11 @@ export type ExportBlobV1 = {
   shortsHiddenChannels?: Record<string, boolean>;
   shortsChannelStats?: Record<string, ShortsChannelStat>;
   shortsTopicAffinity?: Record<string, number>;
+  qadaaOwed?: Record<string, number>;
+  qadaaDone?: Record<string, number>;
+  qadaaDayTotals?: Record<string, number>;
+  qadaaDayKinds?: Record<string, number>;
+  qadaaSettings?: QadaaSettings;
   sebhaCustomList?: Array<{ id: string; phrase: string; transliteration?: string; target: number; color: string; createdAt: string }>;
   tasbeehStreak?: number;
   tasbeehStreakBest?: number;
@@ -394,6 +400,31 @@ type NoorState = {
     fraction: number;
     channelNames?: readonly string[];
   }) => void;
+  /**
+   * Qadaa of missed prayers and fasts. `owed` is what the person says they owe,
+   * `done` is what they have made up. They are separate on purpose: `done` only
+   * ever counts real acts, so it merges across devices by adding, while `owed` is
+   * a statement the person can correct, so the latest one wins. Remaining is
+   * owed - done. Keys are `p:<prayer>` and `f:<hijri year of the Ramadan>`.
+   */
+  qadaaOwed: Record<string, number>;
+  qadaaDone: Record<string, number>;
+  /** Made up per ibadah day, for the pace, the streak and the chart. */
+  qadaaDayTotals: Record<string, number>;
+  /**
+   * Made up per ibadah day AND per prayer ("2026-10-17|p:fajr" -> 1), which is
+   * what lets the page show "Fajr 0/1, Dhuhr 1/1" against today's quota. Only
+   * the last few weeks are kept; the long history is qadaaDayTotals.
+   */
+  qadaaDayKinds: Record<string, number>;
+  qadaaSettings: QadaaSettings;
+  setQadaaOwed: (patch: Record<string, number>) => void;
+  logQadaa: (key: string, n?: number) => void;
+  /** One of each key, atomically - "a full day of qadaa". */
+  logQadaaBatch: (keys: string[]) => void;
+  undoQadaa: (key: string) => void;
+  setQadaaSettings: (patch: Partial<QadaaSettings>) => void;
+  resetQadaa: () => void;
   incTasbeehDailyLog: (dateKey: string, key: string) => void;
   // Widget bridge: bulk-merge home-screen widget tasbeeh counts into stats
   mergeWidgetTasbeeh: (dateKey: string, counts: Record<string, number>) => void;
@@ -850,6 +881,105 @@ function toSafeInt(value: unknown) {
   return Math.max(0, Math.floor(n));
 }
 
+/** What the person has told Athar about their qadaa. All optional; all scalars so each merges on its own. */
+export type QadaaSettings = {
+  madhhab?: Madhhab | null;
+  /** Witr is owed by the Hanafis; others may opt in. */
+  includeWitr?: boolean;
+  planMode?: PlanMode;
+  /** `daily` plan: full days of qadaa per day. */
+  planPerDay?: number;
+  /** `byDate` plan: the date to finish by. */
+  planFinishBy?: string | null;
+  /** Cost of feeding one poor person one meal, for the fidya total. */
+  mealCost?: number;
+  /** The date qadaa was set up, so the plan does not read as "behind" before it began. */
+  startedISO?: string | null;
+};
+
+const MADHHABS: readonly string[] = ["hanafi", "maliki", "shafii", "hanbali"];
+const PLAN_MODES: readonly string[] = ["perFard", "daily", "byDate"];
+const QADAA_MAX = 1_000_000;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** `p:<prayer>` or `f:<hijri year>` - anything else is not ours to store. */
+function isQadaaKey(key: unknown): key is string {
+  return typeof key === "string" && (parsePrayerKey(key) !== null || parseFastKey(key) !== null);
+}
+
+/** A whole, non-negative count, bounded so a bad import cannot store nonsense. */
+function clampQadaaCount(raw: unknown, max = QADAA_MAX): number {
+  const n = Math.floor(Number(raw));
+  return Number.isFinite(n) && n > 0 ? Math.min(n, max) : 0;
+}
+
+/** Counts keyed by prayer or Ramadan; drops unknown keys and non-positive values. */
+function sanitizeQadaaMap(input: unknown): Record<string, number> {
+  const src = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const out: Record<string, number> = {};
+  for (const [key, value] of Object.entries(src)) {
+    if (!isQadaaKey(key)) continue;
+    const v = clampQadaaCount(value);
+    if (v > 0) out[key] = v;
+  }
+  return out;
+}
+
+function sanitizeQadaaSettings(input: unknown): QadaaSettings {
+  const s = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const out: QadaaSettings = {};
+  if (s.madhhab === null || (typeof s.madhhab === "string" && MADHHABS.includes(s.madhhab))) {
+    out.madhhab = s.madhhab as Madhhab | null;
+  }
+  if (typeof s.includeWitr === "boolean") out.includeWitr = s.includeWitr;
+  if (typeof s.planMode === "string" && PLAN_MODES.includes(s.planMode)) out.planMode = s.planMode as PlanMode;
+  if (typeof s.planPerDay === "number" && Number.isFinite(s.planPerDay)) {
+    out.planPerDay = Math.min(100, Math.max(1, Math.floor(s.planPerDay)));
+  }
+  if (s.planFinishBy === null || (typeof s.planFinishBy === "string" && ISO_DATE.test(s.planFinishBy))) {
+    out.planFinishBy = s.planFinishBy as string | null;
+  }
+  if (typeof s.mealCost === "number" && Number.isFinite(s.mealCost)) {
+    out.mealCost = Math.min(100_000, Math.max(0, s.mealCost));
+  }
+  if (s.startedISO === null || (typeof s.startedISO === "string" && ISO_DATE.test(s.startedISO))) {
+    out.startedISO = s.startedISO as string | null;
+  }
+  return out;
+}
+
+/** Days of per-prayer history kept; the one-number-a-day tally keeps the long view. */
+const QADAA_DAYKIND_KEEP_DAYS = 21;
+
+function dayKindKey(day: string, key: string): string {
+  return `${day}|${key}`;
+}
+
+/** Drop per-prayer entries older than the window. Dates compare as strings (ISO sorts). */
+function pruneDayKinds(map: Record<string, number>, today: string): Record<string, number> {
+  const t = Date.parse(`${today}T00:00:00Z`);
+  if (!Number.isFinite(t)) return map;
+  const cutoff = new Date(t - QADAA_DAYKIND_KEEP_DAYS * 86_400_000).toISOString().slice(0, 10);
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(map)) {
+    const day = k.split("|")[0] ?? "";
+    if (day >= cutoff) out[k] = v;
+  }
+  return out;
+}
+
+function sanitizeQadaaDayKinds(input: unknown): Record<string, number> {
+  const src = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const out: Record<string, number> = {};
+  for (const [k, value] of Object.entries(src)) {
+    const [day, key] = k.split("|");
+    if (!day || !key || !ISO_DATE.test(day) || !isQadaaKey(key)) continue;
+    const v = clampQadaaCount(value);
+    if (v > 0) out[k] = v;
+  }
+  return out;
+}
+
 function sanitizeNumberMap(input: unknown) {
   const src = (input ?? {}) as Record<string, unknown>;
   const out: Record<string, number> = {};
@@ -896,7 +1026,7 @@ function normalizeQuranBookmarks(input: unknown): Record<string, boolean> {
  * window was written under one key and looked up under another — and scored as
  * zero. The fallback only applies before the first reset has ever run.
  */
-function ibadahDayKeyOf(state: { lastIbadahResetISO: string | null; lastKnownFajrTime: string | null }) {
+export function ibadahDayKeyOf(state: { lastIbadahResetISO: string | null; lastKnownFajrTime: string | null }) {
   return state.lastIbadahResetISO ?? getIbadahDateKey(new Date(), state.lastKnownFajrTime);
 }
 
@@ -978,6 +1108,81 @@ export const useNoorStore = create<NoorState>()(
       },
 
       tasbeehDayTotals: {},
+      qadaaOwed: {},
+      qadaaDone: {},
+      qadaaDayTotals: {},
+      qadaaDayKinds: {},
+      qadaaSettings: {},
+      setQadaaOwed: (patch) =>
+        set((st) => {
+          const next = { ...st.qadaaOwed };
+          for (const [key, raw] of Object.entries(patch ?? {})) {
+            if (!isQadaaKey(key)) continue;
+            const v = clampQadaaCount(raw);
+            if (v > 0) next[key] = v;
+            else delete next[key];
+          }
+          return { qadaaOwed: next };
+        }),
+      logQadaa: (key, n = 1) => {
+        if (!isQadaaKey(key)) return;
+        const by = clampQadaaCount(n, 1000);
+        if (by <= 0) return;
+        set((st) => {
+          const day = ibadahDayKeyOf(st);
+          const dk = dayKindKey(day, key);
+          return {
+            qadaaDone: { ...st.qadaaDone, [key]: (st.qadaaDone[key] ?? 0) + by },
+            qadaaDayTotals: { ...st.qadaaDayTotals, [day]: (st.qadaaDayTotals[day] ?? 0) + by },
+            qadaaDayKinds: pruneDayKinds({ ...st.qadaaDayKinds, [dk]: (st.qadaaDayKinds[dk] ?? 0) + by }, day),
+          };
+        });
+      },
+      logQadaaBatch: (keys) => {
+        const valid = (keys ?? []).filter(isQadaaKey);
+        if (!valid.length) return;
+        set((st) => {
+          const day = ibadahDayKeyOf(st);
+          const done = { ...st.qadaaDone };
+          const kinds = { ...st.qadaaDayKinds };
+          for (const k of valid) {
+            done[k] = (done[k] ?? 0) + 1;
+            const dk = dayKindKey(day, k);
+            kinds[dk] = (kinds[dk] ?? 0) + 1;
+          }
+          return {
+            qadaaDone: done,
+            qadaaDayTotals: { ...st.qadaaDayTotals, [day]: (st.qadaaDayTotals[day] ?? 0) + valid.length },
+            qadaaDayKinds: pruneDayKinds(kinds, day),
+          };
+        });
+      },
+      undoQadaa: (key) => {
+        if (!isQadaaKey(key)) return;
+        set((st) => {
+          const had = st.qadaaDone[key] ?? 0;
+          if (had <= 0) return {};
+          const done = { ...st.qadaaDone };
+          if (had - 1 > 0) done[key] = had - 1;
+          else delete done[key];
+          // Take it off today's tally too, but only if today has one to give:
+          // an undo after the day rolled over must not drive a count below zero.
+          const day = ibadahDayKeyOf(st);
+          const today = st.qadaaDayTotals[day] ?? 0;
+          const totals = { ...st.qadaaDayTotals };
+          if (today > 1) totals[day] = today - 1;
+          else delete totals[day];
+          const kinds = { ...st.qadaaDayKinds };
+          const dk = dayKindKey(day, key);
+          if ((kinds[dk] ?? 0) > 1) kinds[dk] = (kinds[dk] ?? 0) - 1;
+          else delete kinds[dk];
+          return { qadaaDone: done, qadaaDayTotals: totals, qadaaDayKinds: kinds };
+        });
+      },
+      setQadaaSettings: (patch) =>
+        set((st) => ({ qadaaSettings: sanitizeQadaaSettings({ ...st.qadaaSettings, ...(patch ?? {}) }) })),
+      resetQadaa: () =>
+        set({ qadaaOwed: {}, qadaaDone: {}, qadaaDayTotals: {}, qadaaDayKinds: {}, qadaaSettings: {} }),
       shortsChannelStats: {},
       shortsTopicAffinity: {},
       /**
@@ -1598,6 +1803,11 @@ export const useNoorStore = create<NoorState>()(
           shortsHiddenChannels: s.shortsHiddenChannels,
           shortsChannelStats: s.shortsChannelStats,
           shortsTopicAffinity: s.shortsTopicAffinity,
+          qadaaOwed: s.qadaaOwed,
+          qadaaDone: s.qadaaDone,
+          qadaaDayTotals: s.qadaaDayTotals,
+          qadaaDayKinds: s.qadaaDayKinds,
+          qadaaSettings: s.qadaaSettings,
           videoLibraryLastVideoId: s.videoLibraryLastVideoId,
           activity: s.activity,
           sectionItemOrder: s.sectionItemOrder,
@@ -1710,6 +1920,11 @@ export const useNoorStore = create<NoorState>()(
           shortsTopicAffinity: sanitizeNumberMap(
             blob.shortsTopicAffinity as Record<string, number> | undefined,
           ),
+          qadaaOwed: sanitizeQadaaMap(blob.qadaaOwed),
+          qadaaDone: sanitizeQadaaMap(blob.qadaaDone),
+          qadaaDayTotals: sanitizeNumberMap(blob.qadaaDayTotals),
+          qadaaDayKinds: sanitizeQadaaDayKinds(blob.qadaaDayKinds),
+          qadaaSettings: sanitizeQadaaSettings(blob.qadaaSettings),
           sebhaCustomList: Array.isArray(blob.sebhaCustomList) ? blob.sebhaCustomList : [],
           tasbeehStreak: blob.tasbeehStreak ?? 0,
           tasbeehStreakBest: blob.tasbeehStreakBest ?? 0,
@@ -2112,7 +2327,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 35,
+      version: 36,
       migrate: (persisted: unknown, previousVersion: number) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -2161,6 +2376,13 @@ export const useNoorStore = create<NoorState>()(
           ...migrateSharedCustomTasbeehCounter(state as Partial<NoorState>),
           shortsChannelStats: (state as Partial<NoorState>).shortsChannelStats ?? {},
           shortsTopicAffinity: sanitizeNumberMap((state as Partial<NoorState>).shortsTopicAffinity),
+          // New in v36. Defaults so an upgrading user hydrates with empty maps
+          // rather than `undefined`, which the Qadaa page reads on every render.
+          qadaaOwed: sanitizeQadaaMap((state as Partial<NoorState>).qadaaOwed),
+          qadaaDone: sanitizeQadaaMap((state as Partial<NoorState>).qadaaDone),
+          qadaaDayTotals: sanitizeNumberMap((state as Partial<NoorState>).qadaaDayTotals),
+          qadaaDayKinds: sanitizeQadaaDayKinds((state as Partial<NoorState>).qadaaDayKinds),
+          qadaaSettings: sanitizeQadaaSettings((state as Partial<NoorState>).qadaaSettings),
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],

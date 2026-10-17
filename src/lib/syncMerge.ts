@@ -68,6 +68,11 @@ const FIELD_KIND: Record<string, SyncKind> = {
   shortsHiddenChannels: "progress",
   shortsChannelStats: "progress",
   shortsTopicAffinity: "progress",
+  qadaaOwed: "progress",
+  qadaaDone: "progress",
+  qadaaDayTotals: "progress",
+  qadaaDayKinds: "progress",
+  qadaaSettings: "progress",
   tasbeehStreak: "progress",
   tasbeehStreakBest: "progress",
   tasbeehLastActiveDate: "progress",
@@ -188,6 +193,17 @@ const FIELD_RULE: Record<string, Rule> = {
   // Topic weights are signed and clamped, and "later wins" is the honest rule:
   // summing them across devices would double-count the same taste.
   shortsTopicAffinity: "map",
+
+  // Qadaa. `done` and the per-day tally count real acts of worship, so two
+  // devices that each make up three prayers from the same starting point have
+  // made up six - they add, exactly like the tasbeeh counters. `owed` is the
+  // person's own statement of their debt and `settings` are choices; for those
+  // the latest edit wins, per key.
+  qadaaDone: "additiveCounter",
+  qadaaDayTotals: "additiveCounter",
+  qadaaDayKinds: "additiveCounter",
+  qadaaOwed: "map",
+  qadaaSettings: "map",
 
   favorites: "flags",
   libraryFavorites: "flags",

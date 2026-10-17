@@ -6520,6 +6520,19 @@ a:focus-visible,
     rgba(10, 12, 18, 0.82);
 }
 
+/* Qadaa button: the dots' material, plus a quiet pending dot. */
+.floating-nav-qadaa { position: relative; }
+.floating-nav-qadaa-dot {
+  position: absolute;
+  top: 5px;
+  inset-inline-end: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(10, 12, 18, 0.9);
+}
+
 /* The vertical mini-nav — same material as the bar, stacked. */
 .floating-nav-more-menu {
   position: absolute;

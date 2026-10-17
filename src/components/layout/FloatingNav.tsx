@@ -1,9 +1,10 @@
 import * as React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { House, BookOpenText, Sparkles, BookMarked, Atom, Trophy, MoreVertical, Clapperboard, BarChart3, Heart, Zap } from "lucide-react";
+import { House, BookOpenText, Sparkles, BookMarked, Atom, Trophy, MoreVertical, Clapperboard, BarChart3, Heart, Zap, TimerReset } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNoorStore } from "@/store/noorStore";
 import { warmYouTubeApi } from "@/lib/youtubePlayer";
+import { useQadaa } from "@/hooks/useQadaa";
 
 function todayISO() {
   const d = new Date();
@@ -140,6 +141,13 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
   // behind the overflow, otherwise those three pages look like nowhere.
   const moreActive = MORE_ITEMS.some((m) => location.pathname.startsWith(m.path));
 
+  // The Qadaa button takes the place of the old invisible twin, so the bar stays
+  // centred exactly as before. A dot shows only when there is a plan and today's
+  // share of it is still undone, and never on the page itself.
+  const qadaa = useQadaa();
+  const qadaaActive = location.pathname.startsWith("/qadaa");
+  const qadaaPending = qadaa.configured && qadaa.quotaLeftTotal > 0 && !qadaaActive;
+
   const bar = (
     <nav className="floating-nav" aria-label="التنقل الرئيسي">
       <div className="flex items-center gap-0.5">
@@ -259,7 +267,19 @@ export function FloatingNav({ drawerOpen }: { drawerOpen?: boolean }) {
           without it pushed the bar 27px off-centre, and pinning the dots to the
           screen edge instead made the gap grow with the screen — 10px on a
           small phone, nearly 40px on a large one. */}
-      <div className="floating-nav-balance" aria-hidden="true" />
+      <button
+        type="button"
+        onClick={() => {
+          if (navigator.vibrate) navigator.vibrate(8);
+          navigate("/qadaa");
+        }}
+        className={`floating-nav-dots floating-nav-qadaa ${qadaaActive ? "active" : ""}`}
+        aria-label={qadaaPending ? `قضاء الفوائت، متبقٍ اليوم ${qadaa.quotaLeftTotal}` : "قضاء الفوائت"}
+        aria-current={qadaaActive ? "page" : undefined}
+      >
+        <TimerReset size={20} strokeWidth={qadaaActive ? 2.4 : 2} aria-hidden="true" />
+        {qadaaPending && <span className="floating-nav-qadaa-dot" aria-hidden="true" />}
+      </button>
       {bar}
       {overflow}
     </div>
