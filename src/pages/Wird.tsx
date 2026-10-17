@@ -63,6 +63,23 @@ export function WirdPage() {
     stripRef.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
   }, [day, today]);
   const [draft, setDraft] = React.useState<Draft | null>(null);
+
+  // Keep the launcher widget in step with what was just logged (debounced; a no-op off-device).
+  React.useEffect(() => {
+    const t = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const { syncWirdTableWidget } = await import("@/lib/widgetDataBridge");
+          await syncWirdTableWidget();
+          const { refreshHomeWidgets } = await import("@/lib/widgetRefresh");
+          await refreshHomeWidgets();
+        } catch {
+          /* widgets are a convenience; never let one break the page */
+        }
+      })();
+    }, 800);
+    return () => window.clearTimeout(t);
+  }, [items, log]);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
 
   const list = React.useMemo(() => Object.values(items), [items]);

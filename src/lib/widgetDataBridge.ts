@@ -18,6 +18,7 @@ import { useNoorStore, ibadahDayKeyOf, type Preferences } from "@/store/noorStor
 import { buildQadaaSummary } from "@/lib/qadaaSummary";
 import { PRAYER_KEYS } from "@/lib/qadaa";
 import { readMarks } from "@/lib/qadaaWidgetSync";
+import { countOn, dueOn, streak as wirdStreak, type WirdAuto, type WirdItem } from "@/lib/wird";
 import { accountScopedLocalStorage, getAccountStorageOwner } from "@/lib/accountStorageScope";
 
 function todayISO(): string {
@@ -252,6 +253,37 @@ export async function syncQadaaWidget(): Promise<void> {
   await nativeSet(KEY, value);
 }
 
+/** Today's wird: how many due items are done, and the next one waiting. */
+export async function syncWirdTableWidget(): Promise<void> {
+  const KEY = "noor_widget_wirdtable_v1";
+  const state = useNoorStore.getState();
+  const items = Object.values(state.wirdItems ?? {});
+  const day = ibadahDayKeyOf(state);
+  const log = state.wirdLog ?? {};
+  const sections = state.sectionCompletions ?? {};
+  const external = (auto: WirdAuto, d: string) =>
+    auto === "quranAyahs"
+      ? (state.quranDailyAyahs ?? {})[d] ?? 0
+      : (sections[auto === "morningAdhkar" ? "morning" : "evening"] ?? []).includes(d) ? 1 : 0;
+  const due = dueOn(items, day);
+  const met = (i: WirdItem) => countOn(log, i, day, external) >= i.target;
+  const pending = due.find((i) => !met(i)) ?? null;
+  const payload = {
+    configured: items.length > 0,
+    total: due.length,
+    done: due.filter(met).length,
+    next: pending
+      ? { title: pending.title, count: countOn(log, pending, day, external), target: pending.target, unit: pending.unit }
+      : null,
+    streak: items.length ? Math.max(0, ...items.map((i) => wirdStreak(log, i, day, external))) : 0,
+    day,
+    updatedAt: new Date().toISOString(),
+  };
+  const value = JSON.stringify(payload);
+  try { accountScopedLocalStorage.setItem(KEY, value); } catch { /* ignore */ }
+  await nativeSet(KEY, value);
+}
+
 /**
  * Sync streak + score + level to the native Dashboard widget.
  * Call this alongside the other sync functions on app foreground.
@@ -387,6 +419,7 @@ export async function syncAllWidgets(): Promise<void> {
     syncAdhkarWidget(),
     syncWirdWidget(),
     syncQadaaWidget(),
+    syncWirdTableWidget(),
     syncDashboardWidget(),
     syncQiblaWidget(),
   ]);
