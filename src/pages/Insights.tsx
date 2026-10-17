@@ -1,4 +1,5 @@
-﻿import * as React from "react";
+﻿import { WeeklyReviewCard } from "@/components/insights/WeeklyReviewCard";
+import * as React from "react";
 import { Flame, TrendingUp, Trophy, Share2, BookOpen, Target, Sparkles, BarChart2, Zap, Bell, FileDown, BellOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -843,6 +844,7 @@ export function InsightsPage() {
   return (
     <div className="space-y-4 page-enter">
       <h1 className="sr-only">رؤيتي</h1>
+      <WeeklyReviewCard />
       {/* I6: XP Level badge */}
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">

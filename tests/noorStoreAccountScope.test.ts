@@ -61,7 +61,7 @@ describe("Noor store account scope", () => {
     expect(useNoorStore.getState().prefs.clearReading).toBe(false);
     expect(useNoorStore.getState().prefs.theme).toBe("midnight");
     expect(useNoorStore.getState().favorites).toEqual({ "account-a:1": true });
-    expect(JSON.parse(localStorage.getItem("noor_store_v1::user-a") ?? "{}").version).toBe(36);
+    expect(JSON.parse(localStorage.getItem("noor_store_v1::user-a") ?? "{}").version).toBe(37);
   });
 
   it("refreshes the pre-paint theme hint from the active account snapshot", async () => {

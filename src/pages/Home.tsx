@@ -13,6 +13,8 @@ import {
   MoreVertical,
   Radio,
   Loader2,
+  CalendarCheck,
+  Scale,
 } from "lucide-react";
 
 import { useStartupReady } from "@/hooks/useStartupReady";
@@ -933,6 +935,25 @@ export function HomePage() {
   return (
     <div className={initialLaunch ? "space-y-3" : "space-y-3 page-enter"}>
       <Card className="p-5 overflow-hidden relative">
+        {/* Two quiet doors to the tables, in the corner the decoration used to fill. */}
+        <div className="absolute top-3 left-3 z-10 flex gap-2">
+          <button
+            type="button"
+            onClick={() => navigate("/wird")}
+            aria-label="جدول الورد"
+            className="w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)]"
+          >
+            <CalendarCheck size={18} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/muhasaba")}
+            aria-label="جدول المحاسبة"
+            className="w-10 h-10 rounded-full glass border border-[var(--stroke)] flex items-center justify-center active:scale-95 transition-transform text-[var(--accent)]"
+          >
+            <Scale size={18} aria-hidden="true" />
+          </button>
+        </div>
         <div className="absolute -top-10 -left-8 opacity-80" aria-hidden="true">
           <div className="w-32 h-32">
             <React.Suspense fallback={null}>
@@ -944,7 +965,7 @@ export function HomePage() {
         <motion.div initial={initialLaunch ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22 }}>
           <div>
             <div>
-              <div className="mb-2 flex items-center gap-2 flex-wrap">
+              <div className="mb-2 flex items-center gap-2 flex-wrap" style={{ paddingInlineEnd: 96 }}>
                 <Sparkles size={14} className="text-[var(--accent)]" aria-hidden="true" />
                 <span className="text-xs font-medium opacity-65">{timeGreeting(new Date().getHours())}</span>
                 {(() => { const h = getHijriDate(prayerTimes.data?.data?.date?.hijri); return h ? <span className="text-xs opacity-50 border border-[var(--stroke)] rounded-full px-2 py-0.5">{h}</span> : null; })()}

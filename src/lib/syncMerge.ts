@@ -73,6 +73,11 @@ const FIELD_KIND: Record<string, SyncKind> = {
   qadaaDayTotals: "progress",
   qadaaDayKinds: "progress",
   qadaaSettings: "progress",
+  muhasabaLog: "progress",
+  muhasabaGender: "settings",
+  muhasabaHidden: "settings",
+  wirdItems: "progress",
+  wirdLog: "progress",
   tasbeehStreak: "progress",
   tasbeehStreakBest: "progress",
   tasbeehLastActiveDate: "progress",
@@ -204,6 +209,13 @@ const FIELD_RULE: Record<string, Rule> = {
   qadaaDayKinds: "additiveCounter",
   qadaaOwed: "map",
   qadaaSettings: "map",
+
+  // Muhasaba entries are a person's own statement for a day (latest edit wins per
+  // entry); wird counts are acts that add across devices, like tasbeeh.
+  muhasabaLog: "map",
+  muhasabaHidden: "map",
+  wirdItems: "map",
+  wirdLog: "additiveCounter",
 
   favorites: "flags",
   libraryFavorites: "flags",

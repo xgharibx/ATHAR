@@ -24,6 +24,8 @@ import type { HadithMemoCard } from "@/data/hadithTypes";
 import type { VideoLibraryProgress } from "@/data/videoLibraryTypes";
 import { foldTopics, channelNameStopwords } from "@/lib/shortsTopics";
 import { parsePrayerKey, parseFastKey, type Madhhab, type PlanMode } from "@/lib/qadaa";
+import { sanitizeItem as sanitizeWirdItem, sanitizeLog as sanitizeWirdLog, pruneWirdLog, type WirdItem } from "@/lib/wird";
+import { pruneLog as pruneMuhasabaLog } from "@/lib/muhasaba";
 import {
   accountScopedLocalStorage,
   getAccountStorageOwner,
@@ -291,6 +293,11 @@ export type ExportBlobV1 = {
   qadaaDayTotals?: Record<string, number>;
   qadaaDayKinds?: Record<string, number>;
   qadaaSettings?: QadaaSettings;
+  muhasabaLog?: Record<string, number>;
+  muhasabaGender?: "male" | "female" | null;
+  muhasabaHidden?: Record<string, boolean>;
+  wirdItems?: Record<string, WirdItem>;
+  wirdLog?: Record<string, number>;
   sebhaCustomList?: Array<{ id: string; phrase: string; transliteration?: string; target: number; color: string; createdAt: string }>;
   tasbeehStreak?: number;
   tasbeehStreakBest?: number;
@@ -425,6 +432,19 @@ type NoorState = {
   undoQadaa: (key: string) => void;
   setQadaaSettings: (patch: Partial<QadaaSettings>) => void;
   resetQadaa: () => void;
+  /** Self-accounting table: "<day>|<deed>" -> rung reached (0 = missed); absent = not recorded. */
+  muhasabaLog: Record<string, number>;
+  muhasabaGender: "male" | "female" | null;
+  muhasabaHidden: Record<string, boolean>;
+  setMuhasaba: (day: string, deedId: string, level: number | null) => void;
+  setMuhasabaGender: (g: "male" | "female" | null) => void;
+  toggleMuhasabaHidden: (deedId: string) => void;
+  /** The person's own awrad and what was done on each day (counts add across devices). */
+  wirdItems: Record<string, WirdItem>;
+  wirdLog: Record<string, number>;
+  upsertWirdItem: (item: WirdItem) => void;
+  removeWirdItem: (id: string) => void;
+  adjustWird: (id: string, delta: number, day?: string) => void;
   incTasbeehDailyLog: (dateKey: string, key: string) => void;
   // Widget bridge: bulk-merge home-screen widget tasbeeh counts into stats
   mergeWidgetTasbeeh: (dateKey: string, counts: Record<string, number>) => void;
@@ -980,6 +1000,36 @@ function sanitizeQadaaDayKinds(input: unknown): Record<string, number> {
   return out;
 }
 
+/** The muhasaba log: "<day>|<deed>" -> rung reached (0 = recorded as missed). */
+function sanitizeMuhasabaLog(input: unknown): Record<string, number> {
+  const src = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(src)) {
+    const [day, id] = k.split("|");
+    if (!day || !id || !ISO_DATE.test(day) || !/^[\w-]{1,40}$/.test(id)) continue;
+    const n = Math.floor(Number(v));
+    if (Number.isFinite(n) && n >= 0 && n <= 20) out[k] = n;
+  }
+  return out;
+}
+
+function sanitizeBoolMap(input: unknown): Record<string, boolean> {
+  const src = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const out: Record<string, boolean> = {};
+  for (const [k, v] of Object.entries(src)) if (/^[\w-]{1,40}$/.test(k) && v === true) out[k] = true;
+  return out;
+}
+
+function sanitizeWirdItems(input: unknown): Record<string, WirdItem> {
+  const src = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
+  const out: Record<string, WirdItem> = {};
+  for (const v of Object.values(src)) {
+    const item = sanitizeWirdItem(v);
+    if (item) out[item.id] = item;
+  }
+  return out;
+}
+
 function sanitizeNumberMap(input: unknown) {
   const src = (input ?? {}) as Record<string, unknown>;
   const out: Record<string, number> = {};
@@ -1113,6 +1163,55 @@ export const useNoorStore = create<NoorState>()(
       qadaaDayTotals: {},
       qadaaDayKinds: {},
       qadaaSettings: {},
+      muhasabaLog: {},
+      muhasabaGender: null,
+      muhasabaHidden: {},
+      wirdItems: {},
+      wirdLog: {},
+      setMuhasaba: (day, deedId, level) => {
+        if (!ISO_DATE.test(day) || !/^[\w-]{1,40}$/.test(deedId)) return;
+        set((st) => {
+          const key = `${day}|${deedId}`;
+          const next = { ...st.muhasabaLog };
+          if (level === null) delete next[key];
+          else next[key] = Math.min(20, Math.max(0, Math.floor(level)));
+          return { muhasabaLog: pruneMuhasabaLog(next, ibadahDayKeyOf(st)) };
+        });
+      },
+      setMuhasabaGender: (g) => set({ muhasabaGender: g === "male" || g === "female" ? g : null }),
+      toggleMuhasabaHidden: (deedId) => {
+        if (!/^[\w-]{1,40}$/.test(deedId)) return;
+        set((st) => {
+          const next = { ...st.muhasabaHidden };
+          if (next[deedId]) delete next[deedId];
+          else next[deedId] = true;
+          return { muhasabaHidden: next };
+        });
+      },
+      upsertWirdItem: (item) => {
+        const clean = sanitizeWirdItem(item);
+        if (clean) set((st) => ({ wirdItems: { ...st.wirdItems, [clean.id]: clean } }));
+      },
+      removeWirdItem: (id) =>
+        set((st) => {
+          if (!(id in st.wirdItems)) return {};
+          const items = { ...st.wirdItems };
+          delete items[id];
+          const log = Object.fromEntries(Object.entries(st.wirdLog).filter(([k]) => k.split("|")[1] !== id));
+          return { wirdItems: items, wirdLog: log };
+        }),
+      adjustWird: (id, delta, day) =>
+        set((st) => {
+          const d = Math.trunc(Number(delta));
+          if (!d || !(id in st.wirdItems)) return {};
+          const today = day && ISO_DATE.test(day) ? day : ibadahDayKeyOf(st);
+          const key = `${today}|${id}`;
+          const next = Math.min(100_000, Math.max(0, (st.wirdLog[key] ?? 0) + d));
+          const log = { ...st.wirdLog };
+          if (next > 0) log[key] = next;
+          else delete log[key];
+          return { wirdLog: pruneWirdLog(log, ibadahDayKeyOf(st)) };
+        }),
       setQadaaOwed: (patch) =>
         set((st) => {
           const next = { ...st.qadaaOwed };
@@ -1808,6 +1907,11 @@ export const useNoorStore = create<NoorState>()(
           qadaaDayTotals: s.qadaaDayTotals,
           qadaaDayKinds: s.qadaaDayKinds,
           qadaaSettings: s.qadaaSettings,
+          muhasabaLog: s.muhasabaLog,
+          muhasabaGender: s.muhasabaGender,
+          muhasabaHidden: s.muhasabaHidden,
+          wirdItems: s.wirdItems,
+          wirdLog: s.wirdLog,
           videoLibraryLastVideoId: s.videoLibraryLastVideoId,
           activity: s.activity,
           sectionItemOrder: s.sectionItemOrder,
@@ -1925,6 +2029,11 @@ export const useNoorStore = create<NoorState>()(
           qadaaDayTotals: sanitizeNumberMap(blob.qadaaDayTotals),
           qadaaDayKinds: sanitizeQadaaDayKinds(blob.qadaaDayKinds),
           qadaaSettings: sanitizeQadaaSettings(blob.qadaaSettings),
+          muhasabaLog: sanitizeMuhasabaLog(blob.muhasabaLog),
+          muhasabaGender: blob.muhasabaGender === "male" || blob.muhasabaGender === "female" ? blob.muhasabaGender : null,
+          muhasabaHidden: sanitizeBoolMap(blob.muhasabaHidden),
+          wirdItems: sanitizeWirdItems(blob.wirdItems),
+          wirdLog: sanitizeWirdLog(blob.wirdLog),
           sebhaCustomList: Array.isArray(blob.sebhaCustomList) ? blob.sebhaCustomList : [],
           tasbeehStreak: blob.tasbeehStreak ?? 0,
           tasbeehStreakBest: blob.tasbeehStreakBest ?? 0,
@@ -2327,7 +2436,7 @@ export const useNoorStore = create<NoorState>()(
       //  1. Bump this version number
       //  2. Add a fallback default for the new key in the `migrate` function below
       //  Failure to do so will silently drop data for users upgrading from older versions.
-      version: 36,
+      version: 37,
       migrate: (persisted: unknown, previousVersion: number) => {
         const state = (persisted ?? {}) as Partial<NoorState> & { lastDailyResetISO?: string | null };
         const persistedPrefs = state.prefs && typeof state.prefs === "object" ? state.prefs : undefined;
@@ -2383,6 +2492,15 @@ export const useNoorStore = create<NoorState>()(
           qadaaDayTotals: sanitizeNumberMap((state as Partial<NoorState>).qadaaDayTotals),
           qadaaDayKinds: sanitizeQadaaDayKinds((state as Partial<NoorState>).qadaaDayKinds),
           qadaaSettings: sanitizeQadaaSettings((state as Partial<NoorState>).qadaaSettings),
+          // New in v37: the muhasaba table and the wird table.
+          muhasabaLog: sanitizeMuhasabaLog((state as Partial<NoorState>).muhasabaLog),
+          muhasabaGender:
+            (state as Partial<NoorState>).muhasabaGender === "male" || (state as Partial<NoorState>).muhasabaGender === "female"
+              ? ((state as Partial<NoorState>).muhasabaGender as "male" | "female")
+              : null,
+          muhasabaHidden: sanitizeBoolMap((state as Partial<NoorState>).muhasabaHidden),
+          wirdItems: sanitizeWirdItems((state as Partial<NoorState>).wirdItems),
+          wirdLog: sanitizeWirdLog((state as Partial<NoorState>).wirdLog),
           // T9: Normalize Quran bookmark keys to canonical "surahId:ayahIndex" form
           quranBookmarks: normalizeQuranBookmarks((state as Partial<NoorState>).quranBookmarks),
           customPacks: Array.isArray((state as Partial<NoorState>).customPacks) ? (state as Partial<NoorState>).customPacks! : [],
