@@ -15,7 +15,7 @@ const registerPlugin = vi.fn(() => ({ shareImage, shareText: shareTextNative, sh
 let isNative = false;
 
 vi.mock("@capacitor/core", () => ({
-  Capacitor: { isNativePlatform: () => isNative },
+  Capacitor: { isNativePlatform: () => isNative, getPlatform: () => (isNative ? "android" : "web") },
   registerPlugin,
 }));
 

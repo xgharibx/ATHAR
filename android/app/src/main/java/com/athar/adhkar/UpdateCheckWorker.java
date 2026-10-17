@@ -54,8 +54,26 @@ public class UpdateCheckWorker extends Worker {
     private static final int NOTIFICATION_ID = 90210;
 
     private static final String MANIFEST_URL = "https://www.athark.org/version.json";
-    private static final String STORE_URL =
+    private static final String PLAY_URL =
         "https://play.google.com/store/apps/details?id=com.athar.adhkar&hl=ar";
+
+    /**
+     * The key in version.json for THIS build's store, and where to send people.
+     *
+     * The same code ships to Google Play and Huawei AppGallery, and each store
+     * moves on its own schedule — review times differ by days — so each is
+     * compared against its own number. Telling a Huawei user that the Play
+     * version is out would send them to a store they do not have.
+     */
+    private String storeKey() {
+        return "huawei".equals(StoreInfoPlugin.storeName(getApplicationContext())) ? "huawei" : "android";
+    }
+
+    private Uri storeUri() {
+        return "huawei".equals(StoreInfoPlugin.storeName(getApplicationContext()))
+            ? Uri.parse("appmarket://details?id=" + getApplicationContext().getPackageName())
+            : Uri.parse(PLAY_URL);
+    }
 
     public UpdateCheckWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -157,7 +175,7 @@ public class UpdateCheckWorker extends Worker {
             // this notification is about. "version" is the web build and moves
             // on every push — using it would send people to a listing that
             // does not have the release yet. No value means no notification.
-            String version = new JSONObject(body.toString()).optString("android", "");
+            String version = new JSONObject(body.toString()).optString(storeKey(), "");
             return version.isEmpty() ? null : version;
         } catch (Throwable t) {
             return null;
@@ -208,7 +226,7 @@ public class UpdateCheckWorker extends Worker {
             manager.createNotificationChannel(channel);
         }
 
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(STORE_URL));
+        Intent intent = new Intent(Intent.ACTION_VIEW, storeUri());
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pending = PendingIntent.getActivity(
             context, 0, intent,

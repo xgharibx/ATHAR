@@ -67,3 +67,24 @@ describe("reading the version off the Play listing", () => {
     expect(scraperIsNewer("1.2.54", "1.2.54")).toBe(false);
   });
 });
+
+
+describe("Huawei is told about AppGallery, not Play", () => {
+  const both = { version: "1.2.80", android: "1.2.79", huawei: "1.2.77", ios: null };
+
+  it("compares a Huawei build against AppGallery's own number", () => {
+    // The stores review on their own schedules. Telling a Huawei user that
+    // 1.2.79 is out because Play has it sends them to a listing that does not.
+    expect(availableVersionFor(both, "huawei")).toBe("1.2.77");
+    expect(availableVersionFor(both, "android")).toBe("1.2.79");
+  });
+
+  it("says nothing to Huawei until AppGallery has published something", () => {
+    expect(availableVersionFor({ version: "1.2.80", android: "1.2.79", huawei: null }, "huawei")).toBeNull();
+    expect(availableVersionFor({ version: "1.2.80", android: "1.2.79" }, "huawei")).toBeNull();
+  });
+
+  it("never falls back to the Play number for Huawei", () => {
+    expect(availableVersionFor({ android: "1.2.79" }, "huawei")).toBeNull();
+  });
+});

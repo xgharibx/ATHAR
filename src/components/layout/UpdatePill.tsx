@@ -14,7 +14,8 @@ import React from "react";
 import { ArrowUpCircle, X } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 
-import { useUpdateAvailable, STORE_URL } from "@/hooks/useUpdateAvailable";
+import { useUpdateAvailable } from "@/hooks/useUpdateAvailable";
+import { openStoreListing } from "@/lib/storeIdentity";
 import { usePwaUpdate } from "@/hooks/usePwaUpdate";
 
 export function UpdatePill() {
@@ -27,12 +28,9 @@ function NativeUpdatePill() {
   if (!available) return null;
 
   const open = () => {
-    const url = Capacitor.getPlatform() === "android" ? STORE_URL.android : STORE_URL.web;
-    try {
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch {
-      window.location.href = url;
-    }
+    // Play on a Play build, AppGallery on a Huawei build, opened natively so it
+    // lands inside the store app.
+    void openStoreListing();
   };
 
   return <UpdateAction label={`تحديث متاح — الإصدار ${latest}`} title={`الإصدار ${latest}`} onOpen={open} onDismiss={dismiss} />;

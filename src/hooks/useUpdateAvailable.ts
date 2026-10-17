@@ -17,6 +17,7 @@ import React from "react";
 import { Capacitor } from "@capacitor/core";
 
 import { publicDataUrl } from "@/data/publicAssetUrl";
+import { loadStoreIdentity } from "@/lib/storeIdentity";
 
 declare const __APP_VERSION__: string;
 
@@ -81,6 +82,7 @@ type UpdateState = { available: boolean; latest: string | null };
 type VersionManifest = {
   version?: unknown;
   android?: unknown;
+  huawei?: unknown;
   ios?: unknown;
 };
 
@@ -103,6 +105,7 @@ export function availableVersionFor(
   if (!manifest || typeof manifest !== "object") return null;
   const pick =
     platform === "android" ? manifest.android
+    : platform === "huawei" ? manifest.huawei
     : platform === "ios" ? manifest.ios
     : manifest.version;
   return typeof pick === "string" && pick.trim() ? pick.trim() : null;
@@ -129,7 +132,11 @@ export function useUpdateAvailable(): UpdateState & { dismiss: () => void } {
         const res = await fetch(`${manifestUrl()}?t=${Date.now()}`, { cache: "no-store" });
         if (!res.ok) return;
         const json = (await res.json()) as VersionManifest;
-        const latest = availableVersionFor(json, Capacitor.getPlatform());
+        // A Huawei build is compared against AppGallery's number, not Play's: the
+        // stores review on their own schedules, and naming a version the user's own
+        // store does not have yet sends them to nothing.
+        const store = await loadStoreIdentity();
+        const latest = availableVersionFor(json, store === "huawei" ? "huawei" : Capacitor.getPlatform());
         if (cancelled || !latest) return;
         setState({ available: isNewer(latest, currentAppVersion()), latest });
       } catch {

@@ -8,6 +8,7 @@ import App from "./App";
 import "./styles/globals.css";
 import "./pwa";
 import { installAppShellBehaviour } from "@/lib/appShellBehaviour";
+import { loadStoreIdentity } from "@/lib/storeIdentity";
 import { setPendingNotificationAction } from "@/lib/reminders";
 import { parseWebReminderActionFragment } from "@/lib/webReminderActions";
 import { markStartupReady } from "@/lib/startup";
@@ -177,6 +178,9 @@ if (rootContainer) {
     // Suppress browser-only affordances (page pinch-zoom, double-tap zoom) on
     // touch devices, so the app does not behave like a web page inside itself.
     installAppShellBehaviour();
+    // Learn which store this build is for before anyone can tap share or an
+    // update prompt; both read it. Never blocks startup and never throws.
+    void loadStoreIdentity();
 
     const root = ReactDOM.createRoot(sentinel);
     (window as unknown as Record<string, unknown>)[ROOT_INSTANCE_KEY] = root;

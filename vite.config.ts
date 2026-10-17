@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 /** package.json is the single source of truth for the app's version. */
 const pkg = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "package.json"), "utf-8"),
-) as { version: string; released?: { android?: string | null; ios?: string | null } };
+) as { version: string; released?: { android?: string | null; huawei?: string | null; ios?: string | null } };
 
 /**
  * Publish what is actually available, per platform.
@@ -42,6 +42,9 @@ function emitVersionManifest() {
           version: pkg.version,
           builtAt: new Date().toISOString(),
           android: pkg.released?.android ?? null,
+          // AppGallery reviews on its own schedule, so it has its own number.
+          // Unset means no Huawei user is prompted, which is the safe default.
+          huawei: pkg.released?.huawei ?? null,
           ios: pkg.released?.ios ?? null,
         }),
       });

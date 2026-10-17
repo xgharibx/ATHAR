@@ -7,17 +7,51 @@ android {
         applicationId "com.athar.adhkar"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion 36
-        versionCode 88
-        versionName "1.2.75"
+        versionCode 89
+        versionName "1.2.76"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // Which store this build is destined for: play (default) or huawei.
+        //   ./gradlew bundleRelease -Pstore=huawei
+        // The code is identical either way; the only thing that differs is where
+        // "a new version is out" sends people, so the app is told at build time
+        // rather than guessing from the device.
+        def storeName = (project.findProperty("store") ?: "play").toString()
+        if (!["play", "huawei"].contains(storeName)) {
+            throw new GradleException("Unknown -Pstore=" + storeName + " (expected play or huawei)")
+        }
+        resValue "string", "athar_store", storeName
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Optional release signing, driven by the OWNER's environment.
+    //
+    //   ATHAR_KEYSTORE            path to the .jks / .keystore
+    //   ATHAR_KEYSTORE_PASSWORD   store password
+    //   ATHAR_KEY_ALIAS           key alias
+    //   ATHAR_KEY_PASSWORD        key password (defaults to the store password)
+    //
+    // Nothing is stored in the repository and nothing is read from a file in it.
+    // With none of these set the release build is produced UNSIGNED, exactly as
+    // before, and can still be signed afterwards in Android Studio or by hand.
+    def atharKeystore = System.getenv("ATHAR_KEYSTORE")
+    if (atharKeystore) {
+        signingConfigs {
+            atharRelease {
+                storeFile file(atharKeystore)
+                storePassword System.getenv("ATHAR_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ATHAR_KEY_ALIAS")
+                keyPassword System.getenv("ATHAR_KEY_PASSWORD") ?: System.getenv("ATHAR_KEYSTORE_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
+            if (atharKeystore) {
+                signingConfig signingConfigs.atharRelease
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }

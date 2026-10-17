@@ -51,3 +51,8 @@ qa-final/
 
 # Rejected sync output — never commit a failed video-library fetch
 public/data/video-library.rejected.json
+
+# Store release artifacts produced by `npm run release:stores` — large binaries,
+# regenerated on demand, and never to be committed.
+/huawei/out/
+/play/out/

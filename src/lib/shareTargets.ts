@@ -12,6 +12,7 @@
  */
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { downloadBlob } from "@/lib/download";
+import { allKnownStoreLinks, storeListingUrl } from "@/lib/storeIdentity";
 
 /** Where the app can be installed. Appended to anything shared. */
 export const STORE_LINKS = {
@@ -27,13 +28,15 @@ export const STORE_LINKS = {
  * and people stop sending them. This is the pattern the well-behaved Arabic
  * Islamic apps use — one line of identity, one link, nothing else.
  */
+// The invite names the store THIS install came from. A Huawei user handed a
+// Play link has nothing to tap, and neither does anyone they forward it to.
 export function appInvite(): string {
-  return `\n\n— تطبيق أثر · أذكار وقرآن\n${STORE_LINKS.android}`;
+  return `\n\n— تطبيق أثر · أذكار وقرآن\n${storeListingUrl()}`;
 }
 
 /** Append the invitation unless the text already carries it. */
 export function withInvite(text: string): string {
-  if (text.includes(STORE_LINKS.android)) return text;
+  if (allKnownStoreLinks().some((link) => text.includes(link))) return text;
   return `${text}${appInvite()}`;
 }
 
