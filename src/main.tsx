@@ -182,6 +182,14 @@ if (rootContainer) {
     // update prompt; both read it. Never blocks startup and never throws.
     void loadStoreIdentity();
 
+    // Head start for the shorts feed: fetching YouTube's IFrame API was measured at
+    // ~900ms and only began once the feed opened. Doing it when the browser is idle,
+    // a few seconds after launch, means it is usually done before the first tap, and
+    // it never competes with first paint.
+    const warm = () => void import("@/lib/youtubePlayer").then((m) => m.warmYouTubeApi()).catch(() => undefined);
+    const idle = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    window.setTimeout(() => (idle ? idle(warm, { timeout: 4000 }) : warm()), 3500);
+
     const root = ReactDOM.createRoot(sentinel);
     (window as unknown as Record<string, unknown>)[ROOT_INSTANCE_KEY] = root;
     root.render(
