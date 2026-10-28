@@ -1,0 +1,13 @@
+Athar is a free Arabic Islamic app (Quran reader, adhkar, prayer times, qibla, tasbih, hadith library, daily duas and sunan).
+
+No account is needed to use any feature. Signing in is optional and only syncs progress between devices (email magic link; no password). The reviewer can use the whole app without signing in. Account deletion is in Settings > Account and sync > Delete account.
+
+Permissions are all optional and requested in context:
+- Location (when in use): prayer times, qibla direction, nearby mosques. Never tracked in the background.
+- Notifications: prayer and adhkar reminders.
+- Microphone / speech recognition: optional voice counting in the tasbih screen.
+- Photos (add only): saving shared dhikr/verse images.
+
+"Ask Athar" is an optional AI companion for Islamic questions. It needs internet; messages go to an AI service provider through our server. It works without an account. The privacy policy is at https://www.athark.org/privacy.html and is linked in the app.
+
+The app has no ads and no third-party analytics or tracking.

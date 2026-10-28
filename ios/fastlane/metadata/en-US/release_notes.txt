@@ -1,0 +1,8 @@
+What's new
+
+• Wird, muhasaba and qadaa: three tables to follow your worship day by day, with a weekly review
+• 900+ sunan, each with its hadith, narrator and number, including forgotten sunnahs
+• New: the Companions' duas, and duas for seeking refuge, forgiveness and guidance
+• Dua of the day and sunnah of the day, shuffle and share them
+• New reflections from Ibn al-Qayyim and Ibn al-Jawzi
+• Smoother scrolling in the Mushaf and tafsir, plus general fixes

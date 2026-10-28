@@ -12,6 +12,7 @@
  */
 import * as React from "react";
 import { toast } from "react-hot-toast";
+import { Capacitor } from "@capacitor/core";
 import { LogIn, LogOut, Mail, ShieldCheck, Trash2, Loader2, Check, RefreshCw, CloudOff, AlertTriangle } from "lucide-react";
 
 import {
@@ -51,6 +52,10 @@ export function AccountPanel() {
   React.useEffect(() => setShowSignOutAnyway(false), [session?.user?.id]);
 
   if (!configured || !isAuthConfigured()) return null;
+
+  // App Store guideline 4.8: an app that offers a third-party login must also offer Sign in with
+  // Apple or an equivalent. On iOS the account is the app's own email link only, which is exempt.
+  const showGoogle = Capacitor.getPlatform() !== "ios";
 
   const user = session?.user ?? null;
 
@@ -253,6 +258,7 @@ export function AccountPanel() {
             يمكنك استخدام القرآن والأذكار و«أثر» دون حساب؛ الحساب اختياري لمزامنة بياناتك بين أجهزتك.
           </p>
 
+          {showGoogle && (<>
           <button
             type="button"
             onClick={doGoogle}
@@ -268,6 +274,7 @@ export function AccountPanel() {
             أو عبر البريد
             <span className="h-px flex-1 bg-[var(--stroke)]" />
           </div>
+          </>)}
 
           {linkSent ? (
             <div className="flex items-center gap-2 rounded-xl border border-accent-35 bg-accent-15 px-3 py-2.5 text-xs text-[var(--accent)]">
