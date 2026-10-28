@@ -20,6 +20,11 @@ where board <> 'global' or section_id is not null;
 delete from public.leaderboard_score_events
 where day < (current_date - interval '7 days');
 
+-- The alias audit logged the default "canonical" outcome on every submission (~195k rows).
+-- The edge function now records only non-default decisions; drop the noise and keep a month.
+delete from public.leaderboard_alias_audit where status = 'canonical';
+delete from public.leaderboard_alias_audit where created_at < now() - interval '30 days';
+
 commit;
 
 do $$
@@ -42,7 +47,9 @@ begin
       'athar_prune_leaderboard_events',
       '17 3 * * *',
       $cron$delete from public.leaderboard_score_events
-            where day < (current_date - interval '7 days')$cron$
+            where day < (current_date - interval '7 days');
+            delete from public.leaderboard_alias_audit
+            where created_at < now() - interval '30 days'$cron$
     );
   exception when others then
     raise notice 'could not schedule prune (%)', sqlerrm;
@@ -54,3 +61,4 @@ end $$;
 -- inside a migration transaction and briefly locks the table):
 --
 --   vacuum full public.leaderboard_score_events;
+--   vacuum full public.leaderboard_alias_audit;

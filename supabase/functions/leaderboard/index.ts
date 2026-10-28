@@ -915,13 +915,18 @@ denoRuntime.serve(async (req) => {
     if (!ownership.ok) return json({ ok: false, error: ownership.error }, ownership.status);
 
     const aliasDecision = await resolveAliasDecision(db, payload.identity.id, payload.identity.alias);
-    await auditAliasDecision(db, {
-      user_id: payload.identity.id,
-      requested_alias: normalizeAliasInput(payload.identity.alias),
-      resolved_alias: aliasDecision.alias,
-      status: aliasDecision.status,
-      reason: aliasDecision.reason
-    });
+    // Only record decisions that were not the default. The canonical alias is the outcome
+    // of nearly every submission, and logging it every time grew this table by one row
+    // per submission (~195k rows) without ever telling an admin anything.
+    if (aliasDecision.status !== "canonical") {
+      await auditAliasDecision(db, {
+        user_id: payload.identity.id,
+        requested_alias: normalizeAliasInput(payload.identity.alias),
+        resolved_alias: aliasDecision.alias,
+        status: aliasDecision.status,
+        reason: aliasDecision.reason
+      });
+    }
 
     const profileResult = await upsertUserProfile(db, payload, aliasDecision.alias);
     if (!profileResult.ok) return json({ ok: false, error: "profile-upsert-failed" }, 500);
