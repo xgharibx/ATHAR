@@ -988,7 +988,11 @@ denoRuntime.serve(async (req) => {
       !dayCountRes.error && (dayCountRes.count ?? 0) > MAX_EVENTS_PER_USER_PER_DAY;
 
     if (!deduped && !overEventCap) {
-      const insertEvents = await db.from("leaderboard_score_events").insert(rows);
+      // One audit row per submission, not one per board and section. Every row used to
+      // carry the whole payload, so a submission wrote ~37 copies of it; the only
+      // reader (the dedup checks above) looks at the "global" row, whose payload
+      // already holds every score. Per-board history lives in leaderboard_rollups.
+      const insertEvents = await db.from("leaderboard_score_events").insert(rows.filter((r) => r.board === "global"));
       if (insertEvents.error) return json({ ok: false, error: "event-insert-failed" }, 500);
     }
 
