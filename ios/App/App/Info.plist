@@ -88,9 +88,9 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Athar uses your location to calculate prayer times, find Qibla direction, and search for nearby mosques.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Athar uses the microphone for voice-counted tasbeeh (Sebha) sessions.</string>
+	<string>Athar uses the microphone for optional voice-counted tasbeeh and Quran recitation practice. Audio may be sent to Apple for speech recognition.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Athar uses speech recognition to count your dhikr repetitions when you recite them aloud.</string>
+	<string>Athar uses Apple's speech-recognition service to transcribe optional dhikr counting and Quran recitation. Audio may be sent to Apple for processing.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>

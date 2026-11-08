@@ -87,6 +87,7 @@ public class ReleaseScreenshotCaptureTest {
             String scrollSelector = args.getString("screenshotScrollSelector");
             String clickSelector = args.getString("screenshotClickSelector");
             String clickText = args.getString("screenshotClickText");
+            String scrollAfterActions = args.getString("screenshotScrollAfterActions");
             String readyTextAfterActions = args.getString("screenshotReadyTextAfterActions");
             int clickCount = Math.max(1, Math.min(20, args.getInt("screenshotClickCount", 1)));
             if (scrollSelector != null || clickSelector != null || clickText != null
@@ -152,6 +153,49 @@ public class ReleaseScreenshotCaptureTest {
                 }
                 SystemClock.sleep(900);
             }
+            String hideSelector = args.getString("screenshotHideSelector");
+            if (hideSelector != null) {
+                String cssSelector;
+                if ("quick-tasbeeh".equals(hideSelector)) {
+                    cssSelector = "button[aria-label='تسبيح سريع']";
+                } else if ("adhkar-add".equals(hideSelector)) {
+                    cssSelector = "button[aria-label=\"إضافة ذكر\"],button[aria-label='تسبيح سريع']";
+                } else if ("sadaqah-clean".equals(hideSelector)) {
+                    cssSelector = "header,.app-layout-grid,button[aria-label='تسبيح سريع']";
+                } else {
+                    cssSelector = hideSelector;
+                }
+                String selector = org.json.JSONObject.quote(cssSelector);
+                String hidden = evaluate(activity,
+                    "(function(){var elements=document.querySelectorAll(" + selector + ");"
+                        + "elements.forEach(function(element){element.style.setProperty('display','none','important');});"
+                        + "return elements.length>0?'hidden:'+elements.length:'missing-hide-target';})()");
+                if ("adhkar-add".equals(hideSelector)) {
+                    assertTrue("Could not hide the dhikr add button: " + hidden,
+                        "\"hidden:2\"".equals(hidden));
+                }
+            }
+            if (scrollAfterActions != null) {
+                String scrollAfterSelector = "sadaqah-content".equals(scrollAfterActions)
+                    ? "#footer-content" : scrollAfterActions;
+                String scrollAfterArg = org.json.JSONObject.quote(scrollAfterSelector);
+                String scrolled = evaluate(activity,
+                    "(function(){var target=document.querySelector(" + scrollAfterArg + ");"
+                        + "if(!target)return 'missing-scroll';"
+                        + "target.scrollIntoView({block:'start',behavior:'auto'});"
+                        + "var top=Math.max(0,window.scrollY+target.getBoundingClientRect().top-100);"
+                        + "window.scrollTo(0,top);var root=document.scrollingElement||document.documentElement;"
+                        + "root.scrollTop=top;return 'scrolled';})()");
+                assertTrue("Could not scroll screenshot content after actions: " + scrolled,
+                    scrolled != null && scrolled.startsWith("\"scrolled"));
+                SystemClock.sleep(500);
+            }
+            // Do not leave keyboard/accessibility focus styling on a focused
+            // floating action button in store captures.
+            evaluate(activity,
+                "(function(){var element=document.activeElement;"
+                    + "if(element&&typeof element.blur==='function')element.blur();"
+                    + "return 'blurred';})()");
             InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
                 WindowInsetsController controller = activity.getWindow().getInsetsController();
                 assertTrue(controller != null);
