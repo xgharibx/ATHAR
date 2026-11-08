@@ -22,9 +22,13 @@ export function Modal(props: {
   onClose: () => void;
   /** Accessible title announced for the dialog. */
   ariaLabel: string;
+  /** Optional element id containing the dialog's main disclosure or description. */
+  ariaDescribedBy?: string;
   children: React.ReactNode;
   /** Optional className applied to the panel */
   className?: string;
+  /** Optional className applied to the portal wrapper when this modal must sit above another overlay. */
+  portalClassName?: string;
   /** Maximum height class. Mobile default: max-h-[88vh]; desktop: max-h-[85vh]. */
   maxHeightClass?: string;
 }) {
@@ -48,7 +52,7 @@ export function Modal(props: {
   return (
     <Dialog.Root open={props.open} onOpenChange={(open) => { if (!open) props.onClose(); }}>
       <Dialog.Portal>
-        <div className="fixed inset-0 z-50 sm:flex sm:items-center sm:justify-center" dir="rtl">
+        <div className={["fixed inset-0 z-50 sm:flex sm:items-center sm:justify-center", props.portalClassName ?? ""].join(" ")} dir="rtl">
           <Dialog.Overlay
             aria-hidden="true"
             onClick={props.onClose}
@@ -57,7 +61,7 @@ export function Modal(props: {
           />
           <Dialog.Content
             tabIndex={-1}
-            aria-describedby={undefined}
+            aria-describedby={props.ariaDescribedBy}
             onOpenAutoFocus={() => {
               restoreFocusRef.current = document.activeElement instanceof HTMLElement
                 ? document.activeElement

@@ -2,6 +2,7 @@ import * as React from "react";
 import { Download, Upload, Palette, SlidersHorizontal, Sparkles, Bell, Trash2, BookMarked, BookOpen, Play, Square, RotateCcw, RotateCw, Globe, ArrowUp, ArrowDown, Fingerprint, Layers, Share2, ChevronLeft, Search, X, Vibrate, Moon, Volume2, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import pkgJson from "../../package.json";
 
 import { Card } from "@/components/ui/Card";
@@ -42,6 +43,7 @@ import {
   filterSettingsSections,
 } from "@/lib/settingsLayout";
 import { AccountPanel } from "@/components/account/AccountPanel";
+import { hasCompanionAiConsent, revokeCompanionAiConsent } from "@/lib/companionConsent";
 
 /**
  * Settings parked at the owner's request.
@@ -240,6 +242,8 @@ export function SettingsPage() {
   }, [activity, favorites, progress, quranBookmarks]);
 
   const [isNative, setIsNative] = React.useState(false);
+  const isIOS = Capacitor.getPlatform() === "ios";
+  const [aiSharingAllowed, setAiSharingAllowed] = React.useState(() => hasCompanionAiConsent());
   const [notifPerm, setNotifPerm] = React.useState<"unknown" | "granted" | "denied" | "prompt">("unknown");
   const [playingPreview, setPlayingPreview] = React.useState<string | null>(null);
   const [mushafOfflineStatus, setMushafOfflineStatus] = React.useState<MushafOfflineStatus | null>(null);
@@ -1645,6 +1649,34 @@ export function SettingsPage() {
 
       {SHOW_DANGER_ZONE && (
       <DangerZone />
+      )}
+
+      {isIOS && (
+        <Card className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="text-sm font-semibold">إذن إرسال الرسائل إلى MiniMax</div>
+              <div className="mt-1 text-xs leading-6 opacity-65">
+                {aiSharingAllowed
+                  ? "الإذن مفعّل. يمكنك إيقافه هنا؛ وسيطلب أثر موافقتك مجددًا قبل الإرسال التالي."
+                  : "سيطلب أثر إذنك قبل إرسال أول رسالة إلى خدمة الذكاء الاصطناعي."}
+              </div>
+            </div>
+            {aiSharingAllowed && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  revokeCompanionAiConsent();
+                  setAiSharingAllowed(false);
+                  toast.success("تم إيقاف الإذن. سيطلبه أثر مجددًا قبل الإرسال التالي.");
+                }}
+              >
+                إيقاف الإذن
+              </Button>
+            )}
+          </div>
+        </Card>
       )}
 
       <div className="text-[11px] opacity-40 text-center pb-2 leading-5">

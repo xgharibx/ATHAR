@@ -8,5 +8,6 @@ Permissions are all optional and requested in context:
 - Photos (add only): saving shared dhikr/verse images.
 
 "Ask Athar" is an optional AI companion for Islamic questions. It needs internet; requests pass through Supabase to MiniMax. It works without an account. Prayer times can use Aladhan; nearby mosque search can use Overpass/OpenStreetMap. The privacy policy is at https://www.athark.org/privacy.html and is linked in the app.
+On iOS, the first AI message requires the user's explicit approval before it is sent. Users can withdraw that approval in Settings; future messages remain unsent until they approve again.
 
 The app has no ads and no third-party analytics or tracking.

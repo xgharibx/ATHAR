@@ -91,6 +91,8 @@ import {
 } from "@/lib/companionHealth";
 import { COMPANION_PROXY_URL } from "@/lib/companionAI";
 import { shareImageBlob } from "@/lib/shareTargets";
+import { canSendCompanionAiMessage, grantCompanionAiConsent } from "@/lib/companionConsent";
+import { CompanionAiConsentDialog } from "@/components/companion/CompanionAiConsentDialog";
 
 const NoorStarfield = React.lazy(() => import("@/components/background/NoorStarfield"));
 
@@ -231,6 +233,8 @@ export function CompanionPage() {
 
   const [messages, setMessages] = React.useState<CompanionMessage[]>([]);
   const [input, setInput] = React.useState("");
+  const [consentDialogOpen, setConsentDialogOpen] = React.useState(false);
+  const [pendingConsentMessage, setPendingConsentMessage] = React.useState<string | null>(null);
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
   const [followUps, setFollowUps] = React.useState<string[]>([]);
   const [verification, setVerification] = React.useState<VerificationReport | null>(null);
@@ -416,13 +420,18 @@ export function CompanionPage() {
     return out;
   }, []);
 
-  const send = React.useCallback(async (text: string) => {
+  const send = React.useCallback(async (text: string, consentApproved = false) => {
     const trimmed = text.trim();
     if (!trimmed || busyRef.current) return;
     if (!isCompanionReady()) {
       toast("جاري تهيئة الرفيق…", { icon: "✨" });
       return;
     }
+    if (!canSendCompanionAiMessage(consentApproved, () => {
+      setInput(trimmed);
+      setPendingConsentMessage(trimmed);
+      setConsentDialogOpen(true);
+    })) return;
     busyRef.current = true;
     const controller = new AbortController();
     abortRef.current = controller;
@@ -543,6 +552,20 @@ export function CompanionPage() {
     }
   }, [generateFollowUps, messages]);
 
+  const approveAiSharing = React.useCallback(() => {
+    const message = pendingConsentMessage;
+    if (!message) return;
+    grantCompanionAiConsent();
+    setConsentDialogOpen(false);
+    setPendingConsentMessage(null);
+    void send(message, true);
+  }, [pendingConsentMessage, send]);
+
+  const cancelAiSharing = React.useCallback(() => {
+    setConsentDialogOpen(false);
+    setPendingConsentMessage(null);
+  }, []);
+
   const [partialStopped, setPartialStopped] = React.useState(false);
 
   const stop = React.useCallback(() => {
@@ -658,6 +681,7 @@ export function CompanionPage() {
   const isBusy = streamingText !== null;
 
   return (
+    <>
     <div className="mx-auto w-full max-w-3xl px-4 pb-36 pt-4" dir="rtl">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
@@ -1107,6 +1131,12 @@ export function CompanionPage() {
         </div>
       </div>
     </div>
+    <CompanionAiConsentDialog
+      open={consentDialogOpen}
+      onApprove={approveAiSharing}
+      onCancel={cancelAiSharing}
+    />
+    </>
   );
 }
 

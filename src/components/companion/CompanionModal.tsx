@@ -41,6 +41,8 @@ import { injectReminderStoreIds } from "@/lib/companionReminderBlocks";
 import { useStickToBottom } from "@/lib/useStickToBottom";
 import { useNoorStore } from "@/store/noorStore";
 import { hasCustomReminderPermission } from "@/lib/customReminderNotifications";
+import { canSendCompanionAiMessage, grantCompanionAiConsent } from "@/lib/companionConsent";
+import { CompanionAiConsentDialog } from "@/components/companion/CompanionAiConsentDialog";
 import {
   addCustomReminder as addCustomReminderAction,
   deleteCustomReminder as deleteCustomReminderAction,
@@ -215,6 +217,8 @@ export function CompanionModal(props: {
   }, [navigate]);
   const [messages, setMessages] = React.useState<CompanionMessage[]>([]);
   const [input, setInput] = React.useState(props.prefill ?? "");
+  const [consentDialogOpen, setConsentDialogOpen] = React.useState(false);
+  const [pendingConsentMessage, setPendingConsentMessage] = React.useState<string | null>(null);
   const [streamingText, setStreamingText] = React.useState<string | null>(null);
   const [verification, setVerification] = React.useState<VerificationReport | null>(null);
   const [showHistory, setShowHistory] = React.useState(false);
@@ -322,10 +326,15 @@ export function CompanionModal(props: {
     return `${text}\n\n(ملاحظة: الزائر حاليًا في ${props.context.title ?? "صفحة غير محددة"} — ${props.context.hint})`;
   };
 
-  const send = async (text: string) => {
+  const send = async (text: string, consentApproved = false) => {
     const trimmed = text.trim();
     if (!trimmed || busyRef.current) return;
     if (!isCompanionReady()) return;
+    if (!canSendCompanionAiMessage(consentApproved, () => {
+      setInput(trimmed);
+      setPendingConsentMessage(trimmed);
+      setConsentDialogOpen(true);
+    })) return;
     busyRef.current = true;
     setPartialStopped(false);
     const controller = new AbortController();
@@ -424,6 +433,20 @@ export function CompanionModal(props: {
     }
   };
 
+  const approveAiSharing = () => {
+    const message = pendingConsentMessage;
+    if (!message) return;
+    grantCompanionAiConsent();
+    setConsentDialogOpen(false);
+    setPendingConsentMessage(null);
+    void send(message, true);
+  };
+
+  const cancelAiSharing = () => {
+    setConsentDialogOpen(false);
+    setPendingConsentMessage(null);
+  };
+
   const stop = () => {
     abortRef.current?.abort();
     abortRef.current = null;
@@ -463,6 +486,7 @@ export function CompanionModal(props: {
   // z-index could lift it above the floating tab-bar — the nav visibly covered
   // the sheet. From <body> it is a true top-level overlay.
   return createPortal(
+    <>
     <div className="fixed inset-0 z-[10000] flex items-end justify-center p-2 sm:p-4 pb-[max(env(safe-area-inset-bottom,0px),0px)]" dir="rtl">
       <div
         aria-hidden="true"
@@ -670,7 +694,13 @@ export function CompanionModal(props: {
           </p>
         </div>
       </div>
-    </div>,
+    </div>
+    <CompanionAiConsentDialog
+      open={consentDialogOpen}
+      onApprove={approveAiSharing}
+      onCancel={cancelAiSharing}
+    />
+    </>,
     document.body,
   );
 }
