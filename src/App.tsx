@@ -30,6 +30,7 @@ import { StartupReady } from "@/components/StartupReady";
 import { useStartupReady } from "@/hooks/useStartupReady";
 import { warmBundledAdhkar } from "@/data/load";
 import { afterStartupReady } from "@/lib/startup";
+import { resetScrollForRouteChange } from "@/hooks/useScrollRestoration";
 
 /** Wraps a lazy route element with Suspense + per-route RouteErrorBoundary */
 function S({ children }: { children: React.ReactNode }) {
@@ -196,6 +197,7 @@ function AppContent() {
   const progress = useNoorStore((s) => s.progress);
   const migratedDhikrStateKeys = useNoorStore((s) => s.migratedDhikrStateKeys);
   const location = useLocation();
+  const previousScrollPathname = React.useRef(location.pathname);
   const prayerTimes = usePrayerTimes();
 
   React.useEffect(() => {
@@ -270,9 +272,12 @@ function AppContent() {
     };
   }, [sectionCompletions, migratedDhikrStateKeys, progress]);
 
-  // Scroll to top on page navigation (skip for hash-only changes)
-  React.useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  // Persist the outgoing page before resetting the shared window scroll. Its
+  // exit animation may keep the old route mounted for 180ms.
+  React.useLayoutEffect(() => {
+    const previousPathname = previousScrollPathname.current;
+    resetScrollForRouteChange(location.pathname, previousPathname);
+    previousScrollPathname.current = location.pathname;
   }, [location.pathname]);
 
   React.useEffect(() => {
