@@ -22,4 +22,10 @@ describe("iOS privacy manifest", () => {
     expect(project).toContain("PrivacyInfo.xcprivacy in Resources");
     expect(project).toMatch(/lastKnownFileType = text\.xml; path = PrivacyInfo\.xcprivacy;/);
   });
+
+  it("declares religious activity as linked sensitive information for app functionality", () => {
+    expect(manifest).toMatch(
+      /<dict>\s*<key>NSPrivacyCollectedDataType<\/key>\s*<string>NSPrivacyCollectedDataTypeSensitiveInfo<\/string>\s*<key>NSPrivacyCollectedDataTypeLinked<\/key>\s*<true\/>\s*<key>NSPrivacyCollectedDataTypeTracking<\/key>\s*<false\/>\s*<key>NSPrivacyCollectedDataTypePurposes<\/key>\s*<array>\s*<string>NSPrivacyCollectedDataTypePurposeAppFunctionality<\/string>\s*<\/array>\s*<\/dict>/,
+    );
+  });
 });
