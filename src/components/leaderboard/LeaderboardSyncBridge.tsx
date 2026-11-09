@@ -3,7 +3,7 @@ import * as React from "react";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useTodayKey } from "@/hooks/useTodayKey";
-import { getRateLimitBackoffRemainingMs, isRateLimited, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot, LEADERBOARD_SUBMITTED_EVENT } from "@/lib/leaderboard";
+import { getRateLimitBackoffRemainingMs, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot, LEADERBOARD_SUBMITTED_EVENT } from "@/lib/leaderboard";
 import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
 import { getLeaderboardNetworkRetryDelayMs } from "@/lib/leaderboardRetry";
 import { useNoorStore } from "@/store/noorStore";
@@ -64,6 +64,8 @@ export function LeaderboardSyncBridge() {
   const retryAttemptRef = React.useRef(0);
   const retryTimerRef = React.useRef<number | null>(null);
   const retryWakeRef = React.useRef(false);
+  const networkRetryAtRef = React.useRef(0);
+  const identityGenerationRef = React.useRef(0);
 
   const clearRetryTimer = React.useCallback(() => {
     if (retryTimerRef.current !== null) {
@@ -77,6 +79,7 @@ export function LeaderboardSyncBridge() {
     clearRetryTimer();
     retryTimerRef.current = window.setTimeout(() => {
       retryTimerRef.current = null;
+      networkRetryAtRef.current = 0;
       retryWakeRef.current = true;
       setRetryTick((value) => value + 1);
     }, Math.max(0, Math.ceil(delayMs)));
@@ -114,6 +117,11 @@ export function LeaderboardSyncBridge() {
         scheduleRetry(remaining);
         return;
       }
+      const networkBackoffRemaining = Math.max(0, networkRetryAtRef.current - Date.now());
+      if (networkBackoffRemaining > 0) {
+        scheduleRetry(networkBackoffRemaining);
+        return;
+      }
       clearRetryTimer();
       setRetryTick((value) => value + 1);
     };
@@ -125,8 +133,11 @@ export function LeaderboardSyncBridge() {
     // clear the "already sent this" guard or they would never be posted under
     // the new one and the day would look empty.
     const onIdentityChanged = () => {
+      identityGenerationRef.current += 1;
       lastSyncedKeyRef.current = "";
       retryAttemptRef.current = 0;
+      networkRetryAtRef.current = 0;
+      retryWakeRef.current = true;
       clearRetryTimer();
       triggerRetry();
     };
@@ -179,8 +190,15 @@ export function LeaderboardSyncBridge() {
     }
 
     if (snapshotKey === lastSyncedKeyRef.current) return;
-    if (isRateLimited()) {
-      scheduleRetry(getRateLimitBackoffRemainingMs());
+    const rateLimitRemaining = getRateLimitBackoffRemainingMs();
+    if (rateLimitRemaining > 0) {
+      scheduleRetry(rateLimitRemaining);
+      return;
+    }
+
+    const networkBackoffRemaining = Math.max(0, networkRetryAtRef.current - Date.now());
+    if (networkBackoffRemaining > 0) {
+      scheduleRetry(networkBackoffRemaining);
       return;
     }
 
@@ -191,18 +209,27 @@ export function LeaderboardSyncBridge() {
         pendingSyncRef.current = true;
         return;
       }
-      if (isRateLimited()) return;
+      const retryAfterRemaining = getRateLimitBackoffRemainingMs();
+      if (retryAfterRemaining > 0) {
+        scheduleRetry(retryAfterRemaining);
+        return;
+      }
+      const requestGeneration = identityGenerationRef.current;
       clearRetryTimer();
       syncingRef.current = true;
       let succeeded = false;
       try {
         const flush = await syncLeaderboardSnapshot(endpoint, todayKey, stats.scores, stats.metrics);
+        if (requestGeneration !== identityGenerationRef.current) return;
         if (!flush.ok) {
           if (flush.reason === "network_retry") {
-            scheduleRetry(getLeaderboardNetworkRetryDelayMs(retryAttemptRef.current));
+            const delayMs = getLeaderboardNetworkRetryDelayMs(retryAttemptRef.current);
+            networkRetryAtRef.current = Date.now() + delayMs;
+            scheduleRetry(delayMs);
             retryAttemptRef.current += 1;
           } else if (flush.reason === "rate_limited") {
             retryAttemptRef.current = 0;
+            networkRetryAtRef.current = 0;
             scheduleRetry(flush.retryAfterMs ?? getRateLimitBackoffRemainingMs(), true);
           }
           return;
@@ -210,6 +237,7 @@ export function LeaderboardSyncBridge() {
         succeeded = true;
         clearRetryTimer();
         retryAttemptRef.current = 0;
+        networkRetryAtRef.current = 0;
         lastSyncedKeyRef.current = snapshotKey;
         // Say so, so a leaderboard already on screen re-reads the standings
         // rather than showing a rank that predates the score just sent.
@@ -225,7 +253,10 @@ export function LeaderboardSyncBridge() {
         syncingRef.current = false;
         if (pendingSyncRef.current) {
           pendingSyncRef.current = false;
-          if (succeeded) setRetryTick((value) => value + 1);
+          if (succeeded || requestGeneration !== identityGenerationRef.current) {
+            if (requestGeneration !== identityGenerationRef.current) retryWakeRef.current = true;
+            setRetryTick((value) => value + 1);
+          }
         }
       }
     }, delay);

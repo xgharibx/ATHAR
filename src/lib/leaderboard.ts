@@ -931,6 +931,11 @@ export async function flushQueue(endpoint: string): Promise<FlushQueueResult> {
         remaining.push(item, ...queue.slice(index + 1));
         lastError = "rate_limited";
         break;
+      } else if (res.status === 404) {
+        // A missing function endpoint is a deployment/configuration issue, not a transient outage.
+        remaining.push(item, ...queue.slice(index + 1));
+        lastError = "server";
+        break;
       } else if (shouldRetryStatus(res.status)) {
         // A transient outage should not fan out one failed request per queued day.
         remaining.push(item, ...queue.slice(index + 1));

@@ -107,6 +107,50 @@ describe("leaderboard queue retry wakeups", () => {
     expect(syncSnapshot).toHaveBeenCalledTimes(2);
   });
 
+  it("does not let score changes bypass a scheduled network backoff", async () => {
+    syncSnapshot
+      .mockResolvedValueOnce({ ok: false, sent: 0, reason: "network_retry" })
+      .mockResolvedValueOnce({ ok: true, sent: 1, reason: null });
+    await renderBridge();
+
+    await advance(2500);
+    expect(syncSnapshot).toHaveBeenCalledOnce();
+    act(() => useNoorStore.setState({ progress: { "morning:0": 2 } }));
+
+    await advance(2500);
+    expect(syncSnapshot).toHaveBeenCalledOnce();
+    await advance(1249);
+    expect(syncSnapshot).toHaveBeenCalledOnce();
+    await advance(1);
+    await advance(0);
+
+    expect(syncSnapshot).toHaveBeenCalledTimes(2);
+    expect(syncSnapshot.mock.calls[1]?.[2]).toMatchObject({ dhikr: 2 });
+  });
+
+  it("does not let an old in-flight failure re-arm retry after identity changes", async () => {
+    let resolveFirst: ((result: { ok: false; sent: number; reason: "network_retry" }) => void) | undefined;
+    syncSnapshot
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
+      .mockResolvedValueOnce({ ok: true, sent: 1, reason: null });
+    await renderBridge();
+
+    await advance(2500);
+    expect(syncSnapshot).toHaveBeenCalledOnce();
+    act(() => window.dispatchEvent(new Event("athar-leaderboard-identity-changed")));
+    await advance(0);
+    await advance(2500);
+    expect(syncSnapshot).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      resolveFirst?.({ ok: false, sent: 0, reason: "network_retry" });
+      await Promise.resolve();
+    });
+    await advance(0);
+
+    expect(syncSnapshot).toHaveBeenCalledTimes(2);
+  });
+
   it("cancels the pending retry when the bridge unmounts", async () => {
     syncSnapshot.mockResolvedValue({ ok: false, sent: 0, reason: "network_retry" });
     await renderBridge();

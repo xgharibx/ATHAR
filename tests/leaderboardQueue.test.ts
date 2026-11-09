@@ -109,4 +109,14 @@ describe("leaderboard offline queue", () => {
     expect(getRateLimitBackoffRemainingMs()).toBe(0);
     expect(isRateLimited()).toBe(false);
   });
+
+  it("preserves the queue without scheduling a retry for a missing endpoint", async () => {
+    enqueuePayload(makePayload({ global: 8, generatedAt: new Date().toISOString() }));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("not found", { status: 404 })));
+
+    const result = await flushQueue("https://leaderboard.example/missing");
+
+    expect(result).toMatchObject({ ok: false, reason: "server" });
+    expect(readQueue()).toHaveLength(1);
+  });
 });
