@@ -32,7 +32,7 @@
 
 ## Current inventory baseline (2026-11-09)
 
-Verified from the current `codex/cross-store-release-polish` checkout at commit `df26128` and read-only production inspection:
+Verified from the current `codex/cross-store-release-polish` checkout at commit `d34e856` and read-only production inspection. The implementation and Android build evidence below is from its parent commit `df26128` (no source files changed in `d34e856`):
 
 | Area | Current inventory |
 |---|---|
@@ -47,7 +47,7 @@ Verified from the current `codex/cross-store-release-polish` checkout at commit 
 | Native platforms | Android app with native local notifications and AppWidget providers. iOS Xcode project declares only the App target; WidgetKit source exists under `ios/WidgetExtension/` but is not integrated and its README still requires manual target setup. |
 | Quality and release | Full verification reported 223 test files / 1,743 tests; lint has 0 errors and 93 warnings. `npm run android:sync`, `assembleDebug`, and `bundleRelease` passed locally at `df26128`; `jarsigner -verify` confirms the release AAB is unsigned. GitHub returned no status checks for `df26128`; earlier Android and iOS CI builds passed for `7df92e6`. No iOS build, signing, physical-device run, or store submission is evidenced. |
 
-The lockfile mismatch is fixed and pushed in `3377391`: package, lockfile root, Android, and iOS version metadata are aligned at `1.2.88` / build `101`. The version tool checks and updates both lockfile root fields on future bumps; `version:check` passed. The current Android release build is unsigned by design. GitHub returned no status entries for the latest branch commits, so remote CI is unverified for them. Production advisories currently include leaked-password protection disabled, 14 RLS-enabled tables with no policies (some are intentionally RPC-only and still need privilege review), and two indexes reported unused. These are audit inputs, not automatic permission to change production.
+The lockfile mismatch is fixed and pushed in `3377391`: package, lockfile root, Android, and iOS version metadata are aligned at `1.2.88` / build `101`. The version tool checks and updates both lockfile root fields on future bumps; `version:check` passed. The current Android release build is unsigned by design. GitHub returned no status entries for `df26128` or `d34e856`, so remote CI is unverified for them. Production advisories currently include leaked-password protection disabled, 14 RLS-enabled tables with no policies (some are intentionally RPC-only and still need privilege review), and two indexes reported unused. These are audit inputs, not automatic permission to change production.
 
 ## Verified progress log — 2026-11-09
 
@@ -63,7 +63,7 @@ The lockfile mismatch is fixed and pushed in `3377391`: package, lockfile root, 
 ### Phase 0: Inventory and release baseline
 
 - [x] Capture route/page, native, backend-function, test, and current version inventory.
-- [x] Confirm current branch/worktree, pushed remote commit, package lock, Android/iOS version parity, CI gate visibility, live service configuration, and artifact signing state. (Current branch matches remote; GitHub returned no status entries for the latest commit; current Android AAB is unsigned.)
+- [x] Confirm current branch/worktree, pushed remote commit, package lock, Android/iOS version parity, CI gate visibility, live service configuration, and artifact signing state. (Current branch matches remote at `d34e856`; GitHub returned no status entries for `df26128` and `d34e856`; current Android AAB is unsigned.)
 - [ ] Convert all historical audit findings into verified / fixed / open / unverifiable status.
 
 ### Phase 1: Daily use and navigation
