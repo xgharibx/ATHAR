@@ -130,9 +130,10 @@ describe("leaderboard queue retry wakeups", () => {
 
   it("does not let an old in-flight failure re-arm retry after identity changes", async () => {
     let resolveFirst: ((result: { ok: false; sent: number; reason: "network_retry" }) => void) | undefined;
+    let resolveSecond: ((result: { ok: true; sent: number; reason: null }) => void) | undefined;
     syncSnapshot
       .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
-      .mockResolvedValueOnce({ ok: true, sent: 1, reason: null });
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveSecond = resolve; }));
     await renderBridge();
 
     await advance(2500);
@@ -149,6 +150,39 @@ describe("leaderboard queue retry wakeups", () => {
     await advance(0);
 
     expect(syncSnapshot).toHaveBeenCalledTimes(2);
+    expect(vi.getTimerCount()).toBe(0);
+    await advance(10_000);
+    expect(syncSnapshot).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      resolveSecond?.({ ok: true, sent: 1, reason: null });
+      await Promise.resolve();
+    });
+  });
+
+  it("keeps a score change made during an in-flight request behind its failure backoff", async () => {
+    let resolveFirst: ((result: { ok: false; sent: number; reason: "network_retry" }) => void) | undefined;
+    syncSnapshot
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
+      .mockResolvedValueOnce({ ok: true, sent: 1, reason: null });
+    await renderBridge();
+
+    await advance(2500);
+    expect(syncSnapshot).toHaveBeenCalledOnce();
+    act(() => useNoorStore.setState({ progress: { "morning:0": 2 } }));
+    await act(async () => {
+      resolveFirst?.({ ok: false, sent: 0, reason: "network_retry" });
+      await Promise.resolve();
+    });
+
+    await advance(2500);
+    expect(syncSnapshot).toHaveBeenCalledOnce();
+    await advance(1249);
+    expect(syncSnapshot).toHaveBeenCalledOnce();
+    await advance(1);
+    await advance(0);
+
+    expect(syncSnapshot).toHaveBeenCalledTimes(2);
+    expect(syncSnapshot.mock.calls[1]?.[2]).toMatchObject({ dhikr: 2 });
   });
 
   it("cancels the pending retry when the bridge unmounts", async () => {

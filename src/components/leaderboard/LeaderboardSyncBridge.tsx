@@ -214,6 +214,11 @@ export function LeaderboardSyncBridge() {
         scheduleRetry(retryAfterRemaining);
         return;
       }
+      const networkBackoffRemaining = Math.max(0, networkRetryAtRef.current - Date.now());
+      if (networkBackoffRemaining > 0) {
+        scheduleRetry(networkBackoffRemaining);
+        return;
+      }
       const requestGeneration = identityGenerationRef.current;
       clearRetryTimer();
       syncingRef.current = true;
