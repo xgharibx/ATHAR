@@ -343,12 +343,18 @@ public class NoorDashboardWidgetProvider extends AtharWidgetProvider {
             }
 
             JSONObject payload    = new JSONObject(json);
-            int ayahsRead         = payload.optInt("ayahsRead", 0);
+            String storedDay      = payload.optString("ibadahDay", payload.optString("day", ""));
+            String currentDay     = WidgetDayFreshness.currentIbadahDayKey(
+                new Date(), payload.optString("fajrTime", ""));
+            boolean currentIbadahDay = WidgetDayFreshness.isCurrentDay(storedDay, currentDay);
+            int ayahsRead         = Math.max(0, WidgetDayFreshness.valueForDay(
+                storedDay, currentDay, payload.optInt("ayahsRead", 0)));
             int dailyGoal         = payload.optInt("dailyGoal", 10);
             String currentSurah   = payload.optString("currentSurah", "");
             int currentAyah       = payload.optInt("currentAyah", 1);
 
-            views.setTextViewText(R.id.dash_wird_count, ayahsRead + "/" + dailyGoal);
+            views.setTextViewText(R.id.dash_wird_count,
+                currentIbadahDay ? ayahsRead + "/" + dailyGoal : "—/" + dailyGoal);
             views.setTextViewText(R.id.dash_wird_surah,
                 currentSurah.isEmpty() ? "ابدأ المصحف"
                     : "سورة " + currentSurah + " ‧ الآية " + toArabicNumerals(currentAyah));

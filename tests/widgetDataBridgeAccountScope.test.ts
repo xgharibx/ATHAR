@@ -41,7 +41,8 @@ vi.mock("@/lib/widgetRefresh", () => ({
 
 import { accountScopedLocalStorage, getAccountStorageOwner, setAccountStorageOwner } from "@/lib/accountStorageScope";
 import { refreshHomeWidgets } from "@/lib/widgetRefresh";
-import { syncQiblaWidget } from "@/lib/widgetDataBridge";
+import { syncQiblaWidget, syncWirdWidget } from "@/lib/widgetDataBridge";
+import { useNoorStore } from "@/store/noorStore";
 
 const QIBLA_KEY = "noor_widget_qibla_v1";
 
@@ -61,6 +62,7 @@ describe("Qibla widget account scope", () => {
     nativeState.operations.length = 0;
     nativeState.nextSetGate = null;
     setAccountStorageOwner("local");
+    vi.useRealTimers();
   });
 
   it("clears account A's native location and refreshes the placeholder after switching to B without coordinates", async () => {
@@ -121,5 +123,25 @@ describe("Qibla widget account scope", () => {
       releaseWrite();
       await Promise.allSettled([accountASync, accountBSync]);
     }
+  });
+
+  it("writes Quran widget progress under the current Fajr-based day key", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 10, 2, 0, 0));
+    useNoorStore.setState({
+      lastKnownFajrTime: "05:00",
+      lastIbadahResetISO: "2026-11-09",
+      quranDailyAyahs: { "2026-11-09": 6, "2026-11-10": 99 },
+    });
+
+    await syncWirdWidget();
+
+    const payload = JSON.parse(nativeState.values.get("noor_widget_wird_v1") ?? "null");
+    expect(payload).toMatchObject({
+      day: "2026-11-10",
+      ibadahDay: "2026-11-09",
+      fajrTime: "05:00",
+      ayahsRead: 6,
+    });
   });
 });

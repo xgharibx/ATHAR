@@ -49,7 +49,11 @@ public class NoorWirdWidgetProvider extends AtharWidgetProvider {
             String json = WidgetData.readJson(context, WIDGET_KEY);
             if (json != null) {
                 JSONObject payload  = new JSONObject(json);
-                int ayahsRead       = payload.optInt("ayahsRead", 0);
+                String day          = payload.optString("ibadahDay", payload.optString("day", ""));
+                String currentDay   = WidgetDayFreshness.currentIbadahDayKey(
+                    new java.util.Date(), payload.optString("fajrTime", ""));
+                int ayahsRead       = WidgetDayFreshness.valueForDay(
+                    day, currentDay, payload.optInt("ayahsRead", 0));
                 int dailyGoal       = Math.max(1, payload.optInt("dailyGoal", 10));
                 String currentSurah = payload.optString("currentSurah", "");
                 int currentAyah     = payload.optInt("currentAyah", 1);

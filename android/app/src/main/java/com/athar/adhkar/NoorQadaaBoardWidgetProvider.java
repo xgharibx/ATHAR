@@ -207,6 +207,10 @@ public class NoorQadaaBoardWidgetProvider extends AtharWidgetProvider {
         JSONObject payload = json != null ? new JSONObject(json) : null;
         boolean configured = payload != null && payload.optBoolean("configured", false)
             && payload.optJSONArray("prayers") != null && payload.optJSONArray("prayers").length() > 0;
+        String currentDay = WidgetDayFreshness.currentIbadahDayKey(
+            new java.util.Date(), payload != null ? payload.optString("fajrTime", "") : "");
+        String storedDay = payload != null ? payload.optString("ibadahDay", payload.optString("day", "")) : "";
+        boolean currentIbadahDay = WidgetDayFreshness.isCurrentDay(storedDay, currentDay);
 
         String me = owner(context);
         JSONObject seen = null;
@@ -230,8 +234,9 @@ public class NoorQadaaBoardWidgetProvider extends AtharWidgetProvider {
                 int[] pend = pending(ledgerOwner, seen, key);
                 int dn = Math.max(0, p.optInt("dn", 0) + pend[0] - pend[1]);
                 int rem = Math.max(0, p.optInt("rem", 0) - pend[0] + pend[1]);
-                int qt = p.optInt("qt", 0);
-                int td = Math.max(0, p.optInt("td", 0) + pend[0] - pend[1]);
+                int qt = Math.max(0, WidgetDayFreshness.valueForDay(storedDay, currentDay, p.optInt("qt", 0)));
+                int td = Math.max(0, WidgetDayFreshness.valueForDay(
+                    storedDay, currentDay, p.optInt("td", 0) + pend[0] - pend[1]));
                 totalRemaining += rem;
                 rowsShown++;
 
@@ -246,7 +251,9 @@ public class NoorQadaaBoardWidgetProvider extends AtharWidgetProvider {
                 views.setFloat(PLUS[slot], "setAlpha", rem > 0 ? 1f : 0.35f);
                 views.setFloat(MINUS[slot], "setAlpha", dn > 0 ? 1f : 0.35f);
             }
-            views.setTextViewText(R.id.qb_sub, totalRemaining == 0 ? "أتممتَ القضاء" : "متبقٍ " + ar(totalRemaining) + " صلاة");
+            views.setTextViewText(R.id.qb_sub, !currentIbadahDay
+                ? "افتح التطبيق لتحديث حصة اليوم"
+                : totalRemaining == 0 ? "أتممتَ القضاء" : "متبقٍ " + ar(totalRemaining) + " صلاة");
         } else {
             for (int slot = 0; slot < ROWS; slot++) views.setViewVisibility(ROW[slot], View.GONE);
             views.setTextViewText(R.id.qb_sub, "ابدأ خطة القضاء من التطبيق");

@@ -235,6 +235,42 @@ describe("Prayer Times location controls and calendar", () => {
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("city=Cairo&country=Egypt");
   });
 
+  it("keeps calendar dates and prayer times in the selected location timezone", async () => {
+    const previousTimezone = process.env.TZ;
+    try {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-11-15T12:00:00Z"));
+      process.env.TZ = "America/New_York";
+      localStorage.clear();
+      const november = calendarDays(2026, 11);
+      november[2]!.timings.Fajr = "04:42 (EET)";
+      november[2]!.timings.Dhuhr = "11:39 (EET)";
+      mocks.calendarData = { "2026-11": november };
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: november }) });
+      vi.stubGlobal("fetch", fetchMock);
+      const rerender = await renderMonthlyPrayerCalendar();
+      const firstQuery = mocks.queries.find((query) => query.queryKey?.[0] === "prayer-calendar" && query.queryKey?.[1] === 2026 && query.queryKey?.[2] === 11);
+      const firstKey = firstQuery?.queryKey;
+      const novemberThird = container!.querySelector<HTMLTableRowElement>("#pt-panel-monthly tbody tr:nth-child(3)");
+      expect(novemberThird?.cells[0]?.textContent).toContain("3");
+      expect(novemberThird?.cells[1]?.textContent).toContain("4:42");
+      await act(async () => { await firstQuery?.queryFn?.(); });
+
+      process.env.TZ = "UTC";
+      await rerender();
+      const secondQuery = mocks.queries.filter((query) => query.queryKey?.[0] === "prayer-calendar" && query.queryKey?.[1] === 2026 && query.queryKey?.[2] === 11).at(-1);
+      expect(secondQuery?.queryKey).toEqual(firstKey);
+      await act(async () => { await secondQuery?.queryFn?.(); });
+
+      const urls = fetchMock.mock.calls.map(([url]) => String(url));
+      expect(urls.map((url) => new URL(url).searchParams.has("timezonestring"))).toEqual([false, false]);
+    } finally {
+      if (previousTimezone === undefined) delete process.env.TZ;
+      else process.env.TZ = previousTimezone;
+      vi.useRealTimers();
+    }
+  });
+
   it("rejects malformed successful calendar envelopes before the UI reads them", async () => {
     localStorage.clear();
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: {} }) });
@@ -283,6 +319,7 @@ describe("Prayer Times location controls and calendar", () => {
     const urls = fetchMock.mock.calls.map(([url]) => String(url));
     expect(urls.some((url) => url.includes("latitude=21.4225&longitude=39.8262"))).toBe(true);
     expect(urls.some((url) => url.includes("latitude=35.6762&longitude=139.6503"))).toBe(true);
+    expect(urls.map((url) => new URL(url).searchParams.has("timezonestring"))).toEqual([false, false]);
   });
 
   it("shows seven days when the current week crosses into the next month", async () => {
