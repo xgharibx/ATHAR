@@ -167,6 +167,10 @@ begin
   if v_user_id is null then
     raise exception 'missing-user-id';
   end if;
+
+  -- Match account deletion's lock-before-profile-row order to prevent deadlocks.
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_user_id, 0));
+
   if v_joined_at > current_date + 1 then v_joined_at := current_date; end if;
   if v_joined_at < date '2020-01-01' then v_joined_at := current_date; end if;
 
