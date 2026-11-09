@@ -19,7 +19,11 @@ import {
 } from "lucide-react";
 
 import { useStartupReady } from "@/hooks/useStartupReady";
+import { useCurrentHour } from "@/hooks/useCurrentHour";
+import { useHomePrayerClock } from "@/hooks/useHomePrayerClock";
 import { isStartupPending } from "@/lib/startup";
+import { getHomeAdhkarAction } from "@/lib/homeTimeActions";
+import { getHomePrayerContext } from "@/lib/homePrayerContext";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -501,6 +505,7 @@ export function HomePage() {
   const [activePhraseKey, setActivePhraseKey] = React.useState<QuickTasbeehKey | null>(null);
   const prayerTimes = usePrayerTimes();
   const civilTodayKey = useTodayKey();
+  const localHour = useCurrentHour();
   const todayTotal = React.useMemo(() => {
     const day = tasbeehDailyLog[civilTodayKey] ?? {};
     return Object.values(day).reduce((sum, value) => sum + (Number(value) || 0), 0);
@@ -708,37 +713,23 @@ export function HomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activity, civilTodayKey, customPacks, dailyChecklistByDay, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs, tasbeehDayTotals, worshipDayKey]);
 
-  const prayerContext = React.useMemo<PrayerContext>(() => {
-    const timings = prayerTimes.data?.data?.timings;
-    if (!timings) return { nextPrayer: null, nextPrayerMinutes: null };
-
-    const now = new Date();
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const prayerList = [
-      { label: "الفجر", value: timings.Fajr },
-      { label: "الظهر", value: timings.Dhuhr },
-      { label: "العصر", value: timings.Asr },
-      { label: "المغرب", value: timings.Maghrib },
-      { label: "العشاء", value: timings.Isha }
-    ]
-      .map((p) => {
-        const clean = String(p.value ?? "").trim().split(" ")[0] ?? "";
-        const [hh, mm] = clean.split(":").map((x) => Number.parseInt(x, 10));
-        if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
-        const at = new Date(dayStart);
-        at.setHours(hh, mm, 0, 0);
-        return { label: p.label, at };
-      })
-      .filter((p): p is { label: string; at: Date } => !!p);
-
-    const nextPrayer = prayerList.find((p) => p.at.getTime() > now.getTime()) ?? prayerList[0] ?? null;
-    const nextPrayerMinutes = nextPrayer ? Math.max(0, Math.floor((nextPrayer.at.getTime() - now.getTime()) / 60000)) : null;
-
-    return { nextPrayer, nextPrayerMinutes };
-  }, [prayerTimes.data?.data?.timings]);
+  const todayPrayerTimings = prayerTimes.data?.data?.timings;
+  const tomorrowPrayerDate = React.useMemo(() => {
+    const date = parseDateKey(civilTodayKey) ?? new Date();
+    date.setDate(date.getDate() + 1);
+    return date;
+  }, [civilTodayKey]);
+  const cachedTomorrowPrayerTimings = prayerTimes.tomorrow?.data?.timings;
+  const getPrayerTimingsForDate = prayerTimes.getPrayerTimingsForDate;
+  const tomorrowPrayerTimings = React.useMemo(() => {
+    if (cachedTomorrowPrayerTimings || !todayPrayerTimings) return cachedTomorrowPrayerTimings;
+    return getPrayerTimingsForDate(tomorrowPrayerDate);
+  }, [cachedTomorrowPrayerTimings, getPrayerTimingsForDate, todayPrayerTimings, tomorrowPrayerDate]);
+  useHomePrayerClock(todayPrayerTimings, tomorrowPrayerTimings, civilTodayKey);
+  const prayerContext: PrayerContext = getHomePrayerContext(todayPrayerTimings, tomorrowPrayerTimings, new Date());
 
   const smartNow = React.useMemo(() => {
-    const hour = new Date().getHours();
+    const hour = localHour;
     const periodLabel =
       hour < 5 ? "قبل الفجر" : hour < 12 ? "الصباح" : hour < 17 ? "بعد الظهر" : hour < 21 ? "المساء" : "الليل";
 
@@ -802,7 +793,7 @@ export function HomePage() {
     const streakRisk = hour >= 20 && todayActivity === 0;
 
     return { periodLabel, suggestedAction, missedYesterday, streakRisk, actionRoute, actionLabel };
-  }, [activity, civilTodayKey, dailyChecklistToday, dailyChecklistYesterday, isDailyWirdDone, prayerContext.nextPrayer, prefs.quranMushafPage]);
+  }, [activity, civilTodayKey, dailyChecklistToday, dailyChecklistYesterday, isDailyWirdDone, localHour, prayerContext.nextPrayer, prefs.quranMushafPage]);
 
   const adaptiveMission = React.useMemo(() => {
     const nextPrayer = prayerContext.nextPrayer;
@@ -916,14 +907,7 @@ export function HomePage() {
     toast.success(`تم إنجاز: ${item.title}`);
   }, [adaptiveMission.recoveryItem, toggleDailyChecklist, worshipDayKey]);
 
-  // Time-aware hero adhkar CTA — memoized; hour is stable for minutes at a time
-  const heroAdhkar = React.useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour >= 21 || hour < 4) return { id: "sleep",   label: "ابدأ بأذكار النوم" };
-    if (hour >= 15)              return { id: "evening", label: "ابدأ بأذكار المساء" };
-    return                              { id: "morning", label: "ابدأ بأذكار الصباح" };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [civilTodayKey]);
+  const heroAdhkar = getHomeAdhkarAction(localHour);
 
   if (isLoading) {
     return (
