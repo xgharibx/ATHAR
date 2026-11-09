@@ -55,28 +55,26 @@ export function MuhasabaPage() {
   const toggleHidden = useNoorStore((s) => s.toggleMuhasabaHidden);
 
   const [tab, setTab] = React.useState<"day" | "review">("day");
-  const [day, setDay] = React.useState(today);
+  const days = React.useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(today, i - 6)), [today]);
+  const [historicalDay, setHistoricalDay] = React.useState<string | null>(null);
+  const day = historicalDay && days.includes(historicalDay) ? historicalDay : today;
   const stripRef = React.useRef<HTMLDivElement | null>(null);
+  React.useEffect(() => {
+    if (historicalDay && !days.includes(historicalDay)) setHistoricalDay(null);
+  }, [days, historicalDay]);
   // The strip runs oldest to newest and can be wider than the screen: bring the
   // chosen day (today, at first) into view instead of leaving it off the edge.
   React.useEffect(() => {
     stripRef.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({ inline: "center", block: "nearest" });
   }, [day, today]);
-  const [open, setOpen] = React.useState<Deed | null>(null);
+  const [open, setOpen] = React.useState<{ deed: Deed; day: string } | null>(null);
   const [customize, setCustomize] = React.useState(false);
-
-  // If the ibadah day rolls over while the page is open, follow it.
-  const lastToday = React.useRef(today);
   React.useEffect(() => {
-    if (lastToday.current !== today) {
-      if (day === lastToday.current) setDay(today);
-      lastToday.current = today;
-    }
-  }, [today, day]);
+    if (open && !days.includes(open.day)) setOpen(null);
+  }, [days, open]);
 
   const allDeeds = React.useMemo(() => deedsFor(gender), [gender]);
   const deeds = React.useMemo(() => allDeeds.filter((d) => !hidden[d.id]), [allDeeds, hidden]);
-  const days = React.useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(today, i - 6)), [today]);
 
   const header = (
     <div className="flex items-center gap-3">
@@ -130,8 +128,10 @@ export function MuhasabaPage() {
   const weeks = weeklyScores(log, deeds, today, 8);
   const anyData = weeks.some((w) => w.score !== null);
 
-  const sheetDeed = open;
-  const sheetLevel = sheetDeed ? levelOf(log, day, sheetDeed.id) : null;
+  const sheetDeed = open?.deed ?? null;
+  const sheetDay = open?.day ?? day;
+  const sheetOpen = !!open && days.includes(open.day);
+  const sheetLevel = sheetDeed ? levelOf(log, sheetDay, sheetDeed.id) : null;
 
   return (
     <div dir="rtl" className="space-y-4 pb-24 page-enter px-1">
@@ -156,7 +156,7 @@ export function MuhasabaPage() {
               const sel = d === day;
               return (
                 <button
-                  key={d} type="button" role="tab" aria-selected={sel} onClick={() => setDay(d)}
+                  key={d} type="button" role="tab" aria-selected={sel} onClick={() => setHistoricalDay(d === today ? null : d)}
                   className={cn("shrink-0 w-[52px] rounded-2xl py-2 text-center border", sel ? "border-[var(--accent)] bg-[var(--card-2)]" : "border-[var(--stroke)] bg-[var(--card)]")}
                 >
                   <div className="text-[10px] text-[var(--muted)]">{d === today ? "اليوم" : dayLabel(d).slice(0, 4)}</div>
@@ -197,7 +197,7 @@ export function MuhasabaPage() {
                   const suggested = d.prayer && lv === null && !!prayerLog?.[day]?.[d.prayer];
                   return (
                     <button
-                      key={d.id} type="button" data-testid={`deed-${d.id}`} onClick={() => setOpen(d)}
+                      key={d.id} type="button" data-testid={`deed-${d.id}`} onClick={() => setOpen({ deed: d, day })}
                       className="w-full text-start rounded-2xl bg-[var(--card)] px-4 py-3 flex items-center gap-3"
                     >
                       <div className="flex-1 min-w-0">
@@ -297,11 +297,11 @@ export function MuhasabaPage() {
       )}
 
       {/* Ladder sheet */}
-      <Modal open={!!sheetDeed} onClose={() => setOpen(null)} ariaLabel={sheetDeed?.title ?? "المراتب"}>
+      <Modal open={sheetOpen} onClose={() => setOpen(null)} ariaLabel={sheetDeed?.title ?? "المراتب"}>
         {sheetDeed && (
           <div className="px-4 pt-2 pb-5" data-testid="ladder-sheet">
             <div className="text-base font-semibold">{sheetDeed.title}</div>
-            <p className="text-[11px] text-[var(--muted)] mb-3">{dayLabel(day)} — اختر أعلى درجة وصلت إليها، وكل درجة تشمل ما قبلها</p>
+            <p className="text-[11px] text-[var(--muted)] mb-3">{dayLabel(sheetDay)} — اختر أعلى درجة وصلت إليها، وكل درجة تشمل ما قبلها</p>
             <div className="flex flex-col-reverse gap-1.5 max-h-[60vh] overflow-y-auto">
               {sheetDeed.levels.map((label, i) => {
                 const n = i + 1;
@@ -309,7 +309,7 @@ export function MuhasabaPage() {
                 return (
                   <button
                     key={label} type="button" aria-pressed={sheetLevel === n}
-                    onClick={() => { setMuhasaba(day, sheetDeed.id, n); setOpen(null); }}
+                    onClick={() => { setMuhasaba(sheetDay, sheetDeed.id, n); setOpen(null); }}
                     className={cn("flex items-center gap-3 rounded-2xl px-4 py-3 text-start text-sm border", sheetLevel === n ? "border-[var(--accent)] bg-[var(--card-2)] font-semibold" : "border-transparent bg-[var(--card)]")}
                   >
                     <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[11px]", on ? "bg-[var(--accent)] text-[var(--on-accent)]" : "bg-[var(--stroke)]")}>
@@ -322,8 +322,8 @@ export function MuhasabaPage() {
               })}
             </div>
             <div className="flex gap-2 mt-3">
-              <Button variant="secondary" className="flex-1" onClick={() => { setMuhasaba(day, sheetDeed.id, 0); setOpen(null); }}>فاتتني</Button>
-              <Button variant="ghost" className="flex-1" disabled={sheetLevel === null} onClick={() => { setMuhasaba(day, sheetDeed.id, null); setOpen(null); }}>مسح</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => { setMuhasaba(sheetDay, sheetDeed.id, 0); setOpen(null); }}>فاتتني</Button>
+              <Button variant="ghost" className="flex-1" disabled={sheetLevel === null} onClick={() => { setMuhasaba(sheetDay, sheetDeed.id, null); setOpen(null); }}>مسح</Button>
             </div>
           </div>
         )}
