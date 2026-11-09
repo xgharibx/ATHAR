@@ -25,7 +25,6 @@ const MAX_SECTION_ID_LENGTH = 80;
 const MAX_REQUEST_BODY_BYTES = 64 * 1024;
 const MAX_DAY_SKEW = 3;
 const MAX_GENERATED_AT_SKEW_MS = 36 * 60 * 60 * 1000;
-const MAX_EVENTS_PER_USER_PER_DAY = 2000;
 const MAX_ALIAS_LENGTH = 40;
 const limiter = new Map();
 const blocklistCache = { loadedAt: 0, rows: [] };
@@ -939,6 +938,7 @@ denoRuntime.serve(async (req) => {
 
     const incomingScoreSignature = scoreSignature(payload.scores);
     let deduped = false;
+    let capped = false;
 
     const lastSnapshotRes = await db
       .from("leaderboard_score_events")
@@ -971,36 +971,22 @@ denoRuntime.serve(async (req) => {
       }
     }
 
-    // Count SUBMISSIONS, not rows. Each submission writes one row per board
-    // plus one per section — about 37 — so counting rows made a cap meant as
-    // "2000 submissions a day" fire after roughly 55. Past it the audit log
-    // silently stopped recording an active user's day while their rollups kept
-    // updating, which left the events table unable to explain their own score.
-    const dayCountRes = await db
-      .from("leaderboard_score_events")
-      .select("id", { count: "exact", head: true })
-      .eq("day", payload.day)
-      .eq("user_id", payload.identity.id)
-      .eq("board", "global")
-      .is("section_id", null);
-
     const rows = eventRows(payload, aliasDecision.alias);
 
-    // The per-day event cap used to reject the whole submission with a 429,
-    // which meant a heavy user's score silently stopped counting for the rest
-    // of the day. The events table is an audit log; the rollups table is what
-    // ranks people. So past the cap we stop appending history but still record
-    // the score — the user keeps counting, which is the point.
-    const overEventCap =
-      !dayCountRes.error && (dayCountRes.count ?? 0) > MAX_EVENTS_PER_USER_PER_DAY;
-
-    if (!deduped && !overEventCap) {
+    // The database trigger atomically enforces the per-identity/day audit cap.
+    // If it skips an event at the cap, this insert still succeeds and the score
+    // rollups below continue updating; the event table is only audit history.
+    if (!deduped) {
       // One audit row per submission, not one per board and section. Every row used to
       // carry the whole payload, so a submission wrote ~37 copies of it; the only
       // reader (the dedup checks above) looks at the "global" row, whose payload
       // already holds every score. Per-board history lives in leaderboard_rollups.
-      const insertEvents = await db.from("leaderboard_score_events").insert(rows.filter((r) => r.board === "global"));
+      const insertEvents = await db
+        .from("leaderboard_score_events")
+        .insert(rows.filter((r) => r.board === "global"))
+        .select("id");
       if (insertEvents.error) return json({ ok: false, error: "event-insert-failed" }, 500);
+      capped = Array.isArray(insertEvents.data) && insertEvents.data.length === 0;
     }
 
     // Update ONLY this user's rollup rows.
@@ -1080,7 +1066,7 @@ denoRuntime.serve(async (req) => {
       if (rollupUpsert.error) return json({ ok: false, error: "rollup-upsert-failed" }, 500);
     }
 
-    return json({ ok: true, ...(deduped ? { deduped: true } : {}), alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt, capped: overEventCap });
+    return json({ ok: true, ...(deduped ? { deduped: true } : {}), alias: aliasDecision.alias, aliasStatus: aliasDecision.status, hidden: false, joinedAt: profileResult.joinedAt, capped });
   }
 
   if (req.method === "GET") {
