@@ -130,6 +130,27 @@ describe("silent native notification sound payloads", () => {
     expect(morning).toHaveProperty("sound", "birds.caf");
   });
 
+  it("preserves tomorrow's prayer alarm when a refresh only provides today's times", async () => {
+    const reminders = { ...adhkarReminders(), prayerAlertsEnabled: true };
+    const today = { Fajr: "08:00" };
+    const tomorrow = { Fajr: "08:05" };
+
+    await syncReminders(reminders, today, undefined, tomorrow);
+    const tomorrowAlarm = scheduledNotifications().find((notification) =>
+      (notification.extra as { dateISO?: string; prayerName?: string } | undefined)?.dateISO === "2026-10-03" &&
+      (notification.extra as { prayerName?: string } | undefined)?.prayerName === "Fajr" &&
+      notification.title === "أثر — الأذان",
+    );
+    expect(tomorrowAlarm).toBeDefined();
+
+    await syncReminders(reminders, today);
+    const lastCancellation = mocks.localNotifications.cancel.mock.calls.at(-1)?.[0] as {
+      notifications?: Array<{ id: number }>;
+    } | undefined;
+
+    expect(lastCancellation?.notifications?.map(({ id }) => id)).not.toContain(tomorrowAlarm?.id);
+  });
+
   it("sounds the recurring reminder again but keeps its snooze silent", async () => {
     mocks.capacitor.getPlatform.mockReturnValue("android");
 

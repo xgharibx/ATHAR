@@ -149,6 +149,11 @@ function notificationIdsForBothDateSlots(ids: readonly number[]): number[] {
   return [0, 1].flatMap((slot) => ids.map((id) => id + slot * NOTIFICATION_DATE_SLOT_OFFSET));
 }
 
+function notificationIdsForDateSlot(ids: readonly number[], dateISO: string): number[] {
+  const slot = notificationDateSlot(dateISO);
+  return ids.map((id) => id + slot * NOTIFICATION_DATE_SLOT_OFFSET);
+}
+
 function dateSlotIdForAction(baseId: number, dateISO?: string): number | null {
   const today = getLocalDateKey();
   const targetDate = dateISO ?? today;
@@ -1041,10 +1046,20 @@ async function syncRemindersForOwner(
   }
 
   const reminderIds = Object.values(REMINDER_IDS);
-  const prayerIds = notificationIdsForBothDateSlots(Object.values(PRAYER_NOTIFICATION_IDS));
-  const followUpIds = notificationIdsForBothDateSlots(Object.values(PRAYER_FOLLOWUP_IDS));
-  const ramadanIds = notificationIdsForBothDateSlots(Object.values(RAMADAN_IDS));
   const shouldRefreshPrayerNotifications = !reminders.prayerAlertsEnabled || !!prayerTimings;
+  const todayISO = getLocalDateKey();
+  const prayerIdsForRefresh = (ids: readonly number[]) => {
+    if (!shouldRefreshPrayerNotifications) return [];
+    // A caller may only have today's times available. Keep tomorrow's already
+    // scheduled alarms until tomorrow's refreshed timings are ready.
+    if (reminders.prayerAlertsEnabled && prayerTimings && !tomorrowPrayerTimings) {
+      return notificationIdsForDateSlot(ids, todayISO);
+    }
+    return notificationIdsForBothDateSlots(ids);
+  };
+  const prayerIds = prayerIdsForRefresh(Object.values(PRAYER_NOTIFICATION_IDS));
+  const followUpIds = prayerIdsForRefresh(Object.values(PRAYER_FOLLOWUP_IDS));
+  const ramadanIds = prayerIdsForRefresh(Object.values(RAMADAN_IDS));
 
   await LocalNotifications.cancel({
     notifications: notificationRefs([
@@ -1073,7 +1088,6 @@ async function syncRemindersForOwner(
   if (reminders.prayerAlertsEnabled && prayerTimings) {
     const prayerNotificationAudio = await ensurePrayerChannel(reminders.prayerSoundProfile);
     if (getAccountStorageOwner() !== owner) return;
-    const todayISO = getLocalDateKey();
     const scheduleDays: PrayerNotificationDay[] = [
       { dateISO: todayISO, timings: prayerTimings },
       ...(tomorrowPrayerTimings ? [{ dateISO: shiftDateKey(todayISO, 1), timings: tomorrowPrayerTimings }] : []),

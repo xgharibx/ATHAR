@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   requestPrayerLocation: vi.fn<() => Promise<boolean>>(),
   reminders: [],
   timings: { Fajr: "05:00", Sunrise: "06:20", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30" },
+  tomorrowTimings: { Fajr: "05:01", Sunrise: "06:21", Dhuhr: "12:01", Asr: "15:31", Maghrib: "18:01", Isha: "19:31" },
   prayerFetching: false,
   syncReminders: vi.fn().mockResolvedValue(undefined),
   toast: { error: vi.fn(), success: vi.fn() },
@@ -29,6 +30,7 @@ vi.mock("@/hooks/usePrayerTimes", () => ({
     },
     isLoading: false,
     isFetching: mocks.prayerFetching,
+    tomorrow: { data: { timings: mocks.tomorrowTimings } },
     refetch: vi.fn().mockResolvedValue({ data: { data: { timings: mocks.timings } } }),
   }),
 }));
@@ -69,6 +71,7 @@ beforeEach(() => {
   mocks.requestPrayerLocation.mockResolvedValue(true);
   mocks.prayerFetching = false;
   mocks.timings = { Fajr: "05:00", Sunrise: "06:20", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30" };
+  mocks.tomorrowTimings = { Fajr: "05:01", Sunrise: "06:21", Dhuhr: "12:01", Asr: "15:31", Maghrib: "18:01", Isha: "19:31" };
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   Object.defineProperty(window, "scrollTo", { configurable: true, value: vi.fn() });
   window.addEventListener("error", suppressExpectedRenderError);
@@ -125,6 +128,32 @@ function calendarDays(year: number, month: number) {
 }
 
 describe("Prayer Times location controls and calendar", () => {
+  it("refreshes today without dropping the already fetched tomorrow timings", async () => {
+    localStorage.clear();
+    const { PrayerTimesPage } = await import("@/pages/PrayerTimes");
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+
+    await act(async () => {
+      root!.render(createElement(MemoryRouter, { future: { v7_startTransition: true, v7_relativeSplatPath: true } }, createElement(PrayerTimesPage)));
+    });
+    const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="تحديث المواقيت"]');
+    expect(refresh).not.toBeNull();
+
+    await act(async () => {
+      refresh!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mocks.syncReminders).toHaveBeenCalledWith([], {
+      Fajr: "05:00", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30",
+    }, undefined, {
+      Fajr: "05:01", Sunrise: "06:21", Dhuhr: "12:01", Asr: "15:31", Maghrib: "18:01", Isha: "19:31",
+    });
+  });
+
   it("shows one actionable error when the Hijri calendar request fails", async () => {
     mocks.calendarError = true;
     await renderMonthlyPrayerCalendar();
@@ -188,7 +217,7 @@ describe("Prayer Times location controls and calendar", () => {
     expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({ type: "athar:prayer-location-changed" }));
     expect(mocks.syncReminders).toHaveBeenCalledWith([], {
       Fajr: "05:00", Dhuhr: "12:00", Asr: "15:30", Maghrib: "18:00", Isha: "19:30",
-    });
+    }, undefined, mocks.tomorrowTimings);
     expect(mocks.toast.success).toHaveBeenCalledWith("تم إيقاف استخدام الموقع والعودة إلى القاهرة");
   });
 
@@ -315,6 +344,6 @@ describe("Prayer Times location controls and calendar", () => {
 
     expect(mocks.syncReminders).toHaveBeenCalledWith([], {
       Fajr: "05:00", Dhuhr: "09:11", Asr: "15:30", Maghrib: "18:00", Isha: "19:30",
-    });
+    }, undefined, mocks.tomorrowTimings);
   });
 });
