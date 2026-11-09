@@ -42,6 +42,7 @@ import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
 import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
+import { AdhkarLoadStatus } from "@/components/home/AdhkarLoadStatus";
 import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
 import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
 import { toArabicNumeral } from "@/lib/quranMeta";
@@ -243,7 +244,7 @@ export function HomePage() {
   const newMuhasaba = useIsNew("muhasaba");
   const newQadaa = useIsNew("qadaa");
   const [initialLaunch] = React.useState(isStartupPending);
-  const { data, isLoading, error } = useAdhkarDB();
+  const { data, isLoading, isFetching, error, refetch } = useAdhkarDB();
   useStartupReady(!isLoading);
   const quran = useQuranDB();
   const activity = useNoorStore((s) => s.activity);
@@ -942,24 +943,15 @@ export function HomePage() {
       </div>
     );
   }
-  if (error || !data) {
+  if (!data) {
     return (
-      <div className="p-6">
-        <Card className="p-6">
-          <div className="text-lg font-semibold">حدث خطأ</div>
-          <div className="opacity-70 mt-2 text-sm leading-6">
-            لم نستطع تحميل قاعدة الأذكار. تأكد من وجود الملف{" "}
-            <code className="px-2 py-1 rounded-lg bg-[var(--card)] border border-[var(--stroke)]">
-              public/data/adhkar
-            </code>
-          </div>
-        </Card>
-      </div>
+      <AdhkarLoadStatus hasData={false} error={error ?? true} isFetching={isFetching} onRetry={() => { void refetch(); }} />
     );
   }
 
   return (
     <div className={initialLaunch ? "space-y-3" : "space-y-3 page-enter"}>
+      <AdhkarLoadStatus hasData error={error} isFetching={isFetching} onRetry={() => { void refetch(); }} />
       <Card className="p-5 overflow-hidden relative">
         {/* Two quiet doors to the tables, in the corner the decoration used to fill. */}
         <div className="absolute top-3 left-3 z-10 grid grid-cols-2 gap-2">

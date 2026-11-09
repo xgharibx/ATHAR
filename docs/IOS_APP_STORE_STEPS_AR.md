@@ -1,6 +1,6 @@
 # رفع أثر على App Store — الخطوات بعد دفع الرسوم (بدون Mac)
 
-المصدر الحالي للإصدار 1.2.87 هو Android versionCode 100 وiOS build 100. تحقق من أحدث نتائج سيرَي [iOS Build](https://github.com/xgharibx/ATHAR/actions/workflows/ios-build.yml) و[Android validation](https://github.com/xgharibx/ATHAR/actions/workflows/android-validate.yml) بعد كل دفع. فحص iOS الآن يرفض Xcode أو iOS SDK أقدم من 26.
+المصدر الحالي للإصدار 1.2.88 هو Android versionCode 101 وiOS build 101. تحقق من أحدث نتائج سيرَي [iOS Build](https://github.com/xgharibx/ATHAR/actions/workflows/ios-build.yml) و[Android validation](https://github.com/xgharibx/ATHAR/actions/workflows/android-validate.yml) بعد كل دفع. فحص iOS الآن يرفض Xcode أو iOS SDK أقدم من 26.
 هذا لا يعني أن تطبيق iOS وُقّع أو رُفع إلى TestFlight؛ خطوات التوقيع والأرشفة والرفع لم تعمل لغياب إعداد Apple.
 راجع مجموعة الرفع النشطة في `ios/fastlane/release/` قبل تشغيل سير عمل iOS. المجموعة العربية فقط؛ ملفات الإنجليزية القديمة
 مسودات غير مفعّلة لأن واجهة التطبيق ما زالت عربية.

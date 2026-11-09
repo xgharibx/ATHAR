@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { idbGetHadithPackEntry, idbSetHadithPack } from "@/lib/hadithIDB";
 import { HADITH_BOOKS_STATIC, type HadithBookMeta, type HadithItem, type HadithPack } from "@/data/hadithTypes";
+import { parseHadithIndex, parseHadithPack } from "@/data/hadithSchemas";
 import { publicDataUrl } from "@/data/publicAssetUrl";
 
 /** Approximate uncompressed file size in MB for each book (Phase 9 - progress UI) */
@@ -31,7 +32,7 @@ export async function loadHadithIndex(): Promise<HadithBookMeta[]> {
   try {
     const res = await fetch(publicDataUrl("data/hadith/index.json"));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return (await res.json()) as HadithBookMeta[];
+    return parseHadithIndex(await res.json());
   } catch {
     return HADITH_BOOKS_STATIC;
   }
@@ -40,22 +41,30 @@ export async function loadHadithIndex(): Promise<HadithBookMeta[]> {
 /** Load a full hadith pack for a given book key. Tries IDB first, then fetch. */
 export async function loadHadithPack(bookKey: string): Promise<HadithPack> {
   // 1. Try IDB cache
-  const cached = await idbGetHadithPackEntry(bookKey);
-  if (cached?.isFresh) return cached.data;
-  if (cached && isKnownOffline()) return cached.data;
+  const cachedEntry = await idbGetHadithPackEntry(bookKey);
+  let cached: HadithPack | null = null;
+  if (cachedEntry) {
+    try {
+      cached = parseHadithPack(cachedEntry.data, bookKey);
+    } catch {
+      // Ignore corrupt or mismatched cache rows; never feed them to the reader.
+    }
+  }
+  if (cached && cachedEntry?.isFresh) return cached;
+  if (cached && isKnownOffline()) return cached;
 
   try {
     // 2. Fetch from static files
     const res = await fetch(publicDataUrl(`data/hadith/${bookKey}.json`));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const pack = (await res.json()) as HadithPack;
+    const pack = parseHadithPack(await res.json(), bookKey);
 
     // 3. Replace the cached row only after a successful response.
-    void idbSetHadithPack(pack);
+    void idbSetHadithPack(pack).catch(() => undefined);
 
     return pack;
   } catch (error) {
-    if (cached) return cached.data;
+    if (cached) return cached;
     throw error;
   }
 }
@@ -71,16 +80,24 @@ export async function loadHadithPackWithProgress(
   setIsFromCache: (v: boolean) => void,
 ): Promise<HadithPack | null> {
   // 1. Try IDB cache
-  const cached = await idbGetHadithPackEntry(bookKey);
-  if (cached?.isFresh) {
+  const cachedEntry = await idbGetHadithPackEntry(bookKey);
+  let cached: HadithPack | null = null;
+  if (cachedEntry) {
+    try {
+      cached = parseHadithPack(cachedEntry.data, bookKey);
+    } catch {
+      // Ignore corrupt or mismatched cache rows; never feed them to the reader.
+    }
+  }
+  if (cached && cachedEntry?.isFresh) {
     setIsFromCache(true);
     onProgress(100);
-    return cached.data;
+    return cached;
   }
   if (cached && isKnownOffline()) {
     setIsFromCache(true);
     onProgress(100);
-    return cached.data;
+    return cached;
   }
 
   setIsFromCache(false);
@@ -96,8 +113,8 @@ export async function loadHadithPackWithProgress(
 
     if (!res.body || total === 0) {
       // No streaming: direct parse
-      const pack = (await res.json()) as HadithPack;
-      void idbSetHadithPack(pack);
+      const pack = parseHadithPack(await res.json(), bookKey);
+      void idbSetHadithPack(pack).catch(() => undefined);
       onProgress(100);
       return pack;
     }
@@ -121,16 +138,16 @@ export async function loadHadithPackWithProgress(
 
     const blob = new Blob(chunks, { type: "application/json" });
     const text = await blob.text();
-    const pack = JSON.parse(text) as HadithPack;
+    const pack = parseHadithPack(JSON.parse(text), bookKey);
 
-    void idbSetHadithPack(pack);
+    void idbSetHadithPack(pack).catch(() => undefined);
     onProgress(100);
     return pack;
   } catch (error) {
     if (cached) {
       setIsFromCache(true);
       onProgress(100);
-      return cached.data;
+      return cached;
     }
     onProgress(0);
     throw error;
