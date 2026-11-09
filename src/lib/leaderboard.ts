@@ -79,6 +79,7 @@ export type FlushQueueResult = {
   ok: boolean;
   sent: number;
   reason: "rate_limited" | "auth" | "invalid_payload" | "server" | "network_retry" | null;
+  retryAfterMs?: number;
   alias?: string;
   aliasStatus?: string;
   hidden?: boolean;
@@ -145,6 +146,7 @@ const RATE_LIMIT_UNTIL_KEY = "noor_lb_rate_limit_until";
 // enough to break the loop without the user's dhikr going uncounted for the
 // rest of the session. A Retry-After header still wins over this.
 const RATE_LIMIT_DEFAULT_BACKOFF_MS = 45 * 1000;
+const MAX_RETRY_AFTER_MS = 2_147_483_647;
 
 const INVISIBLE_ALIAS_CHARS_RE = /[\u200B-\u200F\u2060\uFEFF]/g;
 const MULTI_SPACE_RE = /\s+/g;
@@ -763,7 +765,12 @@ export async function syncLeaderboardSnapshot(
   }
 
   if (isRateLimited()) {
-    return { ok: false, sent: 0, reason: "rate_limited" } satisfies FlushQueueResult;
+    return {
+      ok: false,
+      sent: 0,
+      reason: "rate_limited",
+      retryAfterMs: getRateLimitBackoffRemainingMs(),
+    } satisfies FlushQueueResult;
   }
 
   return flushQueue(endpoint);
@@ -821,25 +828,45 @@ export function enqueuePayload(payload: LeaderboardSubmitPayload) {
   });
 }
 
-export function isRateLimited(): boolean {
-  try {
-    const until = Number(accountScopedLocalStorage.getItem(RATE_LIMIT_UNTIL_KEY) ?? "0");
-    return Date.now() < until;
-  } catch {
-    return false;
+function parseRetryAfterMs(retryAfterHeader: string | null) {
+  const value = retryAfterHeader?.trim();
+  if (!value) return RATE_LIMIT_DEFAULT_BACKOFF_MS;
+
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.min(MAX_RETRY_AFTER_MS, Math.ceil(seconds * 1000));
   }
+
+  const retryAt = Date.parse(value);
+  if (Number.isFinite(retryAt)) {
+    return Math.min(MAX_RETRY_AFTER_MS, Math.max(0, retryAt - Date.now()));
+  }
+
+  return RATE_LIMIT_DEFAULT_BACKOFF_MS;
 }
 
 function setRateLimitBackoff(retryAfterHeader: string | null) {
   try {
-    const seconds = retryAfterHeader ? Number(retryAfterHeader) : NaN;
-    const backoffMs = Number.isFinite(seconds) && seconds > 0
-      ? seconds * 1000
-      : RATE_LIMIT_DEFAULT_BACKOFF_MS;
+    const backoffMs = parseRetryAfterMs(retryAfterHeader);
     accountScopedLocalStorage.setItem(RATE_LIMIT_UNTIL_KEY, String(Date.now() + backoffMs));
+    return backoffMs;
   } catch {
     // ignore
+    return RATE_LIMIT_DEFAULT_BACKOFF_MS;
   }
+}
+
+export function getRateLimitBackoffRemainingMs() {
+  try {
+    const until = Number(accountScopedLocalStorage.getItem(RATE_LIMIT_UNTIL_KEY) ?? "0");
+    return Number.isFinite(until) ? Math.max(0, until - Date.now()) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function isRateLimited(): boolean {
+  return getRateLimitBackoffRemainingMs() > 0;
 }
 
 export function clearRateLimitBackoff() {
@@ -864,10 +891,13 @@ export async function flushQueue(endpoint: string): Promise<FlushQueueResult> {
   let sent = 0;
   let droppedPermanent = 0;
   let lastError: "rate_limited" | "auth" | "invalid_payload" | "server" | "network_retry" | null = null;
+  let retryAfterMs: number | undefined;
   let lastAck: { alias?: string; aliasStatus?: string; hidden?: boolean } | null = null;
   const remaining: LeaderboardSubmitPayload[] = [];
 
-  for (const item of queue) {
+  for (let index = 0; index < queue.length; index += 1) {
+    const item = queue[index];
+    if (!item) continue;
     const validation = validateSubmitPayload(item);
     if (!validation.ok) {
       continue;
@@ -896,27 +926,30 @@ export async function flushQueue(endpoint: string): Promise<FlushQueueResult> {
       }
 
       if (res.status === 429) {
-        setRateLimitBackoff(res.headers.get("Retry-After"));
-        // push remaining (unprocessed) items back to queue and stop
-        remaining.push(item, ...queue.slice(queue.indexOf(item) + 1));
+        retryAfterMs = setRateLimitBackoff(res.headers.get("Retry-After"));
+        // Preserve this and all later snapshots, and stop sending during cooldown.
+        remaining.push(item, ...queue.slice(index + 1));
         lastError = "rate_limited";
         break;
       } else if (shouldRetryStatus(res.status)) {
-        remaining.push(item);
+        // A transient outage should not fan out one failed request per queued day.
+        remaining.push(item, ...queue.slice(index + 1));
         lastError = res.status === 401 || res.status === 403 ? "auth" : "network_retry";
+        break;
       } else {
         droppedPermanent += 1;
         lastError = res.status === 400 || res.status === 422 ? "invalid_payload" : "server";
       }
     } catch {
-      remaining.push(item);
+      remaining.push(item, ...queue.slice(index + 1));
       lastError = "network_retry";
+      break;
     }
   }
 
   writeQueue(remaining);
   const ok = remaining.length === 0 && (sent > 0 || droppedPermanent === 0);
-  return { ok, sent, reason: ok ? null : lastError, ...(lastAck ?? {}) };
+  return { ok, sent, reason: ok ? null : lastError, ...(retryAfterMs !== undefined ? { retryAfterMs } : {}), ...(lastAck ?? {}) };
 }
 
 export async function fetchBoardRows(opts: {

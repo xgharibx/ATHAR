@@ -3,8 +3,9 @@ import * as React from "react";
 import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useTodayKey } from "@/hooks/useTodayKey";
-import { isRateLimited, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot, LEADERBOARD_SUBMITTED_EVENT } from "@/lib/leaderboard";
+import { getRateLimitBackoffRemainingMs, isRateLimited, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot, LEADERBOARD_SUBMITTED_EVENT } from "@/lib/leaderboard";
 import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
+import { getLeaderboardNetworkRetryDelayMs } from "@/lib/leaderboardRetry";
 import { useNoorStore } from "@/store/noorStore";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSyncStatus } from "@/hooks/useCloudSync";
@@ -60,6 +61,28 @@ export function LeaderboardSyncBridge() {
   const lastSyncedKeyRef = React.useRef("");
   const syncingRef = React.useRef(false);
   const pendingSyncRef = React.useRef(false);
+  const retryAttemptRef = React.useRef(0);
+  const retryTimerRef = React.useRef<number | null>(null);
+  const retryWakeRef = React.useRef(false);
+
+  const clearRetryTimer = React.useCallback(() => {
+    if (retryTimerRef.current !== null) {
+      window.clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleRetry = React.useCallback((delayMs: number, replace = false) => {
+    if (retryTimerRef.current !== null && !replace) return;
+    clearRetryTimer();
+    retryTimerRef.current = window.setTimeout(() => {
+      retryTimerRef.current = null;
+      retryWakeRef.current = true;
+      setRetryTick((value) => value + 1);
+    }, Math.max(0, Math.ceil(delayMs)));
+  }, [clearRetryTimer]);
+
+  React.useEffect(() => clearRetryTimer, [clearRetryTimer]);
 
   const sections = React.useMemo(() => data?.db.sections ?? [], [data]);
   const stats = React.useMemo(
@@ -85,7 +108,15 @@ export function LeaderboardSyncBridge() {
   );
 
   React.useEffect(() => {
-    const triggerRetry = () => setRetryTick((value) => value + 1);
+    const triggerRetry = () => {
+      const remaining = getRateLimitBackoffRemainingMs();
+      if (remaining > 0) {
+        scheduleRetry(remaining);
+        return;
+      }
+      clearRetryTimer();
+      setRetryTick((value) => value + 1);
+    };
     const onVisible = () => {
       if (document.visibilityState === "visible") triggerRetry();
     };
@@ -95,6 +126,8 @@ export function LeaderboardSyncBridge() {
     // the new one and the day would look empty.
     const onIdentityChanged = () => {
       lastSyncedKeyRef.current = "";
+      retryAttemptRef.current = 0;
+      clearRetryTimer();
       triggerRetry();
     };
 
@@ -109,7 +142,7 @@ export function LeaderboardSyncBridge() {
       window.removeEventListener("athar-leaderboard-identity-changed", onIdentityChanged);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [clearRetryTimer, scheduleRetry]);
 
   React.useEffect(() => {
     if (!endpoint || sections.length === 0) return;
@@ -146,18 +179,37 @@ export function LeaderboardSyncBridge() {
     }
 
     if (snapshotKey === lastSyncedKeyRef.current) return;
-    if (isRateLimited()) return;
+    if (isRateLimited()) {
+      scheduleRetry(getRateLimitBackoffRemainingMs());
+      return;
+    }
 
+    const delay = retryWakeRef.current ? 0 : AUTO_SYNC_DEBOUNCE_MS;
+    retryWakeRef.current = false;
     const timeoutId = window.setTimeout(async () => {
       if (syncingRef.current) {
         pendingSyncRef.current = true;
         return;
       }
       if (isRateLimited()) return;
+      clearRetryTimer();
       syncingRef.current = true;
+      let succeeded = false;
       try {
         const flush = await syncLeaderboardSnapshot(endpoint, todayKey, stats.scores, stats.metrics);
-        if (!flush.ok) return;
+        if (!flush.ok) {
+          if (flush.reason === "network_retry") {
+            scheduleRetry(getLeaderboardNetworkRetryDelayMs(retryAttemptRef.current));
+            retryAttemptRef.current += 1;
+          } else if (flush.reason === "rate_limited") {
+            retryAttemptRef.current = 0;
+            scheduleRetry(flush.retryAfterMs ?? getRateLimitBackoffRemainingMs(), true);
+          }
+          return;
+        }
+        succeeded = true;
+        clearRetryTimer();
+        retryAttemptRef.current = 0;
         lastSyncedKeyRef.current = snapshotKey;
         // Say so, so a leaderboard already on screen re-reads the standings
         // rather than showing a rank that predates the score just sent.
@@ -173,10 +225,10 @@ export function LeaderboardSyncBridge() {
         syncingRef.current = false;
         if (pendingSyncRef.current) {
           pendingSyncRef.current = false;
-          setRetryTick((value) => value + 1);
+          if (succeeded) setRetryTick((value) => value + 1);
         }
       }
-    }, AUTO_SYNC_DEBOUNCE_MS);
+    }, delay);
 
     return () => window.clearTimeout(timeoutId);
   }, [
@@ -191,6 +243,8 @@ export function LeaderboardSyncBridge() {
     ensureDailyResets,
     effectiveFajr,
     awaitingFirstSync,
+    clearRetryTimer,
+    scheduleRetry,
   ]);
 
   return null;
