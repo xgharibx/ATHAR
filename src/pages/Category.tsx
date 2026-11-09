@@ -15,7 +15,7 @@ export function CategoryPage() {
   const navigate = useNavigate();
   useScrollRestoration();
   const { id } = useParams<{ id: string }>();
-  const { data, isLoading } = useAdhkarDB();
+  const { data, isLoading, refetch } = useAdhkarDB();
   const customPacks = useNoorStore((s) => s.customPacks);
   const deleteCustomPack = useNoorStore((s) => s.deleteCustomPack);
   const [sp] = useSearchParams();
@@ -31,6 +31,42 @@ export function CategoryPage() {
     const n = parseInt(raw, 10);
     return Number.isFinite(n) ? n : null;
   }, [sp]);
+
+  if (!id) {
+    return (
+      <div className="p-6">
+        <Card className="p-6">
+          <div className="font-semibold">القسم غير موجود</div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Custom packs live in the local app store. Resolve them before consulting
+  // the bundled catalog so a failed or still-loading catalog cannot hide them.
+  const customPack = customPacks.find((p) => p.id === id);
+  if (customPack) {
+    const customItems: DhikrItem[] = customPack.items.map((it) => ({
+      text: it.text,
+      count: it.count,
+      benefit: "",
+      source: "",
+      source_label: "",
+      source_url: "",
+      minimal: false,
+      count_description: "",
+    }));
+    return (
+      <DhikrList
+        sectionId={customPack.id}
+        title={customPack.title}
+        items={customItems}
+        focusIndex={focusIndex}
+        isCustomSection={true}
+        onDeleteCategory={() => { deleteCustomPack(customPack.id); navigate("/"); }}
+      />
+    );
+  }
 
   if (isLoading) return (
     <div className="space-y-4 page-enter" role="status" aria-label="جارٍ التحميل…">
@@ -49,11 +85,24 @@ export function CategoryPage() {
       </div>
     </div>
   );
-  if (!data || !id) {
+  if (!data) {
     return (
       <div className="p-6">
         <Card className="p-6">
-          <div className="font-semibold">القسم غير موجود</div>
+          <div className="flex items-center gap-2 font-semibold">
+            <AlertTriangle size={18} aria-hidden="true" />
+            تعذّر تحميل الأذكار
+          </div>
+          <div className="mt-2 text-sm opacity-70">تحقّق من اتصالك ثم حاول مرة أخرى.</div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => { void refetch(); }}>
+              إعادة المحاولة
+            </Button>
+            <Button variant="ghost" onClick={() => navigate("/")}>
+              <Home size={16} aria-hidden="true" />
+              العودة
+            </Button>
+          </div>
         </Card>
       </div>
     );
@@ -61,30 +110,6 @@ export function CategoryPage() {
 
   const section = data.db.sections.find((s) => s.id === id);
   if (!section) {
-    // 3D: fall back to user-created custom pack
-    const customPack = customPacks.find((p) => p.id === id);
-    if (customPack) {
-      const customItems: DhikrItem[] = customPack.items.map((it) => ({
-        text: it.text,
-        count: it.count,
-        benefit: "",
-        source: "",
-        source_label: "",
-        source_url: "",
-        minimal: false,
-        count_description: "",
-      }));
-      return (
-        <DhikrList
-          sectionId={customPack.id}
-          title={customPack.title}
-          items={customItems}
-          focusIndex={focusIndex}
-          isCustomSection={true}
-          onDeleteCategory={() => { deleteCustomPack(customPack.id); navigate("/"); }}
-        />
-      );
-    }
     return (
       <div className="p-6">
         <Card className="p-6">
