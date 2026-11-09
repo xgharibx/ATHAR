@@ -1,10 +1,6 @@
 # رفع أثر على App Store — الخطوات بعد دفع الرسوم (بدون Mac)
 
-المصدر الحالي للإصدار 1.2.83 هو Android versionCode 96 وiOS build 96. آخر تشغيلات GitHub Actions على commit
-`c088bb5` نجحت: بناء الويب، ومزامنة Capacitor، وبناء Android مع lint والحزمة غير الموقعة، وبناء iOS غير الموقع، ونشر الموقع.
-روابط التشغيلات: [Android 42539079509](https://github.com/xgharibx/ATHAR/actions/runs/42539079509)،
-[iOS 42539079495](https://github.com/xgharibx/ATHAR/actions/runs/42539079495)،
-[الموقع 42539079476](https://github.com/xgharibx/ATHAR/actions/runs/42539079476).
+المصدر الحالي للإصدار 1.2.83 هو Android versionCode 96 وiOS build 96. النسخة المصدرية 1.2.83 تستخدم build 96. تحقق من أحدث نتائج سيرَي [iOS Build](https://github.com/xgharibx/ATHAR/actions/workflows/ios-build.yml) و[Android validation](https://github.com/xgharibx/ATHAR/actions/workflows/android-validate.yml) بعد كل دفع. فحص iOS الآن يرفض Xcode أو iOS SDK أقدم من 26.
 هذا لا يعني أن تطبيق iOS وُقّع أو رُفع إلى TestFlight؛ خطوات التوقيع والأرشفة والرفع لم تعمل لغياب إعداد Apple.
 راجع مجموعة الرفع النشطة في `ios/fastlane/release/` قبل تشغيل سير عمل iOS. المجموعة العربية فقط؛ ملفات الإنجليزية القديمة
 مسودات غير مفعّلة لأن واجهة التطبيق ما زالت عربية.
@@ -57,7 +53,7 @@
 
   **الصوت:** ميزتا العد بالصوت والتسميع اختياريتان. على iOS قد يرسل نظام التعرف الصوت إلى Apple؛ لا يستقبل أثر التسجيل ولا يحفظه. توضح Apple أن البيانات التي تجمعها خدمات Apple نفسها لا تقع على المطور مسؤولية الإفصاح عنها في ملصق التطبيق. لا تضف «Audio Data» لمجرد استخدام خدمة Apple؛ أضفه إذا كان أثر أو مزود آخر يخزن الصوت أو يتيحه بعد مدة المعالجة الفورية. راجع تدفق البيانات الفعلي وسياسة المزود قبل اعتماد الإجابات. راجع [تفاصيل خصوصية App Store](https://developer.apple.com/app-store/app-privacy-details/) و[إذن التعرف على الكلام من Apple](https://developer.apple.com/documentation/speech/asking-permission-to-use-speech-recognition).
 
-- **Privacy Policy URL**: `https://www.athark.org/privacy.html` (مضبوط في ملفات المتجر أيضًا).
+- **Privacy Policy URL**: `https://www.athark.org/privacy.html`. **Support URL**: `https://www.athark.org/support.html` (صفحة ثنائية اللغة، ومضبوطة في ملفات App Store).
 - **Age Rating**: أجب عن كل سؤال وفق المحتوى والميزات الفعلية، ومنها المساعد الذكي («اسأل أثر») والأسماء الظاهرة في لوحة الترتيب. لا تعتمد تصنيفًا عمريًا متوقعًا؛ App Store Connect يحسبه من إجاباتك.
 - **Price**: Free. **Availability**: كل الدول (أو ما تختاره).
 - **Export compliance**: مُعلنة في التطبيق (`ITSAppUsesNonExemptEncryption = false`)، ولن تُسأل.

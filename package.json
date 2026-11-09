@@ -16,7 +16,7 @@
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint src supabase/functions vite.config.ts capacitor.config.ts --ext .ts,.tsx",
     "test": "vitest run",
-    "verify": "npm run lint && npm run test && npm run build",
+    "verify": "npm run support:check && npm run android:check-target && npm run lint && npm run test && npm run build",
     "release:web": "npm run verify",
     "release:web:auto-icon": "node tools/scripts/release-web.mjs",
     "leaderboard:health": "node tools/backend/check-leaderboard-endpoint.mjs",
@@ -34,7 +34,9 @@
     "release:play": "node tools/scripts/build-store.mjs --store=play",
     "release:huawei": "node tools/scripts/build-store.mjs --store=huawei",
     "release:stores": "node tools/scripts/build-store.mjs --store=all",
-    "postinstall": "node tools/scripts/patch-capacitor-plugins.mjs"
+    "postinstall": "node tools/scripts/patch-capacitor-plugins.mjs",
+    "support:check": "node tools/scripts/check-support-page.mjs",
+    "android:check-target": "node tools/scripts/check-android-target-sdk.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",
@@ -77,7 +79,7 @@
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^2.5.2",
     "three": "^0.161.0",
-    "zod": "^3.23.8",
+    "zod": "^4.6.7",
     "zustand": "^4.5.5"
   },
   "devDependencies": {

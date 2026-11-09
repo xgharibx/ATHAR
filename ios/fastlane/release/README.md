@@ -17,3 +17,8 @@ Review these images before uploading. The metadata workflow uploads the listing 
 - Core features work without an account, but cloud sync and account deletion require sign-in. Sign-in uses an email magic link, so set up and test a reviewer-accessible sign-in path (or a fully featured demo mode) before submission. Enter any credentials or access instructions only in App Store Connect; never commit secrets here.
 - Screenshots 02–08 currently come from an Android 16 emulator and are resized for Apple’s device slots. Check them against the iOS TestFlight build before submission; replace any image that does not accurately represent the iOS app. The existing logo cover is intentionally first, as requested.
 - App Review requires a working phone contact in App Store Connect. The phone number is intentionally entered manually and is not stored in this repository.
+
+
+## Support URL
+
+The bilingual support page is `https://www.athark.org/support.html`; it uses the confirmed support email and links to the privacy policy. The App Store metadata points to this page.

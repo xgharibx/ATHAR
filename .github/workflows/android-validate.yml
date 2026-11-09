@@ -31,6 +31,9 @@ jobs:
       - name: Verify native version parity
         run: node tools/scripts/check-native-version-parity.mjs
 
+      - name: Enforce Google Play target API minimum
+        run: node tools/scripts/check-android-target-sdk.mjs
+
       - name: Check accounts config
         run: |
           if [ -z "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
@@ -54,6 +57,7 @@ jobs:
           VITE_RUNTIME_VERSION: ${{ github.sha }}
         run: |
           npm ci
+          npm run support:check
           npm run build
 
       - name: Sync Capacitor Android project

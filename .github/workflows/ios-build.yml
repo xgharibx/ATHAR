@@ -46,8 +46,25 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Check Xcode version
-        run: xcodebuild -version
+      - name: Check storefront support destination
+        run: npm run support:check
+
+      - name: Enforce App Store SDK minimum
+        run: |
+          set -euo pipefail
+          xcode_version="$(xcodebuild -version | sed -n '1s/^Xcode //p')"
+          xcode_major="${xcode_version%%.*}"
+          iphone_sdk_version="$(xcrun --sdk iphoneos --show-sdk-version)"
+          iphone_sdk_major="${iphone_sdk_version%%.*}"
+          echo "Xcode ${xcode_version}; iPhoneOS SDK ${iphone_sdk_version}"
+          if [[ ! "${xcode_major}" =~ ^[0-9]+$ ]] || (( xcode_major < 26 )); then
+            echo "::error::App Store builds require Xcode 26 or newer."
+            exit 1
+          fi
+          if [[ ! "${iphone_sdk_major}" =~ ^[0-9]+$ ]] || (( iphone_sdk_major < 26 )); then
+            echo "::error::App Store builds require the iOS 26 SDK or newer."
+            exit 1
+          fi
 
       - name: Check account-backed Companion config
         run: |
