@@ -2,11 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { loadAdhkarDB } from "@/data/load";
 import { useNoorStore } from "@/store/noorStore";
+import { getAccountStorageOwner } from "@/lib/accountStorageScope";
 
 export function useAdhkarDB() {
+  const owner = getAccountStorageOwner();
   const query = useQuery({
-    queryKey: ["adhkar-db"],
-    queryFn: loadAdhkarDB
+    queryKey: ["adhkar-db", owner],
+    queryFn: () => loadAdhkarDB(owner),
   });
   const migrateDhikrItemState = useNoorStore((state) => state.migrateDhikrItemState);
   const customPacks = useNoorStore((state) => state.customPacks);

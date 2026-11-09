@@ -1,6 +1,10 @@
 import { AdhkarDBSchema, SectionSchema, type AdhkarDB, type Section, coerceCount } from "./types";
 import type { z } from "zod";
-import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import {
+  accountScopedLocalStorage,
+  accountScopedStorageKey,
+  type AccountStorageOwner,
+} from "@/lib/accountStorageScope";
 import { createDhikrItemId, newDhikrItemId } from "@/lib/dhikrItemIdentity";
 import { createRandomId } from "@/lib/randomId";
 
@@ -17,9 +21,24 @@ export type NoorPack = {
   sections: Section[];
 };
 
-export function loadPacks(): NoorPack[] {
+function readPackStorage(owner: AccountStorageOwner | undefined): string | null {
+  if (owner === undefined) return accountScopedLocalStorage.getItem(KEY);
+  if (typeof globalThis.localStorage === "undefined") return null;
+  return globalThis.localStorage.getItem(accountScopedStorageKey(KEY, owner));
+}
+
+function writePackStorage(owner: AccountStorageOwner | undefined, value: string): void {
+  if (owner === undefined) {
+    accountScopedLocalStorage.setItem(KEY, value);
+    return;
+  }
+  if (typeof globalThis.localStorage === "undefined") return;
+  globalThis.localStorage.setItem(accountScopedStorageKey(KEY, owner), value);
+}
+
+export function loadPacks(owner?: AccountStorageOwner): NoorPack[] {
   try {
-    const stored = accountScopedLocalStorage.getItem(KEY);
+    const stored = readPackStorage(owner);
     if (!stored) return [];
     const parsed = JSON.parse(stored); // Avoid direct cast until we validate
     if (!Array.isArray(parsed)) return [];
@@ -52,7 +71,7 @@ export function loadPacks(): NoorPack[] {
 
     const normalizedStorage = JSON.stringify(packs);
     if (normalizedStorage !== stored) {
-      try { accountScopedLocalStorage.setItem(KEY, normalizedStorage); } catch { /* keep the readable in-memory data */ }
+      try { writePackStorage(owner, normalizedStorage); } catch { /* keep the readable in-memory data */ }
     }
     return packs;
   } catch {
@@ -237,8 +256,8 @@ export function removePack(packId: string) {
   return packs;
 }
 
-export function mergeWithPacks(base: AdhkarDB): AdhkarDB {
-  const packs = loadPacks();
+export function mergeWithPacks(base: AdhkarDB, owner?: AccountStorageOwner): AdhkarDB {
+  const packs = loadPacks(owner);
   if (!packs.length) return base;
 
   const existingIds = new Set(base.sections.map((s) => s.id));
