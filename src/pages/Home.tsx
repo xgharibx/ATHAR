@@ -640,8 +640,10 @@ export function HomePage() {
 
   const lastVisitedSection = React.useMemo(() => {
     if (!lastVisitedSectionId) return null;
-    return sections.find((s) => s.id === lastVisitedSectionId) ?? null;
-  }, [lastVisitedSectionId, sections]);
+    return sections.find((s) => s.id === lastVisitedSectionId)
+      ?? customPacks.find((pack) => pack.id === lastVisitedSectionId)
+      ?? null;
+  }, [lastVisitedSectionId, sections, customPacks]);
 
   const quickTotal = React.useMemo(() => {
     const target = tasbeehTarget;
