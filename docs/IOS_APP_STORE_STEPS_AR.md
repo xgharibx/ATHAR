@@ -1,7 +1,10 @@
 # رفع أثر على App Store — الخطوات بعد دفع الرسوم (بدون Mac)
 
 المصدر الحالي للإصدار 1.2.83 هو Android versionCode 96 وiOS build 96. آخر تشغيلات GitHub Actions على commit
-`2944dcb` نجحت: بناء الويب، ومزامنة Capacitor، وبناء Android مع lint والحزمة غير الموقعة، وبناء iOS غير الموقع، ونشر الموقع.
+`c088bb5` نجحت: بناء الويب، ومزامنة Capacitor، وبناء Android مع lint والحزمة غير الموقعة، وبناء iOS غير الموقع، ونشر الموقع.
+روابط التشغيلات: [Android 42539079509](https://github.com/xgharibx/ATHAR/actions/runs/42539079509)،
+[iOS 42539079495](https://github.com/xgharibx/ATHAR/actions/runs/42539079495)،
+[الموقع 42539079476](https://github.com/xgharibx/ATHAR/actions/runs/42539079476).
 هذا لا يعني أن تطبيق iOS وُقّع أو رُفع إلى TestFlight؛ خطوات التوقيع والأرشفة والرفع لم تعمل لغياب إعداد Apple.
 راجع مجموعة الرفع النشطة في `ios/fastlane/release/` قبل تشغيل سير عمل iOS. المجموعة العربية فقط؛ ملفات الإنجليزية القديمة
 مسودات غير مفعّلة لأن واجهة التطبيق ما زالت عربية.
