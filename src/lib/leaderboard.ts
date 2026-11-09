@@ -802,7 +802,14 @@ export function enqueuePayload(payload: LeaderboardSubmitPayload) {
   const validation = validateSubmitPayload(payload);
   if (!validation.ok) return;
 
-  const queue = readQueue();
+  // The queue stores daily score snapshots, not individual score increments.
+  // If the device was offline while the same user continued practicing, only
+  // the newest complete snapshot for that leaderboard identity and day is
+  // needed when connectivity returns. Replacing older snapshots avoids a
+  // burst of redundant profile checks and rollup upserts after reconnect.
+  const queue = readQueue().filter((item) =>
+    item.identity.id !== payload.identity.id || item.day !== payload.day
+  );
   queue.push(payload);
   writeQueue(queue);
 
