@@ -13,7 +13,7 @@ const query = vi.hoisted(() => ({
 }));
 vi.mock("@tanstack/react-query", () => ({
   useQuery: (options: { queryFn: typeof query.run; queryKey?: readonly unknown[] }) => {
-    if (options.queryKey?.[1] === "tomorrow-v1") query.tomorrowRun = options.queryFn;
+    if (options.queryKey?.[1] === "tomorrow-v2") query.tomorrowRun = options.queryFn;
     else {
       query.run = options.queryFn;
       query.todayKey = options.queryKey;
@@ -81,6 +81,8 @@ describe("offline prayer fallback", () => {
     const result = await query.run!();
     expect(getCurrentPosition).not.toHaveBeenCalled();
     expect(result.__sourceLabel).toContain("القاهرة");
+    const requestUrl = String(vi.mocked(fetch).mock.calls[0]?.[0]);
+    expect(new URL(requestUrl).searchParams.get("timezonestring")).toBe("UTC");
   });
 
   it("uses the selected France method in the offline calculation", async () => {
@@ -125,6 +127,29 @@ describe("offline prayer fallback", () => {
     expect(JSON.parse(localStorage.getItem("noor_prayer_coords_v1") ?? "null")).toMatchObject({ lat: 21.4225, lng: 39.8262 });
   });
 
+  it("requests today's and tomorrow's timings in the device timezone", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    process.env.TZ = "America/New_York";
+    localStorage.setItem("noor_prayer_coords_v1", JSON.stringify({
+      lat: 21.4225,
+      lng: 39.8262,
+    }));
+    mountAtMecca();
+
+    const today = await query.run!();
+    const tomorrow = await query.tomorrowRun!();
+
+    expect(today.data.timings.Dhuhr).toBe("05:11");
+    expect(tomorrow.data.timings.Dhuhr).toBe("05:11");
+
+    const requestUrls = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
+    expect(requestUrls).toHaveLength(2);
+    expect(requestUrls.map((url) => new URL(url).searchParams.get("timezonestring"))).toEqual([
+      "America/New_York",
+      "America/New_York",
+    ]);
+  });
+
   it("uses a distinct query cache entry after the saved prayer location changes", async () => {
     mountAtMecca();
     const cityQueryKey = query.todayKey;
@@ -150,7 +175,7 @@ describe("offline prayer fallback", () => {
 
   it("calculates for saved coordinates instead of returning another location's cached city times", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
-    localStorage.setItem("noor_prayer_times_v1:2026-10-02:city:Cairo:Egypt:5:0", JSON.stringify({
+    localStorage.setItem("noor_prayer_times_v2:2026-10-02:city:Cairo:Egypt:5:0:UTC", JSON.stringify({
       data: { timings: { Dhuhr: "10:00" } },
       __sourceLabel: "القاهرة",
     }));

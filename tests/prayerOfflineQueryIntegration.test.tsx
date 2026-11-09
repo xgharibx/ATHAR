@@ -63,15 +63,15 @@ describe("prayer queries while React Query is offline", () => {
       queryClient.getQueryCache().getAll().find((query) => query.queryKey[1] === kind);
 
     await vi.waitFor(() => {
-      expect(findPrayerQuery("v3")?.state.data).toBeDefined();
-      expect(findPrayerQuery("tomorrow-v1")?.state.data).toBeDefined();
+      expect(findPrayerQuery("v4")?.state.data).toBeDefined();
+      expect(findPrayerQuery("tomorrow-v2")?.state.data).toBeDefined();
     });
 
-    const today = findPrayerQuery("v3")?.state.data as {
+    const today = findPrayerQuery("v4")?.state.data as {
       data: { timings: { Fajr: string } };
       __sourceLabel?: string;
     };
-    const tomorrow = findPrayerQuery("tomorrow-v1")?.state.data as {
+    const tomorrow = findPrayerQuery("tomorrow-v2")?.state.data as {
       data: { timings: { Fajr: string } };
       __sourceLabel?: string;
     };

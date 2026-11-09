@@ -152,7 +152,7 @@ describe("onboarding location choice", () => {
     expect(mocks.setOnboardingDone).not.toHaveBeenCalled();
 
     await act(async () => { resolveLocation(true); await pendingLocation; });
-    expect(mocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["prayer-times", "v3"] });
+    expect(mocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["prayer-times", "v4"] });
   });
 
   it("finishes web onboarding without asking for notification permission or promising prayer alerts", async () => {
