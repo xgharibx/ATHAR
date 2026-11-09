@@ -1,3 +1,5 @@
+import { createRandomId } from "@/lib/randomId";
+
 /** Create a stable identity for an adhkar item when older saved data has none. */
 export function createDhikrItemId(scope: string, index: number, text: string): string {
   const source = `${scope}\u0000${Math.max(0, Math.trunc(index))}\u0000${text.trim()}`;
@@ -13,13 +15,7 @@ export function createDhikrItemId(scope: string, index: number, text: string): s
 
 /** Generate an identity for a brand-new user item; legacy IDs use the function above. */
 export function newDhikrItemId(): string {
-  const cryptoApi = globalThis.crypto;
-  if (typeof cryptoApi?.randomUUID === "function") return `dh_${cryptoApi.randomUUID()}`;
-  if (typeof cryptoApi?.getRandomValues === "function") {
-    const bytes = cryptoApi.getRandomValues(new Uint8Array(16));
-    return `dh_${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
-  }
-  return `dh_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 14)}`;
+  return `dh_${createRandomId()}`;
 }
 
 /** Stable state keys for mutable items; bundled catalog items retain old keys. */

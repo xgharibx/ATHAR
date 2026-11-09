@@ -2,6 +2,7 @@ import { AdhkarDBSchema, SectionSchema, type AdhkarDB, type Section, coerceCount
 import type { z } from "zod";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
 import { createDhikrItemId, newDhikrItemId } from "@/lib/dhikrItemIdentity";
+import { createRandomId } from "@/lib/randomId";
 
 const KEY = "noor_data_packs_v1";
 const MY_ADHKAR_PACK_ID = "my_adhkar_pack";
@@ -221,7 +222,7 @@ export function addPackFromJson(json: Record<string, unknown>, name?: string): N
     throw new Error("صيغة الحزمة غير مدعومة");
   }
 
-  const packId = `pack_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
+  const packId = `pack_${createRandomId().replace(/-/g, "").slice(0, 16)}`;
   return {
     packId,
     name: name || String(json.name ?? json.title ?? "حزمة مستوردة"),

@@ -12,6 +12,7 @@ import { useNoorStore, type LocalFriend, type GroupKhatmaState } from "@/store/n
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { cn } from "@/lib/utils";
+import { createRandomId } from "@/lib/randomId";
 import {
   type LeaderboardBoard,
   type LeaderboardEntry,
@@ -1278,7 +1279,7 @@ function GroupKhatmaCard() {
     });
 
     setGroupKhatma({
-      groupId: crypto.randomUUID().replace(/-/g, "").slice(0, 16),
+      groupId: createRandomId().replace(/-/g, "").slice(0, 16),
       groupName: groupName.trim(),
       members,
       createdAt: new Date().toISOString()
