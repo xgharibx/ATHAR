@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Bookmark, BookOpen, Search, Shuffle, Volume2, X, LayoutGrid, Info, Filter, Plus, ChevronDown } from "lucide-react";
 import { getSurahJuz, SURAH_REVELATION, toArabicNumeral } from "@/lib/quranMeta";
+import { getFirstAyahOfJuz, getHizbProgress, getJuzProgress, surahContainsJuz } from "@/lib/quranJuz";
 
 import { useQuranDB } from "@/data/useQuranDB";
 import { Card } from "@/components/ui/Card";
@@ -601,7 +602,7 @@ export function QuranPage() {
         return pB - pA;
       });
     }
-    if (filterJuz !== null) base = base.filter((s) => getSurahJuz(s.id) === filterJuz);
+    if (filterJuz !== null) base = base.filter((s) => surahContainsJuz(s.id, s.ayahs.length, filterJuz));
     if (filterRevelation === "meccan") base = base.filter((s) => SURAH_REVELATION[s.id] !== "medinan");
     if (filterRevelation === "medinan") base = base.filter((s) => SURAH_REVELATION[s.id] === "medinan");
     return base;
@@ -610,18 +611,12 @@ export function QuranPage() {
   // Per-juz reading progress: juzNum → pct (0-100)
   const juzProgress = React.useMemo(() => {
     if (!data) return {} as Record<number, number>;
-    const acc: Record<number, { read: number; total: number }> = {};
-    for (const surah of data) {
-      const juz = getSurahJuz(surah.id);
-      if (!acc[juz]) acc[juz] = { read: 0, total: 0 };
-      acc[juz].total += surah.ayahs.length;
-      acc[juz].read += Math.min(surah.ayahs.length, readingHistory[String(surah.id)] ?? 0);
-    }
-    const result: Record<number, number> = {};
-    for (const [juzStr, { read, total }] of Object.entries(acc)) {
-      result[Number(juzStr)] = total > 0 ? Math.min(100, Math.round((read / total) * 100)) : 0;
-    }
-    return result;
+    return getJuzProgress(data, readingHistory);
+  }, [data, readingHistory]);
+
+  const hizbProgress = React.useMemo(() => {
+    if (!data) return {} as Record<number, number>;
+    return getHizbProgress(data, readingHistory);
   }, [data, readingHistory]);
 
   const ayahSearch = React.useMemo(() => {
@@ -1243,8 +1238,8 @@ export function QuranPage() {
               // Each juz has two hizbs; show which hizbs are touched
               const h1 = (j - 1) * 2 + 1;
               const h2 = (j - 1) * 2 + 2;
-              const h1Done = (juzProgress[h1] ?? 0) >= 100;
-              const h2Done = (juzProgress[h2] ?? 0) >= 100;
+              const h1Done = (hizbProgress[h1] ?? 0) >= 100;
+              const h2Done = (hizbProgress[h2] ?? 0) >= 100;
               return (
                 <div key={j} className="relative inline-flex flex-col items-center">
                   <button type="button"
@@ -1340,9 +1335,10 @@ export function QuranPage() {
               const currJuz = getSurahJuz(s.id);
               const prevJuz = idx > 0 ? getSurahJuz(sortedFiltered[idx - 1]!.id) : null;
               const showJuzHeader = sortMode === "mushaf" && !filterJuz && !query && (idx === 0 || currJuz !== prevJuz);
+              const juzStartAyah = filterJuz === null ? null : getFirstAyahOfJuz(s.id, s.ayahs.length, filterJuz);
               const sajdasHere = sajdaInSurah(s.id);
               const firstEnglish = showTranslation ? getEnglishRowPreview(extras, s.id) : null;
-              const mushafPage = pageMap ? pageMap[`${s.id}:1`] : undefined;
+              const mushafPage = pageMap ? pageMap[`${s.id}:${juzStartAyah ?? 1}`] : undefined;
               return (
                 <React.Fragment key={s.id}>
                   {showJuzHeader && (
@@ -1364,9 +1360,9 @@ export function QuranPage() {
                 <button type="button"
                   onClick={() => {
                     recordRecentSurah(s.id);
-                    navigate(`/mushaf?surah=${s.id}`);
+                    navigate(`/mushaf?surah=${s.id}${juzStartAyah === null ? "" : `&ayah=${juzStartAyah}`}`);
                   }}
-                  aria-label={`افتح سورة ${s.name} في المصحف — ${s.ayahs.length} آية`}
+                  aria-label={`افتح سورة ${s.name} في المصحف${juzStartAyah === null ? "" : ` عند الآية ${arNum(juzStartAyah)} في الجزء ${arNum(filterJuz!)}`} — ${s.ayahs.length} آية`}
                   className="min-w-0 flex-1 flex items-center gap-4 border-0 bg-transparent p-0 text-right text-inherit cursor-pointer focus:outline-none focus:bg-accent-8"
                 >
                   {/* Number badge */}
