@@ -19,6 +19,7 @@ export function CategoryPage() {
   const customPacks = useNoorStore((s) => s.customPacks);
   const deleteCustomPack = useNoorStore((s) => s.deleteCustomPack);
   const [sp] = useSearchParams();
+  const customPack = customPacks.find((p) => p.id === id);
 
   React.useEffect(() => {
     if (!id) return;
@@ -44,9 +45,9 @@ export function CategoryPage() {
 
   // Custom packs live in the local app store. Resolve them before consulting
   // the bundled catalog so a failed or still-loading catalog cannot hide them.
-  const customPack = customPacks.find((p) => p.id === id);
   if (customPack) {
     const customItems: DhikrItem[] = customPack.items.map((it) => ({
+      id: it.id,
       text: it.text,
       count: it.count,
       benefit: "",

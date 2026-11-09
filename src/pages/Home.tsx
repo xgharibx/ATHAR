@@ -40,6 +40,7 @@ import { formatPrayerHijriDate, type PrayerHijriDate, usePrayerTimes } from "@/h
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
 import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
 import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
 import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -669,6 +670,7 @@ export function HomePage() {
     const ayahsToday = Number(quranDailyAyahs[worshipDayKey] ?? 0);
     const scores = buildLeaderboardScoreStatsForDay({
       sections: sections,
+      customPacks,
       progress: progressMap,
       quranDailyAyahs,
       dailyChecklist: dailyChecklistByDay,
@@ -701,7 +703,7 @@ export function HomePage() {
 
     return { quests, doneCount, totalXp, xpLevel, xpPct };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activity, civilTodayKey, dailyChecklistByDay, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs, tasbeehDayTotals, worshipDayKey]);
+  }, [activity, civilTodayKey, customPacks, dailyChecklistByDay, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs, tasbeehDayTotals, worshipDayKey]);
 
   const prayerContext = React.useMemo<PrayerContext>(() => {
     const timings = prayerTimes.data?.data?.timings;
@@ -1120,7 +1122,7 @@ export function HomePage() {
                   let done = 0;
                   const total = pack.items.length;
                   pack.items.forEach((item, i) => {
-                    const have = Math.min(item.count, Math.max(0, Number(progressMap[`${pack.id}:${i}`]) || 0));
+                    const have = Math.min(item.count, Math.max(0, Number(progressMap[dhikrStateKey(pack.id, i, item.id)]) || 0));
                     if (have >= item.count) done++;
                   });
                   const isComplete = total > 0 && done === total;
@@ -1162,7 +1164,7 @@ export function HomePage() {
                   const total = section.content.length;
                   section.content.forEach((item, i) => {
                     const need = coerceCount(item.count);
-                    const have = Math.min(need, Math.max(0, Number(progressMap[`${section.id}:${i}`]) || 0));
+                    const have = Math.min(need, Math.max(0, Number(progressMap[dhikrStateKey(section.id, i, item.id)]) || 0));
                     if (have >= need) done++;
                   });
                   const isComplete = total > 0 && done === total;

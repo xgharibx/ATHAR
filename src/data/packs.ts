@@ -1,6 +1,7 @@
 import { AdhkarDBSchema, SectionSchema, type AdhkarDB, type Section, coerceCount } from "./types";
 import type { z } from "zod";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { createDhikrItemId, newDhikrItemId } from "@/lib/dhikrItemIdentity";
 
 const KEY = "noor_data_packs_v1";
 const MY_ADHKAR_PACK_ID = "my_adhkar_pack";
@@ -17,31 +18,42 @@ export type NoorPack = {
 
 export function loadPacks(): NoorPack[] {
   try {
-    const raw = accountScopedLocalStorage.getItem(KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw); // Avoid direct cast until we validate
+    const stored = accountScopedLocalStorage.getItem(KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored); // Avoid direct cast until we validate
     if (!Array.isArray(parsed)) return [];
 
-    return (parsed as unknown[])
+    const packs = (parsed as unknown[])
       .map((p) => {
         const raw = p as Record<string, unknown>;
+        const packId = String(raw.packId ?? "");
         // Validate & Validate Schema
         // This might fail if stored data is bad, so we use optional chaining
         // Parse using Zod then normalize
         const rawSections = ((raw.sections ?? []) as unknown[]).map((s) => SectionSchema.parse(s));
         const normalizedSections: Section[] = rawSections.map((s: z.infer<typeof SectionSchema>) => ({
           ...s,
-          content: s.content.map((i) => ({ ...i, count: coerceCount(i.count) }))
+          content: s.content.map((i, index) => ({
+            ...i,
+            id: i.id || createDhikrItemId(`${packId}/${s.id}`, index, i.text),
+            count: coerceCount(i.count),
+          }))
         }));
 
         return {
-          packId: String(raw.packId ?? ""),
+          packId,
           name: String(raw.name ?? ""),
           importedAt: String(raw.importedAt ?? ""),
           sections: normalizedSections
         } as NoorPack;
       })
       .filter((p) => p.packId && p.name);
+
+    const normalizedStorage = JSON.stringify(packs);
+    if (normalizedStorage !== stored) {
+      try { accountScopedLocalStorage.setItem(KEY, normalizedStorage); } catch { /* keep the readable in-memory data */ }
+    }
+    return packs;
   } catch {
     return [];
   }
@@ -84,6 +96,7 @@ export function addCustomDhikrItem(item: { text: string; count: number; benefit?
   section.content = [
     ...section.content,
     {
+      id: newDhikrItemId(),
       text,
       count: coerceCount(item.count),
       benefit: item.benefit?.trim() ?? "",
@@ -111,50 +124,76 @@ export function addCustomDhikrItem(item: { text: string; count: number; benefit?
   return nextPacks;
 }
 
-export function removeCustomDhikrItem(sectionId: string, itemIndex: number): NoorPack[] {
+export function removeCustomDhikrItem(sectionId: string, itemIndex: number, itemId?: string): boolean {
   const packs = loadPacks();
-  const packIdx = packs.findIndex((p) => p.sections.some((s) => s.id === sectionId));
-  if (packIdx < 0) return packs;
-  const pack = { ...packs[packIdx] };
-  pack.sections = pack.sections.map((s) =>
-    s.id !== sectionId ? s : { ...s, content: s.content.filter((_, i) => i !== itemIndex) }
-  );
-  const nextPacks = [...packs];
-  nextPacks[packIdx] = pack;
-  savePacks(nextPacks);
-  return nextPacks;
+  if (!Number.isInteger(itemIndex) || itemIndex < 0) return false;
+  let sectionOffset = itemIndex;
+
+  for (let packIndex = 0; packIndex < packs.length; packIndex += 1) {
+    const pack = packs[packIndex]!;
+    const section = pack.sections.find((candidate) => candidate.id === sectionId);
+    if (!section) continue;
+    const localIndex = itemId
+      ? section.content.findIndex((item) => item.id === itemId)
+      : sectionOffset < section.content.length ? sectionOffset : -1;
+    if (localIndex >= 0) {
+      const nextPacks = [...packs];
+      nextPacks[packIndex] = {
+        ...pack,
+        sections: pack.sections.map((candidate) => candidate.id !== sectionId
+          ? candidate
+          : { ...candidate, content: candidate.content.filter((_, index) => index !== localIndex) }),
+      };
+      savePacks(nextPacks);
+      return true;
+    }
+    if (!itemId) sectionOffset -= section.content.length;
+  }
+  return false;
 }
 
 export function updateCustomDhikrItem(
   sectionId: string,
   itemIndex: number,
   update: { text: string; count: number; benefit?: string },
-): NoorPack[] {
+  itemId?: string,
+): boolean {
   const packs = loadPacks();
-  const packIdx = packs.findIndex((p) => p.sections.some((s) => s.id === sectionId));
-  if (packIdx < 0) return packs;
-  const pack = { ...packs[packIdx] };
-  pack.sections = pack.sections.map((s) =>
-    s.id !== sectionId
-      ? s
-      : {
-          ...s,
-          content: s.content.map((item, i) =>
-            i !== itemIndex
-              ? item
-              : {
-                  ...item,
-                  text: update.text.trim(),
-                  count: coerceCount(update.count),
-                  benefit: update.benefit?.trim() ?? item.benefit ?? "",
-                },
-          ),
-        },
-  );
-  const next = [...packs];
-  next[packIdx] = pack;
-  savePacks(next);
-  return next;
+  if (!Number.isInteger(itemIndex) || itemIndex < 0) return false;
+  let sectionOffset = itemIndex;
+
+  for (let packIndex = 0; packIndex < packs.length; packIndex += 1) {
+    const pack = packs[packIndex]!;
+    const section = pack.sections.find((candidate) => candidate.id === sectionId);
+    if (!section) continue;
+    const localIndex = itemId
+      ? section.content.findIndex((item) => item.id === itemId)
+      : sectionOffset < section.content.length ? sectionOffset : -1;
+    if (localIndex >= 0) {
+      const nextPacks = [...packs];
+      nextPacks[packIndex] = {
+        ...pack,
+        sections: pack.sections.map((candidate) => candidate.id !== sectionId
+          ? candidate
+          : {
+              ...candidate,
+              content: candidate.content.map((item, index) => index !== localIndex
+                ? item
+                : {
+                    ...item,
+                    text: update.text.trim(),
+                    count: coerceCount(update.count),
+                    benefit: update.benefit?.trim() ?? item.benefit ?? "",
+                  }),
+            },
+        ),
+      };
+      savePacks(nextPacks);
+      return true;
+    }
+    if (!itemId) sectionOffset -= section.content.length;
+  }
+  return false;
 }
 
 export function addPackFromJson(json: Record<string, unknown>, name?: string): NoorPack {
@@ -275,7 +314,17 @@ export function adoptDataPacks(next: unknown): boolean {
         !!p && typeof p === "object" &&
         typeof (p as NoorPack).packId === "string" && !!(p as NoorPack).packId &&
         Array.isArray((p as NoorPack).sections),
-    );
+    ).map((pack) => ({
+      ...pack,
+      sections: pack.sections.map((section) => ({
+        ...section,
+        content: section.content.map((item, index) => ({
+          ...item,
+          id: item.id || createDhikrItemId(`${pack.packId}/${section.id}`, index, item.text),
+          count: coerceCount(item.count),
+        })),
+      })),
+    }));
     const after = JSON.stringify(cleaned);
     if (before === after) return false;
     accountScopedLocalStorage.setItem(KEY, after);

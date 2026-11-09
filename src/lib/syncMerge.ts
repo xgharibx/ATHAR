@@ -30,6 +30,8 @@
  * never wipe existing local data.
  */
 
+import { createDhikrItemId } from "@/lib/dhikrItemIdentity";
+
 export const SYNC_KINDS = [
   "progress",
   "favorites",
@@ -59,6 +61,7 @@ const DEFAULT_KIND: SyncKind = "settings";
 const FIELD_KIND: Record<string, SyncKind> = {
   // — progress —
   progress: "progress",
+  migratedDhikrStateKeys: "progress",
   activity: "progress",
   quickTasbeeh: "progress",
   tasbeehLifetime: "progress",
@@ -168,6 +171,7 @@ type Rule =
   | "maxNum"
   | "identity"
   | "packs"
+  | "customPacks"
   | "scalar";
 
 const FIELD_RULE: Record<string, Rule> = {
@@ -218,6 +222,7 @@ const FIELD_RULE: Record<string, Rule> = {
   wirdLog: "additiveCounter",
 
   favorites: "flags",
+  migratedDhikrStateKeys: "flags",
   libraryFavorites: "flags",
   videoLibraryBookmarks: "flags",
   quranBookmarks: "flags",
@@ -238,7 +243,7 @@ const FIELD_RULE: Record<string, Rule> = {
 
   sebhaSessions: "listById",
   sebhaCustomList: "listById",
-  customPacks: "listById",
+  customPacks: "customPacks",
   customReminders: "listById",
   favoriteCities: "listById",
 
@@ -599,6 +604,125 @@ function mergePacks(local: unknown, remote: unknown, base: unknown, remoteNewer:
   return out;
 }
 
+/** Merge store-backed custom adhkar by pack, then by each stable item ID. */
+function mergeCustomPacks(local: unknown, remote: unknown, base: unknown, remoteNewer: boolean): unknown[] {
+  const L = asList(local);
+  const R = asList(remote);
+  const B = asList(base);
+  const idOf = (value: unknown) => isRecord(value) && typeof value.id === "string" ? value.id : stable(value);
+  const index = (values: unknown[]) => new Map(values.filter(isRecord).map((value) => [idOf(value), value]));
+  const lm = index(L);
+  const rm = index(R);
+  const bm = base === undefined || base === null ? null : index(B);
+  const out: unknown[] = [];
+
+  for (const id of [...lm.keys(), ...rm.keys()]) {
+    if (out.some((pack) => idOf(pack) === id)) continue;
+    const a = lm.get(id);
+    const b = rm.get(id);
+    const basePack = bm?.get(id);
+    if (!a && b) {
+      if (!basePack) { out.push(b); continue; }
+      if (sameJson(b, basePack)) continue;
+      out.push({
+        ...b,
+        items: mergeListById([], asList(b.items), basePack.items, true, remoteNewer),
+      });
+      continue;
+    }
+    if (a && !b) {
+      if (!basePack) { out.push(a); continue; }
+      if (sameJson(a, basePack)) continue;
+      out.push({
+        ...a,
+        items: mergeListById(asList(a.items), [], basePack.items, true, remoteNewer),
+      });
+      continue;
+    }
+    if (!a || !b) continue;
+
+    const hasBase = Boolean(basePack);
+    out.push({
+      ...b,
+      ...a,
+      title: threeWay(a.title, b.title, basePack?.title, hasBase, (x, y) => remoteNewer ? y : x),
+      items: mergeListById(asList(a.items), asList(b.items), basePack?.items, hasBase, remoteNewer),
+    });
+  }
+  return out;
+}
+
+function hasStableAdhkarItemIds(blob: SyncBlob | null | undefined): boolean {
+  if (!blob) return false;
+  const customPacks = asList(blob.customPacks);
+  for (const pack of customPacks) {
+    if (isRecord(pack) && asList(pack.items).some((item) => isRecord(item) && typeof item.id === "string")) return true;
+  }
+  const dataPacks = asList(blob.dataPacks);
+  for (const pack of dataPacks) {
+    if (!isRecord(pack)) continue;
+    for (const section of asList(pack.sections)) {
+      if (isRecord(section) && asList(section.content).some((item) => isRecord(item) && typeof item.id === "string")) return true;
+    }
+  }
+  return false;
+}
+
+function normalizeLegacyAdhkarItemIds(blob: SyncBlob, references: SyncBlob[] = []): SyncBlob {
+  const normalizeItems = (items: unknown[], scope: string, referenceItemGroups: unknown[][]) => {
+    const usedIds = new Set<string>();
+    const referenceItems = referenceItemGroups.flat();
+    return items.map((rawItem, index) => {
+      if (!isRecord(rawItem) || typeof rawItem.text !== "string") return rawItem;
+      if (typeof rawItem.id === "string" && rawItem.id) {
+        usedIds.add(rawItem.id);
+        return rawItem;
+      }
+      const matchingId = referenceItems.find((candidate) =>
+        isRecord(candidate) && candidate.text === rawItem.text &&
+        typeof candidate.id === "string" && candidate.id && !usedIds.has(candidate.id),
+      );
+      const id = isRecord(matchingId) && typeof matchingId.id === "string"
+        ? matchingId.id
+        : createDhikrItemId(scope, index, rawItem.text);
+      usedIds.add(id);
+      return { ...rawItem, id };
+    });
+  };
+  const normalized: SyncBlob = { ...blob };
+  if ("customPacks" in blob) normalized.customPacks = asList(blob.customPacks).map((rawPack) => {
+    if (!isRecord(rawPack) || typeof rawPack.id !== "string") return rawPack;
+    const referenceItemGroups = references.flatMap((reference) => asList(reference.customPacks)
+      .filter((candidate) => isRecord(candidate) && candidate.id === rawPack.id)
+      .map((candidate) => isRecord(candidate) ? asList(candidate.items) : []));
+    return {
+      ...rawPack,
+      items: normalizeItems(asList(rawPack.items), `${rawPack.id}/custom`, referenceItemGroups),
+    };
+  });
+  if ("dataPacks" in blob) normalized.dataPacks = asList(blob.dataPacks).map((rawPack) => {
+    if (!isRecord(rawPack) || typeof rawPack.packId !== "string") return rawPack;
+    return {
+      ...rawPack,
+      sections: asList(rawPack.sections).map((rawSection) => {
+        if (!isRecord(rawSection) || typeof rawSection.id !== "string") return rawSection;
+        const referenceItemGroups = references.flatMap((reference) => asList(reference.dataPacks)
+          .filter((candidate) => isRecord(candidate) && candidate.packId === rawPack.packId)
+          .flatMap((candidate) => isRecord(candidate)
+            ? asList(candidate.sections)
+              .filter((section) => isRecord(section) && section.id === rawSection.id)
+              .map((section) => isRecord(section) ? asList(section.content) : [])
+            : []));
+        return {
+          ...rawSection,
+          content: normalizeItems(asList(rawSection.content), `${rawPack.packId}/${rawSection.id}`, referenceItemGroups),
+        };
+      }),
+    };
+  });
+  return normalized;
+}
+
 function mergeSections(local: unknown[], remote: unknown[], base: unknown, remoteNewer: boolean): unknown[] {
   const secId = (s: unknown) => (isRecord(s) && typeof s.id === "string" ? s.id : stable(s));
   const rm = new Map<string, Record<string, unknown>>();
@@ -657,7 +781,9 @@ function mergeItems(
   remoteNewer: boolean,
 ): unknown[] {
   const keyOf = (i: unknown) =>
-    isRecord(i) && typeof i.text === "string" ? i.text.trim() : stable(i);
+    isRecord(i) && typeof i.id === "string" && i.id
+      ? `id:${i.id}`
+      : isRecord(i) && typeof i.text === "string" ? `text:${i.text.trim()}` : stable(i);
   const index = (arr: unknown[]) => {
     const m = new Map<string, unknown>();
     for (const i of arr) m.set(keyOf(i), i);
@@ -832,6 +958,8 @@ function mergeFieldValue(
     case "packs":
       // With no base this degrades to a union, which is right for a first sign-in.
       return mergePacks(local, remote, hasBase ? base : null, remoteNewer);
+    case "customPacks":
+      return mergeCustomPacks(local, remote, hasBase ? base : null, remoteNewer);
     case "identity": return mergeIdentity(local, remote);
     default: return threeWay(local, remote, base, hasBase,
       (a, c) => (remoteNewer ? c : a));
@@ -839,7 +967,7 @@ function mergeFieldValue(
 }
 
 function emptyForRule(rule: Rule): unknown {
-  return rule === "listById" || rule === "strList" || rule === "packs" ? [] : {};
+  return rule === "listById" || rule === "strList" || rule === "packs" || rule === "customPacks" ? [] : {};
 }
 
 /**
@@ -849,19 +977,25 @@ function emptyForRule(rule: Rule): unknown {
  */
 export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions): SyncBlob {
   const { remoteNewer, base } = opts;
+  const canNormalizeLegacyIds = hasStableAdhkarItemIds(local) || hasStableAdhkarItemIds(remote) || hasStableAdhkarItemIds(base);
+  const normalizedLocal = canNormalizeLegacyIds ? normalizeLegacyAdhkarItemIds(local, [remote, ...(base ? [base] : [])]) : local;
+  const normalizedRemote = canNormalizeLegacyIds ? normalizeLegacyAdhkarItemIds(remote, [local, ...(base ? [base] : [])]) : remote;
+  const normalizedBase = canNormalizeLegacyIds && base
+    ? normalizeLegacyAdhkarItemIds(base, [local, remote])
+    : base;
   const out: SyncBlob = {};
 
-  for (const field of unionKeys(local, remote)) {
-    const l = local[field];
-    const r = remote[field];
-    const hasBase = Boolean(base && field in base);
-    const b = base?.[field];
+  for (const field of unionKeys(normalizedLocal, normalizedRemote)) {
+    const l = normalizedLocal[field];
+    const r = normalizedRemote[field];
+    const hasBase = Boolean(normalizedBase && field in normalizedBase);
+    const b = normalizedBase?.[field];
     const rule: Rule = FIELD_RULE[field] ?? "scalar";
 
     // A field only one side knows about needs no merge — but if base had it and
     // one side dropped it, a deletion wins only when the remaining copy is
     // unchanged. A changed surviving field is a concurrent edit.
-    if (!(field in local)) {
+    if (!(field in normalizedLocal)) {
       // Leaderboard identity is an account credential, not a user-removable
       // preference. Missing local export means storage is unavailable, so it
       // must never be interpreted as a request to erase a valid cloud copy.
@@ -880,7 +1014,7 @@ export function mergeDoc(local: SyncBlob, remote: SyncBlob, opts: MergeOptions):
         : r;
       continue;
     }
-    if (!(field in remote)) {
+    if (!(field in normalizedRemote)) {
       if (rule === "identity") {
         const identity = mergeFieldValue(field, l, null, b, hasBase, remoteNewer);
         if (identity !== null && identity !== undefined) out[field] = identity;

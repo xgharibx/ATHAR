@@ -4,6 +4,7 @@ import { z } from "zod";
  * Database schema (compatible with the JSON structure used in the user's repo).
  */
 export const DhikrItemSchema = z.object({
+  id: z.string().optional(),
   text: z.string(),
   benefit: z.string().optional().default(""),
   source: z.string().optional().default(""),
@@ -39,10 +40,11 @@ export const AdhkarDBSchema = z.object({
 export type RawAdhkarDB = z.infer<typeof AdhkarDBSchema>;
 
 export type FlatDhikr = {
-  key: string; // `${sectionId}:${index}`
+  key: string; // legacy index key for catalog items; stable identity key for custom items
   sectionId: string;
   sectionTitle: string;
   index: number;
+  itemId?: string;
   text: string;
   benefit?: string;
   source?: string;
@@ -53,6 +55,7 @@ export type FlatDhikr = {
 };
 
 export type CustomAdhkarItem = {
+  id?: string;
   text: string;
   count: number;
 };

@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 import { useNoorStore } from "@/store/noorStore";
 import type { CustomAdhkarPack } from "@/data/types";
+import { createDhikrItemId } from "@/lib/dhikrItemIdentity";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -72,7 +73,11 @@ function PackForm({
   const [title, setTitle] = React.useState(initial?.title ?? "");
   const [items, setItems] = React.useState<FormItem[]>(
     initial?.items.length
-      ? initial.items.map((i) => ({ id: crypto.randomUUID(), text: i.text, count: i.count }))
+      ? initial.items.map((i, index) => ({
+          id: i.id ?? createDhikrItemId(`${initial.id}/custom`, index, i.text),
+          text: i.text,
+          count: i.count,
+        }))
       : [{ id: crypto.randomUUID(), text: "", count: 1 }],
   );
 
@@ -187,7 +192,7 @@ function PackCard({
 
   function saveEditItem() {
     if (editingItemIdx === null || !editText.trim()) return;
-    updateCustomPackItem(pack.id, editingItemIdx, { text: editText.trim(), count: editCount });
+    updateCustomPackItem(pack.id, editingItemIdx, { text: editText.trim(), count: editCount }, pack.items[editingItemIdx]?.id);
     setEditingItemIdx(null);
   }
 
@@ -369,7 +374,7 @@ export function CustomAdhkarPage() {
   const [editingPack, setEditingPack] = React.useState<CustomAdhkarPack | null>(null);
 
   function handleSave(title: string, items: FormItem[]) {
-    const cleanItems = items.map(({ text, count }) => ({ text, count }));
+    const cleanItems = items.map(({ id, text, count }) => ({ id, text, count }));
     if (editingPack) {
       updateCustomPack(editingPack.id, { title, items: cleanItems });
       setEditingPack(null);

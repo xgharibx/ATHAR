@@ -1,4 +1,5 @@
-import { coerceCount, type Section } from "@/data/types";
+import { coerceCount, type CustomAdhkarPack, type Section } from "@/data/types";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 
 const DAILY_TASBEEH_POOL: Array<{ key: string; label: string }> = [
   { key: "subhanallah", label: "سُبْحَانَ الله" },
@@ -48,6 +49,7 @@ export function getDailyTasbeeh(todayISO: string) {
 
 export function buildLeaderboardScoreStats(input: {
   sections: Section[];
+  customPacks?: CustomAdhkarPack[];
   progress: Record<string, number>;
   /**
    * Ayahs actually *read today* (from `quranDailyAyahs[todayKey]`), NOT the
@@ -90,12 +92,24 @@ export function buildLeaderboardScoreStats(input: {
     let score = 0;
     section.content.forEach((item, index) => {
       const target = coerceCount(item.count);
-      const key = `${section.id}:${index}`;
+      const key = dhikrStateKey(section.id, index, item.id);
       const current = Math.min(target, Math.max(0, Number(input.progress[key]) || 0));
       clampedByKey[key] = current;
       score += current;
     });
     sectionScores[section.id] = score;
+  }
+
+  for (const pack of input.customPacks ?? []) {
+    let score = 0;
+    pack.items.forEach((item, index) => {
+      const target = coerceCount(item.count);
+      const key = dhikrStateKey(pack.id, index, item.id);
+      const current = Math.min(target, Math.max(0, Number(input.progress[key]) || 0));
+      clampedByKey[key] = current;
+      score += current;
+    });
+    sectionScores[pack.id] = score;
   }
 
   const dailyTasbeeh = getDailyTasbeeh(input.todayISO);
@@ -106,17 +120,12 @@ export function buildLeaderboardScoreStats(input: {
     : Number(input.quickTasbeeh[dailyTasbeeh.key] ?? 0) || 0;
   const tasbeehDailyScore = Math.max(0, Math.min(rawTasbeeh, TASBEEH_DAILY_CAP));
 
-  // Use the same clamped values the per-section boards use. Summing the raw
-  // counters let the global score drift above the sum of its own sections —
-  // a stored count can exceed its target when a dhikr's `count` is lowered in
-  // a data update, or when state arrives from an import. Keys with no matching
-  // section (custom packs) have no target to clamp against, so they pass
-  // through, still floored at zero.
-  const dhikr = Object.entries(input.progress).reduce((total, [key, value]) => {
-    const clamped = clampedByKey[key];
-    if (clamped !== undefined) return total + clamped;
-    return total + Math.max(0, Number(value) || 0);
-  }, 0);
+  // Count only active items above. Raw orphaned keys can belong to deleted
+  // custom adhkar and must not keep awarding leaderboard points.
+  const dhikr = input.customPacks === undefined
+    ? Object.entries(input.progress).reduce((total, [key, value]) =>
+        total + (clampedByKey[key] ?? Math.max(0, Number(value) || 0)), 0)
+    : Object.values(clampedByKey).reduce((total, value) => total + value, 0);
   const quran = Math.max(0, input.quranAyahsToday || 0);
   /**
    * Prayers = prayers.
@@ -189,6 +198,7 @@ export function buildLeaderboardScoreStats(input: {
 /** Builds scores from one Fajr-based day snapshot for Home, the leaderboard, and background sync. */
 export function buildLeaderboardScoreStatsForDay(input: {
   sections: Section[];
+  customPacks?: CustomAdhkarPack[];
   progress: Record<string, number>;
   quranDailyAyahs: Record<string, number>;
   dailyChecklist: Record<string, Record<string, boolean>>;
@@ -209,6 +219,7 @@ export function buildLeaderboardScoreStatsForDay(input: {
 
   return buildLeaderboardScoreStats({
     sections: input.sections,
+    customPacks: input.customPacks,
     progress: input.progress,
     quranAyahsToday: input.quranDailyAyahs[input.todayISO] ?? 0,
     prayersDone: input.dailyChecklist[input.todayISO] ?? {},

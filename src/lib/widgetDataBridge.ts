@@ -127,16 +127,19 @@ async function clearQiblaWidget(key: string): Promise<void> {
 
 /**
  * Count how many adhkar items have been started in a section.
- * Key format in noorStore.progress: "${sectionId}:${originalIndex}"
+ * Key format in noorStore.progress: legacy index or stable custom item ID.
  * An item counts as "done" if its progress value is > 0.
  */
 function countSectionItemsDone(
   progress: Record<string, number>,
   sectionId: string,
+  migratedDhikrStateKeys: Record<string, boolean> = {},
 ): number {
   let done = 0;
   for (const key of Object.keys(progress)) {
     if (key.startsWith(`${sectionId}:`)) {
+      const suffix = key.slice(sectionId.length + 1);
+      if (/^(0|[1-9]\d*)$/.test(suffix) && migratedDhikrStateKeys[key]) continue;
       const val = progress[key];
       if (typeof val === "number" && val > 0) done++;
     }
@@ -154,6 +157,7 @@ export async function syncAdhkarWidget(): Promise<void> {
   const KEY = "noor_widget_adhkar_v1";
   const state = useNoorStore.getState();
   const progress = state.progress ?? {};
+  const migratedDhikrStateKeys = state.migratedDhikrStateKeys ?? {};
   const sectionCompletions = state.sectionCompletions ?? {};
   const today = todayISO();
 
@@ -163,11 +167,11 @@ export async function syncAdhkarWidget(): Promise<void> {
 
   const morningDone = morningCompleted
     ? MORNING_TOTAL
-    : countSectionItemsDone(progress, "morning");
+    : countSectionItemsDone(progress, "morning", migratedDhikrStateKeys);
 
   const eveningDone = eveningCompleted
     ? EVENING_TOTAL
-    : countSectionItemsDone(progress, "evening");
+    : countSectionItemsDone(progress, "evening", migratedDhikrStateKeys);
 
   const payload: AdhkarWidgetPayload = {
     morning: { done: morningDone,  total: MORNING_TOTAL },

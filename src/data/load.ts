@@ -1,6 +1,7 @@
 import { AdhkarDBSchema, type AdhkarDB, type FlatDhikr, coerceCount, type RawAdhkarDB } from "./types";
 import { MY_ADHKAR_SECTION_ID, MY_ADHKAR_TITLE, mergeWithPacks } from "./packs";
 import { publicDataUrl } from "./publicAssetUrl";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 
 const SECTION_ORDER = [
   MY_ADHKAR_SECTION_ID,
@@ -108,10 +109,11 @@ export async function loadAdhkarDB(): Promise<{ db: AdhkarDB; flat: FlatDhikr[] 
   for (const s of dbWithPacks.sections) {
     s.content.forEach((item, idx) => {
       flat.push({
-        key: `${s.id}:${idx}`,
+        key: dhikrStateKey(s.id, idx, item.id),
         sectionId: s.id,
         sectionTitle: s.title,
         index: idx,
+        itemId: item.id,
         text: item.text,
         benefit: item.benefit,
         source: item.source,

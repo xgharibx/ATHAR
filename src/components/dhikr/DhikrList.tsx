@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/Input";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { getNextIbadahBoundary, getNextLocalMidnight } from "@/lib/dayBoundaries";
 import { useTodayKey } from "@/hooks/useTodayKey";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 
 /**
  * Toolbar controls hidden for now at the owner's request.
@@ -61,9 +62,17 @@ export function DhikrList(props: Readonly<{
   const moveSectionItem = useNoorStore((s) => s.moveSectionItem);
   const resetSectionItemOrder = useNoorStore((s) => s.resetSectionItemOrder);
   const removeCustomPackItem = useNoorStore((s) => s.removeCustomPackItem);
+  const removeSectionItemState = useNoorStore((s) => s.removeSectionItemState);
+  const migrateDhikrItemState = useNoorStore((s) => s.migrateDhikrItemState);
   const updateCustomPackItem = useNoorStore((s) => s.updateCustomPackItem);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  React.useLayoutEffect(() => {
+    migrateDhikrItemState(props.sectionId, props.items.flatMap((item, index) =>
+      item.id ? [{ index, itemId: item.id }] : [],
+    ));
+  }, [migrateDhikrItemState, props.items, props.sectionId]);
   const { data: adhkarData } = useAdhkarDB();
   const prayerTimes = usePrayerTimes();
   const fajrTime = prayerTimes.data?.data?.timings?.Fajr ?? null;
@@ -139,7 +148,7 @@ export function DhikrList(props: Readonly<{
     let done = 0;
     let total = 0;
     orderedEntries.forEach(({ item: it, originalIndex }) => {
-      const key = `${props.sectionId}:${originalIndex}`;
+      const key = dhikrStateKey(props.sectionId, originalIndex, it.id);
       const t = coerceCount(it.count);
       const c = Math.min(Math.max(0, Number(progressMap[key]) || 0), t);
       total += t;
@@ -151,7 +160,7 @@ export function DhikrList(props: Readonly<{
   // First item that still needs taps
   const firstIncompleteIdx = React.useMemo(() => {
     return orderedEntries.findIndex(({ item, originalIndex }) => {
-      const key = `${props.sectionId}:${originalIndex}`;
+      const key = dhikrStateKey(props.sectionId, originalIndex, item.id);
       const target = coerceCount(item.count);
       const current = Math.min(target, Math.max(0, Number(progressMap[key]) || 0));
       return current < target;
@@ -193,7 +202,7 @@ export function DhikrList(props: Readonly<{
     // there is no progress to resume: whatever cleared it, the answer is the
     // same.
     const hasProgress = orderedEntries.some(
-      ({ originalIndex }) => (Number(progressMap[`${props.sectionId}:${originalIndex}`]) || 0) > 0,
+      ({ item, originalIndex }) => (Number(progressMap[dhikrStateKey(props.sectionId, originalIndex, item.id)]) || 0) > 0,
     );
     if (!hasProgress) return;
     // If what they were on is already finished, put them on the next thing
@@ -441,7 +450,7 @@ export function DhikrList(props: Readonly<{
         let done = 0;
         s.content.forEach((item, i) => {
           const need = coerceCount(item.count);
-          const have = Math.min(need, Math.max(0, Number(progressMap[`${s.id}:${i}`]) || 0));
+          const have = Math.min(need, Math.max(0, Number(progressMap[dhikrStateKey(s.id, i, item.id)]) || 0));
           if (have >= need) done++;
         });
         return { s, id, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
@@ -453,11 +462,11 @@ export function DhikrList(props: Readonly<{
   const markAllDone = () => {
     orderedEntries.forEach(({ item, originalIndex }) => {
       const target = coerceCount(item.count);
-      const key = `${props.sectionId}:${originalIndex}`;
+      const key = dhikrStateKey(props.sectionId, originalIndex, item.id);
       const current = Math.min(target, Math.max(0, Number(progressMap[key]) || 0));
       const remaining = target - current;
       for (let i = 0; i < remaining; i++) {
-        increment({ sectionId: props.sectionId, index: originalIndex, target });
+        increment({ sectionId: props.sectionId, index: originalIndex, target, itemId: item.id });
       }
     });
     setConfirmDone(false);
@@ -502,10 +511,19 @@ export function DhikrList(props: Readonly<{
           toast.error("لا يمكن تعديل هذا الذكر");
           return;
         }
-        updateCustomDhikrItem(props.sectionId, mapped, { text, count, benefit: customBenefit });
+        const updated = updateCustomDhikrItem(
+          props.sectionId,
+          mapped,
+          { text, count, benefit: customBenefit },
+          props.items[editingItemIdx]?.id,
+        );
+        if (!updated) {
+          toast.error("تعذّر تعديل الذكر، حدّث القائمة ثم حاول مرة أخرى");
+          return;
+        }
         void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
       } else if (props.isCustomSection) {
-        updateCustomPackItem(props.sectionId, editingItemIdx, { text, count });
+        updateCustomPackItem(props.sectionId, editingItemIdx, { text, count }, props.items[editingItemIdx]?.id);
       }
       toast.success("تم تعديل الذكر");
     } else {
@@ -535,16 +553,23 @@ export function DhikrList(props: Readonly<{
   }
 
   const handleDeleteItem = (originalIndex: number) => {
+    const itemId = props.items[originalIndex]?.id;
+    let removed = false;
     if (isMyAdhkarSection || !props.isCustomSection) {
       const mapped = toCustomItemIndex(originalIndex);
       if (mapped === null) {
         toast.error("لا يمكن حذف هذا الذكر");
         return;
       }
-      removeCustomDhikrItem(props.sectionId, mapped);
+      removed = removeCustomDhikrItem(props.sectionId, mapped, itemId);
+      if (removed) removeSectionItemState(props.sectionId, originalIndex, props.items.length, itemId);
       void queryClient.invalidateQueries({ queryKey: ["adhkar-db"] });
     } else if (props.isCustomSection) {
-      removeCustomPackItem(props.sectionId, originalIndex);
+      removed = removeCustomPackItem(props.sectionId, originalIndex);
+    }
+    if (!removed) {
+      toast.error("تعذّر حذف الذكر، حدّث القائمة ثم حاول مرة أخرى");
+      return;
     }
     toast.success("تم الحذف");
   };

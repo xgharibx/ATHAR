@@ -27,6 +27,7 @@ export function LeaderboardSyncBridge() {
   const todayKey = useTodayKey({ mode: "ibadah", fajrTime: effectiveFajr });
   const civilTodayKey = useTodayKey();
   const progress = useNoorStore((state) => state.progress);
+  const customPacks = useNoorStore((state) => state.customPacks);
   const quranDailyAyahs = useNoorStore((state) => state.quranDailyAyahs);
   const dailyChecklist = useNoorStore((state) => state.dailyChecklist);
   const prayerLog = useNoorStore((state) => state.prayerLog);
@@ -65,6 +66,7 @@ export function LeaderboardSyncBridge() {
     () =>
       buildLeaderboardScoreStatsForDay({
         sections,
+        customPacks,
         progress,
         quranDailyAyahs,
         dailyChecklist,
@@ -74,7 +76,7 @@ export function LeaderboardSyncBridge() {
         todayISO: todayKey,
         civilTodayISO: civilTodayKey,
       }),
-    [civilTodayKey, dailyChecklist, prayerLog, progress, quranDailyAyahs, quickTasbeeh, tasbeehDayTotals, sections, todayKey]
+    [civilTodayKey, customPacks, dailyChecklist, prayerLog, progress, quranDailyAyahs, quickTasbeeh, tasbeehDayTotals, sections, todayKey]
   );
 
   const snapshotKey = React.useMemo(

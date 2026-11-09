@@ -52,6 +52,7 @@ export function LeaderboardPage() {
   const todayKey = useTodayKey({ mode: "ibadah", fajrTime: effectiveFajr });
   const civilTodayKey = useTodayKey();
   const progress = useNoorStore((s) => s.progress);
+  const customPacks = useNoorStore((s) => s.customPacks);
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const dailyChecklist = useNoorStore((s) => s.dailyChecklist);
   const prayerLog = useNoorStore((s) => s.prayerLog);
@@ -111,6 +112,7 @@ export function LeaderboardPage() {
     () =>
       buildLeaderboardScoreStatsForDay({
         sections,
+        customPacks,
         progress,
         quranDailyAyahs,
         dailyChecklist,
@@ -120,7 +122,7 @@ export function LeaderboardPage() {
         todayISO: todayKey,
         civilTodayISO: civilTodayKey,
       }),
-    [civilTodayKey, dailyChecklist, prayerLog, progress, quranDailyAyahs, quickTasbeeh, sections, tasbeehDayTotals, todayKey]
+    [civilTodayKey, customPacks, dailyChecklist, prayerLog, progress, quranDailyAyahs, quickTasbeeh, sections, tasbeehDayTotals, todayKey]
   );
 
   const myStats = React.useMemo(() => {

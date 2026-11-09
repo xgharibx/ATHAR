@@ -194,6 +194,7 @@ function AppContent() {
   const onboardingDone = useNoorStore((s) => s.onboardingDone);
   const sectionCompletions = useNoorStore((s) => s.sectionCompletions);
   const progress = useNoorStore((s) => s.progress);
+  const migratedDhikrStateKeys = useNoorStore((s) => s.migratedDhikrStateKeys);
   const location = useLocation();
   const prayerTimes = usePrayerTimes();
 
@@ -258,14 +259,16 @@ function AppContent() {
     const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const doneToday = (id: string) => (sectionCompletions[id] ?? []).includes(todayISO);
     const startedToday = (id: string) =>
-      Object.entries(progress).some(([k, v]) => k.startsWith(`${id}:`) && Number(v) > 0);
+      Object.entries(progress).some(([k, v]) =>
+        k.startsWith(`${id}:`) && !migratedDhikrStateKeys[k] && Number(v) > 0,
+      );
     return {
       morningDone: doneToday("morning"),
       morningStarted: startedToday("morning"),
       eveningDone: doneToday("evening"),
       eveningStarted: startedToday("evening"),
     };
-  }, [sectionCompletions, progress]);
+  }, [sectionCompletions, migratedDhikrStateKeys, progress]);
 
   // Scroll to top on page navigation (skip for hash-only changes)
   React.useEffect(() => {

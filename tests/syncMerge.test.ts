@@ -7,6 +7,8 @@ import {
   kindForField,
   mergeDoc,
 } from "@/lib/syncMerge";
+import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
+import { createDhikrItemId } from "@/lib/dhikrItemIdentity";
 
 const noBase = { remoteNewer: false, base: null };
 
@@ -350,6 +352,108 @@ describe("nested maps", () => {
 });
 
 describe("custom pack deletion conflicts", () => {
+  it("isolates a delayed counter for a deleted item and excludes it from score", () => {
+    const itemA = { id: "item-a", text: "الأول", count: 10 };
+    const itemB = { id: "item-b", text: "المحذوف", count: 10 };
+    const itemC = { id: "item-c", text: "الأخير", count: 10 };
+    const base = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA, itemB, itemC] }],
+      progress: { "trip:item:item-b": 2, "trip:item:item-c": 4 },
+      migratedDhikrStateKeys: { "trip:0": true, "trip:1": true, "trip:2": true },
+    };
+    const local = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA, itemC] }],
+      progress: { "trip:item:item-c": 4 },
+      migratedDhikrStateKeys: base.migratedDhikrStateKeys,
+    };
+    const remote = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA, itemB, itemC] }],
+      progress: { "trip:item:item-b": 3, "trip:item:item-c": 4 },
+      migratedDhikrStateKeys: base.migratedDhikrStateKeys,
+    };
+
+    const merged = mergeDoc(local, remote, { remoteNewer: true, base });
+    const mergedPack = (merged.customPacks as typeof base.customPacks)[0];
+    expect(mergedPack?.items.map((item) => item.id)).toEqual(["item-a", "item-c"]);
+    expect(merged.progress).toMatchObject({ "trip:item:item-b": 3, "trip:item:item-c": 4 });
+
+    const score = buildLeaderboardScoreStats({
+      sections: [],
+      customPacks: merged.customPacks as typeof base.customPacks,
+      progress: merged.progress as Record<string, number>,
+      quranAyahsToday: 0,
+      prayersDone: {},
+      quickTasbeeh: {},
+      todayISO: "2026-11-09",
+    });
+    expect(score.dhikr).toBe(4);
+  });
+
+  it("keeps a delayed legacy-device index update away from the surviving item", () => {
+    const legacyItems = ["الأول", "المحذوف", "الأخير"].map((text, index) => ({ text, count: 10, id: createDhikrItemId("trip/custom", index, text) }));
+    const [itemA, itemB, itemC] = legacyItems;
+    const base = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [
+        { text: itemA!.text, count: 10 }, { text: itemB!.text, count: 10 }, { text: itemC!.text, count: 10 },
+      ] }],
+      progress: { "trip:1": 2, "trip:2": 4 },
+    };
+    const local = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA!, itemC!] }],
+      progress: { [`trip:item:${encodeURIComponent(itemC!.id)}`]: 4 },
+      migratedDhikrStateKeys: { "trip:0": true, "trip:1": true, "trip:2": true },
+    };
+    const remote = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [
+        { text: itemA!.text, count: 10 }, { text: itemB!.text, count: 10 }, { text: itemC!.text, count: 10 },
+      ] }],
+      progress: { "trip:1": 3, "trip:2": 4 },
+    };
+
+    const merged = mergeDoc(local, remote, { remoteNewer: true, base });
+    const mergedItems = (merged.customPacks as Array<{ items: Array<{ id: string; text: string }> }>)[0]!.items;
+    expect(mergedItems.map((item) => item.id)).toEqual([itemA!.id, itemC!.id]);
+    expect(merged.progress).toMatchObject({ [`trip:item:${encodeURIComponent(itemC!.id)}`]: 4, "trip:1": 3 });
+    const score = buildLeaderboardScoreStats({
+      sections: [],
+      customPacks: merged.customPacks as typeof local.customPacks,
+      progress: merged.progress as Record<string, number>,
+      quranAyahsToday: 0,
+      prayersDone: {},
+      quickTasbeeh: {},
+      todayISO: "2026-11-09",
+    });
+    expect(score.dhikr).toBe(4);
+  });
+
+  it("matches a shifted legacy item by its text before reconciling the pack", () => {
+    const texts = ["الأول", "المحذوف", "الأخير"];
+    const stableItems = texts.map((text, index) => ({
+      id: createDhikrItemId("trip/custom", index, text), text, count: 10,
+    }));
+    const [itemA, , itemC] = stableItems;
+    const base = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: texts.map((text) => ({ text, count: 10 })) }],
+      progress: { "trip:1": 2, "trip:2": 4 },
+    };
+    const local = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [itemA!, itemC!] }],
+      progress: { [`trip:item:${encodeURIComponent(itemC!.id)}`]: 4 },
+      migratedDhikrStateKeys: { "trip:0": true, "trip:1": true, "trip:2": true },
+    };
+    const shiftedLegacyRemote = {
+      customPacks: [{ id: "trip", title: "السفر", createdAt: "2026-11-09", items: [
+        { text: texts[0], count: 10 }, { text: texts[2], count: 10 },
+      ] }],
+      progress: { "trip:1": 7 },
+    };
+
+    const merged = mergeDoc(local, shiftedLegacyRemote, { remoteNewer: true, base });
+    const items = (merged.customPacks as Array<{ items: Array<{ id: string }> }>)[0]!.items;
+    expect(items.map((item) => item.id)).toEqual([itemA!.id, itemC!.id]);
+    expect(merged.progress).toMatchObject({ [`trip:item:${encodeURIComponent(itemC!.id)}`]: 4, "trip:1": 7 });
+  });
+
   it("keeps an edited pack when the other device deletes it", () => {
     const base = { dataPacks: [{ packId: "p", title: "Old", sections: [] }] };
     const edited = [{ packId: "p", title: "Edited", sections: [] }];

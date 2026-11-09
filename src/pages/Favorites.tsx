@@ -19,6 +19,7 @@ import { DUAS_CATEGORIES } from "@/data/duas";
 import { PROPHET_STORIES } from "@/data/prophetStories";
 import { COMPANIONS } from "@/data/companions";
 import { accountScopedLocalStorage } from "@/lib/accountStorageScope";
+import { dhikrStateKey } from "@/lib/dhikrItemIdentity";
 
 function useLocalBookmarkSet(key: string): [Set<string>, (id: string) => void] {
   const [ids, setIds] = React.useState<Set<string>>(() => {
@@ -44,6 +45,7 @@ export function FavoritesPage() {
   const navigate = useNavigate();
   useScrollRestoration();
   const favorites = useNoorStore((s) => s.favorites);
+  const customPacks = useNoorStore((s) => s.customPacks);
   const toggleFavorite = useNoorStore((s) => s.toggleFavorite);
   const quranBookmarks = useNoorStore((s) => s.quranBookmarks);
   const toggleQuranBookmark = useNoorStore((s) => s.toggleQuranBookmark);
@@ -128,10 +130,19 @@ export function FavoritesPage() {
   const favKeys = React.useMemo(() => Object.keys(favorites).filter((k) => favorites[k]), [favorites]);
 
   const items = React.useMemo(() => {
-    if (!data) return [];
-    const map = new Map(data.flat.map((f) => [f.key, f]));
+    if (!data && customPacks.length === 0) return [];
+    const customPackItems: FlatDhikr[] = customPacks.flatMap((pack) => pack.items.map((item, index) => ({
+      key: dhikrStateKey(pack.id, index, item.id),
+      sectionId: pack.id,
+      sectionTitle: pack.title,
+      index,
+      itemId: item.id,
+      text: item.text,
+      count: item.count,
+    })));
+    const map = new Map([...(data?.flat ?? []), ...customPackItems].map((item) => [item.key, item]));
     return favKeys.map((k) => map.get(k)).filter(Boolean) as FlatDhikr[];
-  }, [data, favKeys]);
+  }, [customPacks, data, favKeys]);
 
   const copyAll = React.useCallback(async () => {
     if (items.length === 0) return;
@@ -402,7 +413,7 @@ export function FavoritesPage() {
 
                         {confirmDeleteKey === r.key ? (
                           <div className="flex flex-col gap-2">
-                            <Button variant="danger" size="sm" onClick={() => { toggleFavorite(r.sectionId, r.index); setConfirmDeleteKey(null); }}>
+                            <Button variant="danger" size="sm" onClick={() => { toggleFavorite(r.sectionId, r.index, r.itemId); setConfirmDeleteKey(null); }}>
                               تأكيد
                             </Button>
                             <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteKey(null)}>

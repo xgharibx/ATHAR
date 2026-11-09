@@ -22,10 +22,27 @@ describe("complete backup restore", () => {
 
   it("carries the adhkar created in My Adhkar onto a fresh install", async () => {
     addCustomDhikrItem({ text: "My personal dhikr", count: 3 });
+    expect(loadPacks()[0]?.sections[0]?.content[0]?.id).toBeTruthy();
     const backup = useNoorStore.getState().exportState();
     savePacks([]);
     await useNoorStore.getState().importState(backup);
     expect(loadPacks()[0]?.sections[0]?.content[0]?.text).toBe("My personal dhikr");
+  });
+
+  it("assigns and persists deterministic IDs when older imported packs are opened", () => {
+    savePacks([{
+      packId: "legacy_pack",
+      name: "Legacy",
+      importedAt: "2026-01-01T00:00:00.000Z",
+      sections: [{ id: "legacy_section", title: "Legacy", content: [
+        { text: "ذكر قديم", count: 3 },
+      ] }],
+    } as never]);
+
+    const firstId = loadPacks()[0]?.sections[0]?.content[0]?.id;
+    const secondId = loadPacks()[0]?.sections[0]?.content[0]?.id;
+    expect(firstId).toBeTruthy();
+    expect(secondId).toBe(firstId);
   });
 
   it("keeps restored custom reminders after startup hydration", async () => {
