@@ -169,6 +169,26 @@ describe("undo", () => {
     expect(store().qadaaDayTotals["2020-01-01"]).toBe(3);
   });
 
+  it("preserves today's fast tally when undoing a prayer that was not logged today", () => {
+    store().logQadaa("f:1446");
+    useNoorStore.setState({ qadaaDone: { ...store().qadaaDone, "p:isha": 1 } });
+
+    store().undoQadaa("p:isha");
+
+    expect(store().qadaaDayTotals[today()]).toBe(1);
+    expect(store().qadaaDayKinds[`${today()}|f:1446`]).toBe(1);
+  });
+
+  it("preserves today's prayer tally when undoing a fast that was not logged today", () => {
+    store().logQadaa("p:isha");
+    useNoorStore.setState({ qadaaDone: { ...store().qadaaDone, "f:1446": 1 } });
+
+    store().undoQadaa("f:1446");
+
+    expect(store().qadaaDayTotals[today()]).toBe(1);
+    expect(store().qadaaDayKinds[`${today()}|p:isha`]).toBe(1);
+  });
+
   it("ignores a bad key", () => {
     useNoorStore.setState({ qadaaDone: { "p:fajr": 1 } });
     store().undoQadaa("p:bogus");

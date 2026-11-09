@@ -1264,17 +1264,22 @@ export const useNoorStore = create<NoorState>()(
           const done = { ...st.qadaaDone };
           if (had - 1 > 0) done[key] = had - 1;
           else delete done[key];
-          // Take it off today's tally too, but only if today has one to give:
-          // an undo after the day rolled over must not drive a count below zero.
+          // Daily history is per key. Only reduce today's total when this
+          // exact prayer/fast was logged today; an unrelated same-day entry
+          // must survive undoing an older completion.
           const day = ibadahDayKeyOf(st);
-          const today = st.qadaaDayTotals[day] ?? 0;
           const totals = { ...st.qadaaDayTotals };
-          if (today > 1) totals[day] = today - 1;
-          else delete totals[day];
           const kinds = { ...st.qadaaDayKinds };
           const dk = dayKindKey(day, key);
-          if ((kinds[dk] ?? 0) > 1) kinds[dk] = (kinds[dk] ?? 0) - 1;
-          else delete kinds[dk];
+          const todayKindCount = kinds[dk] ?? 0;
+          if (todayKindCount > 0) {
+            const todayTotal = totals[day] ?? 0;
+            if (todayTotal > 1) totals[day] = todayTotal - 1;
+            else delete totals[day];
+
+            if (todayKindCount > 1) kinds[dk] = todayKindCount - 1;
+            else delete kinds[dk];
+          }
           return { qadaaDone: done, qadaaDayTotals: totals, qadaaDayKinds: kinds };
         });
       },
