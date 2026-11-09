@@ -36,6 +36,7 @@ import {
 } from "@/lib/radioPlayer";
 import { renderDhikrPosterBlob } from "@/lib/sharePoster";
 import { ShareAyahModal } from "@/components/quran/ShareAyahModal";
+import { MemorizationAyahContent } from "@/components/quran/MemorizationAyahContent";
 import { FocusManagedDialog } from "@/components/ui/FocusManagedDialog";
 import { cacheAudioUrlsWithinBudget, MUSHAF_AUDIO_CACHE_NAME } from "@/lib/offlineAudioCache";
 import { downloadAllWbwSurahs, loadWbwSurah, renderTajweed, type WbwSurah } from "@/lib/quranWBW";
@@ -473,18 +474,20 @@ export function MushafPage() {
   // Q9: Per-ayah reveal in memorization mode (must be before handleAyahTap)
   const [memorizationMode, setMemorizationMode] = React.useState(false);
   const [revealedItems, setRevealedItems] = React.useState<Set<string>>(new Set());
+  const toggleAyahReveal = React.useCallback((key: string) => {
+    setRevealedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
 
   const handleAyahTap = React.useCallback((e: React.MouseEvent, item: PageItem) => {
     e.stopPropagation();
     if (item.isBasmalahHeader || item.displayAyah === 0) return;
     // Q9: In memorization mode, clicking reveals/hides the ayah instead of selecting it
     if (memorizationMode) {
-      const k = `${item.surahId}:${item.displayAyah}`;
-      setRevealedItems((prev) => {
-        const n = new Set(prev);
-        if (n.has(k)) n.delete(k); else n.add(k);
-        return n;
-      });
+      toggleAyahReveal(`${item.surahId}:${item.displayAyah}`);
       return;
     }
     const isSame = selectedItemRef.current?.surahId === item.surahId && selectedItemRef.current?.originalAyah === item.originalAyah;
@@ -499,7 +502,7 @@ export function MushafPage() {
     // top/bottom bars pop back in every single tap. The chrome stays visible
     // for 5s on a new selection so it doesn't blink away too fast either.
     if (!isSame) flashChrome(5000);
-  }, [flashChrome, memorizationMode, recordQuranRead, setLastRead]);
+  }, [flashChrome, memorizationMode, recordQuranRead, setLastRead, toggleAyahReveal]);
 
   // Note sheet
   const [noteSheetOpen, setNoteSheetOpen] = React.useState(false);
@@ -1814,29 +1817,35 @@ export function MushafPage() {
                     const isPlaying = playingKey === k;
 
                     const ayahSpan = (
-                      <span
+                      <MemorizationAyahContent
                         key={k}
-                        ref={isPlaying ? (el: HTMLSpanElement | null) => { playingSpanRef.current = el; } : undefined}
-                        className={`mushaf-ayah-span${isSel ? " selected" : ""}${hl ? ` hl-${hl}` : ""}${memorizationMode && !isRevealed ? " mem-hidden" : ""}${isSearchMatch ? " search-match" : ""}${isPlaying ? " playing" : ""}`}
-                        translate="no"
-                        style={{
-                          // Q16: Focus dimming
-                          opacity: selectedItem && !isSel ? 0.3 : 1,
-                          transition: "opacity 0.18s",
-                          ...(hl && !isSel ? {
-                            background: HL_COLORS[hl].bg,
-                            boxShadow: `inset 0 -2px 0 ${HL_COLORS[hl].dot}`,
-                          } : {}),
-                        }}
-                        onPointerDown={(e) => handlePointerDown(e, item)}
-                        onPointerUp={handlePointerUp}
-                        onPointerLeave={handlePointerUp}
-                        onPointerCancel={handlePointerUp}
-                        onClick={(e) => {
-                          if (longPressFired.current) { longPressFired.current = false; return; }
-                          handleAyahTap(e, item);
-                        }}
+                        enabled={memorizationMode}
+                        hidden={!isRevealed}
+                        label={`${isRevealed ? "إخفاء" : "كشف"} الآية ${toArabicNumeral(item.displayAyah)} من سورة ${item.surahName}`}
+                        onToggle={() => toggleAyahReveal(k)}
                       >
+                        <span
+                          ref={isPlaying ? (el: HTMLSpanElement | null) => { playingSpanRef.current = el; } : undefined}
+                          className={`mushaf-ayah-span${isSel ? " selected" : ""}${hl ? ` hl-${hl}` : ""}${isSearchMatch ? " search-match" : ""}${isPlaying ? " playing" : ""}`}
+                          translate="no"
+                          style={{
+                            // Q16: Focus dimming
+                            opacity: selectedItem && !isSel ? 0.3 : 1,
+                            transition: "opacity 0.18s",
+                            ...(hl && !isSel ? {
+                              background: HL_COLORS[hl].bg,
+                              boxShadow: `inset 0 -2px 0 ${HL_COLORS[hl].dot}`,
+                            } : {}),
+                          }}
+                          onPointerDown={(e) => handlePointerDown(e, item)}
+                          onPointerUp={handlePointerUp}
+                          onPointerLeave={handlePointerUp}
+                          onPointerCancel={handlePointerUp}
+                          onClick={(e) => {
+                            if (longPressFired.current) { longPressFired.current = false; return; }
+                            handleAyahTap(e, item);
+                          }}
+                        >
                         {/* Phase 2B: Tajweed coloring OR plain text; each word becomes a tap
                             target for its translation/transliteration when wbwMode is on */}
                         {wbwVerse ? (
@@ -1875,7 +1884,8 @@ export function MushafPage() {
                             {transText}
                           </p>
                         ) : null}
-                      </span>
+                        </span>
+                      </MemorizationAyahContent>
                     );
 
                     // Q11-B: When inline tafseer is on, wrap ayah in block layout with tafseer below

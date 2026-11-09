@@ -15,7 +15,8 @@ import { stripDiacritics, normalizeArabicSearch } from "@/lib/arabic";
 import { QURAN_RECITERS } from "@/lib/quranReciters";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { SurahInfoPopover } from "@/components/quran/SurahInfoPopover";
-import { sajdaInSurah, loadQuranExtras, getEnglishRowPreview, type QuranExtras } from "@/data/quranExtras";
+import { sajdaInSurah, getEnglishRowPreview } from "@/data/quranExtras";
+import { useQuranExtras } from "@/hooks/useQuranExtras";
 import { parseDirectAyahQuery } from "@/data/quranDirectSearch";
 import { searchAyah, buildAyahIndex, type AyahHit } from "@/data/quranAyahIndex";
 type AyahHitLite = AyahHit;
@@ -302,7 +303,7 @@ export function QuranPage() {
   const [reciterOpen, setReciterOpen] = React.useState(false);
   const [reciterQuery, setReciterQuery] = React.useState("");
   const [showTranslation, setShowTranslation] = React.useState(false);
-  const [extras, setExtras] = React.useState<QuranExtras | null>(null);
+  const extras = useQuranExtras(showTranslation || infoSurahId !== null);
   const [pageMap, setPageMap] = React.useState<Record<string, number> | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   // Pass A: inline surah detail with virtual pagination — `quranPageSize` ayahs
@@ -337,13 +338,6 @@ export function QuranPage() {
   React.useEffect(() => {
     setFilterJuz(parseJuzParam(searchParams.get("juz")));
   }, [searchParams]);
-
-  // Phase 3 — Lazy-load translation + tafsir bundles in the background
-  React.useEffect(() => {
-    if (showTranslation || infoSurahId !== null) {
-      void loadQuranExtras().then(setExtras).catch(() => {});
-    }
-  }, [showTranslation, infoSurahId]);
 
   // Phase 5 — Lazy-load mushaf page map for page-number badges in the list
   React.useEffect(() => {

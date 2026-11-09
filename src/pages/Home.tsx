@@ -39,7 +39,7 @@ import { useTodayKey } from "@/hooks/useTodayKey";
 import { formatPrayerHijriDate, type PrayerHijriDate, usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { DAILY_CHECKLIST_ITEMS, BETTER_MUSLIM_DAILY_STEPS, type DailyChecklistItem } from "@/data/dailyGrowth";
 import { parseDateKey, shiftDateKey } from "@/lib/dayBoundaries";
-import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
+import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
 import { DailyCarousel } from "@/components/ui/DailyCarousel";
 import { getRadioState, subscribeRadio, toggleRadio } from "@/lib/radioPlayer";
 import { useScrollRestoration, useElementScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -257,6 +257,7 @@ export function HomePage() {
   const sebhaTarget = useNoorStore((s) => s.sebhaTarget);
   const setSebhaTarget = useNoorStore((s) => s.setSebhaTarget);
   const tasbeehDailyLog = useNoorStore((s) => s.tasbeehDailyLog);
+  const tasbeehDayTotals = useNoorStore((s) => s.tasbeehDayTotals);
 
   const dailyWirdDone = useNoorStore((s) => s.dailyWirdDone);
   const setDailyWirdDone = useNoorStore((s) => s.setDailyWirdDone);
@@ -270,6 +271,8 @@ export function HomePage() {
   const quranDailyAyahs = useNoorStore((s) => s.quranDailyAyahs);
   const quranStreak = useNoorStore((s) => s.quranStreak);
   const prayerLog = useNoorStore((s) => s.prayerLog);
+  const dailyChecklistByDay = useNoorStore((s) => s.dailyChecklist);
+  const lastKnownFajrTime = useNoorStore((s) => s.lastKnownFajrTime);
   const khatmaStartISO = useNoorStore((s) => s.khatmaStartISO);
   const khatmaDays = useNoorStore((s) => s.khatmaDays);
   const khatmaDone = useNoorStore((s) => s.khatmaDone);
@@ -510,7 +513,7 @@ export function HomePage() {
   }, [tasbeehDailyLog, civilTodayKey]);
   const worshipDayKey = useTodayKey({
     mode: "ibadah",
-    fajrTime: prayerTimes.data?.data?.timings?.Fajr,
+    fajrTime: prayerTimes.data?.data?.timings?.Fajr ?? lastKnownFajrTime ?? undefined,
   });
   const dailyChecklistToday = useNoorStore((s) => s.dailyChecklist[worshipDayKey] ?? {});
   const yesterdayKey = React.useMemo(() => shiftDateKey(worshipDayKey, -1), [worshipDayKey]);
@@ -661,17 +664,19 @@ export function HomePage() {
 
   // 5C: Quests + XP
   const questsData = React.useMemo(() => {
-    const prayersDone: Record<string, boolean> = prayerLog[civilTodayKey] ?? {};
     // Ayahs actually read today — not the cumulative furthest-reached total,
     // which used to inflate XP by summing every surah's high-water mark.
-    const ayahsToday = Number(quranDailyAyahs[civilTodayKey] ?? 0);
-    const scores = buildLeaderboardScoreStats({
+    const ayahsToday = Number(quranDailyAyahs[worshipDayKey] ?? 0);
+    const scores = buildLeaderboardScoreStatsForDay({
       sections: sections,
       progress: progressMap,
-      quranAyahsToday: ayahsToday,
-      prayersDone,
+      quranDailyAyahs,
+      dailyChecklist: dailyChecklistByDay,
+      prayerLog,
       quickTasbeeh,
-      todayISO: civilTodayKey,
+      tasbeehDayTotals,
+      todayISO: worshipDayKey,
+      civilTodayISO: civilTodayKey,
     });
     const totalXp = scores.global;
 
@@ -696,7 +701,7 @@ export function HomePage() {
 
     return { quests, doneCount, totalXp, xpLevel, xpPct };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activity, civilTodayKey, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs]);
+  }, [activity, civilTodayKey, dailyChecklistByDay, prayerLog, progressMap, quickTasbeeh, sections, quranDailyAyahs, tasbeehDayTotals, worshipDayKey]);
 
   const prayerContext = React.useMemo<PrayerContext>(() => {
     const timings = prayerTimes.data?.data?.timings;

@@ -21,8 +21,10 @@ export type QuranExtras = {
   tafsir: TafsirDB | null;
 };
 
-const CACHE_VERSION = 4; // bump to invalidate when bundles or their parsed shape change
+const CACHE_VERSION = 5; // bump to discard partial extras written by older loaders
 const EXTRAS_KEY = `noor_quran_extras_v${CACHE_VERSION}`;
+const TOTAL_AYAHS = Array.from({ length: 114 }, (_, index) => getSurahAyahCount(index + 1))
+  .reduce((total, count) => total + count, 0);
 
 let _cache: QuranExtras | null = null;
 let _promise: Promise<QuranExtras> | null = null;
@@ -36,7 +38,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 async function loadFromIDB(): Promise<QuranExtras | null> {
   try {
     const cached = await idbGetExtras<{ version: number; data: QuranExtras }>(EXTRAS_KEY);
-    if (cached && cached.version === CACHE_VERSION) return cached.data;
+    if (cached && cached.version === CACHE_VERSION && isQuranExtrasComplete(cached.data)) return cached.data;
   } catch { /* ignore */ }
   return null;
 }
@@ -50,10 +52,9 @@ async function saveToIDB(extras: QuranExtras): Promise<void> {
 export async function loadQuranExtras(): Promise<QuranExtras> {
   if (_cache) return _cache;
   if (_promise) return _promise;
-  _promise = (async () => {
+  const pending = (async () => {
     const cached = await loadFromIDB();
     if (cached) {
-      _cache = cached;
       return cached;
     }
     const [englishSahihRaw, tafsirRaw] = await Promise.all([
@@ -61,24 +62,66 @@ export async function loadQuranExtras(): Promise<QuranExtras> {
       fetchJson<Record<string, unknown>>("/data/tafseer-muyassar.json").catch(() => null),
     ]);
     const englishSahih = normalizeEnglishSahih(englishSahihRaw);
-    const tafsir: TafsirDB = [];
-    if (tafsirRaw) {
-      for (const [surahKey, verses] of Object.entries(tafsirRaw)) {
-        const surahId = Number(surahKey);
-        if (!Number.isInteger(surahId) || surahId < 1 || surahId > 114 || !Array.isArray(verses)) continue;
-        for (let ayahIndex = 1; ayahIndex < verses.length; ayahIndex++) {
-          const text = typeof verses[ayahIndex] === "string" ? verses[ayahIndex].trim() : "";
-          if (text.length < 20) continue;
-          tafsir.push({ surahId, ayahIndex, text });
-        }
-      }
-    }
+    const tafsir = normalizeTafsir(tafsirRaw);
     const result: QuranExtras = { englishSahih, tafsir };
-    _cache = result;
-    void saveToIDB(result);
     return result;
   })();
-  return _promise;
+  _promise = pending;
+  try {
+    const result = await pending;
+    if (isQuranExtrasComplete(result)) {
+      _cache = result;
+      void saveToIDB(result);
+    }
+    return result;
+  } finally {
+    if (_promise === pending) _promise = null;
+  }
+}
+
+export function isQuranExtrasComplete(value: unknown): value is QuranExtras {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const extras = value as Partial<QuranExtras>;
+  const english = extras.englishSahih;
+  const tafsir = extras.tafsir;
+  if (!english || typeof english !== "object" || Array.isArray(english) || Object.keys(english).length !== TOTAL_AYAHS) return false;
+  if (!Array.isArray(tafsir) || tafsir.length !== TOTAL_AYAHS) return false;
+
+  for (let globalAyah = 1; globalAyah <= TOTAL_AYAHS; globalAyah += 1) {
+    const row = (english as EnglishSahihDB)[String(globalAyah)];
+    if (!Array.isArray(row) || row.length !== 2 || typeof row[0] !== "string" || typeof row[1] !== "string" || !row[1].trim()) {
+      return false;
+    }
+  }
+
+  const seenTafsir = new Set<string>();
+  for (const row of tafsir) {
+    if (!row || typeof row !== "object") return false;
+    const { surahId, ayahIndex, text } = row as TafsirAyah;
+    if (!Number.isInteger(surahId) || surahId < 1 || surahId > 114) return false;
+    if (!Number.isInteger(ayahIndex) || ayahIndex < 1 || ayahIndex > getSurahAyahCount(surahId)) return false;
+    if (typeof text !== "string" || text.trim().length < 20) return false;
+    const identity = `${surahId}:${ayahIndex}`;
+    if (seenTafsir.has(identity)) return false;
+    seenTafsir.add(identity);
+  }
+  return seenTafsir.size === TOTAL_AYAHS;
+}
+
+function normalizeTafsir(raw: unknown): TafsirDB | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const source = raw as Record<string, unknown>;
+  const out: TafsirDB = [];
+  for (let surahId = 1; surahId <= 114; surahId += 1) {
+    const verses = source[String(surahId)];
+    if (!Array.isArray(verses) || verses.length !== getSurahAyahCount(surahId) + 1) return null;
+    for (let ayahIndex = 1; ayahIndex < verses.length; ayahIndex += 1) {
+      const text = typeof verses[ayahIndex] === "string" ? verses[ayahIndex].trim() : "";
+      if (text.length < 20) return null;
+      out.push({ surahId, ayahIndex, text });
+    }
+  }
+  return out;
 }
 
 /** Lookup helpers that work even before the bundle loads (return null). */

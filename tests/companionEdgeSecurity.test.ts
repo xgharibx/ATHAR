@@ -208,6 +208,52 @@ describe("Companion Edge Function access controls", () => {
     });
   });
 
+  it("bounds server-side history to the app privacy limits while keeping the newest question", async () => {
+    const app = edge();
+    const messages = Array.from({ length: 16 }, (_, index) => ({
+      role: index % 2 === 0 ? "user" : "assistant",
+      content: `old-${index}:${"x".repeat(4_000)}`,
+    }));
+    messages.push({ role: "user", content: "latest question" });
+    const response = await app.sendRaw(JSON.stringify({
+      system: "synthetic system prompt",
+      messages,
+    }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(200);
+    const upstreamCall = app.calls.find((call) => call.type === "upstream");
+    const forwarded = JSON.parse(String((upstreamCall?.detail as RequestInit).body)) as {
+      messages: Array<{ role: string; content: string }>;
+    };
+    expect(forwarded.messages.length).toBeLessThanOrEqual(16);
+    expect(forwarded.messages.reduce((total, message) => total + message.content.length, 0)).toBeLessThanOrEqual(48_000);
+    expect(forwarded.messages[0]?.role).toBe("user");
+    expect(forwarded.messages.at(-1)?.content).toBe("latest question");
+    expect(forwarded.messages.some((message) => message.content.includes("old-0:"))).toBe(false);
+  });
+
+  it("rejects an oversized latest question before auth, quota, or provider calls", async () => {
+    const app = edge();
+    const response = await app.sendRaw(JSON.stringify({
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: "x".repeat(8_001) }],
+    }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(413);
+    expect(app.calls).toEqual([]);
+  });
+
+  it("rejects non-text message payloads that could bypass the character ceiling", async () => {
+    const app = edge();
+    const response = await app.sendRaw(JSON.stringify({
+      system: "synthetic system prompt",
+      messages: [{ role: "user", content: [{ type: "text", text: "synthetic question" }] }],
+    }), "Bearer synthetic-user-token");
+
+    expect(response.status).toBe(400);
+    expect(app.calls).toEqual([]);
+  });
+
   it("sets and reserves an output cap when a caller omits max_tokens", async () => {
     const app = edge();
     const payload = {

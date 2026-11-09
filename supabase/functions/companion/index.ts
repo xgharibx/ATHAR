@@ -12,7 +12,9 @@ import { companionCorsHeaders } from "./cors.ts";
 
 const COMPANION_TOOL_NAMES = new Set(["next_step", "cite", "search_library", "create_reminder"]);
 const MAX_SYSTEM_CHARS = 20_000;
-const MAX_MESSAGES = 60;
+const MAX_MESSAGES = 16;
+const MAX_HISTORY_CHARS = 48_000;
+const MAX_LATEST_USER_MESSAGE_CHARS = 8_000;
 
 const MINIMAX_MODEL = "MiniMax-M3";
 const MINIMAX_UPSTREAM = "https://api.minimax.io/anthropic/v1/messages";
@@ -25,6 +27,45 @@ const MAX_REQ_PER_WINDOW = 24;
 const MAX_ANON_REQ_PER_WINDOW = 5;
 const MAX_TRACKED_CLIENTS = 4096;
 const limiter = new Map<string, { count: number; startAt: number }>();
+
+type CompanionTextMessage = { role: "user" | "assistant"; content: string };
+type BoundedMessagesResult =
+  | { ok: true; messages: CompanionTextMessage[] }
+  | { ok: false; reason: "invalid-messages" | "latest-message-too-large" };
+
+/** Enforce the same outbound limits as the app, even for older or direct callers. */
+function boundCompanionMessages(input: unknown): BoundedMessagesResult {
+  if (!Array.isArray(input) || input.length === 0) return { ok: false, reason: "invalid-messages" };
+
+  const messages: CompanionTextMessage[] = [];
+  for (const item of input) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return { ok: false, reason: "invalid-messages" };
+    }
+    const candidate = item as { role?: unknown; content?: unknown };
+    if ((candidate.role !== "user" && candidate.role !== "assistant") || typeof candidate.content !== "string") {
+      return { ok: false, reason: "invalid-messages" };
+    }
+    messages.push({ role: candidate.role, content: candidate.content });
+  }
+
+  const latestMessage = messages[messages.length - 1];
+  if (!latestMessage || latestMessage.role !== "user") return { ok: false, reason: "invalid-messages" };
+  if (latestMessage.content.length > MAX_LATEST_USER_MESSAGE_CHARS) {
+    return { ok: false, reason: "latest-message-too-large" };
+  }
+
+  let bounded = messages.slice(-MAX_MESSAGES);
+  while (bounded[0]?.role === "assistant") bounded = bounded.slice(1);
+  while (bounded.reduce((total, message) => total + message.content.length, 0) > MAX_HISTORY_CHARS) {
+    bounded = bounded.slice(1);
+    while (bounded[0]?.role === "assistant") bounded = bounded.slice(1);
+  }
+  if (bounded.length === 0 || bounded[bounded.length - 1]?.role !== "user") {
+    return { ok: false, reason: "invalid-messages" };
+  }
+  return { ok: true, messages: bounded };
+}
 
 function clientKey(req: Request): string {
   return (
@@ -157,10 +198,13 @@ denoRuntime.serve(async (req: Request): Promise<Response> => {
   if (!systemText) return jsonError(req, "missing system prompt", 400);
   if (systemText.length > MAX_SYSTEM_CHARS) return jsonError(req, "system prompt too large", 413);
 
-  if (!Array.isArray(body.messages) || body.messages.length === 0) {
-    return jsonError(req, "missing messages", 400);
+  const boundedMessages = boundCompanionMessages(body.messages);
+  if (!boundedMessages.ok) {
+    return boundedMessages.reason === "latest-message-too-large"
+      ? jsonError(req, "latest message too large", 413)
+      : jsonError(req, "invalid messages", 400);
   }
-  if (body.messages.length > MAX_MESSAGES) return jsonError(req, "too many messages", 413);
+  body = { ...body, messages: boundedMessages.messages };
 
   // Only the tool names Athar itself defines are allowed through — blocks
   // arbitrary tool-schema injection from a direct caller.

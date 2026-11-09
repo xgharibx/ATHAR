@@ -185,3 +185,36 @@ export function buildLeaderboardScoreStats(input: {
     }
   };
 }
+
+/** Builds scores from one Fajr-based day snapshot for Home, the leaderboard, and background sync. */
+export function buildLeaderboardScoreStatsForDay(input: {
+  sections: Section[];
+  progress: Record<string, number>;
+  quranDailyAyahs: Record<string, number>;
+  dailyChecklist: Record<string, Record<string, boolean>>;
+  prayerLog: Record<string, Record<string, boolean>>;
+  quickTasbeeh: Record<string, number>;
+  tasbeehDayTotals: Record<string, number>;
+  todayISO: string;
+  /** Prayer logs are historically stored by civil date, unlike the Fajr-based score day. */
+  civilTodayISO?: string;
+}) {
+  const civilTodayISO = input.civilTodayISO ?? input.todayISO;
+  const prayersLoggedToday = { ...(input.prayerLog[input.todayISO] ?? {}) };
+  if (civilTodayISO !== input.todayISO) {
+    for (const [prayer, logged] of Object.entries(input.prayerLog[civilTodayISO] ?? {})) {
+      prayersLoggedToday[prayer] = prayersLoggedToday[prayer] || logged;
+    }
+  }
+
+  return buildLeaderboardScoreStats({
+    sections: input.sections,
+    progress: input.progress,
+    quranAyahsToday: input.quranDailyAyahs[input.todayISO] ?? 0,
+    prayersDone: input.dailyChecklist[input.todayISO] ?? {},
+    prayersLoggedToday,
+    quickTasbeeh: input.quickTasbeeh,
+    tasbeehTodayTotal: input.tasbeehDayTotals[input.todayISO] ?? 0,
+    todayISO: input.todayISO,
+  });
+}

@@ -4,13 +4,10 @@ import { useAdhkarDB } from "@/data/useAdhkarDB";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useTodayKey } from "@/hooks/useTodayKey";
 import { isRateLimited, syncLeaderboardAliasFromServer, syncLeaderboardSnapshot, LEADERBOARD_SUBMITTED_EVENT } from "@/lib/leaderboard";
-import { buildLeaderboardScoreStats } from "@/lib/leaderboardScores";
+import { buildLeaderboardScoreStatsForDay } from "@/lib/leaderboardScores";
 import { useNoorStore } from "@/store/noorStore";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSyncStatus } from "@/hooks/useCloudSync";
-
-/** Stable empty object: a fresh {} from a selector re-renders on every store tick. */
-const EMPTY_PRAYER_LOG: Record<string, boolean> = {};
 
 const AUTO_SYNC_DEBOUNCE_MS = 2500;
 
@@ -28,14 +25,15 @@ export function LeaderboardSyncBridge() {
   const lastKnownFajrTime = useNoorStore((state) => state.lastKnownFajrTime);
   const effectiveFajr = prayerTimes.data?.data?.timings?.Fajr ?? lastKnownFajrTime ?? undefined;
   const todayKey = useTodayKey({ mode: "ibadah", fajrTime: effectiveFajr });
+  const civilTodayKey = useTodayKey();
   const progress = useNoorStore((state) => state.progress);
-  const quranAyahsToday = useNoorStore((state) => state.quranDailyAyahs[todayKey] ?? 0);
-  const prayersDone = useNoorStore((state) => state.dailyChecklist[todayKey] ?? {});
+  const quranDailyAyahs = useNoorStore((state) => state.quranDailyAyahs);
+  const dailyChecklist = useNoorStore((state) => state.dailyChecklist);
+  const prayerLog = useNoorStore((state) => state.prayerLog);
   // The five fard prayers actually logged today. Recorded since the actionable
   // prayer notifications shipped, and until now scored against nothing.
-  const prayersLoggedToday = useNoorStore((state) => state.prayerLog?.[todayKey] ?? EMPTY_PRAYER_LOG);
   const quickTasbeeh = useNoorStore((state) => state.quickTasbeeh);
-  const tasbeehTodayTotal = useNoorStore((state) => state.tasbeehDayTotals?.[todayKey] ?? 0);
+  const tasbeehDayTotals = useNoorStore((state) => state.tasbeehDayTotals);
   const lastIbadahResetISO = useNoorStore((state) => state.lastIbadahResetISO);
   const ensureDailyResets = useNoorStore((state) => state.ensureDailyResets);
   // Two devices on one account must report the SAME score. They already share
@@ -65,17 +63,18 @@ export function LeaderboardSyncBridge() {
   const sections = React.useMemo(() => data?.db.sections ?? [], [data]);
   const stats = React.useMemo(
     () =>
-      buildLeaderboardScoreStats({
+      buildLeaderboardScoreStatsForDay({
         sections,
         progress,
-        quranAyahsToday,
-        prayersDone,
-        prayersLoggedToday,
+        quranDailyAyahs,
+        dailyChecklist,
+        prayerLog,
         quickTasbeeh,
-        tasbeehTodayTotal,
-        todayISO: todayKey
+        tasbeehDayTotals,
+        todayISO: todayKey,
+        civilTodayISO: civilTodayKey,
       }),
-    [prayersDone, prayersLoggedToday, progress, quranAyahsToday, quickTasbeeh, tasbeehTodayTotal, sections, todayKey]
+    [civilTodayKey, dailyChecklist, prayerLog, progress, quranDailyAyahs, quickTasbeeh, tasbeehDayTotals, sections, todayKey]
   );
 
   const snapshotKey = React.useMemo(
