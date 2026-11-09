@@ -1,6 +1,9 @@
 /**
  * Public, read-only proxy for the two translations offered by the app.
  * Quran Foundation Content API credentials and access tokens stay server-side.
+ * If those credentials are absent, use Quran Foundation's documented legacy
+ * public endpoint as a compatibility path; clients still pass through the
+ * same allowlist, durable quota, and response validation below.
  */
 const ALLOWED_ORIGINS = new Set([
   "https://www.athark.org",
@@ -226,29 +229,44 @@ async function getAccessToken(): Promise<AccessToken> {
 }
 
 async function fetchTranslationChapter(translationId: number, chapterNumber: number): Promise<unknown> {
-  const bases = apiBases();
-  if (!bases) throw new Error("translation-service-unconfigured");
-  const url = `${bases.api}/content/api/v4/quran/translations/${translationId}?chapter_number=${chapterNumber}&fields=verse_key`;
-
-  let token = await getAccessToken();
-  let response = await fetch(url, {
-    headers: { "x-auth-token": token.value, "x-client-id": runtime!.env.get("QF_CLIENT_ID")!.trim() },
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
-  if (response.status === 401) {
-    if (cachedToken?.value === token.value) cachedToken = null;
-    token = await getAccessToken();
-    response = await fetch(url, {
-      headers: { "x-auth-token": token.value, "x-client-id": runtime!.env.get("QF_CLIENT_ID")!.trim() },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    });
-  }
-  if (!response.ok) throw new Error(response.status === 429 ? "translation-rate-limited" : "translation-upstream-failed");
-
-  const payload = await response.json() as {
+  const clientId = runtime!.env.get("QF_CLIENT_ID")?.trim();
+  const clientSecret = runtime!.env.get("QF_CLIENT_SECRET")?.trim();
+  let payload: {
     translations?: Array<{ verse_key?: unknown; text?: unknown }>;
     meta?: { translation_name?: unknown; author_name?: unknown; filters?: unknown };
   };
+
+  if (!clientId && !clientSecret) {
+    const legacyUrl = `https://api.quran.com/api/v4/quran/translations/${translationId}?chapter_number=${chapterNumber}&fields=verse_key`;
+    const response = await fetch(legacyUrl, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    if (!response.ok) throw new Error(response.status === 429 ? "translation-rate-limited" : "translation-upstream-failed");
+    payload = await response.json();
+  } else if (clientId && clientSecret) {
+    const bases = apiBases();
+    if (!bases) throw new Error("translation-service-unconfigured");
+    const url = `${bases.api}/content/api/v4/quran/translations/${translationId}?chapter_number=${chapterNumber}&fields=verse_key`;
+
+    let token = await getAccessToken();
+    let response = await fetch(url, {
+      headers: { "x-auth-token": token.value, "x-client-id": clientId },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+    if (response.status === 401) {
+      if (cachedToken?.value === token.value) cachedToken = null;
+      token = await getAccessToken();
+      response = await fetch(url, {
+        headers: { "x-auth-token": token.value, "x-client-id": clientId },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+    }
+    if (!response.ok) throw new Error(response.status === 429 ? "translation-rate-limited" : "translation-upstream-failed");
+    payload = await response.json();
+  } else {
+    throw new Error("translation-service-unconfigured");
+  }
   if (!Array.isArray(payload.translations) || payload.translations.length === 0) {
     throw new Error("translation-invalid-response");
   }
