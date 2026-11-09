@@ -458,6 +458,20 @@ export function MushafPage() {
   const selectedItemRef = React.useRef<PageItem | null>(null);
   React.useEffect(() => { selectedItemRef.current = selectedItem; }, [selectedItem]);
 
+  // A selected ayah belongs to the page it came from. Clear it before the
+  // next page is painted so its action bar and focus-dimming never apply to a
+  // different page. Deep-link selection below can still select its target.
+  React.useLayoutEffect(() => {
+    if (!selectedItem) return;
+    const remainsOnPage = pageItems.some((item) =>
+      item.surahId === selectedItem.surahId && item.originalAyah === selectedItem.originalAyah
+    );
+    if (!remainsOnPage) {
+      selectedItemRef.current = null;
+      setSelectedItem(null);
+    }
+  }, [pageItems, selectedItem]);
+
   // Auto-select ayah when navigating from ?surah=X&ayah=Y deeplinks.
   // Keyed on params + page so the selection fires every time the user lands on
   // a new surah/ayah deep-link (the previous one-shot ref made subsequent
@@ -624,16 +638,32 @@ export function MushafPage() {
     setPrefs({ mushafInlineTafseer: inlineTafseer });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inlineTafseer]);
-  const [inlineTafseerSource, setInlineTafseerSource] = React.useState<string>(
+  const [inlineTafseerSource, setInlineTafseerSourceState] = React.useState<string>(
     requestedTafsirSource ?? "muyassar"
   );
-  React.useEffect(() => {
-    if (!requestedTafsirSource) return;
-    setInlineTafseerSource(requestedTafsirSource);
-    setInlineTafseer(true);
-  }, [requestedTafsirSource, setInlineTafseer]);
   const [inlineTafseerData, setInlineTafseerData] = React.useState<Record<number, string[]>>({});
   const [inlineTafseerLoading, setInlineTafseerLoading] = React.useState(false);
+  const [inlineTafseerError, setInlineTafseerError] = React.useState(false);
+  const [tafsirRetry, setTafsirRetry] = React.useState(0);
+  const setInlineTafseerSource = React.useCallback((source: string) => {
+    if (source !== inlineTafseerSource) {
+      // Never leave commentary from the old edition visible while the chosen
+      // source is loading; the cache is source-keyed but rendered data is
+      // surah-keyed, so clear it at the source-selection boundary.
+      setInlineTafseerData({});
+      setInlineTafseerLoading(true);
+      setInlineTafseerError(false);
+    }
+    setInlineTafseerSourceState(source);
+  }, [inlineTafseerSource]);
+  React.useEffect(() => {
+    if (!requestedTafsirSource) return;
+    setInlineTafseerData({});
+    setInlineTafseerError(false);
+    setInlineTafseerLoading(true);
+    setInlineTafseerSourceState(requestedTafsirSource);
+    setInlineTafseer(true);
+  }, [requestedTafsirSource, setInlineTafseer]);
 
   // Phase 2A: Word-by-word translation
   // Phase 2B: WBW data used by Tajweed mode
@@ -783,7 +813,18 @@ export function MushafPage() {
         goPageRef.current(targetPage);
       }
       audio.volume = audioVolume;
-      audio.play().catch(() => toast.error("تعذر تشغيل التلاوة"));
+      const handlePlaybackFailure = () => {
+        // A late error from an old request must not stop a newer ayah.
+        if (audioRef.current !== audio) return;
+        audioRef.current = null;
+        audioPlayRef.current.active = false;
+        audioPlayRef.current.advance = false;
+        audio.pause();
+        setPlayingKey(null);
+        toast.error("تعذر تشغيل التلاوة");
+      };
+      audio.onerror = handlePlaybackFailure;
+      audio.play().catch(handlePlaybackFailure);
       audio.onended = () => {
         // Guard: if component unmounted or a newer audio took over, bail out
         if (audioRef.current !== audio) return;
@@ -1008,15 +1049,16 @@ export function MushafPage() {
     const sid = tafsirItem.surahId;
     let mounted = true;
     setInlineTafseerLoading(true);
+    setInlineTafseerError(false);
     loadTafsirCached(inlineTafseerSource, sid)
       .then((ayahs) => {
         if (!mounted) return;
         setInlineTafseerData((prev) => ({ ...prev, [sid]: ayahs }));
       })
-      .catch(() => {})
+      .catch(() => { if (mounted) setInlineTafseerError(true); })
       .finally(() => { if (mounted) setInlineTafseerLoading(false); });
     return () => { mounted = false; };
-  }, [tafsirItem, inlineTafseerSource, loadTafsirCached]);
+  }, [tafsirItem, inlineTafseerSource, loadTafsirCached, tafsirRetry]);
 
   // Mutashabihat: look up similar-ayah matches for the open ayah once the Quran DB is loaded
   React.useEffect(() => {
@@ -1681,15 +1723,23 @@ export function MushafPage() {
         <div className="mushaf-mem-banner" onClick={(e) => e.stopPropagation()}>
           <span>🧠 وضع الحفظ · اضغط على الآية لكشفها</span>
           <span className="mushaf-mem-counter">
-            {revealedItems.size}/{playableItems.length}
+            {playableItems.filter((item) => revealedItems.has(`${item.surahId}:${item.displayAyah}`)).length}/{playableItems.length}
           </span>
           <button type="button"
             className="mushaf-mem-btn"
-            onClick={() => setRevealedItems(new Set(playableItems.map((i) => `${i.surahId}:${i.displayAyah}`)))}
+            onClick={() => setRevealedItems((previous) => {
+              const next = new Set(previous);
+              for (const item of playableItems) next.add(`${item.surahId}:${item.displayAyah}`);
+              return next;
+            })}
           >إظهار الكل</button>
           <button type="button"
             className="mushaf-mem-btn"
-            onClick={() => setRevealedItems(new Set())}
+            onClick={() => setRevealedItems((previous) => {
+              const next = new Set(previous);
+              for (const item of playableItems) next.delete(`${item.surahId}:${item.displayAyah}`);
+              return next;
+            })}
           >إخفاء الكل</button>
         </div>
       )}
@@ -2481,6 +2531,16 @@ export function MushafPage() {
                   <span className="w-3 h-3 border border-[var(--stroke)] border-t-[var(--accent)] rounded-full animate-spin inline-block" aria-hidden="true" />
                   جارٍ تحميل التفسير…
                 </span>
+              ) : inlineTafseerError ? (
+                <div className="flex flex-col items-center gap-2 text-center" role="alert">
+                  <span className="text-xs">تعذر تحميل التفسير. تحقق من الاتصال ثم أعد المحاولة.</span>
+                  <button
+                    type="button"
+                    className="mushaf-mem-btn"
+                    aria-label="إعادة محاولة تحميل التفسير"
+                    onClick={() => setTafsirRetry((attempt) => attempt + 1)}
+                  >إعادة المحاولة</button>
+                </div>
               ) : inlineTafseerData[tafsirItem.surahId]?.[tafsirItem.originalAyah] ? (
                 <p className="opacity-90 leading-8">{inlineTafseerData[tafsirItem.surahId][tafsirItem.originalAyah]}</p>
               ) : (
