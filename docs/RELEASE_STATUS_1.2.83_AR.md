@@ -35,6 +35,6 @@
 
 اختُبرت صفحة الدعم في متصفح حقيقي على عرض 1280 و390 بكسل؛ لم يظهر تمرير أفقي، ووصل التركيز بلوحة المفاتيح إلى رابط تجاوز المحتوى، وسجل المتصفح خالٍ من الأخطاء والتحذيرات.
 
-تحققات الإصدار الأخيرة على GitHub Actions تظهر عبر صفحات سير العمل: [Android validation](https://github.com/xgharibx/ATHAR/actions/workflows/android-validate.yml)، [iOS Build](https://github.com/xgharibx/ATHAR/actions/workflows/ios-build.yml)، و[نشر الموقع](https://github.com/xgharibx/ATHAR/actions/workflows/deploy-pages.yml). يلزم انتظار تشغيلات commit هذا التحديث قبل اعتبار فحوصه الجديدة ناجحة.
+اجتازت فحوص Android وiOS ونشر الموقع على commit `852500f`: [Android validation](https://github.com/xgharibx/ATHAR/actions/runs/42544614551)، [iOS Build](https://github.com/xgharibx/ATHAR/actions/runs/42544614569)، و[نشر الموقع](https://github.com/xgharibx/ATHAR/actions/runs/42544614585). التحديث التالي هنا يوثق النتائج فقط ولا يغيّر ملفات التطبيق أو سير العمل.
 
 مصادر المتطلبات الرسمية: [متطلبات target API لدى Google Play](https://support.google.com/googleplay/android-developer/answer/11926878?hl=ar) و[متطلبات Xcode وSDK من Apple](https://developer.apple.com/news/upcoming-requirements/?id=04282026a).
