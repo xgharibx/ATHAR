@@ -69,7 +69,7 @@ The lockfile mismatch is fixed and pushed in `3377391`: package, lockfile root, 
 ### Phase 0: Inventory and release baseline
 
 - [x] Capture route/page, native, backend-function, test, and current version inventory.
-- [x] Confirm current branch/worktree, pushed remote commit, package lock, Android/iOS version parity, CI gate visibility, live service configuration, and artifact signing state. (At the last inventory check, branch matched remote at `b9f7c0c`; the current Favorites change is being prepared; no current GitHub status check was recorded for `b9f7c0c`; current Android AAB is unsigned.)
+- [x] Confirm current branch/worktree, pushed remote commit, package lock, Android/iOS version parity, CI gate visibility, live service configuration, and artifact signing state. (Latest direct push check shows branch matches remote at `16b4fae`; no current GitHub status check was recorded for this commit; current Android AAB is unsigned.)
 - [ ] Convert all historical audit findings into verified / fixed / open / unverifiable status.
 
 ### Phase 1: Daily use and navigation
