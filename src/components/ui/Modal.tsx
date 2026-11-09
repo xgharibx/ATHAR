@@ -22,8 +22,6 @@ export function Modal(props: {
   onClose: () => void;
   /** Accessible title announced for the dialog. */
   ariaLabel: string;
-  /** Optional element id containing the dialog's main disclosure or description. */
-  ariaDescribedBy?: string;
   children: React.ReactNode;
   /** Optional className applied to the panel */
   className?: string;
@@ -61,7 +59,6 @@ export function Modal(props: {
           />
           <Dialog.Content
             tabIndex={-1}
-            aria-describedby={props.ariaDescribedBy}
             onOpenAutoFocus={() => {
               restoreFocusRef.current = document.activeElement instanceof HTMLElement
                 ? document.activeElement

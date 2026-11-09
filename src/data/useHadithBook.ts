@@ -103,13 +103,18 @@ export async function loadHadithPackWithProgress(
     }
 
     const reader = res.body.getReader();
-    const chunks: Uint8Array[] = [];
+    const chunks: ArrayBuffer[] = [];
     let received = 0;
 
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
-      chunks.push(value);
+      // A stream chunk may be backed by SharedArrayBuffer according to the
+      // generic DOM types; BlobPart requires an ArrayBuffer-backed view. Copy
+      // into an owned buffer so the bytes are stable and accepted by both.
+      const ownedChunk = new Uint8Array(value.byteLength);
+      ownedChunk.set(value);
+      chunks.push(ownedChunk.buffer);
       received += value.length;
       onProgress(Math.min(Math.round((received / total) * 100), 95));
     }

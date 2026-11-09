@@ -37,4 +37,31 @@ describe("Hadith pack loading errors", () => {
     await expect(loadHadithPackWithProgress("nawawi", vi.fn(), vi.fn()))
       .resolves.toMatchObject({ hadiths: [{ n: 1 }] });
   });
+
+  it("reassembles streamed UTF-8 chunks before parsing a Hadith pack", async () => {
+    const pack = { hadiths: [{ n: 1, s: 1, t: "حديث نبوي" }] };
+    const bytes = new TextEncoder().encode(JSON.stringify(pack));
+    const arabicOffset = new TextEncoder().encode(JSON.stringify({ hadiths: [{ n: 1, s: 1, t: "" }] })).length;
+    const splitAt = arabicOffset + 1;
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(bytes.subarray(0, splitAt));
+        controller.enqueue(bytes.subarray(splitAt));
+        controller.close();
+      },
+    });
+    const onProgress = vi.fn();
+    const setIsFromCache = vi.fn();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers({ "Content-Length": String(bytes.length) }),
+      body,
+    }));
+
+    await expect(loadHadithPackWithProgress("nawawi", onProgress, setIsFromCache)).resolves.toEqual(pack);
+
+    expect(setIsFromCache).toHaveBeenCalledWith(false);
+    expect(onProgress).toHaveBeenLastCalledWith(100);
+    expect(idbSetHadithPack).toHaveBeenCalledWith(pack);
+  });
 });
